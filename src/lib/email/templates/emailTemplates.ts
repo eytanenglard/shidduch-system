@@ -3,27 +3,548 @@
 import { EmailDictionary } from '@/types/dictionary';
 import { Locale } from '../../../../i18n-config';
 import { ProfileFeedbackReport } from '@/lib/services/profileFeedbackService';
-import * as fs from 'fs';
-import * as path from 'path';
 import Handlebars from 'handlebars';
 
-// Register 'eq' helper for Handlebars files
+// Register 'eq' helper for Handlebars
 Handlebars.registerHelper('eq', function (a, b) {
   return a === b;
 });
 
-// טען את תבנית ה-Footer פעם אחת
-const footerTemplate = Handlebars.compile(
-  fs.readFileSync(
-    path.join(process.cwd(), 'src/lib/email/templates/shared/footer.hbs'),
-    'utf-8'
-  )
-);
+// ============================================================================
+// EMBEDDED TEMPLATES - במקום לקרוא מקבצים, התבניות מוטמעות ישירות בקוד
+// ============================================================================
 
-const profileFeedbackTemplateSource = fs.readFileSync(
-  path.join(process.cwd(), 'src/lib/email/templates/profile-feedback.hbs'),
-  'utf-8'
-);
+// Footer Template (was: shared/footer.hbs)
+const footerTemplateSource = `
+<table role="presentation" style="width: 100%; margin-top: 40px; border-top: 2px solid #e5e7eb;">
+  <tr>
+    <td style="padding: 30px 20px; text-align: center;">
+      <!-- Logo -->
+      <div style="margin-bottom: 20px;">
+        <img 
+          src="https://res.cloudinary.com/dmfxoi6g0/image/upload/v1764757309/ChatGPT_Image_Dec_3_2025_12_21_36_PM_qk8mjz.png" 
+          alt="NeshamaTech Logo" 
+          style="height: 50px; width: auto; display: inline-block;"
+        />
+      </div>
+      
+      <!-- Company Name with Gradient Effect -->
+      <div style="margin-bottom: 15px;">
+        <span style="font-size: 24px; font-weight: bold; background: linear-gradient(to right, #0891b2, #f97316, #fbbf24); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
+          NeshamaTech
+        </span>
+      </div>
+      
+      <!-- Tagline -->
+      <p style="color: #6b7280; font-size: 14px; margin: 10px 0 20px 0; font-style: italic;">
+        {{#if (eq locale 'he')}}
+          מחברים לבבות, בונים עתיד משותף
+        {{else}}
+          Connecting Hearts, Building Shared Futures
+        {{/if}}
+      </p>
+      
+      <!-- Contact Info -->
+      <div style="margin: 20px 0; padding: 15px; background-color: #f9fafb; border-radius: 8px; display: inline-block;">
+        <p style="margin: 5px 0; color: #4b5563; font-size: 13px;">
+          <strong>{{#if (eq locale 'he')}}צור קשר:{{else}}Contact:{{/if}}</strong>
+        </p>
+        <p style="margin: 5px 0; color: #6b7280; font-size: 13px;">
+          📧 <a href="mailto:{{supportEmail}}" style="color: #06b6d4; text-decoration: none;">{{supportEmail}}</a>
+        </p>
+        <p style="margin: 5px 0; color: #6b7280; font-size: 13px;">
+          🌐 <a href="{{baseUrl}}" style="color: #06b6d4; text-decoration: none;">{{baseUrl}}</a>
+        </p>
+      </div>
+      
+      <!-- Social Links -->
+      <div style="margin: 20px 0;">
+        <a href="#" style="display: inline-block; margin: 0 10px; color: #06b6d4; text-decoration: none;">
+          <span style="font-size: 24px;">📘</span>
+        </a>
+        <a href="#" style="display: inline-block; margin: 0 10px; color: #06b6d4; text-decoration: none;">
+          <span style="font-size: 24px;">📷</span>
+        </a>
+        <a href="#" style="display: inline-block; margin: 0 10px; color: #06b6d4; text-decoration: none;">
+          <span style="font-size: 24px;">🐦</span>
+        </a>
+      </div>
+      
+      <!-- Copyright -->
+      <p style="color: #9ca3af; font-size: 12px; margin: 15px 0 5px 0;">
+        © {{currentYear}} NeshamaTech. 
+        {{#if (eq locale 'he')}}
+          כל הזכויות שמורות
+        {{else}}
+          All rights reserved
+        {{/if}}
+      </p>
+      
+      <!-- Legal Links -->
+      <p style="color: #9ca3af; font-size: 11px; margin: 5px 0;">
+        <a href="{{baseUrl}}/privacy" style="color: #6b7280; text-decoration: none; margin: 0 5px;">
+          {{#if (eq locale 'he')}}מדיניות פרטיות{{else}}Privacy Policy{{/if}}
+        </a> | 
+        <a href="{{baseUrl}}/terms" style="color: #6b7280; text-decoration: none; margin: 0 5px;">
+          {{#if (eq locale 'he')}}תנאי שימוש{{else}}Terms of Service{{/if}}
+        </a>
+      </p>
+    </td>
+  </tr>
+</table>
+`;
+
+// Profile Feedback Template (was: profile-feedback.hbs)
+const profileFeedbackTemplateSource = `
+<!DOCTYPE html>
+<html dir="{{#if (eq locale 'he')}}rtl{{else}}ltr{{/if}}" lang="{{locale}}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{dict.title}}</title>
+    <style>
+        body { 
+            font-family: 'Segoe UI', Tahoma, Arial, sans-serif; 
+            direction: {{#if (eq locale 'he')}}rtl{{else}}ltr{{/if}}; 
+            text-align: {{#if (eq locale 'he')}}right{{else}}left{{/if}}; 
+            line-height: 1.6; 
+            margin: 0; 
+            padding: 0; 
+            background-color: #f8fafc; 
+            color: #374151; 
+        }
+        
+        .email-container { 
+            max-width: 600px; 
+            margin: 20px auto; 
+            background-color: #ffffff; 
+            border-radius: 12px; 
+            box-shadow: 0 10px 25px rgba(0,0,0,0.08); 
+            overflow: hidden; 
+        }
+        
+        .email-header { 
+            background: linear-gradient(135deg, #06b6d4, #0891b2); 
+            color: #ffffff; 
+            padding: 30px; 
+            text-align: center; 
+        }
+        
+        .email-header h1 { 
+            margin: 0; 
+            font-size: 26px; 
+            font-weight: 700; 
+            letter-spacing: -0.5px;
+        }
+        
+        .email-body { 
+            padding: 30px; 
+            font-size: 16px; 
+        }
+        
+        .greeting {
+            font-size: 20px;
+            color: #1e293b;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+        
+        .intro-text {
+            font-size: 16px;
+            color: #475569;
+            margin-bottom: 30px;
+            line-height: 1.7;
+        }
+        
+        .progress-section {
+            background: linear-gradient(135deg, #eff6ff, #dbeafe);
+            border: 2px solid #bfdbfe;
+            border-radius: 12px;
+            padding: 25px;
+            margin: 30px 0;
+            text-align: center;
+        }
+        
+        .progress-title {
+            color: #1e40af;
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+        
+        .progress-number {
+            font-size: 48px;
+            font-weight: 900;
+            color: #06b6d4;
+            margin: 10px 0;
+        }
+        
+        .progress-bar-container {
+            background-color: #e2e8f0;
+            border-radius: 25px;
+            height: 20px;
+            margin: 20px 0;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .progress-bar {
+            background: linear-gradient(90deg, #06b6d4, #0891b2);
+            height: 100%;
+            border-radius: 25px;
+            transition: width 1s ease-out;
+            position: relative;
+        }
+        
+        .progress-text {
+            color: #64748b;
+            font-size: 15px;
+            margin-top: 10px;
+            font-weight: 500;
+        }
+        
+        .ai-summary {
+            background: linear-gradient(135deg, #fefce8, #fef3c7);
+            border-{{#if (eq locale 'he')}}right{{else}}left{{/if}}: 5px solid #f59e0b;
+            padding: 25px;
+            border-radius: 12px;
+            margin: 25px 0;
+        }
+        
+        .ai-summary h3 {
+            margin-top: 0;
+            margin-bottom: 20px;
+            color: #b45309;
+            font-size: 18px;
+            font-weight: 700;
+        }
+        
+        .ai-insight {
+            background: rgba(255, 255, 255, 0.7);
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+        
+        .ai-insight strong {
+            color: #92400e;
+            font-weight: 600;
+        }
+        
+        .ai-disclaimer {
+            font-size: 14px;
+            color: #6b7280;
+            font-style: italic;
+            margin-top: 15px;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 6px;
+        }
+        
+        .status-section {
+            margin: 30px 0;
+        }
+        
+        .section-title {
+            font-size: 22px;
+            color: #1e293b;
+            margin-bottom: 25px;
+            font-weight: 700;
+            border-bottom: 3px solid #e2e8f0;
+            padding-bottom: 10px;
+        }
+        
+        .status-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 25px 0;
+        }
+        
+        .status-card {
+            border-radius: 12px;
+            padding: 20px;
+            border: 2px solid;
+        }
+        
+        .completed-card {
+            background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+            border-color: #22c55e;
+        }
+        
+        .missing-card {
+            background: linear-gradient(135deg, #fffbeb, #fef3c7);
+            border-color: #f59e0b;
+        }
+        
+        .card-title {
+            margin-top: 0;
+            margin-bottom: 15px;
+            font-size: 16px;
+            font-weight: 700;
+        }
+        
+        .completed-card .card-title {
+            color: #15803d;
+        }
+        
+        .missing-card .card-title {
+            color: #b45309;
+        }
+        
+        .status-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .status-item {
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+            display: flex;
+            align-items: center;
+            font-size: 14px;
+        }
+        
+        .status-item:last-child {
+            border-bottom: none;
+        }
+        
+        .status-icon {
+            margin-{{#if (eq locale 'he')}}left{{else}}right{{/if}}: 10px;
+            font-size: 18px;
+        }
+        
+        .questionnaire-section {
+            background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
+            border: 2px solid #0ea5e9;
+            border-radius: 12px;
+            padding: 25px;
+            margin: 30px 0;
+        }
+        
+        .questionnaire-title {
+            color: #0369a1;
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .questionnaire-icon {
+            margin-{{#if (eq locale 'he')}}left{{else}}right{{/if}}: 10px;
+            font-size: 24px;
+        }
+        
+        .question-summary {
+            background: rgba(255, 255, 255, 0.8);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            text-align: center;
+            font-weight: 600;
+            color: #0369a1;
+            font-size: 16px;
+        }
+        
+        .question-details {
+            color: #0369a1;
+            text-align: center;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+        
+        .cta-section {
+            background: linear-gradient(135deg, #f1f5f9, #e2e8f0);
+            border: 2px solid #94a3b8;
+            border-radius: 12px;
+            padding: 30px;
+            text-align: center;
+            margin: 30px 0;
+        }
+        
+        .cta-title {
+            font-size: 24px;
+            color: #1e293b;
+            margin-bottom: 15px;
+            font-weight: 700;
+        }
+        
+        .cta-text {
+            color: #64748b;
+            margin-bottom: 25px;
+            font-size: 16px;
+        }
+        
+        .cta-button {
+            background: linear-gradient(135deg, #06b6d4, #0891b2);
+            color: white !important;
+            text-decoration: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 18px;
+            display: inline-block;
+            box-shadow: 0 4px 15px rgba(6, 182, 212, 0.3);
+            transition: transform 0.2s ease;
+        }
+        
+        .cta-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(6, 182, 212, 0.4);
+        }
+        
+        .footer {
+            background-color: #f8fafc;
+            padding: 25px;
+            text-align: center;
+            font-size: 14px;
+            color: #64748b;
+            border-top: 1px solid #e2e8f0;
+        }
+        
+        .footer a {
+            color: #06b6d4;
+            text-decoration: none;
+        }
+        
+        @media (max-width: 600px) {
+            .status-grid {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+            
+            .email-body {
+                padding: 20px;
+            }
+            
+            .progress-number {
+                font-size: 36px;
+            }
+            
+            .cta-title {
+                font-size: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <div class="email-header">
+            <h1>{{dict.title}}</h1>
+        </div>
+        
+        <div class="email-body">
+            <div class="greeting">{{greeting}}</div>
+            
+            <div class="intro-text">
+                {{#if isAutomated}}
+                    {{dict.systemIntro}}
+                {{else}}
+                    {{dict.matchmakerIntro}}
+                {{/if}}
+            </div>
+
+            <div class="progress-section">
+                <div class="progress-title">{{dict.progressHeader}}</div>
+                <div class="progress-number">{{report.completionPercentage}}%</div>
+                <div class="progress-bar-container">
+                    <div class="progress-bar" style="width: {{report.completionPercentage}}%;"></div>
+                </div>
+                <div class="progress-text">
+                    השקעת עד כה והגעת ל-<strong>{{report.completionPercentage}}% השלמה</strong>.<br>
+                    כל הכבוד! עוד מאמץ קטן והפרופיל שלך יהיה מוכן למצוא את ההתאמה המושלמת.
+                </div>
+            </div>
+
+            {{#if report.aiSummary}}
+            <div class="ai-summary">
+                <h3>{{dict.aiSummaryHeader}}</h3>
+                
+                <div class="ai-insight">
+                    <strong>{{dict.aiSummary.personalityTitle}}:</strong><br>
+                    "{{report.aiSummary.personality}}"
+                </div>
+                
+                <div class="ai-insight">
+                    <strong>{{dict.aiSummary.lookingForTitle}}:</strong><br>
+                    "{{report.aiSummary.lookingFor}}"
+                </div>
+                
+                <div class="ai-disclaimer">
+                    זוהי רק טעימה מהתובנות שה-AI שלנו יכול להפיק מפרופיל מלא. ככל שתוסיף יותר מידע, כך נוכל לחדד יותר את ההתאמות עבורך.
+                </div>
+            </div>
+            {{/if}}
+
+            <div class="status-section">
+                <h2 class="section-title">סטטוס הפרופיל שלך</h2>
+                
+                <div class="status-grid">
+                    <div class="status-card completed-card">
+                        <h4 class="card-title">כל הכבוד! מה שכבר השלמת:</h4>
+                        <ul class="status-list">
+                            {{#each report.completedProfileItems}}
+                                <li class="status-item">
+                                    <span class="status-icon">✅</span>
+                                    {{this}}
+                                </li>
+                            {{/each}}
+                        </ul>
+                    </div>
+                    
+                    <div class="status-card missing-card">
+                        <h4 class="card-title">השלב הבא: מה חסר</h4>
+                        <ul class="status-list">
+                             {{#each report.missingProfileItems}}
+                                <li class="status-item">
+                                    <span class="status-icon">📝</span>
+                                    {{this}}
+                                </li>
+                            {{/each}}
+                        </ul>
+                    </div>
+                </div>
+                
+                {{#if report.missingQuestionnaireItems}}
+                <div class="questionnaire-section">
+                    <div class="questionnaire-title">
+                        <span class="questionnaire-icon">📋</span>
+                        שאלון המעמיק - הזדמנות זהב!
+                    </div>
+                    
+                    <div class="question-summary">
+                        יש לנו {{report.missingQuestionnaireItems.length}} שאלות מעמיקות שמחכות לך!<br>
+                        הן יעזרו לנו להכיר אותך טוב יותר ולמצוא התאמות מדויקות.
+                    </div>
+                    
+                    <p class="question-details">
+                        השאלות מחולקות לעולמות: אישיות, ערכים, זוגיות, פרטנר ודת ומסורת
+                    </p>
+                </div>
+                {{/if}}
+            </div>
+
+            <div class="cta-section">
+                <h3 class="cta-title">{{dict.cta.title}}</h3>
+                <p class="cta-text">השלמת הפרופיל מגדילה משמעותית את הסיכוי למצוא התאמה איכותית.</p>
+                <a href="{{baseUrl}}/profile" class="cta-button">{{dict.cta.button}}</a>
+            </div>
+
+        </div>
+        
+        <div class="footer">
+             <p>{{sharedDict.supportPrompt}} <a href="mailto:{{supportEmail}}">{{supportEmail}}</a></p>
+             <p>{{sharedDict.rightsReserved}}</p>
+        </div>
+    </div>
+</body>
+</html>
+`;
+
+// Compile templates once at module load
+const footerTemplate = Handlebars.compile(footerTemplateSource);
 const profileFeedbackTemplate = Handlebars.compile(profileFeedbackTemplateSource);
 
 // --- הגדרות טיפוסים לקונטקסט של כל תבנית ---
@@ -73,16 +594,16 @@ export interface InvitationTemplateContext extends BaseTemplateContext {
   invitationLink: string;
   expiresIn: string;
 }
+
 export interface ProfileSummaryUpdateTemplateContext extends BaseTemplateContext {
   dict: EmailDictionary['profileSummaryUpdate'] & { 
       introMatchmaker: string; 
       introSystem: string; 
-  }; // הרחבת הטיפוס באופן ידני אם ה-Type הראשי עדיין לא עודכן
+  };
   firstName: string;
-  matchmakerName?: string; // אופציונלי
+  matchmakerName?: string;
   dashboardUrl: string;
 }
-
 
 export interface SuggestionTemplateContext extends BaseTemplateContext {
   dict: EmailDictionary['suggestion'];
@@ -175,13 +696,11 @@ const createInternalBaseEmailHtml = (title: string, content: string): string => 
 };
 
 // --- פונקציית עזר ליצירת HTML בסיסי ---
-// עדכון קריטי: העברת ה-Styles וה-Attributes לתוך הקונטיינר הפנימי כדי שג'ימייל לא ימחק אותם
 const createBaseEmailHtml = (title: string, content: string, context: BaseTemplateContext): string => {
     const isRtl = context.locale === 'he';
     const direction = isRtl ? 'rtl' : 'ltr';
     const textAlign = isRtl ? 'right' : 'left';
     
-    // בחירת גופן מתאים לשפה
     const fontFamily = isRtl 
         ? "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif" 
         : "'Helvetica Neue', Helvetica, Arial, sans-serif";
@@ -197,7 +716,6 @@ const createBaseEmailHtml = (title: string, content: string, context: BaseTempla
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>${title}</title>
     <style>
-        /* General Resets */
         body { 
             margin: 0; 
             padding: 0; 
@@ -207,7 +725,6 @@ const createBaseEmailHtml = (title: string, content: string, context: BaseTempla
             -ms-text-size-adjust: 100%;
         }
         
-        /* Main Container Class */
         .email-container { 
             max-width: 600px; 
             margin: 20px auto; 
@@ -216,7 +733,6 @@ const createBaseEmailHtml = (title: string, content: string, context: BaseTempla
             border-radius: 8px; 
             box-shadow: 0 4px 8px rgba(0,0,0,0.05); 
             overflow: hidden; 
-            /* Critical for inheritance in some clients */
             font-family: ${fontFamily};
             color: #343a40; 
         }
@@ -276,7 +792,6 @@ const createBaseEmailHtml = (title: string, content: string, context: BaseTempla
             box-shadow: 0 4px 12px rgba(6, 182, 212, 0.4);
         }
         
-        /* Dynamic Styles based on direction */
         .highlight-box { 
             background-color: #fef9e7; 
             border-${isRtl ? 'right' : 'left'}: 4px solid #f7c75c; 
@@ -292,7 +807,6 @@ const createBaseEmailHtml = (title: string, content: string, context: BaseTempla
             margin-bottom: 15px; 
         }
         
-        /* Fix for Lists bullets */
         ul, ol {
             padding-${isRtl ? 'right' : 'left'}: 20px;
             padding-${isRtl ? 'left' : 'right'}: 0;
@@ -300,11 +814,6 @@ const createBaseEmailHtml = (title: string, content: string, context: BaseTempla
     </style>
 </head>
 <body style="margin: 0; padding: 0; background-color: #f8f9fa;">
-    <!-- 
-      כאן התיקון הגדול:
-      הוספנו את ה-dir וה-style ישירות ל-div העוטף.
-      זה מבטיח שגם אם ג'ימייל מוחק את ה-body, הקונטיינר הזה יישאר מימין לשמאל.
-    -->
     <div class="email-container" dir="${direction}" style="direction: ${direction}; text-align: ${textAlign}; font-family: ${fontFamily}; max-width: 600px; margin: 20px auto; background-color: #ffffff;">
         <div class="email-header">
             <h1>${title}</h1>
@@ -352,17 +861,13 @@ export const emailTemplates: {
   `, context),
   
 profileSummaryUpdate: (context) => {
-    // בדיקה: האם יש שם שדכן?
     const introText = context.matchmakerName
       ? context.dict.introMatchmaker.replace('{{matchmakerName}}', context.matchmakerName)
       : context.dict.introSystem;
 
     return createBaseEmailHtml(context.dict.title, `
       <p>${context.sharedDict.greeting.replace('{{name}}', context.name)}</p>
-      
-      <!-- שימוש בטקסט שנבחר למעלה -->
       <p>${introText}</p>
-      
       <div class="highlight-box">
         <p><strong>${context.dict.highlight}</strong></p>
       </div>
@@ -446,10 +951,8 @@ profileSummaryUpdate: (context) => {
         <h3>${context.dict.detailsOf.replace('{{otherPartyName}}', context.otherPartyName)}</h3>
         ${contactInfoHtml || '<p>לא סופקו פרטי קשר.</p>'}
       </div>
-      <div class="highlight-box">
-        <p><strong>${context.dict.tipTitle}</strong> ${context.dict.tipContent}</p>
-      </div>
-      <p>${context.dict.goodLuck}</p>
+      <p>${context.dict.guidanceNote}</p>
+      <p>${context.sharedDict.closing.replace('{{matchmakerName}}', context.matchmakerName)}</p>
     `, context);
   },
 
@@ -458,10 +961,10 @@ profileSummaryUpdate: (context) => {
     <p>${context.dict.intro.replace('{{matchmakerName}}', context.matchmakerName)}</p>
     <p>${context.dict.actionPrompt}</p>
     <p style="text-align: center;">
-      <a href="${context.baseUrl}/dashboard/suggestions?inquiryId=${context.inquiryId}" class="button">${context.dict.actionButton}</a>
+      <a href="${context.baseUrl}/messages" class="button">${context.dict.actionButton}</a>
     </p>
     <div class="highlight-box">
-      <p><strong>${context.dict.noticeTitle}</strong> ${context.dict.noticeContent}</p>
+      <p><strong>${context.dict.deadline}</strong></p>
     </div>
   `, context),
 
@@ -478,47 +981,33 @@ profileSummaryUpdate: (context) => {
     <p>${context.sharedDict.greeting.replace('{{name}}', context.name || 'משתמש יקר')}</p>
     <p>${context.dict.intro}</p>
     <div class="highlight-box">
-      <p>${context.dict.securityNote}</p>
+      <p><strong>${context.dict.securityNote}</strong></p>
     </div>
     <p style="text-align: center;">
-      <a href="${context.loginUrl}" class="button">${context.dict.actionButton}</a>
+      <a href="${context.loginUrl}" class="button">${context.dict.loginButton}</a>
     </p>
   `, context),
-  
-  'internal-feedback-notification': (context) => createInternalBaseEmailHtml('New Feedback Received', `
-    <h1>New Feedback Received</h1>
-    <p>A new piece of feedback has been submitted through the website widget.</p>
-    
-    <table>
-        <tr>
-            <th>Feedback ID</th>
-            <td>${context.feedbackId}</td>
-        </tr>
-        <tr>
-            <th>Type</th>
-            <td><strong>${context.feedbackType}</strong></td>
-        </tr>
-        <tr>
-            <th>Submitted By</th>
-            <td>${context.userIdentifier}</td>
-        </tr>
-        <tr>
-            <th>Page URL</th>
-            <td><a href="${context.pageUrl}" target="_blank">${context.pageUrl}</a></td>
-        </tr>
-        <tr>
-            <th>Content</th>
-            <td><pre>${context.content}</pre></td>
-        </tr>
-    </table>
 
-    ${context.screenshotUrl ? `
-    <div class="screenshot">
-        <h2>Screenshot Attached</h2>
-        <a href="${context.screenshotUrl}" target="_blank">
-            <img src="${context.screenshotUrl}" alt="User-submitted screenshot">
-        </a>
-    </div>
-    ` : ''}
-  `),
+  'internal-feedback-notification': (context) => {
+    let content = `
+      <h1>New ${context.feedbackType} Feedback Received</h1>
+      <table>
+        <tr><th>Feedback ID</th><td>${context.feedbackId}</td></tr>
+        <tr><th>User</th><td>${context.userIdentifier}</td></tr>
+        <tr><th>Page URL</th><td><a href="${context.pageUrl}">${context.pageUrl}</a></td></tr>
+        <tr><th>Content</th><td><pre>${context.content}</pre></td></tr>
+      </table>
+    `;
+    
+    if (context.screenshotUrl) {
+      content += `
+        <div class="screenshot">
+          <h2>Screenshot</h2>
+          <img src="${context.screenshotUrl}" alt="User Screenshot" />
+        </div>
+      `;
+    }
+    
+    return createInternalBaseEmailHtml(`${context.feedbackType} Feedback - NeshamaTech`, content);
+  },
 };
