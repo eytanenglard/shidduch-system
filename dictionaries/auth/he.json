@@ -303,9 +303,13 @@
   "masorti_light": "מסורתי/ת (קשר קל למסורת)",
   "secular_traditional_connection": "חילוני/ת עם זיקה למסורת",
   "secular": "חילוני/ת",
-  "charedi_modern": "חרדי/ת מודרני/ת",
-  "charedi": "חרדי/ת",
   "spiritual_not_religious": "רוחני/ת (לאו דווקא דתי/ה)",
+  "charedi_modern": "חרדי/ת מודרני/ת",
+  "charedi_litvak": "חרדי/ת ליטאי/ת",
+  "charedi_sephardic": "חרדי/ת ספרדי/ת",
+  "charedi_hasidic": "חרדי/ת חסידי/ת",
+  "chabad": "חב״ד",
+  "breslov": "ברסלב",
   "other": "אחר"
 },
        "errors": {
