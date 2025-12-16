@@ -330,24 +330,35 @@
           "consentApiError": "An error occurred while accepting the terms."
         }
       },
-      "optionalInfo": {
+       "optionalInfo": {
         "title": "Additional Information",
-        "subtitle": "This information will help us find more accurate matches for you. It is recommended to fill in as many details as possible.",
-        "heightLabel": "Height (in cm)",
+        "subtitle": "This information will help us find more accurate matches for you. We recommend filling out as much as possible.",
+        "heightLabel": "Height (cm)",
         "heightPlaceholder": "e.g., 175",
         "occupationLabel": "Occupation",
         "occupationPlaceholder": "e.g., Software Engineer, Teacher, Student",
         "educationLabel": "Education",
         "educationPlaceholder": "e.g., Bachelor's in Computer Science",
         "backButton": "Back",
-        "nextButton": "Finish & Continue to Verification",
+        "nextButton": "Complete & Continue to Verification",
         "status": {
           "saving": "Saving details...",
           "updating": "Updating session...",
           "sendingCode": "Sending verification code..."
         },
+        "loadingOverlay": {
+          "title": "Processing Your Details",
+          "subtitle": "This only takes a few seconds. Please don't close this window.",
+          "acceptingTerms": "Accepting terms of service...",
+          "savingProfile": "Saving your personal details...",
+          "savingProfileSubtext": "Creating your profile",
+          "sendingCode": "Sending verification code...",
+          "sendingCodeSubtext": "Via WhatsApp",
+          "redirecting": "Redirecting to phone verification..."
+        },
         "errors": {
-          "missingData": "Essential data is missing. Please go back and check your details.",
+          "title": "Error",
+          "missingData": "Essential data is missing. Please go back and verify your information.",
           "default": "An unexpected error occurred"
         }
       },

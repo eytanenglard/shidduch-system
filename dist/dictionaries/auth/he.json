@@ -327,7 +327,7 @@
           "religiousLevelRequired": "יש לבחור רמה דתית"
         }
       },
-      "optionalInfo": {
+       "optionalInfo": {
         "title": "מידע נוסף",
         "subtitle": "מידע זה יעזור לנו להתאים לך שידוכים מדויקים יותר. מומלץ למלא כמה שיותר פרטים.",
         "heightLabel": "גובה (בס\"מ)",
@@ -342,6 +342,16 @@
           "saving": "שומר פרטים...",
           "updating": "מעדכן סשן...",
           "sendingCode": "שולח קוד אימות..."
+        },
+        "loadingOverlay": {
+          "title": "מעבדים את הפרטים שלך",
+          "subtitle": "זה לוקח רק מספר שניות, נא לא לסגור את החלון.",
+          "acceptingTerms": "מאשר את תנאי השימוש...",
+          "savingProfile": "שומר את הפרטים האישיים...",
+          "savingProfileSubtext": "יוצרים את הפרופיל שלך",
+          "sendingCode": "שולח קוד אימות לטלפון...",
+          "sendingCodeSubtext": "באמצעות WhatsApp",
+          "redirecting": "מעביר לאימות טלפון..."
         },
         "errors": {
           "title": "שגיאה",

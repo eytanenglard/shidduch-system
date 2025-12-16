@@ -338,28 +338,32 @@ export type RegisterStepsDict = {
         consentApiError: string;
       };
     };
-    optionalInfo: {
-      title: string;
-      subtitle: string;
-      heightLabel: string;
-      heightPlaceholder: string;
-      occupationLabel: string;
-      occupationPlaceholder: string;
-      educationLabel: string;
-      educationPlaceholder: string;
-      backButton: string;
-      nextButton: string;
-      status: {
-        saving: string;
-        updating: string;
-        sendingCode: string;
-      };
-      errors: {
-        title: string;
-        missingData: string;
-        default: string;
-      };
-    };
+ optionalInfo: {
+  title: string;
+  subtitle: string;
+  heightLabel: string;
+  heightPlaceholder: string;
+  occupationLabel: string;
+  occupationPlaceholder: string;
+  educationLabel: string;
+  educationPlaceholder: string;
+  backButton: string;
+  nextButton: string;
+  status: {
+    saving: string;
+    updating: string;
+    sendingCode: string;
+  };
+  // ⬇️ הוסף את החלק הזה ⬇️
+ loadingOverlay?: LoadingOverlayDict;
+  // ⬆️ עד כאן ⬆️
+  errors: {
+    title: string;
+    missingData: string;
+    default: string;
+  };
+};
+
     complete: {
       loading: string;
       // Email verification required
@@ -695,4 +699,14 @@ export type UnsubscribePageDict = {
   errorMessageDefault: string;
   errorInvalidLink: string;
   backToHomeButton: string;
+};
+export type LoadingOverlayDict = {
+  title: string;
+  subtitle: string;
+  acceptingTerms: string;
+  savingProfile: string;
+  savingProfileSubtext?: string;
+  sendingCode: string;
+  sendingCodeSubtext?: string;
+  redirecting: string;
 };
