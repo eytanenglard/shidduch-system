@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Sparkles } from 'lucide-react';
 
@@ -13,18 +13,16 @@ interface StandardizedLoadingSpinnerProps {
 }
 
 // ==================== CINEMATIC TIMING ====================
-// ==================== CINEMATIC TIMING (UPDATED) ====================
-// שנה את הערכים הקיימים לערכים האלו:
 const TIMING = {
-  drawDuration: 0.1, // היה 0.8 - מצויר כמעט מיידית
-  fillDelay: 0.1, // היה 0.6 - מתחיל להתמלא מיד
-  stagger: 0.05, // היה 0.15 - הפער בין החלקים קצר
-  assemblyStart: 0.4, // היה 1.6 - הלוגו מתחבר תוך פחות מחצי שנייה
-  particleDuration: 1.2, // ללא שינוי
-  convergenceStart: 0.6, // היה 2.0 - האפקטים מגיעים מהר
+  drawDuration: 0.1,
+  fillDelay: 0.1,
+  stagger: 0.05,
+  assemblyStart: 0.4,
+  particleDuration: 1.2,
+  convergenceStart: 0.6,
   convergenceDuration: 1.8,
-  liquidFillStart: 0.8, // היה 2.2 - הנוזל מתחיל להתמלא מהר
-  liquidFillDuration: 2.5, // היה 3.5 - המילוי מהיר יותר
+  liquidFillStart: 0.8,
+  liquidFillDuration: 2.5,
 };
 
 // Custom easing curves
@@ -39,8 +37,10 @@ const EASING = {
 // ==================== HELPER COMPONENTS ====================
 
 function FloatingParticles({ count = 20 }) {
-  const particles = useMemo(
-    () =>
+  const [particles, setParticles] = useState<any[]>([]);
+
+  useEffect(() => {
+    setParticles(
       Array.from({ length: count }, (_, i) => ({
         id: i,
         x: Math.random() * 100,
@@ -52,9 +52,11 @@ function FloatingParticles({ count = 20 }) {
           Math.random() > 0.5
             ? 'rgba(227, 138, 41, 0.4)'
             : 'rgba(54, 131, 104, 0.4)',
-      })),
-    [count]
-  );
+      }))
+    );
+  }, [count]);
+
+  if (particles.length === 0) return null;
 
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -97,17 +99,21 @@ function ParticleTrail({
   delay,
   count = 8,
 }: any) {
-  const particles = useMemo(
-    () =>
+  const [particles, setParticles] = useState<any[]>([]);
+
+  useEffect(() => {
+    setParticles(
       Array.from({ length: count }, (_, i) => ({
         id: i,
         offsetX: (Math.random() - 0.5) * 40,
         offsetY: (Math.random() - 0.5) * 40,
         size: Math.random() * 6 + 3,
         delay: delay + i * 0.05,
-      })),
-    [count, delay]
-  );
+      }))
+    );
+  }, [count, delay]);
+
+  if (particles.length === 0) return null;
 
   return (
     <>
@@ -137,8 +143,10 @@ function ParticleTrail({
 }
 
 function ConvergingParticles({ phase }: { phase: string }) {
-  const particles = useMemo(
-    () =>
+  const [particles, setParticles] = useState<any[]>([]);
+
+  useEffect(() => {
+    setParticles(
       Array.from({ length: 60 }, (_, i) => {
         const angle = (i / 60) * Math.PI * 2;
         const distance = 300 + Math.random() * 200;
@@ -166,11 +174,11 @@ function ConvergingParticles({ phase }: { phase: string }) {
                 ? 'rgba(54, 131, 104, 0.85)'
                 : 'rgba(109, 186, 140, 0.85)',
         };
-      }),
-    []
-  );
+      })
+    );
+  }, []);
 
-  if (phase !== 'assembled') return null;
+  if (phase !== 'assembled' || particles.length === 0) return null;
 
   return (
     <>

@@ -2859,32 +2859,113 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
         </div>
       </div>
 
-      {/* ======================= START: MOBILE STICKY FOOTER ======================= */}
-      {isEditing && !viewOnly && (
-        <div className="sticky bottom-0 z-20 mt-4 border-t border-gray-200 bg-white/90 p-4 backdrop-blur-md shadow-[0_-4px_15px_-5px_rgba(0,0,0,0.15)] sm:hidden">
-          <div className="flex items-center justify-center gap-3">
+      {/* ======================= START: FLOATING ACTION BUTTON ======================= */}
+      {!viewOnly && (
+<div className="sticky bottom-24 sm:bottom-28 z-30 flex justify-start ps-4 sm:ps-6 -mt-14 pointer-events-none">          {isEditing ? (
             <Button
-              variant="outline"
-              size="sm"
-              onClick={handleCancel}
-              className="rounded-full shadow-sm hover:shadow-md transition-all duration-300 border-gray-300 text-gray-700 hover:bg-gray-50 px-6 py-2"
-            >
-              <X className="w-4 h-4 ms-1.5" />
-              {dict.buttons.cancel}
-            </Button>
-            <Button
-              variant="default"
-              size="sm"
               onClick={handleSave}
-              className="rounded-full shadow-sm hover:shadow-md transition-all duration-300 bg-cyan-600 hover:bg-cyan-700 text-white px-6 py-2"
+              className={cn(
+                'h-14 w-14 rounded-full shadow-lg hover:shadow-xl pointer-events-auto',
+                'bg-gradient-to-br from-cyan-500 to-cyan-600 hover:from-cyan-600 hover:to-cyan-700',
+                'transition-all duration-300 ease-out',
+                'hover:scale-110 active:scale-95',
+                'flex items-center justify-center',
+                'ring-4 ring-cyan-200/50'
+              )}
+              aria-label={dict.buttons.saveChanges}
             >
-              <Save className="w-4 h-4 ms-1.5" />
-              {dict.buttons.saveChanges}
+              <Save className="w-6 h-6 text-white" />
             </Button>
+          ) : (
+            <Button
+              onClick={() => setIsEditing(true)}
+              className={cn(
+                'h-14 w-14 rounded-full shadow-lg hover:shadow-xl pointer-events-auto',
+                'bg-gradient-to-br from-cyan-500 to-cyan-600 hover:from-cyan-600 hover:to-cyan-700',
+                'transition-all duration-300 ease-out',
+                'hover:scale-110 active:scale-95',
+                'flex items-center justify-center',
+                'ring-4 ring-cyan-200/50'
+              )}
+              aria-label={dict.buttons.edit}
+            >
+              <Pencil className="w-6 h-6 text-white" />
+            </Button>
+          )}
+        </div>
+      )}
+      {/* ======================= END: FLOATING ACTION BUTTON ======================= */}
+
+      {/* ======================= START: ALWAYS VISIBLE STICKY FOOTER ======================= */}
+      {!viewOnly && (
+        <div className="fixed bottom-0 left-0 right-0 z-20 border-t border-gray-200/80 bg-white/95 backdrop-blur-md shadow-[0_-4px_20px_-5px_rgba(0,0,0,0.12)]">
+          <div className="container mx-auto max-w-screen-xl px-4 py-3 sm:py-4">
+            <div className="flex items-center justify-between gap-3">
+              {isEditing ? (
+                <>
+                  {/* Editing Mode: Unsaved changes indicator - Desktop only */}
+                  <div className="hidden sm:flex items-center gap-2 text-sm text-amber-600">
+                    <div className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+                    <span>
+                      {dict.buttons.unsavedChanges || 'יש שינויים שלא נשמרו'}
+                    </span>
+                  </div>
+
+                  {/* Spacer for mobile to center buttons */}
+                  <div className="sm:hidden flex-1" />
+
+                  {/* Editing Mode: Save/Cancel buttons */}
+                  <div className="flex items-center gap-3">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleCancel}
+                      className="rounded-full shadow-sm hover:shadow-md transition-all duration-300 border-gray-300 text-gray-700 hover:bg-gray-50 px-5 sm:px-6 py-2"
+                    >
+                      <X className="w-4 h-4 ms-1.5" />
+                      {dict.buttons.cancel}
+                    </Button>
+                    <Button
+                      variant="default"
+                      size="sm"
+                      onClick={handleSave}
+                      className="rounded-full shadow-sm hover:shadow-md transition-all duration-300 bg-gradient-to-r from-cyan-600 to-cyan-700 hover:from-cyan-700 hover:to-cyan-800 text-white px-5 sm:px-6 py-2"
+                    >
+                      <Save className="w-4 h-4 ms-1.5" />
+                      {dict.buttons.saveChanges}
+                    </Button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  {/* View Mode: Hint text - Desktop only */}
+                  <div className="hidden sm:flex items-center gap-2 text-sm text-slate-500">
+                    <span>{dict.buttons.editHint || 'רוצה לעדכן פרטים?'}</span>
+                  </div>
+
+                  {/* Spacer for mobile to center button */}
+                  <div className="sm:hidden flex-1" />
+
+                  {/* View Mode: Edit button */}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setIsEditing(true)}
+                    className="rounded-full shadow-sm hover:shadow-md transition-all duration-300 border-cyan-400 text-cyan-700 hover:bg-cyan-50 px-6 py-2"
+                  >
+                    <Pencil className="w-4 h-4 ms-1.5" />
+                    {dict.buttons.edit}
+                  </Button>
+                </>
+              )}
+            </div>
           </div>
         </div>
       )}
-      {/* ======================= END: MOBILE STICKY FOOTER ======================= */}
+      {/* ======================= END: ALWAYS VISIBLE STICKY FOOTER ======================= */}
+
+      {/* Spacer to prevent content from being hidden behind fixed footer */}
+      {!viewOnly && <div className="h-16 sm:h-20" />}
     </div>
   );
 };

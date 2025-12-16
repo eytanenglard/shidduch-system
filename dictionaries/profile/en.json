@@ -444,7 +444,7 @@
         "widowed": "Widowed",
         "annulled": "Annulled Marriage"
       },
-    "religiousLevels": {
+    "religiousLevel": {
   "dati_leumi_standard": "Religious Zionist (Standard)",
   "dati_leumi_liberal": "Religious Zionist (Liberal)",
   "dati_leumi_torani": "Religious Zionist (Torani)",
@@ -664,7 +664,10 @@
   "buttons": {
     "edit": "Edit",
     "cancel": "Cancel",
-    "save": "Save"
+    "save": "Save",
+    "saveChanges": "Save Changes",
+"unsavedChanges": "You have unsaved changes",
+"editHint": "Want to update your preferences?"
   },
   "cards": {
     "general": {
@@ -1010,7 +1013,10 @@
       "edit": "Edit",
       "cancel": "Cancel",
       "save": "Save",
-      "saveChanges": "Save Changes"
+      "saveChanges": "Save Changes",
+      "unsavedChanges": "Unsaved changes",
+      "editHint": "Edit details"
+
     },
     "cards": {
       "personal": {

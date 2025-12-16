@@ -1365,6 +1365,9 @@ export type PreferencesSectionDict = {
     edit: string;
     cancel: string;
     save: string;
+    saveChanges: string;      // ✨ חדש
+    unsavedChanges: string;   // ✨ חדש
+    editHint: string;         // ✨ חדש
   };
   cards: {
     general: {
@@ -2107,6 +2110,8 @@ export type ProfileSectionDict = {
     cancel: string;
     save: string;
     saveChanges: string;
+    unsavedChanges: string;
+    editHint: string;
   };
   cards: {
     personal: {
@@ -2274,12 +2279,15 @@ medical: {
       widowed: string;
       annulled: string;
     };
-    religiousLevel: {
+religiousLevel: {
+      // חרדים חדשים
       charedi_litvak: string;
-charedi_sephardic: string;
-charedi_hasidic: string;
-chabad: string;
-breslov: string;
+      charedi_sephardic: string;
+      charedi_hasidic: string;
+      chabad: string;
+      breslov: string;
+      
+      // קיימים
       charedi_modern: string;
       dati_leumi_torani: string;
       dati_leumi_liberal: string;

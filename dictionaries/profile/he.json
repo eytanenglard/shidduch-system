@@ -334,7 +334,10 @@
     "buttons": {
       "edit": "עריכה",
       "cancel": "ביטול",
-      "save": "שמירה"
+      "save": "שמירה",
+"saveChanges": "שמירת שינויים",
+"unsavedChanges": "יש שינויים שלא נשמרו",
+"editHint": "רוצה לעדכן פרטים?"
     },
     "cards": {
       "general": {
@@ -505,7 +508,9 @@
       "edit": "עריכה",
       "cancel": "ביטול",
       "save": "שמירה",
-      "saveChanges": "שמירת שינויים"
+      "saveChanges": "שמירת שינויים",
+      "unsavedChanges": "יש שינויים שלא נשמרו",
+      "editHint": "רוצה לעדכן פרטים?"
     },
     "cards": {
       "personal": {
