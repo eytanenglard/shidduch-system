@@ -1,3 +1,22 @@
+################################################################################
+# Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\friends
+# Generated on: 2025-12-16 09:48:19
+# Filter: Only content of code files (.bat, .c, .cfg, .conf, .cpp, .cs, .css, .go, .h, .html, .ini, .java, .js, .json, .jsx, .kt, .less, .md, .php, .py, .rb, .rs, .scss, .sh, .sql, .swift, .ts, .tsx, .txt, .xml, .yaml, .yml) is included.
+################################################################################
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\friends
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\friends\friends_contents.txt
+--------------------------------------------------------------------------------
+[This is the output log file itself. Content not included.]
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\friends\page.tsx
+--------------------------------------------------------------------------------
+Content:
 // src/app/[locale]/friends/page.tsx
 // דף הפניית חברים - קמפיין חנוכה "מוסיפים אור בחנוכה"
 // NeshamaTech - מעודכן: קאונטדאון ראשי בראש הדף
@@ -220,125 +239,86 @@ const SmallHanukkiah: React.FC<{ className?: string }> = ({
   className = '',
 }) => (
   <svg
-    viewBox="0 0 100 60"
+    viewBox="0 0 60 40"
     className={className}
     xmlns="http://www.w3.org/2000/svg"
   >
     <defs>
-      <linearGradient
-        id="smallGoldGradient"
-        x1="0%"
-        y1="0%"
-        x2="100%"
-        y2="100%"
-      >
-        <stop offset="0%" stopColor="#F6E05E" />
-        <stop offset="100%" stopColor="#D69E2E" />
+      <linearGradient id="miniFlame" x1="0%" y1="100%" x2="0%" y2="0%">
+        <stop offset="0%" stopColor="#14b8a6" stopOpacity="0.6" />
+        <stop offset="100%" stopColor="#F6AD55" stopOpacity="0.6" />
       </linearGradient>
     </defs>
-    <rect
-      x="20"
-      y="50"
-      width="60"
-      height="4"
-      rx="1"
-      fill="url(#smallGoldGradient)"
-    />
-    {[25, 35, 45, 55, 65, 75].map((x, i) => (
-      <rect
+    {[8, 16, 24, 32, 30, 38, 46, 54, 62].map((x, i) => (
+      <ellipse
         key={i}
-        x={x - 1.5}
-        y={30}
-        width="3"
-        height="20"
-        rx="1"
-        fill="#E2E8F0"
-        stroke="url(#smallGoldGradient)"
-        strokeWidth="0.5"
+        cx={x - 5}
+        cy={i === 4 ? 12 : 16}
+        rx="3"
+        ry="6"
+        fill="url(#miniFlame)"
       />
     ))}
     <rect
-      x="48.5"
-      y="20"
-      width="3"
-      height="30"
+      x="5"
+      y="28"
+      width="50"
+      height="4"
       rx="1"
-      fill="#FBD38D"
-      stroke="url(#smallGoldGradient)"
-      strokeWidth="0.5"
+      fill="#D69E2E"
+      opacity="0.4"
     />
   </svg>
 );
 
-// ================== Dynamic Background ==================
-const DynamicBackground: React.FC = () => {
-  return (
-    <div className="fixed inset-0 -z-10">
-      {/* Base gradient */}
-      <div className="absolute inset-0 bg-gradient-to-br from-slate-50 via-teal-50/30 to-orange-50/40" />
+// ================== Dreidel SVG ==================
+const Dreidel: React.FC<{ className?: string }> = ({ className = '' }) => (
+  <svg
+    viewBox="0 0 40 50"
+    className={className}
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <polygon
+      points="20,5 35,20 20,45 5,20"
+      fill="none"
+      stroke="#14b8a6"
+      strokeWidth="2"
+      opacity="0.3"
+    />
+    <line
+      x1="20"
+      y1="0"
+      x2="20"
+      y2="8"
+      stroke="#14b8a6"
+      strokeWidth="2"
+      opacity="0.3"
+    />
+    <text
+      x="20"
+      y="28"
+      textAnchor="middle"
+      fill="#14b8a6"
+      opacity="0.4"
+      fontSize="12"
+      fontFamily="serif"
+    >
+      נ
+    </text>
+  </svg>
+);
 
-      {/* Animated orbs */}
-      <motion.div
-        className="absolute top-20 right-10 w-72 h-72 rounded-full bg-gradient-to-br from-teal-200/20 to-emerald-200/20 blur-3xl"
-        animate={{
-          x: [0, 30, 0],
-          y: [0, -20, 0],
-          scale: [1, 1.1, 1],
-        }}
-        transition={{
-          duration: 15,
-          repeat: Infinity,
-          ease: 'easeInOut',
-        }}
-      />
-      <motion.div
-        className="absolute bottom-40 left-10 w-96 h-96 rounded-full bg-gradient-to-br from-orange-200/20 to-amber-200/20 blur-3xl"
-        animate={{
-          x: [0, -20, 0],
-          y: [0, 30, 0],
-          scale: [1, 1.05, 1],
-        }}
-        transition={{
-          duration: 18,
-          repeat: Infinity,
-          ease: 'easeInOut',
-        }}
-      />
-      <motion.div
-        className="absolute top-1/2 left-1/3 w-64 h-64 rounded-full bg-gradient-to-br from-rose-200/15 to-pink-200/15 blur-3xl"
-        animate={{
-          x: [0, 40, 0],
-          y: [0, -40, 0],
-        }}
-        transition={{
-          duration: 20,
-          repeat: Infinity,
-          ease: 'easeInOut',
-        }}
-      />
-
-      {/* Subtle pattern overlay */}
-      <div
-        className="absolute inset-0 opacity-[0.015]"
-        style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23000000' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
-        }}
-      />
-    </div>
-  );
-};
-
-// ================== Content / Translations ==================
+// ================== תוכן דו-לשוני - חנוכה ==================
 const content = {
   he: {
     hero: {
       badge: '🕎 מוסיפים אור בחנוכה',
-      title: 'האירו את הדרך לחברים',
+      title: 'הדליקו אור לחברים',
       subtitle:
-        'כמו הנס של פך השמן - לפעמים משהו קטן יכול להוביל למשהו גדול. הקישור שתשלחו עשוי להיות תחילת הקשר שהם מחפשים.',
+        'כמו נס פך השמן - לפעמים דבר קטן יכול להוביל למשהו גדול. הקישור שתשלחו יכול להיות ההתחלה של הזוגיות שהם מחפשים.',
       highlight:
-        '🏆 מי שיביא הכי הרבה חברים עד סוף החנוכה יזכה בארוחה זוגית על חשבוננו!',
-      cta: 'רוצה להאיר את הדרך',
+        '🏆 מי שיביא הכי הרבה חברים עד סוף החנוכה - יקבל ארוחה זוגית מפנקת עלינו!',
+      cta: 'רוצה להאיר לחברים',
       stats: [
         { value: 'אישי', label: 'ליווי' },
         { value: 'מעמיק', label: 'שאלון' },
@@ -349,23 +329,23 @@ const content = {
       title: 'איך מוסיפים אור?',
       steps: [
         {
-          title: 'נרשמים',
-          desc: 'ממלאים פרטים ומקבלים קישור אישי',
+          title: 'הירשמו',
+          desc: 'מלאו פרטים וקבלו קישור אישי',
           gradient: 'from-teal-400 to-emerald-500',
         },
         {
-          title: 'משתפים',
-          desc: 'שולחים לחברים שמחפשים קשר רציני',
+          title: 'שתפו',
+          desc: 'שלחו לחברים שמחפשים קשר רציני',
           gradient: 'from-orange-400 to-amber-500',
         },
         {
-          title: 'עוקבים',
-          desc: 'רואים כמה נרות הדלקתם',
+          title: 'עקבו',
+          desc: 'ראו כמה נרות הדלקתם',
           gradient: 'from-rose-400 to-pink-500',
         },
         {
-          title: 'מאירים',
-          desc: 'עוזרים להרחיב את הקהילה',
+          title: 'האירו',
+          desc: 'עזרו להרחיב את הקהילה',
           gradient: 'from-teal-500 to-cyan-500',
         },
       ],
@@ -383,9 +363,8 @@ const content = {
       labels: {
         name: 'שם מלא',
         email: 'אימייל',
-        phone: 'טלפון',
+        phone: 'טלפון (אופציונלי)',
         code: 'קוד מועדף (אופציונלי)',
-        contactHint: '* נדרש לפחות אימייל או טלפון',
       },
       placeholders: {
         name: 'השם שלכם',
@@ -408,7 +387,6 @@ const content = {
         successDesc:
           'הנה הקישור האישי שלכם. שתפו אותו עם חברים והוסיפו אור בחנוכה הזה!',
         genericError: 'משהו השתבש, נסו שוב',
-        contactRequired: 'נא למלא לפחות אימייל או טלפון',
       },
     },
     existing: {
@@ -515,9 +493,8 @@ const content = {
       labels: {
         name: 'Full Name',
         email: 'Email',
-        phone: 'Phone',
+        phone: 'Phone (Optional)',
         code: 'Preferred Code (Optional)',
-        contactHint: '* At least email or phone is required',
       },
       placeholders: {
         name: 'Your name',
@@ -540,7 +517,6 @@ const content = {
         successDesc:
           'Here is your personal link. Share it with friends and add light this Hanukkah!',
         genericError: 'Something went wrong, please try again',
-        contactRequired: 'Please provide at least an email or phone number',
       },
     },
     existing: {
@@ -623,191 +599,363 @@ const WhatsAppShareModal: React.FC<WhatsAppShareModalProps> = ({
 
 חשבתי עליך כי אני יודע/ת שאת/ה מחפש/ת משהו רציני ומכבד, וזה נראה לי בול הסגנון. שווה בדיקה.
 
-הנה הקישור שלי:
+ההרשמה כרגע היא דרך חברים, הנה קישור אישי ממני:
 ${shareUrl}
 
-חג אורים שמח! 🕯️`
+בשורות טובות! ✨`
     : `Hey, Happy Hanukkah! 🕎✨
 
-I came across a new and really high-quality matchmaking platform - NeshamaTech.
-It's on a completely different level - with human matchmakers, smart technology, and real discretion.
+I came across a really high-quality matchmaking initiative called NeshamaTech.
+It's on a different level - combining real matchmakers, smart tech, and complete discretion.
 
-I thought of you because I know you're looking for something serious and respectful, and this seems right up your alley. Worth checking out.
+I thought of you because I know you're looking for something serious and respectful, and this seems like a perfect fit.
 
-Here's my link:
+Here's a personal invite link from me:
 ${shareUrl}
 
-Happy Festival of Lights! 🕯️`;
+Check it out! ✨`;
 
-  const handleCopyMessage = async () => {
-    await navigator.clipboard.writeText(shareMessage);
-    setCopiedMessage(true);
-    setTimeout(() => setCopiedMessage(false), 2000);
+  const copyMessage = async () => {
+    try {
+      await navigator.clipboard.writeText(shareMessage);
+      setCopiedMessage(true);
+      setTimeout(() => setCopiedMessage(false), 2500);
+    } catch (err) {
+      console.error('Failed to copy message:', err);
+    }
   };
 
-  const handleCopyLink = async () => {
-    await navigator.clipboard.writeText(shareUrl);
-    setCopiedLink(true);
-    setTimeout(() => setCopiedLink(false), 2000);
+  const copyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      setCopiedLink(true);
+      setTimeout(() => setCopiedLink(false), 2500);
+    } catch (err) {
+      console.error('Failed to copy link:', err);
+    }
   };
 
-  const handleWhatsAppShare = () => {
-    const encodedMessage = encodeURIComponent(shareMessage);
-    window.open(`https://wa.me/?text=${encodedMessage}`, '_blank');
+  const openWhatsAppDirect = () => {
+    const text = encodeURIComponent(shareMessage);
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    if (isMobile) {
+      window.location.href = `whatsapp://send?text=${text}`;
+    } else {
+      window.open(`https://wa.me/?text=${text}`, '_blank');
+    }
   };
 
   if (!isOpen) return null;
 
   return (
     <AnimatePresence>
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-        onClick={onClose}
-      >
-        <motion.div
-          initial={{ scale: 0.9, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          exit={{ scale: 0.9, opacity: 0 }}
-          onClick={(e) => e.stopPropagation()}
-          className="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl max-h-[90vh] overflow-y-auto"
-          dir={isHebrew ? 'rtl' : 'ltr'}
-        >
-          {/* Header */}
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h3 className="text-xl font-bold text-gray-900">{t.title}</h3>
-              <p className="text-sm text-gray-600">{t.subtitle}</p>
-            </div>
-            <button
-              onClick={onClose}
-              className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-            >
-              <X className="w-5 h-5 text-gray-500" />
-            </button>
-          </div>
+      {isOpen && (
+        <>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={onClose}
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50"
+          />
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+            transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+            className="fixed inset-x-4 top-[10%] md:inset-x-auto md:left-1/2 md:-translate-x-1/2 md:w-full md:max-w-lg z-50 max-h-[80vh] overflow-y-auto"
+            dir={isHebrew ? 'rtl' : 'ltr'}
+          >
+            <div className="bg-white rounded-3xl shadow-2xl overflow-hidden border border-gray-100">
+              <div className="bg-gradient-to-r from-teal-500 via-teal-600 to-orange-500 px-6 py-4 relative">
+                <button
+                  onClick={onClose}
+                  className={`absolute ${isHebrew ? 'left-4' : 'right-4'} top-4 text-white/80 hover:text-white transition-colors`}
+                >
+                  <X className="w-5 h-5" />
+                </button>
+                <div className="text-center text-white">
+                  <div className="flex items-center justify-center gap-2 mb-1">
+                    <span className="text-2xl">🕎</span>
+                    <h3 className="text-xl font-bold">{t.title}</h3>
+                    <span className="text-2xl">🕎</span>
+                  </div>
+                  <p className="text-sm text-white/90">{t.subtitle}</p>
+                </div>
+              </div>
 
-          {/* Message Preview */}
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              {t.messageLabel}
-            </label>
-            <div className="bg-gray-50 rounded-xl p-4 text-sm text-gray-700 whitespace-pre-wrap max-h-48 overflow-y-auto border border-gray-100">
-              {shareMessage}
-            </div>
-          </div>
+              <div className="p-6 space-y-5">
+                <div className="relative">
+                  <div className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-amber-500" />
+                    {t.messageLabel}
+                  </div>
+                  <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl p-4 text-sm text-gray-700 leading-relaxed max-h-48 overflow-y-auto border border-gray-200">
+                    <div className="whitespace-pre-wrap">{shareMessage}</div>
+                  </div>
+                </div>
 
-          {/* Action Buttons */}
-          <div className="space-y-3">
-            <Button
-              onClick={handleWhatsAppShare}
-              className="w-full h-12 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white rounded-xl"
-            >
-              <Forward className={`w-5 h-5 ${isHebrew ? 'ml-2' : 'mr-2'}`} />
-              {t.sendWhatsapp}
-            </Button>
+                <div className="space-y-3">
+                  <Button
+                    onClick={copyMessage}
+                    variant="outline"
+                    className={`w-full h-12 text-base transition-all duration-300 ${
+                      copiedMessage
+                        ? 'bg-teal-50 border-teal-300 text-teal-700'
+                        : 'hover:bg-gray-50'
+                    }`}
+                  >
+                    {copiedMessage ? (
+                      <>
+                        <Check
+                          className={`${isHebrew ? 'ml-2' : 'mr-2'} w-5 h-5`}
+                        />
+                        {t.copied}
+                      </>
+                    ) : (
+                      <>
+                        <Copy
+                          className={`${isHebrew ? 'ml-2' : 'mr-2'} w-5 h-5`}
+                        />
+                        {t.copyMessage}
+                      </>
+                    )}
+                  </Button>
 
-            <div className="grid grid-cols-2 gap-3">
-              <Button
-                onClick={handleCopyMessage}
-                variant="outline"
-                className="h-11 rounded-xl"
-              >
-                {copiedMessage ? (
-                  <>
-                    <Check
-                      className={`w-4 h-4 ${isHebrew ? 'ml-1' : 'mr-1'} text-green-500`}
+                  <Button
+                    onClick={copyLink}
+                    variant="outline"
+                    className={`w-full h-12 text-base transition-all duration-300 ${
+                      copiedLink
+                        ? 'bg-orange-50 border-orange-300 text-orange-700'
+                        : 'hover:bg-gray-50'
+                    }`}
+                  >
+                    {copiedLink ? (
+                      <>
+                        <Check
+                          className={`${isHebrew ? 'ml-2' : 'mr-2'} w-5 h-5`}
+                        />
+                        {t.copied}
+                      </>
+                    ) : (
+                      <>
+                        <Copy
+                          className={`${isHebrew ? 'ml-2' : 'mr-2'} w-5 h-5`}
+                        />
+                        {t.copyLink}
+                      </>
+                    )}
+                  </Button>
+
+                  <div className="relative py-2">
+                    <div className="absolute inset-0 flex items-center">
+                      <div className="w-full border-t border-gray-200"></div>
+                    </div>
+                    <div className="relative flex justify-center">
+                      <span className="bg-white px-3 text-sm text-gray-500">
+                        {isHebrew ? 'או' : 'or'}
+                      </span>
+                    </div>
+                  </div>
+
+                  <Button
+                    onClick={openWhatsAppDirect}
+                    className="w-full h-14 text-lg bg-[#25D366] hover:bg-[#20bd5a] text-white shadow-lg shadow-green-200 hover:shadow-xl transition-all duration-300"
+                  >
+                    <Forward
+                      className={`${isHebrew ? 'ml-2' : 'mr-2'} w-5 h-5`}
                     />
-                    {t.copied}
-                  </>
-                ) : (
-                  <>
-                    <Copy className={`w-4 h-4 ${isHebrew ? 'ml-1' : 'mr-1'}`} />
-                    {t.copyMessage}
-                  </>
-                )}
-              </Button>
-              <Button
-                onClick={handleCopyLink}
-                variant="outline"
-                className="h-11 rounded-xl"
-              >
-                {copiedLink ? (
-                  <>
-                    <Check
-                      className={`w-4 h-4 ${isHebrew ? 'ml-1' : 'mr-1'} text-green-500`}
-                    />
-                    {t.copied}
-                  </>
-                ) : (
-                  <>
-                    <Copy className={`w-4 h-4 ${isHebrew ? 'ml-1' : 'mr-1'}`} />
-                    {t.copyLink}
-                  </>
-                )}
-              </Button>
-            </div>
-          </div>
+                    {t.sendWhatsapp}
+                  </Button>
+                </div>
 
-          {/* Tip */}
-          <div className="mt-4 p-3 bg-amber-50 rounded-xl border border-amber-100">
-            <p className="text-sm text-amber-700 text-center">{t.tip}</p>
-          </div>
-        </motion.div>
-      </motion.div>
+                <div className="bg-gradient-to-r from-amber-50 to-orange-50 rounded-xl p-3 border border-amber-200">
+                  <div className="flex items-start gap-2">
+                    <span className="text-lg">🕯️</span>
+                    <p className="text-xs text-amber-800 leading-relaxed">
+                      <span className="font-bold">טיפ:</span> {t.tip}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        </>
+      )}
     </AnimatePresence>
   );
 };
 
-// ================== Hero Section ==================
+// ================== Background + Hanukkah Elements ==================
+const DynamicBackground: React.FC = () => (
+  <div className="fixed inset-0 overflow-hidden pointer-events-none -z-10">
+    <div className="absolute inset-0 bg-gradient-to-b from-slate-50 via-teal-50/30 to-orange-50/20" />
+    <div
+      className="absolute top-10 left-10 w-72 h-72 bg-teal-300/20 rounded-full blur-3xl animate-float-slow"
+      style={{ animationDelay: '0s' }}
+    />
+    <div
+      className="absolute top-1/3 right-20 w-64 h-64 bg-orange-300/20 rounded-full blur-3xl animate-float-slow"
+      style={{ animationDelay: '2s' }}
+    />
+    <div
+      className="absolute bottom-20 left-1/3 w-80 h-80 bg-rose-300/15 rounded-full blur-3xl animate-float-slow"
+      style={{ animationDelay: '4s' }}
+    />
+    <div className="absolute inset-0 opacity-[0.03] bg-[radial-gradient(#14b8a6_1px,transparent_1px)] [background-size:30px_30px]" />
+
+    {/* Hanukkah Elements */}
+    <motion.div
+      className="absolute top-20 right-[15%] w-16 h-12 opacity-20"
+      animate={{ y: [0, -10, 0], rotate: [0, 5, 0] }}
+      transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
+    >
+      <SmallHanukkiah />
+    </motion.div>
+
+    <motion.div
+      className="absolute bottom-32 left-[10%] w-20 h-14 opacity-15"
+      animate={{ y: [0, -15, 0], rotate: [0, -3, 0] }}
+      transition={{
+        duration: 8,
+        repeat: Infinity,
+        ease: 'easeInOut',
+        delay: 2,
+      }}
+    >
+      <SmallHanukkiah />
+    </motion.div>
+
+    <motion.div
+      className="absolute top-1/2 right-[8%] w-14 h-10 opacity-10"
+      animate={{ y: [0, -8, 0] }}
+      transition={{
+        duration: 5,
+        repeat: Infinity,
+        ease: 'easeInOut',
+        delay: 1,
+      }}
+    >
+      <SmallHanukkiah />
+    </motion.div>
+
+    <motion.div
+      className="absolute top-40 left-[20%] w-10 h-12"
+      animate={{ y: [0, -12, 0], rotate: [0, 15, 0] }}
+      transition={{
+        duration: 7,
+        repeat: Infinity,
+        ease: 'easeInOut',
+        delay: 0.5,
+      }}
+    >
+      <Dreidel />
+    </motion.div>
+
+    <motion.div
+      className="absolute bottom-40 right-[25%] w-8 h-10"
+      animate={{ y: [0, -10, 0], rotate: [0, -10, 0] }}
+      transition={{
+        duration: 6,
+        repeat: Infinity,
+        ease: 'easeInOut',
+        delay: 3,
+      }}
+    >
+      <Dreidel />
+    </motion.div>
+
+    {[...Array(8)].map((_, i) => (
+      <motion.div
+        key={`sparkle-${i}`}
+        className="absolute text-amber-400/30"
+        style={{
+          top: `${15 + Math.random() * 70}%`,
+          left: `${5 + Math.random() * 90}%`,
+          fontSize: `${12 + Math.random() * 8}px`,
+        }}
+        animate={{
+          opacity: [0.1, 0.4, 0.1],
+          scale: [1, 1.3, 1],
+        }}
+        transition={{
+          duration: 3 + Math.random() * 2,
+          repeat: Infinity,
+          delay: Math.random() * 3,
+        }}
+      >
+        ✡
+      </motion.div>
+    ))}
+  </div>
+);
+
+// ================== Hero Section (Hanukkah) ==================
 const HeroSection: React.FC<{
   locale: string;
   onScrollToForm: () => void;
 }> = ({ locale, onScrollToForm }) => {
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true, amount: 0.2 });
   const isHebrew = locale === 'he';
   const t = isHebrew ? content.he.hero : content.en.hero;
   const currentCandle = getCurrentCandle();
 
   return (
-    <section className="relative pt-8 pb-16 px-4 overflow-hidden">
-      {/* Hanukkah Countdown at top */}
-      <div className="max-w-4xl mx-auto mb-8">
-        <HanukkahCountdown locale={locale} />
-      </div>
-
-      {/* Main Content */}
+    <motion.section
+      ref={ref}
+      className="relative min-h-[90vh] flex items-center justify-center px-4 py-16"
+      initial={{ opacity: 0 }}
+      animate={isInView ? { opacity: 1 } : {}}
+      transition={{ duration: 1 }}
+    >
       <div className="max-w-4xl mx-auto text-center">
         {/* Badge */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="inline-flex items-center gap-2 bg-gradient-to-r from-amber-100 to-orange-100 text-amber-800 px-5 py-2.5 rounded-full text-sm font-medium mb-6 shadow-sm border border-amber-200/50"
+          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          transition={{ delay: 0.2 }}
+          className="inline-flex items-center gap-2 bg-gradient-to-r from-teal-50 via-white to-orange-50 rounded-full px-6 py-3 mb-6 shadow-lg border border-teal-100"
         >
-          <Flame className="w-4 h-4" />
-          {t.badge}
+          <span className="font-medium text-gray-700">{t.badge}</span>
+        </motion.div>
+
+        {/* 🏆 Hero Countdown - הועבר לראש הדף 🏆 */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          transition={{ delay: 0.25 }}
+className="mb-10 max-w-xl mx-auto"        >
+          <HanukkahCountdown locale={locale} variant="hero" />
         </motion.div>
 
         {/* Hanukkiah */}
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.6, delay: 0.2 }}
-          className="max-w-xs mx-auto mb-6"
+          animate={isInView ? { opacity: 1, scale: 1 } : {}}
+          transition={{ delay: 0.3 }}
+          className="max-w-md mx-auto mb-6"
         >
-          <Hanukkiah litCandles={currentCandle} className="w-full h-auto" />
+          <Hanukkiah
+            litCandles={currentCandle}
+            className="w-full h-auto drop-shadow-lg"
+          />
+          <div className="text-teal-600 text-sm mt-2 font-medium">
+            {isHebrew
+              ? `נר ${currentCandle} של חנוכה`
+              : `Candle ${currentCandle} of Hanukkah`}
+          </div>
         </motion.div>
 
         {/* Title */}
         <motion.h1
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.3 }}
-          className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6"
+          initial={{ opacity: 0, y: 30 }}
+          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          transition={{ delay: 0.4 }}
+          className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-6 leading-tight"
         >
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-600 via-emerald-600 to-orange-500">
+          <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-600 via-teal-500 to-orange-500">
             {t.title}
           </span>
         </motion.h1>
@@ -815,40 +963,40 @@ const HeroSection: React.FC<{
         {/* Subtitle */}
         <motion.p
           initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.4 }}
-          className="text-lg md:text-xl text-gray-600 max-w-2xl mx-auto mb-6 leading-relaxed"
+          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          transition={{ delay: 0.5 }}
+          className="text-lg md:text-xl text-gray-600 max-w-2xl mx-auto mb-4 leading-relaxed"
         >
           {t.subtitle}
         </motion.p>
 
         {/* Highlight */}
-        <motion.div
+        <motion.p
           initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.5 }}
-          className="bg-gradient-to-r from-amber-50 to-orange-50 rounded-2xl p-4 mb-8 max-w-xl mx-auto border border-amber-100"
+          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          transition={{ delay: 0.6 }}
+          className="text-base md:text-lg text-teal-700 font-medium max-w-xl mx-auto mb-10"
         >
-          <p className="text-amber-800 font-medium">{t.highlight}</p>
-        </motion.div>
+          {t.highlight}
+        </motion.p>
 
         {/* CTA Button */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.6 }}
+          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          transition={{ delay: 0.7 }}
         >
           <Button
             onClick={onScrollToForm}
             size="lg"
-            className="h-14 px-8 text-lg font-semibold bg-gradient-to-r from-teal-500 to-orange-500 hover:from-teal-600 hover:to-orange-600 text-white rounded-2xl shadow-xl hover:shadow-2xl transition-all"
+            className="text-lg font-semibold px-10 py-7 bg-gradient-to-r from-teal-500 via-teal-600 to-orange-500 hover:from-teal-600 hover:via-teal-700 hover:to-orange-600 text-white rounded-full shadow-xl hover:shadow-2xl transition-all group"
           >
-            <Sparkles className={`w-5 h-5 ${isHebrew ? 'ml-2' : 'mr-2'}`} />
+            <Flame className={`w-5 h-5 ${isHebrew ? 'ml-2' : 'mr-2'}`} />
             {t.cta}
             {isHebrew ? (
-              <ArrowLeft className="w-5 h-5 mr-2" />
+              <ArrowLeft className="w-5 h-5 mr-2 group-hover:-translate-x-1 transition-transform" />
             ) : (
-              <ArrowRight className="w-5 h-5 ml-2" />
+              <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
             )}
           </Button>
         </motion.div>
@@ -856,21 +1004,33 @@ const HeroSection: React.FC<{
         {/* Stats */}
         <motion.div
           initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.5, delay: 0.7 }}
-          className="flex justify-center gap-8 mt-12"
+          animate={isInView ? { opacity: 1 } : {}}
+          transition={{ delay: 0.9 }}
+          className="flex flex-wrap justify-center gap-4 mt-12"
         >
-          {t.stats.map((stat, i) => (
-            <div key={i} className="text-center">
-              <div className="text-2xl font-bold text-gray-900">
-                {stat.value}
+          {t.stats.map((stat, i) => {
+            const icons = [Users, Heart, CheckCircle2];
+            const Icon = icons[i];
+            return (
+              <div
+                key={i}
+                className="flex items-center gap-3 bg-white/80 backdrop-blur-sm rounded-2xl px-5 py-3 shadow-lg border border-white/60"
+              >
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-teal-100 to-orange-100 flex items-center justify-center">
+                  <Icon className="w-5 h-5 text-teal-600" />
+                </div>
+                <div className={isHebrew ? 'text-right' : 'text-left'}>
+                  <div className="text-lg font-bold text-gray-900">
+                    {stat.value}
+                  </div>
+                  <div className="text-xs text-gray-600">{stat.label}</div>
+                </div>
               </div>
-              <div className="text-sm text-gray-500">{stat.label}</div>
-            </div>
-          ))}
+            );
+          })}
         </motion.div>
       </div>
-    </section>
+    </motion.section>
   );
 };
 
@@ -880,6 +1040,13 @@ const HowItWorksSection: React.FC<{ locale: string }> = ({ locale }) => {
   const isInView = useInView(ref, { once: true, amount: 0.2 });
   const isHebrew = locale === 'he';
   const t = isHebrew ? content.he.howItWorks : content.en.howItWorks;
+
+  const icons = [
+    <Users key="icon-1" className="w-7 h-7" />,
+    <Share2 key="icon-2" className="w-7 h-7" />,
+    <TrendingUp key="icon-3" className="w-7 h-7" />,
+    <Heart key="icon-4" className="w-7 h-7" />,
+  ];
 
   return (
     <section ref={ref} className="py-16 px-4">
@@ -892,36 +1059,22 @@ const HowItWorksSection: React.FC<{ locale: string }> = ({ locale }) => {
           {t.title}
         </motion.h2>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {t.steps.map((step, i) => (
             <motion.div
               key={i}
-              initial={{ opacity: 0, y: 30 }}
+              initial={{ opacity: 0, y: 20 }}
               animate={isInView ? { opacity: 1, y: 0 } : {}}
-              transition={{ delay: i * 0.1, duration: 0.5 }}
-              className="relative"
+              transition={{ delay: i * 0.1 }}
+              className="bg-white/70 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-white/60 text-center hover:shadow-xl transition-all group"
             >
-              <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-5 shadow-lg border border-white/60 text-center h-full">
-                {/* Number */}
-                <div
-                  className={`w-10 h-10 rounded-xl bg-gradient-to-br ${step.gradient} text-white flex items-center justify-center font-bold text-lg mx-auto mb-3 shadow-md`}
-                >
-                  {i + 1}
-                </div>
-
-                {/* Title */}
-                <h3 className="font-bold text-gray-900 mb-1">{step.title}</h3>
-
-                {/* Description */}
-                <p className="text-sm text-gray-600">{step.desc}</p>
+              <div
+                className={`w-14 h-14 mx-auto rounded-xl bg-gradient-to-br ${step.gradient} flex items-center justify-center text-white mb-4 shadow-lg group-hover:scale-110 transition-transform`}
+              >
+                {icons[i]}
               </div>
-
-              {/* Connector line (not on last item) */}
-              {i < t.steps.length - 1 && (
-                <div
-                  className={`hidden md:block absolute top-1/2 ${isHebrew ? '-left-3' : '-right-3'} w-6 h-0.5 bg-gradient-to-r from-gray-200 to-gray-300`}
-                />
-              )}
+              <h3 className="font-bold text-gray-800 mb-1">{step.title}</h3>
+              <p className="text-sm text-gray-600">{step.desc}</p>
             </motion.div>
           ))}
         </div>
@@ -933,17 +1086,17 @@ const HowItWorksSection: React.FC<{ locale: string }> = ({ locale }) => {
 // ================== Prize Section ==================
 const PrizeSection: React.FC<{ locale: string }> = ({ locale }) => {
   const ref = useRef(null);
-  const isInView = useInView(ref, { once: true, amount: 0.2 });
+  const isInView = useInView(ref, { once: true, amount: 0.3 });
   const isHebrew = locale === 'he';
   const t = isHebrew ? content.he.prize : content.en.prize;
 
   return (
     <section ref={ref} className="py-16 px-4">
-      <div className="max-w-2xl mx-auto">
+      <div className="max-w-2xl mx-auto text-center">
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 30 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
-          className="text-center"
+          transition={{ duration: 0.6 }}
         >
           {/* Badge */}
           <div className="inline-flex items-center gap-2 bg-amber-50 text-amber-700 px-4 py-2 rounded-full text-sm font-medium mb-6 border border-amber-200">
@@ -1019,7 +1172,6 @@ const SignupForm: React.FC<{
   >('idle');
   const [isWhatsAppModalOpen, setIsWhatsAppModalOpen] = useState(false);
 
-  // בדיקת זמינות קוד
   useEffect(() => {
     if (!form.code || form.code.length < 3) {
       setCodeStatus('idle');
@@ -1042,23 +1194,8 @@ const SignupForm: React.FC<{
     return () => clearTimeout(timer);
   }, [form.code]);
 
-  // ולידציה: לפחות מייל או טלפון
-  const hasValidContact = () => {
-    return (
-      (form.email && form.email.trim().length > 0) ||
-      (form.phone && form.phone.trim().length > 0)
-    );
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    // בדיקת ולידציה - לפחות מייל או טלפון
-    if (!hasValidContact()) {
-      setError(t.messages.contactRequired);
-      return;
-    }
-
     setLoading(true);
     setError('');
 
@@ -1068,8 +1205,8 @@ const SignupForm: React.FC<{
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name: form.name,
-          email: form.email || undefined,
-          phone: form.phone || undefined,
+          email: form.email,
+          phone: form.phone,
           preferredCode: form.code,
         }),
       });
@@ -1077,10 +1214,6 @@ const SignupForm: React.FC<{
       const data = await response.json();
 
       if (!response.ok) {
-        // טיפול בשגיאת מייל או טלפון נדרשים
-        if (data.error === 'EMAIL_OR_PHONE_REQUIRED') {
-          throw new Error(t.messages.contactRequired);
-        }
         throw new Error(data.error || t.messages.genericError);
       }
 
@@ -1136,7 +1269,6 @@ const SignupForm: React.FC<{
 
               {/* Form */}
               <form onSubmit={handleSubmit} className="space-y-5">
-                {/* שם */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1.5">
                     {t.labels.name} *
@@ -1150,18 +1282,13 @@ const SignupForm: React.FC<{
                   />
                 </div>
 
-                {/* הערה על מייל/טלפון */}
-                <div className="text-xs text-teal-600 font-medium bg-teal-50 px-3 py-2 rounded-lg">
-                  {t.labels.contactHint}
-                </div>
-
-                {/* אימייל - לא required יותר */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                    {t.labels.email}
+                    {t.labels.email} *
                   </label>
                   <Input
                     type="email"
+                    required
                     value={form.email}
                     onChange={(e) =>
                       setForm({ ...form, email: e.target.value })
@@ -1172,7 +1299,6 @@ const SignupForm: React.FC<{
                   />
                 </div>
 
-                {/* טלפון */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1.5">
                     {t.labels.phone}
@@ -1189,7 +1315,6 @@ const SignupForm: React.FC<{
                   />
                 </div>
 
-                {/* קוד מועדף */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1.5">
                     {t.labels.code}
@@ -1594,3 +1719,5 @@ export default function FriendsPage() {
     </main>
   );
 }
+--- End of Content for page.tsx ---
+

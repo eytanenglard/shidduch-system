@@ -9,7 +9,7 @@ import {
 } from '@/lib/services/referralService';
 import { z } from 'zod';
 
-// Validation schema
+// Validation schema - מייל או טלפון נדרשים (לפחות אחד)
 const registerSchema = z.object({
   campaignSlug: z.string().optional(),
   name: z.string().min(2, 'שם חייב להכיל לפחות 2 תווים').max(50),
@@ -21,7 +21,18 @@ const registerSchema = z.object({
     .regex(/^[A-Za-z0-9]+$/, 'קוד יכול להכיל רק אותיות באנגלית ומספרים')
     .optional()
     .or(z.literal('')),
-});
+}).refine(
+  // ולידציה מותאמת אישית: לפחות מייל או טלפון נדרשים
+  (data) => {
+    const hasEmail = data.email && data.email.trim().length > 0;
+    const hasPhone = data.phone && data.phone.trim().length > 0;
+    return hasEmail || hasPhone;
+  },
+  {
+    message: 'נדרש לפחות אימייל או טלפון',
+    path: ['contact'], // שדה וירטואלי לשגיאה
+  }
+);
 
 export async function POST(request: NextRequest) {
   try {
@@ -30,11 +41,19 @@ export async function POST(request: NextRequest) {
     // Validate input
     const validationResult = registerSchema.safeParse(body);
     if (!validationResult.success) {
+      const errors = validationResult.error.flatten();
+      
+      // בדיקה אם השגיאה היא על contact (מייל או טלפון)
+      const contactError = validationResult.error.issues.find(
+        issue => issue.path.includes('contact')
+      );
+      
       return NextResponse.json(
         { 
           success: false, 
-          error: 'VALIDATION_ERROR',
-          details: validationResult.error.flatten().fieldErrors,
+          error: contactError ? 'EMAIL_OR_PHONE_REQUIRED' : 'VALIDATION_ERROR',
+          details: errors.fieldErrors,
+          message: contactError?.message,
         },
         { status: 400 }
       );
