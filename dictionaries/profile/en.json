@@ -978,25 +978,25 @@
           "religion": { "label": "Religion & Spirituality in My Life", "description": "The place of faith in my world" },
           "general": { "label": "More Important Things to Know", "description": "Additional details that complete the picture" }
         },
-              "detailLabels": {
-        "worldview": "My Guiding Worldview",
-        "religiousJourney": "My Religious Journey",
-        "shomerNegiah": "Observant of 'Shomer Negiah'",
-        "headCovering": "Head Covering",
-        "kippahType": "Kippah Type",
-        "educationLevel": "Education Level",
-        "educationDetails": "Education Details",
-        "professionalField": "Professional Field",
-        "militaryService": "Military/National Service",
-        "serviceDetails": "Service Details",
-        "parentStatus": "Parents' Status",
-        "fatherOccupation": "Father's Occupation",
-        "motherOccupation": "Mother's Occupation",
-        "siblings": "Siblings",
-        "birthOrder": "Birth Order",
-        "countryOfOrigin": "Country of Origin",
-        "aliyaYear": "Year of Aliyah"
-      }
+    "detailLabels": {
+  "worldview": "My Guiding Worldview",
+  "religiousJourney": "My Religious Journey",
+  "shomerNegiah": "Observant of 'Shomer Negiah'",
+  "headCovering": "Head Covering",
+  "kippahType": "Kippah Type",
+  "educationLevel": "Education Level",
+  "educationDetails": "Education Details",
+  "professionalField": "Professional Field",
+  "militaryService": "Military/National Service",
+  "serviceDetails": "Service Details",
+  "parentStatus": "Parents' Status",
+  "fatherOccupation": "Father's Occupation",
+  "motherOccupation": "Mother's Occupation",
+  "siblings": "Siblings",
+  "birthOrder": "Birth Order",
+  "countryOfOrigin": "Country of Origin",
+  "aliyaYear": "Year of Aliyah"
+}
 
       }
     },

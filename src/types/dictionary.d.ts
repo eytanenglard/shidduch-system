@@ -2275,7 +2275,11 @@ medical: {
       annulled: string;
     };
     religiousLevel: {
-      charedi: string;
+      charedi_litvak: string;
+charedi_sephardic: string;
+charedi_hasidic: string;
+chabad: string;
+breslov: string;
       charedi_modern: string;
       dati_leumi_torani: string;
       dati_leumi_liberal: string;

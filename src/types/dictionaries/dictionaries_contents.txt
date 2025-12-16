@@ -1,0 +1,2684 @@
+################################################################################
+# Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\types\dictionaries
+# Generated on: 2025-12-16 19:18:10
+# Filter: Only content of code files (.bat, .c, .cfg, .conf, .cpp, .cs, .css, .go, .h, .html, .ini, .java, .js, .json, .jsx, .kt, .less, .md, .php, .py, .rb, .rs, .scss, .sh, .sql, .swift, .ts, .tsx, .txt, .xml, .yaml, .yml) is included.
+################################################################################
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\types\dictionaries
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\types\dictionaries\admin.d.ts
+--------------------------------------------------------------------------------
+Content:
+// src/types/dictionaries/admin.d.ts
+
+export type EngagementDictionary = {
+  title: string;
+  subtitle: string;
+  loading: string;
+  stats: {
+    todayEmails: string;
+    weeklyEmails: string;
+    activeUsers: string;
+    inProgress: string;
+  };
+  campaign: {
+    nextRun: string;
+    tomorrow: string;
+    runNow: string;
+  };
+  charts: {
+    emailTypesTitle: string;
+    recentActivityTitle: string;
+  };
+  emailTypes: {
+    onboarding: string;
+    nudge: string;
+    celebration: string;
+    insight: string;
+    value: string;
+    eveningFeedback: string;
+    aiSummary: string;
+  };
+  activity: {
+    sent: string;
+    failed: string;
+  };
+  manualEmail: {
+    title: string;
+    selectUser: string;
+    userPlaceholder: string;
+    emailType: string;
+    emailTypePlaceholder: string;
+    send: string;
+    sending: string;
+    tip: string;
+    alerts: {
+      selectUser: string;
+      success: string;
+      error: string;
+    };
+  };
+  cronJobs: {
+    title: string;
+    morning: {
+      title: string;
+      schedule: string;
+      lastRun: string;
+    };
+    evening: {
+      title: string;
+      schedule: string;
+      nextRun: string;
+    };
+    status: {
+      active: string;
+    };
+  };
+};
+
+export type AdminDictionary = {
+  engagement: EngagementDictionary;
+};
+--- End of Content for admin.d.ts ---
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\types\dictionaries\auth.d.ts
+--------------------------------------------------------------------------------
+Content:
+// src/types/dictionaries/auth.d.ts
+
+export type SignInDict = {
+  title: string;
+  subtitle: string;
+  emailLabel: string;
+  emailPlaceholder: string;
+  passwordLabel: string;
+  passwordPlaceholder: string;
+  forgotPasswordLink: string;
+  submitButton: string;
+  submitButtonLoading: string;
+  orDivider: string;
+  googleButton: string;
+  googleButtonLoading: string;
+  noAccountPrompt: string;
+  signUpLink: string;
+  loader: {
+    authenticated: string;
+    success: string;
+    loading: string;
+    redirecting: string;
+    checking: string;
+  };
+  errors: {
+    credentialsSignin: string;
+    oauthAccountNotLinked: string;
+    default: string;
+    missingFields: string;
+  };
+};
+
+export type ForgotPasswordDict = {
+  title: string;
+  subtitle: string;
+  emailLabel: string;
+  emailPlaceholder: string;
+  submitButton: string;
+  submitButtonLoading: string;
+  backToSignInLink: string;
+  errors: {
+    title: string;
+    missingEmail: string;
+    default: string;
+  };
+};
+
+export type ResetPasswordDict = {
+  title: string;
+  subtitle: string;
+  emailLabel: string;
+  emailPlaceholder: string;
+  otpLabel: string;
+  otpPlaceholder: string;
+  newPasswordLabel: string;
+  newPasswordPlaceholder: string;
+  confirmPasswordLabel: string;
+  confirmPasswordPlaceholder: string;
+  showPasswordAria: string;
+  hidePasswordAria: string;
+  passwordHint: string;
+  submitButton: string;
+  submitButtonLoading: string;
+  backToSignInLink: string;
+  successMessage: string;
+  successRedirect: string;
+  errors: {
+    missingEmail: string;
+    invalidOtp: string;
+    passwordsMismatch: string;
+    default: string;
+  };
+  passwordValidation: {
+    length: string;
+  };
+};
+
+export type VerifyEmailDict = {
+  title: string;
+  pendingMessage: string;
+  verifyingMessage: string;
+  successMessage: string;
+  successRedirect: string;
+  errorMessage: string;
+  resendButton: string;
+  resendButtonLoading: string;
+  backToSignInButton: string;
+  emailSentTo: string;
+  emailAddressNotSpecified: string;
+  checkYourInbox: string;
+  errors: {
+    title: string;
+    noEmail: string;
+    linkInvalid: string;
+    sessionMismatch: string;
+    tokenUsed: string;
+    tokenExpired: string;
+    default: string;
+    resendFailed: string;
+  };
+  alerts: {
+    resendSuccess: string;
+  };
+};
+
+export type SetupAccountDict = {
+  title: string;
+  description: string;
+  newPasswordLabel: string;
+  passwordHint: string;
+  confirmPasswordLabel: string;
+  submitButton: string;
+  submitButtonLoading: string;
+  success: {
+    title: string;
+    description: string;
+    redirecting: string;
+  };
+  errors: {
+    linkInvalid: string;
+    passwordLength: string;
+    passwordsMismatch: string;
+    default: string;
+    unexpected: string;
+  };
+};
+
+export type UpdatePhoneDict = {
+  title: string;
+  description: string;
+  newPhoneLabel: string;
+  newPhonePlaceholder: string;
+  submitButton: string;
+  submitButtonLoading: string;
+  backToVerificationLink: string;
+  loaderText: string;
+  errors: {
+    title: string;
+    invalidFormat: string;
+    updateFailed: string;
+    unexpected: string;
+  };
+};
+
+export type VerifyPhoneDict = {
+  title: string;
+  description: string;
+  yourPhoneNumber: string;
+  codeSentTo: string;
+  enterCodePrompt: string;
+  digitAriaLabel: string;
+  verifyButton: string;
+  verifyingButton: string;
+  resend: {
+    prompt: string;
+    button: string;
+    buttonLoading: string;
+    timer: string;
+  };
+  wrongNumberLink: string;
+  backToSignInLink: string;
+  errors: {
+    title: string;
+    incompleteCode: string;
+    default: string;
+    unexpected: string;
+  };
+  success: {
+    title: string;
+    verifying: string;
+    updatingProfile: string;
+  };
+  info: {
+    title: string;
+    resent: string;
+  };
+};
+
+export type AuthErrorDict = {
+  title: string;
+  backButton: string;
+  errors: {
+    CredentialsSignin: string;
+    OAuthAccountNotLinked: string;
+    Default: string;
+  };
+};
+
+// טיפוס להצעת Google
+export type GoogleSuggestionDict = {
+  title: string;
+  description: string;
+  buttonText: string;
+  buttonLoading: string;
+};
+
+// טיפוס לתמונות - מעודכן עם fieldName ו-required
+export type PhotosDict = {
+  title: string;
+  subtitle: string;
+  addPhoto: string;
+  mainPhoto: string;
+  setAsMain: string;
+  remove: string;
+  maxPhotosError: string;
+  invalidTypeError: string;
+  fileTooLargeError: string;
+  uploadSuccess: string;
+  uploadingPhotos: string;
+  tip: string;
+  tipText: string;
+  fieldName: string; // שם השדה לוולידציה
+  required: string; // הודעת שגיאה כשחסר
+};
+
+// טיפוס לסיפור שלי - מעודכן עם fieldName ו-required
+export type AboutMeDict = {
+  title: string;
+  subtitle: string;
+  label: string;
+  placeholder: string;
+  tooltip: string;
+  minChars: string;
+  promptsTitle: string;
+  prompt1: string;
+  prompt2: string;
+  prompt3: string;
+  prompt4: string;
+  fieldName: string; // שם השדה לוולידציה
+  required: string; // הודעת שגיאה כשחסר
+};
+
+export type RegisterStepsDict = {
+  progressBar: {
+    stepLabel: string;
+  };
+  headers: {
+    registerTitle: string;
+    verifyEmailTitle: string;
+    completeProfileTitle: string;
+    welcomeDescription: string;
+    accountCreationDescription: string;
+    verifyEmailDescription: string;
+    personalDetailsDescription: string;
+    personalDetailsConsentedDescription: string;
+    optionalInfoDescription: string;
+    completionPhoneVerificationDescription: string;
+    completionReadyDescription: string;
+    loadingProfileDescription: string;
+  };
+
+  incompleteProfileAlert: {
+    title: string;
+    description: string;
+    verifyPhoneDescription: string;
+  };
+  contactSupport: string;
+  contactSupportLink: string;
+
+  steps: {
+    welcome: {
+      title: string;
+      subtitle: string;
+      googleButton: string;
+      emailButton: string;
+      signInPrompt: string;
+      signInLink: string;
+    };
+    basicInfo: {
+      title: string;
+      emailLabel: string;
+      emailPlaceholder: string;
+      passwordLabel: string;
+      passwordPlaceholder: string;
+      passwordHint: string;
+      firstNameLabel: string;
+      firstNamePlaceholder: string;
+      lastNameLabel: string;
+      lastNamePlaceholder: string;
+      languageLabel: string;
+      backButton: string;
+      nextButton: string;
+      nextButtonLoading: string;
+      termsDisclaimer: string;
+      googleSuggestion?: GoogleSuggestionDict;
+      errors: {
+        title: string;
+        invalidEmail: string;
+        invalidPassword: string;
+        requiredEmail: string;
+        requiredPassword: string;
+        fillFields: string;
+        fixErrors: string;
+        default: string;
+      };
+      status: {
+        creatingAccount: string;
+        sendingCode: string;
+      };
+    };
+
+    emailVerification: {
+      title: string;
+      subtitle: string;
+      yourEmail: string;
+      submitButton: string;
+      submitButtonLoading: string;
+      resendPrompt: string;
+      resendButton: string;
+      resendButtonLoading: string;
+      backButton: string;
+      errors: {
+        title: string;
+        incompleteCode: string;
+        default: string;
+        autoSignInFailed: string;
+      };
+      alerts: {
+        title: string;
+        resent: string;
+      };
+    };
+
+    personalDetails: {
+      title: string;
+      subtitle: string;
+      firstNameLabel: string;
+      firstNamePlaceholder: string;
+      lastNameLabel: string;
+      lastNamePlaceholder: string;
+      languageLabel: string;
+      languagePlaceholder: string;
+
+      phoneLabel: string;
+      phonePlaceholder: string;
+      genderLabel: string;
+      male: string;
+      female: string;
+      birthDateLabel: string;
+      maritalStatusLabel: string;
+      maritalStatusPlaceholder: string;
+      maritalStatuses: {
+        single: string;
+        divorced: string;
+        widowed: string;
+      };
+      religiousLevelLabel: string;
+      religiousLevelPlaceholder: string;
+      religiousLevels: { [key: string]: string };
+
+      engagementConsentLabel: string;
+      promotionalConsentLabel: string;
+      backButton: string;
+      nextButton: string;
+      nextButtonLoading: string;
+
+      // תמונות וסיפור - שדות חדשים
+      photos?: PhotosDict;
+      aboutMe?: AboutMeDict;
+
+      errors: {
+        firstNameRequired: string;
+        lastNameRequired: string;
+        phoneRequired: string;
+        phoneInvalid: string;
+        birthDateRequired: string;
+        ageTooLow: string;
+        ageTooHigh: string;
+        genderRequired: string;
+        maritalStatusRequired: string;
+        consentRequired: string;
+        engagementConsentRequired: string;
+        religiousLevelRequired: string;
+        consentApiError: string;
+      };
+    };
+
+    optionalInfo: {
+      title: string;
+      subtitle: string;
+      heightLabel: string;
+      heightPlaceholder: string;
+      occupationLabel: string;
+      occupationPlaceholder: string;
+      educationLabel: string;
+      educationPlaceholder: string;
+      backButton: string;
+      nextButton: string;
+      status: {
+        saving: string;
+        updating: string;
+        sendingCode: string;
+      };
+      loadingOverlay?: LoadingOverlayDict;
+      errors: {
+        title: string;
+        missingData: string;
+        default: string;
+      };
+    };
+
+    complete: {
+      loading: string;
+      verifyEmailTitle: string;
+      verifyEmailSubtitle: string;
+      verifyEmailPrompt: string;
+      completeProfileTitle: string;
+      completeProfileSubtitle: string;
+      completeProfileButton: string;
+      verifyPhoneTitle: string;
+      verifyPhoneSubtitle: string;
+      verifyPhoneButton: string;
+      allDoneTitle: string;
+      allDoneSubtitle: string;
+      myProfileButton: string;
+      questionnaireButton: string;
+      backToHomeLink: string;
+    };
+  };
+
+  consentCheckbox: {
+    text: string;
+    termsLink: string;
+    privacyLink: string;
+  };
+
+  validationErrors: {
+    title: string;
+    pleaseFill: string;
+    fields: {
+      email: string;
+      password: string;
+      firstName: string;
+      lastName: string;
+      phone: string;
+      gender: string;
+      birthDate: string;
+      maritalStatus: string;
+      religiousLevel: string;
+      terms: string;
+      engagement: string;
+       photos: string;
+      aboutMe: string;
+    };
+  };
+};
+
+// Main Auth Dictionary Type
+export type AuthDictionary = {
+  signIn: SignInDict;
+  forgotPassword: ForgotPasswordDict;
+  resetPassword: ResetPasswordDict;
+  verifyEmail: VerifyEmailDict;
+  setupAccount: SetupAccountDict;
+  updatePhone: UpdatePhoneDict;
+  verifyPhone: VerifyPhoneDict;
+  errorPage: AuthErrorDict;
+  register: RegisterStepsDict;
+  unsubscribePage: UnsubscribePageDict;
+  legal: LegalDictionary;
+};
+
+export type AccessibilityStatementDict = {
+  pageTitle: string;
+  pageDescription: string;
+  mainTitle: string;
+  siteName: string;
+  lastUpdated: string;
+  commitment: {
+    title: string;
+    p1: string;
+    p2: string;
+  };
+  level: {
+    title: string;
+    item1: string;
+    item2: string;
+  };
+  features: {
+    title: string;
+    p1: string;
+    dedicatedToolbarTitle: string;
+    p2: string;
+    fontAdjustment: {
+      title: string;
+      description: string;
+    };
+    contrastModes: {
+      title: string;
+      description: string;
+    };
+    readableFont: {
+      title: string;
+      description: string;
+    };
+    largeCursor: {
+      title: string;
+      description: string;
+    };
+    textToSpeech: {
+      title: string;
+      description: string;
+    };
+    reduceMotion: {
+      title: string;
+      description: string;
+    };
+    additionalAdjustmentsTitle: string;
+    keyboardNav: string;
+    screenReader: string;
+    altText: string;
+    accessibleForms: string;
+    noFlashing: string;
+  };
+  limitations: {
+    title: string;
+    p1: string;
+    p2: string;
+  };
+  contact: {
+    title: string;
+    p1: string;
+    name: string;
+    email: string;
+    p2: string;
+    p3: string;
+  };
+};
+
+export type PrivacyPolicyDict = {
+  pageTitle: string;
+  pageDescription: string;
+  mainTitle: string;
+  lastUpdated: string;
+  introduction: {
+    title: string;
+    p1: string;
+    p2: string;
+    p3: string;
+  };
+  consent: {
+    title: string;
+    p1: string;
+    p2: string;
+    p3: string;
+    p4: string;
+  };
+  collectedInfo: {
+    title: string;
+    p1: string;
+    subTitle1: string;
+    list1: {
+      item1: string;
+      item2: {
+        title: string;
+        subItem1: string;
+        subItem2: string;
+        subItem3: string;
+      };
+      item3: string;
+      item4: string;
+      item5: string;
+      item6: string;
+    };
+    subTitle2: string;
+    p2: string;
+    subTitle3: string;
+    p3_1: string;
+    p3_2: string;
+    p3_3: string;
+    p3_4: string;
+    p3_5: string;
+    p3_6: string;
+    p3_7: string;
+    subTitle4: string;
+    list2: {
+      item1: string;
+      item2: string;
+    };
+  };
+  howWeUse: {
+    title: string;
+    p1: string;
+    list: {
+      item1: string;
+      item2: string;
+      item3: string;
+      item4: string;
+      item5: string;
+      item6: string;
+      item7: string;
+    };
+  };
+  sharingInfo: {
+    title: string;
+    p1: string;
+    list: {
+      item1: string;
+      item2: string;
+      item3: string;
+      item4: string;
+      item5: string;
+    };
+  };
+  security: {
+    title: string;
+    p1: string;
+  };
+  retention: {
+    title: string;
+    p1: string;
+  };
+  yourRights: {
+    title: string;
+    p1: string;
+  };
+  crossBorder: {
+    title: string;
+    p1: string;
+  };
+  minors: {
+    title: string;
+    p1: string;
+  };
+  changes: {
+    title: string;
+    p1: string;
+  };
+  contact: {
+    title: string;
+    p1: string;
+    companyName: string;
+    email: string;
+    address: string;
+  };
+};
+
+export type TermsOfServiceDict = {
+  pageTitle: string;
+  pageDescription: string;
+  mainTitle: string;
+  subTitle: string;
+  lastUpdated: string;
+  introduction: {
+    title: string;
+    p1_1: string;
+    p1_2: string;
+    p1_3: string;
+    p1_4: string;
+    list: {
+      itemA: string;
+      itemB: string;
+      itemC: string;
+    };
+    p1_5: string;
+  };
+  userAccount: {
+    title: string;
+    p2_1: string;
+    p2_2: string;
+    list: {
+      itemA: string;
+      itemB: string;
+      itemC: string;
+      itemD: string;
+      itemE: string;
+      itemF: string;
+      itemG: string;
+      itemH: string;
+      itemI: string;
+    };
+    p2_3: string;
+  };
+  serviceFees: {
+    title: string;
+    p3_1: string;
+    list: {
+      itemA: string;
+      itemB: string;
+      itemC: string;
+    };
+    p3_2: string;
+    p3_3: string;
+    p3_4: string;
+    p3_5: string;
+  };
+  intellectualProperty: {
+    title: string;
+    p4_1: string;
+    p4_2: string;
+  };
+  thirdPartyLinks: {
+    title: string;
+    p1: string;
+  };
+  limitationOfLiability: {
+    title: string;
+    p6_1: string;
+    p6_2: string;
+    p6_3: string;
+    p6_4: string;
+  };
+  indemnification: {
+    title: string;
+    p1: string;
+  };
+  terminationLaw: {
+    title: string;
+    p8_1: string;
+    p8_2: string;
+    p8_3: string;
+  };
+  contact: {
+    title: string;
+    p9_1: string;
+    p9_2: string;
+  };
+};
+
+export type LegalDictionary = {
+  accessibilityStatement: AccessibilityStatementDict;
+  privacyPolicy: PrivacyPolicyDict;
+  termsOfService: TermsOfServiceDict;
+};
+
+export type UnsubscribePageDict = {
+  verifying: string;
+  successTitle: string;
+  successMessage: string;
+  errorTitle: string;
+  errorMessageDefault: string;
+  errorInvalidLink: string;
+  backToHomeButton: string;
+};
+
+export type LoadingOverlayDict = {
+  title: string;
+  subtitle: string;
+  acceptingTerms: string;
+  savingProfile: string;
+  savingProfileSubtext?: string;
+  sendingCode: string;
+  sendingCodeSubtext?: string;
+  redirecting: string;
+};
+--- End of Content for auth.d.ts ---
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\types\dictionaries\dictionaries_contents.txt
+--------------------------------------------------------------------------------
+[This is the output log file itself. Content not included.]
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\types\dictionaries\email.d.ts
+--------------------------------------------------------------------------------
+Content:
+// src/types/dictionaries/email.d.ts
+
+import { MatchSuggestionStatus } from '@prisma/client';
+
+// ======================================================================== //
+// ✨ טיפוסים עבור מודול ההתראות (Notifications) - ללא שינוי ✨
+// ======================================================================== //
+
+type SuggestionStatusNotificationDict = {
+  subject: string;
+  body: string;
+  htmlBody: string;
+};
+
+type NotificationDictionary = {
+  customMessage: {
+    subject: string;
+    reminderText: string;
+  };
+  suggestionStatusChange: Partial<Record<MatchSuggestionStatus, SuggestionStatusNotificationDict>>;
+};
+
+// ======================================================================== //
+// ✨ טיפוסים עבור תבניות המיילים (Email Templates) - ללא שינוי ✨
+// ======================================================================== //
+
+type EmailTemplateContent = {
+  subject: string;
+  title: string;
+  [key: string]: string | Record<string, string>; 
+};
+
+type ProfileFeedbackEmailDict = EmailTemplateContent & {
+  greeting: string;
+  matchmakerIntro: string;
+  systemIntro: string;
+  progressHeader: string;
+  aiSummaryHeader: string;
+  aiSummary: {
+    personalityTitle: string;
+    lookingForTitle: string;
+  };
+  missingItemsHeader: string;
+  missingProfileItemsTitle: string;
+  missingQuestionnaireItemsTitle: string;
+  cta: {
+    title: string;
+    button: string;
+  };
+};
+
+
+// ======================================================================== //
+// ✨ טיפוסים עבור מערכת ה-Engagement - *** כאן נמצאים העדכונים *** ✨
+// ======================================================================== //
+
+/**
+ * תבנית בסיסית למייל מעורבות (Engagement).
+ */
+type EngagementTemplate = {
+  subject: string;
+  hook: string;
+  mainMessage: string;
+  specificAction?: string;
+  encouragement: string;
+};
+
+/**
+ * תבנית ייעודית למייל הפתיחה (יום 1), הכוללת מסר מיוחד למשתמשים מהירים.
+ */
+type OnboardingDay1Template = EngagementTemplate & {
+  fastUserMainMessage?: string;
+};
+
+/**
+ * תבנית ייעודית למייל הטיזר של ה-AI, הכוללת טקסטים לתובנה ספציפית או גנרית.
+ */
+type AiTeaserTemplate = EngagementTemplate & {
+  aiInsight: string;      // "לדוגמה, המערכת מזהה בך..."
+  genericInsight: string; // "המערכת שלנו כבר לומדת אותך..."
+};
+
+/**
+ * תבנית ייעודית למייל הערך המוסף, הכוללת טיפים מה-AI.
+ */
+type ValueAddTemplate = EngagementTemplate & {
+  aiTip: string;      // "למשל, ה-AI מציע..."
+  genericTip: string; // "למשל, נסה לשלב..."
+};
+
+/**
+ * תבנית למיילים הנותנים ערך כללי (מערך של נושאים).
+ */
+type ValueEmailTemplate = Array<{
+  subject: string;
+  hook: string;
+  mainMessage: string;
+  encouragement: string;
+}>;
+
+/**
+ * תבנית למייל הפידבק היומי בערב.
+ */
+type EveningFeedbackTemplate = EngagementTemplate & {
+  systemSummary: string;
+};
+
+/**
+ * מרכז את כל תבניות המייל של מערכת ה-Engagement.
+ * זהו האובייקט המעודכן והמורחב.
+ */
+type EngagementEmailDict = {
+  // --- מיילים חדשים בקמפיין ---
+  onboardingDay1: OnboardingDay1Template;
+  onboardingPhotos: EngagementTemplate;
+  onboardingAiTeaser: AiTeaserTemplate;
+  onboardingQuestionnaireWhy: EngagementTemplate;
+  onboardingValueAdd: ValueAddTemplate;
+
+  // --- מיילים ותיקים שנשארים ---
+  photoNudge: EngagementTemplate;
+  questionnaireNudge: EngagementTemplate;
+  almostDone: EngagementTemplate;
+  reEngagement: EngagementTemplate;
+  aiSummary: EngagementTemplate;
+  eveningFeedback: EveningFeedbackTemplate;
+  value: ValueEmailTemplate;
+
+  // --- מיילים שהוצאו משימוש (הוחלפו בלוגיקה החדשה) ---
+  // onboardingDay3: EngagementTemplate; // הוחלף ב-onboardingAiTeaser ו-onboardingQuestionnaireWhy
+  // onboardingDay7_Insight: EngagementTemplate; // הוחלף ב-onboardingValueAdd
+};
+
+
+// ======================================================================== //
+// ✨ הטיפוס הראשי והמאוחד: EmailDictionary ✨
+// ======================================================================== //
+
+export type EmailDictionary = {
+  engagement: EngagementEmailDict;
+
+  shared: {
+    greeting: string;
+    closing: string;
+    team: string;
+    supportPrompt: string;
+    rightsReserved: string;
+  };
+
+  welcome: EmailTemplateContent & { matchmakerAssigned: string; getStarted: string; dashboardButton: string; };
+  accountSetup: EmailTemplateContent & { intro: string; actionPrompt: string; actionButton: string; notice: string; nextStep: string; };
+  emailOtpVerification: EmailTemplateContent & { intro: string; codeInstruction: string; expiryNotice: string; securityNote: string; };
+  invitation: EmailTemplateContent & { intro: string; actionPrompt: string; actionButton: string; expiryNotice: string; };
+  suggestion: EmailTemplateContent & { 
+    intro: string; 
+    previewTitle: string; 
+    actionPrompt: string; 
+    actionButton: string; 
+    closing: string; 
+    details: { age: string; city: string; occupation: string; additionalInfo: string; };
+  };
+  shareContactDetails: EmailTemplateContent & { intro: string; detailsOf: string; tipTitle: string; tipContent: string; goodLuck: string; };
+  availabilityCheck: EmailTemplateContent & { intro: string; actionPrompt: string; actionButton: string; noticeTitle: string; noticeContent: string; };
+  passwordResetOtp: EmailTemplateContent & { intro: string; codeInstruction: string; expiryNotice: string; securityNote: string; };
+  passwordChangedConfirmation: EmailTemplateContent & { intro: string; securityNote: string; actionButton: string; };
+  profileFeedback: ProfileFeedbackEmailDict;
+profileSummaryUpdate: { 
+    subject: string; 
+    title: string; 
+    introMatchmaker: string; 
+    introSystem: string; 
+    highlight: string; 
+    encouragement: string; 
+    actionButton: string; 
+};
+  notifications: NotificationDictionary;
+};
+--- End of Content for email.d.ts ---
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\types\dictionaries\matchmaker.d.ts
+--------------------------------------------------------------------------------
+Content:
+// src/types/dictionaries/matchmaker.d.ts
+
+
+// Types for individual components
+
+type MinimalHeaderDict = {
+  title: string;
+  totalLabel: string;
+  verifiedLabel: string;
+  profilesCompleteLabel: string;
+  addButton: string;
+  refreshButton: string;
+  expandTooltip: string;
+  collapseTooltip: string;
+  advancedTitle: string;
+  advancedSubtitle: string;
+  addCandidateButton: string;
+  bulkUpdateDialog: {
+    title: string;
+    description: string;
+    cancel: string;
+    confirm: string;
+  };
+  stats: {
+    total: string;
+    male: string;
+    female: string;
+    verified: string;
+    active: string;
+    complete: string;
+  };
+};
+
+type SearchBarDict = {
+  generalPlaceholder: string;
+  malePlaceholder: string;
+  femalePlaceholder: string;
+  clearTooltip: string;
+  smartSearch: string;
+  resultsCount: string; // e.g., "{{count}} results"
+  filterResultsPlaceholder: string;
+  noResultsTitle: string;
+  noResultsDescription: string;
+  recentSearches: string;
+  clearHistory: string;
+  matchingResults: string; // e.g., "Matching results ({{count}})"
+  tip: string;
+  tipContent: string;
+  categories: {
+    name: string;
+    city: string;
+    occupation: string;
+    all: string;
+  };
+  tooltips: {
+    maleTarget: string;
+    femaleTarget: string;
+  };
+};
+
+
+type ActiveFiltersDict = {
+  title: string;
+  filterActive: string;      // e.g., "1 filter active"
+  filtersActive: string;     // e.g., "{{count}} filters active"
+  suggestButton: string;
+  suggestTooltip: string;
+  clearAllButton: string;
+  clearAllTooltip: string;
+  labels: {
+    search: string; // e.g., "Search: {{query}}"
+    maleSearch: string; // e.g., "Male Search: {{query}}"
+    femaleSearch: string; // e.g., "Female Search: {{query}}"
+    separateFiltering: string;
+    gender: string; // e.g., "Gender: {{gender}}"
+    genders: {
+      MALE: string;
+      FEMALE: string;
+    };
+    age: string; // e.g., "Age: {{min}}-{{max}}"
+    ageAbove: string; // e.g., "Age: Over {{min}}"
+    ageBelow: string; // e.g., "Age: Up to {{max}}"
+    height: string; // e.g., "Height: {{min}}-{{max}} cm"
+    heightAbove: string;
+    heightBelow: string;
+    religiousLevel: string;
+    educationLevel: string;
+    city: string;
+    occupation: string;
+    availability: { // הוספנו אובייקט לתרגום סטטוסים
+      AVAILABLE: string;
+      DATING: string;
+      UNAVAILABLE: string;
+    };
+    status: string; // e.g. "Status: {{status}}"
+    maritalStatus: string;
+    verifiedOnly: string;
+    withRecommendations: string;
+    fullProfile: string;
+    activeToday: string;
+    activeLast3Days: string;
+    activeLast7Days: string;
+    activeLast30Days: string;
+    activeInDays: string; // e.g., "Active in last {{days}} days"
+  };
+  summary: {
+    title: string; // e.g., "Advanced filtering active - {{count}} criteria"
+    highPriority: string; // e.g., "{{count}} important"
+    mediumPriority: string; // e.g., "{{count}} medium"
+  };
+};
+
+type FilterPanelDict = {
+  header: {
+    title: string;
+    subtitle: string;
+    resetTooltip: string;
+    saveTooltip: string;
+  };
+  popularFilters: {
+    activeRecently: string;
+    verifiedOnly: string;
+    withRecommendations: string;
+    availableOnly: string;
+    completeProfiles: string;
+  };
+  savePreset: {
+    title: string;
+    placeholder: string;
+    button: string;
+  };
+  separateFiltering: {
+    title: string;
+    description: string;
+  };
+  genderFilterPanel: {
+    maleTitle: string;
+    femaleTitle: string;
+    copyToMale: string;
+    copyToFemale: string;
+    copyTooltip: string;
+    ageLabel: string;
+    heightLabel: string;
+    minLabel: string;
+    maxLabel: string;
+    religiousLevelLabel: string;
+    cityLabel: string;
+    verifiedOnlyLabel: string;
+    withRecommendationsLabel: string;
+    fullProfileLabel: string;
+    placeholders: {
+      selectReligious: string;
+      selectCity: string;
+    };
+    options: {
+      all: string;
+    };
+  };
+  tabs: {
+    basic: string;
+    advanced: string;
+    status: string;
+    saved: string;
+  };
+  sections: {
+    gender: string;
+    age: string;
+    height: string;
+  };
+  buttons: {
+    male: string;
+    female: string;
+    removeSelection: string;
+    reset: string;
+    save: string;
+  };
+  savedFilters: SavedFiltersDict;
+
+};
+
+type QuickViewDict = {
+  availability: {
+    AVAILABLE: string;
+    DATING: string;
+    UNAVAILABLE: string;
+    UNKNOWN: string;
+  };
+  availabilityDescription: {
+    AVAILABLE: string;
+    DATING: string;
+    UNAVAILABLE: string;
+    UNKNOWN: string;
+  };
+  manualEntry: string;
+  tooltips: {
+    setAsAiTarget: string;
+    clearAiTarget: string;
+  };
+  details: {
+    years: string;
+    heightUnit: string;
+    maritalStatus: string;
+    religiousLevel: string;
+    manualDescription: string;
+    moreInfo: string;
+    education: string;
+    occupation: string;
+    location: string;
+    about: string;
+  };
+  qualityScore: string;
+  actions: {
+    view: string;
+    suggest: string;
+    invite: string;
+    contact: string;
+    edit: string;
+  };
+  actionsDescription: {
+    view: string;
+    suggest: string;
+    invite: string;
+    contact: string;
+    edit: string;
+  };
+  stats: {
+    rating: string;
+    match: string;
+    response: string;
+    quick: string;
+  };
+};
+
+type CandidatesListDict = {
+  quickViewTooltip: string;
+  editProfileTooltip: string;
+  emptyState: {
+    title: string;
+    description: string;
+  };
+  profileDialog: {
+    title: string;
+    description: string;
+    editButton: string;
+    viewAsLabel: string;
+    candidateView: string;
+    matchmakerView: string;
+  };
+  cardActions: {
+    availableNow: string;
+    viewProfile: string;
+    suggestMatch: string;
+    sendInvite: string;
+    checkAvailability: string;
+    viewProfileTooltip: string;
+    suggestMatchTooltip: string;
+    sendInviteTooltip: string;
+    checkAvailabilityTooltip: string;
+    addToFavorites: string;
+    rating: string;
+    matchScore: string;
+    response: string;
+    quickResponse: string;
+  };
+  minimalCard: {
+    availability: {
+      AVAILABLE: string;
+      DATING: string;
+      UNAVAILABLE: string;
+      UNKNOWN: string;
+    };
+    aiMatch: string;
+    manualEntry: string;
+    noImage: string;
+    yearsSuffix: string;
+    lastActivePrefix: string;
+    qualityScore: string;
+    compare: string;
+    tooltips: {
+      editProfile: string;
+      setAsAiTarget: string;
+      clearAiTarget: string;
+            aiAnalysis: string; // <-- הוסף את השורה הזו
+
+    };
+      hasTestimonials: string; 
+  testimonialsTooltip: string;
+  };
+  quickView: QuickViewDict;
+};
+
+// src/types/dictionaries/matchmaker.d.ts
+
+// ... (איפשהו לפני type MatchmakerPageDictionary)
+type AiAdvisorDialogDict = {
+  dialogTitle: string; // e.g., "AI Analysis for {{name}}"
+  dialogDescription: string;
+  loadingTitle: string;
+  loadingDescription: string;
+  errorAlertTitle: string;
+  errorAlertDescription: string;
+  retryButton: string;
+  initialState: string;
+  closeButton: string;
+  toast: {
+    errorTitle: string;
+    errorDescription: string; // e.g., "An error occurred: {{error}}"
+  };
+  // This will nest the existing type for the display component
+  analysisResult: AnalysisResultDisplayDict; 
+};
+
+type SplitViewDict = {
+  panelHeaders: {
+    male: { title: string; subtitle: string; };
+    female: { title: string; subtitle: string; };
+    targetLabel: string;
+    findMatchesButton: string;
+    searchingButton: string;
+  };
+  mobile: {
+    tabs: { male: string; female: string; };
+    splitLabels: { male: string; female: string; };
+  };
+};
+
+type AiMatchAnalysisDialogDict = {
+  header: {
+    title: string;
+    description: string;
+    languageSelectPlaceholder: string;
+    languages: {
+      he: string;
+      en: string;
+    };
+  };
+  sidebar: {
+    title: string; // e.g., "Candidates to Compare ({{count}})"
+  };
+  main: {
+    selectCandidate: {
+      title: string;
+      description: string;
+    };
+    error: {
+      title: string;
+      description: string;
+    };
+  };
+  miniProfile: {
+    matchBadge: string; // e.g., "{{score}}% Match"
+    targetBadge: string;
+    years: string;
+    notSpecified: string;
+  };
+  tabs: {
+    summary: string;
+    challenges: string;
+    comparison: string;
+    conversation: string;
+  };
+  analysis: {
+    summaryTitle: string;
+    strengthsTitle: string;
+    challengesTitle: string;
+    conversationStartersTitle: string;
+  };
+  comparisonTable: {
+    criterion: string;
+    fields: {
+      age: string;
+      ageApprox: string; // e.g., "(approx.)"
+      city: string;
+      maritalStatus: string;
+      religiousLevel: string;
+      occupation: string;
+      education: string;
+    };
+  };
+};
+
+
+// Main dictionary type for the Matchmaker Page
+export type MatchmakerPageDictionary = {
+    suggestionDetailsDialog: SuggestionDetailsDialogDict; 
+  candidatesManager: {
+    header: MinimalHeaderDict;
+    controls: {
+      sort: string;
+      sortBy: string;
+      filters: string;
+      hideFilters: string;
+            disableQuickView: string; // <--- הוסף
+      enableQuickView: string; // <--- הוסף
+      disableQuickViewTooltip: string; // <--- הוסף
+      enableQuickViewTooltip: string; // <--- הוסף
+compareButton: string;
+      mobile: {
+        split: string;
+        singleCol: string;
+        doubleCol: string;
+      };
+    };
+    sortOptions: { [key: string]: string };
+    viewOptions: { [key: string]: string };
+    searchBar: SearchBarDict;
+    activeFilters: ActiveFiltersDict;
+    filterPanel: FilterPanelDict;
+    list: CandidatesListDict;
+    splitView: SplitViewDict;
+    // --- התיקון כאן ---
+    // העברנו את aiAnalysis להיות חלק מ-candidatesManager
+    aiAnalysis: AiMatchAnalysisDialogDict;
+        aiProfileAdvisor: AiAdvisorDialogDict; // <-- הוסף את השורה הזו
+
+        stats: CandidatesStatsDict;
+            editProfile: MatchmakerEditProfileDict;
+    actionDialogs: ActionDialogsDict;
+ 
+    addManualCandidateDialog: AddManualCandidateDialogDict;
+        profileFeedbackDialog: ProfileFeedbackDialogDict; // <-- הוסף את השורה הזו
+
+  };
+    statusBadges: StatusBadgeDict;
+      pagination: PaginationDict;
+  loadingStates: LoadingStatesDict;
+suggestionsDashboard: MatchmakerSuggestionsDashboardDict; 
+
+};
+// הגדרת המילון עבור דיאלוג העריכה והשליחה
+type ProfileFeedbackDialogDict = {
+  title: string; // e.g., "Profile Feedback for {{name}}"
+  preparingEmail: string;
+  emailSubject: string;
+  editPrompt: string;
+  buttons: {
+    cancel: string;
+    send: string;
+    sending: string;
+  };
+  toasts: {
+    loadError: string;
+    sendSuccess: string;
+    sendError: string;
+  };
+};
+
+// הגדרת המילון עבור תוכן המייל עצמו
+type ProfileFeedbackEmailDict = {
+  title: string;
+  greeting: string; // {{firstName}}
+  matchmakerIntro: string; // {{matchmakerName}}
+  systemIntro: string; // For automated emails
+  progressHeader: string;
+  aiSummaryHeader: string;
+  aiSummary: {
+    personalityTitle: string;
+    lookingForTitle: string;
+  };
+  missingItemsHeader: string;
+  missingProfileItemsTitle: string;
+  missingQuestionnaireItemsTitle: string;
+  cta: {
+    title: string;
+    button: string;
+  };
+};
+type CandidatesStatsDict = {
+  hero: {
+    title: string;
+    subtitle: string;
+  };
+  mainStats: {
+    total: {
+      title: string;
+      description: string;
+    };
+    ratio: {
+      title: string;
+      description: string;
+    };
+    activity: {
+      title: string;
+    };
+    completion: {
+      title: string;
+      description: string; // e.g., "{{completed}} out of {{total}}"
+    };
+    trend: {
+      increase: string;
+      decrease: string;
+      period: string;
+    };
+  };
+  tabs: {
+    demographics: string;
+    activity: string;
+    completion: string;
+  };
+  charts: {
+    ageDistribution: {
+      title: string;
+      description: string;
+    };
+    religiousDistribution: {
+      title: string;
+      description: string;
+    };
+    topCities: {
+      title: string;
+      description: string;
+    };
+    userActivity: {
+      title: string;
+      description: string;
+      weeklyActive: string;
+      monthlyActive: string;
+      avgLogin: string;
+      days: string;
+    };
+    activityTrend: {
+      title: string;
+      description: string;
+      comingSoon: string;
+      subtitle: string;
+    };
+    profileCompletion: {
+      title: string;
+      description: string;
+      hasPhotos: string;
+      isVerified: string;
+      hasReferences: string;
+    };
+    performance: {
+      title: string;
+      description: string;
+      qualityRating: string;
+      satisfaction: string;
+      monthlyProgress: string;
+      newCandidates: string;
+      activity: string;
+      profileCompletion: string;
+    };
+  };
+};
+
+type SavedFiltersDict = {
+  header: {
+    title: string;
+    subtitle: string; // e.g., "{{count}} saved filter" or "{{count}} saved filters"
+    singleFilter: string;
+    multipleFilters: string;
+  };
+  filterCard: {
+    defaultBadge: string;
+    complexity: {
+      basic: string;
+      advanced: string;
+      complex: string;
+      expert: string;
+    };
+    criteria: string; // e.g., "{{count}} criteria"
+    actions: {
+      edit: string;
+      setDefault: string;
+      isDefault: string;
+      delete: string;
+    };
+    summary: {
+      search: string;
+      gender: string;
+      age: string;
+      ageValue: string; // e.g., "{{min}}-{{max}}"
+      height: string;
+      heightValue: string; // e.g., "{{min}}-{{max}}cm"
+      city: string;
+      cities: string; // e.g., "{{count}} cities"
+      religiousLevel: string;
+      educationLevel: string;
+      maritalStatus: string;
+      occupation: string;
+      occupations: string; // e.g., "{{count}} occupations"
+      status: string;
+      statuses: {
+        AVAILABLE: string;
+        DATING: string;
+        UNAVAILABLE: string;
+              PAUSED: string;
+      ENGAGED: string;
+      MARRIED: string;
+
+      };
+      verifiedOnly: string;
+      withRecommendations: string;
+      fullProfile: string;
+      activeToday: string;
+      activeLastWeek: string;
+      activeLastMonth: string;
+      activeInDays: string; // e.g., "Active in last {{days}} days"
+      separateFiltering: string;
+      andMore: string; // e.g., "and {{count}} more criteria"
+      noCriteria: string;
+    };
+  };
+  emptyState: {
+    title: string;
+    description: string;
+    fastSearches: string;
+    advancedFiltering: string;
+    quickAccess: string;
+      saveCurrentButton: string; // <--- הוסף את השורה הזו
+
+  };
+  stats: {
+    default: string;
+    advanced: string;
+    avgCriteria: string;
+  };
+};
+
+// src/types/dictionaries/matchmaker.d.ts
+
+// ... (שאר הטיפוסים הקיימים) ...
+
+type MatchmakerEditProfileDict = {
+  deleteConfirmationPhrase: string;
+   neshamaTechSummary: {
+        title: string;
+        description: string;
+        aiButton: string;
+        aiButtonLoading: string;
+        placeholder: string;
+         saveButton: string; // <-- הוסף שורה זו
+        saveButtonLoading: string; // <-- הוסף שורה זו
+      };
+  toasts: {
+    loadError: string;
+    updateSuccess: string;
+    updateError: string;
+    uploadSuccessSingle: string;
+    uploadSuccessMultiple: string; // e.g., "{{count}} photos uploaded successfully"
+    uploadError: string;
+    setMainSuccess: string;
+    setMainError: string;
+    deleteImageSuccessSingle: string;
+    deleteImageSuccessMultiple: string; // e.g., "{{count}} photos deleted successfully"
+    deleteImageError: string;
+    deleteCandidateErrorConfirmation: string; // e.g., "Invalid confirmation phrase"
+    deleteCandidateErrorDescription: string; // e.g., "Please type '...' exactly"
+    deleteCandidateSuccess: string;
+    deleteCandidateError: string;
+    sendInviteErrorEmail: string;
+    sendInviteErrorGeneral: string;
+    sendInviteSuccess: string;
+    aiSummarySuccess: string;
+        aiSummaryError: string;
+  };
+  header: {
+    title: string; // e.g., "Edit Profile - {{firstName}} {{lastName}}"
+    description: string;
+    saving: string;
+  };
+  tabs: {
+    profile: string;
+    photos: string;
+    preferences: string;
+  };
+  footer: {
+    tabInfo: {
+      profile: string;
+      photos: string;
+      preferences: string;
+    };
+    buttons: {
+      sendInvite: string;
+      deleteCandidate: string;
+      close: string;
+    };
+  };
+  inviteDialog: {
+    title: string;
+    description: string; // e.g., "Send an invitation to {{fullName}}..."
+    emailLabel: string;
+    emailPlaceholder: string;
+    buttons: {
+      cancel: string;
+      send: string;
+      sending: string;
+    };
+  };
+  deleteDialog: {
+    title: string;
+    description: string; // e.g., "Are you sure you want to delete {{fullName}}?"
+    irreversible: string;
+    confirmationLabel: string; // e.g., "To confirm, please type: {{phrase}}"
+    inputPlaceholder: string;
+    mismatchError: string;
+    buttons: {
+      cancel: string;
+      delete: string;
+      deleting: string;
+    };
+  };
+};
+
+type ActionDialogsDict = {
+  invite: {
+    title: string;
+    description: string;
+    emailLabel: string;
+    emailPlaceholder: string;
+    successMessage: string;
+    successDescription: string;
+    invalidEmailError: string;
+    submissionError: string;
+    whatsNextTitle: string;
+    whatsNextItems: string[];
+    buttons: {
+      cancel: string;
+      send: string;
+      sending: string;
+    };
+  };
+  availability: {
+    title: string;
+    description: string;
+    successMessage: string;
+    successDescription: string;
+    submissionError: string;
+    whatsNextTitle: string;
+    whatsNextItems: string[];
+    messageToSendTitle: string;
+    messageContent: string; // e.g., "Hello {{firstName}}, the matchmaker..."
+    buttons: {
+      cancel: string;
+      check: string;
+      checking: string;
+    };
+  };
+  suggest: {
+    title: string;
+    description: string;
+    whatsNextTitle: string;
+    whatsNextDescription: string;
+    buttons: {
+      cancel: string;
+      continue: string;
+    };
+  };
+};
+type AddManualCandidateDialogDict = {
+  title: string;
+  description: string;
+  close: string;
+  fields: {
+    firstName: {
+      label: string;
+      placeholder: string;
+    };
+    lastName: {
+      label: string;
+      placeholder: string;
+    };
+    email: {
+      label: string;
+      placeholder: string;
+      description: string;
+    };
+    sendInvite: {
+      label: string;
+      disabledTooltip: string;
+    };
+    gender: {
+      label: string;
+      placeholder: string;
+      male: string;
+      female: string;
+    };
+    birthDate: {
+      modeLabel: string;
+      dateMode: string;
+      ageMode: string;
+      dateLabel: string;
+      datePlaceholder: string;
+      ageLabel: string;
+      agePlaceholder: string;
+      ageDescription: string;
+    };
+    notes: {
+      label: string;
+      placeholder: string;
+    };
+    photos: {
+      label: string;
+      cta: string;
+      description: string;
+      maxFilesWarning: string; // e.g., "Can upload up to {{max}} images."
+      fileTooLargeError: string; // e.g., "File {{fileName}} is too large (max {{maxSize}}MB)."
+      previewAlt: string; // e.g., "Preview {{index}}"
+      removeLabel: string;
+    };
+  };
+  buttons: {
+    add: string;
+    adding: string;
+    cancel: string;
+  };
+  toasts: {
+    error: {
+      missingFields: string;
+      invalidBirthDate: string;
+      invalidAge: string;
+      general: string;
+    };
+    success: {
+      candidateAdded: string;
+      inviteSent: string;
+      inviteError: string;
+      inviteLoading: string;
+    };
+  };
+};
+type StatusBadgeDict = {
+  suggestion: Record<MatchSuggestionStatus, string>;
+  verification: Record<VerificationStatus, string>;
+  profile: {
+    INCOMPLETE: string;
+    PENDING_VERIFICATION: string;
+    VERIFIED: string;
+    BLOCKED: string;
+  };
+  unknown: string;
+};
+type PaginationDict = {
+  show: string;
+  rows: string;
+  results: string; // e.g., "Showing {{start}}-{{end}} of {{total}} results"
+};
+type LoadingStatesDict = {
+  errorTitle: string;
+  retryButton: string;
+};
+
+
+type MatchmakerHeroSectionDict = {
+  title: string;
+  subtitle: string;
+  totalSuggestions: string;
+  pendingResponse: string;
+  successfulMatches: string;
+  successRate: string;
+  newSuggestionButton: string;
+  sparkle: string;
+  refreshButton: string;
+  refreshingButton: string;
+};
+
+type EnhancedStatsDict = {
+  totalSuggestions: {
+    title: string;
+    description: string;
+  };
+  pendingResponse: {
+    title: string;
+    description: string;
+  };
+  activeNow: {
+    title: string;
+    description: string;
+  };
+  successRate: {
+    title: string;
+    description: string;
+    couples: string;
+  };
+};
+
+type KanbanColumnDict = {
+  requiresAction: string;
+  pendingResponse: string;
+  inProgress: string;
+  history: string;
+  noSuggestions: string;
+};
+
+type MobileViewDict = {
+  list: string;
+  kanban: string;
+  filter: string;
+  searchPlaceholder: string;
+  noMatches: {
+    title: string;
+    description: string;
+  };
+  newSuggestionButton: string;
+};
+
+type MainContentDict = {
+  monthlyTrendButton: string;
+  tabs: {
+    pending: string;
+    active: string;
+    history: string;
+  };
+  loadingText: string;
+  emptyStates: {
+    pending: {
+      title: string;
+      description: string;
+    };
+    active: {
+      title: string;
+      description: string;
+    };
+    history: {
+      title: string;
+      description: string;
+    };
+  };
+};
+
+type DialogsDict = {
+  monthlyTrend: {
+    title: string;
+  };
+  deleteConfirm: {
+    title: string;
+    description: string;
+    cancel: string;
+    confirm: string;
+  };
+};
+
+// הטיפוס הראשי עבור עמוד ניהול ההצעות
+export type MatchmakerSuggestionsDashboardDict = {
+      messageForm: MessageFormDict; // <--- הוספת המפתח החדש
+
+      suggestionsList: SuggestionsListDict; // <--- הוספת המפתח החדש
+  managerSuggestionsList: ManagerSuggestionsListDict; // <--- הוספת המפתח החדש
+
+      monthlyTrendModal: MonthlyTrendModalDict; // <-- הוספת המפתח החדש
+  heroSection: MatchmakerHeroSectionDict;
+  enhancedStats: EnhancedStatsDict;
+  kanban: KanbanColumnDict;
+  mobile: MobileViewDict;
+  mainContent: MainContentDict;
+  dialogs: DialogsDict;
+  toasts: {
+    refreshSuccess: string;
+    loadError: string;
+    createSuccess: string;
+    createError: string;
+    deleteSuccess: string;
+    deleteError: string;
+    statusUpdateSuccess: string;
+    statusUpdateError: string;
+    updateSuccess: string;
+    updateError: string;
+    messageSentSuccess: string;
+    messageSentError: string;
+    
+  };
+  actionBar: SuggestionActionBarDict;
+    suggestionCard: SuggestionCardDict; // <-- הוספת המפתח החדש
+  editSuggestionForm: EditSuggestionFormDict; // <-- הוספת המפתח החדש
+ newSuggestionForm: NewSuggestionFormDict; 
+};
+
+type SuggestionActionBarDict = {
+  searchPlaceholder: string;
+  buttons: {
+    dateRange: string;
+    advancedFilters: string;
+    clearDate: string;
+    hideAdvanced: string;
+    clearAll: string;
+  };
+  priorityFilter: {
+    placeholder: string;
+    all: string;
+    options: Record<"URGENT" | "HIGH" | "MEDIUM" | "LOW", string>;
+  };
+  advancedFilters: {
+    title: string;
+    statusTitle: string;
+    participantsTitle: string;
+    sortByTitle: string;
+    statusOptions: {
+      PENDING_FIRST_PARTY: string;
+      PENDING_SECOND_PARTY: string;
+      FIRST_PARTY_APPROVED: string;
+      SECOND_PARTY_APPROVED: string;
+      DATING: string;
+    };
+    participantOptions: {
+      all: string;
+    };
+    sortOptions: {
+      lastActivity: string;
+      createdAt: string;
+      priority: string;
+      decisionDeadline: string;
+    };
+  };
+  activeFilters: {
+    title: string;
+    priorityLabel: string;
+    dateLabel: string;
+    statusLabel: string;
+    statusValues: {
+      single: string; // למשל: "סטטוס אחד"
+      multiple: string; // למשל: "{{count}} סטטוסים"
+    };
+    userLabel: string;
+    userValue: string; // למשל: "משתתף מסוים"
+  };
+};
+type StatusTranslation = {
+  label: string;
+  shortLabel: string;
+  description: string;
+};
+
+type PriorityTranslation = {
+  label: string;
+};
+
+type SuggestionCardDict = {
+  // תרגומים לכל הסטטוסים האפשריים
+  statuses: Record<string, StatusTranslation>; // Using string key for flexibility with prisma enum
+  // תרגומים לכל רמות הדחיפות
+  priorities: Record<"URGENT" | "HIGH" | "MEDIUM" | "LOW", PriorityTranslation>;
+  deadline: {
+    daysLeft: string; // "{{count}} ימים נותרו"
+    lastDay: string;  // "היום אחרון!"
+    noDeadline: string; // "אין מועד אחרון"
+    decisionInDays: string; // "{{count}} ימים להחלטה"
+    today: string; // "היום!"
+  };
+  matchmakerInfo: {
+    noInfo: string;
+    label: string;
+  };
+  mobile: {
+    title: string;
+    urgentTitle: string;
+    connectionPoints: string;
+    matchReasonTitle: string;
+    viewDetailsButton: string;
+    sentTime: string; // "נשלח {{timeAgo}}"
+  };
+  desktop: {
+    connectionPoints: string;
+    matchReasonTitle: string;
+    timeline: {
+      created: string;
+      deadline: string;
+      progress: string;
+      progressCompleted: string; // "{{percent}}% הושלמו"
+    };
+    partyStatus: {
+      approved: string;
+      declined: string;
+    };
+  };
+  actions: {
+    edit: string;
+    sendMessage: string;
+    delete: string;
+    resend: string;
+    viewDetails: string;
+  };
+  // טקסטים סטטיים לדוגמה, יכולים לעבור ל-DB בעתיד
+  highlights: {
+    familyValues: string;
+    religiousView: string;
+    location: string;
+  };
+};
+type EditSuggestionFormDict = {
+  header: {
+    title: string; // "עריכת הצעת שידוך #{{id}}"
+    description: string; // "עריכת הפרטים עבור ההצעה בין {{party1}} ל{{party2}}"
+    priorityLabel: string; // "עדיפות: {{priority}}"
+    currentStatusLabel: string; // "סטטוס נוכחי: {{status}}"
+  };
+  infoAlert: {
+    title: string; // "מידע נוכחי:"
+    createdFor: string; // "ההצעה נוצרה עבור {{party1}} ו{{party2}}."
+    status: string; // "סטטוס: {{status}}"
+    priority: string; // "עדיפות: {{priority}}"
+  };
+  sections: {
+    priority: {
+      title: string;
+      placeholder: string;
+    };
+    statusChange: {
+      title: string;
+      changeButton: string; // "שנה סטטוס"
+      cancelChangeButton: string; // "ביטול שינוי"
+      placeholder: string; // "בחר/י סטטוס חדש"
+      noChangeOption: string; // "ללא שינוי"
+      notesLabel: string; // "הערות לשינוי הסטטוס"
+      notesPlaceholder: string; // "הערות אופציונליות..."
+    };
+    decisionDeadline: {
+      title: string;
+    };
+    matchingReason: {
+      title: string;
+      placeholder: string; // "פרט/י מדוע יש התאמה..."
+    };
+    firstPartyNotes: {
+      title: string; // "הערות לצד א' ({{name}})"
+      placeholder: string; // "הערות שיוצגו רק לצד א'..."
+    };
+    secondPartyNotes: {
+      title: string; // "הערות לצד ב' ({{name}})"
+      placeholder: string; // "הערות שיוצגו רק לצד ב'..."
+    };
+    internalNotes: {
+      title: string;
+      placeholder: string; // "הערות פנימיות..."
+    };
+  };
+  footer: {
+    info: string; // "כל השינויים יישמרו..."
+    cancelButton: string;
+    saveButton: string;
+    savingButton: string;
+  };
+  toasts: {
+    noSuggestionData: string;
+    updateSuccess: string;
+    updateError: string;
+  };
+  // תרגומים לסטטוסים ולרמות דחיפות שכבר קיימים בטיפוסים אחרים
+  // אבל נשכפל אותם כאן לנוחות כדי שהרכיב יהיה עצמאי
+  statusLabels: Record<string, string>;
+  priorityLabels: Record<"URGENT" | "HIGH" | "MEDIUM" | "LOW", string>;
+};
+
+
+// החלף את ההגדרה הקיימת של CandidateSelectorDict בזו:
+export type CandidateSelectorDict = {
+  searchPlaceholder: string;
+  commandInputPlaceholder: string;
+  noResults: {
+    title: string;
+    description: string;
+  };
+  status: {
+    blocked: string;
+    blockedDescription: string; // יכיל את המשתנה {{name}}
+    pending: string;
+    pendingDescription: string; // יכיל את המשתנה {{name}}
+    available: string;
+    availableDescription: string;
+  };
+  card: {
+    cannotSelect: string;
+    years: string;
+  };
+  selectedDisplay: {
+    title: string;
+    removeButton: string;
+    viewProfileButton: string;
+  };
+  toasts: {
+    cannotSelectError: {
+      title: string;
+      description: string; // יכיל את המשתנים {{name}} ו-{{withName}}
+    };
+  };
+};
+type MatchPreviewDict = {
+  errorState: {
+    title: string;
+    description: string;
+    suggestion: string;
+  };
+  qualityLevels: {
+    perfect: { text: string; description: string; };
+    excellent: { text: string; description: string; };
+    good: { text: string; description: string; };
+    medium: { text: string; description: string; };
+    low: { text: string; description: string; };
+  };
+  generalScoreLabel: string;
+  criteriaSection: {
+    title: string;
+    description: string;
+  };
+  criteria: {
+    age: string;
+    location: string;
+    religious: string;
+        reasons: {
+      age: {
+        ideal: string;
+        good: string;
+        fair: string;
+        large: string;
+        preferenceMismatch: string;
+      };
+      location: {
+        noData: string;
+        sameCity: string;
+        mutualPreference: string;
+        oneWayPreference: string;
+        differentCities: string;
+      };
+      religious: {
+        noData: string;
+        sameLevel: string;
+        mutualPreference: string;
+        oneWayPreference: string;
+        differentLevels: string;
+      };
+    };
+  };
+  scoreCategories: {
+    perfect: string;
+    excellent: string;
+    good: string;
+    medium: string;
+    low: string;
+  };
+  scoreLabel: string; // "התאמה"
+  reasonsSection: {
+    title: string;
+  };
+  summary: {
+    title: string;
+    description: string;
+    recommendations: {
+      high: string; // "מומלץ בחום!"
+      medium: string; // "שווה לנסות"
+      low: string; // "צריך שיקול"
+    };
+    basedOn: string; // "מבוסס על {{count}} קריטריונים"
+  };
+};
+type SuggestionDetailsDict = {
+  priority: {
+    title: string;
+    description: string;
+    label: string;
+    placeholder: string;
+    options: Record<"URGENT" | "HIGH" | "MEDIUM" | "LOW", { title: string; description: string; }>;
+  };
+  rationale: {
+    title: string;
+    description: string;
+    label: string;
+    aiButton: string;
+    aiButtonLoading: string;
+    placeholder: string;
+    aiTip: string;
+  };
+  notes: {
+    party1Title: string; // "הערות אישיות ל{{name}}"
+    party2Title: string; // "הערות אישיות ל{{name}}"
+    description: string;
+    party1Label: string; // "צד א' בהצעה"
+    party2Label: string; // "צד ב' בהצעה"
+    party1Placeholder: string; // "טקסט אישי המדגיש את היתרונות של {{otherName}}..."
+    party2Placeholder: string; // "טקסט אישי המדגיש את היתרונות של {{otherName}}..."
+  };
+  internalNotes: {
+    title: string;
+    description: string;
+    secretInfo: string;
+    visibleTo: string;
+    placeholder: string;
+  };
+  deadline: {
+    title: string;
+    description: string;
+    label: string;
+    options: Record<"3" | "7" | "14" | "30", { title: string; description: string; }>;
+    infoBox: {
+      title: string;
+      body: string;
+    };
+  };
+  summary: {
+    title: string;
+    description: string;
+    ready: string;
+    info: string;
+  };
+  toasts: {
+    aiLoading: {
+      title: string;
+      description: string;
+    };
+    aiSuccess: {
+      title: string;
+      description: string;
+    };
+    aiError: {
+      title: string;
+      description: string;
+    };
+  };
+};
+type SuggestionDetailsDialogDict = {
+  header: {
+    title: string; // "הצעה #{{id}}"
+    subtitle: string; // "{{party1}} ו{{party2}}"
+    fullscreenTooltip: string;
+    minimizeTooltip: string;
+  };
+  tabs: {
+    overview: string;
+    party1: string;
+    party2: string;
+    timeline: string;
+    communication: string;
+    actions: string;
+  };
+  overview: {
+    statusSummaryTitle: string;
+    progressCompleted: string; // "{{percent}}% הושלמו"
+    matchmakerLabel: string;
+    detailsTitle: string;
+    details: {
+      createdAt: string;
+      lastActivity: string;
+      priority: string;
+      responseDeadline: string;
+      decisionDeadline: string;
+      notSet: string;
+    };
+    editButton: string;
+    partyALabel: string;
+    partyBLabel: string;
+    contactButton: string;
+    reminderButton: string;
+    reasons: {
+      matchTitle: string;
+      internalTitle: string;
+    };
+    deadlineAlert: {
+      today: string;
+      daysLeft: string; // "{{count}} ימים"
+    };
+  };
+  timeline: {
+    title: string;
+    noNotes: string;
+  };
+  communication: {
+    title: string;
+  };
+  actions: {
+    title: string;
+    statusChange: {
+      title: string;
+      description: string;
+      button: string;
+    };
+    edit: {
+      title: string;
+      description: string;
+      button: string;
+    };
+    delete: {
+      title: string;
+      description: string;
+      button: string;
+    };
+  };
+  statusChangeModal: {
+    title: string;
+    currentStatusLabel: string;
+    newStatusLabel: string;
+    newStatusPlaceholder: string;
+    notesLabel: string;
+    notesPlaceholder: string;
+    cancelButton: string;
+    saveButton: string;
+    savingButton: string;
+  };
+  toasts: {
+    statusUpdateError: string;
+  };
+  // כולל תרגומים שכבר קיימים במקומות אחרים, למען שלמות הרכיב
+  statusLabels: Record<string, string>;
+  priorityLabels: Record<string, string>;
+};
+type MonthlyTrendModalDict = {
+  emptyState: {
+    title: string;
+    description: string;
+  };
+  header: {
+    title: string;
+    subtitle: string;
+  };
+  trendCards: {
+    total: { title: string; description: string; };
+    active: { title: string; description: string; };
+    pending: { title: string; description: string; };
+    success: { title: string; description: string; };
+    trendLabel: {
+      increase: string; // "גידול מהחודש הקודם"
+      decrease: string; // "ירידה מהחודש הקודם"
+    };
+  };
+  charts: {
+    areaChart: {
+      title: string;
+      badge: string; // "{{count}} חודשים"
+    };
+    pieChart: {
+      title: string;
+      badge: string; // "{{month}} {{year}}"
+    };
+    legend: {
+      active: string;
+      pending: string;
+      success: string;
+      declined: string;
+      total: string;
+    };
+    tooltip: {
+      monthLabel: string; // "חודש: {{label}}"
+    };
+  };
+  table: {
+    title: string;
+    exportButton: string;
+    viewAllButton: string;
+    headers: {
+      month: string;
+      total: string;
+      active: string;
+      pending: string;
+      success: string;
+      declined: string;
+    };
+    currentMonthBadge: string;
+  };
+  insights: {
+    title: string;
+    subtitle: string;
+    growth: {
+      title: string;
+      increase: string; // "גידול של {{trend}}%..."
+      decrease: string; // "ירידה של {{trend}}%..."
+    };
+    successRate: {
+      title: string;
+      rate: string; // "{{rate}}% מההצעות הגיעו להצלחה..."
+      noData: string;
+    };
+    currentActivity: {
+      title: string;
+      body: string; // "{{count}} הצעות זקוקות לטיפול..."
+    };
+  };
+};
+
+type SuggestionsListStatsDict = {
+  total: string;
+  pending: string;
+  approved: string;
+  declined: string;
+  urgent: string;
+};
+
+type SuggestionsListFilterDict = {
+  searchPlaceholder: string;
+  sortPlaceholder: string;
+  sortOptions: {
+    latest: string;
+    oldest: string;
+    deadline: string;
+    priority: string;
+  };
+  filterButton: string;
+  advancedFilterTitle: string;
+  statusOptions: Record<string, string>;
+  clearFiltersButton: string;
+  viewModes: {
+    grid: string;
+    list: string;
+  };
+};
+
+type SuggestionsListResultsDict = {
+  summary: string; // "מציג {{count}} {{label}} מתוך {{total}}"
+  itemLabel_one: string; // הצעה
+  itemLabel_other: string; // הצעות
+  qualityMatches: string;
+};
+
+type SuggestionsListEmptyStateDict = {
+  filtered: {
+    title: string;
+    description: string;
+  };
+  default: {
+    title: string;
+    description: string;
+  };
+  clearButton: string;
+};
+
+type SuggestionsListActiveFiltersDict = {
+  title: string;
+  searchLabel: string; // "חיפוש: {{query}}"
+  clearAllButton: string;
+};
+
+type SuggestionsListPerformanceDict = {
+  title: string;
+  description: string; // "{{rate}}% אחוז אישור • {{urgentCount}} דחופות • {{pendingCount}} ממתינות לטיפול"
+  successLabel: string;
+};
+
+type SuggestionsListDict = {
+  stats: SuggestionsListStatsDict;
+  filters: SuggestionsListFilterDict;
+  results: SuggestionsListResultsDict;
+  emptyState: SuggestionsListEmptyStateDict;
+  activeFilters: SuggestionsListActiveFiltersDict;
+  performance: SuggestionsListPerformanceDict;
+};
+type ManagerSuggestionsListDict = {
+  emptyState: {
+    title: string;
+    description: string;
+  };
+  deleteDialog: {
+    title: string;
+    description: string;
+    cancelButton: string;
+    confirmButton: string;
+  };
+  toasts: {
+    deleteSuccess: string;
+    deleteError: string;
+  };
+};
+type MessageFormDict = {
+  header: {
+    title: string;
+    description: string; // "{{party1}} ו{{party2}}"
+  };
+  infoAlert: {
+    suggestionPrefix: string; // "הצעה #"
+    body: string; // "הודעה זו תישלח במסגרת הצעת השידוך הפעילה."
+    statusLabel: string; // "סטטוס נוכחי:"
+    priorityLabel: string; // "עדיפות:"
+  };
+  form: {
+    recipientLabel: string;
+    recipientPlaceholder: string;
+    recipientSelectedPrefix: string; // "ההודעה תישלח ל"
+    messageTypeLabel: string;
+    messageTypePlaceholder: string;
+    messageContentLabel: string;
+    signatureNotice: string;
+    charsCount: string; // "{{count}}/1000 תווים"
+  };
+  partyTypes: {
+    first: string; // "{{firstName}} {{lastName}} (צד א')"
+    second: string; // "{{firstName}} {{lastName}} (צד ב')"
+    both: string; // "שני הצדדים"
+  };
+  messageTypes: {
+    message: {
+      label: string;
+      description: string;
+      placeholder: string;
+    };
+    reminder: {
+      label: string;
+      description: string;
+      placeholder: string;
+    };
+    update: {
+      label: string;
+      description: string;
+      placeholder: string;
+    };
+  };
+  preview: {
+    title: string;
+    recipientLabel: string; // "אל:"
+    typeLabel: string; // "סוג:"
+    signature: {
+      greeting: string; // "בברכה,"
+      team: string; // "צוות מערכת השידוכים"
+    };
+  };
+  footer: {
+    notificationNotice: string;
+    cancelButton: string;
+    sendButton: string;
+    sendingButton: string;
+  };
+  toasts: {
+    success: string; // "ההודעה נשלחה {{recipient}}"
+    successRecipients: {
+      first: string; // "ל{{name}}"
+      second: string; // "ל{{name}}"
+      both: string; // "לשני הצדדים"
+    };
+    error: string;
+  };
+};
+export type NewSuggestionFormDict = {
+  header: {
+    title: string;
+    description: string;
+  };
+  steps: {
+    select: { label: string; description: string; }; // תוקן: נוסף description
+    analyze: { label: string; description: string; }; // תוקן: נוסף description
+    details: { label: string; description: string; };  // תוקן: נוסף description
+  };
+  party1Label: string;
+  party2Label: string;
+  emptyState: {
+    title: string;
+  };
+  buttons: {
+    fullAnalysis: string;
+    back: string;
+    continue: string;
+    create: string;
+    creating: string;
+  };
+  footer: {
+    step: string;  // תוקן: המבנה הנכון
+    info: string;  // תוקן: המבנה הנכון
+  };
+  toasts: {
+    selectParties: string;
+    createSuccess: string; // תוקן: שונה מאובייקט למחרוזת
+    createError: string;
+  };
+  // ===> נוספו הטיפוסים החסרים שהקומפוננטה משתמשת בהם <===
+  candidateSelector: CandidateSelectorDict;
+  matchPreview: MatchPreviewDict;
+  suggestionDetails: SuggestionDetailsDict;
+};
+
+--- End of Content for matchmaker.d.ts ---
+
