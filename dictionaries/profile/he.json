@@ -322,7 +322,11 @@
                 "delete": "מחק תשובה"
 
       }
-    }
+    },
+    "buttons": {
+  "editingMode": "מצב עריכה פעיל",
+  "editHint": "רוצה לערוך תשובות?"
+}
   }
 ,
     "preferencesSection": {

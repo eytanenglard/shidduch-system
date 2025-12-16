@@ -19,7 +19,7 @@ import {
   CheckCircle,
   Clock,
   Pencil,
-
+  X,
   Save,
   Eye,
   EyeOff,
@@ -604,7 +604,12 @@ const QuestionnaireResponsesSection: React.FC<
 
           {/* שורה שנייה - כפתורים */}
           <div className="flex items-center justify-center gap-3 pt-2 border-t border-gray-100">
-            <Button asChild variant="outline" size="sm" className="h-9 px-4 border-teal-200 text-teal-700 hover:bg-teal-50 hover:border-teal-300">
+            <Button
+              asChild
+              variant="outline"
+              size="sm"
+              className="h-9 px-4 border-teal-200 text-teal-700 hover:bg-teal-50 hover:border-teal-300"
+            >
               <Link
                 href={QUESTIONNAIRE_URL}
                 className="flex items-center gap-2"
@@ -621,7 +626,7 @@ const QuestionnaireResponsesSection: React.FC<
                 onClick={() => setIsEditingGlobally(!isEditingGlobally)}
                 className={cn(
                   'h-9 px-4 gap-2',
-                  isEditingGlobally 
+                  isEditingGlobally
                     ? 'bg-gradient-to-r from-teal-500 to-orange-500 hover:from-teal-600 hover:to-orange-600 text-white'
                     : 'border-teal-200 text-teal-700 hover:bg-teal-50 hover:border-teal-300'
                 )}
@@ -681,6 +686,95 @@ const QuestionnaireResponsesSection: React.FC<
             </Button>
           </div>
         </div>
+      )}
+
+      {/* ======================= START: FLOATING ACTION BUTTON ======================= */}
+      {isEditable && hasAnyAnswers && onUpdate && (
+        <div className="sticky bottom-24 sm:bottom-28 z-30 flex justify-end pe-4 sm:pe-6 -mt-14 pointer-events-none">
+          <Button
+            onClick={() => setIsEditingGlobally(!isEditingGlobally)}
+            className={cn(
+              'h-14 w-14 rounded-full shadow-lg hover:shadow-xl pointer-events-auto',
+              'bg-gradient-to-br from-teal-500 to-orange-500 hover:from-teal-600 hover:to-orange-600',
+              'transition-all duration-300 ease-out',
+              'hover:scale-110 active:scale-95',
+              'flex items-center justify-center',
+              'ring-4 ring-teal-200/50'
+            )}
+            aria-label={
+              isEditingGlobally
+                ? headerT.editButton.finish
+                : headerT.editButton.start
+            }
+          >
+            {isEditingGlobally ? (
+              <Save className="w-6 h-6 text-white" />
+            ) : (
+              <Pencil className="w-6 h-6 text-white" />
+            )}
+          </Button>
+        </div>
+      )}
+      {/* ======================= END: FLOATING ACTION BUTTON ======================= */}
+
+      {/* ======================= START: ALWAYS VISIBLE STICKY FOOTER ======================= */}
+      {isEditable && hasAnyAnswers && onUpdate && (
+        <div className="fixed bottom-0 left-0 right-0 z-20 border-t border-gray-200/80 bg-white/95 backdrop-blur-md shadow-[0_-4px_20px_-5px_rgba(0,0,0,0.12)]">
+          <div className="container mx-auto max-w-screen-xl px-4 py-3 sm:py-4">
+            <div className="flex items-center justify-between gap-3">
+              {isEditingGlobally ? (
+                <>
+                  {/* Editing Mode: Indicator - Desktop only */}
+                  <div className="hidden sm:flex items-center gap-2 text-sm text-amber-600">
+                    <div className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+                    <span>{t.buttons?.editingMode || 'מצב עריכה פעיל'}</span>
+                  </div>
+
+                  {/* Spacer for mobile to center button */}
+                  <div className="sm:hidden flex-1" />
+
+                  {/* Editing Mode: Finish button */}
+                  <Button
+                    variant="default"
+                    size="sm"
+                    onClick={() => setIsEditingGlobally(false)}
+                    className="rounded-full shadow-sm hover:shadow-md transition-all duration-300 bg-gradient-to-r from-teal-500 to-orange-500 hover:from-teal-600 hover:to-orange-600 text-white px-5 sm:px-6 py-2"
+                  >
+                    <Save className="w-4 h-4 ms-1.5" />
+                    {headerT.editButton.finish}
+                  </Button>
+                </>
+              ) : (
+                <>
+                  {/* View Mode: Hint text - Desktop only */}
+                  <div className="hidden sm:flex items-center gap-2 text-sm text-slate-500">
+                    <span>{t.buttons?.editHint || 'רוצה לערוך תשובות?'}</span>
+                  </div>
+
+                  {/* Spacer for mobile to center button */}
+                  <div className="sm:hidden flex-1" />
+
+                  {/* View Mode: Edit button */}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setIsEditingGlobally(true)}
+                    className="rounded-full shadow-sm hover:shadow-md transition-all duration-300 border-teal-400 text-teal-700 hover:bg-teal-50 px-6 py-2"
+                  >
+                    <Pencil className="w-4 h-4 ms-1.5" />
+                    {headerT.editButton.start}
+                  </Button>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+      {/* ======================= END: ALWAYS VISIBLE STICKY FOOTER ======================= */}
+
+      {/* Spacer to prevent content from being hidden behind fixed footer */}
+      {isEditable && hasAnyAnswers && onUpdate && (
+        <div className="h-16 sm:h-20" />
       )}
     </div>
   );

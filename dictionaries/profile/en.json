@@ -653,7 +653,11 @@
                 "delete": "Delete answer"
 
       }
-    }
+    },
+    "buttons": {
+  "editingMode": "Edit mode active",
+  "editHint": "Want to edit your answers?"
+}
   },
   "preferencesSection": {
   "header": {

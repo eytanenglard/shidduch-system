@@ -2968,6 +2968,10 @@ export type QuestionnaireSectionDictionary = {
 
     };
   };
+   buttons?: {
+    editingMode: string;
+    editHint: string;
+  };
 };
 
 type SuggestionDemoDict = {
