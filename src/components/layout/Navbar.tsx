@@ -13,7 +13,6 @@ import AvailabilityStatus from './AvailabilityStatus';
 import { useNotifications } from '@/app/[locale]/contexts/NotificationContext';
 import {
   Users,
-  User,
   LogOut,
   LogIn,
   UserPlus,
@@ -28,7 +27,7 @@ import {
   Award,
   HelpCircle,
   Mail,
-  Gift, // 🆕 הוספת אייקון לרפרלים
+  Gift,
 } from 'lucide-react';
 import { cn, getRelativeCloudinaryPath } from '@/lib/utils';
 import UserDropdown from './UserDropdown';
@@ -36,8 +35,6 @@ import type { Dictionary } from '@/types/dictionary';
 import { useQuestionnaireState } from '@/app/[locale]/contexts/QuestionnaireStateContext';
 
 // --- רכיב לוגו (מעודכן: Teal -> Orange -> Amber) ---
-// src/components/layout/Navbar.tsx
-
 const Logo = ({ locale }: { locale: string }) => (
   <Link
     href={`/${locale}`}
@@ -52,7 +49,7 @@ const Logo = ({ locale }: { locale: string }) => (
         className="object-contain transition-transform duration-300 group-hover:scale-110"
         priority
         sizes="36px"
-        unoptimized // <--- הוספנו את זה! זה הפתרון.
+        unoptimized // ✅ הוספנו כבקשתך לחדות מירבית
       />
     </div>
     <span className="text-xl font-bold bg-gradient-to-r from-teal-600 via-orange-500 to-amber-500 text-transparent bg-clip-text bg-size-200 bg-pos-0 group-hover:bg-pos-100 transition-all duration-700 ease-in-out">
@@ -61,11 +58,7 @@ const Logo = ({ locale }: { locale: string }) => (
   </Link>
 );
 
-// ... המשך הקובץ Navbar...
-
-// ... (המשך הקובץ נשאר ללא שינוי)
-
-// --- רכיבי ניווט (מעודכנים: Teal/Orange Highlights) ---
+// --- רכיבי ניווט ---
 const NavItem = ({
   href,
   text,
@@ -183,9 +176,8 @@ const MobileHomePageLink = ({
   icon: React.ReactNode;
   onClick: () => void;
 }) => {
-  const handleScroll = (
-    e: React.MouseEvent<HTMLAnchorElement> | React.TouchEvent<HTMLAnchorElement>
-  ) => {
+  // ✅ תיקון: שימוש ב-React.MouseEvent בלבד והסרת onTouchEnd למניעת קונפליקטים
+  const handleScroll = (e: React.MouseEvent<HTMLAnchorElement>) => {
     e.preventDefault();
     const element = document.querySelector(href);
     if (element) {
@@ -200,7 +192,7 @@ const MobileHomePageLink = ({
     <a
       href={href}
       onClick={handleScroll}
-      onTouchEnd={handleScroll}
+      // removed onTouchEnd - causes issues on mobile
       className="flex items-center px-4 py-3 rounded-xl text-base font-medium transition-colors duration-150 group text-gray-600 hover:bg-gray-50 hover:text-gray-900 gap-4 touch-manipulation active:bg-gray-100"
     >
       <span className="text-gray-400 group-hover:text-gray-600">{icon}</span>
@@ -222,7 +214,7 @@ const Navbar = ({ dict }: NavbarProps) => {
 
   const isMatchmaker =
     session?.user?.role === 'MATCHMAKER' || session?.user?.role === 'ADMIN';
-  const isAdmin = session?.user?.role === 'ADMIN'; // 🆕 בדיקה אם המשתמש הוא אדמין
+  const isAdmin = session?.user?.role === 'ADMIN';
   const { notifications } = useNotifications();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -325,7 +317,7 @@ const Navbar = ({ dict }: NavbarProps) => {
         id: 'session-image',
         url: session.user.image,
         isMain: true,
-        userId: session.user.id || '', // הוספתי הגנה למקרה של undefined
+        userId: session.user.id || '',
         createdAt: new Date(),
         updatedAt: new Date(),
         cloudinaryPublicId: null,
@@ -369,7 +361,6 @@ const Navbar = ({ dict }: NavbarProps) => {
                             'ניהול Engagement'
                           }
                         />
-                        {/* 🆕 קישור לניהול רפרלים - רק לאדמין */}
                         {isAdmin && (
                           <NavItem
                             href="/admin/referrals"
@@ -456,15 +447,19 @@ const Navbar = ({ dict }: NavbarProps) => {
                     text={dict.navbar.toQuestionnaire}
                   />
                   <NavItem href="/auth/signin" text={dict.navbar.login} />
-                  <Link href={`/${locale}/auth/register`}>
-                    <Button className="group relative overflow-hidden bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 hover:from-teal-600 hover:via-orange-600 hover:to-amber-600 text-white rounded-full shadow-md hover:shadow-lg transition-all duration-300 px-6 py-2.5">
-                      <span className="relative z-10 flex items-center font-bold">
-                        <UserPlus
-                          className={cn('h-4 w-4', isRtl ? 'ml-2' : 'mr-2')}
-                        />
-                        {dict.navbar.register}
-                      </span>
-                    </Button>
+
+                  {/* ✅ תיקון קריטי: הסרת ה-<Button> מתוך ה-<Link> והעברת העיצוב ללינק עצמו */}
+                  <Link
+                    href={`/${locale}/auth/register`}
+                    className="group relative overflow-hidden bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 hover:from-teal-600 hover:via-orange-600 hover:to-amber-600 text-white rounded-full shadow-md hover:shadow-lg transition-all duration-300 px-6 py-2.5 inline-flex items-center justify-center"
+                  >
+                    <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-white/0 via-white/20 to-white/0 transform -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]"></span>
+                    <span className="relative z-10 flex items-center font-bold">
+                      <UserPlus
+                        className={cn('h-4 w-4', isRtl ? 'ml-2' : 'mr-2')}
+                      />
+                      {dict.navbar.register}
+                    </span>
                   </Link>
                 </div>
               )}
@@ -610,7 +605,6 @@ const Navbar = ({ dict }: NavbarProps) => {
               {session ? (
                 <>
                   <div className="px-4 pt-2 pb-2 text-xs font-bold text-gray-400 uppercase tracking-wider">
-                    {/* תיקון: טקסט קבוע במקום קריאה למפתח לא קיים */}
                     {isRtl ? 'תפריט ראשי' : 'Main Menu'}
                   </div>
                   {isMatchmaker ? (
@@ -638,7 +632,6 @@ const Navbar = ({ dict }: NavbarProps) => {
                         onClick={toggleMobileMenu}
                         isRtl={isRtl}
                       />
-                      {/* 🆕 קישור לניהול רפרלים במובייל - רק לאדמין */}
                       {isAdmin && (
                         <MobileNavItem
                           href="/admin/referrals"
