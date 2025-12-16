@@ -1,5 +1,3 @@
-// next.config.js
-
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   experimental: {
@@ -100,22 +98,17 @@ const nextConfig = {
             value: 'nosiff',
           },
           // (CSP) - מדיניות אבטחת תוכן. זוהי ההגנה החזקה ביותר נגד XSS.
-          // זוהי הגדרה התחלתית, ייתכן שתצטרך להוסיף מקורות נוספים בעתיד.
-
           {
             key: 'Content-Security-Policy',
             value: [
               "default-src 'self'",
-              // --- START: כאן השינוי ---
-             "script-src 'self' 'unsafe-eval' 'unsafe-inline' *.google-analytics.com www.googletagmanager.com maps.googleapis.com",
-              // `script-src-elem` אינו נדרש אם `script-src` מוגדר כך. נשאיר אותו ליתר ביטחון.
+              "script-src 'self' 'unsafe-eval' 'unsafe-inline' *.google-analytics.com www.googletagmanager.com maps.googleapis.com",
               "script-src-elem 'self' 'unsafe-inline' *.google-analytics.com www.googletagmanager.com maps.googleapis.com",
-              // ========================== END: הקוד המתוקן ==========================
               "style-src 'self' 'unsafe-inline' fonts.googleapis.com",
-              "img-src 'self' data: https://res.cloudinary.com",
+              // כאן התיקון: הוספנו את blob: כדי לאפשר תצוגה מקדימה של תמונות
+              "img-src 'self' data: blob: https://res.cloudinary.com",
               "font-src 'self' fonts.gstatic.com",
-              // הוספנו את הדומיין של Google Maps גם ל-connect-src,
-              // מכיוון שה-API מבצע בקשות רשת (fetch) ברקע.
+              // הוספנו את הדומיין של Google Maps גם ל-connect-src
               `connect-src 'self' ${siteUrl} *.google-analytics.com www.googletagmanager.com https://api.upstash.com vitals.vercel-insights.com maps.googleapis.com`,
               "form-action 'self'",
               "frame-ancestors 'self'",

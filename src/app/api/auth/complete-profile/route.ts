@@ -2,13 +2,13 @@
 
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
-import { authOptions } from '@/lib/auth'; // ודא שהנתיב הזה נכון ומצביע על קובץ authOptions שלך
-import prisma from '@/lib/prisma'; // ודא שהנתיב הזה נכון
+import { authOptions } from '@/lib/auth';
+import prisma from '@/lib/prisma';
 import { Prisma } from '@prisma/client';
 import { z } from 'zod';
 import { Gender, UserStatus, Language } from '@prisma/client'; 
 
-// Zod Schema - כולל phone לאימות וגם את שדות הדיוור החדשים
+// Zod Schema - כולל phone, שדות דיוור, ו-about
 const completeProfileSchema = z.object({
   firstName: z.string().min(1, "First name is required").max(100, "First name too long"),
   lastName: z.string().min(1, "Last name is required").max(100, "Last name too long"),
@@ -28,12 +28,15 @@ const completeProfileSchema = z.object({
   height: z.coerce.number().int().min(120).max(220).optional(),
   occupation: z.string().optional(),
   education: z.string().optional(),
-    religiousLevel: z.string().optional(),
+  religiousLevel: z.string().optional(),
   language: z.nativeEnum(Language).optional().default(Language.he),
 
-  // --- הוספת שדות הדיוור לסכמה (כדי שלא ייזרקו ע"י Zod) ---
+  // שדות דיוור
   engagementEmailsConsent: z.boolean().optional().default(false),
   promotionalEmailsConsent: z.boolean().optional().default(false),
+
+  // ========== הוספה: שדה הסיפור שלי ==========
+  about: z.string().max(2000, "About text is too long").optional(),
 });
 
 export async function POST(req: Request) {
@@ -44,7 +47,6 @@ export async function POST(req: Request) {
   req.headers.forEach((value, key) => {
     headersObject[key] = value;
   });
-  // console.log("[API /api/auth/complete-profile] Request Headers:", JSON.stringify(headersObject, null, 2)); // אפשר להוריד בלוגים עמוסים
 
   try {
     console.log("[API /api/auth/complete-profile] Attempting to get session using getServerSession...");
@@ -63,7 +65,6 @@ export async function POST(req: Request) {
     let body;
     try {
         body = await req.json();
-        // console.log("[API /api/auth/complete-profile] Request body parsed successfully:", JSON.stringify(body, null, 2));
     } catch (parseError) {
         console.error("[API /api/auth/complete-profile] ERROR: Failed to parse request body as JSON:", parseError);
         return NextResponse.json({ error: 'Invalid request body - Must be JSON' }, { status: 400 });
@@ -90,14 +91,15 @@ export async function POST(req: Request) {
         height,
         occupation,
         education,
-              religiousLevel,
-              language,
-        // חילוץ שדות הדיוור
+        religiousLevel,
+        language,
         engagementEmailsConsent,
-        promotionalEmailsConsent
+        promotionalEmailsConsent,
+        about,  // ========== הוספה ==========
     } = validation.data;
 
     console.log(`[API /api/auth/complete-profile] Consents received -> Engagement: ${engagementEmailsConsent}, Promotional: ${promotionalEmailsConsent}`);
+    console.log(`[API /api/auth/complete-profile] About text length: ${about?.length || 0} characters`);
 
     console.log(`[API /api/auth/complete-profile] Attempting to update profile and user details for user ${userId} in a transaction.`);
 
@@ -115,7 +117,8 @@ export async function POST(req: Request) {
           height: height,
           occupation: occupation,
           education: education,
-                    religiousLevel: religiousLevel,
+          religiousLevel: religiousLevel,
+          about: about,  // ========== הוספה ==========
 
           // הגדרות ברירת מחדל
           isProfileVisible: true,
@@ -128,7 +131,8 @@ export async function POST(req: Request) {
           height: height,
           occupation: occupation,
           education: education,
-                    religiousLevel: religiousLevel,
+          religiousLevel: religiousLevel,
+          about: about,  // ========== הוספה ==========
 
           updatedAt: new Date(),
         },
@@ -136,8 +140,6 @@ export async function POST(req: Request) {
       console.log(`[API /api/auth/complete-profile] Profile data upserted.`);
 
       // 2. בדיקה האם יש לעדכן את תאריך אישור התנאים
-      // אם המשתמש כבר אישר בעבר (למשל נרשם במייל רגיל), לא ניגע בזה.
-      // אם המשתמש נרשם בגוגל וישר הגיע לכאן, זה הזמן להחתים אותו.
       const currentUser = await tx.user.findUnique({ 
           where: { id: userId }, 
           select: { termsAndPrivacyAcceptedAt: true } 
@@ -148,7 +150,7 @@ export async function POST(req: Request) {
           console.log(`[API /api/auth/complete-profile] User accepts terms now. Setting timestamp.`);
       }
 
-      // 3. עדכון המשתמש (טבלת User) - כולל שדות הדיוור!
+      // 3. עדכון המשתמש (טבלת User)
       console.log(`[API /api/auth/complete-profile] Updating User record (names, phone, status, consents)...`);
       const user = await tx.user.update({
         where: { id: userId },
@@ -157,17 +159,17 @@ export async function POST(req: Request) {
           lastName: lastName,
           phone: phone,
           isProfileComplete: true,
-         language: language,  // <--- הוסף שורה זו לעדכון השפה ב-DB
+          language: language,
 
           // מעבירים את הסטטוס למצב הבא (אימות טלפון)
           status: UserStatus.PENDING_PHONE_VERIFICATION,
           updatedAt: new Date(),
           
-          // --- עדכון שדות הדיוור ---
+          // עדכון שדות הדיוור
           engagementEmailsConsent: engagementEmailsConsent,
           promotionalEmailsConsent: promotionalEmailsConsent,
           
-          // --- עדכון תאריך אישור תנאים (אם רלוונטי) ---
+          // עדכון תאריך אישור תנאים (אם רלוונטי)
           ...(termsDateToSet && { termsAndPrivacyAcceptedAt: termsDateToSet }),
         },
          select: {
@@ -180,8 +182,8 @@ export async function POST(req: Request) {
              role: true,
              status: true,
              phone: true,
-             engagementEmailsConsent: true, // מחזירים לבדיקה
-             promotionalEmailsConsent: true // מחזירים לבדיקה
+             engagementEmailsConsent: true,
+             promotionalEmailsConsent: true
          }
       });
       

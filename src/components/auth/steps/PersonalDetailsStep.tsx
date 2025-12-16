@@ -1,7 +1,7 @@
 // src/components/auth/steps/PersonalDetailsStep.tsx
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSession } from 'next-auth/react';
@@ -19,22 +19,28 @@ import {
   Loader2,
   ArrowLeft,
   ArrowRight,
-  Languages,
   Edit3,
   Ruler,
   Briefcase,
   GraduationCap,
   BookOpen,
   Shield,
-  Users,
   ListChecks,
+  Camera,
+  ImagePlus,
+  FileText,
+  Info,
+  Trash2,
+  Star,
 } from 'lucide-react';
+import Image from 'next/image';
 
 // UI Components
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Textarea } from '@/components/ui/textarea';
 import {
   Select,
   SelectContent,
@@ -43,6 +49,14 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+import { Badge } from '@/components/ui/badge';
+import { toast } from 'sonner';
 
 // Custom Components
 import PhoneNumberInput from '../PhoneNumberInput';
@@ -62,9 +76,16 @@ type SubmissionStatus =
   | 'idle'
   | 'acceptingTerms'
   | 'savingProfile'
+  | 'uploadingPhotos'
   | 'sendingCode'
   | 'redirecting'
   | 'error';
+
+interface UploadedPhoto {
+  file: File;
+  preview: string;
+  isMain: boolean;
+}
 
 // ============================================================================
 // ANIMATION & STYLING VARIANTS
@@ -124,6 +145,7 @@ interface SectionHeaderProps {
   title: string;
   subtitle?: string;
   gradient: string;
+  required?: boolean;
 }
 
 const SectionHeader: React.FC<SectionHeaderProps> = ({
@@ -131,13 +153,17 @@ const SectionHeader: React.FC<SectionHeaderProps> = ({
   title,
   subtitle,
   gradient,
+  required = false,
 }) => (
   <motion.div variants={itemVariants} className="mb-6">
     <div className="flex items-center gap-3 mb-2">
       <div className={`p-2 rounded-xl bg-gradient-to-br ${gradient} shadow-lg`}>
         <div className="text-white">{icon}</div>
       </div>
-      <h3 className="text-xl font-bold text-gray-800">{title}</h3>
+      <h3 className="text-xl font-bold text-gray-800">
+        {title}
+        {required && <span className="text-red-500 mr-1">*</span>}
+      </h3>
     </div>
     {subtitle && (
       <p className="text-sm text-gray-600 leading-relaxed mr-12">{subtitle}</p>
@@ -175,21 +201,32 @@ export default function PersonalDetailsStep({
   const { data: registrationState, updateField, prevStep } = useRegistration();
   const { data: session } = useSession();
   const router = useRouter();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // States
+  // States - Validation Errors
   const [firstNameError, setFirstNameError] = useState('');
   const [lastNameError, setLastNameError] = useState('');
   const [phoneError, setPhoneError] = useState('');
   const [ageError, setAgeError] = useState('');
   const [religiousLevelError, setReligiousLevelError] = useState('');
 
+  // States - Submission
   const [isLoading, setIsLoading] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
   const [submissionStatus, setSubmissionStatus] =
     useState<SubmissionStatus>('idle');
 
-  // New State for validation summary
+  // State for validation summary
   const [missingFields, setMissingFields] = useState<string[]>([]);
+
+  // Photo upload states
+  const [uploadedPhotos, setUploadedPhotos] = useState<UploadedPhoto[]>([]);
+  const MAX_PHOTOS = 5;
+  const MIN_PHOTOS = 1; // חובה לפחות תמונה אחת
+
+  // About Me state
+  const [aboutMe, setAboutMe] = useState('');
+  const MIN_ABOUT_LENGTH = 100; // חובה לפחות 100 תווים
 
   // Consent Logic
   const userHasAlreadyConsented = !!session?.user?.termsAndPrivacyAcceptedAt;
@@ -221,6 +258,107 @@ export default function PersonalDetailsStep({
     router.prefetch(`/${locale}/auth/verify-phone`);
   }, [router, locale]);
 
+  // --- התחלה של הקוד החדש ---
+  const previewsRef = useRef<string[]>([]);
+
+  // עדכון הרשימה בצד מבלי למחוק אותה
+  useEffect(() => {
+    previewsRef.current = uploadedPhotos.map((p) => p.preview);
+  }, [uploadedPhotos]);
+
+  // מחיקת הזיכרון רק כשהמשתמש סוגר את הדף לגמרי
+  useEffect(() => {
+    return () => {
+      previewsRef.current.forEach((url) => URL.revokeObjectURL(url));
+    };
+  }, []);
+  // --- סוף של הקוד החדש ---
+
+  // ============================================================================
+  // PHOTO UPLOAD HANDLERS
+  // ============================================================================
+
+  const handlePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    const remainingSlots = MAX_PHOTOS - uploadedPhotos.length;
+    if (remainingSlots <= 0) {
+      toast.error(
+        personalDetailsDict.photos?.maxPhotosError ||
+          `ניתן להעלות עד ${MAX_PHOTOS} תמונות`
+      );
+      return;
+    }
+
+    const validTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp'];
+    const maxSize = 5 * 1024 * 1024; // 5MB
+    const newPhotos: UploadedPhoto[] = [];
+
+    Array.from(files)
+      .slice(0, remainingSlots)
+      .forEach((file) => {
+        if (!validTypes.includes(file.type)) {
+          toast.error(
+            personalDetailsDict.photos?.invalidTypeError ||
+              `${file.name}: סוג קובץ לא נתמך`
+          );
+          return;
+        }
+        if (file.size > maxSize) {
+          toast.error(
+            personalDetailsDict.photos?.fileTooLargeError ||
+              `${file.name}: הקובץ גדול מדי (מקסימום 5MB)`
+          );
+          return;
+        }
+
+        // יצירת URL לתצוגה מקדימה
+        const previewUrl = URL.createObjectURL(file);
+
+        newPhotos.push({
+          file,
+          preview: previewUrl,
+          isMain: uploadedPhotos.length === 0 && newPhotos.length === 0,
+        });
+      });
+
+    if (newPhotos.length > 0) {
+      setUploadedPhotos((prev) => [...prev, ...newPhotos]);
+      toast.success(
+        personalDetailsDict.photos?.uploadSuccess ||
+          `${newPhotos.length} תמונות נוספו בהצלחה`
+      );
+    }
+
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  const handleRemovePhoto = (index: number) => {
+    setUploadedPhotos((prev) => {
+      const newPhotos = [...prev];
+      // הסרנו מכאן את ה-URL.revokeObjectURL כדי למנוע שבירת תמונה בזמן רינדור מחדש
+
+      const wasMain = newPhotos[index].isMain;
+      newPhotos.splice(index, 1);
+
+      // אם התמונה שנמחקה הייתה הראשית, הגדר את הראשונה כראשית
+      if (wasMain && newPhotos.length > 0) {
+        newPhotos[0].isMain = true;
+      }
+      return newPhotos;
+    });
+  };
+
+  const handleSetMainPhoto = (index: number) => {
+    setUploadedPhotos((prev) =>
+      prev.map((photo, i) => ({
+        ...photo,
+        isMain: i === index,
+      }))
+    );
+  };
+
   // ============================================================================
   // LOADING STEPS CONFIGURATION
   // ============================================================================
@@ -247,6 +385,14 @@ export default function PersonalDetailsStep({
       subtext: optionalInfoDict.loadingOverlay?.savingProfileSubtext,
     });
 
+    // העלאת תמונות
+    if (uploadedPhotos.length > 0) {
+      steps.push({
+        id: 'uploadingPhotos',
+        text: personalDetailsDict.photos?.uploadingPhotos || 'מעלה תמונות...',
+      });
+    }
+
     // שליחת קוד
     steps.push({
       id: 'sendingCode',
@@ -264,42 +410,16 @@ export default function PersonalDetailsStep({
     });
 
     return steps;
-  }, [userHasAlreadyConsented, optionalInfoDict]);
+  }, [
+    userHasAlreadyConsented,
+    optionalInfoDict,
+    uploadedPhotos.length,
+    personalDetailsDict.photos,
+  ]);
 
   // ============================================================================
   // VALIDATION FUNCTIONS
   // ============================================================================
-
-  const validateFirstName = (name: string) => {
-    if (!name.trim()) {
-      setFirstNameError(personalDetailsDict.errors.firstNameRequired);
-      return false;
-    }
-    setFirstNameError('');
-    return true;
-  };
-
-  const validateLastName = (name: string) => {
-    if (!name.trim()) {
-      setLastNameError(personalDetailsDict.errors.lastNameRequired);
-      return false;
-    }
-    setLastNameError('');
-    return true;
-  };
-
-  const validatePhone = (phone: string) => {
-    if (!phone) {
-      setPhoneError(personalDetailsDict.errors.phoneRequired);
-      return false;
-    }
-    if (!validatePhoneNumber(phone)) {
-      setPhoneError(personalDetailsDict.errors.phoneInvalid);
-      return false;
-    }
-    setPhoneError('');
-    return true;
-  };
 
   const validateAge = (birthDate: string) => {
     if (!birthDate) {
@@ -326,6 +446,56 @@ export default function PersonalDetailsStep({
     }
     setAgeError('');
     return true;
+  };
+
+  // ============================================================================
+  // UPLOAD PHOTOS TO SERVER
+  // ============================================================================
+
+  const uploadPhotosToServer = async (): Promise<boolean> => {
+    if (uploadedPhotos.length === 0) return true;
+
+    try {
+      // מציאת התמונה הראשית
+      const mainPhotoIndex = uploadedPhotos.findIndex((p) => p.isMain);
+
+      // העלאת כל תמונה בנפרד ל-API הקיים
+      const uploadResults = await Promise.all(
+        uploadedPhotos.map(async (photo, index) => {
+          const formData = new FormData();
+          formData.append('file', photo.file);
+
+          const response = await fetch('/api/profile/images', {
+            method: 'POST',
+            body: formData,
+          });
+
+          if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(
+              errorData.error || `שגיאה בהעלאת תמונה ${index + 1}`
+            );
+          }
+
+          return response.json();
+        })
+      );
+
+      // אם התמונה הראשית שנבחרה אינה הראשונה שהועלתה, נעדכן
+      if (mainPhotoIndex > 0 && uploadResults[mainPhotoIndex]?.image?.id) {
+        await fetch(
+          `/api/profile/images/${uploadResults[mainPhotoIndex].image.id}`,
+          {
+            method: 'PUT',
+          }
+        );
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Photo upload error:', error);
+      throw error;
+    }
   };
 
   // ============================================================================
@@ -420,10 +590,27 @@ export default function PersonalDetailsStep({
       hasError = true;
     }
 
+    // ========== בדיקות חובה חדשות ==========
+
+    // תמונות - חובה לפחות תמונה אחת
+    if (uploadedPhotos.length < MIN_PHOTOS) {
+      currentMissing.push(
+        personalDetailsDict.photos?.fieldName || 'תמונת פרופיל'
+      );
+      hasError = true;
+    }
+
+    // סיפור אישי - חובה לפחות 100 תווים
+    if (aboutMe.trim().length < MIN_ABOUT_LENGTH) {
+      currentMissing.push(
+        personalDetailsDict.aboutMe?.fieldName || 'הסיפור שלי'
+      );
+      hasError = true;
+    }
+
     // 3. עצירה אם יש שגיאות
     if (hasError) {
       setMissingFields(currentMissing);
-      // גלילה לראש העמוד כדי לראות את ההתראות
       window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
@@ -432,7 +619,7 @@ export default function PersonalDetailsStep({
     setIsLoading(true);
 
     try {
-      // שלב אישור תנאים (אם צריך)
+      // ===== שלב 1: אישור תנאים (אם צריך) =====
       if (!userHasAlreadyConsented) {
         setSubmissionStatus('acceptingTerms');
         const consentResponse = await fetch('/api/user/accept-terms', {
@@ -442,7 +629,7 @@ export default function PersonalDetailsStep({
           throw new Error(personalDetailsDict.errors.consentApiError);
       }
 
-      // שלב שמירת פרופיל
+      // ===== שלב 2: שמירת פרופיל =====
       setSubmissionStatus('savingProfile');
 
       const profileData = {
@@ -456,6 +643,7 @@ export default function PersonalDetailsStep({
         height: registrationState.height,
         occupation: registrationState.occupation,
         education: registrationState.education,
+        about: aboutMe,
         engagementEmailsConsent: engagementConsent,
         promotionalEmailsConsent: promotionalConsent,
       };
@@ -471,7 +659,13 @@ export default function PersonalDetailsStep({
         throw new Error(errorData.error || optionalInfoDict.errors.default);
       }
 
-      // שלב שליחת קוד
+      // ===== שלב 3: העלאת תמונות =====
+      if (uploadedPhotos.length > 0) {
+        setSubmissionStatus('uploadingPhotos');
+        await uploadPhotosToServer();
+      }
+
+      // ===== שלב 4: שליחת קוד SMS =====
       setSubmissionStatus('sendingCode');
 
       const sendCodeResponse = await fetch('/api/auth/send-phone-code', {
@@ -482,7 +676,7 @@ export default function PersonalDetailsStep({
         throw new Error(errorData.error || optionalInfoDict.errors.default);
       }
 
-      // שלב הפניה
+      // ===== שלב 5: הפניה לאימות טלפון =====
       setSubmissionStatus('redirecting');
       router.push(`/${locale}/auth/verify-phone`);
     } catch (err) {
@@ -591,7 +785,9 @@ export default function PersonalDetailsStep({
           )}
         </AnimatePresence>
 
-        {/* --- PERSONAL INFO SECTION --- */}
+        {/* ================================================================== */}
+        {/* --- SECTION 1: PERSONAL INFO --- */}
+        {/* ================================================================== */}
         <div className="space-y-6">
           <SectionHeader
             icon={<User className="w-5 h-5" />}
@@ -704,46 +900,37 @@ export default function PersonalDetailsStep({
             )}
           </motion.div>
 
-          {/* Gender Selection */}
+          {/* Gender Field */}
           <motion.div variants={itemVariants} className="space-y-2">
             <Label className="text-sm font-semibold text-gray-700 flex items-center">
               {personalDetailsDict.genderLabel}{' '}
               <span className="text-red-500 mr-1">*</span>
             </Label>
-            <div className="flex gap-3">
+            <div className="grid grid-cols-2 gap-3">
               {[
-                {
-                  value: Gender.MALE,
-                  label: personalDetailsDict.male,
-                  icon: '👨',
-                },
-                {
-                  value: Gender.FEMALE,
-                  label: personalDetailsDict.female,
-                  icon: '👩',
-                },
-              ].map((option) => (
+                { value: Gender.MALE, label: personalDetailsDict.male },
+                { value: Gender.FEMALE, label: personalDetailsDict.female },
+              ].map(({ value, label }) => (
                 <button
-                  key={option.value}
+                  key={value}
                   type="button"
-                  onClick={() => updateField('gender', option.value)}
+                  onClick={() => updateField('gender', value)}
                   disabled={isLoading}
-                  className={`flex-1 py-3 px-4 rounded-xl border-2 transition-all duration-300 flex items-center justify-center gap-2 ${
-                    registrationState.gender === option.value
-                      ? 'border-teal-400 bg-teal-50 text-teal-700 shadow-md scale-[1.02]'
+                  className={`py-3 px-4 rounded-xl border-2 font-medium transition-all ${
+                    registrationState.gender === value
+                      ? 'bg-teal-50 border-teal-500 text-teal-700'
                       : missingFields.includes(validationDict.fields.gender)
-                        ? 'border-red-300 hover:border-red-400'
-                        : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                        ? 'border-red-300 text-gray-600 hover:bg-gray-50'
+                        : 'border-gray-200 text-gray-600 hover:border-gray-300 hover:bg-gray-50'
                   }`}
                 >
-                  <span className="text-xl">{option.icon}</span>
-                  <span className="font-medium">{option.label}</span>
+                  {label}
                 </button>
               ))}
             </div>
           </motion.div>
 
-          {/* Birth Date */}
+          {/* Birth Date Field */}
           <motion.div variants={itemVariants} className="space-y-2">
             <Label
               htmlFor="birthDate"
@@ -757,20 +944,13 @@ export default function PersonalDetailsStep({
               hasValue={!!registrationState.birthDate}
             >
               <Input
-                type="date"
                 id="birthDate"
+                type="date"
                 value={registrationState.birthDate}
                 onChange={(e) => {
                   updateField('birthDate', e.target.value);
                   if (e.target.value) validateAge(e.target.value);
                 }}
-                max={
-                  new Date(
-                    new Date().setFullYear(new Date().getFullYear() - 18)
-                  )
-                    .toISOString()
-                    .split('T')[0]
-                }
                 disabled={isLoading}
                 className={`pr-11 py-3 border-2 rounded-xl transition-all bg-white/50 backdrop-blur-sm ${
                   ageError ||
@@ -787,14 +967,14 @@ export default function PersonalDetailsStep({
             )}
           </motion.div>
 
-          {/* Marital Status */}
+          {/* Marital Status Field */}
           <motion.div variants={itemVariants} className="space-y-2">
             <Label className="text-sm font-semibold text-gray-700 flex items-center">
               {personalDetailsDict.maritalStatusLabel}{' '}
               <span className="text-red-500 mr-1">*</span>
             </Label>
             <FieldWrapper
-              icon={<Users className="h-5 w-5" />}
+              icon={<Heart className="h-5 w-5" />}
               hasValue={!!registrationState.maritalStatus}
             >
               <Select
@@ -815,21 +995,25 @@ export default function PersonalDetailsStep({
                   />
                 </SelectTrigger>
                 <SelectContent>
-                  {Object.entries(personalDetailsDict.maritalStatuses).map(
-                    ([value, label]) => (
-                      <SelectItem key={value} value={value}>
-                        {label}
-                      </SelectItem>
-                    )
-                  )}
+                  <SelectItem value="single">
+                    {personalDetailsDict.maritalStatuses.single}
+                  </SelectItem>
+                  <SelectItem value="divorced">
+                    {personalDetailsDict.maritalStatuses.divorced}
+                  </SelectItem>
+                  <SelectItem value="widowed">
+                    {personalDetailsDict.maritalStatuses.widowed}
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </FieldWrapper>
           </motion.div>
         </div>
 
-        {/* --- OPTIONAL INFO SECTION --- */}
-        <div className="space-y-6 pt-4">
+        {/* ================================================================== */}
+        {/* --- SECTION 2: OPTIONAL INFO --- */}
+        {/* ================================================================== */}
+        <div className="space-y-6">
           <SectionHeader
             icon={<Sparkles className="w-5 h-5" />}
             title={optionalInfoDict.title}
@@ -837,12 +1021,13 @@ export default function PersonalDetailsStep({
             gradient="from-orange-500 to-amber-500"
           />
 
-          {/* Height and Occupation */}
+          {/* Height & Occupation Row */}
           <div className="grid grid-cols-2 gap-4">
+            {/* Height */}
             <motion.div variants={itemVariants} className="space-y-2">
               <Label
                 htmlFor="heightOptional"
-                className="text-sm font-semibold text-gray-700 flex items-center gap-1"
+                className="text-sm font-semibold text-gray-700"
               >
                 {optionalInfoDict.heightLabel}
               </Label>
@@ -853,8 +1038,6 @@ export default function PersonalDetailsStep({
                 <Input
                   type="number"
                   id="heightOptional"
-                  min="120"
-                  max="220"
                   value={registrationState.height ?? ''}
                   onChange={(e) =>
                     updateField(
@@ -864,15 +1047,18 @@ export default function PersonalDetailsStep({
                   }
                   placeholder={optionalInfoDict.heightPlaceholder}
                   disabled={isLoading}
+                  min={100}
+                  max={250}
                   className="pr-11 py-3 border-2 border-gray-200 rounded-xl transition-all bg-white/50 backdrop-blur-sm hover:border-gray-300 focus:border-orange-400 focus:ring-2 focus:ring-orange-200"
                 />
               </FieldWrapper>
             </motion.div>
 
+            {/* Occupation */}
             <motion.div variants={itemVariants} className="space-y-2">
               <Label
                 htmlFor="occupationOptional"
-                className="text-sm font-semibold text-gray-700 flex items-center gap-1"
+                className="text-sm font-semibold text-gray-700"
               >
                 {optionalInfoDict.occupationLabel}
               </Label>
@@ -965,7 +1151,285 @@ export default function PersonalDetailsStep({
           </motion.div>
         </div>
 
-        {/* --- CONSENTS SECTION --- */}
+        {/* ================================================================== */}
+        {/* --- SECTION 3: PHOTOS --- */}
+        {/* ================================================================== */}
+        <div className="space-y-6">
+          <SectionHeader
+            icon={<Camera className="w-5 h-5" />}
+            title={personalDetailsDict.photos?.title || 'תמונות שלכם'}
+            subtitle={
+              personalDetailsDict.photos?.subtitle ||
+              'תמונות טובות מגדילות משמעותית את הסיכוי להתאמות מוצלחות'
+            }
+            gradient="from-rose-500 to-pink-500"
+            required={true}
+          />
+
+          <motion.div variants={itemVariants}>
+            {/* Photo Grid */}
+            {/* Photo Grid */}
+            <div className="grid grid-cols-3 gap-3 mb-4">
+              {uploadedPhotos.map((photo, index) => (
+                <div
+                  // שימוש בכתובת ה-preview כמפתח ייחודי
+                  key={photo.preview}
+                  className={`relative aspect-square rounded-xl overflow-hidden border-2 transition-all group ${
+                    photo.isMain
+                      ? 'border-teal-500 ring-2 ring-teal-200'
+                      : 'border-gray-200 hover:border-gray-300'
+                  }`}
+                >
+                  {/* 👇 השינוי הגדול: תגית img רגילה במקום Image של Next.js 👇 */}
+                  <img
+                    src={photo.preview}
+                    alt={`תמונה ${index + 1}`}
+                    className="absolute inset-0 w-full h-full object-cover"
+                  />
+
+                  {/* Main badge */}
+                  {photo.isMain && (
+                    <Badge className="absolute top-2 right-2 z-10 bg-gradient-to-r from-teal-500 to-orange-500 text-white text-[10px] px-2 py-0.5 rounded-full flex items-center gap-1 border-none shadow-md">
+                      <Star className="w-3 h-3 fill-current" />
+                      <span>
+                        {personalDetailsDict.photos?.mainPhoto || 'ראשית'}
+                      </span>
+                    </Badge>
+                  )}
+
+                  {/* Action buttons - visible on hover */}
+                  <div className="absolute inset-0 z-20 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                    {!photo.isMain && (
+                      <button
+                        type="button"
+                        onClick={() => handleSetMainPhoto(index)}
+                        className="p-2 bg-white/90 rounded-full text-gray-700 hover:bg-white transition-colors"
+                        title={
+                          personalDetailsDict.photos?.setAsMain ||
+                          'הגדר כתמונה ראשית'
+                        }
+                      >
+                        <Star className="w-4 h-4" />
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => handleRemovePhoto(index)}
+                      className="p-2 bg-red-500/90 rounded-full text-white hover:bg-red-600 transition-colors"
+                      title={personalDetailsDict.photos?.remove || 'הסר'}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+
+              {/* Upload button / placeholder */}
+              {uploadedPhotos.length < MAX_PHOTOS && (
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isLoading}
+                  className={`aspect-square rounded-xl border-2 border-dashed transition-all flex flex-col items-center justify-center gap-2 ${
+                    uploadedPhotos.length < MIN_PHOTOS &&
+                    missingFields.includes(
+                      validationDict.fields?.photos || 'תמונת פרופיל'
+                    )
+                      ? 'border-red-300 bg-red-50/30 text-red-500 hover:border-red-400 hover:bg-red-50/50'
+                      : 'border-teal-300 bg-teal-50/30 text-teal-600 hover:border-teal-400 hover:bg-teal-50/50'
+                  }`}
+                >
+                  <ImagePlus className="w-8 h-8" />
+                  <span className="text-xs font-medium">
+                    {personalDetailsDict.photos?.addPhoto || 'הוסף תמונה'}
+                  </span>
+                  <span className="text-[10px] opacity-70">
+                    {MAX_PHOTOS - uploadedPhotos.length}{' '}
+                    {isRTL ? 'נותרו' : 'remaining'}
+                  </span>
+                </button>
+              )}
+            </div>
+
+            {/* Hidden file input */}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/jpg,image/webp"
+              multiple
+              onChange={handlePhotoSelect}
+              className="hidden"
+            />
+
+            {/* Validation error for photos */}
+            {uploadedPhotos.length < MIN_PHOTOS &&
+              missingFields.includes(
+                personalDetailsDict.photos?.fieldName || 'תמונת פרופיל'
+              ) && (
+                <p className="text-xs text-red-600 flex items-center gap-1 mb-3">
+                  <AlertCircle className="w-3 h-3" />
+                  {personalDetailsDict.photos?.required ||
+                    'יש להעלות לפחות תמונה אחת'}
+                </p>
+              )}
+
+            {/* Photo hints */}
+            <div className="bg-gradient-to-r from-rose-50/50 to-pink-50/50 rounded-xl p-3 border border-rose-100">
+              <p className="text-xs text-gray-600 leading-relaxed">
+                <span className="font-semibold text-rose-600">
+                  {personalDetailsDict.photos?.tip || '💡 טיפ:'}
+                </span>{' '}
+                {personalDetailsDict.photos?.tipText ||
+                  'העלו תמונות ברורות שמציגות את הפנים שלכם. תמונות איכותיות מגדילות את הסיכוי לקבל הצעות שידוך מדויקות.'}
+              </p>
+            </div>
+          </motion.div>
+        </div>
+
+        {/* ================================================================== */}
+        {/* --- SECTION 4: ABOUT ME --- */}
+        {/* ================================================================== */}
+        <div className="space-y-6">
+          <SectionHeader
+            icon={<FileText className="w-5 h-5" />}
+            title={
+              personalDetailsDict.aboutMe?.title || 'הסיפור שלי במילים שלי'
+            }
+            subtitle={
+              personalDetailsDict.aboutMe?.subtitle ||
+              'ספרו על עצמכם - זה החלק שהכי עוזר לשדכנים להכיר אתכם'
+            }
+            gradient="from-purple-500 to-indigo-500"
+            required={true}
+          />
+
+          <motion.div variants={itemVariants} className="space-y-2">
+            <div className="flex items-center justify-between">
+              <Label
+                htmlFor="aboutMe"
+                className="text-sm font-semibold text-gray-700 flex items-center gap-1"
+              >
+                {personalDetailsDict.aboutMe?.label || 'ספרו על עצמכם'}
+                <span className="text-red-500 mr-1">*</span>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button
+                        type="button"
+                        className="text-gray-400 hover:text-gray-600"
+                      >
+                        <Info className="w-4 h-4" />
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent
+                      side="top"
+                      className="max-w-xs text-center"
+                      dir={isRTL ? 'rtl' : 'ltr'}
+                    >
+                      <p>
+                        {personalDetailsDict.aboutMe?.tooltip ||
+                          'שתפו על התחביבים, הערכים, מה חשוב לכם בחיים ובמערכת יחסים'}
+                      </p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </Label>
+            </div>
+
+            <Textarea
+              id="aboutMe"
+              value={aboutMe}
+              onChange={(e) => setAboutMe(e.target.value)}
+              placeholder={
+                personalDetailsDict.aboutMe?.placeholder ||
+                'ספרו על עצמכם, על מה שחשוב לכם בחיים, על התחביבים שלכם, ועל מה שאתם מחפשים בבן/בת זוג...'
+              }
+              disabled={isLoading}
+              className={`min-h-[150px] py-3 border-2 rounded-xl transition-all bg-white/50 backdrop-blur-sm resize-none ${
+                aboutMe.trim().length < MIN_ABOUT_LENGTH &&
+                missingFields.includes(
+                  personalDetailsDict.aboutMe?.fieldName || 'הסיפור שלי'
+                )
+                  ? 'border-red-300 focus:ring-red-200 focus:border-red-400'
+                  : aboutMe.length > 0 &&
+                      aboutMe.trim().length < MIN_ABOUT_LENGTH
+                    ? 'border-amber-300 focus:ring-amber-200 focus:border-amber-400'
+                    : 'border-gray-200 hover:border-gray-300 focus:border-purple-400 focus:ring-2 focus:ring-purple-200'
+              }`}
+              rows={6}
+            />
+
+            {/* Character count and validation */}
+            <div className="flex justify-between items-center">
+              <div>
+                {aboutMe.trim().length < MIN_ABOUT_LENGTH &&
+                missingFields.includes(
+                  personalDetailsDict.aboutMe?.fieldName || 'הסיפור שלי'
+                ) ? (
+                  <p className="text-xs text-red-600 flex items-center gap-1">
+                    <AlertCircle className="w-3 h-3" />
+                    {personalDetailsDict.aboutMe?.required ||
+                      `יש לכתוב לפחות ${MIN_ABOUT_LENGTH} תווים`}
+                  </p>
+                ) : (
+                  aboutMe.length > 0 &&
+                  aboutMe.trim().length < MIN_ABOUT_LENGTH && (
+                    <span className="text-xs text-amber-600">
+                      {personalDetailsDict.aboutMe?.minChars?.replace(
+                        '{{remaining}}',
+                        String(MIN_ABOUT_LENGTH - aboutMe.trim().length)
+                      ) ||
+                        `עוד ${MIN_ABOUT_LENGTH - aboutMe.trim().length} תווים מינימום`}
+                    </span>
+                  )
+                )}
+              </div>
+              <span
+                className={`text-xs ${
+                  aboutMe.trim().length >= MIN_ABOUT_LENGTH
+                    ? 'text-green-600'
+                    : 'text-gray-400'
+                }`}
+              >
+                {aboutMe.trim().length} / {MIN_ABOUT_LENGTH}+
+              </span>
+            </div>
+
+            {/* Example prompts */}
+            <div className="bg-gradient-to-r from-purple-50/50 to-indigo-50/50 rounded-xl p-4 border border-purple-100 mt-3">
+              <p className="text-sm font-medium text-purple-700 mb-2">
+                {personalDetailsDict.aboutMe?.promptsTitle ||
+                  'רעיונות למה לכתוב:'}
+              </p>
+              <ul className="text-xs text-gray-600 space-y-1.5">
+                <li className="flex items-start gap-2">
+                  <span className="text-purple-500 mt-0.5">•</span>
+                  {personalDetailsDict.aboutMe?.prompt1 ||
+                    'מה אתם אוהבים לעשות בזמן הפנוי?'}
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-purple-500 mt-0.5">•</span>
+                  {personalDetailsDict.aboutMe?.prompt2 ||
+                    'מה הערכים הכי חשובים לכם?'}
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-purple-500 mt-0.5">•</span>
+                  {personalDetailsDict.aboutMe?.prompt3 ||
+                    'איך נראה היום המושלם שלכם?'}
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-purple-500 mt-0.5">•</span>
+                  {personalDetailsDict.aboutMe?.prompt4 ||
+                    'מה אתם מחפשים בבן/בת זוג?'}
+                </li>
+              </ul>
+            </div>
+          </motion.div>
+        </div>
+
+        {/* ================================================================== */}
+        {/* --- SECTION 5: CONSENTS --- */}
+        {/* ================================================================== */}
         <motion.div variants={itemVariants} className="space-y-4">
           <div
             className={`p-4 rounded-2xl border-2 transition-all ${
@@ -990,7 +1454,11 @@ export default function PersonalDetailsStep({
           <div className="space-y-3 px-2">
             {/* Engagement Consent */}
             <div
-              className={`flex items-start space-x-2 rtl:space-x-reverse rounded-lg p-2 transition-colors ${missingFields.includes(validationDict.fields.engagement) ? 'bg-red-50 ring-1 ring-red-200' : ''}`}
+              className={`flex items-start space-x-2 rtl:space-x-reverse rounded-lg p-2 transition-colors ${
+                missingFields.includes(validationDict.fields.engagement)
+                  ? 'bg-red-50 ring-1 ring-red-200'
+                  : ''
+              }`}
             >
               <Checkbox
                 id="engagementConsent"
@@ -1050,7 +1518,9 @@ export default function PersonalDetailsStep({
           </div>
         </motion.div>
 
+        {/* ================================================================== */}
         {/* --- BUTTONS --- */}
+        {/* ================================================================== */}
         <motion.div variants={itemVariants} className="flex gap-4 pt-4">
           <Button
             type="button"
@@ -1083,7 +1553,9 @@ export default function PersonalDetailsStep({
                 <CheckCircle2 className="w-5 h-5" />
                 <span>{personalDetailsDict.nextButton}</span>
                 <ArrowLeft
-                  className={`w-5 h-5 group-hover:-translate-x-1 transition-transform ${!isRTL ? 'rotate-180 group-hover:translate-x-1' : ''}`}
+                  className={`w-5 h-5 group-hover:-translate-x-1 transition-transform ${
+                    !isRTL ? 'rotate-180 group-hover:translate-x-1' : ''
+                  }`}
                 />
               </>
             )}

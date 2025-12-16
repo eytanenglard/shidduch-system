@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\dictionaries\profile
-# Generated on: 2025-12-02 14:05:54
+# Generated on: 2025-12-16 14:58:08
 # Filter: Only content of code files (.bat, .c, .cfg, .conf, .cpp, .cs, .css, .go, .h, .html, .ini, .java, .js, .json, .jsx, .kt, .less, .md, .php, .py, .rb, .rs, .scss, .sh, .sql, .swift, .ts, .tsx, .txt, .xml, .yaml, .yml) is included.
 ################################################################################
 
@@ -106,7 +106,7 @@ Content:
     }
   },
 "aiAdvisor": {
-  "triggerButton": "🤖 Our AI is Here to Help - Want Profile Tips?",
+  "triggerButton": "Our AI is Here to Help - Want Profile Tips?",
   "dialogTitle": "Personal Recommendations from NeshamaTech's AI",
   "dialogDescription": "Our AI analyzes your profile and suggests ways to improve it - so you can find the right match.",
   "closeButton": "Close",
@@ -116,8 +116,10 @@ Content:
   "errorAlertDescription": "We couldn't complete the analysis. Try again in a moment.",
   "retryButton": "Try Again",
   "initialState": "Click to get recommendations from our AI",
-  "toastErrorTitle": "Error",
-  "toastErrorDescription": "An error occurred: {{error}}"
+  "toast": {
+    "errorTitle": "Error",
+    "errorDescription": "An error occurred: {{error}}"
+  }
 },
   "analysisResult": {
     "tabs": {
@@ -1495,8 +1497,8 @@ Content:
       "education": "השכלה"
     }
   },
- "aiAdvisor": {
-  "triggerButton": "🤖 ה-AI שלנו כאן לעזור - רוצה טיפים לפרופיל?",
+"aiAdvisor": {
+  "triggerButton": "ה-AI שלנו כאן לעזור - רוצה טיפים לפרופיל?",
   "dialogTitle": "המלצות אישיות מה-AI של NeshamaTech",
   "dialogDescription": "ה-AI שלנו מנתח את הפרופיל ומציע דרכים לשפר אותו - כדי שתמצא את ההתאמה הנכונה.",
   "closeButton": "סגור",
@@ -1506,8 +1508,10 @@ Content:
   "errorAlertDescription": "לא הצלחנו להשלים את הניתוח. נסה שוב עוד מעט.",
   "retryButton": "נסה שוב",
   "initialState": "לחץ לקבלת המלצות מה-AI שלנו",
-  "toastErrorTitle": "שגיאה",
-  "toastErrorDescription": "אירעה תקלה: {{error}}"
+  "toast": {
+    "errorTitle": "שגיאה",
+    "errorDescription": "אירעה תקלה: {{error}}"
+  }
 },
   "analysisResult": {
     "tabs": {

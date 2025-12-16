@@ -323,7 +323,40 @@
           "consentRequired": "You must accept the terms of use and privacy policy.",
           "engagementConsentRequired": "To ensure we can guide you through the process, you must agree to receive updates and suggestions from the system.",
           "consentApiError": "An error occurred while accepting the terms."
-        }
+        },
+  "_comment": "Add these sections inside the personalDetails object in en.json",
+  "photos": {
+    "title": "Your Photos",
+    "subtitle": "Good photos significantly increase your chances of successful matches",
+    "addPhoto": "Add Photo",
+    "mainPhoto": "Main",
+    "setAsMain": "Set as main photo",
+    "remove": "Remove",
+    "maxPhotosError": "You can upload up to 5 photos",
+    "invalidTypeError": "Unsupported file type. Please upload JPG, PNG, or WEBP images",
+    "fileTooLargeError": "File too large. Maximum size: 5MB",
+    "uploadSuccess": "Photos added successfully",
+    "uploadingPhotos": "Uploading photos...",
+    "tip": "💡 Tip:",
+    "tipText": "Upload clear photos showing your face. High-quality photos increase your chances of receiving accurate and interesting match suggestions.",
+    "fieldName": "Profile photo",
+    "required": "Please upload at least one photo"
+  },
+  "aboutMe": {
+    "title": "My Story in My Own Words",
+    "subtitle": "Tell us about yourself - this helps matchmakers get to know you better",
+    "label": "Tell us about yourself",
+    "placeholder": "Share about yourself, what matters to you in life, your hobbies, and what you're looking for in a partner...\n\nDon't be shy to write personally - that's exactly what helps matchmakers understand who you really are.",
+    "tooltip": "Share your hobbies, values, what matters to you in life and relationships. The more you write, the better matchmakers can get to know you.",
+    "minChars": "{{remaining}} more characters minimum",
+    "promptsTitle": "Ideas for what to write:",
+    "prompt1": "What do you enjoy doing in your free time?",
+    "prompt2": "What values are most important to you?",
+    "prompt3": "What does your perfect day look like?",
+    "prompt4": "What are you looking for in a partner?",
+    "fieldName": "My story",
+    "required": "Please write at least 100 characters"
+  }
       },
       "optionalInfo": {
         "title": "Additional Information",
@@ -378,7 +411,9 @@
         "maritalStatus": "Marital Status",
         "religiousLevel": "Religious Level",
         "terms": "Terms of Service Agreement",
-        "engagement": "Engagement Updates Consent"
+        "engagement": "Engagement Updates Consent",
+        "photos": "Profile Photos",
+        "aboutMe": "My Story"
       }
     },
 

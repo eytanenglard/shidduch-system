@@ -89,7 +89,7 @@ export type VerifyEmailDict = {
   emailAddressNotSpecified: string;
   checkYourInbox: string;
   errors: {
-    title: string; 
+    title: string;
     noEmail: string;
     linkInvalid: string;
     sessionMismatch: string;
@@ -97,117 +97,150 @@ export type VerifyEmailDict = {
     tokenExpired: string;
     default: string;
     resendFailed: string;
-  },
+  };
   alerts: {
     resendSuccess: string;
-  }
+  };
 };
 
 export type SetupAccountDict = {
+  title: string;
+  description: string;
+  newPasswordLabel: string;
+  passwordHint: string;
+  confirmPasswordLabel: string;
+  submitButton: string;
+  submitButtonLoading: string;
+  success: {
     title: string;
     description: string;
-    newPasswordLabel: string;
-    passwordHint: string;
-    confirmPasswordLabel: string;
-    submitButton: string;
-    submitButtonLoading: string;
-    success: {
-        title: string;
-        description: string;
-        redirecting: string;
-    };
-    errors: {
-        linkInvalid: string;
-        passwordLength: string;
-        passwordsMismatch: string;
-        default: string;
-        unexpected: string;
-    };
+    redirecting: string;
+  };
+  errors: {
+    linkInvalid: string;
+    passwordLength: string;
+    passwordsMismatch: string;
+    default: string;
+    unexpected: string;
+  };
 };
 
 export type UpdatePhoneDict = {
+  title: string;
+  description: string;
+  newPhoneLabel: string;
+  newPhonePlaceholder: string;
+  submitButton: string;
+  submitButtonLoading: string;
+  backToVerificationLink: string;
+  loaderText: string;
+  errors: {
     title: string;
-    description: string;
-    newPhoneLabel: string;
-    newPhonePlaceholder: string;
-    submitButton: string;
-    submitButtonLoading: string;
-    backToVerificationLink: string;
-    loaderText: string;
-    errors: {
-        title: string;
-        invalidFormat: string;
-        updateFailed: string;
-        unexpected: string;
-    };
+    invalidFormat: string;
+    updateFailed: string;
+    unexpected: string;
+  };
 };
 
 export type VerifyPhoneDict = {
+  title: string;
+  description: string;
+  yourPhoneNumber: string;
+  codeSentTo: string;
+  enterCodePrompt: string;
+  digitAriaLabel: string;
+  verifyButton: string;
+  verifyingButton: string;
+  resend: {
+    prompt: string;
+    button: string;
+    buttonLoading: string;
+    timer: string;
+  };
+  wrongNumberLink: string;
+  backToSignInLink: string;
+  errors: {
     title: string;
-    description: string;
-    yourPhoneNumber: string;
-    codeSentTo: string;
-    enterCodePrompt: string;
-    digitAriaLabel: string;
-    verifyButton: string;
-    verifyingButton: string;
-    resend: {
-        prompt: string;
-        button: string;
-        buttonLoading: string;
-        timer: string;
-    };
-    wrongNumberLink: string;
-    backToSignInLink: string;
-    errors: {
-        title: string;
-        incompleteCode: string;
-        default: string;
-        unexpected: string;
-    };
-    success: {
-        title: string;
-        verifying: string;
-        updatingProfile: string;
-    };
-    info: {
-        title: string,
-        resent: string
-    }
+    incompleteCode: string;
+    default: string;
+    unexpected: string;
+  };
+  success: {
+    title: string;
+    verifying: string;
+    updatingProfile: string;
+  };
+  info: {
+    title: string;
+    resent: string;
+  };
 };
 
 export type AuthErrorDict = {
-    title: string;
-    backButton: string;
-    errors: {
-        CredentialsSignin: string;
-        OAuthAccountNotLinked: string;
-        Default: string;
-    };
+  title: string;
+  backButton: string;
+  errors: {
+    CredentialsSignin: string;
+    OAuthAccountNotLinked: string;
+    Default: string;
+  };
 };
 
-// ========== 🔴 הוספה חדשה: טיפוס להצעת Google ==========
+// טיפוס להצעת Google
 export type GoogleSuggestionDict = {
   title: string;
   description: string;
   buttonText: string;
   buttonLoading: string;
 };
-// ======================================================
+
+// טיפוס לתמונות - מעודכן עם fieldName ו-required
+export type PhotosDict = {
+  title: string;
+  subtitle: string;
+  addPhoto: string;
+  mainPhoto: string;
+  setAsMain: string;
+  remove: string;
+  maxPhotosError: string;
+  invalidTypeError: string;
+  fileTooLargeError: string;
+  uploadSuccess: string;
+  uploadingPhotos: string;
+  tip: string;
+  tipText: string;
+  fieldName: string; // שם השדה לוולידציה
+  required: string; // הודעת שגיאה כשחסר
+};
+
+// טיפוס לסיפור שלי - מעודכן עם fieldName ו-required
+export type AboutMeDict = {
+  title: string;
+  subtitle: string;
+  label: string;
+  placeholder: string;
+  tooltip: string;
+  minChars: string;
+  promptsTitle: string;
+  prompt1: string;
+  prompt2: string;
+  prompt3: string;
+  prompt4: string;
+  fieldName: string; // שם השדה לוולידציה
+  required: string; // הודעת שגיאה כשחסר
+};
 
 export type RegisterStepsDict = {
   progressBar: {
-    stepLabel: string; // "שלב {{step}}"
+    stepLabel: string;
   };
   headers: {
-    // Titles
     registerTitle: string;
     verifyEmailTitle: string;
     completeProfileTitle: string;
-    // Descriptions
     welcomeDescription: string;
     accountCreationDescription: string;
-    verifyEmailDescription: string; // "הזן את הקוד שנשלח ל: {{email}}"
+    verifyEmailDescription: string;
     personalDetailsDescription: string;
     personalDetailsConsentedDescription: string;
     optionalInfoDescription: string;
@@ -223,7 +256,7 @@ export type RegisterStepsDict = {
   };
   contactSupport: string;
   contactSupportLink: string;
-  
+
   steps: {
     welcome: {
       title: string;
@@ -249,9 +282,7 @@ export type RegisterStepsDict = {
       nextButton: string;
       nextButtonLoading: string;
       termsDisclaimer: string;
-      // ========== 🔴 הוספה חדשה: הצעת Google ==========
       googleSuggestion?: GoogleSuggestionDict;
-      // ================================================
       errors: {
         title: string;
         invalidEmail: string;
@@ -262,7 +293,7 @@ export type RegisterStepsDict = {
         fixErrors: string;
         default: string;
       };
-       status: {
+      status: {
         creatingAccount: string;
         sendingCode: string;
       };
@@ -289,6 +320,7 @@ export type RegisterStepsDict = {
         resent: string;
       };
     };
+
     personalDetails: {
       title: string;
       subtitle: string;
@@ -312,15 +344,20 @@ export type RegisterStepsDict = {
         divorced: string;
         widowed: string;
       };
-            religiousLevelLabel: string;
+      religiousLevelLabel: string;
       religiousLevelPlaceholder: string;
-      religiousLevels: { [key: string]: string }; // מיפוי של אפשרויות הרמה הדתית
+      religiousLevels: { [key: string]: string };
 
-       engagementConsentLabel: string;
+      engagementConsentLabel: string;
       promotionalConsentLabel: string;
       backButton: string;
       nextButton: string;
       nextButtonLoading: string;
+
+      // תמונות וסיפור - שדות חדשים
+      photos?: PhotosDict;
+      aboutMe?: AboutMeDict;
+
       errors: {
         firstNameRequired: string;
         lastNameRequired: string;
@@ -332,53 +369,47 @@ export type RegisterStepsDict = {
         genderRequired: string;
         maritalStatusRequired: string;
         consentRequired: string;
-                engagementConsentRequired: string; // הועבר לכאן
-        religiousLevelRequired: string; // הודעת שגיאה חדשה
-
+        engagementConsentRequired: string;
+        religiousLevelRequired: string;
         consentApiError: string;
       };
     };
- optionalInfo: {
-  title: string;
-  subtitle: string;
-  heightLabel: string;
-  heightPlaceholder: string;
-  occupationLabel: string;
-  occupationPlaceholder: string;
-  educationLabel: string;
-  educationPlaceholder: string;
-  backButton: string;
-  nextButton: string;
-  status: {
-    saving: string;
-    updating: string;
-    sendingCode: string;
-  };
-  // ⬇️ הוסף את החלק הזה ⬇️
- loadingOverlay?: LoadingOverlayDict;
-  // ⬆️ עד כאן ⬆️
-  errors: {
-    title: string;
-    missingData: string;
-    default: string;
-  };
-};
+
+    optionalInfo: {
+      title: string;
+      subtitle: string;
+      heightLabel: string;
+      heightPlaceholder: string;
+      occupationLabel: string;
+      occupationPlaceholder: string;
+      educationLabel: string;
+      educationPlaceholder: string;
+      backButton: string;
+      nextButton: string;
+      status: {
+        saving: string;
+        updating: string;
+        sendingCode: string;
+      };
+      loadingOverlay?: LoadingOverlayDict;
+      errors: {
+        title: string;
+        missingData: string;
+        default: string;
+      };
+    };
 
     complete: {
       loading: string;
-      // Email verification required
       verifyEmailTitle: string;
       verifyEmailSubtitle: string;
       verifyEmailPrompt: string;
-      // Profile completion required
       completeProfileTitle: string;
       completeProfileSubtitle: string;
       completeProfileButton: string;
-      // Phone verification required
       verifyPhoneTitle: string;
       verifyPhoneSubtitle: string;
       verifyPhoneButton: string;
-      // All done
       allDoneTitle: string;
       allDoneSubtitle: string;
       myProfileButton: string;
@@ -386,12 +417,14 @@ export type RegisterStepsDict = {
       backToHomeLink: string;
     };
   };
+
   consentCheckbox: {
     text: string;
     termsLink: string;
     privacyLink: string;
   };
-    validationErrors: {
+
+  validationErrors: {
     title: string;
     pleaseFill: string;
     fields: {
@@ -406,9 +439,10 @@ export type RegisterStepsDict = {
       religiousLevel: string;
       terms: string;
       engagement: string;
+       photos: string;
+      aboutMe: string;
     };
   };
-
 };
 
 // Main Auth Dictionary Type
@@ -423,8 +457,7 @@ export type AuthDictionary = {
   errorPage: AuthErrorDict;
   register: RegisterStepsDict;
   unsubscribePage: UnsubscribePageDict;
-    legal: LegalDictionary;
-
+  legal: LegalDictionary;
 };
 
 export type AccessibilityStatementDict = {
@@ -684,7 +717,6 @@ export type TermsOfServiceDict = {
   };
 };
 
-
 export type LegalDictionary = {
   accessibilityStatement: AccessibilityStatementDict;
   privacyPolicy: PrivacyPolicyDict;
@@ -700,6 +732,7 @@ export type UnsubscribePageDict = {
   errorInvalidLink: string;
   backToHomeButton: string;
 };
+
 export type LoadingOverlayDict = {
   title: string;
   subtitle: string;

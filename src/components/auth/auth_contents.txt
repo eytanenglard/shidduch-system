@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\auth
-# Generated on: 2025-12-15 15:09:09
+# Generated on: 2025-12-16 16:54:43
 # Filter: Only content of code files (.bat, .c, .cfg, .conf, .cpp, .cs, .css, .go, .h, .html, .ini, .java, .js, .json, .jsx, .kt, .less, .md, .php, .py, .rb, .rs, .scss, .sh, .sql, .swift, .ts, .tsx, .txt, .xml, .yaml, .yml) is included.
 ################################################################################
 
@@ -458,6 +458,247 @@ export default function ResetPasswordForm() {
   );
 }
 --- End of Content for ForgotPasswordForm.tsx ---
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\auth\FullScreenLoadingOverlay.tsx
+--------------------------------------------------------------------------------
+Content:
+// src/components/auth/FullScreenLoadingOverlay.tsx
+'use client';
+
+import React, { useEffect, useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { CheckCircle2, Sparkles, Loader2 } from 'lucide-react';
+import StandardizedLoadingSpinner from '@/components/questionnaire/common/StandardizedLoadingSpinner';
+
+export type LoadingStep = {
+  id: string;
+  text: string;
+  subtext?: string;
+};
+
+interface FullScreenLoadingOverlayProps {
+  isVisible: boolean;
+  currentStepId: string;
+  steps: LoadingStep[];
+  dict: {
+    title: string;
+    subtitle: string;
+  };
+  locale?: 'he' | 'en';
+}
+
+const FullScreenLoadingOverlay: React.FC<FullScreenLoadingOverlayProps> = ({
+  isVisible,
+  currentStepId,
+  steps,
+  dict,
+  locale = 'he',
+}) => {
+  const [completedSteps, setCompletedSteps] = useState<string[]>([]);
+
+  // מעקב אחרי שלבים שהושלמו
+  useEffect(() => {
+    if (!isVisible) {
+      setCompletedSteps([]);
+      return;
+    }
+
+    const currentIndex = steps.findIndex((s) => s.id === currentStepId);
+    if (currentIndex > 0) {
+      const newCompleted = steps.slice(0, currentIndex).map((s) => s.id);
+      setCompletedSteps(newCompleted);
+    }
+  }, [currentStepId, steps, isVisible]);
+
+  const currentStep = steps.find((s) => s.id === currentStepId);
+
+  return (
+    <AnimatePresence>
+      {isVisible && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.3 }}
+          className="fixed inset-0 z-[9999] flex flex-col items-center justify-center"
+          style={{
+            background:
+              'linear-gradient(135deg, rgba(248, 250, 252, 0.97) 0%, rgba(240, 253, 250, 0.97) 50%, rgba(255, 247, 237, 0.97) 100%)',
+            backdropFilter: 'blur(12px)',
+          }}
+        >
+          {/* רקע אנימטיבי עדין */}
+          <div className="absolute inset-0 overflow-hidden pointer-events-none">
+            {/* גרדיאנט עליון */}
+            <motion.div
+              className="absolute -top-1/4 -right-1/4 w-1/2 h-1/2 rounded-full"
+              style={{
+                background:
+                  'radial-gradient(circle, rgba(20, 184, 166, 0.08) 0%, transparent 70%)',
+              }}
+              animate={{
+                scale: [1, 1.2, 1],
+                opacity: [0.5, 0.8, 0.5],
+              }}
+              transition={{
+                duration: 4,
+                repeat: Infinity,
+                ease: 'easeInOut',
+              }}
+            />
+            {/* גרדיאנט תחתון */}
+            <motion.div
+              className="absolute -bottom-1/4 -left-1/4 w-1/2 h-1/2 rounded-full"
+              style={{
+                background:
+                  'radial-gradient(circle, rgba(249, 115, 22, 0.06) 0%, transparent 70%)',
+              }}
+              animate={{
+                scale: [1.2, 1, 1.2],
+                opacity: [0.5, 0.8, 0.5],
+              }}
+              transition={{
+                duration: 4,
+                repeat: Infinity,
+                ease: 'easeInOut',
+                delay: 2,
+              }}
+            />
+          </div>
+
+          {/* תוכן מרכזי */}
+          <div className="relative z-10 flex flex-col items-center max-w-md px-6 text-center">
+            {/* לוגו מונפש - משתמש ב-StandardizedLoadingSpinner בלי טקסט כי נוסיף משלנו */}
+            <div className="mb-0">
+              <StandardizedLoadingSpinner className="!min-h-0 !p-0" />
+            </div>
+
+            {/* כותרת */}
+            <motion.h2
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+              className="text-2xl font-bold text-gray-800 mb-2"
+            >
+              {dict.title}
+            </motion.h2>
+
+            {/* תת-כותרת */}
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.5 }}
+              className="text-gray-500 text-sm mb-8"
+            >
+              {dict.subtitle}
+            </motion.p>
+
+            {/* שלבי התקדמות */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.6 }}
+              className="w-full space-y-3"
+            >
+              {steps.map((step, index) => {
+                const isCompleted = completedSteps.includes(step.id);
+                const isCurrent = step.id === currentStepId;
+
+                return (
+                  <motion.div
+                    key={step.id}
+                    initial={{ opacity: 0, x: locale === 'he' ? 20 : -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.7 + index * 0.1 }}
+                    className={`flex items-center gap-3 p-3 rounded-xl transition-all duration-300 ${
+                      isCurrent
+                        ? 'bg-gradient-to-r from-teal-50 to-orange-50 border border-teal-200 shadow-sm'
+                        : isCompleted
+                          ? 'bg-green-50/50'
+                          : 'bg-gray-50/50'
+                    }`}
+                  >
+                    {/* אייקון סטטוס */}
+                    <div
+                      className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 ${
+                        isCompleted
+                          ? 'bg-green-500 text-white'
+                          : isCurrent
+                            ? 'bg-gradient-to-br from-teal-500 to-orange-500 text-white'
+                            : 'bg-gray-200 text-gray-400'
+                      }`}
+                    >
+                      {isCompleted ? (
+                        <motion.div
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
+                          transition={{
+                            type: 'spring',
+                            stiffness: 500,
+                            damping: 25,
+                          }}
+                        >
+                          <CheckCircle2 className="w-5 h-5" />
+                        </motion.div>
+                      ) : isCurrent ? (
+                        <Loader2 className="w-5 h-5 animate-spin" />
+                      ) : (
+                        <span className="text-sm font-medium">{index + 1}</span>
+                      )}
+                    </div>
+
+                    {/* טקסט השלב */}
+                    <div className="flex-1 text-right rtl:text-right ltr:text-left">
+                      <p
+                        className={`text-sm font-medium transition-colors ${
+                          isCurrent
+                            ? 'text-teal-700'
+                            : isCompleted
+                              ? 'text-green-600'
+                              : 'text-gray-400'
+                        }`}
+                      >
+                        {step.text}
+                      </p>
+                      {step.subtext && isCurrent && (
+                        <motion.p
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: 'auto' }}
+                          className="text-xs text-gray-500 mt-0.5"
+                        >
+                          {step.subtext}
+                        </motion.p>
+                      )}
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </motion.div>
+
+            {/* הודעת טיפ */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 1 }}
+              className="mt-8 flex items-center gap-2 text-xs text-gray-400"
+            >
+              <Sparkles className="w-3 h-3" />
+              <span>
+                {locale === 'he'
+                  ? 'נא לא לסגור את החלון'
+                  : "Please don't close this window"}
+              </span>
+            </motion.div>
+          </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+};
+
+export default FullScreenLoadingOverlay;
+--- End of Content for FullScreenLoadingOverlay.tsx ---
 
 --------------------------------------------------------------------------------
 File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\auth\PhoneNumberInput.tsx
@@ -2877,16 +3118,17 @@ import {
   Loader2,
   Eye,
   EyeOff,
-  ListChecks, // אייקון לרשימת השגיאות
+  ListChecks,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { RegisterStepsDict } from '@/types/dictionaries/auth';
 import { Input } from '@/components/ui/input';
+import { signIn } from 'next-auth/react';
 
 interface BasicInfoStepProps {
   dict: RegisterStepsDict['steps']['basicInfo'];
   consentDict: RegisterStepsDict['consentCheckbox'];
-  validationDict: RegisterStepsDict['validationErrors']; // קבלת המילון החדש
+  validationDict: RegisterStepsDict['validationErrors'];
   locale: 'he' | 'en';
 }
 
@@ -2897,10 +3139,20 @@ const isValidEmail = (email: string): boolean => {
 };
 
 const isValidPassword = (password: string): boolean => {
-  // לפחות 8 תווים, אות גדולה, אות קטנה ומספר
   const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$/;
   return passwordRegex.test(password);
 };
+
+// קודי שגיאה שמצדיקים הצעה להירשם עם Google
+const GOOGLE_SIGNUP_SUGGESTED_ERRORS = [
+  'DB_CONNECTION_ERROR',
+  'DB_INIT_ERROR',
+  'P1001',
+  'P1002',
+  'P1003',
+  'P1008',
+  'P1017',
+];
 
 const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
   dict,
@@ -2919,11 +3171,31 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
 
+  // ========== 🔴 הוספה: מצב להצגת הצעת Google ==========
+  const [showGoogleSuggestion, setShowGoogleSuggestion] = useState(false);
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  // =====================================================
+
   // ניהול נראות סיסמה
   const [passwordVisible, setPasswordVisible] = useState(false);
 
   // רשימת השדות החסרים לתצוגה בראש הטופס
   const [missingFields, setMissingFields] = useState<string[]>([]);
+
+  // ========== 🔴 הוספה: פונקציה להרשמה עם Google ==========
+  const handleGoogleSignup = async () => {
+    setIsGoogleLoading(true);
+    try {
+      await signIn('google', {
+        callbackUrl: `/${locale}/auth/register`,
+        redirect: true,
+      });
+    } catch (error) {
+      console.error('Google signup error:', error);
+      setIsGoogleLoading(false);
+    }
+  };
+  // =======================================================
 
   const handleRegisterSubmit = async () => {
     // 1. איפוס שגיאות קודמות
@@ -2931,6 +3203,7 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
     setMissingFields([]);
     setEmailError('');
     setPasswordError('');
+    setShowGoogleSuggestion(false); // ========== 🔴 הוספה ==========
 
     let hasError = false;
     const currentMissing: string[] = [];
@@ -2966,7 +3239,6 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
     // 3. אם יש שגיאות - עצור והצג אותן
     if (hasError) {
       setMissingFields(currentMissing);
-      // גלילה לראש העמוד כדי שהמשתמש יראה את ההתראה
       window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
@@ -2990,6 +3262,16 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
       const result = await response.json();
 
       if (!response.ok) {
+        // ========== 🔴 הוספה: בדיקה אם להציע הרשמה עם Google ==========
+        const errorCode = result.errorCode || '';
+        if (
+          GOOGLE_SIGNUP_SUGGESTED_ERRORS.includes(errorCode) ||
+          result.error?.includes('שגיאת חיבור') ||
+          result.error?.includes('P1001')
+        ) {
+          setShowGoogleSuggestion(true);
+        }
+        // ==============================================================
         throw new Error(result.error || dict.errors.default);
       }
 
@@ -3029,6 +3311,71 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
           </Alert>
         </motion.div>
       )}
+
+      {/* ========== 🔴 הוספה: הצעה להירשם עם Google ==========  */}
+      <AnimatePresence>
+        {showGoogleSuggestion && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="overflow-hidden"
+          >
+            <Alert className="bg-blue-50 border-blue-200 text-blue-800">
+              <div className="flex flex-col gap-3">
+                <div className="flex items-start gap-2">
+                  <Mail className="h-5 w-5 text-blue-600 mt-0.5 shrink-0" />
+                  <div>
+                    <AlertTitle className="text-blue-900 font-bold mb-1">
+                      {dict.googleSuggestion?.title}
+                    </AlertTitle>
+                    <AlertDescription className="text-sm text-blue-700">
+                      {dict.googleSuggestion?.description}
+                    </AlertDescription>
+                  </div>
+                </div>
+
+                <Button
+                  type="button"
+                  onClick={handleGoogleSignup}
+                  disabled={isGoogleLoading}
+                  className="w-full flex items-center justify-center gap-2 bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 shadow-sm"
+                >
+                  {isGoogleLoading ? (
+                    <>
+                      <Loader2 className="h-5 w-5 animate-spin" />
+                      <span>{dict.googleSuggestion?.buttonLoading}</span>
+                    </>
+                  ) : (
+                    <>
+                      <svg className="h-5 w-5" viewBox="0 0 24 24">
+                        <path
+                          fill="#4285F4"
+                          d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                        />
+                        <path
+                          fill="#34A853"
+                          d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                        />
+                        <path
+                          fill="#FBBC05"
+                          d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+                        />
+                        <path
+                          fill="#EA4335"
+                          d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                        />
+                      </svg>
+                      <span>{dict.googleSuggestion?.buttonText}</span>
+                    </>
+                  )}
+                </Button>
+              </div>
+            </Alert>
+          </motion.div>
+        )}
+      </AnimatePresence>
+      {/* ========================================================= */}
 
       {/* התראת ולידציה (שדות חסרים) */}
       <AnimatePresence>
@@ -3092,7 +3439,7 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
               value={data.email}
               onChange={(e) => {
                 updateField('email', e.target.value);
-                if (emailError) setEmailError(''); // איפוס שגיאה בעת הקלדה
+                if (emailError) setEmailError('');
               }}
               onBlur={() =>
                 setEmailError(
@@ -3101,7 +3448,6 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
               }
               placeholder={dict.emailPlaceholder}
               disabled={isLoading}
-              // עיצוב דינמי: אדום אם יש שגיאה או אם השדה ברשימת החסרים
               className={`w-full pr-10 pl-3 py-3 border rounded-lg focus:ring-2 focus:outline-none transition-colors 
                 ${isLoading ? 'bg-gray-100' : ''} 
                 ${
@@ -3264,7 +3610,7 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
         <Button
           type="button"
           onClick={handleRegisterSubmit}
-          disabled={isLoading} // הכפתור תמיד פעיל כדי לאפשר ולידציה, אלא אם כן בטעינה
+          disabled={isLoading}
           className={`w-full flex items-center gap-2 justify-center text-white font-medium px-4 py-2.5 rounded-lg transition-all 
             ${
               isLoading
@@ -4058,7 +4404,7 @@ Content:
 // src/components/auth/steps/PersonalDetailsStep.tsx
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSession } from 'next-auth/react';
@@ -4076,22 +4422,28 @@ import {
   Loader2,
   ArrowLeft,
   ArrowRight,
-  Languages,
   Edit3,
   Ruler,
   Briefcase,
   GraduationCap,
   BookOpen,
   Shield,
-  Users,
-  ListChecks, // אייקון חדש לרשימת השגיאות
+  ListChecks,
+  Camera,
+  ImagePlus,
+  FileText,
+  Info,
+  Trash2,
+  Star,
 } from 'lucide-react';
+import Image from 'next/image';
 
 // UI Components
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Textarea } from '@/components/ui/textarea';
 import {
   Select,
   SelectContent,
@@ -4100,16 +4452,43 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+import { Badge } from '@/components/ui/badge';
+import { toast } from 'sonner';
 
 // Custom Components
 import PhoneNumberInput from '../PhoneNumberInput';
 import ConsentCheckbox from '../ConsentCheckbox';
-import SubmissionStatusIndicator, {
-  SubmissionStatus,
-} from './SubmissionStatusIndicator';
+import FullScreenLoadingOverlay, {
+  LoadingStep,
+} from '../FullScreenLoadingOverlay';
 
 // Types
 import type { RegisterStepsDict } from '@/types/dictionaries/auth';
+
+// ============================================================================
+// TYPES
+// ============================================================================
+
+type SubmissionStatus =
+  | 'idle'
+  | 'acceptingTerms'
+  | 'savingProfile'
+  | 'uploadingPhotos'
+  | 'sendingCode'
+  | 'redirecting'
+  | 'error';
+
+interface UploadedPhoto {
+  file: File;
+  preview: string;
+  isMain: boolean;
+}
 
 // ============================================================================
 // ANIMATION & STYLING VARIANTS
@@ -4169,6 +4548,7 @@ interface SectionHeaderProps {
   title: string;
   subtitle?: string;
   gradient: string;
+  required?: boolean;
 }
 
 const SectionHeader: React.FC<SectionHeaderProps> = ({
@@ -4176,13 +4556,17 @@ const SectionHeader: React.FC<SectionHeaderProps> = ({
   title,
   subtitle,
   gradient,
+  required = false,
 }) => (
   <motion.div variants={itemVariants} className="mb-6">
     <div className="flex items-center gap-3 mb-2">
       <div className={`p-2 rounded-xl bg-gradient-to-br ${gradient} shadow-lg`}>
         <div className="text-white">{icon}</div>
       </div>
-      <h3 className="text-xl font-bold text-gray-800">{title}</h3>
+      <h3 className="text-xl font-bold text-gray-800">
+        {title}
+        {required && <span className="text-red-500 mr-1">*</span>}
+      </h3>
     </div>
     {subtitle && (
       <p className="text-sm text-gray-600 leading-relaxed mr-12">{subtitle}</p>
@@ -4198,7 +4582,7 @@ interface PersonalDetailsStepProps {
   personalDetailsDict: RegisterStepsDict['steps']['personalDetails'];
   optionalInfoDict: RegisterStepsDict['steps']['optionalInfo'];
   consentDict: RegisterStepsDict['consentCheckbox'];
-  validationDict: RegisterStepsDict['validationErrors']; // מילון הודעות השגיאה החדש
+  validationDict: RegisterStepsDict['validationErrors'];
   locale: 'he' | 'en';
 }
 
@@ -4220,21 +4604,32 @@ export default function PersonalDetailsStep({
   const { data: registrationState, updateField, prevStep } = useRegistration();
   const { data: session } = useSession();
   const router = useRouter();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // States
+  // States - Validation Errors
   const [firstNameError, setFirstNameError] = useState('');
   const [lastNameError, setLastNameError] = useState('');
   const [phoneError, setPhoneError] = useState('');
   const [ageError, setAgeError] = useState('');
   const [religiousLevelError, setReligiousLevelError] = useState('');
 
+  // States - Submission
   const [isLoading, setIsLoading] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
   const [submissionStatus, setSubmissionStatus] =
     useState<SubmissionStatus>('idle');
 
-  // New State for validation summary
+  // State for validation summary
   const [missingFields, setMissingFields] = useState<string[]>([]);
+
+  // Photo upload states
+  const [uploadedPhotos, setUploadedPhotos] = useState<UploadedPhoto[]>([]);
+  const MAX_PHOTOS = 5;
+  const MIN_PHOTOS = 1; // חובה לפחות תמונה אחת
+
+  // About Me state
+  const [aboutMe, setAboutMe] = useState('');
+  const MIN_ABOUT_LENGTH = 100; // חובה לפחות 100 תווים
 
   // Consent Logic
   const userHasAlreadyConsented = !!session?.user?.termsAndPrivacyAcceptedAt;
@@ -4266,35 +4661,169 @@ export default function PersonalDetailsStep({
     router.prefetch(`/${locale}/auth/verify-phone`);
   }, [router, locale]);
 
-  // Validation Functions
-  const validateFirstName = (name: string) => {
-    if (!name.trim()) {
-      setFirstNameError(personalDetailsDict.errors.firstNameRequired);
-      return false;
+  // --- התחלה של הקוד החדש ---
+  const previewsRef = useRef<string[]>([]);
+
+  // עדכון הרשימה בצד מבלי למחוק אותה
+  useEffect(() => {
+    previewsRef.current = uploadedPhotos.map((p) => p.preview);
+  }, [uploadedPhotos]);
+
+  // מחיקת הזיכרון רק כשהמשתמש סוגר את הדף לגמרי
+  useEffect(() => {
+    return () => {
+      previewsRef.current.forEach((url) => URL.revokeObjectURL(url));
+    };
+  }, []);
+  // --- סוף של הקוד החדש ---
+
+  // ============================================================================
+  // PHOTO UPLOAD HANDLERS
+  // ============================================================================
+
+  const handlePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    const remainingSlots = MAX_PHOTOS - uploadedPhotos.length;
+    if (remainingSlots <= 0) {
+      toast.error(
+        personalDetailsDict.photos?.maxPhotosError ||
+          `ניתן להעלות עד ${MAX_PHOTOS} תמונות`
+      );
+      return;
     }
-    setFirstNameError('');
-    return true;
+
+    const validTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp'];
+    const maxSize = 5 * 1024 * 1024; // 5MB
+    const newPhotos: UploadedPhoto[] = [];
+
+    Array.from(files)
+      .slice(0, remainingSlots)
+      .forEach((file) => {
+        if (!validTypes.includes(file.type)) {
+          toast.error(
+            personalDetailsDict.photos?.invalidTypeError ||
+              `${file.name}: סוג קובץ לא נתמך`
+          );
+          return;
+        }
+        if (file.size > maxSize) {
+          toast.error(
+            personalDetailsDict.photos?.fileTooLargeError ||
+              `${file.name}: הקובץ גדול מדי (מקסימום 5MB)`
+          );
+          return;
+        }
+
+        // יצירת URL לתצוגה מקדימה
+        const previewUrl = URL.createObjectURL(file);
+
+        newPhotos.push({
+          file,
+          preview: previewUrl,
+          isMain: uploadedPhotos.length === 0 && newPhotos.length === 0,
+        });
+      });
+
+    if (newPhotos.length > 0) {
+      setUploadedPhotos((prev) => [...prev, ...newPhotos]);
+      toast.success(
+        personalDetailsDict.photos?.uploadSuccess ||
+          `${newPhotos.length} תמונות נוספו בהצלחה`
+      );
+    }
+
+    if (fileInputRef.current) fileInputRef.current.value = '';
   };
-  const validateLastName = (name: string) => {
-    if (!name.trim()) {
-      setLastNameError(personalDetailsDict.errors.lastNameRequired);
-      return false;
-    }
-    setLastNameError('');
-    return true;
+
+  const handleRemovePhoto = (index: number) => {
+    setUploadedPhotos((prev) => {
+      const newPhotos = [...prev];
+      // הסרנו מכאן את ה-URL.revokeObjectURL כדי למנוע שבירת תמונה בזמן רינדור מחדש
+
+      const wasMain = newPhotos[index].isMain;
+      newPhotos.splice(index, 1);
+
+      // אם התמונה שנמחקה הייתה הראשית, הגדר את הראשונה כראשית
+      if (wasMain && newPhotos.length > 0) {
+        newPhotos[0].isMain = true;
+      }
+      return newPhotos;
+    });
   };
-  const validatePhone = (phone: string) => {
-    if (!phone) {
-      setPhoneError(personalDetailsDict.errors.phoneRequired);
-      return false;
-    }
-    if (!validatePhoneNumber(phone)) {
-      setPhoneError(personalDetailsDict.errors.phoneInvalid);
-      return false;
-    }
-    setPhoneError('');
-    return true;
+
+  const handleSetMainPhoto = (index: number) => {
+    setUploadedPhotos((prev) =>
+      prev.map((photo, i) => ({
+        ...photo,
+        isMain: i === index,
+      }))
+    );
   };
+
+  // ============================================================================
+  // LOADING STEPS CONFIGURATION
+  // ============================================================================
+
+  const loadingSteps: LoadingStep[] = useMemo(() => {
+    const steps: LoadingStep[] = [];
+
+    // שלב אישור תנאים (רק אם המשתמש עדיין לא אישר)
+    if (!userHasAlreadyConsented) {
+      steps.push({
+        id: 'acceptingTerms',
+        text:
+          optionalInfoDict.loadingOverlay?.acceptingTerms ||
+          'מאשר תנאי שימוש...',
+      });
+    }
+
+    // שמירת פרופיל
+    steps.push({
+      id: 'savingProfile',
+      text:
+        optionalInfoDict.loadingOverlay?.savingProfile ||
+        optionalInfoDict.status.saving,
+      subtext: optionalInfoDict.loadingOverlay?.savingProfileSubtext,
+    });
+
+    // העלאת תמונות
+    if (uploadedPhotos.length > 0) {
+      steps.push({
+        id: 'uploadingPhotos',
+        text: personalDetailsDict.photos?.uploadingPhotos || 'מעלה תמונות...',
+      });
+    }
+
+    // שליחת קוד
+    steps.push({
+      id: 'sendingCode',
+      text:
+        optionalInfoDict.loadingOverlay?.sendingCode ||
+        optionalInfoDict.status.sendingCode,
+      subtext: optionalInfoDict.loadingOverlay?.sendingCodeSubtext,
+    });
+
+    // הפניה
+    steps.push({
+      id: 'redirecting',
+      text:
+        optionalInfoDict.loadingOverlay?.redirecting || 'מעביר לאימות טלפון...',
+    });
+
+    return steps;
+  }, [
+    userHasAlreadyConsented,
+    optionalInfoDict,
+    uploadedPhotos.length,
+    personalDetailsDict.photos,
+  ]);
+
+  // ============================================================================
+  // VALIDATION FUNCTIONS
+  // ============================================================================
+
   const validateAge = (birthDate: string) => {
     if (!birthDate) {
       setAgeError(personalDetailsDict.errors.birthDateRequired);
@@ -4321,6 +4850,60 @@ export default function PersonalDetailsStep({
     setAgeError('');
     return true;
   };
+
+  // ============================================================================
+  // UPLOAD PHOTOS TO SERVER
+  // ============================================================================
+
+  const uploadPhotosToServer = async (): Promise<boolean> => {
+    if (uploadedPhotos.length === 0) return true;
+
+    try {
+      // מציאת התמונה הראשית
+      const mainPhotoIndex = uploadedPhotos.findIndex((p) => p.isMain);
+
+      // העלאת כל תמונה בנפרד ל-API הקיים
+      const uploadResults = await Promise.all(
+        uploadedPhotos.map(async (photo, index) => {
+          const formData = new FormData();
+          formData.append('file', photo.file);
+
+          const response = await fetch('/api/profile/images', {
+            method: 'POST',
+            body: formData,
+          });
+
+          if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(
+              errorData.error || `שגיאה בהעלאת תמונה ${index + 1}`
+            );
+          }
+
+          return response.json();
+        })
+      );
+
+      // אם התמונה הראשית שנבחרה אינה הראשונה שהועלתה, נעדכן
+      if (mainPhotoIndex > 0 && uploadResults[mainPhotoIndex]?.image?.id) {
+        await fetch(
+          `/api/profile/images/${uploadResults[mainPhotoIndex].image.id}`,
+          {
+            method: 'PUT',
+          }
+        );
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Photo upload error:', error);
+      throw error;
+    }
+  };
+
+  // ============================================================================
+  // SUBMIT HANDLER
+  // ============================================================================
 
   const handleSubmit = async () => {
     // 1. איפוס שגיאות קודמות
@@ -4410,26 +4993,47 @@ export default function PersonalDetailsStep({
       hasError = true;
     }
 
+    // ========== בדיקות חובה חדשות ==========
+
+    // תמונות - חובה לפחות תמונה אחת
+    if (uploadedPhotos.length < MIN_PHOTOS) {
+      currentMissing.push(
+        personalDetailsDict.photos?.fieldName || 'תמונת פרופיל'
+      );
+      hasError = true;
+    }
+
+    // סיפור אישי - חובה לפחות 100 תווים
+    if (aboutMe.trim().length < MIN_ABOUT_LENGTH) {
+      currentMissing.push(
+        personalDetailsDict.aboutMe?.fieldName || 'הסיפור שלי'
+      );
+      hasError = true;
+    }
+
     // 3. עצירה אם יש שגיאות
     if (hasError) {
       setMissingFields(currentMissing);
-      // גלילה לראש העמוד כדי לראות את ההתראות
       window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
 
     // 4. המשך תהליך שמירה (אם הכל תקין)
     setIsLoading(true);
-    setSubmissionStatus('savingProfile');
 
     try {
+      // ===== שלב 1: אישור תנאים (אם צריך) =====
       if (!userHasAlreadyConsented) {
+        setSubmissionStatus('acceptingTerms');
         const consentResponse = await fetch('/api/user/accept-terms', {
           method: 'POST',
         });
         if (!consentResponse.ok)
           throw new Error(personalDetailsDict.errors.consentApiError);
       }
+
+      // ===== שלב 2: שמירת פרופיל =====
+      setSubmissionStatus('savingProfile');
 
       const profileData = {
         firstName: registrationState.firstName,
@@ -4442,6 +5046,7 @@ export default function PersonalDetailsStep({
         height: registrationState.height,
         occupation: registrationState.occupation,
         education: registrationState.education,
+        about: aboutMe,
         engagementEmailsConsent: engagementConsent,
         promotionalEmailsConsent: promotionalConsent,
       };
@@ -4457,6 +5062,13 @@ export default function PersonalDetailsStep({
         throw new Error(errorData.error || optionalInfoDict.errors.default);
       }
 
+      // ===== שלב 3: העלאת תמונות =====
+      if (uploadedPhotos.length > 0) {
+        setSubmissionStatus('uploadingPhotos');
+        await uploadPhotosToServer();
+      }
+
+      // ===== שלב 4: שליחת קוד SMS =====
       setSubmissionStatus('sendingCode');
 
       const sendCodeResponse = await fetch('/api/auth/send-phone-code', {
@@ -4467,6 +5079,7 @@ export default function PersonalDetailsStep({
         throw new Error(errorData.error || optionalInfoDict.errors.default);
       }
 
+      // ===== שלב 5: הפניה לאימות טלפון =====
       setSubmissionStatus('redirecting');
       router.push(`/${locale}/auth/verify-phone`);
     } catch (err) {
@@ -4478,36 +5091,28 @@ export default function PersonalDetailsStep({
     }
   };
 
-  const submissionSteps = [
-    {
-      id: 'savingProfile' as SubmissionStatus,
-      text: optionalInfoDict.status.saving,
-    },
-    {
-      id: 'sendingCode' as SubmissionStatus,
-      text: optionalInfoDict.status.sendingCode,
-    },
-    {
-      id: 'redirecting' as SubmissionStatus,
-      text:
-        locale === 'he'
-          ? 'מעבירים אותך לאימות...'
-          : 'Redirecting to verification...',
-    },
-  ];
+  // ============================================================================
+  // RENDER
+  // ============================================================================
 
   return (
     <>
-      <SubmissionStatusIndicator
-        currentStatus={submissionStatus}
-        steps={submissionSteps}
+      {/* Full Screen Loading Overlay */}
+      <FullScreenLoadingOverlay
+        isVisible={
+          isLoading &&
+          submissionStatus !== 'idle' &&
+          submissionStatus !== 'error'
+        }
+        currentStepId={submissionStatus}
+        steps={loadingSteps}
         dict={{
-          title: locale === 'he' ? 'מאמתים את הפרטים' : 'Verifying details',
+          title: optionalInfoDict.loadingOverlay?.title || 'מאמתים את הפרטים',
           subtitle:
-            locale === 'he'
-              ? 'זה לוקח רק מספר שניות, נא לא לסגור את החלון.'
-              : 'This takes just a few seconds, please do not close the window.',
+            optionalInfoDict.loadingOverlay?.subtitle ||
+            'זה לוקח רק מספר שניות, נא לא לסגור את החלון.',
         }}
+        locale={locale}
       />
 
       <motion.div
@@ -4548,7 +5153,6 @@ export default function PersonalDetailsStep({
               >
                 <div className="flex items-start gap-3">
                   <div className="p-2 bg-red-100 rounded-lg shrink-0">
-                    {/* אייקון משתנה בהתאם לסוג השגיאה */}
                     {apiError ? (
                       <AlertCircle className="h-5 w-5 text-red-600" />
                     ) : (
@@ -4584,20 +5188,21 @@ export default function PersonalDetailsStep({
           )}
         </AnimatePresence>
 
-        {/* Form Container */}
-        <div className="space-y-8">
-          {/* --- PERSONAL DETAILS SECTION --- */}
-          <div className="space-y-5">
-            <SectionHeader
-              icon={<User className="w-5 h-5" />}
-              title={personalDetailsDict.title}
-              gradient="from-teal-400 to-emerald-500"
-            />
+        {/* ================================================================== */}
+        {/* --- SECTION 1: PERSONAL INFO --- */}
+        {/* ================================================================== */}
+        <div className="space-y-6">
+          <SectionHeader
+            icon={<User className="w-5 h-5" />}
+            title={isRTL ? 'פרטים אישיים' : 'Personal Information'}
+            gradient="from-teal-500 to-cyan-500"
+          />
 
-            {/* First Name */}
+          {/* Name Fields */}
+          <div className="grid grid-cols-2 gap-4">
             <motion.div variants={itemVariants} className="space-y-2">
               <Label
-                htmlFor="firstNamePersonal"
+                htmlFor="firstName"
                 className="text-sm font-semibold text-gray-700 flex items-center"
               >
                 {personalDetailsDict.firstNameLabel}{' '}
@@ -4608,23 +5213,21 @@ export default function PersonalDetailsStep({
                 hasValue={!!registrationState.firstName}
               >
                 <Input
-                  id="firstNamePersonal"
+                  id="firstName"
+                  type="text"
                   value={registrationState.firstName}
                   onChange={(e) => {
                     updateField('firstName', e.target.value);
                     if (e.target.value.trim()) setFirstNameError('');
                   }}
-                  onBlur={(e) => validateFirstName(e.target.value)}
                   placeholder={personalDetailsDict.firstNamePlaceholder}
-                  required
                   disabled={isLoading}
                   className={`pr-11 py-3 border-2 rounded-xl transition-all bg-white/50 backdrop-blur-sm ${
                     firstNameError ||
                     missingFields.includes(validationDict.fields.firstName)
-                      ? 'border-red-300 focus:border-red-400 focus:ring-red-200'
-                      : 'border-gray-200 focus:border-teal-400 focus:ring-teal-200'
-                  } focus:ring-2`}
-                  dir={isRTL ? 'rtl' : 'ltr'}
+                      ? 'border-red-300 focus:ring-red-200'
+                      : 'border-gray-200 hover:border-gray-300 focus:border-teal-400 focus:ring-2 focus:ring-teal-200'
+                  }`}
                 />
               </FieldWrapper>
               {firstNameError && (
@@ -4634,10 +5237,9 @@ export default function PersonalDetailsStep({
               )}
             </motion.div>
 
-            {/* Last Name */}
             <motion.div variants={itemVariants} className="space-y-2">
               <Label
-                htmlFor="lastNamePersonal"
+                htmlFor="lastName"
                 className="text-sm font-semibold text-gray-700 flex items-center"
               >
                 {personalDetailsDict.lastNameLabel}{' '}
@@ -4648,23 +5250,21 @@ export default function PersonalDetailsStep({
                 hasValue={!!registrationState.lastName}
               >
                 <Input
-                  id="lastNamePersonal"
+                  id="lastName"
+                  type="text"
                   value={registrationState.lastName}
                   onChange={(e) => {
                     updateField('lastName', e.target.value);
                     if (e.target.value.trim()) setLastNameError('');
                   }}
-                  onBlur={(e) => validateLastName(e.target.value)}
                   placeholder={personalDetailsDict.lastNamePlaceholder}
-                  required
                   disabled={isLoading}
                   className={`pr-11 py-3 border-2 rounded-xl transition-all bg-white/50 backdrop-blur-sm ${
                     lastNameError ||
                     missingFields.includes(validationDict.fields.lastName)
-                      ? 'border-red-300 focus:border-red-400 focus:ring-red-200'
-                      : 'border-gray-200 focus:border-teal-400 focus:ring-teal-200'
-                  } focus:ring-2`}
-                  dir={isRTL ? 'rtl' : 'ltr'}
+                      ? 'border-red-300 focus:ring-red-200'
+                      : 'border-gray-200 hover:border-gray-300 focus:border-teal-400 focus:ring-2 focus:ring-teal-200'
+                  }`}
                 />
               </FieldWrapper>
               {lastNameError && (
@@ -4673,472 +5273,697 @@ export default function PersonalDetailsStep({
                 </p>
               )}
             </motion.div>
-
-            {/* Language Selection */}
-            <motion.div variants={itemVariants} className="space-y-2">
-              <Label className="text-sm font-semibold text-gray-700 flex items-center">
-                {personalDetailsDict.languageLabel}{' '}
-                <span className="text-red-500 mr-1">*</span>
-              </Label>
-              <FieldWrapper
-                icon={<Languages className="h-5 w-5" />}
-                hasValue={!!registrationState.language}
-              >
-                <Select
-                  dir={isRTL ? 'rtl' : 'ltr'}
-                  value={registrationState.language}
-                  onValueChange={(value) =>
-                    updateField('language', value as 'he' | 'en')
-                  }
-                  disabled={isLoading}
-                >
-                  <SelectTrigger className="w-full pr-11 pl-3 py-3 h-auto border-2 border-gray-200 rounded-xl transition-all bg-white/50 backdrop-blur-sm hover:border-gray-300 focus:border-teal-400 focus:ring-2 focus:ring-teal-200">
-                    <SelectValue
-                      placeholder={personalDetailsDict.languagePlaceholder}
-                    />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="he">עברית</SelectItem>
-                    <SelectItem value="en">English</SelectItem>
-                  </SelectContent>
-                </Select>
-              </FieldWrapper>
-            </motion.div>
-
-            {/* Phone */}
-            <motion.div variants={itemVariants} className="space-y-2">
-              <Label className="text-sm font-semibold text-gray-700 flex items-center">
-                {personalDetailsDict.phoneLabel}{' '}
-                <span className="text-red-500 mr-1">*</span>
-              </Label>
-              <div
-                className={`rounded-xl ${phoneError || missingFields.includes(validationDict.fields.phone) ? 'ring-2 ring-red-300 bg-red-50' : ''}`}
-              >
-                <PhoneNumberInput
-                  value={registrationState.phone}
-                  onChange={(value) => {
-                    updateField('phone', value || '');
-                    if (value) setPhoneError('');
-                  }}
-                  disabled={isLoading}
-                  locale={locale}
-                  error={phoneError}
-                />
-              </div>
-            </motion.div>
-
-            {/* Gender Selection */}
-            <motion.div variants={itemVariants} className="space-y-2">
-              <Label className="text-sm font-semibold text-gray-700 flex items-center">
-                {personalDetailsDict.genderLabel}{' '}
-                <span className="text-red-500 mr-1">*</span>
-              </Label>
-              <div
-                className={`grid grid-cols-2 gap-4 p-1 rounded-xl ${missingFields.includes(validationDict.fields.gender) ? 'ring-2 ring-red-300 bg-red-50' : ''}`}
-              >
-                {/* Male Button */}
-                <Button
-                  type="button"
-                  onClick={() => updateField('gender', Gender.MALE)}
-                  variant="outline"
-                  disabled={isLoading}
-                  className={`py-6 rounded-xl border-2 transition-all ${
-                    registrationState.gender === Gender.MALE
-                      ? 'bg-teal-50 border-teal-400 text-teal-700 ring-2 ring-teal-200'
-                      : 'border-gray-200 hover:border-teal-200 text-gray-600'
-                  }`}
-                >
-                  <span className="text-xl mr-2">👨</span>{' '}
-                  {personalDetailsDict.male}
-                </Button>
-
-                {/* Female Button */}
-                <Button
-                  type="button"
-                  onClick={() => updateField('gender', Gender.FEMALE)}
-                  variant="outline"
-                  disabled={isLoading}
-                  className={`py-6 rounded-xl border-2 transition-all ${
-                    registrationState.gender === Gender.FEMALE
-                      ? 'bg-rose-50 border-rose-400 text-rose-700 ring-2 ring-rose-200'
-                      : 'border-gray-200 hover:border-rose-200 text-gray-600'
-                  }`}
-                >
-                  <span className="text-xl mr-2">👩</span>{' '}
-                  {personalDetailsDict.female}
-                </Button>
-              </div>
-            </motion.div>
-
-            {/* Birth Date & Marital Status Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              {/* Birth Date */}
-              <motion.div variants={itemVariants} className="space-y-2">
-                <Label
-                  htmlFor="birthDatePersonal"
-                  className="text-sm font-semibold text-gray-700 flex items-center"
-                >
-                  {personalDetailsDict.birthDateLabel}{' '}
-                  <span className="text-red-500 mr-1">*</span>
-                </Label>
-                <FieldWrapper
-                  icon={<Calendar className="h-5 w-5" />}
-                  hasValue={!!registrationState.birthDate}
-                >
-                  <Input
-                    id="birthDatePersonal"
-                    type="date"
-                    value={registrationState.birthDate}
-                    onChange={(e) => {
-                      updateField('birthDate', e.target.value);
-                      if (e.target.value) setAgeError('');
-                    }}
-                    onBlur={(e) => validateAge(e.target.value)}
-                    required
-                    disabled={isLoading}
-                    className={`pr-11 py-3 border-2 rounded-xl transition-all bg-white/50 backdrop-blur-sm ${
-                      ageError ||
-                      missingFields.includes(validationDict.fields.birthDate)
-                        ? 'border-red-300 focus:border-red-400 focus:ring-red-200'
-                        : 'border-gray-200 focus:border-teal-400 focus:ring-teal-200'
-                    } focus:ring-2`}
-                  />
-                </FieldWrapper>
-                {ageError && (
-                  <p className="text-xs text-red-600 flex items-center gap-1">
-                    <AlertCircle className="w-3 h-3" /> {ageError}
-                  </p>
-                )}
-              </motion.div>
-
-              {/* Marital Status */}
-              <motion.div variants={itemVariants} className="space-y-2">
-                <Label
-                  htmlFor="maritalStatusPersonal"
-                  className="text-sm font-semibold text-gray-700 flex items-center"
-                >
-                  {personalDetailsDict.maritalStatusLabel}{' '}
-                  <span className="text-red-500 mr-1">*</span>
-                </Label>
-                <FieldWrapper
-                  icon={<Users className="h-5 w-5" />}
-                  hasValue={!!registrationState.maritalStatus}
-                >
-                  <select
-                    id="maritalStatusPersonal"
-                    value={registrationState.maritalStatus}
-                    onChange={(e) =>
-                      updateField('maritalStatus', e.target.value)
-                    }
-                    required
-                    disabled={isLoading}
-                    className={`w-full pr-11 pl-3 py-3 border-2 rounded-xl transition-all bg-white/50 backdrop-blur-sm appearance-none text-gray-900 ${
-                      missingFields.includes(
-                        validationDict.fields.maritalStatus
-                      )
-                        ? 'border-red-300 focus:ring-red-200'
-                        : 'border-gray-200 hover:border-gray-300 focus:border-teal-400 focus:ring-teal-200'
-                    } focus:ring-2`}
-                  >
-                    <option value="" disabled>
-                      {personalDetailsDict.maritalStatusPlaceholder}
-                    </option>
-                    <option value="רווק/ה">
-                      {personalDetailsDict.maritalStatuses.single}
-                    </option>
-                    <option value="גרוש/ה">
-                      {personalDetailsDict.maritalStatuses.divorced}
-                    </option>
-                    <option value="אלמן/ה">
-                      {personalDetailsDict.maritalStatuses.widowed}
-                    </option>
-                  </select>
-                </FieldWrapper>
-              </motion.div>
-            </div>
           </div>
 
-          {/* Divider */}
-          <motion.div variants={itemVariants} className="relative py-2">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t-2 border-gray-200" />
-            </div>
-            <div className="relative flex justify-center">
-              <span className="px-4 bg-white text-sm font-medium text-gray-500">
-                {optionalInfoDict.title}
-              </span>
+          {/* Phone Field */}
+          <motion.div variants={itemVariants} className="space-y-2">
+            <Label className="text-sm font-semibold text-gray-700 flex items-center">
+              {personalDetailsDict.phoneLabel}{' '}
+              <span className="text-red-500 mr-1">*</span>
+            </Label>
+            <PhoneNumberInput
+              value={registrationState.phone}
+              onChange={(value) => {
+                updateField('phone', value || '');
+                if (value && validatePhoneNumber(value)) setPhoneError('');
+              }}
+              disabled={isLoading}
+              error={
+                phoneError ||
+                (missingFields.includes(validationDict.fields.phone)
+                  ? ' '
+                  : undefined)
+              }
+              locale={locale}
+            />
+            {phoneError && (
+              <p className="text-xs text-red-600 flex items-center gap-1">
+                <AlertCircle className="w-3 h-3" /> {phoneError}
+              </p>
+            )}
+          </motion.div>
+
+          {/* Gender Field */}
+          <motion.div variants={itemVariants} className="space-y-2">
+            <Label className="text-sm font-semibold text-gray-700 flex items-center">
+              {personalDetailsDict.genderLabel}{' '}
+              <span className="text-red-500 mr-1">*</span>
+            </Label>
+            <div className="grid grid-cols-2 gap-3">
+              {[
+                { value: Gender.MALE, label: personalDetailsDict.male },
+                { value: Gender.FEMALE, label: personalDetailsDict.female },
+              ].map(({ value, label }) => (
+                <button
+                  key={value}
+                  type="button"
+                  onClick={() => updateField('gender', value)}
+                  disabled={isLoading}
+                  className={`py-3 px-4 rounded-xl border-2 font-medium transition-all ${
+                    registrationState.gender === value
+                      ? 'bg-teal-50 border-teal-500 text-teal-700'
+                      : missingFields.includes(validationDict.fields.gender)
+                        ? 'border-red-300 text-gray-600 hover:bg-gray-50'
+                        : 'border-gray-200 text-gray-600 hover:border-gray-300 hover:bg-gray-50'
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
             </div>
           </motion.div>
 
-          {/* --- OPTIONAL INFO SECTION --- */}
-          <div className="space-y-5">
-            <SectionHeader
-              icon={<Sparkles className="w-5 h-5" />}
-              title={optionalInfoDict.title}
-              subtitle={optionalInfoDict.subtitle}
-              gradient="from-orange-400 to-amber-500"
-            />
+          {/* Birth Date Field */}
+          <motion.div variants={itemVariants} className="space-y-2">
+            <Label
+              htmlFor="birthDate"
+              className="text-sm font-semibold text-gray-700 flex items-center"
+            >
+              {personalDetailsDict.birthDateLabel}{' '}
+              <span className="text-red-500 mr-1">*</span>
+            </Label>
+            <FieldWrapper
+              icon={<Calendar className="h-5 w-5" />}
+              hasValue={!!registrationState.birthDate}
+            >
+              <Input
+                id="birthDate"
+                type="date"
+                value={registrationState.birthDate}
+                onChange={(e) => {
+                  updateField('birthDate', e.target.value);
+                  if (e.target.value) validateAge(e.target.value);
+                }}
+                disabled={isLoading}
+                className={`pr-11 py-3 border-2 rounded-xl transition-all bg-white/50 backdrop-blur-sm ${
+                  ageError ||
+                  missingFields.includes(validationDict.fields.birthDate)
+                    ? 'border-red-300 focus:ring-red-200'
+                    : 'border-gray-200 hover:border-gray-300 focus:border-teal-400 focus:ring-2 focus:ring-teal-200'
+                }`}
+              />
+            </FieldWrapper>
+            {ageError && (
+              <p className="text-xs text-red-600 flex items-center gap-1">
+                <AlertCircle className="w-3 h-3" /> {ageError}
+              </p>
+            )}
+          </motion.div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              {/* Height */}
-              <motion.div variants={itemVariants} className="space-y-2">
-                <Label
-                  htmlFor="heightOptional"
-                  className="text-sm font-semibold text-gray-700 flex items-center gap-1"
+          {/* Marital Status Field */}
+          <motion.div variants={itemVariants} className="space-y-2">
+            <Label className="text-sm font-semibold text-gray-700 flex items-center">
+              {personalDetailsDict.maritalStatusLabel}{' '}
+              <span className="text-red-500 mr-1">*</span>
+            </Label>
+            <FieldWrapper
+              icon={<Heart className="h-5 w-5" />}
+              hasValue={!!registrationState.maritalStatus}
+            >
+              <Select
+                dir={isRTL ? 'rtl' : 'ltr'}
+                value={registrationState.maritalStatus}
+                onValueChange={(value) => updateField('maritalStatus', value)}
+                disabled={isLoading}
+              >
+                <SelectTrigger
+                  className={`w-full pr-11 pl-3 py-3 h-auto border-2 rounded-xl transition-all bg-white/50 backdrop-blur-sm ${
+                    missingFields.includes(validationDict.fields.maritalStatus)
+                      ? 'border-red-300 focus:ring-red-200'
+                      : 'border-gray-200 hover:border-gray-300 focus:border-teal-400 focus:ring-2 focus:ring-teal-200'
+                  }`}
                 >
-                  {optionalInfoDict.heightLabel}
-                </Label>
-                <FieldWrapper
-                  icon={<Ruler className="h-5 w-5" />}
-                  hasValue={!!registrationState.height}
-                >
-                  <Input
-                    type="number"
-                    id="heightOptional"
-                    min="120"
-                    max="220"
-                    value={registrationState.height ?? ''}
-                    onChange={(e) =>
-                      updateField(
-                        'height',
-                        e.target.value
-                          ? parseInt(e.target.value, 10)
-                          : undefined
-                      )
-                    }
-                    placeholder={optionalInfoDict.heightPlaceholder}
-                    disabled={isLoading}
-                    className="pr-11 py-3 border-2 border-gray-200 rounded-xl transition-all bg-white/50 backdrop-blur-sm hover:border-gray-300 focus:border-orange-400 focus:ring-2 focus:ring-orange-200"
+                  <SelectValue
+                    placeholder={personalDetailsDict.maritalStatusPlaceholder}
                   />
-                </FieldWrapper>
-              </motion.div>
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="single">
+                    {personalDetailsDict.maritalStatuses.single}
+                  </SelectItem>
+                  <SelectItem value="divorced">
+                    {personalDetailsDict.maritalStatuses.divorced}
+                  </SelectItem>
+                  <SelectItem value="widowed">
+                    {personalDetailsDict.maritalStatuses.widowed}
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </FieldWrapper>
+          </motion.div>
+        </div>
 
-              {/* Occupation */}
-              <motion.div variants={itemVariants} className="space-y-2">
-                <Label
-                  htmlFor="occupationOptional"
-                  className="text-sm font-semibold text-gray-700 flex items-center gap-1"
-                >
-                  {optionalInfoDict.occupationLabel}
-                </Label>
-                <FieldWrapper
-                  icon={<Briefcase className="h-5 w-5" />}
-                  hasValue={!!registrationState.occupation}
-                >
-                  <Input
-                    type="text"
-                    id="occupationOptional"
-                    value={registrationState.occupation ?? ''}
-                    onChange={(e) => updateField('occupation', e.target.value)}
-                    placeholder={optionalInfoDict.occupationPlaceholder}
-                    disabled={isLoading}
-                    className="pr-11 py-3 border-2 border-gray-200 rounded-xl transition-all bg-white/50 backdrop-blur-sm hover:border-gray-300 focus:border-orange-400 focus:ring-2 focus:ring-orange-200"
-                  />
-                </FieldWrapper>
-              </motion.div>
-            </div>
+        {/* ================================================================== */}
+        {/* --- SECTION 2: OPTIONAL INFO --- */}
+        {/* ================================================================== */}
+        <div className="space-y-6">
+          <SectionHeader
+            icon={<Sparkles className="w-5 h-5" />}
+            title={optionalInfoDict.title}
+            subtitle={optionalInfoDict.subtitle}
+            gradient="from-orange-500 to-amber-500"
+          />
 
-            {/* Education */}
+          {/* Height & Occupation Row */}
+          <div className="grid grid-cols-2 gap-4">
+            {/* Height */}
             <motion.div variants={itemVariants} className="space-y-2">
               <Label
-                htmlFor="educationOptional"
-                className="text-sm font-semibold text-gray-700 flex items-center gap-1"
+                htmlFor="heightOptional"
+                className="text-sm font-semibold text-gray-700"
               >
-                {optionalInfoDict.educationLabel}
+                {optionalInfoDict.heightLabel}
               </Label>
               <FieldWrapper
-                icon={<GraduationCap className="h-5 w-5" />}
-                hasValue={!!registrationState.education}
+                icon={<Ruler className="h-5 w-5" />}
+                hasValue={!!registrationState.height}
               >
                 <Input
-                  type="text"
-                  id="educationOptional"
-                  value={registrationState.education ?? ''}
-                  onChange={(e) => updateField('education', e.target.value)}
-                  placeholder={optionalInfoDict.educationPlaceholder}
+                  type="number"
+                  id="heightOptional"
+                  value={registrationState.height ?? ''}
+                  onChange={(e) =>
+                    updateField(
+                      'height',
+                      e.target.value ? parseInt(e.target.value, 10) : undefined
+                    )
+                  }
+                  placeholder={optionalInfoDict.heightPlaceholder}
                   disabled={isLoading}
+                  min={100}
+                  max={250}
                   className="pr-11 py-3 border-2 border-gray-200 rounded-xl transition-all bg-white/50 backdrop-blur-sm hover:border-gray-300 focus:border-orange-400 focus:ring-2 focus:ring-orange-200"
                 />
               </FieldWrapper>
             </motion.div>
 
-            {/* Religious Level */}
+            {/* Occupation */}
             <motion.div variants={itemVariants} className="space-y-2">
-              <Label className="text-sm font-semibold text-gray-700 flex items-center">
-                {personalDetailsDict.religiousLevelLabel}{' '}
-                <span className="text-red-500 mr-1">*</span>
+              <Label
+                htmlFor="occupationOptional"
+                className="text-sm font-semibold text-gray-700"
+              >
+                {optionalInfoDict.occupationLabel}
               </Label>
               <FieldWrapper
-                icon={<BookOpen className="h-5 w-5" />}
-                hasValue={!!registrationState.religiousLevel}
+                icon={<Briefcase className="h-5 w-5" />}
+                hasValue={!!registrationState.occupation}
               >
-                <Select
-                  dir={isRTL ? 'rtl' : 'ltr'}
-                  value={registrationState.religiousLevel || ''}
-                  onValueChange={(value) => {
-                    updateField('religiousLevel', value);
-                    if (value) setReligiousLevelError('');
-                  }}
+                <Input
+                  type="text"
+                  id="occupationOptional"
+                  value={registrationState.occupation ?? ''}
+                  onChange={(e) => updateField('occupation', e.target.value)}
+                  placeholder={optionalInfoDict.occupationPlaceholder}
                   disabled={isLoading}
-                >
-                  <SelectTrigger
-                    className={`w-full pr-11 pl-3 py-3 h-auto border-2 rounded-xl transition-all bg-white/50 backdrop-blur-sm ${
-                      religiousLevelError ||
-                      missingFields.includes(
-                        validationDict.fields.religiousLevel
-                      )
-                        ? 'border-red-300 focus:ring-red-200'
-                        : 'border-gray-200 hover:border-gray-300 focus:border-orange-400 focus:ring-2 focus:ring-orange-200'
-                    }`}
-                  >
-                    <SelectValue
-                      placeholder={
-                        personalDetailsDict.religiousLevelPlaceholder
-                      }
-                    />
-                  </SelectTrigger>
-                  <SelectContent className="max-h-[200px]">
-                    {religiousLevelOptions.map((opt) => (
-                      <SelectItem key={opt.value} value={opt.value}>
-                        {opt.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  className="pr-11 py-3 border-2 border-gray-200 rounded-xl transition-all bg-white/50 backdrop-blur-sm hover:border-gray-300 focus:border-orange-400 focus:ring-2 focus:ring-orange-200"
+                />
               </FieldWrapper>
-              {religiousLevelError && (
-                <p className="text-xs text-red-600 flex items-center gap-1">
-                  <AlertCircle className="w-3 h-3" /> {religiousLevelError}
-                </p>
-              )}
             </motion.div>
           </div>
 
-          {/* --- CONSENTS SECTION --- */}
-          <motion.div variants={itemVariants} className="space-y-4">
-            <div
-              className={`p-4 rounded-2xl border-2 transition-all ${
-                consentError ||
-                missingFields.includes(validationDict.fields.terms)
-                  ? 'border-red-300 bg-red-50'
-                  : 'border-gray-200 bg-gradient-to-r from-amber-50/50 to-orange-50/50'
-              }`}
+          {/* Education */}
+          <motion.div variants={itemVariants} className="space-y-2">
+            <Label
+              htmlFor="educationOptional"
+              className="text-sm font-semibold text-gray-700 flex items-center gap-1"
             >
-              <ConsentCheckbox
-                checked={consentChecked}
-                onChange={(isChecked) => {
-                  setConsentChecked(isChecked);
-                  if (isChecked) setConsentError(null);
-                }}
-                error={consentError}
-                dict={consentDict}
+              {optionalInfoDict.educationLabel}
+            </Label>
+            <FieldWrapper
+              icon={<GraduationCap className="h-5 w-5" />}
+              hasValue={!!registrationState.education}
+            >
+              <Input
+                type="text"
+                id="educationOptional"
+                value={registrationState.education ?? ''}
+                onChange={(e) => updateField('education', e.target.value)}
+                placeholder={optionalInfoDict.educationPlaceholder}
+                disabled={isLoading}
+                className="pr-11 py-3 border-2 border-gray-200 rounded-xl transition-all bg-white/50 backdrop-blur-sm hover:border-gray-300 focus:border-orange-400 focus:ring-2 focus:ring-orange-200"
               />
-            </div>
+            </FieldWrapper>
+          </motion.div>
 
-            {/* Marketing Consents */}
-            <div className="space-y-3 px-2">
-              {/* Engagement Consent */}
-              <div
-                className={`flex items-start space-x-2 rtl:space-x-reverse rounded-lg p-2 transition-colors ${missingFields.includes(validationDict.fields.engagement) ? 'bg-red-50 ring-1 ring-red-200' : ''}`}
+          {/* Religious Level */}
+          <motion.div variants={itemVariants} className="space-y-2">
+            <Label className="text-sm font-semibold text-gray-700 flex items-center">
+              {personalDetailsDict.religiousLevelLabel}{' '}
+              <span className="text-red-500 mr-1">*</span>
+            </Label>
+            <FieldWrapper
+              icon={<BookOpen className="h-5 w-5" />}
+              hasValue={!!registrationState.religiousLevel}
+            >
+              <Select
+                dir={isRTL ? 'rtl' : 'ltr'}
+                value={registrationState.religiousLevel || ''}
+                onValueChange={(value) => {
+                  updateField('religiousLevel', value);
+                  if (value) setReligiousLevelError('');
+                }}
+                disabled={isLoading}
               >
-                <Checkbox
-                  id="engagementConsent"
-                  checked={engagementConsent}
-                  onCheckedChange={(checked) => {
-                    const isChecked = checked as boolean;
-                    setEngagementConsent(isChecked);
-                    if (isChecked) setEngagementConsentError(null);
-                  }}
-                  className="mt-1 data-[state=checked]:bg-teal-600 data-[state=checked]:border-teal-600"
-                />
-                <div className="grid gap-1.5 leading-none">
-                  <label
-                    htmlFor="engagementConsent"
-                    className="text-sm font-medium text-gray-700 cursor-pointer"
-                  >
-                    {personalDetailsDict.engagementConsentLabel}
-                    <span className="text-red-500 mr-1">*</span>
-                  </label>
-                  {engagementConsentError && (
-                    <p className="text-xs text-red-500">
-                      {engagementConsentError}
-                    </p>
-                  )}
-                </div>
-              </div>
+                <SelectTrigger
+                  className={`w-full pr-11 pl-3 py-3 h-auto border-2 rounded-xl transition-all bg-white/50 backdrop-blur-sm ${
+                    religiousLevelError ||
+                    missingFields.includes(validationDict.fields.religiousLevel)
+                      ? 'border-red-300 focus:ring-red-200'
+                      : 'border-gray-200 hover:border-gray-300 focus:border-orange-400 focus:ring-2 focus:ring-orange-200'
+                  }`}
+                >
+                  <SelectValue
+                    placeholder={personalDetailsDict.religiousLevelPlaceholder}
+                  />
+                </SelectTrigger>
+                <SelectContent className="max-h-[200px]">
+                  {religiousLevelOptions.map((opt) => (
+                    <SelectItem key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </FieldWrapper>
+            {religiousLevelError && (
+              <p className="text-xs text-red-600 flex items-center gap-1">
+                <AlertCircle className="w-3 h-3" /> {religiousLevelError}
+              </p>
+            )}
+          </motion.div>
+        </div>
 
-              {/* Promotional Consent */}
-              <div className="flex items-start space-x-2 rtl:space-x-reverse p-2">
-                <Checkbox
-                  id="promotionalConsent"
-                  checked={promotionalConsent}
-                  onCheckedChange={(checked) =>
-                    setPromotionalConsent(checked as boolean)
-                  }
-                  className="mt-1 data-[state=checked]:bg-orange-500 data-[state=checked]:border-orange-500"
-                />
-                <div className="grid gap-1.5 leading-none">
-                  <label
-                    htmlFor="promotionalConsent"
-                    className="text-sm text-gray-600 cursor-pointer"
-                  >
-                    {personalDetailsDict.promotionalConsentLabel}
-                  </label>
+        {/* ================================================================== */}
+        {/* --- SECTION 3: PHOTOS --- */}
+        {/* ================================================================== */}
+        <div className="space-y-6">
+          <SectionHeader
+            icon={<Camera className="w-5 h-5" />}
+            title={personalDetailsDict.photos?.title || 'תמונות שלכם'}
+            subtitle={
+              personalDetailsDict.photos?.subtitle ||
+              'תמונות טובות מגדילות משמעותית את הסיכוי להתאמות מוצלחות'
+            }
+            gradient="from-rose-500 to-pink-500"
+            required={true}
+          />
+
+          <motion.div variants={itemVariants}>
+            {/* Photo Grid */}
+            {/* Photo Grid */}
+            <div className="grid grid-cols-3 gap-3 mb-4">
+              {uploadedPhotos.map((photo, index) => (
+                <div
+                  // שימוש בכתובת ה-preview כמפתח ייחודי
+                  key={photo.preview}
+                  className={`relative aspect-square rounded-xl overflow-hidden border-2 transition-all group ${
+                    photo.isMain
+                      ? 'border-teal-500 ring-2 ring-teal-200'
+                      : 'border-gray-200 hover:border-gray-300'
+                  }`}
+                >
+                  {/* 👇 השינוי הגדול: תגית img רגילה במקום Image של Next.js 👇 */}
+                  <img
+                    src={photo.preview}
+                    alt={`תמונה ${index + 1}`}
+                    className="absolute inset-0 w-full h-full object-cover"
+                  />
+
+                  {/* Main badge */}
+                  {photo.isMain && (
+                    <Badge className="absolute top-2 right-2 z-10 bg-gradient-to-r from-teal-500 to-orange-500 text-white text-[10px] px-2 py-0.5 rounded-full flex items-center gap-1 border-none shadow-md">
+                      <Star className="w-3 h-3 fill-current" />
+                      <span>
+                        {personalDetailsDict.photos?.mainPhoto || 'ראשית'}
+                      </span>
+                    </Badge>
+                  )}
+
+                  {/* Action buttons - visible on hover */}
+                  <div className="absolute inset-0 z-20 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                    {!photo.isMain && (
+                      <button
+                        type="button"
+                        onClick={() => handleSetMainPhoto(index)}
+                        className="p-2 bg-white/90 rounded-full text-gray-700 hover:bg-white transition-colors"
+                        title={
+                          personalDetailsDict.photos?.setAsMain ||
+                          'הגדר כתמונה ראשית'
+                        }
+                      >
+                        <Star className="w-4 h-4" />
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => handleRemovePhoto(index)}
+                      className="p-2 bg-red-500/90 rounded-full text-white hover:bg-red-600 transition-colors"
+                      title={personalDetailsDict.photos?.remove || 'הסר'}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
-              </div>
+              ))}
+
+              {/* Upload button / placeholder */}
+              {uploadedPhotos.length < MAX_PHOTOS && (
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isLoading}
+                  className={`aspect-square rounded-xl border-2 border-dashed transition-all flex flex-col items-center justify-center gap-2 ${
+                    uploadedPhotos.length < MIN_PHOTOS &&
+                    missingFields.includes(
+                      validationDict.fields?.photos || 'תמונת פרופיל'
+                    )
+                      ? 'border-red-300 bg-red-50/30 text-red-500 hover:border-red-400 hover:bg-red-50/50'
+                      : 'border-teal-300 bg-teal-50/30 text-teal-600 hover:border-teal-400 hover:bg-teal-50/50'
+                  }`}
+                >
+                  <ImagePlus className="w-8 h-8" />
+                  <span className="text-xs font-medium">
+                    {personalDetailsDict.photos?.addPhoto || 'הוסף תמונה'}
+                  </span>
+                  <span className="text-[10px] opacity-70">
+                    {MAX_PHOTOS - uploadedPhotos.length}{' '}
+                    {isRTL ? 'נותרו' : 'remaining'}
+                  </span>
+                </button>
+              )}
             </div>
 
-            {/* Privacy Note */}
-            <div className="flex items-start gap-3 p-4 bg-gray-50 rounded-2xl border border-gray-200 mt-2">
-              <Shield className="w-5 h-5 text-teal-500 flex-shrink-0 mt-0.5" />
+            {/* Hidden file input */}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/jpg,image/webp"
+              multiple
+              onChange={handlePhotoSelect}
+              className="hidden"
+            />
+
+            {/* Validation error for photos */}
+            {uploadedPhotos.length < MIN_PHOTOS &&
+              missingFields.includes(
+                personalDetailsDict.photos?.fieldName || 'תמונת פרופיל'
+              ) && (
+                <p className="text-xs text-red-600 flex items-center gap-1 mb-3">
+                  <AlertCircle className="w-3 h-3" />
+                  {personalDetailsDict.photos?.required ||
+                    'יש להעלות לפחות תמונה אחת'}
+                </p>
+              )}
+
+            {/* Photo hints */}
+            <div className="bg-gradient-to-r from-rose-50/50 to-pink-50/50 rounded-xl p-3 border border-rose-100">
               <p className="text-xs text-gray-600 leading-relaxed">
-                {isRTL
-                  ? 'הפרטים שלך מאובטחים ומוצפנים.'
-                  : 'Your details are secure and encrypted.'}
+                <span className="font-semibold text-rose-600">
+                  {personalDetailsDict.photos?.tip || '💡 טיפ:'}
+                </span>{' '}
+                {personalDetailsDict.photos?.tipText ||
+                  'העלו תמונות ברורות שמציגות את הפנים שלכם. תמונות איכותיות מגדילות את הסיכוי לקבל הצעות שידוך מדויקות.'}
               </p>
             </div>
           </motion.div>
+        </div>
 
-          {/* --- BUTTONS --- */}
-          <motion.div variants={itemVariants} className="flex gap-4 pt-4">
-            <Button
-              type="button"
-              onClick={prevStep}
-              variant="outline"
+        {/* ================================================================== */}
+        {/* --- SECTION 4: ABOUT ME --- */}
+        {/* ================================================================== */}
+        <div className="space-y-6">
+          <SectionHeader
+            icon={<FileText className="w-5 h-5" />}
+            title={
+              personalDetailsDict.aboutMe?.title || 'הסיפור שלי במילים שלי'
+            }
+            subtitle={
+              personalDetailsDict.aboutMe?.subtitle ||
+              'ספרו על עצמכם - זה החלק שהכי עוזר לשדכנים להכיר אתכם'
+            }
+            gradient="from-purple-500 to-indigo-500"
+            required={true}
+          />
+
+          <motion.div variants={itemVariants} className="space-y-2">
+            <div className="flex items-center justify-between">
+              <Label
+                htmlFor="aboutMe"
+                className="text-sm font-semibold text-gray-700 flex items-center gap-1"
+              >
+                {personalDetailsDict.aboutMe?.label || 'ספרו על עצמכם'}
+                <span className="text-red-500 mr-1">*</span>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button
+                        type="button"
+                        className="text-gray-400 hover:text-gray-600"
+                      >
+                        <Info className="w-4 h-4" />
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent
+                      side="top"
+                      className="max-w-xs text-center"
+                      dir={isRTL ? 'rtl' : 'ltr'}
+                    >
+                      <p>
+                        {personalDetailsDict.aboutMe?.tooltip ||
+                          'שתפו על התחביבים, הערכים, מה חשוב לכם בחיים ובמערכת יחסים'}
+                      </p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </Label>
+            </div>
+
+            <Textarea
+              id="aboutMe"
+              value={aboutMe}
+              onChange={(e) => setAboutMe(e.target.value)}
+              placeholder={
+                personalDetailsDict.aboutMe?.placeholder ||
+                'ספרו על עצמכם, על מה שחשוב לכם בחיים, על התחביבים שלכם, ועל מה שאתם מחפשים בבן/בת זוג...'
+              }
               disabled={isLoading}
-              className="px-6 py-6 rounded-xl border-2 hover:bg-gray-50"
-            >
-              <ArrowRight className={`h-5 w-5 ${isRTL ? '' : 'rotate-180'}`} />
-              <span className="sr-only">{personalDetailsDict.backButton}</span>
-            </Button>
+              className={`min-h-[150px] py-3 border-2 rounded-xl transition-all bg-white/50 backdrop-blur-sm resize-none ${
+                aboutMe.trim().length < MIN_ABOUT_LENGTH &&
+                missingFields.includes(
+                  personalDetailsDict.aboutMe?.fieldName || 'הסיפור שלי'
+                )
+                  ? 'border-red-300 focus:ring-red-200 focus:border-red-400'
+                  : aboutMe.length > 0 &&
+                      aboutMe.trim().length < MIN_ABOUT_LENGTH
+                    ? 'border-amber-300 focus:ring-amber-200 focus:border-amber-400'
+                    : 'border-gray-200 hover:border-gray-300 focus:border-purple-400 focus:ring-2 focus:ring-purple-200'
+              }`}
+              rows={6}
+            />
 
-            <Button
-              type="button"
-              onClick={handleSubmit}
-              disabled={isLoading}
-              className="flex-1 py-6 bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 hover:from-teal-600 hover:via-orange-600 hover:to-amber-600 shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-2 rounded-xl text-base font-semibold group relative overflow-hidden disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {!isLoading && (
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
-              )}
+            {/* Character count and validation */}
+            <div className="flex justify-between items-center">
+              <div>
+                {aboutMe.trim().length < MIN_ABOUT_LENGTH &&
+                missingFields.includes(
+                  personalDetailsDict.aboutMe?.fieldName || 'הסיפור שלי'
+                ) ? (
+                  <p className="text-xs text-red-600 flex items-center gap-1">
+                    <AlertCircle className="w-3 h-3" />
+                    {personalDetailsDict.aboutMe?.required ||
+                      `יש לכתוב לפחות ${MIN_ABOUT_LENGTH} תווים`}
+                  </p>
+                ) : (
+                  aboutMe.length > 0 &&
+                  aboutMe.trim().length < MIN_ABOUT_LENGTH && (
+                    <span className="text-xs text-amber-600">
+                      {personalDetailsDict.aboutMe?.minChars?.replace(
+                        '{{remaining}}',
+                        String(MIN_ABOUT_LENGTH - aboutMe.trim().length)
+                      ) ||
+                        `עוד ${MIN_ABOUT_LENGTH - aboutMe.trim().length} תווים מינימום`}
+                    </span>
+                  )
+                )}
+              </div>
+              <span
+                className={`text-xs ${
+                  aboutMe.trim().length >= MIN_ABOUT_LENGTH
+                    ? 'text-green-600'
+                    : 'text-gray-400'
+                }`}
+              >
+                {aboutMe.trim().length} / {MIN_ABOUT_LENGTH}+
+              </span>
+            </div>
 
-              {isLoading ? (
-                <>
-                  <Loader2 className="h-5 w-5 animate-spin" />
-                  <span>{personalDetailsDict.nextButtonLoading}</span>
-                </>
-              ) : (
-                <>
-                  <CheckCircle2 className="w-5 h-5" />
-                  <span>{personalDetailsDict.nextButton}</span>
-                  <ArrowLeft
-                    className={`w-5 h-5 group-hover:-translate-x-1 transition-transform ${!isRTL ? 'rotate-180 group-hover:translate-x-1' : ''}`}
-                  />
-                </>
-              )}
-            </Button>
+            {/* Example prompts */}
+            <div className="bg-gradient-to-r from-purple-50/50 to-indigo-50/50 rounded-xl p-4 border border-purple-100 mt-3">
+              <p className="text-sm font-medium text-purple-700 mb-2">
+                {personalDetailsDict.aboutMe?.promptsTitle ||
+                  'רעיונות למה לכתוב:'}
+              </p>
+              <ul className="text-xs text-gray-600 space-y-1.5">
+                <li className="flex items-start gap-2">
+                  <span className="text-purple-500 mt-0.5">•</span>
+                  {personalDetailsDict.aboutMe?.prompt1 ||
+                    'מה אתם אוהבים לעשות בזמן הפנוי?'}
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-purple-500 mt-0.5">•</span>
+                  {personalDetailsDict.aboutMe?.prompt2 ||
+                    'מה הערכים הכי חשובים לכם?'}
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-purple-500 mt-0.5">•</span>
+                  {personalDetailsDict.aboutMe?.prompt3 ||
+                    'איך נראה היום המושלם שלכם?'}
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-purple-500 mt-0.5">•</span>
+                  {personalDetailsDict.aboutMe?.prompt4 ||
+                    'מה אתם מחפשים בבן/בת זוג?'}
+                </li>
+              </ul>
+            </div>
           </motion.div>
         </div>
+
+        {/* ================================================================== */}
+        {/* --- SECTION 5: CONSENTS --- */}
+        {/* ================================================================== */}
+        <motion.div variants={itemVariants} className="space-y-4">
+          <div
+            className={`p-4 rounded-2xl border-2 transition-all ${
+              consentError ||
+              missingFields.includes(validationDict.fields.terms)
+                ? 'border-red-300 bg-red-50'
+                : 'border-gray-200 bg-gradient-to-r from-amber-50/50 to-orange-50/50'
+            }`}
+          >
+            <ConsentCheckbox
+              checked={consentChecked}
+              onChange={(isChecked) => {
+                setConsentChecked(isChecked);
+                if (isChecked) setConsentError(null);
+              }}
+              error={consentError}
+              dict={consentDict}
+            />
+          </div>
+
+          {/* Marketing Consents */}
+          <div className="space-y-3 px-2">
+            {/* Engagement Consent */}
+            <div
+              className={`flex items-start space-x-2 rtl:space-x-reverse rounded-lg p-2 transition-colors ${
+                missingFields.includes(validationDict.fields.engagement)
+                  ? 'bg-red-50 ring-1 ring-red-200'
+                  : ''
+              }`}
+            >
+              <Checkbox
+                id="engagementConsent"
+                checked={engagementConsent}
+                onCheckedChange={(checked) => {
+                  const isChecked = checked as boolean;
+                  setEngagementConsent(isChecked);
+                  if (isChecked) setEngagementConsentError(null);
+                }}
+                className="mt-1 data-[state=checked]:bg-teal-600 data-[state=checked]:border-teal-600"
+              />
+              <div className="grid gap-1.5 leading-none">
+                <label
+                  htmlFor="engagementConsent"
+                  className="text-sm font-medium text-gray-700 cursor-pointer"
+                >
+                  {personalDetailsDict.engagementConsentLabel}
+                  <span className="text-red-500 mr-1">*</span>
+                </label>
+                {engagementConsentError && (
+                  <p className="text-xs text-red-500">
+                    {engagementConsentError}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            {/* Promotional Consent */}
+            <div className="flex items-start space-x-2 rtl:space-x-reverse p-2">
+              <Checkbox
+                id="promotionalConsent"
+                checked={promotionalConsent}
+                onCheckedChange={(checked) =>
+                  setPromotionalConsent(checked as boolean)
+                }
+                className="mt-1 data-[state=checked]:bg-orange-500 data-[state=checked]:border-orange-500"
+              />
+              <div className="grid gap-1.5 leading-none">
+                <label
+                  htmlFor="promotionalConsent"
+                  className="text-sm text-gray-600 cursor-pointer"
+                >
+                  {personalDetailsDict.promotionalConsentLabel}
+                </label>
+              </div>
+            </div>
+          </div>
+
+          {/* Privacy Note */}
+          <div className="flex items-start gap-3 p-4 bg-gray-50 rounded-2xl border border-gray-200 mt-2">
+            <Shield className="w-5 h-5 text-teal-500 flex-shrink-0 mt-0.5" />
+            <p className="text-xs text-gray-600 leading-relaxed">
+              {isRTL
+                ? 'הפרטים שלך מאובטחים ומוצפנים.'
+                : 'Your details are secure and encrypted.'}
+            </p>
+          </div>
+        </motion.div>
+
+        {/* ================================================================== */}
+        {/* --- BUTTONS --- */}
+        {/* ================================================================== */}
+        <motion.div variants={itemVariants} className="flex gap-4 pt-4">
+          <Button
+            type="button"
+            onClick={prevStep}
+            variant="outline"
+            disabled={isLoading}
+            className="px-6 py-6 rounded-xl border-2 hover:bg-gray-50"
+          >
+            <ArrowRight className={`h-5 w-5 ${isRTL ? '' : 'rotate-180'}`} />
+            <span className="sr-only">{personalDetailsDict.backButton}</span>
+          </Button>
+
+          <Button
+            type="button"
+            onClick={handleSubmit}
+            disabled={isLoading}
+            className="flex-1 py-6 bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 hover:from-teal-600 hover:via-orange-600 hover:to-amber-600 shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-2 rounded-xl text-base font-semibold group relative overflow-hidden disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {!isLoading && (
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
+            )}
+
+            {isLoading ? (
+              <>
+                <Loader2 className="h-5 w-5 animate-spin" />
+                <span>{personalDetailsDict.nextButtonLoading}</span>
+              </>
+            ) : (
+              <>
+                <CheckCircle2 className="w-5 h-5" />
+                <span>{personalDetailsDict.nextButton}</span>
+                <ArrowLeft
+                  className={`w-5 h-5 group-hover:-translate-x-1 transition-transform ${
+                    !isRTL ? 'rotate-180 group-hover:translate-x-1' : ''
+                  }`}
+                />
+              </>
+            )}
+          </Button>
+        </motion.div>
       </motion.div>
     </>
   );
