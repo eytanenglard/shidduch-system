@@ -2094,3 +2094,75 @@ button,
 .countries-list::-webkit-scrollbar-thumb:hover {
   background: linear-gradient(180deg, #94a3b8, #64748b);
 }
+
+/* ============================================
+   TOUCH FIXES - הוסף את הקוד הזה בסוף globals.css
+   ============================================ */
+
+/* 1. תיקון 300ms delay בטאצ' */
+html {
+  touch-action: manipulation;
+}
+
+/* 2. תיקון לכל אלמנטים אינטראקטיביים */
+a,
+button,
+input,
+select,
+textarea,
+label,
+[role="button"],
+[tabindex]:not([tabindex="-1"]) {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* 3. אינפוטים בפוקוס תמיד למעלה */
+input:focus,
+select:focus,
+textarea:focus {
+  position: relative;
+  z-index: 50 !important;
+}
+
+/* 4. מניעת זום ב-iOS על אינפוטים */
+@supports (-webkit-touch-callout: none) {
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="tel"],
+  input[type="number"],
+  input[type="search"],
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
+
+/* 5. אלמנטים דקורטיביים לא יתפסו טאצ' */
+[aria-hidden="true"],
+.decorative {
+  pointer-events: none !important;
+}
+
+/* --- תוספת קריטית לתיקון הטאצ' --- */
+
+/* מבטיח ששדות קלט תמיד יהיו ברי לחיצה, גם אם יש אנימציות ברקע */
+input, select, textarea, button, [role="button"] {
+  position: relative; 
+  z-index: 20; /* מעלה את השדות מעל דקורציות ואייקונים */
+  touch-action: manipulation; /* מבטל זום ודיליי של 300ms */
+}
+
+/* מבטיח שאייקונים בתוך שדות לא יפריעו ללחיצה */
+.pointer-events-none {
+  pointer-events: none !important;
+}
+
+/* תיקון ספציפי למובייל - מונע מאלמנטים אבסולוטיים לחסום */
+@media (max-width: 768px) {
+  .group:hover .absolute {
+    /* מונע מאלמנטים שמופיעים בהובר להיתקע במובייל */
+    pointer-events: none;
+  }
+}

@@ -68,10 +68,9 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
 
-  // ========== 🔴 הוספה: מצב להצגת הצעת Google ==========
+  // מצב להצגת הצעת Google
   const [showGoogleSuggestion, setShowGoogleSuggestion] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
-  // =====================================================
 
   // ניהול נראות סיסמה
   const [passwordVisible, setPasswordVisible] = useState(false);
@@ -79,7 +78,6 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
   // רשימת השדות החסרים לתצוגה בראש הטופס
   const [missingFields, setMissingFields] = useState<string[]>([]);
 
-  // ========== 🔴 הוספה: פונקציה להרשמה עם Google ==========
   const handleGoogleSignup = async () => {
     setIsGoogleLoading(true);
     try {
@@ -92,7 +90,6 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
       setIsGoogleLoading(false);
     }
   };
-  // =======================================================
 
   const handleRegisterSubmit = async () => {
     // 1. איפוס שגיאות קודמות
@@ -100,7 +97,7 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
     setMissingFields([]);
     setEmailError('');
     setPasswordError('');
-    setShowGoogleSuggestion(false); // ========== 🔴 הוספה ==========
+    setShowGoogleSuggestion(false);
 
     let hasError = false;
     const currentMissing: string[] = [];
@@ -159,7 +156,6 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
       const result = await response.json();
 
       if (!response.ok) {
-        // ========== 🔴 הוספה: בדיקה אם להציע הרשמה עם Google ==========
         const errorCode = result.errorCode || '';
         if (
           GOOGLE_SIGNUP_SUGGESTED_ERRORS.includes(errorCode) ||
@@ -168,11 +164,9 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
         ) {
           setShowGoogleSuggestion(true);
         }
-        // ==============================================================
         throw new Error(result.error || dict.errors.default);
       }
 
-      // מעבר לשלב אימות מייל עם האימייל שהתקבל מהשרת
       proceedToEmailVerification(result.email);
     } catch (error) {
       setApiError(error instanceof Error ? error.message : dict.errors.default);
@@ -209,7 +203,7 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
         </motion.div>
       )}
 
-      {/* ========== 🔴 הוספה: הצעה להירשם עם Google ==========  */}
+      {/* הצעה להירשם עם Google */}
       <AnimatePresence>
         {showGoogleSuggestion && (
           <motion.div
@@ -236,7 +230,7 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
                   type="button"
                   onClick={handleGoogleSignup}
                   disabled={isGoogleLoading}
-                  className="w-full flex items-center justify-center gap-2 bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 shadow-sm"
+                  className="touch-manipulation w-full flex items-center justify-center gap-2 bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 shadow-sm"
                 >
                   {isGoogleLoading ? (
                     <>
@@ -272,7 +266,6 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
           </motion.div>
         )}
       </AnimatePresence>
-      {/* ========================================================= */}
 
       {/* התראת ולידציה (שדות חסרים) */}
       <AnimatePresence>
@@ -328,8 +321,9 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
           >
             {dict.emailLabel} <span className="text-red-500">*</span>
           </label>
-          <div className="relative">
-            <Mail className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+          <div className="relative group">
+            {/* FIX: pointer-events-none */}
+            <Mail className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5 pointer-events-none z-10" />
             <Input
               type="email"
               id="emailBasic"
@@ -345,7 +339,8 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
               }
               placeholder={dict.emailPlaceholder}
               disabled={isLoading}
-              className={`w-full pr-10 pl-3 py-3 border rounded-lg focus:ring-2 focus:outline-none transition-colors 
+              /* FIX: relative z-10 touch-manipulation */
+              className={`relative z-10 touch-manipulation w-full pr-10 pl-3 py-3 border rounded-lg focus:ring-2 focus:outline-none transition-colors 
                 ${isLoading ? 'bg-gray-100' : ''} 
                 ${
                   emailError ||
@@ -370,8 +365,9 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
           >
             {dict.passwordLabel} <span className="text-red-500">*</span>
           </label>
-          <div className="relative">
-            <Lock className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5 pointer-events-none" />
+          <div className="relative group">
+            {/* FIX: pointer-events-none */}
+            <Lock className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5 pointer-events-none z-10" />
             <Input
               type={passwordVisible ? 'text' : 'password'}
               id="passwordBasic"
@@ -389,7 +385,8 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
               }
               placeholder={dict.passwordPlaceholder}
               disabled={isLoading}
-              className={`w-full pr-10 pl-10 py-3 border rounded-lg focus:ring-2 focus:outline-none transition-colors 
+              /* FIX: relative z-10 touch-manipulation */
+              className={`relative z-10 touch-manipulation w-full pr-10 pl-10 py-3 border rounded-lg focus:ring-2 focus:outline-none transition-colors 
                 ${isLoading ? 'bg-gray-100' : ''} 
                 ${
                   passwordError ||
@@ -398,10 +395,11 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
                     : 'border-gray-300 focus:ring-teal-200 focus:border-teal-500'
                 }`}
             />
+            {/* FIX: z-20 touch-manipulation to stay above input */}
             <button
               type="button"
               onClick={() => setPasswordVisible(!passwordVisible)}
-              className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+              className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 z-20 touch-manipulation p-2"
               aria-label={passwordVisible ? 'הסתר סיסמה' : 'הצג סיסמה'}
             >
               {passwordVisible ? (
@@ -428,8 +426,9 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
           >
             {dict.firstNameLabel} <span className="text-red-500">*</span>
           </label>
-          <div className="relative">
-            <User className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+          <div className="relative group">
+            {/* FIX: pointer-events-none */}
+            <User className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5 pointer-events-none z-10" />
             <Input
               type="text"
               id="firstNameBasic"
@@ -437,7 +436,8 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
               onChange={(e) => updateField('firstName', e.target.value)}
               placeholder={dict.firstNamePlaceholder}
               disabled={isLoading}
-              className={`w-full pr-10 pl-3 py-3 border rounded-lg focus:ring-2 focus:outline-none transition-colors 
+              /* FIX: relative z-10 touch-manipulation */
+              className={`relative z-10 touch-manipulation w-full pr-10 pl-3 py-3 border rounded-lg focus:ring-2 focus:outline-none transition-colors 
                 ${isLoading ? 'bg-gray-100' : ''} 
                 ${
                   missingFields.includes(validationDict.fields.firstName)
@@ -456,8 +456,9 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
           >
             {dict.lastNameLabel} <span className="text-red-500">*</span>
           </label>
-          <div className="relative">
-            <User className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+          <div className="relative group">
+            {/* FIX: pointer-events-none */}
+            <User className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5 pointer-events-none z-10" />
             <Input
               type="text"
               id="lastNameBasic"
@@ -465,7 +466,8 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
               onChange={(e) => updateField('lastName', e.target.value)}
               placeholder={dict.lastNamePlaceholder}
               disabled={isLoading}
-              className={`w-full pr-10 pl-3 py-3 border rounded-lg focus:ring-2 focus:outline-none transition-colors 
+              /* FIX: relative z-10 touch-manipulation */
+              className={`relative z-10 touch-manipulation w-full pr-10 pl-3 py-3 border rounded-lg focus:ring-2 focus:outline-none transition-colors 
                 ${isLoading ? 'bg-gray-100' : ''} 
                 ${
                   missingFields.includes(validationDict.fields.lastName)
@@ -492,7 +494,8 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
             updateField('language', e.target.value as 'he' | 'en')
           }
           disabled={isLoading}
-          className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-200 focus:border-teal-500 focus:outline-none bg-white"
+          /* FIX: touch-manipulation */
+          className="touch-manipulation w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-200 focus:border-teal-500 focus:outline-none bg-white relative z-10"
         >
           <option value="he">עברית</option>
           <option value="en">English</option>
@@ -508,7 +511,8 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
           type="button"
           onClick={handleRegisterSubmit}
           disabled={isLoading}
-          className={`w-full flex items-center gap-2 justify-center text-white font-medium px-4 py-2.5 rounded-lg transition-all 
+          /* FIX: touch-manipulation */
+          className={`touch-manipulation w-full flex items-center gap-2 justify-center text-white font-medium px-4 py-2.5 rounded-lg transition-all 
             ${
               isLoading
                 ? 'bg-gray-400 cursor-not-allowed'
@@ -541,7 +545,8 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
           onClick={prevStep}
           variant="ghost"
           disabled={isLoading}
-          className="text-xs text-gray-400 hover:text-gray-600"
+          /* FIX: touch-manipulation */
+          className="touch-manipulation text-xs text-gray-400 hover:text-gray-600"
         >
           <ArrowRight
             className={`h-3 w-3 ml-1 ${locale === 'en' ? 'transform rotate-180' : ''}`}

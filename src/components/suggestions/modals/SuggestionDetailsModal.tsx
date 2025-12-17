@@ -141,7 +141,7 @@ const EnhancedHeroSection: React.FC<{
   return (
     <div className="relative min-h-screen bg-gradient-to-br from-slate-50 via-teal-50/30 to-orange-50/30 overflow-hidden">
       {/* Background elements - Teal/Orange/Rose Blobs (matching HeroSection) */}
-      <div className="absolute inset-0">
+      <div className="absolute inset-0 -z-10" aria-hidden="true">
         <div className="absolute top-10 right-10 w-72 h-72 bg-gradient-to-br from-teal-200/40 to-emerald-200/40 rounded-full blur-3xl animate-float"></div>
         <div
           className="absolute bottom-10 left-10 w-64 h-64 bg-gradient-to-br from-orange-200/40 to-amber-200/40 rounded-full blur-2xl animate-float"
@@ -153,10 +153,13 @@ const EnhancedHeroSection: React.FC<{
         ></div>
       </div>
 
-      <div className="relative z-10 p-4 md:p-8 lg:p-12">
+      <div
+        className="relative z-10 p-4 md:p-8 lg:p-12 isolate"
+        style={{ touchAction: 'manipulation' }}
+      >
         <div className="text-center mb-8 lg:mb-12">
           {/* Matchmaker Badge - Teal */}
-          <div className="inline-flex items-center gap-2 mb-6 p-3 bg-white/90 backdrop-blur-lg rounded-2xl shadow-lg border border-teal-100 animate-fade-in-up">
+          <div className="inline-flex items-center gap-2 mb-6 p-3 bg-white/95 rounded-2xl shadow-lg border border-teal-100 animate-fade-in-up">
             <Avatar className="w-12 h-12 border-2 border-white shadow-lg">
               <AvatarFallback className="bg-gradient-to-br from-teal-500 to-emerald-600 text-white text-sm font-bold">
                 {getInitials(`${matchmaker.firstName} ${matchmaker.lastName}`)}
@@ -197,8 +200,11 @@ const EnhancedHeroSection: React.FC<{
             style={{ animationDelay: '1.5s' }}
           >
             {/* Glow Effect - Teal/Orange/Rose */}
-            <div className="absolute -inset-4 bg-gradient-to-r from-teal-400/50 via-orange-400/50 to-rose-400/50 rounded-3xl blur-lg opacity-70 group-hover:opacity-100 transition-opacity animate-pulse"></div>
-            <Card className="relative overflow-hidden shadow-2xl border-0 bg-white/95 backdrop-blur-sm">
+            <div
+              className="absolute -inset-4 bg-gradient-to-r from-teal-400/50 via-orange-400/50 to-rose-400/50 rounded-3xl blur-lg opacity-70 group-hover:opacity-100 transition-opacity animate-pulse -z-10"
+              aria-hidden="true"
+            ></div>
+            <Card className="relative overflow-hidden shadow-2xl border-0 bg-white/95">
               <div className="relative h-96 lg:h-[600px]">
                 {mainImage ? (
                   <Image
@@ -215,7 +221,7 @@ const EnhancedHeroSection: React.FC<{
                 )}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
                 <div className="absolute bottom-0 right-0 left-0 p-6">
-                  <div className="bg-white/95 backdrop-blur-lg rounded-2xl p-6 shadow-2xl">
+                  <div className="bg-white/98 rounded-2xl p-6 shadow-2xl">
                     <div className="flex items-center justify-between mb-4">
                       <div>
                         <h2 className="text-4xl font-bold text-gray-900 mb-2 tracking-tight">
@@ -260,7 +266,10 @@ const EnhancedHeroSection: React.FC<{
             {/* Story Card - Teal/Orange/Rose gradient */}
             <Card className="border-0 shadow-2xl bg-gradient-to-br from-teal-50 via-white to-orange-50 overflow-hidden">
               <CardContent className="p-8 relative">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-teal-200/30 to-orange-200/30 rounded-full blur-2xl"></div>
+                <div
+                  className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-teal-200/30 to-orange-200/30 rounded-full blur-2xl -z-10"
+                  aria-hidden="true"
+                ></div>
                 <div className="relative z-10">
                   <h2 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-teal-600 via-orange-500 to-rose-500 bg-clip-text text-transparent mb-4 leading-tight text-center">
                     {dict.matchStoryTitle}
@@ -360,7 +369,7 @@ const EnhancedHeroSection: React.FC<{
                                   locale === 'he' ? 'text-right' : 'text-left'
                                 )}
                               >
-                               &quot;{personalNote}&quot;
+                                &quot;{personalNote}&quot;
                               </p>
                             </div>
                           </div>
@@ -441,11 +450,12 @@ const EnhancedQuickActions: React.FC<{
 }) => (
   <div
     className={cn(
-      'flex-shrink-0 bg-gradient-to-r from-white via-teal-50/50 to-orange-50/50 backdrop-blur-sm border-t border-teal-100 transition-all duration-500 ease-in-out relative z-10',
+      'flex-shrink-0 bg-gradient-to-r from-white via-teal-50/80 to-orange-50/80 border-t border-teal-100 transition-all duration-500 ease-in-out relative z-10',
       isExpanded ? 'p-4 md:p-6' : 'py-3 px-4 md:px-6'
     )}
+    style={{ touchAction: 'manipulation' }}
   >
-    <div className="max-w-4xl mx-auto relative z-10">
+    <div className="max-w-4xl mx-auto relative z-10 isolate">
       <div
         className="flex justify-between items-center cursor-pointer group"
         onClick={onToggleExpand}
@@ -591,9 +601,12 @@ const EnhancedTabsSection: React.FC<{
   isTransitioning = false,
   dict,
 }) => (
-  <div className="border-b border-teal-100 px-2 sm:px-6 pt-4 bg-gradient-to-r from-teal-50/80 via-white to-orange-50/80 backdrop-blur-sm sticky top-0 z-20">
+  <div
+    className="border-b border-teal-100 px-2 sm:px-6 pt-4 bg-gradient-to-r from-teal-50/95 via-white to-orange-50/95 sticky top-0 z-20"
+    style={{ touchAction: 'manipulation' }}
+  >
     <div className="flex items-center justify-between mb-4">
-      <TabsList className="grid w-full grid-cols-4 bg-white/90 backdrop-blur-sm rounded-3xl p-2 h-20 shadow-xl border-2 border-teal-100 overflow-hidden">
+      <TabsList className="grid w-full grid-cols-4 bg-white/95 rounded-3xl p-2 h-20 shadow-xl border-2 border-teal-100 overflow-hidden">
         {/* Presentation - Orange/Amber (matching HeroSection privacy principle) */}
         <TabsTrigger
           value="presentation"

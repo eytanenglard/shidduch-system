@@ -60,10 +60,15 @@ const itemVariants = {
 
 // ============================================================================
 // BACKGROUND COMPONENT
+// FIX: Added proper pointer-events and touch-action to prevent touch issues
 // ============================================================================
 
 const DynamicBackground: React.FC = () => (
-  <div className="fixed inset-0 overflow-hidden pointer-events-none -z-10">
+  <div
+    className="fixed inset-0 overflow-hidden -z-10"
+    style={{ pointerEvents: 'none', touchAction: 'none' }}
+    aria-hidden="true"
+  >
     {/* Floating Gradients */}
     <motion.div
       className="absolute top-10 left-10 w-96 h-96 bg-gradient-to-br from-teal-400/20 to-emerald-500/20 rounded-full blur-3xl"
@@ -249,7 +254,11 @@ export default function SignInClient({ dict, locale }: SignInClientProps) {
     <>
       <DynamicBackground />
 
-      <div className="min-h-screen flex flex-col items-center justify-center p-4 sm:p-8 relative z-10">
+      {/* FIX: Added touch-action: manipulation to main container */}
+      <div
+        className="min-h-screen flex flex-col items-center justify-center p-4 sm:p-8 relative z-10"
+        style={{ touchAction: 'manipulation' }}
+      >
         {/* Hero Section */}
         <motion.div
           variants={containerVariants}
@@ -258,7 +267,8 @@ export default function SignInClient({ dict, locale }: SignInClientProps) {
           className="mb-8 text-center"
         >
           <motion.div variants={itemVariants} className="mb-4">
-            <div className="inline-flex items-center gap-3 bg-white/80 backdrop-blur-sm rounded-full px-6 py-3 shadow-lg border border-white/60 mb-6">
+            {/* FIX: Removed backdrop-blur-sm, increased opacity */}
+            <div className="inline-flex items-center gap-3 bg-white/95 rounded-full px-6 py-3 shadow-lg border border-white/60 mb-6">
               <motion.div
                 animate={{ rotate: [0, 10, -10, 0] }}
                 transition={{
@@ -314,15 +324,31 @@ export default function SignInClient({ dict, locale }: SignInClientProps) {
           }
           className="w-full max-w-md"
         >
-          <div className="bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/60 overflow-hidden relative">
+          {/* FIX: Removed backdrop-blur-xl, increased opacity, added isolate */}
+          <div className="bg-white/95 rounded-3xl shadow-2xl border border-white/60 overflow-hidden relative isolate">
             {/* Top Gradient Line (Teal -> Orange) */}
-            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-teal-400 via-orange-400 to-amber-400 pointer-events-none" />
+            {/* FIX: Added -z-10 and aria-hidden */}
+            <div
+              className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-teal-400 via-orange-400 to-amber-400 -z-10"
+              aria-hidden="true"
+            />
 
             {/* Decorative Elements */}
-            <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-teal-400/10 to-transparent rounded-full transform translate-x-20 -translate-y-20 pointer-events-none" />
-            <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-br from-orange-400/10 to-transparent rounded-full transform -translate-x-16 translate-y-16 pointer-events-none" />
+            {/* FIX: Added -z-10 and aria-hidden instead of pointer-events-none */}
+            <div
+              className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-teal-400/10 to-transparent rounded-full transform translate-x-20 -translate-y-20 -z-10"
+              aria-hidden="true"
+            />
+            <div
+              className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-br from-orange-400/10 to-transparent rounded-full transform -translate-x-16 translate-y-16 -z-10"
+              aria-hidden="true"
+            />
 
-            <div className="relative z-10 p-6 sm:p-8">
+            {/* FIX: Added isolate and touch-action to content wrapper */}
+            <div
+              className="relative p-6 sm:p-8 isolate"
+              style={{ touchAction: 'manipulation' }}
+            >
               {/* Error Alert */}
               <AnimatePresence>
                 {error && (
@@ -367,6 +393,7 @@ export default function SignInClient({ dict, locale }: SignInClientProps) {
                     >
                       <Mail className="h-5 w-5" />
                     </div>
+                    {/* FIX: Removed backdrop-blur-sm from input */}
                     <input
                       type="email"
                       id="email"
@@ -374,8 +401,7 @@ export default function SignInClient({ dict, locale }: SignInClientProps) {
                       autoComplete="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      // Focus Colors: Teal
-                      className={`w-full ${isRTL ? 'pr-11 pl-4' : 'pl-11 pr-4'} py-3.5 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-teal-200 focus:border-teal-400 focus:outline-none transition-colors bg-white/50 backdrop-blur-sm hover:border-gray-300 text-gray-800 placeholder:text-gray-400 relative z-10 touch-manipulation`}
+                      className={`w-full ${isRTL ? 'pr-11 pl-4' : 'pl-11 pr-4'} py-3.5 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-teal-200 focus:border-teal-400 focus:outline-none transition-colors bg-white hover:border-gray-300 text-gray-800 placeholder:text-gray-400 relative z-10 touch-manipulation`}
                       placeholder={dict.emailPlaceholder}
                       required
                       disabled={isLoading || isGoogleLoading}
@@ -402,6 +428,7 @@ export default function SignInClient({ dict, locale }: SignInClientProps) {
                     >
                       <Lock className="h-5 w-5" />
                     </div>
+                    {/* FIX: Removed backdrop-blur-sm from input */}
                     <input
                       type={showPassword ? 'text' : 'password'}
                       id="password"
@@ -409,8 +436,7 @@ export default function SignInClient({ dict, locale }: SignInClientProps) {
                       autoComplete="current-password"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      // Focus Colors: Teal
-                      className={`w-full ${isRTL ? 'pr-11 pl-12' : 'pl-11 pr-12'} py-3.5 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-teal-200 focus:border-teal-400 focus:outline-none transition-colors bg-white/50 backdrop-blur-sm hover:border-gray-300 text-gray-800 placeholder:text-gray-400 relative z-10 touch-manipulation`}
+                      className={`w-full ${isRTL ? 'pr-11 pl-12' : 'pl-11 pr-12'} py-3.5 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-teal-200 focus:border-teal-400 focus:outline-none transition-colors bg-white hover:border-gray-300 text-gray-800 placeholder:text-gray-400 relative z-10 touch-manipulation`}
                       placeholder={dict.passwordPlaceholder}
                       required
                       disabled={isLoading || isGoogleLoading}
@@ -419,7 +445,7 @@ export default function SignInClient({ dict, locale }: SignInClientProps) {
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className={`absolute ${isRTL ? 'left-3' : 'right-3'} top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors z-20 touch-manipulation p-1`}
+                      className={`absolute ${isRTL ? 'left-3' : 'right-3'} top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors z-20 touch-manipulation p-2`}
                       tabIndex={-1}
                     >
                       {showPassword ? (
@@ -434,8 +460,7 @@ export default function SignInClient({ dict, locale }: SignInClientProps) {
                   >
                     <Link
                       href={`/${locale}/auth/forgot-password`}
-                      // Link Color: Teal
-                      className="text-sm text-teal-600 hover:text-teal-700 hover:underline font-medium transition-colors relative z-20 touch-manipulation"
+                      className="text-sm text-teal-600 hover:text-teal-700 hover:underline font-medium transition-colors relative z-20 touch-manipulation p-1"
                     >
                       {dict.forgotPasswordLink}
                     </Link>
@@ -449,7 +474,10 @@ export default function SignInClient({ dict, locale }: SignInClientProps) {
                   className="w-full relative z-20 py-4 bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 hover:from-teal-600 hover:via-orange-600 hover:to-amber-600 shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center gap-2 rounded-xl text-base font-semibold group overflow-hidden touch-manipulation active:scale-[0.98]"
                 >
                   {/* Shine effect */}
-                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000 pointer-events-none" />
+                  <div
+                    className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"
+                    aria-hidden="true"
+                  />
 
                   {isLoading ? (
                     <>
@@ -475,19 +503,20 @@ export default function SignInClient({ dict, locale }: SignInClientProps) {
                   <div className="w-full border-t-2 border-gray-200" />
                 </div>
                 <div className="relative flex justify-center">
-                  <span className="px-4 bg-white/80 text-sm font-medium text-gray-500">
+                  <span className="px-4 bg-white text-sm font-medium text-gray-500">
                     {dict.orDivider}
                   </span>
                 </div>
               </div>
 
               {/* Google Sign In Button */}
+              {/* FIX: Removed backdrop-blur-sm */}
               <Button
                 type="button"
                 onClick={handleGoogleSignIn}
                 disabled={isLoading || isGoogleLoading}
                 variant="outline"
-                className="w-full relative z-20 border-2 border-gray-200 hover:border-gray-300 hover:bg-gray-50 py-4 rounded-xl flex items-center justify-center gap-3 group transition-all duration-200 bg-white/50 backdrop-blur-sm touch-manipulation active:scale-[0.98]"
+                className="w-full relative z-20 border-2 border-gray-200 hover:border-gray-300 hover:bg-gray-50 py-4 rounded-xl flex items-center justify-center gap-3 group transition-all duration-200 bg-white touch-manipulation active:scale-[0.98]"
               >
                 {isGoogleLoading ? (
                   <>
@@ -533,8 +562,7 @@ export default function SignInClient({ dict, locale }: SignInClientProps) {
                   {dict.noAccountPrompt}{' '}
                   <Link
                     href={`/${locale}/auth/register`}
-                    // Link Color: Teal
-                    className="text-teal-600 font-semibold hover:text-teal-700 hover:underline transition-colors inline-flex items-center gap-1 relative z-20 touch-manipulation"
+                    className="text-teal-600 font-semibold hover:text-teal-700 hover:underline transition-colors inline-flex items-center gap-1 relative z-20 touch-manipulation p-1"
                   >
                     {dict.signUpLink}
                     {isRTL ? (
@@ -548,7 +576,11 @@ export default function SignInClient({ dict, locale }: SignInClientProps) {
             </div>
 
             {/* Bottom Shine Effect (Teal -> Orange) */}
-            <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-teal-400 via-orange-400 to-amber-400 opacity-50 pointer-events-none" />
+            {/* FIX: Added -z-10 and aria-hidden */}
+            <div
+              className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-teal-400 via-orange-400 to-amber-400 opacity-50 -z-10"
+              aria-hidden="true"
+            />
           </div>
         </motion.div>
 

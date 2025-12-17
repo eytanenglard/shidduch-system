@@ -33,7 +33,6 @@ import {
   Trash2,
   Star,
 } from 'lucide-react';
-import Image from 'next/image';
 
 // UI Components
 import { Button } from '@/components/ui/button';
@@ -88,7 +87,7 @@ interface UploadedPhoto {
 }
 
 // ============================================================================
-// ANIMATION & STYLING VARIANTS
+// ANIMATION VARIANTS
 // ============================================================================
 
 const containerVariants = {
@@ -111,7 +110,10 @@ const itemVariants = {
   },
 };
 
-// Helper Component: Field Wrapper
+// ============================================================================
+// HELPER COMPONENTS
+// ============================================================================
+
 interface FieldWrapperProps {
   children: React.ReactNode;
   icon: React.ReactNode;
@@ -126,6 +128,11 @@ const FieldWrapper: React.FC<FieldWrapperProps> = ({
   className = '',
 }) => (
   <div className={`relative group ${className}`}>
+    {/* 
+        FIX: Z-Index Management
+        האייקון נמצא ב-z-10 ומוגדר כ-pointer-events-none.
+        הילדים (Input) יקבלו z-20 בקוד הראשי כדי להיות מעליו.
+    */}
     <div
       className={`absolute right-3 top-1/2 transform -translate-y-1/2 transition-all duration-300 z-10 pointer-events-none ${
         hasValue
@@ -139,7 +146,6 @@ const FieldWrapper: React.FC<FieldWrapperProps> = ({
   </div>
 );
 
-// Helper Component: Section Header
 interface SectionHeaderProps {
   icon: React.ReactNode;
   title: string;
@@ -222,11 +228,11 @@ export default function PersonalDetailsStep({
   // Photo upload states
   const [uploadedPhotos, setUploadedPhotos] = useState<UploadedPhoto[]>([]);
   const MAX_PHOTOS = 5;
-  const MIN_PHOTOS = 1; // חובה לפחות תמונה אחת
+  const MIN_PHOTOS = 1;
 
   // About Me state
   const [aboutMe, setAboutMe] = useState('');
-  const MIN_ABOUT_LENGTH = 100; // חובה לפחות 100 תווים
+  const MIN_ABOUT_LENGTH = 100;
 
   // Consent Logic
   const userHasAlreadyConsented = !!session?.user?.termsAndPrivacyAcceptedAt;
@@ -258,24 +264,21 @@ export default function PersonalDetailsStep({
     router.prefetch(`/${locale}/auth/verify-phone`);
   }, [router, locale]);
 
-  // --- התחלה של הקוד החדש ---
+  // Image handling ref logic
   const previewsRef = useRef<string[]>([]);
 
-  // עדכון הרשימה בצד מבלי למחוק אותה
   useEffect(() => {
     previewsRef.current = uploadedPhotos.map((p) => p.preview);
   }, [uploadedPhotos]);
 
-  // מחיקת הזיכרון רק כשהמשתמש סוגר את הדף לגמרי
   useEffect(() => {
     return () => {
       previewsRef.current.forEach((url) => URL.revokeObjectURL(url));
     };
   }, []);
-  // --- סוף של הקוד החדש ---
 
   // ============================================================================
-  // PHOTO UPLOAD HANDLERS
+  // HANDLERS
   // ============================================================================
 
   const handlePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -313,7 +316,6 @@ export default function PersonalDetailsStep({
           return;
         }
 
-        // יצירת URL לתצוגה מקדימה
         const previewUrl = URL.createObjectURL(file);
 
         newPhotos.push({
@@ -337,12 +339,9 @@ export default function PersonalDetailsStep({
   const handleRemovePhoto = (index: number) => {
     setUploadedPhotos((prev) => {
       const newPhotos = [...prev];
-      // הסרנו מכאן את ה-URL.revokeObjectURL כדי למנוע שבירת תמונה בזמן רינדור מחדש
-
       const wasMain = newPhotos[index].isMain;
       newPhotos.splice(index, 1);
 
-      // אם התמונה שנמחקה הייתה הראשית, הגדר את הראשונה כראשית
       if (wasMain && newPhotos.length > 0) {
         newPhotos[0].isMain = true;
       }
@@ -359,14 +358,9 @@ export default function PersonalDetailsStep({
     );
   };
 
-  // ============================================================================
-  // LOADING STEPS CONFIGURATION
-  // ============================================================================
-
   const loadingSteps: LoadingStep[] = useMemo(() => {
     const steps: LoadingStep[] = [];
 
-    // שלב אישור תנאים (רק אם המשתמש עדיין לא אישר)
     if (!userHasAlreadyConsented) {
       steps.push({
         id: 'acceptingTerms',
@@ -376,7 +370,6 @@ export default function PersonalDetailsStep({
       });
     }
 
-    // שמירת פרופיל
     steps.push({
       id: 'savingProfile',
       text:
@@ -385,7 +378,6 @@ export default function PersonalDetailsStep({
       subtext: optionalInfoDict.loadingOverlay?.savingProfileSubtext,
     });
 
-    // העלאת תמונות
     if (uploadedPhotos.length > 0) {
       steps.push({
         id: 'uploadingPhotos',
@@ -393,7 +385,6 @@ export default function PersonalDetailsStep({
       });
     }
 
-    // שליחת קוד
     steps.push({
       id: 'sendingCode',
       text:
@@ -402,7 +393,6 @@ export default function PersonalDetailsStep({
       subtext: optionalInfoDict.loadingOverlay?.sendingCodeSubtext,
     });
 
-    // הפניה
     steps.push({
       id: 'redirecting',
       text:
@@ -416,10 +406,6 @@ export default function PersonalDetailsStep({
     uploadedPhotos.length,
     personalDetailsDict.photos,
   ]);
-
-  // ============================================================================
-  // VALIDATION FUNCTIONS
-  // ============================================================================
 
   const validateAge = (birthDate: string) => {
     if (!birthDate) {
@@ -448,18 +434,12 @@ export default function PersonalDetailsStep({
     return true;
   };
 
-  // ============================================================================
-  // UPLOAD PHOTOS TO SERVER
-  // ============================================================================
-
   const uploadPhotosToServer = async (): Promise<boolean> => {
     if (uploadedPhotos.length === 0) return true;
 
     try {
-      // מציאת התמונה הראשית
       const mainPhotoIndex = uploadedPhotos.findIndex((p) => p.isMain);
 
-      // העלאת כל תמונה בנפרד ל-API הקיים
       const uploadResults = await Promise.all(
         uploadedPhotos.map(async (photo, index) => {
           const formData = new FormData();
@@ -481,7 +461,6 @@ export default function PersonalDetailsStep({
         })
       );
 
-      // אם התמונה הראשית שנבחרה אינה הראשונה שהועלתה, נעדכן
       if (mainPhotoIndex > 0 && uploadResults[mainPhotoIndex]?.image?.id) {
         await fetch(
           `/api/profile/images/${uploadResults[mainPhotoIndex].image.id}`,
@@ -498,12 +477,7 @@ export default function PersonalDetailsStep({
     }
   };
 
-  // ============================================================================
-  // SUBMIT HANDLER
-  // ============================================================================
-
   const handleSubmit = async () => {
-    // 1. איפוס שגיאות קודמות
     setApiError(null);
     setConsentError(null);
     setEngagementConsentError(null);
@@ -517,23 +491,18 @@ export default function PersonalDetailsStep({
     const currentMissing: string[] = [];
     let hasError = false;
 
-    // 2. בדיקת שדות והוספה לרשימת החסרים
-
-    // שם פרטי
     if (!registrationState.firstName.trim()) {
       setFirstNameError(personalDetailsDict.errors.firstNameRequired);
       currentMissing.push(validationDict.fields.firstName);
       hasError = true;
     }
 
-    // שם משפחה
     if (!registrationState.lastName.trim()) {
       setLastNameError(personalDetailsDict.errors.lastNameRequired);
       currentMissing.push(validationDict.fields.lastName);
       hasError = true;
     }
 
-    // טלפון
     if (
       !registrationState.phone ||
       !validatePhoneNumber(registrationState.phone)
@@ -543,13 +512,11 @@ export default function PersonalDetailsStep({
       hasError = true;
     }
 
-    // מגדר
     if (!registrationState.gender) {
       currentMissing.push(validationDict.fields.gender);
       hasError = true;
     }
 
-    // תאריך לידה וגיל
     if (!registrationState.birthDate) {
       setAgeError(personalDetailsDict.errors.birthDateRequired);
       currentMissing.push(validationDict.fields.birthDate);
@@ -561,27 +528,23 @@ export default function PersonalDetailsStep({
       }
     }
 
-    // מצב משפחתי
     if (!registrationState.maritalStatus) {
       currentMissing.push(validationDict.fields.maritalStatus);
       hasError = true;
     }
 
-    // רמה דתית
     if (!registrationState.religiousLevel) {
       setReligiousLevelError(personalDetailsDict.errors.religiousLevelRequired);
       currentMissing.push(validationDict.fields.religiousLevel);
       hasError = true;
     }
 
-    // הסכמה לתנאי שימוש
     if (!consentChecked) {
       setConsentError(personalDetailsDict.errors.consentRequired);
       currentMissing.push(validationDict.fields.terms);
       hasError = true;
     }
 
-    // הסכמה לדיוור (engagement)
     if (!engagementConsent) {
       setEngagementConsentError(
         personalDetailsDict.errors.engagementConsentRequired
@@ -590,9 +553,6 @@ export default function PersonalDetailsStep({
       hasError = true;
     }
 
-    // ========== בדיקות חובה חדשות ==========
-
-    // תמונות - חובה לפחות תמונה אחת
     if (uploadedPhotos.length < MIN_PHOTOS) {
       currentMissing.push(
         personalDetailsDict.photos?.fieldName || 'תמונת פרופיל'
@@ -600,7 +560,6 @@ export default function PersonalDetailsStep({
       hasError = true;
     }
 
-    // סיפור אישי - חובה לפחות 100 תווים
     if (aboutMe.trim().length < MIN_ABOUT_LENGTH) {
       currentMissing.push(
         personalDetailsDict.aboutMe?.fieldName || 'הסיפור שלי'
@@ -608,18 +567,15 @@ export default function PersonalDetailsStep({
       hasError = true;
     }
 
-    // 3. עצירה אם יש שגיאות
     if (hasError) {
       setMissingFields(currentMissing);
       window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
 
-    // 4. המשך תהליך שמירה (אם הכל תקין)
     setIsLoading(true);
 
     try {
-      // ===== שלב 1: אישור תנאים (אם צריך) =====
       if (!userHasAlreadyConsented) {
         setSubmissionStatus('acceptingTerms');
         const consentResponse = await fetch('/api/user/accept-terms', {
@@ -629,7 +585,6 @@ export default function PersonalDetailsStep({
           throw new Error(personalDetailsDict.errors.consentApiError);
       }
 
-      // ===== שלב 2: שמירת פרופיל =====
       setSubmissionStatus('savingProfile');
 
       const profileData = {
@@ -659,13 +614,11 @@ export default function PersonalDetailsStep({
         throw new Error(errorData.error || optionalInfoDict.errors.default);
       }
 
-      // ===== שלב 3: העלאת תמונות =====
       if (uploadedPhotos.length > 0) {
         setSubmissionStatus('uploadingPhotos');
         await uploadPhotosToServer();
       }
 
-      // ===== שלב 4: שליחת קוד SMS =====
       setSubmissionStatus('sendingCode');
 
       const sendCodeResponse = await fetch('/api/auth/send-phone-code', {
@@ -676,7 +629,6 @@ export default function PersonalDetailsStep({
         throw new Error(errorData.error || optionalInfoDict.errors.default);
       }
 
-      // ===== שלב 5: הפניה לאימות טלפון =====
       setSubmissionStatus('redirecting');
       router.push(`/${locale}/auth/verify-phone`);
     } catch (err) {
@@ -694,7 +646,6 @@ export default function PersonalDetailsStep({
 
   return (
     <>
-      {/* Full Screen Loading Overlay */}
       <FullScreenLoadingOverlay
         isVisible={
           isLoading &&
@@ -712,13 +663,15 @@ export default function PersonalDetailsStep({
         locale={locale}
       />
 
+      {/* FIX: Added touchAction: 'manipulation' to main container */}
       <motion.div
         variants={containerVariants}
         initial="hidden"
         animate="visible"
         className="space-y-8"
+        style={{ touchAction: 'manipulation' }}
       >
-        {/* הודעת פתיחה */}
+        {/* Intro */}
         <motion.div
           variants={itemVariants}
           className="text-center p-4 bg-gradient-to-r from-teal-50 via-orange-50 to-rose-50 rounded-2xl border border-teal-100"
@@ -735,7 +688,7 @@ export default function PersonalDetailsStep({
           </p>
         </motion.div>
 
-        {/* --- אזור התראות שגיאה וולידציה --- */}
+        {/* Alerts */}
         <AnimatePresence>
           {(apiError || missingFields.length > 0) && (
             <motion.div
@@ -785,9 +738,7 @@ export default function PersonalDetailsStep({
           )}
         </AnimatePresence>
 
-        {/* ================================================================== */}
-        {/* --- SECTION 1: PERSONAL INFO --- */}
-        {/* ================================================================== */}
+        {/* SECTION 1: PERSONAL INFO */}
         <div className="space-y-6">
           <SectionHeader
             icon={<User className="w-5 h-5" />}
@@ -795,8 +746,8 @@ export default function PersonalDetailsStep({
             gradient="from-teal-500 to-cyan-500"
           />
 
-          {/* Name Fields */}
           <div className="grid grid-cols-2 gap-4">
+            {/* FIRST NAME */}
             <motion.div variants={itemVariants} className="space-y-2">
               <Label
                 htmlFor="firstName"
@@ -809,6 +760,7 @@ export default function PersonalDetailsStep({
                 icon={<Edit3 className="h-5 w-5" />}
                 hasValue={!!registrationState.firstName}
               >
+                {/* FIX: Removed backdrop-blur-sm */}
                 <Input
                   id="firstName"
                   type="text"
@@ -819,7 +771,7 @@ export default function PersonalDetailsStep({
                   }}
                   placeholder={personalDetailsDict.firstNamePlaceholder}
                   disabled={isLoading}
-                  className={`pr-11 py-3 border-2 rounded-xl transition-all bg-white/50 backdrop-blur-sm ${
+                  className={`relative z-20 touch-manipulation pr-11 py-3 border-2 rounded-xl transition-all bg-white ${
                     firstNameError ||
                     missingFields.includes(validationDict.fields.firstName)
                       ? 'border-red-300 focus:ring-red-200'
@@ -834,6 +786,7 @@ export default function PersonalDetailsStep({
               )}
             </motion.div>
 
+            {/* LAST NAME */}
             <motion.div variants={itemVariants} className="space-y-2">
               <Label
                 htmlFor="lastName"
@@ -846,6 +799,7 @@ export default function PersonalDetailsStep({
                 icon={<Edit3 className="h-5 w-5" />}
                 hasValue={!!registrationState.lastName}
               >
+                {/* FIX: Removed backdrop-blur-sm */}
                 <Input
                   id="lastName"
                   type="text"
@@ -856,7 +810,7 @@ export default function PersonalDetailsStep({
                   }}
                   placeholder={personalDetailsDict.lastNamePlaceholder}
                   disabled={isLoading}
-                  className={`pr-11 py-3 border-2 rounded-xl transition-all bg-white/50 backdrop-blur-sm ${
+                  className={`relative z-20 touch-manipulation pr-11 py-3 border-2 rounded-xl transition-all bg-white ${
                     lastNameError ||
                     missingFields.includes(validationDict.fields.lastName)
                       ? 'border-red-300 focus:ring-red-200'
@@ -872,12 +826,13 @@ export default function PersonalDetailsStep({
             </motion.div>
           </div>
 
-          {/* Phone Field */}
+          {/* PHONE */}
           <motion.div variants={itemVariants} className="space-y-2">
             <Label className="text-sm font-semibold text-gray-700 flex items-center">
               {personalDetailsDict.phoneLabel}{' '}
               <span className="text-red-500 mr-1">*</span>
             </Label>
+            {/* PhoneNumberInput manages its own z-index internally, but container is safe */}
             <PhoneNumberInput
               value={registrationState.phone}
               onChange={(value) => {
@@ -900,7 +855,7 @@ export default function PersonalDetailsStep({
             )}
           </motion.div>
 
-          {/* Gender Field */}
+          {/* GENDER */}
           <motion.div variants={itemVariants} className="space-y-2">
             <Label className="text-sm font-semibold text-gray-700 flex items-center">
               {personalDetailsDict.genderLabel}{' '}
@@ -916,7 +871,7 @@ export default function PersonalDetailsStep({
                   type="button"
                   onClick={() => updateField('gender', value)}
                   disabled={isLoading}
-                  className={`py-3 px-4 rounded-xl border-2 font-medium transition-all ${
+                  className={`touch-manipulation active:scale-[0.98] py-3 px-4 rounded-xl border-2 font-medium transition-all ${
                     registrationState.gender === value
                       ? 'bg-teal-50 border-teal-500 text-teal-700'
                       : missingFields.includes(validationDict.fields.gender)
@@ -930,7 +885,7 @@ export default function PersonalDetailsStep({
             </div>
           </motion.div>
 
-          {/* Birth Date Field */}
+          {/* BIRTH DATE */}
           <motion.div variants={itemVariants} className="space-y-2">
             <Label
               htmlFor="birthDate"
@@ -943,6 +898,7 @@ export default function PersonalDetailsStep({
               icon={<Calendar className="h-5 w-5" />}
               hasValue={!!registrationState.birthDate}
             >
+              {/* FIX: Removed backdrop-blur-sm */}
               <Input
                 id="birthDate"
                 type="date"
@@ -952,7 +908,7 @@ export default function PersonalDetailsStep({
                   if (e.target.value) validateAge(e.target.value);
                 }}
                 disabled={isLoading}
-                className={`pr-11 py-3 border-2 rounded-xl transition-all bg-white/50 backdrop-blur-sm ${
+                className={`relative z-20 touch-manipulation pr-11 py-3 border-2 rounded-xl transition-all bg-white ${
                   ageError ||
                   missingFields.includes(validationDict.fields.birthDate)
                     ? 'border-red-300 focus:ring-red-200'
@@ -967,7 +923,7 @@ export default function PersonalDetailsStep({
             )}
           </motion.div>
 
-          {/* Marital Status Field */}
+          {/* MARITAL STATUS */}
           <motion.div variants={itemVariants} className="space-y-2">
             <Label className="text-sm font-semibold text-gray-700 flex items-center">
               {personalDetailsDict.maritalStatusLabel}{' '}
@@ -983,8 +939,9 @@ export default function PersonalDetailsStep({
                 onValueChange={(value) => updateField('maritalStatus', value)}
                 disabled={isLoading}
               >
+                {/* FIX: Removed backdrop-blur-sm */}
                 <SelectTrigger
-                  className={`w-full pr-11 pl-3 py-3 h-auto border-2 rounded-xl transition-all bg-white/50 backdrop-blur-sm ${
+                  className={`relative z-20 touch-manipulation w-full pr-11 pl-3 py-3 h-auto border-2 rounded-xl transition-all bg-white ${
                     missingFields.includes(validationDict.fields.maritalStatus)
                       ? 'border-red-300 focus:ring-red-200'
                       : 'border-gray-200 hover:border-gray-300 focus:border-teal-400 focus:ring-2 focus:ring-teal-200'
@@ -1010,9 +967,7 @@ export default function PersonalDetailsStep({
           </motion.div>
         </div>
 
-        {/* ================================================================== */}
-        {/* --- SECTION 2: OPTIONAL INFO --- */}
-        {/* ================================================================== */}
+        {/* SECTION 2: OPTIONAL INFO */}
         <div className="space-y-6">
           <SectionHeader
             icon={<Sparkles className="w-5 h-5" />}
@@ -1020,10 +975,8 @@ export default function PersonalDetailsStep({
             subtitle={optionalInfoDict.subtitle}
             gradient="from-orange-500 to-amber-500"
           />
-
-          {/* Height & Occupation Row */}
           <div className="grid grid-cols-2 gap-4">
-            {/* Height */}
+            {/* HEIGHT */}
             <motion.div variants={itemVariants} className="space-y-2">
               <Label
                 htmlFor="heightOptional"
@@ -1035,6 +988,7 @@ export default function PersonalDetailsStep({
                 icon={<Ruler className="h-5 w-5" />}
                 hasValue={!!registrationState.height}
               >
+                {/* FIX: Removed backdrop-blur-sm */}
                 <Input
                   type="number"
                   id="heightOptional"
@@ -1049,12 +1003,12 @@ export default function PersonalDetailsStep({
                   disabled={isLoading}
                   min={100}
                   max={250}
-                  className="pr-11 py-3 border-2 border-gray-200 rounded-xl transition-all bg-white/50 backdrop-blur-sm hover:border-gray-300 focus:border-orange-400 focus:ring-2 focus:ring-orange-200"
+                  className="relative z-20 touch-manipulation pr-11 py-3 border-2 border-gray-200 rounded-xl transition-all bg-white hover:border-gray-300 focus:border-orange-400 focus:ring-2 focus:ring-orange-200"
                 />
               </FieldWrapper>
             </motion.div>
 
-            {/* Occupation */}
+            {/* OCCUPATION */}
             <motion.div variants={itemVariants} className="space-y-2">
               <Label
                 htmlFor="occupationOptional"
@@ -1066,6 +1020,7 @@ export default function PersonalDetailsStep({
                 icon={<Briefcase className="h-5 w-5" />}
                 hasValue={!!registrationState.occupation}
               >
+                {/* FIX: Removed backdrop-blur-sm */}
                 <Input
                   type="text"
                   id="occupationOptional"
@@ -1073,13 +1028,13 @@ export default function PersonalDetailsStep({
                   onChange={(e) => updateField('occupation', e.target.value)}
                   placeholder={optionalInfoDict.occupationPlaceholder}
                   disabled={isLoading}
-                  className="pr-11 py-3 border-2 border-gray-200 rounded-xl transition-all bg-white/50 backdrop-blur-sm hover:border-gray-300 focus:border-orange-400 focus:ring-2 focus:ring-orange-200"
+                  className="relative z-20 touch-manipulation pr-11 py-3 border-2 border-gray-200 rounded-xl transition-all bg-white hover:border-gray-300 focus:border-orange-400 focus:ring-2 focus:ring-orange-200"
                 />
               </FieldWrapper>
             </motion.div>
           </div>
 
-          {/* Education */}
+          {/* EDUCATION */}
           <motion.div variants={itemVariants} className="space-y-2">
             <Label
               htmlFor="educationOptional"
@@ -1091,6 +1046,7 @@ export default function PersonalDetailsStep({
               icon={<GraduationCap className="h-5 w-5" />}
               hasValue={!!registrationState.education}
             >
+              {/* FIX: Removed backdrop-blur-sm */}
               <Input
                 type="text"
                 id="educationOptional"
@@ -1098,12 +1054,12 @@ export default function PersonalDetailsStep({
                 onChange={(e) => updateField('education', e.target.value)}
                 placeholder={optionalInfoDict.educationPlaceholder}
                 disabled={isLoading}
-                className="pr-11 py-3 border-2 border-gray-200 rounded-xl transition-all bg-white/50 backdrop-blur-sm hover:border-gray-300 focus:border-orange-400 focus:ring-2 focus:ring-orange-200"
+                className="relative z-20 touch-manipulation pr-11 py-3 border-2 border-gray-200 rounded-xl transition-all bg-white hover:border-gray-300 focus:border-orange-400 focus:ring-2 focus:ring-orange-200"
               />
             </FieldWrapper>
           </motion.div>
 
-          {/* Religious Level */}
+          {/* RELIGIOUS LEVEL */}
           <motion.div variants={itemVariants} className="space-y-2">
             <Label className="text-sm font-semibold text-gray-700 flex items-center">
               {personalDetailsDict.religiousLevelLabel}{' '}
@@ -1122,8 +1078,9 @@ export default function PersonalDetailsStep({
                 }}
                 disabled={isLoading}
               >
+                {/* FIX: Removed backdrop-blur-sm */}
                 <SelectTrigger
-                  className={`w-full pr-11 pl-3 py-3 h-auto border-2 rounded-xl transition-all bg-white/50 backdrop-blur-sm ${
+                  className={`relative z-20 touch-manipulation w-full pr-11 pl-3 py-3 h-auto border-2 rounded-xl transition-all bg-white ${
                     religiousLevelError ||
                     missingFields.includes(validationDict.fields.religiousLevel)
                       ? 'border-red-300 focus:ring-red-200'
@@ -1151,9 +1108,7 @@ export default function PersonalDetailsStep({
           </motion.div>
         </div>
 
-        {/* ================================================================== */}
-        {/* --- SECTION 3: PHOTOS --- */}
-        {/* ================================================================== */}
+        {/* SECTION 3: PHOTOS */}
         <div className="space-y-6">
           <SectionHeader
             icon={<Camera className="w-5 h-5" />}
@@ -1165,14 +1120,10 @@ export default function PersonalDetailsStep({
             gradient="from-rose-500 to-pink-500"
             required={true}
           />
-
           <motion.div variants={itemVariants}>
-            {/* Photo Grid */}
-            {/* Photo Grid */}
             <div className="grid grid-cols-3 gap-3 mb-4">
               {uploadedPhotos.map((photo, index) => (
                 <div
-                  // שימוש בכתובת ה-preview כמפתח ייחודי
                   key={photo.preview}
                   className={`relative aspect-square rounded-xl overflow-hidden border-2 transition-all group ${
                     photo.isMain
@@ -1180,14 +1131,11 @@ export default function PersonalDetailsStep({
                       : 'border-gray-200 hover:border-gray-300'
                   }`}
                 >
-                  {/* 👇 השינוי הגדול: תגית img רגילה במקום Image של Next.js 👇 */}
                   <img
                     src={photo.preview}
                     alt={`תמונה ${index + 1}`}
                     className="absolute inset-0 w-full h-full object-cover"
                   />
-
-                  {/* Main badge */}
                   {photo.isMain && (
                     <Badge className="absolute top-2 right-2 z-10 bg-gradient-to-r from-teal-500 to-orange-500 text-white text-[10px] px-2 py-0.5 rounded-full flex items-center gap-1 border-none shadow-md">
                       <Star className="w-3 h-3 fill-current" />
@@ -1196,18 +1144,12 @@ export default function PersonalDetailsStep({
                       </span>
                     </Badge>
                   )}
-
-                  {/* Action buttons - visible on hover */}
                   <div className="absolute inset-0 z-20 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
                     {!photo.isMain && (
                       <button
                         type="button"
                         onClick={() => handleSetMainPhoto(index)}
-                        className="p-2 bg-white/90 rounded-full text-gray-700 hover:bg-white transition-colors"
-                        title={
-                          personalDetailsDict.photos?.setAsMain ||
-                          'הגדר כתמונה ראשית'
-                        }
+                        className="touch-manipulation active:scale-95 p-2 bg-white/90 rounded-full text-gray-700 hover:bg-white transition-colors"
                       >
                         <Star className="w-4 h-4" />
                       </button>
@@ -1215,22 +1157,19 @@ export default function PersonalDetailsStep({
                     <button
                       type="button"
                       onClick={() => handleRemovePhoto(index)}
-                      className="p-2 bg-red-500/90 rounded-full text-white hover:bg-red-600 transition-colors"
-                      title={personalDetailsDict.photos?.remove || 'הסר'}
+                      className="touch-manipulation active:scale-95 p-2 bg-red-500/90 rounded-full text-white hover:bg-red-600 transition-colors"
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
                   </div>
                 </div>
               ))}
-
-              {/* Upload button / placeholder */}
               {uploadedPhotos.length < MAX_PHOTOS && (
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
                   disabled={isLoading}
-                  className={`aspect-square rounded-xl border-2 border-dashed transition-all flex flex-col items-center justify-center gap-2 ${
+                  className={`touch-manipulation active:scale-95 aspect-square rounded-xl border-2 border-dashed transition-all flex flex-col items-center justify-center gap-2 ${
                     uploadedPhotos.length < MIN_PHOTOS &&
                     missingFields.includes(
                       validationDict.fields?.photos || 'תמונת פרופיל'
@@ -1250,8 +1189,6 @@ export default function PersonalDetailsStep({
                 </button>
               )}
             </div>
-
-            {/* Hidden file input */}
             <input
               ref={fileInputRef}
               type="file"
@@ -1260,8 +1197,6 @@ export default function PersonalDetailsStep({
               onChange={handlePhotoSelect}
               className="hidden"
             />
-
-            {/* Validation error for photos */}
             {uploadedPhotos.length < MIN_PHOTOS &&
               missingFields.includes(
                 personalDetailsDict.photos?.fieldName || 'תמונת פרופיל'
@@ -1272,8 +1207,6 @@ export default function PersonalDetailsStep({
                     'יש להעלות לפחות תמונה אחת'}
                 </p>
               )}
-
-            {/* Photo hints */}
             <div className="bg-gradient-to-r from-rose-50/50 to-pink-50/50 rounded-xl p-3 border border-rose-100">
               <p className="text-xs text-gray-600 leading-relaxed">
                 <span className="font-semibold text-rose-600">
@@ -1286,9 +1219,7 @@ export default function PersonalDetailsStep({
           </motion.div>
         </div>
 
-        {/* ================================================================== */}
-        {/* --- SECTION 4: ABOUT ME --- */}
-        {/* ================================================================== */}
+        {/* SECTION 4: ABOUT ME */}
         <div className="space-y-6">
           <SectionHeader
             icon={<FileText className="w-5 h-5" />}
@@ -1302,7 +1233,6 @@ export default function PersonalDetailsStep({
             gradient="from-purple-500 to-indigo-500"
             required={true}
           />
-
           <motion.div variants={itemVariants} className="space-y-2">
             <div className="flex items-center justify-between">
               <Label
@@ -1311,41 +1241,18 @@ export default function PersonalDetailsStep({
               >
                 {personalDetailsDict.aboutMe?.label || 'ספרו על עצמכם'}
                 <span className="text-red-500 mr-1">*</span>
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <button
-                        type="button"
-                        className="text-gray-400 hover:text-gray-600"
-                      >
-                        <Info className="w-4 h-4" />
-                      </button>
-                    </TooltipTrigger>
-                    <TooltipContent
-                      side="top"
-                      className="max-w-xs text-center"
-                      dir={isRTL ? 'rtl' : 'ltr'}
-                    >
-                      <p>
-                        {personalDetailsDict.aboutMe?.tooltip ||
-                          'שתפו על התחביבים, הערכים, מה חשוב לכם בחיים ובמערכת יחסים'}
-                      </p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
               </Label>
             </div>
-
+            {/* FIX: Removed backdrop-blur-sm */}
             <Textarea
               id="aboutMe"
               value={aboutMe}
               onChange={(e) => setAboutMe(e.target.value)}
               placeholder={
-                personalDetailsDict.aboutMe?.placeholder ||
-                'ספרו על עצמכם, על מה שחשוב לכם בחיים, על התחביבים שלכם, ועל מה שאתם מחפשים בבן/בת זוג...'
+                personalDetailsDict.aboutMe?.placeholder || 'ספרו על עצמכם...'
               }
               disabled={isLoading}
-              className={`min-h-[150px] py-3 border-2 rounded-xl transition-all bg-white/50 backdrop-blur-sm resize-none ${
+              className={`relative z-20 touch-manipulation min-h-[150px] py-3 border-2 rounded-xl transition-all bg-white resize-none ${
                 aboutMe.trim().length < MIN_ABOUT_LENGTH &&
                 missingFields.includes(
                   personalDetailsDict.aboutMe?.fieldName || 'הסיפור שלי'
@@ -1358,8 +1265,6 @@ export default function PersonalDetailsStep({
               }`}
               rows={6}
             />
-
-            {/* Character count and validation */}
             <div className="flex justify-between items-center">
               <div>
                 {aboutMe.trim().length < MIN_ABOUT_LENGTH &&
@@ -1394,42 +1299,10 @@ export default function PersonalDetailsStep({
                 {aboutMe.trim().length} / {MIN_ABOUT_LENGTH}+
               </span>
             </div>
-
-            {/* Example prompts */}
-            <div className="bg-gradient-to-r from-purple-50/50 to-indigo-50/50 rounded-xl p-4 border border-purple-100 mt-3">
-              <p className="text-sm font-medium text-purple-700 mb-2">
-                {personalDetailsDict.aboutMe?.promptsTitle ||
-                  'רעיונות למה לכתוב:'}
-              </p>
-              <ul className="text-xs text-gray-600 space-y-1.5">
-                <li className="flex items-start gap-2">
-                  <span className="text-purple-500 mt-0.5">•</span>
-                  {personalDetailsDict.aboutMe?.prompt1 ||
-                    'מה אתם אוהבים לעשות בזמן הפנוי?'}
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-purple-500 mt-0.5">•</span>
-                  {personalDetailsDict.aboutMe?.prompt2 ||
-                    'מה הערכים הכי חשובים לכם?'}
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-purple-500 mt-0.5">•</span>
-                  {personalDetailsDict.aboutMe?.prompt3 ||
-                    'איך נראה היום המושלם שלכם?'}
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-purple-500 mt-0.5">•</span>
-                  {personalDetailsDict.aboutMe?.prompt4 ||
-                    'מה אתם מחפשים בבן/בת זוג?'}
-                </li>
-              </ul>
-            </div>
           </motion.div>
         </div>
 
-        {/* ================================================================== */}
-        {/* --- SECTION 5: CONSENTS --- */}
-        {/* ================================================================== */}
+        {/* SECTION 5: CONSENTS */}
         <motion.div variants={itemVariants} className="space-y-4">
           <div
             className={`p-4 rounded-2xl border-2 transition-all ${
@@ -1449,10 +1322,7 @@ export default function PersonalDetailsStep({
               dict={consentDict}
             />
           </div>
-
-          {/* Marketing Consents */}
           <div className="space-y-3 px-2">
-            {/* Engagement Consent */}
             <div
               className={`flex items-start space-x-2 rtl:space-x-reverse rounded-lg p-2 transition-colors ${
                 missingFields.includes(validationDict.fields.engagement)
@@ -1468,7 +1338,7 @@ export default function PersonalDetailsStep({
                   setEngagementConsent(isChecked);
                   if (isChecked) setEngagementConsentError(null);
                 }}
-                className="mt-1 data-[state=checked]:bg-teal-600 data-[state=checked]:border-teal-600"
+                className="touch-manipulation mt-1 data-[state=checked]:bg-teal-600 data-[state=checked]:border-teal-600"
               />
               <div className="grid gap-1.5 leading-none">
                 <label
@@ -1485,8 +1355,6 @@ export default function PersonalDetailsStep({
                 )}
               </div>
             </div>
-
-            {/* Promotional Consent */}
             <div className="flex items-start space-x-2 rtl:space-x-reverse p-2">
               <Checkbox
                 id="promotionalConsent"
@@ -1494,7 +1362,7 @@ export default function PersonalDetailsStep({
                 onCheckedChange={(checked) =>
                   setPromotionalConsent(checked as boolean)
                 }
-                className="mt-1 data-[state=checked]:bg-orange-500 data-[state=checked]:border-orange-500"
+                className="touch-manipulation mt-1 data-[state=checked]:bg-orange-500 data-[state=checked]:border-orange-500"
               />
               <div className="grid gap-1.5 leading-none">
                 <label
@@ -1506,28 +1374,16 @@ export default function PersonalDetailsStep({
               </div>
             </div>
           </div>
-
-          {/* Privacy Note */}
-          <div className="flex items-start gap-3 p-4 bg-gray-50 rounded-2xl border border-gray-200 mt-2">
-            <Shield className="w-5 h-5 text-teal-500 flex-shrink-0 mt-0.5" />
-            <p className="text-xs text-gray-600 leading-relaxed">
-              {isRTL
-                ? 'הפרטים שלך מאובטחים ומוצפנים.'
-                : 'Your details are secure and encrypted.'}
-            </p>
-          </div>
         </motion.div>
 
-        {/* ================================================================== */}
-        {/* --- BUTTONS --- */}
-        {/* ================================================================== */}
+        {/* BUTTONS */}
         <motion.div variants={itemVariants} className="flex gap-4 pt-4">
           <Button
             type="button"
             onClick={prevStep}
             variant="outline"
             disabled={isLoading}
-            className="px-6 py-6 rounded-xl border-2 hover:bg-gray-50"
+            className="touch-manipulation active:scale-[0.98] px-6 py-6 rounded-xl border-2 hover:bg-gray-50"
           >
             <ArrowRight className={`h-5 w-5 ${isRTL ? '' : 'rotate-180'}`} />
             <span className="sr-only">{personalDetailsDict.backButton}</span>
@@ -1537,10 +1393,13 @@ export default function PersonalDetailsStep({
             type="button"
             onClick={handleSubmit}
             disabled={isLoading}
-            className="flex-1 py-6 bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 hover:from-teal-600 hover:via-orange-600 hover:to-amber-600 shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-2 rounded-xl text-base font-semibold group relative overflow-hidden disabled:opacity-50 disabled:cursor-not-allowed"
+            className="touch-manipulation active:scale-[0.98] flex-1 py-6 bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 hover:from-teal-600 hover:via-orange-600 hover:to-amber-600 shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-2 rounded-xl text-base font-semibold group relative overflow-hidden disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {!isLoading && (
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
+              <div
+                className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"
+                aria-hidden="true"
+              />
             )}
 
             {isLoading ? (
