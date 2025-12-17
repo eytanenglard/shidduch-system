@@ -181,7 +181,7 @@
     "progressBar": {
       "stepLabel": "Step {{step}}"
     },
-  "headers": {
+    "headers": {
       "registerTitle": "System Registration",
       "verifyEmailTitle": "Email Address Verification",
       "completeProfileTitle": "Complete Details",
@@ -221,10 +221,9 @@
         "firstNameLabel": "First Name",
         "firstNamePlaceholder": "John",
         "lastNameLabel": "Last Name",
-  "languageLabel": "Preferred Communication Language",
-  "languagePlaceholder": "Select language...",
-
         "lastNamePlaceholder": "Doe",
+        "languageLabel": "Preferred Communication Language",
+        "languagePlaceholder": "Select language...",
         "backButton": "Back",
         "nextButton": "Create Account & Continue to Verification",
         "nextButtonLoading": "Creating account...",
@@ -240,8 +239,6 @@
           "consentRequired": "You must accept the terms of use and privacy policy.",
           "default": "An unexpected error occurred during registration"
         },
-        "engagementConsentLabel": "Yes, I'd like to receive tips, AI insights, and personal feedback from the team to help me improve my profile and find a match faster.",
-        "promotionalConsentLabel": "I'd like to receive updates about new features, special events, and promotions from NeshamaTech.",
         "status": {
           "creatingAccount": "Creating your account...",
           "sendingCode": "Sending verification code to your email..."
@@ -276,6 +273,7 @@
         "lastNameLabel": "Last Name",
         "lastNamePlaceholder": "e.g., Doe",
         "languageLabel": "Preferred Communication Language",
+        "languagePlaceholder": "Select language...",
         "phoneLabel": "Mobile Phone",
         "phonePlaceholder": "0501234567",
         "genderLabel": "Gender",
@@ -289,32 +287,30 @@
           "divorced": "Divorced",
           "widowed": "Widowed"
         },
+        "religiousLevelLabel": "Religious Style",
+        "religiousLevelPlaceholder": "How do you define yourself?",
+        "religiousLevels": {
+          "dati_leumi_standard": "Religious Zionist (Standard)",
+          "dati_leumi_liberal": "Religious Zionist (Liberal)",
+          "dati_leumi_torani": "Religious Zionist (Torani)",
+          "masorti_strong": "Traditional (Strong connection)",
+          "masorti_light": "Traditional (Light connection)",
+          "secular_traditional_connection": "Secular with traditional connection",
+          "secular": "Secular",
+          "spiritual_not_religious": "Spiritual (not necessarily religious)",
+          "charedi_modern": "Modern Ultra-Orthodox (Charedi)",
+          "charedi_litvak": "Litvak Ultra-Orthodox",
+          "charedi_sephardic": "Sephardic Ultra-Orthodox",
+          "charedi_hasidic": "Hasidic Ultra-Orthodox",
+          "chabad": "Chabad",
+          "breslov": "Breslov",
+          "other": "Other"
+        },
+        "engagementConsentLabel": "Yes, I'd like to receive tips, AI insights, and personal feedback from the team to help me improve my profile and find a match faster.",
+        "promotionalConsentLabel": "I'd like to receive updates about new features, special events, and promotions from NeshamaTech.",
         "backButton": "Back",
         "nextButton": "Continue to Next Step",
         "nextButtonLoading": "Accepting terms...",
-        "engagementConsentLabel": "Yes, I'd like to receive tips, AI insights, and personal feedback from the team to help me improve my profile and find a match faster.",
-        "promotionalConsentLabel": "I'd like to receive updates about new features, special events, and promotions from NeshamaTech.",
-        "religiousLevelLabel": "Religious Style",
-        "religiousLevelPlaceholder": "How do you define yourself?",
-      "detailLabels": {
-  "worldview": "My Guiding Worldview",
-  "religiousJourney": "My Religious Journey",
-  "shomerNegiah": "Observant of 'Shomer Negiah'",
-  "headCovering": "Head Covering",
-  "kippahType": "Kippah Type",
-  "educationLevel": "Education Level",
-  "educationDetails": "Education Details",
-  "professionalField": "Professional Field",
-  "militaryService": "Military/National Service",
-  "serviceDetails": "Service Details",
-  "parentStatus": "Parents' Status",
-  "fatherOccupation": "Father's Occupation",
-  "motherOccupation": "Mother's Occupation",
-  "siblings": "Siblings",
-  "birthOrder": "Birth Order",
-  "countryOfOrigin": "Country of Origin",
-  "aliyaYear": "Year of Aliyah"
-},
         "errors": {
           "firstNameRequired": "First name is a required field",
           "lastNameRequired": "Last name is a required field",
@@ -330,39 +326,38 @@
           "engagementConsentRequired": "To ensure we can guide you through the process, you must agree to receive updates and suggestions from the system.",
           "consentApiError": "An error occurred while accepting the terms."
         },
-  "_comment": "Add these sections inside the personalDetails object in en.json",
-  "photos": {
-    "title": "Your Photos",
-    "subtitle": "Good photos significantly increase your chances of successful matches",
-    "addPhoto": "Add Photo",
-    "mainPhoto": "Main",
-    "setAsMain": "Set as main photo",
-    "remove": "Remove",
-    "maxPhotosError": "You can upload up to 5 photos",
-    "invalidTypeError": "Unsupported file type. Please upload JPG, PNG, or WEBP images",
-    "fileTooLargeError": "File too large. Maximum size: 5MB",
-    "uploadSuccess": "Photos added successfully",
-    "uploadingPhotos": "Uploading photos...",
-    "tip": "💡 Tip:",
-    "tipText": "Upload clear photos showing your face. High-quality photos increase your chances of receiving accurate and interesting match suggestions.",
-    "fieldName": "Profile photo",
-    "required": "Please upload at least one photo"
-  },
-  "aboutMe": {
-    "title": "My Story in My Own Words",
-    "subtitle": "Tell us about yourself - this helps matchmakers get to know you better",
-    "label": "Tell us about yourself",
-    "placeholder": "Share about yourself, what matters to you in life, your hobbies, and what you're looking for in a partner...\n\nDon't be shy to write personally - that's exactly what helps matchmakers understand who you really are.",
-    "tooltip": "Share your hobbies, values, what matters to you in life and relationships. The more you write, the better matchmakers can get to know you.",
-    "minChars": "{{remaining}} more characters minimum",
-    "promptsTitle": "Ideas for what to write:",
-    "prompt1": "What do you enjoy doing in your free time?",
-    "prompt2": "What values are most important to you?",
-    "prompt3": "What does your perfect day look like?",
-    "prompt4": "What are you looking for in a partner?",
-    "fieldName": "My story",
-    "required": "Please write at least 100 characters"
-  }
+        "photos": {
+          "title": "Your Photos",
+          "subtitle": "Good photos significantly increase your chances of successful matches",
+          "addPhoto": "Add Photo",
+          "mainPhoto": "Main",
+          "setAsMain": "Set as main photo",
+          "remove": "Remove",
+          "maxPhotosError": "You can upload up to 5 photos",
+          "invalidTypeError": "Unsupported file type. Please upload JPG, PNG, or WEBP images",
+          "fileTooLargeError": "File too large. Maximum size: 5MB",
+          "uploadSuccess": "Photos added successfully",
+          "uploadingPhotos": "Uploading photos...",
+          "tip": "💡 Tip:",
+          "tipText": "Upload clear photos showing your face. High-quality photos increase your chances of receiving accurate and interesting match suggestions.",
+          "fieldName": "Profile photo",
+          "required": "Please upload at least one photo"
+        },
+        "aboutMe": {
+          "title": "My Story in My Own Words",
+          "subtitle": "Tell us about yourself - this helps matchmakers get to know you better",
+          "label": "Tell us about yourself",
+          "placeholder": "Share about yourself, what matters to you in life, your hobbies, and what you're looking for in a partner...\n\nDon't be shy to write personally - that's exactly what helps matchmakers understand who you really are.",
+          "tooltip": "Share your hobbies, values, what matters to you in life and relationships. The more you write, the better matchmakers can get to know you.",
+          "minChars": "{{remaining}} more characters minimum",
+          "promptsTitle": "Ideas for what to write:",
+          "prompt1": "What do you enjoy doing in your free time?",
+          "prompt2": "What values are most important to you?",
+          "prompt3": "What does your perfect day look like?",
+          "prompt4": "What are you looking for in a partner?",
+          "fieldName": "My story",
+          "required": "Please write at least 100 characters"
+        }
       },
       "optionalInfo": {
         "title": "Additional Information",
@@ -381,6 +376,7 @@
           "sendingCode": "Sending verification code..."
         },
         "errors": {
+          "title": "Error",
           "missingData": "Essential data is missing. Please go back and check your details.",
           "default": "An unexpected error occurred"
         }
@@ -403,7 +399,7 @@
         "backToHomeLink": "Back to Homepage"
       }
     },
-        "validationErrors": {
+    "validationErrors": {
       "title": "Missing Information",
       "pleaseFill": "To proceed, please complete the following fields:",
       "fields": {
@@ -422,7 +418,6 @@
         "aboutMe": "My Story"
       }
     },
-
     "consentCheckbox": {
       "text": "I have read and agree to the {termsLink} and the {privacyLink} of NeshamaTech, and I consent to the collection, processing, and storage of my personal information, including sensitive information, as detailed therein, and to the transfer of my information to servers that may be located outside of Israel.",
       "termsLink": "Terms of Use",

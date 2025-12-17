@@ -20,22 +20,61 @@ const ConsentCheckbox: React.FC<ConsentCheckboxProps> = ({
 }) => {
   const textParts = dict.text.split(/\{termsLink\}|\{privacyLink\}/);
 
+  // Handle click on the container (but not on links)
+  const handleContainerClick = (e: React.MouseEvent) => {
+    // Don't toggle if clicking on a link
+    if ((e.target as HTMLElement).tagName === 'A') {
+      return;
+    }
+    onChange(!checked);
+  };
+
+  // Handle keyboard accessibility
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      // Don't toggle if focus is on a link
+      if ((e.target as HTMLElement).tagName === 'A') {
+        return;
+      }
+      e.preventDefault();
+      onChange(!checked);
+    }
+  };
+
   return (
     <div className="space-y-2">
-      <div className="flex items-start space-x-2 rtl:space-x-reverse">
-        <input
-          type="checkbox"
-          id="termsConsent"
-          checked={checked}
-          onChange={(e) => onChange(e.target.checked)}
-          className={`mt-1 h-4 w-4 text-cyan-600 border-gray-300 rounded focus:ring-cyan-500 ${error ? 'border-red-500' : ''}`}
-        />
-        <label htmlFor="termsConsent" className="text-sm text-gray-700">
+      {/* FIX: Made entire row clickable with larger touch target */}
+      <div
+        role="button"
+        tabIndex={0}
+        onClick={handleContainerClick}
+        onKeyDown={handleKeyDown}
+        className={`flex items-start gap-3 p-3 rounded-xl cursor-pointer touch-manipulation active:bg-gray-100/50 hover:bg-gray-50/50 transition-colors select-none ${
+          error ? 'bg-red-50/50' : ''
+        }`}
+      >
+        {/* FIX: Larger checkbox container for easier touch */}
+        <div className="flex items-center justify-center w-6 h-6 shrink-0 mt-0.5">
+          <input
+            type="checkbox"
+            id="termsConsent"
+            checked={checked}
+            onChange={(e) => onChange(e.target.checked)}
+            onClick={(e) => e.stopPropagation()}
+            className={`h-5 w-5 text-teal-600 border-2 border-gray-300 rounded focus:ring-teal-500 focus:ring-2 touch-manipulation cursor-pointer ${
+              error ? 'border-red-500' : ''
+            }`}
+          />
+        </div>
+
+        {/* Label text with inline links */}
+        <span className="text-sm text-gray-700 leading-relaxed flex-1">
           {textParts[0]}
           <Link
             href="/legal/terms-of-service"
             target="_blank"
-            className="font-medium text-cyan-600 hover:text-cyan-700 underline"
+            onClick={(e) => e.stopPropagation()}
+            className="font-medium text-teal-600 hover:text-teal-700 underline underline-offset-2 touch-manipulation inline-block py-1"
           >
             {dict.termsLink}
           </Link>
@@ -43,14 +82,16 @@ const ConsentCheckbox: React.FC<ConsentCheckboxProps> = ({
           <Link
             href="/legal/privacy-policy"
             target="_blank"
-            className="font-medium text-cyan-600 hover:text-cyan-700 underline"
+            onClick={(e) => e.stopPropagation()}
+            className="font-medium text-teal-600 hover:text-teal-700 underline underline-offset-2 touch-manipulation inline-block py-1"
           >
             {dict.privacyLink}
           </Link>
           {textParts[2]}
-        </label>
+        </span>
       </div>
-      {error && <p className="text-xs text-red-500">{error}</p>}
+
+      {error && <p className="text-xs text-red-500 pr-9">{error}</p>}
     </div>
   );
 };
