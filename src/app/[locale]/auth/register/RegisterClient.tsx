@@ -71,10 +71,7 @@ const itemVariants = {
 // ============================================================================
 
 const DynamicBackground: React.FC = () => (
-  <div
-    className="fixed inset-0 overflow-hidden -z-10"
-    style={{ pointerEvents: 'none', touchAction: 'none' }}
-  >
+  <div className="fixed inset-0 overflow-hidden pointer-events-none -z-10">
     {/* Floating Gradients */}
     <motion.div
       className="absolute top-10 left-10 w-96 h-96 bg-gradient-to-br from-teal-400/20 to-emerald-500/20 rounded-full blur-3xl"
@@ -459,10 +456,7 @@ const RegisterStepsContent: React.FC<{
     <>
       <DynamicBackground />
 
-      <div
-        className="min-h-screen flex flex-col items-center justify-center p-4 sm:p-8 relative z-10"
-        style={{ touchAction: 'manipulation' }}
-      >
+      <div className="min-h-screen flex flex-col items-center justify-center p-4 sm:p-8 relative z-10">
         {/* Hero Section */}
         <HeroSection
           title={pageTitle}
@@ -526,22 +520,13 @@ const RegisterStepsContent: React.FC<{
           {...pageTransition}
           className="w-full max-w-md md:max-w-2xl relative"
         >
-          <div className="bg-white/95 rounded-3xl shadow-2xl border border-white/60 overflow-hidden relative isolate">
+          <div className="bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/60 overflow-hidden relative">
             {/* Decorative Elements - POINTER EVENTS NONE */}
-            <div
-              className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-teal-400/10 to-transparent rounded-full transform translate-x-20 -translate-y-20 -z-10"
-              aria-hidden="true"
-            />
-            <div
-              className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-br from-orange-400/10 to-transparent rounded-full transform -translate-x-16 translate-y-16 -z-10"
-              aria-hidden="true"
-            />
+            <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-teal-400/10 to-transparent rounded-full transform translate-x-20 -translate-y-20 pointer-events-none" />
+            <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-br from-orange-400/10 to-transparent rounded-full transform -translate-x-16 translate-y-16 pointer-events-none" />
 
             {/* Content - Z-10 RELATIVE */}
-            <div
-              className="relative p-6 sm:p-8 md:p-12"
-              style={{ isolation: 'isolate', touchAction: 'manipulation' }}
-            >
+            <div className="relative z-10 p-6 sm:p-8 md:p-12">
               <AnimatePresence mode="wait">
                 <motion.div
                   key={registrationContextData.step}
@@ -557,10 +542,7 @@ const RegisterStepsContent: React.FC<{
             </div>
 
             {/* Bottom Shine Effect (Teal -> Orange) */}
-            <div
-              className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-teal-400 via-orange-400 to-amber-400 opacity-50 -z-10"
-              aria-hidden="true"
-            />
+            <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-teal-400 via-orange-400 to-amber-400 opacity-50 pointer-events-none" />
           </div>
         </motion.div>
 

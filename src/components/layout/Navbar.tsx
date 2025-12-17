@@ -38,7 +38,7 @@ import { useQuestionnaireState } from '@/app/[locale]/contexts/QuestionnaireStat
 const Logo = ({ locale }: { locale: string }) => (
   <Link
     href={`/${locale}`}
-    className="flex items-center gap-x-2 group shrink-0 touch-manipulation"
+    className="flex items-center gap-x-2 group shrink-0"
     aria-label="NeshamaTech Homepage"
   >
     <div className="relative h-9 w-9">
@@ -49,7 +49,7 @@ const Logo = ({ locale }: { locale: string }) => (
         className="object-contain transition-transform duration-300 group-hover:scale-110"
         priority
         sizes="36px"
-        unoptimized
+        unoptimized // ✅ הוספנו כבקשתך לחדות מירבית
       />
     </div>
     <span className="text-xl font-bold bg-gradient-to-r from-teal-600 via-orange-500 to-amber-500 text-transparent bg-clip-text bg-size-200 bg-pos-0 group-hover:bg-pos-100 transition-all duration-700 ease-in-out">
@@ -81,7 +81,7 @@ const NavItem = ({
       href={fullHref}
       aria-current={isActive ? 'page' : undefined}
       className={cn(
-        'relative px-3 py-2 rounded-full text-sm transition-all duration-200 touch-manipulation',
+        'relative px-3 py-2 rounded-full text-sm transition-all duration-200',
         isActive
           ? 'font-bold text-teal-700 bg-teal-50'
           : 'font-medium text-gray-600 hover:text-teal-600 hover:bg-teal-50/50'
@@ -176,6 +176,7 @@ const MobileHomePageLink = ({
   icon: React.ReactNode;
   onClick: () => void;
 }) => {
+  // ✅ תיקון: שימוש ב-React.MouseEvent בלבד והסרת onTouchEnd למניעת קונפליקטים
   const handleScroll = (e: React.MouseEvent<HTMLAnchorElement>) => {
     e.preventDefault();
     const element = document.querySelector(href);
@@ -191,6 +192,7 @@ const MobileHomePageLink = ({
     <a
       href={href}
       onClick={handleScroll}
+      // removed onTouchEnd - causes issues on mobile
       className="flex items-center px-4 py-3 rounded-xl text-base font-medium transition-colors duration-150 group text-gray-600 hover:bg-gray-50 hover:text-gray-900 gap-4 touch-manipulation active:bg-gray-100"
     >
       <span className="text-gray-400 group-hover:text-gray-600">{icon}</span>
@@ -322,9 +324,8 @@ const Navbar = ({ dict }: NavbarProps) => {
       }
     : null;
 
-  // FIX: Removed backdrop-blur-xl, using solid background instead
   const navbarClasses = scrolled
-    ? 'bg-white/98 shadow-sm border-b border-gray-100'
+    ? 'bg-white/90 backdrop-blur-xl shadow-sm border-b border-gray-100'
     : 'bg-transparent border-b border-transparent';
   const profileIconSize = 'w-10 h-10';
 
@@ -332,7 +333,6 @@ const Navbar = ({ dict }: NavbarProps) => {
     <>
       <nav
         className={`sticky top-0 z-50 w-full transition-all duration-300 ${navbarClasses}`}
-        style={{ touchAction: 'manipulation' }}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-20">
@@ -403,7 +403,7 @@ const Navbar = ({ dict }: NavbarProps) => {
               <Button
                 variant="ghost"
                 onClick={handleLanguageChange}
-                className="group flex items-center gap-2 px-3 py-2 text-gray-600 hover:text-teal-700 hover:bg-teal-50 rounded-full transition-all duration-300 border border-transparent hover:border-teal-100 touch-manipulation"
+                className="group flex items-center gap-2 px-3 py-2 text-gray-600 hover:text-teal-700 hover:bg-teal-50 rounded-full transition-all duration-300 border border-transparent hover:border-teal-100"
                 aria-label={`Switch to ${locale === 'he' ? 'English' : 'Hebrew'}`}
                 title={`Switch to ${locale === 'he' ? 'English' : 'Hebrew'}`}
               >
@@ -448,14 +448,12 @@ const Navbar = ({ dict }: NavbarProps) => {
                   />
                   <NavItem href="/auth/signin" text={dict.navbar.login} />
 
+                  {/* ✅ תיקון קריטי: הסרת ה-<Button> מתוך ה-<Link> והעברת העיצוב ללינק עצמו */}
                   <Link
                     href={`/${locale}/auth/register`}
-                    className="group relative overflow-hidden bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 hover:from-teal-600 hover:via-orange-600 hover:to-amber-600 text-white rounded-full shadow-md hover:shadow-lg transition-all duration-300 px-6 py-2.5 inline-flex items-center justify-center touch-manipulation active:scale-[0.98]"
+                    className="group relative overflow-hidden bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 hover:from-teal-600 hover:via-orange-600 hover:to-amber-600 text-white rounded-full shadow-md hover:shadow-lg transition-all duration-300 px-6 py-2.5 inline-flex items-center justify-center"
                   >
-                    <span
-                      className="absolute inset-0 w-full h-full bg-gradient-to-r from-white/0 via-white/20 to-white/0 transform -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]"
-                      aria-hidden="true"
-                    ></span>
+                    <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-white/0 via-white/20 to-white/0 transform -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]"></span>
                     <span className="relative z-10 flex items-center font-bold">
                       <UserPlus
                         className={cn('h-4 w-4', isRtl ? 'ml-2' : 'mr-2')}
@@ -468,7 +466,7 @@ const Navbar = ({ dict }: NavbarProps) => {
               <Button
                 variant="ghost"
                 size="icon"
-                className="md:hidden text-gray-600 hover:text-teal-600 hover:bg-teal-50 rounded-full touch-manipulation active:scale-95"
+                className="md:hidden text-gray-600 hover:text-teal-600 hover:bg-teal-50 rounded-full touch-manipulation"
                 onClick={toggleMobileMenu}
                 aria-label="פתח תפריט"
                 aria-expanded={mobileMenuOpen}
@@ -480,18 +478,14 @@ const Navbar = ({ dict }: NavbarProps) => {
           </div>
         </div>
       </nav>
-
-      {/* FIX: Mobile menu overlay - removed backdrop-blur-sm */}
       {mobileMenuOpen && (
         <div
-          className="fixed inset-0 bg-black/50 z-40 md:hidden"
+          className="fixed inset-0 bg-black/40 z-40 backdrop-blur-sm md:hidden"
           onClick={toggleMobileMenu}
           style={{ touchAction: 'none' }}
           aria-hidden="true"
         />
       )}
-
-      {/* Mobile menu panel */}
       <div
         className={cn(
           'fixed top-0 z-50 h-full w-4/5 max-w-sm bg-white shadow-2xl transform transition-transform duration-300 ease-in-out md:hidden',
@@ -515,7 +509,7 @@ const Navbar = ({ dict }: NavbarProps) => {
               variant="ghost"
               size="icon"
               onClick={toggleMobileMenu}
-              className="text-gray-400 hover:text-gray-800 rounded-full hover:bg-gray-100 touch-manipulation active:scale-95"
+              className="text-gray-400 hover:text-gray-800 rounded-full hover:bg-gray-100 touch-manipulation"
               aria-label="סגור תפריט"
             >
               <X className="h-5 w-5" />
@@ -535,7 +529,7 @@ const Navbar = ({ dict }: NavbarProps) => {
                 <Link
                   href={`/${locale}/profile`}
                   onClick={toggleMobileMenu}
-                  className="block touch-manipulation"
+                  className="block"
                 >
                   <div className="p-4 border border-teal-100/50 rounded-2xl bg-gradient-to-br from-teal-50/50 via-white to-orange-50/50 hover:from-teal-100/50 hover:to-orange-100/50 transition-all duration-300 shadow-sm hover:shadow-md cursor-pointer group">
                     <div className="flex items-center gap-4">
@@ -585,7 +579,7 @@ const Navbar = ({ dict }: NavbarProps) => {
                 <Button
                   variant="outline"
                   onClick={handleLanguageChange}
-                  className="w-full border border-gray-200 text-gray-700 hover:bg-teal-50 hover:border-teal-200 flex items-center justify-between py-6 h-auto text-base transition-all duration-300 rounded-xl touch-manipulation"
+                  className="w-full border border-gray-200 text-gray-700 hover:bg-teal-50 hover:border-teal-200 flex items-center justify-between py-6 h-auto text-base transition-all duration-300 rounded-xl"
                 >
                   <div className="flex items-center gap-3">
                     <div className="relative flex-shrink-0">
@@ -720,7 +714,7 @@ const Navbar = ({ dict }: NavbarProps) => {
                     <Button
                       variant="outline"
                       onClick={handleLanguageChange}
-                      className="w-full border border-gray-200 text-gray-700 hover:bg-teal-50 hover:border-teal-200 flex items-center justify-between py-6 h-auto text-base transition-all duration-300 rounded-xl touch-manipulation"
+                      className="w-full border border-gray-200 text-gray-700 hover:bg-teal-50 hover:border-teal-200 flex items-center justify-between py-6 h-auto text-base transition-all duration-300 rounded-xl"
                     >
                       <div className="flex items-center gap-3">
                         <div className="relative flex-shrink-0">

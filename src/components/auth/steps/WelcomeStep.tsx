@@ -37,52 +37,44 @@ const WelcomeStep: React.FC<WelcomeStepProps> = ({ dict, locale }) => {
 
   const containerVariants = {
     hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
+    visible: { 
+      opacity: 1, 
+      transition: { 
         staggerChildren: 0.1,
-        delayChildren: 0.2,
-      },
-    },
+        delayChildren: 0.2 
+      } 
+    }
   };
 
   const itemVariants = {
     hidden: { opacity: 0, y: 20 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: { duration: 0.5, ease: 'easeOut' },
-    },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" } }
   };
 
   return (
-    <motion.div
-      className="space-y-8 text-center isolate"
+    <motion.div 
+      className="space-y-8 text-center"
       variants={containerVariants}
       initial="hidden"
       animate="visible"
-      style={{ touchAction: 'manipulation' }}
     >
       {/* --- Icon Header --- */}
       <motion.div variants={itemVariants} className="flex justify-center mb-6">
         <div className="relative">
-          {/* UPDATED: Glow Effect (Rose/Orange) - Moved to negative z-index */}
-          <div
-            className="absolute inset-0 bg-rose-200/60 rounded-full blur-xl animate-pulse -z-10"
-            aria-hidden="true"
-          ></div>
-
+          {/* UPDATED: Glow Effect (Rose/Orange) */}
+          <div className="absolute inset-0 bg-rose-200/60 rounded-full blur-xl animate-pulse"></div>
+          
           {/* UPDATED: Card Background (White/Rose/Orange) */}
           <div className="relative w-24 h-24 rounded-3xl bg-gradient-to-br from-white to-rose-50 border border-rose-100 flex items-center justify-center shadow-xl transform rotate-3 transition-transform hover:rotate-6 duration-500">
             {/* UPDATED: Icon Color (Rose to match the "Personal" principle) */}
             <Heart className="h-10 w-10 text-rose-500 fill-rose-500 drop-shadow-sm" />
           </div>
-
+          
           {/* UPDATED: Decorative Element (Teal - for contrast) */}
-          <motion.div
+          <motion.div 
             className="absolute -top-3 -right-3 w-10 h-10 rounded-full bg-gradient-to-br from-teal-400 to-emerald-500 flex items-center justify-center text-white text-lg font-bold shadow-lg border-2 border-white"
             animate={{ y: [0, -5, 0] }}
-            transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+            transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
           >
             👋
           </motion.div>
@@ -114,11 +106,7 @@ const WelcomeStep: React.FC<WelcomeStepProps> = ({ dict, locale }) => {
           ) : (
             <>
               {/* Google SVG remains standard colors */}
-              <svg
-                className="h-6 w-6 flex-shrink-0 transition-transform group-hover:scale-110 duration-300"
-                viewBox="0 0 24 24"
-                aria-hidden="true"
-              >
+              <svg className="h-6 w-6 flex-shrink-0 transition-transform group-hover:scale-110 duration-300" viewBox="0 0 24 24" aria-hidden="true">
                 <path
                   d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
                   fill="#4285F4"
@@ -152,11 +140,9 @@ const WelcomeStep: React.FC<WelcomeStepProps> = ({ dict, locale }) => {
         >
           {/* Shine Effect */}
           <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite] pointer-events-none"></span>
-
+          
           <Mail className="h-5 w-5 text-white" />
-          <span className="font-semibold text-base tracking-wide">
-            {dict.emailButton}
-          </span>
+          <span className="font-semibold text-base tracking-wide">{dict.emailButton}</span>
           {isRTL ? (
             <ArrowLeft className="h-5 w-5 text-white opacity-70 group-hover:opacity-100 group-hover:-translate-x-1 transition-all duration-300" />
           ) : (
@@ -166,12 +152,13 @@ const WelcomeStep: React.FC<WelcomeStepProps> = ({ dict, locale }) => {
       </motion.div>
 
       {/* --- Footer Links --- */}
-      <motion.div
-        variants={itemVariants}
+      <motion.div 
+        variants={itemVariants} 
         className="pt-6 border-t border-gray-100 relative z-20"
       >
         <p className="text-gray-500 text-sm">
-          {dict.signInPrompt} {/* UPDATED: Link Gradient (Teal -> Orange) */}
+          {dict.signInPrompt}{' '}
+          {/* UPDATED: Link Gradient (Teal -> Orange) */}
           <Link
             href="/auth/signin"
             className="font-bold text-transparent bg-clip-text bg-gradient-to-r from-teal-600 to-orange-600 hover:from-teal-700 hover:to-orange-700 hover:underline transition-all"
