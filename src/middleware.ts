@@ -1,4 +1,4 @@
-// src/middleware.ts - VERSION WITH ADMIN SUPPORT AND REFERRAL SYSTEM
+// src/middleware.ts - VERSION WITH ADMIN SUPPORT, REFERRAL SYSTEM, AND AUTH FLOW STATUS CHECKING
 
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
@@ -20,10 +20,17 @@ const PUBLIC_PATHS = [
   '/questionnaire',
   '/contact',
   '/feedback',
-  '/friends', // 🔴 חדש: דף הרשמה למפנים
+  '/friends', // 🔴 דף הרשמה למפנים
 ];
 
-// 🔴 חדש: נתיבים של מערכת הרפרל (ללא locale)
+// 🔴 נתיבים של תהליך ההרשמה/אימות
+const AUTH_FLOW_PATHS = [
+  '/auth/verify-email',     // אימות אימייל
+  '/auth/verify-phone',     // אימות טלפון
+  '/auth/update-phone',     // עדכון טלפון
+];
+
+// 🔴 נתיבים של מערכת הרפרל (ללא locale)
 const REFERRAL_PUBLIC_PATHS = [
   '/friends',           // דף הרשמה למפנים
   '/referral/dashboard', // דשבורד מפנה (ציבורי עם קוד)
@@ -32,7 +39,7 @@ const REFERRAL_PUBLIC_PATHS = [
 // 🎯 נתיבים ייעודיים לאדמין/שדכן
 const ADMIN_PATHS = [
   '/admin/engagement',
-  '/admin/referrals', // 🔴 חדש: פאנל ניהול רפרל
+  '/admin/referrals', // 🔴 פאנל ניהול רפרל
   '/matchmaker/suggestions',
   '/matchmaker/clients',
 ];
@@ -68,7 +75,7 @@ export async function middleware(req: NextRequest) {
 
   const { pathname } = req.nextUrl;
 
-  // 🔴 חדש: בדיקה מיוחדת לנתיב /r/[code] - קישורי רפרל קצרים
+  // 🔴 בדיקה מיוחדת לנתיב /r/[code] - קישורי רפרל קצרים
   if (pathname.startsWith('/r/')) {
     console.log(`[Middleware] Referral short link detected: ${pathname}. Allowing through.`);
     console.log(`=========================================================\n`);
@@ -124,9 +131,13 @@ export async function middleware(req: NextRequest) {
   const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
   const isUserLoggedIn = !!token;
   
-  const isProfileConsideredComplete = !!token?.isProfileComplete && !!token?.isPhoneVerified;
+  // 🔴 חדש: חילוץ סטטוס המשתמש
+  const userStatus = token?.status as string | undefined;
+  const isPhoneVerified = !!token?.isPhoneVerified;
   
-  // 🎯 הוספה: בדיקת תפקיד המשתמש
+  const isProfileConsideredComplete = !!token?.isProfileComplete && isPhoneVerified;
+  
+  // 🎯 בדיקת תפקיד המשתמש
   const userRole = token?.role as string | undefined;
   const isAdmin = userRole === 'ADMIN';
   const isMatchmaker = userRole === 'MATCHMAKER' || isAdmin;
@@ -138,6 +149,8 @@ export async function middleware(req: NextRequest) {
   if (token) {
     console.log(`   User ID from token: ${token.id}`);
     console.log(`   User Role: ${userRole}`);
+    console.log(`   User Status: ${userStatus}`); // 🔴 לוג חדש
+    console.log(`   Is Phone Verified?: ${isPhoneVerified}`); // 🔴 לוג חדש
     console.log(`   Is Admin?: ${isAdmin}`);
   }
   console.log(`   Is Profile Considered Complete?: ${isProfileConsideredComplete}`);
@@ -146,19 +159,19 @@ export async function middleware(req: NextRequest) {
   // 4. לוגיקת הרשאות מאוחדת
   const isPublicPath = PUBLIC_PATHS.includes(pathWithoutLocale);
   const isSetupPath = SETUP_PATHS.includes(pathWithoutLocale);
+  const isAuthFlowPath = AUTH_FLOW_PATHS.includes(pathWithoutLocale); // 🔴 חדש
   const isAdminPath = ADMIN_PATHS.some(path => pathWithoutLocale.startsWith(path));
-  
-  // 🔴 חדש: בדיקה לנתיבי רפרל ציבוריים
   const isReferralPublicPath = REFERRAL_PUBLIC_PATHS.some(path => pathWithoutLocale.startsWith(path));
 
   // ====================== LOGGING START: Path Classification ======================
   console.log(`   Is Public Path?: ${isPublicPath}`);
   console.log(`   Is Setup Path?: ${isSetupPath}`);
+  console.log(`   Is Auth Flow Path?: ${isAuthFlowPath}`); // 🔴 לוג חדש
   console.log(`   Is Admin Path?: ${isAdminPath}`);
-  console.log(`   Is Referral Public Path?: ${isReferralPublicPath}`); // 🔴 לוג חדש
+  console.log(`   Is Referral Public Path?: ${isReferralPublicPath}`);
   // ======================= LOGGING END =======================
 
-  // 🔴 חדש: נתיבי רפרל ציבוריים - תמיד לאפשר גישה
+  // 🔴 נתיבי רפרל ציבוריים - תמיד לאפשר גישה
   if (isReferralPublicPath) {
     console.log(`[Middleware] Referral public path detected: "${pathname}". Allowing access.`);
     console.log(`=========================================================\n`);
@@ -169,7 +182,49 @@ export async function middleware(req: NextRequest) {
   if (isUserLoggedIn) {
     console.log(`[Middleware] Evaluating rules for LOGGED-IN user...`);
     
-    // 🎯 חדש: בדיקה מיוחדת לנתיבי אדמין
+    // 🔴 תעדוף 1: בדיקת סטטוס והפניה לשלב הנכון בתהליך ההרשמה
+    // אם המשתמש ממתין לאימות טלפון
+    if (userStatus === 'PENDING_PHONE_VERIFICATION' && !isPhoneVerified) {
+      // אם הוא כבר בדף אימות הטלפון או בהגדרות (למחיקת חשבון), תן לו להישאר שם
+      if (
+        pathWithoutLocale === '/auth/verify-phone' || 
+        pathWithoutLocale === '/auth/update-phone' ||
+        pathWithoutLocale === '/settings' // ✅ הוספה: אפשר גישה להגדרות גם ללא אימות
+      ) {
+        console.log(`[Middleware] User is on allowed page (${pathWithoutLocale}). Allowing access.`);
+        console.log(`=========================================================\n`);
+        return NextResponse.next();
+      }
+      
+      // אחרת, הפנה אותו לדף אימות טלפון
+      const verifyPhoneUrl = new URL(`/${currentLocale}/auth/verify-phone`, req.url);
+      console.warn(`[Middleware] User has PENDING_PHONE_VERIFICATION status. Redirecting to verify-phone.`);
+      console.warn(`   User Status: ${userStatus}, Phone Verified: ${isPhoneVerified}`);
+      console.warn(`   Redirecting to: ${verifyPhoneUrl.toString()}`);
+      console.log(`=========================================================\n`);
+      return NextResponse.redirect(verifyPhoneUrl);
+    }
+    
+    // 🔴 תעדוף 2: אם המשתמש ממתין לאימות אימייל (רלוונטי לרישום רגיל)
+    if (userStatus === 'PENDING_EMAIL_VERIFICATION') {
+      if (
+        pathWithoutLocale === '/auth/verify-email' ||
+        pathWithoutLocale === '/settings' // ✅ הוספה: אפשר גישה להגדרות גם ללא אימות אימייל
+      ) {
+        console.log(`[Middleware] User is on allowed page (${pathWithoutLocale}). Allowing access.`);
+        console.log(`=========================================================\n`);
+        return NextResponse.next();
+      }
+      
+      const verifyEmailUrl = new URL(`/${currentLocale}/auth/verify-email`, req.url);
+      console.warn(`[Middleware] User has PENDING_EMAIL_VERIFICATION status. Redirecting to verify-email.`);
+      console.warn(`   User Status: ${userStatus}`);
+      console.warn(`   Redirecting to: ${verifyEmailUrl.toString()}`);
+      console.log(`=========================================================\n`);
+      return NextResponse.redirect(verifyEmailUrl);
+    }
+    
+    // 🎯 בדיקה מיוחדת לנתיבי אדמין
     if (isAdminPath) {
       if (!isAdmin) {
         // משתמש רגיל מנסה לגשת לאזור אדמין
@@ -196,8 +251,8 @@ export async function middleware(req: NextRequest) {
     }
 
     // אם הפרופיל שלו *לא* שלם והוא מנסה לגשת לדף שאינו ציבורי ואינו חלק מתהליך ההרשמה
-    // 🎯 עדכון: אדמין/שדכן לא צריך פרופיל שלם
-    if (!isProfileConsideredComplete && !isPublicPath && !isSetupPath && !isMatchmaker) {
+    // 🎯 אדמין/שדכן לא צריך פרופיל שלם
+    if (!isProfileConsideredComplete && !isPublicPath && !isSetupPath && !isAuthFlowPath && !isMatchmaker) {
       const setupUrl = new URL(`/${currentLocale}/auth/register`, req.url);
       setupUrl.searchParams.set('reason', 'complete_profile');
       console.warn(`[Middleware] Logged-in user with INCOMPLETE profile is on a protected page. Redirecting to complete profile.`);

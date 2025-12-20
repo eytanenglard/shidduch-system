@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\auth
-# Generated on: 2025-12-17 17:55:18
+# Generated on: 2025-12-18 21:25:22
 # Filter: Only content of code files (.bat, .c, .cfg, .conf, .cpp, .cs, .css, .go, .h, .html, .ini, .java, .js, .json, .jsx, .kt, .less, .md, .php, .py, .rb, .rs, .scss, .sh, .sql, .swift, .ts, .tsx, .txt, .xml, .yaml, .yml) is included.
 ################################################################################
 
@@ -3171,9 +3171,10 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
 
-  // מצב להצגת הצעת Google
+  // ========== 🔴 הוספה: מצב להצגת הצעת Google ==========
   const [showGoogleSuggestion, setShowGoogleSuggestion] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  // =====================================================
 
   // ניהול נראות סיסמה
   const [passwordVisible, setPasswordVisible] = useState(false);
@@ -3181,6 +3182,7 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
   // רשימת השדות החסרים לתצוגה בראש הטופס
   const [missingFields, setMissingFields] = useState<string[]>([]);
 
+  // ========== 🔴 הוספה: פונקציה להרשמה עם Google ==========
   const handleGoogleSignup = async () => {
     setIsGoogleLoading(true);
     try {
@@ -3193,6 +3195,7 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
       setIsGoogleLoading(false);
     }
   };
+  // =======================================================
 
   const handleRegisterSubmit = async () => {
     // 1. איפוס שגיאות קודמות
@@ -3200,7 +3203,7 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
     setMissingFields([]);
     setEmailError('');
     setPasswordError('');
-    setShowGoogleSuggestion(false);
+    setShowGoogleSuggestion(false); // ========== 🔴 הוספה ==========
 
     let hasError = false;
     const currentMissing: string[] = [];
@@ -3259,6 +3262,7 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
       const result = await response.json();
 
       if (!response.ok) {
+        // ========== 🔴 הוספה: בדיקה אם להציע הרשמה עם Google ==========
         const errorCode = result.errorCode || '';
         if (
           GOOGLE_SIGNUP_SUGGESTED_ERRORS.includes(errorCode) ||
@@ -3267,9 +3271,11 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
         ) {
           setShowGoogleSuggestion(true);
         }
+        // ==============================================================
         throw new Error(result.error || dict.errors.default);
       }
 
+      // מעבר לשלב אימות מייל עם האימייל שהתקבל מהשרת
       proceedToEmailVerification(result.email);
     } catch (error) {
       setApiError(error instanceof Error ? error.message : dict.errors.default);
@@ -3306,7 +3312,7 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
         </motion.div>
       )}
 
-      {/* הצעה להירשם עם Google */}
+      {/* ========== 🔴 הוספה: הצעה להירשם עם Google ==========  */}
       <AnimatePresence>
         {showGoogleSuggestion && (
           <motion.div
@@ -3333,7 +3339,7 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
                   type="button"
                   onClick={handleGoogleSignup}
                   disabled={isGoogleLoading}
-                  className="touch-manipulation w-full flex items-center justify-center gap-2 bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 shadow-sm"
+                  className="w-full flex items-center justify-center gap-2 bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 shadow-sm"
                 >
                   {isGoogleLoading ? (
                     <>
@@ -3369,6 +3375,7 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
           </motion.div>
         )}
       </AnimatePresence>
+      {/* ========================================================= */}
 
       {/* התראת ולידציה (שדות חסרים) */}
       <AnimatePresence>
@@ -3424,9 +3431,8 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
           >
             {dict.emailLabel} <span className="text-red-500">*</span>
           </label>
-          <div className="relative group">
-            {/* FIX: pointer-events-none */}
-            <Mail className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5 pointer-events-none z-10" />
+          <div className="relative">
+            <Mail className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
             <Input
               type="email"
               id="emailBasic"
@@ -3442,8 +3448,7 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
               }
               placeholder={dict.emailPlaceholder}
               disabled={isLoading}
-              /* FIX: relative z-10 touch-manipulation */
-              className={`relative z-10 touch-manipulation w-full pr-10 pl-3 py-3 border rounded-lg focus:ring-2 focus:outline-none transition-colors 
+              className={`w-full pr-10 pl-3 py-3 border rounded-lg focus:ring-2 focus:outline-none transition-colors 
                 ${isLoading ? 'bg-gray-100' : ''} 
                 ${
                   emailError ||
@@ -3468,9 +3473,8 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
           >
             {dict.passwordLabel} <span className="text-red-500">*</span>
           </label>
-          <div className="relative group">
-            {/* FIX: pointer-events-none */}
-            <Lock className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5 pointer-events-none z-10" />
+          <div className="relative">
+            <Lock className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5 pointer-events-none" />
             <Input
               type={passwordVisible ? 'text' : 'password'}
               id="passwordBasic"
@@ -3488,8 +3492,7 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
               }
               placeholder={dict.passwordPlaceholder}
               disabled={isLoading}
-              /* FIX: relative z-10 touch-manipulation */
-              className={`relative z-10 touch-manipulation w-full pr-10 pl-10 py-3 border rounded-lg focus:ring-2 focus:outline-none transition-colors 
+              className={`w-full pr-10 pl-10 py-3 border rounded-lg focus:ring-2 focus:outline-none transition-colors 
                 ${isLoading ? 'bg-gray-100' : ''} 
                 ${
                   passwordError ||
@@ -3498,11 +3501,10 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
                     : 'border-gray-300 focus:ring-teal-200 focus:border-teal-500'
                 }`}
             />
-            {/* FIX: z-20 touch-manipulation to stay above input */}
             <button
               type="button"
               onClick={() => setPasswordVisible(!passwordVisible)}
-              className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 z-20 touch-manipulation p-2"
+              className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
               aria-label={passwordVisible ? 'הסתר סיסמה' : 'הצג סיסמה'}
             >
               {passwordVisible ? (
@@ -3529,9 +3531,8 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
           >
             {dict.firstNameLabel} <span className="text-red-500">*</span>
           </label>
-          <div className="relative group">
-            {/* FIX: pointer-events-none */}
-            <User className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5 pointer-events-none z-10" />
+          <div className="relative">
+            <User className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
             <Input
               type="text"
               id="firstNameBasic"
@@ -3539,8 +3540,7 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
               onChange={(e) => updateField('firstName', e.target.value)}
               placeholder={dict.firstNamePlaceholder}
               disabled={isLoading}
-              /* FIX: relative z-10 touch-manipulation */
-              className={`relative z-10 touch-manipulation w-full pr-10 pl-3 py-3 border rounded-lg focus:ring-2 focus:outline-none transition-colors 
+              className={`w-full pr-10 pl-3 py-3 border rounded-lg focus:ring-2 focus:outline-none transition-colors 
                 ${isLoading ? 'bg-gray-100' : ''} 
                 ${
                   missingFields.includes(validationDict.fields.firstName)
@@ -3559,9 +3559,8 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
           >
             {dict.lastNameLabel} <span className="text-red-500">*</span>
           </label>
-          <div className="relative group">
-            {/* FIX: pointer-events-none */}
-            <User className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5 pointer-events-none z-10" />
+          <div className="relative">
+            <User className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
             <Input
               type="text"
               id="lastNameBasic"
@@ -3569,8 +3568,7 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
               onChange={(e) => updateField('lastName', e.target.value)}
               placeholder={dict.lastNamePlaceholder}
               disabled={isLoading}
-              /* FIX: relative z-10 touch-manipulation */
-              className={`relative z-10 touch-manipulation w-full pr-10 pl-3 py-3 border rounded-lg focus:ring-2 focus:outline-none transition-colors 
+              className={`w-full pr-10 pl-3 py-3 border rounded-lg focus:ring-2 focus:outline-none transition-colors 
                 ${isLoading ? 'bg-gray-100' : ''} 
                 ${
                   missingFields.includes(validationDict.fields.lastName)
@@ -3597,8 +3595,7 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
             updateField('language', e.target.value as 'he' | 'en')
           }
           disabled={isLoading}
-          /* FIX: touch-manipulation */
-          className="touch-manipulation w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-200 focus:border-teal-500 focus:outline-none bg-white relative z-10"
+          className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-200 focus:border-teal-500 focus:outline-none bg-white"
         >
           <option value="he">עברית</option>
           <option value="en">English</option>
@@ -3614,8 +3611,7 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
           type="button"
           onClick={handleRegisterSubmit}
           disabled={isLoading}
-          /* FIX: touch-manipulation */
-          className={`touch-manipulation w-full flex items-center gap-2 justify-center text-white font-medium px-4 py-2.5 rounded-lg transition-all 
+          className={`w-full flex items-center gap-2 justify-center text-white font-medium px-4 py-2.5 rounded-lg transition-all 
             ${
               isLoading
                 ? 'bg-gray-400 cursor-not-allowed'
@@ -3648,8 +3644,7 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
           onClick={prevStep}
           variant="ghost"
           disabled={isLoading}
-          /* FIX: touch-manipulation */
-          className="touch-manipulation text-xs text-gray-400 hover:text-gray-600"
+          className="text-xs text-gray-400 hover:text-gray-600"
         >
           <ArrowRight
             className={`h-3 w-3 ml-1 ${locale === 'en' ? 'transform rotate-180' : ''}`}
@@ -3918,10 +3913,7 @@ const EmailVerificationCodeStep: React.FC<EmailVerificationCodeStepProps> = ({
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   useEffect(() => {
-    // מנסה לפקס על השדה הראשון, אבל בעדינות כדי לא להקפיץ את המסך במובייל
-    setTimeout(() => {
-      inputRefs.current[0]?.focus();
-    }, 100);
+    inputRefs.current[0]?.focus();
   }, []);
 
   const handleChange = (element: HTMLInputElement, index: number) => {
@@ -3979,7 +3971,7 @@ const EmailVerificationCodeStep: React.FC<EmailVerificationCodeStepProps> = ({
 
       if (signInResult?.ok) {
         completeEmailVerification();
-        router.push(`/${locale}/auth/register`);
+        router.push('/auth/register');
       } else {
         throw new Error(
           dict.errors.autoSignInFailed.replace(
@@ -4031,6 +4023,7 @@ const EmailVerificationCodeStep: React.FC<EmailVerificationCodeStepProps> = ({
       animate="visible"
     >
       <motion.div variants={itemVariants}>
+        {/* UPDATED: Icon Color (Teal) */}
         <MailCheck className="h-12 w-12 text-teal-500 mx-auto mb-3" />
         <h2 className="text-2xl font-bold text-gray-800">{dict.title}</h2>
         <p className="text-gray-600 mt-2">
@@ -4086,9 +4079,8 @@ const EmailVerificationCodeStep: React.FC<EmailVerificationCodeStepProps> = ({
               ref={(el) => {
                 inputRefs.current[index] = el;
               }}
-              // FIX: Added 'relative z-20 touch-manipulation'
-              // Increased text size and height slightly for better hit area
-              className="relative z-20 touch-manipulation w-12 h-14 text-center text-xl font-semibold border-2 border-gray-200 focus:border-teal-500 focus:ring-4 focus:ring-teal-500/10 rounded-xl transition-all"
+              // UPDATED: Input Focus (Teal)
+              className="w-12 h-14 text-center text-xl font-semibold border-2 border-gray-200 focus:border-teal-500 focus:ring-4 focus:ring-teal-500/10 rounded-xl"
               disabled={isLoading || isResending}
               aria-label={`OTP digit ${index + 1}`}
               autoComplete="one-time-code"
@@ -4103,8 +4095,8 @@ const EmailVerificationCodeStep: React.FC<EmailVerificationCodeStepProps> = ({
             disabled={
               isLoading || isResending || otp.join('').length !== OTP_LENGTH
             }
-            // FIX: Added 'touch-manipulation'
-            className="touch-manipulation w-full py-6 text-lg bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 hover:from-teal-600 hover:via-orange-600 hover:to-amber-600 shadow-lg transition-all"
+            // UPDATED: Main Button Gradient (Teal -> Orange -> Amber)
+            className="w-full py-6 text-lg bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 hover:from-teal-600 hover:via-orange-600 hover:to-amber-600 shadow-lg transition-all"
           >
             {isLoading ? (
               <>
@@ -4128,8 +4120,8 @@ const EmailVerificationCodeStep: React.FC<EmailVerificationCodeStepProps> = ({
           variant="link"
           onClick={handleResendCode}
           disabled={isLoading || isResending}
-          // FIX: Added 'touch-manipulation'
-          className="touch-manipulation p-0 h-auto text-teal-600 hover:text-teal-700 font-semibold"
+          // UPDATED: Link Color (Teal)
+          className="p-0 h-auto text-teal-600 hover:text-teal-700 font-semibold"
         >
           {isResending ? (
             <>
@@ -4148,8 +4140,7 @@ const EmailVerificationCodeStep: React.FC<EmailVerificationCodeStepProps> = ({
           onClick={goBackToBasicInfo}
           variant="outline"
           disabled={isLoading || isResending}
-          // FIX: Added 'touch-manipulation'
-          className="touch-manipulation hover:bg-gray-50 border-gray-200"
+          className="hover:bg-gray-50 border-gray-200"
         >
           <ArrowRight
             className={`h-4 w-4 ml-2 ${locale === 'en' ? 'transform rotate-180' : ''}`}
@@ -6151,52 +6142,44 @@ const WelcomeStep: React.FC<WelcomeStepProps> = ({ dict, locale }) => {
 
   const containerVariants = {
     hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
+    visible: { 
+      opacity: 1, 
+      transition: { 
         staggerChildren: 0.1,
-        delayChildren: 0.2,
-      },
-    },
+        delayChildren: 0.2 
+      } 
+    }
   };
 
   const itemVariants = {
     hidden: { opacity: 0, y: 20 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: { duration: 0.5, ease: 'easeOut' },
-    },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" } }
   };
 
   return (
-    <motion.div
-      className="space-y-8 text-center isolate"
+    <motion.div 
+      className="space-y-8 text-center"
       variants={containerVariants}
       initial="hidden"
       animate="visible"
-      style={{ touchAction: 'manipulation' }}
     >
       {/* --- Icon Header --- */}
       <motion.div variants={itemVariants} className="flex justify-center mb-6">
         <div className="relative">
-          {/* UPDATED: Glow Effect (Rose/Orange) - Moved to negative z-index */}
-          <div
-            className="absolute inset-0 bg-rose-200/60 rounded-full blur-xl animate-pulse -z-10"
-            aria-hidden="true"
-          ></div>
-
+          {/* UPDATED: Glow Effect (Rose/Orange) */}
+          <div className="absolute inset-0 bg-rose-200/60 rounded-full blur-xl animate-pulse"></div>
+          
           {/* UPDATED: Card Background (White/Rose/Orange) */}
           <div className="relative w-24 h-24 rounded-3xl bg-gradient-to-br from-white to-rose-50 border border-rose-100 flex items-center justify-center shadow-xl transform rotate-3 transition-transform hover:rotate-6 duration-500">
             {/* UPDATED: Icon Color (Rose to match the "Personal" principle) */}
             <Heart className="h-10 w-10 text-rose-500 fill-rose-500 drop-shadow-sm" />
           </div>
-
+          
           {/* UPDATED: Decorative Element (Teal - for contrast) */}
-          <motion.div
+          <motion.div 
             className="absolute -top-3 -right-3 w-10 h-10 rounded-full bg-gradient-to-br from-teal-400 to-emerald-500 flex items-center justify-center text-white text-lg font-bold shadow-lg border-2 border-white"
             animate={{ y: [0, -5, 0] }}
-            transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+            transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
           >
             👋
           </motion.div>
@@ -6228,11 +6211,7 @@ const WelcomeStep: React.FC<WelcomeStepProps> = ({ dict, locale }) => {
           ) : (
             <>
               {/* Google SVG remains standard colors */}
-              <svg
-                className="h-6 w-6 flex-shrink-0 transition-transform group-hover:scale-110 duration-300"
-                viewBox="0 0 24 24"
-                aria-hidden="true"
-              >
+              <svg className="h-6 w-6 flex-shrink-0 transition-transform group-hover:scale-110 duration-300" viewBox="0 0 24 24" aria-hidden="true">
                 <path
                   d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
                   fill="#4285F4"
@@ -6266,11 +6245,9 @@ const WelcomeStep: React.FC<WelcomeStepProps> = ({ dict, locale }) => {
         >
           {/* Shine Effect */}
           <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite] pointer-events-none"></span>
-
+          
           <Mail className="h-5 w-5 text-white" />
-          <span className="font-semibold text-base tracking-wide">
-            {dict.emailButton}
-          </span>
+          <span className="font-semibold text-base tracking-wide">{dict.emailButton}</span>
           {isRTL ? (
             <ArrowLeft className="h-5 w-5 text-white opacity-70 group-hover:opacity-100 group-hover:-translate-x-1 transition-all duration-300" />
           ) : (
@@ -6280,12 +6257,13 @@ const WelcomeStep: React.FC<WelcomeStepProps> = ({ dict, locale }) => {
       </motion.div>
 
       {/* --- Footer Links --- */}
-      <motion.div
-        variants={itemVariants}
+      <motion.div 
+        variants={itemVariants} 
         className="pt-6 border-t border-gray-100 relative z-20"
       >
         <p className="text-gray-500 text-sm">
-          {dict.signInPrompt} {/* UPDATED: Link Gradient (Teal -> Orange) */}
+          {dict.signInPrompt}{' '}
+          {/* UPDATED: Link Gradient (Teal -> Orange) */}
           <Link
             href="/auth/signin"
             className="font-bold text-transparent bg-clip-text bg-gradient-to-r from-teal-600 to-orange-600 hover:from-teal-700 hover:to-orange-700 hover:underline transition-all"

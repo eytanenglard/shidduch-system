@@ -286,7 +286,15 @@ const VerifyPhoneClient: React.FC<VerifyPhoneClientProps> = ({
       });
     }, 1000);
   }, []);
-
+  useEffect(() => {
+    if (session?.user) {
+      const user = session.user as any;
+      // אם המשתמש כבר מאומת טלפונית, אין לו מה לחפש פה
+      if (user.isPhoneVerified) {
+        router.push(`/${locale}/profile`);
+      }
+    }
+  }, [session, router, locale]);
   useEffect(() => {
     startResendTimer();
     return () => {

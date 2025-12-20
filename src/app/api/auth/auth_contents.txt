@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\auth
-# Generated on: 2025-12-15 15:08:49
+# Generated on: 2025-12-18 21:24:33
 # Filter: Only content of code files (.bat, .c, .cfg, .conf, .cpp, .cs, .css, .go, .h, .html, .ini, .java, .js, .json, .jsx, .kt, .less, .md, .php, .py, .rb, .rs, .scss, .sh, .sql, .swift, .ts, .tsx, .txt, .xml, .yaml, .yml) is included.
 ################################################################################
 
@@ -140,13 +140,13 @@ Content:
 
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
-import { authOptions } from '@/lib/auth'; // ודא שהנתיב הזה נכון ומצביע על קובץ authOptions שלך
-import prisma from '@/lib/prisma'; // ודא שהנתיב הזה נכון
+import { authOptions } from '@/lib/auth';
+import prisma from '@/lib/prisma';
 import { Prisma } from '@prisma/client';
 import { z } from 'zod';
 import { Gender, UserStatus, Language } from '@prisma/client'; 
 
-// Zod Schema - כולל phone לאימות וגם את שדות הדיוור החדשים
+// Zod Schema - כולל phone, שדות דיוור, ו-about
 const completeProfileSchema = z.object({
   firstName: z.string().min(1, "First name is required").max(100, "First name too long"),
   lastName: z.string().min(1, "Last name is required").max(100, "Last name too long"),
@@ -166,12 +166,15 @@ const completeProfileSchema = z.object({
   height: z.coerce.number().int().min(120).max(220).optional(),
   occupation: z.string().optional(),
   education: z.string().optional(),
-    religiousLevel: z.string().optional(),
+  religiousLevel: z.string().optional(),
   language: z.nativeEnum(Language).optional().default(Language.he),
 
-  // --- הוספת שדות הדיוור לסכמה (כדי שלא ייזרקו ע"י Zod) ---
+  // שדות דיוור
   engagementEmailsConsent: z.boolean().optional().default(false),
   promotionalEmailsConsent: z.boolean().optional().default(false),
+
+  // ========== הוספה: שדה הסיפור שלי ==========
+  about: z.string().max(2000, "About text is too long").optional(),
 });
 
 export async function POST(req: Request) {
@@ -182,7 +185,6 @@ export async function POST(req: Request) {
   req.headers.forEach((value, key) => {
     headersObject[key] = value;
   });
-  // console.log("[API /api/auth/complete-profile] Request Headers:", JSON.stringify(headersObject, null, 2)); // אפשר להוריד בלוגים עמוסים
 
   try {
     console.log("[API /api/auth/complete-profile] Attempting to get session using getServerSession...");
@@ -201,7 +203,6 @@ export async function POST(req: Request) {
     let body;
     try {
         body = await req.json();
-        // console.log("[API /api/auth/complete-profile] Request body parsed successfully:", JSON.stringify(body, null, 2));
     } catch (parseError) {
         console.error("[API /api/auth/complete-profile] ERROR: Failed to parse request body as JSON:", parseError);
         return NextResponse.json({ error: 'Invalid request body - Must be JSON' }, { status: 400 });
@@ -228,14 +229,15 @@ export async function POST(req: Request) {
         height,
         occupation,
         education,
-              religiousLevel,
-              language,
-        // חילוץ שדות הדיוור
+        religiousLevel,
+        language,
         engagementEmailsConsent,
-        promotionalEmailsConsent
+        promotionalEmailsConsent,
+        about,  // ========== הוספה ==========
     } = validation.data;
 
     console.log(`[API /api/auth/complete-profile] Consents received -> Engagement: ${engagementEmailsConsent}, Promotional: ${promotionalEmailsConsent}`);
+    console.log(`[API /api/auth/complete-profile] About text length: ${about?.length || 0} characters`);
 
     console.log(`[API /api/auth/complete-profile] Attempting to update profile and user details for user ${userId} in a transaction.`);
 
@@ -253,7 +255,8 @@ export async function POST(req: Request) {
           height: height,
           occupation: occupation,
           education: education,
-                    religiousLevel: religiousLevel,
+          religiousLevel: religiousLevel,
+          about: about,  // ========== הוספה ==========
 
           // הגדרות ברירת מחדל
           isProfileVisible: true,
@@ -266,7 +269,8 @@ export async function POST(req: Request) {
           height: height,
           occupation: occupation,
           education: education,
-                    religiousLevel: religiousLevel,
+          religiousLevel: religiousLevel,
+          about: about,  // ========== הוספה ==========
 
           updatedAt: new Date(),
         },
@@ -274,8 +278,6 @@ export async function POST(req: Request) {
       console.log(`[API /api/auth/complete-profile] Profile data upserted.`);
 
       // 2. בדיקה האם יש לעדכן את תאריך אישור התנאים
-      // אם המשתמש כבר אישר בעבר (למשל נרשם במייל רגיל), לא ניגע בזה.
-      // אם המשתמש נרשם בגוגל וישר הגיע לכאן, זה הזמן להחתים אותו.
       const currentUser = await tx.user.findUnique({ 
           where: { id: userId }, 
           select: { termsAndPrivacyAcceptedAt: true } 
@@ -286,7 +288,7 @@ export async function POST(req: Request) {
           console.log(`[API /api/auth/complete-profile] User accepts terms now. Setting timestamp.`);
       }
 
-      // 3. עדכון המשתמש (טבלת User) - כולל שדות הדיוור!
+      // 3. עדכון המשתמש (טבלת User)
       console.log(`[API /api/auth/complete-profile] Updating User record (names, phone, status, consents)...`);
       const user = await tx.user.update({
         where: { id: userId },
@@ -295,17 +297,17 @@ export async function POST(req: Request) {
           lastName: lastName,
           phone: phone,
           isProfileComplete: true,
-         language: language,  // <--- הוסף שורה זו לעדכון השפה ב-DB
+          language: language,
 
           // מעבירים את הסטטוס למצב הבא (אימות טלפון)
           status: UserStatus.PENDING_PHONE_VERIFICATION,
           updatedAt: new Date(),
           
-          // --- עדכון שדות הדיוור ---
+          // עדכון שדות הדיוור
           engagementEmailsConsent: engagementEmailsConsent,
           promotionalEmailsConsent: promotionalEmailsConsent,
           
-          // --- עדכון תאריך אישור תנאים (אם רלוונטי) ---
+          // עדכון תאריך אישור תנאים (אם רלוונטי)
           ...(termsDateToSet && { termsAndPrivacyAcceptedAt: termsDateToSet }),
         },
          select: {
@@ -318,8 +320,8 @@ export async function POST(req: Request) {
              role: true,
              status: true,
              phone: true,
-             engagementEmailsConsent: true, // מחזירים לבדיקה
-             promotionalEmailsConsent: true // מחזירים לבדיקה
+             engagementEmailsConsent: true,
+             promotionalEmailsConsent: true
          }
       });
       
@@ -738,20 +740,19 @@ Content:
 // app/api/auth/register/route.ts
 
 import { NextRequest, NextResponse } from "next/server";
-import { PrismaClient, UserRole, UserStatus, Prisma, VerificationType, UserSource, Language } from '@prisma/client';
+import { UserRole, UserStatus, Prisma, VerificationType, UserSource, Language } from '@prisma/client';
 import { hash } from 'bcryptjs';
 import { emailService } from '@/lib/email/emailService';
 import { VerificationService } from '@/lib/services/verificationService'; 
 import { applyRateLimit } from '@/lib/rate-limiter';
-// ========== 🔴 הוספה חדשה: ייבוא פונקציות רפרל ==========
+// ========== 🔴 תיקון קריטי: שימוש ב-singleton של Prisma ==========
+import prisma from '@/lib/prisma';
+// ==================================================================
 import { 
   linkUserToReferral, 
   parseReferralCookie, 
   REFERRAL_COOKIE_NAME 
 } from '@/lib/services/referralService';
-// =========================================================
-
-const prisma = new PrismaClient();
 
 type LogMetadata = {
   userId?: string;
@@ -773,14 +774,12 @@ type LogMetadata = {
   hasLastName?: boolean;
   verificationId?: string;
   language?: 'he' | 'en';
-  // ========== שדות רפרל ==========
   referralCode?: string;
   referralId?: string;
   referrerId?: string;
   referralLinked?: boolean;
-  expiresAt?: string; // 🔴 תיקון: הוספת שדה חסר
-  error?: string; // 🔴 תיקון: הוספת שדה חסר
-  // ================================
+  expiresAt?: string;
+  error?: string;
 };
 
 const logger = {
@@ -814,7 +813,7 @@ interface InitialRegistrationData {
   language?: Language;
 }
 
-function handleError(error: unknown): { message: string; status: number } {
+function handleError(error: unknown): { message: string; status: number; errorCode?: string } {
     const logMeta: LogMetadata = { 
         errorContext: "Inside handleError before processing",
         timestamp: new Date().toISOString(),
@@ -845,33 +844,56 @@ function handleError(error: unknown): { message: string; status: number } {
         case 'P2002': {
           const target = error.meta?.target as string[] | undefined;
           if (target?.includes('email')) {
-            return { message: 'משתמש עם כתובת אימייל זו כבר קיים במערכת.', status: 409 };
+            return { message: 'משתמש עם כתובת אימייל זו כבר קיים במערכת.', status: 409, errorCode: 'EMAIL_EXISTS' };
           }
-          return { message: `משתמש עם פרטים אלה כבר קיים במערכת (קוד ${error.code}).`, status: 409 };
+          return { message: `משתמש עם פרטים אלה כבר קיים במערכת (קוד ${error.code}).`, status: 409, errorCode: error.code };
         }
         case 'P2003': {
             const fieldName = error.meta?.field_name as string | undefined;
-            return { message: `שגיאת תלות בנתונים (שדה: ${fieldName || 'לא ידוע'}). אנא נסה שנית.`, status: 500};
+            return { message: `שגיאת תלות בנתונים (שדה: ${fieldName || 'לא ידוע'}). אנא נסה שנית.`, status: 500, errorCode: error.code };
         }
-        case 'P2014': return { message: 'שגיאה בנתונים שהוזנו.', status: 400 };
+        case 'P2014': return { message: 'שגיאה בנתונים שהוזנו.', status: 400, errorCode: error.code };
+        // ========== 🔴 הוספה: טיפול בשגיאות חיבור ==========
+        case 'P1001': 
+        case 'P1002':
+        case 'P1003':
+        case 'P1008':
+        case 'P1017':
+            return { 
+              message: 'שגיאת חיבור לשרת. אנא נסה שנית בעוד מספר שניות או הירשם באמצעות חשבון Google.', 
+              status: 503, 
+              errorCode: 'DB_CONNECTION_ERROR' 
+            };
+        // =====================================================
         default: 
-            return { message: `שגיאה בשמירת הנתונים (קוד שגיאת DB: ${error.code}).`, status: 500 };
+            return { message: `שגיאה בשמירת הנתונים (קוד שגיאת DB: ${error.code}).`, status: 500, errorCode: error.code };
       }
     }
+    
+    // ========== 🔴 הוספה: טיפול בשגיאות חיבור כלליות ==========
+    if (error instanceof Prisma.PrismaClientInitializationError) {
+      return { 
+        message: 'שגיאת חיבור לשרת. אנא נסה שנית בעוד מספר שניות או הירשם באמצעות חשבון Google.', 
+        status: 503, 
+        errorCode: 'DB_INIT_ERROR' 
+      };
+    }
+    // ==========================================================
+    
     if (error instanceof Error) {
        if (error.message === 'משתמש עם כתובת אימייל זו כבר קיים במערכת.') {
-           return { message: error.message, status: 409 };
+           return { message: error.message, status: 409, errorCode: 'EMAIL_EXISTS' };
        }
        if (['חסרים פרטים חובה', 'כתובת אימייל לא תקינה', 'הסיסמה חייבת להכיל לפחות 8 תווים, אות גדולה, אות קטנה ומספר'].includes(error.message)) {
-           return { message: error.message, status: 400 };
+           return { message: error.message, status: 400, errorCode: 'VALIDATION_ERROR' };
        }
        if (error.message.includes('אירעה שגיאה ביצירת קוד אימות') || 
            (error.cause instanceof Prisma.PrismaClientKnownRequestError && error.cause.code === 'P2003')) {
-            return { message: 'אירעה שגיאה ביצירת רשומת האימות עקב בעיית תלות. אנא נסה שנית.', status: 500 };
+            return { message: 'אירעה שגיאה ביצירת רשומת האימות עקב בעיית תלות. אנא נסה שנית.', status: 500, errorCode: 'VERIFICATION_ERROR' };
        }
-      return { message: error.message, status: 400 }; 
+      return { message: error.message, status: 400, errorCode: 'GENERAL_ERROR' }; 
     }
-    return { message: 'אירעה שגיאה בלתי צפויה.', status: 500 };
+    return { message: 'אירעה שגיאה בלתי צפויה.', status: 500, errorCode: 'UNKNOWN_ERROR' };
 }
 
 
@@ -885,14 +907,13 @@ export async function POST(req: NextRequest) {
   const url = new URL(req.url);
   const locale = url.searchParams.get('locale') === 'en' ? 'en' : 'he';
 
-  // ========== 🔴 הוספה חדשה: קריאת cookie רפרל ==========
+  // קריאת cookie רפרל
   let referralData: { referralId: string; code: string; expiresAt: string } | null = null;
   try {
     const refCookie = req.cookies.get(REFERRAL_COOKIE_NAME)?.value;
     if (refCookie) {
       referralData = parseReferralCookie(refCookie);
       if (referralData) {
-        // בדוק שהרפרל לא פג תוקף
         if (new Date(referralData.expiresAt) < new Date()) {
           logger.info('Referral cookie expired, ignoring', { 
             referralCode: referralData.code,
@@ -911,9 +932,7 @@ export async function POST(req: NextRequest) {
     logger.error('Error parsing referral cookie', { 
       errorMessage: refError instanceof Error ? refError.message : String(refError) 
     });
-    // ממשיכים בלי רפרל - לא עוצרים את ההרשמה
   }
-  // ======================================================
 
   try {
     const body: InitialRegistrationData = await req.json();
@@ -923,9 +942,7 @@ export async function POST(req: NextRequest) {
       lastName: body.lastName,
       hasPassword: !!body.password,
       language: body.language,
-      // ========== 🔴 הוספה חדשה: לוג רפרל ==========
       referralCode: referralData?.code,
-      // =============================================
     });
 
     if (!body.email || !body.password || !body.firstName || !body.lastName) {
@@ -1002,7 +1019,7 @@ export async function POST(req: NextRequest) {
 
     logger.info('Database transaction completed successfully', { userId: result.user.id });
 
-    // ========== 🔴 הוספה חדשה: קישור המשתמש לרפרל ==========
+    // קישור המשתמש לרפרל
     let referralLinked = false;
     if (referralData) {
       try {
@@ -1032,7 +1049,6 @@ export async function POST(req: NextRequest) {
           });
         }
       } catch (refLinkError) {
-        // לא עוצרים את ההרשמה בגלל שגיאת רפרל
         logger.error('Error linking user to referral', { 
           userId: result.user.id,
           referralId: referralData.referralId,
@@ -1040,7 +1056,6 @@ export async function POST(req: NextRequest) {
         });
       }
     }
-    // ======================================================
     
     let emailSentSuccess = false;
     const emailOtpExpiryText = locale === 'he' ? "שעה אחת" : "1 hour"; 
@@ -1077,10 +1092,8 @@ export async function POST(req: NextRequest) {
 
     logger.info('Initial registration API call completed, user needs to verify email with OTP', { 
       userId: result.user.id,
-      // ========== 🔴 הוספה חדשה: לוג סיום עם רפרל ==========
       referralLinked,
       referralCode: referralData?.code,
-      // =====================================================
     });
 
     return NextResponse.json(
@@ -1089,9 +1102,7 @@ export async function POST(req: NextRequest) {
         message: responseMessage,
         email: result.user.email, 
         userId: result.user.id,
-        // ========== 🔴 הוספה חדשה: החזרת מידע רפרל ==========
         referralLinked,
-        // ====================================================
       },
       { status: 201 }
     );
@@ -1121,7 +1132,7 @@ export async function POST(req: NextRequest) {
     
     logger.error('Initial registration failed', logMetaForCatch);
 
-    const { message, status } = handleError(error);
+    const { message, status, errorCode } = handleError(error);
 
     const responseErrorDetails = process.env.NODE_ENV === 'development' ? {
         name: logMetaForCatch.errorName,
@@ -1135,6 +1146,7 @@ export async function POST(req: NextRequest) {
       {
         success: false,
         error: message, 
+        errorCode, // ========== 🔴 הוספה: קוד שגיאה לזיהוי בצד הלקוח ==========
         details: responseErrorDetails
       },
       { status }
