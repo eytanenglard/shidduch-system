@@ -12,6 +12,26 @@ import React, {
 import { Gender, UserStatus, UserSource } from '@prisma/client';
 import type { User as SessionUserType } from '@/types/next-auth';
 
+// ============================================================================
+// TYPES
+// ============================================================================
+
+export type SubmissionStatus =
+  | 'idle'
+  | 'acceptingTerms'
+  | 'savingProfile'
+  | 'uploadingPhotos'
+  | 'sendingCode'
+  | 'redirecting'
+  | 'error';
+
+export interface SubmissionState {
+  isSubmitting: boolean;
+  status: SubmissionStatus;
+  loadingText: string;
+  loadingSubtext?: string;
+}
+
 export interface RegistrationData {
   email: string;
   password: string;
@@ -42,6 +62,10 @@ export interface RegistrationData {
   emailForVerification: string | null;
 }
 
+// ============================================================================
+// INITIAL STATE
+// ============================================================================
+
 const initialRegistrationData: RegistrationData = {
   email: '',
   password: '',
@@ -71,6 +95,17 @@ const initialRegistrationData: RegistrationData = {
   emailForVerification: null,
 };
 
+const initialSubmissionState: SubmissionState = {
+  isSubmitting: false,
+  status: 'idle',
+  loadingText: '',
+  loadingSubtext: undefined,
+};
+
+// ============================================================================
+// CONTEXT TYPE
+// ============================================================================
+
 interface RegistrationContextType {
   data: RegistrationData;
   setData: React.Dispatch<React.SetStateAction<RegistrationData>>;
@@ -91,7 +126,17 @@ interface RegistrationContextType {
   proceedToEmailVerification: (email: string) => void;
   completeEmailVerification: () => void;
   exitEmailVerification: () => void;
+  
+  // Submission state management
+  submission: SubmissionState;
+  startSubmission: (text: string, subtext?: string) => void;
+  updateSubmission: (status: SubmissionStatus, text: string, subtext?: string) => void;
+  endSubmission: (error?: boolean) => void;
 }
+
+// ============================================================================
+// CONTEXT
+// ============================================================================
 
 const RegistrationContext = createContext<RegistrationContextType | undefined>(undefined);
 
@@ -99,6 +144,11 @@ export const RegistrationProvider: React.FC<{ children: ReactNode }> = ({
   children,
 }) => {
   const [data, setData] = useState<RegistrationData>(initialRegistrationData);
+  const [submission, setSubmission] = useState<SubmissionState>(initialSubmissionState);
+
+  // ============================================================================
+  // FORM FIELD HANDLERS
+  // ============================================================================
 
   const updateField = useCallback(
     <K extends keyof RegistrationData>(
@@ -124,6 +174,7 @@ export const RegistrationProvider: React.FC<{ children: ReactNode }> = ({
 
   const resetForm = useCallback(() => {
     setData(initialRegistrationData);
+    setSubmission(initialSubmissionState);
   }, []);
   
   const setGoogleSignup = useCallback(
@@ -140,6 +191,10 @@ export const RegistrationProvider: React.FC<{ children: ReactNode }> = ({
     },
     []
   );
+
+  // ============================================================================
+  // SESSION INITIALIZATION
+  // ============================================================================
   
   const initializeFromSession = useCallback((sessionUser: SessionUserType) => {
     setData((prevData) => {
@@ -211,6 +266,10 @@ export const RegistrationProvider: React.FC<{ children: ReactNode }> = ({
     });
   }, []);
 
+  // ============================================================================
+  // EMAIL VERIFICATION HANDLERS
+  // ============================================================================
+
   const proceedToEmailVerification = useCallback((emailToVerify: string) => {
     setData((prev) => ({
       ...prev,
@@ -238,6 +297,45 @@ export const RegistrationProvider: React.FC<{ children: ReactNode }> = ({
     }));
   }, []);
 
+  // ============================================================================
+  // SUBMISSION STATE HANDLERS
+  // ============================================================================
+
+  const startSubmission = useCallback((text: string, subtext?: string) => {
+    setSubmission({
+      isSubmitting: true,
+      status: 'savingProfile',
+      loadingText: text,
+      loadingSubtext: subtext,
+    });
+  }, []);
+
+  const updateSubmission = useCallback((
+    status: SubmissionStatus, 
+    text: string, 
+    subtext?: string
+  ) => {
+    setSubmission((prev) => ({
+      ...prev,
+      status,
+      loadingText: text,
+      loadingSubtext: subtext,
+    }));
+  }, []);
+
+  const endSubmission = useCallback((error?: boolean) => {
+    setSubmission({
+      isSubmitting: false,
+      status: error ? 'error' : 'idle',
+      loadingText: '',
+      loadingSubtext: undefined,
+    });
+  }, []);
+
+  // ============================================================================
+  // CONTEXT VALUE
+  // ============================================================================
+
   const value: RegistrationContextType = {
     data,
     setData,
@@ -251,6 +349,11 @@ export const RegistrationProvider: React.FC<{ children: ReactNode }> = ({
     proceedToEmailVerification,
     completeEmailVerification,
     exitEmailVerification,
+    // Submission
+    submission,
+    startSubmission,
+    updateSubmission,
+    endSubmission,
   };
 
   return (

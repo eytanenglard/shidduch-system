@@ -32,6 +32,7 @@ const RegisterStepsContent: React.FC<{
     initializeFromSession,
     resetForm,
     goToStep,
+    submission, // מצב ה-submission מה-context
   } = useRegistration();
   const router = useRouter();
   const { data: session, status: sessionStatus } = useSession();
@@ -109,6 +110,22 @@ const RegisterStepsContent: React.FC<{
     locale,
   ]);
 
+  // ============================================================================
+  // אם יש submission פעיל - מציגים מסך טעינה מלא
+  // ============================================================================
+  if (submission.isSubmitting) {
+    return (
+      <StandardizedLoadingSpinner
+        text={submission.loadingText}
+        subtext={submission.loadingSubtext}
+      />
+    );
+  }
+
+  // ============================================================================
+  // RENDER STEP
+  // ============================================================================
+
   const renderStep = (): React.ReactNode => {
     if (sessionStatus === 'loading') {
       return (
@@ -168,6 +185,10 @@ const RegisterStepsContent: React.FC<{
     }
   };
 
+  // ============================================================================
+  // PAGE TITLE & DESCRIPTION
+  // ============================================================================
+
   let pageTitle = dict.headers.registerTitle;
   let stepDescription = dict.headers.welcomeDescription;
   let currentProgressBarStep = 0;
@@ -208,6 +229,10 @@ const RegisterStepsContent: React.FC<{
       showProgressBar = true;
     }
   }
+
+  // ============================================================================
+  // MAIN RENDER
+  // ============================================================================
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-slate-50 via-teal-50/40 to-orange-50/40 p-4 sm:p-8">

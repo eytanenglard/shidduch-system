@@ -62,9 +62,6 @@ import { toast } from 'sonner';
 // Custom Components
 import PhoneNumberInput from '../PhoneNumberInput';
 import ConsentCheckbox from '../ConsentCheckbox';
-import FullScreenLoadingOverlay, {
-  LoadingStep,
-} from '../FullScreenLoadingOverlay';
 
 // Types
 import type { RegisterStepsDict } from '@/types/dictionaries/auth';
@@ -219,15 +216,6 @@ const itemVariants = {
 // MAIN COMPONENT
 // ============================================================================
 
-type SubmissionStatus =
-  | 'idle'
-  | 'acceptingTerms'
-  | 'savingProfile'
-  | 'uploadingPhotos'
-  | 'sendingCode'
-  | 'redirecting'
-  | 'error';
-
 interface PersonalDetailsStepProps {
   personalDetailsDict: RegisterStepsDict['steps']['personalDetails'];
   optionalInfoDict: RegisterStepsDict['steps']['optionalInfo'];
@@ -251,7 +239,14 @@ export default function PersonalDetailsStep({
   validationDict,
   locale,
 }: PersonalDetailsStepProps) {
-  const { data: registrationState, updateField, prevStep } = useRegistration();
+  const {
+    data: registrationState,
+    updateField,
+    prevStep,
+    startSubmission,
+    updateSubmission,
+    endSubmission,
+  } = useRegistration();
   const { data: session } = useSession();
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -271,8 +266,6 @@ export default function PersonalDetailsStep({
 
   const [isLoading, setIsLoading] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
-  const [submissionStatus, setSubmissionStatus] =
-    useState<SubmissionStatus>('idle');
   const [missingFields, setMissingFields] = useState<string[]>([]);
 
   interface UploadedPhoto {
@@ -557,16 +550,35 @@ export default function PersonalDetailsStep({
 
     setIsLoading(true);
     try {
+      // Start the full-screen loading via context
       if (!userHasAlreadyConsented) {
-        setSubmissionStatus('acceptingTerms');
+        startSubmission(
+          optionalInfoDict.loadingOverlay?.acceptingTerms ||
+            'מאשר תנאי שימוש...',
+          optionalInfoDict.loadingOverlay?.subtitle ||
+            'זה לוקח רק מספר שניות...'
+        );
         const consentResponse = await fetch('/api/user/accept-terms', {
           method: 'POST',
         });
         if (!consentResponse.ok)
           throw new Error(personalDetailsDict.errors.consentApiError);
+      } else {
+        startSubmission(
+          optionalInfoDict.loadingOverlay?.savingProfile ||
+            optionalInfoDict.status.saving,
+          optionalInfoDict.loadingOverlay?.subtitle ||
+            'זה לוקח רק מספר שניות...'
+        );
       }
 
-      setSubmissionStatus('savingProfile');
+      updateSubmission(
+        'savingProfile',
+        optionalInfoDict.loadingOverlay?.savingProfile ||
+          optionalInfoDict.status.saving,
+        optionalInfoDict.loadingOverlay?.savingProfileSubtext
+      );
+
       const profileData = {
         firstName: registrationState.firstName,
         lastName: registrationState.lastName,
@@ -575,7 +587,7 @@ export default function PersonalDetailsStep({
         birthDate: registrationState.birthDate,
         maritalStatus: registrationState.maritalStatus,
         religiousLevel: registrationState.religiousLevel,
-        city: registrationState.city, // Added city
+        city: registrationState.city,
         height: registrationState.height,
         occupation: registrationState.occupation,
         education: registrationState.education,
@@ -596,11 +608,20 @@ export default function PersonalDetailsStep({
       }
 
       if (uploadedPhotos.length > 0) {
-        setSubmissionStatus('uploadingPhotos');
+        updateSubmission(
+          'uploadingPhotos',
+          personalDetailsDict.photos?.uploadingPhotos || 'מעלה תמונות...'
+        );
         await uploadPhotosToServer();
       }
 
-      setSubmissionStatus('sendingCode');
+      updateSubmission(
+        'sendingCode',
+        optionalInfoDict.loadingOverlay?.sendingCode ||
+          optionalInfoDict.status.sendingCode,
+        optionalInfoDict.loadingOverlay?.sendingCodeSubtext
+      );
+
       const sendCodeResponse = await fetch('/api/auth/send-phone-code', {
         method: 'POST',
       });
@@ -609,884 +630,809 @@ export default function PersonalDetailsStep({
         throw new Error(errorData.error || optionalInfoDict.errors.default);
       }
 
-      setSubmissionStatus('redirecting');
+      updateSubmission(
+        'redirecting',
+        optionalInfoDict.loadingOverlay?.redirecting || 'מעביר לאימות טלפון...'
+      );
+
       router.push(`/${locale}/auth/verify-phone`);
     } catch (err) {
+      endSubmission(true);
       setApiError(
         err instanceof Error ? err.message : optionalInfoDict.errors.default
       );
       setIsLoading(false);
-      setSubmissionStatus('error');
     }
   };
 
-  const loadingSteps: LoadingStep[] = useMemo(() => {
-    const steps: LoadingStep[] = [];
-    if (!userHasAlreadyConsented) {
-      steps.push({
-        id: 'acceptingTerms',
-        text:
-          optionalInfoDict.loadingOverlay?.acceptingTerms ||
-          'מאשר תנאי שימוש...',
-      });
-    }
-    steps.push({
-      id: 'savingProfile',
-      text:
-        optionalInfoDict.loadingOverlay?.savingProfile ||
-        optionalInfoDict.status.saving,
-      subtext: optionalInfoDict.loadingOverlay?.savingProfileSubtext,
-    });
-    if (uploadedPhotos.length > 0) {
-      steps.push({
-        id: 'uploadingPhotos',
-        text: personalDetailsDict.photos?.uploadingPhotos || 'מעלה תמונות...',
-      });
-    }
-    steps.push({
-      id: 'sendingCode',
-      text:
-        optionalInfoDict.loadingOverlay?.sendingCode ||
-        optionalInfoDict.status.sendingCode,
-      subtext: optionalInfoDict.loadingOverlay?.sendingCodeSubtext,
-    });
-    steps.push({
-      id: 'redirecting',
-      text:
-        optionalInfoDict.loadingOverlay?.redirecting || 'מעביר לאימות טלפון...',
-    });
-    return steps;
-  }, [
-    userHasAlreadyConsented,
-    optionalInfoDict,
-    uploadedPhotos.length,
-    personalDetailsDict.photos,
-  ]);
-
   return (
-    <>
-      <FullScreenLoadingOverlay
-        isVisible={
-          isLoading &&
-          submissionStatus !== 'idle' &&
-          submissionStatus !== 'error'
-        }
-        currentStepId={submissionStatus}
-        steps={loadingSteps}
-        dict={{
-          title: optionalInfoDict.loadingOverlay?.title || 'מאמתים את הפרטים',
-          subtitle:
-            optionalInfoDict.loadingOverlay?.subtitle ||
-            'זה לוקח רק מספר שניות, נא לא לסגור את החלון.',
-        }}
-        locale={locale}
-      />
-
+    <motion.div
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+      className="space-y-8"
+    >
       <motion.div
-        variants={containerVariants}
-        initial="hidden"
-        animate="visible"
-        className="space-y-8"
+        variants={itemVariants}
+        className="text-center p-4 bg-gradient-to-r from-teal-50 via-orange-50 to-rose-50 rounded-2xl border border-teal-100"
       >
-        <motion.div
-          variants={itemVariants}
-          className="text-center p-4 bg-gradient-to-r from-teal-50 via-orange-50 to-rose-50 rounded-2xl border border-teal-100"
-        >
-          <div className="flex items-center justify-center gap-2 mb-2">
-            <Sparkles className="w-5 h-5 text-teal-500" />
-            <h2 className="text-lg font-bold text-gray-800">
-              {personalDetailsDict.title}
-            </h2>
-            <Heart className="w-5 h-5 text-rose-500" />
-          </div>
-          <p className="text-sm text-gray-600 leading-relaxed">
-            {personalDetailsDict.subtitle}
-          </p>
-        </motion.div>
+        <div className="flex items-center justify-center gap-2 mb-2">
+          <Sparkles className="w-5 h-5 text-teal-500" />
+          <h2 className="text-lg font-bold text-gray-800">
+            {personalDetailsDict.title}
+          </h2>
+          <Heart className="w-5 h-5 text-rose-500" />
+        </div>
+        <p className="text-sm text-gray-600 leading-relaxed">
+          {personalDetailsDict.subtitle}
+        </p>
+      </motion.div>
 
-        <AnimatePresence>
-          {(apiError || missingFields.length > 0) && (
-            <motion.div
-              initial={{ opacity: 0, y: -10, height: 0 }}
-              animate={{ opacity: 1, y: 0, height: 'auto' }}
-              exit={{ opacity: 0, y: -10, height: 0 }}
-              className="mb-6"
+      <AnimatePresence>
+        {(apiError || missingFields.length > 0) && (
+          <motion.div
+            initial={{ opacity: 0, y: -10, height: 0 }}
+            animate={{ opacity: 1, y: 0, height: 'auto' }}
+            exit={{ opacity: 0, y: -10, height: 0 }}
+            className="mb-6"
+          >
+            <Alert
+              variant="destructive"
+              className="border-2 bg-red-50/80 border-red-200"
             >
-              <Alert
-                variant="destructive"
-                className="border-2 bg-red-50/80 border-red-200"
-              >
-                <div className="flex items-start gap-3">
-                  <div className="p-2 bg-red-100 rounded-lg shrink-0">
-                    {apiError ? (
-                      <AlertCircle className="h-5 w-5 text-red-600" />
-                    ) : (
-                      <ListChecks className="h-5 w-5 text-red-600" />
-                    )}
-                  </div>
-                  <div className="w-full">
-                    {apiError ? (
-                      <AlertDescription className="text-sm font-medium pt-1">
-                        {apiError}
-                      </AlertDescription>
-                    ) : (
-                      <>
-                        <AlertTitle className="text-red-900 font-bold mb-2">
-                          {validationDict.title}
-                        </AlertTitle>
-                        <AlertDescription className="text-red-800 text-sm">
-                          <p className="mb-2 font-medium">
-                            {validationDict.pleaseFill}
-                          </p>
-                          <ul className="list-disc list-inside space-y-1 opacity-90 pr-2 rtl:pr-2 rtl:pl-0 ltr:pl-2">
-                            {missingFields.map((field, i) => (
-                              <li key={i}>{field}</li>
-                            ))}
-                          </ul>
-                        </AlertDescription>
-                      </>
-                    )}
-                  </div>
+              <div className="flex items-start gap-3">
+                <div className="p-2 bg-red-100 rounded-lg shrink-0">
+                  {apiError ? (
+                    <AlertCircle className="h-5 w-5 text-red-600" />
+                  ) : (
+                    <ListChecks className="h-5 w-5 text-red-600" />
+                  )}
                 </div>
-              </Alert>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        <div className="space-y-6">
-          <SectionHeader
-            icon={<User className="w-5 h-5" />}
-            title={isRTL ? 'פרטים אישיים' : 'Personal Information'}
-            gradient="from-teal-500 to-cyan-500"
-          />
-
-          <div className="grid grid-cols-2 gap-4">
-            <motion.div variants={itemVariants} className="space-y-2">
-              <Label
-                htmlFor="firstName"
-                className="text-sm font-semibold text-gray-700 flex items-center"
-              >
-                {personalDetailsDict.firstNameLabel}{' '}
-                <span className="text-red-500 mr-1">*</span>
-              </Label>
-              <FieldWrapper
-                icon={<Edit3 className="h-5 w-5" />}
-                hasValue={!!registrationState.firstName}
-              >
-                <Input
-                  id="firstName"
-                  type="text"
-                  value={registrationState.firstName}
-                  onChange={(e) => {
-                    updateField('firstName', e.target.value);
-                    if (e.target.value.trim()) setFirstNameError('');
-                  }}
-                  placeholder={personalDetailsDict.firstNamePlaceholder}
-                  disabled={isLoading}
-                  className={inputBaseClasses(
-                    !!firstNameError ||
-                      missingFields.includes(validationDict.fields.firstName)
+                <div className="w-full">
+                  {apiError ? (
+                    <AlertDescription className="text-sm font-medium pt-1">
+                      {apiError}
+                    </AlertDescription>
+                  ) : (
+                    <>
+                      <AlertTitle className="text-red-900 font-bold mb-2">
+                        {validationDict.title}
+                      </AlertTitle>
+                      <AlertDescription className="text-red-800 text-sm">
+                        <p className="mb-2 font-medium">
+                          {validationDict.pleaseFill}
+                        </p>
+                        <ul className="list-disc list-inside space-y-1 opacity-90 pr-2 rtl:pr-2 rtl:pl-0 ltr:pl-2">
+                          {missingFields.map((field, i) => (
+                            <li key={i}>{field}</li>
+                          ))}
+                        </ul>
+                      </AlertDescription>
+                    </>
                   )}
-                />
-              </FieldWrapper>
-              {firstNameError && (
-                <p className="text-xs text-red-600 flex items-center gap-1">
-                  <AlertCircle className="w-3 h-3" /> {firstNameError}
-                </p>
-              )}
-            </motion.div>
-
-            <motion.div variants={itemVariants} className="space-y-2">
-              <Label
-                htmlFor="lastName"
-                className="text-sm font-semibold text-gray-700 flex items-center"
-              >
-                {personalDetailsDict.lastNameLabel}{' '}
-                <span className="text-red-500 mr-1">*</span>
-              </Label>
-              <FieldWrapper
-                icon={<Edit3 className="h-5 w-5" />}
-                hasValue={!!registrationState.lastName}
-              >
-                <Input
-                  id="lastName"
-                  type="text"
-                  value={registrationState.lastName}
-                  onChange={(e) => {
-                    updateField('lastName', e.target.value);
-                    if (e.target.value.trim()) setLastNameError('');
-                  }}
-                  placeholder={personalDetailsDict.lastNamePlaceholder}
-                  disabled={isLoading}
-                  className={inputBaseClasses(
-                    !!lastNameError ||
-                      missingFields.includes(validationDict.fields.lastName)
-                  )}
-                />
-              </FieldWrapper>
-              {lastNameError && (
-                <p className="text-xs text-red-600 flex items-center gap-1">
-                  <AlertCircle className="w-3 h-3" /> {lastNameError}
-                </p>
-              )}
-            </motion.div>
-          </div>
-
-          <motion.div variants={itemVariants} className="space-y-2">
-            <Label className="text-sm font-semibold text-gray-700 flex items-center">
-              {personalDetailsDict.phoneLabel}{' '}
-              <span className="text-red-500 mr-1">*</span>
-            </Label>
-            <PhoneNumberInput
-              value={registrationState.phone}
-              onChange={(value) => {
-                updateField('phone', value || '');
-                if (value && validatePhoneNumber(value)) setPhoneError('');
-              }}
-              disabled={isLoading}
-              error={
-                phoneError ||
-                (missingFields.includes(validationDict.fields.phone)
-                  ? ' '
-                  : undefined)
-              }
-              locale={locale}
-            />
-            {phoneError && (
-              <p className="text-xs text-red-600 flex items-center gap-1">
-                <AlertCircle className="w-3 h-3" /> {phoneError}
-              </p>
-            )}
+                </div>
+              </div>
+            </Alert>
           </motion.div>
+        )}
+      </AnimatePresence>
 
-          <motion.div variants={itemVariants} className="space-y-2">
-            <Label className="text-sm font-semibold text-gray-700 flex items-center">
-              {personalDetailsDict.genderLabel}{' '}
-              <span className="text-red-500 mr-1">*</span>
-            </Label>
-            <div className="grid grid-cols-2 gap-3">
-              {[
-                { value: Gender.MALE, label: personalDetailsDict.male },
-                { value: Gender.FEMALE, label: personalDetailsDict.female },
-              ].map(({ value, label }) => (
-                <button
-                  key={value}
-                  type="button"
-                  onClick={() => updateField('gender', value)}
-                  disabled={isLoading}
-                  className={`py-3 px-4 rounded-xl border-2 font-medium transition-colors duration-200 ${
-                    registrationState.gender === value
-                      ? 'bg-teal-50 border-teal-500 text-teal-700'
-                      : missingFields.includes(validationDict.fields.gender)
-                        ? 'border-red-300 text-gray-600 hover:bg-gray-50'
-                        : 'border-gray-200 text-gray-600 hover:border-gray-300 hover:bg-gray-50'
-                  }`}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
-          </motion.div>
+      <div className="space-y-6">
+        <SectionHeader
+          icon={<User className="w-5 h-5" />}
+          title={isRTL ? 'פרטים אישיים' : 'Personal Information'}
+          gradient="from-teal-500 to-cyan-500"
+        />
 
-          {/* === ADDED CITY FIELD HERE === */}
+        <div className="grid grid-cols-2 gap-4">
           <motion.div variants={itemVariants} className="space-y-2">
             <Label
-              htmlFor="city-autocomplete"
+              htmlFor="firstName"
               className="text-sm font-semibold text-gray-700 flex items-center"
             >
-              {personalDetailsDict.cityLabel || 'עיר מגורים'}{' '}
+              {personalDetailsDict.firstNameLabel}{' '}
               <span className="text-red-500 mr-1">*</span>
             </Label>
             <FieldWrapper
-              icon={<MapPin className="h-5 w-5" />}
-              hasValue={!!registrationState.city}
-            >
-              <Autocomplete
-                apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}
-                id="city-autocomplete"
-                value={cityInputValue}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                  setCityInputValue(e.target.value);
-                  // Clear error if user starts typing (though full validation happens on submit/select)
-                  if (e.target.value) setCityError('');
-                }}
-                onPlaceSelected={(place) => {
-                  if (!place || !place.address_components) {
-                    // Fallback if google API fails or returns incomplete data
-                    const fallback = cityInputValue || '';
-                    updateField('city', fallback);
-                    return;
-                  }
-
-                  // Extract city name logic (same as ProfileSection)
-                  const cityComponent = place.address_components.find(
-                    (component) => component.types.includes('locality')
-                  );
-                  const selectedCity =
-                    cityComponent?.long_name ||
-                    place.formatted_address ||
-                    cityInputValue;
-
-                  updateField('city', selectedCity);
-                  setCityInputValue(selectedCity);
-                  setCityError('');
-                }}
-                options={{
-                  types: ['(cities)'],
-                  componentRestrictions: { country: 'il' },
-                  fields: [
-                    'address_components',
-                    'formatted_address',
-                    'geometry',
-                  ],
-                }}
-                disabled={isLoading}
-                placeholder={
-                  personalDetailsDict.cityPlaceholder || 'חפש עיר...'
-                }
-                className={inputBaseClasses(
-                  !!cityError ||
-                    missingFields.includes(
-                      personalDetailsDict.cityLabel || 'עיר'
-                    )
-                )}
-              />
-            </FieldWrapper>
-            {cityError && (
-              <p className="text-xs text-red-600 flex items-center gap-1">
-                <AlertCircle className="w-3 h-3" /> {cityError}
-              </p>
-            )}
-          </motion.div>
-          {/* ============================= */}
-
-          <motion.div variants={itemVariants} className="space-y-2">
-            <Label
-              htmlFor="birthDate"
-              className="text-sm font-semibold text-gray-700 flex items-center"
-            >
-              {personalDetailsDict.birthDateLabel}{' '}
-              <span className="text-red-500 mr-1">*</span>
-            </Label>
-            <FieldWrapper
-              icon={<Calendar className="h-5 w-5" />}
-              hasValue={!!registrationState.birthDate}
+              icon={<Edit3 className="h-5 w-5" />}
+              hasValue={!!registrationState.firstName}
             >
               <Input
-                id="birthDate"
-                type="date"
-                value={registrationState.birthDate}
+                id="firstName"
+                type="text"
+                value={registrationState.firstName}
                 onChange={(e) => {
-                  updateField('birthDate', e.target.value);
-                  if (e.target.value) validateAge(e.target.value);
+                  updateField('firstName', e.target.value);
+                  if (e.target.value.trim()) setFirstNameError('');
                 }}
+                placeholder={personalDetailsDict.firstNamePlaceholder}
                 disabled={isLoading}
                 className={inputBaseClasses(
-                  !!ageError ||
-                    missingFields.includes(validationDict.fields.birthDate)
+                  !!firstNameError ||
+                    missingFields.includes(validationDict.fields.firstName)
                 )}
               />
             </FieldWrapper>
-            {ageError && (
+            {firstNameError && (
               <p className="text-xs text-red-600 flex items-center gap-1">
-                <AlertCircle className="w-3 h-3" /> {ageError}
+                <AlertCircle className="w-3 h-3" /> {firstNameError}
               </p>
             )}
           </motion.div>
 
           <motion.div variants={itemVariants} className="space-y-2">
-            <Label className="text-sm font-semibold text-gray-700 flex items-center">
-              {personalDetailsDict.maritalStatusLabel}{' '}
+            <Label
+              htmlFor="lastName"
+              className="text-sm font-semibold text-gray-700 flex items-center"
+            >
+              {personalDetailsDict.lastNameLabel}{' '}
               <span className="text-red-500 mr-1">*</span>
             </Label>
             <FieldWrapper
-              icon={<Heart className="h-5 w-5" />}
-              hasValue={!!registrationState.maritalStatus}
+              icon={<Edit3 className="h-5 w-5" />}
+              hasValue={!!registrationState.lastName}
             >
-              <Select
-                dir={isRTL ? 'rtl' : 'ltr'}
-                value={registrationState.maritalStatus}
-                onValueChange={(value) => updateField('maritalStatus', value)}
+              <Input
+                id="lastName"
+                type="text"
+                value={registrationState.lastName}
+                onChange={(e) => {
+                  updateField('lastName', e.target.value);
+                  if (e.target.value.trim()) setLastNameError('');
+                }}
+                placeholder={personalDetailsDict.lastNamePlaceholder}
                 disabled={isLoading}
-              >
-                <SelectTrigger
-                  className={inputBaseClasses(
-                    missingFields.includes(validationDict.fields.maritalStatus)
-                  )}
-                >
-                  <SelectValue
-                    placeholder={personalDetailsDict.maritalStatusPlaceholder}
-                  />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="single">
-                    {personalDetailsDict.maritalStatuses.single}
-                  </SelectItem>
-                  <SelectItem value="divorced">
-                    {personalDetailsDict.maritalStatuses.divorced}
-                  </SelectItem>
-                  <SelectItem value="widowed">
-                    {personalDetailsDict.maritalStatuses.widowed}
-                  </SelectItem>
-                </SelectContent>
-              </Select>
+                className={inputBaseClasses(
+                  !!lastNameError ||
+                    missingFields.includes(validationDict.fields.lastName)
+                )}
+              />
             </FieldWrapper>
+            {lastNameError && (
+              <p className="text-xs text-red-600 flex items-center gap-1">
+                <AlertCircle className="w-3 h-3" /> {lastNameError}
+              </p>
+            )}
           </motion.div>
         </div>
 
-        <div className="space-y-6">
-          <SectionHeader
-            icon={<Sparkles className="w-5 h-5" />}
-            title={optionalInfoDict.title}
-            subtitle={optionalInfoDict.subtitle}
-            gradient="from-orange-500 to-amber-500"
+        <motion.div variants={itemVariants} className="space-y-2">
+          <Label className="text-sm font-semibold text-gray-700 flex items-center">
+            {personalDetailsDict.phoneLabel}{' '}
+            <span className="text-red-500 mr-1">*</span>
+          </Label>
+          <PhoneNumberInput
+            value={registrationState.phone}
+            onChange={(value) => {
+              updateField('phone', value || '');
+              if (value && validatePhoneNumber(value)) setPhoneError('');
+            }}
+            disabled={isLoading}
+            error={
+              phoneError ||
+              (missingFields.includes(validationDict.fields.phone)
+                ? ' '
+                : undefined)
+            }
+            locale={locale}
           />
+          {phoneError && (
+            <p className="text-xs text-red-600 flex items-center gap-1">
+              <AlertCircle className="w-3 h-3" /> {phoneError}
+            </p>
+          )}
+        </motion.div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <motion.div variants={itemVariants} className="space-y-2">
-              <Label
-                htmlFor="heightOptional"
-                className="text-sm font-semibold text-gray-700"
+        <motion.div variants={itemVariants} className="space-y-2">
+          <Label className="text-sm font-semibold text-gray-700 flex items-center">
+            {personalDetailsDict.genderLabel}{' '}
+            <span className="text-red-500 mr-1">*</span>
+          </Label>
+          <div className="grid grid-cols-2 gap-3">
+            {[
+              { value: Gender.MALE, label: personalDetailsDict.male },
+              { value: Gender.FEMALE, label: personalDetailsDict.female },
+            ].map(({ value, label }) => (
+              <button
+                key={value}
+                type="button"
+                onClick={() => updateField('gender', value)}
+                disabled={isLoading}
+                className={`py-3 px-4 rounded-xl border-2 font-medium transition-colors duration-200 ${
+                  registrationState.gender === value
+                    ? 'bg-teal-50 border-teal-500 text-teal-700'
+                    : missingFields.includes(validationDict.fields.gender)
+                      ? 'border-red-300 text-gray-600 hover:bg-gray-50'
+                      : 'border-gray-200 text-gray-600 hover:border-gray-300 hover:bg-gray-50'
+                }`}
               >
-                {optionalInfoDict.heightLabel}
-              </Label>
-              <FieldWrapper
-                icon={<Ruler className="h-5 w-5" />}
-                hasValue={!!registrationState.height}
-              >
-                <Input
-                  type="number"
-                  id="heightOptional"
-                  value={registrationState.height ?? ''}
-                  onChange={(e) =>
-                    updateField(
-                      'height',
-                      e.target.value ? parseInt(e.target.value, 10) : undefined
-                    )
-                  }
-                  placeholder={optionalInfoDict.heightPlaceholder}
-                  disabled={isLoading}
-                  min={100}
-                  max={250}
-                  className={inputBaseClasses(false)}
-                />
-              </FieldWrapper>
-            </motion.div>
-
-            <motion.div variants={itemVariants} className="space-y-2">
-              <Label
-                htmlFor="occupationOptional"
-                className="text-sm font-semibold text-gray-700"
-              >
-                {optionalInfoDict.occupationLabel}
-              </Label>
-              <FieldWrapper
-                icon={<Briefcase className="h-5 w-5" />}
-                hasValue={!!registrationState.occupation}
-              >
-                <Input
-                  type="text"
-                  id="occupationOptional"
-                  value={registrationState.occupation ?? ''}
-                  onChange={(e) => updateField('occupation', e.target.value)}
-                  placeholder={optionalInfoDict.occupationPlaceholder}
-                  disabled={isLoading}
-                  className={inputBaseClasses(false)}
-                />
-              </FieldWrapper>
-            </motion.div>
+                {label}
+              </button>
+            ))}
           </div>
+        </motion.div>
 
+        {/* === CITY FIELD === */}
+        <motion.div variants={itemVariants} className="space-y-2">
+          <Label
+            htmlFor="city-autocomplete"
+            className="text-sm font-semibold text-gray-700 flex items-center"
+          >
+            {personalDetailsDict.cityLabel || 'עיר מגורים'}{' '}
+            <span className="text-red-500 mr-1">*</span>
+          </Label>
+          <FieldWrapper
+            icon={<MapPin className="h-5 w-5" />}
+            hasValue={!!registrationState.city}
+          >
+            <Autocomplete
+              apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}
+              id="city-autocomplete"
+              language={locale}
+              value={cityInputValue}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                setCityInputValue(e.target.value);
+                if (e.target.value) setCityError('');
+              }}
+              onPlaceSelected={(place) => {
+                if (!place || !place.address_components) {
+                  const fallback = cityInputValue || '';
+                  updateField('city', fallback);
+                  return;
+                }
+
+                const cityComponent = place.address_components.find(
+                  (component) => component.types.includes('locality')
+                );
+                const selectedCity =
+                  cityComponent?.long_name ||
+                  place.formatted_address ||
+                  cityInputValue;
+
+                updateField('city', selectedCity);
+                setCityInputValue(selectedCity);
+                setCityError('');
+              }}
+              options={{
+                types: ['(cities)'],
+                componentRestrictions: { country: 'il' },
+                fields: ['address_components', 'formatted_address', 'geometry'],
+              }}
+              disabled={isLoading}
+              placeholder={personalDetailsDict.cityPlaceholder || 'חפש עיר...'}
+              className={inputBaseClasses(
+                !!cityError ||
+                  missingFields.includes(personalDetailsDict.cityLabel || 'עיר')
+              )}
+            />
+          </FieldWrapper>
+          {cityError && (
+            <p className="text-xs text-red-600 flex items-center gap-1">
+              <AlertCircle className="w-3 h-3" /> {cityError}
+            </p>
+          )}
+        </motion.div>
+
+        <motion.div variants={itemVariants} className="space-y-2">
+          <Label
+            htmlFor="birthDate"
+            className="text-sm font-semibold text-gray-700 flex items-center"
+          >
+            {personalDetailsDict.birthDateLabel}{' '}
+            <span className="text-red-500 mr-1">*</span>
+          </Label>
+          <FieldWrapper
+            icon={<Calendar className="h-5 w-5" />}
+            hasValue={!!registrationState.birthDate}
+          >
+            <Input
+              id="birthDate"
+              type="date"
+              value={registrationState.birthDate}
+              onChange={(e) => {
+                updateField('birthDate', e.target.value);
+                if (e.target.value) validateAge(e.target.value);
+              }}
+              disabled={isLoading}
+              className={inputBaseClasses(
+                !!ageError ||
+                  missingFields.includes(validationDict.fields.birthDate)
+              )}
+            />
+          </FieldWrapper>
+          {ageError && (
+            <p className="text-xs text-red-600 flex items-center gap-1">
+              <AlertCircle className="w-3 h-3" /> {ageError}
+            </p>
+          )}
+        </motion.div>
+
+        <motion.div variants={itemVariants} className="space-y-2">
+          <Label className="text-sm font-semibold text-gray-700 flex items-center">
+            {personalDetailsDict.maritalStatusLabel}{' '}
+            <span className="text-red-500 mr-1">*</span>
+          </Label>
+          <FieldWrapper
+            icon={<Heart className="h-5 w-5" />}
+            hasValue={!!registrationState.maritalStatus}
+          >
+            <Select
+              dir={isRTL ? 'rtl' : 'ltr'}
+              value={registrationState.maritalStatus}
+              onValueChange={(value) => updateField('maritalStatus', value)}
+              disabled={isLoading}
+            >
+              <SelectTrigger
+                className={inputBaseClasses(
+                  missingFields.includes(validationDict.fields.maritalStatus)
+                )}
+              >
+                <SelectValue
+                  placeholder={personalDetailsDict.maritalStatusPlaceholder}
+                />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="single">
+                  {personalDetailsDict.maritalStatuses.single}
+                </SelectItem>
+                <SelectItem value="divorced">
+                  {personalDetailsDict.maritalStatuses.divorced}
+                </SelectItem>
+                <SelectItem value="widowed">
+                  {personalDetailsDict.maritalStatuses.widowed}
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          </FieldWrapper>
+        </motion.div>
+      </div>
+
+      <div className="space-y-6">
+        <SectionHeader
+          icon={<Sparkles className="w-5 h-5" />}
+          title={optionalInfoDict.title}
+          subtitle={optionalInfoDict.subtitle}
+          gradient="from-orange-500 to-amber-500"
+        />
+
+        <div className="grid grid-cols-2 gap-4">
           <motion.div variants={itemVariants} className="space-y-2">
             <Label
-              htmlFor="educationOptional"
+              htmlFor="heightOptional"
               className="text-sm font-semibold text-gray-700"
             >
-              {optionalInfoDict.educationLabel}
+              {optionalInfoDict.heightLabel}
             </Label>
             <FieldWrapper
-              icon={<GraduationCap className="h-5 w-5" />}
-              hasValue={!!registrationState.education}
+              icon={<Ruler className="h-5 w-5" />}
+              hasValue={!!registrationState.height}
             >
               <Input
-                type="text"
-                id="educationOptional"
-                value={registrationState.education ?? ''}
-                onChange={(e) => updateField('education', e.target.value)}
-                placeholder={optionalInfoDict.educationPlaceholder}
+                type="number"
+                id="heightOptional"
+                value={registrationState.height ?? ''}
+                onChange={(e) =>
+                  updateField(
+                    'height',
+                    e.target.value ? parseInt(e.target.value, 10) : undefined
+                  )
+                }
+                placeholder={optionalInfoDict.heightPlaceholder}
                 disabled={isLoading}
+                min={100}
+                max={250}
                 className={inputBaseClasses(false)}
               />
             </FieldWrapper>
           </motion.div>
 
           <motion.div variants={itemVariants} className="space-y-2">
-            <Label className="text-sm font-semibold text-gray-700 flex items-center">
-              {personalDetailsDict.religiousLevelLabel}{' '}
-              <span className="text-red-500 mr-1">*</span>
+            <Label
+              htmlFor="occupationOptional"
+              className="text-sm font-semibold text-gray-700"
+            >
+              {optionalInfoDict.occupationLabel}
             </Label>
             <FieldWrapper
-              icon={<BookOpen className="h-5 w-5" />}
-              hasValue={!!registrationState.religiousLevel}
+              icon={<Briefcase className="h-5 w-5" />}
+              hasValue={!!registrationState.occupation}
             >
-              <Select
-                dir={isRTL ? 'rtl' : 'ltr'}
-                value={registrationState.religiousLevel || ''}
-                onValueChange={(value) => {
-                  updateField('religiousLevel', value);
-                  if (value) setReligiousLevelError('');
-                }}
+              <Input
+                type="text"
+                id="occupationOptional"
+                value={registrationState.occupation ?? ''}
+                onChange={(e) => updateField('occupation', e.target.value)}
+                placeholder={optionalInfoDict.occupationPlaceholder}
                 disabled={isLoading}
-              >
-                <SelectTrigger
-                  className={inputBaseClasses(
-                    !!religiousLevelError ||
-                      missingFields.includes(
-                        validationDict.fields.religiousLevel
-                      )
-                  )}
-                >
-                  <SelectValue
-                    placeholder={personalDetailsDict.religiousLevelPlaceholder}
-                  />
-                </SelectTrigger>
-                <SelectContent className="max-h-[200px]">
-                  {religiousLevelOptions.map((opt) => (
-                    <SelectItem key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                className={inputBaseClasses(false)}
+              />
             </FieldWrapper>
-            {religiousLevelError && (
-              <p className="text-xs text-red-600 flex items-center gap-1">
-                <AlertCircle className="w-3 h-3" /> {religiousLevelError}
-              </p>
-            )}
           </motion.div>
         </div>
 
-        <div className="space-y-6">
-          <SectionHeader
-            icon={<Camera className="w-5 h-5" />}
-            title={personalDetailsDict.photos?.title || 'תמונות שלכם'}
-            subtitle={
-              personalDetailsDict.photos?.subtitle ||
-              'תמונות טובות מגדילות משמעותית את הסיכוי להתאמות מוצלחות'
-            }
-            gradient="from-rose-500 to-pink-500"
-            required={true}
-          />
+        <motion.div variants={itemVariants} className="space-y-2">
+          <Label
+            htmlFor="educationOptional"
+            className="text-sm font-semibold text-gray-700"
+          >
+            {optionalInfoDict.educationLabel}
+          </Label>
+          <FieldWrapper
+            icon={<GraduationCap className="h-5 w-5" />}
+            hasValue={!!registrationState.education}
+          >
+            <Input
+              type="text"
+              id="educationOptional"
+              value={registrationState.education ?? ''}
+              onChange={(e) => updateField('education', e.target.value)}
+              placeholder={optionalInfoDict.educationPlaceholder}
+              disabled={isLoading}
+              className={inputBaseClasses(false)}
+            />
+          </FieldWrapper>
+        </motion.div>
 
-          <motion.div variants={itemVariants}>
-            <div className="grid grid-cols-3 gap-3 mb-4">
-              {uploadedPhotos.map((photo, index) => (
-                <div
-                  key={photo.preview}
-                  className={`relative aspect-square rounded-xl overflow-hidden border-2 transition-colors duration-200 group ${
-                    photo.isMain
-                      ? 'border-teal-500 ring-2 ring-teal-200'
-                      : 'border-gray-200 hover:border-gray-300'
-                  }`}
-                >
-                  <img
-                    src={photo.preview}
-                    alt={`תמונה ${index + 1}`}
-                    className="absolute inset-0 w-full h-full object-cover"
-                  />
-                  {photo.isMain && (
-                    <Badge className="absolute top-2 right-2 z-10 bg-gradient-to-r from-teal-500 to-orange-500 text-white text-[10px] px-2 py-0.5 rounded-full flex items-center gap-1 border-none shadow-md">
-                      <Star className="w-3 h-3 fill-current" />
-                      <span>
-                        {personalDetailsDict.photos?.mainPhoto || 'ראשית'}
-                      </span>
-                    </Badge>
-                  )}
-                  <div className="absolute inset-0 z-20 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                    {!photo.isMain && (
-                      <button
-                        type="button"
-                        onClick={() => handleSetMainPhoto(index)}
-                        className="p-2 bg-white/90 rounded-full text-gray-700 hover:bg-white transition-colors"
-                        title={
-                          personalDetailsDict.photos?.setAsMain ||
-                          'הגדר כתמונה ראשית'
-                        }
-                      >
-                        <Star className="w-4 h-4" />
-                      </button>
-                    )}
+        <motion.div variants={itemVariants} className="space-y-2">
+          <Label className="text-sm font-semibold text-gray-700 flex items-center">
+            {personalDetailsDict.religiousLevelLabel}{' '}
+            <span className="text-red-500 mr-1">*</span>
+          </Label>
+          <FieldWrapper
+            icon={<BookOpen className="h-5 w-5" />}
+            hasValue={!!registrationState.religiousLevel}
+          >
+            <Select
+              dir={isRTL ? 'rtl' : 'ltr'}
+              value={registrationState.religiousLevel || ''}
+              onValueChange={(value) => {
+                updateField('religiousLevel', value);
+                if (value) setReligiousLevelError('');
+              }}
+              disabled={isLoading}
+            >
+              <SelectTrigger
+                className={inputBaseClasses(
+                  !!religiousLevelError ||
+                    missingFields.includes(validationDict.fields.religiousLevel)
+                )}
+              >
+                <SelectValue
+                  placeholder={personalDetailsDict.religiousLevelPlaceholder}
+                />
+              </SelectTrigger>
+              <SelectContent className="max-h-[200px]">
+                {religiousLevelOptions.map((opt) => (
+                  <SelectItem key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </FieldWrapper>
+          {religiousLevelError && (
+            <p className="text-xs text-red-600 flex items-center gap-1">
+              <AlertCircle className="w-3 h-3" /> {religiousLevelError}
+            </p>
+          )}
+        </motion.div>
+      </div>
+
+      <div className="space-y-6">
+        <SectionHeader
+          icon={<Camera className="w-5 h-5" />}
+          title={personalDetailsDict.photos?.title || 'תמונות שלכם'}
+          subtitle={
+            personalDetailsDict.photos?.subtitle ||
+            'תמונות טובות מגדילות משמעותית את הסיכוי להתאמות מוצלחות'
+          }
+          gradient="from-rose-500 to-pink-500"
+          required={true}
+        />
+
+        <motion.div variants={itemVariants}>
+          <div className="grid grid-cols-3 gap-3 mb-4">
+            {uploadedPhotos.map((photo, index) => (
+              <div
+                key={photo.preview}
+                className={`relative aspect-square rounded-xl overflow-hidden border-2 transition-colors duration-200 group ${
+                  photo.isMain
+                    ? 'border-teal-500 ring-2 ring-teal-200'
+                    : 'border-gray-200 hover:border-gray-300'
+                }`}
+              >
+                <img
+                  src={photo.preview}
+                  alt={`תמונה ${index + 1}`}
+                  className="absolute inset-0 w-full h-full object-cover"
+                />
+                {photo.isMain && (
+                  <Badge className="absolute top-2 right-2 z-10 bg-gradient-to-r from-teal-500 to-orange-500 text-white text-[10px] px-2 py-0.5 rounded-full flex items-center gap-1 border-none shadow-md">
+                    <Star className="w-3 h-3 fill-current" />
+                    <span>
+                      {personalDetailsDict.photos?.mainPhoto || 'ראשית'}
+                    </span>
+                  </Badge>
+                )}
+                <div className="absolute inset-0 z-20 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                  {!photo.isMain && (
                     <button
                       type="button"
-                      onClick={() => handleRemovePhoto(index)}
-                      className="p-2 bg-red-500/90 rounded-full text-white hover:bg-red-600 transition-colors"
-                      title={personalDetailsDict.photos?.remove || 'הסר'}
+                      onClick={() => handleSetMainPhoto(index)}
+                      className="p-2 bg-white/90 rounded-full text-gray-700 hover:bg-white transition-colors"
+                      title={
+                        personalDetailsDict.photos?.setAsMain ||
+                        'הגדר כתמונה ראשית'
+                      }
                     >
-                      <Trash2 className="w-4 h-4" />
+                      <Star className="w-4 h-4" />
                     </button>
-                  </div>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => handleRemovePhoto(index)}
+                    className="p-2 bg-red-500/90 rounded-full text-white hover:bg-red-600 transition-colors"
+                    title={personalDetailsDict.photos?.remove || 'הסר'}
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
                 </div>
-              ))}
+              </div>
+            ))}
 
-              {uploadedPhotos.length < MAX_PHOTOS && (
-                <button
-                  type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  disabled={isLoading}
-                  className={`aspect-square rounded-xl border-2 border-dashed transition-colors duration-200 flex flex-col items-center justify-center gap-2 ${
-                    uploadedPhotos.length < MIN_PHOTOS &&
-                    missingFields.includes(
-                      personalDetailsDict.photos?.fieldName || 'תמונת פרופיל'
-                    )
-                      ? 'border-red-300 bg-red-50/30 text-red-500 hover:border-red-400 hover:bg-red-50/50'
-                      : 'border-teal-300 bg-teal-50/30 text-teal-600 hover:border-teal-400 hover:bg-teal-50/50'
-                  }`}
-                >
-                  <ImagePlus className="w-8 h-8" />
-                  <span className="text-xs font-medium">
-                    {personalDetailsDict.photos?.addPhoto || 'הוסף תמונה'}
-                  </span>
-                  <span className="text-[10px] opacity-70">
-                    {MAX_PHOTOS - uploadedPhotos.length}{' '}
-                    {isRTL ? 'נותרו' : 'remaining'}
-                  </span>
-                </button>
-              )}
-            </div>
+            {uploadedPhotos.length < MAX_PHOTOS && (
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isLoading}
+                className={`aspect-square rounded-xl border-2 border-dashed transition-colors duration-200 flex flex-col items-center justify-center gap-2 ${
+                  uploadedPhotos.length < MIN_PHOTOS &&
+                  missingFields.includes(
+                    personalDetailsDict.photos?.fieldName || 'תמונת פרופיל'
+                  )
+                    ? 'border-red-300 bg-red-50/30 text-red-500 hover:border-red-400 hover:bg-red-50/50'
+                    : 'border-teal-300 bg-teal-50/30 text-teal-600 hover:border-teal-400 hover:bg-teal-50/50'
+                }`}
+              >
+                <ImagePlus className="w-8 h-8" />
+                <span className="text-xs font-medium">
+                  {personalDetailsDict.photos?.addPhoto || 'הוסף תמונה'}
+                </span>
+                <span className="text-[10px] opacity-70">
+                  {MAX_PHOTOS - uploadedPhotos.length}{' '}
+                  {isRTL ? 'נותרו' : 'remaining'}
+                </span>
+              </button>
+            )}
+          </div>
 
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/jpeg,image/png,image/jpg,image/webp"
-              multiple
-              onChange={handlePhotoSelect}
-              className="hidden"
-            />
-
-            {uploadedPhotos.length < MIN_PHOTOS &&
-              missingFields.includes(
-                personalDetailsDict.photos?.fieldName || 'תמונת פרופיל'
-              ) && (
-                <p className="text-xs text-red-600 flex items-center gap-1 mb-3">
-                  <AlertCircle className="w-3 h-3" />
-                  {personalDetailsDict.photos?.required ||
-                    'יש להעלות לפחות תמונה אחת'}
-                </p>
-              )}
-
-            <div className="bg-gradient-to-r from-rose-50/50 to-pink-50/50 rounded-xl p-3 border border-rose-100">
-              <p className="text-xs text-gray-600 leading-relaxed">
-                <span className="font-semibold text-rose-600">
-                  {personalDetailsDict.photos?.tip || '💡 טיפ:'}
-                </span>{' '}
-                {personalDetailsDict.photos?.tipText ||
-                  'העלו תמונות ברורות שמציגות את הפנים שלכם.'}
-              </p>
-            </div>
-          </motion.div>
-        </div>
-
-        <div className="space-y-6">
-          <SectionHeader
-            icon={<FileText className="w-5 h-5" />}
-            title={
-              personalDetailsDict.aboutMe?.title || 'הסיפור שלי במילים שלי'
-            }
-            subtitle={
-              personalDetailsDict.aboutMe?.subtitle ||
-              'ספרו על עצמכם - זה החלק שהכי עוזר לשדכנים להכיר אתכם'
-            }
-            gradient="from-purple-500 to-indigo-500"
-            required={true}
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/jpeg,image/png,image/jpg,image/webp"
+            multiple
+            onChange={handlePhotoSelect}
+            className="hidden"
           />
 
-          <motion.div variants={itemVariants} className="space-y-2">
-            <div className="flex items-center justify-between">
-              <Label
-                htmlFor="aboutMe"
-                className="text-sm font-semibold text-gray-700 flex items-center gap-1"
-              >
-                {personalDetailsDict.aboutMe?.label || 'ספרו על עצמכם'}
-                <span className="text-red-500 mr-1">*</span>
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <button
-                        type="button"
-                        className="text-gray-400 hover:text-gray-600"
-                      >
-                        <Info className="w-4 h-4" />
-                      </button>
-                    </TooltipTrigger>
-                    <TooltipContent
-                      side="top"
-                      className="max-w-xs text-center"
-                      dir={isRTL ? 'rtl' : 'ltr'}
-                    >
-                      <p>
-                        {personalDetailsDict.aboutMe?.tooltip ||
-                          'שתפו על התחביבים, הערכים, מה חשוב לכם בחיים ובמערכת יחסים'}
-                      </p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </Label>
-            </div>
+          {uploadedPhotos.length < MIN_PHOTOS &&
+            missingFields.includes(
+              personalDetailsDict.photos?.fieldName || 'תמונת פרופיל'
+            ) && (
+              <p className="text-xs text-red-600 flex items-center gap-1 mb-3">
+                <AlertCircle className="w-3 h-3" />
+                {personalDetailsDict.photos?.required ||
+                  'יש להעלות לפחות תמונה אחת'}
+              </p>
+            )}
 
-            <Textarea
-              id="aboutMe"
-              value={aboutMe}
-              onChange={(e) => setAboutMe(e.target.value)}
-              placeholder={
-                personalDetailsDict.aboutMe?.placeholder || 'ספרו על עצמכם...'
-              }
-              disabled={isLoading}
-              className={`min-h-[150px] py-3 border-2 rounded-xl transition-colors duration-200 bg-white/95 resize-none text-base md:text-sm ${
-                aboutMe.trim().length < MIN_ABOUT_LENGTH &&
-                missingFields.includes(
-                  personalDetailsDict.aboutMe?.fieldName || 'הסיפור שלי'
-                )
-                  ? 'border-red-300 focus:ring-red-200 focus:border-red-400'
-                  : aboutMe.length > 0 &&
-                      aboutMe.trim().length < MIN_ABOUT_LENGTH
-                    ? 'border-amber-300 focus:ring-amber-200 focus:border-amber-400'
-                    : 'border-gray-200 hover:border-gray-300 focus:border-purple-400 focus:ring-2 focus:ring-purple-200'
-              }`}
-              rows={6}
-            />
-
-            <div className="flex justify-between items-center">
-              <div>
-                {aboutMe.trim().length < MIN_ABOUT_LENGTH &&
-                missingFields.includes(
-                  personalDetailsDict.aboutMe?.fieldName || 'הסיפור שלי'
-                ) ? (
-                  <p className="text-xs text-red-600 flex items-center gap-1">
-                    <AlertCircle className="w-3 h-3" />
-                    {personalDetailsDict.aboutMe?.required ||
-                      `יש לכתוב לפחות ${MIN_ABOUT_LENGTH} תווים`}
-                  </p>
-                ) : (
-                  aboutMe.length > 0 &&
-                  aboutMe.trim().length < MIN_ABOUT_LENGTH && (
-                    <span className="text-xs text-amber-600">
-                      {personalDetailsDict.aboutMe?.minChars?.replace(
-                        '{{remaining}}',
-                        String(MIN_ABOUT_LENGTH - aboutMe.trim().length)
-                      ) ||
-                        `עוד ${MIN_ABOUT_LENGTH - aboutMe.trim().length} תווים מינימום`}
-                    </span>
-                  )
-                )}
-              </div>
-              <span
-                className={`text-xs ${aboutMe.trim().length >= MIN_ABOUT_LENGTH ? 'text-green-600' : 'text-gray-400'}`}
-              >
-                {aboutMe.trim().length} / {MIN_ABOUT_LENGTH}+
-              </span>
-            </div>
-          </motion.div>
-        </div>
-
-        {/* --- SECTION 5: CONSENTS (IMPROVED) --- */}
-        <motion.div variants={itemVariants} className="space-y-4">
-          <div
-            className={
-              consentError ||
-              missingFields.includes(validationDict.fields.terms)
-                ? 'rounded-2xl border-2 border-red-300'
-                : ''
-            }
-          >
-            <ConsentCheckbox
-              checked={consentChecked}
-              onChange={(isChecked) => {
-                setConsentChecked(isChecked);
-                if (isChecked) setConsentError(null);
-              }}
-              error={consentError}
-              dict={consentDict}
-            />
-          </div>
-
-          <div className="space-y-3">
-            <SimpleConsentBox
-              checked={engagementConsent}
-              onToggle={() => {
-                const newValue = !engagementConsent;
-                setEngagementConsent(newValue);
-                if (newValue) setEngagementConsentError(null);
-              }}
-              label={personalDetailsDict.engagementConsentLabel}
-              required={true}
-              error={
-                engagementConsentError ||
-                (missingFields.includes(validationDict.fields.engagement)
-                  ? ' '
-                  : null)
-              }
-            />
-
-            <SimpleConsentBox
-              checked={promotionalConsent}
-              onToggle={() => setPromotionalConsent(!promotionalConsent)}
-              label={personalDetailsDict.promotionalConsentLabel}
-              required={false}
-            />
-          </div>
-
-          <div className="flex items-start gap-3 p-4 bg-gray-50 rounded-2xl border border-gray-200 mt-2">
-            <Shield className="w-5 h-5 text-teal-500 flex-shrink-0 mt-0.5" />
+          <div className="bg-gradient-to-r from-rose-50/50 to-pink-50/50 rounded-xl p-3 border border-rose-100">
             <p className="text-xs text-gray-600 leading-relaxed">
-              {isRTL
-                ? 'הפרטים שלך מאובטחים ומוצפנים.'
-                : 'Your details are secure and encrypted.'}
+              <span className="font-semibold text-rose-600">
+                {personalDetailsDict.photos?.tip || '💡 טיפ:'}
+              </span>{' '}
+              {personalDetailsDict.photos?.tipText ||
+                'העלו תמונות ברורות שמציגות את הפנים שלכם.'}
             </p>
           </div>
         </motion.div>
+      </div>
 
-        <motion.div variants={itemVariants} className="flex gap-4 pt-4">
-          <Button
-            type="button"
-            onClick={prevStep}
-            variant="outline"
+      <div className="space-y-6">
+        <SectionHeader
+          icon={<FileText className="w-5 h-5" />}
+          title={personalDetailsDict.aboutMe?.title || 'הסיפור שלי במילים שלי'}
+          subtitle={
+            personalDetailsDict.aboutMe?.subtitle ||
+            'ספרו על עצמכם - זה החלק שהכי עוזר לשדכנים להכיר אתכם'
+          }
+          gradient="from-purple-500 to-indigo-500"
+          required={true}
+        />
+
+        <motion.div variants={itemVariants} className="space-y-2">
+          <div className="flex items-center justify-between">
+            <Label
+              htmlFor="aboutMe"
+              className="text-sm font-semibold text-gray-700 flex items-center gap-1"
+            >
+              {personalDetailsDict.aboutMe?.label || 'ספרו על עצמכם'}
+              <span className="text-red-500 mr-1">*</span>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button
+                      type="button"
+                      className="text-gray-400 hover:text-gray-600"
+                    >
+                      <Info className="w-4 h-4" />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent
+                    side="top"
+                    className="max-w-xs text-center"
+                    dir={isRTL ? 'rtl' : 'ltr'}
+                  >
+                    <p>
+                      {personalDetailsDict.aboutMe?.tooltip ||
+                        'שתפו על התחביבים, הערכים, מה חשוב לכם בחיים ובמערכת יחסים'}
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </Label>
+          </div>
+
+          <Textarea
+            id="aboutMe"
+            value={aboutMe}
+            onChange={(e) => setAboutMe(e.target.value)}
+            placeholder={
+              personalDetailsDict.aboutMe?.placeholder || 'ספרו על עצמכם...'
+            }
             disabled={isLoading}
-            className="px-6 py-6 rounded-xl border-2 hover:bg-gray-50"
-          >
-            <ArrowRight className={`h-5 w-5 ${isRTL ? '' : 'rotate-180'}`} />
-            <span className="sr-only">{personalDetailsDict.backButton}</span>
-          </Button>
+            className={`min-h-[150px] py-3 border-2 rounded-xl transition-colors duration-200 bg-white/95 resize-none text-base md:text-sm ${
+              aboutMe.trim().length < MIN_ABOUT_LENGTH &&
+              missingFields.includes(
+                personalDetailsDict.aboutMe?.fieldName || 'הסיפור שלי'
+              )
+                ? 'border-red-300 focus:ring-red-200 focus:border-red-400'
+                : aboutMe.length > 0 && aboutMe.trim().length < MIN_ABOUT_LENGTH
+                  ? 'border-amber-300 focus:ring-amber-200 focus:border-amber-400'
+                  : 'border-gray-200 hover:border-gray-300 focus:border-purple-400 focus:ring-2 focus:ring-purple-200'
+            }`}
+            rows={6}
+          />
 
-          <Button
-            type="button"
-            onClick={handleSubmit}
-            disabled={isLoading}
-            className="flex-1 py-6 bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 hover:from-teal-600 hover:via-orange-600 hover:to-amber-600 shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-2 rounded-xl text-base font-semibold group relative overflow-hidden disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {!isLoading && (
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
-            )}
-
-            {isLoading ? (
-              <>
-                <Loader2 className="h-5 w-5 animate-spin" />
-                <span>{personalDetailsDict.nextButtonLoading}</span>
-              </>
-            ) : (
-              <>
-                <CheckCircle2 className="w-5 h-5" />
-                <span>{personalDetailsDict.nextButton}</span>
-                <ArrowLeft
-                  className={`w-5 h-5 group-hover:-translate-x-1 transition-transform ${
-                    !isRTL ? 'rotate-180 group-hover:translate-x-1' : ''
-                  }`}
-                />
-              </>
-            )}
-          </Button>
+          <div className="flex justify-between items-center">
+            <div>
+              {aboutMe.trim().length < MIN_ABOUT_LENGTH &&
+              missingFields.includes(
+                personalDetailsDict.aboutMe?.fieldName || 'הסיפור שלי'
+              ) ? (
+                <p className="text-xs text-red-600 flex items-center gap-1">
+                  <AlertCircle className="w-3 h-3" />
+                  {personalDetailsDict.aboutMe?.required ||
+                    `יש לכתוב לפחות ${MIN_ABOUT_LENGTH} תווים`}
+                </p>
+              ) : (
+                aboutMe.length > 0 &&
+                aboutMe.trim().length < MIN_ABOUT_LENGTH && (
+                  <span className="text-xs text-amber-600">
+                    {personalDetailsDict.aboutMe?.minChars?.replace(
+                      '{{remaining}}',
+                      String(MIN_ABOUT_LENGTH - aboutMe.trim().length)
+                    ) ||
+                      `עוד ${MIN_ABOUT_LENGTH - aboutMe.trim().length} תווים מינימום`}
+                  </span>
+                )
+              )}
+            </div>
+            <span
+              className={`text-xs ${aboutMe.trim().length >= MIN_ABOUT_LENGTH ? 'text-green-600' : 'text-gray-400'}`}
+            >
+              {aboutMe.trim().length} / {MIN_ABOUT_LENGTH}+
+            </span>
+          </div>
         </motion.div>
+      </div>
+
+      {/* --- SECTION 5: CONSENTS --- */}
+      <motion.div variants={itemVariants} className="space-y-4">
+        <div
+          className={
+            consentError || missingFields.includes(validationDict.fields.terms)
+              ? 'rounded-2xl border-2 border-red-300'
+              : ''
+          }
+        >
+          <ConsentCheckbox
+            checked={consentChecked}
+            onChange={(isChecked) => {
+              setConsentChecked(isChecked);
+              if (isChecked) setConsentError(null);
+            }}
+            error={consentError}
+            dict={consentDict}
+          />
+        </div>
+
+        <div className="space-y-3">
+          <SimpleConsentBox
+            checked={engagementConsent}
+            onToggle={() => {
+              const newValue = !engagementConsent;
+              setEngagementConsent(newValue);
+              if (newValue) setEngagementConsentError(null);
+            }}
+            label={personalDetailsDict.engagementConsentLabel}
+            required={true}
+            error={
+              engagementConsentError ||
+              (missingFields.includes(validationDict.fields.engagement)
+                ? ' '
+                : null)
+            }
+          />
+
+          <SimpleConsentBox
+            checked={promotionalConsent}
+            onToggle={() => setPromotionalConsent(!promotionalConsent)}
+            label={personalDetailsDict.promotionalConsentLabel}
+            required={false}
+          />
+        </div>
+
+        <div className="flex items-start gap-3 p-4 bg-gray-50 rounded-2xl border border-gray-200 mt-2">
+          <Shield className="w-5 h-5 text-teal-500 flex-shrink-0 mt-0.5" />
+          <p className="text-xs text-gray-600 leading-relaxed">
+            {isRTL
+              ? 'הפרטים שלך מאובטחים ומוצפנים.'
+              : 'Your details are secure and encrypted.'}
+          </p>
+        </div>
       </motion.div>
-    </>
+
+      <motion.div variants={itemVariants} className="flex gap-4 pt-4">
+        <Button
+          type="button"
+          onClick={prevStep}
+          variant="outline"
+          disabled={isLoading}
+          className="px-6 py-6 rounded-xl border-2 hover:bg-gray-50"
+        >
+          <ArrowRight className={`h-5 w-5 ${isRTL ? '' : 'rotate-180'}`} />
+          <span className="sr-only">{personalDetailsDict.backButton}</span>
+        </Button>
+
+        <Button
+          type="button"
+          onClick={handleSubmit}
+          disabled={isLoading}
+          className="flex-1 py-6 bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 hover:from-teal-600 hover:via-orange-600 hover:to-amber-600 shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-2 rounded-xl text-base font-semibold group relative overflow-hidden disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {!isLoading && (
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
+          )}
+
+          {isLoading ? (
+            <>
+              <Loader2 className="h-5 w-5 animate-spin" />
+              <span>{personalDetailsDict.nextButtonLoading}</span>
+            </>
+          ) : (
+            <>
+              <CheckCircle2 className="w-5 h-5" />
+              <span>{personalDetailsDict.nextButton}</span>
+              <ArrowLeft
+                className={`w-5 h-5 group-hover:-translate-x-1 transition-transform ${
+                  !isRTL ? 'rotate-180 group-hover:translate-x-1' : ''
+                }`}
+              />
+            </>
+          )}
+        </Button>
+      </motion.div>
+    </motion.div>
   );
 }

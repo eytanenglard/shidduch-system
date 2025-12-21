@@ -228,30 +228,16 @@ const HeroSection: React.FC<HeroSectionProps> = ({
 
       <motion.p
         variants={itemVariants}
-        className="text-gray-600 text-base md:text-lg max-w-2xl mx-auto leading-relaxed px-4"
-        style={{
-          direction: isRTL ? 'rtl' : 'ltr',
-          textAlign: 'center',
-        }}
+        className="text-lg text-gray-600 max-w-xl mx-auto leading-relaxed"
       >
         {subtitle}
       </motion.p>
-
-      {/* Decorative Line (Teal -> Orange) */}
-      <motion.div variants={itemVariants} className="relative mt-6">
-        <div className="w-24 h-1 bg-gradient-to-r from-teal-400 via-orange-400 to-amber-400 rounded-full mx-auto" />
-        <motion.div
-          className="absolute top-0 left-1/2 -translate-x-1/2 w-2 h-2 bg-white rounded-full border-2 border-orange-400"
-          animate={{ scale: [1, 1.3, 1] }}
-          transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
-        />
-      </motion.div>
     </motion.div>
   );
 };
 
 // ============================================================================
-// MAIN REGISTRATION STEPS CONTENT
+// MAIN CONTENT COMPONENT
 // ============================================================================
 
 const RegisterStepsContent: React.FC<{
@@ -263,6 +249,7 @@ const RegisterStepsContent: React.FC<{
     initializeFromSession,
     resetForm,
     goToStep,
+    submission, // הוספנו את submission מה-context
   } = useRegistration();
   const router = useRouter();
   const { data: session, status: sessionStatus } = useSession();
@@ -334,6 +321,20 @@ const RegisterStepsContent: React.FC<{
     locale,
   ]);
 
+  // ============================================================================
+  // אם יש submission פעיל - מציגים מסך טעינה מלא
+  // ============================================================================
+  if (submission.isSubmitting) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-teal-50/40 to-orange-50/40">
+        <StandardizedLoadingSpinner
+          text={submission.loadingText}
+          subtext={submission.loadingSubtext}
+        />
+      </div>
+    );
+  }
+
   // Render appropriate step
   const renderStep = (): React.ReactNode => {
     if (sessionStatus === 'loading') {
@@ -365,7 +366,7 @@ const RegisterStepsContent: React.FC<{
               personalDetailsDict={dict.steps.personalDetails}
               optionalInfoDict={dict.steps.optionalInfo}
               consentDict={dict.consentCheckbox}
-              validationDict={dict.validationErrors} // הוספה כאן: העברת המילון החדש
+              validationDict={dict.validationErrors}
               locale={locale}
             />
           );
@@ -385,7 +386,7 @@ const RegisterStepsContent: React.FC<{
           <BasicInfoStep
             dict={dict.steps.basicInfo}
             consentDict={dict.consentCheckbox}
-            validationDict={dict.validationErrors} // הוספה כאן: העברת המילון החדש
+            validationDict={dict.validationErrors}
             locale={locale}
           />
         );
