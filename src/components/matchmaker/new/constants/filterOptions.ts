@@ -3,7 +3,7 @@ import { AvailabilityStatus } from '@prisma/client';
 
 export const AGE_RANGE = {
   min: 18,
-  max: 99,
+  max: 130,
   default: {
     min: 20,
     max: 35
@@ -11,7 +11,7 @@ export const AGE_RANGE = {
 };
 
 export const HEIGHT_RANGE = {
-  min: 140,
+  min: 80,
   max: 210,
   default: {
     min: 150,
