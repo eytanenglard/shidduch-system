@@ -25,6 +25,10 @@ const completeProfileSchema = z.object({
       return age >= 18;
   }, { message: "Must be at least 18 years old" }),
   maritalStatus: z.string().min(1, "Marital status is required"),
+  
+  // הוספת שדה עיר כחובה
+  city: z.string().min(1, "City is required"),
+
   height: z.coerce.number().int().min(120).max(220).optional(),
   occupation: z.string().optional(),
   education: z.string().optional(),
@@ -88,6 +92,7 @@ export async function POST(req: Request) {
         gender,
         birthDate,
         maritalStatus,
+        city, // חילוץ העיר
         height,
         occupation,
         education,
@@ -100,6 +105,7 @@ export async function POST(req: Request) {
 
     console.log(`[API /api/auth/complete-profile] Consents received -> Engagement: ${engagementEmailsConsent}, Promotional: ${promotionalEmailsConsent}`);
     console.log(`[API /api/auth/complete-profile] About text length: ${about?.length || 0} characters`);
+    console.log(`[API /api/auth/complete-profile] City received: ${city}`);
 
     console.log(`[API /api/auth/complete-profile] Attempting to update profile and user details for user ${userId} in a transaction.`);
 
@@ -114,6 +120,7 @@ export async function POST(req: Request) {
           gender: gender,
           birthDate: new Date(birthDate),
           maritalStatus: maritalStatus,
+          city: city, // שמירת העיר
           height: height,
           occupation: occupation,
           education: education,
@@ -128,6 +135,7 @@ export async function POST(req: Request) {
           gender: gender,
           birthDate: new Date(birthDate),
           maritalStatus: maritalStatus,
+          city: city, // עדכון העיר
           height: height,
           occupation: occupation,
           education: education,

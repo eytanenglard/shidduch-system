@@ -1,6 +1,8 @@
 // src/app/components/profile/sections/ProfileSection.tsx
 'use client';
 
+import { createPortal } from 'react-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   Tooltip,
   TooltipContent,
@@ -930,7 +932,20 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
   const [aliyaCountryInputValue, setAliyaCountryInputValue] = useState('');
 
   const direction = locale === 'he' ? 'rtl' : 'ltr';
+  const [showFloatingBtn, setShowFloatingBtn] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
+  useEffect(() => {
+    setMounted(true); // מוודא שאנחנו בצד לקוח לצורך ה-Portal
+
+    const handleScroll = () => {
+      // מציג את הכפתור אחרי גלילה של 100 פיקסלים
+      setShowFloatingBtn(window.scrollY > 100);
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
   const characterTraitsOptions = useMemo(
     () =>
       Object.entries(dict.options.traits).map(([value, label]) => ({
@@ -1122,6 +1137,14 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
     setCityInputValue(dataToSet.city || '');
     setAliyaCountryInputValue(dataToSet.aliyaCountry || '');
   }, []);
+  useEffect(() => {
+    const handleScroll = () => {
+      // מציג את הכפתור רק אחרי גלילה של 100 פיקסלים
+      setShowFloatingBtn(window.scrollY > 100);
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   useEffect(() => {
     setLoading(true);
@@ -1296,7 +1319,6 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
           </div>
         </div>
       </div>
-
       <div className="container mx-auto max-w-screen-xl py-6 px-4">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div className="space-y-6">
@@ -2858,42 +2880,50 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
           </div>
         </div>
       </div>
-
       {/* ======================= START: FLOATING ACTION BUTTON ======================= */}
-      {!viewOnly && (
-<div className="sticky bottom-24 sm:bottom-28 z-30 flex justify-start ps-4 sm:ps-6 -mt-14 pointer-events-none">          {isEditing ? (
-            <Button
-              onClick={handleSave}
-              className={cn(
-                'h-14 w-14 rounded-full shadow-lg hover:shadow-xl pointer-events-auto',
-                'bg-gradient-to-br from-cyan-500 to-cyan-600 hover:from-cyan-600 hover:to-cyan-700',
-                'transition-all duration-300 ease-out',
-                'hover:scale-110 active:scale-95',
-                'flex items-center justify-center',
-                'ring-4 ring-cyan-200/50'
-              )}
-              aria-label={dict.buttons.saveChanges}
-            >
-              <Save className="w-6 h-6 text-white" />
-            </Button>
-          ) : (
-            <Button
-              onClick={() => setIsEditing(true)}
-              className={cn(
-                'h-14 w-14 rounded-full shadow-lg hover:shadow-xl pointer-events-auto',
-                'bg-gradient-to-br from-cyan-500 to-cyan-600 hover:from-cyan-600 hover:to-cyan-700',
-                'transition-all duration-300 ease-out',
-                'hover:scale-110 active:scale-95',
-                'flex items-center justify-center',
-                'ring-4 ring-cyan-200/50'
-              )}
-              aria-label={dict.buttons.edit}
-            >
-              <Pencil className="w-6 h-6 text-white" />
-            </Button>
-          )}
-        </div>
-      )}
+      {!viewOnly &&
+        mounted &&
+        createPortal(
+          <AnimatePresence>
+            {showFloatingBtn && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0 }}
+                transition={{
+                  type: 'spring',
+                  stiffness: 260,
+                  damping: 20,
+                }}
+                // שומר על המיקום החדש: צד שמאל (left-4) וסטיקי (fixed)
+                className="fixed bottom-24 left-4 z-[9999] md:hidden"
+              >
+                <Button
+                  onClick={isEditing ? handleSave : () => setIsEditing(true)}
+                  // 👇 כאן החזרנו את העיצוב המקורי בדיוק כפי שהיה
+                  className={cn(
+                    'h-14 w-14 rounded-full shadow-lg hover:shadow-xl',
+                    'bg-gradient-to-br from-cyan-500 to-cyan-600 hover:from-cyan-600 hover:to-cyan-700',
+                    'transition-all duration-300 ease-out',
+                    'hover:scale-110 active:scale-95',
+                    'flex items-center justify-center',
+                    'ring-4 ring-cyan-200/50'
+                  )}
+                  aria-label={
+                    isEditing ? dict.buttons.saveChanges : dict.buttons.edit
+                  }
+                >
+                  {isEditing ? (
+                    <Save className="w-6 h-6 text-white" />
+                  ) : (
+                    <Pencil className="w-6 h-6 text-white" />
+                  )}
+                </Button>
+              </motion.div>
+            )}
+          </AnimatePresence>,
+          document.body
+        )}
       {/* ======================= END: FLOATING ACTION BUTTON ======================= */}
 
       {/* ======================= START: ALWAYS VISIBLE STICKY FOOTER ======================= */}
@@ -2963,7 +2993,6 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
         </div>
       )}
       {/* ======================= END: ALWAYS VISIBLE STICKY FOOTER ======================= */}
-
       {/* Spacer to prevent content from being hidden behind fixed footer */}
       {!viewOnly && <div className="h-16 sm:h-20" />}
     </div>

@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\dictionaries\profile
-# Generated on: 2025-12-16 14:58:08
+# Generated on: 2025-12-21 14:52:01
 # Filter: Only content of code files (.bat, .c, .cfg, .conf, .cpp, .cs, .css, .go, .h, .html, .ini, .java, .js, .json, .jsx, .kt, .less, .md, .php, .py, .rb, .rs, .scss, .sh, .sql, .swift, .ts, .tsx, .txt, .xml, .yaml, .yml) is included.
 ################################################################################
 
@@ -458,19 +458,23 @@ Content:
         "widowed": "Widowed",
         "annulled": "Annulled Marriage"
       },
-      "religiousLevel": {
-        "charedi": "Haredi",
-        "charedi_modern": "Modern Haredi / Hardali",
-        "dati_leumi_torani": "Religious Zionist (Torani)",
-        "dati_leumi_liberal": "Religious Zionist (Liberal)",
-        "dati_leumi_standard": "Religious Zionist (Standard)",
-        "masorti_strong": "Traditional (Observant)",
-        "masorti_light": "Traditional (Lightly connected)",
-        "secular_traditional_connection": "Secular with a connection to tradition",
-        "secular": "Secular",
-        "spiritual_not_religious": "Spiritual (not necessarily religious)",
-        "other": "Other (please specify in 'About Me')"
-      },
+    "religiousLevel": {
+  "dati_leumi_standard": "Religious Zionist (Standard)",
+  "dati_leumi_liberal": "Religious Zionist (Liberal)",
+  "dati_leumi_torani": "Religious Zionist (Torani)",
+  "masorti_strong": "Traditional (Observant)",
+  "masorti_light": "Traditional (Lightly connected)",
+  "secular_traditional_connection": "Secular with connection to tradition",
+  "secular": "Secular",
+  "spiritual_not_religious": "Spiritual (not necessarily religious)",
+  "charedi_modern": "Modern Charedi",
+  "charedi_litvak": "Charedi Litvak (Lithuanian)",
+  "charedi_sephardic": "Charedi Sephardic",
+  "charedi_hasidic": "Charedi Hasidic",
+  "chabad": "Chabad (Lubavitch)",
+  "breslov": "Breslov",
+  "other": "Other"
+},
       "religiousJourney": {
         "BORN_INTO_CURRENT_LIFESTYLE": "Grew up in a similar religious environment",
         "BORN_SECULAR": "Grew up in a secular environment",
@@ -663,8 +667,132 @@ Content:
                 "delete": "Delete answer"
 
       }
+    },
+    "buttons": {
+  "editingMode": "Edit mode active",
+  "editHint": "Want to edit your answers?"
+}
+  },
+  "preferencesSection": {
+  "header": {
+    "title": "Match Preferences",
+    "subtitleEdit": "Edit your criteria for a perfect match.",
+    "subtitleView": "Preferences set for match search."
+  },
+  "buttons": {
+    "edit": "Edit",
+    "cancel": "Cancel",
+    "save": "Save",
+    "saveChanges": "Save Changes",
+"unsavedChanges": "You have unsaved changes",
+"editHint": "Want to update your preferences?"
+  },
+  "cards": {
+    "general": {
+      "title": "General Description & Contact",
+      "notesLabel": "General description of the partner you are looking for",
+      "notesTooltip": "This is one of the most important fields! Describe in your own words the type of person you are looking for. This helps matchmakers understand your mindset beyond the dry data.",
+      "notesPlaceholder": "Elaborate on the type of person, important traits, expectations, etc...",
+      "notesEmpty": "No description provided.",
+      "contactPreferenceLabel": "Preferred contact method (after suggestion approval)",
+      "contactPreferencePlaceholder": "Select option...",
+      "contactPreferenceEmpty": "Not specified"
+    },
+    "ageAndHeight": {
+      "title": "Age & Height Preferences",
+      "ageLegend": "Preferred Age Range",
+      "ageTooltip": "Defining a wider age range will increase the number of suggestions you receive.",
+      "ageMinPlaceholder": "From age",
+      "ageMaxPlaceholder": "To age",
+      "ageEmpty": "No age range defined.",
+      "heightLegend": "Preferred Height Range (cm)",
+      "heightMinPlaceholder": "From",
+      "heightMaxPlaceholder": "To",
+      "heightEmpty": "No height range defined."
+    },
+    "locationAndReligion": {
+      "title": "Location, Religion & Lifestyle",
+      "locationsLabel": "Preferred Residential Areas",
+      "locationsPlaceholder": "Add a city...",
+      "locationsRemoveLabel": "Remove {{loc}}",
+      "locationsEmpty": "No locations selected.",
+      "religiousLevelsLegend": "Preferred Religious Levels",
+      "religiousLevelsTooltip": "It is recommended to select 1-3 levels that suit you. Too broad a selection may lead to less accurate suggestions.",
+      "religiousLevelsEmpty": "No religious levels selected.",
+      "religiousJourneysLegend": "Preference regarding Religious Background/Journey",
+      "religiousJourneysEmpty": "No religious background preferences selected.",
+      "shomerNegiahLabel": "Shomer Negiah (Touch) Observance",
+      "shomerNegiahPlaceholder": "Select preference...",
+      "headCoveringLegend": "Preferred Head Covering (for women)",
+      "headCoveringEmpty": "No head covering preferences selected.",
+      "kippahTypeLegend": "Preferred Kippah Type (for men)",
+      "kippahTypeEmpty": "No kippah preferences selected."
+    },
+    "educationAndCareer": {
+      "title": "Education, Career & Service",
+      "educationLegend": "Preferred Education Levels",
+      "educationEmpty": "No education levels selected.",
+      "occupationLegend": "Preferred Occupational Fields",
+      "occupationEmpty": "No occupations selected.",
+      "serviceTypeLegend": "Preferred Service Type (Military/National)",
+      "serviceTypeEmpty": "No service preferences selected."
+    },
+    "personalBackground": {
+      "title": "Personal & Family Background",
+      "maritalStatusLegend": "Preferred Marital Status",
+      "maritalStatusEmpty": "No marital status preferences selected.",
+      "partnerHasChildrenLabel": "Preference regarding children from previous relationship",
+      "partnerHasChildrenPlaceholder": "Select preference...",
+      "originLegend": "Preferred Origin/Heritage",
+      "originPlaceholder": "Add origin...",
+      "originRemoveLabel": "Remove {{origin}}",
+      "originEmpty": "No origin preferences selected.",
+      "aliyaStatusLabel": "Aliyah Status Preference",
+      "aliyaStatusPlaceholder": "Select preference..."
+    },
+    "characterAndInterests": {
+      "title": "Character & Interests",
+      "traitsLegend": "Preferred Character Traits (up to 3)",
+      "traitsEmpty": "No traits selected.",
+      "hobbiesLegend": "Preferred Hobbies (up to 3)",
+      "hobbiesEmpty": "No hobbies selected."
     }
   },
+  "options": {
+    "contactPreference": { "direct": "Directly", "matchmaker": "Via Matchmaker", "both": "Both options" },
+    "religiousLevels": {
+      "dati_leumi_torani": "Religious Zionist (Torani)",
+      "dati_leumi_liberal": "Religious Zionist (Liberal)",
+      "dati_leumi_standard": "Religious Zionist (Standard)",
+      "masorti_strong": "Traditional (Observant)",
+      "masorti_light": "Traditional (Lightly connected)",
+      "secular_traditional_connection": "Secular with connection to tradition",
+      "secular": "Secular",
+      "spiritual_not_religious": "Spiritual (not necessarily religious)",
+      "charedi_modern": "Modern Charedi",
+      "charedi_litvak": "Charedi Litvak (Lithuanian)",
+      "charedi_sephardic": "Charedi Sephardic",
+      "charedi_hasidic": "Charedi Hasidic",
+      "chabad": "Chabad (Lubavitch)",
+      "breslov": "Breslov",
+      "other": "Other",
+      "no_preference": "No Preference / Flexible"
+    },
+    "religiousJourneys": { "BORN_INTO_CURRENT_LIFESTYLE": "Grew up in similar environment", "BORN_SECULAR": "Grew up secular", "BAAL_TESHUVA": "Baal Teshuva", "DATLASH": "Formerly religious (Datlash)", "CONVERT": "Convert", "IN_PROCESS": "In process of change", "no_preference": "No Preference / Flexible" },
+    "shomerNegiah": { "yes": "Yes, important to me", "no": "No, no preference", "flexible": "Flexible/Depends on person" },
+    "education": { "high_school": "High School", "vocational": "Vocational", "academic_student": "Student", "academic_ba": "Bachelor's Degree", "academic_ma": "Master's Degree", "academic_phd": "Doctorate", "yeshiva_seminary": "Torah Studies", "other": "Other", "no_preference": "No Preference" },
+    "occupation": { "tech": "Hi-Tech & Technology", "education": "Education & Teaching", "medicine": "Medicine & Health", "law": "Law", "business": "Business & Finance", "freelance": "Freelance/Self-employed", "student": "Student", "no_preference": "No Preference" },
+    "serviceTypes": { "MILITARY_COMBATANT": "Military - Combat", "MILITARY_SUPPORT": "Military - Support", "MILITARY_OFFICER": "Military - Officer", "MILITARY_INTELLIGENCE_CYBER_TECH": "Military - Intel/Cyber", "NATIONAL_SERVICE_ONE_YEAR": "National Service - 1 Year", "NATIONAL_SERVICE_TWO_YEARS": "National Service - 2 Years", "HESDER_YESHIVA": "Hesder Yeshiva", "YESHIVA_ONLY_POST_HS": "Yeshiva/Seminary (No service)", "PRE_MILITARY_ACADEMY_AND_SERVICE": "Mechina & Service", "EXEMPTED": "Exempted", "CIVILIAN_SERVICE": "Civilian Service", "OTHER": "Other / Not Relevant", "no_preference": "No Preference" },
+    "headCovering": { "FULL_COVERAGE": "Full Covering", "PARTIAL_COVERAGE": "Partial Covering", "HAT_BERET": "Hat / Beret", "SCARF_ONLY_SOMETIMES": "Scarf (Events)", "NONE": "No Covering", "any": "All options open" },
+    "kippahType": { "BLACK_VELVET": "Black Velvet", "KNITTED_SMALL": "Small Knitted", "KNITTED_LARGE": "Large Knitted", "CLOTH": "Cloth", "BRESLEV": "Breslev", "NONE_AT_WORK_OR_CASUAL": "Not at work/daily", "NONE_USUALLY": "Usually none", "OTHER": "Other", "any": "All options open" },
+    "maritalStatus": { "single": "Single", "divorced": "Divorced", "widowed": "Widowed", "annulled": "Annulled", "any": "All options open" },
+    "partnerHasChildren": { "yes_ok": "Yes, that's fine", "no_preferred": "Prefer without", "does_not_matter": "Doesn't matter" },
+    "aliyaStatus": { "oleh": "New Oleh", "tzabar": "Sabra (Native)", "no_preference": "No Preference" },
+    "origins": { "ashkenazi": "Ashkenazi", "sephardi": "Sephardi", "mizrachi": "Mizrachi", "temani": "Yemenite", "mixed": "Mixed", "ethiopian": "Ethiopian", "no_preference": "No Preference" },
+    "traits": { "empathetic": "Empathetic", "driven": "Driven", "optimistic": "Optimistic", "family_oriented": "Family-Oriented", "intellectual": "Intellectual", "organized": "Organized", "calm": "Calm", "humorous": "Humorous", "sociable": "Sociable", "sensitive": "Sensitive", "independent": "Independent", "creative": "Creative", "honest": "Honest", "responsible": "Responsible", "easy_going": "Easy-Going", "no_strong_preference": "No strong preference" },
+    "hobbies": { "travel": "Travel", "sports": "Sports", "reading": "Reading", "cooking_baking": "Cooking/Baking", "music_playing_instrument": "Music", "art_crafts": "Arts & Crafts", "volunteering": "Volunteering", "learning_courses": "Learning", "board_games_puzzles": "Games/Puzzles", "movies_theater": "Movies/Theater", "dancing": "Dancing", "writing": "Writing", "nature_hiking": "Nature/Hiking", "photography": "Photography", "no_strong_preference": "No strong preference" }
+  }
+},
   "profileCard": {
     "loading": "Loading profile data...",
     "budgetDisplay": {
@@ -871,25 +999,25 @@ Content:
           "religion": { "label": "Religion & Spirituality in My Life", "description": "The place of faith in my world" },
           "general": { "label": "More Important Things to Know", "description": "Additional details that complete the picture" }
         },
-              "detailLabels": {
-        "worldview": "My Guiding Worldview",
-        "religiousJourney": "My Religious Journey",
-        "shomerNegiah": "Observant of 'Shomer Negiah'",
-        "headCovering": "Head Covering",
-        "kippahType": "Kippah Type",
-        "educationLevel": "Education Level",
-        "educationDetails": "Education Details",
-        "professionalField": "Professional Field",
-        "militaryService": "Military/National Service",
-        "serviceDetails": "Service Details",
-        "parentStatus": "Parents' Status",
-        "fatherOccupation": "Father's Occupation",
-        "motherOccupation": "Mother's Occupation",
-        "siblings": "Siblings",
-        "birthOrder": "Birth Order",
-        "countryOfOrigin": "Country of Origin",
-        "aliyaYear": "Year of Aliyah"
-      }
+    "detailLabels": {
+  "worldview": "My Guiding Worldview",
+  "religiousJourney": "My Religious Journey",
+  "shomerNegiah": "Observant of 'Shomer Negiah'",
+  "headCovering": "Head Covering",
+  "kippahType": "Kippah Type",
+  "educationLevel": "Education Level",
+  "educationDetails": "Education Details",
+  "professionalField": "Professional Field",
+  "militaryService": "Military/National Service",
+  "serviceDetails": "Service Details",
+  "parentStatus": "Parents' Status",
+  "fatherOccupation": "Father's Occupation",
+  "motherOccupation": "Mother's Occupation",
+  "siblings": "Siblings",
+  "birthOrder": "Birth Order",
+  "countryOfOrigin": "Country of Origin",
+  "aliyaYear": "Year of Aliyah"
+}
 
       }
     },
@@ -903,7 +1031,10 @@ Content:
       "edit": "Edit",
       "cancel": "Cancel",
       "save": "Save",
-      "saveChanges": "Save Changes"
+      "saveChanges": "Save Changes",
+      "unsavedChanges": "Unsaved changes",
+      "editHint": "Edit details"
+
     },
     "cards": {
       "personal": {
@@ -1065,19 +1196,23 @@ Content:
         "widowed": "Widowed",
         "annulled": "Annulled Marriage"
       },
-      "religiousLevel": {
-        "charedi": "Haredi",
-        "charedi_modern": "Modern Haredi / Hardali",
-        "dati_leumi_torani": "Religious Zionist (Torani)",
-        "dati_leumi_liberal": "Religious Zionist (Liberal)",
-        "dati_leumi_standard": "Religious Zionist (Standard)",
-        "masorti_strong": "Traditional (Observant)",
-        "masorti_light": "Traditional (Lightly connected)",
-        "secular_traditional_connection": "Secular with a connection to tradition",
-        "secular": "Secular",
-        "spiritual_not_religious": "Spiritual (not necessarily religious)",
-        "other": "Other (please specify in 'About Me')"
-      },
+     "religiousLevel": {
+  "dati_leumi_torani": "Religious Zionist (Torani)",
+  "dati_leumi_liberal": "Religious Zionist (Liberal)",
+  "dati_leumi_standard": "Religious Zionist (Standard)",
+  "masorti_strong": "Traditional (Observant)",
+  "masorti_light": "Traditional (Lightly connected)",
+  "secular_traditional_connection": "Secular with connection to tradition",
+  "secular": "Secular",
+  "spiritual_not_religious": "Spiritual (not necessarily religious)",
+  "charedi_modern": "Modern Charedi",
+  "charedi_litvak": "Charedi Litvak (Lithuanian)",
+  "charedi_sephardic": "Charedi Sephardic",
+  "charedi_hasidic": "Charedi Hasidic",
+  "chabad": "Chabad (Lubavitch)",
+  "breslov": "Breslov",
+  "other": "Other (please specify in 'About Me')"
+},
       "religiousJourney": {
         "BORN_INTO_CURRENT_LIFESTYLE": "Grew up in a similar religious environment",
         "BORN_SECULAR": "Grew up in a secular environment",
@@ -1728,7 +1863,11 @@ Content:
                 "delete": "מחק תשובה"
 
       }
-    }
+    },
+    "buttons": {
+  "editingMode": "מצב עריכה פעיל",
+  "editHint": "רוצה לערוך תשובות?"
+}
   }
 ,
     "preferencesSection": {
@@ -1740,7 +1879,10 @@ Content:
     "buttons": {
       "edit": "עריכה",
       "cancel": "ביטול",
-      "save": "שמירה"
+      "save": "שמירה",
+"saveChanges": "שמירת שינויים",
+"unsavedChanges": "יש שינויים שלא נשמרו",
+"editHint": "רוצה לעדכן פרטים?"
     },
     "cards": {
       "general": {
@@ -1815,8 +1957,24 @@ Content:
     },
     "options": {
       "contactPreference": { "direct": "ישירות", "matchmaker": "דרך השדכן/ית", "both": "שתי האפשרויות" },
-      "religiousLevels": { "charedi": "חרדי/ת", "charedi_modern": "חרדי/ת מודרני/ת", "dati_leumi_torani": "דתי/ה לאומי/ת תורני/ת", "dati_leumi_liberal": "דתי/ה לאומי/ת ליברלי/ת", "dati_leumi_standard": "דתי/ה לאומי/ת (סטנדרטי)", "masorti_strong": "מסורתי/ת (קרוב/ה לדת)", "masorti_light": "מסורתי/ת (קשר קל למסורת)", "secular_traditional_connection": "חילוני/ת עם זיקה למסורת", "secular": "חילוני/ת", "spiritual_not_religious": "רוחני/ת (לאו דווקא דתי/ה)", "other": "אחר (נא לפרט ב'אודות')", "no_preference": "ללא העדפה / גמיש" },
-      "religiousJourneys": { "BORN_INTO_CURRENT_LIFESTYLE": "גדל/ה בסביבה דומה", "BORN_SECULAR": "גדל/ה בסביבה חילונית", "BAAL_TESHUVA": "חוזר/ת בתשובה", "DATLASH": "יצא/ה בשאלה (דתל\"ש)", "CONVERT": "גר/ה / גיורת", "IN_PROCESS": "בתהליך שינוי", "no_preference": "ללא העדפה / גמיש" },
+"religiousLevels": {
+  "dati_leumi_torani": "דתי/ה לאומי/ת תורני/ת",
+  "dati_leumi_liberal": "דתי/ה לאומי/ת ליברלי/ת",
+  "dati_leumi_standard": "דתי/ה לאומי/ת (סטנדרטי)",
+  "masorti_strong": "מסורתי/ת (קרוב/ה לדת)",
+  "masorti_light": "מסורתי/ת (קשר קל למסורת)",
+  "secular_traditional_connection": "חילוני/ת עם זיקה למסורת",
+  "secular": "חילוני/ת",
+  "spiritual_not_religious": "רוחני/ת (לאו דווקא דתי/ה)",
+  "charedi_modern": "חרדי/ת מודרני/ת",
+  "charedi_litvak": "חרדי/ת ליטאי/ת",
+  "charedi_sephardic": "חרדי/ת ספרדי/ת",
+  "charedi_hasidic": "חרדי/ת חסידי/ת",
+  "chabad": "חב״ד",
+  "breslov": "ברסלב",
+  "other": "אחר",
+  "no_preference": "ללא העדפה / גמיש"
+},      "religiousJourneys": { "BORN_INTO_CURRENT_LIFESTYLE": "גדל/ה בסביבה דומה", "BORN_SECULAR": "גדל/ה בסביבה חילונית", "BAAL_TESHUVA": "חוזר/ת בתשובה", "DATLASH": "יצא/ה בשאלה (דתל\"ש)", "CONVERT": "גר/ה / גיורת", "IN_PROCESS": "בתהליך שינוי", "no_preference": "ללא העדפה / גמיש" },
       "shomerNegiah": { "yes": "כן, חשוב לי", "no": "לא, אין העדפה", "flexible": "גמיש/תלוי באדם" },
       "education": { "high_school": "תיכונית", "vocational": "מקצועית", "academic_student": "במהלך לימודים", "academic_ba": "תואר ראשון", "academic_ma": "תואר שני", "academic_phd": "דוקטורט", "yeshiva_seminary": "לימודים תורניים", "other": "אחר", "no_preference": "ללא העדפה" },
       "occupation": { "tech": "הייטק וטכנולוגיה", "education": "חינוך והוראה", "medicine": "רפואה ובריאות", "law": "משפטים", "business": "עסקים ופיננסים", "freelance": "עצמאי/ת", "student": "סטודנט/ית", "no_preference": "ללא העדפה" },
@@ -1895,7 +2053,9 @@ Content:
       "edit": "עריכה",
       "cancel": "ביטול",
       "save": "שמירה",
-      "saveChanges": "שמירת שינויים"
+      "saveChanges": "שמירת שינויים",
+      "unsavedChanges": "יש שינויים שלא נשמרו",
+      "editHint": "רוצה לעדכן פרטים?"
     },
     "cards": {
       "personal": {
@@ -2081,19 +2241,23 @@ Content:
         "widowed": "אלמן/ה",
         "annulled": "נישואין שבוטלו"
       },
-      "religiousLevel": {
-        "charedi": "חרדי/ת",
-        "charedi_modern": "חרדי/ת מודרני/ת",
-        "dati_leumi_torani": "דתי/ה לאומי/ת תורני/ת",
-        "dati_leumi_liberal": "דתי/ה לאומי/ת ליברלי/ת",
-        "dati_leumi_standard": "דתי/ה לאומי/ת (סטנדרטי)",
-        "masorti_strong": "מסורתי/ת (קרוב/ה לדת)",
-        "masorti_light": "מסורתי/ת (קשר קל למסורת)",
-        "secular_traditional_connection": "חילוני/ת עם זיקה למסורת",
-        "secular": "חילוני/ת",
-        "spiritual_not_religious": "רוחני/ת (לאו דווקא דתי/ה)",
-        "other": "אחר (נא לפרט ב'אודות')"
-      },
+   "religiousLevel": {
+  "dati_leumi_torani": "דתי/ה לאומי/ת תורני/ת",
+  "dati_leumi_liberal": "דתי/ה לאומי/ת ליברלי/ת",
+  "dati_leumi_standard": "דתי/ה לאומי/ת (סטנדרטי)",
+  "masorti_strong": "מסורתי/ת (קרוב/ה לדת)",
+  "masorti_light": "מסורתי/ת (קשר קל למסורת)",
+  "secular_traditional_connection": "חילוני/ת עם זיקה למסורת",
+  "secular": "חילוני/ת",
+  "spiritual_not_religious": "רוחני/ת (לאו דווקא דתי/ה)",
+  "charedi_modern": "חרדי/ת מודרני/ת",
+  "charedi_litvak": "חרדי/ת ליטאי/ת",
+  "charedi_sephardic": "חרדי/ת ספרדי/ת",
+  "charedi_hasidic": "חרדי/ת חסידי/ת",
+  "chabad": "חב״ד",
+  "breslov": "ברסלב",
+  "other": "אחר (נא לפרט ב'אודות')"
+},
       "religiousJourney": {
         "BORN_INTO_CURRENT_LIFESTYLE": "גדלתי בסביבה דומה להגדרתי כיום",
         "BORN_SECULAR": "גדלתי בסביבה חילונית",

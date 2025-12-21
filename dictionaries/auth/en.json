@@ -280,6 +280,8 @@
         "male": "Male",
         "female": "Female",
         "birthDateLabel": "Date of Birth",
+         "cityLabel": "City of Residence",
+        "cityPlaceholder": "Start typing a city name...",
         "maritalStatusLabel": "Marital Status",
         "maritalStatusPlaceholder": "Select your marital status...",
         "maritalStatuses": {
@@ -322,6 +324,8 @@
           "genderRequired": "Gender selection is required",
           "maritalStatusRequired": "Marital status selection is required",
           "religiousLevelRequired": "Religious level selection is required",
+                    "cityRequired": "City of residence is required"
+,
           "consentRequired": "You must accept the terms of use and privacy policy.",
           "engagementConsentRequired": "To ensure we can guide you through the process, you must agree to receive updates and suggestions from the system.",
           "consentApiError": "An error occurred while accepting the terms."
@@ -412,6 +416,8 @@
         "birthDate": "Date of Birth (18+)",
         "maritalStatus": "Marital Status",
         "religiousLevel": "Religious Level",
+                "city": "City of Residence"
+,
         "terms": "Terms of Service Agreement",
         "engagement": "Engagement Updates Consent",
         "photos": "Profile Photos",

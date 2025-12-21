@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\dictionaries\auth
-# Generated on: 2025-12-16 14:58:29
+# Generated on: 2025-12-21 14:51:39
 # Filter: Only content of code files (.bat, .c, .cfg, .conf, .cpp, .cs, .css, .go, .h, .html, .ini, .java, .js, .json, .jsx, .kt, .less, .md, .php, .py, .rb, .rs, .scss, .sh, .sql, .swift, .ts, .tsx, .txt, .xml, .yaml, .yml) is included.
 ################################################################################
 
@@ -200,7 +200,7 @@ Content:
     "progressBar": {
       "stepLabel": "Step {{step}}"
     },
-  "headers": {
+    "headers": {
       "registerTitle": "System Registration",
       "verifyEmailTitle": "Email Address Verification",
       "completeProfileTitle": "Complete Details",
@@ -240,10 +240,9 @@ Content:
         "firstNameLabel": "First Name",
         "firstNamePlaceholder": "John",
         "lastNameLabel": "Last Name",
-  "languageLabel": "Preferred Communication Language",
-  "languagePlaceholder": "Select language...",
-
         "lastNamePlaceholder": "Doe",
+        "languageLabel": "Preferred Communication Language",
+        "languagePlaceholder": "Select language...",
         "backButton": "Back",
         "nextButton": "Create Account & Continue to Verification",
         "nextButtonLoading": "Creating account...",
@@ -259,8 +258,6 @@ Content:
           "consentRequired": "You must accept the terms of use and privacy policy.",
           "default": "An unexpected error occurred during registration"
         },
-        "engagementConsentLabel": "Yes, I'd like to receive tips, AI insights, and personal feedback from the team to help me improve my profile and find a match faster.",
-        "promotionalConsentLabel": "I'd like to receive updates about new features, special events, and promotions from NeshamaTech.",
         "status": {
           "creatingAccount": "Creating your account...",
           "sendingCode": "Sending verification code to your email..."
@@ -295,6 +292,7 @@ Content:
         "lastNameLabel": "Last Name",
         "lastNamePlaceholder": "e.g., Doe",
         "languageLabel": "Preferred Communication Language",
+        "languagePlaceholder": "Select language...",
         "phoneLabel": "Mobile Phone",
         "phonePlaceholder": "0501234567",
         "genderLabel": "Gender",
@@ -308,26 +306,30 @@ Content:
           "divorced": "Divorced",
           "widowed": "Widowed"
         },
-        "backButton": "Back",
-        "nextButton": "Continue to Next Step",
-        "nextButtonLoading": "Accepting terms...",
-        "engagementConsentLabel": "Yes, I'd like to receive tips, AI insights, and personal feedback from the team to help me improve my profile and find a match faster.",
-        "promotionalConsentLabel": "I'd like to receive updates about new features, special events, and promotions from NeshamaTech.",
         "religiousLevelLabel": "Religious Style",
         "religiousLevelPlaceholder": "How do you define yourself?",
         "religiousLevels": {
           "dati_leumi_standard": "Religious Zionist (Standard)",
           "dati_leumi_liberal": "Religious Zionist (Liberal)",
           "dati_leumi_torani": "Religious Zionist (Torani)",
-          "masorti_strong": "Traditional (Observant)",
-          "masorti_light": "Traditional (Lightly connected)",
-          "secular_traditional_connection": "Secular with connection to tradition",
+          "masorti_strong": "Traditional (Strong connection)",
+          "masorti_light": "Traditional (Light connection)",
+          "secular_traditional_connection": "Secular with traditional connection",
           "secular": "Secular",
-          "charedi_modern": "Modern Haredi",
-          "charedi": "Haredi",
           "spiritual_not_religious": "Spiritual (not necessarily religious)",
+          "charedi_modern": "Modern Ultra-Orthodox (Charedi)",
+          "charedi_litvak": "Litvak Ultra-Orthodox",
+          "charedi_sephardic": "Sephardic Ultra-Orthodox",
+          "charedi_hasidic": "Hasidic Ultra-Orthodox",
+          "chabad": "Chabad",
+          "breslov": "Breslov",
           "other": "Other"
         },
+        "engagementConsentLabel": "Yes, I'd like to receive tips, AI insights, and personal feedback from the team to help me improve my profile and find a match faster.",
+        "promotionalConsentLabel": "I'd like to receive updates about new features, special events, and promotions from NeshamaTech.",
+        "backButton": "Back",
+        "nextButton": "Continue to Next Step",
+        "nextButtonLoading": "Accepting terms...",
         "errors": {
           "firstNameRequired": "First name is a required field",
           "lastNameRequired": "Last name is a required field",
@@ -343,35 +345,38 @@ Content:
           "engagementConsentRequired": "To ensure we can guide you through the process, you must agree to receive updates and suggestions from the system.",
           "consentApiError": "An error occurred while accepting the terms."
         },
-         "_comment": "Add these sections inside the personalDetails object in en.json",
-  "photos": {
-    "title": "Your Photos",
-    "subtitle": "Good photos significantly increase your chances of successful matches",
-    "addPhoto": "Add Photo",
-    "mainPhoto": "Main",
-    "setAsMain": "Set as main photo",
-    "remove": "Remove",
-    "maxPhotosError": "You can upload up to 5 photos",
-    "invalidTypeError": "Unsupported file type. Please upload JPG, PNG, or WEBP images",
-    "fileTooLargeError": "File too large. Maximum size: 5MB",
-    "uploadSuccess": "Photos added successfully",
-    "uploadingPhotos": "Uploading photos...",
-    "tip": "💡 Tip:",
-    "tipText": "Upload clear photos showing your face. High-quality photos increase your chances of receiving accurate and interesting match suggestions."
-  },
-  "aboutMe": {
-    "title": "My Story in My Own Words",
-    "subtitle": "Tell us about yourself - this helps matchmakers get to know you better",
-    "label": "Tell us about yourself",
-    "placeholder": "Share about yourself, what matters to you in life, your hobbies, and what you're looking for in a partner...\n\nDon't be shy to write personally - that's exactly what helps matchmakers understand who you really are.",
-    "tooltip": "Share your hobbies, values, what matters to you in life and relationships. The more you write, the better matchmakers can get to know you.",
-    "minChars": "{{remaining}} more characters minimum",
-    "promptsTitle": "Ideas for what to write:",
-    "prompt1": "What do you enjoy doing in your free time?",
-    "prompt2": "What values are most important to you?",
-    "prompt3": "What does your perfect day look like?",
-    "prompt4": "What are you looking for in a partner?"
-  }
+        "photos": {
+          "title": "Your Photos",
+          "subtitle": "Good photos significantly increase your chances of successful matches",
+          "addPhoto": "Add Photo",
+          "mainPhoto": "Main",
+          "setAsMain": "Set as main photo",
+          "remove": "Remove",
+          "maxPhotosError": "You can upload up to 5 photos",
+          "invalidTypeError": "Unsupported file type. Please upload JPG, PNG, or WEBP images",
+          "fileTooLargeError": "File too large. Maximum size: 5MB",
+          "uploadSuccess": "Photos added successfully",
+          "uploadingPhotos": "Uploading photos...",
+          "tip": "💡 Tip:",
+          "tipText": "Upload clear photos showing your face. High-quality photos increase your chances of receiving accurate and interesting match suggestions.",
+          "fieldName": "Profile photo",
+          "required": "Please upload at least one photo"
+        },
+        "aboutMe": {
+          "title": "My Story in My Own Words",
+          "subtitle": "Tell us about yourself - this helps matchmakers get to know you better",
+          "label": "Tell us about yourself",
+          "placeholder": "Share about yourself, what matters to you in life, your hobbies, and what you're looking for in a partner...\n\nDon't be shy to write personally - that's exactly what helps matchmakers understand who you really are.",
+          "tooltip": "Share your hobbies, values, what matters to you in life and relationships. The more you write, the better matchmakers can get to know you.",
+          "minChars": "{{remaining}} more characters minimum",
+          "promptsTitle": "Ideas for what to write:",
+          "prompt1": "What do you enjoy doing in your free time?",
+          "prompt2": "What values are most important to you?",
+          "prompt3": "What does your perfect day look like?",
+          "prompt4": "What are you looking for in a partner?",
+          "fieldName": "My story",
+          "required": "Please write at least 100 characters"
+        }
       },
       "optionalInfo": {
         "title": "Additional Information",
@@ -390,6 +395,7 @@ Content:
           "sendingCode": "Sending verification code..."
         },
         "errors": {
+          "title": "Error",
           "missingData": "Essential data is missing. Please go back and check your details.",
           "default": "An unexpected error occurred"
         }
@@ -412,7 +418,7 @@ Content:
         "backToHomeLink": "Back to Homepage"
       }
     },
-        "validationErrors": {
+    "validationErrors": {
       "title": "Missing Information",
       "pleaseFill": "To proceed, please complete the following fields:",
       "fields": {
@@ -426,10 +432,11 @@ Content:
         "maritalStatus": "Marital Status",
         "religiousLevel": "Religious Level",
         "terms": "Terms of Service Agreement",
-        "engagement": "Engagement Updates Consent"
+        "engagement": "Engagement Updates Consent",
+        "photos": "Profile Photos",
+        "aboutMe": "My Story"
       }
     },
-
     "consentCheckbox": {
       "text": "I have read and agree to the {termsLink} and the {privacyLink} of NeshamaTech, and I consent to the collection, processing, and storage of my personal information, including sensitive information, as detailed therein, and to the transfer of my information to servers that may be located outside of Israel.",
       "termsLink": "Terms of Use",
@@ -1013,9 +1020,13 @@ Content:
   "masorti_light": "מסורתי/ת (קשר קל למסורת)",
   "secular_traditional_connection": "חילוני/ת עם זיקה למסורת",
   "secular": "חילוני/ת",
-  "charedi_modern": "חרדי/ת מודרני/ת",
-  "charedi": "חרדי/ת",
   "spiritual_not_religious": "רוחני/ת (לאו דווקא דתי/ה)",
+  "charedi_modern": "חרדי/ת מודרני/ת",
+  "charedi_litvak": "חרדי/ת ליטאי/ת",
+  "charedi_sephardic": "חרדי/ת ספרדי/ת",
+  "charedi_hasidic": "חרדי/ת חסידי/ת",
+  "chabad": "חב״ד",
+  "breslov": "ברסלב",
   "other": "אחר"
 },
        "errors": {
@@ -1034,7 +1045,7 @@ Content:
                      "religiousLevelRequired": "יש לבחור רמה דתית"
 
         },
-         "_comment": "יש להוסיף את הקטעים הבאים לתוך אובייקט personalDetails בקובץ he.json",
+       "_comment": "יש להוסיף את הקטעים הבאים לתוך אובייקט personalDetails בקובץ he.json",
   "photos": {
     "title": "תמונות שלכם",
     "subtitle": "תמונות טובות מגדילות משמעותית את הסיכוי להתאמות מוצלחות",
@@ -1048,20 +1059,24 @@ Content:
     "uploadSuccess": "התמונות נוספו בהצלחה",
     "uploadingPhotos": "מעלה תמונות...",
     "tip": "💡 טיפ:",
-    "tipText": "העלו תמונות ברורות שמציגות את הפנים שלכם. תמונות איכותיות מגדילות את הסיכוי לקבל הצעות שידוך מדויקות ומעניינות."
+    "tipText": "העלו תמונות ברורות שמציגות את הפנים שלכם. תמונות איכותיות מגדילות את הסיכוי לקבל הצעות שידוך מדויקות ומעניינות.",
+    "fieldName": "תמונת פרופיל",
+    "required": "יש להעלות לפחות תמונה אחת"
   },
   "aboutMe": {
     "title": "הסיפור שלי במילים שלי",
-    "subtitle": "ספרו על עצמכם - זה החלק שהכי עוזר לשדכנים להכיר אתכם לעומק",
+    "subtitle": "ספרו על עצמכם - זה החלק שהכי עוזר לנו להכיר אתכם לעומק",
     "label": "ספרו על עצמכם",
-    "placeholder": "ספרו על עצמכם, על מה שחשוב לכם בחיים, על התחביבים שלכם, ועל מה שאתם מחפשים בבן/בת זוג...\n\nאל תחששו לכתוב בצורה אישית - זה בדיוק מה שעוזר לשדכנים להבין מי אתם באמת.",
+    "placeholder": "ספרו על עצמכם, על מה שחשוב לכם בחיים, על התחביבים שלכם, על נקודות דרך משמעותתיות שהיו לכם, ועל מה שאתם מחפשים בבן/בת זוג...\n\nאל תחששו לכתוב בצורה אישית - זה בדיוק מה שעוזר לשדכנים להבין מי אתם באמת.",
     "tooltip": "שתפו על התחביבים, הערכים, מה חשוב לכם בחיים ובמערכת יחסים. ככל שתכתבו יותר, כך השדכנים יוכלו להכיר אתכם טוב יותר.",
     "minChars": "עוד {{remaining}} תווים מינימום",
     "promptsTitle": "רעיונות למה לכתוב:",
     "prompt1": "מה אתם אוהבים לעשות בזמן הפנוי?",
     "prompt2": "מה הערכים הכי חשובים לכם?",
     "prompt3": "איך נראה היום המושלם שלכם?",
-    "prompt4": "מה אתם מחפשים בבן/בת זוג?"
+    "prompt4": "מה אתם מחפשים בבן/בת זוג?",
+    "fieldName": "הסיפור שלי",
+    "required": "יש לכתוב לפחות 100 תווים"
   }
       }
 ,
@@ -1119,7 +1134,9 @@ Content:
         "maritalStatus": "מצב משפחתי",
         "religiousLevel": "סגנון דתי",
         "terms": "אישור תנאי השימוש",
-        "engagement": "אישור קבלת עדכונים מהמערכת"
+        "engagement": "אישור קבלת עדכונים מהמערכת",
+          "photos": "תמונות פרופיל",
+    "aboutMe": "הסיפור שלי"
       }
     },
     "consentCheckbox": {

@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\auth
-# Generated on: 2025-12-21 02:07:23
+# Generated on: 2025-12-21 14:43:49
 # Filter: Only content of code files (.bat, .c, .cfg, .conf, .cpp, .cs, .css, .go, .h, .html, .ini, .java, .js, .json, .jsx, .kt, .less, .md, .php, .py, .rb, .rs, .scss, .sh, .sql, .swift, .ts, .tsx, .txt, .xml, .yaml, .yml) is included.
 ################################################################################
 
@@ -4417,7 +4417,7 @@ import {
   Calendar,
   Heart,
   Sparkles,
-  CheckCircle2,
+CheckCircle2,
   AlertCircle,
   Loader2,
   ArrowLeft,
@@ -4436,7 +4436,6 @@ import {
   Trash2,
   Star,
 } from 'lucide-react';
-import Image from 'next/image';
 
 // UI Components
 import { Button } from '@/components/ui/button';
@@ -4472,49 +4471,85 @@ import FullScreenLoadingOverlay, {
 import type { RegisterStepsDict } from '@/types/dictionaries/auth';
 
 // ============================================================================
-// TYPES
+// COMPONENT: SimpleConsentBox
+// זהו הרכיב שמחקה את ההתנהגות של הצ'קבוקס הראשון (ConsentCheckbox)
+// הוא יוצר קופסה גדולה ולחיצה שמבטיחה עבודה חלקה במובייל.
 // ============================================================================
 
-type SubmissionStatus =
-  | 'idle'
-  | 'acceptingTerms'
-  | 'savingProfile'
-  | 'uploadingPhotos'
-  | 'sendingCode'
-  | 'redirecting'
-  | 'error';
-
-interface UploadedPhoto {
-  file: File;
-  preview: string;
-  isMain: boolean;
+interface SimpleConsentBoxProps {
+  checked: boolean;
+  onToggle: () => void;
+  label: string;
+  required?: boolean;
+  error?: string | null;
 }
 
-// ============================================================================
-// ANIMATION & STYLING VARIANTS
-// ============================================================================
+const SimpleConsentBox: React.FC<SimpleConsentBoxProps> = ({
+  checked,
+  onToggle,
+  label,
+  required,
+  error,
+}) => {
+  return (
+    <div
+      onClick={onToggle}
+      className={`
+        relative flex items-start gap-4 p-4 rounded-2xl border-2 cursor-pointer transition-all duration-200
+        ${
+          checked
+            ? 'bg-teal-50/60 border-teal-200 shadow-sm'
+            : 'bg-white border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+        }
+        ${error ? 'bg-red-50/50 border-red-200 ring-1 ring-red-100' : ''}
+      `}
+    >
+      {/* 
+        אנחנו משתמשים בצ'קבוקס רק כאלמנט ויזואלי (Display Only).
+        אנחנו לא מעבירים לו onCheckedChange כדי למנוע התנגשויות אירועים.
+        הלחיצה מטופלת אך ורק על ידי ה-div העוטף.
+      */}
+      <div className="mt-1 shrink-0">
+        <Checkbox
+          checked={checked}
+          className="pointer-events-none data-[state=checked]:bg-teal-600 data-[state=checked]:border-teal-600"
+        />
+      </div>
 
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.08,
-      delayChildren: 0.1,
-    },
-  },
+      <div className="flex-1">
+        <p
+          className={`text-sm font-medium leading-relaxed ${checked ? 'text-teal-900' : 'text-gray-700'}`}
+        >
+          {label}
+          {required && <span className="text-red-500 mr-1">*</span>}
+        </p>
+        {error && (
+          <p className="text-xs text-red-500 mt-1 font-medium animate-in slide-in-from-top-1">
+            {error}
+          </p>
+        )}
+      </div>
+    </div>
+  );
 };
 
-const itemVariants = {
-  hidden: { opacity: 0, y: 15 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.4, ease: 'easeOut' },
-  },
-};
+// ============================================================================
+// STYLING HELPERS
+// ============================================================================
 
-// Helper Component: Field Wrapper
+const inputBaseClasses = (hasError: boolean) => `
+  w-full pr-11 py-3 border-2 rounded-xl 
+  bg-white/95 backdrop-blur-none
+  text-base md:text-sm 
+  transition-colors duration-200
+  disabled:opacity-50
+  ${
+    hasError
+      ? 'border-red-300 focus:ring-red-200 focus:border-red-400'
+      : 'border-gray-200 hover:border-gray-300 focus:border-teal-400 focus:ring-2 focus:ring-teal-200'
+  }
+`;
+
 interface FieldWrapperProps {
   children: React.ReactNode;
   icon: React.ReactNode;
@@ -4530,10 +4565,8 @@ const FieldWrapper: React.FC<FieldWrapperProps> = ({
 }) => (
   <div className={`relative group ${className}`}>
     <div
-      className={`absolute right-3 top-1/2 transform -translate-y-1/2 transition-all duration-300 z-10 pointer-events-none ${
-        hasValue
-          ? 'text-teal-500 scale-110'
-          : 'text-gray-400 group-hover:text-gray-500'
+      className={`absolute right-3 top-1/2 transform -translate-y-1/2 transition-colors duration-200 z-10 pointer-events-none ${
+        hasValue ? 'text-teal-500' : 'text-gray-400 group-hover:text-gray-500'
       }`}
     >
       {icon}
@@ -4542,7 +4575,6 @@ const FieldWrapper: React.FC<FieldWrapperProps> = ({
   </div>
 );
 
-// Helper Component: Section Header
 interface SectionHeaderProps {
   icon: React.ReactNode;
   title: string;
@@ -4574,9 +4606,35 @@ const SectionHeader: React.FC<SectionHeaderProps> = ({
   </motion.div>
 );
 
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { staggerChildren: 0.08, delayChildren: 0.1 },
+  },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 15 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.4, ease: 'easeOut' },
+  },
+};
+
 // ============================================================================
 // MAIN COMPONENT
 // ============================================================================
+
+type SubmissionStatus =
+  | 'idle'
+  | 'acceptingTerms'
+  | 'savingProfile'
+  | 'uploadingPhotos'
+  | 'sendingCode'
+  | 'redirecting'
+  | 'error';
 
 interface PersonalDetailsStepProps {
   personalDetailsDict: RegisterStepsDict['steps']['personalDetails'];
@@ -4606,32 +4664,32 @@ export default function PersonalDetailsStep({
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // States - Validation Errors
+  // States
   const [firstNameError, setFirstNameError] = useState('');
   const [lastNameError, setLastNameError] = useState('');
   const [phoneError, setPhoneError] = useState('');
   const [ageError, setAgeError] = useState('');
   const [religiousLevelError, setReligiousLevelError] = useState('');
 
-  // States - Submission
   const [isLoading, setIsLoading] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
   const [submissionStatus, setSubmissionStatus] =
     useState<SubmissionStatus>('idle');
-
-  // State for validation summary
   const [missingFields, setMissingFields] = useState<string[]>([]);
 
-  // Photo upload states
+  interface UploadedPhoto {
+    file: File;
+    preview: string;
+    isMain: boolean;
+  }
+
   const [uploadedPhotos, setUploadedPhotos] = useState<UploadedPhoto[]>([]);
   const MAX_PHOTOS = 5;
-  const MIN_PHOTOS = 1; // חובה לפחות תמונה אחת
-
-  // About Me state
+  const MIN_PHOTOS = 1;
   const [aboutMe, setAboutMe] = useState('');
-  const MIN_ABOUT_LENGTH = 100; // חובה לפחות 100 תווים
+  const MIN_ABOUT_LENGTH = 100;
 
-  // Consent Logic
+  // Consents
   const userHasAlreadyConsented = !!session?.user?.termsAndPrivacyAcceptedAt;
   const [consentChecked, setConsentChecked] = useState(userHasAlreadyConsented);
   const [consentError, setConsentError] = useState<string | null>(null);
@@ -4657,30 +4715,22 @@ export default function PersonalDetailsStep({
     );
   }, [personalDetailsDict.religiousLevels]);
 
-  useEffect(() => {
-    router.prefetch(`/${locale}/auth/verify-phone`);
-  }, [router, locale]);
-
-  // --- התחלה של הקוד החדש ---
   const previewsRef = useRef<string[]>([]);
-
-  // עדכון הרשימה בצד מבלי למחוק אותה
   useEffect(() => {
     previewsRef.current = uploadedPhotos.map((p) => p.preview);
   }, [uploadedPhotos]);
 
-  // מחיקת הזיכרון רק כשהמשתמש סוגר את הדף לגמרי
   useEffect(() => {
     return () => {
       previewsRef.current.forEach((url) => URL.revokeObjectURL(url));
     };
   }, []);
-  // --- סוף של הקוד החדש ---
 
-  // ============================================================================
-  // PHOTO UPLOAD HANDLERS
-  // ============================================================================
+  useEffect(() => {
+    router.prefetch(`/${locale}/auth/verify-phone`);
+  }, [router, locale]);
 
+  // Handlers
   const handlePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
@@ -4702,23 +4752,14 @@ export default function PersonalDetailsStep({
       .slice(0, remainingSlots)
       .forEach((file) => {
         if (!validTypes.includes(file.type)) {
-          toast.error(
-            personalDetailsDict.photos?.invalidTypeError ||
-              `${file.name}: סוג קובץ לא נתמך`
-          );
+          toast.error(`${file.name}: סוג קובץ לא נתמך`);
           return;
         }
         if (file.size > maxSize) {
-          toast.error(
-            personalDetailsDict.photos?.fileTooLargeError ||
-              `${file.name}: הקובץ גדול מדי (מקסימום 5MB)`
-          );
+          toast.error(`${file.name}: הקובץ גדול מדי (מקסימום 5MB)`);
           return;
         }
-
-        // יצירת URL לתצוגה מקדימה
         const previewUrl = URL.createObjectURL(file);
-
         newPhotos.push({
           file,
           preview: previewUrl,
@@ -4729,23 +4770,17 @@ export default function PersonalDetailsStep({
     if (newPhotos.length > 0) {
       setUploadedPhotos((prev) => [...prev, ...newPhotos]);
       toast.success(
-        personalDetailsDict.photos?.uploadSuccess ||
-          `${newPhotos.length} תמונות נוספו בהצלחה`
+        personalDetailsDict.photos?.uploadSuccess || 'התמונות נוספו בהצלחה'
       );
     }
-
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
   const handleRemovePhoto = (index: number) => {
     setUploadedPhotos((prev) => {
       const newPhotos = [...prev];
-      // הסרנו מכאן את ה-URL.revokeObjectURL כדי למנוע שבירת תמונה בזמן רינדור מחדש
-
       const wasMain = newPhotos[index].isMain;
       newPhotos.splice(index, 1);
-
-      // אם התמונה שנמחקה הייתה הראשית, הגדר את הראשונה כראשית
       if (wasMain && newPhotos.length > 0) {
         newPhotos[0].isMain = true;
       }
@@ -4755,74 +4790,9 @@ export default function PersonalDetailsStep({
 
   const handleSetMainPhoto = (index: number) => {
     setUploadedPhotos((prev) =>
-      prev.map((photo, i) => ({
-        ...photo,
-        isMain: i === index,
-      }))
+      prev.map((photo, i) => ({ ...photo, isMain: i === index }))
     );
   };
-
-  // ============================================================================
-  // LOADING STEPS CONFIGURATION
-  // ============================================================================
-
-  const loadingSteps: LoadingStep[] = useMemo(() => {
-    const steps: LoadingStep[] = [];
-
-    // שלב אישור תנאים (רק אם המשתמש עדיין לא אישר)
-    if (!userHasAlreadyConsented) {
-      steps.push({
-        id: 'acceptingTerms',
-        text:
-          optionalInfoDict.loadingOverlay?.acceptingTerms ||
-          'מאשר תנאי שימוש...',
-      });
-    }
-
-    // שמירת פרופיל
-    steps.push({
-      id: 'savingProfile',
-      text:
-        optionalInfoDict.loadingOverlay?.savingProfile ||
-        optionalInfoDict.status.saving,
-      subtext: optionalInfoDict.loadingOverlay?.savingProfileSubtext,
-    });
-
-    // העלאת תמונות
-    if (uploadedPhotos.length > 0) {
-      steps.push({
-        id: 'uploadingPhotos',
-        text: personalDetailsDict.photos?.uploadingPhotos || 'מעלה תמונות...',
-      });
-    }
-
-    // שליחת קוד
-    steps.push({
-      id: 'sendingCode',
-      text:
-        optionalInfoDict.loadingOverlay?.sendingCode ||
-        optionalInfoDict.status.sendingCode,
-      subtext: optionalInfoDict.loadingOverlay?.sendingCodeSubtext,
-    });
-
-    // הפניה
-    steps.push({
-      id: 'redirecting',
-      text:
-        optionalInfoDict.loadingOverlay?.redirecting || 'מעביר לאימות טלפון...',
-    });
-
-    return steps;
-  }, [
-    userHasAlreadyConsented,
-    optionalInfoDict,
-    uploadedPhotos.length,
-    personalDetailsDict.photos,
-  ]);
-
-  // ============================================================================
-  // VALIDATION FUNCTIONS
-  // ============================================================================
 
   const validateAge = (birthDate: string) => {
     if (!birthDate) {
@@ -4851,49 +4821,33 @@ export default function PersonalDetailsStep({
     return true;
   };
 
-  // ============================================================================
-  // UPLOAD PHOTOS TO SERVER
-  // ============================================================================
-
   const uploadPhotosToServer = async (): Promise<boolean> => {
     if (uploadedPhotos.length === 0) return true;
-
     try {
-      // מציאת התמונה הראשית
       const mainPhotoIndex = uploadedPhotos.findIndex((p) => p.isMain);
-
-      // העלאת כל תמונה בנפרד ל-API הקיים
       const uploadResults = await Promise.all(
         uploadedPhotos.map(async (photo, index) => {
           const formData = new FormData();
           formData.append('file', photo.file);
-
           const response = await fetch('/api/profile/images', {
             method: 'POST',
             body: formData,
           });
-
           if (!response.ok) {
             const errorData = await response.json();
             throw new Error(
               errorData.error || `שגיאה בהעלאת תמונה ${index + 1}`
             );
           }
-
           return response.json();
         })
       );
-
-      // אם התמונה הראשית שנבחרה אינה הראשונה שהועלתה, נעדכן
       if (mainPhotoIndex > 0 && uploadResults[mainPhotoIndex]?.image?.id) {
         await fetch(
           `/api/profile/images/${uploadResults[mainPhotoIndex].image.id}`,
-          {
-            method: 'PUT',
-          }
+          { method: 'PUT' }
         );
       }
-
       return true;
     } catch (error) {
       console.error('Photo upload error:', error);
@@ -4901,12 +4855,7 @@ export default function PersonalDetailsStep({
     }
   };
 
-  // ============================================================================
-  // SUBMIT HANDLER
-  // ============================================================================
-
   const handleSubmit = async () => {
-    // 1. איפוס שגיאות קודמות
     setApiError(null);
     setConsentError(null);
     setEngagementConsentError(null);
@@ -4920,23 +4869,16 @@ export default function PersonalDetailsStep({
     const currentMissing: string[] = [];
     let hasError = false;
 
-    // 2. בדיקת שדות והוספה לרשימת החסרים
-
-    // שם פרטי
     if (!registrationState.firstName.trim()) {
       setFirstNameError(personalDetailsDict.errors.firstNameRequired);
       currentMissing.push(validationDict.fields.firstName);
       hasError = true;
     }
-
-    // שם משפחה
     if (!registrationState.lastName.trim()) {
       setLastNameError(personalDetailsDict.errors.lastNameRequired);
       currentMissing.push(validationDict.fields.lastName);
       hasError = true;
     }
-
-    // טלפון
     if (
       !registrationState.phone ||
       !validatePhoneNumber(registrationState.phone)
@@ -4945,46 +4887,32 @@ export default function PersonalDetailsStep({
       currentMissing.push(validationDict.fields.phone);
       hasError = true;
     }
-
-    // מגדר
     if (!registrationState.gender) {
       currentMissing.push(validationDict.fields.gender);
       hasError = true;
     }
-
-    // תאריך לידה וגיל
     if (!registrationState.birthDate) {
       setAgeError(personalDetailsDict.errors.birthDateRequired);
       currentMissing.push(validationDict.fields.birthDate);
       hasError = true;
-    } else {
-      if (!validateAge(registrationState.birthDate)) {
-        currentMissing.push(validationDict.fields.birthDate);
-        hasError = true;
-      }
+    } else if (!validateAge(registrationState.birthDate)) {
+      currentMissing.push(validationDict.fields.birthDate);
+      hasError = true;
     }
-
-    // מצב משפחתי
     if (!registrationState.maritalStatus) {
       currentMissing.push(validationDict.fields.maritalStatus);
       hasError = true;
     }
-
-    // רמה דתית
     if (!registrationState.religiousLevel) {
       setReligiousLevelError(personalDetailsDict.errors.religiousLevelRequired);
       currentMissing.push(validationDict.fields.religiousLevel);
       hasError = true;
     }
-
-    // הסכמה לתנאי שימוש
     if (!consentChecked) {
       setConsentError(personalDetailsDict.errors.consentRequired);
       currentMissing.push(validationDict.fields.terms);
       hasError = true;
     }
-
-    // הסכמה לדיוור (engagement)
     if (!engagementConsent) {
       setEngagementConsentError(
         personalDetailsDict.errors.engagementConsentRequired
@@ -4992,18 +4920,12 @@ export default function PersonalDetailsStep({
       currentMissing.push(validationDict.fields.engagement);
       hasError = true;
     }
-
-    // ========== בדיקות חובה חדשות ==========
-
-    // תמונות - חובה לפחות תמונה אחת
     if (uploadedPhotos.length < MIN_PHOTOS) {
       currentMissing.push(
         personalDetailsDict.photos?.fieldName || 'תמונת פרופיל'
       );
       hasError = true;
     }
-
-    // סיפור אישי - חובה לפחות 100 תווים
     if (aboutMe.trim().length < MIN_ABOUT_LENGTH) {
       currentMissing.push(
         personalDetailsDict.aboutMe?.fieldName || 'הסיפור שלי'
@@ -5011,18 +4933,14 @@ export default function PersonalDetailsStep({
       hasError = true;
     }
 
-    // 3. עצירה אם יש שגיאות
     if (hasError) {
       setMissingFields(currentMissing);
       window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
 
-    // 4. המשך תהליך שמירה (אם הכל תקין)
     setIsLoading(true);
-
     try {
-      // ===== שלב 1: אישור תנאים (אם צריך) =====
       if (!userHasAlreadyConsented) {
         setSubmissionStatus('acceptingTerms');
         const consentResponse = await fetch('/api/user/accept-terms', {
@@ -5032,9 +4950,7 @@ export default function PersonalDetailsStep({
           throw new Error(personalDetailsDict.errors.consentApiError);
       }
 
-      // ===== שלב 2: שמירת פרופיל =====
       setSubmissionStatus('savingProfile');
-
       const profileData = {
         firstName: registrationState.firstName,
         lastName: registrationState.lastName,
@@ -5062,15 +4978,12 @@ export default function PersonalDetailsStep({
         throw new Error(errorData.error || optionalInfoDict.errors.default);
       }
 
-      // ===== שלב 3: העלאת תמונות =====
       if (uploadedPhotos.length > 0) {
         setSubmissionStatus('uploadingPhotos');
         await uploadPhotosToServer();
       }
 
-      // ===== שלב 4: שליחת קוד SMS =====
       setSubmissionStatus('sendingCode');
-
       const sendCodeResponse = await fetch('/api/auth/send-phone-code', {
         method: 'POST',
       });
@@ -5079,7 +4992,6 @@ export default function PersonalDetailsStep({
         throw new Error(errorData.error || optionalInfoDict.errors.default);
       }
 
-      // ===== שלב 5: הפניה לאימות טלפון =====
       setSubmissionStatus('redirecting');
       router.push(`/${locale}/auth/verify-phone`);
     } catch (err) {
@@ -5091,13 +5003,51 @@ export default function PersonalDetailsStep({
     }
   };
 
-  // ============================================================================
-  // RENDER
-  // ============================================================================
+  const loadingSteps: LoadingStep[] = useMemo(() => {
+    const steps: LoadingStep[] = [];
+    if (!userHasAlreadyConsented) {
+      steps.push({
+        id: 'acceptingTerms',
+        text:
+          optionalInfoDict.loadingOverlay?.acceptingTerms ||
+          'מאשר תנאי שימוש...',
+      });
+    }
+    steps.push({
+      id: 'savingProfile',
+      text:
+        optionalInfoDict.loadingOverlay?.savingProfile ||
+        optionalInfoDict.status.saving,
+      subtext: optionalInfoDict.loadingOverlay?.savingProfileSubtext,
+    });
+    if (uploadedPhotos.length > 0) {
+      steps.push({
+        id: 'uploadingPhotos',
+        text: personalDetailsDict.photos?.uploadingPhotos || 'מעלה תמונות...',
+      });
+    }
+    steps.push({
+      id: 'sendingCode',
+      text:
+        optionalInfoDict.loadingOverlay?.sendingCode ||
+        optionalInfoDict.status.sendingCode,
+      subtext: optionalInfoDict.loadingOverlay?.sendingCodeSubtext,
+    });
+    steps.push({
+      id: 'redirecting',
+      text:
+        optionalInfoDict.loadingOverlay?.redirecting || 'מעביר לאימות טלפון...',
+    });
+    return steps;
+  }, [
+    userHasAlreadyConsented,
+    optionalInfoDict,
+    uploadedPhotos.length,
+    personalDetailsDict.photos,
+  ]);
 
   return (
     <>
-      {/* Full Screen Loading Overlay */}
       <FullScreenLoadingOverlay
         isVisible={
           isLoading &&
@@ -5121,7 +5071,6 @@ export default function PersonalDetailsStep({
         animate="visible"
         className="space-y-8"
       >
-        {/* הודעת פתיחה */}
         <motion.div
           variants={itemVariants}
           className="text-center p-4 bg-gradient-to-r from-teal-50 via-orange-50 to-rose-50 rounded-2xl border border-teal-100"
@@ -5138,7 +5087,6 @@ export default function PersonalDetailsStep({
           </p>
         </motion.div>
 
-        {/* --- אזור התראות שגיאה וולידציה --- */}
         <AnimatePresence>
           {(apiError || missingFields.length > 0) && (
             <motion.div
@@ -5188,9 +5136,6 @@ export default function PersonalDetailsStep({
           )}
         </AnimatePresence>
 
-        {/* ================================================================== */}
-        {/* --- SECTION 1: PERSONAL INFO --- */}
-        {/* ================================================================== */}
         <div className="space-y-6">
           <SectionHeader
             icon={<User className="w-5 h-5" />}
@@ -5198,7 +5143,6 @@ export default function PersonalDetailsStep({
             gradient="from-teal-500 to-cyan-500"
           />
 
-          {/* Name Fields */}
           <div className="grid grid-cols-2 gap-4">
             <motion.div variants={itemVariants} className="space-y-2">
               <Label
@@ -5222,12 +5166,10 @@ export default function PersonalDetailsStep({
                   }}
                   placeholder={personalDetailsDict.firstNamePlaceholder}
                   disabled={isLoading}
-                  className={`pr-11 py-3 border-2 rounded-xl transition-all bg-white/50 backdrop-blur-sm ${
-                    firstNameError ||
-                    missingFields.includes(validationDict.fields.firstName)
-                      ? 'border-red-300 focus:ring-red-200'
-                      : 'border-gray-200 hover:border-gray-300 focus:border-teal-400 focus:ring-2 focus:ring-teal-200'
-                  }`}
+                  className={inputBaseClasses(
+                    !!firstNameError ||
+                      missingFields.includes(validationDict.fields.firstName)
+                  )}
                 />
               </FieldWrapper>
               {firstNameError && (
@@ -5259,12 +5201,10 @@ export default function PersonalDetailsStep({
                   }}
                   placeholder={personalDetailsDict.lastNamePlaceholder}
                   disabled={isLoading}
-                  className={`pr-11 py-3 border-2 rounded-xl transition-all bg-white/50 backdrop-blur-sm ${
-                    lastNameError ||
-                    missingFields.includes(validationDict.fields.lastName)
-                      ? 'border-red-300 focus:ring-red-200'
-                      : 'border-gray-200 hover:border-gray-300 focus:border-teal-400 focus:ring-2 focus:ring-teal-200'
-                  }`}
+                  className={inputBaseClasses(
+                    !!lastNameError ||
+                      missingFields.includes(validationDict.fields.lastName)
+                  )}
                 />
               </FieldWrapper>
               {lastNameError && (
@@ -5275,7 +5215,6 @@ export default function PersonalDetailsStep({
             </motion.div>
           </div>
 
-          {/* Phone Field */}
           <motion.div variants={itemVariants} className="space-y-2">
             <Label className="text-sm font-semibold text-gray-700 flex items-center">
               {personalDetailsDict.phoneLabel}{' '}
@@ -5303,7 +5242,6 @@ export default function PersonalDetailsStep({
             )}
           </motion.div>
 
-          {/* Gender Field */}
           <motion.div variants={itemVariants} className="space-y-2">
             <Label className="text-sm font-semibold text-gray-700 flex items-center">
               {personalDetailsDict.genderLabel}{' '}
@@ -5319,7 +5257,7 @@ export default function PersonalDetailsStep({
                   type="button"
                   onClick={() => updateField('gender', value)}
                   disabled={isLoading}
-                  className={`py-3 px-4 rounded-xl border-2 font-medium transition-all ${
+                  className={`py-3 px-4 rounded-xl border-2 font-medium transition-colors duration-200 ${
                     registrationState.gender === value
                       ? 'bg-teal-50 border-teal-500 text-teal-700'
                       : missingFields.includes(validationDict.fields.gender)
@@ -5333,7 +5271,6 @@ export default function PersonalDetailsStep({
             </div>
           </motion.div>
 
-          {/* Birth Date Field */}
           <motion.div variants={itemVariants} className="space-y-2">
             <Label
               htmlFor="birthDate"
@@ -5355,12 +5292,10 @@ export default function PersonalDetailsStep({
                   if (e.target.value) validateAge(e.target.value);
                 }}
                 disabled={isLoading}
-                className={`pr-11 py-3 border-2 rounded-xl transition-all bg-white/50 backdrop-blur-sm ${
-                  ageError ||
-                  missingFields.includes(validationDict.fields.birthDate)
-                    ? 'border-red-300 focus:ring-red-200'
-                    : 'border-gray-200 hover:border-gray-300 focus:border-teal-400 focus:ring-2 focus:ring-teal-200'
-                }`}
+                className={inputBaseClasses(
+                  !!ageError ||
+                    missingFields.includes(validationDict.fields.birthDate)
+                )}
               />
             </FieldWrapper>
             {ageError && (
@@ -5370,7 +5305,6 @@ export default function PersonalDetailsStep({
             )}
           </motion.div>
 
-          {/* Marital Status Field */}
           <motion.div variants={itemVariants} className="space-y-2">
             <Label className="text-sm font-semibold text-gray-700 flex items-center">
               {personalDetailsDict.maritalStatusLabel}{' '}
@@ -5387,11 +5321,9 @@ export default function PersonalDetailsStep({
                 disabled={isLoading}
               >
                 <SelectTrigger
-                  className={`w-full pr-11 pl-3 py-3 h-auto border-2 rounded-xl transition-all bg-white/50 backdrop-blur-sm ${
+                  className={inputBaseClasses(
                     missingFields.includes(validationDict.fields.maritalStatus)
-                      ? 'border-red-300 focus:ring-red-200'
-                      : 'border-gray-200 hover:border-gray-300 focus:border-teal-400 focus:ring-2 focus:ring-teal-200'
-                  }`}
+                  )}
                 >
                   <SelectValue
                     placeholder={personalDetailsDict.maritalStatusPlaceholder}
@@ -5413,9 +5345,6 @@ export default function PersonalDetailsStep({
           </motion.div>
         </div>
 
-        {/* ================================================================== */}
-        {/* --- SECTION 2: OPTIONAL INFO --- */}
-        {/* ================================================================== */}
         <div className="space-y-6">
           <SectionHeader
             icon={<Sparkles className="w-5 h-5" />}
@@ -5424,9 +5353,7 @@ export default function PersonalDetailsStep({
             gradient="from-orange-500 to-amber-500"
           />
 
-          {/* Height & Occupation Row */}
           <div className="grid grid-cols-2 gap-4">
-            {/* Height */}
             <motion.div variants={itemVariants} className="space-y-2">
               <Label
                 htmlFor="heightOptional"
@@ -5452,12 +5379,11 @@ export default function PersonalDetailsStep({
                   disabled={isLoading}
                   min={100}
                   max={250}
-                  className="pr-11 py-3 border-2 border-gray-200 rounded-xl transition-all bg-white/50 backdrop-blur-sm hover:border-gray-300 focus:border-orange-400 focus:ring-2 focus:ring-orange-200"
+                  className={inputBaseClasses(false)}
                 />
               </FieldWrapper>
             </motion.div>
 
-            {/* Occupation */}
             <motion.div variants={itemVariants} className="space-y-2">
               <Label
                 htmlFor="occupationOptional"
@@ -5476,17 +5402,16 @@ export default function PersonalDetailsStep({
                   onChange={(e) => updateField('occupation', e.target.value)}
                   placeholder={optionalInfoDict.occupationPlaceholder}
                   disabled={isLoading}
-                  className="pr-11 py-3 border-2 border-gray-200 rounded-xl transition-all bg-white/50 backdrop-blur-sm hover:border-gray-300 focus:border-orange-400 focus:ring-2 focus:ring-orange-200"
+                  className={inputBaseClasses(false)}
                 />
               </FieldWrapper>
             </motion.div>
           </div>
 
-          {/* Education */}
           <motion.div variants={itemVariants} className="space-y-2">
             <Label
               htmlFor="educationOptional"
-              className="text-sm font-semibold text-gray-700 flex items-center gap-1"
+              className="text-sm font-semibold text-gray-700"
             >
               {optionalInfoDict.educationLabel}
             </Label>
@@ -5501,12 +5426,11 @@ export default function PersonalDetailsStep({
                 onChange={(e) => updateField('education', e.target.value)}
                 placeholder={optionalInfoDict.educationPlaceholder}
                 disabled={isLoading}
-                className="pr-11 py-3 border-2 border-gray-200 rounded-xl transition-all bg-white/50 backdrop-blur-sm hover:border-gray-300 focus:border-orange-400 focus:ring-2 focus:ring-orange-200"
+                className={inputBaseClasses(false)}
               />
             </FieldWrapper>
           </motion.div>
 
-          {/* Religious Level */}
           <motion.div variants={itemVariants} className="space-y-2">
             <Label className="text-sm font-semibold text-gray-700 flex items-center">
               {personalDetailsDict.religiousLevelLabel}{' '}
@@ -5526,12 +5450,12 @@ export default function PersonalDetailsStep({
                 disabled={isLoading}
               >
                 <SelectTrigger
-                  className={`w-full pr-11 pl-3 py-3 h-auto border-2 rounded-xl transition-all bg-white/50 backdrop-blur-sm ${
-                    religiousLevelError ||
-                    missingFields.includes(validationDict.fields.religiousLevel)
-                      ? 'border-red-300 focus:ring-red-200'
-                      : 'border-gray-200 hover:border-gray-300 focus:border-orange-400 focus:ring-2 focus:ring-orange-200'
-                  }`}
+                  className={inputBaseClasses(
+                    !!religiousLevelError ||
+                      missingFields.includes(
+                        validationDict.fields.religiousLevel
+                      )
+                  )}
                 >
                   <SelectValue
                     placeholder={personalDetailsDict.religiousLevelPlaceholder}
@@ -5554,9 +5478,6 @@ export default function PersonalDetailsStep({
           </motion.div>
         </div>
 
-        {/* ================================================================== */}
-        {/* --- SECTION 3: PHOTOS --- */}
-        {/* ================================================================== */}
         <div className="space-y-6">
           <SectionHeader
             icon={<Camera className="w-5 h-5" />}
@@ -5570,27 +5491,21 @@ export default function PersonalDetailsStep({
           />
 
           <motion.div variants={itemVariants}>
-            {/* Photo Grid */}
-            {/* Photo Grid */}
             <div className="grid grid-cols-3 gap-3 mb-4">
               {uploadedPhotos.map((photo, index) => (
                 <div
-                  // שימוש בכתובת ה-preview כמפתח ייחודי
                   key={photo.preview}
-                  className={`relative aspect-square rounded-xl overflow-hidden border-2 transition-all group ${
+                  className={`relative aspect-square rounded-xl overflow-hidden border-2 transition-colors duration-200 group ${
                     photo.isMain
                       ? 'border-teal-500 ring-2 ring-teal-200'
                       : 'border-gray-200 hover:border-gray-300'
                   }`}
                 >
-                  {/* 👇 השינוי הגדול: תגית img רגילה במקום Image של Next.js 👇 */}
                   <img
                     src={photo.preview}
                     alt={`תמונה ${index + 1}`}
                     className="absolute inset-0 w-full h-full object-cover"
                   />
-
-                  {/* Main badge */}
                   {photo.isMain && (
                     <Badge className="absolute top-2 right-2 z-10 bg-gradient-to-r from-teal-500 to-orange-500 text-white text-[10px] px-2 py-0.5 rounded-full flex items-center gap-1 border-none shadow-md">
                       <Star className="w-3 h-3 fill-current" />
@@ -5599,8 +5514,6 @@ export default function PersonalDetailsStep({
                       </span>
                     </Badge>
                   )}
-
-                  {/* Action buttons - visible on hover */}
                   <div className="absolute inset-0 z-20 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
                     {!photo.isMain && (
                       <button
@@ -5627,16 +5540,15 @@ export default function PersonalDetailsStep({
                 </div>
               ))}
 
-              {/* Upload button / placeholder */}
               {uploadedPhotos.length < MAX_PHOTOS && (
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
                   disabled={isLoading}
-                  className={`aspect-square rounded-xl border-2 border-dashed transition-all flex flex-col items-center justify-center gap-2 ${
+                  className={`aspect-square rounded-xl border-2 border-dashed transition-colors duration-200 flex flex-col items-center justify-center gap-2 ${
                     uploadedPhotos.length < MIN_PHOTOS &&
                     missingFields.includes(
-                      validationDict.fields?.photos || 'תמונת פרופיל'
+                      personalDetailsDict.photos?.fieldName || 'תמונת פרופיל'
                     )
                       ? 'border-red-300 bg-red-50/30 text-red-500 hover:border-red-400 hover:bg-red-50/50'
                       : 'border-teal-300 bg-teal-50/30 text-teal-600 hover:border-teal-400 hover:bg-teal-50/50'
@@ -5654,7 +5566,6 @@ export default function PersonalDetailsStep({
               )}
             </div>
 
-            {/* Hidden file input */}
             <input
               ref={fileInputRef}
               type="file"
@@ -5664,7 +5575,6 @@ export default function PersonalDetailsStep({
               className="hidden"
             />
 
-            {/* Validation error for photos */}
             {uploadedPhotos.length < MIN_PHOTOS &&
               missingFields.includes(
                 personalDetailsDict.photos?.fieldName || 'תמונת פרופיל'
@@ -5676,22 +5586,18 @@ export default function PersonalDetailsStep({
                 </p>
               )}
 
-            {/* Photo hints */}
             <div className="bg-gradient-to-r from-rose-50/50 to-pink-50/50 rounded-xl p-3 border border-rose-100">
               <p className="text-xs text-gray-600 leading-relaxed">
                 <span className="font-semibold text-rose-600">
                   {personalDetailsDict.photos?.tip || '💡 טיפ:'}
                 </span>{' '}
                 {personalDetailsDict.photos?.tipText ||
-                  'העלו תמונות ברורות שמציגות את הפנים שלכם. תמונות איכותיות מגדילות את הסיכוי לקבל הצעות שידוך מדויקות.'}
+                  'העלו תמונות ברורות שמציגות את הפנים שלכם.'}
               </p>
             </div>
           </motion.div>
         </div>
 
-        {/* ================================================================== */}
-        {/* --- SECTION 4: ABOUT ME --- */}
-        {/* ================================================================== */}
         <div className="space-y-6">
           <SectionHeader
             icon={<FileText className="w-5 h-5" />}
@@ -5744,11 +5650,10 @@ export default function PersonalDetailsStep({
               value={aboutMe}
               onChange={(e) => setAboutMe(e.target.value)}
               placeholder={
-                personalDetailsDict.aboutMe?.placeholder ||
-                'ספרו על עצמכם, על מה שחשוב לכם בחיים, על התחביבים שלכם, ועל מה שאתם מחפשים בבן/בת זוג...'
+                personalDetailsDict.aboutMe?.placeholder || 'ספרו על עצמכם...'
               }
               disabled={isLoading}
-              className={`min-h-[150px] py-3 border-2 rounded-xl transition-all bg-white/50 backdrop-blur-sm resize-none ${
+              className={`min-h-[150px] py-3 border-2 rounded-xl transition-colors duration-200 bg-white/95 resize-none text-base md:text-sm ${
                 aboutMe.trim().length < MIN_ABOUT_LENGTH &&
                 missingFields.includes(
                   personalDetailsDict.aboutMe?.fieldName || 'הסיפור שלי'
@@ -5762,7 +5667,6 @@ export default function PersonalDetailsStep({
               rows={6}
             />
 
-            {/* Character count and validation */}
             <div className="flex justify-between items-center">
               <div>
                 {aboutMe.trim().length < MIN_ABOUT_LENGTH &&
@@ -5788,59 +5692,23 @@ export default function PersonalDetailsStep({
                 )}
               </div>
               <span
-                className={`text-xs ${
-                  aboutMe.trim().length >= MIN_ABOUT_LENGTH
-                    ? 'text-green-600'
-                    : 'text-gray-400'
-                }`}
+                className={`text-xs ${aboutMe.trim().length >= MIN_ABOUT_LENGTH ? 'text-green-600' : 'text-gray-400'}`}
               >
                 {aboutMe.trim().length} / {MIN_ABOUT_LENGTH}+
               </span>
             </div>
-
-            {/* Example prompts */}
-            <div className="bg-gradient-to-r from-purple-50/50 to-indigo-50/50 rounded-xl p-4 border border-purple-100 mt-3">
-              <p className="text-sm font-medium text-purple-700 mb-2">
-                {personalDetailsDict.aboutMe?.promptsTitle ||
-                  'רעיונות למה לכתוב:'}
-              </p>
-              <ul className="text-xs text-gray-600 space-y-1.5">
-                <li className="flex items-start gap-2">
-                  <span className="text-purple-500 mt-0.5">•</span>
-                  {personalDetailsDict.aboutMe?.prompt1 ||
-                    'מה אתם אוהבים לעשות בזמן הפנוי?'}
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-purple-500 mt-0.5">•</span>
-                  {personalDetailsDict.aboutMe?.prompt2 ||
-                    'מה הערכים הכי חשובים לכם?'}
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-purple-500 mt-0.5">•</span>
-                  {personalDetailsDict.aboutMe?.prompt3 ||
-                    'איך נראה היום המושלם שלכם?'}
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-purple-500 mt-0.5">•</span>
-                  {personalDetailsDict.aboutMe?.prompt4 ||
-                    'מה אתם מחפשים בבן/בת זוג?'}
-                </li>
-              </ul>
-            </div>
           </motion.div>
         </div>
 
-        {/* ================================================================== */}
-        {/* --- SECTION 5: CONSENTS --- */}
-        {/* ================================================================== */}
+        {/* --- SECTION 5: CONSENTS (IMPROVED) --- */}
         <motion.div variants={itemVariants} className="space-y-4">
           <div
-            className={`p-4 rounded-2xl border-2 transition-all ${
+            className={
               consentError ||
               missingFields.includes(validationDict.fields.terms)
-                ? 'border-red-300 bg-red-50'
-                : 'border-gray-200 bg-gradient-to-r from-amber-50/50 to-orange-50/50'
-            }`}
+                ? 'rounded-2xl border-2 border-red-300'
+                : ''
+            }
           >
             <ConsentCheckbox
               checked={consentChecked}
@@ -5853,64 +5721,32 @@ export default function PersonalDetailsStep({
             />
           </div>
 
-          {/* Marketing Consents */}
-          <div className="space-y-3 px-2">
-            {/* Engagement Consent */}
-            <div
-              className={`flex items-start space-x-2 rtl:space-x-reverse rounded-lg p-2 transition-colors ${
-                missingFields.includes(validationDict.fields.engagement)
-                  ? 'bg-red-50 ring-1 ring-red-200'
-                  : ''
-              }`}
-            >
-              <Checkbox
-                id="engagementConsent"
-                checked={engagementConsent}
-                onCheckedChange={(checked) => {
-                  const isChecked = checked as boolean;
-                  setEngagementConsent(isChecked);
-                  if (isChecked) setEngagementConsentError(null);
-                }}
-                className="mt-1 data-[state=checked]:bg-teal-600 data-[state=checked]:border-teal-600"
-              />
-              <div className="grid gap-1.5 leading-none">
-                <label
-                  htmlFor="engagementConsent"
-                  className="text-sm font-medium text-gray-700 cursor-pointer"
-                >
-                  {personalDetailsDict.engagementConsentLabel}
-                  <span className="text-red-500 mr-1">*</span>
-                </label>
-                {engagementConsentError && (
-                  <p className="text-xs text-red-500">
-                    {engagementConsentError}
-                  </p>
-                )}
-              </div>
-            </div>
+          <div className="space-y-3">
+            <SimpleConsentBox
+              checked={engagementConsent}
+              onToggle={() => {
+                const newValue = !engagementConsent;
+                setEngagementConsent(newValue);
+                if (newValue) setEngagementConsentError(null);
+              }}
+              label={personalDetailsDict.engagementConsentLabel}
+              required={true}
+              error={
+                engagementConsentError ||
+                (missingFields.includes(validationDict.fields.engagement)
+                  ? ' '
+                  : null)
+              }
+            />
 
-            {/* Promotional Consent */}
-            <div className="flex items-start space-x-2 rtl:space-x-reverse p-2">
-              <Checkbox
-                id="promotionalConsent"
-                checked={promotionalConsent}
-                onCheckedChange={(checked) =>
-                  setPromotionalConsent(checked as boolean)
-                }
-                className="mt-1 data-[state=checked]:bg-orange-500 data-[state=checked]:border-orange-500"
-              />
-              <div className="grid gap-1.5 leading-none">
-                <label
-                  htmlFor="promotionalConsent"
-                  className="text-sm text-gray-600 cursor-pointer"
-                >
-                  {personalDetailsDict.promotionalConsentLabel}
-                </label>
-              </div>
-            </div>
+            <SimpleConsentBox
+              checked={promotionalConsent}
+              onToggle={() => setPromotionalConsent(!promotionalConsent)}
+              label={personalDetailsDict.promotionalConsentLabel}
+              required={false}
+            />
           </div>
 
-          {/* Privacy Note */}
           <div className="flex items-start gap-3 p-4 bg-gray-50 rounded-2xl border border-gray-200 mt-2">
             <Shield className="w-5 h-5 text-teal-500 flex-shrink-0 mt-0.5" />
             <p className="text-xs text-gray-600 leading-relaxed">
@@ -5921,9 +5757,6 @@ export default function PersonalDetailsStep({
           </div>
         </motion.div>
 
-        {/* ================================================================== */}
-        {/* --- BUTTONS --- */}
-        {/* ================================================================== */}
         <motion.div variants={itemVariants} className="flex gap-4 pt-4">
           <Button
             type="button"

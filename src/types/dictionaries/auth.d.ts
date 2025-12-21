@@ -337,6 +337,8 @@ export type RegisterStepsDict = {
       male: string;
       female: string;
       birthDateLabel: string;
+        cityLabel: string;
+  cityPlaceholder: string;
       maritalStatusLabel: string;
       maritalStatusPlaceholder: string;
       maritalStatuses: {
@@ -371,6 +373,8 @@ export type RegisterStepsDict = {
         consentRequired: string;
         engagementConsentRequired: string;
         religiousLevelRequired: string;
+            cityRequired: string;
+
         consentApiError: string;
       };
     };
@@ -437,6 +441,8 @@ export type RegisterStepsDict = {
       birthDate: string;
       maritalStatus: string;
       religiousLevel: string;
+          city: string;
+
       terms: string;
       engagement: string;
        photos: string;

@@ -280,6 +280,9 @@
         "male": "זכר",
         "female": "נקבה",
         "birthDateLabel": "תאריך לידה",
+               "cityLabel": "עיר מגורים",
+        "cityPlaceholder": "התחל/י להקליד שם עיר...",
+        
         "maritalStatusLabel": "מצב משפחתי",
         "maritalStatusPlaceholder": "בחר/י מצב משפחתי...",
         
@@ -313,6 +316,7 @@
   "other": "אחר"
 },
        "errors": {
+          "cityRequired": "עיר מגורים היא שדה חובה",
           "firstNameRequired": "שם פרטי הוא שדה חובה",
           "lastNameRequired": "שם משפחה הוא שדה חובה",
           "phoneRequired": "מספר טלפון הוא שדה חובה",
@@ -416,6 +420,8 @@
         "birthDate": "תאריך לידה (גיל 18+)",
         "maritalStatus": "מצב משפחתי",
         "religiousLevel": "סגנון דתי",
+                "city": "עיר מגורים"
+,
         "terms": "אישור תנאי השימוש",
         "engagement": "אישור קבלת עדכונים מהמערכת",
           "photos": "תמונות פרופיל",
