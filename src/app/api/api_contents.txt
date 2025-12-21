@@ -9372,7 +9372,7 @@ const ip = req.headers.get('x-forwarded-for') ?? '127.0.0.1';
 
       const mailOptions = {
         from: `"${process.env.EMAIL_FROM_NAME || 'NeshamaTech Chatbot'}" <${process.env.GMAIL_USER || process.env.EMAIL_USER}>`,
-        to: 'jewish.matchpoint@gmail.com',
+        to: 'neshamatech.jsmatch@gmail.com',
         subject: `New Chat Inquiry: ${userEmail}`,
         replyTo: userEmail,
         html: `
@@ -9485,7 +9485,7 @@ const rateLimitResponse = await applyRateLimitWithRoleCheck(req, { requests: 15,
     // Define the email options
     const mailOptions = {
       from: `"${process.env.EMAIL_FROM_NAME || 'Match Point Contact Form'}" <${process.env.GMAIL_USER || process.env.EMAIL_USER}>`,
-      to: "jewish.matchpoint@gmail.com", // Your support/admin email address
+      to: "neshamatech.jsmatch@gmail.com", // Your support/admin email address
       subject: `פנייה חדשה מאתר Match Point - ${name}`,
       replyTo: email, // This allows you to reply directly to the user
       html: `
@@ -9640,7 +9640,7 @@ export async function POST(req: NextRequest) {
     });
 
     try {
-      const adminEmail = "jewish.matchpoint@gmail.com";
+      const adminEmail = "neshamatech.jsmatch@gmail.com";
       const userIp = (req.headers.get('x-forwarded-for') ?? 'N/A').split(',')[0];
       const userIdentifier = newFeedback.user 
         ? `${newFeedback.user.firstName} ${newFeedback.user.lastName} (${newFeedback.user.email})`

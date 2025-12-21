@@ -235,7 +235,7 @@ const ip = req.headers.get('x-forwarded-for') ?? '127.0.0.1';
 
       const mailOptions = {
         from: `"${process.env.EMAIL_FROM_NAME || 'NeshamaTech Chatbot'}" <${process.env.GMAIL_USER || process.env.EMAIL_USER}>`,
-        to: 'jewish.matchpoint@gmail.com',
+        to: 'neshamatech.jsmatch@gmail.com',
         subject: `New Chat Inquiry: ${userEmail}`,
         replyTo: userEmail,
         html: `

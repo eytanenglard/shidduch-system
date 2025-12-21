@@ -423,7 +423,7 @@
                 "title": "Contact Us",
                 "items": [
                     { "icon": "📱", "text": "+972-54-321-0040" },
-                    { "icon": "✉️", "text": "jewish.matchpoint@gmail.com" },
+                    { "icon": "✉️", "text": "neshamatech.jsmatch@gmail.com" },
                     { "icon": "📍", "text": "Raanana, Israel" },
                     { "icon": "🕒", "text": "Sun-Thu 9:00-18:00" }
                 ]
@@ -452,7 +452,7 @@
             "composeEmailPrompt": "Excellent. Now, please write your message, and one of our team members will get back to you personally.",
             "emailError": "It seems the email address is not valid. Please check and try again.",
             "genericError": "We apologize, a small technical error occurred. Please try refreshing or come back in a few moments. You can always contact us directly by email as well.",
-            "sendEmailError": "We apologize, there was an error sending the email. Please try again, or contact us directly at jewish.matchpoint@gmail.com.",
+            "sendEmailError": "We apologize, there was an error sending the email. Please try again, or contact us directly at neshamatech.jsmatch@gmail.com.",
             "placeholderDefault": "Ask us about our approach...",
             "placeholderGatheringEmail": "Enter your email address...",
             "placeholderComposingEmail": "Write your message here...",
@@ -550,7 +550,7 @@
             "otherWays": {
                 "title": "Direct Contact Information",
                 "phone": "054-321-0040",
-                "email": "jewish.matchpoint@gmail.com",
+                "email": "neshamatech.jsmatch@gmail.com",
                 "hours": "Sun-Thu 9:00 AM - 6:00 PM",
                 "commitment": {
                     "title": "Our Promise to You:",

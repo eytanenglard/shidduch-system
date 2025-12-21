@@ -45,7 +45,7 @@ const rateLimitResponse = await applyRateLimitWithRoleCheck(req, { requests: 15,
     // Define the email options
     const mailOptions = {
       from: `"${process.env.EMAIL_FROM_NAME || 'Match Point Contact Form'}" <${process.env.GMAIL_USER || process.env.EMAIL_USER}>`,
-      to: "jewish.matchpoint@gmail.com", // Your support/admin email address
+      to: "neshamatech.jsmatch@gmail.com", // Your support/admin email address
       subject: `פנייה חדשה מאתר Match Point - ${name}`,
       replyTo: email, // This allows you to reply directly to the user
       html: `

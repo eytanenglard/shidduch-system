@@ -112,7 +112,7 @@ export async function POST(req: NextRequest) {
     });
 
     try {
-      const adminEmail = "jewish.matchpoint@gmail.com";
+      const adminEmail = "neshamatech.jsmatch@gmail.com";
       const userIp = (req.headers.get('x-forwarded-for') ?? 'N/A').split(',')[0];
       const userIdentifier = newFeedback.user 
         ? `${newFeedback.user.firstName} ${newFeedback.user.lastName} (${newFeedback.user.email})`
