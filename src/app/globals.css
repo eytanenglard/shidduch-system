@@ -1,13 +1,13 @@
-/* 1. Tailwind CSS Directives */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* 2. Base Layer: משתני עיצוב (Theming) וסגנונות בסיס */
+/* =========================================
+   LAYER: BASE
+   הגדרות בסיס ומשתנים
+   ========================================= */
 @layer base {
-  
   :root {
-    /* המשתנים הרגילים שלך נשארים ללא שינוי */
     --background: 0 0% 100%;
     --foreground: 222.2 84% 4.9%;
     --card: 0 0% 100%;
@@ -31,7 +31,6 @@
   }
 
   .dark {
-    /* משתני דארק מוד נשארים ללא שינוי */
     --background: 222.2 84% 4.9%;
     --foreground: 210 40% 98%;
     --card: 222.2 84% 4.9%;
@@ -55,23 +54,29 @@
 
   * {
     @apply border-border;
+    /* תיקון קריטי למובייל: מבטל הבהוב בלחיצה */
+    -webkit-tap-highlight-color: transparent;
   }
 
-  /* === ההגדרה של פונט Rubik === */
-  /* הורדנו את ה-important ואת צבע הרקע */
-  
   html {
     font-family: var(--font-rubik), system-ui, sans-serif;
+    /* מונע גלילה אופקית לא רצויה במובייל */
+    overflow-x: hidden; 
   }
 
   body {
     @apply bg-background text-foreground;
     font-family: var(--font-rubik), system-ui, sans-serif;
+    overflow-x: hidden;
   }
 }
 
-/* 3. Components Layer: סגנונות לרכיבים מותאמים אישית */
+/* =========================================
+   LAYER: COMPONENTS
+   רכיבים מותאמים אישית
+   ========================================= */
 @layer components {
+  /* --- Buttons & Cards Base Styles --- */
   .btn-refined-gradient {
     display: inline-flex;
     align-items: center;
@@ -82,19 +87,12 @@
     color: white;
     background-image: linear-gradient(135deg, #22d3ee, #f472b6);
     border: none;
-    box-shadow:
-      0 2px 6px rgba(0, 0, 0, 0.1),
-      0 1px 2px rgba(0, 0, 0, 0.06);
-    transition: all 0.2s ease-in-out;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
+    /* שימוש ב-transition ספציפי במקום all */
+    transition-property: transform, box-shadow, background-image;
+    transition-duration: 0.2s;
+    transition-timing-function: ease-in-out;
     cursor: pointer;
-  }
-
-  .btn-refined-gradient:hover {
-    background-image: linear-gradient(135deg, #06b6d4, #ec4899);
-    box-shadow:
-      0 4px 8px rgba(0, 0, 0, 0.12),
-      0 2px 3px rgba(0, 0, 0, 0.08);
-    transform: translateY(-1px);
   }
 
   .btn-refined-gradient svg {
@@ -102,71 +100,53 @@
     height: 1.125rem;
   }
 
-  .wizard-content {
-    min-height: 400px;
-    position: relative;
-    overflow: hidden;
-  }
-  .form-step-enter {
-    opacity: 0;
-    transform: translateX(var(--enter-translate, 100%));
-  }
-  .form-step-enter-active {
-    opacity: 1;
-    transform: translateX(0%);
-    transition:
-      opacity 300ms,
-      transform 300ms;
-  }
-  .form-step-exit {
-    opacity: 1;
-    transform: translateX(0%);
-  }
-  .form-step-exit-active {
-    opacity: 0;
-    transform: translateX(var(--exit-translate, -100%));
-    transition:
-      opacity 300ms,
-      transform 300ms;
-  }
-  .gender-filter-panel {
-    border-radius: 0.5rem;
-    padding: 0.75rem;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-    border-width: 1px;
-  }
-  .male-filter-panel {
-    border-color: #dbeaff;
-    background-color: #f5f9ff;
-  }
-  .female-filter-panel {
-    border-color: #f2e6ff;
-    background-color: #faf5ff;
+  .card-hover-elegant {
+    transition-property: transform, box-shadow;
+    transition-duration: 0.3s;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   }
 
-  /* Enhanced Suggestions Components */
   .btn-gradient-primary {
     background: linear-gradient(135deg, #06b6d4 0%, #10b981 100%);
-    transition: all 0.3s ease;
-  }
-
-  .btn-gradient-primary:hover {
-    background: linear-gradient(135deg, #0891b2 0%, #059669 100%);
-    transform: translateY(-1px);
-    box-shadow: 0 10px 15px -3px rgba(6, 182, 212, 0.3);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
   }
 
   .btn-gradient-secondary {
     background: linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%);
-    transition: all 0.3s ease;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
   }
 
-  .btn-gradient-secondary:hover {
-    background: linear-gradient(135deg, #2563eb 0%, #0891b2 100%);
-    transform: translateY(-1px);
-    box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.3);
+  /* --- FIX: Hover Effects ONLY on Desktop --- 
+     זה החלק הכי חשוב לתיקון הבעיה שלך. 
+     הטרנספורמציות יקרו רק אם למשתמש יש עכבר.
+  */
+  @media (hover: hover) {
+    .btn-refined-gradient:hover {
+      background-image: linear-gradient(135deg, #06b6d4, #ec4899);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.12), 0 2px 3px rgba(0, 0, 0, 0.08);
+      transform: translateY(-1px);
+    }
+
+    .card-hover-elegant:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
+        0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    }
+
+    .btn-gradient-primary:hover {
+      background: linear-gradient(135deg, #0891b2 0%, #059669 100%);
+      transform: translateY(-1px);
+      box-shadow: 0 10px 15px -3px rgba(6, 182, 212, 0.3);
+    }
+
+    .btn-gradient-secondary:hover {
+      background: linear-gradient(135deg, #2563eb 0%, #0891b2 100%);
+      transform: translateY(-1px);
+      box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.3);
+    }
   }
 
+  /* --- Badges --- */
   .badge-gradient-success {
     background: linear-gradient(135deg, #10b981 0%, #059669 100%);
     color: white;
@@ -185,6 +165,7 @@
     border: none;
   }
 
+  /* --- Glassmorphism --- */
   .glass-effect {
     background: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(10px);
@@ -192,170 +173,146 @@
     border: 1px solid rgba(255, 255, 255, 0.2);
   }
 
-  .image-overlay-gradient {
-    background: linear-gradient(
-      to top,
-      rgba(0, 0, 0, 0.7) 0%,
-      rgba(0, 0, 0, 0.3) 50%,
-      transparent 100%
-    );
+  .dark .glass-effect {
+    background: rgba(17, 24, 39, 0.95);
+    border: 1px solid rgba(75, 85, 99, 0.3);
+  }
+
+  /* --- FIX: Phone Input Transition Issues --- */
+  .phone-input-container * {
+    /* במקום transition: all שהיה כאן */
+    transition-property: background-color, border-color, color, opacity;
+    transition-duration: 200ms;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* --- Form Steps Transitions --- */
+  .wizard-content {
+    min-height: 400px;
+    position: relative;
+    overflow: hidden;
+  }
+  .form-step-enter {
+    opacity: 0;
+    transform: translateX(var(--enter-translate, 100%));
+  }
+  .form-step-enter-active {
+    opacity: 1;
+    transform: translateX(0%);
+    transition: opacity 300ms, transform 300ms;
+  }
+  .form-step-exit {
+    opacity: 1;
+    transform: translateX(0%);
+  }
+  .form-step-exit-active {
+    opacity: 0;
+    transform: translateX(var(--exit-translate, -100%));
+    transition: opacity 300ms, transform 300ms;
+  }
+
+  /* --- Gender Panels --- */
+  .gender-filter-panel {
+    border-radius: 0.5rem;
+    padding: 0.75rem;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    border-width: 1px;
+  }
+  .male-filter-panel {
+    border-color: #dbeaff;
+    background-color: #f5f9ff;
+  }
+  .female-filter-panel {
+    border-color: #f2e6ff;
+    background-color: #faf5ff;
   }
 }
 
-/* 4. Utilities Layer: כלי עזר מותאמים אישית ותיקוני RTL */
+/* =========================================
+   LAYER: UTILITIES
+   כלי עזר
+   ========================================= */
 @layer utilities {
-  .dir-rtl {
-    direction: rtl;
-  }
-  .dir-ltr {
-    direction: ltr;
-  }
-  .force-ltr {
-    direction: ltr !important;
-  }
-  .force-rtl {
-    direction: rtl !important;
-  }
-  .progress-green [data-state='progress'] {
-    background-color: hsl(142 76% 36%);
-  }
-  .progress-blue [data-state='progress'] {
-    background-color: hsl(221 83% 53%);
-  }
-  .progress-amber [data-state='progress'] {
-    background-color: hsl(45 93% 47%);
-  }
+  /* --- RTL / LTR Helpers --- */
+  .dir-rtl { direction: rtl; }
+  .dir-ltr { direction: ltr; }
+  .force-ltr { direction: ltr !important; }
+  .force-rtl { direction: rtl !important; }
+
+  /* --- Progress Bars --- */
+  .progress-green [data-state='progress'] { background-color: hsl(142 76% 36%); }
+  .progress-blue [data-state='progress'] { background-color: hsl(221 83% 53%); }
+  .progress-amber [data-state='progress'] { background-color: hsl(45 93% 47%); }
+
+  /* --- Radix UI Z-Index & Direction Fixes --- */
   [data-radix-popper-content-wrapper] {
     direction: ltr;
+    z-index: 9999 !important;
   }
-  .dir-rtl .button-icon {
-    margin-left: 0.5rem;
-    margin-right: 0;
+  
+  .radix-dialog-overlay {
+    z-index: 9998 !important;
+    background-color: rgba(0, 0, 0, 0.5) !important;
+    backdrop-filter: blur(4px);
   }
-  .dir-ltr .button-icon {
-    margin-right: 0.5rem;
-    margin-left: 0;
+  
+  .radix-dialog-content {
+    z-index: 9999 !important;
+    position: relative !important;
   }
-  .dir-rtl .form-step-enter {
-    --enter-translate: -100%;
+
+  [data-radix-alert-dialog-content] {
+    pointer-events: auto !important;
+    z-index: 10000 !important;
   }
-  .dir-rtl .form-step-exit-active {
-    --exit-translate: 100%;
+
+  /* --- Interactive Elements Fixes --- */
+  button, [role='button'] {
+    pointer-events: auto !important;
+    cursor: pointer !important;
   }
-  .dir-rtl .wizard-navigation {
-    margin-left: 0;
-    margin-right: auto;
-  }
-  .dir-rtl .wizard-controls {
-    flex-direction: row-reverse;
-  }
-  .dir-rtl .dropdown-menu {
-    transform-origin: top right;
-  }
-  .dir-ltr .dropdown-menu {
-    transform-origin: top left;
-  }
-  .dir-rtl .toast {
-    right: auto;
-    left: 1rem;
-  }
-  .dir-ltr .toast {
-    left: auto;
-    right: 1rem;
-  }
-  [dir='rtl'] .select-value {
-    text-align: right;
-  }
-  .slider,
-  .rtl-slider-container {
-    direction: ltr !important;
-  }
-  .rtl-number-display {
-    direction: ltr;
-    display: inline-block;
-    text-align: center;
-  }
+
   .tap-highlight-transparent {
     -webkit-tap-highlight-color: transparent;
   }
 
-  /* Enhanced Suggestions Utilities */
-  .animate-fade-in-up {
-    animation: fade-in-up 0.6s ease-out forwards;
-  }
-
-  .animate-mobile-match-point {
-    animation: mobile-match-point-appear 0.5s ease-out forwards;
-  }
-
-  .animate-scale-in {
-    animation: scale-in 0.3s ease-out forwards;
-  }
-
-  .animate-shimmer {
-    animation: shimmer 2s infinite;
-  }
-
-  .animate-pulse-subtle {
-    animation: pulse-subtle 2s ease-in-out infinite;
-  }
-
-  .animate-urgent-pulse {
-    animation: urgent-pulse 1.5s infinite;
-  }
-
-  .animate-gentle-shake {
-    animation: gentle-shake 0.3s ease-in-out;
-  }
-
-  .animate-corner-fill {
-    animation: corner-fill 0.5s ease-out forwards;
-  }
-
-  .card-hover-elegant {
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-
-  .card-hover-elegant:hover {
-    transform: translateY(-4px);
-    box-shadow:
-      0 20px 25px -5px rgba(0, 0, 0, 0.1),
-      0 10px 10px -5px rgba(0, 0, 0, 0.04);
-  }
-
+  /* --- Scrollbars --- */
   .scrollbar-elegant {
     scrollbar-width: thin;
     scrollbar-color: rgba(6, 182, 212, 0.3) transparent;
   }
-
   .scrollbar-elegant::-webkit-scrollbar {
     width: 6px;
   }
-
   .scrollbar-elegant::-webkit-scrollbar-track {
     background: transparent;
   }
-
   .scrollbar-elegant::-webkit-scrollbar-thumb {
     background: rgba(6, 182, 212, 0.3);
     border-radius: 3px;
   }
-
-  .scrollbar-elegant::-webkit-scrollbar-thumb:hover {
-    background: rgba(6, 182, 212, 0.5);
+  @media (hover: hover) {
+    .scrollbar-elegant::-webkit-scrollbar-thumb:hover {
+      background: rgba(6, 182, 212, 0.5);
+    }
   }
 
-  .glow-effect {
-    box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+  .dark .scrollbar-elegant::-webkit-scrollbar-thumb {
+    background: rgba(156, 163, 175, 0.3);
   }
 
-  .status-transition {
-    transition:
-      background-color 0.3s ease,
-      color 0.3s ease,
-      border-color 0.3s ease;
+  /* --- Text & Blur Effects --- */
+  .text-shadow-elegant { text-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); }
+  .backdrop-blur-elegant { backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+  
+  .focus-elegant:focus {
+    outline: none;
+    ring: 2px;
+    ring-color: rgba(6, 182, 212, 0.5);
+    ring-offset: 2px;
   }
 
+  /* --- Gradients --- */
   .bg-suggestion-gradient {
     background: linear-gradient(
       135deg,
@@ -366,7 +323,7 @@
       rgba(16, 185, 129, 0.05) 100%
     );
   }
-
+  
   .bg-gradient-header {
     background: linear-gradient(
       135deg,
@@ -376,849 +333,113 @@
     );
   }
 
-  .text-shadow-elegant {
-    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  }
-
-  .backdrop-blur-elegant {
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-  }
-
-  .focus-elegant:focus {
-    outline: none;
-    ring: 2px;
-    ring-color: rgba(6, 182, 212, 0.5);
-    ring-offset: 2px;
-  }
-
-  .border-elegant {
-    border: 1px solid rgba(6, 182, 212, 0.2);
-  }
-
-  .border-elegant-hover:hover {
-    border-color: rgba(6, 182, 212, 0.4);
-  }
-
-  .loading-skeleton {
-    background: linear-gradient(
-      90deg,
-      rgba(6, 182, 212, 0.1) 25%,
-      rgba(6, 182, 212, 0.2) 50%,
-      rgba(6, 182, 212, 0.1) 75%
-    );
-    background-size: 200% 100%;
-    animation: shimmer 1.5s infinite;
-  }
-
-  .min-h-suggestion-card {
-    min-height: 400px;
-  }
-
-  .min-h-suggestion-modal {
-    min-height: 600px;
-  }
-
-  .spacing-suggestion {
-    padding: 1.5rem;
-  }
-
-  /* Status indicators */
-  .status-indicator {
-    position: relative;
-  }
-
-  .status-indicator::before {
-    content: '';
-    position: absolute;
-    top: -2px;
-    right: -2px;
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    border: 2px solid white;
-  }
-
-  .status-indicator.status-active::before {
-    background-color: #10b981;
-  }
-
-  .status-indicator.status-pending::before {
-    background-color: #f59e0b;
-    animation: pulse-subtle 2s infinite;
-  }
-
-  .status-indicator.status-inactive::before {
-    background-color: #6b7280;
+  /* --- Fullscreen Modal Fixes --- */
+  [data-fullscreen="true"] {
+    position: fixed !important;
+    top: 0 !important; left: 0 !important; right: 0 !important; bottom: 0 !important;
+    width: 100vw !important; height: 100vh !important;
+    max-width: none !important; max-height: none !important;
+    border-radius: 0 !important; margin: 0 !important;
+    transform: none !important; z-index: 9999 !important;
   }
 }
 
-/* 5. Keyframes for Animations */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-@keyframes gradient-anim {
-  0% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
-  100% {
-    background-position: 0% 50%;
-  }
-}
-@keyframes float {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-25px);
-  }
-}
-@keyframes shimmer {
-  0% {
-    transform: translateX(-100%);
-  }
-  100% {
-    transform: translateX(100%);
-  }
-}
+/* =========================================
+   ANIMATIONS & KEYFRAMES
+   ========================================= */
 
-/* Hero Section Synergy Visualization Animations */
-@keyframes synergy-enter-left {
-  from {
-    opacity: 0;
-    transform: translate(-30px, -50%);
-  }
-  to {
-    opacity: 1;
-    transform: translate(0, -50%);
-  }
-}
-@keyframes synergy-enter-right {
-  from {
-    opacity: 0;
-    transform: translate(30px, -50%);
-  }
-  to {
-    opacity: 1;
-    transform: translate(0, -50%);
-  }
-}
-@keyframes draw-line {
-  to {
-    stroke-dashoffset: 0;
-  }
-}
-@keyframes match-point-appear {
-  0% {
-    transform: translate(-50%, -50%) scale(0);
-    opacity: 0;
-  }
-  70% {
-    transform: translate(-50%, -50%) scale(1.1);
-    opacity: 1;
-  }
-  100% {
-    transform: translate(-50%, -50%) scale(1);
-    opacity: 1;
-  }
-}
-
-/* Enhanced Suggestions Keyframes */
+/* 1. Basic Fade / Scale / Slide */
 @keyframes fade-in-up {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes mobile-match-point-appear {
-  from {
-    transform: scale(0.8);
-    opacity: 0;
-  }
-  to {
-    transform: scale(1);
-    opacity: 1;
-  }
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes scale-in {
-  from {
-    opacity: 0;
-    transform: scale(0.95);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
 }
 
 @keyframes pulse-subtle {
-  0%,
-  100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 0.8;
-    transform: scale(1.02);
-  }
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.8; transform: scale(1.02); }
 }
 
-@keyframes urgent-pulse {
-  0%,
-  100% {
-    background-color: rgb(249 115 22);
-    box-shadow: 0 0 0 0 rgba(249, 115, 22, 0.7);
-  }
-  50% {
-    background-color: rgb(234 88 12);
-    box-shadow: 0 0 0 8px rgba(249, 115, 22, 0);
-  }
+@keyframes gradient-anim {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
 }
 
-@keyframes gentle-shake {
-  0%,
-  100% {
-    transform: translateX(0);
-  }
-  25% {
-    transform: translateX(-1px);
-  }
-  75% {
-    transform: translateX(1px);
-  }
+/* 2. Hero Section / Synergy Animations */
+@keyframes synergy-enter-left {
+  from { opacity: 0; transform: translate(-30px, -50%); }
+  to { opacity: 1; transform: translate(0, -50%); }
 }
 
-@keyframes corner-fill {
-  from {
-    clip-path: polygon(0 0, 0 0, 0 100%, 0% 100%);
-  }
-  to {
-    clip-path: polygon(0 0, 100% 0, 100% 100%, 0% 100%);
-  }
+@keyframes synergy-enter-right {
+  from { opacity: 0; transform: translate(30px, -50%); }
+  to { opacity: 1; transform: translate(0, -50%); }
 }
 
-/* 6. Animation Utility Classes */
-.animate-gradient {
-  animation: gradient-anim 4s ease infinite;
-}
-.animate-gradient-slow {
-  animation: gradient-anim 15s ease infinite;
-}
-.animate-float-slow {
-  animation: float 8s ease-in-out infinite;
-}
-.group-hover\:animate-shimmer {
-  animation: shimmer 2s infinite;
+@keyframes draw-line {
+  to { stroke-dashoffset: 0; }
 }
 
-/* Hero Section Animation Classes */
-.animate-synergy-enter-left {
-  animation: synergy-enter-left 0.8s ease-out forwards 0.2s;
-}
-.animate-synergy-enter-right {
-  animation: synergy-enter-right 0.8s ease-out forwards 0.2s;
+@keyframes match-point-appear {
+  0% { transform: translate(-50%, -50%) scale(0); opacity: 0; }
+  70% { transform: translate(-50%, -50%) scale(1.1); opacity: 1; }
+  100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
 }
 
+@keyframes mobile-match-point {
+  from { opacity: 0; transform: scale(0.8) translateY(10px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* 3. Utility Classes for Animations */
+.animate-fade-in-up { animation: fade-in-up 0.6s ease-out forwards; }
+.animate-scale-in { animation: scale-in 0.3s ease-out forwards; }
+.animate-shimmer { animation: shimmer 2s infinite; }
+.animate-float { animation: float 6s ease-in-out infinite; }
+.animate-pulse-subtle { animation: pulse-subtle 2s ease-in-out infinite; }
+.animate-gradient { animation: gradient-anim 4s ease infinite; }
+
+/* Hero Specific Utility Classes */
+.animate-synergy-enter-left { animation: synergy-enter-left 0.8s ease-out forwards 0.2s; }
+.animate-synergy-enter-right { animation: synergy-enter-right 0.8s ease-out forwards 0.2s; }
 .path-draw {
   stroke-dasharray: 500;
   stroke-dashoffset: 500;
   animation: draw-line 1.2s ease-out forwards 0.5s;
 }
-
 .animate-match-point-appear {
-  animation: match-point-appear 0.6s cubic-bezier(0.68, -0.55, 0.27, 1.55)
-    forwards 1.7s;
+  animation: match-point-appear 0.6s cubic-bezier(0.68, -0.55, 0.27, 1.55) forwards 1.7s;
+}
+.animate-mobile-match-point {
+  animation: mobile-match-point 0.6s ease-out forwards;
 }
 
-/* 7. Responsive Optimizations */
+/* =========================================
+   MEDIA QUERIES & RESPONSIVE TWEAKS
+   ========================================= */
+
 @media (max-width: 768px) {
-  .animate-fade-in-up {
-    animation-duration: 0.4s;
-  }
-
-  .card-hover-elegant:hover {
-    transform: translateY(-2px);
-  }
-
-  .spacing-suggestion {
-    padding: 2rem;
-  }
-}
-
-/* 8. Dark Mode Support */
-@media (prefers-color-scheme: dark) {
-  .glass-effect {
-    background: rgba(17, 24, 39, 0.95);
-    border: 1px solid rgba(75, 85, 99, 0.3);
-  }
-
-  .scrollbar-elegant::-webkit-scrollbar-thumb {
-    background: rgba(156, 163, 175, 0.3);
-  }
-
-  .bg-suggestion-gradient {
-    background: linear-gradient(
-      135deg,
-      rgba(6, 182, 212, 0.1) 0%,
-      rgba(17, 24, 39, 1) 25%,
-      rgba(16, 185, 129, 0.1) 100%
-    );
-  }
-}
-
-/* 9. Print Styles */
-@media print {
-  .no-print {
-    display: none !important;
-  }
-
-  .card-hover-elegant {
-    box-shadow: none !important;
-    transform: none !important;
-  }
-}
-@media (max-width: 640px) {
-  .profile-card-container * {
-    word-break: break-word;
-    overflow-wrap: anywhere;
-  }
-
-  .profile-card-container .text-4xl,
-  .profile-card-container .text-5xl {
-    font-size: 1.5rem !important;
-    line-height: 2rem !important;
-  }
-
-  .profile-card-container .grid {
-    min-width: 0;
-  }
-
-  .profile-card-container .tabs-list {
-    overflow-x: auto;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-  }
-
-  .profile-card-container .tabs-list::-webkit-scrollbar {
-    display: none;
-  }
-
-  .profile-card-container h1,
-  .profile-card-container h2,
-  .profile-card-container h3 {
-    word-break: break-word !important;
-    overflow-wrap: anywhere !important;
-  }
-
-  .profile-card-container .flex {
-    min-width: 0;
-  }
-
-  .profile-card-container img {
-    max-width: 100%;
-    height: auto;
-  }
-}
-/* Enhanced CSS Animations for SuggestionDetailsModal */
-/* הוסף את הקוד הזה לקובץ globals.css או לקובץ CSS מתאים */
-
-/* תיקון z-index לדיאלוגים */
-[data-radix-popper-content-wrapper] {
-  z-index: 9999 !important;
-}
-
-.radix-dialog-overlay {
-  z-index: 9998 !important;
-  background-color: rgba(0, 0, 0, 0.5) !important;
-}
-
-.radix-dialog-content {
-  z-index: 9999 !important;
-  position: relative !important;
-}
-
-/* תיקון לכפתורים בדיאלוג */
-[data-radix-alert-dialog-content] button {
-  pointer-events: auto !important;
-  z-index: 10001 !important;
-  position: relative !important;
-}
-
-[data-radix-alert-dialog-content] {
-  pointer-events: auto !important;
-  z-index: 9999 !important;
-}
-
-/* וידוא שכל האלמנטים הלחיצים זמינים */
-button,
-[role='button'] {
-  pointer-events: auto !important;
-  cursor: pointer !important;
-}
-
-/* אנימציות בסיסיות */
-@keyframes fade-in-up {
-  from {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes float {
-  0%,
-  100% {
-    transform: translateY(0px) rotate(0deg);
-  }
-  33% {
-    transform: translateY(-10px) rotate(1deg);
-  }
-  66% {
-    transform: translateY(5px) rotate(-1deg);
-  }
-}
-
-@keyframes pulse-subtle {
-  0%,
-  100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 0.8;
-    transform: scale(1.05);
-  }
-}
-
-@keyframes shimmer {
-  0% {
-    transform: translateX(-100%);
-  }
-  100% {
-    transform: translateX(100%);
-  }
-}
-
-@keyframes bounce-gentle {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-5px);
-  }
-}
-
-@keyframes glow {
-  0%,
-  100% {
-    box-shadow: 0 0 20px rgba(168, 85, 247, 0.4);
-  }
-  50% {
-    box-shadow: 0 0 30px rgba(168, 85, 247, 0.8);
-  }
-}
-
-@keyframes scale-in {
-  from {
-    opacity: 0;
-    transform: scale(0.9);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-/* כלאסים לאנימציות */
-.animate-fade-in-up {
-  animation: fade-in-up 0.8s ease-out forwards;
-}
-
-.animate-float {
-  animation: float 6s ease-in-out infinite;
-}
-
-.animate-pulse-subtle {
-  animation: pulse-subtle 2s ease-in-out infinite;
-}
-
-.animate-shimmer {
-  animation: shimmer 2s infinite;
-}
-
-.animate-bounce-gentle {
-  animation: bounce-gentle 2s ease-in-out infinite;
-}
-
-.animate-glow {
-  animation: glow 2s ease-in-out infinite;
-}
-
-.animate-scale-in {
-  animation: scale-in 0.5s ease-out forwards;
-}
-
-/* סגנונות לסקרול מעוצב */
-.scrollbar-elegant {
-  scrollbar-width: thin;
-  scrollbar-color: rgba(168, 85, 247, 0.3) transparent;
-}
-
-.scrollbar-elegant::-webkit-scrollbar {
-  width: 8px;
-}
-
-.scrollbar-elegant::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.scrollbar-elegant::-webkit-scrollbar-thumb {
-  background: linear-gradient(
-    to bottom,
-    rgba(168, 85, 247, 0.3),
-    rgba(236, 72, 153, 0.3)
-  );
-  border-radius: 10px;
-}
-
-.scrollbar-elegant::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(
-    to bottom,
-    rgba(168, 85, 247, 0.5),
-    rgba(236, 72, 153, 0.5)
-  );
-}
-
-/* אפקטים מיוחדים לכרטיסים */
-.card-hover-elegant {
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.card-hover-elegant:hover {
-  transform: translateY(-8px) scale(1.02);
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-}
-
-/* גרדיאנטים מתקדמים */
-.gradient-purple-pink {
-  background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%);
-}
-
-.gradient-emerald-cyan {
-  background: linear-gradient(135deg, #10b981 0%, #06b6d4 100%);
-}
-
-.gradient-blue-purple {
-  background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
-}
-
-/* אפקט זוהר לכפתורים */
-.button-glow {
-  position: relative;
-  overflow: hidden;
-}
-
-.button-glow::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(255, 255, 255, 0.3),
-    transparent
-  );
-  transition: left 0.5s;
-}
-
-.button-glow:hover::before {
-  left: 100%;
-}
-
-/* אנימציות מיוחדות לטאבים */
-.tab-active-indicator {
-  position: relative;
-}
-
-.tab-active-indicator::after {
-  content: '';
-  position: absolute;
-  bottom: -2px;
-  left: 50%;
-  width: 0;
-  height: 3px;
-  background: linear-gradient(90deg, #8b5cf6, #ec4899);
-  border-radius: 2px;
-  transition: all 0.3s ease;
-  transform: translateX(-50%);
-}
-
-.tab-active-indicator[data-state='active']::after {
-  width: 80%;
-}
-
-/* אפקטים לחלקים נעים */
-.floating-element {
-  animation: float 4s ease-in-out infinite;
-}
-
-.floating-element:nth-child(2) {
-  animation-delay: 1s;
-}
-
-.floating-element:nth-child(3) {
-  animation-delay: 2s;
-}
-
-/* סגנון לבאדג'ים מעוצבים */
-.badge-premium {
-  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
-  box-shadow: 0 4px 15px rgba(251, 191, 36, 0.4);
-  border: 2px solid rgba(255, 255, 255, 0.3);
-}
-
-.badge-pulse {
-  animation: pulse-subtle 2s ease-in-out infinite;
-}
-
-/* מעברים חלקים */
-.smooth-transition {
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-/* זוהר מסביב לאלמנטים */
-.element-glow-purple {
-  box-shadow: 0 0 20px rgba(168, 85, 247, 0.3);
-}
-
-.element-glow-pink {
-  box-shadow: 0 0 20px rgba(236, 72, 153, 0.3);
-}
-
-.element-glow-emerald {
-  box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
-}
-
-/* אנימציה לטעינה */
-@keyframes loading-dots {
-  0%,
-  20% {
-    opacity: 0;
-    transform: scale(0.8);
-  }
-  50% {
-    opacity: 1;
-    transform: scale(1);
-  }
-  100% {
-    opacity: 0;
-    transform: scale(0.8);
-  }
-}
-
-.loading-dots span {
-  animation: loading-dots 1.4s ease-in-out infinite;
-}
-
-.loading-dots span:nth-child(2) {
-  animation-delay: 0.2s;
-}
-
-.loading-dots span:nth-child(3) {
-  animation-delay: 0.4s;
-}
-
-/* רספונסיביות משופרת */
-@media (max-width: 768px) {
-  .animate-fade-in-up {
-    animation-duration: 0.6s;
-  }
-
-  .card-hover-elegant:hover {
-    transform: translateY(-4px) scale(1.01);
-  }
-
-  .floating-element {
-    animation-duration: 3s;
-  }
-}
-
-/* אפקט מיוחד לרקע */
-.animated-background {
-  background: linear-gradient(-45deg, #f8fafc, #e0e7ff, #fdf2f8, #ecfdf5);
-  background-size: 400% 400%;
-  animation: gradient-shift 15s ease infinite;
-}
-
-@keyframes gradient-shift {
-  0% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
-  100% {
-    background-position: 0% 50%;
-  }
-}
-
-/* סגנון מיוחד לכותרות */
-.heading-gradient {
-  background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 50%, #06b6d4 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  animation: gradient-shift 8s ease infinite;
-  background-size: 200% 200%;
-}
-
-/* אפקט נצנוץ לאלמנטים חשובים */
-@keyframes sparkle {
-  0%,
-  100% {
-    opacity: 0;
-    transform: scale(0) rotate(0deg);
-  }
-  50% {
-    opacity: 1;
-    transform: scale(1) rotate(180deg);
-  }
-}
-
-.sparkle-effect {
-  position: relative;
-}
-
-.sparkle-effect::before,
-.sparkle-effect::after {
-  content: '✨';
-  position: absolute;
-  font-size: 12px;
-  animation: sparkle 2s ease-in-out infinite;
-}
-
-.sparkle-effect::before {
-  top: -5px;
-  right: -5px;
-  animation-delay: 0s;
-}
-
-.sparkle-effect::after {
-  bottom: -5px;
-  left: -5px;
-  animation-delay: 1s;
-}
-
-/* הוסף את הקוד הזה לקובץ globals.css שלך */
-
-/* אנימציות מותאמות אישית */
-@keyframes pulse-slow {
-  0%,
-  100% {
-    opacity: 0.3;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 0.6;
-    transform: scale(1.05);
-  }
-}
-
-@keyframes float-slow {
-  0%,
-  100% {
-    transform: translateY(0px);
-  }
-  50% {
-    transform: translateY(-10px);
-  }
-}
-
-@keyframes shimmer {
-  0% {
-    transform: translateX(-100%);
-  }
-  100% {
-    transform: translateX(100%);
-  }
-}
-
-@keyframes fade-in-up {
-  from {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes gradient-shift {
-  0%,
-  100% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
-}
-
-/* כלאסים לאנימציות */
-.animate-pulse-slow {
-  animation: pulse-slow 4s ease-in-out infinite;
-}
-
-.animate-float-slow {
-  animation: float-slow 6s ease-in-out infinite;
-}
-
-.animate-shimmer {
-  animation: shimmer 1.5s ease-in-out;
-}
-
-.animate-fade-in-up {
-  animation: fade-in-up 0.8s ease-out forwards;
-}
-
-.animate-gradient {
-  background-size: 200% 200%;
-  animation: gradient-shift 3s ease infinite;
-}
-
-/* מיקרו-אינטראקציות */
-.group:hover .group-hover\:animate-shimmer {
-  animation: shimmer 1.5s ease-in-out;
+  .animate-fade-in-up { animation-duration: 0.4s; }
 }
 
-/* שיפורי נגישות */
 @media (prefers-reduced-motion: reduce) {
-  .animate-pulse-slow,
-  .animate-float-slow,
+  .animate-pulse-subtle,
+  .animate-float,
   .animate-shimmer,
   .animate-fade-in-up,
   .animate-gradient {
@@ -1226,871 +447,20 @@ button,
   }
 }
 
-/* רקעים דינמיים */
-.bg-dynamic-gradient {
-  background: linear-gradient(-45deg, #06b6d4, #ec4899, #f59e0b, #10b981);
-  background-size: 400% 400%;
-  animation: gradient-shift 8s ease infinite;
+@media print {
+  .no-print { display: none !important; }
+  .card-hover-elegant { box-shadow: none !important; transform: none !important; }
 }
 
-/* אפקטים ויזואליים */
-.backdrop-blur-soft {
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-}
-
-.glass-morphism {
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-/* שיפורי טיפוגרפיה */
-.text-shadow-soft {
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-/* אפקטי hover משופרים */
-.hover-lift {
-  transition:
-    transform 0.3s ease,
-    box-shadow 0.3s ease;
-}
-
-.hover-lift:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
-}
-
-/* גריד ריספונסיבי משופר */
+/* Mobile Typography Fixes */
 @media (max-width: 640px) {
-  .mobile-stack {
-    grid-template-columns: 1fr;
-    gap: 1rem;
+  .profile-card-container * {
+    word-break: break-word;
+    overflow-wrap: anywhere;
+  }
+  .profile-card-container .text-4xl,
+  .profile-card-container .text-5xl {
+    font-size: 1.5rem !important;
+    line-height: 2rem !important;
   }
-}
-
-@media (min-width: 641px) and (max-width: 1024px) {
-  .tablet-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 1.5rem;
-  }
-}
-
-/* אנימציות כניסה מתקדמות */
-.stagger-animation > * {
-  opacity: 0;
-  transform: translateY(20px);
-  animation: fade-in-up 0.6s ease-out forwards;
-}
-
-.stagger-animation > *:nth-child(1) {
-  animation-delay: 0.1s;
-}
-.stagger-animation > *:nth-child(2) {
-  animation-delay: 0.2s;
-}
-.stagger-animation > *:nth-child(3) {
-  animation-delay: 0.3s;
-}
-.stagger-animation > *:nth-child(4) {
-  animation-delay: 0.4s;
-}
-.stagger-animation > *:nth-child(5) {
-  animation-delay: 0.5s;
-}
-
-/* מותאם לצבעי החברה */
-.brand-gradient-primary {
-  background: linear-gradient(135deg, #06b6d4 0%, #ec4899 100%);
-}
-
-.brand-gradient-secondary {
-  background: linear-gradient(135deg, #ec4899 0%, #f59e0b 100%);
-}
-
-.brand-shadow-cyan {
-  box-shadow: 0 4px 14px 0 rgba(6, 182, 212, 0.25);
-}
-
-.brand-shadow-pink {
-  box-shadow: 0 4px 14px 0 rgba(236, 72, 153, 0.25);
-}
-
-/* In your globals.css or equivalent */
-@keyframes fade-in-up {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes synergy-enter-left {
-  from {
-    opacity: 0;
-    transform: translate(-50px, -50%);
-  }
-  to {
-    opacity: 1;
-    transform: translate(0, -50%);
-  }
-}
-
-@keyframes synergy-enter-right {
-  from {
-    opacity: 0;
-    transform: translate(50px, -50%);
-  }
-  to {
-    opacity: 1;
-    transform: translate(0, -50%);
-  }
-}
-
-@keyframes path-draw {
-  from {
-    stroke-dasharray: 1000;
-    stroke-dashoffset: 1000;
-  }
-  to {
-    stroke-dasharray: 1000;
-    stroke-dashoffset: 0;
-  }
-}
-
-@keyframes match-point-appear {
-  from {
-    opacity: 0;
-    transform: translate(-50%, -50%) scale(0.8);
-  }
-  to {
-    opacity: 1;
-    transform: translate(-50%, -50%) scale(1);
-  }
-}
-
-@keyframes mobile-match-point {
-  from {
-    opacity: 0;
-    transform: scale(0.8) translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1) translateY(0);
-  }
-}
-
-.animate-fade-in-up {
-  animation: fade-in-up 0.6s ease-out forwards;
-}
-.animate-synergy-enter-left {
-  animation: synergy-enter-left 0.8s 0.2s cubic-bezier(0.25, 1, 0.5, 1) forwards;
-}
-.animate-synergy-enter-right {
-  animation: synergy-enter-right 0.8s 0.2s cubic-bezier(0.25, 1, 0.5, 1)
-    forwards;
-}
-.path-draw {
-  stroke-dasharray: 1000;
-  stroke-dashoffset: 1000;
-  animation: path-draw 1.5s 0.5s ease-out forwards;
-}
-.animate-match-point-appear {
-  animation: match-point-appear 0.8s 1.2s cubic-bezier(0.25, 1, 0.5, 1) forwards;
-}
-.animate-mobile-match-point {
-  animation: mobile-match-point 0.6s ease-out forwards;
-}
-
-/* להוסיף לקובץ ה-CSS הגלובלי */
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes float {
-  0%, 100% {
-    transform: translateY(0px);
-  }
-  50% {
-    transform: translateY(-20px);
-  }
-}
-
-.animate-fade-in-up {
-  animation: fadeInUp 0.6s ease-out forwards;
-}
-
-.animate-float {
-  animation: float 6s ease-in-out infinite;
-}
-
-/* הוסף את הקוד הזה לקובץ globals.css שלך */
-
-/* כיסוי מאוד חזק למודל פולסקרין */
-[data-fullscreen="true"] {
-  position: fixed !important;
-  top: 0 !important;
-  left: 0 !important;
-  right: 0 !important;
-  bottom: 0 !important;
-  width: 100vw !important;
-  height: 100vh !important;
-  max-width: none !important;
-  max-height: none !important;
-  border-radius: 0 !important;
-  margin: 0 !important;
-  transform: none !important;
-  z-index: 9999 !important;
-}
-
-/* כיסוי למובייל */
-[data-mobile="true"] {
-  position: fixed !important;
-  top: 0 !important;
-  left: 0 !important;
-  right: 0 !important;
-  bottom: 0 !important;
-  width: 100vw !important;
-  height: 100vh !important;
-  max-width: none !important;
-  max-height: none !important;
-  border-radius: 0 !important;
-  margin: 0 !important;
-  transform: none !important;
-  z-index: 9999 !important;
-}
-
-/* כיסוי לכל DialogContent שבמצב פולסקרין */
-[data-radix-dialog-content][data-fullscreen="true"] {
-  position: fixed !important;
-  top: 0 !important;
-  left: 0 !important;
-  right: 0 !important;
-  bottom: 0 !important;
-  width: 100vw !important;
-  height: 100vh !important;
-  max-width: none !important;
-  max-height: none !important;
-  border-radius: 0 !important;
-  margin: 0 !important;
-  transform: none !important;
-  z-index: 9999 !important;
-}
-
-/* תמיכה בפולסקרין מודל */
-@layer utilities {
-  /* אנימציות למעברים של פולסקרין */
-  @keyframes modal-scale-in {
-    from {
-      opacity: 0;
-      transform: scale(0.95);
-    }
-    to {
-      opacity: 1;
-      transform: scale(1);
-    }
-  }
-
-  @keyframes modal-scale-out {
-    from {
-      opacity: 1;
-      transform: scale(1);
-    }
-    to {
-      opacity: 0;
-      transform: scale(0.95);
-    }
-  }
-
-  @keyframes fullscreen-expand {
-    from {
-      width: 95vw;
-      height: 95vh;
-      border-radius: 1.5rem;
-    }
-    to {
-      width: 100vw;
-      height: 100vh;
-      border-radius: 0;
-    }
-  }
-
-  @keyframes fullscreen-contract {
-    from {
-      width: 100vw;
-      height: 100vh;
-      border-radius: 0;
-    }
-    to {
-      width: 95vw;
-      height: 95vh;
-      border-radius: 1.5rem;
-    }
-  }
-
-  /* כלאסים לאנימציות */
-  .animate-scale-in {
-    animation: modal-scale-in 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-  }
-
-  .animate-scale-out {
-    animation: modal-scale-out 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-  }
-
-  .animate-fullscreen-expand {
-    animation: fullscreen-expand 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-  }
-
-  .animate-fullscreen-contract {
-    animation: fullscreen-contract 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-  }
-
-  /* סגנונות למודל פולסקרין */
-  .modal-fullscreen {
-    position: fixed !important;
-    top: 0 !important;
-    left: 0 !important;
-    right: 0 !important;
-    bottom: 0 !important;
-    width: 100vw !important;
-    height: 100vh !important;
-    max-width: none !important;
-    max-height: none !important;
-    border-radius: 0 !important;
-    margin: 0 !important;
-    transform: none !important;
-  }
-
-  .modal-windowed {
-    position: relative;
-    max-width: 90vw;
-    max-height: 95vh;
-    width: 95vw;
-    height: 95vh;
-    border-radius: 1.5rem;
-    margin: auto;
-  }
-
-  /* תמיכה במובייל */
-  .modal-mobile {
-    position: fixed !important;
-    top: 0 !important;
-    left: 0 !important;
-    right: 0 !important;
-    bottom: 0 !important;
-    width: 100vw !important;
-    height: 100vh !important;
-    height: calc(var(--vh, 1vh) * 100) !important;
-    max-width: none !important;
-    max-height: none !important;
-    border-radius: 0 !important;
-    margin: 0 !important;
-    padding-top: env(safe-area-inset-top);
-    padding-bottom: env(safe-area-inset-bottom);
-    padding-left: env(safe-area-inset-left);
-    padding-right: env(safe-area-inset-right);
-  }
-
-  /* אפקטי מעבר חלקים */
-  .modal-transition {
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-
-  /* סגנון לכפתור פולסקרין */
-  .fullscreen-button {
-    position: relative;
-    overflow: hidden;
-    transition: all 0.2s ease;
-  }
-
-  .fullscreen-button:hover {
-    transform: scale(1.05);
-  }
-
-  .fullscreen-button:active {
-    transform: scale(0.95);
-  }
-
-  /* אפקט ריפל לכפתור */
-  .fullscreen-button::after {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 0;
-    height: 0;
-    background: rgba(59, 130, 246, 0.3);
-    border-radius: 50%;
-    transform: translate(-50%, -50%);
-    transition: width 0.3s ease, height 0.3s ease;
-  }
-
-  .fullscreen-button:active::after {
-    width: 100px;
-    height: 100px;
-  }
-
-  /* תיקון z-index לדיאלוג פולסקרין */
-  [data-state="open"][data-fullscreen="true"] {
-    z-index: 9999 !important;
-  }
-
-  /* וידוא שהמודל תמיד נראה */
-  .modal-content {
-    z-index: 9999;
-    position: relative;
-  }
-
-  /* סקרול מותאם למודל */
-  .modal-scroll {
-    scrollbar-width: thin;
-    scrollbar-color: rgba(168, 85, 247, 0.3) transparent;
-  }
-
-  .modal-scroll::-webkit-scrollbar {
-    width: 8px;
-  }
-
-  .modal-scroll::-webkit-scrollbar-track {
-    background: transparent;
-  }
-
-  .modal-scroll::-webkit-scrollbar-thumb {
-    background: rgba(168, 85, 247, 0.3);
-    border-radius: 4px;
-  }
-
-  .modal-scroll::-webkit-scrollbar-thumb:hover {
-    background: rgba(168, 85, 247, 0.5);
-  }
-
-  /* אנימציה לאייקונים */
-  .icon-transition {
-    transition: transform 0.2s ease;
-  }
-
-  .icon-transition:hover {
-    transform: rotate(5deg) scale(1.1);
-  }
-
-  /* רקע מטושטש כשמודל פתוח */
-  .modal-backdrop {
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    background-color: rgba(0, 0, 0, 0.5);
-  }
-
-  /* תמיכה במצב לילה */
-  @media (prefers-color-scheme: dark) {
-    .modal-content {
-      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
-      color: white;
-    }
-    
-    .modal-scroll::-webkit-scrollbar-thumb {
-      background: rgba(156, 163, 175, 0.3);
-    }
-  }
-
-  /* אופטימיזציה למכשירים עם ביצועים נמוכים */
-  @media (prefers-reduced-motion: reduce) {
-    .animate-scale-in,
-    .animate-scale-out,
-    .animate-fullscreen-expand,
-    .animate-fullscreen-contract {
-      animation: none;
-      transition: none;
-    }
-    
-    .modal-transition {
-      transition: none;
-    }
-  }
-
-  /* תמיכה במכשירים עם מסכים קטנים */
-  @media (max-width: 640px) {
-    .modal-windowed {
-      width: 100vw;
-      height: 100vh;
-      max-width: 100vw;
-      max-height: 100vh;
-      border-radius: 0;
-    }
-  }
-
-  /* תמיכה במכשירים עם מסכים גדולים */
-  @media (min-width: 1920px) {
-    .modal-windowed {
-      max-width: 80vw;
-      max-height: 90vh;
-    }
-  }
-
-  /* אפקטים ויזואליים נוספים */
-  .modal-shadow {
-    box-shadow: 
-      0 25px 50px -12px rgba(0, 0, 0, 0.25),
-      0 0 0 1px rgba(255, 255, 255, 0.1);
-  }
-
-  .modal-border {
-    border: 1px solid rgba(255, 255, 255, 0.1);
-  }
-
-  /* אנימציה לטעינה */
-  .modal-loading {
-    position: relative;
-  }
-
-  .modal-loading::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(
-      90deg,
-      transparent,
-      rgba(255, 255, 255, 0.2),
-      transparent
-    );
-    animation: shimmer 1.5s infinite;
-    z-index: 1;
-  }
-
-  /* מיקרו-אינטראקציות */
-  .button-press {
-    transition: transform 0.1s ease;
-  }
-
-  .button-press:active {
-    transform: scale(0.98);
-  }
-
-  /* הודעות טעינה */
-  .loading-indicator {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-  }
-
-  .loading-dots {
-    display: inline-flex;
-    gap: 0.25rem;
-  }
-
-  .loading-dots span {
-    width: 4px;
-    height: 4px;
-    background: currentColor;
-    border-radius: 50%;
-    animation: loading-bounce 1.4s ease-in-out infinite both;
-  }
-
-  .loading-dots span:nth-child(1) { animation-delay: -0.32s; }
-  .loading-dots span:nth-child(2) { animation-delay: -0.16s; }
-  .loading-dots span:nth-child(3) { animation-delay: 0s; }
-
-  @keyframes loading-bounce {
-    0%, 80%, 100% {
-      transform: scale(0.8);
-      opacity: 0.5;
-    }
-    40% {
-      transform: scale(1);
-      opacity: 1;
-    }
-  }
-}
-
-/* תיקונים ספציפיים לRadix UI */
-[data-radix-popper-content-wrapper] {
-  z-index: 10000 !important;
-}
-
-[data-radix-dialog-overlay] {
-  background-color: rgba(0, 0, 0, 0.5) !important;
-  backdrop-filter: blur(8px) !important;
-  -webkit-backdrop-filter: blur(8px) !important;
-}
-
-[data-radix-dialog-content] {
-  z-index: 9999 !important;
-  position: relative !important;
-}
-
-/* וידוא שכל הכפתורים לחיצים */
-button,
-[role="button"],
-[data-radix-dialog-close] {
-  pointer-events: auto !important;
-  cursor: pointer !important;
-  position: relative !important;
-  z-index: 10 !important;
-}
-
-/* סגנונות נוספים לשיפור החוויה */
-.modal-enhanced {
-  will-change: transform, opacity;
-  backface-visibility: hidden;
-  perspective: 1000px;
-}
-
-.modal-smooth {
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-/* תמיכה בתצוגות עם DPI גבוה */
-@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
-  .modal-content {
-    transform: translateZ(0);
-  }
-}
-
-/* הגדרות להבטחת נגישות */
-.modal-focus-trap {
-  outline: none;
-}
-
-.modal-focus-trap:focus-visible {
-  outline: 2px solid rgba(59, 130, 246, 0.7);
-  outline-offset: 2px;
-}
-/* src/styles/phone-input.css */
-
-/* אנימציות חלקות לכל האלמנטים */
-.phone-input-container * {
-  transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-/* סגנון מיוחד לכפתור בחירת המדינה */
-.country-selector {
-  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
-}
-
-.country-selector:hover {
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  transform: translateY(-1px);
-}
-
-.country-selector:focus {
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-}
-
-/* עיצוב הרשימה הנפתחת */
-.country-dropdown {
-  backdrop-filter: blur(10px);
-  background: rgba(255, 255, 255, 0.95);
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-  border: 1px solid rgba(0, 0, 0, 0.05);
-}
-
-/* אפקט hover על פריטי הרשימה */
-.country-item {
-  position: relative;
-  overflow: hidden;
-}
-
-.country-item::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.1), transparent);
-  transition: left 0.5s;
-}
-
-.country-item:hover::before {
-  left: 100%;
-}
-
-/* עיצוב שדה החיפוש */
-.search-input {
-  background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
-  border: 1px solid #e2e8f0;
-}
-
-.search-input:focus {
-  background: #ffffff;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-}
-
-/* אינדיקטור המדינות הפופולאריות */
-.popular-indicator {
-  background: linear-gradient(135deg, #10b981, #059669);
-  box-shadow: 0 0 6px rgba(16, 185, 129, 0.4);
-  animation: pulse-green 2s infinite;
-}
-
-@keyframes pulse-green {
-  0%, 100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.7;
-  }
-}
-
-/* עיצוב שדה מספר הטלפון */
-.phone-number-input {
-  font-family: 'JetBrains Mono', 'Fira Code', 'Monaco', 'Consolas', monospace;
-  letter-spacing: 0.5px;
-}
-
-.phone-number-input:focus {
-  background: linear-gradient(135deg, #ffffff 0%, #f0f9ff 100%);
-}
-
-/* אנימציות לשגיאות */
-.error-message {
-  animation: shake 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97);
-}
-
-@keyframes shake {
-  10%, 90% {
-    transform: translate3d(-1px, 0, 0);
-  }
-  20%, 80% {
-    transform: translate3d(2px, 0, 0);
-  }
-  30%, 50%, 70% {
-    transform: translate3d(-4px, 0, 0);
-  }
-  40%, 60% {
-    transform: translate3d(4px, 0, 0);
-  }
-}
-
-/* אפקט loading לכפתור */
-.loading-button {
-  background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
-  background-size: 400% 400%;
-  animation: gradient 1.5s ease infinite;
-}
-
-@keyframes gradient {
-  0% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
-  100% {
-    background-position: 0% 50%;
-  }
-}
-
-/* עיצוב מותאם למובייל */
-@media (max-width: 640px) {
-  .country-dropdown {
-    position: fixed !important;
-    top: 50% !important;
-    left: 50% !important;
-    transform: translate(-50%, -50%) !important;
-    width: 90vw !important;
-    max-width: 400px !important;
-    max-height: 70vh !important;
-    z-index: 9999 !important;
-  }
-  
-  .country-selector {
-    min-width: 120px;
-  }
-  
-  .phone-number-input {
-    font-size: 16px; /* מניעת zoom ב-iOS */
-  }
-}
-
-/* עיצוב כהה (אם נדרש בעתיד) */
-@media (prefers-color-scheme: dark) {
-  .country-selector {
-    background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
-    color: #f9fafb;
-    border-color: #374151;
-  }
-  
-  .country-dropdown {
-    background: rgba(31, 41, 55, 0.95);
-    border-color: #374151;
-  }
-  
-  .search-input {
-    background: #374151;
-    color: #f9fafb;
-    border-color: #4b5563;
-  }
-}
-
-/* אנימציה לפתיחת/סגירת הרשימה */
-.dropdown-enter {
-  opacity: 0;
-  transform: scale(0.95) translateY(-10px);
-}
-
-.dropdown-enter-active {
-  opacity: 1;
-  transform: scale(1) translateY(0px);
-  transition: opacity 200ms, transform 200ms;
-}
-
-.dropdown-exit {
-  opacity: 1;
-  transform: scale(1) translateY(0px);
-}
-
-.dropdown-exit-active {
-  opacity: 0;
-  transform: scale(0.95) translateY(-10px);
-  transition: opacity 150ms, transform 150ms;
-}
-
-/* גלילה חלקה */
-.countries-list {
-  scroll-behavior: smooth;
-}
-
-/* עיצוב מותאם לעברית */
-[dir="rtl"] .country-selector {
-  text-align: right;
-}
-
-[dir="rtl"] .search-input {
-  text-align: right;
-}
-
-/* הסתרת חצי הגלילה הברירת מחדל */
-.countries-list::-webkit-scrollbar {
-  width: 6px;
-}
-
-.countries-list::-webkit-scrollbar-track {
-  background: #f1f5f9;
-  border-radius: 3px;
-}
-
-.countries-list::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, #cbd5e1, #94a3b8);
-  border-radius: 3px;
-}
-
-.countries-list::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(180deg, #94a3b8, #64748b);
 }
