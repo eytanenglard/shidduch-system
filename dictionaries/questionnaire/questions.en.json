@@ -320,12 +320,22 @@
         "max": "A core part of my life"
       }
     },
-    "values_risk_attitude": {
-      "question": "At life's crossroads (career, investments, moving), which statement describes you better?",
-      "helpText": "Compatibility in your approach to risk affects many joint decisions in a partnership.",
-      "labels": {
-        "min": "I prefer the safe and known path; stability is a top priority.",
-        "max": "I'm willing to take calculated risks to achieve greater opportunities."
+      "values_risk_attitude": {
+      "question": "At significant life crossroads (career, investments, big changes), which approach best characterizes you?",
+      "helpText": "Differences in risk tolerance play a huge role in joint decision-making. It's helpful to know if you both want to 'sprint' or if one prefers a steady walk.",
+      "options": {
+        "stability_anchor": {
+          "text": "Security & Stability First",
+          "description": "I prefer the safe and known path. Peace of mind and stability are supreme values for me, even if it means missing some opportunities."
+        },
+        "calculated_balance": {
+          "text": "Calculated & Cautious",
+          "description": "I weigh each case individually. I'm willing to take a risk only after careful analysis, and only if the potential upside clearly outweighs the downside."
+        },
+        "growth_opportunity": {
+          "text": "Daring & Growth",
+          "description": "No risk, no reward. I am willing to step out of my comfort zone and take risks to achieve breakthroughs and seize big opportunities."
+        }
       }
     },
     "values_feeling_of_home": {

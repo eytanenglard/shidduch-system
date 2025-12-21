@@ -162,13 +162,16 @@ export const valuesQuestions: Question[] = [
     id: 'values_risk_attitude',
     category: 'values',
     subcategory: 'life_priorities',
-    type: 'scale',
+    type: 'iconChoice', // שינוי מסוג scale ל-iconChoice
     depth: 'ADVANCED',
     isRequired: false,
-    min: 1,
-    max: 10,
+    options: [
+      { value: 'stability_anchor', icon: <ShieldCheck /> }, // עוגן ויציבות
+      { value: 'calculated_balance', icon: <Scale /> }, // איזון מחושב
+      { value: 'growth_opportunity', icon: <TrendingUp /> }, // צמיחה והזדמנות
+    ],
     metadata: { estimatedTime: 1 },
-},
+  },
 
   {
     worldId: 'VALUES',
@@ -231,13 +234,13 @@ export const valuesQuestions: Question[] = [
     depth: 'EXPERT',
     isRequired: false,
     options: [
-        { value: 'high_involvement' },
-        { value: 'healthy_boundaries' },
-        { value: 'minimal_involvement' },
-        { value: 'depends_on_dynamics' },
+      { value: 'high_involvement' },
+      { value: 'healthy_boundaries' },
+      { value: 'minimal_involvement' },
+      { value: 'depends_on_dynamics' },
     ],
     metadata: { estimatedTime: 1 },
-},
+  },
 
   {
     worldId: 'VALUES',
@@ -260,13 +263,13 @@ export const valuesQuestions: Question[] = [
     depth: 'EXPERT',
     isRequired: false,
     options: [
-        { value: 'express_discomfort' },
-        { value: 'listen_without_judgment' },
-        { value: 'challenge_and_advise' },
-        { value: 'do_not_intervene' },
+      { value: 'express_discomfort' },
+      { value: 'listen_without_judgment' },
+      { value: 'challenge_and_advise' },
+      { value: 'do_not_intervene' },
     ],
     metadata: { estimatedTime: 2 },
-},
+  },
 
   {
     worldId: 'VALUES',
