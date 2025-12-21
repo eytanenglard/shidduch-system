@@ -1,6 +1,7 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\candidates
-# Generated on: 2025-09-19 14:46:50
+# Generated on: 2025-12-21 02:16:34
+# Filter: Only content of code files (.bat, .c, .cfg, .conf, .cpp, .cs, .css, .go, .h, .html, .ini, .java, .js, .json, .jsx, .kt, .less, .md, .php, .py, .rb, .rs, .scss, .sh, .sql, .swift, .ts, .tsx, .txt, .xml, .yaml, .yml) is included.
 ################################################################################
 
 ================================================================================
@@ -247,17 +248,26 @@ Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchm
 File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\candidates\[id]\route.ts
 --------------------------------------------------------------------------------
 Content:
+// src/app/api/matchmaker/candidates/[id]/route.ts
+
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { Prisma, UserRole } from "@prisma/client";
 import { updateUserAiProfile } from '@/lib/services/profileAiService';
+import { Locale } from "../../../../../../i18n-config";
+import { emailService } from "@/lib/email/emailService";
+
 export const dynamic = 'force-dynamic';
 
+/**
+ * GET: אחזור פרופיל של מועמד ספציפי.
+ * נגיש לשדכנים ומנהלים.
+ */
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  props: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -281,6 +291,7 @@ export async function GET(
       );
     }
 
+    const params = await props.params;
     const { id } = params;
 
     const candidateData = await prisma.user.findUnique({
@@ -330,9 +341,13 @@ export async function GET(
   }
 }
 
+/**
+ * PATCH: עדכון פרטי פרופיל של מועמד.
+ * נגיש לשדכנים ומנהלים. מעבד רק את השדות שנשלחו בבקשה.
+ */
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  props: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -343,10 +358,13 @@ export async function PATCH(
         { status: 401 }
       );
     }
+    
+    const url = new URL(req.url);
+    const locale = (url.searchParams.get('locale') as Locale) || 'he';
 
     const performingUser = await prisma.user.findUnique({
       where: { id: session.user.id },
-      select: { role: true }
+      select: { role: true, firstName: true, lastName: true }
     });
 
     if (!performingUser || (performingUser.role !== UserRole.MATCHMAKER && performingUser.role !== UserRole.ADMIN)) {
@@ -356,95 +374,124 @@ export async function PATCH(
       );
     }
     
+    const params = await props.params;
     const { id: candidateIdToUpdate } = params;
 
-    const candidateExists = await prisma.user.findUnique({
+    const candidateToUpdate = await prisma.user.findUnique({
       where: { id: candidateIdToUpdate },
-      select: { id: true, role: true }
+      select: { id: true, role: true, email: true, firstName: true }
     });
 
-    if (!candidateExists) {
+    if (!candidateToUpdate) {
       return NextResponse.json(
         { success: false, error: "Candidate not found" },
         { status: 404 }
       );
     }
 
-    if (candidateExists.role === UserRole.ADMIN && performingUser.role !== UserRole.ADMIN) {
+    if (candidateToUpdate.role === UserRole.ADMIN && performingUser.role !== UserRole.ADMIN) {
         return NextResponse.json(
             { success: false, error: "Unauthorized - Admins can only be edited by other Admins." },
             { status: 403 }
         );
     }
 
-    const profileData = await req.json();
+    const incomingData = await req.json();
+
+    const originalProfile = await prisma.profile.findUnique({
+        where: { userId: candidateIdToUpdate },
+        select: { manualEntryText: true }
+    });
+    
+    const dataForUpdate: Prisma.ProfileUpdateInput = {};
 
     const numericFields = ['height', 'siblings', 'position', 'preferredAgeMin', 'preferredAgeMax', 'preferredHeightMin', 'preferredHeightMax', 'aliyaYear'];
-    numericFields.forEach(field => {
-        if (profileData[field] === "" || profileData[field] === undefined) {
-            profileData[field] = null;
-        } else if (profileData[field] !== null) {
-            profileData[field] = parseInt(profileData[field], 10);
-            if (isNaN(profileData[field])) {
-                console.warn(`Invalid number for ${field}: ${profileData[field]}, setting to null`);
-                profileData[field] = null;
-            }
-        }
-    });
-    
-    // --- START: הוספת שדות מקצוע הורים לרשימת העיבוד ---
-    const stringAndEnumFields = ['gender', 'preferredMatchmakerGender', 'maritalStatus', 'serviceType', 'headCovering', 'kippahType', 'contactPreference', 'preferredShomerNegiah', 'preferredPartnerHasChildren', 'preferredAliyaStatus', 'availabilityStatus' , 'religiousJourney', 'medicalInfoDetails', 'medicalInfoDisclosureTiming', 'fatherOccupation', 'motherOccupation'];
-    // --- END: הוספת שדות מקצוע הורים לרשימת העיבוד ---
-    stringAndEnumFields.forEach(field => {
-        if (profileData[field] === "" || profileData[field] === undefined) {
-            profileData[field] = null;
-        }
-    });
-
-    const booleanFields = ['shomerNegiah', 'hasChildrenFromPrevious', 'preferredHasChildrenFromPrevious', 'isProfileVisible', 'hasMedicalInfo', 'isMedicalInfoVisible'];
-    booleanFields.forEach(field => {
-        if (profileData[field] === undefined) {
-            profileData[field] = null;
-        } else if (typeof profileData[field] !== 'boolean' && profileData[field] !== null) {
-            if (profileData[field] === 'true') profileData[field] = true;
-            else if (profileData[field] === 'false') profileData[field] = false;
-            else profileData[field] = null;
-        }
-    });
-
+    const stringAndEnumFields = ['gender', 'preferredMatchmakerGender', 'maritalStatus', 'serviceType', 'headCovering', 'kippahType', 'contactPreference', 'preferredShomerNegiah', 'preferredPartnerHasChildren', 'preferredAliyaStatus', 'availabilityStatus' , 'religiousJourney', 'medicalInfoDetails', 'medicalInfoDisclosureTiming', 'fatherOccupation', 'motherOccupation', 'manualEntryText', 'about', 'profileHeadline'];
+    const booleanFields = ['shomerNegiah', 'hasChildrenFromPrevious',  'isProfileVisible', 'hasMedicalInfo', 'isMedicalInfoVisible', 'birthDateIsApproximate'];
     const arrayFields = ['additionalLanguages', 'profileCharacterTraits', 'profileHobbies', 'preferredReligiousLevels', 'preferredLocations', 'preferredEducation', 'preferredOccupations', 'preferredMaritalStatuses', 'preferredOrigins', 'preferredServiceTypes', 'preferredHeadCoverings', 'preferredKippahTypes', 'preferredCharacterTraits', 'preferredHobbies', 'preferredReligiousJourneys'];
-    arrayFields.forEach(field => {
-        if (profileData[field] === undefined || profileData[field] === null) {
-            profileData[field] = [];
-        } else if (!Array.isArray(profileData[field])) {
-            console.warn(`Field ${field} is not an array, attempting to convert or defaulting to empty.`);
-            if (typeof profileData[field] === 'string' && profileData[field].includes(',')) {
-                profileData[field] = profileData[field].split(',').map((s: string) => s.trim());
-            } else if (typeof profileData[field] === 'string' && profileData[field].trim() !== '') {
-                 profileData[field] = [profileData[field].trim()];
+    const dateFields = ['birthDate'];
+
+    for (const key in incomingData) {
+      if (Object.prototype.hasOwnProperty.call(incomingData, key)) {
+        const value = incomingData[key];
+
+        if (numericFields.includes(key)) {
+            if (value === "" || value === undefined || value === null) {
+                dataForUpdate[key] = null;
             } else {
-                profileData[field] = [];
+                const parsed = parseInt(String(value), 10);
+                dataForUpdate[key] = isNaN(parsed) ? null : parsed;
+            }
+        } else if (stringAndEnumFields.includes(key)) {
+            dataForUpdate[key] = (value === "" || value === undefined) ? null : value;
+        } else if (booleanFields.includes(key)) {
+            if (value === undefined || value === null) {
+                dataForUpdate[key] = null;
+            } else if (typeof value === 'boolean') {
+                dataForUpdate[key] = value;
+            } else {
+                dataForUpdate[key] = value === 'true';
+            }
+        } else if (arrayFields.includes(key)) {
+            if (value === undefined || value === null) {
+                dataForUpdate[key] = [];
+            } else if (Array.isArray(value)) {
+                dataForUpdate[key] = value;
+            }
+        } else if (dateFields.includes(key)) {
+            if (value) {
+                const date = new Date(value);
+                if (!isNaN(date.getTime())) {
+                    dataForUpdate[key] = date;
+                }
+            } else {
+                dataForUpdate[key] = null;
             }
         }
-    });
-    
-    const updatedProfile = await prisma.profile.update({
-      where: { userId: candidateIdToUpdate },
-      data: {
-        ...profileData,
-        updatedAt: new Date(),
-        lastActive: new Date()
       }
-    });
+    }
+    
+    if (Object.keys(dataForUpdate).length > 0) {
+        const updatedProfile = await prisma.profile.update({
+          where: { userId: candidateIdToUpdate },
+          data: {
+            ...dataForUpdate,
+            updatedAt: new Date(),
+            lastActive: new Date(),
+            needsAiProfileUpdate: true,
+          }
+        });
 
-    updateUserAiProfile(candidateIdToUpdate).catch(err => {
-        console.error(`[AI Profile Trigger - Matchmaker Update] Failed to update AI profile in the background for candidate ${candidateIdToUpdate}:`, err);
-    });
+        const newSummaryText = incomingData.manualEntryText;
+        const oldSummaryText = originalProfile?.manualEntryText;
 
-    return NextResponse.json({
-      success: true,
-      profile: updatedProfile
-    });
+        if (newSummaryText !== undefined && newSummaryText.trim() !== '' && newSummaryText !== oldSummaryText) {
+            try {
+                await emailService.sendProfileSummaryUpdateEmail({
+                    locale,
+                    email: candidateToUpdate.email,
+                    firstName: candidateToUpdate.firstName,
+                    matchmakerName: session.user.name || "השדכן/ית שלך"
+                });
+                console.log(`[Email Notification] Profile summary update email sent successfully to ${candidateToUpdate.email}.`);
+            } catch (emailError) {
+                console.error(`[Email Notification] Failed to send profile summary update email to ${candidateToUpdate.email}:`, emailError);
+            }
+        }
+
+        updateUserAiProfile(candidateIdToUpdate).catch(err => {
+            console.error(`[AI Profile Trigger - Matchmaker Update] Failed to update AI profile in the background for candidate ${candidateIdToUpdate}:`, err);
+        });
+
+        return NextResponse.json({
+          success: true,
+          profile: updatedProfile
+        });
+    }
+
+    const currentProfile = await prisma.profile.findUnique({ where: { userId: candidateIdToUpdate } });
+    return NextResponse.json({ success: true, profile: currentProfile, message: "No data provided for update." });
+
   } catch (error) {
     console.error("Error updating candidate profile:", error);
     let errorMessage = "Failed to update candidate profile";
@@ -462,7 +509,8 @@ export async function PATCH(
         }
         console.error("Prisma Known Error on PATCH:", error.code, error.message, error.meta);
     } else if (error instanceof Prisma.PrismaClientValidationError) {
-        errorMessage = `שגיאת ולידציה בעדכון הפרופיל: ${error.message}`;
+        const relevantError = error.message.split('\n').pop() || error.message;
+        errorMessage = `שגיאת ולידציה בעדכון הפרופיל: ${relevantError}`;
         statusCode = 400;
         console.error("Prisma Validation Error on PATCH:", error.message);
     } else if (error instanceof Error) {
@@ -476,12 +524,18 @@ export async function PATCH(
   }
 }
 
+/**
+ * DELETE: מחיקת מועמד.
+ * נגיש למנהלים בלבד.
+ */
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  props: { params: Promise<{ id: string }> }
 ) {
-  const candidateIdToDelete = params.id;
   const timestamp = new Date().toISOString();
+  
+  const params = await props.params;
+  const candidateIdToDelete = params.id;
   
   console.log(`[${timestamp}] DELETE request for candidate ID: ${candidateIdToDelete}`);
 
@@ -591,6 +645,8 @@ Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchm
 File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\candidates\[id]\images\route.ts
 --------------------------------------------------------------------------------
 Content:
+// src/app/api/matchmaker/candidates/[id]/images/route.ts
+
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
@@ -598,18 +654,10 @@ import prisma from "@/lib/prisma";
 import { UserRole } from "@prisma/client";
 import { v2 as cloudinary } from "cloudinary";
 
-// טייפ פשוט לתוצאה
-type UploadResult = {
-  secure_url: string;
-  public_id: string;
-};
-
-// Check for required environment variables
 const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
 const apiKey = process.env.CLOUDINARY_API_KEY;
 const apiSecret = process.env.CLOUDINARY_API_SECRET;
 
-// Validate environment variables
 if (!cloudName || !apiKey || !apiSecret) {
   console.error("Missing Cloudinary environment variables");
 } else {
@@ -622,7 +670,7 @@ if (!cloudName || !apiKey || !apiSecret) {
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  props: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -647,6 +695,8 @@ export async function POST(
       );
     }
 
+    // Await params before destructuring
+    const params = await props.params;
     const { id } = params;
 
     const candidate = await prisma.user.findUnique({
@@ -678,19 +728,14 @@ export async function POST(
       );
     }
 
-    // Convert to buffer
     const arrayBuffer = await image.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
-    // Upload using cloudinary.uploader.upload with string transformation
-    // זה עוקף את בעיות הטייפים לגמרי
-  // אם עדיין יש בעיות, השתמש בזה:
     const uploadResult = await cloudinary.uploader.upload(
       `data:${image.type};base64,${buffer.toString('base64')}`,
       {
         folder: `shidduch-system/users/${id}`,
         resource_type: 'image',
-        // עוקף את בעיות הטייפים עם type assertion
         transformation: [
           { width: 1000, height: 1000, crop: 'limit' },
           { quality: 'auto:good' }
@@ -738,11 +783,13 @@ Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchm
 File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\candidates\[id]\images\[imageId]\route.ts
 --------------------------------------------------------------------------------
 Content:
+// src/app/api/matchmaker/candidates/[id]/images/[imageId]/route.ts
+
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
-import { UserRole } from "@prisma/client"; // ודא ש-ADMIN מוגדר כאן ב-enum שלך
+import { UserRole } from "@prisma/client";
 import { v2 as cloudinary } from 'cloudinary';
 
 // Configure Cloudinary
@@ -750,26 +797,23 @@ const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
 const apiKey = process.env.CLOUDINARY_API_KEY;
 const apiSecret = process.env.CLOUDINARY_API_SECRET;
 
-// Check if required environment variables are set
 if (!cloudName || !apiKey || !apiSecret) {
   console.error("Missing required Cloudinary environment variables");
+} else {
+  cloudinary.config({
+    cloud_name: cloudName,
+    api_key: apiKey,
+    api_secret: apiSecret,
+  });
 }
-
-cloudinary.config({
-  cloud_name: cloudName as string,
-  api_key: apiKey as string,
-  api_secret: apiSecret as string,
-});
 
 // DELETE request handler for deleting an image
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string; imageId: string } }
+  props: { params: Promise<{ id: string; imageId: string }> } // ✅ שינוי: התאמה ל-Next.js 15
 ) {
   try {
-    // Check authentication
     const session = await getServerSession(authOptions);
-
     if (!session?.user) {
       return NextResponse.json(
         { success: false, error: "Unauthorized" },
@@ -777,29 +821,24 @@ export async function DELETE(
       );
     }
 
-    // Verify that the user is a matchmaker OR an admin
     const user = await prisma.user.findUnique({
       where: { id: session.user.id },
       select: { role: true }
     });
 
-    // ---- START OF CORRECTED CODE ----
-    const allowedRoles: UserRole[] = [UserRole.MATCHMAKER, UserRole.ADMIN]; // Explicitly type the array
-
+    const allowedRoles: UserRole[] = [UserRole.MATCHMAKER, UserRole.ADMIN];
     if (!user || !allowedRoles.includes(user.role)) {
       return NextResponse.json(
         { success: false, error: "Unauthorized - Matchmaker or Admin access required" },
         { status: 403 }
       );
     }
-    // ---- END OF CORRECTED CODE ----
 
-    // Get params
+    const params = await props.params; // ✅ שינוי: הוספת await
     const { id, imageId } = params;
 
     console.log(`Handling DELETE request for candidate ${id}, image ${imageId}`);
 
-    // Verify candidate exists
     const candidate = await prisma.user.findUnique({
       where: { id },
       select: { id: true }
@@ -812,7 +851,6 @@ export async function DELETE(
       );
     }
 
-    // Find the image
     const image = await prisma.userImage.findFirst({
       where: {
         id: imageId,
@@ -829,7 +867,6 @@ export async function DELETE(
 
     console.log(`Found image to delete: ${image.id}, isMain: ${image.isMain}`);
 
-    // Check if this is the main image and there are other images
     if (image.isMain) {
       const otherImage = await prisma.userImage.findFirst({
         where: {
@@ -839,7 +876,6 @@ export async function DELETE(
         orderBy: { createdAt: 'desc' }
       });
 
-      // If there are other images, set the most recent one as main
       if (otherImage) {
         console.log(`Setting image ${otherImage.id} as new main image`);
         await prisma.userImage.update({
@@ -849,23 +885,19 @@ export async function DELETE(
       }
     }
 
-    // Delete from Cloudinary
     if (image.cloudinaryPublicId) {
       try {
         console.log(`Deleting from Cloudinary: ${image.cloudinaryPublicId}`);
         await cloudinary.uploader.destroy(image.cloudinaryPublicId);
       } catch (cloudinaryError) {
         console.error("Cloudinary deletion error:", cloudinaryError);
-        // Continue with DB deletion even if Cloudinary fails
       }
     }
 
-    // Delete from database
     await prisma.userImage.delete({
       where: { id: imageId }
     });
 
-    // Update lastActive timestamp
     await prisma.profile.update({
       where: { userId: id },
       data: { lastActive: new Date() }
@@ -893,6 +925,8 @@ Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchm
 File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\candidates\[id]\images\[imageId]\main\route.ts
 --------------------------------------------------------------------------------
 Content:
+// src/app/api/matchmaker/candidates/[id]/images/[imageId]/main/route.ts
+
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
@@ -901,11 +935,10 @@ import { UserRole } from "@prisma/client";
 
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string; imageId: string } }
+  props: { params: Promise<{ id: string; imageId: string }> } // ✅ שינוי: התאמה ל-Next.js 15
 ) {
   try {
     const session = await getServerSession(authOptions);
-
     if (!session?.user) {
       return NextResponse.json(
         { success: false, error: "Unauthorized" },
@@ -913,13 +946,11 @@ export async function PATCH(
       );
     }
 
-    // Verify that the user is a matchmaker OR an admin
     const user = await prisma.user.findUnique({
       where: { id: session.user.id },
       select: { role: true }
     });
 
-    // ---- START OF CHANGE ----
     const allowedRoles: UserRole[] = [UserRole.MATCHMAKER, UserRole.ADMIN];
     if (!user || !allowedRoles.includes(user.role)) {
       return NextResponse.json(
@@ -927,12 +958,10 @@ export async function PATCH(
         { status: 403 }
       );
     }
-    // ---- END OF CHANGE ----
 
-    // Get params
+    const params = await props.params; // ✅ שינוי: הוספת await
     const { id, imageId } = params;
 
-    // Verify candidate exists
     const candidate = await prisma.user.findUnique({
       where: { id },
       select: { id: true }
@@ -945,40 +974,35 @@ export async function PATCH(
       );
     }
 
-    // Verify image exists and belongs to candidate
-    const imageToSetMain = await prisma.userImage.findFirst({ // Renamed variable for clarity
+    const imageToSetMain = await prisma.userImage.findFirst({
       where: {
         id: imageId,
         userId: id
       }
     });
 
-    if (!imageToSetMain) { // Used the new variable name
+    if (!imageToSetMain) {
       return NextResponse.json(
         { success: false, error: "Image not found" },
         { status: 404 }
       );
     }
 
-    // Start a transaction to update main image
     await prisma.$transaction([
-      // First, unset all other images as main for this user
       prisma.userImage.updateMany({
         where: { 
             userId: id,
-            id: { not: imageId } // Don't unset the one we are about to set
+            id: { not: imageId }
         },
         data: { isMain: false }
       }),
       
-      // Then, set the specified image as main
       prisma.userImage.update({
         where: { id: imageId },
         data: { isMain: true }
       })
     ]);
 
-    // Update lastActive timestamp
     await prisma.profile.update({
       where: { userId: id },
       data: { lastActive: new Date() }
@@ -1015,31 +1039,24 @@ import prisma from "@/lib/prisma";
 import { UserRole, VerificationType, Prisma, VerificationStatus } from "@prisma/client";
 import { VerificationService } from "@/lib/services/verificationService";
 import { emailService } from "@/lib/email/emailService";
-import { applyRateLimit } from "@/lib/rate-limiter";
+import { applyRateLimitWithRoleCheck } from '@/lib/rate-limiter';
 
-/**
- * Handles a matchmaker's request to send an account setup invitation to a candidate.
- * This allows a manually-created user to set their own password and take control of their profile.
- */
-export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
-  // 1. Apply Rate Limiting
-  const rateLimitResponse = await applyRateLimit(req, { requests: 20, window: '1 h' });
+export async function POST(req: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const rateLimitResponse = await applyRateLimitWithRoleCheck(req, { requests: 15, window: '1 h' });
   if (rateLimitResponse) {
     return rateLimitResponse;
   }
   
   try {
-    // 2. Authenticate and authorize the matchmaker/admin
     const session = await getServerSession(authOptions);
     if (!session?.user?.id || (session.user.role !== UserRole.MATCHMAKER && session.user.role !== UserRole.ADMIN)) {
       return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
     }
 
-    // 3. Get Locale from URL for translation
     const url = new URL(req.url);
     const locale = url.searchParams.get('locale') === 'en' ? 'en' : 'he';
 
-    // 4. Validate request parameters and body
+    const params = await props.params;
     const candidateId = params.id;
     const body = await req.json();
     const { email } = body;
@@ -1049,7 +1066,6 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     }
     const normalizedEmail = email.toLowerCase();
 
-    // 5. Fetch the candidate to invite
     const candidate = await prisma.user.findUnique({
       where: { id: candidateId },
     });
@@ -1058,8 +1074,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
       return NextResponse.json({ success: false, error: "Candidate not found." }, { status: 404 });
     }
     
-    // 6. Create an account setup token using the Verification Service
-    const expiresInHours = 72; // 3 days
+    const expiresInHours = 72;
     const { otp: setupToken, verification } = await VerificationService.createVerification(
       candidateId,
       VerificationType.ACCOUNT_SETUP,
@@ -1067,22 +1082,19 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
       expiresInHours
     );
 
-    // 7. Update candidate's email and invalidate old tokens in a transaction
     await prisma.$transaction(async (tx) => {
-      // Only update the email if it's different from the current one.
       if (candidate.email !== normalizedEmail) {
           await tx.user.update({
             where: { id: candidateId },
             data: { email: normalizedEmail },
           });
       }
-      // Invalidate any other pending setup tokens for this user
       await tx.verification.updateMany({
         where: {
           userId: candidateId,
           type: VerificationType.ACCOUNT_SETUP,
           status: VerificationStatus.PENDING,
-          id: { not: verification.id }, // Exclude the one we just created
+          id: { not: verification.id },
         },
         data: {
           status: VerificationStatus.EXPIRED,
@@ -1090,10 +1102,9 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
       });
     });
 
-    // 8. Send the account setup email using the updated Email Service
     const expiresInText = locale === 'he' ? '3 ימים' : '3 days';
     await emailService.sendAccountSetupEmail({
-      locale, // <-- Pass the correct locale
+      locale,
       email: normalizedEmail,
       firstName: candidate.firstName,
       matchmakerName: session.user.firstName || "השדכן/ית שלך",
@@ -1101,11 +1112,9 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
       expiresIn: expiresInText,
     });
 
-    // 9. Return success response
     return NextResponse.json({ success: true, message: "הזמנה להגדרת חשבון נשלחה בהצלחה." });
 
   } catch (error) {
-    // 10. Handle unexpected errors, including unique email constraint violations
     console.error("Error sending account setup invite:", error);
     
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
@@ -1113,7 +1122,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
       if (target?.includes('email')) {
         return NextResponse.json(
           { success: false, error: "כתובת אימייל זו כבר משויכת לחשבון אחר." },
-          { status: 409 } // 409 Conflict
+          { status: 409 }
         );
       }
     }
@@ -1134,8 +1143,7 @@ File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\
 Content:
 // src/app/api/matchmaker/candidates/manual/route.ts
 import { NextRequest, NextResponse } from "next/server";
-import { applyRateLimit } from '@/lib/rate-limiter';
-
+import { applyRateLimitWithRoleCheck } from '@/lib/rate-limiter';
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
@@ -1180,8 +1188,7 @@ async function uploadImageToCloudinary(file: File, userId: string): Promise<{ ur
 
 export async function POST(req: NextRequest) {
   // Apply rate limiting: 15 manual creations per matchmaker per hour (resource intensive)
-  const rateLimitResponse = await applyRateLimit(req, { requests: 15, window: '1 h' });
-  if (rateLimitResponse) {
+const rateLimitResponse = await applyRateLimitWithRoleCheck(req, { requests: 15, window: '1 h' });  if (rateLimitResponse) {
     return rateLimitResponse;
   }
   try {

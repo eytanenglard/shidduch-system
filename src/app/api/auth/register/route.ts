@@ -1,14 +1,13 @@
-// app/api/auth/register/route.ts
+// src/app/api/auth/register/route.ts
 
 import { NextRequest, NextResponse } from "next/server";
-import { UserRole, UserStatus, Prisma, VerificationType, UserSource, Language } from '@prisma/client';
+import { UserRole, UserStatus, Prisma, VerificationType, UserSource, Language, Gender } from '@prisma/client';
 import { hash } from 'bcryptjs';
 import { emailService } from '@/lib/email/emailService';
 import { VerificationService } from '@/lib/services/verificationService'; 
 import { applyRateLimit } from '@/lib/rate-limiter';
-// ========== 🔴 תיקון קריטי: שימוש ב-singleton של Prisma ==========
+// שימוש ב-singleton של Prisma
 import prisma from '@/lib/prisma';
-// ==================================================================
 import { 
   linkUserToReferral, 
   parseReferralCookie, 
@@ -114,7 +113,6 @@ function handleError(error: unknown): { message: string; status: number; errorCo
             return { message: `שגיאת תלות בנתונים (שדה: ${fieldName || 'לא ידוע'}). אנא נסה שנית.`, status: 500, errorCode: error.code };
         }
         case 'P2014': return { message: 'שגיאה בנתונים שהוזנו.', status: 400, errorCode: error.code };
-        // ========== 🔴 הוספה: טיפול בשגיאות חיבור ==========
         case 'P1001': 
         case 'P1002':
         case 'P1003':
@@ -125,13 +123,11 @@ function handleError(error: unknown): { message: string; status: number; errorCo
               status: 503, 
               errorCode: 'DB_CONNECTION_ERROR' 
             };
-        // =====================================================
         default: 
             return { message: `שגיאה בשמירת הנתונים (קוד שגיאת DB: ${error.code}).`, status: 500, errorCode: error.code };
       }
     }
     
-    // ========== 🔴 הוספה: טיפול בשגיאות חיבור כלליות ==========
     if (error instanceof Prisma.PrismaClientInitializationError) {
       return { 
         message: 'שגיאת חיבור לשרת. אנא נסה שנית בעוד מספר שניות או הירשם באמצעות חשבון Google.', 
@@ -139,7 +135,6 @@ function handleError(error: unknown): { message: string; status: number; errorCo
         errorCode: 'DB_INIT_ERROR' 
       };
     }
-    // ==========================================================
     
     if (error instanceof Error) {
        if (error.message === 'משתמש עם כתובת אימייל זו כבר קיים במערכת.') {
@@ -168,7 +163,6 @@ export async function POST(req: NextRequest) {
   const url = new URL(req.url);
   const locale = url.searchParams.get('locale') === 'en' ? 'en' : 'he';
 
-  // קריאת cookie רפרל
   let referralData: { referralId: string; code: string; expiresAt: string } | null = null;
   try {
     const refCookie = req.cookies.get(REFERRAL_COOKIE_NAME)?.value;
@@ -261,6 +255,26 @@ export async function POST(req: NextRequest) {
             termsAndPrivacyAcceptedAt: new Date(),
             engagementEmailsConsent: false,
             promotionalEmailsConsent: false,
+            // ========================================================
+            // 🛑 תיקון קריטי: יצירת פרופיל "שלד" כבר בשלב ההרשמה
+            // זה מונע מיוזרים להיות "רוחות רפאים" אם הם נוטשים
+            // באמצע התהליך.
+            // ========================================================
+            profile: {
+              create: {
+                availabilityStatus: 'AVAILABLE',
+                isProfileVisible: false,
+                
+                // הוספת ערכי חובה זמניים כדי לעבור את הסכמה:
+                // אנו מזינים ערכים אלו כברירת מחדל כדי שהיצירה תצליח.
+                // המשתמש ידרוס אותם בשלב מילוי הפרטים האמיתי.
+                gender: Gender.FEMALE, // ערך זמני - יוחלף ע"י המשתמש
+                birthDate: new Date('2000-01-01T00:00:00.000Z'), // ערך זמני
+                
+                // (אופציונלי) אם הוספת את השדה הזה בסכמה - זה עוזר לזהות נתונים זמניים
+                birthDateIsApproximate: true 
+              }
+            }
           },
       });
       logger.info('User created successfully within transaction', { userId: user.id });
@@ -280,7 +294,6 @@ export async function POST(req: NextRequest) {
 
     logger.info('Database transaction completed successfully', { userId: result.user.id });
 
-    // קישור המשתמש לרפרל
     let referralLinked = false;
     if (referralData) {
       try {
@@ -407,7 +420,7 @@ export async function POST(req: NextRequest) {
       {
         success: false,
         error: message, 
-        errorCode, // ========== 🔴 הוספה: קוד שגיאה לזיהוי בצד הלקוח ==========
+        errorCode, 
         details: responseErrorDetails
       },
       { status }

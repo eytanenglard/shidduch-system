@@ -6,7 +6,9 @@ import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 import { UserRole, MatchSuggestionStatus } from '@prisma/client';
+
 export const dynamic = 'force-dynamic';
+
 const BLOCKING_SUGGESTION_STATUSES: MatchSuggestionStatus[] = [
   'FIRST_PARTY_APPROVED',
   'SECOND_PARTY_APPROVED',
@@ -83,6 +85,60 @@ export async function GET() {
         profile: true,
       },
     });
+
+    // ================== 🚨 START SERVER DEBUG: LINOY 🚨 ==================
+    const targetEmail = 'linoyreznik032@gmail.com';
+    const foundUser = users.find(u => u.email === targetEmail);
+
+    console.log('\n-----------------------------------------------------');
+    console.log(`🔍 [API DEBUG] Checking for user: ${targetEmail}`);
+    
+    if (foundUser) {
+        console.log('✅ SUCCESS: User exists in the API response list.');
+        console.log('   User Data:', JSON.stringify({
+            id: foundUser.id,
+            status: foundUser.status,
+            role: 'CANDIDATE (verified by query)',
+            hasProfile: !!foundUser.profile,
+            gender: foundUser.profile?.gender,
+            birthDate: foundUser.profile?.birthDate
+        }, null, 2));
+    } else {
+        console.log('❌ FAILURE: User is MISSING from the main list.');
+        console.log('   Running direct DB check to investigate why...');
+
+        // בדיקה ישירה מול הדאטה בייס ללא פילטרים
+        const directCheck = await prisma.user.findUnique({
+            where: { email: targetEmail },
+            include: { profile: true }
+        });
+
+        if (!directCheck) {
+            console.log('   💀 FATAL: User does not exist in the Database at all.');
+        } else {
+            console.log('   🧐 DIAGNOSIS - Why was she filtered out?');
+            console.log(`   1. Email: ${directCheck.email}`);
+            
+            // בדיקת סטטוס
+            const statusOk = !['BLOCKED', 'INACTIVE'].includes(directCheck.status);
+            console.log(`   2. Status: ${directCheck.status} [${statusOk ? 'OK' : 'FAIL - Blocked or Inactive'}]`);
+            
+            // בדיקת תפקיד
+            const roleOk = directCheck.role === 'CANDIDATE';
+            console.log(`   3. Role: ${directCheck.role} [${roleOk ? 'OK' : 'FAIL - Must be CANDIDATE'}]`);
+            
+            // בדיקת פרופיל
+            const profileExists = !!directCheck.profile;
+            console.log(`   4. Profile Exists: ${profileExists} [${profileExists ? 'OK' : 'FAIL - Profile is null'}]`);
+
+            if (profileExists) {
+                console.log('      Profile Details:', JSON.stringify(directCheck.profile, null, 2));
+            }
+        }
+    }
+    console.log('-----------------------------------------------------\n');
+    // ================== 🚨 END SERVER DEBUG 🚨 ==================
+
 
     if (users.length === 0) {
       return new NextResponse(
@@ -176,14 +232,14 @@ export async function GET() {
 
     if (profilesNeedingUpdate.length > 0) {
       const profileIdsToUpdate = profilesNeedingUpdate.map(u => u.profile!.id);
-      console.log(`[Proactive AI Update] Found ${profileIdsToUpdate.length} profiles needing AI update. Triggering in background.`);
+      // console.log(`[Proactive AI Update] Found ${profileIdsToUpdate.length} profiles needing AI update. Triggering in background.`);
 
       // First, immediately reset the flags in the DB to prevent duplicate jobs
       prisma.profile.updateMany({
         where: { id: { in: profileIdsToUpdate } },
         data: { needsAiProfileUpdate: false }
       }).then(() => {
-        console.log(`[Proactive AI Update] Flags for ${profileIdsToUpdate.length} profiles reset.`);
+        // console.log(`[Proactive AI Update] Flags for ${profileIdsToUpdate.length} profiles reset.`);
         // Then, run the actual AI updates without awaiting them
         profilesNeedingUpdate.forEach(user => {
           updateUserAiProfile(user.id).catch(err => {
