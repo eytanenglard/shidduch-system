@@ -9,6 +9,7 @@ import React, {
   useEffect,
   useRef,
 } from 'react';
+import { useSession } from 'next-auth/react';
 import Image from 'next/image';
 import BudgetDisplay from './sections/BudgetDisplay';
 
@@ -2269,35 +2270,35 @@ const ProfileHeader: React.FC<{
                 compact ? '-bottom-1 -end-1' : '-bottom-2 -end-2'
               )}
             >
-             <Badge
-  className={cn(
-    'font-bold text-white border-0 transition-all duration-300 hover:scale-110',
-    compact
-      ? 'text-xs px-2 py-1'
-      : 'text-xs sm:text-sm px-2 py-1 sm:px-3 sm:py-2',
-    isMobile
-      ? availability.bgColorSm || availability.bgColor
-      : availability.bgColor,
-    // --- התיקון כאן: הסרנו את 'animate-pulse' הקבוע ---
-    // הוא יפעל רק אם הסטטוס מוגדר כ-pulse (למשל במצב "מסתורי")
-    availability.pulse && 'animate-pulse', 
-    THEME.shadows.warm
-  )}
->
-  <availability.icon
-    className={cn(
-      'flex-shrink-0',
-      compact ? 'w-2 h-2 me-1' : 'w-3 h-3 me-1 sm:me-1.5'
-    )}
-  />
-  <span className={cn('break-words')}>
-    {isMobile && compact
-      ? availability.shortText || availability.text
-      : isMobile
-        ? availability.shortText || availability.text
-        : availability.text}
-  </span>
-</Badge>
+              <Badge
+                className={cn(
+                  'font-bold text-white border-0 transition-all duration-300 hover:scale-110',
+                  compact
+                    ? 'text-xs px-2 py-1'
+                    : 'text-xs sm:text-sm px-2 py-1 sm:px-3 sm:py-2',
+                  isMobile
+                    ? availability.bgColorSm || availability.bgColor
+                    : availability.bgColor,
+                  // --- התיקון כאן: הסרנו את 'animate-pulse' הקבוע ---
+                  // הוא יפעל רק אם הסטטוס מוגדר כ-pulse (למשל במצב "מסתורי")
+                  availability.pulse && 'animate-pulse',
+                  THEME.shadows.warm
+                )}
+              >
+                <availability.icon
+                  className={cn(
+                    'flex-shrink-0',
+                    compact ? 'w-2 h-2 me-1' : 'w-3 h-3 me-1 sm:me-1.5'
+                  )}
+                />
+                <span className={cn('break-words')}>
+                  {isMobile && compact
+                    ? availability.shortText || availability.text
+                    : isMobile
+                      ? availability.shortText || availability.text
+                      : availability.text}
+                </span>
+              </Badge>
             </div>
           </div>
 
@@ -2368,6 +2369,33 @@ const ProfileHeader: React.FC<{
                   >
                     {dict.header.ageLabel.replace('{{age}}', age.toString())}
                   </span>
+                </div>
+              )}
+              {viewMode === 'matchmaker' && profile.user?.phone && (
+                <div
+                  className={cn(
+                    'flex items-center justify-center gap-1 sm:gap-2 flex-wrap',
+                    isMobile ? 'justify-center' : 'lg:justify-start',
+                    'mt-2 sm:mt-3'
+                  )}
+                >
+                  <PhoneIcon
+                    className={cn(
+                      'text-teal-500 flex-shrink-0',
+                      compact ? 'w-3 h-3' : 'w-4 h-4 sm:w-5 sm:h-5'
+                    )}
+                  />
+                  <a
+                    href={`tel:${profile.user.phone}`}
+                    className={cn(
+                      'font-semibold text-teal-600 hover:text-teal-700 hover:underline transition-all duration-200',
+                      compact
+                        ? 'text-xs sm:text-sm'
+                        : 'text-sm sm:text-base md:text-lg'
+                    )}
+                  >
+                    {profile.user.phone}
+                  </a>
                 </div>
               )}
             </div>
@@ -3081,6 +3109,13 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
 }) => {
   const direction = locale === 'he' ? 'rtl' : 'ltr';
 
+  // Auto-detect matchmaker mode based on user role
+  const { data: session } = useSession();
+  const isMatchmaker = session?.user?.role === 'ADMIN';
+
+  // Use matchmaker mode if user is admin (unless viewMode was explicitly set to candidate)
+  const effectiveViewMode = isMatchmaker ? 'matchmaker' : viewMode;
+
   const contentScrollAreaRef = useRef<HTMLDivElement>(null);
 
   const profile = useMemo(
@@ -3387,11 +3422,11 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
       return questionnaire.formattedAnswers[world].filter((a) => {
         const hasContent = isRawValueAnswered(a.rawValue);
         if (!hasContent) return false;
-        if (viewMode === 'matchmaker') return true;
+        if (effectiveViewMode === 'matchmaker') return true;
         return a.isVisible !== false;
       });
     },
-    [questionnaire, viewMode]
+    [questionnaire, effectiveViewMode]
   );
 
   const personalityAnswers = useMemo(
@@ -3526,7 +3561,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
           gradient: THEME.colors.secondary.sky,
           hasContent: hasAnyPreferences || partnerAnswers.length > 0,
         },
-        viewMode === 'matchmaker' && {
+        effectiveViewMode === 'matchmaker' && {
           value: 'professional',
           label: displayDict.tabs.professional.label,
           shortLabel: displayDict.tabs.professional.shortLabel,
@@ -3546,7 +3581,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
       THEME,
       profile,
       hasAnyPreferences,
-      viewMode,
+      effectiveViewMode,
       personalityAnswers,
       valuesAnswers,
       relationshipAnswers,
@@ -3960,15 +3995,15 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                   )}
                 {/* --- END OF CHANGE --- */}
 
-          {/* 5. שאלת הוו (Hook) מעולם "אישיות" */}
+                {/* 5. שאלת הוו (Hook) מעולם "אישיות" */}
                 {personalityContent.hookAnswer && (
-                   <QuestionnaireItem
-                     answer={personalityContent.hookAnswer}
-                     worldName={WORLDS.personality.label}
-                     worldColor={WORLDS.personality.accentColor}
-                     worldGradient={WORLDS.personality.gradient}
-                     direction={direction}
-                   />
+                  <QuestionnaireItem
+                    answer={personalityContent.hookAnswer}
+                    worldName={WORLDS.personality.label}
+                    worldColor={WORLDS.personality.accentColor}
+                    worldGradient={WORLDS.personality.gradient}
+                    direction={direction}
+                  />
                 )}
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 max-w-full min-w-0">
@@ -4086,7 +4121,6 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
               </div>
             </TabsContent>
 
-        
             {/* Journey Tab - REFACTORED */}
             <TabsContent
               value="journey"
@@ -4902,7 +4936,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
           age={age}
           mainImageToDisplay={mainImageToDisplay}
           availability={availability}
-          viewMode={viewMode}
+          viewMode={effectiveViewMode}
           onSuggestClick={() => setIsSuggestDialogOpen(true)}
           isMobile={true}
           selectedPalette={selectedPalette}
@@ -4945,7 +4979,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
             age={age}
             mainImageToDisplay={mainImageToDisplay}
             availability={availability}
-            viewMode={viewMode}
+            viewMode={effectiveViewMode}
             onSuggestClick={() => setIsSuggestDialogOpen(true)}
             isMobile={true}
             selectedPalette={selectedPalette}
@@ -5052,7 +5086,6 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
               )}
             {/* --- END: VERIFY THIS CODE BLOCK --- */}
 
-           
             <SectionCard
               title={displayDict.content.focus.quickSummary}
               subtitle={displayDict.content.focus.importantDetails}
@@ -5307,7 +5340,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
           </div>
         </div>
         <div className="p-4 sm:p-6 flex-grow">
-    <div className="space-y-4" dir={direction}>
+          <div className="space-y-4" dir={direction}>
             <Skeleton className="h-6 sm:h-8 w-full rounded-xl" />
             <Skeleton className="h-24 sm:h-32 w-full rounded-xl" />
             <Skeleton className="h-16 sm:h-24 w-full rounded-xl" />
@@ -5379,7 +5412,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                   age={age}
                   mainImageToDisplay={mainImageToDisplay}
                   availability={availability}
-                  viewMode={viewMode}
+                  viewMode={effectiveViewMode}
                   onSuggestClick={() => setIsSuggestDialogOpen(true)}
                   selectedPalette={selectedPalette}
                   onPaletteChange={setSelectedPalette}

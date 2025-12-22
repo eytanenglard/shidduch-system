@@ -73,6 +73,7 @@ export async function GET() {
         email: true,
         firstName: true,
         lastName: true,
+        phone: true, // ✅ ADDED: Phone number for matchmaker view
         status: true,
         source: true,
         createdAt: true,

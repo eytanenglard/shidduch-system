@@ -23,16 +23,16 @@ import type { QuestionnaireResponse } from '@/types/next-auth';
 import { Gender } from '@prisma/client';
 import { ProfileChecklistDict } from '@/types/dictionary';
 
-// Helper Types & Constants
+// --- FIXED: Updated counts based on actual question files ---
 const QUESTION_COUNTS: Record<
   'VALUES' | 'PERSONALITY' | 'RELATIONSHIP' | 'PARTNER' | 'RELIGION',
   number
 > = {
-  VALUES: 19,
-  PERSONALITY: 19,
-  RELATIONSHIP: 19,
-  PARTNER: 17,
-  RELIGION: 19,
+  PERSONALITY: 25,
+  VALUES: 23,
+  RELATIONSHIP: 22,
+  PARTNER: 19,
+  RELIGION: 20,
 };
 
 const WORLD_NAMES_MAP = {
@@ -84,13 +84,9 @@ const ChecklistItem: React.FC<ChecklistItemProps> = ({
     (worldProgress && worldProgress.length > 0);
   const isExpanded = isActive && canExpand;
 
-  // --- שינוי 1: שם הפונקציה שונה כדי לשקף את השימוש ב-onPointerDown ---
   const handleInteraction = (event: React.PointerEvent) => {
     if (isCompleted) return;
-
-    // מונע מהאירוע להפעיל אירועי עכבר מדומים שעלולים לגרום ללחיצה כפולה
     event.preventDefault();
-
     if (onClick) {
       onClick();
     }
@@ -156,7 +152,6 @@ const ChecklistItem: React.FC<ChecklistItemProps> = ({
       </Link>
     ) : (
       <button
-        // --- שינוי 2: החלפת onClick ב-onPointerDown ---
         onPointerDown={handleInteraction}
         className="h-full w-full text-start"
         disabled={isCompleted}
@@ -180,9 +175,8 @@ const ChecklistItem: React.FC<ChecklistItemProps> = ({
           <Button
             variant="ghost"
             size="icon"
-            // --- שינוי 3: החלפת onClick ב-onPointerDown בכפתור ההרחבה ---
             onPointerDown={(e) => {
-              e.stopPropagation(); // עדיין חשוב מאוד למנוע bubbling
+              e.stopPropagation();
               setActiveItemId((prev) => (prev === id ? null : id));
             }}
             className="absolute bottom-1 end-1 w-8 h-8 rounded-full text-gray-500 hover:bg-gray-200/50"
@@ -259,9 +253,9 @@ interface ProfileChecklistProps {
   onPreviewClick: () => void;
   questionnaireResponse: QuestionnaireResponse | null;
   dict: ProfileChecklistDict;
-  locale: string; // Added: locale prop for directionality
-  onNavigateToTab: (tab: string) => void; // <-- הוסף שורה זו
-  onCompletionChange?: (percentage: number) => void; // Track completion percentage
+  locale: string;
+  onNavigateToTab: (tab: string) => void;
+  onCompletionChange?: (percentage: number) => void;
 }
 
 export const ProfileChecklist: React.FC<ProfileChecklistProps> = ({
@@ -270,129 +264,170 @@ export const ProfileChecklist: React.FC<ProfileChecklistProps> = ({
   hasSeenPreview,
   questionnaireResponse,
   dict,
-  locale, // Added: destructure locale
-  onNavigateToTab, // <-- הוסף את זה
-  onCompletionChange, // Track completion
+  locale,
+  onNavigateToTab,
+  onCompletionChange,
 }) => {
   const [isMinimized, setIsMinimized] = useState(true);
   const [activeItemId, setActiveItemId] = useState<string | null>(null);
   const missingItemsDict = dict.missingItems;
 
-  // Added: Determine direction based on locale
+  // ✅ FIX: Helper function with fallback - prevents undefined when key is missing from dictionary
+  const getLabel = (key: string): string => {
+    return missingItemsDict?.[key as keyof typeof missingItemsDict] || key;
+  };
+
   const direction = locale === 'he' ? 'rtl' : 'ltr';
+
+  // --- Logic to check if user is religious (to enforce fields like Kippah/HeadCovering) ---
+  const isReligious = useMemo(() => {
+    const level = user.profile?.religiousLevel;
+    if (!level) return false;
+    const nonReligiousLevels = [
+      'SECULAR',
+      'TRADITIONAL',
+      'DATI_CHILONI',
+      'MASORTI',
+    ];
+    return !nonReligiousLevels.includes(level);
+  }, [user.profile?.religiousLevel]);
 
   const getMissingItems = useMemo(() => {
     const p = user.profile;
     if (!p) return { personalDetails: [], partnerPreferences: [] };
 
+    // ✅ FIX: Using getLabel() instead of direct dictionary access
     const personalDetails = [
-      !p.profileHeadline && missingItemsDict.profileHeadline,
-      (!p.about || p.about.trim().length < 100) && missingItemsDict.about,
-      // --- START: הוספת בדיקות חדשות ---
+      !p.profileHeadline && getLabel('profileHeadline'),
+      (!p.about || p.about.trim().length < 100) && getLabel('about'),
+
+      // Testimonials
       (!p.testimonials ||
         p.testimonials.filter((t) => t.status === 'APPROVED').length < 1) &&
-        missingItemsDict.testimonials,
-      // --- END: הוספת בדיקות חדשות ---
-      !p.inspiringCoupleStory && missingItemsDict.inspiringCoupleStory,
-      !p.influentialRabbi && missingItemsDict.influentialRabbi,
+        getLabel('testimonials'),
+
+      // Influential Rabbi - Only for religious
+      isReligious && !p.influentialRabbi && getLabel('influentialRabbi'),
+
+      // Medical info
       (p.hasMedicalInfo === null || p.hasMedicalInfo === undefined) &&
-        missingItemsDict.medicalInfoReference,
+        getLabel('medicalInfoReference'),
       p.hasMedicalInfo === true &&
         !p.medicalInfoDetails &&
-        missingItemsDict.medicalInfoDetails,
+        getLabel('medicalInfoDetails'),
       p.hasMedicalInfo === true &&
         !p.medicalInfoDisclosureTiming &&
-        missingItemsDict.medicalInfoDisclosureTiming,
-      !p.birthDate && missingItemsDict.birthDate,
-      !p.height && missingItemsDict.height,
-      !p.city && missingItemsDict.city,
-      !p.origin && missingItemsDict.origin,
-      !p.nativeLanguage && missingItemsDict.nativeLanguage,
-      p.aliyaCountry && !p.aliyaYear && missingItemsDict.aliyaYear,
-      !p.maritalStatus && missingItemsDict.maritalStatus,
+        getLabel('medicalInfoDisclosureTiming'),
+
+      // Basic info
+      !p.birthDate && getLabel('birthDate'),
+      !p.height && getLabel('height'),
+      !p.city && getLabel('city'),
+      !p.origin && getLabel('origin'),
+      !p.nativeLanguage && getLabel('nativeLanguage'),
+
+      // Family status
+      !p.maritalStatus && getLabel('maritalStatus'),
       p.maritalStatus &&
         ['divorced', 'widowed', 'annulled'].includes(p.maritalStatus) &&
         (p.hasChildrenFromPrevious === null ||
           p.hasChildrenFromPrevious === undefined) &&
-        missingItemsDict.childrenFromPreviousReference,
-      !p.parentStatus && missingItemsDict.parentStatus,
-      !p.fatherOccupation && missingItemsDict.fatherOccupation,
-      !p.motherOccupation && missingItemsDict.motherOccupation,
+        getLabel('childrenFromPreviousReference'),
+
+      // Family origin
+      !p.parentStatus && getLabel('parentStatus'),
+      !p.fatherOccupation && getLabel('fatherOccupation'),
+      !p.motherOccupation && getLabel('motherOccupation'),
       (p.siblings === null || p.siblings === undefined) &&
-        missingItemsDict.siblings,
+        getLabel('siblings'),
       (p.position === null || p.position === undefined) &&
-        missingItemsDict.position,
-      !p.religiousLevel && missingItemsDict.religiousLevel,
-      !p.religiousJourney && missingItemsDict.religiousJourney,
+        getLabel('position'),
+
+      // Religion
+      !p.religiousLevel && getLabel('religiousLevel'),
+      !p.religiousJourney && getLabel('religiousJourney'),
       (p.shomerNegiah === null || p.shomerNegiah === undefined) &&
-        missingItemsDict.shomerNegiah,
-      !p.educationLevel && missingItemsDict.educationLevel,
-      !p.education && missingItemsDict.educationDetails,
-      !p.occupation && missingItemsDict.occupation,
-      !p.serviceType && missingItemsDict.serviceType,
-      !p.serviceDetails && missingItemsDict.serviceDetails,
+        getLabel('shomerNegiah'),
+
+      // Education & Work
+      !p.educationLevel && getLabel('educationLevel'),
+      !p.education && getLabel('educationDetails'),
+      !p.occupation && getLabel('occupation'),
+      !p.serviceType && getLabel('serviceType'),
+      !p.serviceDetails && getLabel('serviceDetails'),
+
+      // Character & Hobbies
       (!p.profileCharacterTraits || p.profileCharacterTraits.length === 0) &&
-        missingItemsDict.characterTraits,
+        getLabel('characterTraits'),
       (!p.profileHobbies || p.profileHobbies.length === 0) &&
-        missingItemsDict.hobbies,
+        getLabel('hobbies'),
     ].filter(Boolean);
 
+    // ✅ FIX: Removed contactPreference (doesn't exist in form)
     const partnerPreferences = [
       (!p.matchingNotes || p.matchingNotes.trim().length === 0) &&
-        missingItemsDict.matchingNotes,
-      !p.contactPreference && missingItemsDict.contactPreference,
+        getLabel('matchingNotes'),
       (!p.preferredAgeMin || !p.preferredAgeMax) &&
-        missingItemsDict.preferredAgeRange,
+        getLabel('preferredAgeRange'),
       (!p.preferredHeightMin || !p.preferredHeightMax) &&
-        missingItemsDict.preferredHeightRange,
+        getLabel('preferredHeightRange'),
       (!p.preferredLocations || p.preferredLocations.length === 0) &&
-        missingItemsDict.preferredLocations,
+        getLabel('preferredLocations'),
       (!p.preferredReligiousLevels ||
         p.preferredReligiousLevels.length === 0) &&
-        missingItemsDict.preferredReligiousLevels,
+        getLabel('preferredReligiousLevels'),
       (!p.preferredReligiousJourneys ||
         p.preferredReligiousJourneys.length === 0) &&
-        missingItemsDict.preferredReligiousJourneys,
+        getLabel('preferredReligiousJourneys'),
       (p.preferredShomerNegiah === null ||
         p.preferredShomerNegiah === undefined) &&
-        missingItemsDict.preferredShomerNegiah,
+        getLabel('preferredShomerNegiah'),
       (!p.preferredEducation || p.preferredEducation.length === 0) &&
-        missingItemsDict.preferredEducation,
+        getLabel('preferredEducation'),
       (!p.preferredOccupations || p.preferredOccupations.length === 0) &&
-        missingItemsDict.preferredOccupations,
+        getLabel('preferredOccupations'),
       (!p.preferredServiceTypes || p.preferredServiceTypes.length === 0) &&
-        missingItemsDict.preferredServiceTypes,
+        getLabel('preferredServiceTypes'),
       (!p.preferredMaritalStatuses ||
         p.preferredMaritalStatuses.length === 0) &&
-        missingItemsDict.preferredMaritalStatuses,
+        getLabel('preferredMaritalStatuses'),
       (p.preferredPartnerHasChildren === null ||
         p.preferredPartnerHasChildren === undefined) &&
-        missingItemsDict.preferredPartnerHasChildren,
+        getLabel('preferredPartnerHasChildren'),
       (!p.preferredOrigins || p.preferredOrigins.length === 0) &&
-        missingItemsDict.preferredOrigins,
-      !p.preferredAliyaStatus && missingItemsDict.preferredAliyaStatus,
+        getLabel('preferredOrigins'),
+      !p.preferredAliyaStatus && getLabel('preferredAliyaStatus'),
       (!p.preferredCharacterTraits ||
         p.preferredCharacterTraits.length === 0) &&
-        missingItemsDict.preferredCharacterTraits,
+        getLabel('preferredCharacterTraits'),
       (!p.preferredHobbies || p.preferredHobbies.length === 0) &&
-        missingItemsDict.preferredHobbies,
+        getLabel('preferredHobbies'),
     ].filter(Boolean);
 
+    // Gender specific checks - ONLY IF RELIGIOUS for coverage
     if (p.gender === Gender.FEMALE) {
-      if (!p.headCovering) personalDetails.push(missingItemsDict.headCovering);
-      if (!p.preferredKippahTypes || p.preferredKippahTypes.length === 0)
-        partnerPreferences.push(missingItemsDict.preferredKippahTypes);
+      if (isReligious && !p.headCovering)
+        personalDetails.push(getLabel('headCovering'));
+      if (
+        isReligious &&
+        (!p.preferredKippahTypes || p.preferredKippahTypes.length === 0)
+      )
+        partnerPreferences.push(getLabel('preferredKippahTypes'));
     } else if (p.gender === Gender.MALE) {
-      if (!p.kippahType) personalDetails.push(missingItemsDict.kippahType);
-      if (!p.preferredHeadCoverings || p.preferredHeadCoverings.length === 0)
-        partnerPreferences.push(missingItemsDict.preferredHeadCoverings);
+      if (isReligious && !p.kippahType)
+        personalDetails.push(getLabel('kippahType'));
+      if (
+        isReligious &&
+        (!p.preferredHeadCoverings || p.preferredHeadCoverings.length === 0)
+      )
+        partnerPreferences.push(getLabel('preferredHeadCoverings'));
     }
 
     return {
       personalDetails: personalDetails as string[],
       partnerPreferences: partnerPreferences as string[],
     };
-  }, [user.profile, missingItemsDict]);
+  }, [user.profile, missingItemsDict, isReligious]);
 
   const questionnaireProgress = useMemo(() => {
     const getAnswerCountFromJsonArray = (jsonValue: unknown): number => {
@@ -426,15 +461,13 @@ export const ProfileChecklist: React.FC<ProfileChecklistProps> = ({
 
   const questionnaireCompleted = questionnaireResponse?.completed ?? false;
 
-  // src/app/[locale]/(authenticated)/profile/components/dashboard/ProfileChecklist.tsx
-
   const tasks = [
     {
       id: 'photo',
       isCompleted: (user.images?.length ?? 0) >= 3,
       title: dict.tasks.photos.title,
       description: dict.tasks.photos.description,
-      onClick: () => onNavigateToTab('photos'), // <-- שורה זו עודכנה
+      onClick: () => onNavigateToTab('photos'),
       icon: Camera,
       missingItems:
         (user.images?.length ?? 0) < 3
@@ -451,7 +484,7 @@ export const ProfileChecklist: React.FC<ProfileChecklistProps> = ({
       isCompleted: getMissingItems.personalDetails.length === 0,
       title: dict.tasks.personalDetails.title,
       description: dict.tasks.personalDetails.description,
-      onClick: () => onNavigateToTab('overview'), // <-- שורה זו עודכנה
+      onClick: () => onNavigateToTab('overview'),
       icon: User,
       missingItems: getMissingItems.personalDetails,
     },
@@ -460,7 +493,7 @@ export const ProfileChecklist: React.FC<ProfileChecklistProps> = ({
       isCompleted: getMissingItems.partnerPreferences.length === 0,
       title: dict.tasks.partnerPreferences.title,
       description: dict.tasks.partnerPreferences.description,
-      onClick: () => onNavigateToTab('preferences'), // <-- שורה זו עודכנה
+      onClick: () => onNavigateToTab('preferences'),
       icon: Target,
       missingItems: getMissingItems.partnerPreferences,
     },
@@ -469,7 +502,7 @@ export const ProfileChecklist: React.FC<ProfileChecklistProps> = ({
       isCompleted: questionnaireCompleted,
       title: dict.tasks.questionnaire.title,
       description: dict.tasks.questionnaire.description,
-      link: '/questionnaire', // <-- ללא שינוי, מפנה לעמוד אחר
+      link: '/questionnaire',
       icon: BookOpen,
       worldProgress: questionnaireProgress ?? undefined,
     },
@@ -478,7 +511,7 @@ export const ProfileChecklist: React.FC<ProfileChecklistProps> = ({
       isCompleted: hasSeenPreview,
       title: dict.tasks.review.title,
       description: dict.tasks.review.description,
-      onClick: onPreviewClick, // <-- ללא שינוי, פותח דיאלוג
+      onClick: onPreviewClick,
       icon: Edit3,
       missingItems: !hasSeenPreview ? [dict.tasks.review.missing] : [],
     },
@@ -508,20 +541,22 @@ export const ProfileChecklist: React.FC<ProfileChecklistProps> = ({
     otherTasksStatus.push((user.images?.length ?? 0) >= 3);
 
     if (p) {
-      // --- START OF UPDATED LOGIC FOR PROGRESS BAR ---
-      // Personal Details Checks
+      // --- Personal Details Checks ---
       otherTasksStatus.push(!!p.profileHeadline);
       otherTasksStatus.push(!!(p.about && p.about.trim().length >= 100));
-      // --- START: הוספת בדיקות חדשות לסרגל ההתקדמות ---
+
+      // Testimonials
       otherTasksStatus.push(
         !!(
           p.testimonials &&
           p.testimonials.filter((t) => t.status === 'APPROVED').length >= 1
         )
       );
-      // --- END: הוספת בדיקות חדשות לסרגל ההתקדמות ---
-      otherTasksStatus.push(!!p.inspiringCoupleStory);
-      otherTasksStatus.push(!!p.influentialRabbi);
+
+      // Rabbi - Conditional
+      if (isReligious) otherTasksStatus.push(!!p.influentialRabbi);
+
+      // Medical info
       otherTasksStatus.push(
         p.hasMedicalInfo !== null && p.hasMedicalInfo !== undefined
       );
@@ -529,33 +564,45 @@ export const ProfileChecklist: React.FC<ProfileChecklistProps> = ({
       otherTasksStatus.push(
         !p.hasMedicalInfo || !!p.medicalInfoDisclosureTiming
       );
+
+      // Basic info
       otherTasksStatus.push(!!p.birthDate);
       otherTasksStatus.push(!!p.height);
       otherTasksStatus.push(!!p.city);
       otherTasksStatus.push(!!p.origin);
       otherTasksStatus.push(!!p.nativeLanguage);
-      otherTasksStatus.push(!p.aliyaCountry || !!p.aliyaYear);
+
+      // Family status
       otherTasksStatus.push(!!p.maritalStatus);
-      otherTasksStatus.push(
-        !['divorced', 'widowed', 'annulled'].includes(p.maritalStatus || '') ||
-          (p.hasChildrenFromPrevious !== null &&
-            p.hasChildrenFromPrevious !== undefined)
-      );
+      if (['divorced', 'widowed', 'annulled'].includes(p.maritalStatus || '')) {
+        otherTasksStatus.push(
+          p.hasChildrenFromPrevious !== null &&
+            p.hasChildrenFromPrevious !== undefined
+        );
+      }
+
+      // Family origin
       otherTasksStatus.push(!!p.parentStatus);
       otherTasksStatus.push(!!p.fatherOccupation);
       otherTasksStatus.push(!!p.motherOccupation);
       otherTasksStatus.push(p.siblings !== null && p.siblings !== undefined);
       otherTasksStatus.push(p.position !== null && p.position !== undefined);
+
+      // Religion
       otherTasksStatus.push(!!p.religiousLevel);
       otherTasksStatus.push(!!p.religiousJourney);
       otherTasksStatus.push(
         p.shomerNegiah !== null && p.shomerNegiah !== undefined
       );
+
+      // Education & Work
       otherTasksStatus.push(!!p.educationLevel);
       otherTasksStatus.push(!!p.education);
       otherTasksStatus.push(!!p.occupation);
       otherTasksStatus.push(!!p.serviceType);
       otherTasksStatus.push(!!p.serviceDetails);
+
+      // Character & Hobbies
       otherTasksStatus.push(
         !!(p.profileCharacterTraits && p.profileCharacterTraits.length > 0)
       );
@@ -563,11 +610,11 @@ export const ProfileChecklist: React.FC<ProfileChecklistProps> = ({
         !!(p.profileHobbies && p.profileHobbies.length > 0)
       );
 
-      // Partner Preferences Checks
+      // --- Partner Preferences Checks ---
+      // ✅ FIX: Removed contactPreference (doesn't exist in form)
       otherTasksStatus.push(
         !!(p.matchingNotes && p.matchingNotes.trim().length > 0)
       );
-      otherTasksStatus.push(!!p.contactPreference);
       otherTasksStatus.push(!!(p.preferredAgeMin && p.preferredAgeMax));
       otherTasksStatus.push(!!(p.preferredHeightMin && p.preferredHeightMax));
       otherTasksStatus.push(
@@ -613,32 +660,30 @@ export const ProfileChecklist: React.FC<ProfileChecklistProps> = ({
         !!(p.preferredHobbies && p.preferredHobbies.length > 0)
       );
 
-      // Gender-specific checks
+      // --- Gender-specific checks (CONDITIONAL) ---
       if (p.gender === Gender.FEMALE) {
-        otherTasksStatus.push(!!p.headCovering); // personal
-        otherTasksStatus.push(
-          !!(p.preferredKippahTypes && p.preferredKippahTypes.length > 0)
-        ); // preference
+        if (isReligious) otherTasksStatus.push(!!p.headCovering);
+        if (isReligious)
+          otherTasksStatus.push(
+            !!(p.preferredKippahTypes && p.preferredKippahTypes.length > 0)
+          );
       } else if (p.gender === Gender.MALE) {
-        otherTasksStatus.push(!!p.kippahType); // personal
-        otherTasksStatus.push(
-          !!(p.preferredHeadCoverings && p.preferredHeadCoverings.length > 0)
-        ); // preference
+        if (isReligious) otherTasksStatus.push(!!p.kippahType);
+        if (isReligious)
+          otherTasksStatus.push(
+            !!(p.preferredHeadCoverings && p.preferredHeadCoverings.length > 0)
+          );
       }
-      // --- END OF UPDATED LOGIC FOR PROGRESS BAR ---
     } else {
-      // If no profile, add placeholders for all items
-      const totalProfileFields = 56; // Calculated number of fields including gender-specific and new ones
-      otherTasksStatus.push(...Array(totalProfileFields).fill(false));
+      // If no profile, add placeholders
+      otherTasksStatus.push(...Array(50).fill(false));
     }
 
     // Task 5: Review
     otherTasksStatus.push(hasSeenPreview);
 
     const totalOtherTasks = otherTasksStatus.length;
-    const completedOtherTasks = otherTasksStatus.filter(
-      (isCompleted) => isCompleted
-    ).length;
+    const completedOtherTasks = otherTasksStatus.filter(Boolean).length;
 
     const otherTasksContribution =
       totalOtherTasks > 0
@@ -646,11 +691,10 @@ export const ProfileChecklist: React.FC<ProfileChecklistProps> = ({
         : 0;
 
     return Math.round(questionnaireContribution + otherTasksContribution);
-  }, [user, questionnaireProgress, hasSeenPreview]);
+  }, [user, questionnaireProgress, hasSeenPreview, isReligious]);
 
   const isAllComplete = completionPercentage >= 100;
 
-  // Notify parent component of completion percentage changes
   React.useEffect(() => {
     if (onCompletionChange) {
       onCompletionChange(completionPercentage);
@@ -666,13 +710,11 @@ export const ProfileChecklist: React.FC<ProfileChecklistProps> = ({
         exit={{ opacity: 0, height: 0, transition: { duration: 0.4 } }}
         transition={{ duration: 0.5, ease: 'easeOut' }}
         className="mb-8 rounded-3xl shadow-xl border border-white/50 bg-gradient-to-br from-white/80 via-white/70 to-teal-50/30 backdrop-blur-md overflow-hidden"
-        dir={direction} // Added: set direction for the whole component
+        dir={direction}
       >
         <div className="p-4 sm:p-6">
           <div className="md:flex md:items-center md:justify-between">
             <div className="flex-1 text-center md:text-start">
-              {' '}
-              {/* Updated: from md:text-right to md:text-start */}
               <h2 className="text-xl font-bold text-slate-800 flex items-center justify-center md:justify-start gap-2">
                 {isAllComplete && (
                   <Sparkles className="w-6 h-6 text-amber-500" />
@@ -734,7 +776,6 @@ export const ProfileChecklist: React.FC<ProfileChecklistProps> = ({
                     id="profile-completion-label"
                     className="font-medium text-gray-700"
                   >
-                    {/* התיקון: החלפת המחזיק-מקום בערך המספרי */}
                     {dict.completionLabel.replace(
                       '{{percentage}}',
                       completionPercentage.toString()
@@ -777,7 +818,6 @@ export const ProfileChecklist: React.FC<ProfileChecklistProps> = ({
                 }}
                 exit={{ height: 0, opacity: 0, transition: { duration: 0.3 } }}
                 className="overflow-hidden"
-                // The onMouseLeave event handler has been removed from here.
               >
                 <ul className="mt-6 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 sm:gap-4">
                   {tasks.map((task) => (
