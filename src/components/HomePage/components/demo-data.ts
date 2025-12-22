@@ -101,6 +101,8 @@ export const generateDemoData = async (locale: Locale) => {
       isNeshamaTechSummaryVisible: true,
        cvUrl: null,
       cvSummary: null,
+         aiProfileSummary: null, // <--- הוסף שורה זו
+      conversationSummary: null, // <--- הוסף שורה זו
       testimonials: [
         {
           id: 'testimonial-noa-1',
@@ -166,6 +168,8 @@ export const generateDemoData = async (locale: Locale) => {
       isNeshamaTechSummaryVisible: true,
        cvUrl: null,
       cvSummary: null,
+         aiProfileSummary: null, // <--- הוסף שורה זו
+      conversationSummary: null, // <--- הוסף שורה זו
       testimonials: [
         {
           id: 'testimonial-daniel-1',
