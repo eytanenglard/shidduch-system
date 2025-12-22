@@ -83,7 +83,7 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({
     files: FileList | File[]
   ): { validFiles: File[]; errors: string[] } => {
     const validTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp'];
-    const maxSize = 5 * 1024 * 1024; // 5MB
+    const maxSize = 10 * 1024 * 1024; // 5MB
     const validFiles: File[] = [];
     const errors: string[] = [];
     Array.from(files).forEach((file) => {

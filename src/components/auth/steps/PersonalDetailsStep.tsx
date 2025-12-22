@@ -343,7 +343,7 @@ export default function PersonalDetailsStep({
     }
 
     const validTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp'];
-    const maxSize = 5 * 1024 * 1024; // 5MB
+    const maxSize = 10 * 1024 * 1024; // 5MB
     const newPhotos: UploadedPhoto[] = [];
 
     Array.from(files)
@@ -354,7 +354,7 @@ export default function PersonalDetailsStep({
           return;
         }
         if (file.size > maxSize) {
-          toast.error(`${file.name}: הקובץ גדול מדי (מקסימום 5MB)`);
+          toast.error(`${file.name}: הקובץ גדול מדי (מקסימום 10MB)`);
           return;
         }
         const previewUrl = URL.createObjectURL(file);
