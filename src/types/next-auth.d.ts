@@ -80,7 +80,7 @@ export interface UserProfile extends Omit<PrismaProfile, 'gender' | 'birthDate' 
    isAboutVisible?: boolean | null;
   isFriendsSectionVisible?: boolean | null;
     testimonials?: FriendTestimonial[];
-
+ conversationSummary?: string | null;
   // Array fields - ensure they default to empty arrays if not present
   additionalLanguages: string[];
   profileCharacterTraits: string[];
@@ -147,6 +147,7 @@ preferredReligiousJourneys: ReligiousJourney[];
     firstName?: string;
     lastName?: string;
     email?: string;
+    phone?: string | null;
   };
 }
 

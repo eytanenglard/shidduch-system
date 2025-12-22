@@ -20,6 +20,7 @@ export type MobileView = 'split' | 'single' | 'double';
 export interface Candidate {
   id: string;
   email: string;
+  phone?: string | null; 
   firstName: string;
   createdAt: Date;
   lastName: string;

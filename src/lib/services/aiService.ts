@@ -55,33 +55,26 @@ export interface AiAnalysisResult {
   suggestedConversationStarters: string[];
 }
 
-// בקובץ: src/lib/services/aiService.ts
-
 /**
- * מגדיר את מבנה ה-JSON של ניתוח CV עמוק, בהשראת עולמות השאלון.
+ * מגדיר את מבנה ה-JSON של ניתוח CV עמוק.
  */
 export interface AiCvAnalysisResult {
-  executiveSummary: string; // סיכום מנהלים קצר: מי האדם מאחורי ה-CV ב-2-3 משפטים.
-  personalityInsights: string[]; // תובנות על אישיות (שאפתנות, יציבות, יצירתיות וכו').
-  valuesInsights: string[]; // תובנות על ערכים (נתינה, צמיחה, ביטחון וכו').
+  executiveSummary: string;
+  personalityInsights: string[];
+  valuesInsights: string[];
   careerTrajectory: {
-    narrative: string; // סיפור המסע המקצועי: איך התפתח/ה ולאן הוא/היא שואפ/ת.
+    narrative: string;
     milestones: Array<{
       title: string;
       period: string;
-      keyLearnings: string; // מה ניתן ללמוד על האדם משלב זה.
+      keyLearnings: string;
     }>;
   };
-  redFlags: string[]; // דגלים אדומים פוטנציאליים (חוסר יציבות, פערים לא מוסברים וכו').
+  redFlags: string[];
 }
 
-// בקובץ: src/lib/services/aiService.ts
-
 /**
- * מנתח קורות חיים לעומק ומפיק תובנות שדכניות בהשראת "עולמות" השאלון של NeshamaTech.
- * @param cvText הטקסט המלא של קורות החיים.
- * @param locale שפת הפלט הרצויה.
- * @returns Promise שמחזיר אובייקט ניתוח מובנה, או null במקרה של כישלון.
+ * מנתח קורות חיים לעומק ומפיק תובנות שדכניות.
  */
 export async function analyzeCvInDepth(
   cvText: string,
@@ -114,23 +107,23 @@ export async function analyzeCvInDepth(
     {
       "executiveSummary": "A 2-3 sentence 'bottom line' summary. Who is this person professionally and what does their career path reveal about their core being?",
       "personalityInsights": [
-        "Based on their roles, transitions, and achievements, list 3-4 inferred personality traits. E.g., 'Shows high ambition and goal-orientation through rapid promotions', 'Demonstrates stability and loyalty with long tenure at one company', 'Indicates creativity by shifting from a technical role to a product role'."
+        "Based on their roles, transitions, and achievements, list 3-4 inferred personality traits."
       ],
       "valuesInsights": [
-        "Based on their choices (e.g., working in non-profit vs. finance, volunteering), list 2-3 inferred core values. E.g., 'Choice of teaching career suggests a value of contribution and giving back', 'Focus on startups indicates a high value on innovation and risk-taking', 'Volunteering section highlights a value of community involvement'."
+        "Based on their choices (e.g., working in non-profit vs. finance, volunteering), list 2-3 inferred core values."
       ],
       "careerTrajectory": {
-        "narrative": "Tell the story of their career. Is it a linear path of specialization? A journey of exploration? What is the underlying theme of their professional development?",
+        "narrative": "Tell the story of their career. Is it a linear path of specialization? A journey of exploration?",
         "milestones": [
           {
             "title": "Role/Degree and Company/University",
-            "period": "Timeframe (e.g., '2018-2022')",
-            "keyLearnings": "What does this specific milestone teach us about the person? E.g., 'This demanding role at a top firm shows resilience and high standards', 'Studying philosophy alongside engineering points to intellectual curiosity'."
+            "period": "Timeframe",
+            "keyLearnings": "What does this specific milestone teach us about the person?"
           }
         ]
       },
       "redFlags": [
-        "List any potential points for the matchmaker to gently clarify. E.g., 'Unexplained gap between 2019-2020', 'Frequent job changes might suggest restlessness, worth exploring', 'Lack of clear progression could indicate a lack of ambition, or satisfaction with their current level'."
+        "List any potential points for the matchmaker to gently clarify."
       ]
     }
 
@@ -150,7 +143,6 @@ export async function analyzeCvInDepth(
 
     const cleanJsonString = jsonString.replace(/^```json\s*|```\s*$/g, '').trim();
     const parsedJson = JSON.parse(cleanJsonString) as AiCvAnalysisResult;
-    console.log(`--- [AI CV Deep Analysis] Successfully parsed deep CV analysis for locale: ${locale}. ---`);
     return parsedJson;
 
   } catch (error) {
@@ -158,15 +150,10 @@ export async function analyzeCvInDepth(
     return null;
   }
 }
+
 /**
  * מנתח את ההתאמה בין שני פרופילים נרטיביים עבור שדכן.
- * @param profileAText הפרופיל הנרטיבי של המשתמש הראשון.
- * @param profileBText הפרופיל הנרטיבי של המשתמש השני.
- * @param language שפת הפלט הרצויה.
- * @returns Promise שמחזיר אובייקט ניתוח מובנה, או null במקרה של כישלון.
  */
-
-
 export async function analyzePairCompatibility(
   profileAText: string,
   profileBText: string,
@@ -214,10 +201,6 @@ export async function analyzePairCompatibility(
       return null;
     }
 
-    console.log(
-      `--- Successfully received compatibility analysis from Gemini API in ${language} ---`
-    );
-    // כאן אין צורך בניקוי מיוחד כי אנחנו מצפים ל-JSON נקי, אבל אם יתחילו בעיות נוסיף גם פה
     return JSON.parse(jsonString) as AiAnalysisResult;
   } catch (error) {
     console.error(
@@ -229,7 +212,7 @@ export async function analyzePairCompatibility(
 }
 
 /**
- * מגדיר את מבנה ה-JSON של ניתוח פרופיל עבור המשתמש עצמו.
+ * מגדיר את מבנה ה-JSON של ניתוח פרופיל עבור המשתמש עצמו (הגרסה המקורית והמלאה).
  */
 export interface AiProfileAnalysisResult {
   personalitySummary: string;
@@ -246,13 +229,11 @@ export interface AiProfileAnalysisResult {
 }
 
 /**
- * מנתח פרופיל של משתמש ומספק משוב וטיפים לשיפור.
- * @param userNarrativeProfile הטקסט הנרטיבי המקיף של פרופיל המשתמש.
- * @returns Promise שמחזיר אובייקט ניתוח מובנה, או null במקרה של כישלון.
+ * מנתח פרופיל של משתמש ומספק משוב וטיפים לשיפור (הפונקציה המקורית).
  */
 export async function getProfileAnalysis(
   userNarrativeProfile: string,
-   language: 'he' | 'en' = 'he' 
+  language: 'he' | 'en' = 'he'
 ): Promise<AiProfileAnalysisResult | null> {
   console.log(
     '--- [AI Profile Advisor] Starting profile analysis with Gemini API ---'
@@ -272,14 +253,15 @@ export async function getProfileAnalysis(
       temperature: 0.4,
     },
   });
- const targetLanguage = language === 'he' ? 'Hebrew' : 'English'; 
+  
+  const targetLanguage = language === 'he' ? 'Hebrew' : 'English'; 
 
   const prompt = `
     You are an expert, warm, and encouraging dating profile coach for a religious Jewish audience. Your goal is to help the user improve their profile to attract the best possible matches. Based on the following comprehensive user profile, provide a structured JSON analysis.
-    The entire output MUST be a valid JSON object in Hebrew.
+    The entire output MUST be a valid JSON object in ${targetLanguage}.
     IMPORTANT: Do NOT wrap the JSON in markdown backticks (e.g., \`\`\`json). Output ONLY the raw JSON object.
     The JSON structure must be: { "personalitySummary": "string", "lookingForSummary": "string", "completenessReport": [{ "area": "string", "status": "COMPLETE" | "PARTIAL" | "MISSING", "feedback": "string" }], "actionableTips": [{ "area": "string", "tip": "string" }] }
-    The entire output MUST be a valid JSON object in ${targetLanguage}.
+    
     --- User Profile Narrative ---
     ${userNarrativeProfile}
     --- End of User Profile Narrative ---
@@ -297,9 +279,7 @@ export async function getProfileAnalysis(
       return null;
     }
 
-    // ======================= תהליך הניקוי והפענוח הבטוח =======================
-    
-    // שלב 1: בדוק אם התשובה עטופה ב-markdown והסר אותו אם כן.
+    // ניקוי Markdown במידה וקיים
     if (jsonString.startsWith('```json')) {
       jsonString = jsonString.slice(7, -3).trim();
     } else if (jsonString.startsWith('```')) {
@@ -307,29 +287,20 @@ export async function getProfileAnalysis(
     }
 
     try {
-        // שלב 2: נסה לפענח את ה-JSON הנקי.
         const parsedJson = JSON.parse(jsonString) as AiProfileAnalysisResult;
         console.log(
           '--- [AI Profile Advisor] Successfully received and parsed analysis from Gemini API. ---'
         );
         return parsedJson;
     } catch (parseError) {
-        // שלב 3: אם הפענוח נכשל, הדפס שגיאה מפורטת ואת התשובה הגולמית לטובת דיבאגינג.
         console.error(
           '[AI Profile Advisor] Failed to parse JSON response from Gemini.',
           parseError
         );
-        console.error('--- RAW AI RESPONSE THAT FAILED PARSING ---');
-        console.error(jsonString);
-        console.error('--- END OF RAW AI RESPONSE ---');
-        
-        // זרוק שגיאה חדשה כדי שהפונקציה שקראה לנו תדע שהתהליך נכשל.
         throw new Error('Invalid JSON response from AI service.');
     }
-    // ======================= סוף תהליך הניקוי =======================
 
   } catch (error) {
-    // תפיסת שגיאות תקשורת עם ה-API או את השגיאה שזרקנו מה-catch הפנימי.
     console.error(
       '[AI Profile Advisor] Error during profile analysis process:',
       error
@@ -380,7 +351,7 @@ export async function analyzeSuggestionForUser(
     You are a 'Matchmaking AI Advisor'. Your tone is positive, warm, and encouraging. Your goal is to help a user understand the potential of a match suggestion they received. Analyze the compatibility between 'My Profile' and the 'Suggested Profile'.
     Your entire output MUST be a valid JSON object in Hebrew.
     IMPORTANT: Do NOT wrap the JSON in markdown backticks (e.g., \`\`\`json). Output ONLY the raw JSON object.
-    The JSON structure must be: { "overallScore": number, "matchTitle": "string", "matchSummary": "string", "compatibilityPoints": [{ "area": "string", "explanation": "string (user-friendly explanation)" }], "pointsToConsider": [{ "area": "string", "explanation": "string (rephrased positively, e.g., 'הוא אוהב טיולים ואת מעדיפה בית. זו הזדמנות נהדרת לחוות דברים חדשים יחד!')" }], "suggestedConversationStarters": ["string"] }
+    The JSON structure must be: { "overallScore": number, "matchTitle": "string", "matchSummary": "string", "compatibilityPoints": [{ "area": "string", "explanation": "string (user-friendly explanation)" }], "pointsToConsider": [{ "area": "string", "explanation": "string (rephrased positively)" }], "suggestedConversationStarters": ["string"] }
     
     --- My Profile ---
     ${currentUserProfileText}
@@ -401,9 +372,6 @@ export async function analyzeSuggestionForUser(
       return null;
     }
 
-    console.log(
-      '--- [AI Suggestion Advisor] Successfully received analysis from Gemini API. ---'
-    );
     return JSON.parse(jsonString) as AiSuggestionAnalysisResult;
   } catch (error) {
     console.error(
@@ -438,9 +406,6 @@ export async function generateSuggestionRationale(
     Based on the two profiles provided, identify 2-3 key points of compatibility (values, life goals, personality traits, background) and weave them into a concise and positive paragraph.
     The output should be ONLY the justification text in Hebrew, without any additional titles, formatting, or explanations. Start directly with the text.
 
-    **Example Output Structure:**
-    "אני חושב/ת שיש כאן פוטנציאל להתאמה מצוינת מכמה סיבות. ראשית, שניכם ציינתם ש... וזה מראה על... שנית, הרקע ה... שלכם יכול להוות בסיס משותף חזק. בנוסף, נראה ששניכם חולקים... וזה יכול לתרום רבות לבניית קשר..."
-
     --- Profile 1 ---
     ${profile1Text}
 
@@ -460,9 +425,6 @@ export async function generateSuggestionRationale(
       return null;
     }
 
-    console.log(
-      '--- [AI Rationale Writer] Successfully generated rationale. ---'
-    );
     return text.trim();
   } catch (error) {
     console.error(
@@ -511,9 +473,9 @@ export async function generateFullSuggestionRationale(
     You are a professional and sensitive matchmaker in the religious Jewish community. Your task is to write three distinct texts for a match suggestion based on the two provided user profiles.
     The entire output MUST be a valid JSON object in Hebrew, with the following exact structure:
     {
-      "generalRationale": "A general, objective summary of the compatibility points. This is for the matchmaker's internal use.",
-      "rationaleForParty1": "A personal and warm message for Party 1, explaining why Party 2 is a great match for them. Address them directly and highlight how Party 2's qualities align with Party 1's stated needs and desires. Use encouraging and persuasive language.",
-      "rationaleForParty2": "A personal and warm message for Party 2, explaining why Party 1 is a great match for them. Do the same as above, but from Party 2's perspective."
+      "generalRationale": "A general, objective summary of the compatibility points.",
+      "rationaleForParty1": "A personal and warm message for Party 1, explaining why Party 2 is a great match for them.",
+      "rationaleForParty2": "A personal and warm message for Party 2, explaining why Party 1 is a great match for them."
     }
     IMPORTANT: Do NOT wrap the JSON in markdown backticks (e.g., \`\`\`json). Output ONLY the raw JSON object.
 
@@ -536,9 +498,6 @@ export async function generateFullSuggestionRationale(
       return null;
     }
 
-    console.log(
-      '--- [AI Rationale Writer] Successfully generated full rationale package. ---'
-    );
     return JSON.parse(jsonString) as FullRationaleResult;
   } catch (error) {
     console.error(
@@ -548,26 +507,27 @@ export async function generateFullSuggestionRationale(
     return null;
   }
 }
+
 export interface AiNeshamaTechSummary {
   summaryText: string;
 }
 
 /**
- * יוצר סיכום היכרות מקצועי וחם עבור פרופיל מועמד.
- * @param userNarrativeProfile הטקסט הנרטיבי המקיף של פרופיל המשתמש.
- * @returns Promise שמחזיר אובייקט עם טקסט הסיכום, או null במקרה של כישלון.
+ * --- עודכן: דוח מודיעין לשדכן ---
+ * יוצר "דוח מודיעין אופרטיבי לשדכן" (Matchmaker Intelligence Report).
+ * פונקציה זו משתמשת בפרומפט החדש לניתוח עומק של השאלון והפרופיל.
  */
 export async function generateNeshamaTechSummary(
   userNarrativeProfile: string,
   locale: 'he' | 'en' = 'he'
 ): Promise<AiNeshamaTechSummary | null> {
   console.log(
-    `--- [AI NeshamaTech Summary] Starting DYNAMIC summary generation for locale: ${locale} ---`
+    `--- [AI Matchmaker Intelligence Report] Starting DYNAMIC report generation for locale: ${locale} ---`
   );
 
   if (!userNarrativeProfile) {
     console.error(
-      '[AI NeshamaTech Summary] Called with an empty user narrative profile.'
+      '[AI Matchmaker Intelligence Report] Called with an empty user narrative profile.'
     );
     return null;
   }
@@ -576,70 +536,78 @@ export async function generateNeshamaTechSummary(
     model: 'gemini-2.5-flash',
     generationConfig: {
       responseMimeType: 'application/json',
-      temperature: 0.6,
+      temperature: 0.5, // Balanced for analytical tasks
     },
   });
 
-  // --- הגדרת פרומפטים נפרדים לכל שפה ---
-
-  const hebrewPromptInstructions = `
-    את/ה שדכן/ית מומחה/ית וקופירייטר/ית ב-NeshamaTech, שירות שידוכים המשלב טכנולוגיה מתקדמת עם ליווי אנושי וחם. את/ה לא רק כותב/ת, את/ה מספר/ת סיפורים שרואה את הנשמה (Neshama) שמאחורי הנתונים. המשימה שלך היא לזקק את פרופיל הנתונים המקיף של המועמד/ת ל"תקציר היכרות" ('דבר המערכת') – טקסט פורטרט בן 3-4 פסקאות, שהוא אישי, מעורר כבוד, ומצית סקרנות אמיתית אצל התאמה פוטנציאלית. הטון הוא שיא של מקצועיות, חום, ענווה ואותנטיות.
-
-    **עקרונות מנחים לסינתזה עמוקה (החלק החשוב ביותר):**
-    המטרה שלך היא לא לדווח על עובדות, אלא לחבר אותן לנרטיב משמעותי. חפש/י את החוט המקשר בין ה"עולמות" השונים בפרופיל:
-    - **חיבור אישיות-ערכים:** איך תכונות האופי של המועמד/ת (עולם האישיות) באות לידי ביטוי בסדרי העדיפויות שהגדיר/ה (עולם הערכים)?
-    - **חיבור סיפור-חזון:** כיצד מסלול החיים (השכלה, קריירה, מסע דתי) עיצב את מה שהם מחפשים בזוגיות ובפרטנר (עולמות הזוגיות והפרטנר)?
-    - **איתור "המתח היצירתי":** חפש/י שילובים ייחודיים ומעניינים. למשל: "איש הייטק עם נשמה של אמן", "אשת אקדמיה שמוצאת את הרוחניות שלה בטבע", "קצין קרבי שמנגן ניגונים חסידיים". אלו היהלומים שיוצרים סיפור בלתי נשכח.
-- **שילוב ניתוח CV:** אם קיים בפרופיל חלק של "ניתוח קורות חיים", השתמש/י בו כעוגן מרכזי לבניית הפסקה על "מסלול החיים". סיכום ה-CV מספק את השלד המקצועי והעובדתי של הסיפור.
-    **מבנה התקציר (נוסחת NeshamaTech):**
-
-    1.  **הפתיחה (הפורטרט):** פתח/י במשפט אחד, חזק ומדויק, הלוכד קונפליקט פנימי מעניין או שילוב תכונות ייחודי של המועמד/ת. זו הכותרת הבלתי נראית של הפרופיל. (ראה דוגמת "דניאל": קוד לוגי מול סוגיה תלמודית).
-    2.  **מסלול החיים (הנרטיב):** בפסקה זו, ארג/י את נקודות המפתח בחייו/ה (לימודים, צבא, קריירה, רקע דתי) לסיפור קוהרנטי של צמיחה ותכלית. הראה/י כיצד אירוע אחד הוביל לאחר, ואיך כל שלב עיצב את מי שהם היום. אל תציין/י עובדות, הסבר/י את משמעותן.
-    3.  **החזון לזוגיות (השאיפה):** תאר/י באופן חי וברור את הבית והשותפות שהם שואפים לבנות, בהתבסס על תשובותיהם בעולמות הזוגיות והפרטנר. השתמש/י בשפה של ערכים, חזון וצמיחה משותפת, לא ברשימת מכולת של דרישות.
-    4.  **חותמת המערכת (הערת NeshamaTech):** סיים/י במשפט מקצועי אחד, מנקודת המבט שלנו כשדכנים, המסכם תכונה מרכזית או שילוב נדיר שהופך את המועמד/ת למיוחד/ת בעינינו. (ראה דוגמת "דניאל": "אנו מתרשמים מהשילוב הנדיר של רצינות, עומק תורני ויכולת ביצוע...").
-
-    **כללי ברזל (עשה ואל תעשה):**
-    - **עשה:** השתמש/י בשפה חיובית, עשירה ומכבדת.
-    - **עשה:** חבר/י את הנקודות, סנתז/י ולא רק סכם/י.
-    - **אל תעשה:** אל תשתמש/י בקלישאות ("בחור/ה איכותי/ת", "טוב/ת לב"). הראה/י את האיכות, אל תצהיר/י עליה.
-    - **אל תעשה:** אל תפרט/י רשימות של תכונות או תחביבים. שלב/י אותם בתוך הסיפור.
-  `;
-
+  // הפרומפט החדש ("דוח מודיעין")
   const englishPromptInstructions = `
-    You are an expert matchmaker and copywriter at NeshamaTech, a service that blends advanced technology with warm, human guidance. You are not just a writer; you are a storyteller who sees the soul (Neshama) behind the data. Your mission is to distill a candidate's comprehensive profile into an "Introduction Summary" – a 3-4 paragraph portrait that is personal, respectful, and sparks genuine curiosity in a potential match. The tone is the pinnacle of professionalism, warmth, humility, and authenticity.
+    Role: You are the Senior Analyst and Lead Matchmaker at NeshamaTech.
+    Objective: Analyze the candidate's raw data (Technical Profile + Deep Questionnaire) and produce a sharp "Operational Intelligence Report" for the assigned matchmaker.
+    
+    Target Audience: Professional matchmakers only. This text will NOT be shown to the candidate.
+    Tone: Clinical, diagnostic, psychological, "bottom-line". No marketing fluff, no sugar-coating.
 
-    **Guiding Principles for Deep Synthesis (The Most Important Part):**
-    Your goal is not to report facts, but to connect them into a meaningful narrative. Look for the thread that connects the different "Worlds" of the profile:
-    - **Personality-Values Connection:** How do the candidate's character traits (Personality World) manifest in their stated priorities (Values World)?
-    - **Story-Vision Connection:** How has their life path (education, career, spiritual journey) shaped what they seek in a relationship and a partner (Relationship & Partner Worlds)?
-    - **Find the "Creative Tension":** Look for unique and interesting combinations. For example: "A high-tech professional with an artist's soul," "An academic who finds her spirituality in nature," "A combat officer who plays soulful Hasidic melodies." These are the gems that create an unforgettable story.
-- **Integrating CV Analysis:** If the profile includes a "CV Analysis" section, use it as a central anchor for constructing the "Life Path" paragraph. The CV summary provides the professional and factual backbone of their story.
-    **The Summary Structure (The NeshamaTech Formula):**
+    --- Critical Instruction: Data Depth Assessment ---
+    1. **Full Scenario (Questionnaire available):** Perform a deep cross-analysis using "Budget Allocations" (Values/Personality), Dilemmas, and Open-ended answers.
+    2. **Partial Scenario (Only "About Me" & Tech specs):** 
+       - Do NOT hallucinate missing data.
+       - Infer personality from the **writing style** in the "About Me" section (laconic vs. detailed, emotional vs. logical, formal vs. slang).
+       - Explicitly state in the report that critical questionnaire data is missing.
 
-    1.  **The Overture (The Portrait):** Open with a single, powerful, and precise sentence that captures an interesting internal conflict or a unique combination of traits. This is the profile's invisible headline. (Reference the "Daniel" example: logical code vs. Talmudic discourse).
-    2.  **The Life Path (The Narrative):** In this paragraph, weave the key points of their life (studies, army service, career, religious background) into a coherent story of growth and purpose. Show how one event led to the next, and how each stage shaped who they are today. Don't state facts; explain their significance.
-    3.  **The Vision for Partnership (The Aspiration):** Vividly describe the home and partnership they aspire to build, based on their answers in the Relationship and Partner worlds. Use the language of values, vision, and mutual growth, not a grocery list of requirements.
-    4.  **The System's Stamp (NeshamaTech's Note):** Conclude with a single professional sentence, from our perspective as matchmakers, summarizing a key trait or a rare combination that makes the candidate special in our eyes. (Reference the "Daniel" example: "we are impressed by the rare combination of seriousness, Torah depth, and executive ability...").
+    --- Report Structure (6 Mandatory Paragraphs + Action Item) ---
 
-    **Golden Rules (Dos and Don'ts):**
-    - **Do:** Use positive, rich, and respectful language.
-    - **Do:** Connect the dots. Synthesize, don't just summarize.
-    - **Don't:** Use clichés ("a quality person," "kind-hearted"). Show the quality, don't just state it.
-    - **Don't:** List traits or hobbies. Weave them into the story.
+    Paragraph 1: Identity & Family Roots (The Roots)
+    Combine the dry stats with the family background to provide a socio-economic and sectorial context.
+    - **Stats:** Age, Height, Marital Status (+Children), City, Origin/Ethnicity.
+    - **Family:** Parents' occupations (indicates educational/economic background), Parents' marital status, Sibling position (E.g., Eldest/Youngest).
+    - *Example:* "26, Single, Jerusalemite (Ashkenazi). Youngest son of an academic family (Father Doctor, Mother Teacher), parents divorced."
+
+    Paragraph 2: Career, Education & Drive (The Drive)
+    Analyze the professional status and ambition level.
+    - **Track:** Service type (Combat/Hesder/National Service/Exempt), Education (Academic/Torah), Current Occupation.
+    - **Ambition Analysis:** Correlate the job with questionnaire answers regarding "Money Attitude," "Definition of Success," and "Values Budget" (Career vs. Family focus).
+    - **Diagnosis:** Is he a "High-Achiever/Careerist" or seeking "Balance/Simplicity"? Is there occupational stability?
+
+    Paragraph 3: Religious-Hashkafic Profile (The Hashkafa)
+    Drill down beyond the dry label.
+    - **External Markers:** Kippah type/Head covering, Shomer Negiah (Yes/No/Flexible).
+    - **Essence:** Attitude towards Army/State (Zionism), Secular culture consumption, Daily Torah study (Fixed times vs. Occasional).
+    - **Resolution:** Is he "Hardcore Torah" looking for a closed environment, or "Light/Modern"? Is there a gap between his declaration and his practice?
+
+    Paragraph 4: Personality & Vibe (The Persona)
+    Who is the person in the room?
+    - **Budget Analysis:** Which traits got the most points? (Humor? Sensitivity? Intellect?).
+    - **Energy:** Based on "Social Battery" and "Ideal Vacation" – Is he Extroverted/High-energy or Introverted/Homebody? "Heavy" or "Chill"?
+    - **Resilience:** How did he answer the "Bad Day" or "Failure" questions?
+
+    Paragraph 5: Relationship & Family Dynamics (The Relationship)
+    How will he function as a partner?
+    - **Conflict Style:** Withdraws? Confronts? Analyzes logically?
+    - **Extended Family:** What was his answer regarding "Parental Involvement"? (Crucial for potential friction).
+    - **Roles:** Egalitarian or Traditional approach to household/career?
+
+    Paragraph 6: The Desired Partner (Target Audience)
+    Who is he looking for (vs. who he needs)?
+    - Summarize his "Deal Breakers."
+    - What does he value in a partner? (Beauty vs. Intellect vs. Character - based on point allocation).
+    - Note if there is an unrealistic gap between what he brings and what he demands.
+
+    === Bottom Line for Matchmaker (Action Item) ===
+    A concise operational summary. Who to search for?
+    - *Example:* "Look for a girl from a high-quality, intelligent home, National-Religious (Ulpana style), who values a quiet and serious type. Do NOT suggest loud personalities or aggressive careerists."
+    - *If data is partial:* Start with: "Must urge candidate to complete the deep questionnaire."
+
+    --- Output Format ---
+    The output must be a valid JSON object containing a single field: 'summaryText'.
+    The text inside must be in **Hebrew**.
+    Use \n for line breaks between paragraphs.
   `;
 
-  // בחירה דינמית של הפרומפט ושפת היעד
-  const targetLanguage = locale === 'he' ? 'Hebrew' : 'English';
-  const promptInstructions =
-    locale === 'he' ? hebrewPromptInstructions : englishPromptInstructions;
-
+  // אנחנו משתמשים בפרומפט האנגלית (שמחזיר עברית) עבור שתי השפות,
+  // כדי לשמור על אחידות במבנה הדוח המקצועי לשדכן.
   const prompt = `
-    ${promptInstructions}
-
-    **Output Format:** Your entire output MUST be a valid JSON object in ${targetLanguage}. Do NOT wrap it in markdown backticks. Output ONLY the raw JSON object with the following structure:
-      {
-        "summaryText": "The full, multi-paragraph summary text in ${targetLanguage}, with paragraphs separated by a newline character (\\n)."
-      }
+    ${englishPromptInstructions}
 
     --- User Profile Narrative for Analysis ---
     ${userNarrativeProfile}
@@ -649,60 +617,128 @@ export async function generateNeshamaTechSummary(
   try {
     const result = await model.generateContent(prompt);
     const response = result.response;
-    const jsonString = response.text();
+    let jsonString = response.text();
 
-    if (!jsonString) {
-      console.error(
-        `[AI NeshamaTech Summary] Gemini API returned an empty response for locale: ${locale}.`
-      );
-      return null;
+    if (!jsonString) return null;
+
+    if (jsonString.startsWith('```json')) {
+      jsonString = jsonString.slice(7, -3).trim();
+    } else if (jsonString.startsWith('```')) {
+      jsonString = jsonString.slice(3, -3).trim();
     }
 
-    // ניקוי ופענוח בטוח של ה-JSON
-    let cleanJsonString = jsonString;
-    if (cleanJsonString.startsWith('```json')) {
-      cleanJsonString = cleanJsonString.slice(7, -3).trim();
-    } else if (cleanJsonString.startsWith('```')) {
-      cleanJsonString = cleanJsonString.slice(3, -3).trim();
-    }
-
-    try {
-      const parsedJson = JSON.parse(cleanJsonString) as AiNeshamaTechSummary;
-      console.log(
-        `--- [AI NeshamaTech Summary] Successfully received and parsed summary from Gemini API for locale: ${locale}. ---`
-      );
-      return parsedJson;
-    } catch (parseError) {
-      console.error(
-        `[AI NeshamaTech Summary] Failed to parse JSON response for locale: ${locale}.`,
-        parseError
-      );
-      console.error('--- RAW AI RESPONSE THAT FAILED PARSING ---');
-      console.error(jsonString);
-      console.error('--- END OF RAW AI RESPONSE ---');
-      throw new Error('Invalid JSON response from AI service.');
-    }
+    return JSON.parse(jsonString) as AiNeshamaTechSummary;
   } catch (error) {
     console.error(
-      `[AI NeshamaTech Summary] Error during summary generation for locale: ${locale}:`,
+      `[AI Matchmaker Intelligence Report] Error during report generation for locale: ${locale}:`,
       error
     );
     return null;
   }
 }
 
+/**
+ * --- חדש: ממשק לסיכום ממוקד לשדכן ---
+ * מכיל רק סיכום אישיות ומה מחפש.
+ */
+export interface AiProfileSummaryResult {
+  personalitySummary: string;
+  lookingForSummary: string;
+}
 
+/**
+ * --- חדש: פונקציה לסיכום ממוקד לשדכן ---
+ * מייצרת סיכום ממוקד (אישיות + מה מחפש) לשמירה ב-DB עבור השדכנים.
+ */
+export async function generateProfileSummary(
+  userNarrativeProfile: string,
+  language: 'he' | 'en' = 'he'
+): Promise<AiProfileSummaryResult | null> {
+  console.log('--- [AI Profile Summary (Detailed)] Starting detailed summary generation ---');
+
+  if (!userNarrativeProfile) return null;
+
+  const model = genAI.getGenerativeModel({
+    model: 'gemini-2.5-flash',
+    generationConfig: {
+      responseMimeType: 'application/json',
+      temperature: 0.4, // שמרני יותר כדי להישמד לעובדות
+    },
+  });
+
+  const targetLanguage = language === 'he' ? 'Hebrew' : 'English';
+
+  const prompt = `
+    You are the Senior Analyst at NeshamaTech. Your task is to create a **Comprehensive Intelligence Dossier** for the matchmaker, stored in two distinct sections.
+    This is NOT a short summary. This is a detailed, high-resolution breakdown of the candidate based on all available data (technical, family, career, religious, personality).
+
+    **Audience:** Professional Matchmaker (Internal Use).
+    **Tone:** Diagnostic, Detailed, Analytical, Thorough.
+
+    --- INSTRUCTIONS FOR FIELD 1: 'personalitySummary' ---
+    This field must be a rich, multi-paragraph text covering:
+    1.  **Bio & Family Roots:** Age, location, origin, parents' background, sibling status. Connect this to their socio-economic standing.
+    2.  **Career & Drive:** Education, military service, current job, financial attitude, and ambition level (based on questionnaire).
+    3.  **Religious Profile:** Detailed hashkafa, observances (Shabbat, Kashrut, Dress), and the gap between definition and practice.
+    4.  **Personality & Vibe:** Energy level (High/Low), Social battery (Introvert/Extrovert), emotional resilience, and key traits from the "budget allocation" questions.
+
+    --- INSTRUCTIONS FOR FIELD 2: 'lookingForSummary' ---
+    This field must be a rich, multi-paragraph text covering:
+    1.  **Relationship Dynamics:** Communication style, conflict resolution, need for space vs. togetherness.
+    2.  **Deal Breakers:** Explicit red lines mentioned in the data.
+    3.  **Partner Specs:** What are they looking for? (Look, character, intellect, background).
+    4.  **Matchmaker Directive:** A clear instruction on who to search for and who to avoid.
+
+    **Handling Missing Data:**
+    If the deep questionnaire is missing, analyze the "About Me" writing style and the technical details to infer the vibe, but explicitly state that data is partial.
+
+    **Output Format:**
+    A valid JSON object in ${targetLanguage}.
+    {
+      "personalitySummary": "Detailed text with line breaks (\\n)...",
+      "lookingForSummary": "Detailed text with line breaks (\\n)..."
+    }
+
+    --- User Data ---
+    ${userNarrativeProfile}
+    --- End Data ---
+  `;
+
+  try {
+    const result = await model.generateContent(prompt);
+    const response = result.response;
+    let jsonString = response.text();
+
+    if (!jsonString) return null;
+
+    if (jsonString.startsWith('```json')) {
+      jsonString = jsonString.slice(7, -3).trim();
+    } else if (jsonString.startsWith('```')) {
+      jsonString = jsonString.slice(3, -3).trim();
+    }
+
+    const parsedJson = JSON.parse(jsonString) as AiProfileSummaryResult;
+    return parsedJson;
+
+  } catch (error) {
+    console.error('[AI Profile Summary] Error:', error);
+    return null;
+  }
+}
 
 // ייצוא כל הפונקציות כאובייקט אחד
 const aiService = {
   generateTextEmbedding,
   analyzePairCompatibility,
-  getProfileAnalysis,
+  getProfileAnalysis, // פונקציה מקורית (יועץ למשתמש) - נשמרה!
   analyzeSuggestionForUser,
   generateSuggestionRationale,
   generateFullSuggestionRationale,
-  generateNeshamaTechSummary, 
+  generateNeshamaTechSummary, // פונקציה מעודכנת (דוח מודיעין)
   analyzeCvInDepth,
+  generateProfileSummary, // פונקציה חדשה (סיכום ממוקד לשדכן ב-DB)
 };
 
 export default aiService;
+
+

@@ -633,6 +633,13 @@ type MatchmakerEditProfileDict = {
          saveButton: string; // <-- הוסף שורה זו
         saveButtonLoading: string; // <-- הוסף שורה זו
       };
+    conversationSummary: {
+    title: string;
+    description: string;
+    placeholder: string;
+    saveButton: string;
+    saveButtonLoading: string;
+  };  
   toasts: {
     loadError: string;
     updateSuccess: string;

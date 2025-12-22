@@ -107,7 +107,13 @@
   "saveButtonLoading": "שומר..."
 }
     },
-     
+     "conversationSummary": {
+  "title": "סיכום שיחה עם שדכן",
+  "description": "כאן ניתן לתעד הערות פנימיות וסיכומים משיחותיך עם המועמד/ת. מידע זה אינו גלוי למועמד/ת.",
+  "placeholder": "הקלד/י כאן את סיכום השיחה...",
+  "saveButton": "שמור סיכום שיחה",
+  "saveButtonLoading": "שומר..."
+},
 
     "actionDialogs": {
       "invite": {

@@ -1,7 +1,7 @@
 // src/components/matchmaker/new/dialogs/AiMatchmakerProfileAdvisorDialog.tsx
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react'; // הוספנו useCallback
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -11,13 +11,14 @@ import {
   DialogClose,
 } from '@/components/ui/dialog';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Loader2, AlertTriangle, X, Bot, RefreshCw } from 'lucide-react'; // הוספנו אייקון לרענון
+import { Loader2, AlertTriangle, X, Bot, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
 import type { Candidate } from '../types/candidates';
-import type { AiProfileAnalysisResult } from '@/lib/services/aiService';
-import AnalysisResultDisplay from '@/components/profile/sections/AnalysisResultDisplay';
+// שינוי ייבוא 1: שימוש בטיפוס החדש והקומפוננטה החדשה
+import type { AiProfileSummaryResult } from '@/lib/services/aiService'; 
+import ProfileSummaryDisplay from '../ProfileSummaryDisplay'; // וודא שהנתיב נכון לקובץ שיצרת
 import type { MatchmakerPageDictionary } from '@/types/dictionaries/matchmaker';
-import { Button } from '@/components/ui/button'; // הוספנו ייבוא לכפתור
+import { Button } from '@/components/ui/button';
 
 interface AiMatchmakerProfileAdvisorDialogProps {
   candidate: Candidate | null;
@@ -30,33 +31,34 @@ interface AiMatchmakerProfileAdvisorDialogProps {
 export const AiMatchmakerProfileAdvisorDialog: React.FC<
   AiMatchmakerProfileAdvisorDialogProps
 > = ({ candidate, isOpen, onClose, dict, locale }) => {
-  const [analysis, setAnalysis] = useState<AiProfileAnalysisResult | null>(
+  // שינוי 2: עדכון ה-State לטיפוס החדש
+  const [analysis, setAnalysis] = useState<AiProfileSummaryResult | null>(
     null
   );
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // 1. הוספנו פונקציה ייעודית לאחזור הנתונים, בדומה לקובץ שהצגת.
-  // השימוש ב-useCallback מונע יצירה מחדש של הפונקציה בכל רינדור.
   const getAnalysis = useCallback(
     async (forceRefresh = false) => {
-      // אם אין מועמד או שאנחנו כבר טוענים, אין מה להמשיך
       if (!candidate || isLoading) return;
 
-      // אם יש כבר ניתוח ולא ביקשנו לרענן בכוח, אל תעשה כלום
       if (analysis && !forceRefresh) return;
 
       setIsLoading(true);
       setError(null);
       if (!forceRefresh) {
-        setAnalysis(null); // אפס רק אם זו לא טעינה חוזרת
+        setAnalysis(null);
       }
 
       try {
         const response = await fetch('/api/ai/matchmaker/analyze-profile', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ userId: candidate.id }),
+          // אנחנו שולחים forceRefresh אם המשתמש ביקש
+          body: JSON.stringify({ 
+            userId: candidate.id,
+            forceRefresh: forceRefresh
+          }),
         });
         const result = await response.json();
 
@@ -79,14 +81,12 @@ export const AiMatchmakerProfileAdvisorDialog: React.FC<
       }
     },
     [candidate, isLoading, analysis, dict.toast]
-  ); // התלויות של הפונקציה
+  );
 
-  // 2. useEffect חדש וחכם שמפעיל את האחזור רק פעם אחת כשהדיאלוג נפתח
   useEffect(() => {
     if (isOpen) {
       getAnalysis();
     } else {
-      // 3. איפוס ה-State כשהדיאלוג נסגר, כדי שתמיד יטען מחדש עבור מועמד חדש
       setAnalysis(null);
       setError(null);
       setIsLoading(false);
@@ -100,6 +100,15 @@ export const AiMatchmakerProfileAdvisorDialog: React.FC<
   };
 
   const direction = locale === 'he' ? 'rtl' : 'ltr';
+
+  // יצירת מילון אד-הוק לקומפוננטה החדשה מתוך המילון הקיים (או שתרצה להוסיף מפתחות חדשים לדיקשנרי)
+  // כרגע נשתמש בערכים מתוך הדיקשנרי הקיים ככל הניתן
+  const summaryDisplayDict = {
+    personalityTitle: dict.analysisResult.summary.personalityTitle,
+    personalityDescription: "ניתוח אישיות מבוסס AI", // אפשר להוסיף למילון
+    lookingForTitle: dict.analysisResult.summary.lookingForTitle,
+    lookingForDescription: "סיכום העדפות ודרישות", // אפשר להוסיף למילון
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
@@ -146,7 +155,6 @@ export const AiMatchmakerProfileAdvisorDialog: React.FC<
                   <p className="text-xs mt-2">{error}</p>
                 </AlertDescription>
               </Alert>
-              {/* כפתור לניסיון חוזר */}
               <Button
                 onClick={() => getAnalysis(true)}
                 variant="outline"
@@ -157,12 +165,27 @@ export const AiMatchmakerProfileAdvisorDialog: React.FC<
               </Button>
             </div>
           )}
+          
+          {/* שינוי 3: רינדור הקומפוננטה החדשה */}
           {analysis && !isLoading && (
-            <AnalysisResultDisplay
-              analysis={analysis}
-              dict={dict.analysisResult}
-              locale={locale}
-            />
+            <div className="space-y-6">
+              <ProfileSummaryDisplay
+                summary={analysis}
+                dict={summaryDisplayDict}
+                locale={locale}
+              />
+               <div className="flex justify-center pt-4">
+                 <Button
+                    onClick={() => getAnalysis(true)}
+                    variant="ghost"
+                    size="sm"
+                    className="text-slate-500 hover:text-slate-800"
+                  >
+                    <RefreshCw className="w-3 h-3 ml-2" />
+                    רענן נתונים (צור מחדש)
+                  </Button>
+               </div>
+            </div>
           )}
         </div>
       </DialogContent>

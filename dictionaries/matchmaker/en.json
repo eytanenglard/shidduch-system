@@ -212,6 +212,13 @@
   "placeholder": "Write your professional summary of the candidate here...",
   "saveButton": "Save Summary",
   "saveButtonLoading": "Saving..."
+},
+"conversationSummary": {
+  "title": "Matchmaker Conversation Summary",
+  "description": "Document internal notes and summaries from your conversations with the candidate. This information is hidden from the candidate.",
+  "placeholder": "Type conversation summary here...",
+  "saveButton": "Save Summary",
+  "saveButtonLoading": "Saving..."
 }
     }
 ,

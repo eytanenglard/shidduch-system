@@ -218,9 +218,10 @@ preferredReligiousJourneys  ReligiousJourney[] @default([])
   vector                  ProfileVector? // הוספת קשר הפוך
   hasViewedProfilePreview Boolean        @default(false)
     needsAiProfileUpdate    Boolean    @default(true)
+    aiProfileSummary        Json?      
     cvUrl                   String? // URL to the CV file stored in Cloudinary
   cvSummary               String? @db.Text // AI-generated summary of the CV
-
+conversationSummary     String? @db.Text 
 }
 
 model ProfileVector {

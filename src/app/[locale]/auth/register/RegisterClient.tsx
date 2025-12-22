@@ -326,11 +326,13 @@ const RegisterStepsContent: React.FC<{
   // ============================================================================
   if (submission.isSubmitting) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-teal-50/40 to-orange-50/40">
-        <StandardizedLoadingSpinner
-          text={submission.loadingText}
-          subtext={submission.loadingSubtext}
-        />
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="transform scale-125">
+          <StandardizedLoadingSpinner
+            text={submission.loadingText}
+            subtext={submission.loadingSubtext}
+          />
+        </div>
       </div>
     );
   }
