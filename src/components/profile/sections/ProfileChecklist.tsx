@@ -338,10 +338,8 @@ export const ProfileChecklist: React.FC<ProfileChecklistProps> = ({
       !p.parentStatus && getLabel('parentStatus'),
       !p.fatherOccupation && getLabel('fatherOccupation'),
       !p.motherOccupation && getLabel('motherOccupation'),
-      (p.siblings === null || p.siblings === undefined) &&
-        getLabel('siblings'),
-      (p.position === null || p.position === undefined) &&
-        getLabel('position'),
+      (p.siblings === null || p.siblings === undefined) && getLabel('siblings'),
+      (p.position === null || p.position === undefined) && getLabel('position'),
 
       // Religion
       !p.religiousLevel && getLabel('religiousLevel'),
@@ -546,24 +544,21 @@ export const ProfileChecklist: React.FC<ProfileChecklistProps> = ({
       otherTasksStatus.push(!!(p.about && p.about.trim().length >= 100));
 
       // Testimonials
-      otherTasksStatus.push(
-        !!(
-          p.testimonials &&
-          p.testimonials.filter((t) => t.status === 'APPROVED').length >= 1
-        )
-      );
+      otherTasksStatus.push(!!(p.about && p.about.trim().length >= 100));
 
       // Rabbi - Conditional
       if (isReligious) otherTasksStatus.push(!!p.influentialRabbi);
 
       // Medical info
-      otherTasksStatus.push(
-        p.hasMedicalInfo !== null && p.hasMedicalInfo !== undefined
-      );
-      otherTasksStatus.push(!p.hasMedicalInfo || !!p.medicalInfoDetails);
-      otherTasksStatus.push(
-        !p.hasMedicalInfo || !!p.medicalInfoDisclosureTiming
-      );
+  // Medical info - בדיקה שבוצע מענה על השאלה הרפואית
+      const medicalAnswered = p.hasMedicalInfo !== null && p.hasMedicalInfo !== undefined;
+      otherTasksStatus.push(medicalAnswered);
+
+      // אם סימן שיש מידע רפואי, נדרוש את פירוט השדות הנוספים
+      if (p.hasMedicalInfo === true) {
+        otherTasksStatus.push(!!p.medicalInfoDetails);
+        otherTasksStatus.push(!!p.medicalInfoDisclosureTiming);
+      }
 
       // Basic info
       otherTasksStatus.push(!!p.birthDate);
