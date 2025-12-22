@@ -166,6 +166,8 @@ export async function GET(req: Request) {
       isMedicalInfoVisible: dbProfile.isMedicalInfoVisible,
        cvUrl: dbProfile.cvUrl,
       cvSummary: dbProfile.cvSummary,
+            aiProfileSummary: dbProfile.aiProfileSummary,
+
       // מידע בסיסי על המשתמש
       user: {
         id: userWithProfile.id,
