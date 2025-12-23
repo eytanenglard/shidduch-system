@@ -16,6 +16,66 @@ import { UserRole, UserStatus, UserSource, Language } from "@prisma/client";
 
 console.log("Auth options file loaded");
 
+// ============================================================================
+// 🔴 פונקציה חדשה: קביעת ה-redirectUrl בהתאם למצב המשתמש
+// ============================================================================
+interface UserCompletionStatus {
+  isProfileComplete: boolean;
+  isPhoneVerified: boolean;
+  termsAndPrivacyAcceptedAt?: Date | null;
+  role?: UserRole;
+}
+
+function determineRedirectUrl(user: UserCompletionStatus): string {
+  console.log("[determineRedirectUrl] Checking user status:", {
+    isProfileComplete: user.isProfileComplete,
+    isPhoneVerified: user.isPhoneVerified,
+    termsAndPrivacyAcceptedAt: user.termsAndPrivacyAcceptedAt,
+    hasTerms: !!user.termsAndPrivacyAcceptedAt,
+    role: user.role,
+  });
+
+  // אדמין/שדכן - תמיד לאזור הניהול
+  if (user.role === UserRole.ADMIN || user.role === UserRole.MATCHMAKER) {
+    console.log("[determineRedirectUrl] -> Admin/Matchmaker -> /admin/engagement");
+    return '/admin/engagement';
+  }
+
+  // סדר הבדיקות חשוב! בודקים לפי הסדר הלוגי של התהליך:
+  
+  // 1. קודם צריך לאשר תנאי שימוש
+  if (!user.termsAndPrivacyAcceptedAt) {
+    console.log("[determineRedirectUrl] -> Missing terms -> /auth/register?reason=accept_terms");
+    return '/auth/register?reason=accept_terms';
+  }
+  
+  // 2. אחר כך להשלים פרופיל
+  if (!user.isProfileComplete) {
+    console.log("[determineRedirectUrl] -> Profile incomplete -> /auth/register?reason=complete_profile");
+    return '/auth/register?reason=complete_profile';
+  }
+  
+  // 3. 🔴 רק אחרי שהפרופיל שלם - לאמת פלאפון!
+  if (!user.isPhoneVerified) {
+    console.log("[determineRedirectUrl] -> Phone not verified -> /auth/verify-phone");
+    return '/auth/verify-phone';
+  }
+  
+  // 4. הכל בסדר - לפרופיל
+  console.log("[determineRedirectUrl] -> All complete -> /profile");
+  return '/profile';
+}
+
+function checkRequiresCompletion(user: UserCompletionStatus): boolean {
+  // אדמין/שדכן לא צריכים להשלים פרופיל
+  if (user.role === UserRole.ADMIN || user.role === UserRole.MATCHMAKER) {
+    return false;
+  }
+  return !user.isProfileComplete || !user.isPhoneVerified || !user.termsAndPrivacyAcceptedAt;
+}
+
+// ============================================================================
+
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
   debug: process.env.NODE_ENV === "development",
@@ -215,6 +275,17 @@ export const authOptions: NextAuthOptions = {
         where: { email: userEmail },
       });
 
+      // 🔴 לוג חדש: מה נשלף מהדאטהבייס
+      console.log("[signIn Callback] ========== DB USER DATA ==========");
+      console.log("[signIn Callback] dbUser found:", !!dbUser);
+      if (dbUser) {
+        console.log("[signIn Callback] dbUser.isProfileComplete:", dbUser.isProfileComplete);
+        console.log("[signIn Callback] dbUser.isPhoneVerified:", dbUser.isPhoneVerified);
+        console.log("[signIn Callback] dbUser.termsAndPrivacyAcceptedAt:", dbUser.termsAndPrivacyAcceptedAt);
+        console.log("[signIn Callback] dbUser.role:", dbUser.role);
+      }
+      console.log("[signIn Callback] ==================================");
+
       if (!dbUser && account?.provider === 'google') {
         console.log(`[signIn Callback] Google sign-in for potentially new user: ${userEmail}.`);
 
@@ -330,19 +401,28 @@ export const authOptions: NextAuthOptions = {
         data: { lastLogin: new Date() }
       }).catch(err => console.error(`[signIn Callback] Failed to update lastLogin for user ${dbUser.id}:`, err));
 
-      const requiresCompletion = !dbUser.isProfileComplete || !dbUser.isPhoneVerified || !dbUser.termsAndPrivacyAcceptedAt;
-      typedUser.requiresCompletion = requiresCompletion;
-
-      if (requiresCompletion) {
-        typedUser.redirectUrl = '/auth/register';
-      } else {
-        typedUser.redirectUrl = '/profile';
-      }
-
-      console.log("[signIn Callback] Processed user. Flags:", {
-        requiresCompletion: typedUser.requiresCompletion,
-        redirectUrl: typedUser.redirectUrl,
+      // ============================================================================
+      // 🔴 תיקון: שימוש בפונקציה החדשה לקביעת redirectUrl ספציפי
+      // ============================================================================
+      typedUser.requiresCompletion = checkRequiresCompletion({
+        isProfileComplete: dbUser.isProfileComplete,
+        isPhoneVerified: dbUser.isPhoneVerified,
+        termsAndPrivacyAcceptedAt: dbUser.termsAndPrivacyAcceptedAt,
+        role: dbUser.role,
       });
+
+      typedUser.redirectUrl = determineRedirectUrl({
+        isProfileComplete: dbUser.isProfileComplete,
+        isPhoneVerified: dbUser.isPhoneVerified,
+        termsAndPrivacyAcceptedAt: dbUser.termsAndPrivacyAcceptedAt,
+        role: dbUser.role,
+      });
+
+      console.log("[signIn Callback] ========== FINAL DECISION ==========");
+      console.log("[signIn Callback] requiresCompletion:", typedUser.requiresCompletion);
+      console.log("[signIn Callback] redirectUrl:", typedUser.redirectUrl);
+      console.log("[signIn Callback] ====================================");
+      
       return true;
     },
 
@@ -374,8 +454,6 @@ export const authOptions: NextAuthOptions = {
         typedToken.source = typedUserFromCallback.source;
         typedToken.addedByMatchmakerId = typedUserFromCallback.addedByMatchmakerId;
         typedToken.termsAndPrivacyAcceptedAt = typedUserFromCallback.termsAndPrivacyAcceptedAt;
-        typedToken.requiresCompletion = typedUserFromCallback.requiresCompletion;
-        typedToken.redirectUrl = typedUserFromCallback.redirectUrl;
         typedToken.engagementEmailsConsent = typedUserFromCallback.engagementEmailsConsent;
         typedToken.promotionalEmailsConsent = typedUserFromCallback.promotionalEmailsConsent;
         typedToken.language = typedUserFromCallback.language;
@@ -383,7 +461,22 @@ export const authOptions: NextAuthOptions = {
         typedToken.updatedAt = typedUserFromCallback.updatedAt;
         typedToken.lastLogin = typedUserFromCallback.lastLogin;
 
-        console.log('[JWT Callback] Token populated with language:', typedToken.language);
+        // 🔴 תיקון: חישוב redirectUrl ישירות במקום לסמוך על העברה מ-signIn callback
+        typedToken.requiresCompletion = checkRequiresCompletion({
+          isProfileComplete: typedUserFromCallback.isProfileComplete || false,
+          isPhoneVerified: typedUserFromCallback.isPhoneVerified || false,
+          termsAndPrivacyAcceptedAt: typedUserFromCallback.termsAndPrivacyAcceptedAt,
+          role: typedUserFromCallback.role,
+        });
+
+        typedToken.redirectUrl = determineRedirectUrl({
+          isProfileComplete: typedUserFromCallback.isProfileComplete || false,
+          isPhoneVerified: typedUserFromCallback.isPhoneVerified || false,
+          termsAndPrivacyAcceptedAt: typedUserFromCallback.termsAndPrivacyAcceptedAt,
+          role: typedUserFromCallback.role,
+        });
+
+        console.log('[JWT Callback] Token populated. Calculated redirectUrl:', typedToken.redirectUrl);
       }
 
       // ✅ תיקון: טיפול ב-trigger === 'update' - זה קורה כאשר updateSession() נקרא
@@ -394,12 +487,18 @@ export const authOptions: NextAuthOptions = {
           where: { id: typedToken.id },
           include: {
             images: { where: { isMain: true }, take: 1 },
-            profile: true, // ✅ הוספה: חובה לשלוף את הפרופיל כדי לעדכן את הסטטוס
+            profile: true,
           }
         });
 
         if (dbUserForJwt) {
           console.log('[JWT Callback] Found user in DB, updating token');
+          console.log('[JWT Callback] DB values:', {
+            isProfileComplete: dbUserForJwt.isProfileComplete,
+            isPhoneVerified: dbUserForJwt.isPhoneVerified,
+            termsAndPrivacyAcceptedAt: dbUserForJwt.termsAndPrivacyAcceptedAt,
+          });
+
           typedToken.firstName = dbUserForJwt.firstName;
           typedToken.lastName = dbUserForJwt.lastName;
           typedToken.picture = dbUserForJwt.images?.[0]?.url || typedToken.picture;
@@ -420,12 +519,9 @@ export const authOptions: NextAuthOptions = {
           typedToken.neshamaInsightLastGeneratedAt = dbUserForJwt.neshamaInsightLastGeneratedAt;
           typedToken.neshamaInsightGeneratedCount = dbUserForJwt.neshamaInsightGeneratedCount;
 
-          // ✅ הוספה: עדכון הפרופיל ב-Token
           if (dbUserForJwt.profile) {
             typedToken.profile = dbUserForJwt.profile as unknown as UserProfile;
           }
-
-          console.log('[JWT Callback] Language updated in token:', typedToken.language);
 
           const questionnaireStatus = await prisma.questionnaireResponse.findFirst({
             where: { userId: typedToken.id },
@@ -434,9 +530,22 @@ export const authOptions: NextAuthOptions = {
           });
           typedToken.questionnaireCompleted = questionnaireStatus?.completed ?? false;
 
-          const requiresCompletionFromDb = (!dbUserForJwt.isProfileComplete || !dbUserForJwt.isPhoneVerified || !dbUserForJwt.termsAndPrivacyAcceptedAt);
-          typedToken.requiresCompletion = requiresCompletionFromDb;
-          typedToken.redirectUrl = requiresCompletionFromDb ? '/auth/register' : '/profile';
+          // 🔴 שימוש בפונקציה החדשה
+          typedToken.requiresCompletion = checkRequiresCompletion({
+            isProfileComplete: dbUserForJwt.isProfileComplete,
+            isPhoneVerified: dbUserForJwt.isPhoneVerified,
+            termsAndPrivacyAcceptedAt: dbUserForJwt.termsAndPrivacyAcceptedAt,
+            role: dbUserForJwt.role,
+          });
+
+          typedToken.redirectUrl = determineRedirectUrl({
+            isProfileComplete: dbUserForJwt.isProfileComplete,
+            isPhoneVerified: dbUserForJwt.isPhoneVerified,
+            termsAndPrivacyAcceptedAt: dbUserForJwt.termsAndPrivacyAcceptedAt,
+            role: dbUserForJwt.role,
+          });
+
+          console.log('[JWT Callback] Updated redirectUrl:', typedToken.redirectUrl);
         } else {
           console.log('[JWT Callback] User not found in DB');
         }
@@ -450,7 +559,7 @@ export const authOptions: NextAuthOptions = {
           where: { id: typedToken.id },
           include: {
             images: { where: { isMain: true }, take: 1 },
-            profile: true // ✅ הוספתי גם כאן ליתר ביטחון
+            profile: true
           }
         });
 
@@ -473,7 +582,6 @@ export const authOptions: NextAuthOptions = {
           typedToken.updatedAt = dbUserForJwt.updatedAt;
           typedToken.lastLogin = dbUserForJwt.lastLogin;
 
-          // ✅ הוספה: עדכון הפרופיל ב-Token
           if (dbUserForJwt.profile) {
             typedToken.profile = dbUserForJwt.profile as unknown as UserProfile;
           }
@@ -485,9 +593,20 @@ export const authOptions: NextAuthOptions = {
           });
           typedToken.questionnaireCompleted = questionnaireStatus?.completed ?? false;
 
-          const requiresCompletionFromDb = (!dbUserForJwt.isProfileComplete || !dbUserForJwt.isPhoneVerified || !dbUserForJwt.termsAndPrivacyAcceptedAt);
-          typedToken.requiresCompletion = requiresCompletionFromDb;
-          typedToken.redirectUrl = requiresCompletionFromDb ? '/auth/register' : '/profile';
+          // 🔴 שימוש בפונקציה החדשה
+          typedToken.requiresCompletion = checkRequiresCompletion({
+            isProfileComplete: dbUserForJwt.isProfileComplete,
+            isPhoneVerified: dbUserForJwt.isPhoneVerified,
+            termsAndPrivacyAcceptedAt: dbUserForJwt.termsAndPrivacyAcceptedAt,
+            role: dbUserForJwt.role,
+          });
+
+          typedToken.redirectUrl = determineRedirectUrl({
+            isProfileComplete: dbUserForJwt.isProfileComplete,
+            isPhoneVerified: dbUserForJwt.isPhoneVerified,
+            termsAndPrivacyAcceptedAt: dbUserForJwt.termsAndPrivacyAcceptedAt,
+            role: dbUserForJwt.role,
+          });
         }
       }
 
@@ -518,7 +637,6 @@ export const authOptions: NextAuthOptions = {
         typedSession.user.promotionalEmailsConsent = typedToken.promotionalEmailsConsent;
         typedSession.user.language = typedToken.language;
         
-        // ✅ הוספה קריטית: העברת הפרופיל מה-Token ל-Session
         if (typedToken.profile) {
             typedSession.user.profile = typedToken.profile;
         }

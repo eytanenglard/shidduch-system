@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\candidates
-# Generated on: 2025-12-22 23:19:19
+# Generated on: 2025-12-23 00:36:45
 # Filter: Only content of code files (.bat, .c, .cfg, .conf, .cpp, .cs, .css, .go, .h, .html, .ini, .java, .js, .json, .jsx, .kt, .less, .md, .php, .py, .rb, .rs, .scss, .sh, .sql, .swift, .ts, .tsx, .txt, .xml, .yaml, .yml) is included.
 ################################################################################
 
@@ -92,6 +92,7 @@ export async function GET() {
         email: true,
         firstName: true,
         lastName: true,
+        phone: true, // ✅ ADDED: Phone number for matchmaker view
         status: true,
         source: true,
         createdAt: true,

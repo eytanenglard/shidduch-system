@@ -1,6 +1,7 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\profile
-# Generated on: 2025-11-09 10:30:56
+# Generated on: 2025-12-23 00:37:04
+# Filter: Only content of code files (.bat, .c, .cfg, .conf, .cpp, .cs, .css, .go, .h, .html, .ini, .java, .js, .json, .jsx, .kt, .less, .md, .php, .py, .rb, .rs, .scss, .sh, .sql, .swift, .ts, .tsx, .txt, .xml, .yaml, .yml) is included.
 ################################################################################
 
 ================================================================================
@@ -184,6 +185,8 @@ export async function GET(req: Request) {
       isMedicalInfoVisible: dbProfile.isMedicalInfoVisible,
        cvUrl: dbProfile.cvUrl,
       cvSummary: dbProfile.cvSummary,
+            aiProfileSummary: dbProfile.aiProfileSummary,
+
       // מידע בסיסי על המשתמש
       user: {
         id: userWithProfile.id,
@@ -288,12 +291,15 @@ Content:
 // src/app/api/profile/cv/route.ts
 
 import { NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth/next';
-import { authOptions } from '@/lib/auth'; // Adjust path if needed
-import prisma from '@/lib/prisma'; // Adjust path if needed
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
+import prisma from '@/lib/prisma';
 import { v2 as cloudinary } from 'cloudinary';
+import aiService from '@/lib/services/aiService';
+import profileAiService from '@/lib/services/profileAiService';
+import mammoth from 'mammoth';
 
-// Configure Cloudinary with your credentials
+// Configure Cloudinary
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
@@ -307,6 +313,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
   }
   const userId = session.user.id;
+  const userLocale = session.user.language || 'he';
 
   try {
     const formData = await req.formData();
@@ -316,17 +323,17 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: false, message: 'No file provided' }, { status: 400 });
     }
 
-    // Convert file to buffer
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
-    // Upload to Cloudinary
+    // 1. Upload file to Cloudinary
     const uploadResult = await new Promise<any>((resolve, reject) => {
         const uploadStream = cloudinary.uploader.upload_stream(
             {
-                resource_type: 'raw', // Use 'raw' for non-image files like PDF/DOCX
-                folder: `users/${userId}/cvs`, // Organize files in a structured way
-                public_id: `${file.name}-${Date.now()}`, // Create a unique file name
+                resource_type: 'raw',
+                folder: `users/${userId}/cvs`,
+                public_id: file.name, 
+                overwrite: true, 
             },
             (error, result) => {
                 if (error) reject(error);
@@ -340,24 +347,70 @@ export async function POST(req: Request) {
         throw new Error('Cloudinary upload failed');
     }
 
-    // Update user's profile in the database
+    // --- AI DEEP ANALYSIS ---
+    let cvSummaryMarkdown: string | null = null;
+    try {
+        console.log(`[CV Route] Extracting text from CV for user ${userId}. File type: ${file.type}`);
+        
+        let extractedCvText: string | null = null;
+
+        // Check if file is Word (.docx) - PDF temporarily disabled
+        if (file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
+            console.log("[CV Route] Parsing DOCX file.");
+            const { value } = await mammoth.extractRawText({ buffer });
+            extractedCvText = value;
+        } else if (file.type === 'application/pdf') {
+            console.log("[CV Route] PDF parsing temporarily disabled. Please upload DOCX for AI analysis.");
+            // TODO: Implement PDF parsing with alternative library
+        } else {
+            console.warn(`[CV Route] Unsupported file type for text extraction: ${file.type}`);
+        }
+
+        if (extractedCvText && extractedCvText.trim().length > 50) {
+            console.log(`[CV Route] Sending CV text to AI for deep analysis in locale: ${userLocale}.`);
+            const analysisResult = await aiService.analyzeCvInDepth(extractedCvText, userLocale);
+            
+            if (analysisResult) {
+                const parts = [
+                    `### סיכום מנהלים\n${analysisResult.executiveSummary}`,
+                    `### תובנות אישיותיות\n- ${analysisResult.personalityInsights.join('\n- ')}`,
+                    `### תובנות ערכיות\n- ${analysisResult.valuesInsights.join('\n- ')}`,
+                    `### מסלול קריירה\n**נרטיב:** ${analysisResult.careerTrajectory.narrative}\n\n**אבני דרך:**\n` +
+                    analysisResult.careerTrajectory.milestones.map(m => `  - **${m.title} (${m.period}):** ${m.keyLearnings}`).join('\n'),
+                ];
+                if (analysisResult.redFlags.length > 0) {
+                    parts.push(`### נקודות לבירור (שדכן)\n- ${analysisResult.redFlags.join('\n- ')}`);
+                }
+                cvSummaryMarkdown = parts.join('\n\n');
+                console.log(`[CV Route] AI deep analysis generated successfully for user ${userId}.`);
+            }
+        }
+    } catch (aiError) {
+        console.error(`[CV Route] AI processing failed for user ${userId}:`, aiError);
+    }
+
+    // 3. Update database
     const updatedProfile = await prisma.profile.update({
       where: { userId },
       data: {
         cvUrl: uploadResult.secure_url,
+        cvSummary: cvSummaryMarkdown,
+        needsAiProfileUpdate: true,
       },
     });
 
-    // TODO: In the future, trigger the AI summary generation here (async)
-    // For example: await generateCvSummary(userId, uploadResult.secure_url);
+    // 4. Trigger background update
+    profileAiService.updateUserAiProfile(userId).catch(err => {
+        console.error(`[CV Route] Background AI profile vector update failed for user ${userId}:`, err);
+    });
 
     return NextResponse.json({ success: true, profile: updatedProfile });
+
   } catch (error) {
     console.error('CV Upload API Error:', error);
     return NextResponse.json({ success: false, message: 'Internal Server Error' }, { status: 500 });
   }
 }
-
 
 // --- DELETE Handler for deleting a CV ---
 export async function DELETE(req: Request) {
@@ -374,21 +427,30 @@ export async function DELETE(req: Request) {
         });
 
         if (profile?.cvUrl) {
-            // Extract public_id from URL to delete from Cloudinary
-            const publicIdMatch = profile.cvUrl.match(/\/users\/.*\/cvs\/(.*)/);
-            if (publicIdMatch && publicIdMatch[1]) {
-                const publicId = `users/${userId}/cvs/${decodeURIComponent(publicIdMatch[1])}`;
-                await cloudinary.uploader.destroy(publicId, { resource_type: 'raw' });
+            try {
+                const urlParts = profile.cvUrl.split('/');
+                const fileNameWithExt = urlParts[urlParts.length - 1];
+                if (fileNameWithExt) {
+                    const publicId = `users/${userId}/cvs/${decodeURIComponent(fileNameWithExt)}`;
+                    console.log(`[CV Delete] Attempting to delete from Cloudinary with public_id: ${publicId}`);
+                    await cloudinary.uploader.destroy(publicId, { resource_type: 'raw' });
+                }
+            } catch(e) {
+                console.error(`[CV Delete] Could not parse public_id from URL: ${profile.cvUrl}`, e);
             }
         }
 
-        // Remove the URL from the user's profile
         const updatedProfile = await prisma.profile.update({
             where: { userId },
             data: {
                 cvUrl: null,
-                cvSummary: null, // Also clear the summary when CV is deleted
+                cvSummary: null,
+                needsAiProfileUpdate: true,
             },
+        });
+
+        profileAiService.updateUserAiProfile(userId).catch(err => {
+            console.error(`[CV Delete] Background AI profile vector update failed for user ${userId}:`, err);
         });
 
         return NextResponse.json({ success: true, profile: updatedProfile });
@@ -402,6 +464,25 @@ export async function DELETE(req: Request) {
 ================================================================================
 Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\profile\images
 ================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\profile\images\images_contents.txt
+--------------------------------------------------------------------------------
+Content:
+################################################################################
+# Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\profile\images
+# Generated on: 2025-12-22 16:55:45
+# Filter: Only content of code files (.bat, .c, .cfg, .conf, .cpp, .cs, .css, .go, .h, .html, .ini, .java, .js, .json, .jsx, .kt, .less, .md, .php, .py, .rb, .rs, .scss, .sh, .sql, .swift, .ts, .tsx, .txt, .xml, .yaml, .yml) is included.
+################################################################################
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\profile\images
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\profile\images\images_contents.txt
+--------------------------------------------------------------------------------
+[This is the output log file itself. Content not included.]
 
 --------------------------------------------------------------------------------
 File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\profile\images\route.ts
@@ -878,6 +959,819 @@ export async function PUT(
       }, 
       { status: 500 }
     );
+  }
+}
+--- End of Content for route.ts ---
+
+--- End of Content for images_contents.txt ---
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\profile\images\route.ts
+--------------------------------------------------------------------------------
+Content:
+// src/app/api/profile/images/route.ts
+
+import { NextRequest, NextResponse } from "next/server";
+import { applyRateLimitWithRoleCheck } from '@/lib/rate-limiter';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '@/lib/auth';
+import prisma from '@/lib/prisma';
+import { v2 as cloudinary } from 'cloudinary';
+
+export const dynamic = 'force-dynamic';
+
+// 1. קונפיגורציה של Cloudinary
+if (
+  !process.env.CLOUDINARY_CLOUD_NAME ||
+  !process.env.CLOUDINARY_API_KEY ||
+  !process.env.CLOUDINARY_API_SECRET
+) {
+  throw new Error('Missing required Cloudinary environment variables');
+}
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+  secure: true,
+});
+
+// 2. פונקציית עזר להעלאה (עוטפת את ה-Stream ב-Promise)
+function uploadToCloudinary(
+  buffer: Buffer
+): Promise<{ secure_url: string; public_id: string }> {
+  return new Promise((resolve, reject) => {
+    const uploadStream = cloudinary.uploader.upload_stream(
+      {
+        folder: 'profile-images',
+        resource_type: 'image',
+        // ניתן להוסיף כאן טרנספורמציות בסיסיות אם רוצים, אבל עדיף לבצע אותן בעת התצוגה
+      },
+      (error, result) => {
+        if (error) {
+          console.error('[Cloudinary] Upload error:', error);
+          reject(error);
+        } else if (result) {
+          resolve({
+            secure_url: result.secure_url,
+            public_id: result.public_id,
+          });
+        } else {
+          reject(new Error('Upload failed - no result'));
+        }
+      }
+    );
+    uploadStream.end(buffer);
+  });
+}
+
+// 3. GET - שליפת כל התמונות של המשתמש
+export async function GET() {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.email) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const userImages = await prisma.userImage.findMany({
+      where: {
+        user: {
+          email: session.user.email,
+        },
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+
+    return NextResponse.json({ success: true, images: userImages });
+  } catch (error) {
+    console.error('[GetImages] Error:', error);
+    return NextResponse.json(
+      { error: 'Failed to fetch images' },
+      { status: 500 }
+    );
+  }
+}
+
+// 4. POST - העלאת תמונה חדשה
+export async function POST(req: NextRequest) {
+  // הגבלת קצב בקשות: 15 בקשות לשעה למשתמש (מונע הצפה)
+  const rateLimitResponse = await applyRateLimitWithRoleCheck(req, { requests: 15, window: '1 h' });
+  if (rateLimitResponse) {
+    return rateLimitResponse;
+  }
+  
+  const startTime = Date.now();
+
+  try {
+    console.log('[Upload] Starting upload process');
+
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.email) {
+      console.error('[Upload] Authentication failed - No user session');
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Unauthorized',
+        },
+        { status: 401 }
+      );
+    }
+
+    // שליפת המשתמש ובדיקת כמות התמונות הקיימת
+    const user = await prisma.user.findUnique({
+      where: { email: session.user.email },
+      select: { id: true, email: true, _count: { select: { images: true } } },
+    });
+
+    if (!user) {
+      console.error(`[Upload] User not found for email: ${session.user.email}`);
+      return NextResponse.json(
+        { success: false, error: 'User not found' },
+        { status: 404 }
+      );
+    }
+
+    // עיבוד הטופס (FormData)
+    const formData = await req.formData();
+    const file = formData.get('file') as File;
+
+    if (!file) {
+      console.error('[Upload] No file provided in request');
+      return NextResponse.json(
+        { success: false, error: 'No file provided' },
+        { status: 400 }
+      );
+    }
+
+    // בדיקת מגבלת כמות תמונות (5)
+    if (user._count.images >= 5) {
+      console.warn(`[Upload] User ${user.id} has reached maximum images limit`);
+      return NextResponse.json(
+        { success: false, error: 'Maximum number of images reached' },
+        { status: 400 }
+      );
+    }
+
+    // בדיקת סוג קובץ
+    const validTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp'];
+    if (!validTypes.includes(file.type)) {
+      console.error(`[Upload] Invalid file type: ${file.type}`);
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Invalid file type. Only JPG, PNG and WEBP are allowed',
+        },
+        { status: 400 }
+      );
+    }
+
+    // === כאן השינוי החשוב: מגבלה של 10MB ===
+    const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+    if (file.size > MAX_FILE_SIZE) {
+      console.error(`[Upload] File too large: ${file.size} bytes`);
+      return NextResponse.json(
+        { success: false, error: 'File size must be less than 10MB' },
+        { status: 400 }
+      );
+    }
+
+    // המרת הקובץ ל-Buffer לצורך העלאה
+    const bytes = await file.arrayBuffer();
+    const buffer = Buffer.from(bytes);
+
+    console.log(`[Upload] File processed (${file.size} bytes), uploading to Cloudinary...`);
+
+    // שליחה ל-Cloudinary
+    const cloudinaryResult = await uploadToCloudinary(buffer);
+
+    // אם זו התמונה הראשונה, נגדיר אותה כראשית
+    const isFirstImage = user._count.images === 0;
+
+    // שמירה ב-DB
+    const image = await prisma.userImage.create({
+      data: {
+        userId: user.id,
+        url: cloudinaryResult.secure_url,
+        cloudinaryPublicId: cloudinaryResult.public_id,
+        isMain: isFirstImage,
+      },
+    });
+
+    // עדכון זמן השינוי האחרון של המשתמש
+    await prisma.user.update({
+      where: { id: session.user.id },
+      data: { updatedAt: new Date() }
+    });
+
+    console.log(
+      `[Upload] Database save completed in ${Date.now() - startTime}ms`
+    );
+    
+    return NextResponse.json({
+      success: true,
+      image,
+      timing: `${Date.now() - startTime}ms`,
+    });
+
+  } catch (error) {
+    console.error('[Upload] General error:', error);
+    console.log(`[Upload] Failed after ${Date.now() - startTime}ms`);
+    return NextResponse.json(
+      { success: false, error: 'Failed to upload image' },
+      { status: 500 }
+    );
+  }
+}
+
+// 5. DELETE - מחיקת תמונות מרובות
+export async function DELETE(req: Request) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        { success: false, error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+    const userId = session.user.id;
+
+    const { imageIds } = await req.json();
+
+    if (!Array.isArray(imageIds) || imageIds.length === 0) {
+      return NextResponse.json(
+        { success: false, error: 'Image IDs must be a non-empty array' },
+        { status: 400 }
+      );
+    }
+
+    // 1. בדיקת בעלות על התמונות וקבלת המידע עליהן
+    const imagesToDelete = await prisma.userImage.findMany({
+      where: {
+        id: { in: imageIds },
+        userId: userId, // קריטי: מוודא שהמשתמש מוחק רק את התמונות שלו
+      },
+      select: {
+        id: true,
+        cloudinaryPublicId: true,
+        isMain: true,
+      },
+    });
+
+    if (imagesToDelete.length === 0) {
+      return NextResponse.json(
+        { success: false, error: 'No matching images found to delete.' },
+        { status: 404 }
+      );
+    }
+
+    // 2. האם התמונה הראשית נמחקת?
+    const wasMainImageDeleted = imagesToDelete.some((image) => image.isMain);
+
+    // 3. מחיקה מ-Cloudinary
+    const cloudinaryIdsToDelete = imagesToDelete
+      .map((image) => image.cloudinaryPublicId)
+      .filter((id): id is string => !!id);
+
+    if (cloudinaryIdsToDelete.length > 0) {
+      const cloudinaryDeletions = cloudinaryIdsToDelete.map((publicId) =>
+        cloudinary.uploader.destroy(publicId).catch((err) => {
+          console.error(
+            `[Bulk Delete] Failed to delete image ${publicId} from Cloudinary:`,
+            err
+          );
+        })
+      );
+      await Promise.all(cloudinaryDeletions);
+    }
+
+    // 4. מחיקה מה-DB
+    await prisma.userImage.deleteMany({
+      where: {
+        id: { in: imagesToDelete.map((img) => img.id) },
+        userId: userId,
+      },
+    });
+
+    // 5. אם התמונה הראשית נמחקה, נגדיר חדשה (הכי חדשה שנשארה)
+    if (wasMainImageDeleted) {
+      const newMainImage = await prisma.userImage.findFirst({
+        where: { userId: userId },
+        orderBy: { createdAt: 'desc' },
+      });
+
+      if (newMainImage) {
+        await prisma.userImage.update({
+          where: { id: newMainImage.id },
+          data: { isMain: true },
+        });
+      }
+    }
+
+    // 6. החזרת הרשימה המעודכנת לקלינט
+    const updatedImages = await prisma.userImage.findMany({
+      where: { userId: userId },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return NextResponse.json({ success: true, images: updatedImages });
+
+  } catch (error) {
+    console.error('[Bulk Delete Images] Error:', error);
+    const errorMessage =
+      error instanceof Error ? error.message : 'Unknown error';
+    return NextResponse.json(
+      {
+        success: false,
+        error: 'Failed to delete images',
+        details: errorMessage,
+      },
+      { status: 500 }
+    );
+  }
+}
+--- End of Content for route.ts ---
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\profile\images\[imageId]
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\profile\images\[imageId]\route.ts
+--------------------------------------------------------------------------------
+Content:
+// src/app/api/profile/images/[imageId]/route.ts
+
+import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/auth";
+import prisma from "@/lib/prisma";
+import { v2 as cloudinary } from "cloudinary";
+
+if (!process.env.CLOUDINARY_CLOUD_NAME || 
+    !process.env.CLOUDINARY_API_KEY || 
+    !process.env.CLOUDINARY_API_SECRET) {
+  throw new Error("Missing required Cloudinary environment variables");
+}
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+
+export async function DELETE(
+  request: Request,
+  props: { params: Promise<{ imageId: string }> } // ✅ שינוי: התאמה ל-Next.js 15
+) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.email) {
+      return NextResponse.json(
+        { success: false, error: "Unauthorized" }, 
+        { status: 401 }
+      );
+    }
+
+    const params = await props.params; // ✅ שינוי: הוספת await
+    const { imageId } = params;
+    
+    const image = await prisma.userImage.findUnique({
+      where: { id: imageId },
+      include: { user: true },
+    });
+
+    if (!image) {
+      return NextResponse.json(
+        { success: false, error: "Image not found" }, 
+        { status: 404 }
+      );
+    }
+
+    if (image.user.email !== session.user.email) {
+      return NextResponse.json(
+        { success: false, error: "Unauthorized" }, 
+        { status: 403 }
+      );
+    }
+
+    if (image.cloudinaryPublicId) {
+      try {
+        await cloudinary.uploader.destroy(image.cloudinaryPublicId);
+      } catch (error) {
+        console.error("[Delete Image] Cloudinary deletion error:", error);
+      }
+    }
+
+    await prisma.userImage.delete({
+      where: { id: imageId },
+    });
+
+    if (image.isMain) {
+      const remainingImage = await prisma.userImage.findFirst({
+        where: { userId: image.userId },
+        orderBy: { createdAt: 'desc' },
+      });
+
+      if (remainingImage) {
+        await prisma.userImage.update({
+          where: { id: remainingImage.id },
+          data: { isMain: true },
+        });
+      }
+    }
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error("[Delete Image] Error:", error);
+    return NextResponse.json(
+      { 
+        success: false, 
+        error: "Failed to delete image",
+        details: error instanceof Error ? error.message : "Unknown error"
+      }, 
+      { status: 500 }
+    );
+  }
+}
+
+export async function PUT(
+  request: Request,
+  props: { params: Promise<{ imageId: string }> } // ✅ שינוי: התאמה ל-Next.js 15
+) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.email) {
+      return NextResponse.json(
+        { success: false, error: "Unauthorized" }, 
+        { status: 401 }
+      );
+    }
+
+    const params = await props.params; // ✅ שינוי: הוספת await
+    const { imageId } = params;
+
+    const image = await prisma.userImage.findUnique({
+      where: { id: imageId },
+      include: { user: true },
+    });
+
+    if (!image) {
+      return NextResponse.json(
+        { success: false, error: "Image not found" }, 
+        { status: 404 }
+      );
+    }
+
+    if (image.user.email !== session.user.email) {
+      return NextResponse.json(
+        { success: false, error: "Unauthorized" }, 
+        { status: 403 }
+      );
+    }
+
+    await prisma.userImage.updateMany({
+      where: { userId: image.userId },
+      data: { isMain: false },
+    });
+
+    await prisma.userImage.update({
+      where: { id: imageId },
+      data: { isMain: true },
+    });
+
+    const updatedImages = await prisma.userImage.findMany({
+      where: { userId: image.userId },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return NextResponse.json({ 
+      success: true, 
+      images: updatedImages 
+    });
+  } catch (error) {
+    console.error("[Set Main Image] Error:", error);
+    return NextResponse.json(
+      { 
+        success: false, 
+        error: "Failed to set main image",
+        details: error instanceof Error ? error.message : "Unknown error"
+      }, 
+      { status: 500 }
+    );
+  }
+}
+--- End of Content for route.ts ---
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\profile\neshama-insight
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\profile\neshama-insight\route.ts
+--------------------------------------------------------------------------------
+Content:
+// src/app/api/profile/neshama-insight/route.ts
+
+import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
+import prisma from '@/lib/prisma';
+import { generateNarrativeProfile } from '@/lib/services/profileAiService';
+import { GoogleGenerativeAI } from '@google/generative-ai';
+import type { Language } from '@prisma/client';
+
+export async function POST(req: NextRequest) {
+  try {
+    const session = await getServerSession(authOptions);
+
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        { success: false, message: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
+    const body = await req.json();
+    const { userId, locale = 'he' } = body;
+
+    // Verify user can only generate insight for themselves
+    if (userId !== session.user.id) {
+      return NextResponse.json(
+        { success: false, message: 'Forbidden' },
+        { status: 403 }
+      );
+    }
+
+    // Fetch user data
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      include: {
+        profile: true,
+        images: true,
+        questionnaireResponses: {
+          take: 1,
+          orderBy: { lastSaved: 'desc' },
+        },
+      },
+    });
+
+    if (!user || !user.profile) {
+      return NextResponse.json(
+        { success: false, message: 'Profile not found' },
+        { status: 404 }
+      );
+    }
+
+    // Check if insight was already generated today
+    if (user.neshamaInsightLastGeneratedAt) {
+      const lastGenerated = new Date(user.neshamaInsightLastGeneratedAt);
+      const now = new Date();
+      const diffTime = now.getTime() - lastGenerated.getTime();
+      const diffHours = diffTime / (1000 * 60 * 60);
+
+      if (diffHours < 24) {
+        return NextResponse.json(
+          {
+            success: false,
+            message:
+              locale === 'he'
+                ? 'ניתן ליצור תובנת נשמה פעם אחת ב-24 שעות. נסה שוב מחר!'
+                : 'You can generate Neshama Insight once every 24 hours. Try again tomorrow!',
+          },
+          { status: 429 } // Too Many Requests
+        );
+      }
+    }
+
+    // Verify profile is 100% complete
+    const isComplete = await verifyProfileCompletion(user);
+    if (!isComplete) {
+      return NextResponse.json(
+        {
+          success: false,
+          message:
+            locale === 'he'
+              ? 'יש להשלים את הפרופיל ל-100% לפני יצירת התובנה'
+              : 'Profile must be 100% complete before generating insight',
+        },
+        { status: 400 }
+      );
+    }
+
+    // Generate narrative profile
+    const narrativeProfile = await generateNarrativeProfile(userId);
+    if (!narrativeProfile) {
+      throw new Error('Failed to generate narrative profile');
+    }
+
+    // Generate the Neshama Insight using AI
+    const insight = await generateNeshmaInsight(
+      narrativeProfile,
+      user,
+      locale as Language
+    );
+
+    // Update database to track that insight was generated
+    await prisma.user.update({
+      where: { id: userId },
+      data: {
+        neshamaInsightLastGeneratedAt: new Date(),
+        neshamaInsightGeneratedCount: {
+          increment: 1,
+        },
+        updatedAt: new Date(),
+      },
+    });
+
+    return NextResponse.json({
+      success: true,
+      insight,
+    });
+  } catch (error) {
+    console.error('Error generating Neshama Insight:', error);
+    return NextResponse.json(
+      {
+        success: false,
+        message: 'Internal server error',
+      },
+      { status: 500 }
+    );
+  }
+}
+
+async function verifyProfileCompletion(user: any): Promise<boolean> {
+  const profile = user.profile;
+  const questionnaire = user.questionnaireResponses[0];
+
+  if (!profile || !questionnaire) return false;
+
+  // Check basic profile fields
+  const basicChecks = [
+    user.images?.length >= 1,
+    !!profile.profileHeadline,
+    !!profile.about && profile.about.length >= 100,
+    !!profile.height,
+    !!profile.city,
+    !!profile.maritalStatus,
+    !!profile.religiousLevel,
+    !!profile.educationLevel,
+    !!profile.occupation,
+    !!profile.matchingNotes,
+  ];
+
+  // Check questionnaire completion
+  const questionnaireChecks = [
+    questionnaire.valuesCompleted,
+    questionnaire.personalityCompleted,
+    questionnaire.relationshipCompleted,
+    questionnaire.partnerCompleted,
+    questionnaire.religionCompleted,
+  ];
+
+  const allChecks = [...basicChecks, ...questionnaireChecks];
+  return allChecks.every(Boolean);
+}
+
+async function generateNeshmaInsight(
+  narrativeProfile: string,
+  user: any,
+  locale: Language
+) {
+  const profile = user.profile;
+  const questionnaire = user.questionnaireResponses[0];
+
+  const isHebrew = locale === 'he';
+  const languageInstruction = isHebrew
+    ? 'כתוב את כל התשובות בעברית בלבד.'
+    : 'Write all responses in English only.';
+
+  const prompt = `
+You are an expert matchmaker and relationship counselor with deep psychological insight. You have been given comprehensive information about a person who has completed their profile on a Jewish matchmaking platform.
+
+${languageInstruction}
+
+YOUR TASK:
+Create a deeply personalized "Neshama Insight" (Soul Insight) report that will:
+1. Help them understand themselves better
+2. Clarify who would be their ideal partner
+3. Prepare them for meaningful dating
+4. Empower them with confidence
+5. Guide their next steps
+
+IMPORTANT TONE GUIDELINES:
+- Be warm, empathetic, and encouraging
+- Use "you" to speak directly to them
+- Be specific and personal (avoid generic statements)
+- Balance honesty with sensitivity
+- Show that you truly SEE them as an individual
+- Be professional yet friendly
+- Avoid clichés and empty platitudes
+
+---
+
+PROFILE INFORMATION:
+${narrativeProfile}
+
+QUESTIONNAIRE DATA:
+${JSON.stringify(questionnaire, null, 2)}
+
+---
+
+Generate a response in the following JSON structure:
+
+{
+  "whoYouAre": {
+    "summary": "A 2-3 paragraph deep analysis of their personality, values, and character. What makes them unique? What are their core strengths in relationships?",
+    "details": [
+      "Specific insight about their personality trait #1",
+      "Specific insight about their personality trait #2",
+      "Specific insight about their values and what drives them",
+      "An observation about how they approach life/relationships"
+    ]
+  },
+  "idealPartner": {
+    "summary": "A vivid 2-3 paragraph description of the type of partner who would complement them. Not generic qualities, but specific traits that would create harmony with THEIR personality.",
+    "details": [
+      "Critical quality #1 and WHY it matters for them specifically",
+      "Critical quality #2 and WHY it matters for them specifically", 
+      "Critical quality #3 and WHY it matters for them specifically",
+      "A gentle caution about a potential mismatch to watch for"
+    ]
+  },
+  "firstMeetingTips": {
+    "summary": "Personalized advice for their first dates based on their personality type and tendencies.",
+    "details": [
+      "Tip #1 tailored to their communication style",
+      "Tip #2 about managing their specific anxieties or tendencies",
+      "Tip #3 about creating authentic connection given their personality",
+      "Tip #4 about what to focus on or avoid"
+    ]
+  },
+  "uniquePotential": {
+    "summary": "What makes them special as a potential partner. Their unique strengths and what they bring to a relationship.",
+    "details": [
+      "Unique strength #1 with specific example of how it shows up",
+      "Unique strength #2 with specific example",
+      "Unique strength #3 with specific example",
+      "What a lucky partner will gain by being with them"
+    ]
+  },
+  "nextSteps": {
+    "summary": "Transparent explanation of what happens now in the matchmaking process, setting realistic expectations.",
+    "details": [
+      "What the matchmaking team is doing behind the scenes",
+      "Realistic timeline for receiving match suggestions",
+      "1-2 specific ways they can optimize their profile further (if any)",
+      "How to prepare mentally/emotionally while waiting",
+      "A resource or reflection exercise they can do in the meantime"
+    ]
+  }
+}
+
+Remember: This person has invested significant time and emotional energy into completing their profile. They deserve a response that honors that investment with genuine insight, not generic template text. Make them feel SEEN, UNDERSTOOD, and HOPEFUL.
+
+${isHebrew ? 'שוב, חשוב: כתוב הכל בעברית!' : 'Again, important: Write everything in English!'}
+`;
+
+  try {
+    // Use Google Generative AI directly
+    const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY!);
+
+    const model = genAI.getGenerativeModel({
+      model: 'gemini-2.5-flash',
+      generationConfig: {
+        responseMimeType: 'application/json',
+      },
+    });
+
+    const result = await model.generateContent(prompt);
+    const response = result.response;
+    const text = response.text();
+
+    // Parse the AI response
+    let insightData;
+    try {
+      // Try to extract JSON from markdown code blocks if present
+      let cleanedResponse = text;
+      if (text.includes('```json')) {
+        cleanedResponse = text
+          .replace(/```json\n?/g, '')
+          .replace(/```\n?/g, '')
+          .trim();
+      }
+      insightData = JSON.parse(cleanedResponse);
+    } catch (error) {
+      console.error('Failed to parse AI response:', error);
+      console.error('Raw response:', text);
+      throw new Error('Failed to parse insight data');
+    }
+
+    return insightData;
+  } catch (error) {
+    console.error('Error calling Google AI:', error);
+    throw error;
   }
 }
 --- End of Content for route.ts ---
@@ -1675,7 +2569,6 @@ import {
 } from "@prisma/client";
 import type { UserProfile } from "@/types/next-auth";
 
-// ... (שאר הפונקציות נשארות זהות) ...
 // Helper to convert to number or null
 const toNumberOrNull = (value: string | number | null | undefined): number | null => {
   if (value === null || value === undefined || String(value).trim() === "") {
@@ -1870,12 +2763,10 @@ export async function PUT(req: NextRequest) {
 
     if (currentGenderForLogic === Gender.FEMALE) {
         if (headCovering !== undefined) dataToUpdate.headCovering = emptyStringToNull(headCovering) as HeadCoveringType | null;
-        // ◀️ FIX: Changed body.hasOwnProperty('kippahType') to the safe version
         if (gender !== undefined && gender === Gender.FEMALE) dataToUpdate.kippahType = null;
         else if (Object.prototype.hasOwnProperty.call(body, 'kippahType') && kippahType === null) dataToUpdate.kippahType = null;
     } else if (currentGenderForLogic === Gender.MALE) {
         if (kippahType !== undefined) dataToUpdate.kippahType = emptyStringToNull(kippahType) as KippahType | null;
-        // ◀️ FIX: Changed body.hasOwnProperty('headCovering') to the safe version
         if (gender !== undefined && gender === Gender.MALE) dataToUpdate.headCovering = null;
         else if (Object.prototype.hasOwnProperty.call(body, 'headCovering') && headCovering === null) dataToUpdate.headCovering = null;
     } else {
@@ -1939,19 +2830,16 @@ export async function PUT(req: NextRequest) {
     if (availabilityStatus !== undefined) {
       const statusValue = emptyStringToNull(availabilityStatus);
       dataToUpdate.availabilityStatus = (statusValue === null ? "AVAILABLE" : statusValue) as AvailabilityStatus;
-      // ◀️ FIX: Changed body.hasOwnProperty to the safe version
       if (!Object.prototype.hasOwnProperty.call(body, 'availabilityUpdatedAt') || availabilityUpdatedAt === undefined) {
         dataToUpdate.availabilityUpdatedAt = new Date();
       }
     }
     if (availabilityNote !== undefined) dataToUpdate.availabilityNote = emptyStringToNull(availabilityNote);
-    // ◀️ FIX: Changed body.hasOwnProperty to the safe version
     if (Object.prototype.hasOwnProperty.call(body, 'availabilityUpdatedAt') && availabilityUpdatedAt !== undefined) {
         dataToUpdate.availabilityUpdatedAt = toDateOrNull(availabilityUpdatedAt);
     }
     dataToUpdate.lastActive = new Date();
 
-    // ... (שאר הקובץ נשאר זהה) ...
     // --- Perform the database update ---
     let updatedProfileRecord: Profile | null = null;
     if (Object.keys(dataToUpdate).length > 0) {
@@ -2064,6 +2952,7 @@ export async function PUT(req: NextRequest) {
       hasViewedProfilePreview: dbProfile.hasViewedProfilePreview, 
       cvUrl: dbProfile.cvUrl,
       cvSummary: dbProfile.cvSummary,
+      aiProfileSummary: dbProfile.aiProfileSummary, // <--- Added this field
       createdAt: new Date(dbProfile.createdAt),
       updatedAt: new Date(dbProfile.updatedAt),
       lastActive: dbProfile.lastActive ? new Date(dbProfile.lastActive) : null,

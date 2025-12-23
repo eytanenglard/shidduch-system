@@ -1,7 +1,7 @@
 // src/components/auth/RegisterSteps.tsx
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { RegistrationProvider, useRegistration } from './RegistrationContext';
@@ -18,10 +18,89 @@ import StandardizedLoadingSpinner from '@/components/questionnaire/common/Standa
 import type { User as SessionUserType } from '@/types/next-auth';
 import type { RegisterStepsDict } from '@/types/dictionaries/auth';
 
+// ============================================================================
+// TYPES
+// ============================================================================
+
 interface RegisterStepsProps {
   dict: RegisterStepsDict;
   locale: 'he' | 'en';
 }
+
+// ============================================================================
+// HELPER: קביעת לאן להפנות את המשתמש
+// ============================================================================
+
+interface UserRedirectState {
+  isProfileComplete: boolean;
+  isPhoneVerified: boolean;
+  termsAndPrivacyAcceptedAt?: Date | string | null;
+  role?: string;
+  isVerified?: boolean;
+  status?: string;
+}
+
+/**
+ * מחזיר את הנתיב שאליו צריך להפנות את המשתמש,
+ * או null אם המשתמש צריך להישאר בדף הנוכחי (register).
+ */
+function getRedirectPathForUser(
+  user: UserRedirectState,
+  locale: string
+): string | null {
+  // 🔴 לוג מפורט
+  console.log('[getRedirectPathForUser] Input:', {
+    isProfileComplete: user.isProfileComplete,
+    isPhoneVerified: user.isPhoneVerified,
+    termsAndPrivacyAcceptedAt: user.termsAndPrivacyAcceptedAt,
+    hasTerms: !!user.termsAndPrivacyAcceptedAt,
+    role: user.role,
+    locale,
+  });
+
+  // תרחיש 1: אדמין/שדכן - לא צריכים להשלים פרופיל
+  if (user.role === 'ADMIN' || user.role === 'MATCHMAKER') {
+    console.log(
+      '[getRedirectPathForUser] -> Admin/Matchmaker, redirecting to admin'
+    );
+    return `/${locale}/admin/engagement`;
+  }
+
+  // תרחיש 2: הכל שלם - הפנה לפרופיל
+  if (
+    user.isProfileComplete &&
+    user.isPhoneVerified &&
+    user.termsAndPrivacyAcceptedAt
+  ) {
+    console.log(
+      '[getRedirectPathForUser] -> All complete, redirecting to profile'
+    );
+    return `/${locale}/profile`;
+  }
+
+  // תרחיש 3: פרופיל שלם + terms מאושרים, אבל פלאפון לא מאומת
+  // 🔴 זה התיקון העיקרי!
+  if (
+    user.isProfileComplete &&
+    user.termsAndPrivacyAcceptedAt &&
+    !user.isPhoneVerified
+  ) {
+    console.log(
+      '[getRedirectPathForUser] -> Profile complete but phone not verified, redirecting to verify-phone'
+    );
+    return `/${locale}/auth/verify-phone`;
+  }
+
+  // תרחיש 4: צריך להשלים פרופיל או לאשר terms - נשאר בדף register
+  console.log(
+    '[getRedirectPathForUser] -> Needs to complete profile/terms, staying on register'
+  );
+  return null;
+}
+
+// ============================================================================
+// MAIN COMPONENT
+// ============================================================================
 
 const RegisterStepsContent: React.FC<{
   dict: RegisterStepsDict;
@@ -32,16 +111,38 @@ const RegisterStepsContent: React.FC<{
     initializeFromSession,
     resetForm,
     goToStep,
-    submission, // מצב ה-submission מה-context
+    submission,
   } = useRegistration();
+
   const router = useRouter();
-  const { data: session, status: sessionStatus } = useSession();
+  const {
+    data: session,
+    status: sessionStatus,
+    update: updateSession,
+  } = useSession();
   const searchParams = useSearchParams();
 
+  // State
   const [showIncompleteProfileMessage, setShowIncompleteProfileMessage] =
     useState(false);
   const [initializationAttempted, setInitializationAttempted] = useState(false);
+  const [isRedirecting, setIsRedirecting] = useState(false);
 
+  // Ref למניעת הפניות כפולות
+  const redirectInProgressRef = useRef(false);
+
+  // 🔴 לוג טעינת הקומפוננטה
+  console.log('[RegisterSteps] Component rendered', {
+    sessionStatus,
+    hasSession: !!session,
+    hasUser: !!session?.user,
+    isRedirecting,
+    initializationAttempted,
+  });
+
+  // ============================================================================
+  // Effect 1: הצגת הודעה על פרופיל לא שלם
+  // ============================================================================
   useEffect(() => {
     const reasonParam = searchParams.get('reason');
     if (
@@ -54,31 +155,91 @@ const RegisterStepsContent: React.FC<{
     }
   }, [searchParams, registrationContextData.isCompletingProfile]);
 
+  // ============================================================================
+  // Effect 2: לוגיקת ניתוב ואתחול הטופס
+  // ============================================================================
   useEffect(() => {
+    console.log('[RegisterSteps] Effect triggered', {
+      sessionStatus,
+      redirectInProgress: redirectInProgressRef.current,
+    });
+
+    // אל תעשה כלום אם הסשן בטעינה או אם כבר בתהליך הפניה
     if (sessionStatus === 'loading') {
+      console.log('[RegisterSteps] Session loading, waiting...');
       return;
     }
+
+    if (redirectInProgressRef.current) {
+      console.log('[RegisterSteps] Redirect already in progress, skipping');
+      return;
+    }
+
+    // ============================================================================
+    // משתמש מחובר
+    // ============================================================================
     if (sessionStatus === 'authenticated' && session?.user) {
       const user = session.user as SessionUserType;
 
-      if (
-        user.isProfileComplete &&
-        user.isPhoneVerified &&
+      // 🔴 לוג מפורט של מצב המשתמש
+      console.log('[RegisterSteps] ========== USER STATE ==========');
+      console.log('[RegisterSteps] isProfileComplete:', user.isProfileComplete);
+      console.log('[RegisterSteps] isPhoneVerified:', user.isPhoneVerified);
+      console.log(
+        '[RegisterSteps] termsAndPrivacyAcceptedAt:',
         user.termsAndPrivacyAcceptedAt
-      ) {
-        if (
-          typeof window !== 'undefined' &&
-          window.location.pathname !== `/${locale}/profile`
-        ) {
-          router.push(`/${locale}/profile`);
+      );
+      console.log('[RegisterSteps] role:', user.role);
+      console.log('[RegisterSteps] ================================');
+
+      // בדוק אם צריך להפנות
+      const redirectPath = getRedirectPathForUser(user, locale);
+
+      console.log(
+        '[RegisterSteps] Redirect decision:',
+        redirectPath || 'STAY ON REGISTER'
+      );
+
+      if (redirectPath) {
+        // בדוק שאנחנו לא כבר בנתיב היעד
+        const currentPath =
+          typeof window !== 'undefined' ? window.location.pathname : '';
+        console.log('[RegisterSteps] Current path:', currentPath);
+        console.log('[RegisterSteps] Target path:', redirectPath);
+
+        if (currentPath === redirectPath) {
+          console.log(
+            '[RegisterSteps] Already at target path, skipping redirect'
+          );
+          return;
         }
+
+        console.log(`[RegisterSteps] 🚀 REDIRECTING to: ${redirectPath}`);
+        redirectInProgressRef.current = true;
+        setIsRedirecting(true);
+        router.push(redirectPath);
         return;
       }
 
+      // ============================================================================
+      // המשתמש צריך להישאר בדף - אתחל את הטופס
+      // ============================================================================
       const needsSetup =
-        !user.termsAndPrivacyAcceptedAt ||
-        !user.isProfileComplete ||
-        !user.isPhoneVerified;
+        !user.termsAndPrivacyAcceptedAt || !user.isProfileComplete;
+
+      console.log('[RegisterSteps] Needs setup:', needsSetup);
+      console.log(
+        '[RegisterSteps] initializationAttempted:',
+        initializationAttempted
+      );
+      console.log(
+        '[RegisterSteps] registrationContextData.step:',
+        registrationContextData.step
+      );
+      console.log(
+        '[RegisterSteps] registrationContextData.isVerifyingEmailCode:',
+        registrationContextData.isVerifyingEmailCode
+      );
 
       if (
         needsSetup &&
@@ -86,33 +247,68 @@ const RegisterStepsContent: React.FC<{
           (registrationContextData.step === 0 &&
             !registrationContextData.isVerifyingEmailCode))
       ) {
+        console.log('[RegisterSteps] Initializing form from session');
         initializeFromSession(user);
         setInitializationAttempted(true);
       }
-    } else if (sessionStatus === 'unauthenticated') {
+    }
+
+    // ============================================================================
+    // משתמש לא מחובר
+    // ============================================================================
+    else if (sessionStatus === 'unauthenticated') {
+      console.log('[RegisterSteps] User is unauthenticated');
       const registrationInProgress =
         registrationContextData.step > 0 ||
         registrationContextData.isVerifyingEmailCode;
+
       if (registrationInProgress) {
+        console.log('[RegisterSteps] User logged out, resetting form');
         resetForm();
       }
+
+      // אפס את דגל ההפניה
+      redirectInProgressRef.current = false;
+      setIsRedirecting(false);
     }
   }, [
     sessionStatus,
     session,
     router,
-    registrationContextData,
+    registrationContextData.step,
+    registrationContextData.isVerifyingEmailCode,
+    registrationContextData.isCompletingProfile,
     initializeFromSession,
     resetForm,
-    goToStep,
     initializationAttempted,
-    searchParams,
     locale,
   ]);
 
   // ============================================================================
-  // אם יש submission פעיל - מציגים מסך טעינה מלא
+  // Effect 3: רענון הסשן כשחוזרים לדף (למקרה שמשהו השתנה בטאב אחר)
   // ============================================================================
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (
+        document.visibilityState === 'visible' &&
+        sessionStatus === 'authenticated'
+      ) {
+        console.log('[RegisterSteps] Tab became visible, refreshing session');
+        updateSession();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [sessionStatus, updateSession]);
+
+  // ============================================================================
+  // EARLY RETURNS
+  // ============================================================================
+
+  // מצב טעינה של submission
   if (submission.isSubmitting) {
     return (
       <StandardizedLoadingSpinner
@@ -122,11 +318,23 @@ const RegisterStepsContent: React.FC<{
     );
   }
 
+  // מצב הפניה - הצג loading עד שההפניה תושלם
+  if (isRedirecting) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-slate-50 via-teal-50/40 to-orange-50/40">
+        <StandardizedLoadingSpinner
+          text={locale === 'he' ? 'מעביר אותך...' : 'Redirecting...'}
+        />
+      </div>
+    );
+  }
+
   // ============================================================================
   // RENDER STEP
   // ============================================================================
 
   const renderStep = (): React.ReactNode => {
+    // סשן בטעינה
     if (sessionStatus === 'loading') {
       return (
         <div className="flex justify-center p-10">
@@ -135,6 +343,7 @@ const RegisterStepsContent: React.FC<{
       );
     }
 
+    // אימות מייל
     if (
       registrationContextData.isVerifyingEmailCode &&
       !registrationContextData.isCompletingProfile
@@ -147,6 +356,7 @@ const RegisterStepsContent: React.FC<{
       );
     }
 
+    // השלמת פרופיל
     if (registrationContextData.isCompletingProfile) {
       switch (registrationContextData.step) {
         case 2:
@@ -162,11 +372,17 @@ const RegisterStepsContent: React.FC<{
         case 4:
           return <CompleteStep dict={dict.steps.complete} />;
         default:
+          // מצב לא צפוי - אפס ותתחיל מחדש
+          console.warn(
+            '[RegisterSteps] Unexpected step in isCompletingProfile mode:',
+            registrationContextData.step
+          );
           resetForm();
           return <WelcomeStep dict={dict.steps.welcome} locale={locale} />;
       }
     }
 
+    // זרימת הרשמה רגילה
     switch (registrationContextData.step) {
       case 0:
         return <WelcomeStep dict={dict.steps.welcome} locale={locale} />;
@@ -180,6 +396,10 @@ const RegisterStepsContent: React.FC<{
           />
         );
       default:
+        console.warn(
+          '[RegisterSteps] Unexpected step in regular flow:',
+          registrationContextData.step
+        );
         resetForm();
         return <WelcomeStep dict={dict.steps.welcome} locale={locale} />;
     }
@@ -286,6 +506,10 @@ const RegisterStepsContent: React.FC<{
     </div>
   );
 };
+
+// ============================================================================
+// WRAPPER WITH PROVIDER
+// ============================================================================
 
 export default function RegisterSteps({ dict, locale }: RegisterStepsProps) {
   return (

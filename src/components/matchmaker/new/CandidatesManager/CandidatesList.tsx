@@ -569,6 +569,7 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
 
           {selectedCandidate && (
             <div className="p-0">
+              
               <ProfileCard
                 profile={selectedCandidate.profile}
                 images={selectedCandidate.images}
