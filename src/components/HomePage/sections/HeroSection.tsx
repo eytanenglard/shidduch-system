@@ -665,58 +665,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({
           </Link>
         </motion.div>
 
-        {/* באנר חנוכה */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, delay: 0.5 }}
-          className="mt-6 w-full max-w-lg mx-auto z-20 relative"
-        >
-          <Link href={`/${locale}/friends`} className="block">
-            <div className="group relative overflow-hidden bg-gradient-to-r from-teal-50 via-amber-50 to-orange-50 hover:from-teal-100 hover:via-amber-100 hover:to-orange-100 border border-amber-200/60 hover:border-amber-300 rounded-2xl p-4 shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer">
-              {/* רקע דקורטיבי - pointer-events-none */}
-              <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-amber-200/30 to-transparent rounded-full blur-xl pointer-events-none" />
-              <div className="absolute bottom-0 left-0 w-20 h-20 bg-gradient-to-br from-teal-200/30 to-transparent rounded-full blur-xl pointer-events-none" />
-
-              <div className="relative z-10">
-                <div className="flex items-center justify-center gap-3 mb-3">
-                  <span className="text-2xl">🕎</span>
-                  <div className="text-center">
-                    <div className="text-base font-bold text-gray-800">
-                      {locale === 'he'
-                        ? 'מוסיפים אור בחנוכה!'
-                        : 'Adding Light this Hanukkah!'}
-                    </div>
-                    <div className="text-xs text-amber-700">
-                      {locale === 'he'
-                        ? 'הזמינו חברים וזכו בארוחה זוגית 🎁'
-                        : 'Invite friends & win a dinner for two 🎁'}
-                    </div>
-                  </div>
-                  <span className="text-2xl">🕎</span>
-                </div>
-
-                <div className="flex items-center justify-center gap-3 bg-white/70 rounded-xl py-2 px-4">
-                  <span className="text-xs text-gray-500">
-                    {locale === 'he' ? 'נשארו:' : 'Time left:'}
-                  </span>
-                  <CountdownTimer locale={locale} />
-                  <div className="flex items-center gap-1 text-teal-600 group-hover:translate-x-[-2px] transition-transform">
-                    <span className="text-xs font-medium hidden sm:inline">
-                      {locale === 'he' ? 'לפרטים' : 'Details'}
-                    </span>
-                    {locale === 'he' ? (
-                      <ArrowLeft className="w-4 h-4" />
-                    ) : (
-                      <ArrowRight className="w-4 h-4" />
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </Link>
-        </motion.div>
-
+ 
         {/* עקרונות (דסקטופ ומובייל) */}
         <div className="mt-12 sm:mt-16 w-full max-w-6xl z-10 relative">
           <div className="md:hidden">

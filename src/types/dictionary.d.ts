@@ -2155,6 +2155,7 @@ export type ProfileSectionDict = {
       positionLabel: string;
       positionPlaceholder: string;
     };
+// שורה 2158
     religion: {
       title: string;
       religiousLevelLabel: string;
@@ -2163,6 +2164,8 @@ export type ProfileSectionDict = {
       religiousJourneyPlaceholder: string;
       shomerNegiahLabel: string;
       shomerNegiahYes: string;
+      shomerNegiahNo: string;              // ← הוסף שורה זו
+      shomerNegiahPlaceholder: string;     // ← הוסף שורה זו
       headCoveringLabel: string;
       headCoveringPlaceholder: string;
       headCoveringDefault: string;
@@ -2574,6 +2577,8 @@ friendTestimonials: {
       worldview: string;
       religiousJourney: string;
       shomerNegiah: string;
+      shomerNegiahNo: string;
+shomerNegiahPlaceholder: string;
       headCovering: string;
       kippahType: string;
       educationLevel: string;
@@ -2657,7 +2662,7 @@ export type ProfileCardDict = {
       positionLabel: string;
       positionPlaceholder: string;
     };
-    religion: {
+     religion: {
       title: string;
       religiousLevelLabel: string;
       religiousLevelPlaceholder: string;
@@ -2665,6 +2670,8 @@ export type ProfileCardDict = {
       religiousJourneyPlaceholder: string;
       shomerNegiahLabel: string;
       shomerNegiahYes: string;
+      shomerNegiahNo: string;              // ← 🔥 הוסף שורה זו
+      shomerNegiahPlaceholder: string;     // ← 🔥 הוסף שורה זו
       headCoveringLabel: string;
       headCoveringPlaceholder: string;
       headCoveringDefault: string;
@@ -2677,8 +2684,8 @@ export type ProfileCardDict = {
       influentialRabbiLabel: string;
       influentialRabbiPlaceholder: string;
       influentialRabbiEmpty: string;
-
     };
+
     about: {
       title: string;
       headlineLabel: string;

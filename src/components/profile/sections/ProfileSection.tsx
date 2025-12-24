@@ -1173,6 +1173,25 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
       | string[]
       | null
   ) => {
+    // ✅ FIX: Clear related medical fields when unchecking hasMedicalInfo
+    if (field === 'hasMedicalInfo') {
+      if (!value) {
+        // When unchecking hasMedicalInfo, clear all related fields
+        setFormData((prev) => ({
+          ...prev,
+          hasMedicalInfo: false,
+          medicalInfoDetails: undefined,
+          medicalInfoDisclosureTiming: undefined,
+          isMedicalInfoVisible: false,
+        }));
+        return;
+      } else {
+        // When checking hasMedicalInfo, just update the field
+        setFormData((prev) => ({ ...prev, hasMedicalInfo: true }));
+        return;
+      }
+    }
+
     setFormData((prev) => {
       let finalValue: UserProfile[keyof UserProfile] | undefined = undefined;
 
@@ -1225,7 +1244,14 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
       return;
     }
 
+    // ✅ FIX: Clean medical fields if hasMedicalInfo is false
     const dataToSave = { ...formData };
+    if (!dataToSave.hasMedicalInfo) {
+      dataToSave.medicalInfoDetails = undefined;
+      dataToSave.medicalInfoDisclosureTiming = undefined;
+      dataToSave.isMedicalInfoVisible = false;
+    }
+
     onSave(dataToSave);
     setIsEditing(false);
     setInitialData(dataToSave);
@@ -2088,39 +2114,69 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                       </p>
                     )}
                   </div>
-                  
+
                   <div
                     className={cn(
                       'pt-1 sm:pt-0',
                       isEditing && !viewOnly ? 'sm:pt-5' : 'sm:pt-0'
                     )}
                   >
-
-                    <Label className="block mb-1.5 text-xs font-medium text-gray-600">
+                    <Label
+                      htmlFor="shomerNegiah"
+                      className="block mb-1.5 text-xs font-medium text-gray-600"
+                    >
                       {dict.cards.religion.shomerNegiahLabel}
                     </Label>
                     {isEditing && !viewOnly ? (
-                      <div className="flex items-center space-x-2 rtl:space-x-reverse mt-2">
-                        <Checkbox
-                          id="shomerNegiah"
-                          checked={formData.shomerNegiah || false}
-                          onCheckedChange={(checked) =>
-                            handleChange('shomerNegiah', checked as boolean)
+                      <Select
+                        dir={direction}
+                        value={
+                          formData.shomerNegiah === true
+                            ? 'YES'
+                            : formData.shomerNegiah === false
+                              ? 'NO'
+                              : ''
+                        }
+                        onValueChange={(value) => {
+                          if (value === 'YES') {
+                            handleChange('shomerNegiah', true);
+                          } else if (value === 'NO') {
+                            handleChange('shomerNegiah', false);
+                          } else {
+                            handleChange('shomerNegiah', undefined);
                           }
-                        />
-                        <Label
-                          htmlFor="shomerNegiah"
-                          className="text-sm font-normal text-gray-700"
+                        }}
+                      >
+                        <SelectTrigger
+                          id="shomerNegiah"
+                          className="h-9 text-sm focus:ring-cyan-500 text-start"
                         >
-                          {dict.cards.religion.shomerNegiahYes}
-                        </Label>
-                      </div>
+                          <SelectValue
+                            placeholder={
+                              dict.cards.religion.shomerNegiahPlaceholder ||
+                              'בחר/י...'
+                            }
+                          />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="YES">
+                            {dict.cards.religion.shomerNegiahYes}
+                          </SelectItem>
+                          <SelectItem value="NO">
+                            {dict.cards.religion.shomerNegiahNo || 'לא'}
+                          </SelectItem>
+                          <SelectItem value="">
+                            {dict.placeholders.notSpecified}
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
                     ) : (
                       <p className="text-sm text-gray-800 font-medium mt-1">
                         {renderBooleanDisplayValue(
                           formData.shomerNegiah,
                           dict,
-                          dict.cards.religion.shomerNegiahYes
+                          dict.cards.religion.shomerNegiahYes,
+                          dict.cards.religion.shomerNegiahNo || 'לא'
                         )}
                       </p>
                     )}

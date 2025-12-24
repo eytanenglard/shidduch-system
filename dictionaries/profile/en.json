@@ -1,181 +1,181 @@
 {
   "pageLoader": "Loading profile...",
- "dashboard": {
-  "loadingData": "Loading profile data...",
-  "loadError": "Error loading profile: {{error}}",
-  "updateSuccess": "Profile updated successfully",
-  "updateError": "Error updating profile: {{error}}",
-  "previewButton": "Preview Profile",
-  "previewLoading": "Loading preview...",
-  "viewedPreviewSuccess": "Preview status updated",
-  "viewedPreviewError": "Error updating preview status",
-  "tabs": {
-    "overview": "Overview",
-    "photos": "Photos",
-    "preferences": "Preferences",
-    "questionnaire": "Questionnaire"
-  },
-  "tabContent": {
-    "loadingOverview": "Loading personal details...",
-    "loadingPreferences": "Loading preferences...",
-    "loadingQuestionnaire": "Loading questionnaire answers...",
-    "noQuestionnaire": "You haven't filled out the matchmaking questionnaire yet.",
-    "fillQuestionnaireLink": "Click here to fill out the questionnaire",
-    "questionnaireUpdateSuccess": "Answer updated successfully",
-    "questionnaireUpdateError": "Error updating answer"
-  },
-  "privacyAssurances": {
-    "banner": {
-      "text": "Your details are kept completely confidential",
-      "subtext": "Visible only to the matchmaker and potential matches"
-    },
-    "preview": "This is exactly what the other side will see when a suggestion is sent by the matchmaker"
-  },
-"neshmaInsightButton": {
-  "buttonText": "✨ Your Full Picture is Ready!",
-  "buttonSubtitle": "You completed your profile! Receive a deep, personalized analysis that paints the full picture of who you are.",
-  "dialogTitle": "Your Full Picture",
-  "generating": "Creating your Full Picture...",
-  "downloadPdf": "Download My Full Picture",
-  "close": "Close",
-  "lockedTitle": "Full Picture - Locked",
-  "lockedDescription": "Complete your profile to 100% to unlock (Currently: {{percentage}}%)",
-  "alreadyGeneratedToday": "Full Picture generated today - Available again tomorrow",
-  "minimizedButtonText": "Full Picture"
-},
-  "checklist": {
-    "welcome": "Hi {{firstName}}, Welcome!",
-    "welcome_female": "Hi {{firstName}}, Welcome!",
-    "welcomeSubtitle": "Let's complete your profile so we can get started.",
-    "checklistPurpose": "A complete profile significantly increases match chances.",
-    "completionLabel": "{{percentage}}% Complete",
-    "allComplete": "Great job, your profile is complete!",
-    "allComplete_female": "Great job, your profile is complete!",
-    "allCompleteSubtitle": "Everything is ready. Our matchmaking team is already working for you.",
-    "expandLabel": "Show Tasks",
-    "minimizeLabel": "Hide Tasks",
-    "missingItemsTitle": "What's Missing?",
-    "privacyNote": "This information is confidential and kept private.",
-    "tasks": {
-      "photos": {
-        "title": "Upload Photos",
-        "description": "A good photo is worth a thousand words.",
-        "missing": "{{count}} photos missing"
-      },
-      "personalDetails": {
-        "title": "Personal Details",
-        "description": "Tell us a bit about yourself."
-      },
-      "partnerPreferences": {
-        "title": "Partner Preferences",
-        "description": "Who are you looking for?"
-      },
-      "questionnaire": {
-        "title": "Matchmaking Questionnaire",
-        "description": "Your journey of self-discovery."
-      },
-      "review": {
-        "title": "Profile Review",
-        "description": "One last check before we start.",
-        "missing": "Required fields are empty"
-      }
-    },
-"missingItems": {
-  "profileHeadline": "Profile Headline",
-  "about": "About Me (minimum 100 characters)",
-  "birthDate": "Date of Birth",
-  "height": "Height",
-  "city": "City of Residence",
-  "origin": "Origin / Heritage",
-  "nativeLanguage": "Native Language",
-  "maritalStatus": "Marital Status",
-  "childrenFromPrevious": "Children from a previous relationship",
-  "childrenFromPreviousReference": "Do you have children from a previous relationship",
-  "parentStatus": "Parents' Marital Status",
-  "fatherOccupation": "Father's Occupation",
-  "motherOccupation": "Mother's Occupation",
-  "siblings": "Number of Siblings",
-  "position": "Birth Order",
-  "religiousLevel": "Religious Style",
-  "religiousJourney": "Religious Background",
-  "shomerNegiah": "Shomer Negiah Observance",
-  "influentialRabbi": "Influential Figure",
-  "headCovering": "Head Covering",
-  "kippahType": "Kippah Type",
-  "educationLevel": "Highest Level of Education",
-  "educationDetails": "Education Details",
-  "occupation": "Current Occupation",
-  "serviceType": "Military/National Service",
-  "serviceDetails": "Service Details",
-  "characterTraits": "Character Traits",
-  "hobbies": "Hobbies and Interests",
-  "medicalInfoReference": "Medical/Sensitive Information",
-  "medicalInfoDetails": "Medical Information Details",
-  "medicalInfoDisclosureTiming": "Disclosure Timing",
-  "testimonials": "Approved Friend Testimonial",
-  "matchingNotes": "Notes for the Matchmaker",
-  "preferredAgeRange": "Preferred Age Range",
-  "preferredHeightRange": "Preferred Height Range",
-  "preferredLocations": "Preferred Residential Areas",
-  "preferredOrigins": "Preferred Origin/Heritage",
-  "preferredAliyaStatus": "Aliyah Status Preference",
-  "preferredReligiousLevels": "Preferred Religious Levels",
-  "preferredReligiousJourneys": "Preferred Religious Backgrounds",
-  "preferredShomerNegiah": "Shomer Negiah Preference",
-  "preferredKippahTypes": "Preferred Kippah Types",
-  "preferredHeadCoverings": "Preferred Head Coverings",
-  "preferredEducation": "Preferred Education Levels",
-  "preferredOccupations": "Preferred Occupational Fields",
-  "preferredServiceTypes": "Preferred Service Types",
-  "preferredMaritalStatuses": "Preferred Marital Statuses",
-  "preferredPartnerHasChildren": "Preference regarding children from previous relationship",
-  "preferredCharacterTraits": "Preferred Character Traits",
-  "preferredHobbies": "Preferred Hobbies"
-}
-  },
-"aiAdvisor": {
-  "triggerButton": "Our AI is Here to Help - Want Profile Tips?",
-  "dialogTitle": "Personal Recommendations from NeshamaTech's AI",
-  "dialogDescription": "Our AI analyzes your profile and suggests ways to improve it - so you can find the right match.",
-  "closeButton": "Close",
-  "loadingTitle": "Our AI is working on it...",
-  "loadingDescription": "Reading your profile and preparing tailored recommendations.",
-  "errorAlertTitle": "Something went wrong",
-  "errorAlertDescription": "We couldn't complete the analysis. Try again in a moment.",
-  "retryButton": "Try Again",
-  "initialState": "Click to get recommendations from our AI",
-  "toast": {
-    "errorTitle": "Error",
-    "errorDescription": "An error occurred: {{error}}"
-  }
-},
-  "analysisResult": {
+  "dashboard": {
+    "loadingData": "Loading profile data...",
+    "loadError": "Error loading profile: {{error}}",
+    "updateSuccess": "Profile updated successfully",
+    "updateError": "Error updating profile: {{error}}",
+    "previewButton": "Preview Profile",
+    "previewLoading": "Loading preview...",
+    "viewedPreviewSuccess": "Preview status updated",
+    "viewedPreviewError": "Error updating preview status",
     "tabs": {
-      "summary": "Summary",
-      "completeness": "Completeness",
-      "tips": "Tips"
+      "overview": "Overview",
+      "photos": "Photos",
+      "preferences": "Preferences",
+      "questionnaire": "Questionnaire"
     },
-    "summary": {
-      "myPersonalityTitle": "Your Personality",
-      "myPersonalityDescription": "Analysis based on your questionnaire.",
-      "lookingForTitle": "What You're Looking For",
-      "lookingForDescription": "Summary of your preferences."
+    "tabContent": {
+      "loadingOverview": "Loading personal details...",
+      "loadingPreferences": "Loading preferences...",
+      "loadingQuestionnaire": "Loading questionnaire answers...",
+      "noQuestionnaire": "You haven't filled out the matchmaking questionnaire yet.",
+      "fillQuestionnaireLink": "Click here to fill out the questionnaire",
+      "questionnaireUpdateSuccess": "Answer updated successfully",
+      "questionnaireUpdateError": "Error updating answer"
     },
-    "completeness": {
-      "title": "Completeness Score",
-      "description": "How ready is your profile for matchmaking?",
-      "status": {
-        "complete": "Excellent",
-        "partial": "Partial",
-        "missing": "Essential Info Missing"
+    "privacyAssurances": {
+      "banner": {
+        "text": "Your details are kept completely confidential",
+        "subtext": "Visible only to the matchmaker and potential matches"
+      },
+      "preview": "This is exactly what the other side will see when a suggestion is sent by the matchmaker"
+    },
+    "neshmaInsightButton": {
+      "buttonText": "✨ Your Full Picture is Ready!",
+      "buttonSubtitle": "You completed your profile! Receive a deep, personalized analysis that paints the full picture of who you are.",
+      "dialogTitle": "Your Full Picture",
+      "generating": "Creating your Full Picture...",
+      "downloadPdf": "Download My Full Picture",
+      "close": "Close",
+      "lockedTitle": "Full Picture - Locked",
+      "lockedDescription": "Complete your profile to 100% to unlock (Currently: {{percentage}}%)",
+      "alreadyGeneratedToday": "Full Picture generated today - Available again tomorrow",
+      "minimizedButtonText": "Full Picture"
+    },
+    "checklist": {
+      "welcome": "Hi {{firstName}}, Welcome!",
+      "welcome_female": "Hi {{firstName}}, Welcome!",
+      "welcomeSubtitle": "Let's complete your profile so we can get started.",
+      "checklistPurpose": "A complete profile significantly increases match chances.",
+      "completionLabel": "{{percentage}}% Complete",
+      "allComplete": "Great job, your profile is complete!",
+      "allComplete_female": "Great job, your profile is complete!",
+      "allCompleteSubtitle": "Everything is ready. Our matchmaking team is already working for you.",
+      "expandLabel": "Show Tasks",
+      "minimizeLabel": "Hide Tasks",
+      "missingItemsTitle": "What's Missing?",
+      "privacyNote": "This information is confidential and kept private.",
+      "tasks": {
+        "photos": {
+          "title": "Upload Photos",
+          "description": "A good photo is worth a thousand words.",
+          "missing": "{{count}} photos missing"
+        },
+        "personalDetails": {
+          "title": "Personal Details",
+          "description": "Tell us a bit about yourself."
+        },
+        "partnerPreferences": {
+          "title": "Partner Preferences",
+          "description": "Who are you looking for?"
+        },
+        "questionnaire": {
+          "title": "Matchmaking Questionnaire",
+          "description": "Your journey of self-discovery."
+        },
+        "review": {
+          "title": "Profile Review",
+          "description": "One last check before we start.",
+          "missing": "Required fields are empty"
+        }
+      },
+      "missingItems": {
+        "profileHeadline": "Profile Headline",
+        "about": "About Me (minimum 100 characters)",
+        "birthDate": "Date of Birth",
+        "height": "Height",
+        "city": "City of Residence",
+        "origin": "Origin / Heritage",
+        "nativeLanguage": "Native Language",
+        "maritalStatus": "Marital Status",
+        "childrenFromPrevious": "Children from a previous relationship",
+        "childrenFromPreviousReference": "Do you have children from a previous relationship",
+        "parentStatus": "Parents' Marital Status",
+        "fatherOccupation": "Father's Occupation",
+        "motherOccupation": "Mother's Occupation",
+        "siblings": "Number of Siblings",
+        "position": "Birth Order",
+        "religiousLevel": "Religious Style",
+        "religiousJourney": "Religious Background",
+        "shomerNegiah": "Shomer Negiah Observance",
+        "influentialRabbi": "Influential Figure",
+        "headCovering": "Head Covering",
+        "kippahType": "Kippah Type",
+        "educationLevel": "Highest Level of Education",
+        "educationDetails": "Education Details",
+        "occupation": "Current Occupation",
+        "serviceType": "Military/National Service",
+        "serviceDetails": "Service Details",
+        "characterTraits": "Character Traits",
+        "hobbies": "Hobbies and Interests",
+        "medicalInfoReference": "Medical/Sensitive Information",
+        "medicalInfoDetails": "Medical Information Details",
+        "medicalInfoDisclosureTiming": "Disclosure Timing",
+        "testimonials": "Approved Friend Testimonial",
+        "matchingNotes": "Notes for the Matchmaker",
+        "preferredAgeRange": "Preferred Age Range",
+        "preferredHeightRange": "Preferred Height Range",
+        "preferredLocations": "Preferred Residential Areas",
+        "preferredOrigins": "Preferred Origin/Heritage",
+        "preferredAliyaStatus": "Aliyah Status Preference",
+        "preferredReligiousLevels": "Preferred Religious Levels",
+        "preferredReligiousJourneys": "Preferred Religious Backgrounds",
+        "preferredShomerNegiah": "Shomer Negiah Preference",
+        "preferredKippahTypes": "Preferred Kippah Types",
+        "preferredHeadCoverings": "Preferred Head Coverings",
+        "preferredEducation": "Preferred Education Levels",
+        "preferredOccupations": "Preferred Occupational Fields",
+        "preferredServiceTypes": "Preferred Service Types",
+        "preferredMaritalStatuses": "Preferred Marital Statuses",
+        "preferredPartnerHasChildren": "Preference regarding children from previous relationship",
+        "preferredCharacterTraits": "Preferred Character Traits",
+        "preferredHobbies": "Preferred Hobbies"
       }
     },
-    "tips": {
-      "title": "System Recommendations",
-      "description": "Things worth paying attention to."
+    "aiAdvisor": {
+      "triggerButton": "Our AI is Here to Help - Want Profile Tips?",
+      "dialogTitle": "Personal Recommendations from NeshamaTech's AI",
+      "dialogDescription": "Our AI analyzes your profile and suggests ways to improve it - so you can find the right match.",
+      "closeButton": "Close",
+      "loadingTitle": "Our AI is working on it...",
+      "loadingDescription": "Reading your profile and preparing tailored recommendations.",
+      "errorAlertTitle": "Something went wrong",
+      "errorAlertDescription": "We couldn't complete the analysis. Try again in a moment.",
+      "retryButton": "Try Again",
+      "initialState": "Click to get recommendations from our AI",
+      "toast": {
+        "errorTitle": "Error",
+        "errorDescription": "An error occurred: {{error}}"
+      }
+    },
+    "analysisResult": {
+      "tabs": {
+        "summary": "Summary",
+        "completeness": "Completeness",
+        "tips": "Tips"
+      },
+      "summary": {
+        "myPersonalityTitle": "Your Personality",
+        "myPersonalityDescription": "Analysis based on your questionnaire.",
+        "lookingForTitle": "What You're Looking For",
+        "lookingForDescription": "Summary of your preferences."
+      },
+      "completeness": {
+        "title": "Completeness Score",
+        "description": "How ready is your profile for matchmaking?",
+        "status": {
+          "complete": "Excellent",
+          "partial": "Partial",
+          "missing": "Essential Info Missing"
+        }
+      },
+      "tips": {
+        "title": "System Recommendations",
+        "description": "Things worth paying attention to."
+      }
     }
-  }
-},
+  },
   "photosSection": {
     "title": "Your Profile Photos",
     "subtitle": "Upload up to {{maxImages}} photos. Your first photo will be your main profile picture.",
@@ -238,7 +238,7 @@
     "privacyNote": "Your photos aren't publicly visible - only approved matches see them"
   },
   "profileSection": {
- "aboutMe": {
+    "aboutMe": {
       "cardTitle": "My Story, In My Own Words",
       "placeholder": "This is your space to connect the dots. Tell us about your journey, significant milestones (studies, service, travel), what drives you today, and your dreams for the future. This is the story behind the data, and it will help us and potential matches truly get to know you.",
       "tooltip": "The text you write here will be used by our matchmakers to get to know you on a deeper level and can be displayed on your profile.",
@@ -284,14 +284,12 @@
       },
       "visibilityTooltip": "Show the testimonials section on the profile card sent in suggestions?",
       "emptyState": "Testimonials from people who know you well are a powerful way to build trust and give others an authentic glimpse into your personality."
-    }
-,
+    },
     "loading": "Loading profile data...",
     "budgetDisplay": {
       "errorInvalidData": "Error: Invalid data for display.",
       "noValuesAllocated": "No values allocated."
     },
-
     "header": {
       "title": "Personal Profile",
       "subtitleEdit": "Edit your profile details to best reflect who you are.",
@@ -345,12 +343,14 @@
       },
       "religion": {
         "title": "Worldview & Faith",
-       "religiousLevelLabel": "Religious Style",
-"religiousLevelPlaceholder": "Select style",
+        "religiousLevelLabel": "Religious Style",
+        "religiousLevelPlaceholder": "Select style",
         "religiousJourneyLabel": "Religious Background",
         "religiousJourneyPlaceholder": "Select background",
         "shomerNegiahLabel": "Observant of Shomer Negiah?",
         "shomerNegiahYes": "Yes",
+        "shomerNegiahNo": "No",
+        "shomerNegiahPlaceholder": "Choose...",
         "headCoveringLabel": "Head Covering",
         "headCoveringPlaceholder": "Select covering type",
         "headCoveringDefault": "None",
@@ -376,7 +376,7 @@
         "aboutLabel": "About Me (in your own words)",
         "aboutPlaceholder": "Describe yourself, what makes you unique, and what's important to you...",
         "aboutEmpty": "No personal description provided.",
-"inspiringCoupleLabel": "A Couple Whose Relationship Inspires Me",
+        "inspiringCoupleLabel": "A Couple Whose Relationship Inspires Me",
         "inspiringCouplePlaceholder": "Who is the couple and what do you admire about their relationship...",
         "inspiringCoupleEmpty": "No inspiring couple specified.",
         "privateNotesLabel": "Private Notes for the Matchmaker",
@@ -413,40 +413,38 @@
           "hiddenBadge": "Discreet (team only)"
         },
         "privacyNote": "This info is encrypted. Only the matchmaker sees it, and you choose when to share"
-
       },
-
-"education": {
-  "title": "Education, Career & Service",
-  "levelLabel": "Highest Level of Education",
-  "levelPlaceholder": "Select level",
-  "detailsLabel": "Education Details (Institution, Field)",
-  "detailsPlaceholder": "e.g., Bar-Ilan University, Law",
-  "occupationLabel": "Current Occupation",
-  "occupationPlaceholder": "e.g., Teacher, Software Engineer",
-  "serviceTypeLabel": "Service (Military/National/Other)",
-  "serviceTypePlaceholder": "Select service type",
-  "serviceDetailsLabel": "Service Details",
-  "serviceDetailsPlaceholder": "Unit, role, yeshiva/mechina name, etc.",
-  "cvSection": {
-    "title": "Upload CV (Optional)",
-    "subtitle": "Help us get to know you better. The file is confidential and used by our matchmaking team only.",
-    "uploadButton": "Choose File",
-    "replaceButton": "Replace File",
-    "deleteButton": "Delete",
-    "uploading": "Uploading file...",
-    "successBadge": "Successfully Uploaded",
-    "fileTypes": "PDF, DOC, DOCX (up to 5MB)",
-    "toasts": {
-      "invalidFileType": "Unsupported file type. Please upload a PDF, DOC, or DOCX.",
-      "fileTooLarge": "The file is too large. The maximum size is 5MB.",
-      "uploadSuccess": "CV uploaded successfully!",
-      "uploadError": "An error occurred while uploading the file.",
-      "deleteSuccess": "CV deleted successfully!",
-      "deleteError": "An error occurred while deleting the file."
-    }
-  }
-},
+      "education": {
+        "title": "Education, Career & Service",
+        "levelLabel": "Highest Level of Education",
+        "levelPlaceholder": "Select level",
+        "detailsLabel": "Education Details (Institution, Field)",
+        "detailsPlaceholder": "e.g., Bar-Ilan University, Law",
+        "occupationLabel": "Current Occupation",
+        "occupationPlaceholder": "e.g., Teacher, Software Engineer",
+        "serviceTypeLabel": "Service (Military/National/Other)",
+        "serviceTypePlaceholder": "Select service type",
+        "serviceDetailsLabel": "Service Details",
+        "serviceDetailsPlaceholder": "Unit, role, yeshiva/mechina name, etc.",
+        "cvSection": {
+          "title": "Upload CV (Optional)",
+          "subtitle": "Help us get to know you better. The file is confidential and used by our matchmaking team only.",
+          "uploadButton": "Choose File",
+          "replaceButton": "Replace File",
+          "deleteButton": "Delete",
+          "uploading": "Uploading file...",
+          "successBadge": "Successfully Uploaded",
+          "fileTypes": "PDF, DOC, DOCX (up to 5MB)",
+          "toasts": {
+            "invalidFileType": "Unsupported file type. Please upload a PDF, DOC, or DOCX.",
+            "fileTooLarge": "The file is too large. The maximum size is 5MB.",
+            "uploadSuccess": "CV uploaded successfully!",
+            "uploadError": "An error occurred while uploading the file.",
+            "deleteSuccess": "CV deleted successfully!",
+            "deleteError": "An error occurred while deleting the file."
+          }
+        }
+      },
       "character": {
         "title": "Character Traits & Hobbies",
         "traitsLabel": "My Top 3 Character Traits",
@@ -467,14 +465,14 @@
       "influentialRabbi": "Tell us about a figure (rabbi, thinker, teacher) who has shaped your worldview. This helps us understand your spiritual and intellectual side.",
       "privateNotes": "Share anything important for us to know that you don't want on your public profile. e.g., sensitive topics, very specific preferences, or additional background."
     },
-"toasts": {
-  "validationErrorTitle": "Validation Error",
-  "aboutMinLength": "The 'About Me' field must contain at least {{count}} characters.",
-  "uploadSuccess": "CV uploaded successfully!",
-  "uploadError": "An error occurred while uploading the file.",
-  "deleteSuccess": "CV deleted successfully!",
-  "deleteError": "An error occurred while deleting the file."
-},
+    "toasts": {
+      "validationErrorTitle": "Validation Error",
+      "aboutMinLength": "The 'About Me' field must contain at least {{count}} characters.",
+      "uploadSuccess": "CV uploaded successfully!",
+      "uploadError": "An error occurred while uploading the file.",
+      "deleteSuccess": "CV deleted successfully!",
+      "deleteError": "An error occurred while deleting the file."
+    },
     "options": {
       "gender": {
         "MALE": "Male",
@@ -486,23 +484,23 @@
         "widowed": "Widowed",
         "annulled": "Annulled Marriage"
       },
-    "religiousLevel": {
-  "dati_leumi_standard": "Religious Zionist (Standard)",
-  "dati_leumi_liberal": "Religious Zionist (Liberal)",
-  "dati_leumi_torani": "Religious Zionist (Torani)",
-  "masorti_strong": "Traditional (Observant)",
-  "masorti_light": "Traditional (Lightly connected)",
-  "secular_traditional_connection": "Secular with connection to tradition",
-  "secular": "Secular",
-  "spiritual_not_religious": "Spiritual (not necessarily religious)",
-  "charedi_modern": "Modern Charedi",
-  "charedi_litvak": "Charedi Litvak (Lithuanian)",
-  "charedi_sephardic": "Charedi Sephardic",
-  "charedi_hasidic": "Charedi Hasidic",
-  "chabad": "Chabad (Lubavitch)",
-  "breslov": "Breslov",
-  "other": "Other"
-},
+      "religiousLevel": {
+        "dati_leumi_standard": "Religious Zionist (Standard)",
+        "dati_leumi_liberal": "Religious Zionist (Liberal)",
+        "dati_leumi_torani": "Religious Zionist (Torani)",
+        "masorti_strong": "Traditional (Observant)",
+        "masorti_light": "Traditional (Lightly connected)",
+        "secular_traditional_connection": "Secular with connection to tradition",
+        "secular": "Secular",
+        "spiritual_not_religious": "Spiritual (not necessarily religious)",
+        "charedi_modern": "Modern Charedi",
+        "charedi_litvak": "Charedi Litvak (Lithuanian)",
+        "charedi_sephardic": "Charedi Sephardic",
+        "charedi_hasidic": "Charedi Hasidic",
+        "chabad": "Chabad (Lubavitch)",
+        "breslov": "Breslov",
+        "other": "Other"
+      },
       "religiousJourney": {
         "BORN_INTO_CURRENT_LIFESTYLE": "Grew up in a similar religious environment",
         "BORN_SECULAR": "Grew up in a secular environment",
@@ -650,25 +648,23 @@
       }
     },
     "questionCard": {
-          "languageBadge": {
-  "en": "English",
-  "he": "Hebrew"
-},
-"languageTooltip": "This answer was originally written in the displayed language",
+      "languageBadge": {
+        "en": "English",
+        "he": "Hebrew"
+      },
+      "languageTooltip": "This answer was originally written in the displayed language",
       "toasts": {
         "emptyAnswer": "Cannot save an empty answer.",
         "updateSuccess": "Answer updated successfully.",
         "updateError": "Error updating answer.",
         "visibilitySuccess": "Visibility updated.",
         "visibilityError": "Error updating visibility.",
-                "deleteSuccess": "Answer deleted successfully.",
+        "deleteSuccess": "Answer deleted successfully.",
         "deleteError": "Error deleting answer."
-
       },
-            "deleteConfirm": {
+      "deleteConfirm": {
         "message": "Are you sure you want to permanently delete this answer? This action cannot be undone."
       },
-
       "visibilityButton": {
         "visible": "Visible to Matches",
         "hidden": "Private"
@@ -692,142 +688,262 @@
       "editTooltip": {
         "text": "Edit answer",
         "budget": "Edit in the full questionnaire",
-                "delete": "Delete answer"
-
+        "delete": "Delete answer"
       }
     },
     "buttons": {
-  "editingMode": "Edit mode active",
-  "editHint": "Want to edit your answers?"
-}
-  },
-  "preferencesSection": {
-  "header": {
-    "title": "Match Preferences",
-    "subtitleEdit": "Edit your criteria for a perfect match.",
-    "subtitleView": "Preferences set for match search."
-  },
-  "buttons": {
-    "edit": "Edit",
-    "cancel": "Cancel",
-    "save": "Save",
-    "saveChanges": "Save Changes",
-"unsavedChanges": "You have unsaved changes",
-"editHint": "Want to update your preferences?"
-  },
-  "cards": {
-    "general": {
-      "title": "General Description & Contact",
-      "notesLabel": "General description of the partner you are looking for",
-      "notesTooltip": "This is one of the most important fields! Describe in your own words the type of person you are looking for. This helps matchmakers understand your mindset beyond the dry data.",
-      "notesPlaceholder": "Elaborate on the type of person, important traits, expectations, etc...",
-      "notesEmpty": "No description provided.",
-      "contactPreferenceLabel": "Preferred contact method (after suggestion approval)",
-      "contactPreferencePlaceholder": "Select option...",
-      "contactPreferenceEmpty": "Not specified"
-    },
-    "ageAndHeight": {
-      "title": "Age & Height Preferences",
-      "ageLegend": "Preferred Age Range",
-      "ageTooltip": "Defining a wider age range will increase the number of suggestions you receive.",
-      "ageMinPlaceholder": "From age",
-      "ageMaxPlaceholder": "To age",
-      "ageEmpty": "No age range defined.",
-      "heightLegend": "Preferred Height Range (cm)",
-      "heightMinPlaceholder": "From",
-      "heightMaxPlaceholder": "To",
-      "heightEmpty": "No height range defined."
-    },
-    "locationAndReligion": {
-      "title": "Location, Religion & Lifestyle",
-      "locationsLabel": "Preferred Residential Areas",
-      "locationsPlaceholder": "Add a city...",
-      "locationsRemoveLabel": "Remove {{loc}}",
-      "locationsEmpty": "No locations selected.",
-      "religiousLevelsLegend": "Preferred Religious Levels",
-      "religiousLevelsTooltip": "It is recommended to select 1-3 levels that suit you. Too broad a selection may lead to less accurate suggestions.",
-      "religiousLevelsEmpty": "No religious levels selected.",
-      "religiousJourneysLegend": "Preference regarding Religious Background/Journey",
-      "religiousJourneysEmpty": "No religious background preferences selected.",
-      "shomerNegiahLabel": "Shomer Negiah (Touch) Observance",
-      "shomerNegiahPlaceholder": "Select preference...",
-      "headCoveringLegend": "Preferred Head Covering (for women)",
-      "headCoveringEmpty": "No head covering preferences selected.",
-      "kippahTypeLegend": "Preferred Kippah Type (for men)",
-      "kippahTypeEmpty": "No kippah preferences selected."
-    },
-    "educationAndCareer": {
-      "title": "Education, Career & Service",
-      "educationLegend": "Preferred Education Levels",
-      "educationEmpty": "No education levels selected.",
-      "occupationLegend": "Preferred Occupational Fields",
-      "occupationEmpty": "No occupations selected.",
-      "serviceTypeLegend": "Preferred Service Type (Military/National)",
-      "serviceTypeEmpty": "No service preferences selected."
-    },
-    "personalBackground": {
-      "title": "Personal & Family Background",
-      "maritalStatusLegend": "Preferred Marital Status",
-      "maritalStatusEmpty": "No marital status preferences selected.",
-      "partnerHasChildrenLabel": "Preference regarding children from previous relationship",
-      "partnerHasChildrenPlaceholder": "Select preference...",
-      "originLegend": "Preferred Origin/Heritage",
-      "originPlaceholder": "Add origin...",
-      "originRemoveLabel": "Remove {{origin}}",
-      "originEmpty": "No origin preferences selected.",
-      "aliyaStatusLabel": "Aliyah Status Preference",
-      "aliyaStatusPlaceholder": "Select preference..."
-    },
-    "characterAndInterests": {
-      "title": "Character & Interests",
-      "traitsLegend": "Preferred Character Traits (up to 3)",
-      "traitsEmpty": "No traits selected.",
-      "hobbiesLegend": "Preferred Hobbies (up to 3)",
-      "hobbiesEmpty": "No hobbies selected."
+      "editingMode": "Edit mode active",
+      "editHint": "Want to edit your answers?"
     }
   },
-  "options": {
-    "contactPreference": { "direct": "Directly", "matchmaker": "Via Matchmaker", "both": "Both options" },
-    "religiousLevels": {
-      "dati_leumi_torani": "Religious Zionist (Torani)",
-      "dati_leumi_liberal": "Religious Zionist (Liberal)",
-      "dati_leumi_standard": "Religious Zionist (Standard)",
-      "masorti_strong": "Traditional (Observant)",
-      "masorti_light": "Traditional (Lightly connected)",
-      "secular_traditional_connection": "Secular with connection to tradition",
-      "secular": "Secular",
-      "spiritual_not_religious": "Spiritual (not necessarily religious)",
-      "charedi_modern": "Modern Charedi",
-      "charedi_litvak": "Charedi Litvak (Lithuanian)",
-      "charedi_sephardic": "Charedi Sephardic",
-      "charedi_hasidic": "Charedi Hasidic",
-      "chabad": "Chabad (Lubavitch)",
-      "breslov": "Breslov",
-      "other": "Other",
-      "no_preference": "No Preference / Flexible"
+  "preferencesSection": {
+    "header": {
+      "title": "Match Preferences",
+      "subtitleEdit": "Edit your criteria for a perfect match.",
+      "subtitleView": "Preferences set for match search."
     },
-    "religiousJourneys": { "BORN_INTO_CURRENT_LIFESTYLE": "Grew up in similar environment", "BORN_SECULAR": "Grew up secular", "BAAL_TESHUVA": "Baal Teshuva", "DATLASH": "Formerly religious (Datlash)", "CONVERT": "Convert", "IN_PROCESS": "In process of change", "no_preference": "No Preference / Flexible" },
-    "shomerNegiah": { "yes": "Yes, important to me", "no": "No, no preference", "flexible": "Flexible/Depends on person" },
-    "education": { "high_school": "High School", "vocational": "Vocational", "academic_student": "Student", "academic_ba": "Bachelor's Degree", "academic_ma": "Master's Degree", "academic_phd": "Doctorate", "yeshiva_seminary": "Torah Studies", "other": "Other", "no_preference": "No Preference" },
-    "occupation": { "tech": "Hi-Tech & Technology", "education": "Education & Teaching", "medicine": "Medicine & Health", "law": "Law", "business": "Business & Finance", "freelance": "Freelance/Self-employed", "student": "Student", "no_preference": "No Preference" },
-    "serviceTypes": { "MILITARY_COMBATANT": "Military - Combat", "MILITARY_SUPPORT": "Military - Support", "MILITARY_OFFICER": "Military - Officer", "MILITARY_INTELLIGENCE_CYBER_TECH": "Military - Intel/Cyber", "NATIONAL_SERVICE_ONE_YEAR": "National Service - 1 Year", "NATIONAL_SERVICE_TWO_YEARS": "National Service - 2 Years", "HESDER_YESHIVA": "Hesder Yeshiva", "YESHIVA_ONLY_POST_HS": "Yeshiva/Seminary (No service)", "PRE_MILITARY_ACADEMY_AND_SERVICE": "Mechina & Service", "EXEMPTED": "Exempted", "CIVILIAN_SERVICE": "Civilian Service", "OTHER": "Other / Not Relevant", "no_preference": "No Preference" },
-    "headCovering": { "FULL_COVERAGE": "Full Covering", "PARTIAL_COVERAGE": "Partial Covering", "HAT_BERET": "Hat / Beret", "SCARF_ONLY_SOMETIMES": "Scarf (Events)", "NONE": "No Covering", "any": "All options open" },
-    "kippahType": { "BLACK_VELVET": "Black Velvet", "KNITTED_SMALL": "Small Knitted", "KNITTED_LARGE": "Large Knitted", "CLOTH": "Cloth", "BRESLEV": "Breslev", "NONE_AT_WORK_OR_CASUAL": "Not at work/daily", "NONE_USUALLY": "Usually none", "OTHER": "Other", "any": "All options open" },
-    "maritalStatus": { "single": "Single", "divorced": "Divorced", "widowed": "Widowed", "annulled": "Annulled", "any": "All options open" },
-    "partnerHasChildren": { "yes_ok": "Yes, that's fine", "no_preferred": "Prefer without", "does_not_matter": "Doesn't matter" },
-    "aliyaStatus": { "oleh": "New Oleh", "tzabar": "Sabra (Native)", "no_preference": "No Preference" },
-    "origins": { "ashkenazi": "Ashkenazi", "sephardi": "Sephardi", "mizrachi": "Mizrachi", "temani": "Yemenite", "mixed": "Mixed", "ethiopian": "Ethiopian", "no_preference": "No Preference" },
-    "traits": { "empathetic": "Empathetic", "driven": "Driven", "optimistic": "Optimistic", "family_oriented": "Family-Oriented", "intellectual": "Intellectual", "organized": "Organized", "calm": "Calm", "humorous": "Humorous", "sociable": "Sociable", "sensitive": "Sensitive", "independent": "Independent", "creative": "Creative", "honest": "Honest", "responsible": "Responsible", "easy_going": "Easy-Going", "no_strong_preference": "No strong preference" },
-    "hobbies": { "travel": "Travel", "sports": "Sports", "reading": "Reading", "cooking_baking": "Cooking/Baking", "music_playing_instrument": "Music", "art_crafts": "Arts & Crafts", "volunteering": "Volunteering", "learning_courses": "Learning", "board_games_puzzles": "Games/Puzzles", "movies_theater": "Movies/Theater", "dancing": "Dancing", "writing": "Writing", "nature_hiking": "Nature/Hiking", "photography": "Photography", "no_strong_preference": "No strong preference" }
-  }
-},
+    "buttons": {
+      "edit": "Edit",
+      "cancel": "Cancel",
+      "save": "Save",
+      "saveChanges": "Save Changes",
+      "unsavedChanges": "You have unsaved changes",
+      "editHint": "Want to update your preferences?"
+    },
+    "cards": {
+      "general": {
+        "title": "General Description & Contact",
+        "notesLabel": "General description of the partner you are looking for",
+        "notesTooltip": "This is one of the most important fields! Describe in your own words the type of person you are looking for. This helps matchmakers understand your mindset beyond the dry data.",
+        "notesPlaceholder": "Elaborate on the type of person, important traits, expectations, etc...",
+        "notesEmpty": "No description provided.",
+        "contactPreferenceLabel": "Preferred contact method (after suggestion approval)",
+        "contactPreferencePlaceholder": "Select option...",
+        "contactPreferenceEmpty": "Not specified"
+      },
+      "ageAndHeight": {
+        "title": "Age & Height Preferences",
+        "ageLegend": "Preferred Age Range",
+        "ageTooltip": "Defining a wider age range will increase the number of suggestions you receive.",
+        "ageMinPlaceholder": "From age",
+        "ageMaxPlaceholder": "To age",
+        "ageEmpty": "No age range defined.",
+        "heightLegend": "Preferred Height Range (cm)",
+        "heightMinPlaceholder": "From",
+        "heightMaxPlaceholder": "To",
+        "heightEmpty": "No height range defined."
+      },
+      "locationAndReligion": {
+        "title": "Location, Religion & Lifestyle",
+        "locationsLabel": "Preferred Residential Areas",
+        "locationsPlaceholder": "Add a city...",
+        "locationsRemoveLabel": "Remove {{loc}}",
+        "locationsEmpty": "No locations selected.",
+        "religiousLevelsLegend": "Preferred Religious Levels",
+        "religiousLevelsTooltip": "It is recommended to select 1-3 levels that suit you. Too broad a selection may lead to less accurate suggestions.",
+        "religiousLevelsEmpty": "No religious levels selected.",
+        "religiousJourneysLegend": "Preference regarding Religious Background/Journey",
+        "religiousJourneysEmpty": "No religious background preferences selected.",
+        "shomerNegiahLabel": "Shomer Negiah (Touch) Observance",
+        "shomerNegiahPlaceholder": "Select preference...",
+        "headCoveringLegend": "Preferred Head Covering (for women)",
+        "headCoveringEmpty": "No head covering preferences selected.",
+        "kippahTypeLegend": "Preferred Kippah Type (for men)",
+        "kippahTypeEmpty": "No kippah preferences selected."
+      },
+      "educationAndCareer": {
+        "title": "Education, Career & Service",
+        "educationLegend": "Preferred Education Levels",
+        "educationEmpty": "No education levels selected.",
+        "occupationLegend": "Preferred Occupational Fields",
+        "occupationEmpty": "No occupations selected.",
+        "serviceTypeLegend": "Preferred Service Type (Military/National)",
+        "serviceTypeEmpty": "No service preferences selected."
+      },
+      "personalBackground": {
+        "title": "Personal & Family Background",
+        "maritalStatusLegend": "Preferred Marital Status",
+        "maritalStatusEmpty": "No marital status preferences selected.",
+        "partnerHasChildrenLabel": "Preference regarding children from previous relationship",
+        "partnerHasChildrenPlaceholder": "Select preference...",
+        "originLegend": "Preferred Origin/Heritage",
+        "originPlaceholder": "Add origin...",
+        "originRemoveLabel": "Remove {{origin}}",
+        "originEmpty": "No origin preferences selected.",
+        "aliyaStatusLabel": "Aliyah Status Preference",
+        "aliyaStatusPlaceholder": "Select preference..."
+      },
+      "characterAndInterests": {
+        "title": "Character & Interests",
+        "traitsLegend": "Preferred Character Traits (up to 3)",
+        "traitsEmpty": "No traits selected.",
+        "hobbiesLegend": "Preferred Hobbies (up to 3)",
+        "hobbiesEmpty": "No hobbies selected."
+      }
+    },
+    "options": {
+      "contactPreference": {
+        "direct": "Directly",
+        "matchmaker": "Via Matchmaker",
+        "both": "Both options"
+      },
+      "religiousLevels": {
+        "dati_leumi_torani": "Religious Zionist (Torani)",
+        "dati_leumi_liberal": "Religious Zionist (Liberal)",
+        "dati_leumi_standard": "Religious Zionist (Standard)",
+        "masorti_strong": "Traditional (Observant)",
+        "masorti_light": "Traditional (Lightly connected)",
+        "secular_traditional_connection": "Secular with connection to tradition",
+        "secular": "Secular",
+        "spiritual_not_religious": "Spiritual (not necessarily religious)",
+        "charedi_modern": "Modern Charedi",
+        "charedi_litvak": "Charedi Litvak (Lithuanian)",
+        "charedi_sephardic": "Charedi Sephardic",
+        "charedi_hasidic": "Charedi Hasidic",
+        "chabad": "Chabad (Lubavitch)",
+        "breslov": "Breslov",
+        "other": "Other",
+        "no_preference": "No Preference / Flexible"
+      },
+      "religiousJourneys": {
+        "BORN_INTO_CURRENT_LIFESTYLE": "Grew up in similar environment",
+        "BORN_SECULAR": "Grew up secular",
+        "BAAL_TESHUVA": "Baal Teshuva",
+        "DATLASH": "Formerly religious (Datlash)",
+        "CONVERT": "Convert",
+        "IN_PROCESS": "In process of change",
+        "no_preference": "No Preference / Flexible"
+      },
+      "shomerNegiah": {
+        "yes": "Yes, important to me",
+        "no": "No, no preference",
+        "flexible": "Flexible/Depends on person"
+      },
+      "education": {
+        "high_school": "High School",
+        "vocational": "Vocational",
+        "academic_student": "Student",
+        "academic_ba": "Bachelor's Degree",
+        "academic_ma": "Master's Degree",
+        "academic_phd": "Doctorate",
+        "yeshiva_seminary": "Torah Studies",
+        "other": "Other",
+        "no_preference": "No Preference"
+      },
+      "occupation": {
+        "tech": "Hi-Tech & Technology",
+        "education": "Education & Teaching",
+        "medicine": "Medicine & Health",
+        "law": "Law",
+        "business": "Business & Finance",
+        "freelance": "Freelance/Self-employed",
+        "student": "Student",
+        "no_preference": "No Preference"
+      },
+      "serviceTypes": {
+        "MILITARY_COMBATANT": "Military - Combat",
+        "MILITARY_SUPPORT": "Military - Support",
+        "MILITARY_OFFICER": "Military - Officer",
+        "MILITARY_INTELLIGENCE_CYBER_TECH": "Military - Intel/Cyber",
+        "NATIONAL_SERVICE_ONE_YEAR": "National Service - 1 Year",
+        "NATIONAL_SERVICE_TWO_YEARS": "National Service - 2 Years",
+        "HESDER_YESHIVA": "Hesder Yeshiva",
+        "YESHIVA_ONLY_POST_HS": "Yeshiva/Seminary (No service)",
+        "PRE_MILITARY_ACADEMY_AND_SERVICE": "Mechina & Service",
+        "EXEMPTED": "Exempted",
+        "CIVILIAN_SERVICE": "Civilian Service",
+        "OTHER": "Other / Not Relevant",
+        "no_preference": "No Preference"
+      },
+      "headCovering": {
+        "FULL_COVERAGE": "Full Covering",
+        "PARTIAL_COVERAGE": "Partial Covering",
+        "HAT_BERET": "Hat / Beret",
+        "SCARF_ONLY_SOMETIMES": "Scarf (Events)",
+        "NONE": "No Covering",
+        "any": "All options open"
+      },
+      "kippahType": {
+        "BLACK_VELVET": "Black Velvet",
+        "KNITTED_SMALL": "Small Knitted",
+        "KNITTED_LARGE": "Large Knitted",
+        "CLOTH": "Cloth",
+        "BRESLEV": "Breslev",
+        "NONE_AT_WORK_OR_CASUAL": "Not at work/daily",
+        "NONE_USUALLY": "Usually none",
+        "OTHER": "Other",
+        "any": "All options open"
+      },
+      "maritalStatus": {
+        "single": "Single",
+        "divorced": "Divorced",
+        "widowed": "Widowed",
+        "annulled": "Annulled",
+        "any": "All options open"
+      },
+      "partnerHasChildren": {
+        "yes_ok": "Yes, that's fine",
+        "no_preferred": "Prefer without",
+        "does_not_matter": "Doesn't matter"
+      },
+      "aliyaStatus": {
+        "oleh": "New Oleh",
+        "tzabar": "Sabra (Native)",
+        "no_preference": "No Preference"
+      },
+      "origins": {
+        "ashkenazi": "Ashkenazi",
+        "sephardi": "Sephardi",
+        "mizrachi": "Mizrachi",
+        "temani": "Yemenite",
+        "mixed": "Mixed",
+        "ethiopian": "Ethiopian",
+        "no_preference": "No Preference"
+      },
+      "traits": {
+        "empathetic": "Empathetic",
+        "driven": "Driven",
+        "optimistic": "Optimistic",
+        "family_oriented": "Family-Oriented",
+        "intellectual": "Intellectual",
+        "organized": "Organized",
+        "calm": "Calm",
+        "humorous": "Humorous",
+        "sociable": "Sociable",
+        "sensitive": "Sensitive",
+        "independent": "Independent",
+        "creative": "Creative",
+        "honest": "Honest",
+        "responsible": "Responsible",
+        "easy_going": "Easy-Going",
+        "no_strong_preference": "No strong preference"
+      },
+      "hobbies": {
+        "travel": "Travel",
+        "sports": "Sports",
+        "reading": "Reading",
+        "cooking_baking": "Cooking/Baking",
+        "music_playing_instrument": "Music",
+        "art_crafts": "Arts & Crafts",
+        "volunteering": "Volunteering",
+        "learning_courses": "Learning",
+        "board_games_puzzles": "Games/Puzzles",
+        "movies_theater": "Movies/Theater",
+        "dancing": "Dancing",
+        "writing": "Writing",
+        "nature_hiking": "Nature/Hiking",
+        "photography": "Photography",
+        "no_strong_preference": "No strong preference"
+      }
+    }
+  },
   "profileCard": {
     "loading": "Loading profile data...",
     "budgetDisplay": {
       "errorInvalidData": "Error: Invalid data for display.",
       "noValuesAllocated": "No values allocated."
     },
-        "display": {
+    "display": {
       "placeholders": {
         "willDiscover": "Let's find out together...",
         "notSpecified": "Not specified",
@@ -907,28 +1023,50 @@
         "next": "Next"
       },
       "tabs": {
-        "essence": { "label": "My Essence", "shortLabel": "Essence" },
-       "recommendations": { "label": "Testimonials", "shortLabel": "Testimonials" },
-        "deepDive": { "label": "Deep Dive", "shortLabel": "Depth" },
-
-        "journey": { "label": "My Journey", "shortLabel": "Journey" },
-        "spirit": { "label": "Spirituality", "shortLabel": "Spirit" },
-        "vision": { "label": "Relationship Vision", "shortLabel": "Vision" },
-        "connection": { "label": "The Connection I Seek", "shortLabel": "Connection" },
-        "professional": { "label": "For Matchmaker", "shortLabel": "Pro" }
+        "essence": {
+          "label": "My Essence",
+          "shortLabel": "Essence"
+        },
+        "recommendations": {
+          "label": "Testimonials",
+          "shortLabel": "Testimonials"
+        },
+        "deepDive": {
+          "label": "Deep Dive",
+          "shortLabel": "Depth"
+        },
+        "journey": {
+          "label": "My Journey",
+          "shortLabel": "Journey"
+        },
+        "spirit": {
+          "label": "Spirituality",
+          "shortLabel": "Spirit"
+        },
+        "vision": {
+          "label": "Relationship Vision",
+          "shortLabel": "Vision"
+        },
+        "connection": {
+          "label": "The Connection I Seek",
+          "shortLabel": "Connection"
+        },
+        "professional": {
+          "label": "For Matchmaker",
+          "shortLabel": "Pro"
+        }
       },
       "content": {
         "systemRationaleTitle": "Matchmaker's Insight",
-          "recommendationsTitle": "What People Say About {{name}}",
-          "recommendationsSubtitle": "Another perspective from people who know them well.",
-          "noRecommendationsYet": "No testimonials have been added to this profile yet.",
-         "inspiringCouple": {
+        "recommendationsTitle": "What People Say About {{name}}",
+        "recommendationsSubtitle": "Another perspective from people who know them well.",
+        "noRecommendationsYet": "No testimonials have been added to this profile yet.",
+        "inspiringCouple": {
           "title": "A Couple That Inspires Me"
         },
         "influentialRabbi": {
           "title": "An Influential Spiritual Figure"
         },
-  
         "emptyStateTitle": "Nothing to show here yet",
         "emptyStateDescription": "It seems this candidate hasn't filled out this part of their profile yet. A great opportunity to discover together!",
         "openingSentence": "Opening Line",
@@ -967,29 +1105,26 @@
         "professionalDetails": "Professional details for the matchmaking process",
         "emptyPrefsTitle": "Open to meeting the right person",
         "emptyPrefsDescription": "There's no checklist here, but an open invitation to meet a special person. There's room for exciting discoveries together.",
-                "neshamaTechSummary": {
+        "neshamaTechSummary": {
           "title": "Our Introduction to {{name}}"
         },
-   "aboutMe": {
-  "titleCard": "The Story of {{name}}"
-},
-
-                  "friendTestimonials": {
-            "title": "What People Say About {{name}}",
-            "callButton": "Call {{name}}",
-            "callDisclaimer": "Phone numbers are only visible after mutual approval.",
-            "focusSubtitle": "{{count}} personal testimonials await",
-            "viewButton": "View Testimonials",
-            "emptyState": {
-              "title": "No Testimonials to Display",
-              "description": "When testimonials are added, they will appear here."
-            }
-          },
-
+        "aboutMe": {
+          "titleCard": "The Story of {{name}}"
+        },
+        "friendTestimonials": {
+          "title": "What People Say About {{name}}",
+          "callButton": "Call {{name}}",
+          "callDisclaimer": "Phone numbers are only visible after mutual approval.",
+          "focusSubtitle": "{{count}} personal testimonials await",
+          "viewButton": "View Testimonials",
+          "emptyState": {
+            "title": "No Testimonials to Display",
+            "description": "When testimonials are added, they will appear here."
+          }
+        },
         "focus": {
           "aboutMe": "About Me",
           "readFullStory": "Read the full story",
-
           "myStory": "The words that define me",
           "quickSummary": "Quick Summary",
           "importantDetails": "The important details at a glance",
@@ -1020,36 +1155,54 @@
           "unknown": "Unknown"
         },
         "worlds": {
-          "values": { "label": "My Guiding Values", "description": "What's important to me in life" },
-          "personality": { "label": "My Unique Personality", "description": "What I'm really like" },
-          "relationship": { "label": "My Vision for Partnership", "description": "How I see my future relationship" },
-          "partner": { "label": "What I Seek in a Partner", "description": "Qualities I value in a partner" },
-          "religion": { "label": "Religion & Spirituality in My Life", "description": "The place of faith in my world" },
-          "general": { "label": "More Important Things to Know", "description": "Additional details that complete the picture" }
+          "values": {
+            "label": "My Guiding Values",
+            "description": "What's important to me in life"
+          },
+          "personality": {
+            "label": "My Unique Personality",
+            "description": "What I'm really like"
+          },
+          "relationship": {
+            "label": "My Vision for Partnership",
+            "description": "How I see my future relationship"
+          },
+          "partner": {
+            "label": "What I Seek in a Partner",
+            "description": "Qualities I value in a partner"
+          },
+          "religion": {
+            "label": "Religion & Spirituality in My Life",
+            "description": "The place of faith in my world"
+          },
+          "general": {
+            "label": "More Important Things to Know",
+            "description": "Additional details that complete the picture"
+          }
         },
-    "detailLabels": {
-  "worldview": "My Guiding Worldview",
-  "religiousJourney": "My Religious Journey",
-  "shomerNegiah": "Observant of 'Shomer Negiah'",
-  "headCovering": "Head Covering",
-  "kippahType": "Kippah Type",
-  "educationLevel": "Education Level",
-  "educationDetails": "Education Details",
-  "professionalField": "Professional Field",
-  "militaryService": "Military/National Service",
-  "serviceDetails": "Service Details",
-  "parentStatus": "Parents' Status",
-  "fatherOccupation": "Father's Occupation",
-  "motherOccupation": "Mother's Occupation",
-  "siblings": "Siblings",
-  "birthOrder": "Birth Order",
-  "countryOfOrigin": "Country of Origin",
-  "aliyaYear": "Year of Aliyah"
-}
-
+        "detailLabels": {
+          "worldview": "My Guiding Worldview",
+          "religiousJourney": "My Religious Journey",
+          "shomerNegiah": "Observant of 'Shomer Negiah'",
+            "shomerNegiahNo": "Does not observe Shomer Negiah", 
+  "shomerNegiahPlaceholder": "Shomer Negiah Status",  
+          "headCovering": "Head Covering",
+          "kippahType": "Kippah Type",
+          "educationLevel": "Education Level",
+          "educationDetails": "Education Details",
+          "professionalField": "Professional Field",
+          "militaryService": "Military/National Service",
+          "serviceDetails": "Service Details",
+          "parentStatus": "Parents' Status",
+          "fatherOccupation": "Father's Occupation",
+          "motherOccupation": "Mother's Occupation",
+          "siblings": "Siblings",
+          "birthOrder": "Birth Order",
+          "countryOfOrigin": "Country of Origin",
+          "aliyaYear": "Year of Aliyah"
+        }
       }
     },
-
     "header": {
       "title": "Personal Profile",
       "subtitleEdit": "Edit your profile details.",
@@ -1062,7 +1215,6 @@
       "saveChanges": "Save Changes",
       "unsavedChanges": "Unsaved changes",
       "editHint": "Edit details"
-
     },
     "cards": {
       "personal": {
@@ -1071,8 +1223,7 @@
         "genderPlaceholder": "Select gender",
         "birthDateLabel": "Date of Birth",
         "heightLabel": "Height (cm)",
-          "heightUnit": "cm",
-
+        "heightUnit": "cm",
         "heightPlaceholder": "e.g., 175",
         "cityLabel": "City of Residence",
         "cityPlaceholder": "Start typing a city name...",
@@ -1108,12 +1259,14 @@
       },
       "religion": {
         "title": "Worldview & Faith",
-"religiousLevelLabel": "Religious Style",
+        "religiousLevelLabel": "Religious Style",
         "religiousLevelPlaceholder": "Select style",
         "religiousJourneyLabel": "Religious Background",
         "religiousJourneyPlaceholder": "Select background",
         "shomerNegiahLabel": "Observant of Shomer Negiah?",
         "shomerNegiahYes": "Yes",
+        "shomerNegiahNo": "No",
+        "shomerNegiahPlaceholder": "Choose...",
         "headCoveringLabel": "Head Covering",
         "headCoveringPlaceholder": "Select covering type",
         "headCoveringDefault": "None",
@@ -1139,7 +1292,7 @@
         "aboutLabel": "About Me (in your own words)",
         "aboutPlaceholder": "Describe yourself, what makes you unique, and what's important to you...",
         "aboutEmpty": "No personal description provided.",
-"inspiringCoupleLabel": "A Couple Whose Relationship Inspires Me",
+        "inspiringCoupleLabel": "A Couple Whose Relationship Inspires Me",
         "inspiringCouplePlaceholder": "Who is the couple whose relationship serves as a model for you? Share what you learn from them about communication, facing challenges together, and true partnership...",
         "inspiringCoupleEmpty": "No inspiring couple specified.",
         "privateNotesLabel": "Private Notes for the Matchmaker",
@@ -1224,23 +1377,23 @@
         "widowed": "Widowed",
         "annulled": "Annulled Marriage"
       },
-     "religiousLevel": {
-  "dati_leumi_torani": "Religious Zionist (Torani)",
-  "dati_leumi_liberal": "Religious Zionist (Liberal)",
-  "dati_leumi_standard": "Religious Zionist (Standard)",
-  "masorti_strong": "Traditional (Observant)",
-  "masorti_light": "Traditional (Lightly connected)",
-  "secular_traditional_connection": "Secular with connection to tradition",
-  "secular": "Secular",
-  "spiritual_not_religious": "Spiritual (not necessarily religious)",
-  "charedi_modern": "Modern Charedi",
-  "charedi_litvak": "Charedi Litvak (Lithuanian)",
-  "charedi_sephardic": "Charedi Sephardic",
-  "charedi_hasidic": "Charedi Hasidic",
-  "chabad": "Chabad (Lubavitch)",
-  "breslov": "Breslov",
-  "other": "Other (please specify in 'About Me')"
-},
+      "religiousLevel": {
+        "dati_leumi_torani": "Religious Zionist (Torani)",
+        "dati_leumi_liberal": "Religious Zionist (Liberal)",
+        "dati_leumi_standard": "Religious Zionist (Standard)",
+        "masorti_strong": "Traditional (Observant)",
+        "masorti_light": "Traditional (Lightly connected)",
+        "secular_traditional_connection": "Secular with connection to tradition",
+        "secular": "Secular",
+        "spiritual_not_religious": "Spiritual (not necessarily religious)",
+        "charedi_modern": "Modern Charedi",
+        "charedi_litvak": "Charedi Litvak (Lithuanian)",
+        "charedi_sephardic": "Charedi Sephardic",
+        "charedi_hasidic": "Charedi Hasidic",
+        "chabad": "Chabad (Lubavitch)",
+        "breslov": "Breslov",
+        "other": "Other (please specify in 'About Me')"
+      },
       "religiousJourney": {
         "BORN_INTO_CURRENT_LIFESTYLE": "Grew up in a similar religious environment",
         "BORN_SECULAR": "Grew up in a secular environment",
@@ -1437,12 +1590,16 @@
         "createdAt": "Member Since:",
         "lastLogin": "Last Login:"
       },
-    "communication": { 
-      "title": "Communication Preferences",
-     "engagement": { "label": "Tips, Feedback & AI Insights",
-      "description": "Receive emails that help you improve your profile and find matches faster." }, 
-      "promotional": { "label": "News, Events & Promotions",
-       "description": "Get updates on new features, special events, and offers from NeshamaTech." } 
+      "communication": {
+        "title": "Communication Preferences",
+        "engagement": {
+          "label": "Tips, Feedback & AI Insights",
+          "description": "Receive emails that help you improve your profile and find matches faster."
+        },
+        "promotional": {
+          "label": "News, Events & Promotions",
+          "description": "Get updates on new features, special events, and offers from NeshamaTech."
+        }
       },
       "security": {
         "title": "Security & Password",
@@ -1458,12 +1615,11 @@
         "description": "Deleting your account is a permanent action and will remove all of your data.",
         "deleteButton": "Delete Account"
       },
-          "language": {
-      "title": "Language & Notifications",
-      "label": "Preferred Communication Language",
-      "description": "The language for emails and system updates we send you."
-    }
-
+      "language": {
+        "title": "Language & Notifications",
+        "label": "Preferred Communication Language",
+        "description": "The language for emails and system updates we send you."
+      }
     },
     "cardFooter": {
       "notice": "Your account details are protected in accordance with our Privacy Policy."
@@ -1495,16 +1651,15 @@
       "deleteSuccessDesc": "We're sorry to see you go. You are being redirected.",
       "deleteError": "Error deleting account.",
       "deleteErrorDesc": "Please try again later or contact support.",
-    "consentUpdateSuccess": "Communication preferences updated successfully.",
-     "consentUpdateError": "Error updating communication preferences." ,
-        "languageUpdateSuccess": "Language updated successfully!",
-    "languageUpdateError": "Error updating language."
-
+      "consentUpdateSuccess": "Communication preferences updated successfully.",
+      "consentUpdateError": "Error updating communication preferences.",
+      "languageUpdateSuccess": "Language updated successfully!",
+      "languageUpdateError": "Error updating language."
     },
     "passwordDialog": {
       "title": "Change Password",
-    "description": "Update your account password for added security.",
-    "verificationDescription": "For your security, please enter the 6-digit code sent to your email to confirm this change.",
+      "description": "Update your account password for added security.",
+      "verificationDescription": "For your security, please enter the 6-digit code sent to your email to confirm this change.",
       "step1Label": "Enter Passwords",
       "step2Label": "Verification",
       "currentPasswordLabel": "Current Password",
@@ -1513,10 +1668,9 @@
       "newPasswordPlaceholder": "Enter a new, strong password",
       "confirmPasswordLabel": "Confirm New Password",
       "confirmPasswordPlaceholder": "Enter the new password again",
-          "strengthLabel": "Password Strength:",
-    "showPassword": "Show password",
-    "hidePassword": "Hide password",
-
+      "strengthLabel": "Password Strength:",
+      "showPassword": "Show password",
+      "hidePassword": "Hide password",
       "passwordStrengthLabel": "Password Strength:",
       "requirements": {
         "length": "At least {{count}} characters",
@@ -1535,9 +1689,8 @@
       "cancelButton": "Cancel",
       "continueButton": "Continue",
       "confirmButton": "Confirm",
-            "loadingButton": "Saving...",
+      "loadingButton": "Saving...",
       "backButton": "Back",
-
       "loading": {
         "sending": "Sending...",
         "verifying": "Verifying..."
