@@ -151,7 +151,7 @@ const PanelHeaderComponent: React.FC<{
     >
       <div className="flex items-center gap-3">
         <motion.div
-          whileHover={{ scale: 1.1, rotate: 5 }}
+          
           className={cn(
             'p-3 rounded-full shadow-lg text-white transition-transform',
             `bg-gradient-to-r ${config.colors.gradient}`
@@ -204,7 +204,7 @@ const PanelHeaderComponent: React.FC<{
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+            
           >
             <Button
               size="sm"

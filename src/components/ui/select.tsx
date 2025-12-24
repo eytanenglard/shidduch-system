@@ -16,9 +16,8 @@ const SelectTrigger = React.forwardRef<
 >(({ className, children, ...props }, ref) => (
   <SelectPrimitive.Trigger
     ref={ref}
-    dir="rtl"
+    // dir="rtl" - Removed to avoid issues
     className={cn(
-      // 👇 שינוי קריטי: החלפתי את transition-all ב-transition-colors duration-200
       'flex h-10 w-full items-center justify-between rounded-md border border-input bg-transparent px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-colors duration-200',
       className
     )}
@@ -38,7 +37,6 @@ const SelectContent = React.forwardRef<
   <SelectPrimitive.Portal>
     <SelectPrimitive.Content
       ref={ref}
-      dir="rtl"
       className={cn(
         'relative z-50 min-w-[8rem] overflow-hidden rounded-md border bg-popover text-popover-foreground shadow-md data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2',
         position === 'popper' &&
@@ -50,7 +48,7 @@ const SelectContent = React.forwardRef<
     >
       <SelectPrimitive.Viewport
         className={cn(
-          'p-1 text-right', // הוספנו text-right
+          'p-1 text-right',
           position === 'popper' &&
             'h-[var(--radix-select-trigger-height)] w-full min-w-[var(--radix-select-trigger-width)]'
         )}
@@ -65,24 +63,62 @@ SelectContent.displayName = SelectPrimitive.Content.displayName;
 const SelectItem = React.forwardRef<
   React.ElementRef<typeof SelectPrimitive.Item>,
   React.ComponentPropsWithoutRef<typeof SelectPrimitive.Item>
->(({ className, children, ...props }, ref) => (
-  <SelectPrimitive.Item
-    ref={ref}
-    dir="rtl"
-    className={cn(
-      'relative flex w-full cursor-default select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
-      className
-    )}
-    {...props}
-  >
-    <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
-      <SelectPrimitive.ItemIndicator>
-        <Check className="h-4 w-4" />
-      </SelectPrimitive.ItemIndicator>
-    </span>
-    <SelectPrimitive.ItemText>{children}</SelectPrimitive.ItemText>
-  </SelectPrimitive.Item>
-));
+>(({ className, children, value, ...props }, ref) => {
+  // --- Protection and Debugging ---
+  let content = children;
+
+  // 1. Check if children is an object (not valid for React Text child unless Element)
+  if (
+    typeof children === 'object' &&
+    children !== null &&
+    !React.isValidElement(children)
+  ) {
+    console.error(
+      '❌ Error in SelectItem: Received Object instead of string!',
+      children
+    );
+    // Display error message instead of crashing
+    content = (
+      <span className="text-red-500 font-bold text-xs">
+        Error: Object Passed
+      </span>
+    );
+  }
+
+  // 2. Fix for empty value crash in Radix UI
+  // Radix UI crashes if value is empty string.
+  // We'll replace it with a dummy value to prevent crash.
+  let safeValue = value;
+
+  if (value === '') {
+    console.warn(
+      '⚠️ SelectItem received empty string value. This causes Radix UI to crash. Using fallback.'
+    );
+    safeValue = '_empty_value_fallback_';
+  } else if (value === undefined) {
+    // Radix might handle undefined by generating an ID, but it's risky if strict
+    // We assume it's handled or user meant it.
+  }
+
+  return (
+    <SelectPrimitive.Item
+      ref={ref}
+      value={safeValue!} // Ensure non-empty string if it was empty
+      className={cn(
+        'relative flex w-full cursor-default select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
+        className
+      )}
+      {...props}
+    >
+      <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
+        <SelectPrimitive.ItemIndicator>
+          <Check className="h-4 w-4" />
+        </SelectPrimitive.ItemIndicator>
+      </span>
+      <SelectPrimitive.ItemText>{content}</SelectPrimitive.ItemText>
+    </SelectPrimitive.Item>
+  );
+});
 SelectItem.displayName = SelectPrimitive.Item.displayName;
 
 const SelectSeparator = React.forwardRef<

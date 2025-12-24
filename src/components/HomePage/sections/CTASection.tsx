@@ -135,10 +135,7 @@ const CTASection: React.FC<CTAProps> = ({ dict, locale }) => {
 
           <motion.div variants={buttonVariants}>
             <Link href="/auth/register">
-              <motion.div
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
+              <motion.div whileHover={{ scale: 1.05 }}>
                 <Button
                   size="lg"
                   // Updated Button Gradient to Match Hero

@@ -115,7 +115,6 @@ export const AIProfileAdvisorDialog: React.FC<AIProfileAdvisorDialogProps> = ({
       <DialogTrigger asChild>
         <motion.div
           whileHover={{ scale: 1.02, y: -2 }}
-          whileTap={{ scale: 0.98 }}
           className="w-full max-w-sm"
         >
           <Button
@@ -168,7 +167,6 @@ export const AIProfileAdvisorDialog: React.FC<AIProfileAdvisorDialogProps> = ({
             <DialogClose asChild>
               <motion.button
                 whileHover={{ scale: 1.1, rotate: 90 }}
-                whileTap={{ scale: 0.9 }}
                 className="rounded-full p-2 text-gray-400 hover:text-gray-700 hover:bg-teal-50 shrink-0 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-teal-400 focus:ring-offset-2"
               >
                 <X className="h-5 w-5" />
@@ -311,10 +309,7 @@ export const AIProfileAdvisorDialog: React.FC<AIProfileAdvisorDialogProps> = ({
                   </AlertDescription>
                 </Alert>
 
-                <motion.div
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
+                <motion.div whileHover={{ scale: 1.05 }}>
                   <Button
                     onClick={handleGetAnalysis}
                     variant="outline"

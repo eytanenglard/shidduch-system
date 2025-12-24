@@ -54,13 +54,11 @@
 
   * {
     @apply border-border;
-    /* תיקון קריטי למובייל: מבטל הבהוב בלחיצה */
     -webkit-tap-highlight-color: transparent;
   }
 
   html {
     font-family: var(--font-rubik), system-ui, sans-serif;
-    /* מונע גלילה אופקית לא רצויה במובייל */
     overflow-x: hidden; 
   }
 
@@ -88,7 +86,6 @@
     background-image: linear-gradient(135deg, #22d3ee, #f472b6);
     border: none;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
-    /* שימוש ב-transition ספציפי במקום all */
     transition-property: transform, box-shadow, background-image;
     transition-duration: 0.2s;
     transition-timing-function: ease-in-out;
@@ -116,10 +113,7 @@
     transition: transform 0.3s ease, box-shadow 0.3s ease;
   }
 
-  /* --- FIX: Hover Effects ONLY on Desktop --- 
-     זה החלק הכי חשוב לתיקון הבעיה שלך. 
-     הטרנספורמציות יקרו רק אם למשתמש יש עכבר.
-  */
+  /* --- Hover Effects ONLY on Desktop --- */
   @media (hover: hover) {
     .btn-refined-gradient:hover {
       background-image: linear-gradient(135deg, #06b6d4, #ec4899);
@@ -178,9 +172,8 @@
     border: 1px solid rgba(75, 85, 99, 0.3);
   }
 
-  /* --- FIX: Phone Input Transition Issues --- */
+  /* --- Phone Input Transition Issues --- */
   .phone-input-container * {
-    /* במקום transition: all שהיה כאן */
     transition-property: background-color, border-color, color, opacity;
     transition-duration: 200ms;
     transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
@@ -462,5 +455,230 @@
   .profile-card-container .text-5xl {
     font-size: 1.5rem !important;
     line-height: 2rem !important;
+  }
+}
+
+/* =========================================
+   🚀 MOBILE PERFORMANCE FIXES
+   תיקוני ביצועים קריטיים למובייל
+   ========================================= */
+
+/* 
+   תיקון כפתורים - מחליף את Framer Motion whileTap/whileHover
+   עם CSS נייטיב שמגיב מיידית
+*/
+button,
+[role="button"],
+[class*="btn"],
+.cursor-pointer {
+  /* מונע זום בלחיצה כפולה */
+  touch-action: manipulation;
+  
+  /* מבטל הדגשה כחולה בלחיצה */
+  -webkit-tap-highlight-color: transparent;
+  
+  /* מאפשר לחיצה מיידית (מבטל delay של 300ms) */
+  -webkit-touch-callout: none;
+  
+  /* transition מהיר רק על transform */
+  transition: transform 100ms ease-out, background-color 150ms ease-out, border-color 150ms ease-out;
+}
+
+/* אפקט לחיצה - מגיב מיידית */
+button:active,
+[role="button"]:active,
+[class*="btn"]:active,
+.cursor-pointer:active {
+  transform: scale(0.98);
+}
+
+/* ביטול hover במובייל - רק בדסקטופ */
+@media (hover: hover) and (pointer: fine) {
+  button:hover,
+  [role="button"]:hover {
+    transform: translateY(-1px);
+  }
+  
+  button:active,
+  [role="button"]:active {
+    transform: scale(0.98);
+  }
+}
+
+/* =========================================
+   MOBILE-SPECIFIC OPTIMIZATIONS
+   אופטימיזציות ספציפיות למובייל
+   ========================================= */
+
+@media (max-width: 768px) {
+  /* 1. ביטול backdrop-blur - כבד מאוד ל-GPU */
+  .glass-effect,
+  .backdrop-blur-elegant,
+  [class*="backdrop-blur"] {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+  
+  /* רקע אטום יותר במקום blur */
+  .glass-effect {
+    background: rgba(255, 255, 255, 0.98) !important;
+  }
+  
+  .dark .glass-effect {
+    background: rgba(17, 24, 39, 0.98) !important;
+  }
+  
+  .radix-dialog-overlay {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    background-color: rgba(0, 0, 0, 0.6) !important;
+  }
+
+  /* 2. ביטול אנימציות אינסופיות - חוסכות סוללה */
+  .animate-float,
+  .animate-float-slow,
+  .animate-pulse-slow,
+  .animate-pulse-subtle,
+  .animate-shimmer,
+  .animate-pulse-glow,
+  .animate-float-gentle,
+  .animate-gradient {
+    animation: none !important;
+  }
+
+  /* 3. פישוט transitions */
+  .card-hover-elegant,
+  .btn-gradient-primary,
+  .btn-gradient-secondary,
+  .btn-refined-gradient {
+    transition-duration: 150ms !important;
+  }
+
+  /* 4. ביטול transform על hover (לא רלוונטי במובייל) */
+  .card-hover-elegant:hover,
+  .btn-gradient-primary:hover,
+  .btn-gradient-secondary:hover,
+  .btn-refined-gradient:hover {
+    transform: none !important;
+  }
+
+  /* 5. גודל מינימלי לאזורי לחיצה - 44px לפי הנחיות Apple/Google */
+  button, 
+  [role="button"],
+  a[href],
+  input[type="button"],
+  input[type="submit"],
+  input[type="checkbox"],
+  input[type="radio"],
+  select {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* 6. פישוט גרדיאנטים */
+  .bg-gradient-header {
+    background: rgba(248, 250, 252, 0.98) !important;
+  }
+  
+  .bg-suggestion-gradient {
+    background: rgba(248, 250, 252, 0.6) !important;
+  }
+}
+
+/* =========================================
+   QUESTIONNAIRE-SPECIFIC OPTIMIZATIONS
+   אופטימיזציות ספציפיות לשאלון
+   ========================================= */
+
+/* כרטיסי תשובות - feedback מיידי */
+.questionnaire-option,
+[class*="option"],
+[class*="choice"] {
+  transition: background-color 100ms ease-out, border-color 100ms ease-out, box-shadow 100ms ease-out;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+.questionnaire-option:active,
+[class*="option"]:active,
+[class*="choice"]:active {
+  transform: scale(0.99);
+}
+
+/* כפתורי ניווט בשאלון */
+.questionnaire-nav-btn,
+[class*="nav-btn"],
+[class*="navigation"] button {
+  transition: background-color 100ms ease-out, transform 100ms ease-out;
+}
+
+.questionnaire-nav-btn:active,
+[class*="nav-btn"]:active,
+[class*="navigation"] button:active {
+  transform: scale(0.98);
+}
+
+/* פס התקדמות - transition חלק */
+.questionnaire-progress,
+[class*="progress"] [class*="indicator"],
+[role="progressbar"] > * {
+  transition: width 200ms ease-out;
+}
+
+/* =========================================
+   REDUCED MOTION PREFERENCES
+   הגדרות למשתמשים שמעדיפים פחות תנועה
+   ========================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  
+  .animate-fade-in-up,
+  .animate-scale-in,
+  .animate-shimmer,
+  .animate-float,
+  .animate-pulse-subtle,
+  .animate-gradient,
+  .animate-synergy-enter-left,
+  .animate-synergy-enter-right,
+  .path-draw,
+  .animate-match-point-appear,
+  .animate-mobile-match-point {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
+
+/* =========================================
+   LOADING SPINNER - SIMPLE VERSION
+   ספינר טעינה פשוט
+   ========================================= */
+
+.loading-spinner,
+[class*="Loader"],
+[class*="spinner"] {
+  animation: simple-spin 1s linear infinite;
+}
+
+@keyframes simple-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* במובייל - ספינר מהיר יותר */
+@media (max-width: 768px) {
+  .loading-spinner,
+  [class*="Loader"],
+  [class*="spinner"] {
+    animation-duration: 0.8s;
   }
 }

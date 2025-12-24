@@ -143,7 +143,6 @@ const StatsCard: React.FC<{
       initial={{ opacity: 0, y: 30 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay, duration: 0.6, type: 'spring' }}
-      whileHover={{ y: -8, scale: 1.05 }}
       className="relative overflow-hidden"
     >
       <div

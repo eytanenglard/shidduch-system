@@ -390,8 +390,8 @@ const QuestionsList: React.FC<QuestionsListProps> = ({
               >
                 {/* Icon Container */}
                 <motion.div
-                  whileHover={{ scale: 1.1, rotate: 5 }}
-                  whileTap={{ scale: 0.95 }}
+                  
+                  
                   className={cn(
                     'flex-shrink-0 z-10 rounded-xl p-2.5 shadow-md border-2 border-white transition-all duration-300',
                     statusBgColor,

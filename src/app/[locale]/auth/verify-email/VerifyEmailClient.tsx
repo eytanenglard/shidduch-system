@@ -466,10 +466,7 @@ export default function VerifyEmailClient({
                           {dict.checkYourInbox}
                         </p>
 
-                        <motion.div
-                          whileHover={{ scale: 1.02 }}
-                          whileTap={{ scale: 0.98 }}
-                        >
+                        <motion.div whileHover={{ scale: 1.02 }}>
                           {/* Resend Button: Teal -> Orange */}
                           <Button
                             onClick={handleResendVerification}
@@ -587,11 +584,7 @@ export default function VerifyEmailClient({
                       </AlertDescription>
                     </Alert>
 
-                    <motion.div
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      className="pt-4"
-                    >
+                    <motion.div whileHover={{ scale: 1.02 }} className="pt-4">
                       {/* Back Button: Gray/Teal */}
                       <Button
                         onClick={() => router.push(`/${locale}/auth/signin`)}

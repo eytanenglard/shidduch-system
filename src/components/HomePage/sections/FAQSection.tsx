@@ -145,8 +145,10 @@ const FAQSection: React.FC<FAQProps> = ({ dict, locale }) => {
         >
           <defs>
             <linearGradient id="waveGrad1" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#14b8a6" stopOpacity="0.08" /> {/* Teal */}
-              <stop offset="100%" stopColor="#f97316" stopOpacity="0.05" /> {/* Orange */}
+              <stop offset="0%" stopColor="#14b8a6" stopOpacity="0.08" />{' '}
+              {/* Teal */}
+              <stop offset="100%" stopColor="#f97316" stopOpacity="0.05" />{' '}
+              {/* Orange */}
             </linearGradient>
           </defs>
           <path
@@ -271,10 +273,7 @@ const FAQSection: React.FC<FAQProps> = ({ dict, locale }) => {
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
               <Link href={`/${locale}/contact`}>
-                <motion.div
-                  whileHover={{ scale: 1.05, y: -2 }}
-                  whileTap={{ scale: 0.95 }}
-                >
+                <motion.div whileHover={{ scale: 1.05, y: -2 }}>
                   <Button
                     size="lg"
                     // Updated Button Gradient

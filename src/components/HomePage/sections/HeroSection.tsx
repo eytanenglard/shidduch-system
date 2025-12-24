@@ -149,7 +149,6 @@ const DesktopPrincipleCard: React.FC<DesktopPrincipleCardProps> = ({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay: 0.7 + index * 0.1 }}
-      whileHover={{ y: -8, scale: 1.02 }}
       className={`group relative overflow-hidden rounded-3xl bg-gradient-to-br ${colors.bgGradient} p-8 ${colors.shadowColor} shadow-2xl border border-white/60 h-full transition-all duration-500`}
     >
       <div className="absolute top-4 right-4 w-20 h-20 rounded-full bg-gradient-to-br from-white/30 to-transparent blur-xl pointer-events-none" />
@@ -665,7 +664,6 @@ const HeroSection: React.FC<HeroSectionProps> = ({
           </Link>
         </motion.div>
 
- 
         {/* עקרונות (דסקטופ ומובייל) */}
         <div className="mt-12 sm:mt-16 w-full max-w-6xl z-10 relative">
           <div className="md:hidden">

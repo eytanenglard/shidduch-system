@@ -178,10 +178,7 @@ const PrivacyAssuranceSection: React.FC<PrivacyAssuranceProps> = ({
 
                 <div className="text-center">
                   <Link href={`/${locale}/legal/privacy-policy`}>
-                    <motion.div
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                    >
+                    <motion.div whileHover={{ scale: 1.05 }}>
                       {/* Button: Outline Style (Teal) to match secondary buttons */}
                       <Button
                         variant="outline"

@@ -257,8 +257,6 @@ export default function AnswerInput({
       initial="initial"
       animate="animate"
       exit="exit"
-      whileHover={!isSelected ? 'hover' : undefined}
-      whileTap="tap"
       layout
       className="relative"
     >
@@ -484,8 +482,6 @@ export default function AnswerInput({
                       initial="initial"
                       animate="animate"
                       exit="exit"
-                      whileHover={!isMaxReached ? 'hover' : undefined}
-                      whileTap={!isMaxReached ? 'tap' : undefined}
                       layout
                       style={{ zIndex: isSelected ? 10 : 1 }}
                     >
@@ -604,7 +600,6 @@ export default function AnswerInput({
                                   )
                                 : 'border-gray-300 bg-white'
                             )}
-                            whileTap={{ scale: 0.9 }}
                           >
                             <AnimatePresence>
                               {isSelected && (
@@ -674,8 +669,6 @@ export default function AnswerInput({
                     variants={optionVariants}
                     initial="initial"
                     animate="animate"
-                    whileHover="hover"
-                    whileTap="tap"
                     layout
                   >
                     <div
@@ -920,8 +913,6 @@ export default function AnswerInput({
                   variants={optionVariants}
                   initial="initial"
                   animate="animate"
-                  whileHover="hover"
-                  whileTap="tap"
                   layout
                 >
                   <div
@@ -1027,8 +1018,6 @@ export default function AnswerInput({
                         variants={optionVariants}
                         initial="initial"
                         animate="animate"
-                        whileHover="hover"
-                        whileTap="tap"
                         onMouseDown={(e) => {
                           e.preventDefault();
                           handleValueChange(option.value);
@@ -1281,8 +1270,6 @@ export default function AnswerInput({
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <motion.button
-                            whileHover={{ scale: 1.1 }}
-                            whileTap={{ scale: 0.9 }}
                             className={cn(
                               'p-2 rounded-xl transition-all shadow-md',
                               textCopied
@@ -1316,8 +1303,6 @@ export default function AnswerInput({
                         <Tooltip>
                           <TooltipTrigger asChild>
                             <motion.button
-                              whileHover={{ scale: 1.1 }}
-                              whileTap={{ scale: 0.9 }}
                               className="p-2 rounded-xl bg-white text-gray-600 hover:bg-red-50 hover:text-red-600 transition-all shadow-md"
                               onMouseDown={(e) => {
                                 e.preventDefault();

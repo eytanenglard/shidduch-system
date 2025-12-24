@@ -642,6 +642,9 @@ type MatchmakerEditProfileDict = {
     placeholder: string;
     saveButton: string;
     saveButtonLoading: string;
+     downloadPdfButton: string;
+    generatingPdfButton: string;
+    pdfGenerateError: string;
   };  
   toasts: {
     loadError: string;

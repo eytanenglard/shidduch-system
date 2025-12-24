@@ -96,7 +96,6 @@ interface WorldCardProps {
   worldNumber: number;
 }
 
-
 interface ProgressHeaderProps {
   userName?: string | null;
   completionPercent: number;
@@ -517,7 +516,6 @@ const WorldCard: React.FC<WorldCardProps> = ({
                 'relative p-4 rounded-2xl flex-shrink-0 bg-gradient-to-br shadow-lg',
                 colors.gradient
               )}
-              whileHover={{ rotate: 12, scale: 1.1 }}
               transition={{ type: 'spring', stiffness: 300 }}
             >
               <div className="absolute inset-0 rounded-2xl bg-white/20 backdrop-blur-sm" />

@@ -434,7 +434,6 @@ const ActiveFilters: React.FC<ActiveFiltersProps> = ({
                     damping: 25,
                   }}
                   whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
                 >
                   <Badge
                     className={cn(

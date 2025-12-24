@@ -140,7 +140,6 @@ const FilterSection: React.FC<FilterSectionProps> = ({
               'text-white hover:shadow-lg'
             )}
             whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
           >
             <div className="flex items-center gap-3">
               <div className="p-2 rounded-full bg-white/20 backdrop-blur-sm shadow-lg">
@@ -632,7 +631,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
   const countActiveFilters = (category: string): number => {
     let count = 0;
     const defaultFilters = DEFAULT_FILTER_STATE;
-  
+
     switch (category) {
       case 'basic':
         if (filters.gender) count++;
@@ -645,7 +644,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
         if (filters.cities && filters.cities.length > 0) count++;
         if (filters.religiousLevel) count++;
         break;
-  
+
       case 'advanced':
         if (
           filters.heightRange &&
@@ -657,7 +656,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
         if (filters.educationLevel) count++;
         if (filters.maritalStatus) count++;
         break;
-  
+
       case 'status':
         if (filters.availabilityStatus) count++;
         if (filters.isVerified) count++;
@@ -735,11 +734,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
             </div>
             <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
               {POPULAR_FILTERS.map((option) => (
-                <motion.div
-                  key={option.id}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
+                <motion.div key={option.id} whileHover={{ scale: 1.05 }}>
                   <Button
                     variant="ghost"
                     size="sm"
@@ -1229,10 +1224,10 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
                           className="h-6 [&>span]:bg-gradient-to-r [&>span]:from-indigo-500 [&>span]:to-purple-500"
                           dir="rtl"
                         />
-                    <div className="flex justify-between mt-2 px-1 text-xs text-gray-500">
-  <span>{HEIGHT_RANGE.min} ס&quot;מ</span>
-  <span>{HEIGHT_RANGE.max} ס&quot;מ</span>
-</div>
+                        <div className="flex justify-between mt-2 px-1 text-xs text-gray-500">
+                          <span>{HEIGHT_RANGE.min} ס&quot;מ</span>
+                          <span>{HEIGHT_RANGE.max} ס&quot;מ</span>
+                        </div>
                       </div>
                     </div>
                   </FilterSection>

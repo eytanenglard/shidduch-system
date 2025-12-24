@@ -63,11 +63,7 @@ const FloatingCTAButton: React.FC<FloatingCTAButtonProps> = ({
             onClick={() => setHasInteracted(true)}
           >
             {/* כפתור עגול עם אפקט Glassmorphism */}
-            <motion.div
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="relative group"
-            >
+            <motion.div whileHover={{ scale: 1.05 }} className="relative group">
               {/* Pulse Ring - אנימציית גל מושכת תשומת לב */}
               {!hasInteracted && (
                 <>

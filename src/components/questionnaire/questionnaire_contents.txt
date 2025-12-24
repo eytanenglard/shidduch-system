@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\questionnaire
-# Generated on: 2025-12-22 19:28:24
+# Generated on: 2025-12-24 21:21:19
 # Filter: Only content of code files (.bat, .c, .cfg, .conf, .cpp, .cs, .css, .go, .h, .html, .ini, .java, .js, .json, .jsx, .kt, .less, .md, .php, .py, .rb, .rs, .scss, .sh, .sql, .swift, .ts, .tsx, .txt, .xml, .yaml, .yml) is included.
 ################################################################################
 
@@ -1763,8 +1763,6 @@ export default function AnswerInput({
       initial="initial"
       animate="animate"
       exit="exit"
-      whileHover={!isSelected ? 'hover' : undefined}
-      whileTap="tap"
       layout
       className="relative"
     >
@@ -1990,8 +1988,6 @@ export default function AnswerInput({
                       initial="initial"
                       animate="animate"
                       exit="exit"
-                      whileHover={!isMaxReached ? 'hover' : undefined}
-                      whileTap={!isMaxReached ? 'tap' : undefined}
                       layout
                       style={{ zIndex: isSelected ? 10 : 1 }}
                     >
@@ -2110,7 +2106,6 @@ export default function AnswerInput({
                                   )
                                 : 'border-gray-300 bg-white'
                             )}
-                            whileTap={{ scale: 0.9 }}
                           >
                             <AnimatePresence>
                               {isSelected && (
@@ -2180,8 +2175,6 @@ export default function AnswerInput({
                     variants={optionVariants}
                     initial="initial"
                     animate="animate"
-                    whileHover="hover"
-                    whileTap="tap"
                     layout
                   >
                     <div
@@ -2426,8 +2419,6 @@ export default function AnswerInput({
                   variants={optionVariants}
                   initial="initial"
                   animate="animate"
-                  whileHover="hover"
-                  whileTap="tap"
                   layout
                 >
                   <div
@@ -2533,8 +2524,6 @@ export default function AnswerInput({
                         variants={optionVariants}
                         initial="initial"
                         animate="animate"
-                        whileHover="hover"
-                        whileTap="tap"
                         onMouseDown={(e) => {
                           e.preventDefault();
                           handleValueChange(option.value);
@@ -2787,8 +2776,6 @@ export default function AnswerInput({
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <motion.button
-                            whileHover={{ scale: 1.1 }}
-                            whileTap={{ scale: 0.9 }}
                             className={cn(
                               'p-2 rounded-xl transition-all shadow-md',
                               textCopied
@@ -2822,8 +2809,6 @@ export default function AnswerInput({
                         <Tooltip>
                           <TooltipTrigger asChild>
                             <motion.button
-                              whileHover={{ scale: 1.1 }}
-                              whileTap={{ scale: 0.9 }}
                               className="p-2 rounded-xl bg-white text-gray-600 hover:bg-red-50 hover:text-red-600 transition-all shadow-md"
                               onMouseDown={(e) => {
                                 e.preventDefault();
@@ -4335,7 +4320,6 @@ const StatsCard: React.FC<{
       initial={{ opacity: 0, y: 30 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay, duration: 0.6, type: 'spring' }}
-      whileHover={{ y: -8, scale: 1.05 }}
       className="relative overflow-hidden"
     >
       <div
@@ -5096,8 +5080,8 @@ const QuestionsList: React.FC<QuestionsListProps> = ({
               >
                 {/* Icon Container */}
                 <motion.div
-                  whileHover={{ scale: 1.1, rotate: 5 }}
-                  whileTap={{ scale: 0.95 }}
+                  
+                  
                   className={cn(
                     'flex-shrink-0 z-10 rounded-xl p-2.5 shadow-md border-2 border-white transition-all duration-300',
                     statusBgColor,
@@ -8487,8 +8471,6 @@ const NavButton = React.memo(
         initial={{ opacity: 0, x: isMobile ? 0 : -20 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ delay: order * 0.05 }}
-        whileHover={{ scale: 1.02, x: isRTL ? -3 : 3 }}
-        whileTap={{ scale: 0.98 }}
       >
         <Button
           variant="ghost"
@@ -8904,7 +8886,6 @@ interface WorldCardProps {
   locale: 'he' | 'en';
   worldNumber: number;
 }
-
 
 interface ProgressHeaderProps {
   userName?: string | null;
@@ -9326,7 +9307,6 @@ const WorldCard: React.FC<WorldCardProps> = ({
                 'relative p-4 rounded-2xl flex-shrink-0 bg-gradient-to-br shadow-lg',
                 colors.gradient
               )}
-              whileHover={{ rotate: 12, scale: 1.1 }}
               transition={{ type: 'spring', stiffness: 300 }}
             >
               <div className="absolute inset-0 rounded-2xl bg-white/20 backdrop-blur-sm" />
@@ -10024,7 +10004,6 @@ const SolutionCard: React.FC<SolutionCardProps> = ({
       initial={{ opacity: 0, y: 30 }}
       animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
       transition={{ duration: 0.6, delay }}
-      whileHover={{ y: -8, scale: 1.02 }}
       className={`group relative overflow-hidden rounded-3xl bg-gradient-to-br ${bgGradient} p-8 ${shadowColor} shadow-xl hover:shadow-2xl border border-white/60 transition-all duration-500 h-full`}
     >
       <div className="absolute top-4 right-4 w-20 h-20 rounded-full bg-gradient-to-br from-white/30 to-transparent blur-xl" />

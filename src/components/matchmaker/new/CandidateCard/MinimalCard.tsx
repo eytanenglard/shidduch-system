@@ -163,7 +163,6 @@ const MinimalCandidateCard: React.FC<MinimalCandidateCardProps> = ({
   return (
     <motion.div
       whileHover={{ y: -6, scale: 1.02 }}
-      whileTap={{ scale: 0.98 }}
       transition={{ type: 'spring', stiffness: 300, damping: 15 }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
@@ -215,23 +214,37 @@ const MinimalCandidateCard: React.FC<MinimalCandidateCardProps> = ({
             </Badge>
           )}
 
-              {candidate.profile.testimonials && candidate.profile.testimonials.filter(t => t.status === 'APPROVED').length > 0 && (
-            <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 0.2 }}>
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger>
-                    <Badge className="px-3 py-1.5 text-xs font-bold shadow-lg bg-gradient-to-r from-yellow-400 to-amber-500 text-white border-0 flex items-center gap-1.5">
-                      <Users className="w-3 h-3" />
-                      {dict.hasTestimonials.replace("{{count}}", String(candidate.profile.testimonials.filter(t => t.status === 'APPROVED').length))}
-                    </Badge>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>{dict.testimonialsTooltip}</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            </motion.div>
-          )}
+          {candidate.profile.testimonials &&
+            candidate.profile.testimonials.filter(
+              (t) => t.status === 'APPROVED'
+            ).length > 0 && (
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ delay: 0.2 }}
+              >
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger>
+                      <Badge className="px-3 py-1.5 text-xs font-bold shadow-lg bg-gradient-to-r from-yellow-400 to-amber-500 text-white border-0 flex items-center gap-1.5">
+                        <Users className="w-3 h-3" />
+                        {dict.hasTestimonials.replace(
+                          '{{count}}',
+                          String(
+                            candidate.profile.testimonials.filter(
+                              (t) => t.status === 'APPROVED'
+                            ).length
+                          )
+                        )}
+                      </Badge>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>{dict.testimonialsTooltip}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </motion.div>
+            )}
         </div>
 
         <div className="relative h-52 sm:h-60 bg-gradient-to-br from-blue-100 via-purple-50 to-pink-100">

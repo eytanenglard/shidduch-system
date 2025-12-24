@@ -146,7 +146,7 @@ const CTASection: React.FC<CTAProps> = ({ dict, locale }) => {
             <Link href="/auth/register">
               <motion.div
                 whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
+                
               >
                 <Button
                   size="lg"
@@ -446,7 +446,7 @@ const FAQSection: React.FC<FAQProps> = ({ dict, locale }) => {
               <Link href={`/${locale}/contact`}>
                 <motion.div
                   whileHover={{ scale: 1.05, y: -2 }}
-                  whileTap={{ scale: 0.95 }}
+                  
                 >
                   <Button
                     size="lg"
@@ -873,7 +873,7 @@ const DesktopPrincipleCard: React.FC<DesktopPrincipleCardProps> = ({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay: 0.7 + index * 0.1 }}
-      whileHover={{ y: -8, scale: 1.02 }}
+      
       className={`group relative overflow-hidden rounded-3xl bg-gradient-to-br ${colors.bgGradient} p-8 ${colors.shadowColor} shadow-2xl border border-white/50 h-full transition-all duration-500`}
     >
       <div className="absolute top-4 right-4 w-20 h-20 rounded-full bg-gradient-to-br from-white/20 to-transparent blur-xl" />
@@ -2052,7 +2052,7 @@ const MatchmakerCard: React.FC<MatchmakerCardProps> = ({
             <motion.div
               className={`inline-block text-center px-8 py-3 rounded-lg text-white ${getButtonColorByColor()} transition-colors duration-300 font-medium cursor-pointer`}
               whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+              
             >
               {`${contactButtonText} ${name.split(' ')[0]}`}
             </motion.div>
@@ -2662,7 +2662,7 @@ export default function NeshmaInsightSectionB({
               <Link href={`/${locale}/questionnaire`}>
                 <motion.button
                   whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.98 }}
+                  
                   className="group relative inline-flex items-center gap-4 bg-gradient-to-r from-purple-600 via-pink-600 to-rose-600 hover:from-purple-700 hover:via-pink-700 hover:to-rose-700 text-white font-bold py-5 px-12 md:px-16 rounded-full text-xl md:text-2xl shadow-2xl hover:shadow-3xl transition-all duration-300"
                 >
                   <FileText className="w-7 h-7 group-hover:rotate-6 transition-transform" />
@@ -3201,7 +3201,7 @@ const MatchingConstellation: React.FC<{
                     !isDragging && handleWorldInteraction(world.id)
                   }
                   whileHover={!isMobile ? { scale: 1.05 } : {}}
-                  whileTap={{ scale: 0.95 }}
+                  
                 >
                   <motion.div
                     className={`rounded-full bg-gradient-to-br ${world.color} flex items-center justify-center text-white shadow-xl relative overflow-hidden transition-all duration-300 ${isActive ? 'ring-2 md:ring-4 ring-white/60' : ''} ${isDragging ? 'shadow-2xl' : ''}`}
@@ -3684,7 +3684,7 @@ const PrivacyAssuranceSection: React.FC<PrivacyAssuranceProps> = ({ dict }) => {
                   <Link href="/legal/privacy-policy">
                     <motion.div
                       whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
+                      
                     >
                       <Button
                         variant="outline"

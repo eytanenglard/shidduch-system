@@ -514,7 +514,6 @@ const MatchingConstellation: React.FC<{
                     !isDragging && handleWorldInteraction(world.id)
                   }
                   whileHover={!isMobile ? { scale: 1.05 } : {}}
-                  whileTap={{ scale: 0.95 }}
                 >
                   <motion.div
                     className={`rounded-full bg-gradient-to-br ${world.color} flex items-center justify-center text-white shadow-xl relative overflow-hidden transition-all duration-300 ${isActive ? 'ring-2 md:ring-4 ring-white/60' : ''} ${isDragging ? 'shadow-2xl' : ''}`}

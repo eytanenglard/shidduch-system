@@ -519,7 +519,6 @@ export default function NeshmaInsightSectionB({
               <Link href={`/${locale}/questionnaire`}>
                 <motion.button
                   whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.98 }}
                   // Updated Gradient to match Hero CTA
                   className="group relative inline-flex items-center gap-4 bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 hover:from-teal-600 hover:via-orange-600 hover:to-amber-600 text-white font-bold py-5 px-12 md:px-16 rounded-full text-xl md:text-2xl shadow-2xl hover:shadow-3xl transition-all duration-300"
                 >

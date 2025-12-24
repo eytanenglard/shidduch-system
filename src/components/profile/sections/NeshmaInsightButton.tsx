@@ -266,7 +266,6 @@ export const NeshmaInsightButton: React.FC<NeshmaInsightButtonProps> = ({
         className="relative cursor-pointer"
         onClick={handleGenerateInsight}
         whileHover={{ scale: 1.02 }}
-        whileTap={{ scale: 0.98 }}
       >
         {/* Glow Effect: Teal/Orange */}
         <div className="absolute inset-0 bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 rounded-2xl blur-lg opacity-30 animate-pulse" />

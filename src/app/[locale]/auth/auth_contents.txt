@@ -3160,7 +3160,7 @@ export default function VerifyEmailClient({
 
                         <motion.div
                           whileHover={{ scale: 1.02 }}
-                          whileTap={{ scale: 0.98 }}
+                          
                         >
                           {/* Resend Button: Teal -> Orange */}
                           <Button
@@ -3281,7 +3281,7 @@ export default function VerifyEmailClient({
 
                     <motion.div
                       whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
+                      
                       className="pt-4"
                     >
                       {/* Back Button: Gray/Teal */}

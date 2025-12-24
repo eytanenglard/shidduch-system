@@ -180,7 +180,6 @@ const SolutionCard: React.FC<SolutionCardProps> = ({
       initial={{ opacity: 0, y: 30 }}
       animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
       transition={{ duration: 0.6, delay }}
-      whileHover={{ y: -8, scale: 1.02 }}
       className={`group relative overflow-hidden rounded-3xl bg-gradient-to-br ${bgGradient} p-8 ${shadowColor} shadow-xl hover:shadow-2xl border border-white/60 transition-all duration-500 h-full`}
     >
       <div className="absolute top-4 right-4 w-20 h-20 rounded-full bg-gradient-to-br from-white/30 to-transparent blur-xl" />

@@ -1,6 +1,7 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\questionnaire
-# Generated on: 2025-10-27 15:37:55
+# Generated on: 2025-12-24 21:21:49
+# Filter: Only content of code files (.bat, .c, .cfg, .conf, .cpp, .cs, .css, .go, .h, .html, .ini, .java, .js, .json, .jsx, .kt, .less, .md, .php, .py, .rb, .rs, .scss, .sh, .sql, .swift, .ts, .tsx, .txt, .xml, .yaml, .yml) is included.
 ################################################################################
 
 ================================================================================
@@ -325,6 +326,10 @@ export async function PUT(req: Request) {
           lastSaved: new Date(),
         },
       });
+await prisma.user.update({
+  where: { id: session.user.id },
+  data: { updatedAt: new Date() }
+});
 
       if (validatedData.completed) {
         await prisma.user.update({
@@ -470,10 +475,14 @@ export async function PUT(req: Request) {
           lastSaved: new Date()
         }
       }),
-      prisma.user.update({
-        where: { id: session.user.id },
-        data: { status: "ACTIVE" }
-      })
+     prisma.user.update({
+  where: { id: session.user.id },
+  data: { 
+    status: "ACTIVE",
+    updatedAt: new Date() // 🆕 הוסף
+  }
+})
+
     ]);
 
     return NextResponse.json({
@@ -593,6 +602,11 @@ export async function PUT(req: Request) {
         where: { userId },
         data: { needsAiProfileUpdate: true }
       });
+      await tx.user.update({
+  where: { id: userId },
+  data: { updatedAt: new Date() }
+});
+
       const newAnswersJson = newAnswers.map((ans) => ({
         ...ans,
         answeredAt: ans.answeredAt.toISOString(),

@@ -2,6 +2,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import dynamic from 'next/dynamic'; // 1. Import dynamic
 import {
   Dialog,
   DialogContent,
@@ -13,10 +14,18 @@ import {
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { Loader2, Send, MailPlus, Eye, Edit } from 'lucide-react';
-import ReactQuill from 'react-quill-new';
+
+// 2. Import CSS normally
 import 'react-quill-new/dist/quill.snow.css';
+
 import type { Candidate } from '../types/candidates';
 import type { MatchmakerPageDictionary } from '@/types/dictionaries/matchmaker';
+
+// 3. Dynamically import ReactQuill with SSR disabled
+const ReactQuill = dynamic(() => import('react-quill-new'), {
+  ssr: false,
+  loading: () => <div className="h-40 bg-gray-50 animate-pulse rounded-md" />, // Optional loading state
+});
 
 interface ProfileFeedbackDialogProps {
   isOpen: boolean;
@@ -120,16 +129,20 @@ export const ProfileFeedbackDialog: React.FC<ProfileFeedbackDialogProps> = ({
 
   const quillFormats = [
     'header',
-    'bold', 'italic', 'underline',
-    'color', 'background',
-    'list', 'bullet',
+    'bold',
+    'italic',
+    'underline',
+    'color',
+    'background',
+    'list',
+    'bullet',
     'align',
-    'link'
+    'link',
   ];
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent 
+      <DialogContent
         className="max-w-6xl w-[95vw] h-[90vh] flex flex-col p-0"
         dir={direction}
       >
@@ -164,10 +177,9 @@ export const ProfileFeedbackDialog: React.FC<ProfileFeedbackDialogProps> = ({
             </div>
           </div>
           <DialogDescription>
-            {viewMode === 'preview' ? 
-              'תצוגה מקדימה של המייל כפי שיתקבל אצל המשתמש' : 
-              dict.editPrompt
-            }
+            {viewMode === 'preview'
+              ? 'תצוגה מקדימה של המייל כפי שיתקבל אצל המשתמש'
+              : dict.editPrompt}
           </DialogDescription>
         </DialogHeader>
 
@@ -179,20 +191,20 @@ export const ProfileFeedbackDialog: React.FC<ProfileFeedbackDialogProps> = ({
             </div>
           ) : viewMode === 'preview' ? (
             // תצוגה מקדימה - HTML מלא עם כיוון נכון
-            <div 
+            <div
               className="p-4"
               dir={direction}
-              style={{ 
+              style={{
                 direction: direction,
-                textAlign: isRtl ? 'right' : 'left'
+                textAlign: isRtl ? 'right' : 'left',
               }}
             >
-              <div 
+              <div
                 dangerouslySetInnerHTML={{ __html: htmlContent }}
                 style={{
                   fontFamily: isRtl ? 'Arial, sans-serif' : 'inherit',
                   direction: direction,
-                  textAlign: isRtl ? 'right' : 'left'
+                  textAlign: isRtl ? 'right' : 'left',
                 }}
               />
             </div>
@@ -209,7 +221,9 @@ export const ProfileFeedbackDialog: React.FC<ProfileFeedbackDialogProps> = ({
                   .ql-toolbar {
                     direction: ${direction} !important;
                   }
-                  ${isRtl ? `
+                  ${
+                    isRtl
+                      ? `
                     .ql-toolbar .ql-formats {
                       margin-left: 15px;
                       margin-right: 0;
@@ -217,7 +231,9 @@ export const ProfileFeedbackDialog: React.FC<ProfileFeedbackDialogProps> = ({
                     .ql-toolbar .ql-formats:first-child {
                       margin-left: 0;
                     }
-                  ` : ''}
+                  `
+                      : ''
+                  }
                 `}
               </style>
               <ReactQuill
@@ -226,11 +242,15 @@ export const ProfileFeedbackDialog: React.FC<ProfileFeedbackDialogProps> = ({
                 onChange={setHtmlContent}
                 modules={quillModules}
                 formats={quillFormats}
-                style={{ 
-                  height: 'calc(100vh - 200px)', 
+                style={{
+                  height: 'calc(100vh - 200px)',
                   direction: direction,
                 }}
-                placeholder={isRtl ? 'הקלד כאן את תוכן המייל...' : 'Type your email content here...'}
+                placeholder={
+                  isRtl
+                    ? 'הקלד כאן את תוכן המייל...'
+                    : 'Type your email content here...'
+                }
               />
             </div>
           )}

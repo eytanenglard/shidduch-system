@@ -36,7 +36,7 @@ const MatchmakerCard: React.FC<MatchmakerCardProps> = ({
 }) => {
   // Mapping 'cyan' and 'green' props to the new Hero-based palette (Teal & Orange/Rose)
   const isTealTheme = color === 'cyan'; // 'cyan' prop now maps to the Teal/Tech theme
-  
+
   const getGradientByColor = () => {
     return isTealTheme
       ? 'from-teal-500 to-emerald-600' // Teal theme
@@ -44,7 +44,9 @@ const MatchmakerCard: React.FC<MatchmakerCardProps> = ({
   };
 
   const getBorderColor = () => {
-    return isTealTheme ? 'group-hover:border-teal-200' : 'group-hover:border-orange-200';
+    return isTealTheme
+      ? 'group-hover:border-teal-200'
+      : 'group-hover:border-orange-200';
   };
 
   const getButtonGradient = () => {
@@ -64,11 +66,13 @@ const MatchmakerCard: React.FC<MatchmakerCardProps> = ({
   };
 
   return (
-    <div 
+    <div
       className={`group relative rounded-3xl overflow-hidden bg-white/80 backdrop-blur-sm border border-white/60 flex flex-col h-full transition-all duration-500 hover:shadow-2xl hover:-translate-y-1 ${getBorderColor()}`}
     >
       {/* Subtle colorful glow inside the card */}
-      <div className={`absolute top-0 right-0 w-64 h-64 rounded-full blur-3xl -z-10 transition-opacity duration-500 opacity-0 group-hover:opacity-100 ${getGlowColor()}`} />
+      <div
+        className={`absolute top-0 right-0 w-64 h-64 rounded-full blur-3xl -z-10 transition-opacity duration-500 opacity-0 group-hover:opacity-100 ${getGlowColor()}`}
+      />
 
       <div className="p-8 flex flex-col items-center flex-grow relative z-10">
         <motion.div
@@ -143,8 +147,11 @@ const MatchmakerCard: React.FC<MatchmakerCardProps> = ({
           <Link href={`/contact?matchmaker=${encodeURIComponent(name)}`}>
             <motion.div
               className={`inline-block text-center px-8 py-3.5 rounded-full text-white ${getButtonGradient()} transition-all duration-300 font-semibold cursor-pointer shadow-lg`}
-              whileHover={{ scale: 1.05, boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)" }}
-              whileTap={{ scale: 0.95 }}
+              whileHover={{
+                scale: 1.05,
+                boxShadow:
+                  '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+              }}
             >
               {`${contactButtonText} ${name.split(' ')[0]}`}
             </motion.div>
@@ -231,7 +238,11 @@ const MatchmakerTeamSection: React.FC<MatchmakerTeamProps> = ({ dict }) => {
           variants={cardContainerVariants}
         >
           {dict.team.map((member) => (
-            <motion.div key={member.name} variants={cardVariants} className="h-full">
+            <motion.div
+              key={member.name}
+              variants={cardVariants}
+              className="h-full"
+            >
               <MatchmakerCard
                 name={member.name}
                 role={member.role}

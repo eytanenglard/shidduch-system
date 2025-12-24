@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmaker\new
-# Generated on: 2025-12-24 11:49:20
+# Generated on: 2025-12-24 20:55:44
 # Filter: Only content of code files (.bat, .c, .cfg, .conf, .cpp, .cs, .css, .go, .h, .html, .ini, .java, .js, .json, .jsx, .kt, .less, .md, .php, .py, .rb, .rs, .scss, .sh, .sql, .swift, .ts, .tsx, .txt, .xml, .yaml, .yml) is included.
 ################################################################################
 
@@ -13,7 +13,7 @@ File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmak
 --------------------------------------------------------------------------------
 Content:
 // src/components/matchmaker/new/MatchmakerEditProfile.tsx
-
+"use client"; 
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   Dialog,
@@ -44,9 +44,10 @@ import {
   AlertCircle,
   Send,
   Save,
-  MessageSquare, // אייקון לסיכום שיחה
-  Phone, // אייקון לטלפון
+  MessageSquare,
+  Phone,
   Mail,
+  FileText, // אייקון לקובץ PDF
 } from 'lucide-react';
 import type { UserProfile, UserImage } from '@/types/next-auth';
 import type { Candidate } from './types/candidates';
@@ -64,6 +65,9 @@ import {
   CardFooter,
 } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
+
+// ייבוא פונקציית העזר ליצירת ה-PDF
+import { generateInsightPdf } from '@/lib/pdf/insightPdfGenerator';
 
 interface MatchmakerEditProfileProps {
   isOpen: boolean;
@@ -88,6 +92,7 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
   const isAdmin = session?.user?.role === 'ADMIN';
   const direction = locale === 'he' ? 'rtl' : 'ltr';
 
+  // --- States ---
   const [activeTab, setActiveTab] = useState('profile');
   const [isEditing, setIsEditing] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -96,22 +101,32 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
   const [images, setImages] = useState<UserImage[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // הוספנו סטייט למספר טלפון למקרה שהוא מגיע מהפרופיל המלא ולא מהקנדידט ברשימה
+  // טלפון
   const [userPhone, setUserPhone] = useState<string | null>(null);
 
+  // מחיקת מועמד
   const [isDeleteCandidateDialogOpen, setIsDeleteCandidateDialogOpen] =
     useState(false);
   const [deleteCandidateConfirmText, setDeleteCandidateConfirmText] =
     useState('');
   const [isDeletingCandidate, setIsDeletingCandidate] = useState(false);
 
+  // הזמנת משתמש
   const [isSetupInviteOpen, setIsSetupInviteOpen] = useState(false);
   const [inviteEmail, setInviteEmail] = useState('');
   const [isSendingInvite, setIsSendingInvite] = useState(false);
+
+  // AI Summary
   const [isGeneratingSummary, setIsGeneratingSummary] = useState(false);
+
+  // PDF Generation
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
 
   const DELETE_CANDIDATE_CONFIRMATION_PHRASE = dict.deleteConfirmationPhrase;
 
+  // --- Handlers ---
+
+  // יצירת תקציר AI כללי (לא ה-PDF)
   const handleGenerateSummary = async () => {
     if (!candidate) return;
     setIsGeneratingSummary(true);
@@ -141,6 +156,7 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
     }
   };
 
+  // שליפת נתוני פרופיל
   const fetchProfileData = useCallback(async () => {
     if (!candidate) return;
     setIsLoading(true);
@@ -154,14 +170,10 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
         setProfile(data.profile);
         setImages(data.images || []);
 
-        // נסיון לשלוף את הטלפון מהפרופיל (דרך היוזר המשוייך)
-        // הערה: זה מניח שה-API מחזיר את המידע הזה תחת profile.user.phone
-        // אם לא, צריך לוודא שה-API מעודכן להחזיר את זה.
- // נסיון לשלוף את הטלפון מהפרופיל (דרך היוזר המשוייך) או מהמועמד עצמו
         if (data.profile?.user?.phone) {
           setUserPhone(data.profile.user.phone);
         } else if (candidate.phone) {
-           setUserPhone(candidate.phone);
+          setUserPhone(candidate.phone);
         }
 
         if (
@@ -183,10 +195,12 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
     }
   }, [candidate, dict.toasts.loadError, locale]);
 
+  // Effect לטעינת נתונים
   useEffect(() => {
     if (isOpen && candidate) {
       fetchProfileData();
     } else if (!isOpen) {
+      // Reset State
       setProfile(null);
       setImages([]);
       setUserPhone(null);
@@ -197,9 +211,11 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
       setIsSetupInviteOpen(false);
       setInviteEmail('');
       setIsSendingInvite(false);
+      setIsGeneratingPdf(false);
     }
   }, [isOpen, candidate, fetchProfileData]);
 
+  // עדכון שדות פרופיל
   const handleProfileUpdate = async (updatedProfile: Partial<UserProfile>) => {
     if (!candidate || !profile) return;
     setIsSaving(true);
@@ -234,6 +250,41 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
     }
   };
 
+  // יצירה והורדת PDF דוח תובנות
+  const handleGenerateInsightPdf = async () => {
+    if (!candidate) return;
+    setIsGeneratingPdf(true);
+    try {
+      // 1. קריאה ל-API כדי לייצר/לשלוף את המידע (AI)
+      const response = await fetch('/api/profile/neshama-insight', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ userId: candidate.id, locale }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to generate insight');
+      }
+
+      const data = await response.json();
+
+      // 2. יצירת ה-PDF בצד הלקוח באמצעות פונקציית העזר
+      await generateInsightPdf(data.insight, locale as 'he' | 'en');
+    } catch (error: any) {
+      console.error('Error generating PDF:', error);
+      // שימוש בטקסט מהמילון או ברירת מחדל
+      const errorMsg =
+        dict.neshamaTechSummary.pdfGenerateError || 'Error generating PDF';
+      toast.error(errorMsg);
+    } finally {
+      setIsGeneratingPdf(false);
+    }
+  };
+
+  // העלאת תמונות
   const handleImageUpload = async (files: File[]) => {
     if (!candidate) return;
     setIsUploading(true);
@@ -274,6 +325,7 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
     }
   };
 
+  // הגדרת תמונה ראשית
   const handleSetMainImage = async (imageId: string) => {
     if (!candidate) return;
     try {
@@ -294,6 +346,7 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
     }
   };
 
+  // מחיקת תמונה
   const handleDeleteImage = async (imageIds: string[]) => {
     if (!candidate || imageIds.length === 0) return;
     setIsUploading(true);
@@ -345,6 +398,7 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
     }
   };
 
+  // מחיקת מועמד (לצמיתות)
   const handleDeleteCandidateRequest = async () => {
     if (!candidate) return;
     if (deleteCandidateConfirmText !== DELETE_CANDIDATE_CONFIRMATION_PHRASE) {
@@ -383,6 +437,7 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
     }
   };
 
+  // שליחת הזמנה להצטרפות
   const handleSendSetupInvite = async () => {
     if (!candidate || !inviteEmail) {
       toast.error(dict.toasts.sendInviteErrorEmail);
@@ -562,7 +617,30 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
                               className="min-h-[120px] focus-visible:ring-indigo-500"
                             />
                           </CardContent>
-                          <CardFooter className="flex justify-end pt-2 pb-4 bg-slate-50/30">
+
+                          {/* Footer with Save and PDF buttons */}
+                          <CardFooter className="flex justify-between pt-2 pb-4 bg-slate-50/30">
+                            {/* כפתור הורדת PDF (חדש) */}
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={handleGenerateInsightPdf}
+                              disabled={isGeneratingPdf}
+                              className="border-indigo-200 text-indigo-700 hover:bg-indigo-50 gap-2"
+                            >
+                              {isGeneratingPdf ? (
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                              ) : (
+                                <FileText className="w-4 h-4" />
+                              )}
+                              {isGeneratingPdf
+                                ? dict.neshamaTechSummary.generatingPdfButton ||
+                                  'Generating...'
+                                : dict.neshamaTechSummary.downloadPdfButton ||
+                                  'Download Insight PDF'}
+                            </Button>
+
+                            {/* כפתור שמירה */}
                             <Button
                               size="sm"
                               onClick={() =>
@@ -588,7 +666,7 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
                           </CardFooter>
                         </Card>
 
-                        {/* --- NEW: Conversation Summary Card --- */}
+                        {/* --- Conversation Summary Card --- */}
                         <Card className="bg-white rounded-xl shadow-sm border overflow-hidden">
                           <div className="h-1 bg-gradient-to-r from-blue-500 to-cyan-500"></div>
                           <CardHeader className="bg-blue-50/30 pb-4">
@@ -1503,7 +1581,7 @@ const MinimalCandidateCard: React.FC<MinimalCandidateCardProps> = ({
   return (
     <motion.div
       whileHover={{ y: -6, scale: 1.02 }}
-      whileTap={{ scale: 0.98 }}
+      
       transition={{ type: 'spring', stiffness: 300, damping: 15 }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
@@ -3565,7 +3643,7 @@ const PanelHeaderComponent: React.FC<{
     >
       <div className="flex items-center gap-3">
         <motion.div
-          whileHover={{ scale: 1.1, rotate: 5 }}
+          
           className={cn(
             'p-3 rounded-full shadow-lg text-white transition-transform',
             `bg-gradient-to-r ${config.colors.gradient}`
@@ -3618,7 +3696,7 @@ const PanelHeaderComponent: React.FC<{
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+            
           >
             <Button
               size="sm"
@@ -4961,27 +5039,63 @@ const CandidatesManager: React.FC<CandidatesManagerProps> = ({
     []
   );
 
-  const handleUpdateAllProfiles = async () => {
-    setIsBulkUpdating(true);
-    toast.info('מתחיל תהליך עדכון פרופילי AI...');
-    try {
-      const response = await fetch('/api/ai/update-all-profiles', {
+const handleUpdateAllProfiles = async () => {
+  if (!confirm("פעולה זו תפעיל את ה-AI על כל המועמדים במערכת. זה עשוי לקחת מספר דקות. האם להמשיך?")) return;
+
+  setIsBulkUpdating(true);
+  const toastId = toast.loading('מאתחל תהליך עדכון...', { duration: Infinity });
+
+  try {
+    // שלב 1: איפוס דגלים (סימון כולם לעדכון)
+    const resetRes = await fetch('/api/ai/matchmaker/batch-process', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'RESET_FLAGS' }),
+    });
+    
+    if (!resetRes.ok) throw new Error('Failed to start process');
+    const resetData = await resetRes.json();
+    const totalToProcess = resetData.count;
+    let processedSoFar = 0;
+
+    toast.message(`נמצאו ${totalToProcess} פרופילים לעדכון. מתחיל עיבוד...`, { id: toastId });
+
+    // שלב 2: לולאת עיבוד
+    let completed = false;
+    
+    while (!completed) {
+      const batchRes = await fetch('/api/ai/matchmaker/batch-process', {
         method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'PROCESS_BATCH', batchSize: 4 }), // מעבדים 4 בכל פעם
       });
-      const data = await response.json();
-      if (!response.ok)
-        throw new Error(data.error || 'שגיאה בהפעלת העדכון הכללי.');
-      toast.success('העדכון הכללי הופעל בהצלחה!');
-    } catch (error) {
-      console.error('Failed to initiate bulk AI profile update:', error);
-      toast.error('שגיאה בהפעלת העדכון', {
-        description:
-          error instanceof Error ? error.message : 'אנא נסה שוב מאוחר יותר.',
-      });
-    } finally {
-      setIsBulkUpdating(false);
+
+      if (!batchRes.ok) throw new Error('Error during batch processing');
+      
+      const batchData = await batchRes.json();
+      
+      processedSoFar += batchData.processed;
+      const percent = Math.round((processedSoFar / totalToProcess) * 100);
+      
+      // עדכון הטוסט עם אחוזים
+      toast.loading(`מעבד פרופילים... ${percent}% (${processedSoFar}/${totalToProcess})`, { id: toastId });
+
+      if (batchData.completed || batchData.remaining === 0) {
+        completed = true;
+      }
     }
-  };
+
+    toast.success('העדכון הכללי הושלם בהצלחה!', { id: toastId, duration: 4000 });
+    refresh(); // רענון הטבלה בסיום
+
+  } catch (error) {
+    console.error('Bulk update failed:', error);
+    toast.error('שגיאה בתהליך העדכון. נסה שוב מאוחר יותר.', { id: toastId, duration: 4000 });
+  } finally {
+    setIsBulkUpdating(false);
+  }
+};
+
   const direction = locale === 'he' ? 'rtl' : 'ltr';
 
   // --- Render ---
@@ -5864,7 +5978,7 @@ const ActiveFilters: React.FC<ActiveFiltersProps> = ({
                     damping: 25,
                   }}
                   whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
+                  
                 >
                   <Badge
                     className={cn(
@@ -6102,7 +6216,7 @@ const FilterSection: React.FC<FilterSectionProps> = ({
               'text-white hover:shadow-lg'
             )}
             whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
+            
           >
             <div className="flex items-center gap-3">
               <div className="p-2 rounded-full bg-white/20 backdrop-blur-sm shadow-lg">
@@ -6700,7 +6814,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
                 <motion.div
                   key={option.id}
                   whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
+                  
                 >
                   <Button
                     variant="ghost"
@@ -8075,7 +8189,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
               </div>
               <div className="grid grid-cols-2 gap-2">
                 {searchCategories.map((category) => (
-                  <motion.div key={category.id} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                  <motion.div key={category.id} whileHover={{ scale: 1.02 }} >
                     <Button variant={searchCategory === category.id ? 'default' : 'outline'} size="sm" className={cn('w-full justify-start gap-2 rounded-xl transition-all duration-200', searchCategory === category.id ? `bg-gradient-to-r ${category.gradient} text-white shadow-lg border-0` : 'bg-white/80 hover:bg-white border border-gray-200 hover:border-gray-300')} onClick={() => setSearchCategory(category.id)}>
                       {category.icon}
                       <span className="text-xs">{category.label}</span>
@@ -10321,6 +10435,7 @@ Content:
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import dynamic from 'next/dynamic'; // 1. Import dynamic
 import {
   Dialog,
   DialogContent,
@@ -10332,10 +10447,18 @@ import {
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { Loader2, Send, MailPlus, Eye, Edit } from 'lucide-react';
-import ReactQuill from 'react-quill-new';
+
+// 2. Import CSS normally
 import 'react-quill-new/dist/quill.snow.css';
+
 import type { Candidate } from '../types/candidates';
 import type { MatchmakerPageDictionary } from '@/types/dictionaries/matchmaker';
+
+// 3. Dynamically import ReactQuill with SSR disabled
+const ReactQuill = dynamic(() => import('react-quill-new'), {
+  ssr: false,
+  loading: () => <div className="h-40 bg-gray-50 animate-pulse rounded-md" />, // Optional loading state
+});
 
 interface ProfileFeedbackDialogProps {
   isOpen: boolean;
@@ -10439,16 +10562,20 @@ export const ProfileFeedbackDialog: React.FC<ProfileFeedbackDialogProps> = ({
 
   const quillFormats = [
     'header',
-    'bold', 'italic', 'underline',
-    'color', 'background',
-    'list', 'bullet',
+    'bold',
+    'italic',
+    'underline',
+    'color',
+    'background',
+    'list',
+    'bullet',
     'align',
-    'link'
+    'link',
   ];
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent 
+      <DialogContent
         className="max-w-6xl w-[95vw] h-[90vh] flex flex-col p-0"
         dir={direction}
       >
@@ -10483,10 +10610,9 @@ export const ProfileFeedbackDialog: React.FC<ProfileFeedbackDialogProps> = ({
             </div>
           </div>
           <DialogDescription>
-            {viewMode === 'preview' ? 
-              'תצוגה מקדימה של המייל כפי שיתקבל אצל המשתמש' : 
-              dict.editPrompt
-            }
+            {viewMode === 'preview'
+              ? 'תצוגה מקדימה של המייל כפי שיתקבל אצל המשתמש'
+              : dict.editPrompt}
           </DialogDescription>
         </DialogHeader>
 
@@ -10498,20 +10624,20 @@ export const ProfileFeedbackDialog: React.FC<ProfileFeedbackDialogProps> = ({
             </div>
           ) : viewMode === 'preview' ? (
             // תצוגה מקדימה - HTML מלא עם כיוון נכון
-            <div 
+            <div
               className="p-4"
               dir={direction}
-              style={{ 
+              style={{
                 direction: direction,
-                textAlign: isRtl ? 'right' : 'left'
+                textAlign: isRtl ? 'right' : 'left',
               }}
             >
-              <div 
+              <div
                 dangerouslySetInnerHTML={{ __html: htmlContent }}
                 style={{
                   fontFamily: isRtl ? 'Arial, sans-serif' : 'inherit',
                   direction: direction,
-                  textAlign: isRtl ? 'right' : 'left'
+                  textAlign: isRtl ? 'right' : 'left',
                 }}
               />
             </div>
@@ -10528,7 +10654,9 @@ export const ProfileFeedbackDialog: React.FC<ProfileFeedbackDialogProps> = ({
                   .ql-toolbar {
                     direction: ${direction} !important;
                   }
-                  ${isRtl ? `
+                  ${
+                    isRtl
+                      ? `
                     .ql-toolbar .ql-formats {
                       margin-left: 15px;
                       margin-right: 0;
@@ -10536,7 +10664,9 @@ export const ProfileFeedbackDialog: React.FC<ProfileFeedbackDialogProps> = ({
                     .ql-toolbar .ql-formats:first-child {
                       margin-left: 0;
                     }
-                  ` : ''}
+                  `
+                      : ''
+                  }
                 `}
               </style>
               <ReactQuill
@@ -10545,11 +10675,15 @@ export const ProfileFeedbackDialog: React.FC<ProfileFeedbackDialogProps> = ({
                 onChange={setHtmlContent}
                 modules={quillModules}
                 formats={quillFormats}
-                style={{ 
-                  height: 'calc(100vh - 200px)', 
+                style={{
+                  height: 'calc(100vh - 200px)',
                   direction: direction,
                 }}
-                placeholder={isRtl ? 'הקלד כאן את תוכן המייל...' : 'Type your email content here...'}
+                placeholder={
+                  isRtl
+                    ? 'הקלד כאן את תוכן המייל...'
+                    : 'Type your email content here...'
+                }
               />
             </div>
           )}

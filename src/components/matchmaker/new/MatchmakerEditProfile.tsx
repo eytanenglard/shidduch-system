@@ -1,5 +1,5 @@
 // src/components/matchmaker/new/MatchmakerEditProfile.tsx
-
+'use client';
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   Dialog,
@@ -466,377 +466,388 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
           className="max-w-5xl max-h-[90vh] p-0 overflow-hidden"
           dir={direction}
         >
-          {isLoading && !profile ? (
-            <div className="flex items-center justify-center h-64">
-              <Loader2 className="w-10 h-10 animate-spin text-primary" />
-            </div>
-          ) : (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.3 }}
-              className="flex flex-col h-full max-h-[90vh]"
-            >
-              {/* --- HEADER --- */}
-              <DialogHeader className="p-6 border-b bg-gradient-to-r from-blue-50/50 to-white">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <DialogTitle
-                      className={cn(
-                        'text-2xl font-bold text-primary/90 flex items-center gap-3',
-                        locale === 'he' ? 'text-right' : 'text-left'
-                      )}
-                    >
-                      {dict.header.title
-                        .replace('{{firstName}}', candidate.firstName)
-                        .replace('{{lastName}}', candidate.lastName)}
-                    </DialogTitle>
-                    <DialogDescription
-                      className={cn(
-                        'text-gray-500 mt-2 flex flex-col gap-1',
-                        locale === 'he' ? 'text-right' : 'text-left'
-                      )}
-                    >
-                      <span className="flex items-center gap-2">
-                        <Mail className="w-4 h-4 text-gray-400" />
-                        {candidate.email}
-                      </span>
-                      {userPhone && (
-                        <span className="flex items-center gap-2 text-gray-700 font-medium">
-                          <Phone className="w-4 h-4 text-green-600" />
-                          <span dir="ltr">{userPhone}</span>
-                        </span>
-                      )}
-                    </DialogDescription>
-                  </div>
-                  {isSaving && (
-                    <div className="flex items-center bg-blue-50 text-blue-700 py-1 px-3 rounded-full text-sm border border-blue-100 shadow-sm">
-                      <Loader2 className="w-3 h-3 animate-spin mr-2" />
-                      {dict.header.saving}
-                    </div>
-                  )}
-                </div>
-              </DialogHeader>
-
-              {/* --- TABS --- */}
-              <Tabs
-                value={activeTab}
-                onValueChange={setActiveTab}
-                className="flex-1 flex flex-col min-h-0"
-              >
-                <div className="px-6 pt-4">
-                  <TabsList className="w-full bg-muted/30 p-1 rounded-xl shadow-sm">
-                    <TabsTrigger
-                      value="profile"
-                      className="rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500/90 data-[state=active]:to-blue-600 data-[state=active]:text-white flex items-center gap-2"
-                    >
-                      <UserCog className="w-4 h-4" />
-                      {dict.tabs.profile}
-                    </TabsTrigger>
-                    <TabsTrigger
-                      value="photos"
-                      className="rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500/90 data-[state=active]:to-blue-600 data-[state=active]:text-white flex items-center gap-2"
-                    >
-                      <ImageIcon className="w-4 h-4" />
-                      {dict.tabs.photos}
-                    </TabsTrigger>
-                    <TabsTrigger
-                      value="preferences"
-                      className="rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500/90 data-[state=active]:to-blue-600 data-[state=active]:text-white flex items-center gap-2"
-                    >
-                      <Sliders className="w-4 h-4" />
-                      {dict.tabs.preferences}
-                    </TabsTrigger>
-                  </TabsList>
-                </div>
-
-                <div className="flex-1 overflow-hidden flex flex-col min-h-0">
-                  <TabsContent
-                    value="profile"
-                    className="flex-1 overflow-auto p-4 m-0 pb-16"
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.3 }}
+            className="flex flex-col h-full max-h-[90vh]"
+          >
+            {/* --- HEADER --- */}
+            {/* Fix: Header is now always rendered to satisfy accessibility requirements */}
+            <DialogHeader className="p-6 border-b bg-gradient-to-r from-blue-50/50 to-white flex-shrink-0">
+              <div className="flex items-center justify-between">
+                <div>
+                  <DialogTitle
+                    className={cn(
+                      'text-2xl font-bold text-primary/90 flex items-center gap-3',
+                      locale === 'he' ? 'text-right' : 'text-left'
+                    )}
                   >
-                    {profile ? (
-                      <div className="space-y-6">
-                        {/* --- NeshamaTech Summary Card --- */}
-                        <Card className="bg-white rounded-xl shadow-sm border overflow-hidden">
-                          <div className="h-1 bg-gradient-to-r from-indigo-500 to-purple-500"></div>
-                          <CardHeader className="bg-slate-50/50 pb-4">
-                            <div className="flex justify-between items-start">
-                              <div>
-                                <CardTitle className="flex items-center gap-2 text-lg">
-                                  <Award className="w-5 h-5 text-indigo-600" />
-                                  {dict.neshamaTechSummary.title}
-                                </CardTitle>
-                                <CardDescription className="mt-1">
-                                  {dict.neshamaTechSummary.description}
-                                </CardDescription>
+                    {dict.header.title
+                      .replace('{{firstName}}', candidate.firstName)
+                      .replace('{{lastName}}', candidate.lastName)}
+                  </DialogTitle>
+                  <DialogDescription
+                    className={cn(
+                      'text-gray-500 mt-2 flex flex-col gap-1',
+                      locale === 'he' ? 'text-right' : 'text-left'
+                    )}
+                  >
+                    <span className="flex items-center gap-2">
+                      <Mail className="w-4 h-4 text-gray-400" />
+                      {candidate.email}
+                    </span>
+                    {userPhone && (
+                      <span className="flex items-center gap-2 text-gray-700 font-medium">
+                        <Phone className="w-4 h-4 text-green-600" />
+                        <span dir="ltr">{userPhone}</span>
+                      </span>
+                    )}
+                  </DialogDescription>
+                </div>
+                {isSaving && (
+                  <div className="flex items-center bg-blue-50 text-blue-700 py-1 px-3 rounded-full text-sm border border-blue-100 shadow-sm">
+                    <Loader2 className="w-3 h-3 animate-spin mr-2" />
+                    {dict.header.saving}
+                  </div>
+                )}
+              </div>
+            </DialogHeader>
+
+            {/* --- BODY (Loading State or Content) --- */}
+            {isLoading && !profile ? (
+              <div className="flex items-center justify-center h-64 flex-1">
+                <Loader2 className="w-10 h-10 animate-spin text-primary" />
+              </div>
+            ) : (
+              <>
+                {/* --- TABS --- */}
+                <Tabs
+                  value={activeTab}
+                  onValueChange={setActiveTab}
+                  className="flex-1 flex flex-col min-h-0"
+                >
+                  <div className="px-6 pt-4 flex-shrink-0">
+                    <TabsList className="w-full bg-muted/30 p-1 rounded-xl shadow-sm">
+                      <TabsTrigger
+                        value="profile"
+                        className="rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500/90 data-[state=active]:to-blue-600 data-[state=active]:text-white flex items-center gap-2"
+                      >
+                        <UserCog className="w-4 h-4" />
+                        {dict.tabs.profile}
+                      </TabsTrigger>
+                      <TabsTrigger
+                        value="photos"
+                        className="rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500/90 data-[state=active]:to-blue-600 data-[state=active]:text-white flex items-center gap-2"
+                      >
+                        <ImageIcon className="w-4 h-4" />
+                        {dict.tabs.photos}
+                      </TabsTrigger>
+                      <TabsTrigger
+                        value="preferences"
+                        className="rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500/90 data-[state=active]:to-blue-600 data-[state=active]:text-white flex items-center gap-2"
+                      >
+                        <Sliders className="w-4 h-4" />
+                        {dict.tabs.preferences}
+                      </TabsTrigger>
+                    </TabsList>
+                  </div>
+
+                  <div className="flex-1 overflow-hidden flex flex-col min-h-0">
+                    <TabsContent
+                      value="profile"
+                      className="flex-1 overflow-auto p-4 m-0 pb-16"
+                    >
+                      {profile ? (
+                        <div className="space-y-6">
+                          {/* --- NeshamaTech Summary Card --- */}
+                          <Card className="bg-white rounded-xl shadow-sm border overflow-hidden">
+                            <div className="h-1 bg-gradient-to-r from-indigo-500 to-purple-500"></div>
+                            <CardHeader className="bg-slate-50/50 pb-4">
+                              <div className="flex justify-between items-start">
+                                <div>
+                                  <CardTitle className="flex items-center gap-2 text-lg">
+                                    <Award className="w-5 h-5 text-indigo-600" />
+                                    {dict.neshamaTechSummary.title}
+                                  </CardTitle>
+                                  <CardDescription className="mt-1">
+                                    {dict.neshamaTechSummary.description}
+                                  </CardDescription>
+                                </div>
+                                <Button
+                                  size="sm"
+                                  onClick={handleGenerateSummary}
+                                  disabled={isGeneratingSummary || isSaving}
+                                  className="bg-white hover:bg-gray-50 text-indigo-600 border border-indigo-200 shadow-sm hover:shadow transition-all"
+                                >
+                                  {isGeneratingSummary ? (
+                                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                  ) : (
+                                    <Sparkles className="w-4 h-4 mr-2" />
+                                  )}
+                                  {isGeneratingSummary
+                                    ? dict.neshamaTechSummary.aiButtonLoading
+                                    : dict.neshamaTechSummary.aiButton}
+                                </Button>
                               </div>
+                            </CardHeader>
+                            <CardContent className="pt-4">
+                              <Textarea
+                                value={profile.manualEntryText || ''}
+                                onChange={(e) =>
+                                  setProfile((p) =>
+                                    p
+                                      ? {
+                                          ...p,
+                                          manualEntryText: e.target.value,
+                                        }
+                                      : null
+                                  )
+                                }
+                                placeholder={
+                                  dict.neshamaTechSummary.placeholder
+                                }
+                                rows={6}
+                                className="min-h-[120px] focus-visible:ring-indigo-500"
+                              />
+                            </CardContent>
+
+                            {/* Footer with Save and PDF buttons */}
+                            <CardFooter className="flex justify-between pt-2 pb-4 bg-slate-50/30">
+                              {/* כפתור הורדת PDF (חדש) */}
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={handleGenerateInsightPdf}
+                                disabled={isGeneratingPdf}
+                                className="border-indigo-200 text-indigo-700 hover:bg-indigo-50 gap-2"
+                              >
+                                {isGeneratingPdf ? (
+                                  <Loader2 className="w-4 h-4 animate-spin" />
+                                ) : (
+                                  <FileText className="w-4 h-4" />
+                                )}
+                                {isGeneratingPdf
+                                  ? dict.neshamaTechSummary
+                                      .generatingPdfButton || 'Generating...'
+                                  : dict.neshamaTechSummary.downloadPdfButton ||
+                                    'Download Insight PDF'}
+                              </Button>
+
+                              {/* כפתור שמירה */}
                               <Button
                                 size="sm"
-                                onClick={handleGenerateSummary}
-                                disabled={isGeneratingSummary || isSaving}
-                                className="bg-white hover:bg-gray-50 text-indigo-600 border border-indigo-200 shadow-sm hover:shadow transition-all"
+                                onClick={() =>
+                                  handleProfileUpdate({
+                                    manualEntryText:
+                                      profile.manualEntryText || null,
+                                  })
+                                }
+                                disabled={isSaving || isGeneratingSummary}
+                                className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-md transition-transform active:scale-95"
                               >
-                                {isGeneratingSummary ? (
-                                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                {isSaving ? (
+                                  <Loader2 className="w-4 h-4 ml-2 animate-spin" />
                                 ) : (
-                                  <Sparkles className="w-4 h-4 mr-2" />
+                                  <Save className="w-4 h-4 ml-2" />
                                 )}
-                                {isGeneratingSummary
-                                  ? dict.neshamaTechSummary.aiButtonLoading
-                                  : dict.neshamaTechSummary.aiButton}
+                                {isSaving
+                                  ? dict.neshamaTechSummary.saveButtonLoading ||
+                                    'שומר...'
+                                  : dict.neshamaTechSummary.saveButton ||
+                                    'שמור תקציר'}
                               </Button>
-                            </div>
-                          </CardHeader>
-                          <CardContent className="pt-4">
-                            <Textarea
-                              value={profile.manualEntryText || ''}
-                              onChange={(e) =>
-                                setProfile((p) =>
-                                  p
-                                    ? { ...p, manualEntryText: e.target.value }
-                                    : null
-                                )
-                              }
-                              placeholder={dict.neshamaTechSummary.placeholder}
-                              rows={6}
-                              className="min-h-[120px] focus-visible:ring-indigo-500"
-                            />
-                          </CardContent>
+                            </CardFooter>
+                          </Card>
 
-                          {/* Footer with Save and PDF buttons */}
-                          <CardFooter className="flex justify-between pt-2 pb-4 bg-slate-50/30">
-                            {/* כפתור הורדת PDF (חדש) */}
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={handleGenerateInsightPdf}
-                              disabled={isGeneratingPdf}
-                              className="border-indigo-200 text-indigo-700 hover:bg-indigo-50 gap-2"
-                            >
-                              {isGeneratingPdf ? (
-                                <Loader2 className="w-4 h-4 animate-spin" />
-                              ) : (
-                                <FileText className="w-4 h-4" />
-                              )}
-                              {isGeneratingPdf
-                                ? dict.neshamaTechSummary.generatingPdfButton ||
-                                  'Generating...'
-                                : dict.neshamaTechSummary.downloadPdfButton ||
-                                  'Download Insight PDF'}
-                            </Button>
-
-                            {/* כפתור שמירה */}
-                            <Button
-                              size="sm"
-                              onClick={() =>
-                                handleProfileUpdate({
-                                  manualEntryText:
-                                    profile.manualEntryText || null,
-                                })
-                              }
-                              disabled={isSaving || isGeneratingSummary}
-                              className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-md transition-transform active:scale-95"
-                            >
-                              {isSaving ? (
-                                <Loader2 className="w-4 h-4 ml-2 animate-spin" />
-                              ) : (
-                                <Save className="w-4 h-4 ml-2" />
-                              )}
-                              {isSaving
-                                ? dict.neshamaTechSummary.saveButtonLoading ||
-                                  'שומר...'
-                                : dict.neshamaTechSummary.saveButton ||
-                                  'שמור תקציר'}
-                            </Button>
-                          </CardFooter>
-                        </Card>
-
-                        {/* --- Conversation Summary Card --- */}
-                        <Card className="bg-white rounded-xl shadow-sm border overflow-hidden">
-                          <div className="h-1 bg-gradient-to-r from-blue-500 to-cyan-500"></div>
-                          <CardHeader className="bg-blue-50/30 pb-4">
-                            <div className="flex justify-between items-start">
-                              <div>
-                                <CardTitle className="flex items-center gap-2 text-lg text-blue-900">
-                                  <MessageSquare className="w-5 h-5 text-blue-600" />
-                                  {dict.conversationSummary?.title ||
-                                    'סיכום שיחה עם שדכן'}
-                                </CardTitle>
-                                <CardDescription className="mt-1 text-blue-800/70">
-                                  {dict.conversationSummary?.description ||
-                                    'כאן ניתן לתעד הערות פנימיות וסיכומים משיחותיך עם המועמד/ת.'}
-                                </CardDescription>
+                          {/* --- Conversation Summary Card --- */}
+                          <Card className="bg-white rounded-xl shadow-sm border overflow-hidden">
+                            <div className="h-1 bg-gradient-to-r from-blue-500 to-cyan-500"></div>
+                            <CardHeader className="bg-blue-50/30 pb-4">
+                              <div className="flex justify-between items-start">
+                                <div>
+                                  <CardTitle className="flex items-center gap-2 text-lg text-blue-900">
+                                    <MessageSquare className="w-5 h-5 text-blue-600" />
+                                    {dict.conversationSummary?.title ||
+                                      'סיכום שיחה עם שדכן'}
+                                  </CardTitle>
+                                  <CardDescription className="mt-1 text-blue-800/70">
+                                    {dict.conversationSummary?.description ||
+                                      'כאן ניתן לתעד הערות פנימיות וסיכומים משיחותיך עם המועמד/ת.'}
+                                  </CardDescription>
+                                </div>
                               </div>
-                            </div>
-                          </CardHeader>
-                          <CardContent className="pt-4">
-                            <Textarea
-                              value={profile.conversationSummary || ''}
-                              onChange={(e) =>
-                                setProfile((p) =>
-                                  p
-                                    ? {
-                                        ...p,
-                                        conversationSummary: e.target.value,
-                                      }
-                                    : null
-                                )
-                              }
-                              placeholder={
-                                dict.conversationSummary?.placeholder ||
-                                'הקלד/י כאן את סיכום השיחה...'
-                              }
-                              rows={5}
-                              className="min-h-[100px] border-blue-200 focus-visible:ring-blue-500 bg-blue-50/10"
+                            </CardHeader>
+                            <CardContent className="pt-4">
+                              <Textarea
+                                value={profile.conversationSummary || ''}
+                                onChange={(e) =>
+                                  setProfile((p) =>
+                                    p
+                                      ? {
+                                          ...p,
+                                          conversationSummary: e.target.value,
+                                        }
+                                      : null
+                                  )
+                                }
+                                placeholder={
+                                  dict.conversationSummary?.placeholder ||
+                                  'הקלד/י כאן את סיכום השיחה...'
+                                }
+                                rows={5}
+                                className="min-h-[100px] border-blue-200 focus-visible:ring-blue-500 bg-blue-50/10"
+                              />
+                            </CardContent>
+                            <CardFooter className="flex justify-end pt-2 pb-4 bg-blue-50/20">
+                              <Button
+                                size="sm"
+                                onClick={() =>
+                                  handleProfileUpdate({
+                                    conversationSummary:
+                                      profile.conversationSummary || null,
+                                  })
+                                }
+                                disabled={isSaving || isGeneratingSummary}
+                                className="bg-blue-600 hover:bg-blue-700 text-white shadow-md transition-transform active:scale-95"
+                              >
+                                {isSaving ? (
+                                  <Loader2 className="w-4 h-4 ml-2 animate-spin" />
+                                ) : (
+                                  <Save className="w-4 h-4 ml-2" />
+                                )}
+                                {isSaving
+                                  ? dict.conversationSummary
+                                      ?.saveButtonLoading || 'שומר...'
+                                  : dict.conversationSummary?.saveButton ||
+                                    'שמור סיכום שיחה'}
+                              </Button>
+                            </CardFooter>
+                          </Card>
+
+                          {/* --- Main Profile Section --- */}
+                          <div className="bg-white rounded-xl shadow-sm border p-1">
+                            <ProfileSection
+                              profile={profile}
+                              isEditing={isEditing}
+                              setIsEditing={setIsEditing}
+                              onSave={handleProfileUpdate}
+                              dict={profileDict.profileSection}
+                              locale={locale}
                             />
-                          </CardContent>
-                          <CardFooter className="flex justify-end pt-2 pb-4 bg-blue-50/20">
-                            <Button
-                              size="sm"
-                              onClick={() =>
-                                handleProfileUpdate({
-                                  conversationSummary:
-                                    profile.conversationSummary || null,
-                                })
-                              }
-                              disabled={isSaving || isGeneratingSummary}
-                              className="bg-blue-600 hover:bg-blue-700 text-white shadow-md transition-transform active:scale-95"
-                            >
-                              {isSaving ? (
-                                <Loader2 className="w-4 h-4 ml-2 animate-spin" />
-                              ) : (
-                                <Save className="w-4 h-4 ml-2" />
-                              )}
-                              {isSaving
-                                ? dict.conversationSummary?.saveButtonLoading ||
-                                  'שומר...'
-                                : dict.conversationSummary?.saveButton ||
-                                  'שמור סיכום שיחה'}
-                            </Button>
-                          </CardFooter>
-                        </Card>
-
-                        {/* --- Main Profile Section --- */}
-                        <div className="bg-white rounded-xl shadow-sm border p-1">
-                          <ProfileSection
-                            profile={profile}
-                            isEditing={isEditing}
-                            setIsEditing={setIsEditing}
-                            onSave={handleProfileUpdate}
-                            dict={profileDict.profileSection}
-                            locale={locale}
-                          />
+                          </div>
                         </div>
-                      </div>
-                    ) : (
-                      <div className="flex items-center justify-center h-full">
-                        <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
-                      </div>
-                    )}
-                  </TabsContent>
+                      ) : (
+                        <div className="flex items-center justify-center h-full">
+                          <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+                        </div>
+                      )}
+                    </TabsContent>
 
-                  <TabsContent
-                    value="photos"
-                    className="flex-1 overflow-auto p-4 m-0 pb-16"
-                  >
-                    <div className="bg-white rounded-xl shadow-sm border">
-                      <PhotosSection
-                        images={images}
-                        isUploading={isUploading}
-                        disabled={isSaving || isDeletingCandidate}
-                        onUpload={handleImageUpload}
-                        onSetMain={handleSetMainImage}
-                        onDelete={handleDeleteImage}
-                        maxImages={10}
-                        dict={profileDict.photosSection}
-                        locale={locale}
-                      />
-                    </div>
-                  </TabsContent>
-
-                  <TabsContent
-                    value="preferences"
-                    className="flex-1 overflow-auto p-4 m-0 pb-16"
-                  >
-                    {profile ? (
+                    <TabsContent
+                      value="photos"
+                      className="flex-1 overflow-auto p-4 m-0 pb-16"
+                    >
                       <div className="bg-white rounded-xl shadow-sm border">
-                        <PreferencesSection
-                          profile={profile}
-                          isEditing={isEditing}
-                          setIsEditing={setIsEditing}
-                          onChange={handleProfileUpdate}
-                          dictionary={profileDict.preferencesSection}
+                        <PhotosSection
+                          images={images}
+                          isUploading={isUploading}
+                          disabled={isSaving || isDeletingCandidate}
+                          onUpload={handleImageUpload}
+                          onSetMain={handleSetMainImage}
+                          onDelete={handleDeleteImage}
+                          maxImages={10}
+                          dict={profileDict.photosSection}
                           locale={locale}
                         />
                       </div>
-                    ) : (
-                      <div className="flex items-center justify-center h-full">
-                        <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
-                      </div>
-                    )}
-                  </TabsContent>
-                </div>
-              </Tabs>
+                    </TabsContent>
 
-              {/* --- FOOTER --- */}
-              <div className="p-4 border-t flex justify-between items-center mt-auto bg-white/95 backdrop-blur-sm sticky bottom-0 z-10 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
-                <div>
-                  <span className="text-sm text-muted-foreground hidden sm:inline-block">
-                    {activeTab === 'profile'
-                      ? dict.footer.tabInfo.profile
-                      : activeTab === 'photos'
-                        ? dict.footer.tabInfo.photos
-                        : dict.footer.tabInfo.preferences}
-                  </span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <Button
-                    variant="outline"
-                    onClick={() => setIsSetupInviteOpen(true)}
-                    disabled={
-                      isSaving || isDeletingCandidate || isSendingInvite
-                    }
-                    className="border-indigo-200 text-indigo-700 hover:bg-indigo-50"
-                  >
-                    <Send
-                      className={cn(
-                        'w-4 h-4',
-                        locale === 'he' ? 'ml-2' : 'mr-2'
-                      )}
-                    />
-                    {dict.footer.buttons.sendInvite}
-                  </Button>
-                  {isAdmin && (
-                    <Button
-                      variant="destructive"
-                      onClick={() => setIsDeleteCandidateDialogOpen(true)}
-                      disabled={isSaving || isUploading || isDeletingCandidate}
-                      size="sm"
+                    <TabsContent
+                      value="preferences"
+                      className="flex-1 overflow-auto p-4 m-0 pb-16"
                     >
-                      <Trash2
+                      {profile ? (
+                        <div className="bg-white rounded-xl shadow-sm border">
+                          <PreferencesSection
+                            profile={profile}
+                            isEditing={isEditing}
+                            setIsEditing={setIsEditing}
+                            onChange={handleProfileUpdate}
+                            dictionary={profileDict.preferencesSection}
+                            locale={locale}
+                          />
+                        </div>
+                      ) : (
+                        <div className="flex items-center justify-center h-full">
+                          <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+                        </div>
+                      )}
+                    </TabsContent>
+                  </div>
+                </Tabs>
+
+                {/* --- FOOTER --- */}
+                <div className="p-4 border-t flex justify-between items-center mt-auto bg-white/95 backdrop-blur-sm sticky bottom-0 z-10 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] flex-shrink-0">
+                  <div>
+                    <span className="text-sm text-muted-foreground hidden sm:inline-block">
+                      {activeTab === 'profile'
+                        ? dict.footer.tabInfo.profile
+                        : activeTab === 'photos'
+                          ? dict.footer.tabInfo.photos
+                          : dict.footer.tabInfo.preferences}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Button
+                      variant="outline"
+                      onClick={() => setIsSetupInviteOpen(true)}
+                      disabled={
+                        isSaving || isDeletingCandidate || isSendingInvite
+                      }
+                      className="border-indigo-200 text-indigo-700 hover:bg-indigo-50"
+                    >
+                      <Send
                         className={cn(
                           'w-4 h-4',
                           locale === 'he' ? 'ml-2' : 'mr-2'
                         )}
                       />
-                      {dict.footer.buttons.deleteCandidate}
+                      {dict.footer.buttons.sendInvite}
                     </Button>
-                  )}
-                  <Button
-                    variant="outline"
-                    onClick={onClose}
-                    disabled={isSaving || isDeletingCandidate}
-                    className="bg-gray-100 hover:bg-gray-200 transition-colors shadow-sm text-gray-700"
-                    size="sm"
-                  >
-                    <X className="w-4 h-4 mr-2" />
-                    {dict.footer.buttons.close}
-                  </Button>
+                    {isAdmin && (
+                      <Button
+                        variant="destructive"
+                        onClick={() => setIsDeleteCandidateDialogOpen(true)}
+                        disabled={
+                          isSaving || isUploading || isDeletingCandidate
+                        }
+                        size="sm"
+                      >
+                        <Trash2
+                          className={cn(
+                            'w-4 h-4',
+                            locale === 'he' ? 'ml-2' : 'mr-2'
+                          )}
+                        />
+                        {dict.footer.buttons.deleteCandidate}
+                      </Button>
+                    )}
+                    <Button
+                      variant="outline"
+                      onClick={onClose}
+                      disabled={isSaving || isDeletingCandidate}
+                      className="bg-gray-100 hover:bg-gray-200 transition-colors shadow-sm text-gray-700"
+                      size="sm"
+                    >
+                      <X className="w-4 h-4 mr-2" />
+                      {dict.footer.buttons.close}
+                    </Button>
+                  </div>
                 </div>
-              </div>
-            </motion.div>
-          )}
+              </>
+            )}
+          </motion.div>
         </DialogContent>
       </Dialog>
 

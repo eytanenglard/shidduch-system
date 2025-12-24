@@ -244,8 +244,6 @@ const NavButton = React.memo(
         initial={{ opacity: 0, x: isMobile ? 0 : -20 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ delay: order * 0.05 }}
-        whileHover={{ scale: 1.02, x: isRTL ? -3 : 3 }}
-        whileTap={{ scale: 0.98 }}
       >
         <Button
           variant="ghost"
