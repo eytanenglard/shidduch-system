@@ -275,6 +275,12 @@ export default function MatchmakingQuestionnaire({
         // Save logic
         if (!userId) {
           // Guest user - save to localStorage
+
+          if (answers.length === 0 && completedWorlds.length === 0) {
+            console.log('Skipping save for guest - empty data');
+            setIsSaving(false);
+            return;
+          }
           localStorage.setItem(
             'tempQuestionnaire',
             JSON.stringify(submissionData)
@@ -636,11 +642,7 @@ export default function MatchmakingQuestionnaire({
             '%c[Complete] 🏆 ALL WORLDS COMPLETED!',
             'color: #fbbf24; font-weight: bold; font-size: 16px;'
           );
-          showToast(
-            dict.matchmaking.toasts.allWorldsFinished,
-            'success',
-            3000
-          );
+          showToast(dict.matchmaking.toasts.allWorldsFinished, 'success', 3000);
           setCurrentStep(OnboardingStep.COMPLETED);
         }
       }
