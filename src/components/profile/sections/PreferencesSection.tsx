@@ -208,15 +208,23 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
   };
 
   const handleSelectChange = (field: keyof UserProfile, value: string) => {
+    // רשימה מרוכזת של כל הערכים שנחשבים כ"ללא העדפה" במערכת
+    // הערכים נלקחו ישירות מקובץ he.json שסיפקת
+    const resetValues = [
+      '',
+      'any', // כללי
+      'no_preference', // עבור סטטוס עליה, השכלה, עיסוק ועוד
+      'does_not_matter', // <--- קריטי: המפתח הייחודי של 'ילדים מקשר קודם'
+      'no_strong_preference', // עבור תכונות ותחביבים
+      'לא_משנה', // תמיכה לאחור
+    ];
+
     setFormData((prev) => ({
       ...prev,
-      [field]:
-        value === '' ||
-        value === 'לא_משנה' || // Keep legacy values just in case
-        value === 'any' ||
-        value === 'no_preference'
-          ? undefined
-          : (value as UserProfile[typeof field]),
+      // אם הערך הוא אחד מערכי האיפוס, נשלח null. אחרת נשלח את הערך עצמו.
+      [field]: resetValues.includes(value)
+        ? null
+        : (value as UserProfile[typeof field]),
     }));
   };
 

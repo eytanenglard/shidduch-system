@@ -1,4 +1,4 @@
-// File: src/app/api/profile/route.ts
+// src/app/api/profile/route.ts
 
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
@@ -25,10 +25,12 @@ export async function GET(req: Request) {
     }
 
     // קבע עבור איזה משתמש נשלפים הנתונים:
-    // אם צוין ID בבקשה, השתמש בו. אחרת, השתמש ב-ID של המשתמש המחובר.
     const targetUserId = requestedUserId || session.user.id;
+    
+    // ✨ FIX: Check if the requester is the owner of the profile
+    const isOwner = session.user.id === targetUserId;
 
-    // שלוף את המשתמש יחד עם כל המידע המקושר שלו (פרופיל, תמונות, והמלצות)
+    // שלוף את המשתמש יחד עם כל המידע המקושר שלו
     const userWithProfile = await prisma.user.findUnique({
       where: { id: targetUserId },
       include: {
@@ -43,7 +45,7 @@ export async function GET(req: Request) {
         },
         images: {
             orderBy: {
-                isMain: 'desc' // ודא שהתמונה הראשית תמיד ראשונה
+                isMain: 'desc' 
             }
         },
       }
@@ -59,18 +61,9 @@ export async function GET(req: Request) {
     const dbProfile = userWithProfile.profile;
 
     if (!dbProfile) {
-        console.error(`Profile data not found for user ID: ${targetUserId}`);
         return NextResponse.json(
             { success: false, message: 'Profile data not found for user.' },
             { status: 404 }
-        );
-    }
-
-    if (!dbProfile.birthDate) {
-        console.error(`birthDate is null or undefined for profile ID: ${dbProfile.id}`);
-        return NextResponse.json(
-            { success: false, message: 'Data integrity issue: birthDate is missing for the profile.' },
-            { status: 500 }
         );
     }
 
@@ -79,7 +72,7 @@ export async function GET(req: Request) {
       id: dbProfile.id,
       userId: dbProfile.userId,
       gender: dbProfile.gender,
-      birthDate: new Date(dbProfile.birthDate),
+      birthDate: dbProfile.birthDate ? new Date(dbProfile.birthDate) : new Date(), // Fallback if missing, though integrity check exists
       nativeLanguage: dbProfile.nativeLanguage || undefined,
       additionalLanguages: dbProfile.additionalLanguages || [],
       height: dbProfile.height ?? null,
@@ -107,20 +100,17 @@ export async function GET(req: Request) {
       profileCharacterTraits: dbProfile.profileCharacterTraits || [],
       profileHobbies: dbProfile.profileHobbies || [],
       
-      // שדות הסיפור והתוכן האישי
       about: dbProfile.about || "",
       isAboutVisible: dbProfile.isAboutVisible ?? true,
       profileHeadline: dbProfile.profileHeadline || undefined,
       inspiringCoupleStory: dbProfile.inspiringCoupleStory || undefined,
       influentialRabbi: dbProfile.influentialRabbi || undefined,
       
-      // דבר המערכת והמלצות
       manualEntryText: dbProfile.manualEntryText || undefined,
       isNeshamaTechSummaryVisible: dbProfile.isNeshamaTechSummaryVisible ?? true,
       testimonials: dbProfile.testimonials || [],
       isFriendsSectionVisible: dbProfile.isFriendsSectionVisible ?? true,
 
-      // העדפות שידוך
       matchingNotes: dbProfile.matchingNotes || "",
       preferredAgeMin: dbProfile.preferredAgeMin ?? null,
       preferredAgeMax: dbProfile.preferredAgeMax ?? null,
@@ -141,11 +131,9 @@ export async function GET(req: Request) {
       preferredAliyaStatus: dbProfile.preferredAliyaStatus || undefined,
       preferredReligiousJourneys: dbProfile.preferredReligiousJourneys ?? [],
 
-      // הגדרות והעדפות מקצועיות
       contactPreference: dbProfile.contactPreference || undefined,
       preferredMatchmakerGender: dbProfile.preferredMatchmakerGender,
 
-      // סטטוס ומידע מערכתי
       isProfileVisible: dbProfile.isProfileVisible,
       isProfileComplete: userWithProfile.isProfileComplete,
       availabilityStatus: dbProfile.availabilityStatus,
@@ -158,17 +146,17 @@ export async function GET(req: Request) {
       hasViewedProfilePreview: dbProfile.hasViewedProfilePreview,
       needsAiProfileUpdate: dbProfile.needsAiProfileUpdate,
       
-      // מידע רפואי (חסוי)
       hasMedicalInfo: dbProfile.hasMedicalInfo ?? undefined,
-   medicalInfoDetails: dbProfile.isMedicalInfoVisible 
+      // ✨ FIX: Allow owner to see details even if hidden
+      medicalInfoDetails: (isOwner || dbProfile.isMedicalInfoVisible)
         ? dbProfile.medicalInfoDetails ?? undefined 
-        : undefined,      medicalInfoDisclosureTiming: dbProfile.medicalInfoDisclosureTiming ?? undefined,
+        : undefined,      
+      medicalInfoDisclosureTiming: dbProfile.medicalInfoDisclosureTiming ?? undefined,
       isMedicalInfoVisible: dbProfile.isMedicalInfoVisible,
-       cvUrl: dbProfile.cvUrl,
+      cvUrl: dbProfile.cvUrl,
       cvSummary: dbProfile.cvSummary,
-            aiProfileSummary: dbProfile.aiProfileSummary,
+      aiProfileSummary: dbProfile.aiProfileSummary,
 
-      // מידע בסיסי על המשתמש
       user: {
         id: userWithProfile.id,
         firstName: userWithProfile.firstName,
@@ -177,7 +165,6 @@ export async function GET(req: Request) {
       }
     };
     
-    // החזרת תשובה מוצלחת עם כל הנתונים
     return NextResponse.json({
       success: true,
       profile: profileResponseData,

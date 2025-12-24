@@ -1,6 +1,7 @@
 // src/components/matchmaker/new/MatchmakerEditProfile.tsx
 
 import React, { useState, useEffect, useCallback } from 'react';
+import { generateInsightPdf } from '@/lib/pdf/insightPdfGenerator';
 import {
   Dialog,
   DialogContent,
@@ -21,7 +22,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Loader2,
   X,
-  UserCog,
+  UserCog,FileText,
   Sparkles,
   Award,
   Image as ImageIcon,
@@ -74,6 +75,8 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
   const isAdmin = session?.user?.role === 'ADMIN';
   const direction = locale === 'he' ? 'rtl' : 'ltr';
 
+const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+
   const [activeTab, setActiveTab] = useState('profile');
   const [isEditing, setIsEditing] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -97,6 +100,35 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
   const [isGeneratingSummary, setIsGeneratingSummary] = useState(false);
 
   const DELETE_CANDIDATE_CONFIRMATION_PHRASE = dict.deleteConfirmationPhrase;
+const handleGenerateInsightPdf = async () => {
+    if (!candidate) return;
+    setIsGeneratingPdf(true);
+    try {
+      const response = await fetch('/api/profile/neshama-insight', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ userId: candidate.id, locale }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to generate insight');
+      }
+
+      const data = await response.json();
+      
+      // שימוש בפונקציית העזר החדשה שיצרנו
+      await generateInsightPdf(data.insight, locale as 'he' | 'en');
+      
+    } catch (error: any) {
+      console.error('Error generating PDF:', error);
+      toast.error(error.message || 'שגיאה ביצירת קובץ הדוח');
+    } finally {
+      setIsGeneratingPdf(false);
+    }
+};
 
   const handleGenerateSummary = async () => {
     if (!candidate) return;
@@ -548,30 +580,46 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
                               className="min-h-[120px] focus-visible:ring-indigo-500"
                             />
                           </CardContent>
-                          <CardFooter className="flex justify-end pt-2 pb-4 bg-slate-50/30">
-                            <Button
-                              size="sm"
-                              onClick={() =>
-                                handleProfileUpdate({
-                                  manualEntryText:
-                                    profile.manualEntryText || null,
-                                })
-                              }
-                              disabled={isSaving || isGeneratingSummary}
-                              className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-md transition-transform active:scale-95"
-                            >
-                              {isSaving ? (
-                                <Loader2 className="w-4 h-4 ml-2 animate-spin" />
-                              ) : (
-                                <Save className="w-4 h-4 ml-2" />
-                              )}
-                              {isSaving
-                                ? dict.neshamaTechSummary.saveButtonLoading ||
-                                  'שומר...'
-                                : dict.neshamaTechSummary.saveButton ||
-                                  'שמור תקציר'}
-                            </Button>
-                          </CardFooter>
+                      <CardFooter className="flex justify-between pt-2 pb-4 bg-slate-50/30">
+    {/* כפתור חדש להורדת PDF */}
+    <Button
+      variant="outline"
+      size="sm"
+      onClick={handleGenerateInsightPdf}
+      disabled={isGeneratingPdf}
+      className="border-indigo-200 text-indigo-700 hover:bg-indigo-50"
+    >
+      {isGeneratingPdf ? (
+        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+      ) : (
+        <FileText className="w-4 h-4 mr-2" />
+      )}
+      {locale === 'he' ? 'הורד דוח פרופיל (PDF)' : 'Download Insight PDF'}
+    </Button>
+
+    <Button
+      size="sm"
+      onClick={() =>
+        handleProfileUpdate({
+          manualEntryText:
+            profile.manualEntryText || null,
+        })
+      }
+      disabled={isSaving || isGeneratingSummary}
+      className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-md transition-transform active:scale-95"
+    >
+      {isSaving ? (
+        <Loader2 className="w-4 h-4 ml-2 animate-spin" />
+      ) : (
+        <Save className="w-4 h-4 ml-2" />
+      )}
+      {isSaving
+        ? dict.neshamaTechSummary.saveButtonLoading ||
+          'שומר...'
+        : dict.neshamaTechSummary.saveButton ||
+          'שמור תקציר'}
+    </Button>
+</CardFooter>
                         </Card>
 
                         {/* --- NEW: Conversation Summary Card --- */}

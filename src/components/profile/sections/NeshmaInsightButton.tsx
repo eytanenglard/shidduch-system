@@ -36,6 +36,9 @@ interface NeshmaInsightButtonProps {
   };
 }
 
+// --- CONSTANT: Threshold for unlocking the feature ---
+const COMPLETION_THRESHOLD = 95;
+
 export const NeshmaInsightButton: React.FC<NeshmaInsightButtonProps> = ({
   userId,
   locale,
@@ -50,7 +53,8 @@ export const NeshmaInsightButton: React.FC<NeshmaInsightButtonProps> = ({
   const [isMinimized, setIsMinimized] = useState(false);
   const direction = locale === 'he' ? 'rtl' : 'ltr';
 
-  const isProfileComplete = completionPercentage >= 100;
+  // Changed condition to use the 95% threshold
+  const isProfileComplete = completionPercentage >= COMPLETION_THRESHOLD;
 
   const canGenerateToday = () => {
     if (!lastGeneratedAt) return true;
@@ -75,8 +79,8 @@ export const NeshmaInsightButton: React.FC<NeshmaInsightButtonProps> = ({
       if (!isProfileComplete) {
         toast.error(
           locale === 'he'
-            ? 'יש להשלים את הפרופיל ל-100% כדי לקבל את התמונה המלאה'
-            : 'Complete your profile to 100% to get your Full Picture'
+            ? `יש להשלים את הפרופיל ל-${COMPLETION_THRESHOLD}% לפחות כדי לקבל את התמונה המלאה`
+            : `Complete your profile to at least ${COMPLETION_THRESHOLD}% to get your Full Picture`
         );
       } else if (!canGenerateToday()) {
         toast.error(
@@ -159,15 +163,15 @@ export const NeshmaInsightButton: React.FC<NeshmaInsightButtonProps> = ({
                       : 'Full Picture - Locked')}
                 </h4>
                 <p className="text-xs text-gray-500 mt-0.5">
-                  {/* התיקון: אם הטקסט קיים במילון, בצע החלפה של האחוזים */}
+                  {/* Updated fallback text to reflect new threshold */}
                   {dict.lockedDescription
                     ? dict.lockedDescription.replace(
                         '{{percentage}}',
                         completionPercentage.toString()
                       )
                     : locale === 'he'
-                      ? `השלם את הפרופיל ל-100% כדי לפתוח (כרגע: ${completionPercentage}%)`
-                      : `Complete your profile to 100% to unlock (Currently: ${completionPercentage}%)`}
+                      ? `השלם את הפרופיל ל-${COMPLETION_THRESHOLD}% כדי לפתוח (כרגע: ${completionPercentage}%)`
+                      : `Complete your profile to ${COMPLETION_THRESHOLD}% to unlock (Currently: ${completionPercentage}%)`}
                 </p>
               </div>
             </div>
@@ -328,14 +332,6 @@ const InsightDisplay: React.FC<InsightDisplayProps> = ({
 }) => {
   return (
     <div className="space-y-6 py-4">
-      {/* 
-        Updated Section Colors to Match Palette:
-        1. Teal/Emerald (Growth)
-        2. Orange/Amber (Warmth)
-        3. Rose/Pink (Connection)
-        4. Amber/Yellow (Light)
-        5. Teal/Blue (Future)
-      */}
       <InsightSection
         title={locale === 'he' ? '🌟 מי את/ה באמת' : '🌟 Who You Really Are'}
         content={data.whoYouAre}

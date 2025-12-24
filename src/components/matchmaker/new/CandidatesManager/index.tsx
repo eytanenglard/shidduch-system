@@ -553,27 +553,63 @@ const CandidatesManager: React.FC<CandidatesManagerProps> = ({
     []
   );
 
-  const handleUpdateAllProfiles = async () => {
-    setIsBulkUpdating(true);
-    toast.info('מתחיל תהליך עדכון פרופילי AI...');
-    try {
-      const response = await fetch('/api/ai/update-all-profiles', {
+const handleUpdateAllProfiles = async () => {
+  if (!confirm("פעולה זו תפעיל את ה-AI על כל המועמדים במערכת. זה עשוי לקחת מספר דקות. האם להמשיך?")) return;
+
+  setIsBulkUpdating(true);
+  const toastId = toast.loading('מאתחל תהליך עדכון...', { duration: Infinity });
+
+  try {
+    // שלב 1: איפוס דגלים (סימון כולם לעדכון)
+    const resetRes = await fetch('/api/ai/matchmaker/batch-process', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'RESET_FLAGS' }),
+    });
+    
+    if (!resetRes.ok) throw new Error('Failed to start process');
+    const resetData = await resetRes.json();
+    const totalToProcess = resetData.count;
+    let processedSoFar = 0;
+
+    toast.message(`נמצאו ${totalToProcess} פרופילים לעדכון. מתחיל עיבוד...`, { id: toastId });
+
+    // שלב 2: לולאת עיבוד
+    let completed = false;
+    
+    while (!completed) {
+      const batchRes = await fetch('/api/ai/matchmaker/batch-process', {
         method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'PROCESS_BATCH', batchSize: 4 }), // מעבדים 4 בכל פעם
       });
-      const data = await response.json();
-      if (!response.ok)
-        throw new Error(data.error || 'שגיאה בהפעלת העדכון הכללי.');
-      toast.success('העדכון הכללי הופעל בהצלחה!');
-    } catch (error) {
-      console.error('Failed to initiate bulk AI profile update:', error);
-      toast.error('שגיאה בהפעלת העדכון', {
-        description:
-          error instanceof Error ? error.message : 'אנא נסה שוב מאוחר יותר.',
-      });
-    } finally {
-      setIsBulkUpdating(false);
+
+      if (!batchRes.ok) throw new Error('Error during batch processing');
+      
+      const batchData = await batchRes.json();
+      
+      processedSoFar += batchData.processed;
+      const percent = Math.round((processedSoFar / totalToProcess) * 100);
+      
+      // עדכון הטוסט עם אחוזים
+      toast.loading(`מעבד פרופילים... ${percent}% (${processedSoFar}/${totalToProcess})`, { id: toastId });
+
+      if (batchData.completed || batchData.remaining === 0) {
+        completed = true;
+      }
     }
-  };
+
+    toast.success('העדכון הכללי הושלם בהצלחה!', { id: toastId, duration: 4000 });
+    refresh(); // רענון הטבלה בסיום
+
+  } catch (error) {
+    console.error('Bulk update failed:', error);
+    toast.error('שגיאה בתהליך העדכון. נסה שוב מאוחר יותר.', { id: toastId, duration: 4000 });
+  } finally {
+    setIsBulkUpdating(false);
+  }
+};
+
   const direction = locale === 'he' ? 'rtl' : 'ltr';
 
   // --- Render ---

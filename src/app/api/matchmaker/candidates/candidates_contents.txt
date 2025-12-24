@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\candidates
-# Generated on: 2025-12-23 00:36:45
+# Generated on: 2025-12-24 11:49:00
 # Filter: Only content of code files (.bat, .c, .cfg, .conf, .cpp, .cs, .css, .go, .h, .html, .ini, .java, .js, .json, .jsx, .kt, .less, .md, .php, .py, .rb, .rs, .scss, .sh, .sql, .swift, .ts, .tsx, .txt, .xml, .yaml, .yml) is included.
 ################################################################################
 
@@ -81,30 +81,38 @@ export async function GET() {
     }
 
     // Step 1: Fetch all candidates
-    const users = await prisma.user.findMany({
-      where: {
-        status: { notIn: ['BLOCKED', 'INACTIVE'] },
-        role: 'CANDIDATE',
-        profile: { isNot: null },
-      },
-      select: {
-        id: true,
-        email: true,
-        firstName: true,
-        lastName: true,
-        phone: true, // ✅ ADDED: Phone number for matchmaker view
-        status: true,
-        source: true,
-        createdAt: true,
-        isVerified: true,
-        isProfileComplete: true,
-        images: {
-          select: { id: true, url: true, isMain: true },
-          orderBy: [{ isMain: 'desc' }, { createdAt: 'asc' }],
-        },
-        profile: true,
-      },
-    });
+   // חפש את השורה סביב 13 בתוך prisma.user.findMany
+const users = await prisma.user.findMany({
+  where: {
+    status: { notIn: ['BLOCKED', 'INACTIVE'] },
+    role: 'CANDIDATE',
+    profile: { isNot: null },
+  },
+  select: {
+    id: true,
+    email: true,
+    firstName: true,
+    lastName: true,
+    phone: true,
+    status: true,
+    source: true,
+    createdAt: true,
+    isVerified: true,
+    isProfileComplete: true,
+    images: {
+      select: { id: true, url: true, isMain: true },
+      orderBy: [{ isMain: 'desc' }, { createdAt: 'asc' }],
+    },
+    // שינוי כאן: מ-profile: true למבנה include
+    profile: {
+      include: {
+        testimonials: {
+          where: { status: 'APPROVED' } // ברשימה הכללית נרצה אולי רק מאושרות
+        }
+      }
+    },
+  },
+});
 
     // ================== 🚨 START SERVER DEBUG: LINOY 🚨 ==================
     const targetEmail = 'linoyreznik032@gmail.com';
@@ -351,22 +359,28 @@ export async function GET(
     const params = await props.params;
     const { id } = params;
 
-    const candidateData = await prisma.user.findUnique({
-      where: { id },
-      select: {
-        id: true,
-        firstName: true,
-        lastName: true,
-        email: true,
-        phone: true,
-        isVerified: true,
-        role: true,
-        profile: true,
-        images: {
-          orderBy: [{ isMain: 'desc' }, { createdAt: 'desc' }]
-        }
+   // חפש את השורה סביב 63-64 ושנה את select ה-profile
+const candidateData = await prisma.user.findUnique({
+  where: { id },
+  select: {
+    id: true,
+    firstName: true,
+    lastName: true,
+    email: true,
+    phone: true,
+    isVerified: true,
+    role: true,
+    // שינוי כאן: מ-profile: true למבנה include
+    profile: {
+      include: {
+        testimonials: true // שליפת כל ההמלצות עבור המועמד
       }
-    });
+    },
+    images: {
+      orderBy: [{ isMain: 'desc' }, { createdAt: 'desc' }]
+    }
+  }
+});
 
     if (!candidateData) {
       return NextResponse.json(

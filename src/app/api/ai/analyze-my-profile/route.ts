@@ -8,13 +8,26 @@ import profileAiService from '@/lib/services/profileAiService';
 import aiService from '@/lib/services/aiService';
 import prisma from '@/lib/prisma';
 
+// -----------------------------------------------------------------------------
+// הגדרות תצורה ל-Next.js כדי למנוע Timeout ו-Caching
+// -----------------------------------------------------------------------------
+
+// מאפשר לפונקציה לרוץ עד 60 שניות (במקום ברירת המחדל של 10-15 שניות).
+// זה קריטי לקריאות AI שלוקחות זמן.
+export const maxDuration = 60; 
+
+// מוודא שהנתיב תמיד דינמי ולא נשמר ב-Cache של השרת
+export const dynamic = 'force-dynamic';
+
 /**
  * מטפל בבקשות POST לניתוח פרופיל המשתמש באמצעות AI.
  * הפונקציה מאמתת את המשתמש, יוצרת פרופיל נרטיבי מקיף,
  * שולחת אותו לניתוח AI, ומחזירה את התוצאה המובנית.
  */
 export async function POST(req: NextRequest) {
-const rateLimitResponse = await applyRateLimitWithRoleCheck(req, { requests: 15, window: '1 h' });  if (rateLimitResponse) {
+  // בדיקת Rate Limit
+  const rateLimitResponse = await applyRateLimitWithRoleCheck(req, { requests: 15, window: '1 h' });
+  if (rateLimitResponse) {
     return rateLimitResponse;
   }
 

@@ -44,22 +44,28 @@ export async function GET(
     const params = await props.params;
     const { id } = params;
 
-    const candidateData = await prisma.user.findUnique({
-      where: { id },
-      select: {
-        id: true,
-        firstName: true,
-        lastName: true,
-        email: true,
-        phone: true,
-        isVerified: true,
-        role: true,
-        profile: true,
-        images: {
-          orderBy: [{ isMain: 'desc' }, { createdAt: 'desc' }]
-        }
+   // חפש את השורה סביב 63-64 ושנה את select ה-profile
+const candidateData = await prisma.user.findUnique({
+  where: { id },
+  select: {
+    id: true,
+    firstName: true,
+    lastName: true,
+    email: true,
+    phone: true,
+    isVerified: true,
+    role: true,
+    // שינוי כאן: מ-profile: true למבנה include
+    profile: {
+      include: {
+        testimonials: true // שליפת כל ההמלצות עבור המועמד
       }
-    });
+    },
+    images: {
+      orderBy: [{ isMain: 'desc' }, { createdAt: 'desc' }]
+    }
+  }
+});
 
     if (!candidateData) {
       return NextResponse.json(

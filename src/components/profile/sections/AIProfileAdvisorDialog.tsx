@@ -47,6 +47,7 @@ export const AIProfileAdvisorDialog: React.FC<AIProfileAdvisorDialogProps> = ({
   const direction = locale === 'he' ? 'rtl' : 'ltr';
 
   const handleGetAnalysis = async () => {
+    // אם כבר יש תוצאה, רק פתח את הדיאלוג
     if (analysis) {
       setIsOpen(true);
       return;
@@ -56,10 +57,14 @@ export const AIProfileAdvisorDialog: React.FC<AIProfileAdvisorDialogProps> = ({
     setError(null);
 
     try {
+      // הוספת headers למניעת Cache בדפדפן - חשוב מאוד לפתרון הבעיה
       const response = await fetch('/api/ai/analyze-my-profile', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          Pragma: 'no-cache',
+          Expires: '0',
         },
       });
 
@@ -88,7 +93,14 @@ export const AIProfileAdvisorDialog: React.FC<AIProfileAdvisorDialogProps> = ({
   const handleOpenChange = (open: boolean) => {
     setIsOpen(open);
     if (!open) {
+      // איפוס שגיאות בסגירה
       setError(null);
+
+      // תיקון חשוב: אם המשתמש סוגר את החלון באמצע טעינה שנתקעה,
+      // אנחנו מאפסים את הסטטוס כדי שהכפתור יהיה זמין ללחיצה מחדש
+      if (isLoading) {
+        setIsLoading(false);
+      }
     }
   };
 
@@ -115,26 +127,24 @@ export const AIProfileAdvisorDialog: React.FC<AIProfileAdvisorDialogProps> = ({
             {/* Decorative background elements (Gradient only, no icons) */}
             <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-teal-200/30 to-transparent rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700" />
             <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-orange-200/30 to-transparent rounded-full blur-xl group-hover:scale-125 transition-transform duration-700" />
-            
+
             {/* Content Container */}
             <div className="relative z-10 flex items-center justify-center gap-3 w-full">
-              
               {/* 1. הטקסט מופיע ראשון בקוד */}
               <span className="font-semibold text-lg bg-gradient-to-r from-teal-700 via-orange-600 to-teal-700 bg-clip-text text-transparent group-hover:from-teal-800 group-hover:via-orange-700 group-hover:to-teal-800 transition-all duration-300">
                 {dict.triggerButton}
               </span>
-              
+
               {/* 2. הלוגו מופיע שני בקוד - מה שיגרום לו להיות "בסוף" המשפט (משמאל בעברית, מימין באנגלית) */}
               <div className="relative w-8 h-8 group-hover:scale-110 transition-transform duration-500 shrink-0">
-                  <Image
-                    src="/logo.png"
-                    alt="NeshamaTech Logo"
-                    fill
-                    className="object-contain"
-                    unoptimized
-                  />
+                <Image
+                  src="/logo.png"
+                  alt="NeshamaTech Logo"
+                  fill
+                  className="object-contain"
+                  unoptimized
+                />
               </div>
-
             </div>
 
             {/* Animated gradient overlay */}
@@ -148,12 +158,15 @@ export const AIProfileAdvisorDialog: React.FC<AIProfileAdvisorDialogProps> = ({
         dir={direction}
       >
         <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-teal-200/20 to-transparent rounded-full blur-3xl animate-float-slow" />
-        <div className="absolute bottom-0 left-0 w-48 h-48 bg-gradient-to-tr from-orange-200/20 to-transparent rounded-full blur-2xl animate-float-slow" style={{ animationDelay: '2s' }} />
+        <div
+          className="absolute bottom-0 left-0 w-48 h-48 bg-gradient-to-tr from-orange-200/20 to-transparent rounded-full blur-2xl animate-float-slow"
+          style={{ animationDelay: '2s' }}
+        />
 
         <DialogHeader className="relative z-10 p-6 border-b border-teal-100/50 bg-white/80 backdrop-blur-sm">
           <div className="flex justify-between items-start gap-4">
             <DialogClose asChild>
-              <motion.button 
+              <motion.button
                 whileHover={{ scale: 1.1, rotate: 90 }}
                 whileTap={{ scale: 0.9 }}
                 className="rounded-full p-2 text-gray-400 hover:text-gray-700 hover:bg-teal-50 shrink-0 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-teal-400 focus:ring-offset-2"
@@ -168,7 +181,6 @@ export const AIProfileAdvisorDialog: React.FC<AIProfileAdvisorDialogProps> = ({
                 <div className="relative">
                   <div className="absolute inset-0 bg-gradient-to-br from-teal-400 to-orange-400 rounded-xl blur-lg opacity-40" />
                   <div className="relative bg-gradient-to-br from-teal-500 via-orange-500 to-teal-600 p-2.5 rounded-xl shadow-lg">
-                    {/* כאן בפנים הדיאלוג השארתי את ה-Sparkles כי זה חלק מהעיצוב הפנימי */}
                     <Sparkles className="w-6 h-6 text-white" />
                   </div>
                 </div>
@@ -199,25 +211,33 @@ export const AIProfileAdvisorDialog: React.FC<AIProfileAdvisorDialogProps> = ({
                 <div className="relative mb-8">
                   <motion.div
                     animate={{ rotate: 360 }}
-                    transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+                    transition={{
+                      duration: 3,
+                      repeat: Infinity,
+                      ease: 'linear',
+                    }}
                     className="absolute inset-0 w-32 h-32 rounded-full border-4 border-t-teal-500 border-r-orange-500 border-b-transparent border-l-transparent"
                   />
                   <motion.div
                     animate={{ rotate: -360 }}
-                    transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                    transition={{
+                      duration: 2,
+                      repeat: Infinity,
+                      ease: 'linear',
+                    }}
                     className="absolute inset-2 w-28 h-28 rounded-full border-4 border-t-transparent border-r-orange-400 border-b-teal-400 border-l-transparent"
                   />
-                  
+
                   <div className="relative w-32 h-32 flex items-center justify-center">
                     <motion.div
-                      animate={{ 
+                      animate={{
                         scale: [1, 1.2, 1],
-                        rotate: [0, 180, 360]
+                        rotate: [0, 180, 360],
                       }}
-                      transition={{ 
-                        duration: 2, 
+                      transition={{
+                        duration: 2,
                         repeat: Infinity,
-                        ease: "easeInOut"
+                        ease: 'easeInOut',
                       }}
                       className="bg-gradient-to-br from-teal-500 via-orange-500 to-teal-600 p-4 rounded-2xl shadow-2xl"
                     >
@@ -243,15 +263,15 @@ export const AIProfileAdvisorDialog: React.FC<AIProfileAdvisorDialogProps> = ({
                     {[0, 0.2, 0.4].map((delay) => (
                       <motion.div
                         key={delay}
-                        animate={{ 
+                        animate={{
                           y: [0, -8, 0],
-                          opacity: [0.3, 1, 0.3]
+                          opacity: [0.3, 1, 0.3],
                         }}
                         transition={{
                           duration: 1,
                           repeat: Infinity,
                           delay,
-                          ease: "easeInOut"
+                          ease: 'easeInOut',
                         }}
                         className="w-3 h-3 rounded-full bg-gradient-to-br from-teal-500 to-orange-500"
                       />
@@ -275,8 +295,8 @@ export const AIProfileAdvisorDialog: React.FC<AIProfileAdvisorDialogProps> = ({
                   </div>
                 </div>
 
-                <Alert 
-                  variant="destructive" 
+                <Alert
+                  variant="destructive"
                   className="max-w-md bg-white/90 backdrop-blur-sm border-2 border-red-200 shadow-xl"
                 >
                   <AlertTriangle className="h-5 w-5" />
@@ -291,7 +311,10 @@ export const AIProfileAdvisorDialog: React.FC<AIProfileAdvisorDialogProps> = ({
                   </AlertDescription>
                 </Alert>
 
-                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                <motion.div
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
                   <Button
                     onClick={handleGetAnalysis}
                     variant="outline"

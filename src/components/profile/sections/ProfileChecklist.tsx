@@ -457,8 +457,22 @@ export const ProfileChecklist: React.FC<ProfileChecklistProps> = ({
     });
   }, [questionnaireResponse]);
 
-  const questionnaireCompleted = questionnaireResponse?.completed ?? false;
+  const isQuestionnaireFullyAnswered = useMemo(() => {
+    // אם אין נתוני התקדמות, השאלון לא הושלם
+    if (!questionnaireProgress || questionnaireProgress.length === 0)
+      return false;
 
+    // בדיקה האם בכל "עולם" מספר השאלות שנענו שווה או גדול מסך השאלות
+    return questionnaireProgress.every(
+      (world) => world.completed >= world.total
+    );
+  }, [questionnaireProgress]);
+
+  // --- UPDATED: Checkmark logic ---
+  // השאלון מסומן כהושלם אם השרת אומר שהושלם (completed flag)
+  // או אם חישבנו ידנית שכל השאלות נענו
+  const questionnaireCompleted =
+    (questionnaireResponse?.completed ?? false) || isQuestionnaireFullyAnswered;
   const tasks = [
     {
       id: 'photo',
@@ -550,8 +564,9 @@ export const ProfileChecklist: React.FC<ProfileChecklistProps> = ({
       if (isReligious) otherTasksStatus.push(!!p.influentialRabbi);
 
       // Medical info
-  // Medical info - בדיקה שבוצע מענה על השאלה הרפואית
-      const medicalAnswered = p.hasMedicalInfo !== null && p.hasMedicalInfo !== undefined;
+      // Medical info - בדיקה שבוצע מענה על השאלה הרפואית
+      const medicalAnswered =
+        p.hasMedicalInfo !== null && p.hasMedicalInfo !== undefined;
       otherTasksStatus.push(medicalAnswered);
 
       // אם סימן שיש מידע רפואי, נדרוש את פירוט השדות הנוספים

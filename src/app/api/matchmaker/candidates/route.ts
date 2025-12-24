@@ -62,30 +62,38 @@ export async function GET() {
     }
 
     // Step 1: Fetch all candidates
-    const users = await prisma.user.findMany({
-      where: {
-        status: { notIn: ['BLOCKED', 'INACTIVE'] },
-        role: 'CANDIDATE',
-        profile: { isNot: null },
-      },
-      select: {
-        id: true,
-        email: true,
-        firstName: true,
-        lastName: true,
-        phone: true, // ✅ ADDED: Phone number for matchmaker view
-        status: true,
-        source: true,
-        createdAt: true,
-        isVerified: true,
-        isProfileComplete: true,
-        images: {
-          select: { id: true, url: true, isMain: true },
-          orderBy: [{ isMain: 'desc' }, { createdAt: 'asc' }],
-        },
-        profile: true,
-      },
-    });
+   // חפש את השורה סביב 13 בתוך prisma.user.findMany
+const users = await prisma.user.findMany({
+  where: {
+    status: { notIn: ['BLOCKED', 'INACTIVE'] },
+    role: 'CANDIDATE',
+    profile: { isNot: null },
+  },
+  select: {
+    id: true,
+    email: true,
+    firstName: true,
+    lastName: true,
+    phone: true,
+    status: true,
+    source: true,
+    createdAt: true,
+    isVerified: true,
+    isProfileComplete: true,
+    images: {
+      select: { id: true, url: true, isMain: true },
+      orderBy: [{ isMain: 'desc' }, { createdAt: 'asc' }],
+    },
+    // שינוי כאן: מ-profile: true למבנה include
+    profile: {
+      include: {
+        testimonials: {
+          where: { status: 'APPROVED' } // ברשימה הכללית נרצה אולי רק מאושרות
+        }
+      }
+    },
+  },
+});
 
     // ================== 🚨 START SERVER DEBUG: LINOY 🚨 ==================
     const targetEmail = 'linoyreznik032@gmail.com';

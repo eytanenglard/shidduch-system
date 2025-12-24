@@ -476,11 +476,22 @@
   "other": "אחר",
   "no_preference": "ללא העדפה / גמיש"
 },      "religiousJourneys": { "BORN_INTO_CURRENT_LIFESTYLE": "גדל/ה בסביבה דומה", "BORN_SECULAR": "גדל/ה בסביבה חילונית", "BAAL_TESHUVA": "חוזר/ת בתשובה", "DATLASH": "יצא/ה בשאלה (דתל\"ש)", "CONVERT": "גר/ה / גיורת", "IN_PROCESS": "בתהליך שינוי", "no_preference": "ללא העדפה / גמיש" },
-      "shomerNegiah": { "yes": "כן, חשוב לי", "no": "לא, אין העדפה", "flexible": "גמיש/תלוי באדם" },
+    "shomerNegiah": { 
+      "yes": "כן, שומר/ת", 
+      "no": "לא שומר/ת", 
+      "flexible": "משתנה / תלוי בסיטואציה" 
+    },
       "education": { "high_school": "תיכונית", "vocational": "מקצועית", "academic_student": "במהלך לימודים", "academic_ba": "תואר ראשון", "academic_ma": "תואר שני", "academic_phd": "דוקטורט", "yeshiva_seminary": "לימודים תורניים", "other": "אחר", "no_preference": "ללא העדפה" },
       "occupation": { "tech": "הייטק וטכנולוגיה", "education": "חינוך והוראה", "medicine": "רפואה ובריאות", "law": "משפטים", "business": "עסקים ופיננסים", "freelance": "עצמאי/ת", "student": "סטודנט/ית", "no_preference": "ללא העדפה" },
       "serviceTypes": { "MILITARY_COMBATANT": "צבאי - לוחם/ת", "MILITARY_SUPPORT": "צבאי - תומכ/ת לחימה", "MILITARY_OFFICER": "צבאי - קצונה", "MILITARY_INTELLIGENCE_CYBER_TECH": "צבאי - מודיעין/סייבר/טכנולוגי", "NATIONAL_SERVICE_ONE_YEAR": "שירות לאומי - שנה", "NATIONAL_SERVICE_TWO_YEARS": "שירות לאומי - שנתיים", "HESDER_YESHIVA": "ישיבת הסדר", "YESHIVA_ONLY_POST_HS": "ישיבה/מדרשה (ללא שירות)", "PRE_MILITARY_ACADEMY_AND_SERVICE": "מכינה ושירות", "EXEMPTED": "פטור משירות", "CIVILIAN_SERVICE": "שירות אזרחי", "OTHER": "אחר / לא רלוונטי", "no_preference": "ללא העדפה / לא משנה" },
-      "headCovering": { "FULL_COVERAGE": "כיסוי ראש מלא", "PARTIAL_COVERAGE": "כיסוי ראש חלקי", "HAT_BERET": "כובע / ברט", "SCARF_ONLY_SOMETIMES": "מטפחת (לאירועים)", "NONE": "ללא כיסוי ראש", "any": "כל האפשרויות פתוחות" },
+    "headCovering": { 
+      "FULL_COVERAGE": "כיסוי ראש מלא", 
+      "PARTIAL_COVERAGE": "כיסוי ראש חלקי", 
+      "HAT_BERET": "כובע / ברט", 
+      "SCARF_ONLY_SOMETIMES": "מטפחת (רק באירועים/בית כנסת)", 
+      "NONE": "ללא כיסוי ראש",
+      "UNDECIDED": "לא יודע/ת כרגע" 
+    },
       "kippahType": { "BLACK_VELVET": "קטיפה שחורה", "KNITTED_SMALL": "סרוגה קטנה", "KNITTED_LARGE": "סרוגה גדולה", "CLOTH": "בד", "BRESLEV": "ברסלב", "NONE_AT_WORK_OR_CASUAL": "לא בעבודה/ביומיום", "NONE_USUALLY": "לרוב לא חובש", "OTHER": "אחר", "any": "כל האפשרויות פתוחות" },
       "maritalStatus": { "single": "רווק/ה", "divorced": "גרוש/ה", "widowed": "אלמן/ה", "annulled": "נישואין שבוטלו", "any": "כל האפשרויות פתוחות" },
       "partnerHasChildren": { "yes_ok": "כן, זה בסדר גמור", "no_preferred": "מעדיפ/ה שלא יהיו", "does_not_matter": "לא משנה לי" },

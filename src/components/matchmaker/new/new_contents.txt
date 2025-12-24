@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmaker\new
-# Generated on: 2025-12-23 00:36:23
+# Generated on: 2025-12-24 11:49:20
 # Filter: Only content of code files (.bat, .c, .cfg, .conf, .cpp, .cs, .css, .go, .h, .html, .ini, .java, .js, .json, .jsx, .kt, .less, .md, .php, .py, .rb, .rs, .scss, .sh, .sql, .swift, .ts, .tsx, .txt, .xml, .yaml, .yml) is included.
 ################################################################################
 
@@ -2720,6 +2720,7 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
 
           {selectedCandidate && (
             <div className="p-0">
+              
               <ProfileCard
                 profile={selectedCandidate.profile}
                 images={selectedCandidate.images}
