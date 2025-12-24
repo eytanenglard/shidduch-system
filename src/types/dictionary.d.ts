@@ -2319,7 +2319,8 @@ religiousLevel: {
       other: string;
     };
     serviceType: { [key in ServiceType]: string };
-    headCovering: { [key in HeadCoveringType]: string } & { UNDECIDED?: string }; // Allow extra key
+    headCovering: { [key in HeadCoveringType]: string };
+    kippahType: { [key in KippahType]: string };
     matchmakerGender: {
       MALE: string;
       FEMALE: string;
@@ -2774,7 +2775,8 @@ export type ProfileCardDict = {
     religiousJourney: { [key: string]: string };
     educationLevel: { [key: string]: string };
     serviceType: { [key in ServiceType]: string };
-    headCovering: { [key in HeadCoveringType]: string } & { UNDECIDED?: string }; // Allow extra key
+    headCovering: { [key in HeadCoveringType]: string };
+    kippahType: { [key in KippahType]: string };
     matchmakerGender: {
       MALE: string;
       FEMALE: string;

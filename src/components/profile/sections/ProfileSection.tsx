@@ -2088,123 +2088,43 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                       </p>
                     )}
                   </div>
-
-                  {/* ✨ FIX: Changed Checkbox to Select for Shomer Negiah */}
+                  
                   <div
                     className={cn(
                       'pt-1 sm:pt-0',
                       isEditing && !viewOnly ? 'sm:pt-5' : 'sm:pt-0'
                     )}
                   >
+
                     <Label className="block mb-1.5 text-xs font-medium text-gray-600">
                       {dict.cards.religion.shomerNegiahLabel}
                     </Label>
                     {isEditing && !viewOnly ? (
-                      <Select
-                        dir={direction}
-                        value={
-                          formData.shomerNegiah === true
-                            ? 'yes'
-                            : formData.shomerNegiah === false
-                              ? 'no'
-                              : ''
-                        }
-                        onValueChange={(value) =>
-                          handleChange(
-                            'shomerNegiah',
-                            value === 'yes'
-                              ? true
-                              : value === 'no'
-                                ? false
-                                : undefined
-                          )
-                        }
-                      >
-                        <SelectTrigger
+                      <div className="flex items-center space-x-2 rtl:space-x-reverse mt-2">
+                        <Checkbox
                           id="shomerNegiah"
-                          className="h-9 text-sm focus:ring-cyan-500 text-start"
+                          checked={formData.shomerNegiah || false}
+                          onCheckedChange={(checked) =>
+                            handleChange('shomerNegiah', checked as boolean)
+                          }
+                        />
+                        <Label
+                          htmlFor="shomerNegiah"
+                          className="text-sm font-normal text-gray-700"
                         >
-                          <SelectValue
-                            placeholder={dict.placeholders.notSpecified}
-                          />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="yes">
-                            {dict.options.shomerNegiah.yes}
-                          </SelectItem>
-                          <SelectItem value="no">
-                            {dict.options.shomerNegiah.no}
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
+                          {dict.cards.religion.shomerNegiahYes}
+                        </Label>
+                      </div>
                     ) : (
                       <p className="text-sm text-gray-800 font-medium mt-1">
                         {renderBooleanDisplayValue(
                           formData.shomerNegiah,
                           dict,
-                          dict.options.shomerNegiah.yes,
-                          dict.options.shomerNegiah.no
+                          dict.cards.religion.shomerNegiahYes
                         )}
                       </p>
                     )}
                   </div>
-
-                  {formData.gender === Gender.FEMALE && (
-                    <div>
-                      <Label
-                        htmlFor="headCovering"
-                        className="block mb-1.5 text-xs font-medium text-gray-600"
-                      >
-                        {dict.cards.religion.headCoveringLabel}
-                      </Label>
-                      {isEditing && !viewOnly ? (
-                        <Select
-                          dir={direction}
-                          value={
-                            formData.headCovering ||
-                            (formData.headCovering === null ? 'UNDECIDED' : '')
-                          }
-                          onValueChange={(value) =>
-                            handleChange(
-                              'headCovering',
-                              // ✨ FIX: Map "UNDECIDED" back to undefined/null for the DB
-                              value === 'UNDECIDED'
-                                ? undefined
-                                : (value as HeadCoveringType)
-                            )
-                          }
-                        >
-                          <SelectTrigger
-                            id="headCovering"
-                            className="h-9 text-sm focus:ring-cyan-500 text-start"
-                          >
-                            <SelectValue
-                              placeholder={
-                                dict.cards.religion.headCoveringPlaceholder
-                              }
-                            />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {headCoveringOptions.map((opt) => (
-                              <SelectItem key={opt.value} value={opt.value}>
-                                {opt.label}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      ) : (
-                        <p className="text-sm text-gray-800 font-medium mt-1">
-                          {renderSelectDisplayValue(
-                            formData.headCovering,
-                            headCoveringOptions,
-                            dict,
-                            dict.cards.religion.headCoveringDefault
-                          )}
-                        </p>
-                      )}
-                    </div>
-                  )}
-
                   {formData.gender === Gender.FEMALE && (
                     <div>
                       <Label
