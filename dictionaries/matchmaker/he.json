@@ -107,14 +107,17 @@
           "generatingPdfButton": "מכין קובץ...",
           "pdfGenerateError": "שגיאה ביצירת הקובץ"
 },
-    "neshamaTechSummary": {
+"neshamaTechSummary": {
   "title": "תקציר היכרות (מנקודת מבט השדכן/ית)",
   "description": "סיכום זה, שנכתב על ידך (בסיוע AI), יוצג בפרופיל המועמד/ת וייתן את הטאץ' המקצועי והאישי של NeshamaTech.",
   "aiButton": "צור טיוטה עם AI",
   "aiButtonLoading": "יוצר טיוטה...",
   "placeholder": "כתוב/י כאן את הסיכום המקצועי על המועמד/ת...",
   "saveButton": "שמור תקציר",
-  "saveButtonLoading": "שומר..."
+  "saveButtonLoading": "שומר...",
+  "downloadPdfButton": "הורד דוח פרופיל (PDF)",
+  "generatingPdfButton": "מכין קובץ...",
+  "pdfGenerateError": "שגיאה ביצירת הקובץ"
 }
     },
 

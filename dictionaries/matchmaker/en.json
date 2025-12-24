@@ -204,14 +204,17 @@
           "deleting": "Deleting..."
         }
       },
-  "neshamaTechSummary": {
+"neshamaTechSummary": {
   "title": "Introduction Summary (Matchmaker's Perspective)",
   "description": "This summary, written by you (with AI assistance), will be displayed on the candidate's profile, providing the professional and personal touch of NeshamaTech.",
   "aiButton": "Generate Draft with AI",
   "aiButtonLoading": "Generating draft...",
   "placeholder": "Write your professional summary of the candidate here...",
   "saveButton": "Save Summary",
-  "saveButtonLoading": "Saving..."
+  "saveButtonLoading": "Saving...",
+  "downloadPdfButton": "Download Insight PDF",
+  "generatingPdfButton": "Preparing PDF...",
+  "pdfGenerateError": "Error generating PDF"
 },
 
     "conversationSummary": {

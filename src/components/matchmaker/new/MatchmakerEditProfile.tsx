@@ -1,7 +1,6 @@
 // src/components/matchmaker/new/MatchmakerEditProfile.tsx
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { generateInsightPdf } from '@/lib/pdf/insightPdfGenerator';
 import {
   Dialog,
   DialogContent,
@@ -22,7 +21,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Loader2,
   X,
-  UserCog,FileText,
+  UserCog,
   Sparkles,
   Award,
   Image as ImageIcon,
@@ -31,9 +30,10 @@ import {
   AlertCircle,
   Send,
   Save,
-  MessageSquare, // אייקון לסיכום שיחה
-  Phone, // אייקון לטלפון
+  MessageSquare,
+  Phone,
   Mail,
+  FileText, // אייקון לקובץ PDF
 } from 'lucide-react';
 import type { UserProfile, UserImage } from '@/types/next-auth';
 import type { Candidate } from './types/candidates';
@@ -51,6 +51,9 @@ import {
   CardFooter,
 } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
+
+// ייבוא פונקציית העזר ליצירת ה-PDF
+import { generateInsightPdf } from '@/lib/pdf/insightPdfGenerator';
 
 interface MatchmakerEditProfileProps {
   isOpen: boolean;
@@ -75,8 +78,7 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
   const isAdmin = session?.user?.role === 'ADMIN';
   const direction = locale === 'he' ? 'rtl' : 'ltr';
 
-const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
-
+  // --- States ---
   const [activeTab, setActiveTab] = useState('profile');
   const [isEditing, setIsEditing] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -85,51 +87,32 @@ const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   const [images, setImages] = useState<UserImage[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // הוספנו סטייט למספר טלפון למקרה שהוא מגיע מהפרופיל המלא ולא מהקנדידט ברשימה
+  // טלפון
   const [userPhone, setUserPhone] = useState<string | null>(null);
 
+  // מחיקת מועמד
   const [isDeleteCandidateDialogOpen, setIsDeleteCandidateDialogOpen] =
     useState(false);
   const [deleteCandidateConfirmText, setDeleteCandidateConfirmText] =
     useState('');
   const [isDeletingCandidate, setIsDeletingCandidate] = useState(false);
 
+  // הזמנת משתמש
   const [isSetupInviteOpen, setIsSetupInviteOpen] = useState(false);
   const [inviteEmail, setInviteEmail] = useState('');
   const [isSendingInvite, setIsSendingInvite] = useState(false);
+
+  // AI Summary
   const [isGeneratingSummary, setIsGeneratingSummary] = useState(false);
 
+  // PDF Generation
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+
   const DELETE_CANDIDATE_CONFIRMATION_PHRASE = dict.deleteConfirmationPhrase;
-const handleGenerateInsightPdf = async () => {
-    if (!candidate) return;
-    setIsGeneratingPdf(true);
-    try {
-      const response = await fetch('/api/profile/neshama-insight', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ userId: candidate.id, locale }),
-      });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to generate insight');
-      }
+  // --- Handlers ---
 
-      const data = await response.json();
-      
-      // שימוש בפונקציית העזר החדשה שיצרנו
-      await generateInsightPdf(data.insight, locale as 'he' | 'en');
-      
-    } catch (error: any) {
-      console.error('Error generating PDF:', error);
-      toast.error(error.message || 'שגיאה ביצירת קובץ הדוח');
-    } finally {
-      setIsGeneratingPdf(false);
-    }
-};
-
+  // יצירת תקציר AI כללי (לא ה-PDF)
   const handleGenerateSummary = async () => {
     if (!candidate) return;
     setIsGeneratingSummary(true);
@@ -159,6 +142,7 @@ const handleGenerateInsightPdf = async () => {
     }
   };
 
+  // שליפת נתוני פרופיל
   const fetchProfileData = useCallback(async () => {
     if (!candidate) return;
     setIsLoading(true);
@@ -172,14 +156,10 @@ const handleGenerateInsightPdf = async () => {
         setProfile(data.profile);
         setImages(data.images || []);
 
-        // נסיון לשלוף את הטלפון מהפרופיל (דרך היוזר המשוייך)
-        // הערה: זה מניח שה-API מחזיר את המידע הזה תחת profile.user.phone
-        // אם לא, צריך לוודא שה-API מעודכן להחזיר את זה.
- // נסיון לשלוף את הטלפון מהפרופיל (דרך היוזר המשוייך) או מהמועמד עצמו
         if (data.profile?.user?.phone) {
           setUserPhone(data.profile.user.phone);
         } else if (candidate.phone) {
-           setUserPhone(candidate.phone);
+          setUserPhone(candidate.phone);
         }
 
         if (
@@ -201,10 +181,12 @@ const handleGenerateInsightPdf = async () => {
     }
   }, [candidate, dict.toasts.loadError, locale]);
 
+  // Effect לטעינת נתונים
   useEffect(() => {
     if (isOpen && candidate) {
       fetchProfileData();
     } else if (!isOpen) {
+      // Reset State
       setProfile(null);
       setImages([]);
       setUserPhone(null);
@@ -215,9 +197,11 @@ const handleGenerateInsightPdf = async () => {
       setIsSetupInviteOpen(false);
       setInviteEmail('');
       setIsSendingInvite(false);
+      setIsGeneratingPdf(false);
     }
   }, [isOpen, candidate, fetchProfileData]);
 
+  // עדכון שדות פרופיל
   const handleProfileUpdate = async (updatedProfile: Partial<UserProfile>) => {
     if (!candidate || !profile) return;
     setIsSaving(true);
@@ -252,6 +236,41 @@ const handleGenerateInsightPdf = async () => {
     }
   };
 
+  // יצירה והורדת PDF דוח תובנות
+  const handleGenerateInsightPdf = async () => {
+    if (!candidate) return;
+    setIsGeneratingPdf(true);
+    try {
+      // 1. קריאה ל-API כדי לייצר/לשלוף את המידע (AI)
+      const response = await fetch('/api/profile/neshama-insight', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ userId: candidate.id, locale }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to generate insight');
+      }
+
+      const data = await response.json();
+
+      // 2. יצירת ה-PDF בצד הלקוח באמצעות פונקציית העזר
+      await generateInsightPdf(data.insight, locale as 'he' | 'en');
+    } catch (error: any) {
+      console.error('Error generating PDF:', error);
+      // שימוש בטקסט מהמילון או ברירת מחדל
+      const errorMsg =
+        dict.neshamaTechSummary.pdfGenerateError || 'Error generating PDF';
+      toast.error(errorMsg);
+    } finally {
+      setIsGeneratingPdf(false);
+    }
+  };
+
+  // העלאת תמונות
   const handleImageUpload = async (files: File[]) => {
     if (!candidate) return;
     setIsUploading(true);
@@ -292,6 +311,7 @@ const handleGenerateInsightPdf = async () => {
     }
   };
 
+  // הגדרת תמונה ראשית
   const handleSetMainImage = async (imageId: string) => {
     if (!candidate) return;
     try {
@@ -312,6 +332,7 @@ const handleGenerateInsightPdf = async () => {
     }
   };
 
+  // מחיקת תמונה
   const handleDeleteImage = async (imageIds: string[]) => {
     if (!candidate || imageIds.length === 0) return;
     setIsUploading(true);
@@ -363,6 +384,7 @@ const handleGenerateInsightPdf = async () => {
     }
   };
 
+  // מחיקת מועמד (לצמיתות)
   const handleDeleteCandidateRequest = async () => {
     if (!candidate) return;
     if (deleteCandidateConfirmText !== DELETE_CANDIDATE_CONFIRMATION_PHRASE) {
@@ -401,6 +423,7 @@ const handleGenerateInsightPdf = async () => {
     }
   };
 
+  // שליחת הזמנה להצטרפות
   const handleSendSetupInvite = async () => {
     if (!candidate || !inviteEmail) {
       toast.error(dict.toasts.sendInviteErrorEmail);
@@ -580,49 +603,56 @@ const handleGenerateInsightPdf = async () => {
                               className="min-h-[120px] focus-visible:ring-indigo-500"
                             />
                           </CardContent>
-                      <CardFooter className="flex justify-between pt-2 pb-4 bg-slate-50/30">
-    {/* כפתור חדש להורדת PDF */}
-    <Button
-      variant="outline"
-      size="sm"
-      onClick={handleGenerateInsightPdf}
-      disabled={isGeneratingPdf}
-      className="border-indigo-200 text-indigo-700 hover:bg-indigo-50"
-    >
-      {isGeneratingPdf ? (
-        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-      ) : (
-        <FileText className="w-4 h-4 mr-2" />
-      )}
-      {locale === 'he' ? 'הורד דוח פרופיל (PDF)' : 'Download Insight PDF'}
-    </Button>
 
-    <Button
-      size="sm"
-      onClick={() =>
-        handleProfileUpdate({
-          manualEntryText:
-            profile.manualEntryText || null,
-        })
-      }
-      disabled={isSaving || isGeneratingSummary}
-      className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-md transition-transform active:scale-95"
-    >
-      {isSaving ? (
-        <Loader2 className="w-4 h-4 ml-2 animate-spin" />
-      ) : (
-        <Save className="w-4 h-4 ml-2" />
-      )}
-      {isSaving
-        ? dict.neshamaTechSummary.saveButtonLoading ||
-          'שומר...'
-        : dict.neshamaTechSummary.saveButton ||
-          'שמור תקציר'}
-    </Button>
-</CardFooter>
+                          {/* Footer with Save and PDF buttons */}
+                          <CardFooter className="flex justify-between pt-2 pb-4 bg-slate-50/30">
+                            {/* כפתור הורדת PDF (חדש) */}
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={handleGenerateInsightPdf}
+                              disabled={isGeneratingPdf}
+                              className="border-indigo-200 text-indigo-700 hover:bg-indigo-50 gap-2"
+                            >
+                              {isGeneratingPdf ? (
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                              ) : (
+                                <FileText className="w-4 h-4" />
+                              )}
+                              {isGeneratingPdf
+                                ? dict.neshamaTechSummary.generatingPdfButton ||
+                                  'Generating...'
+                                : dict.neshamaTechSummary.downloadPdfButton ||
+                                  'Download Insight PDF'}
+                            </Button>
+
+                            {/* כפתור שמירה */}
+                            <Button
+                              size="sm"
+                              onClick={() =>
+                                handleProfileUpdate({
+                                  manualEntryText:
+                                    profile.manualEntryText || null,
+                                })
+                              }
+                              disabled={isSaving || isGeneratingSummary}
+                              className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-md transition-transform active:scale-95"
+                            >
+                              {isSaving ? (
+                                <Loader2 className="w-4 h-4 ml-2 animate-spin" />
+                              ) : (
+                                <Save className="w-4 h-4 ml-2" />
+                              )}
+                              {isSaving
+                                ? dict.neshamaTechSummary.saveButtonLoading ||
+                                  'שומר...'
+                                : dict.neshamaTechSummary.saveButton ||
+                                  'שמור תקציר'}
+                            </Button>
+                          </CardFooter>
                         </Card>
 
-                        {/* --- NEW: Conversation Summary Card --- */}
+                        {/* --- Conversation Summary Card --- */}
                         <Card className="bg-white rounded-xl shadow-sm border overflow-hidden">
                           <div className="h-1 bg-gradient-to-r from-blue-500 to-cyan-500"></div>
                           <CardHeader className="bg-blue-50/30 pb-4">
