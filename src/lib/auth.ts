@@ -487,7 +487,7 @@ export const authOptions: NextAuthOptions = {
           where: { id: typedToken.id },
           include: {
             images: { where: { isMain: true }, take: 1 },
-            profile: true,
+
           }
         });
 
@@ -519,9 +519,7 @@ export const authOptions: NextAuthOptions = {
           typedToken.neshamaInsightLastGeneratedAt = dbUserForJwt.neshamaInsightLastGeneratedAt;
           typedToken.neshamaInsightGeneratedCount = dbUserForJwt.neshamaInsightGeneratedCount;
 
-          if (dbUserForJwt.profile) {
-            typedToken.profile = dbUserForJwt.profile as unknown as UserProfile;
-          }
+     
 
           const questionnaireStatus = await prisma.questionnaireResponse.findFirst({
             where: { userId: typedToken.id },

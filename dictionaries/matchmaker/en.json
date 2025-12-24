@@ -219,7 +219,10 @@
   "description": "Document internal notes and summaries from your conversations with the candidate. This information is hidden from the candidate.",
   "placeholder": "Type conversation summary here...",
   "saveButton": "Save Summary",
-  "saveButtonLoading": "Saving..."
+  "saveButtonLoading": "Saving...",
+    "downloadPdfButton": "Download Insight PDF",
+          "generatingPdfButton": "Preparing PDF...",
+          "pdfGenerateError": "Error generating PDF"
 }
 }
 ,

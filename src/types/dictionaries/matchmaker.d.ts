@@ -632,6 +632,9 @@ type MatchmakerEditProfileDict = {
         placeholder: string;
          saveButton: string; // <-- הוסף שורה זו
         saveButtonLoading: string; // <-- הוסף שורה זו
+           downloadPdfButton: string;
+        generatingPdfButton: string;
+        pdfGenerateError: string;
       };
     conversationSummary: {
     title: string;
