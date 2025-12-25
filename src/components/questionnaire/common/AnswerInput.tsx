@@ -1595,16 +1595,41 @@ export default function AnswerInput({
                           <Minus className="w-3 h-3" />
                         </Button>
 
-                        <div
+                        <Input
+                          type="number"
+                          value={currentValue.toString()}
+                          min={0}
+                          max={maxAllowed}
                           className={cn(
-                            'min-w-[40px] text-center font-bold text-sm py-1 px-2 rounded-md',
+                            'w-16 h-8 text-center font-bold text-sm p-1', // עיצוב מותאם לגודל קומפקטי
                             currentValue > 0
-                              ? 'bg-blue-50 text-blue-700'
-                              : 'bg-gray-100 text-gray-500'
+                              ? 'bg-blue-50 text-blue-700 border-blue-200'
+                              : 'bg-gray-50 text-gray-500 border-gray-200'
                           )}
-                        >
-                          {currentValue}
-                        </div>
+                          onChange={(e) => {
+                            // המרת הערך למספר (טיפול במחרוזת ריקה כ-0)
+                            let newValue = parseInt(e.target.value);
+                            if (isNaN(newValue)) newValue = 0;
+
+                            // חישוב המקסימיום האפשרי עבור שדה זה ספציפית
+                            // (הערך הנוכחי + מה שנותר בתקציב הכללי)
+                            const maxForThisField = currentValue + remaining;
+
+                            // וידוא שהערך לא חורג מהגבולות
+                            if (newValue < 0) newValue = 0;
+                            if (newValue > maxForThisField)
+                              newValue = maxForThisField;
+
+                            handleValueChange({
+                              ...budgetValues,
+                              [category.value]: newValue,
+                            });
+                          }}
+                          // מונע שליחת טופס בלחיצה על Enter
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') e.preventDefault();
+                          }}
+                        />
 
                         <Button
                           variant="ghost"

@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\questionnaire
-# Generated on: 2025-12-25 09:33:59
+# Generated on: 2025-12-25 11:31:44
 # Filter: Only content of code files (.bat, .c, .cfg, .conf, .cpp, .cs, .css, .go, .h, .html, .ini, .java, .js, .json, .jsx, .kt, .less, .md, .php, .py, .rb, .rs, .scss, .sh, .sql, .swift, .ts, .tsx, .txt, .xml, .yaml, .yml) is included.
 ################################################################################
 
@@ -191,11 +191,26 @@ export default function MatchmakingQuestionnaire({
       'color: #0d9488; font-weight: bold;'
     );
   }, [resetIdleTimer]);
-
-  // Sync isDirty state globally
+  // --- הוספה: מניעת יציאה אם יש שינויים לא שמורים ---
   useEffect(() => {
-    setGlobalDirty(isDirty);
-  }, [isDirty, setGlobalDirty]);
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (isDirty) {
+        // דפדפנים מודרניים דורשים את השורות האלו כדי להציג את ההודעה הגנרית
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [isDirty]);
+  // --------------------------------------------------
+  // Sync isDirty state globally
+  // משתנה עזר כדי לזכור מתי הקפצנו לאחרונה, כדי לא להקפיץ פעמיים על אותה שאלה בטעות
+  const lastReminderCount = useRef(0);
 
   // Handle initial world
   useEffect(() => {
@@ -368,7 +383,42 @@ export default function MatchmakingQuestionnaire({
   useEffect(() => {
     setSaveHandler(() => handleQuestionnaireSave(false));
   }, [handleQuestionnaireSave, setSaveHandler]);
+  useEffect(() => {
+    // 1. אם המשתמש מחובר - לא עושים כלום
+    if (userId) return;
 
+    // 2. חישוב מספר התשובות
+    const answerCount = answers.length;
+
+    // 3. תנאים להקפצת ההודעה:
+    // - יש תשובות
+    // - זה כפולה של 5 (שאלה 5, 10, 15...)
+    // - לא הקפצנו כבר עבור המספר הזה (מונע כפילויות ברינדור)
+    if (
+      answerCount > 0 &&
+      answerCount % 5 === 0 &&
+      answerCount !== lastReminderCount.current
+    ) {
+      lastReminderCount.current = answerCount;
+
+      showToast(
+        'שמנו לב שאת/ה משקיע/ה! 💡 כדאי להתחבר כדי שהתשובות יישמרו בשרת ולא יאבדו אם הדפדפן ייסגר.',
+        'warning', // צבע כתום בולט
+        6000, // זמן תצוגה ארוך יותר (6 שניות)
+        {
+          label: 'התחברות לשמירה',
+          onClick: () => {
+            // שמירה זמנית לפני המעבר
+            handleQuestionnaireSave(true);
+            router.push('/auth/register?callbackUrl=/questionnaire/restore');
+          },
+        }
+      );
+    }
+  }, [answers.length, userId, showToast, router, handleQuestionnaireSave]);
+  useEffect(() => {
+    setGlobalDirty(isDirty);
+  }, [isDirty, setGlobalDirty]);
   // Load saved progress
   useEffect(() => {
     const loadProgress = async () => {
@@ -710,7 +760,7 @@ export default function MatchmakingQuestionnaire({
           [currentWorld]: index,
         }));
       },
-      onSave: () => handleQuestionnaireSave(false),
+      onSave: (isAutoSave = false) => handleQuestionnaireSave(isAutoSave),
       isSaving: isSaving,
       isDirectNavigation: isDirectNavigation,
       dict: {
@@ -3482,6 +3532,19 @@ export default function InteractiveScale({
     lg: 'h-10 sm:h-12 text-base sm:text-lg',
   };
 
+  // חישוב גודל הכפתורים לפי מספר הפריטים
+  const getButtonSizeClasses = () => {
+    if (scaleItems.length <= 5) {
+      return 'w-10 h-10 sm:w-12 sm:h-12';
+    } else if (scaleItems.length <= 7) {
+      return 'w-8 h-8 sm:w-10 sm:h-10';
+    } else {
+      // עבור 8+ פריטים - במובייל משתמשים בגודל גמיש שמתחלק שווה
+      // בדסקטופ חוזרים לגודל קבוע
+      return 'flex-1 h-7 min-w-0 sm:flex-none sm:w-8 sm:h-8';
+    }
+  };
+
   return (
     <div
       className={cn(
@@ -3495,7 +3558,12 @@ export default function InteractiveScale({
         className={cn(
           'relative flex items-center justify-between',
           // רווחים דינמיים לפי מספר הפריטים
-          scaleItems.length <= 5 ? 'gap-2 sm:gap-3' : 'gap-0.5 sm:gap-1',
+          // במובייל עם הרבה פריטים - רווח מינימלי
+          scaleItems.length <= 5
+            ? 'gap-2 sm:gap-3'
+            : scaleItems.length <= 7
+              ? 'gap-1 sm:gap-2'
+              : 'gap-0.5 sm:gap-1',
           sizeClasses[size]
         )}
         onMouseDown={() => !isDisabled && setIsDragging(true)}
@@ -3526,11 +3594,7 @@ export default function InteractiveScale({
                       className={cn(
                         'relative flex items-center justify-center',
                         // גודלים דינמיים לפי מספר פריטים
-                        scaleItems.length <= 5
-                          ? 'w-10 h-10 sm:w-12 sm:h-12'
-                          : scaleItems.length <= 7
-                            ? 'w-8 h-8 sm:w-10 sm:h-10'
-                            : 'w-6 h-6 sm:w-8 sm:h-8',
+                        getButtonSizeClasses(),
                         'rounded-full transition-all duration-200',
                         'focus:outline-none focus:ring-2 focus:ring-offset-1 sm:focus:ring-offset-2',
                         'active:scale-95 touch-manipulation',
@@ -12734,6 +12798,7 @@ import {
   CheckCircle,
   List,
   Loader2,
+  Save,
   ListChecks,
   Sparkles,
   Target,
@@ -12892,7 +12957,7 @@ interface WorldComponentDynamicProps {
   answers: QuestionnaireAnswer[];
   currentQuestionIndex: number;
   setCurrentQuestionIndex: (index: number) => void;
-  onSave?: () => void;
+  onSave?: (isAutoSave?: boolean) => void;
   isSaving?: boolean;
   lastSaved?: Date | null;
   isDirectNavigation?: boolean;
@@ -13023,7 +13088,9 @@ export default function WorldComponent({
 
     if (currentQuestionIndex < allQuestions.length - 1) {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
-
+      if (onSave) {
+        onSave(true); // true אומר: תשמור, אבל אל תציג הודעה קופצת למשתמש
+      }
       const progress = Math.round(
         ((currentQuestionIndex + 2) / allQuestions.length) * 100
       );
@@ -13350,7 +13417,19 @@ export default function WorldComponent({
           >
             <Compass className="h-5 w-5 text-gray-700" />
           </Button>
-
+  <Button
+      variant="outline"
+      size="sm"
+      onClick={() => onSave && onSave(false)} // false = שמירה ידנית עם הודעה
+      disabled={isSaving}
+      className="p-2.5 bg-white border-2 border-teal-200 text-teal-600 rounded-xl flex-shrink-0 hover:bg-teal-50 shadow-sm"
+    >
+      {isSaving ? (
+        <Loader2 className="h-5 w-5 animate-spin" />
+      ) : (
+        <Save className="h-5 w-5" />
+      )}
+    </Button>
           <div className="flex items-center gap-2 flex-1 min-w-0">
             <div
               className={cn(

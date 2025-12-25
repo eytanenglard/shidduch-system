@@ -198,8 +198,6 @@ export default function MatchmakingQuestionnaire({
   // משתנה עזר כדי לזכור מתי הקפצנו לאחרונה, כדי לא להקפיץ פעמיים על אותה שאלה בטעות
   const lastReminderCount = useRef(0);
 
-
-
   // Handle initial world
   useEffect(() => {
     if (initialWorld) {
@@ -371,7 +369,42 @@ export default function MatchmakingQuestionnaire({
   useEffect(() => {
     setSaveHandler(() => handleQuestionnaireSave(false));
   }, [handleQuestionnaireSave, setSaveHandler]);
+  useEffect(() => {
+    // 1. אם המשתמש מחובר - לא עושים כלום
+    if (userId) return;
 
+    // 2. חישוב מספר התשובות
+    const answerCount = answers.length;
+
+    // 3. תנאים להקפצת ההודעה:
+    // - יש תשובות
+    // - זה כפולה של 5 (שאלה 5, 10, 15...)
+    // - לא הקפצנו כבר עבור המספר הזה (מונע כפילויות ברינדור)
+    if (
+      answerCount > 0 &&
+      answerCount % 5 === 0 &&
+      answerCount !== lastReminderCount.current
+    ) {
+      lastReminderCount.current = answerCount;
+
+      showToast(
+        'שמנו לב שאת/ה משקיע/ה! 💡 כדאי להתחבר כדי שהתשובות יישמרו בשרת ולא יאבדו אם הדפדפן ייסגר.',
+        'warning', // צבע כתום בולט
+        6000, // זמן תצוגה ארוך יותר (6 שניות)
+        {
+          label: 'התחברות לשמירה',
+          onClick: () => {
+            // שמירה זמנית לפני המעבר
+            handleQuestionnaireSave(true);
+            router.push('/auth/register?callbackUrl=/questionnaire/restore');
+          },
+        }
+      );
+    }
+  }, [answers.length, userId, showToast, router, handleQuestionnaireSave]);
+  useEffect(() => {
+    setGlobalDirty(isDirty);
+  }, [isDirty, setGlobalDirty]);
   // Load saved progress
   useEffect(() => {
     const loadProgress = async () => {
