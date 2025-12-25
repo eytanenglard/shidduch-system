@@ -211,6 +211,19 @@ export default function InteractiveScale({
     lg: 'h-10 sm:h-12 text-base sm:text-lg',
   };
 
+  // חישוב גודל הכפתורים לפי מספר הפריטים
+  const getButtonSizeClasses = () => {
+    if (scaleItems.length <= 5) {
+      return 'w-10 h-10 sm:w-12 sm:h-12';
+    } else if (scaleItems.length <= 7) {
+      return 'w-8 h-8 sm:w-10 sm:h-10';
+    } else {
+      // עבור 8+ פריטים - במובייל משתמשים בגודל גמיש שמתחלק שווה
+      // בדסקטופ חוזרים לגודל קבוע
+      return 'flex-1 h-7 min-w-0 sm:flex-none sm:w-8 sm:h-8';
+    }
+  };
+
   return (
     <div
       className={cn(
@@ -224,7 +237,12 @@ export default function InteractiveScale({
         className={cn(
           'relative flex items-center justify-between',
           // רווחים דינמיים לפי מספר הפריטים
-          scaleItems.length <= 5 ? 'gap-2 sm:gap-3' : 'gap-0.5 sm:gap-1',
+          // במובייל עם הרבה פריטים - רווח מינימלי
+          scaleItems.length <= 5
+            ? 'gap-2 sm:gap-3'
+            : scaleItems.length <= 7
+              ? 'gap-1 sm:gap-2'
+              : 'gap-0.5 sm:gap-1',
           sizeClasses[size]
         )}
         onMouseDown={() => !isDisabled && setIsDragging(true)}
@@ -255,11 +273,7 @@ export default function InteractiveScale({
                       className={cn(
                         'relative flex items-center justify-center',
                         // גודלים דינמיים לפי מספר פריטים
-                        scaleItems.length <= 5
-                          ? 'w-10 h-10 sm:w-12 sm:h-12'
-                          : scaleItems.length <= 7
-                            ? 'w-8 h-8 sm:w-10 sm:h-10'
-                            : 'w-6 h-6 sm:w-8 sm:h-8',
+                        getButtonSizeClasses(),
                         'rounded-full transition-all duration-200',
                         'focus:outline-none focus:ring-2 focus:ring-offset-1 sm:focus:ring-offset-2',
                         'active:scale-95 touch-manipulation',

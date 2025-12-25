@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\questionnaire
-# Generated on: 2025-12-24 21:21:19
+# Generated on: 2025-12-25 09:33:59
 # Filter: Only content of code files (.bat, .c, .cfg, .conf, .cpp, .cs, .css, .go, .h, .html, .ini, .java, .js, .json, .jsx, .kt, .less, .md, .php, .py, .rb, .rs, .scss, .sh, .sql, .swift, .ts, .tsx, .txt, .xml, .yaml, .yml) is included.
 ################################################################################
 
@@ -289,6 +289,12 @@ export default function MatchmakingQuestionnaire({
         // Save logic
         if (!userId) {
           // Guest user - save to localStorage
+
+          if (answers.length === 0 && completedWorlds.length === 0) {
+            console.log('Skipping save for guest - empty data');
+            setIsSaving(false);
+            return;
+          }
           localStorage.setItem(
             'tempQuestionnaire',
             JSON.stringify(submissionData)
@@ -650,11 +656,7 @@ export default function MatchmakingQuestionnaire({
             '%c[Complete] 🏆 ALL WORLDS COMPLETED!',
             'color: #fbbf24; font-weight: bold; font-size: 16px;'
           );
-          showToast(
-            dict.matchmaking.toasts.allWorldsFinished,
-            'success',
-            3000
-          );
+          showToast(dict.matchmaking.toasts.allWorldsFinished, 'success', 3000);
           setCurrentStep(OnboardingStep.COMPLETED);
         }
       }
@@ -4683,6 +4685,88 @@ const QuestionnaireCompletion: React.FC<QuestionnaireCompletionProps> = ({
 
 export default QuestionnaireCompletion;
 --- End of Content for QuestionnaireCompletion.tsx ---
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\questionnaire\common\QuestionnaireSyncer.tsx
+--------------------------------------------------------------------------------
+Content:
+// src/components/questionnaire/common/QuestionnaireSyncer.tsx
+'use client';
+
+import { useEffect, useRef } from 'react';
+import { useSession } from 'next-auth/react';
+import { toast } from 'sonner';
+
+export default function QuestionnaireSyncer() {
+  const { data: session, status } = useSession();
+  const isSyncing = useRef(false);
+
+  useEffect(() => {
+    const syncData = async () => {
+      // 1. תנאים להפעלת הסנכרון: משתמש מחובר + לא מסנכרן כרגע
+      if (
+        status !== 'authenticated' ||
+        !session?.user?.id ||
+        isSyncing.current
+      ) {
+        return;
+      }
+
+      // 2. בדיקה אם יש מידע לוקאלי
+      const localDataString = localStorage.getItem('tempQuestionnaire');
+      if (!localDataString) return;
+
+      try {
+        const localData = JSON.parse(localDataString);
+
+        // בדיקה שהמידע הלוקאלי מכיל תוכן אמיתי
+        if (!localData.answers || localData.answers.length === 0) {
+          return;
+        }
+
+        isSyncing.current = true;
+        console.log(
+          '[QuestionnaireSyncer] Found local data for registered user. Syncing...'
+        );
+
+        // 3. עדכון ה-ID של המשתמש במידע הלוקאלי ל-ID האמיתי מהסשן
+        localData.userId = session.user.id;
+
+        // 4. שליחה לשרת
+        const response = await fetch('/api/questionnaire', {
+          method: 'PUT', // שימוש ב-PUT כפי שמוגדר ב-API שלך לעדכון/יצירה
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(localData),
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to sync questionnaire data');
+        }
+
+        const result = await response.json();
+
+        // 5. ניקוי הלוקאל סטורג' רק לאחר הצלחה וודאית
+        localStorage.removeItem('tempQuestionnaire');
+
+        console.log('[QuestionnaireSyncer] Sync successful:', result);
+        toast.success('התשובות שלך לשאלון נשמרו ושוחזרו בהצלחה!');
+      } catch (error) {
+        console.error('[QuestionnaireSyncer] Sync failed:', error);
+        // הערה: אנחנו *לא* מוחקים את ה-localStorage במקרה של שגיאה, כדי לנסות שוב בפעם הבאה
+      } finally {
+        isSyncing.current = false;
+      }
+    };
+
+    syncData();
+  }, [status, session]);
+
+  // הרכיב הזה לא מרנדר כלום, הוא רק לוגיקה
+  return null;
+}
+--- End of Content for QuestionnaireSyncer.tsx ---
 
 --------------------------------------------------------------------------------
 File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\questionnaire\common\QuestionsList.tsx

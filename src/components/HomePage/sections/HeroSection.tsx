@@ -2,7 +2,7 @@
 
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 // Button הוסר מהייבוא כי אנחנו כבר לא משתמשים בו בתוך הלינקים
@@ -27,6 +27,7 @@ interface HeroSectionProps {
 }
 
 // --- קומפוננטת מכונת הכתיבה ---
+// קומפוננטת מכונת הכתיבה - גרסה מתוקנת
 const TypewriterText: React.FC<{
   text: string;
   delay?: number;
@@ -37,31 +38,52 @@ const TypewriterText: React.FC<{
   const [displayedText, setDisplayedText] = useState('');
   const [isStarted, setIsStarted] = useState(false);
   const [isFinished, setIsFinished] = useState(false);
+  
+  // ref לשמירת האינדקס הנוכחי - פותר את בעיית ה-closure
+  const indexRef = useRef(0);
 
+  // התחלה אחרי delay
   useEffect(() => {
     const startTimer = setTimeout(() => setIsStarted(true), delay);
     return () => clearTimeout(startTimer);
   }, [delay]);
 
+  // אפקט יחיד לטיפול בכתיבה - במקום שני אפקטים כפולים
   useEffect(() => {
-    if (!isStarted || displayedText.length >= text.length) return;
-    const interval = setInterval(() => {
-      setDisplayedText(text.substring(0, displayedText.length + 1));
-    }, speed);
-    return () => clearInterval(interval);
-  }, [displayedText, text, speed, isStarted]);
-
-  useEffect(() => {
-    if (!isStarted || isFinished) return;
-    if (displayedText.length >= text.length) {
+    if (!isStarted) return;
+    
+    // אם כבר סיימנו - לא עושים כלום
+    if (indexRef.current >= text.length) {
       setIsFinished(true);
       return;
     }
+
     const interval = setInterval(() => {
-      setDisplayedText(text.substring(0, displayedText.length + 1));
+      // משתמשים ב-ref במקום ב-state כדי לקבל תמיד את הערך העדכני
+      indexRef.current += 1;
+      
+      if (indexRef.current >= text.length) {
+        setDisplayedText(text);
+        setIsFinished(true);
+        clearInterval(interval);
+      } else {
+        setDisplayedText(text.substring(0, indexRef.current));
+      }
     }, speed);
+
     return () => clearInterval(interval);
-  }, [displayedText, text, speed, isStarted, isFinished]);
+  }, [isStarted, text, speed]); // הסרנו את displayedText מה-dependencies!
+
+  // Reset כשהטקסט משתנה
+  useEffect(() => {
+    indexRef.current = 0;
+    setDisplayedText('');
+    setIsFinished(false);
+    setIsStarted(false);
+    
+    const startTimer = setTimeout(() => setIsStarted(true), delay);
+    return () => clearTimeout(startTimer);
+  }, [text, delay]);
 
   const dynamicStyle: React.CSSProperties = {
     direction: locale === 'he' ? 'rtl' : 'ltr',
