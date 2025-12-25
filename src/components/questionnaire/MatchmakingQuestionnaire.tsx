@@ -177,11 +177,28 @@ export default function MatchmakingQuestionnaire({
       'color: #0d9488; font-weight: bold;'
     );
   }, [resetIdleTimer]);
-
-  // Sync isDirty state globally
+  // --- הוספה: מניעת יציאה אם יש שינויים לא שמורים ---
   useEffect(() => {
-    setGlobalDirty(isDirty);
-  }, [isDirty, setGlobalDirty]);
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (isDirty) {
+        // דפדפנים מודרניים דורשים את השורות האלו כדי להציג את ההודעה הגנרית
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [isDirty]);
+  // --------------------------------------------------
+  // Sync isDirty state globally
+  // משתנה עזר כדי לזכור מתי הקפצנו לאחרונה, כדי לא להקפיץ פעמיים על אותה שאלה בטעות
+  const lastReminderCount = useRef(0);
+
+
 
   // Handle initial world
   useEffect(() => {

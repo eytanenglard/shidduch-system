@@ -15,6 +15,7 @@ import {
   CheckCircle,
   List,
   Loader2,
+  Save,
   ListChecks,
   Sparkles,
   Target,
@@ -633,7 +634,19 @@ export default function WorldComponent({
           >
             <Compass className="h-5 w-5 text-gray-700" />
           </Button>
-
+  <Button
+      variant="outline"
+      size="sm"
+      onClick={() => onSave && onSave(false)} // false = שמירה ידנית עם הודעה
+      disabled={isSaving}
+      className="p-2.5 bg-white border-2 border-teal-200 text-teal-600 rounded-xl flex-shrink-0 hover:bg-teal-50 shadow-sm"
+    >
+      {isSaving ? (
+        <Loader2 className="h-5 w-5 animate-spin" />
+      ) : (
+        <Save className="h-5 w-5" />
+      )}
+    </Button>
           <div className="flex items-center gap-2 flex-1 min-w-0">
             <div
               className={cn(
