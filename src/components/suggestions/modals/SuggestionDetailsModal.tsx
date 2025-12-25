@@ -360,7 +360,7 @@ const EnhancedHeroSection: React.FC<{
                                   locale === 'he' ? 'text-right' : 'text-left'
                                 )}
                               >
-                               &quot;{personalNote}&quot;
+                                &quot;{personalNote}&quot;
                               </p>
                             </div>
                           </div>
@@ -768,7 +768,8 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
     const baseClasses =
       'p-0 shadow-2xl border-0 bg-white overflow-hidden z-[50] flex flex-col transition-all duration-300 ease-in-out';
     if (isMobile) {
-      return `${baseClasses} !w-screen !h-screen !max-w-none !max-h-none !rounded-none !fixed !inset-0`;
+      // 👇 הוספת !transform-none
+      return `${baseClasses} !w-screen !h-screen !max-w-none !max-h-none !rounded-none !fixed !inset-0 !m-0 !transform-none`;
     } else if (isFullscreen) {
       return `${baseClasses} !w-screen !h-screen !max-w-none !max-h-none !rounded-none !fixed !inset-0 !m-0 !translate-x-0 !translate-y-0 !transform-none`;
     } else {
