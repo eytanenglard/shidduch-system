@@ -173,7 +173,7 @@ interface WorldComponentDynamicProps {
   answers: QuestionnaireAnswer[];
   currentQuestionIndex: number;
   setCurrentQuestionIndex: (index: number) => void;
-  onSave?: () => void;
+  onSave?: (isAutoSave?: boolean) => void;
   isSaving?: boolean;
   lastSaved?: Date | null;
   isDirectNavigation?: boolean;
@@ -304,7 +304,9 @@ export default function WorldComponent({
 
     if (currentQuestionIndex < allQuestions.length - 1) {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
-
+      if (onSave) {
+        onSave(true); // true אומר: תשמור, אבל אל תציג הודעה קופצת למשתמש
+      }
       const progress = Math.round(
         ((currentQuestionIndex + 2) / allQuestions.length) * 100
       );

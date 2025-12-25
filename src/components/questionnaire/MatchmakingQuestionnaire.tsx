@@ -696,7 +696,7 @@ export default function MatchmakingQuestionnaire({
           [currentWorld]: index,
         }));
       },
-      onSave: () => handleQuestionnaireSave(false),
+      onSave: (isAutoSave = false) => handleQuestionnaireSave(isAutoSave),
       isSaving: isSaving,
       isDirectNavigation: isDirectNavigation,
       dict: {

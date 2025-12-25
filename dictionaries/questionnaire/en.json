@@ -859,26 +859,26 @@
   },
 "questionsList": {
   "depthLabels": {
-    "BASIC": "בסיסי",
-    "ADVANCED": "מתקדם",
-    "EXPERT": "מעמיק"
+    "BASIC": "Foundations",
+    "ADVANCED": "Deeper Insights",
+    "EXPERT": "Core Reflections"
   },
   "stats": {
-    "answeredQuestions": "שאלות שנענו",
-    "complete": "הושלם",
-    "remaining": "נותרו",
-    "done": "נענו"
+    "answeredQuestions": "Questions Answered",
+    "complete": "Complete",
+    "remaining": "Remaining",
+    "done": "Done"
   },
   "badges": {
-    "required": "חובה",
-    "answered": "✓ נענתה"
+    "required": "Required",
+    "answered": "✓ Done"
   },
   "motivationalMessages": {
-    "start": { "title": "בואו נתחיל!", "subtitle": "כל תשובה מקרבת אותך" },
-    "quarter": { "title": "התחלה מעולה!", "subtitle": "המשך כך" },
-    "half": { "title": "באמצע הדרך!", "subtitle": "עבודה מצוינת" },
-    "threeQuarters": { "title": "כמעט שם!", "subtitle": "עוד קצת והגעת לסיום" },
-    "finish": { "title": "מדהים! סיימת!", "subtitle": "השלמת את כל השאלות" }
+    "start": { "title": "Let's Begin!", "subtitle": "Every answer brings you closer" },
+    "quarter": { "title": "Great Start!", "subtitle": "Keep it up" },
+    "half": { "title": "Halfway There!", "subtitle": "Great progress" },
+    "threeQuarters": { "title": "Almost There!", "subtitle": "Just a bit more to go" },
+    "finish": { "title": "Amazing! All Done!", "subtitle": "You completed all questions" }
   }
 },
 "matchResultCard": {

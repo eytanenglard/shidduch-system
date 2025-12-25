@@ -854,28 +854,29 @@
     "profilePrompt": "בזמן שהצוות עובד על ההתאמות עבורך, תוכל/י להשלים את הפרופיל האישי שלך",
     "continueButton": "המשך לפרופיל"
   },
+
 "questionsList": {
   "depthLabels": {
-    "BASIC": "Foundations",
-    "ADVANCED": "Deeper Insights",
-    "EXPERT": "Core Reflections"
+    "BASIC": "בסיסי",
+    "ADVANCED": "מתקדם",
+    "EXPERT": "מעמיק"
   },
   "stats": {
-    "answeredQuestions": "Questions Answered",
-    "complete": "Complete",
-    "remaining": "Remaining",
-    "done": "Done"
+    "answeredQuestions": "שאלות שנענו",
+    "complete": "הושלם",
+    "remaining": "נותרו",
+    "done": "נענו"
   },
   "badges": {
-    "required": "Required",
-    "answered": "✓ Done"
+    "required": "חובה",
+    "answered": "✓ נענתה"
   },
   "motivationalMessages": {
-    "start": { "title": "Let's Begin!", "subtitle": "Every answer brings you closer" },
-    "quarter": { "title": "Great Start!", "subtitle": "Keep it up" },
-    "half": { "title": "Halfway There!", "subtitle": "Great progress" },
-    "threeQuarters": { "title": "Almost There!", "subtitle": "Just a bit more to go" },
-    "finish": { "title": "Amazing! All Done!", "subtitle": "You completed all questions" }
+    "start": { "title": "בואו נתחיל!", "subtitle": "כל תשובה מקרבת אותך" },
+    "quarter": { "title": "התחלה מעולה!", "subtitle": "המשך כך" },
+    "half": { "title": "באמצע הדרך!", "subtitle": "עבודה מצוינת" },
+    "threeQuarters": { "title": "כמעט שם!", "subtitle": "עוד קצת והגעת לסיום" },
+    "finish": { "title": "מדהים! סיימת!", "subtitle": "השלמת את כל השאלות" }
   }
 },
 "matchResultCard": {
