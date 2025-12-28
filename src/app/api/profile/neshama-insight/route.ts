@@ -1,4 +1,7 @@
 // src/app/api/profile/neshama-insight/route.ts
+// =====================================================
+// API Route - גרסה 4.0
+// =====================================================
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
@@ -7,6 +10,10 @@ import prisma from '@/lib/prisma';
 import { generateNarrativeProfile } from '@/lib/services/profileAiService';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { Language, UserRole } from '@prisma/client';
+
+// =====================================================
+// POST Handler
+// =====================================================
 
 export async function POST(req: NextRequest) {
   try {
@@ -20,7 +27,8 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { userId, locale = 'he' } = body;
+    const userId = body.userId;
+    const locale = body.locale || 'he';
 
     const requester = await prisma.user.findUnique({
       where: { id: session.user.id },
@@ -58,57 +66,54 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Rate limiting
     if (isSelf && user.neshamaInsightLastGeneratedAt) {
       const lastGenerated = new Date(user.neshamaInsightLastGeneratedAt);
       const now = new Date();
-      const diffHours =
-        (now.getTime() - lastGenerated.getTime()) / (1000 * 60 * 60);
+      const diffMs = now.getTime() - lastGenerated.getTime();
+      const diffHours = diffMs / (1000 * 60 * 60);
 
       if (diffHours < 24) {
         const hoursLeft = Math.ceil(24 - diffHours);
+        const message =
+          locale === 'he'
+            ? 'ניתן ליצור דוח חדש בעוד ' + hoursLeft + ' שעות'
+            : 'You can generate a new report in ' + hoursLeft + ' hours';
         return NextResponse.json(
-          {
-            success: false,
-            message:
-              locale === 'he'
-                ? 'ניתן ליצור דוח חדש בעוד ' + hoursLeft + ' שעות'
-                : 'You can generate a new report in ' + hoursLeft + ' hours',
-          },
+          { success: false, message: message },
           { status: 429 }
         );
       }
     }
 
+    // Profile completion check
     const completionResult = calculateProfileCompletion(user);
 
     if (!completionResult.isComplete && !isMatchmakerOrAdmin) {
+      const message =
+        locale === 'he'
+          ? 'יש להשלים לפחות 70% מהפרופיל (כרגע: ' + completionResult.completionPercent + '%)'
+          : 'Please complete at least 70% of your profile (current: ' + completionResult.completionPercent + '%)';
       return NextResponse.json(
-        {
-          success: false,
-          message:
-            locale === 'he'
-              ? 'יש להשלים לפחות 70% מהפרופיל (כרגע: ' +
-                completionResult.completionPercent +
-                '%)'
-              : 'Please complete at least 70% of your profile (current: ' +
-                completionResult.completionPercent +
-                '%)',
-        },
+        { success: false, message: message },
         { status: 400 }
       );
     }
 
+    // Generate narrative profile
     const narrativeProfile = await generateNarrativeProfile(userId);
     if (!narrativeProfile) {
       throw new Error('Failed to generate narrative profile');
     }
 
+    // Generate insight
     const insight = await generateNeshmaInsight(
       narrativeProfile,
       user,
       locale as Language
     );
 
+    // Update database
     await prisma.user.update({
       where: { id: userId },
       data: {
@@ -136,6 +141,10 @@ export async function POST(req: NextRequest) {
   }
 }
 
+// =====================================================
+// Profile Completion Calculator
+// =====================================================
+
 interface CompletionResult {
   isComplete: boolean;
   completionPercent: number;
@@ -150,27 +159,27 @@ function calculateProfileCompletion(user: any): CompletionResult {
   }
 
   const checks = [
-    { weight: 5, pass: user.images?.length >= 1 },
+    { weight: 5, pass: user.images && user.images.length >= 1 },
     { weight: 5, pass: Boolean(profile.profileHeadline) },
     { weight: 10, pass: Boolean(profile.about) && profile.about.length >= 50 },
     { weight: 5, pass: Boolean(profile.height) },
     { weight: 5, pass: Boolean(profile.city) },
     { weight: 5, pass: Boolean(profile.maritalStatus) },
     { weight: 5, pass: Boolean(profile.religiousLevel) },
-    { weight: 12, pass: Boolean(questionnaire?.valuesCompleted) },
-    { weight: 12, pass: Boolean(questionnaire?.personalityCompleted) },
-    { weight: 12, pass: Boolean(questionnaire?.relationshipCompleted) },
-    { weight: 12, pass: Boolean(questionnaire?.partnerCompleted) },
-    { weight: 12, pass: Boolean(questionnaire?.religionCompleted) },
+    { weight: 12, pass: Boolean(questionnaire && questionnaire.valuesCompleted) },
+    { weight: 12, pass: Boolean(questionnaire && questionnaire.personalityCompleted) },
+    { weight: 12, pass: Boolean(questionnaire && questionnaire.relationshipCompleted) },
+    { weight: 12, pass: Boolean(questionnaire && questionnaire.partnerCompleted) },
+    { weight: 12, pass: Boolean(questionnaire && questionnaire.religionCompleted) },
   ];
 
   let totalWeight = 0;
   let earnedWeight = 0;
 
-  for (const check of checks) {
-    totalWeight += check.weight;
-    if (check.pass) {
-      earnedWeight += check.weight;
+  for (let i = 0; i < checks.length; i++) {
+    totalWeight += checks[i].weight;
+    if (checks[i].pass) {
+      earnedWeight += checks[i].weight;
     }
   }
 
@@ -181,6 +190,10 @@ function calculateProfileCompletion(user: any): CompletionResult {
     completionPercent: completionPercent,
   };
 }
+
+// =====================================================
+// AI Insight Generator
+// =====================================================
 
 async function generateNeshmaInsight(
   narrativeProfile: string,
@@ -219,16 +232,16 @@ async function generateNeshmaInsight(
       console.log('Last 200 chars:', text.substring(text.length - 200));
       console.log('=== END RAW RESPONSE ===');
 
-      // בדיקה אם התגובה קצרה מדי
+      // Check if response is too short
       if (text.length < 500) {
         console.error('Response too short! Full response:', text);
         throw new Error('AI response too short: ' + text.length + ' chars');
       }
 
-      // ניקוי התגובה
+      // Clean the response
       text = cleanJsonResponse(text);
 
-      // ניסיון לפרסר
+      // Parse JSON
       const insightData = safeJsonParse(text);
 
       if (!insightData) {
@@ -236,6 +249,7 @@ async function generateNeshmaInsight(
         throw new Error('Failed to parse JSON after cleanup');
       }
 
+      // Validate structure
       validateInsightStructure(insightData);
 
       return insightData;
@@ -245,7 +259,7 @@ async function generateNeshmaInsight(
 
       if (attempt < maxRetries) {
         console.log('Retrying in 2 seconds...');
-        await new Promise((resolve) => setTimeout(resolve, 2000));
+        await sleep(2000);
       }
     }
   }
@@ -253,19 +267,29 @@ async function generateNeshmaInsight(
   throw lastError || new Error('Failed to generate insight after retries');
 }
 
+function sleep(ms: number): Promise<void> {
+  return new Promise(function (resolve) {
+    setTimeout(resolve, ms);
+  });
+}
+
+// =====================================================
+// JSON Cleaning and Parsing
+// =====================================================
+
 function cleanJsonResponse(text: string): string {
-  // הסרת markdown code blocks
-  if (text.includes('```json')) {
+  // Remove markdown code blocks
+  if (text.indexOf('```json') !== -1) {
     text = text.replace(/```json\s*/g, '').replace(/```\s*/g, '');
   }
-  if (text.includes('```')) {
+  if (text.indexOf('```') !== -1) {
     text = text.replace(/```\s*/g, '');
   }
 
-  // הסרת רווחים מיותרים
+  // Trim whitespace
   text = text.trim();
 
-  // החלפת newlines בתוך strings
+  // Fix newlines inside strings
   text = fixNewlinesInStrings(text);
 
   return text;
@@ -309,19 +333,21 @@ function fixNewlinesInStrings(json: string): string {
 }
 
 function safeJsonParse(text: string): any {
-  // ניסיון ראשון - פשוט
+  // First attempt - direct parse
   try {
     return JSON.parse(text);
   } catch (e) {
     console.log('First parse failed:', (e as Error).message);
   }
 
-  // ניסיון שני - חיפוש JSON תקין
+  // Second attempt - extract JSON object
   try {
-    const jsonMatch = text.match(/\{[\s\S]*\}/);
-    if (jsonMatch) {
-      const extracted = fixNewlinesInStrings(jsonMatch[0]);
-      return JSON.parse(extracted);
+    const startIndex = text.indexOf('{');
+    const endIndex = text.lastIndexOf('}');
+    if (startIndex !== -1 && endIndex !== -1 && endIndex > startIndex) {
+      const extracted = text.substring(startIndex, endIndex + 1);
+      const fixed = fixNewlinesInStrings(extracted);
+      return JSON.parse(fixed);
     }
   } catch (e) {
     console.log('Second parse failed:', (e as Error).message);
@@ -329,6 +355,10 @@ function safeJsonParse(text: string): any {
 
   return null;
 }
+
+// =====================================================
+// Prompt Builder
+// =====================================================
 
 function buildPrompt(
   narrativeProfile: string,
@@ -339,15 +369,17 @@ function buildPrompt(
   const firstName = user.firstName || '';
   const lastName = user.lastName || '';
   const fullName = (firstName + ' ' + lastName).trim();
-  const isMale = user.profile?.gender === 'MALE';
+  const isMale = user.profile && user.profile.gender === 'MALE';
 
-  // מידע מינימלי מהשאלון כדי לקצר את הפרומפט
-  const questionnaireData = questionnaire ? {
-    values: questionnaire.valuesAnswers || {},
-    personality: questionnaire.personalityAnswers || {},
-    relationship: questionnaire.relationshipAnswers || {},
-    partner: questionnaire.partnerAnswers || {},
-  } : {};
+  // Simplified questionnaire data
+  const questionnaireData = questionnaire
+    ? {
+        values: questionnaire.valuesAnswers || {},
+        personality: questionnaire.personalityAnswers || {},
+        relationship: questionnaire.relationshipAnswers || {},
+        partner: questionnaire.partnerAnswers || {},
+      }
+    : {};
 
   const questionnaireJson = JSON.stringify(questionnaireData, null, 2);
 
@@ -365,9 +397,6 @@ function buildHebrewPrompt(
   narrativeProfile: string,
   questionnaireJson: string
 ): string {
-  const youWord = isMale ? 'אתה' : 'את';
-  const genderSuffix = isMale ? '' : 'ה';
-
   const lines: string[] = [];
 
   lines.push('אתה יועץ זוגיות מומחה. צור דוח JSON עבור ' + fullName + '.');
@@ -417,6 +446,8 @@ function buildHebrewPrompt(
   lines.push('  "threeThingsToRemember": ["דבר 1", "דבר 2", "דבר 3"],');
   lines.push('  "growthAreas": ["אזור 1", "אזור 2"]');
   lines.push('}');
+  lines.push('');
+  lines.push('חשוב מאוד: החזר JSON תקין בלבד. אין שורות חדשות בתוך הטקסטים.');
 
   return lines.join('\n');
 }
@@ -475,9 +506,15 @@ function buildEnglishPrompt(
   lines.push('  "threeThingsToRemember": ["thing 1", "thing 2", "thing 3"],');
   lines.push('  "growthAreas": ["area 1", "area 2"]');
   lines.push('}');
+  lines.push('');
+  lines.push('Important: Return valid JSON only. No newlines inside text values.');
 
   return lines.join('\n');
 }
+
+// =====================================================
+// Validation
+// =====================================================
 
 function validateInsightStructure(data: any): void {
   const requiredSections = [
@@ -488,13 +525,17 @@ function validateInsightStructure(data: any): void {
     'nextSteps',
   ];
 
-  for (const section of requiredSections) {
+  for (let i = 0; i < requiredSections.length; i++) {
+    const section = requiredSections[i];
+
     if (!data[section]) {
       throw new Error('Missing required section: ' + section);
     }
+
     if (!data[section].summary || typeof data[section].summary !== 'string') {
       throw new Error('Invalid summary in section: ' + section);
     }
+
     if (!Array.isArray(data[section].details)) {
       throw new Error('Invalid details in section: ' + section);
     }

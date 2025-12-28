@@ -1,7 +1,7 @@
 // src/lib/pdf/insightPdfGenerator.ts
 // =====================================================
-// מחולל PDF משודרג - גרסה 3.0
-// 50 שיפורים מיושמים
+// מחולל PDF - גרסה 4.0
+// תיקון: טיפול נכון בטקסט עברי
 // =====================================================
 
 import { toast } from 'sonner';
@@ -29,7 +29,6 @@ interface InsightSection {
 interface KeyStrength {
   title: string;
   description: string;
-  score?: number;
 }
 
 interface InsightData {
@@ -38,7 +37,6 @@ interface InsightData {
   firstMeetingTips: InsightSection;
   uniquePotential: InsightSection;
   nextSteps: InsightSection;
-  // שדות חדשים
   keyStrengths?: KeyStrength[];
   growthAreas?: string[];
   oneLiner?: string;
@@ -57,7 +55,6 @@ const CONFIG = {
     WIDTH: 210,
     HEIGHT: 297,
     MARGIN: 18,
-    INNER_MARGIN: 22,
   },
   FONTS: {
     TITLE: 26,
@@ -74,11 +71,6 @@ const CONFIG = {
     LINE: 5.2,
     BULLET: 3.5,
   },
-  DECORATION: {
-    CORNER_RADIUS: 4,
-    LINE_WIDTH: 0.5,
-    SHADOW_OFFSET: 1,
-  },
 };
 
 // =====================================================
@@ -90,9 +82,9 @@ export const generateInsightPdf = async (
   locale: 'he' | 'en'
 ) => {
   try {
-    const { jsPDF } = await import('jspdf');
+    const jsPDFModule = await import('jspdf');
+    const jsPDF = jsPDFModule.jsPDF;
 
-    // Toast עם אנימציה
     const toastId = toast.loading(
       locale === 'he'
         ? '✨ יוצר את הדוח האישי שלך...'
@@ -125,81 +117,83 @@ export const generateInsightPdf = async (
     await loadFont(doc);
 
     // === עמוד 1: כותרת ===
-    drawCoverPage(doc, isHebrew, data);
+    drawCoverPage(doc, isHebrew, data, pageWidth, pageHeight, margin);
 
-    // === עמוד 2: ציטוט + מי את/ה ===
+    // === עמוד 2: ציטוט + תוכן ===
     doc.addPage();
     let yPos = margin;
-    
+
     // ציטוט מעורר השראה
-    yPos = drawQuoteBox(doc, isHebrew, yPos, maxWidth, margin);
+    yPos = drawQuoteBox(doc, isHebrew, yPos, maxWidth, margin, pageWidth);
     yPos += 10;
 
-    // One-liner אישי (אם קיים)
+    // One-liner אישי
     if (data.oneLiner) {
-      yPos = drawOneLiner(doc, data.oneLiner, isHebrew, yPos, maxWidth, margin);
+      yPos = drawOneLiner(doc, data.oneLiner, isHebrew, yPos, maxWidth, margin, pageWidth);
       yPos += 10;
     }
 
     // מי את/ה באמת
     if (data.whoYouAre) {
-      yPos = drawSection(doc, 'whoYouAre', data.whoYouAre, yPos, isHebrew, maxWidth, margin);
+      yPos = drawSection(doc, 'whoYouAre', data.whoYouAre, yPos, isHebrew, maxWidth, margin, pageWidth, pageHeight);
     }
 
-    // === עמודים נוספים ===
-    const sections: { key: SectionType; content: InsightSection | undefined }[] = [
+    // סקציות נוספות
+    const sections: Array<{ key: SectionType; content: InsightSection | undefined }> = [
       { key: 'idealPartner', content: data.idealPartner },
       { key: 'firstMeetingTips', content: data.firstMeetingTips },
       { key: 'uniquePotential', content: data.uniquePotential },
       { key: 'nextSteps', content: data.nextSteps },
     ];
 
-    for (const section of sections) {
-      if (!section.content) continue;
+    for (let i = 0; i < sections.length; i++) {
+      const section = sections[i];
+      if (!section.content) {
+        continue;
+      }
 
-      // בדיקת מקום בעמוד
       if (yPos > pageHeight - 80) {
         doc.addPage();
         yPos = margin + 5;
       }
 
-      yPos = drawSection(doc, section.key, section.content, yPos, isHebrew, maxWidth, margin);
+      yPos = drawSection(doc, section.key, section.content, yPos, isHebrew, maxWidth, margin, pageWidth, pageHeight);
       yPos += CONFIG.SPACING.SECTION;
     }
 
-    // === נקודות חוזק (אם קיימות) ===
+    // נקודות חוזק
     if (data.keyStrengths && data.keyStrengths.length > 0) {
       if (yPos > pageHeight - 100) {
         doc.addPage();
         yPos = margin + 5;
       }
-      yPos = drawStrengthsSection(doc, data.keyStrengths, isHebrew, yPos, maxWidth, margin);
+      yPos = drawStrengthsSection(doc, data.keyStrengths, isHebrew, yPos, maxWidth, margin, pageWidth);
     }
 
-    // === 3 דברים לזכור ===
+    // 3 דברים לזכור
     if (data.threeThingsToRemember && data.threeThingsToRemember.length > 0) {
       if (yPos > pageHeight - 70) {
         doc.addPage();
         yPos = margin + 5;
       }
-      yPos = drawThreeThingsBox(doc, data.threeThingsToRemember, isHebrew, yPos, maxWidth, margin);
+      yPos = drawThreeThingsBox(doc, data.threeThingsToRemember, isHebrew, yPos, maxWidth, margin, pageWidth);
     }
 
-    // === עמוד סיכום ===
+    // עמוד סיכום
     doc.addPage();
-    drawSummaryPage(doc, isHebrew, data);
+    drawSummaryPage(doc, isHebrew, data, pageWidth, pageHeight);
 
-    // === Footer בכל העמודים ===
-    addFooterToAllPages(doc, isHebrew);
+    // Footer בכל העמודים
+    addFooterToAllPages(doc, isHebrew, pageWidth, pageHeight, margin);
 
-    // === Header בכל העמודים (חוץ מהראשון) ===
-    addHeaderToPages(doc, isHebrew, data.userName);
+    // Header בכל העמודים (חוץ מהראשון והאחרון)
+    addHeaderToPages(doc, isHebrew, data.userName, pageWidth, margin);
 
     // שמירה
     const uniqueId = generateUniqueId().slice(-6);
     const filename = isHebrew
-      ? `התמונה-המלאה-שלי-${uniqueId}.pdf`
-      : `my-full-picture-${uniqueId}.pdf`;
+      ? 'התמונה-המלאה-שלי-' + uniqueId + '.pdf'
+      : 'my-full-picture-' + uniqueId + '.pdf';
 
     doc.save(filename);
 
@@ -227,7 +221,9 @@ export const generateInsightPdf = async (
 async function loadFont(doc: any): Promise<void> {
   try {
     const fontResponse = await fetch('/fonts/Rubik-Regular.ttf');
-    if (!fontResponse.ok) throw new Error('Font not found');
+    if (!fontResponse.ok) {
+      throw new Error('Font not found');
+    }
 
     const fontBlob = await fontResponse.blob();
     const fontBase64 = await blobToBase64(fontBlob);
@@ -236,22 +232,25 @@ async function loadFont(doc: any): Promise<void> {
     doc.addFont('Rubik-Regular.ttf', 'Rubik', 'normal');
     doc.setFont('Rubik');
   } catch (error) {
-    console.warn('Font loading failed:', error);
+    console.warn('Font loading failed, using default:', error);
     doc.setFont('helvetica');
   }
 }
 
 function blobToBase64(blob: Blob): Promise<string> {
-  return new Promise((resolve, reject) => {
+  return new Promise(function (resolve, reject) {
     const reader = new FileReader();
-    reader.onloadend = () => {
+    reader.onloadend = function () {
       if (typeof reader.result === 'string') {
-        resolve(reader.result.split(',')[1]);
+        const base64 = reader.result.split(',')[1];
+        resolve(base64);
       } else {
-        reject('Failed to convert blob');
+        reject(new Error('Failed to convert blob'));
       }
     };
-    reader.onerror = reject;
+    reader.onerror = function () {
+      reject(new Error('FileReader error'));
+    };
     reader.readAsDataURL(blob);
   });
 }
@@ -260,9 +259,14 @@ function blobToBase64(blob: Blob): Promise<string> {
 // עמוד כותרת
 // =====================================================
 
-function drawCoverPage(doc: any, isHebrew: boolean, data: InsightData): void {
-  const pageWidth = doc.internal.pageSize.getWidth();
-  const pageHeight = doc.internal.pageSize.getHeight();
+function drawCoverPage(
+  doc: any,
+  isHebrew: boolean,
+  data: InsightData,
+  pageWidth: number,
+  pageHeight: number,
+  margin: number
+): void {
   const centerX = pageWidth / 2;
 
   // רקע גרדיאנט
@@ -270,9 +274,6 @@ function drawCoverPage(doc: any, isHebrew: boolean, data: InsightData): void {
 
   // עיגולים דקורטיביים
   drawDecorativeCircles(doc, pageWidth, pageHeight);
-
-  // דפוס נקודות עדין
-  drawDotPattern(doc, pageWidth, pageHeight);
 
   let yPos = 55;
 
@@ -286,12 +287,7 @@ function drawCoverPage(doc: any, isHebrew: boolean, data: InsightData): void {
   doc.setFontSize(CONFIG.FONTS.TITLE + 6);
   doc.setTextColor(30, 41, 59);
   const mainTitle = isHebrew ? 'התמונה המלאה שלך' : 'Your Full Picture';
-  doc.text(
-    isHebrew ? prepareHebrewText(mainTitle) : mainTitle,
-    centerX,
-    yPos,
-    { align: 'center' }
-  );
+  doc.text(mainTitle, centerX, yPos, { align: 'center' });
   yPos += 12;
 
   // תת-כותרת
@@ -300,12 +296,7 @@ function drawCoverPage(doc: any, isHebrew: boolean, data: InsightData): void {
   const subtitle = isHebrew
     ? 'תובנות עמוקות על האישיות, הערכים והזוגיות שלך'
     : 'Deep insights into your personality, values & relationships';
-  doc.text(
-    isHebrew ? prepareHebrewText(subtitle) : subtitle,
-    centerX,
-    yPos,
-    { align: 'center' }
-  );
+  doc.text(subtitle, centerX, yPos, { align: 'center' });
   yPos += 25;
 
   // קו דקורטיבי
@@ -314,7 +305,7 @@ function drawCoverPage(doc: any, isHebrew: boolean, data: InsightData): void {
   doc.line(centerX - 35, yPos, centerX + 35, yPos);
   yPos += 30;
 
-  // אייקון יהלום גדול
+  // אייקון יהלום
   drawDiamondIcon(doc, centerX, yPos, 30);
   yPos += 55;
 
@@ -322,13 +313,10 @@ function drawCoverPage(doc: any, isHebrew: boolean, data: InsightData): void {
   if (data.userName) {
     doc.setFontSize(CONFIG.FONTS.SUBTITLE + 4);
     doc.setTextColor(99, 102, 241);
-    const nameLabel = isHebrew ? `${data.userName} :הוכן עבור` : `Prepared for: ${data.userName}`;
-    doc.text(
-      isHebrew ? prepareHebrewText(nameLabel) : nameLabel,
-      centerX,
-      yPos,
-      { align: 'center' }
-    );
+    const nameLabel = isHebrew
+      ? 'הוכן עבור: ' + data.userName
+      : 'Prepared for: ' + data.userName;
+    doc.text(nameLabel, centerX, yPos, { align: 'center' });
     yPos += 15;
   }
 
@@ -336,41 +324,37 @@ function drawCoverPage(doc: any, isHebrew: boolean, data: InsightData): void {
   doc.setFontSize(CONFIG.FONTS.SMALL);
   doc.setTextColor(148, 163, 184);
   const today = new Date();
-  
+
   if (isHebrew) {
     const hebrewDate = formatHebrewDate(today);
     const numericDate = formatDateNumbers(today);
-    doc.text(
-      prepareHebrewText(`${hebrewDate} (${numericDate})`),
-      centerX,
-      yPos,
-      { align: 'center' }
-    );
+    const dateText = hebrewDate + ' (' + numericDate + ')';
+    doc.text(dateText, centerX, yPos, { align: 'center' });
   } else {
-    doc.text(today.toLocaleDateString('en-US', { 
-      year: 'numeric', 
-      month: 'long', 
-      day: 'numeric' 
-    }), centerX, yPos, { align: 'center' });
+    const options: Intl.DateTimeFormatOptions = {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    };
+    const dateText = today.toLocaleDateString('en-US', options);
+    doc.text(dateText, centerX, yPos, { align: 'center' });
   }
   yPos += 25;
 
-  // אחוז השלמת פרופיל (אם קיים)
+  // אחוז השלמת פרופיל
   if (data.profileCompletionPercent !== undefined) {
     drawCompletionBadge(doc, centerX, yPos, data.profileCompletionPercent, isHebrew);
     yPos += 25;
   }
 
-  // Footer
+  // Footer של עמוד הכותרת
   doc.setFontSize(CONFIG.FONTS.FOOTER + 1);
   doc.setTextColor(148, 163, 184);
-  
-  const footerText = isHebrew
-    ? prepareHebrewText('כי נשמה פוגשת טכנולוגיה')
-    : 'Where Soul Meets Technology';
-  
+
   doc.text('NeshamaTech', centerX, pageHeight - 25, { align: 'center' });
-  doc.text(footerText, centerX, pageHeight - 18, { align: 'center' });
+
+  const footerTagline = isHebrew ? 'כי נשמה פוגשת טכנולוגיה' : 'Where Soul Meets Technology';
+  doc.text(footerTagline, centerX, pageHeight - 18, { align: 'center' });
 }
 
 // =====================================================
@@ -381,53 +365,43 @@ function drawGradientBackground(doc: any, width: number, height: number): void {
   const steps = 60;
   for (let i = 0; i < steps; i++) {
     const ratio = i / steps;
-    const r = 255 - (255 - 248) * ratio * 0.3;
-    const g = 255 - (255 - 250) * ratio * 0.3;
-    const b = 255 - (255 - 252) * ratio * 0.2;
+    const r = Math.round(255 - (255 - 248) * ratio * 0.3);
+    const g = Math.round(255 - (255 - 250) * ratio * 0.3);
+    const b = Math.round(255 - (255 - 252) * ratio * 0.2);
     doc.setFillColor(r, g, b);
-    doc.rect(0, (height / steps) * i, width, height / steps + 1, 'F');
+    const stepHeight = height / steps;
+    doc.rect(0, stepHeight * i, width, stepHeight + 1, 'F');
   }
 }
 
 function drawDecorativeCircles(doc: any, width: number, height: number): void {
-  // עיגול גדול - פינה ימנית עליונה (צבע בהיר מאוד במקום שקיפות)
+  // עיגול גדול - פינה ימנית עליונה
   doc.setFillColor(245, 245, 252);
   doc.circle(width + 20, -20, 100, 'F');
-  
+
   // עיגול בינוני - פינה שמאלית תחתונה
   doc.setFillColor(252, 245, 249);
   doc.circle(-30, height + 30, 120, 'F');
-  
+
   // עיגול קטן - מרכז ימין
   doc.setFillColor(254, 250, 245);
   doc.circle(width - 20, height / 2, 50, 'F');
 }
 
-function drawDotPattern(doc: any, width: number, height: number): void {
-  // צבע בהיר מאוד במקום שקיפות
-  doc.setFillColor(248, 248, 252);
-  
-  const spacing = 20;
-  const dotSize = 0.5;
-  
-  for (let x = spacing; x < width - spacing; x += spacing) {
-    for (let y = spacing; y < height - spacing; y += spacing) {
-      doc.circle(x, y, dotSize, 'F');
-    }
-  }
-}
-
 function drawDiamondIcon(doc: any, x: number, y: number, size: number): void {
-  // צל בהיר במקום שקיפות
+  // צל
   doc.setFillColor(220, 220, 230);
   doc.triangle(
-    x + 2, y - size + 2,
-    x - size + 2, y + 2,
-    x + size + 2, y + 2,
+    x + 2,
+    y - size + 2,
+    x - size + 2,
+    y + 2,
+    x + size + 2,
+    y + 2,
     'F'
   );
 
-  // משולש עליון - גרדיאנט
+  // משולש עליון
   doc.setFillColor(99, 102, 241);
   doc.triangle(x, y - size, x - size, y, x + size, y, 'F');
 
@@ -448,25 +422,23 @@ function drawCompletionBadge(
   percent: number,
   isHebrew: boolean
 ): void {
-  const width = 80;
-  const height = 24;
-  
+  const badgeWidth = 80;
+  const badgeHeight = 24;
+
   // רקע
   doc.setFillColor(240, 253, 244);
-  doc.roundedRect(x - width / 2, y - height / 2, width, height, 4, 4, 'F');
-  
+  doc.roundedRect(x - badgeWidth / 2, y - badgeHeight / 2, badgeWidth, badgeHeight, 4, 4, 'F');
+
   // מסגרת
   doc.setDrawColor(34, 197, 94);
   doc.setLineWidth(0.5);
-  doc.roundedRect(x - width / 2, y - height / 2, width, height, 4, 4, 'S');
-  
+  doc.roundedRect(x - badgeWidth / 2, y - badgeHeight / 2, badgeWidth, badgeHeight, 4, 4, 'S');
+
   // טקסט
   doc.setFontSize(CONFIG.FONTS.SMALL);
   doc.setTextColor(34, 197, 94);
-  const text = isHebrew
-    ? prepareHebrewText(`${percent}% הושלם`)
-    : `${percent}% Complete`;
-  doc.text(text, x, y + 3, { align: 'center' });
+  const badgeText = isHebrew ? percent + '% הושלם' : percent + '% Complete';
+  doc.text(badgeText, x, y + 3, { align: 'center' });
 }
 
 // =====================================================
@@ -478,18 +450,18 @@ function drawQuoteBox(
   isHebrew: boolean,
   startY: number,
   maxWidth: number,
-  margin: number
+  margin: number,
+  pageWidth: number
 ): number {
-  const pageWidth = doc.internal.pageSize.getWidth();
   const quote = getRandomQuote(isHebrew);
-  
+
   const boxHeight = 35;
   const boxY = startY;
-  
-  // רקע עם גרדיאנט עדין
+
+  // רקע
   doc.setFillColor(248, 250, 252);
   doc.roundedRect(margin, boxY, maxWidth, boxHeight, 4, 4, 'F');
-  
+
   // פס צד צבעוני
   doc.setFillColor(99, 102, 241);
   if (isHebrew) {
@@ -497,8 +469,8 @@ function drawQuoteBox(
   } else {
     doc.rect(margin, boxY, 3, boxHeight, 'F');
   }
-  
-  // גרשיים פתיחה - צבע בהיר במקום שקיפות
+
+  // גרשיים פתיחה
   doc.setFontSize(24);
   doc.setTextColor(200, 202, 248);
   if (isHebrew) {
@@ -506,34 +478,31 @@ function drawQuoteBox(
   } else {
     doc.text('"', margin + 8, boxY + 14);
   }
-  
+
   // טקסט הציטוט
   doc.setFontSize(CONFIG.FONTS.BODY);
   doc.setTextColor(51, 65, 85);
-  const quoteText = isHebrew ? prepareHebrewText(quote.text) : quote.text;
-  
+
   if (isHebrew) {
-    doc.text(quoteText, pageWidth - margin - 10, boxY + 15, { 
+    doc.text(quote.text, pageWidth - margin - 10, boxY + 15, {
       align: 'right',
       maxWidth: maxWidth - 20,
     });
   } else {
-    doc.text(quoteText, margin + 10, boxY + 15, { maxWidth: maxWidth - 20 });
+    doc.text(quote.text, margin + 10, boxY + 15, { maxWidth: maxWidth - 20 });
   }
-  
+
   // מקור הציטוט
   doc.setFontSize(CONFIG.FONTS.SMALL);
   doc.setTextColor(148, 163, 184);
-  const authorText = isHebrew
-    ? prepareHebrewText(`— ${quote.author}`)
-    : `— ${quote.author}`;
-  
+  const authorText = '— ' + quote.author;
+
   if (isHebrew) {
     doc.text(authorText, margin + 10, boxY + boxHeight - 8);
   } else {
     doc.text(authorText, pageWidth - margin - 10, boxY + boxHeight - 8, { align: 'right' });
   }
-  
+
   return boxY + boxHeight;
 }
 
@@ -547,26 +516,28 @@ function drawOneLiner(
   isHebrew: boolean,
   startY: number,
   maxWidth: number,
-  margin: number
+  margin: number,
+  pageWidth: number
 ): number {
-  const pageWidth = doc.internal.pageSize.getWidth();
   const centerX = pageWidth / 2;
-  
-  // מסגרת מיוחדת
+
+  // מסגרת
   doc.setFillColor(255, 251, 235);
   doc.roundedRect(margin + 10, startY, maxWidth - 20, 22, 4, 4, 'F');
-  
+
   // אייקון
   doc.setFontSize(14);
-  doc.text('💎', isHebrew ? pageWidth - margin - 18 : margin + 18, startY + 14);
-  
+  if (isHebrew) {
+    doc.text('💎', pageWidth - margin - 18, startY + 14);
+  } else {
+    doc.text('💎', margin + 18, startY + 14);
+  }
+
   // טקסט
   doc.setFontSize(CONFIG.FONTS.BODY + 1);
   doc.setTextColor(120, 53, 15);
-  const preparedText = isHebrew ? prepareHebrewText(text) : text;
-  
-  doc.text(preparedText, centerX, startY + 14, { align: 'center' });
-  
+  doc.text(text, centerX, startY + 14, { align: 'center' });
+
   return startY + 26;
 }
 
@@ -581,10 +552,10 @@ function drawSection(
   startY: number,
   isHebrew: boolean,
   maxWidth: number,
-  margin: number
+  margin: number,
+  pageWidth: number,
+  pageHeight: number
 ): number {
-  const pageWidth = doc.internal.pageSize.getWidth();
-  const pageHeight = doc.internal.pageSize.getHeight();
   const info = getSectionInfo(sectionKey);
   let yPos = startY;
 
@@ -594,19 +565,18 @@ function drawSection(
     yPos = margin + 10;
   }
 
-  // === כותרת סקציה עם עיצוב משופר ===
-  
-  // רקע צבעוני
+  // === כותרת סקציה ===
   const headerHeight = 11;
   doc.setFillColor(info.color.r, info.color.g, info.color.b);
   doc.roundedRect(margin, yPos - 2, maxWidth, headerHeight, 3, 3, 'F');
-  
-  // אייקון ואימוג'י
+
   doc.setFontSize(CONFIG.FONTS.SECTION_TITLE);
   doc.setTextColor(255, 255, 255);
+
+  // הכותרת עם אימוג'י
   const title = isHebrew ? info.titleHe : info.titleEn;
-  const displayTitle = `${info.emoji} ${isHebrew ? prepareHebrewText(title) : title}`;
-  
+  const displayTitle = info.emoji + ' ' + title;
+
   if (isHebrew) {
     doc.text(displayTitle, pageWidth - margin - 5, yPos + 6, { align: 'right' });
   } else {
@@ -615,25 +585,22 @@ function drawSection(
 
   yPos += headerHeight + CONFIG.SPACING.PARAGRAPH;
 
-  // === רקע עדין לתוכן ===
-  const contentStartY = yPos;
-  
   // === תקציר ===
   doc.setFontSize(CONFIG.FONTS.BODY);
   doc.setTextColor(30, 41, 59);
 
   const summaryLines = doc.splitTextToSize(content.summary, maxWidth - 8);
-  for (const line of summaryLines) {
+  for (let i = 0; i < summaryLines.length; i++) {
+    const line = summaryLines[i];
     if (yPos > pageHeight - 25) {
       doc.addPage();
       yPos = margin + 10;
     }
 
-    const processedLine = isHebrew ? prepareHebrewText(line) : line;
     if (isHebrew) {
-      doc.text(processedLine, pageWidth - margin - 4, yPos, { align: 'right' });
+      doc.text(line, pageWidth - margin - 4, yPos, { align: 'right' });
     } else {
-      doc.text(processedLine, margin + 4, yPos);
+      doc.text(line, margin + 4, yPos);
     }
     yPos += CONFIG.SPACING.LINE;
   }
@@ -644,7 +611,7 @@ function drawSection(
   if (content.details && content.details.length > 0) {
     for (let i = 0; i < content.details.length; i++) {
       const detail = content.details[i];
-      
+
       if (yPos > pageHeight - 25) {
         doc.addPage();
         yPos = margin + 10;
@@ -660,17 +627,17 @@ function drawSection(
       doc.setTextColor(51, 65, 85);
       const detailLines = doc.splitTextToSize(detail, maxWidth - 14);
 
-      for (const detailLine of detailLines) {
+      for (let j = 0; j < detailLines.length; j++) {
+        const detailLine = detailLines[j];
         if (yPos > pageHeight - 20) {
           doc.addPage();
           yPos = margin + 10;
         }
 
-        const processedDetail = isHebrew ? prepareHebrewText(detailLine) : detailLine;
         if (isHebrew) {
-          doc.text(processedDetail, pageWidth - margin - 9, yPos, { align: 'right' });
+          doc.text(detailLine, pageWidth - margin - 9, yPos, { align: 'right' });
         } else {
-          doc.text(processedDetail, margin + 9, yPos);
+          doc.text(detailLine, margin + 9, yPos);
         }
         yPos += CONFIG.SPACING.LINE;
       }
@@ -692,9 +659,9 @@ function drawStrengthsSection(
   isHebrew: boolean,
   startY: number,
   maxWidth: number,
-  margin: number
+  margin: number,
+  pageWidth: number
 ): number {
-  const pageWidth = doc.internal.pageSize.getWidth();
   const info = getSectionInfo('keyStrengths');
   let yPos = startY;
 
@@ -702,47 +669,51 @@ function drawStrengthsSection(
   const headerHeight = 11;
   doc.setFillColor(info.color.r, info.color.g, info.color.b);
   doc.roundedRect(margin, yPos - 2, maxWidth, headerHeight, 3, 3, 'F');
-  
+
   doc.setFontSize(CONFIG.FONTS.SECTION_TITLE);
   doc.setTextColor(255, 255, 255);
-  const title = `${info.emoji} ${isHebrew ? prepareHebrewText(info.titleHe) : info.titleEn}`;
-  
+  const title = info.emoji + ' ' + (isHebrew ? info.titleHe : info.titleEn);
+
   if (isHebrew) {
     doc.text(title, pageWidth - margin - 5, yPos + 6, { align: 'right' });
   } else {
     doc.text(title, margin + 5, yPos + 6);
   }
-  
+
   yPos += headerHeight + CONFIG.SPACING.PARAGRAPH;
 
   // חוזקות בצורת "כרטיסים"
-  for (const strength of strengths) {
+  for (let i = 0; i < strengths.length; i++) {
+    const strength = strengths[i];
+
     // רקע כרטיס
     doc.setFillColor(254, 252, 232);
     doc.roundedRect(margin + 2, yPos - 2, maxWidth - 4, 18, 2, 2, 'F');
-    
+
     // כותרת החוזקה
     doc.setFontSize(CONFIG.FONTS.BODY);
     doc.setTextColor(120, 53, 15);
-    const strengthTitle = isHebrew ? prepareHebrewText(strength.title) : strength.title;
-    
+    const strengthTitle = '⭐ ' + strength.title;
+
     if (isHebrew) {
-      doc.text(`⭐ ${strengthTitle}`, pageWidth - margin - 8, yPos + 5, { align: 'right' });
+      doc.text(strengthTitle, pageWidth - margin - 8, yPos + 5, { align: 'right' });
     } else {
-      doc.text(`⭐ ${strengthTitle}`, margin + 8, yPos + 5);
+      doc.text(strengthTitle, margin + 8, yPos + 5);
     }
-    
+
     // תיאור
     doc.setFontSize(CONFIG.FONTS.SMALL);
     doc.setTextColor(71, 85, 105);
-    const desc = isHebrew ? prepareHebrewText(strength.description) : strength.description;
-    
+
     if (isHebrew) {
-      doc.text(desc, pageWidth - margin - 8, yPos + 12, { align: 'right', maxWidth: maxWidth - 20 });
+      doc.text(strength.description, pageWidth - margin - 8, yPos + 12, {
+        align: 'right',
+        maxWidth: maxWidth - 20,
+      });
     } else {
-      doc.text(desc, margin + 8, yPos + 12, { maxWidth: maxWidth - 20 });
+      doc.text(strength.description, margin + 8, yPos + 12, { maxWidth: maxWidth - 20 });
     }
-    
+
     yPos += 22;
   }
 
@@ -759,46 +730,45 @@ function drawThreeThingsBox(
   isHebrew: boolean,
   startY: number,
   maxWidth: number,
-  margin: number
+  margin: number,
+  pageWidth: number
 ): number {
-  const pageWidth = doc.internal.pageSize.getWidth();
   const boxHeight = 50;
-  
+
   // רקע
   doc.setFillColor(239, 246, 255);
   doc.roundedRect(margin, startY, maxWidth, boxHeight, 5, 5, 'F');
-  
+
   // מסגרת
   doc.setDrawColor(59, 130, 246);
   doc.setLineWidth(0.8);
   doc.roundedRect(margin, startY, maxWidth, boxHeight, 5, 5, 'S');
-  
+
   // כותרת
   doc.setFontSize(CONFIG.FONTS.BODY + 1);
   doc.setTextColor(30, 64, 175);
-  const title = isHebrew
-    ? prepareHebrewText('🎯 3 דברים לזכור')
-    : '🎯 3 Things to Remember';
-  
-  doc.text(title, pageWidth / 2, startY + 10, { align: 'center' });
-  
+  const boxTitle = isHebrew ? '🎯 3 דברים לזכור' : '🎯 3 Things to Remember';
+  doc.text(boxTitle, pageWidth / 2, startY + 10, { align: 'center' });
+
   // הפריטים
   doc.setFontSize(CONFIG.FONTS.BODY);
   doc.setTextColor(51, 65, 85);
-  
+
   let itemY = startY + 20;
-  things.slice(0, 3).forEach((thing, index) => {
-    const text = isHebrew ? prepareHebrewText(thing) : thing;
-    const number = `${index + 1}.`;
-    
+  const itemsToShow = things.slice(0, 3);
+
+  for (let i = 0; i < itemsToShow.length; i++) {
+    const thing = itemsToShow[i];
+    const number = (i + 1) + '.';
+
     if (isHebrew) {
-      doc.text(`${text} .${index + 1}`, pageWidth - margin - 10, itemY, { align: 'right' });
+      doc.text(number + ' ' + thing, pageWidth - margin - 10, itemY, { align: 'right' });
     } else {
-      doc.text(`${number} ${text}`, margin + 10, itemY);
+      doc.text(number + ' ' + thing, margin + 10, itemY);
     }
     itemY += 9;
-  });
-  
+  }
+
   return startY + boxHeight + 5;
 }
 
@@ -806,10 +776,13 @@ function drawThreeThingsBox(
 // עמוד סיכום
 // =====================================================
 
-function drawSummaryPage(doc: any, isHebrew: boolean, data: InsightData): void {
-  const pageWidth = doc.internal.pageSize.getWidth();
-  const pageHeight = doc.internal.pageSize.getHeight();
-  const margin = CONFIG.PAGE.MARGIN;
+function drawSummaryPage(
+  doc: any,
+  isHebrew: boolean,
+  data: InsightData,
+  pageWidth: number,
+  pageHeight: number
+): void {
   const centerX = pageWidth / 2;
 
   // רקע עדין
@@ -821,8 +794,8 @@ function drawSummaryPage(doc: any, isHebrew: boolean, data: InsightData): void {
   // כותרת
   doc.setFontSize(CONFIG.FONTS.TITLE);
   doc.setTextColor(30, 41, 59);
-  const title = isHebrew ? prepareHebrewText('לסיכום...') : 'In Summary...';
-  doc.text(title, centerX, yPos, { align: 'center' });
+  const summaryTitle = isHebrew ? 'לסיכום...' : 'In Summary...';
+  doc.text(summaryTitle, centerX, yPos, { align: 'center' });
   yPos += 20;
 
   // קו דקורטיבי
@@ -835,29 +808,34 @@ function drawSummaryPage(doc: any, isHebrew: boolean, data: InsightData): void {
   doc.setFontSize(CONFIG.FONTS.BODY + 2);
   doc.setTextColor(71, 85, 105);
 
-  const closingMessages = isHebrew
-    ? [
-        `${data.userName || 'יקר/ה'}, עברת מסע משמעותי של גילוי עצמי.`,
-        'הדוח הזה הוא רק נקודת התחלה - המשך להקשיב לעצמך,',
-        'להאמין בערך הייחודי שאתה מביא/ה לעולם,',
-        'ולזכור שהזוגיות הנכונה תגיע בזמן הנכון.',
-        '',
-        'בהצלחה במסע! 💜',
-      ]
-    : [
-        `${data.userName || 'Dear one'}, you've been on a meaningful journey of self-discovery.`,
-        'This report is just the beginning - keep listening to yourself,',
-        'believing in the unique value you bring to the world,',
-        'and remember that the right partnership will come at the right time.',
-        '',
-        'Good luck on your journey! 💜',
-      ];
+  const userName = data.userName || (isHebrew ? 'יקר/ה' : 'Dear one');
 
-  closingMessages.forEach((line) => {
-    const processedLine = isHebrew ? prepareHebrewText(line) : line;
-    doc.text(processedLine, centerX, yPos, { align: 'center' });
+  let closingMessages: string[];
+  if (isHebrew) {
+    closingMessages = [
+      userName + ', עברת מסע משמעותי של גילוי עצמי.',
+      'הדוח הזה הוא רק נקודת התחלה - המשך להקשיב לעצמך,',
+      'להאמין בערך הייחודי שאתה מביא/ה לעולם,',
+      'ולזכור שהזוגיות הנכונה תגיע בזמן הנכון.',
+      '',
+      'בהצלחה במסע! 💜',
+    ];
+  } else {
+    closingMessages = [
+      userName + ', you have been on a meaningful journey of self-discovery.',
+      'This report is just the beginning - keep listening to yourself,',
+      'believing in the unique value you bring to the world,',
+      'and remember that the right partnership will come at the right time.',
+      '',
+      'Good luck on your journey! 💜',
+    ];
+  }
+
+  for (let i = 0; i < closingMessages.length; i++) {
+    const line = closingMessages[i];
+    doc.text(line, centerX, yPos, { align: 'center' });
     yPos += 8;
-  });
+  }
 
   yPos += 20;
 
@@ -868,12 +846,12 @@ function drawSummaryPage(doc: any, isHebrew: boolean, data: InsightData): void {
   // פרטי יצירה
   doc.setFontSize(CONFIG.FONTS.TINY);
   doc.setTextColor(148, 163, 184);
-  
+
   const createdText = isHebrew
-    ? prepareHebrewText(`נוצר ב-${formatDateNumbers(new Date())}`)
-    : `Created on ${new Date().toLocaleDateString('en-US')}`;
+    ? 'נוצר ב-' + formatDateNumbers(new Date())
+    : 'Created on ' + new Date().toLocaleDateString('en-US');
   doc.text(createdText, centerX, yPos, { align: 'center' });
-  
+
   yPos += 6;
   doc.text('NeshamaTech © 2025', centerX, yPos, { align: 'center' });
 }
@@ -882,13 +860,17 @@ function drawSummaryPage(doc: any, isHebrew: boolean, data: InsightData): void {
 // Header
 // =====================================================
 
-function addHeaderToPages(doc: any, isHebrew: boolean, userName?: string): void {
+function addHeaderToPages(
+  doc: any,
+  isHebrew: boolean,
+  userName: string | undefined,
+  pageWidth: number,
+  margin: number
+): void {
   const pageCount = doc.internal.getNumberOfPages();
-  const pageWidth = doc.internal.pageSize.getWidth();
-  const margin = CONFIG.PAGE.MARGIN;
 
-  // מתחילים מעמוד 2 (לא עמוד הכותרת)
-  for (let i = 2; i < pageCount; i++) {  // לא כולל עמוד הסיכום
+  // מתחילים מעמוד 2, לא כולל עמוד הסיכום (האחרון)
+  for (let i = 2; i < pageCount; i++) {
     doc.setPage(i);
 
     // קו הפרדה עדין
@@ -899,15 +881,12 @@ function addHeaderToPages(doc: any, isHebrew: boolean, userName?: string): void 
     // שם + לוגו
     doc.setFontSize(CONFIG.FONTS.TINY);
     doc.setTextColor(148, 163, 184);
-    
-    if (isHebrew) {
-      doc.text('NeshamaTech', margin, 8);
-      if (userName) {
-        doc.text(prepareHebrewText(userName), pageWidth - margin, 8, { align: 'right' });
-      }
-    } else {
-      doc.text('NeshamaTech', margin, 8);
-      if (userName) {
+
+    doc.text('NeshamaTech', margin, 8);
+    if (userName) {
+      if (isHebrew) {
+        doc.text(userName, pageWidth - margin, 8, { align: 'right' });
+      } else {
         doc.text(userName, pageWidth - margin, 8, { align: 'right' });
       }
     }
@@ -918,11 +897,14 @@ function addHeaderToPages(doc: any, isHebrew: boolean, userName?: string): void 
 // Footer
 // =====================================================
 
-function addFooterToAllPages(doc: any, isHebrew: boolean): void {
+function addFooterToAllPages(
+  doc: any,
+  isHebrew: boolean,
+  pageWidth: number,
+  pageHeight: number,
+  margin: number
+): void {
   const pageCount = doc.internal.getNumberOfPages();
-  const pageWidth = doc.internal.pageSize.getWidth();
-  const pageHeight = doc.internal.pageSize.getHeight();
-  const margin = CONFIG.PAGE.MARGIN;
 
   for (let i = 1; i <= pageCount; i++) {
     doc.setPage(i);
@@ -935,23 +917,23 @@ function addFooterToAllPages(doc: any, isHebrew: boolean): void {
     doc.setFontSize(CONFIG.FONTS.FOOTER);
     doc.setTextColor(148, 163, 184);
 
-    // לוגו מרכזי (עמוד ראשון בלבד יש כבר)
+    // טקסט מרכזי (לא בעמוד הראשון שכבר יש לו footer)
     if (i > 1) {
-      const centerText = isHebrew
-        ? prepareHebrewText('מערכת שידוכים מתקדמת')
-        : 'Advanced Matchmaking System';
-      doc.text(`NeshamaTech - ${centerText}`, pageWidth / 2, pageHeight - 8, { align: 'center' });
+      const centerText = isHebrew ? 'מערכת שידוכים מתקדמת' : 'Advanced Matchmaking System';
+      // טקסט מעורב - משתמשים ב-prepareHebrewText
+      const footerText = prepareHebrewText('NeshamaTech - ' + centerText);
+      doc.text(footerText, pageWidth / 2, pageHeight - 8, { align: 'center' });
     }
 
     // מספר עמוד
-    const pageText = isHebrew
-      ? prepareHebrewText(`עמוד ${i} מתוך ${pageCount}`)
-      : `Page ${i} of ${pageCount}`;
+    const pageNumText = isHebrew
+      ? 'עמוד ' + i + ' מתוך ' + pageCount
+      : 'Page ' + i + ' of ' + pageCount;
 
     if (isHebrew) {
-      doc.text(pageText, margin, pageHeight - 8);
+      doc.text(pageNumText, margin, pageHeight - 8);
     } else {
-      doc.text(pageText, pageWidth - margin, pageHeight - 8, { align: 'right' });
+      doc.text(pageNumText, pageWidth - margin, pageHeight - 8, { align: 'right' });
     }
   }
 }

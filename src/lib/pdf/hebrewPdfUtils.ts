@@ -1,6 +1,7 @@
 // src/lib/pdf/hebrewPdfUtils.ts
 // =====================================================
-// פונקציות עזר משודרגות - גרסה 3.0
+// פונקציות עזר לעברית ב-PDF - גרסה 4.0
+// תיקון: לא להפוך טקסט עברי טהור!
 // =====================================================
 
 /**
@@ -12,131 +13,138 @@ export function isHebrewChar(char: string): boolean {
 }
 
 /**
- * בדיקה האם תו הוא LTR
+ * בדיקה האם תו הוא אנגלי
  */
-export function isLtrChar(char: string): boolean {
+export function isEnglishChar(char: string): boolean {
   const code = char.charCodeAt(0);
-  return (
-    (code >= 0x0041 && code <= 0x005a) ||
-    (code >= 0x0061 && code <= 0x007a) ||
-    (code >= 0x0030 && code <= 0x0039)
-  );
+  return (code >= 65 && code <= 90) || (code >= 97 && code <= 122);
 }
 
 /**
- * בדיקה האם תו ניטרלי
+ * בדיקה האם תו הוא ספרה
  */
-export function isNeutralChar(char: string): boolean {
-  const neutralChars = " .,;:?!-–—_()[]{}'\"/\\@#$%^&*+=<>~`|״׳";
-  return neutralChars.includes(char);
-}
-
-type SegmentType = 'hebrew' | 'ltr' | 'neutral';
-
-interface TextSegment {
-  text: string;
-  type: SegmentType;
+export function isDigit(char: string): boolean {
+  const code = char.charCodeAt(0);
+  return code >= 48 && code <= 57;
 }
 
 /**
- * פירוק טקסט לסגמנטים
+ * בדיקה האם הטקסט מכיל אותיות אנגליות
  */
-function segmentText(text: string): TextSegment[] {
-  if (!text) return [];
-
-  const segments: TextSegment[] = [];
-  let currentText = '';
-  let currentType: SegmentType | null = null;
-
-  for (const char of text) {
-    let charType: SegmentType;
-
-    if (isHebrewChar(char)) {
-      charType = 'hebrew';
-    } else if (isLtrChar(char)) {
-      charType = 'ltr';
-    } else {
-      charType = 'neutral';
-    }
-
-    if (charType === 'neutral' && currentType !== null) {
-      currentText += char;
-      continue;
-    }
-
-    if (currentType !== null && charType !== currentType && charType !== 'neutral') {
-      if (currentText) {
-        segments.push({ text: currentText, type: currentType });
-      }
-      currentText = char;
-      currentType = charType;
-    } else {
-      currentText += char;
-      if (charType !== 'neutral') {
-        currentType = charType;
-      } else if (currentType === null) {
-        currentType = 'neutral';
-      }
+export function hasEnglishLetters(text: string): boolean {
+  for (let i = 0; i < text.length; i++) {
+    if (isEnglishChar(text[i])) {
+      return true;
     }
   }
-
-  if (currentText) {
-    segments.push({ text: currentText, type: currentType || 'neutral' });
-  }
-
-  return segments;
+  return false;
 }
 
+/**
+ * הפיכת מחרוזת
+ */
 function reverseString(str: string): string {
-  return str.split('').reverse().join('');
+  let result = '';
+  for (let i = str.length - 1; i >= 0; i--) {
+    result += str[i];
+  }
+  return result;
 }
 
 /**
  * הכנת טקסט עברי ל-PDF
+ * 
+ * הלוגיקה:
+ * - טקסט עברי טהור (ללא אנגלית) -> לא משנים כלום
+ * - טקסט מעורב (עברית + אנגלית) -> הופכים את הכל ואז מתקנים את האנגלית
  */
 export function prepareHebrewText(text: string): string {
-  if (!text) return text;
+  if (!text) {
+    return text;
+  }
 
-  const segments = segmentText(text);
-  if (segments.length === 0) return text;
+  // בדיקה אם יש אותיות אנגליות
+  if (!hasEnglishLetters(text)) {
+    // טקסט עברי טהור - מחזירים כמו שהוא!
+    return text;
+  }
 
-  const processedSegments = segments.map((segment) => {
-    if (segment.type === 'hebrew') {
-      return reverseString(segment.text);
-    } else if (segment.type === 'ltr') {
-      return segment.text;
+  // טקסט מעורב - צריך לטפל
+  // שלב 1: הפוך את כל הטקסט
+  const reversed = reverseString(text);
+
+  // שלב 2: מצא את החלקים האנגליים והפוך אותם חזרה
+  let result = '';
+  let englishBuffer = '';
+  let inEnglish = false;
+
+  for (let i = 0; i < reversed.length; i++) {
+    const char = reversed[i];
+
+    if (isEnglishChar(char)) {
+      // תו אנגלי
+      englishBuffer += char;
+      inEnglish = true;
+    } else if (inEnglish && (isDigit(char) || char === '.' || char === '-' || char === '_')) {
+      // תו שיכול להיות חלק ממילה אנגלית (מספר, נקודה, מקף)
+      englishBuffer += char;
     } else {
-      return reverseString(segment.text);
+      // תו לא אנגלי
+      if (englishBuffer.length > 0) {
+        // יש buffer אנגלי - הפוך אותו חזרה והוסף
+        result += reverseString(englishBuffer);
+        englishBuffer = '';
+        inEnglish = false;
+      }
+      result += char;
     }
-  });
+  }
 
-  return processedSegments.reverse().join('');
+  // אם נשאר buffer אנגלי בסוף
+  if (englishBuffer.length > 0) {
+    result += reverseString(englishBuffer);
+  }
+
+  return result;
 }
 
+/**
+ * Alias לתאימות אחורה
+ */
 export const reverseHebrewText = prepareHebrewText;
 
 /**
- * פורמט תאריך עברי
+ * פורמט תאריך עברי (טקסטואלי)
  */
 export function formatHebrewDate(date: Date): string {
   const hebrewMonths = [
-    'ינואר', 'פברואר', 'מרץ', 'אפריל', 'מאי', 'יוני',
-    'יולי', 'אוגוסט', 'ספטמבר', 'אוקטובר', 'נובמבר', 'דצמבר'
+    'ינואר',
+    'פברואר',
+    'מרץ',
+    'אפריל',
+    'מאי',
+    'יוני',
+    'יולי',
+    'אוגוסט',
+    'ספטמבר',
+    'אוקטובר',
+    'נובמבר',
+    'דצמבר',
   ];
   const day = date.getDate();
   const month = hebrewMonths[date.getMonth()];
   const year = date.getFullYear();
-  return `${day} ב${month} ${year}`;
+  return day + ' ב' + month + ' ' + year;
 }
 
 /**
- * פורמט תאריך למספרים
+ * פורמט תאריך מספרי
  */
 export function formatDateNumbers(date: Date): string {
   const day = date.getDate().toString().padStart(2, '0');
   const month = (date.getMonth() + 1).toString().padStart(2, '0');
-  const year = date.getFullYear();
-  return `${day}.${month}.${year}`;
+  const year = date.getFullYear().toString();
+  return day + '.' + month + '.' + year;
 }
 
 /**
@@ -148,7 +156,7 @@ export const INSPIRATIONAL_QUOTES = {
     { text: 'אין אדם דר עם נחש בכפיפה אחת - לכן חשוב למצוא את הנפש התאומה', author: 'תלמוד' },
     { text: 'כל התחלות קשות, אבל מי שמתחיל - חצי עשה', author: 'פתגם עברי' },
     { text: 'לב יודע מרת נפשו - ובשמחתו לא יתערב זר', author: 'משלי' },
-    { text: 'טוב להודות לה\' - כי לעולם חסדו', author: 'תהילים' },
+    { text: 'טוב להודות לה׳ - כי לעולם חסדו', author: 'תהילים' },
   ],
   en: [
     { text: 'The best thing to hold onto in life is each other', author: 'Audrey Hepburn' },
@@ -162,51 +170,52 @@ export const INSPIRATIONAL_QUOTES = {
  */
 export function getRandomQuote(isHebrew: boolean): { text: string; author: string } {
   const quotes = isHebrew ? INSPIRATIONAL_QUOTES.he : INSPIRATIONAL_QUOTES.en;
-  return quotes[Math.floor(Math.random() * quotes.length)];
+  const index = Math.floor(Math.random() * quotes.length);
+  return quotes[index];
 }
 
 /**
- * צבעי המערכת - פלטה מורחבת
+ * צבעי המערכת
  */
 export const NESHAMA_COLORS = {
   // Primary
   primary: { r: 99, g: 102, b: 241 },
   primaryLight: { r: 129, g: 140, b: 248 },
   primaryDark: { r: 79, g: 70, b: 229 },
-  
+
   // Secondary
   secondary: { r: 236, g: 72, b: 153 },
   secondaryLight: { r: 244, g: 114, b: 182 },
-  
+
   // Accent
   accent: { r: 251, g: 146, b: 60 },
   gold: { r: 234, g: 179, b: 8 },
-  
+
   // Backgrounds
   bgLight: { r: 248, g: 250, b: 252 },
   bgWarm: { r: 255, g: 251, b: 235 },
   bgCool: { r: 239, g: 246, b: 255 },
   white: { r: 255, g: 255, b: 255 },
-  
+
   // Text
   textPrimary: { r: 30, g: 41, b: 59 },
   textSecondary: { r: 71, g: 85, b: 105 },
   textMuted: { r: 148, g: 163, b: 184 },
-  
+
   // Section colors
   sections: {
-    whoYouAre: { r: 139, g: 92, b: 246 },      // סגול
-    idealPartner: { r: 236, g: 72, b: 153 },    // ורוד
-    firstMeeting: { r: 34, g: 197, b: 94 },     // ירוק
-    potential: { r: 251, g: 146, b: 60 },       // כתום
-    nextSteps: { r: 59, g: 130, b: 246 },       // כחול
-    strengths: { r: 234, g: 179, b: 8 },        // זהב
-    growth: { r: 20, g: 184, b: 166 },          // טורקיז
+    whoYouAre: { r: 139, g: 92, b: 246 },
+    idealPartner: { r: 236, g: 72, b: 153 },
+    firstMeeting: { r: 34, g: 197, b: 94 },
+    potential: { r: 251, g: 146, b: 60 },
+    nextSteps: { r: 59, g: 130, b: 246 },
+    strengths: { r: 234, g: 179, b: 8 },
+    growth: { r: 20, g: 184, b: 166 },
   },
 };
 
 /**
- * סוגי סקציות מורחב
+ * סוגי סקציות
  */
 export type SectionType =
   | 'whoYouAre'
@@ -224,7 +233,6 @@ export const SECTION_INFO: Record<
   SectionType,
   {
     emoji: string;
-    icon: string;
     titleHe: string;
     titleEn: string;
     color: { r: number; g: number; b: number };
@@ -233,7 +241,6 @@ export const SECTION_INFO: Record<
 > = {
   whoYouAre: {
     emoji: '🌟',
-    icon: 'star',
     titleHe: 'מי את/ה באמת',
     titleEn: 'Who You Really Are',
     color: NESHAMA_COLORS.sections.whoYouAre,
@@ -241,7 +248,6 @@ export const SECTION_INFO: Record<
   },
   idealPartner: {
     emoji: '💫',
-    icon: 'heart',
     titleHe: 'השותף/ה האידיאלי/ת',
     titleEn: 'Your Ideal Partner',
     color: NESHAMA_COLORS.sections.idealPartner,
@@ -249,7 +255,6 @@ export const SECTION_INFO: Record<
   },
   firstMeetingTips: {
     emoji: '🎯',
-    icon: 'target',
     titleHe: 'טיפים לפגישה הראשונה',
     titleEn: 'First Meeting Tips',
     color: NESHAMA_COLORS.sections.firstMeeting,
@@ -257,7 +262,6 @@ export const SECTION_INFO: Record<
   },
   uniquePotential: {
     emoji: '✨',
-    icon: 'sparkle',
     titleHe: 'הפוטנציאל הייחודי שלך',
     titleEn: 'Your Unique Potential',
     color: NESHAMA_COLORS.sections.potential,
@@ -265,7 +269,6 @@ export const SECTION_INFO: Record<
   },
   nextSteps: {
     emoji: '🚀',
-    icon: 'rocket',
     titleHe: 'הצעדים הבאים',
     titleEn: 'Your Next Steps',
     color: NESHAMA_COLORS.sections.nextSteps,
@@ -273,7 +276,6 @@ export const SECTION_INFO: Record<
   },
   keyStrengths: {
     emoji: '💪',
-    icon: 'trophy',
     titleHe: 'נקודות החוזק שלך',
     titleEn: 'Your Key Strengths',
     color: NESHAMA_COLORS.sections.strengths,
@@ -281,7 +283,6 @@ export const SECTION_INFO: Record<
   },
   growthAreas: {
     emoji: '🌱',
-    icon: 'leaf',
     titleHe: 'אזורי צמיחה',
     titleEn: 'Growth Areas',
     color: NESHAMA_COLORS.sections.growth,
@@ -297,15 +298,10 @@ export function getSectionInfo(section: SectionType) {
 }
 
 /**
- * RGB להקס
- */
-export function rgbToHex(r: number, g: number, b: number): string {
-  return '#' + [r, g, b].map(x => x.toString(16).padStart(2, '0')).join('');
-}
-
-/**
  * יצירת ID ייחודי
  */
 export function generateUniqueId(): string {
-  return `neshama-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+  const timestamp = Date.now().toString(36);
+  const random = Math.random().toString(36).substring(2, 8);
+  return 'neshama-' + timestamp + '-' + random;
 }
