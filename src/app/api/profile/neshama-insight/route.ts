@@ -22,16 +22,16 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { userId, locale = 'he' } = body;
 
-    // Fetch the requesting user to check roles
     const requester = await prisma.user.findUnique({
       where: { id: session.user.id },
-      select: { role: true, id: true }
+      select: { role: true, id: true },
     });
 
-    const isMatchmakerOrAdmin = requester?.role === UserRole.MATCHMAKER || requester?.role === UserRole.ADMIN;
+    const isMatchmakerOrAdmin =
+      requester?.role === UserRole.MATCHMAKER ||
+      requester?.role === UserRole.ADMIN;
     const isSelf = userId === session.user.id;
 
-    // Verify permission: Must be self OR matchmaker/admin
     if (!isSelf && !isMatchmakerOrAdmin) {
       return NextResponse.json(
         { success: false, message: 'Forbidden' },
@@ -39,7 +39,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Fetch target user data
     const user = await prisma.user.findUnique({
       where: { id: userId },
       include: {
@@ -59,265 +58,445 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Only check "Limit per day" if it's the user themselves generating it
-    // Matchmakers can generate unlimited times for their candidates
     if (isSelf && user.neshamaInsightLastGeneratedAt) {
       const lastGenerated = new Date(user.neshamaInsightLastGeneratedAt);
       const now = new Date();
-      const diffTime = now.getTime() - lastGenerated.getTime();
-      const diffHours = diffTime / (1000 * 60 * 60);
+      const diffHours =
+        (now.getTime() - lastGenerated.getTime()) / (1000 * 60 * 60);
 
       if (diffHours < 24) {
+        const hoursLeft = Math.ceil(24 - diffHours);
         return NextResponse.json(
           {
             success: false,
             message:
               locale === 'he'
-                ? 'ניתן ליצור תובנת נשמה פעם אחת ב-24 שעות. נסה שוב מחר!'
-                : 'You can generate Neshama Insight once every 24 hours. Try again tomorrow!',
+                ? 'ניתן ליצור דוח חדש בעוד ' + hoursLeft + ' שעות'
+                : 'You can generate a new report in ' + hoursLeft + ' hours',
           },
-          { status: 429 } 
+          { status: 429 }
         );
       }
     }
 
-    // Verify profile is mostly complete (using the new threshold logic if needed, or keeping rigorous check for self)
-    // For Matchmakers, we might be more lenient, but let's keep the check to ensure AI has data
-    const isComplete = await verifyProfileCompletion(user); 
-    
-    // If it's a matchmaker, we might allow bypassing if it's "close enough", but for now let's enforce it
-    // Or warn. Currently enforcing 100% (or the logic inside verifyProfileCompletion)
-    if (!isComplete && !isMatchmakerOrAdmin) { 
-       // Matchmakers can generate even if incomplete, assuming they know what they are doing,
-       // or we can block them too. Let's allow Matchmakers to bypass but the AI result might be poor.
-       // BETTER: Force completion for users, but allow Matchmakers to try.
-       return NextResponse.json(
+    const completionResult = calculateProfileCompletion(user);
+
+    if (!completionResult.isComplete && !isMatchmakerOrAdmin) {
+      return NextResponse.json(
         {
           success: false,
           message:
             locale === 'he'
-              ? 'יש להשלים את הפרופיל לפני יצירת התובנה'
-              : 'Profile must be complete before generating insight',
+              ? 'יש להשלים לפחות 70% מהפרופיל (כרגע: ' +
+                completionResult.completionPercent +
+                '%)'
+              : 'Please complete at least 70% of your profile (current: ' +
+                completionResult.completionPercent +
+                '%)',
         },
         { status: 400 }
       );
     }
 
-    // Generate narrative profile
     const narrativeProfile = await generateNarrativeProfile(userId);
     if (!narrativeProfile) {
       throw new Error('Failed to generate narrative profile');
     }
 
-    // Generate the Neshama Insight using AI
     const insight = await generateNeshmaInsight(
       narrativeProfile,
       user,
       locale as Language
     );
 
-    // Update database to track that insight was generated
     await prisma.user.update({
       where: { id: userId },
       data: {
         neshamaInsightLastGeneratedAt: new Date(),
-        neshamaInsightGeneratedCount: {
-          increment: 1,
-        },
+        neshamaInsightGeneratedCount: { increment: 1 },
         updatedAt: new Date(),
       },
     });
 
     return NextResponse.json({
       success: true,
-      insight,
+      insight: {
+        ...insight,
+        userName: user.firstName + ' ' + user.lastName,
+        generatedAt: new Date().toISOString(),
+        profileCompletionPercent: completionResult.completionPercent,
+      },
     });
   } catch (error) {
     console.error('Error generating Neshama Insight:', error);
     return NextResponse.json(
-      {
-        success: false,
-        message: 'Internal server error',
-      },
+      { success: false, message: 'Internal server error' },
       { status: 500 }
     );
   }
 }
 
-// ... שאר הפונקציות (verifyProfileCompletion, generateNeshmaInsight) נשארות זהות ...
-async function verifyProfileCompletion(user: any): Promise<boolean> {
-    // ... (אותו קוד שהיה לך)
-    const profile = user.profile;
-    const questionnaire = user.questionnaireResponses[0];
-  
-    if (!profile || !questionnaire) return false;
-  
-    // Check basic profile fields
-    const basicChecks = [
-      user.images?.length >= 1,
-      !!profile.profileHeadline,
-      !!profile.about && profile.about.length >= 20, // Reduced strictness slightly or keep original
-      !!profile.height,
-      !!profile.city,
-      !!profile.maritalStatus,
-      !!profile.religiousLevel,
-      !!profile.educationLevel,
-      !!profile.occupation,
-    ];
-  
-    // Check questionnaire completion
-    const questionnaireChecks = [
-      questionnaire.valuesCompleted,
-      questionnaire.personalityCompleted,
-      questionnaire.relationshipCompleted,
-      questionnaire.partnerCompleted,
-      questionnaire.religionCompleted,
-    ];
-  
-    const allChecks = [...basicChecks, ...questionnaireChecks];
-    return allChecks.every(Boolean);
+interface CompletionResult {
+  isComplete: boolean;
+  completionPercent: number;
+}
+
+function calculateProfileCompletion(user: any): CompletionResult {
+  const profile = user.profile;
+  const questionnaire = user.questionnaireResponses[0];
+
+  if (!profile) {
+    return { isComplete: false, completionPercent: 0 };
   }
-  
-  async function generateNeshmaInsight(
-    narrativeProfile: string,
-    user: any,
-    locale: Language
-  ) {
-      // ... (אותו קוד שהיה לך ליצירת ה-Prompt ל-Gemini)
-      // I am omitting the full prompt copy here for brevity, keep the existing one.
-      
-      const profile = user.profile;
-      const questionnaire = user.questionnaireResponses[0];
-    
-      const isHebrew = locale === 'he';
-      const languageInstruction = isHebrew
-        ? 'כתוב את כל התשובות בעברית בלבד.'
-        : 'Write all responses in English only.';
-    
-      const prompt = `
-    You are an expert matchmaker and relationship counselor with deep psychological insight. You have been given comprehensive information about a person who has completed their profile on a Jewish matchmaking platform.
-    
-    ${languageInstruction}
-    
-    YOUR TASK:
-    Create a deeply personalized "Neshama Insight" (Soul Insight) report that will:
-    1. Help them understand themselves better
-    2. Clarify who would be their ideal partner
-    3. Prepare them for meaningful dating
-    4. Empower them with confidence
-    5. Guide their next steps
-    
-    IMPORTANT TONE GUIDELINES:
-    - Be warm, empathetic, and encouraging
-    - Use "you" to speak directly to them
-    - Be specific and personal (avoid generic statements)
-    - Balance honesty with sensitivity
-    - Show that you truly SEE them as an individual
-    - Be professional yet friendly
-    - Avoid clichés and empty platitudes
-    
-    ---
-    
-    PROFILE INFORMATION:
-    ${narrativeProfile}
-    
-    QUESTIONNAIRE DATA:
-    ${JSON.stringify(questionnaire, null, 2)}
-    
-    ---
-    
-    Generate a response in the following JSON structure:
-    
-    {
-      "whoYouAre": {
-        "summary": "A 2-3 paragraph deep analysis of their personality, values, and character. What makes them unique? What are their core strengths in relationships?",
-        "details": [
-          "Specific insight about their personality trait #1",
-          "Specific insight about their personality trait #2",
-          "Specific insight about their values and what drives them",
-          "An observation about how they approach life/relationships"
-        ]
-      },
-      "idealPartner": {
-        "summary": "A vivid 2-3 paragraph description of the type of partner who would complement them. Not generic qualities, but specific traits that would create harmony with THEIR personality.",
-        "details": [
-          "Critical quality #1 and WHY it matters for them specifically",
-          "Critical quality #2 and WHY it matters for them specifically", 
-          "Critical quality #3 and WHY it matters for them specifically",
-          "A gentle caution about a potential mismatch to watch for"
-        ]
-      },
-      "firstMeetingTips": {
-        "summary": "Personalized advice for their first dates based on their personality type and tendencies.",
-        "details": [
-          "Tip #1 tailored to their communication style",
-          "Tip #2 about managing their specific anxieties or tendencies",
-          "Tip #3 about creating authentic connection given their personality",
-          "Tip #4 about what to focus on or avoid"
-        ]
-      },
-      "uniquePotential": {
-        "summary": "What makes them special as a potential partner. Their unique strengths and what they bring to a relationship.",
-        "details": [
-          "Unique strength #1 with specific example of how it shows up",
-          "Unique strength #2 with specific example",
-          "Unique strength #3 with specific example",
-          "What a lucky partner will gain by being with them"
-        ]
-      },
-      "nextSteps": {
-        "summary": "Transparent explanation of what happens now in the matchmaking process, setting realistic expectations.",
-        "details": [
-          "What the matchmaking team is doing behind the scenes",
-          "Realistic timeline for receiving match suggestions",
-          "1-2 specific ways they can optimize their profile further (if any)",
-          "How to prepare mentally/emotionally while waiting",
-          "A resource or reflection exercise they can do in the meantime"
-        ]
+
+  const checks = [
+    { weight: 5, pass: user.images?.length >= 1 },
+    { weight: 5, pass: Boolean(profile.profileHeadline) },
+    { weight: 10, pass: Boolean(profile.about) && profile.about.length >= 50 },
+    { weight: 5, pass: Boolean(profile.height) },
+    { weight: 5, pass: Boolean(profile.city) },
+    { weight: 5, pass: Boolean(profile.maritalStatus) },
+    { weight: 5, pass: Boolean(profile.religiousLevel) },
+    { weight: 12, pass: Boolean(questionnaire?.valuesCompleted) },
+    { weight: 12, pass: Boolean(questionnaire?.personalityCompleted) },
+    { weight: 12, pass: Boolean(questionnaire?.relationshipCompleted) },
+    { weight: 12, pass: Boolean(questionnaire?.partnerCompleted) },
+    { weight: 12, pass: Boolean(questionnaire?.religionCompleted) },
+  ];
+
+  let totalWeight = 0;
+  let earnedWeight = 0;
+
+  for (const check of checks) {
+    totalWeight += check.weight;
+    if (check.pass) {
+      earnedWeight += check.weight;
+    }
+  }
+
+  const completionPercent = Math.round((earnedWeight / totalWeight) * 100);
+
+  return {
+    isComplete: completionPercent >= 70,
+    completionPercent: completionPercent,
+  };
+}
+
+async function generateNeshmaInsight(
+  narrativeProfile: string,
+  user: any,
+  locale: Language
+) {
+  const questionnaire = user.questionnaireResponses[0];
+  const isHebrew = locale === 'he';
+  const prompt = buildPrompt(narrativeProfile, questionnaire, user, isHebrew);
+
+  console.log('=== PROMPT LENGTH ===', prompt.length);
+
+  const maxRetries = 2;
+  let lastError: Error | null = null;
+
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY!);
+
+      const model = genAI.getGenerativeModel({
+        model: 'gemini-2.0-flash',
+        generationConfig: {
+          responseMimeType: 'application/json',
+          temperature: 0.7,
+          topP: 0.9,
+          maxOutputTokens: 8192,
+        },
+      });
+
+      const result = await model.generateContent(prompt);
+      let text = result.response.text();
+
+      console.log('=== RAW AI RESPONSE ===');
+      console.log('Length:', text.length);
+      console.log('First 500 chars:', text.substring(0, 500));
+      console.log('Last 200 chars:', text.substring(text.length - 200));
+      console.log('=== END RAW RESPONSE ===');
+
+      // בדיקה אם התגובה קצרה מדי
+      if (text.length < 500) {
+        console.error('Response too short! Full response:', text);
+        throw new Error('AI response too short: ' + text.length + ' chars');
+      }
+
+      // ניקוי התגובה
+      text = cleanJsonResponse(text);
+
+      // ניסיון לפרסר
+      const insightData = safeJsonParse(text);
+
+      if (!insightData) {
+        console.error('Failed to parse. Cleaned text:', text.substring(0, 1000));
+        throw new Error('Failed to parse JSON after cleanup');
+      }
+
+      validateInsightStructure(insightData);
+
+      return insightData;
+    } catch (error) {
+      lastError = error as Error;
+      console.error('AI generation attempt ' + (attempt + 1) + ' failed:', error);
+
+      if (attempt < maxRetries) {
+        console.log('Retrying in 2 seconds...');
+        await new Promise((resolve) => setTimeout(resolve, 2000));
       }
     }
-    
-    Remember: This person has invested significant time and emotional energy into completing their profile. They deserve a response that honors that investment with genuine insight, not generic template text. Make them feel SEEN, UNDERSTOOD, and HOPEFUL.
-    
-    ${isHebrew ? 'שוב, חשוב: כתוב הכל בעברית!' : 'Again, important: Write everything in English!'}
-    `;
-    
-      try {
-        // Use Google Generative AI directly
-        const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY!);
-    
-        const model = genAI.getGenerativeModel({
-          model: 'gemini-2.5-flash',
-          generationConfig: {
-            responseMimeType: 'application/json',
-          },
-        });
-    
-        const result = await model.generateContent(prompt);
-        const response = result.response;
-        const text = response.text();
-    
-        // Parse the AI response
-        let insightData;
-        try {
-          // Try to extract JSON from markdown code blocks if present
-          let cleanedResponse = text;
-          if (text.includes('```json')) {
-            cleanedResponse = text
-              .replace(/```json\n?/g, '')
-              .replace(/```\n?/g, '')
-              .trim();
-          }
-          insightData = JSON.parse(cleanedResponse);
-        } catch (error) {
-          console.error('Failed to parse AI response:', error);
-          console.error('Raw response:', text);
-          throw new Error('Failed to parse insight data');
-        }
-    
-        return insightData;
-      } catch (error) {
-        console.error('Error calling Google AI:', error);
-        throw error;
-      }
   }
+
+  throw lastError || new Error('Failed to generate insight after retries');
+}
+
+function cleanJsonResponse(text: string): string {
+  // הסרת markdown code blocks
+  if (text.includes('```json')) {
+    text = text.replace(/```json\s*/g, '').replace(/```\s*/g, '');
+  }
+  if (text.includes('```')) {
+    text = text.replace(/```\s*/g, '');
+  }
+
+  // הסרת רווחים מיותרים
+  text = text.trim();
+
+  // החלפת newlines בתוך strings
+  text = fixNewlinesInStrings(text);
+
+  return text;
+}
+
+function fixNewlinesInStrings(json: string): string {
+  let result = '';
+  let inString = false;
+  let escapeNext = false;
+
+  for (let i = 0; i < json.length; i++) {
+    const char = json[i];
+
+    if (escapeNext) {
+      result += char;
+      escapeNext = false;
+      continue;
+    }
+
+    if (char === '\\') {
+      result += char;
+      escapeNext = true;
+      continue;
+    }
+
+    if (char === '"') {
+      inString = !inString;
+      result += char;
+      continue;
+    }
+
+    if (inString && (char === '\n' || char === '\r')) {
+      result += ' ';
+      continue;
+    }
+
+    result += char;
+  }
+
+  return result;
+}
+
+function safeJsonParse(text: string): any {
+  // ניסיון ראשון - פשוט
+  try {
+    return JSON.parse(text);
+  } catch (e) {
+    console.log('First parse failed:', (e as Error).message);
+  }
+
+  // ניסיון שני - חיפוש JSON תקין
+  try {
+    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      const extracted = fixNewlinesInStrings(jsonMatch[0]);
+      return JSON.parse(extracted);
+    }
+  } catch (e) {
+    console.log('Second parse failed:', (e as Error).message);
+  }
+
+  return null;
+}
+
+function buildPrompt(
+  narrativeProfile: string,
+  questionnaire: any,
+  user: any,
+  isHebrew: boolean
+): string {
+  const firstName = user.firstName || '';
+  const lastName = user.lastName || '';
+  const fullName = (firstName + ' ' + lastName).trim();
+  const isMale = user.profile?.gender === 'MALE';
+
+  // מידע מינימלי מהשאלון כדי לקצר את הפרומפט
+  const questionnaireData = questionnaire ? {
+    values: questionnaire.valuesAnswers || {},
+    personality: questionnaire.personalityAnswers || {},
+    relationship: questionnaire.relationshipAnswers || {},
+    partner: questionnaire.partnerAnswers || {},
+  } : {};
+
+  const questionnaireJson = JSON.stringify(questionnaireData, null, 2);
+
+  if (isHebrew) {
+    return buildHebrewPrompt(fullName, firstName, isMale, narrativeProfile, questionnaireJson);
+  } else {
+    return buildEnglishPrompt(fullName, firstName, narrativeProfile, questionnaireJson);
+  }
+}
+
+function buildHebrewPrompt(
+  fullName: string,
+  firstName: string,
+  isMale: boolean,
+  narrativeProfile: string,
+  questionnaireJson: string
+): string {
+  const youWord = isMale ? 'אתה' : 'את';
+  const genderSuffix = isMale ? '' : 'ה';
+
+  const lines: string[] = [];
+
+  lines.push('אתה יועץ זוגיות מומחה. צור דוח JSON עבור ' + fullName + '.');
+  lines.push('');
+  lines.push('הנחיות חשובות:');
+  lines.push('- כתוב בעברית בלבד');
+  lines.push('- פנה בלשון ' + (isMale ? 'זכר' : 'נקבה'));
+  lines.push('- החזר JSON תקין בלבד');
+  lines.push('- אין מרכאות כפולות בתוך טקסט');
+  lines.push('- אין שורות חדשות בתוך ערכים');
+  lines.push('');
+  lines.push('מידע על ' + firstName + ':');
+  lines.push(narrativeProfile);
+  lines.push('');
+  lines.push('שאלון:');
+  lines.push(questionnaireJson);
+  lines.push('');
+  lines.push('החזר את ה-JSON הבא (מלא את הערכים):');
+  lines.push('');
+  lines.push('{');
+  lines.push('  "oneLiner": "משפט אחד שמתאר את ' + firstName + '",');
+  lines.push('  "whoYouAre": {');
+  lines.push('    "summary": "3-4 משפטים על האישיות",');
+  lines.push('    "details": ["תובנה 1", "תובנה 2", "תובנה 3", "תובנה 4"]');
+  lines.push('  },');
+  lines.push('  "keyStrengths": [');
+  lines.push('    {"title": "חוזקה 1", "description": "תיאור"},');
+  lines.push('    {"title": "חוזקה 2", "description": "תיאור"},');
+  lines.push('    {"title": "חוזקה 3", "description": "תיאור"}');
+  lines.push('  ],');
+  lines.push('  "idealPartner": {');
+  lines.push('    "summary": "3-4 משפטים על בן/בת זוג מתאימים",');
+  lines.push('    "details": ["נקודה 1", "נקודה 2", "נקודה 3", "נקודה 4"]');
+  lines.push('  },');
+  lines.push('  "firstMeetingTips": {');
+  lines.push('    "summary": "2-3 משפטים על פגישה ראשונה",');
+  lines.push('    "details": ["טיפ 1", "טיפ 2", "טיפ 3", "טיפ 4"]');
+  lines.push('  },');
+  lines.push('  "uniquePotential": {');
+  lines.push('    "summary": "2-3 משפטים על הפוטנציאל הייחודי",');
+  lines.push('    "details": ["נקודה 1", "נקודה 2", "נקודה 3", "נקודה 4"]');
+  lines.push('  },');
+  lines.push('  "nextSteps": {');
+  lines.push('    "summary": "2-3 משפטים מעודדים",');
+  lines.push('    "details": ["צעד 1", "צעד 2", "צעד 3", "צעד 4"]');
+  lines.push('  },');
+  lines.push('  "threeThingsToRemember": ["דבר 1", "דבר 2", "דבר 3"],');
+  lines.push('  "growthAreas": ["אזור 1", "אזור 2"]');
+  lines.push('}');
+
+  return lines.join('\n');
+}
+
+function buildEnglishPrompt(
+  fullName: string,
+  firstName: string,
+  narrativeProfile: string,
+  questionnaireJson: string
+): string {
+  const lines: string[] = [];
+
+  lines.push('You are an expert relationship counselor. Create a JSON report for ' + fullName + '.');
+  lines.push('');
+  lines.push('Important instructions:');
+  lines.push('- Write in English only');
+  lines.push('- Return valid JSON only');
+  lines.push('- No double quotes inside text values');
+  lines.push('- No newlines inside values');
+  lines.push('');
+  lines.push('Profile info:');
+  lines.push(narrativeProfile);
+  lines.push('');
+  lines.push('Questionnaire:');
+  lines.push(questionnaireJson);
+  lines.push('');
+  lines.push('Return this JSON (fill in the values):');
+  lines.push('');
+  lines.push('{');
+  lines.push('  "oneLiner": "One sentence describing ' + firstName + '",');
+  lines.push('  "whoYouAre": {');
+  lines.push('    "summary": "3-4 sentences about personality",');
+  lines.push('    "details": ["insight 1", "insight 2", "insight 3", "insight 4"]');
+  lines.push('  },');
+  lines.push('  "keyStrengths": [');
+  lines.push('    {"title": "strength 1", "description": "description"},');
+  lines.push('    {"title": "strength 2", "description": "description"},');
+  lines.push('    {"title": "strength 3", "description": "description"}');
+  lines.push('  ],');
+  lines.push('  "idealPartner": {');
+  lines.push('    "summary": "3-4 sentences about ideal partner",');
+  lines.push('    "details": ["point 1", "point 2", "point 3", "point 4"]');
+  lines.push('  },');
+  lines.push('  "firstMeetingTips": {');
+  lines.push('    "summary": "2-3 sentences about first meeting",');
+  lines.push('    "details": ["tip 1", "tip 2", "tip 3", "tip 4"]');
+  lines.push('  },');
+  lines.push('  "uniquePotential": {');
+  lines.push('    "summary": "2-3 sentences about unique potential",');
+  lines.push('    "details": ["point 1", "point 2", "point 3", "point 4"]');
+  lines.push('  },');
+  lines.push('  "nextSteps": {');
+  lines.push('    "summary": "2-3 encouraging sentences",');
+  lines.push('    "details": ["step 1", "step 2", "step 3", "step 4"]');
+  lines.push('  },');
+  lines.push('  "threeThingsToRemember": ["thing 1", "thing 2", "thing 3"],');
+  lines.push('  "growthAreas": ["area 1", "area 2"]');
+  lines.push('}');
+
+  return lines.join('\n');
+}
+
+function validateInsightStructure(data: any): void {
+  const requiredSections = [
+    'whoYouAre',
+    'idealPartner',
+    'firstMeetingTips',
+    'uniquePotential',
+    'nextSteps',
+  ];
+
+  for (const section of requiredSections) {
+    if (!data[section]) {
+      throw new Error('Missing required section: ' + section);
+    }
+    if (!data[section].summary || typeof data[section].summary !== 'string') {
+      throw new Error('Invalid summary in section: ' + section);
+    }
+    if (!Array.isArray(data[section].details)) {
+      throw new Error('Invalid details in section: ' + section);
+    }
+  }
+}

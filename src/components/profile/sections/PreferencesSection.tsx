@@ -1,5 +1,6 @@
 // src/app/(authenticated)/profile/components/dashboard/PreferencesSection.tsx
 'use client';
+
 import {
   Tooltip,
   TooltipContent,
@@ -47,18 +48,16 @@ import {
   ReligiousJourney,
 } from '@prisma/client';
 import Autocomplete from 'react-google-autocomplete';
-import { PreferencesSectionDict } from '@/types/dictionary'; // Assuming this is the correct path
+import { PreferencesSectionDict } from '@/types/dictionary';
 
-// This would typically come from a context or a hook like `useI18n()`
-// For this example, we'll pass it as a prop.
 interface PreferencesSectionProps {
   profile: UserProfile | null;
   isEditing: boolean;
   viewOnly?: boolean;
   setIsEditing: (value: boolean) => void;
   onChange: (data: Partial<UserProfile>) => void;
-  dictionary: PreferencesSectionDict; // Passing the dictionary as a prop
-  locale: string; // Added locale for RTL/LTR support
+  dictionary: PreferencesSectionDict;
+  locale: string;
 }
 
 const PreferencesSection: React.FC<PreferencesSectionProps> = ({
@@ -67,8 +66,8 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
   viewOnly = false,
   setIsEditing,
   onChange,
-  dictionary: t, // Using 't' as a shorthand for the dictionary
-  locale, // Destructure locale
+  dictionary: t,
+  locale,
 }) => {
   const [formData, setFormData] = useState<Partial<UserProfile>>({});
   const [initialData, setInitialData] = useState<Partial<UserProfile>>({});
@@ -208,20 +207,14 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
   };
 
   const handleSelectChange = (field: keyof UserProfile, value: string) => {
-    // רשימה מרוכזת של כל הערכים שנחשבים כ"ללא העדפה" במערכת
-    // הערכים נלקחו ישירות מקובץ he.json שסיפקת
+    // FIX: Removed 'does_not_matter', 'no_preference', 'any' from resetValues.
+    // We want to save these specific string values to the DB so they persist in the UI.
     const resetValues = [
-      '',
-      'any', // כללי
-      'no_preference', // עבור סטטוס עליה, השכלה, עיסוק ועוד
-      'does_not_matter', // <--- קריטי: המפתח הייחודי של 'ילדים מקשר קודם'
-      'no_strong_preference', // עבור תכונות ותחביבים
-      'לא_משנה', // תמיכה לאחור
+      '', // Only strictly empty string should reset to null
     ];
 
     setFormData((prev) => ({
       ...prev,
-      // אם הערך הוא אחד מערכי האיפוס, נשלח null. אחרת נשלח את הערך עצמו.
       [field]: resetValues.includes(value)
         ? null
         : (value as UserProfile[typeof field]),
@@ -241,8 +234,11 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
       ];
 
       if (resetValues.includes(value)) {
+        // If selecting "no preference", you might want to clear others or just toggle it.
+        // Assuming exclusive behavior for "no preference":
         newValues = currentValues.includes(value) ? [] : [value];
       } else {
+        // If selecting a normal value, remove "no preference" options first
         const filteredValues = currentValues.filter(
           (v) => !resetValues.includes(v)
         );
@@ -303,7 +299,11 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
     }
     return fieldValues.map((value) => {
       const option = options.find((opt) => opt.value === value);
-      return option ? (
+      // Fallback for displaying the value if option is missing (e.g. legacy data)
+      const label = option ? option.label : value;
+      const Icon = option?.icon;
+
+      return (
         <Badge
           key={value}
           variant="secondary"
@@ -312,10 +312,10 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
             badgeClass
           )}
         >
-          {option.icon && <option.icon className="w-3 h-3 ltr:mr-1 rtl:ml-1" />}
-          {option.label}
+          {Icon && <Icon className="w-3 h-3 ltr:mr-1 rtl:ml-1" />}
+          {label}
         </Badge>
-      ) : null;
+      );
     });
   };
 
@@ -330,7 +330,8 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
     return option ? (
       option.label
     ) : (
-      <span className="text-gray-500 italic">{placeholder}</span>
+      // Fallback display
+      <span className="text-gray-500">{value}</span>
     );
   };
 
@@ -363,7 +364,6 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
                   </Button>
                 ) : (
                   <>
-                    {/* ======================= START: DESKTOP BUTTONS (INSIDE STICKY HEADER) ======================= */}
                     <div className="hidden sm:flex gap-2">
                       <Button
                         variant="outline"
@@ -384,7 +384,6 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
                         {t.buttons.save}
                       </Button>
                     </div>
-                    {/* ======================= END: DESKTOP BUTTONS ======================= */}
                   </>
                 )}
               </div>
@@ -1551,7 +1550,6 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
             <div className="flex items-center justify-between gap-3">
               {isEditing ? (
                 <>
-                  {/* Editing Mode: Unsaved changes indicator - Desktop only */}
                   <div className="hidden sm:flex items-center gap-2 text-sm text-amber-600">
                     <div className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
                     <span>
@@ -1559,10 +1557,8 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
                     </span>
                   </div>
 
-                  {/* Spacer for mobile to center buttons */}
                   <div className="sm:hidden flex-1" />
 
-                  {/* Editing Mode: Save/Cancel buttons */}
                   <div className="flex items-center gap-3">
                     <Button
                       variant="outline"
@@ -1586,15 +1582,12 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
                 </>
               ) : (
                 <>
-                  {/* View Mode: Hint text - Desktop only */}
                   <div className="hidden sm:flex items-center gap-2 text-sm text-slate-500">
                     <span>{t.buttons.editHint || 'רוצה לעדכן העדפות?'}</span>
                   </div>
 
-                  {/* Spacer for mobile to center button */}
                   <div className="sm:hidden flex-1" />
 
-                  {/* View Mode: Edit button */}
                   <Button
                     variant="outline"
                     size="sm"
@@ -1612,7 +1605,6 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
       )}
       {/* ======================= END: ALWAYS VISIBLE STICKY FOOTER ======================= */}
 
-      {/* Spacer to prevent content from being hidden behind fixed footer */}
       {!viewOnly && <div className="h-16 sm:h-20" />}
     </div>
   );

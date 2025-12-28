@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\auth
-# Generated on: 2025-12-23 00:15:43
+# Generated on: 2025-12-28 22:52:51
 # Filter: Only content of code files (.bat, .c, .cfg, .conf, .cpp, .cs, .css, .go, .h, .html, .ini, .java, .js, .json, .jsx, .kt, .less, .md, .php, .py, .rb, .rs, .scss, .sh, .sql, .swift, .ts, .tsx, .txt, .xml, .yaml, .yml) is included.
 ################################################################################
 
@@ -3158,10 +3158,7 @@ export default function VerifyEmailClient({
                           {dict.checkYourInbox}
                         </p>
 
-                        <motion.div
-                          whileHover={{ scale: 1.02 }}
-                          
-                        >
+                        <motion.div whileHover={{ scale: 1.02 }}>
                           {/* Resend Button: Teal -> Orange */}
                           <Button
                             onClick={handleResendVerification}
@@ -3279,11 +3276,7 @@ export default function VerifyEmailClient({
                       </AlertDescription>
                     </Alert>
 
-                    <motion.div
-                      whileHover={{ scale: 1.02 }}
-                      
-                      className="pt-4"
-                    >
+                    <motion.div whileHover={{ scale: 1.02 }} className="pt-4">
                       {/* Back Button: Gray/Teal */}
                       <Button
                         onClick={() => router.push(`/${locale}/auth/signin`)}

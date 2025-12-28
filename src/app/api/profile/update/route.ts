@@ -1,4 +1,4 @@
-// src/app/api/profile/update/route.ts (מתוקן)
+// src/app/api/profile/update/route.ts
 
 import { NextRequest, NextResponse } from "next/server";
 import { applyRateLimit } from '@/lib/rate-limiter';
@@ -14,7 +14,7 @@ import {
   KippahType,
   AvailabilityStatus,
   ReligiousJourney,
-  Profile, // Import Prisma's Profile type
+  Profile,
 } from "@prisma/client";
 import type { UserProfile } from "@/types/next-auth";
 
@@ -56,7 +56,8 @@ const toDateOrNull = (value: string | number | Date | null | undefined): Date | 
   return isNaN(date.getTime()) ? null : date;
 };
 
-// Helper to convert empty string or null to null, otherwise return the string
+// Helper to convert STRICTLY empty string or null to null.
+// Use this for strings that might have values like "does_not_matter" which should be saved as strings.
 const emptyStringToNull = (value: string | null | undefined): string | null => {
   if (value === "" || value === null || value === undefined) {
     return null;
@@ -66,7 +67,7 @@ const emptyStringToNull = (value: string | null | undefined): string | null => {
 
 
 export async function PUT(req: NextRequest) {
-  // Apply rate limiting: 50 profile updates per user per 10 minutes (prevents DB heavy load)
+  // Apply rate limiting: 50 profile updates per user per 10 minutes
   const rateLimitResponse = await applyRateLimit(req, { requests: 50, window: '10 m' });
   if (rateLimitResponse) {
     return rateLimitResponse;
@@ -162,7 +163,7 @@ export async function PUT(req: NextRequest) {
       medicalInfoDetails,
       medicalInfoDisclosureTiming,
       isMedicalInfoVisible,
-        cvUrl,
+      cvUrl,
       cvSummary,
     } = body as Partial<UserProfile>;
 
@@ -204,7 +205,17 @@ export async function PUT(req: NextRequest) {
 
     // --- Religion & Lifestyle (User's own) ---
     if (religiousLevel !== undefined) dataToUpdate.religiousLevel = emptyStringToNull(religiousLevel);
-    if (religiousJourney !== undefined) dataToUpdate.religiousJourney = emptyStringToNull(religiousJourney) as ReligiousJourney | null;
+    
+    // Validate Enum for User's own Religious Journey
+    if (religiousJourney !== undefined) {
+        const val = emptyStringToNull(religiousJourney);
+        if (val && Object.values(ReligiousJourney).includes(val as ReligiousJourney)) {
+            dataToUpdate.religiousJourney = val as ReligiousJourney;
+        } else {
+             dataToUpdate.religiousJourney = null;
+        }
+    }
+
     if (shomerNegiah !== undefined) dataToUpdate.shomerNegiah = shomerNegiah;
 
     const existingProfileMinimal = await prisma.profile.findUnique({ where: { userId }, select: { gender: true }});
@@ -247,17 +258,28 @@ export async function PUT(req: NextRequest) {
     if (preferredHeightMax !== undefined) dataToUpdate.preferredHeightMax = toNumberOrNull(preferredHeightMax);
     if (preferredLocations !== undefined) dataToUpdate.preferredLocations = preferredLocations || [];
     if (preferredReligiousLevels !== undefined) dataToUpdate.preferredReligiousLevels = preferredReligiousLevels || [];
-    if (preferredReligiousJourneys !== undefined) dataToUpdate.preferredReligiousJourneys = preferredReligiousJourneys || [];
+    
+    // Validate Enum Array for Preferred Religious Journeys
+    if (preferredReligiousJourneys !== undefined) {
+        const validJourneys = (preferredReligiousJourneys || []).filter(j => 
+            Object.values(ReligiousJourney).includes(j as ReligiousJourney)
+        ) as ReligiousJourney[];
+        dataToUpdate.preferredReligiousJourneys = validJourneys;
+    }
+
+    // These fields might contain special string values like "does_not_matter", "flexible", etc.
+    // We use emptyStringToNull to preserve them.
     if (preferredShomerNegiah !== undefined) dataToUpdate.preferredShomerNegiah = emptyStringToNull(preferredShomerNegiah);
+    if (preferredPartnerHasChildren !== undefined) dataToUpdate.preferredPartnerHasChildren = emptyStringToNull(preferredPartnerHasChildren);
+    if (preferredAliyaStatus !== undefined) dataToUpdate.preferredAliyaStatus = emptyStringToNull(preferredAliyaStatus);
+
     if (preferredHeadCoverings !== undefined) dataToUpdate.preferredHeadCoverings = preferredHeadCoverings || [];
     if (preferredKippahTypes !== undefined) dataToUpdate.preferredKippahTypes = preferredKippahTypes || [];
     if (preferredEducation !== undefined) dataToUpdate.preferredEducation = preferredEducation || [];
     if (preferredOccupations !== undefined) dataToUpdate.preferredOccupations = preferredOccupations || [];
     if (preferredServiceTypes !== undefined) dataToUpdate.preferredServiceTypes = preferredServiceTypes || [];
     if (preferredMaritalStatuses !== undefined) dataToUpdate.preferredMaritalStatuses = preferredMaritalStatuses || [];
-    if (preferredPartnerHasChildren !== undefined) dataToUpdate.preferredPartnerHasChildren = emptyStringToNull(preferredPartnerHasChildren);
     if (preferredOrigins !== undefined) dataToUpdate.preferredOrigins = preferredOrigins || [];
-    if (preferredAliyaStatus !== undefined) dataToUpdate.preferredAliyaStatus = emptyStringToNull(preferredAliyaStatus);
     if (preferredCharacterTraits !== undefined) dataToUpdate.preferredCharacterTraits = preferredCharacterTraits || [];
     if (preferredHobbies !== undefined) dataToUpdate.preferredHobbies = preferredHobbies || [];
     
@@ -273,8 +295,9 @@ export async function PUT(req: NextRequest) {
     if (medicalInfoDetails !== undefined) dataToUpdate.medicalInfoDetails = emptyStringToNull(medicalInfoDetails);
     if (medicalInfoDisclosureTiming !== undefined) dataToUpdate.medicalInfoDisclosureTiming = emptyStringToNull(medicalInfoDisclosureTiming);
     if (isMedicalInfoVisible !== undefined) dataToUpdate.isMedicalInfoVisible = isMedicalInfoVisible;
-  if (cvUrl !== undefined) dataToUpdate.cvUrl = emptyStringToNull(cvUrl);
+    if (cvUrl !== undefined) dataToUpdate.cvUrl = emptyStringToNull(cvUrl);
     if (cvSummary !== undefined) dataToUpdate.cvSummary = emptyStringToNull(cvSummary);
+    
     // --- Availability ---
     if (availabilityStatus !== undefined) {
       const statusValue = emptyStringToNull(availabilityStatus);
@@ -401,7 +424,7 @@ export async function PUT(req: NextRequest) {
       hasViewedProfilePreview: dbProfile.hasViewedProfilePreview, 
       cvUrl: dbProfile.cvUrl,
       cvSummary: dbProfile.cvSummary,
-      aiProfileSummary: dbProfile.aiProfileSummary, // <--- Added this field
+      aiProfileSummary: dbProfile.aiProfileSummary, 
       createdAt: new Date(dbProfile.createdAt),
       updatedAt: new Date(dbProfile.updatedAt),
       lastActive: dbProfile.lastActive ? new Date(dbProfile.lastActive) : null,
