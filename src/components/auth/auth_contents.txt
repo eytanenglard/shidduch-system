@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\auth
-# Generated on: 2025-12-28 22:53:22
+# Generated on: 2025-12-29 10:41:34
 # Filter: Only content of code files (.bat, .c, .cfg, .conf, .cpp, .cs, .css, .go, .h, .html, .ini, .java, .js, .json, .jsx, .kt, .less, .md, .php, .py, .rb, .rs, .scss, .sh, .sql, .swift, .ts, .tsx, .txt, .xml, .yaml, .yml) is included.
 ################################################################################
 
@@ -2267,18 +2267,18 @@ export interface RegistrationData {
   occupation?: string;
   education?: string;
   religiousLevel?: string;
-  
-  // שדות חדשים שהוספו לתיקון השגיאות
+
+  // שדות UI
   city: string;
   hasChildren: boolean;
   numberOfChildren: string;
-  profession: string;
+  profession: string; // שים לב: ב-DB זה occupation, נמפה את זה כאן
   termsAccepted: boolean;
 
   // שדות ניהול מצב
   step: number;
   isGoogleSignup: boolean;
-  language: 'he' | 'en'; 
+  language: 'he' | 'en';
   isCompletingProfile: boolean;
   isVerifyingEmailCode: boolean;
   emailForVerification: string | null;
@@ -2344,15 +2344,19 @@ interface RegistrationContextType {
     firstName?: string;
     lastName?: string;
   }) => void;
-  initializeFromSession: (sessionUser: SessionUserType) => void;
+  initializeFromSession: (sessionUser: SessionUserType) => Promise<void>; // שונה ל-Promise
   proceedToEmailVerification: (email: string) => void;
   completeEmailVerification: () => void;
   exitEmailVerification: () => void;
-  
+
   // Submission state management
   submission: SubmissionState;
   startSubmission: (text: string, subtext?: string) => void;
-  updateSubmission: (status: SubmissionStatus, text: string, subtext?: string) => void;
+  updateSubmission: (
+    status: SubmissionStatus,
+    text: string,
+    subtext?: string
+  ) => void;
   endSubmission: (error?: boolean) => void;
 }
 
@@ -2360,13 +2364,17 @@ interface RegistrationContextType {
 // CONTEXT
 // ============================================================================
 
-const RegistrationContext = createContext<RegistrationContextType | undefined>(undefined);
+const RegistrationContext = createContext<RegistrationContextType | undefined>(
+  undefined
+);
 
 export const RegistrationProvider: React.FC<{ children: ReactNode }> = ({
   children,
 }) => {
   const [data, setData] = useState<RegistrationData>(initialRegistrationData);
-  const [submission, setSubmission] = useState<SubmissionState>(initialSubmissionState);
+  const [submission, setSubmission] = useState<SubmissionState>(
+    initialSubmissionState
+  );
 
   // ============================================================================
   // FORM FIELD HANDLERS
@@ -2398,7 +2406,7 @@ export const RegistrationProvider: React.FC<{ children: ReactNode }> = ({
     setData(initialRegistrationData);
     setSubmission(initialSubmissionState);
   }, []);
-  
+
   const setGoogleSignup = useCallback(
     (googleUserData: {
       email: string;
@@ -2415,78 +2423,118 @@ export const RegistrationProvider: React.FC<{ children: ReactNode }> = ({
   );
 
   // ============================================================================
-  // SESSION INITIALIZATION
+  // SESSION INITIALIZATION (UPDATED & ASYNC)
   // ============================================================================
-  
-  const initializeFromSession = useCallback((sessionUser: SessionUserType) => {
-    setData((prevData) => {
+
+  const initializeFromSession = useCallback(
+    async (sessionUser: SessionUserType) => {
+      // 1. אתחול בסיסי עם מה שיש בסשן המצומצם (כדי שהUI יגיב מיד)
       const isGoogleAcc = !!(
         sessionUser.source === UserSource.REGISTRATION &&
         sessionUser.accounts?.some((acc) => acc.provider === 'google')
       );
 
-      const sessionGender: Gender | '' = sessionUser.profile?.gender || '';
-
-      // המרת נתונים מהסשן למבנה הנתונים של הטופס
-      const baseStateFromSession = {
+      let baseData: Partial<RegistrationData> = {
         email: sessionUser.email || '',
         firstName: sessionUser.firstName || '',
         lastName: sessionUser.lastName || '',
         phone: sessionUser.phone || '',
-        gender: sessionGender,
-        birthDate: sessionUser.profile?.birthDate
-          ? new Date(sessionUser.profile.birthDate).toISOString().split('T')[0]
-          : '',
-        maritalStatus: sessionUser.profile?.maritalStatus || '',
-        height: sessionUser.profile?.height ?? undefined,
-        occupation: sessionUser.profile?.occupation || '',
-        education: sessionUser.profile?.education || '',
-        
-        // מיפוי שדות חדשים מהפרופיל (אם קיימים בטיפוס של הסשן, אחרת ברירת מחדל)
-        city: (sessionUser.profile as any)?.city || '',
-        profession: (sessionUser.profile as any)?.profession || '',
-        numberOfChildren: (sessionUser.profile as any)?.numberOfChildren || '',
-        hasChildren: (sessionUser.profile as any)?.hasChildren || false,
-        termsAccepted: !!sessionUser.termsAndPrivacyAcceptedAt,
-      };
-
-      // Scenario 1: New user needs to verify email (non-Google)
-      if (
-        sessionUser.status === UserStatus.PENDING_EMAIL_VERIFICATION &&
-        !isGoogleAcc &&
-        !sessionUser.isVerified
-      ) {
-        return {
-          ...initialRegistrationData,
-          ...baseStateFromSession,
-          isVerifyingEmailCode: true,
-          emailForVerification: sessionUser.email,
-          step: 1,
-          isCompletingProfile: false,
-          isGoogleSignup: false,
-        };
-      }
-
-      // Scenario 2: User needs to start the profile completion process.
-      if (!sessionUser.isProfileComplete) {
-        return {
-          ...initialRegistrationData,
-          ...baseStateFromSession,
-          isCompletingProfile: true,
-          isGoogleSignup: isGoogleAcc,
-          step: 2, // Always start at the combined personal details step
-          isVerifyingEmailCode: false,
-        };
-      }
-      
-      // If code reaches here, it means profile is complete.
-      return {
-        ...prevData,
-        ...baseStateFromSession,
         isGoogleSignup: isGoogleAcc,
+        // ברירות מחדל למקרה שה-API ייכשל
+        gender: '',
+        termsAccepted: false,
       };
-    });
-  }, []);
+
+      try {
+        // 2. קריאה ל-API החדש כדי לקבל את נתוני הפרופיל המלאים
+        // זה פותר את בעיית ה-Cookie הגדול מדי
+        const response = await fetch('/api/auth/registration-info');
+
+        if (response.ok) {
+          const fullUser = await response.json();
+          const profile = fullUser.profile || {};
+
+          console.log('Fetched full registration info:', fullUser);
+
+          baseData = {
+            ...baseData,
+            // נתונים מהיוזר הראשי
+            email: fullUser.email || baseData.email,
+            firstName: fullUser.firstName || baseData.firstName,
+            lastName: fullUser.lastName || baseData.lastName,
+            phone: fullUser.phone || baseData.phone,
+            termsAccepted: !!fullUser.termsAndPrivacyAcceptedAt,
+
+            // נתונים מהפרופיל
+            gender: profile.gender || '',
+            birthDate: profile.birthDate
+              ? new Date(profile.birthDate).toISOString().split('T')[0]
+              : '',
+            maritalStatus: profile.maritalStatus || '',
+            height: profile.height ?? undefined,
+            occupation: profile.occupation || '',
+            education: profile.education || '',
+            religiousLevel: profile.religiousLevel || '',
+            city: profile.city || '',
+
+            // מיפוי שדות מותאם אישית
+            profession: profile.occupation || '', // שימוש ב-occupation כשדה profession
+            hasChildren: profile.hasChildrenFromPrevious || false,
+            numberOfChildren: '', // אין שדה כזה ב-DB, מאתחלים לריק
+          };
+        } else {
+          console.warn(
+            'Failed to fetch registration info from API, falling back to basic session data'
+          );
+        }
+      } catch (error) {
+        console.error('Error fetching registration info:', error);
+      }
+
+      // 3. עדכון ה-State עם הנתונים הממוזגים והלוגיקה העסקית
+      setData((prevData) => {
+        const mergedData = {
+          ...initialRegistrationData,
+          ...prevData,
+          ...baseData,
+        };
+
+        // תרחיש 1: אימות אימייל נדרש
+        if (
+          sessionUser.status === UserStatus.PENDING_EMAIL_VERIFICATION &&
+          !isGoogleAcc &&
+          !sessionUser.isVerified
+        ) {
+          return {
+            ...mergedData,
+            isVerifyingEmailCode: true,
+            emailForVerification: mergedData.email,
+            step: 1,
+            isCompletingProfile: false,
+            isGoogleSignup: false,
+          };
+        }
+
+        // תרחיש 2: השלמת פרופיל נדרשת
+        if (!sessionUser.isProfileComplete) {
+          return {
+            ...mergedData,
+            isCompletingProfile: true,
+            isGoogleSignup: isGoogleAcc,
+            step: 2,
+            isVerifyingEmailCode: false,
+          };
+        }
+
+        // משתמש קיים ותקין
+        return {
+          ...mergedData,
+          isGoogleSignup: isGoogleAcc,
+        };
+      });
+    },
+    []
+  );
 
   // ============================================================================
   // EMAIL VERIFICATION HANDLERS
@@ -2532,18 +2580,17 @@ export const RegistrationProvider: React.FC<{ children: ReactNode }> = ({
     });
   }, []);
 
-  const updateSubmission = useCallback((
-    status: SubmissionStatus, 
-    text: string, 
-    subtext?: string
-  ) => {
-    setSubmission((prev) => ({
-      ...prev,
-      status,
-      loadingText: text,
-      loadingSubtext: subtext,
-    }));
-  }, []);
+  const updateSubmission = useCallback(
+    (status: SubmissionStatus, text: string, subtext?: string) => {
+      setSubmission((prev) => ({
+        ...prev,
+        status,
+        loadingText: text,
+        loadingSubtext: subtext,
+      }));
+    },
+    []
+  );
 
   const endSubmission = useCallback((error?: boolean) => {
     setSubmission({
@@ -4820,7 +4867,9 @@ import ConsentCheckbox from '../ConsentCheckbox';
 
 // Types
 import type { RegisterStepsDict } from '@/types/dictionaries/auth';
+import type { User as SessionUserType } from '@/types/next-auth'; // ייבוא טיפוס משתמש
 
+// ... (SimpleConsentBox, inputBaseClasses, FieldWrapper, SectionHeader, containerVariants, itemVariants remain unchanged) ...
 // ============================================================================
 // COMPONENT: SimpleConsentBox
 // ============================================================================
@@ -5002,7 +5051,7 @@ export default function PersonalDetailsStep({
     updateSubmission,
     endSubmission,
   } = useRegistration();
-  const { data: session } = useSession();
+  const { data: session, update: updateSession } = useSession(); // Added updateSession
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -5081,9 +5130,10 @@ export default function PersonalDetailsStep({
 
   useEffect(() => {
     router.prefetch(`/${locale}/auth/verify-phone`);
+    router.prefetch(`/${locale}/profile`); // Prefetch profile as well
   }, [router, locale]);
 
-  // Handlers
+  // Handlers (Photos, Age validation, etc. - keep as is)
   const handlePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
@@ -5208,6 +5258,7 @@ export default function PersonalDetailsStep({
     }
   };
 
+  // ==================== UPDATED SUBMIT LOGIC ====================
   const handleSubmit = async () => {
     setApiError(null);
     setConsentError(null);
@@ -5223,6 +5274,7 @@ export default function PersonalDetailsStep({
     const currentMissing: string[] = [];
     let hasError = false;
 
+    // Validation
     if (!registrationState.firstName.trim()) {
       setFirstNameError(personalDetailsDict.errors.firstNameRequired);
       currentMissing.push(validationDict.fields.firstName);
@@ -5253,8 +5305,6 @@ export default function PersonalDetailsStep({
       currentMissing.push(validationDict.fields.birthDate);
       hasError = true;
     }
-
-    // City Validation
     if (!registrationState.city || !registrationState.city.trim()) {
       setCityError(
         personalDetailsDict.errors.cityRequired || 'נא לבחור עיר מגורים'
@@ -5262,7 +5312,6 @@ export default function PersonalDetailsStep({
       currentMissing.push(personalDetailsDict.cityLabel || 'עיר');
       hasError = true;
     }
-
     if (!registrationState.maritalStatus) {
       currentMissing.push(validationDict.fields.maritalStatus);
       hasError = true;
@@ -5304,14 +5353,14 @@ export default function PersonalDetailsStep({
     }
 
     setIsLoading(true);
+
     try {
-      // Start the full-screen loading via context
+      // 1. Consent
       if (!userHasAlreadyConsented) {
         startSubmission(
           optionalInfoDict.loadingOverlay?.acceptingTerms ||
             'מאשר תנאי שימוש...',
-          optionalInfoDict.loadingOverlay?.subtitle ||
-            'זה לוקח רק מספר שניות...'
+          optionalInfoDict.loadingOverlay?.subtitle
         );
         const consentResponse = await fetch('/api/user/accept-terms', {
           method: 'POST',
@@ -5322,16 +5371,15 @@ export default function PersonalDetailsStep({
         startSubmission(
           optionalInfoDict.loadingOverlay?.savingProfile ||
             optionalInfoDict.status.saving,
-          optionalInfoDict.loadingOverlay?.subtitle ||
-            'זה לוקח רק מספר שניות...'
+          optionalInfoDict.loadingOverlay?.subtitle
         );
       }
 
+      // 2. Profile Data
       updateSubmission(
         'savingProfile',
         optionalInfoDict.loadingOverlay?.savingProfile ||
-          optionalInfoDict.status.saving,
-        optionalInfoDict.loadingOverlay?.savingProfileSubtext
+          optionalInfoDict.status.saving
       );
 
       const profileData = {
@@ -5362,6 +5410,7 @@ export default function PersonalDetailsStep({
         throw new Error(errorData.error || optionalInfoDict.errors.default);
       }
 
+      // 3. Upload Photos
       if (uploadedPhotos.length > 0) {
         updateSubmission(
           'uploadingPhotos',
@@ -5370,27 +5419,42 @@ export default function PersonalDetailsStep({
         await uploadPhotosToServer();
       }
 
-      updateSubmission(
-        'sendingCode',
-        optionalInfoDict.loadingOverlay?.sendingCode ||
-          optionalInfoDict.status.sendingCode,
-        optionalInfoDict.loadingOverlay?.sendingCodeSubtext
-      );
+      // 4. Update session to get latest User status
+      await updateSession();
+      const currentUser = session?.user as SessionUserType | undefined;
+      const isAlreadyPhoneVerified = currentUser?.isPhoneVerified;
 
-      const sendCodeResponse = await fetch('/api/auth/send-phone-code', {
-        method: 'POST',
-      });
-      if (!sendCodeResponse.ok) {
-        const errorData = await sendCodeResponse.json();
-        throw new Error(errorData.error || optionalInfoDict.errors.default);
+      // 5. Logic Branch: Verify Phone OR Go to Profile
+      if (isAlreadyPhoneVerified) {
+        // If user is ALREADY verified, skip sending code and go to profile
+        updateSubmission(
+          'redirecting',
+          optionalInfoDict.loadingOverlay?.redirecting || 'מעביר לפרופיל...'
+        );
+        router.push(`/${locale}/profile`);
+      } else {
+        // Normal flow: Send code and go to verify-phone
+        updateSubmission(
+          'sendingCode',
+          optionalInfoDict.loadingOverlay?.sendingCode ||
+            optionalInfoDict.status.sendingCode
+        );
+
+        const sendCodeResponse = await fetch('/api/auth/send-phone-code', {
+          method: 'POST',
+        });
+        if (!sendCodeResponse.ok) {
+          const errorData = await sendCodeResponse.json();
+          throw new Error(errorData.error || optionalInfoDict.errors.default);
+        }
+
+        updateSubmission(
+          'redirecting',
+          optionalInfoDict.loadingOverlay?.redirecting ||
+            'מעביר לאימות טלפון...'
+        );
+        router.push(`/${locale}/auth/verify-phone`);
       }
-
-      updateSubmission(
-        'redirecting',
-        optionalInfoDict.loadingOverlay?.redirecting || 'מעביר לאימות טלפון...'
-      );
-
-      router.push(`/${locale}/auth/verify-phone`);
     } catch (err) {
       endSubmission(true);
       setApiError(
@@ -5407,6 +5471,8 @@ export default function PersonalDetailsStep({
       animate="visible"
       className="space-y-8"
     >
+      {/* ... (Rest of the JSX remains exactly the same as provided in the question) ... */}
+
       <motion.div
         variants={itemVariants}
         className="text-center p-4 bg-gradient-to-r from-teal-50 via-orange-50 to-rose-50 rounded-2xl border border-teal-100"
@@ -5472,6 +5538,9 @@ export default function PersonalDetailsStep({
         )}
       </AnimatePresence>
 
+      {/* ... (The rest of the form UI remains unchanged) ... */}
+
+      {/* SECTION: Personal Details Fields */}
       <div className="space-y-6">
         <SectionHeader
           icon={<User className="w-5 h-5" />}

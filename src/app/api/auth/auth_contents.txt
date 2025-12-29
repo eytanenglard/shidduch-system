@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\auth
-# Generated on: 2025-12-28 22:54:03
+# Generated on: 2025-12-29 10:42:09
 # Filter: Only content of code files (.bat, .c, .cfg, .conf, .cpp, .cs, .css, .go, .h, .html, .ini, .java, .js, .json, .jsx, .kt, .less, .md, .php, .py, .rb, .rs, .scss, .sh, .sql, .swift, .ts, .tsx, .txt, .xml, .yaml, .yml) is included.
 ################################################################################
 
@@ -1173,6 +1173,74 @@ export async function POST(req: NextRequest) {
       { status }
     );
   } 
+}
+--- End of Content for route.ts ---
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\auth\registration-info
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\auth\registration-info\route.ts
+--------------------------------------------------------------------------------
+Content:
+import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth"; // וודא שהנתיב נכון לפרויקט שלך
+import prisma from "@/lib/prisma"; // וודא שהנתיב נכון
+
+export async function GET() {
+  try {
+    const session = await getServerSession(authOptions);
+
+    if (!session?.user?.id) {
+      return new NextResponse("Unauthorized", { status: 401 });
+    }
+
+    // שליפת הנתונים לפי הסכמה האמיתית שלך
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: {
+        id: true,
+        email: true,
+        firstName: true,
+        lastName: true,
+        phone: true,
+        termsAndPrivacyAcceptedAt: true,
+        source: true, // חשוב לזיהוי מקור המשתמש
+        status: true,
+        isVerified: true,
+        isProfileComplete: true,
+        accounts: {
+          select: { provider: true }
+        },
+        profile: {
+          select: {
+            gender: true,
+            birthDate: true,
+            maritalStatus: true,
+            height: true,
+            occupation: true, // ✅ זה השדה הנכון (במקום profession)
+            education: true,
+            religiousLevel: true,
+            city: true,
+            hasChildrenFromPrevious: true, // ✅ זה השדה הנכון לילדים
+            // numberOfChildren: true, <--- מחקנו כי לא קיים בסכמה
+          }
+        }
+      }
+    });
+
+    if (!user) {
+      return new NextResponse("User not found", { status: 404 });
+    }
+
+    return NextResponse.json(user);
+
+  } catch (error) {
+    console.error("[REGISTRATION_INFO_GET]", error);
+    return new NextResponse("Internal Error", { status: 500 });
+  }
 }
 --- End of Content for route.ts ---
 
