@@ -46,6 +46,12 @@ const SETUP_PATHS = [
   '/settings', 
 ];
 
+// 🔴 חדש: נתיבים שמותר לגשת אליהם אחרי סיום ההרשמה
+// (גם אם ה-token עדיין לא התעדכן)
+const POST_SETUP_PATHS = [
+  '/profile',
+];
+
 const PUBLIC_API_PATHS = ['/api/feedback'];
 
 // --- I18N Locale Detection Function ---
@@ -150,12 +156,16 @@ export async function middleware(req: NextRequest) {
   
   // 🔴 חדש: בדיקה לנתיבי רפרל ציבוריים
   const isReferralPublicPath = REFERRAL_PUBLIC_PATHS.some(path => pathWithoutLocale.startsWith(path));
+  
+  // 🔴 חדש: בדיקה לנתיבים שמותרים אחרי סיום הרשמה
+  const isPostSetupPath = POST_SETUP_PATHS.includes(pathWithoutLocale);
 
   // ====================== LOGGING START: Path Classification ======================
   console.log(`   Is Public Path?: ${isPublicPath}`);
   console.log(`   Is Setup Path?: ${isSetupPath}`);
   console.log(`   Is Admin Path?: ${isAdminPath}`);
-  console.log(`   Is Referral Public Path?: ${isReferralPublicPath}`); // 🔴 לוג חדש
+  console.log(`   Is Referral Public Path?: ${isReferralPublicPath}`);
+  console.log(`   Is Post Setup Path?: ${isPostSetupPath}`); // 🔴 לוג חדש
   // ======================= LOGGING END =======================
 
   // 🔴 חדש: נתיבי רפרל ציבוריים - תמיד לאפשר גישה
@@ -195,9 +205,9 @@ export async function middleware(req: NextRequest) {
       return NextResponse.redirect(redirectUrl);
     }
 
-    // אם הפרופיל שלו *לא* שלם והוא מנסה לגשת לדף שאינו ציבורי ואינו חלק מתהליך ההרשמה
-    // 🎯 עדכון: אדמין/שדכן לא צריך פרופיל שלם
-    if (!isProfileConsideredComplete && !isPublicPath && !isSetupPath && !isMatchmaker) {
+    // 🔴 תיקון: אם הפרופיל שלו *לא* שלם והוא מנסה לגשת לדף שאינו ציבורי ואינו חלק מתהליך ההרשמה
+    // עכשיו גם מתעלמים מ-POST_SETUP_PATHS (כמו /profile) כי זה היעד הסופי
+    if (!isProfileConsideredComplete && !isPublicPath && !isSetupPath && !isMatchmaker && !isPostSetupPath) {
       const setupUrl = new URL(`/${currentLocale}/auth/register`, req.url);
       setupUrl.searchParams.set('reason', 'complete_profile');
       console.warn(`[Middleware] Logged-in user with INCOMPLETE profile is on a protected page. Redirecting to complete profile.`);
