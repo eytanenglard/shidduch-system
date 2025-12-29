@@ -73,8 +73,6 @@ function generateUniqueId(): string {
 // =====================================================
 
 const getStyles = () => `
-  @import url('https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700&display=swap');
-  
   * {
     margin: 0;
     padding: 0;
@@ -82,7 +80,7 @@ const getStyles = () => `
   }
   
   body {
-    font-family: 'Rubik', 'Arial', sans-serif;
+    font-family: 'Rubik', 'Arial', 'Helvetica', sans-serif;
     direction: rtl;
     text-align: right;
     background: #f8fafc;
@@ -627,16 +625,26 @@ export const generateInsightPdf = async (
     // טעינה דינמית של html2pdf
     const html2pdf = (await import('html2pdf.js')).default;
     
+    // טעינת פונט Rubik
+    await loadGoogleFont();
+    
     // יצירת HTML
     const htmlContent = generateHTML(data);
     
     // יצירת container זמני
     const container = document.createElement('div');
     container.innerHTML = htmlContent;
-    container.style.position = 'absolute';
-    container.style.left = '-9999px';
+    container.style.position = 'fixed';
+    container.style.left = '0';
     container.style.top = '0';
+    container.style.width = '210mm';
+    container.style.background = 'white';
+    container.style.zIndex = '-9999';
+    container.style.opacity = '0';
     document.body.appendChild(container);
+    
+    // המתנה לרינדור
+    await new Promise(resolve => setTimeout(resolve, 500));
     
     // הגדרות PDF
     const options = {
@@ -647,13 +655,14 @@ export const generateInsightPdf = async (
         scale: 2,
         useCORS: true,
         letterRendering: true,
+        logging: false,
       },
       jsPDF: { 
         unit: 'mm' as const, 
         format: 'a4' as const, 
         orientation: 'portrait' as const
       },
-      pagebreak: { mode: 'css', before: '.page', avoid: '.section' }
+      pagebreak: { mode: ['css', 'legacy'], before: '.page' }
     };
     
     // יצירת PDF
@@ -671,5 +680,26 @@ export const generateInsightPdf = async (
     toast.error('😕 שגיאה ביצירת הדוח. נסה שוב');
   }
 };
+
+// טעינת פונט Google
+async function loadGoogleFont(): Promise<void> {
+  return new Promise((resolve) => {
+    // בדיקה אם הפונט כבר נטען
+    if (document.querySelector('link[href*="fonts.googleapis.com/css2?family=Rubik"]')) {
+      resolve();
+      return;
+    }
+    
+    const link = document.createElement('link');
+    link.href = 'https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700&display=swap';
+    link.rel = 'stylesheet';
+    link.onload = () => {
+      // המתנה נוספת לטעינת הפונט
+      setTimeout(resolve, 300);
+    };
+    link.onerror = () => resolve(); // ממשיכים גם אם נכשל
+    document.head.appendChild(link);
+  });
+}
 
 export default generateInsightPdf;

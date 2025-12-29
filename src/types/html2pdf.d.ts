@@ -25,6 +25,7 @@ declare module 'html2pdf.js' {
       after?: string | string[];
       avoid?: string | string[];
     };
+    enableLinks?: boolean;
   }
 
   interface Html2Pdf {
