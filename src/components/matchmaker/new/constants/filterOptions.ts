@@ -207,8 +207,8 @@ export const GROUP_BY_OPTIONS = [
 
 export const DEFAULT_FILTERS = {
   gender: undefined,
-  ageRange: AGE_RANGE.default,
-  heightRange: HEIGHT_RANGE.default,
+  ageRange: undefined,      // היה: AGE_RANGE.default
+  heightRange: undefined,   // היה: HEIGHT_RANGE.default
   cities: [],
   religiousLevel: undefined,
   occupations: [],

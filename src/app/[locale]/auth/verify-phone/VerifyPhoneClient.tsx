@@ -336,6 +336,10 @@ const VerifyPhoneClient: React.FC<VerifyPhoneClientProps> = ({
   );
 
   // Verify Code
+  // 🔴 תיקון לפונקציה handleVerifyCode בקובץ VerifyPhoneClient.tsx
+  // החלף את הפונקציה הקיימת (שורות 339-385) בקוד הבא:
+
+  // Verify Code
   const handleVerifyCode = useCallback(
     async (e: FormEvent<HTMLFormElement>) => {
       e.preventDefault();
@@ -366,17 +370,39 @@ const VerifyPhoneClient: React.FC<VerifyPhoneClientProps> = ({
           throw new Error(data.error || dict.errors.default);
         }
 
+        // ✅ האימות הצליח - ה-DB עודכן
         setSuccessMessage(dict.success.verifying);
+        console.log(
+          '[VerifyPhoneClient] Phone verification successful, updating session...'
+        );
 
-        const updatedSession = await updateSession();
+        // 🔴 תיקון קריטי: עדכון ה-session וניווט
+        try {
+          // קריאה לעדכון ה-session - זה מרענן את ה-JWT cookie
+          await updateSession();
+          console.log('[VerifyPhoneClient] Session update called');
 
-        if (updatedSession?.user?.isPhoneVerified) {
-          router.push(`/${locale}/profile`);
-        } else {
-          setError('Failed to update session. Please try logging in again.');
-          setIsLoading(false);
+          // המתנה קצרה לוודא שהקוקי התעדכן לפני הניווט
+          await new Promise((resolve) => setTimeout(resolve, 500));
+        } catch (sessionError) {
+          // גם אם עדכון ה-session נכשל, ה-DB כבר עודכן
+          // ננסה לנווט בכל זאת
+          console.warn(
+            '[VerifyPhoneClient] Session update warning:',
+            sessionError
+          );
         }
+
+        // 🔴 ניווט לפרופיל - ה-DB כבר עודכן, אז המידלוור אמור לאפשר גישה
+        // אחרי ה-updateSession הקוקי אמור להכיל את הערכים החדשים
+        router.push(`/${locale}/profile`);
+
+        // אם עדיין יש בעיה, נעשה refresh מלא
+        setTimeout(() => {
+          router.refresh();
+        }, 100);
       } catch (err: unknown) {
+        console.error('[VerifyPhoneClient] Verification error:', err);
         setError(err instanceof Error ? err.message : dict.errors.unexpected);
         setIsLoading(false);
       }

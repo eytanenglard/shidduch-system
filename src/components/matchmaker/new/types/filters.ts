@@ -129,8 +129,8 @@ export const DEFAULT_FILTER_STATE: FilterState = {
   maleSearchQuery: '',
   femaleSearchQuery: '',
   gender: undefined,
-  ageRange: { min: 18, max: 130},
-  heightRange: { min: 80, max: 210 },
+ageRange: undefined,     // היה: { min: 18, max: 130}
+  heightRange: undefined,  // היה: { min: 80, max: 210 }
   cities: [],
   occupations: [],
   religiousLevel: undefined,
