@@ -1,7 +1,7 @@
 // src/lib/pdf/hebrewPdfUtils.ts
 // =====================================================
-// פונקציות עזר לעברית ב-PDF - גרסה 4.0
-// תיקון: לא להפוך טקסט עברי טהור!
+// פונקציות עזר לעברית ב-PDF - גרסה 5.0
+// תיקון: הפיכת טקסט עברי כדי שיוצג נכון ב-jsPDF
 // =====================================================
 
 /**
@@ -26,6 +26,18 @@ export function isEnglishChar(char: string): boolean {
 export function isDigit(char: string): boolean {
   const code = char.charCodeAt(0);
   return code >= 48 && code <= 57;
+}
+
+/**
+ * בדיקה האם הטקסט מכיל אותיות עבריות
+ */
+export function hasHebrewLetters(text: string): boolean {
+  for (let i = 0; i < text.length; i++) {
+    if (isHebrewChar(text[i])) {
+      return true;
+    }
+  }
+  return false;
 }
 
 /**
@@ -54,58 +66,84 @@ function reverseString(str: string): string {
 /**
  * הכנת טקסט עברי ל-PDF
  * 
+ * jsPDF לא תומך ב-RTL, לכן צריך להפוך את הטקסט העברי.
+ * 
  * הלוגיקה:
- * - טקסט עברי טהור (ללא אנגלית) -> לא משנים כלום
- * - טקסט מעורב (עברית + אנגלית) -> הופכים את הכל ואז מתקנים את האנגלית
+ * - טקסט עברי טהור (ללא אנגלית/מספרים) -> הפוך את הכל
+ * - טקסט מעורב (עברית + אנגלית/מספרים) -> הפוך ושמור על סדר אנגלית/מספרים
+ * - טקסט אנגלי טהור -> לא משנים
  */
 export function prepareHebrewText(text: string): string {
   if (!text) {
     return text;
   }
 
-  // בדיקה אם יש אותיות אנגליות
-  if (!hasEnglishLetters(text)) {
-    // טקסט עברי טהור - מחזירים כמו שהוא!
+  // אם אין עברית - לא צריך לעשות כלום
+  if (!hasHebrewLetters(text)) {
     return text;
   }
 
-  // טקסט מעורב - צריך לטפל
+  // יש עברית - צריך להפוך
   // שלב 1: הפוך את כל הטקסט
   const reversed = reverseString(text);
 
-  // שלב 2: מצא את החלקים האנגליים והפוך אותם חזרה
+  // אם אין אנגלית ואין מספרים - פשוט מחזירים הפוך
+  if (!hasEnglishLetters(text) && !hasNumbers(text)) {
+    return reversed;
+  }
+
+  // שלב 2: תיקון - מצא רצפים של אנגלית/מספרים והפוך אותם חזרה
   let result = '';
-  let englishBuffer = '';
-  let inEnglish = false;
+  let specialBuffer = ''; // אנגלית או מספרים
+  let inSpecial = false;
 
   for (let i = 0; i < reversed.length; i++) {
     const char = reversed[i];
 
-    if (isEnglishChar(char)) {
-      // תו אנגלי
-      englishBuffer += char;
-      inEnglish = true;
-    } else if (inEnglish && (isDigit(char) || char === '.' || char === '-' || char === '_')) {
-      // תו שיכול להיות חלק ממילה אנגלית (מספר, נקודה, מקף)
-      englishBuffer += char;
+    if (isEnglishChar(char) || isDigit(char)) {
+      // תו אנגלי או ספרה - הוסף לבאפר
+      specialBuffer += char;
+      inSpecial = true;
+    } else if (inSpecial && isPartOfSpecialSequence(char)) {
+      // תווים שיכולים להיות חלק מרצף (נקודה, מקף, קו תחתון, רווח בין מילים אנגליות)
+      specialBuffer += char;
     } else {
-      // תו לא אנגלי
-      if (englishBuffer.length > 0) {
-        // יש buffer אנגלי - הפוך אותו חזרה והוסף
-        result += reverseString(englishBuffer);
-        englishBuffer = '';
-        inEnglish = false;
+      // תו עברי או סיום רצף
+      if (specialBuffer.length > 0) {
+        // הפוך את הבאפר חזרה והוסף
+        result += reverseString(specialBuffer);
+        specialBuffer = '';
+        inSpecial = false;
       }
       result += char;
     }
   }
 
-  // אם נשאר buffer אנגלי בסוף
-  if (englishBuffer.length > 0) {
-    result += reverseString(englishBuffer);
+  // אם נשאר באפר בסוף
+  if (specialBuffer.length > 0) {
+    result += reverseString(specialBuffer);
   }
 
   return result;
+}
+
+/**
+ * בדיקה האם יש מספרים בטקסט
+ */
+function hasNumbers(text: string): boolean {
+  for (let i = 0; i < text.length; i++) {
+    if (isDigit(text[i])) {
+      return true;
+    }
+  }
+  return false;
+}
+
+/**
+ * בדיקה האם תו יכול להיות חלק מרצף אנגלי/מספרי
+ */
+function isPartOfSpecialSequence(char: string): boolean {
+  return char === '.' || char === '-' || char === '_' || char === '@' || char === '/';
 }
 
 /**
@@ -114,7 +152,7 @@ export function prepareHebrewText(text: string): string {
 export const reverseHebrewText = prepareHebrewText;
 
 /**
- * פורמט תאריך עברי (טקסטואלי)
+ * פורמט תאריך עברי (טקסטואלי) - מוכן ל-PDF
  */
 export function formatHebrewDate(date: Date): string {
   const hebrewMonths = [
@@ -134,6 +172,7 @@ export function formatHebrewDate(date: Date): string {
   const day = date.getDate();
   const month = hebrewMonths[date.getMonth()];
   const year = date.getFullYear();
+  // מחזיר את התאריך בפורמט שאחרי ההיפוך יוצג נכון
   return day + ' ב' + month + ' ' + year;
 }
 
@@ -148,7 +187,7 @@ export function formatDateNumbers(date: Date): string {
 }
 
 /**
- * ציטוטים מעוררי השראה
+ * ציטוטים מעוררי השראה - בעברית בלבד
  */
 export const INSPIRATIONAL_QUOTES = {
   he: [

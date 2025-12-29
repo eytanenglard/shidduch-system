@@ -1,7 +1,7 @@
 // src/lib/pdf/insightPdfGenerator.ts
 // =====================================================
-// מחולל PDF - גרסה 4.0
-// תיקון: טיפול נכון בטקסט עברי
+// מחולל PDF - גרסה 5.0
+// תיקון: היפוך טקסט עברי בכל מקום
 // =====================================================
 
 import { toast } from 'sonner';
@@ -11,7 +11,6 @@ import {
   formatDateNumbers,
   getRandomQuote,
   NESHAMA_COLORS,
-  SECTION_INFO,
   getSectionInfo,
   generateUniqueId,
   type SectionType,
@@ -72,6 +71,22 @@ const CONFIG = {
     BULLET: 3.5,
   },
 };
+
+// =====================================================
+// פונקציית עזר להכנת טקסט
+// =====================================================
+
+/**
+ * מכין טקסט לתצוגה ב-PDF
+ * אם זה עברית - הופך, אחרת - משאיר כמו שהוא
+ */
+function prepareText(text: string, isHebrew: boolean): string {
+  if (!text) return text;
+  if (isHebrew) {
+    return prepareHebrewText(text);
+  }
+  return text;
+}
 
 // =====================================================
 // פונקציה ראשית
@@ -286,7 +301,7 @@ function drawCoverPage(
   // כותרת ראשית
   doc.setFontSize(CONFIG.FONTS.TITLE + 6);
   doc.setTextColor(30, 41, 59);
-  const mainTitle = isHebrew ? 'התמונה המלאה שלך' : 'Your Full Picture';
+  const mainTitle = isHebrew ? prepareText('התמונה המלאה שלך', true) : 'Your Full Picture';
   doc.text(mainTitle, centerX, yPos, { align: 'center' });
   yPos += 12;
 
@@ -294,7 +309,7 @@ function drawCoverPage(
   doc.setFontSize(CONFIG.FONTS.SUBTITLE);
   doc.setTextColor(100, 116, 139);
   const subtitle = isHebrew
-    ? 'תובנות עמוקות על האישיות, הערכים והזוגיות שלך'
+    ? prepareText('תובנות עמוקות על האישיות, הערכים והזוגיות שלך', true)
     : 'Deep insights into your personality, values & relationships';
   doc.text(subtitle, centerX, yPos, { align: 'center' });
   yPos += 25;
@@ -314,7 +329,7 @@ function drawCoverPage(
     doc.setFontSize(CONFIG.FONTS.SUBTITLE + 4);
     doc.setTextColor(99, 102, 241);
     const nameLabel = isHebrew
-      ? 'הוכן עבור: ' + data.userName
+      ? prepareText('הוכן עבור: ' + data.userName, true)
       : 'Prepared for: ' + data.userName;
     doc.text(nameLabel, centerX, yPos, { align: 'center' });
     yPos += 15;
@@ -328,7 +343,7 @@ function drawCoverPage(
   if (isHebrew) {
     const hebrewDate = formatHebrewDate(today);
     const numericDate = formatDateNumbers(today);
-    const dateText = hebrewDate + ' (' + numericDate + ')';
+    const dateText = prepareText(hebrewDate + ' (' + numericDate + ')', true);
     doc.text(dateText, centerX, yPos, { align: 'center' });
   } else {
     const options: Intl.DateTimeFormatOptions = {
@@ -353,7 +368,9 @@ function drawCoverPage(
 
   doc.text('NeshamaTech', centerX, pageHeight - 25, { align: 'center' });
 
-  const footerTagline = isHebrew ? 'כי נשמה פוגשת טכנולוגיה' : 'Where Soul Meets Technology';
+  const footerTagline = isHebrew 
+    ? prepareText('כי נשמה פוגשת טכנולוגיה', true) 
+    : 'Where Soul Meets Technology';
   doc.text(footerTagline, centerX, pageHeight - 18, { align: 'center' });
 }
 
@@ -437,7 +454,9 @@ function drawCompletionBadge(
   // טקסט
   doc.setFontSize(CONFIG.FONTS.SMALL);
   doc.setTextColor(34, 197, 94);
-  const badgeText = isHebrew ? percent + '% הושלם' : percent + '% Complete';
+  const badgeText = isHebrew 
+    ? prepareText(percent + '% הושלם', true) 
+    : percent + '% Complete';
   doc.text(badgeText, x, y + 3, { align: 'center' });
 }
 
@@ -483,19 +502,20 @@ function drawQuoteBox(
   doc.setFontSize(CONFIG.FONTS.BODY);
   doc.setTextColor(51, 65, 85);
 
+  const quoteText = prepareText(quote.text, isHebrew);
   if (isHebrew) {
-    doc.text(quote.text, pageWidth - margin - 10, boxY + 15, {
+    doc.text(quoteText, pageWidth - margin - 10, boxY + 15, {
       align: 'right',
       maxWidth: maxWidth - 20,
     });
   } else {
-    doc.text(quote.text, margin + 10, boxY + 15, { maxWidth: maxWidth - 20 });
+    doc.text(quoteText, margin + 10, boxY + 15, { maxWidth: maxWidth - 20 });
   }
 
   // מקור הציטוט
   doc.setFontSize(CONFIG.FONTS.SMALL);
   doc.setTextColor(148, 163, 184);
-  const authorText = '— ' + quote.author;
+  const authorText = prepareText('— ' + quote.author, isHebrew);
 
   if (isHebrew) {
     doc.text(authorText, margin + 10, boxY + boxHeight - 8);
@@ -536,7 +556,8 @@ function drawOneLiner(
   // טקסט
   doc.setFontSize(CONFIG.FONTS.BODY + 1);
   doc.setTextColor(120, 53, 15);
-  doc.text(text, centerX, startY + 14, { align: 'center' });
+  const displayText = prepareText(text, isHebrew);
+  doc.text(displayText, centerX, startY + 14, { align: 'center' });
 
   return startY + 26;
 }
@@ -575,7 +596,7 @@ function drawSection(
 
   // הכותרת עם אימוג'י
   const title = isHebrew ? info.titleHe : info.titleEn;
-  const displayTitle = info.emoji + ' ' + title;
+  const displayTitle = info.emoji + ' ' + prepareText(title, isHebrew);
 
   if (isHebrew) {
     doc.text(displayTitle, pageWidth - margin - 5, yPos + 6, { align: 'right' });
@@ -589,7 +610,8 @@ function drawSection(
   doc.setFontSize(CONFIG.FONTS.BODY);
   doc.setTextColor(30, 41, 59);
 
-  const summaryLines = doc.splitTextToSize(content.summary, maxWidth - 8);
+  const preparedSummary = prepareText(content.summary, isHebrew);
+  const summaryLines = doc.splitTextToSize(preparedSummary, maxWidth - 8);
   for (let i = 0; i < summaryLines.length; i++) {
     const line = summaryLines[i];
     if (yPos > pageHeight - 25) {
@@ -625,7 +647,8 @@ function drawSection(
       // טקסט
       doc.setFontSize(CONFIG.FONTS.BODY);
       doc.setTextColor(51, 65, 85);
-      const detailLines = doc.splitTextToSize(detail, maxWidth - 14);
+      const preparedDetail = prepareText(detail, isHebrew);
+      const detailLines = doc.splitTextToSize(preparedDetail, maxWidth - 14);
 
       for (let j = 0; j < detailLines.length; j++) {
         const detailLine = detailLines[j];
@@ -672,7 +695,7 @@ function drawStrengthsSection(
 
   doc.setFontSize(CONFIG.FONTS.SECTION_TITLE);
   doc.setTextColor(255, 255, 255);
-  const title = info.emoji + ' ' + (isHebrew ? info.titleHe : info.titleEn);
+  const title = info.emoji + ' ' + prepareText(isHebrew ? info.titleHe : info.titleEn, isHebrew);
 
   if (isHebrew) {
     doc.text(title, pageWidth - margin - 5, yPos + 6, { align: 'right' });
@@ -693,7 +716,7 @@ function drawStrengthsSection(
     // כותרת החוזקה
     doc.setFontSize(CONFIG.FONTS.BODY);
     doc.setTextColor(120, 53, 15);
-    const strengthTitle = '⭐ ' + strength.title;
+    const strengthTitle = '⭐ ' + prepareText(strength.title, isHebrew);
 
     if (isHebrew) {
       doc.text(strengthTitle, pageWidth - margin - 8, yPos + 5, { align: 'right' });
@@ -704,14 +727,15 @@ function drawStrengthsSection(
     // תיאור
     doc.setFontSize(CONFIG.FONTS.SMALL);
     doc.setTextColor(71, 85, 105);
+    const strengthDesc = prepareText(strength.description, isHebrew);
 
     if (isHebrew) {
-      doc.text(strength.description, pageWidth - margin - 8, yPos + 12, {
+      doc.text(strengthDesc, pageWidth - margin - 8, yPos + 12, {
         align: 'right',
         maxWidth: maxWidth - 20,
       });
     } else {
-      doc.text(strength.description, margin + 8, yPos + 12, { maxWidth: maxWidth - 20 });
+      doc.text(strengthDesc, margin + 8, yPos + 12, { maxWidth: maxWidth - 20 });
     }
 
     yPos += 22;
@@ -747,7 +771,9 @@ function drawThreeThingsBox(
   // כותרת
   doc.setFontSize(CONFIG.FONTS.BODY + 1);
   doc.setTextColor(30, 64, 175);
-  const boxTitle = isHebrew ? '🎯 3 דברים לזכור' : '🎯 3 Things to Remember';
+  const boxTitle = isHebrew 
+    ? prepareText('🎯 3 דברים לזכור', true) 
+    : '🎯 3 Things to Remember';
   doc.text(boxTitle, pageWidth / 2, startY + 10, { align: 'center' });
 
   // הפריטים
@@ -760,11 +786,12 @@ function drawThreeThingsBox(
   for (let i = 0; i < itemsToShow.length; i++) {
     const thing = itemsToShow[i];
     const number = (i + 1) + '.';
+    const itemText = prepareText(number + ' ' + thing, isHebrew);
 
     if (isHebrew) {
-      doc.text(number + ' ' + thing, pageWidth - margin - 10, itemY, { align: 'right' });
+      doc.text(itemText, pageWidth - margin - 10, itemY, { align: 'right' });
     } else {
-      doc.text(number + ' ' + thing, margin + 10, itemY);
+      doc.text(itemText, margin + 10, itemY);
     }
     itemY += 9;
   }
@@ -794,7 +821,7 @@ function drawSummaryPage(
   // כותרת
   doc.setFontSize(CONFIG.FONTS.TITLE);
   doc.setTextColor(30, 41, 59);
-  const summaryTitle = isHebrew ? 'לסיכום...' : 'In Summary...';
+  const summaryTitle = isHebrew ? prepareText('לסיכום...', true) : 'In Summary...';
   doc.text(summaryTitle, centerX, yPos, { align: 'center' });
   yPos += 20;
 
@@ -833,7 +860,8 @@ function drawSummaryPage(
 
   for (let i = 0; i < closingMessages.length; i++) {
     const line = closingMessages[i];
-    doc.text(line, centerX, yPos, { align: 'center' });
+    const displayLine = prepareText(line, isHebrew);
+    doc.text(displayLine, centerX, yPos, { align: 'center' });
     yPos += 8;
   }
 
@@ -848,7 +876,7 @@ function drawSummaryPage(
   doc.setTextColor(148, 163, 184);
 
   const createdText = isHebrew
-    ? 'נוצר ב-' + formatDateNumbers(new Date())
+    ? prepareText('נוצר ב-' + formatDateNumbers(new Date()), true)
     : 'Created on ' + new Date().toLocaleDateString('en-US');
   doc.text(createdText, centerX, yPos, { align: 'center' });
 
@@ -884,10 +912,11 @@ function addHeaderToPages(
 
     doc.text('NeshamaTech', margin, 8);
     if (userName) {
+      const displayName = prepareText(userName, isHebrew);
       if (isHebrew) {
-        doc.text(userName, pageWidth - margin, 8, { align: 'right' });
+        doc.text(displayName, pageWidth - margin, 8, { align: 'right' });
       } else {
-        doc.text(userName, pageWidth - margin, 8, { align: 'right' });
+        doc.text(displayName, pageWidth - margin, 8, { align: 'right' });
       }
     }
   }
@@ -919,15 +948,16 @@ function addFooterToAllPages(
 
     // טקסט מרכזי (לא בעמוד הראשון שכבר יש לו footer)
     if (i > 1) {
-      const centerText = isHebrew ? 'מערכת שידוכים מתקדמת' : 'Advanced Matchmaking System';
-      // טקסט מעורב - משתמשים ב-prepareHebrewText
-      const footerText = prepareHebrewText('NeshamaTech - ' + centerText);
+      const centerText = isHebrew 
+        ? prepareText('מערכת שידוכים מתקדמת', true) 
+        : 'Advanced Matchmaking System';
+      const footerText = 'NeshamaTech - ' + centerText;
       doc.text(footerText, pageWidth / 2, pageHeight - 8, { align: 'center' });
     }
 
     // מספר עמוד
     const pageNumText = isHebrew
-      ? 'עמוד ' + i + ' מתוך ' + pageCount
+      ? prepareText('עמוד ' + i + ' מתוך ' + pageCount, true)
       : 'Page ' + i + ' of ' + pageCount;
 
     if (isHebrew) {
