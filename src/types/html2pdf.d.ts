@@ -13,6 +13,7 @@ declare module 'html2pdf.js' {
       letterRendering?: boolean;
       logging?: boolean;
       backgroundColor?: string;
+      windowWidth?: number;
     };
     jsPDF?: {
       unit?: 'pt' | 'mm' | 'cm' | 'in';
@@ -34,7 +35,7 @@ declare module 'html2pdf.js' {
     save(): Promise<void>;
     output(type: 'datauristring' | 'blob' | 'pdf'): Promise<string | Blob>;
     toPdf(): Html2Pdf;
-    get(type: 'pdf'): any;
+    get(type: 'pdf'): unknown;
   }
 
   function html2pdf(): Html2Pdf;
