@@ -1,19 +1,20 @@
 import { PrismaClient, UserStatus } from '@prisma/client';
-import * as fs from 'fs'; // מייבאים את ספריית הקבצים
+import * as fs from 'fs';
 
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log('--- 📋 מתחיל עיבוד נתונים... ---');
+  console.log('--- 📋 מתחיל עיבוד נתונים (כולל בדיקת תמונות - images)... ---');
 
   const users = await prisma.user.findMany({
     where: {
       role: 'CANDIDATE',
       OR: [
-        { isVerified: false },
-        { isPhoneVerified: false },
-        { isProfileComplete: false },
-        { status: { not: UserStatus.ACTIVE } }
+        { isVerified: false },            // לא אימת מייל
+        { isPhoneVerified: false },       // לא אימת טלפון
+        { isProfileComplete: false },     // לא סיים שאלון
+        { status: { not: UserStatus.ACTIVE } }, // סטטוס לא פעיל
+        { images: { none: {} } }          // <--- תוקן: שימוש ב-images לפי ה-Schema שלך
       ]
     },
     select: {
@@ -24,44 +25,53 @@ async function main() {
       isVerified: true,
       isPhoneVerified: true,
       isProfileComplete: true,
-      createdAt: true
+      createdAt: true,
+      _count: {
+        select: { images: true }          // <--- תוקן: ספירה של images
+      }
     }
   });
 
   if (users.length === 0) {
-    console.log('✅ כל המשתמשים השלימו את ההרשמה! לא נוצר קובץ.');
+    console.log('✅ כולם השלימו הכל (כולל תמונות)! לא נוצר קובץ.');
     return;
   }
 
-  // הכנת הכותרות לקובץ ה-CSV
-  const headers = ['Email', 'First Name', 'Last Name', 'Stuck At Stage', 'Created At'];
+  // כותרות ל-CSV
+  const headers = ['Email', 'First Name', 'Last Name', 'Stuck At Stage', 'Image Count', 'Created At'];
   
-  // המרת המשתמשים לשורות ב-CSV
   const rows = users.map(u => {
-    // זיהוי השלב בו המשתמש נתקע
     let stage = 'Unknown';
-    if (!u.isVerified) stage = 'Email Verification';
-    else if (!u.isProfileComplete) stage = 'Profile Completion';
-    else if (!u.isPhoneVerified) stage = 'WhatsApp Verification';
-    else if (u.status !== UserStatus.ACTIVE) stage = `Status: ${u.status}`;
+    const imageCount = u._count.images; // <--- שימוש בשדה הנכון
 
-    // ניקוי פסיקים מהשמות כדי לא לשבור את ה-CSV
+    // סדר הבדיקות (המשפך):
+    if (!u.isVerified) {
+      stage = 'Email Verification';
+    } else if (!u.isProfileComplete) {
+      stage = 'Profile Questions';
+    } else if (imageCount === 0) {
+      stage = 'Missing Photos';    // <--- מי שסיים פרופיל אבל אין לו תמונות (images)
+    } else if (!u.isPhoneVerified) {
+      stage = 'WhatsApp Verification';
+    } else if (u.status !== UserStatus.ACTIVE) {
+      stage = `Status: ${u.status}`;
+    }
+
+    // ניקוי שמות מפסיקים למניעת שבירת ה-CSV
     const cleanFirst = (u.firstName || '').replace(/,/g, ' ');
     const cleanLast = (u.lastName || '').replace(/,/g, ' ');
 
-    return `${u.email},${cleanFirst},${cleanLast},${stage},${u.createdAt.toISOString()}`;
+    return `${u.email},${cleanFirst},${cleanLast},${stage},${imageCount},${u.createdAt.toISOString()}`;
   });
 
-  // חיבור הכל לטקסט אחד
-  // \uFEFF - זה תו מיוחד שגורם לאקסל להבין שמדובר בעברית/יוניקוד
+  // יצירת תוכן ה-CSV (עם BOM לעברית)
   const csvContent = '\uFEFF' + [headers.join(','), ...rows].join('\n');
 
-  // שמירה לקובץ
-  const fileName = 'incomplete_users.csv';
+  const fileName = 'incomplete_users_final.csv';
   fs.writeFileSync(fileName, csvContent);
 
   console.log(`\n✅ הקובץ נוצר בהצלחה: ${fileName}`);
-  console.log(`נמצאו ${users.length} משתמשים שלא סיימו הרשמה.`);
+  console.log(`סה"כ משתמשים שלא סיימו תהליך: ${users.length}`);
 }
 
 main()

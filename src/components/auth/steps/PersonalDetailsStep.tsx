@@ -65,7 +65,9 @@ import ConsentCheckbox from '../ConsentCheckbox';
 
 // Types
 import type { RegisterStepsDict } from '@/types/dictionaries/auth';
+import type { User as SessionUserType } from '@/types/next-auth'; // ייבוא טיפוס משתמש
 
+// ... (SimpleConsentBox, inputBaseClasses, FieldWrapper, SectionHeader, containerVariants, itemVariants remain unchanged) ...
 // ============================================================================
 // COMPONENT: SimpleConsentBox
 // ============================================================================
@@ -247,7 +249,7 @@ export default function PersonalDetailsStep({
     updateSubmission,
     endSubmission,
   } = useRegistration();
-  const { data: session } = useSession();
+  const { data: session, update: updateSession } = useSession(); // Added updateSession
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -326,9 +328,10 @@ export default function PersonalDetailsStep({
 
   useEffect(() => {
     router.prefetch(`/${locale}/auth/verify-phone`);
+    router.prefetch(`/${locale}/profile`); // Prefetch profile as well
   }, [router, locale]);
 
-  // Handlers
+  // Handlers (Photos, Age validation, etc. - keep as is)
   const handlePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
@@ -453,6 +456,7 @@ export default function PersonalDetailsStep({
     }
   };
 
+  // ==================== UPDATED SUBMIT LOGIC ====================
   const handleSubmit = async () => {
     setApiError(null);
     setConsentError(null);
@@ -468,6 +472,7 @@ export default function PersonalDetailsStep({
     const currentMissing: string[] = [];
     let hasError = false;
 
+    // Validation
     if (!registrationState.firstName.trim()) {
       setFirstNameError(personalDetailsDict.errors.firstNameRequired);
       currentMissing.push(validationDict.fields.firstName);
@@ -498,8 +503,6 @@ export default function PersonalDetailsStep({
       currentMissing.push(validationDict.fields.birthDate);
       hasError = true;
     }
-
-    // City Validation
     if (!registrationState.city || !registrationState.city.trim()) {
       setCityError(
         personalDetailsDict.errors.cityRequired || 'נא לבחור עיר מגורים'
@@ -507,7 +510,6 @@ export default function PersonalDetailsStep({
       currentMissing.push(personalDetailsDict.cityLabel || 'עיר');
       hasError = true;
     }
-
     if (!registrationState.maritalStatus) {
       currentMissing.push(validationDict.fields.maritalStatus);
       hasError = true;
@@ -549,14 +551,14 @@ export default function PersonalDetailsStep({
     }
 
     setIsLoading(true);
+
     try {
-      // Start the full-screen loading via context
+      // 1. Consent
       if (!userHasAlreadyConsented) {
         startSubmission(
           optionalInfoDict.loadingOverlay?.acceptingTerms ||
             'מאשר תנאי שימוש...',
-          optionalInfoDict.loadingOverlay?.subtitle ||
-            'זה לוקח רק מספר שניות...'
+          optionalInfoDict.loadingOverlay?.subtitle
         );
         const consentResponse = await fetch('/api/user/accept-terms', {
           method: 'POST',
@@ -567,16 +569,15 @@ export default function PersonalDetailsStep({
         startSubmission(
           optionalInfoDict.loadingOverlay?.savingProfile ||
             optionalInfoDict.status.saving,
-          optionalInfoDict.loadingOverlay?.subtitle ||
-            'זה לוקח רק מספר שניות...'
+          optionalInfoDict.loadingOverlay?.subtitle
         );
       }
 
+      // 2. Profile Data
       updateSubmission(
         'savingProfile',
         optionalInfoDict.loadingOverlay?.savingProfile ||
-          optionalInfoDict.status.saving,
-        optionalInfoDict.loadingOverlay?.savingProfileSubtext
+          optionalInfoDict.status.saving
       );
 
       const profileData = {
@@ -607,6 +608,7 @@ export default function PersonalDetailsStep({
         throw new Error(errorData.error || optionalInfoDict.errors.default);
       }
 
+      // 3. Upload Photos
       if (uploadedPhotos.length > 0) {
         updateSubmission(
           'uploadingPhotos',
@@ -615,27 +617,42 @@ export default function PersonalDetailsStep({
         await uploadPhotosToServer();
       }
 
-      updateSubmission(
-        'sendingCode',
-        optionalInfoDict.loadingOverlay?.sendingCode ||
-          optionalInfoDict.status.sendingCode,
-        optionalInfoDict.loadingOverlay?.sendingCodeSubtext
-      );
+      // 4. Update session to get latest User status
+      await updateSession();
+      const currentUser = session?.user as SessionUserType | undefined;
+      const isAlreadyPhoneVerified = currentUser?.isPhoneVerified;
 
-      const sendCodeResponse = await fetch('/api/auth/send-phone-code', {
-        method: 'POST',
-      });
-      if (!sendCodeResponse.ok) {
-        const errorData = await sendCodeResponse.json();
-        throw new Error(errorData.error || optionalInfoDict.errors.default);
+      // 5. Logic Branch: Verify Phone OR Go to Profile
+      if (isAlreadyPhoneVerified) {
+        // If user is ALREADY verified, skip sending code and go to profile
+        updateSubmission(
+          'redirecting',
+          optionalInfoDict.loadingOverlay?.redirecting || 'מעביר לפרופיל...'
+        );
+        router.push(`/${locale}/profile`);
+      } else {
+        // Normal flow: Send code and go to verify-phone
+        updateSubmission(
+          'sendingCode',
+          optionalInfoDict.loadingOverlay?.sendingCode ||
+            optionalInfoDict.status.sendingCode
+        );
+
+        const sendCodeResponse = await fetch('/api/auth/send-phone-code', {
+          method: 'POST',
+        });
+        if (!sendCodeResponse.ok) {
+          const errorData = await sendCodeResponse.json();
+          throw new Error(errorData.error || optionalInfoDict.errors.default);
+        }
+
+        updateSubmission(
+          'redirecting',
+          optionalInfoDict.loadingOverlay?.redirecting ||
+            'מעביר לאימות טלפון...'
+        );
+        router.push(`/${locale}/auth/verify-phone`);
       }
-
-      updateSubmission(
-        'redirecting',
-        optionalInfoDict.loadingOverlay?.redirecting || 'מעביר לאימות טלפון...'
-      );
-
-      router.push(`/${locale}/auth/verify-phone`);
     } catch (err) {
       endSubmission(true);
       setApiError(
@@ -652,6 +669,8 @@ export default function PersonalDetailsStep({
       animate="visible"
       className="space-y-8"
     >
+      {/* ... (Rest of the JSX remains exactly the same as provided in the question) ... */}
+
       <motion.div
         variants={itemVariants}
         className="text-center p-4 bg-gradient-to-r from-teal-50 via-orange-50 to-rose-50 rounded-2xl border border-teal-100"
@@ -717,6 +736,9 @@ export default function PersonalDetailsStep({
         )}
       </AnimatePresence>
 
+      {/* ... (The rest of the form UI remains unchanged) ... */}
+
+      {/* SECTION: Personal Details Fields */}
       <div className="space-y-6">
         <SectionHeader
           icon={<User className="w-5 h-5" />}
