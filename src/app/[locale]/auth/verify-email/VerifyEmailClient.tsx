@@ -466,6 +466,12 @@ export default function VerifyEmailClient({
                           {dict.checkYourInbox}
                         </p>
 
+                        {/* Spam Notice */}
+                        <div className="flex items-center justify-center gap-2 text-sm text-amber-600 bg-amber-50 rounded-lg p-3 border border-amber-200">
+                          <Mail className="h-4 w-4 flex-shrink-0" />
+                          <span>{dict.spamNotice}</span>
+                        </div>
+
                         <motion.div whileHover={{ scale: 1.02 }}>
                           {/* Resend Button: Teal -> Orange */}
                           <Button

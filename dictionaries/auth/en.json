@@ -83,8 +83,8 @@
     "backToSignInButton": "Back to Sign In",
     "emailSentTo": "We've sent a verification email to the address:",
     "emailAddressNotSpecified": "Address not specified",
-    "checkYourInbox": "Please check your inbox and click the link to verify your account.",
-    "errors": {
+"checkYourInbox": "Please check your inbox and click the link to verify your account.",
+"spamNotice": "Can't find the email? Check your spam or junk folder",    "errors": {
       "title": "Error",
       "noEmail": "Cannot resend without an email address.",
       "linkInvalid": "The verification link is invalid (missing required information).",
@@ -228,6 +228,10 @@
         "nextButton": "Create Account & Continue to Verification",
         "nextButtonLoading": "Creating account...",
         "termsDisclaimer": "By clicking 'Create Account', I agree to the Terms of Use and Privacy Policy.",
+        "existingUser": {
+  "loggingIn": "Recognizing you...",
+  "loggingInDescription": "Looks like you already registered! Trying to log in with your password..."
+},
         "errors": {
           "title": "Registration Error",
           "invalidEmail": "Invalid email address",

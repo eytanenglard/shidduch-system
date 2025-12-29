@@ -1,9 +1,8 @@
 // src/app/[locale]/auth/forgot-password/ForgotPasswordClient.tsx
 'use client';
 
-import { useState, FormEvent } from 'react';
-import { useRouter } from 'next/navigation';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useState, FormEvent, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import {
   Mail,

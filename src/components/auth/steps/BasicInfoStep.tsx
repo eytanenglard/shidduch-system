@@ -16,11 +16,14 @@ import {
   Eye,
   EyeOff,
   ListChecks,
+  LogIn,
+  KeyRound,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { RegisterStepsDict } from '@/types/dictionaries/auth';
 import { Input } from '@/components/ui/input';
 import { signIn } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 
 interface BasicInfoStepProps {
   dict: RegisterStepsDict['steps']['basicInfo'];
@@ -59,6 +62,7 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
 }) => {
   const { data, updateField, prevStep, proceedToEmailVerification } =
     useRegistration();
+  const router = useRouter();
 
   // ניהול מצבי שגיאה מקומיים
   const [passwordError, setPasswordError] = useState('');
@@ -68,10 +72,15 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
 
-  // ========== 🔴 הוספה: מצב להצגת הצעת Google ==========
+  // מצב להצגת הצעת Google
   const [showGoogleSuggestion, setShowGoogleSuggestion] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
-  // =====================================================
+
+  // ========== 🔴 הוספה: מצבים חדשים לטיפול במייל קיים ==========
+  const [isAttemptingLogin, setIsAttemptingLogin] = useState(false);
+  const [showExistingUserOptions, setShowExistingUserOptions] = useState(false);
+  const [existingUserEmail, setExistingUserEmail] = useState('');
+  // =============================================================
 
   // ניהול נראות סיסמה
   const [passwordVisible, setPasswordVisible] = useState(false);
@@ -79,7 +88,7 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
   // רשימת השדות החסרים לתצוגה בראש הטופס
   const [missingFields, setMissingFields] = useState<string[]>([]);
 
-  // ========== 🔴 הוספה: פונקציה להרשמה עם Google ==========
+  // פונקציה להרשמה עם Google
   const handleGoogleSignup = async () => {
     setIsGoogleLoading(true);
     try {
@@ -92,7 +101,83 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
       setIsGoogleLoading(false);
     }
   };
-  // =======================================================
+
+  // ========== 🔴 הוספה: פונקציה לניסיון התחברות עם מייל קיים ==========
+  const handleAttemptLoginWithExistingEmail = async () => {
+    setIsAttemptingLogin(true);
+    setApiError(null);
+
+    try {
+      console.log(
+        '[BasicInfoStep] Attempting login for existing email:',
+        data.email
+      );
+
+      const result = await signIn('credentials', {
+        email: data.email.toLowerCase(),
+        password: data.password,
+        redirect: false, // חשוב! לא לעשות redirect אוטומטי כדי שנוכל לטפל בתוצאה
+      });
+
+      console.log('[BasicInfoStep] SignIn result:', result);
+
+      if (result?.error) {
+        // הסיסמה שגויה - הפנה לדף שחזור סיסמה
+        console.log(
+          '[BasicInfoStep] Login failed - redirecting to forgot password'
+        );
+        router.push(
+          `/${locale}/auth/forgot-password?email=${encodeURIComponent(data.email)}`
+        );
+        return;
+      }
+
+      if (result?.ok) {
+        // ההתחברות הצליחה! נקבל את הסשן ונפנה לפי redirectUrl
+        console.log(
+          '[BasicInfoStep] Login successful - fetching session for redirect'
+        );
+
+        // מחכים רגע לסשן להתעדכן
+        await new Promise((resolve) => setTimeout(resolve, 500));
+
+        // מביאים את הסשן המעודכן כדי לדעת לאן להפנות
+        const sessionResponse = await fetch('/api/auth/session');
+        const session = await sessionResponse.json();
+
+        console.log('[BasicInfoStep] Session after login:', session);
+
+        if (session?.redirectUrl) {
+          console.log('[BasicInfoStep] Redirecting to:', session.redirectUrl);
+          router.push(session.redirectUrl);
+        } else if (session?.user) {
+          // אם אין redirectUrl ספציפי, נפנה לפרופיל
+          console.log('[BasicInfoStep] No redirectUrl, going to profile');
+          router.push('/profile');
+        } else {
+          // משהו לא עבד - ננסה להפנות לדף הראשי
+          console.log('[BasicInfoStep] No session found, going to home');
+          router.push('/');
+        }
+      }
+    } catch (error) {
+      console.error('[BasicInfoStep] Error during login attempt:', error);
+      // במקרה של שגיאה כללית - הפנה לשחזור סיסמה
+      router.push(
+        `/${locale}/auth/forgot-password?email=${encodeURIComponent(data.email)}`
+      );
+    } finally {
+      setIsAttemptingLogin(false);
+    }
+  };
+
+  // פונקציה להפניה ישירה לשחזור סיסמה
+  const handleGoToForgotPassword = () => {
+    router.push(
+      `/${locale}/auth/forgot-password?email=${encodeURIComponent(existingUserEmail || data.email)}`
+    );
+  };
+  // ====================================================================
 
   const handleRegisterSubmit = async () => {
     // 1. איפוס שגיאות קודמות
@@ -100,7 +185,8 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
     setMissingFields([]);
     setEmailError('');
     setPasswordError('');
-    setShowGoogleSuggestion(false); // ========== 🔴 הוספה ==========
+    setShowGoogleSuggestion(false);
+    setShowExistingUserOptions(false); // 🔴 הוספה
 
     let hasError = false;
     const currentMissing: string[] = [];
@@ -159,8 +245,23 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
       const result = await response.json();
 
       if (!response.ok) {
-        // ========== 🔴 הוספה: בדיקה אם להציע הרשמה עם Google ==========
         const errorCode = result.errorCode || '';
+
+        // ========== 🔴 תיקון: טיפול מיוחד בשגיאת EMAIL_EXISTS ==========
+        if (errorCode === 'EMAIL_EXISTS') {
+          console.log(
+            '[BasicInfoStep] Email exists - attempting automatic login'
+          );
+          setExistingUserEmail(data.email);
+          setIsLoading(false);
+
+          // ננסה להתחבר אוטומטית עם הסיסמה שהוזנה
+          await handleAttemptLoginWithExistingEmail();
+          return;
+        }
+        // ================================================================
+
+        // בדיקה אם להציע הרשמה עם Google (שגיאות DB)
         if (
           GOOGLE_SIGNUP_SUGGESTED_ERRORS.includes(errorCode) ||
           result.error?.includes('שגיאת חיבור') ||
@@ -168,7 +269,7 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
         ) {
           setShowGoogleSuggestion(true);
         }
-        // ==============================================================
+
         throw new Error(result.error || dict.errors.default);
       }
 
@@ -191,6 +292,8 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
     visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
   };
 
+  const isRTL = locale === 'he';
+
   return (
     <motion.div
       className="space-y-5"
@@ -198,6 +301,33 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
       initial="hidden"
       animate="visible"
     >
+      {/* ========== 🔴 הוספה: הודעה בזמן ניסיון התחברות אוטומטי ========== */}
+      <AnimatePresence>
+        {isAttemptingLogin && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+          >
+            <div className="bg-white rounded-2xl p-8 shadow-2xl text-center max-w-sm mx-4">
+              <Loader2 className="h-12 w-12 animate-spin text-teal-500 mx-auto mb-4" />
+              <h3 className="text-lg font-bold text-gray-800 mb-2">
+                {dict.existingUser?.loggingIn ||
+                  (locale === 'he' ? 'מזהים אותך...' : 'Recognizing you...')}
+              </h3>
+              <p className="text-gray-600 text-sm">
+                {dict.existingUser?.loggingInDescription ||
+                  (locale === 'he'
+                    ? 'נראה שכבר נרשמת אלינו! מנסים להתחבר עם הסיסמה שהזנת...'
+                    : 'Looks like you already registered! Trying to log in with your password...')}
+              </p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+      {/* ================================================================= */}
+
       {/* התראת שגיאה כללית (מהשרת) */}
       {apiError && (
         <motion.div variants={itemVariants}>
@@ -209,7 +339,7 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
         </motion.div>
       )}
 
-      {/* ========== 🔴 הוספה: הצעה להירשם עם Google ==========  */}
+      {/* הצעה להירשם עם Google (שגיאות DB) */}
       <AnimatePresence>
         {showGoogleSuggestion && (
           <motion.div
@@ -272,7 +402,6 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
           </motion.div>
         )}
       </AnimatePresence>
-      {/* ========================================================= */}
 
       {/* התראת ולידציה (שדות חסרים) */}
       <AnimatePresence>
@@ -344,9 +473,9 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
                 )
               }
               placeholder={dict.emailPlaceholder}
-              disabled={isLoading}
+              disabled={isLoading || isAttemptingLogin}
               className={`w-full pr-10 pl-3 py-3 border rounded-lg focus:ring-2 focus:outline-none transition-colors 
-                ${isLoading ? 'bg-gray-100' : ''} 
+                ${isLoading || isAttemptingLogin ? 'bg-gray-100' : ''} 
                 ${
                   emailError ||
                   missingFields.includes(validationDict.fields.email)
@@ -388,9 +517,9 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
                 )
               }
               placeholder={dict.passwordPlaceholder}
-              disabled={isLoading}
+              disabled={isLoading || isAttemptingLogin}
               className={`w-full pr-10 pl-10 py-3 border rounded-lg focus:ring-2 focus:outline-none transition-colors 
-                ${isLoading ? 'bg-gray-100' : ''} 
+                ${isLoading || isAttemptingLogin ? 'bg-gray-100' : ''} 
                 ${
                   passwordError ||
                   missingFields.includes(validationDict.fields.password)
@@ -401,8 +530,8 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
             <button
               type="button"
               onClick={() => setPasswordVisible(!passwordVisible)}
-              className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
-              aria-label={passwordVisible ? 'הסתר סיסמה' : 'הצג סיסמה'}
+              className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              tabIndex={-1}
             >
               {passwordVisible ? (
                 <EyeOff className="h-5 w-5" />
@@ -411,144 +540,117 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
               )}
             </button>
           </div>
-          {passwordError ? (
+          {passwordError && (
             <p role="alert" className="text-red-500 text-xs mt-1">
               {passwordError}
             </p>
-          ) : (
-            <p className="text-gray-500 text-xs mt-1">{dict.passwordHint}</p>
           )}
+          <p className="text-xs text-gray-500 mt-1">{dict.passwordHint}</p>
         </div>
 
-        {/* שדה שם פרטי */}
-        <div className="space-y-1">
-          <label
-            htmlFor="firstNameBasic"
-            className="block text-sm font-medium text-gray-700"
-          >
-            {dict.firstNameLabel} <span className="text-red-500">*</span>
-          </label>
-          <div className="relative">
-            <User className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
-            <Input
-              type="text"
-              id="firstNameBasic"
-              value={data.firstName}
-              onChange={(e) => updateField('firstName', e.target.value)}
-              placeholder={dict.firstNamePlaceholder}
-              disabled={isLoading}
-              className={`w-full pr-10 pl-3 py-3 border rounded-lg focus:ring-2 focus:outline-none transition-colors 
-                ${isLoading ? 'bg-gray-100' : ''} 
-                ${
-                  missingFields.includes(validationDict.fields.firstName)
-                    ? 'border-red-500 focus:ring-red-200'
-                    : 'border-gray-300 focus:ring-teal-200 focus:border-teal-500'
-                }`}
-            />
+        {/* שדות שם */}
+        <div className="grid grid-cols-2 gap-4">
+          {/* שם פרטי */}
+          <div className="space-y-1">
+            <label
+              htmlFor="firstNameBasic"
+              className="block text-sm font-medium text-gray-700"
+            >
+              {dict.firstNameLabel} <span className="text-red-500">*</span>
+            </label>
+            <div className="relative">
+              <User className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+              <Input
+                type="text"
+                id="firstNameBasic"
+                value={data.firstName}
+                onChange={(e) => updateField('firstName', e.target.value)}
+                placeholder={dict.firstNamePlaceholder}
+                disabled={isLoading || isAttemptingLogin}
+                className={`w-full pr-10 pl-3 py-3 border rounded-lg focus:ring-2 focus:outline-none transition-colors
+                  ${isLoading || isAttemptingLogin ? 'bg-gray-100' : ''}
+                  ${
+                    missingFields.includes(validationDict.fields.firstName)
+                      ? 'border-red-500 focus:ring-red-200'
+                      : 'border-gray-300 focus:ring-teal-200 focus:border-teal-500'
+                  }`}
+              />
+            </div>
           </div>
-        </div>
 
-        {/* שדה שם משפחה */}
-        <div className="space-y-1">
-          <label
-            htmlFor="lastNameBasic"
-            className="block text-sm font-medium text-gray-700"
-          >
-            {dict.lastNameLabel} <span className="text-red-500">*</span>
-          </label>
-          <div className="relative">
-            <User className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
-            <Input
-              type="text"
-              id="lastNameBasic"
-              value={data.lastName}
-              onChange={(e) => updateField('lastName', e.target.value)}
-              placeholder={dict.lastNamePlaceholder}
-              disabled={isLoading}
-              className={`w-full pr-10 pl-3 py-3 border rounded-lg focus:ring-2 focus:outline-none transition-colors 
-                ${isLoading ? 'bg-gray-100' : ''} 
-                ${
-                  missingFields.includes(validationDict.fields.lastName)
-                    ? 'border-red-500 focus:ring-red-200'
-                    : 'border-gray-300 focus:ring-teal-200 focus:border-teal-500'
-                }`}
-            />
+          {/* שם משפחה */}
+          <div className="space-y-1">
+            <label
+              htmlFor="lastNameBasic"
+              className="block text-sm font-medium text-gray-700"
+            >
+              {dict.lastNameLabel} <span className="text-red-500">*</span>
+            </label>
+            <div className="relative">
+              <User className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+              <Input
+                type="text"
+                id="lastNameBasic"
+                value={data.lastName}
+                onChange={(e) => updateField('lastName', e.target.value)}
+                placeholder={dict.lastNamePlaceholder}
+                disabled={isLoading || isAttemptingLogin}
+                className={`w-full pr-10 pl-3 py-3 border rounded-lg focus:ring-2 focus:outline-none transition-colors
+                  ${isLoading || isAttemptingLogin ? 'bg-gray-100' : ''}
+                  ${
+                    missingFields.includes(validationDict.fields.lastName)
+                      ? 'border-red-500 focus:ring-red-200'
+                      : 'border-gray-300 focus:ring-teal-200 focus:border-teal-500'
+                  }`}
+              />
+            </div>
           </div>
         </div>
       </motion.div>
 
-      {/* בחירת שפה */}
-      <motion.div variants={itemVariants} className="space-y-1">
-        <label
-          htmlFor="language"
-          className="block text-sm font-medium text-gray-700"
-        >
-          {dict.languageLabel}
-        </label>
-        <select
-          id="language"
-          value={data.language}
-          onChange={(e) =>
-            updateField('language', e.target.value as 'he' | 'en')
-          }
-          disabled={isLoading}
-          className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-200 focus:border-teal-500 focus:outline-none bg-white"
-        >
-          <option value="he">עברית</option>
-          <option value="en">English</option>
-        </select>
-      </motion.div>
-
-      {/* אזור הכפתורים */}
+      {/* כפתורי ניווט */}
       <motion.div
         variants={itemVariants}
-        className="pt-4 mt-6 border-t border-gray-200"
+        className="flex justify-between gap-4 pt-4"
       >
         <Button
           type="button"
+          onClick={prevStep}
+          variant="outline"
+          disabled={isLoading || isAttemptingLogin}
+          className="flex items-center gap-2"
+        >
+          {isRTL ? (
+            <ArrowRight className="h-4 w-4" />
+          ) : (
+            <ArrowLeft className="h-4 w-4" />
+          )}
+          {dict.backButton}
+        </Button>
+
+        <Button
+          type="button"
           onClick={handleRegisterSubmit}
-          disabled={isLoading}
-          className={`w-full flex items-center gap-2 justify-center text-white font-medium px-4 py-2.5 rounded-lg transition-all 
-            ${
-              isLoading
-                ? 'bg-gray-400 cursor-not-allowed'
-                : 'bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 hover:from-teal-600 hover:via-orange-600 hover:to-amber-600 shadow-md hover:shadow-lg'
-            }`}
+          disabled={isLoading || isAttemptingLogin}
+          className="flex-1 bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-white flex items-center justify-center gap-2"
         >
           {isLoading ? (
             <>
-              <Loader2 className="h-5 w-5 animate-spin mr-2" />
-              <span>{dict.nextButtonLoading}</span>
+              <Loader2 className="h-5 w-5 animate-spin" />
+              {dict.nextButtonLoading}
             </>
           ) : (
             <>
-              <span>{dict.nextButton}</span>
-              <ArrowLeft
-                className={`h-4 w-4 mr-2 ${locale === 'en' ? 'transform rotate-180' : ''}`}
-              />{' '}
+              {dict.nextButton}
+              {isRTL ? (
+                <ArrowLeft className="h-4 w-4" />
+              ) : (
+                <ArrowRight className="h-4 w-4" />
+              )}
             </>
           )}
         </Button>
-
-        <p className="text-[10px] text-gray-500 text-center mt-2 px-2">
-          {dict.termsDisclaimer}
-        </p>
       </motion.div>
-
-      <div className="flex justify-center mt-2">
-        <Button
-          type="button"
-          onClick={prevStep}
-          variant="ghost"
-          disabled={isLoading}
-          className="text-xs text-gray-400 hover:text-gray-600"
-        >
-          <ArrowRight
-            className={`h-3 w-3 ml-1 ${locale === 'en' ? 'transform rotate-180' : ''}`}
-          />{' '}
-          {dict.backButton}
-        </Button>
-      </div>
     </motion.div>
   );
 };

@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\auth
-# Generated on: 2025-12-29 10:41:47
+# Generated on: 2025-12-29 14:25:35
 # Filter: Only content of code files (.bat, .c, .cfg, .conf, .cpp, .cs, .css, .go, .h, .html, .ini, .java, .js, .json, .jsx, .kt, .less, .md, .php, .py, .rb, .rs, .scss, .sh, .sql, .swift, .ts, .tsx, .txt, .xml, .yaml, .yml) is included.
 ################################################################################
 
@@ -2107,7 +2107,15 @@ export default function SignInClient({ dict, locale }: SignInClientProps) {
   const handleGoogleSignIn = async () => {
     setIsGoogleLoading(true);
     setError('');
-    await signIn('google', undefined, { hl: locale });
+    await signIn(
+      'google',
+      {
+        callbackUrl: `/${locale}/auth/register`,
+      },
+      {
+        hl: locale,
+      }
+    );
   };
 
   // Show loading state
@@ -3158,6 +3166,12 @@ export default function VerifyEmailClient({
                           {dict.checkYourInbox}
                         </p>
 
+                        {/* Spam Notice */}
+                        <div className="flex items-center justify-center gap-2 text-sm text-amber-600 bg-amber-50 rounded-lg p-3 border border-amber-200">
+                          <Mail className="h-4 w-4 flex-shrink-0" />
+                          <span>{dict.spamNotice}</span>
+                        </div>
+
                         <motion.div whileHover={{ scale: 1.02 }}>
                           {/* Resend Button: Teal -> Orange */}
                           <Button
@@ -3695,6 +3709,14 @@ const VerifyPhoneClient: React.FC<VerifyPhoneClientProps> = ({
   );
 
   // Verify Code
+  // 🔴 תיקון לפונקציה handleVerifyCode בקובץ VerifyPhoneClient.tsx
+  // החלף את הפונקציה הקיימת (שורות 339-385) בקוד הבא:
+
+  // Verify Code
+// 🔴 תיקון לפונקציה handleVerifyCode בקובץ VerifyPhoneClient.tsx
+// החלף את הפונקציה הקיימת (שורות 339-385) בקוד הבא:
+
+  // Verify Code
   const handleVerifyCode = useCallback(
     async (e: FormEvent<HTMLFormElement>) => {
       e.preventDefault();
@@ -3725,17 +3747,15 @@ const VerifyPhoneClient: React.FC<VerifyPhoneClientProps> = ({
           throw new Error(data.error || dict.errors.default);
         }
 
+        // ✅ האימות הצליח
         setSuccessMessage(dict.success.verifying);
 
-        const updatedSession = await updateSession();
+        // 🔴 עדכון ה-session וניווט לפרופיל
+        await updateSession();
+        router.push(`/${locale}/profile`);
 
-        if (updatedSession?.user?.isPhoneVerified) {
-          router.push(`/${locale}/profile`);
-        } else {
-          setError('Failed to update session. Please try logging in again.');
-          setIsLoading(false);
-        }
       } catch (err: unknown) {
+        console.error('[VerifyPhoneClient] Verification error:', err);
         setError(err instanceof Error ? err.message : dict.errors.unexpected);
         setIsLoading(false);
       }

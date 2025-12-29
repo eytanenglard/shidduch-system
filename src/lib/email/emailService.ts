@@ -1,6 +1,6 @@
 // src/lib/email/emailService.ts
 
-import nodemailer from 'nodemailer';
+import { Resend } from 'resend';
 import { emailTemplates, TemplateContextMap } from './templates/emailTemplates';
 import { getDictionary } from '@/lib/dictionaries';
 import { EmailDictionary } from '@/types/dictionary';
@@ -152,19 +152,19 @@ interface PasswordChangedConfirmationParams {
 
 class EmailService {
   private static instance: EmailService;
-  private transporter: nodemailer.Transporter;
+  private resend: Resend;
+  private fromEmail: string;
   
   private constructor() {
-    this.transporter = nodemailer.createTransport({
-      service: process.env.EMAIL_SERVICE || 'gmail',
-      auth: {
-        user: process.env.GMAIL_USER || process.env.EMAIL_USER,
-        pass: process.env.GMAIL_APP_PASSWORD || process.env.EMAIL_PASS,
-      },
-      tls: {
-        rejectUnauthorized: process.env.NODE_ENV === 'production',
-      }
-    });
+    // בדיקה שה-API Key קיים
+    if (!process.env.RESEND_API_KEY) {
+      console.error('⚠️ RESEND_API_KEY is not defined in environment variables');
+    }
+    
+    this.resend = new Resend(process.env.RESEND_API_KEY);
+    
+    // כתובת השולח - משתמשים בדומיין המאומת
+    this.fromEmail = process.env.EMAIL_FROM || 'noreply@neshamatech.com';
   }
 
   public static getInstance(): EmailService {
@@ -209,7 +209,7 @@ class EmailService {
 
       const fullContext: TemplateContext = {
         ...context,
-        supportEmail: process.env.SUPPORT_EMAIL || 'support@example.com',
+        supportEmail: process.env.SUPPORT_EMAIL || 'support@neshamatech.com',
         companyName: process.env.COMPANY_NAME || 'NeshamaTech',
         currentYear: new Date().getFullYear().toString(),
         baseUrl: process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000',
@@ -217,18 +217,21 @@ class EmailService {
       
       const html = templateFunction(fullContext as any); 
 
-      const mailOptions: nodemailer.SendMailOptions = {
-        from: `${process.env.EMAIL_FROM_NAME || 'NeshamaTech'} <${process.env.GMAIL_USER || process.env.EMAIL_USER}>`,
-        to,
+      const fromName = process.env.EMAIL_FROM_NAME || 'NeshamaTech';
+      
+      const { data, error } = await this.resend.emails.send({
+        from: `${fromName} <${this.fromEmail}>`,
+        to: [to],
         subject,
         html,
-        headers: {
-          'Content-Type': 'text/html; charset=UTF-8',
-        }
-      };
+      });
 
-      const info = await this.transporter.sendMail(mailOptions);
-      console.log('אימייל נשלח בהצלחה:', info.messageId, 'אל:', to, 'נושא:', subject, 'שפה:', context.locale);
+      if (error) {
+        console.error('שגיאה בשליחת אימייל (Resend):', error);
+        throw new Error(`Resend error: ${error.message}`);
+      }
+
+      console.log('✅ אימייל נשלח בהצלחה:', data?.id, 'אל:', to, 'נושא:', subject, 'שפה:', context.locale);
       
     } catch (error) {
       console.error('שגיאה בשליחת אימייל אל:', to, 'נושא:', subject, 'תבנית:', templateName, 'שגיאה:', error);
@@ -236,13 +239,10 @@ class EmailService {
     }
   }
 
-  // ================= פונקציות שליחה (מעודכנות עם בדיקת DB) =================
+  // ================= פונקציות שליחה (ללא שינוי) =================
 
   async sendWelcomeEmail(params: WelcomeEmailParams): Promise<void> {
-    // 1. בודקים ב-DB מה השפה המועדפת
     const locale = await this.resolveLocale(params.email, params.locale);
-    
-    // 2. מושכים מילון לפי השפה שנמצאה
     const dictionary = await getDictionary(locale);
     const emailDict = dictionary.email;
 
@@ -251,7 +251,7 @@ class EmailService {
       subject: emailDict.welcome.subject,
       templateName: 'welcome',
       context: {
-        locale, // מעבירים את השפה המעודכנת
+        locale,
         dict: emailDict.welcome,
         sharedDict: emailDict.shared,
         name: params.firstName,
@@ -301,7 +301,7 @@ class EmailService {
         sharedDict: emailDict.shared,
         name: params.firstName,
         firstName: params.firstName,
-        matchmakerName: params.matchmakerName, // מעביר את הערך (שיכול להיות undefined)
+        matchmakerName: params.matchmakerName,
         dashboardUrl: `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/profile`,
       }
     });
@@ -312,6 +312,14 @@ class EmailService {
     const locale = await this.resolveLocale(params.email, params.locale);
     const dictionary = await getDictionary(locale);
     const emailDict = dictionary.email;
+
+    console.log('📧 [sendVerificationEmail] Sending OTP email:', {
+      to: params.email,
+      code: params.verificationCode,
+      firstName: params.firstName,
+      locale,
+      subject: emailDict.emailOtpVerification.subject
+    });
 
     await this.sendEmail({
       to: params.email,
@@ -330,7 +338,6 @@ class EmailService {
   }
 
   async sendInvitation(params: InvitationEmailParams): Promise<void> {
-    // בהזמנה ייתכן שהמשתמש עוד לא קיים, אבל ננסה לבדוק בכל זאת
     const locale = await this.resolveLocale(params.email, params.locale);
     const dictionary = await getDictionary(locale);
     const emailDict = dictionary.email;
@@ -461,18 +468,21 @@ class EmailService {
   
   async sendRawEmail({ to, subject, html }: { to: string; subject: string; html: string }): Promise<void> {
     try {
-      const mailOptions: nodemailer.SendMailOptions = {
-        from: `${process.env.EMAIL_FROM_NAME || 'NeshamaTech'} <${process.env.GMAIL_USER || process.env.EMAIL_USER}>`,
-        to,
+      const fromName = process.env.EMAIL_FROM_NAME || 'NeshamaTech';
+      
+      const { data, error } = await this.resend.emails.send({
+        from: `${fromName} <${this.fromEmail}>`,
+        to: [to],
         subject,
         html,
-        headers: {
-          'Content-Type': 'text/html; charset=UTF-8',
-        }
-      };
+      });
 
-      const info = await this.transporter.sendMail(mailOptions);
-      console.log('אימייל גולמי נשלח בהצלחה:', info.messageId, 'אל:', to, 'נושא:', subject);
+      if (error) {
+        console.error('שגיאה בשליחת אימייל גולמי (Resend):', error);
+        throw new Error(`Resend error: ${error.message}`);
+      }
+
+      console.log('✅ אימייל גולמי נשלח בהצלחה:', data?.id, 'אל:', to, 'נושא:', subject);
       
     } catch (error) {
       console.error('שגיאה בשליחת אימייל גולמי אל:', to, 'נושא:', subject, 'שגיאה:', error);
@@ -482,11 +492,16 @@ class EmailService {
 
   async verifyConnection(): Promise<boolean> {
     try {
-      await this.transporter.verify();
-      console.log("חיבור שירות האימייל אומת בהצלחה.");
+      // Resend לא צריך אימות חיבור כמו SMTP
+      // אבל נבדוק שה-API Key קיים
+      if (!process.env.RESEND_API_KEY) {
+        console.error('⚠️ RESEND_API_KEY is not defined');
+        return false;
+      }
+      console.log("✅ Resend API Key מוגדר - שירות האימייל מוכן.");
       return true;
     } catch (error) {
-      console.error('שגיאה בחיבור לשירות האימייל:', error);
+      console.error('שגיאה בהגדרת שירות האימייל:', error);
       return false;
     }
   }

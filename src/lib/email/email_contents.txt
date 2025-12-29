@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\lib\email
-# Generated on: 2025-12-25 16:48:44
+# Generated on: 2025-12-29 13:16:47
 # Filter: Only content of code files (.bat, .c, .cfg, .conf, .cpp, .cs, .css, .go, .h, .html, .ini, .java, .js, .json, .jsx, .kt, .less, .md, .php, .py, .rb, .rs, .scss, .sh, .sql, .swift, .ts, .tsx, .txt, .xml, .yaml, .yml) is included.
 ################################################################################
 
@@ -322,26 +322,35 @@ class EmailService {
   }
 
 
-  async sendVerificationEmail(params: VerificationEmailParams): Promise<void> {
-    const locale = await this.resolveLocale(params.email, params.locale);
-    const dictionary = await getDictionary(locale);
-    const emailDict = dictionary.email;
+async sendVerificationEmail(params: VerificationEmailParams): Promise<void> {
+  const locale = await this.resolveLocale(params.email, params.locale);
+  const dictionary = await getDictionary(locale);
+  const emailDict = dictionary.email;
 
-    await this.sendEmail({
-      to: params.email,
-      subject: emailDict.emailOtpVerification.subject,
-      templateName: 'emailOtpVerification',
-      context: {
-        locale,
-        dict: emailDict.emailOtpVerification,
-        sharedDict: emailDict.shared,
-        name: params.firstName || params.email,
-        firstName: params.firstName,
-        verificationCode: params.verificationCode,
-        expiresIn: params.expiresIn,
-      }
-    });
-  }
+  // 🔴 הוסף את הלוג הזה כאן:
+  console.log('📧 [sendVerificationEmail] Sending OTP email:', {
+    to: params.email,
+    code: params.verificationCode,
+    firstName: params.firstName,
+    locale,
+    subject: emailDict.emailOtpVerification.subject
+  });
+
+  await this.sendEmail({
+    to: params.email,
+    subject: emailDict.emailOtpVerification.subject,
+    templateName: 'emailOtpVerification',
+    context: {
+      locale,
+      dict: emailDict.emailOtpVerification,
+      sharedDict: emailDict.shared,
+      name: params.firstName || params.email,
+      firstName: params.firstName,
+      verificationCode: params.verificationCode,
+      expiresIn: params.expiresIn,
+    }
+  });
+}
 
   async sendInvitation(params: InvitationEmailParams): Promise<void> {
     // בהזמנה ייתכן שהמשתמש עוד לא קיים, אבל ננסה לבדוק בכל זאת

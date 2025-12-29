@@ -224,7 +224,15 @@ export default function SignInClient({ dict, locale }: SignInClientProps) {
   const handleGoogleSignIn = async () => {
     setIsGoogleLoading(true);
     setError('');
-    await signIn('google', undefined, { hl: locale });
+    await signIn(
+      'google',
+      {
+        callbackUrl: `/${locale}/auth/register`,
+      },
+      {
+        hl: locale,
+      }
+    );
   };
 
   // Show loading state

@@ -88,6 +88,8 @@ export type VerifyEmailDict = {
   emailSentTo: string;
   emailAddressNotSpecified: string;
   checkYourInbox: string;
+  spamNotice: string;
+
   errors: {
     title: string;
     noEmail: string;
@@ -283,6 +285,10 @@ export type RegisterStepsDict = {
       nextButtonLoading: string;
       termsDisclaimer: string;
       googleSuggestion?: GoogleSuggestionDict;
+      existingUser?: {
+        loggingIn: string;
+        loggingInDescription: string;
+      };
       errors: {
         title: string;
         invalidEmail: string;
