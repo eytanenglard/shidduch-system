@@ -112,6 +112,7 @@ export async function GET(req: Request) {
       isFriendsSectionVisible: dbProfile.isFriendsSectionVisible ?? true,
 
       matchingNotes: dbProfile.matchingNotes || "",
+      internalMatchmakerNotes: dbProfile.internalMatchmakerNotes || "", // ✅ FIX: Added missing field
       preferredAgeMin: dbProfile.preferredAgeMin ?? null,
       preferredAgeMax: dbProfile.preferredAgeMax ?? null,
       preferredHeightMin: dbProfile.preferredHeightMin ?? null,
