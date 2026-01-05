@@ -8,24 +8,29 @@ import { TestimonialStatus } from '@prisma/client';
 
 export async function PUT(
   req: NextRequest, 
-  props: { params: Promise<{ testimonialId: string }> } // ✅ שינוי: התאמה ל-Next.js 15
+  props: { params: Promise<{ testimonialId: string }> }
 ) {
   const session = await getServerSession(authOptions);
-  if (!session?.user?.profile?.id) {
+  
+  // ✅ תיקון: בדיקה רק של user.id (לא profile.id)
+  if (!session?.user?.id) {
     return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
   }
 
-  const params = await props.params; // ✅ שינוי: הוספת await
+  const params = await props.params;
 
   const { status } = await req.json() as { status: TestimonialStatus };
   if (!Object.values(TestimonialStatus).includes(status)) {
     return NextResponse.json({ success: false, message: 'Invalid status provided' }, { status: 400 });
   }
 
+  // ✅ תיקון: שימוש ב-nested where דרך profile.userId
   const updatedTestimonial = await prisma.friendTestimonial.updateMany({
     where: {
       id: params.testimonialId,
-      profileId: session.user.profile.id,
+      profile: {
+        userId: session.user.id,
+      }
     },
     data: { status },
   });
@@ -39,25 +44,30 @@ export async function PUT(
 
 export async function DELETE(
   req: NextRequest, 
-  props: { params: Promise<{ testimonialId: string }> } // ✅ שינוי: התאמה ל-Next.js 15
+  props: { params: Promise<{ testimonialId: string }> }
 ) {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.profile?.id) {
-        return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
-    }
+  const session = await getServerSession(authOptions);
+  
+  // ✅ תיקון: בדיקה רק של user.id (לא profile.id)
+  if (!session?.user?.id) {
+    return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+  }
 
-    const params = await props.params; // ✅ שינוי: הוספת await
+  const params = await props.params;
 
-    const deletedTestimonial = await prisma.friendTestimonial.deleteMany({
-        where: {
-            id: params.testimonialId,
-            profileId: session.user.profile.id,
-        },
-    });
+  // ✅ תיקון: שימוש ב-nested where דרך profile.userId
+  const deletedTestimonial = await prisma.friendTestimonial.deleteMany({
+    where: {
+      id: params.testimonialId,
+      profile: {
+        userId: session.user.id,
+      }
+    },
+  });
 
-    if (deletedTestimonial.count === 0) {
-        return NextResponse.json({ success: false, message: 'Testimonial not found or you do not have permission to delete it' }, { status: 404 });
-    }
+  if (deletedTestimonial.count === 0) {
+    return NextResponse.json({ success: false, message: 'Testimonial not found or you do not have permission to delete it' }, { status: 404 });
+  }
 
-    return NextResponse.json({ success: true });
+  return NextResponse.json({ success: true });
 }

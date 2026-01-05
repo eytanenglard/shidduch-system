@@ -880,7 +880,6 @@ const AddTestimonialModal: React.FC<{
               onCheckedChange={(c) =>
                 setFormData((p) => ({ ...p, isPhoneVisibleToMatch: !!c }))
               }
-              disabled={!formData.authorPhone}
             />
             <Label htmlFor="consent">{dict.consentLabel}</Label>
           </div>

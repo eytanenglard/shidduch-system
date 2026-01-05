@@ -126,6 +126,8 @@ export async function GET(req: Request) {
       preferredHeadCoverings: dbProfile.preferredHeadCoverings || [],
       preferredKippahTypes: dbProfile.preferredKippahTypes || [],
       preferredShomerNegiah: dbProfile.preferredShomerNegiah || undefined,
+            preferredPartnerHasChildren: dbProfile.preferredPartnerHasChildren || undefined,
+
       preferredCharacterTraits: dbProfile.preferredCharacterTraits || [],
       preferredHobbies: dbProfile.preferredHobbies || [],
       preferredAliyaStatus: dbProfile.preferredAliyaStatus || undefined,

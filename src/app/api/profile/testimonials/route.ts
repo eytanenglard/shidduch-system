@@ -64,9 +64,10 @@ export async function GET(req: NextRequest) {
 }
 
 /**
- * POST - יוצר המלצה חדשה באמצעות טוקן חד-פעמי ומאובטח.
- * נקודת קצה זו משמשת את הטופס הציבורי שחברים ממלאים.
- * היא מבטיחה שכל קישור ישמש פעם אחת בלבד.
+ * POST - יוצר המלצה חדשה.
+ * תומך בשני תרחישים:
+ * 1. עם token - הוספה ציבורית דרך קישור (חבר ממליץ)
+ * 2. בלי token - הוספה ידנית (המשתמש מוסיף המלצה על עצמו)
  */
 export async function POST(req: NextRequest) {
   try {
@@ -80,68 +81,110 @@ export async function POST(req: NextRequest) {
       isPhoneVisibleToMatch,
     } = body;
 
-    // 1. ולידציה בסיסית של שדות החובה
-    if (!token || !authorName || !relationship || !content) {
+    // ולידציה בסיסית של שדות חובה (ללא token)
+    if (!authorName || !relationship || !content) {
       return NextResponse.json(
         { success: false, error: 'Missing required fields.' },
         { status: 400 }
       );
     }
 
-    // 2. שימוש בטרנזקציה כדי להבטיח אטומיות.
-    // שתי הפעולות (יצירת המלצה ועדכון הטוקן) חייבות להצליח יחד.
-    const result = await prisma.$transaction(async (tx) => {
-      // שלב א': חפש את בקשת הטוקן. היא חייבת להיות קיימת, בתוקף ובסטטוס PENDING.
-      const request = await tx.testimonialRequest.findUnique({
-        where: {
-          token: token,
-          status: 'PENDING',
-          expiresAt: { gt: new Date() }, // ודא שהטוקן לא פג תוקף
-        },
+    // ===== תרחיש 1: הוספה עם TOKEN (ציבורית) =====
+    if (token) {
+      const result = await prisma.$transaction(async (tx) => {
+        // מצא את בקשת הטוקן
+        const request = await tx.testimonialRequest.findUnique({
+          where: {
+            token: token,
+            status: 'PENDING',
+            expiresAt: { gt: new Date() },
+          },
+        });
+
+        if (!request) {
+          throw new Error('Invalid, expired, or already used link.');
+        }
+
+        // צור המלצה
+        const testimonial = await tx.friendTestimonial.create({
+          data: {
+            profileId: request.profileId,
+            authorName,
+            relationship,
+            content,
+            authorPhone: authorPhone || null,
+            isPhoneVisibleToMatch: isPhoneVisibleToMatch || false,
+            status: 'PENDING',
+            submittedBy: 'FRIEND',
+          },
+        });
+
+        // סמן טוקן כ-COMPLETED
+        await tx.testimonialRequest.update({
+          where: { id: request.id },
+          data: { status: 'COMPLETED' },
+        });
+
+        return { success: true, testimonial };
       });
 
-      // אם לא נמצאה בקשה תקינה, זרוק שגיאה. זה יבטל את הטרנזקציה אוטומטית.
-      if (!request) {
-        throw new Error('Invalid, expired, or already used link.');
+      if (result.success) {
+        return NextResponse.json({
+          success: true,
+          message: 'Thank you! Your testimonial has been submitted.',
+        });
+      } else {
+        throw new Error('Transaction failed unexpectedly.');
       }
+    }
 
-      // שלב ב': צור את רשומת ההמלצה במסד הנתונים.
-      const testimonial = await tx.friendTestimonial.create({
-        data: {
-          profileId: request.profileId,
-          authorName,
-          relationship,
-          content,
-          authorPhone: authorPhone || null,
-          isPhoneVisibleToMatch: isPhoneVisibleToMatch || false,
-          status: 'PENDING', // המלצה חדשה תמיד ממתינה לאישור המשתמש
-          submittedBy: 'FRIEND', // סמן שההמלצה הגיעה מחבר
-        },
-      });
+    // ===== תרחיש 2: הוספה ידנית ללא TOKEN =====
+    // בדוק session
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        { success: false, message: 'Unauthorized - no session' },
+        { status: 401 }
+      );
+    }
 
-      // שלב ג': קריטי! שנה את סטטוס הטוקן ל-COMPLETED כדי למנוע שימוש חוזר.
-      await tx.testimonialRequest.update({
-        where: { id: request.id },
-        data: { status: 'COMPLETED' },
-      });
-
-      return { success: true, testimonial };
+    // מצא את ה-profile של המשתמש המחובר
+    const userProfile = await prisma.profile.findUnique({
+      where: { userId: session.user.id },
+      select: { id: true },
     });
 
-    // 3. אם הטרנזקציה הצליחה, החזר תשובת הצלחה.
-    if (result.success) {
-      return NextResponse.json({
-        success: true,
-        message: 'Thank you! Your testimonial has been submitted.',
-      });
-    } else {
-      // מצב זה לא אמור לקרות אם לוגיקת הטרנזקציה נכונה
-      throw new Error('Transaction failed unexpectedly.');
+    if (!userProfile) {
+      return NextResponse.json(
+        { success: false, message: 'Profile not found for current user' },
+        { status: 404 }
+      );
     }
+
+    // צור המלצה חדשה
+    const testimonial = await prisma.friendTestimonial.create({
+      data: {
+        profileId: userProfile.id,
+        authorName,
+        relationship,
+        content,
+        authorPhone: authorPhone || null,
+        isPhoneVisibleToMatch: isPhoneVisibleToMatch || false,
+        status: 'PENDING',
+submittedBy: 'FRIEND',
+      },
+    });
+
+    return NextResponse.json({
+      success: true,
+      message: 'Testimonial added successfully.',
+      testimonial,
+    });
+
   } catch (error) {
     console.error('Error in POST /api/profile/testimonials:', error);
 
-    // 4. טיפול ייעודי בשגיאות ידועות
+    // טיפול בשגיאת token לא תקין
     if (
       error instanceof Error &&
       error.message.includes('Invalid, expired, or already used link')
@@ -156,7 +199,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 5. טיפול בשגיאות לא צפויות אחרות
+    // שגיאות כלליות
     return NextResponse.json(
       { success: false, error: 'An internal server error occurred.' },
       { status: 500 }

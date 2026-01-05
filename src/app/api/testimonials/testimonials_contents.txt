@@ -1,6 +1,7 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\testimonials
-# Generated on: 2025-09-28 20:34:58
+# Generated on: 2026-01-05 10:08:44
+# Filter: Only content of code files (.bat, .c, .cfg, .conf, .cpp, .cs, .css, .go, .h, .html, .ini, .java, .js, .json, .jsx, .kt, .less, .md, .php, .py, .rb, .rs, .scss, .sh, .sql, .swift, .ts, .tsx, .txt, .xml, .yaml, .yml) is included.
 ################################################################################
 
 ================================================================================
@@ -14,13 +15,6 @@ Content:
 // src/app/api/profile/testimonials/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
-
-// The GET function remains unchanged...
-export async function GET(req: NextRequest) {
-  // ... existing GET implementation ...
-}
 
 
 /**
@@ -107,15 +101,15 @@ Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\testim
 File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\testimonials\[testimonialId]\route.ts
 --------------------------------------------------------------------------------
 Content:
-// src/app/api/profile/testimonials/[testimonialId]/route.ts
+// src/app/api/testimonials/[testimonialId]/route.ts
+
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 import { TestimonialStatus } from '@prisma/client';
 
-// PUT - Update a testimonial's status
-export async function PUT(req: Request, { params }: { params: { testimonialId: string } }) {
+export async function PUT(req: Request, props: { params: Promise<{ testimonialId: string }> }) {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
@@ -136,10 +130,11 @@ export async function PUT(req: Request, { params }: { params: { testimonialId: s
       return NextResponse.json({ success: false, message: 'Invalid status provided' }, { status: 400 });
     }
 
+    const params = await props.params;
     const updatedTestimonial = await prisma.friendTestimonial.updateMany({
       where: {
         id: params.testimonialId,
-        profileId: userProfile.id, // Ensure ownership
+        profileId: userProfile.id,
       },
       data: { status },
     });
@@ -150,13 +145,12 @@ export async function PUT(req: Request, { params }: { params: { testimonialId: s
 
     return NextResponse.json({ success: true, message: 'Testimonial status updated.' });
   } catch (error) {
-    console.error("Error in PUT /api/profile/testimonials/[id]:", error);
+    console.error("Error in PUT /api/testimonials/[id]:", error);
     return NextResponse.json({ success: false, message: "Internal Server Error" }, { status: 500 });
   }
 }
 
-// DELETE a testimonial
-export async function DELETE(req: Request, { params }: { params: { testimonialId: string } }) {
+export async function DELETE(req: Request, props: { params: Promise<{ testimonialId: string }> }) {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
@@ -172,10 +166,11 @@ export async function DELETE(req: Request, { params }: { params: { testimonialId
         return NextResponse.json({ success: false, message: 'Profile not found for current user' }, { status: 404 });
     }
 
+    const params = await props.params;
     const deletedTestimonial = await prisma.friendTestimonial.deleteMany({
         where: {
             id: params.testimonialId,
-            profileId: userProfile.id, // Ensure ownership
+            profileId: userProfile.id,
         },
     });
 
@@ -185,7 +180,7 @@ export async function DELETE(req: Request, { params }: { params: { testimonialId
 
     return NextResponse.json({ success: true, message: 'Testimonial deleted.' });
   } catch (error) {
-    console.error("Error in DELETE /api/profile/testimonials/[id]:", error);
+    console.error("Error in DELETE /api/testimonials/[id]:", error);
     return NextResponse.json({ success: false, message: "Internal Server Error" }, { status: 500 });
   }
 }

@@ -146,7 +146,6 @@ export function TestimonialSubmissionForm({ token, userName }: FormProps) {
               isPhoneVisibleToMatch: !!checked,
             }))
           }
-          disabled={!formData.authorPhone}
         />
         <div className="grid gap-1.5 leading-none">
           <label
