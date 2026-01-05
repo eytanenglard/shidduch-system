@@ -2,7 +2,6 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { applyRateLimit } from '@/lib/rate-limiter';
-
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
@@ -18,7 +17,8 @@ import {
 } from "@prisma/client";
 import type { UserProfile } from "@/types/next-auth";
 
-// Helper to convert to number or null
+// --- Helpers ---
+
 const toNumberOrNull = (value: string | number | null | undefined): number | null => {
   if (value === null || value === undefined || String(value).trim() === "") {
     return null;
@@ -27,7 +27,6 @@ const toNumberOrNull = (value: string | number | null | undefined): number | nul
   return isNaN(num) ? null : num;
 };
 
-// Helper to convert to Date or error if invalid for required fields
 const toRequiredDate = (value: string | number | Date | null | undefined, fieldName: string): Date => {
   if (value === null || value === undefined || String(value).trim() === "") {
     throw new Error(`Required date field '${fieldName}' is missing or empty.`);
@@ -44,7 +43,6 @@ const toRequiredDate = (value: string | number | Date | null | undefined, fieldN
   return date;
 };
 
-// Helper to convert to Date or null for optional fields
 const toDateOrNull = (value: string | number | Date | null | undefined): Date | null => {
   if (value === null || value === undefined || String(value).trim() === "") {
     return null;
@@ -56,8 +54,6 @@ const toDateOrNull = (value: string | number | Date | null | undefined): Date | 
   return isNaN(date.getTime()) ? null : date;
 };
 
-// Helper to convert STRICTLY empty string or null to null.
-// Use this for strings that might have values like "does_not_matter" which should be saved as strings.
 const emptyStringToNull = (value: string | null | undefined): string | null => {
   if (value === "" || value === null || value === undefined) {
     return null;
@@ -67,15 +63,17 @@ const emptyStringToNull = (value: string | null | undefined): string | null => {
 
 
 export async function PUT(req: NextRequest) {
-  // Apply rate limiting: 50 profile updates per user per 10 minutes
+  // Apply rate limiting
   const rateLimitResponse = await applyRateLimit(req, { requests: 50, window: '10 m' });
   if (rateLimitResponse) {
     return rateLimitResponse;
   }
+
   try {
     const session = await getServerSession(authOptions);
 
     if (!session?.user?.id) {
+      console.log("❌ [Update Profile] Unauthorized attempt");
       return NextResponse.json(
         { success: false, message: "Unauthorized" },
         { status: 401 }
@@ -83,9 +81,14 @@ export async function PUT(req: NextRequest) {
     }
     const userId = session.user.id;
 
+    console.log(`🔹 [Update Profile] Start update for UserID: ${userId}`);
+
     let body;
     try {
       body = await req.json();
+      // --- LOG 1: בדיקת ה-Body הנכנס ---
+      console.log("🔹 [Update Profile] Incoming Body Keys:", Object.keys(body));
+      console.log("🔹 [Update Profile] Value of 'internalMatchmakerNotes' in body:", body.internalMatchmakerNotes);
     } catch (error) {
       console.error("Invalid JSON body:", error);
       return NextResponse.json(
@@ -126,7 +129,7 @@ export async function PUT(req: NextRequest) {
       availabilityNote,
       availabilityUpdatedAt,
       matchingNotes,
-      internalMatchmakerNotes, 
+      internalMatchmakerNotes, // <--- Destructuring here
       shomerNegiah,
       serviceType,
       serviceDetails,
@@ -137,7 +140,7 @@ export async function PUT(req: NextRequest) {
       profileHobbies,
       aliyaCountry,
       aliyaYear,
-      // --- START: PREFERENCE FIELDS ---
+      // Preferences
       preferredAgeMin,
       preferredAgeMax,
       preferredHeightMin,
@@ -158,7 +161,6 @@ export async function PUT(req: NextRequest) {
       preferredHobbies,
       preferredAliyaStatus,
       preferredReligiousJourneys,
-      // --- END: PREFERENCE FIELDS ---
       hasViewedProfilePreview,
       hasMedicalInfo,
       medicalInfoDetails,
@@ -188,7 +190,7 @@ export async function PUT(req: NextRequest) {
     if (aliyaCountry !== undefined) dataToUpdate.aliyaCountry = emptyStringToNull(aliyaCountry);
     if (aliyaYear !== undefined) dataToUpdate.aliyaYear = toNumberOrNull(aliyaYear);
 
-    // --- Marital Status & Background (User's own) ---
+    // --- Marital Status ---
     if (maritalStatus !== undefined) dataToUpdate.maritalStatus = emptyStringToNull(maritalStatus);
     if (hasChildrenFromPrevious !== undefined) dataToUpdate.hasChildrenFromPrevious = hasChildrenFromPrevious;
     if (parentStatus !== undefined) dataToUpdate.parentStatus = emptyStringToNull(parentStatus);
@@ -197,17 +199,15 @@ export async function PUT(req: NextRequest) {
     if (siblings !== undefined) dataToUpdate.siblings = toNumberOrNull(siblings);
     if (position !== undefined) dataToUpdate.position = toNumberOrNull(position);
 
-    // --- Education, Occupation & Service (User's own) ---
+    // --- Education & Occupation ---
     if (educationLevel !== undefined) dataToUpdate.educationLevel = emptyStringToNull(educationLevel);
     if (education !== undefined) dataToUpdate.education = emptyStringToNull(education);
     if (occupation !== undefined) dataToUpdate.occupation = emptyStringToNull(occupation);
     if (serviceType !== undefined) dataToUpdate.serviceType = emptyStringToNull(serviceType) as ServiceType | null;
     if (serviceDetails !== undefined) dataToUpdate.serviceDetails = emptyStringToNull(serviceDetails);
 
-    // --- Religion & Lifestyle (User's own) ---
+    // --- Religion ---
     if (religiousLevel !== undefined) dataToUpdate.religiousLevel = emptyStringToNull(religiousLevel);
-    
-    // Validate Enum for User's own Religious Journey
     if (religiousJourney !== undefined) {
         const val = emptyStringToNull(religiousJourney);
         if (val && Object.values(ReligiousJourney).includes(val as ReligiousJourney)) {
@@ -216,9 +216,9 @@ export async function PUT(req: NextRequest) {
              dataToUpdate.religiousJourney = null;
         }
     }
-
     if (shomerNegiah !== undefined) dataToUpdate.shomerNegiah = shomerNegiah;
 
+    // Gender Logic for HeadCovering/Kippah
     const existingProfileMinimal = await prisma.profile.findUnique({ where: { userId }, select: { gender: true }});
     const currentGenderForLogic = gender !== undefined ? gender : existingProfileMinimal?.gender;
 
@@ -240,22 +240,30 @@ export async function PUT(req: NextRequest) {
     }
     if (preferredMatchmakerGender !== undefined) dataToUpdate.preferredMatchmakerGender = emptyStringToNull(preferredMatchmakerGender) as Gender | null;
 
-    // --- Traits & Hobbies (User's own) ---
+    // --- Traits ---
     if (profileCharacterTraits !== undefined) dataToUpdate.profileCharacterTraits = profileCharacterTraits || [];
     if (profileHobbies !== undefined) dataToUpdate.profileHobbies = profileHobbies || [];
 
-    // --- About & Additional Info ---
+    // --- About ---
     if (about !== undefined) dataToUpdate.about = emptyStringToNull(about);
     if (profileHeadline !== undefined) dataToUpdate.profileHeadline = emptyStringToNull(profileHeadline);
     if (inspiringCoupleStory !== undefined) dataToUpdate.inspiringCoupleStory = emptyStringToNull(inspiringCoupleStory);
     if (influentialRabbi !== undefined) dataToUpdate.influentialRabbi = emptyStringToNull(influentialRabbi);
     
-    // --- Preferences (related to matching partner) ---
+    // --- NOTES & INTERNAL DATA ---
     if (matchingNotes !== undefined) dataToUpdate.matchingNotes = emptyStringToNull(matchingNotes);
-   if (internalMatchmakerNotes !== undefined) {
+    
+    // --- LOG 2: בדיקה לפני ההוספה לאובייקט העדכון ---
+    if (internalMatchmakerNotes !== undefined) {
+        console.log("✅ [Update Profile] internalMatchmakerNotes found in payload, updating to:", internalMatchmakerNotes);
         dataToUpdate.internalMatchmakerNotes = emptyStringToNull(internalMatchmakerNotes);
+    } else {
+        console.log("⚠️ [Update Profile] internalMatchmakerNotes is UNDEFINED in payload - skipping update.");
     }
+
     if (contactPreference !== undefined) dataToUpdate.contactPreference = emptyStringToNull(contactPreference);
+    
+    // --- Preferences ---
     if (preferredAgeMin !== undefined) dataToUpdate.preferredAgeMin = toNumberOrNull(preferredAgeMin);
     if (preferredAgeMax !== undefined) dataToUpdate.preferredAgeMax = toNumberOrNull(preferredAgeMax);
     if (preferredHeightMin !== undefined) dataToUpdate.preferredHeightMin = toNumberOrNull(preferredHeightMin);
@@ -263,7 +271,6 @@ export async function PUT(req: NextRequest) {
     if (preferredLocations !== undefined) dataToUpdate.preferredLocations = preferredLocations || [];
     if (preferredReligiousLevels !== undefined) dataToUpdate.preferredReligiousLevels = preferredReligiousLevels || [];
     
-    // Validate Enum Array for Preferred Religious Journeys
     if (preferredReligiousJourneys !== undefined) {
         const validJourneys = (preferredReligiousJourneys || []).filter(j => 
             Object.values(ReligiousJourney).includes(j as ReligiousJourney)
@@ -271,8 +278,6 @@ export async function PUT(req: NextRequest) {
         dataToUpdate.preferredReligiousJourneys = validJourneys;
     }
 
-    // These fields might contain special string values like "does_not_matter", "flexible", etc.
-    // We use emptyStringToNull to preserve them.
     if (preferredShomerNegiah !== undefined) dataToUpdate.preferredShomerNegiah = emptyStringToNull(preferredShomerNegiah);
     if (preferredPartnerHasChildren !== undefined) dataToUpdate.preferredPartnerHasChildren = emptyStringToNull(preferredPartnerHasChildren);
     if (preferredAliyaStatus !== undefined) dataToUpdate.preferredAliyaStatus = emptyStringToNull(preferredAliyaStatus);
@@ -287,14 +292,14 @@ export async function PUT(req: NextRequest) {
     if (preferredCharacterTraits !== undefined) dataToUpdate.preferredCharacterTraits = preferredCharacterTraits || [];
     if (preferredHobbies !== undefined) dataToUpdate.preferredHobbies = preferredHobbies || [];
     
-    // --- Profile Management & Visibility ---
+    // --- Visibility ---
     if (isProfileVisible !== undefined) dataToUpdate.isProfileVisible = isProfileVisible;
     if (hasViewedProfilePreview !== undefined) dataToUpdate.hasViewedProfilePreview = hasViewedProfilePreview;
     if (isAboutVisible !== undefined) dataToUpdate.isAboutVisible = isAboutVisible;
     if (isFriendsSectionVisible !== undefined) dataToUpdate.isFriendsSectionVisible = isFriendsSectionVisible;
     if (isNeshamaTechSummaryVisible !== undefined) dataToUpdate.isNeshamaTechSummaryVisible = isNeshamaTechSummaryVisible;
    
-    // --- Medical Info ---
+    // --- Medical ---
     if (hasMedicalInfo !== undefined) dataToUpdate.hasMedicalInfo = hasMedicalInfo;
     if (medicalInfoDetails !== undefined) dataToUpdate.medicalInfoDetails = emptyStringToNull(medicalInfoDetails);
     if (medicalInfoDisclosureTiming !== undefined) dataToUpdate.medicalInfoDisclosureTiming = emptyStringToNull(medicalInfoDisclosureTiming);
@@ -316,8 +321,12 @@ export async function PUT(req: NextRequest) {
     }
     dataToUpdate.lastActive = new Date();
 
-    // --- Perform the database update ---
+    // --- Perform Update ---
     let updatedProfileRecord: Profile | null = null;
+    
+    // --- LOG 3: האובייקט שנשלח ל-Prisma ---
+    console.log("🔹 [Update Profile] Final Prisma Data Object:", JSON.stringify(dataToUpdate, null, 2));
+
     if (Object.keys(dataToUpdate).length > 0) {
       try {
          dataToUpdate.needsAiProfileUpdate = true;
@@ -326,15 +335,17 @@ export async function PUT(req: NextRequest) {
           where: { userId: userId },
           data: dataToUpdate,
         });
+        console.log("✅ [Update Profile] Database update successful.");
     
       } catch (dbError) {
-        console.error('Prisma profile update error:', dbError);
+        console.error('❌ [Update Profile] Prisma update error:', dbError);
         if (dbError instanceof Prisma.PrismaClientKnownRequestError && dbError.code === 'P2025') {
           return NextResponse.json({ success: false, message: 'Profile not found for this user to update.' }, { status: 404 });
         }
         throw dbError;
       }
     } else {
+      console.log("⚠️ [Update Profile] No data to update provided.");
       updatedProfileRecord = await prisma.profile.findUnique({ where: { userId } });
     }
 
@@ -354,7 +365,10 @@ export async function PUT(req: NextRequest) {
     
     const dbProfile = refreshedUserWithProfile.profile;
 
-    // Construct the response, ensuring all UserProfile fields are mapped
+    // --- LOG 4: בדיקת הערך בדאטה בייס אחרי השמירה ---
+    console.log("🔹 [Update Profile] Value in DB after update:", dbProfile.internalMatchmakerNotes);
+
+    // Construct Response
     const responseUserProfile: UserProfile = {
       id: dbProfile.id,
       userId: dbProfile.userId,
@@ -395,7 +409,9 @@ export async function PUT(req: NextRequest) {
       availabilityNote: dbProfile.availabilityNote || "",
       availabilityUpdatedAt: dbProfile.availabilityUpdatedAt ? new Date(dbProfile.availabilityUpdatedAt) : null,
       matchingNotes: dbProfile.matchingNotes || "",
-            internalMatchmakerNotes: dbProfile.internalMatchmakerNotes || "", // <--- הוסף שורה זו
+      
+      // ✅ ודא שזה מוחזר כאן!
+      internalMatchmakerNotes: dbProfile.internalMatchmakerNotes || "", 
 
       shomerNegiah: dbProfile.shomerNegiah ?? undefined,
       serviceType: dbProfile.serviceType || undefined,
@@ -448,7 +464,8 @@ export async function PUT(req: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Profile update route error:', error);
+    console.error('❌ [Update Profile] Fatal Error:', error);
+    // ... Error handling blocks
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
       if (error.code === 'P2002' && error.meta?.target) {
          return NextResponse.json({ success: false, message: `Error: A field violates a unique constraint (${JSON.stringify(error.meta.target)}).` }, { status: 409 });
