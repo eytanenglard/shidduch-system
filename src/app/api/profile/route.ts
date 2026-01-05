@@ -314,6 +314,7 @@ export async function PUT(req: Request) {
       isFriendsSectionVisible: dbProfile.isFriendsSectionVisible ?? true,
 
       matchingNotes: dbProfile.matchingNotes || "",
+       internalMatchmakerNotes: dbProfile.internalMatchmakerNotes || "", 
       preferredAgeMin: dbProfile.preferredAgeMin ?? null,
       preferredAgeMax: dbProfile.preferredAgeMax ?? null,
       preferredHeightMin: dbProfile.preferredHeightMin ?? null,

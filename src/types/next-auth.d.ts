@@ -104,7 +104,7 @@ export interface UserProfile extends Omit<PrismaProfile, 'gender' | 'birthDate' 
   preferredHeightMax?: number | null;
   contactPreference?: string | null;
   matchingNotes?: string | null;
-
+internalMatchmakerNotes?: string | null; 
   // Array preference fields
   preferredReligiousLevels: string[];
   preferredLocations: string[];

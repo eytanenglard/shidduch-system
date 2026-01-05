@@ -401,11 +401,12 @@ const StoryAndMoreCard: React.FC<{
             )}
           </div>
 
-          {/* Private Notes Section */}
+
+          {/* Private Notes Section - UPDATED to internalMatchmakerNotes */}
           <div>
             <div className="flex items-center gap-1.5 mb-2">
               <Label
-                htmlFor="matchingNotes-private"
+                htmlFor="internalMatchmakerNotes" // שונה מ-matchingNotes-private
                 className="text-sm font-medium text-gray-700"
               >
                 {tAboutCard.privateNotesLabel}
@@ -429,7 +430,6 @@ const StoryAndMoreCard: React.FC<{
                     sideOffset={5}
                     collisionPadding={10}
                   >
-                    {/* UPDATED: Use placeholder text */}
                     <p>{tAboutCard.privateNotesPlaceholder}</p>
                   </TooltipContent>
                 </Tooltip>
@@ -437,16 +437,16 @@ const StoryAndMoreCard: React.FC<{
             </div>
             {isEditing ? (
               <Textarea
-                id="matchingNotes-private"
-                value={formData.matchingNotes || ''}
-                onChange={(e) => handleChange('matchingNotes', e.target.value)}
+                id="internalMatchmakerNotes" // שונה
+                value={formData.internalMatchmakerNotes || ''} // שונה מ-matchingNotes
+                onChange={(e) => handleChange('internalMatchmakerNotes', e.target.value)} // שונה
                 className="text-sm focus:ring-cyan-500 min-h-[90px] rounded-lg"
                 placeholder={tAboutCard.privateNotesPlaceholder}
                 rows={3}
               />
             ) : (
               <p className="mt-1 text-sm text-gray-700 whitespace-pre-wrap min-h-[50px] bg-slate-50/70 p-3 rounded-lg border border-slate-200/50">
-                {formData.matchingNotes || (
+                {formData.internalMatchmakerNotes || ( // שונה
                   <span className="text-gray-500 italic">
                     {tAboutCard.privateNotesEmpty}
                   </span>
@@ -1107,6 +1107,8 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
         profileData?.availabilityUpdatedAt
       ),
       matchingNotes: profileData?.matchingNotes || '',
+            internalMatchmakerNotes: profileData?.internalMatchmakerNotes || '', // <--- הוסף שורה זו
+
       shomerNegiah: profileData?.shomerNegiah ?? undefined,
       serviceType: profileData?.serviceType || undefined,
       serviceDetails: profileData?.serviceDetails || '',

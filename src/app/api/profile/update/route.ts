@@ -126,6 +126,7 @@ export async function PUT(req: NextRequest) {
       availabilityNote,
       availabilityUpdatedAt,
       matchingNotes,
+      internalMatchmakerNotes, 
       shomerNegiah,
       serviceType,
       serviceDetails,
@@ -251,6 +252,9 @@ export async function PUT(req: NextRequest) {
     
     // --- Preferences (related to matching partner) ---
     if (matchingNotes !== undefined) dataToUpdate.matchingNotes = emptyStringToNull(matchingNotes);
+   if (internalMatchmakerNotes !== undefined) {
+        dataToUpdate.internalMatchmakerNotes = emptyStringToNull(internalMatchmakerNotes);
+    }
     if (contactPreference !== undefined) dataToUpdate.contactPreference = emptyStringToNull(contactPreference);
     if (preferredAgeMin !== undefined) dataToUpdate.preferredAgeMin = toNumberOrNull(preferredAgeMin);
     if (preferredAgeMax !== undefined) dataToUpdate.preferredAgeMax = toNumberOrNull(preferredAgeMax);
@@ -391,6 +395,8 @@ export async function PUT(req: NextRequest) {
       availabilityNote: dbProfile.availabilityNote || "",
       availabilityUpdatedAt: dbProfile.availabilityUpdatedAt ? new Date(dbProfile.availabilityUpdatedAt) : null,
       matchingNotes: dbProfile.matchingNotes || "",
+            internalMatchmakerNotes: dbProfile.internalMatchmakerNotes || "", // <--- הוסף שורה זו
+
       shomerNegiah: dbProfile.shomerNegiah ?? undefined,
       serviceType: dbProfile.serviceType || undefined,
       serviceDetails: dbProfile.serviceDetails || "",

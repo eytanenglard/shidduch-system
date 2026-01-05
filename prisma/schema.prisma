@@ -205,6 +205,7 @@ preferredReligiousJourneys  ReligiousJourney[] @default([])
   isProfileVisible          Boolean            @default(true)
   preferredMatchmakerGender Gender?
   matchingNotes             String? // General notes about the desired match
+  internalMatchmakerNotes String?
   verifiedBy                String?
   availabilityStatus        AvailabilityStatus @default(AVAILABLE)
   availabilityNote          String?
