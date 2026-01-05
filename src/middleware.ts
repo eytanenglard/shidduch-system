@@ -150,8 +150,10 @@ export async function middleware(req: NextRequest) {
   // ======================= LOGGING END =======================
 
   // 4. לוגיקת הרשאות מאוחדת
-  const isPublicPath = PUBLIC_PATHS.includes(pathWithoutLocale);
-  const isSetupPath = SETUP_PATHS.includes(pathWithoutLocale);
+  const isPublicPath = 
+    PUBLIC_PATHS.includes(pathWithoutLocale) || 
+    pathWithoutLocale.startsWith('/testimonial');
+      const isSetupPath = SETUP_PATHS.includes(pathWithoutLocale);
   const isAdminPath = ADMIN_PATHS.some(path => pathWithoutLocale.startsWith(path));
   
   // 🔴 חדש: בדיקה לנתיבי רפרל ציבוריים
