@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
@@ -592,9 +591,8 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
                   </div>
 
                   {profileData ? (
-                    // --- START OF MODIFICATION ---
-                    // עוטפים את ProfileCard ב-div נוסף שנותן padding
-                    <div className={cn("flex-1 min-h-0 w-full overflow-auto", isMobile && "p-4 sm:p-6")}>
+                    // --- FIX: הסרנו את p-4 sm:p-6 שגרם להטיה ימינה במובייל ---
+                    <div className="flex-1 min-h-0 w-full max-w-full overflow-hidden">
                       <ProfileCard
                         profile={profileData}
                         images={images}
@@ -779,4 +777,3 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
 };
 
 export default UnifiedProfileDashboard;
-

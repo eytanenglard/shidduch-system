@@ -156,10 +156,21 @@
   .progress-blue [data-state='progress'] { background-color: hsl(221 83% 53%); }
   .progress-amber [data-state='progress'] { background-color: hsl(45 93% 47%); }
 
-  /* --- Radix UI Fixes --- */
+  /* --- Radix UI Fixes (הוחזרו מהקובץ הישן לתיקון בעיות תצוגה) --- */
   [data-radix-popper-content-wrapper] {
     direction: ltr;
     z-index: 9999 !important;
+  }
+
+  .radix-dialog-overlay {
+    z-index: 9998 !important;
+    background-color: rgba(0, 0, 0, 0.5) !important;
+    backdrop-filter: blur(4px);
+  }
+  
+  .radix-dialog-content {
+    z-index: 9999 !important;
+    position: relative !important;
   }
 
   [data-radix-alert-dialog-content] {
@@ -216,7 +227,7 @@
     );
   }
 
-  /* --- Fullscreen Modal --- */
+  /* --- Fullscreen Modal (הוחזר ה-TRANSFORM שהיה חסר) --- */
   [data-fullscreen="true"] {
     position: fixed !important;
     inset: 0 !important;
@@ -227,6 +238,7 @@
     border-radius: 0 !important;
     margin: 0 !important;
     z-index: 9999 !important;
+    transform: none !important; /* <--- התיקון הקריטי: זה מה שמונע את ההטיה */
   }
 }
 

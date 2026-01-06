@@ -2410,8 +2410,8 @@ const ProfileHeader: React.FC<{
                 <ScrollArea className="w-full max-w-full" dir={direction}>
                   <div
                     className={cn(
-                      'flex gap-2 sm:gap-3 pb-2 px-1 min-w-max',
-                      isMobile && 'justify-center'
+                      'flex gap-2 sm:gap-3 pb-2 px-1 w-full',
+                      isMobile && 'justify-center flex-wrap'
                     )}
                   >
                     {personalityHighlights.map((highlight, index) => (
@@ -2456,8 +2456,8 @@ const ProfileHeader: React.FC<{
                   <ScrollArea className="w-full" dir={direction}>
                     <div
                       className={cn(
-                        'flex gap-2 sm:gap-3 pb-2 px-1',
-                        'justify-center min-w-max'
+                        'flex gap-2 sm:gap-3 pb-2 px-1 w-full',
+                        'justify-center flex-wrap'
                       )}
                     >
                       {profile.occupation && (
@@ -2548,9 +2548,9 @@ const ProfileHeader: React.FC<{
             {viewMode === 'matchmaker' && (
               <div
                 className={cn(
-                  'w-full flex',
+                  'w-full flex max-w-full overflow-hidden',
                   compact ? 'pt-3' : 'pt-4 sm:pt-6',
-                  isMobile ? 'justify-center' : 'justify-end'
+                  isMobile ? 'justify-center px-2' : 'justify-end'
                 )}
               >
                 <Button
@@ -2559,8 +2559,8 @@ const ProfileHeader: React.FC<{
                     `bg-gradient-to-r ${THEME.colors.primary.main} hover:${THEME.colors.primary.accent}`,
                     'text-white font-bold rounded-full shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105 active:scale-95',
                     compact
-                      ? 'px-4 py-2 text-sm'
-                      : 'px-6 sm:px-8 py-2 sm:py-3 text-sm sm:text-base',
+                      ? 'px-4 py-2 text-sm max-w-full'
+                      : 'px-6 sm:px-8 py-2 sm:py-3 text-sm sm:text-base max-w-full',
                     'min-h-[44px]'
                   )}
                   onClick={onSuggestClick}
@@ -2604,16 +2604,16 @@ const ProfileHeader: React.FC<{
         {!compact && (
           <div
             className={cn(
-              'text-center w-full overflow-hidden',
-              isMobile ? 'mt-3 px-2' : 'mt-6 sm:mt-8'
+              'text-center w-full max-w-full overflow-hidden',
+              isMobile ? 'mt-3 px-3' : 'mt-6 sm:mt-8'
             )}
           >
             <div
               className={cn(
-                'inline-flex items-center justify-center rounded-full text-white shadow-lg max-w-full transition-all duration-300 hover:scale-105',
+                'inline-flex items-center justify-center rounded-full text-white shadow-lg transition-all duration-300 hover:scale-105',
                 isMobile
-                  ? 'gap-1.5 px-3 py-2 text-sm flex-wrap'
-                  : 'gap-2 px-4 py-3 text-base',
+                  ? 'gap-1.5 px-3 py-2 text-xs max-w-full'
+                  : 'gap-2 px-4 py-3 text-base max-w-full',
                 `bg-gradient-to-r ${THEME.colors.primary.romantic}`
               )}
             >
@@ -2664,12 +2664,12 @@ const KeyFactCard: React.FC<{
   return (
     <div
       className={cn(
-        'flex items-center bg-white/80 backdrop-blur-sm rounded-xl border shadow-sm hover:shadow-md transition-all duration-300 flex-shrink-0',
+        'flex items-center bg-white/80 backdrop-blur-sm rounded-xl border shadow-sm hover:shadow-md transition-all duration-300',
         compact
-          ? 'gap-2 p-2 min-w-[100px] max-w-[120px]'
-          : 'gap-2 sm:gap-3 p-2 sm:p-3 min-w-[120px] max-w-[140px] sm:min-w-[140px] sm:max-w-[160px]',
+          ? 'gap-2 p-2 min-w-[80px] max-w-[110px]'
+          : 'gap-2 sm:gap-3 p-2 sm:p-3 min-w-[100px] max-w-[130px] sm:min-w-[120px] sm:max-w-[150px]',
         colorClasses[color],
-        'max-w-[calc((100vw-4rem)/3)]'
+        'flex-shrink'
       )}
     >
       <Icon
