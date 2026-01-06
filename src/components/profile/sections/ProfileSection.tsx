@@ -679,17 +679,14 @@ const FriendTestimonialsManager: React.FC<{
                   key={item.id}
                   className="border rounded-md p-3 bg-white/50"
                 >
-                  <div className="flex justify-between items-start">
-                    <div className="flex-1">
-                      <p className="italic text-sm text-gray-600">
-                        &quot;{item.content}&quot;
-                      </p>
-                      <p className="text-xs font-semibold mt-2">
-                        - {item.authorName}, {item.relationship}
-                      </p>
-                    </div>
-                    {isEditing && getStatusBadge(item.status)}
-                  </div>
+              <div className="flex-1 min-w-0"> {/* הוספתי min-w-0 כדי למנוע גלישה בתוך פלקס */}
+  <p className="italic text-sm text-gray-600 whitespace-pre-wrap break-words break-all overflow-wrap-anywhere">
+    &quot;{item.content}&quot;
+  </p>
+  <p className="text-xs font-semibold mt-2">
+    - {item.authorName}, {item.relationship}
+  </p>
+</div>
                   {isEditing && (
                     <div className="flex items-center gap-2 mt-2 pt-2 border-t">
                       {item.status !== 'APPROVED' && (

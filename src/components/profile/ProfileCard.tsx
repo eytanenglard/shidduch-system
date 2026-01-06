@@ -186,28 +186,31 @@ const FriendTestimonialsSection: React.FC<{
           key={testimonial.id}
           className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm"
         >
-          <blockquote
-            className={cn(
-              'italic break-words hyphens-auto word-break-break-word overflow-wrap-anywhere', // <-- התיקון כאן
-              direction === 'rtl' ? 'pr-4 border-r-4' : 'pl-4 border-l-4',
-              THEME.colors.primary.main.includes('cyan')
-                ? direction === 'rtl'
-                  ? 'border-cyan-500'
-                  : 'border-cyan-500'
-                : THEME.colors.primary.main.includes('blue')
-                  ? direction === 'rtl'
-                    ? 'border-blue-500'
-                    : 'border-blue-500'
-                  : direction === 'rtl'
-                    ? 'border-gray-500'
-                    : 'border-gray-500',
-              THEME.colors.primary.main.includes('cyan')
-                ? 'text-cyan-800'
-                : THEME.colors.primary.main.includes('blue')
-                  ? 'text-blue-800'
-                  : 'text-gray-800'
-            )}
-          >
+         <blockquote
+  className={cn(
+    'italic',
+    // --- התיקון מתחיל כאן ---
+    'whitespace-pre-wrap break-words break-all overflow-wrap-anywhere max-w-full', 
+    // --- התיקון מסתיים כאן ---
+    direction === 'rtl' ? 'pr-4 border-r-4' : 'pl-4 border-l-4',
+    THEME.colors.primary.main.includes('cyan')
+      ? direction === 'rtl'
+        ? 'border-cyan-500'
+        : 'border-cyan-500'
+      : THEME.colors.primary.main.includes('blue')
+        ? direction === 'rtl'
+          ? 'border-blue-500'
+          : 'border-blue-500'
+        : direction === 'rtl'
+          ? 'border-gray-500'
+          : 'border-gray-500',
+    THEME.colors.primary.main.includes('cyan')
+      ? 'text-cyan-800'
+      : THEME.colors.primary.main.includes('blue')
+        ? 'text-blue-800'
+        : 'text-gray-800'
+  )}
+>
             &quot;{testimonial.content}&quot;
           </blockquote>
           <div className="flex items-center justify-between mt-3 pt-3 border-t">
