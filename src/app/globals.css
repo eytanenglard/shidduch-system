@@ -162,6 +162,7 @@
     z-index: 9999 !important;
   }
 
+  /* הוספתי חזרה את הגדרות ה-Overlay וה-Content ל-Radix */
   .radix-dialog-overlay {
     z-index: 9998 !important;
     background-color: rgba(0, 0, 0, 0.5) !important;
