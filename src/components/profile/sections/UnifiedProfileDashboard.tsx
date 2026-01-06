@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
@@ -31,6 +32,7 @@ import {
 
 // Loading Component
 import StandardizedLoadingSpinner from '@/components/questionnaire/common/StandardizedLoadingSpinner';
+import { cn } from '@/lib/utils'; // ודאי שזה מיובא
 
 // Types
 import type {
@@ -82,7 +84,22 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
   );
   const [completionPercentage, setCompletionPercentage] = useState(0);
 
+  // --- START OF ADDITION ---
+  const [isMobile, setIsMobile] = useState(false); // הוספה: סטייט לזיהוי מובייל
+  // --- END OF ADDITION ---
+
   const direction = locale === 'he' ? 'rtl' : 'ltr';
+
+  // --- START OF ADDITION ---
+  useEffect(() => {
+    const checkDevice = () => {
+      setIsMobile(window.innerWidth < 768); // 768px הוא נקודת השבירה המקובלת למובייל ב-Tailwind
+    };
+    checkDevice(); // בדיקה ראשונית
+    window.addEventListener('resize', checkDevice); // האזנה לשינוי גודל חלון
+    return () => window.removeEventListener('resize', checkDevice); // ניקוי בעת הסרה
+  }, []);
+  // --- END OF ADDITION ---
 
   useEffect(() => {
     setActiveTab(initialTab);
@@ -552,7 +569,18 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
                     <Eye className="w-5 h-5 sm:w-6 sm:h-6" />
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="w-screen h-screen sm:w-[95vw] sm:h-[90vh] sm:max-w-6xl p-0 bg-white/95 backdrop-blur-md sm:rounded-3xl shadow-2xl border-none overflow-hidden flex flex-col">
+                <DialogContent
+                  // --- START OF MODIFICATION ---
+                  className={cn(
+                    "p-0 shadow-2xl border-none overflow-hidden flex flex-col transition-all duration-300 ease-in-out bg-white/95 backdrop-blur-md",
+                    isMobile
+                      ? "!w-screen !h-screen !max-w-none !max-h-none !rounded-none !fixed !inset-0 !m-0 !transform-none"
+                      : "w-screen h-screen sm:w-[95vw] sm:h-[90vh] sm:max-w-6xl sm:rounded-3xl"
+                  )}
+                  dir={direction}
+                  onOpenAutoFocus={(e) => e.preventDefault()} // חשוב למנוע התנהגות פוקוס לא רצויה
+                  // --- END OF MODIFICATION ---
+                >
                   {/* Privacy Banner inside Preview */}
                   <div className="flex-shrink-0 w-full flex items-center justify-center py-2 bg-teal-50/80 border-b border-teal-100 backdrop-blur-sm z-20">
                     <div className="flex items-center gap-2 px-3 py-1 bg-white border border-teal-200 rounded-full shadow-sm max-w-[95%]">
@@ -564,19 +592,24 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
                   </div>
 
                   {profileData ? (
-                    <ProfileCard
-                      profile={profileData}
-                      images={images}
-                      questionnaire={questionnaireResponse}
-                      viewMode="candidate"
-                      isProfileComplete={
-                        session?.user?.isProfileComplete ?? false
-                      }
-                      className="flex-1 min-h-0 w-full"
-                      onClose={() => setPreviewOpen(false)}
-                      dict={dict.profileCard}
-                      locale={locale}
-                    />
+                    // --- START OF MODIFICATION ---
+                    // עוטפים את ProfileCard ב-div נוסף שנותן padding
+                    <div className={cn("flex-1 min-h-0 w-full overflow-auto", isMobile && "p-4 sm:p-6")}>
+                      <ProfileCard
+                        profile={profileData}
+                        images={images}
+                        questionnaire={questionnaireResponse}
+                        viewMode="candidate"
+                        isProfileComplete={
+                          session?.user?.isProfileComplete ?? false
+                        }
+                        // הסרנו את className="flex-1 min-h-0 w-full" מפה
+                        onClose={() => setPreviewOpen(false)}
+                        dict={dict.profileCard}
+                        locale={locale}
+                      />
+                    </div>
+                    // --- END OF MODIFICATION ---
                   ) : (
                     <div className="flex-1 flex items-center justify-center">
                       <p className="text-center text-gray-500 py-10">
@@ -746,3 +779,4 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
 };
 
 export default UnifiedProfileDashboard;
+

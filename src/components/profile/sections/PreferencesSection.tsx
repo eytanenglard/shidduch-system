@@ -1,6 +1,8 @@
-// src/app/(authenticated)/profile/components/dashboard/PreferencesSection.tsx
+// src/app/components/profile/sections/PreferencesSection.tsx
 'use client';
 
+import { createPortal } from 'react-dom'; // ✨ הוספה
+import { motion, AnimatePresence } from 'framer-motion'; // ✨ הוספה
 import {
   Tooltip,
   TooltipContent,
@@ -73,6 +75,22 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
   const [initialData, setInitialData] = useState<Partial<UserProfile>>({});
   const [locationInputValue, setLocationInputValue] = useState('');
   const [originInputValue, setOriginInputValue] = useState('');
+
+  // ✨ לוגיקה לכפתור הצף (כמו ב-ProfileSection)
+  const [showFloatingBtn, setShowFloatingBtn] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true); // מוודא שאנחנו בצד לקוח לצורך ה-Portal
+
+    const handleScroll = () => {
+      // מציג את הכפתור אחרי גלילה של 100 פיקסלים
+      setShowFloatingBtn(window.scrollY > 100);
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const direction = locale === 'he' ? 'rtl' : 'ltr';
 
@@ -207,8 +225,6 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
   };
 
   const handleSelectChange = (field: keyof UserProfile, value: string) => {
-    // FIX: Removed 'does_not_matter', 'no_preference', 'any' from resetValues.
-    // We want to save these specific string values to the DB so they persist in the UI.
     const resetValues = [
       '', // Only strictly empty string should reset to null
     ];
@@ -234,11 +250,8 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
       ];
 
       if (resetValues.includes(value)) {
-        // If selecting "no preference", you might want to clear others or just toggle it.
-        // Assuming exclusive behavior for "no preference":
         newValues = currentValues.includes(value) ? [] : [value];
       } else {
-        // If selecting a normal value, remove "no preference" options first
         const filteredValues = currentValues.filter(
           (v) => !resetValues.includes(v)
         );
@@ -299,7 +312,6 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
     }
     return fieldValues.map((value) => {
       const option = options.find((opt) => opt.value === value);
-      // Fallback for displaying the value if option is missing (e.g. legacy data)
       const label = option ? option.label : value;
       const Icon = option?.icon;
 
@@ -330,7 +342,6 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
     return option ? (
       option.label
     ) : (
-      // Fallback display
       <span className="text-gray-500">{value}</span>
     );
   };
@@ -364,6 +375,7 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
                   </Button>
                 ) : (
                   <>
+                    {/* ======================= START: DESKTOP BUTTONS ======================= */}
                     <div className="hidden sm:flex gap-2">
                       <Button
                         variant="outline"
@@ -384,6 +396,7 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
                         {t.buttons.save}
                       </Button>
                     </div>
+                    {/* ======================= END: DESKTOP BUTTONS ======================= */}
                   </>
                 )}
               </div>
@@ -1504,43 +1517,49 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
         </div>
       </div>
 
-      {/* ======================= START: FLOATING ACTION BUTTON ======================= */}
-      {!viewOnly && (
-        <div className="sticky bottom-24 sm:bottom-28 z-30 flex justify-start ps-4 sm:ps-6 -mt-14 pointer-events-none">
-          {' '}
-          {isEditing ? (
-            <Button
-              onClick={handleSave}
-              className={cn(
-                'h-14 w-14 rounded-full shadow-lg hover:shadow-xl pointer-events-auto',
-                'bg-gradient-to-br from-teal-500 to-orange-500 hover:from-teal-600 hover:to-orange-600',
-                'transition-all duration-300 ease-out',
-                'hover:scale-110 active:scale-95',
-                'flex items-center justify-center',
-                'ring-4 ring-teal-200/50'
-              )}
-              aria-label={t.buttons.save}
-            >
-              <Save className="w-6 h-6 text-white" />
-            </Button>
-          ) : (
-            <Button
-              onClick={() => setIsEditing(true)}
-              className={cn(
-                'h-14 w-14 rounded-full shadow-lg hover:shadow-xl pointer-events-auto',
-                'bg-gradient-to-br from-teal-500 to-orange-500 hover:from-teal-600 hover:to-orange-600',
-                'transition-all duration-300 ease-out',
-                'hover:scale-110 active:scale-95',
-                'flex items-center justify-center',
-                'ring-4 ring-teal-200/50'
-              )}
-              aria-label={t.buttons.edit}
-            >
-              <Pencil className="w-6 h-6 text-white" />
-            </Button>
-          )}
-        </div>
-      )}
+      {/* ======================= START: FLOATING ACTION BUTTON (PORTAL) ======================= */}
+      {/* ✨ החלק הזה הוחלף לחלוטין כדי להיות זהה ל-ProfileSection */}
+      {!viewOnly &&
+        mounted &&
+        createPortal(
+          <AnimatePresence>
+            {showFloatingBtn && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0 }}
+                transition={{
+                  type: 'spring',
+                  stiffness: 260,
+                  damping: 20,
+                }}
+                // שומר על המיקום החדש: צד שמאל (left-4) וסטיקי (fixed)
+                className="fixed bottom-24 left-4 z-[9999] md:hidden"
+              >
+                <Button
+                  onClick={isEditing ? handleSave : () => setIsEditing(true)}
+                  // שימוש בצבעי Cyan (תכלת) כדי שיהיה זהה לחלוטין ל-ProfileSection
+                  className={cn(
+                    'h-14 w-14 rounded-full shadow-lg hover:shadow-xl',
+                    'bg-gradient-to-br from-cyan-500 to-cyan-600 hover:from-cyan-600 hover:to-cyan-700',
+                    'transition-all duration-300 ease-out',
+                    'hover:scale-110 active:scale-95',
+                    'flex items-center justify-center',
+                    'ring-4 ring-cyan-200/50'
+                  )}
+                  aria-label={isEditing ? t.buttons.save : t.buttons.edit}
+                >
+                  {isEditing ? (
+                    <Save className="w-6 h-6 text-white" />
+                  ) : (
+                    <Pencil className="w-6 h-6 text-white" />
+                  )}
+                </Button>
+              </motion.div>
+            )}
+          </AnimatePresence>,
+          document.body
+        )}
       {/* ======================= END: FLOATING ACTION BUTTON ======================= */}
 
       {/* ======================= START: ALWAYS VISIBLE STICKY FOOTER ======================= */}
@@ -1569,6 +1588,7 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
                       <X className="w-4 h-4 ms-1.5" />
                       {t.buttons.cancel}
                     </Button>
+                    {/* ✨ עדכון צבע הכפתור התחתון ל-Cyan כדי להתאים לקונסיסטנטיות, או להשאיר Teal לפי העיצוב הכללי. כאן שמרתי על Teal כי זה העיצוב של הדף, אבל אפשר לשנות ל-Cyan אם רוצים זהות מוחלטת */}
                     <Button
                       variant="default"
                       size="sm"
