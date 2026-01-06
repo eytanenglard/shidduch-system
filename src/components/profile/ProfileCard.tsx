@@ -186,10 +186,10 @@ const FriendTestimonialsSection: React.FC<{
           key={testimonial.id}
           className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm"
         >
-       <blockquote
-  className={cn(
-    'italic break-words hyphens-auto word-break-break-word overflow-wrap-anywhere', // <-- התיקון כאן
-    direction === 'rtl' ? 'pr-4 border-r-4' : 'pl-4 border-l-4',
+          <blockquote
+            className={cn(
+              'italic break-words hyphens-auto word-break-break-word overflow-wrap-anywhere', // <-- התיקון כאן
+              direction === 'rtl' ? 'pr-4 border-r-4' : 'pl-4 border-l-4',
               THEME.colors.primary.main.includes('cyan')
                 ? direction === 'rtl'
                   ? 'border-cyan-500'
@@ -3726,7 +3726,9 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                 compact ? 'text-sm' : 'text-sm sm:text-base'
               )}
             >
-              <span className="flex-1 break-words ...">
+              <span className="flex-1 break-words hyphens-auto word-break-break-word min-w-0">
+                {' '}
+                {/* <-- min-w-0 הוא קריטי לפלקס */}
                 <span className="sr-only">
                   {displayDict.content.questionnaire.questionFromCategory.replace(
                     '{{worldName}}',
@@ -3944,9 +3946,9 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                     variant="elegant"
                     gradient={THEME.colors.primary.main}
                   >
-                  <p className="text-center text-lg italic font-semibold text-gray-700 break-words hyphens-auto word-break-break-word overflow-wrap-anywhere">
-  &quot;{profile.profileHeadline}&quot;
-</p>
+                    <p className="text-center text-lg italic font-semibold text-gray-700 break-words hyphens-auto word-break-break-word overflow-wrap-anywhere">
+                      &quot;{profile.profileHeadline}&quot;
+                    </p>
                   </SectionCard>
                 )}
 
@@ -3962,9 +3964,9 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                 >
                   <div className="relative p-4 bg-rose-50/30 rounded-lg border border-rose-200/50">
                     <Quote className="absolute top-2 right-2 w-6 h-6 text-rose-200" />
-               <p className="whitespace-pre-wrap text-gray-800 leading-relaxed italic px-4 break-words hyphens-auto word-break-break-word overflow-wrap-anywhere">
-  {profile.about}
-</p>
+                    <p className="whitespace-pre-wrap text-gray-800 leading-relaxed italic px-4 break-words hyphens-auto word-break-break-word overflow-wrap-anywhere">
+                      {profile.about}
+                    </p>
                     <Quote className="absolute bottom-2 left-2 w-6 h-6 text-rose-200 transform rotate-180" />
                   </div>
                 </SectionCard>
@@ -4030,6 +4032,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                                   'flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 font-semibold text-xs sm:text-sm',
                                   'bg-gradient-to-r from-purple-100 to-pink-100 text-purple-800',
                                   'border border-purple-200 rounded-full hover:scale-105 transition-transform',
+                                  'whitespace-normal h-auto text-center leading-tight max-w-full', // <-- התיקון כאן: מאפשר שבירת שורות
                                   THEME.shadows.soft
                                 )}
                               >
@@ -4039,7 +4042,10 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                                     traitData.color
                                   )}
                                 />
-                                <span>{traitData.label}</span>
+                                <span className="break-words min-w-0">
+                                  {traitData.label}
+                                </span>{' '}
+                                {/* <-- הוספת הגנה לטקסט */}
                               </Badge>
                             );
                           })}
@@ -4069,6 +4075,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                                   'flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 font-semibold text-xs sm:text-sm',
                                   'bg-gradient-to-r from-emerald-100 to-cyan-100 text-emerald-800',
                                   'border border-emerald-200 rounded-full hover:scale-105 transition-transform',
+                                  'whitespace-normal h-auto text-center leading-tight max-w-full', // <-- התיקון כאן
                                   THEME.shadows.soft
                                 )}
                               >
@@ -4078,7 +4085,10 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                                     hobbyData.color
                                   )}
                                 />
-                                <span>{hobbyData.label}</span>
+                                <span className="break-words min-w-0">
+                                  {hobbyData.label}
+                                </span>{' '}
+                                {/* <-- הוספת הגנה לטקסט */}
                               </Badge>
                             );
                           })}
