@@ -495,6 +495,7 @@ interface PhoneNumberInputProps {
   disabled?: boolean;
   locale: 'he' | 'en';
   error?: string;
+   placeholder?: string;
 }
 
 const PhoneNumberInput: React.FC<PhoneNumberInputProps> = ({

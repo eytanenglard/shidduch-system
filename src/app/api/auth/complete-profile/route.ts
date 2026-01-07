@@ -6,16 +6,27 @@ import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 import { Prisma } from '@prisma/client';
 import { z } from 'zod';
-import { Gender, UserStatus, Language } from '@prisma/client'; 
+import { Gender, UserStatus, Language } from '@prisma/client';
 
+const normalizePhone = (val: unknown) => {
+  if (typeof val !== 'string') return val;
+  // אם מתחיל ב +9720, מחליפים ב +972
+  if (val.startsWith('+9720')) {
+    return val.replace('+9720', '+972');
+  }
+  return val;
+};
 // Zod Schema - כולל phone, שדות דיוור, ו-about
 const completeProfileSchema = z.object({
   firstName: z.string().min(1, "First name is required").max(100, "First name too long"),
   lastName: z.string().min(1, "Last name is required").max(100, "Last name too long"),
 
-  phone: z.string().refine(
-    (phone) => /^\+[1-9]\d{1,14}$/.test(phone), 
-    { message: "Invalid international phone number format (E.164 required)." }
+ phone: z.preprocess(
+    normalizePhone,
+    z.string().refine(
+      (phone) => /^\+[1-9]\d{1,14}$/.test(phone), 
+      { message: "Invalid international phone number format (E.164 required)." }
+    )
   ),
   gender: z.nativeEnum(Gender),
   birthDate: z.string().refine((date) => !isNaN(Date.parse(date)), {

@@ -12,6 +12,7 @@ import { format } from 'date-fns';
 import {
   User,
   MapPin,
+  MessageCircle,
   Briefcase,
   Calendar,
   Edit2,
@@ -413,10 +414,39 @@ const MinimalCandidateCard: React.FC<MinimalCandidateCardProps> = ({
               </Tooltip>
             </TooltipProvider>
 
-            <DropdownMenuContent
+          <DropdownMenuContent
               onClick={(e) => e.stopPropagation()}
               align="start"
             >
+              {/* --- התחלת הוספה: כפתור וואטסאפ --- */}
+              {candidate.phone && (
+                <DropdownMenuItem
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    // 1. ניקוי המספר מכל תו שאינו ספרה (מקפים, רווחים וכו')
+                    let cleanPhone = candidate.phone?.replace(/\D/g, '') || '';
+                    
+                    // 2. המרה לפורמט בינלאומי (אם מתחיל ב-0, נחליף ב-972)
+                    // הנחה: המערכת עובדת בעיקר עם מספרים ישראליים. 
+                    // אם יש מספרים מחו"ל שכבר שמורים עם קידומת, הלוגיקה תצטרך התאמה קלה.
+                    if (cleanPhone.startsWith('0')) {
+                      cleanPhone = '972' + cleanPhone.substring(1);
+                    }
+
+                    // 3. פתיחת הקישור
+                    if (cleanPhone) {
+                      window.open(`https://wa.me/${cleanPhone}`, '_blank');
+                    } else {
+                        // אופציונלי: הודעת שגיאה אם המספר לא תקין
+                        console.error('Invalid phone number');
+                    }
+                  }}
+                  className="text-green-700 hover:text-green-800 hover:bg-green-50 focus:bg-green-50 focus:text-green-800"
+                >
+                  <MessageCircle className="h-4 w-4 ml-2" />
+                  <span>שלח וואטסאפ</span>
+                </DropdownMenuItem>
+              )}
               {onEdit && (
                 <DropdownMenuItem onClick={(e) => onEdit(candidate, e)}>
                   <Edit2 className="h-4 w-4 ml-2" />

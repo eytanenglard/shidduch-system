@@ -818,32 +818,43 @@ export default function PersonalDetailsStep({
           </motion.div>
         </div>
 
-        <motion.div variants={itemVariants} className="space-y-2">
-          <Label className="text-sm font-semibold text-gray-700 flex items-center">
-            {personalDetailsDict.phoneLabel}{' '}
-            <span className="text-red-500 mr-1">*</span>
-          </Label>
-          <PhoneNumberInput
-            value={registrationState.phone}
-            onChange={(value) => {
-              updateField('phone', value || '');
-              if (value && validatePhoneNumber(value)) setPhoneError('');
-            }}
-            disabled={isLoading}
-            error={
-              phoneError ||
-              (missingFields.includes(validationDict.fields.phone)
-                ? ' '
-                : undefined)
-            }
-            locale={locale}
-          />
-          {phoneError && (
-            <p className="text-xs text-red-600 flex items-center gap-1">
-              <AlertCircle className="w-3 h-3" /> {phoneError}
-            </p>
-          )}
-        </motion.div>
+<motion.div variants={itemVariants} className="space-y-2">
+  <Label className="text-sm font-semibold text-gray-700 flex items-center">
+    {personalDetailsDict.phoneLabel}{' '}
+    <span className="text-red-500 mr-1">*</span>
+  </Label>
+  <PhoneNumberInput
+    value={registrationState.phone}
+    onChange={(value) => {
+      let cleanValue = value || '';
+      
+      // === תיקון: הסרת 0 מוביל בקידומת ישראלית ===
+      // אם המספר מתחיל ב-+9720, נחליף אותו ב-+972
+      if (cleanValue.startsWith('+9720')) {
+        cleanValue = cleanValue.replace('+9720', '+972');
+      }
+      // ==========================================
+
+      updateField('phone', cleanValue);
+      if (cleanValue && validatePhoneNumber(cleanValue)) setPhoneError('');
+    }}
+    disabled={isLoading}
+    error={
+      phoneError ||
+      (missingFields.includes(validationDict.fields.phone)
+        ? ' '
+        : undefined)
+    }
+    locale={locale}
+    // מומלץ: הוסף placeholder שמראה דוגמה ללא 0
+    placeholder="50 123 4567" 
+  />
+  {phoneError && (
+    <p className="text-xs text-red-600 flex items-center gap-1">
+      <AlertCircle className="w-3 h-3" /> {phoneError}
+    </p>
+  )}
+</motion.div>
 
         <motion.div variants={itemVariants} className="space-y-2">
           <Label className="text-sm font-semibold text-gray-700 flex items-center">
