@@ -547,6 +547,7 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
                 lastGeneratedAt={user.neshamaInsightLastGeneratedAt}
                 generatedCount={user.neshamaInsightGeneratedCount || 0}
                 dict={dict.dashboard.neshmaInsightButton}
+                userRole={user.role} // <--- הוספנו את השורה הזו
               />
             </>
           )}
@@ -571,10 +572,10 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
                 <DialogContent
                   // --- START OF MODIFICATION ---
                   className={cn(
-                    "p-0 shadow-2xl border-none overflow-hidden flex flex-col transition-all duration-300 ease-in-out bg-white/95 backdrop-blur-md",
+                    'p-0 shadow-2xl border-none overflow-hidden flex flex-col transition-all duration-300 ease-in-out bg-white/95 backdrop-blur-md',
                     isMobile
-                      ? "!w-screen !h-screen !max-w-none !max-h-none !rounded-none !fixed !inset-0 !m-0 !transform-none"
-                      : "w-screen h-screen sm:w-[95vw] sm:h-[90vh] sm:max-w-6xl sm:rounded-3xl"
+                      ? '!w-screen !h-screen !max-w-none !max-h-none !rounded-none !fixed !inset-0 !m-0 !transform-none'
+                      : 'w-screen h-screen sm:w-[95vw] sm:h-[90vh] sm:max-w-6xl sm:rounded-3xl'
                   )}
                   dir={direction}
                   onOpenAutoFocus={(e) => e.preventDefault()} // חשוב למנוע התנהגות פוקוס לא רצויה
@@ -607,8 +608,8 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
                         locale={locale}
                       />
                     </div>
-                    // --- END OF MODIFICATION ---
                   ) : (
+                    // --- END OF MODIFICATION ---
                     <div className="flex-1 flex items-center justify-center">
                       <p className="text-center text-gray-500 py-10">
                         {dict.dashboard.previewLoading}

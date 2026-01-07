@@ -33,7 +33,8 @@ import {
   MessageSquare,
   Phone,
   Mail,
-  FileText, // אייקון לקובץ PDF
+  FileText,
+  Copy, // הוספנו אייקון להעתקה
 } from 'lucide-react';
 import type { UserProfile, UserImage } from '@/types/next-auth';
 import type { Candidate } from './types/candidates';
@@ -51,9 +52,6 @@ import {
   CardFooter,
 } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
-
-// ייבוא פונקציית העזר ליצירת ה-PDF
-import { generateInsightPdf } from '@/lib/pdf/insightPdfGenerator';
 
 interface MatchmakerEditProfileProps {
   isOpen: boolean;
@@ -102,17 +100,19 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
   const [inviteEmail, setInviteEmail] = useState('');
   const [isSendingInvite, setIsSendingInvite] = useState(false);
 
-  // AI Summary
+  // AI Summary (השדה הידני ב-DB)
   const [isGeneratingSummary, setIsGeneratingSummary] = useState(false);
 
-  // PDF Generation
-  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+  // Insight Text (הניתוח החדש - טקסט במקום PDF)
+  const [insightText, setInsightText] = useState<string | null>(null);
+  const [isInsightDialogOpen, setIsInsightDialogOpen] = useState(false);
+  const [isGeneratingInsight, setIsGeneratingInsight] = useState(false);
 
   const DELETE_CANDIDATE_CONFIRMATION_PHRASE = dict.deleteConfirmationPhrase;
 
   // --- Handlers ---
 
-  // יצירת תקציר AI כללי (לא ה-PDF)
+  // יצירת תקציר AI כללי (לשדה manualEntryText)
   const handleGenerateSummary = async () => {
     if (!candidate) return;
     setIsGeneratingSummary(true);
@@ -197,7 +197,10 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
       setIsSetupInviteOpen(false);
       setInviteEmail('');
       setIsSendingInvite(false);
-      setIsGeneratingPdf(false);
+      // Reset Insight State
+      setInsightText(null);
+      setIsInsightDialogOpen(false);
+      setIsGeneratingInsight(false);
     }
   }, [isOpen, candidate, fetchProfileData]);
 
@@ -236,12 +239,12 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
     }
   };
 
-  // יצירה והורדת PDF דוח תובנות
-  const handleGenerateInsightPdf = async () => {
+  // --- NEW: Generate Text Insight (Replacing PDF) ---
+  const handleGenerateInsightText = async () => {
     if (!candidate) return;
-    setIsGeneratingPdf(true);
+    setIsGeneratingInsight(true);
     try {
-      // 1. קריאה ל-API כדי לייצר/לשלוף את המידע (AI)
+      // קריאה ל-API שמחזיר טקסט
       const response = await fetch('/api/profile/neshama-insight', {
         method: 'POST',
         headers: {
@@ -257,17 +260,23 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
 
       const data = await response.json();
 
-      // 2. יצירת ה-PDF בצד הלקוח באמצעות פונקציית העזר
-      await generateInsightPdf(data.insight, locale as 'he' | 'en');
+      // שמירת הטקסט ופתיחת הדיאלוג
+      setInsightText(data.insight);
+      setIsInsightDialogOpen(true);
     } catch (error: any) {
-      console.error('Error generating PDF:', error);
-      // שימוש בטקסט מהמילון או ברירת מחדל
-      const errorMsg =
-        dict.neshamaTechSummary.pdfGenerateError || 'Error generating PDF';
-      toast.error(errorMsg);
+      console.error('Error generating insight:', error);
+      toast.error(
+        locale === 'he' ? 'שגיאה ביצירת הדוח' : 'Error generating report'
+      );
     } finally {
-      setIsGeneratingPdf(false);
+      setIsGeneratingInsight(false);
     }
+  };
+
+  const copyInsightToClipboard = () => {
+    if (!insightText) return;
+    navigator.clipboard.writeText(insightText);
+    toast.success(locale === 'he' ? 'הועתק ללוח' : 'Copied to clipboard');
   };
 
   // העלאת תמונות
@@ -473,7 +482,6 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
             className="flex flex-col h-full max-h-[90vh]"
           >
             {/* --- HEADER --- */}
-            {/* Fix: Header is now always rendered to satisfy accessibility requirements */}
             <DialogHeader className="p-6 border-b bg-gradient-to-r from-blue-50/50 to-white flex-shrink-0">
               <div className="flex items-center justify-between">
                 <div>
@@ -612,26 +620,28 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
                               />
                             </CardContent>
 
-                            {/* Footer with Save and PDF buttons */}
+                            {/* Footer with Save and Insight Button */}
                             <CardFooter className="flex justify-between pt-2 pb-4 bg-slate-50/30">
-                              {/* כפתור הורדת PDF (חדש) */}
+                              {/* כפתור הניתוח החדש (טקסט) */}
                               <Button
                                 variant="outline"
                                 size="sm"
-                                onClick={handleGenerateInsightPdf}
-                                disabled={isGeneratingPdf}
+                                onClick={handleGenerateInsightText}
+                                disabled={isGeneratingInsight}
                                 className="border-indigo-200 text-indigo-700 hover:bg-indigo-50 gap-2"
                               >
-                                {isGeneratingPdf ? (
+                                {isGeneratingInsight ? (
                                   <Loader2 className="w-4 h-4 animate-spin" />
                                 ) : (
                                   <FileText className="w-4 h-4" />
                                 )}
-                                {isGeneratingPdf
-                                  ? dict.neshamaTechSummary
-                                      .generatingPdfButton || 'Generating...'
-                                  : dict.neshamaTechSummary.downloadPdfButton ||
-                                    'Download Insight PDF'}
+                                {isGeneratingInsight
+                                  ? locale === 'he'
+                                    ? 'מנתח נתונים...'
+                                    : 'Analyzing...'
+                                  : locale === 'he'
+                                    ? 'ניתוח עומק אישי'
+                                    : 'Deep Personal Analysis'}
                               </Button>
 
                               {/* כפתור שמירה */}
@@ -848,6 +858,51 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
               </>
             )}
           </motion.div>
+        </DialogContent>
+      </Dialog>
+
+      {/* --- NEW: Insight Text Dialog --- */}
+      <Dialog open={isInsightDialogOpen} onOpenChange={setIsInsightDialogOpen}>
+        <DialogContent
+          className="max-w-3xl max-h-[85vh] flex flex-col p-0 overflow-hidden"
+          dir={direction}
+        >
+          <DialogHeader className="p-6 border-b bg-gradient-to-r from-indigo-50 to-purple-50">
+            <DialogTitle className="flex items-center gap-2 text-xl text-indigo-800">
+              <Sparkles className="w-5 h-5 text-indigo-600" />
+              {locale === 'he'
+                ? `ניתוח עומק אישי - ${candidate?.firstName}`
+                : `Deep Personal Analysis - ${candidate?.firstName}`}
+            </DialogTitle>
+            <DialogDescription className="text-indigo-600/80">
+              {locale === 'he'
+                ? 'דוח תובנות מעמיק המבוסס על נתוני הפרופיל והשאלון'
+                : 'Deep insight report based on profile and questionnaire data'}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="flex-1 overflow-y-auto p-6 bg-slate-50/50">
+            <div className="bg-white p-6 rounded-lg border shadow-sm text-gray-800 whitespace-pre-wrap leading-relaxed text-sm sm:text-base font-sans">
+              {insightText}
+            </div>
+          </div>
+
+          <DialogFooter className="p-4 border-t bg-white gap-2 sm:gap-0">
+            <Button
+              variant="outline"
+              onClick={copyInsightToClipboard}
+              className="gap-2"
+            >
+              <Copy className="w-4 h-4" />
+              {locale === 'he' ? 'העתק טקסט' : 'Copy Text'}
+            </Button>
+            <Button
+              onClick={() => setIsInsightDialogOpen(false)}
+              className="bg-indigo-600 hover:bg-indigo-700"
+            >
+              {locale === 'he' ? 'סגור' : 'Close'}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 
