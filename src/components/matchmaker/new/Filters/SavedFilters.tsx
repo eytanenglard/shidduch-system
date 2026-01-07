@@ -78,8 +78,8 @@ const formatFilterSummary = (
       );
     }
   }
-  if (filter.religiousLevel) {
-    parts.push(dict.religiousLevel.replace('{{level}}', filter.religiousLevel));
+ if (filter.religiousLevel && filter.religiousLevel.length > 0) {
+    parts.push(dict.religiousLevel.replace('{{level}}', filter.religiousLevel.join(', ')));
   }
   if (filter.educationLevel) {
     parts.push(dict.educationLevel.replace('{{level}}', filter.educationLevel));
