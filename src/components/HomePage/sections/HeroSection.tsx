@@ -18,7 +18,14 @@ import {
 import { Session } from 'next-auth';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { HeroSectionDict, PrincipleDict } from '@/types/dictionary';
+import { Heebo } from 'next/font/google';
 
+// הגדרת פונט Heebo לכותרת
+const heebo = Heebo({
+  subsets: ['hebrew', 'latin'],
+  weight: ['400', '500', '600', '700'],
+  display: 'swap',
+});
 interface HeroSectionProps {
   session: Session | null;
   isVisible: boolean;

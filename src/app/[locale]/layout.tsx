@@ -1,6 +1,6 @@
 // src/app/[locale]/layout.tsx
 
-import { Heebo } from 'next/font/google'; // פונט מודרני ונקי לעברית
+import { Heebo } from 'next/font/google'; // החלפה מפונט מקומי ל-Google Font
 import '../globals.css';
 import Providers from '@/components/Providers';
 import AppContent from './AppContent';
@@ -12,12 +12,12 @@ import { Locale } from '../../../i18n-config';
 import FeedbackWidget from '@/components/layout/FeedbackWidget';
 import { QuestionnaireStateProvider } from '@/app/[locale]/contexts/QuestionnaireStateContext';
 
-// הגדרת פונט Heebo - מודרני, נקי, מושלם לעברית ואנגלית
+// הגדרת פונט Heebo - קל, נקי ומקצועי
 const heebo = Heebo({
   subsets: ['hebrew', 'latin'],
-  variable: '--font-heebo', // שם המשתנה
+  variable: '--font-heebo',
   display: 'swap',
-  weight: ['300', '400', '500', '600', '700', '800'], // מגוון משקלים לעיצוב עשיר
+  weight: ['300', '400', '500', '600', '700'], // כולל Light (300) לטקסט קל יותר
 });
 
 type LayoutParams = Promise<{
@@ -29,7 +29,7 @@ export async function generateMetadata(props: {
 }): Promise<Metadata> {
   const params = await props.params;
   const locale = params.locale as Locale;
-
+  
   const dictionary = await getDictionary(locale);
   return {
     title: dictionary.metadata.title,
@@ -46,7 +46,7 @@ export default async function RootLayout(props: {
 }) {
   const params = await props.params;
   const locale = params.locale as Locale;
-
+  
   const dictionary = await getDictionary(locale);
   const direction = locale === 'he' ? 'rtl' : 'ltr';
 
@@ -59,7 +59,7 @@ export default async function RootLayout(props: {
     >
       <head />
       <body
-        // שימוש במשתנה של Heebo
+        // שימוש בפונט Heebo
         className={`${heebo.variable} antialiased font-sans`}
         suppressHydrationWarning
       >

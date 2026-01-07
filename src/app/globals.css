@@ -63,8 +63,21 @@
 
   body {
     @apply bg-background text-foreground;
-    font-family: var(--font-heebo), system-ui, sans-serif;
+    font-family: var(--font-heebo), system-ui, sans-serif !important;
+    font-weight: 400; /* משקל רגיל - לא בולד */
     overflow-x: hidden;
+  }
+
+  /* כותרות - משקל בינוני (לא בולד) */
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-heebo), system-ui, sans-serif !important;
+    font-weight: 600; /* Semi-bold לכותרות - לא מדי כבד */
+  }
+
+  /* כל הטקסטים - Heebo רגיל */
+  p, span, div, a, button, input, textarea, select, label {
+    font-family: var(--font-heebo), system-ui, sans-serif;
+    font-weight: 400; /* רגיל */
   }
 
   /* Touch optimization for all interactive elements */
