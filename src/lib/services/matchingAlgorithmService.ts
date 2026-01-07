@@ -1,6 +1,6 @@
 // src/lib/services/matchingAlgorithmService.ts
-// 🎯 אלגוריתם מציאת התאמות V2.1 - NeshamaTech
-// משלב סינון חכם + ניתוח AI מעמיק + שמירת תוצאות
+// 🎯 אלגוריתם מציאת התאמות V2.5.1 - NeshamaTech
+// גרסה משופרת עם לוגים מפורטים לדיבאג
 
 import prisma from "@/lib/prisma";
 import { GoogleGenerativeAI } from '@google/generative-ai';
@@ -37,6 +37,7 @@ interface CandidateData {
   city: string | null;
   occupation: string | null;
   summaryText: string;
+  hasAiSummary: boolean;
 }
 
 export interface MatchResult {
@@ -55,7 +56,6 @@ interface AiMatchResponse {
   }>;
 }
 
-// 🆕 Interface לתוצאות שמורות
 export interface SavedSearchResult {
   matches: MatchResult[];
   meta: {
@@ -63,72 +63,54 @@ export interface SavedSearchResult {
     matchmakerId: string;
     algorithmVersion: string;
     originalCandidatesCount: number;
-    validCandidatesCount: number;  // כמה עדיין תקפים
-    isStale: boolean;              // האם עברו יותר מ-7 ימים
+    validCandidatesCount: number;
+    isStale: boolean;
   };
 }
 
 // ============================================================================
-// RELIGIOUS LEVEL MAPPING
+// 🆕 CONFIGURATION - הגדלתי את AI_MAX ל-30!
 // ============================================================================
+
+const CONFIG = {
+  // DB Filtering - null = NO LIMIT, scans everything!
+  DB_LIMIT: null as number | null,
+  
+  // 🆕 AI Analysis - שולח 30 ל-AI במקום 15!
+  AI_MAX_CANDIDATES: 30,
+  
+  // Smart Pre-filtering
+  PRIORITIZE_AI_SUMMARIES: true,
+  
+  // Cache
+  CACHE_STALE_DAYS: 7,
+  
+  // 🆕 Debug mode - מציג את כל המועמדים שנמצאו
+  DEBUG_SHOW_ALL_CANDIDATES: true,
+};
 
 // ============================================================================
 // RELIGIOUS LEVEL MAPPING
 // ============================================================================
 
-/**
- * מפת רמות דתיות לפי סדר (מחמיר -> פתוח)
- * הסדר קריטי לאלגוריתם כדי למצוא התאמות "קרובות"
- */
 const RELIGIOUS_LEVEL_ORDER: string[] = [
-  // --- חרדי ---
-  'charedi_hasidic',       // חרדי חסידי (לרוב המחמיר/שמרני ביותר)
-  'charedi_litvak',        // חרדי ליטאי
-  'charedi_sephardic',     // חרדי ספרדי
-  'chabad',                // חב"ד (שמנו כאן בגלל האופי החרדי, למרות הייחוד)
-  'breslov',               // ברסלב
-  'charedi_modern',        // חרדי מודרני (גשר לדתי לאומי)
-
-  // --- דתי לאומי ---
-  'dati_leumi_torani',     // דתי לאומי תורני
-  'dati_leumi_standard',   // דתי לאומי (סטנדרטי)
-  'dati_leumi_liberal',    // דתי לאומי ליברלי
-
-  // --- מסורתי ---
-  'masorti_strong',        // מסורתי (קרוב לדת)
-  'masorti_light',         // מסורתי (קשר קל)
-
-  // --- חילוני ורוחני ---
-  'secular_traditional_connection', // חילוני עם זיקה
-  'secular',               // חילוני
-  'spiritual_not_religious', // רוחני
-  'other'                  // אחר
+  'charedi_hasidic', 'charedi_litvak', 'charedi_sephardic', 'chabad', 'breslov', 'charedi_modern',
+  'dati_leumi_torani', 'dati_leumi_standard', 'dati_leumi_liberal',
+  'masorti_strong', 'masorti_light',
+  'secular_traditional_connection', 'secular', 'spiritual_not_religious', 'other'
 ];
 
-/**
- * מחזיר את הרמות הדתיות התואמות לרמה נתונה
- * מכיוון שהרשימה גדלה (15 רמות במקום 10), הגדלתי מעט את הטווח ל-3 רמות לכל כיוון
- */
 function getCompatibleReligiousLevels(level: string | null): string[] {
-  if (!level) return RELIGIOUS_LEVEL_ORDER; // אם לא צוין - הכל מתאים
-  
+  if (!level) return RELIGIOUS_LEVEL_ORDER;
   const index = RELIGIOUS_LEVEL_ORDER.indexOf(level);
-  if (index === -1) return RELIGIOUS_LEVEL_ORDER; // לא נמצא - הכל מתאים
-  
-  // עדכון: טווח של ±3 רמות (במקום 2) כדי לאפשר גמישות ברשימה הארוכה יותר
-  // למשל: 'דתי לאומי סטנדרטי' יראה גם 'חרדי מודרני' וגם 'מסורתי קרוב לדת'
+  if (index === -1) return RELIGIOUS_LEVEL_ORDER;
   const minIndex = Math.max(0, index - 3);
   const maxIndex = Math.min(RELIGIOUS_LEVEL_ORDER.length - 1, index + 3);
-  
   return RELIGIOUS_LEVEL_ORDER.slice(minIndex, maxIndex + 1);
 }
 
-/**
- * בדיקה מהירה האם שתי רמות דתיות תואמות
- */
 function areReligiousLevelsCompatible(level1: string | null, level2: string | null): boolean {
-  if (!level1 || !level2) return true; // אם אחד לא צוין - מתאים
-  
+  if (!level1 || !level2) return true;
   const compatible = getCompatibleReligiousLevels(level1);
   return compatible.includes(level2);
 }
@@ -156,17 +138,31 @@ function getAgeRange(age: number, gender: Gender): { minAge: number; maxAge: num
 }
 
 // ============================================================================
-// 🆕 SAVED RESULTS FUNCTIONS
+// LOGGING UTILITIES
 // ============================================================================
 
-/**
- * טוען תוצאות שמורות עבור יוזר מסומן
- * מסנן אוטומטית מועמדים שכבר לא זמינים או נמחקו
- */
-export async function loadSavedMatches(targetUserId: string): Promise<SavedSearchResult | null> {
-  console.log(`[Matching] Loading saved matches for user: ${targetUserId}`);
+function logSection(title: string) {
+  console.log(`\n${'='.repeat(60)}`);
+  console.log(`📌 ${title}`);
+  console.log(`${'='.repeat(60)}`);
+}
 
-  // שליפת החיפוש השמור
+function logStep(step: number, description: string) {
+  console.log(`\n[Step ${step}] ${description}`);
+  console.log(`${'-'.repeat(50)}`);
+}
+
+function logStats(label: string, value: number | string) {
+  console.log(`   📊 ${label}: ${value}`);
+}
+
+// ============================================================================
+// SAVED RESULTS FUNCTIONS
+// ============================================================================
+
+export async function loadSavedMatches(targetUserId: string): Promise<SavedSearchResult | null> {
+  console.log(`[Cache] Loading saved matches for user: ${targetUserId}`);
+
   const savedSearch = await prisma.savedMatchSearch.findUnique({
     where: { targetUserId },
     select: {
@@ -180,19 +176,17 @@ export async function loadSavedMatches(targetUserId: string): Promise<SavedSearc
   });
 
   if (!savedSearch) {
-    console.log(`[Matching] No saved search found for user: ${targetUserId}`);
+    console.log(`[Cache] ❌ No saved search found`);
     return null;
   }
 
-const savedMatches = savedSearch.results as unknown as MatchResult[];
+  const savedMatches = savedSearch.results as unknown as MatchResult[];
   const savedAt = savedSearch.updatedAt;
-  
-  // בדיקה האם התוצאות "ישנות" (יותר מ-7 ימים)
   const daysSinceSaved = Math.floor((Date.now() - savedAt.getTime()) / (1000 * 60 * 60 * 24));
-  const isStale = daysSinceSaved > 7;
+  const isStale = daysSinceSaved > CONFIG.CACHE_STALE_DAYS;
 
   if (savedMatches.length === 0) {
-    console.log(`[Matching] Saved search exists but has no matches`);
+    console.log(`[Cache] ⚠️ Saved search exists but has no matches`);
     return {
       matches: [],
       meta: {
@@ -206,10 +200,7 @@ const savedMatches = savedSearch.results as unknown as MatchResult[];
     };
   }
 
-  // שליפת מזהי המועמדים השמורים
   const savedUserIds = savedMatches.map(m => m.userId);
-
-  // בדיקה אילו מועמדים עדיין תקפים (קיימים, פעילים, וזמינים)
   const validCandidates = await prisma.user.findMany({
     where: {
       id: { in: savedUserIds },
@@ -219,24 +210,18 @@ const savedMatches = savedSearch.results as unknown as MatchResult[];
         isProfileVisible: true,
       }
     },
-    select: {
-      id: true,
-      firstName: true,
-      lastName: true,
-    }
+    select: { id: true, firstName: true, lastName: true }
   });
 
   const validUserIds = new Set(validCandidates.map(c => c.id));
   const validUserMap = new Map(validCandidates.map(c => [c.id, c]));
 
-  // סינון התוצאות - רק מועמדים תקפים
   const filteredMatches = savedMatches
     .filter(match => validUserIds.has(match.userId))
     .map(match => {
       const user = validUserMap.get(match.userId);
       return {
         ...match,
-        // עדכון השמות למקרה שהשתנו
         firstName: user?.firstName || match.firstName,
         lastName: user?.lastName || match.lastName,
       };
@@ -244,10 +229,10 @@ const savedMatches = savedSearch.results as unknown as MatchResult[];
 
   const removedCount = savedMatches.length - filteredMatches.length;
   if (removedCount > 0) {
-    console.log(`[Matching] Filtered out ${removedCount} unavailable candidates`);
+    console.log(`[Cache] ⚠️ Filtered out ${removedCount} unavailable candidates`);
   }
 
-  console.log(`[Matching] Loaded ${filteredMatches.length} valid matches (${isStale ? 'STALE' : 'FRESH'})`);
+  console.log(`[Cache] ✅ Loaded ${filteredMatches.length} valid matches (${isStale ? 'STALE' : 'FRESH'})`);
 
   return {
     matches: filteredMatches,
@@ -262,48 +247,41 @@ const savedMatches = savedSearch.results as unknown as MatchResult[];
   };
 }
 
-/**
- * שומר תוצאות חיפוש התאמות
- */
 export async function saveMatchResults(
   targetUserId: string,
   matchmakerId: string,
   matches: MatchResult[],
-  algorithmVersion: string = 'v2.1'
+  algorithmVersion: string = 'v2.5.1',
+  candidatesCount: number = 0
 ): Promise<void> {
-  console.log(`[Matching] Saving ${matches.length} matches for user: ${targetUserId}`);
+  console.log(`[Cache] Saving ${matches.length} matches for user: ${targetUserId}`);
 
   await prisma.savedMatchSearch.upsert({
     where: { targetUserId },
     create: {
       targetUserId,
       matchmakerId,
-     results: matches as any,
+      results: matches as unknown as Parameters<typeof prisma.savedMatchSearch.create>[0]['data']['results'],
       algorithmVersion,
-      candidatesCount: matches.length,
+      candidatesCount,
     },
     update: {
       matchmakerId,
-      results: matches as any,
+      results: matches as unknown as Parameters<typeof prisma.savedMatchSearch.update>[0]['data']['results'],
       algorithmVersion,
-      candidatesCount: matches.length,
+      candidatesCount,
       updatedAt: new Date(),
     }
   });
 
-  console.log(`[Matching] ✅ Saved matches successfully`);
+  console.log(`[Cache] ✅ Saved matches successfully`);
 }
 
-/**
- * מוחק תוצאות שמורות
- */
 export async function deleteSavedMatches(targetUserId: string): Promise<void> {
   await prisma.savedMatchSearch.delete({
     where: { targetUserId }
-  }).catch(() => {
-    // אם לא קיים - לא משנה
-  });
-  console.log(`[Matching] Deleted saved matches for user: ${targetUserId}`);
+  }).catch(() => { });
+  console.log(`[Cache] Deleted saved matches for user: ${targetUserId}`);
 }
 
 // ============================================================================
@@ -331,7 +309,7 @@ async function getTargetUserData(userId: string): Promise<TargetUserData | null>
   if (!user || !user.profile) return null;
 
   const age = calculateAge(user.profile.birthDate);
-  
+
   return {
     id: user.id,
     firstName: user.firstName,
@@ -344,40 +322,49 @@ async function getTargetUserData(userId: string): Promise<TargetUserData | null>
   };
 }
 
+/**
+ * 🆕 גרסה V2.5.1 - ללא LIMIT + לוגים מפורטים
+ */
 async function filterCandidatesFromDb(
   targetUser: TargetUserData,
-  maxCandidates: number = 50
-): Promise<CandidateData[]> {
+  maxCandidates: number | null = CONFIG.DB_LIMIT
+): Promise<{ candidates: CandidateData[]; totalFound: number }> {
   const oppositeGender = targetUser.gender === 'MALE' ? 'FEMALE' : 'MALE';
   const { minAge, maxAge } = getAgeRange(targetUser.age, targetUser.gender);
   const compatibleReligiousLevels = getCompatibleReligiousLevels(targetUser.religiousLevel);
-  
+
   const today = new Date();
   const maxBirthDate = new Date(today.getFullYear() - minAge, today.getMonth(), today.getDate());
   const minBirthDate = new Date(today.getFullYear() - maxAge, today.getMonth(), today.getDate());
 
-  console.log(`[Matching] Filtering candidates for ${targetUser.firstName}:`);
-  console.log(`  - Gender: ${oppositeGender}`);
-  console.log(`  - Age range: ${minAge}-${maxAge}`);
-  console.log(`  - Compatible religious levels: ${compatibleReligiousLevels.join(', ')}`);
+  logStep(1, "DB Filtering - Searching for ALL matching candidates");
+  logStats("Target gender", oppositeGender);
+  logStats("Age range", `${minAge}-${maxAge}`);
+  logStats("Compatible religious levels", compatibleReligiousLevels.join(', '));
+  logStats("DB LIMIT", maxCandidates === null ? "🚀 NONE (scanning ALL)" : maxCandidates.toString());
+
+  const whereClause = {
+    id: { not: targetUser.id },
+    status: 'ACTIVE' as const,
+    profile: {
+      gender: oppositeGender as Gender,
+      availabilityStatus: AvailabilityStatus.AVAILABLE,
+      isProfileVisible: true,
+      birthDate: {
+        gte: minBirthDate,
+        lte: maxBirthDate,
+      },
+      ...(compatibleReligiousLevels.length < RELIGIOUS_LEVEL_ORDER.length && {
+        religiousLevel: { in: compatibleReligiousLevels }
+      })
+    }
+  };
+
+  const totalCount = await prisma.user.count({ where: whereClause });
+  logStats("Total matching in DB", totalCount);
 
   const candidates = await prisma.user.findMany({
-    where: {
-      id: { not: targetUser.id },
-      status: 'ACTIVE',
-      profile: {
-        gender: oppositeGender as Gender,
-        availabilityStatus: AvailabilityStatus.AVAILABLE,
-        isProfileVisible: true,
-        birthDate: {
-          gte: minBirthDate,
-          lte: maxBirthDate,
-        },
-        ...(compatibleReligiousLevels.length < RELIGIOUS_LEVEL_ORDER.length && {
-          religiousLevel: { in: compatibleReligiousLevels }
-        })
-      }
-    },
+    where: whereClause,
     select: {
       id: true,
       firstName: true,
@@ -393,49 +380,87 @@ async function filterCandidatesFromDb(
         }
       }
     },
-    take: maxCandidates,
     orderBy: {
       profile: {
         updatedAt: 'desc'
       }
-    }
+    },
+    ...(maxCandidates !== null && { take: maxCandidates })
   });
 
-  console.log(`[Matching] Found ${candidates.length} candidates after DB filtering`);
+  logStats("Candidates retrieved", candidates.length);
 
-  return candidates.map(c => {
-    const age = calculateAge(c.profile!.birthDate);
-    const aiSummary = c.profile!.aiProfileSummary as AiProfileSummary | null;
-    
-    let summaryText = '';
-    if (aiSummary?.personalitySummary) {
-      summaryText = `אישיות: ${aiSummary.personalitySummary}\nמה מחפש/ת: ${aiSummary.lookingForSummary || 'לא צוין'}`;
-    } else if (c.profile!.about) {
-      summaryText = `אודות: ${c.profile!.about}`;
-    } else {
-      summaryText = `מועמד/ת בן/בת ${age}, ${c.profile!.religiousLevel || 'לא צוין'}, ${c.profile!.city || 'לא צוין'}`;
-    }
+  // 🆕 DEBUG: הצגת כל המועמדים שנמצאו
+  if (CONFIG.DEBUG_SHOW_ALL_CANDIDATES) {
+    console.log(`\n   📋 ALL ${candidates.length} candidates found in DB:`);
+    candidates.forEach((c, i) => {
+      const profile = c.profile;
+      if (profile) {
+        const age = calculateAge(profile.birthDate);
+        const aiSummary = profile.aiProfileSummary as AiProfileSummary | null;
+        const hasAi = !!aiSummary?.personalitySummary;
+        console.log(`   ${i + 1}. ${c.firstName} ${c.lastName} - Age: ${age}, Religious: ${profile.religiousLevel || 'N/A'}, City: ${profile.city || 'N/A'} [AI: ${hasAi ? '✅' : '❌'}]`);
+      }
+    });
+  }
 
-    return {
-      userId: c.id,
-      firstName: c.firstName,
-      lastName: c.lastName,
-      age,
-      religiousLevel: c.profile!.religiousLevel,
-      city: c.profile!.city,
-      occupation: c.profile!.occupation,
-      summaryText: summaryText.substring(0, 1500)
-    };
-  });
+  const mappedCandidates: CandidateData[] = candidates
+    .filter(c => c.profile !== null)
+    .map(c => {
+      const profile = c.profile!;
+      const age = calculateAge(profile.birthDate);
+      const aiSummary = profile.aiProfileSummary as AiProfileSummary | null;
+      const hasAiSummary = !!aiSummary?.personalitySummary;
+
+      let summaryText = '';
+      if (aiSummary?.personalitySummary) {
+        summaryText = `אישיות: ${aiSummary.personalitySummary}\nמה מחפש/ת: ${aiSummary.lookingForSummary || 'לא צוין'}`;
+      } else if (profile.about) {
+        summaryText = `אודות: ${profile.about}`;
+      } else {
+        summaryText = `מועמד/ת בן/בת ${age}, ${profile.religiousLevel || 'לא צוין'}, ${profile.city || 'לא צוין'}`;
+      }
+
+      return {
+        userId: c.id,
+        firstName: c.firstName,
+        lastName: c.lastName,
+        age,
+        religiousLevel: profile.religiousLevel,
+        city: profile.city,
+        occupation: profile.occupation,
+        summaryText: summaryText.substring(0, 1500),
+        hasAiSummary,
+      };
+    });
+
+  return { candidates: mappedCandidates, totalFound: totalCount };
+}
+
+/**
+ * Smart pre-ranking - מעדיף מועמדים עם AI summary
+ */
+function smartRankCandidates(candidates: CandidateData[]): CandidateData[] {
+  if (!CONFIG.PRIORITIZE_AI_SUMMARIES) {
+    return candidates;
+  }
+
+  const withAiSummary = candidates.filter(c => c.hasAiSummary);
+  const withoutAiSummary = candidates.filter(c => !c.hasAiSummary);
+
+  console.log(`   📊 Candidates with AI summary: ${withAiSummary.length}`);
+  console.log(`   📊 Candidates without AI summary: ${withoutAiSummary.length}`);
+
+  return [...withAiSummary, ...withoutAiSummary];
 }
 
 async function prepareDataForAi(
   targetUser: TargetUserData,
   candidates: CandidateData[]
 ): Promise<{ targetProfile: string; candidatesText: string }> {
-  
+
   let targetProfile = '';
-  
+
   if (targetUser.aiProfileSummary?.personalitySummary) {
     targetProfile = `שם: ${targetUser.firstName} ${targetUser.lastName}
 גיל: ${targetUser.age}
@@ -447,7 +472,7 @@ ${targetUser.aiProfileSummary.personalitySummary}
 === מה מחפש/ת ===
 ${targetUser.aiProfileSummary.lookingForSummary || 'לא צוין'}`;
   } else {
-    console.log(`[Matching] No AI summary for target user, generating narrative...`);
+    console.log(`[AI Prep] No AI summary for target user, generating narrative...`);
     const narrative = await profileAiService.generateNarrativeProfile(targetUser.id);
     targetProfile = narrative || `${targetUser.firstName}, בן/בת ${targetUser.age}, ${targetUser.religiousLevel || 'לא צוין'}`;
   }
@@ -517,15 +542,15 @@ ${candidatesText}
 התשובה חייבת להיות ב-JSON בלבד, בלי טקסט נוסף.`;
 
   try {
-    console.log(`[Matching AI] Sending ${candidateCount} candidates to Gemini for analysis...`);
+    console.log(`[AI] Sending ${candidateCount} candidates to Gemini for analysis...`);
     const startTime = Date.now();
-    
+
     const result = await model.generateContent(prompt);
     const response = result.response;
     let jsonString = response.text();
 
     const duration = Date.now() - startTime;
-    console.log(`[Matching AI] Gemini responded in ${duration}ms`);
+    console.log(`[AI] Gemini responded in ${duration}ms`);
 
     if (jsonString.startsWith('```json')) {
       jsonString = jsonString.slice(7, -3).trim();
@@ -534,37 +559,31 @@ ${candidatesText}
     }
 
     const parsed = JSON.parse(jsonString) as AiMatchResponse;
-    
+
     if (!parsed.matches || !Array.isArray(parsed.matches)) {
       throw new Error('Invalid AI response format');
     }
 
-    console.log(`[Matching AI] Successfully analyzed ${parsed.matches.length} candidates`);
+    console.log(`[AI] ✅ Successfully analyzed ${parsed.matches.length} candidates`);
     return parsed;
 
   } catch (error) {
-    console.error('[Matching AI] Error during AI analysis:', error);
+    console.error('[AI] ❌ Error during AI analysis:', error);
     throw error;
   }
 }
 
 // ============================================================================
-// MAIN EXPORT FUNCTIONS
+// 🆕 MAIN EXPORT FUNCTION - V2.5.1
 // ============================================================================
 
-/**
- * 🎯 הפונקציה הראשית - מציאת התאמות עבור יוזר מסומן
- * @param targetUserId - מזהה היוזר המסומן
- * @param matchmakerId - מזהה השדכן שמבצע את החיפוש (לשמירה)
- * @param options - אפשרויות נוספות
- */
 export async function findMatchesForUser(
   targetUserId: string,
   matchmakerId: string,
   options: {
     maxCandidatesToAnalyze?: number;
-    forceRefresh?: boolean;        // 🆕 האם לאלץ חיפוש חדש
-    autoSave?: boolean;            // 🆕 האם לשמור אוטומטית
+    forceRefresh?: boolean;
+    autoSave?: boolean;
   } = {}
 ): Promise<{
   matches: MatchResult[];
@@ -573,26 +592,35 @@ export async function findMatchesForUser(
     savedAt?: Date;
     isStale?: boolean;
     algorithmVersion: string;
+    stats?: {
+      totalInDb: number;
+      sentToAi: number;
+    };
   };
 }> {
+  // 🆕 שימוש ב-CONFIG.AI_MAX_CANDIDATES במקום הערך שמגיע מהפרונט!
   const {
-    maxCandidatesToAnalyze = 15,
+    maxCandidatesToAnalyze = CONFIG.AI_MAX_CANDIDATES,
     forceRefresh = false,
     autoSave = true,
   } = options;
 
-  console.log(`\n========================================`);
-  console.log(`[Matching] Starting match search for user: ${targetUserId}`);
-  console.log(`[Matching] Options: forceRefresh=${forceRefresh}, autoSave=${autoSave}`);
-  console.log(`========================================\n`);
+  // 🆕 אם הפרונט שלח ערך קטן מדי, נשתמש ב-CONFIG
+  const effectiveMaxCandidates = Math.max(maxCandidatesToAnalyze, CONFIG.AI_MAX_CANDIDATES);
 
-  // 🆕 בדיקה אם יש תוצאות שמורות (אלא אם ביקשו רענון)
+  logSection(`NeshamaTech Matching Algorithm V2.5.1`);
+  console.log(`🎯 Target User: ${targetUserId}`);
+  console.log(`👤 Matchmaker: ${matchmakerId}`);
+  console.log(`⚙️ Options: forceRefresh=${forceRefresh}, autoSave=${autoSave}`);
+  console.log(`📊 Config: DB_LIMIT=${CONFIG.DB_LIMIT}, AI_MAX=${effectiveMaxCandidates} (requested: ${maxCandidatesToAnalyze})`);
+
+  // STEP 0: CHECK CACHE
   if (!forceRefresh) {
+    logStep(0, "Checking for cached results");
     const savedResults = await loadSavedMatches(targetUserId);
-    
+
     if (savedResults && savedResults.matches.length > 0) {
-      console.log(`[Matching] ✅ Using cached results (${savedResults.matches.length} matches)`);
-      
+      console.log(`✅ Using cached results (${savedResults.matches.length} matches)`);
       return {
         matches: savedResults.matches,
         fromCache: true,
@@ -603,64 +631,116 @@ export async function findMatchesForUser(
         }
       };
     }
+    console.log(`❌ No valid cache found, proceeding with new search`);
   }
 
-  // המשך עם חיפוש חדש
+  // STEP 1: GET TARGET USER DATA
+  logStep(1, "Loading target user data");
   const targetUser = await getTargetUserData(targetUserId);
   if (!targetUser) {
     throw new Error('Target user not found or has no profile');
   }
-  console.log(`[Matching] Target user: ${targetUser.firstName} ${targetUser.lastName}, Age: ${targetUser.age}, Gender: ${targetUser.gender}`);
+  console.log(`✅ Target: ${targetUser.firstName} ${targetUser.lastName}`);
+  logStats("Age", targetUser.age);
+  logStats("Gender", targetUser.gender);
+  logStats("Religious Level", targetUser.religiousLevel || 'Not specified');
 
-  const filteredCandidates = await filterCandidatesFromDb(targetUser, maxCandidatesToAnalyze * 3);
-  if (filteredCandidates.length === 0) {
-    console.log(`[Matching] No candidates found after filtering`);
+  // STEP 2: DB FILTERING - GET ALL CANDIDATES
+  const { candidates: allCandidates, totalFound } = await filterCandidatesFromDb(targetUser);
+
+  if (allCandidates.length === 0) {
+    console.log(`❌ No candidates found after DB filtering`);
     return {
       matches: [],
       fromCache: false,
-      meta: { algorithmVersion: 'v2.1' }
+      meta: { algorithmVersion: 'v2.5.1', stats: { totalInDb: 0, sentToAi: 0 } }
     };
   }
 
-  const candidatesToAnalyze = filteredCandidates.slice(0, maxCandidatesToAnalyze);
-  console.log(`[Matching] Selected ${candidatesToAnalyze.length} candidates for AI analysis`);
+  console.log(`✅ Found ${allCandidates.length} candidates out of ${totalFound} total matching`);
+
+  // STEP 3: SMART RANKING
+  logStep(3, "Smart pre-ranking candidates");
+  const rankedCandidates = smartRankCandidates(allCandidates);
+
+  // STEP 4: SELECT TOP CANDIDATES FOR AI
+  logStep(4, "Selecting candidates for AI analysis");
+  const candidatesToAnalyze = rankedCandidates.slice(0, effectiveMaxCandidates);
+  console.log(`📊 Selected ${candidatesToAnalyze.length} candidates for AI analysis (out of ${rankedCandidates.length} total)`);
+
+  // 🆕 הצגת המועמדים שלא נבחרו
+  if (rankedCandidates.length > effectiveMaxCandidates) {
+    const notSelected = rankedCandidates.slice(effectiveMaxCandidates);
+    console.log(`\n   ⚠️ ${notSelected.length} candidates NOT sent to AI:`);
+    notSelected.forEach((c, i) => {
+      console.log(`   - ${c.firstName} ${c.lastName} - ${c.age}, ${c.religiousLevel || 'N/A'} [AI: ${c.hasAiSummary ? '✅' : '❌'}]`);
+    });
+  }
+
+  // הצגת המועמדים שנבחרו
+  console.log(`\n   📋 Selected candidates for AI:`);
+  candidatesToAnalyze.slice(0, 15).forEach((c, i) => {
+    const aiIcon = c.hasAiSummary ? '✅' : '❌';
+    console.log(`   ${i + 1}. ${c.firstName} ${c.lastName} - ${c.age}, ${c.religiousLevel || 'N/A'} [AI: ${aiIcon}]`);
+  });
+  if (candidatesToAnalyze.length > 15) {
+    console.log(`   ... and ${candidatesToAnalyze.length - 15} more`);
+  }
+
+  // STEP 5: AI ANALYSIS
+  logStep(5, "AI Deep Analysis");
 
   const { targetProfile, candidatesText } = await prepareDataForAi(targetUser, candidatesToAnalyze);
   const aiResponse = await analyzeMatchesWithAi(targetProfile, candidatesText, candidatesToAnalyze.length);
+
+  // STEP 6: PROCESS RESULTS
+  logStep(6, "Processing results");
 
   const results: MatchResult[] = aiResponse.matches
     .map((match): MatchResult | null => {
       const candidate = candidatesToAnalyze[match.candidateIndex - 1];
       if (!candidate) return null;
-      
+
       return {
         userId: candidate.userId,
-        score: Math.min(100, Math.max(0, match.score)), // וידוא טווח 0-100
+        score: Math.min(100, Math.max(0, match.score)),
         reasoning: match.reasoning,
         firstName: candidate.firstName,
         lastName: candidate.lastName,
       };
     })
     .filter((m): m is MatchResult => m !== null)
-    .sort((a, b) => b.score - a.score); // מיון לפי ציון יורד
+    .sort((a, b) => b.score - a.score);
 
-
-  // 🆕 שמירה אוטומטית
+  // STEP 7: SAVE RESULTS
   if (autoSave && results.length > 0) {
-    await saveMatchResults(targetUserId, matchmakerId, results, 'v2.1');
+    logStep(7, "Saving results to cache");
+    await saveMatchResults(targetUserId, matchmakerId, results, 'v2.5.1', totalFound);
   }
 
-  console.log(`\n[Matching] ✅ Completed! Found ${results.length} matches`);
-  console.log(`[Matching] Top 3 matches:`);
-  results.slice(0, 3).forEach((m, i) => {
-    console.log(`  ${i + 1}. ${m.firstName} ${m.lastName} - Score: ${m.score}`);
+  // SUMMARY
+  logSection("SEARCH COMPLETED");
+  console.log(`\n📊 STATISTICS:`);
+  logStats("Total matching in DB", totalFound);
+  logStats("After DB filter", allCandidates.length);
+  logStats("Sent to AI", candidatesToAnalyze.length);
+  logStats("Final matches", results.length);
+
+  console.log(`\n🏆 TOP 5 MATCHES:`);
+  results.slice(0, 5).forEach((m, i) => {
+    console.log(`   ${i + 1}. ${m.firstName} ${m.lastName} - Score: ${m.score}`);
   });
-  console.log(`========================================\n`);
 
   return {
     matches: results,
     fromCache: false,
-    meta: { algorithmVersion: 'v2.1' }
+    meta: {
+      algorithmVersion: 'v2.5.1',
+      stats: {
+        totalInDb: totalFound,
+        sentToAi: candidatesToAnalyze.length,
+      }
+    }
   };
 }
 
@@ -677,6 +757,7 @@ export const matchingAlgorithmService = {
   areReligiousLevelsCompatible,
   calculateAge,
   getAgeRange,
+  CONFIG,
 };
 
 export default matchingAlgorithmService;
