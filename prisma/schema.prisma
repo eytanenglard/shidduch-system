@@ -61,6 +61,9 @@ lastOnboardingEmailSent DateTime? // מתי שלחנו מייל onboarding אח�
 neshamaInsightLastGeneratedAt   DateTime?     
   neshamaInsightGeneratedCount    Int       @default(0)  // 👈 הוסף שדה זה
 referral    Referral?  @relation("ReferredUser")
+  targetUserSearches    SavedMatchSearch[]  @relation("TargetUserSearches")
+  matchmakerSearches    SavedMatchSearch[]  @relation("MatchmakerSearches")
+
   @@index([email])
   @@index([role])
   @@index([status])
@@ -844,3 +847,30 @@ enum ReferralStatus {
   VERIFIED     // אימת טלפון
   COMPLETED    // השלים פרופיל + תמונה
 }
+model SavedMatchSearch {
+  id               String   @id @default(cuid())
+  
+  // המועמד שחיפשנו עבורו התאמות
+  targetUserId     String   @unique  // @unique = רק חיפוש אחד שמור לכל מועמד
+  targetUser       User     @relation("TargetUserSearches", fields: [targetUserId], references: [id], onDelete: Cascade)
+  
+  // השדכן שהפעיל את החיפוש
+  matchmakerId     String
+  matchmaker       User     @relation("MatchmakerSearches", fields: [matchmakerId], references: [id], onDelete: Cascade)
+  
+  // תוצאות החיפוש (JSON)
+  // מבנה: [{ userId, score, reasoning, firstName, lastName }]
+  results          Json
+  
+  // מטא-דאטה
+  algorithmVersion String   @default("v2.0")
+  candidatesCount  Int      @default(0)  // כמה מועמדים נותחו
+  
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  
+  @@index([targetUserId])
+  @@index([matchmakerId])
+  @@index([createdAt])
+}
+

@@ -1,30 +1,49 @@
 // src/app/api/ai/find-matches-v2/route.ts
-// 🎯 API Route לאלגוריתם מציאת התאמות V2 - NeshamaTech
+// 🎯 API Route לאלגוריתם מציאת התאמות V2.1 - NeshamaTech
+// תומך בשמירה וטעינה של תוצאות
 
 import { NextRequest, NextResponse } from "next/server";
 import { applyRateLimitWithRoleCheck } from '@/lib/rate-limiter';
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { UserRole } from "@prisma/client";
-import { findMatchesForUser, MatchResult } from "@/lib/services/matchingAlgorithmService";
+import { 
+  findMatchesForUser, 
+  loadSavedMatches,
+  deleteSavedMatches,
+  MatchResult,
+  SavedSearchResult 
+} from "@/lib/services/matchingAlgorithmService";
 
 // הגדרות תצורה ל-Next.js
-export const maxDuration = 120; // עד 2 דקות לניתוח AI
+export const maxDuration = 120;
 export const dynamic = 'force-dynamic';
 
-interface RequestBody {
+// ============================================================================
+// TYPES
+// ============================================================================
+
+interface PostRequestBody {
   targetUserId: string;
   maxCandidates?: number;
+  forceRefresh?: boolean;  // 🆕 האם לאלץ חיפוש חדש
+}
+
+interface GetRequestParams {
+  targetUserId: string;
 }
 
 interface SuccessResponse {
   success: true;
   matches: MatchResult[];
+  fromCache: boolean;      // 🆕 האם התוצאות מהמטמון
   meta: {
     targetUserId: string;
     totalMatches: number;
     analyzedAt: string;
     algorithmVersion: string;
+    savedAt?: string;      // 🆕 מתי נשמרו התוצאות
+    isStale?: boolean;     // 🆕 האם התוצאות ישנות
   };
 }
 
@@ -34,25 +53,26 @@ interface ErrorResponse {
   details?: string;
 }
 
+// ============================================================================
+// POST - חיפוש התאמות (עם אפשרות לרענון)
+// ============================================================================
+
 /**
  * POST /api/ai/find-matches-v2
  * 
- * מציאת התאמות עבור יוזר מסומן באמצעות האלגוריתם החדש:
- * 1. סינון חכם לפי גיל, מגדר, ורמה דתית
- * 2. ניתוח AI מעמיק של ההתאמות
+ * מציאת התאמות עבור יוזר מסומן.
+ * ברירת מחדל: משתמש בתוצאות שמורות אם קיימות.
+ * עם forceRefresh=true: מבצע חיפוש חדש ושומר.
  * 
  * Body:
- * - targetUserId: string (required) - מזהה היוזר המסומן
- * - maxCandidates: number (optional, default: 15) - מספר מועמדים מקסימלי לניתוח
- * 
- * Response:
- * - matches: Array<{ userId, score, reasoning, firstName, lastName }>
- * - meta: { targetUserId, totalMatches, analyzedAt, algorithmVersion }
+ * - targetUserId: string (required)
+ * - maxCandidates: number (optional, default: 15)
+ * - forceRefresh: boolean (optional, default: false)
  */
 export async function POST(req: NextRequest): Promise<NextResponse<SuccessResponse | ErrorResponse>> {
-  // Rate Limiting
+  // Rate Limiting - יותר מקל אם זה מהמטמון
   const rateLimitResponse = await applyRateLimitWithRoleCheck(req, { 
-    requests: 10, 
+    requests: 30, 
     window: '1 h' 
   });
   if (rateLimitResponse) {
@@ -60,7 +80,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<SuccessRespon
   }
 
   try {
-    // 1. Authentication and Authorization
+    // Authentication
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
       return NextResponse.json({ 
@@ -69,7 +89,6 @@ export async function POST(req: NextRequest): Promise<NextResponse<SuccessRespon
       }, { status: 401 });
     }
 
-    // רק שדכנים ואדמינים יכולים להשתמש בפיצ'ר זה
     if (session.user.role !== UserRole.MATCHMAKER && session.user.role !== UserRole.ADMIN) {
       return NextResponse.json({ 
         success: false, 
@@ -77,9 +96,13 @@ export async function POST(req: NextRequest): Promise<NextResponse<SuccessRespon
       }, { status: 403 });
     }
 
-    // 2. Body Validation
-    const body: RequestBody = await req.json();
-    const { targetUserId, maxCandidates = 15 } = body;
+    // Body Validation
+    const body: PostRequestBody = await req.json();
+    const { 
+      targetUserId, 
+      maxCandidates = 15,
+      forceRefresh = false 
+    } = body;
 
     if (!targetUserId || typeof targetUserId !== 'string') {
       return NextResponse.json({ 
@@ -88,37 +111,42 @@ export async function POST(req: NextRequest): Promise<NextResponse<SuccessRespon
       }, { status: 400 });
     }
 
-    // וידוא מספר מועמדים בטווח סביר
     const validatedMaxCandidates = Math.min(Math.max(5, maxCandidates), 30);
+    const matchmakerId = session.user.id;
 
-    console.log(`[API find-matches-v2] Request from ${session.user.email}`);
-    console.log(`[API find-matches-v2] Target user: ${targetUserId}, Max candidates: ${validatedMaxCandidates}`);
+    console.log(`[API find-matches-v2] POST from ${session.user.email}`);
+    console.log(`[API find-matches-v2] Target: ${targetUserId}, forceRefresh: ${forceRefresh}`);
 
-    // 3. Run the Matching Algorithm
+    // Run the Algorithm
     const startTime = Date.now();
-    const matches = await findMatchesForUser(targetUserId, validatedMaxCandidates);
+    const result = await findMatchesForUser(targetUserId, matchmakerId, {
+      maxCandidatesToAnalyze: validatedMaxCandidates,
+      forceRefresh,
+      autoSave: true,
+    });
     const duration = Date.now() - startTime;
 
-    console.log(`[API find-matches-v2] Completed in ${duration}ms, found ${matches.length} matches`);
+    console.log(`[API find-matches-v2] Completed in ${duration}ms, ${result.fromCache ? 'FROM CACHE' : 'NEW SEARCH'}`);
 
-    // 4. Return Success Response
+    // Response
     return NextResponse.json({
       success: true,
-      matches,
+      matches: result.matches,
+      fromCache: result.fromCache,
       meta: {
         targetUserId,
-        totalMatches: matches.length,
+        totalMatches: result.matches.length,
         analyzedAt: new Date().toISOString(),
-        algorithmVersion: 'v2.0-ai-enhanced',
+        algorithmVersion: result.meta.algorithmVersion,
+        savedAt: result.meta.savedAt?.toISOString(),
+        isStale: result.meta.isStale,
       }
     });
 
   } catch (error) {
     console.error('[API find-matches-v2] Error:', error);
-    
     const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred";
     
-    // בדיקה אם זו שגיאת API key
     if (errorMessage.includes('GOOGLE_API_KEY')) {
       return NextResponse.json({ 
         success: false, 
@@ -127,7 +155,6 @@ export async function POST(req: NextRequest): Promise<NextResponse<SuccessRespon
       }, { status: 500 });
     }
 
-    // בדיקה אם היוזר לא נמצא
     if (errorMessage.includes('not found')) {
       return NextResponse.json({ 
         success: false, 
@@ -143,34 +170,161 @@ export async function POST(req: NextRequest): Promise<NextResponse<SuccessRespon
   }
 }
 
+// ============================================================================
+// GET - טעינת תוצאות שמורות בלבד (בלי חיפוש חדש)
+// ============================================================================
+
 /**
- * GET /api/ai/find-matches-v2
+ * GET /api/ai/find-matches-v2?targetUserId=xyz
  * 
- * מחזיר מידע על ה-API (לבדיקת תקינות)
+ * טוען תוצאות שמורות בלבד, בלי לבצע חיפוש חדש.
+ * שימושי לטעינה מהירה של התוצאות האחרונות.
  */
-export async function GET() {
-  return NextResponse.json({
-    name: "NeshamaTech Matching Algorithm V2",
-    version: "2.0-ai-enhanced",
-    description: "Smart matching algorithm combining age/religious filtering with AI analysis",
-    endpoints: {
-      POST: {
-        description: "Find matches for a target user",
-        body: {
-          targetUserId: "string (required)",
-          maxCandidates: "number (optional, default: 15, max: 30)"
-        },
-        response: {
-          matches: "Array of match results with scores and reasoning",
-          meta: "Metadata about the analysis"
+export async function GET(req: NextRequest): Promise<NextResponse<SuccessResponse | ErrorResponse | object>> {
+  try {
+    // Authentication
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      return NextResponse.json({ 
+        success: false, 
+        error: "Unauthorized" 
+      }, { status: 401 });
+    }
+
+    if (session.user.role !== UserRole.MATCHMAKER && session.user.role !== UserRole.ADMIN) {
+      return NextResponse.json({ 
+        success: false, 
+        error: "Forbidden" 
+      }, { status: 403 });
+    }
+
+    // Get targetUserId from query params
+    const { searchParams } = new URL(req.url);
+    const targetUserId = searchParams.get('targetUserId');
+
+    // אם אין targetUserId - החזר מידע על ה-API
+    if (!targetUserId) {
+      return NextResponse.json({
+        name: "NeshamaTech Matching Algorithm V2.1",
+        version: "2.1-cached",
+        description: "Smart matching algorithm with caching support",
+        endpoints: {
+          GET: {
+            description: "Load saved matches without new search",
+            params: { targetUserId: "string (required)" }
+          },
+          POST: {
+            description: "Find matches (uses cache by default)",
+            body: {
+              targetUserId: "string (required)",
+              maxCandidates: "number (optional, default: 15)",
+              forceRefresh: "boolean (optional, default: false)"
+            }
+          },
+          DELETE: {
+            description: "Clear saved matches",
+            params: { targetUserId: "string (required)" }
+          }
         }
+      });
+    }
+
+    console.log(`[API find-matches-v2] GET saved matches for: ${targetUserId}`);
+
+    // Load saved matches
+    const savedResults = await loadSavedMatches(targetUserId);
+
+    if (!savedResults) {
+      return NextResponse.json({
+        success: true,
+        matches: [],
+        fromCache: false,
+        meta: {
+          targetUserId,
+          totalMatches: 0,
+          analyzedAt: new Date().toISOString(),
+          algorithmVersion: 'none',
+          message: 'No saved matches found. Use POST to run a new search.'
+        }
+      });
+    }
+
+    return NextResponse.json({
+      success: true,
+      matches: savedResults.matches,
+      fromCache: true,
+      meta: {
+        targetUserId,
+        totalMatches: savedResults.matches.length,
+        analyzedAt: new Date().toISOString(),
+        algorithmVersion: savedResults.meta.algorithmVersion,
+        savedAt: savedResults.meta.savedAt.toISOString(),
+        isStale: savedResults.meta.isStale,
+        originalCount: savedResults.meta.originalCandidatesCount,
+        validCount: savedResults.meta.validCandidatesCount,
       }
-    },
-    features: [
-      "Age-based filtering (M: -7/+5, F: -5/+5)",
-      "Religious level compatibility mapping",
-      "AI-powered personality analysis",
-      "Detailed reasoning for each match"
-    ]
-  });
+    });
+
+  } catch (error) {
+    console.error('[API find-matches-v2] GET Error:', error);
+    return NextResponse.json({ 
+      success: false, 
+      error: "Internal server error" 
+    }, { status: 500 });
+  }
+}
+
+// ============================================================================
+// DELETE - מחיקת תוצאות שמורות
+// ============================================================================
+
+/**
+ * DELETE /api/ai/find-matches-v2?targetUserId=xyz
+ * 
+ * מוחק את התוצאות השמורות עבור יוזר מסוים.
+ */
+export async function DELETE(req: NextRequest): Promise<NextResponse> {
+  try {
+    // Authentication
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      return NextResponse.json({ 
+        success: false, 
+        error: "Unauthorized" 
+      }, { status: 401 });
+    }
+
+    if (session.user.role !== UserRole.MATCHMAKER && session.user.role !== UserRole.ADMIN) {
+      return NextResponse.json({ 
+        success: false, 
+        error: "Forbidden" 
+      }, { status: 403 });
+    }
+
+    const { searchParams } = new URL(req.url);
+    const targetUserId = searchParams.get('targetUserId');
+
+    if (!targetUserId) {
+      return NextResponse.json({ 
+        success: false, 
+        error: "Bad Request: 'targetUserId' query parameter is required" 
+      }, { status: 400 });
+    }
+
+    console.log(`[API find-matches-v2] DELETE saved matches for: ${targetUserId}`);
+
+    await deleteSavedMatches(targetUserId);
+
+    return NextResponse.json({
+      success: true,
+      message: `Saved matches for user ${targetUserId} have been deleted`
+    });
+
+  } catch (error) {
+    console.error('[API find-matches-v2] DELETE Error:', error);
+    return NextResponse.json({ 
+      success: false, 
+      error: "Internal server error" 
+    }, { status: 500 });
+  }
 }

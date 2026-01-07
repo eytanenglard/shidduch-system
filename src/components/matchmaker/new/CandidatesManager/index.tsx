@@ -16,7 +16,6 @@ import {
   List,
   ArrowUpDown,
   RotateCw,
-
   Bot,
   Loader2,
   Columns,
@@ -91,9 +90,9 @@ import type { ProfilePageDictionary } from '@/types/dictionary';
 interface AiMatch {
   userId: string;
   score: number;
-  reasoning: string;    // 🆕 שדה חובה חדש
-  firstName?: string;   // 🆕 שדה אופציונלי חדש
-  lastName?: string;    // 🆕 שדה אופציונלי חדש
+  reasoning?: string; // <--- הוספנו כאן את סימן השאלה (?)
+  firstName?: string;
+  lastName?: string;
 }
 
 // ============================================================================
@@ -556,62 +555,79 @@ const CandidatesManager: React.FC<CandidatesManagerProps> = ({
     []
   );
 
-const handleUpdateAllProfiles = async () => {
-  if (!confirm("פעולה זו תפעיל את ה-AI על כל המועמדים במערכת. זה עשוי לקחת מספר דקות. האם להמשיך?")) return;
+  const handleUpdateAllProfiles = async () => {
+    if (
+      !confirm(
+        'פעולה זו תפעיל את ה-AI על כל המועמדים במערכת. זה עשוי לקחת מספר דקות. האם להמשיך?'
+      )
+    )
+      return;
 
-  setIsBulkUpdating(true);
-  const toastId = toast.loading('מאתחל תהליך עדכון...', { duration: Infinity });
-
-  try {
-    // שלב 1: איפוס דגלים (סימון כולם לעדכון)
-    const resetRes = await fetch('/api/ai/matchmaker/batch-process', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'RESET_FLAGS' }),
+    setIsBulkUpdating(true);
+    const toastId = toast.loading('מאתחל תהליך עדכון...', {
+      duration: Infinity,
     });
-    
-    if (!resetRes.ok) throw new Error('Failed to start process');
-    const resetData = await resetRes.json();
-    const totalToProcess = resetData.count;
-    let processedSoFar = 0;
 
-    toast.message(`נמצאו ${totalToProcess} פרופילים לעדכון. מתחיל עיבוד...`, { id: toastId });
-
-    // שלב 2: לולאת עיבוד
-    let completed = false;
-    
-    while (!completed) {
-      const batchRes = await fetch('/api/ai/matchmaker/batch-process', {
+    try {
+      // שלב 1: איפוס דגלים (סימון כולם לעדכון)
+      const resetRes = await fetch('/api/ai/matchmaker/batch-process', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'PROCESS_BATCH', batchSize: 4 }), // מעבדים 4 בכל פעם
+        body: JSON.stringify({ action: 'RESET_FLAGS' }),
       });
 
-      if (!batchRes.ok) throw new Error('Error during batch processing');
-      
-      const batchData = await batchRes.json();
-      
-      processedSoFar += batchData.processed;
-      const percent = Math.round((processedSoFar / totalToProcess) * 100);
-      
-      // עדכון הטוסט עם אחוזים
-      toast.loading(`מעבד פרופילים... ${percent}% (${processedSoFar}/${totalToProcess})`, { id: toastId });
+      if (!resetRes.ok) throw new Error('Failed to start process');
+      const resetData = await resetRes.json();
+      const totalToProcess = resetData.count;
+      let processedSoFar = 0;
 
-      if (batchData.completed || batchData.remaining === 0) {
-        completed = true;
+      toast.message(`נמצאו ${totalToProcess} פרופילים לעדכון. מתחיל עיבוד...`, {
+        id: toastId,
+      });
+
+      // שלב 2: לולאת עיבוד
+      let completed = false;
+
+      while (!completed) {
+        const batchRes = await fetch('/api/ai/matchmaker/batch-process', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'PROCESS_BATCH', batchSize: 4 }), // מעבדים 4 בכל פעם
+        });
+
+        if (!batchRes.ok) throw new Error('Error during batch processing');
+
+        const batchData = await batchRes.json();
+
+        processedSoFar += batchData.processed;
+        const percent = Math.round((processedSoFar / totalToProcess) * 100);
+
+        // עדכון הטוסט עם אחוזים
+        toast.loading(
+          `מעבד פרופילים... ${percent}% (${processedSoFar}/${totalToProcess})`,
+          { id: toastId }
+        );
+
+        if (batchData.completed || batchData.remaining === 0) {
+          completed = true;
+        }
       }
+
+      toast.success('העדכון הכללי הושלם בהצלחה!', {
+        id: toastId,
+        duration: 4000,
+      });
+      refresh(); // רענון הטבלה בסיום
+    } catch (error) {
+      console.error('Bulk update failed:', error);
+      toast.error('שגיאה בתהליך העדכון. נסה שוב מאוחר יותר.', {
+        id: toastId,
+        duration: 4000,
+      });
+    } finally {
+      setIsBulkUpdating(false);
     }
-
-    toast.success('העדכון הכללי הושלם בהצלחה!', { id: toastId, duration: 4000 });
-    refresh(); // רענון הטבלה בסיום
-
-  } catch (error) {
-    console.error('Bulk update failed:', error);
-    toast.error('שגיאה בתהליך העדכון. נסה שוב מאוחר יותר.', { id: toastId, duration: 4000 });
-  } finally {
-    setIsBulkUpdating(false);
-  }
-};
+  };
 
   const direction = locale === 'he' ? 'rtl' : 'ltr';
 
@@ -756,29 +772,32 @@ const handleUpdateAllProfiles = async () => {
                       )}
                     </Button>
                   </SheetTrigger>
-              <SheetContent className="w-full h-full flex flex-col p-0 sm:max-w-md" side={direction === 'rtl' ? 'right' : 'left'}>
-  <div className="flex-1 overflow-y-auto p-4 pt-10">
-    <FilterPanel
-      filters={filters}
-      onFiltersChange={setFilters}
-      onSavePreset={handleFilterSave}
-      onReset={resetFilters}
-      savedFilters={savedFilters.map((f) => ({
-        id: f.id,
-        name: f.name,
-        isDefault: f.isDefault,
-      }))}
-      popularFilters={popularFilters}
-      separateFiltering={filters.separateFiltering}
-      onToggleSeparateFiltering={toggleSeparateFiltering}
-      onMaleFiltersChange={updateMaleFilters}
-      onFemaleFiltersChange={updateFemaleFilters}
-      onCopyFilters={copyFilters}
-      dict={matchmakerDict.candidatesManager.filterPanel}
-      className="pb-10" // מרווח תחתון כדי שיהיה נוח לגלול עד הסוף
-    />
-  </div>
-</SheetContent>
+                  <SheetContent
+                    className="w-full h-full flex flex-col p-0 sm:max-w-md"
+                    side={direction === 'rtl' ? 'right' : 'left'}
+                  >
+                    <div className="flex-1 overflow-y-auto p-4 pt-10">
+                      <FilterPanel
+                        filters={filters}
+                        onFiltersChange={setFilters}
+                        onSavePreset={handleFilterSave}
+                        onReset={resetFilters}
+                        savedFilters={savedFilters.map((f) => ({
+                          id: f.id,
+                          name: f.name,
+                          isDefault: f.isDefault,
+                        }))}
+                        popularFilters={popularFilters}
+                        separateFiltering={filters.separateFiltering}
+                        onToggleSeparateFiltering={toggleSeparateFiltering}
+                        onMaleFiltersChange={updateMaleFilters}
+                        onFemaleFiltersChange={updateFemaleFilters}
+                        onCopyFilters={copyFilters}
+                        dict={matchmakerDict.candidatesManager.filterPanel}
+                        className="pb-10" // מרווח תחתון כדי שיהיה נוח לגלול עד הסוף
+                      />
+                    </div>
+                  </SheetContent>
                 </Sheet>
 
                 <div className="flex gap-1 bg-white/90 p-1 rounded-lg shadow-sm border border-gray-200">
