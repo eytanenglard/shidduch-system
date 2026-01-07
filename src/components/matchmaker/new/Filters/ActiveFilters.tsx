@@ -1,3 +1,4 @@
+// src/components/matchmaker/new/Filters/ActiveFilters.tsx
 'use client';
 
 import React from 'react';
@@ -163,12 +164,13 @@ const ActiveFilters: React.FC<ActiveFiltersProps> = ({
       }
     }
 
-    if (filters.religiousLevel) {
+    // FIXED: Joined the array of religious levels into a string
+    if (filters.religiousLevel && filters.religiousLevel.length > 0) {
       activeFilters.push({
         key: 'religiousLevel',
         label: dict.labels.religiousLevel.replace(
           '{{level}}',
-          filters.religiousLevel
+          filters.religiousLevel.join(', ')
         ),
         color: 'warning',
         priority: 'medium',
