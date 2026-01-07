@@ -95,6 +95,7 @@ import {
   Filter,
   MessageSquare,
   Phone as PhoneIcon,
+  Ruler,
   Stars,
   Sparkle,
   Sunrise,
@@ -186,31 +187,31 @@ const FriendTestimonialsSection: React.FC<{
           key={testimonial.id}
           className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm"
         >
-         <blockquote
-  className={cn(
-    'italic',
-    // --- התיקון מתחיל כאן ---
-    'whitespace-pre-wrap break-words break-all overflow-wrap-anywhere max-w-full', 
-    // --- התיקון מסתיים כאן ---
-    direction === 'rtl' ? 'pr-4 border-r-4' : 'pl-4 border-l-4',
-    THEME.colors.primary.main.includes('cyan')
-      ? direction === 'rtl'
-        ? 'border-cyan-500'
-        : 'border-cyan-500'
-      : THEME.colors.primary.main.includes('blue')
-        ? direction === 'rtl'
-          ? 'border-blue-500'
-          : 'border-blue-500'
-        : direction === 'rtl'
-          ? 'border-gray-500'
-          : 'border-gray-500',
-    THEME.colors.primary.main.includes('cyan')
-      ? 'text-cyan-800'
-      : THEME.colors.primary.main.includes('blue')
-        ? 'text-blue-800'
-        : 'text-gray-800'
-  )}
->
+          <blockquote
+            className={cn(
+              'italic',
+              // --- התיקון מתחיל כאן ---
+              'whitespace-pre-wrap break-words break-all overflow-wrap-anywhere max-w-full',
+              // --- התיקון מסתיים כאן ---
+              direction === 'rtl' ? 'pr-4 border-r-4' : 'pl-4 border-l-4',
+              THEME.colors.primary.main.includes('cyan')
+                ? direction === 'rtl'
+                  ? 'border-cyan-500'
+                  : 'border-cyan-500'
+                : THEME.colors.primary.main.includes('blue')
+                  ? direction === 'rtl'
+                    ? 'border-blue-500'
+                    : 'border-blue-500'
+                  : direction === 'rtl'
+                    ? 'border-gray-500'
+                    : 'border-gray-500',
+              THEME.colors.primary.main.includes('cyan')
+                ? 'text-cyan-800'
+                : THEME.colors.primary.main.includes('blue')
+                  ? 'text-blue-800'
+                  : 'text-gray-800'
+            )}
+          >
             &quot;{testimonial.content}&quot;
           </blockquote>
           <div className="flex items-center justify-between mt-3 pt-3 border-t">
@@ -2305,7 +2306,8 @@ const ProfileHeader: React.FC<{
             </div>
           </div>
 
-          <div className="flex-1 min-w-0 flex flex-col justify-start items-start w-full">
+          {/* --- התחלת הקוד המעודכן --- */}
+          <div className="flex-1 min-w-0 flex flex-col justify-center items-center text-center w-full">
             {!isMobile && onPaletteChange && (
               <div className="flex justify-end mb-2 sm:mb-3 w-full">
                 <ColorPaletteSelector
@@ -2322,7 +2324,7 @@ const ProfileHeader: React.FC<{
               className={cn(
                 'w-full overflow-hidden',
                 compact ? 'mb-2 sm:mb-3' : 'mb-3 sm:mb-4',
-                isMobile && 'text-center'
+                'text-center' // שינוי: טקסט תמיד למרכז
               )}
             >
               <h1
@@ -2334,7 +2336,7 @@ const ProfileHeader: React.FC<{
                       ? 'text-lg sm:text-xl md:text-2xl'
                       : 'text-xl sm:text-2xl md:text-3xl lg:text-4xl',
                   'break-words hyphens-auto word-break-break-word overflow-wrap-anywhere',
-                  'text-center max-w-full overflow-hidden',
+                  'text-center max-w-full overflow-hidden', // שינוי: טקסט תמיד למרכז
                   'px-1 sm:px-2',
                   `bg-gradient-to-r ${THEME.colors.primary.main} bg-clip-text text-transparent`,
                   `hover:bg-gradient-to-r hover:${THEME.colors.primary.accent} bg-clip-text`
@@ -2348,73 +2350,99 @@ const ProfileHeader: React.FC<{
                   : dict.placeholders.storyWaiting}
               </h1>
 
-              {age > 0 && (
-                <div
-                  className={cn(
-                    'flex items-center justify-center gap-1 sm:gap-2 flex-wrap',
-                    isMobile ? 'justify-center' : 'lg:justify-start',
-                    'mt-2 sm:mt-3'
-                  )}
-                >
-                  <Cake
-                    className={cn(
-                      'text-blue-500 flex-shrink-0',
-                      compact ? 'w-3 h-3' : 'w-4 h-4 sm:w-5 sm:h-5'
-                    )}
-                  />
-                  <span
-                    className={cn(
-                      'font-semibold text-gray-700',
-                      compact
-                        ? 'text-xs sm:text-sm'
-                        : 'text-sm sm:text-base md:text-lg'
-                    )}
-                  >
-                    {dict.header.ageLabel.replace('{{age}}', age.toString())}
-                  </span>
-                </div>
-              )}
-              {viewMode === 'matchmaker' && profile.user?.phone && (
-                <div
-                  className={cn(
-                    'flex items-center justify-center gap-1 sm:gap-2 flex-wrap',
-                    isMobile ? 'justify-center' : 'lg:justify-start',
-                    'mt-2 sm:mt-3'
-                  )}
-                >
-                  <PhoneIcon
-                    className={cn(
-                      'text-teal-500 flex-shrink-0',
-                      compact ? 'w-3 h-3' : 'w-4 h-4 sm:w-5 sm:h-5'
-                    )}
-                  />
-                  <a
-                    href={`tel:${profile.user.phone}`}
-                    className={cn(
-                      'font-semibold text-teal-600 hover:text-teal-700 hover:underline transition-all duration-200',
-                      compact
-                        ? 'text-xs sm:text-sm'
-                        : 'text-sm sm:text-base md:text-lg'
-                    )}
-                  >
-                    {profile.user.phone}
-                  </a>
-                </div>
-              )}
+              <div
+                className={cn(
+                  'flex items-center justify-center gap-3 flex-wrap',
+                  'justify-center', // שינוי: יישור תמיד למרכז
+                  'mt-2 sm:mt-3'
+                )}
+              >
+                {/* תצוגת גיל */}
+                {age > 0 && (
+                  <div className="flex items-center gap-1">
+                    <Cake
+                      className={cn(
+                        'text-blue-500 flex-shrink-0',
+                        compact ? 'w-3 h-3' : 'w-4 h-4 sm:w-5 sm:h-5'
+                      )}
+                    />
+                    <span
+                      className={cn(
+                        'font-semibold text-gray-700',
+                        compact
+                          ? 'text-xs sm:text-sm'
+                          : 'text-sm sm:text-base md:text-lg'
+                      )}
+                    >
+                      {dict.header.ageLabel.replace('{{age}}', age.toString())}
+                    </span>
+                  </div>
+                )}
+
+                {/* תצוגת גובה */}
+                {profile.height && (
+                  <div className="flex items-center gap-1 border-s ps-3 border-gray-300">
+                    <Ruler
+                      className={cn(
+                        'text-blue-500 flex-shrink-0',
+                        compact ? 'w-3 h-3' : 'w-4 h-4 sm:w-5 sm:h-5'
+                      )}
+                    />
+                    <span
+                      className={cn(
+                        'font-semibold text-gray-700',
+                        compact
+                          ? 'text-xs sm:text-sm'
+                          : 'text-sm sm:text-base md:text-lg'
+                      )}
+                    >
+                      {dict.header.heightLabel.replace(
+                        '{{height}}',
+                        profile.height.toString()
+                      )}
+                    </span>
+                  </div>
+                )}
+
+                {/* תצוגת טלפון לשדכן */}
+                {viewMode === 'matchmaker' && profile.user?.phone && (
+                  <div className="flex items-center gap-1 border-s ps-3 border-gray-300">
+                    <PhoneIcon
+                      className={cn(
+                        'text-teal-500 flex-shrink-0',
+                        compact ? 'w-3 h-3' : 'w-4 h-4 sm:w-5 sm:h-5'
+                      )}
+                    />
+                    <a
+                      href={`tel:${profile.user.phone}`}
+                      className={cn(
+                        'font-semibold text-teal-600 hover:text-teal-700 hover:underline transition-all duration-200',
+                        compact
+                          ? 'text-xs sm:text-sm'
+                          : 'text-sm sm:text-base md:text-lg'
+                      )}
+                      dir="ltr"
+                    >
+                      {profile.user.phone}
+                    </a>
+                  </div>
+                )}
+              </div>
             </div>
+            {/* Personality Highlights וכו' נשאר למטה */}
             {personalityHighlights.length > 0 && (
               <div
                 className={cn(
                   'w-full overflow-hidden',
                   compact ? 'mt-2 mb-2' : 'mt-3 mb-4',
-                  isMobile ? 'flex justify-center' : 'flex justify-start'
+                  'flex justify-center' // שינוי: תמיד למרכז
                 )}
               >
                 <ScrollArea className="w-full max-w-full" dir={direction}>
                   <div
                     className={cn(
                       'flex gap-2 sm:gap-3 pb-2 px-1 w-full',
-                      isMobile && 'justify-center flex-wrap'
+                      'justify-center flex-wrap' // שינוי: תמיד למרכז
                     )}
                   >
                     {personalityHighlights.map((highlight, index) => (
@@ -2448,112 +2476,78 @@ const ProfileHeader: React.FC<{
                 </ScrollArea>
               </div>
             )}
+
+            {/* Key Facts (מיקום/עיסוק/השקפה) */}
             <div
               className={cn(
                 'w-full overflow-hidden',
                 compact ? 'mt-2' : 'mt-4 sm:mt-6'
               )}
             >
-              {isMobile ? (
-                <div className="w-full max-w-full overflow-hidden px-1">
-                  <ScrollArea className="w-full" dir={direction}>
-                    <div
-                      className={cn(
-                        'flex gap-2 sm:gap-3 pb-2 px-1 w-full',
-                        'justify-center flex-wrap'
-                      )}
-                    >
-                      {profile.occupation && (
-                        <KeyFactCard
-                          icon={Briefcase}
-                          label={dict.keyFacts.occupation}
-                          value={profile.occupation}
-                          color="amber"
-                          compact={compact}
-                        />
-                      )}
-                      {(() => {
-                        const religiousLevelData = profile.religiousLevel
-                          ? formatEnumValue(
-                              profile.religiousLevel,
-                              religiousLevelMap,
-                              '',
-                              true
-                            )
-                          : null;
-                        if (
-                          religiousLevelData &&
-                          religiousLevelData.shortLabel?.trim()
-                        ) {
-                          return (
-                            <KeyFactCard
-                              icon={BookMarked}
-                              label={dict.keyFacts.outlook}
-                              value={religiousLevelData.shortLabel}
-                              color="purple"
-                              compact={compact}
-                            />
-                          );
-                        }
-                        return null;
-                      })()}
-                    </div>
-                    <ScrollBar orientation="horizontal" />
-                  </ScrollArea>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-                  {profile.city && (
-                    <KeyFactCard
-                      icon={MapPin}
-                      label={dict.keyFacts.location}
-                      value={profile.city}
-                      color="rose"
-                      compact={compact}
-                    />
-                  )}
-                  {profile.occupation && (
-                    <KeyFactCard
-                      icon={Briefcase}
-                      label={dict.keyFacts.occupation}
-                      value={profile.occupation}
-                      color="amber"
-                      compact={compact}
-                    />
-                  )}
-                  {(() => {
-                    const religiousLevelData = profile.religiousLevel
-                      ? formatEnumValue(
-                          profile.religiousLevel,
-                          religiousLevelMap,
-                          ''
-                        )
-                      : null;
-                    if (
-                      religiousLevelData &&
-                      religiousLevelData.label?.trim()
-                    ) {
-                      return (
-                        <KeyFactCard
-                          icon={BookMarked}
-                          label={dict.keyFacts.outlook}
-                          value={religiousLevelData.label}
-                          color="purple"
-                          compact={compact}
-                        />
-                      );
-                    }
-                    return null;
-                  })()}
-                </div>
-              )}
+              <div className="w-full max-w-full overflow-hidden px-1">
+                <ScrollArea className="w-full" dir={direction}>
+                  <div
+                    className={cn(
+                      'flex gap-2 sm:gap-3 pb-2 px-1 w-full',
+                      'justify-center flex-wrap' // שינוי: תמיד למרכז
+                    )}
+                  >
+                    {/* מיקום - נוסף למובייל ודסקטופ יחד */}
+                    {profile.city && (
+                      <KeyFactCard
+                        icon={MapPin}
+                        label={dict.keyFacts.location}
+                        value={profile.city}
+                        color="rose"
+                        compact={compact}
+                      />
+                    )}
+                    {profile.occupation && (
+                      <KeyFactCard
+                        icon={Briefcase}
+                        label={dict.keyFacts.occupation}
+                        value={profile.occupation}
+                        color="amber"
+                        compact={compact}
+                      />
+                    )}
+                    {(() => {
+                      const religiousLevelData = profile.religiousLevel
+                        ? formatEnumValue(
+                            profile.religiousLevel,
+                            religiousLevelMap,
+                            '',
+                            true
+                          )
+                        : null;
+                      if (
+                        religiousLevelData &&
+                        religiousLevelData.shortLabel?.trim()
+                      ) {
+                        return (
+                          <KeyFactCard
+                            icon={BookMarked}
+                            label={dict.keyFacts.outlook}
+                            value={religiousLevelData.shortLabel}
+                            color="purple"
+                            compact={compact}
+                          />
+                        );
+                      }
+                      return null;
+                    })()}
+                  </div>
+                  <ScrollBar orientation="horizontal" />
+                </ScrollArea>
+              </div>
             </div>
+
             {viewMode === 'matchmaker' && (
               <div
                 className={cn(
                   'w-full flex max-w-full overflow-hidden',
                   compact ? 'pt-3' : 'pt-4 sm:pt-6',
-                  isMobile ? 'justify-center px-2' : 'justify-end'
+                  'justify-center px-2' // שינוי: תמיד למרכז
                 )}
               >
                 <Button
@@ -2603,6 +2597,7 @@ const ProfileHeader: React.FC<{
               </div>
             )}
           </div>
+          {/* --- סוף הקוד המעודכן --- */}
         </div>
         {!compact && (
           <div

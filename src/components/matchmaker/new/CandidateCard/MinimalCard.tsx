@@ -1,4 +1,4 @@
-// src/app/components/matchmaker/new/CandidateCard/MinimalCard.tsx
+// src/components/matchmaker/new/CandidateCard/MinimalCard.tsx
 
 'use client';
 
@@ -24,6 +24,8 @@ import {
   Award,
   MoreHorizontal,
   Mail,
+  Ruler, // הוסף: אייקון לגובה
+  Scroll, // הוסף: אייקון לרמה דתית
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -43,6 +45,8 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import type { MatchmakerPageDictionary } from '@/types/dictionaries/matchmaker';
+// הוסף: ייבוא רשימת הרמות הדתיות לתרגום
+import { RELIGIOUS_LEVELS } from '../constants/filterOptions';
 
 interface MinimalCandidateCardProps {
   candidate: Candidate;
@@ -59,7 +63,8 @@ interface MinimalCandidateCardProps {
   isSelectableForComparison?: boolean;
   isSelectedForComparison?: boolean;
   onToggleComparison?: (candidate: Candidate, e: React.MouseEvent) => void;
-  dict: MatchmakerPageDictionary['candidatesManager']['list']['minimalCard'];
+  // שים לב: אנו מניחים ש-dict עודכן ב-types לכלול את heightUnit
+  dict: MatchmakerPageDictionary['candidatesManager']['list']['minimalCard'] & { heightUnit?: string };
 }
 
 const calculateAge = (birthDate: Date | string): number => {
@@ -95,6 +100,13 @@ const MinimalCandidateCard: React.FC<MinimalCandidateCardProps> = ({
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imageError, setImageError] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
+
+  // פונקציית עזר להמרת מפתח רמה דתית לתווית תצוגה
+  const getReligiousLabel = (value: string | null | undefined) => {
+    if (!value) return null;
+    const option = RELIGIOUS_LEVELS.find((opt) => opt.value === value);
+    return option ? option.label : value;
+  };
 
   const highlightText = (text: string | undefined | null): React.ReactNode => {
     if (!highlightTerm || !text) return text;
@@ -300,6 +312,7 @@ const MinimalCandidateCard: React.FC<MinimalCandidateCardProps> = ({
               </div>
             ) : (
               <div className="space-y-2">
+                {/* עיר */}
                 {candidate.profile.city && (
                   <div className="flex items-center justify-end gap-2 p-2 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors duration-200">
                     <span className="font-medium text-blue-800">
@@ -308,12 +321,34 @@ const MinimalCandidateCard: React.FC<MinimalCandidateCardProps> = ({
                     <MapPin className="w-4 h-4 text-blue-600" />
                   </div>
                 )}
+
+                {/* רמה דתית - חדש */}
+                {candidate.profile.religiousLevel && (
+                  <div className="flex items-center justify-end gap-2 p-2 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors duration-200">
+                    <span className="text-purple-800 text-sm font-medium">
+                      {highlightText(getReligiousLabel(candidate.profile.religiousLevel))}
+                    </span>
+                    <Scroll className="w-4 h-4 text-purple-600" />
+                  </div>
+                )}
+
+                {/* עיסוק */}
                 {candidate.profile.occupation && (
                   <div className="flex items-center justify-end gap-2 p-2 bg-green-50 rounded-lg hover:bg-green-100 transition-colors duration-200">
                     <span className="text-green-800 text-sm">
                       {highlightText(candidate.profile.occupation)}
                     </span>
                     <Briefcase className="w-4 h-4 text-green-600" />
+                  </div>
+                )}
+
+                {/* גובה - חדש */}
+                {candidate.profile.height && (
+                  <div className="flex items-center justify-end gap-2 p-2 bg-amber-50 rounded-lg hover:bg-amber-100 transition-colors duration-200">
+                    <span className="text-amber-800 text-sm font-medium">
+                      {candidate.profile.height} {dict.heightUnit || 'ס"מ'}
+                    </span>
+                    <Ruler className="w-4 h-4 text-amber-600" />
                   </div>
                 )}
               </div>
@@ -330,7 +365,6 @@ const MinimalCandidateCard: React.FC<MinimalCandidateCardProps> = ({
           </div>
         </div>
 
-        {/* ======================= הקוד החדש והמתוקן לפינה השמאלית ======================= */}
         <div className="absolute bottom-3 left-3 z-20 flex items-center gap-2 opacity-100 lg:opacity-0 group-hover:opacity-100 transition-all duration-300 transform lg:translate-y-2 group-hover:translate-y-0">
           {/* --- כפתור אימייל --- */}
           {candidate.email &&
@@ -441,7 +475,6 @@ const MinimalCandidateCard: React.FC<MinimalCandidateCardProps> = ({
             </TooltipProvider>
           )}
         </div>
-        {/* ======================= סוף הקוד החדש ======================= */}
 
         <div className="absolute top-3 left-1/2 transform -translate-x-1/2 z-20 opacity-0 group-hover:opacity-100 transition-all duration-300">
           <div className="flex items-center gap-1 bg-black/60 text-white px-3 py-1 rounded-full backdrop-blur-sm text-xs font-bold">

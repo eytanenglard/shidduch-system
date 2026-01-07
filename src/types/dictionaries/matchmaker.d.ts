@@ -271,6 +271,7 @@ type CandidatesListDict = {
     };
     aiMatch: string;
     manualEntry: string;
+    heightUnit: string;
     noImage: string;
     yearsSuffix: string;
     lastActivePrefix: string;

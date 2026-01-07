@@ -165,6 +165,7 @@ export async function GET(req: Request) {
         firstName: userWithProfile.firstName,
         lastName: userWithProfile.lastName,
         email: userWithProfile.email,
+        phone: userWithProfile.phone,
       }
     };
     

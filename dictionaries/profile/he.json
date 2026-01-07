@@ -1026,6 +1026,7 @@
         "profileImageAlt": "תמונת הפרופיל של {{name}}",
         "storyOf": "הסיפור של {{name}}",
         "ageLabel": "גיל: {{age}}",
+         "heightLabel": "{{height}} ס״מ",
         "availabilityBadge": {
           "available_short": "זמין",
           "unavailable_short": "לא זמין",

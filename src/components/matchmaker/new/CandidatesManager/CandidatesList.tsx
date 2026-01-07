@@ -109,7 +109,7 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
   );
   const [questionnaireResponse, setQuestionnaireResponse] =
     useState<QuestionnaireResponse | null>(null);
-  const [isMatchmaker, setIsMatchmaker] = useState(false);
+  const [isMatchmaker, setIsMatchmaker] = useState(true);
   const [hoveredCandidate, setHoveredCandidate] = useState<Candidate | null>(
     null
   );
@@ -569,7 +569,6 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
 
           {selectedCandidate && (
             <div className="p-0">
-              
               <ProfileCard
                 profile={selectedCandidate.profile}
                 images={selectedCandidate.images}

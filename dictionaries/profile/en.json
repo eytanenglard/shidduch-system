@@ -983,6 +983,7 @@
         "profileImageAlt": "Profile picture of {{name}}",
         "storyOf": "The Story of {{name}}",
         "ageLabel": "Age: {{age}}",
+        "heightLabel": "{{height}} cm",
         "availabilityBadge": {
           "available_short": "Available",
           "unavailable_short": "Unavailable",

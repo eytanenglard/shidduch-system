@@ -542,6 +542,7 @@
         },
         "aiMatch": "{{score}}% Match",
         "manualEntry": "Manual Candidate",
+        "heightLabel": "{{height}} cm",
         "noImage": "No Image",
         "yearsSuffix": "years",
         "lastActivePrefix": "Active",

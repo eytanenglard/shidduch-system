@@ -538,6 +538,7 @@
         },
         "aiMatch": "{{score}}% התאמה",
         "manualEntry": "מועמד ידני",
+         "heightLabel": "{{height}} ס״מ",
         "noImage": "אין תמונה",
         "yearsSuffix": "שנים",
         "lastActivePrefix": "פעיל/ה",

@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\candidates
-# Generated on: 2025-12-24 11:49:00
+# Generated on: 2026-01-07 15:46:20
 # Filter: Only content of code files (.bat, .c, .cfg, .conf, .cpp, .cs, .css, .go, .h, .html, .ini, .java, .js, .json, .jsx, .kt, .less, .md, .php, .py, .rb, .rs, .scss, .sh, .sql, .swift, .ts, .tsx, .txt, .xml, .yaml, .yml) is included.
 ################################################################################
 
@@ -234,6 +234,7 @@ const users = await prisma.user.findMany({
     }
 
     // Step 5: Map suggestion info back to users in memory (no more DB queries)
+// Step 5: Map suggestion info back to users in memory (no more DB queries)
     const usersWithSuggestionInfo = users.map((user) => {
       const suggestionInfo = suggestionStatusMap.get(user.id) || null;
       const profile = user.profile;
@@ -250,6 +251,15 @@ const users = await prisma.user.findMany({
               createdAt: profile.createdAt.toISOString(),
               updatedAt: profile.updatedAt.toISOString(),
               lastActive: profile.lastActive?.toISOString() || null,
+              // --- הוספה: הזרקת פרטי המשתמש לתוך הפרופיל עבור ProfileCard ---
+              user: {
+                id: user.id,
+                firstName: user.firstName,
+                lastName: user.lastName,
+                email: user.email,
+                phone: user.phone, // <--- הנה הטלפון שהיה חסר בקומפוננטה
+              }
+              // -----------------------------------------------------------
             }
           : null,
       };

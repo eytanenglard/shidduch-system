@@ -2427,6 +2427,7 @@ export type ProfileCardDisplayDict = {
     profileImageAlt: string; // Placeholder: {{name}}
     storyOf: string; // Placeholder: {{name}}
     ageLabel: string; // Placeholder: {{age}}
+     heightLabel: string;
     availabilityBadge: {
       available_short: string;
       unavailable_short: string;

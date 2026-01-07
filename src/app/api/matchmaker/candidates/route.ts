@@ -215,6 +215,7 @@ const users = await prisma.user.findMany({
     }
 
     // Step 5: Map suggestion info back to users in memory (no more DB queries)
+// Step 5: Map suggestion info back to users in memory (no more DB queries)
     const usersWithSuggestionInfo = users.map((user) => {
       const suggestionInfo = suggestionStatusMap.get(user.id) || null;
       const profile = user.profile;
@@ -231,6 +232,15 @@ const users = await prisma.user.findMany({
               createdAt: profile.createdAt.toISOString(),
               updatedAt: profile.updatedAt.toISOString(),
               lastActive: profile.lastActive?.toISOString() || null,
+              // --- הוספה: הזרקת פרטי המשתמש לתוך הפרופיל עבור ProfileCard ---
+              user: {
+                id: user.id,
+                firstName: user.firstName,
+                lastName: user.lastName,
+                email: user.email,
+                phone: user.phone, // <--- הנה הטלפון שהיה חסר בקומפוננטה
+              }
+              // -----------------------------------------------------------
             }
           : null,
       };
