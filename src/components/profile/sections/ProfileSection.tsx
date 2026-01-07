@@ -401,7 +401,6 @@ const StoryAndMoreCard: React.FC<{
             )}
           </div>
 
-
           {/* Private Notes Section - UPDATED to internalMatchmakerNotes */}
           <div>
             <div className="flex items-center gap-1.5 mb-2">
@@ -439,7 +438,9 @@ const StoryAndMoreCard: React.FC<{
               <Textarea
                 id="internalMatchmakerNotes" // שונה
                 value={formData.internalMatchmakerNotes || ''} // שונה מ-matchingNotes
-                onChange={(e) => handleChange('internalMatchmakerNotes', e.target.value)} // שונה
+                onChange={(e) =>
+                  handleChange('internalMatchmakerNotes', e.target.value)
+                } // שונה
                 className="text-sm focus:ring-cyan-500 min-h-[90px] rounded-lg"
                 placeholder={tAboutCard.privateNotesPlaceholder}
                 rows={3}
@@ -679,14 +680,16 @@ const FriendTestimonialsManager: React.FC<{
                   key={item.id}
                   className="border rounded-md p-3 bg-white/50"
                 >
-              <div className="flex-1 min-w-0"> {/* הוספתי min-w-0 כדי למנוע גלישה בתוך פלקס */}
-  <p className="italic text-sm text-gray-600 whitespace-pre-wrap break-words break-all overflow-wrap-anywhere">
-    &quot;{item.content}&quot;
-  </p>
-  <p className="text-xs font-semibold mt-2">
-    - {item.authorName}, {item.relationship}
-  </p>
-</div>
+                  <div className="flex-1 min-w-0">
+                    {' '}
+                    {/* הוספתי min-w-0 כדי למנוע גלישה בתוך פלקס */}
+                    <p className="italic text-sm text-gray-600 whitespace-pre-wrap break-words break-all overflow-wrap-anywhere">
+                      &quot;{item.content}&quot;
+                    </p>
+                    <p className="text-xs font-semibold mt-2">
+                      - {item.authorName}, {item.relationship}
+                    </p>
+                  </div>
                   {isEditing && (
                     <div className="flex items-center gap-2 mt-2 pt-2 border-t">
                       {item.status !== 'APPROVED' && (
@@ -1104,7 +1107,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
         profileData?.availabilityUpdatedAt
       ),
       matchingNotes: profileData?.matchingNotes || '',
-            internalMatchmakerNotes: profileData?.internalMatchmakerNotes || '', // <--- הוסף שורה זו
+      internalMatchmakerNotes: profileData?.internalMatchmakerNotes || '', // <--- הוסף שורה זו
 
       shomerNegiah: profileData?.shomerNegiah ?? undefined,
       serviceType: profileData?.serviceType || undefined,
@@ -2948,48 +2951,58 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
       {!viewOnly &&
         mounted &&
         createPortal(
-          <AnimatePresence>
-            {showFloatingBtn && (
-              <motion.div
-                initial={{ opacity: 0, scale: 0 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0 }}
-                transition={{
-                  type: 'spring',
-                  stiffness: 260,
-                  damping: 20,
-                }}
-                // שומר על המיקום החדש: צד שמאל (left-4) וסטיקי (fixed)
-                className="fixed bottom-24 left-4 z-[9999] md:hidden"
-              >
-                <Button
-                  onClick={isEditing ? handleSave : () => setIsEditing(true)}
-                  // 👇 כאן החזרנו את העיצוב המקורי בדיוק כפי שהיה
-                  className={cn(
-                    'h-14 w-14 rounded-full shadow-lg hover:shadow-xl',
-                    'bg-gradient-to-br from-cyan-500 to-cyan-600 hover:from-cyan-600 hover:to-cyan-700',
-                    'transition-all duration-300 ease-out',
-                    'hover:scale-110 active:scale-95',
-                    'flex items-center justify-center',
-                    'ring-4 ring-cyan-200/50'
-                  )}
-                  aria-label={
-                    isEditing ? dict.buttons.saveChanges : dict.buttons.edit
-                  }
-                >
-                  {isEditing ? (
-                    <Save className="w-6 h-6 text-white" />
-                  ) : (
-                    <Pencil className="w-6 h-6 text-white" />
-                  )}
-                </Button>
-              </motion.div>
-            )}
-          </AnimatePresence>,
+          // 1. מעטפת ראשית שממוקמת בתחתית המסך לרוחב מלא
+          // pointer-events-none: מאפשר ללחוץ על דברים שנמצאים "מתחת" לאזורים הריקים
+          <div className="fixed bottom-0 left-0 right-0 z-[9999] flex justify-center pointer-events-none">
+            {/* 2. קונטיינר פנימי שמגביל את הרוחב לרוחב התוכן באתר (1280px) */}
+            {/* px-4: שומר על מרווח מהצדדים כמו שאר האתר */}
+            <div className="w-full max-w-screen-xl px-4 relative h-0">
+              <AnimatePresence>
+                {showFloatingBtn && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0 }}
+                    transition={{
+                      type: 'spring',
+                      stiffness: 260,
+                      damping: 20,
+                    }}
+                    // 3. הכפתור עצמו:
+                    // absolute: ממוקם ביחס לקונטיינר הפנימי (ולא למסך)
+                    // pointer-events-auto: מחזיר את האפשרות ללחוץ על הכפתור
+                    className="absolute bottom-24 left-4 pointer-events-auto"
+                  >
+                    <Button
+                      onClick={
+                        isEditing ? handleSave : () => setIsEditing(true)
+                      }
+                      className={cn(
+                        'h-14 w-14 rounded-full shadow-lg hover:shadow-xl',
+                        'bg-gradient-to-br from-cyan-500 to-cyan-600 hover:from-cyan-600 hover:to-cyan-700',
+                        'transition-all duration-300 ease-out',
+                        'hover:scale-110 active:scale-95',
+                        'flex items-center justify-center',
+                        'ring-4 ring-cyan-200/50'
+                      )}
+                      aria-label={
+                        isEditing ? dict.buttons.saveChanges : dict.buttons.edit
+                      }
+                    >
+                      {isEditing ? (
+                        <Save className="w-6 h-6 text-white" />
+                      ) : (
+                        <Pencil className="w-6 h-6 text-white" />
+                      )}
+                    </Button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          </div>,
           document.body
         )}
-      {/* ======================= END: FLOATING ACTION BUTTON ======================= */}
-
+      {/* ======================= END: FLOATING ACTION BUTTON ======================= */}{' '}
       {/* ======================= START: ALWAYS VISIBLE STICKY FOOTER ======================= */}
       {!viewOnly && (
         <div className="fixed bottom-0 left-0 right-0 z-20 border-t border-gray-200/80 bg-white/95 backdrop-blur-md shadow-[0_-4px_20px_-5px_rgba(0,0,0,0.12)]">

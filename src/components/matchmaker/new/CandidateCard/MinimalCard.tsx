@@ -430,22 +430,26 @@ const MinimalCandidateCard: React.FC<MinimalCandidateCardProps> = ({
                 <DropdownMenuItem
                   onClick={(e) => {
                     e.stopPropagation();
-                    // 1. ניקוי המספר מכל תו שאינו ספרה (מקפים, רווחים וכו')
-                    let cleanPhone = candidate.phone?.replace(/\D/g, '') || '';
 
-                    // 2. המרה לפורמט בינלאומי (אם מתחיל ב-0, נחליף ב-972)
-                    // הנחה: המערכת עובדת בעיקר עם מספרים ישראליים.
-                    // אם יש מספרים מחו"ל שכבר שמורים עם קידומת, הלוגיקה תצטרך התאמה קלה.
+                    // 1. ניקוי וסידור המספר
+                    let cleanPhone = candidate.phone?.replace(/\D/g, '') || '';
                     if (cleanPhone.startsWith('0')) {
                       cleanPhone = '972' + cleanPhone.substring(1);
                     }
 
-                    // 3. פתיחת הקישור
                     if (cleanPhone) {
-                      window.open(`https://wa.me/${cleanPhone}`, '_blank');
-                    } else {
-                      // אופציונלי: הודעת שגיאה אם המספר לא תקין
-                      console.error('Invalid phone number');
+                      // 2. יצירת ההודעה האישית
+                      // שימוש ב-candidate.firstName כדי לשלב את השם
+                      const message = `היי ${candidate.firstName} זה איתן מנשמהטק. אני מאוד שמח שנרשמת למערכת שלנו ואני מקווה מאוד לעזור לך למצוא את הזוגיות שתמיד חלמת עליה`;
+
+                      // 3. קידוד ההודעה לפורמט URL (חובה עבור עברית ורווחים)
+                      const encodedMessage = encodeURIComponent(message);
+
+                      // 4. פתיחת הקישור עם פרמטר הטקסט
+                      window.open(
+                        `https://wa.me/${cleanPhone}?text=${encodedMessage}`,
+                        '_blank'
+                      );
                     }
                   }}
                   className="text-green-700 hover:text-green-800 hover:bg-green-50 focus:bg-green-50 focus:text-green-800"

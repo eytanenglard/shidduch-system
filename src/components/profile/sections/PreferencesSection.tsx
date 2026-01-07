@@ -1518,50 +1518,58 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
       </div>
 
       {/* ======================= START: FLOATING ACTION BUTTON (PORTAL) ======================= */}
-      {/* ✨ החלק הזה הוחלף לחלוטין כדי להיות זהה ל-ProfileSection */}
       {!viewOnly &&
         mounted &&
         createPortal(
-          <AnimatePresence>
-            {showFloatingBtn && (
-              <motion.div
-                initial={{ opacity: 0, scale: 0 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0 }}
-                transition={{
-                  type: 'spring',
-                  stiffness: 260,
-                  damping: 20,
-                }}
-                // שומר על המיקום החדש: צד שמאל (left-4) וסטיקי (fixed)
-                className="fixed bottom-24 left-4 z-[9999] md:hidden"
-              >
-                <Button
-                  onClick={isEditing ? handleSave : () => setIsEditing(true)}
-                  // שימוש בצבעי Cyan (תכלת) כדי שיהיה זהה לחלוטין ל-ProfileSection
-                  className={cn(
-                    'h-14 w-14 rounded-full shadow-lg hover:shadow-xl',
-                    'bg-gradient-to-br from-cyan-500 to-cyan-600 hover:from-cyan-600 hover:to-cyan-700',
-                    'transition-all duration-300 ease-out',
-                    'hover:scale-110 active:scale-95',
-                    'flex items-center justify-center',
-                    'ring-4 ring-cyan-200/50'
-                  )}
-                  aria-label={isEditing ? t.buttons.save : t.buttons.edit}
-                >
-                  {isEditing ? (
-                    <Save className="w-6 h-6 text-white" />
-                  ) : (
-                    <Pencil className="w-6 h-6 text-white" />
-                  )}
-                </Button>
-              </motion.div>
-            )}
-          </AnimatePresence>,
+          // 1. מעטפת ראשית שממוקמת בתחתית המסך לרוחב מלא
+          // pointer-events-none: מאפשר ללחוץ דרך האזורים הריקים
+          <div className="fixed bottom-0 left-0 right-0 z-[9999] flex justify-center pointer-events-none">
+            {/* 2. קונטיינר פנימי שמגביל את הרוחב לרוחב התוכן באתר */}
+            <div className="w-full max-w-screen-xl px-4 relative h-0">
+              <AnimatePresence>
+                {showFloatingBtn && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0 }}
+                    transition={{
+                      type: 'spring',
+                      stiffness: 260,
+                      damping: 20,
+                    }}
+                    // 3. מיקום אבסולוטי בתוך הקונטיינר, ללא md:hidden
+                    // pointer-events-auto: מאפשר לחיצה על הכפתור עצמו
+                    className="absolute bottom-24 left-4 pointer-events-auto"
+                  >
+                    <Button
+                      onClick={
+                        isEditing ? handleSave : () => setIsEditing(true)
+                      }
+                      className={cn(
+                        'h-14 w-14 rounded-full shadow-lg hover:shadow-xl',
+                        // שומר על צבעי ה-Cyan כפי שביקשת לקונסיסטנטיות עם הפרופיל
+                        'bg-gradient-to-br from-cyan-500 to-cyan-600 hover:from-cyan-600 hover:to-cyan-700',
+                        'transition-all duration-300 ease-out',
+                        'hover:scale-110 active:scale-95',
+                        'flex items-center justify-center',
+                        'ring-4 ring-cyan-200/50'
+                      )}
+                      aria-label={isEditing ? t.buttons.save : t.buttons.edit}
+                    >
+                      {isEditing ? (
+                        <Save className="w-6 h-6 text-white" />
+                      ) : (
+                        <Pencil className="w-6 h-6 text-white" />
+                      )}
+                    </Button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          </div>,
           document.body
         )}
       {/* ======================= END: FLOATING ACTION BUTTON ======================= */}
-
       {/* ======================= START: ALWAYS VISIBLE STICKY FOOTER ======================= */}
       {!viewOnly && (
         <div className="fixed bottom-0 left-0 right-0 z-20 border-t border-gray-200/80 bg-white/95 backdrop-blur-md shadow-[0_-4px_20px_-5px_rgba(0,0,0,0.12)]">
