@@ -57,7 +57,7 @@ export const AIProfileAdvisorDialog: React.FC<AIProfileAdvisorDialogProps> = ({
     setError(null);
 
     try {
-      // הוספת headers למניעת Cache בדפדפן - חשוב מאוד לפתרון הבעיה
+      // הוספת headers למניעת Cache בדפדפן
       const response = await fetch('/api/ai/analyze-my-profile', {
         method: 'POST',
         headers: {
@@ -68,8 +68,31 @@ export const AIProfileAdvisorDialog: React.FC<AIProfileAdvisorDialogProps> = ({
         },
       });
 
-      const result = await response.json();
+      // ---------------------------------------------------------
+      // תיקון: טיפול בטוח ב-JSON כדי למנוע קריסה ב-Timeout
+      // ---------------------------------------------------------
 
+      // 1. קודם כל מקבלים את התשובה כטקסט פשוט
+      const textResponse = await response.text();
+
+      // 2. מנסים להמיר ל-JSON
+      let result;
+      try {
+        result = JSON.parse(textResponse);
+      } catch (e) {
+        // אם הגענו לפה, השרת החזיר משהו שאינו JSON (בדרך כלל דף שגיאה HTML בגלל Timeout)
+        console.error(
+          'Failed to parse JSON. Raw response preview:',
+          textResponse.slice(0, 200)
+        );
+        throw new Error(
+          locale === 'he'
+            ? 'השרת לא הגיב בזמן סביר (Timeout). אנא נסה שוב מאוחר יותר.'
+            : 'The server took too long to respond. Please try again later.'
+        );
+      }
+
+      // 3. בדיקה לוגית של התשובה
       if (!response.ok || !result.success) {
         throw new Error(result.message || 'Error getting profile analysis.');
       }
@@ -78,7 +101,10 @@ export const AIProfileAdvisorDialog: React.FC<AIProfileAdvisorDialogProps> = ({
     } catch (err) {
       const errorMessage =
         err instanceof Error ? err.message : 'An unexpected error occurred.';
+
+      console.error('AI Analysis Error:', errorMessage);
       setError(errorMessage);
+
       toast.error(dict.toast.errorTitle, {
         description: dict.toast.errorDescription.replace(
           '{{error}}',
@@ -123,18 +149,18 @@ export const AIProfileAdvisorDialog: React.FC<AIProfileAdvisorDialogProps> = ({
             size="lg"
             className="relative group overflow-hidden w-full rounded-2xl border-2 border-teal-200/60 bg-gradient-to-br from-teal-50 via-orange-50 to-white hover:border-teal-300 transition-all duration-500 shadow-lg hover:shadow-2xl hover:shadow-teal-200/50 py-7"
           >
-            {/* Decorative background elements (Gradient only, no icons) */}
+            {/* Decorative background elements */}
             <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-teal-200/30 to-transparent rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700" />
             <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-orange-200/30 to-transparent rounded-full blur-xl group-hover:scale-125 transition-transform duration-700" />
 
             {/* Content Container */}
             <div className="relative z-10 flex items-center justify-center gap-3 w-full">
-              {/* 1. הטקסט מופיע ראשון בקוד */}
+              {/* הטקסט */}
               <span className="font-semibold text-lg bg-gradient-to-r from-teal-700 via-orange-600 to-teal-700 bg-clip-text text-transparent group-hover:from-teal-800 group-hover:via-orange-700 group-hover:to-teal-800 transition-all duration-300">
                 {dict.triggerButton}
               </span>
 
-              {/* 2. הלוגו מופיע שני בקוד - מה שיגרום לו להיות "בסוף" המשפט (משמאל בעברית, מימין באנגלית) */}
+              {/* הלוגו */}
               <div className="relative w-8 h-8 group-hover:scale-110 transition-transform duration-500 shrink-0">
                 <Image
                   src="/logo.png"
@@ -303,7 +329,7 @@ export const AIProfileAdvisorDialog: React.FC<AIProfileAdvisorDialogProps> = ({
                   </AlertTitle>
                   <AlertDescription className="space-y-2">
                     <p className="text-sm">{dict.errorAlertDescription}</p>
-                    <p className="text-xs text-gray-600 bg-red-50 p-2 rounded-lg mt-2 font-mono">
+                    <p className="text-xs text-gray-600 bg-red-50 p-2 rounded-lg mt-2 font-mono break-all">
                       {error}
                     </p>
                   </AlertDescription>

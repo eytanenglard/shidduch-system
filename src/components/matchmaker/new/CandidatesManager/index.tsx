@@ -91,6 +91,9 @@ import type { ProfilePageDictionary } from '@/types/dictionary';
 interface AiMatch {
   userId: string;
   score: number;
+  reasoning: string;    // 🆕 שדה חובה חדש
+  firstName?: string;   // 🆕 שדה אופציונלי חדש
+  lastName?: string;    // 🆕 שדה אופציונלי חדש
 }
 
 // ============================================================================

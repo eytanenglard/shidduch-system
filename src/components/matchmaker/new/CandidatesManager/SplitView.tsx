@@ -41,9 +41,12 @@ import { motion, AnimatePresence } from 'framer-motion';
 // TYPES & INTERFACES
 // ============================================================================
 
-interface AiMatch {
+interface AiMatchV2 {
   userId: string;
   score: number;
+  reasoning: string;    // 🆕 שדה חדש - נימוק להתאמה
+  firstName?: string;   // 🆕 שדה חדש
+  lastName?: string;    // 🆕 שדה חדש
 }
 
 interface SplitViewProps {
@@ -61,11 +64,11 @@ interface SplitViewProps {
   className?: string;
   locale: string;
   aiTargetCandidate: Candidate | null;
-  aiMatches: AiMatch[];
+  aiMatches: AiMatchV2 [];
   isAiLoading: boolean;
   onSetAiTarget: (candidate: Candidate, e: React.MouseEvent) => void;
   onClearAiTarget: (e: React.MouseEvent) => void;
-  setAiMatches: React.Dispatch<React.SetStateAction<AiMatch[]>>;
+  setAiMatches: React.Dispatch<React.SetStateAction<AiMatchV2[]>>;
   setIsAiLoading: React.Dispatch<React.SetStateAction<boolean>>;
   comparisonSelection: Record<string, Candidate>;
   onToggleComparison: (candidate: Candidate, e: React.MouseEvent) => void;
@@ -385,65 +388,74 @@ const SplitView: React.FC<SplitViewProps> = ({
   /**
    * דגש 7: לוגיקת חיפוש AI מרוכזת ומשופרת עם טיפול בשגיאות
    */
-  const handleFindAiMatches = async (e: React.MouseEvent) => {
-    e.stopPropagation();
+const handleFindAiMatchesV2 = async (e: React.MouseEvent) => {
+  e.stopPropagation();
+  
+  if (!aiTargetCandidate) {
+    toast.error('אנא בחר מועמד/ת מטרה תחילה', {
+      position: 'top-center',
+      icon: '⚠️',
+    });
+    return;
+  }
+
+  setIsAiLoading(true);
+  setAiMatches([]);
+
+  try {
+    // 🆕 קריאה ל-API החדש - לא צריך לשלוח candidatePoolIds
+    // האלגוריתם מסנן לבד לפי גיל, מגדר, ורמה דתית
+    const response = await fetch('/api/ai/find-matches-v2', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        targetUserId: aiTargetCandidate.id,
+        maxCandidates: 15, // אפשר להגדיל עד 30
+      }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok || !data.success) {
+      throw new Error(data.error || 'Failed to fetch AI matches');
+    }
+
+    // 🆕 המבנה החדש כולל גם reasoning
+    // data.matches = [{ userId, score, reasoning, firstName, lastName }]
+    setAiMatches(data.matches);
     
-    if (!aiTargetCandidate) {
-      toast.error('אנא בחר מועמד/ת מטרה תחילה', {
-        position: 'top-center',
-        icon: '⚠️',
-      });
-      return;
+    // 🆕 הודעה משופרת עם מידע על האלגוריתם
+    const topMatch = data.matches[0];
+    const topMatchName = topMatch ? `${topMatch.firstName} (${topMatch.score}%)` : '';
+    
+    toast.success(`נמצאו ${data.matches.length} התאמות AI חכמות! 🎯`, {
+      position: 'top-center',
+      description: topMatch 
+        ? `ההתאמה הטובה ביותר: ${topMatchName}` 
+        : 'המועמדים מיוינו לפי ציון ההתאמה',
+      duration: 5000,
+    });
+
+    // 🆕 אפשרות להציג את הנימוקים ב-console לבדיקה
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[AI Matches V2] Results:', data.matches.map((m: any) => ({
+        name: `${m.firstName} ${m.lastName}`,
+        score: m.score,
+        reasoning: m.reasoning?.substring(0, 100) + '...'
+      })));
     }
 
-    setIsAiLoading(true);
-    setAiMatches([]);
+  } catch (error) {
+    console.error('Error finding AI matches:', error);
+    toast.error('שגיאה במציאת התאמות AI.', {
+      description: error instanceof Error ? error.message : 'נסה שוב מאוחר יותר.',
+    });
+  } finally {
+    setIsAiLoading(false);
+  }
+};
 
-    const targetGender = aiTargetCandidate.profile.gender;
-    const candidatePool = targetGender === Gender.MALE ? femaleCandidates : maleCandidates;
-    const candidatePoolIds = candidatePool.map((c) => c.id);
 
-    if (candidatePoolIds.length === 0) {
-      toast.error('אין מועמדים במאגר לחיפוש התאמות.', {
-        position: 'top-center',
-        description: 'נסה לשנות את הפילטרים או להוסיף מועמדים נוספים',
-      });
-      setIsAiLoading(false);
-      return;
-    }
-
-    try {
-      const response = await fetch('/api/ai/find-matches', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          targetUserId: aiTargetCandidate.id,
-          candidatePoolIds,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok || !data.success) {
-        throw new Error(data.error || 'Failed to fetch AI matches');
-      }
-
-      setAiMatches(data.matches);
-      
-      toast.success(`נמצאו ${data.matches.length} התאמות AI פוטנציאליות! 🎉`, {
-        position: 'top-center',
-        description: 'המועמדים הממולצים מסומנים ומיוינו לראש הרשימה.',
-        duration: 5000,
-      });
-    } catch (error) {
-      console.error('Error finding AI matches:', error);
-      toast.error('שגיאה במציאת התאמות AI.', {
-        description: error instanceof Error ? error.message : 'נסה שוב מאוחר יותר.',
-      });
-    } finally {
-      setIsAiLoading(false);
-    }
-  };
 
   /**
    * דגש 8: ציון מועמדים עם ניקוד AI
@@ -478,7 +490,7 @@ const SplitView: React.FC<SplitViewProps> = ({
         isSearchPanel={isSearchPanel}
         isTargetPanel={isTargetPanel}
         onClearAiTarget={onClearAiTarget}
-        onFindAiMatches={handleFindAiMatches}
+        onFindAiMatches={handleFindAiMatchesV2}
         isAiLoading={isAiLoading}
         isMobileView={isMobileView}
         dict={dict.candidatesManager.splitView.panelHeaders}
@@ -657,7 +669,7 @@ const SplitView: React.FC<SplitViewProps> = ({
                   className="mb-4"
                 >
                   <Button
-                    onClick={handleFindAiMatches}
+                    onClick={handleFindAiMatchesV2}
                     disabled={isAiLoading}
                     className="w-full h-12 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 disabled:from-gray-400 disabled:to-gray-500 text-white shadow-lg font-bold rounded-xl transition-all duration-300 hover:scale-105 active:scale-95 disabled:scale-100 relative overflow-hidden group"
                   >
@@ -716,7 +728,7 @@ const SplitView: React.FC<SplitViewProps> = ({
                   className="mb-4"
                 >
                   <Button
-                    onClick={handleFindAiMatches}
+                    onClick={handleFindAiMatchesV2}
                     disabled={isAiLoading}
                     className="w-full h-12 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 disabled:from-gray-400 disabled:to-gray-500 text-white shadow-lg font-bold rounded-xl transition-all duration-300 hover:scale-105 active:scale-95 disabled:scale-100 relative overflow-hidden group"
                   >
