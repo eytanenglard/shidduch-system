@@ -50,7 +50,7 @@ export interface CandidatesFilter {
     max: number;
   };
   cities?: string[];
-  religiousLevel?: string;
+  religiousLevel?: string[];
   occupations?: string[];
   educationLevel?: string;
   maritalStatus?: string;

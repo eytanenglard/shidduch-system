@@ -1,5 +1,5 @@
-// /Filters/FilterPanel.tsx - גרסה מתורגמת, מלאה ומעודכנת
-import React, { useState } from 'react';
+// /Filters/FilterPanel.tsx - גרסה מתורגמת, מלאה ומעודכנת (ללא טאב מתקדם)
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 // Lucide React Icons
@@ -109,6 +109,56 @@ interface FilterSectionProps {
   gradient?: string;
 }
 
+// --- New Helper Component for Safe Typing ---
+interface SafeNumberInputProps {
+  value: number;
+  min: number;
+  max: number;
+  onCommit: (value: number) => void;
+  className?: string;
+}
+
+const SafeNumberInput: React.FC<SafeNumberInputProps> = ({
+  value,
+  min,
+  max,
+  onCommit,
+  className,
+}) => {
+  const [localValue, setLocalValue] = useState<string>(value?.toString() || '');
+
+  useEffect(() => {
+    setLocalValue(value?.toString() || '');
+  }, [value]);
+
+  const handleCommit = () => {
+    let num = parseInt(localValue);
+    
+    // Validation
+    if (isNaN(num)) num = min;
+    if (num < min) num = min;
+    if (num > max) num = max;
+
+    setLocalValue(num.toString());
+    onCommit(num);
+  };
+
+  return (
+    <input
+      type="number"
+      value={localValue}
+      onChange={(e) => setLocalValue(e.target.value)}
+      onBlur={handleCommit}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter') {
+          (e.target as HTMLInputElement).blur();
+        }
+      }}
+      className={className}
+    />
+  );
+};
+
 // Helper Components
 const FilterSection: React.FC<FilterSectionProps> = ({
   title,
@@ -210,44 +260,6 @@ const GenderFilterPanel = ({
   };
   const config = genderConfig[gender];
 
-  const handleAgeChange = (type: 'min' | 'max', value: string) => {
-    const numericValue = parseInt(value);
-    if (
-      isNaN(numericValue) ||
-      numericValue < AGE_RANGE.min ||
-      numericValue > AGE_RANGE.max
-    )
-      return;
-    const currentMin = filters.ageRange?.min || AGE_RANGE.default.min;
-    const currentMax = filters.ageRange?.max || AGE_RANGE.default.max;
-    onFiltersChange({
-      ...filters,
-      ageRange: {
-        min: type === 'min' ? Math.min(numericValue, currentMax) : currentMin,
-        max: type === 'max' ? Math.max(numericValue, currentMin) : currentMax,
-      },
-    });
-  };
-
-  const handleHeightChange = (type: 'min' | 'max', value: string) => {
-    const numericValue = parseInt(value);
-    if (
-      isNaN(numericValue) ||
-      numericValue < HEIGHT_RANGE.min ||
-      numericValue > HEIGHT_RANGE.max
-    )
-      return;
-    const currentMin = filters.heightRange?.min || HEIGHT_RANGE.default.min;
-    const currentMax = filters.heightRange?.max || HEIGHT_RANGE.default.max;
-    onFiltersChange({
-      ...filters,
-      heightRange: {
-        min: type === 'min' ? Math.min(numericValue, currentMax) : currentMin,
-        max: type === 'max' ? Math.max(numericValue, currentMin) : currentMax,
-      },
-    });
-  };
-
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.95 }}
@@ -309,12 +321,17 @@ const GenderFilterPanel = ({
                 <p className="text-xs text-blue-600 mb-1 font-medium">
                   {dict.minLabel}
                 </p>
-                <input
-                  type="number"
+                <SafeNumberInput
                   min={AGE_RANGE.min}
                   max={AGE_RANGE.max}
                   value={filters?.ageRange?.min || AGE_RANGE.default.min}
-                  onChange={(e) => handleAgeChange('min', e.target.value)}
+                  onCommit={(val) => {
+                    const currentMax = filters.ageRange?.max || AGE_RANGE.default.max;
+                    onFiltersChange({
+                      ...filters,
+                      ageRange: { min: Math.min(val, currentMax), max: currentMax },
+                    });
+                  }}
                   className="w-16 text-center text-lg font-bold text-blue-700 focus:outline-none bg-transparent"
                 />
               </div>
@@ -323,12 +340,17 @@ const GenderFilterPanel = ({
                 <p className="text-xs text-blue-600 mb-1 font-medium">
                   {dict.maxLabel}
                 </p>
-                <input
-                  type="number"
+                <SafeNumberInput
                   min={AGE_RANGE.min}
                   max={AGE_RANGE.max}
                   value={filters?.ageRange?.max || AGE_RANGE.default.max}
-                  onChange={(e) => handleAgeChange('max', e.target.value)}
+                  onCommit={(val) => {
+                    const currentMin = filters.ageRange?.min || AGE_RANGE.default.min;
+                    onFiltersChange({
+                      ...filters,
+                      ageRange: { min: currentMin, max: Math.max(val, currentMin) },
+                    });
+                  }}
                   className="w-16 text-center text-lg font-bold text-blue-700 focus:outline-none bg-transparent"
                 />
               </div>
@@ -369,12 +391,17 @@ const GenderFilterPanel = ({
                 <p className="text-xs text-purple-600 mb-1 font-medium">
                   {dict.minLabel}
                 </p>
-                <input
-                  type="number"
+                <SafeNumberInput
                   min={HEIGHT_RANGE.min}
                   max={HEIGHT_RANGE.max}
                   value={filters?.heightRange?.min || HEIGHT_RANGE.default.min}
-                  onChange={(e) => handleHeightChange('min', e.target.value)}
+                  onCommit={(val) => {
+                    const currentMax = filters.heightRange?.max || HEIGHT_RANGE.default.max;
+                    onFiltersChange({
+                      ...filters,
+                      heightRange: { min: Math.min(val, currentMax), max: currentMax },
+                    });
+                  }}
                   className="w-16 text-center text-lg font-bold text-purple-700 focus:outline-none bg-transparent"
                 />
               </div>
@@ -383,12 +410,17 @@ const GenderFilterPanel = ({
                 <p className="text-xs text-purple-600 mb-1 font-medium">
                   {dict.maxLabel}
                 </p>
-                <input
-                  type="number"
+                <SafeNumberInput
                   min={HEIGHT_RANGE.min}
                   max={HEIGHT_RANGE.max}
                   value={filters?.heightRange?.max || HEIGHT_RANGE.default.max}
-                  onChange={(e) => handleHeightChange('max', e.target.value)}
+                  onCommit={(val) => {
+                    const currentMin = filters.heightRange?.min || HEIGHT_RANGE.default.min;
+                    onFiltersChange({
+                      ...filters,
+                      heightRange: { min: currentMin, max: Math.max(val, currentMin) },
+                    });
+                  }}
                   className="w-16 text-center text-lg font-bold text-purple-700 focus:outline-none bg-transparent"
                 />
               </div>
@@ -643,19 +675,21 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
           count++;
         if (filters.cities && filters.cities.length > 0) count++;
         if (filters.religiousLevel) count++;
-        break;
-
-      case 'advanced':
+        
+        // Moved from Advanced to Basic
         if (
           filters.heightRange &&
           (filters.heightRange.min !== defaultFilters.heightRange?.min ||
             filters.heightRange.max !== defaultFilters.heightRange?.max)
         )
           count++;
+        // These are also theoretically advanced but weren't rendered in the UI
         if (filters.occupations && filters.occupations.length > 0) count++;
         if (filters.educationLevel) count++;
         if (filters.maritalStatus) count++;
         break;
+
+      // 'advanced' case removed
 
       case 'status':
         if (filters.availabilityStatus) count++;
@@ -905,7 +939,8 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
               onValueChange={setActiveTab}
               className="w-full"
             >
-              <TabsList className="grid grid-cols-4 w-full bg-gradient-to-r from-indigo-50 to-purple-50 p-2 rounded-2xl shadow-lg border border-white/50 h-auto">
+              {/* REMOVED ADVANCED TAB - GRID COLS CHANGED TO 3 */}
+              <TabsList className="grid grid-cols-3 w-full bg-gradient-to-r from-indigo-50 to-purple-50 p-2 rounded-2xl shadow-lg border border-white/50 h-auto">
                 {[
                   {
                     value: 'basic',
@@ -913,12 +948,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
                     icon: User,
                     gradient: 'from-blue-500 to-cyan-500',
                   },
-                  {
-                    value: 'advanced',
-                    label: dict.tabs.advanced,
-                    icon: Sparkles,
-                    gradient: 'from-purple-500 to-pink-500',
-                  },
+                  // REMOVED ADVANCED ITEM
                   {
                     value: 'status',
                     label: dict.tabs.status,
@@ -1035,31 +1065,16 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
                           <p className="text-xs text-emerald-600 mb-1 font-medium">
                             {dict.genderFilterPanel.minLabel}
                           </p>
-                          <input
-                            type="number"
+                          <SafeNumberInput
                             min={AGE_RANGE.min}
                             max={AGE_RANGE.max}
-                            value={
-                              filters.ageRange?.min || AGE_RANGE.default.min
-                            }
-                            onChange={(e) => {
-                              const newMin = parseInt(e.target.value);
-                              if (
-                                !isNaN(newMin) &&
-                                newMin >= AGE_RANGE.min &&
-                                newMin <= AGE_RANGE.max
-                              ) {
-                                const currentMax =
-                                  filters.ageRange?.max ||
-                                  AGE_RANGE.default.max;
+                            value={filters.ageRange?.min || AGE_RANGE.default.min}
+                            onCommit={(val) => {
+                                const currentMax = filters.ageRange?.max || AGE_RANGE.default.max;
                                 onFiltersChange({
                                   ...filters,
-                                  ageRange: {
-                                    min: Math.min(newMin, currentMax),
-                                    max: currentMax,
-                                  },
+                                  ageRange: { min: Math.min(val, currentMax), max: currentMax },
                                 });
-                              }
                             }}
                             className="w-16 text-center text-lg font-bold text-emerald-700 focus:outline-none bg-transparent"
                           />
@@ -1071,31 +1086,16 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
                           <p className="text-xs text-emerald-600 mb-1 font-medium">
                             {dict.genderFilterPanel.maxLabel}
                           </p>
-                          <input
-                            type="number"
+                          <SafeNumberInput
                             min={AGE_RANGE.min}
                             max={AGE_RANGE.max}
-                            value={
-                              filters.ageRange?.max || AGE_RANGE.default.max
-                            }
-                            onChange={(e) => {
-                              const newMax = parseInt(e.target.value);
-                              if (
-                                !isNaN(newMax) &&
-                                newMax >= AGE_RANGE.min &&
-                                newMax <= AGE_RANGE.max
-                              ) {
-                                const currentMin =
-                                  filters.ageRange?.min ||
-                                  AGE_RANGE.default.min;
+                            value={filters.ageRange?.max || AGE_RANGE.default.max}
+                            onCommit={(val) => {
+                                const currentMin = filters.ageRange?.min || AGE_RANGE.default.min;
                                 onFiltersChange({
                                   ...filters,
-                                  ageRange: {
-                                    min: currentMin,
-                                    max: Math.max(currentMin, newMax),
-                                  },
+                                  ageRange: { min: currentMin, max: Math.max(val, currentMin) },
                                 });
-                              }
                             }}
                             className="w-16 text-center text-lg font-bold text-emerald-700 focus:outline-none bg-transparent"
                           />
@@ -1121,8 +1121,8 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
                       </div>
                     </div>
                   </FilterSection>
-                </TabsContent>
-                <TabsContent value="advanced" className="space-y-6 m-0">
+
+                  {/* MOVED HEIGHT SECTION FROM ADVANCED TO BASIC */}
                   <FilterSection
                     title={dict.sections.height}
                     icon={<Ruler className="w-5 h-5" />}
@@ -1141,32 +1141,16 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
                           <p className="text-xs text-indigo-600 mb-1 font-medium">
                             {dict.genderFilterPanel.minLabel}
                           </p>
-                          <input
-                            type="number"
+                          <SafeNumberInput
                             min={HEIGHT_RANGE.min}
                             max={HEIGHT_RANGE.max}
-                            value={
-                              filters.heightRange?.min ||
-                              HEIGHT_RANGE.default.min
-                            }
-                            onChange={(e) => {
-                              const newMin = parseInt(e.target.value);
-                              if (
-                                !isNaN(newMin) &&
-                                newMin >= HEIGHT_RANGE.min &&
-                                newMin <= HEIGHT_RANGE.max
-                              ) {
-                                const currentMax =
-                                  filters.heightRange?.max ||
-                                  HEIGHT_RANGE.default.max;
+                            value={filters.heightRange?.min || HEIGHT_RANGE.default.min}
+                            onCommit={(val) => {
+                                const currentMax = filters.heightRange?.max || HEIGHT_RANGE.default.max;
                                 onFiltersChange({
                                   ...filters,
-                                  heightRange: {
-                                    min: Math.min(newMin, currentMax),
-                                    max: currentMax,
-                                  },
+                                  heightRange: { min: Math.min(val, currentMax), max: currentMax },
                                 });
-                              }
                             }}
                             className="w-16 text-center text-lg font-bold text-indigo-700 focus:outline-none bg-transparent"
                           />
@@ -1178,32 +1162,16 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
                           <p className="text-xs text-indigo-600 mb-1 font-medium">
                             {dict.genderFilterPanel.maxLabel}
                           </p>
-                          <input
-                            type="number"
+                          <SafeNumberInput
                             min={HEIGHT_RANGE.min}
                             max={HEIGHT_RANGE.max}
-                            value={
-                              filters.heightRange?.max ||
-                              HEIGHT_RANGE.default.max
-                            }
-                            onChange={(e) => {
-                              const newMax = parseInt(e.target.value);
-                              if (
-                                !isNaN(newMax) &&
-                                newMax >= HEIGHT_RANGE.min &&
-                                newMax <= HEIGHT_RANGE.max
-                              ) {
-                                const currentMin =
-                                  filters.heightRange?.min ||
-                                  HEIGHT_RANGE.default.min;
+                            value={filters.heightRange?.max || HEIGHT_RANGE.default.max}
+                            onCommit={(val) => {
+                                const currentMin = filters.heightRange?.min || HEIGHT_RANGE.default.min;
                                 onFiltersChange({
                                   ...filters,
-                                  heightRange: {
-                                    min: currentMin,
-                                    max: Math.max(currentMin, newMax),
-                                  },
+                                  heightRange: { min: currentMin, max: Math.max(val, currentMin) },
                                 });
-                              }
                             }}
                             className="w-16 text-center text-lg font-bold text-indigo-700 focus:outline-none bg-transparent"
                           />
@@ -1232,6 +1200,9 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
                     </div>
                   </FilterSection>
                 </TabsContent>
+
+                {/* REMOVED ADVANCED TAB CONTENT */}
+
                 <TabsContent value="saved" className="space-y-6 m-0">
                   {savedFilters.length === 0 ? (
                     <motion.div

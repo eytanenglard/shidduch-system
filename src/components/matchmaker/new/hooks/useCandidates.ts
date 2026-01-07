@@ -241,8 +241,10 @@ export const useCandidates = (initialFilters: CandidatesFilter = {}): UseCandida
       }
 
       // בדיקת רמת דתיות
-      if (filters.religiousLevel && candidate.profile.religiousLevel !== filters.religiousLevel) {
-        return false;
+    if (filters.religiousLevel?.length && candidate.profile.religiousLevel) {
+        if (!filters.religiousLevel.includes(candidate.profile.religiousLevel)) {
+          return false;
+        }
       }
 
       // בדיקת ערים
@@ -334,8 +336,10 @@ export const useCandidates = (initialFilters: CandidatesFilter = {}): UseCandida
             }
 
             // בדיקת רמת דתיות
-            if (filters.maleFilters.religiousLevel && candidate.profile.religiousLevel !== filters.maleFilters.religiousLevel) {
-              return false;
+        if (filters.maleFilters.religiousLevel?.length && candidate.profile.religiousLevel) {
+              if (!filters.maleFilters.religiousLevel.includes(candidate.profile.religiousLevel)) {
+                return false;
+              }
             }
 
             // בדיקת ערים
@@ -426,8 +430,10 @@ export const useCandidates = (initialFilters: CandidatesFilter = {}): UseCandida
             }
 
             // בדיקת רמת דתיות
-            if (filters.femaleFilters.religiousLevel && candidate.profile.religiousLevel !== filters.femaleFilters.religiousLevel) {
-              return false;
+     if (filters.femaleFilters.religiousLevel?.length && candidate.profile.religiousLevel) {
+              if (!filters.femaleFilters.religiousLevel.includes(candidate.profile.religiousLevel)) {
+                return false;
+              }
             }
 
             // בדיקת ערים
@@ -540,8 +546,9 @@ export const useCandidates = (initialFilters: CandidatesFilter = {}): UseCandida
         filenameSegments.push(filters.gender === 'MALE' ? 'male' : 'female');
       }
       
-      if (filters.religiousLevel) {
-        filenameSegments.push(filters.religiousLevel.replace(/ /g, '-'));
+  if (filters.religiousLevel && filters.religiousLevel.length > 0) {
+        // מחבר את כל הרמות שנבחרו עם מקף, ומחליף רווחים במקפים
+        filenameSegments.push(filters.religiousLevel.join('-').replace(/ /g, '-'));
       }
       
       if (filters.cities?.length === 1) {

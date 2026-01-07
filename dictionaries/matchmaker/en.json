@@ -487,7 +487,10 @@
       "sections": {
         "gender": "Gender",
         "age": "Age",
-        "height": "Height (cm)"
+        "height": "Height (cm)",
+         "location": "Location",
+        "religious": "Religious Background",
+        "status": "Status & Verification"
       },
       "buttons": {
         "male": "Men",

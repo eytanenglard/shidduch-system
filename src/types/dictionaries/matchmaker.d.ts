@@ -166,6 +166,9 @@ type FilterPanelDict = {
     gender: string;
     age: string;
     height: string;
+     location: string;
+    religious: string;
+    status: string;
   };
   buttons: {
     male: string;
@@ -573,6 +576,7 @@ type SavedFiltersDict = {
       age: string;
       ageValue: string; // e.g., "{{min}}-{{max}}"
       height: string;
+      
       heightValue: string; // e.g., "{{min}}-{{max}}cm"
       city: string;
       cities: string; // e.g., "{{count}} cities"

@@ -753,26 +753,29 @@ const handleUpdateAllProfiles = async () => {
                       )}
                     </Button>
                   </SheetTrigger>
-                  <SheetContent>
-                    <FilterPanel
-                      filters={filters}
-                      onFiltersChange={setFilters}
-                      onSavePreset={handleFilterSave}
-                      onReset={resetFilters}
-                      savedFilters={savedFilters.map((f) => ({
-                        id: f.id,
-                        name: f.name,
-                        isDefault: f.isDefault,
-                      }))}
-                      popularFilters={popularFilters}
-                      separateFiltering={filters.separateFiltering}
-                      onToggleSeparateFiltering={toggleSeparateFiltering}
-                      onMaleFiltersChange={updateMaleFilters}
-                      onFemaleFiltersChange={updateFemaleFilters}
-                      onCopyFilters={copyFilters}
-                      dict={matchmakerDict.candidatesManager.filterPanel}
-                    />
-                  </SheetContent>
+              <SheetContent className="w-full h-full flex flex-col p-0 sm:max-w-md" side={direction === 'rtl' ? 'right' : 'left'}>
+  <div className="flex-1 overflow-y-auto p-4 pt-10">
+    <FilterPanel
+      filters={filters}
+      onFiltersChange={setFilters}
+      onSavePreset={handleFilterSave}
+      onReset={resetFilters}
+      savedFilters={savedFilters.map((f) => ({
+        id: f.id,
+        name: f.name,
+        isDefault: f.isDefault,
+      }))}
+      popularFilters={popularFilters}
+      separateFiltering={filters.separateFiltering}
+      onToggleSeparateFiltering={toggleSeparateFiltering}
+      onMaleFiltersChange={updateMaleFilters}
+      onFemaleFiltersChange={updateFemaleFilters}
+      onCopyFilters={copyFilters}
+      dict={matchmakerDict.candidatesManager.filterPanel}
+      className="pb-10" // מרווח תחתון כדי שיהיה נוח לגלול עד הסוף
+    />
+  </div>
+</SheetContent>
                 </Sheet>
 
                 <div className="flex gap-1 bg-white/90 p-1 rounded-lg shadow-sm border border-gray-200">

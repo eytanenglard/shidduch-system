@@ -40,7 +40,7 @@ export interface FilterState {
   heightRange?: RangeFilter;
   cities?: string[];
   occupations?: string[];
-  religiousLevel?: string;
+  religiousLevel?: string[]; // <--- שינוי ל-string[]
   educationLevel?: string;
   maritalStatus?: string;
   availabilityStatus?: AvailabilityStatus | string;
@@ -133,7 +133,7 @@ ageRange: undefined,     // היה: { min: 18, max: 130}
   heightRange: undefined,  // היה: { min: 80, max: 210 }
   cities: [],
   occupations: [],
-  religiousLevel: undefined,
+  religiousLevel: [],
   educationLevel: undefined,
   maritalStatus: undefined,
   availabilityStatus: undefined,

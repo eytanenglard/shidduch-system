@@ -415,7 +415,10 @@
       "sections": {
         "gender": "מגדר",
         "age": "גיל",
-        "height": "גובה (ס\"מ)"
+        "height": "גובה (ס\"מ)",
+          "location": "מיקום מגורים",
+        "religious": "רקע דתי",
+        "status": "סטטוס ואימות"
       },
       "buttons": {
         "male": "גברים",
