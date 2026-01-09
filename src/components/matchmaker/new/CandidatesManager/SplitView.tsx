@@ -19,9 +19,13 @@ import {
   Loader2,
   Star,
   X,
-  RefreshCw, // 🆕 אייקון לרענון
-  Database, // 🆕 אייקון למטמון
-  Clock, // 🆕 אייקון לתוצאות ישנות
+  RefreshCw,
+  Database,
+  Clock,
+  ChevronDown,
+  ChevronUp,
+  TrendingUp,
+  Users,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -44,21 +48,46 @@ import { motion, AnimatePresence } from 'framer-motion';
 // TYPES & INTERFACES
 // ============================================================================
 
-// 🆕 Interface מעודכן עם כל השדות החדשים
-interface AiMatch {
-  userId: string;
-  score: number;
-  reasoning?: string; // 🆕 נימוק להתאמה
-  firstName?: string; // 🆕 שם פרטי
-  lastName?: string; // 🆕 שם משפחה
+// 🆕 מבנה ציון מפורט - V3.0
+interface ScoreBreakdown {
+  religious: number; // מתוך 35
+  careerFamily: number; // מתוך 15
+  lifestyle: number; // מתוך 15
+  ambition: number; // מתוך 12
+  communication: number; // מתוך 12
+  values: number; // מתוך 11
 }
 
-// 🆕 Interface חדש למטא-דאטה של החיפוש
+// 🆕 Interface מעודכן עם כל השדות החדשים מ-V3.0
+interface AiMatch {
+  userId: string;
+  firstName?: string;
+  lastName?: string;
+
+  // ציונים - תאימות אחורה: score = finalScore
+  score?: number; // לתאימות אחורה
+  firstPassScore?: number; // 🆕 ציון מהסריקה הראשונית
+  finalScore?: number; // 🆕 ציון סופי (אחרי סריקה מעמיקה)
+
+  // פירוט ציונים
+  scoreBreakdown?: ScoreBreakdown; // 🆕
+
+  // נימוקים
+  reasoning?: string; // לתאימות אחורה
+  shortReasoning?: string; // 🆕 מהסריקה הראשונית (משפט אחד)
+  detailedReasoning?: string; // 🆕 מהסריקה המעמיקה (3-5 שורות)
+
+  // מטא-דאטה
+  rank?: number; // 🆕 דירוג סופי (1-15)
+}
+
+// 🆕 Interface חדש למטא-דאטה של החיפוש - מעודכן
 interface AiMatchMeta {
   fromCache: boolean;
   savedAt?: string;
   isStale?: boolean;
   algorithmVersion: string;
+  totalCandidatesScanned?: number; // 🆕 כמה מועמדים נסרקו
 }
 
 interface SplitViewProps {
@@ -99,7 +128,61 @@ interface SplitViewProps {
 }
 
 // ============================================================================
-// 🆕 CACHE INFO BADGE COMPONENT
+// 🆕 SCORE BREAKDOWN DISPLAY COMPONENT
+// ============================================================================
+
+/**
+ * קומפוננטה להצגת פירוט הציון
+ */
+const ScoreBreakdownDisplay: React.FC<{
+  breakdown: ScoreBreakdown;
+  className?: string;
+}> = ({ breakdown, className }) => {
+  const categories = [
+    { key: 'religious', label: 'התאמה דתית', max: 35, color: 'bg-purple-500' },
+    {
+      key: 'careerFamily',
+      label: 'קריירה-משפחה',
+      max: 15,
+      color: 'bg-blue-500',
+    },
+    { key: 'lifestyle', label: 'סגנון חיים', max: 15, color: 'bg-green-500' },
+    { key: 'ambition', label: 'שאפתנות', max: 12, color: 'bg-orange-500' },
+    { key: 'communication', label: 'תקשורת', max: 12, color: 'bg-cyan-500' },
+    { key: 'values', label: 'ערכים', max: 11, color: 'bg-pink-500' },
+  ];
+
+  return (
+    <div className={cn('space-y-1.5', className)}>
+      {categories.map((cat) => {
+        const value = breakdown[cat.key as keyof ScoreBreakdown] || 0;
+        const percentage = (value / cat.max) * 100;
+
+        return (
+          <div key={cat.key} className="flex items-center gap-2">
+            <span className="text-xs text-gray-600 w-20 truncate">
+              {cat.label}
+            </span>
+            <div className="flex-1 h-1.5 bg-gray-200 rounded-full overflow-hidden">
+              <motion.div
+                initial={{ width: 0 }}
+                animate={{ width: `${percentage}%` }}
+                transition={{ duration: 0.5, ease: 'easeOut' }}
+                className={cn('h-full rounded-full', cat.color)}
+              />
+            </div>
+            <span className="text-xs text-gray-500 w-10 text-right">
+              {value}/{cat.max}
+            </span>
+          </div>
+        );
+      })}
+    </div>
+  );
+};
+
+// ============================================================================
+// CACHE INFO BADGE COMPONENT
 // ============================================================================
 
 /**
@@ -152,6 +235,7 @@ const CacheInfoBadge: React.FC<{
     );
   }
 
+  // 🆕 הצגת כמות המועמדים שנסרקו
   return (
     <motion.div
       initial={{ scale: 0, opacity: 0 }}
@@ -160,6 +244,11 @@ const CacheInfoBadge: React.FC<{
     >
       <Sparkles className="w-3 h-3" />
       <span>חדש</span>
+      {meta.totalCandidatesScanned && (
+        <span className="text-blue-500">
+          ({meta.totalCandidatesScanned} נסרקו)
+        </span>
+      )}
     </motion.div>
   );
 };
@@ -170,7 +259,6 @@ const CacheInfoBadge: React.FC<{
 
 /**
  * קומפוננטת כותרת פאנל משופרת עם אנימציות ומצבי UI שונים
- * 🆕 מעודכן עם כפתור רענון ו-CacheInfoBadge
  */
 const PanelHeaderComponent: React.FC<{
   gender: 'male' | 'female';
@@ -179,12 +267,12 @@ const PanelHeaderComponent: React.FC<{
   isSearchPanel: boolean;
   isTargetPanel: boolean;
   onClearAiTarget: (e: React.MouseEvent) => void;
-  onFindAiMatches: (e: React.MouseEvent, forceRefresh?: boolean) => void; // 🆕 הוספת forceRefresh
+  onFindAiMatches: (e: React.MouseEvent, forceRefresh?: boolean) => void;
   isAiLoading: boolean;
   isMobileView?: boolean;
   dict: MatchmakerPageDictionary['candidatesManager']['splitView']['panelHeaders'];
-  aiMatchMeta: AiMatchMeta | null; // 🆕 מטא-דאטה
-  aiMatchesCount: number; // 🆕 מספר תוצאות
+  aiMatchMeta: AiMatchMeta | null;
+  aiMatchesCount: number;
 }> = ({
   gender,
   count,
@@ -262,7 +350,7 @@ const PanelHeaderComponent: React.FC<{
 
       {/* תצוגת סטטוס AI */}
       <div className="flex items-center gap-2">
-        {/* 🆕 Badge מידע על המטמון */}
+        {/* Badge מידע על המטמון */}
         {isSearchPanel && aiMatchesCount > 0 && (
           <CacheInfoBadge meta={aiMatchMeta} matchesCount={aiMatchesCount} />
         )}
@@ -302,7 +390,7 @@ const PanelHeaderComponent: React.FC<{
             >
               <Button
                 size="sm"
-                onClick={(e) => onFindAiMatches(e, false)} // 🆕 forceRefresh=false
+                onClick={(e) => onFindAiMatches(e, false)}
                 disabled={isAiLoading}
                 className={cn(
                   'relative overflow-hidden shadow-lg font-bold transition-all duration-300',
@@ -324,7 +412,7 @@ const PanelHeaderComponent: React.FC<{
               </Button>
             </motion.div>
 
-            {/* 🆕 כפתור רענון - מופיע רק אם יש תוצאות מהמטמון */}
+            {/* כפתור רענון - מופיע רק אם יש תוצאות מהמטמון */}
             {aiMatchMeta?.fromCache && aiMatchesCount > 0 && (
               <motion.div
                 initial={{ scale: 0, opacity: 0 }}
@@ -333,7 +421,7 @@ const PanelHeaderComponent: React.FC<{
                 <Button
                   size="sm"
                   variant="outline"
-                  onClick={(e) => onFindAiMatches(e, true)} // 🆕 forceRefresh=true
+                  onClick={(e) => onFindAiMatches(e, true)}
                   disabled={isAiLoading}
                   title={
                     aiMatchMeta.isStale
@@ -465,6 +553,109 @@ const EmptyStateComponent: React.FC<{
 };
 
 // ============================================================================
+// 🆕 AI LOADING PROGRESS COMPONENT
+// ============================================================================
+
+/**
+ * קומפוננטה להצגת התקדמות סריקת AI
+ */
+const AiLoadingProgress: React.FC<{
+  isLoading: boolean;
+  gender: 'male' | 'female';
+}> = ({ isLoading, gender }) => {
+  const [progress, setProgress] = useState(0);
+  const [stage, setStage] = useState<
+    'fetching' | 'analyzing' | 'deep' | 'saving'
+  >('fetching');
+
+  useEffect(() => {
+    if (!isLoading) {
+      setProgress(0);
+      setStage('fetching');
+      return;
+    }
+
+    const stages = [
+      { name: 'fetching' as const, duration: 2000, progressEnd: 10 },
+      { name: 'analyzing' as const, duration: 60000, progressEnd: 70 },
+      { name: 'deep' as const, duration: 25000, progressEnd: 95 },
+      { name: 'saving' as const, duration: 3000, progressEnd: 100 },
+    ];
+
+    let currentStageIndex = 0;
+    let stageStartTime = Date.now();
+
+    const interval = setInterval(() => {
+      const currentStage = stages[currentStageIndex];
+      const elapsed = Date.now() - stageStartTime;
+      const stageProgress = Math.min(elapsed / currentStage.duration, 1);
+
+      const prevProgress =
+        currentStageIndex > 0 ? stages[currentStageIndex - 1].progressEnd : 0;
+      const newProgress =
+        prevProgress +
+        stageProgress * (currentStage.progressEnd - prevProgress);
+
+      setProgress(Math.min(newProgress, 99));
+      setStage(currentStage.name);
+
+      if (stageProgress >= 1 && currentStageIndex < stages.length - 1) {
+        currentStageIndex++;
+        stageStartTime = Date.now();
+      }
+    }, 100);
+
+    return () => clearInterval(interval);
+  }, [isLoading]);
+
+  if (!isLoading) return null;
+
+  const stageLabels = {
+    fetching: 'שולף מועמדים רלוונטיים...',
+    analyzing: 'מנתח התאמות (סריקה ראשונית)...',
+    deep: 'ניתוח מעמיק של המובילים...',
+    saving: 'שומר תוצאות...',
+  };
+
+  const config =
+    gender === 'male'
+      ? { gradient: 'from-blue-500 to-cyan-500', bg: 'bg-blue-100' }
+      : { gradient: 'from-purple-500 to-pink-500', bg: 'bg-purple-100' };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: -20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -20 }}
+      className="mx-4 mb-4"
+    >
+      <div className={cn('rounded-xl p-4 shadow-lg', config.bg)}>
+        <div className="flex items-center gap-3 mb-3">
+          <Loader2 className="w-5 h-5 animate-spin text-gray-700" />
+          <span className="text-sm font-medium text-gray-700">
+            {stageLabels[stage]}
+          </span>
+          <span className="text-xs text-gray-500 mr-auto">
+            {Math.round(progress)}%
+          </span>
+        </div>
+        <div className="h-2 bg-white/50 rounded-full overflow-hidden">
+          <motion.div
+            className={cn(
+              'h-full rounded-full bg-gradient-to-r',
+              config.gradient
+            )}
+            initial={{ width: 0 }}
+            animate={{ width: `${progress}%` }}
+            transition={{ duration: 0.3 }}
+          />
+        </div>
+      </div>
+    </motion.div>
+  );
+};
+
+// ============================================================================
 // MAIN COMPONENT
 // ============================================================================
 
@@ -505,7 +696,7 @@ const SplitView: React.FC<SplitViewProps> = ({
 
   const [isMobile, setIsMobile] = useState(false);
 
-  // 🆕 State חדש למטא-דאטה של החיפוש
+  // State למטא-דאטה של החיפוש
   const [aiMatchMeta, setAiMatchMeta] = useState<AiMatchMeta | null>(null);
 
   // זיהוי רספונסיבי
@@ -517,7 +708,7 @@ const SplitView: React.FC<SplitViewProps> = ({
   }, []);
 
   /**
-   * 🆕 לוגיקת חיפוש AI V2.1 - עם תמיכה במטמון ורענון
+   * 🆕 לוגיקת חיפוש AI V3.0 - עם סריקה מלאה וניתוח מעמיק
    * @param forceRefresh - האם לאלץ חיפוש חדש (ברירת מחדל: false = משתמש במטמון)
    */
   const handleFindAiMatches = async (
@@ -539,14 +730,13 @@ const SplitView: React.FC<SplitViewProps> = ({
     setAiMatchMeta(null);
 
     try {
-      // 🆕 קריאה ל-API החדש V2.1
+      // קריאה ל-API V3.0
       const response = await fetch('/api/ai/find-matches-v2', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           targetUserId: aiTargetCandidate.id,
-          maxCandidates: 15,
-          forceRefresh, // 🆕 שליחת פרמטר הרענון
+          forceRefresh,
         }),
       });
 
@@ -556,16 +746,17 @@ const SplitView: React.FC<SplitViewProps> = ({
         throw new Error(data.error || 'Failed to fetch AI matches');
       }
 
-      // 🆕 שמירת התוצאות והמטא-דאטה
+      // שמירת התוצאות והמטא-דאטה
       setAiMatches(data.matches);
       setAiMatchMeta({
         fromCache: data.fromCache,
         savedAt: data.meta.savedAt,
         isStale: data.meta.isStale,
         algorithmVersion: data.meta.algorithmVersion,
+        totalCandidatesScanned: data.meta.totalCandidatesScanned,
       });
 
-      // 🆕 הודעה מותאמת לפי מקור התוצאות
+      // הודעה מותאמת לפי מקור התוצאות
       if (data.fromCache) {
         const savedDate = data.meta.savedAt
           ? new Date(data.meta.savedAt).toLocaleDateString('he-IL')
@@ -580,10 +771,14 @@ const SplitView: React.FC<SplitViewProps> = ({
         });
       } else {
         const topMatch = data.matches[0];
-        toast.success(`נמצאו ${data.matches.length} התאמות חדשות! 🎯`, {
+        const scannedText = data.meta.totalCandidatesScanned
+          ? ` (מתוך ${data.meta.totalCandidatesScanned} שנסרקו)`
+          : '';
+
+        toast.success(`נמצאו ${data.matches.length} התאמות!${scannedText} 🎯`, {
           position: 'top-center',
           description: topMatch
-            ? `ההתאמה הטובה ביותר: ${topMatch.firstName} (${topMatch.score}%)`
+            ? `ההתאמה הטובה ביותר: ${topMatch.firstName} ${topMatch.lastName} (${topMatch.finalScore || topMatch.score}%)`
             : 'התוצאות נשמרו למטמון',
           duration: 5000,
         });
@@ -591,14 +786,23 @@ const SplitView: React.FC<SplitViewProps> = ({
 
       // לוג לפיתוח
       if (process.env.NODE_ENV === 'development') {
-        console.log('[AI Matches V2.1] Results:', {
+        console.log('[AI Matches V3.0] Results:', {
           fromCache: data.fromCache,
           count: data.matches.length,
+          totalScanned: data.meta.totalCandidatesScanned,
           meta: data.meta,
           topMatches: data.matches.slice(0, 3).map((m: AiMatch) => ({
             name: `${m.firstName} ${m.lastName}`,
-            score: m.score,
-            reasoning: m.reasoning?.substring(0, 80) + '...',
+            rank: m.rank,
+            firstPassScore: m.firstPassScore,
+            finalScore: m.finalScore ?? m.score,
+            reasoning:
+              (
+                m.detailedReasoning ??
+                m.reasoning ??
+                m.shortReasoning ??
+                ''
+              ).substring(0, 80) + '...',
           })),
         });
       }
@@ -614,32 +818,68 @@ const SplitView: React.FC<SplitViewProps> = ({
   };
 
   /**
-   * ציון מועמדים עם ניקוד AI
+   * 🆕 ציון מועמדים עם ניקוד AI - מעודכן לתמיכה ב-V3.0
    */
   const maleCandidatesWithScores = useMemo(() => {
     if (aiMatches.length === 0) return maleCandidates;
-    const scoreMap = new Map(aiMatches.map((m) => [m.userId, m.score]));
-    const reasoningMap = new Map(aiMatches.map((m) => [m.userId, m.reasoning]));
+
+    const matchMap = new Map(aiMatches.map((m) => [m.userId, m]));
+
     return maleCandidates
-      .map((c) => ({
-        ...c,
-        aiScore: scoreMap.get(c.id),
-        aiReasoning: reasoningMap.get(c.id), // 🆕 הוספת הנימוק
-      }))
-      .sort((a, b) => (b.aiScore ?? -1) - (a.aiScore ?? -1));
+      .map((c) => {
+        const match = matchMap.get(c.id);
+        return {
+          ...c,
+          // תאימות אחורה: aiScore = finalScore או score
+          aiScore: match?.finalScore ?? match?.score,
+          // תאימות אחורה: aiReasoning = detailedReasoning או reasoning או shortReasoning
+          aiReasoning:
+            match?.detailedReasoning ??
+            match?.reasoning ??
+            match?.shortReasoning,
+          // 🆕 שדות חדשים
+          aiMatch: match,
+          aiRank: match?.rank,
+          aiFirstPassScore: match?.firstPassScore,
+          aiScoreBreakdown: match?.scoreBreakdown,
+        };
+      })
+      .sort((a, b) => {
+        // מיון לפי rank אם קיים, אחרת לפי score
+        if (a.aiRank && b.aiRank) {
+          return a.aiRank - b.aiRank;
+        }
+        return (b.aiScore ?? -1) - (a.aiScore ?? -1);
+      });
   }, [maleCandidates, aiMatches]);
 
   const femaleCandidatesWithScores = useMemo(() => {
     if (aiMatches.length === 0) return femaleCandidates;
-    const scoreMap = new Map(aiMatches.map((m) => [m.userId, m.score]));
-    const reasoningMap = new Map(aiMatches.map((m) => [m.userId, m.reasoning]));
+
+    const matchMap = new Map(aiMatches.map((m) => [m.userId, m]));
+
     return femaleCandidates
-      .map((c) => ({
-        ...c,
-        aiScore: scoreMap.get(c.id),
-        aiReasoning: reasoningMap.get(c.id), // 🆕 הוספת הנימוק
-      }))
-      .sort((a, b) => (b.aiScore ?? -1) - (a.aiScore ?? -1));
+      .map((c) => {
+        const match = matchMap.get(c.id);
+        return {
+          ...c,
+          aiScore: match?.finalScore ?? match?.score,
+          aiReasoning:
+            match?.detailedReasoning ??
+            match?.reasoning ??
+            match?.shortReasoning,
+          aiMatch: match,
+          aiRank: match?.rank,
+          aiFirstPassScore: match?.firstPassScore,
+          aiScoreBreakdown: match?.scoreBreakdown,
+        };
+      })
+      .sort((a, b) => {
+        if (a.aiRank && b.aiRank) {
+          return a.aiRank - b.aiRank;
+        }
+        return (b.aiScore ?? -1) - (a.aiScore ?? -1);
+      });
   }, [femaleCandidates, aiMatches]);
 
   const renderPanelHeader = (
@@ -666,14 +906,20 @@ const SplitView: React.FC<SplitViewProps> = ({
         isAiLoading={isAiLoading}
         isMobileView={isMobileView}
         dict={dict.candidatesManager.splitView.panelHeaders}
-        aiMatchMeta={aiMatchMeta} // 🆕
-        aiMatchesCount={aiMatches.length} // 🆕
+        aiMatchMeta={aiMatchMeta}
+        aiMatchesCount={aiMatches.length}
       />
     );
   };
 
   const renderCandidatesListForMobile = (
-    candidates: (Candidate & { aiScore?: number; aiReasoning?: string })[],
+    candidates: (Candidate & {
+      aiScore?: number;
+      aiReasoning?: string;
+      aiRank?: number;
+      aiFirstPassScore?: number;
+      aiScoreBreakdown?: ScoreBreakdown;
+    })[],
     gender: 'male' | 'female',
     searchQuery: string,
     onSearchChange?: (query: string) => void
@@ -707,6 +953,7 @@ const SplitView: React.FC<SplitViewProps> = ({
         onSetAiTarget={onSetAiTarget}
         comparisonSelection={comparisonSelection}
         onToggleComparison={onToggleComparison}
+        quickViewSide={gender === 'male' ? 'right' : 'left'}
         isQuickViewEnabled={isQuickViewEnabled}
         dict={dict}
         profileDict={profileDict}
@@ -720,134 +967,28 @@ const SplitView: React.FC<SplitViewProps> = ({
   // ============================================================================
 
   if (isMobile) {
-    // Split view for mobile
-    if (mobileView === 'split') {
-      return (
-        <div className="grid grid-cols-2 gap-3 h-full p-3">
-          <Card className="flex flex-col h-full shadow-xl border-0 bg-gradient-to-b from-white to-blue-50/30 overflow-hidden rounded-2xl">
-            <div className="p-3 text-center bg-gradient-to-r from-blue-500 to-cyan-500 text-white">
-              <h2 className="text-sm font-bold flex items-center justify-center gap-1">
-                <Target className="w-4 h-4" />
-                {dict.candidatesManager.splitView.mobile.splitLabels.male}
-                <Badge
-                  variant="secondary"
-                  className="bg-white/20 text-white border-0 ml-1"
-                >
-                  {maleCandidates.length}
-                </Badge>
-              </h2>
-            </div>
-            <div className="flex-grow min-h-0 overflow-y-auto p-2">
-              {renderCandidatesListForMobile(
-                maleCandidatesWithScores,
-                'male',
-                maleSearchQuery,
-                onMaleSearchChange
-              )}
-            </div>
-          </Card>
-
-          <Card className="flex flex-col h-full shadow-xl border-0 bg-gradient-to-b from-white to-purple-50/30 overflow-hidden rounded-2xl">
-            <div className="p-3 text-center bg-gradient-to-r from-purple-500 to-pink-500 text-white">
-              <h2 className="text-sm font-bold flex items-center justify-center gap-1">
-                <Crown className="w-4 h-4" />
-                {dict.candidatesManager.splitView.mobile.splitLabels.female}
-                <Badge
-                  variant="secondary"
-                  className="bg-white/20 text-white border-0 ml-1"
-                >
-                  {femaleCandidates.length}
-                </Badge>
-              </h2>
-            </div>
-            <div className="flex-grow min-h-0 overflow-y-auto p-2">
-              {renderCandidatesListForMobile(
-                femaleCandidatesWithScores,
-                'female',
-                femaleSearchQuery,
-                onFemaleSearchChange
-              )}
-            </div>
-          </Card>
-        </div>
-      );
-    }
-
-    // Tabs view for mobile
     return (
-      <div className={cn('w-full h-full', className)}>
-        <Tabs defaultValue="male" className="w-full h-full flex flex-col">
-          {/* באנר סטטוס AI גלובלי למובייל */}
-          <AnimatePresence>
-            {aiTargetCandidate && (
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                exit={{ opacity: 0, height: 0 }}
-                className="flex-shrink-0 bg-gradient-to-r from-green-50 to-emerald-50 border-b border-green-200 p-3 shadow-sm"
-              >
-                <div className="flex items-center gap-2">
-                  <div className="p-2 rounded-full bg-green-500 shadow-lg">
-                    <Star className="w-4 h-4 text-white fill-current" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-sm font-bold text-green-900">
-                      מטרה נבחרה: {aiTargetCandidate.firstName}{' '}
-                      {aiTargetCandidate.lastName}
-                    </p>
-                    <p className="text-xs text-green-600">
-                      {aiTargetCandidate.profile.gender === 'MALE'
-                        ? '👨 גברים'
-                        : '👩 נשים'}{' '}
-                      • {aiTargetCandidate.profile.city || 'לא צוין'}
-                    </p>
-                  </div>
-                  {/* 🆕 Badge מידע על המטמון במובייל */}
-                  {aiMatches.length > 0 && (
-                    <CacheInfoBadge
-                      meta={aiMatchMeta}
-                      matchesCount={aiMatches.length}
-                    />
-                  )}
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={onClearAiTarget}
-                    className="h-8 w-8 rounded-full hover:bg-white/50"
-                  >
-                    <X className="w-4 h-4 text-green-600" />
-                  </Button>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          <TabsList className="grid w-full grid-cols-2 flex-shrink-0 bg-gradient-to-r from-indigo-50 to-purple-50 p-1 rounded-2xl shadow-lg">
+      <div className={cn('flex flex-col h-full', className)}>
+        <Tabs
+          defaultValue="male"
+          className="flex flex-col h-full overflow-hidden"
+        >
+          <TabsList className="grid grid-cols-2 mx-4 mb-2 bg-gradient-to-r from-blue-100 to-purple-100 p-1 rounded-xl shadow-lg">
             <TabsTrigger
               value="male"
-              className="flex items-center gap-2 rounded-xl data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-cyan-500 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300"
+              className="rounded-lg font-bold data-[state=active]:bg-white data-[state=active]:shadow-md data-[state=active]:text-blue-700 transition-all"
             >
-              <Target className="h-4 w-4" />
-              {dict.candidatesManager.splitView.mobile.tabs.male}
-              <Badge
-                variant="secondary"
-                className="bg-blue-100 text-blue-800 border-0"
-              >
-                {maleCandidates.length}
-              </Badge>
+              <Target className="w-4 h-4 ml-1" />
+              {dict.candidatesManager.splitView.panelHeaders.male.title} (
+              {maleCandidates.length})
             </TabsTrigger>
             <TabsTrigger
               value="female"
-              className="flex items-center gap-2 rounded-xl data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-pink-500 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300"
+              className="rounded-lg font-bold data-[state=active]:bg-white data-[state=active]:shadow-md data-[state=active]:text-purple-700 transition-all"
             >
-              <Crown className="h-4 w-4" />
-              {dict.candidatesManager.splitView.mobile.tabs.female}
-              <Badge
-                variant="secondary"
-                className="bg-purple-100 text-purple-800 border-0"
-              >
-                {femaleCandidates.length}
-              </Badge>
+              <Crown className="w-4 h-4 ml-1" />
+              {dict.candidatesManager.splitView.panelHeaders.female.title} (
+              {femaleCandidates.length})
             </TabsTrigger>
           </TabsList>
 
@@ -865,14 +1006,14 @@ const SplitView: React.FC<SplitViewProps> = ({
                     <Button
                       onClick={(e) => handleFindAiMatches(e, false)}
                       disabled={isAiLoading}
-                      className="flex-1 h-12 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 disabled:from-gray-400 disabled:to-gray-500 text-white shadow-lg font-bold rounded-xl transition-all duration-300 hover:scale-105 active:scale-95 disabled:scale-100 relative overflow-hidden group"
+                      className="flex-1 h-12 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 disabled:from-gray-400 disabled:to-gray-500 text-white shadow-lg font-bold rounded-xl transition-all duration-300 hover:scale-105 active:scale-95 disabled:scale-100 relative overflow-hidden group"
                     >
                       <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 transform -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
                       {isAiLoading ? (
                         <>
                           <Loader2 className="w-5 h-5 animate-spin ml-2 relative z-10" />
                           <span className="relative z-10">
-                            מחפש התאמות AI...
+                            סורק את כל המועמדים...
                           </span>
                         </>
                       ) : (
@@ -885,7 +1026,7 @@ const SplitView: React.FC<SplitViewProps> = ({
                         </>
                       )}
                     </Button>
-                    {/* 🆕 כפתור רענון במובייל */}
+                    {/* כפתור רענון במובייל */}
                     {aiMatchMeta?.fromCache && aiMatches.length > 0 && (
                       <Button
                         onClick={(e) => handleFindAiMatches(e, true)}
@@ -908,6 +1049,14 @@ const SplitView: React.FC<SplitViewProps> = ({
                     )}
                   </motion.div>
                 )}
+
+              {/* AI Loading Progress */}
+              <AnimatePresence>
+                {isAiLoading &&
+                  aiTargetCandidate?.profile.gender === 'FEMALE' && (
+                    <AiLoadingProgress isLoading={isAiLoading} gender="male" />
+                  )}
+              </AnimatePresence>
 
               {/* Search Bar */}
               {separateFiltering && onMaleSearchChange && (
@@ -958,7 +1107,7 @@ const SplitView: React.FC<SplitViewProps> = ({
                         <>
                           <Loader2 className="w-5 h-5 animate-spin ml-2 relative z-10" />
                           <span className="relative z-10">
-                            מחפש התאמות AI...
+                            סורק את כל המועמדות...
                           </span>
                         </>
                       ) : (
@@ -971,7 +1120,7 @@ const SplitView: React.FC<SplitViewProps> = ({
                         </>
                       )}
                     </Button>
-                    {/* 🆕 כפתור רענון במובייל */}
+                    {/* כפתור רענון במובייל */}
                     {aiMatchMeta?.fromCache && aiMatches.length > 0 && (
                       <Button
                         onClick={(e) => handleFindAiMatches(e, true)}
@@ -994,6 +1143,17 @@ const SplitView: React.FC<SplitViewProps> = ({
                     )}
                   </motion.div>
                 )}
+
+              {/* AI Loading Progress */}
+              <AnimatePresence>
+                {isAiLoading &&
+                  aiTargetCandidate?.profile.gender === 'MALE' && (
+                    <AiLoadingProgress
+                      isLoading={isAiLoading}
+                      gender="female"
+                    />
+                  )}
+              </AnimatePresence>
 
               {/* Search Bar */}
               {separateFiltering && onFemaleSearchChange && (
@@ -1041,6 +1201,14 @@ const SplitView: React.FC<SplitViewProps> = ({
         <ResizablePanel defaultSize={50} minSize={30}>
           <div className="flex flex-col h-full bg-gradient-to-b from-white to-blue-50/20">
             {renderPanelHeader('male')}
+
+            {/* AI Loading Progress */}
+            <AnimatePresence>
+              {isAiLoading &&
+                aiTargetCandidate?.profile.gender === 'FEMALE' && (
+                  <AiLoadingProgress isLoading={isAiLoading} gender="male" />
+                )}
+            </AnimatePresence>
 
             {/* Search Bar */}
             {separateFiltering && onMaleSearchChange && (
@@ -1093,6 +1261,13 @@ const SplitView: React.FC<SplitViewProps> = ({
         <ResizablePanel defaultSize={50} minSize={30}>
           <div className="flex flex-col h-full bg-gradient-to-b from-white to-purple-50/20">
             {renderPanelHeader('female')}
+
+            {/* AI Loading Progress */}
+            <AnimatePresence>
+              {isAiLoading && aiTargetCandidate?.profile.gender === 'MALE' && (
+                <AiLoadingProgress isLoading={isAiLoading} gender="female" />
+              )}
+            </AnimatePresence>
 
             {/* Search Bar */}
             {separateFiltering && onFemaleSearchChange && (

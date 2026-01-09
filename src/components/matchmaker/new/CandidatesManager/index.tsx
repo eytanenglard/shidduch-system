@@ -87,12 +87,37 @@ import type { MatchmakerPageDictionary } from '@/types/dictionaries/matchmaker';
 import type { ProfilePageDictionary } from '@/types/dictionary';
 
 // --- Local Types ---
+// 🆕 מבנה ציון מפורט - V3.0
+interface ScoreBreakdown {
+  religious: number;
+  careerFamily: number;
+  lifestyle: number;
+  ambition: number;
+  communication: number;
+  values: number;
+}
+
+// 🆕 Interface מעודכן לתמיכה ב-V3.0
 interface AiMatch {
   userId: string;
-  score: number;
-  reasoning?: string; // <--- הוספנו כאן את סימן השאלה (?)
   firstName?: string;
   lastName?: string;
+  
+  // ציונים - תאימות אחורה
+  score?: number;
+  firstPassScore?: number;
+  finalScore?: number;
+  
+  // פירוט ציונים
+  scoreBreakdown?: ScoreBreakdown;
+  
+  // נימוקים
+  reasoning?: string;
+  shortReasoning?: string;
+  detailedReasoning?: string;
+  
+  // מטא-דאטה
+  rank?: number;
 }
 
 // ============================================================================

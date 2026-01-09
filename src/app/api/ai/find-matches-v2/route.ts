@@ -1,6 +1,6 @@
 // src/app/api/ai/find-matches-v2/route.ts
-// 🎯 API Route לאלגוריתם מציאת התאמות V2.1 - NeshamaTech
-// תומך בשמירה וטעינה של תוצאות
+// 🎯 API Route לאלגוריתם מציאת התאמות V3.0 - NeshamaTech
+// תומך בסריקה מלאה + ניתוח מעמיק + שמירת תוצאות
 
 import { NextRequest, NextResponse } from "next/server";
 import { applyRateLimitWithRoleCheck } from '@/lib/rate-limiter';
@@ -16,7 +16,7 @@ import {
 } from "@/lib/services/matchingAlgorithmService";
 
 // הגדרות תצורה ל-Next.js
-export const maxDuration = 120;
+export const maxDuration = 300; // 5 דקות - צריך יותר זמן לסריקה מלאה
 export const dynamic = 'force-dynamic';
 
 // ============================================================================
@@ -25,25 +25,23 @@ export const dynamic = 'force-dynamic';
 
 interface PostRequestBody {
   targetUserId: string;
-  maxCandidates?: number;
-  forceRefresh?: boolean;  // 🆕 האם לאלץ חיפוש חדש
+  maxCandidates?: number;  // לא בשימוש ב-V3 אבל נשאר לתאימות אחורה
+  forceRefresh?: boolean;
 }
 
-interface GetRequestParams {
-  targetUserId: string;
-}
-
+// 🆕 Response מעודכן עם כל השדות החדשים
 interface SuccessResponse {
   success: true;
   matches: MatchResult[];
-  fromCache: boolean;      // 🆕 האם התוצאות מהמטמון
+  fromCache: boolean;
   meta: {
     targetUserId: string;
     totalMatches: number;
+    totalCandidatesScanned?: number;  // 🆕 כמה מועמדים נסרקו בסה"כ
     analyzedAt: string;
     algorithmVersion: string;
-    savedAt?: string;      // 🆕 מתי נשמרו התוצאות
-    isStale?: boolean;     // 🆕 האם התוצאות ישנות
+    savedAt?: string;
+    isStale?: boolean;
   };
 }
 
@@ -61,18 +59,16 @@ interface ErrorResponse {
  * POST /api/ai/find-matches-v2
  * 
  * מציאת התאמות עבור יוזר מסומן.
- * ברירת מחדל: משתמש בתוצאות שמורות אם קיימות.
- * עם forceRefresh=true: מבצע חיפוש חדש ושומר.
+ * V3.0: סורק את כל המועמדים הרלוונטיים, מבצע ניתוח מעמיק ל-Top 15.
  * 
  * Body:
  * - targetUserId: string (required)
- * - maxCandidates: number (optional, default: 15)
  * - forceRefresh: boolean (optional, default: false)
  */
 export async function POST(req: NextRequest): Promise<NextResponse<SuccessResponse | ErrorResponse>> {
-  // Rate Limiting - יותר מקל אם זה מהמטמון
+  // Rate Limiting - מספיק מרווח בגלל הזמן הארוך
   const rateLimitResponse = await applyRateLimitWithRoleCheck(req, { 
-    requests: 30, 
+    requests: 20, 
     window: '1 h' 
   });
   if (rateLimitResponse) {
@@ -100,7 +96,6 @@ export async function POST(req: NextRequest): Promise<NextResponse<SuccessRespon
     const body: PostRequestBody = await req.json();
     const { 
       targetUserId, 
-      maxCandidates = 15,
       forceRefresh = false 
     } = body;
 
@@ -111,22 +106,23 @@ export async function POST(req: NextRequest): Promise<NextResponse<SuccessRespon
       }, { status: 400 });
     }
 
-    const validatedMaxCandidates = Math.min(Math.max(5, maxCandidates), 30);
     const matchmakerId = session.user.id;
 
-    console.log(`[API find-matches-v2] POST from ${session.user.email}`);
-    console.log(`[API find-matches-v2] Target: ${targetUserId}, forceRefresh: ${forceRefresh}`);
+    console.log(`[API find-matches V3] POST from ${session.user.email}`);
+    console.log(`[API find-matches V3] Target: ${targetUserId}, forceRefresh: ${forceRefresh}`);
 
-    // Run the Algorithm
+    // Run the Algorithm V3.0
     const startTime = Date.now();
     const result = await findMatchesForUser(targetUserId, matchmakerId, {
-      maxCandidatesToAnalyze: validatedMaxCandidates,
       forceRefresh,
       autoSave: true,
     });
     const duration = Date.now() - startTime;
 
-    console.log(`[API find-matches-v2] Completed in ${duration}ms, ${result.fromCache ? 'FROM CACHE' : 'NEW SEARCH'}`);
+    console.log(`[API find-matches V3] Completed in ${duration}ms, ${result.fromCache ? 'FROM CACHE' : 'NEW SEARCH'}`);
+    if (result.meta.totalCandidatesScanned) {
+      console.log(`[API find-matches V3] Total candidates scanned: ${result.meta.totalCandidatesScanned}`);
+    }
 
     // Response
     return NextResponse.json({
@@ -136,6 +132,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<SuccessRespon
       meta: {
         targetUserId,
         totalMatches: result.matches.length,
+        totalCandidatesScanned: result.meta.totalCandidatesScanned,
         analyzedAt: new Date().toISOString(),
         algorithmVersion: result.meta.algorithmVersion,
         savedAt: result.meta.savedAt?.toISOString(),
@@ -144,7 +141,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<SuccessRespon
     });
 
   } catch (error) {
-    console.error('[API find-matches-v2] Error:', error);
+    console.error('[API find-matches V3] Error:', error);
     const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred";
     
     if (errorMessage.includes('GOOGLE_API_KEY')) {
@@ -178,7 +175,6 @@ export async function POST(req: NextRequest): Promise<NextResponse<SuccessRespon
  * GET /api/ai/find-matches-v2?targetUserId=xyz
  * 
  * טוען תוצאות שמורות בלבד, בלי לבצע חיפוש חדש.
- * שימושי לטעינה מהירה של התוצאות האחרונות.
  */
 export async function GET(req: NextRequest): Promise<NextResponse<SuccessResponse | ErrorResponse | object>> {
   try {
@@ -205,9 +201,16 @@ export async function GET(req: NextRequest): Promise<NextResponse<SuccessRespons
     // אם אין targetUserId - החזר מידע על ה-API
     if (!targetUserId) {
       return NextResponse.json({
-        name: "NeshamaTech Matching Algorithm V2.1",
-        version: "2.1-cached",
-        description: "Smart matching algorithm with caching support",
+        name: "NeshamaTech Matching Algorithm V3.0",
+        version: "3.0-full-scan",
+        description: "Smart matching algorithm with full candidate scanning and deep analysis",
+        features: [
+          "Full scan of all relevant candidates",
+          "Batched first-pass analysis",
+          "Deep analysis of top 15 candidates",
+          "6-category scoring system",
+          "Detailed reasoning for each match"
+        ],
         endpoints: {
           GET: {
             description: "Load saved matches without new search",
@@ -217,7 +220,6 @@ export async function GET(req: NextRequest): Promise<NextResponse<SuccessRespons
             description: "Find matches (uses cache by default)",
             body: {
               targetUserId: "string (required)",
-              maxCandidates: "number (optional, default: 15)",
               forceRefresh: "boolean (optional, default: false)"
             }
           },
@@ -225,11 +227,19 @@ export async function GET(req: NextRequest): Promise<NextResponse<SuccessRespons
             description: "Clear saved matches",
             params: { targetUserId: "string (required)" }
           }
+        },
+        scoringSystem: {
+          religious: "35 points - Religious and spiritual compatibility",
+          careerFamily: "15 points - Career/family balance alignment",
+          lifestyle: "15 points - Lifestyle preferences (nature, depth, leisure)",
+          ambition: "12 points - Ambition level compatibility",
+          communication: "12 points - Energy and communication style",
+          values: "11 points - Core values alignment"
         }
       });
     }
 
-    console.log(`[API find-matches-v2] GET saved matches for: ${targetUserId}`);
+    console.log(`[API find-matches V3] GET saved matches for: ${targetUserId}`);
 
     // Load saved matches
     const savedResults = await loadSavedMatches(targetUserId);
@@ -256,17 +266,17 @@ export async function GET(req: NextRequest): Promise<NextResponse<SuccessRespons
       meta: {
         targetUserId,
         totalMatches: savedResults.matches.length,
+        totalCandidatesScanned: savedResults.meta.totalCandidatesScanned,
         analyzedAt: new Date().toISOString(),
         algorithmVersion: savedResults.meta.algorithmVersion,
         savedAt: savedResults.meta.savedAt.toISOString(),
         isStale: savedResults.meta.isStale,
-        originalCount: savedResults.meta.originalCandidatesCount,
         validCount: savedResults.meta.validCandidatesCount,
       }
     });
 
   } catch (error) {
-    console.error('[API find-matches-v2] GET Error:', error);
+    console.error('[API find-matches V3] GET Error:', error);
     return NextResponse.json({ 
       success: false, 
       error: "Internal server error" 
@@ -311,7 +321,7 @@ export async function DELETE(req: NextRequest): Promise<NextResponse> {
       }, { status: 400 });
     }
 
-    console.log(`[API find-matches-v2] DELETE saved matches for: ${targetUserId}`);
+    console.log(`[API find-matches V3] DELETE saved matches for: ${targetUserId}`);
 
     await deleteSavedMatches(targetUserId);
 
@@ -321,7 +331,7 @@ export async function DELETE(req: NextRequest): Promise<NextResponse> {
     });
 
   } catch (error) {
-    console.error('[API find-matches-v2] DELETE Error:', error);
+    console.error('[API find-matches V3] DELETE Error:', error);
     return NextResponse.json({ 
       success: false, 
       error: "Internal server error" 
