@@ -9,7 +9,15 @@ export interface APIResponse<T> {
   count: number;
   error?: string;
 }
-
+// 🆕 טיפוס לפירוט ציון AI
+export interface ScoreBreakdown {
+  religious: number;
+  careerFamily: number;
+  lifestyle: number;
+  ambition: number;
+  communication: number;
+  values: number;
+}
 // Base Types
 export type CandidateImage = UserImage;
 
@@ -36,7 +44,13 @@ export interface Candidate {
     suggestionId: string;
     withCandidateName: string;
   } | null;
-
+ aiScore?: number;
+  aiReasoning?: string;
+  aiRank?: number;
+  aiFirstPassScore?: number;
+  aiScoreBreakdown?: ScoreBreakdown;
+  aiBackgroundMultiplier?: number;
+  aiBackgroundCompatibility?: 'excellent' | 'good' | 'possible' | 'problematic' | 'not_recommended';
 }
 export interface CandidatesFilter {
    source?: UserSource;
