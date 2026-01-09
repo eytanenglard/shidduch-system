@@ -79,6 +79,8 @@ interface AiMatch {
 
   // מטא-דאטה
   rank?: number; // 🆕 דירוג סופי (1-15)
+  backgroundMultiplier?: number; // 🆕
+  backgroundCompatibility?: string; // 🆕
 }
 
 // 🆕 Interface חדש למטא-דאטה של החיפוש - מעודכן
@@ -832,16 +834,16 @@ const SplitView: React.FC<SplitViewProps> = ({
           ...c,
           // תאימות אחורה: aiScore = finalScore או score
           aiScore: match?.finalScore ?? match?.score,
-          // תאימות אחורה: aiReasoning = detailedReasoning או reasoning או shortReasoning
           aiReasoning:
             match?.detailedReasoning ??
             match?.reasoning ??
             match?.shortReasoning,
-          // 🆕 שדות חדשים
           aiMatch: match,
           aiRank: match?.rank,
           aiFirstPassScore: match?.firstPassScore,
           aiScoreBreakdown: match?.scoreBreakdown,
+          aiBackgroundMultiplier: match?.backgroundMultiplier, // 🆕
+          aiBackgroundCompatibility: match?.backgroundCompatibility, // 🆕
         };
       })
       .sort((a, b) => {
