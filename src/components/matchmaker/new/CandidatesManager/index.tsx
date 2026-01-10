@@ -86,7 +86,8 @@ import { SORT_OPTIONS, VIEW_OPTIONS } from '../constants/filterOptions';
 import type { MatchmakerPageDictionary } from '@/types/dictionaries/matchmaker';
 import type { ProfilePageDictionary } from '@/types/dictionary';
 
-// --- Local Types ---
+type BackgroundCompatibility = 'excellent' | 'good' | 'possible' | 'problematic' | 'not_recommended';
+
 interface ScoreBreakdown {
   religious: number;
   careerFamily: number;
@@ -96,6 +97,7 @@ interface ScoreBreakdown {
   values: number;
 }
 
+// 2. עדכון הממשק לשימוש ב-Type החדש במקום string
 interface AiMatch {
   userId: string;
   firstName?: string;
@@ -112,8 +114,8 @@ interface AiMatch {
   detailedReasoning?: string;
   
   rank?: number;
-  backgroundMultiplier?: number;       // 🆕
-  backgroundCompatibility?: string;    // 🆕
+  backgroundMultiplier?: number;
+  backgroundCompatibility?: BackgroundCompatibility; // <--- שונה מ-string ל-BackgroundCompatibility
 }
 
 // ============================================================================
