@@ -244,6 +244,8 @@ export const generateDemoData = async (locale: Locale) => {
     lastActivity: new Date(), category: 'ACTIVE', decisionDeadline: new Date(), lastStatusChange: new Date(), previousStatus: 'DRAFT',
     firstPartySent: new Date(), firstPartyResponded: null, secondPartySent: null, secondPartyResponded: null, firstMeetingScheduled: null, closedAt: null,
     statusHistory: [],
+      firstPartyLastViewedAt: null,
+    secondPartyLastViewedAt: null,
   };
 
   // ההצעה עבור הצופה (דניאל) לראות את נועה
@@ -265,6 +267,8 @@ export const generateDemoData = async (locale: Locale) => {
     lastActivity: new Date(), category: 'ACTIVE', decisionDeadline: new Date(), lastStatusChange: new Date(), previousStatus: 'DRAFT',
     firstPartySent: new Date(), firstPartyResponded: null, secondPartySent: null, secondPartyResponded: null, firstMeetingScheduled: null, closedAt: null,
     statusHistory: [],
+      firstPartyLastViewedAt: null,
+    secondPartyLastViewedAt: null,
   };
   
   const demoAiAnalysisForDaniel: AiSuggestionAnalysisResult = {
