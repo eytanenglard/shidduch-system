@@ -691,83 +691,107 @@ const SplitView: React.FC<SplitViewProps> = ({
     return () => window.removeEventListener('resize', checkScreenSize);
   }, []);
 
-  const handleFindAiMatches = async (
-    e: React.MouseEvent,
-    forceRefresh: boolean = false
-  ) => {
-    e.stopPropagation();
+// 🔄 החלף את הפונקציה handleFindAiMatches ב-SplitView.tsx
+// גרסה פשוטה - בלי polling!
 
-    if (!aiTargetCandidate) {
-      toast.error('אנא בחר מועמד/ת מטרה תחילה', {
+const handleFindAiMatches = async (
+  e: React.MouseEvent,
+  forceRefresh: boolean = false
+) => {
+  e.stopPropagation();
+
+  if (!aiTargetCandidate) {
+    toast.error('אנא בחר מועמד/ת מטרה תחילה', {
+      position: 'top-center',
+      icon: '⚠️',
+    });
+    return;
+  }
+
+  setIsAiLoading(true);
+  setAiMatches([]);
+  setAiMatchMeta(null);
+
+  try {
+    console.log(`[AI Matching] Starting search for ${aiTargetCandidate.firstName}...`);
+    
+    // 🚀 קריאה אחת פשוטה - בלי polling!
+    const response = await fetch('/api/ai/find-matches-v2', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        targetUserId: aiTargetCandidate.id,
+        forceRefresh,
+      }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok || !data.success) {
+      throw new Error(data.error || data.details || 'Failed to fetch AI matches');
+    }
+
+    console.log(`[AI Matching] ✅ Completed! Found ${data.matches?.length || 0} matches`);
+
+    // עדכון הממשק
+    const matches = data.matches || [];
+    setAiMatches(matches);
+
+    setAiMatchMeta({
+      fromCache: data.fromCache || false,
+      savedAt: data.meta?.savedAt,
+      isStale: data.meta?.isStale,
+      algorithmVersion: data.meta?.algorithmVersion || 'unknown',
+      totalCandidatesScanned: data.meta?.totalCandidatesScanned,
+    });
+
+    // הודעת הצלחה
+    if (data.fromCache) {
+      const savedDate = data.meta?.savedAt
+        ? new Date(data.meta.savedAt).toLocaleDateString('he-IL')
+        : 'לא ידוע';
+
+      toast.success(`נטענו ${matches.length} התאמות שמורות 📂`, {
         position: 'top-center',
-        icon: '⚠️',
+        description: data.meta?.isStale
+          ? `התוצאות מ-${savedDate}. מומלץ לרענן.`
+          : `עודכן ב-${savedDate}`,
+        duration: 4000,
       });
-      return;
-    }
+    } else {
+      const topMatch = matches[0];
+      const scannedText = data.meta?.totalCandidatesScanned
+        ? ` (מתוך ${data.meta.totalCandidatesScanned} שנסרקו)`
+        : '';
+      const durationText = data.meta?.durationMs
+        ? ` ב-${Math.round(data.meta.durationMs / 1000)} שניות`
+        : '';
 
-    setIsAiLoading(true);
-    setAiMatches([]);
-    setAiMatchMeta(null);
+      const matchCountMsg =
+        matches.length === 0
+          ? 'לא נמצאו התאמות'
+          : `נמצאו ${matches.length} התאמות!${scannedText}${durationText} 🎯`;
 
-    try {
-      const response = await fetch('/api/ai/find-matches-v2', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          targetUserId: aiTargetCandidate.id,
-          forceRefresh,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok || !data.success) {
-        throw new Error(data.error || 'Failed to fetch AI matches');
-      }
-
-      setAiMatches(data.matches);
-      setAiMatchMeta({
-        fromCache: data.fromCache,
-        savedAt: data.meta.savedAt,
-        isStale: data.meta.isStale,
-        algorithmVersion: data.meta.algorithmVersion,
-        totalCandidatesScanned: data.meta.totalCandidatesScanned,
-      });
-
-      if (data.fromCache) {
-        const savedDate = data.meta.savedAt
-          ? new Date(data.meta.savedAt).toLocaleDateString('he-IL')
-          : 'לא ידוע';
-        toast.success(`נטענו ${data.matches.length} התאמות שמורות 📂`, {
-          position: 'top-center',
-          description: data.meta.isStale
-            ? `התוצאות מ-${savedDate}. מומלץ לרענן.`
-            : `עודכן ב-${savedDate}`,
-          duration: 4000,
-        });
-      } else {
-        const topMatch = data.matches[0];
-        const scannedText = data.meta.totalCandidatesScanned
-          ? ` (מתוך ${data.meta.totalCandidatesScanned} שנסרקו)`
-          : '';
-        toast.success(`נמצאו ${data.matches.length} התאמות!${scannedText} 🎯`, {
-          position: 'top-center',
-          description: topMatch
-            ? `ההתאמה הטובה ביותר: ${topMatch.firstName} ${topMatch.lastName} (${topMatch.finalScore || topMatch.score}%)`
+      toast.success(matchCountMsg, {
+        position: 'top-center',
+        description: topMatch
+          ? `ההתאמה הטובה ביותר: ${topMatch.firstName} ${topMatch.lastName} (${topMatch.finalScore || topMatch.score}%)`
+          : matches.length === 0
+            ? 'נסה להרחיב את קריטריוני החיפוש'
             : 'התוצאות נשמרו למטמון',
-          duration: 5000,
-        });
-      }
-    } catch (error) {
-      console.error('Error finding AI matches:', error);
-      toast.error('שגיאה במציאת התאמות AI.', {
-        description:
-          error instanceof Error ? error.message : 'נסה שוב מאוחר יותר.',
+        duration: 5000,
       });
-    } finally {
-      setIsAiLoading(false);
     }
-  };
+  } catch (error) {
+    console.error('[AI Matching] ❌ Error:', error);
+    toast.error('שגיאה במציאת התאמות AI', {
+      description:
+        error instanceof Error ? error.message : 'נסה שוב מאוחר יותר.',
+    });
+  } finally {
+    setIsAiLoading(false);
+  }
+};
 
   // 🔧 תוקן: המרה בטוחה של backgroundCompatibility
   const maleCandidatesWithScores: CandidateWithAiData[] = useMemo(() => {

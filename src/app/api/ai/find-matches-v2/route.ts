@@ -1,21 +1,21 @@
 // src/app/api/ai/find-matches-v2/route.ts
-// 🎯 API Route לאלגוריתם מציאת התאמות V3.1 - עם Background Jobs
-// תומך בסריקה מלאה + ניתוח מעמיק + עבודות רקע
+// 🎯 API Route לאלגוריתם מציאת התאמות - גרסה פשוטה (Inline)
+// מריץ את האלגוריתם ישירות בתוך ה-Request - בלי Jobs!
 
 import { NextRequest, NextResponse } from "next/server";
 import { applyRateLimitWithRoleCheck } from '@/lib/rate-limiter';
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { UserRole } from "@prisma/client";
-import prisma from "@/lib/prisma";
-// import { addMatchingJob } from "@/lib/queue/matchingQueue"; // הוסר לבקשתך
 import { 
+  findMatchesForUser,
   loadSavedMatches,
   deleteSavedMatches,
 } from "@/lib/services/matchingAlgorithmService";
 
 // הגדרות
 export const dynamic = 'force-dynamic';
+export const maxDuration = 60; // Heroku timeout - 30 שניות default, אפשר עד 60
 
 // ============================================================================
 // TYPES
@@ -27,17 +27,12 @@ interface PostRequestBody {
 }
 
 // ============================================================================
-// POST - התחלת עבודת חיפוש (מחזיר jobId מיד)
+// POST - מריץ את האלגוריתם ישירות ומחזיר תוצאות
 // ============================================================================
 
-/**
- * POST /api/ai/find-matches-v2
- * 
- * מתחיל עבודת חיפוש ברקע.
- * - אם forceRefresh=false ויש cache תקין, מחזיר מהcache מיד
- * - אחרת, יוצר Job ומחזיר jobId לpolling
- */
 export async function POST(req: NextRequest): Promise<NextResponse> {
+  const startTime = Date.now();
+  
   // Rate Limiting
   const rateLimitResponse = await applyRateLimitWithRoleCheck(req, { 
     requests: 30, 
@@ -77,88 +72,51 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
     const matchmakerId = session.user.id;
 
-    console.log(`[API find-matches V3.1] POST from ${session.user.email}`);
-    console.log(`[API find-matches V3.1] Target: ${targetUserId}, forceRefresh: ${forceRefresh}`);
+    console.log(`\n========================================`);
+    console.log(`[API find-matches SIMPLE] POST from ${session.user.email}`);
+    console.log(`[API find-matches SIMPLE] Target: ${targetUserId}, forceRefresh: ${forceRefresh}`);
+    console.log(`========================================\n`);
 
-    // אם לא מבקשים רענון, בדוק אם יש cache תקין
-    if (!forceRefresh) {
-      const cached = await loadSavedMatches(targetUserId);
-      
-      if (cached && !cached.meta.isStale) {
-        console.log(`[API find-matches V3.1] Returning cached results (${cached.matches.length} matches)`);
-        
-        return NextResponse.json({
-          success: true,
-          matches: cached.matches,
-          fromCache: true,
-          meta: {
-            targetUserId,
-            totalMatches: cached.matches.length,
-            totalCandidatesScanned: cached.meta.totalCandidatesScanned,
-            analyzedAt: new Date().toISOString(),
-            algorithmVersion: cached.meta.algorithmVersion,
-            savedAt: cached.meta.savedAt?.toISOString(),
-            isStale: false,
-          }
-        });
-      }
-    }
-
-    // בדוק אם יש כבר עבודה רצה עבור המועמד הזה
-    const existingJob = await prisma.matchingJob.findFirst({
-      where: {
-        targetUserId,
-        status: { in: ['PENDING', 'PROCESSING'] },
-      },
-      orderBy: { createdAt: 'desc' },
+    // 🚀 הרצת האלגוריתם ישירות!
+    const result = await findMatchesForUser(targetUserId, matchmakerId, {
+      forceRefresh,
+      autoSave: true,
     });
 
-    if (existingJob) {
-      console.log(`[API find-matches V3.1] Found existing job: ${existingJob.id}`);
-      return NextResponse.json({
-        success: true,
-        jobId: existingJob.id,
-        status: existingJob.status.toLowerCase(),
-        progress: existingJob.progress,
-        stage: existingJob.stage,
-        message: 'Job already in progress',
-      });
-    }
+    const duration = Date.now() - startTime;
+    
+    console.log(`\n========================================`);
+    console.log(`[API find-matches SIMPLE] ✅ Completed in ${duration}ms`);
+    console.log(`[API find-matches SIMPLE] Found ${result.matches.length} matches`);
+    console.log(`[API find-matches SIMPLE] From cache: ${result.fromCache}`);
+    console.log(`========================================\n`);
 
-    // צור עבודה חדשה ב-DB
-    const job = await prisma.matchingJob.create({
-      data: {
-        targetUserId,
-        matchmakerId,
-        status: 'PENDING',
-        progress: 0,
-        stage: 'queued',
-      },
-    });
-
-    console.log(`[API find-matches V3.1] Created job: ${job.id}`);
-
-    // כאן הוסר ה-Queue Trigger (addMatchingJob)
-    // העבודה נוצרה ב-DB ומחכה למנגנון חיצוני שיבצע אותה
-
-    // החזר מיד את ה-jobId
     return NextResponse.json({
       success: true,
-      jobId: job.id,
-      status: 'pending',
-      progress: 0,
-      stage: 'queued',
-      message: 'Job created in DB. Poll /api/ai/find-matches-v2/status?jobId=... for updates',
+      matches: result.matches,
+      fromCache: result.fromCache,
+      meta: {
+        targetUserId,
+        totalMatches: result.matches.length,
+        totalCandidatesScanned: result.meta.totalCandidatesScanned,
+        analyzedAt: new Date().toISOString(),
+        algorithmVersion: result.meta.algorithmVersion,
+        savedAt: result.meta.savedAt?.toISOString(),
+        isStale: result.meta.isStale,
+        durationMs: duration,
+      }
     });
 
   } catch (error) {
-    console.error('[API find-matches V3.1] Error:', error);
+    const duration = Date.now() - startTime;
+    console.error(`[API find-matches SIMPLE] ❌ Error after ${duration}ms:`, error);
     const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred";
     
     return NextResponse.json({ 
       success: false, 
       error: "Internal server error",
-      details: errorMessage
+      details: errorMessage,
+      durationMs: duration,
     }, { status: 500 });
   }
 }
@@ -183,13 +141,12 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
 
     if (!targetUserId) {
       return NextResponse.json({
-        name: "NeshamaTech Matching Algorithm V3.1",
-        version: "3.1-background-jobs",
-        description: "Smart matching algorithm with background processing",
+        name: "NeshamaTech Matching Algorithm",
+        version: "3.2-simple",
+        description: "Smart matching algorithm - inline execution",
         endpoints: {
-          "POST /api/ai/find-matches-v2": "Start matching job",
+          "POST /api/ai/find-matches-v2": "Run matching algorithm (inline)",
           "GET /api/ai/find-matches-v2?targetUserId=...": "Load saved matches",
-          "GET /api/ai/find-matches-v2/status?jobId=...": "Check job status",
           "DELETE /api/ai/find-matches-v2?targetUserId=...": "Clear saved matches"
         }
       });
@@ -221,7 +178,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     });
 
   } catch (error) {
-    console.error('[API find-matches V3.1] GET Error:', error);
+    console.error('[API find-matches SIMPLE] GET Error:', error);
     return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
   }
 }
@@ -259,7 +216,7 @@ export async function DELETE(req: NextRequest): Promise<NextResponse> {
     });
 
   } catch (error) {
-    console.error('[API find-matches V3.1] DELETE Error:', error);
+    console.error('[API find-matches SIMPLE] DELETE Error:', error);
     return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
   }
 }
