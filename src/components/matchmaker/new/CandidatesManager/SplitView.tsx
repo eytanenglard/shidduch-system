@@ -43,7 +43,12 @@ import { motion, AnimatePresence } from 'framer-motion';
 // ============================================================================
 
 // טיפוסים להתאמת רקע
-type BackgroundCompatibility = 'excellent' | 'good' | 'possible' | 'problematic' | 'not_recommended';
+type BackgroundCompatibility =
+  | 'excellent'
+  | 'good'
+  | 'possible'
+  | 'problematic'
+  | 'not_recommended';
 
 // מבנה ציון מפורט - V3.0
 interface ScoreBreakdown {
@@ -140,7 +145,12 @@ const ScoreBreakdownDisplay: React.FC<{
 }> = ({ breakdown, className }) => {
   const categories = [
     { key: 'religious', label: 'התאמה דתית', max: 35, color: 'bg-purple-500' },
-    { key: 'careerFamily', label: 'קריירה-משפחה', max: 15, color: 'bg-blue-500' },
+    {
+      key: 'careerFamily',
+      label: 'קריירה-משפחה',
+      max: 15,
+      color: 'bg-blue-500',
+    },
     { key: 'lifestyle', label: 'סגנון חיים', max: 15, color: 'bg-green-500' },
     { key: 'ambition', label: 'שאפתנות', max: 12, color: 'bg-orange-500' },
     { key: 'communication', label: 'תקשורת', max: 12, color: 'bg-cyan-500' },
@@ -154,7 +164,9 @@ const ScoreBreakdownDisplay: React.FC<{
         const percentage = (value / cat.max) * 100;
         return (
           <div key={cat.key} className="flex items-center gap-2">
-            <span className="text-xs text-gray-600 w-20 truncate">{cat.label}</span>
+            <span className="text-xs text-gray-600 w-20 truncate">
+              {cat.label}
+            </span>
             <div className="flex-1 h-1.5 bg-gray-200 rounded-full overflow-hidden">
               <motion.div
                 initial={{ width: 0 }}
@@ -163,7 +175,9 @@ const ScoreBreakdownDisplay: React.FC<{
                 className={cn('h-full rounded-full', cat.color)}
               />
             </div>
-            <span className="text-xs text-gray-500 w-10 text-right">{value}/{cat.max}</span>
+            <span className="text-xs text-gray-500 w-10 text-right">
+              {value}/{cat.max}
+            </span>
           </div>
         );
       })}
@@ -231,7 +245,9 @@ const CacheInfoBadge: React.FC<{
       <Sparkles className="w-3 h-3" />
       <span>חדש</span>
       {meta.totalCandidatesScanned && (
-        <span className="text-blue-500">({meta.totalCandidatesScanned} נסרקו)</span>
+        <span className="text-blue-500">
+          ({meta.totalCandidatesScanned} נסרקו)
+        </span>
       )}
     </motion.div>
   );
@@ -300,7 +316,8 @@ const PanelHeaderComponent: React.FC<{
     <div
       className={cn(
         'flex justify-between items-center p-4 rounded-t-2xl',
-        !isMobileView && `bg-gradient-to-r ${config.colors.bg} border-b border-gray-100/50`
+        !isMobileView &&
+          `bg-gradient-to-r ${config.colors.bg} border-b border-gray-100/50`
       )}
     >
       <div className="flex items-center gap-3">
@@ -313,10 +330,17 @@ const PanelHeaderComponent: React.FC<{
           <IconComponent className="w-6 h-6" />
         </motion.div>
         <div>
-          <h2 className={cn('text-xl font-bold', config.colors.text)}>{config.title}</h2>
+          <h2 className={cn('text-xl font-bold', config.colors.text)}>
+            {config.title}
+          </h2>
           <p className="text-sm text-gray-600">{config.subtitle}</p>
         </div>
-        <Badge className={cn('text-white border-0 shadow-lg px-3 py-1 font-bold', config.colors.badge)}>
+        <Badge
+          className={cn(
+            'text-white border-0 shadow-lg px-3 py-1 font-bold',
+            config.colors.badge
+          )}
+        >
           {count}
         </Badge>
       </div>
@@ -335,7 +359,10 @@ const PanelHeaderComponent: React.FC<{
           >
             <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
             <span className="text-sm font-medium text-green-800 px-2">
-              {dict.targetLabel.replace('{{name}}', aiTargetCandidate.firstName)}
+              {dict.targetLabel.replace(
+                '{{name}}',
+                aiTargetCandidate.firstName
+              )}
             </span>
             <Button
               size="icon"
@@ -350,7 +377,11 @@ const PanelHeaderComponent: React.FC<{
 
         {isSearchPanel && (
           <div className="flex items-center gap-2">
-            <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} whileHover={{ scale: 1.05 }}>
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              whileHover={{ scale: 1.05 }}
+            >
               <Button
                 size="sm"
                 onClick={(e) => onFindAiMatches(e, false)}
@@ -361,14 +392,24 @@ const PanelHeaderComponent: React.FC<{
                   'disabled:opacity-50 disabled:cursor-not-allowed'
                 )}
               >
-                <Sparkles className={cn('ml-2 h-4 w-4 relative z-10', isAiLoading && 'animate-spin')} />
-                <span className="relative z-10">{isAiLoading ? dict.searchingButton : dict.findMatchesButton}</span>
+                <Sparkles
+                  className={cn(
+                    'ml-2 h-4 w-4 relative z-10',
+                    isAiLoading && 'animate-spin'
+                  )}
+                />
+                <span className="relative z-10">
+                  {isAiLoading ? dict.searchingButton : dict.findMatchesButton}
+                </span>
                 {!isAiLoading && <Zap className="w-3 h-3 mr-1 relative z-10" />}
               </Button>
             </motion.div>
 
             {aiMatchMeta?.fromCache && aiMatchesCount > 0 && (
-              <motion.div initial={{ scale: 0, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}>
+              <motion.div
+                initial={{ scale: 0, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+              >
                 <Button
                   size="sm"
                   variant="outline"
@@ -376,10 +417,14 @@ const PanelHeaderComponent: React.FC<{
                   disabled={isAiLoading}
                   className={cn(
                     'px-2 transition-all',
-                    aiMatchMeta.isStale ? 'border-amber-300 text-amber-600 hover:bg-amber-50' : 'border-gray-300 hover:bg-gray-50'
+                    aiMatchMeta.isStale
+                      ? 'border-amber-300 text-amber-600 hover:bg-amber-50'
+                      : 'border-gray-300 hover:bg-gray-50'
                   )}
                 >
-                  <RefreshCw className={cn('w-4 h-4', isAiLoading && 'animate-spin')} />
+                  <RefreshCw
+                    className={cn('w-4 h-4', isAiLoading && 'animate-spin')}
+                  />
                 </Button>
               </motion.div>
             )}
@@ -394,19 +439,36 @@ const PanelHeaderComponent: React.FC<{
 // LOADING COMPONENT
 // ============================================================================
 
-const LoadingComponent: React.FC<{ gender: 'male' | 'female' }> = ({ gender }) => {
+const LoadingComponent: React.FC<{ gender: 'male' | 'female' }> = ({
+  gender,
+}) => {
   const config =
     gender === 'male'
-      ? { gradient: 'from-blue-200 to-cyan-200', icon: Target, title: 'טוען מועמדים...' }
-      : { gradient: 'from-purple-200 to-pink-200', icon: Crown, title: 'טוענת מועמדות...' };
+      ? {
+          gradient: 'from-blue-200 to-cyan-200',
+          icon: Target,
+          title: 'טוען מועמדים...',
+        }
+      : {
+          gradient: 'from-purple-200 to-pink-200',
+          icon: Crown,
+          title: 'טוענת מועמדות...',
+        };
   const IconComponent = config.icon;
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col items-center justify-center h-64 p-8">
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="flex flex-col items-center justify-center h-64 p-8"
+    >
       <motion.div
         animate={{ scale: [1, 1.2, 1], rotate: [0, 360] }}
         transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
-        className={cn('p-6 rounded-full mb-4', `bg-gradient-to-r ${config.gradient}`)}
+        className={cn(
+          'p-6 rounded-full mb-4',
+          `bg-gradient-to-r ${config.gradient}`
+        )}
       >
         <IconComponent className="w-12 h-12 text-white" />
       </motion.div>
@@ -425,16 +487,32 @@ const EmptyStateComponent: React.FC<{
   onClearSearch?: () => void;
   dict: MatchmakerPageDictionary['candidatesManager']['list']['emptyState'];
 }> = ({ gender, searchQuery, onClearSearch, dict }) => {
-  const config = gender === 'male' ? { gradient: 'from-blue-100 to-cyan-100', icon: Target } : { gradient: 'from-purple-100 to-pink-100', icon: Crown };
+  const config =
+    gender === 'male'
+      ? { gradient: 'from-blue-100 to-cyan-100', icon: Target }
+      : { gradient: 'from-purple-100 to-pink-100', icon: Crown };
   const IconComponent = config.icon;
 
   return (
-    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col items-center justify-center h-64 p-8">
-      <div className={cn('w-24 h-24 rounded-full flex items-center justify-center mb-6 shadow-lg', `bg-gradient-to-br ${config.gradient}`)}>
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="flex flex-col items-center justify-center h-64 p-8"
+    >
+      <div
+        className={cn(
+          'w-24 h-24 rounded-full flex items-center justify-center mb-6 shadow-lg',
+          `bg-gradient-to-br ${config.gradient}`
+        )}
+      >
         <IconComponent className="w-12 h-12 text-gray-400" />
       </div>
       <h3 className="text-xl font-bold text-gray-800 mb-2">{dict.title}</h3>
-      <p className="text-gray-600 text-center mb-4">{searchQuery ? `לא נמצאו תוצאות עבור "${searchQuery}"` : dict.description}</p>
+      <p className="text-gray-600 text-center mb-4">
+        {searchQuery
+          ? `לא נמצאו תוצאות עבור "${searchQuery}"`
+          : dict.description}
+      </p>
       {searchQuery && onClearSearch && (
         <Button variant="outline" onClick={onClearSearch}>
           <Search className="w-4 h-4 ml-2" />
@@ -449,68 +527,81 @@ const EmptyStateComponent: React.FC<{
 // AI LOADING PROGRESS COMPONENT
 // ============================================================================
 
-const AiLoadingProgress: React.FC<{ isLoading: boolean; gender: 'male' | 'female' }> = ({ isLoading, gender }) => {
-  const [progress, setProgress] = useState(0);
-  const [stage, setStage] = useState<'fetching' | 'analyzing' | 'deep' | 'saving'>('fetching');
+const AiLoadingProgress: React.FC<{
+  isLoading: boolean;
+  gender: 'male' | 'female';
+  progress?: number;
+  stage?: string;
+}> = ({ isLoading, gender, progress: realProgress, stage: realStage }) => {
+  const [fakeProgress, setFakeProgress] = useState(0);
 
   useEffect(() => {
     if (!isLoading) {
-      setProgress(0);
-      setStage('fetching');
+      setFakeProgress(0);
       return;
     }
 
-    const stages = [
-      { name: 'fetching' as const, duration: 2000, progressEnd: 10 },
-      { name: 'analyzing' as const, duration: 60000, progressEnd: 70 },
-      { name: 'deep' as const, duration: 25000, progressEnd: 95 },
-      { name: 'saving' as const, duration: 3000, progressEnd: 100 },
-    ];
+    // אם יש progress אמיתי מהשרת - השתמש בו
+    if (realProgress !== undefined) return;
 
-    let currentStageIndex = 0;
-    let stageStartTime = Date.now();
-
+    // אחרת, הצג progress מזויף לUX
     const interval = setInterval(() => {
-      const currentStage = stages[currentStageIndex];
-      const elapsed = Date.now() - stageStartTime;
-      const stageProgress = Math.min(elapsed / currentStage.duration, 1);
-      const prevProgress = currentStageIndex > 0 ? stages[currentStageIndex - 1].progressEnd : 0;
-      const newProgress = prevProgress + stageProgress * (currentStage.progressEnd - prevProgress);
-
-      setProgress(Math.min(newProgress, 99));
-      setStage(currentStage.name);
-
-      if (stageProgress >= 1 && currentStageIndex < stages.length - 1) {
-        currentStageIndex++;
-        stageStartTime = Date.now();
-      }
-    }, 100);
+      setFakeProgress((prev) => Math.min(prev + 0.5, 95));
+    }, 1000);
 
     return () => clearInterval(interval);
-  }, [isLoading]);
+  }, [isLoading, realProgress]);
 
   if (!isLoading) return null;
 
-  const stageLabels = {
+  const progress = realProgress ?? fakeProgress;
+  const stage =
+    realStage ||
+    (progress < 20
+      ? 'fetching'
+      : progress < 70
+        ? 'analyzing'
+        : progress < 95
+          ? 'deep'
+          : 'saving');
+
+  const stageLabels: Record<string, string> = {
+    queued: 'בתור...',
     fetching: 'שולף מועמדים רלוונטיים...',
     analyzing: 'מנתח התאמות (סריקה ראשונית)...',
     deep: 'ניתוח מעמיק של המובילים...',
     saving: 'שומר תוצאות...',
+    done: 'סיום!',
   };
 
-  const config = gender === 'male' ? { gradient: 'from-blue-500 to-cyan-500', bg: 'bg-blue-100' } : { gradient: 'from-purple-500 to-pink-500', bg: 'bg-purple-100' };
+  const config =
+    gender === 'male'
+      ? { gradient: 'from-blue-500 to-cyan-500', bg: 'bg-blue-100' }
+      : { gradient: 'from-purple-500 to-pink-500', bg: 'bg-purple-100' };
 
   return (
-    <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="mx-4 mb-4">
+    <motion.div
+      initial={{ opacity: 0, y: -20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -20 }}
+      className="mx-4 mb-4"
+    >
       <div className={cn('rounded-xl p-4 shadow-lg', config.bg)}>
         <div className="flex items-center gap-3 mb-3">
           <Loader2 className="w-5 h-5 animate-spin text-gray-700" />
-          <span className="text-sm font-medium text-gray-700">{stageLabels[stage]}</span>
-          <span className="text-xs text-gray-500 mr-auto">{Math.round(progress)}%</span>
+          <span className="text-sm font-medium text-gray-700">
+            {stageLabels[stage] || stage}
+          </span>
+          <span className="text-xs text-gray-500 mr-auto">
+            {Math.round(progress)}%
+          </span>
         </div>
         <div className="h-2 bg-white/50 rounded-full overflow-hidden">
           <motion.div
-            className={cn('h-full rounded-full bg-gradient-to-r', config.gradient)}
+            className={cn(
+              'h-full rounded-full bg-gradient-to-r',
+              config.gradient
+            )}
             initial={{ width: 0 }}
             animate={{ width: `${progress}%` }}
             transition={{ duration: 0.3 }}
@@ -525,8 +616,16 @@ const AiLoadingProgress: React.FC<{ isLoading: boolean; gender: 'male' | 'female
 // HELPER FUNCTION - Type-safe background compatibility casting
 // ============================================================================
 
-function toBackgroundCompatibility(value: string | undefined): BackgroundCompatibility | undefined {
-  const validValues: BackgroundCompatibility[] = ['excellent', 'good', 'possible', 'problematic', 'not_recommended'];
+function toBackgroundCompatibility(
+  value: string | undefined
+): BackgroundCompatibility | undefined {
+  const validValues: BackgroundCompatibility[] = [
+    'excellent',
+    'good',
+    'possible',
+    'problematic',
+    'not_recommended',
+  ];
   if (value && validValues.includes(value as BackgroundCompatibility)) {
     return value as BackgroundCompatibility;
   }
@@ -537,7 +636,15 @@ function toBackgroundCompatibility(value: string | undefined): BackgroundCompati
 // MAIN COMPONENT
 // ============================================================================
 
-const SplitView: React.FC<SplitViewProps> = ({ dict, onOpenAiAnalysis, onSendProfileFeedback, profileDict, isQuickViewEnabled, locale, ...props }) => {
+const SplitView: React.FC<SplitViewProps> = ({
+  dict,
+  onOpenAiAnalysis,
+  onSendProfileFeedback,
+  profileDict,
+  isQuickViewEnabled,
+  locale,
+  ...props
+}) => {
   const {
     maleCandidates,
     femaleCandidates,
@@ -574,60 +681,163 @@ const SplitView: React.FC<SplitViewProps> = ({ dict, onOpenAiAnalysis, onSendPro
     return () => window.removeEventListener('resize', checkScreenSize);
   }, []);
 
-  const handleFindAiMatches = async (e: React.MouseEvent, forceRefresh: boolean = false) => {
+  // State נוסף לpolling
+  const [currentJobId, setCurrentJobId] = useState<string | null>(null);
+  const [jobProgress, setJobProgress] = useState(0);
+  const [jobStage, setJobStage] = useState<string>('');
+
+  // פונקציה לבדיקת סטטוס עבודה
+  const pollJobStatus = async (jobId: string): Promise<boolean> => {
+    try {
+      const response = await fetch(
+        `/api/ai/find-matches-v2/status?jobId=${jobId}`
+      );
+      const data = await response.json();
+
+      if (!data.success && data.status === 'failed') {
+        throw new Error(data.error || 'Job failed');
+      }
+
+      // עדכן התקדמות
+      setJobProgress(data.progress || 0);
+      setJobStage(data.stage || '');
+
+      if (data.status === 'completed') {
+        // העבודה הסתיימה - שמור תוצאות
+        setAiMatches(data.matches || []);
+        setAiMatchMeta({
+          fromCache: false,
+          savedAt: data.meta?.savedAt,
+          isStale: false,
+          algorithmVersion: data.meta?.algorithmVersion || 'v3.1',
+          totalCandidatesScanned: data.meta?.totalCandidatesScanned,
+        });
+
+        const topMatch = data.matches?.[0];
+        toast.success(`נמצאו ${data.matches?.length || 0} התאמות! 🎯`, {
+          position: 'top-center',
+          description: topMatch
+            ? `ההתאמה הטובה ביותר: ${topMatch.firstName} ${topMatch.lastName} (${topMatch.finalScore || topMatch.score}%)`
+            : 'סיום מוצלח',
+          duration: 5000,
+        });
+
+        return true; // סיים
+      }
+
+      return false; // עדיין עובד
+    } catch (error) {
+      console.error('Error polling job status:', error);
+      throw error;
+    }
+  };
+
+  const handleFindAiMatches = async (
+    e: React.MouseEvent,
+    forceRefresh: boolean = false
+  ) => {
     e.stopPropagation();
 
     if (!aiTargetCandidate) {
-      toast.error('אנא בחר מועמד/ת מטרה תחילה', { position: 'top-center', icon: '⚠️' });
+      toast.error('אנא בחר מועמד/ת מטרה תחילה', {
+        position: 'top-center',
+        icon: '⚠️',
+      });
       return;
     }
 
     setIsAiLoading(true);
     setAiMatches([]);
     setAiMatchMeta(null);
+    setJobProgress(0);
+    setJobStage('queued');
 
     try {
+      // שלב 1: שלח בקשה
       const response = await fetch('/api/ai/find-matches-v2', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ targetUserId: aiTargetCandidate.id, forceRefresh }),
+        body: JSON.stringify({
+          targetUserId: aiTargetCandidate.id,
+          forceRefresh,
+        }),
       });
 
       const data = await response.json();
 
       if (!response.ok || !data.success) {
-        throw new Error(data.error || 'Failed to fetch AI matches');
+        throw new Error(data.error || 'Failed to start matching job');
       }
 
-      setAiMatches(data.matches);
-      setAiMatchMeta({
-        fromCache: data.fromCache,
-        savedAt: data.meta.savedAt,
-        isStale: data.meta.isStale,
-        algorithmVersion: data.meta.algorithmVersion,
-        totalCandidatesScanned: data.meta.totalCandidatesScanned,
-      });
+      // אם חזר מcache - סיימנו
+      if (data.fromCache && data.matches) {
+        setAiMatches(data.matches);
+        setAiMatchMeta({
+          fromCache: true,
+          savedAt: data.meta.savedAt,
+          isStale: data.meta.isStale,
+          algorithmVersion: data.meta.algorithmVersion,
+          totalCandidatesScanned: data.meta.totalCandidatesScanned,
+        });
 
-      if (data.fromCache) {
-        const savedDate = data.meta.savedAt ? new Date(data.meta.savedAt).toLocaleDateString('he-IL') : 'לא ידוע';
+        const savedDate = data.meta.savedAt
+          ? new Date(data.meta.savedAt).toLocaleDateString('he-IL')
+          : 'לא ידוע';
         toast.success(`נטענו ${data.matches.length} התאמות שמורות 📂`, {
           position: 'top-center',
-          description: data.meta.isStale ? `התוצאות מ-${savedDate}. מומלץ לרענן.` : `עודכן ב-${savedDate}`,
+          description: data.meta.isStale
+            ? `התוצאות מ-${savedDate}. מומלץ לרענן.`
+            : `עודכן ב-${savedDate}`,
           duration: 4000,
         });
-      } else {
-        const topMatch = data.matches[0];
-        const scannedText = data.meta.totalCandidatesScanned ? ` (מתוך ${data.meta.totalCandidatesScanned} שנסרקו)` : '';
-        toast.success(`נמצאו ${data.matches.length} התאמות!${scannedText} 🎯`, {
+        setIsAiLoading(false);
+        return;
+      }
+
+      // אחרת, יש לנו jobId - מתחיל polling
+      if (data.jobId) {
+        setCurrentJobId(data.jobId);
+        toast.info('החיפוש התחיל, אנא המתן...', {
           position: 'top-center',
-          description: topMatch ? `ההתאמה הטובה ביותר: ${topMatch.firstName} ${topMatch.lastName} (${topMatch.finalScore || topMatch.score}%)` : 'התוצאות נשמרו למטמון',
-          duration: 5000,
+          duration: 3000,
         });
+
+        // Polling loop
+        let attempts = 0;
+        const maxAttempts = 120; // 10 דקות מקסימום (120 * 5 שניות)
+
+        const pollInterval = setInterval(async () => {
+          attempts++;
+
+          try {
+            const isDone = await pollJobStatus(data.jobId);
+
+            if (isDone || attempts >= maxAttempts) {
+              clearInterval(pollInterval);
+              setCurrentJobId(null);
+              setIsAiLoading(false);
+
+              if (attempts >= maxAttempts) {
+                toast.error('החיפוש לקח יותר מדי זמן. נסה שוב מאוחר יותר.');
+              }
+            }
+          } catch (error) {
+            clearInterval(pollInterval);
+            setCurrentJobId(null);
+            setIsAiLoading(false);
+            toast.error('שגיאה בחיפוש.', {
+              description:
+                error instanceof Error ? error.message : 'Unknown error',
+            });
+          }
+        }, 3000); // בדוק כל 3 שניות
       }
     } catch (error) {
       console.error('Error finding AI matches:', error);
-      toast.error('שגיאה במציאת התאמות AI.', { description: error instanceof Error ? error.message : 'נסה שוב מאוחר יותר.' });
-    } finally {
+      toast.error('שגיאה במציאת התאמות AI.', {
+        description:
+          error instanceof Error ? error.message : 'נסה שוב מאוחר יותר.',
+      });
       setIsAiLoading(false);
     }
   };
@@ -643,13 +853,18 @@ const SplitView: React.FC<SplitViewProps> = ({ dict, onOpenAiAnalysis, onSendPro
         return {
           ...c,
           aiScore: match?.finalScore ?? match?.score,
-          aiReasoning: match?.detailedReasoning ?? match?.reasoning ?? match?.shortReasoning,
+          aiReasoning:
+            match?.detailedReasoning ??
+            match?.reasoning ??
+            match?.shortReasoning,
           aiMatch: match,
           aiRank: match?.rank,
           aiFirstPassScore: match?.firstPassScore,
           aiScoreBreakdown: match?.scoreBreakdown,
           aiBackgroundMultiplier: match?.backgroundMultiplier,
-          aiBackgroundCompatibility: toBackgroundCompatibility(match?.backgroundCompatibility),
+          aiBackgroundCompatibility: toBackgroundCompatibility(
+            match?.backgroundCompatibility
+          ),
         };
       })
       .sort((a, b) => {
@@ -668,13 +883,18 @@ const SplitView: React.FC<SplitViewProps> = ({ dict, onOpenAiAnalysis, onSendPro
         return {
           ...c,
           aiScore: match?.finalScore ?? match?.score,
-          aiReasoning: match?.detailedReasoning ?? match?.reasoning ?? match?.shortReasoning,
+          aiReasoning:
+            match?.detailedReasoning ??
+            match?.reasoning ??
+            match?.shortReasoning,
           aiMatch: match,
           aiRank: match?.rank,
           aiFirstPassScore: match?.firstPassScore,
           aiScoreBreakdown: match?.scoreBreakdown,
           aiBackgroundMultiplier: match?.backgroundMultiplier,
-          aiBackgroundCompatibility: toBackgroundCompatibility(match?.backgroundCompatibility),
+          aiBackgroundCompatibility: toBackgroundCompatibility(
+            match?.backgroundCompatibility
+          ),
         };
       })
       .sort((a, b) => {
@@ -683,11 +903,17 @@ const SplitView: React.FC<SplitViewProps> = ({ dict, onOpenAiAnalysis, onSendPro
       });
   }, [femaleCandidates, aiMatches]);
 
-  const renderPanelHeader = (gender: 'male' | 'female', isMobileView: boolean = false) => {
+  const renderPanelHeader = (
+    gender: 'male' | 'female',
+    isMobileView: boolean = false
+  ) => {
     const panelGenderEnum = gender === 'male' ? Gender.MALE : Gender.FEMALE;
     const isTargetPanel = aiTargetCandidate?.profile.gender === panelGenderEnum;
-    const isSearchPanel = !!(aiTargetCandidate && aiTargetCandidate.profile.gender !== panelGenderEnum);
-    const count = gender === 'male' ? maleCandidates.length : femaleCandidates.length;
+    const isSearchPanel = !!(
+      aiTargetCandidate && aiTargetCandidate.profile.gender !== panelGenderEnum
+    );
+    const count =
+      gender === 'male' ? maleCandidates.length : femaleCandidates.length;
 
     return (
       <PanelHeaderComponent
@@ -707,9 +933,22 @@ const SplitView: React.FC<SplitViewProps> = ({ dict, onOpenAiAnalysis, onSendPro
     );
   };
 
-  const renderCandidatesListForMobile = (candidates: CandidateWithAiData[], gender: 'male' | 'female', searchQuery: string, onSearchChange?: (query: string) => void) => {
+  const renderCandidatesListForMobile = (
+    candidates: CandidateWithAiData[],
+    gender: 'male' | 'female',
+    searchQuery: string,
+    onSearchChange?: (query: string) => void
+  ) => {
     if (isLoading) return <LoadingComponent gender={gender} />;
-    if (candidates.length === 0) return <EmptyStateComponent gender={gender} searchQuery={searchQuery} onClearSearch={() => onSearchChange?.('')} dict={dict.candidatesManager.list.emptyState} />;
+    if (candidates.length === 0)
+      return (
+        <EmptyStateComponent
+          gender={gender}
+          searchQuery={searchQuery}
+          onClearSearch={() => onSearchChange?.('')}
+          dict={dict.candidatesManager.list.emptyState}
+        />
+      );
     return (
       <CandidatesList
         candidates={candidates}
@@ -739,65 +978,178 @@ const SplitView: React.FC<SplitViewProps> = ({ dict, onOpenAiAnalysis, onSendPro
   if (isMobile) {
     return (
       <div className={cn('flex flex-col h-full', className)}>
-        <Tabs defaultValue="male" className="flex flex-col h-full overflow-hidden">
+        <Tabs
+          defaultValue="male"
+          className="flex flex-col h-full overflow-hidden"
+        >
           <TabsList className="grid grid-cols-2 mx-4 mb-2 bg-gradient-to-r from-blue-100 to-purple-100 p-1 rounded-xl shadow-lg">
-            <TabsTrigger value="male" className="rounded-lg font-bold data-[state=active]:bg-white data-[state=active]:shadow-md data-[state=active]:text-blue-700 transition-all">
+            <TabsTrigger
+              value="male"
+              className="rounded-lg font-bold data-[state=active]:bg-white data-[state=active]:shadow-md data-[state=active]:text-blue-700 transition-all"
+            >
               <Target className="w-4 h-4 ml-1" />
-              {dict.candidatesManager.splitView.panelHeaders.male.title} ({maleCandidates.length})
+              {dict.candidatesManager.splitView.panelHeaders.male.title} (
+              {maleCandidates.length})
             </TabsTrigger>
-            <TabsTrigger value="female" className="rounded-lg font-bold data-[state=active]:bg-white data-[state=active]:shadow-md data-[state=active]:text-purple-700 transition-all">
+            <TabsTrigger
+              value="female"
+              className="rounded-lg font-bold data-[state=active]:bg-white data-[state=active]:shadow-md data-[state=active]:text-purple-700 transition-all"
+            >
               <Crown className="w-4 h-4 ml-1" />
-              {dict.candidatesManager.splitView.panelHeaders.female.title} ({femaleCandidates.length})
+              {dict.candidatesManager.splitView.panelHeaders.female.title} (
+              {femaleCandidates.length})
             </TabsTrigger>
           </TabsList>
 
           <TabsContent value="male" className="mt-4 flex-1 min-h-0">
             <Card className="p-4 flex flex-col h-full shadow-xl border-0 bg-gradient-to-b from-white to-blue-50/30 rounded-2xl">
-              {aiTargetCandidate && aiTargetCandidate.profile.gender === 'FEMALE' && (
-                <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="mb-4 flex gap-2">
-                  <Button onClick={(e) => handleFindAiMatches(e, false)} disabled={isAiLoading} className="flex-1 h-12 bg-gradient-to-r from-blue-600 to-cyan-600 text-white shadow-lg font-bold rounded-xl">
-                    {isAiLoading ? <Loader2 className="w-5 h-5 animate-spin ml-2" /> : <Sparkles className="w-5 h-5 ml-2" />}
-                    {isAiLoading ? 'סורק...' : `מצא התאמות AI (${maleCandidates.length})`}
-                  </Button>
-                  {aiMatchMeta?.fromCache && aiMatches.length > 0 && (
-                    <Button onClick={(e) => handleFindAiMatches(e, true)} disabled={isAiLoading} variant="outline" className="h-12 px-4 rounded-xl">
-                      <RefreshCw className={cn('w-5 h-5', isAiLoading && 'animate-spin')} />
+              {aiTargetCandidate &&
+                aiTargetCandidate.profile.gender === 'FEMALE' && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="mb-4 flex gap-2"
+                  >
+                    <Button
+                      onClick={(e) => handleFindAiMatches(e, false)}
+                      disabled={isAiLoading}
+                      className="flex-1 h-12 bg-gradient-to-r from-blue-600 to-cyan-600 text-white shadow-lg font-bold rounded-xl"
+                    >
+                      {isAiLoading ? (
+                        <Loader2 className="w-5 h-5 animate-spin ml-2" />
+                      ) : (
+                        <Sparkles className="w-5 h-5 ml-2" />
+                      )}
+                      {isAiLoading
+                        ? 'סורק...'
+                        : `מצא התאמות AI (${maleCandidates.length})`}
                     </Button>
+                    {aiMatchMeta?.fromCache && aiMatches.length > 0 && (
+                      <Button
+                        onClick={(e) => handleFindAiMatches(e, true)}
+                        disabled={isAiLoading}
+                        variant="outline"
+                        className="h-12 px-4 rounded-xl"
+                      >
+                        <RefreshCw
+                          className={cn(
+                            'w-5 h-5',
+                            isAiLoading && 'animate-spin'
+                          )}
+                        />
+                      </Button>
+                    )}
+                  </motion.div>
+                )}
+              <AnimatePresence>
+                {isAiLoading &&
+                  aiTargetCandidate?.profile.gender === 'FEMALE' && (
+                    <AiLoadingProgress
+                      isLoading={isAiLoading}
+                      progress={jobProgress}
+                      stage={jobStage}
+                      gender="male"
+                    />
                   )}
-                </motion.div>
-              )}
-              <AnimatePresence>{isAiLoading && aiTargetCandidate?.profile.gender === 'FEMALE' && <AiLoadingProgress isLoading={isAiLoading} gender="male" />}</AnimatePresence>
+              </AnimatePresence>
               {separateFiltering && onMaleSearchChange && (
                 <div className="mb-4 w-full">
-                  <SearchBar value={maleSearchQuery} onChange={onMaleSearchChange} placeholder={dict.candidatesManager.searchBar.malePlaceholder} genderTarget="male" separateMode={true} dict={dict.candidatesManager.searchBar} />
+                  <SearchBar
+                    value={maleSearchQuery}
+                    onChange={onMaleSearchChange}
+                    placeholder={
+                      dict.candidatesManager.searchBar.malePlaceholder
+                    }
+                    genderTarget="male"
+                    separateMode={true}
+                    dict={dict.candidatesManager.searchBar}
+                  />
                 </div>
               )}
-              <div className="flex-grow min-h-0 overflow-y-auto">{renderCandidatesListForMobile(maleCandidatesWithScores, 'male', maleSearchQuery, onMaleSearchChange)}</div>
+              <div className="flex-grow min-h-0 overflow-y-auto">
+                {renderCandidatesListForMobile(
+                  maleCandidatesWithScores,
+                  'male',
+                  maleSearchQuery,
+                  onMaleSearchChange
+                )}
+              </div>
             </Card>
           </TabsContent>
 
           <TabsContent value="female" className="mt-4 flex-1 min-h-0">
             <Card className="p-4 flex flex-col h-full shadow-xl border-0 bg-gradient-to-b from-white to-purple-50/30 rounded-2xl">
-              {aiTargetCandidate && aiTargetCandidate.profile.gender === 'MALE' && (
-                <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="mb-4 flex gap-2">
-                  <Button onClick={(e) => handleFindAiMatches(e, false)} disabled={isAiLoading} className="flex-1 h-12 bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg font-bold rounded-xl">
-                    {isAiLoading ? <Loader2 className="w-5 h-5 animate-spin ml-2" /> : <Sparkles className="w-5 h-5 ml-2" />}
-                    {isAiLoading ? 'סורק...' : `מצא התאמות AI (${femaleCandidates.length})`}
-                  </Button>
-                  {aiMatchMeta?.fromCache && aiMatches.length > 0 && (
-                    <Button onClick={(e) => handleFindAiMatches(e, true)} disabled={isAiLoading} variant="outline" className="h-12 px-4 rounded-xl">
-                      <RefreshCw className={cn('w-5 h-5', isAiLoading && 'animate-spin')} />
+              {aiTargetCandidate &&
+                aiTargetCandidate.profile.gender === 'MALE' && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="mb-4 flex gap-2"
+                  >
+                    <Button
+                      onClick={(e) => handleFindAiMatches(e, false)}
+                      disabled={isAiLoading}
+                      className="flex-1 h-12 bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg font-bold rounded-xl"
+                    >
+                      {isAiLoading ? (
+                        <Loader2 className="w-5 h-5 animate-spin ml-2" />
+                      ) : (
+                        <Sparkles className="w-5 h-5 ml-2" />
+                      )}
+                      {isAiLoading
+                        ? 'סורק...'
+                        : `מצא התאמות AI (${femaleCandidates.length})`}
                     </Button>
+                    {aiMatchMeta?.fromCache && aiMatches.length > 0 && (
+                      <Button
+                        onClick={(e) => handleFindAiMatches(e, true)}
+                        disabled={isAiLoading}
+                        variant="outline"
+                        className="h-12 px-4 rounded-xl"
+                      >
+                        <RefreshCw
+                          className={cn(
+                            'w-5 h-5',
+                            isAiLoading && 'animate-spin'
+                          )}
+                        />
+                      </Button>
+                    )}
+                  </motion.div>
+                )}
+              <AnimatePresence>
+                {isAiLoading &&
+                  aiTargetCandidate?.profile.gender === 'MALE' && (
+                    <AiLoadingProgress
+                      isLoading={isAiLoading}
+                      progress={jobProgress}
+                      stage={jobStage}
+                      gender="female"
+                    />
                   )}
-                </motion.div>
-              )}
-              <AnimatePresence>{isAiLoading && aiTargetCandidate?.profile.gender === 'MALE' && <AiLoadingProgress isLoading={isAiLoading} gender="female" />}</AnimatePresence>
+              </AnimatePresence>
               {separateFiltering && onFemaleSearchChange && (
                 <div className="mb-4 w-full">
-                  <SearchBar value={femaleSearchQuery} onChange={onFemaleSearchChange} placeholder={dict.candidatesManager.searchBar.femalePlaceholder} genderTarget="female" separateMode={true} dict={dict.candidatesManager.searchBar} />
+                  <SearchBar
+                    value={femaleSearchQuery}
+                    onChange={onFemaleSearchChange}
+                    placeholder={
+                      dict.candidatesManager.searchBar.femalePlaceholder
+                    }
+                    genderTarget="female"
+                    separateMode={true}
+                    dict={dict.candidatesManager.searchBar}
+                  />
                 </div>
               )}
-              <div className="flex-grow min-h-0 overflow-y-auto">{renderCandidatesListForMobile(femaleCandidatesWithScores, 'female', femaleSearchQuery, onFemaleSearchChange)}</div>
+              <div className="flex-grow min-h-0 overflow-y-auto">
+                {renderCandidatesListForMobile(
+                  femaleCandidatesWithScores,
+                  'female',
+                  femaleSearchQuery,
+                  onFemaleSearchChange
+                )}
+              </div>
             </Card>
           </TabsContent>
         </Tabs>
@@ -808,35 +1160,116 @@ const SplitView: React.FC<SplitViewProps> = ({ dict, onOpenAiAnalysis, onSendPro
   // DESKTOP VIEW
   return (
     <div className={cn('h-full', className)}>
-      <ResizablePanelGroup direction="horizontal" className="h-full rounded-2xl bg-white shadow-2xl border-0 overflow-hidden">
+      <ResizablePanelGroup
+        direction="horizontal"
+        className="h-full rounded-2xl bg-white shadow-2xl border-0 overflow-hidden"
+      >
         <ResizablePanel defaultSize={50} minSize={30}>
           <div className="flex flex-col h-full bg-gradient-to-b from-white to-blue-50/20">
             {renderPanelHeader('male')}
-            <AnimatePresence>{isAiLoading && aiTargetCandidate?.profile.gender === 'FEMALE' && <AiLoadingProgress isLoading={isAiLoading} gender="male" />}</AnimatePresence>
+            <AnimatePresence>
+              {isAiLoading &&
+                aiTargetCandidate?.profile.gender === 'FEMALE' && (
+                  <AiLoadingProgress
+                    isLoading={isAiLoading}
+                    progress={jobProgress}
+                    stage={jobStage}
+                    gender="male"
+                  />
+                )}
+            </AnimatePresence>
             {separateFiltering && onMaleSearchChange && (
               <div className="p-4 bg-blue-50/30 w-full">
-                <SearchBar value={maleSearchQuery} onChange={onMaleSearchChange} placeholder={dict.candidatesManager.searchBar.malePlaceholder} genderTarget="male" separateMode={true} dict={dict.candidatesManager.searchBar} />
+                <SearchBar
+                  value={maleSearchQuery}
+                  onChange={onMaleSearchChange}
+                  placeholder={dict.candidatesManager.searchBar.malePlaceholder}
+                  genderTarget="male"
+                  separateMode={true}
+                  dict={dict.candidatesManager.searchBar}
+                />
               </div>
             )}
             <div className="flex-grow min-h-0 overflow-y-auto p-4">
-              <CandidatesList candidates={maleCandidatesWithScores} allCandidates={allCandidates} onOpenAiAnalysis={onOpenAiAnalysis} onSendProfileFeedback={onSendProfileFeedback} onCandidateClick={onCandidateClick} onCandidateAction={onCandidateAction} viewMode={viewMode} mobileView={mobileView} isLoading={isLoading} highlightTerm={maleSearchQuery} aiTargetCandidate={aiTargetCandidate} onSetAiTarget={onSetAiTarget} comparisonSelection={comparisonSelection} onToggleComparison={onToggleComparison} quickViewSide="right" isQuickViewEnabled={isQuickViewEnabled} dict={dict} profileDict={profileDict} locale={locale} />
+              <CandidatesList
+                candidates={maleCandidatesWithScores}
+                allCandidates={allCandidates}
+                onOpenAiAnalysis={onOpenAiAnalysis}
+                onSendProfileFeedback={onSendProfileFeedback}
+                onCandidateClick={onCandidateClick}
+                onCandidateAction={onCandidateAction}
+                viewMode={viewMode}
+                mobileView={mobileView}
+                isLoading={isLoading}
+                highlightTerm={maleSearchQuery}
+                aiTargetCandidate={aiTargetCandidate}
+                onSetAiTarget={onSetAiTarget}
+                comparisonSelection={comparisonSelection}
+                onToggleComparison={onToggleComparison}
+                quickViewSide="right"
+                isQuickViewEnabled={isQuickViewEnabled}
+                dict={dict}
+                profileDict={profileDict}
+                locale={locale}
+              />
             </div>
           </div>
         </ResizablePanel>
 
-        <ResizableHandle withHandle className="bg-gradient-to-b from-indigo-300 to-purple-300 hover:from-indigo-400 hover:to-purple-400 transition-colors w-2" />
+        <ResizableHandle
+          withHandle
+          className="bg-gradient-to-b from-indigo-300 to-purple-300 hover:from-indigo-400 hover:to-purple-400 transition-colors w-2"
+        />
 
         <ResizablePanel defaultSize={50} minSize={30}>
           <div className="flex flex-col h-full bg-gradient-to-b from-white to-purple-50/20">
             {renderPanelHeader('female')}
-            <AnimatePresence>{isAiLoading && aiTargetCandidate?.profile.gender === 'MALE' && <AiLoadingProgress isLoading={isAiLoading} gender="female" />}</AnimatePresence>
+            <AnimatePresence>
+              {isAiLoading && aiTargetCandidate?.profile.gender === 'MALE' && (
+                <AiLoadingProgress
+                  isLoading={isAiLoading}
+                  progress={jobProgress}
+                  stage={jobStage}
+                  gender="female"
+                />
+              )}
+            </AnimatePresence>
             {separateFiltering && onFemaleSearchChange && (
               <div className="p-4 bg-purple-50/30 w-full">
-                <SearchBar value={femaleSearchQuery} onChange={onFemaleSearchChange} placeholder={dict.candidatesManager.searchBar.femalePlaceholder} genderTarget="female" separateMode={true} dict={dict.candidatesManager.searchBar} />
+                <SearchBar
+                  value={femaleSearchQuery}
+                  onChange={onFemaleSearchChange}
+                  placeholder={
+                    dict.candidatesManager.searchBar.femalePlaceholder
+                  }
+                  genderTarget="female"
+                  separateMode={true}
+                  dict={dict.candidatesManager.searchBar}
+                />
               </div>
             )}
             <div className="flex-grow min-h-0 overflow-y-auto p-4">
-              <CandidatesList candidates={femaleCandidatesWithScores} allCandidates={allCandidates} onOpenAiAnalysis={onOpenAiAnalysis} onSendProfileFeedback={onSendProfileFeedback} onCandidateClick={onCandidateClick} onCandidateAction={onCandidateAction} viewMode={viewMode} mobileView={mobileView} isLoading={isLoading} highlightTerm={femaleSearchQuery} aiTargetCandidate={aiTargetCandidate} onSetAiTarget={onSetAiTarget} comparisonSelection={comparisonSelection} onToggleComparison={onToggleComparison} quickViewSide="left" isQuickViewEnabled={isQuickViewEnabled} dict={dict} profileDict={profileDict} locale={locale} />
+              <CandidatesList
+                candidates={femaleCandidatesWithScores}
+                allCandidates={allCandidates}
+                onOpenAiAnalysis={onOpenAiAnalysis}
+                onSendProfileFeedback={onSendProfileFeedback}
+                onCandidateClick={onCandidateClick}
+                onCandidateAction={onCandidateAction}
+                viewMode={viewMode}
+                mobileView={mobileView}
+                isLoading={isLoading}
+                highlightTerm={femaleSearchQuery}
+                aiTargetCandidate={aiTargetCandidate}
+                onSetAiTarget={onSetAiTarget}
+                comparisonSelection={comparisonSelection}
+                onToggleComparison={onToggleComparison}
+                quickViewSide="left"
+                isQuickViewEnabled={isQuickViewEnabled}
+                dict={dict}
+                profileDict={profileDict}
+                locale={locale}
+              />
             </div>
           </div>
         </ResizablePanel>

@@ -151,7 +151,7 @@ const MatchCriteriaCard: React.FC<{
         animationFillMode: 'both',
       }}
     >
-      <div className="absolute inset-0">
+   <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-br from-white/30 to-transparent rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
         <div className="absolute bottom-0 left-0 w-12 h-12 bg-gradient-to-br from-white/20 to-transparent rounded-full blur-lg opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
       </div>
@@ -304,7 +304,7 @@ const MatchPreview: React.FC<MatchPreviewProps> = ({
         className
       )}
     >
-      <div className="absolute inset-0">
+      <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-white/20 to-transparent rounded-full blur-3xl animate-float"></div>
         <div
           className="absolute bottom-0 left-0 w-48 h-48 bg-gradient-to-br from-white/10 to-transparent rounded-full blur-2xl animate-float"

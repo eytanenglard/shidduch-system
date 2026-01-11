@@ -64,7 +64,7 @@ const EnhancedSection: React.FC<{
       className
     )}
   >
-    <div className="absolute inset-0">
+    <div className="absolute inset-0 pointer-events-none">
       <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-purple-200/20 to-pink-200/20 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
       <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-br from-cyan-200/20 to-blue-200/20 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-900"></div>
     </div>
