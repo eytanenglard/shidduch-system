@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\suggestions
-# Generated on: 2025-12-02 14:34:59
+# Generated on: 2026-01-11 12:11:49
 # Filter: Only content of code files (.bat, .c, .cfg, .conf, .cpp, .cs, .css, .go, .h, .html, .ini, .java, .js, .json, .jsx, .kt, .less, .md, .php, .py, .rb, .rs, .scss, .sh, .sql, .swift, .ts, .tsx, .txt, .xml, .yaml, .yml) is included.
 ################################################################################
 
@@ -941,6 +941,30 @@ import {
 import type { ExtendedMatchSuggestion } from '../types';
 import type { SuggestionsCardDict } from '@/types/dictionary';
 
+// =============================================================================
+// COLOR PALETTE REFERENCE (Matching HeroSection.tsx)
+// =============================================================================
+// Primary Colors:
+//   - Teal/Emerald: from-teal-400 via-teal-500 to-emerald-500 (Knowledge/New)
+//   - Orange/Amber: from-orange-400 via-amber-500 to-yellow-500 (Action/Warmth)
+//   - Rose/Pink:    from-rose-400 via-pink-500 to-red-500 (Love/Connection)
+//
+// Background Gradients:
+//   - Page: from-slate-50 via-teal-50/20 to-orange-50/20
+//   - Cards: from-teal-50 via-white to-emerald-50 (Teal variant)
+//           from-orange-50 via-white to-amber-50 (Orange variant)
+//           from-rose-50 via-white to-red-50 (Rose variant)
+//
+// Buttons:
+//   - Primary Action: from-teal-500 to-emerald-500 (Approve/View)
+//   - Secondary Action: from-orange-500 to-amber-500 (Urgent/Action)
+//   - Decline: from-rose-500 to-red-500
+//
+// Accents:
+//   - Focus ring: ring-teal-500
+//   - Hover states: hover:bg-teal-50, hover:border-teal-200
+// =============================================================================
+
 interface MinimalSuggestionCardProps {
   suggestion: ExtendedMatchSuggestion;
   userId: string;
@@ -1025,18 +1049,18 @@ const MinimalSuggestionCard: React.FC<MinimalSuggestionCardProps> = ({
     <Card
       className={cn(
         'group w-full rounded-2xl overflow-hidden shadow-lg border-0 bg-white transition-all duration-500 hover:shadow-xl hover:-translate-y-1',
-        // Urgent Ring: Orange (Action)
+        // Urgent Ring: Orange (Action/Warmth - matching Hero)
         isUrgent && 'ring-2 ring-orange-400 ring-opacity-60',
         className
       )}
     >
-      {/* Header Gradient: Teal -> White -> Orange */}
+      {/* Header Gradient: Teal -> White -> Orange (matching Hero) */}
       <div className="relative p-4 bg-gradient-to-r from-teal-50/80 via-white to-orange-50/50 border-b border-teal-100/50">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
+            {/* Avatar: Teal gradient (Knowledge/Professional) */}
             <Avatar className="w-10 h-10 border-2 border-white shadow-md">
-              {/* Avatar: Teal (Professional/Knowledge) */}
-              <AvatarFallback className="bg-gradient-to-br from-teal-500 to-teal-600 text-white font-bold text-sm">
+              <AvatarFallback className="bg-gradient-to-br from-teal-500 to-emerald-600 text-white font-bold text-sm">
                 {getInitials(
                   `${suggestion.matchmaker.firstName} ${suggestion.matchmaker.lastName}`
                 )}
@@ -1084,9 +1108,9 @@ const MinimalSuggestionCard: React.FC<MinimalSuggestionCardProps> = ({
             )}
           </div>
         </div>
+        {/* Urgent Badge: Orange -> Red gradient (matching Hero urgent states) */}
         {isUrgent && (
           <div className="absolute top-2 left-2">
-            {/* Urgent Badge: Orange/Red */}
             <Badge className="flex items-center gap-1.5 bg-gradient-to-r from-orange-500 to-red-500 text-white border-0 shadow-lg animate-pulse">
               <AlertTriangle className="w-3 h-3" />
               <span className="font-semibold text-xs">{dict.urgent}</span>
@@ -1115,6 +1139,7 @@ const MinimalSuggestionCard: React.FC<MinimalSuggestionCardProps> = ({
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
             />
           ) : (
+            // Fallback: Slate gradient (neutral)
             <div className="w-full h-full bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center">
               <User className="w-20 h-20 text-slate-400" />
             </div>
@@ -1132,6 +1157,7 @@ const MinimalSuggestionCard: React.FC<MinimalSuggestionCardProps> = ({
                   </p>
                 )}
               </div>
+              {/* Sparkle icon with glassmorphism */}
               <div className="p-2 rounded-full bg-white/20 backdrop-blur-sm">
                 <Sparkles className="w-5 h-5 text-white" />
               </div>
@@ -1142,6 +1168,7 @@ const MinimalSuggestionCard: React.FC<MinimalSuggestionCardProps> = ({
 
       <div onClick={handleCardClick} className="cursor-pointer">
         <CardContent className="p-5 space-y-4">
+          {/* Status Description Box */}
           {statusInfo.description && (
             <div className="p-3 bg-gradient-to-r from-slate-50 to-gray-50 rounded-lg border border-slate-200">
               <div className="flex items-start gap-2">
@@ -1154,10 +1181,10 @@ const MinimalSuggestionCard: React.FC<MinimalSuggestionCardProps> = ({
           )}
 
           <div className="grid grid-cols-2 gap-3">
-            {/* Note: Assuming children or specific grid content was here in original, keeping layout structure */}
+            {/* Grid content placeholder */}
           </div>
 
-          {/* "Why Special" / Teaser Box - Changed to Orange/Amber (Personal/Warmth) */}
+          {/* "Why Special" / Teaser Box: Orange/Amber (Personal/Warmth - matching Hero) */}
           <div className="relative p-4 bg-gradient-to-r from-orange-50/50 to-amber-50/50 border border-orange-100/50 rounded-xl">
             <div className="flex items-start gap-3">
               <Quote className="w-4 h-4 text-orange-500 mt-1 flex-shrink-0" />
@@ -1170,6 +1197,7 @@ const MinimalSuggestionCard: React.FC<MinimalSuggestionCardProps> = ({
                 </p>
               </div>
             </div>
+            {/* Decorative corner */}
             <div className="absolute top-0 right-0 w-6 h-6 bg-gradient-to-br from-orange-200/50 to-amber-200/50 rounded-bl-xl"></div>
           </div>
 
@@ -1181,16 +1209,17 @@ const MinimalSuggestionCard: React.FC<MinimalSuggestionCardProps> = ({
         </CardContent>
       </div>
 
+      {/* Footer Actions */}
       {!isHistory && (
         <CardFooter className="p-4 bg-gradient-to-r from-gray-50/50 to-slate-50/50 border-t border-gray-100">
           {(suggestion.status === 'PENDING_FIRST_PARTY' && isFirstParty) ||
           (suggestion.status === 'PENDING_SECOND_PARTY' && !isFirstParty) ? (
             <div className="grid grid-cols-2 gap-3 w-full">
-              {/* Decline: Rose (Pink/Red) */}
+              {/* Decline Button: Rose/Red (matching Hero decline actions) */}
               <Button
                 size="sm"
                 variant="outline"
-                className="w-full text-rose-600 hover:text-rose-700 hover:bg-rose-50 border-rose-200 rounded-xl font-medium transition-all duration-300"
+                className="w-full text-rose-600 hover:text-rose-700 hover:bg-rose-50 border-rose-200 hover:border-rose-300 rounded-xl font-medium transition-all duration-300"
                 onClick={(e) => {
                   e.stopPropagation();
                   onDecline?.(suggestion);
@@ -1202,11 +1231,11 @@ const MinimalSuggestionCard: React.FC<MinimalSuggestionCardProps> = ({
                 {dict.buttons.decline}
               </Button>
 
+              {/* Approve Button: Teal -> Emerald (matching Hero primary CTA) */}
               <TooltipProvider>
                 <Tooltip delayDuration={100}>
                   <TooltipTrigger asChild>
                     <div className="w-full">
-                      {/* Approve: Teal -> Emerald */}
                       <Button
                         size="sm"
                         variant="default"
@@ -1243,7 +1272,7 @@ const MinimalSuggestionCard: React.FC<MinimalSuggestionCardProps> = ({
             </div>
           ) : (
             <div className="grid grid-cols-2 gap-3 w-full">
-              {/* Ask Matchmaker: Teal accent */}
+              {/* Ask Matchmaker: Teal accent on hover */}
               <Button
                 size="sm"
                 variant="outline"
@@ -1259,7 +1288,7 @@ const MinimalSuggestionCard: React.FC<MinimalSuggestionCardProps> = ({
                 {dict.buttons.askMatchmaker}
               </Button>
 
-              {/* View Details: Teal Gradient */}
+              {/* View Details: Teal gradient (matching Hero secondary CTA) */}
               <Button
                 size="sm"
                 variant="default"
@@ -1283,192 +1312,9 @@ const MinimalSuggestionCard: React.FC<MinimalSuggestionCardProps> = ({
     </Card>
   );
 };
+
 export default MinimalSuggestionCard;
 --- End of Content for MinimalSuggestionCard.tsx ---
-
---------------------------------------------------------------------------------
-File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\suggestions\cards\SuggestionQuickView.tsx
---------------------------------------------------------------------------------
-Content:
-// src/app/components/suggestions/cards/SuggestionQuickView.tsx
-
-import React from 'react';
-import { Button } from '@/components/ui/button';
-import {
-  Heart,
-  User,
-  Clock,
-  Eye,
-  Scroll,
-  GraduationCap,
-  Briefcase,
-  MapPin,
-  MessageCircle,
-  CheckCircle,
-  XCircle,
-} from 'lucide-react';
-import type { ExtendedMatchSuggestion } from '../types';
-import type { SuggestionsQuickViewDict } from '@/types/dictionary'; // ✨ Import dictionary type
-
-interface SuggestionQuickViewProps {
-  suggestion: ExtendedMatchSuggestion;
-  userId?: string;
-  onAction: (action: 'approve' | 'reject' | 'ask' | 'view') => void;
-  dict: SuggestionsQuickViewDict; // ✨ Add dict prop
-}
-
-const SuggestionQuickView: React.FC<SuggestionQuickViewProps> = ({
-  suggestion,
-  userId,
-  onAction,
-  dict, // ✨ Destructure dict
-}) => {
-  const handleClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-  };
-
-  const profile = userId
-    ? suggestion.firstPartyId === userId
-      ? suggestion.secondParty.profile
-      : suggestion.firstParty.profile
-    : suggestion.secondParty.profile;
-
-  if (!profile) {
-    return null;
-  }
-
-  return (
-    <div
-      className="bg-white/95 backdrop-blur-sm p-4 rounded-lg shadow-lg flex flex-col"
-      onClick={handleClick}
-    >
-      <div className="flex-1 space-y-4 text-right overflow-y-auto max-h-96">
-        <div className="grid grid-cols-2 gap-3">
-          {profile.height && (
-            <div className="flex items-center justify-end gap-2 text-sm text-gray-600">
-              <span>
-                {profile.height} {dict.unitCm}
-              </span>
-              <User className="w-4 h-4" />
-            </div>
-          )}
-
-          {profile.maritalStatus && (
-            <div className="flex items-center justify-end gap-2 text-sm text-gray-600">
-              <span>{profile.maritalStatus}</span>
-              <Heart className="w-4 h-4" />
-            </div>
-          )}
-
-          {profile.religiousLevel && (
-            <div className="flex items-center justify-end gap-2 text-sm text-gray-600">
-              <span>{profile.religiousLevel}</span>
-              <Scroll className="w-4 h-4" />
-            </div>
-          )}
-
-          {profile.education && (
-            <div className="flex items-center justify-end gap-2 text-sm text-gray-600">
-              <span>{profile.education}</span>
-              <GraduationCap className="w-4 h-4" />
-            </div>
-          )}
-        </div>
-
-        {profile.about && (
-          <div className="border-t border-gray-100 pt-3">
-            <h4 className="text-sm font-medium mb-1">{dict.aboutTitle}</h4>
-            <p className="text-sm text-gray-600 leading-relaxed line-clamp-3">
-              {profile.about}
-            </p>
-          </div>
-        )}
-
-        {suggestion.matchingReason && (
-          <div className="border-t border-gray-100 pt-3">
-            <h4 className="text-sm font-medium mb-1">{dict.reasonTitle}</h4>
-            <p className="text-sm text-gray-600 leading-relaxed line-clamp-3">
-              {suggestion.matchingReason}
-            </p>
-          </div>
-        )}
-
-        <div className="border-t border-gray-100 pt-3 space-y-2">
-          {profile.city && (
-            <div className="flex items-center justify-end gap-2 text-sm text-gray-600">
-              <span>{profile.city}</span>
-              <MapPin className="w-4 h-4" />
-            </div>
-          )}
-
-          {profile.occupation && (
-            <div className="flex items-center justify-end gap-2 text-sm text-gray-600">
-              <span>{profile.occupation}</span>
-              <Briefcase className="w-4 h-4" />
-            </div>
-          )}
-        </div>
-
-        {suggestion.decisionDeadline && (
-          <div className="border-t border-gray-100 pt-3">
-            <div className="flex items-center justify-end gap-2 text-sm text-yellow-600">
-              <span>
-                {dict.deadlineText.replace(
-                  '{{date}}',
-                  new Date(suggestion.decisionDeadline).toLocaleDateString(
-                    'he-IL'
-                  )
-                )}
-              </span>
-              <Clock className="w-4 h-4" />
-            </div>
-          </div>
-        )}
-      </div>
-
-      <div className="grid grid-cols-2 gap-2 mt-4 pt-3 border-t border-gray-100">
-        <Button
-          variant="default"
-          className="w-full"
-          onClick={() => onAction('view')}
-        >
-          <Eye className="w-4 h-4 ml-2" />
-          {dict.buttons.viewProfile}
-        </Button>
-
-        <Button
-          variant="default"
-          className="w-full bg-green-600 hover:bg-green-700"
-          onClick={() => onAction('approve')}
-        >
-          <CheckCircle className="w-4 h-4 ml-2" />
-          {dict.buttons.approve}
-        </Button>
-
-        <Button
-          variant="outline"
-          className="w-full text-red-600 hover:text-red-700 hover:bg-red-50"
-          onClick={() => onAction('reject')}
-        >
-          <XCircle className="w-4 h-4 ml-2" />
-          {dict.buttons.decline}
-        </Button>
-
-        <Button
-          variant="outline"
-          className="w-full"
-          onClick={() => onAction('ask')}
-        >
-          <MessageCircle className="w-4 h-4 ml-2" />
-          {dict.buttons.ask}
-        </Button>
-      </div>
-    </div>
-  );
-};
-
-export default SuggestionQuickView;
---- End of Content for SuggestionQuickView.tsx ---
 
 ================================================================================
 Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\suggestions\compatibility
@@ -1504,6 +1350,27 @@ import {
 import { cn } from '@/lib/utils';
 import type { PartyInfo } from '../types';
 import type { SuggestionsCompatibilityDict } from '@/types/dictionary';
+
+// =============================================================================
+// COLOR PALETTE REFERENCE (Matching HeroSection.tsx)
+// =============================================================================
+// Primary Colors:
+//   - Teal/Emerald: from-teal-400 via-teal-500 to-emerald-500 (Knowledge/New)
+//   - Orange/Amber: from-orange-400 via-amber-500 to-yellow-500 (Action/Warmth)
+//   - Rose/Pink:    from-rose-400 via-pink-500 to-red-500 (Love/Connection)
+//
+// Score Colors (Hero-aligned):
+//   - High (85+): Teal/Emerald (Excellence)
+//   - Good (70+): Teal (Good match)
+//   - Medium (55+): Orange/Amber (Moderate)
+//   - Low (<55): Rose (Needs attention)
+//
+// Category Colors:
+//   - Basic: Teal (from-teal-50 to-emerald-50)
+//   - Lifestyle: Orange (from-orange-50 to-amber-50)
+//   - Values: Rose (from-rose-50 to-red-50)
+//   - Preferences: Teal variant (from-emerald-50 to-teal-50)
+// =============================================================================
 
 interface CompatibilityItem {
   criterion: string;
@@ -1545,29 +1412,38 @@ const calculateAge = (birthDate?: Date | string | null): number | null => {
   }
 };
 
+// Hero-aligned importance colors
 const getImportanceColor = (importance: string) => {
   switch (importance) {
     case 'high':
-      return 'from-red-400 to-red-500';
+      // Rose/Red for high importance (critical)
+      return 'from-rose-400 to-red-500';
     case 'medium':
-      return 'from-amber-400 to-orange-500';
+      // Orange/Amber for medium importance (attention)
+      return 'from-orange-400 to-amber-500';
     case 'low':
-      return 'from-cyan-400 to-blue-500';
+      // Teal for low importance (informational)
+      return 'from-teal-400 to-teal-500';
     default:
       return 'from-gray-400 to-gray-500';
   }
 };
 
+// Hero-aligned category colors
 const getCategoryColor = (category: string) => {
   switch (category) {
     case 'basic':
-      return 'from-cyan-50 to-blue-50';
+      // Teal - Knowledge/Basics
+      return 'from-teal-50 to-emerald-50';
     case 'lifestyle':
-      return 'from-emerald-50 to-green-50';
+      // Orange - Action/Lifestyle
+      return 'from-orange-50 to-amber-50';
     case 'values':
-      return 'from-blue-50 to-cyan-50';
+      // Rose - Connection/Values
+      return 'from-rose-50 to-red-50';
     case 'preferences':
-      return 'from-green-50 to-emerald-50';
+      // Emerald/Teal variant
+      return 'from-emerald-50 to-teal-50';
     default:
       return 'from-gray-50 to-slate-50';
   }
@@ -1595,8 +1471,10 @@ const CompatibilityCard: React.FC<{
             className={cn(
               'flex-shrink-0 w-12 h-12 rounded-xl bg-gradient-to-br text-white flex items-center justify-center shadow-md',
               item.compatible
-                ? 'from-emerald-500 to-green-500'
-                : 'from-red-400 to-rose-500'
+                ? // Compatible: Teal/Emerald (positive - Hero primary)
+                  'from-teal-500 to-emerald-500'
+                : // Not compatible: Rose/Red (negative - Hero decline)
+                  'from-rose-400 to-red-500'
             )}
           >
             {item.icon}
@@ -1611,7 +1489,7 @@ const CompatibilityCard: React.FC<{
                   <Badge
                     variant="outline"
                     className={cn(
-                      'text-xs px-2 py-0.5 font-semibold border-0 text-white',
+                      'text-xs px-2 py-0.5 font-semibold border-0 text-white bg-gradient-to-r',
                       importanceColor
                     )}
                   >
@@ -1625,7 +1503,7 @@ const CompatibilityCard: React.FC<{
                 <p
                   className={cn(
                     'text-sm font-medium leading-relaxed',
-                    item.compatible ? 'text-emerald-700' : 'text-red-700'
+                    item.compatible ? 'text-teal-700' : 'text-rose-700'
                   )}
                 >
                   {item.reason}
@@ -1633,9 +1511,9 @@ const CompatibilityCard: React.FC<{
               </div>
               <div className="flex-shrink-0">
                 {item.compatible ? (
-                  <CheckCircle className="w-6 h-6 text-emerald-500" />
+                  <CheckCircle className="w-6 h-6 text-teal-500" />
                 ) : (
-                  <XCircle className="w-6 h-6 text-red-500" />
+                  <XCircle className="w-6 h-6 text-rose-500" />
                 )}
               </div>
             </div>
@@ -1706,11 +1584,12 @@ const CategorySection: React.FC<{
           <div
             className={cn(
               'text-2xl font-bold',
+              // Hero-aligned score colors
               compatibilityRate >= 70
-                ? 'text-emerald-600'
+                ? 'text-teal-600'
                 : compatibilityRate >= 50
-                  ? 'text-amber-600'
-                  : 'text-red-600'
+                  ? 'text-orange-600'
+                  : 'text-rose-600'
             )}
           >
             {Math.round(compatibilityRate)}%
@@ -1744,9 +1623,10 @@ const MatchCompatibilityView: React.FC<MatchCompatibilityProps> = ({
   if (!firstParty.profile || !secondParty.profile) {
     return (
       <Card className={cn('shadow-xl border-0 overflow-hidden', className)}>
-        <CardHeader className="bg-gradient-to-r from-cyan-50/80 via-white to-emerald-50/50 border-b border-gray-100">
+        {/* Header: Teal -> White -> Orange (Hero gradient) */}
+        <CardHeader className="bg-gradient-to-r from-teal-50/80 via-white to-orange-50/50 border-b border-gray-100">
           <CardTitle className="flex items-center gap-3 text-2xl">
-            <div className="p-3 rounded-xl bg-gradient-to-r from-cyan-500 to-emerald-500 text-white shadow-lg">
+            <div className="p-3 rounded-xl bg-gradient-to-r from-teal-500 to-emerald-500 text-white shadow-lg">
               <Heart className="w-6 h-6" />
             </div>
             <div>
@@ -2053,11 +1933,12 @@ const MatchCompatibilityView: React.FC<MatchCompatibilityProps> = ({
     (item) => item.category === 'preferences'
   );
 
+  // Hero-aligned score colors
   const getScoreColor = (score: number) => {
-    if (score >= 80) return 'text-emerald-600';
-    if (score >= 60) return 'text-cyan-600';
-    if (score >= 40) return 'text-amber-600';
-    return 'text-red-600';
+    if (score >= 80) return 'text-teal-600';
+    if (score >= 60) return 'text-emerald-600';
+    if (score >= 40) return 'text-orange-600';
+    return 'text-rose-600';
   };
 
   const getScoreDescription = (score: number) => {
@@ -2069,9 +1950,10 @@ const MatchCompatibilityView: React.FC<MatchCompatibilityProps> = ({
 
   return (
     <Card className={cn('shadow-xl border-0 overflow-hidden', className)}>
-      <CardHeader className="bg-gradient-to-r from-cyan-50/80 via-white to-emerald-50/50 border-b border-gray-100">
+      {/* Header: Teal -> White -> Orange (Hero gradient) */}
+      <CardHeader className="bg-gradient-to-r from-teal-50/80 via-white to-orange-50/50 border-b border-gray-100">
         <CardTitle className="flex items-center gap-3 text-2xl">
-          <div className="p-3 rounded-xl bg-gradient-to-r from-cyan-500 to-emerald-500 text-white shadow-lg">
+          <div className="p-3 rounded-xl bg-gradient-to-r from-teal-500 to-emerald-500 text-white shadow-lg">
             <Heart className="w-6 h-6" />
           </div>
           <div>
@@ -2084,11 +1966,12 @@ const MatchCompatibilityView: React.FC<MatchCompatibilityProps> = ({
       </CardHeader>
 
       <CardContent className="p-8 space-y-8">
+        {/* Overall Score Card */}
         <Card className="border-0 shadow-lg bg-gradient-to-r from-slate-50 to-gray-50">
           <CardContent className="p-6">
             <div className="text-center space-y-4">
               <div className="flex items-center justify-center gap-3">
-                <Star className="w-8 h-8 text-yellow-500 fill-current" />
+                <Star className="w-8 h-8 text-amber-500 fill-current" />
                 <div>
                   <div
                     className={cn(
@@ -2126,38 +2009,42 @@ const MatchCompatibilityView: React.FC<MatchCompatibilityProps> = ({
 
         {compatibilityItems.length > 0 ? (
           <div className="space-y-8">
+            {/* Basic: Teal */}
             <CategorySection
               title={dict.categoryTitles.basic}
               icon={User}
               items={basicItems}
-              color="from-cyan-500 to-blue-500"
+              color="from-teal-500 to-emerald-500"
               firstParty={firstParty}
               secondParty={secondParty}
               dict={dict}
             />
+            {/* Values: Rose */}
             <CategorySection
               title={dict.categoryTitles.values}
               icon={Heart}
               items={valuesItems}
-              color="from-emerald-500 to-green-500"
+              color="from-rose-400 to-pink-500"
               firstParty={firstParty}
               secondParty={secondParty}
               dict={dict}
             />
+            {/* Lifestyle: Orange */}
             <CategorySection
               title={dict.categoryTitles.lifestyle}
               icon={Target}
               items={lifestyleItems}
-              color="from-blue-500 to-cyan-500"
+              color="from-orange-400 to-amber-500"
               firstParty={firstParty}
               secondParty={secondParty}
               dict={dict}
             />
+            {/* Preferences: Emerald/Teal variant */}
             <CategorySection
               title={dict.categoryTitles.preferences}
               icon={Star}
               items={preferencesItems}
-              color="from-green-500 to-emerald-500"
+              color="from-emerald-500 to-teal-500"
               firstParty={firstParty}
               secondParty={secondParty}
               dict={dict}
@@ -2175,18 +2062,19 @@ const MatchCompatibilityView: React.FC<MatchCompatibilityProps> = ({
           </div>
         )}
 
+        {/* Matchmaker Rationale: Orange/Amber (Personal warmth) */}
         {matchingReason && (
-          <Card className="border-0 shadow-lg bg-gradient-to-r from-cyan-50 to-emerald-50">
+          <Card className="border-0 shadow-lg bg-gradient-to-r from-orange-50 to-amber-50">
             <CardContent className="p-6">
               <div className="flex items-start gap-4">
-                <div className="p-3 rounded-xl bg-gradient-to-r from-cyan-500 to-emerald-500 text-white shadow-md flex-shrink-0">
+                <div className="p-3 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-md flex-shrink-0">
                   <Users className="w-6 h-6" />
                 </div>
                 <div className="flex-1">
-                  <h3 className="font-bold text-cyan-800 text-lg mb-2">
+                  <h3 className="font-bold text-orange-800 text-lg mb-2">
                     {dict.matchmakerRationaleTitle}
                   </h3>
-                  <p className="text-cyan-700 leading-relaxed">
+                  <p className="text-orange-900/80 leading-relaxed">
                     {matchingReason}
                   </p>
                 </div>
@@ -2210,12 +2098,7 @@ Content:
 'use client';
 
 import React from 'react';
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import {
@@ -2232,38 +2115,58 @@ import {
 import type { AiSuggestionAnalysisResult } from '@/lib/services/aiService';
 import { cn } from '@/lib/utils';
 
+// =============================================================================
+// COLOR PALETTE REFERENCE (Matching HeroSection.tsx)
+// =============================================================================
+// Primary Colors:
+//   - Teal/Emerald: from-teal-400 via-teal-500 to-emerald-500 (Knowledge/New)
+//   - Orange/Amber: from-orange-400 via-amber-500 to-yellow-500 (Action/Warmth)
+//   - Rose/Pink:    from-rose-400 via-pink-500 to-red-500 (Love/Connection)
+//
+// Score Colors (Hero-aligned):
+//   - Excellent (85+): Teal/Emerald
+//   - Good (70+): Teal
+//   - Moderate (55+): Orange/Amber
+//   - Challenging (<55): Rose
+//
+// Section Colors:
+//   - Compatibility Points: Teal/Emerald (positive connections)
+//   - Points to Consider: Orange/Amber (attention/growth)
+//   - Conversation Starters: Rose (relationship/connection)
+// =============================================================================
+
 interface UserAiAnalysisDisplayProps {
   analysis: AiSuggestionAnalysisResult;
 }
 
-// Score color helper עם הפלטה החדשה
+// Hero-aligned score colors
 const getScoreColor = (score: number) => {
   if (score >= 85)
     return {
-      text: 'text-emerald-600',
-      bg: 'from-emerald-50 to-green-50',
-      progress: 'bg-gradient-to-r from-emerald-500 to-green-500',
-      badge: 'bg-gradient-to-r from-emerald-500 to-green-500',
+      text: 'text-teal-600',
+      bg: 'from-teal-50 to-emerald-50',
+      progress: 'bg-gradient-to-r from-teal-500 to-emerald-500',
+      badge: 'bg-gradient-to-r from-teal-500 to-emerald-500',
     };
   if (score >= 70)
     return {
-      text: 'text-cyan-600',
-      bg: 'from-cyan-50 to-blue-50',
-      progress: 'bg-gradient-to-r from-cyan-500 to-blue-500',
-      badge: 'bg-gradient-to-r from-cyan-500 to-blue-500',
+      text: 'text-teal-600',
+      bg: 'from-teal-50 to-emerald-50',
+      progress: 'bg-gradient-to-r from-teal-500 to-emerald-500',
+      badge: 'bg-gradient-to-r from-teal-500 to-emerald-500',
     };
   if (score >= 55)
     return {
-      text: 'text-blue-600',
-      bg: 'from-blue-50 to-cyan-50',
-      progress: 'bg-gradient-to-r from-blue-500 to-cyan-500',
-      badge: 'bg-gradient-to-r from-blue-500 to-cyan-500',
+      text: 'text-orange-600',
+      bg: 'from-orange-50 to-amber-50',
+      progress: 'bg-gradient-to-r from-orange-500 to-amber-500',
+      badge: 'bg-gradient-to-r from-orange-500 to-amber-500',
     };
   return {
-    text: 'text-amber-600',
-    bg: 'from-amber-50 to-orange-50',
-    progress: 'bg-gradient-to-r from-amber-500 to-orange-500',
-    badge: 'bg-gradient-to-r from-amber-500 to-orange-500',
+    text: 'text-rose-600',
+    bg: 'from-rose-50 to-red-50',
+    progress: 'bg-gradient-to-r from-rose-500 to-red-500',
+    badge: 'bg-gradient-to-r from-rose-500 to-red-500',
   };
 };
 
@@ -2319,20 +2222,21 @@ const Section: React.FC<{
   </Card>
 );
 
+// Compatibility Point: Teal/Emerald (positive connections)
 const CompatibilityPoint: React.FC<{
   point: { area: string; explanation: string };
   index: number;
 }> = ({ point, index }) => (
-  <div className="group p-4 bg-white/70 backdrop-blur-sm rounded-xl border border-emerald-100 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1">
+  <div className="group p-4 bg-white/70 backdrop-blur-sm rounded-xl border border-teal-100 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1">
     <div className="flex items-start gap-3">
-      <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-r from-emerald-400 to-green-500 text-white flex items-center justify-center text-sm font-bold shadow-md">
+      <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-r from-teal-400 to-emerald-500 text-white flex items-center justify-center text-sm font-bold shadow-md">
         {index + 1}
       </div>
       <div className="flex-1 space-y-2">
-        <h4 className="font-semibold text-emerald-800 text-base leading-tight">
+        <h4 className="font-semibold text-teal-800 text-base leading-tight">
           {point.area}
         </h4>
-        <p className="text-sm text-emerald-900/80 leading-relaxed">
+        <p className="text-sm text-teal-900/80 leading-relaxed">
           {point.explanation}
         </p>
       </div>
@@ -2340,20 +2244,21 @@ const CompatibilityPoint: React.FC<{
   </div>
 );
 
+// Consideration Point: Orange/Amber (attention/growth areas)
 const ConsiderationPoint: React.FC<{
   point: { area: string; explanation: string };
   index: number;
 }> = ({ point, index }) => (
-  <div className="group p-4 bg-white/70 backdrop-blur-sm rounded-xl border border-cyan-100 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1">
+  <div className="group p-4 bg-white/70 backdrop-blur-sm rounded-xl border border-orange-100 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1">
     <div className="flex items-start gap-3">
-      <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-r from-cyan-400 to-blue-500 text-white flex items-center justify-center text-sm font-bold shadow-md">
+      <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-r from-orange-400 to-amber-500 text-white flex items-center justify-center text-sm font-bold shadow-md">
         {index + 1}
       </div>
       <div className="flex-1 space-y-2">
-        <h4 className="font-semibold text-cyan-800 text-base leading-tight">
+        <h4 className="font-semibold text-orange-800 text-base leading-tight">
           {point.area}
         </h4>
-        <p className="text-sm text-cyan-900/80 leading-relaxed">
+        <p className="text-sm text-orange-900/80 leading-relaxed">
           {point.explanation}
         </p>
       </div>
@@ -2361,15 +2266,16 @@ const ConsiderationPoint: React.FC<{
   </div>
 );
 
+// Conversation Starter: Rose (relationship/connection)
 const ConversationStarter: React.FC<{
   starter: string;
   index: number;
 }> = ({ starter, index }) => (
-  <div className="group flex items-start gap-3 p-3 bg-white/60 backdrop-blur-sm rounded-lg border border-blue-100 hover:bg-white/80 transition-all duration-300 hover:shadow-sm">
-    <div className="flex-shrink-0 w-6 h-6 rounded-full bg-gradient-to-r from-blue-400 to-cyan-500 text-white flex items-center justify-center text-xs font-bold shadow-sm">
+  <div className="group flex items-start gap-3 p-3 bg-white/60 backdrop-blur-sm rounded-lg border border-rose-100 hover:bg-white/80 transition-all duration-300 hover:shadow-sm">
+    <div className="flex-shrink-0 w-6 h-6 rounded-full bg-gradient-to-r from-rose-400 to-pink-500 text-white flex items-center justify-center text-xs font-bold shadow-sm">
       {index + 1}
     </div>
-    <p className="text-sm text-blue-900 leading-relaxed font-medium">
+    <p className="text-sm text-rose-900 leading-relaxed font-medium">
       {starter}
     </p>
   </div>
@@ -2383,7 +2289,7 @@ const UserAiAnalysisDisplay: React.FC<UserAiAnalysisDisplayProps> = ({
 
   return (
     <div className="space-y-8 p-2">
-      {/* Header Summary */}
+      {/* Header Summary Card */}
       <Card
         className={cn(
           'text-center border-0 shadow-xl overflow-hidden bg-gradient-to-br',
@@ -2415,7 +2321,9 @@ const UserAiAnalysisDisplay: React.FC<UserAiAnalysisDisplayProps> = ({
 
             <div className="space-y-4">
               <div className="flex items-center justify-center gap-3">
-                {scoreInterpretation.icon}
+                <span className={scoreColors.text}>
+                  {scoreInterpretation.icon}
+                </span>
                 <Badge
                   className={cn(
                     'text-xl font-bold px-6 py-3 rounded-2xl text-white border-0 shadow-lg',
@@ -2444,17 +2352,16 @@ const UserAiAnalysisDisplay: React.FC<UserAiAnalysisDisplayProps> = ({
         </CardContent>
       </Card>
 
-      {/* Compatibility Points */}
+      {/* Compatibility Points: Teal/Emerald */}
       <Section
         title="נקודות חיבור חזקות"
         icon={Heart}
-        iconColorClass="text-emerald-600"
-        bgColorClass="bg-gradient-to-br from-emerald-50/80 to-green-50/60"
+        iconColorClass="text-teal-600"
+        bgColorClass="bg-gradient-to-br from-teal-50/80 to-emerald-50/60"
       >
         <ul className="space-y-4">
           {analysis.compatibilityPoints.length > 0 ? (
             analysis.compatibilityPoints.map((point, index) => (
-              // Each item is now a <li>
               <li key={index}>
                 <CompatibilityPoint point={point} index={index} />
               </li>
@@ -2468,12 +2375,12 @@ const UserAiAnalysisDisplay: React.FC<UserAiAnalysisDisplayProps> = ({
         </ul>
       </Section>
 
-      {/* Points to Consider */}
+      {/* Points to Consider: Orange/Amber */}
       <Section
         title="נקודות למחשבה וצמיחה"
         icon={Lightbulb}
-        iconColorClass="text-cyan-600"
-        bgColorClass="bg-gradient-to-br from-cyan-50/80 to-blue-50/60"
+        iconColorClass="text-orange-600"
+        bgColorClass="bg-gradient-to-br from-orange-50/80 to-amber-50/60"
       >
         <div className="space-y-4">
           {analysis.pointsToConsider.length > 0 ? (
@@ -2489,17 +2396,16 @@ const UserAiAnalysisDisplay: React.FC<UserAiAnalysisDisplayProps> = ({
         </div>
       </Section>
 
-      {/* Conversation Starters */}
+      {/* Conversation Starters: Rose */}
       <Section
         title="נושאים מומלצים לפתיחת שיחה"
         icon={MessageSquareQuote}
-        iconColorClass="text-blue-600"
-        bgColorClass="bg-gradient-to-br from-blue-50/80 to-cyan-50/60"
+        iconColorClass="text-rose-600"
+        bgColorClass="bg-gradient-to-br from-rose-50/80 to-pink-50/60"
       >
         <ul className="space-y-3">
           {analysis.suggestedConversationStarters.length > 0 ? (
             analysis.suggestedConversationStarters.map((starter, index) => (
-              // Each item is now a <li>
               <li key={index}>
                 <ConversationStarter starter={starter} index={index} />
               </li>
@@ -2513,14 +2419,14 @@ const UserAiAnalysisDisplay: React.FC<UserAiAnalysisDisplayProps> = ({
         </ul>
       </Section>
 
-      {/* Bottom Note */}
-      <Card className="border-0 shadow-lg bg-gradient-to-r from-cyan-50 to-emerald-50">
+      {/* Bottom Note: Teal/Orange gradient */}
+      <Card className="border-0 shadow-lg bg-gradient-to-r from-teal-50 to-orange-50">
         <CardContent className="p-6 text-center">
           <div className="flex items-center justify-center gap-2 mb-3">
-            <Sparkles className="w-5 h-5 text-cyan-600" />
-            <span className="font-semibold text-cyan-800">הערה חשובה</span>
+            <Sparkles className="w-5 h-5 text-teal-600" />
+            <span className="font-semibold text-teal-800">הערה חשובה</span>
           </div>
-          <p className="text-sm text-cyan-700 leading-relaxed max-w-2xl mx-auto">
+          <p className="text-sm text-teal-700 leading-relaxed max-w-2xl mx-auto">
             זכרו, ניתוח זה הוא כלי עזר והמלצה בלבד. הוא נועד להאיר נקודות למחשבה
             ולעורר שיחה. הכימיה האמיתית והחיבור העמוק נוצרים במפגש האנושי.
           </p>
@@ -2590,14 +2496,20 @@ const iconMap: { [key: string]: React.ElementType } = {
   other: Lightbulb,
 };
 
-// Updated Color Map to match Hero Palette (Teal, Orange, Rose)
+// Color Map matching HeroSection Palette (Teal/Orange/Rose)
 const colorMap: { [key: string]: string } = {
-  values: 'from-teal-400 to-emerald-500',    // Teal/Emerald -> Knowledge/Truth
-  family: 'from-orange-400 to-amber-500',    // Orange/Amber -> Warmth/Home
-  career: 'from-blue-500 to-teal-500',       // Blue/Teal -> Professional
-  personality: 'from-rose-400 to-pink-500',  // Rose/Pink -> Personal/Emotion
-  future: 'from-amber-400 to-orange-500',    // Amber/Orange -> Ambition
-  other: 'from-gray-500 to-slate-500',       // Neutral
+  // Teal/Emerald -> Knowledge/Values (matching HeroSection principle 1)
+  values: 'from-teal-400 via-teal-500 to-emerald-500',
+  // Orange/Amber -> Warmth/Home (matching HeroSection principle 2)
+  family: 'from-orange-400 via-amber-500 to-yellow-500',
+  // Teal/Emerald -> Professional/Stability
+  career: 'from-teal-500 to-emerald-600',
+  // Rose/Pink -> Personal/Emotion (matching HeroSection principle 3)
+  personality: 'from-rose-400 via-pink-500 to-red-500',
+  // Orange/Amber -> Ambition/Future
+  future: 'from-amber-400 via-orange-500 to-amber-600',
+  // Gray/Slate -> Neutral
+  other: 'from-gray-400 to-slate-500',
 };
 
 export const AskMatchmakerDialog: React.FC<AskMatchmakerDialogProps> = ({
@@ -2656,11 +2568,11 @@ export const AskMatchmakerDialog: React.FC<AskMatchmakerDialogProps> = ({
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col p-0 border-0 shadow-2xl rounded-3xl bg-white overflow-hidden z-[9999]">
-        {/* Header: Teal -> White -> Orange Gradient */}
-        <DialogHeader className="px-8 py-6 bg-gradient-to-r from-teal-50/80 via-white to-orange-50/50 border-b border-gray-100">
+        {/* Header: Teal -> White -> Orange Gradient (matching HeroSection) */}
+        <DialogHeader className="px-8 py-6 bg-gradient-to-r from-teal-50/80 via-white to-orange-50/50 border-b border-teal-100">
           <div className="flex items-center gap-4 mb-4">
             <Avatar className="w-16 h-16 border-4 border-white shadow-lg">
-              {/* Avatar: Teal Gradient */}
+              {/* Avatar: Teal/Emerald Gradient (matching HeroSection knowledge) */}
               <AvatarFallback className="bg-gradient-to-br from-teal-500 to-emerald-600 text-white text-xl font-bold">
                 {getInitials(matchmakerName)}
               </AvatarFallback>
@@ -2673,7 +2585,7 @@ export const AskMatchmakerDialog: React.FC<AskMatchmakerDialogProps> = ({
                 {dict.description}
               </DialogDescription>
             </div>
-            {/* Badge: Teal/Emerald */}
+            {/* Badge: Teal/Emerald (matching HeroSection) */}
             <Badge className="bg-gradient-to-r from-teal-500 to-emerald-500 text-white border-0 shadow-md px-3 py-1">
               <Clock className="w-3 h-3 ml-1" />
               {dict.statusBadge}
@@ -2683,9 +2595,9 @@ export const AskMatchmakerDialog: React.FC<AskMatchmakerDialogProps> = ({
 
         <div className="flex-1 overflow-y-auto p-8 space-y-6">
           {error && (
-            <Alert variant="destructive" className="border-red-200 bg-red-50">
+            <Alert variant="destructive" className="border-rose-200 bg-rose-50">
               <AlertCircle className="h-5 w-5" />
-              <AlertDescription className="text-red-800 font-medium">
+              <AlertDescription className="text-rose-800 font-medium">
                 {error}
               </AlertDescription>
             </Alert>
@@ -2707,7 +2619,7 @@ export const AskMatchmakerDialog: React.FC<AskMatchmakerDialogProps> = ({
                   key={topic.id}
                   className={cn(
                     'cursor-pointer transition-all duration-300 border-2 hover:shadow-lg hover:-translate-y-1',
-                    // Selection state: Teal
+                    // Selection state: Teal (matching HeroSection)
                     selectedTopic === topic.id
                       ? 'border-teal-300 bg-teal-50 shadow-md'
                       : 'border-gray-200 hover:border-teal-200'
@@ -2717,7 +2629,7 @@ export const AskMatchmakerDialog: React.FC<AskMatchmakerDialogProps> = ({
                   <CardContent className="p-4 text-center">
                     <div
                       className={cn(
-                        'w-12 h-12 rounded-xl mx-auto mb-3 flex items-center justify-center bg-gradient-to-r text-white shadow-md',
+                        'w-12 h-12 rounded-xl mx-auto mb-3 flex items-center justify-center bg-gradient-to-br text-white shadow-md',
                         topic.color
                       )}
                     >
@@ -2736,8 +2648,8 @@ export const AskMatchmakerDialog: React.FC<AskMatchmakerDialogProps> = ({
           </div>
 
           {selectedTopicData && (
-            // Sample Questions: Teal/Orange Gradient
-            <Card className="bg-gradient-to-r from-teal-50/50 to-orange-50/50 border-teal-200/50">
+            // Sample Questions: Teal/Orange Gradient (matching HeroSection)
+            <Card className="bg-gradient-to-r from-teal-50/50 via-white to-orange-50/50 border-teal-200/50">
               <CardContent className="p-6">
                 <div className="flex items-center gap-2 mb-4">
                   <selectedTopicData.icon className="w-5 h-5 text-teal-600" />
@@ -2771,7 +2683,7 @@ export const AskMatchmakerDialog: React.FC<AskMatchmakerDialogProps> = ({
             >
               {dict.input.label}
             </Label>
-            {/* Textarea Focus: Teal */}
+            {/* Textarea Focus: Teal (matching HeroSection secondary button) */}
             <Textarea
               id="question"
               value={question}
@@ -2790,7 +2702,7 @@ export const AskMatchmakerDialog: React.FC<AskMatchmakerDialogProps> = ({
             </div>
           </div>
         </div>
-        <DialogFooter className="px-8 py-6 border-t border-gray-100 bg-gray-50/50">
+        <DialogFooter className="px-8 py-6 border-t border-teal-100 bg-gradient-to-r from-teal-50/30 to-orange-50/30">
           <div className="flex gap-3 w-full">
             <Button
               type="button"
@@ -2801,7 +2713,7 @@ export const AskMatchmakerDialog: React.FC<AskMatchmakerDialogProps> = ({
             >
               {dict.buttons.cancel}
             </Button>
-            {/* Submit Button: Hero Gradient (Teal -> Orange -> Amber) */}
+            {/* Submit Button: Hero Gradient (Teal -> Orange -> Amber) - matching HeroSection CTA */}
             <Button
               type="submit"
               onClick={handleSubmit}
@@ -2945,7 +2857,7 @@ const AnalysisItem: React.FC<{
   area: string;
   explanation: string;
 }> = ({ icon: Icon, iconColor, area, explanation }) => (
-  <div className="flex items-start gap-4 p-3 rounded-lg hover:bg-slate-50 transition-colors">
+  <div className="flex items-start gap-4 p-3 rounded-lg hover:bg-teal-50/50 transition-colors">
     <div
       className={cn(
         'mt-1 flex-shrink-0 rounded-full p-2 bg-opacity-10',
@@ -2961,7 +2873,7 @@ const AnalysisItem: React.FC<{
   </div>
 );
 
-// --- Loading Screen Updated (Teal/Orange/Rose) ---
+// --- Loading Screen (Teal/Orange/Rose - matching HeroSection) ---
 const LoadingScreen: React.FC<{
   progress: number;
   step: number;
@@ -2979,15 +2891,15 @@ const LoadingScreen: React.FC<{
   return (
     <div className="flex flex-col items-center justify-center h-full text-center space-y-8 p-8">
       <div className="relative">
-        {/* Spinner Background: Teal -> Orange -> Rose */}
+        {/* Spinner Background: Teal -> Orange -> Rose (matching HeroSection) */}
         <div className="w-24 h-24 rounded-full bg-gradient-to-br from-teal-100 via-orange-50 to-rose-100 animate-pulse border-4 border-white shadow-xl" />
         <div className="absolute inset-0 flex items-center justify-center">
           <Loader2 className="w-12 h-12 text-teal-600 animate-spin" />
         </div>
       </div>
       <div className="space-y-3">
-        {/* Text Gradient: Teal -> Orange -> Rose */}
-        <h3 className="text-2xl font-bold bg-gradient-to-r from-teal-600 via-orange-600 to-rose-600 bg-clip-text text-transparent">
+        {/* Text Gradient: Teal -> Orange -> Rose (matching HeroSection title) */}
+        <h3 className="text-2xl font-bold bg-gradient-to-r from-teal-600 via-orange-500 to-rose-500 bg-clip-text text-transparent">
           {dict.loadingTitle}
         </h3>
         <p className="text-gray-600 max-w-md text-lg">
@@ -2995,7 +2907,11 @@ const LoadingScreen: React.FC<{
         </p>
       </div>
       <div className="w-full max-w-md space-y-4">
-        <Progress value={progress} className="h-3 bg-gray-200" />
+        {/* Progress Bar: Teal */}
+        <Progress
+          value={progress}
+          className="h-3 bg-gray-200 [&>div]:bg-gradient-to-r [&>div]:from-teal-500 [&>div]:to-emerald-500"
+        />
         <p className="text-sm text-gray-500 font-medium">
           {progress}% {locale === 'he' ? 'הושלם' : 'Completed'}
         </p>
@@ -3006,10 +2922,10 @@ const LoadingScreen: React.FC<{
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="flex items-center gap-4 p-4 bg-white rounded-xl shadow-lg border border-gray-100"
+          className="flex items-center gap-4 p-4 bg-white rounded-xl shadow-lg border border-teal-100"
         >
-          {/* Step Icon: Teal -> Orange */}
-          <div className="p-3 rounded-full bg-gradient-to-br from-teal-500 to-orange-500 text-white shadow-lg">
+          {/* Step Icon: Teal -> Orange (matching HeroSection CTA) */}
+          <div className="p-3 rounded-full bg-gradient-to-br from-teal-500 via-orange-500 to-amber-500 text-white shadow-lg">
             {React.createElement(loadingSteps[step].icon, {
               className: 'w-5 h-5',
             })}
@@ -3023,6 +2939,7 @@ const LoadingScreen: React.FC<{
   );
 };
 
+// --- Error Screen (Rose for errors) ---
 const ErrorScreen: React.FC<{
   error: string;
   onRetry: () => void;
@@ -3033,7 +2950,7 @@ const ErrorScreen: React.FC<{
     <XCircle className="w-16 h-16 text-rose-400" />
     <div className="space-y-4 max-w-md">
       <h3 className="text-2xl font-bold text-gray-800">{dict.errorTitle}</h3>
-      <Alert variant="destructive">
+      <Alert variant="destructive" className="border-rose-200 bg-rose-50">
         <AlertTriangle className="h-5 w-5" />
         <AlertTitle className="font-semibold">
           {dict.errorAlertTitle}
@@ -3043,7 +2960,11 @@ const ErrorScreen: React.FC<{
         </AlertDescription>
       </Alert>
     </div>
-    <Button onClick={onRetry} className="bg-teal-600 hover:bg-teal-700 text-white">
+    {/* Retry Button: Teal (matching HeroSection) */}
+    <Button
+      onClick={onRetry}
+      className="bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 text-white shadow-lg"
+    >
       <Brain className={cn('w-4 h-4', locale === 'he' ? 'ml-2' : 'mr-2')} />
       {dict.retryButton}
     </Button>
@@ -3123,14 +3044,15 @@ export const DialogBody: React.FC<
 
   return (
     <>
-      <DialogHeader className="relative p-6 border-b text-center bg-gradient-to-b from-slate-50 to-white flex-shrink-0">
+      {/* Header: Teal/Orange gradient background */}
+      <DialogHeader className="relative p-6 border-b border-teal-100 text-center bg-gradient-to-b from-teal-50/80 via-white to-orange-50/30 flex-shrink-0">
         <div className="flex flex-col items-center gap-2">
-          {/* Bot Icon: Teal -> Orange -> Rose */}
-          <div className="p-3 rounded-full bg-gradient-to-br from-teal-500 via-orange-500 to-rose-500 text-white shadow-lg">
+          {/* Bot Icon: Teal -> Orange -> Amber (matching HeroSection CTA) */}
+          <div className="p-3 rounded-full bg-gradient-to-br from-teal-500 via-orange-500 to-amber-500 text-white shadow-lg">
             <Bot className="w-7 h-7" />
           </div>
-          {/* Title: Teal -> Orange -> Rose */}
-          <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-teal-600 via-orange-600 to-rose-600 bg-clip-text text-transparent">
+          {/* Title: Teal -> Orange -> Rose (matching HeroSection) */}
+          <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-teal-600 via-orange-500 to-rose-500 bg-clip-text text-transparent">
             {dict.dialogTitle}
           </DialogTitle>
           <DialogDescription className="text-base text-gray-500">
@@ -3147,7 +3069,7 @@ export const DialogBody: React.FC<
             variant="ghost"
             size="icon"
             onClick={() => onOpenChange(false)}
-            className="rounded-full"
+            className="rounded-full hover:bg-gray-100"
           >
             <X className="h-5 w-5 text-gray-500" />
           </Button>
@@ -3185,12 +3107,24 @@ export const DialogBody: React.FC<
                 defaultValue="summary"
                 className="flex-1 flex flex-col min-h-0"
               >
-                <TabsList className="mx-4 mt-4 bg-slate-100 p-1 rounded-lg flex-shrink-0">
-                  <TabsTrigger value="summary">{dict.tabs.summary}</TabsTrigger>
-                  <TabsTrigger value="consider">
+                {/* Tabs: Teal focused styling */}
+                <TabsList className="mx-4 mt-4 bg-teal-50 p-1 rounded-lg flex-shrink-0 border border-teal-100">
+                  <TabsTrigger
+                    value="summary"
+                    className="data-[state=active]:bg-white data-[state=active]:text-teal-700 data-[state=active]:shadow-sm"
+                  >
+                    {dict.tabs.summary}
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="consider"
+                    className="data-[state=active]:bg-white data-[state=active]:text-orange-700 data-[state=active]:shadow-sm"
+                  >
                     {dict.tabs.consider}
                   </TabsTrigger>
-                  <TabsTrigger value="conversation">
+                  <TabsTrigger
+                    value="conversation"
+                    className="data-[state=active]:bg-white data-[state=active]:text-teal-700 data-[state=active]:shadow-sm"
+                  >
                     {dict.tabs.conversation}
                   </TabsTrigger>
                 </TabsList>
@@ -3198,9 +3132,9 @@ export const DialogBody: React.FC<
                 <ScrollArea className="flex-1">
                   <div className={cn('p-6', locale === 'en' && 'text-left')}>
                     <TabsContent value="summary" className="space-y-6 mt-0">
-                      <div className="p-4 bg-slate-50 rounded-lg border border-slate-200">
-                        {/* Match Title: Teal */}
-                        <h3 className="font-semibold text-gray-800 mb-2 flex items-center gap-2 text-teal-600">
+                      {/* Match Summary Card: Teal */}
+                      <div className="p-4 bg-gradient-to-r from-teal-50/50 to-emerald-50/50 rounded-lg border border-teal-200">
+                        <h3 className="font-semibold text-gray-800 mb-2 flex items-center gap-2 text-teal-700">
                           <Info className="w-5 h-5" />
                           {analysis.matchTitle}
                         </h3>
@@ -3209,9 +3143,9 @@ export const DialogBody: React.FC<
                         </p>
                       </div>
                       <div>
-                        {/* Strength: Emerald (Success) */}
+                        {/* Strengths: Teal/Emerald (Success - matching HeroSection) */}
                         <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
-                          <CheckCircle className="w-5 h-5 text-emerald-500" />
+                          <CheckCircle className="w-5 h-5 text-teal-500" />
                           {dict.summaryTab.strengthTitle}
                         </h3>
                         <div className="space-y-4">
@@ -3219,7 +3153,7 @@ export const DialogBody: React.FC<
                             <AnalysisItem
                               key={point.area}
                               icon={CheckCircle}
-                              iconColor="text-emerald-500"
+                              iconColor="text-teal-500"
                               {...point}
                             />
                           ))}
@@ -3228,7 +3162,7 @@ export const DialogBody: React.FC<
                     </TabsContent>
 
                     <TabsContent value="consider" className="mt-0">
-                      {/* Considerations: Amber/Orange */}
+                      {/* Considerations: Orange/Amber (matching HeroSection) */}
                       <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
                         <AlertTriangle className="w-5 h-5 text-orange-500" />
                         {dict.considerTab.title}
@@ -3246,7 +3180,7 @@ export const DialogBody: React.FC<
                     </TabsContent>
 
                     <TabsContent value="conversation" className="mt-0">
-                      {/* Conversation: Teal */}
+                      {/* Conversation: Teal (matching HeroSection) */}
                       <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
                         <MessageSquare className="w-5 h-5 text-teal-500" />
                         {dict.conversationTab.title}
@@ -3256,7 +3190,7 @@ export const DialogBody: React.FC<
                           (starter, index) => (
                             <li
                               key={index}
-                              className="flex items-start gap-2 p-2 rounded-md hover:bg-teal-50/50"
+                              className="flex items-start gap-2 p-2 rounded-md hover:bg-teal-50/50 transition-colors"
                             >
                               <MessageSquare className="w-4 h-4 text-teal-400 mt-1 flex-shrink-0" />
                               <span className="text-sm text-gray-700">
@@ -3274,8 +3208,13 @@ export const DialogBody: React.FC<
           ) : null}
         </AnimatePresence>
       </main>
-      <div className="p-4 bg-gray-50/80 border-t flex justify-end flex-shrink-0">
-        <Button variant="ghost" onClick={() => onOpenChange(false)}>
+      {/* Footer: Teal/Orange gradient background */}
+      <div className="p-4 bg-gradient-to-r from-teal-50/50 to-orange-50/50 border-t border-teal-100 flex justify-end flex-shrink-0">
+        <Button
+          variant="ghost"
+          onClick={() => onOpenChange(false)}
+          className="hover:bg-teal-100 hover:text-teal-700"
+        >
           <BackButtonIcon
             className={cn('w-4 h-4', locale === 'he' ? 'ml-2' : 'mr-2')}
           />
@@ -3300,24 +3239,24 @@ export const UserAiAnalysisDialog: React.FC<UserAiAnalysisDialogProps> = (
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
-        {/* Trigger Button: Teal -> Orange -> Rose */}
+        {/* Trigger Button: Teal/Orange/Rose gradient (matching HeroSection) */}
         <Button
           variant="outline"
           size="lg"
-          className="relative overflow-hidden group bg-gradient-to-r from-teal-50 via-orange-50 to-rose-50 border-2 border-teal-200 text-teal-700 hover:from-teal-100 hover:to-rose-100 hover:border-teal-300 transition-all duration-300 shadow-lg hover:shadow-xl rounded-xl"
+          className="relative overflow-hidden group bg-gradient-to-r from-teal-50 via-white to-orange-50 border-2 border-teal-200 text-teal-700 hover:from-teal-100 hover:via-white hover:to-orange-100 hover:border-teal-300 transition-all duration-300 shadow-lg hover:shadow-xl rounded-xl"
         >
           <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent transform -translate-x-full group-hover:animate-shimmer" />
           <div className="relative z-10 flex items-center gap-3">
             <div className="relative">
               <Brain className="w-6 h-6 transition-transform duration-500 group-hover:rotate-12 group-hover:scale-110 text-teal-600" />
-              <Sparkles className="w-3 h-3 absolute -top-1 -right-1 text-orange-500 opacity-0 group-hover:opacity-100" />
+              <Sparkles className="w-3 h-3 absolute -top-1 -right-1 text-orange-500 opacity-0 group-hover:opacity-100 transition-opacity" />
             </div>
             <span className="text-lg font-bold">{dict.triggerButton}</span>
           </div>
         </Button>
       </DialogTrigger>
       <DialogContent
-        className="max-w-4xl w-[95vw] h-[90vh] flex flex-col p-0 overflow-hidden shadow-2xl rounded-2xl bg-gray-50 z-[9999]"
+        className="max-w-4xl w-[95vw] h-[90vh] flex flex-col p-0 overflow-hidden shadow-2xl rounded-2xl bg-white z-[9999]"
         dir={locale === 'he' ? 'rtl' : 'ltr'}
         style={{ zIndex: 9999 }}
       >
@@ -4964,7 +4903,7 @@ const EnhancedHeroSection: React.FC<{
                                   locale === 'he' ? 'text-right' : 'text-left'
                                 )}
                               >
-                               &quot;{personalNote}&quot;
+                                &quot;{personalNote}&quot;
                               </p>
                             </div>
                           </div>
@@ -5372,7 +5311,8 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
     const baseClasses =
       'p-0 shadow-2xl border-0 bg-white overflow-hidden z-[50] flex flex-col transition-all duration-300 ease-in-out';
     if (isMobile) {
-      return `${baseClasses} !w-screen !h-screen !max-w-none !max-h-none !rounded-none !fixed !inset-0`;
+      // 👇 הוספת !transform-none
+      return `${baseClasses} !w-screen !h-screen !max-w-none !max-h-none !rounded-none !fixed !inset-0 !m-0 !transform-none`;
     } else if (isFullscreen) {
       return `${baseClasses} !w-screen !h-screen !max-w-none !max-h-none !rounded-none !fixed !inset-0 !m-0 !translate-x-0 !translate-y-0 !transform-none`;
     } else {

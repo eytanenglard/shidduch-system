@@ -73,7 +73,12 @@ interface MinimalCandidateCardProps {
     aiFirstPassScore?: number;
     aiScoreBreakdown?: ScoreBreakdown;
     aiBackgroundMultiplier?: number;
-    aiBackgroundCompatibility?: 'excellent' | 'good' | 'possible' | 'problematic' | 'not_recommended';
+    aiBackgroundCompatibility?:
+      | 'excellent'
+      | 'good'
+      | 'possible'
+      | 'problematic'
+      | 'not_recommended';
   };
   onClick: (candidate: Candidate) => void;
   onEdit?: (candidate: Candidate, e: React.MouseEvent) => void;
@@ -108,15 +113,35 @@ const calculateAge = (birthDate: Date | string): number => {
 const getBackgroundBadge = (compatibility?: string) => {
   switch (compatibility) {
     case 'excellent':
-      return { color: 'bg-green-100 text-green-700 border-green-200', icon: CheckCircle, label: 'רקע מצוין' };
+      return {
+        color: 'bg-green-100 text-green-700 border-green-200',
+        icon: CheckCircle,
+        label: 'רקע מצוין',
+      };
     case 'good':
-      return { color: 'bg-blue-100 text-blue-700 border-blue-200', icon: CheckCircle, label: 'רקע טוב' };
+      return {
+        color: 'bg-blue-100 text-blue-700 border-blue-200',
+        icon: CheckCircle,
+        label: 'רקע טוב',
+      };
     case 'possible':
-      return { color: 'bg-yellow-100 text-yellow-700 border-yellow-200', icon: Info, label: 'רקע אפשרי' };
+      return {
+        color: 'bg-yellow-100 text-yellow-700 border-yellow-200',
+        icon: Info,
+        label: 'רקע אפשרי',
+      };
     case 'problematic':
-      return { color: 'bg-orange-100 text-orange-700 border-orange-200', icon: AlertTriangle, label: 'פער רקע' };
+      return {
+        color: 'bg-orange-100 text-orange-700 border-orange-200',
+        icon: AlertTriangle,
+        label: 'פער רקע',
+      };
     case 'not_recommended':
-      return { color: 'bg-red-100 text-red-700 border-red-200', icon: AlertTriangle, label: 'רקע בעייתי' };
+      return {
+        color: 'bg-red-100 text-red-700 border-red-200',
+        icon: AlertTriangle,
+        label: 'רקע בעייתי',
+      };
     default:
       return null;
   }
@@ -144,7 +169,7 @@ const MinimalCandidateCard: React.FC<MinimalCandidateCardProps> = ({
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imageError, setImageError] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
-  
+
   // 🆕 State להצגת נימוק
   const [showReasoning, setShowReasoning] = useState(false);
 
@@ -261,22 +286,27 @@ const MinimalCandidateCard: React.FC<MinimalCandidateCardProps> = ({
               )}
               <Zap className="w-3 h-3" />
             </Badge>
-            
+
             {/* 🆕 Badge התאמת רקע */}
-            {candidate.aiBackgroundCompatibility && (() => {
-              const badge = getBackgroundBadge(candidate.aiBackgroundCompatibility);
-              if (!badge) return null;
-              const IconComponent = badge.icon;
-              return (
-                <div className={cn(
-                  'flex items-center gap-1 px-2 py-1 rounded-full text-xs border shadow-sm',
-                  badge.color
-                )}>
-                  <IconComponent className="w-3 h-3" />
-                  <span className="font-medium">{badge.label}</span>
-                </div>
-              );
-            })()}
+            {candidate.aiBackgroundCompatibility &&
+              (() => {
+                const badge = getBackgroundBadge(
+                  candidate.aiBackgroundCompatibility
+                );
+                if (!badge) return null;
+                const IconComponent = badge.icon;
+                return (
+                  <div
+                    className={cn(
+                      'flex items-center gap-1 px-2 py-1 rounded-full text-xs border shadow-sm',
+                      badge.color
+                    )}
+                  >
+                    <IconComponent className="w-3 h-3" />
+                    <span className="font-medium">{badge.label}</span>
+                  </div>
+                );
+              })()}
           </div>
         )}
 
@@ -453,7 +483,7 @@ const MinimalCandidateCard: React.FC<MinimalCandidateCardProps> = ({
                     </>
                   )}
                 </button>
-                
+
                 <AnimatePresence>
                   {showReasoning && (
                     <motion.div
@@ -467,53 +497,82 @@ const MinimalCandidateCard: React.FC<MinimalCandidateCardProps> = ({
                         <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-line text-right">
                           {candidate.aiReasoning}
                         </p>
-                        
+
                         {/* פירוט ציונים */}
                         {candidate.aiScoreBreakdown && (
                           <div className="mt-3 pt-2 border-t border-purple-100">
-                            <p className="text-xs text-gray-500 mb-2 text-right">פירוט ציון:</p>
+                            <p className="text-xs text-gray-500 mb-2 text-right">
+                              פירוט ציון:
+                            </p>
                             <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-right">
                               <div className="flex justify-between">
-                                <span className="text-purple-600 font-medium">{candidate.aiScoreBreakdown.religious}/35</span>
+                                <span className="text-purple-600 font-medium">
+                                  {candidate.aiScoreBreakdown.religious}/35
+                                </span>
                                 <span className="text-gray-600">דתי</span>
                               </div>
                               <div className="flex justify-between">
-                                <span className="text-purple-600 font-medium">{candidate.aiScoreBreakdown.careerFamily}/15</span>
-                                <span className="text-gray-600">קריירה-משפחה</span>
+                                <span className="text-purple-600 font-medium">
+                                  {candidate.aiScoreBreakdown.careerFamily}/15
+                                </span>
+                                <span className="text-gray-600">
+                                  קריירה-משפחה
+                                </span>
                               </div>
                               <div className="flex justify-between">
-                                <span className="text-purple-600 font-medium">{candidate.aiScoreBreakdown.lifestyle}/15</span>
-                                <span className="text-gray-600">סגנון חיים</span>
+                                <span className="text-purple-600 font-medium">
+                                  {candidate.aiScoreBreakdown.lifestyle}/15
+                                </span>
+                                <span className="text-gray-600">
+                                  סגנון חיים
+                                </span>
                               </div>
                               <div className="flex justify-between">
-                                <span className="text-purple-600 font-medium">{candidate.aiScoreBreakdown.ambition}/12</span>
+                                <span className="text-purple-600 font-medium">
+                                  {candidate.aiScoreBreakdown.ambition}/12
+                                </span>
                                 <span className="text-gray-600">שאפתנות</span>
                               </div>
                               <div className="flex justify-between">
-                                <span className="text-purple-600 font-medium">{candidate.aiScoreBreakdown.communication}/12</span>
+                                <span className="text-purple-600 font-medium">
+                                  {candidate.aiScoreBreakdown.communication}/12
+                                </span>
                                 <span className="text-gray-600">תקשורת</span>
                               </div>
                               <div className="flex justify-between">
-                                <span className="text-purple-600 font-medium">{candidate.aiScoreBreakdown.values}/11</span>
+                                <span className="text-purple-600 font-medium">
+                                  {candidate.aiScoreBreakdown.values}/11
+                                </span>
                                 <span className="text-gray-600">ערכים</span>
                               </div>
                             </div>
                           </div>
                         )}
-                        
+
                         {/* מכפיל רקע */}
-                        {candidate.aiBackgroundMultiplier && candidate.aiBackgroundMultiplier !== 1 && (
-                          <div className="mt-2 pt-2 border-t border-purple-100 flex items-center justify-end gap-2 text-xs">
-                            <span className={cn(
-                              'font-medium',
-                              candidate.aiBackgroundMultiplier > 1 ? 'text-green-600' : 'text-orange-600'
-                            )}>
-                              {candidate.aiBackgroundMultiplier > 1 ? '+' : ''}{Math.round((candidate.aiBackgroundMultiplier - 1) * 100)}%
-                            </span>
-                            <span className="text-gray-500">מכפיל רקע:</span>
-                            <Globe className="w-3 h-3 text-gray-400" />
-                          </div>
-                        )}
+                        {candidate.aiBackgroundMultiplier &&
+                          candidate.aiBackgroundMultiplier !== 1 && (
+                            <div className="mt-2 pt-2 border-t border-purple-100 flex items-center justify-end gap-2 text-xs">
+                              <span
+                                className={cn(
+                                  'font-medium',
+                                  candidate.aiBackgroundMultiplier > 1
+                                    ? 'text-green-600'
+                                    : 'text-orange-600'
+                                )}
+                              >
+                                {candidate.aiBackgroundMultiplier > 1
+                                  ? '+'
+                                  : ''}
+                                {Math.round(
+                                  (candidate.aiBackgroundMultiplier - 1) * 100
+                                )}
+                                %
+                              </span>
+                              <span className="text-gray-500">מכפיל רקע:</span>
+                              <Globe className="w-3 h-3 text-gray-400" />
+                            </div>
+                          )}
                       </div>
                     </motion.div>
                   )}

@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmaker\suggestions
-# Generated on: 2026-01-11 11:13:03
+# Generated on: 2026-01-11 12:04:44
 # Filter: Only content of code files (.bat, .c, .cfg, .conf, .cpp, .cs, .css, .go, .h, .html, .ini, .java, .js, .json, .jsx, .kt, .less, .md, .php, .py, .rb, .rs, .scss, .sh, .sql, .swift, .ts, .tsx, .txt, .xml, .yaml, .yml) is included.
 ################################################################################
 
@@ -1461,7 +1461,7 @@ const MatchCriteriaCard: React.FC<{
         animationFillMode: 'both',
       }}
     >
-      <div className="absolute inset-0">
+   <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-br from-white/30 to-transparent rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
         <div className="absolute bottom-0 left-0 w-12 h-12 bg-gradient-to-br from-white/20 to-transparent rounded-full blur-lg opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
       </div>
@@ -1614,7 +1614,7 @@ const MatchPreview: React.FC<MatchPreviewProps> = ({
         className
       )}
     >
-      <div className="absolute inset-0">
+      <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-white/20 to-transparent rounded-full blur-3xl animate-float"></div>
         <div
           className="absolute bottom-0 left-0 w-48 h-48 bg-gradient-to-br from-white/10 to-transparent rounded-full blur-2xl animate-float"
@@ -1875,7 +1875,7 @@ const EnhancedSection: React.FC<{
       className
     )}
   >
-    <div className="absolute inset-0">
+    <div className="absolute inset-0 pointer-events-none">
       <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-purple-200/20 to-pink-200/20 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
       <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-br from-cyan-200/20 to-blue-200/20 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-900"></div>
     </div>
@@ -2438,10 +2438,10 @@ export default SuggestionDetails;
 File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmaker\suggestions\NewSuggestionForm\index.tsx
 --------------------------------------------------------------------------------
 Content:
-// src/components/matchmaker/suggestions/NewSuggestionForm/index.tsx
+// src/app/components/matchmaker/suggestions/NewSuggestionForm/index.tsx
 
 'use client';
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -2471,6 +2471,7 @@ import {
 // Types
 import type { Candidate } from '../../new/types/candidates';
 import { newSuggestionSchema, type NewSuggestionFormData } from './schema';
+// <=== שינוי 1: עדכון הטיפוס של המילון שמתקבל ===>
 import type { MatchmakerPageDictionary } from '@/types/dictionaries/matchmaker';
 
 // Components
@@ -2551,11 +2552,12 @@ const NewSuggestionForm: React.FC<NewSuggestionFormProps> = ({
   onClose,
   candidates,
   selectedCandidate,
-  locale,
+  locale, // <--- הוסף את זה
+
   onSubmit,
 }) => {
+  // <=== שינוי 3: שימוש בנתיב הנכון והמלא לאובייקט המילון של הטופס ===>
   const formDict = dict.suggestionsDashboard.newSuggestionForm;
-  const FORM_ID = 'new-suggestion-form';
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [firstParty, setFirstParty] = useState<Candidate | null>(null);
@@ -2563,18 +2565,12 @@ const NewSuggestionForm: React.FC<NewSuggestionFormProps> = ({
   const [showAnalysisDialog, setShowAnalysisDialog] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
 
-  // Track initialization to prevent re-resets on re-renders
-  const isInitializedRef = useRef(false);
-
-  // Memoize steps to prevent unnecessary re-renders of the indicator
-  const steps = useMemo(
-    () => [
-      { label: formDict.steps.select.label, icon: Users },
-      { label: formDict.steps.analyze.label, icon: BarChart2 },
-      { label: formDict.steps.details.label, icon: Heart },
-    ],
-    [formDict]
-  );
+  // <=== שינוי 4: בניית מערך השלבים מתוך המילון ===>
+  const steps = [
+    { label: formDict.steps.select.label, icon: Users },
+    { label: formDict.steps.analyze.label, icon: BarChart2 },
+    { label: formDict.steps.details.label, icon: Heart },
+  ];
 
   const form = useForm<NewSuggestionFormData>({
     resolver: zodResolver(newSuggestionSchema),
@@ -2585,28 +2581,20 @@ const NewSuggestionForm: React.FC<NewSuggestionFormProps> = ({
     },
   });
 
-  // Handle initialization when dialog opens
   useEffect(() => {
     if (isOpen) {
-      // Only reset if not already initialized for this session
-      if (!isInitializedRef.current) {
-        form.reset({
-          priority: Priority.MEDIUM,
-          status: MatchSuggestionStatus.DRAFT,
-          decisionDeadline: new Date(
-            new Date().setDate(new Date().getDate() + 14)
-          ),
-          firstPartyId: selectedCandidate?.id || '',
-          secondPartyId: '',
-        });
-        setFirstParty(selectedCandidate || null);
-        setSecondParty(null);
-        setCurrentStep(0);
-        isInitializedRef.current = true;
-      }
-    } else {
-      // Reset initialization flag when dialog closes
-      isInitializedRef.current = false;
+      form.reset({
+        priority: Priority.MEDIUM,
+        status: MatchSuggestionStatus.DRAFT,
+        decisionDeadline: new Date(
+          new Date().setDate(new Date().getDate() + 14)
+        ),
+        firstPartyId: selectedCandidate?.id || '',
+        secondPartyId: '',
+      });
+      setFirstParty(selectedCandidate || null);
+      setSecondParty(null);
+      setCurrentStep(0);
     }
   }, [isOpen, selectedCandidate, form]);
 
@@ -2621,8 +2609,7 @@ const NewSuggestionForm: React.FC<NewSuggestionFormProps> = ({
       });
     };
 
-  const handleNext = (e: React.MouseEvent) => {
-    e.preventDefault(); // Prevent accidental form submission
+  const handleNext = () => {
     if (currentStep === 0 && (!firstParty || !secondParty)) {
       toast.error(formDict.toasts.selectParties);
       return;
@@ -2630,8 +2617,7 @@ const NewSuggestionForm: React.FC<NewSuggestionFormProps> = ({
     setCurrentStep((prev) => Math.min(prev + 1, steps.length - 1));
   };
 
-  const handlePrevious = (e: React.MouseEvent) => {
-    e.preventDefault();
+  const handlePrevious = () => {
     setCurrentStep((prev) => Math.max(prev - 1, 0));
   };
 
@@ -2644,6 +2630,9 @@ const NewSuggestionForm: React.FC<NewSuggestionFormProps> = ({
     setIsSubmitting(true);
     try {
       await onSubmit(data);
+      toast.success(formDict.toasts.createSuccess, {
+        duration: 5000,
+      });
       onClose();
     } catch (error) {
       toast.error(
@@ -2659,12 +2648,12 @@ const NewSuggestionForm: React.FC<NewSuggestionFormProps> = ({
     (c) => c.profile.gender === 'FEMALE'
   );
 
-  const canProceedToNextStep = (): boolean => {
+  const canProceedToNextStep = () => {
     switch (currentStep) {
       case 0:
-        return !!(firstParty && secondParty);
+        return firstParty && secondParty;
       case 1:
-        return !!(firstParty && secondParty);
+        return firstParty && secondParty;
       case 2:
         return true;
       default:
@@ -2715,6 +2704,7 @@ const NewSuggestionForm: React.FC<NewSuggestionFormProps> = ({
         }
         return (
           <div className="space-y-8">
+            {/* <=== שינוי 5: העברת החלק הנכון במילון לקומפוננטת הילד ===> */}
             <MatchPreview
               dict={formDict.matchPreview}
               firstParty={firstParty}
@@ -2749,6 +2739,7 @@ const NewSuggestionForm: React.FC<NewSuggestionFormProps> = ({
           );
         }
         return (
+          // <=== שינוי 6: העברת החלק הנכון במילון לקומפוננטת הילד ===>
           <SuggestionDetails
             dict={formDict.suggestionDetails}
             firstParty={firstParty}
@@ -2804,7 +2795,7 @@ const NewSuggestionForm: React.FC<NewSuggestionFormProps> = ({
 
           <div className="flex-1 overflow-y-auto p-6 lg:p-8 bg-gradient-to-br from-white via-purple-50/20 to-pink-50/20">
             <FormProvider {...form}>
-              <form id={FORM_ID} onSubmit={handleSubmit} className="h-full">
+              <form onSubmit={handleSubmit} className="h-full">
                 <div className="animate-fade-in-up">{renderStepContent()}</div>
               </form>
             </FormProvider>
@@ -2824,8 +2815,6 @@ const NewSuggestionForm: React.FC<NewSuggestionFormProps> = ({
                     {formDict.buttons.back}
                   </Button>
                 )}
-
-                {/* Navigation Buttons Logic */}
                 {currentStep < steps.length - 1 ? (
                   <Button
                     type="button"
@@ -2839,7 +2828,7 @@ const NewSuggestionForm: React.FC<NewSuggestionFormProps> = ({
                 ) : (
                   <Button
                     type="submit"
-                    form={FORM_ID}
+                    onClick={handleSubmit}
                     disabled={isSubmitting || !firstParty || !secondParty}
                     className="px-8 py-3 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl font-bold disabled:opacity-50 disabled:cursor-not-allowed"
                   >
@@ -2867,15 +2856,15 @@ const NewSuggestionForm: React.FC<NewSuggestionFormProps> = ({
         </DialogContent>
       </Dialog>
 
-      {/* Analysis Dialog */}
       {firstParty && secondParty && (
         <AiMatchAnalysisDialog
           isOpen={showAnalysisDialog}
           onClose={() => setShowAnalysisDialog(false)}
           targetCandidate={firstParty}
           comparisonCandidates={[secondParty]}
+          // <=== שינוי 7: העברת החלק הנכון של המילון לדיאלוג ה-AI ===>
           dict={dict.candidatesManager.aiAnalysis}
-          locale={locale}
+          locale={locale} // <--- הוסף את השורה הזו
         />
       )}
     </>

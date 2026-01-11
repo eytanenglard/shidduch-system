@@ -1312,8 +1312,6 @@ export async function findMatchesForUser(
     maxCandidatesToAnalyze?: number;
     forceRefresh?: boolean;
     autoSave?: boolean;
-    // 👇 הוספנו את השורה הזו:
-    onProgress?: (progress: number, stage: string) => Promise<void>;
   } = {}
 ): Promise<{
   matches: MatchResult[];
@@ -1328,38 +1326,44 @@ export async function findMatchesForUser(
   const {
     forceRefresh = false,
     autoSave = true,
-    onProgress, // 👇 חילוץ הפונקציה
   } = options;
-
-  // פונקציית עזר לדיווח התקדמות בטוח
-  const reportProgress = async (prog: number, stage: string) => {
-    if (onProgress) await onProgress(prog, stage);
-  };
 
   console.log(`\n========================================`);
   console.log(`[Matching V3.1] Starting match search for user: ${targetUserId}`);
-  
-  // דיווח התחלה
-  await reportProgress(5, 'initializing');
+  console.log(`[Matching V3.1] Options: forceRefresh=${forceRefresh}, autoSave=${autoSave}`);
+  console.log(`========================================\n`);
 
-  // בדיקת Cache...
+  // בדיקת Cache
   if (!forceRefresh) {
-    // ... (קוד ה-cache נשאר אותו דבר)
+    const savedResults = await loadSavedMatches(targetUserId);
+    
+    if (savedResults && savedResults.matches.length > 0) {
+      console.log(`[Matching V3.1] ✅ Using cached results (${savedResults.matches.length} matches)`);
+      
+      return {
+        matches: savedResults.matches,
+        fromCache: true,
+        meta: {
+          savedAt: savedResults.meta.savedAt,
+          isStale: savedResults.meta.isStale,
+          algorithmVersion: savedResults.meta.algorithmVersion,
+          totalCandidatesScanned: savedResults.meta.totalCandidatesScanned,
+        }
+      };
+    }
   }
 
   // שלב 1: שליפת נתוני המועמד המסומן
-  await reportProgress(10, 'fetching_target_user'); // 👇 עדכון
   const targetUser = await getTargetUserData(targetUserId);
   if (!targetUser) {
     throw new Error('Target user not found or has no profile');
   }
+  console.log(`[Matching V3.1] Target user: ${targetUser.firstName} ${targetUser.lastName}, Age: ${targetUser.age}, Gender: ${targetUser.gender}`);
 
-  // שלב 2: שליפת כל המועמדים
-  await reportProgress(20, 'fetching_candidates'); // 👇 עדכון
+  // שלב 2: שליפת כל המועמדים הרלוונטיים + ניתוח רקע
   const allCandidates = await fetchAllRelevantCandidates(targetUser);
-  
   if (allCandidates.length === 0) {
-    await reportProgress(100, 'done'); // 👇 עדכון
+    console.log(`[Matching V3.1] No candidates found after filtering`);
     return {
       matches: [],
       fromCache: false,
@@ -1367,17 +1371,15 @@ export async function findMatchesForUser(
     };
   }
 
-  // שלב 3: הכנת פרופיל
-  await reportProgress(30, 'preparing_profiles'); // 👇 עדכון
+  // שלב 3: הכנת פרופיל ה-Target
   const targetProfile = await prepareTargetProfile(targetUser);
   const targetBackgroundInfo = prepareTargetBackgroundInfo(targetUser);
 
-  // שלב 4: סריקה ראשונית
-  await reportProgress(40, 'running_first_pass'); // 👇 עדכון
+  // שלב 4: סריקה ראשונית ב-batches
   const firstPassResults = await runFirstPassAnalysis(targetProfile, targetBackgroundInfo, allCandidates);
   
   if (firstPassResults.length === 0) {
-    await reportProgress(100, 'done');
+    console.log(`[Matching V3.1] No results from First Pass`);
     return {
       matches: [],
       fromCache: false,
@@ -1386,51 +1388,58 @@ export async function findMatchesForUser(
   }
 
   // שלב 5: בחירת Top 15
-  await reportProgress(70, 'selecting_top_candidates'); // 👇 עדכון
   const topCandidates = firstPassResults.slice(0, TOP_CANDIDATES_COUNT);
+  
   const topCandidatesWithData = topCandidates.map(result => {
     const candidateData = allCandidates.find(c => c.userId === result.userId)!;
-    return { ...candidateData, ...result };
+    return {
+      ...candidateData,
+      ...result
+    };
   });
 
-  // שלב 6: סריקה מעמיקה
-  await reportProgress(80, 'running_deep_analysis'); // 👇 עדכון
+  // שלב 6: סריקה מעמיקה של Top 15
   const deepAnalysisResults = await runDeepAnalysis(targetProfile, targetBackgroundInfo, topCandidatesWithData);
 
-  // שלב 7: מיזוג תוצאות
-  await reportProgress(90, 'finalizing_results'); // 👇 עדכון
+  // שלב 7: מיזוג התוצאות
   const finalResults: MatchResult[] = deepAnalysisResults.map(deepResult => {
-     // ... (קוד המיזוג נשאר אותו דבר)
-     // העתק את הלוגיקה הקיימת מכאן
-     const firstPassResult = topCandidates.find(fp => fp.userId === deepResult.userId)!;
-     const candidateData = allCandidates.find(c => c.userId === deepResult.userId)!;
-     return {
-        userId: deepResult.userId,
-        firstName: candidateData.firstName,
-        lastName: candidateData.lastName,
-        firstPassScore: firstPassResult.totalScore,
-        finalScore: deepResult.finalScore,
-        scoreBreakdown: firstPassResult.breakdown,
-        shortReasoning: firstPassResult.shortReasoning,
-        detailedReasoning: deepResult.detailedReasoning,
-        rank: deepResult.rank,
-        backgroundMultiplier: firstPassResult.backgroundMultiplier,
-        backgroundCompatibility: candidateData.backgroundMatch?.compatibility,
-     };
+    const firstPassResult = topCandidates.find(fp => fp.userId === deepResult.userId)!;
+    const candidateData = allCandidates.find(c => c.userId === deepResult.userId)!;
+
+    return {
+      userId: deepResult.userId,
+      firstName: candidateData.firstName,
+      lastName: candidateData.lastName,
+      
+      firstPassScore: firstPassResult.totalScore,
+      finalScore: deepResult.finalScore,
+      
+      scoreBreakdown: firstPassResult.breakdown,
+      
+      shortReasoning: firstPassResult.shortReasoning,
+      detailedReasoning: deepResult.detailedReasoning,
+      
+      rank: deepResult.rank,
+      backgroundMultiplier: firstPassResult.backgroundMultiplier,
+      backgroundCompatibility: candidateData.backgroundMatch?.compatibility,
+    };
   });
 
   finalResults.sort((a, b) => (a.rank || 999) - (b.rank || 999));
 
   // שלב 8: שמירה
   if (autoSave && finalResults.length > 0) {
-    await reportProgress(95, 'saving_results'); // 👇 עדכון
     await saveMatchResults(targetUserId, matchmakerId, finalResults, allCandidates.length, 'v3.1');
   }
 
-  await reportProgress(100, 'done'); // 👇 עדכון סופי
+  console.log(`\n[Matching V3.1] ✅ Completed! Found ${finalResults.length} matches`);
+  console.log(`[Matching V3.1] Total candidates scanned: ${allCandidates.length}`);
+  console.log(`[Matching V3.1] Final Top 3:`);
+  finalResults.slice(0, 3).forEach((m, i) => {
+    console.log(`  ${i + 1}. ${m.firstName} ${m.lastName} - Final: ${m.finalScore}, BG: ${m.backgroundCompatibility}`);
+  });
+  console.log(`========================================\n`);
 
-  console.log(`\n[Matching V3.1] ✅ Completed!`);
-  
   return {
     matches: finalResults,
     fromCache: false,
@@ -1440,7 +1449,6 @@ export async function findMatchesForUser(
     }
   };
 }
-
 
 // ============================================================================
 // ADDITIONAL EXPORTS

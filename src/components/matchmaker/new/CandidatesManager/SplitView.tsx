@@ -530,48 +530,58 @@ const EmptyStateComponent: React.FC<{
 const AiLoadingProgress: React.FC<{
   isLoading: boolean;
   gender: 'male' | 'female';
-  progress?: number;
-  stage?: string;
-}> = ({ isLoading, gender, progress: realProgress, stage: realStage }) => {
-  const [fakeProgress, setFakeProgress] = useState(0);
+}> = ({ isLoading, gender }) => {
+  const [progress, setProgress] = useState(0);
+  const [stage, setStage] = useState<
+    'fetching' | 'analyzing' | 'deep' | 'saving'
+  >('fetching');
 
   useEffect(() => {
     if (!isLoading) {
-      setFakeProgress(0);
+      setProgress(0);
+      setStage('fetching');
       return;
     }
 
-    // אם יש progress אמיתי מהשרת - השתמש בו
-    if (realProgress !== undefined) return;
+    const stages = [
+      { name: 'fetching' as const, duration: 2000, progressEnd: 10 },
+      { name: 'analyzing' as const, duration: 60000, progressEnd: 70 },
+      { name: 'deep' as const, duration: 25000, progressEnd: 95 },
+      { name: 'saving' as const, duration: 3000, progressEnd: 100 },
+    ];
 
-    // אחרת, הצג progress מזויף לUX
+    let currentStageIndex = 0;
+    let stageStartTime = Date.now();
+
     const interval = setInterval(() => {
-      setFakeProgress((prev) => Math.min(prev + 0.5, 95));
-    }, 1000);
+      const currentStage = stages[currentStageIndex];
+      const elapsed = Date.now() - stageStartTime;
+      const stageProgress = Math.min(elapsed / currentStage.duration, 1);
+      const prevProgress =
+        currentStageIndex > 0 ? stages[currentStageIndex - 1].progressEnd : 0;
+      const newProgress =
+        prevProgress +
+        stageProgress * (currentStage.progressEnd - prevProgress);
+
+      setProgress(Math.min(newProgress, 99));
+      setStage(currentStage.name);
+
+      if (stageProgress >= 1 && currentStageIndex < stages.length - 1) {
+        currentStageIndex++;
+        stageStartTime = Date.now();
+      }
+    }, 100);
 
     return () => clearInterval(interval);
-  }, [isLoading, realProgress]);
+  }, [isLoading]);
 
   if (!isLoading) return null;
 
-  const progress = realProgress ?? fakeProgress;
-  const stage =
-    realStage ||
-    (progress < 20
-      ? 'fetching'
-      : progress < 70
-        ? 'analyzing'
-        : progress < 95
-          ? 'deep'
-          : 'saving');
-
-  const stageLabels: Record<string, string> = {
-    queued: 'בתור...',
+  const stageLabels = {
     fetching: 'שולף מועמדים רלוונטיים...',
     analyzing: 'מנתח התאמות (סריקה ראשונית)...',
     deep: 'ניתוח מעמיק של המובילים...',
     saving: 'שומר תוצאות...',
-    done: 'סיום!',
   };
 
   const config =
@@ -590,7 +600,7 @@ const AiLoadingProgress: React.FC<{
         <div className="flex items-center gap-3 mb-3">
           <Loader2 className="w-5 h-5 animate-spin text-gray-700" />
           <span className="text-sm font-medium text-gray-700">
-            {stageLabels[stage] || stage}
+            {stageLabels[stage]}
           </span>
           <span className="text-xs text-gray-500 mr-auto">
             {Math.round(progress)}%
@@ -681,57 +691,6 @@ const SplitView: React.FC<SplitViewProps> = ({
     return () => window.removeEventListener('resize', checkScreenSize);
   }, []);
 
-  // State נוסף לpolling
-  const [currentJobId, setCurrentJobId] = useState<string | null>(null);
-  const [jobProgress, setJobProgress] = useState(0);
-  const [jobStage, setJobStage] = useState<string>('');
-
-  // פונקציה לבדיקת סטטוס עבודה
-  const pollJobStatus = async (jobId: string): Promise<boolean> => {
-    try {
-      const response = await fetch(
-        `/api/ai/find-matches-v2/status?jobId=${jobId}`
-      );
-      const data = await response.json();
-
-      if (!data.success && data.status === 'failed') {
-        throw new Error(data.error || 'Job failed');
-      }
-
-      // עדכן התקדמות
-      setJobProgress(data.progress || 0);
-      setJobStage(data.stage || '');
-
-      if (data.status === 'completed') {
-        // העבודה הסתיימה - שמור תוצאות
-        setAiMatches(data.matches || []);
-        setAiMatchMeta({
-          fromCache: false,
-          savedAt: data.meta?.savedAt,
-          isStale: false,
-          algorithmVersion: data.meta?.algorithmVersion || 'v3.1',
-          totalCandidatesScanned: data.meta?.totalCandidatesScanned,
-        });
-
-        const topMatch = data.matches?.[0];
-        toast.success(`נמצאו ${data.matches?.length || 0} התאמות! 🎯`, {
-          position: 'top-center',
-          description: topMatch
-            ? `ההתאמה הטובה ביותר: ${topMatch.firstName} ${topMatch.lastName} (${topMatch.finalScore || topMatch.score}%)`
-            : 'סיום מוצלח',
-          duration: 5000,
-        });
-
-        return true; // סיים
-      }
-
-      return false; // עדיין עובד
-    } catch (error) {
-      console.error('Error polling job status:', error);
-      throw error;
-    }
-  };
-
   const handleFindAiMatches = async (
     e: React.MouseEvent,
     forceRefresh: boolean = false
@@ -749,11 +708,8 @@ const SplitView: React.FC<SplitViewProps> = ({
     setIsAiLoading(true);
     setAiMatches([]);
     setAiMatchMeta(null);
-    setJobProgress(0);
-    setJobStage('queued');
 
     try {
-      // שלב 1: שלח בקשה
       const response = await fetch('/api/ai/find-matches-v2', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -766,20 +722,19 @@ const SplitView: React.FC<SplitViewProps> = ({
       const data = await response.json();
 
       if (!response.ok || !data.success) {
-        throw new Error(data.error || 'Failed to start matching job');
+        throw new Error(data.error || 'Failed to fetch AI matches');
       }
 
-      // אם חזר מcache - סיימנו
-      if (data.fromCache && data.matches) {
-        setAiMatches(data.matches);
-        setAiMatchMeta({
-          fromCache: true,
-          savedAt: data.meta.savedAt,
-          isStale: data.meta.isStale,
-          algorithmVersion: data.meta.algorithmVersion,
-          totalCandidatesScanned: data.meta.totalCandidatesScanned,
-        });
+      setAiMatches(data.matches);
+      setAiMatchMeta({
+        fromCache: data.fromCache,
+        savedAt: data.meta.savedAt,
+        isStale: data.meta.isStale,
+        algorithmVersion: data.meta.algorithmVersion,
+        totalCandidatesScanned: data.meta.totalCandidatesScanned,
+      });
 
+      if (data.fromCache) {
         const savedDate = data.meta.savedAt
           ? new Date(data.meta.savedAt).toLocaleDateString('he-IL')
           : 'לא ידוע';
@@ -790,47 +745,18 @@ const SplitView: React.FC<SplitViewProps> = ({
             : `עודכן ב-${savedDate}`,
           duration: 4000,
         });
-        setIsAiLoading(false);
-        return;
-      }
-
-      // אחרת, יש לנו jobId - מתחיל polling
-      if (data.jobId) {
-        setCurrentJobId(data.jobId);
-        toast.info('החיפוש התחיל, אנא המתן...', {
+      } else {
+        const topMatch = data.matches[0];
+        const scannedText = data.meta.totalCandidatesScanned
+          ? ` (מתוך ${data.meta.totalCandidatesScanned} שנסרקו)`
+          : '';
+        toast.success(`נמצאו ${data.matches.length} התאמות!${scannedText} 🎯`, {
           position: 'top-center',
-          duration: 3000,
+          description: topMatch
+            ? `ההתאמה הטובה ביותר: ${topMatch.firstName} ${topMatch.lastName} (${topMatch.finalScore || topMatch.score}%)`
+            : 'התוצאות נשמרו למטמון',
+          duration: 5000,
         });
-
-        // Polling loop
-        let attempts = 0;
-        const maxAttempts = 120; // 10 דקות מקסימום (120 * 5 שניות)
-
-        const pollInterval = setInterval(async () => {
-          attempts++;
-
-          try {
-            const isDone = await pollJobStatus(data.jobId);
-
-            if (isDone || attempts >= maxAttempts) {
-              clearInterval(pollInterval);
-              setCurrentJobId(null);
-              setIsAiLoading(false);
-
-              if (attempts >= maxAttempts) {
-                toast.error('החיפוש לקח יותר מדי זמן. נסה שוב מאוחר יותר.');
-              }
-            }
-          } catch (error) {
-            clearInterval(pollInterval);
-            setCurrentJobId(null);
-            setIsAiLoading(false);
-            toast.error('שגיאה בחיפוש.', {
-              description:
-                error instanceof Error ? error.message : 'Unknown error',
-            });
-          }
-        }, 3000); // בדוק כל 3 שניות
       }
     } catch (error) {
       console.error('Error finding AI matches:', error);
@@ -838,6 +764,7 @@ const SplitView: React.FC<SplitViewProps> = ({
         description:
           error instanceof Error ? error.message : 'נסה שוב מאוחר יותר.',
       });
+    } finally {
       setIsAiLoading(false);
     }
   };
@@ -1044,12 +971,7 @@ const SplitView: React.FC<SplitViewProps> = ({
               <AnimatePresence>
                 {isAiLoading &&
                   aiTargetCandidate?.profile.gender === 'FEMALE' && (
-                    <AiLoadingProgress
-                      isLoading={isAiLoading}
-                      progress={jobProgress}
-                      stage={jobStage}
-                      gender="male"
-                    />
+                    <AiLoadingProgress isLoading={isAiLoading} gender="male" />
                   )}
               </AnimatePresence>
               {separateFiltering && onMaleSearchChange && (
@@ -1122,8 +1044,6 @@ const SplitView: React.FC<SplitViewProps> = ({
                   aiTargetCandidate?.profile.gender === 'MALE' && (
                     <AiLoadingProgress
                       isLoading={isAiLoading}
-                      progress={jobProgress}
-                      stage={jobStage}
                       gender="female"
                     />
                   )}
@@ -1170,12 +1090,7 @@ const SplitView: React.FC<SplitViewProps> = ({
             <AnimatePresence>
               {isAiLoading &&
                 aiTargetCandidate?.profile.gender === 'FEMALE' && (
-                  <AiLoadingProgress
-                    isLoading={isAiLoading}
-                    progress={jobProgress}
-                    stage={jobStage}
-                    gender="male"
-                  />
+                  <AiLoadingProgress isLoading={isAiLoading} gender="male" />
                 )}
             </AnimatePresence>
             {separateFiltering && onMaleSearchChange && (
@@ -1226,12 +1141,7 @@ const SplitView: React.FC<SplitViewProps> = ({
             {renderPanelHeader('female')}
             <AnimatePresence>
               {isAiLoading && aiTargetCandidate?.profile.gender === 'MALE' && (
-                <AiLoadingProgress
-                  isLoading={isAiLoading}
-                  progress={jobProgress}
-                  stage={jobStage}
-                  gender="female"
-                />
+                <AiLoadingProgress isLoading={isAiLoading} gender="female" />
               )}
             </AnimatePresence>
             {separateFiltering && onFemaleSearchChange && (

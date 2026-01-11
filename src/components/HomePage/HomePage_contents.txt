@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\HomePage
-# Generated on: 2026-01-06 21:10:45
+# Generated on: 2026-01-11 12:12:10
 # Filter: Only content of code files (.bat, .c, .cfg, .conf, .cpp, .cs, .css, .go, .h, .html, .ini, .java, .js, .json, .jsx, .kt, .less, .md, .php, .py, .rb, .rs, .scss, .sh, .sql, .swift, .ts, .tsx, .txt, .xml, .yaml, .yml) is included.
 ################################################################################
 
@@ -3429,7 +3429,14 @@ import {
 import { Session } from 'next-auth';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { HeroSectionDict, PrincipleDict } from '@/types/dictionary';
+import { Heebo } from 'next/font/google';
 
+// הגדרת פונט Heebo לכותרת
+const heebo = Heebo({
+  subsets: ['hebrew', 'latin'],
+  weight: ['400', '500', '600', '700'],
+  display: 'swap',
+});
 interface HeroSectionProps {
   session: Session | null;
   isVisible: boolean;

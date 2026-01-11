@@ -131,8 +131,8 @@ export class NotificationService {
       return null;
     }
     
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
-    const reviewUrl = `${baseUrl}/suggestions/${suggestion.id}/review`;
+const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+const reviewUrl = `${baseUrl}/matches`;
     const dashboardUrl = `${baseUrl}/dashboard/suggestions/${suggestion.id}`;
 
     return (partyType: 'first' | 'second' | 'matchmaker'): NotificationContent => {
@@ -162,8 +162,7 @@ export class NotificationService {
     suggestionId: string,
     dictionary: EmailDictionary['notifications']
   ): (partyType: 'first' | 'second' | 'matchmaker') => NotificationContent {
-    const reviewUrl = `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/suggestions/${suggestionId}/review`;
-    return () => ({
+const reviewUrl = `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/matches`;    return () => ({
         subject: dictionary.customMessage.subject,
         body: `${customMessage}\n\nלצפייה בפרטי ההצעה: ${reviewUrl}`,
         htmlBody: `<div dir="rtl"><p>${customMessage}</p><p>לצפייה בפרטי ההצעה: <a href="${reviewUrl}">לחץ כאן</a></p></div>`

@@ -8,13 +8,13 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { UserRole } from "@prisma/client";
 import prisma from "@/lib/prisma";
-import { addMatchingJob } from "@/lib/queue/matchingQueue";
+// import { addMatchingJob } from "@/lib/queue/matchingQueue"; // הוסר לבקשתך
 import { 
   loadSavedMatches,
   deleteSavedMatches,
 } from "@/lib/services/matchingAlgorithmService";
 
-// הגדרות - כבר לא צריך maxDuration ארוך כי העבודה רצה ברקע
+// הגדרות
 export const dynamic = 'force-dynamic';
 
 // ============================================================================
@@ -138,13 +138,8 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
     console.log(`[API find-matches V3.1] Created job: ${job.id}`);
 
-    // הוסף לתור העבודות
-    await addMatchingJob({
-      jobId: job.id,
-      targetUserId,
-      matchmakerId,
-      forceRefresh,
-    });
+    // כאן הוסר ה-Queue Trigger (addMatchingJob)
+    // העבודה נוצרה ב-DB ומחכה למנגנון חיצוני שיבצע אותה
 
     // החזר מיד את ה-jobId
     return NextResponse.json({
@@ -153,7 +148,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       status: 'pending',
       progress: 0,
       stage: 'queued',
-      message: 'Job started. Poll /api/ai/find-matches-v2/status?jobId=... for updates',
+      message: 'Job created in DB. Poll /api/ai/find-matches-v2/status?jobId=... for updates',
     });
 
   } catch (error) {
