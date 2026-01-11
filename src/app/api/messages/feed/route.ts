@@ -1,4 +1,4 @@
-// FILENAME: src/app/api/messages/feed/route.ts
+// src/app/api/messages/feed/route.ts
 
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
@@ -12,12 +12,22 @@ export const dynamic = 'force-dynamic';
 
 // הגדרה אחידה לשליפת פרטי משתמשים מלאים
 const partySelect = {
-  id: true, email: true, firstName: true, lastName: true, isProfileComplete: true, phone: true,
+  id: true,
+  email: true,
+  firstName: true,
+  lastName: true,
+  isProfileComplete: true,
+  phone: true,
   profile: true,
   images: {
-    select: { 
-      id: true, url: true, isMain: true, createdAt: true, updatedAt: true,
-      cloudinaryPublicId: true, userId: true
+    select: {
+      id: true,
+      url: true,
+      isMain: true,
+      createdAt: true,
+      updatedAt: true,
+      cloudinaryPublicId: true,
+      userId: true
     },
     orderBy: { isMain: "desc" as const },
   },
@@ -33,6 +43,7 @@ export async function GET() {
 
   try {
     // 1. שלוף הצעות שידוך רלוונטיות
+    // Prisma שולף אוטומטית את השדות הסקלריים החדשים (firstPartyLastViewedAt, secondPartyLastViewedAt)
     const suggestionsFromDb = await prisma.matchSuggestion.findMany({
       where: {
         OR: [{ firstPartyId: userId }, { secondPartyId: userId }],
@@ -46,40 +57,53 @@ export async function GET() {
       },
       orderBy: { lastActivity: "desc" },
     });
+
     const suggestions: ExtendedMatchSuggestion[] = suggestionsFromDb.filter(
       (s) => s.firstParty?.profile && s.secondParty?.profile
     ) as ExtendedMatchSuggestion[];
 
     // 2. שלוף הודעות צ'אט רלוונטיות
+    // Prisma שולף אוטומטית את השדה החדש (recipientReadAt)
     const inquiriesFromDb = await prisma.suggestionInquiry.findMany({
-        where: {
-            OR: [{ fromUserId: userId }, { toUserId: userId }]
-        },
-        include: {
-            fromUser: { select: { id: true, firstName: true, lastName: true } },
-            toUser: { select: { id: true, firstName: true, lastName: true } },
-            suggestion: {
-                include: {
-                    firstParty: { select: partySelect },
-                    secondParty: { select: partySelect },
-                    matchmaker: { select: { firstName: true, lastName: true } },
-                }
-            }
-        },
-        orderBy: { createdAt: 'desc' },
-        take: 30
+      where: {
+        OR: [{ fromUserId: userId }, { toUserId: userId }]
+      },
+      include: {
+        fromUser: { select: { id: true, firstName: true, lastName: true } },
+        toUser: { select: { id: true, firstName: true, lastName: true } },
+        suggestion: {
+          include: {
+            firstParty: { select: partySelect },
+            secondParty: { select: partySelect },
+            matchmaker: { select: { firstName: true, lastName: true } },
+          }
+        }
+      },
+      orderBy: { createdAt: 'desc' },
+      take: 30
     });
 
-    // 3. המרת הצעות למבנה FeedItem
+    // 3. המרת הצעות למבנה FeedItem עם חישוב isRead מעודכן
     const suggestionFeedItems: FeedItem[] = suggestions.map((s) => {
       const isFirstParty = s.firstPartyId === userId;
       const otherParty = isFirstParty ? s.secondParty : s.firstParty;
+      
       let type: FeedItemType = 'STATUS_UPDATE';
       let title = `עדכון בהצעה עם ${otherParty.firstName}`;
       let description = "הסטטוס התעדכן. לחץ/י לפרטים.";
+
+      // === לוגיקה לחישוב האם נקרא ===
+      // שליפת זמן הצפייה האחרון לפי הצד הרלוונטי (שדות אלו חייבים להיות קיימים ב-Schema המעודכן)
+      const lastViewedAt = isFirstParty ? s.firstPartyLastViewedAt : s.secondPartyLastViewedAt;
       
-      const link = userRole === 'CANDIDATE' 
-        ? `/matches?suggestionId=${s.id}` 
+      // ההודעה נחשבת כנקראה רק אם קיים זמן צפייה והוא מאוחר או שווה לזמן הפעילות האחרונה
+      const isRead = lastViewedAt 
+        ? new Date(lastViewedAt).getTime() >= new Date(s.lastActivity).getTime()
+        : false;
+      // ==============================
+
+      const link = userRole === 'CANDIDATE'
+        ? `/matches?suggestionId=${s.id}`
         : `/matchmaker/suggestions?suggestionId=${s.id}`;
 
       if ((s.status === "PENDING_FIRST_PARTY" && isFirstParty) || (s.status === "PENDING_SECOND_PARTY" && !isFirstParty)) {
@@ -94,64 +118,76 @@ export async function GET() {
         title = "איך הייתה הפגישה הראשונה?";
         description = "נשמח לשמוע את דעתך כדי להמשיך ולסייע.";
       }
-      
+
       return {
-        id: `${s.id}-${s.status}`, type, title, description,
-        timestamp: s.lastActivity, isRead: false,
+        id: `${s.id}-${s.status}`,
+        type,
+        title,
+        description,
+        timestamp: s.lastActivity,
+        isRead: isRead, // שימוש בערך המחושב
         link: link,
         payload: { suggestion: s },
       };
     });
 
-    // 4. המרת הודעות צ'אט למבנה FeedItem
+    // 4. המרת הודעות צ'אט למבנה FeedItem עם חישוב isRead מעודכן
     const inquiryFeedItems: FeedItem[] = inquiriesFromDb.map((inquiry): FeedItem => {
-        const isMyMessage = inquiry.fromUserId === userId;
-        const otherUser = isMyMessage ? inquiry.toUser : inquiry.fromUser;
-        const suggestionParticipant = inquiry.suggestion.firstPartyId === userId ? inquiry.suggestion.secondParty : inquiry.suggestion.firstParty;
-        
-        let title: string;
-        let description: string;
-        let type: FeedItemType;
+      const isMyMessage = inquiry.fromUserId === userId;
+      const otherUser = isMyMessage ? inquiry.toUser : inquiry.fromUser;
+      const suggestionParticipant = inquiry.suggestion.firstPartyId === userId 
+        ? inquiry.suggestion.secondParty 
+        : inquiry.suggestion.firstParty;
 
-        const link = userRole === 'CANDIDATE'
-            ? `/matches?suggestionId=${inquiry.suggestionId}&view=chat`
-            : `/matchmaker/suggestions?suggestionId=${inquiry.suggestionId}&view=chat`;
+      let title: string;
+      let description: string;
+      let type: FeedItemType;
 
-        if (isMyMessage) {
-            title = `שלחת שאלה ל${otherUser.firstName}`;
-            description = `"${inquiry.question.substring(0, 50)}..."`;
-            type = inquiry.answer ? 'INQUIRY_RESPONSE' : 'MATCHMAKER_MESSAGE';
+      const link = userRole === 'CANDIDATE'
+        ? `/matches?suggestionId=${inquiry.suggestionId}&view=chat`
+        : `/matchmaker/suggestions?suggestionId=${inquiry.suggestionId}&view=chat`;
+
+      // === לוגיקה לחישוב האם נקרא ===
+      // 1. אם אני שלחתי את ההודעה, היא תמיד "קרואה" מבחינתי.
+      // 2. אם קיבלתי אותה, בודקים אם קיים recipientReadAt.
+      const isRead = isMyMessage || !!inquiry.recipientReadAt;
+      // ==============================
+
+      if (isMyMessage) {
+        title = `שלחת שאלה ל${otherUser.firstName}`;
+        description = `"${inquiry.question.substring(0, 50)}..."`;
+        type = inquiry.answer ? 'INQUIRY_RESPONSE' : 'MATCHMAKER_MESSAGE';
+      } else {
+        if (inquiry.answer) {
+          title = `התקבלה תשובה מ${otherUser.firstName}`;
+          description = `לגבי שאלתך על ${suggestionParticipant.firstName}: "${inquiry.answer.substring(0, 40)}..."`;
+          type = 'INQUIRY_RESPONSE';
         } else {
-            if (inquiry.answer) {
-                 title = `התקבלה תשובה מ${otherUser.firstName}`;
-                 description = `לגבי שאלתך על ${suggestionParticipant.firstName}: "${inquiry.answer.substring(0, 40)}..."`;
-                 type = 'INQUIRY_RESPONSE';
-            } else {
-                 title = `הודעה חדשה מ${otherUser.firstName}`;
-                 description = `לגבי ההצעה עם ${suggestionParticipant.firstName}`;
-                 type = userRole === 'MATCHMAKER' && inquiry.status === 'PENDING' ? 'ACTION_REQUIRED' : 'MATCHMAKER_MESSAGE';
-            }
+          title = `הודעה חדשה מ${otherUser.firstName}`;
+          description = `לגבי ההצעה עם ${suggestionParticipant.firstName}`;
+          type = userRole === 'MATCHMAKER' && inquiry.status === 'PENDING' ? 'ACTION_REQUIRED' : 'MATCHMAKER_MESSAGE';
         }
+      }
 
-        return {
-            id: inquiry.id,
-            type: type,
-            title,
-            description,
-            timestamp: inquiry.answeredAt ? inquiry.answeredAt : inquiry.createdAt,
-            isRead: isMyMessage || inquiry.status !== 'PENDING',
-            link: link,
-            payload: { 
-                suggestion: inquiry.suggestion as unknown as ExtendedMatchSuggestion,
-                suggestionInquiry: inquiry as unknown as ExtendedSuggestionInquiry
-            }
-        };
+      return {
+        id: inquiry.id,
+        type: type,
+        title,
+        description,
+        timestamp: inquiry.answeredAt ? inquiry.answeredAt : inquiry.createdAt,
+        isRead: isRead, // שימוש בערך המחושב
+        link: link,
+        payload: {
+          suggestion: inquiry.suggestion as unknown as ExtendedMatchSuggestion,
+          suggestionInquiry: inquiry as unknown as ExtendedSuggestionInquiry
+        }
+      };
     });
 
     // 5. איחוד, מיון והחזרה
     const allFeedItems = [...suggestionFeedItems, ...inquiryFeedItems];
     allFeedItems.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
-    
+
     return NextResponse.json({ success: true, feed: allFeedItems });
 
   } catch (error) {

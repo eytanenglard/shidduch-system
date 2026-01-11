@@ -33,6 +33,8 @@ import {
   AlertTriangle,
   CheckCircle,
   Info,
+  Brain,
+  MessageSquare,
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -54,7 +56,11 @@ import {
 import type { MatchmakerPageDictionary } from '@/types/dictionaries/matchmaker';
 import { RELIGIOUS_LEVELS } from '../constants/filterOptions';
 
-// 🆕 טיפוס לפירוט ציון
+// ============================================================================
+// TYPES
+// ============================================================================
+
+// טיפוס לפירוט ציון
 interface ScoreBreakdown {
   religious: number;
   careerFamily: number;
@@ -66,7 +72,7 @@ interface ScoreBreakdown {
 
 interface MinimalCandidateCardProps {
   candidate: Candidate & {
-    // 🆕 שדות AI Matching
+    // שדות AI Matching
     aiScore?: number;
     aiReasoning?: string;
     aiRank?: number;
@@ -79,6 +85,8 @@ interface MinimalCandidateCardProps {
       | 'possible'
       | 'problematic'
       | 'not_recommended';
+    // 🆕 שדות Vector Search
+    aiSimilarity?: number;
   };
   onClick: (candidate: Candidate) => void;
   onEdit?: (candidate: Candidate, e: React.MouseEvent) => void;
@@ -98,6 +106,10 @@ interface MinimalCandidateCardProps {
   };
 }
 
+// ============================================================================
+// HELPER FUNCTIONS
+// ============================================================================
+
 const calculateAge = (birthDate: Date | string): number => {
   const today = new Date();
   const birth = new Date(birthDate);
@@ -109,7 +121,7 @@ const calculateAge = (birthDate: Date | string): number => {
   return age;
 };
 
-// 🆕 פונקציית עזר לצבע לפי התאמת רקע
+// פונקציית עזר לצבע לפי התאמת רקע
 const getBackgroundBadge = (compatibility?: string) => {
   switch (compatibility) {
     case 'excellent':
@@ -147,6 +159,10 @@ const getBackgroundBadge = (compatibility?: string) => {
   }
 };
 
+// ============================================================================
+// COMPONENT
+// ============================================================================
+
 const MinimalCandidateCard: React.FC<MinimalCandidateCardProps> = ({
   candidate,
   onClick,
@@ -170,12 +186,15 @@ const MinimalCandidateCard: React.FC<MinimalCandidateCardProps> = ({
   const [imageError, setImageError] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
 
-  // 🆕 State להצגת נימוק
+  // State להצגת נימוק
   const [showReasoning, setShowReasoning] = useState(false);
 
-  // 🆕 ציון AI מהמועמד עצמו (אם קיים) או מה-prop
+  // ציון AI מהמועמד עצמו (אם קיים) או מה-prop
   const effectiveAiScore = candidate.aiScore ?? aiScore;
   const hasAiData = typeof effectiveAiScore === 'number';
+
+  // 🆕 בדיקה אם זה תוצאת Vector Search
+  const isVectorResult = typeof candidate.aiSimilarity === 'number';
 
   const getReligiousLabel = (value: string | null | undefined) => {
     if (!value) return null;
@@ -262,7 +281,9 @@ const MinimalCandidateCard: React.FC<MinimalCandidateCardProps> = ({
             : isSelectedForComparison
               ? 'ring-4 ring-blue-400 ring-opacity-60 shadow-blue-200'
               : hasAiData
-                ? 'ring-2 ring-teal-300 ring-opacity-50 shadow-teal-100'
+                ? isVectorResult
+                  ? 'ring-2 ring-blue-300 ring-opacity-50 shadow-blue-100' // 🆕 עיצוב שונה ל-Vector
+                  : 'ring-2 ring-teal-300 ring-opacity-50 shadow-teal-100'
                 : isHighlighted
                   ? 'ring-2 ring-yellow-400 ring-opacity-60 shadow-yellow-100'
                   : 'shadow-gray-200',
@@ -273,21 +294,47 @@ const MinimalCandidateCard: React.FC<MinimalCandidateCardProps> = ({
       >
         <div className="absolute inset-0 bg-gradient-to-br from-transparent via-white/50 to-transparent opacity-60"></div>
 
-        {/* 🆕 Badge ציון AI משופר עם דירוג */}
+        {/* 🆕 Badge ציון AI משופר - תומך גם ב-Vector וגם ב-Algorithmic */}
         {hasAiData && (
           <div className="absolute top-3 left-3 z-30 flex flex-col gap-1">
-            <Badge className="bg-gradient-to-r from-teal-400 via-cyan-500 to-blue-500 text-white border-0 shadow-xl px-3 py-1.5 text-sm font-bold flex items-center gap-2">
-              <Sparkles className="w-4 h-4" />
+            {/* Badge ראשי - שונה לפי סוג החיפוש */}
+            <Badge
+              className={cn(
+                'text-white border-0 shadow-xl px-3 py-1.5 text-sm font-bold flex items-center gap-2',
+                isVectorResult
+                  ? 'bg-gradient-to-r from-blue-400 via-cyan-500 to-blue-500'
+                  : 'bg-gradient-to-r from-teal-400 via-cyan-500 to-blue-500'
+              )}
+            >
+              {isVectorResult ? (
+                <Zap className="w-4 h-4" />
+              ) : (
+                <Brain className="w-4 h-4" />
+              )}
               {dict.aiMatch.replace('{{score}}', effectiveAiScore!.toString())}
               {candidate.aiRank && (
                 <span className="bg-white/20 px-1.5 py-0.5 rounded text-xs">
                   #{candidate.aiRank}
                 </span>
               )}
-              <Zap className="w-3 h-3" />
+              {isVectorResult ? (
+                <Sparkles className="w-3 h-3" />
+              ) : (
+                <Zap className="w-3 h-3" />
+              )}
             </Badge>
 
-            {/* 🆕 Badge התאמת רקע */}
+            {/* 🆕 Badge דמיון וקטורי */}
+            {isVectorResult && candidate.aiSimilarity !== undefined && (
+              <div className="flex items-center gap-1 px-2 py-1 rounded-full text-xs border shadow-sm bg-blue-50 text-blue-700 border-blue-200">
+                <Zap className="w-3 h-3" />
+                <span className="font-medium">
+                  דמיון: {(candidate.aiSimilarity * 100).toFixed(0)}%
+                </span>
+              </div>
+            )}
+
+            {/* Badge התאמת רקע */}
             {candidate.aiBackgroundCompatibility &&
               (() => {
                 const badge = getBackgroundBadge(
@@ -461,7 +508,7 @@ const MinimalCandidateCard: React.FC<MinimalCandidateCardProps> = ({
               </div>
             )}
 
-            {/* 🆕 סקשן נימוק AI */}
+            {/* 🆕 סקשן נימוק AI משופר - תומך בשני סוגי החיפוש */}
             {hasAiData && candidate.aiReasoning && (
               <div className="mt-3 pt-3 border-t border-gray-100">
                 <button
@@ -469,7 +516,12 @@ const MinimalCandidateCard: React.FC<MinimalCandidateCardProps> = ({
                     e.stopPropagation();
                     setShowReasoning(!showReasoning);
                   }}
-                  className="flex items-center gap-1.5 text-xs text-purple-600 hover:text-purple-800 transition-colors w-full justify-end"
+                  className={cn(
+                    'flex items-center gap-1.5 text-xs transition-colors w-full justify-end',
+                    isVectorResult
+                      ? 'text-blue-600 hover:text-blue-800'
+                      : 'text-purple-600 hover:text-purple-800'
+                  )}
                 >
                   {showReasoning ? (
                     <>
@@ -478,7 +530,9 @@ const MinimalCandidateCard: React.FC<MinimalCandidateCardProps> = ({
                     </>
                   ) : (
                     <>
-                      <span>הצג נימוק AI</span>
+                      <span>
+                        {isVectorResult ? 'הצג נימוק דמיון' : 'הצג נימוק AI'}
+                      </span>
                       <ChevronDown className="w-3.5 h-3.5" />
                     </>
                   )}
@@ -493,14 +547,58 @@ const MinimalCandidateCard: React.FC<MinimalCandidateCardProps> = ({
                       transition={{ duration: 0.2 }}
                       className="overflow-hidden"
                     >
-                      <div className="mt-2 p-3 bg-gradient-to-r from-purple-50 to-indigo-50 rounded-xl border border-purple-100">
-                        <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-line text-right">
-                          {candidate.aiReasoning}
-                        </p>
+                      <div
+                        className={cn(
+                          'mt-2 p-3 rounded-xl border',
+                          isVectorResult
+                            ? 'bg-gradient-to-r from-blue-50 to-cyan-50 border-blue-100'
+                            : 'bg-gradient-to-r from-purple-50 to-indigo-50 border-purple-100'
+                        )}
+                      >
+                        {/* 🆕 אייקון וכותרת לפי סוג החיפוש */}
+                        <div className="flex items-center gap-2 mb-2">
+                          {isVectorResult ? (
+                            <>
+                              <Zap className="w-4 h-4 text-blue-500" />
+                              <span className="text-xs font-medium text-blue-700">
+                                ניתוח דמיון פרופילים
+                              </span>
+                            </>
+                          ) : (
+                            <>
+                              <Brain className="w-4 h-4 text-purple-500" />
+                              <span className="text-xs font-medium text-purple-700">
+                                ניתוח AI מתקדם
+                              </span>
+                            </>
+                          )}
+                        </div>
 
-                        {/* פירוט ציונים */}
-                        {candidate.aiScoreBreakdown && (
-                          <div className="mt-3 pt-2 border-t border-purple-100">
+                        {/* 🆕 הערת ה-AI */}
+                        <div className="flex items-start gap-2">
+                          <MessageSquare
+                            className={cn(
+                              'w-4 h-4 mt-0.5 flex-shrink-0',
+                              isVectorResult
+                                ? 'text-blue-400'
+                                : 'text-purple-400'
+                            )}
+                          />
+                          <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-line text-right">
+                            {candidate.aiReasoning}
+                          </p>
+                        </div>
+
+                        {/* פירוט ציונים - רק עבור Algorithmic */}
+                        {!isVectorResult && candidate.aiScoreBreakdown && (
+                          <div
+                            className={cn(
+                              'mt-3 pt-2 border-t',
+                              isVectorResult
+                                ? 'border-blue-100'
+                                : 'border-purple-100'
+                            )}
+                          >
                             <p className="text-xs text-gray-500 mb-2 text-right">
                               פירוט ציון:
                             </p>
@@ -549,10 +647,41 @@ const MinimalCandidateCard: React.FC<MinimalCandidateCardProps> = ({
                           </div>
                         )}
 
+                        {/* 🆕 מידע דמיון - רק עבור Vector */}
+                        {isVectorResult && candidate.aiSimilarity && (
+                          <div className="mt-3 pt-2 border-t border-blue-100">
+                            <div className="flex items-center justify-between text-xs">
+                              <span className="text-blue-600 font-bold">
+                                {(candidate.aiSimilarity * 100).toFixed(1)}%
+                              </span>
+                              <span className="text-gray-500">
+                                ציון דמיון סמנטי
+                              </span>
+                            </div>
+                            <div className="mt-1 h-2 bg-blue-100 rounded-full overflow-hidden">
+                              <motion.div
+                                initial={{ width: 0 }}
+                                animate={{
+                                  width: `${candidate.aiSimilarity * 100}%`,
+                                }}
+                                transition={{ duration: 0.5 }}
+                                className="h-full bg-gradient-to-r from-blue-400 to-cyan-500 rounded-full"
+                              />
+                            </div>
+                          </div>
+                        )}
+
                         {/* מכפיל רקע */}
                         {candidate.aiBackgroundMultiplier &&
                           candidate.aiBackgroundMultiplier !== 1 && (
-                            <div className="mt-2 pt-2 border-t border-purple-100 flex items-center justify-end gap-2 text-xs">
+                            <div
+                              className={cn(
+                                'mt-2 pt-2 border-t flex items-center justify-end gap-2 text-xs',
+                                isVectorResult
+                                  ? 'border-blue-100'
+                                  : 'border-purple-100'
+                              )}
+                            >
                               <span
                                 className={cn(
                                   'font-medium',

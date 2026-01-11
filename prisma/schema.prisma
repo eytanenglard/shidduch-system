@@ -63,6 +63,8 @@ neshamaInsightLastGeneratedAt   DateTime?
 referral    Referral?  @relation("ReferredUser")
   targetUserSearches    SavedMatchSearch[]  @relation("TargetUserSearches")
   matchmakerSearches    SavedMatchSearch[]  @relation("MatchmakerSearches")
+targetUserVectorSearches    SavedVectorMatchSearch[]  @relation("TargetUserVectorSearches")
+matchmakerVectorSearches    SavedVectorMatchSearch[]  @relation("MatchmakerVectorSearches")
 
   @@index([email])
   @@index([role])
@@ -289,6 +291,9 @@ model MatchSuggestion {
   statusHistory         SuggestionStatusHistory[]
   approvedBy            User[]                    @relation("ApprovedSuggestions")
   reviewedBy            User[]                    @relation("ReviewedSuggestions")
+  firstPartyLastViewedAt  DateTime?  // מתי צד א' צפה בהצעה לאחרונה
+  secondPartyLastViewedAt DateTime?  // מתי צד ב' צפה בהצעה לאחרונה
+
 
   @@index([category])
   @@index([matchmakerId])
@@ -439,6 +444,7 @@ model SuggestionInquiry {
   fromUser     User            @relation("SentSuggestionInquiries", fields: [fromUserId], references: [id], onDelete: Cascade) // ❗️ הוספתי/שיניתי
   suggestion   MatchSuggestion @relation(fields: [suggestionId], references: [id], onDelete: Cascade) // ✅ היה קיים
   toUser       User            @relation("ReceivedSuggestionInquiries", fields: [toUserId], references: [id], onDelete: Cascade) // ❗️ הוספתי/שיניתי
+recipientReadAt DateTime?
 
   @@index([suggestionId])
   @@index([fromUserId])
@@ -874,3 +880,18 @@ model SavedMatchSearch {
   @@index([createdAt])
 }
 
+model SavedVectorMatchSearch {
+  id               String   @id @default(cuid())
+  targetUserId     String   @unique
+  targetUser       User     @relation("TargetUserVectorSearches", fields: [targetUserId], references: [id], onDelete: Cascade)
+  matchmakerId     String
+  matchmaker       User     @relation("MatchmakerVectorSearches", fields: [matchmakerId], references: [id], onDelete: Cascade)
+  results          Json
+  algorithmVersion String   @default("vector-v1.0")
+  candidatesCount  Int      @default(0)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  
+  @@index([targetUserId])
+  @@index([matchmakerId])
+}

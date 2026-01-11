@@ -166,137 +166,96 @@ function processQuestionnaireData(questionnaire: QuestionnaireResponse | null | 
     };
 }
 
-export async function generateNarrativeProfile(userId: string): Promise<string | null> {
-  const user: UserWithRelations | null = await prisma.user.findUnique({
+export async function generateNarrativeProfile(userId: string): Promise<string> {
+  // 1. שליפת כל המידע, כולל שדות הסיכום החדשים
+  const user = await prisma.user.findUnique({
     where: { id: userId },
     include: {
-      profile: {
-        include: {
-          testimonials: {
-            where: { status: 'APPROVED' }
-          }
-        }
-      },
-      questionnaireResponses: { orderBy: { lastSaved: 'desc' }, take: 1 },
-    },
+      profile: true, // מכיל את aiProfileSummary, cvSummary
+      questionnaireResponses: {
+        orderBy: { createdAt: 'desc' },
+        take: 1
+      }
+    }
   });
 
-  if (!user || !user.profile) {
-    console.error(`Could not generate narrative profile: User or Profile not found for userId: ${userId}`);
-    return null;
-  }
+  if (!user || !user.profile) return '';
 
-  const { profile, questionnaireResponses } = user;
-  const questionnaire = questionnaireResponses[0];
+  const p = user.profile;
+  const q = user.questionnaireResponses[0];
+  const parts: string[] = [];
 
-  const calculateAge = (birthDate: Date): number => {
-    const today = new Date();
-    const age = today.getFullYear() - birthDate.getFullYear();
-    const m = today.getMonth() - birthDate.getMonth();
-    return (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) ? age - 1 : age;
-  };
-  const age = calculateAge(profile.birthDate);
+  // --- חלק 1: פרטים יבשים (בסיס) ---
+  parts.push(`User Profile Summary:
+  Name: ${user.firstName} ${user.lastName}
+  Gender: ${p.gender}
+  Age: ${calculateAge(p.birthDate)}
+  Marital Status: ${p.maritalStatus || 'Not specified'}
+  Religious Level: ${p.religiousLevel || 'Not specified'}
+  Location: ${p.city || 'Not specified'}`);
+
+  // --- חלק 2: טקסט חופשי שהיוזר כתב ---
+  if (p.about) parts.push(`About Me:\n${p.about}`);
+  if (p.profileHeadline) parts.push(`Headline:\n${p.profileHeadline}`);
+  if (p.inspiringCoupleStory) parts.push(`Inspiring Story:\n${p.inspiringCoupleStory}`);
   
-  const questionnaireData = processQuestionnaireData(questionnaire);
+  // --- חלק 3: מה הוא מחפש ---
+  if (p.matchingNotes) parts.push(`Looking For:\n${p.matchingNotes}`);
 
-  const religiousJourneyMap: Record<ReligiousJourney, string> = {
-      BORN_INTO_CURRENT_LIFESTYLE: "גדל/ה בסביבה דתית הדומה לרמתו/ה כיום",
-      BORN_SECULAR: "גדל/ה בסביבה חילונית",
-      BAAL_TESHUVA: "חוזר/ת בתשובה",
-      DATLASH: "יצא/ה בשאלה (דתל\"ש)",
-      CONVERT: "גר/גיורת",
-      IN_PROCESS: "בתהליך של שינוי/התחזקות/התלבטות דתית",
-      OTHER: "בעל/ת רקע דתי אחר או מורכב"
-  };
+  // --- חלק 4: שאלון עומק (Questionnaire) ---
+  if (q) {
+    // פונקציית עזר פנימית שמפרמטת תשובות JSON לטקסט
+    const formatQ = (json: any) => 
+      json ? Object.values(json).map((v: any) => v.answer || v).join('. ') : '';
 
-  const narrativeParts: string[] = [
-    `# פרופיל AI עבור ${user.firstName} ${user.lastName}, ${profile.gender === 'MALE' ? 'גבר' : 'אישה'} בן/בת ${age}`,
-    `## סיכום כללי`,
-    `- **שם:** ${user.firstName} ${user.lastName}`,
-    `- **גיל:** ${age} ${profile.birthDateIsApproximate ? '(משוער)' : ''}`,
-    `- **מצב משפחתי:** ${formatDisplayValue(profile.maritalStatus)}`,
-    `- **מגורים:** ${formatDisplayValue(profile.city)}`,
-    `- **רמה דתית:** ${formatDisplayValue(profile.religiousLevel)}`,
-    profile.religiousJourney ? `- **רקע/מסע דתי:** ${formatDisplayValue(religiousJourneyMap[profile.religiousJourney])}` : '',
-    `- **עיסוק:** ${formatDisplayValue(profile.occupation)}`,
-    `- **השכלה:** ${formatDisplayValue(profile.educationLevel)}, ${formatDisplayValue(profile.education)}`,
-    `- **שומר/ת נגיעה:** ${formatDisplayValue(profile.shomerNegiah)}`,
-    `- **רקע משפחתי:** מצב הורי: ${formatDisplayValue(profile.parentStatus)}. מקצוע האב: ${formatDisplayValue(profile.fatherOccupation)}. מקצוע האם: ${formatDisplayValue(profile.motherOccupation)}.`,
-  ].filter(Boolean);
-
-  if (user.source === 'MANUAL_ENTRY' && profile.manualEntryText) {
-    narrativeParts.push(`\n**הערת שדכן (למועמד ידני):** ${profile.manualEntryText}`);
-  }
-    if (profile.conversationSummary) {
-    narrativeParts.push(`\n**סיכום שיחה (לשימוש השדכן):** ${profile.conversationSummary}`);
-  }
-  if (profile.cvSummary) {
-    narrativeParts.push(`## ניתוח קורות חיים (מבוסס AI)\n${profile.cvSummary}`);
+    if (q.valuesAnswers) parts.push(`Values & Worldview:\n${formatQ(q.valuesAnswers)}`);
+    if (q.personalityAnswers) parts.push(`Personality:\n${formatQ(q.personalityAnswers)}`);
+    if (q.relationshipAnswers) parts.push(`Relationship View:\n${formatQ(q.relationshipAnswers)}`);
   }
 
-  if (profile.about) {
-    narrativeParts.push(`## קצת עליי (מהפרופיל)\n"${profile.about}"`);
+  // --- חלק 5: סיכום קו"ח (אם קיים) ---
+  if (p.cvSummary) {
+    parts.push(`Professional Background (CV Analysis):\n${p.cvSummary}`);
   }
 
-  const personalInsightsParts = [
-    profile.profileHeadline ? `**הכותרת האישית שלי:**\n"${profile.profileHeadline}"` : '',
-    profile.inspiringCoupleStory ? `**זוג שמעורר בי השראה:**\n${profile.inspiringCoupleStory}` : '',
-    profile.influentialRabbi ? `**דמות רוחנית שהשפיעה עליי:**\n${profile.influentialRabbi}` : ''
-  ].filter(Boolean);
+  // ========================================================================
+  // 🆕 התוספת שביקשת: הכללת ניתוח ה-AI בתוך הווקטור
+  // ========================================================================
+  if (p.aiProfileSummary) {
+    // מכיוון שזה שדה JSON, אנחנו צריכים להפוך אותו לטקסט קריא
+    let summaryText = '';
+    
+    // בדיקה אם זה אובייקט או מחרוזת
+    if (typeof p.aiProfileSummary === 'string') {
+      summaryText = p.aiProfileSummary;
+    } else {
+      // אם זה אובייקט מורכב (למשל מכיל נקודות חוזק, חולשה וכו')
+      const summaryObj = p.aiProfileSummary as any;
+      
+      // נבנה טקסט עשיר מתוך האובייקט
+      if (summaryObj.analysis) summaryText += `Deep Analysis: ${summaryObj.analysis}\n`;
+      if (summaryObj.strengths) summaryText += `Strengths: ${Array.isArray(summaryObj.strengths) ? summaryObj.strengths.join(', ') : summaryObj.strengths}\n`;
+      if (summaryObj.needs) summaryText += `Relationship Needs: ${summaryObj.needs}\n`;
+      
+      // fallback: אם המבנה לא ידוע, נמיר את הכל לטקסט
+      if (!summaryText) {
+        summaryText = JSON.stringify(summaryObj, null, 2);
+      }
+    }
 
-  if (personalInsightsParts.length > 0) {
-    narrativeParts.push(`## תובנות אישיות נוספות\n${personalInsightsParts.join('\n\n')}`);
+    if (summaryText) {
+      parts.push(`AI Professional Insight (Matchmaker Perspective):\n${summaryText}`);
+    }
   }
+  // ========================================================================
 
-  if (profile.hasMedicalInfo) {
-    narrativeParts.push(
-      `## מידע רפואי`,
-      `- **פירוט המידע:** ${formatDisplayValue(profile.medicalInfoDetails)}`,
-      `- **תזמון חשיפה:** ${formatDisplayValue(profile.medicalInfoDisclosureTiming)}`,
-      `- **המידע גלוי בפרופיל הציבורי:** ${profile.isMedicalInfoVisible ? 'כן' : 'לג'}`
-    );
-  }
-  
-  narrativeParts.push(
-    `## תכונות אופי ותחביבים`,
-    `- **תכונות בולטות:** ${formatArray(profile.profileCharacterTraits)}`,
-    `- **תחביבים עיקריים:** ${formatArray(profile.profileHobbies)}`
-  );
-  
-  const preferredJourneysText = (profile.preferredReligiousJourneys && profile.preferredReligiousJourneys.length > 0)
-    ? formatArray(profile.preferredReligiousJourneys.map(j => religiousJourneyMap[j] || j))
-    : "לא צוין";
+  return parts.join('\n\n---\n\n');
+}
 
-  narrativeParts.push(
-    `## מה אני מחפש/ת בבן/בת הזוג (העדפות מהפרופיל)`,
-    `- **תיאור כללי:** ${formatDisplayValue(profile.matchingNotes)}`,
-    `- **טווח גילאים מועדף:** ${formatDisplayValue(profile.preferredAgeMin, '?')} - ${formatDisplayValue(profile.preferredAgeMax, '?')}`,
-    `- **רמות דתיות מועדפות:** ${formatArray(profile.preferredReligiousLevels)}`,
-    `- **רקע/מסע דתי מועדף:** ${preferredJourneysText}`,
-    `- **רמות השכלה מועדפות:** ${formatArray(profile.preferredEducation)}`,
-    `- **מוצאים מועדפים:** ${formatArray(profile.preferredOrigins)}`
-  );
-
-  narrativeParts.push(
-    `\n## ניתוח השלמת השאלון`,
-    `- **סך הכל שאלות במערכת:** ${questionnaireData.totalCount}`,
-    `- **שאלות שנענו:** ${questionnaireData.answeredCount}`,
-    `- **אחוז השלמה:** ${questionnaireData.completionPercentage}%`,
-    `\n## תובנות מהשאלון (תשובות מפורטות)\n${questionnaireData.answersNarrative}`
-  );
-
-  const approvedTestimonials = profile.testimonials;
-  if (approvedTestimonials && approvedTestimonials.length > 0) {
-    narrativeParts.push(`## המלצות מחברים`);
-    approvedTestimonials.forEach(t => {
-      narrativeParts.push(
-        `**ממליץ/ה:** ${t.authorName} (${t.relationship})\n` +
-        `**תוכן ההמלצה:** "${t.content}"`
-      );
-    });
-  }
-  
-  return narrativeParts.join('\n\n').trim();
+// פונקציית עזר לחישוב גיל
+function calculateAge(birthDate: Date): number {
+  const diff = Date.now() - new Date(birthDate).getTime();
+  return Math.floor(diff / (1000 * 60 * 60 * 24 * 365.25));
 }
 
 export async function updateUserAiProfile(userId: string): Promise<void> {

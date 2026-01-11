@@ -1,4 +1,4 @@
-// File: src/app/components/matchmaker/new/CandidateCard/QuickView.tsx
+// src/components/matchmaker/new/CandidateCard/QuickView.tsx
 
 'use client';
 import React, { useState } from 'react';
@@ -6,7 +6,6 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
   Heart,
-
   Clock,
   Eye,
   Scroll,
@@ -26,6 +25,7 @@ import {
   Award,
   MessageCircle,
   X,
+  Brain, // הוספתי אייקון ל-AI
 } from 'lucide-react';
 
 import { Separator } from '@/components/ui/separator';
@@ -57,6 +57,11 @@ interface QuickViewProps {
   onSetAiTarget?: (candidate: Candidate, e: React.MouseEvent) => void;
   isAiTarget?: boolean;
   dict: MatchmakerPageDictionary['candidatesManager']['list']['quickView'];
+  // --- עדכון: הוספת שדות ה-AI לממשק ---
+  aiScore?: number;
+  aiReasoning?: string;
+  aiRank?: number;
+  aiSimilarity?: number;
 }
 
 const QuickView: React.FC<QuickViewProps> = ({
@@ -65,6 +70,10 @@ const QuickView: React.FC<QuickViewProps> = ({
   onSetAiTarget,
   isAiTarget = false,
   dict,
+  // --- עדכון: קבלת הפרמטרים ---
+  aiScore,
+  aiReasoning,
+  aiSimilarity,
 }) => {
   const [isClosing, setIsClosing] = useState(false);
   const [hoveredAction, setHoveredAction] = useState<string | null>(null);
@@ -83,6 +92,11 @@ const QuickView: React.FC<QuickViewProps> = ({
   const profile = candidate.profile;
   const isManualEntry = candidate.source === UserSource.MANUAL_ENTRY;
   const mainImage = candidate.images?.find((img) => img.isMain);
+
+  // חישוב האם להציג נתוני AI
+  const hasAiData =
+    typeof aiScore === 'number' || typeof aiSimilarity === 'number';
+  const isVectorResult = typeof aiSimilarity === 'number';
 
   const getAvailabilityInfo = () => {
     switch (profile.availabilityStatus) {
@@ -206,78 +220,249 @@ const QuickView: React.FC<QuickViewProps> = ({
             <div className="flex items-center gap-3">
               <div className="relative w-16 h-16 rounded-full overflow-hidden border-3 border-white/30 shadow-xl">
                 {mainImage ? (
-                  <Image src={getRelativeCloudinaryPath(mainImage.url)} alt={`${candidate.firstName} ${candidate.lastName}`} fill className="object-cover" />
+                  <Image
+                    src={getRelativeCloudinaryPath(mainImage.url)}
+                    alt={`${candidate.firstName} ${candidate.lastName}`}
+                    fill
+                    className="object-cover"
+                  />
                 ) : (
-                  <div className="w-full h-full bg-white/20 flex items-center justify-center"><User className="w-8 h-8 text-white/80" /></div>
+                  <div className="w-full h-full bg-white/20 flex items-center justify-center">
+                    <User className="w-8 h-8 text-white/80" />
+                  </div>
                 )}
               </div>
               <div>
-                <h3 className="text-xl font-bold mb-1">{candidate.firstName} {candidate.lastName}</h3>
-                <div className="flex items-center gap-2">{availabilityInfo.icon}<span className="text-white/90 font-medium">{availabilityInfo.label}</span></div>
+                <h3 className="text-xl font-bold mb-1">
+                  {candidate.firstName} {candidate.lastName}
+                </h3>
+                <div className="flex items-center gap-2">
+                  {availabilityInfo.icon}
+                  <span className="text-white/90 font-medium">
+                    {availabilityInfo.label}
+                  </span>
+                </div>
               </div>
             </div>
             <div className="flex items-center gap-2">
               {onSetAiTarget && (
-                <Button size="icon" variant="ghost" className="h-8 w-8 text-white hover:bg-white/20 rounded-full" onClick={(e) => onSetAiTarget(candidate, e)} title={isAiTarget ? dict.tooltips.clearAiTarget : dict.tooltips.setAsAiTarget}>
-                  <Star className={cn('h-5 w-5', isAiTarget ? 'fill-current text-yellow-300' : 'text-white/80')} />
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="h-8 w-8 text-white hover:bg-white/20 rounded-full"
+                  onClick={(e) => onSetAiTarget(candidate, e)}
+                  title={
+                    isAiTarget
+                      ? dict.tooltips.clearAiTarget
+                      : dict.tooltips.setAsAiTarget
+                  }
+                >
+                  <Star
+                    className={cn(
+                      'h-5 w-5',
+                      isAiTarget
+                        ? 'fill-current text-yellow-300'
+                        : 'text-white/80'
+                    )}
+                  />
                 </Button>
               )}
-              <Button size="icon" variant="ghost" className="h-8 w-8 text-white hover:bg-white/20 rounded-full" onClick={handleClose}><X className="h-5 w-5" /></Button>
+              <Button
+                size="icon"
+                variant="ghost"
+                className="h-8 w-8 text-white hover:bg-white/20 rounded-full"
+                onClick={handleClose}
+              >
+                <X className="h-5 w-5" />
+              </Button>
             </div>
           </div>
           <div className="flex flex-wrap gap-2">
-            <Badge className="bg-white/20 text-white border-white/30 backdrop-blur-sm">{availabilityInfo.description}</Badge>
-            {isManualEntry && (<Badge className="bg-purple-500/30 text-white border-purple-300/50 backdrop-blur-sm"><Edit className="w-3 h-3 mr-1" />{dict.manualEntry}</Badge>)}
+            <Badge className="bg-white/20 text-white border-white/30 backdrop-blur-sm">
+              {availabilityInfo.description}
+            </Badge>
+            {isManualEntry && (
+              <Badge className="bg-purple-500/30 text-white border-purple-300/50 backdrop-blur-sm">
+                <Edit className="w-3 h-3 mr-1" />
+                {dict.manualEntry}
+              </Badge>
+            )}
+
+            {/* --- הצגת תגית AI אם קיימת --- */}
+            {hasAiData && (
+              <Badge
+                className={cn(
+                  'backdrop-blur-sm border-0 text-white',
+                  isVectorResult ? 'bg-blue-500/40' : 'bg-teal-500/40'
+                )}
+              >
+                {isVectorResult ? (
+                  <Zap className="w-3 h-3 mr-1" />
+                ) : (
+                  <Brain className="w-3 h-3 mr-1" />
+                )}
+                {isVectorResult
+                  ? `${Math.round((aiSimilarity || 0) * 100)}% דמיון`
+                  : `התאמה: ${aiScore}`}
+              </Badge>
+            )}
           </div>
         </div>
       </div>
       <div className="flex-1 p-6 space-y-6 text-right overflow-y-auto bg-gradient-to-br from-white to-gray-50/30">
+        {/* --- הוספת אזור AI בתוך ה-Quick View אם קיים נימוק --- */}
+        {aiReasoning && (
+          <div
+            className={cn(
+              'p-4 rounded-xl border text-sm',
+              isVectorResult
+                ? 'bg-blue-50 border-blue-100'
+                : 'bg-purple-50 border-purple-100'
+            )}
+          >
+            <div className="flex items-center gap-2 mb-2 font-bold text-gray-700">
+              {isVectorResult ? (
+                <Zap className="w-4 h-4 text-blue-500" />
+              ) : (
+                <Brain className="w-4 h-4 text-purple-500" />
+              )}
+              <span>{isVectorResult ? 'ניתוח דמיון' : 'ניתוח התאמה'}</span>
+            </div>
+            <p className="text-gray-600 leading-relaxed">{aiReasoning}</p>
+          </div>
+        )}
+
         <div className="grid grid-cols-2 gap-4">
           {profile.birthDate && (
             <div className="p-3 bg-gradient-to-r from-blue-50 to-cyan-50 rounded-xl border border-blue-100 hover:shadow-md transition-all duration-300">
-              <div className="flex items-center justify-end gap-2 text-blue-700"><span className="font-bold text-lg">{calculateAge(new Date(profile.birthDate))}</span><CalendarClock className="w-5 h-5" /></div>
+              <div className="flex items-center justify-end gap-2 text-blue-700">
+                <span className="font-bold text-lg">
+                  {calculateAge(new Date(profile.birthDate))}
+                </span>
+                <CalendarClock className="w-5 h-5" />
+              </div>
               <p className="text-xs text-blue-600 mt-1">{dict.details.years}</p>
             </div>
           )}
           {profile.height && (
             <div className="p-3 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl border border-purple-100 hover:shadow-md transition-all duration-300">
-              <div className="flex items-center justify-end gap-2 text-purple-700"><span className="font-bold text-lg">{profile.height}</span><User className="w-5 h-5" /></div>
-              <p className="text-xs text-purple-600 mt-1">{dict.details.heightUnit}</p>
+              <div className="flex items-center justify-end gap-2 text-purple-700">
+                <span className="font-bold text-lg">{profile.height}</span>
+                <User className="w-5 h-5" />
+              </div>
+              <p className="text-xs text-purple-600 mt-1">
+                {dict.details.heightUnit}
+              </p>
             </div>
           )}
           {profile.maritalStatus && (
             <div className="p-3 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl border border-green-100 hover:shadow-md transition-all duration-300">
-              <div className="flex items-center justify-end gap-2 text-green-700"><span className="font-medium text-sm">{profile.maritalStatus}</span><Heart className="w-5 h-5" /></div>
-              <p className="text-xs text-green-600 mt-1">{dict.details.maritalStatus}</p>
+              <div className="flex items-center justify-end gap-2 text-green-700">
+                <span className="font-medium text-sm">
+                  {profile.maritalStatus}
+                </span>
+                <Heart className="w-5 h-5" />
+              </div>
+              <p className="text-xs text-green-600 mt-1">
+                {dict.details.maritalStatus}
+              </p>
             </div>
           )}
           {profile.religiousLevel && (
             <div className="p-3 bg-gradient-to-r from-orange-50 to-amber-50 rounded-xl border border-orange-100 hover:shadow-md transition-all duration-300">
-              <div className="flex items-center justify-end gap-2 text-orange-700"><span className="font-medium text-sm">{profile.religiousLevel}</span><Scroll className="w-5 h-5" /></div>
-              <p className="text-xs text-orange-600 mt-1">{dict.details.religiousLevel}</p>
+              <div className="flex items-center justify-end gap-2 text-orange-700">
+                <span className="font-medium text-sm">
+                  {profile.religiousLevel}
+                </span>
+                <Scroll className="w-5 h-5" />
+              </div>
+              <p className="text-xs text-orange-600 mt-1">
+                {dict.details.religiousLevel}
+              </p>
             </div>
           )}
         </div>
         <Separator className="my-6 bg-gradient-to-r from-transparent via-gray-300 to-transparent" />
         {isManualEntry && profile.manualEntryText ? (
           <div className="space-y-4">
-            <div className="flex items-center justify-end gap-2"><h4 className="text-lg font-bold text-purple-800">{dict.details.manualDescription}</h4><Info className="w-6 h-6 text-purple-500" /></div>
-            <div className="p-5 bg-gradient-to-r from-purple-50 to-indigo-50 rounded-2xl border border-purple-200 shadow-sm"><p className="text-purple-900 leading-relaxed whitespace-pre-wrap font-medium">{profile.manualEntryText}</p></div>
+            <div className="flex items-center justify-end gap-2">
+              <h4 className="text-lg font-bold text-purple-800">
+                {dict.details.manualDescription}
+              </h4>
+              <Info className="w-6 h-6 text-purple-500" />
+            </div>
+            <div className="p-5 bg-gradient-to-r from-purple-50 to-indigo-50 rounded-2xl border border-purple-200 shadow-sm">
+              <p className="text-purple-900 leading-relaxed whitespace-pre-wrap font-medium">
+                {profile.manualEntryText}
+              </p>
+            </div>
           </div>
         ) : (
           <div className="space-y-4">
-            <h4 className="text-lg font-bold text-gray-700 mb-4 flex items-center justify-end gap-2"><span>{dict.details.moreInfo}</span><Sparkles className="w-5 h-5 text-blue-500" /></h4>
-            {profile.education && (<div className="p-4 bg-gradient-to-r from-blue-50 to-cyan-50 rounded-xl border border-blue-100 hover:shadow-md transition-all duration-300 group"><div className="flex items-center justify-end gap-3"><span className="font-medium text-blue-800 group-hover:text-blue-900 transition-colors">{profile.education}</span><div className="p-2 rounded-full bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-lg"><GraduationCap className="w-4 h-4" /></div></div><p className="text-xs text-blue-600 mt-1 text-right">{dict.details.education}</p></div>)}
-            {profile.occupation && (<div className="p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl border border-green-100 hover:shadow-md transition-all duration-300 group"><div className="flex items-center justify-end gap-3"><span className="font-medium text-green-800 group-hover:text-green-900 transition-colors">{profile.occupation}</span><div className="p-2 rounded-full bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-lg"><Briefcase className="w-4 h-4" /></div></div><p className="text-xs text-green-600 mt-1 text-right">{dict.details.occupation}</p></div>)}
-            {profile.city && (<div className="p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl border border-purple-100 hover:shadow-md transition-all duration-300 group"><div className="flex items-center justify-end gap-3"><span className="font-medium text-purple-800 group-hover:text-purple-900 transition-colors">{profile.city}</span><div className="p-2 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg"><MapPin className="w-4 h-4" /></div></div><p className="text-xs text-purple-600 mt-1 text-right">{dict.details.location}</p></div>)}
+            <h4 className="text-lg font-bold text-gray-700 mb-4 flex items-center justify-end gap-2">
+              <span>{dict.details.moreInfo}</span>
+              <Sparkles className="w-5 h-5 text-blue-500" />
+            </h4>
+            {profile.education && (
+              <div className="p-4 bg-gradient-to-r from-blue-50 to-cyan-50 rounded-xl border border-blue-100 hover:shadow-md transition-all duration-300 group">
+                <div className="flex items-center justify-end gap-3">
+                  <span className="font-medium text-blue-800 group-hover:text-blue-900 transition-colors">
+                    {profile.education}
+                  </span>
+                  <div className="p-2 rounded-full bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-lg">
+                    <GraduationCap className="w-4 h-4" />
+                  </div>
+                </div>
+                <p className="text-xs text-blue-600 mt-1 text-right">
+                  {dict.details.education}
+                </p>
+              </div>
+            )}
+            {profile.occupation && (
+              <div className="p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl border border-green-100 hover:shadow-md transition-all duration-300 group">
+                <div className="flex items-center justify-end gap-3">
+                  <span className="font-medium text-green-800 group-hover:text-green-900 transition-colors">
+                    {profile.occupation}
+                  </span>
+                  <div className="p-2 rounded-full bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-lg">
+                    <Briefcase className="w-4 h-4" />
+                  </div>
+                </div>
+                <p className="text-xs text-green-600 mt-1 text-right">
+                  {dict.details.occupation}
+                </p>
+              </div>
+            )}
+            {profile.city && (
+              <div className="p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl border border-purple-100 hover:shadow-md transition-all duration-300 group">
+                <div className="flex items-center justify-end gap-3">
+                  <span className="font-medium text-purple-800 group-hover:text-purple-900 transition-colors">
+                    {profile.city}
+                  </span>
+                  <div className="p-2 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg">
+                    <MapPin className="w-4 h-4" />
+                  </div>
+                </div>
+                <p className="text-xs text-purple-600 mt-1 text-right">
+                  {dict.details.location}
+                </p>
+              </div>
+            )}
           </div>
         )}
         {(!isManualEntry || !profile.manualEntryText) && profile.about && (
           <>
             <Separator className="my-6 bg-gradient-to-r from-transparent via-gray-300 to-transparent" />
             <div className="space-y-4">
-              <h4 className="text-lg font-bold text-gray-700 flex items-center justify-end gap-2"><span>{dict.details.about}</span><FileText className="w-5 h-5 text-gray-500" /></h4>
-              <div className="p-5 bg-gradient-to-r from-gray-50 to-slate-50 rounded-2xl border border-gray-200 shadow-sm"><p className="text-gray-800 leading-relaxed whitespace-pre-wrap">{profile.about}</p></div>
+              <h4 className="text-lg font-bold text-gray-700 flex items-center justify-end gap-2">
+                <span>{dict.details.about}</span>
+                <FileText className="w-5 h-5 text-gray-500" />
+              </h4>
+              <div className="p-5 bg-gradient-to-r from-gray-50 to-slate-50 rounded-2xl border border-gray-200 shadow-sm">
+                <p className="text-gray-800 leading-relaxed whitespace-pre-wrap">
+                  {profile.about}
+                </p>
+              </div>
             </div>
           </>
         )}
@@ -286,33 +471,101 @@ const QuickView: React.FC<QuickViewProps> = ({
         <div className="flex items-center justify-center mb-4">
           <div className="flex items-center gap-2 bg-gradient-to-r from-blue-50 to-cyan-50 px-4 py-2 rounded-full border border-blue-100">
             <Award className="w-4 h-4 text-blue-600" />
-            <span className="text-sm font-bold text-blue-800">{dict.qualityScore.replace('{{score}}', String(qualityScore))}</span>
-            <div className="flex gap-1">{[...Array(5)].map((_, i) => (<Star key={i} className={cn('w-3 h-3', i < Math.floor(qualityScore / 20) ? 'text-yellow-500 fill-current' : 'text-gray-300')} />))}</div>
+            <span className="text-sm font-bold text-blue-800">
+              {dict.qualityScore.replace('{{score}}', String(qualityScore))}
+            </span>
+            <div className="flex gap-1">
+              {[...Array(5)].map((_, i) => (
+                <Star
+                  key={i}
+                  className={cn(
+                    'w-3 h-3',
+                    i < Math.floor(qualityScore / 20)
+                      ? 'text-yellow-500 fill-current'
+                      : 'text-gray-300'
+                  )}
+                />
+              ))}
+            </div>
           </div>
         </div>
         <div className="grid grid-cols-2 gap-3 mb-4">
-          {actionButtons.filter((a) => a.primary).map((action) => {
-            const IconComponent = action.icon;
-            return (<Button key={action.id} className={cn('h-12 font-bold text-sm border-0 shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105 relative overflow-hidden group rounded-2xl', `bg-gradient-to-r ${action.gradient} hover:${action.gradient.replace('500', '600')}`, 'text-white', hoveredAction === action.id && 'scale-105')} onClick={() => onAction(action.id)} onMouseEnter={() => setHoveredAction(action.id)} onMouseLeave={() => setHoveredAction(null)}>
-              <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 transform -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
-              <div className="relative z-10 flex items-center justify-center gap-2"><IconComponent className="w-5 h-5" /><span>{action.label}</span></div>
-            </Button>);
-          })}
+          {actionButtons
+            .filter((a) => a.primary)
+            .map((action) => {
+              const IconComponent = action.icon;
+              return (
+                <Button
+                  key={action.id}
+                  className={cn(
+                    'h-12 font-bold text-sm border-0 shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105 relative overflow-hidden group rounded-2xl',
+                    `bg-gradient-to-r ${action.gradient} hover:${action.gradient.replace('500', '600')}`,
+                    'text-white',
+                    hoveredAction === action.id && 'scale-105'
+                  )}
+                  onClick={() => onAction(action.id)}
+                  onMouseEnter={() => setHoveredAction(action.id)}
+                  onMouseLeave={() => setHoveredAction(null)}
+                >
+                  <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 transform -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
+                  <div className="relative z-10 flex items-center justify-center gap-2">
+                    <IconComponent className="w-5 h-5" />
+                    <span>{action.label}</span>
+                  </div>
+                </Button>
+              );
+            })}
         </div>
         <div className="grid grid-cols-3 gap-2">
-          {actionButtons.filter((a) => !a.primary).map((action) => {
-            const IconComponent = action.icon;
-            return (<Button key={action.id} variant="outline" size="sm" className={cn('border-2 border-gray-200 hover:border-transparent shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 group relative overflow-hidden rounded-xl', `hover:bg-gradient-to-r hover:${action.gradient}`, 'hover:text-white font-medium', hoveredAction === action.id && 'scale-105')} onClick={() => onAction(action.id)} onMouseEnter={() => setHoveredAction(action.id)} onMouseLeave={() => setHoveredAction(null)}>
-              <div className={cn('absolute inset-0 bg-gradient-to-r transition-all duration-300 opacity-0 group-hover:opacity-100', action.gradient)}></div>
-              <div className="relative z-10 flex items-center justify-center gap-1"><IconComponent className="w-3 h-3" /><span className="text-xs">{action.label}</span></div>
-            </Button>);
-          })}
+          {actionButtons
+            .filter((a) => !a.primary)
+            .map((action) => {
+              const IconComponent = action.icon;
+              return (
+                <Button
+                  key={action.id}
+                  variant="outline"
+                  size="sm"
+                  className={cn(
+                    'border-2 border-gray-200 hover:border-transparent shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 group relative overflow-hidden rounded-xl',
+                    `hover:bg-gradient-to-r hover:${action.gradient}`,
+                    'hover:text-white font-medium',
+                    hoveredAction === action.id && 'scale-105'
+                  )}
+                  onClick={() => onAction(action.id)}
+                  onMouseEnter={() => setHoveredAction(action.id)}
+                  onMouseLeave={() => setHoveredAction(null)}
+                >
+                  <div
+                    className={cn(
+                      'absolute inset-0 bg-gradient-to-r transition-all duration-300 opacity-0 group-hover:opacity-100',
+                      action.gradient
+                    )}
+                  ></div>
+                  <div className="relative z-10 flex items-center justify-center gap-1">
+                    <IconComponent className="w-3 h-3" />
+                    <span className="text-xs">{action.label}</span>
+                  </div>
+                </Button>
+              );
+            })}
         </div>
         <div className="mt-4 pt-4 border-t border-gray-200">
           <div className="flex justify-between items-center text-xs">
-            <div className="flex items-center gap-1 text-yellow-600"><Star className="w-3 h-3 fill-current" /><span className="font-medium">{dict.stats.rating}: 4.8</span></div>
-            <div className="flex items-center gap-1 text-blue-600"><Zap className="w-3 h-3" /><span className="font-medium">{dict.stats.match}: 95%</span></div>
-            <div className="flex items-center gap-1 text-green-600"><MessageCircle className="w-3 h-3" /><span className="font-medium">{dict.stats.response}: {dict.stats.quick}</span></div>
+            <div className="flex items-center gap-1 text-yellow-600">
+              <Star className="w-3 h-3 fill-current" />
+              <span className="font-medium">{dict.stats.rating}: 4.8</span>
+            </div>
+            <div className="flex items-center gap-1 text-blue-600">
+              <Zap className="w-3 h-3" />
+              <span className="font-medium">{dict.stats.match}: 95%</span>
+            </div>
+            <div className="flex items-center gap-1 text-green-600">
+              <MessageCircle className="w-3 h-3" />
+              <span className="font-medium">
+                {dict.stats.response}: {dict.stats.quick}
+              </span>
+            </div>
           </div>
         </div>
       </div>

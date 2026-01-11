@@ -7,7 +7,7 @@ import React, {
   useRef,
   useMemo,
 } from 'react';
-import { UserX, Edit, X } from 'lucide-react'; // הוספנו את X
+import { UserX, Edit, X } from 'lucide-react';
 import MinimalCard from '../CandidateCard/MinimalCard';
 import QuickView from '../CandidateCard/QuickView';
 import { ProfileCard } from '@/components/profile';
@@ -21,12 +21,12 @@ import { Skeleton } from '@/components/ui/skeleton';
 import {
   Dialog,
   DialogContent,
-  DialogHeader, // נשאר לשימוש פנימי אם צריך, אך יצרנו header מותאם אישית
+  DialogHeader,
   DialogTitle,
   DialogDescription,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge'; // הוספנו את Badge
+import { Badge } from '@/components/ui/badge';
 import {
   Select,
   SelectContent,
@@ -42,6 +42,10 @@ import { cn } from '@/lib/utils';
 import type { MatchmakerPageDictionary } from '@/types/dictionaries/matchmaker';
 import type { ProfilePageDictionary } from '@/types/dictionary';
 
+// ============================================================================
+// TYPES
+// ============================================================================
+
 interface CreateSuggestionData {
   priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
   firstPartyId: string;
@@ -56,12 +60,38 @@ interface CreateSuggestionData {
   secondPartyNotes?: string;
 }
 
+// 🆕 טיפוס לפירוט ציון
+interface ScoreBreakdown {
+  religious: number;
+  careerFamily: number;
+  lifestyle: number;
+  ambition: number;
+  communication: number;
+  values: number;
+}
+
+// 🆕 טיפוס מורחב למועמד עם נתוני AI
+type CandidateWithAiData = Candidate & {
+  aiScore?: number;
+  aiReasoning?: string;
+  aiRank?: number;
+  aiFirstPassScore?: number;
+  aiScoreBreakdown?: ScoreBreakdown;
+  aiBackgroundMultiplier?: number;
+  aiBackgroundCompatibility?:
+    | 'excellent'
+    | 'good'
+    | 'possible'
+    | 'problematic'
+    | 'not_recommended';
+  aiSimilarity?: number; // 🆕 עבור Vector Search
+};
+
 interface CandidatesListProps {
-  candidates: (Candidate & { aiScore?: number })[];
+  candidates: CandidateWithAiData[];
   allCandidates: Candidate[];
   onOpenAiAnalysis: (candidate: Candidate) => void;
   onSendProfileFeedback: (candidate: Candidate, e?: React.MouseEvent) => void;
-
   onCandidateClick?: (candidate: Candidate) => void;
   onCandidateAction?: (type: CandidateAction, candidate: Candidate) => void;
   viewMode: 'grid' | 'list';
@@ -80,6 +110,10 @@ interface CandidatesListProps {
   profileDict: ProfilePageDictionary;
 }
 
+// ============================================================================
+// COMPONENT
+// ============================================================================
+
 const CandidatesList: React.FC<CandidatesListProps> = ({
   candidates,
   allCandidates,
@@ -89,7 +123,6 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
   isQuickViewEnabled,
   onOpenAiAnalysis,
   onSendProfileFeedback,
-
   viewMode,
   mobileView,
   isLoading = false,
@@ -110,9 +143,8 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
   const [questionnaireResponse, setQuestionnaireResponse] =
     useState<QuestionnaireResponse | null>(null);
   const [isMatchmaker, setIsMatchmaker] = useState(true);
-  const [hoveredCandidate, setHoveredCandidate] = useState<Candidate | null>(
-    null
-  );
+  const [hoveredCandidate, setHoveredCandidate] =
+    useState<CandidateWithAiData | null>(null);
   const [hoverPosition, setHoverPosition] = useState({ top: 0, left: 0 });
   const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const quickViewRef = useRef<HTMLDivElement>(null);
@@ -253,7 +285,10 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
     setShowEditProfileDialog(true);
   };
 
-  const handleMouseEnter = (candidate: Candidate, e?: React.MouseEvent) => {
+  const handleMouseEnter = (
+    candidate: CandidateWithAiData,
+    e?: React.MouseEvent
+  ) => {
     if (isMobile || !e || !isQuickViewEnabled) return;
 
     if (isMobile || !e) return;
@@ -485,6 +520,11 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
               onSetAiTarget={(c, e) => onSetAiTarget(c, e)}
               isAiTarget={aiTargetCandidate?.id === hoveredCandidate.id}
               dict={dict.candidatesManager.list.quickView}
+              // 🆕 העברת נתוני AI ל-QuickView
+              aiScore={hoveredCandidate.aiScore}
+              aiReasoning={hoveredCandidate.aiReasoning}
+              aiRank={hoveredCandidate.aiRank}
+              aiSimilarity={hoveredCandidate.aiSimilarity}
             />
           </div>
         </div>
@@ -577,7 +617,7 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
                 isProfileComplete={selectedCandidate.isProfileComplete}
                 dict={profileDict.profileCard}
                 locale={locale}
-                onClose={() => setSelectedCandidate(null)} // This is the key fix
+                onClose={() => setSelectedCandidate(null)}
               />
             </div>
           )}

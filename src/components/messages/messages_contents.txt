@@ -1,6 +1,7 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\messages
-# Generated on: 2025-09-01 13:20:37
+# Generated on: 2026-01-11 22:01:40
+# Filter: Only content of code files (.bat, .c, .cfg, .conf, .cpp, .cs, .css, .go, .h, .html, .ini, .java, .js, .json, .jsx, .kt, .less, .md, .php, .py, .rb, .rs, .scss, .sh, .sql, .swift, .ts, .tsx, .txt, .xml, .yaml, .yml) is included.
 ################################################################################
 
 ================================================================================
@@ -11,30 +12,32 @@ Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\mes
 File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\messages\AvailabilityRequestCard.tsx
 --------------------------------------------------------------------------------
 Content:
-// FILENAME: src/app/components/messages/AvailabilityRequestCard.tsx
+// src/components/messages/AvailabilityRequestCard.tsx
 
+import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Clock, CheckCircle, XCircle } from 'lucide-react';
-// --- START OF FIX ---
-// Changed 'ExtendedInquiry' to 'ExtendedAvailabilityInquiry'
 import type { ExtendedAvailabilityInquiry } from '@/types/messages';
-// --- END OF FIX ---
+import type { AvailabilityRequestCardDict } from '@/types/dictionary';
+import { cn } from '@/lib/utils';
+import type { Locale } from '../../../i18n-config';
 
 interface AvailabilityRequestCardProps {
-  // --- START OF FIX ---
-  // Updated the prop type to use the new name
   inquiry: ExtendedAvailabilityInquiry;
-  // --- END OF FIX ---
   currentUserId: string;
   onRespond: (inquiryId: string, isAvailable: boolean) => Promise<void>;
+  dict: AvailabilityRequestCardDict;
+  locale: Locale;
 }
 
 export default function AvailabilityRequestCard({
   inquiry,
   currentUserId,
   onRespond,
+  dict,
+  locale,
 }: AvailabilityRequestCardProps) {
   const isFirstParty = inquiry.firstPartyId === currentUserId;
   const isSecondParty = inquiry.secondPartyId === currentUserId;
@@ -44,16 +47,17 @@ export default function AvailabilityRequestCard({
   ].filter((r) => r !== null).length;
   const progress = (totalResponses / 2) * 100;
 
-  // Since this component is specifically for AvailabilityInquiry, its internal logic
-  // for displaying responses and actions remains correct. The only change needed was the type import.
   return (
     <Card>
       <CardContent className="p-6">
         <div className="flex justify-between items-start mb-4">
           <div>
-            <h3 className="font-medium">בקשת בדיקת זמינות</h3>
+            <h3 className="font-medium">{dict.title}</h3>
             <p className="text-sm text-gray-600">
-              מאת {inquiry.matchmaker.firstName} {inquiry.matchmaker.lastName}
+              {dict.fromMatchmaker.replace(
+                '{{name}}',
+                `${inquiry.matchmaker.firstName} ${inquiry.matchmaker.lastName}`
+              )}
             </p>
           </div>
           <Clock className="w-5 h-5 text-gray-400" />
@@ -62,14 +66,31 @@ export default function AvailabilityRequestCard({
         <div className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <div className="text-sm text-gray-500">צד ראשון</div>
+              <div className="text-sm text-gray-500">
+                {dict.firstPartyLabel}
+              </div>
               <div className="flex items-center mt-1">
                 {inquiry.firstPartyResponse === null ? (
-                  <Clock className="w-4 h-4 text-yellow-500 mr-1" />
+                  <Clock
+                    className={cn(
+                      'w-4 h-4 text-yellow-500',
+                      locale === 'he' ? 'ml-1' : 'mr-1'
+                    )}
+                  />
                 ) : inquiry.firstPartyResponse ? (
-                  <CheckCircle className="w-4 h-4 text-green-500 mr-1" />
+                  <CheckCircle
+                    className={cn(
+                      'w-4 h-4 text-green-500',
+                      locale === 'he' ? 'ml-1' : 'mr-1'
+                    )}
+                  />
                 ) : (
-                  <XCircle className="w-4 h-4 text-red-500 mr-1" />
+                  <XCircle
+                    className={cn(
+                      'w-4 h-4 text-red-500',
+                      locale === 'he' ? 'ml-1' : 'mr-1'
+                    )}
+                  />
                 )}
                 <span>
                   {inquiry.firstParty.firstName} {inquiry.firstParty.lastName}
@@ -77,14 +98,31 @@ export default function AvailabilityRequestCard({
               </div>
             </div>
             <div>
-              <div className="text-sm text-gray-500">צד שני</div>
+              <div className="text-sm text-gray-500">
+                {dict.secondPartyLabel}
+              </div>
               <div className="flex items-center mt-1">
                 {inquiry.secondPartyResponse === null ? (
-                  <Clock className="w-4 h-4 text-yellow-500 mr-1" />
+                  <Clock
+                    className={cn(
+                      'w-4 h-4 text-yellow-500',
+                      locale === 'he' ? 'ml-1' : 'mr-1'
+                    )}
+                  />
                 ) : inquiry.secondPartyResponse ? (
-                  <CheckCircle className="w-4 h-4 text-green-500 mr-1" />
+                  <CheckCircle
+                    className={cn(
+                      'w-4 h-4 text-green-500',
+                      locale === 'he' ? 'ml-1' : 'mr-1'
+                    )}
+                  />
                 ) : (
-                  <XCircle className="w-4 h-4 text-red-500 mr-1" />
+                  <XCircle
+                    className={cn(
+                      'w-4 h-4 text-red-500',
+                      locale === 'he' ? 'ml-1' : 'mr-1'
+                    )}
+                  />
                 )}
                 <span>
                   {inquiry.secondParty.firstName} {inquiry.secondParty.lastName}
@@ -95,7 +133,7 @@ export default function AvailabilityRequestCard({
 
           <div className="space-y-2">
             <div className="flex justify-between text-sm text-gray-500">
-              <span>התקדמות</span>
+              <span>{dict.progressLabel}</span>
               <span>{progress}%</span>
             </div>
             <Progress value={progress} className="w-full" />
@@ -103,42 +141,31 @@ export default function AvailabilityRequestCard({
 
           {inquiry.note && (
             <div className="text-sm text-gray-600">
-              <strong>הערה:</strong> {inquiry.note}
+              <strong>{dict.noteLabel}</strong> {inquiry.note}
             </div>
           )}
 
-          {isFirstParty && inquiry.firstPartyResponse === null && (
+          {((isFirstParty && inquiry.firstPartyResponse === null) ||
+            (isSecondParty && inquiry.secondPartyResponse === null)) && (
             <div className="flex gap-2 mt-4">
               <Button
                 onClick={() => onRespond(inquiry.id, true)}
                 className="flex-1 bg-green-600 hover:bg-green-700"
               >
-                <CheckCircle className="mr-2 h-4 w-4" /> אני זמין/ה
+                <CheckCircle
+                  className={cn('h-4 w-4', locale === 'he' ? 'ml-2' : 'mr-2')}
+                />{' '}
+                {dict.buttons.available}
               </Button>
               <Button
                 onClick={() => onRespond(inquiry.id, false)}
                 variant="outline"
                 className="flex-1"
               >
-                <XCircle className="mr-2 h-4 w-4" /> לא זמין/ה כרגע
-              </Button>
-            </div>
-          )}
-
-          {isSecondParty && inquiry.secondPartyResponse === null && (
-            <div className="flex gap-2 mt-4">
-              <Button
-                onClick={() => onRespond(inquiry.id, true)}
-                className="flex-1 bg-green-600 hover:bg-green-700"
-              >
-                <CheckCircle className="mr-2 h-4 w-4" /> אני זמין/ה
-              </Button>
-              <Button
-                onClick={() => onRespond(inquiry.id, false)}
-                variant="outline"
-                className="flex-1"
-              >
-                <XCircle className="mr-2 h-4 w-4" /> לא זמין/ה כרגע
+                <XCircle
+                  className={cn('h-4 w-4', locale === 'he' ? 'ml-2' : 'mr-2')}
+                />{' '}
+                {dict.buttons.unavailable}
               </Button>
             </div>
           )}
@@ -156,27 +183,44 @@ Content:
 // src/app/components/messages/MessageList.tsx
 import React from 'react';
 import type { UnifiedMessage } from '@/types/messages';
-import MessageListItem from './MessageListItem'; // זה יתחיל לעבוד אחרי שתיצור את הקובץ הבא
+import MessageListItem from './MessageListItem';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useSession } from 'next-auth/react';
+import type { MessagesPageDict } from '@/types/dictionary';
+import type { Locale } from '../../../i18n-config';
 
 interface MessageListProps {
   messages: UnifiedMessage[];
   selectedMessageId: string | null;
   onSelectMessage: (message: UnifiedMessage) => void;
+  dict: MessagesPageDict; // קבלת המילון המלא
+  locale: Locale;
 }
 
-const MessageList: React.FC<MessageListProps> = ({ messages, selectedMessageId, onSelectMessage }) => {
+const MessageList: React.FC<MessageListProps> = ({
+  messages,
+  selectedMessageId,
+  onSelectMessage,
+  dict,
+  locale,
+}) => {
   const { data: session } = useSession();
   const userId = session?.user?.id;
 
-  if (!userId) return null; // הגנה למקרה שהסשן לא טעון
+  if (!userId) return null;
 
   return (
     <div className="bg-white h-full flex flex-col">
       <div className="p-4 border-b">
-        <h2 className="text-xl font-bold text-gray-800">מרכז הפעילות</h2>
-        <p className="text-sm text-gray-500">{messages.length} הצעות ועדכונים</p>
+        <h2 className="text-xl font-bold text-gray-800">
+          {dict.messageList.header}
+        </h2>
+        <p className="text-sm text-gray-500">
+          {dict.messageList.subtitle.replace(
+            '{{count}}',
+            messages.length.toString()
+          )}
+        </p>
       </div>
       <ScrollArea className="flex-1">
         <div className="p-2 space-y-1">
@@ -187,6 +231,8 @@ const MessageList: React.FC<MessageListProps> = ({ messages, selectedMessageId, 
               isSelected={message.id === selectedMessageId}
               onSelect={() => onSelectMessage(message)}
               userId={userId}
+              dict={dict.messageListItem} // העברת החלק הרלוונטי
+              locale={locale}
             />
           ))}
         </div>
@@ -202,7 +248,7 @@ export default MessageList;
 File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\messages\MessageListItem.tsx
 --------------------------------------------------------------------------------
 Content:
-// FILENAME: src/app/components/messages/MessageListItem.tsx
+// src/components/messages/MessageListItem.tsx
 
 import React from 'react';
 import Image from 'next/image';
@@ -210,18 +256,22 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { cn, getInitials, getRelativeCloudinaryPath } from '@/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
-import { he } from 'date-fns/locale';
+import { he, enUS } from 'date-fns/locale';
 import type { UnifiedMessage } from '@/types/messages';
 import { CheckCircle, Zap, MessageCircle, Info, Heart } from 'lucide-react';
+import type { MessageListItemDict } from '@/types/dictionary';
+import type { Locale } from '../../../i18n-config';
 
 interface MessageListItemProps {
   message: UnifiedMessage;
   isSelected: boolean;
   onSelect: () => void;
   userId: string;
+  dict: MessageListItemDict;
+  locale: Locale;
 }
 
-// קומפוננטת עזר לבחירת אייקון וצבע
+// Komponent pomocniczy do wyboru ikony i koloru na podstawie typu wiadomości
 const MessageIcon: React.FC<{ type: UnifiedMessage['type'] }> = ({ type }) => {
   switch (type) {
     case 'ACTION_REQUIRED':
@@ -243,17 +293,19 @@ const MessageListItem: React.FC<MessageListItemProps> = ({
   isSelected,
   onSelect,
   userId,
+  dict,
+  locale,
 }) => {
-  // במידה ואין payload או suggestion, לא נציג את הפריט
+  // Jeśli nie ma payloadu lub sugestii, nie renderujemy elementu
   const suggestion = message.payload?.suggestion;
   if (!suggestion) return null;
 
-  // זיהוי הצד השני בהצעה
+  // Identyfikacja drugiej strony w sugestii
   const otherParty =
     suggestion.firstPartyId === userId
       ? suggestion.secondParty
       : suggestion.firstParty;
-  if (!otherParty) return null; // הגנה נוספת
+  if (!otherParty) return null; // Dodatkowe zabezpieczenie
 
   const isActionRequired = message.type === 'ACTION_REQUIRED';
   const mainImage = otherParty.images?.find((img) => img.isMain);
@@ -262,11 +314,12 @@ const MessageListItem: React.FC<MessageListItemProps> = ({
     <button
       onClick={onSelect}
       className={cn(
-        'w-full text-right p-3 rounded-xl transition-all duration-200 flex items-start gap-4',
+        'w-full p-3 rounded-xl transition-all duration-200 flex items-start gap-4',
+        locale === 'he' ? 'text-right' : 'text-left',
         isSelected ? 'bg-cyan-50 border border-cyan-200' : 'hover:bg-gray-100'
       )}
     >
-      {/* Avatar Section with Icon */}
+      {/* Sekcja awatara z ikoną */}
       <div className="relative flex-shrink-0">
         <Avatar className="w-12 h-12 border-2 border-white shadow-md">
           {mainImage?.url ? (
@@ -290,31 +343,38 @@ const MessageListItem: React.FC<MessageListItemProps> = ({
             </AvatarFallback>
           )}
         </Avatar>
-        {/* אייקון קטן המציין את סוג ההודעה */}
-        <div className="absolute -bottom-1 -left-1 p-1 bg-white rounded-full shadow-lg">
+        {/* Mała ikona wskazująca typ wiadomości */}
+        <div
+          className={cn(
+            'absolute -bottom-1 p-1 bg-white rounded-full shadow-lg',
+            locale === 'he' ? '-left-1' : '-right-1'
+          )}
+        >
           <MessageIcon type={message.type} />
         </div>
       </div>
 
-      {/* Content Section */}
+      {/* Sekcja treści */}
       <div className="flex-1 min-w-0">
         <div className="flex justify-between items-center">
           <h3 className="font-bold text-gray-800 truncate">{message.title}</h3>
           <span className="text-xs text-gray-400 flex-shrink-0">
             {formatDistanceToNow(new Date(message.timestamp), {
               addSuffix: true,
-              locale: he,
+              locale: locale === 'he' ? he : enUS,
             })}
           </span>
         </div>
         <p className="text-sm text-gray-600 truncate">{message.description}</p>
 
-        {/* תג "התאמה!" מיוחד */}
+        {/* Specjalna odznaka "Dopasowanie!" */}
         {message.type === 'STATUS_UPDATE' &&
           suggestion.status === 'CONTACT_DETAILS_SHARED' && (
             <Badge className="mt-1 bg-gradient-to-r from-emerald-500 to-green-500 text-white border-0 text-xs shadow-md">
-              <CheckCircle className="w-3 h-3 ml-1" />
-              התאמה!
+              <CheckCircle
+                className={cn('w-3 h-3', locale === 'he' ? 'ml-1' : 'mr-1')}
+              />
+              {dict.matchBadge}
             </Badge>
           )}
       </div>
@@ -601,7 +661,7 @@ export default function MessagesPage() {
 File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\messages\NotificationCard.tsx
 --------------------------------------------------------------------------------
 Content:
-// src/app/components/messages/NotificationCard.tsx
+// src/components/messages/NotificationCard.tsx
 
 import React from 'react';
 import Link from 'next/link';
@@ -609,10 +669,8 @@ import Image from 'next/image';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
 import { formatDistanceToNow } from 'date-fns';
-import { he } from 'date-fns/locale';
-// ================== שינוי 1: הוספת הייבוא ==================
+import { he, enUS } from 'date-fns/locale';
 import { cn, getInitials, getRelativeCloudinaryPath } from '@/lib/utils';
 import type { FeedItem } from '@/types/messages';
 import {
@@ -622,17 +680,26 @@ import {
   Zap,
   CheckCircle,
   Info,
+  ArrowRight,
 } from 'lucide-react';
+import type { MessagesPageDict } from '@/types/dictionary';
+import type { Locale } from '../../../i18n-config';
 
 interface NotificationCardProps {
   item: FeedItem;
   userId: string;
+  // ✨ PROP UPDATE: קבלת חלק מהמילון ו-locale
+  dict: MessagesPageDict['notificationCard'];
+  locale: Locale;
 }
 
 const NotificationCard: React.FC<NotificationCardProps> = ({
   item,
   userId,
+  dict,
+  locale,
 }) => {
+  // ... (לוגיקת האייקונים נשארת זהה)
   const iconMap: Record<
     FeedItem['type'],
     { icon: React.ElementType; color: string; gradient: string }
@@ -671,7 +738,6 @@ const NotificationCard: React.FC<NotificationCardProps> = ({
 
   const { icon: Icon, gradient } = iconMap[item.type] || {
     icon: Info,
-    color: 'text-gray-500',
     gradient: 'from-gray-400 to-slate-500',
   };
   const suggestion = item.payload.suggestion;
@@ -687,7 +753,6 @@ const NotificationCard: React.FC<NotificationCardProps> = ({
   return (
     <Card className="shadow-lg border-0 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 bg-white">
       <CardContent className="p-5 flex items-start gap-4">
-        {/* Icons Column */}
         <div className="flex flex-col items-center gap-2 flex-shrink-0">
           <div
             className={cn(
@@ -700,7 +765,7 @@ const NotificationCard: React.FC<NotificationCardProps> = ({
           {matchmaker && (
             <Avatar
               className="w-10 h-10 border-2 border-white"
-              title={`הצעה מהשדכן/ית ${matchmaker.firstName}`}
+              title={`${dict.matchmakerPrefix} ${matchmaker.firstName}`}
             >
               <AvatarFallback className="bg-gray-200 text-gray-600 text-sm font-bold">
                 {getInitials(`${matchmaker.firstName} ${matchmaker.lastName}`)}
@@ -709,7 +774,6 @@ const NotificationCard: React.FC<NotificationCardProps> = ({
           )}
         </div>
 
-        {/* Content Column */}
         <div className="flex-1 min-w-0">
           <div className="flex justify-between items-start">
             <div className="flex-1">
@@ -719,20 +783,19 @@ const NotificationCard: React.FC<NotificationCardProps> = ({
               <p className="text-sm text-gray-600 mt-1">{item.description}</p>
             </div>
             <span className="text-xs text-gray-400 flex-shrink-0 pl-2">
+              {/* ✨ LOCALE UPDATE: שימוש ב-locale עבור תאריך */}
               {formatDistanceToNow(new Date(item.timestamp), {
                 addSuffix: true,
-                locale: he,
+                locale: locale === 'he' ? he : enUS,
               })}
             </span>
           </div>
 
-          {/* Link to Suggestion */}
           <div className="mt-4 pt-4 border-t border-gray-100 flex justify-between items-center">
             {otherParty && (
               <div className="flex items-center gap-2">
                 <Avatar className="w-8 h-8 border-2 border-white shadow">
                   {mainImage?.url ? (
-                    // ================== שינוי 2: שימוש בפונקציית העזר ==================
                     <Image
                       src={getRelativeCloudinaryPath(mainImage.url)}
                       alt={otherParty.firstName}
@@ -748,15 +811,24 @@ const NotificationCard: React.FC<NotificationCardProps> = ({
                     </AvatarFallback>
                   )}
                 </Avatar>
+                {/* ✨ TEXT UPDATE: שימוש במילון */}
                 <span className="text-sm font-medium text-gray-700">
-                  עם {otherParty.firstName}
+                  {dict.suggestionWith.replace(
+                    '{{name}}',
+                    otherParty.firstName
+                  )}
                 </span>
               </div>
             )}
             <Link href={item.link} passHref>
               <Button className="bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-full shadow-md hover:shadow-lg transition-all duration-300">
-                צפה בפרטים
-                <ArrowLeft className="mr-2 h-4 w-4" />
+                {dict.viewDetails}
+                {/* ✨ LOCALE UPDATE: שינוי כיוון החץ */}
+                {locale === 'he' ? (
+                  <ArrowLeft className="mr-2 h-4 w-4" />
+                ) : (
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                )}
               </Button>
             </Link>
           </div>

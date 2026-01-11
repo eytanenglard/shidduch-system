@@ -241,14 +241,17 @@ class EmailService {
 
   // ================= פונקציות שליחה (ללא שינוי) =================
 
-  async sendWelcomeEmail(params: WelcomeEmailParams): Promise<void> {
+async sendWelcomeEmail(params: WelcomeEmailParams): Promise<void> {
     const locale = await this.resolveLocale(params.email, params.locale);
     const dictionary = await getDictionary(locale);
     const emailDict = dictionary.email;
 
+    // --- תיקון: החלפת המשתנה בתוך מחרוזת הכותרת ---
+    const subject = emailDict.welcome.subject.replace('{{firstName}}', params.firstName);
+
     await this.sendEmail({
       to: params.email,
-      subject: emailDict.welcome.subject,
+      subject: subject, // שימוש במשתנה המעובד
       templateName: 'welcome',
       context: {
         locale,
@@ -263,15 +266,18 @@ class EmailService {
     });
   }
 
-  async sendAccountSetupEmail(params: AccountSetupEmailParams): Promise<void> {
+async sendAccountSetupEmail(params: AccountSetupEmailParams): Promise<void> {
     const locale = await this.resolveLocale(params.email, params.locale);
     const dictionary = await getDictionary(locale);
     const emailDict = dictionary.email;
     const setupLink = `${process.env.NEXT_PUBLIC_BASE_URL}/auth/setup-account?token=${params.setupToken}`;
     
+    // --- תיקון: החלפת שם השדכן בכותרת ---
+    const subject = emailDict.accountSetup.subject.replace('{{matchmakerName}}', params.matchmakerName);
+
     await this.sendEmail({
       to: params.email,
-      subject: emailDict.accountSetup.subject,
+      subject: subject, // שימוש במשתנה המעובד
       templateName: 'accountSetup',
       context: {
         locale,

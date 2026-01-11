@@ -267,7 +267,7 @@ function getAgeRange(age: number, gender: Gender): { minAge: number; maxAge: num
 /**
  * מנתח טקסט ומזהה את השפה העיקרית
  */
-function analyzeTextLanguage(text: string | null | undefined): {
+export function analyzeTextLanguage(text: string | null | undefined): {
   language: 'hebrew' | 'english' | 'mixed' | 'other';
   hebrewQuality: 'native' | 'strong' | 'moderate' | 'weak' | 'none';
   indicators: string[];
@@ -355,7 +355,7 @@ function analyzeTextLanguage(text: string | null | undefined): {
 /**
  * יוצר פרופיל רקע למועמד
  */
-function createBackgroundProfile(
+export function createBackgroundProfile(
   nativeLanguage: string | null,
   additionalLanguages: string[],
   aliyaCountry: string | null,
@@ -474,7 +474,7 @@ function createBackgroundProfile(
 /**
  * מחשב התאמת רקע בין שני מועמדים
  */
-function calculateBackgroundMatch(
+export function calculateBackgroundMatch(
   targetProfile: BackgroundProfile,
   candidateProfile: BackgroundProfile
 ): BackgroundMatchResult {

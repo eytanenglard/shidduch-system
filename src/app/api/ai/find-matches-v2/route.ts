@@ -1,6 +1,8 @@
+// ===========================================
 // src/app/api/ai/find-matches-v2/route.ts
-// 🎯 API Route לאלגוריתם מציאת התאמות - גרסה פשוטה (Inline)
-// מריץ את האלגוריתם ישירות בתוך ה-Request - בלי Jobs!
+// ===========================================
+// 🎯 API Route לאלגוריתם מציאת התאמות
+// תומך בשתי שיטות: Vector Search ו-Algorithmic
 
 import { NextRequest, NextResponse } from "next/server";
 import { applyRateLimitWithRoleCheck } from '@/lib/rate-limiter';
@@ -12,10 +14,15 @@ import {
   loadSavedMatches,
   deleteSavedMatches,
 } from "@/lib/services/matchingAlgorithmService";
+import {
+  findMatchesWithVector,
+  loadSavedVectorMatches,
+  deleteSavedVectorMatches,
+} from "@/lib/services/vectorMatchingService";
 
 // הגדרות
 export const dynamic = 'force-dynamic';
-export const maxDuration = 60; // Heroku timeout - 30 שניות default, אפשר עד 60
+export const maxDuration = 120; // מאפשר עד 2 דקות
 
 // ============================================================================
 // TYPES
@@ -24,10 +31,11 @@ export const maxDuration = 60; // Heroku timeout - 30 שניות default, אפש
 interface PostRequestBody {
   targetUserId: string;
   forceRefresh?: boolean;
+  method?: 'algorithmic' | 'vector'; // ברירת מחדל: algorithmic
 }
 
 // ============================================================================
-// POST - מריץ את האלגוריתם ישירות ומחזיר תוצאות
+// POST - מריץ את האלגוריתם (לפי השיטה שנבחרה)
 // ============================================================================
 
 export async function POST(req: NextRequest): Promise<NextResponse> {
@@ -61,7 +69,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
     // Body Validation
     const body: PostRequestBody = await req.json();
-    const { targetUserId, forceRefresh = false } = body;
+    const { targetUserId, forceRefresh = false, method = 'algorithmic' } = body;
 
     if (!targetUserId || typeof targetUserId !== 'string') {
       return NextResponse.json({ 
@@ -73,28 +81,42 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     const matchmakerId = session.user.id;
 
     console.log(`\n========================================`);
-    console.log(`[API find-matches SIMPLE] POST from ${session.user.email}`);
-    console.log(`[API find-matches SIMPLE] Target: ${targetUserId}, forceRefresh: ${forceRefresh}`);
+    console.log(`[API find-matches] POST from ${session.user.email}`);
+    console.log(`[API find-matches] Target: ${targetUserId}`);
+    console.log(`[API find-matches] Method: ${method}, forceRefresh: ${forceRefresh}`);
     console.log(`========================================\n`);
 
-    // 🚀 הרצת האלגוריתם ישירות!
-    const result = await findMatchesForUser(targetUserId, matchmakerId, {
-      forceRefresh,
-      autoSave: true,
-    });
+    // 🚀 הרצת האלגוריתם לפי השיטה שנבחרה
+    let result;
+
+    if (method === 'vector') {
+      // שיטת Vector Search
+      result = await findMatchesWithVector(targetUserId, matchmakerId, {
+        forceRefresh,
+        autoSave: true,
+      });
+    } else {
+      // שיטה אלגוריתמית (ברירת מחדל)
+      result = await findMatchesForUser(targetUserId, matchmakerId, {
+        forceRefresh,
+        autoSave: true,
+      });
+    }
 
     const duration = Date.now() - startTime;
     
     console.log(`\n========================================`);
-    console.log(`[API find-matches SIMPLE] ✅ Completed in ${duration}ms`);
-    console.log(`[API find-matches SIMPLE] Found ${result.matches.length} matches`);
-    console.log(`[API find-matches SIMPLE] From cache: ${result.fromCache}`);
+    console.log(`[API find-matches] ✅ Completed in ${duration}ms`);
+    console.log(`[API find-matches] Method: ${method}`);
+    console.log(`[API find-matches] Found ${result.matches.length} matches`);
+    console.log(`[API find-matches] From cache: ${result.fromCache}`);
     console.log(`========================================\n`);
 
     return NextResponse.json({
       success: true,
       matches: result.matches,
       fromCache: result.fromCache,
+      method, // מחזיר את השיטה שבה השתמשנו
       meta: {
         targetUserId,
         totalMatches: result.matches.length,
@@ -109,7 +131,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
   } catch (error) {
     const duration = Date.now() - startTime;
-    console.error(`[API find-matches SIMPLE] ❌ Error after ${duration}ms:`, error);
+    console.error(`[API find-matches] ❌ Error after ${duration}ms:`, error);
     const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred";
     
     return NextResponse.json({ 
@@ -122,7 +144,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 }
 
 // ============================================================================
-// GET - טעינת תוצאות שמורות בלבד
+// GET - טעינת תוצאות שמורות (לפי שיטה)
 // ============================================================================
 
 export async function GET(req: NextRequest): Promise<NextResponse> {
@@ -138,27 +160,35 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
 
     const { searchParams } = new URL(req.url);
     const targetUserId = searchParams.get('targetUserId');
+    const method = searchParams.get('method') || 'algorithmic';
 
     if (!targetUserId) {
       return NextResponse.json({
         name: "NeshamaTech Matching Algorithm",
-        version: "3.2-simple",
-        description: "Smart matching algorithm - inline execution",
+        version: "3.2-dual-mode",
+        description: "Smart matching algorithm - supports both Vector and Algorithmic methods",
         endpoints: {
-          "POST /api/ai/find-matches-v2": "Run matching algorithm (inline)",
-          "GET /api/ai/find-matches-v2?targetUserId=...": "Load saved matches",
-          "DELETE /api/ai/find-matches-v2?targetUserId=...": "Clear saved matches"
+          "POST /api/ai/find-matches-v2": "Run matching (method: 'algorithmic' | 'vector')",
+          "GET /api/ai/find-matches-v2?targetUserId=...&method=...": "Load saved matches",
+          "DELETE /api/ai/find-matches-v2?targetUserId=...&method=...": "Clear saved matches"
         }
       });
     }
 
-    const savedResults = await loadSavedMatches(targetUserId);
+    // טעינת תוצאות לפי השיטה
+    let savedResults;
+    if (method === 'vector') {
+      savedResults = await loadSavedVectorMatches(targetUserId);
+    } else {
+      savedResults = await loadSavedMatches(targetUserId);
+    }
 
     if (!savedResults) {
       return NextResponse.json({
         success: true,
         matches: [],
         fromCache: false,
+        method,
         meta: { targetUserId, totalMatches: 0, message: 'No saved matches found.' }
       });
     }
@@ -167,24 +197,25 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       success: true,
       matches: savedResults.matches,
       fromCache: true,
+      method,
       meta: {
         targetUserId,
         totalMatches: savedResults.matches.length,
         totalCandidatesScanned: savedResults.meta.totalCandidatesScanned,
         algorithmVersion: savedResults.meta.algorithmVersion,
-        savedAt: savedResults.meta.savedAt.toISOString(),
+        savedAt: savedResults.meta.savedAt?.toISOString(),
         isStale: savedResults.meta.isStale,
       }
     });
 
   } catch (error) {
-    console.error('[API find-matches SIMPLE] GET Error:', error);
+    console.error('[API find-matches] GET Error:', error);
     return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
   }
 }
 
 // ============================================================================
-// DELETE - מחיקת תוצאות שמורות
+// DELETE - מחיקת תוצאות שמורות (לפי שיטה)
 // ============================================================================
 
 export async function DELETE(req: NextRequest): Promise<NextResponse> {
@@ -200,6 +231,7 @@ export async function DELETE(req: NextRequest): Promise<NextResponse> {
 
     const { searchParams } = new URL(req.url);
     const targetUserId = searchParams.get('targetUserId');
+    const method = searchParams.get('method') || 'both';
 
     if (!targetUserId) {
       return NextResponse.json({ 
@@ -208,15 +240,21 @@ export async function DELETE(req: NextRequest): Promise<NextResponse> {
       }, { status: 400 });
     }
 
-    await deleteSavedMatches(targetUserId);
+    // מחיקה לפי השיטה
+    if (method === 'vector' || method === 'both') {
+      await deleteSavedVectorMatches(targetUserId);
+    }
+    if (method === 'algorithmic' || method === 'both') {
+      await deleteSavedMatches(targetUserId);
+    }
 
     return NextResponse.json({
       success: true,
-      message: `Saved matches for ${targetUserId} deleted`
+      message: `Saved matches for ${targetUserId} deleted (method: ${method})`
     });
 
   } catch (error) {
-    console.error('[API find-matches SIMPLE] DELETE Error:', error);
+    console.error('[API find-matches] DELETE Error:', error);
     return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
   }
 }
