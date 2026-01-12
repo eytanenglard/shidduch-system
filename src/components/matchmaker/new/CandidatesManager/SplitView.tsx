@@ -1,7 +1,7 @@
 // File: src/components/matchmaker/new/CandidatesManager/SplitView.tsx
 'use client';
 
-import React, { useMemo, useEffect, useState } from 'react';
+import React, { useMemo, useEffect, useState, useCallback } from 'react';
 import {
   ResizableHandle,
   ResizablePanel,
@@ -22,10 +22,16 @@ import {
   Clock,
   Brain,
   MessageSquare,
+  CheckCircle2,
+  X,
+  ChevronDown,
+  ChevronUp,
+  Users,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card } from '@/components/ui/card';
+import { Progress } from '@/components/ui/progress';
 import type {
   Candidate,
   CandidateAction,
@@ -40,11 +46,17 @@ import type { MatchmakerPageDictionary } from '@/types/dictionaries/matchmaker';
 import type { ProfilePageDictionary } from '@/types/dictionary';
 import { motion, AnimatePresence } from 'framer-motion';
 
+// 🆕 Import the new hook
+import {
+  useMatchingJob,
+  type SearchMethod,
+  type MatchResult,
+} from '../hooks/useMatchingJob';
+
 // ============================================================================
 // TYPES & INTERFACES
 // ============================================================================
 
-// טיפוסים להתאמת רקע
 type BackgroundCompatibility =
   | 'excellent'
   | 'good'
@@ -52,7 +64,6 @@ type BackgroundCompatibility =
   | 'problematic'
   | 'not_recommended';
 
-// מבנה ציון מפורט - V3.0
 interface ScoreBreakdown {
   religious: number;
   careerFamily: number;
@@ -62,7 +73,6 @@ interface ScoreBreakdown {
   values: number;
 }
 
-// Interface מעודכן עם כל השדות החדשים מ-V3.1
 interface AiMatch {
   userId: string;
   firstName?: string;
@@ -77,11 +87,9 @@ interface AiMatch {
   rank?: number;
   backgroundMultiplier?: number;
   backgroundCompatibility?: BackgroundCompatibility;
-  // Vector search specific
   similarity?: number;
 }
 
-// Interface למטא-דאטה של החיפוש
 interface AiMatchMeta {
   fromCache: boolean;
   savedAt?: string;
@@ -91,10 +99,6 @@ interface AiMatchMeta {
   durationMs?: number;
 }
 
-// סוג שיטת החיפוש
-type SearchMethod = 'algorithmic' | 'vector';
-
-// טיפוס מורחב למועמד עם נתוני AI
 type CandidateWithAiData = Candidate & {
   aiScore?: number;
   aiReasoning?: string;
@@ -195,7 +199,7 @@ const ScoreBreakdownDisplay: React.FC<{
 };
 
 // ============================================================================
-// AI REASONING DISPLAY COMPONENT - הצגת הערת ה-AI
+// AI REASONING DISPLAY COMPONENT
 // ============================================================================
 
 const AiReasoningDisplay: React.FC<{
@@ -320,17 +324,12 @@ const CacheInfoBadge: React.FC<{
           ({meta.totalCandidatesScanned} נסרקו)
         </span>
       )}
-      {meta.durationMs && (
-        <span className="opacity-70">
-          • {Math.round(meta.durationMs / 1000)}
-        </span>
-      )}
     </motion.div>
   );
 };
 
 // ============================================================================
-// SEARCH METHOD TABS COMPONENT - טאבים לבחירת שיטת חיפוש
+// SEARCH METHOD TABS COMPONENT
 // ============================================================================
 
 const SearchMethodTabs: React.FC<{
@@ -389,7 +388,172 @@ const SearchMethodTabs: React.FC<{
 };
 
 // ============================================================================
-// PANEL HEADER COMPONENT - מעודכן עם שני כפתורי חיפוש
+// 🆕 JOB COMPLETE BANNER - באנר "המשימה הושלמה"
+// ============================================================================
+
+const JobCompleteBanner: React.FC<{
+  matchesCount: number;
+  totalCandidates?: number;
+  fromCache: boolean;
+  method: SearchMethod;
+  onViewResults: () => void;
+  onDismiss: () => void;
+}> = ({
+  matchesCount,
+  totalCandidates,
+  fromCache,
+  method,
+  onViewResults,
+  onDismiss,
+}) => {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: -20, scale: 0.95 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, y: -20, scale: 0.95 }}
+      className="mx-4 mb-4 rounded-xl p-4 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 shadow-lg"
+    >
+      <div className="flex items-start justify-between">
+        <div className="flex items-start gap-3">
+          <div className="p-2 rounded-full bg-green-500 text-white">
+            <CheckCircle2 className="w-5 h-5" />
+          </div>
+
+          <div>
+            <h3 className="font-bold text-green-800 text-lg">
+              ✅ המשימה הושלמה! נמצאו {matchesCount} התאמות
+            </h3>
+
+            <div className="flex flex-wrap gap-3 mt-2 text-sm text-green-600">
+              {totalCandidates && (
+                <span className="flex items-center gap-1">
+                  <Users className="w-4 h-4" />
+                  נסרקו {totalCandidates} מועמדים
+                </span>
+              )}
+
+              <span className="flex items-center gap-1">
+                {method === 'vector' ? (
+                  <Zap className="w-4 h-4" />
+                ) : (
+                  <Brain className="w-4 h-4" />
+                )}
+                {method === 'vector' ? 'חיפוש מהיר' : 'AI מתקדם'}
+              </span>
+
+              {fromCache && (
+                <span className="flex items-center gap-1 text-amber-600">
+                  <Database className="w-4 h-4" />
+                  מהזיכרון
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
+
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={onDismiss}
+          className="text-gray-400 hover:text-gray-600"
+        >
+          <X className="w-4 h-4" />
+        </Button>
+      </div>
+
+      <div className="mt-4 flex gap-2">
+        <Button
+          onClick={onViewResults}
+          className="bg-gradient-to-r from-green-500 to-emerald-500 text-white hover:from-green-600 hover:to-emerald-600"
+        >
+          <Sparkles className="w-4 h-4 ml-2" />
+          הצג תוצאות
+        </Button>
+      </div>
+    </motion.div>
+  );
+};
+
+// ============================================================================
+// 🆕 REAL-TIME PROGRESS COMPONENT - Progress מהשרת
+// ============================================================================
+
+const RealTimeProgress: React.FC<{
+  progress: number;
+  progressMessage: string;
+  method: SearchMethod;
+  onCancel: () => void;
+}> = ({ progress, progressMessage, method, onCancel }) => {
+  const isVector = method === 'vector';
+  const gradientClass = isVector
+    ? 'from-blue-500 to-cyan-500'
+    : 'from-purple-500 to-pink-500';
+  const bgClass = isVector ? 'bg-blue-50' : 'bg-purple-50';
+  const Icon = isVector ? Zap : Brain;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: -20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -20 }}
+      className={cn('mx-4 mb-4 rounded-xl p-4 border shadow-lg', bgClass)}
+    >
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2">
+          <div
+            className={cn(
+              'p-2 rounded-lg bg-gradient-to-r text-white',
+              gradientClass
+            )}
+          >
+            <Icon className="w-4 h-4" />
+          </div>
+          <div>
+            <p className="font-medium text-gray-900">
+              {isVector ? 'חיפוש מהיר' : 'ניתוח AI מתקדם'}
+            </p>
+            <p className="text-sm text-gray-500">
+              {progressMessage || 'מעבד...'}
+            </p>
+          </div>
+        </div>
+
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={onCancel}
+          className="text-gray-400 hover:text-gray-600"
+        >
+          <X className="w-4 h-4" />
+        </Button>
+      </div>
+
+      <div className="relative">
+        <Progress value={progress} className="h-3 bg-gray-200" />
+        <motion.div
+          className={cn(
+            'absolute inset-0 h-3 rounded-full bg-gradient-to-r opacity-30',
+            gradientClass
+          )}
+          animate={{ x: ['-100%', '100%'] }}
+          transition={{ duration: 1.5, repeat: Infinity, ease: 'linear' }}
+          style={{ width: '50%' }}
+        />
+      </div>
+
+      <div className="flex justify-between mt-2 text-sm text-gray-500">
+        <span>{progress}%</span>
+        <span className="flex items-center gap-1">
+          <Loader2 className="w-3 h-3 animate-spin" />
+          {progress < 30 ? 'מתחיל...' : progress < 70 ? 'מנתח...' : 'מסיים...'}
+        </span>
+      </div>
+    </motion.div>
+  );
+};
+
+// ============================================================================
+// PANEL HEADER COMPONENT
 // ============================================================================
 
 const PanelHeaderComponent: React.FC<{
@@ -460,7 +624,6 @@ const PanelHeaderComponent: React.FC<{
 
   const config = genderConfig[gender];
   const IconComponent = config.icon;
-
   const hasAnyResults = aiMatchesCount > 0 || vectorMatchesCount > 0;
 
   return (
@@ -528,7 +691,6 @@ const PanelHeaderComponent: React.FC<{
       {/* Search buttons - only show on search panel */}
       {isSearchPanel && (
         <div className="flex flex-col gap-2">
-          {/* Two search buttons */}
           <div className="flex gap-2">
             {/* כפתור חיפוש AI מתקדם */}
             <motion.div className="flex-1" whileHover={{ scale: 1.02 }}>
@@ -590,13 +752,13 @@ const PanelHeaderComponent: React.FC<{
             )}
           </div>
 
-          {/* Time estimates */}
+          {/* Time estimates - מעודכן! */}
           <div className="flex gap-2 text-xs text-gray-500">
-            <span className="flex-1 text-center">~80 שניות • ניתוח מעמיק</span>
+            <span className="flex-1 text-center">~3-5 דקות • ניתוח מעמיק</span>
             <span className="flex-1 text-center">~30 שניות • חיפוש דמיון</span>
           </div>
 
-          {/* Results tabs - show when we have results */}
+          {/* Results tabs */}
           {hasAnyResults && (
             <div className="flex items-center justify-between mt-2">
               <SearchMethodTabs
@@ -714,137 +876,7 @@ const EmptyStateComponent: React.FC<{
 };
 
 // ============================================================================
-// AI LOADING PROGRESS COMPONENT - מעודכן עם תמיכה בשיטות שונות
-// ============================================================================
-
-const AiLoadingProgress: React.FC<{
-  isLoading: boolean;
-  gender: 'male' | 'female';
-  method: SearchMethod;
-}> = ({ isLoading, gender, method }) => {
-  const [progress, setProgress] = useState(0);
-  const [stage, setStage] = useState<string>('fetching');
-
-  useEffect(() => {
-    if (!isLoading) {
-      setProgress(0);
-      setStage('fetching');
-      return;
-    }
-
-    // Different stages based on method
-    const stages =
-      method === 'vector'
-        ? [
-            { name: 'vector_search', duration: 2000, progressEnd: 30 },
-            { name: 'filtering', duration: 1000, progressEnd: 50 },
-            { name: 'ai_ranking', duration: 25000, progressEnd: 95 },
-            { name: 'saving', duration: 2000, progressEnd: 100 },
-          ]
-        : [
-            { name: 'fetching', duration: 2000, progressEnd: 10 },
-            { name: 'scoring', duration: 2000, progressEnd: 20 },
-            { name: 'analyzing', duration: 40000, progressEnd: 70 },
-            { name: 'deep', duration: 30000, progressEnd: 95 },
-            { name: 'saving', duration: 3000, progressEnd: 100 },
-          ];
-
-    let currentStageIndex = 0;
-    let stageStartTime = Date.now();
-
-    const interval = setInterval(() => {
-      const currentStage = stages[currentStageIndex];
-      const elapsed = Date.now() - stageStartTime;
-      const stageProgress = Math.min(elapsed / currentStage.duration, 1);
-      const prevProgress =
-        currentStageIndex > 0 ? stages[currentStageIndex - 1].progressEnd : 0;
-      const newProgress =
-        prevProgress +
-        stageProgress * (currentStage.progressEnd - prevProgress);
-
-      setProgress(Math.min(newProgress, 99));
-      setStage(currentStage.name);
-
-      if (stageProgress >= 1 && currentStageIndex < stages.length - 1) {
-        currentStageIndex++;
-        stageStartTime = Date.now();
-      }
-    }, 100);
-
-    return () => clearInterval(interval);
-  }, [isLoading, method]);
-
-  if (!isLoading) return null;
-
-  const stageLabels: Record<string, string> = {
-    // Vector stages
-    vector_search: 'מחפש פרופילים דומים...',
-    filtering: 'מסנן תוצאות...',
-    ai_ranking: 'מדרג עם AI...',
-    // Algorithmic stages
-    fetching: 'שולף מועמדים רלוונטיים...',
-    scoring: 'מחשב ציונים אלגוריתמיים...',
-    analyzing: 'מנתח התאמות (סריקה ראשונית)...',
-    deep: 'ניתוח מעמיק של המובילים...',
-    saving: 'שומר תוצאות...',
-  };
-
-  const config =
-    gender === 'male'
-      ? {
-          gradient:
-            method === 'vector'
-              ? 'from-blue-500 to-cyan-500'
-              : 'from-blue-500 to-cyan-500',
-          bg: method === 'vector' ? 'bg-blue-100' : 'bg-blue-100',
-        }
-      : {
-          gradient:
-            method === 'vector'
-              ? 'from-blue-500 to-cyan-500'
-              : 'from-purple-500 to-pink-500',
-          bg: method === 'vector' ? 'bg-blue-100' : 'bg-purple-100',
-        };
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: -20 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -20 }}
-      className="mx-4 mb-4"
-    >
-      <div className={cn('rounded-xl p-4 shadow-lg', config.bg)}>
-        <div className="flex items-center gap-3 mb-3">
-          {method === 'vector' ? (
-            <Zap className="w-5 h-5 text-blue-600" />
-          ) : (
-            <Loader2 className="w-5 h-5 animate-spin text-gray-700" />
-          )}
-          <span className="text-sm font-medium text-gray-700">
-            {stageLabels[stage] || 'מעבד...'}
-          </span>
-          <span className="text-xs text-gray-500 mr-auto">
-            {Math.round(progress)}%
-          </span>
-        </div>
-        <div className="h-2 bg-white/50 rounded-full overflow-hidden">
-          <motion.div
-            className={cn(
-              'h-full rounded-full bg-gradient-to-r',
-              config.gradient
-            )}
-            initial={{ width: 0 }}
-            animate={{ width: `${progress}%` }}
-            transition={{ duration: 0.3 }}
-          />
-        </div>
-      </div>
-    </motion.div>
-  );
-};
-
-// ============================================================================
-// HELPER FUNCTION - Type-safe background compatibility casting
+// HELPER FUNCTION
 // ============================================================================
 
 function toBackgroundCompatibility(
@@ -904,8 +936,6 @@ const SplitView: React.FC<SplitViewProps> = ({
 
   const [isMobile, setIsMobile] = useState(false);
   const [aiMatchMeta, setAiMatchMeta] = useState<AiMatchMeta | null>(null);
-
-  // 🆕 State חדש עבור Vector Search
   const [vectorMatches, setVectorMatches] = useState<AiMatch[]>([]);
   const [vectorMatchMeta, setVectorMatchMeta] = useState<AiMatchMeta | null>(
     null
@@ -915,6 +945,72 @@ const SplitView: React.FC<SplitViewProps> = ({
   const [activeResultsTab, setActiveResultsTab] =
     useState<SearchMethod>('algorithmic');
 
+  // 🆕 State חדש לבאנר "המשימה הושלמה"
+  const [showCompleteBanner, setShowCompleteBanner] = useState(false);
+  const [lastCompletedMethod, setLastCompletedMethod] =
+    useState<SearchMethod>('algorithmic');
+
+  // 🆕 Background Jobs Hooks - אחד לכל שיטה
+  const algorithmicJob = useMatchingJob({
+    pollingInterval: 3000,
+    showToasts: false, // נטפל בהתראות בעצמנו
+    onComplete: (result) => {
+      if (result?.matches) {
+        setAiMatches(result.matches as AiMatch[]);
+        setAiMatchMeta({
+          fromCache: false,
+          algorithmVersion: result.meta?.algorithmVersion || 'v3.1',
+          totalCandidatesScanned: result.meta?.totalCandidatesScanned,
+        });
+        setActiveResultsTab('algorithmic');
+        setShowCompleteBanner(true);
+        setLastCompletedMethod('algorithmic');
+
+        toast.success(`✅ נמצאו ${result.matches.length} התאמות!`, {
+          description: 'לחץ על "הצג תוצאות" לצפייה',
+          duration: 10000,
+        });
+      }
+      setIsAiLoading(false);
+    },
+    onError: (error) => {
+      toast.error('❌ החיפוש נכשל', { description: error });
+      setIsAiLoading(false);
+    },
+  });
+
+  const vectorJob = useMatchingJob({
+    pollingInterval: 2000,
+    showToasts: false,
+    onComplete: (result) => {
+      if (result?.matches) {
+        setVectorMatches(result.matches as AiMatch[]);
+        setVectorMatchMeta({
+          fromCache: false,
+          algorithmVersion: result.meta?.algorithmVersion || 'vector-v1',
+          totalCandidatesScanned: result.meta?.totalCandidatesScanned,
+        });
+        setActiveResultsTab('vector');
+        setShowCompleteBanner(true);
+        setLastCompletedMethod('vector');
+
+        toast.success(`✅ נמצאו ${result.matches.length} התאמות!`, {
+          description: 'לחץ על "הצג תוצאות" לצפייה',
+          duration: 10000,
+        });
+      }
+      setIsAiLoading(false);
+    },
+    onError: (error) => {
+      toast.error('❌ החיפוש נכשל', { description: error });
+      setIsAiLoading(false);
+    },
+  });
+
+  // קבל את ה-job הפעיל
+  const activeJob =
+    currentSearchMethod === 'vector' ? vectorJob : algorithmicJob;
+
   useEffect(() => {
     const checkScreenSize = () => setIsMobile(window.innerWidth < 768);
     checkScreenSize();
@@ -922,146 +1018,82 @@ const SplitView: React.FC<SplitViewProps> = ({
     return () => window.removeEventListener('resize', checkScreenSize);
   }, []);
 
-  // 🆕 פונקציה מעודכנת עם תמיכה בשיטות חיפוש שונות
-  const handleFindAiMatches = async (
-    e: React.MouseEvent,
-    forceRefresh: boolean = false,
-    method: SearchMethod = 'algorithmic'
-  ) => {
-    e.stopPropagation();
+  // 🆕 פונקציה מעודכנת - משתמשת ב-Background Jobs
+  const handleFindAiMatches = useCallback(
+    async (
+      e: React.MouseEvent,
+      forceRefresh: boolean = false,
+      method: SearchMethod = 'algorithmic'
+    ) => {
+      e.stopPropagation();
 
-    if (!aiTargetCandidate) {
-      toast.error('אנא בחר מועמד/ת מטרה תחילה', {
-        position: 'top-center',
-        icon: '⚠️',
-      });
-      return;
-    }
-
-    setIsAiLoading(true);
-    setCurrentSearchMethod(method);
-
-    // נקה את התוצאות של השיטה הנוכחית
-    if (method === 'vector') {
-      setVectorMatches([]);
-      setVectorMatchMeta(null);
-    } else {
-      setAiMatches([]);
-      setAiMatchMeta(null);
-    }
-
-    const methodName = method === 'vector' ? 'דמיון מהיר' : 'AI מתקדם';
-
-    try {
-      toast.loading(`מחפש התאמות (${methodName})...`, {
-        id: 'ai-search',
-        position: 'top-center',
-      });
-
-      console.log(
-        `[AI Matching] Starting ${methodName} search for ${aiTargetCandidate.firstName}...`
-      );
-
-      const response = await fetch('/api/ai/find-matches-v2', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          targetUserId: aiTargetCandidate.id,
-          forceRefresh,
-          method, // 👈 שולח את השיטה לשרת
-        }),
-      });
-
-      const data = await response.json();
-
-      toast.dismiss('ai-search');
-
-      if (!response.ok || !data.success) {
-        throw new Error(
-          data.error || data.details || 'Failed to fetch matches'
-        );
+      if (!aiTargetCandidate) {
+        toast.error('אנא בחר מועמד/ת מטרה תחילה', {
+          position: 'top-center',
+          icon: '⚠️',
+        });
+        return;
       }
 
-      console.log(
-        `[AI Matching] ✅ ${methodName} completed! Found ${data.matches?.length || 0} matches`
-      );
+      setIsAiLoading(true);
+      setCurrentSearchMethod(method);
+      setShowCompleteBanner(false);
 
-      const matches = data.matches || [];
-      const meta: AiMatchMeta = {
-        fromCache: data.fromCache || false,
-        savedAt: data.meta?.savedAt,
-        isStale: data.meta?.isStale,
-        algorithmVersion: data.meta?.algorithmVersion || 'unknown',
-        totalCandidatesScanned: data.meta?.totalCandidatesScanned,
-        durationMs: data.meta?.durationMs,
-      };
-
-      // עדכון התוצאות לפי השיטה
+      // נקה את התוצאות של השיטה הנוכחית
       if (method === 'vector') {
-        setVectorMatches(matches);
-        setVectorMatchMeta(meta);
-        setActiveResultsTab('vector');
+        setVectorMatches([]);
+        setVectorMatchMeta(null);
       } else {
-        setAiMatches(matches);
-        setAiMatchMeta(meta);
-        setActiveResultsTab('algorithmic');
+        setAiMatches([]);
+        setAiMatchMeta(null);
       }
 
-      // הודעת הצלחה
-      const durationText = meta.durationMs
-        ? ` ב-${Math.round(meta.durationMs / 1000)} שניות`
-        : '';
+      const methodName = method === 'vector' ? 'דמיון מהיר' : 'AI מתקדם';
 
-      if (meta.fromCache) {
-        const savedDate = meta.savedAt
-          ? new Date(meta.savedAt).toLocaleDateString('he-IL')
-          : 'לא ידוע';
+      try {
+        toast.info(`🔍 מפעיל ${methodName}...`, {
+          description: 'החיפוש רץ ברקע, תקבל התראה כשיסתיים',
+          duration: 4000,
+        });
 
-        toast.success(
-          `נטענו ${matches.length} התאמות שמורות (${methodName}) 📂`,
-          {
-            position: 'top-center',
-            description: meta.isStale
-              ? `התוצאות מ-${savedDate}. מומלץ לרענן.`
-              : `עודכן ב-${savedDate}`,
-            duration: 4000,
-          }
-        );
-      } else {
-        const topMatch = matches[0];
-        const scannedText = meta.totalCandidatesScanned
-          ? ` (מתוך ${meta.totalCandidatesScanned} שנסרקו)`
-          : '';
-
-        toast.success(
-          `נמצאו ${matches.length} התאמות (${methodName})${durationText}${scannedText} 🎯`,
-          {
-            position: 'top-center',
-            description: topMatch
-              ? `התאמה מובילה: ${topMatch.firstName} ${topMatch.lastName} (${topMatch.finalScore || topMatch.score}%)`
-              : undefined,
-            duration: 5000,
-          }
-        );
+        // 🆕 משתמש ב-Hook החדש במקום fetch ישיר
+        const job = method === 'vector' ? vectorJob : algorithmicJob;
+        await job.startJob(aiTargetCandidate.id, method, forceRefresh);
+      } catch (error) {
+        console.error('[AI Matching] ❌ Error:', error);
+        toast.error(`שגיאה בהפעלת ${methodName}`, {
+          description:
+            error instanceof Error ? error.message : 'נסה שוב מאוחר יותר.',
+        });
+        setIsAiLoading(false);
       }
-    } catch (error) {
-      toast.dismiss('ai-search');
-      console.error('[AI Matching] ❌ Error:', error);
-      toast.error(`שגיאה בחיפוש ${methodName}`, {
-        description:
-          error instanceof Error ? error.message : 'נסה שוב מאוחר יותר.',
-      });
-    } finally {
-      setIsAiLoading(false);
+    },
+    [aiTargetCandidate, setAiMatches, setIsAiLoading, algorithmicJob, vectorJob]
+  );
+
+  // פונקציה להצגת התוצאות (סגירת הבאנר וגלילה)
+  const handleViewResults = useCallback(() => {
+    setShowCompleteBanner(false);
+    // גלילה לתחילת רשימת התוצאות
+    const resultsSection = document.getElementById('candidates-results');
+    if (resultsSection) {
+      resultsSection.scrollIntoView({ behavior: 'smooth' });
     }
-  };
+  }, []);
 
-  // 🆕 פונקציה לקבלת התוצאות הפעילות
+  // פונקציה לביטול החיפוש
+  const handleCancelJob = useCallback(() => {
+    activeJob.cancelJob();
+    setIsAiLoading(false);
+    toast.info('החיפוש בוטל');
+  }, [activeJob, setIsAiLoading]);
+
+  // פונקציה לקבלת התוצאות הפעילות
   const getActiveMatches = (): AiMatch[] => {
     return activeResultsTab === 'vector' ? vectorMatches : aiMatches;
   };
 
-  // 🔧 מיזוג מועמדים עם ציוני AI - מעודכן לתמוך בשתי שיטות
+  // מיזוג מועמדים עם ציוני AI
   const maleCandidatesWithScores: CandidateWithAiData[] = useMemo(() => {
     const activeMatches = getActiveMatches();
     if (activeMatches.length === 0) return maleCandidates;
@@ -1147,7 +1179,7 @@ const SplitView: React.FC<SplitViewProps> = ({
         isTargetPanel={isTargetPanel}
         onClearAiTarget={onClearAiTarget}
         onFindAiMatches={handleFindAiMatches}
-        isAiLoading={isAiLoading}
+        isAiLoading={isAiLoading || activeJob.isLoading}
         currentSearchMethod={currentSearchMethod}
         isMobileView={isMobileView}
         dict={dict.candidatesManager.splitView.panelHeaders}
@@ -1158,6 +1190,45 @@ const SplitView: React.FC<SplitViewProps> = ({
         activeResultsTab={activeResultsTab}
         onResultsTabChange={setActiveResultsTab}
       />
+    );
+  };
+
+  // 🆕 רנדור ה-Progress ו-Banner
+  const renderJobStatus = (gender: 'male' | 'female') => {
+    const panelGenderEnum = gender === 'male' ? Gender.MALE : Gender.FEMALE;
+    const isSearchPanel =
+      aiTargetCandidate && aiTargetCandidate.profile.gender !== panelGenderEnum;
+
+    if (!isSearchPanel) return null;
+
+    return (
+      <AnimatePresence>
+        {/* Progress בזמן טעינה */}
+        {activeJob.isLoading && (
+          <RealTimeProgress
+            progress={activeJob.progress}
+            progressMessage={activeJob.progressMessage}
+            method={currentSearchMethod}
+            onCancel={handleCancelJob}
+          />
+        )}
+
+        {/* Banner כשהמשימה הושלמה */}
+        {showCompleteBanner && !activeJob.isLoading && (
+          <JobCompleteBanner
+            matchesCount={
+              lastCompletedMethod === 'vector'
+                ? vectorMatches.length
+                : aiMatches.length
+            }
+            totalCandidates={activeJob.meta.totalCandidates}
+            fromCache={activeJob.fromCache}
+            method={lastCompletedMethod}
+            onViewResults={handleViewResults}
+            onDismiss={() => setShowCompleteBanner(false)}
+          />
+        )}
+      </AnimatePresence>
     );
   };
 
@@ -1243,10 +1314,10 @@ const SplitView: React.FC<SplitViewProps> = ({
                         onClick={(e) =>
                           handleFindAiMatches(e, false, 'algorithmic')
                         }
-                        disabled={isAiLoading}
+                        disabled={activeJob.isLoading}
                         className="flex-1 h-12 bg-gradient-to-r from-purple-600 to-purple-700 text-white shadow-lg font-bold rounded-xl"
                       >
-                        {isAiLoading &&
+                        {activeJob.isLoading &&
                         currentSearchMethod === 'algorithmic' ? (
                           <Loader2 className="w-5 h-5 animate-spin ml-2" />
                         ) : (
@@ -1256,10 +1327,11 @@ const SplitView: React.FC<SplitViewProps> = ({
                       </Button>
                       <Button
                         onClick={(e) => handleFindAiMatches(e, false, 'vector')}
-                        disabled={isAiLoading}
+                        disabled={activeJob.isLoading}
                         className="flex-1 h-12 bg-gradient-to-r from-blue-600 to-cyan-600 text-white shadow-lg font-bold rounded-xl"
                       >
-                        {isAiLoading && currentSearchMethod === 'vector' ? (
+                        {activeJob.isLoading &&
+                        currentSearchMethod === 'vector' ? (
                           <Loader2 className="w-5 h-5 animate-spin ml-2" />
                         ) : (
                           <Zap className="w-5 h-5 ml-2" />
@@ -1273,21 +1345,15 @@ const SplitView: React.FC<SplitViewProps> = ({
                         onMethodChange={setActiveResultsTab}
                         algorithmicCount={aiMatches.length}
                         vectorCount={vectorMatches.length}
-                        isLoading={isAiLoading}
+                        isLoading={activeJob.isLoading}
                       />
                     )}
                   </motion.div>
                 )}
-              <AnimatePresence>
-                {isAiLoading &&
-                  aiTargetCandidate?.profile.gender === 'FEMALE' && (
-                    <AiLoadingProgress
-                      isLoading={isAiLoading}
-                      gender="male"
-                      method={currentSearchMethod}
-                    />
-                  )}
-              </AnimatePresence>
+
+              {/* 🆕 Job Status */}
+              {renderJobStatus('male')}
+
               {separateFiltering && onMaleSearchChange && (
                 <div className="mb-4 w-full">
                   <SearchBar
@@ -1302,7 +1368,10 @@ const SplitView: React.FC<SplitViewProps> = ({
                   />
                 </div>
               )}
-              <div className="flex-grow min-h-0 overflow-y-auto">
+              <div
+                id="candidates-results"
+                className="flex-grow min-h-0 overflow-y-auto"
+              >
                 {renderCandidatesListForMobile(
                   maleCandidatesWithScores,
                   'male',
@@ -1327,10 +1396,10 @@ const SplitView: React.FC<SplitViewProps> = ({
                         onClick={(e) =>
                           handleFindAiMatches(e, false, 'algorithmic')
                         }
-                        disabled={isAiLoading}
+                        disabled={activeJob.isLoading}
                         className="flex-1 h-12 bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg font-bold rounded-xl"
                       >
-                        {isAiLoading &&
+                        {activeJob.isLoading &&
                         currentSearchMethod === 'algorithmic' ? (
                           <Loader2 className="w-5 h-5 animate-spin ml-2" />
                         ) : (
@@ -1340,10 +1409,11 @@ const SplitView: React.FC<SplitViewProps> = ({
                       </Button>
                       <Button
                         onClick={(e) => handleFindAiMatches(e, false, 'vector')}
-                        disabled={isAiLoading}
+                        disabled={activeJob.isLoading}
                         className="flex-1 h-12 bg-gradient-to-r from-blue-600 to-cyan-600 text-white shadow-lg font-bold rounded-xl"
                       >
-                        {isAiLoading && currentSearchMethod === 'vector' ? (
+                        {activeJob.isLoading &&
+                        currentSearchMethod === 'vector' ? (
                           <Loader2 className="w-5 h-5 animate-spin ml-2" />
                         ) : (
                           <Zap className="w-5 h-5 ml-2" />
@@ -1357,21 +1427,15 @@ const SplitView: React.FC<SplitViewProps> = ({
                         onMethodChange={setActiveResultsTab}
                         algorithmicCount={aiMatches.length}
                         vectorCount={vectorMatches.length}
-                        isLoading={isAiLoading}
+                        isLoading={activeJob.isLoading}
                       />
                     )}
                   </motion.div>
                 )}
-              <AnimatePresence>
-                {isAiLoading &&
-                  aiTargetCandidate?.profile.gender === 'MALE' && (
-                    <AiLoadingProgress
-                      isLoading={isAiLoading}
-                      gender="female"
-                      method={currentSearchMethod}
-                    />
-                  )}
-              </AnimatePresence>
+
+              {/* 🆕 Job Status */}
+              {renderJobStatus('female')}
+
               {separateFiltering && onFemaleSearchChange && (
                 <div className="mb-4 w-full">
                   <SearchBar
@@ -1386,7 +1450,10 @@ const SplitView: React.FC<SplitViewProps> = ({
                   />
                 </div>
               )}
-              <div className="flex-grow min-h-0 overflow-y-auto">
+              <div
+                id="candidates-results"
+                className="flex-grow min-h-0 overflow-y-auto"
+              >
                 {renderCandidatesListForMobile(
                   femaleCandidatesWithScores,
                   'female',
@@ -1411,16 +1478,10 @@ const SplitView: React.FC<SplitViewProps> = ({
         <ResizablePanel defaultSize={50} minSize={30}>
           <div className="flex flex-col h-full bg-gradient-to-b from-white to-blue-50/20">
             {renderPanelHeader('male')}
-            <AnimatePresence>
-              {isAiLoading &&
-                aiTargetCandidate?.profile.gender === 'FEMALE' && (
-                  <AiLoadingProgress
-                    isLoading={isAiLoading}
-                    gender="male"
-                    method={currentSearchMethod}
-                  />
-                )}
-            </AnimatePresence>
+
+            {/* 🆕 Job Status */}
+            {renderJobStatus('male')}
+
             {separateFiltering && onMaleSearchChange && (
               <div className="p-4 bg-blue-50/30 w-full">
                 <SearchBar
@@ -1433,7 +1494,10 @@ const SplitView: React.FC<SplitViewProps> = ({
                 />
               </div>
             )}
-            <div className="flex-grow min-h-0 overflow-y-auto p-4">
+            <div
+              id="candidates-results"
+              className="flex-grow min-h-0 overflow-y-auto p-4"
+            >
               <CandidatesList
                 candidates={maleCandidatesWithScores}
                 allCandidates={allCandidates}
@@ -1467,15 +1531,10 @@ const SplitView: React.FC<SplitViewProps> = ({
         <ResizablePanel defaultSize={50} minSize={30}>
           <div className="flex flex-col h-full bg-gradient-to-b from-white to-purple-50/20">
             {renderPanelHeader('female')}
-            <AnimatePresence>
-              {isAiLoading && aiTargetCandidate?.profile.gender === 'MALE' && (
-                <AiLoadingProgress
-                  isLoading={isAiLoading}
-                  gender="female"
-                  method={currentSearchMethod}
-                />
-              )}
-            </AnimatePresence>
+
+            {/* 🆕 Job Status */}
+            {renderJobStatus('female')}
+
             {separateFiltering && onFemaleSearchChange && (
               <div className="p-4 bg-purple-50/30 w-full">
                 <SearchBar

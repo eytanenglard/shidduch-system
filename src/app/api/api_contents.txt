@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api
-# Generated on: 2026-01-11 20:46:40
+# Generated on: 2026-01-12 09:34:18
 # Filter: Only content of code files (.bat, .c, .cfg, .conf, .cpp, .cs, .css, .go, .h, .html, .ini, .java, .js, .json, .jsx, .kt, .less, .md, .php, .py, .rb, .rs, .scss, .sh, .sql, .swift, .ts, .tsx, .txt, .xml, .yaml, .yml) is included.
 ################################################################################
 
@@ -2990,6 +2990,139 @@ export async function GET() {
 --- End of Content for route.ts ---
 
 ================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\admin\fill-missing-summaries
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\admin\fill-missing-summaries\route.ts
+--------------------------------------------------------------------------------
+Content:
+import { NextResponse } from 'next/server';
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import prisma from "@/lib/prisma";
+import { UserRole, Prisma } from "@prisma/client";
+import aiService from '@/lib/services/aiService';
+import profileAiService from '@/lib/services/profileAiService';
+
+export const maxDuration = 300; 
+export const dynamic = 'force-dynamic';
+
+/**
+ * פונקציית הרקע שמבצעת את העבודה
+ */
+async function runBackfillProcess(usersToUpdate: { id: string, profileId: string }[]) {
+  console.log(`🚀 [Backfill AI Summary] Starting background process for ${usersToUpdate.length} users...`);
+  
+  let successCount = 0;
+  let failCount = 0;
+
+  for (const user of usersToUpdate) {
+    try {
+      // 1. יצירת הפרופיל הנרטיבי
+      const narrative = await profileAiService.generateNarrativeProfile(user.id);
+      
+      if (!narrative) {
+        console.warn(`⚠️ [Backfill] Failed to generate narrative for User ID: ${user.id}`);
+        failCount++;
+        continue;
+      }
+
+      // 2. שליחה ל-AI
+      const summaryResult = await aiService.generateProfileSummary(narrative);
+
+      if (!summaryResult) {
+        console.warn(`⚠️ [Backfill] AI returned null for User ID: ${user.id}`);
+        failCount++;
+        continue;
+      }
+
+      // 3. עדכון הדאטה-בייס (עם תיקון הטיפוסים)
+      await prisma.profile.update({
+        where: { id: user.profileId },
+        data: {
+          // תיקון: המרה כפולה כדי לרצות את TypeScript ו-Prisma
+          aiProfileSummary: summaryResult as unknown as Prisma.InputJsonValue
+        }
+      });
+
+      console.log(`✅ [Backfill] Updated summary for User ID: ${user.id}`);
+      successCount++;
+
+      // השהייה למניעת חסימה מגוגל
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+    } catch (error) {
+      console.error(`❌ [Backfill] Error processing User ID: ${user.id}`, error);
+      failCount++;
+    }
+  }
+
+  console.log(`\n🏁 [Backfill AI Summary] Process Completed.`);
+  console.log(`Total: ${usersToUpdate.length} | Success: ${successCount} | Failed: ${failCount}`);
+}
+
+export async function POST() {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id || session.user.role !== UserRole.ADMIN) {
+      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 403 });
+    }
+
+    console.log(`[Backfill API] Searching for users...`);
+
+    // תיקון השאילתה: במקום להסתבך עם טיפוסי Json בתוך ה-Where,
+    // נשלוף את המועמדים הרלוונטיים ונסנן בקוד (JS).
+    const users = await prisma.user.findMany({
+      where: {
+        role: 'CANDIDATE',
+        isProfileComplete: true,
+        profile: {
+          isNot: null // מוודא שיש פרופיל
+        }
+      },
+      select: {
+        id: true,
+        profile: {
+          select: { 
+            id: true,
+            aiProfileSummary: true // שולפים את השדה כדי לבדוק אותו
+          }
+        }
+      }
+    });
+
+    // סינון ב-JS: רק מי שאין לו aiProfileSummary (או שהוא null/ריק)
+    // הטיפוסים פה בטוחים יותר מאשר בשאילתת Prisma מורכבת
+    const targets = users
+      .filter(u => !u.profile?.aiProfileSummary) 
+      .map(u => ({ 
+        id: u.id, 
+        profileId: u.profile!.id // ה-! בטוח כאן כי סיננו ב-where למעלה
+      }));
+
+    if (targets.length === 0) {
+      return NextResponse.json({ success: true, message: "✅ כולם מעודכנים! לא נמצאו משתמשים לעדכון." });
+    }
+
+    // הפעלת התהליך ברקע
+    runBackfillProcess(targets).catch(err => {
+      console.error(`[Backfill API] Critical background error:`, err);
+    });
+
+    return NextResponse.json({ 
+      success: true, 
+      message: `נמצאו ${targets.length} משתמשים לעדכון. התהליך התחיל ברקע.` 
+    });
+
+  } catch (error) {
+    console.error('[Backfill API] Error:', error);
+    return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
+  }
+}
+--- End of Content for route.ts ---
+
+================================================================================
 Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai
 ================================================================================
 
@@ -2999,7 +3132,7 @@ File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\ai_conte
 Content:
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai
-# Generated on: 2026-01-07 16:39:42
+# Generated on: 2026-01-11 20:48:59
 # Filter: Only content of code files (.bat, .c, .cfg, .conf, .cpp, .cs, .css, .go, .h, .html, .ini, .java, .js, .json, .jsx, .kt, .less, .md, .php, .py, .rb, .rs, .scss, .sh, .sql, .swift, .ts, .tsx, .txt, .xml, .yaml, .yml) is included.
 ################################################################################
 
@@ -3034,9 +3167,9 @@ import prisma from '@/lib/prisma';
 // הגדרות תצורה ל-Next.js כדי למנוע Timeout ו-Caching
 // -----------------------------------------------------------------------------
 
-// מאפשר לפונקציה לרוץ עד 60 שניות (במקום ברירת המחדל של 10-15 שניות).
+// מאפשר לפונקציה לרוץ עד 300 שניות (במקום ברירת המחדל של 10-15 שניות).
 // זה קריטי לקריאות AI שלוקחות זמן.
-export const maxDuration = 60; 
+export const maxDuration = 300; 
 
 // מוודא שהנתיב תמיד דינמי ולא נשמר ב-Cache של השרת
 export const dynamic = 'force-dynamic';
@@ -3305,6 +3438,238 @@ const rateLimitResponse = await applyRateLimitWithRoleCheck(req, { requests: 15,
     console.error('Error in /api/ai/find-matches:', error);
     const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred.";
     return NextResponse.json({ success: false, error: "Internal server error.", details: errorMessage }, { status: 500 });
+  }
+}
+--- End of Content for route.ts ---
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\find-matches-v2
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\find-matches-v2\route.ts
+--------------------------------------------------------------------------------
+Content:
+// src/app/api/ai/find-matches-v2/route.ts
+// 🎯 API Route לאלגוריתם מציאת התאמות - גרסה פשוטה (Inline)
+// מריץ את האלגוריתם ישירות בתוך ה-Request - בלי Jobs!
+
+import { NextRequest, NextResponse } from "next/server";
+import { applyRateLimitWithRoleCheck } from '@/lib/rate-limiter';
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import { UserRole } from "@prisma/client";
+import { 
+  findMatchesForUser,
+  loadSavedMatches,
+  deleteSavedMatches,
+} from "@/lib/services/matchingAlgorithmService";
+
+// הגדרות
+export const dynamic = 'force-dynamic';
+export const maxDuration = 60; // Heroku timeout - 30 שניות default, אפשר עד 60
+
+// ============================================================================
+// TYPES
+// ============================================================================
+
+interface PostRequestBody {
+  targetUserId: string;
+  forceRefresh?: boolean;
+}
+
+// ============================================================================
+// POST - מריץ את האלגוריתם ישירות ומחזיר תוצאות
+// ============================================================================
+
+export async function POST(req: NextRequest): Promise<NextResponse> {
+  const startTime = Date.now();
+  
+  // Rate Limiting
+  const rateLimitResponse = await applyRateLimitWithRoleCheck(req, { 
+    requests: 30, 
+    window: '1 h' 
+  });
+  if (rateLimitResponse) {
+    return rateLimitResponse;
+  }
+
+  try {
+    // Authentication
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      return NextResponse.json({ 
+        success: false, 
+        error: "Unauthorized: Please log in" 
+      }, { status: 401 });
+    }
+
+    if (session.user.role !== UserRole.MATCHMAKER && session.user.role !== UserRole.ADMIN) {
+      return NextResponse.json({ 
+        success: false, 
+        error: "Forbidden: Matchmaker or Admin access required" 
+      }, { status: 403 });
+    }
+
+    // Body Validation
+    const body: PostRequestBody = await req.json();
+    const { targetUserId, forceRefresh = false } = body;
+
+    if (!targetUserId || typeof targetUserId !== 'string') {
+      return NextResponse.json({ 
+        success: false, 
+        error: "Bad Request: 'targetUserId' (string) is required" 
+      }, { status: 400 });
+    }
+
+    const matchmakerId = session.user.id;
+
+    console.log(`\n========================================`);
+    console.log(`[API find-matches SIMPLE] POST from ${session.user.email}`);
+    console.log(`[API find-matches SIMPLE] Target: ${targetUserId}, forceRefresh: ${forceRefresh}`);
+    console.log(`========================================\n`);
+
+    // 🚀 הרצת האלגוריתם ישירות!
+    const result = await findMatchesForUser(targetUserId, matchmakerId, {
+      forceRefresh,
+      autoSave: true,
+    });
+
+    const duration = Date.now() - startTime;
+    
+    console.log(`\n========================================`);
+    console.log(`[API find-matches SIMPLE] ✅ Completed in ${duration}ms`);
+    console.log(`[API find-matches SIMPLE] Found ${result.matches.length} matches`);
+    console.log(`[API find-matches SIMPLE] From cache: ${result.fromCache}`);
+    console.log(`========================================\n`);
+
+    return NextResponse.json({
+      success: true,
+      matches: result.matches,
+      fromCache: result.fromCache,
+      meta: {
+        targetUserId,
+        totalMatches: result.matches.length,
+        totalCandidatesScanned: result.meta.totalCandidatesScanned,
+        analyzedAt: new Date().toISOString(),
+        algorithmVersion: result.meta.algorithmVersion,
+        savedAt: result.meta.savedAt?.toISOString(),
+        isStale: result.meta.isStale,
+        durationMs: duration,
+      }
+    });
+
+  } catch (error) {
+    const duration = Date.now() - startTime;
+    console.error(`[API find-matches SIMPLE] ❌ Error after ${duration}ms:`, error);
+    const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred";
+    
+    return NextResponse.json({ 
+      success: false, 
+      error: "Internal server error",
+      details: errorMessage,
+      durationMs: duration,
+    }, { status: 500 });
+  }
+}
+
+// ============================================================================
+// GET - טעינת תוצאות שמורות בלבד
+// ============================================================================
+
+export async function GET(req: NextRequest): Promise<NextResponse> {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+    }
+
+    if (session.user.role !== UserRole.MATCHMAKER && session.user.role !== UserRole.ADMIN) {
+      return NextResponse.json({ success: false, error: "Forbidden" }, { status: 403 });
+    }
+
+    const { searchParams } = new URL(req.url);
+    const targetUserId = searchParams.get('targetUserId');
+
+    if (!targetUserId) {
+      return NextResponse.json({
+        name: "NeshamaTech Matching Algorithm",
+        version: "3.2-simple",
+        description: "Smart matching algorithm - inline execution",
+        endpoints: {
+          "POST /api/ai/find-matches-v2": "Run matching algorithm (inline)",
+          "GET /api/ai/find-matches-v2?targetUserId=...": "Load saved matches",
+          "DELETE /api/ai/find-matches-v2?targetUserId=...": "Clear saved matches"
+        }
+      });
+    }
+
+    const savedResults = await loadSavedMatches(targetUserId);
+
+    if (!savedResults) {
+      return NextResponse.json({
+        success: true,
+        matches: [],
+        fromCache: false,
+        meta: { targetUserId, totalMatches: 0, message: 'No saved matches found.' }
+      });
+    }
+
+    return NextResponse.json({
+      success: true,
+      matches: savedResults.matches,
+      fromCache: true,
+      meta: {
+        targetUserId,
+        totalMatches: savedResults.matches.length,
+        totalCandidatesScanned: savedResults.meta.totalCandidatesScanned,
+        algorithmVersion: savedResults.meta.algorithmVersion,
+        savedAt: savedResults.meta.savedAt.toISOString(),
+        isStale: savedResults.meta.isStale,
+      }
+    });
+
+  } catch (error) {
+    console.error('[API find-matches SIMPLE] GET Error:', error);
+    return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
+  }
+}
+
+// ============================================================================
+// DELETE - מחיקת תוצאות שמורות
+// ============================================================================
+
+export async function DELETE(req: NextRequest): Promise<NextResponse> {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+    }
+
+    if (session.user.role !== UserRole.MATCHMAKER && session.user.role !== UserRole.ADMIN) {
+      return NextResponse.json({ success: false, error: "Forbidden" }, { status: 403 });
+    }
+
+    const { searchParams } = new URL(req.url);
+    const targetUserId = searchParams.get('targetUserId');
+
+    if (!targetUserId) {
+      return NextResponse.json({ 
+        success: false, 
+        error: "Bad Request: 'targetUserId' required" 
+      }, { status: 400 });
+    }
+
+    await deleteSavedMatches(targetUserId);
+
+    return NextResponse.json({
+      success: true,
+      message: `Saved matches for ${targetUserId} deleted`
+    });
+
+  } catch (error) {
+    console.error('[API find-matches SIMPLE] DELETE Error:', error);
+    return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
   }
 }
 --- End of Content for route.ts ---
@@ -4816,9 +5181,11 @@ Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\fin
 File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\find-matches-v2\route.ts
 --------------------------------------------------------------------------------
 Content:
+// ===========================================
 // src/app/api/ai/find-matches-v2/route.ts
-// 🎯 API Route לאלגוריתם מציאת התאמות - גרסה פשוטה (Inline)
-// מריץ את האלגוריתם ישירות בתוך ה-Request - בלי Jobs!
+// ===========================================
+// 🎯 API Route לאלגוריתם מציאת התאמות
+// תומך בשתי שיטות: Vector Search ו-Algorithmic
 
 import { NextRequest, NextResponse } from "next/server";
 import { applyRateLimitWithRoleCheck } from '@/lib/rate-limiter';
@@ -4830,10 +5197,15 @@ import {
   loadSavedMatches,
   deleteSavedMatches,
 } from "@/lib/services/matchingAlgorithmService";
+import {
+  findMatchesWithVector,
+  loadSavedVectorMatches,
+  deleteSavedVectorMatches,
+} from "@/lib/services/vectorMatchingService";
 
 // הגדרות
 export const dynamic = 'force-dynamic';
-export const maxDuration = 60; // Heroku timeout - 30 שניות default, אפשר עד 60
+export const maxDuration = 120; // מאפשר עד 2 דקות
 
 // ============================================================================
 // TYPES
@@ -4842,10 +5214,11 @@ export const maxDuration = 60; // Heroku timeout - 30 שניות default, אפש
 interface PostRequestBody {
   targetUserId: string;
   forceRefresh?: boolean;
+  method?: 'algorithmic' | 'vector'; // ברירת מחדל: algorithmic
 }
 
 // ============================================================================
-// POST - מריץ את האלגוריתם ישירות ומחזיר תוצאות
+// POST - מריץ את האלגוריתם (לפי השיטה שנבחרה)
 // ============================================================================
 
 export async function POST(req: NextRequest): Promise<NextResponse> {
@@ -4879,7 +5252,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
     // Body Validation
     const body: PostRequestBody = await req.json();
-    const { targetUserId, forceRefresh = false } = body;
+    const { targetUserId, forceRefresh = false, method = 'algorithmic' } = body;
 
     if (!targetUserId || typeof targetUserId !== 'string') {
       return NextResponse.json({ 
@@ -4891,28 +5264,42 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     const matchmakerId = session.user.id;
 
     console.log(`\n========================================`);
-    console.log(`[API find-matches SIMPLE] POST from ${session.user.email}`);
-    console.log(`[API find-matches SIMPLE] Target: ${targetUserId}, forceRefresh: ${forceRefresh}`);
+    console.log(`[API find-matches] POST from ${session.user.email}`);
+    console.log(`[API find-matches] Target: ${targetUserId}`);
+    console.log(`[API find-matches] Method: ${method}, forceRefresh: ${forceRefresh}`);
     console.log(`========================================\n`);
 
-    // 🚀 הרצת האלגוריתם ישירות!
-    const result = await findMatchesForUser(targetUserId, matchmakerId, {
-      forceRefresh,
-      autoSave: true,
-    });
+    // 🚀 הרצת האלגוריתם לפי השיטה שנבחרה
+    let result;
+
+    if (method === 'vector') {
+      // שיטת Vector Search
+      result = await findMatchesWithVector(targetUserId, matchmakerId, {
+        forceRefresh,
+        autoSave: true,
+      });
+    } else {
+      // שיטה אלגוריתמית (ברירת מחדל)
+      result = await findMatchesForUser(targetUserId, matchmakerId, {
+        forceRefresh,
+        autoSave: true,
+      });
+    }
 
     const duration = Date.now() - startTime;
     
     console.log(`\n========================================`);
-    console.log(`[API find-matches SIMPLE] ✅ Completed in ${duration}ms`);
-    console.log(`[API find-matches SIMPLE] Found ${result.matches.length} matches`);
-    console.log(`[API find-matches SIMPLE] From cache: ${result.fromCache}`);
+    console.log(`[API find-matches] ✅ Completed in ${duration}ms`);
+    console.log(`[API find-matches] Method: ${method}`);
+    console.log(`[API find-matches] Found ${result.matches.length} matches`);
+    console.log(`[API find-matches] From cache: ${result.fromCache}`);
     console.log(`========================================\n`);
 
     return NextResponse.json({
       success: true,
       matches: result.matches,
       fromCache: result.fromCache,
+      method, // מחזיר את השיטה שבה השתמשנו
       meta: {
         targetUserId,
         totalMatches: result.matches.length,
@@ -4927,7 +5314,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
   } catch (error) {
     const duration = Date.now() - startTime;
-    console.error(`[API find-matches SIMPLE] ❌ Error after ${duration}ms:`, error);
+    console.error(`[API find-matches] ❌ Error after ${duration}ms:`, error);
     const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred";
     
     return NextResponse.json({ 
@@ -4940,7 +5327,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 }
 
 // ============================================================================
-// GET - טעינת תוצאות שמורות בלבד
+// GET - טעינת תוצאות שמורות (לפי שיטה)
 // ============================================================================
 
 export async function GET(req: NextRequest): Promise<NextResponse> {
@@ -4956,27 +5343,35 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
 
     const { searchParams } = new URL(req.url);
     const targetUserId = searchParams.get('targetUserId');
+    const method = searchParams.get('method') || 'algorithmic';
 
     if (!targetUserId) {
       return NextResponse.json({
         name: "NeshamaTech Matching Algorithm",
-        version: "3.2-simple",
-        description: "Smart matching algorithm - inline execution",
+        version: "3.2-dual-mode",
+        description: "Smart matching algorithm - supports both Vector and Algorithmic methods",
         endpoints: {
-          "POST /api/ai/find-matches-v2": "Run matching algorithm (inline)",
-          "GET /api/ai/find-matches-v2?targetUserId=...": "Load saved matches",
-          "DELETE /api/ai/find-matches-v2?targetUserId=...": "Clear saved matches"
+          "POST /api/ai/find-matches-v2": "Run matching (method: 'algorithmic' | 'vector')",
+          "GET /api/ai/find-matches-v2?targetUserId=...&method=...": "Load saved matches",
+          "DELETE /api/ai/find-matches-v2?targetUserId=...&method=...": "Clear saved matches"
         }
       });
     }
 
-    const savedResults = await loadSavedMatches(targetUserId);
+    // טעינת תוצאות לפי השיטה
+    let savedResults;
+    if (method === 'vector') {
+      savedResults = await loadSavedVectorMatches(targetUserId);
+    } else {
+      savedResults = await loadSavedMatches(targetUserId);
+    }
 
     if (!savedResults) {
       return NextResponse.json({
         success: true,
         matches: [],
         fromCache: false,
+        method,
         meta: { targetUserId, totalMatches: 0, message: 'No saved matches found.' }
       });
     }
@@ -4985,24 +5380,25 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       success: true,
       matches: savedResults.matches,
       fromCache: true,
+      method,
       meta: {
         targetUserId,
         totalMatches: savedResults.matches.length,
         totalCandidatesScanned: savedResults.meta.totalCandidatesScanned,
         algorithmVersion: savedResults.meta.algorithmVersion,
-        savedAt: savedResults.meta.savedAt.toISOString(),
+        savedAt: savedResults.meta.savedAt?.toISOString(),
         isStale: savedResults.meta.isStale,
       }
     });
 
   } catch (error) {
-    console.error('[API find-matches SIMPLE] GET Error:', error);
+    console.error('[API find-matches] GET Error:', error);
     return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
   }
 }
 
 // ============================================================================
-// DELETE - מחיקת תוצאות שמורות
+// DELETE - מחיקת תוצאות שמורות (לפי שיטה)
 // ============================================================================
 
 export async function DELETE(req: NextRequest): Promise<NextResponse> {
@@ -5018,6 +5414,7 @@ export async function DELETE(req: NextRequest): Promise<NextResponse> {
 
     const { searchParams } = new URL(req.url);
     const targetUserId = searchParams.get('targetUserId');
+    const method = searchParams.get('method') || 'both';
 
     if (!targetUserId) {
       return NextResponse.json({ 
@@ -5026,15 +5423,21 @@ export async function DELETE(req: NextRequest): Promise<NextResponse> {
       }, { status: 400 });
     }
 
-    await deleteSavedMatches(targetUserId);
+    // מחיקה לפי השיטה
+    if (method === 'vector' || method === 'both') {
+      await deleteSavedVectorMatches(targetUserId);
+    }
+    if (method === 'algorithmic' || method === 'both') {
+      await deleteSavedMatches(targetUserId);
+    }
 
     return NextResponse.json({
       success: true,
-      message: `Saved matches for ${targetUserId} deleted`
+      message: `Saved matches for ${targetUserId} deleted (method: ${method})`
     });
 
   } catch (error) {
-    console.error('[API find-matches SIMPLE] DELETE Error:', error);
+    console.error('[API find-matches] DELETE Error:', error);
     return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
   }
 }
@@ -12852,7 +13255,7 @@ File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\
 Content:
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\suggestions
-# Generated on: 2026-01-11 12:05:05
+# Generated on: 2026-01-11 22:48:57
 # Filter: Only content of code files (.bat, .c, .cfg, .conf, .cpp, .cs, .css, .go, .h, .html, .ini, .java, .js, .json, .jsx, .kt, .less, .md, .php, .py, .rb, .rs, .scss, .sh, .sql, .swift, .ts, .tsx, .txt, .xml, .yaml, .yml) is included.
 ################################################################################
 
@@ -15140,7 +15543,24 @@ export async function HEAD(
 Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\messages
 ================================================================================
 
-(This directory contains subdirectories but no files directly. See subdirectories below.)
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\messages\messages_contents.txt
+--------------------------------------------------------------------------------
+Content:
+################################################################################
+# Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\messages
+# Generated on: 2026-01-11 22:01:16
+# Filter: Only content of code files (.bat, .c, .cfg, .conf, .cpp, .cs, .css, .go, .h, .html, .ini, .java, .js, .json, .jsx, .kt, .less, .md, .php, .py, .rb, .rs, .scss, .sh, .sql, .swift, .ts, .tsx, .txt, .xml, .yaml, .yml) is included.
+################################################################################
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\messages
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\messages\messages_contents.txt
+--------------------------------------------------------------------------------
+[This is the output log file itself. Content not included.]
 
 ================================================================================
 Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\messages\feed
@@ -15309,6 +15729,282 @@ export async function GET() {
   } catch (error) {
     console.error("Error fetching activity feed:", error);
     return NextResponse.json({ success: false, error: "Failed to fetch activity feed" }, { status: 500 });
+  }
+}
+--- End of Content for route.ts ---
+
+--- End of Content for messages_contents.txt ---
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\messages\feed
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\messages\feed\route.ts
+--------------------------------------------------------------------------------
+Content:
+// src/app/api/messages/feed/route.ts
+
+import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/auth";
+import prisma from "@/lib/prisma";
+import type { FeedItem, FeedItemType, ExtendedSuggestionInquiry } from "@/types/messages";
+import type { ExtendedMatchSuggestion } from "@/components/suggestions/types";
+import { MatchSuggestionStatus, UserRole } from "@prisma/client";
+
+export const dynamic = 'force-dynamic';
+
+// הגדרה אחידה לשליפת פרטי משתמשים מלאים
+const partySelect = {
+  id: true,
+  email: true,
+  firstName: true,
+  lastName: true,
+  isProfileComplete: true,
+  phone: true,
+  profile: true,
+  images: {
+    select: {
+      id: true,
+      url: true,
+      isMain: true,
+      createdAt: true,
+      updatedAt: true,
+      cloudinaryPublicId: true,
+      userId: true
+    },
+    orderBy: { isMain: "desc" as const },
+  },
+};
+
+export async function GET() {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+  const userId = session.user.id;
+  const userRole = session.user.role as UserRole;
+
+  try {
+    // 1. שלוף הצעות שידוך רלוונטיות
+    // Prisma שולף אוטומטית את השדות הסקלריים החדשים (firstPartyLastViewedAt, secondPartyLastViewedAt)
+    const suggestionsFromDb = await prisma.matchSuggestion.findMany({
+      where: {
+        OR: [{ firstPartyId: userId }, { secondPartyId: userId }],
+        status: { notIn: [MatchSuggestionStatus.DRAFT, MatchSuggestionStatus.CANCELLED] },
+      },
+      include: {
+        matchmaker: { select: { firstName: true, lastName: true } },
+        firstParty: { select: partySelect },
+        secondParty: { select: partySelect },
+        statusHistory: { orderBy: { createdAt: "desc" } },
+      },
+      orderBy: { lastActivity: "desc" },
+    });
+
+    const suggestions: ExtendedMatchSuggestion[] = suggestionsFromDb.filter(
+      (s) => s.firstParty?.profile && s.secondParty?.profile
+    ) as ExtendedMatchSuggestion[];
+
+    // 2. שלוף הודעות צ'אט רלוונטיות
+    // Prisma שולף אוטומטית את השדה החדש (recipientReadAt)
+    const inquiriesFromDb = await prisma.suggestionInquiry.findMany({
+      where: {
+        OR: [{ fromUserId: userId }, { toUserId: userId }]
+      },
+      include: {
+        fromUser: { select: { id: true, firstName: true, lastName: true } },
+        toUser: { select: { id: true, firstName: true, lastName: true } },
+        suggestion: {
+          include: {
+            firstParty: { select: partySelect },
+            secondParty: { select: partySelect },
+            matchmaker: { select: { firstName: true, lastName: true } },
+          }
+        }
+      },
+      orderBy: { createdAt: 'desc' },
+      take: 30
+    });
+
+    // 3. המרת הצעות למבנה FeedItem עם חישוב isRead מעודכן
+    const suggestionFeedItems: FeedItem[] = suggestions.map((s) => {
+      const isFirstParty = s.firstPartyId === userId;
+      const otherParty = isFirstParty ? s.secondParty : s.firstParty;
+      
+      let type: FeedItemType = 'STATUS_UPDATE';
+      let title = `עדכון בהצעה עם ${otherParty.firstName}`;
+      let description = "הסטטוס התעדכן. לחץ/י לפרטים.";
+
+      // === לוגיקה לחישוב האם נקרא ===
+      // שליפת זמן הצפייה האחרון לפי הצד הרלוונטי (שדות אלו חייבים להיות קיימים ב-Schema המעודכן)
+      const lastViewedAt = isFirstParty ? s.firstPartyLastViewedAt : s.secondPartyLastViewedAt;
+      
+      // ההודעה נחשבת כנקראה רק אם קיים זמן צפייה והוא מאוחר או שווה לזמן הפעילות האחרונה
+      const isRead = lastViewedAt 
+        ? new Date(lastViewedAt).getTime() >= new Date(s.lastActivity).getTime()
+        : false;
+      // ==============================
+
+      const link = userRole === 'CANDIDATE'
+        ? `/matches?suggestionId=${s.id}`
+        : `/matchmaker/suggestions?suggestionId=${s.id}`;
+
+      if ((s.status === "PENDING_FIRST_PARTY" && isFirstParty) || (s.status === "PENDING_SECOND_PARTY" && !isFirstParty)) {
+        type = 'ACTION_REQUIRED';
+        title = `הצעה חדשה ממתינה לך!`;
+        description = `${s.matchmaker.firstName} חושב/ת שיש כאן פוטנציאל גדול.`;
+      } else if (s.status === "CONTACT_DETAILS_SHARED") {
+        title = "מזל טוב, יש התאמה!";
+        description = `פרטי הקשר הועברו. זה הזמן ליצור קשר.`;
+      } else if (s.status === "AWAITING_FIRST_DATE_FEEDBACK") {
+        type = 'ACTION_REQUIRED';
+        title = "איך הייתה הפגישה הראשונה?";
+        description = "נשמח לשמוע את דעתך כדי להמשיך ולסייע.";
+      }
+
+      return {
+        id: `${s.id}-${s.status}`,
+        type,
+        title,
+        description,
+        timestamp: s.lastActivity,
+        isRead: isRead, // שימוש בערך המחושב
+        link: link,
+        payload: { suggestion: s },
+      };
+    });
+
+    // 4. המרת הודעות צ'אט למבנה FeedItem עם חישוב isRead מעודכן
+    const inquiryFeedItems: FeedItem[] = inquiriesFromDb.map((inquiry): FeedItem => {
+      const isMyMessage = inquiry.fromUserId === userId;
+      const otherUser = isMyMessage ? inquiry.toUser : inquiry.fromUser;
+      const suggestionParticipant = inquiry.suggestion.firstPartyId === userId 
+        ? inquiry.suggestion.secondParty 
+        : inquiry.suggestion.firstParty;
+
+      let title: string;
+      let description: string;
+      let type: FeedItemType;
+
+      const link = userRole === 'CANDIDATE'
+        ? `/matches?suggestionId=${inquiry.suggestionId}&view=chat`
+        : `/matchmaker/suggestions?suggestionId=${inquiry.suggestionId}&view=chat`;
+
+      // === לוגיקה לחישוב האם נקרא ===
+      // 1. אם אני שלחתי את ההודעה, היא תמיד "קרואה" מבחינתי.
+      // 2. אם קיבלתי אותה, בודקים אם קיים recipientReadAt.
+      const isRead = isMyMessage || !!inquiry.recipientReadAt;
+      // ==============================
+
+      if (isMyMessage) {
+        title = `שלחת שאלה ל${otherUser.firstName}`;
+        description = `"${inquiry.question.substring(0, 50)}..."`;
+        type = inquiry.answer ? 'INQUIRY_RESPONSE' : 'MATCHMAKER_MESSAGE';
+      } else {
+        if (inquiry.answer) {
+          title = `התקבלה תשובה מ${otherUser.firstName}`;
+          description = `לגבי שאלתך על ${suggestionParticipant.firstName}: "${inquiry.answer.substring(0, 40)}..."`;
+          type = 'INQUIRY_RESPONSE';
+        } else {
+          title = `הודעה חדשה מ${otherUser.firstName}`;
+          description = `לגבי ההצעה עם ${suggestionParticipant.firstName}`;
+          type = userRole === 'MATCHMAKER' && inquiry.status === 'PENDING' ? 'ACTION_REQUIRED' : 'MATCHMAKER_MESSAGE';
+        }
+      }
+
+      return {
+        id: inquiry.id,
+        type: type,
+        title,
+        description,
+        timestamp: inquiry.answeredAt ? inquiry.answeredAt : inquiry.createdAt,
+        isRead: isRead, // שימוש בערך המחושב
+        link: link,
+        payload: {
+          suggestion: inquiry.suggestion as unknown as ExtendedMatchSuggestion,
+          suggestionInquiry: inquiry as unknown as ExtendedSuggestionInquiry
+        }
+      };
+    });
+
+    // 5. איחוד, מיון והחזרה
+    const allFeedItems = [...suggestionFeedItems, ...inquiryFeedItems];
+    allFeedItems.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+
+    return NextResponse.json({ success: true, feed: allFeedItems });
+
+  } catch (error) {
+    console.error("Error fetching activity feed:", error);
+    return NextResponse.json({ success: false, error: "Failed to fetch activity feed" }, { status: 500 });
+  }
+}
+--- End of Content for route.ts ---
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\messages\mark-as-read
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\messages\mark-as-read\route.ts
+--------------------------------------------------------------------------------
+Content:
+// src/app/api/messages/mark-as-read/route.ts
+
+import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/auth";
+import prisma from "@/lib/prisma";
+
+export async function POST(req: Request) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { id, type } = await req.json();
+    const userId = session.user.id;
+
+    // טיפול בהצעה (MatchSuggestion)
+    // ה-ID שמגיע מהפיד הוא בפורמט "suggestionId-status", אנחנו צריכים רק את ה-UUID
+    if (type === 'NEW_SUGGESTION' || type === 'STATUS_UPDATE' || type === 'ACTION_REQUIRED') {
+      // חילוץ ה-ID הנקי (למקרה שהגיע ID מורכב מהפיד)
+      const cleanId = id.includes('-') ? id.split('-')[0] : id;
+
+      const suggestion = await prisma.matchSuggestion.findUnique({
+        where: { id: cleanId },
+        select: { firstPartyId: true, secondPartyId: true }
+      });
+
+      if (suggestion) {
+        if (suggestion.firstPartyId === userId) {
+          await prisma.matchSuggestion.update({
+            where: { id: cleanId },
+            data: { firstPartyLastViewedAt: new Date() }
+          });
+        } else if (suggestion.secondPartyId === userId) {
+          await prisma.matchSuggestion.update({
+            where: { id: cleanId },
+            data: { secondPartyLastViewedAt: new Date() }
+          });
+        }
+      }
+    } 
+    
+    // טיפול בהודעת צ'אט (SuggestionInquiry)
+    else if (type === 'MATCHMAKER_MESSAGE' || type === 'INQUIRY_RESPONSE') {
+      await prisma.suggestionInquiry.update({
+        where: { id: id }, // כאן ה-ID הוא ישיר
+        data: { recipientReadAt: new Date() }
+      });
+    }
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error("Error marking as read:", error);
+    return NextResponse.json({ error: "Failed to mark as read" }, { status: 500 });
   }
 }
 --- End of Content for route.ts ---

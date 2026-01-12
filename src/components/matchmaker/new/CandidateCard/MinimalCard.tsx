@@ -510,7 +510,11 @@ const MinimalCandidateCard: React.FC<MinimalCandidateCardProps> = ({
 
             {/* 🆕 סקשן נימוק AI משופר - תומך בשני סוגי החיפוש */}
             {hasAiData && candidate.aiReasoning && (
-              <div className="mt-3 pt-3 border-t border-gray-100">
+              <div
+                className="mt-3 pt-3 border-t border-gray-100"
+                onMouseEnter={(e) => e.stopPropagation()}
+                onClick={(e) => e.stopPropagation()}
+              >
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
@@ -546,6 +550,8 @@ const MinimalCandidateCard: React.FC<MinimalCandidateCardProps> = ({
                       exit={{ height: 0, opacity: 0 }}
                       transition={{ duration: 0.2 }}
                       className="overflow-hidden"
+                                            onMouseEnter={(e) => e.stopPropagation()}
+
                     >
                       <div
                         className={cn(

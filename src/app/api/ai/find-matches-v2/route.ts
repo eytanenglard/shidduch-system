@@ -1,150 +1,146 @@
 // ===========================================
 // src/app/api/ai/find-matches-v2/route.ts
 // ===========================================
-// 🎯 API Route לאלגוריתם מציאת התאמות
-// תומך בשתי שיטות: Vector Search ו-Algorithmic
+// 🎯 API Route עם תמיכה ב-Background Jobs
+// פותר את בעיית ה-30 שניות timeout של Heroku
 
 import { NextRequest, NextResponse } from "next/server";
-import { applyRateLimitWithRoleCheck } from '@/lib/rate-limiter';
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { UserRole } from "@prisma/client";
-import { 
-  findMatchesForUser,
-  loadSavedMatches,
-  deleteSavedMatches,
-} from "@/lib/services/matchingAlgorithmService";
-import {
-  findMatchesWithVector,
-  loadSavedVectorMatches,
-  deleteSavedVectorMatches,
-} from "@/lib/services/vectorMatchingService";
+import prisma from "@/lib/prisma";
 
-// הגדרות
 export const dynamic = 'force-dynamic';
-export const maxDuration = 120; // מאפשר עד 2 דקות
 
 // ============================================================================
-// TYPES
-// ============================================================================
-
-interface PostRequestBody {
-  targetUserId: string;
-  forceRefresh?: boolean;
-  method?: 'algorithmic' | 'vector'; // ברירת מחדל: algorithmic
-}
-
-// ============================================================================
-// POST - מריץ את האלגוריתם (לפי השיטה שנבחרה)
+// POST - התחלת Job חדש (מחזיר מיד!)
 // ============================================================================
 
 export async function POST(req: NextRequest): Promise<NextResponse> {
-  const startTime = Date.now();
-  
-  // Rate Limiting
-  const rateLimitResponse = await applyRateLimitWithRoleCheck(req, { 
-    requests: 30, 
-    window: '1 h' 
-  });
-  if (rateLimitResponse) {
-    return rateLimitResponse;
-  }
-
   try {
     // Authentication
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
       return NextResponse.json({ 
         success: false, 
-        error: "Unauthorized: Please log in" 
+        error: "Unauthorized" 
       }, { status: 401 });
     }
 
     if (session.user.role !== UserRole.MATCHMAKER && session.user.role !== UserRole.ADMIN) {
       return NextResponse.json({ 
         success: false, 
-        error: "Forbidden: Matchmaker or Admin access required" 
+        error: "Forbidden" 
       }, { status: 403 });
     }
 
-    // Body Validation
-    const body: PostRequestBody = await req.json();
+    // Parse body
+    const body = await req.json();
     const { targetUserId, forceRefresh = false, method = 'algorithmic' } = body;
 
     if (!targetUserId || typeof targetUserId !== 'string') {
       return NextResponse.json({ 
         success: false, 
-        error: "Bad Request: 'targetUserId' (string) is required" 
+        error: "targetUserId is required" 
       }, { status: 400 });
     }
 
     const matchmakerId = session.user.id;
 
-    console.log(`\n========================================`);
-    console.log(`[API find-matches] POST from ${session.user.email}`);
-    console.log(`[API find-matches] Target: ${targetUserId}`);
-    console.log(`[API find-matches] Method: ${method}, forceRefresh: ${forceRefresh}`);
-    console.log(`========================================\n`);
+    console.log(`[MatchingJob] 📋 New request from ${session.user.email}`);
+    console.log(`[MatchingJob] Target: ${targetUserId}, Method: ${method}`);
 
-    // 🚀 הרצת האלגוריתם לפי השיטה שנבחרה
-    let result;
-
-    if (method === 'vector') {
-      // שיטת Vector Search
-      result = await findMatchesWithVector(targetUserId, matchmakerId, {
-        forceRefresh,
-        autoSave: true,
-      });
-    } else {
-      // שיטה אלגוריתמית (ברירת מחדל)
-      result = await findMatchesForUser(targetUserId, matchmakerId, {
-        forceRefresh,
-        autoSave: true,
-      });
-    }
-
-    const duration = Date.now() - startTime;
-    
-    console.log(`\n========================================`);
-    console.log(`[API find-matches] ✅ Completed in ${duration}ms`);
-    console.log(`[API find-matches] Method: ${method}`);
-    console.log(`[API find-matches] Found ${result.matches.length} matches`);
-    console.log(`[API find-matches] From cache: ${result.fromCache}`);
-    console.log(`========================================\n`);
-
-    return NextResponse.json({
-      success: true,
-      matches: result.matches,
-      fromCache: result.fromCache,
-      method, // מחזיר את השיטה שבה השתמשנו
-      meta: {
+    // בדיקה אם יש Job פעיל קיים לאותו משתמש
+    const existingActiveJob = await prisma.matchingJob.findFirst({
+      where: {
         targetUserId,
-        totalMatches: result.matches.length,
-        totalCandidatesScanned: result.meta.totalCandidatesScanned,
-        analyzedAt: new Date().toISOString(),
-        algorithmVersion: result.meta.algorithmVersion,
-        savedAt: result.meta.savedAt?.toISOString(),
-        isStale: result.meta.isStale,
-        durationMs: duration,
+        method,
+        status: { in: ['pending', 'processing'] }
       }
     });
 
+    if (existingActiveJob) {
+      console.log(`[MatchingJob] ⏳ Found existing active job: ${existingActiveJob.id}`);
+      return NextResponse.json({
+        success: true,
+        jobId: existingActiveJob.id,
+        status: existingActiveJob.status,
+        progress: existingActiveJob.progress,
+        progressMessage: existingActiveJob.progressMessage,
+        isExisting: true
+      });
+    }
+
+    // בדיקת Cache - אם יש תוצאות שמורות שלא פג תוקפן
+    if (!forceRefresh) {
+      const recentCompletedJob = await prisma.matchingJob.findFirst({
+        where: {
+          targetUserId,
+          method,
+          status: 'completed',
+          completedAt: { 
+            gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) // פחות מ-7 ימים
+          }
+        },
+        orderBy: { completedAt: 'desc' }
+      });
+
+      if (recentCompletedJob && recentCompletedJob.result) {
+        console.log(`[MatchingJob] ✅ Using cached results from ${recentCompletedJob.completedAt}`);
+        return NextResponse.json({
+          success: true,
+          jobId: recentCompletedJob.id,
+          status: 'completed',
+          progress: 100,
+          fromCache: true,
+          result: recentCompletedJob.result,
+          meta: {
+            completedAt: recentCompletedJob.completedAt,
+            matchesFound: recentCompletedJob.matchesFound,
+            totalCandidates: recentCompletedJob.totalCandidates
+          }
+        });
+      }
+    }
+
+    // יצירת Job חדש
+    const newJob = await prisma.matchingJob.create({
+      data: {
+        targetUserId,
+        matchmakerId,
+        method,
+        status: 'pending',
+        progress: 0,
+        progressMessage: 'ממתין להתחלה...'
+      }
+    });
+
+    console.log(`[MatchingJob] 🆕 Created new job: ${newJob.id}`);
+
+    // 🔥 מפעיל את העיבוד ברקע - לא מחכים!
+    triggerBackgroundProcessing(newJob.id).catch(err => {
+      console.error(`[MatchingJob] Failed to trigger background processing:`, err);
+    });
+
+    return NextResponse.json({
+      success: true,
+      jobId: newJob.id,
+      status: 'pending',
+      progress: 0,
+      progressMessage: 'ממתין להתחלה...'
+    });
+
   } catch (error) {
-    const duration = Date.now() - startTime;
-    console.error(`[API find-matches] ❌ Error after ${duration}ms:`, error);
-    const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred";
-    
+    console.error('[MatchingJob] POST Error:', error);
     return NextResponse.json({ 
       success: false, 
-      error: "Internal server error",
-      details: errorMessage,
-      durationMs: duration,
+      error: "Internal server error" 
     }, { status: 500 });
   }
 }
 
 // ============================================================================
-// GET - טעינת תוצאות שמורות (לפי שיטה)
+// GET - בדיקת סטטוס Job
 // ============================================================================
 
 export async function GET(req: NextRequest): Promise<NextResponse> {
@@ -154,68 +150,86 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
     }
 
-    if (session.user.role !== UserRole.MATCHMAKER && session.user.role !== UserRole.ADMIN) {
-      return NextResponse.json({ success: false, error: "Forbidden" }, { status: 403 });
-    }
-
     const { searchParams } = new URL(req.url);
+    const jobId = searchParams.get('jobId');
     const targetUserId = searchParams.get('targetUserId');
-    const method = searchParams.get('method') || 'algorithmic';
 
-    if (!targetUserId) {
+    // אם אין jobId - מחזיר רשימת jobs או מידע על ה-API
+    if (!jobId) {
+      // אם יש targetUserId - מחזיר את ה-jobs שלו
+      if (targetUserId) {
+        const jobs = await prisma.matchingJob.findMany({
+          where: { targetUserId },
+          orderBy: { createdAt: 'desc' },
+          take: 5,
+          select: {
+            id: true,
+            status: true,
+            progress: true,
+            method: true,
+            matchesFound: true,
+            createdAt: true,
+            completedAt: true
+          }
+        });
+        return NextResponse.json({ success: true, jobs });
+      }
+
+      // אחרת - מחזיר מידע על ה-API
       return NextResponse.json({
-        name: "NeshamaTech Matching Algorithm",
-        version: "3.2-dual-mode",
-        description: "Smart matching algorithm - supports both Vector and Algorithmic methods",
+        name: "NeshamaTech Matching API with Background Jobs",
+        version: "4.0",
         endpoints: {
-          "POST /api/ai/find-matches-v2": "Run matching (method: 'algorithmic' | 'vector')",
-          "GET /api/ai/find-matches-v2?targetUserId=...&method=...": "Load saved matches",
-          "DELETE /api/ai/find-matches-v2?targetUserId=...&method=...": "Clear saved matches"
+          "POST": "Start a new matching job",
+          "GET ?jobId=xxx": "Check job status",
+          "GET ?targetUserId=xxx": "List jobs for user",
+          "DELETE ?jobId=xxx": "Cancel/delete a job"
         }
       });
     }
 
-    // טעינת תוצאות לפי השיטה
-    let savedResults;
-    if (method === 'vector') {
-      savedResults = await loadSavedVectorMatches(targetUserId);
-    } else {
-      savedResults = await loadSavedMatches(targetUserId);
+    // שליפת Job ספציפי
+    const job = await prisma.matchingJob.findUnique({
+      where: { id: jobId }
+    });
+
+    if (!job) {
+      return NextResponse.json({ 
+        success: false, 
+        error: "Job not found" 
+      }, { status: 404 });
     }
 
-    if (!savedResults) {
-      return NextResponse.json({
-        success: true,
-        matches: [],
-        fromCache: false,
-        method,
-        meta: { targetUserId, totalMatches: 0, message: 'No saved matches found.' }
-      });
-    }
-
+    // מחזיר את הסטטוס
     return NextResponse.json({
       success: true,
-      matches: savedResults.matches,
-      fromCache: true,
-      method,
+      jobId: job.id,
+      targetUserId: job.targetUserId,
+      method: job.method,
+      status: job.status,
+      progress: job.progress,
+      progressMessage: job.progressMessage,
+      result: job.status === 'completed' ? job.result : null,
+      error: job.error,
       meta: {
-        targetUserId,
-        totalMatches: savedResults.matches.length,
-        totalCandidatesScanned: savedResults.meta.totalCandidatesScanned,
-        algorithmVersion: savedResults.meta.algorithmVersion,
-        savedAt: savedResults.meta.savedAt?.toISOString(),
-        isStale: savedResults.meta.isStale,
+        createdAt: job.createdAt,
+        completedAt: job.completedAt,
+        matchesFound: job.matchesFound,
+        totalCandidates: job.totalCandidates
       }
     });
 
   } catch (error) {
-    console.error('[API find-matches] GET Error:', error);
-    return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
+    console.error('[MatchingJob] GET Error:', error);
+    return NextResponse.json({ 
+      success: false, 
+      error: "Internal server error" 
+    }, { status: 500 });
   }
 }
 
 // ============================================================================
-// DELETE - מחיקת תוצאות שמורות (לפי שיטה)
+// DELETE - ביטול/מחיקת Job
 // ============================================================================
 
 export async function DELETE(req: NextRequest): Promise<NextResponse> {
@@ -225,36 +239,59 @@ export async function DELETE(req: NextRequest): Promise<NextResponse> {
       return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
     }
 
-    if (session.user.role !== UserRole.MATCHMAKER && session.user.role !== UserRole.ADMIN) {
-      return NextResponse.json({ success: false, error: "Forbidden" }, { status: 403 });
-    }
-
     const { searchParams } = new URL(req.url);
-    const targetUserId = searchParams.get('targetUserId');
-    const method = searchParams.get('method') || 'both';
+    const jobId = searchParams.get('jobId');
 
-    if (!targetUserId) {
+    if (!jobId) {
       return NextResponse.json({ 
         success: false, 
-        error: "Bad Request: 'targetUserId' required" 
+        error: "jobId is required" 
       }, { status: 400 });
     }
 
-    // מחיקה לפי השיטה
-    if (method === 'vector' || method === 'both') {
-      await deleteSavedVectorMatches(targetUserId);
-    }
-    if (method === 'algorithmic' || method === 'both') {
-      await deleteSavedMatches(targetUserId);
-    }
+    // מוחק או מסמן כ-cancelled
+    await prisma.matchingJob.update({
+      where: { id: jobId },
+      data: { 
+        status: 'failed',
+        error: 'Cancelled by user'
+      }
+    });
 
     return NextResponse.json({
       success: true,
-      message: `Saved matches for ${targetUserId} deleted (method: ${method})`
+      message: "Job cancelled"
     });
 
   } catch (error) {
-    console.error('[API find-matches] DELETE Error:', error);
-    return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
+    console.error('[MatchingJob] DELETE Error:', error);
+    return NextResponse.json({ 
+      success: false, 
+      error: "Internal server error" 
+    }, { status: 500 });
   }
+}
+
+// ============================================================================
+// Background Processing Trigger
+// ============================================================================
+
+async function triggerBackgroundProcessing(jobId: string): Promise<void> {
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXTAUTH_URL || 'http://localhost:3000';
+  
+  console.log(`[MatchingJob] 🚀 Triggering background processing for job: ${jobId}`);
+  
+  // קריאה ל-API שמעבד ברקע
+  // שימוש ב-fetch עם timeout קצר כי אנחנו לא מחכים לתשובה
+  fetch(`${baseUrl}/api/ai/process-matching-job`, {
+    method: 'POST',
+    headers: { 
+      'Content-Type': 'application/json',
+      'x-internal-secret': process.env.INTERNAL_API_SECRET || 'default-secret'
+    },
+    body: JSON.stringify({ jobId })
+  }).catch(err => {
+    // זה צפוי - אנחנו לא מחכים לתשובה
+    console.log(`[MatchingJob] Background fetch initiated (fire-and-forget)`);
+  });
 }

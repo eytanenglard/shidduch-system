@@ -167,11 +167,11 @@ function processQuestionnaireData(questionnaire: QuestionnaireResponse | null | 
 }
 
 export async function generateNarrativeProfile(userId: string): Promise<string> {
-  // 1. שליפת כל המידע, כולל שדות הסיכום החדשים
+  // 1. שליפת כל המידע, כולל שדות הסיכום החדשים והערות שדכן
   const user = await prisma.user.findUnique({
     where: { id: userId },
     include: {
-      profile: true, // מכיל את aiProfileSummary, cvSummary
+      profile: true,
       questionnaireResponses: {
         orderBy: { createdAt: 'desc' },
         take: 1
@@ -185,69 +185,96 @@ export async function generateNarrativeProfile(userId: string): Promise<string> 
   const q = user.questionnaireResponses[0];
   const parts: string[] = [];
 
-  // --- חלק 1: פרטים יבשים (בסיס) ---
-  parts.push(`User Profile Summary:
+  // --- חלק 1: פרופיל אישי מורחב ---
+  // תיקון: שימוש ב-hasChildrenFromPrevious במקום ב-children שלא קיים
+  const childrenStatus = p.hasChildrenFromPrevious ? 'Has children' : 'No children';
+
+  const personalInfo = `User Profile Summary:
   Name: ${user.firstName} ${user.lastName}
   Gender: ${p.gender}
   Age: ${calculateAge(p.birthDate)}
-  Marital Status: ${p.maritalStatus || 'Not specified'}
-  Religious Level: ${p.religiousLevel || 'Not specified'}
-  Location: ${p.city || 'Not specified'}`);
-
-  // --- חלק 2: טקסט חופשי שהיוזר כתב ---
-  if (p.about) parts.push(`About Me:\n${p.about}`);
-  if (p.profileHeadline) parts.push(`Headline:\n${p.profileHeadline}`);
-  if (p.inspiringCoupleStory) parts.push(`Inspiring Story:\n${p.inspiringCoupleStory}`);
+  Height: ${p.height ? p.height + 'cm' : 'Not specified'}
+  Location: ${p.city || 'Not specified'}
+  Marital Status: ${p.maritalStatus || 'Not specified'} (${childrenStatus})
   
-  // --- חלק 3: מה הוא מחפש ---
-  if (p.matchingNotes) parts.push(`Looking For:\n${p.matchingNotes}`);
+  Religious Identity:
+  - Level: ${p.religiousLevel || 'Not specified'}
+  - Journey: ${p.religiousJourney || 'Not specified'}
+  - Shomer Negiah: ${p.shomerNegiah ? 'Yes' : 'No/Unknown'}
+  ${p.kippahType ? `- Kippah: ${p.kippahType}` : ''}
+  ${p.headCovering ? `- Head Covering: ${p.headCovering}` : ''}
+  
+  Professional & Education:
+  - Occupation: ${p.occupation || 'Not specified'}
+  - Education: ${p.education || 'Not specified'}`;
 
-  // --- חלק 4: שאלון עומק (Questionnaire) ---
+  parts.push(personalInfo);
+
+  // --- חלק 2: טקסט חופשי (הנשמה של הפרופיל) ---
+  if (p.about) parts.push(`About Me (Personal Statement):\n${p.about}`);
+  if (p.profileHeadline) parts.push(`Headline:\n${p.profileHeadline}`);
+  if (p.inspiringCoupleStory) parts.push(`Inspiring Couple Story:\n${p.inspiringCoupleStory}`);
+  if (p.manualEntryText) parts.push(`Additional Info:\n${p.manualEntryText}`);
+
+  // --- חלק 3: מה הוא מחפש (כולל העדפות טכניות) ---
+  let lookingFor = `Looking For (Preferences):\n`;
+  if (p.matchingNotes) lookingFor += `Notes: ${p.matchingNotes}\n`;
+  
+  // הוספת העדפות מובנות לחיזוק הווקטור
+  const preferences: string[] = [];
+  if (p.preferredAgeMin || p.preferredAgeMax) preferences.push(`Age Range: ${p.preferredAgeMin || '?'} - ${p.preferredAgeMax || '?'}`);
+  if (p.preferredHeightMin || p.preferredHeightMax) preferences.push(`Height Range: ${p.preferredHeightMin || '?'} - ${p.preferredHeightMax || '?'} cm`);
+  if (p.preferredReligiousLevels && p.preferredReligiousLevels.length > 0) preferences.push(`Religious Levels: ${p.preferredReligiousLevels.join(', ')}`);
+  if (p.preferredLocations && p.preferredLocations.length > 0) preferences.push(`Locations: ${p.preferredLocations.join(', ')}`);
+  
+  if (preferences.length > 0) {
+    lookingFor += `Technical Preferences:\n- ${preferences.join('\n- ')}`;
+  }
+  parts.push(lookingFor);
+
+  // --- חלק 4: שאלון עומק ---
   if (q) {
-    // פונקציית עזר פנימית שמפרמטת תשובות JSON לטקסט
     const formatQ = (json: any) => 
       json ? Object.values(json).map((v: any) => v.answer || v).join('. ') : '';
 
-    if (q.valuesAnswers) parts.push(`Values & Worldview:\n${formatQ(q.valuesAnswers)}`);
-    if (q.personalityAnswers) parts.push(`Personality:\n${formatQ(q.personalityAnswers)}`);
+    if (q.valuesAnswers) parts.push(`Deep Values & Worldview:\n${formatQ(q.valuesAnswers)}`);
+    if (q.personalityAnswers) parts.push(`Personality Traits:\n${formatQ(q.personalityAnswers)}`);
     if (q.relationshipAnswers) parts.push(`Relationship View:\n${formatQ(q.relationshipAnswers)}`);
+    if (q.partnerAnswers) parts.push(`Partner Expectations:\n${formatQ(q.partnerAnswers)}`);
   }
 
-  // --- חלק 5: סיכום קו"ח (אם קיים) ---
+  // --- חלק 5: מידע מקצועי ---
+  if (p.internalMatchmakerNotes) {
+    parts.push(`Matchmaker Internal Insights (High Importance):\n${p.internalMatchmakerNotes}`);
+  }
+
   if (p.cvSummary) {
     parts.push(`Professional Background (CV Analysis):\n${p.cvSummary}`);
   }
 
-  // ========================================================================
-  // 🆕 התוספת שביקשת: הכללת ניתוח ה-AI בתוך הווקטור
-  // ========================================================================
+  // --- חלק 6: סיכום AI (אם קיים) ---
   if (p.aiProfileSummary) {
-    // מכיוון שזה שדה JSON, אנחנו צריכים להפוך אותו לטקסט קריא
     let summaryText = '';
     
-    // בדיקה אם זה אובייקט או מחרוזת
     if (typeof p.aiProfileSummary === 'string') {
       summaryText = p.aiProfileSummary;
     } else {
-      // אם זה אובייקט מורכב (למשל מכיל נקודות חוזק, חולשה וכו')
       const summaryObj = p.aiProfileSummary as any;
       
-      // נבנה טקסט עשיר מתוך האובייקט
       if (summaryObj.analysis) summaryText += `Deep Analysis: ${summaryObj.analysis}\n`;
       if (summaryObj.strengths) summaryText += `Strengths: ${Array.isArray(summaryObj.strengths) ? summaryObj.strengths.join(', ') : summaryObj.strengths}\n`;
+      if (summaryObj.challenges) summaryText += `Challenges/Growth Areas: ${Array.isArray(summaryObj.challenges) ? summaryObj.challenges.join(', ') : summaryObj.challenges}\n`;
       if (summaryObj.needs) summaryText += `Relationship Needs: ${summaryObj.needs}\n`;
       
-      // fallback: אם המבנה לא ידוע, נמיר את הכל לטקסט
       if (!summaryText) {
         summaryText = JSON.stringify(summaryObj, null, 2);
       }
     }
 
     if (summaryText) {
-      parts.push(`AI Professional Insight (Matchmaker Perspective):\n${summaryText}`);
+      parts.push(`AI Comprehensive Insight (Synthesized Profile):\n${summaryText}`);
     }
   }
-  // ========================================================================
 
   return parts.join('\n\n---\n\n');
 }
