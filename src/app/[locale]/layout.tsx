@@ -1,6 +1,19 @@
-// src/app/[locale]/layout.tsx
+// ===========================================
+// עדכון AppContent.tsx או layout.tsx
+// ===========================================
+// צריך להוסיף את MatchingJobProvider ואת FloatingStatus
+//
+// 🎯 הרעיון: ה-Provider עוטף את כל האפליקציה,
+//           וה-FloatingStatus מופיע בכל דף
 
-import { Heebo } from 'next/font/google'; // החלפה מפונט מקומי ל-Google Font
+// ===========================================
+// אופציה 1: עדכון AppContent.tsx
+// ===========================================
+
+
+// קובץ: src/app/[locale]/layout.tsx
+
+import { Heebo } from 'next/font/google';
 import '../globals.css';
 import Providers from '@/components/Providers';
 import AppContent from './AppContent';
@@ -12,12 +25,15 @@ import { Locale } from '../../../i18n-config';
 import FeedbackWidget from '@/components/layout/FeedbackWidget';
 import { QuestionnaireStateProvider } from '@/app/[locale]/contexts/QuestionnaireStateContext';
 
-// הגדרת פונט Heebo - קל, נקי ומקצועי
+// 🆕 הוסף את ה-import החדש:
+import { MatchingJobProvider } from '@/app/[locale]/contexts/MatchingJobContext';
+import MatchingJobFloatingStatus from '@/components/matchmaker/new/MatchingJobFloatingStatus';
+
 const heebo = Heebo({
   subsets: ['hebrew', 'latin'],
   variable: '--font-heebo',
   display: 'swap',
-  weight: ['300', '400', '500', '600', '700'], // כולל Light (300) לטקסט קל יותר
+  weight: ['300', '400', '500', '600', '700'],
 });
 
 type LayoutParams = Promise<{
@@ -29,7 +45,7 @@ export async function generateMetadata(props: {
 }): Promise<Metadata> {
   const params = await props.params;
   const locale = params.locale as Locale;
-  
+
   const dictionary = await getDictionary(locale);
   return {
     title: dictionary.metadata.title,
@@ -46,7 +62,7 @@ export default async function RootLayout(props: {
 }) {
   const params = await props.params;
   const locale = params.locale as Locale;
-  
+
   const dictionary = await getDictionary(locale);
   const direction = locale === 'he' ? 'rtl' : 'ltr';
 
@@ -59,20 +75,24 @@ export default async function RootLayout(props: {
     >
       <head />
       <body
-        // שימוש בפונט Heebo
         className={`${heebo.variable} antialiased font-sans`}
         suppressHydrationWarning
       >
         <GoogleAnalytics />
         <Providers>
           <QuestionnaireStateProvider dict={dictionary}>
-            <AppContent dict={dictionary}>
-              <FeedbackWidget
-                dict={dictionary.feedbackWidget}
-                locale={locale}
-              />
-              {props.children}
-            </AppContent>
+            {/* 🆕 הוסף את ה-MatchingJobProvider כאן */}
+            <MatchingJobProvider>
+              <AppContent dict={dictionary}>
+                <FeedbackWidget
+                  dict={dictionary.feedbackWidget}
+                  locale={locale}
+                />
+                {props.children}
+              </AppContent>
+              {/* 🆕 הוסף את ה-FloatingStatus כאן */}
+              <MatchingJobFloatingStatus />
+            </MatchingJobProvider>
           </QuestionnaireStateProvider>
           <AccessibilityFeatures
             dict={dictionary.questionnaire.accessibilityFeatures}

@@ -24,8 +24,6 @@ import {
   MessageSquare,
   CheckCircle2,
   X,
-  ChevronDown,
-  ChevronUp,
   Users,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -46,12 +44,12 @@ import type { MatchmakerPageDictionary } from '@/types/dictionaries/matchmaker';
 import type { ProfilePageDictionary } from '@/types/dictionary';
 import { motion, AnimatePresence } from 'framer-motion';
 
-// 🆕 Import the new hook
+// 🆕 Import the global context
 import {
-  useMatchingJob,
+  useMatchingJobContext,
   type SearchMethod,
   type MatchResult,
-} from '../hooks/useMatchingJob';
+} from '@/app/[locale]/contexts/MatchingJobContext';
 
 // ============================================================================
 // TYPES & INTERFACES
@@ -388,97 +386,10 @@ const SearchMethodTabs: React.FC<{
 };
 
 // ============================================================================
-// 🆕 JOB COMPLETE BANNER - באנר "המשימה הושלמה"
+// 🆕 INLINE PROGRESS COMPONENT - Progress קטן בתוך הכפתורים
 // ============================================================================
 
-const JobCompleteBanner: React.FC<{
-  matchesCount: number;
-  totalCandidates?: number;
-  fromCache: boolean;
-  method: SearchMethod;
-  onViewResults: () => void;
-  onDismiss: () => void;
-}> = ({
-  matchesCount,
-  totalCandidates,
-  fromCache,
-  method,
-  onViewResults,
-  onDismiss,
-}) => {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: -20, scale: 0.95 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      exit={{ opacity: 0, y: -20, scale: 0.95 }}
-      className="mx-4 mb-4 rounded-xl p-4 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 shadow-lg"
-    >
-      <div className="flex items-start justify-between">
-        <div className="flex items-start gap-3">
-          <div className="p-2 rounded-full bg-green-500 text-white">
-            <CheckCircle2 className="w-5 h-5" />
-          </div>
-
-          <div>
-            <h3 className="font-bold text-green-800 text-lg">
-              ✅ המשימה הושלמה! נמצאו {matchesCount} התאמות
-            </h3>
-
-            <div className="flex flex-wrap gap-3 mt-2 text-sm text-green-600">
-              {totalCandidates && (
-                <span className="flex items-center gap-1">
-                  <Users className="w-4 h-4" />
-                  נסרקו {totalCandidates} מועמדים
-                </span>
-              )}
-
-              <span className="flex items-center gap-1">
-                {method === 'vector' ? (
-                  <Zap className="w-4 h-4" />
-                ) : (
-                  <Brain className="w-4 h-4" />
-                )}
-                {method === 'vector' ? 'חיפוש מהיר' : 'AI מתקדם'}
-              </span>
-
-              {fromCache && (
-                <span className="flex items-center gap-1 text-amber-600">
-                  <Database className="w-4 h-4" />
-                  מהזיכרון
-                </span>
-              )}
-            </div>
-          </div>
-        </div>
-
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={onDismiss}
-          className="text-gray-400 hover:text-gray-600"
-        >
-          <X className="w-4 h-4" />
-        </Button>
-      </div>
-
-      <div className="mt-4 flex gap-2">
-        <Button
-          onClick={onViewResults}
-          className="bg-gradient-to-r from-green-500 to-emerald-500 text-white hover:from-green-600 hover:to-emerald-600"
-        >
-          <Sparkles className="w-4 h-4 ml-2" />
-          הצג תוצאות
-        </Button>
-      </div>
-    </motion.div>
-  );
-};
-
-// ============================================================================
-// 🆕 REAL-TIME PROGRESS COMPONENT - Progress מהשרת
-// ============================================================================
-
-const RealTimeProgress: React.FC<{
+const InlineJobProgress: React.FC<{
   progress: number;
   progressMessage: string;
   method: SearchMethod;
@@ -489,64 +400,93 @@ const RealTimeProgress: React.FC<{
     ? 'from-blue-500 to-cyan-500'
     : 'from-purple-500 to-pink-500';
   const bgClass = isVector ? 'bg-blue-50' : 'bg-purple-50';
-  const Icon = isVector ? Zap : Brain;
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: -20 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -20 }}
-      className={cn('mx-4 mb-4 rounded-xl p-4 border shadow-lg', bgClass)}
+      initial={{ opacity: 0, height: 0 }}
+      animate={{ opacity: 1, height: 'auto' }}
+      exit={{ opacity: 0, height: 0 }}
+      className={cn('rounded-lg p-3 border', bgClass)}
     >
-      <div className="flex items-center justify-between mb-3">
+      <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
-          <div
+          <Loader2
             className={cn(
-              'p-2 rounded-lg bg-gradient-to-r text-white',
-              gradientClass
+              'w-4 h-4 animate-spin',
+              isVector ? 'text-blue-600' : 'text-purple-600'
             )}
-          >
-            <Icon className="w-4 h-4" />
-          </div>
-          <div>
-            <p className="font-medium text-gray-900">
-              {isVector ? 'חיפוש מהיר' : 'ניתוח AI מתקדם'}
-            </p>
-            <p className="text-sm text-gray-500">
-              {progressMessage || 'מעבד...'}
-            </p>
-          </div>
+          />
+          <span className="text-sm font-medium text-gray-700">
+            {progressMessage || 'מעבד...'}
+          </span>
         </div>
-
         <Button
           variant="ghost"
           size="sm"
           onClick={onCancel}
-          className="text-gray-400 hover:text-gray-600"
+          className="h-6 w-6 p-0 text-gray-400 hover:text-gray-600"
         >
-          <X className="w-4 h-4" />
+          <X className="w-3 h-3" />
         </Button>
       </div>
 
       <div className="relative">
-        <Progress value={progress} className="h-3 bg-gray-200" />
-        <motion.div
-          className={cn(
-            'absolute inset-0 h-3 rounded-full bg-gradient-to-r opacity-30',
-            gradientClass
-          )}
-          animate={{ x: ['-100%', '100%'] }}
-          transition={{ duration: 1.5, repeat: Infinity, ease: 'linear' }}
-          style={{ width: '50%' }}
-        />
+        <Progress value={progress} className="h-2" />
       </div>
 
-      <div className="flex justify-between mt-2 text-sm text-gray-500">
+      <div className="flex justify-between mt-1 text-xs text-gray-500">
         <span>{progress}%</span>
-        <span className="flex items-center gap-1">
-          <Loader2 className="w-3 h-3 animate-spin" />
-          {progress < 30 ? 'מתחיל...' : progress < 70 ? 'מנתח...' : 'מסיים...'}
-        </span>
+        <span>רץ ברקע - ניתן להמשיך לעבוד</span>
+      </div>
+    </motion.div>
+  );
+};
+
+// ============================================================================
+// 🆕 JOB COMPLETE BANNER
+// ============================================================================
+
+const JobCompleteBanner: React.FC<{
+  matchesCount: number;
+  targetName: string;
+  method: SearchMethod;
+  onViewResults: () => void;
+  onDismiss: () => void;
+}> = ({ matchesCount, targetName, method, onViewResults, onDismiss }) => {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: -10 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -10 }}
+      className="rounded-lg p-3 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200"
+    >
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <CheckCircle2 className="w-5 h-5 text-green-600" />
+          <div>
+            <span className="font-medium text-green-800">
+              נמצאו {matchesCount} התאמות עבור {targetName}!
+            </span>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button
+            size="sm"
+            onClick={onViewResults}
+            className="bg-green-600 hover:bg-green-700 text-white"
+          >
+            <Sparkles className="w-4 h-4 ml-1" />
+            הצג
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onDismiss}
+            className="h-8 w-8 p-0"
+          >
+            <X className="w-4 h-4" />
+          </Button>
+        </div>
       </div>
     </motion.div>
   );
@@ -578,6 +518,14 @@ const PanelHeaderComponent: React.FC<{
   vectorMatchesCount: number;
   activeResultsTab: SearchMethod;
   onResultsTabChange: (method: SearchMethod) => void;
+  // 🆕 Props from context
+  jobProgress: number;
+  jobProgressMessage: string;
+  jobStatus: string;
+  onCancelJob: () => void;
+  showCompleteBanner: boolean;
+  onDismissBanner: () => void;
+  onViewResults: () => void;
 }> = ({
   gender,
   count,
@@ -596,6 +544,13 @@ const PanelHeaderComponent: React.FC<{
   vectorMatchesCount,
   activeResultsTab,
   onResultsTabChange,
+  jobProgress,
+  jobProgressMessage,
+  jobStatus,
+  onCancelJob,
+  showCompleteBanner,
+  onDismissBanner,
+  onViewResults,
 }) => {
   const genderConfig = {
     male: {
@@ -625,6 +580,7 @@ const PanelHeaderComponent: React.FC<{
   const config = genderConfig[gender];
   const IconComponent = config.icon;
   const hasAnyResults = aiMatchesCount > 0 || vectorMatchesCount > 0;
+  const isJobRunning = jobStatus === 'pending' || jobStatus === 'processing';
 
   return (
     <div
@@ -691,82 +647,97 @@ const PanelHeaderComponent: React.FC<{
       {/* Search buttons - only show on search panel */}
       {isSearchPanel && (
         <div className="flex flex-col gap-2">
-          <div className="flex gap-2">
-            {/* כפתור חיפוש AI מתקדם */}
-            <motion.div className="flex-1" whileHover={{ scale: 1.02 }}>
-              <Button
-                onClick={(e) => onFindAiMatches(e, false, 'algorithmic')}
-                disabled={isAiLoading}
-                className={cn(
-                  'w-full h-11 font-bold transition-all duration-300 shadow-lg',
-                  'bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white',
-                  isAiLoading &&
-                    currentSearchMethod === 'algorithmic' &&
-                    'opacity-70'
-                )}
-              >
-                {isAiLoading && currentSearchMethod === 'algorithmic' ? (
-                  <Loader2 className="w-5 h-5 animate-spin ml-2" />
-                ) : (
-                  <Brain className="w-5 h-5 ml-2" />
-                )}
-                <span>חיפוש AI מתקדם</span>
-              </Button>
-            </motion.div>
-
-            {/* כפתור חיפוש דמיון מהיר */}
-            <motion.div className="flex-1" whileHover={{ scale: 1.02 }}>
-              <Button
-                onClick={(e) => onFindAiMatches(e, false, 'vector')}
-                disabled={isAiLoading}
-                className={cn(
-                  'w-full h-11 font-bold transition-all duration-300 shadow-lg',
-                  'bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white',
-                  isAiLoading &&
-                    currentSearchMethod === 'vector' &&
-                    'opacity-70'
-                )}
-              >
-                {isAiLoading && currentSearchMethod === 'vector' ? (
-                  <Loader2 className="w-5 h-5 animate-spin ml-2" />
-                ) : (
-                  <Zap className="w-5 h-5 ml-2" />
-                )}
-                <span>דמיון מהיר ⚡</span>
-              </Button>
-            </motion.div>
-
-            {/* Refresh button */}
-            {hasAnyResults && (
-              <Button
-                size="icon"
-                variant="outline"
-                onClick={(e) => onFindAiMatches(e, true, activeResultsTab)}
-                disabled={isAiLoading}
-                className="h-11 w-11"
-              >
-                <RefreshCw
-                  className={cn('w-5 h-5', isAiLoading && 'animate-spin')}
-                />
-              </Button>
+          {/* 🆕 Show completion banner if job just completed */}
+          <AnimatePresence>
+            {showCompleteBanner && (
+              <JobCompleteBanner
+                matchesCount={
+                  activeResultsTab === 'vector'
+                    ? vectorMatchesCount
+                    : aiMatchesCount
+                }
+                targetName={aiTargetCandidate?.firstName || 'המועמד'}
+                method={currentSearchMethod}
+                onViewResults={onViewResults}
+                onDismiss={onDismissBanner}
+              />
             )}
-          </div>
+          </AnimatePresence>
 
-          {/* Time estimates - מעודכן! */}
-          <div className="flex gap-2 text-xs text-gray-500">
-            <span className="flex-1 text-center">~3-5 דקות • ניתוח מעמיק</span>
-            <span className="flex-1 text-center">~30 שניות • חיפוש דמיון</span>
-          </div>
+          {/* 🆕 Show progress if job is running */}
+          <AnimatePresence>
+            {isJobRunning && (
+              <InlineJobProgress
+                progress={jobProgress}
+                progressMessage={jobProgressMessage}
+                method={currentSearchMethod}
+                onCancel={onCancelJob}
+              />
+            )}
+          </AnimatePresence>
+
+          {/* Search buttons - always visible, not disabled during search */}
+          {!isJobRunning && !showCompleteBanner && (
+            <>
+              <div className="flex gap-2">
+                <motion.div className="flex-1" whileHover={{ scale: 1.02 }}>
+                  <Button
+                    onClick={(e) => onFindAiMatches(e, false, 'algorithmic')}
+                    className={cn(
+                      'w-full h-11 font-bold transition-all duration-300 shadow-lg',
+                      'bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white'
+                    )}
+                  >
+                    <Brain className="w-5 h-5 ml-2" />
+                    <span>חיפוש AI מתקדם</span>
+                  </Button>
+                </motion.div>
+
+                <motion.div className="flex-1" whileHover={{ scale: 1.02 }}>
+                  <Button
+                    onClick={(e) => onFindAiMatches(e, false, 'vector')}
+                    className={cn(
+                      'w-full h-11 font-bold transition-all duration-300 shadow-lg',
+                      'bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white'
+                    )}
+                  >
+                    <Zap className="w-5 h-5 ml-2" />
+                    <span>דמיון מהיר ⚡</span>
+                  </Button>
+                </motion.div>
+
+                {hasAnyResults && (
+                  <Button
+                    size="icon"
+                    variant="outline"
+                    onClick={(e) => onFindAiMatches(e, true, activeResultsTab)}
+                    className="h-11 w-11"
+                  >
+                    <RefreshCw className="w-5 h-5" />
+                  </Button>
+                )}
+              </div>
+
+              <div className="flex gap-2 text-xs text-gray-500">
+                <span className="flex-1 text-center">
+                  ~3-5 דקות • ניתוח מעמיק
+                </span>
+                <span className="flex-1 text-center">
+                  ~30 שניות • חיפוש דמיון
+                </span>
+              </div>
+            </>
+          )}
 
           {/* Results tabs */}
-          {hasAnyResults && (
+          {hasAnyResults && !isJobRunning && (
             <div className="flex items-center justify-between mt-2">
               <SearchMethodTabs
                 activeMethod={activeResultsTab}
                 onMethodChange={onResultsTabChange}
                 algorithmicCount={aiMatchesCount}
                 vectorCount={vectorMatchesCount}
-                isLoading={isAiLoading}
+                isLoading={isJobRunning}
               />
               <CacheInfoBadge
                 meta={
@@ -934,6 +905,11 @@ const SplitView: React.FC<SplitViewProps> = ({
     separateFiltering,
   } = props;
 
+  // 🆕 Use global context
+  const matchingJobContext = useMatchingJobContext();
+  const { currentJob, startJob, cancelJob, isJobRunning, onJobComplete } =
+    matchingJobContext;
+
   const [isMobile, setIsMobile] = useState(false);
   const [aiMatchMeta, setAiMatchMeta] = useState<AiMatchMeta | null>(null);
   const [vectorMatches, setVectorMatches] = useState<AiMatch[]>([]);
@@ -944,72 +920,7 @@ const SplitView: React.FC<SplitViewProps> = ({
     useState<SearchMethod>('algorithmic');
   const [activeResultsTab, setActiveResultsTab] =
     useState<SearchMethod>('algorithmic');
-
-  // 🆕 State חדש לבאנר "המשימה הושלמה"
   const [showCompleteBanner, setShowCompleteBanner] = useState(false);
-  const [lastCompletedMethod, setLastCompletedMethod] =
-    useState<SearchMethod>('algorithmic');
-
-  // 🆕 Background Jobs Hooks - אחד לכל שיטה
-  const algorithmicJob = useMatchingJob({
-    pollingInterval: 3000,
-    showToasts: false, // נטפל בהתראות בעצמנו
-    onComplete: (result) => {
-      if (result?.matches) {
-        setAiMatches(result.matches as AiMatch[]);
-        setAiMatchMeta({
-          fromCache: false,
-          algorithmVersion: result.meta?.algorithmVersion || 'v3.1',
-          totalCandidatesScanned: result.meta?.totalCandidatesScanned,
-        });
-        setActiveResultsTab('algorithmic');
-        setShowCompleteBanner(true);
-        setLastCompletedMethod('algorithmic');
-
-        toast.success(`✅ נמצאו ${result.matches.length} התאמות!`, {
-          description: 'לחץ על "הצג תוצאות" לצפייה',
-          duration: 10000,
-        });
-      }
-      setIsAiLoading(false);
-    },
-    onError: (error) => {
-      toast.error('❌ החיפוש נכשל', { description: error });
-      setIsAiLoading(false);
-    },
-  });
-
-  const vectorJob = useMatchingJob({
-    pollingInterval: 2000,
-    showToasts: false,
-    onComplete: (result) => {
-      if (result?.matches) {
-        setVectorMatches(result.matches as AiMatch[]);
-        setVectorMatchMeta({
-          fromCache: false,
-          algorithmVersion: result.meta?.algorithmVersion || 'vector-v1',
-          totalCandidatesScanned: result.meta?.totalCandidatesScanned,
-        });
-        setActiveResultsTab('vector');
-        setShowCompleteBanner(true);
-        setLastCompletedMethod('vector');
-
-        toast.success(`✅ נמצאו ${result.matches.length} התאמות!`, {
-          description: 'לחץ על "הצג תוצאות" לצפייה',
-          duration: 10000,
-        });
-      }
-      setIsAiLoading(false);
-    },
-    onError: (error) => {
-      toast.error('❌ החיפוש נכשל', { description: error });
-      setIsAiLoading(false);
-    },
-  });
-
-  // קבל את ה-job הפעיל
-  const activeJob =
-    currentSearchMethod === 'vector' ? vectorJob : algorithmicJob;
 
   useEffect(() => {
     const checkScreenSize = () => setIsMobile(window.innerWidth < 768);
@@ -1018,7 +929,54 @@ const SplitView: React.FC<SplitViewProps> = ({
     return () => window.removeEventListener('resize', checkScreenSize);
   }, []);
 
-  // 🆕 פונקציה מעודכנת - משתמשת ב-Background Jobs
+  // 🆕 Subscribe to job completion
+  useEffect(() => {
+    const unsubscribe = onJobComplete((result) => {
+      if (result?.matches) {
+        // Update the appropriate state based on method
+        if (currentJob.method === 'vector') {
+          setVectorMatches(result.matches as AiMatch[]);
+          setVectorMatchMeta({
+            fromCache: currentJob.fromCache,
+            algorithmVersion: result.meta?.algorithmVersion || 'vector-v1',
+            totalCandidatesScanned: result.meta?.totalCandidatesScanned,
+          });
+          setActiveResultsTab('vector');
+        } else {
+          setAiMatches(result.matches as AiMatch[]);
+          setAiMatchMeta({
+            fromCache: currentJob.fromCache,
+            algorithmVersion: result.meta?.algorithmVersion || 'v3.1',
+            totalCandidatesScanned: result.meta?.totalCandidatesScanned,
+          });
+          setActiveResultsTab('algorithmic');
+        }
+        setShowCompleteBanner(true);
+      }
+    });
+
+    return unsubscribe;
+  }, [onJobComplete, currentJob.method, currentJob.fromCache, setAiMatches]);
+
+  // 🆕 Listen for "view results" event
+  useEffect(() => {
+    const handleViewResults = () => {
+      setShowCompleteBanner(false);
+      const resultsEl = document.getElementById('candidates-results');
+      if (resultsEl) {
+        resultsEl.scrollIntoView({ behavior: 'smooth' });
+      }
+    };
+
+    window.addEventListener('matching-job-view-results', handleViewResults);
+    return () =>
+      window.removeEventListener(
+        'matching-job-view-results',
+        handleViewResults
+      );
+  }, []);
+
+  // 🆕 Updated function - uses global context
   const handleFindAiMatches = useCallback(
     async (
       e: React.MouseEvent,
@@ -1035,11 +993,10 @@ const SplitView: React.FC<SplitViewProps> = ({
         return;
       }
 
-      setIsAiLoading(true);
       setCurrentSearchMethod(method);
       setShowCompleteBanner(false);
 
-      // נקה את התוצאות של השיטה הנוכחית
+      // Clear previous results for this method
       if (method === 'vector') {
         setVectorMatches([]);
         setVectorMatchMeta(null);
@@ -1048,52 +1005,31 @@ const SplitView: React.FC<SplitViewProps> = ({
         setAiMatchMeta(null);
       }
 
-      const methodName = method === 'vector' ? 'דמיון מהיר' : 'AI מתקדם';
-
-      try {
-        toast.info(`🔍 מפעיל ${methodName}...`, {
-          description: 'החיפוש רץ ברקע, תקבל התראה כשיסתיים',
-          duration: 4000,
-        });
-
-        // 🆕 משתמש ב-Hook החדש במקום fetch ישיר
-        const job = method === 'vector' ? vectorJob : algorithmicJob;
-        await job.startJob(aiTargetCandidate.id, method, forceRefresh);
-      } catch (error) {
-        console.error('[AI Matching] ❌ Error:', error);
-        toast.error(`שגיאה בהפעלת ${methodName}`, {
-          description:
-            error instanceof Error ? error.message : 'נסה שוב מאוחר יותר.',
-        });
-        setIsAiLoading(false);
-      }
+      // 🆕 Use global context to start job
+      await startJob(
+        aiTargetCandidate.id,
+        aiTargetCandidate.firstName,
+        method,
+        forceRefresh
+      );
     },
-    [aiTargetCandidate, setAiMatches, setIsAiLoading, algorithmicJob, vectorJob]
+    [aiTargetCandidate, setAiMatches, startJob]
   );
 
-  // פונקציה להצגת התוצאות (סגירת הבאנר וגלילה)
   const handleViewResults = useCallback(() => {
     setShowCompleteBanner(false);
-    // גלילה לתחילת רשימת התוצאות
-    const resultsSection = document.getElementById('candidates-results');
-    if (resultsSection) {
-      resultsSection.scrollIntoView({ behavior: 'smooth' });
+    const resultsEl = document.getElementById('candidates-results');
+    if (resultsEl) {
+      resultsEl.scrollIntoView({ behavior: 'smooth' });
     }
   }, []);
 
-  // פונקציה לביטול החיפוש
-  const handleCancelJob = useCallback(() => {
-    activeJob.cancelJob();
-    setIsAiLoading(false);
-    toast.info('החיפוש בוטל');
-  }, [activeJob, setIsAiLoading]);
-
-  // פונקציה לקבלת התוצאות הפעילות
+  // Get active matches
   const getActiveMatches = (): AiMatch[] => {
     return activeResultsTab === 'vector' ? vectorMatches : aiMatches;
   };
 
-  // מיזוג מועמדים עם ציוני AI
+  // Merge candidates with AI scores
   const maleCandidatesWithScores: CandidateWithAiData[] = useMemo(() => {
     const activeMatches = getActiveMatches();
     if (activeMatches.length === 0) return maleCandidates;
@@ -1179,7 +1115,7 @@ const SplitView: React.FC<SplitViewProps> = ({
         isTargetPanel={isTargetPanel}
         onClearAiTarget={onClearAiTarget}
         onFindAiMatches={handleFindAiMatches}
-        isAiLoading={isAiLoading || activeJob.isLoading}
+        isAiLoading={isJobRunning}
         currentSearchMethod={currentSearchMethod}
         isMobileView={isMobileView}
         dict={dict.candidatesManager.splitView.panelHeaders}
@@ -1189,46 +1125,15 @@ const SplitView: React.FC<SplitViewProps> = ({
         vectorMatchesCount={vectorMatches.length}
         activeResultsTab={activeResultsTab}
         onResultsTabChange={setActiveResultsTab}
+        // 🆕 Pass context data
+        jobProgress={currentJob.progress}
+        jobProgressMessage={currentJob.progressMessage}
+        jobStatus={currentJob.status}
+        onCancelJob={cancelJob}
+        showCompleteBanner={showCompleteBanner}
+        onDismissBanner={() => setShowCompleteBanner(false)}
+        onViewResults={handleViewResults}
       />
-    );
-  };
-
-  // 🆕 רנדור ה-Progress ו-Banner
-  const renderJobStatus = (gender: 'male' | 'female') => {
-    const panelGenderEnum = gender === 'male' ? Gender.MALE : Gender.FEMALE;
-    const isSearchPanel =
-      aiTargetCandidate && aiTargetCandidate.profile.gender !== panelGenderEnum;
-
-    if (!isSearchPanel) return null;
-
-    return (
-      <AnimatePresence>
-        {/* Progress בזמן טעינה */}
-        {activeJob.isLoading && (
-          <RealTimeProgress
-            progress={activeJob.progress}
-            progressMessage={activeJob.progressMessage}
-            method={currentSearchMethod}
-            onCancel={handleCancelJob}
-          />
-        )}
-
-        {/* Banner כשהמשימה הושלמה */}
-        {showCompleteBanner && !activeJob.isLoading && (
-          <JobCompleteBanner
-            matchesCount={
-              lastCompletedMethod === 'vector'
-                ? vectorMatches.length
-                : aiMatches.length
-            }
-            totalCandidates={activeJob.meta.totalCandidates}
-            fromCache={activeJob.fromCache}
-            method={lastCompletedMethod}
-            onViewResults={handleViewResults}
-            onDismiss={() => setShowCompleteBanner(false)}
-          />
-        )}
-      </AnimatePresence>
     );
   };
 
@@ -1304,56 +1209,8 @@ const SplitView: React.FC<SplitViewProps> = ({
             <Card className="p-4 flex flex-col h-full shadow-xl border-0 bg-gradient-to-b from-white to-blue-50/30 rounded-2xl">
               {aiTargetCandidate &&
                 aiTargetCandidate.profile.gender === 'FEMALE' && (
-                  <motion.div
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="mb-4 flex flex-col gap-2"
-                  >
-                    <div className="flex gap-2">
-                      <Button
-                        onClick={(e) =>
-                          handleFindAiMatches(e, false, 'algorithmic')
-                        }
-                        disabled={activeJob.isLoading}
-                        className="flex-1 h-12 bg-gradient-to-r from-purple-600 to-purple-700 text-white shadow-lg font-bold rounded-xl"
-                      >
-                        {activeJob.isLoading &&
-                        currentSearchMethod === 'algorithmic' ? (
-                          <Loader2 className="w-5 h-5 animate-spin ml-2" />
-                        ) : (
-                          <Brain className="w-5 h-5 ml-2" />
-                        )}
-                        AI מתקדם
-                      </Button>
-                      <Button
-                        onClick={(e) => handleFindAiMatches(e, false, 'vector')}
-                        disabled={activeJob.isLoading}
-                        className="flex-1 h-12 bg-gradient-to-r from-blue-600 to-cyan-600 text-white shadow-lg font-bold rounded-xl"
-                      >
-                        {activeJob.isLoading &&
-                        currentSearchMethod === 'vector' ? (
-                          <Loader2 className="w-5 h-5 animate-spin ml-2" />
-                        ) : (
-                          <Zap className="w-5 h-5 ml-2" />
-                        )}
-                        דמיון מהיר ⚡
-                      </Button>
-                    </div>
-                    {(aiMatches.length > 0 || vectorMatches.length > 0) && (
-                      <SearchMethodTabs
-                        activeMethod={activeResultsTab}
-                        onMethodChange={setActiveResultsTab}
-                        algorithmicCount={aiMatches.length}
-                        vectorCount={vectorMatches.length}
-                        isLoading={activeJob.isLoading}
-                      />
-                    )}
-                  </motion.div>
+                  <div className="mb-4">{renderPanelHeader('male', true)}</div>
                 )}
-
-              {/* 🆕 Job Status */}
-              {renderJobStatus('male')}
-
               {separateFiltering && onMaleSearchChange && (
                 <div className="mb-4 w-full">
                   <SearchBar
@@ -1386,56 +1243,10 @@ const SplitView: React.FC<SplitViewProps> = ({
             <Card className="p-4 flex flex-col h-full shadow-xl border-0 bg-gradient-to-b from-white to-purple-50/30 rounded-2xl">
               {aiTargetCandidate &&
                 aiTargetCandidate.profile.gender === 'MALE' && (
-                  <motion.div
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="mb-4 flex flex-col gap-2"
-                  >
-                    <div className="flex gap-2">
-                      <Button
-                        onClick={(e) =>
-                          handleFindAiMatches(e, false, 'algorithmic')
-                        }
-                        disabled={activeJob.isLoading}
-                        className="flex-1 h-12 bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg font-bold rounded-xl"
-                      >
-                        {activeJob.isLoading &&
-                        currentSearchMethod === 'algorithmic' ? (
-                          <Loader2 className="w-5 h-5 animate-spin ml-2" />
-                        ) : (
-                          <Brain className="w-5 h-5 ml-2" />
-                        )}
-                        AI מתקדם
-                      </Button>
-                      <Button
-                        onClick={(e) => handleFindAiMatches(e, false, 'vector')}
-                        disabled={activeJob.isLoading}
-                        className="flex-1 h-12 bg-gradient-to-r from-blue-600 to-cyan-600 text-white shadow-lg font-bold rounded-xl"
-                      >
-                        {activeJob.isLoading &&
-                        currentSearchMethod === 'vector' ? (
-                          <Loader2 className="w-5 h-5 animate-spin ml-2" />
-                        ) : (
-                          <Zap className="w-5 h-5 ml-2" />
-                        )}
-                        דמיון מהיר ⚡
-                      </Button>
-                    </div>
-                    {(aiMatches.length > 0 || vectorMatches.length > 0) && (
-                      <SearchMethodTabs
-                        activeMethod={activeResultsTab}
-                        onMethodChange={setActiveResultsTab}
-                        algorithmicCount={aiMatches.length}
-                        vectorCount={vectorMatches.length}
-                        isLoading={activeJob.isLoading}
-                      />
-                    )}
-                  </motion.div>
+                  <div className="mb-4">
+                    {renderPanelHeader('female', true)}
+                  </div>
                 )}
-
-              {/* 🆕 Job Status */}
-              {renderJobStatus('female')}
-
               {separateFiltering && onFemaleSearchChange && (
                 <div className="mb-4 w-full">
                   <SearchBar
@@ -1478,10 +1289,6 @@ const SplitView: React.FC<SplitViewProps> = ({
         <ResizablePanel defaultSize={50} minSize={30}>
           <div className="flex flex-col h-full bg-gradient-to-b from-white to-blue-50/20">
             {renderPanelHeader('male')}
-
-            {/* 🆕 Job Status */}
-            {renderJobStatus('male')}
-
             {separateFiltering && onMaleSearchChange && (
               <div className="p-4 bg-blue-50/30 w-full">
                 <SearchBar
@@ -1531,10 +1338,6 @@ const SplitView: React.FC<SplitViewProps> = ({
         <ResizablePanel defaultSize={50} minSize={30}>
           <div className="flex flex-col h-full bg-gradient-to-b from-white to-purple-50/20">
             {renderPanelHeader('female')}
-
-            {/* 🆕 Job Status */}
-            {renderJobStatus('female')}
-
             {separateFiltering && onFemaleSearchChange && (
               <div className="p-4 bg-purple-50/30 w-full">
                 <SearchBar
