@@ -1,6 +1,6 @@
 // src/lib/services/matchingAlgorithmService.ts
-// 🎯 אלגוריתם מציאת התאמות V3.1 - NeshamaTech
-// משלב סינון חכם + אבחון רקע ושפה + סריקה ב-batches + ניתוח מעמיק
+// 🎯 אלגוריתם מציאת התאמות V3.2 - NeshamaTech
+// משלב סינון חכם + אבחון רקע ושפה + ציון גיל מתקדם + סריקה ב-batches + ניתוח מעמיק
 
 import prisma from "@/lib/prisma";
 import { GoogleGenerativeAI } from '@google/generative-ai';
@@ -16,7 +16,7 @@ interface AiProfileSummary {
   lookingForSummary: string;
 }
 
-// 🆕 קטגוריות רקע
+// קטגוריות רקע
 type BackgroundCategory = 
   | 'sabra'              // צבר מובהק
   | 'sabra_international' // צבר עם רקע בינלאומי
@@ -24,7 +24,7 @@ type BackgroundCategory =
   | 'oleh_mid'           // עולה 3-10 שנים
   | 'oleh_new';          // עולה חדש (פחות מ-3 שנים)
 
-// 🆕 פרופיל רקע
+// פרופיל רקע
 interface BackgroundProfile {
   category: BackgroundCategory;
   confidence: number;              // 0-1, כמה בטוחים בסיווג
@@ -38,12 +38,19 @@ interface BackgroundProfile {
   indicators: string[];            // רשימת סיבות לסיווג
 }
 
-// 🆕 תוצאת התאמת רקע
+// תוצאת התאמת רקע
 interface BackgroundMatchResult {
   multiplier: number;              // 0.15 - 1.25
   compatibility: 'excellent' | 'good' | 'possible' | 'problematic' | 'not_recommended';
   bonusPoints: number;             // בונוס שפה משותפת
   reasoning: string;               // הסבר קצר
+}
+
+// 🆕 תוצאת ציון גיל
+interface AgeScoreResult {
+  score: number;
+  eligible: boolean;
+  description: string;
 }
 
 interface TargetUserData {
@@ -56,7 +63,7 @@ interface TargetUserData {
   religiousLevel: string | null;
   aiProfileSummary: AiProfileSummary | null;
   narrativeProfile?: string | null;
-  backgroundProfile?: BackgroundProfile;  // 🆕
+  backgroundProfile?: BackgroundProfile;
 }
 
 interface CandidateData {
@@ -68,12 +75,14 @@ interface CandidateData {
   city: string | null;
   occupation: string | null;
   summaryText: string;
-  backgroundProfile?: BackgroundProfile;  // 🆕
-  backgroundMatch?: BackgroundMatchResult; // 🆕
+  backgroundProfile?: BackgroundProfile;
+  backgroundMatch?: BackgroundMatchResult;
+  ageScore?: AgeScoreResult;  // 🆕
 }
 
 interface ScoreBreakdown {
   religious: number;
+  ageCompatibility: number;  // 🆕
   careerFamily: number;
   lifestyle: number;
   ambition: number;
@@ -91,8 +100,9 @@ export interface MatchResult {
   shortReasoning: string;
   detailedReasoning: string;
   rank?: number;
-  backgroundMultiplier?: number;    // 🆕
-  backgroundCompatibility?: string; // 🆕
+  backgroundMultiplier?: number;
+  backgroundCompatibility?: string;
+  ageScore?: number;  // 🆕
 }
 
 interface FirstPassResult {
@@ -100,8 +110,8 @@ interface FirstPassResult {
   firstName: string;
   lastName: string;
   totalScore: number;
-  rawScore: number;                 // 🆕 ציון לפני מכפיל
-  backgroundMultiplier: number;     // 🆕
+  rawScore: number;
+  backgroundMultiplier: number;
   breakdown: ScoreBreakdown;
   shortReasoning: string;
 }
@@ -153,7 +163,7 @@ const TOP_CANDIDATES_COUNT = 15;
 const STALE_DAYS = 7;
 const CURRENT_YEAR = new Date().getFullYear();
 
-// 🆕 מטריצת התאמת רקע
+// מטריצת התאמת רקע
 const BACKGROUND_COMPATIBILITY_MATRIX: Record<BackgroundCategory, Record<BackgroundCategory, number>> = {
   sabra: {
     sabra: 1.0,
@@ -192,7 +202,7 @@ const BACKGROUND_COMPATIBILITY_MATRIX: Record<BackgroundCategory, Record<Backgro
   },
 };
 
-// 🆕 מיפוי מכפיל לרמת התאמה
+// מיפוי מכפיל לרמת התאמה
 function getCompatibilityLevel(multiplier: number): 'excellent' | 'good' | 'possible' | 'problematic' | 'not_recommended' {
   if (multiplier >= 0.95) return 'excellent';
   if (multiplier >= 0.8) return 'good';
@@ -254,14 +264,122 @@ function calculateAge(birthDate: Date): number {
 
 function getAgeRange(age: number, gender: Gender): { minAge: number; maxAge: number } {
   if (gender === 'MALE') {
-    return { minAge: age - 7, maxAge: age + 5 };
+    // לגבר: בת יכולה להיות עד 4 שנים יותר גדולה, או עד 7 שנים יותר צעירה
+    return { minAge: age - 7, maxAge: age + 4 };
   } else {
-    return { minAge: age - 5, maxAge: age + 5 };
+    // לאישה: בן יכול להיות עד 7 שנים יותר גדול, או עד 4 שנים יותר צעיר
+    return { minAge: age - 4, maxAge: age + 7 };
   }
 }
 
 // ============================================================================
-// 🆕 BACKGROUND ANALYSIS FUNCTIONS
+// 🆕 AGE COMPATIBILITY SCORING
+// ============================================================================
+
+/**
+ * מחשב ציון התאמת גיל בין גבר לאישה
+ * הלוגיקה: 
+ * - אידיאלי: אותו גיל או הבן גדול ב-1-3 שנים = 100
+ * - בן גדול יותר: ציון יורד בהדרגה
+ * - בת גדולה יותר: ציון יורד מהר יותר
+ * - פערים קיצוניים: לא רלוונטי (eligible=false)
+ */
+function calculateAgeScore(maleAge: number, femaleAge: number): AgeScoreResult {
+  const ageDiff = maleAge - femaleAge; // חיובי = הבן גדול יותר
+  
+  // === מצב אידיאלי: אותו גיל או בן גדול ב-1-3 שנים ===
+  if (ageDiff >= 0 && ageDiff <= 3) {
+    return { 
+      score: 100, 
+      eligible: true,
+      description: ageDiff === 0 ? 'אותו גיל - אידיאלי' : `הבן גדול ב-${ageDiff} שנים - אידיאלי`
+    };
+  }
+  
+  // === בן גדול ב-4-7 שנים - ציון יורד בהדרגה ===
+  if (ageDiff > 3 && ageDiff <= 7) {
+    // 4 שנים → 92, 5 שנים → 84, 6 שנים → 76, 7 שנים → 68
+    const score = 100 - ((ageDiff - 3) * 8);
+    return { 
+      score: Math.round(score), 
+      eligible: true,
+      description: `הבן גדול ב-${ageDiff} שנים - פער סביר`
+    };
+  }
+  
+  // === בן גדול ב-8+ שנים - פער גדול מדי ===
+  if (ageDiff > 7) {
+    return { 
+      score: 0, 
+      eligible: false,
+      description: `הבן גדול ב-${ageDiff} שנים - פער גדול מדי`
+    };
+  }
+  
+  // === בת גדולה (ageDiff שלילי) ===
+  const femaleOlder = Math.abs(ageDiff);
+  
+  // בת גדולה בשנה אחת
+  if (femaleOlder === 1) {
+    return { 
+      score: 80, 
+      eligible: true,
+      description: 'הבת גדולה בשנה - סביר'
+    };
+  }
+  
+  // בת גדולה ב-2 שנים
+  if (femaleOlder === 2) {
+    return { 
+      score: 65, 
+      eligible: true,
+      description: 'הבת גדולה ב-2 שנים - פחות מקובל'
+    };
+  }
+  
+  // בת גדולה ב-3 שנים
+  if (femaleOlder === 3) {
+    return { 
+      score: 45, 
+      eligible: true,
+      description: 'הבת גדולה ב-3 שנים - בעייתי'
+    };
+  }
+  
+  // בת גדולה ב-4 שנים
+  if (femaleOlder === 4) {
+    return { 
+      score: 25, 
+      eligible: true,
+      description: 'הבת גדולה ב-4 שנים - בעייתי מאוד'
+    };
+  }
+  
+  // בת גדולה ב-5+ שנים - לא רלוונטי
+  return { 
+    score: 0, 
+    eligible: false,
+    description: `הבת גדולה ב-${femaleOlder} שנים - לא רלוונטי`
+  };
+}
+
+/**
+ * Wrapper function שמקבלת גילאים ומגדר של המועמד המסומן
+ */
+export function calculateAgeScoreForMatch(
+  targetAge: number, 
+  targetGender: Gender, 
+  candidateAge: number
+): AgeScoreResult {
+  if (targetGender === 'MALE') {
+    return calculateAgeScore(targetAge, candidateAge);
+  } else {
+    return calculateAgeScore(candidateAge, targetAge);
+  }
+}
+
+// ============================================================================
+// BACKGROUND ANALYSIS FUNCTIONS
 // ============================================================================
 
 /**
@@ -576,7 +694,7 @@ function getCategoryDescription(category: BackgroundCategory): string {
 // ============================================================================
 
 export async function loadSavedMatches(targetUserId: string): Promise<SavedSearchResult | null> {
-  console.log(`[Matching V3.1] Loading saved matches for user: ${targetUserId}`);
+  console.log(`[Matching V3.2] Loading saved matches for user: ${targetUserId}`);
 
   const savedSearch = await prisma.savedMatchSearch.findUnique({
     where: { targetUserId },
@@ -591,7 +709,7 @@ export async function loadSavedMatches(targetUserId: string): Promise<SavedSearc
   });
 
   if (!savedSearch) {
-    console.log(`[Matching V3.1] No saved search found for user: ${targetUserId}`);
+    console.log(`[Matching V3.2] No saved search found for user: ${targetUserId}`);
     return null;
   }
 
@@ -649,10 +767,10 @@ export async function loadSavedMatches(targetUserId: string): Promise<SavedSearc
 
   const removedCount = savedMatches.length - filteredMatches.length;
   if (removedCount > 0) {
-    console.log(`[Matching V3.1] Filtered out ${removedCount} unavailable candidates`);
+    console.log(`[Matching V3.2] Filtered out ${removedCount} unavailable candidates`);
   }
 
-  console.log(`[Matching V3.1] Loaded ${filteredMatches.length} valid matches (${isStale ? 'STALE' : 'FRESH'})`);
+  console.log(`[Matching V3.2] Loaded ${filteredMatches.length} valid matches (${isStale ? 'STALE' : 'FRESH'})`);
 
   return {
     matches: filteredMatches,
@@ -672,9 +790,9 @@ export async function saveMatchResults(
   matchmakerId: string,
   matches: MatchResult[],
   totalScanned: number,
-  algorithmVersion: string = 'v3.1'
+  algorithmVersion: string = 'v3.2'
 ): Promise<void> {
-  console.log(`[Matching V3.1] Saving ${matches.length} matches for user: ${targetUserId}`);
+  console.log(`[Matching V3.2] Saving ${matches.length} matches for user: ${targetUserId}`);
 
   await prisma.savedMatchSearch.upsert({
     where: { targetUserId },
@@ -694,14 +812,14 @@ export async function saveMatchResults(
     }
   });
 
-  console.log(`[Matching V3.1] ✅ Saved matches successfully`);
+  console.log(`[Matching V3.2] ✅ Saved matches successfully`);
 }
 
 export async function deleteSavedMatches(targetUserId: string): Promise<void> {
   await prisma.savedMatchSearch.delete({
     where: { targetUserId }
   }).catch(() => {});
-  console.log(`[Matching V3.1] Deleted saved matches for user: ${targetUserId}`);
+  console.log(`[Matching V3.2] Deleted saved matches for user: ${targetUserId}`);
 }
 
 // ============================================================================
@@ -737,7 +855,7 @@ async function getTargetUserData(userId: string): Promise<TargetUserData | null>
 
   const age = calculateAge(user.profile.birthDate);
   
-  // 🆕 יצירת פרופיל רקע
+  // יצירת פרופיל רקע
   const backgroundProfile = createBackgroundProfile(
     user.profile.nativeLanguage,
     user.profile.additionalLanguages || [],
@@ -748,7 +866,7 @@ async function getTargetUserData(userId: string): Promise<TargetUserData | null>
     user.profile.matchingNotes
   );
   
-  console.log(`[Matching V3.1] Target background profile:`, {
+  console.log(`[Matching V3.2] Target background profile:`, {
     category: backgroundProfile.category,
     confidence: backgroundProfile.confidence,
     nativeLanguage: backgroundProfile.nativeLanguage,
@@ -780,7 +898,7 @@ async function fetchAllRelevantCandidates(
   const maxBirthDate = new Date(today.getFullYear() - minAge, today.getMonth(), today.getDate());
   const minBirthDate = new Date(today.getFullYear() - maxAge, today.getMonth(), today.getDate());
 
-  console.log(`[Matching V3.1] Fetching ALL relevant candidates for ${targetUser.firstName}:`);
+  console.log(`[Matching V3.2] Fetching ALL relevant candidates for ${targetUser.firstName}:`);
   console.log(`  - Gender: ${oppositeGender}`);
   console.log(`  - Age range: ${minAge}-${maxAge}`);
   console.log(`  - Target background: ${getCategoryDescription(targetUser.backgroundProfile?.category || 'sabra_international')}`);
@@ -788,8 +906,10 @@ async function fetchAllRelevantCandidates(
   const candidates = await prisma.user.findMany({
     where: {
       id: { not: targetUser.id },
-      status: 'ACTIVE',
-      profile: {
+  OR: [
+        { status: 'ACTIVE' },
+        { status: 'PENDING_EMAIL_VERIFICATION', source: 'MANUAL_ENTRY' }
+      ],      profile: {
         gender: oppositeGender as Gender,
         availabilityStatus: AvailabilityStatus.AVAILABLE,
         isProfileVisible: true,
@@ -830,12 +950,20 @@ async function fetchAllRelevantCandidates(
     }
   });
 
-  console.log(`[Matching V3.1] Found ${candidates.length} total candidates`);
+  console.log(`[Matching V3.2] Found ${candidates.length} total candidates`);
 
-  // 🆕 יצירת פרופיל רקע והתאמה לכל מועמד
-  const candidatesWithBackground = candidates.map(c => {
+  // יצירת פרופיל רקע, ציון גיל והתאמה לכל מועמד
+  const candidatesWithData: (CandidateData | null)[] = candidates.map(c => {
     const age = calculateAge(c.profile!.birthDate);
     const aiSummary = c.profile!.aiProfileSummary as AiProfileSummary | null;
+    
+    // 🆕 חישוב ציון התאמת גיל
+    const ageScore = calculateAgeScoreForMatch(targetUser.age, targetUser.gender, age);
+    
+    // 🆕 דילוג על מועמדים עם פער גיל לא רלוונטי
+    if (!ageScore.eligible) {
+      return null;
+    }
     
     // יצירת פרופיל רקע
     const backgroundProfile = createBackgroundProfile(
@@ -873,26 +1001,46 @@ async function fetchAllRelevantCandidates(
       summaryText: summaryText.substring(0, 1500),
       backgroundProfile,
       backgroundMatch,
+      ageScore,  // 🆕
     };
   });
   
-  // 🆕 סטטיסטיקות רקע
+  // 🆕 סינון מועמדים לא רלוונטיים לפי גיל
+  const filteredCandidates = candidatesWithData.filter((c): c is CandidateData => c !== null);
+  
+  console.log(`[Matching V3.2] After age filtering: ${filteredCandidates.length} candidates (filtered ${candidates.length - filteredCandidates.length})`);
+  
+  // סטטיסטיקות רקע
   const bgStats = {
-    excellent: candidatesWithBackground.filter(c => c.backgroundMatch?.compatibility === 'excellent').length,
-    good: candidatesWithBackground.filter(c => c.backgroundMatch?.compatibility === 'good').length,
-    possible: candidatesWithBackground.filter(c => c.backgroundMatch?.compatibility === 'possible').length,
-    problematic: candidatesWithBackground.filter(c => c.backgroundMatch?.compatibility === 'problematic').length,
-    not_recommended: candidatesWithBackground.filter(c => c.backgroundMatch?.compatibility === 'not_recommended').length,
+    excellent: filteredCandidates.filter(c => c.backgroundMatch?.compatibility === 'excellent').length,
+    good: filteredCandidates.filter(c => c.backgroundMatch?.compatibility === 'good').length,
+    possible: filteredCandidates.filter(c => c.backgroundMatch?.compatibility === 'possible').length,
+    problematic: filteredCandidates.filter(c => c.backgroundMatch?.compatibility === 'problematic').length,
+    not_recommended: filteredCandidates.filter(c => c.backgroundMatch?.compatibility === 'not_recommended').length,
   };
   
-  console.log(`[Matching V3.1] Background compatibility distribution:`);
+  // 🆕 סטטיסטיקות גיל
+  const ageStats = {
+    ideal: filteredCandidates.filter(c => c.ageScore && c.ageScore.score === 100).length,
+    good: filteredCandidates.filter(c => c.ageScore && c.ageScore.score >= 70 && c.ageScore.score < 100).length,
+    fair: filteredCandidates.filter(c => c.ageScore && c.ageScore.score >= 40 && c.ageScore.score < 70).length,
+    poor: filteredCandidates.filter(c => c.ageScore && c.ageScore.score < 40).length,
+  };
+  
+  console.log(`[Matching V3.2] Background compatibility distribution:`);
   console.log(`  - Excellent: ${bgStats.excellent}`);
   console.log(`  - Good: ${bgStats.good}`);
   console.log(`  - Possible: ${bgStats.possible}`);
   console.log(`  - Problematic: ${bgStats.problematic}`);
   console.log(`  - Not Recommended: ${bgStats.not_recommended}`);
+  
+  console.log(`[Matching V3.2] Age compatibility distribution:`);
+  console.log(`  - Ideal (100): ${ageStats.ideal}`);
+  console.log(`  - Good (70-99): ${ageStats.good}`);
+  console.log(`  - Fair (40-69): ${ageStats.fair}`);
+  console.log(`  - Poor (<40): ${ageStats.poor}`);
 
-  return candidatesWithBackground;
+  return filteredCandidates;
 }
 
 // ============================================================================
@@ -911,10 +1059,16 @@ function generateFirstPassPrompt(
       ? `רקע: ${getCategoryDescription(c.backgroundProfile.category)} | שפת אם: ${c.backgroundProfile.nativeLanguage || 'לא צוין'} | התאמת רקע: ${c.backgroundMatch?.compatibility || 'unknown'}`
       : '';
     
+    // 🆕 מידע על התאמת גיל
+    const ageInfo = c.ageScore 
+      ? `התאמת גיל: ${c.ageScore.score}/100 (${c.ageScore.description})`
+      : '';
+    
     return `[מועמד/ת ${index + 1}]
 שם: ${c.firstName} ${c.lastName}
 גיל: ${c.age} | רמה דתית: ${c.religiousLevel || 'לא צוין'} | עיר: ${c.city || 'לא צוין'} | עיסוק: ${c.occupation || 'לא צוין'}
 ${bgInfo}
+${ageInfo}
 ${c.summaryText}
 ---`;
   }).join('\n\n');
@@ -935,32 +1089,37 @@ ${candidatesText}
 
 === מערכת הציון (100 נקודות) ===
 
-חלק את הציון ל-6 קטגוריות:
+חלק את הציון ל-7 קטגוריות:
 
-1. התאמה דתית-רוחנית (35 נקודות)
+1. התאמה דתית-רוחנית (30 נקודות)
    - האם ברמה דתית דומה או תואמת?
    - האם הכיוון הרוחני דומה?
    - האם יש גמישות או קפדנות דומה?
 
-2. וייב קריירה-משפחה (15 נקודות)
+2. התאמת גיל (10 נקודות)
+   - השתמש בציון התאמת הגיל שמופיע בפרטי המועמד
+   - ציון 100 = אידיאלי (10 נק'), 80 = טוב (8 נק'), 65 = סביר (6.5 נק'), 45 = בעייתי (4.5 נק'), 25 = בעייתי מאוד (2.5 נק')
+   - פער גיל משמעותי (במיוחד כשהבת גדולה) צריך להוריד ציון
+
+3. וייב קריירה-משפחה (15 נקודות)
    - קריירה לוחצת vs מאוזנת
    - תפיסה דומה לגבי עבודה/משפחה
 
-3. סגנון חיים (15 נקודות)
+4. סגנון חיים (13 נקודות)
    - חוויות עומק vs הנאה קלילה
    - יחס לטבע וטיולים
    - סגנון בילויים וחופשות
 
-4. רמת שאפתנות (12 נקודות)
+5. רמת שאפתנות (11 נקודות)
    - שאפתני vs שלו
    - האם הדינמיקה תעבוד?
 
-5. אנרגיה ותקשורת (12 נקודות)
+6. אנרגיה ותקשורת (11 נקודות)
    - מופנם vs מוחצן
    - רגשי vs שכלי
    - סגנון תקשורת
 
-6. ערכים ועדיפויות (11 נקודות)
+7. ערכים ועדיפויות (10 נקודות)
    - מה חשוב בחיים
    - סדרי עדיפויות תואמים
 
@@ -972,11 +1131,18 @@ ${candidatesText}
 
 עולה חדש + צבר/ית ללא רקע בינלאומי = בעייתי מאוד!
 
+=== הנחיה חשובה לגבי גיל ===
+שים לב לציון התאמת הגיל!
+- ציון 100 = אידיאלי (אותו גיל או בן גדול ב-1-3 שנים)
+- ציון 80 = טוב (בת גדולה בשנה)
+- ציון 65 = פחות טוב (בת גדולה ב-2 שנים)
+- ציון 45 ומטה = בעייתי (בת גדולה ב-3+ שנים)
+
 === הוראות ===
 - דרג כל מועמד/ת מ-0 עד 100
 - פרט את הציון לפי הקטגוריות
 - כתוב נימוק קצר (משפט אחד בלבד)
-- התייחס גם להתאמת הרקע בנימוק אם רלוונטי
+- התייחס גם להתאמת הגיל והרקע בנימוק אם רלוונטי
 
 === פורמט התשובה (JSON בלבד) ===
 {
@@ -985,14 +1151,15 @@ ${candidatesText}
       "index": 1,
       "totalScore": 85,
       "breakdown": {
-        "religious": 30,
+        "religious": 26,
+        "ageCompatibility": 10,
         "careerFamily": 12,
-        "lifestyle": 13,
-        "ambition": 10,
-        "communication": 10,
-        "values": 10
+        "lifestyle": 11,
+        "ambition": 9,
+        "communication": 9,
+        "values": 8
       },
-      "shortReasoning": "התאמה דתית טובה, רקע דומה, שניהם בכיוון קריירה מאוזן"
+      "shortReasoning": "התאמה דתית טובה, גילאים אידיאליים, רקע דומה"
     }
   ]
 }
@@ -1010,12 +1177,18 @@ function generateDeepAnalysisPrompt(
       ? `רקע: ${getCategoryDescription(c.backgroundProfile.category)} | התאמת רקע: ${c.backgroundMatch?.compatibility} (מכפיל: ${c.backgroundMatch?.multiplier.toFixed(2)})`
       : '';
     
+    // 🆕 מידע על התאמת גיל
+    const ageInfo = c.ageScore 
+      ? `התאמת גיל: ${c.ageScore.score}/100 (${c.ageScore.description})`
+      : '';
+    
     return `[מועמד/ת ${index + 1}] - ציון ראשוני: ${c.totalScore} (לפני מכפיל רקע: ${c.rawScore})
 שם: ${c.firstName} ${c.lastName}
 גיל: ${c.age} | רמה דתית: ${c.religiousLevel || 'לא צוין'} | עיר: ${c.city || 'לא צוין'} | עיסוק: ${c.occupation || 'לא צוין'}
 ${bgInfo}
+${ageInfo}
 ${c.summaryText}
-פירוט ציון: דתי=${c.breakdown.religious}/35, קריירה-משפחה=${c.breakdown.careerFamily}/15, סגנון חיים=${c.breakdown.lifestyle}/15, שאפתנות=${c.breakdown.ambition}/12, תקשורת=${c.breakdown.communication}/12, ערכים=${c.breakdown.values}/11
+פירוט ציון: דתי=${c.breakdown.religious}/30, גיל=${c.breakdown.ageCompatibility}/10, קריירה-משפחה=${c.breakdown.careerFamily}/15, סגנון חיים=${c.breakdown.lifestyle}/13, שאפתנות=${c.breakdown.ambition}/11, תקשורת=${c.breakdown.communication}/11, ערכים=${c.breakdown.values}/10
 נימוק ראשוני: ${c.shortReasoning}
 ---`;
   }).join('\n\n');
@@ -1043,6 +1216,7 @@ ${candidatesText}
      * למה ההתאמה טובה (או פחות טובה)
      * מה הפוטנציאל לכימיה
      * התייחסות לרקע ושפה משותפת
+     * התייחסות להתאמת הגיל
      * האם יש אזהרות או נקודות לתשומת לב
 
 4. דרג את כולם מהכי מתאים (rank=1) לפחות מתאים
@@ -1051,6 +1225,7 @@ ${candidatesText}
 - שים דגש על התאמת רקע ושפה
 - אם יש פער רקע משמעותי, ציין זאת בנימוק
 - שפה משותפת היא יתרון משמעותי
+- פער גילאים (במיוחד כשהבת גדולה משמעותית) יכול להוות בעיה בקהילה הדתית
 
 === פורמט התשובה (JSON בלבד) ===
 {
@@ -1060,7 +1235,7 @@ ${candidatesText}
       "userId": "user_id_here",
       "finalScore": 92,
       "rank": 1,
-      "detailedReasoning": "התאמה יוצאת דופן. שניהם עולים מארה"ב עם רקע דומה ושפת אם משותפת (אנגלית). ..."
+      "detailedReasoning": "התאמה יוצאת דופן. שניהם עולים מארה"ב עם רקע דומה ושפת אם משותפת (אנגלית). גילאים אידיאליים - הבן גדול בשנתיים. ..."
     }
   ]
 }
@@ -1107,14 +1282,14 @@ async function runFirstPassAnalysis(
   const allResults: FirstPassResult[] = [];
   
   const totalBatches = Math.ceil(candidates.length / BATCH_SIZE);
-  console.log(`[Matching V3.1] Starting First Pass: ${candidates.length} candidates in ${totalBatches} batches`);
+  console.log(`[Matching V3.2] Starting First Pass: ${candidates.length} candidates in ${totalBatches} batches`);
 
   for (let batchIndex = 0; batchIndex < totalBatches; batchIndex++) {
     const start = batchIndex * BATCH_SIZE;
     const end = Math.min(start + BATCH_SIZE, candidates.length);
     const batchCandidates = candidates.slice(start, end);
     
-    console.log(`[Matching V3.1] Processing batch ${batchIndex + 1}/${totalBatches} (${batchCandidates.length} candidates)`);
+    console.log(`[Matching V3.2] Processing batch ${batchIndex + 1}/${totalBatches} (${batchCandidates.length} candidates)`);
     
     const prompt = generateFirstPassPrompt(
       targetProfile,
@@ -1131,12 +1306,12 @@ async function runFirstPassAnalysis(
       const jsonString = response.text();
       const duration = Date.now() - startTime;
       
-      console.log(`[Matching V3.1] Batch ${batchIndex + 1} completed in ${duration}ms`);
+      console.log(`[Matching V3.2] Batch ${batchIndex + 1} completed in ${duration}ms`);
 
       const parsed = parseJsonResponse<AiFirstPassResponse>(jsonString);
       
       if (!parsed.candidates || !Array.isArray(parsed.candidates)) {
-        console.error(`[Matching V3.1] Invalid response format for batch ${batchIndex + 1}`);
+        console.error(`[Matching V3.2] Invalid response format for batch ${batchIndex + 1}`);
         continue;
       }
 
@@ -1157,6 +1332,7 @@ async function runFirstPassAnalysis(
           backgroundMultiplier,
           breakdown: aiResult.breakdown || {
             religious: 0,
+            ageCompatibility: 0,  // 🆕
             careerFamily: 0,
             lifestyle: 0,
             ambition: 0,
@@ -1168,15 +1344,15 @@ async function runFirstPassAnalysis(
       }
 
     } catch (error) {
-      console.error(`[Matching V3.1] Error in batch ${batchIndex + 1}:`, error);
+      console.error(`[Matching V3.2] Error in batch ${batchIndex + 1}:`, error);
     }
   }
 
   allResults.sort((a, b) => b.totalScore - a.totalScore);
   
-  console.log(`[Matching V3.1] First Pass completed: ${allResults.length} candidates scored`);
+  console.log(`[Matching V3.2] First Pass completed: ${allResults.length} candidates scored`);
   if (allResults.length > 0) {
-    console.log(`[Matching V3.1] Top 5 from First Pass:`);
+    console.log(`[Matching V3.2] Top 5 from First Pass:`);
     allResults.slice(0, 5).forEach((r, i) => {
       console.log(`  ${i + 1}. ${r.firstName} ${r.lastName} - Score: ${r.totalScore} (raw: ${r.rawScore}, multiplier: ${r.backgroundMultiplier.toFixed(2)})`);
     });
@@ -1192,7 +1368,7 @@ async function runDeepAnalysis(
 ): Promise<DeepAnalysisResult[]> {
   const model = await getGeminiModel();
   
-  console.log(`[Matching V3.1] Starting Deep Analysis for ${topCandidates.length} candidates`);
+  console.log(`[Matching V3.2] Starting Deep Analysis for ${topCandidates.length} candidates`);
   
   const prompt = generateDeepAnalysisPrompt(targetProfile, targetBackgroundInfo, topCandidates);
 
@@ -1203,7 +1379,7 @@ async function runDeepAnalysis(
     const jsonString = response.text();
     const duration = Date.now() - startTime;
     
-    console.log(`[Matching V3.1] Deep Analysis completed in ${duration}ms`);
+    console.log(`[Matching V3.2] Deep Analysis completed in ${duration}ms`);
 
     const parsed = parseJsonResponse<AiDeepAnalysisResponse>(jsonString);
     
@@ -1223,7 +1399,7 @@ async function runDeepAnalysis(
 
     results.sort((a, b) => a.rank - b.rank);
 
-    console.log(`[Matching V3.1] Deep Analysis results:`);
+    console.log(`[Matching V3.2] Deep Analysis results:`);
     results.slice(0, 3).forEach(r => {
       const candidate = topCandidates.find(c => c.userId === r.userId);
       console.log(`  Rank ${r.rank}: ${candidate?.firstName} ${candidate?.lastName} - Final Score: ${r.finalScore}`);
@@ -1232,7 +1408,7 @@ async function runDeepAnalysis(
     return results;
 
   } catch (error) {
-    console.error(`[Matching V3.1] Error in Deep Analysis:`, error);
+    console.error(`[Matching V3.2] Error in Deep Analysis:`, error);
     return topCandidates.map((c, index) => ({
       userId: c.userId,
       finalScore: c.totalScore,
@@ -1260,7 +1436,7 @@ ${targetUser.aiProfileSummary.personalitySummary}
 === מה מחפש/ת ===
 ${targetUser.aiProfileSummary.lookingForSummary || 'לא צוין'}`;
   } else {
-    console.log(`[Matching V3.1] No AI summary for target user, generating narrative...`);
+    console.log(`[Matching V3.2] No AI summary for target user, generating narrative...`);
     const narrative = await profileAiService.generateNarrativeProfile(targetUser.id);
     targetProfile = narrative || `${targetUser.firstName}, בן/בת ${targetUser.age}, ${targetUser.religiousLevel || 'לא צוין'}`;
   }
@@ -1329,8 +1505,8 @@ export async function findMatchesForUser(
   } = options;
 
   console.log(`\n========================================`);
-  console.log(`[Matching V3.1] Starting match search for user: ${targetUserId}`);
-  console.log(`[Matching V3.1] Options: forceRefresh=${forceRefresh}, autoSave=${autoSave}`);
+  console.log(`[Matching V3.2] Starting match search for user: ${targetUserId}`);
+  console.log(`[Matching V3.2] Options: forceRefresh=${forceRefresh}, autoSave=${autoSave}`);
   console.log(`========================================\n`);
 
   // בדיקת Cache
@@ -1338,7 +1514,7 @@ export async function findMatchesForUser(
     const savedResults = await loadSavedMatches(targetUserId);
     
     if (savedResults && savedResults.matches.length > 0) {
-      console.log(`[Matching V3.1] ✅ Using cached results (${savedResults.matches.length} matches)`);
+      console.log(`[Matching V3.2] ✅ Using cached results (${savedResults.matches.length} matches)`);
       
       return {
         matches: savedResults.matches,
@@ -1358,16 +1534,16 @@ export async function findMatchesForUser(
   if (!targetUser) {
     throw new Error('Target user not found or has no profile');
   }
-  console.log(`[Matching V3.1] Target user: ${targetUser.firstName} ${targetUser.lastName}, Age: ${targetUser.age}, Gender: ${targetUser.gender}`);
+  console.log(`[Matching V3.2] Target user: ${targetUser.firstName} ${targetUser.lastName}, Age: ${targetUser.age}, Gender: ${targetUser.gender}`);
 
-  // שלב 2: שליפת כל המועמדים הרלוונטיים + ניתוח רקע
+  // שלב 2: שליפת כל המועמדים הרלוונטיים + ניתוח רקע + ציון גיל
   const allCandidates = await fetchAllRelevantCandidates(targetUser);
   if (allCandidates.length === 0) {
-    console.log(`[Matching V3.1] No candidates found after filtering`);
+    console.log(`[Matching V3.2] No candidates found after filtering`);
     return {
       matches: [],
       fromCache: false,
-      meta: { algorithmVersion: 'v3.1', totalCandidatesScanned: 0 }
+      meta: { algorithmVersion: 'v3.2', totalCandidatesScanned: 0 }
     };
   }
 
@@ -1379,11 +1555,11 @@ export async function findMatchesForUser(
   const firstPassResults = await runFirstPassAnalysis(targetProfile, targetBackgroundInfo, allCandidates);
   
   if (firstPassResults.length === 0) {
-    console.log(`[Matching V3.1] No results from First Pass`);
+    console.log(`[Matching V3.2] No results from First Pass`);
     return {
       matches: [],
       fromCache: false,
-      meta: { algorithmVersion: 'v3.1', totalCandidatesScanned: allCandidates.length }
+      meta: { algorithmVersion: 'v3.2', totalCandidatesScanned: allCandidates.length }
     };
   }
 
@@ -1422,6 +1598,7 @@ export async function findMatchesForUser(
       rank: deepResult.rank,
       backgroundMultiplier: firstPassResult.backgroundMultiplier,
       backgroundCompatibility: candidateData.backgroundMatch?.compatibility,
+      ageScore: candidateData.ageScore?.score,  // 🆕
     };
   });
 
@@ -1429,14 +1606,14 @@ export async function findMatchesForUser(
 
   // שלב 8: שמירה
   if (autoSave && finalResults.length > 0) {
-    await saveMatchResults(targetUserId, matchmakerId, finalResults, allCandidates.length, 'v3.1');
+    await saveMatchResults(targetUserId, matchmakerId, finalResults, allCandidates.length, 'v3.2');
   }
 
-  console.log(`\n[Matching V3.1] ✅ Completed! Found ${finalResults.length} matches`);
-  console.log(`[Matching V3.1] Total candidates scanned: ${allCandidates.length}`);
-  console.log(`[Matching V3.1] Final Top 3:`);
+  console.log(`\n[Matching V3.2] ✅ Completed! Found ${finalResults.length} matches`);
+  console.log(`[Matching V3.2] Total candidates scanned: ${allCandidates.length}`);
+  console.log(`[Matching V3.2] Final Top 3:`);
   finalResults.slice(0, 3).forEach((m, i) => {
-    console.log(`  ${i + 1}. ${m.firstName} ${m.lastName} - Final: ${m.finalScore}, BG: ${m.backgroundCompatibility}`);
+    console.log(`  ${i + 1}. ${m.firstName} ${m.lastName} - Final: ${m.finalScore}, Age: ${m.ageScore}, BG: ${m.backgroundCompatibility}`);
   });
   console.log(`========================================\n`);
 
@@ -1444,7 +1621,7 @@ export async function findMatchesForUser(
     matches: finalResults,
     fromCache: false,
     meta: { 
-      algorithmVersion: 'v3.1',
+      algorithmVersion: 'v3.2',
       totalCandidatesScanned: allCandidates.length
     }
   };
@@ -1463,7 +1640,10 @@ export const matchingAlgorithmService = {
   areReligiousLevelsCompatible,
   calculateAge,
   getAgeRange,
-  // 🆕 ייצוא פונקציות רקע לשימוש חיצוני
+  // 🆕 ייצוא פונקציות גיל
+  calculateAgeScore,
+  calculateAgeScoreForMatch,
+  // ייצוא פונקציות רקע לשימוש חיצוני
   createBackgroundProfile,
   calculateBackgroundMatch,
   analyzeTextLanguage,
