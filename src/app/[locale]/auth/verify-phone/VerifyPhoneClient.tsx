@@ -22,7 +22,6 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-// Import ProgressBar
 import ProgressBar from '@/components/auth/ProgressBar';
 import type { VerifyPhoneDict } from '@/types/dictionaries/auth';
 
@@ -286,6 +285,7 @@ const VerifyPhoneClient: React.FC<VerifyPhoneClientProps> = ({
       });
     }, 1000);
   }, []);
+
   useEffect(() => {
     if (session?.user) {
       const user = session.user as any;
@@ -295,6 +295,7 @@ const VerifyPhoneClient: React.FC<VerifyPhoneClientProps> = ({
       }
     }
   }, [session, router, locale]);
+
   useEffect(() => {
     startResendTimer();
     return () => {
@@ -320,6 +321,42 @@ const VerifyPhoneClient: React.FC<VerifyPhoneClientProps> = ({
     [code]
   );
 
+  // --------------------------------------------------------
+  // Handle Paste Event (NEW FUNCTIONALITY)
+  // --------------------------------------------------------
+  const handlePaste = useCallback(
+    (e: React.ClipboardEvent<HTMLInputElement>, index: number) => {
+      e.preventDefault();
+      // קבלת הטקסט מהלוח
+      const pastedData = e.clipboardData.getData('text');
+      // ניקוי תווים שאינם מספרים
+      const pastedNumbers = pastedData.replace(/\D/g, '').split('');
+
+      if (pastedNumbers.length === 0) return;
+
+      const newCode = [...code];
+      let nextIndex = index;
+
+      // מילוי המערך החל מהאינדקס הנוכחי
+      for (let i = 0; i < pastedNumbers.length; i++) {
+        if (nextIndex >= OTP_LENGTH) break;
+        newCode[nextIndex] = pastedNumbers[i];
+        nextIndex++;
+      }
+
+      setCode(newCode);
+      setError(null);
+
+      // העברת הפוקוס לשדה האחרון שמולא או לשדה הבא
+      const focusIndex = Math.min(nextIndex, OTP_LENGTH - 1);
+      if (inputRefs.current[focusIndex]) {
+        inputRefs.current[focusIndex]?.focus();
+      }
+    },
+    [code]
+  );
+  // --------------------------------------------------------
+
   const handleKeyDown = useCallback(
     (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
       if (e.key === 'Backspace' && !code[index] && index > 0) {
@@ -334,14 +371,6 @@ const VerifyPhoneClient: React.FC<VerifyPhoneClientProps> = ({
     },
     [code]
   );
-
-  // Verify Code
-  // 🔴 תיקון לפונקציה handleVerifyCode בקובץ VerifyPhoneClient.tsx
-  // החלף את הפונקציה הקיימת (שורות 339-385) בקוד הבא:
-
-  // Verify Code
-// 🔴 תיקון לפונקציה handleVerifyCode בקובץ VerifyPhoneClient.tsx
-// החלף את הפונקציה הקיימת (שורות 339-385) בקוד הבא:
 
   // Verify Code
   const handleVerifyCode = useCallback(
@@ -380,7 +409,6 @@ const VerifyPhoneClient: React.FC<VerifyPhoneClientProps> = ({
         // 🔴 עדכון ה-session וניווט לפרופיל
         await updateSession();
         router.push(`/${locale}/profile`);
-
       } catch (err: unknown) {
         console.error('[VerifyPhoneClient] Verification error:', err);
         setError(err instanceof Error ? err.message : dict.errors.unexpected);
@@ -460,7 +488,7 @@ const VerifyPhoneClient: React.FC<VerifyPhoneClientProps> = ({
       >
         {/* Header Section */}
         <motion.div variants={itemVariants} className="text-center mb-8">
-          {/* --- Progress Bar Added Here --- */}
+          {/* --- Progress Bar --- */}
           <div className="w-full max-w-xs mx-auto mb-6">
             <ProgressBar
               currentStep={2}
@@ -469,7 +497,7 @@ const VerifyPhoneClient: React.FC<VerifyPhoneClientProps> = ({
               locale={locale}
             />
           </div>
-          {/* ------------------------------- */}
+          {/* ------------------- */}
 
           <motion.div
             className="inline-flex items-center gap-3 bg-white/80 backdrop-blur-sm rounded-full px-6 py-3 shadow-lg border border-white/60 mb-6"
@@ -608,6 +636,9 @@ const VerifyPhoneClient: React.FC<VerifyPhoneClientProps> = ({
                       value={digit}
                       onChange={(e) => handleInputChange(index, e.target.value)}
                       onKeyDown={(e) => handleKeyDown(index, e)}
+                      // ▼▼▼ Paste Handler Connected Here ▼▼▼
+                      onPaste={(e) => handlePaste(e, index)}
+                      // ▲▲▲
                       onFocus={() => setFocusedIndex(index)}
                       onBlur={() => setFocusedIndex(null)}
                       disabled={disableForm}

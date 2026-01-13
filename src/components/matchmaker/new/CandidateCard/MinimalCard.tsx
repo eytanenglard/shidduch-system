@@ -27,14 +27,13 @@ import {
   Mail,
   Ruler,
   Scroll,
-  ChevronDown,
-  ChevronUp,
   Globe,
   AlertTriangle,
   CheckCircle,
   Info,
   Brain,
   MessageSquare,
+  X,
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -44,7 +43,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import type { Candidate } from '../types/candidates';
 import { UserSource } from '@prisma/client';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn, getRelativeCloudinaryPath } from '@/lib/utils';
 import {
@@ -53,6 +52,12 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import type { MatchmakerPageDictionary } from '@/types/dictionaries/matchmaker';
 import { RELIGIOUS_LEVELS } from '../constants/filterOptions';
 
@@ -101,6 +106,7 @@ interface MinimalCandidateCardProps {
   isSelectableForComparison?: boolean;
   isSelectedForComparison?: boolean;
   onToggleComparison?: (candidate: Candidate, e: React.MouseEvent) => void;
+  aiTargetName?: string; // שם האדם שמבוצעת עבורו ההתאמה
   dict: MatchmakerPageDictionary['candidatesManager']['list']['minimalCard'] & {
     heightUnit?: string;
   };
@@ -178,6 +184,7 @@ const MinimalCandidateCard: React.FC<MinimalCandidateCardProps> = ({
   isSelectableForComparison = false,
   isSelectedForComparison = false,
   onToggleComparison,
+  aiTargetName,
   dict,
 }) => {
   const mainImage = candidate.images.find((img) => img.isMain);
@@ -508,212 +515,182 @@ const MinimalCandidateCard: React.FC<MinimalCandidateCardProps> = ({
               </div>
             )}
 
-            {/* 🆕 סקשן נימוק AI משופר - תומך בשני סוגי החיפוש */}
-            {hasAiData && candidate.aiReasoning && (
-              <div
-                className="mt-3 pt-3 border-t border-gray-100"
-                onMouseEnter={(e) => e.stopPropagation()}
+            {/* Modal נימוק AI */}
+            <Dialog open={showReasoning} onOpenChange={setShowReasoning}>
+              <DialogContent
+                className="max-w-md mx-auto"
                 onClick={(e) => e.stopPropagation()}
+                onPointerDownOutside={(e) => e.preventDefault()}
+                onInteractOutside={(e) => e.preventDefault()}
               >
-                <button
+                {/* כפתור סגירה */}
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="absolute left-4 top-4 h-8 w-8 rounded-full hover:bg-gray-100"
                   onClick={(e) => {
                     e.stopPropagation();
-                    setShowReasoning(!showReasoning);
+                    setShowReasoning(false);
                   }}
-                  className={cn(
-                    'flex items-center gap-1.5 text-xs transition-colors w-full justify-end',
-                    isVectorResult
-                      ? 'text-blue-600 hover:text-blue-800'
-                      : 'text-purple-600 hover:text-purple-800'
-                  )}
                 >
-                  {showReasoning ? (
-                    <>
-                      <span>הסתר נימוק</span>
-                      <ChevronUp className="w-3.5 h-3.5" />
-                    </>
-                  ) : (
-                    <>
-                      <span>
-                        {isVectorResult ? 'הצג נימוק דמיון' : 'הצג נימוק AI'}
+                  <X className="h-4 w-4" />
+                </Button>
+
+                <DialogHeader>
+                  <DialogTitle className="flex items-center gap-2 text-right pr-2">
+                    {isVectorResult ? (
+                      <>
+                        <Zap className="w-5 h-5 text-blue-500" />
+                        <span>ניתוח דמיון פרופילים</span>
+                      </>
+                    ) : (
+                      <>
+                        <Brain className="w-5 h-5 text-purple-500" />
+                        <span>ניתוח AI מתקדם</span>
+                      </>
+                    )}
+                  </DialogTitle>
+                  {/* שם האדם שבוחנים התאמה עבורו */}
+                  {aiTargetName && (
+                    <p className="text-sm text-gray-500 text-right mt-1">
+                      התאמה עבור:{' '}
+                      <span className="font-medium text-gray-700">
+                        {aiTargetName}
                       </span>
-                      <ChevronDown className="w-3.5 h-3.5" />
-                    </>
+                    </p>
                   )}
-                </button>
+                </DialogHeader>
 
-                <AnimatePresence>
-                  {showReasoning && (
-                    <motion.div
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: 'auto', opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: 0.2 }}
-                      className="overflow-hidden"
-                                            onMouseEnter={(e) => e.stopPropagation()}
-
+                <div className="space-y-4">
+                  {/* שם המועמד וציון */}
+                  <div
+                    className={cn(
+                      'flex items-center justify-between p-3 rounded-lg',
+                      isVectorResult ? 'bg-blue-50' : 'bg-purple-50'
+                    )}
+                  >
+                    <Badge
+                      className={cn(
+                        'text-white border-0',
+                        isVectorResult
+                          ? 'bg-gradient-to-r from-blue-500 to-cyan-500'
+                          : 'bg-gradient-to-r from-purple-500 to-indigo-500'
+                      )}
                     >
-                      <div
-                        className={cn(
-                          'mt-2 p-3 rounded-xl border',
-                          isVectorResult
-                            ? 'bg-gradient-to-r from-blue-50 to-cyan-50 border-blue-100'
-                            : 'bg-gradient-to-r from-purple-50 to-indigo-50 border-purple-100'
-                        )}
-                      >
-                        {/* 🆕 אייקון וכותרת לפי סוג החיפוש */}
-                        <div className="flex items-center gap-2 mb-2">
-                          {isVectorResult ? (
-                            <>
-                              <Zap className="w-4 h-4 text-blue-500" />
-                              <span className="text-xs font-medium text-blue-700">
-                                ניתוח דמיון פרופילים
-                              </span>
-                            </>
-                          ) : (
-                            <>
-                              <Brain className="w-4 h-4 text-purple-500" />
-                              <span className="text-xs font-medium text-purple-700">
-                                ניתוח AI מתקדם
-                              </span>
-                            </>
-                          )}
+                      {effectiveAiScore} נקודות
+                    </Badge>
+                    <span className="font-medium text-gray-800">
+                      {candidate.firstName} {candidate.lastName}
+                    </span>
+                  </div>
+
+                  {/* הנימוק */}
+                  <div className="flex items-start gap-3">
+                    <MessageSquare
+                      className={cn(
+                        'w-5 h-5 mt-0.5 flex-shrink-0',
+                        isVectorResult ? 'text-blue-400' : 'text-purple-400'
+                      )}
+                    />
+                    <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-line text-right">
+                      {candidate.aiReasoning}
+                    </p>
+                  </div>
+
+                  {/* פירוט ציונים - רק עבור Algorithmic */}
+                  {!isVectorResult && candidate.aiScoreBreakdown && (
+                    <div className="pt-3 border-t border-gray-200">
+                      <p className="text-sm font-medium text-gray-600 mb-3 text-right">
+                        פירוט ציון:
+                      </p>
+                      <div className="grid grid-cols-2 gap-3 text-sm">
+                        <div className="flex justify-between items-center p-2 bg-gray-50 rounded">
+                          <span className="text-purple-600 font-medium">
+                            {candidate.aiScoreBreakdown.religious}/35
+                          </span>
+                          <span className="text-gray-600">דתי</span>
                         </div>
-
-                        {/* 🆕 הערת ה-AI */}
-                        <div className="flex items-start gap-2">
-                          <MessageSquare
-                            className={cn(
-                              'w-4 h-4 mt-0.5 flex-shrink-0',
-                              isVectorResult
-                                ? 'text-blue-400'
-                                : 'text-purple-400'
-                            )}
-                          />
-                          <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-line text-right">
-                            {candidate.aiReasoning}
-                          </p>
+                        <div className="flex justify-between items-center p-2 bg-gray-50 rounded">
+                          <span className="text-purple-600 font-medium">
+                            {candidate.aiScoreBreakdown.careerFamily}/15
+                          </span>
+                          <span className="text-gray-600">קריירה-משפחה</span>
                         </div>
-
-                        {/* פירוט ציונים - רק עבור Algorithmic */}
-                        {!isVectorResult && candidate.aiScoreBreakdown && (
-                          <div
-                            className={cn(
-                              'mt-3 pt-2 border-t',
-                              isVectorResult
-                                ? 'border-blue-100'
-                                : 'border-purple-100'
-                            )}
-                          >
-                            <p className="text-xs text-gray-500 mb-2 text-right">
-                              פירוט ציון:
-                            </p>
-                            <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-right">
-                              <div className="flex justify-between">
-                                <span className="text-purple-600 font-medium">
-                                  {candidate.aiScoreBreakdown.religious}/35
-                                </span>
-                                <span className="text-gray-600">דתי</span>
-                              </div>
-                              <div className="flex justify-between">
-                                <span className="text-purple-600 font-medium">
-                                  {candidate.aiScoreBreakdown.careerFamily}/15
-                                </span>
-                                <span className="text-gray-600">
-                                  קריירה-משפחה
-                                </span>
-                              </div>
-                              <div className="flex justify-between">
-                                <span className="text-purple-600 font-medium">
-                                  {candidate.aiScoreBreakdown.lifestyle}/15
-                                </span>
-                                <span className="text-gray-600">
-                                  סגנון חיים
-                                </span>
-                              </div>
-                              <div className="flex justify-between">
-                                <span className="text-purple-600 font-medium">
-                                  {candidate.aiScoreBreakdown.ambition}/12
-                                </span>
-                                <span className="text-gray-600">שאפתנות</span>
-                              </div>
-                              <div className="flex justify-between">
-                                <span className="text-purple-600 font-medium">
-                                  {candidate.aiScoreBreakdown.communication}/12
-                                </span>
-                                <span className="text-gray-600">תקשורת</span>
-                              </div>
-                              <div className="flex justify-between">
-                                <span className="text-purple-600 font-medium">
-                                  {candidate.aiScoreBreakdown.values}/11
-                                </span>
-                                <span className="text-gray-600">ערכים</span>
-                              </div>
-                            </div>
-                          </div>
-                        )}
-
-                        {/* 🆕 מידע דמיון - רק עבור Vector */}
-                        {isVectorResult && candidate.aiSimilarity && (
-                          <div className="mt-3 pt-2 border-t border-blue-100">
-                            <div className="flex items-center justify-between text-xs">
-                              <span className="text-blue-600 font-bold">
-                                {(candidate.aiSimilarity * 100).toFixed(1)}%
-                              </span>
-                              <span className="text-gray-500">
-                                ציון דמיון סמנטי
-                              </span>
-                            </div>
-                            <div className="mt-1 h-2 bg-blue-100 rounded-full overflow-hidden">
-                              <motion.div
-                                initial={{ width: 0 }}
-                                animate={{
-                                  width: `${candidate.aiSimilarity * 100}%`,
-                                }}
-                                transition={{ duration: 0.5 }}
-                                className="h-full bg-gradient-to-r from-blue-400 to-cyan-500 rounded-full"
-                              />
-                            </div>
-                          </div>
-                        )}
-
-                        {/* מכפיל רקע */}
-                        {candidate.aiBackgroundMultiplier &&
-                          candidate.aiBackgroundMultiplier !== 1 && (
-                            <div
-                              className={cn(
-                                'mt-2 pt-2 border-t flex items-center justify-end gap-2 text-xs',
-                                isVectorResult
-                                  ? 'border-blue-100'
-                                  : 'border-purple-100'
-                              )}
-                            >
-                              <span
-                                className={cn(
-                                  'font-medium',
-                                  candidate.aiBackgroundMultiplier > 1
-                                    ? 'text-green-600'
-                                    : 'text-orange-600'
-                                )}
-                              >
-                                {candidate.aiBackgroundMultiplier > 1
-                                  ? '+'
-                                  : ''}
-                                {Math.round(
-                                  (candidate.aiBackgroundMultiplier - 1) * 100
-                                )}
-                                %
-                              </span>
-                              <span className="text-gray-500">מכפיל רקע:</span>
-                              <Globe className="w-3 h-3 text-gray-400" />
-                            </div>
-                          )}
+                        <div className="flex justify-between items-center p-2 bg-gray-50 rounded">
+                          <span className="text-purple-600 font-medium">
+                            {candidate.aiScoreBreakdown.lifestyle}/15
+                          </span>
+                          <span className="text-gray-600">סגנון חיים</span>
+                        </div>
+                        <div className="flex justify-between items-center p-2 bg-gray-50 rounded">
+                          <span className="text-purple-600 font-medium">
+                            {candidate.aiScoreBreakdown.ambition}/12
+                          </span>
+                          <span className="text-gray-600">שאפתנות</span>
+                        </div>
+                        <div className="flex justify-between items-center p-2 bg-gray-50 rounded">
+                          <span className="text-purple-600 font-medium">
+                            {candidate.aiScoreBreakdown.communication}/12
+                          </span>
+                          <span className="text-gray-600">תקשורת</span>
+                        </div>
+                        <div className="flex justify-between items-center p-2 bg-gray-50 rounded">
+                          <span className="text-purple-600 font-medium">
+                            {candidate.aiScoreBreakdown.values}/11
+                          </span>
+                          <span className="text-gray-600">ערכים</span>
+                        </div>
                       </div>
-                    </motion.div>
+                    </div>
                   )}
-                </AnimatePresence>
-              </div>
-            )}
+
+                  {/* מידע דמיון - רק עבור Vector */}
+                  {isVectorResult && candidate.aiSimilarity && (
+                    <div className="pt-3 border-t border-gray-200">
+                      <div className="flex items-center justify-between text-sm mb-2">
+                        <span className="text-blue-600 font-bold text-lg">
+                          {(candidate.aiSimilarity * 100).toFixed(1)}%
+                        </span>
+                        <span className="text-gray-500">ציון דמיון סמנטי</span>
+                      </div>
+                      <div className="h-3 bg-blue-100 rounded-full overflow-hidden">
+                        <motion.div
+                          initial={{ width: 0 }}
+                          animate={{
+                            width: `${candidate.aiSimilarity * 100}%`,
+                          }}
+                          transition={{ duration: 0.5 }}
+                          className="h-full bg-gradient-to-r from-blue-400 to-cyan-500 rounded-full"
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {/* מכפיל רקע */}
+                  {candidate.aiBackgroundMultiplier &&
+                    candidate.aiBackgroundMultiplier !== 1 && (
+                      <div className="flex items-center justify-end gap-2 pt-3 border-t border-gray-200">
+                        <span
+                          className={cn(
+                            'font-medium',
+                            candidate.aiBackgroundMultiplier > 1
+                              ? 'text-green-600'
+                              : 'text-orange-600'
+                          )}
+                        >
+                          {candidate.aiBackgroundMultiplier > 1 ? '+' : ''}
+                          {Math.round(
+                            (candidate.aiBackgroundMultiplier - 1) * 100
+                          )}
+                          %
+                        </span>
+                        <span className="text-gray-500">מכפיל רקע:</span>
+                        <Globe className="w-4 h-4 text-gray-400" />
+                      </div>
+                    )}
+                </div>
+              </DialogContent>
+            </Dialog>
 
             {candidate.profile.lastActive && !hasAiData && (
               <div className="flex items-center justify-end gap-2 mt-3 pt-3 border-t border-gray-100">
@@ -726,7 +703,52 @@ const MinimalCandidateCard: React.FC<MinimalCandidateCardProps> = ({
           </div>
         </div>
 
-        <div className="absolute bottom-3 left-3 z-20 flex items-center gap-2 opacity-100 lg:opacity-0 group-hover:opacity-100 transition-all duration-300 transform lg:translate-y-2 group-hover:translate-y-0">
+        {/* כפתור הצג נימוק AI - שורה נפרדת מעל שאר הכפתורים */}
+        {hasAiData && candidate.aiReasoning && (
+          <div className="absolute bottom-14 left-3 z-20 transition-all duration-300 opacity-100">
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      'h-9 px-3 backdrop-blur-sm shadow-xl border-0 hover:scale-105 transition-all duration-300 flex items-center gap-2',
+                      isVectorResult
+                        ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white hover:from-blue-600 hover:to-cyan-600'
+                        : 'bg-gradient-to-r from-purple-500 to-indigo-500 text-white hover:from-purple-600 hover:to-indigo-600'
+                    )}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowReasoning(true);
+                    }}
+                  >
+                    {isVectorResult ? (
+                      <Zap className="h-4 w-4" />
+                    ) : (
+                      <Brain className="h-4 w-4" />
+                    )}
+                    <span className="text-xs font-medium">
+                      {isVectorResult ? 'נימוק דמיון' : 'נימוק AI'}
+                    </span>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{isVectorResult ? 'הצג נימוק דמיון' : 'הצג נימוק AI'}</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
+        )}
+
+        <div
+          className={cn(
+            'absolute bottom-3 left-3 z-20 flex items-center gap-2 transition-all duration-300',
+            // כשיש AI data, הכפתורים תמיד גלויים. אחרת - רק בהובר
+            hasAiData
+              ? 'opacity-100'
+              : 'opacity-100 lg:opacity-0 group-hover:opacity-100 transform lg:translate-y-2 group-hover:translate-y-0'
+          )}
+        >
           {/* כפתור אימייל */}
           {candidate.email &&
             !candidate.email.endsWith('@shidduch.placeholder.com') && (
@@ -874,7 +896,7 @@ const MinimalCandidateCard: React.FC<MinimalCandidateCardProps> = ({
 
         {isSelectableForComparison && onToggleComparison && (
           <div
-            className="absolute bottom-3 right-3 z-20 opacity-100 lg:opacity-0 group-hover:opacity-100 transition-all duration-300 transform lg:translate-y-2 group-hover:translate-y-0"
+            className="absolute top-14 right-3 z-30 opacity-100 lg:opacity-0 group-hover:opacity-100 transition-all duration-300 transform lg:-translate-y-2 group-hover:translate-y-0"
             onClick={(e) => {
               e.stopPropagation();
               onToggleComparison(candidate, e);

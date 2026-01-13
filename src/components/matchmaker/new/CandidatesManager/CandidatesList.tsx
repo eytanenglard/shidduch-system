@@ -460,6 +460,11 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
                 e.stopPropagation();
                 handleAction('analyze', c);
               }}
+              aiTargetName={
+                aiTargetCandidate
+                  ? `${aiTargetCandidate.firstName} ${aiTargetCandidate.lastName}`
+                  : undefined
+              }
               onSendProfileFeedback={(c, e) => {
                 e.stopPropagation();
                 handleAction('sendFeedback', c);
