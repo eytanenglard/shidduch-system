@@ -44,28 +44,26 @@ export async function GET(
     const params = await props.params;
     const { id } = params;
 
-   // חפש את השורה סביב 63-64 ושנה את select ה-profile
-const candidateData = await prisma.user.findUnique({
-  where: { id },
-  select: {
-    id: true,
-    firstName: true,
-    lastName: true,
-    email: true,
-    phone: true,
-    isVerified: true,
-    role: true,
-    // שינוי כאן: מ-profile: true למבנה include
-    profile: {
-      include: {
-        testimonials: true // שליפת כל ההמלצות עבור המועמד
+    const candidateData = await prisma.user.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+        phone: true,
+        isVerified: true,
+        role: true,
+        profile: {
+          include: {
+            testimonials: true
+          }
+        },
+        images: {
+          orderBy: [{ isMain: 'desc' }, { createdAt: 'desc' }]
+        }
       }
-    },
-    images: {
-      orderBy: [{ isMain: 'desc' }, { createdAt: 'desc' }]
-    }
-  }
-});
+    });
 
     if (!candidateData) {
       return NextResponse.json(
@@ -98,8 +96,8 @@ const candidateData = await prisma.user.findUnique({
 }
 
 /**
- * PATCH: עדכון פרטי פרופיל של מועמד.
- * נגיש לשדכנים ומנהלים. מעבד רק את השדות שנשלחו בבקשה.
+ * PATCH: עדכון פרטי פרופיל של מועמד (כולל שמות פרטי/משפחה).
+ * נגיש לשדכנים ומנהלים.
  */
 export async function PATCH(
   req: NextRequest,
@@ -135,7 +133,7 @@ export async function PATCH(
 
     const candidateToUpdate = await prisma.user.findUnique({
       where: { id: candidateIdToUpdate },
-      select: { id: true, role: true, email: true, firstName: true }
+      select: { id: true, role: true, email: true, firstName: true, lastName: true }
     });
 
     if (!candidateToUpdate) {
@@ -154,6 +152,21 @@ export async function PATCH(
 
     const incomingData = await req.json();
 
+    // --- חילוץ שדות User (שם פרטי/משפחה) מתוך שאר שדות הפרופיל ---
+    const { firstName, lastName, ...profileDataRaw } = incomingData;
+
+    // עדכון טבלת User אם נשלחו שמות
+    if (firstName || lastName) {
+      await prisma.user.update({
+        where: { id: candidateIdToUpdate },
+        data: {
+          firstName: firstName || undefined,
+          lastName: lastName || undefined,
+        },
+      });
+    }
+
+    // הכנת נתונים לעדכון טבלת Profile
     const originalProfile = await prisma.profile.findUnique({
         where: { userId: candidateIdToUpdate },
         select: { manualEntryText: true }
@@ -167,9 +180,10 @@ export async function PATCH(
     const arrayFields = ['additionalLanguages', 'profileCharacterTraits', 'profileHobbies', 'preferredReligiousLevels', 'preferredLocations', 'preferredEducation', 'preferredOccupations', 'preferredMaritalStatuses', 'preferredOrigins', 'preferredServiceTypes', 'preferredHeadCoverings', 'preferredKippahTypes', 'preferredCharacterTraits', 'preferredHobbies', 'preferredReligiousJourneys'];
     const dateFields = ['birthDate'];
 
-    for (const key in incomingData) {
-      if (Object.prototype.hasOwnProperty.call(incomingData, key)) {
-        const value = incomingData[key];
+    // משתמשים ב-profileDataRaw כדי לא לכלול את firstName/lastName בלולאה זו
+    for (const key in profileDataRaw) {
+      if (Object.prototype.hasOwnProperty.call(profileDataRaw, key)) {
+        const value = profileDataRaw[key];
 
         if (numericFields.includes(key)) {
             if (value === "" || value === undefined || value === null) {
@@ -207,8 +221,11 @@ export async function PATCH(
       }
     }
     
+let updatedProfile: any = null;
+
+    // ביצוע עדכון פרופיל במידה ויש שדות רלוונטיים
     if (Object.keys(dataForUpdate).length > 0) {
-        const updatedProfile = await prisma.profile.update({
+        updatedProfile = await prisma.profile.update({
           where: { userId: candidateIdToUpdate },
           data: {
             ...dataForUpdate,
@@ -238,15 +255,22 @@ export async function PATCH(
         updateUserAiProfile(candidateIdToUpdate).catch(err => {
             console.error(`[AI Profile Trigger - Matchmaker Update] Failed to update AI profile in the background for candidate ${candidateIdToUpdate}:`, err);
         });
-
-        return NextResponse.json({
-          success: true,
-          profile: updatedProfile
-        });
     }
 
-    const currentProfile = await prisma.profile.findUnique({ where: { userId: candidateIdToUpdate } });
-    return NextResponse.json({ success: true, profile: currentProfile, message: "No data provided for update." });
+    // אם לא עודכן פרופיל אבל הפעולה הצליחה (למשל רק עדכון שם), נחזיר את הפרופיל הקיים
+    if (!updatedProfile) {
+        updatedProfile = await prisma.profile.findUnique({ where: { userId: candidateIdToUpdate } });
+    }
+
+    return NextResponse.json({
+        success: true,
+        profile: updatedProfile,
+        // מחזירים גם את פרטי ה-User המעודכנים למקרה שהפרונטנד צריך
+        user: {
+            firstName: firstName || candidateToUpdate.firstName,
+            lastName: lastName || candidateToUpdate.lastName
+        }
+    });
 
   } catch (error) {
     console.error("Error updating candidate profile:", error);

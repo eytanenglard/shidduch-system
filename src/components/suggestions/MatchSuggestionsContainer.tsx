@@ -4,9 +4,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { useParams } from 'next/navigation';
-
 import {
   History,
   AlertCircle,
@@ -14,11 +12,8 @@ import {
   Bell,
   CheckCircle,
   Target,
-  Sparkles,
-  Heart,
   Zap,
   XCircle,
-  Loader2,
 } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -47,256 +42,28 @@ import type {
 } from '@/types/dictionary';
 
 // =============================================================================
-// COLOR PALETTE REFERENCE (Matching HeroSection.tsx)
-// =============================================================================
-// Primary Colors:
-//   - Teal/Emerald: from-teal-400 via-teal-500 to-emerald-500 (Knowledge/New)
-//   - Orange/Amber: from-orange-400 via-amber-500 to-yellow-500 (Action/Warmth)
-//   - Rose/Pink:    from-rose-400 via-pink-500 to-red-500 (Love/Connection)
-//
-// Background Gradients:
-//   - Page: from-slate-50 via-teal-50/20 to-orange-50/20
-//   - Cards: from-teal-50 via-white to-emerald-50 (Teal variant)
-//           from-orange-50 via-white to-amber-50 (Orange variant)
-//           from-rose-50 via-white to-red-50 (Rose variant)
-//
-// Text Gradients:
-//   - from-teal-600 via-orange-600 to-amber-600
-//   - from-teal-600 to-orange-600
-//
-// Accent Lines:
-//   - from-teal-400 via-orange-400 to-rose-400
+// HELPER COMPONENTS
 // =============================================================================
 
-// --- Skeleton Loading (Hero Teal/Orange Palette) ---
-const LoadingSkeleton: React.FC<{
-  dict: SuggestionsDictionary['container']['loading'];
-}> = ({ dict }) => (
-  <div className="min-h-screen bg-gradient-to-br from-slate-50 via-teal-50/20 to-orange-50/20">
-    <div className="container mx-auto px-4 py-8">
-      {/* Hero Skeleton */}
-      <div className="mb-8">
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center gap-3 mb-4">
-            <div className="p-3 rounded-full bg-gradient-to-r from-teal-100 to-orange-100 animate-pulse">
-              <div className="w-8 h-8 bg-gray-300 rounded-full animate-pulse"></div>
-            </div>
-          </div>
-          <div className="space-y-4">
-            <div className="h-12 bg-gradient-to-r from-gray-200 to-gray-300 rounded-2xl mx-auto w-80 animate-pulse"></div>
-            <div className="h-6 bg-gray-200 rounded-xl mx-auto w-96 animate-pulse"></div>
-          </div>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {Array.from({ length: 3 }).map((_, index) => (
-            <div
-              key={index}
-              className="border-0 shadow-lg overflow-hidden bg-white rounded-2xl animate-pulse"
-            >
-              <div className="p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="p-3 rounded-xl bg-gray-200 w-12 h-12"></div>
-                  <div className="text-right">
-                    <div className="w-16 h-8 bg-gray-200 rounded-lg mb-2"></div>
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <div className="h-6 bg-gray-200 rounded-lg w-3/4"></div>
-                  <div className="h-4 bg-gray-200 rounded-lg w-1/2"></div>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
+// --- Minimal Skeleton Loading ---
+const LoadingSkeleton: React.FC = () => (
+  <div className="min-h-screen bg-gradient-to-br from-slate-50 via-teal-50/20 to-orange-50/20 p-4 md:p-8">
+    <div className="container mx-auto max-w-6xl space-y-6">
+      <div className="flex justify-between items-center mb-8">
+        <div className="h-8 bg-gray-200 rounded-lg w-48 animate-pulse"></div>
+        <div className="h-8 bg-gray-200 rounded-full w-8 animate-pulse"></div>
       </div>
-
-      {/* Main Card Skeleton */}
-      <div className="shadow-2xl border-0 bg-white/95 backdrop-blur-sm overflow-hidden rounded-3xl">
-        <div className="px-8 py-6 bg-gradient-to-r from-teal-50/80 via-white to-orange-50/30 border-b border-gray-100">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gray-200 rounded-full animate-pulse"></div>
-            </div>
-            <div className="h-6 bg-gray-200 rounded-lg w-32 animate-pulse"></div>
-            <div className="w-16 h-4"></div>
-          </div>
-        </div>
-
-        <div className="p-6">
-          <div className="flex justify-center mb-6">
-            <div className="grid grid-cols-3 bg-teal-50/50 rounded-2xl p-1 h-14 w-fit gap-2">
-              {Array.from({ length: 3 }).map((_, index) => (
-                <div
-                  key={index}
-                  className="px-6 py-3 rounded-xl bg-gray-200 animate-pulse w-24 h-10"
-                ></div>
-              ))}
-            </div>
-          </div>
-
-          <div className="flex flex-col items-center justify-center min-h-[400px] text-center space-y-6">
-            <div className="relative">
-              <div className="w-24 h-24 rounded-full bg-gradient-to-br from-teal-100 via-orange-100 to-rose-100 animate-pulse border-4 border-white shadow-xl"></div>
-              <div className="absolute inset-0 flex items-center justify-center">
-                <Loader2 className="w-12 h-12 text-teal-600 animate-spin" />
-              </div>
-              <div className="absolute inset-0 rounded-full bg-gradient-to-r from-teal-400 via-orange-400 to-rose-400 opacity-20 animate-ping"></div>
-            </div>
-
-            <div className="space-y-3">
-              <h3 className="text-2xl font-bold bg-gradient-to-r from-teal-600 via-orange-600 to-rose-600 bg-clip-text text-transparent">
-                {dict.title}
-              </h3>
-              <p className="text-gray-600 max-w-md leading-relaxed">
-                {dict.subtitle}
-              </p>
-            </div>
-
-            <div className="flex items-center gap-2">
-              {Array.from({ length: 3 }).map((_, index) => (
-                <div
-                  key={index}
-                  className="w-3 h-3 rounded-full bg-gradient-to-r from-teal-500 to-orange-500 animate-bounce"
-                  style={{ animationDelay: `${index * 0.2}s` }}
-                ></div>
-              ))}
-            </div>
-          </div>
-        </div>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {Array.from({ length: 3 }).map((_, index) => (
+          <div
+            key={index}
+            className="h-[400px] border-0 shadow-lg bg-white rounded-2xl animate-pulse"
+          ></div>
+        ))}
       </div>
     </div>
   </div>
 );
-
-// --- Stats Component (Hero Teal/Orange Palette) ---
-const WelcomeStats: React.FC<{
-  activeSuggestions: ExtendedMatchSuggestion[];
-  historySuggestions: ExtendedMatchSuggestion[];
-  userId: string;
-  dict: SuggestionsDictionary['container']['stats'];
-}> = ({ activeSuggestions, historySuggestions, userId, dict }) => {
-  const approvedCount = [...activeSuggestions, ...historySuggestions].filter(
-    (s) =>
-      s.status === 'FIRST_PARTY_APPROVED' ||
-      s.status === 'SECOND_PARTY_APPROVED'
-  ).length;
-
-  const myTurnCount = activeSuggestions.filter((s) => {
-    const isFirstParty = s.firstPartyId === userId;
-    return (
-      (s.status === 'PENDING_FIRST_PARTY' && isFirstParty) ||
-      (s.status === 'PENDING_SECOND_PARTY' && !isFirstParty)
-    );
-  }).length;
-
-  const stats = [
-    {
-      label: dict.new,
-      value: activeSuggestions.length,
-      icon: <Sparkles className="w-5 h-5" />,
-      // Teal/Emerald -> New/Fresh (Knowledge)
-      gradient: 'from-teal-400 via-teal-500 to-emerald-500',
-      shadowColor: 'shadow-teal-500/25',
-      glowColor: 'shadow-teal-400/30',
-      bgGradient: 'from-teal-50 via-white to-emerald-50',
-      description: dict.newDesc,
-    },
-    {
-      label: dict.yourTurn,
-      value: myTurnCount,
-      icon: <Zap className="w-5 h-5" />,
-      // Orange/Amber -> Action/Warmth (Focus)
-      gradient: 'from-orange-400 via-amber-500 to-yellow-500',
-      shadowColor: 'shadow-orange-500/25',
-      glowColor: 'shadow-orange-400/30',
-      bgGradient: 'from-orange-50 via-white to-amber-50',
-      description: dict.yourTurnDesc,
-      pulse: myTurnCount > 0,
-    },
-    {
-      label: dict.approved,
-      value: approvedCount,
-      icon: <Heart className="w-5 h-5" />,
-      // Rose/Pink -> Love/Connection (Personal)
-      gradient: 'from-rose-400 via-pink-500 to-red-500',
-      shadowColor: 'shadow-rose-500/25',
-      glowColor: 'shadow-rose-400/30',
-      bgGradient: 'from-rose-50 via-white to-red-50',
-      description: dict.approvedDesc,
-    },
-  ];
-
-  return (
-    <div className="mb-8">
-      {/* Header with Hero gradient text */}
-      <div className="text-center mb-8">
-        <div className="inline-flex items-center gap-3 mb-4">
-          <div className="p-3 rounded-full bg-gradient-to-r from-teal-100 to-orange-100">
-            <Target className="w-8 h-8 text-teal-600" />
-          </div>
-        </div>
-        <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-teal-600 via-orange-600 to-amber-600 bg-clip-text text-transparent mb-3">
-          {dict.title}
-        </h1>
-        <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-          {dict.subtitle}
-        </p>
-        {/* Decorative divider matching Hero */}
-        <div className="relative mt-4">
-          <div className="w-16 h-0.5 bg-gradient-to-r from-teal-400 via-orange-400 to-rose-400 rounded-full mx-auto" />
-          <div className="absolute -top-1 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-white rounded-full border-2 border-orange-400" />
-        </div>
-      </div>
-
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {stats.map((stat, index) => (
-          <Card
-            key={index}
-            className={cn(
-              'border-0 shadow-lg overflow-hidden bg-gradient-to-br hover:shadow-xl transition-all duration-300 group',
-              stat.bgGradient,
-              stat.shadowColor
-            )}
-          >
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <div
-                  className={cn(
-                    'p-3 rounded-xl bg-gradient-to-br text-white shadow-lg group-hover:scale-110 group-hover:rotate-6 transition-all duration-500',
-                    stat.gradient,
-                    stat.glowColor,
-                    stat.pulse && 'animate-pulse'
-                  )}
-                >
-                  {stat.icon}
-                </div>
-                <div className="text-right">
-                  <div
-                    className={cn(
-                      'text-3xl font-bold text-gray-900',
-                      stat.pulse && 'animate-bounce'
-                    )}
-                  >
-                    {stat.value}
-                  </div>
-                </div>
-              </div>
-              <div className="space-y-1">
-                <h3 className="font-bold text-lg text-gray-800">
-                  {stat.label}
-                </h3>
-                <p className="text-sm text-gray-600">{stat.description}</p>
-              </div>
-              {/* Subtle decorative element */}
-              <div className="mt-4 w-8 h-0.5 bg-gradient-to-r from-transparent via-white/60 to-transparent rounded-full" />
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-    </div>
-  );
-};
 
 interface MatchSuggestionsContainerProps {
   userId: string;
@@ -305,7 +72,10 @@ interface MatchSuggestionsContainerProps {
   profileCardDict: ProfileCardDict;
 }
 
-// --- Main Container (Hero Teal/Orange Palette) ---
+// =============================================================================
+// MAIN COMPONENT
+// =============================================================================
+
 const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
   userId,
   className,
@@ -313,8 +83,10 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
   profileCardDict,
 }) => {
   const params = useParams();
+  
+  // נסיון לזהות שפה, ברירת מחדל לעברית אם יש ספק, כדי למנוע בעיות RTL
   const locale = (
-    Array.isArray(params.lang) ? params.lang[0] : params.lang || 'en'
+    Array.isArray(params.lang) ? params.lang[0] : params.lang || 'he'
   ) as 'he' | 'en';
 
   const [activeSuggestions, setActiveSuggestions] = useState<
@@ -323,14 +95,18 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
   const [historySuggestions, setHistorySuggestions] = useState<
     ExtendedMatchSuggestion[]
   >([]);
+  
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  
   const [activeTab, setActiveTab] = useState('active');
+  
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [hasNewSuggestions, setHasNewSuggestions] = useState(false);
   const [isUserInActiveProcess, setIsUserInActiveProcess] = useState(false);
 
+  // Action Dialog State
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [suggestionForAction, setSuggestionForAction] =
     useState<ExtendedMatchSuggestion | null>(null);
@@ -338,6 +114,7 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
     null
   );
 
+  // Calculate "My Turn" items (Urgent)
   const myTurnCount = activeSuggestions.filter((s) => {
     const isFirstParty = s.firstPartyId === userId;
     return (
@@ -382,6 +159,21 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
 
         setActiveSuggestions(activeData.suggestions);
         setHistorySuggestions(historyData.suggestions);
+
+        if (showLoadingState) {
+          const urgentCount = activeData.suggestions.filter((s: ExtendedMatchSuggestion) => {
+            const isFirstParty = s.firstPartyId === userId;
+            return (
+              (s.status === 'PENDING_FIRST_PARTY' && isFirstParty) ||
+              (s.status === 'PENDING_SECOND_PARTY' && !isFirstParty)
+            );
+          }).length;
+          
+          if (urgentCount > 0) {
+             setActiveTab('urgent');
+          }
+        }
+
       } catch (error) {
         const errorMessage =
           error instanceof Error
@@ -401,7 +193,7 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
         setIsRefreshing(false);
       }
     },
-    [activeSuggestions.length, suggestionsDict]
+    [activeSuggestions.length, suggestionsDict, userId]
   );
 
   const handleStatusChange = useCallback(
@@ -501,13 +293,13 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
   }, [suggestionForAction, actionType, userId, handleStatusChange]);
 
   useEffect(() => {
-    fetchSuggestions();
+    fetchSuggestions(true);
     const intervalId = setInterval(
       () => fetchSuggestions(false),
       5 * 60 * 1000
     );
     return () => clearInterval(intervalId);
-  }, [userId, fetchSuggestions]);
+  }, [fetchSuggestions]);
 
   useEffect(() => {
     const activeProcessStatuses: MatchSuggestion['status'][] = [
@@ -544,200 +336,185 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
   }, [fetchSuggestions, suggestionsDict]);
 
   if (isLoading) {
-    return <LoadingSkeleton dict={suggestionsDict.container.loading} />;
+    return <LoadingSkeleton />;
   }
 
   return (
     <div
       className={cn(
-        // Background matching Hero: slate -> teal -> orange
         'min-h-screen bg-gradient-to-br from-slate-50 via-teal-50/20 to-orange-50/20',
         className
       )}
       dir={locale === 'he' ? 'rtl' : 'ltr'}
     >
-      <div className="container mx-auto px-4 py-8">
-        <WelcomeStats
-          activeSuggestions={activeSuggestions}
-          historySuggestions={historySuggestions}
-          userId={userId}
-          dict={suggestionsDict.container.stats}
-        />
+      <div className="container mx-auto px-4 py-6 md:py-8 max-w-6xl">
+        
+        {/* COMPACT HEADER - FIXED ALIGNMENT */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 md:mb-8">
+          
+          {/* כותרת: הוספתי text-right ושליטה ברוחב כדי להבטיח שבעברית זה בימין */}
+          <div className={cn("flex-1", locale === 'he' ? 'text-right' : 'text-left')}>
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-800 flex items-center gap-2">
+               <Target className="w-6 h-6 text-teal-600 hidden md:block" />
+               {suggestionsDict.container.main.title}
+            </h1>
+            <p className="text-gray-500 text-sm mt-1">
+              {suggestionsDict.container.stats.subtitle}
+            </p>
+          </div>
 
-        {/* Main Card with glassmorphism effect */}
-        <Card className="shadow-2xl border-0 bg-white/95 backdrop-blur-sm overflow-hidden rounded-3xl">
-          {/* Card Header with Hero gradient */}
-          <CardHeader className="pb-4 bg-gradient-to-r from-white via-teal-50/30 to-orange-50/30 border-b border-gray-100">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={handleRefresh}
-                  disabled={isRefreshing}
-                  className="rounded-full h-10 w-10 hover:bg-teal-100 transition-colors"
-                  aria-label={suggestionsDict.container.main.refreshAriaLabel}
-                >
-                  <RefreshCw
-                    className={cn(
-                      'h-5 w-5 text-teal-600',
-                      isRefreshing && 'animate-spin'
-                    )}
-                  />
-                </Button>
-                {hasNewSuggestions && (
-                  <Badge className="bg-gradient-to-r from-orange-500 to-amber-500 text-white border-0 shadow-xl animate-pulse">
-                    <Bell
-                      className={cn(
-                        'w-3 h-3',
-                        locale === 'he' ? 'ml-1' : 'mr-1'
-                      )}
-                    />
-                    {suggestionsDict.container.main.newSuggestions}
-                  </Badge>
-                )}
-              </div>
-              <div className="text-center flex-grow">
-                <CardTitle className="text-xl font-bold text-gray-800">
-                  {suggestionsDict.container.main.title}
-                </CardTitle>
-              </div>
-              <div className="w-16"></div>
-            </div>
-          </CardHeader>
-
-          <CardContent className="p-6">
-            <Tabs
-              value={activeTab}
-              onValueChange={setActiveTab}
-              dir={locale === 'he' ? 'rtl' : 'ltr'}
-              className="space-y-6"
+          {/* כפתורים: הוספתי יישור עצמי כדי שבעברית יהיו בשמאל (בסוף השורה) */}
+          <div className="flex items-center gap-3 self-end md:self-auto">
+            {hasNewSuggestions && (
+              <Badge className="bg-orange-500 hover:bg-orange-600 text-white border-0 shadow-lg animate-pulse transition-all px-3 py-1.5">
+                <Bell className={cn('w-3.5 h-3.5', locale === 'he' ? 'ml-1.5' : 'mr-1.5')} />
+                {suggestionsDict.container.main.newSuggestions}
+              </Badge>
+            )}
+            
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleRefresh}
+              disabled={isRefreshing}
+              className="rounded-full border-gray-200 hover:bg-white hover:text-teal-600 shadow-sm"
+              aria-label={suggestionsDict.container.main.refreshAriaLabel}
             >
-              <div className="flex justify-center">
-                <TabsList className="grid grid-cols-3 bg-teal-50/50 rounded-2xl p-1 h-14 w-fit">
-                  {/* Tab: Active (Teal) */}
-                  <TabsTrigger
-                    value="active"
-                    className="relative flex items-center gap-3 px-6 py-3 rounded-xl transition-all data-[state=active]:bg-white data-[state=active]:shadow-lg font-semibold text-base"
-                  >
-                    <Target className="w-5 h-5 text-teal-500" />
-                    <span className="group-data-[state=active]:text-teal-700">
-                      {suggestionsDict.container.main.tabs.active}
-                    </span>
-                    {activeSuggestions.length > 0 && (
-                      <Badge className="bg-teal-500 text-white border-0 px-2 py-1 text-xs font-bold rounded-full min-w-[24px] h-6">
-                        {activeSuggestions.length}
-                      </Badge>
-                    )}
-                  </TabsTrigger>
+               <RefreshCw
+                 className={cn(
+                   'h-4 w-4',
+                   locale === 'he' ? 'ml-2' : 'mr-2',
+                   isRefreshing && 'animate-spin'
+                 )}
+               />
+               {isRefreshing ? '...' : suggestionsDict.container.main.refreshAriaLabel}
+            </Button>
+          </div>
+        </div>
 
-                  {/* Tab: Urgent (Orange) */}
-                  {myTurnCount > 0 && (
-                    <TabsTrigger
-                      value="urgent"
-                      className="flex items-center gap-3 px-6 py-3 rounded-xl transition-all data-[state=active]:bg-white data-[state=active]:shadow-lg font-semibold text-base"
-                    >
-                      <Zap className="w-5 h-5 text-orange-500" />
-                      <span className="group-data-[state=active]:text-orange-700">
-                        {suggestionsDict.container.main.tabs.urgent}
-                      </span>
-                      <Badge className="bg-gradient-to-r from-orange-500 to-amber-500 text-white border-0 px-2 py-1 text-xs font-bold rounded-full min-w-[24px] h-6 animate-pulse shadow-lg">
-                        {myTurnCount}
-                      </Badge>
-                    </TabsTrigger>
-                  )}
+        {/* ERROR DISPLAY */}
+        {error && (
+            <Alert
+              variant="destructive"
+              className="border-red-200 bg-red-50 mb-6 shadow-sm"
+              dir={locale === 'he' ? 'rtl' : 'ltr'}
+            >
+              <AlertCircle
+                className={cn('h-5 w-5', locale === 'he' ? 'ml-2' : 'mr-2')}
+              />
+              <AlertDescription className="text-red-800 font-medium">
+                {error}
+              </AlertDescription>
+            </Alert>
+        )}
 
-                  {/* Tab: History (Gray) */}
-                  <TabsTrigger
-                    value="history"
-                    className="flex items-center gap-3 px-6 py-3 rounded-xl transition-all data-[state=active]:bg-white data-[state=active]:shadow-lg font-semibold text-base"
-                  >
-                    <History className="w-5 h-5 text-gray-500" />
-                    <span>{suggestionsDict.container.main.tabs.history}</span>
-                    {historySuggestions.length > 0 && (
-                      <Badge className="bg-gray-500 text-white border-0 px-2 py-1 text-xs font-bold rounded-full min-w-[24px] h-6">
-                        {historySuggestions.length}
-                      </Badge>
-                    )}
-                  </TabsTrigger>
-                </TabsList>
-              </div>
-
-              {error && (
-                <Alert
-                  variant="destructive"
-                  className="border-red-200 bg-red-50"
-                  dir={locale === 'he' ? 'rtl' : 'ltr'}
+        {/* CONTENT TABS */}
+        <Tabs
+          value={activeTab}
+          onValueChange={setActiveTab}
+          dir={locale === 'he' ? 'rtl' : 'ltr'}
+          className="space-y-6"
+        >
+          {/* מיכל לטאבים כדי לוודא יישור נכון בעברית (Start = ימין) */}
+          <div className={cn("flex pb-2 scrollbar-none", locale === 'he' ? 'justify-start' : 'justify-start')}>
+            <TabsList className="bg-white/60 backdrop-blur-md p-1 rounded-2xl border border-gray-100/50 shadow-sm h-auto inline-flex">
+              {/* Tab: Urgent */}
+              {myTurnCount > 0 && (
+                <TabsTrigger
+                  value="urgent"
+                  className="rounded-xl px-4 py-2.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-amber-500 data-[state=active]:text-white data-[state=active]:shadow-md transition-all font-medium text-gray-600"
                 >
-                  <AlertCircle
-                    className={cn('h-5 w-5', locale === 'he' ? 'ml-2' : 'mr-2')}
-                  />
-                  <AlertDescription className="text-red-800 font-medium">
-                    {error}
-                  </AlertDescription>
-                </Alert>
+                  <Zap className={cn("w-4 h-4", locale === 'he' ? 'ml-2' : 'mr-2')} />
+                  {suggestionsDict.container.main.tabs.urgent}
+                  <Badge className="bg-white/20 text-white border-0 px-1.5 py-0.5 text-[10px] font-bold rounded-full min-w-[20px] h-5 mx-2">
+                    {myTurnCount}
+                  </Badge>
+                </TabsTrigger>
               )}
 
-              <TabsContent value="active" className="space-y-6">
-                <SuggestionsList
-                  locale={locale}
-                  suggestions={activeSuggestions}
-                  userId={userId}
-                  viewMode={viewMode}
-                  isLoading={isRefreshing}
-                  onStatusChange={handleStatusChange}
-                  onActionRequest={handleRequestAction}
-                  onRefresh={handleRefresh}
-                  isUserInActiveProcess={isUserInActiveProcess}
-                  suggestionsDict={suggestionsDict}
-                  profileCardDict={profileCardDict}
-                />
-              </TabsContent>
+              {/* Tab: Active */}
+              <TabsTrigger
+                value="active"
+                className="rounded-xl px-4 py-2.5 data-[state=active]:bg-white data-[state=active]:text-teal-700 data-[state=active]:shadow-md data-[state=active]:border-teal-100 transition-all font-medium text-gray-600"
+              >
+                <Target className={cn("w-4 h-4", locale === 'he' ? 'ml-2' : 'mr-2')} />
+                {suggestionsDict.container.main.tabs.active}
+                {activeSuggestions.length > 0 && (
+                  <Badge className="bg-teal-100 text-teal-700 hover:bg-teal-100 border-0 px-1.5 py-0.5 text-[10px] font-bold rounded-full min-w-[20px] h-5 mx-2">
+                    {activeSuggestions.length}
+                  </Badge>
+                )}
+              </TabsTrigger>
 
-              <TabsContent value="history" className="space-y-6">
-                <SuggestionsList
-                  locale={locale}
-                  suggestions={historySuggestions}
-                  userId={userId}
-                  viewMode={viewMode}
-                  isLoading={isRefreshing}
-                  isHistory={true}
-                  onStatusChange={handleStatusChange}
-                  onActionRequest={handleRequestAction}
-                  onRefresh={handleRefresh}
-                  isUserInActiveProcess={isUserInActiveProcess}
-                  suggestionsDict={suggestionsDict}
-                  profileCardDict={profileCardDict}
-                />
-              </TabsContent>
+              {/* Tab: History */}
+              <TabsTrigger
+                value="history"
+                className="rounded-xl px-4 py-2.5 data-[state=active]:bg-white data-[state=active]:text-gray-800 data-[state=active]:shadow-md transition-all font-medium text-gray-600"
+              >
+                <History className={cn("w-4 h-4", locale === 'he' ? 'ml-2' : 'mr-2')} />
+                {suggestionsDict.container.main.tabs.history}
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
-              <TabsContent value="urgent" className="space-y-6">
-                <SuggestionsList
-                  locale={locale}
-                  suggestions={activeSuggestions.filter((s) => {
-                    const isFirstParty = s.firstPartyId === userId;
-                    return (
-                      (s.status === 'PENDING_FIRST_PARTY' && isFirstParty) ||
-                      (s.status === 'PENDING_SECOND_PARTY' && !isFirstParty)
-                    );
-                  })}
-                  userId={userId}
-                  viewMode={viewMode}
-                  isLoading={isRefreshing}
-                  onStatusChange={handleStatusChange}
-                  onActionRequest={handleRequestAction}
-                  onRefresh={handleRefresh}
-                  isUserInActiveProcess={isUserInActiveProcess}
-                  suggestionsDict={suggestionsDict}
-                  profileCardDict={profileCardDict}
-                />
-              </TabsContent>
-            </Tabs>
-          </CardContent>
-        </Card>
+          <TabsContent value="active" className="space-y-6 mt-0 focus-visible:outline-none">
+            <SuggestionsList
+              locale={locale}
+              suggestions={activeSuggestions}
+              userId={userId}
+              viewMode={viewMode}
+              isLoading={isRefreshing}
+              onStatusChange={handleStatusChange}
+              onActionRequest={handleRequestAction}
+              onRefresh={handleRefresh}
+              isUserInActiveProcess={isUserInActiveProcess}
+              suggestionsDict={suggestionsDict}
+              profileCardDict={profileCardDict}
+            />
+          </TabsContent>
+
+          <TabsContent value="urgent" className="space-y-6 mt-0 focus-visible:outline-none">
+            <SuggestionsList
+              locale={locale}
+              suggestions={activeSuggestions.filter((s) => {
+                const isFirstParty = s.firstPartyId === userId;
+                return (
+                  (s.status === 'PENDING_FIRST_PARTY' && isFirstParty) ||
+                  (s.status === 'PENDING_SECOND_PARTY' && !isFirstParty)
+                );
+              })}
+              userId={userId}
+              viewMode={viewMode}
+              isLoading={isRefreshing}
+              onStatusChange={handleStatusChange}
+              onActionRequest={handleRequestAction}
+              onRefresh={handleRefresh}
+              isUserInActiveProcess={isUserInActiveProcess}
+              suggestionsDict={suggestionsDict}
+              profileCardDict={profileCardDict}
+            />
+          </TabsContent>
+
+          <TabsContent value="history" className="space-y-6 mt-0 focus-visible:outline-none">
+            <SuggestionsList
+              locale={locale}
+              suggestions={historySuggestions}
+              userId={userId}
+              viewMode={viewMode}
+              isLoading={isRefreshing}
+              isHistory={true}
+              onStatusChange={handleStatusChange}
+              onActionRequest={handleRequestAction}
+              onRefresh={handleRefresh}
+              isUserInActiveProcess={isUserInActiveProcess}
+              suggestionsDict={suggestionsDict}
+              profileCardDict={profileCardDict}
+            />
+          </TabsContent>
+        </Tabs>
       </div>
 
-      {/* Confirmation Dialog with Hero-matching gradients */}
+      {/* CONFIRMATION DIALOG */}
       <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
         <AlertDialogContent className="border-0 shadow-2xl rounded-2xl z-[9999]">
           <AlertDialogHeader>
@@ -753,7 +530,7 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="gap-3">
-            <AlertDialogCancel className="rounded-xl">
+            <AlertDialogCancel className="rounded-xl mt-0">
               {suggestionsDict.container.dialogs.cancel}
             </AlertDialogCancel>
             <AlertDialogAction
@@ -761,10 +538,8 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
               className={cn(
                 'rounded-xl font-medium shadow-lg hover:shadow-xl transition-all duration-300',
                 actionType === 'approve'
-                  ? // Approve: Teal/Emerald gradient (matching Hero)
-                    'bg-gradient-to-r from-teal-500 to-emerald-600 hover:from-teal-600 hover:to-emerald-700'
-                  : // Decline: Rose/Red gradient (matching Hero)
-                    'bg-gradient-to-r from-rose-500 to-red-600 hover:from-rose-600 hover:to-red-700'
+                  ? 'bg-gradient-to-r from-teal-500 to-emerald-600 hover:from-teal-600 hover:to-emerald-700'
+                  : 'bg-gradient-to-r from-rose-500 to-red-600 hover:from-rose-600 hover:to-red-700'
               )}
             >
               {actionType === 'approve' ? (

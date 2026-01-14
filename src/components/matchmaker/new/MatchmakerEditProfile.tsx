@@ -85,6 +85,9 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
   const [images, setImages] = useState<UserImage[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
+  // שם פרטי ומשפחה
+  const [names, setNames] = useState({ firstName: '', lastName: '' });
+
   // טלפון
   const [userPhone, setUserPhone] = useState<string | null>(null);
 
@@ -156,6 +159,12 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
         setProfile(data.profile);
         setImages(data.images || []);
 
+        // עדכון שמות מהשרת
+        setNames({
+          firstName: data.user?.firstName || candidate.firstName,
+          lastName: data.user?.lastName || candidate.lastName,
+        });
+
         if (data.profile?.user?.phone) {
           setUserPhone(data.profile.user.phone);
         } else if (candidate.phone) {
@@ -189,6 +198,7 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
       // Reset State
       setProfile(null);
       setImages([]);
+      setNames({ firstName: '', lastName: '' }); // איפוס שמות
       setUserPhone(null);
       setActiveTab('profile');
       setIsLoading(true);
@@ -204,8 +214,9 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
     }
   }, [isOpen, candidate, fetchProfileData]);
 
-  // עדכון שדות פרופיל
-  const handleProfileUpdate = async (updatedProfile: Partial<UserProfile>) => {
+  // עדכון שדות פרופיל (כולל שמות)
+  // שינוי הטיפוס ל-any כדי לתמוך גם בשדות firstName/lastName שאינם ב-UserProfile
+  const handleProfileUpdate = async (updatedData: any) => {
     if (!candidate || !profile) return;
     setIsSaving(true);
     try {
@@ -214,16 +225,27 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
         {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(updatedProfile),
+          body: JSON.stringify(updatedData),
         }
       );
       const data = await response.json();
       if (!response.ok || !data.success) {
         throw new Error(data.error || 'Failed to update profile');
       }
+
+      // עדכון ה-state של הפרופיל
       setProfile(
-        (prevProfile) => ({ ...prevProfile, ...updatedProfile }) as UserProfile
+        (prevProfile) => ({ ...prevProfile, ...updatedData }) as UserProfile
       );
+
+      // עדכון ה-state של השמות אם הם השתנו
+      if (updatedData.firstName || updatedData.lastName) {
+        setNames((prev) => ({
+          firstName: updatedData.firstName || prev.firstName,
+          lastName: updatedData.lastName || prev.lastName,
+        }));
+      }
+
       toast.success(dict.toasts.updateSuccess, {
         position: 'top-center',
         duration: 3000,
@@ -492,8 +514,14 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
                     )}
                   >
                     {dict.header.title
-                      .replace('{{firstName}}', candidate.firstName)
-                      .replace('{{lastName}}', candidate.lastName)}
+                      .replace(
+                        '{{firstName}}',
+                        names.firstName || candidate.firstName
+                      )
+                      .replace(
+                        '{{lastName}}',
+                        names.lastName || candidate.lastName
+                      )}
                   </DialogTitle>
                   <DialogDescription
                     className={cn(
@@ -568,6 +596,68 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
                     >
                       {profile ? (
                         <div className="space-y-6">
+                          {/* --- Basic Info Card (Names) --- */}
+                          <Card className="bg-white rounded-xl shadow-sm border overflow-hidden">
+                            <CardHeader className="bg-gray-50/50 pb-4">
+                              <CardTitle className="text-lg flex items-center gap-2">
+                                <UserCog className="w-5 h-5 text-gray-600" />
+                                {locale === 'he'
+                                  ? 'פרטים אישיים בסיסיים'
+                                  : 'Basic Information'}
+                              </CardTitle>
+                            </CardHeader>
+                            <CardContent className="pt-4 grid grid-cols-2 gap-4">
+                              <div className="space-y-2">
+                                <Label>
+                                  {locale === 'he' ? 'שם פרטי' : 'First Name'}
+                                </Label>
+                                <Input
+                                  value={names.firstName}
+                                  onChange={(e) =>
+                                    setNames((prev) => ({
+                                      ...prev,
+                                      firstName: e.target.value,
+                                    }))
+                                  }
+                                />
+                              </div>
+                              <div className="space-y-2">
+                                <Label>
+                                  {locale === 'he' ? 'שם משפחה' : 'Last Name'}
+                                </Label>
+                                <Input
+                                  value={names.lastName}
+                                  onChange={(e) =>
+                                    setNames((prev) => ({
+                                      ...prev,
+                                      lastName: e.target.value,
+                                    }))
+                                  }
+                                />
+                              </div>
+                            </CardContent>
+                            <CardFooter className="bg-gray-50/30 flex justify-end py-3">
+                              <Button
+                                size="sm"
+                                onClick={() =>
+                                  handleProfileUpdate({
+                                    firstName: names.firstName,
+                                    lastName: names.lastName,
+                                  })
+                                }
+                                disabled={isSaving}
+                                className="bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 shadow-sm"
+                              >
+                                {isSaving ? (
+                                  <Loader2 className="w-4 h-4 animate-spin ml-2" />
+                                ) : (
+                                  <Save className="w-4 h-4 ml-2" />
+                                )}
+                                {locale === 'he' ? 'שמור שמות' : 'Save Names'}
+                              </Button>
+                            </CardFooter>
+                          </Card>
+
                           {/* --- NeshamaTech Summary Card --- */}
                           <Card className="bg-white rounded-xl shadow-sm border overflow-hidden">
                             <div className="h-1 bg-gradient-to-r from-indigo-500 to-purple-500"></div>
