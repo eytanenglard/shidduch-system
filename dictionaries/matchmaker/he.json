@@ -204,6 +204,10 @@
           "male": "זכר",
           "female": "נקבה"
         },
+        "height": {
+  "label": "גובה (ס״מ)",
+  "placeholder": "הכנס גובה"
+},
         "birthDate": {
           "modeLabel": "אופן הזנת גיל/תאריך לידה",
           "dateMode": "לפי תאריך לידה",

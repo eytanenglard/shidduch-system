@@ -312,6 +312,10 @@
           "male": "Male",
           "female": "Female"
         },
+        "height": {
+  "label": "Height (cm)",
+  "placeholder": "Enter height"
+},
         "birthDate": {
           "modeLabel": "Age/Birth Date Entry Mode",
           "dateMode": "By Birth Date",

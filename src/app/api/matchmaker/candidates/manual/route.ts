@@ -61,6 +61,8 @@ const rateLimitResponse = await applyRateLimitWithRoleCheck(req, { requests: 15,
     const emailValue = formData.get('email') as string | null;
     const gender = formData.get('gender') as Gender;
     const birthDateStr = formData.get('birthDate') as string;
+        const heightStr = formData.get('height') as string | null;
+
     const manualEntryText = formData.get('manualEntryText') as string;
     const images = formData.getAll('images') as File[];
     const birthDateIsApproximate = formData.get('birthDateIsApproximate') === 'true';
@@ -69,6 +71,13 @@ const rateLimitResponse = await applyRateLimitWithRoleCheck(req, { requests: 15,
     const fatherOccupation = formData.get('fatherOccupation') as string | null;
     const motherOccupation = formData.get('motherOccupation') as string | null;
     // --- END: הוספת שדות מקצוע הורים ---
+    let height: number | null = null;
+    if (heightStr && heightStr.trim() !== '') {
+        const parsedHeight = parseInt(heightStr, 10);
+        if (!isNaN(parsedHeight)) {
+            height = parsedHeight;
+        }
+    }
 
     const hasMedicalInfo = formData.get('hasMedicalInfo');
     const medicalInfoDetails = formData.get('medicalInfoDetails') as string | null;
@@ -101,6 +110,8 @@ const rateLimitResponse = await applyRateLimitWithRoleCheck(req, { requests: 15,
       birthDateIsApproximate,
       manualEntryText,
       availabilityStatus: 'AVAILABLE',
+            height: height, 
+
     };
 
     // --- START: הוספת השדות החדשים לאובייקט היצירה ---

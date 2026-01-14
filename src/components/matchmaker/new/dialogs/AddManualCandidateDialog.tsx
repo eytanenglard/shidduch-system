@@ -48,6 +48,8 @@ export const AddManualCandidateDialog: React.FC<
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [gender, setGender] = useState<Gender | undefined>(undefined);
+  // --- ADDED: Height State ---
+  const [height, setHeight] = useState('');
   const [birthDate, setBirthDate] = useState<Date | undefined>(undefined);
   const [manualEntryText, setManualEntryText] = useState('');
   const [images, setImages] = useState<File[]>([]);
@@ -64,6 +66,8 @@ export const AddManualCandidateDialog: React.FC<
     setLastName('');
     setEmail('');
     setGender(undefined);
+    // --- ADDED: Reset Height ---
+    setHeight('');
     setBirthDate(undefined);
     setManualEntryText('');
     setImages([]);
@@ -154,6 +158,8 @@ export const AddManualCandidateDialog: React.FC<
     formData.append('lastName', lastName);
     if (email) formData.append('email', email);
     formData.append('gender', gender);
+    // --- ADDED: Append Height ---
+    if (height) formData.append('height', height);
     formData.append('birthDate', finalBirthDate.toISOString());
     formData.append('birthDateIsApproximate', String(isBirthDateApproximate));
     formData.append('manualEntryText', manualEntryText);
@@ -231,6 +237,7 @@ export const AddManualCandidateDialog: React.FC<
           onSubmit={handleSubmit}
           className="space-y-6 py-4 max-h-[70vh] overflow-y-auto pr-2 pl-1"
         >
+          {/* Row 1: First & Last Name */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <Label htmlFor="firstName" className="text-right block">
@@ -261,6 +268,8 @@ export const AddManualCandidateDialog: React.FC<
               />
             </div>
           </div>
+
+          {/* Row 2: Email & Invite */}
           <div>
             <Label htmlFor="email" className="text-right block">
               {dict.fields.email.label}
@@ -291,29 +300,52 @@ export const AddManualCandidateDialog: React.FC<
               {dict.fields.sendInvite.label}
             </Label>
           </div>
+
+          {/* Row 3: Gender, Height & BirthDate */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="gender" className="text-right block">
-                {dict.fields.gender.label}{' '}
-                <span className="text-red-500">*</span>
-              </Label>
-              <Select
-                value={gender}
-                onValueChange={(value) => setGender(value as Gender)}
-              >
-                <SelectTrigger id="gender" dir="rtl">
-                  <SelectValue placeholder={dict.fields.gender.placeholder} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value={Gender.MALE}>
-                    {dict.fields.gender.male}
-                  </SelectItem>
-                  <SelectItem value={Gender.FEMALE}>
-                    {dict.fields.gender.female}
-                  </SelectItem>
-                </SelectContent>
-              </Select>
+            {/* Column 1: Gender & Height */}
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="gender" className="text-right block">
+                  {dict.fields.gender.label}{' '}
+                  <span className="text-red-500">*</span>
+                </Label>
+                <Select
+                  value={gender}
+                  onValueChange={(value) => setGender(value as Gender)}
+                >
+                  <SelectTrigger id="gender" dir="rtl">
+                    <SelectValue placeholder={dict.fields.gender.placeholder} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={Gender.MALE}>
+                      {dict.fields.gender.male}
+                    </SelectItem>
+                    <SelectItem value={Gender.FEMALE}>
+                      {dict.fields.gender.female}
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              {/* --- ADDED: Height Input --- */}
+              <div>
+                <Label htmlFor="height" className="text-right block">
+                  {dict.fields.height.label}
+                </Label>
+                <Input
+                  id="height"
+                  type="number"
+                  min="100"
+                  max="250"
+                  value={height}
+                  onChange={(e) => setHeight(e.target.value)}
+                  placeholder={dict.fields.height.placeholder}
+                  dir="rtl"
+                />
+              </div>
             </div>
+
+            {/* Column 2: Birth Date */}
             <div>
               <div>
                 <Label className="text-right block mb-2">
@@ -380,6 +412,7 @@ export const AddManualCandidateDialog: React.FC<
               )}
             </div>
           </div>
+
           <div>
             <Label htmlFor="manualEntryText" className="text-right block">
               {dict.fields.notes.label} <span className="text-red-500">*</span>

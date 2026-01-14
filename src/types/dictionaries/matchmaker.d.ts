@@ -153,7 +153,7 @@ type FilterPanelDict = {
     copyTooltip: string;
     ageLabel: string;
     heightLabel: string;
-    languagesLabel: string;
+   
     minLabel: string;
     maxLabel: string;
     religiousLevelLabel: string;
@@ -287,6 +287,7 @@ type CandidatesListDict = {
     };
     aiMatch: string;
     manualEntry: string;
+    languagesLabel: string;
     heightLabel: string; 
     noImage: string;
     yearsSuffix: string;
@@ -807,6 +808,7 @@ type AddManualCandidateDialogDict = {
       male: string;
       female: string;
     };
+    height: { label: string; placeholder: string; };
     birthDate: {
       modeLabel: string;
       dateMode: string;
