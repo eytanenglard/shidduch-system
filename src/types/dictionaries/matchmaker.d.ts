@@ -133,6 +133,18 @@ type FilterPanelDict = {
     title: string;
     description: string;
   };
+    verifiedOnlyLabel: string;
+  withRecommendationsLabel: string;
+  fullProfileLabel: string;
+  religiousLevelLabel: string;
+  cityLabel: string;
+  placeholders: {
+    selectCity: string;
+  };
+  options: {
+    all: string;
+  };
+
   genderFilterPanel: {
     maleTitle: string;
     femaleTitle: string;
@@ -141,6 +153,7 @@ type FilterPanelDict = {
     copyTooltip: string;
     ageLabel: string;
     heightLabel: string;
+    languagesLabel: string;
     minLabel: string;
     maxLabel: string;
     religiousLevelLabel: string;

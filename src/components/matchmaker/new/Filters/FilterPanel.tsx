@@ -1,4 +1,6 @@
-// /Filters/FilterPanel.tsx - גרסה מתורגמת, מלאה ומעודכנת (ללא טאב מתקדם)
+// src/components/matchmaker/new/Filters/FilterPanel.tsx
+'use client';
+
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -24,6 +26,8 @@ import {
   Target,
   User,
   Zap,
+  Check,
+  Search,
 } from 'lucide-react';
 
 // Utility Functions
@@ -56,6 +60,8 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { Checkbox } from '@/components/ui/checkbox';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 // Local Components, Types & Constants
 import SavedFilters from './SavedFilters';
@@ -63,22 +69,32 @@ import {
   AGE_RANGE,
   HEIGHT_RANGE,
   POPULAR_CITIES,
-  RELIGIOUS_LEVELS,
 } from '../constants/filterOptions';
 import type { CandidatesFilter } from '../types/candidates';
 import type { FilterState } from '../types/filters';
 import type { FilterPanelDict } from '@/types/dictionaries/matchmaker';
 import { DEFAULT_FILTER_STATE } from '../types/filters';
 
-// Interfaces
-interface PopularFilterOption {
-  id: keyof FilterPanelDict['popularFilters'];
-  label: string;
-  icon: React.ReactNode;
-  filter: Partial<CandidatesFilter>;
-  gradient: string;
-}
+// --- Constants for Religious Levels based on Dictionary ---
+const RELIGIOUS_OPTIONS = [
+  { value: 'charedi_litvak', label: 'חרדי/ת ליטאי/ת' },
+  { value: 'charedi_hasidic', label: 'חרדי/ת חסידי/ת' },
+  { value: 'charedi_sephardic', label: 'חרדי/ת ספרדי/ת' },
+  { value: 'charedi_modern', label: 'חרדי/ת מודרני/ת' },
+  { value: 'chabad', label: 'חב״ד' },
+  { value: 'breslov', label: 'ברסלב' },
+  { value: 'dati_leumi_torani', label: 'דתי/ה לאומי/ת תורני/ת' },
+  { value: 'dati_leumi_standard', label: 'דתי/ה לאומי/ת (סטנדרטי)' },
+  { value: 'dati_leumi_liberal', label: 'דתי/ה לאומי/ת ליברלי/ת' },
+  { value: 'masorti_strong', label: 'מסורתי/ת (קרוב/ה לדת)' },
+  { value: 'masorti_light', label: 'מסורתי/ת (קשר קל למסורת)' },
+  { value: 'secular_traditional_connection', label: 'חילוני/ת עם זיקה למסורת' },
+  { value: 'secular', label: 'חילוני/ת' },
+  { value: 'spiritual_not_religious', label: 'רוחני/ת (לאו דווקא דתי/ה)' },
+  { value: 'other', label: 'אחר' },
+];
 
+// Interfaces
 interface FilterPanelProps {
   filters: CandidatesFilter;
   onFiltersChange: (filters: CandidatesFilter) => void;
@@ -133,7 +149,7 @@ const SafeNumberInput: React.FC<SafeNumberInputProps> = ({
 
   const handleCommit = () => {
     let num = parseInt(localValue);
-    
+
     // Validation
     if (isNaN(num)) num = min;
     if (num < min) num = min;
@@ -156,6 +172,106 @@ const SafeNumberInput: React.FC<SafeNumberInputProps> = ({
       }}
       className={className}
     />
+  );
+};
+
+// --- MultiSelect Component for Religious Levels ---
+const ReligiousMultiSelect = ({
+  selectedValues = [],
+  onChange,
+  dict,
+}: {
+  selectedValues: string[];
+  onChange: (values: string[]) => void;
+  dict: any;
+}) => {
+  const [searchTerm, setSearchTerm] = useState('');
+
+  const toggleValue = (value: string) => {
+    const newValues = selectedValues.includes(value)
+      ? selectedValues.filter((v) => v !== value)
+      : [...selectedValues, value];
+    onChange(newValues);
+  };
+
+  const filteredOptions = RELIGIOUS_OPTIONS.filter((opt) =>
+    opt.label.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  return (
+    <div className="bg-white/80 backdrop-blur-sm rounded-xl p-3 shadow-lg border border-gray-100/50 space-y-2">
+      <div className="relative">
+        <Search className="absolute right-3 top-2.5 h-4 w-4 text-gray-400" />
+        <Input
+          placeholder={dict.placeholders?.search || 'חפש רמה דתית...'}
+          className="pr-9 bg-white border-gray-200"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
+      </div>
+      <ScrollArea className="h-48 rounded-md border border-gray-100 bg-white p-2">
+        <div className="space-y-1">
+          {filteredOptions.map((option) => {
+            const isSelected = selectedValues.includes(option.value);
+            return (
+              <div
+                key={option.value}
+                onClick={() => toggleValue(option.value)}
+                className={cn(
+                  'flex items-center gap-2 p-2 rounded-lg cursor-pointer transition-colors text-sm',
+                  isSelected
+                    ? 'bg-amber-50 text-amber-900'
+                    : 'hover:bg-gray-50 text-gray-700'
+                )}
+              >
+                <Checkbox
+                  checked={isSelected}
+                  onCheckedChange={() => toggleValue(option.value)}
+                  className="data-[state=checked]:bg-amber-500 data-[state=checked]:border-amber-500"
+                />
+                <span className="flex-1">{option.label}</span>
+              </div>
+            );
+          })}
+          {filteredOptions.length === 0 && (
+            <p className="text-center text-xs text-gray-500 py-4">
+              לא נמצאו תוצאות
+            </p>
+          )}
+        </div>
+      </ScrollArea>
+      {selectedValues.length > 0 && (
+        <div className="flex flex-wrap gap-1 pt-1">
+          {selectedValues.map((val) => {
+            const label = RELIGIOUS_OPTIONS.find((o) => o.value === val)?.label;
+            return (
+              <Badge
+                key={val}
+                variant="secondary"
+                className="text-xs bg-amber-100 text-amber-800 hover:bg-amber-200"
+              >
+                {label}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleValue(val);
+                  }}
+                  className="mr-1 hover:text-red-600"
+                >
+                  ×
+                </button>
+              </Badge>
+            );
+          })}
+          <button
+            onClick={() => onChange([])}
+            className="text-xs text-gray-500 underline mr-auto hover:text-gray-800"
+          >
+            נקה הכל
+          </button>
+        </div>
+      )}
+    </div>
   );
 };
 
@@ -310,6 +426,7 @@ const GenderFilterPanel = ({
         )}
       </div>
       <div className={cn('p-6 space-y-6 bg-gradient-to-br', config.bg)}>
+        {/* Age Range */}
         <div className="space-y-4">
           <Label className="text-base font-bold text-gray-800 flex items-center gap-2">
             <Calendar className="w-5 h-5 text-blue-600" />
@@ -326,10 +443,14 @@ const GenderFilterPanel = ({
                   max={AGE_RANGE.max}
                   value={filters?.ageRange?.min || AGE_RANGE.default.min}
                   onCommit={(val) => {
-                    const currentMax = filters.ageRange?.max || AGE_RANGE.default.max;
+                    const currentMax =
+                      filters.ageRange?.max || AGE_RANGE.default.max;
                     onFiltersChange({
                       ...filters,
-                      ageRange: { min: Math.min(val, currentMax), max: currentMax },
+                      ageRange: {
+                        min: Math.min(val, currentMax),
+                        max: currentMax,
+                      },
                     });
                   }}
                   className="w-16 text-center text-lg font-bold text-blue-700 focus:outline-none bg-transparent"
@@ -345,10 +466,14 @@ const GenderFilterPanel = ({
                   max={AGE_RANGE.max}
                   value={filters?.ageRange?.max || AGE_RANGE.default.max}
                   onCommit={(val) => {
-                    const currentMin = filters.ageRange?.min || AGE_RANGE.default.min;
+                    const currentMin =
+                      filters.ageRange?.min || AGE_RANGE.default.min;
                     onFiltersChange({
                       ...filters,
-                      ageRange: { min: currentMin, max: Math.max(val, currentMin) },
+                      ageRange: {
+                        min: currentMin,
+                        max: Math.max(val, currentMin),
+                      },
                     });
                   }}
                   className="w-16 text-center text-lg font-bold text-blue-700 focus:outline-none bg-transparent"
@@ -373,13 +498,11 @@ const GenderFilterPanel = ({
                 className="h-5 [&>span]:bg-gradient-to-r [&>span]:from-blue-500 [&>span]:to-cyan-500"
                 dir="rtl"
               />
-              <div className="flex justify-between mt-3 px-2 text-xs text-gray-500">
-                <span>{AGE_RANGE.min}</span>
-                <span>{AGE_RANGE.max}</span>
-              </div>
             </div>
           </div>
         </div>
+
+        {/* Height Range */}
         <div className="space-y-4">
           <Label className="text-base font-bold text-gray-800 flex items-center gap-2">
             <Ruler className="w-5 h-5 text-purple-600" />
@@ -396,10 +519,14 @@ const GenderFilterPanel = ({
                   max={HEIGHT_RANGE.max}
                   value={filters?.heightRange?.min || HEIGHT_RANGE.default.min}
                   onCommit={(val) => {
-                    const currentMax = filters.heightRange?.max || HEIGHT_RANGE.default.max;
+                    const currentMax =
+                      filters.heightRange?.max || HEIGHT_RANGE.default.max;
                     onFiltersChange({
                       ...filters,
-                      heightRange: { min: Math.min(val, currentMax), max: currentMax },
+                      heightRange: {
+                        min: Math.min(val, currentMax),
+                        max: currentMax,
+                      },
                     });
                   }}
                   className="w-16 text-center text-lg font-bold text-purple-700 focus:outline-none bg-transparent"
@@ -415,10 +542,14 @@ const GenderFilterPanel = ({
                   max={HEIGHT_RANGE.max}
                   value={filters?.heightRange?.max || HEIGHT_RANGE.default.max}
                   onCommit={(val) => {
-                    const currentMin = filters.heightRange?.min || HEIGHT_RANGE.default.min;
+                    const currentMin =
+                      filters.heightRange?.min || HEIGHT_RANGE.default.min;
                     onFiltersChange({
                       ...filters,
-                      heightRange: { min: currentMin, max: Math.max(val, currentMin) },
+                      heightRange: {
+                        min: currentMin,
+                        max: Math.max(val, currentMin),
+                      },
                     });
                   }}
                   className="w-16 text-center text-lg font-bold text-purple-700 focus:outline-none bg-transparent"
@@ -443,84 +574,60 @@ const GenderFilterPanel = ({
                 className="h-5 [&>span]:bg-gradient-to-r [&>span]:from-purple-500 [&>span]:to-pink-500"
                 dir="rtl"
               />
-              <div className="flex justify-between mt-3 px-2 text-xs text-gray-500">
-                <span>{HEIGHT_RANGE.min}</span>
-                <span>{HEIGHT_RANGE.max}</span>
-              </div>
             </div>
           </div>
         </div>
-        {[
-          {
-            label: dict.religiousLevelLabel,
-            icon: <Scroll className="w-5 h-5 text-amber-600" />,
-            filterKey: 'religiousLevel',
-            options: RELIGIOUS_LEVELS,
-            placeholder: dict.placeholders.selectReligious,
-            hoverColor: 'amber',
-          },
-          {
-            label: dict.cityLabel,
-            icon: <MapPin className="w-5 h-5 text-emerald-600" />,
-            filterKey: 'cities',
-            options: POPULAR_CITIES.map((c) => ({ label: c, value: c })),
-            placeholder: dict.placeholders.selectCity,
-            hoverColor: 'emerald',
-          },
-        ].map(
-          ({ label, icon, filterKey, options, placeholder, hoverColor }) => (
-            <div key={filterKey} className="space-y-3">
-              <Label className="text-base font-bold text-gray-800 flex items-center gap-2">
-                {icon}
-                {label}
-              </Label>
-              <div className="bg-white/80 backdrop-blur-sm rounded-xl p-3 shadow-lg border border-gray-100/50">
-                <Select
-                  value={
-                    filterKey === 'cities'
-                      ? filters.cities?.[0] || ''
-                      : (filters[filterKey as keyof FilterState] as string) ||
-                        ''
-                  }
-                  onValueChange={(value) => {
-                    const newValue = value === 'all' ? undefined : value;
-                    if (filterKey === 'cities') {
-                      onFiltersChange({
-                        ...filters,
-                        cities: newValue ? [newValue] : [],
-                      });
-                    } else {
-                      onFiltersChange({ ...filters, [filterKey]: newValue });
-                    }
-                  }}
-                >
-                  <SelectTrigger
-                    className={`w-full border-0 bg-transparent focus:ring-2 focus:ring-${hoverColor}-200 rounded-xl`}
-                  >
-                    <SelectValue placeholder={placeholder} />
-                  </SelectTrigger>
-                  <SelectContent className="bg-white/95 backdrop-blur-sm border-0 shadow-2xl rounded-xl">
-                    <SelectItem
-                      value="all"
-                      className={`hover:bg-${hoverColor}-50`}
-                    >
-                      {dict.options.all}
-                    </SelectItem>
-                    {options.map((opt) => (
-                      <SelectItem
-                        key={opt.value}
-                        value={opt.value}
-                        className={`hover:bg-${hoverColor}-50`}
-                      >
-                        {opt.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          )
-        )}
+
+        {/* Religious Level (Multi-Select) */}
+        <div className="space-y-3">
+          <Label className="text-base font-bold text-gray-800 flex items-center gap-2">
+            <Scroll className="w-5 h-5 text-amber-600" />
+            {dict.religiousLevelLabel}
+          </Label>
+          <ReligiousMultiSelect
+            selectedValues={filters.religiousLevel || []}
+            onChange={(values) =>
+              onFiltersChange({ ...filters, religiousLevel: values })
+            }
+            dict={dict}
+          />
+        </div>
+
+        {/* City (Single Select remains for simplicity per prompt request, can be upgraded too) */}
+        <div className="space-y-3">
+          <Label className="text-base font-bold text-gray-800 flex items-center gap-2">
+            <MapPin className="w-5 h-5 text-emerald-600" />
+            {dict.cityLabel}
+          </Label>
+          <div className="bg-white/80 backdrop-blur-sm rounded-xl p-3 shadow-lg border border-gray-100/50">
+            <Select
+              value={filters.cities?.[0] || ''}
+              onValueChange={(value) => {
+                const newValue = value === 'all' ? undefined : value;
+                onFiltersChange({
+                  ...filters,
+                  cities: newValue ? [newValue] : [],
+                });
+              }}
+            >
+              <SelectTrigger className="w-full border-0 bg-transparent focus:ring-2 focus:ring-emerald-200 rounded-xl">
+                <SelectValue placeholder={dict.placeholders.selectCity} />
+              </SelectTrigger>
+              <SelectContent className="bg-white/95 backdrop-blur-sm border-0 shadow-2xl rounded-xl">
+                <SelectItem value="all" className="hover:bg-emerald-50">
+                  {dict.options.all}
+                </SelectItem>
+                {POPULAR_CITIES.map((c) => (
+                  <SelectItem key={c} value={c} className="hover:bg-emerald-50">
+                    {c}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        {/* Consolidated Status Toggles */}
         <div className="space-y-4 pt-4 border-t border-gray-200/50">
           {[
             {
@@ -541,10 +648,35 @@ const GenderFilterPanel = ({
               icon: <Star className="w-4 h-4" />,
               gradient: 'from-purple-500 to-indigo-500',
             },
+            // Added Logic for Availability and Active Days
+            {
+              key: 'availabilityStatus',
+              label: 'פנויים בלבד', // Hardcoded or needs dict update
+              icon: <Heart className="w-4 h-4" />,
+              gradient: 'from-pink-500 to-rose-500',
+              value: filters.availabilityStatus === 'AVAILABLE',
+              onChange: (checked: boolean) =>
+                onFiltersChange({
+                  ...filters,
+                  availabilityStatus: checked ? 'AVAILABLE' : undefined,
+                }),
+            },
+            {
+              key: 'lastActiveDays',
+              label: 'פעילים לאחרונה (7 ימים)', // Hardcoded or needs dict update
+              icon: <Activity className="w-4 h-4" />,
+              gradient: 'from-blue-500 to-cyan-500',
+              value: filters.lastActiveDays === 7,
+              onChange: (checked: boolean) =>
+                onFiltersChange({
+                  ...filters,
+                  lastActiveDays: checked ? 7 : undefined,
+                }),
+            },
           ].map((item) => (
             <div
               key={item.key}
-              className="flex items-center justify-between p-4 bg-white/60 backdrop-blur-sm rounded-xl shadow-lg border border-gray-100/50 hover:bg-white/80 transition-all duration-300"
+              className="flex items-center justify-between p-3 bg-white/60 backdrop-blur-sm rounded-xl shadow-lg border border-gray-100/50 hover:bg-white/80 transition-all duration-300"
             >
               <div className="flex items-center gap-3">
                 <div
@@ -555,18 +687,26 @@ const GenderFilterPanel = ({
                 >
                   {item.icon}
                 </div>
-                <span className="font-medium text-gray-800">{item.label}</span>
+                <span className="font-medium text-gray-800 text-sm">
+                  {item.label}
+                </span>
               </div>
               <Switch
                 checked={
-                  (filters?.[item.key as keyof typeof filters] as boolean) ||
-                  false
+                  item.value !== undefined
+                    ? item.value
+                    : (filters?.[
+                        item.key as keyof typeof filters
+                      ] as boolean) || false
                 }
-                onCheckedChange={(checked) =>
-                  onFiltersChange({
-                    ...filters,
-                    [item.key]: checked || undefined,
-                  })
+                onCheckedChange={
+                  item.onChange
+                    ? item.onChange
+                    : (checked) =>
+                        onFiltersChange({
+                          ...filters,
+                          [item.key]: checked || undefined,
+                        })
                 }
                 className="data-[state=checked]:bg-gradient-to-r data-[state=checked]:from-emerald-500 data-[state=checked]:to-green-500"
               />
@@ -602,44 +742,6 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
     'male' | 'female'
   >('male');
 
-  const POPULAR_FILTERS: PopularFilterOption[] = [
-    {
-      id: 'activeRecently',
-      label: dict.popularFilters.activeRecently,
-      icon: <Activity className="w-4 h-4" />,
-      filter: { lastActiveDays: 7 },
-      gradient: 'from-blue-500 to-cyan-500',
-    },
-    {
-      id: 'verifiedOnly',
-      label: dict.popularFilters.verifiedOnly,
-      icon: <Shield className="w-4 h-4" />,
-      filter: { isVerified: true },
-      gradient: 'from-emerald-500 to-green-500',
-    },
-    {
-      id: 'withRecommendations',
-      label: dict.popularFilters.withRecommendations,
-      icon: <Award className="w-4 h-4" />,
-      filter: { hasReferences: true },
-      gradient: 'from-amber-500 to-orange-500',
-    },
-    {
-      id: 'availableOnly',
-      label: dict.popularFilters.availableOnly,
-      icon: <Heart className="w-4 h-4" />,
-      filter: { availabilityStatus: 'AVAILABLE' },
-      gradient: 'from-pink-500 to-rose-500',
-    },
-    {
-      id: 'completeProfiles',
-      label: dict.popularFilters.completeProfiles,
-      icon: <Star className="w-4 h-4" />,
-      filter: { isProfileComplete: true },
-      gradient: 'from-purple-500 to-indigo-500',
-    },
-  ];
-
   const handleSavePreset = () => {
     if (presetName && onSavePreset) {
       onSavePreset(presetName);
@@ -656,9 +758,6 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
       heightRange: { min: value[0], max: value[1] },
     });
   };
-  const handleApplyPopularFilter = (filter: Partial<CandidatesFilter>) => {
-    onFiltersChange({ ...filters, ...filter });
-  };
 
   const countActiveFilters = (category: string): number => {
     let count = 0;
@@ -674,30 +773,23 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
         )
           count++;
         if (filters.cities && filters.cities.length > 0) count++;
-        if (filters.religiousLevel) count++;
-        
-        // Moved from Advanced to Basic
+        if (filters.religiousLevel && filters.religiousLevel.length > 0)
+          count++; // Updated for array
+
         if (
           filters.heightRange &&
           (filters.heightRange.min !== defaultFilters.heightRange?.min ||
             filters.heightRange.max !== defaultFilters.heightRange?.max)
         )
           count++;
-        // These are also theoretically advanced but weren't rendered in the UI
-        if (filters.occupations && filters.occupations.length > 0) count++;
-        if (filters.educationLevel) count++;
-        if (filters.maritalStatus) count++;
-        break;
 
-      // 'advanced' case removed
-
-      case 'status':
+        // Status counts now part of basic panel generally
         if (filters.availabilityStatus) count++;
         if (filters.isVerified) count++;
         if (filters.hasReferences) count++;
         if (filters.lastActiveDays) count++;
         if (filters.isProfileComplete) count++;
-        if (filters.userStatus) count++;
+
         break;
     }
     return count;
@@ -717,7 +809,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
       <div className="relative">
         {!compactMode && (
           <div className="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 p-6">
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
                 <div className="p-3 rounded-full bg-white/20 backdrop-blur-sm shadow-lg">
                   <FilterIcon className="w-8 h-8 text-white" />
@@ -766,33 +858,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
                 </TooltipProvider>
               </div>
             </div>
-            <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
-              {POPULAR_FILTERS.map((option) => (
-                <motion.div key={option.id} whileHover={{ scale: 1.05 }}>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleApplyPopularFilter(option.filter)}
-                    className={cn(
-                      'w-full h-auto min-h-24 p-3 bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-xl transition-all duration-300 text-white flex flex-col items-center gap-2'
-                    )}
-                  >
-                    <div
-                      className={cn(
-                        'p-2 rounded-lg bg-gradient-to-r',
-                        option.gradient,
-                        'text-white shadow-lg'
-                      )}
-                    >
-                      {option.icon}
-                    </div>
-                    <span className="text-xs font-medium text-center leading-tight whitespace-normal">
-                      {option.label}
-                    </span>
-                  </Button>
-                </motion.div>
-              ))}
-            </div>
+            {/* REMOVED POPULAR FILTERS GRID AS REQUESTED */}
           </div>
         )}
         <AnimatePresence>
@@ -939,21 +1005,13 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
               onValueChange={setActiveTab}
               className="w-full"
             >
-              {/* REMOVED ADVANCED TAB - GRID COLS CHANGED TO 3 */}
-              <TabsList className="grid grid-cols-3 w-full bg-gradient-to-r from-indigo-50 to-purple-50 p-2 rounded-2xl shadow-lg border border-white/50 h-auto">
+              <TabsList className="grid grid-cols-2 w-full bg-gradient-to-r from-indigo-50 to-purple-50 p-2 rounded-2xl shadow-lg border border-white/50 h-auto">
                 {[
                   {
                     value: 'basic',
                     label: dict.tabs.basic,
                     icon: User,
                     gradient: 'from-blue-500 to-cyan-500',
-                  },
-                  // REMOVED ADVANCED ITEM
-                  {
-                    value: 'status',
-                    label: dict.tabs.status,
-                    icon: Activity,
-                    gradient: 'from-emerald-500 to-green-500',
                   },
                   {
                     value: 'saved',
@@ -988,6 +1046,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
               </TabsList>
               <div className="mt-6 space-y-6">
                 <TabsContent value="basic" className="space-y-6 m-0">
+                  {/* Gender */}
                   <FilterSection
                     title={dict.sections.gender}
                     icon={<User className="w-5 h-5" />}
@@ -1046,10 +1105,28 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
                       </Button>
                     )}
                   </FilterSection>
+
+                  {/* Religious Level (Multi-Select) */}
+                  <FilterSection
+                    title={dict.religiousLevelLabel}
+                    icon={<Scroll className="w-5 h-5" />}
+                    gradient="from-amber-500 to-orange-500"
+                    defaultOpen={true}
+                    badge={filters.religiousLevel?.length || undefined}
+                  >
+                    <ReligiousMultiSelect
+                      selectedValues={filters.religiousLevel || []}
+                      onChange={(values) =>
+                        onFiltersChange({ ...filters, religiousLevel: values })
+                      }
+                      dict={dict}
+                    />
+                  </FilterSection>
+
+                  {/* Age */}
                   <FilterSection
                     title={dict.sections.age}
                     icon={<Calendar className="w-5 h-5" />}
-                    defaultOpen={true}
                     gradient="from-emerald-500 to-green-500"
                     badge={
                       filters.ageRange &&
@@ -1068,13 +1145,19 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
                           <SafeNumberInput
                             min={AGE_RANGE.min}
                             max={AGE_RANGE.max}
-                            value={filters.ageRange?.min || AGE_RANGE.default.min}
+                            value={
+                              filters.ageRange?.min || AGE_RANGE.default.min
+                            }
                             onCommit={(val) => {
-                                const currentMax = filters.ageRange?.max || AGE_RANGE.default.max;
-                                onFiltersChange({
-                                  ...filters,
-                                  ageRange: { min: Math.min(val, currentMax), max: currentMax },
-                                });
+                              const currentMax =
+                                filters.ageRange?.max || AGE_RANGE.default.max;
+                              onFiltersChange({
+                                ...filters,
+                                ageRange: {
+                                  min: Math.min(val, currentMax),
+                                  max: currentMax,
+                                },
+                              });
                             }}
                             className="w-16 text-center text-lg font-bold text-emerald-700 focus:outline-none bg-transparent"
                           />
@@ -1089,13 +1172,19 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
                           <SafeNumberInput
                             min={AGE_RANGE.min}
                             max={AGE_RANGE.max}
-                            value={filters.ageRange?.max || AGE_RANGE.default.max}
+                            value={
+                              filters.ageRange?.max || AGE_RANGE.default.max
+                            }
                             onCommit={(val) => {
-                                const currentMin = filters.ageRange?.min || AGE_RANGE.default.min;
-                                onFiltersChange({
-                                  ...filters,
-                                  ageRange: { min: currentMin, max: Math.max(val, currentMin) },
-                                });
+                              const currentMin =
+                                filters.ageRange?.min || AGE_RANGE.default.min;
+                              onFiltersChange({
+                                ...filters,
+                                ageRange: {
+                                  min: currentMin,
+                                  max: Math.max(val, currentMin),
+                                },
+                              });
                             }}
                             className="w-16 text-center text-lg font-bold text-emerald-700 focus:outline-none bg-transparent"
                           />
@@ -1114,15 +1203,11 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
                           className="h-6 [&>span]:bg-gradient-to-r [&>span]:from-emerald-500 [&>span]:to-green-500"
                           dir="rtl"
                         />
-                        <div className="flex justify-between mt-2 px-1 text-xs text-gray-500">
-                          <span>{AGE_RANGE.min}</span>
-                          <span>{AGE_RANGE.max}</span>
-                        </div>
                       </div>
                     </div>
                   </FilterSection>
 
-                  {/* MOVED HEIGHT SECTION FROM ADVANCED TO BASIC */}
+                  {/* Height */}
                   <FilterSection
                     title={dict.sections.height}
                     icon={<Ruler className="w-5 h-5" />}
@@ -1144,13 +1229,21 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
                           <SafeNumberInput
                             min={HEIGHT_RANGE.min}
                             max={HEIGHT_RANGE.max}
-                            value={filters.heightRange?.min || HEIGHT_RANGE.default.min}
+                            value={
+                              filters.heightRange?.min ||
+                              HEIGHT_RANGE.default.min
+                            }
                             onCommit={(val) => {
-                                const currentMax = filters.heightRange?.max || HEIGHT_RANGE.default.max;
-                                onFiltersChange({
-                                  ...filters,
-                                  heightRange: { min: Math.min(val, currentMax), max: currentMax },
-                                });
+                              const currentMax =
+                                filters.heightRange?.max ||
+                                HEIGHT_RANGE.default.max;
+                              onFiltersChange({
+                                ...filters,
+                                heightRange: {
+                                  min: Math.min(val, currentMax),
+                                  max: currentMax,
+                                },
+                              });
                             }}
                             className="w-16 text-center text-lg font-bold text-indigo-700 focus:outline-none bg-transparent"
                           />
@@ -1165,13 +1258,21 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
                           <SafeNumberInput
                             min={HEIGHT_RANGE.min}
                             max={HEIGHT_RANGE.max}
-                            value={filters.heightRange?.max || HEIGHT_RANGE.default.max}
+                            value={
+                              filters.heightRange?.max ||
+                              HEIGHT_RANGE.default.max
+                            }
                             onCommit={(val) => {
-                                const currentMin = filters.heightRange?.min || HEIGHT_RANGE.default.min;
-                                onFiltersChange({
-                                  ...filters,
-                                  heightRange: { min: currentMin, max: Math.max(val, currentMin) },
-                                });
+                              const currentMin =
+                                filters.heightRange?.min ||
+                                HEIGHT_RANGE.default.min;
+                              onFiltersChange({
+                                ...filters,
+                                heightRange: {
+                                  min: currentMin,
+                                  max: Math.max(val, currentMin),
+                                },
+                              });
                             }}
                             className="w-16 text-center text-lg font-bold text-indigo-700 focus:outline-none bg-transparent"
                           />
@@ -1192,16 +1293,148 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
                           className="h-6 [&>span]:bg-gradient-to-r [&>span]:from-indigo-500 [&>span]:to-purple-500"
                           dir="rtl"
                         />
-                        <div className="flex justify-between mt-2 px-1 text-xs text-gray-500">
-                          <span>{HEIGHT_RANGE.min} ס&quot;מ</span>
-                          <span>{HEIGHT_RANGE.max} ס&quot;מ</span>
-                        </div>
                       </div>
                     </div>
                   </FilterSection>
-                </TabsContent>
 
-                {/* REMOVED ADVANCED TAB CONTENT */}
+                  {/* City Selection */}
+                  <FilterSection
+                    title={dict.cityLabel}
+                    icon={<MapPin className="w-5 h-5" />}
+                    gradient="from-cyan-500 to-teal-500"
+                  >
+                    <div className="bg-white/80 backdrop-blur-sm rounded-xl p-3 shadow-lg border border-gray-100/50">
+                      <Select
+                        value={filters.cities?.[0] || ''}
+                        onValueChange={(value) => {
+                          const newValue = value === 'all' ? undefined : value;
+                          onFiltersChange({
+                            ...filters,
+                            cities: newValue ? [newValue] : [],
+                          });
+                        }}
+                      >
+                        <SelectTrigger className="w-full border-0 bg-transparent focus:ring-2 focus:ring-emerald-200 rounded-xl">
+                          <SelectValue
+                            placeholder={dict.placeholders.selectCity}
+                          />
+                        </SelectTrigger>
+                        <SelectContent className="bg-white/95 backdrop-blur-sm border-0 shadow-2xl rounded-xl">
+                          <SelectItem
+                            value="all"
+                            className="hover:bg-emerald-50"
+                          >
+                            {dict.options.all}
+                          </SelectItem>
+                          {POPULAR_CITIES.map((c) => (
+                            <SelectItem
+                              key={c}
+                              value={c}
+                              className="hover:bg-emerald-50"
+                            >
+                              {c}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </FilterSection>
+
+                  {/* Consolidated Status Section (Moved from header/advanced) */}
+                  <FilterSection
+                    title="סטטוס וסינונים נוספים"
+                    icon={<Activity className="w-5 h-5" />}
+                    gradient="from-pink-500 to-rose-500"
+                    defaultOpen={true}
+                  >
+                    <div className="space-y-4">
+                      {[
+                        {
+                          key: 'availabilityStatus',
+                          label: 'פנויים בלבד',
+                          icon: <Heart className="w-4 h-4" />,
+                          gradient: 'from-pink-500 to-rose-500',
+                          value: filters.availabilityStatus === 'AVAILABLE',
+                          onChange: (checked: boolean) =>
+                            onFiltersChange({
+                              ...filters,
+                              availabilityStatus: checked
+                                ? 'AVAILABLE'
+                                : undefined,
+                            }),
+                        },
+                        {
+                          key: 'lastActiveDays',
+                          label: 'פעילים לאחרונה (7 ימים)',
+                          icon: <Activity className="w-4 h-4" />,
+                          gradient: 'from-blue-500 to-cyan-500',
+                          value: filters.lastActiveDays === 7,
+                          onChange: (checked: boolean) =>
+                            onFiltersChange({
+                              ...filters,
+                              lastActiveDays: checked ? 7 : undefined,
+                            }),
+                        },
+                        {
+                          key: 'isProfileComplete',
+                          label: dict.fullProfileLabel,
+                          icon: <Star className="w-4 h-4" />,
+                          gradient: 'from-purple-500 to-indigo-500',
+                        },
+                        {
+                          key: 'isVerified',
+                          label: dict.verifiedOnlyLabel,
+                          icon: <Shield className="w-4 h-4" />,
+                          gradient: 'from-emerald-500 to-green-500',
+                        },
+                        {
+                          key: 'hasReferences',
+                          label: dict.withRecommendationsLabel,
+                          icon: <Award className="w-4 h-4" />,
+                          gradient: 'from-amber-500 to-orange-500',
+                        },
+                      ].map((item) => (
+                        <div
+                          key={item.key}
+                          className="flex items-center justify-between p-3 bg-white/60 backdrop-blur-sm rounded-xl shadow-lg border border-gray-100/50 hover:bg-white/80 transition-all duration-300"
+                        >
+                          <div className="flex items-center gap-3">
+                            <div
+                              className={cn(
+                                'p-2 rounded-lg bg-gradient-to-r text-white',
+                                item.gradient
+                              )}
+                            >
+                              {item.icon}
+                            </div>
+                            <span className="font-medium text-gray-800 text-sm">
+                              {item.label}
+                            </span>
+                          </div>
+                          <Switch
+                            checked={
+                              item.value !== undefined
+                                ? item.value
+                                : (filters?.[
+                                    item.key as keyof typeof filters
+                                  ] as boolean) || false
+                            }
+                            onCheckedChange={
+                              item.onChange
+                                ? item.onChange
+                                : (checked) =>
+                                    onFiltersChange({
+                                      ...filters,
+                                      [item.key]: checked || undefined,
+                                    })
+                            }
+                            className="data-[state=checked]:bg-gradient-to-r data-[state=checked]:from-emerald-500 data-[state=checked]:to-green-500"
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </FilterSection>
+                </TabsContent>
 
                 <TabsContent value="saved" className="space-y-6 m-0">
                   {savedFilters.length === 0 ? (

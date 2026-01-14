@@ -1027,6 +1027,7 @@
         "storyOf": "הסיפור של {{name}}",
         "ageLabel": "גיל: {{age}}",
          "heightLabel": "{{height}} ס״מ",
+          "languagesLabel": "שפות: {{languages}}", 
         "availabilityBadge": {
           "available_short": "זמין",
           "unavailable_short": "לא זמין",

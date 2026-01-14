@@ -439,6 +439,18 @@
         "resetTooltip": "Reset all filters",
         "saveTooltip": "Save current filter"
       },
+        "verifiedOnlyLabel": "Verified Only",
+  "withRecommendationsLabel": "With Recommendations",
+  "fullProfileLabel": "Full Profile",
+  "religiousLevelLabel": "Religious Level",
+  "cityLabel": "City",
+  "placeholders": {
+    "selectCity": "Select city"
+  },
+  "options": {
+    "all": "All"
+  },
+
       "popularFilters": {
         "activeRecently": "Recently Active",
         "verifiedOnly": "Verified Only",
@@ -546,6 +558,7 @@
         "aiMatch": "{{score}}% Match",
         "manualEntry": "Manual Candidate",
         "heightLabel": "{{height}} cm",
+        "languagesLabel": "Languages: {{languages}}",
         "noImage": "No Image",
         "yearsSuffix": "years",
         "lastActivePrefix": "Active",

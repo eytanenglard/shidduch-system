@@ -97,6 +97,7 @@ import {
   Phone as PhoneIcon,
   Ruler,
   Stars,
+  Languages,
   Sparkle,
   Sunrise,
   TreePine,
@@ -2168,6 +2169,32 @@ const ProfileHeader: React.FC<{
     characterTraitMap,
     hobbiesMap,
   ]);
+const spokenLanguages = useMemo(() => {
+    const rawLangs = [
+      profile.nativeLanguage,
+      ...(profile.additionalLanguages || [])
+    ].filter((l): l is string => !!l); // <--- תיקון: הגדרת טייפ מפורשת
+
+    // מילון המרה לשפות נפוצות
+    const langMap: Record<string, string> = {
+      hebrew: 'עברית',
+      english: 'אנגלית',
+      russian: 'רוסית',
+      french: 'צרפתית',
+      spanish: 'ספרדית',
+      amharic: 'אמהרית',
+      arabic: 'ערבית',
+      german: 'גרמנית',
+      italian: 'איטלקית'
+    };
+
+    return rawLangs.map(lang => {
+      if (locale === 'he') {
+        return langMap[lang.toLowerCase()] || lang;
+      }
+      return lang.charAt(0).toUpperCase() + lang.slice(1);
+    }).join(', ');
+  }, [profile.nativeLanguage, profile.additionalLanguages, locale]);
 
   return (
     <div className="relative overflow-hidden">
@@ -2399,6 +2426,29 @@ const ProfileHeader: React.FC<{
                       {dict.header.heightLabel.replace(
                         '{{height}}',
                         profile.height.toString()
+                      )}
+                    </span>
+                  </div>
+                )}
+                {spokenLanguages && (
+                  <div className="flex items-center gap-1 border-s ps-3 border-gray-300">
+                    <Languages
+                      className={cn(
+                        'text-blue-500 flex-shrink-0',
+                        compact ? 'w-3 h-3' : 'w-4 h-4 sm:w-5 sm:h-5'
+                      )}
+                    />
+                    <span
+                      className={cn(
+                        'font-semibold text-gray-700',
+                        compact
+                          ? 'text-xs sm:text-sm'
+                          : 'text-sm sm:text-base md:text-lg'
+                      )}
+                    >
+                      {dict.header.languagesLabel.replace(
+                        '{{languages}}',
+                        spokenLanguages
                       )}
                     </span>
                   </div>

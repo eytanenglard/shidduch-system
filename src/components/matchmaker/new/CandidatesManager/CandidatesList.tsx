@@ -548,6 +548,9 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
         <DialogContent
           className="max-w-6xl max-h-[90vh] overflow-y-auto p-0"
           dir={locale === 'he' ? 'rtl' : 'ltr'}
+          onCloseAutoFocus={(e) => {
+            e.preventDefault(); // מונע מהדפדפן לגלול למעלה בניסיון להחזיר פוקוס
+          }}
         >
           {/* Custom Sticky Header */}
           <div className="sticky top-0 z-50 flex items-center justify-between px-6 py-4 bg-white/95 backdrop-blur-sm border-b border-gray-100">

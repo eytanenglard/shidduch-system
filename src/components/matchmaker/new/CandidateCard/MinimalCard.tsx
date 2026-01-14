@@ -26,6 +26,7 @@ import {
   MoreHorizontal,
   Mail,
   Ruler,
+  Languages,
   Scroll,
   Globe,
   AlertTriangle,
@@ -109,6 +110,7 @@ interface MinimalCandidateCardProps {
   aiTargetName?: string; // שם האדם שמבוצעת עבורו ההתאמה
   dict: MatchmakerPageDictionary['candidatesManager']['list']['minimalCard'] & {
     heightUnit?: string;
+    languagesLabel?: string;
   };
 }
 
@@ -272,7 +274,38 @@ const MinimalCandidateCard: React.FC<MinimalCandidateCardProps> = ({
   const availabilityBadge = getAvailabilityBadge();
   const isManualEntry = candidate.source === UserSource.MANUAL_ENTRY;
   const qualityScore = getQualityScore();
+  // אחרי שורה 439:
+  // המרת שפות
+  const spokenLanguages = (() => {
+    const rawLangs = [
+      candidate.profile.nativeLanguage,
+      ...(candidate.profile.additionalLanguages || []),
+    ].filter((l): l is string => !!l); // <--- תיקון: הגדרת טייפ מפורשת
 
+    const langMap: Record<string, string> = {
+      hebrew: 'עברית',
+      english: 'אנגלית',
+      russian: 'רוסית',
+      french: 'צרפתית',
+      spanish: 'ספרדית',
+      amharic: 'אמהרית',
+      arabic: 'ערבית',
+      german: 'גרמנית',
+      italian: 'איטלקית',
+    };
+
+    const isHebrew =
+      dict.heightLabel && /[\u0590-\u05FF]/.test(dict.heightLabel);
+
+    return rawLangs
+      .map((lang) => {
+        if (isHebrew) {
+          return langMap[lang.toLowerCase()] || lang;
+        }
+        return lang.charAt(0).toUpperCase() + lang.slice(1);
+      })
+      .join(', ');
+  })();
   return (
     <motion.div
       whileHover={{ y: -6, scale: 1.02 }}
@@ -510,6 +543,18 @@ const MinimalCandidateCard: React.FC<MinimalCandidateCardProps> = ({
                       )}
                     </span>
                     <Ruler className="w-4 h-4 text-amber-600" />
+                  </div>
+                )}
+                {/* שפות - חדש */}
+                {spokenLanguages && dict.languagesLabel && (
+                  <div className="flex items-center justify-end gap-2 p-2 bg-pink-50 rounded-lg hover:bg-pink-100 transition-colors duration-200">
+                    <span className="text-pink-800 text-sm font-medium truncate max-w-[150px]">
+                      {dict.languagesLabel.replace(
+                        '{{languages}}',
+                        spokenLanguages
+                      )}
+                    </span>
+                    <Languages className="w-4 h-4 text-pink-600" />
                   </div>
                 )}
               </div>

@@ -2428,6 +2428,8 @@ export type ProfileCardDisplayDict = {
     storyOf: string; // Placeholder: {{name}}
     ageLabel: string; // Placeholder: {{age}}
      heightLabel: string;
+       languagesLabel: string; // <--- הוסף שורה זו
+
     availabilityBadge: {
       available_short: string;
       unavailable_short: string;

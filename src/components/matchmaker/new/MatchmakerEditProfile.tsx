@@ -505,8 +505,8 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
           >
             {/* --- HEADER --- */}
             <DialogHeader className="p-6 border-b bg-gradient-to-r from-blue-50/50 to-white flex-shrink-0">
-              <div className="flex items-center justify-between">
-                <div>
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex-1 min-w-0">
                   <DialogTitle
                     className={cn(
                       'text-2xl font-bold text-primary/90 flex items-center gap-3',
@@ -541,12 +541,28 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
                     )}
                   </DialogDescription>
                 </div>
-                {isSaving && (
-                  <div className="flex items-center bg-blue-50 text-blue-700 py-1 px-3 rounded-full text-sm border border-blue-100 shadow-sm">
-                    <Loader2 className="w-3 h-3 animate-spin mr-2" />
-                    {dict.header.saving}
-                  </div>
-                )}
+
+                {/* איזור הפעולות בצד שמאל/ימין (תלוי שפה) - שמירה וסגירה */}
+                <div className="flex items-center gap-2 shrink-0 self-start">
+                  {isSaving && (
+                    <div className="hidden sm:flex items-center bg-blue-50 text-blue-700 py-1 px-3 rounded-full text-sm border border-blue-100 shadow-sm">
+                      <Loader2 className="w-3 h-3 animate-spin mr-2" />
+                      {dict.header.saving}
+                    </div>
+                  )}
+
+                  {/* כפתור ה-X החדש */}
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={onClose}
+                    disabled={isSaving}
+                    className="h-10 w-10 rounded-full hover:bg-gray-100/80 transition-colors -mr-2 sm:mr-0"
+                    title={dict.footer.buttons.close || 'סגור'}
+                  >
+                    <X className="w-6 h-6 text-gray-500" />
+                  </Button>
+                </div>
               </div>
             </DialogHeader>
 

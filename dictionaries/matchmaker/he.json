@@ -367,6 +367,18 @@
         "resetTooltip": "איפוס כל הפילטרים",
         "saveTooltip": "שמירת הפילטר הנוכחי"
       },
+        "verifiedOnlyLabel": "מאומתים בלבד",
+  "withRecommendationsLabel": "עם המלצות",
+  "fullProfileLabel": "פרופיל מלא",
+  "religiousLevelLabel": "רמת דתיות",
+  "cityLabel": "עיר מגורים",
+  "placeholders": {
+    "selectCity": "בחר עיר"
+  },
+  "options": {
+    "all": "הכל"
+  },
+
       "popularFilters": {
         "activeRecently": "פעילים לאחרונה",
         "verifiedOnly": "מאומתים בלבד",
@@ -542,6 +554,7 @@
         "aiMatch": "{{score}}% התאמה",
         "manualEntry": "מועמד ידני",
          "heightLabel": "{{height}} ס״מ",
+         "languagesLabel": "{{languages}}", 
         "noImage": "אין תמונה",
         "yearsSuffix": "שנים",
         "lastActivePrefix": "פעיל/ה",
