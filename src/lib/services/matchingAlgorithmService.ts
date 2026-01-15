@@ -6,6 +6,7 @@ import prisma from "@/lib/prisma";
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { Gender, AvailabilityStatus } from "@prisma/client";
 import profileAiService from "./profileAiService";
+import type { GeneratedVirtualProfile } from './aiService';
 
 // ============================================================================
 // TYPES & INTERFACES
@@ -1627,6 +1628,239 @@ export async function findMatchesForUser(
   };
 }
 
+
+interface VirtualTargetUserData {
+  id: string;                    // ID של ה-VirtualProfile
+  firstName: string;             // "מועמד וירטואלי"
+  lastName: string;              // השם שהשדכן נתן
+  gender: Gender;
+  birthDate: Date;               // מחושב מ-inferredAge
+  age: number;
+  religiousLevel: string | null;
+  aiProfileSummary: {
+    personalitySummary: string;
+    lookingForSummary: string;
+  };
+  narrativeProfile?: string;
+  backgroundProfile?: BackgroundProfile;
+  isVirtual: true;               // מזהה שזה פרופיל וירטואלי
+}
+
+/**
+ * ממיר פרופיל וירטואלי למבנה שהאלגוריתם מצפה לו
+ */
+function convertVirtualToTargetUser(
+  virtualProfileId: string,
+  virtualProfileName: string | null,
+  generatedProfile: GeneratedVirtualProfile,
+  gender: Gender,
+  religiousLevel: string
+): VirtualTargetUserData {
+  // חישוב תאריך לידה משוער מהגיל
+  const currentYear = new Date().getFullYear();
+  const birthYear = currentYear - generatedProfile.inferredAge;
+  const estimatedBirthDate = new Date(birthYear, 0, 1); // 1 בינואר של שנת הלידה המשוערת
+
+  return {
+    id: virtualProfileId,
+    firstName: 'מועמד וירטואלי',
+    lastName: virtualProfileName || '',
+    gender,
+    birthDate: estimatedBirthDate,
+    age: generatedProfile.inferredAge,
+    religiousLevel,
+    aiProfileSummary: {
+      personalitySummary: generatedProfile.personalitySummary,
+      lookingForSummary: generatedProfile.lookingForSummary,
+    },
+    narrativeProfile: `
+שם: מועמד וירטואלי ${virtualProfileName || ''}
+גיל: ${generatedProfile.inferredAge}
+רמה דתית: ${religiousLevel}
+עיר: ${generatedProfile.inferredCity || 'לא צוין'}
+מקצוע: ${generatedProfile.inferredOccupation || 'לא צוין'}
+
+=== ניתוח אישיות ===
+${generatedProfile.personalitySummary}
+
+=== מה מחפש/ת ===
+${generatedProfile.lookingForSummary}
+
+=== תכונות מרכזיות ===
+${generatedProfile.keyTraits?.join(', ') || 'לא צוין'}
+
+=== מחפש בבן/בת זוג ===
+${generatedProfile.idealPartnerTraits?.join(', ') || 'לא צוין'}
+
+=== קווים אדומים ===
+${generatedProfile.dealBreakers?.join(', ') || 'אין'}
+    `.trim(),
+    isVirtual: true,
+  };
+}
+
+/**
+ * מוצא התאמות עבור פרופיל וירטואלי.
+ * משתמש באותו אלגוריתם כמו findMatchesForUser אבל עם פרופיל וירטואלי כ-target.
+ * 
+ * @param virtualProfileId - ID של הפרופיל הוירטואלי
+ * @param virtualProfileName - שם שהשדכן נתן לפרופיל
+ * @param generatedProfile - הפרופיל שה-AI יצר
+ * @param gender - מגדר המועמד הוירטואלי
+ * @param religiousLevel - רמה דתית
+ * @param matchmakerId - ID של השדכן
+ * @param editedSummary - סיכום ערוך (אם השדכן ערך)
+ */
+export async function findMatchesForVirtualUser(
+  virtualProfileId: string,
+  virtualProfileName: string | null,
+  generatedProfile: GeneratedVirtualProfile,
+  gender: Gender,
+  religiousLevel: string,
+  matchmakerId: string,
+  editedSummary?: string | null
+): Promise<{
+  matches: MatchResult[];
+  fromCache: false;
+  meta: {
+    algorithmVersion: string;
+    totalCandidatesScanned: number;
+    isVirtualSearch: true;
+  };
+}> {
+  console.log(`\n========================================`);
+  console.log(`[Matching V3.2 - Virtual] Starting match search for virtual profile: ${virtualProfileId}`);
+  console.log(`[Matching V3.2 - Virtual] Gender: ${gender}, Religious: ${religiousLevel}`);
+  console.log(`========================================\n`);
+
+  // 1. המרת הפרופיל הוירטואלי למבנה שהאלגוריתם מצפה לו
+  const virtualTargetUser = convertVirtualToTargetUser(
+    virtualProfileId,
+    virtualProfileName,
+    generatedProfile,
+    gender,
+    religiousLevel
+  );
+
+  // אם יש סיכום ערוך, נשתמש בו במקום הסיכום המקורי
+  if (editedSummary?.trim()) {
+    virtualTargetUser.narrativeProfile = editedSummary.trim();
+    virtualTargetUser.aiProfileSummary.personalitySummary = editedSummary.trim();
+  }
+
+  // 2. שליפת כל המועמדים הרלוונטיים (מגדר הפוך)
+  const allCandidates = await fetchAllRelevantCandidates(virtualTargetUser as any);
+  
+  if (allCandidates.length === 0) {
+    console.log(`[Matching V3.2 - Virtual] No candidates found after filtering`);
+    return {
+      matches: [],
+      fromCache: false,
+      meta: { 
+        algorithmVersion: 'v3.2-virtual', 
+        totalCandidatesScanned: 0,
+        isVirtualSearch: true 
+      }
+    };
+  }
+
+  console.log(`[Matching V3.2 - Virtual] Found ${allCandidates.length} potential candidates`);
+
+  // 3. הכנת פרופיל ה-Target (שימוש בנרטיב שיצרנו)
+  const targetProfile = virtualTargetUser.narrativeProfile || '';
+  
+  // 4. מידע רקע (בסיסי לפרופיל וירטואלי)
+  const targetBackgroundInfo = `
+קטגוריה: לא ידוע (פרופיל וירטואלי)
+שפת אם: עברית (הנחה)
+שפות נוספות: אין מידע
+
+=== הנחיות מיוחדות ===
+זהו פרופיל וירטואלי שנוצר מטקסט חופשי. 
+יש להתייחס לנתונים כאומדן ולא כעובדות מאומתות.
+  `.trim();
+
+  // 5. סריקה ראשונית ב-batches
+  const firstPassResults = await runFirstPassAnalysis(targetProfile, targetBackgroundInfo, allCandidates);
+  
+  if (firstPassResults.length === 0) {
+    console.log(`[Matching V3.2 - Virtual] No results from First Pass`);
+    return {
+      matches: [],
+      fromCache: false,
+      meta: { 
+        algorithmVersion: 'v3.2-virtual', 
+        totalCandidatesScanned: allCandidates.length,
+        isVirtualSearch: true 
+      }
+    };
+  }
+
+  // 6. בחירת Top 15
+  const topCandidates = firstPassResults.slice(0, TOP_CANDIDATES_COUNT);
+  
+  const topCandidatesWithData = topCandidates.map(result => {
+    const candidateData = allCandidates.find(c => c.userId === result.userId)!;
+    return {
+      ...candidateData,
+      ...result
+    };
+  });
+
+  // 7. סריקה מעמיקה של Top 15
+  const deepAnalysisResults = await runDeepAnalysis(targetProfile, targetBackgroundInfo, topCandidatesWithData);
+
+  // 8. מיזוג התוצאות
+  const finalResults: MatchResult[] = deepAnalysisResults.map(deepResult => {
+    const firstPassResult = topCandidates.find(fp => fp.userId === deepResult.userId)!;
+    const candidateData = allCandidates.find(c => c.userId === deepResult.userId)!;
+
+    return {
+      userId: deepResult.userId,
+      firstName: candidateData.firstName,
+      lastName: candidateData.lastName,
+      
+      firstPassScore: firstPassResult.totalScore,
+      finalScore: deepResult.finalScore,
+      
+      scoreBreakdown: firstPassResult.breakdown,
+      
+      shortReasoning: firstPassResult.shortReasoning,
+      detailedReasoning: deepResult.detailedReasoning,
+      
+      rank: deepResult.rank,
+      backgroundMultiplier: firstPassResult.backgroundMultiplier,
+      backgroundCompatibility: candidateData.backgroundMatch?.compatibility,
+      ageScore: candidateData.ageScore?.score,
+    };
+  });
+
+  finalResults.sort((a, b) => (a.rank || 999) - (b.rank || 999));
+
+  console.log(`\n[Matching V3.2 - Virtual] ✅ Completed! Found ${finalResults.length} matches`);
+  console.log(`[Matching V3.2 - Virtual] Total candidates scanned: ${allCandidates.length}`);
+  if (finalResults.length > 0) {
+    console.log(`[Matching V3.2 - Virtual] Final Top 3:`);
+    finalResults.slice(0, 3).forEach((m, i) => {
+      console.log(`  ${i + 1}. ${m.firstName} ${m.lastName} - Final: ${m.finalScore}`);
+    });
+  }
+  console.log(`========================================\n`);
+
+  return {
+    matches: finalResults,
+    fromCache: false,
+    meta: { 
+      algorithmVersion: 'v3.2-virtual',
+      totalCandidatesScanned: allCandidates.length,
+      isVirtualSearch: true
+    }
+  };
+}
+
+
+
+
 // ============================================================================
 // ADDITIONAL EXPORTS
 // ============================================================================
@@ -1647,6 +1881,7 @@ export const matchingAlgorithmService = {
   createBackgroundProfile,
   calculateBackgroundMatch,
   analyzeTextLanguage,
+  findMatchesForVirtualUser, 
 };
 
 export default matchingAlgorithmService;

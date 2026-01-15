@@ -9,6 +9,8 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { UserRole } from "@prisma/client";
 import prisma from "@/lib/prisma";
+import { findMatchesForVirtualUser } from '@/lib/services/matchingAlgorithmService';
+import { findMatchesForVirtualUserVector } from '@/lib/services/vectorMatchingService';
 
 export const dynamic = 'force-dynamic';
 
@@ -36,16 +38,78 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
     // Parse body
     const body = await req.json();
-    const { targetUserId, forceRefresh = false, method = 'algorithmic' } = body;
+    const { 
+      targetUserId, 
+      forceRefresh = false, 
+      method = 'algorithmic',
+      // 🆕 פרמטרים לחיפוש וירטואלי
+      isVirtualSearch = false,
+      virtualProfileId,
+      virtualProfile,
+      gender,
+      religiousLevel,
+      editedSummary,
+    } = body;
 
+    const matchmakerId = session.user.id;
+
+    // 🆕 בדיקה אם זה חיפוש וירטואלי
+    if (isVirtualSearch) {
+      if (!virtualProfileId || !virtualProfile || !gender || !religiousLevel) {
+        return NextResponse.json({ 
+          success: false, 
+          error: "Missing required virtual profile parameters" 
+        }, { status: 400 });
+      }
+
+      console.log(`[MatchingJob] 🔮 Virtual search request from ${session.user.email}`);
+      console.log(`[MatchingJob] Virtual Profile: ${virtualProfileId}, Method: ${method}`);
+
+      // יצירת Job חדש לחיפוש וירטואלי
+      const newJob = await prisma.matchingJob.create({
+        data: {
+          targetUserId: virtualProfileId, // שימוש ב-ID של הפרופיל הוירטואלי
+          matchmakerId,
+          method: `${method}-virtual`,
+          status: 'pending',
+          progress: 0,
+          progressMessage: 'מתחיל חיפוש וירטואלי...'
+        }
+      });
+
+      console.log(`[MatchingJob] 🆕 Created virtual job: ${newJob.id}`);
+
+      // הפעלת עיבוד ברקע
+      triggerVirtualBackgroundProcessing(newJob.id, {
+        virtualProfileId,
+        virtualProfile,
+        gender,
+        religiousLevel,
+        editedSummary,
+        method,
+        matchmakerId,
+      }).catch(err => {
+        console.error(`[MatchingJob] Failed to trigger virtual background processing:`, err);
+      });
+
+      return NextResponse.json({
+        success: true,
+        jobId: newJob.id,
+        status: 'pending',
+        progress: 0,
+        progressMessage: 'מתחיל חיפוש וירטואלי...',
+        isVirtualSearch: true,
+      });
+    }
+
+    // =============== המשך הקוד הרגיל לחיפוש עם יוזר אמיתי ===============
+    
     if (!targetUserId || typeof targetUserId !== 'string') {
       return NextResponse.json({ 
         success: false, 
         error: "targetUserId is required" 
       }, { status: 400 });
     }
-
-    const matchmakerId = session.user.id;
 
     console.log(`[MatchingJob] 📋 New request from ${session.user.email}`);
     console.log(`[MatchingJob] Target: ${targetUserId}, Method: ${method}`);
@@ -71,7 +135,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       });
     }
 
-    // בדיקת Cache - אם יש תוצאות שמורות שלא פג תוקפן
+    // בדיקת Cache
     if (!forceRefresh) {
       const recentCompletedJob = await prisma.matchingJob.findFirst({
         where: {
@@ -79,7 +143,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
           method,
           status: 'completed',
           completedAt: { 
-            gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) // פחות מ-7 ימים
+            gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
           }
         },
         orderBy: { completedAt: 'desc' }
@@ -117,7 +181,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
     console.log(`[MatchingJob] 🆕 Created new job: ${newJob.id}`);
 
-    // 🔥 מפעיל את העיבוד ברקע - לא מחכים!
+    // הפעלת עיבוד ברקע
     triggerBackgroundProcessing(newJob.id).catch(err => {
       console.error(`[MatchingJob] Failed to trigger background processing:`, err);
     });
@@ -138,6 +202,41 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     }, { status: 500 });
   }
 }
+
+interface VirtualProcessingParams {
+  virtualProfileId: string;
+  virtualProfile: any;
+  gender: string;
+  religiousLevel: string;
+  editedSummary?: string;
+  method: string;
+  matchmakerId: string;
+}
+
+async function triggerVirtualBackgroundProcessing(
+  jobId: string, 
+  params: VirtualProcessingParams
+): Promise<void> {
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXTAUTH_URL || 'http://localhost:3000';
+  
+  console.log(`[MatchingJob] 🚀 Triggering virtual background processing for job: ${jobId}`);
+  
+  fetch(`${baseUrl}/api/ai/process-matching-job`, {
+    method: 'POST',
+    headers: { 
+      'Content-Type': 'application/json',
+      'x-internal-secret': process.env.INTERNAL_API_SECRET || 'default-secret'
+    },
+    body: JSON.stringify({ 
+      jobId,
+      isVirtualSearch: true,
+      ...params 
+    })
+  }).catch(err => {
+    console.log(`[MatchingJob] Virtual background fetch initiated (fire-and-forget)`);
+  });
+}
+
 
 // ============================================================================
 // GET - בדיקת סטטוס Job

@@ -5,7 +5,8 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { Prisma, UserRole } from "@prisma/client";
-import { updateUserAiProfile } from '@/lib/services/profileAiService';
+import { updateUserAiProfile, generateNarrativeProfile } from '@/lib/services/profileAiService';
+import aiService from '@/lib/services/aiService';
 import { Locale } from "../../../../../../i18n-config";
 import { emailService } from "@/lib/email/emailService";
 
@@ -96,8 +97,8 @@ export async function GET(
 }
 
 /**
- * PATCH: עדכון פרטי פרופיל של מועמד (כולל שמות פרטי/משפחה).
- * נגיש לשדכנים ומנהלים.
+ * PATCH: עדכון פרטי פרופיל של מועמד.
+ * מבצע עדכון ב-DB ומיד לאחר מכן מפעיל תהליך רקע לעדכון הווקטור וסיכום ה-AI.
  */
 export async function PATCH(
   req: NextRequest,
@@ -152,7 +153,7 @@ export async function PATCH(
 
     const incomingData = await req.json();
 
-    // --- חילוץ שדות User (שם פרטי/משפחה) מתוך שאר שדות הפרופיל ---
+    // --- חילוץ שדות User (שם פרטי/משפחה) ---
     const { firstName, lastName, ...profileDataRaw } = incomingData;
 
     // עדכון טבלת User אם נשלחו שמות
@@ -180,7 +181,6 @@ export async function PATCH(
     const arrayFields = ['additionalLanguages', 'profileCharacterTraits', 'profileHobbies', 'preferredReligiousLevels', 'preferredLocations', 'preferredEducation', 'preferredOccupations', 'preferredMaritalStatuses', 'preferredOrigins', 'preferredServiceTypes', 'preferredHeadCoverings', 'preferredKippahTypes', 'preferredCharacterTraits', 'preferredHobbies', 'preferredReligiousJourneys'];
     const dateFields = ['birthDate'];
 
-    // משתמשים ב-profileDataRaw כדי לא לכלול את firstName/lastName בלולאה זו
     for (const key in profileDataRaw) {
       if (Object.prototype.hasOwnProperty.call(profileDataRaw, key)) {
         const value = profileDataRaw[key];
@@ -221,9 +221,9 @@ export async function PATCH(
       }
     }
     
-let updatedProfile: any = null;
+    let updatedProfile: any = null;
 
-    // ביצוע עדכון פרופיל במידה ויש שדות רלוונטיים
+    // ביצוע עדכון פרופיל
     if (Object.keys(dataForUpdate).length > 0) {
         updatedProfile = await prisma.profile.update({
           where: { userId: candidateIdToUpdate },
@@ -231,10 +231,11 @@ let updatedProfile: any = null;
             ...dataForUpdate,
             updatedAt: new Date(),
             lastActive: new Date(),
-            needsAiProfileUpdate: true,
+            needsAiProfileUpdate: true, // מסמנים זמנית שצריך עדכון, עד שתהליך הרקע יסתיים
           }
         });
 
+        // בדיקה אם השתנה ה-manualEntryText לשליחת התראה
         const newSummaryText = incomingData.manualEntryText;
         const oldSummaryText = originalProfile?.manualEntryText;
 
@@ -248,16 +249,54 @@ let updatedProfile: any = null;
                 });
                 console.log(`[Email Notification] Profile summary update email sent successfully to ${candidateToUpdate.email}.`);
             } catch (emailError) {
-                console.error(`[Email Notification] Failed to send profile summary update email to ${candidateToUpdate.email}:`, emailError);
+                console.error(`[Email Notification] Failed to send profile summary update email`, emailError);
             }
         }
 
-        updateUserAiProfile(candidateIdToUpdate).catch(err => {
-            console.error(`[AI Profile Trigger - Matchmaker Update] Failed to update AI profile in the background for candidate ${candidateIdToUpdate}:`, err);
-        });
+        // =================================================================================
+        // 🔥 עדכון רקע (Background Process) - ווקטור + סיכום AI 🔥
+        // =================================================================================
+        // אנחנו מריצים את הפונקציה הזו ללא await כדי לא לעכב את התשובה ללקוח
+        (async () => {
+            try {
+                console.log(`[Background Update] Starting full AI update for user ${candidateIdToUpdate}...`);
+                
+                // 1. עדכון ווקטור (עבור מנוע החיפוש)
+                await updateUserAiProfile(candidateIdToUpdate);
+                console.log(`[Background Update] Vector updated successfully.`);
+
+                // 2. עדכון סיכום פרופיל (AI Summary)
+                // שלב א': יצירת הנרטיב המילולי המעודכן
+                const narrative = await generateNarrativeProfile(candidateIdToUpdate);
+                
+                if (narrative) {
+                    // שלב ב': שליחה ל-AI ליצירת הסיכום
+                    const summary = await aiService.generateProfileSummary(narrative);
+                    
+                    if (summary) {
+                        // שלב ג': שמירה ב-DB וכיבוי הדגל
+                        await prisma.profile.update({
+                            where: { userId: candidateIdToUpdate },
+                            data: { 
+                                aiProfileSummary: summary as any, // המרה לפורמט JSON של פריזמה
+                                needsAiProfileUpdate: false 
+                            }
+                        });
+                        console.log(`[Background Update] AI Summary updated and saved successfully.`);
+                    } else {
+                        console.warn(`[Background Update] AI returned null summary.`);
+                    }
+                } else {
+                    console.warn(`[Background Update] Failed to generate narrative.`);
+                }
+            } catch (err) {
+                console.error(`[Background Update] Failed for candidate ${candidateIdToUpdate}:`, err);
+            }
+        })();
+        // =================================================================================
     }
 
-    // אם לא עודכן פרופיל אבל הפעולה הצליחה (למשל רק עדכון שם), נחזיר את הפרופיל הקיים
+    // אם לא עודכן פרופיל (למשל רק שם משתמש), נשלוף את הקיים
     if (!updatedProfile) {
         updatedProfile = await prisma.profile.findUnique({ where: { userId: candidateIdToUpdate } });
     }
@@ -265,7 +304,6 @@ let updatedProfile: any = null;
     return NextResponse.json({
         success: true,
         profile: updatedProfile,
-        // מחזירים גם את פרטי ה-User המעודכנים למקרה שהפרונטנד צריך
         user: {
             firstName: firstName || candidateToUpdate.firstName,
             lastName: lastName || candidateToUpdate.lastName
@@ -274,23 +312,23 @@ let updatedProfile: any = null;
 
   } catch (error) {
     console.error("Error updating candidate profile:", error);
+    
     let errorMessage = "Failed to update candidate profile";
     let statusCode = 500;
 
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
         if (error.code === 'P2002') {
-            errorMessage = `שגיאה: נראה שאחד השדות שהזנת (כמו מייל או טלפון אם רלוונטי לפרופיל) כבר קיים במערכת עבור משתמש אחר. (${error.meta?.target})`;
+            errorMessage = `שגיאה: נראה שאחד השדות שהזנת (כמו מייל או טלפון) כבר קיים במערכת.`;
             statusCode = 409;
         } else if (error.code === 'P2025') {
-            errorMessage = "הפרופיל או המועמד המבוקש לעדכון לא נמצא.";
+            errorMessage = "הפרופיל לא נמצא.";
             statusCode = 404;
         } else {
             errorMessage = `שגיאת מסד נתונים (קוד ${error.code}).`;
         }
-        console.error("Prisma Known Error on PATCH:", error.code, error.message, error.meta);
+        console.error("Prisma Known Error on PATCH:", error.code, error.message);
     } else if (error instanceof Prisma.PrismaClientValidationError) {
-        const relevantError = error.message.split('\n').pop() || error.message;
-        errorMessage = `שגיאת ולידציה בעדכון הפרופיל: ${relevantError}`;
+        errorMessage = `שגיאת ולידציה בנתונים.`;
         statusCode = 400;
         console.error("Prisma Validation Error on PATCH:", error.message);
     } else if (error instanceof Error) {
@@ -322,7 +360,7 @@ export async function DELETE(
   const session = await getServerSession(authOptions);
 
   if (!session || !session.user || !session.user.id || !session.user.role) {
-    console.warn(`[${timestamp}] Unauthorized DELETE attempt: No active session or role. PerformingUserID: ${session?.user?.id}`);
+    console.warn(`[${timestamp}] Unauthorized DELETE attempt: No active session or role.`);
     return NextResponse.json(
       { success: false, error: 'אינך מורשה לבצע פעולה זו. לא זוהתה סשן פעיל או הרשאה.' },
       { status: 401 }
@@ -333,7 +371,7 @@ export async function DELETE(
   const performingUserRole = session.user.role as UserRole; 
 
   if (performingUserRole !== UserRole.ADMIN) {
-    console.warn(`[${timestamp}] Forbidden DELETE attempt: User ${performingUserId} (Role: ${performingUserRole}) is not ADMIN.`);
+    console.warn(`[${timestamp}] Forbidden DELETE attempt: User ${performingUserId} is not ADMIN.`);
     return NextResponse.json(
       { success: false, error: 'אינך מורשה לבצע פעולה זו. נדרשת הרשאת אדמין.' },
       { status: 403 }
@@ -341,7 +379,6 @@ export async function DELETE(
   }
 
   if (!candidateIdToDelete) {
-    console.warn(`[${timestamp}] Bad Request DELETE: candidateId is missing. PerformingUserID: ${performingUserId}`);
     return NextResponse.json(
         { success: false, error: 'מזהה מועמד (candidateId) חסר.' },
         { status: 400 }
@@ -349,9 +386,8 @@ export async function DELETE(
   }
 
   if (candidateIdToDelete === performingUserId) {
-    console.warn(`[${timestamp}] Forbidden DELETE: Admin ${performingUserId} attempting to delete their own account via candidate deletion endpoint.`);
     return NextResponse.json(
-        { success: false, error: 'מנהל אינו יכול למחוק את חשבונו האישי דרך ממשק זה. השתמש בהגדרות חשבון אישיות.' },
+        { success: false, error: 'מנהל אינו יכול למחוק את חשבונו האישי דרך ממשק זה.' },
         { status: 403 }
     );
   }
@@ -363,7 +399,6 @@ export async function DELETE(
     });
 
     if (!candidateToDelete) {
-      console.warn(`[${timestamp}] Candidate with ID ${candidateIdToDelete} not found for deletion. Requested by Admin: ${performingUserId}`);
       return NextResponse.json(
         { success: false, error: 'המועמד המבוקש למחיקה לא נמצא.' },
         { status: 404 }
@@ -374,41 +409,38 @@ export async function DELETE(
       where: { id: candidateIdToDelete },
     });
 
-    console.log(`[${timestamp}] Candidate ${candidateIdToDelete} (Email: ${candidateToDelete.email}, Role: ${candidateToDelete.role}) deleted successfully by admin ${performingUserId}`);
+    console.log(`[${timestamp}] Candidate ${candidateIdToDelete} deleted successfully by admin ${performingUserId}`);
     return NextResponse.json(
       { success: true, message: 'המועמד נמחק בהצלחה.' },
       { status: 200 }
     );
 
   } catch (error: unknown) {
-    console.error(`[${timestamp}] Candidate deletion failed for ID ${candidateIdToDelete}. Requested by Admin: ${performingUserId}. Error:`, error);
+    console.error(`[${timestamp}] Candidate deletion failed. Error:`, error);
     
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
         if (error.code === 'P2025') {
-            console.warn(`[${timestamp}] Prisma P2025 Error on DELETE: Attempted to delete non-existent candidate ${candidateIdToDelete}. Requested by Admin: ${performingUserId}`);
             return NextResponse.json(
-                { success: false, error: 'המועמד המבוקש למחיקה לא נמצא (שגיאת Prisma).'},
+                { success: false, error: 'המועמד המבוקש למחיקה לא נמצא.'},
                 { status: 404 }
             );
         }
-        console.error(`[${timestamp}] Prisma Known Error during DELETE for candidate ${candidateIdToDelete}: Code ${error.code}, Meta: ${JSON.stringify(error.meta)}. Requested by Admin: ${performingUserId}`);
         return NextResponse.json(
             { success: false, error: `שגיאת מסד נתונים במחיקת המועמד (קוד: ${error.code}).`},
             { status: 500 }
         );
     } else if (error instanceof Prisma.PrismaClientValidationError) {
-        console.error(`[${timestamp}] Prisma Validation Error during DELETE for candidate ${candidateIdToDelete}: ${error.message}. Requested by Admin: ${performingUserId}`);
         return NextResponse.json(
-            { success: false, error: `שגיאת ולידציה במחיקת המועמד: ${error.message}`},
+            { success: false, error: `שגיאת ולידציה במחיקת המועמד.`},
             { status: 400 }
         );
     }
 
-    const errorMessage = error instanceof Error ? error.message : 'שגיאה לא ידועה בעת מחיקת המועמד.';
+    const errorMessage = error instanceof Error ? error.message : 'שגיאה לא ידועה.';
     return NextResponse.json(
       {
         success: false,
-        error: 'אירעה שגיאה במחיקת המועמד. נסה שוב מאוחר יותר.',
+        error: 'אירעה שגיאה במחיקת המועמד.',
         details: process.env.NODE_ENV === 'development' ? errorMessage : undefined
       },
       { status: 500 }

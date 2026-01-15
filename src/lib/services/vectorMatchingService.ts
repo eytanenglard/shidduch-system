@@ -13,6 +13,7 @@ import {
   calculateBackgroundMatch,
   calculateAgeScoreForMatch,  // 🆕
 } from "./matchingAlgorithmService";
+import type { GeneratedVirtualProfile } from './aiService';
 
 // ============================================================================
 // TYPES
@@ -570,12 +571,343 @@ ${candidatesText}
   }
 }
 
+/**
+ * מוצא התאמות עבור פרופיל וירטואלי באמצעות חיפוש וקטורי.
+ * משתמש בוקטור שנוצר מהפרופיל הוירטואלי לחיפוש דמיון.
+ * 
+ * @param virtualProfileId - ID של הפרופיל הוירטואלי
+ * @param generatedProfile - הפרופיל שה-AI יצר
+ * @param gender - מגדר המועמד הוירטואלי
+ * @param religiousLevel - רמה דתית
+ * @param matchmakerId - ID של השדכן
+ * @param editedSummary - סיכום ערוך (אם השדכן ערך)
+ */
+export async function findMatchesForVirtualUserVector(
+  virtualProfileId: string,
+  generatedProfile: GeneratedVirtualProfile,
+  gender: Gender,
+  religiousLevel: string,
+  matchmakerId: string,
+  editedSummary?: string | null,
+  options: VectorSearchOptions = {}
+): Promise<VectorSearchResult> {
+  const startTime = Date.now();
+  const { limit = FINAL_RESULTS_COUNT } = options;
+
+  console.log(`\n========================================`);
+  console.log(`[Vector Search - Virtual] Starting for virtual profile: ${virtualProfileId}`);
+  console.log(`[Vector Search - Virtual] Gender: ${gender}, Religious: ${religiousLevel}`);
+  console.log(`========================================\n`);
+
+  // 1. יצירת טקסט לחיפוש וקטורי
+  const searchText = editedSummary?.trim() || `
+    ${generatedProfile.personalitySummary}
+    ${generatedProfile.lookingForSummary}
+    תכונות: ${generatedProfile.keyTraits?.join(', ') || ''}
+    מחפש: ${generatedProfile.idealPartnerTraits?.join(', ') || ''}
+  `.trim();
+
+  // 2. שליפת הוקטור מה-DB או יצירה חדשה
+  let searchVector: number[] | null = null;
+  
+  // ניסיון לשלוף וקטור קיים
+ // ניסיון לשלוף וקטור קיים
+  try {
+    const existingVector = await prisma.$queryRaw<{ vector: string }[]>`
+      SELECT vector::text
+      FROM "VirtualProfile"
+      WHERE id = ${virtualProfileId}
+      AND vector IS NOT NULL
+    `;
+    
+    if (existingVector.length > 0 && existingVector[0].vector) {
+      // המרה מstring לarray
+      const vectorString = existingVector[0].vector;
+      // תיקון: הסרת JSON.parse כי הפעולה map כבר מחזירה את המערך הרצוי
+      searchVector = vectorString.replace(/^\[|\]$/g, '').split(',').map(Number);
+    }
+  } catch (e) {
+    console.log(`[Vector Search - Virtual] No existing vector found, generating new one`);
+  } 
+
+  // אם אין וקטור, ניצור חדש
+  if (!searchVector) {
+    const embedding = await genAI.getGenerativeModel({ model: 'text-embedding-004' })
+      .embedContent(searchText);
+    searchVector = embedding.embedding?.values || null;
+  }
+
+  if (!searchVector || searchVector.length !== 768) {
+    console.error(`[Vector Search - Virtual] Failed to get/generate vector`);
+    return {
+      matches: [],
+      fromCache: false,
+      meta: {
+        algorithmVersion: ALGORITHM_VERSION + "-virtual",
+        totalCandidatesScanned: 0,
+        isStale: false,
+        durationMs: Date.now() - startTime,
+      },
+    };
+  }
+
+  // 3. מגדר הפוך לחיפוש
+  const oppositeGender = gender === Gender.MALE ? Gender.FEMALE : Gender.MALE;
+
+  // 4. חיפוש וקטורי בDB
+  const vectorSqlString = `[${searchVector.join(',')}]`;
+  
+  const similarProfiles = await prisma.$queryRaw<
+    Array<{ userId: string; similarity: number }>
+  >`
+    SELECT 
+      p."userId",
+      1 - (pv.vector <=> ${vectorSqlString}::vector) AS similarity
+    FROM "profile_vectors" pv
+    JOIN "Profile" p ON pv."profileId" = p.id
+    JOIN "User" u ON p."userId" = u.id
+    WHERE p.gender = ${oppositeGender}::"Gender"
+      AND p."isProfileVisible" = true
+      AND p."availabilityStatus" IN ('AVAILABLE', 'PAUSED')
+      AND u.status NOT IN ('BLOCKED', 'INACTIVE')
+      AND pv.vector IS NOT NULL
+    ORDER BY pv.vector <=> ${vectorSqlString}::vector
+    LIMIT ${VECTOR_SEARCH_LIMIT}
+  `;
+
+  console.log(`[Vector Search - Virtual] Found ${similarProfiles.length} similar profiles`);
+
+  if (similarProfiles.length === 0) {
+    return {
+      matches: [],
+      fromCache: false,
+      meta: {
+        algorithmVersion: ALGORITHM_VERSION + "-virtual",
+        totalCandidatesScanned: 0,
+        isStale: false,
+        durationMs: Date.now() - startTime,
+      },
+    };
+  }
+
+  // 5. שליפת פרטי המועמדים
+  const candidateIds = similarProfiles.map(p => p.userId);
+  const candidateUsers = await prisma.user.findMany({
+    where: { id: { in: candidateIds } },
+    include: {
+      profile: true,
+      images: {
+        where: { isMain: true },
+        take: 1,
+      },
+    },
+  });
+
+  // 6. העשרת התוצאות
+  const virtualAge = generatedProfile.inferredAge;
+  const enrichedCandidates: VectorMatchResult[] = [];
+
+  for (const candidate of candidateUsers) {
+    if (!candidate.profile) continue;
+
+    const similarityData = similarProfiles.find(p => p.userId === candidate.id);
+    const candidateAge = calculateAge(candidate.profile.birthDate);
+
+    // סינון בסיסי לפי גיל
+    const ageDiff = candidateAge - virtualAge;
+    const isAgeOk = gender === Gender.MALE 
+      ? (ageDiff >= -7 && ageDiff <= 3)  // גבר מחפש אישה צעירה יותר
+      : (ageDiff >= -3 && ageDiff <= 7); // אישה מחפשת גבר מבוגר יותר
+
+    if (!isAgeOk) continue;
+
+    // סינון לפי רמה דתית
+    if (!isReligiousLevelCompatible(religiousLevel, candidate.profile.religiousLevel)) {
+      continue;
+    }
+
+    // ציון התאמת גיל
+ // ציון התאמת גיל
+    const ageScore = calculateAgeScoreForMatch(
+      virtualAge,    // גיל הפרופיל הוירטואלי
+      gender,        // המגדר של הפרופיל הוירטואלי
+      candidateAge   // גיל המועמד שנבדק
+    );
+
+    enrichedCandidates.push({
+      userId: candidate.id,
+      firstName: candidate.firstName,
+      lastName: candidate.lastName,
+      profileId: candidate.profile.id,
+      similarity: similarityData?.similarity || 0,
+      age: candidateAge,
+      religiousLevel: candidate.profile.religiousLevel,
+      city: candidate.profile.city,
+      occupation: candidate.profile.occupation,
+      aiProfileSummary: candidate.profile.aiProfileSummary,
+      about: candidate.profile.about,
+      backgroundMatch: {
+        compatibility: 'possible', // פרופיל וירטואלי - אין מידע מדויק
+        multiplier: 1,
+        bonusPoints: 0,
+      },
+      ageScore: {
+        score: ageScore.score,
+        description: ageScore.description,
+      },
+    });
+  }
+
+  // מיון לפי דמיון
+  enrichedCandidates.sort((a, b) => b.similarity - a.similarity);
+
+  console.log(`[Vector Search - Virtual] ${enrichedCandidates.length} candidates after filtering`);
+
+  if (enrichedCandidates.length === 0) {
+    return {
+      matches: [],
+      fromCache: false,
+      meta: {
+        algorithmVersion: ALGORITHM_VERSION + "-virtual",
+        totalCandidatesScanned: similarProfiles.length,
+        isStale: false,
+        durationMs: Date.now() - startTime,
+      },
+    };
+  }
+
+  // 7. AI Ranking
+  const topCandidates = enrichedCandidates.slice(0, TOP_CANDIDATES_FOR_AI);
+  
+  console.log(`[Vector Search - Virtual] Sending ${topCandidates.length} candidates to AI...`);
+
+  const virtualSummary = editedSummary?.trim() || generatedProfile.displaySummary;
+
+  const candidatesText = topCandidates.map((c, idx) => {
+    const summary = c.aiProfileSummary 
+      ? JSON.stringify(c.aiProfileSummary) 
+      : c.about || "לא זמין";
+    return `
+מועמד ${idx + 1} (ID: ${c.userId}):
+- שם: ${c.firstName} ${c.lastName}
+- גיל: ${c.age}
+- התאמת גיל: ${c.ageScore?.score || 'N/A'}/100 (${c.ageScore?.description || ''})
+- רמה דתית: ${c.religiousLevel || 'לא צוין'}
+- עיר: ${c.city || 'לא צוין'}
+- עיסוק: ${c.occupation || 'לא צוין'}
+- דמיון וקטורי: ${(c.similarity * 100).toFixed(1)}%
+- סיכום פרופיל: ${summary}
+`;
+  }).join('\n---\n');
+
+  const prompt = `
+אתה שדכן מקצועי בקהילה הדתית-לאומית בישראל.
+
+## מטרת החיפוש (פרופיל וירטואלי):
+- מגדר: ${gender === 'MALE' ? 'גבר' : 'אישה'}
+- גיל משוער: ${virtualAge}
+- רמה דתית: ${religiousLevel}
+- סיכום: ${virtualSummary}
+
+## המועמדים לדירוג:
+${candidatesText}
+
+## משימה:
+דרג את המועמדים מ-1 (הכי מתאים) עד ${topCandidates.length}.
+לכל מועמד תן:
+1. ציון התאמה (0-100)
+2. נימוק קצר (2-3 משפטים)
+
+## הנחיות:
+- זהו פרופיל וירטואלי - התייחס לנתונים כאומדן
+- שים לב לציון התאמת הגיל
+- העדף מועמדים עם דמיון וקטורי גבוה
+
+החזר JSON בפורמט:
+{
+  "rankings": [
+    { "userId": "...", "rank": 1, "score": 95, "reasoning": "..." }
+  ]
+}
+`;
+
+  try {
+    const result = await model.generateContent(prompt);
+    const responseText = result.response.text();
+    
+    let cleanJson = responseText;
+    if (responseText.includes("```json")) {
+      cleanJson = responseText.replace(/```json\n?|```/g, "").trim();
+    } else if (responseText.includes("```")) {
+      cleanJson = responseText.replace(/```\n?|```/g, "").trim();
+    }
+
+    const aiResults = JSON.parse(cleanJson);
+    
+    // מיזוג תוצאות
+    const rankedCandidates: VectorMatchResult[] = [];
+    
+    if (aiResults && Array.isArray(aiResults.rankings)) {
+      for (const ranking of aiResults.rankings) {
+        const candidate = topCandidates.find(c => c.userId === ranking.userId);
+        if (candidate) {
+          rankedCandidates.push({
+            ...candidate,
+            finalScore: ranking.score,
+            reasoning: ranking.reasoning,
+            rank: ranking.rank,
+          });
+        }
+      }
+    }
+
+    rankedCandidates.sort((a, b) => (a.rank || 999) - (b.rank || 999));
+    const finalMatches = rankedCandidates.slice(0, limit);
+
+    console.log(`\n[Vector Search - Virtual] ✅ Completed! Found ${finalMatches.length} matches`);
+
+    return {
+      matches: finalMatches,
+      fromCache: false,
+      meta: {
+        algorithmVersion: ALGORITHM_VERSION + "-virtual",
+        totalCandidatesScanned: similarProfiles.length,
+        isStale: false,
+        durationMs: Date.now() - startTime,
+      },
+    };
+
+  } catch (error) {
+    console.error(`[Vector Search - Virtual] AI ranking error:`, error);
+    
+    // Fallback
+    const fallbackMatches = topCandidates.slice(0, limit).map((c, idx) => ({
+      ...c,
+      finalScore: Math.round(c.similarity * 100),
+      reasoning: "דירוג לפי דמיון פרופיל",
+      rank: idx + 1,
+    }));
+
+    return {
+      matches: fallbackMatches,
+      fromCache: false,
+      meta: {
+        algorithmVersion: ALGORITHM_VERSION + "-virtual-fallback",
+        totalCandidatesScanned: similarProfiles.length,
+        isStale: false,
+        durationMs: Date.now() - startTime,
+      },
+    };
+  }
+}
+
 // ============================================================================
 // EXPORTS
 // ============================================================================
 
 const vectorMatchingService = {
   findMatchesWithVector,
+  findMatchesForVirtualUserVector,
   loadSavedVectorMatches,
   saveVectorMatchResults,
   deleteSavedVectorMatches,

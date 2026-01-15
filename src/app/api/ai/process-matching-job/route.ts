@@ -6,19 +6,18 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { findMatchesForUser } from "@/lib/services/matchingAlgorithmService";
-import { findMatchesWithVector } from "@/lib/services/vectorMatchingService";
+import { findMatchesForUser, findMatchesForVirtualUser } from "@/lib/services/matchingAlgorithmService";
+import { findMatchesWithVector, findMatchesForVirtualUserVector } from "@/lib/services/vectorMatchingService";
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 300; // 5 דקות - לא יעזור ב-Heroku אבל לא מזיק
 
 // ============================================================================
-// POST - מעבד Job ברקע
+// POST - מעבד Job
+// מטפל גם בחיפוש רגיל (ברקע) וגם בחיפוש וירטואלי (בזמן אמת/סנכרוני)
 // ============================================================================
 
 export async function POST(req: NextRequest): Promise<NextResponse> {
-  const startTime = Date.now();
-  
   try {
     // אימות פנימי - רק קריאות מהשרת עצמו
     const internalSecret = req.headers.get('x-internal-secret');
@@ -29,20 +28,152 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { jobId } = await req.json();
+    const body = await req.json();
+    const { 
+      jobId,
+      // 🆕 פרמטרים לחיפוש וירטואלי
+      isVirtualSearch = false,
+      virtualProfileId,
+      virtualProfile,
+      gender,
+      religiousLevel,
+      editedSummary,
+      method,
+      matchmakerId,
+    } = body;
 
     if (!jobId) {
       return NextResponse.json({ error: "jobId required" }, { status: 400 });
     }
 
-    console.log(`[ProcessJob] 📥 Received job: ${jobId}`);
+    console.log(`[ProcessJob] 📥 Received job: ${jobId}, Virtual: ${isVirtualSearch}`);
 
-    // 🔥 מחזיר תשובה מיידית - העיבוד ממשיך ברקע!
-    // זה ה-KEY: הבקשה הזו חוזרת תוך מילישניות
+    // עדכון סטטוס התחלתי ל-processing עבור כל סוגי העבודות
+    await prisma.matchingJob.update({
+      where: { id: jobId },
+      data: { 
+        status: 'processing',
+        progress: 5,
+        progressMessage: isVirtualSearch ? 'מעבד פרופיל וירטואלי...' : 'מתחיל עיבוד...'
+      }
+    });
+
+    // ==========================================================
+    // 🔮 טיפול בחיפוש וירטואלי (Virtual Search)
+    // מתבצע בזמן אמת (await) כדי להחזיר תשובה מיידית ללקוח
+    // ==========================================================
+    if (isVirtualSearch) {
+      console.log(`[ProcessJob] 🔮 Processing virtual search for profile: ${virtualProfileId}`);
+      
+      try {
+        await prisma.matchingJob.update({
+          where: { id: jobId },
+          data: { 
+            progress: 20,
+            progressMessage: 'מחפש התאמות לפרופיל הוירטואלי...'
+          }
+        });
+
+        let result;
+        
+        if (method === 'vector' || method === 'vector-virtual') {
+          // חיפוש וקטורי
+          console.log(`[ProcessJob] Using vector search for virtual profile`);
+          
+          await prisma.matchingJob.update({
+            where: { id: jobId },
+            data: { 
+              progress: 40,
+              progressMessage: 'מבצע חיפוש וקטורי...'
+            }
+          });
+          
+          result = await findMatchesForVirtualUserVector(
+            virtualProfileId,
+            virtualProfile,
+            gender,
+            religiousLevel,
+            matchmakerId,
+            editedSummary
+          );
+          
+        } else {
+          // חיפוש אלגוריתמי רגיל
+          console.log(`[ProcessJob] Using algorithmic search for virtual profile`);
+          
+          await prisma.matchingJob.update({
+            where: { id: jobId },
+            data: { 
+              progress: 40,
+              progressMessage: 'מנתח מועמדים פוטנציאליים...'
+            }
+          });
+          
+          result = await findMatchesForVirtualUser(
+            virtualProfileId,
+            null, // name - לא נדרש כאן
+            virtualProfile,
+            gender,
+            religiousLevel,
+            matchmakerId,
+            editedSummary
+          );
+        }
+
+        // עדכון סיום מוצלח
+        await prisma.matchingJob.update({
+          where: { id: jobId },
+          data: { 
+            status: 'completed',
+            progress: 100,
+            progressMessage: 'החיפוש הושלם!',
+            result: result.matches as any,
+            matchesFound: result.matches.length,
+            totalCandidates: result.meta?.totalCandidatesScanned || 0,
+            completedAt: new Date()
+          }
+        });
+
+        console.log(`[ProcessJob] ✅ Virtual job completed: ${jobId}, Found ${result.matches.length} matches`);
+
+        return NextResponse.json({
+          success: true,
+          jobId,
+          matchesFound: result.matches.length,
+          result: result.matches
+        });
+
+      } catch (error) {
+        console.error(`[ProcessJob] Virtual search error:`, error);
+        
+        await prisma.matchingJob.update({
+          where: { id: jobId },
+          data: { 
+            status: 'failed',
+            progress: 0,
+            error: error instanceof Error ? error.message : 'Unknown error',
+            progressMessage: 'החיפוש נכשל'
+          }
+        });
+
+        return NextResponse.json({
+          success: false,
+          error: 'Virtual search failed'
+        }, { status: 500 });
+      }
+    }
+
+    // ==========================================================
+    // 👤 טיפול בחיפוש רגיל (Standard Search)
+    // מתבצע ברקע (Fire and Forget)
+    // ==========================================================
+
+    // 🔥 מפעיל את העיבוד ברקע
     processJobInBackground(jobId).catch(err => {
       console.error(`[ProcessJob] Background processing failed:`, err);
     });
 
+    // מחזיר תשובה מיידית שהתהליך התחיל
     return NextResponse.json({ 
       success: true, 
       message: "Processing started",
@@ -59,7 +190,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 }
 
 // ============================================================================
-// Background Processing Function
+// Background Processing Function (For Standard Users)
 // ============================================================================
 
 async function processJobInBackground(jobId: string): Promise<void> {
@@ -80,13 +211,17 @@ async function processJobInBackground(jobId: string): Promise<void> {
       return;
     }
 
-    if (job.status !== 'pending') {
-      console.log(`[ProcessJob] ⏭️ Job ${jobId} is not pending (status: ${job.status}), skipping`);
+    // בדיקה אם הג'וב כבר הסתיים או נכשל (כדי למנוע ריצה כפולה אם נקרא בטעות)
+    // הערה: הסרנו את הבדיקה של 'pending' מכיוון שה-POST הראשי כבר משנה ל-'processing'
+    if (job.status === 'completed' || job.status === 'failed') {
+      console.log(`[ProcessJob] ⏭️ Job ${jobId} is already finished (status: ${job.status}), skipping`);
       return;
     }
 
-    // עדכון סטטוס ל-processing
-    await updateJobProgress(jobId, 5, 'processing', 'מתחיל עיבוד...');
+    // וידוא שהסטטוס הוא processing (למקרה שהפונקציה נקראה ישירות לא דרך ה-POST המעודכן, למרות שזה נדיר)
+    if (job.status === 'pending') {
+        await updateJobProgress(jobId, 5, 'processing', 'מתחיל עיבוד...');
+    }
 
     // פונקציית callback לעדכון progress
     const onProgress = async (progress: number, message: string) => {
@@ -108,8 +243,7 @@ async function processJobInBackground(jobId: string): Promise<void> {
       console.log(`[ProcessJob] 🧠 Running Algorithmic method`);
       await onProgress(10, 'טוען נתוני מועמד מטרה...');
       
-      // הערה: צריך לעדכן את findMatchesForUser לתמוך ב-onProgress
-      // בינתיים נדמה את ה-progress
+      // ביצוע החיפוש עם עדכוני התקדמות מדומים (כי הפונקציה המקורית לא תומכת ב-callback עדיין)
       result = await findMatchesForUserWithProgress(
         job.targetUserId, 
         job.matchmakerId,
@@ -205,12 +339,8 @@ async function findMatchesForUserWithProgress(
   meta: any;
 }> {
   // כאן אנחנו עוטפים את הפונקציה הקיימת עם עדכוני progress
-  // הרעיון: לעדכן את ה-progress בנקודות מפתח
-
-  await onProgress(15, 'טוען נתוני מועמד מטרה...');
   
-  // הערה: אם אתה רוצה progress יותר מדויק, צריך לשנות את הפונקציה המקורית
-  // בינתיים, נריץ אותה כמו שהיא ונעדכן progress באופן כללי
+  await onProgress(15, 'טוען נתוני מועמד מטרה...');
   
   await onProgress(20, 'מחפש מועמדים מתאימים...');
   

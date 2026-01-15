@@ -725,6 +725,149 @@ export async function generateProfileSummary(
     return null;
   }
 }
+// ===========================================
+// הוסף את הקוד הבא לקובץ src/lib/services/aiService.ts
+// מיקום: לפני ה-export הסופי (לפני const aiService = { ... })
+// ===========================================
+
+/**
+ * מבנה הפרופיל הוירטואלי שה-AI מייצר
+ */
+export interface GeneratedVirtualProfile {
+  // מידע בסיסי שנוסח מהטקסט
+  inferredAge: number;
+  inferredCity: string | null;
+  inferredOccupation: string | null;
+  inferredMaritalStatus: string | null;
+  inferredEducation: string | null;
+  
+  // סיכומים (פורמט זהה ל-aiProfileSummary)
+  personalitySummary: string;
+  lookingForSummary: string;
+  
+  // העדפות לחיפוש (מה המועמד הוירטואלי מחפש)
+  preferredAgeMin: number;
+  preferredAgeMax: number;
+  preferredReligiousLevels: string[];
+  preferredLocations: string[];
+  
+  // נקודות מפתח לאלגוריתם
+  keyTraits: string[];
+  idealPartnerTraits: string[];
+  dealBreakers: string[];
+  
+  // טקסט סיכום מאוחד להצגה לשדכן
+  displaySummary: string;
+}
+
+/**
+ * יוצר פרופיל וירטואלי מטקסט חופשי שהשדכן מזין.
+ * הפרופיל משמש לחיפוש התאמות כאילו היה יוזר אמיתי.
+ * 
+ * @param sourceText - הטקסט החופשי שהשדכן כתב
+ * @param gender - מגדר המועמד הוירטואלי
+ * @param religiousLevel - רמה דתית (נבחרת ע"י השדכן)
+ * @returns פרופיל וירטואלי מובנה, או null במקרה של כשלון
+ */
+export async function generateVirtualProfile(
+  sourceText: string,
+  gender: 'MALE' | 'FEMALE',
+  religiousLevel: string
+): Promise<GeneratedVirtualProfile | null> {
+  console.log(`--- [AI Virtual Profile] Starting generation for ${gender}, ${religiousLevel} ---`);
+
+  if (!sourceText || sourceText.trim().length < 20) {
+    console.error('[AI Virtual Profile] Source text is too short.');
+    return null;
+  }
+
+  const model = genAI.getGenerativeModel({
+    model: 'gemini-2.5-flash',
+    generationConfig: {
+      responseMimeType: 'application/json',
+      temperature: 0.4,
+    },
+  });
+
+  const genderHebrew = gender === 'MALE' ? 'גבר' : 'אישה';
+  const lookingForGender = gender === 'MALE' ? 'אישה' : 'גבר';
+
+  const prompt = `
+    אתה שדכן מקצועי מנוסה בקהילה הדתית-לאומית בישראל.
+    קיבלת תיאור טקסטואלי של מועמד/ת משדכן אחר, והמשימה שלך היא ליצור "פרופיל וירטואלי" מובנה שישמש למציאת התאמות.
+
+    === פרטים שנבחרו על ידי השדכן ===
+    - מגדר: ${genderHebrew}
+    - רמה דתית: ${religiousLevel}
+
+    === הטקסט שהשדכן כתב ===
+    ${sourceText}
+    === סוף הטקסט ===
+
+    === המשימה שלך ===
+    נתח את הטקסט וצור פרופיל מובנה. אם מידע מסוים לא מופיע בטקסט, נסה להסיק אותו באופן הגיוני או השאר null.
+
+    === פורמט הפלט (JSON בעברית) ===
+    {
+      "inferredAge": <מספר - גיל משוער, אם לא צוין הערך 25-30 לפי הקשר>,
+      "inferredCity": "<עיר אם צוינה, או null>",
+      "inferredOccupation": "<מקצוע אם צוין, או null>",
+      "inferredMaritalStatus": "<רווק/גרוש/אלמן וכו', או null>",
+      "inferredEducation": "<השכלה אם צוינה, או null>",
+      
+      "personalitySummary": "<פסקה של 3-5 משפטים המתארת את האישיות, הערכים, והאופי של המועמד/ת. כתוב בגוף שלישי.>",
+      
+      "lookingForSummary": "<פסקה של 3-5 משפטים המתארת מה המועמד/ת מחפש/ת בבן/בת זוג. כתוב בגוף שלישי.>",
+      
+      "preferredAgeMin": <מספר - גיל מינימלי לבן/בת זוג>,
+      "preferredAgeMax": <מספר - גיל מקסימלי לבן/בת זוג>,
+      "preferredReligiousLevels": ["<רמות דתיות מתאימות>"],
+      "preferredLocations": ["<מיקומים מועדפים, או מערך ריק אם לא צוין>"],
+      
+      "keyTraits": ["<3-5 תכונות מרכזיות של המועמד/ת>"],
+      "idealPartnerTraits": ["<3-5 תכונות שהמועמד/ת מחפש/ת בבן/בת זוג>"],
+      "dealBreakers": ["<קווים אדומים אם צוינו, או מערך ריק>"],
+      
+      "displaySummary": "<סיכום מאוחד של 4-6 משפטים להצגה לשדכן. כולל: מי המועמד, מה האופי, ומה מחפש. זה הטקסט שהשדכן יראה ויוכל לערוך.>"
+    }
+
+    === הנחיות חשובות ===
+    1. אם הטקסט מזכיר "${lookingForGender}" ספציפי/ת - השתמש במידע הזה עבור העדפות.
+    2. טווח גילאים לבן/בת זוג: בדרך כלל גברים מחפשים צעירות ב-1-5 שנים, נשים מחפשות גדולים ב-0-4 שנים.
+    3. רמות דתיות תואמות: בדרך כלל +-2 רמות מהרמה שנבחרה.
+    4. הסיכום (displaySummary) צריך להיות טבעי, קריא, ומקצועי - כאילו שדכן כתב אותו.
+    5. כל הטקסטים בעברית.
+  `;
+
+  try {
+    const result = await model.generateContent(prompt);
+    const response = result.response;
+    let jsonString = response.text();
+
+    if (!jsonString) {
+      console.error('[AI Virtual Profile] Empty response from Gemini.');
+      return null;
+    }
+
+    // ניקוי markdown אם יש
+    if (jsonString.startsWith('```json')) {
+      jsonString = jsonString.slice(7, -3).trim();
+    } else if (jsonString.startsWith('```')) {
+      jsonString = jsonString.slice(3, -3).trim();
+    }
+
+    const parsedProfile = JSON.parse(jsonString) as GeneratedVirtualProfile;
+    
+    console.log(`[AI Virtual Profile] Successfully generated profile. Age: ${parsedProfile.inferredAge}, Traits: ${parsedProfile.keyTraits?.length || 0}`);
+    
+    return parsedProfile;
+
+  } catch (error) {
+    console.error('[AI Virtual Profile] Error generating profile:', error);
+    return null;
+  }
+}
+
 
 // ייצוא כל הפונקציות כאובייקט אחד
 const aiService = {
@@ -737,6 +880,7 @@ const aiService = {
   generateNeshamaTechSummary, // פונקציה מעודכנת (דוח מודיעין)
   analyzeCvInDepth,
   generateProfileSummary, // פונקציה חדשה (סיכום ממוקד לשדכן ב-DB)
+  generateVirtualProfile, 
 };
 
 export default aiService;

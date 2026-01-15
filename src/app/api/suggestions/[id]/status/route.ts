@@ -29,8 +29,9 @@ export async function PATCH(
       );
     }
 
-    // 2. Verify permissions
-    if (session.user.role !== UserRole.MATCHMAKER && session.user.role !== UserRole.ADMIN) {
+    // 2. Verify basic roles (Allow CANDIDATE, MATCHMAKER, ADMIN)
+    const allowedRoles: UserRole[] = [UserRole.MATCHMAKER, UserRole.ADMIN, UserRole.CANDIDATE];
+    if (!allowedRoles.includes(session.user.role as UserRole)) {
       return NextResponse.json(
         { success: false, error: "Insufficient permissions" },
         { status: 403 }
@@ -61,10 +62,12 @@ export async function PATCH(
     const suggestionId = params.id;
     const suggestion = await prisma.matchSuggestion.findUnique({
       where: { id: suggestionId },
-      include: {
-        matchmaker: {
-          select: { id: true }
-        }
+      select: {
+        id: true,
+        status: true,
+        matchmakerId: true,
+        firstPartyId: true,
+        secondPartyId: true,
       }
     });
 
@@ -76,7 +79,11 @@ export async function PATCH(
     }
 
     // 5. Verify permission on specific suggestion
-    if (suggestion.matchmaker.id !== session.user.id && session.user.role !== UserRole.ADMIN) {
+    const isUserAdmin = session.user.role === UserRole.ADMIN;
+    const isUserMatchmakerOwner = session.user.role === UserRole.MATCHMAKER && suggestion.matchmakerId === session.user.id;
+    const isUserParty = session.user.role === UserRole.CANDIDATE && (suggestion.firstPartyId === session.user.id || suggestion.secondPartyId === session.user.id);
+
+    if (!isUserAdmin && !isUserMatchmakerOwner && !isUserParty) {
       return NextResponse.json(
         { success: false, error: "You don't have permission to update this suggestion" },
         { status: 403 }
@@ -110,23 +117,20 @@ export async function PATCH(
 
     // 7. Update status in a transaction
     const result = await prisma.$transaction(async (tx) => {
-      // Save previous status
-      const previousStatus = suggestion.status;
-
       // Update the suggestion
       const updatedSuggestion = await tx.matchSuggestion.update({
         where: { id: suggestionId },
         data: {
           status: status,
-          previousStatus: previousStatus,
+          previousStatus: suggestion.status,
           lastStatusChange: new Date(),
           lastActivity: new Date(),
           category: getCategory(status),
           
           // Update additional fields based on new status
           ...(status === MatchSuggestionStatus.CLOSED ? { closedAt: new Date() } : {}),
-          ...(status === MatchSuggestionStatus.PENDING_FIRST_PARTY ? { firstPartySent: new Date() } : {}),
-          ...(status === MatchSuggestionStatus.PENDING_SECOND_PARTY ? { secondPartySent: new Date() } : {}),
+          ...(status === MatchSuggestionStatus.FIRST_PARTY_APPROVED || status === MatchSuggestionStatus.FIRST_PARTY_DECLINED ? { firstPartyResponded: new Date() } : {}),
+          ...(status === MatchSuggestionStatus.SECOND_PARTY_APPROVED || status === MatchSuggestionStatus.SECOND_PARTY_DECLINED ? { secondPartyResponded: new Date() } : {}),
         },
       });
 
@@ -135,7 +139,7 @@ export async function PATCH(
         data: {
           suggestionId,
           status,
-          notes: notes || `סטטוס שונה ל-${status} על ידי ${session.user.firstName} ${session.user.lastName}`,
+          notes: notes || `סטטוס שונה ל-${status} על ידי משתמש ${session.user.id}`,
         },
       });
 
@@ -158,7 +162,6 @@ export async function PATCH(
   } catch (error) {
     console.error("Error updating suggestion status:", error);
     
-    // Return detailed error message if available
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
     
     return NextResponse.json(
@@ -171,6 +174,7 @@ export async function PATCH(
     );
   }
 }
+
 
 /**
  * GET endpoint for fetching suggestion history

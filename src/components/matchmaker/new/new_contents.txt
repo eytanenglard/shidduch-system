@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmaker\new
-# Generated on: 2026-01-14 14:55:05
+# Generated on: 2026-01-15 08:37:37
 # Filter: Only content of code files (.bat, .c, .cfg, .conf, .cpp, .cs, .css, .go, .h, .html, .ini, .java, .js, .json, .jsx, .kt, .less, .md, .php, .py, .rb, .rs, .scss, .sh, .sql, .swift, .ts, .tsx, .txt, .xml, .yaml, .yml) is included.
 ################################################################################
 
@@ -22,11 +22,11 @@ Content:
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Loader2, 
-  CheckCircle2, 
-  XCircle, 
-  Brain, 
+import {
+  Loader2,
+  CheckCircle2,
+  XCircle,
+  Brain,
   Zap,
   ChevronDown,
   ChevronUp,
@@ -44,6 +44,9 @@ import { usePathname, useRouter } from 'next/navigation';
 // FLOATING STATUS COMPONENT
 // ============================================================================
 
+// בקובץ MatchingJobFloatingStatus.tsx
+// החלף את כל ה-return statement
+
 export const MatchingJobFloatingStatus: React.FC = () => {
   const context = useMatchingJobContextOptional();
   const pathname = usePathname();
@@ -51,7 +54,6 @@ export const MatchingJobFloatingStatus: React.FC = () => {
   const [isExpanded, setIsExpanded] = useState(true);
   const [isDismissed, setIsDismissed] = useState(false);
 
-  // Reset dismissed state when a new job starts
   useEffect(() => {
     if (context?.isJobRunning) {
       setIsDismissed(false);
@@ -59,98 +61,97 @@ export const MatchingJobFloatingStatus: React.FC = () => {
     }
   }, [context?.isJobRunning]);
 
-  // Don't render if no context or dismissed
   if (!context) return null;
-  
+
   const { currentJob, isJobRunning, hasResults, cancelJob } = context;
 
-  // Don't show if idle or dismissed
-  if (currentJob.status === 'idle' || isDismissed) return null;
-
-  // Don't show on the matchmaker page itself (it has its own UI)
   const isOnMatchmakerPage = pathname?.includes('/matchmaker/clients');
-  if (isOnMatchmakerPage && isJobRunning) return null;
+
+  // 🔧 תיקון: העברת כל הלוגיקה לתוך shouldShow
+  const shouldShow =
+    currentJob.status !== 'idle' &&
+    !isDismissed &&
+    !(isOnMatchmakerPage && isJobRunning);
 
   const isVector = currentJob.method === 'vector';
-  const Icon = isVector ? Zap : Brain;
 
   const handleViewResults = () => {
-    // Navigate to matchmaker page
     const locale = pathname?.split('/')[1] || 'he';
     router.push(`/${locale}/matchmaker/clients`);
-    
-    // Dispatch event for the page to scroll to results
     setTimeout(() => {
       window.dispatchEvent(new CustomEvent('matching-job-view-results'));
     }, 500);
   };
 
+  // 🔧 תיקון: handleDismiss עובד תמיד, לא רק ב-completed/failed
   const handleDismiss = () => {
-    if (currentJob.status === 'completed' || currentJob.status === 'failed') {
-      setIsDismissed(true);
-    }
+    setIsDismissed(true);
   };
 
+  // 🔧 תיקון: AnimatePresence עוטף את התנאי, לא להיפך
   return (
     <AnimatePresence>
-      <motion.div
-        initial={{ opacity: 0, y: 100, scale: 0.9 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        exit={{ opacity: 0, y: 100, scale: 0.9 }}
-        className={cn(
-          'fixed z-[100] bottom-6 left-6 w-80 rounded-xl shadow-2xl border overflow-hidden',
-          'bg-white/95 backdrop-blur-sm',
-          currentJob.status === 'completed' && 'border-green-200',
-          currentJob.status === 'failed' && 'border-red-200',
-          isJobRunning && 'border-gray-200'
-        )}
-      >
-        {/* Header */}
-        <div 
+      {shouldShow && (
+        <motion.div
+          key="matching-job-floating-status" // 🔧 הוספת key
+          initial={{ opacity: 0, y: 100, scale: 0.9 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, y: 100, scale: 0.9 }}
           className={cn(
-            'p-3 flex items-center justify-between cursor-pointer transition-colors',
-            currentJob.status === 'completed' && 'bg-green-50',
-            currentJob.status === 'failed' && 'bg-red-50',
-            isJobRunning && (isVector ? 'bg-blue-50' : 'bg-purple-50')
+            'fixed z-[100] bottom-6 left-6 w-80 rounded-xl shadow-2xl border overflow-hidden',
+            'bg-white/95 backdrop-blur-sm',
+            currentJob.status === 'completed' && 'border-green-200',
+            currentJob.status === 'failed' && 'border-red-200',
+            isJobRunning && 'border-gray-200'
           )}
-          onClick={() => setIsExpanded(!isExpanded)}
         >
-          <div className="flex items-center gap-2">
-            {isJobRunning ? (
-              <Loader2 className={cn(
-                'w-5 h-5 animate-spin',
-                isVector ? 'text-blue-600' : 'text-purple-600'
-              )} />
-            ) : currentJob.status === 'completed' ? (
-              <CheckCircle2 className="w-5 h-5 text-green-600" />
-            ) : (
-              <XCircle className="w-5 h-5 text-red-600" />
+          {/* Header */}
+          <div
+            className={cn(
+              'p-3 flex items-center justify-between cursor-pointer transition-colors',
+              currentJob.status === 'completed' && 'bg-green-50',
+              currentJob.status === 'failed' && 'bg-red-50',
+              isJobRunning && (isVector ? 'bg-blue-50' : 'bg-purple-50')
             )}
-            
-            <div>
-              <span className="font-medium text-sm">
-                {isJobRunning 
-                  ? `מחפש עבור ${currentJob.targetName || 'מועמד'}...`
-                  : currentJob.status === 'completed' 
-                    ? `נמצאו ${currentJob.result?.matches.length || 0} התאמות!`
-                    : 'החיפוש נכשל'
-                }
-              </span>
-              {isJobRunning && (
-                <div className="text-xs text-gray-500">
-                  {isVector ? 'חיפוש מהיר' : 'AI מתקדם'}
-                </div>
+            onClick={() => setIsExpanded(!isExpanded)}
+          >
+            <div className="flex items-center gap-2">
+              {isJobRunning ? (
+                <Loader2
+                  className={cn(
+                    'w-5 h-5 animate-spin',
+                    isVector ? 'text-blue-600' : 'text-purple-600'
+                  )}
+                />
+              ) : currentJob.status === 'completed' ? (
+                <CheckCircle2 className="w-5 h-5 text-green-600" />
+              ) : (
+                <XCircle className="w-5 h-5 text-red-600" />
               )}
-            </div>
-          </div>
 
-          <div className="flex items-center gap-1">
-            {isExpanded ? (
-              <ChevronDown className="w-4 h-4 text-gray-400" />
-            ) : (
-              <ChevronUp className="w-4 h-4 text-gray-400" />
-            )}
-            {(currentJob.status === 'completed' || currentJob.status === 'failed') && (
+              <div>
+                <span className="font-medium text-sm">
+                  {isJobRunning
+                    ? `מחפש עבור ${currentJob.targetName || 'מועמד'}...`
+                    : currentJob.status === 'completed'
+                      ? `נמצאו ${currentJob.result?.matches.length || 0} התאמות!`
+                      : 'החיפוש נכשל'}
+                </span>
+                {isJobRunning && (
+                  <div className="text-xs text-gray-500">
+                    {isVector ? 'חיפוש מהיר' : 'AI מתקדם'}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="flex items-center gap-1">
+              {isExpanded ? (
+                <ChevronDown className="w-4 h-4 text-gray-400" />
+              ) : (
+                <ChevronUp className="w-4 h-4 text-gray-400" />
+              )}
+              {/* 🔧 תיקון: כפתור X מופיע תמיד */}
               <Button
                 variant="ghost"
                 size="sm"
@@ -158,75 +159,69 @@ export const MatchingJobFloatingStatus: React.FC = () => {
                   e.stopPropagation();
                   handleDismiss();
                 }}
-                className="h-6 w-6 p-0"
+                className="h-6 w-6 p-0 hover:bg-gray-200"
               >
                 <X className="w-3 h-3" />
               </Button>
-            )}
+            </div>
           </div>
-        </div>
 
-        {/* Content */}
-        <AnimatePresence>
-          {isExpanded && (
-            <motion.div
-              initial={{ height: 0 }}
-              animate={{ height: 'auto' }}
-              exit={{ height: 0 }}
-              className="overflow-hidden"
-            >
-              <div className="p-3 space-y-3">
-                {/* Progress for running jobs */}
-                {isJobRunning && (
-                  <>
-                    <Progress 
-                      value={currentJob.progress} 
-                      className="h-2"
-                    />
-                    <div className="flex justify-between text-xs text-gray-500">
-                      <span>{currentJob.progressMessage || 'מעבד...'}</span>
-                      <span>{currentJob.progress}%</span>
-                    </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={cancelJob}
-                      className="w-full text-gray-600"
-                    >
-                      <X className="w-4 h-4 ml-2" />
-                      בטל חיפוש
-                    </Button>
-                  </>
-                )}
+          {/* Content - נשאר כמו שהיה */}
+          <AnimatePresence>
+            {isExpanded && (
+              <motion.div
+                initial={{ height: 0 }}
+                animate={{ height: 'auto' }}
+                exit={{ height: 0 }}
+                className="overflow-hidden"
+              >
+                <div className="p-3 space-y-3">
+                  {isJobRunning && (
+                    <>
+                      <Progress value={currentJob.progress} className="h-2" />
+                      <div className="flex justify-between text-xs text-gray-500">
+                        <span>{currentJob.progressMessage || 'מעבד...'}</span>
+                        <span>{currentJob.progress}%</span>
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={cancelJob}
+                        className="w-full text-gray-600"
+                      >
+                        <X className="w-4 h-4 ml-2" />
+                        בטל חיפוש
+                      </Button>
+                    </>
+                  )}
 
-                {/* Results for completed jobs */}
-                {currentJob.status === 'completed' && (
-                  <>
-                    <div className="flex items-center gap-2 text-sm text-gray-600">
-                      <Users className="w-4 h-4" />
-                      <span>עבור: {currentJob.targetName}</span>
-                    </div>
-                    <Button
-                      onClick={handleViewResults}
-                      className="w-full bg-gradient-to-r from-green-500 to-emerald-500 text-white"
-                    >
-                      <Sparkles className="w-4 h-4 ml-2" />
-                      הצג תוצאות
-                    </Button>
-                  </>
-                )}
+                  {currentJob.status === 'completed' && (
+                    <>
+                      <div className="flex items-center gap-2 text-sm text-gray-600">
+                        <Users className="w-4 h-4" />
+                        <span>עבור: {currentJob.targetName}</span>
+                      </div>
+                      <Button
+                        onClick={handleViewResults}
+                        className="w-full bg-gradient-to-r from-green-500 to-emerald-500 text-white"
+                      >
+                        <Sparkles className="w-4 h-4 ml-2" />
+                        הצג תוצאות
+                      </Button>
+                    </>
+                  )}
 
-                {/* Error for failed jobs */}
-                {currentJob.status === 'failed' && (
-                  <p className="text-sm text-red-600">
-                    {currentJob.error || 'אירעה שגיאה בחיפוש'}
-                  </p>
-                )}
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </motion.div>
+                  {currentJob.status === 'failed' && (
+                    <p className="text-sm text-red-600">
+                      {currentJob.error || 'אירעה שגיאה בחיפוש'}
+                    </p>
+                  )}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </motion.div>
+      )}
     </AnimatePresence>
   );
 };
@@ -1201,8 +1196,8 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
           >
             {/* --- HEADER --- */}
             <DialogHeader className="p-6 border-b bg-gradient-to-r from-blue-50/50 to-white flex-shrink-0">
-              <div className="flex items-center justify-between">
-                <div>
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex-1 min-w-0">
                   <DialogTitle
                     className={cn(
                       'text-2xl font-bold text-primary/90 flex items-center gap-3',
@@ -1237,12 +1232,28 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
                     )}
                   </DialogDescription>
                 </div>
-                {isSaving && (
-                  <div className="flex items-center bg-blue-50 text-blue-700 py-1 px-3 rounded-full text-sm border border-blue-100 shadow-sm">
-                    <Loader2 className="w-3 h-3 animate-spin mr-2" />
-                    {dict.header.saving}
-                  </div>
-                )}
+
+                {/* איזור הפעולות בצד שמאל/ימין (תלוי שפה) - שמירה וסגירה */}
+                <div className="flex items-center gap-2 shrink-0 self-start">
+                  {isSaving && (
+                    <div className="hidden sm:flex items-center bg-blue-50 text-blue-700 py-1 px-3 rounded-full text-sm border border-blue-100 shadow-sm">
+                      <Loader2 className="w-3 h-3 animate-spin mr-2" />
+                      {dict.header.saving}
+                    </div>
+                  )}
+
+                  {/* כפתור ה-X החדש */}
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={onClose}
+                    disabled={isSaving}
+                    className="h-10 w-10 rounded-full hover:bg-gray-100/80 transition-colors -mr-2 sm:mr-0"
+                    title={dict.footer.buttons.close || 'סגור'}
+                  >
+                    <X className="w-6 h-6 text-gray-500" />
+                  </Button>
+                </div>
               </div>
             </DialogHeader>
 
@@ -2282,6 +2293,7 @@ import {
   MoreHorizontal,
   Mail,
   Ruler,
+  Languages,
   Scroll,
   Globe,
   AlertTriangle,
@@ -2365,6 +2377,7 @@ interface MinimalCandidateCardProps {
   aiTargetName?: string; // שם האדם שמבוצעת עבורו ההתאמה
   dict: MatchmakerPageDictionary['candidatesManager']['list']['minimalCard'] & {
     heightUnit?: string;
+    languagesLabel?: string;
   };
 }
 
@@ -2528,7 +2541,38 @@ const MinimalCandidateCard: React.FC<MinimalCandidateCardProps> = ({
   const availabilityBadge = getAvailabilityBadge();
   const isManualEntry = candidate.source === UserSource.MANUAL_ENTRY;
   const qualityScore = getQualityScore();
+  // אחרי שורה 439:
+  // המרת שפות
+  const spokenLanguages = (() => {
+    const rawLangs = [
+      candidate.profile.nativeLanguage,
+      ...(candidate.profile.additionalLanguages || []),
+    ].filter((l): l is string => !!l); // <--- תיקון: הגדרת טייפ מפורשת
 
+    const langMap: Record<string, string> = {
+      hebrew: 'עברית',
+      english: 'אנגלית',
+      russian: 'רוסית',
+      french: 'צרפתית',
+      spanish: 'ספרדית',
+      amharic: 'אמהרית',
+      arabic: 'ערבית',
+      german: 'גרמנית',
+      italian: 'איטלקית',
+    };
+
+    const isHebrew =
+      dict.heightLabel && /[\u0590-\u05FF]/.test(dict.heightLabel);
+
+    return rawLangs
+      .map((lang) => {
+        if (isHebrew) {
+          return langMap[lang.toLowerCase()] || lang;
+        }
+        return lang.charAt(0).toUpperCase() + lang.slice(1);
+      })
+      .join(', ');
+  })();
   return (
     <motion.div
       whileHover={{ y: -6, scale: 1.02 }}
@@ -2766,6 +2810,18 @@ const MinimalCandidateCard: React.FC<MinimalCandidateCardProps> = ({
                       )}
                     </span>
                     <Ruler className="w-4 h-4 text-amber-600" />
+                  </div>
+                )}
+                {/* שפות - חדש */}
+                {spokenLanguages && dict.languagesLabel && (
+                  <div className="flex items-center justify-end gap-2 p-2 bg-pink-50 rounded-lg hover:bg-pink-100 transition-colors duration-200">
+                    <span className="text-pink-800 text-sm font-medium truncate max-w-[150px]">
+                      {dict.languagesLabel.replace(
+                        '{{languages}}',
+                        spokenLanguages
+                      )}
+                    </span>
+                    <Languages className="w-4 h-4 text-pink-600" />
                   </div>
                 )}
               </div>
@@ -11678,6 +11734,8 @@ export const AddManualCandidateDialog: React.FC<
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [gender, setGender] = useState<Gender | undefined>(undefined);
+  // --- ADDED: Height State ---
+  const [height, setHeight] = useState('');
   const [birthDate, setBirthDate] = useState<Date | undefined>(undefined);
   const [manualEntryText, setManualEntryText] = useState('');
   const [images, setImages] = useState<File[]>([]);
@@ -11694,6 +11752,8 @@ export const AddManualCandidateDialog: React.FC<
     setLastName('');
     setEmail('');
     setGender(undefined);
+    // --- ADDED: Reset Height ---
+    setHeight('');
     setBirthDate(undefined);
     setManualEntryText('');
     setImages([]);
@@ -11784,6 +11844,8 @@ export const AddManualCandidateDialog: React.FC<
     formData.append('lastName', lastName);
     if (email) formData.append('email', email);
     formData.append('gender', gender);
+    // --- ADDED: Append Height ---
+    if (height) formData.append('height', height);
     formData.append('birthDate', finalBirthDate.toISOString());
     formData.append('birthDateIsApproximate', String(isBirthDateApproximate));
     formData.append('manualEntryText', manualEntryText);
@@ -11861,6 +11923,7 @@ export const AddManualCandidateDialog: React.FC<
           onSubmit={handleSubmit}
           className="space-y-6 py-4 max-h-[70vh] overflow-y-auto pr-2 pl-1"
         >
+          {/* Row 1: First & Last Name */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <Label htmlFor="firstName" className="text-right block">
@@ -11891,6 +11954,8 @@ export const AddManualCandidateDialog: React.FC<
               />
             </div>
           </div>
+
+          {/* Row 2: Email & Invite */}
           <div>
             <Label htmlFor="email" className="text-right block">
               {dict.fields.email.label}
@@ -11921,29 +11986,52 @@ export const AddManualCandidateDialog: React.FC<
               {dict.fields.sendInvite.label}
             </Label>
           </div>
+
+          {/* Row 3: Gender, Height & BirthDate */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="gender" className="text-right block">
-                {dict.fields.gender.label}{' '}
-                <span className="text-red-500">*</span>
-              </Label>
-              <Select
-                value={gender}
-                onValueChange={(value) => setGender(value as Gender)}
-              >
-                <SelectTrigger id="gender" dir="rtl">
-                  <SelectValue placeholder={dict.fields.gender.placeholder} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value={Gender.MALE}>
-                    {dict.fields.gender.male}
-                  </SelectItem>
-                  <SelectItem value={Gender.FEMALE}>
-                    {dict.fields.gender.female}
-                  </SelectItem>
-                </SelectContent>
-              </Select>
+            {/* Column 1: Gender & Height */}
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="gender" className="text-right block">
+                  {dict.fields.gender.label}{' '}
+                  <span className="text-red-500">*</span>
+                </Label>
+                <Select
+                  value={gender}
+                  onValueChange={(value) => setGender(value as Gender)}
+                >
+                  <SelectTrigger id="gender" dir="rtl">
+                    <SelectValue placeholder={dict.fields.gender.placeholder} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={Gender.MALE}>
+                      {dict.fields.gender.male}
+                    </SelectItem>
+                    <SelectItem value={Gender.FEMALE}>
+                      {dict.fields.gender.female}
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              {/* --- ADDED: Height Input --- */}
+              <div>
+                <Label htmlFor="height" className="text-right block">
+                  {dict.fields.height.label}
+                </Label>
+                <Input
+                  id="height"
+                  type="number"
+                  min="100"
+                  max="250"
+                  value={height}
+                  onChange={(e) => setHeight(e.target.value)}
+                  placeholder={dict.fields.height.placeholder}
+                  dir="rtl"
+                />
+              </div>
             </div>
+
+            {/* Column 2: Birth Date */}
             <div>
               <div>
                 <Label className="text-right block mb-2">
@@ -12010,6 +12098,7 @@ export const AddManualCandidateDialog: React.FC<
               )}
             </div>
           </div>
+
           <div>
             <Label htmlFor="manualEntryText" className="text-right block">
               {dict.fields.notes.label} <span className="text-red-500">*</span>

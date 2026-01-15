@@ -65,7 +65,7 @@ referral    Referral?  @relation("ReferredUser")
   matchmakerSearches    SavedMatchSearch[]  @relation("MatchmakerSearches")
 targetUserVectorSearches    SavedVectorMatchSearch[]  @relation("TargetUserVectorSearches")
 matchmakerVectorSearches    SavedVectorMatchSearch[]  @relation("MatchmakerVectorSearches")
-
+virtualProfiles       VirtualProfile[]    @relation("MatchmakerVirtualProfiles")
   @@index([email])
   @@index([role])
   @@index([status])
@@ -918,3 +918,40 @@ model MatchingJob {
   @@index([createdAt])
 }
   
+model VirtualProfile {
+  id                  String   @id @default(cuid())
+  
+  // מי יצר את הפרופיל הוירטואלי
+  matchmakerId        String
+  matchmaker          User     @relation("MatchmakerVirtualProfiles", fields: [matchmakerId], references: [id], onDelete: Cascade)
+  
+  // קלט השדכן
+  name                String?              // שם לזיהוי (אופציונלי)
+  sourceText          String   @db.Text    // הטקסט החופשי שהשדכן הזין
+  
+  // פרמטרים שהשדכן בוחר (חובה)
+  gender              Gender               // מגדר היוזר הוירטואלי
+  religiousLevel      String               // רמה דתית
+  
+  // הפרופיל שה-AI יצר
+  generatedProfile    Json?                // { personalitySummary, lookingForSummary, inferredAge, ... }
+  
+  // סיכום ערוך (אם השדכן ערך את הסיכום)
+  editedSummary       String?  @db.Text    // סיכום שהשדכן ערך ידנית
+  wasEdited           Boolean  @default(false)
+  
+  // וקטור להתאמה (נוצר מהפרופיל)
+  vector              Unsupported("vector(768)")?
+  
+  // מטא-דאטה
+  isStarred           Boolean  @default(false)
+  lastUsedAt          DateTime?
+  usageCount          Int      @default(0)
+  
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+  
+  @@index([matchmakerId])
+  @@index([isStarred])
+  @@index([lastUsedAt])
+}
