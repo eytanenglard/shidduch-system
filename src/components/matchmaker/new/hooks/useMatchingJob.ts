@@ -1,8 +1,9 @@
 // ===========================================
-// src/hooks/useMatchingJob.ts
+// src/components/matchmaker/new/hooks/useMatchingJob.ts
 // ===========================================
 // 🎯 Hook לניהול Background Matching Jobs
 // כולל polling, progress tracking, והתראות
+// מעודכן: תמיכה בחיפוש וירטואלי (Virtual Search)
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { toast } from 'sonner';
@@ -36,8 +37,19 @@ export interface MatchResult {
   similarity?: number;
 }
 
+// 🆕 אפשרויות נוספות לחיפוש (עבור חיפוש וירטואלי)
+export interface MatchingJobOptions {
+  isVirtualSearch?: boolean;
+  virtualProfileId?: string;
+  virtualProfile?: any;
+  gender?: string;
+  religiousLevel?: string;
+  editedSummary?: string;
+}
+
 export interface JobState {
   jobId: string | null;
+  targetName: string | null; // 🆕 הוספנו את שם המועמד לסטייט
   status: JobStatus;
   progress: number;
   progressMessage: string;
@@ -68,6 +80,7 @@ export interface UseMatchingJobOptions {
 
 const initialState: JobState = {
   jobId: null,
+  targetName: null,
   status: 'idle',
   progress: 0,
   progressMessage: '',
@@ -191,12 +204,15 @@ export function useMatchingJob(options: UseMatchingJobOptions = {}) {
   
   const startJob = useCallback(async (
     targetUserId: string,
+    targetName: string, // 🆕 פרמטר חדש לתצוגה
     method: SearchMethod = 'algorithmic',
-    forceRefresh: boolean = false
+    forceRefresh: boolean = false,
+    extraParams: MatchingJobOptions = {} // 🆕 פרמטרים לחיפוש וירטואלי
   ): Promise<JobState['jobId']> => {
     // איפוס state
     setState({
       ...initialState,
+      targetName, // שמירת השם
       status: 'pending',
       progressMessage: 'מתחיל...'
     });
@@ -205,7 +221,12 @@ export function useMatchingJob(options: UseMatchingJobOptions = {}) {
       const response = await fetch('/api/ai/find-matches-v2', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ targetUserId, method, forceRefresh })
+        body: JSON.stringify({ 
+          targetUserId, 
+          method, 
+          forceRefresh,
+          ...extraParams // 🆕 הוספת הפרמטרים הוירטואליים לבקשה
+        })
       });
 
       const data = await response.json();
@@ -214,7 +235,7 @@ export function useMatchingJob(options: UseMatchingJobOptions = {}) {
         throw new Error(data.error || 'Failed to start job');
       }
 
-      // עדכון state עם ה-jobId
+      // עדכון state עם ה-jobId והנתונים הראשוניים
       setState(prev => ({
         ...prev,
         jobId: data.jobId,
@@ -222,33 +243,41 @@ export function useMatchingJob(options: UseMatchingJobOptions = {}) {
         progress: data.progress || 0,
         progressMessage: data.progressMessage || '',
         fromCache: data.fromCache || false,
+        // אם התקבלו תוצאות מיידיות (כמו בחיפוש וירטואלי או מטמון)
+        result: data.result || null,
+        meta: {
+          ...prev.meta,
+          completedAt: data.meta?.completedAt ? new Date(data.meta.completedAt) : undefined,
+          matchesFound: data.matchesFound,
+          totalCandidates: data.meta?.totalCandidates
+        }
       }));
 
-      // אם קיבלנו תוצאה מהcache - לא צריך polling
-      if (data.status === 'completed' && data.result) {
-        setState(prev => ({
-          ...prev,
-          result: data.result,
-          meta: {
-            completedAt: data.meta?.completedAt ? new Date(data.meta.completedAt) : undefined,
-            matchesFound: data.meta?.matchesFound,
-            totalCandidates: data.meta?.totalCandidates
-          }
-        }));
-
+      // תרחיש 1: תוצאה מיידית (מטמון או חיפוש וירטואלי מהיר)
+      if (data.status === 'completed' && (data.result || data.matchesFound >= 0)) {
+        
         if (showToasts) {
-          const matchCount = data.result?.matches?.length || 0;
-          toast.success(`✅ נטענו ${matchCount} התאמות מהזיכרון`, {
-            description: 'תוצאות שמורות',
+          const matchCount = data.result?.matches?.length || data.matchesFound || 0;
+          const msg = data.fromCache ? 'נטענו תוצאות מהזיכרון' : 'החיפוש הסתיים בהצלחה';
+          
+          toast.success(`✅ ${msg}`, {
+            description: `נמצאו ${matchCount} התאמות`,
             duration: 5000,
           });
         }
 
-        onComplete?.(data.result);
+        // אם יש תוצאות, נקרא ל-callback
+        if (data.result) {
+            onComplete?.(data.result);
+        } else if (data.matchesFound >= 0) {
+            // לפעמים בווירטואלי התוצאות מגיעות ישירות
+             onComplete?.({ matches: data.result || [] });
+        }
+        
         return data.jobId;
       }
 
-      // אחרת - מתחיל polling
+      // תרחיש 2: חיפוש ארוך - מתחילים polling
       if (showToasts) {
         toast.info('🔍 החיפוש התחיל', {
           description: 'זה עשוי לקחת כמה דקות',
@@ -330,9 +359,12 @@ export function useMatchingJob(options: UseMatchingJobOptions = {}) {
     // State
     ...state,
     
-    // Computed
-    isLoading: state.status === 'pending' || state.status === 'processing',
+    // Computed props
+    currentJob: state, // תאימות לאחור
+    isJobRunning: state.status === 'pending' || state.status === 'processing',
+    isLoading: state.status === 'pending' || state.status === 'processing', // Alias
     isComplete: state.status === 'completed',
+    hasResults: state.result !== null && state.result.matches.length > 0, // תאימות לאחור
     isFailed: state.status === 'failed',
     isIdle: state.status === 'idle',
     hasResult: state.result !== null && state.result.matches.length > 0,

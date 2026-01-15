@@ -977,7 +977,7 @@ const SplitView: React.FC<SplitViewProps> = ({
   }, []);
 
   // 🆕 Updated function - uses global context
-  const handleFindAiMatches = useCallback(
+   const handleFindAiMatches = useCallback(
     async (
       e: React.MouseEvent,
       forceRefresh: boolean = false,
@@ -1005,16 +1005,35 @@ const SplitView: React.FC<SplitViewProps> = ({
         setAiMatchMeta(null);
       }
 
+      // 🔥 התיקון: בדיקה אם זה חיפוש וירטואלי והכנת הפרמטרים 🔥
+      const isVirtual = (aiTargetCandidate as any).isVirtual;
+      const virtualData = (aiTargetCandidate as any).virtualData;
+
+      let extraParams = {};
+      
+      if (isVirtual && virtualData) {
+        extraParams = {
+          isVirtualSearch: true,
+          virtualProfileId: virtualData.virtualProfileId,
+          virtualProfile: virtualData.virtualProfile,
+          gender: virtualData.gender,
+          religiousLevel: virtualData.religiousLevel,
+          editedSummary: virtualData.editedSummary
+        };
+      }
+
       // 🆕 Use global context to start job
       await startJob(
         aiTargetCandidate.id,
-        aiTargetCandidate.firstName,
+        aiTargetCandidate.firstName, // הוספנו את השם
         method,
-        forceRefresh
+        forceRefresh,
+        extraParams // שולחים את הפרמטרים הנוספים
       );
     },
     [aiTargetCandidate, setAiMatches, startJob]
   );
+
 
   const handleViewResults = useCallback(() => {
     setShowCompleteBanner(false);

@@ -89,6 +89,14 @@ import { SORT_OPTIONS, VIEW_OPTIONS } from '../constants/filterOptions';
 import type { MatchmakerPageDictionary } from '@/types/dictionaries/matchmaker';
 import type { ProfilePageDictionary } from '@/types/dictionary';
 
+
+// הוספת שדה מותאם אישית ל-Candidate כדי למנוע שגיאות TS (אפשר גם להשתמש ב-as any)
+type VirtualCandidate = Candidate & {
+  isVirtual: boolean;
+  virtualData?: any; // אובייקט לשמירת הנתונים הגולמיים
+};
+
+
 // --- Interfaces Definitions ---
 type BackgroundCompatibility =
   | 'excellent'
@@ -597,7 +605,7 @@ const CandidatesManager: React.FC<CandidatesManagerProps> = ({
   // --- Virtual Profile Handler ---
   const handleVirtualProfileSelect = useCallback((virtualProfile: any) => {
     // המרת הפרופיל הוירטואלי למבנה של מועמד (Candidate)
-    const mockCandidate = {
+    const mockCandidate: VirtualCandidate = {
       id: virtualProfile.id,
       firstName: virtualProfile.name || 'משתמש',
       lastName: 'וירטואלי (AI)',
@@ -628,7 +636,16 @@ const CandidatesManager: React.FC<CandidatesManagerProps> = ({
       aiReasoning:
         virtualProfile.editedSummary ||
         virtualProfile.generatedProfile.displaySummary,
-    } as unknown as Candidate;
+      
+      // 🔥 התיקון: שמירת המידע הגולמי לשימוש בחיפוש 🔥
+      virtualData: {
+        virtualProfileId: virtualProfile.id,
+        virtualProfile: virtualProfile.generatedProfile,
+        gender: virtualProfile.gender,
+        religiousLevel: virtualProfile.religiousLevel,
+        editedSummary: virtualProfile.editedSummary
+      }
+    } as unknown as VirtualCandidate;
 
     setAiTargetCandidate(mockCandidate);
     setAiMatches([]);
@@ -636,6 +653,7 @@ const CandidatesManager: React.FC<CandidatesManagerProps> = ({
 
     toast.success('פרופיל וירטואלי נטען! כעת ניתן לבצע חיפוש AI.');
   }, []);
+
 
   const handleUpdateAllProfiles = async () => {
     if (
