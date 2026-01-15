@@ -1,13 +1,14 @@
-// File: src/app/components/matchmaker/new/CandidatesManager/index.tsx
+// File: src/components/matchmaker/new/CandidatesManager/index.tsx
 
 'use client';
 
 // --- React & Next.js Imports ---
 import React, { useState, useCallback, useEffect, useMemo } from 'react';
-import { ProfileFeedbackDialog } from '../dialogs/ProfileFeedbackDialog';
 import { useSession } from 'next-auth/react';
 import { cn, getRelativeCloudinaryPath } from '@/lib/utils';
-import { AiMatchmakerProfileAdvisorDialog } from '../dialogs/AiMatchmakerProfileAdvisorDialog';
+import Image from 'next/image';
+import { motion, AnimatePresence } from 'framer-motion';
+
 // --- Third-party Libraries ---
 import {
   UserPlus,
@@ -24,16 +25,13 @@ import {
   Sparkles,
   TrendingUp,
   TrendingDown,
-  Eye, // הוספת אייקון
-  EyeOff, // הוספת אייקון
-  GitCompare, // <--- הוסף את זה
+  Eye,
+  EyeOff,
+  GitCompare,
   X,
+  UserCircle, // <-- אייקון חדש לחיפוש וירטואלי
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { useParams } from 'next/navigation';
-
-import Image from 'next/image'; // <--- הוסף את השורה הזו
-import { motion, AnimatePresence } from 'framer-motion'; // <--- הוסף את השורה הזו
 
 // --- UI Components ---
 import { Button } from '@/components/ui/button';
@@ -73,6 +71,11 @@ import SearchBar from '../Filters/SearchBar';
 import { LoadingContainer } from '../shared/LoadingStates';
 import { AddManualCandidateDialog } from '../dialogs/AddManualCandidateDialog';
 import { AiMatchAnalysisDialog } from '../dialogs/AiMatchAnalysisDialog';
+import { ProfileFeedbackDialog } from '../dialogs/ProfileFeedbackDialog';
+import { AiMatchmakerProfileAdvisorDialog } from '../dialogs/AiMatchmakerProfileAdvisorDialog';
+
+// --- Virtual Search Components (NEW) ---
+import { VirtualUserDialog, SavedVirtualProfiles } from '../VirtualSearch';
 
 // --- Types, Constants & Utils ---
 import type {
@@ -86,7 +89,13 @@ import { SORT_OPTIONS, VIEW_OPTIONS } from '../constants/filterOptions';
 import type { MatchmakerPageDictionary } from '@/types/dictionaries/matchmaker';
 import type { ProfilePageDictionary } from '@/types/dictionary';
 
-type BackgroundCompatibility = 'excellent' | 'good' | 'possible' | 'problematic' | 'not_recommended';
+// --- Interfaces Definitions ---
+type BackgroundCompatibility =
+  | 'excellent'
+  | 'good'
+  | 'possible'
+  | 'problematic'
+  | 'not_recommended';
 
 interface ScoreBreakdown {
   religious: number;
@@ -97,25 +106,20 @@ interface ScoreBreakdown {
   values: number;
 }
 
-// 2. עדכון הממשק לשימוש ב-Type החדש במקום string
 interface AiMatch {
   userId: string;
   firstName?: string;
   lastName?: string;
-  
   score?: number;
   firstPassScore?: number;
   finalScore?: number;
-  
   scoreBreakdown?: ScoreBreakdown;
-  
   reasoning?: string;
   shortReasoning?: string;
   detailedReasoning?: string;
-  
   rank?: number;
   backgroundMultiplier?: number;
-  backgroundCompatibility?: BackgroundCompatibility; // <--- שונה מ-string ל-BackgroundCompatibility
+  backgroundCompatibility?: BackgroundCompatibility;
 }
 
 // ============================================================================
@@ -399,7 +403,12 @@ const CandidatesManager: React.FC<CandidatesManagerProps> = ({
   const [showFiltersMobile, setShowFiltersMobile] = useState(false);
   const [showManualAddDialog, setShowManualAddDialog] = useState(false);
   const [isHeaderCompact, setIsHeaderCompact] = useState(true);
-  const [isQuickViewEnabled, setIsQuickViewEnabled] = useState(false); // <-- הוספת state חדש
+  const [isQuickViewEnabled, setIsQuickViewEnabled] = useState(false);
+
+  // --- Virtual Search State ---
+  const [showVirtualUserDialog, setShowVirtualUserDialog] = useState(false);
+  const [showSavedVirtualProfiles, setShowSavedVirtualProfiles] =
+    useState(false);
 
   // --- AI State ---
   const [aiTargetCandidate, setAiTargetCandidate] = useState<Candidate | null>(
@@ -415,16 +424,18 @@ const CandidatesManager: React.FC<CandidatesManagerProps> = ({
   const [feedbackCandidate, setFeedbackCandidate] = useState<Candidate | null>(
     null
   );
-  // --- Session & Permissions ---
-  const { data: session } = useSession();
-  const isAdmin = session?.user?.role === 'ADMIN';
   const [analyzedCandidate, setAnalyzedCandidate] = useState<Candidate | null>(
     null
   );
 
+  // --- Session & Permissions ---
+  const { data: session } = useSession();
+  const isAdmin = session?.user?.role === 'ADMIN';
+
   const handleOpenAiAnalysis = useCallback((candidate: Candidate) => {
     setAnalyzedCandidate(candidate);
   }, []);
+
   const handleOpenProfileFeedback = useCallback((candidate: Candidate) => {
     setFeedbackCandidate(candidate);
   }, []);
@@ -432,6 +443,7 @@ const CandidatesManager: React.FC<CandidatesManagerProps> = ({
   const handleCloseAiAnalysis = () => {
     setAnalyzedCandidate(null);
   };
+
   // --- Custom Hooks ---
   const {
     loading,
@@ -442,6 +454,7 @@ const CandidatesManager: React.FC<CandidatesManagerProps> = ({
     setFilters: setCandidatesFilters,
     refresh,
   } = useCandidates();
+
   const {
     filters,
     setFilters,
@@ -466,6 +479,7 @@ const CandidatesManager: React.FC<CandidatesManagerProps> = ({
     () => activeFilters.length,
     [activeFilters]
   );
+
   const heroStats = useMemo(() => {
     const total = candidates.length;
     const male = candidates.filter((c) => c.profile.gender === 'MALE').length;
@@ -513,12 +527,14 @@ const CandidatesManager: React.FC<CandidatesManagerProps> = ({
     },
     [setFilters]
   );
+
   const handleRemoveFilter = useCallback(
     (key: keyof CandidatesFilter, value?: string) => {
       removeFilter(key, value);
     },
     [removeFilter]
   );
+
   const handleCandidateAction = useCallback(
     async (type: CandidateAction, candidate: Candidate) => {
       console.log(
@@ -578,6 +594,49 @@ const CandidatesManager: React.FC<CandidatesManagerProps> = ({
     []
   );
 
+  // --- Virtual Profile Handler ---
+  const handleVirtualProfileSelect = useCallback((virtualProfile: any) => {
+    // המרת הפרופיל הוירטואלי למבנה של מועמד (Candidate)
+    const mockCandidate = {
+      id: virtualProfile.id,
+      firstName: virtualProfile.name || 'משתמש',
+      lastName: 'וירטואלי (AI)',
+      email: 'virtual@ai.com',
+      createdAt: new Date(),
+      status: 'ACTIVE',
+      images: [],
+      isProfileComplete: true,
+      source: 'MANUAL_ENTRY',
+      isVerified: false,
+      profile: {
+        gender: virtualProfile.gender,
+        religiousLevel: virtualProfile.religiousLevel,
+        // ממלאים פרטים נוספים מהפרופיל הגנרטיבי
+        city: virtualProfile.generatedProfile.inferredCity,
+        occupation: virtualProfile.generatedProfile.inferredOccupation,
+        // חישוב גיל ליום הולדת
+        birthDate: new Date(
+          new Date().setFullYear(
+            new Date().getFullYear() -
+              virtualProfile.generatedProfile.inferredAge
+          )
+        ),
+        availabilityStatus: 'AVAILABLE',
+      },
+      // שדות מיוחדים לזיהוי וירטואלי ותצוגת AI
+      isVirtual: true,
+      aiReasoning:
+        virtualProfile.editedSummary ||
+        virtualProfile.generatedProfile.displaySummary,
+    } as unknown as Candidate;
+
+    setAiTargetCandidate(mockCandidate);
+    setAiMatches([]);
+    setComparisonSelection({});
+
+    toast.success('פרופיל וירטואלי נטען! כעת ניתן לבצע חיפוש AI.');
+  }, []);
+
   const handleUpdateAllProfiles = async () => {
     if (
       !confirm(
@@ -592,7 +651,7 @@ const CandidatesManager: React.FC<CandidatesManagerProps> = ({
     });
 
     try {
-      // שלב 1: איפוס דגלים (סימון כולם לעדכון)
+      // שלב 1: איפוס דגלים
       const resetRes = await fetch('/api/ai/matchmaker/batch-process', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -615,7 +674,7 @@ const CandidatesManager: React.FC<CandidatesManagerProps> = ({
         const batchRes = await fetch('/api/ai/matchmaker/batch-process', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'PROCESS_BATCH', batchSize: 4 }), // מעבדים 4 בכל פעם
+          body: JSON.stringify({ action: 'PROCESS_BATCH', batchSize: 4 }),
         });
 
         if (!batchRes.ok) throw new Error('Error during batch processing');
@@ -625,7 +684,6 @@ const CandidatesManager: React.FC<CandidatesManagerProps> = ({
         processedSoFar += batchData.processed;
         const percent = Math.round((processedSoFar / totalToProcess) * 100);
 
-        // עדכון הטוסט עם אחוזים
         toast.loading(
           `מעבד פרופילים... ${percent}% (${processedSoFar}/${totalToProcess})`,
           { id: toastId }
@@ -640,7 +698,7 @@ const CandidatesManager: React.FC<CandidatesManagerProps> = ({
         id: toastId,
         duration: 4000,
       });
-      refresh(); // רענון הטבלה בסיום
+      refresh();
     } catch (error) {
       console.error('Bulk update failed:', error);
       toast.error('שגיאה בתהליך העדכון. נסה שוב מאוחר יותר.', {
@@ -762,6 +820,19 @@ const CandidatesManager: React.FC<CandidatesManagerProps> = ({
                     : matchmakerDict.candidatesManager.controls.enableQuickView}
                 </Button>
 
+                {/* --- כפתור חיפוש וירטואלי חדש --- */}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowSavedVirtualProfiles(true)}
+                  className="bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white border-0 hover:opacity-90 shadow-sm"
+                >
+                  <UserCircle
+                    className={cn('w-4 h-4', locale === 'he' ? 'ml-1' : 'mr-1')}
+                  />
+                  חיפוש וירטואלי
+                </Button>
+
                 <div className="hidden lg:flex">
                   <Button
                     variant="outline"
@@ -817,7 +888,7 @@ const CandidatesManager: React.FC<CandidatesManagerProps> = ({
                         onFemaleFiltersChange={updateFemaleFilters}
                         onCopyFilters={copyFilters}
                         dict={matchmakerDict.candidatesManager.filterPanel}
-                        className="pb-10" // מרווח תחתון כדי שיהיה נוח לגלול עד הסוף
+                        className="pb-10"
                       />
                     </div>
                   </SheetContent>
@@ -955,7 +1026,7 @@ const CandidatesManager: React.FC<CandidatesManagerProps> = ({
               <div className="bg-white/90 backdrop-blur-sm rounded-xl shadow-lg border-0 overflow-hidden h-full">
                 <SplitView
                   onOpenAiAnalysis={handleOpenAiAnalysis}
-                  onSendProfileFeedback={handleOpenProfileFeedback} // <--- הוסף את השורה הזו
+                  onSendProfileFeedback={handleOpenProfileFeedback}
                   maleCandidates={maleCandidates}
                   femaleCandidates={femaleCandidates}
                   allCandidates={candidates}
@@ -986,8 +1057,8 @@ const CandidatesManager: React.FC<CandidatesManagerProps> = ({
                   onFemaleSearchChange={updateFemaleSearchQuery}
                   dict={matchmakerDict}
                   profileDict={profileDict}
-                  isQuickViewEnabled={isQuickViewEnabled} // <-- העברת prop חדש
-                  locale={locale} // <--- הוסף את השורה הזו
+                  isQuickViewEnabled={isQuickViewEnabled}
+                  locale={locale}
                 />
               </div>
             )}
@@ -1059,6 +1130,7 @@ const CandidatesManager: React.FC<CandidatesManagerProps> = ({
           </motion.div>
         )}
       </AnimatePresence>
+
       <AiMatchmakerProfileAdvisorDialog
         isOpen={!!analyzedCandidate}
         onClose={handleCloseAiAnalysis}
@@ -1073,21 +1145,42 @@ const CandidatesManager: React.FC<CandidatesManagerProps> = ({
         locale={locale}
         dict={matchmakerDict.candidatesManager.profileFeedbackDialog}
       />
+
       {/* --- Dialogs --- */}
       <AddManualCandidateDialog
         isOpen={showManualAddDialog}
         onClose={() => setShowManualAddDialog(false)}
         onCandidateAdded={handleCandidateAdded}
-        dict={matchmakerDict.candidatesManager.addManualCandidateDialog} // <--- הוספת השורה הזו
+        dict={matchmakerDict.candidatesManager.addManualCandidateDialog}
         locale={locale}
       />
+
       <AiMatchAnalysisDialog
         isOpen={isAnalysisDialogOpen}
         onClose={() => setIsAnalysisDialogOpen(false)}
         targetCandidate={aiTargetCandidate}
         comparisonCandidates={Object.values(comparisonSelection)}
         dict={matchmakerDict.candidatesManager.aiAnalysis}
-        locale={locale} // <--- הוסף את השורה הזו
+        locale={locale}
+      />
+
+      {/* --- Virtual Search Dialogs (NEW) --- */}
+      <VirtualUserDialog
+        isOpen={showVirtualUserDialog}
+        onClose={() => setShowVirtualUserDialog(false)}
+        onProfileCreated={handleVirtualProfileSelect}
+        locale={locale}
+      />
+
+      <SavedVirtualProfiles
+        isOpen={showSavedVirtualProfiles}
+        onClose={() => setShowSavedVirtualProfiles(false)}
+        onSelectProfile={handleVirtualProfileSelect}
+        onCreateNew={() => {
+          setShowSavedVirtualProfiles(false);
+          setShowVirtualUserDialog(true);
+        }}
+        locale={locale}
       />
     </div>
   );

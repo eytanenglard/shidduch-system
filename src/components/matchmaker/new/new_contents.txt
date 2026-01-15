@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmaker\new
-# Generated on: 2026-01-15 08:37:37
+# Generated on: 2026-01-15 09:46:24
 # Filter: Only content of code files (.bat, .c, .cfg, .conf, .cpp, .cs, .css, .go, .h, .html, .ini, .java, .js, .json, .jsx, .kt, .less, .md, .php, .py, .rb, .rs, .scss, .sh, .sql, .swift, .ts, .tsx, .txt, .xml, .yaml, .yml) is included.
 ################################################################################
 
@@ -10809,6 +10809,936 @@ const SearchBar: React.FC<SearchBarProps> = ({
 
 export default SearchBar;
 --- End of Content for SearchBar.tsx ---
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmaker\new\VirtualSearch
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmaker\new\VirtualSearch\SavedVirtualProfiles.tsx
+--------------------------------------------------------------------------------
+Content:
+// ===========================================
+// קובץ חדש: src/components/matchmaker/new/VirtualSearch/SavedVirtualProfiles.tsx
+// ===========================================
+
+'use client';
+
+import React, { useState, useEffect } from 'react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import {
+  Star,
+  StarOff,
+  Target,
+  MoreVertical,
+  Trash2,
+  Edit3,
+  Loader2,
+  UserCircle,
+  Clock,
+  RefreshCw,
+  Plus,
+} from 'lucide-react';
+import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
+import { formatDistanceToNow } from 'date-fns';
+import { he } from 'date-fns/locale';
+
+// ============================================================================
+// TYPES
+// ============================================================================
+
+interface GeneratedVirtualProfile {
+  inferredAge: number;
+  inferredCity: string | null;
+  inferredOccupation: string | null;
+  personalitySummary: string;
+  lookingForSummary: string;
+  keyTraits: string[];
+  displaySummary: string;
+}
+
+interface SavedProfile {
+  id: string;
+  name: string | null;
+  gender: 'MALE' | 'FEMALE';
+  religiousLevel: string;
+  generatedProfile: GeneratedVirtualProfile;
+  editedSummary: string | null;
+  wasEdited: boolean;
+  isStarred: boolean;
+  lastUsedAt: string | null;
+  usageCount: number;
+  createdAt: string;
+}
+
+interface SavedVirtualProfilesProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onSelectProfile: (profile: SavedProfile) => void;
+  onCreateNew: () => void;
+  locale: string;
+}
+
+// מיפוי רמות דתיות לתצוגה
+const RELIGIOUS_LEVEL_LABELS: Record<string, string> = {
+  charedi_modern: 'חרדי מודרני',
+  dati_leumi_torani: 'דתי לאומי תורני',
+  dati_leumi_standard: 'דתי לאומי',
+  dati_leumi_liberal: 'דתי לאומי ליברלי',
+  masorti_strong: 'מסורתי חזק',
+  masorti_light: 'מסורתי לייט',
+  secular_traditional_connection: 'חילוני מסורתי',
+  secular: 'חילוני',
+};
+
+// ============================================================================
+// COMPONENT
+// ============================================================================
+
+const SavedVirtualProfiles: React.FC<SavedVirtualProfilesProps> = ({
+  isOpen,
+  onClose,
+  onSelectProfile,
+  onCreateNew,
+  locale,
+}) => {
+  const [profiles, setProfiles] = useState<SavedProfile[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  const isRtl = locale === 'he';
+
+  // טעינת פרופילים
+  const loadProfiles = async () => {
+    setIsLoading(true);
+    try {
+      const response = await fetch('/api/ai/virtual-profile');
+      const data = await response.json();
+
+      if (data.success) {
+        setProfiles(data.profiles || []);
+      } else {
+        throw new Error(data.message);
+      }
+    } catch (error) {
+      console.error('Error loading virtual profiles:', error);
+      toast.error('שגיאה בטעינת הפרופילים');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (isOpen) {
+      loadProfiles();
+    }
+  }, [isOpen]);
+
+  // סימון/ביטול כוכב
+  const handleToggleStar = async (profileId: string, currentStarred: boolean) => {
+    try {
+      const response = await fetch('/api/ai/virtual-profile', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: profileId,
+          isStarred: !currentStarred,
+        }),
+      });
+
+      if (response.ok) {
+        setProfiles(prev =>
+          prev.map(p =>
+            p.id === profileId ? { ...p, isStarred: !currentStarred } : p
+          )
+        );
+      }
+    } catch (error) {
+      console.error('Error toggling star:', error);
+    }
+  };
+
+  // מחיקת פרופיל
+  const handleDelete = async (profileId: string) => {
+    setDeletingId(profileId);
+    try {
+      const response = await fetch(`/api/ai/virtual-profile?id=${profileId}`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        setProfiles(prev => prev.filter(p => p.id !== profileId));
+        toast.success('הפרופיל נמחק');
+      } else {
+        throw new Error('Failed to delete');
+      }
+    } catch (error) {
+      console.error('Error deleting profile:', error);
+      toast.error('שגיאה במחיקת הפרופיל');
+    } finally {
+      setDeletingId(null);
+      setDeleteConfirmId(null);
+    }
+  };
+
+  // בחירת פרופיל לחיפוש
+  const handleSelectProfile = (profile: SavedProfile) => {
+    onSelectProfile(profile);
+    onClose();
+  };
+
+  return (
+    <>
+      <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+        <DialogContent 
+          className="max-w-2xl max-h-[80vh]"
+          dir={isRtl ? 'rtl' : 'ltr'}
+        >
+          <DialogHeader>
+            <div className="flex items-center justify-between">
+              <DialogTitle className="flex items-center gap-2">
+                <UserCircle className="w-5 h-5 text-purple-500" />
+                פרופילים וירטואליים שמורים
+              </DialogTitle>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={loadProfiles}
+                  disabled={isLoading}
+                >
+                  <RefreshCw className={cn('w-4 h-4', isLoading && 'animate-spin')} />
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={() => {
+                    onClose();
+                    onCreateNew();
+                  }}
+                  className="bg-purple-600 hover:bg-purple-700 text-white"
+                >
+                  <Plus className="w-4 h-4 ml-1" />
+                  חדש
+                </Button>
+              </div>
+            </div>
+          </DialogHeader>
+
+          <ScrollArea className="h-[60vh] mt-4">
+            {isLoading ? (
+              <div className="flex items-center justify-center h-40">
+                <Loader2 className="w-8 h-8 animate-spin text-purple-500" />
+              </div>
+            ) : profiles.length === 0 ? (
+              <div className="flex flex-col items-center justify-center h-40 text-gray-500">
+                <UserCircle className="w-12 h-12 mb-2 opacity-50" />
+                <p>אין פרופילים שמורים</p>
+                <Button
+                  variant="link"
+                  onClick={() => {
+                    onClose();
+                    onCreateNew();
+                  }}
+                  className="text-purple-600"
+                >
+                  צור פרופיל חדש
+                </Button>
+              </div>
+            ) : (
+              <div className="space-y-3 pr-2">
+                {profiles.map((profile) => (
+                  <div
+                    key={profile.id}
+                    className={cn(
+                      'group relative p-4 rounded-xl border transition-all cursor-pointer',
+                      'hover:border-purple-300 hover:shadow-md',
+                      profile.isStarred ? 'bg-gradient-to-br from-amber-50 to-yellow-50 border-amber-200' : 'bg-white border-gray-200'
+                    )}
+                    onClick={() => handleSelectProfile(profile)}
+                  >
+                    {/* Star Button */}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleToggleStar(profile.id, profile.isStarred);
+                      }}
+                      className="absolute top-3 left-3 opacity-60 hover:opacity-100 transition-opacity"
+                    >
+                      {profile.isStarred ? (
+                        <Star className="w-5 h-5 text-amber-500 fill-amber-500" />
+                      ) : (
+                        <StarOff className="w-5 h-5 text-gray-400 hover:text-amber-500" />
+                      )}
+                    </button>
+
+                    {/* Main Content */}
+                    <div className="flex items-start gap-4">
+                      {/* Avatar */}
+                      <div className={cn(
+                        'w-12 h-12 rounded-full flex items-center justify-center text-white font-bold',
+                        profile.gender === 'MALE' 
+                          ? 'bg-gradient-to-br from-blue-500 to-indigo-600' 
+                          : 'bg-gradient-to-br from-pink-500 to-rose-600'
+                      )}>
+                        {profile.gender === 'MALE' ? '👨' : '👩'}
+                      </div>
+
+                      {/* Details */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <h3 className="font-bold text-gray-800 truncate">
+                            {profile.name || 'פרופיל ללא שם'}
+                          </h3>
+                          {profile.wasEdited && (
+                            <span className="text-xs px-2 py-0.5 bg-purple-100 text-purple-600 rounded-full">
+                              נערך
+                            </span>
+                          )}
+                        </div>
+
+                        <div className="flex flex-wrap items-center gap-2 text-sm text-gray-600">
+                          <span className={cn(
+                            'px-2 py-0.5 rounded-full text-xs',
+                            profile.gender === 'MALE' 
+                              ? 'bg-blue-100 text-blue-700' 
+                              : 'bg-pink-100 text-pink-700'
+                          )}>
+                            {profile.gender === 'MALE' ? 'גבר' : 'אישה'}, {profile.generatedProfile?.inferredAge || '?'}
+                          </span>
+                          <span className="px-2 py-0.5 bg-gray-100 text-gray-600 rounded-full text-xs">
+                            {RELIGIOUS_LEVEL_LABELS[profile.religiousLevel] || profile.religiousLevel}
+                          </span>
+                        </div>
+
+                        {/* Summary Preview */}
+                        <p className="text-sm text-gray-500 mt-2 line-clamp-2">
+                          {profile.editedSummary || profile.generatedProfile?.displaySummary || 'אין תיאור'}
+                        </p>
+
+                        {/* Meta Info */}
+                        <div className="flex items-center gap-4 mt-2 text-xs text-gray-400">
+                          <span className="flex items-center gap-1">
+                            <Clock className="w-3 h-3" />
+                            {profile.lastUsedAt 
+                              ? `שימוש אחרון: ${formatDistanceToNow(new Date(profile.lastUsedAt), { addSuffix: true, locale: he })}`
+                              : `נוצר ${formatDistanceToNow(new Date(profile.createdAt), { addSuffix: true, locale: he })}`
+                            }
+                          </span>
+                          {profile.usageCount > 0 && (
+                            <span>{profile.usageCount} חיפושים</span>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Actions Menu */}
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            <MoreVertical className="w-4 h-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleSelectProfile(profile);
+                            }}
+                          >
+                            <Target className="w-4 h-4 ml-2" />
+                            הפעל חיפוש
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setDeleteConfirmId(profile.id);
+                            }}
+                            className="text-red-600"
+                          >
+                            <Trash2 className="w-4 h-4 ml-2" />
+                            מחק
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+
+                    {/* Hover Action */}
+                    <div className="absolute inset-0 flex items-center justify-center bg-purple-600/0 group-hover:bg-purple-600/5 rounded-xl transition-colors pointer-events-none">
+                      <span className="opacity-0 group-hover:opacity-100 text-purple-600 font-medium flex items-center gap-1 transition-opacity">
+                        <Target className="w-4 h-4" />
+                        לחץ להפעלת חיפוש
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </ScrollArea>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation */}
+      <AlertDialog open={!!deleteConfirmId} onOpenChange={() => setDeleteConfirmId(null)}>
+        <AlertDialogContent dir={isRtl ? 'rtl' : 'ltr'}>
+          <AlertDialogHeader>
+            <AlertDialogTitle>מחיקת פרופיל וירטואלי</AlertDialogTitle>
+            <AlertDialogDescription>
+              האם אתה בטוח שברצונך למחוק את הפרופיל? פעולה זו אינה ניתנת לביטול.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>ביטול</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => deleteConfirmId && handleDelete(deleteConfirmId)}
+              className="bg-red-600 hover:bg-red-700"
+              disabled={!!deletingId}
+            >
+              {deletingId ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                'מחק'
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
+  );
+};
+
+export default SavedVirtualProfiles;
+--- End of Content for SavedVirtualProfiles.tsx ---
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmaker\new\VirtualSearch\VirtualUserDialog.tsx
+--------------------------------------------------------------------------------
+Content:
+// ===========================================
+// קובץ חדש: src/components/matchmaker/new/VirtualSearch/VirtualUserDialog.tsx
+// ===========================================
+
+'use client';
+
+import React, { useState } from 'react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Loader2, Sparkles, User, Heart, Edit3, Check, X } from 'lucide-react';
+import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
+import { motion, AnimatePresence } from 'framer-motion';
+
+// ============================================================================
+// TYPES
+// ============================================================================
+
+interface GeneratedVirtualProfile {
+  inferredAge: number;
+  inferredCity: string | null;
+  inferredOccupation: string | null;
+  inferredMaritalStatus: string | null;
+  inferredEducation: string | null;
+  personalitySummary: string;
+  lookingForSummary: string;
+  preferredAgeMin: number;
+  preferredAgeMax: number;
+  preferredReligiousLevels: string[];
+  preferredLocations: string[];
+  keyTraits: string[];
+  idealPartnerTraits: string[];
+  dealBreakers: string[];
+  displaySummary: string;
+}
+
+interface VirtualProfile {
+  id: string;
+  name: string | null;
+  gender: 'MALE' | 'FEMALE';
+  religiousLevel: string;
+  generatedProfile: GeneratedVirtualProfile;
+  editedSummary?: string | null;
+  wasEdited?: boolean;
+  createdAt: string;
+}
+
+interface VirtualUserDialogProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onProfileCreated: (profile: VirtualProfile) => void;
+  locale: string;
+}
+
+// רמות דתיות (אותו מיפוי כמו במערכת)
+const RELIGIOUS_LEVELS = [
+  { value: 'charedi_modern', label: 'חרדי מודרני' },
+  { value: 'dati_leumi_torani', label: 'דתי לאומי תורני' },
+  { value: 'dati_leumi_standard', label: 'דתי לאומי' },
+  { value: 'dati_leumi_liberal', label: 'דתי לאומי ליברלי' },
+  { value: 'masorti_strong', label: 'מסורתי חזק' },
+  { value: 'masorti_light', label: 'מסורתי לייט' },
+  { value: 'secular_traditional_connection', label: 'חילוני עם חיבור למסורת' },
+  { value: 'secular', label: 'חילוני' },
+];
+
+// ============================================================================
+// COMPONENT
+// ============================================================================
+
+const VirtualUserDialog: React.FC<VirtualUserDialogProps> = ({
+  isOpen,
+  onClose,
+  onProfileCreated,
+  locale,
+}) => {
+  // State - שלב 1: קלט
+  const [sourceText, setSourceText] = useState('');
+  const [gender, setGender] = useState<'MALE' | 'FEMALE' | ''>('');
+  const [religiousLevel, setReligiousLevel] = useState('');
+  const [name, setName] = useState('');
+
+  // State - שלב 2: סיכום
+  const [generatedProfile, setGeneratedProfile] = useState<GeneratedVirtualProfile | null>(null);
+  const [editedSummary, setEditedSummary] = useState('');
+  const [isEditingMode, setIsEditingMode] = useState(false);
+
+  // State - כללי
+  const [step, setStep] = useState<1 | 2>(1);
+  const [isLoading, setIsLoading] = useState(false);
+  const [profileId, setProfileId] = useState<string | null>(null);
+
+  // Reset on close
+  const handleClose = () => {
+    setStep(1);
+    setSourceText('');
+    setGender('');
+    setReligiousLevel('');
+    setName('');
+    setGeneratedProfile(null);
+    setEditedSummary('');
+    setIsEditingMode(false);
+    setProfileId(null);
+    onClose();
+  };
+
+  // שלב 1: יצירת פרופיל
+  const handleCreateProfile = async () => {
+    if (!sourceText.trim() || sourceText.trim().length < 20) {
+      toast.error('יש להזין תיאור של לפחות 20 תווים');
+      return;
+    }
+    if (!gender) {
+      toast.error('יש לבחור מגדר');
+      return;
+    }
+    if (!religiousLevel) {
+      toast.error('יש לבחור רמה דתית');
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      const response = await fetch('/api/ai/virtual-profile', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          sourceText: sourceText.trim(),
+          gender,
+          religiousLevel,
+          name: name.trim() || null,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!data.success) {
+        throw new Error(data.message || 'Failed to create profile');
+      }
+
+      setProfileId(data.virtualProfile.id);
+      setGeneratedProfile(data.virtualProfile.generatedProfile);
+      setEditedSummary(data.virtualProfile.generatedProfile.displaySummary);
+      setStep(2);
+
+      toast.success('הפרופיל נוצר בהצלחה!');
+
+    } catch (error) {
+      console.error('Error creating virtual profile:', error);
+      toast.error('שגיאה ביצירת הפרופיל. נסה שוב.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // שלב 2: אישור והפעלת חיפוש
+  const handleConfirmAndSearch = async () => {
+    if (!profileId || !generatedProfile) return;
+
+    setIsLoading(true);
+
+    try {
+      // אם הסיכום עודכן, נשמור אותו
+      if (editedSummary !== generatedProfile.displaySummary) {
+        await fetch('/api/ai/virtual-profile', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            id: profileId,
+            editedSummary: editedSummary.trim(),
+          }),
+        });
+      }
+
+      // מעביר את הפרופיל לקומפוננטה האב
+      onProfileCreated({
+        id: profileId,
+        name: name.trim() || null,
+        gender: gender as 'MALE' | 'FEMALE',
+        religiousLevel,
+        generatedProfile,
+        editedSummary: editedSummary !== generatedProfile.displaySummary ? editedSummary : null,
+        wasEdited: editedSummary !== generatedProfile.displaySummary,
+        createdAt: new Date().toISOString(),
+      });
+
+      handleClose();
+
+    } catch (error) {
+      console.error('Error confirming profile:', error);
+      toast.error('שגיאה בשמירת הפרופיל');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // חזרה לשלב 1
+  const handleBackToEdit = () => {
+    setStep(1);
+    setGeneratedProfile(null);
+    setEditedSummary('');
+    setIsEditingMode(false);
+  };
+
+  const isRtl = locale === 'he';
+
+  return (
+    <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
+      <DialogContent 
+        className="max-w-2xl max-h-[90vh] overflow-y-auto"
+        dir={isRtl ? 'rtl' : 'ltr'}
+      >
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2 text-xl">
+            <Sparkles className="w-5 h-5 text-purple-500" />
+            {step === 1 ? 'יצירת מועמד וירטואלי' : 'אישור וחיפוש'}
+          </DialogTitle>
+          <DialogDescription>
+            {step === 1 
+              ? 'תאר/י את המועמד ומה הוא/היא מחפש/ת, והמערכת תיצור פרופיל לחיפוש התאמות'
+              : 'בדוק/י את הסיכום שנוצר, ערוך/י במידת הצורך, ואשר/י להתחלת החיפוש'
+            }
+          </DialogDescription>
+        </DialogHeader>
+
+        <AnimatePresence mode="wait">
+          {/* ========== STEP 1: INPUT ========== */}
+          {step === 1 && (
+            <motion.div
+              key="step1"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 20 }}
+              className="space-y-6 mt-4"
+            >
+              {/* Text Input */}
+              <div className="space-y-2">
+                <Label className="flex items-center gap-2 text-base font-medium">
+                  <User className="w-4 h-4 text-blue-500" />
+                  תאר/י את המועמד ומה הוא/היא מחפש/ת
+                </Label>
+                <Textarea
+                  value={sourceText}
+                  onChange={(e) => setSourceText(e.target.value)}
+                  placeholder={`לדוגמה:
+בחור בן 28, תוכניתן בהייטק, גר בתל אביב.
+שקט, רציני, מאוד אחראי. אוהב טיולים בטבע וקריאה.
+מחפש בחורה אינטליגנטית, רגישה, עם חום.
+עדיפות לביתית, לא אוהב רועשות מדי...`}
+                  className="min-h-[180px] resize-none"
+                  dir={isRtl ? 'rtl' : 'ltr'}
+                />
+                <p className="text-xs text-gray-500">
+                  {sourceText.length} תווים (מינימום 20)
+                </p>
+              </div>
+
+              {/* Gender & Religious Level */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">מגדר המועמד</Label>
+                  <Select value={gender} onValueChange={(v) => setGender(v as 'MALE' | 'FEMALE')}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="בחר מגדר" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="MALE">👨 גבר</SelectItem>
+                      <SelectItem value="FEMALE">👩 אישה</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">רמה דתית</Label>
+                  <Select value={religiousLevel} onValueChange={setReligiousLevel}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="בחר רמה דתית" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {RELIGIOUS_LEVELS.map((level) => (
+                        <SelectItem key={level.value} value={level.value}>
+                          {level.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              {/* Optional Name */}
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">שם לזיהוי (אופציונלי)</Label>
+                <Input
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="לדוגמה: דני - בחור שקט מת״א"
+                  dir={isRtl ? 'rtl' : 'ltr'}
+                />
+              </div>
+
+              {/* Submit Button */}
+              <Button
+                onClick={handleCreateProfile}
+                disabled={isLoading || !sourceText.trim() || sourceText.length < 20 || !gender || !religiousLevel}
+                className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white"
+                size="lg"
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2 className="w-5 h-5 animate-spin ml-2" />
+                    יוצר פרופיל...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="w-5 h-5 ml-2" />
+                    צור פרופיל והמשך
+                  </>
+                )}
+              </Button>
+            </motion.div>
+          )}
+
+          {/* ========== STEP 2: REVIEW & CONFIRM ========== */}
+          {step === 2 && generatedProfile && (
+            <motion.div
+              key="step2"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              className="space-y-6 mt-4"
+            >
+              {/* Profile Summary Card */}
+              <div className="bg-gradient-to-br from-purple-50 to-indigo-50 rounded-xl p-5 border border-purple-100">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="font-bold text-gray-800 flex items-center gap-2">
+                    <Heart className="w-5 h-5 text-pink-500" />
+                    סיכום הפרופיל
+                  </h3>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setIsEditingMode(!isEditingMode)}
+                    className="text-purple-600 hover:text-purple-700"
+                  >
+                    {isEditingMode ? (
+                      <>
+                        <Check className="w-4 h-4 ml-1" />
+                        סיום עריכה
+                      </>
+                    ) : (
+                      <>
+                        <Edit3 className="w-4 h-4 ml-1" />
+                        ערוך סיכום
+                      </>
+                    )}
+                  </Button>
+                </div>
+
+                {/* Editable Summary */}
+                {isEditingMode ? (
+                  <Textarea
+                    value={editedSummary}
+                    onChange={(e) => setEditedSummary(e.target.value)}
+                    className="min-h-[150px] bg-white"
+                    dir={isRtl ? 'rtl' : 'ltr'}
+                  />
+                ) : (
+                  <div className="bg-white rounded-lg p-4 text-gray-700 whitespace-pre-wrap leading-relaxed">
+                    {editedSummary || generatedProfile.displaySummary}
+                  </div>
+                )}
+
+                {/* Inferred Details */}
+                <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
+                  <div className="bg-white/60 rounded-lg p-3">
+                    <span className="text-gray-500">גיל משוער:</span>
+                    <span className="font-medium mr-2">{generatedProfile.inferredAge}</span>
+                  </div>
+                  <div className="bg-white/60 rounded-lg p-3">
+                    <span className="text-gray-500">מגדר:</span>
+                    <span className="font-medium mr-2">{gender === 'MALE' ? 'גבר' : 'אישה'}</span>
+                  </div>
+                  {generatedProfile.inferredCity && (
+                    <div className="bg-white/60 rounded-lg p-3">
+                      <span className="text-gray-500">עיר:</span>
+                      <span className="font-medium mr-2">{generatedProfile.inferredCity}</span>
+                    </div>
+                  )}
+                  {generatedProfile.inferredOccupation && (
+                    <div className="bg-white/60 rounded-lg p-3">
+                      <span className="text-gray-500">מקצוע:</span>
+                      <span className="font-medium mr-2">{generatedProfile.inferredOccupation}</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Key Traits */}
+                {generatedProfile.keyTraits && generatedProfile.keyTraits.length > 0 && (
+                  <div className="mt-4">
+                    <span className="text-sm text-gray-500">תכונות מרכזיות:</span>
+                    <div className="flex flex-wrap gap-2 mt-1">
+                      {generatedProfile.keyTraits.map((trait, i) => (
+                        <span
+                          key={i}
+                          className="px-2 py-1 bg-purple-100 text-purple-700 rounded-full text-xs"
+                        >
+                          {trait}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Looking For */}
+                {generatedProfile.idealPartnerTraits && generatedProfile.idealPartnerTraits.length > 0 && (
+                  <div className="mt-3">
+                    <span className="text-sm text-gray-500">מחפש בבן/בת זוג:</span>
+                    <div className="flex flex-wrap gap-2 mt-1">
+                      {generatedProfile.idealPartnerTraits.map((trait, i) => (
+                        <span
+                          key={i}
+                          className="px-2 py-1 bg-pink-100 text-pink-700 rounded-full text-xs"
+                        >
+                          {trait}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex gap-3">
+                <Button
+                  variant="outline"
+                  onClick={handleBackToEdit}
+                  className="flex-1"
+                >
+                  <X className="w-4 h-4 ml-2" />
+                  חזור לעריכה
+                </Button>
+                <Button
+                  onClick={handleConfirmAndSearch}
+                  disabled={isLoading}
+                  className="flex-1 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white"
+                >
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="w-5 h-5 animate-spin ml-2" />
+                      שומר...
+                    </>
+                  ) : (
+                    <>
+                      <Check className="w-5 h-5 ml-2" />
+                      אשר והמשך לחיפוש
+                    </>
+                  )}
+                </Button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
+export default VirtualUserDialog;
+--- End of Content for VirtualUserDialog.tsx ---
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmaker\new\VirtualSearch\index.tsx
+--------------------------------------------------------------------------------
+Content:
+// ===========================================
+// קובץ חדש: src/components/matchmaker/new/VirtualSearch/index.tsx
+// ===========================================
+
+export { default as VirtualUserDialog } from './VirtualUserDialog';
+export { default as SavedVirtualProfiles } from './SavedVirtualProfiles';
+--- End of Content for index.tsx ---
 
 ================================================================================
 Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmaker\new\constants
