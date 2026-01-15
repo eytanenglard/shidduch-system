@@ -3,7 +3,7 @@
 // ===========================================
 // 🎯 Hook לניהול Background Matching Jobs
 // כולל polling, progress tracking, והתראות
-// מעודכן: תמיכה בחיפוש וירטואלי (Virtual Search)
+// מעודכן: כולל method ב-JobState ותמיכה בחיפוש וירטואלי
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { toast } from 'sonner';
@@ -37,7 +37,6 @@ export interface MatchResult {
   similarity?: number;
 }
 
-// 🆕 אפשרויות נוספות לחיפוש (עבור חיפוש וירטואלי)
 export interface MatchingJobOptions {
   isVirtualSearch?: boolean;
   virtualProfileId?: string;
@@ -49,7 +48,8 @@ export interface MatchingJobOptions {
 
 export interface JobState {
   jobId: string | null;
-  targetName: string | null; // 🆕 הוספנו את שם המועמד לסטייט
+  targetName: string | null;
+  method: SearchMethod; // 🆕 הוספנו את זה כדי לתקן את השגיאה
   status: JobStatus;
   progress: number;
   progressMessage: string;
@@ -68,10 +68,10 @@ export interface JobState {
 }
 
 export interface UseMatchingJobOptions {
-  pollingInterval?: number;      // מרווח בין בדיקות (ברירת מחדל: 3000ms)
-  onComplete?: (result: JobState['result']) => void;  // callback כשמסתיים
-  onError?: (error: string) => void;                  // callback כשנכשל
-  showToasts?: boolean;          // האם להציג התראות (ברירת מחדל: true)
+  pollingInterval?: number;
+  onComplete?: (result: JobState['result']) => void;
+  onError?: (error: string) => void;
+  showToasts?: boolean;
 }
 
 // ============================================================================
@@ -81,6 +81,7 @@ export interface UseMatchingJobOptions {
 const initialState: JobState = {
   jobId: null,
   targetName: null,
+  method: 'algorithmic', // 🆕 ערך ברירת מחדל
   status: 'idle',
   progress: 0,
   progressMessage: '',
@@ -134,6 +135,7 @@ export function useMatchingJob(options: UseMatchingJobOptions = {}) {
       setState(prev => ({
         ...prev,
         status: data.status,
+        method: data.method || prev.method, // עדכון ה-method מהשרת אם קיים
         progress: data.progress || 0,
         progressMessage: data.progressMessage || '',
         result: data.result || null,
@@ -176,7 +178,6 @@ export function useMatchingJob(options: UseMatchingJobOptions = {}) {
 
     } catch (error) {
       console.error('[useMatchingJob] Poll error:', error);
-      // לא עוצרים polling בגלל שגיאת רשת - ננסה שוב
     }
   }, [stopPolling, onComplete, onError, showToasts]);
 
@@ -188,11 +189,8 @@ export function useMatchingJob(options: UseMatchingJobOptions = {}) {
     if (isPollingRef.current) return;
     
     isPollingRef.current = true;
-    
-    // בדיקה ראשונה מיידית
     pollJobStatus(jobId);
     
-    // התחלת polling
     pollingRef.current = setInterval(() => {
       pollJobStatus(jobId);
     }, pollingInterval);
@@ -204,15 +202,17 @@ export function useMatchingJob(options: UseMatchingJobOptions = {}) {
   
   const startJob = useCallback(async (
     targetUserId: string,
-    targetName: string, // 🆕 פרמטר חדש לתצוגה
+    targetName: string,
     method: SearchMethod = 'algorithmic',
     forceRefresh: boolean = false,
-    extraParams: MatchingJobOptions = {} // 🆕 פרמטרים לחיפוש וירטואלי
+    extraParams: MatchingJobOptions = {}
   ): Promise<JobState['jobId']> => {
+    
     // איפוס state
     setState({
       ...initialState,
-      targetName, // שמירת השם
+      targetName,
+      method, // 🆕 שמירת ה-method ב-state
       status: 'pending',
       progressMessage: 'מתחיל...'
     });
@@ -225,7 +225,7 @@ export function useMatchingJob(options: UseMatchingJobOptions = {}) {
           targetUserId, 
           method, 
           forceRefresh,
-          ...extraParams // 🆕 הוספת הפרמטרים הוירטואליים לבקשה
+          ...extraParams 
         })
       });
 
@@ -235,7 +235,7 @@ export function useMatchingJob(options: UseMatchingJobOptions = {}) {
         throw new Error(data.error || 'Failed to start job');
       }
 
-      // עדכון state עם ה-jobId והנתונים הראשוניים
+      // עדכון state עם ה-jobId
       setState(prev => ({
         ...prev,
         jobId: data.jobId,
@@ -243,7 +243,6 @@ export function useMatchingJob(options: UseMatchingJobOptions = {}) {
         progress: data.progress || 0,
         progressMessage: data.progressMessage || '',
         fromCache: data.fromCache || false,
-        // אם התקבלו תוצאות מיידיות (כמו בחיפוש וירטואלי או מטמון)
         result: data.result || null,
         meta: {
           ...prev.meta,
@@ -253,9 +252,8 @@ export function useMatchingJob(options: UseMatchingJobOptions = {}) {
         }
       }));
 
-      // תרחיש 1: תוצאה מיידית (מטמון או חיפוש וירטואלי מהיר)
+      // תרחיש 1: תוצאה מיידית
       if (data.status === 'completed' && (data.result || data.matchesFound >= 0)) {
-        
         if (showToasts) {
           const matchCount = data.result?.matches?.length || data.matchesFound || 0;
           const msg = data.fromCache ? 'נטענו תוצאות מהזיכרון' : 'החיפוש הסתיים בהצלחה';
@@ -266,11 +264,9 @@ export function useMatchingJob(options: UseMatchingJobOptions = {}) {
           });
         }
 
-        // אם יש תוצאות, נקרא ל-callback
         if (data.result) {
             onComplete?.(data.result);
         } else if (data.matchesFound >= 0) {
-            // לפעמים בווירטואלי התוצאות מגיעות ישירות
              onComplete?.({ matches: data.result || [] });
         }
         
@@ -378,9 +374,5 @@ export function useMatchingJob(options: UseMatchingJobOptions = {}) {
     _state: state
   };
 }
-
-// ============================================================================
-// Export default
-// ============================================================================
 
 export default useMatchingJob;
