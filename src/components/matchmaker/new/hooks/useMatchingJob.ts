@@ -49,7 +49,7 @@ export interface MatchingJobOptions {
 export interface JobState {
   jobId: string | null;
   targetName: string | null;
-  method: SearchMethod; // 🆕 הוספנו את זה כדי לתקן את השגיאה
+  method: SearchMethod;
   status: JobStatus;
   progress: number;
   progressMessage: string;
@@ -81,7 +81,7 @@ export interface UseMatchingJobOptions {
 const initialState: JobState = {
   jobId: null,
   targetName: null,
-  method: 'algorithmic', // 🆕 ערך ברירת מחדל
+  method: 'algorithmic',
   status: 'idle',
   progress: 0,
   progressMessage: '',
@@ -90,6 +90,16 @@ const initialState: JobState = {
   fromCache: false,
   meta: {}
 };
+
+// ============================================================================
+// Helper: Check if result has matches
+// ============================================================================
+
+function hasValidMatches(result: JobState['result']): boolean {
+  return result !== null && 
+         Array.isArray(result.matches) && 
+         result.matches.length > 0;
+}
 
 // ============================================================================
 // Hook
@@ -132,13 +142,30 @@ export function useMatchingJob(options: UseMatchingJobOptions = {}) {
         throw new Error(data.error || 'Failed to get job status');
       }
 
+      // 🔧 תיקון: המרת result למבנה הנכון
+      let resultData: JobState['result'] = null;
+      if (data.result) {
+        // אם result הוא מערך ישירות
+        if (Array.isArray(data.result)) {
+          resultData = { matches: data.result };
+        } 
+        // אם result הוא אובייקט עם matches
+        else if (data.result.matches) {
+          resultData = data.result;
+        }
+        // אם result הוא אובייקט אחר - ננסה להשתמש בו
+        else {
+          resultData = { matches: [] };
+        }
+      }
+
       setState(prev => ({
         ...prev,
         status: data.status,
-        method: data.method || prev.method, // עדכון ה-method מהשרת אם קיים
+        method: data.method?.replace('-virtual', '') as SearchMethod || prev.method,
         progress: data.progress || 0,
         progressMessage: data.progressMessage || '',
-        result: data.result || null,
+        result: resultData,
         error: data.error || null,
         fromCache: data.fromCache || false,
         meta: {
@@ -154,14 +181,14 @@ export function useMatchingJob(options: UseMatchingJobOptions = {}) {
         stopPolling();
         
         if (showToasts) {
-          const matchCount = data.result?.matches?.length || data.meta?.matchesFound || 0;
+          const matchCount = resultData?.matches?.length || data.meta?.matchesFound || 0;
           toast.success(`✅ נמצאו ${matchCount} התאמות!`, {
             description: 'לחץ להצגת התוצאות',
             duration: 10000,
           });
         }
         
-        onComplete?.(data.result);
+        onComplete?.(resultData);
       } 
       else if (data.status === 'failed') {
         stopPolling();
@@ -212,7 +239,7 @@ export function useMatchingJob(options: UseMatchingJobOptions = {}) {
     setState({
       ...initialState,
       targetName,
-      method, // 🆕 שמירת ה-method ב-state
+      method,
       status: 'pending',
       progressMessage: 'מתחיל...'
     });
@@ -235,6 +262,18 @@ export function useMatchingJob(options: UseMatchingJobOptions = {}) {
         throw new Error(data.error || 'Failed to start job');
       }
 
+      // 🔧 תיקון: המרת result למבנה הנכון
+      let resultData: JobState['result'] = null;
+      if (data.result) {
+        if (Array.isArray(data.result)) {
+          resultData = { matches: data.result };
+        } else if (data.result.matches) {
+          resultData = data.result;
+        } else {
+          resultData = { matches: [] };
+        }
+      }
+
       // עדכון state עם ה-jobId
       setState(prev => ({
         ...prev,
@@ -243,33 +282,28 @@ export function useMatchingJob(options: UseMatchingJobOptions = {}) {
         progress: data.progress || 0,
         progressMessage: data.progressMessage || '',
         fromCache: data.fromCache || false,
-        result: data.result || null,
+        result: resultData,
         meta: {
           ...prev.meta,
           completedAt: data.meta?.completedAt ? new Date(data.meta.completedAt) : undefined,
-          matchesFound: data.matchesFound,
+          matchesFound: data.matchesFound ?? data.meta?.matchesFound,
           totalCandidates: data.meta?.totalCandidates
         }
       }));
 
-      // תרחיש 1: תוצאה מיידית
-      if (data.status === 'completed' && (data.result || data.matchesFound >= 0)) {
+      // תרחיש 1: תוצאה מיידית (מ-cache או חיפוש מהיר)
+      if (data.status === 'completed') {
+        const matchCount = resultData?.matches?.length || data.matchesFound || 0;
+        
         if (showToasts) {
-          const matchCount = data.result?.matches?.length || data.matchesFound || 0;
           const msg = data.fromCache ? 'נטענו תוצאות מהזיכרון' : 'החיפוש הסתיים בהצלחה';
-          
           toast.success(`✅ ${msg}`, {
             description: `נמצאו ${matchCount} התאמות`,
             duration: 5000,
           });
         }
 
-        if (data.result) {
-            onComplete?.(data.result);
-        } else if (data.matchesFound >= 0) {
-             onComplete?.({ matches: data.result || [] });
-        }
-        
+        onComplete?.(resultData);
         return data.jobId;
       }
 
@@ -356,14 +390,14 @@ export function useMatchingJob(options: UseMatchingJobOptions = {}) {
     ...state,
     
     // Computed props
-    currentJob: state, // תאימות לאחור
+    currentJob: state,
     isJobRunning: state.status === 'pending' || state.status === 'processing',
-    isLoading: state.status === 'pending' || state.status === 'processing', // Alias
+    isLoading: state.status === 'pending' || state.status === 'processing',
     isComplete: state.status === 'completed',
-    hasResults: state.result !== null && state.result.matches.length > 0, // תאימות לאחור
+    hasResults: hasValidMatches(state.result),
     isFailed: state.status === 'failed',
     isIdle: state.status === 'idle',
-    hasResult: state.result !== null && state.result.matches.length > 0,
+    hasResult: hasValidMatches(state.result),
     
     // Actions
     startJob,
