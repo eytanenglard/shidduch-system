@@ -1,0 +1,537 @@
+################################################################################
+# Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\matchmaker
+# Generated on: 2026-01-15 23:52:00
+# Filter: Only content of code files (.bat, .c, .cfg, .conf, .cpp, .cs, .css, .go, .h, .html, .ini, .java, .js, .json, .jsx, .kt, .less, .md, .php, .py, .rb, .rs, .scss, .sh, .sql, .swift, .ts, .tsx, .txt, .xml, .yaml, .yml) is included.
+################################################################################
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\matchmaker
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\matchmaker\matchmaker_contents.txt
+--------------------------------------------------------------------------------
+[This is the output log file itself. Content not included.]
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\matchmaker\analyze-profile
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\matchmaker\analyze-profile\route.ts
+--------------------------------------------------------------------------------
+Content:
+// src/app/api/ai/matchmaker/analyze-profile/route.ts
+
+import { NextRequest, NextResponse } from "next/server";
+import { applyRateLimitWithRoleCheck } from '@/lib/rate-limiter';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '@/lib/auth';
+import profileAiService from '@/lib/services/profileAiService';
+import aiService from '@/lib/services/aiService';
+import prisma from '@/lib/prisma';
+import { UserRole } from "@prisma/client";
+
+/**
+ * מטפל בבקשות POST ליצירת סיכום פרופיל (אישיות + מה מחפש) עבור שדכן.
+ * בודק מטמון בדאטה בייס לפני פנייה ל-AI.
+ */
+export async function POST(req: NextRequest) {
+  // הגבלת קצב בקשות
+  const rateLimitResponse = await applyRateLimitWithRoleCheck(req, { requests: 20, window: '1 h' });
+  if (rateLimitResponse) {
+    return rateLimitResponse;
+  }
+
+  try {
+    // 1. אימות והרשאות (שדכן או אדמין בלבד)
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id || (session.user.role !== UserRole.MATCHMAKER && session.user.role !== UserRole.ADMIN)) {
+      console.warn('[API matchmaker/analyze-profile] ניסיון גישה לא מורשה.');
+      return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+    }
+
+    // 2. קבלת פרמטרים מגוף הבקשה
+    const body = await req.json();
+    const { userId, forceRefresh } = body;
+
+    if (!userId || typeof userId !== 'string') {
+      return NextResponse.json({ success: false, message: 'Bad Request: userId is required.' }, { status: 400 });
+    }
+
+    // 3. שליפת הפרופיל והשדה החדש מהדאטה בייס לבדיקת מטמון
+    const existingProfile = await prisma.profile.findUnique({
+      where: { userId },
+      select: { 
+        aiProfileSummary: true, 
+        needsAiProfileUpdate: true 
+      }
+    });
+
+    if (!existingProfile) {
+      return NextResponse.json({ success: false, message: 'Profile not found.' }, { status: 404 });
+    }
+
+    // 4. לוגיקת מטמון: אם יש סיכום שמור, הפרופיל לא השתנה, ולא ביקשנו רענון בכוח -> נחזיר את הקיים
+    if (
+      existingProfile.aiProfileSummary && 
+      !existingProfile.needsAiProfileUpdate && 
+      !forceRefresh
+    ) {
+      console.log(`[API analyze-profile] Returning cached summary for user: ${userId}`);
+      return NextResponse.json({ success: true, data: existingProfile.aiProfileSummary });
+    }
+
+    console.log(`[API analyze-profile] Generating NEW summary for user: ${userId} (Force: ${forceRefresh})`);
+
+    // 5. יצירת פרופיל נרטיבי מקיף (טקסט גולמי ל-AI)
+    const narrativeProfile = await profileAiService.generateNarrativeProfile(userId);
+
+    if (!narrativeProfile) {
+      console.error(`[API matchmaker/analyze-profile] נכשל ביצירת פרופיל נרטיבי עבור: ${userId}`);
+      return NextResponse.json({ success: false, message: 'Could not generate user profile narrative.' }, { status: 500 });
+    }
+
+    // 6. שליחת הנרטיב לניתוח AI (שימוש בפונקציה החדשה והממוקדת)
+    const summaryResult = await aiService.generateProfileSummary(narrativeProfile);
+
+    if (!summaryResult) {
+      console.error(`[API matchmaker/analyze-profile] שירות ה-AI לא החזיר תוצאה עבור: ${userId}`);
+      return NextResponse.json({ success: false, message: 'AI service failed to produce a summary.' }, { status: 500 });
+    }
+
+    // 7. שמירת התוצאה בדאטה בייס (בשדה החדש aiProfileSummary) ואיפוס הדגל needsAiProfileUpdate
+    await prisma.profile.update({
+      where: { userId },
+      data: {
+        aiProfileSummary: summaryResult as any, // המרה ל-Json של פריזמה
+        needsAiProfileUpdate: false // הדוח מעודכן כעת
+      }
+    });
+
+    // 8. החזרת התוצאה החדשה ללקוח
+    return NextResponse.json({ success: true, data: summaryResult });
+
+  } catch (error) {
+    console.error('[API matchmaker/analyze-profile] שגיאה פטאלית ב-endpoint:', error);
+    const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
+    return NextResponse.json({ success: false, message: 'Internal Server Error', details: errorMessage }, { status: 500 });
+  }
+}
+--- End of Content for route.ts ---
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\matchmaker\batch-process
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\matchmaker\batch-process\route.ts
+--------------------------------------------------------------------------------
+Content:
+import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/auth";
+import { UserRole } from "@prisma/client";
+import prisma from "@/lib/prisma";
+import profileAiService from '@/lib/services/profileAiService';
+import aiService from '@/lib/services/aiService';
+
+export const maxDuration = 60; // זמן ריצה מקסימלי (אם השרת תומך)
+export const dynamic = 'force-dynamic';
+
+export async function POST(req: NextRequest) {
+  try {
+    // 1. בדיקת הרשאות (שדכן או אדמין)
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id || (session.user.role !== UserRole.MATCHMAKER && session.user.role !== UserRole.ADMIN)) {
+      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { action, batchSize = 5 } = await req.json();
+
+    // ---------------------------------------------------------
+    // פעולה 1: RESET_FLAGS
+    // סימון כל המועמדים הפעילים כ"נדרשים לעדכון"
+    // אנחנו מסמנים את כולם, הסינון האמיתי יקרה בזמן העיבוד כדי לחסוך ביצועים
+    // ---------------------------------------------------------
+    if (action === 'RESET_FLAGS') {
+      const updateResult = await prisma.profile.updateMany({
+        where: {
+          user: {
+            role: 'CANDIDATE',
+            // מסננים רק יוזרים פעילים או בתהליך אימות (לא חסומים)
+            status: { in: ['ACTIVE', 'PENDING_EMAIL_VERIFICATION', 'PENDING_PHONE_VERIFICATION'] }
+          }
+        },
+        data: { needsAiProfileUpdate: true }
+      });
+      
+      return NextResponse.json({ 
+        success: true, 
+        message: 'Flags reset successfully', 
+        count: updateResult.count 
+      });
+    }
+
+    // ---------------------------------------------------------
+    // פעולה 2: PROCESS_BATCH
+    // שליפה ועיבוד של קבוצת משתמשים
+    // ---------------------------------------------------------
+    if (action === 'PROCESS_BATCH') {
+      // 1. שליפת מועמדים שצריכים עדכון
+      const candidatesToProcess = await prisma.user.findMany({
+        where: {
+          role: 'CANDIDATE',
+          status: { notIn: ['BLOCKED', 'INACTIVE'] },
+          profile: {
+            needsAiProfileUpdate: true
+          }
+        },
+        take: batchSize,
+        // שליפת המידע הרלוונטי לבדיקת "האם יש דאטה"
+        include: {
+          profile: {
+            select: { id: true, about: true, needsAiProfileUpdate: true }
+          },
+          questionnaireResponses: {
+            select: { id: true } // מספיק לדעת אם קיים ID כדי לדעת שיש שאלון
+          }
+        }
+      });
+
+      // בדיקה כמה נשארו סה"כ (לצורך ה-Progress Bar)
+      const remainingCount = await prisma.user.count({
+        where: {
+          role: 'CANDIDATE',
+          status: { notIn: ['BLOCKED', 'INACTIVE'] },
+          profile: { needsAiProfileUpdate: true }
+        }
+      });
+
+      // אם אין יותר מועמדים לעדכון - סיימנו
+      if (candidatesToProcess.length === 0) {
+        return NextResponse.json({ success: true, processed: 0, remaining: 0, completed: true });
+      }
+
+      console.log(`[Batch AI] Processing batch of ${candidatesToProcess.length} candidates...`);
+
+      // 2. עיבוד במקביל
+      const results = await Promise.all(
+        candidatesToProcess.map(async (user) => {
+          try {
+            // --- שלב הסינון החכם ---
+            // נבדוק האם ליוזר יש מידע רלוונטי ל-AI
+            
+            const hasAbout = user.profile?.about && user.profile.about.trim().length > 10; // לפחות 10 תווים
+            const hasQuestionnaire = user.questionnaireResponses && user.questionnaireResponses.length > 0;
+
+            // אם אין שום מידע - מדלגים (אבל מכבים את הדגל כדי לא לחזור אליו)
+            if (!hasAbout && !hasQuestionnaire) {
+              await prisma.profile.update({
+                where: { userId: user.id },
+                data: { needsAiProfileUpdate: false }
+              });
+              return { id: user.id, status: 'skipped_no_data' };
+            }
+
+            // --- יש מידע? ממשיכים ל-AI ---
+
+            // 1. יצירת פרופיל נרטיבי (הפונקציה הזו כבר יודעת לקחת שאלונים ו-about)
+            const narrative = await profileAiService.generateNarrativeProfile(user.id);
+            
+            // הגנה נוספת למקרה שהנרטיב יצא ריק למרות הבדיקה
+            if (!narrative || narrative.length < 20) {
+                await prisma.profile.update({
+                    where: { userId: user.id },
+                    data: { needsAiProfileUpdate: false }
+                });
+                return { id: user.id, status: 'skipped_empty_narrative' };
+            }
+
+            // 2. יצירת הדוח ב-AI
+            const summary = await aiService.generateProfileSummary(narrative);
+            
+            if (!summary) throw new Error("AI Summary failed");
+
+            // 3. שמירה בדאטה בייס וכיבוי הדגל
+            await prisma.profile.update({
+              where: { userId: user.id },
+              data: {
+                aiProfileSummary: summary as any, // המרת JSON לפורמט של פריזמה
+                needsAiProfileUpdate: false,
+                // אופציונלי: עדכון מונה הפעמים שהופק דוח (אם הוספת את השדה מהמודל)
+                // neshamaInsightGeneratedCount: { increment: 1 },
+                // neshamaInsightLastGeneratedAt: new Date()
+              }
+            });
+
+            return { id: user.id, status: 'success' };
+
+          } catch (error) {
+            console.error(`[Batch AI] Failed for user ${user.id}:`, error);
+            // במקרה שגיאה טכנית ב-AI, נכבה את הדגל כדי לא לתקוע את התהליך הכללי
+            await prisma.profile.update({
+                where: { userId: user.id },
+                data: { needsAiProfileUpdate: false }
+            });
+            return { id: user.id, status: 'error' };
+          }
+        })
+      );
+
+      const successful = results.filter(r => r.status === 'success').length;
+      const skipped = results.filter(r => r.status.startsWith('skipped')).length;
+
+      return NextResponse.json({
+        success: true,
+        processed: candidatesToProcess.length, // סך הכל שעברו בבאץ'
+        successful, // כמה נוצרו בפועל
+        skipped,    // כמה דולגו כי היו ריקים
+        remaining: Math.max(0, remainingCount - candidatesToProcess.length),
+        completed: (remainingCount - candidatesToProcess.length) <= 0
+      });
+    }
+
+    return NextResponse.json({ success: false, error: "Invalid action" }, { status: 400 });
+
+  } catch (error) {
+    console.error('[Batch Process] Error:', error);
+    return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
+  }
+}
+--- End of Content for route.ts ---
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\matchmaker\generate-summary
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\matchmaker\generate-summary\route.ts
+--------------------------------------------------------------------------------
+Content:
+// src/app/api/ai/matchmaker/generate-summary/route.ts
+import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/auth";
+import { UserRole } from "@prisma/client";
+import profileAiService from '@/lib/services/profileAiService';
+import aiService from '@/lib/services/aiService';
+
+export async function POST(req: NextRequest) {
+  try {
+    // 1. אימות והרשאות (שדכן או אדמין בלבד)
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id || (session.user.role !== UserRole.MATCHMAKER && session.user.role !== UserRole.ADMIN)) {
+      return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+    }
+
+    // 2. קבלת ID המועמד מגוף הבקשה
+    const body = await req.json();
+const { userId, locale } = body;
+
+    if (!userId || typeof userId !== 'string') {
+      return NextResponse.json({ success: false, message: 'Bad Request: userId is required.' }, { status: 400 });
+    }
+
+    // 3. יצירת פרופיל נרטיבי מקיף
+    const narrativeProfile = await profileAiService.generateNarrativeProfile(userId);
+    if (!narrativeProfile) {
+      return NextResponse.json({ success: false, message: 'Could not generate user profile narrative.' }, { status: 500 });
+    }
+
+    // 4. שליחת הנרטיב ל-AI ליצירת הסיכום
+const summaryResult = await aiService.generateNeshamaTechSummary(narrativeProfile, locale);
+    if (!summaryResult || !summaryResult.summaryText) {
+      return NextResponse.json({ success: false, message: 'AI service failed to produce a summary.' }, { status: 500 });
+    }
+
+    // 5. החזרת התוצאה המוצלחת
+    return NextResponse.json({ success: true, summary: summaryResult.summaryText });
+
+  } catch (error) {
+    console.error('[API generate-summary] Fatal error:', error);
+    const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
+    return NextResponse.json({ success: false, message: 'Internal Server Error', details: errorMessage }, { status: 500 });
+  }
+}
+--- End of Content for route.ts ---
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\matchmaker\prepare-feedback-email
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\matchmaker\prepare-feedback-email\route.ts
+--------------------------------------------------------------------------------
+Content:
+// src/app/api/ai/matchmaker/prepare-feedback-email/route.ts
+
+import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/auth";
+import { UserRole } from "@prisma/client";
+import { getDictionary, getQuestionnaireQuestionsDictionary } from "@/lib/dictionaries";
+import { profileFeedbackService } from "@/lib/services/profileFeedbackService";
+import type { ProfileFeedbackTemplateContext } from "@/lib/email/templates/emailTemplates";
+
+import fs from 'fs';
+import path from 'path';
+import Handlebars from 'handlebars';
+
+// רישום helpers של Handlebars
+Handlebars.registerHelper('eq', function (a, b) {
+  return a === b;
+});
+
+Handlebars.registerHelper('replace', function (str, searchValue, replaceValue) {
+  if (typeof str !== 'string') return str;
+  return str.replace(new RegExp(searchValue, 'g'), replaceValue);
+});
+
+export async function POST(req: NextRequest) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id || (session.user.role !== UserRole.MATCHMAKER && session.user.role !== UserRole.ADMIN)) {
+      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { userId, locale, isAutomated } = await req.json();
+    if (!userId || !locale) {
+      return NextResponse.json({ success: false, error: "Missing userId or locale" }, { status: 400 });
+    }
+    
+    // טעינת המילונים
+    const [dictionary, questionnaireQuestionsDict] = await Promise.all([
+      getDictionary(locale),
+      getQuestionnaireQuestionsDictionary(locale)
+    ]);
+    
+    const emailDict = dictionary.email;
+
+    // בדיקה שמילון המייל קיים
+    if (!emailDict?.profileFeedback || !emailDict?.shared) {
+        console.error("Dictionary is missing 'email.profileFeedback' or 'email.shared' section.");
+        return NextResponse.json({ success: false, error: "Server configuration error: Email dictionary is incomplete." }, { status: 500 });
+    }
+
+    // יצירת הדוח עם הטיפוס המתוקן
+    const report = await profileFeedbackService.compileFeedbackReport(
+      userId, 
+      locale, 
+      questionnaireQuestionsDict // זה כבר הטיפוס הנכון
+    );
+
+    // הכנת הקונטקסט לתבנית
+    const context: ProfileFeedbackTemplateContext = {
+      locale: locale as any,
+      dict: emailDict.profileFeedback,
+      sharedDict: {
+        ...emailDict.shared,
+        rightsReserved: (emailDict.shared.rightsReserved || "© {{year}} NeshamaTech").replace('{{year}}', new Date().getFullYear().toString())
+      },
+      name: report.name,
+      report,
+      isAutomated: isAutomated || false,
+      matchmakerName: session.user.name || "השדכן/ית שלך",
+      supportEmail: process.env.SUPPORT_EMAIL || 'support@neshamatech.com',
+      companyName: process.env.COMPANY_NAME || 'NeshamaTech',
+      currentYear: new Date().getFullYear().toString(),
+      baseUrl: process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000',
+    };
+
+    // טעינת תבנית ה-Handlebars
+    const templatePath = path.resolve(process.cwd(), 'src/lib/email/templates/profile-feedback.hbs');
+    
+    if (!fs.existsSync(templatePath)) {
+      console.error(`Template file not found: ${templatePath}`);
+      return NextResponse.json({ success: false, error: "Email template not found" }, { status: 500 });
+    }
+
+    const templateSource = fs.readFileSync(templatePath, 'utf8');
+    const compiledTemplate = Handlebars.compile(templateSource);
+    
+    // הוספת greeting לקונטקסט
+    const contextWithGreeting = {
+      ...context,
+      greeting: (emailDict.profileFeedback.greeting || "שלום {{name}}").replace('{{name}}', report.name)
+    };
+    
+    const htmlContent = compiledTemplate(contextWithGreeting);
+
+    // החזרת התוכן עם headers נכונים
+    return NextResponse.json(
+      { 
+        success: true, 
+        htmlContent,
+        locale,
+        direction: locale === 'he' ? 'rtl' : 'ltr'
+      },
+      {
+        headers: {
+          'Content-Type': 'application/json; charset=utf-8',
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+        }
+      }
+    );
+
+  } catch (error) {
+    console.error("Error in prepare-feedback-email endpoint:", error);
+    const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
+    return NextResponse.json(
+      { 
+        success: false, 
+        error: "Internal Server Error", 
+        details: errorMessage 
+      }, 
+      { 
+        status: 500,
+        headers: {
+          'Content-Type': 'application/json; charset=utf-8'
+        }
+      }
+    );
+  }
+}
+--- End of Content for route.ts ---
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\matchmaker\send-feedback-email
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\matchmaker\send-feedback-email\route.ts
+--------------------------------------------------------------------------------
+Content:
+// src/app/api/ai/matchmaker/send-feedback-email/route.ts
+import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/auth";
+import { emailService } from "@/lib/email/emailService";
+import { UserRole } from "@prisma/client";
+export async function POST(req: NextRequest) {
+try {
+const session = await getServerSession(authOptions);
+if (!session?.user?.id || (session.user.role !== UserRole.MATCHMAKER && session.user.role !== UserRole.ADMIN)) {
+return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+}
+
+const { userEmail, subject, htmlContent } = await req.json();
+if (!userEmail || !subject || !htmlContent) {
+  return NextResponse.json({ success: false, error: "Missing parameters" }, { status: 400 });
+}
+
+// קריאה לשירות המייל עם התוכן הערוך
+await emailService.sendRawEmail({
+  to: userEmail,
+  subject: subject,
+  html: htmlContent,
+});
+
+return NextResponse.json({ success: true, message: "Email sent successfully" });
+} catch (error) {
+console.error("Error sending feedback email:", error);
+return NextResponse.json({ success: false, error: "Internal Server Error" }, { status: 500 });
+}
+}
+--- End of Content for route.ts ---
+

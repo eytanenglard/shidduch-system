@@ -6,6 +6,8 @@
 // 
 // 📝 הערה: חיפושים וירטואליים מעובדים ישירות ב-find-matches-v2
 // ולא עוברים דרך route זה יותר
+//
+// 🆕 עודכן: שומר תוצאות גם ב-PotentialMatch לתצוגה בדשבורד
 
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
@@ -176,7 +178,7 @@ async function processJobInBackground(
     const duration = Date.now() - startTime;
     const durationMinutes = (duration / 1000 / 60).toFixed(2);
 
-    // שמירת התוצאות
+    // שמירת התוצאות ב-MatchingJob
     await prisma.matchingJob.update({
       where: { id: jobId },
       data: {
@@ -193,6 +195,11 @@ async function processJobInBackground(
         completedAt: new Date()
       }
     });
+
+    // ==========================================================
+    // 🆕 שמירה גם ב-PotentialMatch לתצוגה בדשבורד
+    // ==========================================================
+    await saveToPotentialMatches(targetUserId, result.matches, 70);
 
     console.log(`\n${'='.repeat(60)}`);
     console.log(`[ProcessJob] ✅ Job ${jobId} completed successfully!`);
@@ -275,6 +282,93 @@ async function findMatchesForUserWithProgress(
 }
 
 // ============================================================================
+// 🆕 שמירה ב-PotentialMatch (לתצוגה בדשבורד)
+// ============================================================================
+
+async function saveToPotentialMatches(
+  targetUserId: string,
+  matches: any[],
+  minScoreThreshold: number = 70
+): Promise<void> {
+  console.log(`[ProcessJob] 💾 Saving ${matches.length} matches to PotentialMatch...`);
+  
+  // קבלת המגדר של היוזר
+  const targetUser = await prisma.user.findUnique({
+    where: { id: targetUserId },
+    select: { profile: { select: { gender: true } } }
+  });
+
+  if (!targetUser?.profile?.gender) {
+    console.log(`[ProcessJob] ⚠️ Could not determine gender for ${targetUserId}`);
+    return;
+  }
+
+  const isMale = targetUser.profile.gender === 'MALE';
+  let saved = 0;
+  let updated = 0;
+
+  for (const match of matches) {
+    const score = match.finalScore || match.score || 0;
+    if (score < minScoreThreshold) continue;
+
+    const maleUserId = isMale ? targetUserId : match.userId;
+    const femaleUserId = isMale ? match.userId : targetUserId;
+
+    try {
+      const existing = await prisma.potentialMatch.findUnique({
+        where: {
+          maleUserId_femaleUserId: { maleUserId, femaleUserId }
+        }
+      });
+
+      if (existing) {
+        // עדכון אם הציון השתנה או שפג תוקף
+        if (Math.abs(existing.aiScore - score) > 2 || existing.status === 'EXPIRED') {
+          await prisma.potentialMatch.update({
+            where: { id: existing.id },
+            data: {
+              aiScore: score,
+              firstPassScore: match.firstPassScore || null,
+              scoreBreakdown: match.scoreBreakdown || null,
+              shortReasoning: match.shortReasoning || match.reasoning || null,
+              detailedReasoning: match.detailedReasoning || null,
+              backgroundCompatibility: match.backgroundCompatibility || null,
+              backgroundMultiplier: match.backgroundMultiplier || null,
+              scannedAt: new Date(),
+              status: existing.status === 'EXPIRED' ? 'PENDING' : existing.status,
+            }
+          });
+          updated++;
+        }
+      } else {
+        // יצירת התאמה חדשה
+        await prisma.potentialMatch.create({
+          data: {
+            maleUserId,
+            femaleUserId,
+            aiScore: score,
+            firstPassScore: match.firstPassScore || null,
+            scoreBreakdown: match.scoreBreakdown || null,
+            shortReasoning: match.shortReasoning || match.reasoning || null,
+            detailedReasoning: match.detailedReasoning || null,
+            backgroundCompatibility: match.backgroundCompatibility || null,
+            backgroundMultiplier: match.backgroundMultiplier || null,
+            status: 'PENDING',
+            scannedAt: new Date(),
+          }
+        });
+        saved++;
+      }
+    } catch (err) {
+      // התעלם משגיאות יחידות (משתמש נמחק וכו')
+      console.warn(`[ProcessJob] Could not save match:`, err);
+    }
+  }
+
+  console.log(`[ProcessJob] 💾 PotentialMatch: ${saved} new, ${updated} updated`);
+}
+
+// ============================================================================
 // GET - Health Check
 // ============================================================================
 
@@ -282,7 +376,11 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
   return NextResponse.json({
     status: "healthy",
     service: "process-matching-job",
-    version: "4.1",
+    version: "4.2", // 🆕 עודכן
+    features: [
+      "Background job processing",
+      "Saves to PotentialMatch for dashboard display" // 🆕
+    ],
     note: "Virtual searches are now processed directly in find-matches-v2",
     timestamp: new Date().toISOString()
   });

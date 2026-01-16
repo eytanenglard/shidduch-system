@@ -28,6 +28,7 @@ import {
   HelpCircle,
   Mail,
   Gift,
+  HeartHandshake,
 } from 'lucide-react';
 import { cn, getRelativeCloudinaryPath } from '@/lib/utils';
 import UserDropdown from './UserDropdown';
@@ -355,6 +356,12 @@ const Navbar = ({ dict }: NavbarProps) => {
                           text={dict.navbar.matchmakerClients}
                         />
                         <NavItem
+                          href="/matchmaker/potential-matches"
+                          text={
+                            dict.navbar.potentialMatches || 'התאמות פוטנציאליות'
+                          }
+                        />
+                        <NavItem
                           href="/admin/engagement"
                           text={
                             dict.navbar.engagementDashboard ||
@@ -620,6 +627,15 @@ const Navbar = ({ dict }: NavbarProps) => {
                         href="/matchmaker/clients"
                         text={dict.navbar.matchmakerClients}
                         icon={<Users className="h-5 w-5" />}
+                        onClick={toggleMobileMenu}
+                        isRtl={isRtl}
+                      />
+                      <MobileNavItem
+                        href="/matchmaker/potential-matches"
+                        text={
+                          dict.navbar.potentialMatches || 'התאמות פוטנציאליות'
+                        }
+                        icon={<HeartHandshake className="h-5 w-5" />}
                         onClick={toggleMobileMenu}
                         isRtl={isRtl}
                       />

@@ -110,6 +110,7 @@ const rateLimitResponse = await applyRateLimitWithRoleCheck(req, { requests: 15,
       birthDateIsApproximate,
       manualEntryText,
       availabilityStatus: 'AVAILABLE',
+        isProfileVisible: true, 
             height: height, 
 
     };

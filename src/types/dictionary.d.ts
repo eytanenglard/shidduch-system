@@ -19,6 +19,7 @@ export type NavbarDict = {
   toQuestionnaire: string;
     matchmakerSuggestions: string;
   matchmakerClients: string;
+  potentialMatches: string;
 };
 // --- User Dropdown ---
 export type UserDropdownDict = {

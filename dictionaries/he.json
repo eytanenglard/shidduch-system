@@ -48,7 +48,9 @@
     "register": "הרשמה",
     "toQuestionnaire": "לשאלון החכם",
         "matchmakerSuggestions": "הצעות שידוך",
-    "matchmakerClients": "מועמדים"
+    "matchmakerClients": "מועמדים",
+    "potentialMatches": "התאמה פוטנציאלית"
+
 
   },
     "unsavedChangesModal": {

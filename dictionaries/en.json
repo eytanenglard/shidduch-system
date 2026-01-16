@@ -47,7 +47,8 @@
     "register": "Sign Up",
     "toQuestionnaire": "To the Smart Questionnaire",
     "matchmakerSuggestions": "Match Suggestions",
-    "matchmakerClients": "Candidates"
+    "matchmakerClients": "Candidates",
+    "potentialMatches": "PotentialMatches"
   },
     "unsavedChangesModal": {
     "title": "Unsaved Changes",

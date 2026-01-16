@@ -66,6 +66,9 @@ referral    Referral?  @relation("ReferredUser")
 targetUserVectorSearches    SavedVectorMatchSearch[]  @relation("TargetUserVectorSearches")
 matchmakerVectorSearches    SavedVectorMatchSearch[]  @relation("MatchmakerVectorSearches")
 virtualProfiles       VirtualProfile[]    @relation("MatchmakerVirtualProfiles")
+  maleMatches     PotentialMatch[] @relation("MaleMatches")
+  femaleMatches   PotentialMatch[] @relation("FemaleMatches")
+
   @@index([email])
   @@index([role])
   @@index([status])
@@ -293,7 +296,7 @@ model MatchSuggestion {
   reviewedBy            User[]                    @relation("ReviewedSuggestions")
   firstPartyLastViewedAt  DateTime?  // מתי צד א' צפה בהצעה לאחרונה
   secondPartyLastViewedAt DateTime?  // מתי צד ב' צפה בהצעה לאחרונה
-
+ potentialMatch  PotentialMatch?
 
   @@index([category])
   @@index([matchmakerId])
@@ -954,4 +957,96 @@ model VirtualProfile {
   @@index([matchmakerId])
   @@index([isStarred])
   @@index([lastUsedAt])
+}
+
+
+
+// טבלה חדשה: התאמות פוטנציאליות שנמצאו בסריקה הלילית
+model PotentialMatch {
+  id              String   @id @default(cuid())
+  
+  // הזוג
+  maleUserId      String
+  femaleUserId    String
+  
+  // ציונים
+  aiScore         Float    // הציון הסופי (finalScore)
+  firstPassScore  Float?   // ציון המעבר הראשון
+  
+  // פירוט הציון
+  scoreBreakdown  Json?    // ScoreBreakdown object
+  
+  // נימוקים
+  shortReasoning  String?  @db.Text
+  detailedReasoning String? @db.Text
+  
+  // מידע רקע
+  backgroundCompatibility String? // excellent/good/possible/problematic/not_recommended
+  backgroundMultiplier    Float?
+  
+  // סטטוס מעקב
+  status          PotentialMatchStatus @default(PENDING)
+  
+  // תאריכים
+  scannedAt       DateTime @default(now())
+  reviewedAt      DateTime?
+  dismissedAt     DateTime?
+  sentAt          DateTime? // מתי נשלחה הצעה
+  
+  // מי סקר/דחה
+  reviewedBy      String?
+  dismissReason   String?
+  
+  // קישור להצעה אם נוצרה
+  suggestionId    String?  @unique
+  
+  // Relations
+  male            User     @relation("MaleMatches", fields: [maleUserId], references: [id], onDelete: Cascade)
+  female          User     @relation("FemaleMatches", fields: [femaleUserId], references: [id], onDelete: Cascade)
+  suggestion      MatchSuggestion? @relation(fields: [suggestionId], references: [id])
+  
+  // Indexes
+  @@unique([maleUserId, femaleUserId])
+  @@index([aiScore(sort: Desc)])
+  @@index([status])
+  @@index([scannedAt])
+  @@index([maleUserId])
+  @@index([femaleUserId])
+}
+
+// Enum לסטטוס ההתאמה הפוטנציאלית
+enum PotentialMatchStatus {
+  PENDING      // טרם נבדק
+  REVIEWED     // נבדק אך לא הוחלט
+  SENT         // נשלחה הצעה
+  DISMISSED    // נדחה ע"י השדכן
+  EXPIRED      // פג תוקף (סריקה ישנה מדי)
+}
+
+// טבלה חדשה: לוג סריקות לילה
+model NightlyScanLog {
+  id                  String   @id @default(cuid())
+  
+  // סטטיסטיקות
+  totalCandidates     Int
+  candidatesScanned   Int
+  matchesFound        Int
+  newMatches          Int      // התאמות שלא היו קיימות קודם
+  updatedMatches      Int      // התאמות שעודכנו
+  
+  // זמנים
+  startedAt           DateTime
+  completedAt         DateTime?
+  durationMs          Int?
+  
+  // סטטוס
+  status              String   // running/completed/failed/partial
+  error               String?  @db.Text
+  
+  // פרטים נוספים
+  method              String   @default("algorithmic") // algorithmic/vector/hybrid
+  minScoreThreshold   Float    @default(70)
+  
+  @@index([startedAt])
+  @@index([status])
 }

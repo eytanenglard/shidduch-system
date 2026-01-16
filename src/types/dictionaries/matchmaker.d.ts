@@ -443,7 +443,7 @@ compareButton: string;
       pagination: PaginationDict;
   loadingStates: LoadingStatesDict;
 suggestionsDashboard: MatchmakerSuggestionsDashboardDict; 
-
+potentialMatches: PotentialMatchesDict;
 };
 // הגדרת המילון עבור דיאלוג העריכה והשליחה
 type ProfileFeedbackDialogDict = {
@@ -1684,3 +1684,170 @@ export type NewSuggestionFormDict = {
   suggestionDetails: SuggestionDetailsDict;
 };
 
+export type PotentialMatchesDict = {
+  title: string;
+  subtitle: string;
+  stats: {
+    total: string;
+    pending: string;
+    reviewed: string;
+    sent: string;
+    dismissed: string;
+    expired: string;
+    withWarnings: string;
+    avgScore: string;
+    highScore: string;
+    mediumScore: string;
+  };
+  filters: {
+    status: string;
+    minScore: string;
+    maxScore: string;
+    sortBy: string;
+    search: string;
+    searchPlaceholder: string;
+    statusOptions: {
+      all: string;
+      pending: string;
+      reviewed: string;
+      sent: string;
+      dismissed: string;
+      withWarnings: string;
+      noWarnings: string;
+    };
+    sortOptions: {
+      scoreDesc: string;
+      scoreAsc: string;
+      dateDesc: string;
+      dateAsc: string;
+    };
+    resetFilters: string;
+  };
+  card: {
+    score: string;
+    reasoning: string;
+    scannedAt: string;
+    backgroundCompatibility: string;
+    activeWarning: string;
+    activeWarningWith: string;
+    createSuggestion: string;
+    dismiss: string;
+    markReviewed: string;
+    restore: string;
+    viewProfile: string;
+    showBreakdown: string;
+    hideBreakdown: string;
+    readMore: string;
+    suggestionCreated: string;
+    viewSuggestion: string;
+  };
+  scoreBreakdown: {
+    title: string;
+    religious: string;
+    ageCompatibility: string;
+    careerFamily: string;
+    lifestyle: string;
+    ambition: string;
+    communication: string;
+    values: string;
+  };
+  backgroundCompatibilityLabels: {
+    excellent: string;
+    good: string;
+    possible: string;
+    problematic: string;
+    not_recommended: string;
+  };
+  actions: {
+    bulkSelect: string;
+    bulkDismiss: string;
+    bulkReview: string;
+    selectAll: string;
+    clearSelection: string;
+    runScan: string;
+    refreshList: string;
+    selected: string;
+    items: string;
+  };
+  emptyState: {
+    noMatches: string;
+    noMatchesFiltered: string;
+    noMatchesDescription: string;
+    runScanDescription: string;
+    showAll: string;
+  };
+  scan: {
+    title: string;
+    running: string;
+    completed: string;
+    failed: string;
+    partial: string;
+    lastScan: string;
+    duration: string;
+    candidatesScanned: string;
+    matchesFound: string;
+    newMatches: string;
+    startScan: string;
+    confirmTitle: string;
+    confirmDescription: string;
+    alreadyRunning: string;
+  };
+  dialogs: {
+    createSuggestion: {
+      title: string;
+      description: string;
+      priority: string;
+      priorityLow: string;
+      priorityMedium: string;
+      priorityHigh: string;
+      priorityUrgent: string;
+      notes: string;
+      notesPlaceholder: string;
+      create: string;
+      cancel: string;
+    };
+    dismiss: {
+      title: string;
+      description: string;
+      reasonPlaceholder: string;
+      confirm: string;
+      cancel: string;
+    };
+    bulkDismiss: {
+      title: string;
+      description: string;
+      confirm: string;
+      cancel: string;
+    };
+    reasoning: {
+      title: string;
+      overallScore: string;
+      basedOnAI: string;
+      shortSummary: string;
+      detailedAnalysis: string;
+      close: string;
+    };
+  };
+  toasts: {
+    dismissSuccess: string;
+    dismissError: string;
+    reviewSuccess: string;
+    restoreSuccess: string;
+    suggestionCreated: string;
+    suggestionError: string;
+    bulkDismissSuccess: string;
+    bulkReviewSuccess: string;
+    bulkRestoreSuccess: string;
+    scanStarted: string;
+    scanCompleted: string;
+    scanError: string;
+    refreshSuccess: string;
+    refreshError: string;
+  };
+  pagination: {
+    showing: string;
+    of: string;
+    page: string;
+    perPage: string;
+  };
+};

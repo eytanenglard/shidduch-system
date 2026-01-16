@@ -1716,7 +1716,174 @@
   "priorityLabels": {
       "URGENT": "Urgent", "HIGH": "High", "MEDIUM": "Medium", "LOW": "Low"
   }
-}
+},
+  "potentialMatches": {
+    "title": "Potential Matches",
+    "subtitle": "Matches found by automated scanning",
+    "stats": {
+      "total": "Total Matches",
+      "pending": "Pending",
+      "reviewed": "Reviewed",
+      "sent": "Suggestions Sent",
+      "dismissed": "Dismissed",
+      "expired": "Expired",
+      "withWarnings": "With Warnings",
+      "avgScore": "Average Score",
+      "highScore": "High Score (85+)",
+      "mediumScore": "Medium Score (70-84)"
+    },
+    "filters": {
+      "status": "Status",
+      "minScore": "Minimum Score",
+      "maxScore": "Maximum Score",
+      "sortBy": "Sort By",
+      "search": "Search",
+      "searchPlaceholder": "Search by name...",
+      "statusOptions": {
+        "all": "All",
+        "pending": "Pending",
+        "reviewed": "Reviewed",
+        "sent": "Sent",
+        "dismissed": "Dismissed",
+        "withWarnings": "With Warnings",
+        "noWarnings": "No Warnings"
+      },
+      "sortOptions": {
+        "scoreDesc": "Score (High to Low)",
+        "scoreAsc": "Score (Low to High)",
+        "dateDesc": "Date (Newest First)",
+        "dateAsc": "Date (Oldest First)"
+      },
+      "resetFilters": "Clear Filters"
+    },
+    "card": {
+      "score": "Match Score",
+      "reasoning": "Reasoning",
+      "scannedAt": "Scanned",
+      "backgroundCompatibility": "Background Compatibility",
+      "activeWarning": "Warning",
+      "activeWarningWith": "Active suggestion with",
+      "createSuggestion": "Create Suggestion",
+      "dismiss": "Dismiss",
+      "markReviewed": "Mark as Reviewed",
+      "restore": "Restore",
+      "viewProfile": "View Profile",
+      "showBreakdown": "Show Score Breakdown",
+      "hideBreakdown": "Hide Breakdown",
+      "readMore": "Read more...",
+      "suggestionCreated": "Suggestion Created",
+      "viewSuggestion": "View Suggestion"
+    },
+    "scoreBreakdown": {
+      "title": "Score Breakdown",
+      "religious": "Religious Compatibility",
+      "ageCompatibility": "Age Compatibility",
+      "careerFamily": "Career-Family Balance",
+      "lifestyle": "Lifestyle",
+      "ambition": "Ambition",
+      "communication": "Communication",
+      "values": "Values"
+    },
+    "backgroundCompatibilityLabels": {
+      "excellent": "Excellent Match",
+      "good": "Good Match",
+      "possible": "Possible Match",
+      "problematic": "Background Gap",
+      "not_recommended": "Not Recommended"
+    },
+    "actions": {
+      "bulkSelect": "Bulk Select",
+      "bulkDismiss": "Dismiss All",
+      "bulkReview": "Mark All as Reviewed",
+      "selectAll": "Select All",
+      "clearSelection": "Clear Selection",
+      "runScan": "Run Scan",
+      "refreshList": "Refresh List",
+      "selected": "Selected",
+      "items": "items"
+    },
+    "emptyState": {
+      "noMatches": "No Matches Found",
+      "noMatchesFiltered": "No matches found with the selected filters",
+      "noMatchesDescription": "Try changing the filters or running a new scan",
+      "runScanDescription": "Run a nightly scan to find new potential matches",
+      "showAll": "Show All Matches"
+    },
+    "scan": {
+      "title": "Nightly Scan",
+      "running": "Scan in progress...",
+      "completed": "Scan Completed",
+      "failed": "Scan Failed",
+      "partial": "Scan Partially Completed",
+      "lastScan": "Last Scan",
+      "duration": "Duration",
+      "candidatesScanned": "Candidates Scanned",
+      "matchesFound": "Matches Found",
+      "newMatches": "New Matches",
+      "startScan": "Start Scan",
+      "confirmTitle": "Run Nightly Scan",
+      "confirmDescription": "The scan will go through all candidates in the system and find new potential matches. This process may take several minutes.",
+      "alreadyRunning": "A scan is already running"
+    },
+    "dialogs": {
+      "createSuggestion": {
+        "title": "Create Suggestion",
+        "description": "Create a match suggestion from this potential match",
+        "priority": "Priority",
+        "priorityLow": "Low",
+        "priorityMedium": "Medium",
+        "priorityHigh": "High",
+        "priorityUrgent": "Urgent",
+        "notes": "Notes",
+        "notesPlaceholder": "Add notes or matching reason...",
+        "create": "Create Suggestion",
+        "cancel": "Cancel"
+      },
+      "dismiss": {
+        "title": "Dismiss Match",
+        "description": "You can optionally provide a reason for dismissal",
+        "reasonPlaceholder": "Reason for dismissal...",
+        "confirm": "Dismiss",
+        "cancel": "Cancel"
+      },
+      "bulkDismiss": {
+        "title": "Dismiss Multiple Matches",
+        "description": "Are you sure you want to dismiss all selected matches? You can restore them later.",
+        "confirm": "Dismiss All",
+        "cancel": "Cancel"
+      },
+      "reasoning": {
+        "title": "Match Reasoning",
+        "overallScore": "Overall Match Score",
+        "basedOnAI": "Based on deep AI analysis",
+        "shortSummary": "Short Summary",
+        "detailedAnalysis": "Detailed Analysis",
+        "close": "Close"
+      }
+    },
+    "toasts": {
+      "dismissSuccess": "Match dismissed",
+      "dismissError": "Error dismissing match",
+      "reviewSuccess": "Match marked as reviewed",
+      "restoreSuccess": "Match restored",
+      "suggestionCreated": "Suggestion created successfully!",
+      "suggestionError": "Failed to create suggestion",
+      "bulkDismissSuccess": "Matches dismissed",
+      "bulkReviewSuccess": "Matches marked as reviewed",
+      "bulkRestoreSuccess": "Matches restored",
+      "scanStarted": "Scan started!",
+      "scanCompleted": "Scan completed!",
+      "scanError": "Failed to start scan",
+      "refreshSuccess": "List refreshed",
+      "refreshError": "Error loading matches"
+    },
+    "pagination": {
+      "showing": "Showing",
+      "of": "of",
+      "page": "Page",
+      "perPage": "per page"
+    }
+  }
 
 
 
