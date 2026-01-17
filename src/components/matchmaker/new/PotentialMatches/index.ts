@@ -18,7 +18,6 @@ export { usePotentialMatches } from './hooks/usePotentialMatches';
 export type {
   PotentialMatch,
   PotentialMatchesResponse,
-  PotentialMatchesStats,
   LastScanInfo,
   PotentialMatchFilters,
   PotentialMatchSortBy,
