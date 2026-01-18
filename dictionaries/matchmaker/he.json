@@ -29,6 +29,23 @@
     },
         "editProfile": {
       "deleteConfirmationPhrase": "אני מאשר מחיקה",
+      "statusSection": {
+  "title": "סטטוס זמינות",
+  "description": "ניהול הסטטוס הנוכחי של המועמד/ת במערכת",
+  "statusLabel": "סטטוס נוכחי",
+  "noteLabel": "הערה לסטטוס (אופציונלי)",
+  "notePlaceholder": "לדוגמה: יצא להפסקה עקב עומס בלימודים...",
+  "saveButton": "שמור סטטוס",
+  "savingButton": "שומר...",
+  "statuses": {
+    "AVAILABLE": "פנוי/ה",
+    "DATING": "בתהליך היכרות",
+    "UNAVAILABLE": "לא פנוי/ה",
+    "PAUSED": "בהפסקה",
+    "ENGAGED": "מאורס/ת",
+    "MARRIED": "נשוי/אה"
+  }
+},
       "toasts": {
         "loadError": "שגיאה בטעינת נתוני המועמד",
         "updateSuccess": "פרופיל המועמד עודכן בהצלחה",
@@ -542,6 +559,7 @@
     "list": {
       "quickViewTooltip": "תצוגה מהירה",
       "editProfileTooltip": "ערוך פרופיל",
+
       "emptyState": {
         "title": "לא נמצאו מועמדים",
         "description": "נסו להרחיב את החיפוש או להסיר חלק מהמסננים."

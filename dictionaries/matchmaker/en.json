@@ -136,6 +136,23 @@
     },
     "editProfile": {
       "deleteConfirmationPhrase": "I confirm deletion",
+      "statusSection": {
+  "title": "Availability Status",
+  "description": "Manage the candidate's current availability in the system",
+  "statusLabel": "Current Status",
+  "noteLabel": "Status Note (Optional)",
+  "notePlaceholder": "E.g., Taking a break due to studies...",
+  "saveButton": "Save Status",
+  "savingButton": "Saving...",
+  "statuses": {
+    "AVAILABLE": "Available",
+    "DATING": "Dating",
+    "UNAVAILABLE": "Unavailable",
+    "PAUSED": "Paused",
+    "ENGAGED": "Engaged",
+    "MARRIED": "Married"
+  }
+},
       "toasts": {
         "loadError": "Error loading candidate data",
         "updateSuccess": "Candidate profile updated successfully",

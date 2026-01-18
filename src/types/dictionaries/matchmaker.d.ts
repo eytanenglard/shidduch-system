@@ -643,6 +643,24 @@ type SavedFiltersDict = {
 
 type MatchmakerEditProfileDict = {
   deleteConfirmationPhrase: string;
+    statusSection: {
+    title: string;
+    description: string;
+    statusLabel: string;
+    noteLabel: string;
+    notePlaceholder: string;
+    saveButton: string;
+    savingButton: string;
+    statuses: {
+      AVAILABLE: string;
+      DATING: string;
+      UNAVAILABLE: string;
+      PAUSED: string;
+      ENGAGED: string;
+      MARRIED: string;
+    };
+  };
+
    neshamaTechSummary: {
         title: string;
         description: string;

@@ -34,8 +34,11 @@ import {
   Phone,
   Mail,
   FileText,
-  Copy, // הוספנו אייקון להעתקה
+  Copy,
+  Activity, // <--- אייקון חדש
 } from 'lucide-react';
+// --- שינוי 1: ייבוא AvailabilityStatus ---
+import { AvailabilityStatus } from '@prisma/client';
 import type { UserProfile, UserImage } from '@/types/next-auth';
 import type { Candidate } from './types/candidates';
 import { motion } from 'framer-motion';
@@ -52,6 +55,13 @@ import {
   CardFooter,
 } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 interface MatchmakerEditProfileProps {
   isOpen: boolean;
@@ -91,6 +101,12 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
   // טלפון
   const [userPhone, setUserPhone] = useState<string | null>(null);
 
+  // --- שינוי 2: State לסטטוס ---
+  const [statusState, setStatusState] = useState<{
+    status: AvailabilityStatus;
+    note: string;
+  }>({ status: AvailabilityStatus.AVAILABLE, note: '' });
+
   // מחיקת מועמד
   const [isDeleteCandidateDialogOpen, setIsDeleteCandidateDialogOpen] =
     useState(false);
@@ -103,10 +119,10 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
   const [inviteEmail, setInviteEmail] = useState('');
   const [isSendingInvite, setIsSendingInvite] = useState(false);
 
-  // AI Summary (השדה הידני ב-DB)
+  // AI Summary
   const [isGeneratingSummary, setIsGeneratingSummary] = useState(false);
 
-  // Insight Text (הניתוח החדש - טקסט במקום PDF)
+  // Insight Text
   const [insightText, setInsightText] = useState<string | null>(null);
   const [isInsightDialogOpen, setIsInsightDialogOpen] = useState(false);
   const [isGeneratingInsight, setIsGeneratingInsight] = useState(false);
@@ -115,7 +131,6 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
 
   // --- Handlers ---
 
-  // יצירת תקציר AI כללי (לשדה manualEntryText)
   const handleGenerateSummary = async () => {
     if (!candidate) return;
     setIsGeneratingSummary(true);
@@ -145,7 +160,6 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
     }
   };
 
-  // שליפת נתוני פרופיל
   const fetchProfileData = useCallback(async () => {
     if (!candidate) return;
     setIsLoading(true);
@@ -159,7 +173,6 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
         setProfile(data.profile);
         setImages(data.images || []);
 
-        // עדכון שמות מהשרת
         setNames({
           firstName: data.user?.firstName || candidate.firstName,
           lastName: data.user?.lastName || candidate.lastName,
@@ -169,6 +182,15 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
           setUserPhone(data.profile.user.phone);
         } else if (candidate.phone) {
           setUserPhone(candidate.phone);
+        }
+
+        // --- שינוי 3: עדכון הסטטוס בטעינה ---
+        if (data.profile) {
+          setStatusState({
+            status:
+              data.profile.availabilityStatus || AvailabilityStatus.AVAILABLE,
+            note: data.profile.availabilityNote || '',
+          });
         }
 
         if (
@@ -190,16 +212,16 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
     }
   }, [candidate, dict.toasts.loadError, locale]);
 
-  // Effect לטעינת נתונים
   useEffect(() => {
     if (isOpen && candidate) {
       fetchProfileData();
     } else if (!isOpen) {
-      // Reset State
       setProfile(null);
       setImages([]);
-      setNames({ firstName: '', lastName: '' }); // איפוס שמות
+      setNames({ firstName: '', lastName: '' });
       setUserPhone(null);
+      // --- שינוי 4: איפוס הסטטוס בסגירה ---
+      setStatusState({ status: AvailabilityStatus.AVAILABLE, note: '' });
       setActiveTab('profile');
       setIsLoading(true);
       setDeleteCandidateConfirmText('');
@@ -207,15 +229,12 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
       setIsSetupInviteOpen(false);
       setInviteEmail('');
       setIsSendingInvite(false);
-      // Reset Insight State
       setInsightText(null);
       setIsInsightDialogOpen(false);
       setIsGeneratingInsight(false);
     }
   }, [isOpen, candidate, fetchProfileData]);
 
-  // עדכון שדות פרופיל (כולל שמות)
-  // שינוי הטיפוס ל-any כדי לתמוך גם בשדות firstName/lastName שאינם ב-UserProfile
   const handleProfileUpdate = async (updatedData: any) => {
     if (!candidate || !profile) return;
     setIsSaving(true);
@@ -233,16 +252,26 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
         throw new Error(data.error || 'Failed to update profile');
       }
 
-      // עדכון ה-state של הפרופיל
       setProfile(
         (prevProfile) => ({ ...prevProfile, ...updatedData }) as UserProfile
       );
 
-      // עדכון ה-state של השמות אם הם השתנו
       if (updatedData.firstName || updatedData.lastName) {
         setNames((prev) => ({
           firstName: updatedData.firstName || prev.firstName,
           lastName: updatedData.lastName || prev.lastName,
+        }));
+      }
+
+      // --- שינוי 5: עדכון הסטייט הלוקאלי של הסטטוס אם הוא עודכן ---
+      if (updatedData.availabilityStatus) {
+        setStatusState((prev) => ({
+          ...prev,
+          status: updatedData.availabilityStatus,
+          note:
+            updatedData.availabilityNote !== undefined
+              ? updatedData.availabilityNote
+              : prev.note,
         }));
       }
 
@@ -261,12 +290,10 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
     }
   };
 
-  // --- NEW: Generate Text Insight (Replacing PDF) ---
   const handleGenerateInsightText = async () => {
     if (!candidate) return;
     setIsGeneratingInsight(true);
     try {
-      // קריאה ל-API שמחזיר טקסט
       const response = await fetch('/api/profile/neshama-insight', {
         method: 'POST',
         headers: {
@@ -281,8 +308,6 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
       }
 
       const data = await response.json();
-
-      // שמירת הטקסט ופתיחת הדיאלוג
       setInsightText(data.insight);
       setIsInsightDialogOpen(true);
     } catch (error: any) {
@@ -301,7 +326,6 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
     toast.success(locale === 'he' ? 'הועתק ללוח' : 'Copied to clipboard');
   };
 
-  // העלאת תמונות
   const handleImageUpload = async (files: File[]) => {
     if (!candidate) return;
     setIsUploading(true);
@@ -342,7 +366,6 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
     }
   };
 
-  // הגדרת תמונה ראשית
   const handleSetMainImage = async (imageId: string) => {
     if (!candidate) return;
     try {
@@ -363,7 +386,6 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
     }
   };
 
-  // מחיקת תמונה
   const handleDeleteImage = async (imageIds: string[]) => {
     if (!candidate || imageIds.length === 0) return;
     setIsUploading(true);
@@ -415,7 +437,6 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
     }
   };
 
-  // מחיקת מועמד (לצמיתות)
   const handleDeleteCandidateRequest = async () => {
     if (!candidate) return;
     if (deleteCandidateConfirmText !== DELETE_CANDIDATE_CONFIRMATION_PHRASE) {
@@ -454,7 +475,6 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
     }
   };
 
-  // שליחת הזמנה להצטרפות
   const handleSendSetupInvite = async () => {
     if (!candidate || !inviteEmail) {
       toast.error(dict.toasts.sendInviteErrorEmail);
@@ -503,7 +523,7 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
             transition={{ duration: 0.3 }}
             className="flex flex-col h-full max-h-[90vh]"
           >
-            {/* --- HEADER --- */}
+            {/* ... Header Code (ללא שינוי) ... */}
             <DialogHeader className="p-6 border-b bg-gradient-to-r from-blue-50/50 to-white flex-shrink-0">
               <div className="flex items-center justify-between gap-4">
                 <div className="flex-1 min-w-0">
@@ -542,7 +562,6 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
                   </DialogDescription>
                 </div>
 
-                {/* איזור הפעולות בצד שמאל/ימין (תלוי שפה) - שמירה וסגירה */}
                 <div className="flex items-center gap-2 shrink-0 self-start">
                   {isSaving && (
                     <div className="hidden sm:flex items-center bg-blue-50 text-blue-700 py-1 px-3 rounded-full text-sm border border-blue-100 shadow-sm">
@@ -550,8 +569,6 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
                       {dict.header.saving}
                     </div>
                   )}
-
-                  {/* כפתור ה-X החדש */}
                   <Button
                     variant="ghost"
                     size="icon"
@@ -566,14 +583,12 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
               </div>
             </DialogHeader>
 
-            {/* --- BODY (Loading State or Content) --- */}
             {isLoading && !profile ? (
               <div className="flex items-center justify-center h-64 flex-1">
                 <Loader2 className="w-10 h-10 animate-spin text-primary" />
               </div>
             ) : (
               <>
-                {/* --- TABS --- */}
                 <Tabs
                   value={activeTab}
                   onValueChange={setActiveTab}
@@ -612,7 +627,7 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
                     >
                       {profile ? (
                         <div className="space-y-6">
-                          {/* --- Basic Info Card (Names) --- */}
+                          {/* 1. Basic Info Card */}
                           <Card className="bg-white rounded-xl shadow-sm border overflow-hidden">
                             <CardHeader className="bg-gray-50/50 pb-4">
                               <CardTitle className="text-lg flex items-center gap-2">
@@ -674,8 +689,110 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
                             </CardFooter>
                           </Card>
 
-                          {/* --- NeshamaTech Summary Card --- */}
+                          {/* --- שינוי 6: כרטיס סטטוס זמינות החדש --- */}
                           <Card className="bg-white rounded-xl shadow-sm border overflow-hidden">
+                            <div className="h-1 bg-gradient-to-r from-teal-500 to-emerald-500"></div>
+                            <CardHeader className="bg-teal-50/30 pb-4">
+                              <div className="flex justify-between items-start">
+                                <div>
+                                  <CardTitle className="flex items-center gap-2 text-lg text-teal-900">
+                                    <Activity className="w-5 h-5 text-teal-600" />
+                                    {dict.statusSection?.title ||
+                                      'סטטוס זמינות'}
+                                  </CardTitle>
+                                  <CardDescription className="mt-1 text-teal-800/70">
+                                    {dict.statusSection?.description ||
+                                      'ניהול הסטטוס הנוכחי של המועמד/ת במערכת'}
+                                  </CardDescription>
+                                </div>
+                              </div>
+                            </CardHeader>
+                            <CardContent className="pt-4 space-y-4">
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                  <Label>
+                                    {dict.statusSection?.statusLabel ||
+                                      'סטטוס נוכחי'}
+                                  </Label>
+                                  <Select
+                                    value={statusState.status}
+                                    onValueChange={(value) =>
+                                      setStatusState((prev) => ({
+                                        ...prev,
+                                        status: value as AvailabilityStatus,
+                                      }))
+                                    }
+                                    dir={direction}
+                                  >
+                                    <SelectTrigger className="border-teal-200 focus:ring-teal-500">
+                                      <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      {Object.values(AvailabilityStatus).map(
+                                        (status) => (
+                                          <SelectItem
+                                            key={status}
+                                            value={status}
+                                          >
+                                            {dict.statusSection?.statuses?.[
+                                              status
+                                            ] || status}
+                                          </SelectItem>
+                                        )
+                                      )}
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                                <div className="space-y-2">
+                                  <Label>
+                                    {dict.statusSection?.noteLabel ||
+                                      'הערה לסטטוס'}
+                                  </Label>
+                                  <Input
+                                    value={statusState.note}
+                                    onChange={(e) =>
+                                      setStatusState((prev) => ({
+                                        ...prev,
+                                        note: e.target.value,
+                                      }))
+                                    }
+                                    placeholder={
+                                      dict.statusSection?.notePlaceholder || ''
+                                    }
+                                    className="border-teal-200 focus-visible:ring-teal-500"
+                                  />
+                                </div>
+                              </div>
+                            </CardContent>
+                            <CardFooter className="flex justify-end pt-2 pb-4 bg-teal-50/20">
+                              <Button
+                                size="sm"
+                                onClick={() =>
+                                  handleProfileUpdate({
+                                    availabilityStatus: statusState.status,
+                                    availabilityNote: statusState.note,
+                                  })
+                                }
+                                disabled={isSaving}
+                                className="bg-teal-600 hover:bg-teal-700 text-white shadow-md transition-transform active:scale-95"
+                              >
+                                {isSaving ? (
+                                  <Loader2 className="w-4 h-4 ml-2 animate-spin" />
+                                ) : (
+                                  <Save className="w-4 h-4 ml-2" />
+                                )}
+                                {isSaving
+                                  ? dict.statusSection?.savingButton ||
+                                    'שומר...'
+                                  : dict.statusSection?.saveButton ||
+                                    'שמור סטטוס'}
+                              </Button>
+                            </CardFooter>
+                          </Card>
+
+                          {/* 2. NeshamaTech Summary Card */}
+                          <Card className="bg-white rounded-xl shadow-sm border overflow-hidden">
+                            {/* ... NeshamaTech Summary content ... */}
                             <div className="h-1 bg-gradient-to-r from-indigo-500 to-purple-500"></div>
                             <CardHeader className="bg-slate-50/50 pb-4">
                               <div className="flex justify-between items-start">
@@ -725,10 +842,7 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
                                 className="min-h-[120px] focus-visible:ring-indigo-500"
                               />
                             </CardContent>
-
-                            {/* Footer with Save and Insight Button */}
                             <CardFooter className="flex justify-between pt-2 pb-4 bg-slate-50/30">
-                              {/* כפתור הניתוח החדש (טקסט) */}
                               <Button
                                 variant="outline"
                                 size="sm"
@@ -750,7 +864,6 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
                                     : 'Deep Personal Analysis'}
                               </Button>
 
-                              {/* כפתור שמירה */}
                               <Button
                                 size="sm"
                                 onClick={() =>
@@ -776,8 +889,9 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
                             </CardFooter>
                           </Card>
 
-                          {/* --- Conversation Summary Card --- */}
+                          {/* 3. Conversation Summary Card */}
                           <Card className="bg-white rounded-xl shadow-sm border overflow-hidden">
+                            {/* ... Conversation Summary content ... */}
                             <div className="h-1 bg-gradient-to-r from-blue-500 to-cyan-500"></div>
                             <CardHeader className="bg-blue-50/30 pb-4">
                               <div className="flex justify-between items-start">
@@ -841,7 +955,7 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
                             </CardFooter>
                           </Card>
 
-                          {/* --- Main Profile Section --- */}
+                          {/* 4. Main Profile Section */}
                           <div className="bg-white rounded-xl shadow-sm border p-1">
                             <ProfileSection
                               profile={profile}
@@ -903,7 +1017,8 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
                   </div>
                 </Tabs>
 
-                {/* --- FOOTER --- */}
+                {/* Footer and other Dialogs (Invite, Delete, Insight) remain unchanged... */}
+                {/* ... */}
                 <div className="p-4 border-t flex justify-between items-center mt-auto bg-white/95 backdrop-blur-sm sticky bottom-0 z-10 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] flex-shrink-0">
                   <div>
                     <span className="text-sm text-muted-foreground hidden sm:inline-block">
@@ -967,8 +1082,9 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
         </DialogContent>
       </Dialog>
 
-      {/* --- NEW: Insight Text Dialog --- */}
+      {/* --- Other Dialogs --- */}
       <Dialog open={isInsightDialogOpen} onOpenChange={setIsInsightDialogOpen}>
+        {/* ... (Insight Dialog code) ... */}
         <DialogContent
           className="max-w-3xl max-h-[85vh] flex flex-col p-0 overflow-hidden"
           dir={direction}
@@ -1012,9 +1128,9 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
         </DialogContent>
       </Dialog>
 
-      {/* --- Invite Dialog --- */}
       {candidate && (
         <Dialog open={isSetupInviteOpen} onOpenChange={setIsSetupInviteOpen}>
+          {/* ... (Invite Dialog code) ... */}
           <DialogContent className="sm:max-w-md" dir={direction}>
             <DialogHeader>
               <DialogTitle>{dict.inviteDialog.title}</DialogTitle>
@@ -1073,7 +1189,6 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
         </Dialog>
       )}
 
-      {/* --- Delete Confirmation Dialog --- */}
       {candidate && (
         <Dialog
           open={isDeleteCandidateDialogOpen}
@@ -1081,6 +1196,7 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
             !isDeletingCandidate && setIsDeleteCandidateDialogOpen(open)
           }
         >
+          {/* ... (Delete Dialog code) ... */}
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
               <DialogTitle className="text-xl flex items-center gap-2 text-red-600">
