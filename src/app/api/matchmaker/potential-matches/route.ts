@@ -264,6 +264,8 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
           firstName: match.male.firstName,
           lastName: match.male.lastName,
           age: maleAge,
+                    phone: match.male.phone, 
+
           city: match.male.profile?.city || null,
           religiousLevel: match.male.profile?.religiousLevel || null,
           occupation: match.male.profile?.occupation || null,
@@ -280,6 +282,8 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
           firstName: match.female.firstName,
           lastName: match.female.lastName,
           age: femaleAge,
+                    phone: match.female.phone,
+
           city: match.female.profile?.city || null,
           religiousLevel: match.female.profile?.religiousLevel || null,
           occupation: match.female.profile?.occupation || null,

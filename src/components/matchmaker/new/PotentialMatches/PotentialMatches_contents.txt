@@ -1,0 +1,2669 @@
+################################################################################
+# Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmaker\new\PotentialMatches
+# Generated on: 2026-01-18 22:05:12
+# Filter: Only content of code files (.bat, .c, .cfg, .conf, .cpp, .cs, .css, .go, .h, .html, .ini, .java, .js, .json, .jsx, .kt, .less, .md, .php, .py, .rb, .rs, .scss, .sh, .sql, .swift, .ts, .tsx, .txt, .xml, .yaml, .yml) is included.
+################################################################################
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmaker\new\PotentialMatches
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmaker\new\PotentialMatches\PotentialMatchCard.tsx
+--------------------------------------------------------------------------------
+Content:
+// src/components/matchmaker/new/PotentialMatches/PotentialMatchCard.tsx
+
+'use client';
+
+import React, { useState } from 'react';
+import Image from 'next/image';
+import { motion } from 'framer-motion';
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Checkbox } from '@/components/ui/checkbox';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
+  AlertTriangle,
+  Heart,
+  HeartHandshake,
+  MapPin,
+  Eye,
+  MoreHorizontal,
+  Send,
+  X,
+  Brain,
+  Calendar,
+  Sparkles,
+  Clock,
+  UserCheck,
+  ChevronDown,
+  ChevronUp,
+  ExternalLink,
+  Undo,
+  MessageCircle, // WhatsApp
+  Mail, // Email/Feedback
+} from 'lucide-react';
+import { cn, getRelativeCloudinaryPath } from '@/lib/utils';
+import { formatDistanceToNow } from 'date-fns';
+import { he } from 'date-fns/locale';
+import type { PotentialMatch, ScoreBreakdown } from '@/types/potentialMatches';
+
+// =============================================================================
+// TYPES
+// =============================================================================
+
+interface PotentialMatchCardProps {
+  match: PotentialMatch;
+  onCreateSuggestion: (matchId: string) => void;
+  onDismiss: (matchId: string) => void;
+  onReview: (matchId: string) => void;
+  onRestore: (matchId: string) => void;
+  onViewProfile: (userId: string) => void;
+
+  // New Action Callbacks
+  onAnalyzeCandidate: (candidate: any) => void;
+  onProfileFeedback: (candidate: any) => void;
+
+  isSelected?: boolean;
+  onToggleSelect?: (matchId: string) => void;
+  showSelection?: boolean;
+  className?: string;
+}
+
+// =============================================================================
+// HELPER FUNCTIONS
+// =============================================================================
+
+const getScoreColor = (score: number): string => {
+  if (score >= 85) return 'text-emerald-600';
+  if (score >= 75) return 'text-blue-600';
+  if (score >= 70) return 'text-amber-600';
+  return 'text-gray-600';
+};
+
+const getScoreBgColor = (score: number): string => {
+  if (score >= 85) return 'from-emerald-500 to-green-500';
+  if (score >= 75) return 'from-blue-500 to-cyan-500';
+  if (score >= 70) return 'from-amber-500 to-yellow-500';
+  return 'from-gray-500 to-slate-500';
+};
+
+const getBackgroundBadge = (compatibility: string | null) => {
+  switch (compatibility) {
+    case 'excellent':
+      return {
+        label: 'רקע מצוין',
+        color: 'bg-emerald-100 text-emerald-700 border-emerald-200',
+      };
+    case 'good':
+      return {
+        label: 'רקע טוב',
+        color: 'bg-blue-100 text-blue-700 border-blue-200',
+      };
+    case 'possible':
+      return {
+        label: 'רקע אפשרי',
+        color: 'bg-amber-100 text-amber-700 border-amber-200',
+      };
+    case 'problematic':
+      return {
+        label: 'פער רקע',
+        color: 'bg-orange-100 text-orange-700 border-orange-200',
+      };
+    case 'not_recommended':
+      return {
+        label: 'רקע בעייתי',
+        color: 'bg-red-100 text-red-700 border-red-200',
+      };
+    default:
+      return null;
+  }
+};
+
+const getStatusBadge = (status: string) => {
+  switch (status) {
+    case 'PENDING':
+      return {
+        label: 'ממתין',
+        color: 'bg-yellow-100 text-yellow-700',
+        icon: Clock,
+      };
+    case 'REVIEWED':
+      return { label: 'נבדק', color: 'bg-blue-100 text-blue-700', icon: Eye };
+    case 'SENT':
+      return {
+        label: 'נשלחה הצעה',
+        color: 'bg-green-100 text-green-700',
+        icon: Send,
+      };
+    case 'DISMISSED':
+      return { label: 'נדחה', color: 'bg-gray-100 text-gray-700', icon: X };
+    default:
+      return { label: status, color: 'bg-gray-100 text-gray-700', icon: Clock };
+  }
+};
+
+const getReligiousLevelLabel = (level: string | null): string => {
+  if (!level) return 'לא צוין';
+  const labels: Record<string, string> = {
+    dati_leumi_torani: 'דתי לאומי תורני',
+    dati_leumi_standard: 'דתי לאומי',
+    dati_leumi_liberal: 'דתי לאומי ליברלי',
+    charedi_modern: 'חרדי מודרני',
+    masorti_strong: 'מסורתי חזק',
+    masorti_light: 'מסורתי',
+    secular_traditional_connection: 'חילוני עם קשר למסורת',
+    secular: 'חילוני',
+  };
+  return labels[level] || level;
+};
+
+// =============================================================================
+// SUB-COMPONENTS
+// =============================================================================
+
+// כרטיס מועמד בודד (בתוך הזוג)
+const CandidatePreview: React.FC<{
+  candidate: any;
+  gender: 'male' | 'female';
+  activeSuggestion: any;
+  onViewProfile: () => void;
+  onAnalyze: () => void;
+  onFeedback: () => void;
+}> = ({
+  candidate,
+  gender,
+  activeSuggestion,
+  onViewProfile,
+  onAnalyze,
+  onFeedback,
+}) => {
+  const genderIcon = gender === 'male' ? '👨' : '👩';
+  const borderColor = gender === 'male' ? 'border-blue-200' : 'border-pink-200';
+  const bgGradient =
+    gender === 'male' ? 'from-blue-50 to-cyan-50' : 'from-pink-50 to-rose-50';
+
+  // --- לוגיקה מעודכנת לשליחת וואטסאפ (תואם ל-MinimalCard) ---
+  const handleWhatsApp = (e: React.MouseEvent) => {
+    e.stopPropagation();
+
+    // ניקוי המספר
+    let cleanPhone = candidate.phone?.replace(/\D/g, '') || '';
+    if (cleanPhone.startsWith('0')) {
+      cleanPhone = '972' + cleanPhone.substring(1);
+    }
+
+    if (cleanPhone) {
+      // ההודעה הקבועה שנמצאת ב-MinimalCard
+      const message = `היי ${candidate.firstName} זה איתן מנשמהטק. אני מאוד שמח שנרשמת למערכת שלנו ואני מקווה מאוד לעזור לך למצוא את הזוגיות שתמיד חלמת עליה`;
+      const encodedMessage = encodeURIComponent(message);
+
+      // פתיחת החלון
+      window.open(
+        `https://wa.me/${cleanPhone}?text=${encodedMessage}`,
+        '_blank'
+      );
+    }
+  };
+
+  return (
+    <div
+      className={cn(
+        'relative flex-1 p-3 rounded-xl border-2 transition-all duration-300 hover:shadow-md flex flex-col',
+        borderColor,
+        `bg-gradient-to-br ${bgGradient}`
+      )}
+      onClick={onViewProfile}
+    >
+      {/* תמונה ופרטים */}
+      <div className="flex-1 cursor-pointer">
+        <div className="relative w-16 h-16 mx-auto mb-2 rounded-full overflow-hidden border-2 border-white shadow-md">
+          {candidate.mainImage ? (
+            <Image
+              src={getRelativeCloudinaryPath(candidate.mainImage)}
+              alt={`${candidate.firstName} ${candidate.lastName}`}
+              fill
+              className="object-cover"
+            />
+          ) : (
+            <div className="w-full h-full bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center text-xl">
+              {genderIcon}
+            </div>
+          )}
+
+          {candidate.isVerified && (
+            <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-emerald-500 rounded-full flex items-center justify-center border-2 border-white">
+              <UserCheck className="w-3 h-3 text-white" />
+            </div>
+          )}
+        </div>
+
+        <h4 className="text-center font-bold text-gray-800 text-sm mb-1 truncate">
+          {candidate.firstName} {candidate.lastName}
+        </h4>
+
+        <div className="flex items-center justify-center gap-2 text-xs text-gray-600 mb-1">
+          <span>{candidate.age}</span>
+          {candidate.city && (
+            <>
+              <span>•</span>
+              <span className="flex items-center gap-0.5 truncate max-w-[80px]">
+                <MapPin className="w-3 h-3" />
+                {candidate.city}
+              </span>
+            </>
+          )}
+        </div>
+
+        <div className="text-center text-[10px] text-gray-500 mb-1 truncate px-1">
+          {getReligiousLevelLabel(candidate.religiousLevel)}
+        </div>
+      </div>
+
+      {/* --- אזור כפתורי פעולות (חדש) --- */}
+      <div className="mt-2 pt-2 border-t border-gray-200/50 flex items-center justify-center gap-2">
+        {/* כפתור וואטסאפ */}
+        {candidate.phone && (
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-7 w-7 rounded-full bg-white/60 hover:bg-green-100 hover:text-green-600 shadow-sm border border-transparent hover:border-green-200 transition-all"
+                  onClick={handleWhatsApp}
+                >
+                  <MessageCircle className="w-3.5 h-3.5" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>שלח וואטסאפ</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        )}
+
+        {/* כפתור ניתוח AI */}
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7 rounded-full bg-white/60 hover:bg-purple-100 hover:text-purple-600 shadow-sm border border-transparent hover:border-purple-200 transition-all"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onAnalyze();
+                }}
+              >
+                <Sparkles className="w-3.5 h-3.5" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>ניתוח פרופיל AI</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+
+        {/* כפתור משוב/מייל */}
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7 rounded-full bg-white/60 hover:bg-blue-100 hover:text-blue-600 shadow-sm border border-transparent hover:border-blue-200 transition-all"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onFeedback();
+                }}
+              >
+                <Mail className="w-3.5 h-3.5" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>שלח דוח פרופיל (מייל)</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      </div>
+
+      {/* התראה על הצעה פעילה */}
+      {activeSuggestion && (
+        <div className="mt-2 text-center">
+          <Badge
+            variant="outline"
+            className="text-[10px] bg-amber-50 text-amber-700 border-amber-200 px-1 py-0 h-5"
+          >
+            <AlertTriangle className="w-2.5 h-2.5 mr-1" />
+            בהצעה פעילה
+          </Badge>
+        </div>
+      )}
+    </div>
+  );
+};
+
+// Score Breakdown Component
+const ScoreBreakdownDisplay: React.FC<{
+  breakdown: ScoreBreakdown;
+}> = ({ breakdown }) => {
+  const categories = [
+    { key: 'religious', label: 'התאמה דתית', max: 35, color: 'bg-purple-500' },
+    {
+      key: 'ageCompatibility',
+      label: 'התאמת גיל',
+      max: 10,
+      color: 'bg-blue-500',
+    },
+    {
+      key: 'careerFamily',
+      label: 'קריירה-משפחה',
+      max: 15,
+      color: 'bg-cyan-500',
+    },
+    { key: 'lifestyle', label: 'סגנון חיים', max: 15, color: 'bg-green-500' },
+    { key: 'ambition', label: 'שאפתנות', max: 12, color: 'bg-orange-500' },
+    { key: 'communication', label: 'תקשורת', max: 12, color: 'bg-pink-500' },
+    { key: 'values', label: 'ערכים', max: 11, color: 'bg-indigo-500' },
+  ];
+
+  return (
+    <div className="space-y-2">
+      {categories.map((cat) => {
+        const value = breakdown[cat.key as keyof ScoreBreakdown] || 0;
+        const percentage = (value / cat.max) * 100;
+
+        return (
+          <div key={cat.key} className="flex items-center gap-2">
+            <span className="text-xs text-gray-600 w-24 truncate">
+              {cat.label}
+            </span>
+            <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
+              <motion.div
+                initial={{ width: 0 }}
+                animate={{ width: `${percentage}%` }}
+                transition={{ duration: 0.5, delay: 0.1 }}
+                className={cn('h-full rounded-full', cat.color)}
+              />
+            </div>
+            <span className="text-xs text-gray-500 w-12 text-left">
+              {value}/{cat.max}
+            </span>
+          </div>
+        );
+      })}
+    </div>
+  );
+};
+
+// =============================================================================
+// MAIN COMPONENT
+// =============================================================================
+
+const PotentialMatchCard: React.FC<PotentialMatchCardProps> = ({
+  match,
+  onCreateSuggestion,
+  onDismiss,
+  onReview,
+  onRestore,
+  onViewProfile,
+  onAnalyzeCandidate,
+  onProfileFeedback,
+  isSelected = false,
+  onToggleSelect,
+  showSelection = false,
+  className,
+}) => {
+  const [showDetails, setShowDetails] = useState(false);
+  const [showReasoningDialog, setShowReasoningDialog] = useState(false);
+
+  const statusBadge = getStatusBadge(match.status);
+  const StatusIcon = statusBadge.icon;
+  // const backgroundBadge = getBackgroundBadge(match.backgroundCompatibility); // Unused currently in JSX
+
+  const isDismissed = match.status === 'DISMISSED';
+  const isSent = match.status === 'SENT';
+
+  return (
+    <>
+      <motion.div
+        layout
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -20 }}
+        className={className}
+      >
+        <Card
+          className={cn(
+            'group relative overflow-hidden transition-all duration-300',
+            'hover:shadow-xl border-0',
+            isDismissed && 'opacity-60',
+            isSelected && 'ring-2 ring-blue-500',
+            match.hasActiveWarning && !isDismissed && 'ring-2 ring-amber-400'
+          )}
+        >
+          {/* Gradient Background */}
+          <div
+            className={cn(
+              'absolute inset-0 opacity-30',
+              `bg-gradient-to-br ${getScoreBgColor(match.aiScore)}`
+            )}
+          />
+
+          {/* Content */}
+          <div className="relative p-4">
+            {/* Header */}
+            <div className="flex items-center justify-between mb-4">
+              {/* Selection Checkbox */}
+              {showSelection && onToggleSelect && (
+                <div className="flex items-center gap-2">
+                  <Checkbox
+                    checked={isSelected}
+                    onCheckedChange={() => onToggleSelect(match.id)}
+                    className="border-2"
+                  />
+                </div>
+              )}
+
+              {/* Score Badge */}
+              <div
+                className={cn(
+                  'flex items-center gap-2 px-3 py-1.5 rounded-full',
+                  'bg-white/90 backdrop-blur-sm shadow-sm'
+                )}
+              >
+                <Sparkles
+                  className={cn('w-4 h-4', getScoreColor(match.aiScore))}
+                />
+                <span
+                  className={cn(
+                    'text-xl font-bold',
+                    getScoreColor(match.aiScore)
+                  )}
+                >
+                  {Math.round(match.aiScore)}
+                </span>
+              </div>
+
+              {/* Status Badge */}
+              <Badge className={cn('gap-1', statusBadge.color)}>
+                <StatusIcon className="w-3 h-3" />
+                {statusBadge.label}
+              </Badge>
+
+              {/* Actions Menu */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="h-8 w-8">
+                    <MoreHorizontal className="w-4 h-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  {!isSent && !isDismissed && (
+                    <>
+                      <DropdownMenuItem
+                        onClick={() => onCreateSuggestion(match.id)}
+                      >
+                        <HeartHandshake className="w-4 h-4 ml-2 text-green-600" />
+                        צור הצעה
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => onReview(match.id)}>
+                        <Eye className="w-4 h-4 ml-2 text-blue-600" />
+                        סמן כנבדק
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        onClick={() => onDismiss(match.id)}
+                        className="text-red-600"
+                      >
+                        <X className="w-4 h-4 ml-2" />
+                        דחה התאמה
+                      </DropdownMenuItem>
+                    </>
+                  )}
+                  {isDismissed && (
+                    <DropdownMenuItem onClick={() => onRestore(match.id)}>
+                      <Undo className="w-4 h-4 ml-2 text-blue-600" />
+                      שחזר התאמה
+                    </DropdownMenuItem>
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+
+            {/* Candidates Preview Row */}
+            <div className="flex gap-3 mb-4">
+              <CandidatePreview
+                candidate={match.male}
+                gender="male"
+                activeSuggestion={match.maleActiveSuggestion}
+                onViewProfile={() => onViewProfile(match.male.id)}
+                // העברת הפונקציות החדשות לכרטיס הזכר
+                onAnalyze={() => onAnalyzeCandidate(match.male)}
+                onFeedback={() => onProfileFeedback(match.male)}
+              />
+
+              {/* Heart Connector */}
+              <div className="flex flex-col justify-center items-center gap-1 z-10">
+                <div
+                  className={cn(
+                    'w-8 h-8 rounded-full flex items-center justify-center',
+                    'bg-gradient-to-br from-pink-500 to-red-500 shadow-lg'
+                  )}
+                >
+                  <Heart className="w-4 h-4 text-white fill-white" />
+                </div>
+              </div>
+
+              <CandidatePreview
+                candidate={match.female}
+                gender="female"
+                activeSuggestion={match.femaleActiveSuggestion}
+                onViewProfile={() => onViewProfile(match.female.id)}
+                // העברת הפונקציות החדשות לכרטיס הנקבה
+                onAnalyze={() => onAnalyzeCandidate(match.female)}
+                onFeedback={() => onProfileFeedback(match.female)}
+              />
+            </div>
+
+            {/* Reasoning Preview */}
+            {match.shortReasoning && (
+              <div
+                className="p-3 rounded-lg bg-white/60 backdrop-blur-sm cursor-pointer hover:bg-white/80 transition-colors border border-purple-50"
+                onClick={() => setShowReasoningDialog(true)}
+              >
+                <div className="flex items-start gap-2">
+                  <Brain className="w-4 h-4 text-purple-600 mt-0.5 flex-shrink-0" />
+                  <p className="text-sm text-gray-700 line-clamp-2 leading-relaxed">
+                    {match.shortReasoning}
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Footer: Date & Details Toggle */}
+            <div className="flex items-center justify-between mt-3 pt-2">
+              <span className="text-[10px] text-gray-400 flex items-center gap-1">
+                <Calendar className="w-3 h-3" />
+                {formatDistanceToNow(new Date(match.scannedAt), {
+                  addSuffix: true,
+                  locale: he,
+                })}
+              </span>
+
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-6 text-xs text-gray-500 hover:text-gray-800"
+                onClick={() => setShowDetails(!showDetails)}
+              >
+                {showDetails ? (
+                  <>
+                    הסתר פרטים <ChevronUp className="w-3 h-3 ml-1" />
+                  </>
+                ) : (
+                  <>
+                    הצג ניקוד מלא <ChevronDown className="w-3 h-3 ml-1" />
+                  </>
+                )}
+              </Button>
+            </div>
+
+            {/* Score Breakdown */}
+            {showDetails && match.scoreBreakdown && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                className="mt-3 p-3 rounded-lg bg-white/80 backdrop-blur-sm border border-gray-100"
+              >
+                <ScoreBreakdownDisplay breakdown={match.scoreBreakdown} />
+              </motion.div>
+            )}
+
+            {/* Main Action Buttons (Bottom) */}
+            {!isDismissed && !isSent && (
+              <div className="flex gap-2 mt-4 pt-2 border-t border-gray-100">
+                <Button
+                  className="flex-1 h-9 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white shadow-sm text-sm"
+                  onClick={() => onCreateSuggestion(match.id)}
+                >
+                  <HeartHandshake className="w-4 h-4 ml-2" />
+                  צור הצעה
+                </Button>
+                <Button
+                  variant="outline"
+                  className="flex-1 h-9 text-sm"
+                  onClick={() => onDismiss(match.id)}
+                >
+                  <X className="w-4 h-4 ml-2" />
+                  דחה
+                </Button>
+              </div>
+            )}
+
+            {/* ... Link to Suggestion if sent ... */}
+            {isSent && match.suggestionId && (
+              <div className="mt-4 p-2 rounded-lg bg-green-50 border border-green-200 text-center">
+                <Button
+                  variant="link"
+                  size="sm"
+                  className="text-green-700 p-0 h-auto font-medium"
+                  onClick={() =>
+                    (window.location.href = `/matchmaker/suggestions?id=${match.suggestionId}`)
+                  }
+                >
+                  עבור להצעה <ExternalLink className="w-3 h-3 mr-1" />
+                </Button>
+              </div>
+            )}
+          </div>
+        </Card>
+      </motion.div>
+
+      {/* Reasoning Dialog */}
+      <Dialog open={showReasoningDialog} onOpenChange={setShowReasoningDialog}>
+        <DialogContent className="max-w-2xl" dir="rtl">
+          <DialogHeader>
+            <DialogTitle>נימוק AI להתאמה</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 max-h-[60vh] overflow-y-auto">
+            <div className="bg-purple-50 p-4 rounded-lg">
+              <p className="whitespace-pre-wrap leading-relaxed text-gray-800">
+                {match.detailedReasoning || match.shortReasoning}
+              </p>
+            </div>
+            {match.scoreBreakdown && (
+              <ScoreBreakdownDisplay breakdown={match.scoreBreakdown} />
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+};
+
+export default PotentialMatchCard;
+--- End of Content for PotentialMatchCard.tsx ---
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmaker\new\PotentialMatches\PotentialMatchesDashboard.tsx
+--------------------------------------------------------------------------------
+Content:
+// src/components/matchmaker/new/PotentialMatches/PotentialMatchesDashboard.tsx
+
+'use client';
+
+import React, { useState, useCallback, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from '@/components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { Textarea } from '@/components/ui/textarea';
+import {
+  HeartHandshake,
+  Search,
+  RefreshCw,
+  Moon,
+  Check,
+  ChevronLeft,
+  ChevronRight,
+  Loader2,
+  AlertTriangle,
+  Eye,
+  Clock,
+  Send,
+  X,
+  Trash2,
+  LayoutGrid,
+  List,
+  CheckCircle,
+  Heart,
+} from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
+
+// Components
+import PotentialMatchCard from './PotentialMatchCard';
+import PotentialMatchesStats from './PotentialMatchesStats';
+import { ProfileCard } from '@/components/profile';
+
+// Import Dialogs
+import { AiMatchmakerProfileAdvisorDialog } from '../dialogs/AiMatchmakerProfileAdvisorDialog';
+import { ProfileFeedbackDialog } from '../dialogs/ProfileFeedbackDialog';
+
+// Hooks
+import { usePotentialMatches } from './hooks/usePotentialMatches';
+
+// Types
+import type {
+  PotentialMatchFilterStatus,
+  PotentialMatchSortBy,
+} from '@/types/potentialMatches';
+import type { ProfilePageDictionary } from '@/types/dictionary';
+import type { MatchmakerPageDictionary } from '@/types/dictionaries/matchmaker'; // Needed for type casting
+
+// =============================================================================
+// TYPES
+// =============================================================================
+
+interface PotentialMatchesDashboardProps {
+  locale?: string;
+  profileDict: ProfilePageDictionary;
+  matchmakerDict: MatchmakerPageDictionary; // הוספתי זאת כדי שנוכל להעביר מילונים לדיאלוגים
+}
+
+// ... (STATUS_OPTIONS and SORT_OPTIONS unchanged) ...
+const STATUS_OPTIONS: {
+  value: PotentialMatchFilterStatus;
+  label: string;
+  icon: React.ElementType;
+}[] = [
+  { value: 'all', label: 'הכל', icon: Heart },
+  { value: 'pending', label: 'ממתינות', icon: Clock },
+  { value: 'reviewed', label: 'נבדקו', icon: Eye },
+  { value: 'sent', label: 'נשלחו', icon: Send },
+  { value: 'dismissed', label: 'נדחו', icon: X },
+  { value: 'with_warnings', label: 'עם אזהרות', icon: AlertTriangle },
+  { value: 'no_warnings', label: 'ללא אזהרות', icon: CheckCircle },
+];
+
+const SORT_OPTIONS: { value: PotentialMatchSortBy; label: string }[] = [
+  { value: 'score_desc', label: 'ציון (גבוה לנמוך)' },
+  { value: 'score_asc', label: 'ציון (נמוך לגבוה)' },
+  { value: 'date_desc', label: 'תאריך (חדש לישן)' },
+  { value: 'date_asc', label: 'תאריך (ישן לחדש)' },
+];
+
+// =============================================================================
+// MAIN COMPONENT
+// =============================================================================
+
+const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
+  locale = 'he',
+  profileDict,
+  matchmakerDict,
+}) => {
+  // State
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [showBulkActions, setShowBulkActions] = useState(false);
+
+  // Dialogs
+  const [confirmScanDialog, setConfirmScanDialog] = useState(false);
+  const [confirmBulkDismissDialog, setConfirmBulkDismissDialog] =
+    useState(false);
+  const [createSuggestionDialog, setCreateSuggestionDialog] = useState<
+    string | null
+  >(null);
+  const [dismissDialog, setDismissDialog] = useState<string | null>(null);
+  const [dismissReason, setDismissReason] = useState('');
+
+  // --- Profile View State ---
+  const [viewProfileId, setViewProfileId] = useState<string | null>(null);
+  const [fullProfileData, setFullProfileData] = useState<any | null>(null);
+  const [questionnaireData, setQuestionnaireData] = useState<any | null>(null);
+  const [isLoadingProfile, setIsLoadingProfile] = useState(false);
+  const [isMatchmakerView, setIsMatchmakerView] = useState(true);
+
+  // --- AI Analysis & Feedback State (New) ---
+  const [analyzedCandidate, setAnalyzedCandidate] = useState<any | null>(null);
+  const [feedbackCandidate, setFeedbackCandidate] = useState<any | null>(null);
+
+  // Suggestion form state
+  const [suggestionPriority, setSuggestionPriority] = useState<
+    'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT'
+  >('MEDIUM');
+  const [suggestionNotes, setSuggestionNotes] = useState('');
+
+  // Hook
+  const {
+    matches,
+    stats,
+    lastScanInfo,
+    pagination,
+    isLoading,
+    isRefreshing,
+    isActioning,
+    filters,
+    setFilters,
+    resetFilters,
+    setPage,
+    setPageSize,
+    refresh,
+    reviewMatch,
+    dismissMatch,
+    restoreMatch,
+    createSuggestion,
+    bulkDismiss,
+    bulkReview,
+    startScan,
+    scanProgress,
+    isScanRunning,
+    selectedMatchIds,
+    toggleSelection,
+    selectAll,
+    clearSelection,
+    isSelected,
+    error,
+  } = usePotentialMatches({
+    initialFilters: { status: 'pending' },
+    autoRefresh: true,
+    refreshInterval: 60000,
+  });
+
+  // ==========================================================================
+  // PROFILE LOADING EFFECT
+  // ==========================================================================
+
+  useEffect(() => {
+    const loadProfileData = async () => {
+      if (!viewProfileId) {
+        setFullProfileData(null);
+        setQuestionnaireData(null);
+        return;
+      }
+
+      setIsLoadingProfile(true);
+      try {
+        const profileResponse = await fetch(
+          `/api/matchmaker/candidates/${viewProfileId}`
+        );
+        const profileJson = await profileResponse.json();
+
+        if (profileJson.success) {
+          const formattedData = {
+            ...profileJson,
+            profile: {
+              ...profileJson.profile,
+              user: profileJson.user,
+            },
+          };
+          setFullProfileData(formattedData);
+        } else {
+          toast.error('לא ניתן היה לטעון את הפרופיל');
+        }
+
+        const questionnaireResponse = await fetch(
+          `/api/profile/questionnaire?userId=${viewProfileId}&locale=${locale}`
+        );
+        const questionnaireJson = await questionnaireResponse.json();
+
+        if (
+          questionnaireJson.success &&
+          questionnaireJson.questionnaireResponse
+        ) {
+          setQuestionnaireData(questionnaireJson.questionnaireResponse);
+        }
+      } catch (err) {
+        console.error('Failed to load full profile:', err);
+        toast.error('שגיאה בטעינת פרופיל המועמד');
+      } finally {
+        setIsLoadingProfile(false);
+      }
+    };
+
+    loadProfileData();
+  }, [viewProfileId, locale]);
+
+  // ==========================================================================
+  // HANDLERS
+  // ==========================================================================
+
+  const handleStartScan = useCallback(async () => {
+    setConfirmScanDialog(false);
+    await startScan({ method: 'algorithmic' });
+  }, [startScan]);
+
+  const handleCreateSuggestion = useCallback(async () => {
+    if (!createSuggestionDialog) return;
+
+    const suggestionId = await createSuggestion(createSuggestionDialog, {
+      priority: suggestionPriority,
+      matchingReason: suggestionNotes || undefined,
+    });
+
+    if (suggestionId) {
+      setCreateSuggestionDialog(null);
+      setSuggestionPriority('MEDIUM');
+      setSuggestionNotes('');
+    }
+  }, [
+    createSuggestionDialog,
+    createSuggestion,
+    suggestionPriority,
+    suggestionNotes,
+  ]);
+
+  const handleDismiss = useCallback(async () => {
+    if (!dismissDialog) return;
+
+    await dismissMatch(dismissDialog, dismissReason || undefined);
+    setDismissDialog(null);
+    setDismissReason('');
+  }, [dismissDialog, dismissMatch, dismissReason]);
+
+  const handleBulkDismiss = useCallback(async () => {
+    setConfirmBulkDismissDialog(false);
+    await bulkDismiss(selectedMatchIds, 'דחייה מרובה');
+  }, [bulkDismiss, selectedMatchIds]);
+
+  const handleViewProfile = useCallback((userId: string) => {
+    setViewProfileId(userId);
+  }, []);
+
+  // Filter matches by search term
+  const filteredMatches = searchTerm
+    ? matches.filter(
+        (m) =>
+          m.male.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          m.male.lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          m.female.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          m.female.lastName.toLowerCase().includes(searchTerm.toLowerCase())
+      )
+    : matches;
+
+  // ==========================================================================
+  // RENDER
+  // ==========================================================================
+
+  return (
+    <div
+      className="min-h-screen bg-gradient-to-br from-gray-50 via-purple-50/30 to-pink-50/30"
+      dir="rtl"
+    >
+      {/* Header */}
+      <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-sm border-b shadow-sm">
+        <div className="container mx-auto px-6 py-4">
+          <div className="flex items-center justify-between">
+            {/* Title */}
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-xl bg-gradient-to-br from-pink-500 to-rose-500 text-white shadow-lg">
+                <HeartHandshake className="w-6 h-6" />
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold text-gray-800">
+                  התאמות פוטנציאליות
+                </h1>
+                <p className="text-sm text-gray-500">
+                  {stats ? `${stats.pending} ממתינות לבדיקה` : 'טוען...'}
+                </p>
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="flex items-center gap-3">
+              <Button
+                onClick={() => setConfirmScanDialog(true)}
+                disabled={isScanRunning}
+                className="bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white shadow-lg"
+              >
+                {isScanRunning ? (
+                  <>
+                    <Loader2 className="w-4 h-4 ml-2 animate-spin" />
+                    סריקה... {scanProgress?.progress || 0}%
+                  </>
+                ) : (
+                  <>
+                    <Moon className="w-4 h-4 ml-2" />
+                    הפעל סריקה
+                  </>
+                )}
+              </Button>
+
+              <Button
+                variant="outline"
+                onClick={refresh}
+                disabled={isRefreshing}
+              >
+                <RefreshCw
+                  className={cn('w-4 h-4 ml-2', isRefreshing && 'animate-spin')}
+                />
+                רענן
+              </Button>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <main className="container mx-auto px-6 py-6 space-y-6">
+        {/* Stats */}
+        <PotentialMatchesStats
+          stats={stats}
+          lastScanInfo={lastScanInfo}
+          isScanRunning={isScanRunning}
+          scanProgress={scanProgress?.progress || 0}
+        />
+
+        {/* Filters & Controls */}
+        <Card className="p-4 border-0 shadow-lg">
+          <div className="flex flex-wrap items-center gap-4">
+            {/* Search */}
+            <div className="flex-1 min-w-[200px] max-w-md relative">
+              <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <Input
+                placeholder="חיפוש לפי שם..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pr-10"
+              />
+            </div>
+
+            {/* Status Filter */}
+            <Select
+              value={filters.status}
+              onValueChange={(value) =>
+                setFilters({ status: value as PotentialMatchFilterStatus })
+              }
+            >
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="סטטוס" />
+              </SelectTrigger>
+              <SelectContent>
+                {STATUS_OPTIONS.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    <div className="flex items-center gap-2">
+                      <option.icon className="w-4 h-4" />
+                      {option.label}
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            {/* Sort */}
+            <Select
+              value={filters.sortBy}
+              onValueChange={(value) =>
+                setFilters({ sortBy: value as PotentialMatchSortBy })
+              }
+            >
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="מיון" />
+              </SelectTrigger>
+              <SelectContent>
+                {SORT_OPTIONS.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            {/* Score Range */}
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-gray-600">ציון:</span>
+              <Input
+                type="number"
+                min={0}
+                max={100}
+                value={filters.minScore}
+                onChange={(e) =>
+                  setFilters({ minScore: parseInt(e.target.value) || 0 })
+                }
+                className="w-16 text-center"
+              />
+              <span>-</span>
+              <Input
+                type="number"
+                min={0}
+                max={100}
+                value={filters.maxScore}
+                onChange={(e) =>
+                  setFilters({ maxScore: parseInt(e.target.value) || 100 })
+                }
+                className="w-16 text-center"
+              />
+            </div>
+
+            {/* View Mode */}
+            <div className="flex items-center gap-1 border rounded-lg p-1">
+              <Button
+                variant={viewMode === 'grid' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setViewMode('grid')}
+              >
+                <LayoutGrid className="w-4 h-4" />
+              </Button>
+              <Button
+                variant={viewMode === 'list' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setViewMode('list')}
+              >
+                <List className="w-4 h-4" />
+              </Button>
+            </div>
+
+            {/* Bulk Selection Toggle */}
+            <Button
+              variant={showBulkActions ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => {
+                setShowBulkActions(!showBulkActions);
+                if (showBulkActions) clearSelection();
+              }}
+            >
+              <Check className="w-4 h-4 ml-1" />
+              בחירה מרובה
+            </Button>
+
+            {/* Reset Filters */}
+            <Button variant="ghost" size="sm" onClick={resetFilters}>
+              <X className="w-4 h-4 ml-1" />
+              נקה פילטרים
+            </Button>
+          </div>
+
+          {/* Bulk Actions Bar */}
+          <AnimatePresence>
+            {showBulkActions && selectedMatchIds.length > 0 && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                className="mt-4 pt-4 border-t"
+              >
+                <div className="flex items-center gap-4">
+                  <span className="text-sm text-gray-600">
+                    נבחרו {selectedMatchIds.length} התאמות
+                  </span>
+                  <Button size="sm" variant="outline" onClick={selectAll}>
+                    בחר הכל
+                  </Button>
+                  <Button size="sm" variant="outline" onClick={clearSelection}>
+                    בטל בחירה
+                  </Button>
+                  <div className="flex-1" />
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => bulkReview(selectedMatchIds)}
+                    disabled={isActioning}
+                  >
+                    <Eye className="w-4 h-4 ml-1" />
+                    סמן כנבדקו
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="destructive"
+                    onClick={() => setConfirmBulkDismissDialog(true)}
+                    disabled={isActioning}
+                  >
+                    <Trash2 className="w-4 h-4 ml-1" />
+                    דחה הכל
+                  </Button>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </Card>
+
+        {/* Error State */}
+        {error && (
+          <Card className="p-6 bg-red-50 border-red-200">
+            <div className="flex items-center gap-3 text-red-700">
+              <AlertTriangle className="w-5 h-5" />
+              <span>{error}</span>
+              <Button variant="outline" size="sm" onClick={refresh}>
+                נסה שוב
+              </Button>
+            </div>
+          </Card>
+        )}
+
+        {/* Loading State */}
+        {isLoading && (
+          <div className="flex items-center justify-center py-20">
+            <Loader2 className="w-8 h-8 animate-spin text-purple-500" />
+          </div>
+        )}
+
+        {/* Empty State */}
+        {!isLoading && filteredMatches.length === 0 && (
+          <Card className="p-12 text-center border-0 shadow-lg">
+            <Heart className="w-16 h-16 mx-auto mb-4 text-gray-300" />
+            <h3 className="text-xl font-bold text-gray-700 mb-2">
+              לא נמצאו התאמות
+            </h3>
+            <p className="text-gray-500 mb-6">
+              {filters.status !== 'all'
+                ? 'נסה לשנות את הפילטרים או לחפש בכל ההתאמות'
+                : 'הפעל סריקה לילית למציאת התאמות חדשות'}
+            </p>
+            {filters.status !== 'all' ? (
+              <Button variant="outline" onClick={resetFilters}>
+                הצג את כל ההתאמות
+              </Button>
+            ) : (
+              <Button onClick={() => setConfirmScanDialog(true)}>
+                <Moon className="w-4 h-4 ml-2" />
+                הפעל סריקה
+              </Button>
+            )}
+          </Card>
+        )}
+
+        {/* Matches Grid */}
+        {!isLoading && filteredMatches.length > 0 && (
+          <>
+            <div
+              className={cn(
+                'grid gap-6',
+                viewMode === 'grid'
+                  ? 'grid-cols-1 md:grid-cols-2 xl:grid-cols-3'
+                  : 'grid-cols-1'
+              )}
+            >
+              <AnimatePresence mode="popLayout">
+                {filteredMatches.map((match) => (
+                  <PotentialMatchCard
+                    key={match.id}
+                    match={match}
+                    onCreateSuggestion={(id) => setCreateSuggestionDialog(id)}
+                    onDismiss={(id) => setDismissDialog(id)}
+                    onReview={reviewMatch}
+                    onRestore={restoreMatch}
+                    onViewProfile={handleViewProfile}
+                    // העברת ה-Handlers החדשים
+                    onAnalyzeCandidate={(candidate) =>
+                      setAnalyzedCandidate(candidate)
+                    }
+                    onProfileFeedback={(candidate) =>
+                      setFeedbackCandidate(candidate)
+                    }
+                    isSelected={isSelected(match.id)}
+                    onToggleSelect={
+                      showBulkActions ? toggleSelection : undefined
+                    }
+                    showSelection={showBulkActions}
+                  />
+                ))}
+              </AnimatePresence>
+            </div>
+
+            {/* Pagination */}
+            <Card className="p-4 border-0 shadow-lg">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-gray-600">
+                    מציג {(pagination.page - 1) * pagination.pageSize + 1} -{' '}
+                    {Math.min(
+                      pagination.page * pagination.pageSize,
+                      pagination.total
+                    )}{' '}
+                    מתוך {pagination.total}
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setPage(pagination.page - 1)}
+                    disabled={pagination.page <= 1}
+                  >
+                    <ChevronRight className="w-4 h-4" />
+                  </Button>
+
+                  <span className="text-sm px-3">
+                    עמוד {pagination.page} מתוך {pagination.totalPages}
+                  </span>
+
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setPage(pagination.page + 1)}
+                    disabled={pagination.page >= pagination.totalPages}
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                  </Button>
+                </div>
+
+                <Select
+                  value={String(pagination.pageSize)}
+                  onValueChange={(value) => setPageSize(parseInt(value))}
+                >
+                  <SelectTrigger className="w-[100px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="10">10</SelectItem>
+                    <SelectItem value="20">20</SelectItem>
+                    <SelectItem value="50">50</SelectItem>
+                    <SelectItem value="100">100</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </Card>
+          </>
+        )}
+      </main>
+
+      {/* ======================================================================== */}
+      {/* DIALOGS */}
+      {/* ======================================================================== */}
+
+      {/* Profile Dialog */}
+      <Dialog
+        open={!!viewProfileId}
+        onOpenChange={(open) => {
+          if (!open) {
+            setViewProfileId(null);
+            setFullProfileData(null);
+            setQuestionnaireData(null);
+          }
+        }}
+      >
+        <DialogContent
+          className="max-w-6xl max-h-[90vh] overflow-y-auto p-0"
+          dir={locale === 'he' ? 'rtl' : 'ltr'}
+          onCloseAutoFocus={(e) => {
+            e.preventDefault();
+          }}
+        >
+          {/* Custom Header */}
+          <div className="sticky top-0 z-50 flex items-center justify-between px-6 py-4 bg-white/95 backdrop-blur-sm border-b border-gray-100">
+            <DialogTitle className="text-xl font-bold text-gray-800">
+              {fullProfileData
+                ? `${fullProfileData.profile?.user?.firstName || ''} ${fullProfileData.profile?.user?.lastName || ''}`
+                : 'טוען פרופיל...'}
+            </DialogTitle>
+
+            <div className="flex items-center gap-2">
+              <Select
+                value={isMatchmakerView ? 'matchmaker' : 'candidate'}
+                onValueChange={(value) =>
+                  setIsMatchmakerView(value === 'matchmaker')
+                }
+              >
+                <SelectTrigger className="w-[140px] h-9">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="candidate">תצוגת מועמד</SelectItem>
+                  <SelectItem value="matchmaker">תצוגת שדכן</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setViewProfileId(null)}
+                className="h-9 w-9 rounded-full hover:bg-red-50 hover:text-red-600"
+              >
+                <X className="w-5 h-5" />
+              </Button>
+            </div>
+          </div>
+
+          <div className="p-0">
+            {isLoadingProfile ? (
+              <div className="flex flex-col items-center justify-center py-20">
+                <Loader2 className="w-10 h-10 animate-spin text-purple-500 mb-4" />
+                <p className="text-gray-500">טוען נתוני פרופיל...</p>
+              </div>
+            ) : fullProfileData ? (
+              <ProfileCard
+                profile={fullProfileData.profile}
+                images={fullProfileData.images}
+                questionnaire={questionnaireData}
+                viewMode={isMatchmakerView ? 'matchmaker' : 'candidate'}
+                isProfileComplete={
+                  fullProfileData.profile?.isProfileComplete || false
+                }
+                locale={locale}
+                onClose={() => setViewProfileId(null)}
+                dict={profileDict.profileCard}
+              />
+            ) : (
+              <div className="p-10 text-center text-gray-500">
+                לא ניתן לטעון את הפרופיל
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* --- AI Analysis Dialog --- */}
+      <AiMatchmakerProfileAdvisorDialog
+        isOpen={!!analyzedCandidate}
+        onClose={() => setAnalyzedCandidate(null)}
+        candidate={analyzedCandidate}
+        dict={matchmakerDict.candidatesManager.aiProfileAdvisor}
+        locale={locale}
+      />
+
+      {/* --- Profile Feedback Dialog --- */}
+      <ProfileFeedbackDialog
+        isOpen={!!feedbackCandidate}
+        onClose={() => setFeedbackCandidate(null)}
+        candidate={feedbackCandidate}
+        locale={locale}
+        dict={matchmakerDict.candidatesManager.profileFeedbackDialog}
+      />
+
+      {/* Confirm Scan Dialog */}
+      <AlertDialog open={confirmScanDialog} onOpenChange={setConfirmScanDialog}>
+        <AlertDialogContent dir="rtl">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <Moon className="w-5 h-5 text-indigo-600" />
+              הפעלת סריקה לילית
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              הסריקה תעבור על כל המועמדים במערכת ותמצא התאמות פוטנציאליות חדשות.
+              התהליך עשוי לקחת מספר דקות.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="gap-2">
+            <AlertDialogCancel>ביטול</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleStartScan}
+              className="bg-gradient-to-r from-indigo-500 to-purple-500"
+            >
+              <HeartHandshake className="w-4 h-4 ml-2" />
+              התחל סריקה
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Confirm Bulk Dismiss Dialog */}
+      <AlertDialog
+        open={confirmBulkDismissDialog}
+        onOpenChange={setConfirmBulkDismissDialog}
+      >
+        <AlertDialogContent dir="rtl">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2 text-red-600">
+              <Trash2 className="w-5 h-5" />
+              דחיית {selectedMatchIds.length} התאמות
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              האם אתה בטוח שברצונך לדחות את כל ההתאמות שנבחרו? ניתן יהיה לשחזר
+              אותן בהמשך.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="gap-2">
+            <AlertDialogCancel>ביטול</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleBulkDismiss}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              דחה הכל
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Create Suggestion Dialog */}
+      <Dialog
+        open={!!createSuggestionDialog}
+        onOpenChange={(open) => !open && setCreateSuggestionDialog(null)}
+      >
+        <DialogContent dir="rtl" className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <HeartHandshake className="w-5 h-5 text-green-600" />
+              יצירת הצעה
+            </DialogTitle>
+            <DialogDescription>
+              צור הצעת שידוך מההתאמה הפוטנציאלית
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            {/* Priority */}
+            <div>
+              <label className="text-sm font-medium text-gray-700 mb-2 block">
+                עדיפות
+              </label>
+              <Select
+                value={suggestionPriority}
+                onValueChange={(value) => setSuggestionPriority(value as any)}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="LOW">נמוכה</SelectItem>
+                  <SelectItem value="MEDIUM">בינונית</SelectItem>
+                  <SelectItem value="HIGH">גבוהה</SelectItem>
+                  <SelectItem value="URGENT">דחופה</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Notes */}
+            <div>
+              <label className="text-sm font-medium text-gray-700 mb-2 block">
+                הערות להצעה (אופציונלי)
+              </label>
+              <Textarea
+                value={suggestionNotes}
+                onChange={(e) => setSuggestionNotes(e.target.value)}
+                placeholder="הוסף הערות או סיבת ההתאמה..."
+                rows={3}
+              />
+            </div>
+          </div>
+
+          <DialogFooter className="gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setCreateSuggestionDialog(null)}
+            >
+              ביטול
+            </Button>
+            <Button
+              onClick={handleCreateSuggestion}
+              disabled={isActioning}
+              className="bg-gradient-to-r from-green-500 to-emerald-500"
+            >
+              {isActioning ? (
+                <Loader2 className="w-4 h-4 ml-2 animate-spin" />
+              ) : (
+                <HeartHandshake className="w-4 h-4 ml-2" />
+              )}
+              צור הצעה
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dismiss Dialog */}
+      <Dialog
+        open={!!dismissDialog}
+        onOpenChange={(open) => !open && setDismissDialog(null)}
+      >
+        <DialogContent dir="rtl" className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-red-600">
+              <X className="w-5 h-5" />
+              דחיית התאמה
+            </DialogTitle>
+            <DialogDescription>
+              ניתן לציין סיבה לדחייה (אופציונלי)
+            </DialogDescription>
+          </DialogHeader>
+
+          <div>
+            <Textarea
+              value={dismissReason}
+              onChange={(e) => setDismissReason(e.target.value)}
+              placeholder="סיבת הדחייה..."
+              rows={3}
+            />
+          </div>
+
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setDismissDialog(null)}>
+              ביטול
+            </Button>
+            <Button
+              onClick={handleDismiss}
+              disabled={isActioning}
+              variant="destructive"
+            >
+              {isActioning ? (
+                <Loader2 className="w-4 h-4 ml-2 animate-spin" />
+              ) : (
+                <X className="w-4 h-4 ml-2" />
+              )}
+              דחה
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+};
+
+export default PotentialMatchesDashboard;
+--- End of Content for PotentialMatchesDashboard.tsx ---
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmaker\new\PotentialMatches\PotentialMatchesStats.tsx
+--------------------------------------------------------------------------------
+Content:
+// =============================================================================
+// src/components/matchmaker/PotentialMatches/PotentialMatchesStats.tsx
+// סטטיסטיקות התאמות פוטנציאליות
+// =============================================================================
+
+'use client';
+
+import React from 'react';
+import { Card } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
+import {
+  Clock,
+  Eye,
+  Send,
+  X,
+  AlertTriangle,
+  TrendingUp,
+  Star,
+  Heart,
+  CheckCircle,
+  Calendar,
+  Timer,
+  Sparkles,
+} from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { formatDistanceToNow } from 'date-fns';
+import { he } from 'date-fns/locale';
+import type { PotentialMatchesStats as StatsType, LastScanInfo } from '@/types/potentialMatches';
+
+// =============================================================================
+// TYPES
+// =============================================================================
+
+interface PotentialMatchesStatsProps {
+  stats: StatsType | null;
+  lastScanInfo: LastScanInfo | null;
+  isScanRunning?: boolean;
+  scanProgress?: number;
+  className?: string;
+}
+
+// =============================================================================
+// SUB-COMPONENTS
+// =============================================================================
+
+interface StatCardProps {
+  icon: React.ElementType;
+  label: string;
+  value: number | string;
+  subValue?: string;
+  gradient: string;
+  iconColor: string;
+  onClick?: () => void;
+}
+
+const StatCard: React.FC<StatCardProps> = ({
+  icon: Icon,
+  label,
+  value,
+  subValue,
+  gradient,
+  iconColor,
+  onClick,
+}) => (
+  <Card
+    className={cn(
+      'relative overflow-hidden p-4 border-0 shadow-lg transition-all duration-300',
+      'hover:shadow-xl hover:scale-105 cursor-pointer',
+      `bg-gradient-to-br ${gradient}`
+    )}
+    onClick={onClick}
+  >
+    {/* Background Pattern */}
+    <div className="absolute top-0 right-0 w-20 h-20 opacity-10">
+      <svg viewBox="0 0 80 80" fill="currentColor">
+        <circle cx="60" cy="20" r="40" />
+      </svg>
+    </div>
+
+    <div className="relative flex items-start justify-between">
+      <div>
+        <p className="text-sm font-medium text-gray-600 mb-1">{label}</p>
+        <p className="text-3xl font-bold text-gray-800">{value}</p>
+        {subValue && (
+          <p className="text-xs text-gray-500 mt-1">{subValue}</p>
+        )}
+      </div>
+      <div className={cn(
+        'p-3 rounded-xl shadow-lg',
+        iconColor
+      )}>
+        <Icon className="w-6 h-6 text-white" />
+      </div>
+    </div>
+  </Card>
+);
+
+// =============================================================================
+// MAIN COMPONENT
+// =============================================================================
+
+const PotentialMatchesStats: React.FC<PotentialMatchesStatsProps> = ({
+  stats,
+  lastScanInfo,
+  isScanRunning = false,
+  scanProgress = 0,
+  className,
+}) => {
+  if (!stats) {
+    return (
+      <div className={cn('grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4', className)}>
+        {[...Array(6)].map((_, i) => (
+          <Card key={i} className="p-4 animate-pulse">
+            <div className="h-4 w-20 bg-gray-200 rounded mb-2" />
+            <div className="h-8 w-16 bg-gray-200 rounded" />
+          </Card>
+        ))}
+      </div>
+    );
+  }
+
+  return (
+    <div className={cn('space-y-6', className)}>
+      {/* Main Stats Grid */}
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+        <StatCard
+          icon={Heart}
+          label="סה״כ התאמות"
+          value={stats.total}
+          gradient="from-pink-50 to-rose-100"
+          iconColor="bg-gradient-to-br from-pink-500 to-rose-500"
+        />
+        
+        <StatCard
+          icon={Clock}
+          label="ממתינות"
+          value={stats.pending}
+          subValue="טרם נבדקו"
+          gradient="from-amber-50 to-yellow-100"
+          iconColor="bg-gradient-to-br from-amber-500 to-yellow-500"
+        />
+        
+        <StatCard
+          icon={Eye}
+          label="נבדקו"
+          value={stats.reviewed}
+          gradient="from-blue-50 to-cyan-100"
+          iconColor="bg-gradient-to-br from-blue-500 to-cyan-500"
+        />
+        
+        <StatCard
+          icon={Send}
+          label="נשלחו הצעות"
+          value={stats.sent}
+          gradient="from-green-50 to-emerald-100"
+          iconColor="bg-gradient-to-br from-green-500 to-emerald-500"
+        />
+        
+        <StatCard
+          icon={X}
+          label="נדחו"
+          value={stats.dismissed}
+          gradient="from-gray-50 to-slate-100"
+          iconColor="bg-gradient-to-br from-gray-500 to-slate-500"
+        />
+        
+        <StatCard
+          icon={AlertTriangle}
+          label="עם אזהרות"
+          value={stats.withWarnings}
+          subValue="בהצעה פעילה"
+          gradient="from-orange-50 to-amber-100"
+          iconColor="bg-gradient-to-br from-orange-500 to-amber-500"
+        />
+      </div>
+
+      {/* Score Distribution & Last Scan */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Score Distribution */}
+        <Card className="p-6 border-0 shadow-lg bg-gradient-to-br from-white to-purple-50">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="p-2 rounded-lg bg-gradient-to-br from-purple-500 to-indigo-500">
+              <Star className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <h3 className="font-bold text-gray-800">התפלגות ציונים</h3>
+              <p className="text-sm text-gray-500">ציון ממוצע: {stats.avgScore}</p>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            {/* High Score (85+) */}
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-sm font-medium text-emerald-700 flex items-center gap-1">
+                  <Sparkles className="w-4 h-4" />
+                  ציון גבוה (85+)
+                </span>
+                <span className="text-sm text-gray-600">{stats.highScore}</span>
+              </div>
+              <Progress 
+                value={(stats.highScore / (stats.total || 1)) * 100} 
+                className="h-2 bg-gray-200"
+              />
+            </div>
+
+            {/* Medium Score (70-85) */}
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-sm font-medium text-blue-700 flex items-center gap-1">
+                  <TrendingUp className="w-4 h-4" />
+                  ציון בינוני (70-84)
+                </span>
+                <span className="text-sm text-gray-600">{stats.mediumScore}</span>
+              </div>
+              <Progress 
+                value={(stats.mediumScore / (stats.total || 1)) * 100} 
+                className="h-2 bg-gray-200"
+              />
+            </div>
+
+            {/* Pie visualization */}
+            <div className="flex items-center justify-center gap-4 mt-4 pt-4 border-t">
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-emerald-500" />
+                <span className="text-xs text-gray-600">גבוה</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-blue-500" />
+                <span className="text-xs text-gray-600">בינוני</span>
+              </div>
+            </div>
+          </div>
+        </Card>
+
+        {/* Last Scan Info */}
+        <Card className="p-6 border-0 shadow-lg bg-gradient-to-br from-white to-cyan-50">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="p-2 rounded-lg bg-gradient-to-br from-cyan-500 to-blue-500">
+              <Calendar className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <h3 className="font-bold text-gray-800">סריקה אחרונה</h3>
+              <p className="text-sm text-gray-500">
+                {lastScanInfo ? (
+                  formatDistanceToNow(new Date(lastScanInfo.startedAt), { 
+                    addSuffix: true, 
+                    locale: he 
+                  })
+                ) : 'לא בוצעה עדיין'}
+              </p>
+            </div>
+          </div>
+
+          {/* Scan Running Progress */}
+          {isScanRunning && (
+            <div className="mb-4 p-4 rounded-lg bg-blue-50 border border-blue-200">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium text-blue-700 flex items-center gap-2">
+                  <Timer className="w-4 h-4 animate-spin" />
+                  סריקה בתהליך...
+                </span>
+                <span className="text-sm text-blue-600">{scanProgress}%</span>
+              </div>
+              <Progress value={scanProgress} className="h-2" />
+            </div>
+          )}
+
+          {lastScanInfo && !isScanRunning && (
+            <div className="space-y-3">
+              {/* Status */}
+              <div className="flex items-center justify-between p-3 rounded-lg bg-white/60">
+                <span className="text-sm text-gray-600">סטטוס</span>
+                <Badge className={cn(
+                  lastScanInfo.status === 'completed' 
+                    ? 'bg-green-100 text-green-700' 
+                    : lastScanInfo.status === 'partial'
+                    ? 'bg-amber-100 text-amber-700'
+                    : 'bg-red-100 text-red-700'
+                )}>
+                  {lastScanInfo.status === 'completed' ? 'הושלם' : 
+                   lastScanInfo.status === 'partial' ? 'הושלם חלקית' : 'נכשל'}
+                </Badge>
+              </div>
+
+              {/* Candidates Scanned */}
+              <div className="flex items-center justify-between p-3 rounded-lg bg-white/60">
+                <span className="text-sm text-gray-600">מועמדים שנסרקו</span>
+                <span className="font-medium text-gray-800">
+                  {lastScanInfo.candidatesScanned} / {lastScanInfo.totalCandidates}
+                </span>
+              </div>
+
+              {/* Matches Found */}
+              <div className="flex items-center justify-between p-3 rounded-lg bg-white/60">
+                <span className="text-sm text-gray-600">התאמות שנמצאו</span>
+                <span className="font-medium text-gray-800 flex items-center gap-1">
+                  <Heart className="w-4 h-4 text-pink-500" />
+                  {lastScanInfo.matchesFound}
+                </span>
+              </div>
+
+              {/* New Matches */}
+              <div className="flex items-center justify-between p-3 rounded-lg bg-white/60">
+                <span className="text-sm text-gray-600">התאמות חדשות</span>
+                <span className="font-medium text-emerald-600 flex items-center gap-1">
+                  <CheckCircle className="w-4 h-4" />
+                  {lastScanInfo.newMatches}
+                </span>
+              </div>
+
+              {/* Duration */}
+              {lastScanInfo.durationMs && (
+                <div className="flex items-center justify-between p-3 rounded-lg bg-white/60">
+                  <span className="text-sm text-gray-600">משך הסריקה</span>
+                  <span className="font-medium text-gray-800">
+                    {Math.round(lastScanInfo.durationMs / 1000 / 60)} דקות
+                  </span>
+                </div>
+              )}
+            </div>
+          )}
+
+          {!lastScanInfo && !isScanRunning && (
+            <div className="text-center py-8 text-gray-500">
+              <Calendar className="w-12 h-12 mx-auto mb-2 opacity-50" />
+              <p>טרם בוצעה סריקה</p>
+              <p className="text-sm">הפעל סריקה לילית למציאת התאמות</p>
+            </div>
+          )}
+        </Card>
+      </div>
+    </div>
+  );
+};
+
+export default PotentialMatchesStats;
+--- End of Content for PotentialMatchesStats.tsx ---
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmaker\new\PotentialMatches\PotentialMatches_contents.txt
+--------------------------------------------------------------------------------
+[This is the output log file itself. Content not included.]
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmaker\new\PotentialMatches\index.ts
+--------------------------------------------------------------------------------
+Content:
+// =============================================================================
+// src/components/matchmaker/PotentialMatches/index.ts
+// Export file for PotentialMatches components
+// =============================================================================
+
+// Main Dashboard Component
+export { default as PotentialMatchesDashboard } from './PotentialMatchesDashboard';
+export { default } from './PotentialMatchesDashboard';
+
+// Sub-components
+export { default as PotentialMatchCard } from './PotentialMatchCard';
+export { default as PotentialMatchesStats } from './PotentialMatchesStats';
+
+// Hooks
+export { usePotentialMatches } from './hooks/usePotentialMatches';
+
+// Re-export types
+export type {
+  PotentialMatch,
+  PotentialMatchesResponse,
+  LastScanInfo,
+  PotentialMatchFilters,
+  PotentialMatchSortBy,
+  PotentialMatchFilterStatus,
+  PotentialMatchAction,
+  BatchScanResponse,
+  BatchScanProgress,
+  ScoreBreakdown,
+  CandidateBasicInfo,
+  ActiveSuggestionInfo,
+} from '@/types/potentialMatches';
+--- End of Content for index.ts ---
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmaker\new\PotentialMatches\hooks
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmaker\new\PotentialMatches\hooks\usePotentialMatches.ts
+--------------------------------------------------------------------------------
+Content:
+// =============================================================================
+// src/components/matchmaker/PotentialMatches/hooks/usePotentialMatches.ts
+// React Hook לניהול התאמות פוטנציאליות
+// =============================================================================
+
+import { useState, useEffect, useCallback, useMemo } from 'react';
+import { toast } from 'sonner';
+import type {
+  PotentialMatch,
+  PotentialMatchesResponse,
+  PotentialMatchesStats,
+  LastScanInfo,
+  PotentialMatchFilters,
+  PotentialMatchSortBy,
+  PotentialMatchFilterStatus,
+  PotentialMatchAction,
+  BatchScanResponse,
+  BatchScanProgress,
+} from '@/types/potentialMatches';
+
+// =============================================================================
+// TYPES
+// =============================================================================
+
+interface UsePotentialMatchesOptions {
+  initialFilters?: Partial<PotentialMatchFilters>;
+  autoRefresh?: boolean;
+  refreshInterval?: number; // ms
+}
+
+interface UsePotentialMatchesReturn {
+  // Data
+  matches: PotentialMatch[];
+  stats: PotentialMatchesStats | null;
+  lastScanInfo: LastScanInfo | null;
+  
+  // Pagination
+  pagination: {
+    total: number;
+    page: number;
+    pageSize: number;
+    totalPages: number;
+  };
+  
+  // Loading states
+  isLoading: boolean;
+  isRefreshing: boolean;
+  isActioning: boolean;
+  
+  // Filters
+  filters: PotentialMatchFilters;
+  setFilters: (filters: Partial<PotentialMatchFilters>) => void;
+  resetFilters: () => void;
+  
+  // Pagination controls
+  setPage: (page: number) => void;
+  setPageSize: (size: number) => void;
+  
+  // Actions
+  refresh: () => Promise<void>;
+  reviewMatch: (matchId: string) => Promise<boolean>;
+  dismissMatch: (matchId: string, reason?: string) => Promise<boolean>;
+  restoreMatch: (matchId: string) => Promise<boolean>;
+  createSuggestion: (matchId: string, data?: {
+    priority?: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
+    firstPartyNotes?: string;
+    secondPartyNotes?: string;
+    matchingReason?: string;
+  }) => Promise<string | null>;
+  
+  // Bulk actions
+  bulkDismiss: (matchIds: string[], reason?: string) => Promise<number>;
+  bulkReview: (matchIds: string[]) => Promise<number>;
+  bulkRestore: (matchIds: string[]) => Promise<number>;
+  
+  // Scan controls
+  startScan: (options?: {
+    method?: 'algorithmic' | 'vector' | 'hybrid';
+    forceRefresh?: boolean;
+  }) => Promise<string | null>;
+  scanProgress: BatchScanProgress | null;
+  isScanRunning: boolean;
+  
+  // Selection
+  selectedMatchIds: string[];
+  toggleSelection: (matchId: string) => void;
+  selectAll: () => void;
+  clearSelection: () => void;
+  isSelected: (matchId: string) => boolean;
+  
+  // Error
+  error: string | null;
+}
+
+// =============================================================================
+// DEFAULT VALUES
+// =============================================================================
+
+const DEFAULT_FILTERS: PotentialMatchFilters = {
+  status: 'pending',
+  minScore: 70,
+  maxScore: 100,
+  religiousLevel: null,
+  city: null,
+  hasWarning: null,
+  scannedAfter: null,
+  sortBy: 'score_desc',
+};
+
+const DEFAULT_PAGINATION = {
+  total: 0,
+  page: 1,
+  pageSize: 20,
+  totalPages: 0,
+};
+
+// =============================================================================
+// HOOK IMPLEMENTATION
+// =============================================================================
+
+export function usePotentialMatches(
+  options: UsePotentialMatchesOptions = {}
+): UsePotentialMatchesReturn {
+  
+  const { 
+    initialFilters = {},
+    autoRefresh = false,
+    refreshInterval = 30000,
+  } = options;
+
+  // State
+  const [matches, setMatches] = useState<PotentialMatch[]>([]);
+  const [stats, setStats] = useState<PotentialMatchesStats | null>(null);
+  const [lastScanInfo, setLastScanInfo] = useState<LastScanInfo | null>(null);
+  const [pagination, setPagination] = useState(DEFAULT_PAGINATION);
+  
+  const [filters, setFiltersState] = useState<PotentialMatchFilters>({
+    ...DEFAULT_FILTERS,
+    ...initialFilters,
+  });
+  
+  const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isActioning, setIsActioning] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  
+  const [selectedMatchIds, setSelectedMatchIds] = useState<string[]>([]);
+  
+  const [scanProgress, setScanProgress] = useState<BatchScanProgress | null>(null);
+  const [isScanRunning, setIsScanRunning] = useState(false);
+  const [pollingScanId, setPollingScanId] = useState<string | null>(null);
+
+  // ==========================================================================
+  // FETCH DATA
+  // ==========================================================================
+
+  const fetchMatches = useCallback(async (showLoadingState = true) => {
+    if (showLoadingState) {
+      setIsLoading(true);
+    } else {
+      setIsRefreshing(true);
+    }
+    setError(null);
+
+    try {
+      const params = new URLSearchParams();
+      params.set('page', String(pagination.page));
+      params.set('pageSize', String(pagination.pageSize));
+      params.set('status', filters.status);
+      params.set('minScore', String(filters.minScore));
+      params.set('maxScore', String(filters.maxScore));
+      params.set('sortBy', filters.sortBy);
+      
+      if (filters.hasWarning !== null) {
+        params.set('hasWarning', String(filters.hasWarning));
+      }
+      if (filters.religiousLevel) {
+        params.set('religiousLevel', filters.religiousLevel);
+      }
+      if (filters.city) {
+        params.set('city', filters.city);
+      }
+
+      const response = await fetch(`/api/matchmaker/potential-matches?${params.toString()}`);
+      const data: PotentialMatchesResponse = await response.json();
+
+      if (!data.success) {
+        throw new Error(data.error || 'Failed to fetch matches');
+      }
+
+      setMatches(data.matches);
+      setStats(data.stats);
+      setLastScanInfo(data.lastScanInfo);
+      setPagination(data.pagination);
+
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'שגיאה בטעינת ההתאמות';
+      setError(message);
+      console.error('[usePotentialMatches] Fetch error:', err);
+    } finally {
+      setIsLoading(false);
+      setIsRefreshing(false);
+    }
+  }, [filters, pagination.page, pagination.pageSize]);
+
+  // Initial fetch
+  useEffect(() => {
+    fetchMatches(true);
+  }, [fetchMatches]);
+
+  // Auto refresh
+  useEffect(() => {
+    if (!autoRefresh) return;
+
+    const interval = setInterval(() => {
+      fetchMatches(false);
+    }, refreshInterval);
+
+    return () => clearInterval(interval);
+  }, [autoRefresh, refreshInterval, fetchMatches]);
+
+  // ==========================================================================
+  // FILTERS
+  // ==========================================================================
+
+  const setFilters = useCallback((newFilters: Partial<PotentialMatchFilters>) => {
+    setFiltersState(prev => ({ ...prev, ...newFilters }));
+    setPagination(prev => ({ ...prev, page: 1 })); // Reset to first page
+  }, []);
+
+  const resetFilters = useCallback(() => {
+    setFiltersState(DEFAULT_FILTERS);
+    setPagination(prev => ({ ...prev, page: 1 }));
+  }, []);
+
+  // ==========================================================================
+  // PAGINATION
+  // ==========================================================================
+
+  const setPage = useCallback((page: number) => {
+    setPagination(prev => ({ ...prev, page }));
+  }, []);
+
+  const setPageSize = useCallback((pageSize: number) => {
+    setPagination(prev => ({ ...prev, pageSize, page: 1 }));
+  }, []);
+
+  // ==========================================================================
+  // SINGLE ACTIONS
+  // ==========================================================================
+
+  const performAction = useCallback(async (
+    matchId: string,
+    action: PotentialMatchAction,
+    additionalData?: any
+  ): Promise<boolean> => {
+    setIsActioning(true);
+    
+    try {
+      const response = await fetch('/api/matchmaker/potential-matches', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          matchId,
+          action,
+          ...additionalData,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!data.success) {
+        throw new Error(data.error || 'Action failed');
+      }
+
+      // Update local state
+      setMatches(prev => prev.map(m => {
+        if (m.id !== matchId) return m;
+        
+        switch (action) {
+          case 'review':
+            return { ...m, status: 'REVIEWED' as any, reviewedAt: new Date() };
+          case 'dismiss':
+            return { ...m, status: 'DISMISSED' as any };
+          case 'restore':
+            return { ...m, status: 'PENDING' as any };
+          case 'create_suggestion':
+            return { ...m, status: 'SENT' as any, suggestionId: data.suggestionId };
+          default:
+            return m;
+        }
+      }));
+
+      return true;
+
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'הפעולה נכשלה';
+      toast.error(message);
+      console.error('[usePotentialMatches] Action error:', err);
+      return false;
+    } finally {
+      setIsActioning(false);
+    }
+  }, []);
+
+  const reviewMatch = useCallback(async (matchId: string): Promise<boolean> => {
+    const success = await performAction(matchId, 'review');
+    if (success) toast.success('ההתאמה סומנה כנבדקה');
+    return success;
+  }, [performAction]);
+
+  const dismissMatch = useCallback(async (matchId: string, reason?: string): Promise<boolean> => {
+    const success = await performAction(matchId, 'dismiss', { reason });
+    if (success) toast.success('ההתאמה נדחתה');
+    return success;
+  }, [performAction]);
+
+  const restoreMatch = useCallback(async (matchId: string): Promise<boolean> => {
+    const success = await performAction(matchId, 'restore');
+    if (success) toast.success('ההתאמה שוחזרה');
+    return success;
+  }, [performAction]);
+
+  const createSuggestion = useCallback(async (
+    matchId: string,
+    suggestionData?: {
+      priority?: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
+      firstPartyNotes?: string;
+      secondPartyNotes?: string;
+      matchingReason?: string;
+    }
+  ): Promise<string | null> => {
+    setIsActioning(true);
+    
+    try {
+      const response = await fetch('/api/matchmaker/potential-matches', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          matchId,
+          action: 'create_suggestion',
+          suggestionData,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!data.success) {
+        throw new Error(data.error || 'Failed to create suggestion');
+      }
+
+      // Update local state
+      setMatches(prev => prev.map(m => 
+        m.id === matchId 
+          ? { ...m, status: 'SENT' as any, suggestionId: data.suggestionId }
+          : m
+      ));
+
+      toast.success('הצעה נוצרה בהצלחה!');
+      return data.suggestionId;
+
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'יצירת ההצעה נכשלה';
+      toast.error(message);
+      console.error('[usePotentialMatches] Create suggestion error:', err);
+      return null;
+    } finally {
+      setIsActioning(false);
+    }
+  }, []);
+
+  // ==========================================================================
+  // BULK ACTIONS
+  // ==========================================================================
+
+  const performBulkAction = useCallback(async (
+    matchIds: string[],
+    action: 'dismiss' | 'review' | 'restore',
+    reason?: string
+  ): Promise<number> => {
+    if (matchIds.length === 0) return 0;
+    
+    setIsActioning(true);
+    
+    try {
+      const response = await fetch('/api/matchmaker/potential-matches', {
+        method: 'DELETE', // Using DELETE for bulk actions
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ matchIds, action, reason }),
+      });
+
+      const data = await response.json();
+
+      if (!data.success) {
+        throw new Error(data.error || 'Bulk action failed');
+      }
+
+      // Refresh data
+      await fetchMatches(false);
+      
+      // Clear selection
+      setSelectedMatchIds([]);
+      
+      return data.processed;
+
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'הפעולה נכשלה';
+      toast.error(message);
+      console.error('[usePotentialMatches] Bulk action error:', err);
+      return 0;
+    } finally {
+      setIsActioning(false);
+    }
+  }, [fetchMatches]);
+
+  const bulkDismiss = useCallback(async (matchIds: string[], reason?: string): Promise<number> => {
+    const count = await performBulkAction(matchIds, 'dismiss', reason);
+    if (count > 0) toast.success(`${count} התאמות נדחו`);
+    return count;
+  }, [performBulkAction]);
+
+  const bulkReview = useCallback(async (matchIds: string[]): Promise<number> => {
+    const count = await performBulkAction(matchIds, 'review');
+    if (count > 0) toast.success(`${count} התאמות סומנו כנבדקו`);
+    return count;
+  }, [performBulkAction]);
+
+  const bulkRestore = useCallback(async (matchIds: string[]): Promise<number> => {
+    const count = await performBulkAction(matchIds, 'restore');
+    if (count > 0) toast.success(`${count} התאמות שוחזרו`);
+    return count;
+  }, [performBulkAction]);
+
+  // ==========================================================================
+  // SCAN CONTROLS
+  // ==========================================================================
+
+  const startScan = useCallback(async (scanOptions?: {
+    method?: 'algorithmic' | 'vector' | 'hybrid';
+    forceRefresh?: boolean;
+  }): Promise<string | null> => {
+    setIsScanRunning(true);
+    
+    try {
+      const response = await fetch('/api/ai/batch-scan-all', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(scanOptions || {}),
+      });
+
+      const data: BatchScanResponse = await response.json();
+
+      if (!data.success) {
+        if (data.status === 'already_running') {
+          toast.warning('סריקה כבר רצה כרגע');
+          setPollingScanId(data.scanId);
+        } else {
+          throw new Error(data.message || 'Failed to start scan');
+        }
+        return data.scanId || null;
+      }
+
+      toast.success('הסריקה החלה!');
+      setPollingScanId(data.scanId);
+      return data.scanId;
+
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'הפעלת הסריקה נכשלה';
+      toast.error(message);
+      console.error('[usePotentialMatches] Start scan error:', err);
+      setIsScanRunning(false);
+      return null;
+    }
+  }, []);
+
+  // Poll scan progress
+  useEffect(() => {
+    if (!pollingScanId) return;
+
+    const pollProgress = async () => {
+      try {
+        const response = await fetch(`/api/ai/batch-scan-all?scanId=${pollingScanId}`);
+        const data = await response.json();
+
+        if (data.success && data.scan) {
+          setScanProgress({
+            scanId: data.scan.id,
+            status: data.scan.status,
+            progress: data.scan.progress || 
+              Math.round((data.scan.candidatesScanned / data.scan.totalCandidates) * 100),
+            currentCandidate: null,
+            candidatesScanned: data.scan.candidatesScanned,
+            totalCandidates: data.scan.totalCandidates,
+            matchesFound: data.scan.matchesFound,
+            elapsedMs: data.scan.durationMs || 0,
+            estimatedRemainingMs: null,
+            error: data.scan.error,
+          });
+
+          if (data.scan.status === 'completed' || data.scan.status === 'failed' || data.scan.status === 'partial') {
+            setPollingScanId(null);
+            setIsScanRunning(false);
+            
+            if (data.scan.status === 'completed' || data.scan.status === 'partial') {
+              toast.success(`סריקה הושלמה! נמצאו ${data.scan.matchesFound} התאמות`);
+              fetchMatches(false);
+            } else if (data.scan.status === 'failed') {
+              toast.error('הסריקה נכשלה');
+            }
+          }
+        }
+      } catch (err) {
+        console.error('[usePotentialMatches] Poll progress error:', err);
+      }
+    };
+
+    const interval = setInterval(pollProgress, 3000);
+    pollProgress(); // Initial poll
+
+    return () => clearInterval(interval);
+  }, [pollingScanId, fetchMatches]);
+
+  // ==========================================================================
+  // SELECTION
+  // ==========================================================================
+
+  const toggleSelection = useCallback((matchId: string) => {
+    setSelectedMatchIds(prev => 
+      prev.includes(matchId)
+        ? prev.filter(id => id !== matchId)
+        : [...prev, matchId]
+    );
+  }, []);
+
+  const selectAll = useCallback(() => {
+    setSelectedMatchIds(matches.map(m => m.id));
+  }, [matches]);
+
+  const clearSelection = useCallback(() => {
+    setSelectedMatchIds([]);
+  }, []);
+
+  const isSelected = useCallback((matchId: string): boolean => {
+    return selectedMatchIds.includes(matchId);
+  }, [selectedMatchIds]);
+
+  // ==========================================================================
+  // RETURN
+  // ==========================================================================
+
+  return {
+    // Data
+    matches,
+    stats,
+    lastScanInfo,
+    
+    // Pagination
+    pagination,
+    
+    // Loading states
+    isLoading,
+    isRefreshing,
+    isActioning,
+    
+    // Filters
+    filters,
+    setFilters,
+    resetFilters,
+    
+    // Pagination controls
+    setPage,
+    setPageSize,
+    
+    // Actions
+    refresh: () => fetchMatches(false),
+    reviewMatch,
+    dismissMatch,
+    restoreMatch,
+    createSuggestion,
+    
+    // Bulk actions
+    bulkDismiss,
+    bulkReview,
+    bulkRestore,
+    
+    // Scan controls
+    startScan,
+    scanProgress,
+    isScanRunning,
+    
+    // Selection
+    selectedMatchIds,
+    toggleSelection,
+    selectAll,
+    clearSelection,
+    isSelected,
+    
+    // Error
+    error,
+  };
+}
+
+export default usePotentialMatches;
+--- End of Content for usePotentialMatches.ts ---
+

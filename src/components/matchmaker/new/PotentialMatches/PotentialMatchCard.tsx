@@ -77,7 +77,7 @@ interface PotentialMatchCardProps {
 }
 
 // =============================================================================
-// HELPER FUNCTIONS (unchanged)
+// HELPER FUNCTIONS
 // =============================================================================
 
 const getScoreColor = (score: number): string => {
@@ -189,17 +189,22 @@ const CandidatePreview: React.FC<{
   const bgGradient =
     gender === 'male' ? 'from-blue-50 to-cyan-50' : 'from-pink-50 to-rose-50';
 
-  // לוגיקה זהה ל-MinimalCard לשליחת וואטסאפ
+  // --- לוגיקה מעודכנת לשליחת וואטסאפ (תואם ל-MinimalCard) ---
   const handleWhatsApp = (e: React.MouseEvent) => {
     e.stopPropagation();
+
+    // ניקוי המספר
     let cleanPhone = candidate.phone?.replace(/\D/g, '') || '';
     if (cleanPhone.startsWith('0')) {
       cleanPhone = '972' + cleanPhone.substring(1);
     }
 
     if (cleanPhone) {
-      const message = `היי ${candidate.firstName}, כאן מצוות השדכנים...`;
+      // ההודעה הקבועה שנמצאת ב-MinimalCard
+      const message = `היי ${candidate.firstName} זה איתן מנשמהטק. אני מאוד שמח שנרשמת למערכת שלנו ואני מקווה מאוד לעזור לך למצוא את הזוגיות שתמיד חלמת עליה`;
       const encodedMessage = encodeURIComponent(message);
+
+      // פתיחת החלון
       window.open(
         `https://wa.me/${cleanPhone}?text=${encodedMessage}`,
         '_blank'
@@ -345,7 +350,7 @@ const CandidatePreview: React.FC<{
   );
 };
 
-// ... (ScoreBreakdownDisplay נשאר זהה)
+// Score Breakdown Component
 const ScoreBreakdownDisplay: React.FC<{
   breakdown: ScoreBreakdown;
 }> = ({ breakdown }) => {
@@ -409,8 +414,8 @@ const PotentialMatchCard: React.FC<PotentialMatchCardProps> = ({
   onReview,
   onRestore,
   onViewProfile,
-  onAnalyzeCandidate, // New
-  onProfileFeedback, // New
+  onAnalyzeCandidate,
+  onProfileFeedback,
   isSelected = false,
   onToggleSelect,
   showSelection = false,
