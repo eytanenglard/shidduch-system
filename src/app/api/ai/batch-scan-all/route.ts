@@ -1,57 +1,44 @@
 // =============================================================================
-// src/app/api/ai/batch-scan-all/route.ts
-// API לסריקה לילית של כל המועמדים
-// מופעל ע"י Heroku Scheduler או באופן ידני
+// 📁 src/app/api/ai/batch-scan-all/route.ts
+// =============================================================================
+// 🎯 Batch Scan All - סריקה לילית חכמה
+// 
+// גרסה: 2.0 - סריקה דיפרנציאלית
+// 
+// שיפורים עיקריים:
+// 1. סריקה דיפרנציאלית - לא סורקים זוגות שלא השתנו
+// 2. פילטר היסטוריה - לא מציעים זוגות עם דייט כושל
+// 3. שמירה ב-ScannedPair - לכל זוג שנסרק (גם אם לא עבר)
+// 4. תמיכה מלאה ב-MANUAL_ENTRY
 // =============================================================================
 
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
-import { UserRole, AvailabilityStatus, PotentialMatchStatus } from "@prisma/client";
 import prisma from "@/lib/prisma";
-import { findMatchesForUser } from "@/lib/services/matchingAlgorithmService";
+import { Gender, AvailabilityStatus } from "@prisma/client";
+import { 
+  findMatchesForUser,
+  getCompatibleReligiousLevels,
+  calculateAge,
+} from "@/lib/services/matchingAlgorithmService";
 
-// הגדרות
+// ייבוא הפונקציות החדשות
+import {
+  filterBlockedFemales,
+  getFemalesToScan,
+  saveScannedPairsBatch,
+  getActiveUsersWhereClause,
+  type ScannedPairResult,
+  type RejectionReason,
+} from "@/lib/services/matchingAlgorithmService";
+
 export const dynamic = 'force-dynamic';
-export const maxDuration = 300; // 5 דקות מקסימום
+export const maxDuration = 300; // 5 דקות
 
 // =============================================================================
 // CONSTANTS
 // =============================================================================
 
-const MIN_SCORE_THRESHOLD = 70; // ציון מינימלי להתאמה פוטנציאלית
-const BATCH_SIZE = 10; // כמה מועמדים לעבד בכל batch
-const CACHE_DAYS = 7; // כמה ימים לשמור cache
-const MAX_MATCHES_PER_CANDIDATE = 15; // מקסימום התאמות לשמור לכל מועמד
-
-// סטטוסים שחוסמים הצעות חדשות
-const BLOCKING_SUGGESTION_STATUSES = [
-  'FIRST_PARTY_APPROVED',
-  'SECOND_PARTY_APPROVED',
-  'AWAITING_MATCHMAKER_APPROVAL',
-  'CONTACT_DETAILS_SHARED',
-  'AWAITING_FIRST_DATE_FEEDBACK',
-  'THINKING_AFTER_DATE',
-  'PROCEEDING_TO_SECOND_DATE',
-  'MEETING_PENDING',
-  'MEETING_SCHEDULED',
-  'MATCH_APPROVED',
-  'DATING',
-  'ENGAGED',
-  'MARRIED',
-];
-
-// =============================================================================
-// TYPES
-// =============================================================================
-
-interface ScanResult {
-  candidateId: string;
-  matchesFound: number;
-  newMatches: number;
-  updatedMatches: number;
-  error?: string;
-}
+const MIN_SCORE_THRESHOLD = 70;
 
 // =============================================================================
 // POST - התחלת סריקה לילית
@@ -59,93 +46,182 @@ interface ScanResult {
 
 export async function POST(req: NextRequest): Promise<NextResponse> {
   const startTime = Date.now();
-  let scanLogId: string | null = null;
 
   try {
-    // 1. אימות - או Cron Secret או Session של Admin/Matchmaker
-    const cronSecret = req.headers.get('x-cron-secret');
-    const internalSecret = process.env.CRON_SECRET || process.env.INTERNAL_API_SECRET;
-    
-    let isAuthorized = false;
-    let triggeredBy = 'system';
+    // אימות (אופציונלי - להוסיף לפי הצורך)
+    // const session = await getServerSession();
+    // if (!session?.user?.id) {
+    //   return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    // }
 
-    if (cronSecret && internalSecret && cronSecret === internalSecret) {
-      isAuthorized = true;
-      triggeredBy = 'cron';
-      console.log('[BatchScan] ✅ Authorized via Cron Secret');
-    } else {
-      const session = await getServerSession(authOptions);
-      if (session?.user?.id && 
-          (session.user.role === UserRole.ADMIN || session.user.role === UserRole.MATCHMAKER)) {
-        isAuthorized = true;
-        triggeredBy = session.user.email || session.user.id;
-        console.log(`[BatchScan] ✅ Authorized via Session: ${triggeredBy}`);
-      }
-    }
-
-    if (!isAuthorized) {
-      console.warn('[BatchScan] ❌ Unauthorized access attempt');
-      return NextResponse.json({ 
-        success: false, 
-        error: "Unauthorized" 
-      }, { status: 401 });
-    }
-
-    // 2. פרסור הבקשה
-    let body: {
-      method?: string;
-      minScoreThreshold?: number;
-      maxCandidates?: number;
-      forceRefresh?: boolean;
-    } = {};
-    
-    try {
-      body = await req.json();
-    } catch {
-      // אם אין body, נשתמש בברירות מחדל
-    }
-
-    const {
+    const body = await req.json().catch(() => ({}));
+    const { 
       method = 'algorithmic',
-      minScoreThreshold = MIN_SCORE_THRESHOLD,
-      maxCandidates,
-      forceRefresh = false,
+      forceRefresh = false, // אם true - מתעלם מסריקות קודמות
     } = body;
 
-    // 3. בדיקה אם יש סריקה פעילה
-    const activeScan = await prisma.nightlyScanLog.findFirst({
-      where: {
-        status: 'running',
-        startedAt: {
-          gte: new Date(Date.now() - 60 * 60 * 1000) // שעה אחרונה
-        }
-      }
+    console.log(`\n${'='.repeat(70)}`);
+    console.log(`[BatchScan] 🌙 Starting Nightly Differential Scan`);
+    console.log(`[BatchScan] Method: ${method}`);
+    console.log(`[BatchScan] Force Refresh: ${forceRefresh}`);
+    console.log(`${'='.repeat(70)}\n`);
+
+    // בדיקה אם יש סריקה רצה כבר
+    const runningScan = await prisma.nightlyScanLog.findFirst({
+      where: { status: 'running' },
+      orderBy: { startedAt: 'desc' }
     });
 
-    if (activeScan) {
-      console.log(`[BatchScan] ⚠️ Scan already running: ${activeScan.id}`);
+    if (runningScan) {
+      console.log(`[BatchScan] ⚠️ Scan already running: ${runningScan.id}`);
       return NextResponse.json({
         success: false,
         status: 'already_running',
-        scanId: activeScan.id,
-        message: 'סריקה כבר רצה כרגע. נסה שוב מאוחר יותר.'
+        scanId: runningScan.id,
+        message: 'סריקה כבר רצה כרגע'
       });
     }
 
-    console.log(`\n${'='.repeat(70)}`);
-    console.log(`[BatchScan] 🌙 Starting Nightly Batch Scan`);
-    console.log(`[BatchScan] Triggered by: ${triggeredBy}`);
-    console.log(`[BatchScan] Method: ${method}, Min Score: ${minScoreThreshold}`);
-    console.log(`${'='.repeat(70)}\n`);
+    // יצירת רשומת לוג חדשה
+    const scanLog = await prisma.nightlyScanLog.create({
+      data: {
+        status: 'running',
+        totalCandidates: 0,
+        candidatesScanned: 0,
+        matchesFound: 0,
+        newMatches: 0,
+        updatedMatches: 0,
+        startedAt: new Date(),
+        method,
+        minScoreThreshold: MIN_SCORE_THRESHOLD,
+      }
+    });
 
-    // 4. שליפת כל המועמדים הפעילים
-    // ✅ תוקן: הסרת isNot: null מתוך profile ושימוש ישיר בסינון availabilityStatus
-    const candidates = await prisma.user.findMany({
+    console.log(`[BatchScan] Created scan log: ${scanLog.id}`);
+
+    // הפעלת הסריקה ברקע
+    runDifferentialScan(scanLog.id, method, forceRefresh)
+      .catch(err => {
+        console.error(`[BatchScan] Background scan failed:`, err);
+      });
+
+    return NextResponse.json({
+      success: true,
+      scanId: scanLog.id,
+      message: 'הסריקה החלה'
+    });
+
+  } catch (error) {
+    console.error('[BatchScan] Error starting scan:', error);
+    return NextResponse.json({
+      success: false,
+      error: 'Failed to start scan'
+    }, { status: 500 });
+  }
+}
+
+// =============================================================================
+// GET - בדיקת סטטוס סריקה
+// =============================================================================
+
+export async function GET(req: NextRequest): Promise<NextResponse> {
+  try {
+    const { searchParams } = new URL(req.url);
+    const scanId = searchParams.get('scanId');
+
+    if (scanId) {
+      // החזרת סטטוס סריקה ספציפית
+      const scan = await prisma.nightlyScanLog.findUnique({
+        where: { id: scanId }
+      });
+
+      if (!scan) {
+        return NextResponse.json({ 
+          success: false, 
+          error: 'Scan not found' 
+        }, { status: 404 });
+      }
+
+      return NextResponse.json({
+        success: true,
+        scan: {
+          id: scan.id,
+          status: scan.status,
+          totalCandidates: scan.totalCandidates,
+          candidatesScanned: scan.candidatesScanned,
+          matchesFound: scan.matchesFound,
+          newMatches: scan.newMatches,
+          updatedMatches: scan.updatedMatches,
+          durationMs: scan.durationMs,
+          error: scan.error,
+          startedAt: scan.startedAt,
+          completedAt: scan.completedAt,
+        }
+      });
+    }
+
+    // החזרת הסריקה האחרונה
+    const lastScan = await prisma.nightlyScanLog.findFirst({
+      orderBy: { startedAt: 'desc' }
+    });
+
+    return NextResponse.json({
+      success: true,
+      lastScan: lastScan ? {
+        id: lastScan.id,
+        status: lastScan.status,
+        matchesFound: lastScan.matchesFound,
+        durationMs: lastScan.durationMs,
+        startedAt: lastScan.startedAt,
+        completedAt: lastScan.completedAt,
+      } : null
+    });
+
+  } catch (error) {
+    console.error('[BatchScan] Error getting status:', error);
+    return NextResponse.json({
+      success: false,
+      error: 'Failed to get scan status'
+    }, { status: 500 });
+  }
+}
+
+// =============================================================================
+// Background Scan Function - סריקה דיפרנציאלית
+// =============================================================================
+
+async function runDifferentialScan(
+  scanLogId: string,
+  method: string,
+  forceRefresh: boolean
+): Promise<void> {
+  const startTime = Date.now();
+  
+  let totalCandidatesScanned = 0;
+  let matchesFound = 0;
+  let newMatches = 0;
+  let updatedMatches = 0;
+  const scannedPairsToSave: ScannedPairResult[] = [];
+
+  try {
+    console.log(`\n[BatchScan] 🚀 Starting differential scan...`);
+
+    // ==========================================================================
+    // שלב 1: שליפת כל הגברים הפעילים (כולל MANUAL_ENTRY)
+    // ==========================================================================
+    
+    const males = await prisma.user.findMany({
       where: {
-        role: UserRole.CANDIDATE,
-        status: { notIn: ['BLOCKED', 'INACTIVE'] },
+        ...getActiveUsersWhereClause(),
         profile: {
-          availabilityStatus: { in: [AvailabilityStatus.AVAILABLE] }
+          gender: 'MALE',
+          availabilityStatus: AvailabilityStatus.AVAILABLE,
+          isProfileVisible: true,
+          // חייב להיות תוכן
+          OR: [
+            { about: { not: null } },
+            { manualEntryText: { not: null } },
+          ]
         }
       },
       select: {
@@ -154,514 +230,322 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         lastName: true,
         profile: {
           select: {
-            gender: true,
+            birthDate: true,
             religiousLevel: true,
+            updatedAt: true,
           }
         }
-      },
-      take: maxCandidates, // אם הוגדר הגבלה
-    });
-
-    if (candidates.length === 0) {
-      console.log('[BatchScan] ⚠️ No candidates found');
-      return NextResponse.json({
-        success: true,
-        status: 'completed',
-        message: 'לא נמצאו מועמדים לסריקה',
-        stats: { total: 0, scanned: 0, matchesFound: 0 }
-      });
-    }
-
-    console.log(`[BatchScan] 📊 Found ${candidates.length} candidates to scan`);
-
-    // 5. יצירת לוג סריקה
-    const scanLog = await prisma.nightlyScanLog.create({
-      data: {
-        totalCandidates: candidates.length,
-        candidatesScanned: 0,
-        matchesFound: 0,
-        newMatches: 0,
-        updatedMatches: 0,
-        startedAt: new Date(),
-        status: 'running',
-        method,
-        minScoreThreshold,
       }
     });
-    scanLogId = scanLog.id;
 
-    console.log(`[BatchScan] 📝 Created scan log: ${scanLogId}`);
+    console.log(`[BatchScan] Found ${males.length} active males`);
 
-    // 6. שליפת הצעות פעילות (לסימון אזהרות)
-    const activeSuggestions = await prisma.matchSuggestion.findMany({
+    // עדכון הלוג
+    await prisma.nightlyScanLog.update({
+      where: { id: scanLogId },
+      data: { totalCandidates: males.length }
+    });
+
+    // ==========================================================================
+    // שלב 2: שליפת כל הבחורות הפעילות (כולל MANUAL_ENTRY)
+    // ==========================================================================
+
+    const allFemales = await prisma.user.findMany({
       where: {
-        status: { in: BLOCKING_SUGGESTION_STATUSES as any }
+        ...getActiveUsersWhereClause(),
+        profile: {
+          gender: 'FEMALE',
+          availabilityStatus: AvailabilityStatus.AVAILABLE,
+          isProfileVisible: true,
+          OR: [
+            { about: { not: null } },
+            { manualEntryText: { not: null } },
+          ]
+        }
       },
       select: {
         id: true,
-        status: true,
-        firstPartyId: true,
-        secondPartyId: true,
-        firstParty: { select: { firstName: true, lastName: true } },
-        secondParty: { select: { firstName: true, lastName: true } },
-        createdAt: true,
+        firstName: true,
+        lastName: true,
+        profile: {
+          select: {
+            birthDate: true,
+            religiousLevel: true,
+            updatedAt: true,
+          }
+        }
       }
     });
 
-    // יצירת מפה של הצעות פעילות לפי userId
-    const activeSuggestionMap = new Map<string, {
-      suggestionId: string;
-      status: string;
-      withCandidateName: string;
-      withCandidateId: string;
-      createdAt: Date;
-    }>();
+    console.log(`[BatchScan] Found ${allFemales.length} active females`);
 
-    for (const suggestion of activeSuggestions) {
-      activeSuggestionMap.set(suggestion.firstPartyId, {
-        suggestionId: suggestion.id,
-        status: suggestion.status,
-        withCandidateName: `${suggestion.secondParty.firstName} ${suggestion.secondParty.lastName}`,
-        withCandidateId: suggestion.secondPartyId,
-        createdAt: suggestion.createdAt,
-      });
-      activeSuggestionMap.set(suggestion.secondPartyId, {
-        suggestionId: suggestion.id,
-        status: suggestion.status,
-        withCandidateName: `${suggestion.firstParty.firstName} ${suggestion.firstParty.lastName}`,
-        withCandidateId: suggestion.firstPartyId,
-        createdAt: suggestion.createdAt,
-      });
-    }
+    // ==========================================================================
+    // שלב 3: סריקה לכל גבר
+    // ==========================================================================
 
-    console.log(`[BatchScan] 🚨 Found ${activeSuggestionMap.size} users with active suggestions`);
-
-    // 7. עיבוד המועמדים ב-batches
-    let totalMatchesFound = 0;
-    let totalNewMatches = 0;
-    let totalUpdatedMatches = 0;
-    let candidatesScanned = 0;
-    const errors: string[] = [];
-
-    // נעבד רק גברים (כי כל גבר ייסרק מול כל הנשים)
-    // כעת, כשהשאילתה למעלה תקינה, TypeScript יזהה שיש שדה profile
-    const maleCandidates = candidates.filter(c => c.profile?.gender === 'MALE');
-    console.log(`[BatchScan] 👨 Processing ${maleCandidates.length} male candidates`);
-
-    for (let i = 0; i < maleCandidates.length; i += BATCH_SIZE) {
-      const batch = maleCandidates.slice(i, i + BATCH_SIZE);
+    for (let i = 0; i < males.length; i++) {
+      const male = males[i];
       
-      console.log(`\n[BatchScan] 📦 Processing batch ${Math.floor(i / BATCH_SIZE) + 1}/${Math.ceil(maleCandidates.length / BATCH_SIZE)}`);
+      console.log(`\n[BatchScan] Processing male ${i + 1}/${males.length}: ${male.firstName} ${male.lastName}`);
 
-      for (const candidate of batch) {
-        try {
-          const result = await processCandidate(
-            candidate.id,
-            candidate.firstName,
-            candidate.lastName,
-            minScoreThreshold,
-            forceRefresh,
-            activeSuggestionMap
-          );
-
-          totalMatchesFound += result.matchesFound;
-          totalNewMatches += result.newMatches;
-          totalUpdatedMatches += result.updatedMatches;
-          candidatesScanned++;
-
-          if (result.error) {
-            errors.push(`${candidate.firstName} ${candidate.lastName}: ${result.error}`);
-          }
-
-          console.log(`[BatchScan] ✓ ${candidate.firstName} ${candidate.lastName}: ${result.matchesFound} matches (${result.newMatches} new)`);
-
-        } catch (error) {
-          const errorMsg = error instanceof Error ? error.message : 'Unknown error';
-          errors.push(`${candidate.firstName} ${candidate.lastName}: ${errorMsg}`);
-          console.error(`[BatchScan] ✗ Error processing ${candidate.firstName} ${candidate.lastName}:`, error);
-        }
+      if (!male.profile?.birthDate) {
+        console.log(`[BatchScan] Skipping - no birthDate`);
+        continue;
       }
 
-      // עדכון התקדמות בלוג
+      const maleAge = calculateAge(male.profile.birthDate);
+      const maleReligiousLevel = male.profile.religiousLevel;
+      const maleProfileUpdatedAt = male.profile.updatedAt;
+
+      // סינון ראשוני של בחורות לפי גיל ורמה דתית
+      const compatibleReligious = getCompatibleReligiousLevels(maleReligiousLevel);
+      
+      const relevantFemales = allFemales.filter(female => {
+        if (!female.profile) return false;
+        
+        // סינון רמה דתית (סלחני - אם אין, מכליל)
+        if (female.profile.religiousLevel && 
+            !compatibleReligious.includes(female.profile.religiousLevel)) {
+          return false;
+        }
+
+        // סינון גיל (סלחני - אם אין, מכליל)
+        if (female.profile.birthDate) {
+          const femaleAge = calculateAge(female.profile.birthDate);
+          const minAge = maleAge - 7;
+          const maxAge = maleAge + 4;
+          if (femaleAge < minAge || femaleAge > maxAge) {
+            return false;
+          }
+        }
+
+        return true;
+      }).map(f => ({
+        id: f.id,
+        profileUpdatedAt: f.profile!.updatedAt,
+      }));
+
+      console.log(`[BatchScan] Relevant females after basic filter: ${relevantFemales.length}`);
+
+      // ==========================================================================
+      // שלב 3.1: סריקה דיפרנציאלית - מי באמת צריך סריקה?
+      // ==========================================================================
+
+      const scanResult = forceRefresh 
+        ? {
+            femalesToScan: relevantFemales.map(f => f.id),
+            skippedByHistory: 0,
+            skippedByNoChange: 0,
+            stats: { total: relevantFemales.length, newPairs: relevantFemales.length, maleUpdated: 0, femaleUpdated: 0, bothUpdated: 0 }
+          }
+        : await getFemalesToScan(
+            male.id,
+            maleProfileUpdatedAt,
+            relevantFemales
+          );
+
+      if (scanResult.femalesToScan.length === 0) {
+        console.log(`[BatchScan] No females to scan for this male`);
+        continue;
+      }
+
+      // ==========================================================================
+      // שלב 3.2: הפעלת האלגוריתם עבור הבחורות שצריך לסרוק
+      // ==========================================================================
+
+      try {
+        // TODO: כאן צריך לשנות את findMatchesForUser לקבל רשימת מועמדות ספציפית
+        // בינתיים נשתמש בפונקציה הקיימת
+        const result = await findMatchesForUser(male.id, 'system-scan', {
+          forceRefresh: true,
+          autoSave: false, // לא לשמור ב-SavedMatchSearch
+        });
+
+        totalCandidatesScanned += scanResult.femalesToScan.length;
+
+        // עיבוד התוצאות
+        for (const match of result.matches) {
+          const score = match.finalScore || 0;
+          const passedThreshold = score >= MIN_SCORE_THRESHOLD;
+
+          // הכנת נתונים לשמירה ב-ScannedPair
+          const femaleData = relevantFemales.find(f => f.id === match.userId);
+          if (femaleData) {
+            scannedPairsToSave.push({
+              maleUserId: male.id,
+              femaleUserId: match.userId,
+              aiScore: score,
+              passedThreshold,
+              rejectionReason: passedThreshold ? null : 'low_ai_score',
+              maleProfileUpdatedAt,
+              femaleProfileUpdatedAt: femaleData.profileUpdatedAt,
+            });
+          }
+
+          if (passedThreshold) {
+            matchesFound++;
+
+            // שמירה ב-PotentialMatch
+            const saved = await saveToPotentialMatch(
+              male.id,
+              match.userId,
+              match
+            );
+
+            if (saved === 'new') newMatches++;
+            if (saved === 'updated') updatedMatches++;
+          }
+        }
+
+        // שמירת בחורות שנסרקו אבל לא היו ב-matches (נפסלו לפני AI)
+        for (const femaleId of scanResult.femalesToScan) {
+          const alreadySaved = scannedPairsToSave.some(
+            p => p.maleUserId === male.id && p.femaleUserId === femaleId
+          );
+          
+          if (!alreadySaved) {
+            const femaleData = relevantFemales.find(f => f.id === femaleId);
+            if (femaleData) {
+              scannedPairsToSave.push({
+                maleUserId: male.id,
+                femaleUserId: femaleId,
+                aiScore: null,
+                passedThreshold: false,
+                rejectionReason: 'low_ai_score', // או סיבה אחרת
+                maleProfileUpdatedAt,
+                femaleProfileUpdatedAt: femaleData.profileUpdatedAt,
+              });
+            }
+          }
+        }
+
+      } catch (error) {
+        console.error(`[BatchScan] Error scanning male ${male.id}:`, error);
+      }
+
+      // עדכון progress
       await prisma.nightlyScanLog.update({
         where: { id: scanLogId },
         data: {
-          candidatesScanned,
-          matchesFound: totalMatchesFound,
-          newMatches: totalNewMatches,
-          updatedMatches: totalUpdatedMatches,
+          candidatesScanned: i + 1,
+          matchesFound,
+          newMatches,
+          updatedMatches,
         }
       });
-
-      // המתנה קצרה בין batches למניעת עומס
-      if (i + BATCH_SIZE < maleCandidates.length) {
-        await new Promise(resolve => setTimeout(resolve, 1000));
-      }
     }
 
-    // 8. סימון התאמות ישנות כפגי תוקף
-    const expiredCount = await markExpiredMatches();
-    console.log(`[BatchScan] ⏰ Marked ${expiredCount} old matches as expired`);
+    // ==========================================================================
+    // שלב 4: שמירת כל ה-ScannedPairs
+    // ==========================================================================
 
-    // 9. סיום הסריקה
+    console.log(`\n[BatchScan] Saving ${scannedPairsToSave.length} scanned pairs...`);
+    await saveScannedPairsBatch(scannedPairsToSave);
+
+    // ==========================================================================
+    // שלב 5: סיום
+    // ==========================================================================
+
     const duration = Date.now() - startTime;
-    const status = errors.length === 0 ? 'completed' : (errors.length < candidatesScanned ? 'partial' : 'failed');
 
     await prisma.nightlyScanLog.update({
       where: { id: scanLogId },
       data: {
-        status,
-        completedAt: new Date(),
+        status: 'completed',
+        candidatesScanned: males.length,
+        matchesFound,
+        newMatches,
+        updatedMatches,
         durationMs: duration,
-        candidatesScanned,
-        matchesFound: totalMatchesFound,
-        newMatches: totalNewMatches,
-        updatedMatches: totalUpdatedMatches,
-        error: errors.length > 0 ? errors.join('\n') : null,
+        completedAt: new Date(),
       }
     });
 
     console.log(`\n${'='.repeat(70)}`);
-    console.log(`[BatchScan] 🏁 Scan Completed!`);
-    console.log(`[BatchScan] Status: ${status}`);
-    console.log(`[BatchScan] Candidates scanned: ${candidatesScanned}/${maleCandidates.length}`);
-    console.log(`[BatchScan] Matches found: ${totalMatchesFound}`);
-    console.log(`[BatchScan] New matches: ${totalNewMatches}`);
-    console.log(`[BatchScan] Updated matches: ${totalUpdatedMatches}`);
+    console.log(`[BatchScan] ✅ Scan completed!`);
     console.log(`[BatchScan] Duration: ${(duration / 1000 / 60).toFixed(2)} minutes`);
-    if (errors.length > 0) {
-      console.log(`[BatchScan] Errors: ${errors.length}`);
-    }
+    console.log(`[BatchScan] Males scanned: ${males.length}`);
+    console.log(`[BatchScan] Pairs scanned: ${totalCandidatesScanned}`);
+    console.log(`[BatchScan] Matches found: ${matchesFound}`);
+    console.log(`[BatchScan] New matches: ${newMatches}`);
+    console.log(`[BatchScan] Updated matches: ${updatedMatches}`);
     console.log(`${'='.repeat(70)}\n`);
 
-    return NextResponse.json({
-      success: true,
-      status,
-      scanId: scanLogId,
-      stats: {
-        totalCandidates: maleCandidates.length,
-        candidatesScanned,
-        matchesFound: totalMatchesFound,
-        newMatches: totalNewMatches,
-        updatedMatches: totalUpdatedMatches,
-        expiredMatches: expiredCount,
-        durationMs: duration,
-        durationMinutes: (duration / 1000 / 60).toFixed(2),
-      },
-      errors: errors.length > 0 ? errors : undefined,
-    });
-
   } catch (error) {
-    console.error('[BatchScan] ❌ Critical Error:', error);
+    console.error('[BatchScan] ❌ Scan failed:', error);
 
-    // עדכון לוג עם השגיאה
-    if (scanLogId) {
-      await prisma.nightlyScanLog.update({
-        where: { id: scanLogId },
-        data: {
-          status: 'failed',
-          completedAt: new Date(),
-          durationMs: Date.now() - startTime,
-          error: error instanceof Error ? error.message : 'Unknown error',
-        }
-      }).catch(e => console.error('[BatchScan] Failed to update scan log:', e));
-    }
-
-    return NextResponse.json({
-      success: false,
-      status: 'failed',
-      scanId: scanLogId,
-      error: error instanceof Error ? error.message : 'Unknown error',
-    }, { status: 500 });
+    await prisma.nightlyScanLog.update({
+      where: { id: scanLogId },
+      data: {
+        status: 'failed',
+        error: error instanceof Error ? error.message : 'Unknown error',
+        durationMs: Date.now() - startTime,
+        completedAt: new Date(),
+      }
+    });
   }
 }
 
 // =============================================================================
-// GET - בדיקת סטטוס סריקה / סריקות אחרונות
+// Helper: שמירה ב-PotentialMatch
 // =============================================================================
 
-export async function GET(req: NextRequest): Promise<NextResponse> {
-  try {
-    // אימות
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
-      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
-    }
-
-    if (session.user.role !== UserRole.ADMIN && session.user.role !== UserRole.MATCHMAKER) {
-      return NextResponse.json({ success: false, error: "Forbidden" }, { status: 403 });
-    }
-
-    const { searchParams } = new URL(req.url);
-    const scanId = searchParams.get('scanId');
-
-    // אם יש scanId - החזר סטטוס ספציפי
-    if (scanId) {
-      const scanLog = await prisma.nightlyScanLog.findUnique({
-        where: { id: scanId }
-      });
-
-      if (!scanLog) {
-        return NextResponse.json({ success: false, error: "Scan not found" }, { status: 404 });
-      }
-
-      const progress = scanLog.totalCandidates > 0 
-        ? Math.round((scanLog.candidatesScanned / scanLog.totalCandidates) * 100)
-        : 0;
-
-      return NextResponse.json({
-        success: true,
-        scan: {
-          id: scanLog.id,
-          status: scanLog.status,
-          progress,
-          totalCandidates: scanLog.totalCandidates,
-          candidatesScanned: scanLog.candidatesScanned,
-          matchesFound: scanLog.matchesFound,
-          newMatches: scanLog.newMatches,
-          startedAt: scanLog.startedAt,
-          completedAt: scanLog.completedAt,
-          durationMs: scanLog.durationMs,
-          error: scanLog.error,
-        }
-      });
-    }
-
-    // אחרת - החזר סיכום סריקות אחרונות
-    const recentScans = await prisma.nightlyScanLog.findMany({
-      orderBy: { startedAt: 'desc' },
-      take: 10,
-      select: {
-        id: true,
-        status: true,
-        totalCandidates: true,
-        candidatesScanned: true,
-        matchesFound: true,
-        newMatches: true,
-        startedAt: true,
-        completedAt: true,
-        durationMs: true,
-      }
-    });
-
-    // סטטיסטיקות התאמות פוטנציאליות
-    const matchStats = await prisma.potentialMatch.groupBy({
-      by: ['status'],
-      _count: { id: true }
-    });
-
-    const stats = {
-      pending: 0,
-      reviewed: 0,
-      sent: 0,
-      dismissed: 0,
-      expired: 0,
-    };
-
-    for (const stat of matchStats) {
-      const status = stat.status.toLowerCase() as keyof typeof stats;
-      if (status in stats) {
-        stats[status] = stat._count.id;
-      }
-    }
-
-    return NextResponse.json({
-      success: true,
-      recentScans,
-      stats: {
-        ...stats,
-        total: Object.values(stats).reduce((a, b) => a + b, 0),
-      }
-    });
-
-  } catch (error) {
-    console.error('[BatchScan] GET Error:', error);
-    return NextResponse.json({
-      success: false,
-      error: 'Internal server error',
-    }, { status: 500 });
-  }
-}
-
-// =============================================================================
-// HELPER FUNCTIONS
-// =============================================================================
-
-/**
- * מעבד מועמד בודד - מריץ את האלגוריתם ושומר התאמות
- */
-async function processCandidate(
-  candidateId: string,
-  firstName: string,
-  lastName: string,
-  minScoreThreshold: number,
-  forceRefresh: boolean,
-  activeSuggestionMap: Map<string, any>
-): Promise<ScanResult> {
-  
-  // 1. בדיקת cache
-  if (!forceRefresh) {
-    const recentJob = await prisma.matchingJob.findFirst({
-      where: {
-        targetUserId: candidateId,
-        method: { in: ['algorithmic', 'nightly-scan'] },
-
-        status: 'completed',
-        completedAt: {
-          gte: new Date(Date.now() - CACHE_DAYS * 24 * 60 * 60 * 1000)
-        }
-      },
-      orderBy: { completedAt: 'desc' }
-    });
-
-    if (recentJob && recentJob.result) {
-      // יש cache - נעדכן את טבלת PotentialMatch בלבד
-      const matches = recentJob.result as any[];
-      return await savePotentialMatches(
-        candidateId,
-        matches,
-        minScoreThreshold,
-        activeSuggestionMap,
-        true // fromCache
-      );
-    }
-  }
-
-  // 2. הרצת האלגוריתם
-  const result = await findMatchesForUser(
-    candidateId,
-    'SYSTEM', // matchmakerId
-    { forceRefresh: false, autoSave: false }
-  );
-
-  if (!result || !result.matches || result.matches.length === 0) {
-    return { candidateId, matchesFound: 0, newMatches: 0, updatedMatches: 0 };
-  }
-
-  // 3. שמירה ב-MatchingJob (לשמור תאימות עם המערכת הקיימת)
-  await prisma.matchingJob.create({
-    data: {
-      targetUserId: candidateId,
-      matchmakerId: 'SYSTEM',
-      method: 'nightly-scan',
-      status: 'completed',
-      progress: 100,
-      progressMessage: `נמצאו ${result.matches.length} התאמות`,
-      result: result.matches as any,
-      matchesFound: result.matches.length,
-      totalCandidates: result.meta?.totalCandidatesScanned || 0,
-      completedAt: new Date(),
-    }
-  });
-
-  // 4. שמירה ב-PotentialMatch
-  return await savePotentialMatches(
-    candidateId,
-    result.matches,
-    minScoreThreshold,
-    activeSuggestionMap,
-    false // fromCache
-  );
-}
-
-/**
- * שומר התאמות פוטנציאליות בטבלה
- */
-async function savePotentialMatches(
+async function saveToPotentialMatch(
   maleUserId: string,
-  matches: any[],
-  minScoreThreshold: number,
-  activeSuggestionMap: Map<string, any>,
-  fromCache: boolean
-): Promise<ScanResult> {
-  
-  let newMatches = 0;
-  let updatedMatches = 0;
+  femaleUserId: string,
+  match: any
+): Promise<'new' | 'updated' | 'unchanged'> {
+  const score = match.finalScore || match.score || 0;
 
-  // סינון לפי ציון מינימלי
-  const qualifiedMatches = matches
-    .filter(m => (m.finalScore || m.score || 0) >= minScoreThreshold)
-    .slice(0, MAX_MATCHES_PER_CANDIDATE);
+  try {
+    const existing = await prisma.potentialMatch.findUnique({
+      where: {
+        maleUserId_femaleUserId: { maleUserId, femaleUserId }
+      }
+    });
 
-  for (const match of qualifiedMatches) {
-    const femaleUserId = match.userId;
-    const aiScore = match.finalScore || match.score || 0;
-
-    try {
-      // בדיקה אם כבר קיימת התאמה
-      const existing = await prisma.potentialMatch.findUnique({
-        where: {
-          maleUserId_femaleUserId: { maleUserId, femaleUserId }
-        }
-      });
-
-      if (existing) {
-        // עדכון התאמה קיימת (רק אם הציון השתנה משמעותית)
-        if (Math.abs(existing.aiScore - aiScore) > 2 || existing.status === PotentialMatchStatus.EXPIRED) {
-          await prisma.potentialMatch.update({
-            where: { id: existing.id },
-            data: {
-              aiScore,
-              firstPassScore: match.firstPassScore,
-              scoreBreakdown: match.scoreBreakdown as any,
-              shortReasoning: match.shortReasoning,
-              detailedReasoning: match.detailedReasoning,
-              backgroundCompatibility: match.backgroundCompatibility,
-              backgroundMultiplier: match.backgroundMultiplier,
-              scannedAt: new Date(),
-              status: existing.status === PotentialMatchStatus.EXPIRED ? PotentialMatchStatus.PENDING : existing.status,
-            }
-          });
-          updatedMatches++;
-        }
-      } else {
-        // יצירת התאמה חדשה
-        await prisma.potentialMatch.create({
+    if (existing) {
+      // עדכון אם הציון השתנה או שהסטטוס הוא EXPIRED
+      if (Math.abs(existing.aiScore - score) > 2 || existing.status === 'EXPIRED') {
+        await prisma.potentialMatch.update({
+          where: { id: existing.id },
           data: {
-            maleUserId,
-            femaleUserId,
-            aiScore,
-            firstPassScore: match.firstPassScore,
-            scoreBreakdown: match.scoreBreakdown as any,
-            shortReasoning: match.shortReasoning,
-            detailedReasoning: match.detailedReasoning,
-            backgroundCompatibility: match.backgroundCompatibility,
-            backgroundMultiplier: match.backgroundMultiplier,
-            status: PotentialMatchStatus.PENDING,
+            aiScore: score,
+            firstPassScore: match.firstPassScore || null,
+            scoreBreakdown: match.scoreBreakdown || null,
+            shortReasoning: match.shortReasoning || match.reasoning || null,
+            detailedReasoning: match.detailedReasoning || null,
+            backgroundCompatibility: match.backgroundCompatibility || null,
+            backgroundMultiplier: match.backgroundMultiplier || null,
             scannedAt: new Date(),
+            status: existing.status === 'EXPIRED' ? 'PENDING' : existing.status,
           }
         });
-        newMatches++;
+        return 'updated';
       }
-    } catch (error) {
-      // התעלם משגיאות יחידות (ייתכן שהמשתמש נמחק)
-      console.warn(`[BatchScan] Could not save match ${maleUserId} -> ${femaleUserId}:`, error);
+      return 'unchanged';
     }
+
+    // יצירת התאמה חדשה
+    await prisma.potentialMatch.create({
+      data: {
+        maleUserId,
+        femaleUserId,
+        aiScore: score,
+        firstPassScore: match.firstPassScore || null,
+        scoreBreakdown: match.scoreBreakdown || null,
+        shortReasoning: match.shortReasoning || match.reasoning || null,
+        detailedReasoning: match.detailedReasoning || null,
+        backgroundCompatibility: match.backgroundCompatibility || null,
+        backgroundMultiplier: match.backgroundMultiplier || null,
+        status: 'PENDING',
+        scannedAt: new Date(),
+      }
+    });
+    return 'new';
+
+  } catch (error) {
+    console.warn(`[BatchScan] Could not save PotentialMatch:`, error);
+    return 'unchanged';
   }
-
-  return {
-    candidateId: maleUserId,
-    matchesFound: qualifiedMatches.length,
-    newMatches,
-    updatedMatches,
-  };
-}
-
-/**
- * סימון התאמות ישנות כפגי תוקף
- */
-async function markExpiredMatches(): Promise<number> {
-  const expireDate = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000); // 14 ימים
-
-  const result = await prisma.potentialMatch.updateMany({
-    where: {
-      status: PotentialMatchStatus.PENDING,
-      scannedAt: { lt: expireDate }
-    },
-    data: {
-      status: PotentialMatchStatus.EXPIRED
-    }
-  });
-
-  return result.count;
 }

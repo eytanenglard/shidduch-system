@@ -1,11 +1,12 @@
 // src/lib/services/matchingAlgorithmService.ts
-// 🎯 אלגוריתם מציאת התאמות V3.3 - NeshamaTech
+// 🎯 אלגוריתם מציאת התאמות V3.4 - NeshamaTech
 // משלב סינון חכם + אבחון רקע ושפה + ציון גיל מתקדם + סריקה ב-batches + ניתוח מעמיק
 // 🆕 V3.3: סינון סלחני - מכליל מועמדים עם שדות חסרים
+// 🆕 V3.4: סריקה דיפרנציאלית + פילטר היסטוריה + שמירה ב-ScannedPair
 
 import prisma from "@/lib/prisma";
 import { GoogleGenerativeAI } from '@google/generative-ai';
-import { Gender, AvailabilityStatus, Prisma } from "@prisma/client";
+import { Gender, AvailabilityStatus, Prisma, MatchSuggestionStatus, PotentialMatchStatus } from "@prisma/client";
 import profileAiService from "./profileAiService";
 import type { GeneratedVirtualProfile } from './aiService';
 
@@ -156,6 +157,45 @@ export interface SavedSearchResult {
   };
 }
 
+// =============================================================================
+// 🆕 V3.4 - TYPES לסריקה דיפרנציאלית
+// =============================================================================
+
+/**
+ * סיבות לפסילת זוג
+ */
+export type RejectionReason = 
+  | 'age_gap'              // פער גיל גדול מדי
+  | 'religious_mismatch'   // אי התאמה דתית
+  | 'background_incompatible' // רקע לא תואם
+  | 'low_ai_score'         // ציון AI נמוך מ-70
+  | 'history_blocked'      // היסטוריה חוסמת (דייט כושל / דחייה)
+  | 'dismissed'            // נדחה ע"י השדכן
+  | 'no_content'           // אין תוכן בפרופיל
+  | null;                  // עבר את כל הסינונים
+
+/**
+ * תוצאת בדיקת היסטוריה
+ */
+interface HistoryCheckResult {
+  isBlocked: boolean;
+  reason: RejectionReason;
+  details?: string;
+}
+
+/**
+ * תוצאת סריקת זוג
+ */
+export interface ScannedPairResult {
+  maleUserId: string;
+  femaleUserId: string;
+  aiScore: number | null;
+  passedThreshold: boolean;
+  rejectionReason: RejectionReason;
+  maleProfileUpdatedAt: Date;
+  femaleProfileUpdatedAt: Date;
+}
+
 // ============================================================================
 // CONSTANTS
 // ============================================================================
@@ -164,6 +204,30 @@ const BATCH_SIZE = 20;
 const TOP_CANDIDATES_COUNT = 15;
 const STALE_DAYS = 7;
 const CURRENT_YEAR = new Date().getFullYear();
+
+// =============================================================================
+// 🆕 V3.4 - CONSTANTS לסריקה דיפרנציאלית
+// =============================================================================
+
+/**
+ * סטטוסים של MatchSuggestion שחוסמים הצעות חדשות
+ */
+export const BLOCKING_SUGGESTION_STATUSES: MatchSuggestionStatus[] = [
+  'ENDED_AFTER_FIRST_DATE',
+  'MATCH_DECLINED',
+  'FIRST_PARTY_DECLINED',
+  'SECOND_PARTY_DECLINED',
+  'CLOSED',
+  'CANCELLED',
+  'EXPIRED',
+];
+
+/**
+ * סטטוסים של PotentialMatch שחוסמים סריקה מחדש
+ */
+export const BLOCKING_POTENTIAL_MATCH_STATUSES: PotentialMatchStatus[] = [
+  'DISMISSED',
+];
 
 // מטריצת התאמת רקע
 const BACKGROUND_COMPATIBILITY_MATRIX: Record<BackgroundCategory, Record<BackgroundCategory, number>> = {
@@ -235,7 +299,7 @@ const RELIGIOUS_LEVEL_ORDER: string[] = [
   'other'
 ];
 
-function getCompatibleReligiousLevels(level: string | null): string[] {
+export function getCompatibleReligiousLevels(level: string | null): string[] {
   if (!level) return RELIGIOUS_LEVEL_ORDER;
   const index = RELIGIOUS_LEVEL_ORDER.indexOf(level);
   if (index === -1) return RELIGIOUS_LEVEL_ORDER;
@@ -244,7 +308,7 @@ function getCompatibleReligiousLevels(level: string | null): string[] {
   return RELIGIOUS_LEVEL_ORDER.slice(minIndex, maxIndex + 1);
 }
 
-function areReligiousLevelsCompatible(level1: string | null, level2: string | null): boolean {
+export function areReligiousLevelsCompatible(level1: string | null, level2: string | null): boolean {
   if (!level1 || !level2) return true;
   const compatible = getCompatibleReligiousLevels(level1);
   return compatible.includes(level2);
@@ -254,7 +318,7 @@ function areReligiousLevelsCompatible(level1: string | null, level2: string | nu
 // AGE CALCULATION HELPERS
 // ============================================================================
 
-function calculateAge(birthDate: Date): number {
+export function calculateAge(birthDate: Date): number {
   const today = new Date();
   let age = today.getFullYear() - birthDate.getFullYear();
   const monthDiff = today.getMonth() - birthDate.getMonth();
@@ -264,7 +328,7 @@ function calculateAge(birthDate: Date): number {
   return age;
 }
 
-function getAgeRange(age: number, gender: Gender): { minAge: number; maxAge: number } {
+export function getAgeRange(age: number, gender: Gender): { minAge: number; maxAge: number } {
   if (gender === 'MALE') {
     // לגבר: בת יכולה להיות עד 4 שנים יותר גדולה, או עד 7 שנים יותר צעירה
     return { minAge: age - 7, maxAge: age + 4 };
@@ -281,7 +345,7 @@ function getAgeRange(age: number, gender: Gender): { minAge: number; maxAge: num
 /**
  * מחשב ציון התאמת גיל בין גבר לאישה
  */
-function calculateAgeScore(maleAge: number, femaleAge: number): AgeScoreResult {
+export function calculateAgeScore(maleAge: number, femaleAge: number): AgeScoreResult {
   const ageDiff = maleAge - femaleAge; // חיובי = הבן גדול יותר
   
   // === מצב אידיאלי: אותו גיל או בן גדול ב-1-3 שנים ===
@@ -668,12 +732,435 @@ function getCategoryDescription(category: BackgroundCategory): string {
   }
 }
 
+// =============================================================================
+// 🆕 V3.4 - פילטר היסטוריה
+// =============================================================================
+
+/**
+ * בודק אם יש היסטוריה חוסמת בין שני משתמשים
+ */
+export async function checkBlockingHistory(
+  maleUserId: string,
+  femaleUserId: string
+): Promise<HistoryCheckResult> {
+  
+  // 1. בדיקת MatchSuggestion - דייטים קודמים
+  const blockingSuggestion = await prisma.matchSuggestion.findFirst({
+    where: {
+      status: { in: BLOCKING_SUGGESTION_STATUSES },
+      OR: [
+        { firstPartyId: maleUserId, secondPartyId: femaleUserId },
+        { firstPartyId: femaleUserId, secondPartyId: maleUserId },
+      ]
+    },
+    select: {
+      id: true,
+      status: true,
+      closedAt: true,
+    }
+  });
+
+  if (blockingSuggestion) {
+    return {
+      isBlocked: true,
+      reason: 'history_blocked',
+      details: `MatchSuggestion ${blockingSuggestion.id} with status ${blockingSuggestion.status}`
+    };
+  }
+
+  // 2. בדיקת PotentialMatch - האם נדחה ע"י השדכן
+  const dismissedMatch = await prisma.potentialMatch.findFirst({
+    where: {
+      maleUserId,
+      femaleUserId,
+      status: { in: BLOCKING_POTENTIAL_MATCH_STATUSES }
+    },
+    select: {
+      id: true,
+      status: true,
+      dismissReason: true,
+    }
+  });
+
+  if (dismissedMatch) {
+    return {
+      isBlocked: true,
+      reason: 'dismissed',
+      details: `PotentialMatch ${dismissedMatch.id} dismissed: ${dismissedMatch.dismissReason || 'no reason'}`
+    };
+  }
+
+  return {
+    isBlocked: false,
+    reason: null,
+  };
+}
+
+/**
+ * מסנן רשימת מועמדות לפי היסטוריה חוסמת
+ */
+export async function filterBlockedFemales(
+  maleUserId: string,
+  femaleUserIds: string[]
+): Promise<{
+  allowedIds: string[];
+  blockedPairs: Map<string, HistoryCheckResult>;
+}> {
+  if (femaleUserIds.length === 0) {
+    return { allowedIds: [], blockedPairs: new Map() };
+  }
+
+  // שליפת כל ה-MatchSuggestions החוסמות בקריאה אחת
+  const blockingSuggestions = await prisma.matchSuggestion.findMany({
+    where: {
+      status: { in: BLOCKING_SUGGESTION_STATUSES },
+      OR: [
+        { firstPartyId: maleUserId, secondPartyId: { in: femaleUserIds } },
+        { firstPartyId: { in: femaleUserIds }, secondPartyId: maleUserId },
+      ]
+    },
+    select: {
+      firstPartyId: true,
+      secondPartyId: true,
+      status: true,
+    }
+  });
+
+  // שליפת כל ה-PotentialMatches החסומים בקריאה אחת
+  const dismissedMatches = await prisma.potentialMatch.findMany({
+    where: {
+      maleUserId,
+      femaleUserId: { in: femaleUserIds },
+      status: { in: BLOCKING_POTENTIAL_MATCH_STATUSES }
+    },
+    select: {
+      femaleUserId: true,
+      status: true,
+      dismissReason: true,
+    }
+  });
+
+  // בניית מפה של זוגות חסומים
+  const blockedPairs = new Map<string, HistoryCheckResult>();
+
+  for (const suggestion of blockingSuggestions) {
+    const femaleId = suggestion.firstPartyId === maleUserId 
+      ? suggestion.secondPartyId 
+      : suggestion.firstPartyId;
+    
+    blockedPairs.set(femaleId, {
+      isBlocked: true,
+      reason: 'history_blocked',
+      details: `Previous suggestion with status ${suggestion.status}`
+    });
+  }
+
+  for (const match of dismissedMatches) {
+    if (!blockedPairs.has(match.femaleUserId)) {
+      blockedPairs.set(match.femaleUserId, {
+        isBlocked: true,
+        reason: 'dismissed',
+        details: `Dismissed by matchmaker: ${match.dismissReason || 'no reason'}`
+      });
+    }
+  }
+
+  const allowedIds = femaleUserIds.filter(id => !blockedPairs.has(id));
+
+  console.log(`[HistoryFilter] Filtered ${femaleUserIds.length} females:`);
+  console.log(`  - Allowed: ${allowedIds.length}`);
+  console.log(`  - Blocked by suggestion: ${blockingSuggestions.length}`);
+  console.log(`  - Blocked by dismissal: ${dismissedMatches.length}`);
+
+  return { allowedIds, blockedPairs };
+}
+
+// =============================================================================
+// 🆕 V3.4 - שמירה ב-ScannedPair
+// =============================================================================
+
+/**
+ * שומר תוצאת סריקה ב-ScannedPair
+ */
+export async function saveScannedPair(result: ScannedPairResult): Promise<void> {
+  try {
+    await prisma.scannedPair.upsert({
+      where: {
+        maleUserId_femaleUserId: {
+          maleUserId: result.maleUserId,
+          femaleUserId: result.femaleUserId,
+        }
+      },
+      create: {
+        maleUserId: result.maleUserId,
+        femaleUserId: result.femaleUserId,
+        aiScore: result.aiScore,
+        passedThreshold: result.passedThreshold,
+        rejectionReason: result.rejectionReason,
+        maleProfileUpdatedAt: result.maleProfileUpdatedAt,
+        femaleProfileUpdatedAt: result.femaleProfileUpdatedAt,
+        firstScannedAt: new Date(),
+        lastScannedAt: new Date(),
+      },
+      update: {
+        aiScore: result.aiScore,
+        passedThreshold: result.passedThreshold,
+        rejectionReason: result.rejectionReason,
+        maleProfileUpdatedAt: result.maleProfileUpdatedAt,
+        femaleProfileUpdatedAt: result.femaleProfileUpdatedAt,
+        lastScannedAt: new Date(),
+      }
+    });
+  } catch (error) {
+    console.error(`[ScannedPair] Error saving pair ${result.maleUserId} - ${result.femaleUserId}:`, error);
+  }
+}
+
+/**
+ * שומר מספר תוצאות סריקה ב-batch
+ */
+export async function saveScannedPairsBatch(results: ScannedPairResult[]): Promise<void> {
+  console.log(`[ScannedPair] Saving ${results.length} scanned pairs...`);
+  
+  let saved = 0;
+  let errors = 0;
+
+  const SAVE_BATCH_SIZE = 50;
+  
+  for (let i = 0; i < results.length; i += SAVE_BATCH_SIZE) {
+    const batch = results.slice(i, i + SAVE_BATCH_SIZE);
+    
+    const promises = batch.map(result => 
+      saveScannedPair(result)
+        .then(() => { saved++; })
+        .catch(() => { errors++; })
+    );
+    
+    await Promise.all(promises);
+  }
+
+  console.log(`[ScannedPair] Completed: ${saved} saved, ${errors} errors`);
+}
+
+// =============================================================================
+// 🆕 V3.4 - סריקה דיפרנציאלית
+// =============================================================================
+
+/**
+ * בודק אם זוג צריך סריקה מחדש
+ */
+export async function needsRescan(
+  maleUserId: string,
+  femaleUserId: string,
+  currentMaleProfileUpdatedAt: Date,
+  currentFemaleProfileUpdatedAt: Date
+): Promise<{
+  needsScan: boolean;
+  reason: 'new_pair' | 'male_updated' | 'female_updated' | 'both_updated' | 'no_change';
+  existingScannedPair?: {
+    passedThreshold: boolean;
+    lastScannedAt: Date;
+  };
+}> {
+  const existingPair = await prisma.scannedPair.findUnique({
+    where: {
+      maleUserId_femaleUserId: { maleUserId, femaleUserId }
+    },
+    select: {
+      passedThreshold: true,
+      lastScannedAt: true,
+      maleProfileUpdatedAt: true,
+      femaleProfileUpdatedAt: true,
+    }
+  });
+
+  if (!existingPair) {
+    return { needsScan: true, reason: 'new_pair' };
+  }
+
+  const maleUpdated = existingPair.maleProfileUpdatedAt 
+    ? currentMaleProfileUpdatedAt > existingPair.maleProfileUpdatedAt
+    : true;
+  
+  const femaleUpdated = existingPair.femaleProfileUpdatedAt
+    ? currentFemaleProfileUpdatedAt > existingPair.femaleProfileUpdatedAt
+    : true;
+
+  if (maleUpdated && femaleUpdated) {
+    return { 
+      needsScan: true, 
+      reason: 'both_updated',
+      existingScannedPair: {
+        passedThreshold: existingPair.passedThreshold,
+        lastScannedAt: existingPair.lastScannedAt,
+      }
+    };
+  }
+
+  if (maleUpdated) {
+    return { 
+      needsScan: true, 
+      reason: 'male_updated',
+      existingScannedPair: {
+        passedThreshold: existingPair.passedThreshold,
+        lastScannedAt: existingPair.lastScannedAt,
+      }
+    };
+  }
+
+  if (femaleUpdated) {
+    return { 
+      needsScan: true, 
+      reason: 'female_updated',
+      existingScannedPair: {
+        passedThreshold: existingPair.passedThreshold,
+        lastScannedAt: existingPair.lastScannedAt,
+      }
+    };
+  }
+
+  return { 
+    needsScan: false, 
+    reason: 'no_change',
+    existingScannedPair: {
+      passedThreshold: existingPair.passedThreshold,
+      lastScannedAt: existingPair.lastScannedAt,
+    }
+  };
+}
+
+/**
+ * מחזיר רשימת בחורות שצריך לסרוק עבור גבר מסוים
+ */
+export async function getFemalesToScan(
+  maleUserId: string,
+  maleProfileUpdatedAt: Date,
+  allFemales: Array<{
+    id: string;
+    profileUpdatedAt: Date;
+  }>
+): Promise<{
+  femalesToScan: string[];
+  skippedByHistory: number;
+  skippedByNoChange: number;
+  stats: {
+    total: number;
+    newPairs: number;
+    maleUpdated: number;
+    femaleUpdated: number;
+    bothUpdated: number;
+  };
+}> {
+  const femaleIds = allFemales.map(f => f.id);
+  
+  console.log(`\n[DifferentialScan] Getting females to scan for male ${maleUserId}`);
+  console.log(`[DifferentialScan] Total potential females: ${femaleIds.length}`);
+
+  // שלב 1: פילטר היסטוריה
+  const { allowedIds, blockedPairs } = await filterBlockedFemales(maleUserId, femaleIds);
+  const skippedByHistory = blockedPairs.size;
+
+  console.log(`[DifferentialScan] After history filter: ${allowedIds.length} (blocked: ${skippedByHistory})`);
+
+  // שלב 2: בדיקת סריקה דיפרנציאלית
+  const femalesToScan: string[] = [];
+  let skippedByNoChange = 0;
+  const stats = {
+    total: allowedIds.length,
+    newPairs: 0,
+    maleUpdated: 0,
+    femaleUpdated: 0,
+    bothUpdated: 0,
+  };
+
+  // שליפת כל ה-ScannedPairs הקיימים בקריאה אחת
+  const existingPairs = await prisma.scannedPair.findMany({
+    where: {
+      maleUserId,
+      femaleUserId: { in: allowedIds }
+    },
+    select: {
+      femaleUserId: true,
+      passedThreshold: true,
+      lastScannedAt: true,
+      maleProfileUpdatedAt: true,
+      femaleProfileUpdatedAt: true,
+    }
+  });
+
+  const existingPairsMap = new Map(existingPairs.map(p => [p.femaleUserId, p]));
+
+  for (const femaleId of allowedIds) {
+    const female = allFemales.find(f => f.id === femaleId)!;
+    const existingPair = existingPairsMap.get(femaleId);
+
+    if (!existingPair) {
+      femalesToScan.push(femaleId);
+      stats.newPairs++;
+      continue;
+    }
+
+    const maleUpdated = existingPair.maleProfileUpdatedAt 
+      ? maleProfileUpdatedAt > existingPair.maleProfileUpdatedAt
+      : true;
+    
+    const femaleUpdated = existingPair.femaleProfileUpdatedAt
+      ? female.profileUpdatedAt > existingPair.femaleProfileUpdatedAt
+      : true;
+
+    if (maleUpdated && femaleUpdated) {
+      femalesToScan.push(femaleId);
+      stats.bothUpdated++;
+    } else if (maleUpdated) {
+      femalesToScan.push(femaleId);
+      stats.maleUpdated++;
+    } else if (femaleUpdated) {
+      femalesToScan.push(femaleId);
+      stats.femaleUpdated++;
+    } else {
+      skippedByNoChange++;
+    }
+  }
+
+  console.log(`[DifferentialScan] Final result:`);
+  console.log(`  - To scan: ${femalesToScan.length}`);
+  console.log(`  - Skipped (history): ${skippedByHistory}`);
+  console.log(`  - Skipped (no change): ${skippedByNoChange}`);
+  console.log(`  - Breakdown: new=${stats.newPairs}, maleUpdated=${stats.maleUpdated}, femaleUpdated=${stats.femaleUpdated}, both=${stats.bothUpdated}`);
+
+  return {
+    femalesToScan,
+    skippedByHistory,
+    skippedByNoChange,
+    stats,
+  };
+}
+
+// =============================================================================
+// 🆕 V3.4 - תמיכה ב-MANUAL_ENTRY
+// =============================================================================
+
+/**
+ * שאילתת WHERE לשליפת משתמשים פעילים (כולל MANUAL_ENTRY)
+ */
+export function getActiveUsersWhereClause() {
+  return {
+    OR: [
+      { status: 'ACTIVE' as const },
+      { 
+        status: 'PENDING_EMAIL_VERIFICATION' as const, 
+        source: 'MANUAL_ENTRY' as const 
+      }
+    ]
+  };
+}
+
 // ============================================================================
 // SAVED RESULTS FUNCTIONS
 // ============================================================================
 
 export async function loadSavedMatches(targetUserId: string): Promise<SavedSearchResult | null> {
-  console.log(`[Matching V3.3] Loading saved matches for user: ${targetUserId}`);
+  console.log(`[Matching V3.4] Loading saved matches for user: ${targetUserId}`);
 
   const savedSearch = await prisma.savedMatchSearch.findUnique({
     where: { targetUserId },
@@ -688,7 +1175,7 @@ export async function loadSavedMatches(targetUserId: string): Promise<SavedSearc
   });
 
   if (!savedSearch) {
-    console.log(`[Matching V3.3] No saved search found for user: ${targetUserId}`);
+    console.log(`[Matching V3.4] No saved search found for user: ${targetUserId}`);
     return null;
   }
 
@@ -714,7 +1201,7 @@ export async function loadSavedMatches(targetUserId: string): Promise<SavedSearc
 
   const savedUserIds = savedMatches.map(m => m.userId);
 
-  // 🆕 סינון סלחני גם בטעינה מ-cache
+  // 🆕 סינון סלחני גם בטעינה מ-cache (כולל MANUAL_ENTRY)
   const validCandidates = await prisma.user.findMany({
     where: {
       id: { in: savedUserIds },
@@ -731,7 +1218,6 @@ export async function loadSavedMatches(targetUserId: string): Promise<SavedSearc
       id: true,
       firstName: true,
       lastName: true,
-      // Note: We are not selecting 'profile' here, so we shouldn't access it below on the result
     }
   });
 
@@ -751,10 +1237,10 @@ export async function loadSavedMatches(targetUserId: string): Promise<SavedSearc
 
   const removedCount = savedMatches.length - filteredMatches.length;
   if (removedCount > 0) {
-    console.log(`[Matching V3.3] Filtered out ${removedCount} unavailable candidates`);
+    console.log(`[Matching V3.4] Filtered out ${removedCount} unavailable candidates`);
   }
 
-  console.log(`[Matching V3.3] Loaded ${filteredMatches.length} valid matches (${isStale ? 'STALE' : 'FRESH'})`);
+  console.log(`[Matching V3.4] Loaded ${filteredMatches.length} valid matches (${isStale ? 'STALE' : 'FRESH'})`);
 
   return {
     matches: filteredMatches,
@@ -774,9 +1260,9 @@ export async function saveMatchResults(
   matchmakerId: string,
   matches: MatchResult[],
   totalScanned: number,
-  algorithmVersion: string = 'v3.3'
+  algorithmVersion: string = 'v3.4'
 ): Promise<void> {
-  console.log(`[Matching V3.3] Saving ${matches.length} matches for user: ${targetUserId}`);
+  console.log(`[Matching V3.4] Saving ${matches.length} matches for user: ${targetUserId}`);
 
   await prisma.savedMatchSearch.upsert({
     where: { targetUserId },
@@ -795,14 +1281,14 @@ export async function saveMatchResults(
     }
   });
 
-  console.log(`[Matching V3.3] ✅ Saved matches successfully`);
+  console.log(`[Matching V3.4] ✅ Saved matches successfully`);
 }
 
 export async function deleteSavedMatches(targetUserId: string): Promise<void> {
   await prisma.savedMatchSearch.deleteMany({
     where: { targetUserId }
   });
-  console.log(`[Matching V3.3] Deleted saved matches for user: ${targetUserId}`);
+  console.log(`[Matching V3.4] Deleted saved matches for user: ${targetUserId}`);
 }
 
 // ============================================================================
@@ -810,7 +1296,6 @@ export async function deleteSavedMatches(targetUserId: string): Promise<void> {
 // ============================================================================
 
 async function getTargetUserData(userId: string): Promise<TargetUserData | null> {
-  // ✅ FIXED: Using explicit Select to match TargetUserData structure and avoid "Property X does not exist" on full User type
   const user = await prisma.user.findUnique({
     where: { id: userId },
     select: {
@@ -850,7 +1335,7 @@ async function getTargetUserData(userId: string): Promise<TargetUserData | null>
     user.profile.matchingNotes
   );
   
-  console.log(`[Matching V3.3] Target background profile:`, {
+  console.log(`[Matching V3.4] Target background profile:`, {
     category: backgroundProfile.category,
     confidence: backgroundProfile.confidence,
     nativeLanguage: backgroundProfile.nativeLanguage,
@@ -872,13 +1357,11 @@ async function getTargetUserData(userId: string): Promise<TargetUserData | null>
 }
 
 // ============================================================================
-// 🆕 V3.3 - LENIENT CANDIDATE FETCHING
+// 🆕 V3.4 - LENIENT CANDIDATE FETCHING (עם תמיכה ב-MANUAL_ENTRY)
 // ============================================================================
 
 /**
- * 🆕 V3.3 - סינון סלחני
- * סינון קשיח: פרופיל + מגדר הפוך + תוכן (about/manualEntryText/questionnaire)
- * סינון רך: birthDate, availabilityStatus, isProfileVisible, religiousLevel - אם NULL מכליל
+ * סינון סלחני עם תמיכה מלאה ב-MANUAL_ENTRY
  */
 async function fetchAllRelevantCandidates(
   targetUser: TargetUserData
@@ -886,43 +1369,35 @@ async function fetchAllRelevantCandidates(
   const oppositeGender = targetUser.gender === 'MALE' ? 'FEMALE' : 'MALE';
   const { minAge, maxAge } = getAgeRange(targetUser.age, targetUser.gender);
   const compatibleReligiousLevels = getCompatibleReligiousLevels(targetUser.religiousLevel);
-  
-  // Note: We are calculating dates but not strictly filtering by them in the query for V3.3 lenient mode
-  // const today = new Date();
-  // const maxBirthDate = new Date(today.getFullYear() - minAge, today.getMonth(), today.getDate());
-  // const minBirthDate = new Date(today.getFullYear() - maxAge, today.getMonth(), today.getDate());
 
   console.log(`\n${'='.repeat(70)}`);
-  console.log(`[V3.3] 🔍 FETCHING CANDIDATES (LENIENT MODE) FOR: ${targetUser.firstName} ${targetUser.lastName}`);
+  console.log(`[V3.4] 🔍 FETCHING CANDIDATES (LENIENT MODE) FOR: ${targetUser.firstName} ${targetUser.lastName}`);
   console.log(`${'='.repeat(70)}`);
-  console.log(`[V3.3] Target User Details:`);
+  console.log(`[V3.4] Target User Details:`);
   console.log(`  - ID: ${targetUser.id}`);
   console.log(`  - Gender: ${targetUser.gender} → Looking for: ${oppositeGender}`);
   console.log(`  - Age: ${targetUser.age} → Preferred age range: ${minAge}-${maxAge}`);
   console.log(`  - Religious Level: ${targetUser.religiousLevel}`);
 
-  // 🆕 שאילתה עם סינון סלחני
+  // 🆕 שאילתה עם תמיכה ב-MANUAL_ENTRY
   const candidates = await prisma.user.findMany({
     where: {
       id: { not: targetUser.id },
       
-      // סטטוס - סינון קשיח
+      // סטטוס - כולל MANUAL_ENTRY
       OR: [
         { status: 'ACTIVE' },
         { status: 'PENDING_EMAIL_VERIFICATION', source: 'MANUAL_ENTRY' }
       ],
       
       profile: {
-        // מגדר - סינון קשיח (חייב להיות הפוך)
         gender: oppositeGender as Gender,
         
-        // תוכן - סינון קשיח (חייב להיות לפחות אחד)
         OR: [
           { about: { not: null } },
           { manualEntryText: { not: null } },
         ],
         
-        // Simple filtering - NOT NULL fields per schema
         availabilityStatus: AvailabilityStatus.AVAILABLE,
         isProfileVisible: true
       }
@@ -962,21 +1437,19 @@ async function fetchAllRelevantCandidates(
     }
   });
 
-  console.log(`[V3.3] Raw query returned ${candidates.length} candidates`);
+  console.log(`[V3.4] Raw query returned ${candidates.length} candidates`);
 
-  // 🆕 סינון נוסף בקוד + בניית נתונים
+  // סינון נוסף בקוד + בניית נתונים
   const candidatesWithData: (CandidateData | null)[] = candidates.map(c => {
-    // בדיקת תוכן - סינון קשיח
     const hasContent = !!(c.profile?.about?.trim()) || 
                        !!(c.profile?.manualEntryText?.trim()) || 
                        (c.questionnaireResponses && c.questionnaireResponses.length > 0);
     
     if (!hasContent) {
-      console.log(`[V3.3] Skipping ${c.firstName} ${c.lastName} - no content`);
+      console.log(`[V3.4] Skipping ${c.firstName} ${c.lastName} - no content`);
       return null;
     }
 
-    // 🆕 חישוב גיל - אם אין birthDate, ממשיכים בלי ציון גיל
     let age: number | null = null;
     let ageScore: AgeScoreResult | null = null;
     
@@ -984,28 +1457,23 @@ async function fetchAllRelevantCandidates(
       age = calculateAge(c.profile.birthDate);
       ageScore = calculateAgeScoreForMatch(targetUser.age, targetUser.gender, age);
       
-      // אם יש גיל והוא לא eligible - מעיפים
       if (!ageScore.eligible) {
-        console.log(`[V3.3] Skipping ${c.firstName} ${c.lastName} - age ${age} not eligible (${ageScore.description})`);
+        console.log(`[V3.4] Skipping ${c.firstName} ${c.lastName} - age ${age} not eligible (${ageScore.description})`);
         return null;
       }
     } else {
-      console.log(`[V3.3] Including ${c.firstName} ${c.lastName} - no birthDate (will be scored by AI)`);
+      console.log(`[V3.4] Including ${c.firstName} ${c.lastName} - no birthDate (will be scored by AI)`);
     }
 
-    // 🆕 בדיקת רמה דתית - סינון רך
     if (c.profile?.religiousLevel) {
-      // יש רמה דתית - בודקים תאימות
       if (!compatibleReligiousLevels.includes(c.profile.religiousLevel)) {
-        console.log(`[V3.3] Skipping ${c.firstName} ${c.lastName} - religious level ${c.profile.religiousLevel} not compatible`);
+        console.log(`[V3.4] Skipping ${c.firstName} ${c.lastName} - religious level ${c.profile.religiousLevel} not compatible`);
         return null;
       }
     }
-    // אם אין רמה דתית - ממשיכים (סינון רך)
 
     const aiSummary = c.profile!.aiProfileSummary as AiProfileSummary | null;
     
-    // יצירת פרופיל רקע
     const backgroundProfile = createBackgroundProfile(
       c.profile!.nativeLanguage,
       c.profile!.additionalLanguages || [],
@@ -1016,12 +1484,10 @@ async function fetchAllRelevantCandidates(
       c.profile!.matchingNotes
     );
     
-    // חישוב התאמת רקע
     const backgroundMatch = targetUser.backgroundProfile 
       ? calculateBackgroundMatch(targetUser.backgroundProfile, backgroundProfile)
       : { multiplier: 1.0, compatibility: 'good' as const, bonusPoints: 0, reasoning: '' };
     
-    // בניית טקסט סיכום
     let summaryText = '';
     if (aiSummary?.personalitySummary) {
       summaryText = `אישיות: ${aiSummary.personalitySummary}\nמה מחפש/ת: ${aiSummary.lookingForSummary || 'לא צוין'}`;
@@ -1048,10 +1514,9 @@ async function fetchAllRelevantCandidates(
     };
   });
   
-  // סינון מועמדים שהוחזרו כ-null
   const filteredCandidates = candidatesWithData.filter((c): c is CandidateData => c !== null);
   
-  console.log(`[V3.3] After filtering: ${filteredCandidates.length} candidates`);
+  console.log(`[V3.4] After filtering: ${filteredCandidates.length} candidates`);
   console.log(`  - With birthDate: ${filteredCandidates.filter(c => c.age !== null).length}`);
   console.log(`  - Without birthDate: ${filteredCandidates.filter(c => c.age === null).length}`);
   console.log(`  - With religiousLevel: ${filteredCandidates.filter(c => c.religiousLevel !== null).length}`);
@@ -1077,7 +1542,6 @@ function generateFirstPassPrompt(
       ? `רקע: ${getCategoryDescription(c.backgroundProfile.category)} | שפת אם: ${c.backgroundProfile.nativeLanguage || 'לא צוין'} | התאמת רקע: ${c.backgroundMatch?.compatibility || 'unknown'}`
       : '';
     
-    // 🆕 מידע על התאמת גיל - רק אם יש
     const ageInfo = c.ageScore 
       ? `התאמת גיל: ${c.ageScore.score}/100 (${c.ageScore.description})`
       : 'גיל: לא ידוע - יש להעריך לפי התוכן';
@@ -1293,14 +1757,14 @@ async function runFirstPassAnalysis(
   const allResults: FirstPassResult[] = [];
   
   const totalBatches = Math.ceil(candidates.length / BATCH_SIZE);
-  console.log(`[Matching V3.3] Starting First Pass: ${candidates.length} candidates in ${totalBatches} batches`);
+  console.log(`[Matching V3.4] Starting First Pass: ${candidates.length} candidates in ${totalBatches} batches`);
 
   for (let batchIndex = 0; batchIndex < totalBatches; batchIndex++) {
     const start = batchIndex * BATCH_SIZE;
     const end = Math.min(start + BATCH_SIZE, candidates.length);
     const batchCandidates = candidates.slice(start, end);
     
-    console.log(`[Matching V3.3] Processing batch ${batchIndex + 1}/${totalBatches} (${batchCandidates.length} candidates)`);
+    console.log(`[Matching V3.4] Processing batch ${batchIndex + 1}/${totalBatches} (${batchCandidates.length} candidates)`);
     
     const prompt = generateFirstPassPrompt(
       targetProfile,
@@ -1317,12 +1781,12 @@ async function runFirstPassAnalysis(
       const jsonString = response.text();
       const duration = Date.now() - startTime;
       
-      console.log(`[Matching V3.3] Batch ${batchIndex + 1} completed in ${duration}ms`);
+      console.log(`[Matching V3.4] Batch ${batchIndex + 1} completed in ${duration}ms`);
 
       const parsed = parseJsonResponse<AiFirstPassResponse>(jsonString);
       
       if (!parsed.candidates || !Array.isArray(parsed.candidates)) {
-        console.error(`[Matching V3.3] Invalid response format for batch ${batchIndex + 1}`);
+        console.error(`[Matching V3.4] Invalid response format for batch ${batchIndex + 1}`);
         continue;
       }
 
@@ -1355,15 +1819,15 @@ async function runFirstPassAnalysis(
       }
 
     } catch (error) {
-      console.error(`[Matching V3.3] Error in batch ${batchIndex + 1}:`, error);
+      console.error(`[Matching V3.4] Error in batch ${batchIndex + 1}:`, error);
     }
   }
 
   allResults.sort((a, b) => b.totalScore - a.totalScore);
   
-  console.log(`[Matching V3.3] First Pass completed: ${allResults.length} candidates scored`);
+  console.log(`[Matching V3.4] First Pass completed: ${allResults.length} candidates scored`);
   if (allResults.length > 0) {
-    console.log(`[Matching V3.3] Top 5 from First Pass:`);
+    console.log(`[Matching V3.4] Top 5 from First Pass:`);
     allResults.slice(0, 5).forEach((r, i) => {
       console.log(`  ${i + 1}. ${r.firstName} ${r.lastName} - Score: ${r.totalScore} (raw: ${r.rawScore}, multiplier: ${r.backgroundMultiplier.toFixed(2)})`);
     });
@@ -1379,7 +1843,7 @@ async function runDeepAnalysis(
 ): Promise<DeepAnalysisResult[]> {
   const model = await getGeminiModel();
   
-  console.log(`[Matching V3.3] Starting Deep Analysis for ${topCandidates.length} candidates`);
+  console.log(`[Matching V3.4] Starting Deep Analysis for ${topCandidates.length} candidates`);
   
   const prompt = generateDeepAnalysisPrompt(targetProfile, targetBackgroundInfo, topCandidates);
 
@@ -1390,7 +1854,7 @@ async function runDeepAnalysis(
     const jsonString = response.text();
     const duration = Date.now() - startTime;
     
-    console.log(`[Matching V3.3] Deep Analysis completed in ${duration}ms`);
+    console.log(`[Matching V3.4] Deep Analysis completed in ${duration}ms`);
 
     const parsed = parseJsonResponse<AiDeepAnalysisResponse>(jsonString);
     
@@ -1410,7 +1874,7 @@ async function runDeepAnalysis(
 
     results.sort((a, b) => a.rank - b.rank);
 
-    console.log(`[Matching V3.3] Deep Analysis results:`);
+    console.log(`[Matching V3.4] Deep Analysis results:`);
     results.slice(0, 3).forEach(r => {
       const candidate = topCandidates.find(c => c.userId === r.userId);
       console.log(`  Rank ${r.rank}: ${candidate?.firstName} ${candidate?.lastName} - Final Score: ${r.finalScore}`);
@@ -1419,7 +1883,7 @@ async function runDeepAnalysis(
     return results;
 
   } catch (error) {
-    console.error(`[Matching V3.3] Error in Deep Analysis:`, error);
+    console.error(`[Matching V3.4] Error in Deep Analysis:`, error);
     return topCandidates.map((c, index) => ({
       userId: c.userId,
       finalScore: c.totalScore,
@@ -1447,7 +1911,7 @@ ${targetUser.aiProfileSummary.personalitySummary}
 === מה מחפש/ת ===
 ${targetUser.aiProfileSummary.lookingForSummary || 'לא צוין'}`;
   } else {
-    console.log(`[Matching V3.3] No AI summary for target user, generating narrative...`);
+    console.log(`[Matching V3.4] No AI summary for target user, generating narrative...`);
     const narrative = await profileAiService.generateNarrativeProfile(targetUser.id);
     targetProfile = narrative || `${targetUser.firstName}, בן/בת ${targetUser.age}, ${targetUser.religiousLevel || 'לא צוין'}`;
   }
@@ -1515,8 +1979,8 @@ export async function findMatchesForUser(
   } = options;
 
   console.log(`\n========================================`);
-  console.log(`[Matching V3.3] Starting match search for user: ${targetUserId}`);
-  console.log(`[Matching V3.3] Options: forceRefresh=${forceRefresh}, autoSave=${autoSave}`);
+  console.log(`[Matching V3.4] Starting match search for user: ${targetUserId}`);
+  console.log(`[Matching V3.4] Options: forceRefresh=${forceRefresh}, autoSave=${autoSave}`);
   console.log(`========================================\n`);
 
   // בדיקת Cache
@@ -1524,7 +1988,7 @@ export async function findMatchesForUser(
     const savedResults = await loadSavedMatches(targetUserId);
     
     if (savedResults && savedResults.matches.length > 0) {
-      console.log(`[Matching V3.3] ✅ Using cached results (${savedResults.matches.length} matches)`);
+      console.log(`[Matching V3.4] ✅ Using cached results (${savedResults.matches.length} matches)`);
       
       return {
         matches: savedResults.matches,
@@ -1544,16 +2008,16 @@ export async function findMatchesForUser(
   if (!targetUser) {
     throw new Error('Target user not found or has no profile');
   }
-  console.log(`[Matching V3.3] Target user: ${targetUser.firstName} ${targetUser.lastName}, Age: ${targetUser.age}, Gender: ${targetUser.gender}`);
+  console.log(`[Matching V3.4] Target user: ${targetUser.firstName} ${targetUser.lastName}, Age: ${targetUser.age}, Gender: ${targetUser.gender}`);
 
-  // שלב 2: 🆕 שליפת כל המועמדים הרלוונטיים (סינון סלחני)
+  // שלב 2: שליפת כל המועמדים הרלוונטיים (סינון סלחני + MANUAL_ENTRY)
   const allCandidates = await fetchAllRelevantCandidates(targetUser);
   if (allCandidates.length === 0) {
-    console.log(`[Matching V3.3] No candidates found after filtering`);
+    console.log(`[Matching V3.4] No candidates found after filtering`);
     return {
       matches: [],
       fromCache: false,
-      meta: { algorithmVersion: 'v3.3', totalCandidatesScanned: 0 }
+      meta: { algorithmVersion: 'v3.4', totalCandidatesScanned: 0 }
     };
   }
 
@@ -1565,11 +2029,11 @@ export async function findMatchesForUser(
   const firstPassResults = await runFirstPassAnalysis(targetProfile, targetBackgroundInfo, allCandidates);
   
   if (firstPassResults.length === 0) {
-    console.log(`[Matching V3.3] No results from First Pass`);
+    console.log(`[Matching V3.4] No results from First Pass`);
     return {
       matches: [],
       fromCache: false,
-      meta: { algorithmVersion: 'v3.3', totalCandidatesScanned: allCandidates.length }
+      meta: { algorithmVersion: 'v3.4', totalCandidatesScanned: allCandidates.length }
     };
   }
 
@@ -1616,12 +2080,12 @@ export async function findMatchesForUser(
 
   // שלב 8: שמירה
   if (autoSave && finalResults.length > 0) {
-    await saveMatchResults(targetUserId, matchmakerId, finalResults, allCandidates.length, 'v3.3');
+    await saveMatchResults(targetUserId, matchmakerId, finalResults, allCandidates.length, 'v3.4');
   }
 
-  console.log(`\n[Matching V3.3] ✅ Completed! Found ${finalResults.length} matches`);
-  console.log(`[Matching V3.3] Total candidates scanned: ${allCandidates.length}`);
-  console.log(`[Matching V3.3] Final Top 3:`);
+  console.log(`\n[Matching V3.4] ✅ Completed! Found ${finalResults.length} matches`);
+  console.log(`[Matching V3.4] Total candidates scanned: ${allCandidates.length}`);
+  console.log(`[Matching V3.4] Final Top 3:`);
   finalResults.slice(0, 3).forEach((m, i) => {
     console.log(`  ${i + 1}. ${m.firstName} ${m.lastName} - Final: ${m.finalScore}, Age: ${m.ageScore ?? 'N/A'}, BG: ${m.backgroundCompatibility}`);
   });
@@ -1631,12 +2095,15 @@ export async function findMatchesForUser(
     matches: finalResults,
     fromCache: false,
     meta: { 
-      algorithmVersion: 'v3.3',
+      algorithmVersion: 'v3.4',
       totalCandidatesScanned: allCandidates.length
     }
   };
 }
 
+// ============================================================================
+// VIRTUAL USER MATCHING
+// ============================================================================
 
 interface VirtualTargetUserData {
   id: string;
@@ -1728,8 +2195,8 @@ export async function findMatchesForVirtualUser(
   };
 }> {
   console.log(`\n========================================`);
-  console.log(`[Matching V3.3 - Virtual] Starting match search for virtual profile: ${virtualProfileId}`);
-  console.log(`[Matching V3.3 - Virtual] Gender: ${gender}, Religious: ${religiousLevel}`);
+  console.log(`[Matching V3.4 - Virtual] Starting match search for virtual profile: ${virtualProfileId}`);
+  console.log(`[Matching V3.4 - Virtual] Gender: ${gender}, Religious: ${religiousLevel}`);
   console.log(`========================================\n`);
 
   const virtualTargetUser = convertVirtualToTargetUser(
@@ -1745,24 +2212,22 @@ export async function findMatchesForVirtualUser(
     virtualTargetUser.aiProfileSummary.personalitySummary = editedSummary.trim();
   }
 
-  // ✅ FIXED: Using fetchAllRelevantCandidates which now supports TargetUserData-like structure
-  // Note: We cast to TargetUserData because fetchAllRelevantCandidates expects it, and VirtualTargetUserData is compatible enough for our purposes
   const allCandidates = await fetchAllRelevantCandidates(virtualTargetUser as unknown as TargetUserData);
   
   if (allCandidates.length === 0) {
-    console.log(`[Matching V3.3 - Virtual] No candidates found after filtering`);
+    console.log(`[Matching V3.4 - Virtual] No candidates found after filtering`);
     return {
       matches: [],
       fromCache: false,
       meta: { 
-        algorithmVersion: 'v3.3-virtual', 
+        algorithmVersion: 'v3.4-virtual', 
         totalCandidatesScanned: 0,
         isVirtualSearch: true 
       }
     };
   }
 
-  console.log(`[Matching V3.3 - Virtual] Found ${allCandidates.length} potential candidates`);
+  console.log(`[Matching V3.4 - Virtual] Found ${allCandidates.length} potential candidates`);
 
   const targetProfile = virtualTargetUser.narrativeProfile || '';
   
@@ -1779,12 +2244,12 @@ export async function findMatchesForVirtualUser(
   const firstPassResults = await runFirstPassAnalysis(targetProfile, targetBackgroundInfo, allCandidates);
   
   if (firstPassResults.length === 0) {
-    console.log(`[Matching V3.3 - Virtual] No results from First Pass`);
+    console.log(`[Matching V3.4 - Virtual] No results from First Pass`);
     return {
       matches: [],
       fromCache: false,
       meta: { 
-        algorithmVersion: 'v3.3-virtual', 
+        algorithmVersion: 'v3.4-virtual', 
         totalCandidatesScanned: allCandidates.length,
         isVirtualSearch: true 
       }
@@ -1829,10 +2294,10 @@ export async function findMatchesForVirtualUser(
 
   finalResults.sort((a, b) => (a.rank || 999) - (b.rank || 999));
 
-  console.log(`\n[Matching V3.3 - Virtual] ✅ Completed! Found ${finalResults.length} matches`);
-  console.log(`[Matching V3.3 - Virtual] Total candidates scanned: ${allCandidates.length}`);
+  console.log(`\n[Matching V3.4 - Virtual] ✅ Completed! Found ${finalResults.length} matches`);
+  console.log(`[Matching V3.4 - Virtual] Total candidates scanned: ${allCandidates.length}`);
   if (finalResults.length > 0) {
-    console.log(`[Matching V3.3 - Virtual] Final Top 3:`);
+    console.log(`[Matching V3.4 - Virtual] Final Top 3:`);
     finalResults.slice(0, 3).forEach((m, i) => {
       console.log(`  ${i + 1}. ${m.firstName} ${m.lastName} - Final: ${m.finalScore}`);
     });
@@ -1843,7 +2308,7 @@ export async function findMatchesForVirtualUser(
     matches: finalResults,
     fromCache: false,
     meta: { 
-      algorithmVersion: 'v3.3-virtual',
+      algorithmVersion: 'v3.4-virtual',
       totalCandidatesScanned: allCandidates.length,
       isVirtualSearch: true
     }
@@ -1855,20 +2320,44 @@ export async function findMatchesForVirtualUser(
 // ============================================================================
 
 export const matchingAlgorithmService = {
+  // פונקציות עיקריות
   findMatchesForUser,
+  findMatchesForVirtualUser,
   loadSavedMatches,
   saveMatchResults,
   deleteSavedMatches,
+  
+  // פונקציות עזר - רמה דתית
   getCompatibleReligiousLevels,
   areReligiousLevelsCompatible,
+  
+  // פונקציות עזר - גיל
   calculateAge,
   getAgeRange,
   calculateAgeScore,
   calculateAgeScoreForMatch,
+  
+  // פונקציות עזר - רקע
   createBackgroundProfile,
   calculateBackgroundMatch,
   analyzeTextLanguage,
-  findMatchesForVirtualUser, 
+  
+  // 🆕 V3.4 - פילטר היסטוריה
+  checkBlockingHistory,
+  filterBlockedFemales,
+  BLOCKING_SUGGESTION_STATUSES,
+  BLOCKING_POTENTIAL_MATCH_STATUSES,
+  
+  // 🆕 V3.4 - שמירה ב-ScannedPair
+  saveScannedPair,
+  saveScannedPairsBatch,
+  
+  // 🆕 V3.4 - סריקה דיפרנציאלית
+  needsRescan,
+  getFemalesToScan,
+  
+  // 🆕 V3.4 - MANUAL_ENTRY
+  getActiveUsersWhereClause,
 };
 
 export default matchingAlgorithmService;
