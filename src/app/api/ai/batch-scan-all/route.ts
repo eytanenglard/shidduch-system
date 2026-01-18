@@ -504,7 +504,8 @@ async function processCandidate(
     const recentJob = await prisma.matchingJob.findFirst({
       where: {
         targetUserId: candidateId,
-        method: 'algorithmic',
+        method: { in: ['algorithmic', 'nightly-scan'] },
+
         status: 'completed',
         completedAt: {
           gte: new Date(Date.now() - CACHE_DAYS * 24 * 60 * 60 * 1000)
