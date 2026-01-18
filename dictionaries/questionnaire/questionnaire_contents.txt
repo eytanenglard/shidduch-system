@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\dictionaries\questionnaire
-# Generated on: 2025-12-22 19:29:10
+# Generated on: 2026-01-18 23:46:23
 # Filter: Only content of code files (.bat, .c, .cfg, .conf, .cpp, .cs, .css, .go, .h, .html, .ini, .java, .js, .json, .jsx, .kt, .less, .md, .php, .py, .rb, .rs, .scss, .sh, .sql, .swift, .ts, .tsx, .txt, .xml, .yaml, .yml) is included.
 ################################################################################
 
@@ -873,26 +873,26 @@ Content:
   },
 "questionsList": {
   "depthLabels": {
-    "BASIC": "בסיסי",
-    "ADVANCED": "מתקדם",
-    "EXPERT": "מעמיק"
+    "BASIC": "Foundations",
+    "ADVANCED": "Deeper Insights",
+    "EXPERT": "Core Reflections"
   },
   "stats": {
-    "answeredQuestions": "שאלות שנענו",
-    "complete": "הושלם",
-    "remaining": "נותרו",
-    "done": "נענו"
+    "answeredQuestions": "Questions Answered",
+    "complete": "Complete",
+    "remaining": "Remaining",
+    "done": "Done"
   },
   "badges": {
-    "required": "חובה",
-    "answered": "✓ נענתה"
+    "required": "Required",
+    "answered": "✓ Done"
   },
   "motivationalMessages": {
-    "start": { "title": "בואו נתחיל!", "subtitle": "כל תשובה מקרבת אותך" },
-    "quarter": { "title": "התחלה מעולה!", "subtitle": "המשך כך" },
-    "half": { "title": "באמצע הדרך!", "subtitle": "עבודה מצוינת" },
-    "threeQuarters": { "title": "כמעט שם!", "subtitle": "עוד קצת והגעת לסיום" },
-    "finish": { "title": "מדהים! סיימת!", "subtitle": "השלמת את כל השאלות" }
+    "start": { "title": "Let's Begin!", "subtitle": "Every answer brings you closer" },
+    "quarter": { "title": "Great Start!", "subtitle": "Keep it up" },
+    "half": { "title": "Halfway There!", "subtitle": "Great progress" },
+    "threeQuarters": { "title": "Almost There!", "subtitle": "Just a bit more to go" },
+    "finish": { "title": "Amazing! All Done!", "subtitle": "You completed all questions" }
   }
 },
 "matchResultCard": {
@@ -1791,28 +1791,29 @@ Content:
     "profilePrompt": "בזמן שהצוות עובד על ההתאמות עבורך, תוכל/י להשלים את הפרופיל האישי שלך",
     "continueButton": "המשך לפרופיל"
   },
+
 "questionsList": {
   "depthLabels": {
-    "BASIC": "Foundations",
-    "ADVANCED": "Deeper Insights",
-    "EXPERT": "Core Reflections"
+    "BASIC": "בסיסי",
+    "ADVANCED": "מתקדם",
+    "EXPERT": "מעמיק"
   },
   "stats": {
-    "answeredQuestions": "Questions Answered",
-    "complete": "Complete",
-    "remaining": "Remaining",
-    "done": "Done"
+    "answeredQuestions": "שאלות שנענו",
+    "complete": "הושלם",
+    "remaining": "נותרו",
+    "done": "נענו"
   },
   "badges": {
-    "required": "Required",
-    "answered": "✓ Done"
+    "required": "חובה",
+    "answered": "✓ נענתה"
   },
   "motivationalMessages": {
-    "start": { "title": "Let's Begin!", "subtitle": "Every answer brings you closer" },
-    "quarter": { "title": "Great Start!", "subtitle": "Keep it up" },
-    "half": { "title": "Halfway There!", "subtitle": "Great progress" },
-    "threeQuarters": { "title": "Almost There!", "subtitle": "Just a bit more to go" },
-    "finish": { "title": "Amazing! All Done!", "subtitle": "You completed all questions" }
+    "start": { "title": "בואו נתחיל!", "subtitle": "כל תשובה מקרבת אותך" },
+    "quarter": { "title": "התחלה מעולה!", "subtitle": "המשך כך" },
+    "half": { "title": "באמצע הדרך!", "subtitle": "עבודה מצוינת" },
+    "threeQuarters": { "title": "כמעט שם!", "subtitle": "עוד קצת והגעת לסיום" },
+    "finish": { "title": "מדהים! סיימת!", "subtitle": "השלמת את כל השאלות" }
   }
 },
 "matchResultCard": {
