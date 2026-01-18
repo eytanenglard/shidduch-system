@@ -1921,7 +1921,13 @@
       "of": "of",
       "page": "Page",
       "perPage": "per page"
-    }
+    },
+    "tooltips": {
+        "whatsapp": "Send WhatsApp",
+        "edit": "Edit Profile",
+        "aiAnalysis": "AI Profile Analysis",
+        "sendReport": "Send Profile Report"
+      }
   }
 
 

@@ -68,6 +68,8 @@ matchmakerVectorSearches    SavedVectorMatchSearch[]  @relation("MatchmakerVecto
 virtualProfiles       VirtualProfile[]    @relation("MatchmakerVirtualProfiles")
   maleMatches     PotentialMatch[] @relation("MaleMatches")
   femaleMatches   PotentialMatch[] @relation("FemaleMatches")
+  maleScannedPairs    ScannedPair[] @relation("MaleScannedPairs")
+  femaleScannedPairs  ScannedPair[] @relation("FemaleScannedPairs")
 
   @@index([email])
   @@index([role])
@@ -1049,4 +1051,36 @@ model NightlyScanLog {
   
   @@index([startedAt])
   @@index([status])
+}
+
+model ScannedPair {
+  id              String   @id @default(cuid())
+  
+  maleUserId      String
+  femaleUserId    String
+  
+  // תוצאת הסריקה
+  aiScore         Float?   // הציון שקיבל (null אם לא הגיע ל-AI)
+  passedThreshold Boolean  @default(false) // האם עבר סף 70
+  
+  // סיבת פסילה (אם לא עבר)
+  rejectionReason String?  // "age_gap", "religious_mismatch", "background_incompatible", "low_ai_score"
+  
+  // תאריכים
+  firstScannedAt  DateTime @default(now())
+  lastScannedAt   DateTime @default(now())
+  
+  // וורסיה של הפרופילים בזמן הסריקה
+  maleProfileUpdatedAt   DateTime? // profile.updatedAt של הגבר בזמן הסריקה
+  femaleProfileUpdatedAt DateTime? // profile.updatedAt של הבחורה בזמן הסריקה
+  
+  // Relations
+  male            User     @relation("MaleScannedPairs", fields: [maleUserId], references: [id], onDelete: Cascade)
+  female          User     @relation("FemaleScannedPairs", fields: [femaleUserId], references: [id], onDelete: Cascade)
+  
+  @@unique([maleUserId, femaleUserId])
+  @@index([maleUserId])
+  @@index([femaleUserId])
+  @@index([passedThreshold])
+  @@index([lastScannedAt])
 }

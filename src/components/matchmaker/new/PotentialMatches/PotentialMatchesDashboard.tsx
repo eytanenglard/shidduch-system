@@ -195,19 +195,28 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
 
       setIsLoadingProfile(true);
       try {
-        // 1. טעינת נתוני מועמד מלאים (כולל פרופיל ותמונות)
+        // 1. טעינת נתוני מועמד מלאים - שימוש ב-Endpoint הספציפי למועמד
+        // התיקון: פניה ל- /api/matchmaker/candidates/[id] במקום ל-candidates?id=...
         const profileResponse = await fetch(
-          `/api/matchmaker/candidates?id=${viewProfileId}`
+          `/api/matchmaker/candidates/${viewProfileId}`
         );
         const profileJson = await profileResponse.json();
 
-        // אם ה-API מחזיר רשימה, ניקח את הראשון, אחרת את האובייקט
-        const candidateData = profileJson.candidates
-          ? profileJson.candidates[0]
-          : profileJson;
+        if (profileJson.success) {
+          // התיקון הקריטי: ProfileCard מצפה לקבל את נתוני ה-User (שם, אימייל וכו')
+          // בתוך אובייקט ה-Profile. ה-API הספציפי מחזיר אותם כאחים נפרדים.
+          // אנו מאחדים אותם כאן ידנית.
+          const formattedData = {
+            ...profileJson,
+            profile: {
+              ...profileJson.profile,
+              user: profileJson.user, // הזרקת ה-User לתוך ה-Profile
+            },
+          };
 
-        if (candidateData) {
-          setFullProfileData(candidateData);
+          setFullProfileData(formattedData);
+        } else {
+          toast.error('לא ניתן היה לטעון את הפרופיל');
         }
 
         // 2. טעינת שאלון
@@ -687,7 +696,7 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
           <div className="sticky top-0 z-50 flex items-center justify-between px-6 py-4 bg-white/95 backdrop-blur-sm border-b border-gray-100">
             <DialogTitle className="text-xl font-bold text-gray-800">
               {fullProfileData
-                ? `${fullProfileData.firstName} ${fullProfileData.lastName}`
+                ? `${fullProfileData.profile?.user?.firstName || ''} ${fullProfileData.profile?.user?.lastName || ''}`
                 : 'טוען פרופיל...'}
             </DialogTitle>
 
@@ -730,7 +739,9 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
                 images={fullProfileData.images}
                 questionnaire={questionnaireData}
                 viewMode={isMatchmakerView ? 'matchmaker' : 'candidate'}
-                isProfileComplete={fullProfileData.isProfileComplete}
+                isProfileComplete={
+                  fullProfileData.profile?.isProfileComplete || false
+                }
                 locale={locale}
                 onClose={() => setViewProfileId(null)}
                 dict={profileDict.profileCard}

@@ -1874,4 +1874,10 @@ export type PotentialMatchesDict = {
     page: string;
     perPage: string;
   };
+    tooltips: {
+      whatsapp: string;
+      edit: string;
+      aiAnalysis: string;
+      sendReport: string;
+    };
 };

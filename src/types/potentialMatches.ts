@@ -53,6 +53,7 @@ export interface CandidateBasicInfo {
   availabilityStatus: AvailabilityStatus;
   lastActive?: Date | null;
   registeredAt?: Date;
+  phone?: string | null;
 }
 
 // =============================================================================
