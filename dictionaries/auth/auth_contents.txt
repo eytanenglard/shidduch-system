@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\dictionaries\auth
-# Generated on: 2025-12-21 14:51:39
+# Generated on: 2026-01-18 08:23:58
 # Filter: Only content of code files (.bat, .c, .cfg, .conf, .cpp, .cs, .css, .go, .h, .html, .ini, .java, .js, .json, .jsx, .kt, .less, .md, .php, .py, .rb, .rs, .scss, .sh, .sql, .swift, .ts, .tsx, .txt, .xml, .yaml, .yml) is included.
 ################################################################################
 
@@ -102,8 +102,8 @@ Content:
     "backToSignInButton": "Back to Sign In",
     "emailSentTo": "We've sent a verification email to the address:",
     "emailAddressNotSpecified": "Address not specified",
-    "checkYourInbox": "Please check your inbox and click the link to verify your account.",
-    "errors": {
+"checkYourInbox": "Please check your inbox and click the link to verify your account.",
+"spamNotice": "Can't find the email? Check your spam or junk folder",    "errors": {
       "title": "Error",
       "noEmail": "Cannot resend without an email address.",
       "linkInvalid": "The verification link is invalid (missing required information).",
@@ -247,6 +247,10 @@ Content:
         "nextButton": "Create Account & Continue to Verification",
         "nextButtonLoading": "Creating account...",
         "termsDisclaimer": "By clicking 'Create Account', I agree to the Terms of Use and Privacy Policy.",
+        "existingUser": {
+  "loggingIn": "Recognizing you...",
+  "loggingInDescription": "Looks like you already registered! Trying to log in with your password..."
+},
         "errors": {
           "title": "Registration Error",
           "invalidEmail": "Invalid email address",
@@ -299,6 +303,8 @@ Content:
         "male": "Male",
         "female": "Female",
         "birthDateLabel": "Date of Birth",
+         "cityLabel": "City of Residence",
+        "cityPlaceholder": "Start typing a city name...",
         "maritalStatusLabel": "Marital Status",
         "maritalStatusPlaceholder": "Select your marital status...",
         "maritalStatuses": {
@@ -341,6 +347,8 @@ Content:
           "genderRequired": "Gender selection is required",
           "maritalStatusRequired": "Marital status selection is required",
           "religiousLevelRequired": "Religious level selection is required",
+                    "cityRequired": "City of residence is required"
+,
           "consentRequired": "You must accept the terms of use and privacy policy.",
           "engagementConsentRequired": "To ensure we can guide you through the process, you must agree to receive updates and suggestions from the system.",
           "consentApiError": "An error occurred while accepting the terms."
@@ -431,6 +439,8 @@ Content:
         "birthDate": "Date of Birth (18+)",
         "maritalStatus": "Marital Status",
         "religiousLevel": "Religious Level",
+                "city": "City of Residence"
+,
         "terms": "Terms of Service Agreement",
         "engagement": "Engagement Updates Consent",
         "photos": "Profile Photos",
@@ -801,8 +811,8 @@ Content:
     "backToSignInButton": "חזור לדף ההתחברות",
     "emailSentTo": "שלחנו מייל אימות לכתובת:",
     "emailAddressNotSpecified": "לא צוינה כתובת",
-    "checkYourInbox": "אנא בדקו את תיבת הדואר שלכם ולחצו על הקישור לאימות החשבון.",
-    "errors": {
+"checkYourInbox": "אנא בדקו את תיבת הדואר שלכם ולחצו על הקישור לאימות החשבון.",
+"spamNotice": "לא מצאת את המייל? בדוק/י בתיקיית הספאם או הדואר הזבל",    "errors": {
        "title": "שגיאה", 
       "noEmail": "לא ניתן לשלוח מחדש ללא כתובת אימייל.",
       "linkInvalid": "קישור האימות אינו תקין (חסר מידע נדרש).",
@@ -945,6 +955,10 @@ Content:
         "nextButton": "צור חשבון והמשך לאימות",
         "nextButtonLoading": "יוצר חשבון...",
         "termsDisclaimer": "בלחיצה על 'צור חשבון', אני מאשר/ת את תנאי השימוש ומדיניות הפרטיות.", 
+        "existingUser": {
+  "loggingIn": "מזהים אותך...",
+  "loggingInDescription": "נראה שכבר נרשמת אלינו! מנסים להתחבר עם הסיסמה שהזנת..."
+},
         "errors": {
           "title": "שגיאה בהרשמה",
           "invalidEmail": "כתובת אימייל לא תקינה",
@@ -997,6 +1011,9 @@ Content:
         "male": "זכר",
         "female": "נקבה",
         "birthDateLabel": "תאריך לידה",
+               "cityLabel": "עיר מגורים",
+        "cityPlaceholder": "התחל/י להקליד שם עיר...",
+        
         "maritalStatusLabel": "מצב משפחתי",
         "maritalStatusPlaceholder": "בחר/י מצב משפחתי...",
         
@@ -1030,6 +1047,7 @@ Content:
   "other": "אחר"
 },
        "errors": {
+          "cityRequired": "עיר מגורים היא שדה חובה",
           "firstNameRequired": "שם פרטי הוא שדה חובה",
           "lastNameRequired": "שם משפחה הוא שדה חובה",
           "phoneRequired": "מספר טלפון הוא שדה חובה",
@@ -1133,6 +1151,8 @@ Content:
         "birthDate": "תאריך לידה (גיל 18+)",
         "maritalStatus": "מצב משפחתי",
         "religiousLevel": "סגנון דתי",
+                "city": "עיר מגורים"
+,
         "terms": "אישור תנאי השימוש",
         "engagement": "אישור קבלת עדכונים מהמערכת",
           "photos": "תמונות פרופיל",

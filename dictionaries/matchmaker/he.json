@@ -218,6 +218,28 @@
           "agePlaceholder": "לדוגמה: 25",
           "ageDescription": "יוזן תאריך לידה משוער (1 בינואר של שנת הלידה) בהתאם לגיל שהוזן."
         },
+                "religiousLevel": {
+          "label": "רמת דתיות",
+          "placeholder": "בחר רמת דתיות",
+          "options": {
+            "dati_leumi_standard": "דתי/ה לאומי/ת (סטנדרטי)",
+            "dati_leumi_liberal": "דתי/ה לאומי/ת ליברלי/ת",
+            "dati_leumi_torani": "דתי/ה לאומי/ת תורני/ת",
+            "masorti_strong": "מסורתי/ת (קרוב/ה לדת)",
+            "masorti_light": "מסורתי/ת (קשר קל למסורת)",
+            "secular_traditional_connection": "חילוני/ת עם זיקה למסורת",
+            "secular": "חילוני/ת",
+            "spiritual_not_religious": "רוחני/ת (לאו דווקא דתי/ה)",
+            "charedi_modern": "חרדי/ת מודרני/ת",
+            "charedi_litvak": "חרדי/ת ליטאי/ת",
+            "charedi_sephardic": "חרדי/ת ספרדי/ת",
+            "charedi_hasidic": "חרדי/ת חסידי/ת",
+            "chabad": "חב״ד",
+            "breslov": "ברסלב",
+            "other": "אחר"
+          }
+        },
+
         "notes": {
           "label": "טקסט חופשי על המועמד",
           "placeholder": "ספר על המועמד, רקע, תכונות, מה מחפש/ת וכו'..."

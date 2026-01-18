@@ -819,6 +819,12 @@ type AddManualCandidateDialogDict = {
       agePlaceholder: string;
       ageDescription: string;
     };
+    religiousLevel: {
+      label: string;
+      placeholder: string;
+      options: Record<string, string>; // רשימת הרמות (מפתח-ערך)
+    };
+
     notes: {
       label: string;
       placeholder: string;

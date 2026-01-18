@@ -1,6 +1,7 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\dictionaries\matchmaker
-# Generated on: 2025-10-12 14:19:19
+# Generated on: 2026-01-18 08:24:22
+# Filter: Only content of code files (.bat, .c, .cfg, .conf, .cpp, .cs, .css, .go, .h, .html, .ini, .java, .js, .json, .jsx, .kt, .less, .md, .php, .py, .rb, .rs, .scss, .sh, .sql, .swift, .ts, .tsx, .txt, .xml, .yaml, .yml) is included.
 ################################################################################
 
 ================================================================================
@@ -168,8 +169,8 @@ Content:
         "sendInviteErrorEmail": "Please enter a valid email address.",
         "sendInviteErrorGeneral": "Error sending invitation.",
         "sendInviteSuccess": "Account setup invitation sent successfully!",
-                  "aiSummarySuccess": "AI draft generated successfully!",
-          "aiSummaryError": "Error generating AI draft"
+        "aiSummarySuccess": "AI draft generated successfully!",
+        "aiSummaryError": "Error generating AI draft"
       },
       "header": {
         "title": "Edit Profile - {{firstName}} {{lastName}}",
@@ -217,17 +218,30 @@ Content:
           "deleting": "Deleting..."
         }
       },
-  "neshamaTechSummary": {
-  "title": "Introduction Summary (Matchmaker's Perspective)",
-  "description": "This summary, written by you (with AI assistance), will be displayed on the candidate's profile, providing the professional and personal touch of NeshamaTech.",
-  "aiButton": "Generate Draft with AI",
-  "aiButtonLoading": "Generating draft...",
-  "placeholder": "Write your professional summary of the candidate here...",
-  "saveButton": "Save Summary",
-  "saveButtonLoading": "Saving..."
-}
-    }
-,
+      "neshamaTechSummary": {
+        "title": "Introduction Summary (Matchmaker's Perspective)",
+        "description": "This summary, written by you (with AI assistance), will be displayed on the candidate's profile, providing the professional and personal touch of NeshamaTech.",
+        "aiButton": "Generate Draft with AI",
+        "aiButtonLoading": "Generating draft...",
+        "placeholder": "Write your professional summary of the candidate here...",
+        "saveButton": "Save Summary",
+        "saveButtonLoading": "Saving...",
+        "downloadPdfButton": "Download Insight PDF",
+        "generatingPdfButton": "Preparing PDF...",
+        "pdfGenerateError": "Error generating PDF"
+      },
+      "conversationSummary": {
+        "title": "Matchmaker Conversation Summary",
+        "description": "Document internal notes and summaries from your conversations with the candidate. This information is hidden from the candidate.",
+        "placeholder": "Type conversation summary here...",
+        "saveButton": "Save Summary",
+        "saveButtonLoading": "Saving...",
+        "downloadPdfButton": "Download Insight PDF",
+        "generatingPdfButton": "Preparing PDF...",
+        "pdfGenerateError": "Error generating PDF"
+      }
+    }, 
+
 
     "actionDialogs": {
       "invite": {
@@ -312,6 +326,10 @@ Content:
           "male": "Male",
           "female": "Female"
         },
+        "height": {
+  "label": "Height (cm)",
+  "placeholder": "Enter height"
+},
         "birthDate": {
           "modeLabel": "Age/Birth Date Entry Mode",
           "dateMode": "By Birth Date",
@@ -439,6 +457,18 @@ Content:
         "resetTooltip": "Reset all filters",
         "saveTooltip": "Save current filter"
       },
+        "verifiedOnlyLabel": "Verified Only",
+  "withRecommendationsLabel": "With Recommendations",
+  "fullProfileLabel": "Full Profile",
+  "religiousLevelLabel": "Religious Level",
+  "cityLabel": "City",
+  "placeholders": {
+    "selectCity": "Select city"
+  },
+  "options": {
+    "all": "All"
+  },
+
       "popularFilters": {
         "activeRecently": "Recently Active",
         "verifiedOnly": "Verified Only",
@@ -487,7 +517,10 @@ Content:
       "sections": {
         "gender": "Gender",
         "age": "Age",
-        "height": "Height (cm)"
+        "height": "Height (cm)",
+         "location": "Location",
+        "religious": "Religious Background",
+        "status": "Status & Verification"
       },
       "buttons": {
         "male": "Men",
@@ -542,6 +575,8 @@ Content:
         },
         "aiMatch": "{{score}}% Match",
         "manualEntry": "Manual Candidate",
+        "heightLabel": "{{height}} cm",
+        "languagesLabel": "Languages: {{languages}}",
         "noImage": "No Image",
         "yearsSuffix": "years",
         "lastActivePrefix": "Active",
@@ -1695,7 +1730,174 @@ Content:
   "priorityLabels": {
       "URGENT": "Urgent", "HIGH": "High", "MEDIUM": "Medium", "LOW": "Low"
   }
-}
+},
+  "potentialMatches": {
+    "title": "Potential Matches",
+    "subtitle": "Matches found by automated scanning",
+    "stats": {
+      "total": "Total Matches",
+      "pending": "Pending",
+      "reviewed": "Reviewed",
+      "sent": "Suggestions Sent",
+      "dismissed": "Dismissed",
+      "expired": "Expired",
+      "withWarnings": "With Warnings",
+      "avgScore": "Average Score",
+      "highScore": "High Score (85+)",
+      "mediumScore": "Medium Score (70-84)"
+    },
+    "filters": {
+      "status": "Status",
+      "minScore": "Minimum Score",
+      "maxScore": "Maximum Score",
+      "sortBy": "Sort By",
+      "search": "Search",
+      "searchPlaceholder": "Search by name...",
+      "statusOptions": {
+        "all": "All",
+        "pending": "Pending",
+        "reviewed": "Reviewed",
+        "sent": "Sent",
+        "dismissed": "Dismissed",
+        "withWarnings": "With Warnings",
+        "noWarnings": "No Warnings"
+      },
+      "sortOptions": {
+        "scoreDesc": "Score (High to Low)",
+        "scoreAsc": "Score (Low to High)",
+        "dateDesc": "Date (Newest First)",
+        "dateAsc": "Date (Oldest First)"
+      },
+      "resetFilters": "Clear Filters"
+    },
+    "card": {
+      "score": "Match Score",
+      "reasoning": "Reasoning",
+      "scannedAt": "Scanned",
+      "backgroundCompatibility": "Background Compatibility",
+      "activeWarning": "Warning",
+      "activeWarningWith": "Active suggestion with",
+      "createSuggestion": "Create Suggestion",
+      "dismiss": "Dismiss",
+      "markReviewed": "Mark as Reviewed",
+      "restore": "Restore",
+      "viewProfile": "View Profile",
+      "showBreakdown": "Show Score Breakdown",
+      "hideBreakdown": "Hide Breakdown",
+      "readMore": "Read more...",
+      "suggestionCreated": "Suggestion Created",
+      "viewSuggestion": "View Suggestion"
+    },
+    "scoreBreakdown": {
+      "title": "Score Breakdown",
+      "religious": "Religious Compatibility",
+      "ageCompatibility": "Age Compatibility",
+      "careerFamily": "Career-Family Balance",
+      "lifestyle": "Lifestyle",
+      "ambition": "Ambition",
+      "communication": "Communication",
+      "values": "Values"
+    },
+    "backgroundCompatibilityLabels": {
+      "excellent": "Excellent Match",
+      "good": "Good Match",
+      "possible": "Possible Match",
+      "problematic": "Background Gap",
+      "not_recommended": "Not Recommended"
+    },
+    "actions": {
+      "bulkSelect": "Bulk Select",
+      "bulkDismiss": "Dismiss All",
+      "bulkReview": "Mark All as Reviewed",
+      "selectAll": "Select All",
+      "clearSelection": "Clear Selection",
+      "runScan": "Run Scan",
+      "refreshList": "Refresh List",
+      "selected": "Selected",
+      "items": "items"
+    },
+    "emptyState": {
+      "noMatches": "No Matches Found",
+      "noMatchesFiltered": "No matches found with the selected filters",
+      "noMatchesDescription": "Try changing the filters or running a new scan",
+      "runScanDescription": "Run a nightly scan to find new potential matches",
+      "showAll": "Show All Matches"
+    },
+    "scan": {
+      "title": "Nightly Scan",
+      "running": "Scan in progress...",
+      "completed": "Scan Completed",
+      "failed": "Scan Failed",
+      "partial": "Scan Partially Completed",
+      "lastScan": "Last Scan",
+      "duration": "Duration",
+      "candidatesScanned": "Candidates Scanned",
+      "matchesFound": "Matches Found",
+      "newMatches": "New Matches",
+      "startScan": "Start Scan",
+      "confirmTitle": "Run Nightly Scan",
+      "confirmDescription": "The scan will go through all candidates in the system and find new potential matches. This process may take several minutes.",
+      "alreadyRunning": "A scan is already running"
+    },
+    "dialogs": {
+      "createSuggestion": {
+        "title": "Create Suggestion",
+        "description": "Create a match suggestion from this potential match",
+        "priority": "Priority",
+        "priorityLow": "Low",
+        "priorityMedium": "Medium",
+        "priorityHigh": "High",
+        "priorityUrgent": "Urgent",
+        "notes": "Notes",
+        "notesPlaceholder": "Add notes or matching reason...",
+        "create": "Create Suggestion",
+        "cancel": "Cancel"
+      },
+      "dismiss": {
+        "title": "Dismiss Match",
+        "description": "You can optionally provide a reason for dismissal",
+        "reasonPlaceholder": "Reason for dismissal...",
+        "confirm": "Dismiss",
+        "cancel": "Cancel"
+      },
+      "bulkDismiss": {
+        "title": "Dismiss Multiple Matches",
+        "description": "Are you sure you want to dismiss all selected matches? You can restore them later.",
+        "confirm": "Dismiss All",
+        "cancel": "Cancel"
+      },
+      "reasoning": {
+        "title": "Match Reasoning",
+        "overallScore": "Overall Match Score",
+        "basedOnAI": "Based on deep AI analysis",
+        "shortSummary": "Short Summary",
+        "detailedAnalysis": "Detailed Analysis",
+        "close": "Close"
+      }
+    },
+    "toasts": {
+      "dismissSuccess": "Match dismissed",
+      "dismissError": "Error dismissing match",
+      "reviewSuccess": "Match marked as reviewed",
+      "restoreSuccess": "Match restored",
+      "suggestionCreated": "Suggestion created successfully!",
+      "suggestionError": "Failed to create suggestion",
+      "bulkDismissSuccess": "Matches dismissed",
+      "bulkReviewSuccess": "Matches marked as reviewed",
+      "bulkRestoreSuccess": "Matches restored",
+      "scanStarted": "Scan started!",
+      "scanCompleted": "Scan completed!",
+      "scanError": "Failed to start scan",
+      "refreshSuccess": "List refreshed",
+      "refreshError": "Error loading matches"
+    },
+    "pagination": {
+      "showing": "Showing",
+      "of": "of",
+      "page": "Page",
+      "perPage": "per page"
+    }
+  }
 
 
 
@@ -1810,17 +2012,30 @@ Content:
           "deleting": "מוחק..."
         }
       },
-    "neshamaTechSummary": {
+           "conversationSummary": {
+  "title": "סיכום שיחה עם שדכן",
+  "description": "כאן ניתן לתעד הערות פנימיות וסיכומים משיחותיך עם המועמד/ת. מידע זה אינו גלוי למועמד/ת.",
+  "placeholder": "הקלד/י כאן את סיכום השיחה...",
+  "saveButton": "שמור סיכום שיחה",
+  "saveButtonLoading": "שומר...",
+   "downloadPdfButton": "הורד דוח פרופיל (PDF)",
+          "generatingPdfButton": "מכין קובץ...",
+          "pdfGenerateError": "שגיאה ביצירת הקובץ"
+},
+"neshamaTechSummary": {
   "title": "תקציר היכרות (מנקודת מבט השדכן/ית)",
   "description": "סיכום זה, שנכתב על ידך (בסיוע AI), יוצג בפרופיל המועמד/ת וייתן את הטאץ' המקצועי והאישי של NeshamaTech.",
   "aiButton": "צור טיוטה עם AI",
   "aiButtonLoading": "יוצר טיוטה...",
   "placeholder": "כתוב/י כאן את הסיכום המקצועי על המועמד/ת...",
   "saveButton": "שמור תקציר",
-  "saveButtonLoading": "שומר..."
+  "saveButtonLoading": "שומר...",
+  "downloadPdfButton": "הורד דוח פרופיל (PDF)",
+  "generatingPdfButton": "מכין קובץ...",
+  "pdfGenerateError": "שגיאה ביצירת הקובץ"
 }
     },
-     
+
 
     "actionDialogs": {
       "invite": {
@@ -1904,6 +2119,10 @@ Content:
           "male": "זכר",
           "female": "נקבה"
         },
+        "height": {
+  "label": "גובה (ס״מ)",
+  "placeholder": "הכנס גובה"
+},
         "birthDate": {
           "modeLabel": "אופן הזנת גיל/תאריך לידה",
           "dateMode": "לפי תאריך לידה",
@@ -2067,6 +2286,18 @@ Content:
         "resetTooltip": "איפוס כל הפילטרים",
         "saveTooltip": "שמירת הפילטר הנוכחי"
       },
+        "verifiedOnlyLabel": "מאומתים בלבד",
+  "withRecommendationsLabel": "עם המלצות",
+  "fullProfileLabel": "פרופיל מלא",
+  "religiousLevelLabel": "רמת דתיות",
+  "cityLabel": "עיר מגורים",
+  "placeholders": {
+    "selectCity": "בחר עיר"
+  },
+  "options": {
+    "all": "הכל"
+  },
+
       "popularFilters": {
         "activeRecently": "פעילים לאחרונה",
         "verifiedOnly": "מאומתים בלבד",
@@ -2115,7 +2346,10 @@ Content:
       "sections": {
         "gender": "מגדר",
         "age": "גיל",
-        "height": "גובה (ס\"מ)"
+        "height": "גובה (ס\"מ)",
+          "location": "מיקום מגורים",
+        "religious": "רקע דתי",
+        "status": "סטטוס ואימות"
       },
       "buttons": {
         "male": "גברים",
@@ -2238,6 +2472,8 @@ Content:
         },
         "aiMatch": "{{score}}% התאמה",
         "manualEntry": "מועמד ידני",
+         "heightLabel": "{{height}} ס״מ",
+         "languagesLabel": "{{languages}}", 
         "noImage": "אין תמונה",
         "yearsSuffix": "שנים",
         "lastActivePrefix": "פעיל/ה",
@@ -3395,7 +3631,175 @@ Content:
   "priorityLabels": {
       "URGENT": "דחוף", "HIGH": "גבוה", "MEDIUM": "רגיל", "LOW": "נמוך"
   }
-}
+},
+
+  "potentialMatches": {
+    "title": "התאמות פוטנציאליות",
+    "subtitle": "התאמות שנמצאו בסריקה האוטומטית",
+    "stats": {
+      "total": "סה״כ התאמות",
+      "pending": "ממתינות",
+      "reviewed": "נבדקו",
+      "sent": "נשלחו הצעות",
+      "dismissed": "נדחו",
+      "expired": "פג תוקף",
+      "withWarnings": "עם אזהרות",
+      "avgScore": "ציון ממוצע",
+      "highScore": "ציון גבוה (85+)",
+      "mediumScore": "ציון בינוני (70-84)"
+    },
+    "filters": {
+      "status": "סטטוס",
+      "minScore": "ציון מינימלי",
+      "maxScore": "ציון מקסימלי",
+      "sortBy": "מיין לפי",
+      "search": "חיפוש",
+      "searchPlaceholder": "חיפוש לפי שם...",
+      "statusOptions": {
+        "all": "הכל",
+        "pending": "ממתינות",
+        "reviewed": "נבדקו",
+        "sent": "נשלחו",
+        "dismissed": "נדחו",
+        "withWarnings": "עם אזהרות",
+        "noWarnings": "ללא אזהרות"
+      },
+      "sortOptions": {
+        "scoreDesc": "ציון (גבוה לנמוך)",
+        "scoreAsc": "ציון (נמוך לגבוה)",
+        "dateDesc": "תאריך (חדש לישן)",
+        "dateAsc": "תאריך (ישן לחדש)"
+      },
+      "resetFilters": "נקה פילטרים"
+    },
+    "card": {
+      "score": "ציון התאמה",
+      "reasoning": "נימוק",
+      "scannedAt": "נסרק",
+      "backgroundCompatibility": "התאמת רקע",
+      "activeWarning": "אזהרה",
+      "activeWarningWith": "בהצעה פעילה עם",
+      "createSuggestion": "צור הצעה",
+      "dismiss": "דחה",
+      "markReviewed": "סמן כנבדק",
+      "restore": "שחזר",
+      "viewProfile": "צפה בפרופיל",
+      "showBreakdown": "הצג פירוט ציון",
+      "hideBreakdown": "הסתר פירוט",
+      "readMore": "קרא עוד...",
+      "suggestionCreated": "הצעה נוצרה",
+      "viewSuggestion": "צפה בהצעה"
+    },
+    "scoreBreakdown": {
+      "title": "פירוט הציון",
+      "religious": "התאמה דתית",
+      "ageCompatibility": "התאמת גיל",
+      "careerFamily": "קריירה-משפחה",
+      "lifestyle": "סגנון חיים",
+      "ambition": "שאפתנות",
+      "communication": "תקשורת",
+      "values": "ערכים"
+    },
+    "backgroundCompatibilityLabels": {
+      "excellent": "רקע מצוין",
+      "good": "רקע טוב",
+      "possible": "רקע אפשרי",
+      "problematic": "פער רקע",
+      "not_recommended": "רקע בעייתי"
+    },
+    "actions": {
+      "bulkSelect": "בחירה מרובה",
+      "bulkDismiss": "דחה הכל",
+      "bulkReview": "סמן כנבדקו",
+      "selectAll": "בחר הכל",
+      "clearSelection": "בטל בחירה",
+      "runScan": "הפעל סריקה",
+      "refreshList": "רענן רשימה",
+      "selected": "נבחרו",
+      "items": "פריטים"
+    },
+    "emptyState": {
+      "noMatches": "לא נמצאו התאמות",
+      "noMatchesFiltered": "לא נמצאו התאמות לפי הפילטרים שנבחרו",
+      "noMatchesDescription": "נסה לשנות את הפילטרים או להפעיל סריקה חדשה",
+      "runScanDescription": "הפעל סריקה לילית למציאת התאמות פוטנציאליות חדשות",
+      "showAll": "הצג את כל ההתאמות"
+    },
+    "scan": {
+      "title": "סריקה לילית",
+      "running": "סריקה בתהליך...",
+      "completed": "הסריקה הושלמה",
+      "failed": "הסריקה נכשלה",
+      "partial": "הסריקה הושלמה חלקית",
+      "lastScan": "סריקה אחרונה",
+      "duration": "משך הסריקה",
+      "candidatesScanned": "מועמדים שנסרקו",
+      "matchesFound": "התאמות שנמצאו",
+      "newMatches": "התאמות חדשות",
+      "startScan": "התחל סריקה",
+      "confirmTitle": "הפעלת סריקה לילית",
+      "confirmDescription": "הסריקה תעבור על כל המועמדים במערכת ותמצא התאמות פוטנציאליות חדשות. התהליך עשוי לקחת מספר דקות.",
+      "alreadyRunning": "סריקה כבר רצה כרגע"
+    },
+    "dialogs": {
+      "createSuggestion": {
+        "title": "יצירת הצעה",
+        "description": "צור הצעת שידוך מההתאמה הפוטנציאלית",
+        "priority": "עדיפות",
+        "priorityLow": "נמוכה",
+        "priorityMedium": "בינונית",
+        "priorityHigh": "גבוהה",
+        "priorityUrgent": "דחופה",
+        "notes": "הערות להצעה",
+        "notesPlaceholder": "הוסף הערות או סיבת ההתאמה...",
+        "create": "צור הצעה",
+        "cancel": "ביטול"
+      },
+      "dismiss": {
+        "title": "דחיית התאמה",
+        "description": "ניתן לציין סיבה לדחייה (אופציונלי)",
+        "reasonPlaceholder": "סיבת הדחייה...",
+        "confirm": "דחה",
+        "cancel": "ביטול"
+      },
+      "bulkDismiss": {
+        "title": "דחיית התאמות מרובות",
+        "description": "האם אתה בטוח שברצונך לדחות את כל ההתאמות שנבחרו? ניתן יהיה לשחזר אותן בהמשך.",
+        "confirm": "דחה הכל",
+        "cancel": "ביטול"
+      },
+      "reasoning": {
+        "title": "נימוק ההתאמה",
+        "overallScore": "ציון התאמה כולל",
+        "basedOnAI": "מבוסס על ניתוח AI מעמיק",
+        "shortSummary": "סיכום קצר",
+        "detailedAnalysis": "ניתוח מפורט",
+        "close": "סגור"
+      }
+    },
+    "toasts": {
+      "dismissSuccess": "ההתאמה נדחתה",
+      "dismissError": "שגיאה בדחיית ההתאמה",
+      "reviewSuccess": "ההתאמה סומנה כנבדקה",
+      "restoreSuccess": "ההתאמה שוחזרה",
+      "suggestionCreated": "הצעה נוצרה בהצלחה!",
+      "suggestionError": "יצירת ההצעה נכשלה",
+      "bulkDismissSuccess": "התאמות נדחו",
+      "bulkReviewSuccess": "התאמות סומנו כנבדקו",
+      "bulkRestoreSuccess": "התאמות שוחזרו",
+      "scanStarted": "הסריקה החלה!",
+      "scanCompleted": "סריקה הושלמה!",
+      "scanError": "הפעלת הסריקה נכשלה",
+      "refreshSuccess": "הרשימה עודכנה",
+      "refreshError": "שגיאה בטעינת ההתאמות"
+    },
+    "pagination": {
+      "showing": "מציג",
+      "of": "מתוך",
+      "page": "עמוד",
+      "perPage": "לעמוד"
+    }
+  }
 
 
 

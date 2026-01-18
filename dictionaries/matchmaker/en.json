@@ -326,6 +326,28 @@
           "agePlaceholder": "e.g., 25",
           "ageDescription": "An approximate birth date (Jan 1st of the birth year) will be entered based on the age provided."
         },
+                "religiousLevel": {
+          "label": "Religious Level",
+          "placeholder": "Select religious level",
+          "options": {
+            "dati_leumi_standard": "Religious Zionist (Standard)",
+            "dati_leumi_liberal": "Religious Zionist (Liberal)",
+            "dati_leumi_torani": "Religious Zionist (Torani)",
+            "masorti_strong": "Traditional (Strong connection)",
+            "masorti_light": "Traditional (Light connection)",
+            "secular_traditional_connection": "Secular with traditional connection",
+            "secular": "Secular",
+            "spiritual_not_religious": "Spiritual (not necessarily religious)",
+            "charedi_modern": "Modern Ultra-Orthodox (Charedi)",
+            "charedi_litvak": "Litvak Ultra-Orthodox",
+            "charedi_sephardic": "Sephardic Ultra-Orthodox",
+            "charedi_hasidic": "Hasidic Ultra-Orthodox",
+            "chabad": "Chabad",
+            "breslov": "Breslov",
+            "other": "Other"
+          }
+        }
+,
         "notes": {
           "label": "Free Text about the Candidate",
           "placeholder": "Describe the candidate, background, traits, what they are looking for, etc..."
