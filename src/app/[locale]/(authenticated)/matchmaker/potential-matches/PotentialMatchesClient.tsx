@@ -1,4 +1,3 @@
-// src/app/[locale]/(authenticated)/matchmaker/potential-matches/PotentialMatchesClient.tsx
 'use client';
 
 import PotentialMatchesDashboard from '@/components/matchmaker/new/PotentialMatches/PotentialMatchesDashboard';
@@ -13,8 +12,13 @@ interface PotentialMatchesClientProps {
 
 export default function PotentialMatchesClient({
   matchmakerDict,
-  profileDict,
+  profileDict, // <-- מקבלים כאן
   locale,
 }: PotentialMatchesClientProps) {
-  return <PotentialMatchesDashboard locale={locale} />;
+  return (
+    <PotentialMatchesDashboard
+      locale={locale}
+      profileDict={profileDict} // <-- הוסף שורה זו: העברת המילון לדשבורד
+    />
+  );
 }

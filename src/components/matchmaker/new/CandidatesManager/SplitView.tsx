@@ -680,29 +680,39 @@ const PanelHeaderComponent: React.FC<{
           {!isJobRunning && !showCompleteBanner && (
             <>
               <div className="flex gap-2">
-                <motion.div className="flex-1" whileHover={{ scale: 1.02 }}>
+                <motion.div
+                  className="flex-1 min-w-0"
+                  whileHover={{ scale: 1.02 }}
+                >
                   <Button
                     onClick={(e) => onFindAiMatches(e, false, 'algorithmic')}
                     className={cn(
-                      'w-full h-11 font-bold transition-all duration-300 shadow-lg',
+                      'w-full h-11 font-bold transition-all duration-300 shadow-lg px-2 sm:px-4',
                       'bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white'
                     )}
                   >
-                    <Brain className="w-5 h-5 ml-2" />
-                    <span>חיפוש AI מתקדם</span>
+                    <Brain className="w-5 h-5 ml-1.5 flex-shrink-0" />
+                    <span className="truncate text-xs sm:text-sm">
+                      חיפוש AI מתקדם
+                    </span>
                   </Button>
                 </motion.div>
 
-                <motion.div className="flex-1" whileHover={{ scale: 1.02 }}>
+                <motion.div
+                  className="flex-1 min-w-0"
+                  whileHover={{ scale: 1.02 }}
+                >
                   <Button
                     onClick={(e) => onFindAiMatches(e, false, 'vector')}
                     className={cn(
-                      'w-full h-11 font-bold transition-all duration-300 shadow-lg',
+                      'w-full h-11 font-bold transition-all duration-300 shadow-lg px-2 sm:px-4',
                       'bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white'
                     )}
                   >
-                    <Zap className="w-5 h-5 ml-2" />
-                    <span>דמיון מהיר ⚡</span>
+                    <Zap className="w-5 h-5 ml-1.5 flex-shrink-0" />
+                    <span className="truncate text-xs sm:text-sm">
+                      דמיון מהיר ⚡
+                    </span>
                   </Button>
                 </motion.div>
 
@@ -711,20 +721,24 @@ const PanelHeaderComponent: React.FC<{
                     size="icon"
                     variant="outline"
                     onClick={(e) => onFindAiMatches(e, true, activeResultsTab)}
-                    className="h-11 w-11"
+                    className="h-11 w-11 flex-shrink-0 bg-white shadow-sm border-gray-200 hover:bg-gray-50"
                   >
-                    <RefreshCw className="w-5 h-5" />
+                    <RefreshCw className="w-5 h-5 text-gray-600" />
                   </Button>
                 )}
               </div>
 
-              <div className="flex gap-2 text-xs text-gray-500">
-                <span className="flex-1 text-center">
-                  ~3-5 דקות • ניתוח מעמיק
+              <div className="flex gap-2 text-xs text-gray-500 mt-1">
+                <span className="flex-1 text-center truncate">
+                  ~3-5 דק • ניתוח
                 </span>
-                <span className="flex-1 text-center">
-                  ~30 שניות • חיפוש דמיון
+                <span className="flex-1 text-center truncate">
+                  ~30 שנ • דמיון
                 </span>
+                {/* Spacer to align text under buttons when refresh button exists */}
+                {hasAnyResults && (
+                  <div className="w-11 flex-shrink-0 hidden sm:block" />
+                )}
               </div>
             </>
           )}
@@ -977,7 +991,7 @@ const SplitView: React.FC<SplitViewProps> = ({
   }, []);
 
   // 🆕 Updated function - uses global context
-   const handleFindAiMatches = useCallback(
+  const handleFindAiMatches = useCallback(
     async (
       e: React.MouseEvent,
       forceRefresh: boolean = false,
@@ -1010,7 +1024,7 @@ const SplitView: React.FC<SplitViewProps> = ({
       const virtualData = (aiTargetCandidate as any).virtualData;
 
       let extraParams = {};
-      
+
       if (isVirtual && virtualData) {
         extraParams = {
           isVirtualSearch: true,
@@ -1018,7 +1032,7 @@ const SplitView: React.FC<SplitViewProps> = ({
           virtualProfile: virtualData.virtualProfile,
           gender: virtualData.gender,
           religiousLevel: virtualData.religiousLevel,
-          editedSummary: virtualData.editedSummary
+          editedSummary: virtualData.editedSummary,
         };
       }
 
@@ -1033,7 +1047,6 @@ const SplitView: React.FC<SplitViewProps> = ({
     },
     [aiTargetCandidate, setAiMatches, startJob]
   );
-
 
   const handleViewResults = useCallback(() => {
     setShowCompleteBanner(false);

@@ -1,5 +1,5 @@
 // =============================================================================
-// src/components/matchmaker/PotentialMatches/index.tsx
+// src/components/matchmaker/new/PotentialMatches/PotentialMatchesDashboard.tsx
 // קומפוננטה ראשית - דשבורד התאמות פוטנציאליות
 // =============================================================================
 
@@ -9,7 +9,6 @@ import React, { useState, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
@@ -38,37 +37,25 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Textarea } from '@/components/ui/textarea';
-import { Slider } from '@/components/ui/slider';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
-  Heart,
   HeartHandshake,
   Search,
-  Filter,
   RefreshCw,
   Moon,
-  Play,
-  Pause,
-  X,
   Check,
   ChevronLeft,
   ChevronRight,
   Loader2,
   AlertTriangle,
-  Sparkles,
   Eye,
-  EyeOff,
   Clock,
   Send,
-  Undo,
+  X,
   Trash2,
-  SortAsc,
-  SortDesc,
   LayoutGrid,
   List,
-  Settings2,
-  Download,
   CheckCircle,
+  Heart,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
@@ -86,6 +73,7 @@ import type {
   PotentialMatchFilterStatus,
   PotentialMatchSortBy,
 } from '@/types/potentialMatches';
+import type { ProfilePageDictionary } from '@/types/dictionary';
 
 // =============================================================================
 // TYPES
@@ -93,8 +81,7 @@ import type {
 
 interface PotentialMatchesDashboardProps {
   locale?: string;
-  // הוספת מילון לכרטיס פרופיל אם נדרש, או שימוש בערכי ברירת מחדל
-  profileDict?: any;
+  profileDict: ProfilePageDictionary;
 }
 
 // =============================================================================
@@ -132,7 +119,6 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
 }) => {
   // State
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-  const [showFilters, setShowFilters] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [showBulkActions, setShowBulkActions] = useState(false);
 
@@ -210,8 +196,6 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
       setIsLoadingProfile(true);
       try {
         // 1. טעינת נתוני מועמד מלאים (כולל פרופיל ותמונות)
-        // הערה: אנו מניחים שיש API לשליפת מועמד בודד, או משתמשים בפילטר של הרשימה
-        // במידה ואין endpoint ייעודי, ניתן לשלוף דרך רשימת המועמדים עם פילטר ID
         const profileResponse = await fetch(
           `/api/matchmaker/candidates?id=${viewProfileId}`
         );
@@ -291,7 +275,6 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
     await bulkDismiss(selectedMatchIds, 'דחייה מרובה');
   }, [bulkDismiss, selectedMatchIds]);
 
-  // 🔥 תיקון הפונקציה כדי לפתוח דיאלוג במקום חלון חדש 🔥
   const handleViewProfile = useCallback((userId: string) => {
     setViewProfileId(userId);
   }, []);
@@ -682,7 +665,7 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
       {/* DIALOGS */}
       {/* ======================================================================== */}
 
-      {/* Profile Dialog - פתרון ללחיצה על תמונת מועמד */}
+      {/* Profile Dialog */}
       <Dialog
         open={!!viewProfileId}
         onOpenChange={(open) => {
@@ -696,6 +679,9 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
         <DialogContent
           className="max-w-6xl max-h-[90vh] overflow-y-auto p-0"
           dir={locale === 'he' ? 'rtl' : 'ltr'}
+          onCloseAutoFocus={(e) => {
+            e.preventDefault();
+          }}
         >
           {/* Custom Header */}
           <div className="sticky top-0 z-50 flex items-center justify-between px-6 py-4 bg-white/95 backdrop-blur-sm border-b border-gray-100">
@@ -747,8 +733,7 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
                 isProfileComplete={fullProfileData.isProfileComplete}
                 locale={locale}
                 onClose={() => setViewProfileId(null)}
-                // אם יש צורך להעביר מילון, ניתן להעביר כאן:
-                dict={profileDict?.profileCard}
+                dict={profileDict.profileCard}
               />
             ) : (
               <div className="p-10 text-center text-gray-500">
@@ -778,7 +763,7 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
               onClick={handleStartScan}
               className="bg-gradient-to-r from-indigo-500 to-purple-500"
             >
-              <Play className="w-4 h-4 ml-2" />
+              <HeartHandshake className="w-4 h-4 ml-2" />
               התחל סריקה
             </AlertDialogAction>
           </AlertDialogFooter>
