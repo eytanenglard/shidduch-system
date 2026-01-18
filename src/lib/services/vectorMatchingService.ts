@@ -1,9 +1,10 @@
 // ===========================================
 // src/lib/services/vectorMatchingService.ts
 // ===========================================
-// 🚀 שירות חיפוש התאמות מבוסס Vector Similarity V1.1
+// 🚀 שירות חיפוש התאמות מבוסס Vector Similarity V1.2
 // משתמש ב-pgvector לחיפוש מהיר של פרופילים דומים
 // כולל ציון התאמת גיל מתקדם
+// 🆕 V1.2: סינון סלחני - מכליל מועמדים עם שדות חסרים
 
 import prisma from "@/lib/prisma";
 import { GoogleGenerativeAI } from "@google/generative-ai";
@@ -11,7 +12,7 @@ import { Gender, AvailabilityStatus } from "@prisma/client";
 import { 
   createBackgroundProfile, 
   calculateBackgroundMatch,
-  calculateAgeScoreForMatch,  // 🆕
+  calculateAgeScoreForMatch,
 } from "./matchingAlgorithmService";
 import type { GeneratedVirtualProfile } from './aiService';
 
@@ -25,11 +26,10 @@ export interface VectorMatchResult {
   lastName: string;
   profileId: string;
   similarity: number;
-  age: number;
+  age: number | null;  // 🆕 יכול להיות null
   religiousLevel: string | null;
   city: string | null;
   occupation: string | null;
-  // שימוש ב-any או טיפוס גמיש כדי למנוע שגיאות המרה מ-Prisma Json
   aiProfileSummary: any; 
   about: string | null;
   backgroundMatch: {
@@ -37,11 +37,11 @@ export interface VectorMatchResult {
     multiplier: number;
     bonusPoints: number;
   };
-  // 🆕 ציון התאמת גיל
+  // ציון התאמת גיל - יכול להיות null
   ageScore?: {
     score: number;
     description: string;
-  };
+  } | null;
   // AI Analysis results
   finalScore?: number;
   reasoning?: string;
@@ -70,11 +70,11 @@ export interface VectorSearchResult {
 // CONSTANTS
 // ============================================================================
 
-const ALGORITHM_VERSION = "vector-v1.1";
+const ALGORITHM_VERSION = "vector-v1.2";
 const STALE_DAYS = 7;
-const VECTOR_SEARCH_LIMIT = 50; // כמה תוצאות לשלוף מה-vector search הראשוני
-const TOP_CANDIDATES_FOR_AI = 25; // כמה לשלוח ל-AI לדירוג סופי
-const FINAL_RESULTS_COUNT = 15; // כמה תוצאות להחזיר למשתמש
+const VECTOR_SEARCH_LIMIT = 50;
+const TOP_CANDIDATES_FOR_AI = 25;
+const FINAL_RESULTS_COUNT = 15;
 
 // Religious level ordering for filtering logic
 const RELIGIOUS_LEVEL_ORDER = [
@@ -179,7 +179,11 @@ function getReligiousLevelIndex(level: string | null): number {
   return RELIGIOUS_LEVEL_ORDER.indexOf(level);
 }
 
+// 🆕 סינון רך - אם אין רמה דתית, מכליל
 function isReligiousLevelCompatible(targetLevel: string | null, candidateLevel: string | null, range: number = 4): boolean {
+  // אם אחד מהם חסר - מכליל (סינון רך)
+  if (!targetLevel || !candidateLevel) return true;
+  
   const targetIdx = getReligiousLevelIndex(targetLevel);
   const candidateIdx = getReligiousLevelIndex(candidateLevel);
   
@@ -202,8 +206,8 @@ export async function findMatchesWithVector(
   const { forceRefresh = false, autoSave = true, limit = FINAL_RESULTS_COUNT } = options;
 
   console.log(`\n========================================`);
-  console.log(`[Vector Search V1.1] Starting for user: ${targetUserId}`);
-  console.log(`[Vector Search V1.1] Options: forceRefresh=${forceRefresh}, autoSave=${autoSave}`);
+  console.log(`[Vector Search V1.2] Starting for user: ${targetUserId}`);
+  console.log(`[Vector Search V1.2] Options: forceRefresh=${forceRefresh}, autoSave=${autoSave}`);
   console.log(`========================================\n`);
 
   // Step 1: Check cache
@@ -240,7 +244,7 @@ export async function findMatchesWithVector(
 
   console.log(`[Vector Search] Target: ${targetUser.firstName} ${targetUser.lastName}, Age: ${targetAge}, Gender: ${targetGender}`);
 
-  // Create background profile for target (using imported function)
+  // Create background profile for target
   const targetBackgroundProfile = createBackgroundProfile(
     targetProfile.nativeLanguage,
     targetProfile.additionalLanguages || [],
@@ -266,37 +270,51 @@ export async function findMatchesWithVector(
     throw new Error(`No vector found for target user: ${targetUserId}. Please ensure profile embedding is generated.`);
   }
 
-  // Step 4: Vector similarity search (Cosine Similarity)
-  console.log(`[Vector Search] Running pgvector similarity search...`);
+  // Step 4: 🆕 Vector similarity search with LENIENT filtering
+  console.log(`[Vector Search V1.2] Running pgvector similarity search (LENIENT MODE)...`);
   const vectorSearchStart = Date.now();
 
+  // 🆕 שאילתה עם סינון סלחני - מכלילים NULL ב-availabilityStatus ו-isProfileVisible
   const similarProfiles = await prisma.$queryRaw<{
     profileId: string;
     userId: string;
     similarity: number;
   }[]>`
-    SELECT 
-      pv."profileId",
-      p."userId",
-      1 - (pv.vector <=> (
-        SELECT vector FROM profile_vectors pv2 
-        JOIN "Profile" p2 ON p2.id = pv2."profileId" 
-        WHERE p2."userId" = ${targetUserId}
-      )) as similarity
-    FROM profile_vectors pv
-    JOIN "Profile" p ON p.id = pv."profileId"
-    JOIN "User" u ON u.id = p."userId"
-    WHERE p."userId" != ${targetUserId}
-      AND p.gender = ${oppositeGender}::"Gender"
-      AND p."availabilityStatus" = 'AVAILABLE'::"AvailabilityStatus"
-      AND p."isProfileVisible" = true
-      AND u.status = 'ACTIVE'::"UserStatus"
-    ORDER BY pv.vector <=> (
-      SELECT vector FROM profile_vectors pv2 
-      JOIN "Profile" p2 ON p2.id = pv2."profileId" 
-      WHERE p2."userId" = ${targetUserId}
-    )
-    LIMIT ${VECTOR_SEARCH_LIMIT}
+  SELECT 
+  pv."profileId",
+  p."userId",
+  1 - (pv.vector <=> (
+    SELECT vector FROM profile_vectors pv2 
+    JOIN "Profile" p2 ON p2.id = pv2."profileId" 
+    WHERE p2."userId" = ${targetUserId}
+  )) as similarity
+FROM profile_vectors pv
+JOIN "Profile" p ON p.id = pv."profileId"
+JOIN "User" u ON u.id = p."userId"
+WHERE p."userId" != ${targetUserId}
+  AND p.gender = ${oppositeGender}::"Gender"
+  AND (
+    p."availabilityStatus" = 'AVAILABLE'::"AvailabilityStatus"
+    OR p."availabilityStatus" IS NULL
+  )
+  AND (
+    p."isProfileVisible" = true
+    OR p."isProfileVisible" IS NULL
+  )
+  AND (
+    u.status = 'ACTIVE'::"UserStatus"
+    OR (u.status = 'PENDING_EMAIL_VERIFICATION'::"UserStatus" AND u.source = 'MANUAL_ENTRY'::"UserSource")
+  )
+  AND (
+    p.about IS NOT NULL AND p.about != ''
+    OR p."manualEntryText" IS NOT NULL AND p."manualEntryText" != ''
+  )
+ORDER BY pv.vector <=> (
+  SELECT vector FROM profile_vectors pv2 
+  JOIN "Profile" p2 ON p2.id = pv2."profileId" 
+  WHERE p2."userId" = ${targetUserId}
+)
+LIMIT ${VECTOR_SEARCH_LIMIT}
   `;
 
   console.log(`[Vector Search] Found ${similarProfiles.length} similar profiles in ${Date.now() - vectorSearchStart}ms`);
@@ -313,31 +331,54 @@ export async function findMatchesWithVector(
     },
   });
 
-  // Step 6: Filter and enrich candidates
-  console.log(`[Vector Search] Filtering and enriching candidates...`);
+  // Step 6: 🆕 LENIENT Filter and enrich candidates
+  console.log(`[Vector Search V1.2] Filtering and enriching candidates (LENIENT MODE)...`);
   
   const enrichedCandidates: VectorMatchResult[] = [];
   let filteredByAge = 0;
   let filteredByReligion = 0;
   let filteredByBackground = 0;
+  let includedWithoutAge = 0;
+  let includedWithoutReligiousLevel = 0;
 
   for (const candidate of candidates) {
     if (!candidate.profile) continue;
 
-    const candidateAge = calculateAge(candidate.profile.birthDate);
     const similarityData = similarProfiles.find(p => p.userId === candidate.id);
     
-    // 🆕 Age compatibility score and filter (replaces simple ±7 filter)
-    const ageScore = calculateAgeScoreForMatch(targetAge, targetGender, candidateAge);
-    if (!ageScore.eligible) {
-      filteredByAge++;
-      continue;
+    // 🆕 בדיקת גיל - סינון רך
+    let candidateAge: number | null = null;
+    let ageScore: { score: number; description: string } | null = null;
+    
+    if (candidate.profile.birthDate) {
+      candidateAge = calculateAge(candidate.profile.birthDate);
+      const ageResult = calculateAgeScoreForMatch(targetAge, targetGender, candidateAge);
+      
+      // אם יש גיל והוא לא eligible - מעיפים
+      if (!ageResult.eligible) {
+        filteredByAge++;
+        continue;
+      }
+      
+      ageScore = {
+        score: ageResult.score,
+        description: ageResult.description,
+      };
+    } else {
+      // 🆕 אין תאריך לידה - מכליל (סינון רך)
+      includedWithoutAge++;
+      console.log(`[Vector Search] Including ${candidate.firstName} ${candidate.lastName} - no birthDate (lenient)`);
     }
 
-    // Religious level filter
-    if (!isReligiousLevelCompatible(targetProfile.religiousLevel, candidate.profile.religiousLevel)) {
-      filteredByReligion++;
-      continue;
+    // 🆕 Religious level filter - סינון רך
+    if (candidate.profile.religiousLevel) {
+      if (!isReligiousLevelCompatible(targetProfile.religiousLevel, candidate.profile.religiousLevel)) {
+        filteredByReligion++;
+        continue;
+      }
+    } else {
+      // אין רמה דתית - מכליל
+      includedWithoutReligiousLevel++;
     }
 
     // Calculate background match
@@ -376,27 +417,25 @@ export async function findMatchesWithVector(
         multiplier: backgroundMatch.multiplier,
         bonusPoints: backgroundMatch.bonusPoints,
       },
-      // 🆕 ציון גיל
-      ageScore: {
-        score: ageScore.score,
-        description: ageScore.description,
-      },
+      ageScore,
     });
   }
 
   // Sort by similarity descending
   enrichedCandidates.sort((a, b) => b.similarity - a.similarity);
 
-  console.log(`[Vector Search] Filtering summary:`);
-  console.log(`  - Filtered by age: ${filteredByAge}`);
+  console.log(`[Vector Search V1.2] Filtering summary:`);
+  console.log(`  - Filtered by age (known & out of range): ${filteredByAge}`);
   console.log(`  - Filtered by religion: ${filteredByReligion}`);
   console.log(`  - Filtered by background: ${filteredByBackground}`);
+  console.log(`  - Included without birthDate (lenient): ${includedWithoutAge}`);
+  console.log(`  - Included without religiousLevel (lenient): ${includedWithoutReligiousLevel}`);
   console.log(`  - Remaining candidates: ${enrichedCandidates.length}`);
   
   if (enrichedCandidates.length > 0) {
     console.log(`[Vector Search] Top 3 by similarity:`);
     enrichedCandidates.slice(0, 3).forEach((c, i) => {
-      console.log(`  ${i + 1}. ${c.firstName} ${c.lastName} - Similarity: ${(c.similarity * 100).toFixed(1)}%, Age Score: ${c.ageScore?.score}`);
+      console.log(`  ${i + 1}. ${c.firstName} ${c.lastName} - Similarity: ${(c.similarity * 100).toFixed(1)}%, Age Score: ${c.ageScore?.score ?? 'N/A'}`);
     });
   }
 
@@ -428,11 +467,17 @@ export async function findMatchesWithVector(
     const summary = c.aiProfileSummary 
       ? JSON.stringify(c.aiProfileSummary) 
       : c.about || "לא זמין";
+    
+    // 🆕 טיפול במידע חסר
+    const ageInfo = c.ageScore 
+      ? `התאמת גיל: ${c.ageScore.score}/100 (${c.ageScore.description})`
+      : 'גיל: לא ידוע - יש להעריך לפי התוכן';
+    
     return `
 מועמד ${idx + 1} (ID: ${c.userId}):
 - שם: ${c.firstName} ${c.lastName}
-- גיל: ${c.age}
-- התאמת גיל: ${c.ageScore?.score || 'N/A'}/100 (${c.ageScore?.description || ''})
+- גיל: ${c.age ?? 'לא ידוע'}
+- ${ageInfo}
 - רמה דתית: ${c.religiousLevel || 'לא צוין'}
 - עיר: ${c.city || 'לא צוין'}
 - עיסוק: ${c.occupation || 'לא צוין'}
@@ -462,7 +507,8 @@ ${candidatesText}
 2. נימוק קצר (2-3 משפטים) למה הם מתאימים או לא
 
 ## הנחיות חשובות:
-- שים לב לציון התאמת הגיל - ציון 100 הוא אידיאלי, ציון נמוך מ-70 דורש התייחסות
+- אם יש ציון התאמת גיל - השתמש בו
+- אם הגיל לא ידוע - תן ציון על בסיס מה שכתוב בסיכום ואל תוריד ציון רק בגלל מידע חסר
 - פער גיל כשהבת גדולה יותר (במיוחד ב-2+ שנים) הוא פחות מקובל בקהילה הדתית
 - התאמת רקע ושפה משותפת הן יתרונות משמעותיים
 
@@ -520,10 +566,10 @@ ${candidatesText}
     // Take top results
     const finalMatches = rankedCandidates.slice(0, limit);
 
-    console.log(`\n[Vector Search V1.1] ✅ Completed! Found ${finalMatches.length} matches`);
-    console.log(`[Vector Search V1.1] Final Top 3:`);
+    console.log(`\n[Vector Search V1.2] ✅ Completed! Found ${finalMatches.length} matches`);
+    console.log(`[Vector Search V1.2] Final Top 3:`);
     finalMatches.slice(0, 3).forEach((m, i) => {
-      console.log(`  ${i + 1}. ${m.firstName} ${m.lastName} - Score: ${m.finalScore}, Similarity: ${(m.similarity * 100).toFixed(1)}%, Age: ${m.ageScore?.score}`);
+      console.log(`  ${i + 1}. ${m.firstName} ${m.lastName} - Score: ${m.finalScore}, Similarity: ${(m.similarity * 100).toFixed(1)}%, Age: ${m.ageScore?.score ?? 'N/A'}`);
     });
 
     // Save results
@@ -574,13 +620,6 @@ ${candidatesText}
 /**
  * מוצא התאמות עבור פרופיל וירטואלי באמצעות חיפוש וקטורי.
  * משתמש בוקטור שנוצר מהפרופיל הוירטואלי לחיפוש דמיון.
- * 
- * @param virtualProfileId - ID של הפרופיל הוירטואלי
- * @param generatedProfile - הפרופיל שה-AI יצר
- * @param gender - מגדר המועמד הוירטואלי
- * @param religiousLevel - רמה דתית
- * @param matchmakerId - ID של השדכן
- * @param editedSummary - סיכום ערוך (אם השדכן ערך)
  */
 export async function findMatchesForVirtualUserVector(
   virtualProfileId: string,
@@ -595,8 +634,8 @@ export async function findMatchesForVirtualUserVector(
   const { limit = FINAL_RESULTS_COUNT } = options;
 
   console.log(`\n========================================`);
-  console.log(`[Vector Search - Virtual] Starting for virtual profile: ${virtualProfileId}`);
-  console.log(`[Vector Search - Virtual] Gender: ${gender}, Religious: ${religiousLevel}`);
+  console.log(`[Vector Search V1.2 - Virtual] Starting for virtual profile: ${virtualProfileId}`);
+  console.log(`[Vector Search V1.2 - Virtual] Gender: ${gender}, Religious: ${religiousLevel}`);
   console.log(`========================================\n`);
 
   // 1. יצירת טקסט לחיפוש וקטורי
@@ -610,8 +649,6 @@ export async function findMatchesForVirtualUserVector(
   // 2. שליפת הוקטור מה-DB או יצירה חדשה
   let searchVector: number[] | null = null;
   
-  // ניסיון לשלוף וקטור קיים
- // ניסיון לשלוף וקטור קיים
   try {
     const existingVector = await prisma.$queryRaw<{ vector: string }[]>`
       SELECT vector::text
@@ -621,9 +658,7 @@ export async function findMatchesForVirtualUserVector(
     `;
     
     if (existingVector.length > 0 && existingVector[0].vector) {
-      // המרה מstring לarray
       const vectorString = existingVector[0].vector;
-      // תיקון: הסרת JSON.parse כי הפעולה map כבר מחזירה את המערך הרצוי
       searchVector = vectorString.replace(/^\[|\]$/g, '').split(',').map(Number);
     }
   } catch (e) {
@@ -654,7 +689,7 @@ export async function findMatchesForVirtualUserVector(
   // 3. מגדר הפוך לחיפוש
   const oppositeGender = gender === Gender.MALE ? Gender.FEMALE : Gender.MALE;
 
-  // 4. חיפוש וקטורי בDB
+  // 4. 🆕 חיפוש וקטורי בDB עם סינון סלחני
   const vectorSqlString = `[${searchVector.join(',')}]`;
   
   const similarProfiles = await prisma.$queryRaw<
@@ -667,15 +702,25 @@ export async function findMatchesForVirtualUserVector(
     JOIN "Profile" p ON pv."profileId" = p.id
     JOIN "User" u ON p."userId" = u.id
     WHERE p.gender = ${oppositeGender}::"Gender"
-      AND p."isProfileVisible" = true
-      AND p."availabilityStatus" IN ('AVAILABLE', 'PAUSED')
+      AND (
+        p."isProfileVisible" = true
+        OR p."isProfileVisible" IS NULL
+      )
+      AND (
+        p."availabilityStatus" IN ('AVAILABLE', 'PAUSED')
+        OR p."availabilityStatus" IS NULL
+      )
       AND u.status NOT IN ('BLOCKED', 'INACTIVE')
       AND pv.vector IS NOT NULL
+      AND (
+        p.about IS NOT NULL AND p.about != ''
+        OR p."manualEntryText" IS NOT NULL AND p."manualEntryText" != ''
+      )
     ORDER BY pv.vector <=> ${vectorSqlString}::vector
     LIMIT ${VECTOR_SEARCH_LIMIT}
   `;
 
-  console.log(`[Vector Search - Virtual] Found ${similarProfiles.length} similar profiles`);
+  console.log(`[Vector Search V1.2 - Virtual] Found ${similarProfiles.length} similar profiles`);
 
   if (similarProfiles.length === 0) {
     return {
@@ -703,36 +748,51 @@ export async function findMatchesForVirtualUserVector(
     },
   });
 
-  // 6. העשרת התוצאות
+  // 6. 🆕 העשרת התוצאות עם סינון סלחני
   const virtualAge = generatedProfile.inferredAge;
   const enrichedCandidates: VectorMatchResult[] = [];
+  let includedWithoutAge = 0;
 
   for (const candidate of candidateUsers) {
     if (!candidate.profile) continue;
 
     const similarityData = similarProfiles.find(p => p.userId === candidate.id);
-    const candidateAge = calculateAge(candidate.profile.birthDate);
+    
+    // 🆕 חישוב גיל - סינון רך
+    let candidateAge: number | null = null;
+    let ageScore: { score: number; description: string } | null = null;
+    
+    if (candidate.profile.birthDate) {
+      candidateAge = calculateAge(candidate.profile.birthDate);
+      
+      // סינון בסיסי לפי גיל
+      const ageDiff = candidateAge - virtualAge;
+      const isAgeOk = gender === Gender.MALE 
+        ? (ageDiff >= -7 && ageDiff <= 3)
+        : (ageDiff >= -3 && ageDiff <= 7);
 
-    // סינון בסיסי לפי גיל
-    const ageDiff = candidateAge - virtualAge;
-    const isAgeOk = gender === Gender.MALE 
-      ? (ageDiff >= -7 && ageDiff <= 3)  // גבר מחפש אישה צעירה יותר
-      : (ageDiff >= -3 && ageDiff <= 7); // אישה מחפשת גבר מבוגר יותר
+      if (!isAgeOk) continue;
 
-    if (!isAgeOk) continue;
+      // ציון התאמת גיל
+      const ageResult = calculateAgeScoreForMatch(
+        virtualAge,
+        gender,
+        candidateAge
+      );
+      
+      ageScore = {
+        score: ageResult.score,
+        description: ageResult.description,
+      };
+    } else {
+      // 🆕 אין תאריך לידה - מכליל
+      includedWithoutAge++;
+    }
 
-    // סינון לפי רמה דתית
+    // 🆕 סינון לפי רמה דתית - רך
     if (!isReligiousLevelCompatible(religiousLevel, candidate.profile.religiousLevel)) {
       continue;
     }
-
-    // ציון התאמת גיל
- // ציון התאמת גיל
-    const ageScore = calculateAgeScoreForMatch(
-      virtualAge,    // גיל הפרופיל הוירטואלי
-      gender,        // המגדר של הפרופיל הוירטואלי
-      candidateAge   // גיל המועמד שנבדק
-    );
 
     enrichedCandidates.push({
       userId: candidate.id,
@@ -747,21 +807,19 @@ export async function findMatchesForVirtualUserVector(
       aiProfileSummary: candidate.profile.aiProfileSummary,
       about: candidate.profile.about,
       backgroundMatch: {
-        compatibility: 'possible', // פרופיל וירטואלי - אין מידע מדויק
+        compatibility: 'possible',
         multiplier: 1,
         bonusPoints: 0,
       },
-      ageScore: {
-        score: ageScore.score,
-        description: ageScore.description,
-      },
+      ageScore,
     });
   }
 
   // מיון לפי דמיון
   enrichedCandidates.sort((a, b) => b.similarity - a.similarity);
 
-  console.log(`[Vector Search - Virtual] ${enrichedCandidates.length} candidates after filtering`);
+  console.log(`[Vector Search V1.2 - Virtual] ${enrichedCandidates.length} candidates after filtering`);
+  console.log(`  - Included without birthDate (lenient): ${includedWithoutAge}`);
 
   if (enrichedCandidates.length === 0) {
     return {
@@ -779,7 +837,7 @@ export async function findMatchesForVirtualUserVector(
   // 7. AI Ranking
   const topCandidates = enrichedCandidates.slice(0, TOP_CANDIDATES_FOR_AI);
   
-  console.log(`[Vector Search - Virtual] Sending ${topCandidates.length} candidates to AI...`);
+  console.log(`[Vector Search V1.2 - Virtual] Sending ${topCandidates.length} candidates to AI...`);
 
   const virtualSummary = editedSummary?.trim() || generatedProfile.displaySummary;
 
@@ -787,11 +845,16 @@ export async function findMatchesForVirtualUserVector(
     const summary = c.aiProfileSummary 
       ? JSON.stringify(c.aiProfileSummary) 
       : c.about || "לא זמין";
+    
+    const ageInfo = c.ageScore 
+      ? `התאמת גיל: ${c.ageScore.score}/100 (${c.ageScore.description})`
+      : 'גיל: לא ידוע - יש להעריך לפי התוכן';
+    
     return `
 מועמד ${idx + 1} (ID: ${c.userId}):
 - שם: ${c.firstName} ${c.lastName}
-- גיל: ${c.age}
-- התאמת גיל: ${c.ageScore?.score || 'N/A'}/100 (${c.ageScore?.description || ''})
+- גיל: ${c.age ?? 'לא ידוע'}
+- ${ageInfo}
 - רמה דתית: ${c.religiousLevel || 'לא צוין'}
 - עיר: ${c.city || 'לא צוין'}
 - עיסוק: ${c.occupation || 'לא צוין'}
@@ -820,7 +883,8 @@ ${candidatesText}
 
 ## הנחיות:
 - זהו פרופיל וירטואלי - התייחס לנתונים כאומדן
-- שים לב לציון התאמת הגיל
+- אם יש ציון התאמת גיל - השתמש בו
+- אם הגיל לא ידוע - תן ציון על בסיס הסיכום ואל תוריד ציון בגלל מידע חסר
 - העדף מועמדים עם דמיון וקטורי גבוה
 
 החזר JSON בפורמט:
@@ -864,7 +928,7 @@ ${candidatesText}
     rankedCandidates.sort((a, b) => (a.rank || 999) - (b.rank || 999));
     const finalMatches = rankedCandidates.slice(0, limit);
 
-    console.log(`\n[Vector Search - Virtual] ✅ Completed! Found ${finalMatches.length} matches`);
+    console.log(`\n[Vector Search V1.2 - Virtual] ✅ Completed! Found ${finalMatches.length} matches`);
 
     return {
       matches: finalMatches,
