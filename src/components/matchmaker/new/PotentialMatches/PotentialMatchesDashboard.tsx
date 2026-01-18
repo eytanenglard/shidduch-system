@@ -1,7 +1,4 @@
-// =============================================================================
 // src/components/matchmaker/new/PotentialMatches/PotentialMatchesDashboard.tsx
-// קומפוננטה ראשית - דשבורד התאמות פוטנציאליות
-// =============================================================================
 
 'use client';
 
@@ -10,7 +7,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Checkbox } from '@/components/ui/checkbox';
 import {
   Select,
   SelectContent,
@@ -63,7 +59,11 @@ import { toast } from 'sonner';
 // Components
 import PotentialMatchCard from './PotentialMatchCard';
 import PotentialMatchesStats from './PotentialMatchesStats';
-import { ProfileCard } from '@/components/profile'; // ייבוא כרטיס הפרופיל
+import { ProfileCard } from '@/components/profile';
+
+// Import Dialogs
+import { AiMatchmakerProfileAdvisorDialog } from '../dialogs/AiMatchmakerProfileAdvisorDialog';
+import { ProfileFeedbackDialog } from '../dialogs/ProfileFeedbackDialog';
 
 // Hooks
 import { usePotentialMatches } from './hooks/usePotentialMatches';
@@ -74,6 +74,7 @@ import type {
   PotentialMatchSortBy,
 } from '@/types/potentialMatches';
 import type { ProfilePageDictionary } from '@/types/dictionary';
+import type { MatchmakerPageDictionary } from '@/types/dictionaries/matchmaker'; // Needed for type casting
 
 // =============================================================================
 // TYPES
@@ -82,12 +83,10 @@ import type { ProfilePageDictionary } from '@/types/dictionary';
 interface PotentialMatchesDashboardProps {
   locale?: string;
   profileDict: ProfilePageDictionary;
+  matchmakerDict: MatchmakerPageDictionary; // הוספתי זאת כדי שנוכל להעביר מילונים לדיאלוגים
 }
 
-// =============================================================================
-// CONSTANTS
-// =============================================================================
-
+// ... (STATUS_OPTIONS and SORT_OPTIONS unchanged) ...
 const STATUS_OPTIONS: {
   value: PotentialMatchFilterStatus;
   label: string;
@@ -116,6 +115,7 @@ const SORT_OPTIONS: { value: PotentialMatchSortBy; label: string }[] = [
 const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
   locale = 'he',
   profileDict,
+  matchmakerDict,
 }) => {
   // State
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
@@ -132,12 +132,16 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
   const [dismissDialog, setDismissDialog] = useState<string | null>(null);
   const [dismissReason, setDismissReason] = useState('');
 
-  // --- Profile View State (New) ---
+  // --- Profile View State ---
   const [viewProfileId, setViewProfileId] = useState<string | null>(null);
   const [fullProfileData, setFullProfileData] = useState<any | null>(null);
   const [questionnaireData, setQuestionnaireData] = useState<any | null>(null);
   const [isLoadingProfile, setIsLoadingProfile] = useState(false);
   const [isMatchmakerView, setIsMatchmakerView] = useState(true);
+
+  // --- AI Analysis & Feedback State (New) ---
+  const [analyzedCandidate, setAnalyzedCandidate] = useState<any | null>(null);
+  const [feedbackCandidate, setFeedbackCandidate] = useState<any | null>(null);
 
   // Suggestion form state
   const [suggestionPriority, setSuggestionPriority] = useState<
@@ -178,7 +182,7 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
   } = usePotentialMatches({
     initialFilters: { status: 'pending' },
     autoRefresh: true,
-    refreshInterval: 60000, // Refresh every minute
+    refreshInterval: 60000,
   });
 
   // ==========================================================================
@@ -195,31 +199,24 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
 
       setIsLoadingProfile(true);
       try {
-        // 1. טעינת נתוני מועמד מלאים - שימוש ב-Endpoint הספציפי למועמד
-        // התיקון: פניה ל- /api/matchmaker/candidates/[id] במקום ל-candidates?id=...
         const profileResponse = await fetch(
           `/api/matchmaker/candidates/${viewProfileId}`
         );
         const profileJson = await profileResponse.json();
 
         if (profileJson.success) {
-          // התיקון הקריטי: ProfileCard מצפה לקבל את נתוני ה-User (שם, אימייל וכו')
-          // בתוך אובייקט ה-Profile. ה-API הספציפי מחזיר אותם כאחים נפרדים.
-          // אנו מאחדים אותם כאן ידנית.
           const formattedData = {
             ...profileJson,
             profile: {
               ...profileJson.profile,
-              user: profileJson.user, // הזרקת ה-User לתוך ה-Profile
+              user: profileJson.user,
             },
           };
-
           setFullProfileData(formattedData);
         } else {
           toast.error('לא ניתן היה לטעון את הפרופיל');
         }
 
-        // 2. טעינת שאלון
         const questionnaireResponse = await fetch(
           `/api/profile/questionnaire?userId=${viewProfileId}&locale=${locale}`
         );
@@ -329,7 +326,6 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
 
             {/* Actions */}
             <div className="flex items-center gap-3">
-              {/* Scan Button */}
               <Button
                 onClick={() => setConfirmScanDialog(true)}
                 disabled={isScanRunning}
@@ -348,7 +344,6 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
                 )}
               </Button>
 
-              {/* Refresh */}
               <Button
                 variant="outline"
                 onClick={refresh}
@@ -602,6 +597,13 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
                     onReview={reviewMatch}
                     onRestore={restoreMatch}
                     onViewProfile={handleViewProfile}
+                    // העברת ה-Handlers החדשים
+                    onAnalyzeCandidate={(candidate) =>
+                      setAnalyzedCandidate(candidate)
+                    }
+                    onProfileFeedback={(candidate) =>
+                      setFeedbackCandidate(candidate)
+                    }
                     isSelected={isSelected(match.id)}
                     onToggleSelect={
                       showBulkActions ? toggleSelection : undefined
@@ -754,6 +756,24 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* --- AI Analysis Dialog --- */}
+      <AiMatchmakerProfileAdvisorDialog
+        isOpen={!!analyzedCandidate}
+        onClose={() => setAnalyzedCandidate(null)}
+        candidate={analyzedCandidate}
+        dict={matchmakerDict.candidatesManager.aiProfileAdvisor}
+        locale={locale}
+      />
+
+      {/* --- Profile Feedback Dialog --- */}
+      <ProfileFeedbackDialog
+        isOpen={!!feedbackCandidate}
+        onClose={() => setFeedbackCandidate(null)}
+        candidate={feedbackCandidate}
+        locale={locale}
+        dict={matchmakerDict.candidatesManager.profileFeedbackDialog}
+      />
 
       {/* Confirm Scan Dialog */}
       <AlertDialog open={confirmScanDialog} onOpenChange={setConfirmScanDialog}>

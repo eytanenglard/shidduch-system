@@ -12,13 +12,14 @@ interface PotentialMatchesClientProps {
 
 export default function PotentialMatchesClient({
   matchmakerDict,
-  profileDict, // <-- מקבלים כאן
+  profileDict,
   locale,
 }: PotentialMatchesClientProps) {
   return (
     <PotentialMatchesDashboard
+      matchmakerDict={matchmakerDict} // <-- הוספנו את זה כדי לתקן את השגיאה
+      profileDict={profileDict}
       locale={locale}
-      profileDict={profileDict} // <-- הוסף שורה זו: העברת המילון לדשבורד
     />
   );
 }

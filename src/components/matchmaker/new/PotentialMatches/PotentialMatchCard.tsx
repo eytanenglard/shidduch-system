@@ -20,8 +20,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogDescription,
-  DialogFooter,
 } from '@/components/ui/dialog';
 import {
   DropdownMenu,
@@ -32,17 +30,15 @@ import {
 } from '@/components/ui/dropdown-menu';
 import {
   AlertTriangle,
-  CheckCircle,
   Heart,
   HeartHandshake,
   MapPin,
-  Briefcase,
-  Calendar,
   Eye,
   MoreHorizontal,
   Send,
   X,
   Brain,
+  Calendar,
   Sparkles,
   Clock,
   UserCheck,
@@ -51,8 +47,7 @@ import {
   ExternalLink,
   Undo,
   MessageCircle, // WhatsApp
-  Mail,          // Email/Feedback
-  Phone,
+  Mail, // Email/Feedback
 } from 'lucide-react';
 import { cn, getRelativeCloudinaryPath } from '@/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
@@ -70,10 +65,11 @@ interface PotentialMatchCardProps {
   onReview: (matchId: string) => void;
   onRestore: (matchId: string) => void;
   onViewProfile: (userId: string) => void;
-  // New Callbacks for actions
-  onAnalyzeCandidate?: (candidate: any) => void;
-  onProfileFeedback?: (candidate: any) => void;
-  
+
+  // New Action Callbacks
+  onAnalyzeCandidate: (candidate: any) => void;
+  onProfileFeedback: (candidate: any) => void;
+
   isSelected?: boolean;
   onToggleSelect?: (matchId: string) => void;
   showSelection?: boolean;
@@ -81,10 +77,9 @@ interface PotentialMatchCardProps {
 }
 
 // =============================================================================
-// HELPER FUNCTIONS
+// HELPER FUNCTIONS (unchanged)
 // =============================================================================
 
-// ... (Helper functions remain the same: getScoreColor, getScoreBgColor, etc.)
 const getScoreColor = (score: number): string => {
   if (score >= 85) return 'text-emerald-600';
   if (score >= 75) return 'text-blue-600';
@@ -102,15 +97,30 @@ const getScoreBgColor = (score: number): string => {
 const getBackgroundBadge = (compatibility: string | null) => {
   switch (compatibility) {
     case 'excellent':
-      return { label: 'רקע מצוין', color: 'bg-emerald-100 text-emerald-700 border-emerald-200' };
+      return {
+        label: 'רקע מצוין',
+        color: 'bg-emerald-100 text-emerald-700 border-emerald-200',
+      };
     case 'good':
-      return { label: 'רקע טוב', color: 'bg-blue-100 text-blue-700 border-blue-200' };
+      return {
+        label: 'רקע טוב',
+        color: 'bg-blue-100 text-blue-700 border-blue-200',
+      };
     case 'possible':
-      return { label: 'רקע אפשרי', color: 'bg-amber-100 text-amber-700 border-amber-200' };
+      return {
+        label: 'רקע אפשרי',
+        color: 'bg-amber-100 text-amber-700 border-amber-200',
+      };
     case 'problematic':
-      return { label: 'פער רקע', color: 'bg-orange-100 text-orange-700 border-orange-200' };
+      return {
+        label: 'פער רקע',
+        color: 'bg-orange-100 text-orange-700 border-orange-200',
+      };
     case 'not_recommended':
-      return { label: 'רקע בעייתי', color: 'bg-red-100 text-red-700 border-red-200' };
+      return {
+        label: 'רקע בעייתי',
+        color: 'bg-red-100 text-red-700 border-red-200',
+      };
     default:
       return null;
   }
@@ -119,11 +129,19 @@ const getBackgroundBadge = (compatibility: string | null) => {
 const getStatusBadge = (status: string) => {
   switch (status) {
     case 'PENDING':
-      return { label: 'ממתין', color: 'bg-yellow-100 text-yellow-700', icon: Clock };
+      return {
+        label: 'ממתין',
+        color: 'bg-yellow-100 text-yellow-700',
+        icon: Clock,
+      };
     case 'REVIEWED':
       return { label: 'נבדק', color: 'bg-blue-100 text-blue-700', icon: Eye };
     case 'SENT':
-      return { label: 'נשלחה הצעה', color: 'bg-green-100 text-green-700', icon: Send };
+      return {
+        label: 'נשלחה הצעה',
+        color: 'bg-green-100 text-green-700',
+        icon: Send,
+      };
     case 'DISMISSED':
       return { label: 'נדחה', color: 'bg-gray-100 text-gray-700', icon: X };
     default:
@@ -134,14 +152,14 @@ const getStatusBadge = (status: string) => {
 const getReligiousLevelLabel = (level: string | null): string => {
   if (!level) return 'לא צוין';
   const labels: Record<string, string> = {
-    'dati_leumi_torani': 'דתי לאומי תורני',
-    'dati_leumi_standard': 'דתי לאומי',
-    'dati_leumi_liberal': 'דתי לאומי ליברלי',
-    'charedi_modern': 'חרדי מודרני',
-    'masorti_strong': 'מסורתי חזק',
-    'masorti_light': 'מסורתי',
-    'secular_traditional_connection': 'חילוני עם קשר למסורת',
-    'secular': 'חילוני',
+    dati_leumi_torani: 'דתי לאומי תורני',
+    dati_leumi_standard: 'דתי לאומי',
+    dati_leumi_liberal: 'דתי לאומי ליברלי',
+    charedi_modern: 'חרדי מודרני',
+    masorti_strong: 'מסורתי חזק',
+    masorti_light: 'מסורתי',
+    secular_traditional_connection: 'חילוני עם קשר למסורת',
+    secular: 'חילוני',
   };
   return labels[level] || level;
 };
@@ -152,19 +170,26 @@ const getReligiousLevelLabel = (level: string | null): string => {
 
 // כרטיס מועמד בודד (בתוך הזוג)
 const CandidatePreview: React.FC<{
-  candidate: any; // PotentialMatch['male'] | PotentialMatch['female'];
+  candidate: any;
   gender: 'male' | 'female';
   activeSuggestion: any;
   onViewProfile: () => void;
-  onAnalyze?: () => void;
-  onFeedback?: () => void;
-}> = ({ candidate, gender, activeSuggestion, onViewProfile, onAnalyze, onFeedback }) => {
+  onAnalyze: () => void;
+  onFeedback: () => void;
+}> = ({
+  candidate,
+  gender,
+  activeSuggestion,
+  onViewProfile,
+  onAnalyze,
+  onFeedback,
+}) => {
   const genderIcon = gender === 'male' ? '👨' : '👩';
   const borderColor = gender === 'male' ? 'border-blue-200' : 'border-pink-200';
-  const bgGradient = gender === 'male' 
-    ? 'from-blue-50 to-cyan-50' 
-    : 'from-pink-50 to-rose-50';
+  const bgGradient =
+    gender === 'male' ? 'from-blue-50 to-cyan-50' : 'from-pink-50 to-rose-50';
 
+  // לוגיקה זהה ל-MinimalCard לשליחת וואטסאפ
   const handleWhatsApp = (e: React.MouseEvent) => {
     e.stopPropagation();
     let cleanPhone = candidate.phone?.replace(/\D/g, '') || '';
@@ -175,17 +200,21 @@ const CandidatePreview: React.FC<{
     if (cleanPhone) {
       const message = `היי ${candidate.firstName}, כאן מצוות השדכנים...`;
       const encodedMessage = encodeURIComponent(message);
-      window.open(`https://wa.me/${cleanPhone}?text=${encodedMessage}`, '_blank');
+      window.open(
+        `https://wa.me/${cleanPhone}?text=${encodedMessage}`,
+        '_blank'
+      );
     }
   };
 
   return (
-    <div className={cn(
-      'relative flex-1 p-3 rounded-xl border-2 transition-all duration-300 hover:shadow-md flex flex-col',
-      borderColor,
-      `bg-gradient-to-br ${bgGradient}`
-    )}
-    onClick={onViewProfile}
+    <div
+      className={cn(
+        'relative flex-1 p-3 rounded-xl border-2 transition-all duration-300 hover:shadow-md flex flex-col',
+        borderColor,
+        `bg-gradient-to-br ${bgGradient}`
+      )}
+      onClick={onViewProfile}
     >
       {/* תמונה ופרטים */}
       <div className="flex-1 cursor-pointer">
@@ -202,7 +231,7 @@ const CandidatePreview: React.FC<{
               {genderIcon}
             </div>
           )}
-          
+
           {candidate.isVerified && (
             <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-emerald-500 rounded-full flex items-center justify-center border-2 border-white">
               <UserCheck className="w-3 h-3 text-white" />
@@ -232,9 +261,9 @@ const CandidatePreview: React.FC<{
         </div>
       </div>
 
-      {/* אזור כפתורי פעולות - מפריד ויזואלי */}
+      {/* --- אזור כפתורי פעולות (חדש) --- */}
       <div className="mt-2 pt-2 border-t border-gray-200/50 flex items-center justify-center gap-2">
-        {/* WhatsApp */}
+        {/* כפתור וואטסאפ */}
         {candidate.phone && (
           <TooltipProvider>
             <Tooltip>
@@ -242,7 +271,7 @@ const CandidatePreview: React.FC<{
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-7 w-7 rounded-full bg-white/60 hover:bg-green-100 hover:text-green-600 shadow-sm"
+                  className="h-7 w-7 rounded-full bg-white/60 hover:bg-green-100 hover:text-green-600 shadow-sm border border-transparent hover:border-green-200 transition-all"
                   onClick={handleWhatsApp}
                 >
                   <MessageCircle className="w-3.5 h-3.5" />
@@ -255,77 +284,85 @@ const CandidatePreview: React.FC<{
           </TooltipProvider>
         )}
 
-        {/* AI Analysis */}
-        {onAnalyze && (
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-7 w-7 rounded-full bg-white/60 hover:bg-purple-100 hover:text-purple-600 shadow-sm"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onAnalyze();
-                  }}
-                >
-                  <Sparkles className="w-3.5 h-3.5" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>ניתוח AI למועמד</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        )}
+        {/* כפתור ניתוח AI */}
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7 rounded-full bg-white/60 hover:bg-purple-100 hover:text-purple-600 shadow-sm border border-transparent hover:border-purple-200 transition-all"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onAnalyze();
+                }}
+              >
+                <Sparkles className="w-3.5 h-3.5" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>ניתוח פרופיל AI</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
 
-        {/* Feedback / Email */}
-        {onFeedback && (
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-7 w-7 rounded-full bg-white/60 hover:bg-blue-100 hover:text-blue-600 shadow-sm"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onFeedback();
-                  }}
-                >
-                  <Mail className="w-3.5 h-3.5" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>שלח דוח פרופיל</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        )}
+        {/* כפתור משוב/מייל */}
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7 rounded-full bg-white/60 hover:bg-blue-100 hover:text-blue-600 shadow-sm border border-transparent hover:border-blue-200 transition-all"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onFeedback();
+                }}
+              >
+                <Mail className="w-3.5 h-3.5" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>שלח דוח פרופיל (מייל)</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
       </div>
 
       {/* התראה על הצעה פעילה */}
       {activeSuggestion && (
         <div className="mt-2 text-center">
-           <Badge variant="outline" className="text-[10px] bg-amber-50 text-amber-700 border-amber-200 px-1 py-0 h-5">
-              <AlertTriangle className="w-2.5 h-2.5 mr-1" />
-              בהצעה פעילה
-           </Badge>
+          <Badge
+            variant="outline"
+            className="text-[10px] bg-amber-50 text-amber-700 border-amber-200 px-1 py-0 h-5"
+          >
+            <AlertTriangle className="w-2.5 h-2.5 mr-1" />
+            בהצעה פעילה
+          </Badge>
         </div>
       )}
     </div>
   );
 };
 
-// ... (ScoreBreakdownDisplay remains the same)
+// ... (ScoreBreakdownDisplay נשאר זהה)
 const ScoreBreakdownDisplay: React.FC<{
   breakdown: ScoreBreakdown;
 }> = ({ breakdown }) => {
-  // ... code from previous file ...
   const categories = [
     { key: 'religious', label: 'התאמה דתית', max: 35, color: 'bg-purple-500' },
-    { key: 'ageCompatibility', label: 'התאמת גיל', max: 10, color: 'bg-blue-500' },
-    { key: 'careerFamily', label: 'קריירה-משפחה', max: 15, color: 'bg-cyan-500' },
+    {
+      key: 'ageCompatibility',
+      label: 'התאמת גיל',
+      max: 10,
+      color: 'bg-blue-500',
+    },
+    {
+      key: 'careerFamily',
+      label: 'קריירה-משפחה',
+      max: 15,
+      color: 'bg-cyan-500',
+    },
     { key: 'lifestyle', label: 'סגנון חיים', max: 15, color: 'bg-green-500' },
     { key: 'ambition', label: 'שאפתנות', max: 12, color: 'bg-orange-500' },
     { key: 'communication', label: 'תקשורת', max: 12, color: 'bg-pink-500' },
@@ -337,10 +374,12 @@ const ScoreBreakdownDisplay: React.FC<{
       {categories.map((cat) => {
         const value = breakdown[cat.key as keyof ScoreBreakdown] || 0;
         const percentage = (value / cat.max) * 100;
-        
+
         return (
           <div key={cat.key} className="flex items-center gap-2">
-            <span className="text-xs text-gray-600 w-24 truncate">{cat.label}</span>
+            <span className="text-xs text-gray-600 w-24 truncate">
+              {cat.label}
+            </span>
             <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
               <motion.div
                 initial={{ width: 0 }}
@@ -370,8 +409,8 @@ const PotentialMatchCard: React.FC<PotentialMatchCardProps> = ({
   onReview,
   onRestore,
   onViewProfile,
-  onAnalyzeCandidate,
-  onProfileFeedback,
+  onAnalyzeCandidate, // New
+  onProfileFeedback, // New
   isSelected = false,
   onToggleSelect,
   showSelection = false,
@@ -382,7 +421,7 @@ const PotentialMatchCard: React.FC<PotentialMatchCardProps> = ({
 
   const statusBadge = getStatusBadge(match.status);
   const StatusIcon = statusBadge.icon;
-  const backgroundBadge = getBackgroundBadge(match.backgroundCompatibility);
+  // const backgroundBadge = getBackgroundBadge(match.backgroundCompatibility); // Unused currently in JSX
 
   const isDismissed = match.status === 'DISMISSED';
   const isSent = match.status === 'SENT';
@@ -396,18 +435,22 @@ const PotentialMatchCard: React.FC<PotentialMatchCardProps> = ({
         exit={{ opacity: 0, y: -20 }}
         className={className}
       >
-        <Card className={cn(
-          'group relative overflow-hidden transition-all duration-300',
-          'hover:shadow-xl border-0',
-          isDismissed && 'opacity-60',
-          isSelected && 'ring-2 ring-blue-500',
-          match.hasActiveWarning && !isDismissed && 'ring-2 ring-amber-400'
-        )}>
+        <Card
+          className={cn(
+            'group relative overflow-hidden transition-all duration-300',
+            'hover:shadow-xl border-0',
+            isDismissed && 'opacity-60',
+            isSelected && 'ring-2 ring-blue-500',
+            match.hasActiveWarning && !isDismissed && 'ring-2 ring-amber-400'
+          )}
+        >
           {/* Gradient Background */}
-          <div className={cn(
-            'absolute inset-0 opacity-30',
-            `bg-gradient-to-br ${getScoreBgColor(match.aiScore)}`
-          )} />
+          <div
+            className={cn(
+              'absolute inset-0 opacity-30',
+              `bg-gradient-to-br ${getScoreBgColor(match.aiScore)}`
+            )}
+          />
 
           {/* Content */}
           <div className="relative p-4">
@@ -425,12 +468,21 @@ const PotentialMatchCard: React.FC<PotentialMatchCardProps> = ({
               )}
 
               {/* Score Badge */}
-              <div className={cn(
-                'flex items-center gap-2 px-3 py-1.5 rounded-full',
-                'bg-white/90 backdrop-blur-sm shadow-sm'
-              )}>
-                <Sparkles className={cn('w-4 h-4', getScoreColor(match.aiScore))} />
-                <span className={cn('text-xl font-bold', getScoreColor(match.aiScore))}>
+              <div
+                className={cn(
+                  'flex items-center gap-2 px-3 py-1.5 rounded-full',
+                  'bg-white/90 backdrop-blur-sm shadow-sm'
+                )}
+              >
+                <Sparkles
+                  className={cn('w-4 h-4', getScoreColor(match.aiScore))}
+                />
+                <span
+                  className={cn(
+                    'text-xl font-bold',
+                    getScoreColor(match.aiScore)
+                  )}
+                >
                   {Math.round(match.aiScore)}
                 </span>
               </div>
@@ -451,7 +503,9 @@ const PotentialMatchCard: React.FC<PotentialMatchCardProps> = ({
                 <DropdownMenuContent align="end">
                   {!isSent && !isDismissed && (
                     <>
-                      <DropdownMenuItem onClick={() => onCreateSuggestion(match.id)}>
+                      <DropdownMenuItem
+                        onClick={() => onCreateSuggestion(match.id)}
+                      >
                         <HeartHandshake className="w-4 h-4 ml-2 text-green-600" />
                         צור הצעה
                       </DropdownMenuItem>
@@ -460,7 +514,7 @@ const PotentialMatchCard: React.FC<PotentialMatchCardProps> = ({
                         סמן כנבדק
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
-                      <DropdownMenuItem 
+                      <DropdownMenuItem
                         onClick={() => onDismiss(match.id)}
                         className="text-red-600"
                       >
@@ -486,16 +540,19 @@ const PotentialMatchCard: React.FC<PotentialMatchCardProps> = ({
                 gender="male"
                 activeSuggestion={match.maleActiveSuggestion}
                 onViewProfile={() => onViewProfile(match.male.id)}
-                onAnalyze={onAnalyzeCandidate ? () => onAnalyzeCandidate(match.male) : undefined}
-                onFeedback={onProfileFeedback ? () => onProfileFeedback(match.male) : undefined}
+                // העברת הפונקציות החדשות לכרטיס הזכר
+                onAnalyze={() => onAnalyzeCandidate(match.male)}
+                onFeedback={() => onProfileFeedback(match.male)}
               />
-              
+
               {/* Heart Connector */}
               <div className="flex flex-col justify-center items-center gap-1 z-10">
-                <div className={cn(
-                  'w-8 h-8 rounded-full flex items-center justify-center',
-                  'bg-gradient-to-br from-pink-500 to-red-500 shadow-lg'
-                )}>
+                <div
+                  className={cn(
+                    'w-8 h-8 rounded-full flex items-center justify-center',
+                    'bg-gradient-to-br from-pink-500 to-red-500 shadow-lg'
+                  )}
+                >
                   <Heart className="w-4 h-4 text-white fill-white" />
                 </div>
               </div>
@@ -505,14 +562,15 @@ const PotentialMatchCard: React.FC<PotentialMatchCardProps> = ({
                 gender="female"
                 activeSuggestion={match.femaleActiveSuggestion}
                 onViewProfile={() => onViewProfile(match.female.id)}
-                onAnalyze={onAnalyzeCandidate ? () => onAnalyzeCandidate(match.female) : undefined}
-                onFeedback={onProfileFeedback ? () => onProfileFeedback(match.female) : undefined}
+                // העברת הפונקציות החדשות לכרטיס הנקבה
+                onAnalyze={() => onAnalyzeCandidate(match.female)}
+                onFeedback={() => onProfileFeedback(match.female)}
               />
             </div>
 
             {/* Reasoning Preview */}
             {match.shortReasoning && (
-              <div 
+              <div
                 className="p-3 rounded-lg bg-white/60 backdrop-blur-sm cursor-pointer hover:bg-white/80 transition-colors border border-purple-50"
                 onClick={() => setShowReasoningDialog(true)}
               >
@@ -527,24 +585,28 @@ const PotentialMatchCard: React.FC<PotentialMatchCardProps> = ({
 
             {/* Footer: Date & Details Toggle */}
             <div className="flex items-center justify-between mt-3 pt-2">
-               <span className="text-[10px] text-gray-400 flex items-center gap-1">
-                  <Calendar className="w-3 h-3" />
-                  {formatDistanceToNow(new Date(match.scannedAt), { 
-                    addSuffix: true, 
-                    locale: he 
-                  })}
-               </span>
+              <span className="text-[10px] text-gray-400 flex items-center gap-1">
+                <Calendar className="w-3 h-3" />
+                {formatDistanceToNow(new Date(match.scannedAt), {
+                  addSuffix: true,
+                  locale: he,
+                })}
+              </span>
 
-               <Button
+              <Button
                 variant="ghost"
                 size="sm"
                 className="h-6 text-xs text-gray-500 hover:text-gray-800"
                 onClick={() => setShowDetails(!showDetails)}
               >
                 {showDetails ? (
-                  <>הסתר פרטים <ChevronUp className="w-3 h-3 ml-1" /></>
+                  <>
+                    הסתר פרטים <ChevronUp className="w-3 h-3 ml-1" />
+                  </>
                 ) : (
-                  <>הצג ניקוד מלא <ChevronDown className="w-3 h-3 ml-1" /></>
+                  <>
+                    הצג ניקוד מלא <ChevronDown className="w-3 h-3 ml-1" />
+                  </>
                 )}
               </Button>
             </div>
@@ -581,40 +643,43 @@ const PotentialMatchCard: React.FC<PotentialMatchCardProps> = ({
                 </Button>
               </div>
             )}
-            
+
             {/* ... Link to Suggestion if sent ... */}
-             {isSent && match.suggestionId && (
+            {isSent && match.suggestionId && (
               <div className="mt-4 p-2 rounded-lg bg-green-50 border border-green-200 text-center">
-                  <Button
-                    variant="link"
-                    size="sm"
-                    className="text-green-700 p-0 h-auto font-medium"
-                    onClick={() => window.location.href = `/matchmaker/suggestions?id=${match.suggestionId}`}
-                  >
-                    עבור להצעה <ExternalLink className="w-3 h-3 mr-1" />
-                  </Button>
+                <Button
+                  variant="link"
+                  size="sm"
+                  className="text-green-700 p-0 h-auto font-medium"
+                  onClick={() =>
+                    (window.location.href = `/matchmaker/suggestions?id=${match.suggestionId}`)
+                  }
+                >
+                  עבור להצעה <ExternalLink className="w-3 h-3 mr-1" />
+                </Button>
               </div>
             )}
           </div>
         </Card>
       </motion.div>
 
-      {/* Reasoning Dialog (Same as before) */}
+      {/* Reasoning Dialog */}
       <Dialog open={showReasoningDialog} onOpenChange={setShowReasoningDialog}>
-          {/* ... Dialog Content ... */}
-          <DialogContent className="max-w-2xl" dir="rtl">
-            <DialogHeader>
-                <DialogTitle>נימוק AI להתאמה</DialogTitle>
-            </DialogHeader>
-             <div className="space-y-4 max-h-[60vh] overflow-y-auto">
-                 <div className="bg-purple-50 p-4 rounded-lg">
-                    <p className="whitespace-pre-wrap leading-relaxed text-gray-800">
-                        {match.detailedReasoning || match.shortReasoning}
-                    </p>
-                 </div>
-                 {match.scoreBreakdown && <ScoreBreakdownDisplay breakdown={match.scoreBreakdown} />}
-             </div>
-          </DialogContent>
+        <DialogContent className="max-w-2xl" dir="rtl">
+          <DialogHeader>
+            <DialogTitle>נימוק AI להתאמה</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 max-h-[60vh] overflow-y-auto">
+            <div className="bg-purple-50 p-4 rounded-lg">
+              <p className="whitespace-pre-wrap leading-relaxed text-gray-800">
+                {match.detailedReasoning || match.shortReasoning}
+              </p>
+            </div>
+            {match.scoreBreakdown && (
+              <ScoreBreakdownDisplay breakdown={match.scoreBreakdown} />
+            )}
+          </div>
+        </DialogContent>
       </Dialog>
     </>
   );
