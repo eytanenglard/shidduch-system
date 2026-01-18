@@ -48,7 +48,7 @@ export const AddManualCandidateDialog: React.FC<
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [gender, setGender] = useState<Gender | undefined>(undefined);
-  // --- ADDED: Height State ---
+  const [religiousLevel, setReligiousLevel] = useState<string>(''); // Added Religious Level State
   const [height, setHeight] = useState('');
   const [birthDate, setBirthDate] = useState<Date | undefined>(undefined);
   const [manualEntryText, setManualEntryText] = useState('');
@@ -66,7 +66,7 @@ export const AddManualCandidateDialog: React.FC<
     setLastName('');
     setEmail('');
     setGender(undefined);
-    // --- ADDED: Reset Height ---
+    setReligiousLevel(''); // Reset Religious Level
     setHeight('');
     setBirthDate(undefined);
     setManualEntryText('');
@@ -125,7 +125,13 @@ export const AddManualCandidateDialog: React.FC<
     event.preventDefault();
     setIsSaving(true);
 
-    if (!firstName || !lastName || !gender || !manualEntryText) {
+    if (
+      !firstName ||
+      !lastName ||
+      !gender ||
+      !religiousLevel ||
+      !manualEntryText
+    ) {
       toast.error(dict.toasts.error.missingFields);
       setIsSaving(false);
       return;
@@ -158,7 +164,7 @@ export const AddManualCandidateDialog: React.FC<
     formData.append('lastName', lastName);
     if (email) formData.append('email', email);
     formData.append('gender', gender);
-    // --- ADDED: Append Height ---
+    formData.append('religiousLevel', religiousLevel); // Append Religious Level
     if (height) formData.append('height', height);
     formData.append('birthDate', finalBirthDate.toISOString());
     formData.append('birthDateIsApproximate', String(isBirthDateApproximate));
@@ -301,9 +307,9 @@ export const AddManualCandidateDialog: React.FC<
             </Label>
           </div>
 
-          {/* Row 3: Gender, Height & BirthDate */}
+          {/* Row 3: Gender, Religious Level, Height & BirthDate */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Column 1: Gender & Height */}
+            {/* Column 1: Gender, Religious Level & Height */}
             <div className="space-y-4">
               <div>
                 <Label htmlFor="gender" className="text-right block">
@@ -327,7 +333,35 @@ export const AddManualCandidateDialog: React.FC<
                   </SelectContent>
                 </Select>
               </div>
-              {/* --- ADDED: Height Input --- */}
+
+              {/* --- Religious Level Input --- */}
+              <div>
+                <Label htmlFor="religiousLevel" className="text-right block">
+                  {dict.fields.religiousLevel.label}{' '}
+                  <span className="text-red-500">*</span>
+                </Label>
+                <Select
+                  value={religiousLevel}
+                  onValueChange={setReligiousLevel}
+                >
+                  <SelectTrigger id="religiousLevel" dir="rtl">
+                    <SelectValue
+                      placeholder={dict.fields.religiousLevel.placeholder}
+                    />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-[200px]">
+                    {Object.entries(dict.fields.religiousLevel.options).map(
+                      ([value, label]) => (
+                        <SelectItem key={value} value={value}>
+                          {label}
+                        </SelectItem>
+                      )
+                    )}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Height Input */}
               <div>
                 <Label htmlFor="height" className="text-right block">
                   {dict.fields.height.label}
