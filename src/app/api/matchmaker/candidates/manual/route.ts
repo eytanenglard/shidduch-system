@@ -45,7 +45,8 @@ async function uploadImageToCloudinary(file: File, userId: string): Promise<{ ur
 
 export async function POST(req: NextRequest) {
   // Apply rate limiting: 15 manual creations per matchmaker per hour (resource intensive)
-const rateLimitResponse = await applyRateLimitWithRoleCheck(req, { requests: 15, window: '1 h' });  if (rateLimitResponse) {
+  const rateLimitResponse = await applyRateLimitWithRoleCheck(req, { requests: 15, window: '1 h' });
+  if (rateLimitResponse) {
     return rateLimitResponse;
   }
   try {
@@ -61,7 +62,11 @@ const rateLimitResponse = await applyRateLimitWithRoleCheck(req, { requests: 15,
     const emailValue = formData.get('email') as string | null;
     const gender = formData.get('gender') as Gender;
     const birthDateStr = formData.get('birthDate') as string;
-        const heightStr = formData.get('height') as string | null;
+    const heightStr = formData.get('height') as string | null;
+    
+    // --- START: Added Religious Level ---
+    const religiousLevel = formData.get('religiousLevel') as string | null;
+    // --- END: Added Religious Level ---
 
     const manualEntryText = formData.get('manualEntryText') as string;
     const images = formData.getAll('images') as File[];
@@ -110,9 +115,9 @@ const rateLimitResponse = await applyRateLimitWithRoleCheck(req, { requests: 15,
       birthDateIsApproximate,
       manualEntryText,
       availabilityStatus: 'AVAILABLE',
-        isProfileVisible: true, 
-            height: height, 
-
+      isProfileVisible: true, 
+      height: height,
+      religiousLevel: religiousLevel, // Add to Prisma Create Object
     };
 
     // --- START: הוספת השדות החדשים לאובייקט היצירה ---
