@@ -466,39 +466,61 @@ export default function MatchmakerDashboard({
     }
   };
 
-  const handleStatusChange = async (
-    suggestionId: string,
-    newStatus: MatchSuggestionStatus,
-    notes?: string
-  ) => {
-    setIsSubmitting(true);
-    try {
-      const response = await fetch(
-        `/api/matchmaker/suggestions/${suggestionId}/status`,
-        {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            status: newStatus,
-            notes: notes || `סטטוס שונה מממשק ניהול`,
-          }),
-        }
-      );
-      if (!response.ok)
-        throw new Error(
-          (await response.json()).error || 'Failed to update status'
-        );
-      toast.success(toastsDict.statusUpdateSuccess);
-      fetchSuggestions();
-    } catch (error: unknown) {
-      console.error('Error updating suggestion status:', error);
-      toast.error(
-        `${toastsDict.statusUpdateError}: ${error instanceof Error ? error.message : ''}`
-      );
-    } finally {
-      setIsSubmitting(false);
+ // בתוך MatchmakerDashboard.tsx
+
+const handleStatusChange = async (
+  suggestionId: string,
+  newStatus: MatchSuggestionStatus,
+  notes?: string
+) => {
+  setIsSubmitting(true);
+  try {
+    const response = await fetch(
+      `/api/matchmaker/suggestions/${suggestionId}/status`,
+      {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          status: newStatus,
+          notes: notes || `סטטוס שונה מממשק ניהול`,
+        }),
+      }
+    );
+    
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Failed to update status');
     }
-  };
+
+    const data = await response.json(); // ה-API מחזיר את ההצעה המעודכנת (חלקית או מלאה)
+
+    toast.success(toastsDict.statusUpdateSuccess);
+    
+    // 1. עדכון הרשימה הראשית ברקע
+    fetchSuggestions();
+
+    // 2. עדכון הדיאלוג הפתוח בזמן אמת (כדי שהסטטוס יתחלף מול העיניים)
+    if (selectedSuggestion && selectedSuggestion.id === suggestionId) {
+      setSelectedSuggestion(prev => {
+        if (!prev) return null;
+        return {
+          ...prev,
+          status: newStatus,
+          lastActivity: new Date(), // עדכון זמן פעילות אחרון
+          // אם ה-API מחזיר היסטוריה מעודכנת, אפשר להוסיף אותה כאן, אבל לרוב הסטטוס מספיק ל-UI
+        };
+      });
+    }
+
+  } catch (error: unknown) {
+    console.error('Error updating suggestion status:', error);
+    toast.error(
+      `${toastsDict.statusUpdateError}: ${error instanceof Error ? error.message : ''}`
+    );
+  } finally {
+    setIsSubmitting(false);
+  }
+};
 
   const handleUpdateSuggestion = async ({
     suggestionId,

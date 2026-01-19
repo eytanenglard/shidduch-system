@@ -27,7 +27,8 @@ import {
   Edit,
   Calendar,
   Clock,
-
+  ArrowLeft, // להוספה
+  Edit2, // להוספה (אייקון עריכה קטן)
   AlarmClock,
   Trash2,
   User,
@@ -44,6 +45,10 @@ import {
 } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
+import {
+  statusTransitionService,
+  type SuggestionWithParties,
+} from '../services/suggestions/StatusTransitionService';
 
 import { MatchSuggestionStatus } from '@prisma/client';
 import type {
@@ -292,7 +297,6 @@ const getEnhancedStatusInfo = (status: MatchSuggestionStatus): StatusInfo => {
   );
 };
 
-
 // ... Internal Components updated to receive and use dict ...
 
 const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
@@ -310,8 +314,9 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
   const [activeTab, setActiveTab] = useState('overview');
   const [firstPartyQuestionnaire, setFirstPartyQuestionnaire] =
     useState<QuestionnaireResponse | null>(null);
-  const [secondPartyQuestionnaire, ] =
-    useState<QuestionnaireResponse | null>(null);
+  const [secondPartyQuestionnaire] = useState<QuestionnaireResponse | null>(
+    null
+  );
   const [isLoading, setIsLoading] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [statusChangeNote, setStatusChangeNote] = useState('');
@@ -438,6 +443,15 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
                     <statusInfo.icon className="w-4 h-4 ml-2" />
                     {statusLabel}
                   </Badge>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-6 w-6 rounded-full hover:bg-white/40 text-gray-700"
+                    onClick={() => setShowStatusChange(true)}
+                    title="שינוי סטטוס"
+                  >
+                    <Edit2 className="w-3.5 h-3.5" />
+                  </Button>
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger asChild>
@@ -656,31 +670,98 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
             </TabsContent>
           </div>
         </Tabs>
+
         {showStatusChange && (
           <div
-            className="fixed inset-0 bg-black/60 flex items-center justify-center z-[100]"
-            dir="rtl"
+            className="fixed inset-0 bg-black/60 flex items-center justify-center z-[100] p-4"
+            dir={locale === 'he' ? 'rtl' : 'ltr'}
           >
-            <div className="bg-white p-6 rounded-2xl max-w-md w-full shadow-2xl m-4">
-              <h3 className="text-xl font-bold mb-4 flex items-center">
-                <RefreshCw className="w-5 h-5 ml-2 text-blue-600" />
-                {dict.statusChangeModal.title}
-              </h3>
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium mb-1 text-gray-600">
+            <div className="bg-white p-6 rounded-2xl max-w-lg w-full shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-xl font-bold flex items-center text-gray-800">
+                  <RefreshCw className="w-5 h-5 ml-2 text-blue-600" />
+                  {dict.statusChangeModal.title}
+                </h3>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowStatusChange(false)}
+                >
+                  <CloseIcon className="w-5 h-5" />
+                </Button>
+              </div>
+
+              <div className="space-y-6">
+                {/* תצוגת סטטוס נוכחי */}
+                <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-gray-500 mb-2">
                     {dict.statusChangeModal.currentStatusLabel}
                   </label>
-                  <div className="flex items-center p-3 bg-gray-100 rounded-lg border">
-                    <statusInfo.icon
-                      className={`w-5 h-5 ml-3 ${statusInfo.color}`}
-                    />
-                    <span className="font-bold">{statusLabel}</span>
+                  <div className="flex items-center gap-3">
+                    <div
+                      className={cn(
+                        'p-2 rounded-full text-white',
+                        statusInfo.badgeColor
+                      )}
+                    >
+                      <statusInfo.icon className="w-5 h-5" />
+                    </div>
+                    <span className="font-bold text-lg text-gray-800">
+                      {statusLabel}
+                    </span>
                   </div>
                 </div>
+
+                {/* פעולות מומלצות - Recommended Actions */}
                 <div>
-                  <label className="block text-sm font-medium mb-1 text-gray-600">
-                    {dict.statusChangeModal.newStatusLabel}
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-gray-500 mb-3">
+                    פעולות מומלצות
+                  </label>
+                  <div className="grid grid-cols-1 gap-2">
+                    {statusTransitionService
+                      .getAvailableActions(
+                        suggestion as unknown as SuggestionWithParties,
+                        userId
+                      )
+                      .map((action) => (
+                        <Button
+                          key={action.id}
+                          variant="outline"
+                          className="justify-between h-auto py-3 px-4 border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-all text-right group"
+                          onClick={() => {
+                            setNewStatus(action.nextStatus);
+                            // אפשר להוסיף הערה אוטומטית לפי הפעולה
+                            // setStatusChangeNote(action.label);
+                          }}
+                        >
+                          <span className="font-medium text-gray-700 group-hover:text-blue-700">
+                            {action.label}
+                          </span>
+                          {newStatus === action.nextStatus ? (
+                            <CheckCircle className="w-5 h-5 text-blue-600" />
+                          ) : (
+                            <ArrowLeft className="w-4 h-4 text-gray-400 group-hover:text-blue-500 opacity-0 group-hover:opacity-100 transition-opacity" />
+                          )}
+                        </Button>
+                      ))}
+
+                    {statusTransitionService.getAvailableActions(
+                      suggestion as unknown as SuggestionWithParties,
+                      userId
+                    ).length === 0 && (
+                      <p className="text-sm text-gray-500 italic">
+                        אין פעולות מומלצות לסטטוס זה.
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="border-t border-gray-100 my-4"></div>
+
+                {/* בחירה ידנית (כמו שהיה קודם, למקרי חירום) */}
+                <div>
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-gray-500 mb-2">
+                    {dict.statusChangeModal.newStatusLabel} (בחירה ידנית)
                   </label>
                   <Select
                     value={newStatus || undefined}
@@ -688,14 +769,14 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
                       setNewStatus(value as MatchSuggestionStatus)
                     }
                   >
-                    <SelectTrigger className="w-full">
+                    <SelectTrigger className="w-full h-11">
                       <SelectValue
                         placeholder={
                           dict.statusChangeModal.newStatusPlaceholder
                         }
                       />
                     </SelectTrigger>
-                    <SelectContent className="max-h-60 overflow-y-auto">
+                    <SelectContent className="max-h-60">
                       {Object.entries(dict.statusLabels).map(
                         ([status, label]) => (
                           <SelectItem key={status} value={status}>
@@ -706,20 +787,24 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
                     </SelectContent>
                   </Select>
                 </div>
+
+                {/* הערות */}
                 <div>
-                  <label className="block text-sm font-medium mb-1 text-gray-600">
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-gray-500 mb-2">
                     {dict.statusChangeModal.notesLabel}
                   </label>
                   <Textarea
                     value={statusChangeNote}
                     onChange={(e) => setStatusChangeNote(e.target.value)}
                     placeholder={dict.statusChangeModal.notesPlaceholder}
-                    className="min-h-[100px] resize-none"
+                    className="min-h-[80px] resize-none focus:ring-blue-500"
                   />
                 </div>
-                <div className="flex justify-end gap-3 pt-4 border-t">
+
+                {/* כפתורי פעולה */}
+                <div className="flex justify-end gap-3 pt-2">
                   <Button
-                    variant="outline"
+                    variant="ghost"
                     onClick={() => setShowStatusChange(false)}
                   >
                     {dict.statusChangeModal.cancelButton}
@@ -727,11 +812,11 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
                   <Button
                     onClick={handleStatusChange}
                     disabled={!newStatus || isLoading}
-                    className="bg-blue-600 hover:bg-blue-700"
+                    className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg px-6"
                   >
                     {isLoading ? (
                       <>
-                        <RefreshCw className="w-4 h-4 ml-2 animate-spin" />{' '}
+                        <RefreshCw className="w-4 h-4 ml-2 animate-spin" />
                         {dict.statusChangeModal.savingButton}
                       </>
                     ) : (

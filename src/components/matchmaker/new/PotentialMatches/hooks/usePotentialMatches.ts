@@ -16,7 +16,7 @@ import type {
   PotentialMatchAction,
   BatchScanResponse,
   BatchScanProgress,
-} from '@/types/potentialMatches';
+} from '../types/potentialMatches';
 
 // =============================================================================
 // TYPES

@@ -283,7 +283,8 @@ export type PotentialMatchAction =
   | 'review'
   | 'dismiss'
   | 'restore'
-  | 'create_suggestion';
+  | 'create_suggestion'
+   | 'save';;
 
 export interface PotentialMatchActionRequest {
   matchId: string;
