@@ -26,7 +26,7 @@ import {
 import { cn } from '@/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
 import { he } from 'date-fns/locale';
-import type { PotentialMatchesStats as StatsType, LastScanInfo } from '@/types/potentialMatches';
+import type { PotentialMatchesStats as StatsType, LastScanInfo } from './types/potentialMatches';
 
 // =============================================================================
 // TYPES
