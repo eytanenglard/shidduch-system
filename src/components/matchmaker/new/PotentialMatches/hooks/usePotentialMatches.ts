@@ -167,6 +167,9 @@ export function usePotentialMatches(
       const params = new URLSearchParams();
       params.set('page', String(pagination.page));
       params.set('pageSize', String(pagination.pageSize));
+       if (filters.searchTerm) {
+        params.set('searchTerm', filters.searchTerm);
+      }
       params.set('status', filters.status);
       params.set('minScore', String(filters.minScore));
       params.set('maxScore', String(filters.maxScore));

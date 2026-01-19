@@ -1,12 +1,12 @@
 // =============================================================================
 // src/app/api/matchmaker/potential-matches/route.ts
-// API לשליפת התאמות פוטנציאליות שנמצאו בסריקה הלילית
+// API לשליפת התאמות פוטנציאליות - כולל תיקון חיפוש שרת
 // =============================================================================
 
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { UserRole, PotentialMatchStatus } from "@prisma/client";
+import { UserRole, PotentialMatchStatus, Prisma } from "@prisma/client";
 import prisma from "@/lib/prisma";
 
 export const dynamic = 'force-dynamic';
@@ -63,6 +63,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     
     const page = Math.max(1, parseInt(searchParams.get('page') || '1'));
     const pageSize = Math.min(MAX_PAGE_SIZE, Math.max(1, parseInt(searchParams.get('pageSize') || String(DEFAULT_PAGE_SIZE))));
+    
     const status = searchParams.get('status') || 'all';
     const minScore = parseFloat(searchParams.get('minScore') || '0');
     const maxScore = parseFloat(searchParams.get('maxScore') || '100');
@@ -70,27 +71,75 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     const hasWarning = searchParams.get('hasWarning'); // 'true', 'false', or null
     const religiousLevel = searchParams.get('religiousLevel');
     const city = searchParams.get('city');
-    const searchTerm = searchParams.get('search');
+    
+    // ✅ קבלת מילת החיפוש מהלקוח
+    const searchTerm = searchParams.get('search'); 
 
     // 3. בניית Where clause
-    const where: any = {
+    const where: Prisma.PotentialMatchWhereInput = {
       aiScore: {
         gte: minScore,
         lte: maxScore,
       }
     };
 
+    // ✅ לוגיקה לחיפוש טקסטואלי ברמת ה-DB
+    if (searchTerm) {
+      const term = searchTerm.trim();
+      where.OR = [
+        // חיפוש בצד הגבר
+        { male: { firstName: { contains: term, mode: 'insensitive' } } },
+        { male: { lastName: { contains: term, mode: 'insensitive' } } },
+        { male: { phone: { contains: term } } }, // חיפוש גם בטלפון
+        // חיפוש בצד האישה
+        { female: { firstName: { contains: term, mode: 'insensitive' } } },
+        { female: { lastName: { contains: term, mode: 'insensitive' } } },
+        { female: { phone: { contains: term } } }, // חיפוש גם בטלפון
+        // חיפוש בנימוק
+        { shortReasoning: { contains: term, mode: 'insensitive' } }
+      ];
+    }
+
     // סינון לפי סטטוס
     if (status !== 'all') {
       if (status === 'with_warnings' || status === 'no_warnings') {
-        // יטופל אחרי השליפה
+        // סינון זה מתבצע אחרי השליפה כי הוא תלוי בטבלה אחרת,
+        // אבל אם רוצים לשפר ביצועים בעתיד, צריך לעשות זאת דרך Include או Join.
+        // כרגע נשאיר אותו לפוסט-פרוססינג כדי לא לשבור לוגיקה קיימת, 
+        // אלא אם כן נדרש אחרת.
       } else {
         where.status = status.toUpperCase() as PotentialMatchStatus;
       }
     }
 
+    // סינון לפי רמה דתית (ברמת ה-DB)
+    if (religiousLevel) {
+      where.AND = [
+        ...(Array.isArray(where.AND) ? where.AND : []),
+        {
+          OR: [
+            { male: { profile: { religiousLevel: religiousLevel } } },
+            { female: { profile: { religiousLevel: religiousLevel } } }
+          ]
+        }
+      ] as Prisma.PotentialMatchWhereInput['AND'];
+    }
+
+    // סינון לפי עיר (ברמת ה-DB)
+    if (city) {
+      where.AND = [
+        ...(Array.isArray(where.AND) ? where.AND : []),
+        {
+          OR: [
+            { male: { profile: { city: { contains: city, mode: 'insensitive' } } } },
+            { female: { profile: { city: { contains: city, mode: 'insensitive' } } } }
+          ]
+        }
+      ] as Prisma.PotentialMatchWhereInput['AND'];
+    }
+
     // 4. בניית Order By
-    let orderBy: any = {};
+    let orderBy: Prisma.PotentialMatchOrderByWithRelationInput = {};
     switch (sortBy) {
       case 'score_desc':
         orderBy = { aiScore: 'desc' };
@@ -264,8 +313,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
           firstName: match.male.firstName,
           lastName: match.male.lastName,
           age: maleAge,
-                    phone: match.male.phone, 
-
+          phone: match.male.phone, 
           city: match.male.profile?.city || null,
           religiousLevel: match.male.profile?.religiousLevel || null,
           occupation: match.male.profile?.occupation || null,
@@ -282,8 +330,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
           firstName: match.female.firstName,
           lastName: match.female.lastName,
           age: femaleAge,
-                    phone: match.female.phone,
-
+          phone: match.female.phone,
           city: match.female.profile?.city || null,
           religiousLevel: match.female.profile?.religiousLevel || null,
           occupation: match.female.profile?.occupation || null,
@@ -314,39 +361,13 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       };
     });
 
-    // 8. סינון נוסף לפי אזהרות (אם נדרש)
+    // 8. סינון נוסף לפי אזהרות (מבוצע בזיכרון כי זה שדה מחושב)
+    // הערה: החיפוש הטקסטואלי כבר בוצע למעלה ב-DB, אז אין צורך לסנן אותו כאן שוב.
     let filteredMatches = processedMatches;
     if (hasWarning === 'true') {
       filteredMatches = processedMatches.filter(m => m.hasActiveWarning);
     } else if (hasWarning === 'false') {
       filteredMatches = processedMatches.filter(m => !m.hasActiveWarning);
-    }
-
-    // סינון לפי רמה דתית
-    if (religiousLevel) {
-      filteredMatches = filteredMatches.filter(m => 
-        m.male.religiousLevel === religiousLevel || 
-        m.female.religiousLevel === religiousLevel
-      );
-    }
-
-    // סינון לפי עיר
-    if (city) {
-      filteredMatches = filteredMatches.filter(m =>
-        m.male.city === city || m.female.city === city
-      );
-    }
-
-    // סינון לפי טקסט חופשי
-    if (searchTerm) {
-      const term = searchTerm.toLowerCase();
-      filteredMatches = filteredMatches.filter(m =>
-        m.male.firstName.toLowerCase().includes(term) ||
-        m.male.lastName.toLowerCase().includes(term) ||
-        m.female.firstName.toLowerCase().includes(term) ||
-        m.female.lastName.toLowerCase().includes(term) ||
-        m.shortReasoning?.toLowerCase().includes(term)
-      );
     }
 
     // 9. חישוב סטטיסטיקות
@@ -460,7 +481,8 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
           message: 'ההתאמה סומנה כנבדקה',
         });
       }
-   case 'save': {
+
+      case 'save': {
         await prisma.potentialMatch.update({
           where: { id: matchId },
           data: {
@@ -475,6 +497,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
           message: 'ההתאמה נשמרה בצד',
         });
       }
+
       case 'dismiss': {
         await prisma.potentialMatch.update({
           where: { id: matchId },
@@ -713,7 +736,7 @@ async function calculateStats() {
     sent: 0,
     dismissed: 0,
     expired: 0,
-    withWarnings: 0, // יחושב בנפרד
+    withWarnings: 0, // יחושב בנפרד אם נדרש, אך כאן הוא רק placeholder
     avgScore: Math.round((avgScoreResult._avg.aiScore || 0) * 10) / 10,
     highScore: 0,
     mediumScore: 0,
