@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmaker\new\PotentialMatches
-# Generated on: 2026-01-19 22:11:08
+# Generated on: 2026-01-19 22:47:19
 # Filter: Only content of code files (.bat, .c, .cfg, .conf, .cpp, .cs, .css, .go, .h, .html, .ini, .java, .js, .json, .jsx, .kt, .less, .md, .php, .py, .rb, .rs, .scss, .sh, .sql, .swift, .ts, .tsx, .txt, .xml, .yaml, .yml) is included.
 ################################################################################
 
@@ -776,7 +776,7 @@ import {
   Send,
   X,
   Trash2,
-  Bookmark ,
+  Bookmark,
   LayoutGrid,
   List,
   CheckCircle,
@@ -803,7 +803,7 @@ import type {
   PotentialMatchSortBy,
 } from './types/potentialMatches';
 import type { ProfilePageDictionary } from '@/types/dictionary';
-import type { MatchmakerPageDictionary } from '@/types/dictionaries/matchmaker'; // Needed for type casting
+import type { MatchmakerPageDictionary } from '@/types/dictionaries/matchmaker';
 
 // =============================================================================
 // TYPES
@@ -812,10 +812,9 @@ import type { MatchmakerPageDictionary } from '@/types/dictionaries/matchmaker';
 interface PotentialMatchesDashboardProps {
   locale?: string;
   profileDict: ProfilePageDictionary;
-  matchmakerDict: MatchmakerPageDictionary; // הוספתי זאת כדי שנוכל להעביר מילונים לדיאלוגים
+  matchmakerDict: MatchmakerPageDictionary;
 }
 
-// ... (STATUS_OPTIONS and SORT_OPTIONS unchanged) ...
 const STATUS_OPTIONS: {
   value: PotentialMatchFilterStatus;
   label: string;
@@ -825,7 +824,7 @@ const STATUS_OPTIONS: {
   { value: 'pending', label: 'ממתינות', icon: Clock },
   { value: 'reviewed', label: 'נבדקו', icon: Eye },
   { value: 'sent', label: 'נשלחו', icon: Send },
-   { value: 'shortlisted', label: 'שמורים בצד', icon: Bookmark },
+  { value: 'shortlisted', label: 'שמורים בצד', icon: Bookmark },
   { value: 'dismissed', label: 'נדחו', icon: X },
   { value: 'with_warnings', label: 'עם אזהרות', icon: AlertTriangle },
   { value: 'no_warnings', label: 'ללא אזהרות', icon: CheckCircle },
@@ -849,7 +848,10 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
 }) => {
   // State
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-  const [searchTerm, setSearchTerm] = useState('');
+
+  // ✅ ניהול חיפוש מקומי עבור Debounce
+  const [localSearchTerm, setLocalSearchTerm] = useState('');
+
   const [showBulkActions, setShowBulkActions] = useState(false);
 
   // Dialogs
@@ -869,7 +871,7 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
   const [isLoadingProfile, setIsLoadingProfile] = useState(false);
   const [isMatchmakerView, setIsMatchmakerView] = useState(true);
 
-  // --- AI Analysis & Feedback State (New) ---
+  // --- AI Analysis & Feedback State ---
   const [analyzedCandidate, setAnalyzedCandidate] = useState<any | null>(null);
   const [feedbackCandidate, setFeedbackCandidate] = useState<any | null>(null);
 
@@ -897,7 +899,7 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
     reviewMatch,
     dismissMatch,
     restoreMatch,
-    saveMatch, 
+    saveMatch,
     createSuggestion,
     bulkDismiss,
     bulkReview,
@@ -915,6 +917,20 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
     autoRefresh: true,
     refreshInterval: 60000,
   });
+
+  // ==========================================================================
+  // SERVER SIDE SEARCH EFFECT
+  // ==========================================================================
+
+  // ✅ אפקט זה מעדכן את הפילטרים ב-Hook לאחר השהייה (Debounce)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      // עדכון ה-Hook עם מילת החיפוש הנוכחית
+      setFilters({ searchTerm: localSearchTerm });
+    }, 600); // המתנה של 600ms מסיום ההקלדה
+
+    return () => clearTimeout(timer);
+  }, [localSearchTerm, setFilters]);
 
   // ==========================================================================
   // PROFILE LOADING EFFECT
@@ -1016,16 +1032,10 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
     setViewProfileId(userId);
   }, []);
 
-  // Filter matches by search term
-  const filteredMatches = searchTerm
-    ? matches.filter(
-        (m) =>
-          m.male.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          m.male.lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          m.female.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          m.female.lastName.toLowerCase().includes(searchTerm.toLowerCase())
-      )
-    : matches;
+  const handleResetFilters = useCallback(() => {
+    setLocalSearchTerm(''); // איפוס גם של שדה החיפוש הויזואלי
+    resetFilters();
+  }, [resetFilters]);
 
   // ==========================================================================
   // RENDER
@@ -1107,8 +1117,8 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
               <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
               <Input
                 placeholder="חיפוש לפי שם..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                value={localSearchTerm}
+                onChange={(e) => setLocalSearchTerm(e.target.value)}
                 className="pr-10"
               />
             </div>
@@ -1212,7 +1222,7 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
             </Button>
 
             {/* Reset Filters */}
-            <Button variant="ghost" size="sm" onClick={resetFilters}>
+            <Button variant="ghost" size="sm" onClick={handleResetFilters}>
               <X className="w-4 h-4 ml-1" />
               נקה פילטרים
             </Button>
@@ -1283,20 +1293,22 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
         )}
 
         {/* Empty State */}
-        {!isLoading && filteredMatches.length === 0 && (
+        {!isLoading && matches.length === 0 && (
           <Card className="p-12 text-center border-0 shadow-lg">
             <Heart className="w-16 h-16 mx-auto mb-4 text-gray-300" />
             <h3 className="text-xl font-bold text-gray-700 mb-2">
               לא נמצאו התאמות
             </h3>
             <p className="text-gray-500 mb-6">
-              {filters.status !== 'all'
-                ? 'נסה לשנות את הפילטרים או לחפש בכל ההתאמות'
-                : 'הפעל סריקה לילית למציאת התאמות חדשות'}
+              {localSearchTerm
+                ? 'לא נמצאו תוצאות התואמות את החיפוש שלך.'
+                : filters.status !== 'all'
+                  ? 'נסה לשנות את הפילטרים או לחפש בכל ההתאמות.'
+                  : 'הפעל סריקה לילית למציאת התאמות חדשות.'}
             </p>
-            {filters.status !== 'all' ? (
-              <Button variant="outline" onClick={resetFilters}>
-                הצג את כל ההתאמות
+            {localSearchTerm || filters.status !== 'all' ? (
+              <Button variant="outline" onClick={handleResetFilters}>
+                נקה חיפוש ופילטרים
               </Button>
             ) : (
               <Button onClick={() => setConfirmScanDialog(true)}>
@@ -1308,7 +1320,8 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
         )}
 
         {/* Matches Grid */}
-        {!isLoading && filteredMatches.length > 0 && (
+        {/* ✅ כאן משתמשים ב-matches ישירות, כי הסינון נעשה בשרת */}
+        {!isLoading && matches.length > 0 && (
           <>
             <div
               className={cn(
@@ -1319,7 +1332,7 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
               )}
             >
               <AnimatePresence mode="popLayout">
-                {filteredMatches.map((match) => (
+                {matches.map((match) => (
                   <PotentialMatchCard
                     key={match.id}
                     match={match}
@@ -1329,7 +1342,6 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
                     onRestore={restoreMatch}
                     onSave={saveMatch}
                     onViewProfile={handleViewProfile}
-                    // העברת ה-Handlers החדשים
                     onAnalyzeCandidate={(candidate) =>
                       setAnalyzedCandidate(candidate)
                     }
@@ -2250,6 +2262,9 @@ export function usePotentialMatches(
       const params = new URLSearchParams();
       params.set('page', String(pagination.page));
       params.set('pageSize', String(pagination.pageSize));
+       if (filters.searchTerm) {
+        params.set('searchTerm', filters.searchTerm);
+      }
       params.set('status', filters.status);
       params.set('minScore', String(filters.minScore));
       params.set('maxScore', String(filters.maxScore));

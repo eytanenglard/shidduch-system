@@ -197,9 +197,17 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
   // ✅ אפקט זה מעדכן את הפילטרים ב-Hook לאחר השהייה (Debounce)
   useEffect(() => {
     const timer = setTimeout(() => {
-      // עדכון ה-Hook עם מילת החיפוש הנוכחית
-      setFilters({ searchTerm: localSearchTerm });
-    }, 600); // המתנה של 600ms מסיום ההקלדה
+      // אם יש ערך בחיפוש, אנחנו רוצים לחפש בכל הסטטוסים
+      if (localSearchTerm && localSearchTerm.length > 0) {
+        setFilters({
+          searchTerm: localSearchTerm,
+          status: 'all', // <--- שינוי אוטומטי ל'הכל' בעת חיפוש
+        });
+      } else {
+        // אם מחקו את החיפוש, אפשר להשאיר את הסטטוס הנוכחי או להחזיר לממתינות
+        setFilters({ searchTerm: localSearchTerm });
+      }
+    }, 600);
 
     return () => clearTimeout(timer);
   }, [localSearchTerm, setFilters]);

@@ -73,8 +73,8 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     const city = searchParams.get('city');
     
     // ✅ קבלת מילת החיפוש מהלקוח
-    const searchTerm = searchParams.get('search'); 
-
+// קוד מתוקן
+const searchTerm = searchParams.get('searchTerm');
     // 3. בניית Where clause
     const where: Prisma.PotentialMatchWhereInput = {
       aiScore: {
