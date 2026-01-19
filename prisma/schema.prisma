@@ -1023,6 +1023,7 @@ enum PotentialMatchStatus {
   SENT         // נשלחה הצעה
   DISMISSED    // נדחה ע"י השדכן
   EXPIRED      // פג תוקף (סריקה ישנה מדי)
+  SHORTLISTED 
 }
 
 // טבלה חדשה: לוג סריקות לילה

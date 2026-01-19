@@ -460,7 +460,21 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
           message: 'ההתאמה סומנה כנבדקה',
         });
       }
+   case 'save': {
+        await prisma.potentialMatch.update({
+          where: { id: matchId },
+          data: {
+            status: 'SHORTLISTED',
+            reviewedAt: new Date(),
+            reviewedBy: session.user.id,
+          }
+        });
 
+        return NextResponse.json({
+          success: true,
+          message: 'ההתאמה נשמרה בצד',
+        });
+      }
       case 'dismiss': {
         await prisma.potentialMatch.update({
           where: { id: matchId },

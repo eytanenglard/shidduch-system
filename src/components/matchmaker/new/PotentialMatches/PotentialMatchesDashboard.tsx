@@ -48,6 +48,7 @@ import {
   Send,
   X,
   Trash2,
+  Bookmark ,
   LayoutGrid,
   List,
   CheckCircle,
@@ -72,7 +73,7 @@ import { usePotentialMatches } from './hooks/usePotentialMatches';
 import type {
   PotentialMatchFilterStatus,
   PotentialMatchSortBy,
-} from '@/types/potentialMatches';
+} from './types/potentialMatches';
 import type { ProfilePageDictionary } from '@/types/dictionary';
 import type { MatchmakerPageDictionary } from '@/types/dictionaries/matchmaker'; // Needed for type casting
 
@@ -96,6 +97,7 @@ const STATUS_OPTIONS: {
   { value: 'pending', label: 'ממתינות', icon: Clock },
   { value: 'reviewed', label: 'נבדקו', icon: Eye },
   { value: 'sent', label: 'נשלחו', icon: Send },
+   { value: 'shortlisted', label: 'שמורים בצד', icon: Bookmark },
   { value: 'dismissed', label: 'נדחו', icon: X },
   { value: 'with_warnings', label: 'עם אזהרות', icon: AlertTriangle },
   { value: 'no_warnings', label: 'ללא אזהרות', icon: CheckCircle },
@@ -167,6 +169,7 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
     reviewMatch,
     dismissMatch,
     restoreMatch,
+    saveMatch, 
     createSuggestion,
     bulkDismiss,
     bulkReview,
@@ -596,6 +599,7 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
                     onDismiss={(id) => setDismissDialog(id)}
                     onReview={reviewMatch}
                     onRestore={restoreMatch}
+                    onSave={saveMatch}
                     onViewProfile={handleViewProfile}
                     // העברת ה-Handlers החדשים
                     onAnalyzeCandidate={(candidate) =>

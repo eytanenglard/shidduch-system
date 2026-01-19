@@ -28,4 +28,4 @@ export type {
   ScoreBreakdown,
   CandidateBasicInfo,
   ActiveSuggestionInfo,
-} from '@/types/potentialMatches';
+} from './types/potentialMatches';

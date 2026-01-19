@@ -61,6 +61,7 @@ interface UsePotentialMatchesReturn {
   reviewMatch: (matchId: string) => Promise<boolean>;
   dismissMatch: (matchId: string, reason?: string) => Promise<boolean>;
   restoreMatch: (matchId: string) => Promise<boolean>;
+  saveMatch: (matchId: string) => Promise<boolean>;
   createSuggestion: (matchId: string, data?: {
     priority?: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
     firstPartyNotes?: string;
@@ -280,7 +281,9 @@ export function usePotentialMatches(
         switch (action) {
           case 'review':
             return { ...m, status: 'REVIEWED' as any, reviewedAt: new Date() };
-          case 'dismiss':
+            case 'save': // <--- הוסף שורה זו
+            return { ...m, status: 'SHORTLISTED' as any, reviewedAt: new Date() };
+            case 'dismiss':
             return { ...m, status: 'DISMISSED' as any };
           case 'restore':
             return { ...m, status: 'PENDING' as any };
@@ -369,6 +372,11 @@ export function usePotentialMatches(
     }
   }, []);
 
+  const saveMatch = useCallback(async (matchId: string): Promise<boolean> => {
+    const success = await performAction(matchId, 'save');
+    if (success) toast.success('ההתאמה נשמרה בצד');
+    return success;
+  }, [performAction]);
   // ==========================================================================
   // BULK ACTIONS
   // ==========================================================================
@@ -577,7 +585,7 @@ export function usePotentialMatches(
     dismissMatch,
     restoreMatch,
     createSuggestion,
-    
+    saveMatch,
     // Bulk actions
     bulkDismiss,
     bulkReview,

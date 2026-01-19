@@ -12,7 +12,8 @@ export type PotentialMatchStatus =
   | 'REVIEWED'     // נבדק אך לא הוחלט
   | 'SENT'         // נשלחה הצעה
   | 'DISMISSED'    // נדחה ע"י השדכן
-  | 'EXPIRED';     // פג תוקף
+  | 'EXPIRED'    // פג תוקף
+    | 'SHORTLISTED';
 
 export type AvailabilityStatus = 
   | 'AVAILABLE' 
@@ -255,6 +256,7 @@ export type PotentialMatchFilterStatus =
   | 'sent' 
   | 'dismissed'
   | 'expired'
+  | 'shortlisted'
   | 'with_warnings'
   | 'no_warnings';
 
@@ -279,7 +281,8 @@ export type PotentialMatchAction =
   | 'review'
   | 'dismiss'
   | 'restore'
-  | 'create_suggestion';
+  | 'create_suggestion'
+   | 'save';;
 
 export interface PotentialMatchActionRequest {
   matchId: string;
@@ -353,6 +356,7 @@ export const STATUS_LABELS: Record<PotentialMatchStatus, { label: string; color:
   'SENT': { label: 'נשלחה הצעה', color: 'bg-green-100 text-green-700' },
   'DISMISSED': { label: 'נדחה', color: 'bg-gray-100 text-gray-700' },
   'EXPIRED': { label: 'פג תוקף', color: 'bg-red-100 text-red-700' },
+   'SHORTLISTED': { label: 'שמור בצד', color: 'bg-purple-100 text-purple-700' },
 };
 
 export function getStatusBadge(status: PotentialMatchStatus): { label: string; color: string } {

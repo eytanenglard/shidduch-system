@@ -33,6 +33,7 @@ import {
   Heart,
   HeartHandshake,
   MapPin,
+  Bookmark, 
   Eye,
   MoreHorizontal,
   Send,
@@ -52,7 +53,7 @@ import {
 import { cn, getRelativeCloudinaryPath } from '@/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
 import { he } from 'date-fns/locale';
-import type { PotentialMatch, ScoreBreakdown } from '@/types/potentialMatches';
+import type { PotentialMatch, ScoreBreakdown } from './types/potentialMatches';
 
 // =============================================================================
 // TYPES
@@ -64,6 +65,7 @@ interface PotentialMatchCardProps {
   onDismiss: (matchId: string) => void;
   onReview: (matchId: string) => void;
   onRestore: (matchId: string) => void;
+   onSave: (matchId: string) => void;
   onViewProfile: (userId: string) => void;
 
   // New Action Callbacks
@@ -416,6 +418,7 @@ const PotentialMatchCard: React.FC<PotentialMatchCardProps> = ({
   onViewProfile,
   onAnalyzeCandidate,
   onProfileFeedback,
+  onSave, 
   isSelected = false,
   onToggleSelect,
   showSelection = false,
@@ -514,6 +517,7 @@ const PotentialMatchCard: React.FC<PotentialMatchCardProps> = ({
                         <HeartHandshake className="w-4 h-4 ml-2 text-green-600" />
                         צור הצעה
                       </DropdownMenuItem>
+                      
                       <DropdownMenuItem onClick={() => onReview(match.id)}>
                         <Eye className="w-4 h-4 ml-2 text-blue-600" />
                         סמן כנבדק
@@ -638,6 +642,17 @@ const PotentialMatchCard: React.FC<PotentialMatchCardProps> = ({
                   <HeartHandshake className="w-4 h-4 ml-2" />
                   צור הצעה
                 </Button>
+                  {match.status !== 'SHORTLISTED' && (
+                    <Button
+                      variant="outline"
+                      className="h-9 px-3 text-purple-600 border-purple-200 hover:bg-purple-50"
+                      onClick={() => onSave(match.id)}
+                      title="שמור בצד"
+                    >
+                      <Bookmark className="w-4 h-4" />
+                    </Button>
+                )}
+
                 <Button
                   variant="outline"
                   className="flex-1 h-9 text-sm"
