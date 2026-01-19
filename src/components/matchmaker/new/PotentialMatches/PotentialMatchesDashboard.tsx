@@ -2,7 +2,7 @@
 
 'use client';
 
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -124,6 +124,12 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
   // ✅ ניהול חיפוש מקומי עבור Debounce
   const [localSearchTerm, setLocalSearchTerm] = useState('');
 
+  // ✅ ניהול דפדוף ידני (Input)
+  const [pageInput, setPageInput] = useState('1');
+
+  // ✅ ניהול מיקום גלילה
+  const scrollPositionRef = useRef(0);
+
   const [showBulkActions, setShowBulkActions] = useState(false);
 
   // Dialogs
@@ -189,6 +195,13 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
     autoRefresh: true,
     refreshInterval: 60000,
   });
+
+  // ==========================================================================
+  // SYNC PAGE INPUT
+  // ==========================================================================
+  useEffect(() => {
+    setPageInput(String(pagination.page));
+  }, [pagination.page]);
 
   // ==========================================================================
   // SERVER SIDE SEARCH EFFECT
@@ -308,7 +321,9 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
     await bulkDismiss(selectedMatchIds, 'דחייה מרובה');
   }, [bulkDismiss, selectedMatchIds]);
 
+  // ✅ תיקון גלילה: שמירת המיקום לפני פתיחת הפרופיל
   const handleViewProfile = useCallback((userId: string) => {
+    scrollPositionRef.current = window.scrollY; // שמור מיקום נוכחי
     setViewProfileId(userId);
   }, []);
 
@@ -316,6 +331,28 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
     setLocalSearchTerm(''); // איפוס גם של שדה החיפוש הויזואלי
     resetFilters();
   }, [resetFilters]);
+
+  // ✅ פונקציה לשינוי עמוד ידני
+  const handlePageInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setPageInput(e.target.value);
+  };
+
+  const handlePageInputSubmit = () => {
+    const newPage = parseInt(pageInput);
+    if (!isNaN(newPage) && newPage >= 1 && newPage <= pagination.totalPages) {
+      setPage(newPage);
+    } else {
+      // אם הקלט לא תקין, החזר את הערך הנוכחי
+      setPageInput(String(pagination.page));
+      toast.error(`נא להזין מספר עמוד בין 1 ל-${pagination.totalPages}`);
+    }
+  };
+
+  const handlePageInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      handlePageInputSubmit();
+    }
+  };
 
   // ==========================================================================
   // RENDER
@@ -662,9 +699,20 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
                     <ChevronRight className="w-4 h-4" />
                   </Button>
 
-                  <span className="text-sm px-3">
-                    עמוד {pagination.page} מתוך {pagination.totalPages}
-                  </span>
+                  {/* ✅ קלט להקלדת עמוד ידנית */}
+                  <div className="flex items-center gap-1 mx-2">
+                    <span className="text-sm text-gray-600">עמוד</span>
+                    <Input
+                      className="h-8 w-12 text-center p-0"
+                      value={pageInput}
+                      onChange={handlePageInputChange}
+                      onBlur={handlePageInputSubmit}
+                      onKeyDown={handlePageInputKeyDown}
+                    />
+                    <span className="text-sm text-gray-600">
+                      מתוך {pagination.totalPages}
+                    </span>
+                  </div>
 
                   <Button
                     variant="outline"
@@ -708,6 +756,14 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
             setViewProfileId(null);
             setFullProfileData(null);
             setQuestionnaireData(null);
+
+            // ✅ תיקון גלילה: שחזור המיקום
+            setTimeout(() => {
+              window.scrollTo({
+                top: scrollPositionRef.current,
+                behavior: 'instant', // חשוב כדי למנוע אנימציה מיותרת
+              });
+            }, 5);
           }
         }}
       >

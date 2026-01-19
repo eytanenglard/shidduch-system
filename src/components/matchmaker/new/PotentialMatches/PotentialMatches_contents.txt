@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmaker\new\PotentialMatches
-# Generated on: 2026-01-19 22:47:19
+# Generated on: 2026-01-19 23:24:08
 # Filter: Only content of code files (.bat, .c, .cfg, .conf, .cpp, .cs, .css, .go, .h, .html, .ini, .java, .js, .json, .jsx, .kt, .less, .md, .php, .py, .rb, .rs, .scss, .sh, .sql, .swift, .ts, .tsx, .txt, .xml, .yaml, .yml) is included.
 ################################################################################
 
@@ -925,9 +925,17 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
   // ✅ אפקט זה מעדכן את הפילטרים ב-Hook לאחר השהייה (Debounce)
   useEffect(() => {
     const timer = setTimeout(() => {
-      // עדכון ה-Hook עם מילת החיפוש הנוכחית
-      setFilters({ searchTerm: localSearchTerm });
-    }, 600); // המתנה של 600ms מסיום ההקלדה
+      // אם יש ערך בחיפוש, אנחנו רוצים לחפש בכל הסטטוסים
+      if (localSearchTerm && localSearchTerm.length > 0) {
+        setFilters({
+          searchTerm: localSearchTerm,
+          status: 'all', // <--- שינוי אוטומטי ל'הכל' בעת חיפוש
+        });
+      } else {
+        // אם מחקו את החיפוש, אפשר להשאיר את הסטטוס הנוכחי או להחזיר לממתינות
+        setFilters({ searchTerm: localSearchTerm });
+      }
+    }, 600);
 
     return () => clearTimeout(timer);
   }, [localSearchTerm, setFilters]);
