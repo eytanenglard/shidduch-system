@@ -9,6 +9,8 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
+import type { CandidateToHide } from './HideCandidateDialog';
+
 import {
   Tooltip,
   TooltipContent,
@@ -33,6 +35,7 @@ import {
   Heart,
   HeartHandshake,
   MapPin,
+  EyeOff,
   Bookmark, 
   Eye,
   MoreHorizontal,
@@ -76,6 +79,8 @@ interface PotentialMatchCardProps {
   onToggleSelect?: (matchId: string) => void;
   showSelection?: boolean;
   className?: string;
+   onHideCandidate: (candidate: CandidateToHide) => void;
+  hiddenCandidateIds?: Set<string>;
 }
 
 // =============================================================================
@@ -178,6 +183,7 @@ const CandidatePreview: React.FC<{
   onViewProfile: () => void;
   onAnalyze: () => void;
   onFeedback: () => void;
+   onHide: (candidate: CandidateToHide) => void; // הוסף
 }> = ({
   candidate,
   gender,
@@ -185,6 +191,7 @@ const CandidatePreview: React.FC<{
   onViewProfile,
   onAnalyze,
   onFeedback,
+  onHide,
 }) => {
   const genderIcon = gender === 'male' ? '👨' : '👩';
   const borderColor = gender === 'male' ? 'border-blue-200' : 'border-pink-200';
@@ -335,7 +342,33 @@ const CandidatePreview: React.FC<{
           </Tooltip>
         </TooltipProvider>
       </div>
-
+{/* כפתור הסתרה */}
+<TooltipProvider>
+  <Tooltip>
+    <TooltipTrigger asChild>
+      <Button
+        variant="ghost"
+        size="icon"
+        className="h-7 w-7 rounded-full bg-white/60 hover:bg-amber-100 hover:text-amber-600 shadow-sm border border-transparent hover:border-amber-200 transition-all"
+        onClick={(e) => {
+          e.stopPropagation();
+          onHide({
+            id: candidate.id,
+            firstName: candidate.firstName,
+            lastName: candidate.lastName,
+            mainImage: candidate.mainImage,
+            gender: gender === 'male' ? 'MALE' : 'FEMALE',
+          });
+        }}
+      >
+        <EyeOff className="w-3.5 h-3.5" />
+      </Button>
+    </TooltipTrigger>
+    <TooltipContent>
+      <p>הסתר זמנית</p>
+    </TooltipContent>
+  </Tooltip>
+</TooltipProvider>
       {/* התראה על הצעה פעילה */}
       {activeSuggestion && (
         <div className="mt-2 text-center">
@@ -423,6 +456,7 @@ const PotentialMatchCard: React.FC<PotentialMatchCardProps> = ({
   onToggleSelect,
   showSelection = false,
   className,
+  onHideCandidate,
 }) => {
   const [showDetails, setShowDetails] = useState(false);
   const [showReasoningDialog, setShowReasoningDialog] = useState(false);
@@ -544,7 +578,7 @@ const PotentialMatchCard: React.FC<PotentialMatchCardProps> = ({
 
             {/* Candidates Preview Row */}
             <div className="flex gap-3 mb-4">
-              <CandidatePreview
+            <CandidatePreview
                 candidate={match.male}
                 gender="male"
                 activeSuggestion={match.maleActiveSuggestion}
@@ -552,9 +586,10 @@ const PotentialMatchCard: React.FC<PotentialMatchCardProps> = ({
                 // העברת הפונקציות החדשות לכרטיס הזכר
                 onAnalyze={() => onAnalyzeCandidate(match.male)}
                 onFeedback={() => onProfileFeedback(match.male)}
+                onHide={onHideCandidate}
               />
 
-              {/* Heart Connector */}
+              {/* Heart Connector - נשאר ללא שינוי, מוצג כאן לקונטקסט */}
               <div className="flex flex-col justify-center items-center gap-1 z-10">
                 <div
                   className={cn(
@@ -574,6 +609,7 @@ const PotentialMatchCard: React.FC<PotentialMatchCardProps> = ({
                 // העברת הפונקציות החדשות לכרטיס הנקבה
                 onAnalyze={() => onAnalyzeCandidate(match.female)}
                 onFeedback={() => onProfileFeedback(match.female)}
+                onHide={onHideCandidate}
               />
             </div>
 

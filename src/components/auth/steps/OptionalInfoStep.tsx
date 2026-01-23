@@ -49,6 +49,7 @@ const OptionalInfoStep: React.FC<OptionalInfoStepProps> = ({
         gender: data.gender,
         birthDate: data.birthDate,
         maritalStatus: data.maritalStatus,
+        city: data.city,  
         height: data.height,
         occupation: data.occupation,
         education: data.education,

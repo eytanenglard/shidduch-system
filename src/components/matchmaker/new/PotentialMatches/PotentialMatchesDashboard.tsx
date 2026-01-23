@@ -1,8 +1,13 @@
 // src/components/matchmaker/new/PotentialMatches/PotentialMatchesDashboard.tsx
 
 'use client';
-
-import React, { useState, useCallback, useEffect, useRef } from 'react';
+import React, {
+  useMemo,
+  useState,
+  useCallback,
+  useEffect,
+  useRef,
+} from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -14,6 +19,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { useHiddenCandidates } from './hooks/useHiddenCandidates';
+import HiddenCandidatesDrawer from './HiddenCandidatesDrawer';
+import HideCandidateDialog, { CandidateToHide } from './HideCandidateDialog';
 import {
   Dialog,
   DialogContent,
@@ -195,7 +203,18 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
     autoRefresh: true,
     refreshInterval: 60000,
   });
+  const {
+    hiddenCandidates,
+    hiddenCandidateIds,
+    isLoading: isLoadingHidden,
+    hideCandidate,
+    unhideCandidate,
+    updateReason,
+  } = useHiddenCandidates();
 
+  const [candidateToHide, setCandidateToHide] =
+    useState<CandidateToHide | null>(null);
+  const [showHideDialog, setShowHideDialog] = useState(false);
   // ==========================================================================
   // SYNC PAGE INPUT
   // ==========================================================================
@@ -282,11 +301,29 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
   // ==========================================================================
   // HANDLERS
   // ==========================================================================
+  // סנן את ההצעות - הסתר הצעות עם מועמדים מוסתרים
+  const filteredMatches = useMemo(() => {
+    if (hiddenCandidateIds.size === 0) return matches;
 
+    return matches.filter(
+      (match) =>
+        !hiddenCandidateIds.has(match.male.id) &&
+        !hiddenCandidateIds.has(match.female.id)
+    );
+  }, [matches, hiddenCandidateIds]);
   const handleStartScan = useCallback(async () => {
     setConfirmScanDialog(false);
     await startScan({ method: 'algorithmic' });
   }, [startScan]);
+
+  const handleHideCandidate = (candidate: CandidateToHide) => {
+    setCandidateToHide(candidate);
+    setShowHideDialog(true);
+  };
+
+  const handleConfirmHide = async (candidateId: string, reason?: string) => {
+    return await hideCandidate(candidateId, reason);
+  };
 
   const handleCreateSuggestion = useCallback(async () => {
     if (!createSuggestionDialog) return;
@@ -382,6 +419,12 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
               </div>
             </div>
 
+            <HiddenCandidatesDrawer
+              hiddenCandidates={hiddenCandidates}
+              onUnhide={unhideCandidate}
+              onUpdateReason={updateReason}
+              isLoading={isLoadingHidden}
+            />
             {/* Actions */}
             <div className="flex items-center gap-3">
               <Button
@@ -649,7 +692,7 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
               )}
             >
               <AnimatePresence mode="popLayout">
-                {matches.map((match) => (
+                {filteredMatches.map((match) => (
                   <PotentialMatchCard
                     key={match.id}
                     match={match}
@@ -670,6 +713,8 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
                       showBulkActions ? toggleSelection : undefined
                     }
                     showSelection={showBulkActions}
+                     onHideCandidate={handleHideCandidate}
+    hiddenCandidateIds={hiddenCandidateIds}
                   />
                 ))}
               </AnimatePresence>
@@ -983,7 +1028,12 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
+      <HideCandidateDialog
+        open={showHideDialog}
+        onOpenChange={setShowHideDialog}
+        candidate={candidateToHide}
+        onConfirm={handleConfirmHide}
+      />
       {/* Dismiss Dialog */}
       <Dialog
         open={!!dismissDialog}

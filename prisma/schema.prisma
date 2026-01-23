@@ -70,7 +70,9 @@ virtualProfiles       VirtualProfile[]    @relation("MatchmakerVirtualProfiles")
   femaleMatches   PotentialMatch[] @relation("FemaleMatches")
   maleScannedPairs    ScannedPair[] @relation("MaleScannedPairs")
   femaleScannedPairs  ScannedPair[] @relation("FemaleScannedPairs")
-
+ hiddenByMatchmakers   HiddenCandidate[] @relation("HiddenCandidates")
+  hiddenCandidates      HiddenCandidate[] @relation("HiddenByMatchmaker")
+  
   @@index([email])
   @@index([role])
   @@index([status])
@@ -1084,4 +1086,19 @@ model ScannedPair {
   @@index([femaleUserId])
   @@index([passedThreshold])
   @@index([lastScannedAt])
+}
+
+model HiddenCandidate {
+  id           String   @id @default(cuid())
+  matchmakerId String
+  candidateId  String
+  reason       String?
+  hiddenAt     DateTime @default(now())
+  
+  matchmaker   User @relation("HiddenByMatchmaker", fields: [matchmakerId], references: [id], onDelete: Cascade)
+  candidate    User @relation("HiddenCandidates", fields: [candidateId], references: [id], onDelete: Cascade)
+  
+  @@unique([matchmakerId, candidateId])
+  @@index([matchmakerId])
+  @@index([candidateId])
 }

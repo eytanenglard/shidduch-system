@@ -10,7 +10,6 @@
 // אופציה 1: עדכון AppContent.tsx
 // ===========================================
 
-
 // קובץ: src/app/[locale]/layout.tsx
 
 import { Heebo } from 'next/font/google';
@@ -53,6 +52,11 @@ export async function generateMetadata(props: {
     keywords: dictionary.metadata.keywords,
     openGraph: dictionary.metadata.openGraph,
     twitter: dictionary.metadata.twitter,
+    icons: {
+      icon: '/logo.png', // הנתיב לקובץ ב-public
+      shortcut: '/favicon.ico',
+      apple: '/logo.png', // אופציונלי אך מומלץ למכשירי אפל
+    },
   };
 }
 
