@@ -72,7 +72,7 @@ virtualProfiles       VirtualProfile[]    @relation("MatchmakerVirtualProfiles")
   femaleScannedPairs  ScannedPair[] @relation("FemaleScannedPairs")
  hiddenByMatchmakers   HiddenCandidate[] @relation("HiddenCandidates")
   hiddenCandidates      HiddenCandidate[] @relation("HiddenByMatchmaker")
-  
+
   @@index([email])
   @@index([role])
   @@index([status])
@@ -480,7 +480,9 @@ enum HeadCoveringType {
   HAT_BERET
   SCARF_ONLY_SOMETIMES
   NONE
+  UNDECIDED  // ✅ הוסף
 }
+
 
 enum KippahType {
   BLACK_VELVET

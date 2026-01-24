@@ -539,6 +539,7 @@
         "PARTIAL_COVERAGE": "Partial Head Covering",
         "HAT_BERET": "Hat / Beret",
         "SCARF_ONLY_SOMETIMES": "Scarf (for synagogue/events)",
+        "UNDECIDED": "Not decided yet" ,
         "NONE": "No Head Covering"
       },
       "kippahType": {
@@ -861,6 +862,7 @@
         "HAT_BERET": "Hat / Beret",
         "SCARF_ONLY_SOMETIMES": "Scarf (Events)",
         "NONE": "No Covering",
+        "UNDECIDED": "Not decided yet" ,
         "any": "All options open"
       },
       "kippahType": {
@@ -1435,6 +1437,7 @@
         "PARTIAL_COVERAGE": "Partial Head Covering",
         "HAT_BERET": "Hat / Beret",
         "SCARF_ONLY_SOMETIMES": "Scarf (for synagogue/events)",
+        "UNDECIDED": "Not decided yet" ,
         "NONE": "No Head Covering"
       },
       "kippahType": {

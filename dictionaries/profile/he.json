@@ -541,6 +541,7 @@
         "HAT_BERET": "כובע / ברט",
         "SCARF_ONLY_SOMETIMES": "מטפחת (לאירועים)",
         "NONE": "ללא כיסוי ראש",
+         "UNDECIDED": "עוד לא החלטתי",
         "any": "כל האפשרויות פתוחות"
       },
       "kippahType": {
@@ -922,6 +923,7 @@
         "PARTIAL_COVERAGE": "כיסוי ראש חלקי",
         "HAT_BERET": "כובע / ברט",
         "SCARF_ONLY_SOMETIMES": "מטפחת (רק באירועים/בית כנסת)",
+        "UNDECIDED": "עוד לא החלטתי",
         "NONE": "ללא כיסוי ראש"
       },
       "kippahType": {
@@ -1472,6 +1474,7 @@
         "PARTIAL_COVERAGE": "כיסוי ראש חלקי",
         "HAT_BERET": "כובע / ברט",
         "SCARF_ONLY_SOMETIMES": "מטפחת (רק באירועים/בית כנסת)",
+        "UNDECIDED": "עוד לא החלטתי",
         "NONE": "ללא כיסוי ראש"
       },
       "kippahType": {
