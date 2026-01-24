@@ -3,6 +3,7 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
+import useSWR from 'swr';
 import { Button } from '@/components/ui/button';
 import { AvailabilityStatus as AvailabilityStatusEnum } from '@prisma/client';
 import {
@@ -41,6 +42,9 @@ import {
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import type { Session } from 'next-auth';
 import type { AvailabilityStatusDict } from '@/types/dictionary';
+
+// --- Fetcher for SWR ---
+const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 // --- עדכון פונקציית הסגנונות לפלטה החדשה (Teal/Rose/Orange) ---
 const getStatusStyles = (status: AvailabilityStatusEnum) => {
@@ -120,34 +124,52 @@ interface AvailabilityStatusProps {
   dict: AvailabilityStatusDict;
 }
 
+interface AvailabilityData {
+  success: boolean;
+  availabilityStatus: AvailabilityStatusEnum;
+  availabilityNote: string | null;
+}
+
 export default function AvailabilityStatus({ dict }: AvailabilityStatusProps) {
-  const { update: updateSession } = useSession();
   const { data: session } = useSession() as { data: Session | null };
+
+  // ✅ SWR לשליפת הסטטוס - קל ומהיר!
+  const { data: availabilityData, mutate } = useSWR<AvailabilityData>(
+    session?.user?.id ? '/api/profile/availability' : null,
+    fetcher,
+    {
+      revalidateOnFocus: false,
+      dedupingInterval: 30000, // 30 שניות
+    }
+  );
 
   const [showDialog, setShowDialog] = useState(false);
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
 
-  const initialStatus =
+  // הסטטוס מגיע מ-SWR, עם fallback ל-session ואז ל-AVAILABLE
+  const currentStatus =
+    availabilityData?.availabilityStatus ||
     session?.user?.profile?.availabilityStatus ||
     AvailabilityStatusEnum.AVAILABLE;
-  const initialNote = session?.user?.profile?.availabilityNote || '';
 
-  const [status, setStatus] = useState<AvailabilityStatusEnum>(initialStatus);
-  const [note, setNote] = useState(initialNote);
+  const currentNote =
+    availabilityData?.availabilityNote ||
+    session?.user?.profile?.availabilityNote ||
+    '';
+
+  const [status, setStatus] = useState<AvailabilityStatusEnum>(currentStatus);
+  const [note, setNote] = useState(currentNote);
 
   const [isUpdating, setIsUpdating] = useState(false);
   const [error, setError] = useState('');
 
-  // סנכרון עם הסשן כשהוא מתעדכן
+  // סנכרון כשהנתונים מתעדכנים
   useEffect(() => {
-    if (session?.user?.profile) {
-      setStatus(
-        session.user.profile.availabilityStatus ||
-          AvailabilityStatusEnum.AVAILABLE
-      );
-      setNote(session.user.profile.availabilityNote || '');
+    if (availabilityData) {
+      setStatus(availabilityData.availabilityStatus);
+      setNote(availabilityData.availabilityNote || '');
     }
-  }, [session]);
+  }, [availabilityData]);
 
   const handleUpdate = async () => {
     setIsUpdating(true);
@@ -168,8 +190,17 @@ export default function AvailabilityStatus({ dict }: AvailabilityStatusProps) {
         throw new Error(errorData.error || 'Failed to update status');
       }
 
-      // כאן הקריאה לשרת לחידוש הסשן. עם התיקון ב-auth.ts זה יחזיר את הסטטוס החדש.
-      await updateSession();
+      const result = await response.json();
+
+      // ✅ עדכון מיידי של ה-cache עם הנתונים החדשים
+      mutate(
+        {
+          success: true,
+          availabilityStatus: result.availabilityStatus,
+          availabilityNote: result.availabilityNote,
+        },
+        false
+      ); // false = לא לעשות revalidate, כבר יש לנו את הנתונים
 
       setShowDialog(false);
       setShowSuccessDialog(true);
@@ -181,10 +212,7 @@ export default function AvailabilityStatus({ dict }: AvailabilityStatusProps) {
     }
   };
 
-  const displayStatus =
-    session?.user?.profile?.availabilityStatus ||
-    AvailabilityStatusEnum.AVAILABLE;
-  const currentStatusStyles = getStatusStyles(displayStatus);
+  const currentStatusStyles = getStatusStyles(currentStatus);
   const editingStatusStyles = getStatusStyles(status);
 
   if (!session?.user) return null;
@@ -195,11 +223,8 @@ export default function AvailabilityStatus({ dict }: AvailabilityStatusProps) {
         id="onboarding-target-availability-status"
         variant="ghost"
         onClick={() => {
-          setStatus(
-            session?.user?.profile?.availabilityStatus ||
-              AvailabilityStatusEnum.AVAILABLE
-          );
-          setNote(session?.user?.profile?.availabilityNote || '');
+          setStatus(currentStatus);
+          setNote(currentNote);
           setError('');
           setShowDialog(true);
         }}
@@ -216,7 +241,7 @@ export default function AvailabilityStatus({ dict }: AvailabilityStatusProps) {
             className={`relative inline-flex rounded-full h-2.5 w-2.5 ${currentStatusStyles.dotClasses}`}
           ></span>
         </span>
-        <span className="text-sm">{dict.status[displayStatus]}</span>
+        <span className="text-sm">{dict.status[currentStatus]}</span>
       </Button>
 
       <Dialog open={showDialog} onOpenChange={setShowDialog}>

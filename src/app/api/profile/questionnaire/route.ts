@@ -83,15 +83,18 @@ export async function PATCH(req: Request) {
 
      const body = await req.json();
      
-     const { worldKey, questionId, value } = body as {
-       worldKey: WorldId;
-       questionId: string;
-       value: UpdateValue;
-     };
+   const { worldKey: rawWorldKey, questionId, value } = body as {
+  worldKey: string;  // שינוי מ-WorldId ל-string
+  questionId: string;
+  value: UpdateValue;
+};
 
-     if (!worldKey || !questionId || !value || !value.type || !KEY_MAPPING[worldKey]) {
-        return NextResponse.json({ success: false, error: "Invalid request body" }, { status: 400 });
-     }
+// נורמליזציה ל-UPPERCASE
+const worldKey = rawWorldKey?.toUpperCase() as WorldId;
+
+if (!worldKey || !questionId || !value || !value.type || !KEY_MAPPING[worldKey]) {
+   return NextResponse.json({ success: false, error: "Invalid request body" }, { status: 400 });
+}
 
      const dbKey = KEY_MAPPING[worldKey];
 
