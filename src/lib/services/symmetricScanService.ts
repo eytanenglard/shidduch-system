@@ -789,6 +789,9 @@ async function runAiAnalysisBatched(
 /**
  * הרצת batch בודד של AI
  */
+/**
+ * הרצת batch בודד של AI
+ */
 async function runAiBatchAnalysis(
   model: any,
   sourceUser: ScanCandidate,
@@ -873,16 +876,23 @@ ${candidatesText}
     }>;
   };
   
-  return parsed.results.map(r => {
+  // תיקון ה-map וה-filter כדי לספק את TypeScript
+  const processedResults = parsed.results.map(r => {
     const candidate = candidates.find(c => c.userId === r.userId);
     if (!candidate) return null;
     
-    return {
+    // יצירת אובייקט חדש התואם ל-ScanCandidate
+    const updatedCandidate: ScanCandidate = {
       ...candidate,
       aiScore: Math.min(100, Math.max(0, r.score)),
       reasoning: r.reasoning || '',
     };
-  }).filter((r): r is ScanCandidate => r !== null);
+    
+    return updatedCandidate;
+  });
+
+  // סינון ה-nulls והחזרת המערך הנקי
+  return processedResults.filter((r): r is ScanCandidate => r !== null);
 }
 
 /**

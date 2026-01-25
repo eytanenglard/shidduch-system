@@ -106,7 +106,7 @@ export async function POST(request: NextRequest) {
     } = body;
     
     switch (action) {
-      case 'full_scan':
+      case 'full_scan': { 
         // סריקה מלאה
         console.log(`[SymmetricScan API] Starting full scan (forceRefresh: ${forceRefresh})`);
         
@@ -117,8 +117,8 @@ export async function POST(request: NextRequest) {
         });
         
         return NextResponse.json(fullResult);
-        
-      case 'scan_users':
+      }
+ case 'scan_users': { // <--- הוספת סוגריים מסולסלים כאן
         // סריקה למשתמשים ספציפיים
         if (!usersToScan || !Array.isArray(usersToScan) || usersToScan.length === 0) {
           return NextResponse.json(
@@ -135,8 +135,10 @@ export async function POST(request: NextRequest) {
         });
         
         return NextResponse.json(usersResult);
+      } // <--- סגירת סוגריים מסולסלים כאן
+
         
-      case 'scan_single':
+      case 'scan_single':{ 
         // סריקה למשתמש בודד
         const { userId } = body;
         
@@ -155,15 +157,15 @@ export async function POST(request: NextRequest) {
           success: true, 
           ...singleResult 
         });
-        
-      case 'scan_new_users':
+      }
+      case 'scan_new_users':{ 
         // סריקת משתמשים חדשים (24 שעות אחרונות)
         console.log(`[SymmetricScan API] Scanning new users`);
         
         const newUsersResult = await symmetricScanService.scanNewUsers();
         
         return NextResponse.json(newUsersResult);
-        
+      }
       default:
         return NextResponse.json(
           { error: "Unknown action. Valid actions: full_scan, scan_users, scan_single, scan_new_users" },
