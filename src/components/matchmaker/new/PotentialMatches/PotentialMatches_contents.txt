@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmaker\new\PotentialMatches
-# Generated on: 2026-01-21 11:42:31
+# Generated on: 2026-01-25 07:50:23
 # Filter: Only content of code files (.bat, .c, .cfg, .conf, .cpp, .cs, .css, .go, .h, .html, .ini, .java, .js, .json, .jsx, .kt, .less, .md, .php, .py, .rb, .rs, .scss, .sh, .sql, .swift, .ts, .tsx, .txt, .xml, .yaml, .yml) is included.
 ################################################################################
 
@@ -1082,6 +1082,7 @@ const PotentialMatchCard: React.FC<PotentialMatchCardProps> = ({
   onToggleSelect,
   showSelection = false,
   className,
+  onHideCandidate,
 }) => {
   const [showDetails, setShowDetails] = useState(false);
   const [showReasoningDialog, setShowReasoningDialog] = useState(false);
@@ -1203,7 +1204,7 @@ const PotentialMatchCard: React.FC<PotentialMatchCardProps> = ({
 
             {/* Candidates Preview Row */}
             <div className="flex gap-3 mb-4">
-              <CandidatePreview
+            <CandidatePreview
                 candidate={match.male}
                 gender="male"
                 activeSuggestion={match.maleActiveSuggestion}
@@ -1211,9 +1212,10 @@ const PotentialMatchCard: React.FC<PotentialMatchCardProps> = ({
                 // העברת הפונקציות החדשות לכרטיס הזכר
                 onAnalyze={() => onAnalyzeCandidate(match.male)}
                 onFeedback={() => onProfileFeedback(match.male)}
+                onHide={onHideCandidate}
               />
 
-              {/* Heart Connector */}
+              {/* Heart Connector - נשאר ללא שינוי, מוצג כאן לקונטקסט */}
               <div className="flex flex-col justify-center items-center gap-1 z-10">
                 <div
                   className={cn(
@@ -1233,6 +1235,7 @@ const PotentialMatchCard: React.FC<PotentialMatchCardProps> = ({
                 // העברת הפונקציות החדשות לכרטיס הנקבה
                 onAnalyze={() => onAnalyzeCandidate(match.female)}
                 onFeedback={() => onProfileFeedback(match.female)}
+                onHide={onHideCandidate}
               />
             </div>
 
@@ -2065,7 +2068,7 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
               )}
             >
               <AnimatePresence mode="popLayout">
-                {matches.map((match) => (
+                {filteredMatches.map((match) => (
                   <PotentialMatchCard
                     key={match.id}
                     match={match}

@@ -803,12 +803,13 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
             setQuestionnaireData(null);
 
             // ✅ תיקון גלילה: שחזור המיקום
+            // הגדלנו ל-100ms כדי לאפשר ל-body scroll lock להשתחרר
             setTimeout(() => {
               window.scrollTo({
                 top: scrollPositionRef.current,
                 behavior: 'instant', // חשוב כדי למנוע אנימציה מיותרת
               });
-            }, 5);
+            }, 100);
           }
         }}
       >
