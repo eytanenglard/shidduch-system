@@ -1,0 +1,4764 @@
+################################################################################
+# Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai
+# Generated on: 2026-01-25 15:15:37
+# Filter: Only content of code files (.bat, .c, .cfg, .conf, .cpp, .cs, .css, .go, .h, .html, .ini, .java, .js, .json, .jsx, .kt, .less, .md, .php, .py, .rb, .rs, .scss, .sh, .sql, .swift, .ts, .tsx, .txt, .xml, .yaml, .yml) is included.
+################################################################################
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\ai_contents.txt
+--------------------------------------------------------------------------------
+[This is the output log file itself. Content not included.]
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\analyze-my-profile
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\analyze-my-profile\route.ts
+--------------------------------------------------------------------------------
+Content:
+// src/app/api/ai/analyze-my-profile/route.ts
+
+import { NextRequest, NextResponse } from "next/server";
+import { applyRateLimitWithRoleCheck } from '@/lib/rate-limiter';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '@/lib/auth';
+import profileAiService from '@/lib/services/profileAiService';
+import aiService from '@/lib/services/aiService';
+import prisma from '@/lib/prisma';
+
+// -----------------------------------------------------------------------------
+// הגדרות תצורה ל-Next.js כדי למנוע Timeout ו-Caching
+// -----------------------------------------------------------------------------
+
+// מאפשר לפונקציה לרוץ עד 300 שניות (במקום ברירת המחדל של 10-15 שניות).
+// זה קריטי לקריאות AI שלוקחות זמן.
+export const maxDuration = 300; 
+
+// מוודא שהנתיב תמיד דינמי ולא נשמר ב-Cache של השרת
+export const dynamic = 'force-dynamic';
+
+/**
+ * מטפל בבקשות POST לניתוח פרופיל המשתמש באמצעות AI.
+ * הפונקציה מאמתת את המשתמש, יוצרת פרופיל נרטיבי מקיף,
+ * שולחת אותו לניתוח AI, ומחזירה את התוצאה המובנית.
+ */
+export async function POST(req: NextRequest) {
+  // בדיקת Rate Limit
+  const rateLimitResponse = await applyRateLimitWithRoleCheck(req, { requests: 15, window: '1 h' });
+  if (rateLimitResponse) {
+    return rateLimitResponse;
+  }
+
+  try {
+    // שלב 1: אימות משתמש
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      console.warn('[API analyze-my-profile] ניסיון גישה לא מורשה.');
+      return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+    }
+    const userId = session.user.id;
+
+    // שלב 2: ודא שהמשתמש והפרופיל קיימים לפני יצירת הנרטיב
+    const userProfileExists = await prisma.profile.findUnique({
+      where: { userId },
+      select: { id: true }
+    });
+
+    if (!userProfileExists) {
+        console.error(`[API analyze-my-profile] לא נמצא פרופיל עבור משתמש: ${userId}`);
+        return NextResponse.json({ success: false, message: 'Profile not found.' }, { status: 404 });
+    }
+
+    // שלב 3: יצירת פרופיל נרטיבי מקיף
+    // שימוש חוזר בלוגיקה הקיימת והמצוינת מ-profileAiService
+    const narrativeProfile = await profileAiService.generateNarrativeProfile(userId);
+
+    if (!narrativeProfile) {
+      console.error(`[API analyze-my-profile] נכשל ביצירת פרופיל נרטיבי עבור: ${userId}`);
+      return NextResponse.json({ success: false, message: 'Could not generate user profile narrative.' }, { status: 500 });
+    }
+
+    // שלב 4: שליחת הנרטיב לניתוח AI
+    const analysisResult = await aiService.getProfileAnalysis(narrativeProfile);
+
+    if (!analysisResult) {
+      console.error(`[API analyze-my-profile] שירות ה-AI לא החזיר תוצאה עבור: ${userId}`);
+      return NextResponse.json({ success: false, message: 'AI service failed to produce an analysis.' }, { status: 500 });
+    }
+
+    // שלב 5: החזרת התוצאה ללקוח
+    return NextResponse.json({ success: true, data: analysisResult });
+
+  } catch (error) {
+    console.error('[API analyze-my-profile] שגיאה פטאלית ב-endpoint:', error);
+    const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
+    return NextResponse.json({ success: false, message: 'Internal Server Error', details: errorMessage }, { status: 500 });
+  }
+}
+--- End of Content for route.ts ---
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\analyze-suggestion
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\analyze-suggestion\route.ts
+--------------------------------------------------------------------------------
+Content:
+// src/app/api/ai/analyze-suggestion/route.ts
+
+import { NextRequest, NextResponse } from "next/server";
+import { applyRateLimitWithRoleCheck } from '@/lib/rate-limiter';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '@/lib/auth';
+import profileAiService from '@/lib/services/profileAiService';
+import aiService from '@/lib/services/aiService';
+import prisma from '@/lib/prisma';
+
+/**
+ * מטפל בבקשות POST לניתוח הצעת שידוך עבור המשתמש המחובר.
+ * הפונקציה מאמתת את המשתמש, מאחזרת את הפרופיל שלו ואת הפרופיל של המשתמש המוצע,
+ * יוצרת פרופילים נרטיביים עבור שניהם, שולחת אותם לניתוח AI מותאם למשתמש,
+ * ומחזירה את התוצאה המובנית.
+ */
+export async function POST(req: NextRequest) {
+const rateLimitResponse = await applyRateLimitWithRoleCheck(req, { requests: 15, window: '1 h' });  if (rateLimitResponse) {
+    return rateLimitResponse;
+  }
+
+  try {
+    // 1. אימות וקבלת המשתמש הנוכחי
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      console.warn('[API analyze-suggestion] ניסיון גישה לא מורשה.');
+      return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+    }
+    const currentUserId = session.user.id;
+
+    // 2. קבלת ID של המשתמש המוצע מגוף הבקשה
+    const body = await req.json();
+    const { suggestedUserId } = body;
+
+    if (!suggestedUserId || typeof suggestedUserId !== 'string') {
+      console.error('[API analyze-suggestion] Invalid or missing suggestedUserId in request body.');
+      return NextResponse.json({ success: false, message: 'Bad Request: suggestedUserId is required.' }, { status: 400 });
+    }
+
+
+    // 3. ודא ששני הפרופילים קיימים
+    const profilesExist = await prisma.profile.findMany({
+      where: {
+        userId: { in: [currentUserId, suggestedUserId] }
+      },
+      select: { userId: true }
+    });
+
+    if (profilesExist.length !== 2) {
+      console.error(`[API analyze-suggestion] אחד הפרופילים או שניהם לא נמצאו. נמצאו: ${profilesExist.map(p => p.userId).join(', ')}`);
+      return NextResponse.json({ success: false, message: 'One or both user profiles could not be found.' }, { status: 404 });
+    }
+
+    // 4. יצירת פרופילים נרטיביים עבור שני המשתמשים במקביל
+    const [currentUserNarrative, suggestedUserNarrative] = await Promise.all([
+      profileAiService.generateNarrativeProfile(currentUserId),
+      profileAiService.generateNarrativeProfile(suggestedUserId)
+    ]);
+
+    if (!currentUserNarrative || !suggestedUserNarrative) {
+      console.error(`[API analyze-suggestion] נכשל ביצירת פרופיל נרטיבי עבור אחד המשתמשים.`);
+      return NextResponse.json({ success: false, message: 'Could not generate user profile narratives.' }, { status: 500 });
+    }
+
+    // 5. שליחת הנרטיבים לניתוח AI מותאם למשתמש
+    const analysisResult = await aiService.analyzeSuggestionForUser(
+      currentUserNarrative,
+      suggestedUserNarrative
+    );
+
+    if (!analysisResult) {
+      console.error(`[API analyze-suggestion] שירות ה-AI לא החזיר תוצאת ניתוח הצעה.`);
+      return NextResponse.json({ success: false, message: 'AI service failed to produce a suggestion analysis.' }, { status: 500 });
+    }
+
+    // 6. החזרת התוצאה ללקוח
+    return NextResponse.json({ success: true, data: analysisResult });
+
+  } catch (error) {
+    console.error('[API analyze-suggestion] שגיאה פטאלית ב-endpoint:', error);
+    const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
+    return NextResponse.json({ success: false, message: 'Internal Server Error', details: errorMessage }, { status: 500 });
+  }
+}
+--- End of Content for route.ts ---
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\batch-scan-all
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\batch-scan-all\route.ts
+--------------------------------------------------------------------------------
+Content:
+// =============================================================================
+// 📁 src/app/api/ai/batch-scan-all/route.ts
+// =============================================================================
+// 🎯 Batch Scan All - סריקה לילית חכמה V2.1
+// 
+// 🆕 שיפורים בגרסה זו:
+// 1. ✅ סריקה דיפרנציאלית אמיתית - סורק רק זוגות שצריך!
+// 2. ✅ Progress טוב יותר - כולל אחוז מדויק ואומדן זמן
+// 3. ✅ לוגים מפורטים יותר
+// 4. ✅ סטטיסטיקות מפורטות למעקב
+// =============================================================================
+
+import { NextRequest, NextResponse } from "next/server";
+import prisma from "@/lib/prisma";
+import { Gender, AvailabilityStatus } from "@prisma/client";
+import { GoogleGenerativeAI } from '@google/generative-ai';
+import { 
+  getCompatibleReligiousLevels,
+  calculateAge,
+  calculateAgeScore,
+  createBackgroundProfile,
+  calculateBackgroundMatch,
+  filterBlockedFemales,
+  saveScannedPairsBatch,
+  getActiveUsersWhereClause,
+  type ScannedPairResult,
+} from "@/lib/services/matchingAlgorithmService";
+import profileAiService from "@/lib/services/profileAiService";
+
+export const dynamic = 'force-dynamic';
+export const maxDuration = 300; // 5 דקות
+
+// =============================================================================
+// CONSTANTS
+// =============================================================================
+
+const MIN_SCORE_THRESHOLD = 70;
+const BATCH_SIZE = 15; // כמה בחורות לשלוח ל-AI בכל קריאה
+const PROGRESS_UPDATE_INTERVAL = 5; // עדכון progress כל X גברים
+
+// =============================================================================
+// TYPES
+// =============================================================================
+
+interface ScanStats {
+  totalMales: number;
+  malesProcessed: number;
+  totalPairsToScan: number;
+  pairsScanned: number;
+  pairsSkippedByHistory: number;
+  pairsSkippedByNoChange: number;
+  pairsSkippedByAgeGap: number;
+  pairsSkippedByReligion: number;
+  matchesFound: number;
+  newMatches: number;
+  updatedMatches: number;
+  aiCallsCount: number;
+  startTime: number;
+}
+
+// =============================================================================
+// POST - התחלת סריקה לילית
+// =============================================================================
+
+export async function POST(req: NextRequest): Promise<NextResponse> {
+  try {
+    const body = await req.json().catch(() => ({}));
+    const { 
+      method = 'algorithmic',
+      forceRefresh = false,
+    } = body;
+
+    console.log(`\n${'='.repeat(70)}`);
+    console.log(`[BatchScan] 🌙 Starting Nightly Differential Scan V2.1`);
+    console.log(`[BatchScan] Method: ${method}`);
+    console.log(`[BatchScan] Force Refresh: ${forceRefresh}`);
+    console.log(`${'='.repeat(70)}\n`);
+
+    // בדיקה אם יש סריקה רצה כבר
+    const runningScan = await prisma.nightlyScanLog.findFirst({
+      where: { status: 'running' },
+      orderBy: { startedAt: 'desc' }
+    });
+
+    if (runningScan) {
+      // בדיקה אם הסריקה תקועה (יותר משעה)
+      const runningTime = Date.now() - runningScan.startedAt.getTime();
+      if (runningTime > 60 * 60 * 1000) {
+        console.log(`[BatchScan] ⚠️ Previous scan seems stuck, marking as failed`);
+        await prisma.nightlyScanLog.update({
+          where: { id: runningScan.id },
+          data: {
+            status: 'failed',
+            error: 'Scan timed out after 1 hour',
+            completedAt: new Date(),
+          }
+        });
+      } else {
+        console.log(`[BatchScan] ⚠️ Scan already running: ${runningScan.id}`);
+        return NextResponse.json({
+          success: false,
+          status: 'already_running',
+          scanId: runningScan.id,
+          message: 'סריקה כבר רצה כרגע',
+          runningFor: Math.round(runningTime / 1000 / 60) + ' minutes'
+        });
+      }
+    }
+
+    // יצירת רשומת לוג חדשה
+    const scanLog = await prisma.nightlyScanLog.create({
+      data: {
+        status: 'running',
+        totalCandidates: 0,
+        candidatesScanned: 0,
+        matchesFound: 0,
+        newMatches: 0,
+        updatedMatches: 0,
+        startedAt: new Date(),
+        method,
+        minScoreThreshold: MIN_SCORE_THRESHOLD,
+      }
+    });
+
+    console.log(`[BatchScan] Created scan log: ${scanLog.id}`);
+
+    // הפעלת הסריקה ברקע
+    runOptimizedDifferentialScan(scanLog.id, method, forceRefresh)
+      .catch(err => {
+        console.error(`[BatchScan] Background scan failed:`, err);
+      });
+
+    return NextResponse.json({
+      success: true,
+      scanId: scanLog.id,
+      message: 'הסריקה החלה'
+    });
+
+  } catch (error) {
+    console.error('[BatchScan] Error starting scan:', error);
+    return NextResponse.json({
+      success: false,
+      error: 'Failed to start scan'
+    }, { status: 500 });
+  }
+}
+
+// =============================================================================
+// GET - בדיקת סטטוס סריקה (משופר!)
+// =============================================================================
+
+export async function GET(req: NextRequest): Promise<NextResponse> {
+  try {
+    const { searchParams } = new URL(req.url);
+    const scanId = searchParams.get('scanId');
+
+    if (scanId) {
+      const scan = await prisma.nightlyScanLog.findUnique({
+        where: { id: scanId }
+      });
+
+      if (!scan) {
+        return NextResponse.json({ 
+          success: false, 
+          error: 'Scan not found' 
+        }, { status: 404 });
+      }
+
+      // חישוב אחוז התקדמות וזמן משוער
+      const progress = scan.totalCandidates > 0 
+        ? Math.round((scan.candidatesScanned / scan.totalCandidates) * 100)
+        : 0;
+      
+      let estimatedRemainingMinutes: number | null = null;
+      if (scan.status === 'running' && scan.candidatesScanned > 0) {
+        const elapsedMs = Date.now() - scan.startedAt.getTime();
+        const msPerCandidate = elapsedMs / scan.candidatesScanned;
+        const remainingCandidates = scan.totalCandidates - scan.candidatesScanned;
+        estimatedRemainingMinutes = Math.round(msPerCandidate * remainingCandidates / 1000 / 60);
+      }
+
+      return NextResponse.json({
+        success: true,
+        scan: {
+          id: scan.id,
+          status: scan.status,
+          progress, // 🆕 אחוז התקדמות
+          totalCandidates: scan.totalCandidates,
+          candidatesScanned: scan.candidatesScanned,
+          matchesFound: scan.matchesFound,
+          newMatches: scan.newMatches,
+          updatedMatches: scan.updatedMatches,
+          durationMs: scan.durationMs,
+          estimatedRemainingMinutes, // 🆕 אומדן זמן שנותר
+          error: scan.error,
+          startedAt: scan.startedAt,
+          completedAt: scan.completedAt,
+        }
+      });
+    }
+
+    // החזרת הסריקה האחרונה
+    const lastScan = await prisma.nightlyScanLog.findFirst({
+      orderBy: { startedAt: 'desc' }
+    });
+
+    return NextResponse.json({
+      success: true,
+      lastScan: lastScan ? {
+        id: lastScan.id,
+        status: lastScan.status,
+        matchesFound: lastScan.matchesFound,
+        durationMs: lastScan.durationMs,
+        startedAt: lastScan.startedAt,
+        completedAt: lastScan.completedAt,
+      } : null
+    });
+
+  } catch (error) {
+    console.error('[BatchScan] Error getting status:', error);
+    return NextResponse.json({
+      success: false,
+      error: 'Failed to get scan status'
+    }, { status: 500 });
+  }
+}
+
+// =============================================================================
+// 🆕 Optimized Differential Scan - סריקה דיפרנציאלית אמיתית!
+// =============================================================================
+
+async function runOptimizedDifferentialScan(
+  scanLogId: string,
+  method: string,
+  forceRefresh: boolean
+): Promise<void> {
+  const stats: ScanStats = {
+    totalMales: 0,
+    malesProcessed: 0,
+    totalPairsToScan: 0,
+    pairsScanned: 0,
+    pairsSkippedByHistory: 0,
+    pairsSkippedByNoChange: 0,
+    pairsSkippedByAgeGap: 0,
+    pairsSkippedByReligion: 0,
+    matchesFound: 0,
+    newMatches: 0,
+    updatedMatches: 0,
+    aiCallsCount: 0,
+    startTime: Date.now(),
+  };
+
+  const scannedPairsToSave: ScannedPairResult[] = [];
+
+  try {
+    console.log(`\n[BatchScan] 🚀 Starting optimized differential scan...`);
+
+    // ==========================================================================
+    // שלב 1: שליפת כל הגברים והבחורות הפעילים
+    // ==========================================================================
+    
+    const males = await fetchActiveMales();
+    const allFemales = await fetchActiveFemales();
+    
+    stats.totalMales = males.length;
+    
+    console.log(`[BatchScan] Found ${males.length} active males`);
+    console.log(`[BatchScan] Found ${allFemales.length} active females`);
+    console.log(`[BatchScan] Maximum possible pairs: ${males.length * allFemales.length}`);
+
+    // ==========================================================================
+    // שלב 2: שליפת כל ה-ScannedPairs הקיימים בבת אחת (לחיסכון בשאילתות)
+    // ==========================================================================
+
+    const existingScannedPairs = await prisma.scannedPair.findMany({
+      select: {
+        maleUserId: true,
+        femaleUserId: true,
+        maleProfileUpdatedAt: true,
+        femaleProfileUpdatedAt: true,
+        passedThreshold: true,
+        lastScannedAt: true,
+      }
+    });
+
+    // יצירת מפה לגישה מהירה
+    const scannedPairsMap = new Map<string, typeof existingScannedPairs[0]>();
+    for (const pair of existingScannedPairs) {
+      scannedPairsMap.set(`${pair.maleUserId}_${pair.femaleUserId}`, pair);
+    }
+
+    console.log(`[BatchScan] Loaded ${existingScannedPairs.length} existing scanned pairs`);
+
+    // ==========================================================================
+    // שלב 3: שליפת כל ההיסטוריה החוסמת בבת אחת
+    // ==========================================================================
+
+    const maleIds = males.map(m => m.id);
+    const femaleIds = allFemales.map(f => f.id);
+
+    const { blockedPairsSet } = await fetchAllBlockingHistory(maleIds, femaleIds);
+    
+    console.log(`[BatchScan] Found ${blockedPairsSet.size} blocked pairs from history`);
+
+    // עדכון הלוג
+    await prisma.nightlyScanLog.update({
+      where: { id: scanLogId },
+      data: { totalCandidates: males.length }
+    });
+
+    // ==========================================================================
+    // שלב 4: סריקה חכמה לכל גבר
+    // ==========================================================================
+
+    for (let maleIndex = 0; maleIndex < males.length; maleIndex++) {
+      const male = males[maleIndex];
+      
+      if (!male.profile?.birthDate) {
+        console.log(`[BatchScan] Skipping male ${male.firstName} - no birthDate`);
+        continue;
+      }
+
+      const maleAge = calculateAge(male.profile.birthDate);
+      const maleReligiousLevel = male.profile.religiousLevel;
+      const maleProfileUpdatedAt = male.profile.updatedAt;
+      const compatibleReligious = getCompatibleReligiousLevels(maleReligiousLevel);
+
+      // מציאת בחורות שצריכות סריקה
+      const femalesToScan: typeof allFemales = [];
+
+      for (const female of allFemales) {
+        if (!female.profile) continue;
+
+        // 1. בדיקת היסטוריה חוסמת
+        const pairKey = `${male.id}_${female.id}`;
+        if (blockedPairsSet.has(pairKey)) {
+          stats.pairsSkippedByHistory++;
+          continue;
+        }
+
+        // 2. בדיקת רמה דתית
+        if (female.profile.religiousLevel && 
+            !compatibleReligious.includes(female.profile.religiousLevel)) {
+          stats.pairsSkippedByReligion++;
+          continue;
+        }
+
+        // 3. בדיקת גיל
+        if (female.profile.birthDate) {
+          const femaleAge = calculateAge(female.profile.birthDate);
+          const ageScore = calculateAgeScore(maleAge, femaleAge);
+          if (!ageScore.eligible) {
+            stats.pairsSkippedByAgeGap++;
+            continue;
+          }
+        }
+
+        // 4. בדיקה דיפרנציאלית - האם צריך לסרוק מחדש?
+        if (!forceRefresh) {
+          const existingPair = scannedPairsMap.get(pairKey);
+          if (existingPair) {
+            const maleUpdated = maleProfileUpdatedAt > (existingPair.maleProfileUpdatedAt || new Date(0));
+            const femaleUpdated = female.profile.updatedAt > (existingPair.femaleProfileUpdatedAt || new Date(0));
+            
+            if (!maleUpdated && !femaleUpdated) {
+              stats.pairsSkippedByNoChange++;
+              continue;
+            }
+          }
+        }
+
+        // עברה את כל הבדיקות - צריך לסרוק!
+        femalesToScan.push(female);
+      }
+
+      stats.totalPairsToScan += femalesToScan.length;
+
+      // לוג התקדמות
+      if ((maleIndex + 1) % 10 === 0 || maleIndex === 0) {
+        console.log(`\n[BatchScan] 📊 Progress Report:`);
+        console.log(`  Males: ${maleIndex + 1}/${males.length} (${Math.round((maleIndex + 1) / males.length * 100)}%)`);
+        console.log(`  Current: ${male.firstName} ${male.lastName} -> ${femalesToScan.length} females to scan`);
+        console.log(`  Stats: skipped ${stats.pairsSkippedByHistory} history, ${stats.pairsSkippedByNoChange} unchanged, ${stats.pairsSkippedByAgeGap} age, ${stats.pairsSkippedByReligion} religion`);
+        console.log(`  Matches found so far: ${stats.matchesFound}`);
+      }
+
+      if (femalesToScan.length === 0) {
+        stats.malesProcessed++;
+        continue;
+      }
+
+      // ==========================================================================
+      // שלב 4.1: סריקת AI רק לזוגות שצריך!
+      // ==========================================================================
+
+      try {
+        // הכנת פרופיל הגבר
+        const maleNarrativeProfile = await buildNarrativeProfile(male);
+        const maleBackgroundProfile = createBackgroundProfile(
+          male.profile.nativeLanguage,
+          male.profile.additionalLanguages || [],
+          male.profile.aliyaCountry,
+          male.profile.aliyaYear,
+          male.profile.origin,
+          male.profile.about,
+          male.profile.matchingNotes
+        );
+
+        // סריקת בחורות ב-batches
+        for (let i = 0; i < femalesToScan.length; i += BATCH_SIZE) {
+          const batch = femalesToScan.slice(i, i + BATCH_SIZE);
+          
+          const batchResults = await scanBatchWithAI(
+            male,
+            maleNarrativeProfile,
+            maleBackgroundProfile,
+            maleAge,
+            batch
+          );
+
+          stats.aiCallsCount++;
+          stats.pairsScanned += batch.length;
+
+          // עיבוד תוצאות
+          for (const result of batchResults) {
+            const passedThreshold = result.score >= MIN_SCORE_THRESHOLD;
+
+            // שמירה ב-ScannedPair
+            scannedPairsToSave.push({
+              maleUserId: male.id,
+              femaleUserId: result.femaleId,
+              aiScore: result.score,
+              passedThreshold,
+              rejectionReason: passedThreshold ? null : 'low_ai_score',
+              maleProfileUpdatedAt,
+              femaleProfileUpdatedAt: result.femaleProfileUpdatedAt,
+            });
+
+            if (passedThreshold) {
+              stats.matchesFound++;
+
+              const saved = await saveToPotentialMatch(
+                male.id,
+                result.femaleId,
+                result
+              );
+
+              if (saved === 'new') stats.newMatches++;
+              if (saved === 'updated') stats.updatedMatches++;
+            }
+          }
+        }
+
+      } catch (error) {
+        console.error(`[BatchScan] Error scanning male ${male.id}:`, error);
+      }
+
+      stats.malesProcessed++;
+
+      // עדכון progress בDB
+      if ((maleIndex + 1) % PROGRESS_UPDATE_INTERVAL === 0) {
+        await prisma.nightlyScanLog.update({
+          where: { id: scanLogId },
+          data: {
+            candidatesScanned: stats.malesProcessed,
+            matchesFound: stats.matchesFound,
+            newMatches: stats.newMatches,
+            updatedMatches: stats.updatedMatches,
+          }
+        });
+      }
+    }
+
+    // ==========================================================================
+    // שלב 5: שמירת כל ה-ScannedPairs
+    // ==========================================================================
+
+    console.log(`\n[BatchScan] 💾 Saving ${scannedPairsToSave.length} scanned pairs...`);
+    await saveScannedPairsBatch(scannedPairsToSave);
+
+    // ==========================================================================
+    // שלב 6: סיום וסיכום
+    // ==========================================================================
+
+    const duration = Date.now() - stats.startTime;
+
+    await prisma.nightlyScanLog.update({
+      where: { id: scanLogId },
+      data: {
+        status: 'completed',
+        candidatesScanned: stats.malesProcessed,
+        matchesFound: stats.matchesFound,
+        newMatches: stats.newMatches,
+        updatedMatches: stats.updatedMatches,
+        durationMs: duration,
+        completedAt: new Date(),
+      }
+    });
+
+    console.log(`\n${'='.repeat(70)}`);
+    console.log(`[BatchScan] ✅ Scan completed!`);
+    console.log(`${'='.repeat(70)}`);
+    console.log(`\n📊 Final Statistics:`);
+    console.log(`  Duration: ${(duration / 1000 / 60).toFixed(2)} minutes`);
+    console.log(`  Males scanned: ${stats.malesProcessed}/${stats.totalMales}`);
+    console.log(`  \n  Pairs breakdown:`);
+    console.log(`    - Total potential: ${stats.totalMales * allFemales.length}`);
+    console.log(`    - Skipped (history): ${stats.pairsSkippedByHistory}`);
+    console.log(`    - Skipped (unchanged): ${stats.pairsSkippedByNoChange}`);
+    console.log(`    - Skipped (age gap): ${stats.pairsSkippedByAgeGap}`);
+    console.log(`    - Skipped (religion): ${stats.pairsSkippedByReligion}`);
+    console.log(`    - Actually scanned: ${stats.pairsScanned}`);
+    console.log(`  \n  Results:`);
+    console.log(`    - AI calls made: ${stats.aiCallsCount}`);
+    console.log(`    - Matches found (≥70): ${stats.matchesFound}`);
+    console.log(`    - New matches: ${stats.newMatches}`);
+    console.log(`    - Updated matches: ${stats.updatedMatches}`);
+    console.log(`\n${'='.repeat(70)}\n`);
+
+  } catch (error) {
+    console.error('[BatchScan] ❌ Scan failed:', error);
+
+    await prisma.nightlyScanLog.update({
+      where: { id: scanLogId },
+      data: {
+        status: 'failed',
+        error: error instanceof Error ? error.message : 'Unknown error',
+        durationMs: Date.now() - stats.startTime,
+        completedAt: new Date(),
+      }
+    });
+  }
+}
+
+// =============================================================================
+// Helper Functions
+// =============================================================================
+
+async function fetchActiveMales() {
+  return prisma.user.findMany({
+    where: {
+      ...getActiveUsersWhereClause(),
+      profile: {
+        gender: 'MALE',
+        availabilityStatus: AvailabilityStatus.AVAILABLE,
+        isProfileVisible: true,
+        OR: [
+          { about: { not: null } },
+          { manualEntryText: { not: null } },
+        ]
+      }
+    },
+    select: {
+      id: true,
+      firstName: true,
+      lastName: true,
+      profile: {
+        select: {
+          birthDate: true,
+          religiousLevel: true,
+          updatedAt: true,
+          nativeLanguage: true,
+          additionalLanguages: true,
+          aliyaCountry: true,
+          aliyaYear: true,
+          origin: true,
+          about: true,
+          matchingNotes: true,
+          city: true,
+          occupation: true,
+          aiProfileSummary: true,
+        }
+      }
+    }
+  });
+}
+
+async function fetchActiveFemales() {
+  return prisma.user.findMany({
+    where: {
+      ...getActiveUsersWhereClause(),
+      profile: {
+        gender: 'FEMALE',
+        availabilityStatus: AvailabilityStatus.AVAILABLE,
+        isProfileVisible: true,
+        OR: [
+          { about: { not: null } },
+          { manualEntryText: { not: null } },
+        ]
+      }
+    },
+    select: {
+      id: true,
+      firstName: true,
+      lastName: true,
+      profile: {
+        select: {
+          birthDate: true,
+          religiousLevel: true,
+          updatedAt: true,
+          nativeLanguage: true,
+          additionalLanguages: true,
+          aliyaCountry: true,
+          aliyaYear: true,
+          origin: true,
+          about: true,
+          matchingNotes: true,
+          city: true,
+          occupation: true,
+          aiProfileSummary: true,
+        }
+      }
+    }
+  });
+}
+
+async function fetchAllBlockingHistory(
+  maleIds: string[],
+  femaleIds: string[]
+): Promise<{ blockedPairsSet: Set<string> }> {
+  const blockedPairsSet = new Set<string>();
+
+  // 1. MatchSuggestions שנכשלו
+  const blockingSuggestions = await prisma.matchSuggestion.findMany({
+    where: {
+      status: { 
+        in: [
+          'ENDED_AFTER_FIRST_DATE',
+          'MATCH_DECLINED',
+          'FIRST_PARTY_DECLINED',
+          'SECOND_PARTY_DECLINED',
+          'CLOSED',
+          'CANCELLED',
+          'EXPIRED'
+        ] 
+      },
+      OR: [
+        { firstPartyId: { in: maleIds }, secondPartyId: { in: femaleIds } },
+        { firstPartyId: { in: femaleIds }, secondPartyId: { in: maleIds } },
+      ]
+    },
+    select: {
+      firstPartyId: true,
+      secondPartyId: true,
+    }
+  });
+
+  for (const s of blockingSuggestions) {
+    // מוסיף את שני הכיוונים
+    blockedPairsSet.add(`${s.firstPartyId}_${s.secondPartyId}`);
+    blockedPairsSet.add(`${s.secondPartyId}_${s.firstPartyId}`);
+  }
+
+  // 2. PotentialMatches שנדחו
+  const dismissedMatches = await prisma.potentialMatch.findMany({
+    where: {
+      maleUserId: { in: maleIds },
+      femaleUserId: { in: femaleIds },
+      status: 'DISMISSED'
+    },
+    select: {
+      maleUserId: true,
+      femaleUserId: true,
+    }
+  });
+
+  for (const m of dismissedMatches) {
+    blockedPairsSet.add(`${m.maleUserId}_${m.femaleUserId}`);
+  }
+
+  return { blockedPairsSet };
+}
+
+async function buildNarrativeProfile(user: any): Promise<string> {
+  const p = user.profile;
+  if (!p) return '';
+
+  // אם יש סיכום AI - נשתמש בו
+  if (p.aiProfileSummary?.personalitySummary) {
+    return `
+שם: ${user.firstName} ${user.lastName}
+גיל: ${p.birthDate ? calculateAge(p.birthDate) : 'לא ידוע'}
+עיר: ${p.city || 'לא צוין'}
+עיסוק: ${p.occupation || 'לא צוין'}
+רמה דתית: ${p.religiousLevel || 'לא צוין'}
+
+=== סיכום אישיות ===
+${p.aiProfileSummary.personalitySummary}
+
+=== מה מחפש/ת ===
+${p.aiProfileSummary.lookingForSummary || 'לא צוין'}
+
+=== על עצמי ===
+${p.about || p.manualEntryText || 'לא צוין'}
+    `.trim();
+  }
+
+  // אחרת - נבנה מהנתונים הקיימים
+  return `
+שם: ${user.firstName} ${user.lastName}
+גיל: ${p.birthDate ? calculateAge(p.birthDate) : 'לא ידוע'}
+עיר: ${p.city || 'לא צוין'}
+עיסוק: ${p.occupation || 'לא צוין'}
+רמה דתית: ${p.religiousLevel || 'לא צוין'}
+
+=== על עצמי ===
+${p.about || p.manualEntryText || 'לא צוין'}
+
+=== הערות שדכן ===
+${p.matchingNotes || 'אין'}
+  `.trim();
+}
+
+interface BatchScanResult {
+  femaleId: string;
+  score: number;
+  reasoning: string;
+  femaleProfileUpdatedAt: Date;
+}
+
+async function scanBatchWithAI(
+  male: any,
+  maleNarrativeProfile: string,
+  maleBackgroundProfile: any,
+  maleAge: number,
+  females: any[]
+): Promise<BatchScanResult[]> {
+  const apiKey = process.env.GOOGLE_API_KEY;
+  if (!apiKey) {
+    throw new Error('GOOGLE_API_KEY is not configured');
+  }
+
+  const genAI = new GoogleGenerativeAI(apiKey);
+  const model = genAI.getGenerativeModel({
+    model: 'gemini-2.5-flash',
+    generationConfig: {
+      responseMimeType: 'application/json',
+      temperature: 0.3,
+    },
+  });
+
+  // בניית פרופילים של הבחורות
+  const candidatesText = females.map((female, index) => {
+    const femaleAge = female.profile?.birthDate 
+      ? calculateAge(female.profile.birthDate) 
+      : null;
+    
+    const femaleBackgroundProfile = createBackgroundProfile(
+      female.profile?.nativeLanguage,
+      female.profile?.additionalLanguages || [],
+      female.profile?.aliyaCountry,
+      female.profile?.aliyaYear,
+      female.profile?.origin,
+      female.profile?.about,
+      female.profile?.matchingNotes
+    );
+
+    const bgMatch = calculateBackgroundMatch(maleBackgroundProfile, femaleBackgroundProfile);
+
+    return `
+[מועמדת ${index + 1}]
+שם: ${female.firstName} ${female.lastName}
+גיל: ${femaleAge ?? 'לא ידוע'}
+רמה דתית: ${female.profile?.religiousLevel || 'לא צוין'}
+עיר: ${female.profile?.city || 'לא צוין'}
+עיסוק: ${female.profile?.occupation || 'לא צוין'}
+התאמת רקע: ${bgMatch.compatibility}
+
+${female.profile?.aiProfileSummary?.personalitySummary || female.profile?.about || female.profile?.manualEntryText || 'אין מידע'}
+---`;
+  }).join('\n\n');
+
+  const prompt = `אתה שדכן AI מומחה במערכת NeshamaTech.
+
+=== פרופיל הגבר ===
+${maleNarrativeProfile}
+
+=== ${females.length} מועמדות לבדיקה ===
+${candidatesText}
+
+=== המשימה ===
+דרג כל מועמדת מ-0 עד 100 לפי התאמה לגבר.
+
+קריטריונים עיקריים:
+1. התאמה דתית והשקפתית (30 נקודות)
+2. התאמת גיל (10 נקודות)
+3. איזון קריירה-משפחה (15 נקודות)
+4. סגנון חיים (13 נקודות)
+5. שאפתנות ומוטיבציה (11 נקודות)
+6. סגנון תקשורת (11 נקודות)
+7. ערכים (10 נקודות)
+
+=== פורמט התשובה (JSON בלבד) ===
+{
+  "results": [
+    { "index": 1, "score": 85, "reasoning": "נימוק קצר" },
+    { "index": 2, "score": 72, "reasoning": "נימוק קצר" }
+  ]
+}
+
+התשובה חייבת להיות JSON תקין בלבד.`;
+
+  try {
+    const result = await model.generateContent(prompt);
+    const response = result.response;
+    let jsonString = response.text();
+    
+    // ניקוי אם יש markdown
+    if (jsonString.startsWith('```json')) {
+      jsonString = jsonString.slice(7, -3).trim();
+    } else if (jsonString.startsWith('```')) {
+      jsonString = jsonString.slice(3, -3).trim();
+    }
+
+    const parsed = JSON.parse(jsonString) as {
+      results: Array<{ index: number; score: number; reasoning: string }>;
+    };
+
+    return parsed.results.map(r => {
+      const female = females[r.index - 1];
+      return {
+        femaleId: female.id,
+        score: Math.min(100, Math.max(0, r.score)),
+        reasoning: r.reasoning || '',
+        femaleProfileUpdatedAt: female.profile?.updatedAt || new Date(),
+      };
+    });
+
+  } catch (error) {
+    console.error(`[BatchScan] AI error:`, error);
+    // במקרה של שגיאה, נחזיר ציון 0 לכל הבחורות
+    return females.map(f => ({
+      femaleId: f.id,
+      score: 0,
+      reasoning: 'AI error',
+      femaleProfileUpdatedAt: f.profile?.updatedAt || new Date(),
+    }));
+  }
+}
+
+async function saveToPotentialMatch(
+  maleUserId: string,
+  femaleUserId: string,
+  result: BatchScanResult
+): Promise<'new' | 'updated' | 'unchanged'> {
+  try {
+    const existing = await prisma.potentialMatch.findUnique({
+      where: {
+        maleUserId_femaleUserId: { maleUserId, femaleUserId }
+      }
+    });
+
+    if (existing) {
+      if (Math.abs(existing.aiScore - result.score) > 2 || existing.status === 'EXPIRED') {
+        await prisma.potentialMatch.update({
+          where: { id: existing.id },
+          data: {
+            aiScore: result.score,
+            shortReasoning: result.reasoning,
+            scannedAt: new Date(),
+            status: existing.status === 'EXPIRED' ? 'PENDING' : existing.status,
+          }
+        });
+        return 'updated';
+      }
+      return 'unchanged';
+    }
+
+    await prisma.potentialMatch.create({
+      data: {
+        maleUserId,
+        femaleUserId,
+        aiScore: result.score,
+        shortReasoning: result.reasoning,
+        status: 'PENDING',
+        scannedAt: new Date(),
+      }
+    });
+    return 'new';
+
+  } catch (error) {
+    console.warn(`[BatchScan] Could not save PotentialMatch:`, error);
+    return 'unchanged';
+  }
+}
+--- End of Content for route.ts ---
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\batch-scan-symmetric
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\batch-scan-symmetric\route.ts
+--------------------------------------------------------------------------------
+Content:
+// =============================================================================
+// 📁 src/app/api/ai/batch-scan-symmetric/route.ts
+// =============================================================================
+// 🎯 Symmetric Batch Scan API V1.0 - NeshamaTech
+// 
+// סריקה סימטרית עם Tiered Matching
+// =============================================================================
+
+import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import symmetricScanService from "@/lib/services/symmetricScanService";
+
+// =============================================================================
+// GET - מידע על הסריקה
+// =============================================================================
+
+export async function GET(request: NextRequest) {
+  try {
+    const session = await getServerSession(authOptions);
+    
+    if (!session?.user) {
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401 }
+      );
+    }
+    
+    const userRole = (session.user as any).role;
+    if (userRole !== 'MATCHMAKER' && userRole !== 'ADMIN') {
+      return NextResponse.json(
+        { error: "Access denied" },
+        { status: 403 }
+      );
+    }
+    
+    // מידע על הגדרות הסריקה
+    return NextResponse.json({
+      version: "1.0",
+      scanType: "symmetric_tiered",
+      tiers: {
+        quickFilter: {
+          description: "מסנן מהיר - גיל, דת, היסטוריה",
+          thresholds: symmetricScanService.QUICK_FILTER,
+        },
+        vectorFilter: {
+          description: "סינון וקטורי - דמיון פרופילים",
+          thresholds: symmetricScanService.VECTOR_FILTER,
+        },
+        softScoring: {
+          description: "ציון רך - התאמות בסיסיות",
+          thresholds: symmetricScanService.SOFT_SCORING,
+        },
+        aiScoring: {
+          description: "ניתוח AI - רק Top 30",
+          thresholds: symmetricScanService.AI_SCORING,
+        },
+      },
+      features: [
+        "✅ סריקה דו-כיוונית (גברים + נשים)",
+        "✅ Tiered Matching לחיסכון ב-API",
+        "✅ Asymmetric Scoring",
+        "✅ Vector Similarity",
+      ],
+    });
+    
+  } catch (error) {
+    console.error("[SymmetricScan API] Error:", error);
+    return NextResponse.json(
+      { error: "Failed to get scan info" },
+      { status: 500 }
+    );
+  }
+}
+
+// =============================================================================
+// POST - הרצת סריקה
+// =============================================================================
+
+export async function POST(request: NextRequest) {
+  try {
+    const session = await getServerSession(authOptions);
+    
+    if (!session?.user) {
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401 }
+      );
+    }
+    
+    const userRole = (session.user as any).role;
+    if (userRole !== 'MATCHMAKER' && userRole !== 'ADMIN') {
+      return NextResponse.json(
+        { error: "Access denied" },
+        { status: 403 }
+      );
+    }
+    
+    const body = await request.json();
+    const { 
+      action,
+      usersToScan,
+      forceRefresh,
+      skipVectorTier,
+      minAiScore,
+    } = body;
+    
+    switch (action) {
+      case 'full_scan': { 
+        // סריקה מלאה
+        console.log(`[SymmetricScan API] Starting full scan (forceRefresh: ${forceRefresh})`);
+        
+        const fullResult = await symmetricScanService.runSymmetricScan({
+          forceRefresh: forceRefresh ?? false,
+          skipVectorTier: skipVectorTier ?? false,
+          minAiScore: minAiScore ?? 70,
+        });
+        
+        return NextResponse.json(fullResult);
+      }
+ case 'scan_users': { // <--- הוספת סוגריים מסולסלים כאן
+        // סריקה למשתמשים ספציפיים
+        if (!usersToScan || !Array.isArray(usersToScan) || usersToScan.length === 0) {
+          return NextResponse.json(
+            { error: "usersToScan array required" },
+            { status: 400 }
+          );
+        }
+        
+        console.log(`[SymmetricScan API] Scanning ${usersToScan.length} specific users`);
+        
+        const usersResult = await symmetricScanService.runSymmetricScan({
+          usersToScan,
+          forceRefresh: true,
+        });
+        
+        return NextResponse.json(usersResult);
+      } // <--- סגירת סוגריים מסולסלים כאן
+
+        
+      case 'scan_single':{ 
+        // סריקה למשתמש בודד
+        const { userId } = body;
+        
+        if (!userId) {
+          return NextResponse.json(
+            { error: "userId required" },
+            { status: 400 }
+          );
+        }
+        
+        console.log(`[SymmetricScan API] Scanning single user: ${userId}`);
+        
+        const singleResult = await symmetricScanService.scanSingleUser(userId);
+        
+        return NextResponse.json({ 
+          success: true, 
+          ...singleResult 
+        });
+      }
+      case 'scan_new_users':{ 
+        // סריקת משתמשים חדשים (24 שעות אחרונות)
+        console.log(`[SymmetricScan API] Scanning new users`);
+        
+        const newUsersResult = await symmetricScanService.scanNewUsers();
+        
+        return NextResponse.json(newUsersResult);
+      }
+      default:
+        return NextResponse.json(
+          { error: "Unknown action. Valid actions: full_scan, scan_users, scan_single, scan_new_users" },
+          { status: 400 }
+        );
+    }
+    
+  } catch (error) {
+    console.error("[SymmetricScan API] POST Error:", error);
+    
+    return NextResponse.json(
+      { 
+        error: "Scan failed",
+        details: error instanceof Error ? error.message : "Unknown error"
+      },
+      { status: 500 }
+    );
+  }
+}
+--- End of Content for route.ts ---
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\find-matches
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\find-matches\route.ts
+--------------------------------------------------------------------------------
+Content:
+// src/app/api/ai/find-matches/route.ts
+
+import { NextRequest, NextResponse } from "next/server";
+import { applyRateLimitWithRoleCheck } from '@/lib/rate-limiter';
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import prisma from "@/lib/prisma";
+import { UserRole, Prisma } from "@prisma/client";
+
+export async function POST(req: NextRequest) {
+const rateLimitResponse = await applyRateLimitWithRoleCheck(req, { requests: 15, window: '1 h' });  if (rateLimitResponse) {
+    return rateLimitResponse;
+  }
+
+  try {
+    // 1. Authentication and Authorization
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id || (session.user.role !== UserRole.MATCHMAKER && session.user.role !== UserRole.ADMIN)) {
+      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+    }
+
+    // 2. Body Validation
+    const body = await req.json();
+    const { targetUserId, candidatePoolIds } = body;
+
+    if (!targetUserId || !Array.isArray(candidatePoolIds) || candidatePoolIds.length === 0) {
+      return NextResponse.json({ success: false, error: "Invalid request body. 'targetUserId' (string) and 'candidatePoolIds' (array) are required." }, { status: 400 });
+    }
+
+    // 3. Fetch the profile for the target user to get their profileId
+    const targetProfile = await prisma.profile.findUnique({
+        where: { userId: targetUserId },
+        select: { id: true }
+    });
+
+    if (!targetProfile) {
+        return NextResponse.json({ success: false, error: "Target user profile not found." }, { status: 404 });
+    }
+    
+    // --- START OF FIX 1: Cast the vector to text ---
+    // We explicitly cast the vector to ::text, which Prisma understands as a string.
+    const vectorResult: { vector_text: string }[] = await prisma.$queryRaw`
+      SELECT vector::text as vector_text FROM "profile_vectors" WHERE "profileId" = ${targetProfile.id} LIMIT 1;
+    `;
+
+    if (!vectorResult || vectorResult.length === 0 || !vectorResult[0]?.vector_text) {
+        return NextResponse.json({ success: false, error: "Vector for target user not found. AI profile may still be processing." }, { status: 404 });
+    }
+
+    // Now, we parse the string back into a number array.
+    // The string looks like '[0.1,0.2,...]', so we remove brackets and split.
+    const targetVector: number[] = JSON.parse(vectorResult[0].vector_text);
+    // --- END OF FIX 1 ---
+
+    // 4. Perform Vector Similarity Search
+    // We still use the original format for the similarity search operation itself.
+    const targetVectorString = `[${targetVector.join(',')}]`;
+
+    // --- START OF FIX 2: No change needed here, the previous query was the issue ---
+    // The error was in retrieving the target vector, not in the search itself.
+    // This query is fine because the `vector` column is only used for calculation
+    // and is not returned in the final SELECT statement.
+    const results: { profileId: string; similarity: number }[] = await prisma.$queryRaw`
+      SELECT
+        pv."profileId",
+        1 - (pv.vector <=> ${targetVectorString}::vector) as similarity
+      FROM
+        "profile_vectors" AS pv
+      INNER JOIN 
+        "Profile" AS p ON pv."profileId" = p.id
+      WHERE
+        p."userId" IN (${Prisma.join(candidatePoolIds)}) AND p."userId" != ${targetUserId}
+      ORDER BY
+        similarity DESC
+      LIMIT 20;
+    `;
+    // --- END OF FIX 2 ---
+    
+    // 5. Map results from profileId back to userId for the frontend
+    const profileIdToUserIdMap = new Map<string, string>();
+    const allProfileIds = results.map(r => r.profileId);
+
+    if (allProfileIds.length > 0) {
+        const profiles = await prisma.profile.findMany({
+            where: { id: { in: allProfileIds } },
+            select: { id: true, userId: true }
+        });
+        profiles.forEach(p => profileIdToUserIdMap.set(p.id, p.userId));
+    }
+
+    const finalMatches = results.map(r => ({
+        userId: profileIdToUserIdMap.get(r.profileId) || '',
+        score: Math.round(r.similarity * 100)
+    })).filter(m => m.userId);
+
+    // 6. Return the sorted list of matches
+    return NextResponse.json({ success: true, matches: finalMatches });
+
+  } catch (error) {
+    console.error('Error in /api/ai/find-matches:', error);
+    const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred.";
+    return NextResponse.json({ success: false, error: "Internal server error.", details: errorMessage }, { status: 500 });
+  }
+}
+--- End of Content for route.ts ---
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\find-matches-v2
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\find-matches-v2\route.ts
+--------------------------------------------------------------------------------
+Content:
+// ===========================================
+// src/app/api/ai/find-matches-v2/route.ts
+// ===========================================
+// 🎯 API Route עם תמיכה ב-Background Jobs
+// פותר את בעיית ה-30 שניות timeout של Heroku
+// 🔧 תיקון: חיפוש וירטואלי מעובד ישירות (לא fire-and-forget)
+
+import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import { UserRole, Gender } from "@prisma/client";
+import prisma from "@/lib/prisma";
+import { findMatchesForVirtualUser } from '@/lib/services/matchingAlgorithmService';
+import { findMatchesForVirtualUserVector } from '@/lib/services/vectorMatchingService';
+
+export const dynamic = 'force-dynamic';
+export const maxDuration = 300; // 5 דקות לחיפושים ארוכים
+
+// ============================================================================
+// TYPES
+// ============================================================================
+
+interface VirtualProcessingParams {
+  virtualProfileId: string;
+  virtualProfile: any;
+  gender: string;
+  religiousLevel: string;
+  editedSummary?: string;
+  method: string;
+  matchmakerId: string;
+}
+
+// ============================================================================
+// POST - התחלת Job חדש (מחזיר מיד!)
+// ============================================================================
+
+export async function POST(req: NextRequest): Promise<NextResponse> {
+  try {
+    // Authentication
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      return NextResponse.json({ 
+        success: false, 
+        error: "Unauthorized" 
+      }, { status: 401 });
+    }
+
+    if (session.user.role !== UserRole.MATCHMAKER && session.user.role !== UserRole.ADMIN) {
+      return NextResponse.json({ 
+        success: false, 
+        error: "Forbidden" 
+      }, { status: 403 });
+    }
+
+    // Parse body
+    const body = await req.json();
+    const { 
+      targetUserId, 
+      forceRefresh = false, 
+      method = 'algorithmic',
+      // 🆕 פרמטרים לחיפוש וירטואלי
+      isVirtualSearch = false,
+      virtualProfileId,
+      virtualProfile,
+      gender,
+      religiousLevel,
+      editedSummary,
+    } = body;
+
+    const matchmakerId = session.user.id;
+
+    // ================================================================
+    // 🔮 חיפוש וירטואלי - מעובד ישירות (לא fire-and-forget)
+    // ================================================================
+    if (isVirtualSearch) {
+      if (!virtualProfileId || !virtualProfile || !gender || !religiousLevel) {
+        return NextResponse.json({ 
+          success: false, 
+          error: "Missing required virtual profile parameters" 
+        }, { status: 400 });
+      }
+
+      console.log(`\n${'='.repeat(60)}`);
+      console.log(`[MatchingJob] 🔮 Virtual search request from ${session.user.email}`);
+      console.log(`[MatchingJob] Virtual Profile: ${virtualProfileId}, Method: ${method}`);
+      console.log(`${'='.repeat(60)}\n`);
+
+      // יצירת Job חדש לחיפוש וירטואלי
+      const newJob = await prisma.matchingJob.create({
+        data: {
+          targetUserId: virtualProfileId,
+          matchmakerId,
+          method: `${method}-virtual`,
+          status: 'processing', // מתחיל ישר ב-processing
+          progress: 5,
+          progressMessage: 'מתחיל חיפוש וירטואלי...'
+        }
+      });
+
+      console.log(`[MatchingJob] 🆕 Created virtual job: ${newJob.id}`);
+
+      // 🔥 הפעלת עיבוד ישיר (לא fire-and-forget!)
+      // משתמשים ב-Promise שלא מחכים לו, אבל מעבדים ישירות
+      processVirtualSearchDirectly(newJob.id, {
+        virtualProfileId,
+        virtualProfile,
+        gender,
+        religiousLevel,
+        editedSummary,
+        method,
+        matchmakerId,
+      }).catch(err => {
+        console.error(`[MatchingJob] ❌ Virtual search processing error:`, err);
+      });
+
+      // מחזירים תשובה מיידית עם ה-jobId
+      return NextResponse.json({
+        success: true,
+        jobId: newJob.id,
+        status: 'processing',
+        progress: 5,
+        progressMessage: 'מתחיל חיפוש וירטואלי...',
+        isVirtualSearch: true,
+      });
+    }
+
+    // ================================================================
+    // 👤 חיפוש רגיל - ממשיך כרגיל
+    // ================================================================
+    
+    if (!targetUserId || typeof targetUserId !== 'string') {
+      return NextResponse.json({ 
+        success: false, 
+        error: "targetUserId is required" 
+      }, { status: 400 });
+    }
+
+    console.log(`[MatchingJob] 📋 New request from ${session.user.email}`);
+    console.log(`[MatchingJob] Target: ${targetUserId}, Method: ${method}`);
+
+    // בדיקה אם יש Job פעיל קיים לאותו משתמש
+    const existingActiveJob = await prisma.matchingJob.findFirst({
+      where: {
+        targetUserId,
+        method,
+        status: { in: ['pending', 'processing'] }
+      }
+    });
+
+    if (existingActiveJob) {
+      console.log(`[MatchingJob] ⏳ Found existing active job: ${existingActiveJob.id}`);
+      return NextResponse.json({
+        success: true,
+        jobId: existingActiveJob.id,
+        status: existingActiveJob.status,
+        progress: existingActiveJob.progress,
+        progressMessage: existingActiveJob.progressMessage,
+        isExisting: true
+      });
+    }
+
+    // בדיקת Cache
+    if (!forceRefresh) {
+      const recentCompletedJob = await prisma.matchingJob.findFirst({
+        where: {
+          targetUserId,
+          method,
+          status: 'completed',
+          completedAt: { 
+            gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+          }
+        },
+        orderBy: { completedAt: 'desc' }
+      });
+
+      if (recentCompletedJob && recentCompletedJob.result) {
+        console.log(`[MatchingJob] ✅ Using cached results from ${recentCompletedJob.completedAt}`);
+        return NextResponse.json({
+          success: true,
+          jobId: recentCompletedJob.id,
+          status: 'completed',
+          progress: 100,
+          fromCache: true,
+          result: recentCompletedJob.result,
+          meta: {
+            completedAt: recentCompletedJob.completedAt,
+            matchesFound: recentCompletedJob.matchesFound,
+            totalCandidates: recentCompletedJob.totalCandidates
+          }
+        });
+      }
+    }
+
+    // יצירת Job חדש
+    const newJob = await prisma.matchingJob.create({
+      data: {
+        targetUserId,
+        matchmakerId,
+        method,
+        status: 'pending',
+        progress: 0,
+        progressMessage: 'ממתין להתחלה...'
+      }
+    });
+
+    console.log(`[MatchingJob] 🆕 Created new job: ${newJob.id}`);
+
+    // הפעלת עיבוד ברקע (לחיפוש רגיל)
+    triggerBackgroundProcessing(newJob.id).catch(err => {
+      console.error(`[MatchingJob] Failed to trigger background processing:`, err);
+    });
+
+    return NextResponse.json({
+      success: true,
+      jobId: newJob.id,
+      status: 'pending',
+      progress: 0,
+      progressMessage: 'ממתין להתחלה...'
+    });
+
+  } catch (error) {
+    console.error('[MatchingJob] POST Error:', error);
+    return NextResponse.json({ 
+      success: false, 
+      error: "Internal server error" 
+    }, { status: 500 });
+  }
+}
+
+// ============================================================================
+// 🔮 עיבוד ישיר של חיפוש וירטואלי (לא fire-and-forget!)
+// ============================================================================
+
+async function processVirtualSearchDirectly(
+  jobId: string,
+  params: VirtualProcessingParams
+): Promise<void> {
+  const startTime = Date.now();
+  
+  console.log(`\n${'='.repeat(60)}`);
+  console.log(`[VirtualSearch] 🚀 Starting direct processing for job: ${jobId}`);
+  console.log(`[VirtualSearch] Method: ${params.method}`);
+  console.log(`${'='.repeat(60)}\n`);
+
+  try {
+    // עדכון התקדמות
+    await prisma.matchingJob.update({
+      where: { id: jobId },
+      data: {
+        progress: 10,
+        progressMessage: 'טוען פרופיל וירטואלי...'
+      }
+    });
+
+    await prisma.matchingJob.update({
+      where: { id: jobId },
+      data: {
+        progress: 20,
+        progressMessage: 'מחפש התאמות...'
+      }
+    });
+
+    let result;
+
+    // בחירת שיטת חיפוש
+    if (params.method === 'vector' || params.method === 'vector-virtual') {
+      console.log(`[VirtualSearch] 🔷 Using Vector Search`);
+      
+      await prisma.matchingJob.update({
+        where: { id: jobId },
+        data: {
+          progress: 40,
+          progressMessage: 'מבצע חיפוש וקטורי...'
+        }
+      });
+
+      result = await findMatchesForVirtualUserVector(
+        params.virtualProfileId,
+        params.virtualProfile,
+        params.gender as Gender,
+        params.religiousLevel,
+        params.matchmakerId,
+        params.editedSummary
+      );
+
+    } else {
+      console.log(`[VirtualSearch] 🧠 Using Algorithmic Search`);
+      
+      await prisma.matchingJob.update({
+        where: { id: jobId },
+        data: {
+          progress: 40,
+          progressMessage: 'מנתח מועמדים פוטנציאליים...'
+        }
+      });
+
+      result = await findMatchesForVirtualUser(
+        params.virtualProfileId,
+        null, // name - לא נדרש
+        params.virtualProfile,
+        params.gender as Gender,
+        params.religiousLevel,
+        params.matchmakerId,
+        params.editedSummary
+      );
+    }
+
+    // חישוב זמן ריצה
+    const duration = Date.now() - startTime;
+    const durationSeconds = (duration / 1000).toFixed(1);
+
+    // שמירת התוצאות
+    await prisma.matchingJob.update({
+      where: { id: jobId },
+      data: {
+        status: 'completed',
+        progress: 100,
+        progressMessage: `הושלם! נמצאו ${result.matches.length} התאמות`,
+        result: result.matches as any,
+        matchesFound: result.matches.length,
+        totalCandidates: result.meta?.totalCandidatesScanned || 0,
+        completedAt: new Date()
+      }
+    });
+
+    console.log(`\n${'='.repeat(60)}`);
+    console.log(`[VirtualSearch] ✅ Job ${jobId} completed successfully!`);
+    console.log(`[VirtualSearch] ⏱️ Duration: ${durationSeconds} seconds`);
+    console.log(`[VirtualSearch] 📊 Matches found: ${result.matches.length}`);
+    console.log(`${'='.repeat(60)}\n`);
+
+  } catch (error) {
+    const duration = Date.now() - startTime;
+    
+    console.error(`\n${'='.repeat(60)}`);
+    console.error(`[VirtualSearch] ❌ Job ${jobId} FAILED after ${(duration/1000).toFixed(1)}s`);
+    console.error(`[VirtualSearch] Error:`, error);
+    console.error(`${'='.repeat(60)}\n`);
+
+    // עדכון סטטוס לכישלון
+    await prisma.matchingJob.update({
+      where: { id: jobId },
+      data: {
+        status: 'failed',
+        progress: 0,
+        progressMessage: 'החיפוש נכשל',
+        error: error instanceof Error ? error.message : 'Unknown error occurred'
+      }
+    }).catch(err => {
+      console.error(`[VirtualSearch] Failed to update job status:`, err);
+    });
+  }
+}
+
+// ============================================================================
+// GET - בדיקת סטטוס Job
+// ============================================================================
+
+export async function GET(req: NextRequest): Promise<NextResponse> {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { searchParams } = new URL(req.url);
+    const jobId = searchParams.get('jobId');
+    const targetUserId = searchParams.get('targetUserId');
+
+    // אם אין jobId - מחזיר רשימת jobs או מידע על ה-API
+    if (!jobId) {
+      // אם יש targetUserId - מחזיר את ה-jobs שלו
+      if (targetUserId) {
+        const jobs = await prisma.matchingJob.findMany({
+          where: { targetUserId },
+          orderBy: { createdAt: 'desc' },
+          take: 5,
+          select: {
+            id: true,
+            status: true,
+            progress: true,
+            method: true,
+            matchesFound: true,
+            createdAt: true,
+            completedAt: true
+          }
+        });
+        return NextResponse.json({ success: true, jobs });
+      }
+
+      // אחרת - מחזיר מידע על ה-API
+      return NextResponse.json({
+        name: "NeshamaTech Matching API with Background Jobs",
+        version: "4.1",
+        endpoints: {
+          "POST": "Start a new matching job",
+          "GET ?jobId=xxx": "Check job status",
+          "GET ?targetUserId=xxx": "List jobs for user",
+          "DELETE ?jobId=xxx": "Cancel/delete a job"
+        }
+      });
+    }
+
+    // שליפת Job ספציפי
+    const job = await prisma.matchingJob.findUnique({
+      where: { id: jobId }
+    });
+
+    if (!job) {
+      return NextResponse.json({ 
+        success: false, 
+        error: "Job not found" 
+      }, { status: 404 });
+    }
+
+    // מחזיר את הסטטוס
+    return NextResponse.json({
+      success: true,
+      jobId: job.id,
+      targetUserId: job.targetUserId,
+      method: job.method,
+      status: job.status,
+      progress: job.progress,
+      progressMessage: job.progressMessage,
+      result: job.status === 'completed' ? job.result : null,
+      error: job.error,
+      meta: {
+        createdAt: job.createdAt,
+        completedAt: job.completedAt,
+        matchesFound: job.matchesFound,
+        totalCandidates: job.totalCandidates
+      }
+    });
+
+  } catch (error) {
+    console.error('[MatchingJob] GET Error:', error);
+    return NextResponse.json({ 
+      success: false, 
+      error: "Internal server error" 
+    }, { status: 500 });
+  }
+}
+
+// ============================================================================
+// DELETE - ביטול/מחיקת Job
+// ============================================================================
+
+export async function DELETE(req: NextRequest): Promise<NextResponse> {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { searchParams } = new URL(req.url);
+    const jobId = searchParams.get('jobId');
+
+    if (!jobId) {
+      return NextResponse.json({ 
+        success: false, 
+        error: "jobId is required" 
+      }, { status: 400 });
+    }
+
+    // מוחק או מסמן כ-cancelled
+    await prisma.matchingJob.update({
+      where: { id: jobId },
+      data: { 
+        status: 'failed',
+        error: 'Cancelled by user'
+      }
+    });
+
+    return NextResponse.json({
+      success: true,
+      message: "Job cancelled"
+    });
+
+  } catch (error) {
+    console.error('[MatchingJob] DELETE Error:', error);
+    return NextResponse.json({ 
+      success: false, 
+      error: "Internal server error" 
+    }, { status: 500 });
+  }
+}
+
+// ============================================================================
+// Background Processing Trigger (לחיפוש רגיל בלבד)
+// ============================================================================
+
+async function triggerBackgroundProcessing(jobId: string): Promise<void> {
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXTAUTH_URL || 'http://localhost:3000';
+  
+  console.log(`[MatchingJob] 🚀 Triggering background processing for job: ${jobId}`);
+  console.log(`[MatchingJob] 🌐 Base URL: ${baseUrl}`);
+  
+  try {
+    const response = await fetch(`${baseUrl}/api/ai/process-matching-job`, {
+      method: 'POST',
+      headers: { 
+        'Content-Type': 'application/json',
+        'x-internal-secret': process.env.INTERNAL_API_SECRET || 'default-secret'
+      },
+      body: JSON.stringify({ jobId })
+    });
+    
+    console.log(`[MatchingJob] ✅ Background job triggered, status: ${response.status}`);
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`[MatchingJob] ⚠️ Background trigger returned error:`, errorText);
+    }
+    
+  } catch (err) {
+    // אם הקריאה נכשלה, מעדכנים את ה-Job עם שגיאה
+    console.error(`[MatchingJob] ❌ Failed to trigger background processing:`, err);
+    
+    // עדכון Job לסטטוס שגיאה
+    await prisma.matchingJob.update({
+      where: { id: jobId },
+      data: {
+        status: 'failed',
+        error: `Failed to start background processing: ${err instanceof Error ? err.message : 'Unknown error'}`,
+        progressMessage: 'שגיאה בהפעלת החיפוש'
+      }
+    }).catch(updateErr => {
+      console.error(`[MatchingJob] Failed to update job status:`, updateErr);
+    });
+  }
+}
+--- End of Content for route.ts ---
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\generate-rationale
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\generate-rationale\route.ts
+--------------------------------------------------------------------------------
+Content:
+// File: src/app/api/ai/generate-rationale/route.ts
+
+import { NextRequest, NextResponse } from "next/server";
+import { applyRateLimitWithRoleCheck } from '@/lib/rate-limiter';
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import { UserRole } from "@prisma/client";
+import { generateNarrativeProfile } from "@/lib/services/profileAiService";
+import { analyzePairCompatibility } from "@/lib/services/aiService";
+
+export async function POST(req: NextRequest) {
+const rateLimitResponse = await applyRateLimitWithRoleCheck(req, { requests: 15, window: '1 h' });  if (rateLimitResponse) {
+    return rateLimitResponse;
+  }
+
+  try {
+    // 1. Authentication and Authorization
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id || (session.user.role !== UserRole.MATCHMAKER && session.user.role !== UserRole.ADMIN)) {
+      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+    }
+
+    // 2. Body Validation
+    const body = await req.json();
+    const { userId1, userId2, language } = body;
+
+    if (!userId1 || !userId2) {
+      return NextResponse.json({ success: false, error: "Invalid request body. 'userId1' and 'userId2' are required." }, { status: 400 });
+    }
+    
+    // Validate language or set default
+    const validLanguages = ['he', 'en'];
+    const analysisLanguage = validLanguages.includes(language) ? language : 'he';
+
+    // 3. Generate Narrative Profiles for both users
+    // We run them in parallel for efficiency.
+    const [profile1Text, profile2Text] = await Promise.all([
+        generateNarrativeProfile(userId1),
+        generateNarrativeProfile(userId2)
+    ]);
+
+    if (!profile1Text) {
+        return NextResponse.json({ success: false, error: `Could not generate narrative profile for user ${userId1}.` }, { status: 404 });
+    }
+    if (!profile2Text) {
+        return NextResponse.json({ success: false, error: `Could not generate narrative profile for user ${userId2}.` }, { status: 404 });
+    }
+
+    // 4. Call the AI service to get the compatibility analysis
+    const analysisResult = await analyzePairCompatibility(profile1Text, profile2Text, analysisLanguage);
+
+    if (!analysisResult) {
+        return NextResponse.json({ success: false, error: "Failed to get compatibility analysis from AI service." }, { status: 500 });
+    }
+
+    // 5. Return the successful analysis
+    return NextResponse.json({ success: true, analysis: analysisResult });
+
+  } catch (error) {
+    console.error('Error in /api/ai/generate-rationale:', error);
+    const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred.";
+    return NextResponse.json({ success: false, error: "Internal server error.", details: errorMessage }, { status: 500 });
+  }
+}
+--- End of Content for route.ts ---
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\generate-suggestion-rationale
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\generate-suggestion-rationale\route.ts
+--------------------------------------------------------------------------------
+Content:
+// src/app/api/ai/generate-suggestion-rationale/route.ts
+
+import { NextRequest, NextResponse } from "next/server";
+import { applyRateLimitWithRoleCheck } from '@/lib/rate-limiter';
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import { UserRole } from "@prisma/client";
+import { generateNarrativeProfile } from "@/lib/services/profileAiService";
+import aiService from "@/lib/services/aiService";
+
+export async function POST(req: NextRequest) {
+const rateLimitResponse = await applyRateLimitWithRoleCheck(req, { requests: 15, window: '1 h' });  if (rateLimitResponse) {
+    return rateLimitResponse;
+  }
+
+  try {
+    // 1. Authentication and Authorization
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id || (session.user.role !== UserRole.MATCHMAKER && session.user.role !== UserRole.ADMIN)) {
+      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+    }
+
+    // 2. Body Validation
+    const body = await req.json();
+    const { userId1, userId2 } = body;
+
+    if (!userId1 || !userId2) {
+      return NextResponse.json({ success: false, error: "Invalid request body. 'userId1' and 'userId2' are required." }, { status: 400 });
+    }
+    
+    // 3. Generate Narrative Profiles for both users in parallel
+    const [profile1Text, profile2Text] = await Promise.all([
+        generateNarrativeProfile(userId1),
+        generateNarrativeProfile(userId2)
+    ]);
+
+    if (!profile1Text) {
+        return NextResponse.json({ success: false, error: `Could not generate narrative profile for user ${userId1}.` }, { status: 404 });
+    }
+    if (!profile2Text) {
+        return NextResponse.json({ success: false, error: `Could not generate narrative profile for user ${userId2}.` }, { status: 404 });
+    }
+
+    // --- START OF CHANGE ---
+    // 4. Call the new AI service to get the full rationale package
+    const rationaleObject = await aiService.generateFullSuggestionRationale(profile1Text, profile2Text);
+
+    if (!rationaleObject) {
+        return NextResponse.json({ success: false, error: "Failed to get suggestion rationale package from AI service." }, { status: 500 });
+    }
+
+    // 5. Return the successful rationale object
+    return NextResponse.json({ success: true, rationales: rationaleObject });
+    // --- END OF CHANGE ---
+
+  } catch (error) {
+    console.error('Error in /api/ai/generate-suggestion-rationale:', error);
+    const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred.";
+    return NextResponse.json({ success: false, error: "Internal server error.", details: errorMessage }, { status: 500 });
+  }
+}
+--- End of Content for route.ts ---
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\matchmaker
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\matchmaker\matchmaker_contents.txt
+--------------------------------------------------------------------------------
+Content:
+################################################################################
+# Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\matchmaker
+# Generated on: 2026-01-15 23:52:00
+# Filter: Only content of code files (.bat, .c, .cfg, .conf, .cpp, .cs, .css, .go, .h, .html, .ini, .java, .js, .json, .jsx, .kt, .less, .md, .php, .py, .rb, .rs, .scss, .sh, .sql, .swift, .ts, .tsx, .txt, .xml, .yaml, .yml) is included.
+################################################################################
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\matchmaker
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\matchmaker\matchmaker_contents.txt
+--------------------------------------------------------------------------------
+[This is the output log file itself. Content not included.]
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\matchmaker\analyze-profile
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\matchmaker\analyze-profile\route.ts
+--------------------------------------------------------------------------------
+Content:
+// src/app/api/ai/matchmaker/analyze-profile/route.ts
+
+import { NextRequest, NextResponse } from "next/server";
+import { applyRateLimitWithRoleCheck } from '@/lib/rate-limiter';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '@/lib/auth';
+import profileAiService from '@/lib/services/profileAiService';
+import aiService from '@/lib/services/aiService';
+import prisma from '@/lib/prisma';
+import { UserRole } from "@prisma/client";
+
+/**
+ * מטפל בבקשות POST ליצירת סיכום פרופיל (אישיות + מה מחפש) עבור שדכן.
+ * בודק מטמון בדאטה בייס לפני פנייה ל-AI.
+ */
+export async function POST(req: NextRequest) {
+  // הגבלת קצב בקשות
+  const rateLimitResponse = await applyRateLimitWithRoleCheck(req, { requests: 20, window: '1 h' });
+  if (rateLimitResponse) {
+    return rateLimitResponse;
+  }
+
+  try {
+    // 1. אימות והרשאות (שדכן או אדמין בלבד)
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id || (session.user.role !== UserRole.MATCHMAKER && session.user.role !== UserRole.ADMIN)) {
+      console.warn('[API matchmaker/analyze-profile] ניסיון גישה לא מורשה.');
+      return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+    }
+
+    // 2. קבלת פרמטרים מגוף הבקשה
+    const body = await req.json();
+    const { userId, forceRefresh } = body;
+
+    if (!userId || typeof userId !== 'string') {
+      return NextResponse.json({ success: false, message: 'Bad Request: userId is required.' }, { status: 400 });
+    }
+
+    // 3. שליפת הפרופיל והשדה החדש מהדאטה בייס לבדיקת מטמון
+    const existingProfile = await prisma.profile.findUnique({
+      where: { userId },
+      select: { 
+        aiProfileSummary: true, 
+        needsAiProfileUpdate: true 
+      }
+    });
+
+    if (!existingProfile) {
+      return NextResponse.json({ success: false, message: 'Profile not found.' }, { status: 404 });
+    }
+
+    // 4. לוגיקת מטמון: אם יש סיכום שמור, הפרופיל לא השתנה, ולא ביקשנו רענון בכוח -> נחזיר את הקיים
+    if (
+      existingProfile.aiProfileSummary && 
+      !existingProfile.needsAiProfileUpdate && 
+      !forceRefresh
+    ) {
+      console.log(`[API analyze-profile] Returning cached summary for user: ${userId}`);
+      return NextResponse.json({ success: true, data: existingProfile.aiProfileSummary });
+    }
+
+    console.log(`[API analyze-profile] Generating NEW summary for user: ${userId} (Force: ${forceRefresh})`);
+
+    // 5. יצירת פרופיל נרטיבי מקיף (טקסט גולמי ל-AI)
+    const narrativeProfile = await profileAiService.generateNarrativeProfile(userId);
+
+    if (!narrativeProfile) {
+      console.error(`[API matchmaker/analyze-profile] נכשל ביצירת פרופיל נרטיבי עבור: ${userId}`);
+      return NextResponse.json({ success: false, message: 'Could not generate user profile narrative.' }, { status: 500 });
+    }
+
+    // 6. שליחת הנרטיב לניתוח AI (שימוש בפונקציה החדשה והממוקדת)
+    const summaryResult = await aiService.generateProfileSummary(narrativeProfile);
+
+    if (!summaryResult) {
+      console.error(`[API matchmaker/analyze-profile] שירות ה-AI לא החזיר תוצאה עבור: ${userId}`);
+      return NextResponse.json({ success: false, message: 'AI service failed to produce a summary.' }, { status: 500 });
+    }
+
+    // 7. שמירת התוצאה בדאטה בייס (בשדה החדש aiProfileSummary) ואיפוס הדגל needsAiProfileUpdate
+    await prisma.profile.update({
+      where: { userId },
+      data: {
+        aiProfileSummary: summaryResult as any, // המרה ל-Json של פריזמה
+        needsAiProfileUpdate: false // הדוח מעודכן כעת
+      }
+    });
+
+    // 8. החזרת התוצאה החדשה ללקוח
+    return NextResponse.json({ success: true, data: summaryResult });
+
+  } catch (error) {
+    console.error('[API matchmaker/analyze-profile] שגיאה פטאלית ב-endpoint:', error);
+    const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
+    return NextResponse.json({ success: false, message: 'Internal Server Error', details: errorMessage }, { status: 500 });
+  }
+}
+--- End of Content for route.ts ---
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\matchmaker\batch-process
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\matchmaker\batch-process\route.ts
+--------------------------------------------------------------------------------
+Content:
+import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/auth";
+import { UserRole } from "@prisma/client";
+import prisma from "@/lib/prisma";
+import profileAiService from '@/lib/services/profileAiService';
+import aiService from '@/lib/services/aiService';
+
+export const maxDuration = 60; // זמן ריצה מקסימלי (אם השרת תומך)
+export const dynamic = 'force-dynamic';
+
+export async function POST(req: NextRequest) {
+  try {
+    // 1. בדיקת הרשאות (שדכן או אדמין)
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id || (session.user.role !== UserRole.MATCHMAKER && session.user.role !== UserRole.ADMIN)) {
+      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { action, batchSize = 5 } = await req.json();
+
+    // ---------------------------------------------------------
+    // פעולה 1: RESET_FLAGS
+    // סימון כל המועמדים הפעילים כ"נדרשים לעדכון"
+    // אנחנו מסמנים את כולם, הסינון האמיתי יקרה בזמן העיבוד כדי לחסוך ביצועים
+    // ---------------------------------------------------------
+    if (action === 'RESET_FLAGS') {
+      const updateResult = await prisma.profile.updateMany({
+        where: {
+          user: {
+            role: 'CANDIDATE',
+            // מסננים רק יוזרים פעילים או בתהליך אימות (לא חסומים)
+            status: { in: ['ACTIVE', 'PENDING_EMAIL_VERIFICATION', 'PENDING_PHONE_VERIFICATION'] }
+          }
+        },
+        data: { needsAiProfileUpdate: true }
+      });
+      
+      return NextResponse.json({ 
+        success: true, 
+        message: 'Flags reset successfully', 
+        count: updateResult.count 
+      });
+    }
+
+    // ---------------------------------------------------------
+    // פעולה 2: PROCESS_BATCH
+    // שליפה ועיבוד של קבוצת משתמשים
+    // ---------------------------------------------------------
+    if (action === 'PROCESS_BATCH') {
+      // 1. שליפת מועמדים שצריכים עדכון
+      const candidatesToProcess = await prisma.user.findMany({
+        where: {
+          role: 'CANDIDATE',
+          status: { notIn: ['BLOCKED', 'INACTIVE'] },
+          profile: {
+            needsAiProfileUpdate: true
+          }
+        },
+        take: batchSize,
+        // שליפת המידע הרלוונטי לבדיקת "האם יש דאטה"
+        include: {
+          profile: {
+            select: { id: true, about: true, needsAiProfileUpdate: true }
+          },
+          questionnaireResponses: {
+            select: { id: true } // מספיק לדעת אם קיים ID כדי לדעת שיש שאלון
+          }
+        }
+      });
+
+      // בדיקה כמה נשארו סה"כ (לצורך ה-Progress Bar)
+      const remainingCount = await prisma.user.count({
+        where: {
+          role: 'CANDIDATE',
+          status: { notIn: ['BLOCKED', 'INACTIVE'] },
+          profile: { needsAiProfileUpdate: true }
+        }
+      });
+
+      // אם אין יותר מועמדים לעדכון - סיימנו
+      if (candidatesToProcess.length === 0) {
+        return NextResponse.json({ success: true, processed: 0, remaining: 0, completed: true });
+      }
+
+      console.log(`[Batch AI] Processing batch of ${candidatesToProcess.length} candidates...`);
+
+      // 2. עיבוד במקביל
+      const results = await Promise.all(
+        candidatesToProcess.map(async (user) => {
+          try {
+            // --- שלב הסינון החכם ---
+            // נבדוק האם ליוזר יש מידע רלוונטי ל-AI
+            
+            const hasAbout = user.profile?.about && user.profile.about.trim().length > 10; // לפחות 10 תווים
+            const hasQuestionnaire = user.questionnaireResponses && user.questionnaireResponses.length > 0;
+
+            // אם אין שום מידע - מדלגים (אבל מכבים את הדגל כדי לא לחזור אליו)
+            if (!hasAbout && !hasQuestionnaire) {
+              await prisma.profile.update({
+                where: { userId: user.id },
+                data: { needsAiProfileUpdate: false }
+              });
+              return { id: user.id, status: 'skipped_no_data' };
+            }
+
+            // --- יש מידע? ממשיכים ל-AI ---
+
+            // 1. יצירת פרופיל נרטיבי (הפונקציה הזו כבר יודעת לקחת שאלונים ו-about)
+            const narrative = await profileAiService.generateNarrativeProfile(user.id);
+            
+            // הגנה נוספת למקרה שהנרטיב יצא ריק למרות הבדיקה
+            if (!narrative || narrative.length < 20) {
+                await prisma.profile.update({
+                    where: { userId: user.id },
+                    data: { needsAiProfileUpdate: false }
+                });
+                return { id: user.id, status: 'skipped_empty_narrative' };
+            }
+
+            // 2. יצירת הדוח ב-AI
+            const summary = await aiService.generateProfileSummary(narrative);
+            
+            if (!summary) throw new Error("AI Summary failed");
+
+            // 3. שמירה בדאטה בייס וכיבוי הדגל
+            await prisma.profile.update({
+              where: { userId: user.id },
+              data: {
+                aiProfileSummary: summary as any, // המרת JSON לפורמט של פריזמה
+                needsAiProfileUpdate: false,
+                // אופציונלי: עדכון מונה הפעמים שהופק דוח (אם הוספת את השדה מהמודל)
+                // neshamaInsightGeneratedCount: { increment: 1 },
+                // neshamaInsightLastGeneratedAt: new Date()
+              }
+            });
+
+            return { id: user.id, status: 'success' };
+
+          } catch (error) {
+            console.error(`[Batch AI] Failed for user ${user.id}:`, error);
+            // במקרה שגיאה טכנית ב-AI, נכבה את הדגל כדי לא לתקוע את התהליך הכללי
+            await prisma.profile.update({
+                where: { userId: user.id },
+                data: { needsAiProfileUpdate: false }
+            });
+            return { id: user.id, status: 'error' };
+          }
+        })
+      );
+
+      const successful = results.filter(r => r.status === 'success').length;
+      const skipped = results.filter(r => r.status.startsWith('skipped')).length;
+
+      return NextResponse.json({
+        success: true,
+        processed: candidatesToProcess.length, // סך הכל שעברו בבאץ'
+        successful, // כמה נוצרו בפועל
+        skipped,    // כמה דולגו כי היו ריקים
+        remaining: Math.max(0, remainingCount - candidatesToProcess.length),
+        completed: (remainingCount - candidatesToProcess.length) <= 0
+      });
+    }
+
+    return NextResponse.json({ success: false, error: "Invalid action" }, { status: 400 });
+
+  } catch (error) {
+    console.error('[Batch Process] Error:', error);
+    return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
+  }
+}
+--- End of Content for route.ts ---
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\matchmaker\generate-summary
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\matchmaker\generate-summary\route.ts
+--------------------------------------------------------------------------------
+Content:
+// src/app/api/ai/matchmaker/generate-summary/route.ts
+import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/auth";
+import { UserRole } from "@prisma/client";
+import profileAiService from '@/lib/services/profileAiService';
+import aiService from '@/lib/services/aiService';
+
+export async function POST(req: NextRequest) {
+  try {
+    // 1. אימות והרשאות (שדכן או אדמין בלבד)
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id || (session.user.role !== UserRole.MATCHMAKER && session.user.role !== UserRole.ADMIN)) {
+      return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+    }
+
+    // 2. קבלת ID המועמד מגוף הבקשה
+    const body = await req.json();
+const { userId, locale } = body;
+
+    if (!userId || typeof userId !== 'string') {
+      return NextResponse.json({ success: false, message: 'Bad Request: userId is required.' }, { status: 400 });
+    }
+
+    // 3. יצירת פרופיל נרטיבי מקיף
+    const narrativeProfile = await profileAiService.generateNarrativeProfile(userId);
+    if (!narrativeProfile) {
+      return NextResponse.json({ success: false, message: 'Could not generate user profile narrative.' }, { status: 500 });
+    }
+
+    // 4. שליחת הנרטיב ל-AI ליצירת הסיכום
+const summaryResult = await aiService.generateNeshamaTechSummary(narrativeProfile, locale);
+    if (!summaryResult || !summaryResult.summaryText) {
+      return NextResponse.json({ success: false, message: 'AI service failed to produce a summary.' }, { status: 500 });
+    }
+
+    // 5. החזרת התוצאה המוצלחת
+    return NextResponse.json({ success: true, summary: summaryResult.summaryText });
+
+  } catch (error) {
+    console.error('[API generate-summary] Fatal error:', error);
+    const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
+    return NextResponse.json({ success: false, message: 'Internal Server Error', details: errorMessage }, { status: 500 });
+  }
+}
+--- End of Content for route.ts ---
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\matchmaker\prepare-feedback-email
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\matchmaker\prepare-feedback-email\route.ts
+--------------------------------------------------------------------------------
+Content:
+// src/app/api/ai/matchmaker/prepare-feedback-email/route.ts
+
+import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/auth";
+import { UserRole } from "@prisma/client";
+import { getDictionary, getQuestionnaireQuestionsDictionary } from "@/lib/dictionaries";
+import { profileFeedbackService } from "@/lib/services/profileFeedbackService";
+import type { ProfileFeedbackTemplateContext } from "@/lib/email/templates/emailTemplates";
+
+import fs from 'fs';
+import path from 'path';
+import Handlebars from 'handlebars';
+
+// רישום helpers של Handlebars
+Handlebars.registerHelper('eq', function (a, b) {
+  return a === b;
+});
+
+Handlebars.registerHelper('replace', function (str, searchValue, replaceValue) {
+  if (typeof str !== 'string') return str;
+  return str.replace(new RegExp(searchValue, 'g'), replaceValue);
+});
+
+export async function POST(req: NextRequest) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id || (session.user.role !== UserRole.MATCHMAKER && session.user.role !== UserRole.ADMIN)) {
+      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { userId, locale, isAutomated } = await req.json();
+    if (!userId || !locale) {
+      return NextResponse.json({ success: false, error: "Missing userId or locale" }, { status: 400 });
+    }
+    
+    // טעינת המילונים
+    const [dictionary, questionnaireQuestionsDict] = await Promise.all([
+      getDictionary(locale),
+      getQuestionnaireQuestionsDictionary(locale)
+    ]);
+    
+    const emailDict = dictionary.email;
+
+    // בדיקה שמילון המייל קיים
+    if (!emailDict?.profileFeedback || !emailDict?.shared) {
+        console.error("Dictionary is missing 'email.profileFeedback' or 'email.shared' section.");
+        return NextResponse.json({ success: false, error: "Server configuration error: Email dictionary is incomplete." }, { status: 500 });
+    }
+
+    // יצירת הדוח עם הטיפוס המתוקן
+    const report = await profileFeedbackService.compileFeedbackReport(
+      userId, 
+      locale, 
+      questionnaireQuestionsDict // זה כבר הטיפוס הנכון
+    );
+
+    // הכנת הקונטקסט לתבנית
+    const context: ProfileFeedbackTemplateContext = {
+      locale: locale as any,
+      dict: emailDict.profileFeedback,
+      sharedDict: {
+        ...emailDict.shared,
+        rightsReserved: (emailDict.shared.rightsReserved || "© {{year}} NeshamaTech").replace('{{year}}', new Date().getFullYear().toString())
+      },
+      name: report.name,
+      report,
+      isAutomated: isAutomated || false,
+      matchmakerName: session.user.name || "השדכן/ית שלך",
+      supportEmail: process.env.SUPPORT_EMAIL || 'support@neshamatech.com',
+      companyName: process.env.COMPANY_NAME || 'NeshamaTech',
+      currentYear: new Date().getFullYear().toString(),
+      baseUrl: process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000',
+    };
+
+    // טעינת תבנית ה-Handlebars
+    const templatePath = path.resolve(process.cwd(), 'src/lib/email/templates/profile-feedback.hbs');
+    
+    if (!fs.existsSync(templatePath)) {
+      console.error(`Template file not found: ${templatePath}`);
+      return NextResponse.json({ success: false, error: "Email template not found" }, { status: 500 });
+    }
+
+    const templateSource = fs.readFileSync(templatePath, 'utf8');
+    const compiledTemplate = Handlebars.compile(templateSource);
+    
+    // הוספת greeting לקונטקסט
+    const contextWithGreeting = {
+      ...context,
+      greeting: (emailDict.profileFeedback.greeting || "שלום {{name}}").replace('{{name}}', report.name)
+    };
+    
+    const htmlContent = compiledTemplate(contextWithGreeting);
+
+    // החזרת התוכן עם headers נכונים
+    return NextResponse.json(
+      { 
+        success: true, 
+        htmlContent,
+        locale,
+        direction: locale === 'he' ? 'rtl' : 'ltr'
+      },
+      {
+        headers: {
+          'Content-Type': 'application/json; charset=utf-8',
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+        }
+      }
+    );
+
+  } catch (error) {
+    console.error("Error in prepare-feedback-email endpoint:", error);
+    const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
+    return NextResponse.json(
+      { 
+        success: false, 
+        error: "Internal Server Error", 
+        details: errorMessage 
+      }, 
+      { 
+        status: 500,
+        headers: {
+          'Content-Type': 'application/json; charset=utf-8'
+        }
+      }
+    );
+  }
+}
+--- End of Content for route.ts ---
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\matchmaker\send-feedback-email
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\matchmaker\send-feedback-email\route.ts
+--------------------------------------------------------------------------------
+Content:
+// src/app/api/ai/matchmaker/send-feedback-email/route.ts
+import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/auth";
+import { emailService } from "@/lib/email/emailService";
+import { UserRole } from "@prisma/client";
+export async function POST(req: NextRequest) {
+try {
+const session = await getServerSession(authOptions);
+if (!session?.user?.id || (session.user.role !== UserRole.MATCHMAKER && session.user.role !== UserRole.ADMIN)) {
+return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+}
+
+const { userEmail, subject, htmlContent } = await req.json();
+if (!userEmail || !subject || !htmlContent) {
+  return NextResponse.json({ success: false, error: "Missing parameters" }, { status: 400 });
+}
+
+// קריאה לשירות המייל עם התוכן הערוך
+await emailService.sendRawEmail({
+  to: userEmail,
+  subject: subject,
+  html: htmlContent,
+});
+
+return NextResponse.json({ success: true, message: "Email sent successfully" });
+} catch (error) {
+console.error("Error sending feedback email:", error);
+return NextResponse.json({ success: false, error: "Internal Server Error" }, { status: 500 });
+}
+}
+--- End of Content for route.ts ---
+
+--- End of Content for matchmaker_contents.txt ---
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\matchmaker\analyze-profile
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\matchmaker\analyze-profile\route.ts
+--------------------------------------------------------------------------------
+Content:
+// src/app/api/ai/matchmaker/analyze-profile/route.ts
+
+import { NextRequest, NextResponse } from "next/server";
+import { applyRateLimitWithRoleCheck } from '@/lib/rate-limiter';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '@/lib/auth';
+import profileAiService from '@/lib/services/profileAiService';
+import aiService from '@/lib/services/aiService';
+import prisma from '@/lib/prisma';
+import { UserRole } from "@prisma/client";
+
+/**
+ * מטפל בבקשות POST ליצירת סיכום פרופיל (אישיות + מה מחפש) עבור שדכן.
+ * בודק מטמון בדאטה בייס לפני פנייה ל-AI.
+ */
+export async function POST(req: NextRequest) {
+  // הגבלת קצב בקשות
+  const rateLimitResponse = await applyRateLimitWithRoleCheck(req, { requests: 20, window: '1 h' });
+  if (rateLimitResponse) {
+    return rateLimitResponse;
+  }
+
+  try {
+    // 1. אימות והרשאות (שדכן או אדמין בלבד)
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id || (session.user.role !== UserRole.MATCHMAKER && session.user.role !== UserRole.ADMIN)) {
+      console.warn('[API matchmaker/analyze-profile] ניסיון גישה לא מורשה.');
+      return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+    }
+
+    // 2. קבלת פרמטרים מגוף הבקשה
+    const body = await req.json();
+    const { userId, forceRefresh } = body;
+
+    if (!userId || typeof userId !== 'string') {
+      return NextResponse.json({ success: false, message: 'Bad Request: userId is required.' }, { status: 400 });
+    }
+
+    // 3. שליפת הפרופיל והשדה החדש מהדאטה בייס לבדיקת מטמון
+    const existingProfile = await prisma.profile.findUnique({
+      where: { userId },
+      select: { 
+        aiProfileSummary: true, 
+        needsAiProfileUpdate: true 
+      }
+    });
+
+    if (!existingProfile) {
+      return NextResponse.json({ success: false, message: 'Profile not found.' }, { status: 404 });
+    }
+
+    // 4. לוגיקת מטמון: אם יש סיכום שמור, הפרופיל לא השתנה, ולא ביקשנו רענון בכוח -> נחזיר את הקיים
+    if (
+      existingProfile.aiProfileSummary && 
+      !existingProfile.needsAiProfileUpdate && 
+      !forceRefresh
+    ) {
+      console.log(`[API analyze-profile] Returning cached summary for user: ${userId}`);
+      return NextResponse.json({ success: true, data: existingProfile.aiProfileSummary });
+    }
+
+    console.log(`[API analyze-profile] Generating NEW summary for user: ${userId} (Force: ${forceRefresh})`);
+
+    // 5. יצירת פרופיל נרטיבי מקיף (טקסט גולמי ל-AI)
+    const narrativeProfile = await profileAiService.generateNarrativeProfile(userId);
+
+    if (!narrativeProfile) {
+      console.error(`[API matchmaker/analyze-profile] נכשל ביצירת פרופיל נרטיבי עבור: ${userId}`);
+      return NextResponse.json({ success: false, message: 'Could not generate user profile narrative.' }, { status: 500 });
+    }
+
+    // 6. שליחת הנרטיב לניתוח AI (שימוש בפונקציה החדשה והממוקדת)
+    const summaryResult = await aiService.generateProfileSummary(narrativeProfile);
+
+    if (!summaryResult) {
+      console.error(`[API matchmaker/analyze-profile] שירות ה-AI לא החזיר תוצאה עבור: ${userId}`);
+      return NextResponse.json({ success: false, message: 'AI service failed to produce a summary.' }, { status: 500 });
+    }
+
+    // 7. שמירת התוצאה בדאטה בייס (בשדה החדש aiProfileSummary) ואיפוס הדגל needsAiProfileUpdate
+    await prisma.profile.update({
+      where: { userId },
+      data: {
+        aiProfileSummary: summaryResult as any, // המרה ל-Json של פריזמה
+        needsAiProfileUpdate: false // הדוח מעודכן כעת
+      }
+    });
+
+    // 8. החזרת התוצאה החדשה ללקוח
+    return NextResponse.json({ success: true, data: summaryResult });
+
+  } catch (error) {
+    console.error('[API matchmaker/analyze-profile] שגיאה פטאלית ב-endpoint:', error);
+    const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
+    return NextResponse.json({ success: false, message: 'Internal Server Error', details: errorMessage }, { status: 500 });
+  }
+}
+--- End of Content for route.ts ---
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\matchmaker\batch-process
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\matchmaker\batch-process\route.ts
+--------------------------------------------------------------------------------
+Content:
+import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/auth";
+import { UserRole } from "@prisma/client";
+import prisma from "@/lib/prisma";
+import profileAiService from '@/lib/services/profileAiService';
+import aiService from '@/lib/services/aiService';
+
+export const maxDuration = 60; // זמן ריצה מקסימלי (אם השרת תומך)
+export const dynamic = 'force-dynamic';
+
+export async function POST(req: NextRequest) {
+  try {
+    // 1. בדיקת הרשאות (שדכן או אדמין)
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id || (session.user.role !== UserRole.MATCHMAKER && session.user.role !== UserRole.ADMIN)) {
+      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { action, batchSize = 5 } = await req.json();
+
+    // ---------------------------------------------------------
+    // פעולה 1: RESET_FLAGS
+    // סימון כל המועמדים הפעילים כ"נדרשים לעדכון"
+    // אנחנו מסמנים את כולם, הסינון האמיתי יקרה בזמן העיבוד כדי לחסוך ביצועים
+    // ---------------------------------------------------------
+    if (action === 'RESET_FLAGS') {
+      const updateResult = await prisma.profile.updateMany({
+        where: {
+          user: {
+            role: 'CANDIDATE',
+            // מסננים רק יוזרים פעילים או בתהליך אימות (לא חסומים)
+            status: { in: ['ACTIVE', 'PENDING_EMAIL_VERIFICATION', 'PENDING_PHONE_VERIFICATION'] }
+          }
+        },
+        data: { needsAiProfileUpdate: true }
+      });
+      
+      return NextResponse.json({ 
+        success: true, 
+        message: 'Flags reset successfully', 
+        count: updateResult.count 
+      });
+    }
+
+    // ---------------------------------------------------------
+    // פעולה 2: PROCESS_BATCH
+    // שליפה ועיבוד של קבוצת משתמשים
+    // ---------------------------------------------------------
+    if (action === 'PROCESS_BATCH') {
+      // 1. שליפת מועמדים שצריכים עדכון
+      const candidatesToProcess = await prisma.user.findMany({
+        where: {
+          role: 'CANDIDATE',
+          status: { notIn: ['BLOCKED', 'INACTIVE'] },
+          profile: {
+            needsAiProfileUpdate: true
+          }
+        },
+        take: batchSize,
+        // שליפת המידע הרלוונטי לבדיקת "האם יש דאטה"
+        include: {
+          profile: {
+            select: { id: true, about: true, needsAiProfileUpdate: true }
+          },
+          questionnaireResponses: {
+            select: { id: true } // מספיק לדעת אם קיים ID כדי לדעת שיש שאלון
+          }
+        }
+      });
+
+      // בדיקה כמה נשארו סה"כ (לצורך ה-Progress Bar)
+      const remainingCount = await prisma.user.count({
+        where: {
+          role: 'CANDIDATE',
+          status: { notIn: ['BLOCKED', 'INACTIVE'] },
+          profile: { needsAiProfileUpdate: true }
+        }
+      });
+
+      // אם אין יותר מועמדים לעדכון - סיימנו
+      if (candidatesToProcess.length === 0) {
+        return NextResponse.json({ success: true, processed: 0, remaining: 0, completed: true });
+      }
+
+      console.log(`[Batch AI] Processing batch of ${candidatesToProcess.length} candidates...`);
+
+      // 2. עיבוד במקביל
+      const results = await Promise.all(
+        candidatesToProcess.map(async (user) => {
+          try {
+            // --- שלב הסינון החכם ---
+            // נבדוק האם ליוזר יש מידע רלוונטי ל-AI
+            
+            const hasAbout = user.profile?.about && user.profile.about.trim().length > 10; // לפחות 10 תווים
+            const hasQuestionnaire = user.questionnaireResponses && user.questionnaireResponses.length > 0;
+
+            // אם אין שום מידע - מדלגים (אבל מכבים את הדגל כדי לא לחזור אליו)
+            if (!hasAbout && !hasQuestionnaire) {
+              await prisma.profile.update({
+                where: { userId: user.id },
+                data: { needsAiProfileUpdate: false }
+              });
+              return { id: user.id, status: 'skipped_no_data' };
+            }
+
+            // --- יש מידע? ממשיכים ל-AI ---
+
+            // 1. יצירת פרופיל נרטיבי (הפונקציה הזו כבר יודעת לקחת שאלונים ו-about)
+            const narrative = await profileAiService.generateNarrativeProfile(user.id);
+            
+            // הגנה נוספת למקרה שהנרטיב יצא ריק למרות הבדיקה
+            if (!narrative || narrative.length < 20) {
+                await prisma.profile.update({
+                    where: { userId: user.id },
+                    data: { needsAiProfileUpdate: false }
+                });
+                return { id: user.id, status: 'skipped_empty_narrative' };
+            }
+
+            // 2. יצירת הדוח ב-AI
+            const summary = await aiService.generateProfileSummary(narrative);
+            
+            if (!summary) throw new Error("AI Summary failed");
+
+            // 3. שמירה בדאטה בייס וכיבוי הדגל
+            await prisma.profile.update({
+              where: { userId: user.id },
+              data: {
+                aiProfileSummary: summary as any, // המרת JSON לפורמט של פריזמה
+                needsAiProfileUpdate: false,
+                // אופציונלי: עדכון מונה הפעמים שהופק דוח (אם הוספת את השדה מהמודל)
+                // neshamaInsightGeneratedCount: { increment: 1 },
+                // neshamaInsightLastGeneratedAt: new Date()
+              }
+            });
+
+            return { id: user.id, status: 'success' };
+
+          } catch (error) {
+            console.error(`[Batch AI] Failed for user ${user.id}:`, error);
+            // במקרה שגיאה טכנית ב-AI, נכבה את הדגל כדי לא לתקוע את התהליך הכללי
+            await prisma.profile.update({
+                where: { userId: user.id },
+                data: { needsAiProfileUpdate: false }
+            });
+            return { id: user.id, status: 'error' };
+          }
+        })
+      );
+
+      const successful = results.filter(r => r.status === 'success').length;
+      const skipped = results.filter(r => r.status.startsWith('skipped')).length;
+
+      return NextResponse.json({
+        success: true,
+        processed: candidatesToProcess.length, // סך הכל שעברו בבאץ'
+        successful, // כמה נוצרו בפועל
+        skipped,    // כמה דולגו כי היו ריקים
+        remaining: Math.max(0, remainingCount - candidatesToProcess.length),
+        completed: (remainingCount - candidatesToProcess.length) <= 0
+      });
+    }
+
+    return NextResponse.json({ success: false, error: "Invalid action" }, { status: 400 });
+
+  } catch (error) {
+    console.error('[Batch Process] Error:', error);
+    return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
+  }
+}
+--- End of Content for route.ts ---
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\matchmaker\generate-summary
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\matchmaker\generate-summary\route.ts
+--------------------------------------------------------------------------------
+Content:
+// src/app/api/ai/matchmaker/generate-summary/route.ts
+import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/auth";
+import { UserRole } from "@prisma/client";
+import profileAiService from '@/lib/services/profileAiService';
+import aiService from '@/lib/services/aiService';
+
+export async function POST(req: NextRequest) {
+  try {
+    // 1. אימות והרשאות (שדכן או אדמין בלבד)
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id || (session.user.role !== UserRole.MATCHMAKER && session.user.role !== UserRole.ADMIN)) {
+      return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+    }
+
+    // 2. קבלת ID המועמד מגוף הבקשה
+    const body = await req.json();
+const { userId, locale } = body;
+
+    if (!userId || typeof userId !== 'string') {
+      return NextResponse.json({ success: false, message: 'Bad Request: userId is required.' }, { status: 400 });
+    }
+
+    // 3. יצירת פרופיל נרטיבי מקיף
+    const narrativeProfile = await profileAiService.generateNarrativeProfile(userId);
+    if (!narrativeProfile) {
+      return NextResponse.json({ success: false, message: 'Could not generate user profile narrative.' }, { status: 500 });
+    }
+
+    // 4. שליחת הנרטיב ל-AI ליצירת הסיכום
+const summaryResult = await aiService.generateNeshamaTechSummary(narrativeProfile, locale);
+    if (!summaryResult || !summaryResult.summaryText) {
+      return NextResponse.json({ success: false, message: 'AI service failed to produce a summary.' }, { status: 500 });
+    }
+
+    // 5. החזרת התוצאה המוצלחת
+    return NextResponse.json({ success: true, summary: summaryResult.summaryText });
+
+  } catch (error) {
+    console.error('[API generate-summary] Fatal error:', error);
+    const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
+    return NextResponse.json({ success: false, message: 'Internal Server Error', details: errorMessage }, { status: 500 });
+  }
+}
+--- End of Content for route.ts ---
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\matchmaker\prepare-feedback-email
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\matchmaker\prepare-feedback-email\route.ts
+--------------------------------------------------------------------------------
+Content:
+// src/app/api/ai/matchmaker/prepare-feedback-email/route.ts
+
+import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/auth";
+import { UserRole } from "@prisma/client";
+import { getDictionary, getQuestionnaireQuestionsDictionary } from "@/lib/dictionaries";
+import { profileFeedbackService } from "@/lib/services/profileFeedbackService";
+import type { ProfileFeedbackTemplateContext } from "@/lib/email/templates/emailTemplates";
+
+import fs from 'fs';
+import path from 'path';
+import Handlebars from 'handlebars';
+
+// רישום helpers של Handlebars
+Handlebars.registerHelper('eq', function (a, b) {
+  return a === b;
+});
+
+Handlebars.registerHelper('replace', function (str, searchValue, replaceValue) {
+  if (typeof str !== 'string') return str;
+  return str.replace(new RegExp(searchValue, 'g'), replaceValue);
+});
+
+export async function POST(req: NextRequest) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id || (session.user.role !== UserRole.MATCHMAKER && session.user.role !== UserRole.ADMIN)) {
+      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { userId, locale, isAutomated } = await req.json();
+    if (!userId || !locale) {
+      return NextResponse.json({ success: false, error: "Missing userId or locale" }, { status: 400 });
+    }
+    
+    // טעינת המילונים
+    const [dictionary, questionnaireQuestionsDict] = await Promise.all([
+      getDictionary(locale),
+      getQuestionnaireQuestionsDictionary(locale)
+    ]);
+    
+    const emailDict = dictionary.email;
+
+    // בדיקה שמילון המייל קיים
+    if (!emailDict?.profileFeedback || !emailDict?.shared) {
+        console.error("Dictionary is missing 'email.profileFeedback' or 'email.shared' section.");
+        return NextResponse.json({ success: false, error: "Server configuration error: Email dictionary is incomplete." }, { status: 500 });
+    }
+
+    // יצירת הדוח עם הטיפוס המתוקן
+    const report = await profileFeedbackService.compileFeedbackReport(
+      userId, 
+      locale, 
+      questionnaireQuestionsDict // זה כבר הטיפוס הנכון
+    );
+
+    // הכנת הקונטקסט לתבנית
+    const context: ProfileFeedbackTemplateContext = {
+      locale: locale as any,
+      dict: emailDict.profileFeedback,
+      sharedDict: {
+        ...emailDict.shared,
+        rightsReserved: (emailDict.shared.rightsReserved || "© {{year}} NeshamaTech").replace('{{year}}', new Date().getFullYear().toString())
+      },
+      name: report.name,
+      report,
+      isAutomated: isAutomated || false,
+      matchmakerName: session.user.name || "השדכן/ית שלך",
+      supportEmail: process.env.SUPPORT_EMAIL || 'support@neshamatech.com',
+      companyName: process.env.COMPANY_NAME || 'NeshamaTech',
+      currentYear: new Date().getFullYear().toString(),
+      baseUrl: process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000',
+    };
+
+    // טעינת תבנית ה-Handlebars
+    const templatePath = path.resolve(process.cwd(), 'src/lib/email/templates/profile-feedback.hbs');
+    
+    if (!fs.existsSync(templatePath)) {
+      console.error(`Template file not found: ${templatePath}`);
+      return NextResponse.json({ success: false, error: "Email template not found" }, { status: 500 });
+    }
+
+    const templateSource = fs.readFileSync(templatePath, 'utf8');
+    const compiledTemplate = Handlebars.compile(templateSource);
+    
+    // הוספת greeting לקונטקסט
+    const contextWithGreeting = {
+      ...context,
+      greeting: (emailDict.profileFeedback.greeting || "שלום {{name}}").replace('{{name}}', report.name)
+    };
+    
+    const htmlContent = compiledTemplate(contextWithGreeting);
+
+    // החזרת התוכן עם headers נכונים
+    return NextResponse.json(
+      { 
+        success: true, 
+        htmlContent,
+        locale,
+        direction: locale === 'he' ? 'rtl' : 'ltr'
+      },
+      {
+        headers: {
+          'Content-Type': 'application/json; charset=utf-8',
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+        }
+      }
+    );
+
+  } catch (error) {
+    console.error("Error in prepare-feedback-email endpoint:", error);
+    const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
+    return NextResponse.json(
+      { 
+        success: false, 
+        error: "Internal Server Error", 
+        details: errorMessage 
+      }, 
+      { 
+        status: 500,
+        headers: {
+          'Content-Type': 'application/json; charset=utf-8'
+        }
+      }
+    );
+  }
+}
+--- End of Content for route.ts ---
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\matchmaker\send-feedback-email
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\matchmaker\send-feedback-email\route.ts
+--------------------------------------------------------------------------------
+Content:
+// src/app/api/ai/matchmaker/send-feedback-email/route.ts
+import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/auth";
+import { emailService } from "@/lib/email/emailService";
+import { UserRole } from "@prisma/client";
+export async function POST(req: NextRequest) {
+try {
+const session = await getServerSession(authOptions);
+if (!session?.user?.id || (session.user.role !== UserRole.MATCHMAKER && session.user.role !== UserRole.ADMIN)) {
+return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+}
+
+const { userEmail, subject, htmlContent } = await req.json();
+if (!userEmail || !subject || !htmlContent) {
+  return NextResponse.json({ success: false, error: "Missing parameters" }, { status: 400 });
+}
+
+// קריאה לשירות המייל עם התוכן הערוך
+await emailService.sendRawEmail({
+  to: userEmail,
+  subject: subject,
+  html: htmlContent,
+});
+
+return NextResponse.json({ success: true, message: "Email sent successfully" });
+} catch (error) {
+console.error("Error sending feedback email:", error);
+return NextResponse.json({ success: false, error: "Internal Server Error" }, { status: 500 });
+}
+}
+--- End of Content for route.ts ---
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\process-matching-job
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\process-matching-job\route.ts
+--------------------------------------------------------------------------------
+Content:
+// ===========================================
+// src/app/api/ai/process-matching-job/route.ts
+// ===========================================
+// 🎯 Background Job Processor
+// מעבד חיפושים רגילים (לא וירטואליים) ברקע
+// 
+// 📝 הערה: חיפושים וירטואליים מעובדים ישירות ב-find-matches-v2
+// ולא עוברים דרך route זה יותר
+//
+// 🆕 עודכן: שומר תוצאות גם ב-PotentialMatch לתצוגה בדשבורד
+
+import { NextRequest, NextResponse } from "next/server";
+import prisma from "@/lib/prisma";
+import { findMatchesForUser } from "@/lib/services/matchingAlgorithmService";
+import { findMatchesWithVector } from "@/lib/services/vectorMatchingService";
+
+export const dynamic = 'force-dynamic';
+export const maxDuration = 300; // 5 דקות
+
+// ============================================================================
+// POST - מעבד Job רגיל (לא וירטואלי)
+// ============================================================================
+
+export async function POST(req: NextRequest): Promise<NextResponse> {
+  const startTime = Date.now();
+  
+  try {
+    // אימות פנימי - רק קריאות מהשרת עצמו
+    const internalSecret = req.headers.get('x-internal-secret');
+    const expectedSecret = process.env.INTERNAL_API_SECRET || 'default-secret';
+    
+    if (internalSecret !== expectedSecret) {
+      console.warn('[ProcessJob] ⚠️ Unauthorized access attempt');
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const body = await req.json();
+    const { jobId } = body;
+
+    if (!jobId) {
+      return NextResponse.json({ error: "jobId required" }, { status: 400 });
+    }
+
+    console.log(`\n${'='.repeat(60)}`);
+    console.log(`[ProcessJob] 📥 Received job: ${jobId}`);
+    console.log(`${'='.repeat(60)}\n`);
+
+    // שליפת פרטי ה-Job
+    const job = await prisma.matchingJob.findUnique({
+      where: { id: jobId }
+    });
+
+    if (!job) {
+      console.error(`[ProcessJob] ❌ Job not found: ${jobId}`);
+      return NextResponse.json({ error: "Job not found" }, { status: 404 });
+    }
+
+    // בדיקה אם זה חיפוש וירטואלי - לא אמור להגיע לכאן יותר
+    if (job.method?.includes('virtual')) {
+      console.warn(`[ProcessJob] ⚠️ Virtual search job ${jobId} arrived at wrong endpoint`);
+      console.warn(`[ProcessJob] Virtual searches should be processed directly in find-matches-v2`);
+      
+      // מעדכנים שגיאה
+      await prisma.matchingJob.update({
+        where: { id: jobId },
+        data: {
+          status: 'failed',
+          error: 'Virtual search routed incorrectly - please retry',
+          progressMessage: 'שגיאת ניתוב - נא לנסות שוב'
+        }
+      });
+      
+      return NextResponse.json({ 
+        error: "Virtual searches should be processed directly",
+        hint: "This is a routing error - virtual searches are now handled in find-matches-v2"
+      }, { status: 400 });
+    }
+
+    // בדיקה אם הג'וב כבר הסתיים
+    if (job.status === 'completed' || job.status === 'failed') {
+      console.log(`[ProcessJob] ⏭️ Job ${jobId} already finished (status: ${job.status})`);
+      return NextResponse.json({ 
+        success: true, 
+        message: "Job already finished",
+        status: job.status 
+      });
+    }
+
+    // עדכון סטטוס ל-processing
+    await prisma.matchingJob.update({
+      where: { id: jobId },
+      data: { 
+        status: 'processing',
+        progress: 5,
+        progressMessage: 'מתחיל עיבוד...'
+      }
+    });
+
+    // ==========================================================
+    // 🔥 עיבוד ברקע (Fire and Forget)
+    // ==========================================================
+    
+    processJobInBackground(jobId, job.method, job.targetUserId, job.matchmakerId)
+      .catch(err => {
+        console.error(`[ProcessJob] Background processing failed:`, err);
+      });
+
+    // מחזיר תשובה מיידית
+    return NextResponse.json({ 
+      success: true, 
+      message: "Processing started",
+      jobId 
+    });
+
+  } catch (error) {
+    console.error('[ProcessJob] Error:', error);
+    return NextResponse.json({ 
+      success: false, 
+      error: "Failed to start processing" 
+    }, { status: 500 });
+  }
+}
+
+// ============================================================================
+// Background Processing Function
+// ============================================================================
+
+async function processJobInBackground(
+  jobId: string,
+  method: string,
+  targetUserId: string,
+  matchmakerId: string
+): Promise<void> {
+  const startTime = Date.now();
+
+  console.log(`\n${'='.repeat(60)}`);
+  console.log(`[ProcessJob] 🚀 Starting background processing`);
+  console.log(`[ProcessJob] Job ID: ${jobId}`);
+  console.log(`[ProcessJob] Method: ${method}`);
+  console.log(`[ProcessJob] Target: ${targetUserId}`);
+  console.log(`${'='.repeat(60)}\n`);
+
+  try {
+    // פונקציית callback לעדכון progress
+    const onProgress = async (progress: number, message: string) => {
+      await updateJobProgress(jobId, progress, message);
+    };
+
+    let result;
+
+    // ==========================================================
+    // 🔷 Vector Search
+    // ==========================================================
+    if (method === 'vector') {
+      console.log(`[ProcessJob] 🔷 Running Vector Search method`);
+      await onProgress(10, 'מפעיל חיפוש וקטורי...');
+      
+      result = await findMatchesWithVector(targetUserId, matchmakerId, {
+        forceRefresh: true,
+        autoSave: true,
+      });
+    } 
+    // ==========================================================
+    // 🧠 Algorithmic Search
+    // ==========================================================
+    else {
+      console.log(`[ProcessJob] 🧠 Running Algorithmic method`);
+      await onProgress(10, 'טוען נתוני מועמד מטרה...');
+      
+      result = await findMatchesForUserWithProgress(
+        targetUserId, 
+        matchmakerId,
+        onProgress
+      );
+    }
+
+    // חישוב זמן ריצה
+    const duration = Date.now() - startTime;
+    const durationMinutes = (duration / 1000 / 60).toFixed(2);
+
+    // שמירת התוצאות ב-MatchingJob
+    await prisma.matchingJob.update({
+      where: { id: jobId },
+      data: {
+        status: 'completed',
+        progress: 100,
+        progressMessage: `הושלם! נמצאו ${result.matches.length} התאמות`,
+        result: {
+          matches: result.matches,
+          meta: result.meta,
+          fromCache: result.fromCache
+        },
+        matchesFound: result.matches.length,
+        totalCandidates: result.meta?.totalCandidatesScanned || 0,
+        completedAt: new Date()
+      }
+    });
+
+    // ==========================================================
+    // 🆕 שמירה גם ב-PotentialMatch לתצוגה בדשבורד
+    // ==========================================================
+    await saveToPotentialMatches(targetUserId, result.matches, 70);
+
+    console.log(`\n${'='.repeat(60)}`);
+    console.log(`[ProcessJob] ✅ Job ${jobId} completed successfully!`);
+    console.log(`[ProcessJob] ⏱️ Duration: ${durationMinutes} minutes`);
+    console.log(`[ProcessJob] 📊 Matches found: ${result.matches.length}`);
+    console.log(`${'='.repeat(60)}\n`);
+
+  } catch (error) {
+    const duration = Date.now() - startTime;
+    
+    console.error(`\n${'='.repeat(60)}`);
+    console.error(`[ProcessJob] ❌ Job ${jobId} FAILED after ${(duration/1000).toFixed(1)}s`);
+    console.error(`[ProcessJob] Error:`, error);
+    console.error(`${'='.repeat(60)}\n`);
+
+    // עדכון סטטוס לכישלון
+    await prisma.matchingJob.update({
+      where: { id: jobId },
+      data: {
+        status: 'failed',
+        progress: 0,
+        progressMessage: 'החיפוש נכשל',
+        error: error instanceof Error ? error.message : 'Unknown error occurred'
+      }
+    }).catch(err => {
+      console.error(`[ProcessJob] Failed to update job status:`, err);
+    });
+  }
+}
+
+// ============================================================================
+// Helper: Update Job Progress
+// ============================================================================
+
+async function updateJobProgress(
+  jobId: string, 
+  progress: number, 
+  message: string
+): Promise<void> {
+  try {
+    await prisma.matchingJob.update({
+      where: { id: jobId },
+      data: {
+        progress: Math.min(99, progress), // מקסימום 99 עד שמסיים
+        progressMessage: message
+      }
+    });
+    console.log(`[ProcessJob] 📊 Progress: ${progress}% - ${message}`);
+  } catch (error) {
+    console.error(`[ProcessJob] Failed to update progress:`, error);
+  }
+}
+
+// ============================================================================
+// Wrapper: findMatchesForUser with Progress Updates
+// ============================================================================
+
+async function findMatchesForUserWithProgress(
+  targetUserId: string,
+  matchmakerId: string,
+  onProgress: (progress: number, message: string) => Promise<void>
+): Promise<{
+  matches: any[];
+  fromCache: boolean;
+  meta: any;
+}> {
+  await onProgress(15, 'טוען נתוני מועמד מטרה...');
+  await onProgress(20, 'מחפש מועמדים מתאימים...');
+  await onProgress(30, 'מסנן לפי קריטריונים...');
+  
+  // שימוש בפונקציה המקורית
+  const result = await findMatchesForUser(targetUserId, matchmakerId, {
+    forceRefresh: true,
+    autoSave: true,
+  });
+
+  await onProgress(95, 'מסיים ושומר תוצאות...');
+
+  return result;
+}
+
+// ============================================================================
+// 🆕 שמירה ב-PotentialMatch (לתצוגה בדשבורד)
+// ============================================================================
+
+async function saveToPotentialMatches(
+  targetUserId: string,
+  matches: any[],
+  minScoreThreshold: number = 70
+): Promise<void> {
+  console.log(`[ProcessJob] 💾 Saving ${matches.length} matches to PotentialMatch...`);
+  
+  // קבלת המגדר של היוזר
+  const targetUser = await prisma.user.findUnique({
+    where: { id: targetUserId },
+    select: { profile: { select: { gender: true } } }
+  });
+
+  if (!targetUser?.profile?.gender) {
+    console.log(`[ProcessJob] ⚠️ Could not determine gender for ${targetUserId}`);
+    return;
+  }
+
+  const isMale = targetUser.profile.gender === 'MALE';
+  let saved = 0;
+  let updated = 0;
+
+  for (const match of matches) {
+    const score = match.finalScore || match.score || 0;
+    if (score < minScoreThreshold) continue;
+
+    const maleUserId = isMale ? targetUserId : match.userId;
+    const femaleUserId = isMale ? match.userId : targetUserId;
+
+    try {
+      const existing = await prisma.potentialMatch.findUnique({
+        where: {
+          maleUserId_femaleUserId: { maleUserId, femaleUserId }
+        }
+      });
+
+      if (existing) {
+        // עדכון אם הציון השתנה או שפג תוקף
+        if (Math.abs(existing.aiScore - score) > 2 || existing.status === 'EXPIRED') {
+          await prisma.potentialMatch.update({
+            where: { id: existing.id },
+            data: {
+              aiScore: score,
+              firstPassScore: match.firstPassScore || null,
+              scoreBreakdown: match.scoreBreakdown || null,
+              shortReasoning: match.shortReasoning || match.reasoning || null,
+              detailedReasoning: match.detailedReasoning || null,
+              backgroundCompatibility: match.backgroundCompatibility || null,
+              backgroundMultiplier: match.backgroundMultiplier || null,
+              scannedAt: new Date(),
+              status: existing.status === 'EXPIRED' ? 'PENDING' : existing.status,
+            }
+          });
+          updated++;
+        }
+      } else {
+        // יצירת התאמה חדשה
+        await prisma.potentialMatch.create({
+          data: {
+            maleUserId,
+            femaleUserId,
+            aiScore: score,
+            firstPassScore: match.firstPassScore || null,
+            scoreBreakdown: match.scoreBreakdown || null,
+            shortReasoning: match.shortReasoning || match.reasoning || null,
+            detailedReasoning: match.detailedReasoning || null,
+            backgroundCompatibility: match.backgroundCompatibility || null,
+            backgroundMultiplier: match.backgroundMultiplier || null,
+            status: 'PENDING',
+            scannedAt: new Date(),
+          }
+        });
+        saved++;
+      }
+    } catch (err) {
+      // התעלם משגיאות יחידות (משתמש נמחק וכו')
+      console.warn(`[ProcessJob] Could not save match:`, err);
+    }
+  }
+
+  console.log(`[ProcessJob] 💾 PotentialMatch: ${saved} new, ${updated} updated`);
+}
+
+// ============================================================================
+// GET - Health Check
+// ============================================================================
+
+export async function GET(req: NextRequest): Promise<NextResponse> {
+  return NextResponse.json({
+    status: "healthy",
+    service: "process-matching-job",
+    version: "4.2", // 🆕 עודכן
+    features: [
+      "Background job processing",
+      "Saves to PotentialMatch for dashboard display" // 🆕
+    ],
+    note: "Virtual searches are now processed directly in find-matches-v2",
+    timestamp: new Date().toISOString()
+  });
+}
+--- End of Content for route.ts ---
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\scan-user
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\scan-user\route.ts
+--------------------------------------------------------------------------------
+Content:
+// =============================================================================
+// 📁 src/app/api/ai/scan-user/route.ts
+// =============================================================================
+// 🎯 Scan User - סריקה ידנית ליוזר בודד
+// 
+// גרסה: 2.0 - סריקה דיפרנציאלית
+// 
+// שיפורים:
+// 1. סריקה דיפרנציאלית - סורק רק מועמדות חדשות/מעודכנות
+// 2. פילטר היסטוריה - לא מציע זוגות עם דייט כושל
+// 3. שמירה ב-ScannedPair - לכל זוג שנסרק
+// =============================================================================
+
+import { NextRequest, NextResponse } from "next/server";
+import prisma from "@/lib/prisma";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import { AvailabilityStatus } from "@prisma/client";
+import {
+  findMatchesForUser,
+  calculateAge,
+  getCompatibleReligiousLevels,
+} from "@/lib/services/matchingAlgorithmService";
+import {
+  getFemalesToScan,
+  filterBlockedFemales,
+  saveScannedPairsBatch,
+  getActiveUsersWhereClause,
+  type ScannedPairResult,
+} from "@/lib/services/matchingAlgorithmService";
+
+export const dynamic = 'force-dynamic';
+export const maxDuration = 120; // 2 דקות
+
+// =============================================================================
+// Constants
+// =============================================================================
+
+const MIN_SCORE_THRESHOLD = 70;
+
+// =============================================================================
+// POST - סריקה ידנית ליוזר
+// =============================================================================
+
+export async function POST(req: NextRequest): Promise<NextResponse> {
+  const startTime = Date.now();
+
+  try {
+    // אימות
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const body = await req.json();
+    const { 
+      userId,  // היוזר שרוצים לסרוק עבורו
+      forceRefresh = false,  // אם true - מתעלם מסריקות קודמות
+      method = 'algorithmic',
+    } = body;
+
+    if (!userId) {
+      return NextResponse.json({ 
+        error: "userId is required" 
+      }, { status: 400 });
+    }
+
+    console.log(`\n${'='.repeat(60)}`);
+    console.log(`[ScanUser] 🔍 Starting scan for user: ${userId}`);
+    console.log(`[ScanUser] Force Refresh: ${forceRefresh}`);
+    console.log(`${'='.repeat(60)}\n`);
+
+    // שליפת פרטי היוזר
+    const targetUser = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        profile: {
+          select: {
+            gender: true,
+            birthDate: true,
+            religiousLevel: true,
+            updatedAt: true,
+            availabilityStatus: true,
+          }
+        }
+      }
+    });
+
+    if (!targetUser || !targetUser.profile) {
+      return NextResponse.json({ 
+        error: "User not found or has no profile" 
+      }, { status: 404 });
+    }
+
+    // בדיקה שזה גבר (הסריקה מכיוון הגברים)
+    if (targetUser.profile.gender !== 'MALE') {
+      // אם זו בחורה - צריך לסרוק את כל הגברים מולה
+      // זה יותר יקר אבל אפשרי
+      console.log(`[ScanUser] Target is female - scanning all males against her`);
+      
+      const result = await scanFemaleUser(
+        targetUser,
+        session.user.id,
+        forceRefresh
+      );
+
+      const duration = Date.now() - startTime;
+      return NextResponse.json({
+        success: true,
+        userId,
+        matchesFound: result.matchesFound,
+        newMatches: result.newMatches,
+        pairsScanned: result.pairsScanned,
+        skippedByHistory: result.skippedByHistory,
+        skippedByNoChange: result.skippedByNoChange,
+        duration: `${(duration / 1000).toFixed(1)}s`,
+      });
+    }
+
+    // סריקה רגילה לגבר
+    const result = await scanMaleUser(
+      targetUser,
+      session.user.id,
+      forceRefresh
+    );
+
+    const duration = Date.now() - startTime;
+
+    console.log(`\n${'='.repeat(60)}`);
+    console.log(`[ScanUser] ✅ Scan completed for ${targetUser.firstName} ${targetUser.lastName}`);
+    console.log(`[ScanUser] Duration: ${(duration / 1000).toFixed(1)}s`);
+    console.log(`[ScanUser] Pairs scanned: ${result.pairsScanned}`);
+    console.log(`[ScanUser] Matches found: ${result.matchesFound}`);
+    console.log(`[ScanUser] New matches: ${result.newMatches}`);
+    console.log(`${'='.repeat(60)}\n`);
+
+    return NextResponse.json({
+      success: true,
+      userId,
+      matchesFound: result.matchesFound,
+      newMatches: result.newMatches,
+      pairsScanned: result.pairsScanned,
+      skippedByHistory: result.skippedByHistory,
+      skippedByNoChange: result.skippedByNoChange,
+      duration: `${(duration / 1000).toFixed(1)}s`,
+    });
+
+  } catch (error) {
+    console.error('[ScanUser] Error:', error);
+    return NextResponse.json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Scan failed'
+    }, { status: 500 });
+  }
+}
+
+// =============================================================================
+// סריקת גבר - מול כל הבחורות הרלוונטיות
+// =============================================================================
+
+async function scanMaleUser(
+  targetUser: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    profile: {
+      gender: string;
+      birthDate: Date | null;
+      religiousLevel: string | null;
+      updatedAt: Date;
+    } | null;
+  },
+  matchmakerId: string,
+  forceRefresh: boolean
+): Promise<{
+  matchesFound: number;
+  newMatches: number;
+  pairsScanned: number;
+  skippedByHistory: number;
+  skippedByNoChange: number;
+}> {
+  if (!targetUser.profile?.birthDate) {
+    throw new Error('Target user has no birth date');
+  }
+
+  const maleAge = calculateAge(targetUser.profile.birthDate);
+  const maleReligiousLevel = targetUser.profile.religiousLevel;
+  const maleProfileUpdatedAt = targetUser.profile.updatedAt;
+
+  console.log(`[ScanUser] Male: ${targetUser.firstName} ${targetUser.lastName}`);
+  console.log(`[ScanUser] Age: ${maleAge}, Religious: ${maleReligiousLevel}`);
+
+  // שליפת כל הבחורות הפעילות
+  const allFemales = await prisma.user.findMany({
+    where: {
+      ...getActiveUsersWhereClause(),
+      profile: {
+        gender: 'FEMALE',
+        availabilityStatus: AvailabilityStatus.AVAILABLE,
+        isProfileVisible: true,
+        OR: [
+          { about: { not: null } },
+          { manualEntryText: { not: null } },
+        ]
+      }
+    },
+    select: {
+      id: true,
+      firstName: true,
+      lastName: true,
+      profile: {
+        select: {
+          birthDate: true,
+          religiousLevel: true,
+          updatedAt: true,
+        }
+      }
+    }
+  });
+
+  console.log(`[ScanUser] Total females found: ${allFemales.length}`);
+
+  // סינון ראשוני לפי גיל ורמה דתית
+  const compatibleReligious = getCompatibleReligiousLevels(maleReligiousLevel);
+  
+  const relevantFemales = allFemales.filter(female => {
+    if (!female.profile) return false;
+    
+    // סינון רמה דתית (סלחני)
+    if (female.profile.religiousLevel && 
+        !compatibleReligious.includes(female.profile.religiousLevel)) {
+      return false;
+    }
+
+    // סינון גיל (סלחני)
+    if (female.profile.birthDate) {
+      const femaleAge = calculateAge(female.profile.birthDate);
+      const minAge = maleAge - 7;
+      const maxAge = maleAge + 4;
+      if (femaleAge < minAge || femaleAge > maxAge) {
+        return false;
+      }
+    }
+
+    return true;
+  }).map(f => ({
+    id: f.id,
+    profileUpdatedAt: f.profile!.updatedAt,
+  }));
+
+  console.log(`[ScanUser] Relevant females after basic filter: ${relevantFemales.length}`);
+
+  // סריקה דיפרנציאלית
+  let femalesToScan: string[];
+  let skippedByHistory = 0;
+  let skippedByNoChange = 0;
+
+  if (forceRefresh) {
+    // אם force refresh - סורק את כולן (אבל עדיין מסנן היסטוריה)
+    const { allowedIds, blockedPairs } = await filterBlockedFemales(
+      targetUser.id, 
+      relevantFemales.map(f => f.id)
+    );
+    femalesToScan = allowedIds;
+    skippedByHistory = blockedPairs.size;
+    skippedByNoChange = 0;
+  } else {
+    // סריקה דיפרנציאלית מלאה
+    const scanResult = await getFemalesToScan(
+      targetUser.id,
+      maleProfileUpdatedAt,
+      relevantFemales
+    );
+    femalesToScan = scanResult.femalesToScan;
+    skippedByHistory = scanResult.skippedByHistory;
+    skippedByNoChange = scanResult.skippedByNoChange;
+  }
+
+  console.log(`[ScanUser] Females to scan: ${femalesToScan.length}`);
+  console.log(`[ScanUser] Skipped by history: ${skippedByHistory}`);
+  console.log(`[ScanUser] Skipped by no change: ${skippedByNoChange}`);
+
+  if (femalesToScan.length === 0) {
+    return {
+      matchesFound: 0,
+      newMatches: 0,
+      pairsScanned: 0,
+      skippedByHistory,
+      skippedByNoChange,
+    };
+  }
+
+  // הפעלת האלגוריתם
+  const result = await findMatchesForUser(targetUser.id, matchmakerId, {
+    forceRefresh: true,
+    autoSave: false,
+  });
+
+  // עיבוד התוצאות
+  let matchesFound = 0;
+  let newMatches = 0;
+  const scannedPairsToSave: ScannedPairResult[] = [];
+
+  for (const match of result.matches) {
+    const score = match.finalScore || 0;
+    const passedThreshold = score >= MIN_SCORE_THRESHOLD;
+    
+    const femaleData = relevantFemales.find(f => f.id === match.userId);
+    if (femaleData) {
+      scannedPairsToSave.push({
+        maleUserId: targetUser.id,
+        femaleUserId: match.userId,
+        aiScore: score,
+        passedThreshold,
+        rejectionReason: passedThreshold ? null : 'low_ai_score',
+        maleProfileUpdatedAt,
+        femaleProfileUpdatedAt: femaleData.profileUpdatedAt,
+      });
+    }
+
+    if (passedThreshold) {
+      matchesFound++;
+      
+      // שמירה ב-PotentialMatch
+      const saved = await saveToPotentialMatch(targetUser.id, match.userId, match);
+      if (saved === 'new') newMatches++;
+    }
+  }
+
+  // שמירת ScannedPairs
+  await saveScannedPairsBatch(scannedPairsToSave);
+
+  return {
+    matchesFound,
+    newMatches,
+    pairsScanned: femalesToScan.length,
+    skippedByHistory,
+    skippedByNoChange,
+  };
+}
+
+// =============================================================================
+// סריקת בחורה - כל הגברים מולה
+// =============================================================================
+
+async function scanFemaleUser(
+  targetUser: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    profile: {
+      gender: string;
+      birthDate: Date | null;
+      religiousLevel: string | null;
+      updatedAt: Date;
+    } | null;
+  },
+  matchmakerId: string,
+  forceRefresh: boolean
+): Promise<{
+  matchesFound: number;
+  newMatches: number;
+  pairsScanned: number;
+  skippedByHistory: number;
+  skippedByNoChange: number;
+}> {
+  if (!targetUser.profile?.birthDate) {
+    throw new Error('Target user has no birth date');
+  }
+
+  const femaleAge = calculateAge(targetUser.profile.birthDate);
+  const femaleReligiousLevel = targetUser.profile.religiousLevel;
+  const femaleProfileUpdatedAt = targetUser.profile.updatedAt;
+
+  console.log(`[ScanUser] Female: ${targetUser.firstName} ${targetUser.lastName}`);
+  console.log(`[ScanUser] Age: ${femaleAge}, Religious: ${femaleReligiousLevel}`);
+
+  // שליפת כל הגברים הפעילים
+  const allMales = await prisma.user.findMany({
+    where: {
+      ...getActiveUsersWhereClause(),
+      profile: {
+        gender: 'MALE',
+        availabilityStatus: AvailabilityStatus.AVAILABLE,
+        isProfileVisible: true,
+        OR: [
+          { about: { not: null } },
+          { manualEntryText: { not: null } },
+        ]
+      }
+    },
+    select: {
+      id: true,
+      firstName: true,
+      lastName: true,
+      profile: {
+        select: {
+          birthDate: true,
+          religiousLevel: true,
+          updatedAt: true,
+        }
+      }
+    }
+  });
+
+  console.log(`[ScanUser] Total males found: ${allMales.length}`);
+
+  // סינון ראשוני
+  const compatibleReligious = getCompatibleReligiousLevels(femaleReligiousLevel);
+  
+  const relevantMales = allMales.filter(male => {
+    if (!male.profile) return false;
+    
+    if (male.profile.religiousLevel && 
+        !compatibleReligious.includes(male.profile.religiousLevel)) {
+      return false;
+    }
+
+    if (male.profile.birthDate) {
+      const maleAge = calculateAge(male.profile.birthDate);
+      // לבחורה: גבר יכול להיות עד 7 שנים יותר גדול, או עד 4 שנים יותר צעיר
+      const minAge = femaleAge - 4;
+      const maxAge = femaleAge + 7;
+      if (maleAge < minAge || maleAge > maxAge) {
+        return false;
+      }
+    }
+
+    return true;
+  });
+
+  console.log(`[ScanUser] Relevant males after basic filter: ${relevantMales.length}`);
+
+  // סינון היסטוריה - צריך לסנן הפוך (הגברים מול הבחורה)
+  const maleIds = relevantMales.map(m => m.id);
+  
+  // שליפת זוגות חסומים
+  const blockedSuggestions = await prisma.matchSuggestion.findMany({
+    where: {
+      status: { in: ['ENDED_AFTER_FIRST_DATE', 'MATCH_DECLINED', 'FIRST_PARTY_DECLINED', 'SECOND_PARTY_DECLINED', 'CLOSED', 'CANCELLED', 'EXPIRED'] },
+      OR: [
+        { firstPartyId: targetUser.id, secondPartyId: { in: maleIds } },
+        { firstPartyId: { in: maleIds }, secondPartyId: targetUser.id },
+      ]
+    },
+    select: { firstPartyId: true, secondPartyId: true }
+  });
+
+  const dismissedMatches = await prisma.potentialMatch.findMany({
+    where: {
+      femaleUserId: targetUser.id,
+      maleUserId: { in: maleIds },
+      status: 'DISMISSED'
+    },
+    select: { maleUserId: true }
+  });
+
+  const blockedMaleIds = new Set<string>();
+  for (const s of blockedSuggestions) {
+    const maleId = s.firstPartyId === targetUser.id ? s.secondPartyId : s.firstPartyId;
+    blockedMaleIds.add(maleId);
+  }
+  for (const m of dismissedMatches) {
+    blockedMaleIds.add(m.maleUserId);
+  }
+
+  const skippedByHistory = blockedMaleIds.size;
+
+  // סריקה דיפרנציאלית
+  const existingPairs = forceRefresh ? [] : await prisma.scannedPair.findMany({
+    where: {
+      femaleUserId: targetUser.id,
+      maleUserId: { in: maleIds.filter(id => !blockedMaleIds.has(id)) }
+    },
+    select: {
+      maleUserId: true,
+      maleProfileUpdatedAt: true,
+      femaleProfileUpdatedAt: true,
+    }
+  });
+
+  const existingPairsMap = new Map(existingPairs.map(p => [p.maleUserId, p]));
+  
+  const malesToScan: string[] = [];
+  let skippedByNoChange = 0;
+
+  for (const male of relevantMales) {
+    if (blockedMaleIds.has(male.id)) continue;
+    
+    const existing = existingPairsMap.get(male.id);
+    if (!existing) {
+      malesToScan.push(male.id);
+      continue;
+    }
+
+    // בדיקה אם עודכן
+    const maleUpdated = existing.maleProfileUpdatedAt 
+      ? male.profile!.updatedAt > existing.maleProfileUpdatedAt
+      : true;
+    const femaleUpdated = existing.femaleProfileUpdatedAt
+      ? femaleProfileUpdatedAt > existing.femaleProfileUpdatedAt
+      : true;
+
+    if (maleUpdated || femaleUpdated) {
+      malesToScan.push(male.id);
+    } else {
+      skippedByNoChange++;
+    }
+  }
+
+  console.log(`[ScanUser] Males to scan: ${malesToScan.length}`);
+  console.log(`[ScanUser] Skipped by history: ${skippedByHistory}`);
+  console.log(`[ScanUser] Skipped by no change: ${skippedByNoChange}`);
+
+  if (malesToScan.length === 0) {
+    return {
+      matchesFound: 0,
+      newMatches: 0,
+      pairsScanned: 0,
+      skippedByHistory,
+      skippedByNoChange,
+    };
+  }
+
+  // הפעלת האלגוריתם
+  const result = await findMatchesForUser(targetUser.id, matchmakerId, {
+    forceRefresh: true,
+    autoSave: false,
+  });
+
+  // עיבוד התוצאות
+  let matchesFound = 0;
+  let newMatches = 0;
+  const scannedPairsToSave: ScannedPairResult[] = [];
+
+  for (const match of result.matches) {
+    const score = match.finalScore || 0;
+    const passedThreshold = score >= MIN_SCORE_THRESHOLD;
+    
+    const maleData = relevantMales.find(m => m.id === match.userId);
+    if (maleData) {
+      scannedPairsToSave.push({
+        maleUserId: match.userId,
+        femaleUserId: targetUser.id,
+        aiScore: score,
+        passedThreshold,
+        rejectionReason: passedThreshold ? null : 'low_ai_score',
+        maleProfileUpdatedAt: maleData.profile!.updatedAt,
+        femaleProfileUpdatedAt,
+      });
+    }
+
+    if (passedThreshold) {
+      matchesFound++;
+      
+      const saved = await saveToPotentialMatch(match.userId, targetUser.id, match);
+      if (saved === 'new') newMatches++;
+    }
+  }
+
+  await saveScannedPairsBatch(scannedPairsToSave);
+
+  return {
+    matchesFound,
+    newMatches,
+    pairsScanned: malesToScan.length,
+    skippedByHistory,
+    skippedByNoChange,
+  };
+}
+
+// =============================================================================
+// Helper: שמירה ב-PotentialMatch
+// =============================================================================
+
+async function saveToPotentialMatch(
+  maleUserId: string,
+  femaleUserId: string,
+  match: any
+): Promise<'new' | 'updated' | 'unchanged'> {
+  const score = match.finalScore || match.score || 0;
+
+  try {
+    const existing = await prisma.potentialMatch.findUnique({
+      where: {
+        maleUserId_femaleUserId: { maleUserId, femaleUserId }
+      }
+    });
+
+    if (existing) {
+      if (Math.abs(existing.aiScore - score) > 2 || existing.status === 'EXPIRED') {
+        await prisma.potentialMatch.update({
+          where: { id: existing.id },
+          data: {
+            aiScore: score,
+            firstPassScore: match.firstPassScore || null,
+            scoreBreakdown: match.scoreBreakdown || null,
+            shortReasoning: match.shortReasoning || match.reasoning || null,
+            detailedReasoning: match.detailedReasoning || null,
+            backgroundCompatibility: match.backgroundCompatibility || null,
+            backgroundMultiplier: match.backgroundMultiplier || null,
+            scannedAt: new Date(),
+            status: existing.status === 'EXPIRED' ? 'PENDING' : existing.status,
+          }
+        });
+        return 'updated';
+      }
+      return 'unchanged';
+    }
+
+    await prisma.potentialMatch.create({
+      data: {
+        maleUserId,
+        femaleUserId,
+        aiScore: score,
+        firstPassScore: match.firstPassScore || null,
+        scoreBreakdown: match.scoreBreakdown || null,
+        shortReasoning: match.shortReasoning || match.reasoning || null,
+        detailedReasoning: match.detailedReasoning || null,
+        backgroundCompatibility: match.backgroundCompatibility || null,
+        backgroundMultiplier: match.backgroundMultiplier || null,
+        status: 'PENDING',
+        scannedAt: new Date(),
+      }
+    });
+    return 'new';
+
+  } catch (error) {
+    console.warn(`[ScanUser] Could not save PotentialMatch:`, error);
+    return 'unchanged';
+  }
+}
+--- End of Content for route.ts ---
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\test-connection
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\test-connection\route.ts
+--------------------------------------------------------------------------------
+Content:
+// src/app/api/ai/test-connection/route.ts
+
+import { NextResponse } from 'next/server';
+import { GoogleGenerativeAI } from '@google/generative-ai';
+
+export async function GET() {
+  console.log('--- [API TEST] Received request at /api/ai/test-connection ---');
+
+  const apiKey = process.env.GOOGLE_API_KEY;
+
+  if (!apiKey) {
+    console.error('--- [API TEST] FATAL ERROR: GOOGLE_API_KEY is not set in .env or .env.local!');
+    return NextResponse.json(
+      { success: false, error: 'Server configuration error: GOOGLE_API_KEY is missing.' },
+      { status: 500 }
+    );
+  }
+
+  // --- קטע האימות שהוספנו ---
+  const keyIdentifier = `Starts with: ${apiKey.substring(0, 5)}... | Ends with: ...${apiKey.substring(apiKey.length - 4)} | Length: ${apiKey.length}`; // <-- הוסף
+  console.log(`--- [API TEST] Verifying the loaded API Key: ${keyIdentifier} ---`); // <-- הוסף
+  // -----------------------------
+
+  console.log('--- [API TEST] GOOGLE_API_KEY found. Proceeding with API call.');
+
+  try {
+    const genAI = new GoogleGenerativeAI(apiKey);
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' }); 
+    const prompt = 'Say "Connection Successful" in one sentence.';
+
+    console.log('--- [API TEST] Sending a simple prompt to Google AI...');
+    const result = await model.generateContent(prompt);
+    const response = result.response;
+    const text = response.text();
+
+    console.log('--- [API TEST] SUCCESS! Google AI responded:', text);
+    return NextResponse.json({ success: true, message: 'Connection to Google AI is working!', response: text });
+
+  } catch (error) {
+    console.error('--- [API TEST] FAILED! The API call to Google threw an error.', error);
+    
+    return NextResponse.json(
+      { 
+        success: false, 
+        error: 'Failed to connect to Google AI. This is likely an API key, permissions, or billing issue.',
+        details: JSON.stringify(error, Object.getOwnPropertyNames(error), 2)
+      }, 
+      { status: 500 }
+    );
+  }
+}
+--- End of Content for route.ts ---
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\update-all-profiles
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\update-all-profiles\route.ts
+--------------------------------------------------------------------------------
+Content:
+// File: src/app/api/ai/update-all-profiles/route.ts
+
+import { NextResponse } from 'next/server';
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import prisma from "@/lib/prisma";
+import { UserRole } from "@prisma/client";
+import { updateUserAiProfile } from '@/lib/services/profileAiService';
+
+/**
+ * פונקציית עזר שמריצה את תהליך העדכון ברקע
+ * ומדפיסה לוג מפורט בסיומו.
+ * @param userIds - מערך מזהי המשתמשים לעדכון
+ * @param adminId - מזהה האדמין שהפעיל את התהליך
+ */
+async function runBulkUpdateAndLog(userIds: string[]) {
+  const totalUsers = userIds.length;
+  // הודעת התחלה ברורה לתהליך הרקע
+ 
+  try {
+    // נשתמש ב-Promise.allSettled כדי להמתין לסיום כל העדכונים, גם אם חלקם נכשלים
+    const results = await Promise.allSettled(
+      userIds.map(userId => updateUserAiProfile(userId))
+    );
+
+    const successCount = results.filter(r => r.status === 'fulfilled').length;
+    const failedCount = totalUsers - successCount;
+    
+    // איסוף מזהי המשתמשים שנכשלו (אם יש כאלה)
+    const failedUserIds = results
+      .map((result, index) => ({ result, userId: userIds[index] }))
+      .filter(({ result }) => result.status === 'rejected')
+      .map(({ userId }) => userId);
+
+    // הדפסת סיכום מפורט
+      if (failedCount > 0) {
+      console.log(`  Failed User IDs: ${failedUserIds.join(', ')}`);
+    }
+    console.log(`======================================================================\n\n`);
+
+  } catch (error) {
+    // במקרה של שגיאה קריטית בתהליך הרקע עצמו
+    console.error('[AI Bulk Update - BG] A critical error occurred in the background process:', error);
+  }
+}
+
+export async function POST() {
+  try {
+    // 1. Authentication and Authorization (ADMIN ONLY)
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id || session.user.role !== UserRole.ADMIN) {
+      return NextResponse.json({ success: false, error: "Unauthorized: Admin access required." }, { status: 403 });
+    }
+    const adminId = session.user.id;
+
+    // כאן הלוג המקורי נשאר, כדי שתראה שה-API הופעל
+    console.log(`[AI Bulk Update] API endpoint hit by admin: ${adminId}`);
+
+    // 2. Fetch all active user IDs that have a profile
+    const usersToUpdate = await prisma.user.findMany({
+      where: {
+        status: 'ACTIVE',
+        profile: {
+          isNot: null,
+        },
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    const userIds = usersToUpdate.map(user => user.id);
+    const totalUsers = userIds.length;
+
+    if (totalUsers === 0) {
+      return NextResponse.json({ success: true, message: "No active users with profiles found to update." });
+    }
+
+    // 3. Trigger background updates without waiting for them to complete
+    //    The process will run and log its final summary independently.
+    runBulkUpdateAndLog(userIds).catch(err => {
+        console.error(`[AI Bulk Update] Failed to kick off background logging process:`, err);
+    });
+
+    const message = `AI profile update process has been initiated for ${totalUsers} users. The process will run in the background. Check server logs for completion status.`;
+    console.log(`[AI Bulk Update] Immediate API response sent. ${message}`);
+
+    // 4. Return an immediate success response
+    return NextResponse.json({ success: true, message });
+
+  } catch (error) {
+    console.error('[AI Bulk Update] A critical error occurred in the API endpoint:', error);
+    const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred.";
+    return NextResponse.json({ success: false, error: "Internal server error.", details: errorMessage }, { status: 500 });
+  }
+}
+--- End of Content for route.ts ---
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\virtual-profile
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\virtual-profile\route.ts
+--------------------------------------------------------------------------------
+Content:
+// ===========================================
+// קובץ חדש: src/app/api/ai/virtual-profile/route.ts
+// ===========================================
+
+import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/auth";
+import { UserRole, Gender } from "@prisma/client";
+import prisma from "@/lib/prisma";
+import aiService from "@/lib/services/aiService";
+
+export const dynamic = 'force-dynamic';
+
+// ============================================================================
+// POST - יצירת פרופיל וירטואלי חדש
+// ============================================================================
+
+export async function POST(req: NextRequest) {
+  try {
+    // 1. אימות והרשאות
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id || 
+        (session.user.role !== UserRole.MATCHMAKER && session.user.role !== UserRole.ADMIN)) {
+      return NextResponse.json({ 
+        success: false, 
+        message: 'Unauthorized' 
+      }, { status: 401 });
+    }
+
+    const matchmakerId = session.user.id;
+
+    // 2. קבלת פרמטרים
+    const body = await req.json();
+    const { sourceText, gender, religiousLevel, name } = body;
+
+    // 3. ולידציה
+    if (!sourceText || typeof sourceText !== 'string' || sourceText.trim().length < 20) {
+      return NextResponse.json({ 
+        success: false, 
+        message: 'sourceText is required and must be at least 20 characters.' 
+      }, { status: 400 });
+    }
+
+    if (!gender || !['MALE', 'FEMALE'].includes(gender)) {
+      return NextResponse.json({ 
+        success: false, 
+        message: 'gender is required and must be MALE or FEMALE.' 
+      }, { status: 400 });
+    }
+
+    if (!religiousLevel || typeof religiousLevel !== 'string') {
+      return NextResponse.json({ 
+        success: false, 
+        message: 'religiousLevel is required.' 
+      }, { status: 400 });
+    }
+
+    console.log(`[Virtual Profile API] Creating profile for matchmaker: ${session.user.email}`);
+    console.log(`[Virtual Profile API] Gender: ${gender}, Religious: ${religiousLevel}`);
+
+    // 4. יצירת הפרופיל באמצעות AI
+    const generatedProfile = await aiService.generateVirtualProfile(
+      sourceText.trim(),
+      gender as 'MALE' | 'FEMALE',
+      religiousLevel
+    );
+
+    if (!generatedProfile) {
+      return NextResponse.json({ 
+        success: false, 
+        message: 'Failed to generate virtual profile. Please try again.' 
+      }, { status: 500 });
+    }
+
+    // 5. יצירת וקטור מהסיכום (לחיפוש וקטורי)
+    const textForEmbedding = `
+      ${generatedProfile.personalitySummary}
+      ${generatedProfile.lookingForSummary}
+      תכונות: ${generatedProfile.keyTraits?.join(', ') || ''}
+      מחפש: ${generatedProfile.idealPartnerTraits?.join(', ') || ''}
+    `;
+    
+    const vector = await aiService.generateTextEmbedding(textForEmbedding);
+
+    // 6. שמירה ב-DB
+    const virtualProfile = await prisma.virtualProfile.create({
+      data: {
+        matchmakerId,
+        name: name?.trim() || null,
+        sourceText: sourceText.trim(),
+        gender: gender as Gender,
+        religiousLevel,
+        generatedProfile: generatedProfile as any,
+        // הוקטור יישמר בנפרד אם נדרש (pgvector)
+      },
+    });
+
+    // 6.1 שמירת הוקטור (אם נוצר בהצלחה)
+    if (vector && vector.length === 768) {
+      try {
+        const vectorSqlString = `[${vector.join(',')}]`;
+        await prisma.$executeRaw`
+          UPDATE "VirtualProfile"
+          SET vector = ${vectorSqlString}::vector
+          WHERE id = ${virtualProfile.id}
+        `;
+        console.log(`[Virtual Profile API] Vector saved successfully`);
+      } catch (vectorError) {
+        console.error(`[Virtual Profile API] Failed to save vector:`, vectorError);
+        // לא נכשיל את כל הבקשה בגלל הוקטור
+      }
+    }
+
+    console.log(`[Virtual Profile API] ✅ Created profile: ${virtualProfile.id}`);
+
+    // 7. החזרת התוצאה
+    return NextResponse.json({
+      success: true,
+      virtualProfile: {
+        id: virtualProfile.id,
+        name: virtualProfile.name,
+        gender: virtualProfile.gender,
+        religiousLevel: virtualProfile.religiousLevel,
+        generatedProfile,
+        createdAt: virtualProfile.createdAt,
+      }
+    });
+
+  } catch (error) {
+    console.error('[Virtual Profile API] POST Error:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    return NextResponse.json({ 
+      success: false, 
+      message: 'Internal server error',
+      details: errorMessage 
+    }, { status: 500 });
+  }
+}
+
+// ============================================================================
+// GET - שליפת פרופילים וירטואליים שמורים
+// ============================================================================
+
+export async function GET(req: NextRequest) {
+  try {
+    // 1. אימות
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id || 
+        (session.user.role !== UserRole.MATCHMAKER && session.user.role !== UserRole.ADMIN)) {
+      return NextResponse.json({ 
+        success: false, 
+        message: 'Unauthorized' 
+      }, { status: 401 });
+    }
+
+    const matchmakerId = session.user.id;
+    const { searchParams } = new URL(req.url);
+    
+    // פרמטרים אופציונליים
+    const starred = searchParams.get('starred') === 'true';
+    const profileId = searchParams.get('id');
+
+    // 2. שליפת פרופיל בודד
+    if (profileId) {
+      const profile = await prisma.virtualProfile.findFirst({
+        where: {
+          id: profileId,
+          matchmakerId, // וידוא שהפרופיל שייך לשדכן הזה
+        },
+      });
+
+      if (!profile) {
+        return NextResponse.json({ 
+          success: false, 
+          message: 'Profile not found' 
+        }, { status: 404 });
+      }
+
+      return NextResponse.json({
+        success: true,
+        virtualProfile: profile,
+      });
+    }
+
+    // 3. שליפת רשימת פרופילים
+    const whereClause: any = { matchmakerId };
+    if (starred) {
+      whereClause.isStarred = true;
+    }
+
+    const profiles = await prisma.virtualProfile.findMany({
+      where: whereClause,
+      orderBy: [
+        { isStarred: 'desc' },
+        { lastUsedAt: 'desc' },
+        { createdAt: 'desc' },
+      ],
+      select: {
+        id: true,
+        name: true,
+        gender: true,
+        religiousLevel: true,
+        generatedProfile: true,
+        editedSummary: true,
+        wasEdited: true,
+        isStarred: true,
+        lastUsedAt: true,
+        usageCount: true,
+        createdAt: true,
+      },
+      take: 50, // מקסימום 50 פרופילים
+    });
+
+    return NextResponse.json({
+      success: true,
+      profiles,
+      count: profiles.length,
+    });
+
+  } catch (error) {
+    console.error('[Virtual Profile API] GET Error:', error);
+    return NextResponse.json({ 
+      success: false, 
+      message: 'Internal server error' 
+    }, { status: 500 });
+  }
+}
+
+// ============================================================================
+// PATCH - עדכון פרופיל (שם, כוכב, סיכום ערוך)
+// ============================================================================
+
+export async function PATCH(req: NextRequest) {
+  try {
+    // 1. אימות
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id || 
+        (session.user.role !== UserRole.MATCHMAKER && session.user.role !== UserRole.ADMIN)) {
+      return NextResponse.json({ 
+        success: false, 
+        message: 'Unauthorized' 
+      }, { status: 401 });
+    }
+
+    const matchmakerId = session.user.id;
+
+    // 2. קבלת פרמטרים
+    const body = await req.json();
+    const { id, name, isStarred, editedSummary, markAsUsed } = body;
+
+    if (!id || typeof id !== 'string') {
+      return NextResponse.json({ 
+        success: false, 
+        message: 'id is required' 
+      }, { status: 400 });
+    }
+
+    // 3. וידוא שהפרופיל שייך לשדכן
+    const existingProfile = await prisma.virtualProfile.findFirst({
+      where: { id, matchmakerId },
+    });
+
+    if (!existingProfile) {
+      return NextResponse.json({ 
+        success: false, 
+        message: 'Profile not found or access denied' 
+      }, { status: 404 });
+    }
+
+    // 4. בניית אובייקט העדכון
+    const updateData: any = {};
+
+    if (name !== undefined) {
+      updateData.name = name?.trim() || null;
+    }
+
+    if (isStarred !== undefined) {
+      updateData.isStarred = Boolean(isStarred);
+    }
+
+    if (editedSummary !== undefined) {
+      updateData.editedSummary = editedSummary?.trim() || null;
+      updateData.wasEdited = Boolean(editedSummary?.trim());
+      
+      // אם הסיכום עודכן, ניצור וקטור חדש
+      if (editedSummary?.trim()) {
+        const newVector = await aiService.generateTextEmbedding(editedSummary.trim());
+        if (newVector && newVector.length === 768) {
+          try {
+            const vectorSqlString = `[${newVector.join(',')}]`;
+            await prisma.$executeRaw`
+              UPDATE "VirtualProfile"
+              SET vector = ${vectorSqlString}::vector
+              WHERE id = ${id}
+            `;
+          } catch (vectorError) {
+            console.error(`[Virtual Profile API] Failed to update vector:`, vectorError);
+          }
+        }
+      }
+    }
+
+    if (markAsUsed) {
+      updateData.lastUsedAt = new Date();
+      updateData.usageCount = { increment: 1 };
+    }
+
+    // 5. ביצוע העדכון
+    const updatedProfile = await prisma.virtualProfile.update({
+      where: { id },
+      data: updateData,
+    });
+
+    console.log(`[Virtual Profile API] ✅ Updated profile: ${id}`);
+
+    return NextResponse.json({
+      success: true,
+      virtualProfile: updatedProfile,
+    });
+
+  } catch (error) {
+    console.error('[Virtual Profile API] PATCH Error:', error);
+    return NextResponse.json({ 
+      success: false, 
+      message: 'Internal server error' 
+    }, { status: 500 });
+  }
+}
+
+// ============================================================================
+// DELETE - מחיקת פרופיל
+// ============================================================================
+
+export async function DELETE(req: NextRequest) {
+  try {
+    // 1. אימות
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id || 
+        (session.user.role !== UserRole.MATCHMAKER && session.user.role !== UserRole.ADMIN)) {
+      return NextResponse.json({ 
+        success: false, 
+        message: 'Unauthorized' 
+      }, { status: 401 });
+    }
+
+    const matchmakerId = session.user.id;
+    const { searchParams } = new URL(req.url);
+    const id = searchParams.get('id');
+
+    if (!id) {
+      return NextResponse.json({ 
+        success: false, 
+        message: 'id is required' 
+      }, { status: 400 });
+    }
+
+    // 2. וידוא שהפרופיל שייך לשדכן ומחיקה
+    const deletedProfile = await prisma.virtualProfile.deleteMany({
+      where: { 
+        id, 
+        matchmakerId 
+      },
+    });
+
+    if (deletedProfile.count === 0) {
+      return NextResponse.json({ 
+        success: false, 
+        message: 'Profile not found or access denied' 
+      }, { status: 404 });
+    }
+
+    console.log(`[Virtual Profile API] ✅ Deleted profile: ${id}`);
+
+    return NextResponse.json({
+      success: true,
+      message: 'Profile deleted successfully',
+    });
+
+  } catch (error) {
+    console.error('[Virtual Profile API] DELETE Error:', error);
+    return NextResponse.json({ 
+      success: false, 
+      message: 'Internal server error' 
+    }, { status: 500 });
+  }
+}
+--- End of Content for route.ts ---
+

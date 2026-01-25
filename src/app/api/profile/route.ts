@@ -358,7 +358,13 @@ export async function PUT(req: Request) {
       cvUrl: dbProfile.cvUrl,
       cvSummary: dbProfile.cvSummary,
       aiProfileSummary: dbProfile.aiProfileSummary,
-
+  priorityScore: dbProfile.priorityScore,
+  priorityCategory: dbProfile.priorityCategory,
+  redFlags: dbProfile.redFlags || [],
+  greenFlags: dbProfile.greenFlags || [],
+  difficultyScore: dbProfile.difficultyScore,
+  readinessLevel: dbProfile.readinessLevel,
+  missingFields: dbProfile.missingFields || [],
       user: {
         id: userWithProfile.id,
         firstName: userWithProfile.firstName,

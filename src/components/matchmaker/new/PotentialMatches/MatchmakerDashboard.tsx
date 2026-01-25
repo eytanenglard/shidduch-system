@@ -1,24 +1,16 @@
 // =============================================================================
-// 📁 src/components/matchmaker/MatchmakerDashboard.tsx
-// =============================================================================
-// 🎯 Matchmaker Dashboard Component V1.0 - NeshamaTech
-// 
-// דשבורד מרכזי לשדכן עם:
-// - סטטיסטיקות
-// - משתמשים לפי Priority
-// - התראות
-// - פעילות אחרונה
+// 📁 src/components/matchmaker/new/PotentialMatches/MatchmakerDashboard.tsx
 // =============================================================================
 
-"use client";
+'use client';
 
-import React, { useState, useEffect, useCallback } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { 
-  Users, 
-  UserPlus, 
-  Heart, 
-  Bell, 
+import React, { useState, useEffect, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import {
+  Users,
+  UserPlus,
+  Heart,
+  Bell,
   AlertTriangle,
   Clock,
   RefreshCw,
@@ -27,14 +19,13 @@ import {
   Calendar,
   CheckCircle,
   XCircle,
-  Filter,
-  MoreHorizontal,
-  Eye,
   MessageSquare,
   Sparkles,
-} from "lucide-react";
+  BarChart,
+  PlayCircle, // אייקון חדש לכפתור הטעינה
+} from 'lucide-react';
 
-// Types
+// ... (כל ה-Interfaces נשארים אותו דבר, אין שינוי ב-Types)
 interface DashboardStats {
   totalActiveUsers: number;
   maleCount: number;
@@ -57,12 +48,12 @@ interface PriorityUserCard {
   userId: string;
   firstName: string;
   lastName: string;
-  gender: "MALE" | "FEMALE";
+  gender: 'MALE' | 'FEMALE';
   age: number | null;
   city: string | null;
   mainImage: string | null;
   priorityScore: number;
-  category: "CRITICAL" | "HIGH" | "MEDIUM" | "LOW";
+  category: 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW';
   isNewUser: boolean;
   isNeglected: boolean;
   hasNoPendingMatches: boolean;
@@ -77,7 +68,7 @@ interface AlertResult {
   id: string;
   userId: string;
   type: string;
-  severity: "CRITICAL" | "HIGH" | "MEDIUM" | "LOW" | "INFO";
+  severity: 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW' | 'INFO';
   title: string;
   message: string;
   createdAt: string;
@@ -130,11 +121,8 @@ interface DashboardData {
   generatedAt: string;
 }
 
-// =============================================================================
-// SUB-COMPONENTS
-// =============================================================================
+// ... (Sub-Components נשארים ללא שינוי: StatCard, PriorityUserCardComponent, AlertItem, ActivityItem, formatTimeAgo)
 
-// Stats Card
 const StatCard: React.FC<{
   title: string;
   value: number | string;
@@ -152,41 +140,38 @@ const StatCard: React.FC<{
       <div>
         <p className="text-sm text-gray-500">{title}</p>
         <p className="text-2xl font-bold text-gray-800 mt-1">{value}</p>
-        {subtitle && (
-          <p className="text-xs text-gray-400 mt-1">{subtitle}</p>
-        )}
+        {subtitle && <p className="text-xs text-gray-400 mt-1">{subtitle}</p>}
         {trend !== undefined && (
-          <div className={`flex items-center mt-2 text-xs ${trend >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+          <div
+            className={`flex items-center mt-2 text-xs ${trend >= 0 ? 'text-green-600' : 'text-red-600'}`}
+          >
             <TrendingUp size={12} className={trend < 0 ? 'rotate-180' : ''} />
             <span className="mr-1">{Math.abs(trend)}%</span>
             <span className="text-gray-400">מהשבוע שעבר</span>
           </div>
         )}
       </div>
-      <div className={`p-3 rounded-xl ${color}`}>
-        {icon}
-      </div>
+      <div className={`p-3 rounded-xl ${color}`}>{icon}</div>
     </div>
   </motion.div>
 );
 
-// Priority User Card
 const PriorityUserCardComponent: React.FC<{
   user: PriorityUserCard;
   onClick: (userId: string) => void;
 }> = ({ user, onClick }) => {
   const categoryColors = {
-    CRITICAL: "bg-red-50 border-red-200",
-    HIGH: "bg-orange-50 border-orange-200",
-    MEDIUM: "bg-yellow-50 border-yellow-200",
-    LOW: "bg-green-50 border-green-200",
+    CRITICAL: 'bg-red-50 border-red-200',
+    HIGH: 'bg-orange-50 border-orange-200',
+    MEDIUM: 'bg-yellow-50 border-yellow-200',
+    LOW: 'bg-green-50 border-green-200',
   };
 
   const categoryBadge = {
-    CRITICAL: "bg-red-500 text-white",
-    HIGH: "bg-orange-500 text-white",
-    MEDIUM: "bg-yellow-500 text-white",
-    LOW: "bg-green-500 text-white",
+    CRITICAL: 'bg-red-500 text-white',
+    HIGH: 'bg-orange-500 text-white',
+    MEDIUM: 'bg-yellow-500 text-white',
+    LOW: 'bg-green-500 text-white',
   };
 
   return (
@@ -198,59 +183,67 @@ const PriorityUserCardComponent: React.FC<{
       className={`p-3 rounded-lg border cursor-pointer transition-all ${categoryColors[user.category]}`}
     >
       <div className="flex items-center gap-3">
-        {/* Avatar */}
         <div className="relative">
           <div className="w-12 h-12 rounded-full bg-gray-200 overflow-hidden">
             {user.mainImage ? (
-              <img src={user.mainImage} alt="" className="w-full h-full object-cover" />
+              <img
+                src={user.mainImage}
+                alt=""
+                className="w-full h-full object-cover"
+              />
             ) : (
               <div className="w-full h-full flex items-center justify-center text-gray-400">
                 <Users size={20} />
               </div>
             )}
           </div>
-          <div className={`absolute -bottom-1 -left-1 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold ${categoryBadge[user.category]}`}>
+          <div
+            className={`absolute -bottom-1 -left-1 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold ${categoryBadge[user.category]}`}
+          >
             {user.priorityScore}
           </div>
         </div>
 
-        {/* Info */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
             <p className="font-medium text-gray-800 truncate">
               {user.firstName} {user.lastName}
             </p>
-            {user.gender === "FEMALE" && <span className="text-pink-500">♀</span>}
-            {user.gender === "MALE" && <span className="text-blue-500">♂</span>}
+            {user.gender === 'FEMALE' && (
+              <span className="text-pink-500">♀</span>
+            )}
+            {user.gender === 'MALE' && (
+              <span className="text-blue-500">♂</span>
+            )}
           </div>
           <div className="flex flex-wrap gap-1 mt-1">
             {user.tags.slice(0, 3).map((tag, idx) => (
-              <span key={idx} className="text-[10px] bg-white/50 px-1.5 py-0.5 rounded">
+              <span
+                key={idx}
+                className="text-[10px] bg-white/50 px-1.5 py-0.5 rounded"
+              >
                 {tag}
               </span>
             ))}
           </div>
         </div>
-
-        {/* Arrow */}
         <ChevronRight size={16} className="text-gray-400" />
       </div>
     </motion.div>
   );
 };
 
-// Alert Item
 const AlertItem: React.FC<{
   alert: AlertResult;
   onDismiss: (id: string) => void;
   onMarkRead: (id: string) => void;
 }> = ({ alert, onDismiss, onMarkRead }) => {
   const severityColors = {
-    CRITICAL: "border-r-4 border-r-red-500 bg-red-50",
-    HIGH: "border-r-4 border-r-orange-500 bg-orange-50",
-    MEDIUM: "border-r-4 border-r-yellow-500 bg-yellow-50",
-    LOW: "border-r-4 border-r-green-500 bg-green-50",
-    INFO: "border-r-4 border-r-blue-500 bg-blue-50",
+    CRITICAL: 'border-r-4 border-r-red-500 bg-red-50',
+    HIGH: 'border-r-4 border-r-orange-500 bg-orange-50',
+    MEDIUM: 'border-r-4 border-r-yellow-500 bg-yellow-50',
+    LOW: 'border-r-4 border-r-green-500 bg-green-50',
+    INFO: 'border-r-4 border-r-blue-500 bg-blue-50',
   };
 
   const severityIcons = {
@@ -272,7 +265,9 @@ const AlertItem: React.FC<{
         <div className="mt-0.5">{severityIcons[alert.severity]}</div>
         <div className="flex-1 min-w-0">
           <p className="text-sm text-gray-800">{alert.title}</p>
-          <p className="text-xs text-gray-600 mt-0.5 truncate">{alert.message}</p>
+          <p className="text-xs text-gray-600 mt-0.5 truncate">
+            {alert.message}
+          </p>
         </div>
         <div className="flex items-center gap-1">
           {!alert.isRead && (
@@ -281,7 +276,7 @@ const AlertItem: React.FC<{
               className="p-1 hover:bg-white/50 rounded"
               title="סמן כנקרא"
             >
-              <Eye size={14} className="text-gray-400" />
+              <Users size={14} className="text-gray-400" />
             </button>
           )}
           <button
@@ -297,23 +292,32 @@ const AlertItem: React.FC<{
   );
 };
 
-// Activity Item
 const ActivityItem: React.FC<{ activity: RecentActivity }> = ({ activity }) => {
   const typeConfig: Record<string, { icon: React.ReactNode; color: string }> = {
-    new_user: { icon: <UserPlus size={14} />, color: "text-green-500 bg-green-50" },
-    new_match: { icon: <Heart size={14} />, color: "text-pink-500 bg-pink-50" },
-    suggestion_sent: { icon: <MessageSquare size={14} />, color: "text-blue-500 bg-blue-50" },
-    suggestion_accepted: { icon: <CheckCircle size={14} />, color: "text-green-500 bg-green-50" },
-    suggestion_declined: { icon: <XCircle size={14} />, color: "text-red-500 bg-red-50" },
+    new_user: {
+      icon: <UserPlus size={14} />,
+      color: 'text-green-500 bg-green-50',
+    },
+    new_match: { icon: <Heart size={14} />, color: 'text-pink-500 bg-pink-50' },
+    suggestion_sent: {
+      icon: <MessageSquare size={14} />,
+      color: 'text-blue-500 bg-blue-50',
+    },
+    suggestion_accepted: {
+      icon: <CheckCircle size={14} />,
+      color: 'text-green-500 bg-green-50',
+    },
+    suggestion_declined: {
+      icon: <XCircle size={14} />,
+      color: 'text-red-500 bg-red-50',
+    },
   };
 
   const config = typeConfig[activity.type] || typeConfig.new_user;
 
   return (
     <div className="flex items-center gap-3 py-2">
-      <div className={`p-2 rounded-full ${config.color}`}>
-        {config.icon}
-      </div>
+      <div className={`p-2 rounded-full ${config.color}`}>{config.icon}</div>
       <div className="flex-1 min-w-0">
         <p className="text-sm text-gray-700">{activity.title}</p>
         <p className="text-xs text-gray-500 truncate">{activity.description}</p>
@@ -325,7 +329,6 @@ const ActivityItem: React.FC<{ activity: RecentActivity }> = ({ activity }) => {
   );
 };
 
-// Time formatter
 function formatTimeAgo(timestamp: string): string {
   const date = new Date(timestamp);
   const now = new Date();
@@ -334,11 +337,11 @@ function formatTimeAgo(timestamp: string): string {
   const diffHours = Math.floor(diffMins / 60);
   const diffDays = Math.floor(diffHours / 24);
 
-  if (diffMins < 1) return "עכשיו";
+  if (diffMins < 1) return 'עכשיו';
   if (diffMins < 60) return `לפני ${diffMins} דק'`;
   if (diffHours < 24) return `לפני ${diffHours} שע'`;
   if (diffDays < 7) return `לפני ${diffDays} ימים`;
-  return date.toLocaleDateString("he-IL");
+  return date.toLocaleDateString('he-IL');
 }
 
 // =============================================================================
@@ -347,10 +350,10 @@ function formatTimeAgo(timestamp: string): string {
 
 export default function MatchmakerDashboard() {
   const [data, setData] = useState<DashboardData | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false); // שונה ל-false כברירת מחדל
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<"priority" | "alerts">("priority");
+  const [activeTab, setActiveTab] = useState<'priority' | 'alerts'>('priority');
 
   // Fetch dashboard data
   const fetchData = useCallback(async (showRefresh = false) => {
@@ -358,72 +361,74 @@ export default function MatchmakerDashboard() {
       if (showRefresh) setRefreshing(true);
       else setLoading(true);
 
-      const response = await fetch("/api/matchmaker/dashboard");
-      
+      const response = await fetch('/api/matchmaker/dashboard');
+
       if (!response.ok) {
-        throw new Error("Failed to fetch dashboard data");
+        throw new Error('Failed to fetch dashboard data');
       }
 
       const dashboardData = await response.json();
       setData(dashboardData);
       setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Unknown error");
+      setError(err instanceof Error ? err.message : 'Unknown error');
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
   }, []);
 
+  // Removed immediate useEffect call.
+  // Now it only runs interval if data is present.
   useEffect(() => {
-    fetchData();
-    
+    if (!data) return; // רק אם יש דאטה, נפעיל טיימר לרענון
+
     // Auto refresh every 2 minutes
     const interval = setInterval(() => fetchData(true), 120000);
     return () => clearInterval(interval);
-  }, [fetchData]);
+  }, [fetchData, data]);
 
   // Handle alert dismiss
   const handleDismissAlert = async (alertId: string) => {
     try {
-      await fetch("/api/matchmaker/alerts", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "dismiss", alertId }),
+      await fetch('/api/matchmaker/alerts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'dismiss', alertId }),
       });
-      
+
       // Update local state
       if (data) {
         setData({
           ...data,
           alerts: {
             ...data.alerts,
-            alerts: data.alerts.alerts.filter(a => a.id !== alertId),
+            alerts: data.alerts.alerts.filter((a) => a.id !== alertId),
             total: data.alerts.total - 1,
           },
         });
       }
     } catch (err) {
-      console.error("Failed to dismiss alert:", err);
+      console.error('Failed to dismiss alert:', err);
     }
   };
 
   // Handle mark as read
   const handleMarkRead = async (alertId: string) => {
     try {
-      await fetch("/api/matchmaker/alerts", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "mark_read", alertId }),
+      await fetch('/api/matchmaker/alerts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'mark_read', alertId }),
       });
-      
+
       // Update local state
       if (data) {
         setData({
           ...data,
           alerts: {
             ...data.alerts,
-            alerts: data.alerts.alerts.map(a => 
+            alerts: data.alerts.alerts.map((a) =>
               a.id === alertId ? { ...a, isRead: true } : a
             ),
             unread: Math.max(0, data.alerts.unread - 1),
@@ -431,7 +436,7 @@ export default function MatchmakerDashboard() {
         });
       }
     } catch (err) {
-      console.error("Failed to mark as read:", err);
+      console.error('Failed to mark as read:', err);
     }
   };
 
@@ -440,19 +445,46 @@ export default function MatchmakerDashboard() {
     window.location.href = `/matchmaker/candidates/${userId}`;
   };
 
-  // Loading state
+  // --- מצב 1: עדיין לא נטען דאטה ולא טוען כרגע (Initial State) ---
+  if (!data && !loading && !error) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[400px] p-8 text-center space-y-6">
+        <div className="p-6 bg-indigo-50 rounded-full animate-pulse-slow">
+          <BarChart className="w-16 h-16 text-indigo-600" />
+        </div>
+        <div>
+          <h2 className="text-2xl font-bold text-gray-800 mb-2">
+            דשבורד וניתוח נתונים
+          </h2>
+          <p className="text-gray-500 max-w-md mx-auto">
+            לחץ על הכפתור כדי לטעון סטטיסטיקות, התראות ומשתמשים בעדיפות גבוהה.
+            פעולה זו מבצעת ניתוח מעמיק ולכן אינה מופעלת אוטומטית.
+          </p>
+        </div>
+        <button
+          onClick={() => fetchData()}
+          className="flex items-center gap-2 px-8 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl shadow-lg hover:shadow-xl hover:scale-105 transition-all text-lg font-medium"
+        >
+          <PlayCircle size={24} />
+          טען נתוני דשבורד
+        </button>
+      </div>
+    );
+  }
+
+  // --- מצב 2: טוען (Loading State) ---
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="flex flex-col items-center gap-3">
           <RefreshCw className="w-8 h-8 text-primary animate-spin" />
-          <p className="text-gray-500">טוען דשבורד...</p>
+          <p className="text-gray-500">טוען נתונים ומנתח התראות...</p>
         </div>
       </div>
     );
   }
 
-  // Error state
+  // --- מצב 3: שגיאה (Error State) ---
   if (error) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
@@ -473,6 +505,7 @@ export default function MatchmakerDashboard() {
 
   if (!data) return null;
 
+  // --- מצב 4: הצגת הדשבורד (Dashboard View) ---
   return (
     <div className="space-y-6 p-4 md:p-6" dir="rtl">
       {/* Header */}
@@ -483,7 +516,7 @@ export default function MatchmakerDashboard() {
             דשבורד שדכן
           </h1>
           <p className="text-sm text-gray-500 mt-1">
-            עודכן {new Date(data.generatedAt).toLocaleTimeString("he-IL")}
+            עודכן {new Date(data.generatedAt).toLocaleTimeString('he-IL')}
           </p>
         </div>
         <button
@@ -491,8 +524,8 @@ export default function MatchmakerDashboard() {
           disabled={refreshing}
           className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
         >
-          <RefreshCw size={16} className={refreshing ? "animate-spin" : ""} />
-          <span>רענן</span>
+          <RefreshCw size={16} className={refreshing ? 'animate-spin' : ''} />
+          <span>רענן נתונים</span>
         </button>
       </div>
 
@@ -599,24 +632,25 @@ export default function MatchmakerDashboard() {
           {/* Tab Selector */}
           <div className="flex gap-2 bg-gray-100 p-1 rounded-xl">
             <button
-              onClick={() => setActiveTab("priority")}
+              onClick={() => setActiveTab('priority')}
               className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-colors ${
-                activeTab === "priority"
-                  ? "bg-white text-gray-800 shadow-sm"
-                  : "text-gray-500 hover:text-gray-700"
+                activeTab === 'priority'
+                  ? 'bg-white text-gray-800 shadow-sm'
+                  : 'text-gray-500 hover:text-gray-700'
               }`}
             >
               <span className="flex items-center justify-center gap-2">
                 <Users size={16} />
-                משתמשים לטיפול ({data.criticalUsers.length + data.highPriorityUsers.length})
+                משתמשים לטיפול (
+                {data.criticalUsers.length + data.highPriorityUsers.length})
               </span>
             </button>
             <button
-              onClick={() => setActiveTab("alerts")}
+              onClick={() => setActiveTab('alerts')}
               className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-colors ${
-                activeTab === "alerts"
-                  ? "bg-white text-gray-800 shadow-sm"
-                  : "text-gray-500 hover:text-gray-700"
+                activeTab === 'alerts'
+                  ? 'bg-white text-gray-800 shadow-sm'
+                  : 'text-gray-500 hover:text-gray-700'
               }`}
             >
               <span className="flex items-center justify-center gap-2">
@@ -632,7 +666,7 @@ export default function MatchmakerDashboard() {
           </div>
 
           <AnimatePresence mode="wait">
-            {activeTab === "priority" ? (
+            {activeTab === 'priority' ? (
               <motion.div
                 key="priority"
                 initial={{ opacity: 0, y: 10 }}
@@ -689,13 +723,21 @@ export default function MatchmakerDashboard() {
                 )}
 
                 {/* No Priority Users */}
-                {data.criticalUsers.length === 0 && data.highPriorityUsers.length === 0 && (
-                  <div className="bg-green-50 rounded-xl p-8 text-center">
-                    <CheckCircle size={48} className="text-green-500 mx-auto mb-3" />
-                    <p className="text-green-700 font-medium">כל המשתמשים מטופלים! 🎉</p>
-                    <p className="text-green-600 text-sm mt-1">אין משתמשים דחופים כרגע</p>
-                  </div>
-                )}
+                {data.criticalUsers.length === 0 &&
+                  data.highPriorityUsers.length === 0 && (
+                    <div className="bg-green-50 rounded-xl p-8 text-center">
+                      <CheckCircle
+                        size={48}
+                        className="text-green-500 mx-auto mb-3"
+                      />
+                      <p className="text-green-700 font-medium">
+                        כל המשתמשים מטופלים! 🎉
+                      </p>
+                      <p className="text-green-600 text-sm mt-1">
+                        אין משתמשים דחופים כרגע
+                      </p>
+                    </div>
+                  )}
               </motion.div>
             ) : (
               <motion.div
@@ -758,7 +800,7 @@ export default function MatchmakerDashboard() {
               <div className="space-y-1 text-sm">
                 {data.lastScan.timestamp && (
                   <p className="text-gray-600">
-                    {new Date(data.lastScan.timestamp).toLocaleString("he-IL")}
+                    {new Date(data.lastScan.timestamp).toLocaleString('he-IL')}
                   </p>
                 )}
                 <p className="text-gray-600">
@@ -801,29 +843,37 @@ export default function MatchmakerDashboard() {
             <div className="space-y-2">
               {data.stats.usersWaitingLong > 0 && (
                 <div className="flex items-center justify-between p-2 bg-orange-50 rounded-lg">
-                  <span className="text-sm text-orange-700">ממתינים 10+ ימים</span>
-                  <span className="font-bold text-orange-600">{data.stats.usersWaitingLong}</span>
+                  <span className="text-sm text-orange-700">
+                    ממתינים 10+ ימים
+                  </span>
+                  <span className="font-bold text-orange-600">
+                    {data.stats.usersWaitingLong}
+                  </span>
                 </div>
               )}
               {data.stats.usersWithNoMatches > 0 && (
                 <div className="flex items-center justify-between p-2 bg-yellow-50 rounded-lg">
                   <span className="text-sm text-yellow-700">ללא התאמות</span>
-                  <span className="font-bold text-yellow-600">{data.stats.usersWithNoMatches}</span>
+                  <span className="font-bold text-yellow-600">
+                    {data.stats.usersWithNoMatches}
+                  </span>
                 </div>
               )}
               {data.stats.incompleteProfiles > 0 && (
                 <div className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
                   <span className="text-sm text-gray-700">פרופילים חלקיים</span>
-                  <span className="font-bold text-gray-600">{data.stats.incompleteProfiles}</span>
+                  <span className="font-bold text-gray-600">
+                    {data.stats.incompleteProfiles}
+                  </span>
                 </div>
               )}
-              {data.stats.usersWaitingLong === 0 && 
-               data.stats.usersWithNoMatches === 0 && 
-               data.stats.incompleteProfiles === 0 && (
-                <p className="text-green-600 text-sm text-center py-2">
-                  ✅ אין בעיות כרגע
-                </p>
-              )}
+              {data.stats.usersWaitingLong === 0 &&
+                data.stats.usersWithNoMatches === 0 &&
+                data.stats.incompleteProfiles === 0 && (
+                  <p className="text-green-600 text-sm text-center py-2">
+                    ✅ אין בעיות כרגע
+                  </p>
+                )}
             </div>
           </div>
         </div>

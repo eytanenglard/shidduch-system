@@ -1,6 +1,6 @@
 // =============================================================================
 // src/components/matchmaker/PotentialMatches/hooks/usePotentialMatches.ts
-// React Hook לניהול התאמות פוטנציאליות
+// React Hook לניהול התאמות פוטנציאליות - V2.0 with Async Scan Support
 // =============================================================================
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
@@ -79,6 +79,7 @@ interface UsePotentialMatchesReturn {
     method?: 'algorithmic' | 'vector' | 'hybrid';
     forceRefresh?: boolean;
   }) => Promise<string | null>;
+  cancelScan: () => Promise<boolean>;
   scanProgress: BatchScanProgress | null;
   isScanRunning: boolean;
   
@@ -167,7 +168,7 @@ export function usePotentialMatches(
       const params = new URLSearchParams();
       params.set('page', String(pagination.page));
       params.set('pageSize', String(pagination.pageSize));
-       if (filters.searchTerm) {
+      if (filters.searchTerm) {
         params.set('searchTerm', filters.searchTerm);
       }
       params.set('status', filters.status);
@@ -264,11 +265,7 @@ export function usePotentialMatches(
       const response = await fetch('/api/matchmaker/potential-matches', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          matchId,
-          action,
-          ...additionalData,
-        }),
+        body: JSON.stringify({ matchId, action, ...additionalData }),
       });
 
       const data = await response.json();
@@ -277,25 +274,22 @@ export function usePotentialMatches(
         throw new Error(data.error || 'Action failed');
       }
 
-      // Update local state
-      setMatches(prev => prev.map(m => {
-        if (m.id !== matchId) return m;
-        
-        switch (action) {
-          case 'review':
-            return { ...m, status: 'REVIEWED' as any, reviewedAt: new Date() };
-            case 'save': // <--- הוסף שורה זו
-            return { ...m, status: 'SHORTLISTED' as any, reviewedAt: new Date() };
-            case 'dismiss':
-            return { ...m, status: 'DISMISSED' as any };
-          case 'restore':
-            return { ...m, status: 'PENDING' as any };
-          case 'create_suggestion':
-            return { ...m, status: 'SENT' as any, suggestionId: data.suggestionId };
-          default:
-            return m;
-        }
-      }));
+      // Update local state based on action
+      if (action === 'dismiss') {
+        setMatches(prev => prev.filter(m => m.id !== matchId));
+      } else if (action === 'review') {
+        setMatches(prev => prev.map(m => 
+          m.id === matchId ? { ...m, status: 'REVIEWED' as any } : m
+        ));
+      } else if (action === 'restore') {
+        setMatches(prev => prev.map(m => 
+          m.id === matchId ? { ...m, status: 'PENDING' as any } : m
+        ));
+      } else if (action === 'save') {
+        setMatches(prev => prev.map(m => 
+          m.id === matchId ? { ...m, status: 'SHORTLISTED' as any } : m
+        ));
+      }
 
       return true;
 
@@ -310,9 +304,7 @@ export function usePotentialMatches(
   }, []);
 
   const reviewMatch = useCallback(async (matchId: string): Promise<boolean> => {
-    const success = await performAction(matchId, 'review');
-    if (success) toast.success('ההתאמה סומנה כנבדקה');
-    return success;
+    return performAction(matchId, 'review');
   }, [performAction]);
 
   const dismissMatch = useCallback(async (matchId: string, reason?: string): Promise<boolean> => {
@@ -327,9 +319,19 @@ export function usePotentialMatches(
     return success;
   }, [performAction]);
 
+  const saveMatch = useCallback(async (matchId: string): Promise<boolean> => {
+    const success = await performAction(matchId, 'save');
+    if (success) toast.success('ההתאמה נשמרה בצד');
+    return success;
+  }, [performAction]);
+
+  // ==========================================================================
+  // CREATE SUGGESTION
+  // ==========================================================================
+
   const createSuggestion = useCallback(async (
     matchId: string,
-    suggestionData?: {
+    data?: {
       priority?: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
       firstPartyNotes?: string;
       secondPartyNotes?: string;
@@ -342,28 +344,28 @@ export function usePotentialMatches(
       const response = await fetch('/api/matchmaker/potential-matches', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          matchId,
+        body: JSON.stringify({ 
+          matchId, 
           action: 'create_suggestion',
-          suggestionData,
+          ...data,
         }),
       });
 
-      const data = await response.json();
+      const result = await response.json();
 
-      if (!data.success) {
-        throw new Error(data.error || 'Failed to create suggestion');
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to create suggestion');
       }
 
       // Update local state
       setMatches(prev => prev.map(m => 
         m.id === matchId 
-          ? { ...m, status: 'SENT' as any, suggestionId: data.suggestionId }
+          ? { ...m, status: 'SENT' as any, suggestionId: result.suggestionId }
           : m
       ));
 
       toast.success('הצעה נוצרה בהצלחה!');
-      return data.suggestionId;
+      return result.suggestionId;
 
     } catch (err) {
       const message = err instanceof Error ? err.message : 'יצירת ההצעה נכשלה';
@@ -375,11 +377,6 @@ export function usePotentialMatches(
     }
   }, []);
 
-  const saveMatch = useCallback(async (matchId: string): Promise<boolean> => {
-    const success = await performAction(matchId, 'save');
-    if (success) toast.success('ההתאמה נשמרה בצד');
-    return success;
-  }, [performAction]);
   // ==========================================================================
   // BULK ACTIONS
   // ==========================================================================
@@ -443,36 +440,63 @@ export function usePotentialMatches(
   }, [performBulkAction]);
 
   // ==========================================================================
-  // SCAN CONTROLS
+  // SCAN CONTROLS - V2.0 Async
   // ==========================================================================
 
   const startScan = useCallback(async (scanOptions?: {
     method?: 'algorithmic' | 'vector' | 'hybrid';
     forceRefresh?: boolean;
   }): Promise<string | null> => {
+    // בדוק אם סריקה כבר רצה
+    if (isScanRunning) {
+      toast.warning('סריקה כבר רצה כרגע');
+      return pollingScanId;
+    }
+    
     setIsScanRunning(true);
+    setScanProgress({
+      scanId: '',
+      status: 'running',
+      progress: 0,
+      currentCandidate: null,
+      candidatesScanned: 0,
+      totalCandidates: 0,
+      matchesFound: 0,
+      elapsedMs: 0,
+      estimatedRemainingMs: null,
+      error: null,
+    });
     
     try {
-      const response = await fetch('/api/ai/batch-scan-all', {
+      const response = await fetch('/api/ai/batch-scan-symmetric', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(scanOptions || {}),
+        body: JSON.stringify({ 
+          action: 'full_scan',
+          forceRefresh: scanOptions?.forceRefresh ?? false,
+        }),
       });
 
-      const data: BatchScanResponse = await response.json();
+      const data = await response.json();
 
       if (!data.success) {
         if (data.status === 'already_running') {
           toast.warning('סריקה כבר רצה כרגע');
           setPollingScanId(data.scanId);
-        } else {
-          throw new Error(data.message || 'Failed to start scan');
+          return data.scanId;
         }
-        return data.scanId || null;
+        throw new Error(data.message || data.error || 'Failed to start scan');
       }
 
       toast.success('הסריקה החלה!');
       setPollingScanId(data.scanId);
+      
+      // עדכון progress ראשוני
+      setScanProgress(prev => prev ? {
+        ...prev,
+        scanId: data.scanId,
+      } : null);
+      
       return data.scanId;
 
     } catch (err) {
@@ -480,53 +504,104 @@ export function usePotentialMatches(
       toast.error(message);
       console.error('[usePotentialMatches] Start scan error:', err);
       setIsScanRunning(false);
+      setScanProgress(null);
       return null;
     }
-  }, []);
+  }, [isScanRunning, pollingScanId]);
 
-  // Poll scan progress
+  // Cancel scan
+  const cancelScan = useCallback(async (): Promise<boolean> => {
+    if (!pollingScanId) return false;
+    
+    try {
+      const response = await fetch('/api/ai/batch-scan-symmetric', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          action: 'cancel',
+          scanId: pollingScanId,
+        }),
+      });
+
+      const data = await response.json();
+      
+      if (data.success) {
+        toast.info('הסריקה בוטלה');
+        setPollingScanId(null);
+        setIsScanRunning(false);
+        setScanProgress(null);
+        return true;
+      }
+      
+      return false;
+    } catch (err) {
+      console.error('[usePotentialMatches] Cancel scan error:', err);
+      return false;
+    }
+  }, [pollingScanId]);
+
+  // Poll scan progress - V2.0 - polls the same endpoint with scanId
   useEffect(() => {
     if (!pollingScanId) return;
 
     const pollProgress = async () => {
       try {
-        const response = await fetch(`/api/ai/batch-scan-all?scanId=${pollingScanId}`);
+        // Poll the same batch-scan-symmetric endpoint with scanId
+        const response = await fetch(`/api/ai/batch-scan-symmetric?scanId=${pollingScanId}`);
         const data = await response.json();
 
         if (data.success && data.scan) {
+          const scan = data.scan;
+          
           setScanProgress({
-            scanId: data.scan.id,
-            status: data.scan.status,
-            progress: data.scan.progress || 
-              Math.round((data.scan.candidatesScanned / data.scan.totalCandidates) * 100),
-            currentCandidate: null,
-            candidatesScanned: data.scan.candidatesScanned,
-            totalCandidates: data.scan.totalCandidates,
-            matchesFound: data.scan.matchesFound,
-            elapsedMs: data.scan.durationMs || 0,
+            scanId: scan.id,
+            status: scan.status,
+            progress: scan.progress ?? 
+              (scan.candidatesScanned && scan.totalCandidates 
+                ? Math.round((scan.candidatesScanned / scan.totalCandidates) * 100)
+                : 0),
+            currentCandidate: scan.currentPhase || null,
+            candidatesScanned: scan.candidatesScanned ?? 0,
+            totalCandidates: scan.totalCandidates ?? 0,
+            matchesFound: scan.matchesFound ?? 0,
+            elapsedMs: scan.durationMs ?? 0,
             estimatedRemainingMs: null,
-            error: data.scan.error,
+            error: scan.error,
           });
 
-          if (data.scan.status === 'completed' || data.scan.status === 'failed' || data.scan.status === 'partial') {
+          // בדוק אם הסריקה הסתיימה
+          if (scan.status === 'completed' || scan.status === 'failed' || scan.status === 'partial') {
             setPollingScanId(null);
             setIsScanRunning(false);
             
-            if (data.scan.status === 'completed' || data.scan.status === 'partial') {
-              toast.success(`סריקה הושלמה! נמצאו ${data.scan.matchesFound} התאמות`);
+            if (scan.status === 'completed' || scan.status === 'partial') {
+              const matchCount = scan.matchesFound ?? 0;
+              const newMatchCount = scan.newMatches ?? 0;
+              toast.success(`סריקה הושלמה! נמצאו ${matchCount} התאמות (${newMatchCount} חדשות)`);
+              // רענן את ההתאמות
               fetchMatches(false);
-            } else if (data.scan.status === 'failed') {
-              toast.error('הסריקה נכשלה');
+            } else if (scan.status === 'failed') {
+              toast.error(scan.error || 'הסריקה נכשלה');
             }
           }
+        } else if (!data.success) {
+          // Scan not found - might have completed and been cleaned up
+          console.log('[usePotentialMatches] Scan not found, stopping polling');
+          setPollingScanId(null);
+          setIsScanRunning(false);
+          // Refresh to get latest matches
+          fetchMatches(false);
         }
       } catch (err) {
         console.error('[usePotentialMatches] Poll progress error:', err);
       }
     };
 
+    // Poll every 3 seconds
     const interval = setInterval(pollProgress, 3000);
-    pollProgress(); // Initial poll
+    
+    // Initial poll immediately
+    pollProgress();
 
     return () => clearInterval(interval);
   }, [pollingScanId, fetchMatches]);
@@ -589,6 +664,7 @@ export function usePotentialMatches(
     restoreMatch,
     createSuggestion,
     saveMatch,
+    
     // Bulk actions
     bulkDismiss,
     bulkReview,
@@ -596,6 +672,7 @@ export function usePotentialMatches(
     
     // Scan controls
     startScan,
+    cancelScan,
     scanProgress,
     isScanRunning,
     

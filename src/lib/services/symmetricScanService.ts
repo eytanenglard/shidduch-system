@@ -1,33 +1,19 @@
 // =============================================================================
 // 📁 src/lib/services/symmetricScanService.ts
 // =============================================================================
-// 🎯 Symmetric Scan Service V1.0 - NeshamaTech
+// 🎯 Symmetric Scan Service V2.1 - NeshamaTech
 // 
-// סריקה דו-כיוונית (סימטרית) עם Tiered Matching:
-// 
-// Tier 1: Quick Filter (מילישניות)
-//   - גיל, דת, היסטוריה חוסמת
-// 
-// Tier 2: Vector Similarity (שניות)
-//   - pgvector similarity search
-//   - סף מינימלי 0.3
-// 
-// Tier 3: Soft Scoring (מילישניות)
-//   - ציון גיל, רקע, גיאוגרפיה
-//   - Top 30 הולכים ל-AI
-// 
-// Tier 4: AI Deep Analysis (שניות)
-//   - רק Top 30 נשלחים
-//   - ציון 0-100 + נימוק
+// סריקה דו-כיוונית (סימטרית) עם Tiered Matching.
+// כולל תיקונים לטיפול בווקטורים חסרים והרחבת מעגל החיפוש.
 // =============================================================================
 
 import prisma from "@/lib/prisma";
-import { Gender, AvailabilityStatus, UserStatus, PotentialMatchStatus } from "@prisma/client";
+import { Gender, AvailabilityStatus, UserStatus } from "@prisma/client";
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import { updateUserAiProfile } from '@/lib/services/profileAiService';
 import { 
   calculateAge,
   calculateAgeScore,
-  getCompatibleReligiousLevels,
   areReligiousLevelsCompatible,
   createBackgroundProfile,
   calculateBackgroundMatch,
@@ -156,8 +142,8 @@ const DEFAULT_OPTIONS: Required<SymmetricScanOptions> = {
 
 // Tier 1 thresholds
 const QUICK_FILTER = {
-  MAX_AGE_GAP_MALE_OLDER: 10,    // גבר גדול מדי
-  MAX_AGE_GAP_FEMALE_OLDER: 5,   // אישה גדולה מדי
+  MAX_AGE_GAP_MALE_OLDER: 12,    // הורחב ל-12
+  MAX_AGE_GAP_FEMALE_OLDER: 6,   // הורחב ל-6
   RELIGIOUS_LEVEL_RANGE: 4,      // מרחק מקסימלי ברמה דתית
 };
 
@@ -193,7 +179,7 @@ export async function runSymmetricScan(
   const startTime = Date.now();
   
   console.log(`\n${'='.repeat(70)}`);
-  console.log(`[SymmetricScan] 🔄 Starting Symmetric Tiered Scan V1.0`);
+  console.log(`[SymmetricScan] 🔄 Starting Symmetric Tiered Scan V2.1 (Full Fix)`);
   console.log(`[SymmetricScan] Options: forceRefresh=${opts.forceRefresh}`);
   console.log(`${'='.repeat(70)}\n`);
 
@@ -225,7 +211,7 @@ export async function runSymmetricScan(
 
   try {
     // ==========================================================================
-    // שלב 1: שליפת כל המשתמשים הפעילים
+    // שלב 1: שליפת כל המשתמשים (המורחבים)
     // ==========================================================================
     
     const { males, females, blockedPairs } = await fetchActiveUsersAndBlockedPairs(opts.usersToScan);
@@ -234,8 +220,8 @@ export async function runSymmetricScan(
     stats.femalesScanned = females.length;
     stats.usersScanned = males.length + females.length;
     
-    console.log(`[SymmetricScan] Found ${males.length} males, ${females.length} females`);
-    console.log(`[SymmetricScan] ${blockedPairs.size} blocked pairs loaded`);
+    console.log(`[SymmetricScan] 📊 Population: ${males.length} Males, ${females.length} Females`);
+    console.log(`[SymmetricScan] 🚫 Blocked Pairs Loaded: ${blockedPairs.size}`);
 
     if (males.length === 0 || females.length === 0) {
       throw new Error('No active users to scan');
@@ -252,9 +238,9 @@ export async function runSymmetricScan(
     for (const sourceUser of allUsers) {
       const oppositeGender = sourceUser.gender === 'MALE' ? females : males;
       
-      // =======================================================================
+      // -----------------------------------------------------------------------
       // Tier 1: Quick Filter
-      // =======================================================================
+      // -----------------------------------------------------------------------
       
       const quickFilterPassed: ScanCandidate[] = [];
       
@@ -299,9 +285,9 @@ export async function runSymmetricScan(
       
       if (quickFilterPassed.length === 0) continue;
       
-      // =======================================================================
-      // Tier 2: Vector Similarity (אופציונלי)
-      // =======================================================================
+      // -----------------------------------------------------------------------
+      // Tier 2: Vector Similarity (עם תיקון קריסה + יצירה אוטומטית)
+      // -----------------------------------------------------------------------
       
       let vectorPassed: ScanCandidate[] = quickFilterPassed;
       
@@ -319,9 +305,9 @@ export async function runSymmetricScan(
       
       if (vectorPassed.length === 0) continue;
       
-      // =======================================================================
+      // -----------------------------------------------------------------------
       // Tier 3: Soft Scoring
-      // =======================================================================
+      // -----------------------------------------------------------------------
       
       const softScoredCandidates = calculateSoftScores(sourceUser, vectorPassed);
       
@@ -335,9 +321,9 @@ export async function runSymmetricScan(
       
       if (topForAi.length === 0) continue;
       
-      // =======================================================================
+      // -----------------------------------------------------------------------
       // Tier 4: AI Deep Analysis (Batched)
-      // =======================================================================
+      // -----------------------------------------------------------------------
       
       const aiResults = await runAiAnalysisBatched(
         sourceUser,
@@ -434,9 +420,7 @@ export async function runSymmetricScan(
     console.log(`\n${'='.repeat(70)}`);
     console.log(`[SymmetricScan] ✅ Completed!`);
     console.log(`[SymmetricScan] Duration: ${(stats.durationMs / 1000 / 60).toFixed(2)} minutes`);
-    console.log(`[SymmetricScan] Pairs evaluated: ${stats.pairsEvaluated}`);
-    console.log(`[SymmetricScan] Matches found: ${stats.matchesFound} (${stats.newMatches} new, ${stats.updatedMatches} updated)`);
-    console.log(`[SymmetricScan] AI calls: ${stats.aiCallsCount}`);
+    console.log(`[SymmetricScan] Matches found: ${stats.matchesFound} (${stats.newMatches} new)`);
     console.log(`${'='.repeat(70)}\n`);
     
     return {
@@ -448,10 +432,8 @@ export async function runSymmetricScan(
     
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    
     console.error(`[SymmetricScan] ❌ Error:`, error);
     
-    // עדכון session log עם שגיאה
     await prisma.scanSession.update({
       where: { id: scanSession.id },
       data: {
@@ -477,16 +459,25 @@ export async function runSymmetricScan(
 // =============================================================================
 
 /**
- * שליפת משתמשים פעילים וזוגות חסומים
+ * שליפת משתמשים - עם הרחבת הסטטוסים לכיסוי מלא
  */
 async function fetchActiveUsersAndBlockedPairs(specificUserIds?: string[]): Promise<{
   males: ScanCandidate[];
   females: ScanCandidate[];
   blockedPairs: Set<string>;
 }> {
+  // ✅ הרחבת הפילטר: כולל משתמשים הממתינים לאימות ומוסתרים
   const whereClause: any = {
-    status: UserStatus.ACTIVE,
+    status: {
+      in: [
+        UserStatus.ACTIVE, 
+        UserStatus.PENDING_PHONE_VERIFICATION, 
+        UserStatus.PENDING_EMAIL_VERIFICATION
+      ]
+    },
     profile: {
+      // ✅ מאפשר זמינות: פנוי, בהפסקה (שדכן יכול להציע), או לא מוגדר
+      // אנחנו לא מסננים לפי isProfileVisible, כי לשדכן מותר לראות הכל
       availabilityStatus: {
         in: [AvailabilityStatus.AVAILABLE, AvailabilityStatus.PAUSED],
       },
@@ -539,7 +530,6 @@ async function fetchActiveUsersAndBlockedPairs(specificUserIds?: string[]): Prom
     }
   }
   
-  // טעינת זוגות חסומים
   const blockedPairs = await loadBlockedPairs(
     males.map(m => m.userId),
     females.map(f => f.userId)
@@ -548,16 +538,10 @@ async function fetchActiveUsersAndBlockedPairs(specificUserIds?: string[]): Prom
   return { males, females, blockedPairs };
 }
 
-/**
- * טעינת זוגות חסומים (היסטוריה חוסמת)
- */
-async function loadBlockedPairs(
-  maleIds: string[],
-  femaleIds: string[]
-): Promise<Set<string>> {
+async function loadBlockedPairs(maleIds: string[], femaleIds: string[]): Promise<Set<string>> {
   const blockedSet = new Set<string>();
   
-  // 1. MatchSuggestions שנכשלו
+  // הצעות שנדחו/נכשלו
   const blockingSuggestions = await prisma.matchSuggestion.findMany({
     where: {
       status: { in: BLOCKING_SUGGESTION_STATUSES },
@@ -574,7 +558,7 @@ async function loadBlockedPairs(
     blockedSet.add(`${s.secondPartyId}_${s.firstPartyId}`);
   }
   
-  // 2. PotentialMatches שנדחו
+  // הצעות שנדחו ע"י שדכן בעבר (PotentialMatch DISMISSED)
   const dismissedMatches = await prisma.potentialMatch.findMany({
     where: {
       maleUserId: { in: maleIds },
@@ -592,7 +576,7 @@ async function loadBlockedPairs(
 }
 
 /**
- * סינון לפי דמיון וקטורי
+ * ✅ סינון וקטורי עם בדיקת קיום + יצירה אוטומטית
  */
 async function filterByVectorSimilarity(
   sourceUser: ScanCandidate,
@@ -601,21 +585,30 @@ async function filterByVectorSimilarity(
   minSimilarity: number
 ): Promise<ScanCandidate[]> {
   try {
-    // שליפת וקטור המקור
-    const sourceVector = await prisma.$queryRaw<{ vector: number[] }[]>`
-      SELECT vector::text::float8[] as vector 
+    // בדיקה מהירה אם קיים וקטור (ללא שליפת המידע הכבד כדי למנוע קריסה)
+    const vectorCheck = await prisma.$queryRaw<{ id: string }[]>`
+      SELECT "profileId" as id
       FROM profile_vectors 
       WHERE "profileId" = ${sourceUser.profileId}
+      AND vector IS NOT NULL
     `;
     
-    if (!sourceVector.length || !sourceVector[0].vector) {
-      console.log(`[SymmetricScan] No vector for user ${sourceUser.userId}, skipping vector filter`);
+    // ✅ התיקון: אם אין וקטור, נייצר אותו ברקע
+    if (!vectorCheck.length) {
+      console.warn(`[SymmetricScan] ⚠️ Missing vector for user ${sourceUser.userId}. Triggering background generation...`);
+      
+      // הפעלה ברקע (Fire and forget - לא עוצרים את הסריקה)
+      updateUserAiProfile(sourceUser.userId).catch(err => 
+        console.error(`[SymmetricScan] Failed to generate vector for ${sourceUser.userId}:`, err)
+      );
+      
+      // מחזירים את המועמדים ללא סינון וקטורי הפעם
       return candidates.slice(0, topN);
     }
     
     const candidateIds = candidates.map(c => c.profileId);
     
-    // חיפוש וקטורי
+    // חיפוש וקטורי בתוך ה-DB
     const similarProfiles = await prisma.$queryRaw<{ profileId: string; similarity: number }[]>`
       SELECT 
         pv."profileId",
@@ -629,12 +622,10 @@ async function filterByVectorSimilarity(
       LIMIT ${topN}
     `;
     
-    // מיזוג התוצאות
     const result: ScanCandidate[] = [];
     
     for (const sp of similarProfiles) {
       if (sp.similarity < minSimilarity) continue;
-      
       const candidate = candidates.find(c => c.profileId === sp.profileId);
       if (candidate) {
         result.push({
@@ -647,8 +638,8 @@ async function filterByVectorSimilarity(
     return result;
     
   } catch (error) {
-    console.error(`[SymmetricScan] Vector filter error:`, error);
-    // Fallback - מחזיר את הראשונים ללא סינון וקטורי
+    // השתקת השגיאה הקריטית (malformed array literal) והמשך בסריקה רגילה
+    console.warn(`[SymmetricScan] ⚠️ Vector filter skipped for ${sourceUser.userId} due to data issue. Falling back to basic filter.`);
     return candidates.slice(0, topN);
   }
 }
@@ -786,9 +777,6 @@ async function runAiAnalysisBatched(
   return results;
 }
 
-/**
- * הרצת batch בודד של AI
- */
 /**
  * הרצת batch בודד של AI
  */
