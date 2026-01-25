@@ -1,14 +1,19 @@
 // =============================================================================
 // 📁 src/lib/services/symmetricScanService.ts
 // =============================================================================
-// 🎯 Symmetric Scan Service V2.1 - NeshamaTech
+// 🎯 Symmetric Scan Service V3.1 - NeshamaTech
 // 
-// סריקה דו-כיוונית (סימטרית) עם Tiered Matching.
-// כולל תיקונים לטיפול בווקטורים חסרים והרחבת מעגל החיפוש.
+// סריקה דו-כיוונית (סימטרית) עם Tiered Matching
+// 
+// ✅ שיפורים בגרסה זו (V3.1):
+// - Batch Vector Cache Fetching (מניעת קריסת DB)
+// - Real-time Saving (שמירת תוצאות תוך כדי ריצה)
+// - Progress Tracking בזמן אמת
+// - סריקה אינקרמנטלית (Delta Scan)
 // =============================================================================
 
 import prisma from "@/lib/prisma";
-import { Gender, AvailabilityStatus, UserStatus } from "@prisma/client";
+import { Gender, AvailabilityStatus, UserStatus, Prisma } from "@prisma/client";
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { updateUserAiProfile } from '@/lib/services/profileAiService';
 import { 
@@ -48,6 +53,8 @@ export interface ScanCandidate {
   
   // AI Results
   aiScore?: number;
+  scoreForSource?: number;
+  scoreForCandidate?: number;
   reasoning?: string;
 }
 
@@ -79,6 +86,25 @@ export interface ScanPair {
   rejectionReason?: string;
 }
 
+// Progress callback type
+export interface ScanProgress {
+  phase: 'initializing' | 'loading_users' | 'quick_filter' | 'vector_filter' | 'soft_scoring' | 'ai_analysis' | 'saving' | 'completed' | 'failed';
+  currentUserIndex: number;
+  totalUsers: number;
+  currentUserName?: string;
+  progressPercent: number;
+  stats: {
+    pairsEvaluated: number;
+    pairsPassedQuickFilter: number;
+    pairsPassedVectorFilter: number;
+    pairsSentToAi: number;
+    matchesFoundSoFar: number;
+  };
+  message: string;
+}
+
+export type ProgressCallback = (progress: ScanProgress) => void | Promise<void>;
+
 export interface SymmetricScanOptions {
   forceRefresh?: boolean;           // לסרוק גם זוגות שלא השתנו
   usersToScan?: string[];           // רשימת משתמשים ספציפיים לסריקה
@@ -86,6 +112,11 @@ export interface SymmetricScanOptions {
   minAiScore?: number;              // סף מינימלי לציון AI
   skipVectorTier?: boolean;         // לדלג על Vector (לבדיקות)
   batchSize?: number;               // גודל batch ל-AI
+  parallelBatchSize?: number;       // כמה משתמשים לעבד במקביל
+  useVectorCache?: boolean;         // האם להשתמש ב-cache
+  incrementalOnly?: boolean;        // רק משתמשים שהשתנו
+  onProgress?: ProgressCallback;    // callback להתקדמות
+  scanSessionId?: string;           // ID של session קיים (לעדכון)
 }
 
 export interface SymmetricScanResult {
@@ -113,6 +144,10 @@ export interface SymmetricScanResult {
     // Performance
     durationMs: number;
     aiCallsCount: number;
+    
+    // Cache stats
+    vectorCacheHits?: number;
+    vectorCacheMisses?: number;
   };
   
   // Top results preview
@@ -131,65 +166,211 @@ export interface SymmetricScanResult {
 // CONSTANTS
 // =============================================================================
 
-const DEFAULT_OPTIONS: Required<SymmetricScanOptions> = {
+const DEFAULT_OPTIONS: Required<Omit<SymmetricScanOptions, 'onProgress' | 'scanSessionId'>> = {
   forceRefresh: false,
   usersToScan: [],
   maxPairsPerUser: 50,
   minAiScore: 70,
   skipVectorTier: false,
-  batchSize: 15,
+  batchSize: 25,           
+  parallelBatchSize: 5,    
+  useVectorCache: true,    
+  incrementalOnly: false,  
 };
 
 // Tier 1 thresholds
 const QUICK_FILTER = {
-  MAX_AGE_GAP_MALE_OLDER: 12,    // הורחב ל-12
-  MAX_AGE_GAP_FEMALE_OLDER: 6,   // הורחב ל-6
-  RELIGIOUS_LEVEL_RANGE: 4,      // מרחק מקסימלי ברמה דתית
+  MAX_AGE_GAP_MALE_OLDER: 12,
+  MAX_AGE_GAP_FEMALE_OLDER: 6,
+  RELIGIOUS_LEVEL_RANGE: 4,
 };
 
 // Tier 2 thresholds
 const VECTOR_FILTER = {
-  MIN_SIMILARITY: 0.25,          // סף דמיון מינימלי
-  TOP_CANDIDATES: 50,            // כמה לקחת מ-Vector
+  MIN_SIMILARITY: 0.25,
+  TOP_CANDIDATES: 50,
 };
 
 // Tier 3 thresholds
 const SOFT_SCORING = {
-  TOP_FOR_AI: 30,                // כמה לשלוח ל-AI
-  MIN_SCORE: 40,                 // סף מינימלי ל-Soft Score
+  TOP_FOR_AI: 30,
+  MIN_SCORE: 40,
 };
 
 // Tier 4
 const AI_SCORING = {
-  MIN_SCORE: 70,                 // סף מינימלי לשמירה
-  BATCH_SIZE: 15,                // כמה זוגות בקריאה אחת
+  MIN_SCORE: 70,
+  BATCH_SIZE: 25,  
+};
+
+// Vector Cache settings
+const VECTOR_CACHE = {
+  BATCH_SIZE: 100,  // כמה זוגות לשמור בבת אחת
 };
 
 // =============================================================================
-// MAIN SCAN FUNCTION
+// GEMINI SETUP
+// =============================================================================
+
+const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY || "");
+const model = genAI.getGenerativeModel({ 
+  model: "gemini-2.0-flash",
+  generationConfig: {
+    responseMimeType: "application/json",
+    temperature: 0.3,
+  }
+});
+
+// =============================================================================
+// VECTOR CACHE FUNCTIONS
 // =============================================================================
 
 /**
- * מריץ סריקה סימטרית - גם גברים וגם נשים
+ * שומר ערך cache לזוג פרופילים
  */
+async function saveVectorSimilarityToCache(
+  profileId1: string,
+  profileId2: string,
+  similarity: number
+): Promise<void> {
+  const [id1, id2] = [profileId1, profileId2].sort();
+  
+  try {
+    await prisma.$executeRaw`
+      INSERT INTO "VectorSimilarityCache" (id, "profileId1", "profileId2", similarity, "calculatedAt")
+      VALUES (${`${id1}_${id2}`}, ${id1}, ${id2}, ${similarity}, NOW())
+      ON CONFLICT ("profileId1", "profileId2")
+      DO UPDATE SET similarity = EXCLUDED.similarity, "calculatedAt" = NOW()
+    `;
+  } catch (error) {
+    console.warn('[VectorCache] Could not save to cache:', error);
+  }
+}
+
+/**
+ * שומר batch של ערכי cache
+ */
+async function saveVectorSimilaritiesBatch(
+  similarities: Array<{ profileId1: string; profileId2: string; similarity: number }>
+): Promise<void> {
+  if (similarities.length === 0) return;
+  
+  try {
+    // נרמול וייצור values
+    const values = similarities.map(s => {
+      const [id1, id2] = [s.profileId1, s.profileId2].sort();
+      return `('${id1}_${id2}', '${id1}', '${id2}', ${s.similarity}, NOW())`;
+    }).join(',\n');
+    
+    await prisma.$executeRawUnsafe(`
+      INSERT INTO "VectorSimilarityCache" (id, "profileId1", "profileId2", similarity, "calculatedAt")
+      VALUES ${values}
+      ON CONFLICT ("profileId1", "profileId2")
+      DO UPDATE SET similarity = EXCLUDED.similarity, "calculatedAt" = NOW()
+    `);
+  } catch (error) {
+    console.warn('[VectorCache] Could not save batch to cache:', error);
+  }
+}
+
+// =============================================================================
+// INCREMENTAL SCAN HELPERS
+// =============================================================================
+
+/**
+ * מוצא משתמשים שהפרופיל שלהם השתנה מאז הסריקה האחרונה
+ */
+async function getChangedUsersSinceLastScan(): Promise<string[]> {
+  const lastScan = await prisma.scanSession.findFirst({
+    where: { status: 'completed' },
+    orderBy: { completedAt: 'desc' },
+    select: { completedAt: true }
+  });
+  
+  if (!lastScan?.completedAt) {
+    return [];
+  }
+  
+  const changedUsers = await prisma.user.findMany({
+    where: {
+      status: { in: [UserStatus.ACTIVE, UserStatus.PENDING_PHONE_VERIFICATION] },
+      profile: {
+        availabilityStatus: { in: [AvailabilityStatus.AVAILABLE, AvailabilityStatus.PAUSED] },
+        updatedAt: { gt: lastScan.completedAt }
+      }
+    },
+    select: { id: true }
+  });
+  
+  console.log(`[SymmetricScan] 🔄 Found ${changedUsers.length} users changed since last scan`);
+  
+  return changedUsers.map(u => u.id);
+}
+
+// =============================================================================
+// PROGRESS UPDATE HELPER
+// =============================================================================
+
+async function updateProgress(
+  scanSessionId: string | null,
+  progress: ScanProgress,
+  callback?: ProgressCallback
+): Promise<void> {
+  if (callback) {
+    try {
+      await callback(progress);
+    } catch (error) {
+      console.warn('[SymmetricScan] Progress callback error:', error);
+    }
+  }
+  
+  if (scanSessionId) {
+    try {
+      await prisma.scanSession.update({
+        where: { id: scanSessionId },
+        data: {
+          pairsEvaluated: progress.stats.pairsEvaluated,
+          matchesFound: progress.stats.matchesFoundSoFar,
+        }
+      });
+    } catch (error) {
+      // Ignore update errors
+    }
+  }
+}
+
+// =============================================================================
+// MAIN SCAN FUNCTION - V3.1
+// =============================================================================
+
 export async function runSymmetricScan(
   options: SymmetricScanOptions = {}
 ): Promise<SymmetricScanResult> {
-  const opts = { ...DEFAULT_OPTIONS, ...options };
+  const opts = { 
+    ...DEFAULT_OPTIONS, 
+    ...options,
+    onProgress: options.onProgress,
+    scanSessionId: options.scanSessionId,
+  };
+  
   const startTime = Date.now();
   
   console.log(`\n${'='.repeat(70)}`);
-  console.log(`[SymmetricScan] 🔄 Starting Symmetric Tiered Scan V2.1 (Full Fix)`);
-  console.log(`[SymmetricScan] Options: forceRefresh=${opts.forceRefresh}`);
+  console.log(`[SymmetricScan] 🔄 Starting Symmetric Tiered Scan V3.1`);
+  console.log(`[SymmetricScan] Options: forceRefresh=${opts.forceRefresh}, incremental=${opts.incrementalOnly}, useCache=${opts.useVectorCache}`);
   console.log(`${'='.repeat(70)}\n`);
 
-  // יצירת session log
-  const scanSession = await prisma.scanSession.create({
-    data: {
-      scanType: opts.usersToScan?.length ? 'manual' : 'nightly',
-      status: 'running',
-    },
-  });
+  let scanSessionId = opts.scanSessionId;
+  
+  if (!scanSessionId) {
+    const scanSession = await prisma.scanSession.create({
+      data: {
+        scanType: opts.usersToScan?.length ? 'manual' : opts.incrementalOnly ? 'incremental' : 'nightly',
+        status: 'running',
+      },
+    });
+    scanSessionId = scanSession.id;
+  }
 
   const stats = {
     usersScanned: 0,
@@ -205,16 +386,63 @@ export async function runSymmetricScan(
     updatedMatches: 0,
     durationMs: 0,
     aiCallsCount: 0,
+    vectorCacheHits: 0,
+    vectorCacheMisses: 0,
   };
 
   const topMatches: SymmetricScanResult['topMatches'] = [];
 
+  const sendProgress = async (phase: ScanProgress['phase'], userIndex: number, totalUsers: number, userName?: string, message?: string) => {
+    const progress: ScanProgress = {
+      phase,
+      currentUserIndex: userIndex,
+      totalUsers,
+      currentUserName: userName,
+      progressPercent: totalUsers > 0 ? Math.round((userIndex / totalUsers) * 100) : 0,
+      stats: {
+        pairsEvaluated: stats.pairsEvaluated,
+        pairsPassedQuickFilter: stats.pairsPassedQuickFilter,
+        pairsPassedVectorFilter: stats.pairsPassedVectorFilter,
+        pairsSentToAi: stats.pairsSentToAi,
+        matchesFoundSoFar: stats.matchesFound,
+      },
+      message: message || `עיבוד ${userIndex}/${totalUsers}`,
+    };
+    await updateProgress(scanSessionId, progress, opts.onProgress);
+  };
+
   try {
     // ==========================================================================
-    // שלב 1: שליפת כל המשתמשים (המורחבים)
+    // שלב 1: שליפת משתמשים
     // ==========================================================================
     
-    const { males, females, blockedPairs } = await fetchActiveUsersAndBlockedPairs(opts.usersToScan);
+    await sendProgress('loading_users', 0, 0, undefined, 'טוען משתמשים...');
+    
+    let usersToScan = opts.usersToScan;
+    if (opts.incrementalOnly && (!usersToScan || usersToScan.length === 0)) {
+      usersToScan = await getChangedUsersSinceLastScan();
+      if (usersToScan.length === 0) {
+        console.log(`[SymmetricScan] ✅ No changes since last scan - nothing to do`);
+        
+        await prisma.scanSession.update({
+          where: { id: scanSessionId },
+          data: {
+            status: 'completed',
+            durationMs: Date.now() - startTime,
+            completedAt: new Date(),
+          }
+        });
+        
+        return {
+          success: true,
+          scanSessionId,
+          stats: { ...stats, durationMs: Date.now() - startTime },
+          topMatches: [],
+        };
+      }
+    }
+    
+    const { males, females, blockedPairs } = await fetchActiveUsersAndBlockedPairs(usersToScan);
     
     stats.malesScanned = males.length;
     stats.femalesScanned = females.length;
@@ -228,180 +456,92 @@ export async function runSymmetricScan(
     }
 
     // ==========================================================================
-    // שלב 2: לולאה על כל המשתמשים (גברים + נשים)
+    // שלב 2: לולאה על משתמשים - עם Parallel Processing ושמירה בזמן אמת
     // ==========================================================================
     
     const allUsers = [...males, ...females];
-    const processedPairs = new Set<string>(); // למנוע כפילויות
-    const matchesToSave: ScanPair[] = [];
+    const processedPairs = new Set<string>();
+    const vectorCacheToSave: Array<{ profileId1: string; profileId2: string; similarity: number }> = [];
 
-    for (const sourceUser of allUsers) {
-      const oppositeGender = sourceUser.gender === 'MALE' ? females : males;
+    // עיבוד ב-batches מקבילים
+    for (let batchStart = 0; batchStart < allUsers.length; batchStart += opts.parallelBatchSize) {
+      const batch = allUsers.slice(batchStart, batchStart + opts.parallelBatchSize);
       
-      // -----------------------------------------------------------------------
-      // Tier 1: Quick Filter
-      // -----------------------------------------------------------------------
-      
-      const quickFilterPassed: ScanCandidate[] = [];
-      
-      for (const candidate of oppositeGender) {
-        // יצירת מזהה זוג נורמלי (תמיד male_female)
-        const maleId = sourceUser.gender === 'MALE' ? sourceUser.userId : candidate.userId;
-        const femaleId = sourceUser.gender === 'FEMALE' ? sourceUser.userId : candidate.userId;
-        const pairKey = `${maleId}_${femaleId}`;
-        
-        // דלג על זוגות שכבר עובדו
-        if (processedPairs.has(pairKey)) continue;
-        
-        stats.pairsEvaluated++;
-        
-        // בדיקת היסטוריה חוסמת
-        if (blockedPairs.has(pairKey)) {
-          continue;
-        }
-        
-        // בדיקת גיל
-        if (sourceUser.age !== null && candidate.age !== null) {
-          const maleAge = sourceUser.gender === 'MALE' ? sourceUser.age : candidate.age;
-          const femaleAge = sourceUser.gender === 'FEMALE' ? sourceUser.age : candidate.age;
-          
-          const ageDiff = maleAge - femaleAge;
-          
-          if (ageDiff > QUICK_FILTER.MAX_AGE_GAP_MALE_OLDER || 
-              ageDiff < -QUICK_FILTER.MAX_AGE_GAP_FEMALE_OLDER) {
-            continue;
-          }
-        }
-        
-        // בדיקת רמה דתית
-        if (!areReligiousLevelsCompatible(sourceUser.religiousLevel, candidate.religiousLevel)) {
-          continue;
-        }
-        
-        quickFilterPassed.push(candidate);
-      }
-      
-      stats.pairsPassedQuickFilter += quickFilterPassed.length;
-      
-      if (quickFilterPassed.length === 0) continue;
-      
-      // -----------------------------------------------------------------------
-      // Tier 2: Vector Similarity (עם תיקון קריסה + יצירה אוטומטית)
-      // -----------------------------------------------------------------------
-      
-      let vectorPassed: ScanCandidate[] = quickFilterPassed;
-      
-      if (!opts.skipVectorTier && quickFilterPassed.length > VECTOR_FILTER.TOP_CANDIDATES) {
-        vectorPassed = await filterByVectorSimilarity(
-          sourceUser,
-          quickFilterPassed,
-          VECTOR_FILTER.TOP_CANDIDATES,
-          VECTOR_FILTER.MIN_SIMILARITY
-        );
-        stats.pairsPassedVectorFilter += vectorPassed.length;
-      } else {
-        stats.pairsPassedVectorFilter += quickFilterPassed.length;
-      }
-      
-      if (vectorPassed.length === 0) continue;
-      
-      // -----------------------------------------------------------------------
-      // Tier 3: Soft Scoring
-      // -----------------------------------------------------------------------
-      
-      const softScoredCandidates = calculateSoftScores(sourceUser, vectorPassed);
-      
-      // מיון לפי ציון רך ולקיחת Top
-      softScoredCandidates.sort((a, b) => (b.softScore || 0) - (a.softScore || 0));
-      const topForAi = softScoredCandidates
-        .filter(c => (c.softScore || 0) >= SOFT_SCORING.MIN_SCORE)
-        .slice(0, SOFT_SCORING.TOP_FOR_AI);
-      
-      stats.pairsPassedSoftScoring += topForAi.length;
-      
-      if (topForAi.length === 0) continue;
-      
-      // -----------------------------------------------------------------------
-      // Tier 4: AI Deep Analysis (Batched)
-      // -----------------------------------------------------------------------
-      
-      const aiResults = await runAiAnalysisBatched(
-        sourceUser,
-        topForAi,
-        opts.batchSize
+      await sendProgress(
+        'quick_filter', 
+        batchStart, 
+        allUsers.length, 
+        batch[0]?.firstName,
+        `סורק ${batchStart + 1}-${Math.min(batchStart + opts.parallelBatchSize, allUsers.length)} מתוך ${allUsers.length}`
       );
       
-      stats.pairsSentToAi += topForAi.length;
-      stats.aiCallsCount += Math.ceil(topForAi.length / opts.batchSize);
+      // עיבוד מקבילי של batch
+      const batchResults = await Promise.all(
+        batch.map(async (sourceUser) => {
+          return processUserMatches(
+            sourceUser,
+            sourceUser.gender === 'MALE' ? females : males,
+            processedPairs,
+            blockedPairs,
+            opts,
+            stats,
+            vectorCacheToSave
+          );
+        })
+      );
       
-      // שמירת התוצאות
-      for (const result of aiResults) {
-        if ((result.aiScore || 0) < opts.minAiScore) continue;
+      // 🚀 איסוף תוצאות ושמירה מיידית
+      const matchesInBatch = batchResults.flat();
+      
+      if (matchesInBatch.length > 0) {
+        console.log(`[SymmetricScan] 💾 Saving batch of ${matchesInBatch.length} matches...`);
         
-        const maleId = sourceUser.gender === 'MALE' ? sourceUser.userId : result.userId;
-        const femaleId = sourceUser.gender === 'FEMALE' ? sourceUser.userId : result.userId;
-        const pairKey = `${maleId}_${femaleId}`;
+        // שמירת ההתאמות שנמצאו ב-batch הנוכחי
+        await Promise.all(matchesInBatch.map(async (match) => {
+          const saveResult = await saveToPotentialMatch(match);
+          if (saveResult === 'new') stats.newMatches++;
+          else if (saveResult === 'updated') stats.updatedMatches++;
+        }));
         
-        // סימון שעובד
-        processedPairs.add(pairKey);
-        
-        matchesToSave.push({
-          maleUserId: maleId,
-          femaleUserId: femaleId,
-          maleAge: sourceUser.gender === 'MALE' ? sourceUser.age! : result.age!,
-          femaleAge: sourceUser.gender === 'FEMALE' ? sourceUser.age! : result.age!,
-          passedQuickFilter: true,
-          passedVectorFilter: true,
-          passedSoftScoring: true,
-          vectorSimilarity: result.vectorSimilarity,
-          ageScore: result.ageScore,
-          backgroundMultiplier: result.backgroundScore,
-          softScore: result.softScore,
-          aiScore: result.aiScore,
-          finalScore: result.aiScore,
-          reasoning: result.reasoning,
-        });
-        
-        stats.matchesFound++;
+        stats.matchesFound += matchesInBatch.length;
       }
-    }
-    
-    // ==========================================================================
-    // שלב 3: שמירה בדאטהבייס
-    // ==========================================================================
-    
-    console.log(`[SymmetricScan] 💾 Saving ${matchesToSave.length} matches...`);
-    
-    for (const match of matchesToSave) {
-      const saveResult = await saveToPotentialMatch(match);
-      if (saveResult === 'new') stats.newMatches++;
-      else if (saveResult === 'updated') stats.updatedMatches++;
-    }
-    
-    // Top 10 לתצוגה
-    const sortedMatches = matchesToSave.sort((a, b) => (b.finalScore || 0) - (a.finalScore || 0));
-    for (const match of sortedMatches.slice(0, 10)) {
-      const male = males.find(m => m.userId === match.maleUserId);
-      const female = females.find(f => f.userId === match.femaleUserId);
       
-      topMatches.push({
-        maleUserId: match.maleUserId,
-        maleName: male ? `${male.firstName} ${male.lastName}` : 'Unknown',
-        femaleUserId: match.femaleUserId,
-        femaleName: female ? `${female.firstName} ${female.lastName}` : 'Unknown',
-        finalScore: match.finalScore || 0,
-      });
+      // שמירת cache כל כמה batches
+      if (vectorCacheToSave.length >= VECTOR_CACHE.BATCH_SIZE) {
+        await saveVectorSimilaritiesBatch(vectorCacheToSave);
+        vectorCacheToSave.length = 0;
+      }
+      
+      // עדכון התקדמות כולל כמות ההתאמות שנמצאו עד כה
+      await sendProgress(
+        'ai_analysis', 
+        batchStart + batch.length, 
+        allUsers.length, 
+        batch[batch.length-1]?.firstName,
+        `נמצאו ${stats.matchesFound} התאמות (${stats.newMatches} חדשות)`
+      );
+      
+      // Small delay למניעת עומס
+      await new Promise(resolve => setTimeout(resolve, 50));
     }
     
+    // שמירת cache שנשאר
+    if (vectorCacheToSave.length > 0) {
+      await saveVectorSimilaritiesBatch(vectorCacheToSave);
+    }
+
     // ==========================================================================
     // סיום
     // ==========================================================================
     
     stats.durationMs = Date.now() - startTime;
     
+    await sendProgress('completed', allUsers.length, allUsers.length, undefined, 
+      `הושלם! נמצאו ${stats.matchesFound} התאמות (${stats.newMatches} חדשות)`);
+    
     // עדכון session log
     await prisma.scanSession.update({
-      where: { id: scanSession.id },
+      where: { id: scanSessionId },
       data: {
         status: 'completed',
         totalUsersScanned: stats.usersScanned,
@@ -421,11 +561,12 @@ export async function runSymmetricScan(
     console.log(`[SymmetricScan] ✅ Completed!`);
     console.log(`[SymmetricScan] Duration: ${(stats.durationMs / 1000 / 60).toFixed(2)} minutes`);
     console.log(`[SymmetricScan] Matches found: ${stats.matchesFound} (${stats.newMatches} new)`);
+    console.log(`[SymmetricScan] Vector cache: ${stats.vectorCacheHits} hits, ${stats.vectorCacheMisses} misses`);
     console.log(`${'='.repeat(70)}\n`);
     
     return {
       success: true,
-      scanSessionId: scanSession.id,
+      scanSessionId,
       stats,
       topMatches,
     };
@@ -434,8 +575,10 @@ export async function runSymmetricScan(
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     console.error(`[SymmetricScan] ❌ Error:`, error);
     
+    await sendProgress('failed', 0, 0, undefined, `שגיאה: ${errorMessage}`);
+    
     await prisma.scanSession.update({
-      where: { id: scanSession.id },
+      where: { id: scanSessionId },
       data: {
         status: 'failed',
         error: errorMessage,
@@ -446,8 +589,8 @@ export async function runSymmetricScan(
     
     return {
       success: false,
-      scanSessionId: scanSession.id,
-      stats,
+      scanSessionId,
+      stats: { ...stats, durationMs: Date.now() - startTime },
       topMatches: [],
       error: errorMessage,
     };
@@ -455,18 +598,168 @@ export async function runSymmetricScan(
 }
 
 // =============================================================================
+// PROCESS SINGLE USER MATCHES
+// =============================================================================
+
+/**
+ * מעבד התאמות עבור משתמש בודד
+ */
+async function processUserMatches(
+  sourceUser: ScanCandidate,
+  oppositeGender: ScanCandidate[],
+  processedPairs: Set<string>,
+  blockedPairs: Set<string>,
+  opts: Required<Omit<SymmetricScanOptions, 'onProgress' | 'scanSessionId'>> & { 
+    useVectorCache: boolean;
+    onProgress?: ProgressCallback;
+  },
+  stats: {
+    pairsEvaluated: number;
+    pairsPassedQuickFilter: number;
+    pairsPassedVectorFilter: number;
+    pairsPassedSoftScoring: number;
+    pairsSentToAi: number;
+    aiCallsCount: number;
+    vectorCacheHits: number;
+    vectorCacheMisses: number;
+  },
+  vectorCacheToSave: Array<{ profileId1: string; profileId2: string; similarity: number }>
+): Promise<ScanPair[]> {
+  const matches: ScanPair[] = [];
+  
+  // -----------------------------------------------------------------------
+  // Tier 1: Quick Filter
+  // -----------------------------------------------------------------------
+  
+  const quickFilterPassed: ScanCandidate[] = [];
+  
+  for (const candidate of oppositeGender) {
+    const maleId = sourceUser.gender === 'MALE' ? sourceUser.userId : candidate.userId;
+    const femaleId = sourceUser.gender === 'FEMALE' ? sourceUser.userId : candidate.userId;
+    const pairKey = `${maleId}_${femaleId}`;
+    
+    if (processedPairs.has(pairKey)) continue;
+    
+    stats.pairsEvaluated++;
+    
+    if (blockedPairs.has(pairKey)) continue;
+    
+    // בדיקת גיל
+    if (sourceUser.age !== null && candidate.age !== null) {
+      const maleAge = sourceUser.gender === 'MALE' ? sourceUser.age : candidate.age;
+      const femaleAge = sourceUser.gender === 'FEMALE' ? sourceUser.age : candidate.age;
+      const ageDiff = maleAge - femaleAge;
+      
+      if (ageDiff > QUICK_FILTER.MAX_AGE_GAP_MALE_OLDER || 
+          ageDiff < -QUICK_FILTER.MAX_AGE_GAP_FEMALE_OLDER) {
+        continue;
+      }
+    }
+    
+    // בדיקת רמה דתית
+    if (!areReligiousLevelsCompatible(sourceUser.religiousLevel, candidate.religiousLevel)) {
+      continue;
+    }
+    
+    quickFilterPassed.push(candidate);
+  }
+  
+  stats.pairsPassedQuickFilter += quickFilterPassed.length;
+  
+  if (quickFilterPassed.length === 0) return matches;
+  
+  // -----------------------------------------------------------------------
+  // Tier 2: Vector Similarity (עם Cache)
+  // -----------------------------------------------------------------------
+  
+  let vectorPassed: ScanCandidate[] = quickFilterPassed;
+  
+  if (!opts.skipVectorTier && quickFilterPassed.length > VECTOR_FILTER.TOP_CANDIDATES) {
+    vectorPassed = await filterByVectorSimilarityWithCache(
+      sourceUser,
+      quickFilterPassed,
+      VECTOR_FILTER.TOP_CANDIDATES,
+      VECTOR_FILTER.MIN_SIMILARITY,
+      opts.useVectorCache,
+      stats,
+      vectorCacheToSave
+    );
+    stats.pairsPassedVectorFilter += vectorPassed.length;
+  } else {
+    stats.pairsPassedVectorFilter += quickFilterPassed.length;
+  }
+  
+  if (vectorPassed.length === 0) return matches;
+  
+  // -----------------------------------------------------------------------
+  // Tier 3: Soft Scoring
+  // -----------------------------------------------------------------------
+  
+  const softScoredCandidates = calculateSoftScores(sourceUser, vectorPassed);
+  
+  softScoredCandidates.sort((a, b) => (b.softScore || 0) - (a.softScore || 0));
+  const topForAi = softScoredCandidates
+    .filter(c => (c.softScore || 0) >= SOFT_SCORING.MIN_SCORE)
+    .slice(0, SOFT_SCORING.TOP_FOR_AI);
+  
+  stats.pairsPassedSoftScoring += topForAi.length;
+  
+  if (topForAi.length === 0) return matches;
+  
+  // -----------------------------------------------------------------------
+  // Tier 4: AI Deep Analysis
+  // -----------------------------------------------------------------------
+  
+  const aiResults = await runAiAnalysisBatched(sourceUser, topForAi, opts.batchSize);
+  
+  stats.pairsSentToAi += topForAi.length;
+  stats.aiCallsCount += Math.ceil(topForAi.length / opts.batchSize);
+  
+  // עיבוד התוצאות
+  for (const result of aiResults) {
+    if ((result.aiScore || 0) < opts.minAiScore) continue;
+    
+    const maleId = sourceUser.gender === 'MALE' ? sourceUser.userId : result.userId;
+    const femaleId = sourceUser.gender === 'FEMALE' ? sourceUser.userId : result.userId;
+    const pairKey = `${maleId}_${femaleId}`;
+    
+    processedPairs.add(pairKey);
+    
+    matches.push({
+      maleUserId: maleId,
+      femaleUserId: femaleId,
+      maleAge: sourceUser.gender === 'MALE' ? sourceUser.age! : result.age!,
+      femaleAge: sourceUser.gender === 'FEMALE' ? sourceUser.age! : result.age!,
+      passedQuickFilter: true,
+      passedVectorFilter: true,
+      passedSoftScoring: true,
+      vectorSimilarity: result.vectorSimilarity,
+      ageScore: result.ageScore,
+      backgroundMultiplier: result.backgroundScore,
+      softScore: result.softScore,
+      aiScore: result.aiScore,
+      finalScore: result.aiScore,
+      scoreForMale: sourceUser.gender === 'MALE' ? result.scoreForSource : result.scoreForCandidate,
+      scoreForFemale: sourceUser.gender === 'FEMALE' ? result.scoreForSource : result.scoreForCandidate,
+      reasoning: result.reasoning,
+    });
+  }
+  
+  return matches;
+}
+
+// =============================================================================
 // HELPER FUNCTIONS
 // =============================================================================
 
 /**
- * שליפת משתמשים - עם הרחבת הסטטוסים לכיסוי מלא
+ * שליפת משתמשים פעילים וזוגות חסומים
  */
 async function fetchActiveUsersAndBlockedPairs(specificUserIds?: string[]): Promise<{
   males: ScanCandidate[];
   females: ScanCandidate[];
   blockedPairs: Set<string>;
 }> {
-  // ✅ הרחבת הפילטר: כולל משתמשים הממתינים לאימות ומוסתרים
   const whereClause: any = {
     status: {
       in: [
@@ -476,8 +769,6 @@ async function fetchActiveUsersAndBlockedPairs(specificUserIds?: string[]): Prom
       ]
     },
     profile: {
-      // ✅ מאפשר זמינות: פנוי, בהפסקה (שדכן יכול להציע), או לא מוגדר
-      // אנחנו לא מסננים לפי isProfileVisible, כי לשדכן מותר לראות הכל
       availabilityStatus: {
         in: [AvailabilityStatus.AVAILABLE, AvailabilityStatus.PAUSED],
       },
@@ -512,15 +803,6 @@ async function fetchActiveUsersAndBlockedPairs(specificUserIds?: string[]): Prom
       city: user.profile.city,
       occupation: user.profile.occupation,
       profileUpdatedAt: user.profile.updatedAt,
-      backgroundProfile: createBackgroundProfile(
-        user.profile.nativeLanguage,
-        user.profile.additionalLanguages || [],
-        user.profile.aliyaCountry,
-        user.profile.aliyaYear,
-        user.profile.origin,
-        user.profile.about,
-        user.profile.matchingNotes
-      ),
     };
     
     if (user.profile.gender === 'MALE') {
@@ -530,19 +812,11 @@ async function fetchActiveUsersAndBlockedPairs(specificUserIds?: string[]): Prom
     }
   }
   
-  const blockedPairs = await loadBlockedPairs(
-    males.map(m => m.userId),
-    females.map(f => f.userId)
-  );
+  // טעינת זוגות חסומים
+  const maleIds = males.map(m => m.userId);
+  const femaleIds = females.map(f => f.userId);
   
-  return { males, females, blockedPairs };
-}
-
-async function loadBlockedPairs(maleIds: string[], femaleIds: string[]): Promise<Set<string>> {
-  const blockedSet = new Set<string>();
-  
-  // הצעות שנדחו/נכשלו
-  const blockingSuggestions = await prisma.matchSuggestion.findMany({
+  const blockedSuggestions = await prisma.matchSuggestion.findMany({
     where: {
       status: { in: BLOCKING_SUGGESTION_STATUSES },
       OR: [
@@ -553,13 +827,7 @@ async function loadBlockedPairs(maleIds: string[], femaleIds: string[]): Promise
     select: { firstPartyId: true, secondPartyId: true },
   });
   
-  for (const s of blockingSuggestions) {
-    blockedSet.add(`${s.firstPartyId}_${s.secondPartyId}`);
-    blockedSet.add(`${s.secondPartyId}_${s.firstPartyId}`);
-  }
-  
-  // הצעות שנדחו ע"י שדכן בעבר (PotentialMatch DISMISSED)
-  const dismissedMatches = await prisma.potentialMatch.findMany({
+  const blockedPotential = await prisma.potentialMatch.findMany({
     where: {
       maleUserId: { in: maleIds },
       femaleUserId: { in: femaleIds },
@@ -568,193 +836,209 @@ async function loadBlockedPairs(maleIds: string[], femaleIds: string[]): Promise
     select: { maleUserId: true, femaleUserId: true },
   });
   
-  for (const m of dismissedMatches) {
-    blockedSet.add(`${m.maleUserId}_${m.femaleUserId}`);
+  const blockedPairs = new Set<string>();
+  
+  for (const s of blockedSuggestions) {
+    const maleId = maleIds.includes(s.firstPartyId) ? s.firstPartyId : s.secondPartyId;
+    const femaleId = femaleIds.includes(s.firstPartyId) ? s.firstPartyId : s.secondPartyId;
+    blockedPairs.add(`${maleId}_${femaleId}`);
   }
   
-  return blockedSet;
+  for (const p of blockedPotential) {
+    blockedPairs.add(`${p.maleUserId}_${p.femaleUserId}`);
+  }
+  
+  return { males, females, blockedPairs };
 }
 
 /**
- * ✅ סינון וקטורי עם בדיקת קיום + יצירה אוטומטית
+ * סינון לפי דמיון וקטורי עם Cache - גרסה אופטימלית (Batch Fetching)
  */
-async function filterByVectorSimilarity(
+async function filterByVectorSimilarityWithCache(
   sourceUser: ScanCandidate,
   candidates: ScanCandidate[],
-  topN: number,
-  minSimilarity: number
+  topCount: number,
+  minSimilarity: number,
+  useCache: boolean,
+  stats: { vectorCacheHits: number; vectorCacheMisses: number },
+  cacheToSave: Array<{ profileId1: string; profileId2: string; similarity: number }>
 ): Promise<ScanCandidate[]> {
-  try {
-    // בדיקה מהירה אם קיים וקטור (ללא שליפת המידע הכבד כדי למנוע קריסה)
-    const vectorCheck = await prisma.$queryRaw<{ id: string }[]>`
-      SELECT "profileId" as id
-      FROM profile_vectors 
-      WHERE "profileId" = ${sourceUser.profileId}
-      AND vector IS NOT NULL
-    `;
-    
-    // ✅ התיקון: אם אין וקטור, נייצר אותו ברקע
-    if (!vectorCheck.length) {
-      console.warn(`[SymmetricScan] ⚠️ Missing vector for user ${sourceUser.userId}. Triggering background generation...`);
-      
-      // הפעלה ברקע (Fire and forget - לא עוצרים את הסריקה)
-      updateUserAiProfile(sourceUser.userId).catch(err => 
-        console.error(`[SymmetricScan] Failed to generate vector for ${sourceUser.userId}:`, err)
-      );
-      
-      // מחזירים את המועמדים ללא סינון וקטורי הפעם
-      return candidates.slice(0, topN);
+  
+  // בדיקה שיש וקטור ל-source
+  const hasSourceVector = await prisma.$queryRaw<{ id: string }[]>`
+    SELECT "profileId" as id FROM profile_vectors
+    WHERE "profileId" = ${sourceUser.profileId} AND vector IS NOT NULL
+  `;
+  
+  if (hasSourceVector.length === 0) {
+    return candidates;
+  }
+  
+  const candidatesWithSimilarity: Array<ScanCandidate & { similarity: number }> = [];
+  const candidatesToCompute: ScanCandidate[] = [];
+  
+  // מפה לגישה מהירה למועמדים לפי ID
+  const candidateMap = new Map(candidates.map(c => [c.profileId, c]));
+  const candidateProfileIds = candidates.map(c => c.profileId);
+
+  if (useCache && candidateProfileIds.length > 0) {
+    // 🚀 BATCH FETCH: שליפת כל ה-Cache בשאילתה אחת
+    const cachedResults = await prisma.vectorSimilarityCache.findMany({
+      where: {
+        OR: [
+          {
+            profileId1: sourceUser.profileId,
+            profileId2: { in: candidateProfileIds }
+          },
+          {
+            profileId1: { in: candidateProfileIds },
+            profileId2: sourceUser.profileId
+          }
+        ]
+      },
+      select: {
+        profileId1: true,
+        profileId2: true,
+        similarity: true,
+        calculatedAt: true
+      }
+    });
+
+    // יצירת מפה לתוצאות ה-Cache
+    const cacheMap = new Map<string, number>();
+    for (const res of cachedResults) {
+      const otherId = res.profileId1 === sourceUser.profileId ? res.profileId2 : res.profileId1;
+      const candidate = candidateMap.get(otherId);
+      if (!candidate) continue;
+
+      // בדיקת תוקף זמן (אם פרופיל השתנה)
+      if (
+        (res.calculatedAt < sourceUser.profileUpdatedAt) || 
+        (res.calculatedAt < candidate.profileUpdatedAt)
+      ) {
+        continue; 
+      }
+
+      cacheMap.set(otherId, res.similarity);
     }
-    
-    const candidateIds = candidates.map(c => c.profileId);
-    
-    // חיפוש וקטורי בתוך ה-DB
-    const similarProfiles = await prisma.$queryRaw<{ profileId: string; similarity: number }[]>`
-      SELECT 
-        pv."profileId",
-        1 - (pv.vector <=> (
-          SELECT vector FROM profile_vectors WHERE "profileId" = ${sourceUser.profileId}
-        )) as similarity
-      FROM profile_vectors pv
-      WHERE pv."profileId" = ANY(${candidateIds}::text[])
-        AND pv.vector IS NOT NULL
-      ORDER BY similarity DESC
-      LIMIT ${topN}
-    `;
-    
-    const result: ScanCandidate[] = [];
-    
-    for (const sp of similarProfiles) {
-      if (sp.similarity < minSimilarity) continue;
-      const candidate = candidates.find(c => c.profileId === sp.profileId);
-      if (candidate) {
-        result.push({
-          ...candidate,
-          vectorSimilarity: sp.similarity,
-        });
+
+    // מיון ל-Hits ו-Misses
+    for (const candidate of candidates) {
+      const cachedSim = cacheMap.get(candidate.profileId);
+      if (cachedSim !== undefined) {
+        stats.vectorCacheHits++;
+        candidatesWithSimilarity.push({ ...candidate, similarity: cachedSim });
+      } else {
+        stats.vectorCacheMisses++;
+        candidatesToCompute.push(candidate);
       }
     }
-    
-    return result;
-    
-  } catch (error) {
-    // השתקת השגיאה הקריטית (malformed array literal) והמשך בסריקה רגילה
-    console.warn(`[SymmetricScan] ⚠️ Vector filter skipped for ${sourceUser.userId} due to data issue. Falling back to basic filter.`);
-    return candidates.slice(0, topN);
+  } else {
+    candidatesToCompute.push(...candidates);
   }
+  
+  // חישוב דמיון לאלו שחסר (Batch Query)
+  if (candidatesToCompute.length > 0) {
+    const missingIds = candidatesToCompute.map(c => c.profileId);
+    
+    try {
+      const similarities = await prisma.$queryRaw<{ profileId: string; similarity: number }[]>`
+        SELECT
+          pv."profileId",
+          1 - (pv.vector <=> (
+            SELECT vector FROM profile_vectors WHERE "profileId" = ${sourceUser.profileId}
+          )) as similarity
+        FROM profile_vectors pv
+        WHERE pv."profileId" = ANY(${missingIds}::text[])
+          AND pv.vector IS NOT NULL
+      `;
+      
+      for (const sim of similarities) {
+        const candidate = candidateMap.get(sim.profileId);
+        if (candidate) {
+          candidatesWithSimilarity.push({ ...candidate, similarity: sim.similarity });
+          
+          cacheToSave.push({
+            profileId1: sourceUser.profileId,
+            profileId2: candidate.profileId,
+            similarity: sim.similarity,
+          });
+        }
+      }
+    } catch (e) {
+      console.error("Vector computation failed", e);
+    }
+  }
+  
+  // מיון וסינון סופי
+  candidatesWithSimilarity.sort((a, b) => b.similarity - a.similarity);
+  
+  return candidatesWithSimilarity
+    .filter(c => c.similarity >= minSimilarity)
+    .slice(0, topCount)
+    .map(c => ({ ...c, vectorSimilarity: c.similarity }));
 }
 
+
 /**
- * חישוב ציונים "רכים" (ללא AI)
+ * חישוב ציונים רכים
  */
 function calculateSoftScores(
   sourceUser: ScanCandidate,
   candidates: ScanCandidate[]
 ): ScanCandidate[] {
   return candidates.map(candidate => {
-    let softScore = 50; // ציון בסיס
+    let softScore = 50; // בסיס
     
-    // 1. ציון גיל (0-30 נקודות)
-    if (sourceUser.age !== null && candidate.age !== null) {
+    // בונוס לדמיון וקטורי
+    if (candidate.vectorSimilarity) {
+      softScore += candidate.vectorSimilarity * 30;
+    }
+    
+    // בונוס להתאמת גיל
+    if (sourceUser.age && candidate.age) {
       const maleAge = sourceUser.gender === 'MALE' ? sourceUser.age : candidate.age;
       const femaleAge = sourceUser.gender === 'FEMALE' ? sourceUser.age : candidate.age;
+      const ageDiff = maleAge - femaleAge;
       
-      const ageResult = calculateAgeScore(maleAge, femaleAge);
-      const ageScore = (ageResult.score / 100) * 30;
-      softScore += ageScore;
-      candidate.ageScore = ageResult.score;
-    }
-    
-    // 2. ציון רקע (0-20 נקודות)
-    if (sourceUser.backgroundProfile && candidate.backgroundProfile) {
-      const bgMatch = calculateBackgroundMatch(
-        sourceUser.backgroundProfile,
-        candidate.backgroundProfile
-      );
-      const bgScore = bgMatch.multiplier * 20;
-      softScore += bgScore;
-      candidate.backgroundScore = bgMatch.multiplier;
-    }
-    
-    // 3. בונוס Vector Similarity (0-20 נקודות)
-    if (candidate.vectorSimilarity) {
-      softScore += candidate.vectorSimilarity * 20;
-    }
-    
-    // 4. בונוס גיאוגרפיה (0-10 נקודות)
-    if (sourceUser.city && candidate.city) {
-      if (sourceUser.city === candidate.city) {
-        softScore += 10;
-      } else if (areCitiesNearby(sourceUser.city, candidate.city)) {
-        softScore += 5;
+      // טווח אידיאלי: גבר גדול ב-0-4 שנים
+      if (ageDiff >= 0 && ageDiff <= 4) {
+        softScore += 15;
+      } else if (ageDiff >= -2 && ageDiff <= 7) {
+        softScore += 8;
       }
+      
+      const ageScoreResult = calculateAgeScore(maleAge, femaleAge);
+      candidate.ageScore = ageScoreResult.score;
+    }
+    
+    // בונוס לעיר זהה
+    if (sourceUser.city && candidate.city && sourceUser.city === candidate.city) {
+      softScore += 5;
     }
     
     return {
       ...candidate,
-      softScore: Math.round(softScore),
+      softScore: Math.min(100, softScore),
     };
   });
 }
 
 /**
- * בדיקה אם שתי ערים קרובות (פשוט - לשדרג בעתיד)
- */
-function areCitiesNearby(city1: string, city2: string): boolean {
-  const cityGroups: string[][] = [
-    ['תל אביב', 'רמת גן', 'גבעתיים', 'בני ברק', 'חולון', 'בת ים', 'הרצליה', 'רעננה', 'פתח תקווה'],
-    ['ירושלים', 'מבשרת ציון', 'מעלה אדומים', 'בית שמש', 'אפרת', 'גוש עציון'],
-    ['חיפה', 'קריית אתא', 'קריית ביאליק', 'קריית מוצקין', 'טירת כרמל', 'נשר'],
-    ['באר שבע', 'אופקים', 'נתיבות', 'שדרות'],
-    ['מודיעין', 'מודיעין עילית', 'שוהם', 'לוד', 'רמלה'],
-    ['נתניה', 'כפר סבא', 'הוד השרון', 'רעננה'],
-  ];
-  
-  for (const group of cityGroups) {
-    if (group.includes(city1) && group.includes(city2)) {
-      return true;
-    }
-  }
-  
-  return false;
-}
-
-/**
- * הרצת ניתוח AI ב-Batches
+ * הרצת AI ב-batches
  */
 async function runAiAnalysisBatched(
   sourceUser: ScanCandidate,
   candidates: ScanCandidate[],
   batchSize: number
 ): Promise<ScanCandidate[]> {
-  const apiKey = process.env.GOOGLE_API_KEY;
-  if (!apiKey) {
-    console.error('[SymmetricScan] No GOOGLE_API_KEY configured');
-    // Fallback - מחזיר את ה-Soft Scores
-    return candidates.map(c => ({
-      ...c,
-      aiScore: c.softScore,
-      reasoning: 'AI unavailable - using soft score',
-    }));
-  }
-  
-  const genAI = new GoogleGenerativeAI(apiKey);
-  const model = genAI.getGenerativeModel({
-    model: 'gemini-2.0-flash',
-    generationConfig: {
-      responseMimeType: 'application/json',
-      temperature: 0.3,
-    },
-  });
-  
   const results: ScanCandidate[] = [];
   
-  // חלוקה ל-batches
   for (let i = 0; i < candidates.length; i += batchSize) {
     const batch = candidates.slice(i, i + batchSize);
     
     try {
-      const batchResults = await runAiBatchAnalysis(model, sourceUser, batch);
+      const batchResults = await runAiBatchAnalysis(sourceUser, batch);
       results.push(...batchResults);
     } catch (error) {
       console.error(`[SymmetricScan] AI batch error:`, error);
@@ -770,7 +1054,7 @@ async function runAiAnalysisBatched(
     
     // Small delay between batches
     if (i + batchSize < candidates.length) {
-      await new Promise(resolve => setTimeout(resolve, 200));
+      await new Promise(resolve => setTimeout(resolve, 150));
     }
   }
   
@@ -781,7 +1065,6 @@ async function runAiAnalysisBatched(
  * הרצת batch בודד של AI
  */
 async function runAiBatchAnalysis(
-  model: any,
   sourceUser: ScanCandidate,
   candidates: ScanCandidate[]
 ): Promise<ScanCandidate[]> {
@@ -864,23 +1147,23 @@ ${candidatesText}
     }>;
   };
   
-  // תיקון ה-map וה-filter כדי לספק את TypeScript
-  const processedResults = parsed.results.map(r => {
+  // First, filter to get valid candidates, then map to add AI scores
+  const validResults: ScanCandidate[] = [];
+  
+  for (const r of parsed.results) {
     const candidate = candidates.find(c => c.userId === r.userId);
-    if (!candidate) return null;
-    
-    // יצירת אובייקט חדש התואם ל-ScanCandidate
-    const updatedCandidate: ScanCandidate = {
-      ...candidate,
-      aiScore: Math.min(100, Math.max(0, r.score)),
-      reasoning: r.reasoning || '',
-    };
-    
-    return updatedCandidate;
-  });
-
-  // סינון ה-nulls והחזרת המערך הנקי
-  return processedResults.filter((r): r is ScanCandidate => r !== null);
+    if (candidate) {
+      validResults.push({
+        ...candidate,
+        aiScore: Math.min(100, Math.max(0, r.score)),
+        scoreForSource: r.scoreForSource,
+        scoreForCandidate: r.scoreForCandidate,
+        reasoning: r.reasoning || '',
+      });
+    }
+  }
+  
+  return validResults;
 }
 
 /**
@@ -900,7 +1183,6 @@ async function saveToPotentialMatch(
     });
     
     if (existing) {
-      // עדכון אם הציון השתנה משמעותית
       if (Math.abs(existing.aiScore - (match.aiScore || 0)) > 3 || existing.status === 'EXPIRED') {
         await prisma.potentialMatch.update({
           where: { id: existing.id },
@@ -920,7 +1202,6 @@ async function saveToPotentialMatch(
       return 'unchanged';
     }
     
-    // יצירת רשומה חדשה
     await prisma.potentialMatch.create({
       data: {
         maleUserId: match.maleUserId,
@@ -948,9 +1229,6 @@ async function saveToPotentialMatch(
 // SINGLE USER SCAN
 // =============================================================================
 
-/**
- * סריקה למשתמש בודד (למשל כשנרשם משתמש חדש)
- */
 export async function scanSingleUser(userId: string): Promise<{
   matchesFound: number;
   newMatches: number;
@@ -1005,6 +1283,8 @@ export async function scanNewUsers(): Promise<SymmetricScanResult> {
         updatedMatches: 0,
         durationMs: 0,
         aiCallsCount: 0,
+        vectorCacheHits: 0,
+        vectorCacheMisses: 0,
       },
       topMatches: [],
     };
@@ -1018,6 +1298,21 @@ export async function scanNewUsers(): Promise<SymmetricScanResult> {
   });
 }
 
+/**
+ * סריקה אינקרמנטלית - רק משתמשים שהשתנו
+ */
+export async function runIncrementalScan(
+  onProgress?: ProgressCallback
+): Promise<SymmetricScanResult> {
+  console.log(`[SymmetricScan] 🔄 Starting incremental scan`);
+  
+  return runSymmetricScan({
+    incrementalOnly: true,
+    useVectorCache: true,
+    onProgress,
+  });
+}
+
 // =============================================================================
 // EXPORTS
 // =============================================================================
@@ -1026,6 +1321,7 @@ const symmetricScanService = {
   runSymmetricScan,
   scanSingleUser,
   scanNewUsers,
+  runIncrementalScan,
   
   // Constants
   QUICK_FILTER,
