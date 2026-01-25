@@ -8,6 +8,16 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import alertsService, { type AlertSeverity, type AlertType } from "@/lib/services/alertsService";
+import { UserRole } from "@prisma/client";
+
+// =============================================================================
+// Types
+// =============================================================================
+
+interface SessionUser {
+  id: string;
+  role: UserRole;
+}
 
 // =============================================================================
 // GET - קבלת התראות
@@ -24,8 +34,8 @@ export async function GET(request: NextRequest) {
       );
     }
     
-    const userRole = (session.user as any).role;
-    if (userRole !== 'MATCHMAKER' && userRole !== 'ADMIN') {
+    const user = session.user as SessionUser;
+    if (user.role !== UserRole.MATCHMAKER && user.role !== UserRole.ADMIN) {
       return NextResponse.json(
         { error: "Access denied" },
         { status: 403 }
@@ -92,20 +102,20 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    const userRole = (session.user as any).role;
-    if (userRole !== 'MATCHMAKER' && userRole !== 'ADMIN') {
+    const user = session.user as SessionUser;
+    if (user.role !== UserRole.MATCHMAKER && user.role !== UserRole.ADMIN) {
       return NextResponse.json(
         { error: "Access denied" },
         { status: 403 }
       );
     }
     
-    const userId = (session.user as any).id;
+    const currentUserId = user.id;
     const body = await request.json();
     const { action, alertId, alertIds, reason } = body;
     
     switch (action) {
-      case 'mark_read':
+      case 'mark_read': {
         if (alertId) {
           await alertsService.markAlertAsRead(alertId);
           return NextResponse.json({ success: true });
@@ -118,30 +128,33 @@ export async function POST(request: NextRequest) {
           { error: "alertId or alertIds required" },
           { status: 400 }
         );
+      }
         
-      case 'dismiss':
+      case 'dismiss': {
         if (alertId) {
-          await alertsService.dismissAlert(alertId, userId, reason);
+          await alertsService.dismissAlert(alertId, currentUserId, reason);
           return NextResponse.json({ success: true });
         }
         if (alertIds && Array.isArray(alertIds)) {
-          const count = await alertsService.dismissAlerts(alertIds, userId, reason);
+          const count = await alertsService.dismissAlerts(alertIds, currentUserId, reason);
           return NextResponse.json({ success: true, count });
         }
         return NextResponse.json(
           { error: "alertId or alertIds required" },
           { status: 400 }
         );
+      }
         
-      case 'generate':
+      case 'generate': {
         // יצירת התראות חדשות
         const result = await alertsService.generateAllAlerts();
         return NextResponse.json({ 
           success: true, 
           ...result 
         });
+      }
         
-      case 'cleanup':
+      case 'cleanup': {
         // ניקוי התראות ישנות
         const daysOld = body.daysOld || 30;
         const deleted = await alertsService.cleanupOldAlerts(daysOld);
@@ -149,8 +162,9 @@ export async function POST(request: NextRequest) {
           success: true, 
           deleted 
         });
+      }
         
-      case 'create':
+      case 'create': {
         // יצירת התראה ידנית
         const { userId: targetUserId, type, severity, title, message, data } = body;
         
@@ -174,6 +188,7 @@ export async function POST(request: NextRequest) {
           success: true, 
           alertId: newAlertId 
         });
+      }
         
       default:
         return NextResponse.json(
@@ -207,8 +222,8 @@ export async function DELETE(request: NextRequest) {
       );
     }
     
-    const userRole = (session.user as any).role;
-    if (userRole !== 'ADMIN') {
+    const user = session.user as SessionUser;
+    if (user.role !== UserRole.ADMIN) {
       return NextResponse.json(
         { error: "Admin access required" },
         { status: 403 }

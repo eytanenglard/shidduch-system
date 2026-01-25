@@ -8,6 +8,18 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import dashboardService from "@/lib/services/dashboardService";
+import { UserRole } from "@prisma/client";
+
+// =============================================================================
+// Types
+// =============================================================================
+
+type PriorityCategory = 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW';
+
+interface SessionUser {
+  id: string;
+  role: UserRole;
+}
 
 // =============================================================================
 // GET - קבלת נתוני הדשבורד
@@ -26,8 +38,8 @@ export async function GET(request: NextRequest) {
     }
     
     // בדיקה שהמשתמש הוא שדכן
-    const userRole = (session.user as any).role;
-    if (userRole !== 'MATCHMAKER' && userRole !== 'ADMIN') {
+    const user = session.user as SessionUser;
+    if (user.role !== UserRole.MATCHMAKER && user.role !== UserRole.ADMIN) {
       return NextResponse.json(
         { error: "Access denied. Matchmaker role required." },
         { status: 403 }
@@ -41,26 +53,30 @@ export async function GET(request: NextRequest) {
     // אם מבקשים רק חלק מסוים
     if (section) {
       switch (section) {
-        case 'stats':
+        case 'stats': {
           const stats = await dashboardService.getStats();
           return NextResponse.json({ stats });
+        }
           
-        case 'quick':
+        case 'quick': {
           const quickStats = await dashboardService.getQuickStats();
           return NextResponse.json(quickStats);
+        }
           
-        case 'activity':
+        case 'activity': {
           const limit = parseInt(searchParams.get('limit') || '10');
           const activity = await dashboardService.getRecentActivity(limit);
           return NextResponse.json({ activity });
+        }
           
-        case 'chart':
+        case 'chart': {
           const days = parseInt(searchParams.get('days') || '30');
           const chartData = await dashboardService.getMatchesOverTime(days);
           return NextResponse.json({ chartData });
+        }
           
-        case 'priority':
-          const category = searchParams.get('category') as any;
+        case 'priority': {
+          const category = searchParams.get('category') as PriorityCategory | null;
           const priorityLimit = parseInt(searchParams.get('limit') || '20');
           if (category) {
             const users = await dashboardService.getUsersByPriorityCategory(
@@ -69,6 +85,11 @@ export async function GET(request: NextRequest) {
             );
             return NextResponse.json({ users });
           }
+          break;
+        }
+        
+        default:
+          // Fall through to default behavior
           break;
       }
     }
@@ -106,8 +127,8 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    const userRole = (session.user as any).role;
-    if (userRole !== 'MATCHMAKER' && userRole !== 'ADMIN') {
+    const user = session.user as SessionUser;
+    if (user.role !== UserRole.MATCHMAKER && user.role !== UserRole.ADMIN) {
       return NextResponse.json(
         { error: "Access denied" },
         { status: 403 }
@@ -118,7 +139,7 @@ export async function POST(request: NextRequest) {
     const { action } = body;
     
     switch (action) {
-      case 'refresh_priority':
+      case 'refresh_priority': {
         // עדכון Priority לכל המשתמשים
         const { updateAllUsersPriorityInDB } = await import("@/lib/services/priorityService");
         const result = await updateAllUsersPriorityInDB();
@@ -127,8 +148,9 @@ export async function POST(request: NextRequest) {
           message: `Updated ${result.updated} users`,
           ...result 
         });
+      }
         
-      case 'generate_alerts':
+      case 'generate_alerts': {
         // יצירת התראות חדשות
         const { generateAllAlerts } = await import("@/lib/services/alertsService");
         const alertsResult = await generateAllAlerts();
@@ -137,6 +159,7 @@ export async function POST(request: NextRequest) {
           message: `Generated ${alertsResult.generated} alerts`,
           ...alertsResult 
         });
+      }
         
       default:
         return NextResponse.json(

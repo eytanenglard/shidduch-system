@@ -11,6 +11,16 @@ import rejectionFeedbackService, {
   type RejectionCategory,
   REJECTION_CATEGORY_INFO 
 } from "@/lib/services/rejectionFeedbackService";
+import { UserRole } from "@prisma/client";
+
+// =============================================================================
+// Types
+// =============================================================================
+
+interface SessionUser {
+  id: string;
+  role: UserRole;
+}
 
 // =============================================================================
 // GET - קבלת נתוני דחיות
@@ -27,8 +37,8 @@ export async function GET(request: NextRequest) {
       );
     }
     
-    const userRole = (session.user as any).role;
-    if (userRole !== 'MATCHMAKER' && userRole !== 'ADMIN') {
+    const user = session.user as SessionUser;
+    if (user.role !== UserRole.MATCHMAKER && user.role !== UserRole.ADMIN) {
       return NextResponse.json(
         { error: "Access denied" },
         { status: 403 }
@@ -42,7 +52,7 @@ export async function GET(request: NextRequest) {
     const userId2 = searchParams.get('userId2');
     
     switch (action) {
-      case 'categories':
+      case 'categories': {
         // החזרת קטגוריות הדחייה
         const categories = Object.entries(REJECTION_CATEGORY_INFO).map(([key, info]) => ({
           value: key,
@@ -65,20 +75,21 @@ export async function GET(request: NextRequest) {
           categories, 
           grouped: groupedCategories 
         });
+      }
         
-      case 'stats':
+      case 'stats': {
         // סטטיסטיקות כלליות
-        const dateFrom = searchParams.get('dateFrom') 
-          ? new Date(searchParams.get('dateFrom')!) 
-          : undefined;
-        const dateTo = searchParams.get('dateTo') 
-          ? new Date(searchParams.get('dateTo')!) 
-          : undefined;
+        const dateFromParam = searchParams.get('dateFrom');
+        const dateToParam = searchParams.get('dateTo');
+        
+        const dateFrom = dateFromParam ? new Date(dateFromParam) : undefined;
+        const dateTo = dateToParam ? new Date(dateToParam) : undefined;
           
         const stats = await rejectionFeedbackService.getRejectionStats(dateFrom, dateTo);
         return NextResponse.json(stats);
+      }
         
-      case 'user_profile':
+      case 'user_profile': {
         // פרופיל דחיות למשתמש
         if (!userId) {
           return NextResponse.json(
@@ -89,8 +100,9 @@ export async function GET(request: NextRequest) {
         
         const userProfile = await rejectionFeedbackService.getUserRejectionProfile(userId);
         return NextResponse.json(userProfile);
+      }
         
-      case 'pair_history':
+      case 'pair_history': {
         // היסטוריה בין שני משתמשים
         if (!userId1 || !userId2) {
           return NextResponse.json(
@@ -104,16 +116,19 @@ export async function GET(request: NextRequest) {
           userId2
         );
         return NextResponse.json(pairHistory);
+      }
         
-      case 'insights':
+      case 'insights': {
         // תובנות מניתוח הדחיות
         const insights = await rejectionFeedbackService.getRejectionInsights();
         return NextResponse.json({ insights });
+      }
         
-      default:
+      default: {
         // ברירת מחדל - סטטיסטיקות
         const defaultStats = await rejectionFeedbackService.getRejectionStats();
         return NextResponse.json(defaultStats);
+      }
     }
     
   } catch (error) {
@@ -141,15 +156,15 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    const userRole = (session.user as any).role;
-    if (userRole !== 'MATCHMAKER' && userRole !== 'ADMIN') {
+    const user = session.user as SessionUser;
+    if (user.role !== UserRole.MATCHMAKER && user.role !== UserRole.ADMIN) {
       return NextResponse.json(
         { error: "Access denied" },
         { status: 403 }
       );
     }
     
-    const matchmakerId = (session.user as any).id;
+    const matchmakerId = user.id;
     const body = await request.json();
     
     const {
