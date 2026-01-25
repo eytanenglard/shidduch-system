@@ -80,10 +80,15 @@ const users = await prisma.user.findMany({
     createdAt: true,
     isVerified: true,
     isProfileComplete: true,
-    images: {
-      select: { id: true, url: true, isMain: true },
-      orderBy: [{ isMain: 'desc' }, { createdAt: 'asc' }],
-    },
+images: {
+  select: { 
+    id: true, 
+    url: true, 
+    isMain: true,
+    cloudinaryPublicId: true // <--- הוסף שורה זו
+  },
+  orderBy: [{ isMain: 'desc' }, { createdAt: 'asc' }],
+},
     // שינוי כאן: מ-profile: true למבנה include
     profile: {
       include: {

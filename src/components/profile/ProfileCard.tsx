@@ -2094,6 +2094,9 @@ const ProfileHeader: React.FC<{
   religiousLevelMap: ReturnType<typeof createReligiousLevelMap>;
   educationLevelMap: ReturnType<typeof createEducationLevelMap>;
   locale: string;
+  // --- תוספות חדשות ---
+  totalImages: number;
+  onAvatarClick: () => void;
 }> = ({
   profile,
   age,
@@ -2111,11 +2114,10 @@ const ProfileHeader: React.FC<{
   hobbiesMap,
   religiousLevelMap,
   locale,
+  totalImages,
+  onAvatarClick,
 }) => {
   const direction = locale === 'he' ? 'rtl' : 'ltr';
-  console.log(
-    `ProfileCard Loaded - Locale: ${locale}, Direction: ${direction}`
-  );
 
   const personalityHighlights = useMemo(() => {
     const highlights: ExcitementFactor[] = [];
@@ -2169,13 +2171,13 @@ const ProfileHeader: React.FC<{
     characterTraitMap,
     hobbiesMap,
   ]);
-const spokenLanguages = useMemo(() => {
+
+  const spokenLanguages = useMemo(() => {
     const rawLangs = [
       profile.nativeLanguage,
-      ...(profile.additionalLanguages || [])
-    ].filter((l): l is string => !!l); // <--- תיקון: הגדרת טייפ מפורשת
+      ...(profile.additionalLanguages || []),
+    ].filter((l): l is string => !!l);
 
-    // מילון המרה לשפות נפוצות
     const langMap: Record<string, string> = {
       hebrew: 'עברית',
       english: 'אנגלית',
@@ -2185,15 +2187,17 @@ const spokenLanguages = useMemo(() => {
       amharic: 'אמהרית',
       arabic: 'ערבית',
       german: 'גרמנית',
-      italian: 'איטלקית'
+      italian: 'איטלקית',
     };
 
-    return rawLangs.map(lang => {
-      if (locale === 'he') {
-        return langMap[lang.toLowerCase()] || lang;
-      }
-      return lang.charAt(0).toUpperCase() + lang.slice(1);
-    }).join(', ');
+    return rawLangs
+      .map((lang) => {
+        if (locale === 'he') {
+          return langMap[lang.toLowerCase()] || lang;
+        }
+        return lang.charAt(0).toUpperCase() + lang.slice(1);
+      })
+      .join(', ');
   }, [profile.nativeLanguage, profile.additionalLanguages, locale]);
 
   return (
@@ -2246,10 +2250,23 @@ const spokenLanguages = useMemo(() => {
               : 'flex-row gap-4 sm:gap-6'
           )}
         >
-          <div className="relative flex-shrink-0">
+          {/* אזור התמונה */}
+          <div className="relative flex-shrink-0 group">
+            {/* באדג' כמות תמונות - מוצג רק אם יש יותר מתמונה אחת */}
+            {totalImages > 1 && (
+              <div className="absolute top-0 right-0 z-30 pointer-events-none">
+                <Badge className="bg-gray-900/80 text-white border-white/40 hover:bg-gray-900/80 gap-1 px-1.5 py-0.5 text-[10px] sm:text-xs backdrop-blur-sm shadow-md">
+                  <Camera className="w-3 h-3" />
+                  <span>{totalImages}</span>
+                </Badge>
+              </div>
+            )}
+
             <div
+              onClick={onAvatarClick}
               className={cn(
-                'relative rounded-full overflow-hidden border-2 sm:border-4 border-white shadow-lg sm:shadow-2xl ring-2 sm:ring-4 ring-rose-200/50 transition-all duration-300 hover:scale-105',
+                'relative rounded-full overflow-hidden border-2 sm:border-4 border-white shadow-lg sm:shadow-2xl ring-2 sm:ring-4 ring-rose-200/50 transition-all duration-300',
+                totalImages > 0 ? 'cursor-pointer hover:scale-105' : '',
                 compact
                   ? 'h-32 w-32 sm:h-36 sm:w-36 md:h-40 md:w-40'
                   : isMobile
@@ -2259,17 +2276,25 @@ const spokenLanguages = useMemo(() => {
               )}
             >
               {mainImageToDisplay?.url ? (
-                <Image
-                  src={getRelativeCloudinaryPath(mainImageToDisplay.url)}
-                  alt={dict.header.profileImageAlt.replace(
-                    '{{name}}',
-                    `${profile.user?.firstName || ''} ${profile.user?.lastName || ''}`.trim()
+                <>
+                  <Image
+                    src={getRelativeCloudinaryPath(mainImageToDisplay.url)}
+                    alt={dict.header.profileImageAlt.replace(
+                      '{{name}}',
+                      `${profile.user?.firstName || ''} ${profile.user?.lastName || ''}`.trim()
+                    )}
+                    fill
+                    className="object-cover transition-transform duration-700"
+                    sizes={compact ? '160px' : isMobile ? '176px' : '144px'}
+                    priority
+                  />
+                  {/* Overlay למעבר עכבר - מראה אייקון מצלמה */}
+                  {totalImages > 0 && (
+                    <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                      <Camera className="text-white w-8 h-8 drop-shadow-md" />
+                    </div>
                   )}
-                  fill
-                  className="object-cover transition-transform duration-700 hover:scale-110"
-                  sizes={compact ? '160px' : isMobile ? '176px' : '144px'}
-                  priority
-                />
+                </>
               ) : (
                 <div
                   className={cn(
@@ -2297,7 +2322,7 @@ const spokenLanguages = useMemo(() => {
 
             <div
               className={cn(
-                'absolute transition-all duration-300',
+                'absolute transition-all duration-300 z-20',
                 compact ? '-bottom-1 -end-1' : '-bottom-2 -end-2'
               )}
             >
@@ -2310,8 +2335,6 @@ const spokenLanguages = useMemo(() => {
                   isMobile
                     ? availability.bgColorSm || availability.bgColor
                     : availability.bgColor,
-                  // --- התיקון כאן: הסרנו את 'animate-pulse' הקבוע ---
-                  // הוא יפעל רק אם הסטטוס מוגדר כ-pulse (למשל במצב "מסתורי")
                   availability.pulse && 'animate-pulse',
                   THEME.shadows.warm
                 )}
@@ -2333,7 +2356,6 @@ const spokenLanguages = useMemo(() => {
             </div>
           </div>
 
-          {/* --- התחלת הקוד המעודכן --- */}
           <div className="flex-1 min-w-0 flex flex-col justify-center items-center text-center w-full">
             {!isMobile && onPaletteChange && (
               <div className="flex justify-end mb-2 sm:mb-3 w-full">
@@ -2351,7 +2373,7 @@ const spokenLanguages = useMemo(() => {
               className={cn(
                 'w-full overflow-hidden',
                 compact ? 'mb-2 sm:mb-3' : 'mb-3 sm:mb-4',
-                'text-center' // שינוי: טקסט תמיד למרכז
+                'text-center'
               )}
             >
               <h1
@@ -2363,7 +2385,7 @@ const spokenLanguages = useMemo(() => {
                       ? 'text-lg sm:text-xl md:text-2xl'
                       : 'text-xl sm:text-2xl md:text-3xl lg:text-4xl',
                   'break-words hyphens-auto word-break-break-word overflow-wrap-anywhere',
-                  'text-center max-w-full overflow-hidden', // שינוי: טקסט תמיד למרכז
+                  'text-center max-w-full overflow-hidden',
                   'px-1 sm:px-2',
                   `bg-gradient-to-r ${THEME.colors.primary.main} bg-clip-text text-transparent`,
                   `hover:bg-gradient-to-r hover:${THEME.colors.primary.accent} bg-clip-text`
@@ -2380,11 +2402,10 @@ const spokenLanguages = useMemo(() => {
               <div
                 className={cn(
                   'flex items-center justify-center gap-3 flex-wrap',
-                  'justify-center', // שינוי: יישור תמיד למרכז
+                  'justify-center',
                   'mt-2 sm:mt-3'
                 )}
               >
-                {/* תצוגת גיל */}
                 {age > 0 && (
                   <div className="flex items-center gap-1">
                     <Cake
@@ -2406,7 +2427,6 @@ const spokenLanguages = useMemo(() => {
                   </div>
                 )}
 
-                {/* תצוגת גובה */}
                 {profile.height && (
                   <div className="flex items-center gap-1 border-s ps-3 border-gray-300">
                     <Ruler
@@ -2454,7 +2474,6 @@ const spokenLanguages = useMemo(() => {
                   </div>
                 )}
 
-                {/* תצוגת טלפון לשדכן */}
                 {viewMode === 'matchmaker' && profile.user?.phone && (
                   <div className="flex items-center gap-1 border-s ps-3 border-gray-300">
                     <PhoneIcon
@@ -2479,20 +2498,20 @@ const spokenLanguages = useMemo(() => {
                 )}
               </div>
             </div>
-            {/* Personality Highlights וכו' נשאר למטה */}
+
             {personalityHighlights.length > 0 && (
               <div
                 className={cn(
                   'w-full overflow-hidden',
                   compact ? 'mt-2 mb-2' : 'mt-3 mb-4',
-                  'flex justify-center' // שינוי: תמיד למרכז
+                  'flex justify-center'
                 )}
               >
                 <ScrollArea className="w-full max-w-full" dir={direction}>
                   <div
                     className={cn(
                       'flex gap-2 sm:gap-3 pb-2 px-1 w-full',
-                      'justify-center flex-wrap' // שינוי: תמיד למרכז
+                      'justify-center flex-wrap'
                     )}
                   >
                     {personalityHighlights.map((highlight, index) => (
@@ -2527,7 +2546,6 @@ const spokenLanguages = useMemo(() => {
               </div>
             )}
 
-            {/* Key Facts (מיקום/עיסוק/השקפה) */}
             <div
               className={cn(
                 'w-full overflow-hidden',
@@ -2539,10 +2557,9 @@ const spokenLanguages = useMemo(() => {
                   <div
                     className={cn(
                       'flex gap-2 sm:gap-3 pb-2 px-1 w-full',
-                      'justify-center flex-wrap' // שינוי: תמיד למרכז
+                      'justify-center flex-wrap'
                     )}
                   >
-                    {/* מיקום - נוסף למובייל ודסקטופ יחד */}
                     {profile.city && (
                       <KeyFactCard
                         icon={MapPin}
@@ -2597,7 +2614,7 @@ const spokenLanguages = useMemo(() => {
                 className={cn(
                   'w-full flex max-w-full overflow-hidden',
                   compact ? 'pt-3' : 'pt-4 sm:pt-6',
-                  'justify-center px-2' // שינוי: תמיד למרכז
+                  'justify-center px-2'
                 )}
               >
                 <Button
@@ -2647,7 +2664,6 @@ const spokenLanguages = useMemo(() => {
               </div>
             )}
           </div>
-          {/* --- סוף הקוד המעודכן --- */}
         </div>
         {!compact && (
           <div
@@ -5006,6 +5022,8 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
           religiousLevelMap={religiousLevelMap}
           educationLevelMap={educationLevelMap}
           locale={locale}
+            totalImages={orderedImages.length} 
+  onAvatarClick={() => orderedImages.length > 0 && handleOpenImageDialog(orderedImages[0])}
         />
         <MobileImageGallery
           orderedImages={orderedImages}
@@ -5050,6 +5068,9 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
             religiousLevelMap={religiousLevelMap}
             educationLevelMap={educationLevelMap}
             locale={locale}
+                      totalImages={orderedImages.length}
+          onAvatarClick={() => orderedImages.length > 0 && handleOpenImageDialog(orderedImages[0])}
+
           />
           <MobileImageGallery
             orderedImages={orderedImages}
@@ -5481,6 +5502,9 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                   religiousLevelMap={religiousLevelMap}
                   educationLevelMap={educationLevelMap}
                   locale={locale}
+                            totalImages={orderedImages.length}
+          onAvatarClick={() => orderedImages.length > 0 && handleOpenImageDialog(orderedImages[0])}
+
                 />
                 <div className="p-4 sm:p-6 overflow-hidden flex max-w-full">
                   <MainContentTabs isDesktop={isDesktop} />
