@@ -139,8 +139,38 @@ preferredReligiousJourneys: ReligiousJourney[];
   createdAt: Date; // from PrismaProfile
   updatedAt: Date; // from PrismaProfile
   lastActive?: Date | null;
-
-
+// === Priority System (Internal - Matchmaker Only) ===
+  priorityScore?: number | null;
+  priorityCategory?: string | null;
+  priorityUpdatedAt?: Date | null;
+  
+  // === Scanning & Suggestions Tracking (Internal) ===
+  lastScannedAt?: Date | null;
+  lastSuggestedAt?: Date | null;
+  pendingMatchesCount?: number;
+  
+  // === Engagement Metrics (Internal) ===
+  suggestionsReceived?: number;
+  suggestionsAccepted?: number;
+  suggestionsDeclined?: number;
+  averageResponseTimeHours?: number | null;
+  
+  // === Matchmaker Impressions (Internal) ===
+  matchmakerImpression?: string | null;
+  impressionScore?: number | null;
+  redFlags?: string[];
+  greenFlags?: string[];
+  difficultyScore?: number | null;
+  readinessLevel?: 'NOT_READY' | 'UNCERTAIN' | 'SOMEWHAT_READY' | 'READY' | 'VERY_READY' | null;
+  
+  // === Profile Completeness (Internal) ===
+  profileCompletenessScore?: number | null;
+  missingFields?: string[];
+  
+  // === Derived Stats (Internal) ===
+  acceptanceRate?: number | null;
+  avgMatchScore?: number | null;
+  lastActiveAt?: Date | null;
   // Associated user (optional and with optional fields for flexibility)
   user?: {
     id?: string;
@@ -149,6 +179,8 @@ preferredReligiousJourneys: ReligiousJourney[];
     email?: string;
     phone?: string | null;
   };
+
+  
 }
 
 export interface FormattedAnswer {
