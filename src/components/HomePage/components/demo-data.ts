@@ -69,7 +69,7 @@ export const generateDemoData = async (locale: Locale) => {
         { id: 'img2', url: 'https://res.cloudinary.com/dmfxoi6g0/image/upload/v1753967772/IMG-20250731-WA0078_l5mhu1.jpg', isMain: false, userId: 'demo-profile-noa', createdAt: new Date(), updatedAt: new Date(), cloudinaryPublicId: null },
         { id: 'img3', url: 'https://res.cloudinary.com/dmfxoi6g0/image/upload/v1753967770/IMG-20250731-WA0076_wy6uhe.jpg', isMain: false, userId: 'demo-profile-noa', createdAt: new Date(), updatedAt: new Date(), cloudinaryPublicId: null },
     ],
-    profile: {
+ profile: {
       id: 'profile-noa-demo', userId: 'demo-profile-noa', gender: Gender.FEMALE, birthDate: new Date('1996-05-15T00:00:00.000Z'), height: 168, maritalStatus: 'רווקה',
       occupation: femaleProfileContent.occupation, education: femaleProfileContent.education, city: femaleProfileContent.city, religiousLevel: 'דתי-לאומי ליברלי',
       shomerNegiah: false, serviceType: ServiceType.NATIONAL_SERVICE_TWO_YEARS, serviceDetails: femaleProfileContent.serviceDetails, about: femaleProfileContent.about,
@@ -99,10 +99,10 @@ export const generateDemoData = async (locale: Locale) => {
       isAboutVisible: true,
       isFriendsSectionVisible: true,
       isNeshamaTechSummaryVisible: true,
-       cvUrl: null,
+      cvUrl: null,
       cvSummary: null,
-         aiProfileSummary: null, // <--- הוסף שורה זו
-      conversationSummary: null, // <--- הוסף שורה זו
+      aiProfileSummary: null,
+      conversationSummary: null,
       testimonials: [
         {
           id: 'testimonial-noa-1',
@@ -125,8 +125,31 @@ export const generateDemoData = async (locale: Locale) => {
           createdAt: new Date(),
         },
       ],
+      // --- New Internal Fields Fix ---
+      priorityScore: 0,
+      priorityCategory: null,
+      priorityUpdatedAt: null,
+      lastScannedAt: null,
+      lastSuggestedAt: null,
+      pendingMatchesCount: 0,
+      suggestionsReceived: 0,
+      suggestionsAccepted: 0,
+      suggestionsDeclined: 0,
+      averageResponseTimeHours: null,
+      matchmakerImpression: null,
+      impressionScore: null,
+      redFlags: [],
+      greenFlags: [],
+      difficultyScore: null,
+      readinessLevel: null,
+      profileCompletenessScore: 100,
+      missingFields: [],
+      acceptanceRate: null,
+      avgMatchScore: null,
+      lastActiveAt: null,
     },
     questionnaireResponses: [noaQuestionnaireResponse],
+    
   };
 
   const danielProfile: PartyInfo = {
@@ -136,7 +159,7 @@ export const generateDemoData = async (locale: Locale) => {
         { id: 'img2m', url: 'https://res.cloudinary.com/dmfxoi6g0/image/upload/v1753967649/IMG-20250731-WA0060_ia8nka.jpg', isMain: false, userId: 'demo-profile-daniel', createdAt: new Date(), updatedAt: new Date(), cloudinaryPublicId: null },
         { id: 'img3m', url: 'https://res.cloudinary.com/dmfxoi6g0/image/upload/v1753967649/IMG-20250731-WA0061_aug5ix.jpg', isMain: false, userId: 'demo-profile-daniel', createdAt: new Date(), updatedAt: new Date(), cloudinaryPublicId: null },
     ],
-    profile: {
+ profile: {
       id: 'profile-daniel-demo', userId: 'demo-profile-daniel', gender: Gender.MALE, birthDate: new Date('1994-08-20T00:00:00.000Z'), height: 182, maritalStatus: 'רווק',
       occupation: maleProfileContent.occupation, education: maleProfileContent.education, city: maleProfileContent.city, religiousLevel: 'דתי-לאומי תורני',
       shomerNegiah: true, serviceType: ServiceType.MILITARY_OFFICER, serviceDetails: maleProfileContent.serviceDetails, about: maleProfileContent.about, profileHeadline: maleProfileContent.profileHeadline,
@@ -166,10 +189,10 @@ export const generateDemoData = async (locale: Locale) => {
       isAboutVisible: true,
       isFriendsSectionVisible: true,
       isNeshamaTechSummaryVisible: true,
-       cvUrl: null,
+      cvUrl: null,
       cvSummary: null,
-         aiProfileSummary: null, // <--- הוסף שורה זו
-      conversationSummary: null, // <--- הוסף שורה זו
+      aiProfileSummary: null,
+      conversationSummary: null,
       testimonials: [
         {
           id: 'testimonial-daniel-1',
@@ -192,6 +215,28 @@ export const generateDemoData = async (locale: Locale) => {
           createdAt: new Date(),
         },
       ],
+      // --- New Internal Fields Fix ---
+      priorityScore: 0,
+      priorityCategory: null,
+      priorityUpdatedAt: null,
+      lastScannedAt: null,
+      lastSuggestedAt: null,
+      pendingMatchesCount: 0,
+      suggestionsReceived: 0,
+      suggestionsAccepted: 0,
+      suggestionsDeclined: 0,
+      averageResponseTimeHours: null,
+      matchmakerImpression: null,
+      impressionScore: null,
+      redFlags: [],
+      greenFlags: [],
+      difficultyScore: null,
+      readinessLevel: null,
+      profileCompletenessScore: 100,
+      missingFields: [],
+      acceptanceRate: null,
+      avgMatchScore: null,
+      lastActiveAt: null,
     },
     questionnaireResponses: [danielQuestionnaireResponse],
   };
