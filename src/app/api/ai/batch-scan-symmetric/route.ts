@@ -1,632 +1,465 @@
 // =============================================================================
 // 📁 src/app/api/ai/batch-scan-symmetric/route.ts
 // =============================================================================
-// 🎯 Symmetric Batch Scan API V3.0 - NeshamaTech
+// 🎯 Symmetric Batch Scan API V2.0 - NeshamaTech
 // 
-// ✅ Features:
-// - Async job pattern with immediate response
-// - SSE (Server-Sent Events) for real-time progress
-// - Polling fallback for clients that don't support SSE
-// - Progress tracking in database
-// - Multiple scan actions (full, incremental, single user, cancel)
+// סריקה אסינכרונית עם Tiered Matching
+// מחזיר מיד scanId ומאפשר polling על ההתקדמות
 // =============================================================================
 
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
+import symmetricScanService from "@/lib/services/symmetricScanService";
 import prisma from "@/lib/prisma";
-import { 
-  runSymmetricScan, 
-  scanSingleUser, 
-  scanNewUsers,
-  runIncrementalScan,
-  type ScanProgress,
-  type SymmetricScanResult,
-} from "@/lib/services/symmetricScanService";
-
-export const dynamic = 'force-dynamic';
-export const maxDuration = 300; // 5 minutes
 
 // =============================================================================
-// TYPES
+// In-Memory Scan State (for active scans)
+// In production, consider using Redis for distributed state
 // =============================================================================
 
 interface ActiveScan {
   scanId: string;
-  scanSessionId: string;
-  status: 'running' | 'completed' | 'failed' | 'cancelled';
-  progress: ScanProgress;
-  result?: SymmetricScanResult;
+  status: 'running' | 'completed' | 'failed';
   startedAt: Date;
+  progress: number;
+  currentPhase: string;
   error?: string;
+  result?: any;
 }
 
-export interface BatchScanProgress {
-  status: 'idle' | 'running' | 'completed' | 'failed' | 'cancelled';
-  scanId: string | null;
-  progress: {
-    phase: string;
-    currentUserIndex: number;
-    totalUsers: number;
-    currentUserName?: string;
-    progressPercent: number;
-    pairsEvaluated: number;
-    pairsPassedQuickFilter: number;
-    pairsPassedVectorFilter: number;
-    pairsSentToAi: number;
-    matchesFoundSoFar: number;
-    message: string;
-  };
-  result?: {
-    matchesFound: number;
-    newMatches: number;
-    updatedMatches: number;
-    durationMs: number;
-  };
-  error: string | null;
-}
-
-// =============================================================================
-// IN-MEMORY STATE (for active scans)
-// =============================================================================
-
+// Global map for tracking active scans
 const activeScans = new Map<string, ActiveScan>();
 
-// Cleanup old scans every 10 minutes
-setInterval(() => {
-  const now = Date.now();
-  const TEN_MINUTES = 10 * 60 * 1000;
-  
-  for (const [scanId, scan] of activeScans.entries()) {
-    if (now - scan.startedAt.getTime() > TEN_MINUTES && 
-        (scan.status === 'completed' || scan.status === 'failed' || scan.status === 'cancelled')) {
-      activeScans.delete(scanId);
-      console.log(`[BatchScan] 🧹 Cleaned up old scan: ${scanId}`);
-    }
-  }
-}, 10 * 60 * 1000);
-
 // =============================================================================
-// POST - Start Scan
+// GET - מידע על סריקה או polling
 // =============================================================================
 
-export async function POST(req: NextRequest): Promise<NextResponse> {
+export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    
+    if (!session?.user) {
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401 }
+      );
     }
-
-    // Check role
-    const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
-      select: { role: true }
-    });
-
-    if (!user || !['MATCHMAKER', 'ADMIN'].includes(user.role)) {
-      return NextResponse.json({ error: "Insufficient permissions" }, { status: 403 });
+    
+    const userRole = (session.user as any).role;
+    if (userRole !== 'MATCHMAKER' && userRole !== 'ADMIN') {
+      return NextResponse.json(
+        { error: "Access denied" },
+        { status: 403 }
+      );
     }
-
-    const body = await req.json();
-    const { action = 'full_scan', userId, incremental = false, forceRefresh = false } = body;
-
-    console.log(`\n${'='.repeat(60)}`);
-    console.log(`[BatchScan] 📥 POST request received`);
-    console.log(`[BatchScan] Action: ${action}, Incremental: ${incremental}`);
-    console.log(`${'='.repeat(60)}\n`);
-
-    // Check if a scan is already running
-    const runningScan = Array.from(activeScans.values()).find(s => s.status === 'running');
-    if (runningScan && action !== 'cancel') {
+    
+    const { searchParams } = new URL(request.url);
+    const scanId = searchParams.get('scanId');
+    
+    // אם יש scanId - מחזיר סטטוס של סריקה ספציפית
+    if (scanId) {
+      // בדוק קודם ב-memory
+      const activeScan = activeScans.get(scanId);
+      if (activeScan) {
+        return NextResponse.json({
+          success: true,
+          scan: {
+            id: activeScan.scanId,
+            status: activeScan.status,
+            progress: activeScan.progress,
+            currentPhase: activeScan.currentPhase,
+            startedAt: activeScan.startedAt,
+            error: activeScan.error,
+            // אם הסתיים - כלול את התוצאות
+            ...(activeScan.status === 'completed' && activeScan.result ? {
+              matchesFound: activeScan.result.stats?.matchesFound || 0,
+              newMatches: activeScan.result.stats?.newMatches || 0,
+              durationMs: activeScan.result.stats?.durationMs || 0,
+            } : {}),
+          },
+        });
+      }
+      
+      // אם לא ב-memory - בדוק בדאטהבייס
+      const dbScan = await prisma.scanSession.findUnique({
+        where: { id: scanId },
+      });
+      
+      if (dbScan) {
+        return NextResponse.json({
+          success: true,
+          scan: {
+            id: dbScan.id,
+            status: dbScan.status,
+            progress: dbScan.status === 'completed' ? 100 : 
+                      dbScan.status === 'failed' ? 0 : 50,
+            matchesFound: dbScan.matchesFound,
+            newMatches: dbScan.newMatches,
+            durationMs: dbScan.durationMs,
+            error: dbScan.error,
+            startedAt: dbScan.startedAt,
+            completedAt: dbScan.completedAt,
+          },
+        });
+      }
+      
       return NextResponse.json({
         success: false,
-        error: "A scan is already running",
-        scanId: runningScan.scanId,
-      }, { status: 409 });
+        error: "Scan not found",
+      }, { status: 404 });
     }
-
-    // ==========================================================================
-    // Handle different actions
-    // ==========================================================================
-
-    switch (action) {
-      case 'cancel': {
-        const scanIdToCancel = body.scanId;
-        if (scanIdToCancel && activeScans.has(scanIdToCancel)) {
-          const scan = activeScans.get(scanIdToCancel)!;
-          scan.status = 'cancelled';
-          scan.progress.phase = 'failed';
-          scan.progress.message = 'הסריקה בוטלה על ידי המשתמש';
-          
-          // Update DB
-          if (scan.scanSessionId) {
-            await prisma.scanSession.update({
-              where: { id: scan.scanSessionId },
-              data: { status: 'cancelled' }
-            }).catch(() => {});
-          }
-          
-          return NextResponse.json({ success: true, message: "Scan cancelled" });
-        }
-        return NextResponse.json({ success: false, error: "Scan not found" }, { status: 404 });
-      }
-
-      case 'scan_single': {
-        if (!userId) {
-          return NextResponse.json({ error: "userId required for scan_single" }, { status: 400 });
-        }
-        
-        const scanId = `single_${Date.now()}`;
-        
-        // Start scan in background
-        runScanInBackground(scanId, 'single', { userId });
-        
-        return NextResponse.json({
-          success: true,
-          scanId,
-          message: "Single user scan started",
-        });
-      }
-
-      case 'scan_new_users': {
-        const scanId = `new_${Date.now()}`;
-        
-        // Start scan in background
-        runScanInBackground(scanId, 'new_users', {});
-        
-        return NextResponse.json({
-          success: true,
-          scanId,
-          message: "New users scan started",
-        });
-      }
-
-      case 'scan_users': {
-        const userIds = body.userIds;
-        if (!userIds || !Array.isArray(userIds) || userIds.length === 0) {
-          return NextResponse.json({ error: "userIds array required" }, { status: 400 });
-        }
-        
-        const scanId = `users_${Date.now()}`;
-        
-        // Start scan in background
-        runScanInBackground(scanId, 'specific_users', { userIds, forceRefresh });
-        
-        return NextResponse.json({
-          success: true,
-          scanId,
-          message: `Started scan for ${userIds.length} users`,
-        });
-      }
-
-      case 'full_scan':
-      default: {
-        const scanId = `full_${Date.now()}`;
-        
-        // Start scan in background
-        runScanInBackground(scanId, incremental ? 'incremental' : 'full', { forceRefresh });
-        
-        return NextResponse.json({
-          success: true,
-          scanId,
-          message: incremental ? "Incremental scan started" : "Full scan started",
-        });
-      }
-    }
-
-  } catch (error) {
-    console.error('[BatchScan] POST error:', error);
+    
+    // מידע כללי על הגדרות הסריקה
     return NextResponse.json({
-      success: false,
-      error: error instanceof Error ? error.message : "Unknown error"
-    }, { status: 500 });
+      version: "2.0",
+      scanType: "symmetric_tiered_async",
+      tiers: {
+        quickFilter: {
+          description: "מסנן מהיר - גיל, דת, היסטוריה",
+          thresholds: symmetricScanService.QUICK_FILTER,
+        },
+        vectorFilter: {
+          description: "סינון וקטורי - דמיון פרופילים",
+          thresholds: symmetricScanService.VECTOR_FILTER,
+        },
+        softScoring: {
+          description: "ציון רך - התאמות בסיסיות",
+          thresholds: symmetricScanService.SOFT_SCORING,
+        },
+        aiScoring: {
+          description: "ניתוח AI - רק Top 30",
+          thresholds: symmetricScanService.AI_SCORING,
+        },
+      },
+      features: [
+        "✅ סריקה אסינכרונית",
+        "✅ סריקה דו-כיוונית (גברים + נשים)",
+        "✅ Tiered Matching לחיסכון ב-API",
+        "✅ Asymmetric Scoring",
+        "✅ Vector Similarity",
+        "✅ Progress Polling",
+      ],
+      activeScans: Array.from(activeScans.values())
+        .filter(s => s.status === 'running')
+        .map(s => ({ id: s.scanId, startedAt: s.startedAt, progress: s.progress })),
+    });
+    
+  } catch (error) {
+    console.error("[SymmetricScan API] Error:", error);
+    return NextResponse.json(
+      { error: "Failed to get scan info" },
+      { status: 500 }
+    );
   }
 }
 
 // =============================================================================
-// GET - Check Progress / SSE Stream
+// POST - הרצת סריקה (אסינכרונית)
 // =============================================================================
 
-export async function GET(req: NextRequest): Promise<NextResponse | Response> {
+export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const { searchParams } = new URL(req.url);
-    const scanId = searchParams.get('scanId');
-    const stream = searchParams.get('stream') === 'true';
-
-    // ==========================================================================
-    // SSE Streaming Mode
-    // ==========================================================================
-    if (stream && scanId) {
-      return createSSEStream(scanId);
-    }
-
-    // ==========================================================================
-    // Polling Mode - Return current status
-    // ==========================================================================
-    if (scanId) {
-      const scan = activeScans.get(scanId);
-      
-      if (!scan) {
-        // Try to find in database
-        const dbSession = await prisma.scanSession.findFirst({
-          where: {
-            OR: [
-              { id: scanId },
-              { id: { startsWith: scanId.split('_')[1] || scanId } }
-            ]
-          },
-          orderBy: { startedAt: 'desc' }
-        });
-
-        if (dbSession) {
-          return NextResponse.json({
-            status: dbSession.status === 'completed' ? 'completed' : 
-                   dbSession.status === 'failed' ? 'failed' : 
-                   dbSession.status === 'cancelled' ? 'cancelled' : 'idle',
-            scanId,
-            progress: {
-              phase: dbSession.status,
-              currentUserIndex: dbSession.totalUsersScanned || 0,
-              totalUsers: dbSession.totalUsersScanned || 0,
-              progressPercent: dbSession.status === 'completed' ? 100 : 0,
-              pairsEvaluated: dbSession.pairsEvaluated || 0,
-              pairsPassedQuickFilter: 0,
-              pairsPassedVectorFilter: 0,
-              pairsSentToAi: 0,
-              matchesFoundSoFar: dbSession.matchesFound || 0,
-              message: dbSession.status === 'completed' ? 'הושלם' : dbSession.error || '',
-            },
-            result: dbSession.status === 'completed' ? {
-              matchesFound: dbSession.matchesFound || 0,
-              newMatches: dbSession.newMatches || 0,
-              updatedMatches: dbSession.updatedMatches || 0,
-              durationMs: dbSession.durationMs || 0,
-            } : undefined,
-            error: dbSession.error || null,
-          } satisfies BatchScanProgress);
-        }
-
-        return NextResponse.json({
-          status: 'idle',
-          scanId: null,
-          progress: {
-            phase: 'idle',
-            currentUserIndex: 0,
-            totalUsers: 0,
-            progressPercent: 0,
-            pairsEvaluated: 0,
-            pairsPassedQuickFilter: 0,
-            pairsPassedVectorFilter: 0,
-            pairsSentToAi: 0,
-            matchesFoundSoFar: 0,
-            message: 'לא נמצאה סריקה',
-          },
-          error: null,
-        } satisfies BatchScanProgress);
-      }
-
-      // Return current status
-      const response: BatchScanProgress = {
-        status: scan.status,
-        scanId: scan.scanId,
-        progress: {
-          phase: scan.progress.phase,
-          currentUserIndex: scan.progress.currentUserIndex,
-          totalUsers: scan.progress.totalUsers,
-          currentUserName: scan.progress.currentUserName,
-          progressPercent: scan.progress.progressPercent,
-          pairsEvaluated: scan.progress.stats.pairsEvaluated,
-          pairsPassedQuickFilter: scan.progress.stats.pairsPassedQuickFilter,
-          pairsPassedVectorFilter: scan.progress.stats.pairsPassedVectorFilter,
-          pairsSentToAi: scan.progress.stats.pairsSentToAi,
-          matchesFoundSoFar: scan.progress.stats.matchesFoundSoFar,
-          message: scan.progress.message,
-        },
-        error: scan.error || null,
-      };
-
-      if (scan.result) {
-        response.result = {
-          matchesFound: scan.result.stats.matchesFound,
-          newMatches: scan.result.stats.newMatches,
-          updatedMatches: scan.result.stats.updatedMatches,
-          durationMs: scan.result.stats.durationMs,
-        };
-      }
-
-      return NextResponse.json(response);
-    }
-
-    // ==========================================================================
-    // No scanId - Return overall status
-    // ==========================================================================
-    const runningScan = Array.from(activeScans.values()).find(s => s.status === 'running');
     
-    if (runningScan) {
-      return NextResponse.json({
-        status: 'running',
-        scanId: runningScan.scanId,
-        progress: {
-          phase: runningScan.progress.phase,
-          currentUserIndex: runningScan.progress.currentUserIndex,
-          totalUsers: runningScan.progress.totalUsers,
-          progressPercent: runningScan.progress.progressPercent,
-          pairsEvaluated: runningScan.progress.stats.pairsEvaluated,
-          pairsPassedQuickFilter: runningScan.progress.stats.pairsPassedQuickFilter,
-          pairsPassedVectorFilter: runningScan.progress.stats.pairsPassedVectorFilter,
-          pairsSentToAi: runningScan.progress.stats.pairsSentToAi,
-          matchesFoundSoFar: runningScan.progress.stats.matchesFoundSoFar,
-          message: runningScan.progress.message,
-        },
-        error: null,
-      } satisfies BatchScanProgress);
+    if (!session?.user) {
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401 }
+      );
     }
+    
+    const userRole = (session.user as any).role;
+    if (userRole !== 'MATCHMAKER' && userRole !== 'ADMIN') {
+      return NextResponse.json(
+        { error: "Access denied" },
+        { status: 403 }
+      );
+    }
+    
+    const body = await request.json();
+    const { 
+      action,
+      usersToScan,
+      forceRefresh,
+      skipVectorTier,
+      minAiScore,
+    } = body;
+    
+    // בדוק אם כבר רצה סריקה
+    const runningScans = Array.from(activeScans.values()).filter(s => s.status === 'running');
+    if (runningScans.length > 0) {
+      return NextResponse.json({
+        success: false,
+        status: 'already_running',
+        message: 'סריקה כבר רצה כרגע',
+        scanId: runningScans[0].scanId,
+      });
+    }
+    
+    switch (action) {
+      case 'full_scan': { 
+        console.log(`[SymmetricScan API] Starting async full scan (forceRefresh: ${forceRefresh})`);
+        
+        // יצירת session מראש בדאטהבייס
+        const scanSession = await prisma.scanSession.create({
+          data: {
+            scanType: 'nightly',
+            status: 'running',
+          },
+        });
+        
+        const scanId = scanSession.id;
+        
+        // שמור ב-memory
+        activeScans.set(scanId, {
+          scanId,
+          status: 'running',
+          startedAt: new Date(),
+          progress: 0,
+          currentPhase: 'initializing',
+        });
+        
+        // הרץ את הסריקה ברקע (לא מחכים לסיום!)
+        runScanInBackground(scanId, {
+          forceRefresh: forceRefresh ?? false,
+          skipVectorTier: skipVectorTier ?? false,
+          minAiScore: minAiScore ?? 70,
+        });
+        
+        // מחזיר מיד עם scanId
+        return NextResponse.json({
+          success: true,
+          status: 'started',
+          message: 'הסריקה החלה ברקע',
+          scanId,
+        });
+      }
+      
+      case 'scan_users': {
+        if (!usersToScan || !Array.isArray(usersToScan) || usersToScan.length === 0) {
+          return NextResponse.json(
+            { error: "usersToScan array required" },
+            { status: 400 }
+          );
+        }
+        
+        console.log(`[SymmetricScan API] Starting async scan for ${usersToScan.length} users`);
+        
+        const scanSession = await prisma.scanSession.create({
+          data: {
+            scanType: 'manual',
+            status: 'running',
+          },
+        });
+        
+        const scanId = scanSession.id;
+        
+        activeScans.set(scanId, {
+          scanId,
+          status: 'running',
+          startedAt: new Date(),
+          progress: 0,
+          currentPhase: 'initializing',
+        });
+        
+        runScanInBackground(scanId, {
+          usersToScan,
+          forceRefresh: true,
+        });
+        
+        return NextResponse.json({
+          success: true,
+          status: 'started',
+          message: `סריקה ל-${usersToScan.length} משתמשים החלה`,
+          scanId,
+        });
+      }
 
-    // Get last completed scan from DB
-    const lastScan = await prisma.scanSession.findFirst({
-      where: { status: 'completed' },
-      orderBy: { completedAt: 'desc' }
-    });
-
-    return NextResponse.json({
-      status: 'idle',
-      scanId: null,
-      progress: {
-        phase: 'idle',
-        currentUserIndex: 0,
-        totalUsers: 0,
-        progressPercent: 0,
-        pairsEvaluated: 0,
-        pairsPassedQuickFilter: 0,
-        pairsPassedVectorFilter: 0,
-        pairsSentToAi: 0,
-        matchesFoundSoFar: 0,
-        message: lastScan 
-          ? `סריקה אחרונה: ${lastScan.matchesFound} התאמות (${new Date(lastScan.completedAt!).toLocaleString('he-IL')})`
-          : 'מוכן לסריקה',
-      },
-      error: null,
-    } satisfies BatchScanProgress);
-
+      case 'scan_single': { 
+        const { userId } = body;
+        
+        if (!userId) {
+          return NextResponse.json(
+            { error: "userId required" },
+            { status: 400 }
+          );
+        }
+        
+        console.log(`[SymmetricScan API] Scanning single user: ${userId}`);
+        
+        // סריקת משתמש בודד - מספיק מהירה לרוץ סינכרוני
+        const singleResult = await symmetricScanService.scanSingleUser(userId);
+        
+        return NextResponse.json({ 
+          success: true, 
+          ...singleResult 
+        });
+      }
+      
+      case 'scan_new_users': { 
+        console.log(`[SymmetricScan API] Starting async scan for new users`);
+        
+        const scanSession = await prisma.scanSession.create({
+          data: {
+            scanType: 'new_users',
+            status: 'running',
+          },
+        });
+        
+        const scanId = scanSession.id;
+        
+        activeScans.set(scanId, {
+          scanId,
+          status: 'running',
+          startedAt: new Date(),
+          progress: 0,
+          currentPhase: 'initializing',
+        });
+        
+        // הרץ ברקע
+        (async () => {
+          try {
+            const result = await symmetricScanService.scanNewUsers();
+            activeScans.set(scanId, {
+              ...activeScans.get(scanId)!,
+              status: 'completed',
+              progress: 100,
+              currentPhase: 'done',
+              result,
+            });
+          } catch (error) {
+            console.error('[SymmetricScan API] New users scan error:', error);
+            activeScans.set(scanId, {
+              ...activeScans.get(scanId)!,
+              status: 'failed',
+              error: error instanceof Error ? error.message : 'Unknown error',
+            });
+          }
+        })();
+        
+        return NextResponse.json({
+          success: true,
+          status: 'started',
+          message: 'סריקת משתמשים חדשים החלה',
+          scanId,
+        });
+      }
+      
+      case 'cancel': {
+        // ביטול סריקה (אם נתמך)
+        const { scanId: cancelScanId } = body;
+        if (cancelScanId && activeScans.has(cancelScanId)) {
+          const scan = activeScans.get(cancelScanId)!;
+          scan.status = 'failed';
+          scan.error = 'Cancelled by user';
+          
+          // עדכון בדאטהבייס
+          await prisma.scanSession.update({
+            where: { id: cancelScanId },
+            data: {
+              status: 'failed',
+              error: 'Cancelled by user',
+              completedAt: new Date(),
+            },
+          });
+          
+          return NextResponse.json({
+            success: true,
+            message: 'הסריקה בוטלה',
+          });
+        }
+        return NextResponse.json({
+          success: false,
+          error: 'Scan not found or not running',
+        }, { status: 404 });
+      }
+      
+      default:
+        return NextResponse.json(
+          { error: "Unknown action. Valid actions: full_scan, scan_users, scan_single, scan_new_users, cancel" },
+          { status: 400 }
+        );
+    }
+    
   } catch (error) {
-    console.error('[BatchScan] GET error:', error);
-    return NextResponse.json({
-      success: false,
-      error: error instanceof Error ? error.message : "Unknown error"
-    }, { status: 500 });
+    console.error("[SymmetricScan API] POST Error:", error);
+    
+    return NextResponse.json(
+      { 
+        error: "Scan failed",
+        details: error instanceof Error ? error.message : "Unknown error"
+      },
+      { status: 500 }
+    );
   }
 }
 
 // =============================================================================
-// SSE STREAM HELPER
-// =============================================================================
-
-function createSSEStream(scanId: string): Response {
-  const encoder = new TextEncoder();
-  
-  const stream = new ReadableStream({
-    start(controller) {
-      const sendEvent = (data: any) => {
-        const message = `data: ${JSON.stringify(data)}\n\n`;
-        controller.enqueue(encoder.encode(message));
-      };
-
-      // Send initial status
-      const scan = activeScans.get(scanId);
-      if (scan) {
-        sendEvent({
-          type: 'progress',
-          ...scan.progress,
-          status: scan.status,
-        });
-      }
-
-      // Poll for updates
-      const interval = setInterval(() => {
-        const currentScan = activeScans.get(scanId);
-        
-        if (!currentScan) {
-          sendEvent({ type: 'error', message: 'Scan not found' });
-          clearInterval(interval);
-          controller.close();
-          return;
-        }
-
-        sendEvent({
-          type: 'progress',
-          ...currentScan.progress,
-          status: currentScan.status,
-        });
-
-        // Close stream when done
-        if (currentScan.status === 'completed' || 
-            currentScan.status === 'failed' || 
-            currentScan.status === 'cancelled') {
-          
-          if (currentScan.result) {
-            sendEvent({
-              type: 'complete',
-              result: {
-                matchesFound: currentScan.result.stats.matchesFound,
-                newMatches: currentScan.result.stats.newMatches,
-                updatedMatches: currentScan.result.stats.updatedMatches,
-                durationMs: currentScan.result.stats.durationMs,
-              }
-            });
-          } else if (currentScan.error) {
-            sendEvent({
-              type: 'error',
-              error: currentScan.error,
-            });
-          }
-          
-          clearInterval(interval);
-          controller.close();
-        }
-      }, 1000); // Update every second
-
-      // Cleanup on close
-      return () => {
-        clearInterval(interval);
-      };
-    }
-  });
-
-  return new Response(stream, {
-    headers: {
-      'Content-Type': 'text/event-stream',
-      'Cache-Control': 'no-cache',
-      'Connection': 'keep-alive',
-    },
-  });
-}
-
-// =============================================================================
-// BACKGROUND SCAN RUNNER
+// Background Scan Runner
 // =============================================================================
 
 async function runScanInBackground(
-  scanId: string,
-  scanType: 'full' | 'incremental' | 'single' | 'new_users' | 'specific_users',
-  options: { 
-    userId?: string; 
-    userIds?: string[]; 
-    forceRefresh?: boolean 
-  }
-): Promise<void> {
-  
-  // Initialize active scan
-  const initialProgress: ScanProgress = {
-    phase: 'initializing',
-    currentUserIndex: 0,
-    totalUsers: 0,
-    progressPercent: 0,
-    stats: {
-      pairsEvaluated: 0,
-      pairsPassedQuickFilter: 0,
-      pairsPassedVectorFilter: 0,
-      pairsSentToAi: 0,
-      matchesFoundSoFar: 0,
-    },
-    message: 'מאתחל סריקה...',
-  };
-
-  const activeScan: ActiveScan = {
-    scanId,
-    scanSessionId: '',
-    status: 'running',
-    progress: initialProgress,
-    startedAt: new Date(),
-  };
-
-  activeScans.set(scanId, activeScan);
-
-  console.log(`[BatchScan] 🚀 Starting background scan: ${scanId} (type: ${scanType})`);
-
+  scanId: string, 
+  options: Parameters<typeof symmetricScanService.runSymmetricScan>[0]
+) {
   try {
-    // Progress callback
-    const onProgress = async (progress: ScanProgress) => {
+    // עדכון התקדמות
+    const updateProgress = (progress: number, phase: string) => {
       const scan = activeScans.get(scanId);
-      if (scan && scan.status !== 'cancelled') {
+      if (scan) {
         scan.progress = progress;
+        scan.currentPhase = phase;
       }
     };
-
-    let result: SymmetricScanResult;
-
-    switch (scanType) {
-   case 'single': { // 👈 הוספת סוגריים מסולסלים כאן
-        if (!options.userId) throw new Error('userId required for single scan');
-        const singleResult = await scanSingleUser(options.userId);
-        result = {
-          success: true,
-          scanSessionId: scanId,
-          stats: {
-            usersScanned: 1,
-            malesScanned: 0,
-            femalesScanned: 0,
-            pairsEvaluated: 0,
-            pairsPassedQuickFilter: 0,
-            pairsPassedVectorFilter: 0,
-            pairsPassedSoftScoring: 0,
-            pairsSentToAi: 0,
-            matchesFound: singleResult.matchesFound,
-            newMatches: singleResult.newMatches,
-            updatedMatches: 0,
-            durationMs: 0,
-            aiCallsCount: 0,
-          },
-          topMatches: [],
-        };
-        break;
-      } // 👈 סגירת סוגריים מסולסלים כאן
-      case 'new_users':
-        result = await scanNewUsers();
-        break;
-
-      case 'incremental':
-        result = await runIncrementalScan(onProgress);
-        break;
-
-      case 'specific_users':
-        result = await runSymmetricScan({
-          usersToScan: options.userIds,
-          forceRefresh: options.forceRefresh,
-          onProgress,
-        });
-        break;
-
-      case 'full':
-      default:
-        result = await runSymmetricScan({
-          forceRefresh: options.forceRefresh,
-          onProgress,
-        });
-        break;
-    }
-
-    // Update active scan with result
-    const scan = activeScans.get(scanId);
-    if (scan) {
-      scan.status = result.success ? 'completed' : 'failed';
-      scan.result = result;
-      scan.scanSessionId = result.scanSessionId;
-      scan.progress = {
-        phase: 'completed',
-        currentUserIndex: result.stats.usersScanned,
-        totalUsers: result.stats.usersScanned,
-        progressPercent: 100,
-        stats: {
-          pairsEvaluated: result.stats.pairsEvaluated,
-          pairsPassedQuickFilter: result.stats.pairsPassedQuickFilter,
-          pairsPassedVectorFilter: result.stats.pairsPassedVectorFilter,
-          pairsSentToAi: result.stats.pairsSentToAi,
-          matchesFoundSoFar: result.stats.matchesFound,
-        },
-        message: `הושלם! נמצאו ${result.stats.matchesFound} התאמות (${result.stats.newMatches} חדשות)`,
-      };
-      
-      if (result.error) {
-        scan.error = result.error;
-      }
-    }
-
-    console.log(`[BatchScan] ✅ Scan ${scanId} completed: ${result.stats.matchesFound} matches`);
-
-  } catch (error) {
-    console.error(`[BatchScan] ❌ Scan ${scanId} failed:`, error);
     
-    const scan = activeScans.get(scanId);
-    if (scan) {
-      scan.status = 'failed';
-      scan.error = error instanceof Error ? error.message : 'Unknown error';
-      scan.progress.phase = 'failed';
-      scan.progress.message = `שגיאה: ${scan.error}`;
-    }
+    updateProgress(5, 'loading_users');
+    
+    // הרץ את הסריקה
+    const result = await symmetricScanService.runSymmetricScan(options);
+    
+    // עדכון סופי
+    activeScans.set(scanId, {
+      scanId,
+      status: result.success ? 'completed' : 'failed',
+      startedAt: activeScans.get(scanId)?.startedAt || new Date(),
+      progress: 100,
+      currentPhase: 'done',
+      result,
+      error: result.error,
+    });
+    
+    console.log(`[SymmetricScan API] Background scan ${scanId} completed:`, {
+      success: result.success,
+      matchesFound: result.stats?.matchesFound,
+      newMatches: result.stats?.newMatches,
+    });
+    
+    // נקה מה-memory אחרי 10 דקות
+    setTimeout(() => {
+      activeScans.delete(scanId);
+    }, 10 * 60 * 1000);
+    
+  } catch (error) {
+    console.error(`[SymmetricScan API] Background scan ${scanId} failed:`, error);
+    
+    activeScans.set(scanId, {
+      scanId,
+      status: 'failed',
+      startedAt: activeScans.get(scanId)?.startedAt || new Date(),
+      progress: 0,
+      currentPhase: 'error',
+      error: error instanceof Error ? error.message : 'Unknown error',
+    });
+    
+    // עדכון בדאטהבייס
+    await prisma.scanSession.update({
+      where: { id: scanId },
+      data: {
+        status: 'failed',
+        error: error instanceof Error ? error.message : 'Unknown error',
+        completedAt: new Date(),
+      },
+    }).catch(console.error);
   }
 }

@@ -1355,13 +1355,6 @@ model ScanSession {
   aiCallsCount          Int       @default(0)
   aiTokensUsed          Int       @default(0)
   
-
-   currentPhase          String?   // הפאזה הנוכחית של הסריקה
-   currentUserIndex      Int       @default(0)     // אינדקס המשתמש הנוכחי
-  totalUsersToProcess   Int       @default(0)     // סה"כ משתמשים לעיבוד
-  progressPercent       Int       @default(0)     // אחוז התקדמות
-   currentUserName       String?   // שם המשתמש הנוכחי (לתצוגה)
-
   // סטטוס
   status                String    @default("running") // running/completed/failed/partial
   error                 String?   @db.Text

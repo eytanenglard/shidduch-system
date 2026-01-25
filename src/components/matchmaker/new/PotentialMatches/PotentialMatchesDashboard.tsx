@@ -86,8 +86,6 @@ import { usePotentialMatches } from './hooks/usePotentialMatches';
 import type {
   PotentialMatchFilterStatus,
   PotentialMatchSortBy,
-  PotentialMatchesStats as FullStatsType,
-  LastScanInfo as FullLastScanInfo
 } from './types/potentialMatches';
 import type { ProfilePageDictionary } from '@/types/dictionary';
 import type { MatchmakerPageDictionary } from '@/types/dictionaries/matchmaker';
@@ -122,8 +120,6 @@ const SORT_OPTIONS: { value: PotentialMatchSortBy; label: string }[] = [
   { value: 'score_asc', label: 'ציון (נמוך לגבוה)' },
   { value: 'date_desc', label: 'תאריך (חדש לישן)' },
   { value: 'date_asc', label: 'תאריך (ישן לחדש)' },
-  { value: 'male_waiting_time', label: 'זמן המתנה (גבר)' },
-  { value: 'female_waiting_time', label: 'זמן המתנה (אישה)' },
 ];
 
 // =============================================================================
@@ -206,8 +202,7 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
     bulkReview,
     startScan,
     scanProgress,
-    // FIX: Renamed property from hook (was isScanRunning in V2, now isScanning in V3)
-    isScanning, 
+    isScanRunning,
     selectedMatchIds,
     toggleSelection,
     selectAll,
@@ -463,14 +458,13 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
                 />
                 <Button
                   onClick={() => setConfirmScanDialog(true)}
-                  disabled={isScanning}
+                  disabled={isScanRunning}
                   className="bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white shadow-lg"
                 >
-                  {isScanning ? (
+                  {isScanRunning ? (
                     <>
                       <Loader2 className="w-4 h-4 ml-2 animate-spin" />
-                      {/* FIX: Use progressPercent from new V3 hook */}
-                      סריקה... {scanProgress?.progressPercent || 0}%
+                      סריקה... {scanProgress?.progress || 0}%
                     </>
                   ) : (
                     <>
@@ -510,12 +504,10 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
           <>
             {/* Stats */}
             <PotentialMatchesStats
-              // FIX: Cast stats to FullStatsType because hook definition is partial
-              // but API returns full data
-              stats={stats as unknown as FullStatsType} 
-              lastScanInfo={lastScanInfo as unknown as FullLastScanInfo}
-              isScanRunning={isScanning}
-              scanProgress={scanProgress?.progressPercent || 0}
+              stats={stats}
+              lastScanInfo={lastScanInfo}
+              isScanRunning={isScanRunning}
+              scanProgress={scanProgress?.progress || 0}
             />
 
             {/* Filters & Controls */}
@@ -558,8 +550,7 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
                 <Select
                   value={filters.sortBy}
                   onValueChange={(value) =>
-                    // FIX: Type assertion here to allow extra sort options
-                    setFilters({ sortBy: value as any })
+                    setFilters({ sortBy: value as PotentialMatchSortBy })
                   }
                 >
                   <SelectTrigger className="w-[180px]">
@@ -748,8 +739,7 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
                     {filteredMatches.map((match) => (
                       <PotentialMatchCard
                         key={match.id}
-                        // FIX: Cast match to any if needed to satisfy type checker between hook and component
-                        match={match as any}
+                        match={match}
                         onCreateSuggestion={(id) =>
                           setCreateSuggestionDialog(id)
                         }
