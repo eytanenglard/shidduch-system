@@ -72,6 +72,7 @@ virtualProfiles       VirtualProfile[]    @relation("MatchmakerVirtualProfiles")
   femaleScannedPairs  ScannedPair[] @relation("FemaleScannedPairs")
  hiddenByMatchmakers   HiddenCandidate[] @relation("HiddenCandidates")
   hiddenCandidates      HiddenCandidate[] @relation("HiddenByMatchmaker")
+  alerts      UserAlert[]
 
   @@index([email])
   @@index([role])
@@ -235,6 +236,59 @@ preferredReligiousJourneys  ReligiousJourney[] @default([])
     cvUrl                   String? // URL to the CV file stored in Cloudinary
   cvSummary               String? @db.Text // AI-generated summary of the CV
 conversationSummary     String? @db.Text 
+
+
+
+  // ==========================================================================
+  // 🆕 Priority System
+  // ==========================================================================
+  priorityScore           Float?    @default(50)      // ציון עדיפות 0-100
+  priorityCategory        String?   @default("MEDIUM") // CRITICAL/HIGH/MEDIUM/LOW
+  priorityUpdatedAt       DateTime?                    // מתי עודכן הציון
+  
+  // ==========================================================================
+  // 🆕 Scanning & Suggestions Tracking
+  // ==========================================================================
+  lastScannedAt           DateTime?                    // מתי נסרק לאחרונה
+  lastSuggestedAt         DateTime?                    // מתי קיבל הצעה אחרונה
+  pendingMatchesCount     Int       @default(0)        // כמה PotentialMatches ממתינים
+  
+  // ==========================================================================
+  // 🆕 Engagement Metrics
+  // ==========================================================================
+  lastActiveAt            DateTime?                    // פעילות אחרונה
+  suggestionsReceived     Int       @default(0)        // כמה הצעות קיבל
+  suggestionsAccepted     Int       @default(0)        // כמה הצעות קיבל (אישר)
+  suggestionsDeclined     Int       @default(0)        // כמה הצעות דחה
+  averageResponseTimeHours Float?                      // זמן תגובה ממוצע בשעות
+  
+  // ==========================================================================
+  // 🆕 Matchmaker Impressions (הערכה סובייקטיבית)
+  // ==========================================================================
+  matchmakerImpression    String?   @db.Text           // התרשמות כללית
+  impressionScore         Int?                         // ציון התרשמות 1-10
+  redFlags                String[]  @default([])       // דגלים אדומים
+  greenFlags              String[]  @default([])       // נקודות חיוביות
+  difficultyScore         Int?      @default(5)        // קושי בשידוך 1-10
+  readinessLevel          ReadinessLevel? @default(READY)
+  
+  // ==========================================================================
+  // 🆕 Profile Completeness
+  // ==========================================================================
+  profileCompletenessScore Float?   @default(0)        // אחוז מילוי 0-100
+  missingFields           String[]  @default([])       // שדות חסרים
+  
+  // ==========================================================================
+  // 🆕 Derived Stats (מחושב מהדאטה)
+  // ==========================================================================
+  acceptanceRate          Float?                       // שיעור קבלת הצעות
+  avgMatchScore           Float?                       // ציון התאמה ממוצע
+  
+  // Relations
+  rejectionFeedbacks      RejectionFeedback[] @relation("RejectedUser")
+  givenRejectionFeedbacks RejectionFeedback[] @relation("RejectingUser")
+
+
 }
 
 model ProfileVector {
@@ -1011,6 +1065,35 @@ model PotentialMatch {
   female          User     @relation("FemaleMatches", fields: [femaleUserId], references: [id], onDelete: Cascade)
   suggestion      MatchSuggestion? @relation(fields: [suggestionId], references: [id])
   
+
+    // ==========================================================================
+  // 🆕 Asymmetric Scoring - ציונים נפרדים לכל צד
+  // ==========================================================================
+  scoreForMale          Float?                        // כמה היא מתאימה לו
+  scoreForFemale        Float?                        // כמה הוא מתאים לה
+  asymmetryGap          Float?                        // פער בין הציונים
+  
+  // ==========================================================================
+  // 🆕 Multi-Dimensional Scores
+  // ==========================================================================
+  surfaceMatchScore     Float?                        // התאמה "על הנייר"
+  valuesAlignmentScore  Float?                        // התאמת ערכים
+  personalityScore      Float?                        // דינמיקת אישיות
+  practicalFitScore     Float?                        // התאמה מעשית
+  
+  // ==========================================================================
+  // 🆕 Confidence & Quality
+  // ==========================================================================
+  confidenceLevel       Float?    @default(0.5)       // רמת ביטחון בציון 0-1
+  dataQuality           String?   @default("medium")  // low/medium/high
+  
+  // ==========================================================================
+  // 🆕 Exploration Flag
+  // ==========================================================================
+  isExploratoryMatch    Boolean   @default(false)     // האם זו הצעה "ניסויית"
+  explorationReason     String?                       // למה נבחרה כניסוי
+
+
   // Indexes
   @@unique([maleUserId, femaleUserId])
   @@index([aiScore(sort: Desc)])
@@ -1103,4 +1186,184 @@ model HiddenCandidate {
   @@unique([matchmakerId, candidateId])
   @@index([matchmakerId])
   @@index([candidateId])
+}
+
+enum AlertType {
+  NEW_USER_NO_SUGGESTION      // משתמש חדש 48+ שעות בלי הצעה
+  LONG_WAIT                   // מחכה 10+ ימים להצעה
+  HIGH_DIFFICULTY             // קושי גבוה בשידוך (הרבה דחיות)
+  INACTIVE_WITH_MATCHES       // יש לו התאמות אבל לא פעיל
+  PROFILE_INCOMPLETE          // פרופיל פחות מ-50% מלא
+  NO_POTENTIAL_MATCHES        // אין לו התאמות במערכת
+  STALE_MATCHES               // ההתאמות שלו ישנות מדי
+  HIGH_REJECTION_RATE         // שיעור דחיות גבוה
+  NEW_HIGH_QUALITY_MATCH      // נמצאה התאמה איכותית חדשה
+}
+
+enum AlertSeverity {
+  CRITICAL    // 🔴 דחוף - לטפל עכשיו
+  HIGH        // 🟠 גבוה - לטפל היום
+  MEDIUM      // 🟡 בינוני - לטפל השבוע
+  LOW         // 🟢 נמוך - לידיעה
+  INFO        // 🔵 מידע
+}
+
+enum RejectionCategory {
+  // סיבות אובייקטיביות
+  AGE_GAP                     // פער גיל גדול מדי
+  RELIGIOUS_GAP               // פער רמה דתית
+  BACKGROUND_GAP              // פער רקע/עדה
+  EDUCATION_GAP               // פער השכלה/קריירה
+  GEOGRAPHIC_GAP              // פער גיאוגרפי
+  KNOWS_PERSONALLY            // מכיר/ה אישית
+  
+  // סיבות סובייקטיביות
+  NOT_ATTRACTED               // לא מושך/ת
+  NOT_INTERESTING             // לא מעניין/ת
+  NO_CONNECTION               // לא הרגשתי חיבור
+  GUT_FEELING                 // תחושת בטן שלילית
+  SOMETHING_OFF               // משהו לא הסתדר
+  
+  // סיבות תזמון
+  NOT_AVAILABLE_NOW           // לא זמין/ה כרגע
+  IN_PROCESS_WITH_OTHER       // בתהליך עם מישהו אחר
+  NEEDS_TIME                  // צריך/ה זמן לחשוב
+  EXTERNAL_PRESSURE           // לחץ חיצוני
+  
+  // Red Flags
+  INCONSISTENT_STORY          // חוסר עקביות בסיפור
+  PROBLEMATIC_BEHAVIOR        // התנהגות בעייתית
+  UNREALISTIC_EXPECTATIONS    // ציפיות לא ריאליסטיות
+  CONCERNING_HISTORY          // היסטוריה מדאיגה
+  
+  // אחר
+  OTHER                       // סיבה אחרת
+}
+
+enum ReadinessLevel {
+  NOT_READY           // 1 - לא מוכן כלל
+  UNCERTAIN           // 2 - לא בטוח
+  SOMEWHAT_READY      // 3 - מוכן חלקית
+  READY               // 4 - מוכן
+  VERY_READY          // 5 - מוכן מאוד ופעיל
+}
+
+
+
+model UserAlert {
+  id            String         @id @default(cuid())
+  
+  // הקשר למשתמש
+  userId        String
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // פרטי ההתראה
+  type          AlertType
+  severity      AlertSeverity
+  title         String                              // כותרת קצרה
+  message       String         @db.Text             // הודעה מפורטת
+  data          Json?                               // מידע נוסף (JSON)
+  
+  // פעולה מומלצת
+  actionType    String?                             // סוג הפעולה המומלצת
+  actionUrl     String?                             // קישור לפעולה
+  
+  // סטטוס
+  isRead        Boolean        @default(false)
+  isDismissed   Boolean        @default(false)
+  dismissedAt   DateTime?
+  dismissedBy   String?                             // ID של מי שדחה
+  dismissReason String?                             // סיבת הדחייה
+  
+  // מתי ההתראה רלוונטית
+  expiresAt     DateTime?                           // תפוגה אוטומטית
+  
+  // Timestamps
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  
+  @@index([userId])
+  @@index([severity])
+  @@index([type])
+  @@index([isDismissed, isRead])
+  @@index([createdAt])
+}
+
+// =============================================================================
+// 🆕 Model RejectionFeedback - למידה מדחיות
+// =============================================================================
+
+model RejectionFeedback {
+  id                  String            @id @default(cuid())
+  
+  // הזוג
+  rejectedUserId      String                          // מי נדחה
+  rejectingUserId     String                          // מי דחה (אם ידוע)
+  
+  // הקשר להצעה
+  suggestionId        String?                         // MatchSuggestion אם רלוונטי
+  potentialMatchId    String?                         // PotentialMatch אם רלוונטי
+  
+  // פרטי הדחייה
+  category            RejectionCategory               // קטגוריה ראשית
+  subcategory         String?                         // תת-קטגוריה
+  freeText            String?           @db.Text      // הסבר חופשי
+  
+  // מי תיעד
+  recordedBy          String                          // ID של השדכן
+  
+  // האם הדחייה הייתה צפויה
+  wasExpected         Boolean?                        // האם השדכן ציפה לזה
+  
+  // Timestamps
+  createdAt           DateTime          @default(now())
+  
+  // Relations
+  rejectedUser        Profile           @relation("RejectedUser", fields: [rejectedUserId], references: [id], onDelete: Cascade)
+  rejectingUser       Profile           @relation("RejectingUser", fields: [rejectingUserId], references: [id], onDelete: Cascade)
+  
+  @@index([rejectedUserId])
+  @@index([rejectingUserId])
+  @@index([category])
+  @@index([createdAt])
+}
+
+
+model ScanSession {
+  id                    String    @id @default(cuid())
+  
+  // סוג הסריקה
+  scanType              String                        // nightly/hourly/manual/user_triggered
+  
+  // סטטיסטיקות
+  totalUsersScanned     Int       @default(0)
+  malesScanned          Int       @default(0)
+  femalesScanned        Int       @default(0)
+  pairsEvaluated        Int       @default(0)
+  matchesFound          Int       @default(0)
+  newMatches            Int       @default(0)
+  updatedMatches        Int       @default(0)
+  
+  // פילטרים שהופעלו
+  pairsSkippedByAge     Int       @default(0)
+  pairsSkippedByReligion Int      @default(0)
+  pairsSkippedByHistory Int       @default(0)
+  pairsSkippedByVector  Int       @default(0)
+  
+  // ביצועים
+  durationMs            Int?
+  aiCallsCount          Int       @default(0)
+  aiTokensUsed          Int       @default(0)
+  
+  // סטטוס
+  status                String    @default("running") // running/completed/failed/partial
+  error                 String?   @db.Text
+  
+  // Timestamps
+  startedAt             DateTime  @default(now())
+  completedAt           DateTime?
+  
+  @@index([scanType])
+  @@index([status])
+  @@index([startedAt])
 }

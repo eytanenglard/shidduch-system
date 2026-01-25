@@ -36,7 +36,7 @@ import {
   HeartHandshake,
   MapPin,
   EyeOff,
-  Bookmark, 
+  Bookmark,
   Eye,
   MoreHorizontal,
   Send,
@@ -58,6 +58,11 @@ import { formatDistanceToNow } from 'date-fns';
 import { he } from 'date-fns/locale';
 import type { PotentialMatch, ScoreBreakdown } from './types/potentialMatches';
 
+// --- New Integration: Rejection Feedback ---
+import RejectionFeedbackModal, {
+  useRejectionFeedback,
+} from './RejectionFeedbackModal';
+
 // =============================================================================
 // TYPES
 // =============================================================================
@@ -68,7 +73,7 @@ interface PotentialMatchCardProps {
   onDismiss: (matchId: string) => void;
   onReview: (matchId: string) => void;
   onRestore: (matchId: string) => void;
-   onSave: (matchId: string) => void;
+  onSave: (matchId: string) => void;
   onViewProfile: (userId: string) => void;
 
   // New Action Callbacks
@@ -79,7 +84,7 @@ interface PotentialMatchCardProps {
   onToggleSelect?: (matchId: string) => void;
   showSelection?: boolean;
   className?: string;
-   onHideCandidate: (candidate: CandidateToHide) => void;
+  onHideCandidate: (candidate: CandidateToHide) => void;
   hiddenCandidateIds?: Set<string>;
 }
 
@@ -101,38 +106,6 @@ const getScoreBgColor = (score: number): string => {
   return 'from-gray-500 to-slate-500';
 };
 
-const getBackgroundBadge = (compatibility: string | null) => {
-  switch (compatibility) {
-    case 'excellent':
-      return {
-        label: 'רקע מצוין',
-        color: 'bg-emerald-100 text-emerald-700 border-emerald-200',
-      };
-    case 'good':
-      return {
-        label: 'רקע טוב',
-        color: 'bg-blue-100 text-blue-700 border-blue-200',
-      };
-    case 'possible':
-      return {
-        label: 'רקע אפשרי',
-        color: 'bg-amber-100 text-amber-700 border-amber-200',
-      };
-    case 'problematic':
-      return {
-        label: 'פער רקע',
-        color: 'bg-orange-100 text-orange-700 border-orange-200',
-      };
-    case 'not_recommended':
-      return {
-        label: 'רקע בעייתי',
-        color: 'bg-red-100 text-red-700 border-red-200',
-      };
-    default:
-      return null;
-  }
-};
-
 const getStatusBadge = (status: string) => {
   switch (status) {
     case 'PENDING':
@@ -151,6 +124,12 @@ const getStatusBadge = (status: string) => {
       };
     case 'DISMISSED':
       return { label: 'נדחה', color: 'bg-gray-100 text-gray-700', icon: X };
+    case 'SHORTLISTED':
+      return {
+        label: 'שמור בצד',
+        color: 'bg-purple-100 text-purple-700',
+        icon: Bookmark,
+      };
     default:
       return { label: status, color: 'bg-gray-100 text-gray-700', icon: Clock };
   }
@@ -183,7 +162,7 @@ const CandidatePreview: React.FC<{
   onViewProfile: () => void;
   onAnalyze: () => void;
   onFeedback: () => void;
-   onHide: (candidate: CandidateToHide) => void; // הוסף
+  onHide: (candidate: CandidateToHide) => void;
 }> = ({
   candidate,
   gender,
@@ -198,22 +177,17 @@ const CandidatePreview: React.FC<{
   const bgGradient =
     gender === 'male' ? 'from-blue-50 to-cyan-50' : 'from-pink-50 to-rose-50';
 
-  // --- לוגיקה מעודכנת לשליחת וואטסאפ (תואם ל-MinimalCard) ---
   const handleWhatsApp = (e: React.MouseEvent) => {
     e.stopPropagation();
 
-    // ניקוי המספר
     let cleanPhone = candidate.phone?.replace(/\D/g, '') || '';
     if (cleanPhone.startsWith('0')) {
       cleanPhone = '972' + cleanPhone.substring(1);
     }
 
     if (cleanPhone) {
-      // ההודעה הקבועה שנמצאת ב-MinimalCard
       const message = `היי ${candidate.firstName} זה איתן מנשמהטק. אני מאוד שמח שנרשמת למערכת שלנו ואני מקווה מאוד לעזור לך למצוא את הזוגיות שתמיד חלמת עליה`;
       const encodedMessage = encodeURIComponent(message);
-
-      // פתיחת החלון
       window.open(
         `https://wa.me/${cleanPhone}?text=${encodedMessage}`,
         '_blank'
@@ -230,7 +204,6 @@ const CandidatePreview: React.FC<{
       )}
       onClick={onViewProfile}
     >
-      {/* תמונה ופרטים */}
       <div className="flex-1 cursor-pointer">
         <div className="relative w-16 h-16 mx-auto mb-2 rounded-full overflow-hidden border-2 border-white shadow-md">
           {candidate.mainImage ? (
@@ -275,9 +248,8 @@ const CandidatePreview: React.FC<{
         </div>
       </div>
 
-      {/* --- אזור כפתורי פעולות (חדש) --- */}
+      {/* Actions */}
       <div className="mt-2 pt-2 border-t border-gray-200/50 flex items-center justify-center gap-2">
-        {/* כפתור וואטסאפ */}
         {candidate.phone && (
           <TooltipProvider>
             <Tooltip>
@@ -298,7 +270,6 @@ const CandidatePreview: React.FC<{
           </TooltipProvider>
         )}
 
-        {/* כפתור ניתוח AI */}
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
@@ -320,7 +291,6 @@ const CandidatePreview: React.FC<{
           </Tooltip>
         </TooltipProvider>
 
-        {/* כפתור משוב/מייל */}
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
@@ -342,34 +312,34 @@ const CandidatePreview: React.FC<{
           </Tooltip>
         </TooltipProvider>
       </div>
-{/* כפתור הסתרה */}
-<TooltipProvider>
-  <Tooltip>
-    <TooltipTrigger asChild>
-      <Button
-        variant="ghost"
-        size="icon"
-        className="h-7 w-7 rounded-full bg-white/60 hover:bg-amber-100 hover:text-amber-600 shadow-sm border border-transparent hover:border-amber-200 transition-all"
-        onClick={(e) => {
-          e.stopPropagation();
-          onHide({
-            id: candidate.id,
-            firstName: candidate.firstName,
-            lastName: candidate.lastName,
-            mainImage: candidate.mainImage,
-            gender: gender === 'male' ? 'MALE' : 'FEMALE',
-          });
-        }}
-      >
-        <EyeOff className="w-3.5 h-3.5" />
-      </Button>
-    </TooltipTrigger>
-    <TooltipContent>
-      <p>הסתר זמנית</p>
-    </TooltipContent>
-  </Tooltip>
-</TooltipProvider>
-      {/* התראה על הצעה פעילה */}
+
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7 rounded-full bg-white/60 hover:bg-amber-100 hover:text-amber-600 shadow-sm border border-transparent hover:border-amber-200 transition-all absolute top-2 right-2"
+              onClick={(e) => {
+                e.stopPropagation();
+                onHide({
+                  id: candidate.id,
+                  firstName: candidate.firstName,
+                  lastName: candidate.lastName,
+                  mainImage: candidate.mainImage,
+                  gender: gender === 'male' ? 'MALE' : 'FEMALE',
+                });
+              }}
+            >
+              <EyeOff className="w-3.5 h-3.5" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>הסתר זמנית</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+
       {activeSuggestion && (
         <div className="mt-2 text-center">
           <Badge
@@ -451,7 +421,7 @@ const PotentialMatchCard: React.FC<PotentialMatchCardProps> = ({
   onViewProfile,
   onAnalyzeCandidate,
   onProfileFeedback,
-  onSave, 
+  onSave,
   isSelected = false,
   onToggleSelect,
   showSelection = false,
@@ -461,12 +431,47 @@ const PotentialMatchCard: React.FC<PotentialMatchCardProps> = ({
   const [showDetails, setShowDetails] = useState(false);
   const [showReasoningDialog, setShowReasoningDialog] = useState(false);
 
+  // --- Rejection Feedback Hook ---
+  const rejectionFeedback = useRejectionFeedback();
+
   const statusBadge = getStatusBadge(match.status);
   const StatusIcon = statusBadge.icon;
-  // const backgroundBadge = getBackgroundBadge(match.backgroundCompatibility); // Unused currently in JSX
 
   const isDismissed = match.status === 'DISMISSED';
   const isSent = match.status === 'SENT';
+
+  // --- Handlers ---
+
+  // פתיחת מודל הדחייה
+  const handleDismissWithFeedback = () => {
+    rejectionFeedback.open({
+      // אנו מגדירים את ה-rejecting/rejected לצורכי תיעוד ב-DB.
+      // במקרה של דחיית התאמה ע"י שדכן, זה פחות קריטי מי דוחה את מי,
+      // אך נבחר קונבנציה: הזכר דוחה את הנקבה (או ההפך) רק כדי למלא את השדות.
+      // אפשר גם לאפשר לשדכן לבחור מי לא התאים, אך למען הפשטות כרגע:
+      rejectedUser: {
+        id: match.female.id,
+        firstName: match.female.firstName,
+        lastName: match.female.lastName,
+      },
+      rejectingUser: {
+        id: match.male.id,
+        firstName: match.male.firstName,
+        lastName: match.male.lastName,
+      },
+      potentialMatchId: match.id,
+    });
+  };
+
+  // שליחת הפידבק וביצוע הדחייה בפועל
+  const handleFeedbackSubmit = async (data: any) => {
+    try {
+      await rejectionFeedback.submit(data); // שמירת הפידבק ב-DB
+      onDismiss(match.id); // עדכון סטטוס ההתאמה ל-DISMISSED בממשק
+    } catch (error) {
+      console.error('Failed to submit feedback', error);
+    }
+  };
 
   return (
     <>
@@ -551,14 +556,14 @@ const PotentialMatchCard: React.FC<PotentialMatchCardProps> = ({
                         <HeartHandshake className="w-4 h-4 ml-2 text-green-600" />
                         צור הצעה
                       </DropdownMenuItem>
-                      
+
                       <DropdownMenuItem onClick={() => onReview(match.id)}>
                         <Eye className="w-4 h-4 ml-2 text-blue-600" />
                         סמן כנבדק
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
                       <DropdownMenuItem
-                        onClick={() => onDismiss(match.id)}
+                        onClick={handleDismissWithFeedback}
                         className="text-red-600"
                       >
                         <X className="w-4 h-4 ml-2" />
@@ -578,18 +583,17 @@ const PotentialMatchCard: React.FC<PotentialMatchCardProps> = ({
 
             {/* Candidates Preview Row */}
             <div className="flex gap-3 mb-4">
-            <CandidatePreview
+              <CandidatePreview
                 candidate={match.male}
                 gender="male"
                 activeSuggestion={match.maleActiveSuggestion}
                 onViewProfile={() => onViewProfile(match.male.id)}
-                // העברת הפונקציות החדשות לכרטיס הזכר
                 onAnalyze={() => onAnalyzeCandidate(match.male)}
                 onFeedback={() => onProfileFeedback(match.male)}
                 onHide={onHideCandidate}
               />
 
-              {/* Heart Connector - נשאר ללא שינוי, מוצג כאן לקונטקסט */}
+              {/* Heart Connector */}
               <div className="flex flex-col justify-center items-center gap-1 z-10">
                 <div
                   className={cn(
@@ -606,7 +610,6 @@ const PotentialMatchCard: React.FC<PotentialMatchCardProps> = ({
                 gender="female"
                 activeSuggestion={match.femaleActiveSuggestion}
                 onViewProfile={() => onViewProfile(match.female.id)}
-                // העברת הפונקציות החדשות לכרטיס הנקבה
                 onAnalyze={() => onAnalyzeCandidate(match.female)}
                 onFeedback={() => onProfileFeedback(match.female)}
                 onHide={onHideCandidate}
@@ -678,21 +681,21 @@ const PotentialMatchCard: React.FC<PotentialMatchCardProps> = ({
                   <HeartHandshake className="w-4 h-4 ml-2" />
                   צור הצעה
                 </Button>
-                  {match.status !== 'SHORTLISTED' && (
-                    <Button
-                      variant="outline"
-                      className="h-9 px-3 text-purple-600 border-purple-200 hover:bg-purple-50"
-                      onClick={() => onSave(match.id)}
-                      title="שמור בצד"
-                    >
-                      <Bookmark className="w-4 h-4" />
-                    </Button>
+                {match.status !== 'SHORTLISTED' && (
+                  <Button
+                    variant="outline"
+                    className="h-9 px-3 text-purple-600 border-purple-200 hover:bg-purple-50"
+                    onClick={() => onSave(match.id)}
+                    title="שמור בצד"
+                  >
+                    <Bookmark className="w-4 h-4" />
+                  </Button>
                 )}
 
                 <Button
                   variant="outline"
                   className="flex-1 h-9 text-sm"
-                  onClick={() => onDismiss(match.id)}
+                  onClick={handleDismissWithFeedback} // Updated to use feedback modal
                 >
                   <X className="w-4 h-4 ml-2" />
                   דחה
@@ -700,7 +703,7 @@ const PotentialMatchCard: React.FC<PotentialMatchCardProps> = ({
               </div>
             )}
 
-            {/* ... Link to Suggestion if sent ... */}
+            {/* Link to Suggestion if sent */}
             {isSent && match.suggestionId && (
               <div className="mt-4 p-2 rounded-lg bg-green-50 border border-green-200 text-center">
                 <Button
@@ -737,6 +740,19 @@ const PotentialMatchCard: React.FC<PotentialMatchCardProps> = ({
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Rejection Feedback Modal Integration */}
+      {rejectionFeedback.context && (
+        <RejectionFeedbackModal
+          isOpen={rejectionFeedback.isOpen}
+          onClose={rejectionFeedback.close}
+          onSubmit={handleFeedbackSubmit}
+          rejectedUser={rejectionFeedback.context.rejectedUser}
+          rejectingUser={rejectionFeedback.context.rejectingUser}
+          potentialMatchId={match.id}
+          suggestionId={undefined} // Potential matches usually don't have suggestionId yet
+        />
+      )}
     </>
   );
 };
