@@ -7,7 +7,7 @@ import prisma from '@/lib/prisma';
 import { UserRole } from '@prisma/client';
 import { notificationService } from '@/components/matchmaker/suggestions/services/notification/NotificationService';
 import { initNotificationService } from '@/components/matchmaker/suggestions/services/notification/initNotifications';
-import { EmailDictionary } from '@/types/dictionary';
+// שינוי 1: הסרנו את EmailDictionary הבודד כי אנחנו לא משתמשים בו כטיפוס ישיר יותר
 import { getDictionary } from '@/lib/dictionaries';
 
 initNotificationService();
@@ -30,17 +30,23 @@ export async function POST(
       return NextResponse.json({ error: 'Unauthorized - Matchmaker or Admin access required' }, { status: 403 });
     }
 
-    const url = new URL(req.url);
-    const locale: 'he' | 'en' = (url.searchParams.get('locale') === 'en') ? 'en' : 'he';
-    
-    console.log(`[API /message] Received request with locale: '${locale}'`);
+    // ========================= תיקון: טעינת שני המילונים =========================
+    // במקום לטעון מילון אחד לפי ה-URL, אנו טוענים את שניהם
+    // זה מאפשר לשירות ההתראות לבחור את המילון הנכון לפי שפת המקבל
+    const [dictHe, dictEn] = await Promise.all([
+      getDictionary('he'),
+      getDictionary('en')
+    ]);
 
-    const dictionary = await getDictionary(locale);
-    const emailDict: EmailDictionary = dictionary.email;
+    const dictionaries = {
+      he: dictHe.email,
+      en: dictEn.email
+    };
 
-    if (!emailDict) {
-        throw new Error(`Email dictionary for locale '${locale}' could not be loaded.`);
+    if (!dictionaries.he || !dictionaries.en) {
+        throw new Error(`Email dictionaries could not be loaded.`);
     }
+    // =========================================================================
 
     const body = await req.json();
     const { partyType, customMessage, channels } = body;
@@ -62,14 +68,23 @@ export async function POST(
       return NextResponse.json({ error: 'Suggestion not found' }, { status: 404 });
     }
 
+    // חילוץ העדפות שפה מהמשתמשים (אם קיים שדה language ב-User, אחרת ברירת מחדל)
+    const languagePrefs = {
+      firstParty: (suggestion.firstParty as any).language || 'he',
+      secondParty: (suggestion.secondParty as any).language || 'he',
+      matchmaker: (suggestion.matchmaker as any).language || 'he',
+    };
+
+    // ========================= תיקון: קריאה לשירות עם הפרמטרים החדשים =========================
     await notificationService.handleSuggestionStatusChange(
       suggestion, 
-      emailDict,
+      dictionaries, // מעבירים את האובייקט עם he ו-en
       {
         channels: channels,
         notifyParties: [partyType],
         customMessage: customMessage
-      }
+      },
+      languagePrefs // מעבירים את העדפות השפה
     );
 
     return NextResponse.json({ success: true, message: 'Message sent successfully.' }, { status: 200 });
