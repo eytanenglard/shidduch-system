@@ -3,9 +3,7 @@
 import { MatchSuggestionStatus, User, MatchSuggestion, Profile } from "@prisma/client";
 import prisma from "@/lib/prisma";
 import { notificationService } from "../notification/NotificationService";
-// ========================= שלב 1: ייבוא טיפוס המילון =========================
 import type { EmailDictionary } from "@/types/dictionary";
-// =========================================================================
 
 type UserWithProfile = User & {
   profile: Profile | null;
@@ -23,6 +21,12 @@ type TransitionOptions = {
   notifyParties?: ('first' | 'second' | 'matchmaker')[];
 };
 
+type LanguagePrefs = {
+  firstParty: 'he' | 'en';
+  secondParty: 'he' | 'en';
+  matchmaker: 'he' | 'en';
+};
+
 export class StatusTransitionService {
   private static instance: StatusTransitionService;
   private constructor() {}
@@ -34,14 +38,17 @@ export class StatusTransitionService {
     return StatusTransitionService.instance;
   }
 
-  // ========================= שלב 2: עדכון חתימת הפונקציה =========================
-  // הפונקציה מקבלת כעת את המילון (dictionary) כפרמטר שלישי, שהוא חובה.
+  /**
+   * ביצוע מעבר סטטוס להצעה.
+   * הפונקציה עודכנה לקבל אובייקט מילונים (עברית/אנגלית) והעדפות שפה.
+   */
   async transitionStatus(
     suggestion: SuggestionWithParties,
     newStatus: MatchSuggestionStatus,
-    dictionary: EmailDictionary, // <-- הוספת המילון כפרמטר
+    dictionaries: { he: EmailDictionary; en: EmailDictionary }, // תיקון: קבלת שני המילונים
     notes?: string,
-    options: TransitionOptions = {}
+    options: TransitionOptions = {},
+    languagePrefs: LanguagePrefs = { firstParty: 'he', secondParty: 'he', matchmaker: 'he' } // תיקון: הוספת פרמטר ששי (אופציונלי)
   ): Promise<SuggestionWithParties> {
     const previousStatus = suggestion.status;
     const mergedOptions = {
@@ -53,7 +60,7 @@ export class StatusTransitionService {
     // Validate the transition
     this.validateStatusTransition(previousStatus, newStatus);
 
-    // Perform the status transition in a transaction (הקוד כאן נשאר זהה)
+    // Perform the status transition in a transaction
     const updatedSuggestion = await prisma.$transaction(async (tx) => {
       const updated = await tx.matchSuggestion.update({
         where: { id: suggestion.id },
@@ -89,18 +96,17 @@ export class StatusTransitionService {
     // Only send notifications if option is enabled
     if (mergedOptions.sendNotifications) {
       try {
-        // ========================= שלב 3: קריאה נכונה לשירות ההתראות =========================
-        // כעת אנו מעבירים את המילון כארגומנט השני, ואת ההגדרות כשלישי.
+        // קריאה לשירות ההתראות עם הפרמטרים החדשים
         await notificationService.handleSuggestionStatusChange(
           updatedSuggestion, 
-          dictionary, // <-- ארגומנט 2: המילון
-          {           // <-- ארגומנט 3: אובייקט ההגדרות
+          dictionaries, // העברת אובייקט המילונים (he/en)
+          {           
             channels: ['email', 'whatsapp'],
             notifyParties: mergedOptions.notifyParties as ('first' | 'second' | 'matchmaker')[],
             customMessage: mergedOptions.customMessage
-          }
+          },
+          languagePrefs // העברת העדפות השפה
         );
-        // ======================================================================================
         
         console.log(`Notifications sent for suggestion ${updatedSuggestion.id} status change to ${newStatus}`);
       } catch (error) {
@@ -112,7 +118,6 @@ export class StatusTransitionService {
     return updatedSuggestion;
   }
 
-  // הפונקציות הבאות נשארות ללא שינוי
   private validateStatusTransition(
     currentStatus: MatchSuggestionStatus, 
     newStatus: MatchSuggestionStatus

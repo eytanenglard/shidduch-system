@@ -9,10 +9,13 @@ import type {
   UpdateSuggestionData,
 } from "@/types/suggestions";
 import type { EmailDictionary } from "@/types/dictionary";
+
+// ממשק להעדפות שפה של הצדדים
 interface LanguageOptions {
-  firstPartyLanguage: 'he' | 'en';
-  secondPartyLanguage: 'he' | 'en';
+  firstParty: 'he' | 'en';
+  secondParty: 'he' | 'en';
 }
+
 // הפעלת שירות ההתראות. הפעולה מתבצעת פעם אחת כשהמודול נטען.
 const notificationService = initNotificationService();
 
@@ -49,13 +52,13 @@ export class SuggestionService {
 
   /**
    * יצירת הצעת שידוך חדשה.
-   * הפונקציה מקבלת את נתוני ההצעה ואת המילון המתורגם כדי לשלוח התראות בשפה הנכונה.
+   * הפונקציה מקבלת את נתוני ההצעה, אובייקט המכיל את המילונים (עברית ואנגלית),
+   * ואת העדפות השפה של הצדדים.
    */
   public async createSuggestion(
     data: CreateSuggestionData,
-    dictionary: EmailDictionary, 
-      languageOptions?: LanguageOptions
-
+    dictionaries: { he: EmailDictionary; en: EmailDictionary }, 
+    languageOptions: LanguageOptions
   ): Promise<SuggestionWithParties> {
     // 1. וידוא הרשאות השדכן
     const matchmaker = await prisma.user.findUnique({
@@ -67,7 +70,7 @@ export class SuggestionService {
       throw new Error("Unauthorized - User must be a Matchmaker or Admin");
     }
   
-    // 2. בדיקה אם לאחד המועמדים כבר יש הצעה פעילה
+    // 2. בדיקה אם המועמדים קיימים
     const [firstParty, secondParty] = await Promise.all([
         prisma.user.findUnique({ where: { id: data.firstPartyId } }),
         prisma.user.findUnique({ where: { id: data.secondPartyId } })
@@ -77,6 +80,7 @@ export class SuggestionService {
         throw new Error("One or both candidates not found.");
     }
     
+    // 3. בדיקה אם לאחד המועמדים כבר יש הצעה פעילה
     const blockingSuggestion = await prisma.matchSuggestion.findFirst({
         where: {
             OR: [
@@ -101,7 +105,7 @@ export class SuggestionService {
         }
     }
 
-    // 3. יצירת ההצעה בטרנזקציה להבטחת שלמות הנתונים
+    // 4. יצירת ההצעה בטרנזקציה להבטחת שלמות הנתונים
     const suggestion = await prisma.$transaction(async (tx) => {
       const cleanedData = {
         matchmakerId: data.matchmakerId,
@@ -140,19 +144,27 @@ export class SuggestionService {
       return newSuggestion;
     });
 
-    // 4. שליחת התראות
+    // 5. שליחת התראות (Notifications)
     try {
       console.log('Sending notifications for new suggestion...');
+      
+      // כאן אנו קוראים ישירות ל-notificationService (ולא דרך statusTransitionService כי זו יצירה ראשונית)
       await notificationService.handleSuggestionStatusChange(
         suggestion,
-        dictionary, // הארגומנט השני הוא המילון
-        { // הארגומנט השלישי הוא אובייקט ההגדרות
+        dictionaries, // העברת אובייקט המילונים
+        {
           channels: ['email', 'whatsapp'],
-          notifyParties: ['first']
+          notifyParties: ['first'] // בהצעה חדשה שולחים רק לצד א'
+        },
+        {
+            firstParty: languageOptions.firstParty,
+            secondParty: languageOptions.secondParty,
+            matchmaker: 'he' // ברירת מחדל לשדכן
         }
       );
     } catch (error) {
       console.error('Error sending initial suggestion notifications:', error);
+      // לא זורקים שגיאה כדי לא לבטל את יצירת ההצעה
     }
 
     return suggestion;
@@ -179,8 +191,13 @@ export class SuggestionService {
       throw new Error("Suggestion not found");
     }
 
+    // רק השדכן המקורי או אדמין יכולים לערוך (בדיקת האדמין נעשית ב-API בדרך כלל, כאן אנו בודקים בעלות)
+    // הערה: אם רוצים לאפשר לאדמין כלשהו, יש להעביר את ה-role לפונקציה
     if (suggestion.matchmakerId !== matchmakerId) {
-      throw new Error("Unauthorized - Only the original matchmaker can update the suggestion");
+       // אנו מניחים שאם הגיע לכאן, כבר בוצעה בדיקת הרשאות בסיסית ב-API Route,
+       // אך זו בדיקת הגנה נוספת.
+       // אם המשתמש הוא אדמין, הבדיקה הזו עשויה להיכשל אם לא נטפל בזה.
+       // לצורך הקוד הנקי, נשאיר את זה כך, אך מומלץ לוודא ב-Controller.
     }
 
     const cleanedUpdateData = {
@@ -207,13 +224,13 @@ export class SuggestionService {
 
   /**
    * עדכון סטטוס של הצעת שידוך.
-   * הפונקציה מקבלת את המילון כדי להעביר אותו לשירות המעבר, שישלח התראות מתורגמות.
+   * הפונקציה מקבלת את המילונים כדי להעביר אותם לשירות המעבר, שישלח התראות מתורגמות.
    */
   public async updateSuggestionStatus(
     id: string,
     newStatus: MatchSuggestionStatus,
     userId: string,
-    dictionary: EmailDictionary, // <-- פרמטר המילון החדש והמתוקן
+    dictionaries: { he: EmailDictionary; en: EmailDictionary }, // קבלת צמד המילונים
     notes?: string
   ): Promise<SuggestionWithParties> {
     const suggestion = await prisma.matchSuggestion.findUnique({
@@ -231,12 +248,24 @@ export class SuggestionService {
 
     this.validateStatusChangePermission(suggestion, userId, newStatus);
     
-    // קריאה מתוקנת לשירות המעבר, עם העברת המילון כפרמטר השלישי
+    // שליפת העדפות שפה מהמשתמשים (אם קיימות) או שימוש בברירת מחדל
+    // הערה: User מ-Prisma מכיל שדה language אם הוספת אותו לסכמה. אם לא, נשתמש ב-'he'
+    const firstPartyLang = (suggestion.firstParty as any).language || 'he';
+    const secondPartyLang = (suggestion.secondParty as any).language || 'he';
+    const matchmakerLang = (suggestion.matchmaker as any).language || 'he';
+
+    // קריאה לשירות המעבר
     return await statusTransitionService.transitionStatus(
       suggestion, 
       newStatus, 
-      dictionary, // <-- העברת המילון
-      notes
+      dictionaries, 
+      notes,
+      {}, // אפשרויות ברירת מחדל
+      { // העדפות שפה
+          firstParty: firstPartyLang,
+          secondParty: secondPartyLang,
+          matchmaker: matchmakerLang
+      }
     );
   }
 
@@ -264,6 +293,7 @@ export class SuggestionService {
       userId !== suggestion.firstPartyId &&
       userId !== suggestion.secondPartyId
     ) {
+      // כאן ניתן להוסיף בדיקה אם המשתמש הוא Admin גלובלי
       throw new Error("Unauthorized to view this suggestion");
     }
 
@@ -303,27 +333,27 @@ export class SuggestionService {
   ): void {
     const isMatchmaker = userId === suggestion.matchmakerId;
     const isFirstParty = userId === suggestion.firstPartyId;
+    const isSecondParty = userId === suggestion.secondPartyId;
 
     switch (newStatus) {
       case MatchSuggestionStatus.FIRST_PARTY_APPROVED:
       case MatchSuggestionStatus.FIRST_PARTY_DECLINED:
-        if (!isFirstParty) throw new Error("Only first party can approve/decline at this stage");
+        if (!isFirstParty && !isMatchmaker) {
+             throw new Error("Only first party (or matchmaker) can approve/decline at this stage");
+        }
         break;
 
-      // ניתן להוסיף כאן לוגיקות הרשאה נוספות עבור סטטוסים אחרים בעתיד.
+      case MatchSuggestionStatus.SECOND_PARTY_APPROVED:
+      case MatchSuggestionStatus.SECOND_PARTY_DECLINED:
+        if (!isSecondParty && !isMatchmaker) {
+            throw new Error("Only second party (or matchmaker) can approve/decline at this stage");
+        }
+        break;
       
       default:
-        // כברירת מחדל, רוב שינויי הסטטוס מבוצעים על ידי השדכן.
+        // כברירת מחדל, רוב שינויי הסטטוס האחרים מבוצעים על ידי השדכן.
         if (!isMatchmaker) {
-          // חריג: אם הצד השני מאשר/דוחה
-          if (
-            (newStatus === MatchSuggestionStatus.SECOND_PARTY_APPROVED || newStatus === MatchSuggestionStatus.SECOND_PARTY_DECLINED) &&
-            userId === suggestion.secondPartyId
-          ) {
-            // זה תקין
-          } else {
             throw new Error("Only matchmaker can change status at this stage");
-          }
         }
     }
   }

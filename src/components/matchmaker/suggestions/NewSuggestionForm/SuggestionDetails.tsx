@@ -2,6 +2,8 @@
 
 'use client';
 import React, { useState } from 'react';
+import { UseFormSetValue } from 'react-hook-form';
+
 import { useFormContext } from 'react-hook-form';
 import {
   Select,
@@ -162,7 +164,8 @@ const PriorityBadge: React.FC<{
 const LanguageSelector: React.FC<{
   partyName: string;
   partyLanguage: 'he' | 'en';
-  fieldName: 'firstPartyLanguage' | 'secondPartyLanguage';
+  // שינוי קריטי: הגדרת השדה להיות מוגבל למפתחות הספציפיים בטופס
+  fieldName: keyof NewSuggestionFormData; 
   gradient: string;
   dict: {
     label: string;
@@ -172,7 +175,8 @@ const LanguageSelector: React.FC<{
       en: string;
     };
   };
-  setValue: (name: string, value: 'he' | 'en', options?: { shouldValidate?: boolean }) => void;
+  // שינוי קריטי: שימוש בטיפוס המדויק של Hook Form
+  setValue: UseFormSetValue<NewSuggestionFormData>;
 }> = ({ partyName, partyLanguage, fieldName, gradient, dict, setValue }) => {
   return (
     <div className="space-y-3">
@@ -185,6 +189,7 @@ const LanguageSelector: React.FC<{
       <p className="text-sm text-gray-500">{dict.description}</p>
       <Select
         onValueChange={(value: 'he' | 'en') =>
+          // אין צורך ב-cast, הטיפוסים כעת תואמים
           setValue(fieldName, value, { shouldValidate: true })
         }
         defaultValue={partyLanguage}
@@ -216,6 +221,7 @@ const LanguageSelector: React.FC<{
     </div>
   );
 };
+
 
 
 const SuggestionDetails: React.FC<SuggestionDetailsProps> = ({

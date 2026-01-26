@@ -3,6 +3,11 @@
 import { MatchSuggestionStatus } from '@prisma/client';
 import { SuggestionWithParties } from '../suggestions/StatusTransitionService';
 import { EmailDictionary } from '@/types/dictionary'; // ייבוא הטיפוס המאוחד
+export type LanguagePreferences = {
+  firstParty: 'he' | 'en';
+  secondParty: 'he' | 'en';
+  matchmaker: 'he' | 'en';
+};
 
 // --- הגדרות טיפוסים פנימיות של השירות ---
 
@@ -81,33 +86,52 @@ export class NotificationService {
 
   public async handleSuggestionStatusChange(
     suggestion: SuggestionWithParties,
-    dictionary: EmailDictionary,
-    options: Partial<NotificationOptions> = {}
+    // שינוי: מקבלים אובייקט עם שני המילונים
+    dictionaries: { he: EmailDictionary; en: EmailDictionary },
+    options: Partial<NotificationOptions> = {},
+    // שינוי: פרמטר חדש להעדפות שפה
+    languagePrefs: LanguagePreferences = { firstParty: 'he', secondParty: 'he', matchmaker: 'he' }
   ): Promise<void> {
-    console.log(`Processing notifications for suggestion ${suggestion.id} with status ${suggestion.status}`);
+    console.log(`Processing notifications for suggestion ${suggestion.id}`);
     
-    // אנו עובדים עם תת-המילון של ההתראות
-    const notificationDict = dictionary.notifications; 
-    
-    const contentGenerator = options.customMessage 
-      ? this.getCustomMessageContent(options.customMessage, suggestion.id, notificationDict)
-      : this.getSuggestionContentFromDict(suggestion, notificationDict);
-
-    if (!contentGenerator) {
-      console.log(`No template found for status ${suggestion.status} - skipping notification`);
-      return;
-    }
-  
+    // קבלת הנמענים
     const recipientsWithChannels = this.getRecipientsForSuggestion(suggestion);
   
     for (const { recipient, preferredChannels, partyType } of recipientsWithChannels) {
+      // דילוג אם הנמען לא ברשימת התפוצה
       if (options.notifyParties && !options.notifyParties.includes(partyType)) {
-        console.log(`Skipping recipient ${recipient.name} (${partyType}) - not in notifyParties`, options.notifyParties);
+        continue;
+      }
+
+      // 1. בחירת השפה עבור הנמען הספציפי
+      let targetLocale: 'he' | 'en' = 'he';
+      if (partyType === 'first') targetLocale = languagePrefs.firstParty;
+      if (partyType === 'second') targetLocale = languagePrefs.secondParty;
+      // לשדכן נשלח כרגע בעברית (או לפי העדפה אם נוסיף בעתיד)
+      if (partyType === 'matchmaker') targetLocale = languagePrefs.matchmaker;
+
+      // 2. שליפת המילון המתאים
+      const selectedDictionary = dictionaries[targetLocale].notifications;
+
+      // 3. יצירת התוכן עם המילון הנכון
+      const contentGenerator = options.customMessage 
+        ? this.getCustomMessageContent(options.customMessage, suggestion.id, selectedDictionary)
+        : this.getSuggestionContentFromDict(suggestion, selectedDictionary);
+
+      if (!contentGenerator) {
+        console.log(`No template found for status ${suggestion.status} in ${targetLocale} - skipping`);
         continue;
       }
       
       const personalizedContent = contentGenerator(partyType);
       
+      // הוספת סימון כיווניות (RTL/LTR) ל-HTML בהתאם לשפה
+      if (personalizedContent.htmlBody && targetLocale === 'he') {
+         personalizedContent.htmlBody = `<div dir="rtl" style="text-align: right;">${personalizedContent.htmlBody}</div>`;
+      } else if (personalizedContent.htmlBody && targetLocale === 'en') {
+         personalizedContent.htmlBody = `<div dir="ltr" style="text-align: left;">${personalizedContent.htmlBody}</div>`;
+      }
+
       const channelsToUse = options.channels || preferredChannels || ['email'];
       
       await this.sendNotification(
@@ -116,8 +140,8 @@ export class NotificationService {
         { channels: channelsToUse }
       );
     }
-    console.log(`Finished processing notifications for suggestion ${suggestion.id}`);
   }
+
 
   private getSuggestionContentFromDict(
     suggestion: SuggestionWithParties,

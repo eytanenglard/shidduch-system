@@ -8,12 +8,9 @@ import { MatchSuggestionStatus, Prisma, UserRole } from '@prisma/client';
 import { suggestionService } from '@/components/matchmaker/suggestions/services/suggestions/SuggestionService';
 import { updateUserAiProfile } from '@/lib/services/profileAiService';
 import type { CreateSuggestionData } from '@/types/suggestions';
-// ========================= שינוי מרכזי 1: ייבוא טיפוס המילון =========================
-import type { EmailDictionary } from '@/types/dictionary';
 import { getDictionary } from '@/lib/dictionaries';
+
 export const dynamic = 'force-dynamic';
-
-
 
 /**
  * מחשב את הקטגוריה של ההצעה בהתבסס על הסטטוס שלה.
@@ -79,16 +76,22 @@ export async function POST(req: Request) {
       );
     }
     
-    // ========================= שינוי מרכזי 3: טעינת התרגומים =========================
-    const url = new URL(req.url);
-const rawLocale = url.searchParams.get('locale');
-const locale: 'he' | 'en' = (rawLocale === 'en' || rawLocale === 'he') ? rawLocale : 'he';    const dictionary = await getDictionary(locale);
-    const emailDict: EmailDictionary = dictionary.email; // חילוץ החלק של המיילים
+    // ========================= שינוי מרכזי: טעינת שני המילונים =========================
+    // במקום לטעון רק אחד, אנו טוענים את שניהם כדי לאפשר שליחת מיילים רב-לשונית
+    const [dictHe, dictEn] = await Promise.all([
+      getDictionary('he'),
+      getDictionary('en')
+    ]);
 
-    if (!emailDict) {
-        // במקרה חירום שהמילון לא נטען כראוי
-        throw new Error(`Email dictionary for locale '${locale}' could not be loaded.`);
+    const dictionaries = {
+      he: dictHe.email,
+      en: dictEn.email
+    };
+
+    if (!dictionaries.he || !dictionaries.en) {
+        throw new Error(`Email dictionaries could not be loaded.`);
     }
+    // =================================================================================
 
     // בדיקה ועדכון פרופילי AI
     try {
@@ -157,15 +160,15 @@ const locale: 'he' | 'en' = (rawLocale === 'en' || rawLocale === 'he') ? rawLoca
       matchmakerId: session.user.id,
     };
     
-    // ========================= שינוי מרכזי 4: העברת המילון לשירות =========================
-const newSuggestion = await suggestionService.createSuggestion(
-  suggestionData, 
-  emailDict,
-  {
-    firstPartyLanguage: suggestionData.firstPartyLanguage || 'he',
-    secondPartyLanguage: suggestionData.secondPartyLanguage || 'he',
-  }
-);
+    // ========================= שינוי מרכזי: העברת שני המילונים =========================
+    const newSuggestion = await suggestionService.createSuggestion(
+      suggestionData, 
+      dictionaries, // העברת האובייקט המכיל את he ו-en
+      {
+        firstParty: data.firstPartyLanguage || 'he', // תיקון שמות השדות כדי להתאים לממשק
+        secondParty: data.secondPartyLanguage || 'he',
+      }
+    );
 
     return NextResponse.json(newSuggestion, { status: 201 });
   } catch (error) {
@@ -283,7 +286,6 @@ export async function GET(req: Request) {
     const formattedSuggestions = suggestions.map((suggestion) => ({
       ...suggestion,
       category: getSuggestionCategory(suggestion.status),
-      // Formatting logic remains the same...
     }));
 
     console.log(
