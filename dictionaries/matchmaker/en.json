@@ -385,7 +385,12 @@
           "maxFilesWarning": "Can upload up to {{max}} images.",
           "fileTooLargeError": "File {{fileName}} is too large (max {{maxSize}}MB).",
           "previewAlt": "Preview {{index}}",
-          "removeLabel": "Remove image"
+          "removeLabel": "Remove image",
+           "referredBy": {
+          "label": "Referred by",
+          "placeholder": "Contact name and details",
+          "description": "Who to contact regarding this candidate"
+        }
         }
       },
       "buttons": {

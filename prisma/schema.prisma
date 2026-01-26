@@ -237,7 +237,7 @@ preferredReligiousJourneys  ReligiousJourney[] @default([])
   cvSummary               String? @db.Text // AI-generated summary of the CV
 conversationSummary     String? @db.Text 
 
-
+referredBy              String?   // דרך מי הגיע - איש קשר להתקשרות
 
   // ==========================================================================
   // 🆕 Priority System

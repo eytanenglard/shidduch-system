@@ -100,7 +100,11 @@ images: {
     },
   },
 });
-
+// DEBUG: Check images count for first few users
+console.log('[API DEBUG] Sample images counts:');
+users.slice(0, 5).forEach(u => {
+  console.log(`  - ${u.firstName} ${u.lastName}: ${u.images?.length || 0} images`);
+});
     // ================== 🚨 START SERVER DEBUG: LINOY 🚨 ==================
     const targetEmail = 'linoyreznik032@gmail.com';
     const foundUser = users.find(u => u.email === targetEmail);

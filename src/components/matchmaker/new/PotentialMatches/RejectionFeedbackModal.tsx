@@ -2,14 +2,14 @@
 // 📁 src/components/matchmaker/RejectionFeedbackModal.tsx
 // =============================================================================
 // 🎯 Rejection Feedback Modal V1.0 - NeshamaTech
-// 
+//
 // מודל לתיעוד סיבת דחייה בצורה מובנית
 // =============================================================================
 
-"use client";
+'use client';
 
-import React, { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   X,
   AlertTriangle,
@@ -20,7 +20,7 @@ import {
   Check,
   ChevronDown,
   ChevronUp,
-} from "lucide-react";
+} from 'lucide-react';
 
 // =============================================================================
 // TYPES
@@ -60,7 +60,7 @@ interface RejectionFeedbackModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (data: RejectionFeedbackData) => Promise<void>;
-  
+
   // Context
   rejectedUser: {
     id: string;
@@ -91,60 +91,183 @@ interface RejectionFeedbackData {
 // CATEGORY DATA
 // =============================================================================
 
-const CATEGORY_GROUPS: Record<string, { title: string; icon: React.ReactNode; color: string }> = {
+const CATEGORY_GROUPS: Record<
+  string,
+  { title: string; icon: React.ReactNode; color: string }
+> = {
   objective: {
-    title: "סיבות אובייקטיביות",
+    title: 'סיבות אובייקטיביות',
     icon: <User size={16} />,
-    color: "blue",
+    color: 'blue',
   },
   subjective: {
-    title: "סיבות סובייקטיביות",
+    title: 'סיבות סובייקטיביות',
     icon: <HelpCircle size={16} />,
-    color: "purple",
+    color: 'purple',
   },
   timing: {
-    title: "סיבות תזמון",
+    title: 'סיבות תזמון',
     icon: <Clock size={16} />,
-    color: "orange",
+    color: 'orange',
   },
   red_flag: {
-    title: "Red Flags",
+    title: 'Red Flags',
     icon: <Flag size={16} />,
-    color: "red",
+    color: 'red',
   },
   other: {
-    title: "אחר",
+    title: 'אחר',
     icon: <HelpCircle size={16} />,
-    color: "gray",
+    color: 'gray',
   },
 };
 
 const DEFAULT_CATEGORIES: CategoryInfo[] = [
   // Objective
-  { value: 'AGE_GAP', label: 'פער גיל גדול מדי', labelEn: 'Age Gap', group: 'objective', description: '' },
-  { value: 'RELIGIOUS_GAP', label: 'פער רמה דתית', labelEn: 'Religious Gap', group: 'objective', description: '' },
-  { value: 'BACKGROUND_GAP', label: 'פער רקע/עדה', labelEn: 'Background Gap', group: 'objective', description: '' },
-  { value: 'EDUCATION_GAP', label: 'פער השכלה/קריירה', labelEn: 'Education Gap', group: 'objective', description: '' },
-  { value: 'GEOGRAPHIC_GAP', label: 'פער גיאוגרפי', labelEn: 'Geographic Gap', group: 'objective', description: '' },
-  { value: 'KNOWS_PERSONALLY', label: 'מכיר/ה אישית', labelEn: 'Knows Personally', group: 'objective', description: '' },
+  {
+    value: 'AGE_GAP',
+    label: 'פער גיל גדול מדי',
+    labelEn: 'Age Gap',
+    group: 'objective',
+    description: '',
+  },
+  {
+    value: 'RELIGIOUS_GAP',
+    label: 'פער רמה דתית',
+    labelEn: 'Religious Gap',
+    group: 'objective',
+    description: '',
+  },
+  {
+    value: 'BACKGROUND_GAP',
+    label: 'פער רקע/עדה',
+    labelEn: 'Background Gap',
+    group: 'objective',
+    description: '',
+  },
+  {
+    value: 'EDUCATION_GAP',
+    label: 'פער השכלה/קריירה',
+    labelEn: 'Education Gap',
+    group: 'objective',
+    description: '',
+  },
+  {
+    value: 'GEOGRAPHIC_GAP',
+    label: 'פער גיאוגרפי',
+    labelEn: 'Geographic Gap',
+    group: 'objective',
+    description: '',
+  },
+  {
+    value: 'KNOWS_PERSONALLY',
+    label: 'מכיר/ה אישית',
+    labelEn: 'Knows Personally',
+    group: 'objective',
+    description: '',
+  },
   // Subjective
-  { value: 'NOT_ATTRACTED', label: 'לא מושך/ת', labelEn: 'Not Attracted', group: 'subjective', description: '' },
-  { value: 'NOT_INTERESTING', label: 'לא מעניין/ת', labelEn: 'Not Interesting', group: 'subjective', description: '' },
-  { value: 'NO_CONNECTION', label: 'לא הרגשתי חיבור', labelEn: 'No Connection', group: 'subjective', description: '' },
-  { value: 'GUT_FEELING', label: 'תחושת בטן שלילית', labelEn: 'Gut Feeling', group: 'subjective', description: '' },
-  { value: 'SOMETHING_OFF', label: 'משהו לא הסתדר לי', labelEn: 'Something Off', group: 'subjective', description: '' },
+  {
+    value: 'NOT_ATTRACTED',
+    label: 'לא מושך/ת',
+    labelEn: 'Not Attracted',
+    group: 'subjective',
+    description: '',
+  },
+  {
+    value: 'NOT_INTERESTING',
+    label: 'לא מעניין/ת',
+    labelEn: 'Not Interesting',
+    group: 'subjective',
+    description: '',
+  },
+  {
+    value: 'NO_CONNECTION',
+    label: 'לא הרגשתי חיבור',
+    labelEn: 'No Connection',
+    group: 'subjective',
+    description: '',
+  },
+  {
+    value: 'GUT_FEELING',
+    label: 'תחושת בטן שלילית',
+    labelEn: 'Gut Feeling',
+    group: 'subjective',
+    description: '',
+  },
+  {
+    value: 'SOMETHING_OFF',
+    label: 'משהו לא הסתדר לי',
+    labelEn: 'Something Off',
+    group: 'subjective',
+    description: '',
+  },
   // Timing
-  { value: 'NOT_AVAILABLE_NOW', label: 'לא זמין/ה כרגע', labelEn: 'Not Available Now', group: 'timing', description: '' },
-  { value: 'IN_PROCESS_WITH_OTHER', label: 'בתהליך עם מישהו אחר', labelEn: 'In Process', group: 'timing', description: '' },
-  { value: 'NEEDS_TIME', label: 'צריך/ה זמן לחשוב', labelEn: 'Needs Time', group: 'timing', description: '' },
-  { value: 'EXTERNAL_PRESSURE', label: 'לחץ חיצוני', labelEn: 'External Pressure', group: 'timing', description: '' },
+  {
+    value: 'NOT_AVAILABLE_NOW',
+    label: 'לא זמין/ה כרגע',
+    labelEn: 'Not Available Now',
+    group: 'timing',
+    description: '',
+  },
+  {
+    value: 'IN_PROCESS_WITH_OTHER',
+    label: 'בתהליך עם מישהו אחר',
+    labelEn: 'In Process',
+    group: 'timing',
+    description: '',
+  },
+  {
+    value: 'NEEDS_TIME',
+    label: 'צריך/ה זמן לחשוב',
+    labelEn: 'Needs Time',
+    group: 'timing',
+    description: '',
+  },
+  {
+    value: 'EXTERNAL_PRESSURE',
+    label: 'לחץ חיצוני',
+    labelEn: 'External Pressure',
+    group: 'timing',
+    description: '',
+  },
   // Red Flags
-  { value: 'INCONSISTENT_STORY', label: 'חוסר עקביות בסיפור', labelEn: 'Inconsistent Story', group: 'red_flag', description: '' },
-  { value: 'PROBLEMATIC_BEHAVIOR', label: 'התנהגות בעייתית', labelEn: 'Problematic Behavior', group: 'red_flag', description: '' },
-  { value: 'UNREALISTIC_EXPECTATIONS', label: 'ציפיות לא ריאליסטיות', labelEn: 'Unrealistic Expectations', group: 'red_flag', description: '' },
-  { value: 'CONCERNING_HISTORY', label: 'היסטוריה מדאיגה', labelEn: 'Concerning History', group: 'red_flag', description: '' },
+  {
+    value: 'INCONSISTENT_STORY',
+    label: 'חוסר עקביות בסיפור',
+    labelEn: 'Inconsistent Story',
+    group: 'red_flag',
+    description: '',
+  },
+  {
+    value: 'PROBLEMATIC_BEHAVIOR',
+    label: 'התנהגות בעייתית',
+    labelEn: 'Problematic Behavior',
+    group: 'red_flag',
+    description: '',
+  },
+  {
+    value: 'UNREALISTIC_EXPECTATIONS',
+    label: 'ציפיות לא ריאליסטיות',
+    labelEn: 'Unrealistic Expectations',
+    group: 'red_flag',
+    description: '',
+  },
+  {
+    value: 'CONCERNING_HISTORY',
+    label: 'היסטוריה מדאיגה',
+    labelEn: 'Concerning History',
+    group: 'red_flag',
+    description: '',
+  },
   // Other
-  { value: 'OTHER', label: 'סיבה אחרת', labelEn: 'Other', group: 'other', description: '' },
+  {
+    value: 'OTHER',
+    label: 'סיבה אחרת',
+    labelEn: 'Other',
+    group: 'other',
+    description: '',
+  },
 ];
 
 // =============================================================================
@@ -160,19 +283,25 @@ export default function RejectionFeedbackModal({
   suggestionId,
   potentialMatchId,
 }: RejectionFeedbackModalProps) {
-  const [categories, setCategories] = useState<CategoryInfo[]>(DEFAULT_CATEGORIES);
-  const [selectedCategory, setSelectedCategory] = useState<RejectionCategory | null>(null);
-  const [freeText, setFreeText] = useState("");
+  const [categories, setCategories] =
+    useState<CategoryInfo[]>(DEFAULT_CATEGORIES);
+  const [selectedCategory, setSelectedCategory] =
+    useState<RejectionCategory | null>(null);
+  const [freeText, setFreeText] = useState('');
   const [wasExpected, setWasExpected] = useState<boolean | null>(null);
   const [submitting, setSubmitting] = useState(false);
-  const [expandedGroup, setExpandedGroup] = useState<string | null>("objective");
+  const [expandedGroup, setExpandedGroup] = useState<string | null>(
+    'objective'
+  );
   const [error, setError] = useState<string | null>(null);
 
   // Fetch categories from API
   useEffect(() => {
     async function fetchCategories() {
       try {
-        const response = await fetch("/api/matchmaker/rejection-feedback?action=categories");
+        const response = await fetch(
+          '/api/matchmaker/rejection-feedback?action=categories'
+        );
         if (response.ok) {
           const data = await response.json();
           if (data.categories) {
@@ -181,10 +310,10 @@ export default function RejectionFeedbackModal({
         }
       } catch (err) {
         // Use default categories
-        console.warn("Could not fetch categories, using defaults");
+        console.warn('Could not fetch categories, using defaults');
       }
     }
-    
+
     if (isOpen) {
       fetchCategories();
     }
@@ -194,24 +323,27 @@ export default function RejectionFeedbackModal({
   useEffect(() => {
     if (isOpen) {
       setSelectedCategory(null);
-      setFreeText("");
+      setFreeText('');
       setWasExpected(null);
       setError(null);
-      setExpandedGroup("objective");
+      setExpandedGroup('objective');
     }
   }, [isOpen]);
 
   // Group categories
-  const groupedCategories = categories.reduce((acc, cat) => {
-    if (!acc[cat.group]) acc[cat.group] = [];
-    acc[cat.group].push(cat);
-    return acc;
-  }, {} as Record<string, CategoryInfo[]>);
+  const groupedCategories = categories.reduce(
+    (acc, cat) => {
+      if (!acc[cat.group]) acc[cat.group] = [];
+      acc[cat.group].push(cat);
+      return acc;
+    },
+    {} as Record<string, CategoryInfo[]>
+  );
 
   // Handle submit
   const handleSubmit = async () => {
     if (!selectedCategory) {
-      setError("יש לבחור סיבת דחייה");
+      setError('יש לבחור סיבת דחייה');
       return;
     }
 
@@ -231,7 +363,7 @@ export default function RejectionFeedbackModal({
 
       onClose();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "שגיאה בשמירת הפידבק");
+      setError(err instanceof Error ? err.message : 'שגיאה בשמירת הפידבק');
     } finally {
       setSubmitting(false);
     }
@@ -257,17 +389,19 @@ export default function RejectionFeedbackModal({
             className="fixed inset-0 bg-black/50 z-50"
           />
 
-          {/* Modal */}
+          {/* Modal - FIX: Added max-h-[calc(100vh-32px)] for mobile */}
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
-            className="fixed inset-4 md:inset-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:w-[500px] md:max-h-[80vh] bg-white rounded-2xl shadow-xl z-50 overflow-hidden flex flex-col"
+            className="fixed inset-4 max-h-[calc(100vh-32px)] md:inset-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:w-[500px] md:max-h-[80vh] bg-white rounded-2xl shadow-xl z-50 overflow-hidden flex flex-col"
             dir="rtl"
           >
             {/* Header */}
-            <div className="flex items-center justify-between p-4 border-b bg-gray-50">
-              <h2 className="text-lg font-bold text-gray-800">תיעוד סיבת דחייה</h2>
+            <div className="flex items-center justify-between p-4 border-b bg-gray-50 flex-shrink-0">
+              <h2 className="text-lg font-bold text-gray-800">
+                תיעוד סיבת דחייה
+              </h2>
               <button
                 onClick={onClose}
                 className="p-2 hover:bg-gray-200 rounded-full transition-colors"
@@ -277,16 +411,20 @@ export default function RejectionFeedbackModal({
             </div>
 
             {/* Context */}
-            <div className="px-4 py-3 bg-blue-50 border-b border-blue-100">
+            <div className="px-4 py-3 bg-blue-50 border-b border-blue-100 flex-shrink-0">
               <p className="text-sm text-blue-800">
-                <span className="font-medium">{rejectingUser.firstName} {rejectingUser.lastName}</span>
-                {" "}דחה את{" "}
-                <span className="font-medium">{rejectedUser.firstName} {rejectedUser.lastName}</span>
+                <span className="font-medium">
+                  {rejectingUser.firstName} {rejectingUser.lastName}
+                </span>{' '}
+                דחה את{' '}
+                <span className="font-medium">
+                  {rejectedUser.firstName} {rejectedUser.lastName}
+                </span>
               </p>
             </div>
 
-            {/* Content */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+            {/* Content - FIX: Added min-h-0 to allow proper flex shrinking */}
+            <div className="flex-1 overflow-y-auto p-4 space-y-4 min-h-0">
               {/* Error */}
               {error && (
                 <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm flex items-center gap-2">
@@ -297,23 +435,29 @@ export default function RejectionFeedbackModal({
 
               {/* Categories */}
               <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700">סיבת הדחייה</label>
-                
+                <label className="text-sm font-medium text-gray-700">
+                  סיבת הדחייה
+                </label>
+
                 {Object.entries(CATEGORY_GROUPS).map(([group, info]) => {
                   const groupCats = groupedCategories[group] || [];
                   if (groupCats.length === 0) return null;
 
                   const isExpanded = expandedGroup === group;
-                  const colorClass = {
-                    blue: "border-blue-200 bg-blue-50",
-                    purple: "border-purple-200 bg-purple-50",
-                    orange: "border-orange-200 bg-orange-50",
-                    red: "border-red-200 bg-red-50",
-                    gray: "border-gray-200 bg-gray-50",
-                  }[info.color] || "border-gray-200 bg-gray-50";
+                  const colorClass =
+                    {
+                      blue: 'border-blue-200 bg-blue-50',
+                      purple: 'border-purple-200 bg-purple-50',
+                      orange: 'border-orange-200 bg-orange-50',
+                      red: 'border-red-200 bg-red-50',
+                      gray: 'border-gray-200 bg-gray-50',
+                    }[info.color] || 'border-gray-200 bg-gray-50';
 
                   return (
-                    <div key={group} className={`rounded-lg border ${colorClass} overflow-hidden`}>
+                    <div
+                      key={group}
+                      className={`rounded-lg border ${colorClass} overflow-hidden`}
+                    >
                       {/* Group Header */}
                       <button
                         onClick={() => toggleGroup(group)}
@@ -323,7 +467,11 @@ export default function RejectionFeedbackModal({
                           {info.icon}
                           {info.title}
                         </span>
-                        {isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                        {isExpanded ? (
+                          <ChevronUp size={16} />
+                        ) : (
+                          <ChevronDown size={16} />
+                        )}
                       </button>
 
                       {/* Group Items */}
@@ -331,7 +479,7 @@ export default function RejectionFeedbackModal({
                         {isExpanded && (
                           <motion.div
                             initial={{ height: 0, opacity: 0 }}
-                            animate={{ height: "auto", opacity: 1 }}
+                            animate={{ height: 'auto', opacity: 1 }}
                             exit={{ height: 0, opacity: 0 }}
                             className="px-3 pb-3 space-y-1"
                           >
@@ -341,11 +489,13 @@ export default function RejectionFeedbackModal({
                                 onClick={() => setSelectedCategory(cat.value)}
                                 className={`w-full flex items-center gap-2 p-2 rounded-lg text-sm text-right transition-colors ${
                                   selectedCategory === cat.value
-                                    ? "bg-primary text-white"
-                                    : "bg-white hover:bg-gray-100 text-gray-700"
+                                    ? 'bg-primary text-white'
+                                    : 'bg-white hover:bg-gray-100 text-gray-700'
                                 }`}
                               >
-                                {selectedCategory === cat.value && <Check size={14} />}
+                                {selectedCategory === cat.value && (
+                                  <Check size={14} />
+                                )}
                                 <span className="flex-1">{cat.label}</span>
                               </button>
                             ))}
@@ -367,8 +517,8 @@ export default function RejectionFeedbackModal({
                     onClick={() => setWasExpected(true)}
                     className={`flex-1 py-2 rounded-lg text-sm transition-colors ${
                       wasExpected === true
-                        ? "bg-green-500 text-white"
-                        : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                        ? 'bg-green-500 text-white'
+                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                     }`}
                   >
                     כן, צפיתי לזה
@@ -377,8 +527,8 @@ export default function RejectionFeedbackModal({
                     onClick={() => setWasExpected(false)}
                     className={`flex-1 py-2 rounded-lg text-sm transition-colors ${
                       wasExpected === false
-                        ? "bg-orange-500 text-white"
-                        : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                        ? 'bg-orange-500 text-white'
+                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                     }`}
                   >
                     לא, הפתיע אותי
@@ -401,8 +551,8 @@ export default function RejectionFeedbackModal({
               </div>
             </div>
 
-            {/* Footer */}
-            <div className="p-4 border-t bg-gray-50 flex gap-3">
+            {/* Footer - FIX: Added flex-shrink-0 to prevent footer from being cut */}
+            <div className="p-4 border-t bg-gray-50 flex gap-3 flex-shrink-0">
               <button
                 onClick={onClose}
                 className="flex-1 py-2 px-4 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors"
@@ -458,14 +608,14 @@ export function useRejectionFeedback() {
   };
 
   const submit = async (data: RejectionFeedbackData) => {
-    const response = await fetch("/api/matchmaker/rejection-feedback", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
+    const response = await fetch('/api/matchmaker/rejection-feedback', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
     });
 
     if (!response.ok) {
-      throw new Error("Failed to save rejection feedback");
+      throw new Error('Failed to save rejection feedback');
     }
   };
 

@@ -161,7 +161,17 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
   );
 
   const [isMobile, setIsMobile] = useState(false);
-
+  // הוסף אחרי שורה 150 (אחרי הגדרת ה-states)
+  useEffect(() => {
+    if (selectedCandidate) {
+      console.log('[DEBUG] selectedCandidate:', selectedCandidate.firstName);
+      console.log(
+        '[DEBUG] selectedCandidate.images:',
+        selectedCandidate.images
+      );
+      console.log('[DEBUG] images count:', selectedCandidate.images?.length);
+    }
+  }, [selectedCandidate]);
   useEffect(() => {
     const checkScreenSize = () => {
       setIsMobile(window.innerWidth < 768);
@@ -226,6 +236,14 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
     };
     loadQuestionnaire();
   }, [selectedCandidate, locale]);
+  useEffect(() => {
+    if (selectedCandidate) {
+      console.log(
+        '[CandidatesList] selectedCandidate.images:',
+        selectedCandidate.images
+      );
+    }
+  }, [selectedCandidate]);
 
   // Action handlers
   const handleInvite = async (candidate: Candidate, email: string) => {

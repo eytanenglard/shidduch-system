@@ -3438,6 +3438,10 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
     const otherImages = validImages.filter((img) => !img.isMain);
     return mainImg ? [mainImg, ...otherImages] : validImages;
   }, [images]);
+  useEffect(() => {
+    console.log('[ProfileCard] images prop:', images);
+    console.log('[ProfileCard] orderedImages:', orderedImages);
+  }, [images, orderedImages]);
 
   const mainImageToDisplay = useMemo(
     () => (orderedImages.length > 0 ? orderedImages[0] : null),
@@ -5022,8 +5026,10 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
           religiousLevelMap={religiousLevelMap}
           educationLevelMap={educationLevelMap}
           locale={locale}
-            totalImages={orderedImages.length} 
-  onAvatarClick={() => orderedImages.length > 0 && handleOpenImageDialog(orderedImages[0])}
+          totalImages={orderedImages.length}
+          onAvatarClick={() =>
+            orderedImages.length > 0 && handleOpenImageDialog(orderedImages[0])
+          }
         />
         <MobileImageGallery
           orderedImages={orderedImages}
@@ -5068,9 +5074,11 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
             religiousLevelMap={religiousLevelMap}
             educationLevelMap={educationLevelMap}
             locale={locale}
-                      totalImages={orderedImages.length}
-          onAvatarClick={() => orderedImages.length > 0 && handleOpenImageDialog(orderedImages[0])}
-
+            totalImages={orderedImages.length}
+            onAvatarClick={() =>
+              orderedImages.length > 0 &&
+              handleOpenImageDialog(orderedImages[0])
+            }
           />
           <MobileImageGallery
             orderedImages={orderedImages}
@@ -5502,9 +5510,11 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                   religiousLevelMap={religiousLevelMap}
                   educationLevelMap={educationLevelMap}
                   locale={locale}
-                            totalImages={orderedImages.length}
-          onAvatarClick={() => orderedImages.length > 0 && handleOpenImageDialog(orderedImages[0])}
-
+                  totalImages={orderedImages.length}
+                  onAvatarClick={() =>
+                    orderedImages.length > 0 &&
+                    handleOpenImageDialog(orderedImages[0])
+                  }
                 />
                 <div className="p-4 sm:p-6 overflow-hidden flex max-w-full">
                   <MainContentTabs isDesktop={isDesktop} />

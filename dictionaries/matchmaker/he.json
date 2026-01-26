@@ -278,7 +278,12 @@
           "maxFilesWarning": "ניתן להעלות עד {{max}} תמונות.",
           "fileTooLargeError": "הקובץ {{fileName}} גדול מדי (מקסימום {{maxSize}}MB).",
           "previewAlt": "תצוגה מקדימה {{index}}",
-          "removeLabel": "הסר תמונה"
+          "removeLabel": "הסר תמונה",
+           "referredBy": {
+          "label": "דרך מי הגיע/ה?",
+          "placeholder": "שם ופרטי התקשרות של איש הקשר",
+          "description": "עם מי להיות בקשר בנוגע למועמד/ת זו"
+        }
         }
       },
       "buttons": {

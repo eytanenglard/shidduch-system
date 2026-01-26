@@ -867,6 +867,11 @@ type AddManualCandidateDialogDict = {
       previewAlt: string; // e.g., "Preview {{index}}"
       removeLabel: string;
     };
+     referredBy: {
+      label: string;
+      placeholder: string;
+      description: string;
+    };
   };
   buttons: {
     add: string;

@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\candidates
-# Generated on: 2026-01-25 11:45:44
+# Generated on: 2026-01-26 22:43:01
 # Filter: Only content of code files (.bat, .c, .cfg, .conf, .cpp, .cs, .css, .go, .h, .html, .ini, .java, .js, .json, .jsx, .kt, .less, .md, .php, .py, .rb, .rs, .scss, .sh, .sql, .swift, .ts, .tsx, .txt, .xml, .yaml, .yml) is included.
 ################################################################################
 
@@ -97,12 +97,18 @@ const users = await prisma.user.findMany({
     status: true,
     source: true,
     createdAt: true,
+     language: true,
     isVerified: true,
     isProfileComplete: true,
-    images: {
-      select: { id: true, url: true, isMain: true },
-      orderBy: [{ isMain: 'desc' }, { createdAt: 'asc' }],
-    },
+images: {
+  select: { 
+    id: true, 
+    url: true, 
+    isMain: true,
+    cloudinaryPublicId: true // <--- הוסף שורה זו
+  },
+  orderBy: [{ isMain: 'desc' }, { createdAt: 'asc' }],
+},
     // שינוי כאן: מ-profile: true למבנה include
     profile: {
       include: {
@@ -1343,19 +1349,21 @@ export async function POST(req: NextRequest) {
     const gender = formData.get('gender') as Gender;
     const birthDateStr = formData.get('birthDate') as string;
     const heightStr = formData.get('height') as string | null;
-    
-    // --- START: Added Religious Level ---
+    const maritalStatus = formData.get('maritalStatus') as string | null;
     const religiousLevel = formData.get('religiousLevel') as string | null;
-    // --- END: Added Religious Level ---
-
     const manualEntryText = formData.get('manualEntryText') as string;
     const images = formData.getAll('images') as File[];
     const birthDateIsApproximate = formData.get('birthDateIsApproximate') === 'true';
     
-    // --- START: הוספת שדות מקצוע הורים ---
+    // --- START: שדה מקור הפניה ---
+    const referredBy = formData.get('referredBy') as string | null;
+    // --- END: שדה מקור הפניה ---
+    
+    // --- START: שדות מקצוע הורים ---
     const fatherOccupation = formData.get('fatherOccupation') as string | null;
     const motherOccupation = formData.get('motherOccupation') as string | null;
-    // --- END: הוספת שדות מקצוע הורים ---
+    // --- END: שדות מקצוע הורים ---
+
     let height: number | null = null;
     if (heightStr && heightStr.trim() !== '') {
         const parsedHeight = parseInt(heightStr, 10);
@@ -1397,10 +1405,19 @@ export async function POST(req: NextRequest) {
       availabilityStatus: 'AVAILABLE',
       isProfileVisible: true, 
       height: height,
-      religiousLevel: religiousLevel, // Add to Prisma Create Object
+      religiousLevel: religiousLevel,
+      maritalStatus,
     };
 
-    // --- START: הוספת השדות החדשים לאובייקט היצירה ---
+    // --- START: הוספת שדה מקור הפניה ---
+    if (referredBy && referredBy.trim() !== '') {
+      profileCreateData.referredBy = referredBy.trim();
+    }
+    // --- END: הוספת שדה מקור הפניה ---
+
+    if (!maritalStatus) {
+      return NextResponse.json({ error: 'Marital status is required' }, { status: 400 });
+    }
     if (fatherOccupation) {
         profileCreateData.fatherOccupation = fatherOccupation;
     }
@@ -1419,7 +1436,6 @@ export async function POST(req: NextRequest) {
     if (isMedicalInfoVisible !== null) {
       profileCreateData.isMedicalInfoVisible = isMedicalInfoVisible === 'true';
     }
-    // --- END: הוספת השדות החדשים לאובייקט היצירה ---
 
     const newManualCandidate = await prisma.user.create({
       data: {

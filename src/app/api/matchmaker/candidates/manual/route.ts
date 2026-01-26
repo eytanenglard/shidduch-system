@@ -64,19 +64,20 @@ export async function POST(req: NextRequest) {
     const birthDateStr = formData.get('birthDate') as string;
     const heightStr = formData.get('height') as string | null;
     const maritalStatus = formData.get('maritalStatus') as string | null;
-
-    // --- START: Added Religious Level ---
     const religiousLevel = formData.get('religiousLevel') as string | null;
-    // --- END: Added Religious Level ---
-
     const manualEntryText = formData.get('manualEntryText') as string;
     const images = formData.getAll('images') as File[];
     const birthDateIsApproximate = formData.get('birthDateIsApproximate') === 'true';
     
-    // --- START: הוספת שדות מקצוע הורים ---
+    // --- START: שדה מקור הפניה ---
+    const referredBy = formData.get('referredBy') as string | null;
+    // --- END: שדה מקור הפניה ---
+    
+    // --- START: שדות מקצוע הורים ---
     const fatherOccupation = formData.get('fatherOccupation') as string | null;
     const motherOccupation = formData.get('motherOccupation') as string | null;
-    // --- END: הוספת שדות מקצוע הורים ---
+    // --- END: שדות מקצוע הורים ---
+
     let height: number | null = null;
     if (heightStr && heightStr.trim() !== '') {
         const parsedHeight = parseInt(heightStr, 10);
@@ -118,14 +119,19 @@ export async function POST(req: NextRequest) {
       availabilityStatus: 'AVAILABLE',
       isProfileVisible: true, 
       height: height,
-      religiousLevel: religiousLevel, // Add to Prisma Create Object
-       maritalStatus,
+      religiousLevel: religiousLevel,
+      maritalStatus,
     };
 
-    // --- START: הוספת השדות החדשים לאובייקט היצירה ---
+    // --- START: הוספת שדה מקור הפניה ---
+    if (referredBy && referredBy.trim() !== '') {
+      profileCreateData.referredBy = referredBy.trim();
+    }
+    // --- END: הוספת שדה מקור הפניה ---
+
     if (!maritalStatus) {
-  return NextResponse.json({ error: 'Marital status is required' }, { status: 400 });
-}
+      return NextResponse.json({ error: 'Marital status is required' }, { status: 400 });
+    }
     if (fatherOccupation) {
         profileCreateData.fatherOccupation = fatherOccupation;
     }
@@ -144,7 +150,6 @@ export async function POST(req: NextRequest) {
     if (isMedicalInfoVisible !== null) {
       profileCreateData.isMedicalInfoVisible = isMedicalInfoVisible === 'true';
     }
-    // --- END: הוספת השדות החדשים לאובייקט היצירה ---
 
     const newManualCandidate = await prisma.user.create({
       data: {

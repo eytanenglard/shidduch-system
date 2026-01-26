@@ -92,7 +92,7 @@ export interface UserProfile extends Omit<PrismaProfile, 'gender' | 'birthDate' 
   isAboutVisible?: boolean | null;
   isFriendsSectionVisible?: boolean | null;
   isNeshamaTechSummaryVisible?: boolean | null;
-  
+  referredBy?: string | null;
   // --- הוספה חדשה: מערך המלצות ---
   testimonials?: FriendTestimonial[];
   // --- הוספה חדשה ---
