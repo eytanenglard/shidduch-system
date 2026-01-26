@@ -3434,8 +3434,16 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
 
   const orderedImages = useMemo(() => {
     const validImages = (images || []).filter((img) => img.url);
+
+    // מוצאים את התמונה הראשית הראשונה
     const mainImg = validImages.find((img) => img.isMain);
-    const otherImages = validImages.filter((img) => !img.isMain);
+
+    // התיקון: מסננים את שאר התמונות לפי ID (ולא לפי isMain) כדי למנוע מצב
+    // שבו אם יש כמה תמונות ראשיות בטעות, הן נעלמות מהרשימה
+    const otherImages = mainImg
+      ? validImages.filter((img) => img.id !== mainImg.id)
+      : validImages;
+
     return mainImg ? [mainImg, ...otherImages] : validImages;
   }, [images]);
   useEffect(() => {
