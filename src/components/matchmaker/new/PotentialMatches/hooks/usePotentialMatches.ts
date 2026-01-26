@@ -184,7 +184,7 @@ interface UsePotentialMatchesReturn {
 // =============================================================================
 // CONSTANTS & DEFAULTS
 // =============================================================================
-const API_BASE_SCAN = '/api/ai/batch-scan-symmetric';
+const API_BASE_SCAN = '/api/ai/batch-scan-all';
 const API_BASE_MATCHES = '/api/matchmaker/potential-matches';
 const POLLING_INTERVAL = 3000;
 
