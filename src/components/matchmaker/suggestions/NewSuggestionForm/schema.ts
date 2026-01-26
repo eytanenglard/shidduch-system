@@ -75,6 +75,8 @@ export const newSuggestionSchema = z.object({
     .max(500, "ההערות לצד ב' לא יכולות להכיל יותר מ-500 תווים")
     .optional(),
 
+firstPartyLanguage: z.enum(['he', 'en'] as const).default('he'),
+secondPartyLanguage: z.enum(['he', 'en'] as const).default('he'),
 
   decisionDeadline: z.date({
     required_error: "יש לבחור תאריך יעד להחלטה ",

@@ -34,6 +34,8 @@ export interface CreateSuggestionData {
   status?: MatchSuggestionStatus;
   priority?: Priority;
   decisionDeadline: Date | string; // Update to accept string as well
+    firstPartyLanguage?: 'he' | 'en';
+  secondPartyLanguage?: 'he' | 'en';
   notes?: {
     internal?: string;
     forFirstParty?: string;

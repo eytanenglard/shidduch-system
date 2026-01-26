@@ -198,10 +198,20 @@
       "description": "הזן את פרטי המועמד שברצונך להוסיף למערכת באופן ידני.",
       "close": "סגור",
       "fields": {
+        "maritalStatus": {
+  "label": "מצב משפחתי",
+  "placeholder": "בחר מצב משפחתי",
+  "options": {
+    "single": "רווק/ה",
+    "divorced": "גרוש/ה",
+    "widowed": "אלמן/ה"
+  }
+},
         "firstName": {
           "label": "שם פרטי",
           "placeholder": "לדוגמה: ישראל"
         },
+
         "lastName": {
           "label": "שם משפחה",
           "placeholder": "לדוגמה: ישראלי"
@@ -1608,6 +1618,14 @@
           "LOW": { "title": "נמוכה", "description": "ללא דחיפות" }
         }
       },
+      "language": {
+      "label": "שפת ההודעה ל{{name}}",
+      "description": "באיזו שפה לשלוח את הצעת השידוך?",
+      "options": {
+        "he": "עברית",
+        "en": "אנגלית"
+      }
+    },
       "rationale": {
         "title": "סיבת ההתאמה הכללית",
         "description": "נימוק מפורט המסביר מדוע יש התאמה בין הצדדים",

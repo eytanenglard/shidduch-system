@@ -63,7 +63,8 @@ export async function POST(req: NextRequest) {
     const gender = formData.get('gender') as Gender;
     const birthDateStr = formData.get('birthDate') as string;
     const heightStr = formData.get('height') as string | null;
-    
+    const maritalStatus = formData.get('maritalStatus') as string | null;
+
     // --- START: Added Religious Level ---
     const religiousLevel = formData.get('religiousLevel') as string | null;
     // --- END: Added Religious Level ---
@@ -118,9 +119,13 @@ export async function POST(req: NextRequest) {
       isProfileVisible: true, 
       height: height,
       religiousLevel: religiousLevel, // Add to Prisma Create Object
+       maritalStatus,
     };
 
     // --- START: הוספת השדות החדשים לאובייקט היצירה ---
+    if (!maritalStatus) {
+  return NextResponse.json({ error: 'Marital status is required' }, { status: 400 });
+}
     if (fatherOccupation) {
         profileCreateData.fatherOccupation = fatherOccupation;
     }

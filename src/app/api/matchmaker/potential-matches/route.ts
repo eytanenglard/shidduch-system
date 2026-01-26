@@ -100,16 +100,21 @@ const searchTerm = searchParams.get('searchTerm');
       ];
     }
 
-    // סינון לפי סטטוס
-    if (status !== 'all') {
+// סינון לפי סטטוס
+    if (status === 'dismissed') {
+      // רק אם מבקשים ספציפית לראות דחויות - הצג רק אותן
+      where.status = 'DISMISSED';
+    } else if (status !== 'all') {
       if (status === 'with_warnings' || status === 'no_warnings') {
-        // סינון זה מתבצע אחרי השליפה כי הוא תלוי בטבלה אחרת,
-        // אבל אם רוצים לשפר ביצועים בעתיד, צריך לעשות זאת דרך Include או Join.
-        // כרגע נשאיר אותו לפוסט-פרוססינג כדי לא לשבור לוגיקה קיימת, 
-        // אלא אם כן נדרש אחרת.
+        // סינון זה מתבצע אחרי השליפה
+        // גם במקרה הזה, לא להציג DISMISSED
+        where.status = { not: 'DISMISSED' };
       } else {
         where.status = status.toUpperCase() as PotentialMatchStatus;
       }
+    } else {
+      // ברירת מחדל (all) - לא להציג DISMISSED
+      where.status = { not: 'DISMISSED' };
     }
 
     // סינון לפי רמה דתית (ברמת ה-DB)

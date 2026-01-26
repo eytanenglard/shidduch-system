@@ -58,6 +58,8 @@ interface CreateSuggestionData {
     | string;
   firstPartyNotes?: string;
   secondPartyNotes?: string;
+  firstPartyLanguage?: 'he' | 'en';
+  secondPartyLanguage?: 'he' | 'en';
 }
 
 // 🆕 טיפוס לפירוט ציון

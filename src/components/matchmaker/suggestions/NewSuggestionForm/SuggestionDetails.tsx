@@ -14,6 +14,8 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Priority } from '@prisma/client';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
+import { Globe, Languages } from 'lucide-react';
+
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import {
@@ -48,6 +50,7 @@ interface SuggestionDetailsProps {
   firstParty: Candidate;
   secondParty: Candidate;
 }
+
 
 const EnhancedSection: React.FC<{
   icon: React.ElementType;
@@ -156,6 +159,64 @@ const PriorityBadge: React.FC<{
     </div>
   );
 };
+const LanguageSelector: React.FC<{
+  partyName: string;
+  partyLanguage: 'he' | 'en';
+  fieldName: 'firstPartyLanguage' | 'secondPartyLanguage';
+  gradient: string;
+  dict: {
+    label: string;
+    description: string;
+    options: {
+      he: string;
+      en: string;
+    };
+  };
+  setValue: (name: string, value: 'he' | 'en', options?: { shouldValidate?: boolean }) => void;
+}> = ({ partyName, partyLanguage, fieldName, gradient, dict, setValue }) => {
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center gap-2">
+        <Languages className="w-5 h-5 text-gray-500" />
+        <Label className="text-base font-medium text-gray-700">
+          {dict.label.replace('{{name}}', partyName)}
+        </Label>
+      </div>
+      <p className="text-sm text-gray-500">{dict.description}</p>
+      <Select
+        onValueChange={(value: 'he' | 'en') =>
+          setValue(fieldName, value, { shouldValidate: true })
+        }
+        defaultValue={partyLanguage}
+        name={fieldName}
+      >
+        <SelectTrigger className={cn(
+          "h-12 border-2 rounded-xl bg-white/80 backdrop-blur-sm shadow-md transition-all",
+          gradient === 'blue' 
+            ? "border-blue-200 hover:border-blue-300 focus:border-blue-500"
+            : "border-purple-200 hover:border-purple-300 focus:border-purple-500"
+        )}>
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent className="border-0 shadow-xl rounded-xl bg-white/95 backdrop-blur-sm">
+          <SelectItem value="he">
+            <div className="flex items-center gap-3 py-1">
+              <span className="text-xl">🇮🇱</span>
+              <span className="font-medium">{dict.options.he}</span>
+            </div>
+          </SelectItem>
+          <SelectItem value="en">
+            <div className="flex items-center gap-3 py-1">
+              <span className="text-xl">🇺🇸</span>
+              <span className="font-medium">{dict.options.en}</span>
+            </div>
+          </SelectItem>
+        </SelectContent>
+      </Select>
+    </div>
+  );
+};
+
 
 const SuggestionDetails: React.FC<SuggestionDetailsProps> = ({
   dict,
@@ -170,6 +231,17 @@ const SuggestionDetails: React.FC<SuggestionDetailsProps> = ({
   } = useFormContext<NewSuggestionFormData>();
   const [isGeneratingRationale, setIsGeneratingRationale] = useState(false);
   const priority = watch('priority', Priority.MEDIUM);
+const firstPartyLanguage = watch('firstPartyLanguage') || firstParty.language || 'he';
+const secondPartyLanguage = watch('secondPartyLanguage') || secondParty.language || 'he';
+React.useEffect(() => {
+  // הגדר שפת ברירת מחדל מהמועמד אם קיימת
+  if (firstParty.language) {
+    setValue('firstPartyLanguage', firstParty.language as 'he' | 'en');
+  }
+  if (secondParty.language) {
+    setValue('secondPartyLanguage', secondParty.language as 'he' | 'en');
+  }
+}, [firstParty.language, secondParty.language, setValue]);
 
   const handleGenerateRationale = async () => {
     setIsGeneratingRationale(true);
@@ -345,6 +417,7 @@ const SuggestionDetails: React.FC<SuggestionDetailsProps> = ({
             placeholder={dict.rationale.placeholder}
             className="min-h-[140px] border-2 border-emerald-200 hover:border-emerald-300 focus:border-emerald-500 rounded-2xl bg-white/80 backdrop-blur-sm shadow-lg transition-all text-lg resize-none"
           />
+          
           {errors.matchingReason && (
             <div className="flex items-center gap-2 p-3 bg-gradient-to-r from-red-50 to-pink-50 rounded-xl border border-red-200">
               <AlertTriangle className="w-4 h-4 text-red-500" />
@@ -396,6 +469,17 @@ const SuggestionDetails: React.FC<SuggestionDetailsProps> = ({
                 .replace('{{name}}', firstParty.firstName)}
               className="min-h-[160px] border-2 border-blue-200 hover:border-blue-300 focus:border-blue-500 rounded-2xl bg-white/80 backdrop-blur-sm shadow-lg transition-all text-lg resize-none"
             />
+            <div className="pt-4 border-t border-blue-100">
+  <LanguageSelector
+    partyName={firstParty.firstName}
+    partyLanguage={firstPartyLanguage}
+    fieldName="firstPartyLanguage"
+    gradient="blue"
+    dict={dict.language}
+    setValue={setValue}
+  />
+</div>
+
             {errors.firstPartyNotes && (
               <div className="flex items-center gap-2 p-3 bg-gradient-to-r from-red-50 to-pink-50 rounded-xl border border-red-200">
                 <AlertTriangle className="w-4 h-4 text-red-500" />
@@ -438,6 +522,16 @@ const SuggestionDetails: React.FC<SuggestionDetailsProps> = ({
                 .replace('{{name}}', secondParty.firstName)}
               className="min-h-[160px] border-2 border-purple-200 hover:border-purple-300 focus:border-purple-500 rounded-2xl bg-white/80 backdrop-blur-sm shadow-lg transition-all text-lg resize-none"
             />
+            <div className="pt-4 border-t border-purple-100">
+  <LanguageSelector
+    partyName={secondParty.firstName}
+    partyLanguage={secondPartyLanguage}
+    fieldName="secondPartyLanguage"
+    gradient="purple"
+    dict={dict.language}
+    setValue={setValue}
+  />
+</div>
             {errors.secondPartyNotes && (
               <div className="flex items-center gap-2 p-3 bg-gradient-to-r from-red-50 to-pink-50 rounded-xl border border-red-200">
                 <AlertTriangle className="w-4 h-4 text-red-500" />

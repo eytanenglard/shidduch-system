@@ -78,6 +78,7 @@ const users = await prisma.user.findMany({
     status: true,
     source: true,
     createdAt: true,
+     language: true,
     isVerified: true,
     isProfileComplete: true,
 images: {

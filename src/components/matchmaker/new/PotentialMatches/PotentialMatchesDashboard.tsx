@@ -87,7 +87,7 @@ import type {
   PotentialMatchFilterStatus,
   PotentialMatchSortBy,
   PotentialMatchesStats as FullStatsType,
-  LastScanInfo as FullLastScanInfo
+  LastScanInfo as FullLastScanInfo,
 } from './types/potentialMatches';
 import type { ProfilePageDictionary } from '@/types/dictionary';
 import type { MatchmakerPageDictionary } from '@/types/dictionaries/matchmaker';
@@ -207,7 +207,7 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
     startScan,
     scanProgress,
     // FIX: Renamed property from hook (was isScanRunning in V2, now isScanning in V3)
-    isScanning, 
+    isScanning,
     selectedMatchIds,
     toggleSelection,
     selectAll,
@@ -247,14 +247,18 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
 
   useEffect(() => {
     const timer = setTimeout(() => {
+      // 1. Trim the term to avoid trailing spaces breaking server queries
+      const term = localSearchTerm.trim();
+
       // אם יש ערך בחיפוש, אנחנו רוצים לחפש בכל הסטטוסים
-      if (localSearchTerm && localSearchTerm.length > 0) {
+      if (term.length > 0) {
         setFilters({
-          searchTerm: localSearchTerm,
+          searchTerm: term,
           status: 'all', // שינוי אוטומטי ל'הכל' בעת חיפוש
         });
       } else {
-        setFilters({ searchTerm: localSearchTerm });
+        // אם התיבה ריקה, מאפסים את החיפוש (אך שומרים על הסטטוס הנוכחי או מאפסים לפי הצורך)
+        setFilters({ searchTerm: '' });
       }
     }, 600);
 
@@ -319,16 +323,39 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
   // HANDLERS
   // ==========================================================================
 
-  // סנן את ההצעות - הסתר הצעות עם מועמדים מוסתרים
+  // סנן את ההצעות - הסתר הצעות עם מועמדים מוסתרים + חיפוש מקומי חכם
   const filteredMatches = useMemo(() => {
-    if (hiddenCandidateIds.size === 0) return matches;
+    let result = matches;
 
-    return matches.filter(
-      (match) =>
-        !hiddenCandidateIds.has(match.male.id) &&
-        !hiddenCandidateIds.has(match.female.id)
-    );
-  }, [matches, hiddenCandidateIds]);
+    // 1. סינון מוסתרים
+    if (hiddenCandidateIds.size > 0) {
+      result = result.filter(
+        (match) =>
+          !hiddenCandidateIds.has(match.male.id) &&
+          !hiddenCandidateIds.has(match.female.id)
+      );
+    }
+
+    // 2. סינון חיפוש בצד הלקוח (תומך שם מלא)
+    // זה מבטיח שגם אם השרת החזיר תוצאות, התצוגה תתעדכן מיידית
+    // ומאפשר חיפוש של "שם פרטי שם משפחה" בתוך התוצאות הקיימות
+    if (localSearchTerm && localSearchTerm.trim().length > 0) {
+      const term = localSearchTerm.toLowerCase().trim();
+
+      result = result.filter((match) => {
+        // יצירת שם מלא לבדיקה עבור הגבר והאישה
+        const maleFullName =
+          `${match.male.firstName} ${match.male.lastName}`.toLowerCase();
+        const femaleFullName =
+          `${match.female.firstName} ${match.female.lastName}`.toLowerCase();
+
+        // בדיקה האם המונח קיים בשם המלא של אחד מהם
+        return maleFullName.includes(term) || femaleFullName.includes(term);
+      });
+    }
+
+    return result;
+  }, [matches, hiddenCandidateIds, localSearchTerm]);
 
   const handleStartScan = useCallback(async () => {
     setConfirmScanDialog(false);
@@ -512,7 +539,7 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
             <PotentialMatchesStats
               // FIX: Cast stats to FullStatsType because hook definition is partial
               // but API returns full data
-              stats={stats as unknown as FullStatsType} 
+              stats={stats as unknown as FullStatsType}
               lastScanInfo={lastScanInfo as unknown as FullLastScanInfo}
               isScanRunning={isScanning}
               scanProgress={scanProgress?.progressPercent || 0}
@@ -525,7 +552,7 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
                 <div className="flex-1 min-w-[200px] max-w-md relative">
                   <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                   <Input
-                    placeholder="חיפוש לפי שם..."
+                    placeholder="חיפוש לפי שם (לדוגמה: ישראל ישראלי)..."
                     value={localSearchTerm}
                     onChange={(e) => setLocalSearchTerm(e.target.value)}
                     className="pr-10"

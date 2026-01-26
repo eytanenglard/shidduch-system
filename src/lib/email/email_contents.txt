@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\lib\email
-# Generated on: 2026-01-11 20:37:52
+# Generated on: 2026-01-26 03:57:37
 # Filter: Only content of code files (.bat, .c, .cfg, .conf, .cpp, .cs, .css, .go, .h, .html, .ini, .java, .js, .json, .jsx, .kt, .less, .md, .php, .py, .rb, .rs, .scss, .sh, .sql, .swift, .ts, .tsx, .txt, .xml, .yaml, .yml) is included.
 ################################################################################
 
@@ -255,14 +255,17 @@ class EmailService {
 
   // ================= פונקציות שליחה (ללא שינוי) =================
 
-  async sendWelcomeEmail(params: WelcomeEmailParams): Promise<void> {
+async sendWelcomeEmail(params: WelcomeEmailParams): Promise<void> {
     const locale = await this.resolveLocale(params.email, params.locale);
     const dictionary = await getDictionary(locale);
     const emailDict = dictionary.email;
 
+    // --- תיקון: החלפת המשתנה בתוך מחרוזת הכותרת ---
+    const subject = emailDict.welcome.subject.replace('{{firstName}}', params.firstName);
+
     await this.sendEmail({
       to: params.email,
-      subject: emailDict.welcome.subject,
+      subject: subject, // שימוש במשתנה המעובד
       templateName: 'welcome',
       context: {
         locale,
@@ -277,15 +280,18 @@ class EmailService {
     });
   }
 
-  async sendAccountSetupEmail(params: AccountSetupEmailParams): Promise<void> {
+async sendAccountSetupEmail(params: AccountSetupEmailParams): Promise<void> {
     const locale = await this.resolveLocale(params.email, params.locale);
     const dictionary = await getDictionary(locale);
     const emailDict = dictionary.email;
     const setupLink = `${process.env.NEXT_PUBLIC_BASE_URL}/auth/setup-account?token=${params.setupToken}`;
     
+    // --- תיקון: החלפת שם השדכן בכותרת ---
+    const subject = emailDict.accountSetup.subject.replace('{{matchmakerName}}', params.matchmakerName);
+
     await this.sendEmail({
       to: params.email,
-      subject: emailDict.accountSetup.subject,
+      subject: subject, // שימוש במשתנה המעובד
       templateName: 'accountSetup',
       context: {
         locale,

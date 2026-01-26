@@ -37,6 +37,7 @@ export interface Candidate {
   images: CandidateImage[];
   isProfileComplete: boolean;
   source: UserSource; // Add new field
+   language?: 'he' | 'en';
   addedByMatchmakerId?: string | null; // Add new field
   profile: CandidateProfile; // Ensure this uses the updated CandidateProfile
     suggestionStatus?: {

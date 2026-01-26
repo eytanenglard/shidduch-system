@@ -48,6 +48,7 @@ export const AddManualCandidateDialog: React.FC<
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [gender, setGender] = useState<Gender | undefined>(undefined);
+  const [maritalStatus, setMaritalStatus] = useState<string>(''); // Added Marital Status State
   const [religiousLevel, setReligiousLevel] = useState<string>(''); // Added Religious Level State
   const [height, setHeight] = useState('');
   const [birthDate, setBirthDate] = useState<Date | undefined>(undefined);
@@ -66,6 +67,7 @@ export const AddManualCandidateDialog: React.FC<
     setLastName('');
     setEmail('');
     setGender(undefined);
+    setMaritalStatus(''); // Reset Marital Status
     setReligiousLevel(''); // Reset Religious Level
     setHeight('');
     setBirthDate(undefined);
@@ -129,6 +131,7 @@ export const AddManualCandidateDialog: React.FC<
       !firstName ||
       !lastName ||
       !gender ||
+      !maritalStatus ||
       !religiousLevel ||
       !manualEntryText
     ) {
@@ -164,6 +167,7 @@ export const AddManualCandidateDialog: React.FC<
     formData.append('lastName', lastName);
     if (email) formData.append('email', email);
     formData.append('gender', gender);
+    formData.append('maritalStatus', maritalStatus); // Append Marital Status
     formData.append('religiousLevel', religiousLevel); // Append Religious Level
     if (height) formData.append('height', height);
     formData.append('birthDate', finalBirthDate.toISOString());
@@ -329,6 +333,35 @@ export const AddManualCandidateDialog: React.FC<
                     </SelectItem>
                     <SelectItem value={Gender.FEMALE}>
                       {dict.fields.gender.female}
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* --- Marital Status Input --- */}
+              <div>
+                <Label htmlFor="maritalStatus" className="text-right block">
+                  {dict.fields.maritalStatus?.label || 'מצב משפחתי'}{' '}
+                  <span className="text-red-500">*</span>
+                </Label>
+                <Select value={maritalStatus} onValueChange={setMaritalStatus}>
+                  <SelectTrigger id="maritalStatus" dir="rtl">
+                    <SelectValue
+                      placeholder={
+                        dict.fields.maritalStatus?.placeholder ||
+                        'בחר מצב משפחתי'
+                      }
+                    />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-[200px]">
+                    <SelectItem value="single">
+                      {dict.fields.maritalStatus?.options?.single || 'רווק/ה'}
+                    </SelectItem>
+                    <SelectItem value="divorced">
+                      {dict.fields.maritalStatus?.options?.divorced || 'גרוש/ה'}
+                    </SelectItem>
+                    <SelectItem value="widowed">
+                      {dict.fields.maritalStatus?.options?.widowed || 'אלמן/ה'}
                     </SelectItem>
                   </SelectContent>
                 </Select>

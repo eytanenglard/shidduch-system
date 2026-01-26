@@ -158,7 +158,14 @@ const locale: 'he' | 'en' = (rawLocale === 'en' || rawLocale === 'he') ? rawLoca
     };
     
     // ========================= שינוי מרכזי 4: העברת המילון לשירות =========================
-    const newSuggestion = await suggestionService.createSuggestion(suggestionData, emailDict);
+const newSuggestion = await suggestionService.createSuggestion(
+  suggestionData, 
+  emailDict,
+  {
+    firstPartyLanguage: suggestionData.firstPartyLanguage || 'he',
+    secondPartyLanguage: suggestionData.secondPartyLanguage || 'he',
+  }
+);
 
     return NextResponse.json(newSuggestion, { status: 201 });
   } catch (error) {

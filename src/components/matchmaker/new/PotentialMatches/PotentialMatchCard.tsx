@@ -194,6 +194,29 @@ const CandidatePreview: React.FC<{
       );
     }
   };
+const handleEmail = (e: React.MouseEvent) => {
+    e.stopPropagation();
+
+    // אותו טקסט כמו בוואטסאפ
+    const subject = `היי ${candidate.firstName} מנשמהטק 💜`;
+    const body = `היי ${candidate.firstName},
+
+זה איתן מנשמהטק.
+
+אני מאוד שמח שנרשמת למערכת שלנו ואני מקווה מאוד לעזור לך למצוא את הזוגיות שתמיד חלמת עליה.
+
+איתן
+נשמהטק`;
+
+    const encodedSubject = encodeURIComponent(subject);
+    const encodedBody = encodeURIComponent(body);
+    
+    // פתיחת לקוח המייל עם ההודעה
+    window.open(
+      `mailto:${candidate.email || ''}?subject=${encodedSubject}&body=${encodedBody}`,
+      '_blank'
+    );
+  };
 
   return (
     <div
@@ -291,23 +314,20 @@ const CandidatePreview: React.FC<{
           </Tooltip>
         </TooltipProvider>
 
-        <TooltipProvider>
+     <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
                 variant="ghost"
                 size="icon"
                 className="h-7 w-7 rounded-full bg-white/60 hover:bg-blue-100 hover:text-blue-600 shadow-sm border border-transparent hover:border-blue-200 transition-all"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onFeedback();
-                }}
+                onClick={handleEmail}
               >
                 <Mail className="w-3.5 h-3.5" />
               </Button>
             </TooltipTrigger>
             <TooltipContent>
-              <p>שלח דוח פרופיל (מייל)</p>
+              <p>שלח מייל</p>
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
@@ -407,7 +427,59 @@ const ScoreBreakdownDisplay: React.FC<{
     </div>
   );
 };
+// קומפוננטת עזר לפורמט הנימוק
+const ReasoningContent: React.FC<{ reasoning: string | null | undefined }> = ({ reasoning }) => {
+  if (!reasoning) return null;
 
+  // פיצול לפסקאות
+  const paragraphs = reasoning.split(/\n\n+/).filter(p => p.trim());
+  
+  const formatParagraph = (text: string, index: number) => {
+    // בדיקה אם זו כותרת
+    const isHeader = /^[*\-•]?\s*[\u0590-\u05FF\w\s]+:$/.test(text.trim());
+    
+    // בדיקה אם זו רשימה
+    const isList = text.includes('\n- ') || text.includes('\n• ') || text.includes('\n* ');
+    
+    if (isHeader) {
+      return (
+        <h4 key={index} className="font-semibold text-purple-800 text-sm mt-3 first:mt-0">
+          {text.replace(/^[*\-•]\s*/, '')}
+        </h4>
+      );
+    }
+    
+    if (isList) {
+      const lines = text.split('\n').filter(l => l.trim());
+      return (
+        <ul key={index} className="space-y-1.5 my-2">
+          {lines.map((line, i) => {
+            const cleanLine = line.replace(/^[*\-•]\s*/, '').trim();
+            if (!cleanLine) return null;
+            return (
+              <li key={i} className="flex items-start gap-2 text-sm text-gray-700">
+                <span className="text-purple-400 mt-1">•</span>
+                <span className="leading-relaxed">{cleanLine}</span>
+              </li>
+            );
+          })}
+        </ul>
+      );
+    }
+    
+    return (
+      <p key={index} className="text-sm text-gray-700 leading-relaxed my-2 first:mt-0">
+        {text.trim()}
+      </p>
+    );
+  };
+
+  return (
+    <div className="space-y-1">
+      {paragraphs.map((para, index) => formatParagraph(para, index))}
+    </div>
+  );
+};
 // =============================================================================
 // MAIN COMPONENT
 // =============================================================================
@@ -617,19 +689,32 @@ const PotentialMatchCard: React.FC<PotentialMatchCardProps> = ({
             </div>
 
             {/* Reasoning Preview */}
-            {match.shortReasoning && (
-              <div
-                className="p-3 rounded-lg bg-white/60 backdrop-blur-sm cursor-pointer hover:bg-white/80 transition-colors border border-purple-50"
-                onClick={() => setShowReasoningDialog(true)}
-              >
-                <div className="flex items-start gap-2">
-                  <Brain className="w-4 h-4 text-purple-600 mt-0.5 flex-shrink-0" />
-                  <p className="text-sm text-gray-700 line-clamp-2 leading-relaxed">
-                    {match.shortReasoning}
-                  </p>
-                </div>
-              </div>
-            )}
+{match.shortReasoning && (
+  <div
+    className="p-3 rounded-lg bg-gradient-to-br from-purple-50/80 to-indigo-50/80 backdrop-blur-sm cursor-pointer hover:from-purple-100/90 hover:to-indigo-100/90 transition-all duration-200 border border-purple-100 shadow-sm"
+    onClick={() => setShowReasoningDialog(true)}
+  >
+    <div className="flex items-start gap-2.5">
+      <div className="p-1.5 rounded-lg bg-purple-100">
+        <Brain className="w-4 h-4 text-purple-600" />
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-xs font-medium text-purple-700 mb-1">
+          נימוק AI להתאמה
+        </p>
+        <p className="text-sm text-gray-700 line-clamp-3 leading-relaxed">
+          {match.shortReasoning}
+        </p>
+        {(match.detailedReasoning || match.shortReasoning.length > 150) && (
+          <p className="text-xs text-purple-500 mt-1.5 flex items-center gap-1">
+            <span>לחץ לקריאת הנימוק המלא</span>
+            <ChevronDown className="w-3 h-3" />
+          </p>
+        )}
+      </div>
+    </div>
+  </div>
+)}
 
             {/* Footer: Date & Details Toggle */}
             <div className="flex items-center justify-between mt-3 pt-2">
@@ -723,23 +808,51 @@ const PotentialMatchCard: React.FC<PotentialMatchCardProps> = ({
       </motion.div>
 
       {/* Reasoning Dialog */}
-      <Dialog open={showReasoningDialog} onOpenChange={setShowReasoningDialog}>
-        <DialogContent className="max-w-2xl" dir="rtl">
-          <DialogHeader>
-            <DialogTitle>נימוק AI להתאמה</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 max-h-[60vh] overflow-y-auto">
-            <div className="bg-purple-50 p-4 rounded-lg">
-              <p className="whitespace-pre-wrap leading-relaxed text-gray-800">
-                {match.detailedReasoning || match.shortReasoning}
-              </p>
-            </div>
-            {match.scoreBreakdown && (
-              <ScoreBreakdownDisplay breakdown={match.scoreBreakdown} />
-            )}
+<Dialog open={showReasoningDialog} onOpenChange={setShowReasoningDialog}>
+  <DialogContent className="max-w-2xl max-h-[85vh]" dir="rtl">
+    <DialogHeader className="pb-4 border-b">
+      <DialogTitle className="flex items-center gap-2 text-lg">
+        <div className="p-2 rounded-lg bg-gradient-to-br from-purple-500 to-indigo-500">
+          <Brain className="w-5 h-5 text-white" />
+        </div>
+        נימוק AI להתאמה
+      </DialogTitle>
+      <div className="flex items-center gap-2 mt-2">
+        <span className="text-sm text-gray-500">ציון התאמה:</span>
+        <span className={cn("text-lg font-bold", getScoreColor(match.aiScore))}>
+          {Math.round(match.aiScore)}
+        </span>
+      </div>
+    </DialogHeader>
+    
+    <div className="space-y-5 max-h-[55vh] overflow-y-auto py-4">
+      <div className="bg-gradient-to-br from-purple-50 to-indigo-50 p-5 rounded-xl border border-purple-100">
+        <ReasoningContent reasoning={match.detailedReasoning || match.shortReasoning} />
+      </div>
+      
+      {match.scoreBreakdown && (
+        <div className="space-y-3">
+          <h4 className="font-medium text-gray-700 flex items-center gap-2">
+            <Sparkles className="w-4 h-4 text-purple-500" />
+            פירוט הניקוד
+          </h4>
+          <div className="bg-white p-4 rounded-xl border border-gray-100">
+            <ScoreBreakdownDisplay breakdown={match.scoreBreakdown} />
           </div>
-        </DialogContent>
-      </Dialog>
+        </div>
+      )}
+    </div>
+    
+    <div className="pt-4 border-t flex justify-between items-center">
+      <span className="text-xs text-gray-400">
+        נסרק {formatDistanceToNow(new Date(match.scannedAt), { addSuffix: true, locale: he })}
+      </span>
+      <Button variant="outline" size="sm" onClick={() => setShowReasoningDialog(false)}>
+        סגור
+      </Button>
+    </div>
+  </DialogContent>
+</Dialog>
 
       {/* Rejection Feedback Modal Integration */}
       {rejectionFeedback.context && (

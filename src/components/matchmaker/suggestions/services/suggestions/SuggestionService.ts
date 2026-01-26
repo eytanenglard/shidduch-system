@@ -9,7 +9,10 @@ import type {
   UpdateSuggestionData,
 } from "@/types/suggestions";
 import type { EmailDictionary } from "@/types/dictionary";
-
+interface LanguageOptions {
+  firstPartyLanguage: 'he' | 'en';
+  secondPartyLanguage: 'he' | 'en';
+}
 // הפעלת שירות ההתראות. הפעולה מתבצעת פעם אחת כשהמודול נטען.
 const notificationService = initNotificationService();
 
@@ -50,7 +53,9 @@ export class SuggestionService {
    */
   public async createSuggestion(
     data: CreateSuggestionData,
-    dictionary: EmailDictionary 
+    dictionary: EmailDictionary, 
+      languageOptions?: LanguageOptions
+
   ): Promise<SuggestionWithParties> {
     // 1. וידוא הרשאות השדכן
     const matchmaker = await prisma.user.findUnique({

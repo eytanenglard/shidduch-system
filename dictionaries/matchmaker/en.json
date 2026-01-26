@@ -306,6 +306,15 @@
       "description": "Enter the details of the candidate you want to add manually to the system.",
       "close": "Close",
       "fields": {
+        "maritalStatus": {
+  "label": "Marital Status",
+  "placeholder": "Select marital status",
+  "options": {
+    "single": "Single",
+    "divorced": "Divorced",
+    "widowed": "Widowed"
+  }
+},
         "firstName": {
           "label": "First Name",
           "placeholder": "e.g., Israel"
@@ -1607,6 +1616,14 @@
         "HIGH": { "title": "High", "description": "Increased priority" },
         "MEDIUM": { "title": "Regular", "description": "Standard priority" },
         "LOW": { "title": "Low", "description": "No urgency" }
+      }
+    },
+     "language": {
+      "label": "Email language for {{name}}",
+      "description": "In which language should we send the suggestion?",
+      "options": {
+        "he": "Hebrew",
+        "en": "English"
       }
     },
     "rationale": {

@@ -803,10 +803,21 @@ type AddManualCandidateDialogDict = {
   description: string;
   close: string;
   fields: {
+      maritalStatus?: {
+      label: string;
+      placeholder: string;
+      options?: {
+        single: string;
+        divorced: string;
+        widowed: string;
+      };
+    };
     firstName: {
       label: string;
       placeholder: string;
+      
     };
+    
     lastName: {
       label: string;
       placeholder: string;
@@ -1306,6 +1317,14 @@ type SuggestionDetailsDict = {
     label: string;
     placeholder: string;
     options: Record<"URGENT" | "HIGH" | "MEDIUM" | "LOW", { title: string; description: string; }>;
+  };
+   language: {
+    label: string;
+    description: string;
+    options: {
+      he: string;
+      en: string;
+    };
   };
   rationale: {
     title: string;
