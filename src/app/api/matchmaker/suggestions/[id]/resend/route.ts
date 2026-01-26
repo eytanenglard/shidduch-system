@@ -6,7 +6,6 @@ import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { UserRole, MatchSuggestionStatus } from "@prisma/client";
 import { statusTransitionService } from "@/components/matchmaker/suggestions/services/suggestions/StatusTransitionService";
-import { EmailDictionary } from "@/types/dictionary";
 import { getDictionary } from "@/lib/dictionaries";
 
 export async function POST(
@@ -28,17 +27,17 @@ export async function POST(
     const suggestionId = params.id;
     const { partyType } = await req.json();
 
-    const url = new URL(req.url);
-    const locale: 'he' | 'en' = (url.searchParams.get('locale') === 'en') ? 'en' : 'he';
-    
-    console.log(`[API /resend] Received request with locale: '${locale}'`);
+    // ========================= טעינת המילונים =========================
+    const [dictHe, dictEn] = await Promise.all([
+      getDictionary('he'),
+      getDictionary('en')
+    ]);
 
-    const dictionary = await getDictionary(locale);
-    const emailDict: EmailDictionary = dictionary.email;
-
-    if (!emailDict) {
-        throw new Error(`Email dictionary for locale '${locale}' could not be loaded.`);
-    }
+    const dictionaries = {
+      he: dictHe.email,
+      en: dictEn.email
+    };
+    // =================================================================
 
     const suggestion = await prisma.matchSuggestion.findUnique({
       where: { id: suggestionId },
@@ -57,6 +56,13 @@ export async function POST(
       return NextResponse.json({ success: false, error: "You are not authorized to resend this suggestion" }, { status: 403 });
     }
 
+    // חילוץ שפות
+    const languagePrefs = {
+        firstParty: (suggestion.firstParty as any).language || 'he',
+        secondParty: (suggestion.secondParty as any).language || 'he',
+        matchmaker: (suggestion.matchmaker as any).language || 'he',
+    };
+
     let updatedSuggestion = suggestion;
     const transitionNotes = `הצעה נשלחה מחדש ע"י ${session.user.firstName} ${session.user.lastName}`;
     
@@ -64,21 +70,19 @@ export async function POST(
       updatedSuggestion = await statusTransitionService.transitionStatus(
         updatedSuggestion, 
         MatchSuggestionStatus.PENDING_FIRST_PARTY,
-        emailDict,
+        dictionaries, // העברת המילונים
         `${transitionNotes} - לצד ראשון`,
         {
           sendNotifications: true,
           notifyParties: ['first']
-        }
+        },
+        languagePrefs // העברת השפות
       );
       
       if (partyType === "first") {
         await prisma.matchSuggestion.update({
           where: { id: suggestionId },
-          data: {
-            firstPartySent: new Date(),
-            lastActivity: new Date()
-          }
+          data: { firstPartySent: new Date(), lastActivity: new Date() }
         });
       }
     }
@@ -87,26 +91,24 @@ export async function POST(
       updatedSuggestion = await statusTransitionService.transitionStatus(
         updatedSuggestion, 
         MatchSuggestionStatus.PENDING_SECOND_PARTY,
-        emailDict,
+        dictionaries, // העברת המילונים
         `${transitionNotes} - לצד שני`,
         {
           sendNotifications: true,
           notifyParties: ['second']
-        }
+        },
+        languagePrefs // העברת השפות
       );
       
       await prisma.matchSuggestion.update({
         where: { id: suggestionId },
-        data: {
-          secondPartySent: new Date(),
-          lastActivity: new Date()
-        }
+        data: { secondPartySent: new Date(), lastActivity: new Date() }
       });
     }
 
     return NextResponse.json({
       success: true,
-      message: `Suggestion successfully resent to ${partyType === "first" ? "first party" : partyType === "second" ? "second party" : "both parties"}`,
+      message: `Suggestion successfully resent`,
       suggestion: updatedSuggestion
     });
   } catch (error) {

@@ -5,11 +5,8 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { UserRole, MatchSuggestionStatus } from "@prisma/client";
-import { initNotificationService } from "@/components/matchmaker/suggestions/services/notification/initNotifications";
-import { EmailDictionary } from "@/types/dictionary";
+import { notificationService } from "@/components/matchmaker/suggestions/services/notification/NotificationService";
 import { getDictionary } from "@/lib/dictionaries";
-
-const notificationService = initNotificationService();
 
 export async function POST(
   req: NextRequest,
@@ -30,17 +27,17 @@ export async function POST(
     const suggestionId = params.id;
     const { partyType } = await req.json();
 
-    const url = new URL(req.url);
-    const locale: 'he' | 'en' = (url.searchParams.get('locale') === 'en') ? 'en' : 'he';
-    
-    console.log(`[API /remind] Received request with locale: '${locale}'`);
+    // ========================= טעינת המילונים =========================
+    const [dictHe, dictEn] = await Promise.all([
+      getDictionary('he'),
+      getDictionary('en')
+    ]);
 
-    const dictionary = await getDictionary(locale);
-    const emailDict: EmailDictionary = dictionary.email;
-
-    if (!emailDict || !emailDict.notifications?.customMessage?.reminderText) {
-        throw new Error(`Email dictionary for locale '${locale}' is missing required notification templates.`);
-    }
+    const dictionaries = {
+      he: dictHe.email,
+      en: dictEn.email
+    };
+    // =================================================================
 
     const suggestion = await prisma.matchSuggestion.findUnique({
       where: { id: suggestionId },
@@ -55,10 +52,6 @@ export async function POST(
       return NextResponse.json({ success: false, error: "Suggestion not found" }, { status: 404 });
     }
 
-    if (suggestion.matchmakerId !== session.user.id && session.user.role !== UserRole.ADMIN) {
-      return NextResponse.json({ success: false, error: "You are not authorized to send reminders for this suggestion" }, { status: 403 });
-    }
-    
     const notifyParties: ('first' | 'second')[] = [];
     if ((partyType === "first" || partyType === "both") && suggestion.status === MatchSuggestionStatus.PENDING_FIRST_PARTY) {
       notifyParties.push('first');
@@ -68,10 +61,12 @@ export async function POST(
     }
     
     if (notifyParties.length === 0) {
-      return NextResponse.json({ success: false, error: "No applicable recipients for reminder in current status" }, { status: 400 });
+      return NextResponse.json({ success: false, error: "No applicable recipients for reminder" }, { status: 400 });
     }
 
-    const reminderTemplateText = emailDict.notifications.customMessage.reminderText;
+    // שימוש בטקסט התזכורת מהמילון העברי כברירת מחדל לטקסט ההיסטוריה
+    // אך ההתראה עצמה תיבנה לפי השפה של המשתמש בתוך השירות
+    const reminderTemplateText = dictHe.email.notifications.customMessage.reminderText;
     const reminderContent = reminderTemplateText
         .replace('{{matchmakerName}}', `${suggestion.matchmaker.firstName} ${suggestion.matchmaker.lastName}`);
 
@@ -84,18 +79,25 @@ export async function POST(
       data: {
         suggestionId,
         status: suggestion.status,
-        notes: `תזכורת נשלחה ל${partyType === "first" ? "צד ראשון" : partyType === "second" ? "צד שני" : "שני הצדדים"} על ידי ${session.user.firstName} ${session.user.lastName}`,
+        notes: `תזכורת נשלחה ל${partyType === "first" ? "צד ראשון" : partyType === "second" ? "צד שני" : "שני הצדדים"}`,
       },
     });
     
+    const languagePrefs = {
+        firstParty: (suggestion.firstParty as any).language || 'he',
+        secondParty: (suggestion.secondParty as any).language || 'he',
+        matchmaker: (suggestion.matchmaker as any).language || 'he',
+    };
+
     await notificationService.handleSuggestionStatusChange(
       suggestion,
-      emailDict,
+      dictionaries, // העברת המילונים
       {
         channels: ['email', 'whatsapp'],
         notifyParties,
-        customMessage: reminderContent
-      }
+        customMessage: reminderContent // הודעה זו תוצג כ-Fallback או תוספת
+      },
+      languagePrefs
     );
     
     return NextResponse.json({

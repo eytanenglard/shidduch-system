@@ -6,7 +6,6 @@ import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { UserRole, MatchSuggestionStatus } from "@prisma/client";
 import { statusTransitionService } from "@/components/matchmaker/suggestions/services/suggestions/StatusTransitionService";
-import { EmailDictionary } from "@/types/dictionary";
 import { getDictionary } from "@/lib/dictionaries";
 
 export async function POST(
@@ -27,17 +26,17 @@ export async function POST(
     const params = await props.params;
     const suggestionId = params.id;
 
-    const url = new URL(req.url);
-    const locale: 'he' | 'en' = (url.searchParams.get('locale') === 'en') ? 'en' : 'he';
-    
-    console.log(`[API /share-contact] Received request with locale: '${locale}'`);
+    // ========================= טעינת המילונים =========================
+    const [dictHe, dictEn] = await Promise.all([
+      getDictionary('he'),
+      getDictionary('en')
+    ]);
 
-    const dictionary = await getDictionary(locale);
-    const emailDict: EmailDictionary = dictionary.email;
-
-    if (!emailDict) {
-        throw new Error(`Email dictionary for locale '${locale}' could not be loaded.`);
-    }
+    const dictionaries = {
+      he: dictHe.email,
+      en: dictEn.email
+    };
+    // =================================================================
 
     const suggestion = await prisma.matchSuggestion.findUnique({
       where: { id: suggestionId },
@@ -62,16 +61,24 @@ export async function POST(
         error: "Cannot share contacts until both parties have approved the suggestion."
       }, { status: 400 });
     }
+
+    // חילוץ שפות
+    const languagePrefs = {
+        firstParty: (suggestion.firstParty as any).language || 'he',
+        secondParty: (suggestion.secondParty as any).language || 'he',
+        matchmaker: (suggestion.matchmaker as any).language || 'he',
+    };
     
     const updatedSuggestion = await statusTransitionService.transitionStatus(
       suggestion,
       MatchSuggestionStatus.CONTACT_DETAILS_SHARED,
-      emailDict,
+      dictionaries, // העברת המילונים
       `פרטי קשר שותפו בין ${suggestion.firstParty.firstName} ${suggestion.firstParty.lastName} ל${suggestion.secondParty.firstName} ${suggestion.secondParty.lastName} ע"י ${session.user.firstName} ${session.user.lastName}`,
       {
         sendNotifications: true,
         notifyParties: ['first', 'second', 'matchmaker']
-      }
+      },
+      languagePrefs // העברת השפות
     );
 
     return NextResponse.json({
