@@ -1,5 +1,3 @@
-// src/components/HomePage/components/demo-data.ts
-
 import type { Locale } from '../../../../i18n-config';
 import type { ExtendedMatchSuggestion, PartyInfo } from '@/components/suggestions/types';
 import type { QuestionnaireResponse as QuestionnaireResponseType } from '@/types/next-auth';
@@ -99,6 +97,7 @@ export const generateDemoData = async (locale: Locale) => {
       isAboutVisible: true,
       isFriendsSectionVisible: true,
       isNeshamaTechSummaryVisible: true,
+      referredBy: null, // <--- ADDED HERE
       cvUrl: null,
       cvSummary: null,
       aiProfileSummary: null,
@@ -189,6 +188,7 @@ export const generateDemoData = async (locale: Locale) => {
       isAboutVisible: true,
       isFriendsSectionVisible: true,
       isNeshamaTechSummaryVisible: true,
+      referredBy: null, // <--- ADDED HERE
       cvUrl: null,
       cvSummary: null,
       aiProfileSummary: null,
