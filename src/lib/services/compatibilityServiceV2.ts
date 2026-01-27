@@ -16,7 +16,7 @@ import {
   BackgroundCategory,
   EthnicBackground,
   calculateRangeCompatibility,
-} from "@/lib/types/profileMetrics";
+} from "@/types/profileMetrics";
 
 // ═══════════════════════════════════════════════════════════════
 // TYPES
@@ -163,8 +163,8 @@ async function fetchProfileWithMetrics(profileId: string): Promise<ProfileWithMe
     nativeLanguage: profile.nativeLanguage || undefined,
     additionalLanguages: profile.additionalLanguages || undefined,
     hasChildrenFromPrevious: profile.hasChildrenFromPrevious || undefined,
-    smoking: profile.smoking || undefined,
-    shomerNegiah: profile.shomerNegiah || undefined,
+/*     smoking: profile.smoking || undefined,
+ */    shomerNegiah: profile.shomerNegiah || undefined,
     headCovering: profile.headCovering || undefined,
     kippahType: profile.kippahType || undefined,
     preferredAgeMin: profile.preferredAgeMin || undefined,
@@ -333,9 +333,7 @@ function calculateSoftPenalties(
   }
 
   if (seeker.metrics?.backgroundCategory && candidate.metrics?.backgroundCategory) {
-    const multiplier = BACKGROUND_COMPATIBILITY_MATRIX
-      [seeker.metrics.backgroundCategory as BackgroundCategory]
-      ?.[candidate.metrics.backgroundCategory as BackgroundCategory];
+    const multiplier = BACKGROUND_COMPATIBILITY_MATRIX[seeker.metrics.backgroundCategory as BackgroundCategory]?.[candidate.metrics.backgroundCategory as BackgroundCategory];
     
     if (multiplier && multiplier < 0.8) {
       applied.push({ type: 'BACKGROUND_MISMATCH', penalty: Math.round((1 - multiplier) * 20) });
@@ -571,4 +569,3 @@ const compatibilityServiceV2 = {
 };
 
 export default compatibilityServiceV2;
-export { calculatePairCompatibility };
