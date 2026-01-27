@@ -9,13 +9,18 @@ import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 import { updateProfileVectorsAndMetrics } from '@/lib/services/dualVectorService';
 
+// הגדרת טיפוס עבור הפרמטרים (תואם Next.js 15)
+type RouteContext = {
+  params: Promise<{ profileId: string }>;
+};
+
 // ═══════════════════════════════════════════════════════════════
 // POST - עדכון מדדים ווקטורים לפרופיל בודד
 // ═══════════════════════════════════════════════════════════════
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { profileId: string } }
+  context: RouteContext // שינוי: שימוש ב-context במקום destructuring ישיר בחתימה
 ) {
   try {
     // בדיקת הרשאות (רק אדמין/שדכן)
@@ -27,7 +32,8 @@ export async function POST(
       );
     }
 
-    const { profileId } = params;
+    // שינוי: חילוץ הפרמטרים לאחר await
+    const { profileId } = await context.params;
 
     // וידוא שהפרופיל קיים
     const profile = await prisma.profile.findUnique({
@@ -91,7 +97,7 @@ export async function POST(
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { profileId: string } }
+  context: RouteContext // שינוי: שימוש ב-context במקום destructuring ישיר
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -102,7 +108,8 @@ export async function GET(
       );
     }
 
-    const { profileId } = params;
+    // שינוי: חילוץ הפרמטרים לאחר await
+    const { profileId } = await context.params;
 
     // שליפת המדדים
     const metrics = await prisma.$queryRaw<any[]>`
