@@ -240,7 +240,11 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
   useEffect(() => {
     setPageInput(String(pagination.page));
   }, [pagination.page]);
-
+ const handleFilterByUser = useCallback((name: string) => {
+    setLocalSearchTerm(name);
+    window.scrollTo({ top: 0, behavior: 'smooth' }); // גלילה למעלה כדי לראות את התוצאות
+    toast.info(`מציג התאמות עבור: ${name}`);
+  }, []);
   // ==========================================================================
   // SERVER SIDE SEARCH EFFECT
   // ==========================================================================
@@ -324,6 +328,7 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
   // ==========================================================================
 
   // סנן את ההצעות - הסתר הצעות עם מועמדים מוסתרים + חיפוש מקומי חכם
+// סנן את ההצעות - הסתר הצעות עם מועמדים מוסתרים + חיפוש מקומי חכם
   const filteredMatches = useMemo(() => {
     let result = matches;
 
@@ -336,22 +341,36 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
       );
     }
 
-    // 2. סינון חיפוש בצד הלקוח (תומך שם מלא)
-    // זה מבטיח שגם אם השרת החזיר תוצאות, התצוגה תתעדכן מיידית
-    // ומאפשר חיפוש של "שם פרטי שם משפחה" בתוך התוצאות הקיימות
+    // 2. סינון חיפוש בצד הלקוח (תומך ריבוי מילים וסדר הפוך)
     if (localSearchTerm && localSearchTerm.trim().length > 0) {
-      const term = localSearchTerm.toLowerCase().trim();
+      // מפרקים את החיפוש למילים נפרדות, מסירים רווחים מיותרים והופכים לאותיות קטנות
+      const searchTokens = localSearchTerm
+        .toLowerCase()
+        .trim()
+        .split(/\s+/) // מפצל לפי רווח אחד או יותר
+        .filter(token => token.length > 0);
 
-      result = result.filter((match) => {
-        // יצירת שם מלא לבדיקה עבור הגבר והאישה
-        const maleFullName =
-          `${match.male.firstName} ${match.male.lastName}`.toLowerCase();
-        const femaleFullName =
-          `${match.female.firstName} ${match.female.lastName}`.toLowerCase();
+      if (searchTokens.length > 0) {
+        result = result.filter((match) => {
+          // יצירת שם מלא לבדיקה עבור הגבר והאישה
+          const maleFullName =
+            `${match.male.firstName} ${match.male.lastName}`.toLowerCase();
+          const femaleFullName =
+            `${match.female.firstName} ${match.female.lastName}`.toLowerCase();
 
-        // בדיקה האם המונח קיים בשם המלא של אחד מהם
-        return maleFullName.includes(term) || femaleFullName.includes(term);
-      });
+          // בדיקה עבור הגבר: האם *כל* מילות החיפוש נמצאות בשם שלו?
+          const isMaleMatch = searchTokens.every(token => 
+            maleFullName.includes(token)
+          );
+
+          // בדיקה עבור האישה: האם *כל* מילות החיפוש נמצאות בשם שלה?
+          const isFemaleMatch = searchTokens.every(token => 
+            femaleFullName.includes(token)
+          );
+
+          return isMaleMatch || isFemaleMatch;
+        });
+      }
     }
 
     return result;
@@ -780,7 +799,7 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
                         onCreateSuggestion={(id) =>
                           setCreateSuggestionDialog(id)
                         }
-                        onDismiss={(id) => setDismissDialog(id)}
+onDismiss={(id) => dismissMatch(id)}
                         onReview={reviewMatch}
                         onRestore={restoreMatch}
                         onSave={saveMatch}
@@ -798,6 +817,7 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
                         showSelection={showBulkActions}
                         onHideCandidate={handleHideCandidate}
                         hiddenCandidateIds={hiddenCandidateIds}
+                        onFilterByUser={handleFilterByUser}
                       />
                     ))}
                   </AnimatePresence>

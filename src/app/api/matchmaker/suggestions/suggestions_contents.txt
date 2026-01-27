@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\suggestions
-# Generated on: 2026-01-26 11:17:48
+# Generated on: 2026-01-27 15:27:19
 # Filter: Only content of code files (.bat, .c, .cfg, .conf, .cpp, .cs, .css, .go, .h, .html, .ini, .java, .js, .json, .jsx, .kt, .less, .md, .php, .py, .rb, .rs, .scss, .sh, .sql, .swift, .ts, .tsx, .txt, .xml, .yaml, .yml) is included.
 ################################################################################
 
@@ -22,12 +22,9 @@ import { MatchSuggestionStatus, Prisma, UserRole } from '@prisma/client';
 import { suggestionService } from '@/components/matchmaker/suggestions/services/suggestions/SuggestionService';
 import { updateUserAiProfile } from '@/lib/services/profileAiService';
 import type { CreateSuggestionData } from '@/types/suggestions';
-// ========================= שינוי מרכזי 1: ייבוא טיפוס המילון =========================
-import type { EmailDictionary } from '@/types/dictionary';
 import { getDictionary } from '@/lib/dictionaries';
+
 export const dynamic = 'force-dynamic';
-
-
 
 /**
  * מחשב את הקטגוריה של ההצעה בהתבסס על הסטטוס שלה.
@@ -93,16 +90,22 @@ export async function POST(req: Request) {
       );
     }
     
-    // ========================= שינוי מרכזי 3: טעינת התרגומים =========================
-    const url = new URL(req.url);
-const rawLocale = url.searchParams.get('locale');
-const locale: 'he' | 'en' = (rawLocale === 'en' || rawLocale === 'he') ? rawLocale : 'he';    const dictionary = await getDictionary(locale);
-    const emailDict: EmailDictionary = dictionary.email; // חילוץ החלק של המיילים
+    // ========================= שינוי מרכזי: טעינת שני המילונים =========================
+    // במקום לטעון רק אחד, אנו טוענים את שניהם כדי לאפשר שליחת מיילים רב-לשונית
+    const [dictHe, dictEn] = await Promise.all([
+      getDictionary('he'),
+      getDictionary('en')
+    ]);
 
-    if (!emailDict) {
-        // במקרה חירום שהמילון לא נטען כראוי
-        throw new Error(`Email dictionary for locale '${locale}' could not be loaded.`);
+    const dictionaries = {
+      he: dictHe.email,
+      en: dictEn.email
+    };
+
+    if (!dictionaries.he || !dictionaries.en) {
+        throw new Error(`Email dictionaries could not be loaded.`);
     }
+    // =================================================================================
 
     // בדיקה ועדכון פרופילי AI
     try {
@@ -171,15 +174,15 @@ const locale: 'he' | 'en' = (rawLocale === 'en' || rawLocale === 'he') ? rawLoca
       matchmakerId: session.user.id,
     };
     
-    // ========================= שינוי מרכזי 4: העברת המילון לשירות =========================
-const newSuggestion = await suggestionService.createSuggestion(
-  suggestionData, 
-  emailDict,
-  {
-    firstPartyLanguage: suggestionData.firstPartyLanguage || 'he',
-    secondPartyLanguage: suggestionData.secondPartyLanguage || 'he',
-  }
-);
+    // ========================= שינוי מרכזי: העברת שני המילונים =========================
+    const newSuggestion = await suggestionService.createSuggestion(
+      suggestionData, 
+      dictionaries, // העברת האובייקט המכיל את he ו-en
+      {
+        firstParty: data.firstPartyLanguage || 'he', // תיקון שמות השדות כדי להתאים לממשק
+        secondParty: data.secondPartyLanguage || 'he',
+      }
+    );
 
     return NextResponse.json(newSuggestion, { status: 201 });
   } catch (error) {
@@ -297,7 +300,6 @@ export async function GET(req: Request) {
     const formattedSuggestions = suggestions.map((suggestion) => ({
       ...suggestion,
       category: getSuggestionCategory(suggestion.status),
-      // Formatting logic remains the same...
     }));
 
     console.log(
@@ -544,7 +546,7 @@ import prisma from '@/lib/prisma';
 import { UserRole } from '@prisma/client';
 import { notificationService } from '@/components/matchmaker/suggestions/services/notification/NotificationService';
 import { initNotificationService } from '@/components/matchmaker/suggestions/services/notification/initNotifications';
-import { EmailDictionary } from '@/types/dictionary';
+// שינוי 1: הסרנו את EmailDictionary הבודד כי אנחנו לא משתמשים בו כטיפוס ישיר יותר
 import { getDictionary } from '@/lib/dictionaries';
 
 initNotificationService();
@@ -567,17 +569,23 @@ export async function POST(
       return NextResponse.json({ error: 'Unauthorized - Matchmaker or Admin access required' }, { status: 403 });
     }
 
-    const url = new URL(req.url);
-    const locale: 'he' | 'en' = (url.searchParams.get('locale') === 'en') ? 'en' : 'he';
-    
-    console.log(`[API /message] Received request with locale: '${locale}'`);
+    // ========================= תיקון: טעינת שני המילונים =========================
+    // במקום לטעון מילון אחד לפי ה-URL, אנו טוענים את שניהם
+    // זה מאפשר לשירות ההתראות לבחור את המילון הנכון לפי שפת המקבל
+    const [dictHe, dictEn] = await Promise.all([
+      getDictionary('he'),
+      getDictionary('en')
+    ]);
 
-    const dictionary = await getDictionary(locale);
-    const emailDict: EmailDictionary = dictionary.email;
+    const dictionaries = {
+      he: dictHe.email,
+      en: dictEn.email
+    };
 
-    if (!emailDict) {
-        throw new Error(`Email dictionary for locale '${locale}' could not be loaded.`);
+    if (!dictionaries.he || !dictionaries.en) {
+        throw new Error(`Email dictionaries could not be loaded.`);
     }
+    // =========================================================================
 
     const body = await req.json();
     const { partyType, customMessage, channels } = body;
@@ -599,14 +607,23 @@ export async function POST(
       return NextResponse.json({ error: 'Suggestion not found' }, { status: 404 });
     }
 
+    // חילוץ העדפות שפה מהמשתמשים (אם קיים שדה language ב-User, אחרת ברירת מחדל)
+    const languagePrefs = {
+      firstParty: (suggestion.firstParty as any).language || 'he',
+      secondParty: (suggestion.secondParty as any).language || 'he',
+      matchmaker: (suggestion.matchmaker as any).language || 'he',
+    };
+
+    // ========================= תיקון: קריאה לשירות עם הפרמטרים החדשים =========================
     await notificationService.handleSuggestionStatusChange(
       suggestion, 
-      emailDict,
+      dictionaries, // מעבירים את האובייקט עם he ו-en
       {
         channels: channels,
         notifyParties: [partyType],
         customMessage: customMessage
-      }
+      },
+      languagePrefs // מעבירים את העדפות השפה
     );
 
     return NextResponse.json({ success: true, message: 'Message sent successfully.' }, { status: 200 });
@@ -634,11 +651,8 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { UserRole, MatchSuggestionStatus } from "@prisma/client";
-import { initNotificationService } from "@/components/matchmaker/suggestions/services/notification/initNotifications";
-import { EmailDictionary } from "@/types/dictionary";
+import { notificationService } from "@/components/matchmaker/suggestions/services/notification/NotificationService";
 import { getDictionary } from "@/lib/dictionaries";
-
-const notificationService = initNotificationService();
 
 export async function POST(
   req: NextRequest,
@@ -659,17 +673,17 @@ export async function POST(
     const suggestionId = params.id;
     const { partyType } = await req.json();
 
-    const url = new URL(req.url);
-    const locale: 'he' | 'en' = (url.searchParams.get('locale') === 'en') ? 'en' : 'he';
-    
-    console.log(`[API /remind] Received request with locale: '${locale}'`);
+    // ========================= טעינת המילונים =========================
+    const [dictHe, dictEn] = await Promise.all([
+      getDictionary('he'),
+      getDictionary('en')
+    ]);
 
-    const dictionary = await getDictionary(locale);
-    const emailDict: EmailDictionary = dictionary.email;
-
-    if (!emailDict || !emailDict.notifications?.customMessage?.reminderText) {
-        throw new Error(`Email dictionary for locale '${locale}' is missing required notification templates.`);
-    }
+    const dictionaries = {
+      he: dictHe.email,
+      en: dictEn.email
+    };
+    // =================================================================
 
     const suggestion = await prisma.matchSuggestion.findUnique({
       where: { id: suggestionId },
@@ -684,10 +698,6 @@ export async function POST(
       return NextResponse.json({ success: false, error: "Suggestion not found" }, { status: 404 });
     }
 
-    if (suggestion.matchmakerId !== session.user.id && session.user.role !== UserRole.ADMIN) {
-      return NextResponse.json({ success: false, error: "You are not authorized to send reminders for this suggestion" }, { status: 403 });
-    }
-    
     const notifyParties: ('first' | 'second')[] = [];
     if ((partyType === "first" || partyType === "both") && suggestion.status === MatchSuggestionStatus.PENDING_FIRST_PARTY) {
       notifyParties.push('first');
@@ -697,10 +707,12 @@ export async function POST(
     }
     
     if (notifyParties.length === 0) {
-      return NextResponse.json({ success: false, error: "No applicable recipients for reminder in current status" }, { status: 400 });
+      return NextResponse.json({ success: false, error: "No applicable recipients for reminder" }, { status: 400 });
     }
 
-    const reminderTemplateText = emailDict.notifications.customMessage.reminderText;
+    // שימוש בטקסט התזכורת מהמילון העברי כברירת מחדל לטקסט ההיסטוריה
+    // אך ההתראה עצמה תיבנה לפי השפה של המשתמש בתוך השירות
+    const reminderTemplateText = dictHe.email.notifications.customMessage.reminderText;
     const reminderContent = reminderTemplateText
         .replace('{{matchmakerName}}', `${suggestion.matchmaker.firstName} ${suggestion.matchmaker.lastName}`);
 
@@ -713,18 +725,25 @@ export async function POST(
       data: {
         suggestionId,
         status: suggestion.status,
-        notes: `תזכורת נשלחה ל${partyType === "first" ? "צד ראשון" : partyType === "second" ? "צד שני" : "שני הצדדים"} על ידי ${session.user.firstName} ${session.user.lastName}`,
+        notes: `תזכורת נשלחה ל${partyType === "first" ? "צד ראשון" : partyType === "second" ? "צד שני" : "שני הצדדים"}`,
       },
     });
     
+    const languagePrefs = {
+        firstParty: (suggestion.firstParty as any).language || 'he',
+        secondParty: (suggestion.secondParty as any).language || 'he',
+        matchmaker: (suggestion.matchmaker as any).language || 'he',
+    };
+
     await notificationService.handleSuggestionStatusChange(
       suggestion,
-      emailDict,
+      dictionaries, // העברת המילונים
       {
         channels: ['email', 'whatsapp'],
         notifyParties,
-        customMessage: reminderContent
-      }
+        customMessage: reminderContent // הודעה זו תוצג כ-Fallback או תוספת
+      },
+      languagePrefs
     );
     
     return NextResponse.json({
@@ -758,7 +777,6 @@ import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { UserRole, MatchSuggestionStatus } from "@prisma/client";
 import { statusTransitionService } from "@/components/matchmaker/suggestions/services/suggestions/StatusTransitionService";
-import { EmailDictionary } from "@/types/dictionary";
 import { getDictionary } from "@/lib/dictionaries";
 
 export async function POST(
@@ -780,17 +798,17 @@ export async function POST(
     const suggestionId = params.id;
     const { partyType } = await req.json();
 
-    const url = new URL(req.url);
-    const locale: 'he' | 'en' = (url.searchParams.get('locale') === 'en') ? 'en' : 'he';
-    
-    console.log(`[API /resend] Received request with locale: '${locale}'`);
+    // ========================= טעינת המילונים =========================
+    const [dictHe, dictEn] = await Promise.all([
+      getDictionary('he'),
+      getDictionary('en')
+    ]);
 
-    const dictionary = await getDictionary(locale);
-    const emailDict: EmailDictionary = dictionary.email;
-
-    if (!emailDict) {
-        throw new Error(`Email dictionary for locale '${locale}' could not be loaded.`);
-    }
+    const dictionaries = {
+      he: dictHe.email,
+      en: dictEn.email
+    };
+    // =================================================================
 
     const suggestion = await prisma.matchSuggestion.findUnique({
       where: { id: suggestionId },
@@ -809,6 +827,13 @@ export async function POST(
       return NextResponse.json({ success: false, error: "You are not authorized to resend this suggestion" }, { status: 403 });
     }
 
+    // חילוץ שפות
+    const languagePrefs = {
+        firstParty: (suggestion.firstParty as any).language || 'he',
+        secondParty: (suggestion.secondParty as any).language || 'he',
+        matchmaker: (suggestion.matchmaker as any).language || 'he',
+    };
+
     let updatedSuggestion = suggestion;
     const transitionNotes = `הצעה נשלחה מחדש ע"י ${session.user.firstName} ${session.user.lastName}`;
     
@@ -816,21 +841,19 @@ export async function POST(
       updatedSuggestion = await statusTransitionService.transitionStatus(
         updatedSuggestion, 
         MatchSuggestionStatus.PENDING_FIRST_PARTY,
-        emailDict,
+        dictionaries, // העברת המילונים
         `${transitionNotes} - לצד ראשון`,
         {
           sendNotifications: true,
           notifyParties: ['first']
-        }
+        },
+        languagePrefs // העברת השפות
       );
       
       if (partyType === "first") {
         await prisma.matchSuggestion.update({
           where: { id: suggestionId },
-          data: {
-            firstPartySent: new Date(),
-            lastActivity: new Date()
-          }
+          data: { firstPartySent: new Date(), lastActivity: new Date() }
         });
       }
     }
@@ -839,26 +862,24 @@ export async function POST(
       updatedSuggestion = await statusTransitionService.transitionStatus(
         updatedSuggestion, 
         MatchSuggestionStatus.PENDING_SECOND_PARTY,
-        emailDict,
+        dictionaries, // העברת המילונים
         `${transitionNotes} - לצד שני`,
         {
           sendNotifications: true,
           notifyParties: ['second']
-        }
+        },
+        languagePrefs // העברת השפות
       );
       
       await prisma.matchSuggestion.update({
         where: { id: suggestionId },
-        data: {
-          secondPartySent: new Date(),
-          lastActivity: new Date()
-        }
+        data: { secondPartySent: new Date(), lastActivity: new Date() }
       });
     }
 
     return NextResponse.json({
       success: true,
-      message: `Suggestion successfully resent to ${partyType === "first" ? "first party" : partyType === "second" ? "second party" : "both parties"}`,
+      message: `Suggestion successfully resent`,
       suggestion: updatedSuggestion
     });
   } catch (error) {
@@ -887,7 +908,6 @@ import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { UserRole, MatchSuggestionStatus } from "@prisma/client";
 import { statusTransitionService } from "@/components/matchmaker/suggestions/services/suggestions/StatusTransitionService";
-import { EmailDictionary } from "@/types/dictionary";
 import { getDictionary } from "@/lib/dictionaries";
 
 export async function POST(
@@ -908,17 +928,17 @@ export async function POST(
     const params = await props.params;
     const suggestionId = params.id;
 
-    const url = new URL(req.url);
-    const locale: 'he' | 'en' = (url.searchParams.get('locale') === 'en') ? 'en' : 'he';
-    
-    console.log(`[API /share-contact] Received request with locale: '${locale}'`);
+    // ========================= טעינת המילונים =========================
+    const [dictHe, dictEn] = await Promise.all([
+      getDictionary('he'),
+      getDictionary('en')
+    ]);
 
-    const dictionary = await getDictionary(locale);
-    const emailDict: EmailDictionary = dictionary.email;
-
-    if (!emailDict) {
-        throw new Error(`Email dictionary for locale '${locale}' could not be loaded.`);
-    }
+    const dictionaries = {
+      he: dictHe.email,
+      en: dictEn.email
+    };
+    // =================================================================
 
     const suggestion = await prisma.matchSuggestion.findUnique({
       where: { id: suggestionId },
@@ -943,16 +963,24 @@ export async function POST(
         error: "Cannot share contacts until both parties have approved the suggestion."
       }, { status: 400 });
     }
+
+    // חילוץ שפות
+    const languagePrefs = {
+        firstParty: (suggestion.firstParty as any).language || 'he',
+        secondParty: (suggestion.secondParty as any).language || 'he',
+        matchmaker: (suggestion.matchmaker as any).language || 'he',
+    };
     
     const updatedSuggestion = await statusTransitionService.transitionStatus(
       suggestion,
       MatchSuggestionStatus.CONTACT_DETAILS_SHARED,
-      emailDict,
+      dictionaries, // העברת המילונים
       `פרטי קשר שותפו בין ${suggestion.firstParty.firstName} ${suggestion.firstParty.lastName} ל${suggestion.secondParty.firstName} ${suggestion.secondParty.lastName} ע"י ${session.user.firstName} ${session.user.lastName}`,
       {
         sendNotifications: true,
         notifyParties: ['first', 'second', 'matchmaker']
-      }
+      },
+      languagePrefs // העברת השפות
     );
 
     return NextResponse.json({

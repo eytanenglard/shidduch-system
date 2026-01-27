@@ -187,6 +187,7 @@ const searchTerm = searchParams.get('searchTerm');
               },
               profile: {
                 select: {
+                    id: true,
                   gender: true,
                   birthDate: true,
                   city: true,
@@ -215,6 +216,7 @@ const searchTerm = searchParams.get('searchTerm');
               },
               profile: {
                 select: {
+                    id: true,
                   gender: true,
                   birthDate: true,
                   city: true,
@@ -315,6 +317,7 @@ const searchTerm = searchParams.get('searchTerm');
         
         male: {
           id: match.male.id,
+            profileId: match.male.profile?.id || '',
           firstName: match.male.firstName,
           lastName: match.male.lastName,
           age: maleAge,
@@ -332,6 +335,7 @@ const searchTerm = searchParams.get('searchTerm');
 
         female: {
           id: match.female.id,
+          profileId: match.female.profile?.id || '', 
           firstName: match.female.firstName,
           lastName: match.female.lastName,
           age: femaleAge,

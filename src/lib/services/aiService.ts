@@ -18,6 +18,36 @@ const genAI = new GoogleGenerativeAI(apiKey);
  * @param text הטקסט להטמעה.
  * @returns Promise שמחזיר מערך של מספרים (הווקטור), או null במקרה של כישלון.
  */
+
+interface GenerateTextOptions {
+  model?: string;
+  temperature?: number;
+  maxTokens?: number;
+}
+
+async function generateText(
+  prompt: string,
+  options: GenerateTextOptions = {}
+): Promise<string> {
+  const { model = 'gemini-2.0-flash', temperature = 0.3, maxTokens = 4000 } = options;
+
+  const response = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${process.env.GOOGLE_GEMINI_API_KEY}`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: { temperature, maxOutputTokens: maxTokens },
+      }),
+    }
+  );
+
+  if (!response.ok) throw new Error(`Gemini API error: ${response.status}`);
+  const data = await response.json();
+  return data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+}
+
 export async function generateTextEmbedding(
   text: string
 ): Promise<number[] | null> {
@@ -881,6 +911,7 @@ const aiService = {
   analyzeCvInDepth,
   generateProfileSummary, // פונקציה חדשה (סיכום ממוקד לשדכן ב-DB)
   generateVirtualProfile, 
+    generateText,
 };
 
 export default aiService;

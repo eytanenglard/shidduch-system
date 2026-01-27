@@ -52,6 +52,9 @@ import {
   Undo,
   MessageCircle, // WhatsApp
   Mail, // Email/Feedback
+  Briefcase, // NEW
+  Ruler,     // NEW
+  Languages, // NEW
 } from 'lucide-react';
 import { cn, getRelativeCloudinaryPath } from '@/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
@@ -150,6 +153,44 @@ const getReligiousLevelLabel = (level: string | null): string => {
   return labels[level] || level;
 };
 
+// --- Helper Functions for New Fields ---
+
+const formatLanguages = (
+  native: string | null | undefined,
+  additional: string[] | null | undefined
+): string => {
+  const langMap: Record<string, string> = {
+    hebrew: 'עברית',
+    english: 'אנגלית',
+    russian: 'רוסית',
+    french: 'צרפתית',
+    spanish: 'ספרדית',
+    amharic: 'אמהרית',
+    arabic: 'ערבית',
+    german: 'גרמנית',
+    italian: 'איטלקית',
+  };
+
+  const langs = [native, ...(additional || [])].filter(Boolean) as string[];
+
+  return langs
+    .map((lang) => langMap[lang.toLowerCase()] || lang)
+    .slice(0, 3) // Limit to 3 to save space
+    .join(', ');
+};
+
+const getMaritalStatusLabel = (status: string | null | undefined): string => {
+  if (!status) return '';
+  const map: Record<string, string> = {
+    single: 'רווק/ה',
+    divorced: 'גרוש/ה',
+    widowed: 'אלמן/ה',
+    divorced_with_children: 'גרוש/ה +',
+    widowed_with_children: 'אלמן/ה +',
+  };
+  return map[status.toLowerCase()] || status;
+};
+
 // =============================================================================
 // SUB-COMPONENTS
 // =============================================================================
@@ -177,6 +218,12 @@ const CandidatePreview: React.FC<{
   const bgGradient =
     gender === 'male' ? 'from-blue-50 to-cyan-50' : 'from-pink-50 to-rose-50';
 
+  // חישוב מחרוזת שפות לתצוגה
+  const languagesStr = formatLanguages(
+    candidate.nativeLanguage,
+    candidate.additionalLanguages
+  );
+
   const handleWhatsApp = (e: React.MouseEvent) => {
     e.stopPropagation();
 
@@ -194,10 +241,10 @@ const CandidatePreview: React.FC<{
       );
     }
   };
-const handleEmail = (e: React.MouseEvent) => {
+
+  const handleEmail = (e: React.MouseEvent) => {
     e.stopPropagation();
 
-    // אותו טקסט כמו בוואטסאפ
     const subject = `היי ${candidate.firstName} מנשמהטק 💜`;
     const body = `היי ${candidate.firstName},
 
@@ -210,8 +257,7 @@ const handleEmail = (e: React.MouseEvent) => {
 
     const encodedSubject = encodeURIComponent(subject);
     const encodedBody = encodeURIComponent(body);
-    
-    // פתיחת לקוח המייל עם ההודעה
+
     window.open(
       `mailto:${candidate.email || ''}?subject=${encodedSubject}&body=${encodedBody}`,
       '_blank'
@@ -228,6 +274,7 @@ const handleEmail = (e: React.MouseEvent) => {
       onClick={onViewProfile}
     >
       <div className="flex-1 cursor-pointer">
+        {/* תמונה וסטטוס */}
         <div className="relative w-16 h-16 mx-auto mb-2 rounded-full overflow-hidden border-2 border-white shadow-md">
           {candidate.mainImage ? (
             <Image
@@ -249,24 +296,68 @@ const handleEmail = (e: React.MouseEvent) => {
           )}
         </div>
 
+        {/* שם */}
         <h4 className="text-center font-bold text-gray-800 text-sm mb-1 truncate">
           {candidate.firstName} {candidate.lastName}
         </h4>
 
-        <div className="flex items-center justify-center gap-2 text-xs text-gray-600 mb-1">
-          <span>{candidate.age}</span>
+        {/* --- אזור המידע החדש (גיל, גובה, סטטוס, עיר, עיסוק, שפות) --- */}
+        <div className="flex flex-col gap-1.5 mb-2">
+          {/* שורה 1: גיל | סטטוס | גובה */}
+          <div className="flex items-center justify-center gap-2 text-xs text-gray-700">
+            <span className="font-medium">{candidate.age}</span>
+
+            {candidate.maritalStatus && (
+              <>
+                <span className="text-gray-300">|</span>
+                <span>{getMaritalStatusLabel(candidate.maritalStatus)}</span>
+              </>
+            )}
+
+            {candidate.height && (
+              <>
+                <span className="text-gray-300">|</span>
+                <span className="flex items-center gap-0.5" title="גובה">
+                  {candidate.height} <Ruler className="w-3 h-3 text-gray-400" />
+                </span>
+              </>
+            )}
+          </div>
+
+          {/* שורה 2: עיר (אם קיימת) */}
           {candidate.city && (
-            <>
-              <span>•</span>
-              <span className="flex items-center gap-0.5 truncate max-w-[80px]">
-                <MapPin className="w-3 h-3" />
-                {candidate.city}
+            <div className="flex items-center justify-center gap-1 text-xs text-gray-600">
+              <MapPin className="w-3 h-3 text-gray-400 shrink-0" />
+              <span className="truncate max-w-[120px]">{candidate.city}</span>
+            </div>
+          )}
+
+          {/* שורה 3: עיסוק (אם קיים) */}
+          {candidate.occupation && (
+            <div className="flex items-center justify-center gap-1 text-xs text-gray-600 px-2">
+              <Briefcase className="w-3 h-3 text-gray-400 shrink-0" />
+              <span
+                className="truncate max-w-full text-center"
+                title={candidate.occupation}
+              >
+                {candidate.occupation}
               </span>
-            </>
+            </div>
+          )}
+
+          {/* שורה 4: שפות (אם קיימות) */}
+          {languagesStr && (
+            <div className="flex items-center justify-center gap-1 text-[10px] text-gray-500">
+              <Languages className="w-3 h-3 text-gray-400 shrink-0" />
+              <span className="truncate max-w-[140px]" title={languagesStr}>
+                {languagesStr}
+              </span>
+            </div>
           )}
         </div>
 
-        <div className="text-center text-[10px] text-gray-500 mb-1 truncate px-1">
+        {/* רמה דתית */}
+        <div className="text-center text-[10px] text-purple-600 font-medium bg-purple-50 rounded-full py-0.5 px-2 mx-auto w-fit max-w-full truncate">
           {getReligiousLevelLabel(candidate.religiousLevel)}
         </div>
       </div>
@@ -314,7 +405,7 @@ const handleEmail = (e: React.MouseEvent) => {
           </Tooltip>
         </TooltipProvider>
 
-     <TooltipProvider>
+        <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
@@ -428,36 +519,45 @@ const ScoreBreakdownDisplay: React.FC<{
   );
 };
 // קומפוננטת עזר לפורמט הנימוק
-const ReasoningContent: React.FC<{ reasoning: string | null | undefined }> = ({ reasoning }) => {
+const ReasoningContent: React.FC<{ reasoning: string | null | undefined }> = ({
+  reasoning,
+}) => {
   if (!reasoning) return null;
 
   // פיצול לפסקאות
-  const paragraphs = reasoning.split(/\n\n+/).filter(p => p.trim());
-  
+  const paragraphs = reasoning.split(/\n\n+/).filter((p) => p.trim());
+
   const formatParagraph = (text: string, index: number) => {
     // בדיקה אם זו כותרת
     const isHeader = /^[*\-•]?\s*[\u0590-\u05FF\w\s]+:$/.test(text.trim());
-    
+
     // בדיקה אם זו רשימה
-    const isList = text.includes('\n- ') || text.includes('\n• ') || text.includes('\n* ');
-    
+    const isList =
+      text.includes('\n- ') || text.includes('\n• ') || text.includes('\n* ');
+
     if (isHeader) {
       return (
-        <h4 key={index} className="font-semibold text-purple-800 text-sm mt-3 first:mt-0">
+        <h4
+          key={index}
+          className="font-semibold text-purple-800 text-sm mt-3 first:mt-0"
+        >
           {text.replace(/^[*\-•]\s*/, '')}
         </h4>
       );
     }
-    
+
     if (isList) {
-      const lines = text.split('\n').filter(l => l.trim());
+      const lines = text.split('\n').filter((l) => l.trim());
       return (
         <ul key={index} className="space-y-1.5 my-2">
           {lines.map((line, i) => {
             const cleanLine = line.replace(/^[*\-•]\s*/, '').trim();
             if (!cleanLine) return null;
             return (
-              <li key={i} className="flex items-start gap-2 text-sm text-gray-700">
+              <li
+                key={i}
+                className="flex items-start gap-2 text-sm text-gray-700"
+              >
                 <span className="text-purple-400 mt-1">•</span>
                 <span className="leading-relaxed">{cleanLine}</span>
               </li>
@@ -466,9 +566,12 @@ const ReasoningContent: React.FC<{ reasoning: string | null | undefined }> = ({ 
         </ul>
       );
     }
-    
+
     return (
-      <p key={index} className="text-sm text-gray-700 leading-relaxed my-2 first:mt-0">
+      <p
+        key={index}
+        className="text-sm text-gray-700 leading-relaxed my-2 first:mt-0"
+      >
         {text.trim()}
       </p>
     );
@@ -517,20 +620,21 @@ const PotentialMatchCard: React.FC<PotentialMatchCardProps> = ({
   // פתיחת מודל הדחייה
   const handleDismissWithFeedback = () => {
     rejectionFeedback.open({
-      // אנו מגדירים את ה-rejecting/rejected לצורכי תיעוד ב-DB.
-      // במקרה של דחיית התאמה ע"י שדכן, זה פחות קריטי מי דוחה את מי,
-      // אך נבחר קונבנציה: הזכר דוחה את הנקבה (או ההפך) רק כדי למלא את השדות.
-      // אפשר גם לאפשר לשדכן לבחור מי לא התאים, אך למען הפשטות כרגע:
-      rejectedUser: {
-        id: match.female.id,
-        firstName: match.female.firstName,
-        lastName: match.female.lastName,
-      },
-      rejectingUser: {
+      partyA: {
         id: match.male.id,
+        profileId: match.male.profileId, // ⭐ Profile ID!
         firstName: match.male.firstName,
         lastName: match.male.lastName,
+        gender: 'MALE',
       },
+      partyB: {
+        id: match.female.id,
+        profileId: match.female.profileId, // ⭐ Profile ID!
+        firstName: match.female.firstName,
+        lastName: match.female.lastName,
+        gender: 'FEMALE',
+      },
+      defaultRejectingParty: 'A',
       potentialMatchId: match.id,
     });
   };
@@ -689,32 +793,33 @@ const PotentialMatchCard: React.FC<PotentialMatchCardProps> = ({
             </div>
 
             {/* Reasoning Preview */}
-{match.shortReasoning && (
-  <div
-    className="p-3 rounded-lg bg-gradient-to-br from-purple-50/80 to-indigo-50/80 backdrop-blur-sm cursor-pointer hover:from-purple-100/90 hover:to-indigo-100/90 transition-all duration-200 border border-purple-100 shadow-sm"
-    onClick={() => setShowReasoningDialog(true)}
-  >
-    <div className="flex items-start gap-2.5">
-      <div className="p-1.5 rounded-lg bg-purple-100">
-        <Brain className="w-4 h-4 text-purple-600" />
-      </div>
-      <div className="flex-1 min-w-0">
-        <p className="text-xs font-medium text-purple-700 mb-1">
-          נימוק AI להתאמה
-        </p>
-        <p className="text-sm text-gray-700 line-clamp-3 leading-relaxed">
-          {match.shortReasoning}
-        </p>
-        {(match.detailedReasoning || match.shortReasoning.length > 150) && (
-          <p className="text-xs text-purple-500 mt-1.5 flex items-center gap-1">
-            <span>לחץ לקריאת הנימוק המלא</span>
-            <ChevronDown className="w-3 h-3" />
-          </p>
-        )}
-      </div>
-    </div>
-  </div>
-)}
+            {match.shortReasoning && (
+              <div
+                className="p-3 rounded-lg bg-gradient-to-br from-purple-50/80 to-indigo-50/80 backdrop-blur-sm cursor-pointer hover:from-purple-100/90 hover:to-indigo-100/90 transition-all duration-200 border border-purple-100 shadow-sm"
+                onClick={() => setShowReasoningDialog(true)}
+              >
+                <div className="flex items-start gap-2.5">
+                  <div className="p-1.5 rounded-lg bg-purple-100">
+                    <Brain className="w-4 h-4 text-purple-600" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-medium text-purple-700 mb-1">
+                      נימוק AI להתאמה
+                    </p>
+                    <p className="text-sm text-gray-700 line-clamp-3 leading-relaxed">
+                      {match.shortReasoning}
+                    </p>
+                    {(match.detailedReasoning ||
+                      match.shortReasoning.length > 150) && (
+                      <p className="text-xs text-purple-500 mt-1.5 flex items-center gap-1">
+                        <span>לחץ לקריאת הנימוק המלא</span>
+                        <ChevronDown className="w-3 h-3" />
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Footer: Date & Details Toggle */}
             <div className="flex items-center justify-between mt-3 pt-2">
@@ -808,51 +913,63 @@ const PotentialMatchCard: React.FC<PotentialMatchCardProps> = ({
       </motion.div>
 
       {/* Reasoning Dialog */}
-<Dialog open={showReasoningDialog} onOpenChange={setShowReasoningDialog}>
-  <DialogContent className="max-w-2xl max-h-[85vh]" dir="rtl">
-    <DialogHeader className="pb-4 border-b">
-      <DialogTitle className="flex items-center gap-2 text-lg">
-        <div className="p-2 rounded-lg bg-gradient-to-br from-purple-500 to-indigo-500">
-          <Brain className="w-5 h-5 text-white" />
-        </div>
-        נימוק AI להתאמה
-      </DialogTitle>
-      <div className="flex items-center gap-2 mt-2">
-        <span className="text-sm text-gray-500">ציון התאמה:</span>
-        <span className={cn("text-lg font-bold", getScoreColor(match.aiScore))}>
-          {Math.round(match.aiScore)}
-        </span>
-      </div>
-    </DialogHeader>
-    
-    <div className="space-y-5 max-h-[55vh] overflow-y-auto py-4">
-      <div className="bg-gradient-to-br from-purple-50 to-indigo-50 p-5 rounded-xl border border-purple-100">
-        <ReasoningContent reasoning={match.detailedReasoning || match.shortReasoning} />
-      </div>
-      
-      {match.scoreBreakdown && (
-        <div className="space-y-3">
-          <h4 className="font-medium text-gray-700 flex items-center gap-2">
-            <Sparkles className="w-4 h-4 text-purple-500" />
-            פירוט הניקוד
-          </h4>
-          <div className="bg-white p-4 rounded-xl border border-gray-100">
-            <ScoreBreakdownDisplay breakdown={match.scoreBreakdown} />
+      <Dialog open={showReasoningDialog} onOpenChange={setShowReasoningDialog}>
+        <DialogContent className="max-w-2xl max-h-[85vh]" dir="rtl">
+          <DialogHeader className="pb-4 border-b">
+            <DialogTitle className="flex items-center gap-2 text-lg">
+              <div className="p-2 rounded-lg bg-gradient-to-br from-purple-500 to-indigo-500">
+                <Brain className="w-5 h-5 text-white" />
+              </div>
+              נימוק AI להתאמה
+            </DialogTitle>
+            <div className="flex items-center gap-2 mt-2">
+              <span className="text-sm text-gray-500">ציון התאמה:</span>
+              <span
+                className={cn('text-lg font-bold', getScoreColor(match.aiScore))}
+              >
+                {Math.round(match.aiScore)}
+              </span>
+            </div>
+          </DialogHeader>
+
+          <div className="space-y-5 max-h-[55vh] overflow-y-auto py-4">
+            <div className="bg-gradient-to-br from-purple-50 to-indigo-50 p-5 rounded-xl border border-purple-100">
+              <ReasoningContent
+                reasoning={match.detailedReasoning || match.shortReasoning}
+              />
+            </div>
+
+            {match.scoreBreakdown && (
+              <div className="space-y-3">
+                <h4 className="font-medium text-gray-700 flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-purple-500" />
+                  פירוט הניקוד
+                </h4>
+                <div className="bg-white p-4 rounded-xl border border-gray-100">
+                  <ScoreBreakdownDisplay breakdown={match.scoreBreakdown} />
+                </div>
+              </div>
+            )}
           </div>
-        </div>
-      )}
-    </div>
-    
-    <div className="pt-4 border-t flex justify-between items-center">
-      <span className="text-xs text-gray-400">
-        נסרק {formatDistanceToNow(new Date(match.scannedAt), { addSuffix: true, locale: he })}
-      </span>
-      <Button variant="outline" size="sm" onClick={() => setShowReasoningDialog(false)}>
-        סגור
-      </Button>
-    </div>
-  </DialogContent>
-</Dialog>
+
+          <div className="pt-4 border-t flex justify-between items-center">
+            <span className="text-xs text-gray-400">
+              נסרק{' '}
+              {formatDistanceToNow(new Date(match.scannedAt), {
+                addSuffix: true,
+                locale: he,
+              })}
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowReasoningDialog(false)}
+            >
+              סגור
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Rejection Feedback Modal Integration */}
       {rejectionFeedback.context && (
@@ -860,10 +977,10 @@ const PotentialMatchCard: React.FC<PotentialMatchCardProps> = ({
           isOpen={rejectionFeedback.isOpen}
           onClose={rejectionFeedback.close}
           onSubmit={handleFeedbackSubmit}
-          rejectedUser={rejectionFeedback.context.rejectedUser}
-          rejectingUser={rejectionFeedback.context.rejectingUser}
-          potentialMatchId={match.id}
-          suggestionId={undefined} // Potential matches usually don't have suggestionId yet
+          partyA={rejectionFeedback.context.partyA}
+          partyB={rejectionFeedback.context.partyB}
+          defaultRejectingParty={rejectionFeedback.context.defaultRejectingParty}
+          potentialMatchId={rejectionFeedback.context.potentialMatchId}
         />
       )}
     </>

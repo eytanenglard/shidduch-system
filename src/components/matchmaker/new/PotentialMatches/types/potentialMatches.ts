@@ -43,6 +43,7 @@ export interface ScoreBreakdown {
 
 export interface CandidateBasicInfo {
   id: string;
+  profileId: string; 
   firstName: string;
   lastName: string;
   age: number;
@@ -56,6 +57,10 @@ export interface CandidateBasicInfo {
   lastActive?: Date | null;
   registeredAt?: Date;
   phone?: string | null;
+   height?: number | null;
+  maritalStatus?: string | null;
+  nativeLanguage?: string | null;
+  additionalLanguages?: string[] | null;
 }
 
 // =============================================================================

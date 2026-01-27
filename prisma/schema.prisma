@@ -214,7 +214,7 @@ isNeshamaTechSummaryVisible Boolean? @default(true)
   preferredHobbies            String[]           @default([]) // Preferred hobbies of the partner
   preferredAliyaStatus        String? // e.g., "oleh", "tzabar", "no_preference"
 preferredReligiousJourneys  ReligiousJourney[] @default([]) 
-
+metrics  ProfileMetrics?
   isProfileVisible          Boolean            @default(true)
   preferredMatchmakerGender Gender?
   matchingNotes             String? // General notes about the desired match
@@ -291,15 +291,6 @@ referredBy              String?   // דרך מי הגיע - איש קשר להת
 
 }
 
-model ProfileVector {
-  profileId String                      @id // This will be the same as the Profile's ID
-  vector    Unsupported("vector(768)")? // גודל הווקטור של Gemini הוא 768
-  updatedAt DateTime                    @updatedAt
-
-  profile Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
-
-  @@map("profile_vectors")
-}
 
 model Meeting {
   id            String          @id @default(cuid())
@@ -1388,3 +1379,312 @@ model VectorSimilarityCache {
   @@index([calculatedAt])
 }
 
+// ============================================================
+// NeshamaTech - Profile Metrics & Dual Vector System
+// להוספה ל-schema.prisma הקיים
+// ============================================================
+
+// ═══════════════════════════════════════════════════════════════
+// ENUMS - סוגים קבועים
+// ═══════════════════════════════════════════════════════════════
+
+enum CalculatedBy {
+  AI_AUTO           // חושב אוטומטית על ידי AI
+  MATCHMAKER_EDIT   // נערך ידנית על ידי שדכן
+  USER_QUESTIONNAIRE // מגיע ישירות מתשובת השאלון
+}
+
+enum HumorStyle {
+  CYNICAL           // ציני/סרקסטי
+  LIGHT             // קליל ומשעשע
+  WORDPLAY          // משחקי מילים
+  SELF_DEPRECATING  // הומור עצמי
+  PHYSICAL          // קומדיה פיזית
+  DRY               // יבש
+}
+
+enum EthnicBackground {
+  ASHKENAZI         // אשכנזי
+  SEPHARDI          // ספרדי/מזרחי
+  MIXED             // מעורב
+  ETHIOPIAN         // אתיופי
+  YEMENITE          // תימני
+  OTHER             // אחר
+}
+
+enum BackgroundCategory {
+  SABRA             // צבר ישראלי
+  SABRA_INTERNATIONAL // צבר עם רקע בינלאומי
+  OLEH_VETERAN      // עולה ותיק (10+ שנים)
+  OLEH_MID          // עולה בינוני (3-10 שנים)
+  OLEH_NEW          // עולה חדש (פחות מ-3 שנים)
+}
+
+enum CommunicationStyle {
+  DIRECT            // ישיר וברור
+  EMPATHETIC        // אמפתי ורגיש
+  ANALYTICAL        // אנליטי ולוגי
+  HUMOROUS          // הומוריסטי
+  EMOTIONAL         // רגשי ופתוח
+}
+
+enum ConflictStyle {
+  CONFRONTING       // מתמודד ישירות
+  AVOIDING          // נמנע מעימותים
+  COMPROMISING      // מחפש פשרות
+  NEEDS_TIME        // צריך זמן לעבד
+  COLLABORATIVE     // שיתופי - מחפש פתרונות יחד
+}
+
+enum SupportStyle {
+  LISTENING         // מקשיב ותומך רגשית
+  SOLVING           // מציע פתרונות מעשיים
+  DISTRACTING       // מסיח דעת ומשמח
+  SPACE             // נותן מרחב ושקט
+  PHYSICAL          // מביע תמיכה פיזית (חיבוק וכו')
+}
+
+enum PetsAttitude {
+  LOVE              // אוהב חיות מחמד
+  NEUTRAL           // ניטרלי
+  DISLIKE           // לא אוהב
+  ALLERGIC          // אלרגי
+}
+
+enum PersonalityType {
+  LEADER            // מוביל/יוזם
+  SUPPORTER         // תומך/עוזר
+  ANALYTICAL        // אנליטי/חושב
+  CREATIVE          // יצירתי/אמן
+  CAREGIVER         // מטפל/דואג
+  ADVENTURER        // הרפתקן
+  HARMONIZER        // מאזן/מפשר
+}
+
+enum AttachmentStyle {
+  SECURE            // בטוח
+  ANXIOUS           // חרד
+  AVOIDANT          // נמנע
+  DISORGANIZED      // לא מאורגן (מעורב)
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ProfileMetrics - מדדים מספריים לכל פרופיל
+// ═══════════════════════════════════════════════════════════════
+
+model ProfileMetrics {
+  id                    String   @id @default(cuid())
+  profileId             String   @unique
+  profile               Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  
+  // מטא-דאטה על החישוב
+  calculatedBy          CalculatedBy @default(AI_AUTO)
+  confidenceScore       Int      @default(50)  // 0-100: כמה בטוחים בדיוק המדדים
+  dataCompleteness      Int      @default(0)   // 0-100: כמה מידע היה זמין
+  lastAiAnalysisAt      DateTime?
+  
+  // ═══════════════════════════════════════════════════════════
+  // SECTION A: SELF METRICS (מי אני) - ציונים 0-100
+  // ═══════════════════════════════════════════════════════════
+  
+  // 🧠 אישיות ואופי
+  socialEnergy          Int?     // 0=מופנם מאוד, 100=חברותי מאוד
+  emotionalExpression   Int?     // 0=שמור רגשית, 100=פתוח ומבטא
+  stabilityVsSpontaneity Int?    // 0=מאורגן ויציב, 100=ספונטני וגמיש
+  independenceLevel     Int?     // 0=אוהב תמיכה, 100=עצמאי מאוד
+  optimismLevel         Int?     // 0=ריאליסט/פסימי, 100=אופטימי מאוד
+  humorStyle            HumorStyle?
+  
+  // 🎯 כיוון וקריירה
+  careerOrientation     Int?     // 0=איזון/משפחה, 100=קריירה מרכזית
+  intellectualOrientation Int?   // 0=הומני/חינוך/חברה, 100=ריאלי/טכנולוגי/מדעי
+  financialApproach     Int?     // 0=חסכן ושמרני, 100=נדיב/נהנתן
+  ambitionLevel         Int?     // 0=שביעות רצון ממה שיש, 100=שאפתנות גבוהה
+  
+  // ✡️ דת ומסורת
+  religiousStrictness   Int?     // 0=גמיש בהלכה, 100=מקפיד מאוד
+  spiritualDepth        Int?     // 0=פרקטי/טכני, 100=רוחני ועמוק
+  cultureConsumption    Int?     // 0=נמנע מתרבות כללית, 100=צורך בחופשיות
+  
+  // 🌍 רקע וזהות
+  urbanScore            Int?     // 0=כפרי/ישובי, 100=עירוני מובהק (ת"א)
+  englishFluency        Int?     // 0=לא דובר, 100=שפת אם
+  americanCompatibility Int?     // 0=ישראלי מובהק, 100=מתאים לאמריקאים
+  ethnicBackground      EthnicBackground?
+  backgroundCategory    BackgroundCategory?
+  
+  // 💑 זוגיות ומשפחה
+  togetherVsAutonomy    Int?     // 0=צריך עצמאות, 100=רוצה הכל ביחד
+  familyInvolvement     Int?     // 0=עצמאי מהורים, 100=משפחה מאוד מעורבת
+  parenthoodPriority    Int?     // 0=לא מרכזי, 100=ילדים במרכז
+  growthVsAcceptance    Int?     // 0=קבלה מלאה, 100=אתגור וצמיחה
+  
+  // 🕐 סגנון חיים
+  nightOwlScore         Int?     // 0=בוקר, 100=לילה
+  adventureScore        Int?     // 0=שגרה ויציבות, 100=הרפתקנות ושינוי
+  petsAttitude          PetsAttitude?
+  
+  // 💬 תקשורת והתמודדות
+  communicationStyle    CommunicationStyle?
+  conflictStyle         ConflictStyle?
+  supportStyle          SupportStyle?
+  
+  // 🚨 דגלים מיוחדים (לשדכן בלבד)
+  appearancePickiness   Int?     // 0=לא מקפיד על מראה, 100=מאוד מקפיד
+  difficultyFlags       Json?    // ["PICKY_ON_LOOKS", "NARROW_RELIGIOUS_RANGE", "UNREALISTIC_EXPECTATIONS"]
+  
+  // ═══════════════════════════════════════════════════════════
+  // SECTION B: PREFERENCE METRICS (מה אני מחפש)
+  // לכל מדד: Min, Max, Weight (0-10)
+  // ═══════════════════════════════════════════════════════════
+  
+  // אישיות מבוקשת
+  prefSocialEnergyMin        Int?  @default(0)
+  prefSocialEnergyMax        Int?  @default(100)
+  prefSocialEnergyWeight     Int?  @default(5)   // 0-10: כמה חשוב
+  
+  prefEmotionalExpressionMin Int?  @default(0)
+  prefEmotionalExpressionMax Int?  @default(100)
+  prefEmotionalExpressionWeight Int? @default(5)
+  
+  prefStabilityMin           Int?  @default(0)
+  prefStabilityMax           Int?  @default(100)
+  prefStabilityWeight        Int?  @default(5)
+  
+  // דת
+  prefReligiousStrictnessMin Int?  @default(0)
+  prefReligiousStrictnessMax Int?  @default(100)
+  prefReligiousStrictnessWeight Int? @default(8)  // חשוב יותר כברירת מחדל
+  
+  prefSpiritualDepthMin      Int?  @default(0)
+  prefSpiritualDepthMax      Int?  @default(100)
+  prefSpiritualDepthWeight   Int?  @default(5)
+  
+  // קריירה וכלכלה
+  prefCareerOrientationMin   Int?  @default(0)
+  prefCareerOrientationMax   Int?  @default(100)
+  prefCareerOrientationWeight Int? @default(5)
+  
+  prefAmbitionMin            Int?  @default(0)
+  prefAmbitionMax            Int?  @default(100)
+  prefAmbitionWeight         Int?  @default(4)
+  
+  prefFinancialMin           Int?  @default(0)
+  prefFinancialMax           Int?  @default(100)
+  prefFinancialWeight        Int?  @default(4)
+  
+  // סגנון חיים
+  prefUrbanScoreMin          Int?  @default(0)
+  prefUrbanScoreMax          Int?  @default(100)
+  prefUrbanScoreWeight       Int?  @default(4)
+  
+  prefAdventureScoreMin      Int?  @default(0)
+  prefAdventureScoreMax      Int?  @default(100)
+  prefAdventureScoreWeight   Int?  @default(3)
+  
+  prefNightOwlMin            Int?  @default(0)
+  prefNightOwlMax            Int?  @default(100)
+  prefNightOwlWeight         Int?  @default(2)
+  
+  // זוגיות
+  prefTogetherVsAutonomyMin  Int?  @default(0)
+  prefTogetherVsAutonomyMax  Int?  @default(100)
+  prefTogetherVsAutonomyWeight Int? @default(5)
+  
+  prefFamilyInvolvementMin   Int?  @default(0)
+  prefFamilyInvolvementMax   Int?  @default(100)
+  prefFamilyInvolvementWeight Int? @default(4)
+  
+  prefGrowthVsAcceptanceMin  Int?  @default(0)
+  prefGrowthVsAcceptanceMax  Int?  @default(100)
+  prefGrowthVsAcceptanceWeight Int? @default(3)
+  
+  // ═══════════════════════════════════════════════════════════
+  // SECTION C: DEAL BREAKERS (קווים אדומים)
+  // ═══════════════════════════════════════════════════════════
+  
+  // Deal Breakers קשיחים - פוסלים מיידית
+  // מבנה: [{ type, operator, value/values }]
+  dealBreakersHard      Json?    @default("[]")
+  
+  // Deal Breakers רכים - מורידים ציון אבל לא פוסלים
+  // מבנה: [{ type, value, penalty }]
+  dealBreakersSoft      Json?    @default("[]")
+  
+  // ═══════════════════════════════════════════════════════════
+  // SECTION D: INFERRED TRAITS (תכונות שנגזרו)
+  // ═══════════════════════════════════════════════════════════
+  
+  inferredPersonalityType   PersonalityType?
+  inferredAttachmentStyle   AttachmentStyle?
+  
+  // שפות אהבה (מותאם לתיאוריית Gary Chapman)
+  // מבנה: ["QUALITY_TIME", "WORDS_OF_AFFIRMATION", "PHYSICAL_TOUCH", "ACTS_OF_SERVICE", "GIFTS"]
+  inferredLoveLanguages     Json?    @default("[]")
+  
+  // מטרות זוגיות
+  // מבנה: { timeline: "1-2_years", childrenImportance: "high", etc. }
+  inferredRelationshipGoals Json?    @default("{}")
+  
+  // ═══════════════════════════════════════════════════════════
+  // SECTION E: AI ANALYSIS CACHE
+  // שמירת ניתוחים קודמים למניעת חישוב מחדש
+  // ═══════════════════════════════════════════════════════════
+  
+  // הסבר מפורט לכל מדד (למה נתתי את הציון הזה)
+  metricsExplanations       Json?    @default("{}")
+  
+  // סיכום AI קצר של האישיות
+  aiPersonalitySummary      String?
+  
+  // סיכום AI קצר של מה מחפש
+  aiSeekingSummary          String?
+  
+  @@index([profileId])
+  @@index([calculatedBy])
+  @@index([confidenceScore])
+  @@map("profile_metrics")
+}
+// ═══════════════════════════════════════════════════════════════
+// ProfileVector - עדכון לתמיכה בשני וקטורים
+// ═══════════════════════════════════════════════════════════════
+
+// הערה: יש לעדכן את הטבלה הקיימת profile_vectors
+// להוסיף את השדות החדשים
+
+// ALTER TABLE "profile_vectors" 
+// ADD COLUMN "selfVector" vector(768),
+// ADD COLUMN "seekingVector" vector(768),
+// ADD COLUMN "selfVectorUpdatedAt" TIMESTAMP,
+// ADD COLUMN "seekingVectorUpdatedAt" TIMESTAMP;
+
+// -- העתקת הוקטור הקיים לשדה selfVector (כנקודת התחלה)
+// UPDATE "profile_vectors" 
+// SET "selfVector" = vector,
+//     "selfVectorUpdatedAt" = "updatedAt"
+// WHERE vector IS NOT NULL;
+
+
+model ProfileVector {
+  id                    String   @id @default(cuid())
+  profileId             String   @unique
+  profile               Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+ 
+  // וקטור מורשת (לתאימות לאחור)
+  vector                Unsupported("vector(768)")?
+ 
+  // וקטורים חדשים
+  selfVector            Unsupported("vector(768)")?    // מי אני
+  seekingVector         Unsupported("vector(768)")?    // מה אני מחפש
+
+  selfVectorUpdatedAt   DateTime?
+  seekingVectorUpdatedAt DateTime?
+
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  @@map("profile_vectors")
+}
