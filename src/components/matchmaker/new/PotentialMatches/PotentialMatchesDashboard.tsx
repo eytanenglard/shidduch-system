@@ -47,6 +47,8 @@ import {
   RefreshCw,
   Moon,
   Check,
+  MessageCircle,
+  ArrowLeftRight,
   ChevronLeft,
   ChevronRight,
   Loader2,
@@ -92,6 +94,15 @@ import type {
 import type { ProfilePageDictionary } from '@/types/dictionary';
 import type { MatchmakerPageDictionary } from '@/types/dictionaries/matchmaker';
 
+// Helper function to safely get main image
+const getMainImage = (user: any) => {
+  if (user?.images && Array.isArray(user.images)) {
+    const main = user.images.find((img: any) => img.isMain);
+    return main?.url || user.images[0]?.url || null;
+  }
+  return null;
+};
+
 // =============================================================================
 // TYPES
 // =============================================================================
@@ -136,11 +147,12 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
   matchmakerDict,
 }) => {
   // --- View Mode (Tabs) ---
-  // 'overview' = New V2 Dashboard, 'matches' = Existing List
-  const [activeTab, setActiveTab] = useState<'overview' | 'matches'>(
-    'overview'
-  );
-
+  const [activeTab, setActiveTab] = useState<'overview' | 'matches'>('overview');
+  // ניהול החלפת צדדים (False = גבר צד א', True = אישה צד א')
+  const [isPartiesSwapped, setIsPartiesSwapped] = useState(false);
+  
+  // ניהול אופן השליחה (מייל אוטומטי או וואטסאפ ידני)
+  const [notificationMethod, setNotificationMethod] = useState<'EMAIL' | 'WHATSAPP_MANUAL'>('EMAIL');
   // State for Matches List
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
@@ -157,11 +169,8 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
 
   // Dialogs
   const [confirmScanDialog, setConfirmScanDialog] = useState(false);
-  const [confirmBulkDismissDialog, setConfirmBulkDismissDialog] =
-    useState(false);
-  const [createSuggestionDialog, setCreateSuggestionDialog] = useState<
-    string | null
-  >(null);
+  const [confirmBulkDismissDialog, setConfirmBulkDismissDialog] = useState(false);
+  const [createSuggestionDialog, setCreateSuggestionDialog] = useState<string | null>(null);
   const [dismissDialog, setDismissDialog] = useState<string | null>(null);
   const [dismissReason, setDismissReason] = useState('');
 
@@ -177,9 +186,7 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
   const [feedbackCandidate, setFeedbackCandidate] = useState<any | null>(null);
 
   // Suggestion form state
-  const [suggestionPriority, setSuggestionPriority] = useState<
-    'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT'
-  >('MEDIUM');
+  const [suggestionPriority, setSuggestionPriority] = useState<'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT'>('MEDIUM');
   const [suggestionNotes, setSuggestionNotes] = useState('');
 
   // Hook for Matches
@@ -206,7 +213,6 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
     bulkReview,
     startScan,
     scanProgress,
-    // FIX: Renamed property from hook (was isScanRunning in V2, now isScanning in V3)
     isScanning,
     selectedMatchIds,
     toggleSelection,
@@ -230,8 +236,7 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
     updateReason,
   } = useHiddenCandidates();
 
-  const [candidateToHide, setCandidateToHide] =
-    useState<CandidateToHide | null>(null);
+  const [candidateToHide, setCandidateToHide] = useState<CandidateToHide | null>(null);
   const [showHideDialog, setShowHideDialog] = useState(false);
 
   // ==========================================================================
@@ -240,28 +245,25 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
   useEffect(() => {
     setPageInput(String(pagination.page));
   }, [pagination.page]);
- const handleFilterByUser = useCallback((name: string) => {
+
+  const handleFilterByUser = useCallback((name: string) => {
     setLocalSearchTerm(name);
-    window.scrollTo({ top: 0, behavior: 'smooth' }); // גלילה למעלה כדי לראות את התוצאות
+    window.scrollTo({ top: 0, behavior: 'smooth' });
     toast.info(`מציג התאמות עבור: ${name}`);
   }, []);
+
   // ==========================================================================
   // SERVER SIDE SEARCH EFFECT
   // ==========================================================================
-
   useEffect(() => {
     const timer = setTimeout(() => {
-      // 1. Trim the term to avoid trailing spaces breaking server queries
       const term = localSearchTerm.trim();
-
-      // אם יש ערך בחיפוש, אנחנו רוצים לחפש בכל הסטטוסים
       if (term.length > 0) {
         setFilters({
           searchTerm: term,
-          status: 'all', // שינוי אוטומטי ל'הכל' בעת חיפוש
+          status: 'all',
         });
       } else {
-        // אם התיבה ריקה, מאפסים את החיפוש (אך שומרים על הסטטוס הנוכחי או מאפסים לפי הצורך)
         setFilters({ searchTerm: '' });
       }
     }, 600);
@@ -272,7 +274,6 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
   // ==========================================================================
   // PROFILE LOADING EFFECT
   // ==========================================================================
-
   useEffect(() => {
     const loadProfileData = async () => {
       if (!viewProfileId) {
@@ -283,9 +284,7 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
 
       setIsLoadingProfile(true);
       try {
-        const profileResponse = await fetch(
-          `/api/matchmaker/candidates/${viewProfileId}`
-        );
+        const profileResponse = await fetch(`/api/matchmaker/candidates/${viewProfileId}`);
         const profileJson = await profileResponse.json();
 
         if (profileJson.success) {
@@ -301,15 +300,10 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
           toast.error('לא ניתן היה לטעון את הפרופיל');
         }
 
-        const questionnaireResponse = await fetch(
-          `/api/profile/questionnaire?userId=${viewProfileId}&locale=${locale}`
-        );
+        const questionnaireResponse = await fetch(`/api/profile/questionnaire?userId=${viewProfileId}&locale=${locale}`);
         const questionnaireJson = await questionnaireResponse.json();
 
-        if (
-          questionnaireJson.success &&
-          questionnaireJson.questionnaireResponse
-        ) {
+        if (questionnaireJson.success && questionnaireJson.questionnaireResponse) {
           setQuestionnaireData(questionnaireJson.questionnaireResponse);
         }
       } catch (err) {
@@ -326,13 +320,9 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
   // ==========================================================================
   // HANDLERS
   // ==========================================================================
-
-  // סנן את ההצעות - הסתר הצעות עם מועמדים מוסתרים + חיפוש מקומי חכם
-// סנן את ההצעות - הסתר הצעות עם מועמדים מוסתרים + חיפוש מקומי חכם
   const filteredMatches = useMemo(() => {
     let result = matches;
 
-    // 1. סינון מוסתרים
     if (hiddenCandidateIds.size > 0) {
       result = result.filter(
         (match) =>
@@ -341,32 +331,20 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
       );
     }
 
-    // 2. סינון חיפוש בצד הלקוח (תומך ריבוי מילים וסדר הפוך)
     if (localSearchTerm && localSearchTerm.trim().length > 0) {
-      // מפרקים את החיפוש למילים נפרדות, מסירים רווחים מיותרים והופכים לאותיות קטנות
       const searchTokens = localSearchTerm
         .toLowerCase()
         .trim()
-        .split(/\s+/) // מפצל לפי רווח אחד או יותר
+        .split(/\s+/)
         .filter(token => token.length > 0);
 
       if (searchTokens.length > 0) {
         result = result.filter((match) => {
-          // יצירת שם מלא לבדיקה עבור הגבר והאישה
-          const maleFullName =
-            `${match.male.firstName} ${match.male.lastName}`.toLowerCase();
-          const femaleFullName =
-            `${match.female.firstName} ${match.female.lastName}`.toLowerCase();
+          const maleFullName = `${match.male.firstName} ${match.male.lastName}`.toLowerCase();
+          const femaleFullName = `${match.female.firstName} ${match.female.lastName}`.toLowerCase();
 
-          // בדיקה עבור הגבר: האם *כל* מילות החיפוש נמצאות בשם שלו?
-          const isMaleMatch = searchTokens.every(token => 
-            maleFullName.includes(token)
-          );
-
-          // בדיקה עבור האישה: האם *כל* מילות החיפוש נמצאות בשם שלה?
-          const isFemaleMatch = searchTokens.every(token => 
-            femaleFullName.includes(token)
-          );
+          const isMaleMatch = searchTokens.every(token => maleFullName.includes(token));
+          const isFemaleMatch = searchTokens.every(token => femaleFullName.includes(token));
 
           return isMaleMatch || isFemaleMatch;
         });
@@ -396,18 +374,31 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
     const suggestionId = await createSuggestion(createSuggestionDialog, {
       priority: suggestionPriority,
       matchingReason: suggestionNotes || undefined,
+      suppressNotifications: notificationMethod === 'WHATSAPP_MANUAL',
+      swapParties: isPartiesSwapped 
     });
 
     if (suggestionId) {
       setCreateSuggestionDialog(null);
       setSuggestionPriority('MEDIUM');
       setSuggestionNotes('');
+      setNotificationMethod('EMAIL'); 
+      setIsPartiesSwapped(false); 
+      
+      if (notificationMethod === 'WHATSAPP_MANUAL') {
+        toast.info('ההצעה נוצרה. זכור לשלוח את ההודעה בוואטסאפ!', {
+          duration: 5000,
+          icon: <MessageCircle className="w-5 h-5 text-green-500" />
+        });
+      }
     }
   }, [
     createSuggestionDialog,
     createSuggestion,
     suggestionPriority,
     suggestionNotes,
+    notificationMethod,
+    isPartiesSwapped
   ]);
 
   const handleDismiss = useCallback(async () => {
@@ -423,18 +414,16 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
     await bulkDismiss(selectedMatchIds, 'דחייה מרובה');
   }, [bulkDismiss, selectedMatchIds]);
 
-  // תיקון גלילה: שמירת המיקום לפני פתיחת הפרופיל
   const handleViewProfile = useCallback((userId: string) => {
-    scrollPositionRef.current = window.scrollY; // שמור מיקום נוכחי
+    scrollPositionRef.current = window.scrollY;
     setViewProfileId(userId);
   }, []);
 
   const handleResetFilters = useCallback(() => {
-    setLocalSearchTerm(''); // איפוס גם של שדה החיפוש הויזואלי
+    setLocalSearchTerm('');
     resetFilters();
   }, [resetFilters]);
 
-  // פונקציה לשינוי עמוד ידני
   const handlePageInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setPageInput(e.target.value);
   };
@@ -455,15 +444,17 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
     }
   };
 
+  // מציאת ההתאמה שעליה לחצנו כדי להציג את התמונות והשמות בדיאלוג
+  const activeMatchForSuggestion = useMemo(() => 
+    matches.find(m => m.id === createSuggestionDialog), 
+  [matches, createSuggestionDialog]);
+
   // ==========================================================================
   // RENDER
   // ==========================================================================
 
   return (
-    <div
-      className="min-h-screen bg-gradient-to-br from-gray-50 via-purple-50/30 to-pink-50/30"
-      dir="rtl"
-    >
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-purple-50/30 to-pink-50/30" dir="rtl">
       {/* Header */}
       <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-sm border-b shadow-sm">
         <div className="container mx-auto px-6 py-4">
@@ -515,7 +506,6 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
                   {isScanning ? (
                     <>
                       <Loader2 className="w-4 h-4 ml-2 animate-spin" />
-                      {/* FIX: Use progressPercent from new V3 hook */}
                       סריקה... {scanProgress?.progressPercent || 0}%
                     </>
                   ) : (
@@ -526,17 +516,8 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
                   )}
                 </Button>
 
-                <Button
-                  variant="outline"
-                  onClick={refresh}
-                  disabled={isRefreshing}
-                >
-                  <RefreshCw
-                    className={cn(
-                      'w-4 h-4 ml-2',
-                      isRefreshing && 'animate-spin'
-                    )}
-                  />
+                <Button variant="outline" onClick={refresh} disabled={isRefreshing}>
+                  <RefreshCw className={cn('w-4 h-4 ml-2', isRefreshing && 'animate-spin')} />
                   רענן
                 </Button>
               </div>
@@ -547,17 +528,12 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
 
       <main className="container mx-auto px-6 py-6 space-y-6">
         {/* Conditional Rendering based on Tab */}
-
         {activeTab === 'overview' ? (
-          // --- V2 DASHBOARD VIEW ---
           <MatchmakerDashboardV2 />
         ) : (
-          // --- MATCHES LIST VIEW ---
           <>
             {/* Stats */}
             <PotentialMatchesStats
-              // FIX: Cast stats to FullStatsType because hook definition is partial
-              // but API returns full data
               stats={stats as unknown as FullStatsType}
               lastScanInfo={lastScanInfo as unknown as FullLastScanInfo}
               isScanRunning={isScanning}
@@ -581,9 +557,7 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
                 {/* Status Filter */}
                 <Select
                   value={filters.status}
-                  onValueChange={(value) =>
-                    setFilters({ status: value as PotentialMatchFilterStatus })
-                  }
+                  onValueChange={(value) => setFilters({ status: value as PotentialMatchFilterStatus })}
                 >
                   <SelectTrigger className="w-[180px]">
                     <SelectValue placeholder="סטטוס" />
@@ -603,10 +577,7 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
                 {/* Sort */}
                 <Select
                   value={filters.sortBy}
-                  onValueChange={(value) =>
-                    // FIX: Type assertion here to allow extra sort options
-                    setFilters({ sortBy: value as any })
-                  }
+                  onValueChange={(value) => setFilters({ sortBy: value as any })}
                 >
                   <SelectTrigger className="w-[180px]">
                     <SelectValue placeholder="מיון" />
@@ -628,9 +599,7 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
                     min={0}
                     max={100}
                     value={filters.minScore}
-                    onChange={(e) =>
-                      setFilters({ minScore: parseInt(e.target.value) || 0 })
-                    }
+                    onChange={(e) => setFilters({ minScore: parseInt(e.target.value) || 0 })}
                     className="w-16 text-center"
                   />
                   <span>-</span>
@@ -639,9 +608,7 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
                     min={0}
                     max={100}
                     value={filters.maxScore}
-                    onChange={(e) =>
-                      setFilters({ maxScore: parseInt(e.target.value) || 100 })
-                    }
+                    onChange={(e) => setFilters({ maxScore: parseInt(e.target.value) || 100 })}
                     className="w-16 text-center"
                   />
                 </div>
@@ -700,11 +667,7 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
                       <Button size="sm" variant="outline" onClick={selectAll}>
                         בחר הכל
                       </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={clearSelection}
-                      >
+                      <Button size="sm" variant="outline" onClick={clearSelection}>
                         בטל בחירה
                       </Button>
                       <div className="flex-1" />
@@ -794,30 +757,21 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
                     {filteredMatches.map((match) => (
                       <PotentialMatchCard
                         key={match.id}
-                        // FIX: Cast match to any if needed to satisfy type checker between hook and component
                         match={match as any}
-                        onCreateSuggestion={(id) =>
-                          setCreateSuggestionDialog(id)
-                        }
-onDismiss={(id) => dismissMatch(id)}
+                        onCreateSuggestion={(id) => setCreateSuggestionDialog(id)}
+                        onDismiss={(id) => dismissMatch(id)}
                         onReview={reviewMatch}
                         onRestore={restoreMatch}
                         onSave={saveMatch}
                         onViewProfile={handleViewProfile}
-                        onAnalyzeCandidate={(candidate) =>
-                          setAnalyzedCandidate(candidate)
-                        }
-                        onProfileFeedback={(candidate) =>
-                          setFeedbackCandidate(candidate)
-                        }
+                        onAnalyzeCandidate={(candidate) => setAnalyzedCandidate(candidate)}
+                        onProfileFeedback={(candidate) => setFeedbackCandidate(candidate)}
                         isSelected={isSelected(match.id)}
-                        onToggleSelect={
-                          showBulkActions ? toggleSelection : undefined
-                        }
+                        onToggleSelect={showBulkActions ? toggleSelection : undefined}
                         showSelection={showBulkActions}
                         onHideCandidate={handleHideCandidate}
                         hiddenCandidateIds={hiddenCandidateIds}
-                        onFilterByUser={handleFilterByUser}
+                        // onFilterByUser was removed as it doesn't exist on component props
                       />
                     ))}
                   </AnimatePresence>
@@ -829,10 +783,7 @@ onDismiss={(id) => dismissMatch(id)}
                     <div className="flex items-center gap-2">
                       <span className="text-sm text-gray-600">
                         מציג {(pagination.page - 1) * pagination.pageSize + 1} -{' '}
-                        {Math.min(
-                          pagination.page * pagination.pageSize,
-                          pagination.total
-                        )}{' '}
+                        {Math.min(pagination.page * pagination.pageSize, pagination.total)}{' '}
                         מתוך {pagination.total}
                       </span>
                     </div>
@@ -905,7 +856,6 @@ onDismiss={(id) => dismissMatch(id)}
             setViewProfileId(null);
             setFullProfileData(null);
             setQuestionnaireData(null);
-
             setTimeout(() => {
               window.scrollTo({
                 top: scrollPositionRef.current,
@@ -933,9 +883,7 @@ onDismiss={(id) => dismissMatch(id)}
             <div className="flex items-center gap-2">
               <Select
                 value={isMatchmakerView ? 'matchmaker' : 'candidate'}
-                onValueChange={(value) =>
-                  setIsMatchmakerView(value === 'matchmaker')
-                }
+                onValueChange={(value) => setIsMatchmakerView(value === 'matchmaker')}
               >
                 <SelectTrigger className="w-[140px] h-9">
                   <SelectValue />
@@ -969,9 +917,7 @@ onDismiss={(id) => dismissMatch(id)}
                 images={fullProfileData.images}
                 questionnaire={questionnaireData}
                 viewMode={isMatchmakerView ? 'matchmaker' : 'candidate'}
-                isProfileComplete={
-                  fullProfileData.profile?.isProfileComplete || false
-                }
+                isProfileComplete={fullProfileData.profile?.isProfileComplete || false}
                 locale={locale}
                 onClose={() => setViewProfileId(null)}
                 dict={profileDict.profileCard}
@@ -1030,10 +976,7 @@ onDismiss={(id) => dismissMatch(id)}
       </AlertDialog>
 
       {/* Confirm Bulk Dismiss Dialog */}
-      <AlertDialog
-        open={confirmBulkDismissDialog}
-        onOpenChange={setConfirmBulkDismissDialog}
-      >
+      <AlertDialog open={confirmBulkDismissDialog} onOpenChange={setConfirmBulkDismissDialog}>
         <AlertDialogContent dir="rtl">
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center gap-2 text-red-600">
@@ -1057,10 +1000,16 @@ onDismiss={(id) => dismissMatch(id)}
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Create Suggestion Dialog */}
+      {/* Create Suggestion Dialog - Updated Version */}
       <Dialog
         open={!!createSuggestionDialog}
-        onOpenChange={(open) => !open && setCreateSuggestionDialog(null)}
+        onOpenChange={(open) => {
+          if (!open) {
+            setCreateSuggestionDialog(null);
+            setIsPartiesSwapped(false);
+            setNotificationMethod('EMAIL');
+          }
+        }}
       >
         <DialogContent dir="rtl" className="max-w-md">
           <DialogHeader>
@@ -1069,47 +1018,151 @@ onDismiss={(id) => dismissMatch(id)}
               יצירת הצעה
             </DialogTitle>
             <DialogDescription>
-              צור הצעת שידוך מההתאמה הפוטנציאלית
+              קבע את סדר הפנייה ואופן השליחה
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-4">
-            {/* Priority */}
+          <div className="space-y-5">
+            {/* --- אזור 1: ויזואליזציה והחלפת צדדים --- */}
+            {activeMatchForSuggestion && (() => {
+               // Calculate images once
+               const firstPartyImage = isPartiesSwapped 
+                 ? getMainImage(activeMatchForSuggestion.female)
+                 : getMainImage(activeMatchForSuggestion.male);
+               
+               const secondPartyImage = isPartiesSwapped 
+                 ? getMainImage(activeMatchForSuggestion.male)
+                 : getMainImage(activeMatchForSuggestion.female);
+
+               return (
+                <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                  <div className="flex items-center justify-between gap-2">
+                    {/* צד א' (פנייה ראשונה) */}
+                    <div className="flex-1 flex flex-col items-center text-center">
+                      <span className="text-xs font-bold text-blue-600 mb-1">צד א (ראשון)</span>
+                      <div className="w-14 h-14 rounded-full overflow-hidden border-2 border-blue-200 bg-white shadow-sm mb-1">
+                        {firstPartyImage ? (
+                          <img src={firstPartyImage} alt="" className="w-full h-full object-cover" />
+                        ) : (
+                          <span className="flex items-center justify-center h-full text-xl">
+                            {isPartiesSwapped ? '👩' : '👨'}
+                          </span>
+                        )}
+                      </div>
+                      <span className="text-sm font-medium text-gray-800">
+                        {isPartiesSwapped 
+                          ? activeMatchForSuggestion.female.firstName 
+                          : activeMatchForSuggestion.male.firstName}
+                      </span>
+                    </div>
+
+                    {/* כפתור החלפה באמצע */}
+                    <div className="flex flex-col items-center px-2">
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => setIsPartiesSwapped(!isPartiesSwapped)}
+                        className="rounded-full shadow-sm hover:bg-white hover:border-indigo-300 transition-all active:scale-95"
+                        title="החלף צדדים"
+                      >
+                        <ArrowLeftRight className="w-4 h-4 text-indigo-600" />
+                      </Button>
+                      <span className="text-[10px] text-gray-400 mt-1">החלף</span>
+                    </div>
+
+                    {/* צד ב' (פנייה שנייה) */}
+                    <div className="flex-1 flex flex-col items-center text-center opacity-70">
+                      <span className="text-xs font-bold text-gray-500 mb-1">צד ב (שני)</span>
+                      <div className="w-14 h-14 rounded-full overflow-hidden border-2 border-gray-200 bg-white shadow-sm mb-1">
+                        {secondPartyImage ? (
+                          <img src={secondPartyImage} alt="" className="w-full h-full object-cover" />
+                        ) : (
+                          <span className="flex items-center justify-center h-full text-xl">
+                            {isPartiesSwapped ? '👨' : '👩'}
+                          </span>
+                        )}
+                      </div>
+                      <span className="text-sm font-medium text-gray-600">
+                        {isPartiesSwapped 
+                          ? activeMatchForSuggestion.male.firstName 
+                          : activeMatchForSuggestion.female.firstName}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+               );
+            })()}
+
+            {/* --- אזור 2: בחירת ערוץ שליחה --- */}
             <div>
               <label className="text-sm font-medium text-gray-700 mb-2 block">
-                עדיפות
+                איך לשלוח את ההצעה?
               </label>
-              <Select
-                value={suggestionPriority}
-                onValueChange={(value) => setSuggestionPriority(value as any)}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="LOW">נמוכה</SelectItem>
-                  <SelectItem value="MEDIUM">בינונית</SelectItem>
-                  <SelectItem value="HIGH">גבוהה</SelectItem>
-                  <SelectItem value="URGENT">דחופה</SelectItem>
-                </SelectContent>
-              </Select>
+              <div className="grid grid-cols-2 gap-3">
+                <div 
+                  onClick={() => setNotificationMethod('EMAIL')}
+                  className={cn(
+                    "cursor-pointer p-3 rounded-xl border-2 flex flex-col items-center justify-center gap-1 transition-all",
+                    notificationMethod === 'EMAIL' 
+                      ? "border-blue-500 bg-blue-50 text-blue-700" 
+                      : "border-gray-100 bg-white hover:bg-gray-50"
+                  )}
+                >
+                  <Send className="w-5 h-5 mb-1" />
+                  <span className="text-sm font-bold">אוטומטי (מייל)</span>
+                </div>
+                
+                <div 
+                  onClick={() => setNotificationMethod('WHATSAPP_MANUAL')}
+                  className={cn(
+                    "cursor-pointer p-3 rounded-xl border-2 flex flex-col items-center justify-center gap-1 transition-all",
+                    notificationMethod === 'WHATSAPP_MANUAL' 
+                      ? "border-green-500 bg-green-50 text-green-700" 
+                      : "border-gray-100 bg-white hover:bg-gray-50"
+                  )}
+                >
+                  <MessageCircle className="w-5 h-5 mb-1" />
+                  <span className="text-sm font-bold">ידני (וואטסאפ)</span>
+                </div>
+              </div>
+              <p className="text-xs text-gray-500 mt-2">
+                {notificationMethod === 'EMAIL' 
+                  ? 'המערכת תשלח מייל לצד א\' (הראשון) באופן אוטומטי.'
+                  : 'ההצעה תיווצר במערכת, אך לא יישלח מייל. באחריותך לשלוח הודעה.'}
+              </p>
             </div>
 
-            {/* Notes */}
+            {/* --- אזור 3: פרטים נוספים --- */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-medium text-gray-700 mb-1 block">עדיפות</label>
+                <Select
+                  value={suggestionPriority}
+                  onValueChange={(value) => setSuggestionPriority(value as any)}
+                >
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="LOW">נמוכה</SelectItem>
+                    <SelectItem value="MEDIUM">בינונית</SelectItem>
+                    <SelectItem value="HIGH">גבוהה</SelectItem>
+                    <SelectItem value="URGENT">דחופה</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
             <div>
-              <label className="text-sm font-medium text-gray-700 mb-2 block">
-                הערות להצעה (אופציונלי)
-              </label>
+              <label className="text-sm font-medium text-gray-700 mb-1 block">הערות פנימיות (אופציונלי)</label>
               <Textarea
                 value={suggestionNotes}
                 onChange={(e) => setSuggestionNotes(e.target.value)}
-                placeholder="הוסף הערות או סיבת ההתאמה..."
-                rows={3}
+                placeholder="הוסף הערות..."
+                rows={2}
               />
             </div>
           </div>
 
-          <DialogFooter className="gap-2">
+          <DialogFooter className="gap-2 mt-4">
             <Button
               variant="outline"
               onClick={() => setCreateSuggestionDialog(null)}
@@ -1119,7 +1172,7 @@ onDismiss={(id) => dismissMatch(id)}
             <Button
               onClick={handleCreateSuggestion}
               disabled={isActioning}
-              className="bg-gradient-to-r from-green-500 to-emerald-500"
+              className="bg-gradient-to-r from-green-500 to-emerald-500 min-w-[120px]"
             >
               {isActioning ? (
                 <Loader2 className="w-4 h-4 ml-2 animate-spin" />
@@ -1139,10 +1192,7 @@ onDismiss={(id) => dismissMatch(id)}
         onConfirm={handleConfirmHide}
       />
 
-      {/* Dismiss Dialog (ללא משוב - משמש עדיין כגיבוי או עבור התאמות שכבר נדחו) 
-          ההערה: לרוב השימוש כעת עובר ל-RejectionFeedbackModal בתוך הקארד,
-          אבל זה נשאר פה עבור Bulk Actions או קריאות ישירות אם ישנן. 
-      */}
+      {/* Dismiss Dialog */}
       <Dialog
         open={!!dismissDialog}
         onOpenChange={(open) => !open && setDismissDialog(null)}

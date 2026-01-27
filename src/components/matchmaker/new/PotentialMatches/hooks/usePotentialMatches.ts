@@ -1,17 +1,6 @@
-// =============================================================================
-// src/components/matchmaker/PotentialMatches/hooks/usePotentialMatches.ts
-// =============================================================================
-// 🎯 Hook לניהול התאמות פוטנציאליות - V3.0 Unified
-//
-// ✅ Features:
-// - Advanced Pagination & Filtering (From V2)
-// - Bulk Actions & Selection Management (From V2)
-// - SSE Streaming for Real-time Scan Progress (From V3)
-// - Robust Async Scan with Polling Fallback (From V3)
-// - Comprehensive State Management
-// =============================================================================
+// src/components/matchmaker/new/PotentialMatches/hooks/usePotentialMatches.ts
 
-import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { toast } from 'sonner';
 
 // =============================================================================
@@ -154,11 +143,15 @@ interface UsePotentialMatchesReturn {
   dismissMatch: (matchId: string, reason?: string) => Promise<boolean>;
   restoreMatch: (matchId: string) => Promise<boolean>;
   saveMatch: (matchId: string) => Promise<boolean>;
+  
+  // ✅ UPDATED SIGNATURE
   createSuggestion: (matchId: string, data?: {
     priority?: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
     firstPartyNotes?: string;
     secondPartyNotes?: string;
     matchingReason?: string;
+    suppressNotifications?: boolean;
+    swapParties?: boolean;
   }) => Promise<string | null>;
 
   // Bulk Actions
@@ -354,8 +347,6 @@ export function usePotentialMatches(options: {
   ): Promise<boolean> => {
     setIsActioning(true);
     try {
-      // Note: Using generic endpoint to maintain compatibility with V2 implementation
-      // or specific endpoint if required. Assuming V2 Generic POST structure:
       const response = await fetch(API_BASE_MATCHES, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -418,13 +409,24 @@ export function usePotentialMatches(options: {
     return success;
   };
 
-  const createSuggestion = useCallback(async (matchId: string, data?: any) => {
+  const createSuggestion = useCallback(async (matchId: string, data?: {
+    priority?: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
+    firstPartyNotes?: string;
+    secondPartyNotes?: string;
+    matchingReason?: string;
+    suppressNotifications?: boolean;
+    swapParties?: boolean; 
+  }) => {
     setIsActioning(true);
     try {
       const response = await fetch(API_BASE_MATCHES, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ matchId, action: 'create_suggestion', ...data }),
+        body: JSON.stringify({ 
+          matchId, 
+          action: 'create_suggestion', 
+          ...data 
+        }),
       });
       const result = await response.json();
       
@@ -454,7 +456,7 @@ export function usePotentialMatches(options: {
 
     try {
       const response = await fetch(API_BASE_MATCHES, {
-        method: 'DELETE', // As per V2 spec
+        method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ matchIds, action, reason }),
       });
@@ -481,7 +483,6 @@ export function usePotentialMatches(options: {
   // SCAN LOGIC - V3.0 (Streaming + Polling)
   // ==========================================================================
   
-  // Helper to process progress updates
   const updateScanState = useCallback((data: any) => {
     if (!data) return;
     
@@ -625,7 +626,7 @@ export function usePotentialMatches(options: {
         if (data.status === 'already_running') {
           toast.warning('סריקה כבר רצה ברקע');
           setActiveScanId(data.scanId);
-          startPolling(data.scanId); // Catch up with existing scan
+          startPolling(data.scanId);
           return data.scanId;
         }
         throw new Error(data.error || 'Failed to start scan');
@@ -689,50 +690,33 @@ export function usePotentialMatches(options: {
   // RETURN
   // ==========================================================================
   return {
-    // Data
     matches,
     stats,
     lastScanInfo,
     pagination,
-    
-    // Status
     isLoading,
     isRefreshing,
     isActioning,
     error,
-    
-    // Scan Status
     isScanning,
     scanProgress,
     scanResult,
-    
-    // Filters
     filters,
     setFilters,
     resetFilters,
-    
-    // Pagination
     setPage,
     setPageSize,
-    
-    // Actions
     refresh: () => fetchMatches(false),
     reviewMatch,
     dismissMatch,
     restoreMatch,
     saveMatch,
     createSuggestion,
-    
-    // Bulk
     bulkDismiss,
     bulkReview,
     bulkRestore,
-    
-    // Scan Controls
     startScan,
     cancelScan,
-    
-    // Selection
     selectedMatchIds,
     toggleSelection,
     selectAll,
