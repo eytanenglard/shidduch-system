@@ -1,6 +1,6 @@
 // ============================================================
 // NeshamaTech - Scan Single User API V2 (FIXED)
-// src/app/api/admin/scan/[userId]/route.ts
+// src/app/api/admin/profiles/profiles/scan/[userId]/route.ts
 // ============================================================
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -10,15 +10,23 @@ import prisma from '@/lib/prisma';
 import { scanSingleUserV2, saveScanResults, ScanOptions } from '@/lib/services/scanSingleUserV2';
 import { Gender } from '@prisma/client';
 
+// הגדרת טיפוס עבור הפרמטרים של הנתיב (תואם Next.js 15)
+interface RouteContext {
+  params: Promise<{ userId: string }>;
+}
+
 // ═══════════════════════════════════════════════════════════════
 // POST - הפעלת סריקה ליוזר בודד
 // ═══════════════════════════════════════════════════════════════
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { userId: string } }
+  context: RouteContext
 ) {
   try {
+    // 1. חילוץ הפרמטרים בצורה אסינכרונית (תואם לגרסאות חדשות)
+    const { userId } = await context.params;
+
     // בדיקת הרשאות
     const session = await getServerSession(authOptions);
     if (!session?.user || !['ADMIN', 'MATCHMAKER'].includes(session.user.role)) {
@@ -27,8 +35,6 @@ export async function POST(
         { status: 401 }
       );
     }
-
-    const { userId } = params;
 
     // פרמטרים מה-body
     const body = await request.json().catch(() => ({}));
@@ -91,9 +97,12 @@ export async function POST(
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { userId: string } }
+  context: RouteContext
 ) {
   try {
+    // 1. חילוץ הפרמטרים בצורה אסינכרונית
+    const { userId } = await context.params;
+
     const session = await getServerSession(authOptions);
     if (!session?.user || !['ADMIN', 'MATCHMAKER'].includes(session.user.role)) {
       return NextResponse.json(
@@ -102,7 +111,6 @@ export async function GET(
       );
     }
 
-    const { userId } = params;
     const { searchParams } = new URL(request.url);
     const limit = parseInt(searchParams.get('limit') || '50');
     const minScore = parseInt(searchParams.get('minScore') || '0');
@@ -130,7 +138,7 @@ export async function GET(
           { femaleUserId: userId },
         ],
         aiScore: { gte: minScore },
-        // תיקון: שימוש בסטטוסים הנכונים מה-enum
+        // שימוש בסטטוסים הנכונים מה-enum
         status: { notIn: ['DISMISSED', 'EXPIRED'] },
       },
       orderBy: { aiScore: 'desc' },

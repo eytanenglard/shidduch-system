@@ -36,14 +36,15 @@ export async function POST(request: NextRequest) {
     console.log(`[BatchUpdate] Starting batch update. Limit: ${limit}, OnlyMissing: ${onlyMissing}`);
 
     // שליפת פרופילים לעדכון
+// בקובץ batch-update-metrics/route.ts
     let query = `
       SELECT p.id, p.gender, p."userId",
              pm.id IS NOT NULL as "hasMetrics",
              pv."selfVector" IS NOT NULL as "hasSelfVector",
              pv."seekingVector" IS NOT NULL as "hasSeekingVector"
-      FROM profiles p
-      LEFT JOIN profile_metrics pm ON pm."profileId" = p.id
-      LEFT JOIN profile_vectors pv ON pv."profileId" = p.id
+      FROM "Profile" p  -- שונה מ-profiles
+      LEFT JOIN "profile_metrics" pm ON pm."profileId" = p.id
+      LEFT JOIN "profile_vectors" pv ON pv."profileId" = p.id
       WHERE p.status = 'AVAILABLE'
     `;
 

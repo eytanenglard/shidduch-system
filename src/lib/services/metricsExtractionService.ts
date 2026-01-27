@@ -833,165 +833,87 @@ export async function saveProfileMetrics(
 ): Promise<void> {
   const { metrics, explanations } = output;
 
+  // פונקציית עזר לטיפול בערכי Enum
+  // אם יש ערך - מחזירים אותו. אם אין - מחזירים null (שיעבור המרה ב-SQL)
+  const val = (v: any) => v ?? null;
+
   await prisma.$executeRaw`
-    INSERT INTO profile_metrics (
-      id,
-      "profileId",
-      "updatedAt",
-      "calculatedBy",
-      "confidenceScore",
-      "dataCompleteness",
-      "lastAiAnalysisAt",
-      
-      -- Self Metrics
-      "socialEnergy",
-      "emotionalExpression",
-      "stabilityVsSpontaneity",
-      "independenceLevel",
-      "optimismLevel",
-      "humorStyle",
-      "careerOrientation",
-      "intellectualOrientation",
-      "financialApproach",
-      "ambitionLevel",
-      "religiousStrictness",
-      "spiritualDepth",
-      "cultureConsumption",
-      "urbanScore",
-      "englishFluency",
-      "americanCompatibility",
-      "ethnicBackground",
-      "backgroundCategory",
-      "togetherVsAutonomy",
-      "familyInvolvement",
-      "parenthoodPriority",
-      "growthVsAcceptance",
-      "nightOwlScore",
-      "adventureScore",
-      "petsAttitude",
-      "communicationStyle",
-      "conflictStyle",
-      "supportStyle",
-      "appearancePickiness",
-      "difficultyFlags",
-      
-      -- Deal Breakers
-      "dealBreakersHard",
-      "dealBreakersSoft",
-      
-      -- Inferred
-      "inferredPersonalityType",
-      "inferredAttachmentStyle",
-      "inferredLoveLanguages",
-      "inferredRelationshipGoals",
-      
-      -- Cache
-      "metricsExplanations",
-      "aiPersonalitySummary",
-      "aiSeekingSummary"
+    INSERT INTO "profile_metrics" (
+      "id", "profileId", "updatedAt", "calculatedBy", "confidenceScore", "dataCompleteness", "lastAiAnalysisAt",
+      "socialEnergy", "emotionalExpression", "stabilityVsSpontaneity", "independenceLevel", "optimismLevel",
+      "humorStyle", "careerOrientation", "intellectualOrientation", "financialApproach", "ambitionLevel",
+      "religiousStrictness", "spiritualDepth", "cultureConsumption", "urbanScore", "englishFluency",
+      "americanCompatibility", "ethnicBackground", "backgroundCategory", "togetherVsAutonomy",
+      "familyInvolvement", "parenthoodPriority", "growthVsAcceptance", "nightOwlScore", "adventureScore",
+      "petsAttitude", "communicationStyle", "conflictStyle", "supportStyle", "appearancePickiness",
+      "difficultyFlags", "dealBreakersHard", "dealBreakersSoft",
+      "inferredPersonalityType", "inferredAttachmentStyle", "inferredLoveLanguages", "inferredRelationshipGoals",
+      "metricsExplanations", "aiPersonalitySummary", "aiSeekingSummary"
     )
     VALUES (
       ${generateCuid()},
       ${profileId},
       NOW(),
-      ${metrics.calculatedBy || 'AI_AUTO'}::"CalculatedBy",
-      ${metrics.confidenceScore || 50},
-      ${metrics.dataCompleteness || 0},
+      ${val(metrics.calculatedBy || 'AI_AUTO')}::"CalculatedBy",
+      ${val(metrics.confidenceScore || 50)},
+      ${val(metrics.dataCompleteness || 0)},
       NOW(),
-      
-      ${metrics.socialEnergy},
-      ${metrics.emotionalExpression},
-      ${metrics.stabilityVsSpontaneity},
-      ${metrics.independenceLevel},
-      ${metrics.optimismLevel},
-      ${metrics.humorStyle ? `${metrics.humorStyle}::"HumorStyle"` : null},
-      ${metrics.careerOrientation},
-      ${metrics.intellectualOrientation},
-      ${metrics.financialApproach},
-      ${metrics.ambitionLevel},
-      ${metrics.religiousStrictness},
-      ${metrics.spiritualDepth},
-      ${metrics.cultureConsumption},
-      ${metrics.urbanScore},
-      ${metrics.englishFluency},
-      ${metrics.americanCompatibility},
-      ${metrics.ethnicBackground ? `${metrics.ethnicBackground}::"EthnicBackground"` : null},
-      ${metrics.backgroundCategory ? `${metrics.backgroundCategory}::"BackgroundCategory"` : null},
-      ${metrics.togetherVsAutonomy},
-      ${metrics.familyInvolvement},
-      ${metrics.parenthoodPriority},
-      ${metrics.growthVsAcceptance},
-      ${metrics.nightOwlScore},
-      ${metrics.adventureScore},
-      ${metrics.petsAttitude ? `${metrics.petsAttitude}::"PetsAttitude"` : null},
-      ${metrics.communicationStyle ? `${metrics.communicationStyle}::"CommunicationStyle"` : null},
-      ${metrics.conflictStyle ? `${metrics.conflictStyle}::"ConflictStyle"` : null},
-      ${metrics.supportStyle ? `${metrics.supportStyle}::"SupportStyle"` : null},
-      ${metrics.appearancePickiness},
+
+      ${val(metrics.socialEnergy)},
+      ${val(metrics.emotionalExpression)},
+      ${val(metrics.stabilityVsSpontaneity)},
+      ${val(metrics.independenceLevel)},
+      ${val(metrics.optimismLevel)},
+      ${val(metrics.humorStyle)}::"HumorStyle",
+      ${val(metrics.careerOrientation)},
+      ${val(metrics.intellectualOrientation)},
+      ${val(metrics.financialApproach)},
+      ${val(metrics.ambitionLevel)},
+      ${val(metrics.religiousStrictness)},
+      ${val(metrics.spiritualDepth)},
+      ${val(metrics.cultureConsumption)},
+      ${val(metrics.urbanScore)},
+      ${val(metrics.englishFluency)},
+      ${val(metrics.americanCompatibility)},
+      ${val(metrics.ethnicBackground)}::"EthnicBackground",
+      ${val(metrics.backgroundCategory)}::"BackgroundCategory",
+      ${val(metrics.togetherVsAutonomy)},
+      ${val(metrics.familyInvolvement)},
+      ${val(metrics.parenthoodPriority)},
+      ${val(metrics.growthVsAcceptance)},
+      ${val(metrics.nightOwlScore)},
+      ${val(metrics.adventureScore)},
+      ${val(metrics.petsAttitude)}::"PetsAttitude",
+      ${val(metrics.communicationStyle)}::"CommunicationStyle",
+      ${val(metrics.conflictStyle)}::"ConflictStyle",
+      ${val(metrics.supportStyle)}::"SupportStyle",
+      ${val(metrics.appearancePickiness)},
       ${JSON.stringify(metrics.difficultyFlags || [])}::jsonb,
-      
+
       ${JSON.stringify(metrics.dealBreakersHard || [])}::jsonb,
       ${JSON.stringify(metrics.dealBreakersSoft || [])}::jsonb,
-      
-      ${metrics.inferredPersonalityType ? `${metrics.inferredPersonalityType}::"PersonalityType"` : null},
-      ${metrics.inferredAttachmentStyle ? `${metrics.inferredAttachmentStyle}::"AttachmentStyle"` : null},
+
+      ${val(metrics.inferredPersonalityType)}::"PersonalityType",
+      ${val(metrics.inferredAttachmentStyle)}::"AttachmentStyle",
       ${JSON.stringify(metrics.inferredLoveLanguages || [])}::jsonb,
       ${JSON.stringify(metrics.inferredRelationshipGoals || {})}::jsonb,
-      
+
       ${JSON.stringify(explanations)}::jsonb,
-      ${metrics.aiPersonalitySummary},
-      ${metrics.aiSeekingSummary}
+      ${val(metrics.aiPersonalitySummary)},
+      ${val(metrics.aiSeekingSummary)}
     )
-    ON CONFLICT ("profileId")
-    DO UPDATE SET
+    ON CONFLICT ("profileId") DO UPDATE SET
       "updatedAt" = NOW(),
       "calculatedBy" = EXCLUDED."calculatedBy",
       "confidenceScore" = EXCLUDED."confidenceScore",
       "dataCompleteness" = EXCLUDED."dataCompleteness",
       "lastAiAnalysisAt" = NOW(),
-      
-      "socialEnergy" = COALESCE(EXCLUDED."socialEnergy", profile_metrics."socialEnergy"),
-      "emotionalExpression" = COALESCE(EXCLUDED."emotionalExpression", profile_metrics."emotionalExpression"),
-      "stabilityVsSpontaneity" = COALESCE(EXCLUDED."stabilityVsSpontaneity", profile_metrics."stabilityVsSpontaneity"),
-      "independenceLevel" = COALESCE(EXCLUDED."independenceLevel", profile_metrics."independenceLevel"),
-      "optimismLevel" = COALESCE(EXCLUDED."optimismLevel", profile_metrics."optimismLevel"),
-      "humorStyle" = COALESCE(EXCLUDED."humorStyle", profile_metrics."humorStyle"),
-      "careerOrientation" = COALESCE(EXCLUDED."careerOrientation", profile_metrics."careerOrientation"),
-      "intellectualOrientation" = COALESCE(EXCLUDED."intellectualOrientation", profile_metrics."intellectualOrientation"),
-      "financialApproach" = COALESCE(EXCLUDED."financialApproach", profile_metrics."financialApproach"),
-      "ambitionLevel" = COALESCE(EXCLUDED."ambitionLevel", profile_metrics."ambitionLevel"),
-      "religiousStrictness" = COALESCE(EXCLUDED."religiousStrictness", profile_metrics."religiousStrictness"),
-      "spiritualDepth" = COALESCE(EXCLUDED."spiritualDepth", profile_metrics."spiritualDepth"),
-      "cultureConsumption" = COALESCE(EXCLUDED."cultureConsumption", profile_metrics."cultureConsumption"),
-      "urbanScore" = COALESCE(EXCLUDED."urbanScore", profile_metrics."urbanScore"),
-      "englishFluency" = COALESCE(EXCLUDED."englishFluency", profile_metrics."englishFluency"),
-      "americanCompatibility" = COALESCE(EXCLUDED."americanCompatibility", profile_metrics."americanCompatibility"),
-      "ethnicBackground" = COALESCE(EXCLUDED."ethnicBackground", profile_metrics."ethnicBackground"),
-      "backgroundCategory" = COALESCE(EXCLUDED."backgroundCategory", profile_metrics."backgroundCategory"),
-      "togetherVsAutonomy" = COALESCE(EXCLUDED."togetherVsAutonomy", profile_metrics."togetherVsAutonomy"),
-      "familyInvolvement" = COALESCE(EXCLUDED."familyInvolvement", profile_metrics."familyInvolvement"),
-      "parenthoodPriority" = COALESCE(EXCLUDED."parenthoodPriority", profile_metrics."parenthoodPriority"),
-      "growthVsAcceptance" = COALESCE(EXCLUDED."growthVsAcceptance", profile_metrics."growthVsAcceptance"),
-      "nightOwlScore" = COALESCE(EXCLUDED."nightOwlScore", profile_metrics."nightOwlScore"),
-      "adventureScore" = COALESCE(EXCLUDED."adventureScore", profile_metrics."adventureScore"),
-      "petsAttitude" = COALESCE(EXCLUDED."petsAttitude", profile_metrics."petsAttitude"),
-      "communicationStyle" = COALESCE(EXCLUDED."communicationStyle", profile_metrics."communicationStyle"),
-      "conflictStyle" = COALESCE(EXCLUDED."conflictStyle", profile_metrics."conflictStyle"),
-      "supportStyle" = COALESCE(EXCLUDED."supportStyle", profile_metrics."supportStyle"),
-      "appearancePickiness" = COALESCE(EXCLUDED."appearancePickiness", profile_metrics."appearancePickiness"),
-      "difficultyFlags" = EXCLUDED."difficultyFlags",
-      
-      "dealBreakersHard" = EXCLUDED."dealBreakersHard",
-      "dealBreakersSoft" = EXCLUDED."dealBreakersSoft",
-      
-      "inferredPersonalityType" = COALESCE(EXCLUDED."inferredPersonalityType", profile_metrics."inferredPersonalityType"),
-      "inferredAttachmentStyle" = COALESCE(EXCLUDED."inferredAttachmentStyle", profile_metrics."inferredAttachmentStyle"),
-      "inferredLoveLanguages" = EXCLUDED."inferredLoveLanguages",
-      "inferredRelationshipGoals" = EXCLUDED."inferredRelationshipGoals",
-      
-      "metricsExplanations" = EXCLUDED."metricsExplanations",
-      "aiPersonalitySummary" = COALESCE(EXCLUDED."aiPersonalitySummary", profile_metrics."aiPersonalitySummary"),
-      "aiSeekingSummary" = COALESCE(EXCLUDED."aiSeekingSummary", profile_metrics."aiSeekingSummary");
+      "socialEnergy" = COALESCE(EXCLUDED."socialEnergy", "profile_metrics"."socialEnergy"),
+      "emotionalExpression" = COALESCE(EXCLUDED."emotionalExpression", "profile_metrics"."emotionalExpression"),
+      "religiousStrictness" = COALESCE(EXCLUDED."religiousStrictness", "profile_metrics"."religiousStrictness"),
+      "humorStyle" = COALESCE(EXCLUDED."humorStyle", "profile_metrics"."humorStyle"),
+      "backgroundCategory" = COALESCE(EXCLUDED."backgroundCategory", "profile_metrics"."backgroundCategory"),
+      "metricsExplanations" = EXCLUDED."metricsExplanations";
   `;
 
   console.log(`[MetricsExtraction] Saved metrics for profile: ${profileId}`);

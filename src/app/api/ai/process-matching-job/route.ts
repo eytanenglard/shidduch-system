@@ -7,12 +7,14 @@
 // 📝 הערה: חיפושים וירטואליים מעובדים ישירות ב-find-matches-v2
 // ולא עוברים דרך route זה יותר
 //
-// 🆕 עודכן: שומר תוצאות גם ב-PotentialMatch לתצוגה בדשבורד
+// 🆕 עודכן: תמיכה ב-Metrics V2
 
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { findMatchesForUser } from "@/lib/services/matchingAlgorithmService";
 import { findMatchesWithVector } from "@/lib/services/vectorMatchingService";
+// 🆕 ייבוא השירות החדש
+import { scanSingleUserV2, saveScanResults } from '@/lib/services/scanSingleUserV2';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 300; // 5 דקות
@@ -22,7 +24,7 @@ export const maxDuration = 300; // 5 דקות
 // ============================================================================
 
 export async function POST(req: NextRequest): Promise<NextResponse> {
-  const startTime = Date.now();
+  // const startTime = Date.now(); // (לא בשימוש כרגע)
   
   try {
     // אימות פנימי - רק קריאות מהשרת עצמו
@@ -146,11 +148,98 @@ async function processJobInBackground(
       await updateJobProgress(jobId, progress, message);
     };
 
-    let result;
+    // ==========================================================
+    // 🆕 Metrics V2 Search (New Algorithm)
+    // ==========================================================
+    if (method === 'metrics_v2') {
+      console.log('[ProcessJob] 🆕 Running Metrics V2 scan');
+      
+      // עדכון progress
+      await onProgress(20, 'מריץ סריקת מדדים V2...');
+      
+      try {
+        // הרצת הסריקה החדשה
+        // שימוש ב-targetUserId שהתקבל כפרמטר לפונקציה
+        const scanResult = await scanSingleUserV2(targetUserId, {
+          useVectors: true,
+          useAIDeepAnalysis: true,
+          maxCandidates: 100,
+          topForAI: 30,
+          forceUpdateMetrics: false,
+        });
+        
+        await onProgress(70, `נמצאו ${scanResult.matches.length} התאמות, שומר...`);
+        
+        // שמירה ל-DB
+        await saveScanResults(scanResult);
+        
+        await onProgress(90, 'מעבד תוצאות...');
+        
+        // המרה לפורמט AiMatch שה-frontend מצפה לו
+        const matches = scanResult.matches.map((m, index) => ({
+          userId: m.candidateUserId,
+          firstName: m.candidateName.split(' ')[0],
+          lastName: m.candidateName.split(' ').slice(1).join(' '),
+          score: m.symmetricScore,
+          finalScore: m.symmetricScore,
+          firstPassScore: m.metricsScore,
+          rank: index + 1,
+          reasoning: m.aiAnalysis?.reasoning || '',
+          shortReasoning: m.aiAnalysis?.reasoning || '',
+          detailedReasoning: m.aiAnalysis?.reasoning || '',
+          strengths: m.aiAnalysis?.strengths || [],
+          concerns: m.aiAnalysis?.concerns || [],
+        }));
+        
+        // סיום מוצלח - Metrics V2
+        await prisma.matchingJob.update({
+          where: { id: jobId },
+          data: {
+            status: 'completed',
+            progress: 100,
+            progressMessage: `נמצאו ${matches.length} התאמות (Metrics V2)`,
+            result: {
+              matches,
+              meta: {
+                algorithmVersion: 'metrics-v2',
+                totalCandidatesScanned: scanResult.stats.totalCandidates,
+                passedDealBreakers: scanResult.stats.passedDealBreakers,
+                aiAnalyzed: scanResult.stats.aiAnalyzed,
+                durationMs: scanResult.durationMs,
+              },
+            },
+            matchesFound: matches.length,
+            totalCandidates: scanResult.stats.totalCandidates,
+            completedAt: new Date(),
+          },
+        });
+        
+        console.log(`[ProcessJob] ✅ Metrics V2 completed: ${matches.length} matches`);
+        
+        // יציאה מהפונקציה כדי למנוע הרצת קוד ישן בהמשך
+        return;
+        
+      } catch (error) {
+        console.error('[ProcessJob] ❌ Metrics V2 failed:', error);
+        await prisma.matchingJob.update({
+          where: { id: jobId },
+          data: {
+            status: 'failed',
+            error: String(error),
+            completedAt: new Date(),
+          },
+        });
+        return;
+      }
+    }
 
     // ==========================================================
-    // 🔷 Vector Search
+    // 🔽 LEGACY / STANDARD METHODS (Vector & Algorithmic V1)
     // ==========================================================
+
+    let result;
+
+    // 🔷 Vector Search
     if (method === 'vector') {
       console.log(`[ProcessJob] 🔷 Running Vector Search method`);
       await onProgress(10, 'מפעיל חיפוש וקטורי...');
@@ -160,9 +249,7 @@ async function processJobInBackground(
         autoSave: true,
       });
     } 
-    // ==========================================================
-    // 🧠 Algorithmic Search
-    // ==========================================================
+    // 🧠 Algorithmic Search (Legacy V1)
     else {
       console.log(`[ProcessJob] 🧠 Running Algorithmic method`);
       await onProgress(10, 'טוען נתוני מועמד מטרה...');
@@ -197,7 +284,7 @@ async function processJobInBackground(
     });
 
     // ==========================================================
-    // 🆕 שמירה גם ב-PotentialMatch לתצוגה בדשבורד
+    // 🆕 שמירה גם ב-PotentialMatch לתצוגה בדשבורד (Legacy Support)
     // ==========================================================
     await saveToPotentialMatches(targetUserId, result.matches, 70);
 
@@ -282,7 +369,7 @@ async function findMatchesForUserWithProgress(
 }
 
 // ============================================================================
-// 🆕 שמירה ב-PotentialMatch (לתצוגה בדשבורד)
+// 🆕 שמירה ב-PotentialMatch (לתצוגה בדשבורד) - Legacy Logic
 // ============================================================================
 
 async function saveToPotentialMatches(
@@ -376,10 +463,11 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
   return NextResponse.json({
     status: "healthy",
     service: "process-matching-job",
-    version: "4.2", // 🆕 עודכן
+    version: "4.3", // 🆕 עודכן
     features: [
       "Background job processing",
-      "Saves to PotentialMatch for dashboard display" // 🆕
+      "Saves to PotentialMatch for dashboard display",
+      "Metrics V2 Support" // 🆕
     ],
     note: "Virtual searches are now processed directly in find-matches-v2",
     timestamp: new Date().toISOString()

@@ -121,7 +121,7 @@ export async function scanSingleUserV2(
   // תיקון: השוואה נכונה עם Gender enum
   const oppositeGender: Gender = profile.gender === Gender.MALE ? Gender.FEMALE : Gender.MALE;
   
-  const tier1Candidates = await prisma.$queryRaw<any[]>`
+   const tier1Candidates = await prisma.$queryRaw<any[]>`
     SELECT 
       p.id as "profileId",
       p."userId",
@@ -140,21 +140,24 @@ export async function scanSingleUserV2(
       pm."backgroundCategory",
       pm."ethnicBackground",
       pm."appearancePickiness"
-    FROM profiles p
-    JOIN users u ON u.id = p."userId"
-    LEFT JOIN profile_metrics pm ON pm."profileId" = p.id
+    FROM "Profile" p 
+    JOIN "User" u ON u.id = p."userId"
+    LEFT JOIN "profile_metrics" pm ON pm."profileId" = p.id
     WHERE p.gender = ${oppositeGender}::"Gender"
-      AND p.status = 'AVAILABLE'
+      AND p."availabilityStatus" = 'AVAILABLE'::"AvailabilityStatus"
       AND p.id != ${profile.id}
       AND NOT EXISTS (
-        SELECT 1 FROM potential_matches pm2
+        SELECT 1 FROM "PotentialMatch" pm2
         WHERE ((pm2."maleUserId" = ${userId} AND pm2."femaleUserId" = p."userId")
            OR (pm2."femaleUserId" = ${userId} AND pm2."maleUserId" = p."userId"))
-          AND pm2.status IN ('REJECTED', 'DATED_NO_CONTINUE', 'USER_REJECTED')
+          AND pm2.status::text IN ('REJECTED', 'DATED_NO_CONTINUE', 'USER_REJECTED', 'DISMISSED')
       )
     ORDER BY pm."confidenceScore" DESC NULLS LAST
     LIMIT ${maxCandidates}
   `;
+
+
+
 
   console.log(`[ScanV2] Tier 1: Found ${tier1Candidates.length} candidates`);
 
