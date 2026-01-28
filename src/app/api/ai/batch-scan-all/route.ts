@@ -1,31 +1,19 @@
 // =============================================================================
 // 📁 src/app/api/ai/batch-scan-all/route.ts
 // =============================================================================
-// 🎯 Batch Scan All - סריקה לילית חכמה V2.1
+// 🎯 Batch Scan All - סריקה לילית V3.0 (Using scanSingleUserV2)
 // 
-// 🆕 שיפורים בגרסה זו:
-// 1. ✅ סריקה דיפרנציאלית אמיתית - סורק רק זוגות שצריך!
-// 2. ✅ Progress טוב יותר - כולל אחוז מדויק ואומדן זמן
-// 3. ✅ לוגים מפורטים יותר
-// 4. ✅ סטטיסטיקות מפורטות למעקב
+// 🆕 עדכון: 28/01/2025
+// - שימוש ב-scanSingleUserV2 לכל הסריקות
+// - תמיכה במדדים החדשים (socioEconomic, jobSeniority, educationLevel)
+// - סינון גיל דו-כיווני
+// - AI Deep Analysis עם סיכומי רקע מורחבים
 // =============================================================================
 
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { Gender, AvailabilityStatus } from "@prisma/client";
-import { GoogleGenerativeAI } from '@google/generative-ai';
-import { 
-  getCompatibleReligiousLevels,
-  calculateAge,
-  calculateAgeScore,
-  createBackgroundProfile,
-  calculateBackgroundMatch,
-  filterBlockedFemales,
-  saveScannedPairsBatch,
-  getActiveUsersWhereClause,
-  type ScannedPairResult,
-} from "@/lib/services/matchingAlgorithmService";
-import profileAiService from "@/lib/services/profileAiService";
+import { AvailabilityStatus, UserStatus } from "@prisma/client";
+import { scanSingleUserV2, saveScanResults, ScanResult } from "@/lib/services/scanSingleUserV2";
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 300; // 5 דקות
@@ -34,28 +22,26 @@ export const maxDuration = 300; // 5 דקות
 // CONSTANTS
 // =============================================================================
 
-const MIN_SCORE_THRESHOLD = 70;
-const BATCH_SIZE = 15; // כמה בחורות לשלוח ל-AI בכל קריאה
-const PROGRESS_UPDATE_INTERVAL = 5; // עדכון progress כל X גברים
+const MIN_SCORE_THRESHOLD = 65; // סף מינימלי לשמירה (תואם ל-scanSingleUserV2)
+const PROGRESS_UPDATE_INTERVAL = 3; // עדכון progress כל X משתמשים
 
 // =============================================================================
 // TYPES
 // =============================================================================
 
 interface ScanStats {
-  totalMales: number;
+  totalUsers: number;
+  usersProcessed: number;
   malesProcessed: number;
-  totalPairsToScan: number;
-  pairsScanned: number;
-  pairsSkippedByHistory: number;
-  pairsSkippedByNoChange: number;
-  pairsSkippedByAgeGap: number;
-  pairsSkippedByReligion: number;
+  femalesProcessed: number;
+  totalCandidatesScanned: number;
+  passedDealBreakers: number;
+  aiAnalyzed: number;
   matchesFound: number;
   newMatches: number;
   updatedMatches: number;
-  aiCallsCount: number;
   startTime: number;
+  errors: string[];
 }
 
 // =============================================================================
@@ -66,14 +52,18 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   try {
     const body = await req.json().catch(() => ({}));
     const { 
-      method = 'algorithmic',
+      method = 'metrics_v2', // 🆕 ברירת מחדל: המתודה החדשה
       forceRefresh = false,
+      userIds = [], // אפשרות לסרוק משתמשים ספציפיים
     } = body;
 
     console.log(`\n${'='.repeat(70)}`);
-    console.log(`[BatchScan] 🌙 Starting Nightly Differential Scan V2.1`);
+    console.log(`[BatchScan] 🌙 Starting Nightly Scan V3.0 (scanSingleUserV2)`);
     console.log(`[BatchScan] Method: ${method}`);
     console.log(`[BatchScan] Force Refresh: ${forceRefresh}`);
+    if (userIds.length > 0) {
+      console.log(`[BatchScan] Specific users: ${userIds.length}`);
+    }
     console.log(`${'='.repeat(70)}\n`);
 
     // בדיקה אם יש סריקה רצה כבר
@@ -117,7 +107,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         newMatches: 0,
         updatedMatches: 0,
         startedAt: new Date(),
-        method,
+        method: 'metrics_v2', // 🆕 תמיד metrics_v2
         minScoreThreshold: MIN_SCORE_THRESHOLD,
       }
     });
@@ -125,7 +115,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     console.log(`[BatchScan] Created scan log: ${scanLog.id}`);
 
     // הפעלת הסריקה ברקע
-    runOptimizedDifferentialScan(scanLog.id, method, forceRefresh)
+    runScanWithV2(scanLog.id, forceRefresh, userIds)
       .catch(err => {
         console.error(`[BatchScan] Background scan failed:`, err);
       });
@@ -133,7 +123,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     return NextResponse.json({
       success: true,
       scanId: scanLog.id,
-      message: 'הסריקה החלה'
+      message: 'הסריקה החלה (V3.0 - scanSingleUserV2)'
     });
 
   } catch (error) {
@@ -146,7 +136,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 }
 
 // =============================================================================
-// GET - בדיקת סטטוס סריקה (משופר!)
+// GET - בדיקת סטטוס סריקה
 // =============================================================================
 
 export async function GET(req: NextRequest): Promise<NextResponse> {
@@ -184,17 +174,18 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
         scan: {
           id: scan.id,
           status: scan.status,
-          progress, // 🆕 אחוז התקדמות
+          progress,
           totalCandidates: scan.totalCandidates,
           candidatesScanned: scan.candidatesScanned,
           matchesFound: scan.matchesFound,
           newMatches: scan.newMatches,
           updatedMatches: scan.updatedMatches,
           durationMs: scan.durationMs,
-          estimatedRemainingMinutes, // 🆕 אומדן זמן שנותר
+          estimatedRemainingMinutes,
           error: scan.error,
           startedAt: scan.startedAt,
           completedAt: scan.completedAt,
+          method: scan.method,
         }
       });
     }
@@ -210,9 +201,11 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
         id: lastScan.id,
         status: lastScan.status,
         matchesFound: lastScan.matchesFound,
+        newMatches: lastScan.newMatches,
         durationMs: lastScan.durationMs,
         startedAt: lastScan.startedAt,
         completedAt: lastScan.completedAt,
+        method: lastScan.method,
       } : null
     });
 
@@ -226,260 +219,132 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
 }
 
 // =============================================================================
-// 🆕 Optimized Differential Scan - סריקה דיפרנציאלית אמיתית!
+// 🆕 Main Scan Function - Using scanSingleUserV2
 // =============================================================================
 
-async function runOptimizedDifferentialScan(
+async function runScanWithV2(
   scanLogId: string,
-  method: string,
-  forceRefresh: boolean
+  forceRefresh: boolean,
+  specificUserIds: string[] = []
 ): Promise<void> {
   const stats: ScanStats = {
-    totalMales: 0,
+    totalUsers: 0,
+    usersProcessed: 0,
     malesProcessed: 0,
-    totalPairsToScan: 0,
-    pairsScanned: 0,
-    pairsSkippedByHistory: 0,
-    pairsSkippedByNoChange: 0,
-    pairsSkippedByAgeGap: 0,
-    pairsSkippedByReligion: 0,
+    femalesProcessed: 0,
+    totalCandidatesScanned: 0,
+    passedDealBreakers: 0,
+    aiAnalyzed: 0,
     matchesFound: 0,
     newMatches: 0,
     updatedMatches: 0,
-    aiCallsCount: 0,
     startTime: Date.now(),
+    errors: [],
   };
 
-  const scannedPairsToSave: ScannedPairResult[] = [];
-
   try {
-    console.log(`\n[BatchScan] 🚀 Starting optimized differential scan...`);
+    console.log(`\n[BatchScan] 🚀 Starting scan with scanSingleUserV2...`);
 
     // ==========================================================================
-    // שלב 1: שליפת כל הגברים והבחורות הפעילים
+    // שלב 1: שליפת כל המשתמשים הפעילים
     // ==========================================================================
     
-    const males = await fetchActiveMales();
-    const allFemales = await fetchActiveFemales();
+    const users = await fetchActiveUsers(specificUserIds);
+    stats.totalUsers = users.length;
     
-    stats.totalMales = males.length;
+    const males = users.filter(u => u.gender === 'MALE');
+    const females = users.filter(u => u.gender === 'FEMALE');
     
-    console.log(`[BatchScan] Found ${males.length} active males`);
-    console.log(`[BatchScan] Found ${allFemales.length} active females`);
-    console.log(`[BatchScan] Maximum possible pairs: ${males.length * allFemales.length}`);
+    console.log(`[BatchScan] Found ${users.length} active users (${males.length} M, ${females.length} F)`);
 
-    // ==========================================================================
-    // שלב 2: שליפת כל ה-ScannedPairs הקיימים בבת אחת (לחיסכון בשאילתות)
-    // ==========================================================================
-
-    const existingScannedPairs = await prisma.scannedPair.findMany({
-      select: {
-        maleUserId: true,
-        femaleUserId: true,
-        maleProfileUpdatedAt: true,
-        femaleProfileUpdatedAt: true,
-        passedThreshold: true,
-        lastScannedAt: true,
-      }
-    });
-
-    // יצירת מפה לגישה מהירה
-    const scannedPairsMap = new Map<string, typeof existingScannedPairs[0]>();
-    for (const pair of existingScannedPairs) {
-      scannedPairsMap.set(`${pair.maleUserId}_${pair.femaleUserId}`, pair);
+    if (users.length === 0) {
+      throw new Error('No active users to scan');
     }
-
-    console.log(`[BatchScan] Loaded ${existingScannedPairs.length} existing scanned pairs`);
-
-    // ==========================================================================
-    // שלב 3: שליפת כל ההיסטוריה החוסמת בבת אחת
-    // ==========================================================================
-
-    const maleIds = males.map(m => m.id);
-    const femaleIds = allFemales.map(f => f.id);
-
-    const { blockedPairsSet } = await fetchAllBlockingHistory(maleIds, femaleIds);
-    
-    console.log(`[BatchScan] Found ${blockedPairsSet.size} blocked pairs from history`);
 
     // עדכון הלוג
     await prisma.nightlyScanLog.update({
       where: { id: scanLogId },
-      data: { totalCandidates: males.length }
+      data: { totalCandidates: users.length }
     });
 
     // ==========================================================================
-    // שלב 4: סריקה חכמה לכל גבר
+    // שלב 2: סריקת כל משתמש עם scanSingleUserV2
     // ==========================================================================
 
-    for (let maleIndex = 0; maleIndex < males.length; maleIndex++) {
-      const male = males[maleIndex];
+    for (let i = 0; i < users.length; i++) {
+      const user = users[i];
       
-      if (!male.profile?.birthDate) {
-        console.log(`[BatchScan] Skipping male ${male.firstName} - no birthDate`);
-        continue;
-      }
-
-      const maleAge = calculateAge(male.profile.birthDate);
-      const maleReligiousLevel = male.profile.religiousLevel;
-      const maleProfileUpdatedAt = male.profile.updatedAt;
-      const compatibleReligious = getCompatibleReligiousLevels(maleReligiousLevel);
-
-      // מציאת בחורות שצריכות סריקה
-      const femalesToScan: typeof allFemales = [];
-
-      for (const female of allFemales) {
-        if (!female.profile) continue;
-
-        // 1. בדיקת היסטוריה חוסמת
-        const pairKey = `${male.id}_${female.id}`;
-        if (blockedPairsSet.has(pairKey)) {
-          stats.pairsSkippedByHistory++;
-          continue;
-        }
-
-        // 2. בדיקת רמה דתית
-        if (female.profile.religiousLevel && 
-            !compatibleReligious.includes(female.profile.religiousLevel)) {
-          stats.pairsSkippedByReligion++;
-          continue;
-        }
-
-        // 3. בדיקת גיל
-        if (female.profile.birthDate) {
-          const femaleAge = calculateAge(female.profile.birthDate);
-          const ageScore = calculateAgeScore(maleAge, femaleAge);
-          if (!ageScore.eligible) {
-            stats.pairsSkippedByAgeGap++;
-            continue;
-          }
-        }
-
-        // 4. בדיקה דיפרנציאלית - האם צריך לסרוק מחדש?
-        if (!forceRefresh) {
-          const existingPair = scannedPairsMap.get(pairKey);
-          if (existingPair) {
-            const maleUpdated = maleProfileUpdatedAt > (existingPair.maleProfileUpdatedAt || new Date(0));
-            const femaleUpdated = female.profile.updatedAt > (existingPair.femaleProfileUpdatedAt || new Date(0));
-            
-            if (!maleUpdated && !femaleUpdated) {
-              stats.pairsSkippedByNoChange++;
-              continue;
-            }
-          }
-        }
-
-        // עברה את כל הבדיקות - צריך לסרוק!
-        femalesToScan.push(female);
-      }
-
-      stats.totalPairsToScan += femalesToScan.length;
-
       // לוג התקדמות
-      if ((maleIndex + 1) % 10 === 0 || maleIndex === 0) {
-        console.log(`\n[BatchScan] 📊 Progress Report:`);
-        console.log(`  Males: ${maleIndex + 1}/${males.length} (${Math.round((maleIndex + 1) / males.length * 100)}%)`);
-        console.log(`  Current: ${male.firstName} ${male.lastName} -> ${femalesToScan.length} females to scan`);
-        console.log(`  Stats: skipped ${stats.pairsSkippedByHistory} history, ${stats.pairsSkippedByNoChange} unchanged, ${stats.pairsSkippedByAgeGap} age, ${stats.pairsSkippedByReligion} religion`);
+      if ((i + 1) % 10 === 0 || i === 0) {
+        console.log(`\n[BatchScan] 📊 Progress: ${i + 1}/${users.length} (${Math.round((i + 1) / users.length * 100)}%)`);
+        console.log(`  Current: ${user.firstName} ${user.lastName} (${user.gender})`);
         console.log(`  Matches found so far: ${stats.matchesFound}`);
       }
 
-      if (femalesToScan.length === 0) {
-        stats.malesProcessed++;
-        continue;
-      }
-
-      // ==========================================================================
-      // שלב 4.1: סריקת AI רק לזוגות שצריך!
-      // ==========================================================================
-
       try {
-        // הכנת פרופיל הגבר
-        const maleNarrativeProfile = await buildNarrativeProfile(male);
-        const maleBackgroundProfile = createBackgroundProfile(
-          male.profile.nativeLanguage,
-          male.profile.additionalLanguages || [],
-          male.profile.aliyaCountry,
-          male.profile.aliyaYear,
-          male.profile.origin,
-          male.profile.about,
-          male.profile.matchingNotes
-        );
-
-        // סריקת בחורות ב-batches
-        for (let i = 0; i < femalesToScan.length; i += BATCH_SIZE) {
-          const batch = femalesToScan.slice(i, i + BATCH_SIZE);
-          
-          const batchResults = await scanBatchWithAI(
-            male,
-            maleNarrativeProfile,
-            maleBackgroundProfile,
-            maleAge,
-            batch
-          );
-
-          stats.aiCallsCount++;
-          stats.pairsScanned += batch.length;
-
-          // עיבוד תוצאות
-          for (const result of batchResults) {
-            const passedThreshold = result.score >= MIN_SCORE_THRESHOLD;
-
-            // שמירה ב-ScannedPair
-            scannedPairsToSave.push({
-              maleUserId: male.id,
-              femaleUserId: result.femaleId,
-              aiScore: result.score,
-              passedThreshold,
-              rejectionReason: passedThreshold ? null : 'low_ai_score',
-              maleProfileUpdatedAt,
-              femaleProfileUpdatedAt: result.femaleProfileUpdatedAt,
-            });
-
-            if (passedThreshold) {
-              stats.matchesFound++;
-
-              const saved = await saveToPotentialMatch(
-                male.id,
-                result.femaleId,
-                result
-              );
-
-              if (saved === 'new') stats.newMatches++;
-              if (saved === 'updated') stats.updatedMatches++;
-            }
-          }
+        // 🆕 שימוש ב-scanSingleUserV2
+        const scanResult: ScanResult = await scanSingleUserV2(user.userId, {
+          useVectors: true,
+          useAIDeepAnalysis: true,
+          maxCandidates: 100,
+          topForAI: 30,
+          forceUpdateMetrics: forceRefresh && i === 0, // עדכון מדדים רק בסריקה הראשונה
+          skipCandidateMetricsUpdate: i > 0, // דילוג על עדכון מועמדים אחרי הראשון
+        });
+        
+        // עדכון סטטיסטיקות
+        stats.totalCandidatesScanned += scanResult.stats.totalCandidates;
+        stats.passedDealBreakers += scanResult.stats.passedDealBreakers;
+        stats.aiAnalyzed += scanResult.stats.aiAnalyzed;
+        
+        // שמירת התוצאות ל-DB
+        const savedCount = await saveScanResults(scanResult);
+        
+        // עדכון מונים
+        const matchesAboveThreshold = scanResult.matches.filter(m => m.symmetricScore >= MIN_SCORE_THRESHOLD).length;
+        stats.matchesFound += matchesAboveThreshold;
+        stats.newMatches += savedCount;
+        
+        if (user.gender === 'MALE') {
+          stats.malesProcessed++;
+        } else {
+          stats.femalesProcessed++;
         }
-
+        
+        // הוספת שגיאות/אזהרות
+        if (scanResult.errors.length > 0) {
+          stats.errors.push(...scanResult.errors.map(e => `${user.firstName}: ${e}`));
+        }
+        
       } catch (error) {
-        console.error(`[BatchScan] Error scanning male ${male.id}:`, error);
+        const errorMsg = `Error scanning ${user.firstName}: ${error}`;
+        console.error(`[BatchScan] ❌ ${errorMsg}`);
+        stats.errors.push(errorMsg);
       }
 
-      stats.malesProcessed++;
+      stats.usersProcessed++;
 
       // עדכון progress בDB
-      if ((maleIndex + 1) % PROGRESS_UPDATE_INTERVAL === 0) {
+      if ((i + 1) % PROGRESS_UPDATE_INTERVAL === 0) {
         await prisma.nightlyScanLog.update({
           where: { id: scanLogId },
           data: {
-            candidatesScanned: stats.malesProcessed,
+            candidatesScanned: stats.usersProcessed,
             matchesFound: stats.matchesFound,
             newMatches: stats.newMatches,
             updatedMatches: stats.updatedMatches,
           }
         });
       }
+
+      // השהייה קטנה בין משתמשים למניעת עומס
+      if (i < users.length - 1) {
+        await new Promise(resolve => setTimeout(resolve, 100));
+      }
     }
 
     // ==========================================================================
-    // שלב 5: שמירת כל ה-ScannedPairs
-    // ==========================================================================
-
-    console.log(`\n[BatchScan] 💾 Saving ${scannedPairsToSave.length} scanned pairs...`);
-    await saveScannedPairsBatch(scannedPairsToSave);
-
-    // ==========================================================================
-    // שלב 6: סיום וסיכום
+    // שלב 3: סיום וסיכום
     // ==========================================================================
 
     const duration = Date.now() - stats.startTime;
@@ -488,33 +353,34 @@ async function runOptimizedDifferentialScan(
       where: { id: scanLogId },
       data: {
         status: 'completed',
-        candidatesScanned: stats.malesProcessed,
+        candidatesScanned: stats.usersProcessed,
         matchesFound: stats.matchesFound,
         newMatches: stats.newMatches,
         updatedMatches: stats.updatedMatches,
         durationMs: duration,
         completedAt: new Date(),
+        error: stats.errors.length > 0 ? `${stats.errors.length} errors occurred` : null,
       }
     });
 
     console.log(`\n${'='.repeat(70)}`);
-    console.log(`[BatchScan] ✅ Scan completed!`);
+    console.log(`[BatchScan] ✅ Scan completed! (V3.0 - scanSingleUserV2)`);
     console.log(`${'='.repeat(70)}`);
     console.log(`\n📊 Final Statistics:`);
     console.log(`  Duration: ${(duration / 1000 / 60).toFixed(2)} minutes`);
-    console.log(`  Males scanned: ${stats.malesProcessed}/${stats.totalMales}`);
-    console.log(`  \n  Pairs breakdown:`);
-    console.log(`    - Total potential: ${stats.totalMales * allFemales.length}`);
-    console.log(`    - Skipped (history): ${stats.pairsSkippedByHistory}`);
-    console.log(`    - Skipped (unchanged): ${stats.pairsSkippedByNoChange}`);
-    console.log(`    - Skipped (age gap): ${stats.pairsSkippedByAgeGap}`);
-    console.log(`    - Skipped (religion): ${stats.pairsSkippedByReligion}`);
-    console.log(`    - Actually scanned: ${stats.pairsScanned}`);
+    console.log(`  Users scanned: ${stats.usersProcessed}/${stats.totalUsers}`);
+    console.log(`    - Males: ${stats.malesProcessed}`);
+    console.log(`    - Females: ${stats.femalesProcessed}`);
+    console.log(`  \n  Processing breakdown:`);
+    console.log(`    - Total candidates evaluated: ${stats.totalCandidatesScanned}`);
+    console.log(`    - Passed deal breakers: ${stats.passedDealBreakers}`);
+    console.log(`    - AI analyzed: ${stats.aiAnalyzed}`);
     console.log(`  \n  Results:`);
-    console.log(`    - AI calls made: ${stats.aiCallsCount}`);
-    console.log(`    - Matches found (≥70): ${stats.matchesFound}`);
-    console.log(`    - New matches: ${stats.newMatches}`);
-    console.log(`    - Updated matches: ${stats.updatedMatches}`);
+    console.log(`    - Matches found (≥${MIN_SCORE_THRESHOLD}): ${stats.matchesFound}`);
+    console.log(`    - New/Updated in DB: ${stats.newMatches}`);
+    if (stats.errors.length > 0) {
+      console.log(`  \n  ⚠️ Errors: ${stats.errors.length}`);
+    }
     console.log(`\n${'='.repeat(70)}\n`);
 
   } catch (error) {
@@ -536,350 +402,54 @@ async function runOptimizedDifferentialScan(
 // Helper Functions
 // =============================================================================
 
-async function fetchActiveMales() {
-  return prisma.user.findMany({
-    where: {
-      ...getActiveUsersWhereClause(),
-      profile: {
-        gender: 'MALE',
-        availabilityStatus: AvailabilityStatus.AVAILABLE,
-        isProfileVisible: true,
-        OR: [
-          { about: { not: null } },
-          { manualEntryText: { not: null } },
-        ]
-      }
-    },
-    select: {
-      id: true,
-      firstName: true,
-      lastName: true,
-      profile: {
-        select: {
-          birthDate: true,
-          religiousLevel: true,
-          updatedAt: true,
-          nativeLanguage: true,
-          additionalLanguages: true,
-          aliyaCountry: true,
-          aliyaYear: true,
-          origin: true,
-          about: true,
-          matchingNotes: true,
-          city: true,
-          occupation: true,
-          aiProfileSummary: true,
-        }
-      }
-    }
-  });
+interface ActiveUser {
+  userId: string;
+  firstName: string;
+  lastName: string;
+  gender: 'MALE' | 'FEMALE';
 }
 
-async function fetchActiveFemales() {
-  return prisma.user.findMany({
-    where: {
-      ...getActiveUsersWhereClause(),
-      profile: {
-        gender: 'FEMALE',
-        availabilityStatus: AvailabilityStatus.AVAILABLE,
-        isProfileVisible: true,
-        OR: [
-          { about: { not: null } },
-          { manualEntryText: { not: null } },
-        ]
-      }
-    },
-    select: {
-      id: true,
-      firstName: true,
-      lastName: true,
-      profile: {
-        select: {
-          birthDate: true,
-          religiousLevel: true,
-          updatedAt: true,
-          nativeLanguage: true,
-          additionalLanguages: true,
-          aliyaCountry: true,
-          aliyaYear: true,
-          origin: true,
-          about: true,
-          matchingNotes: true,
-          city: true,
-          occupation: true,
-          aiProfileSummary: true,
-        }
-      }
-    }
-  });
-}
-
-async function fetchAllBlockingHistory(
-  maleIds: string[],
-  femaleIds: string[]
-): Promise<{ blockedPairsSet: Set<string> }> {
-  const blockedPairsSet = new Set<string>();
-
-  // 1. MatchSuggestions שנכשלו
-  const blockingSuggestions = await prisma.matchSuggestion.findMany({
-    where: {
-      status: { 
-        in: [
-          'ENDED_AFTER_FIRST_DATE',
-          'MATCH_DECLINED',
-          'FIRST_PARTY_DECLINED',
-          'SECOND_PARTY_DECLINED',
-          'CLOSED',
-          'CANCELLED',
-          'EXPIRED'
-        ] 
-      },
-      OR: [
-        { firstPartyId: { in: maleIds }, secondPartyId: { in: femaleIds } },
-        { firstPartyId: { in: femaleIds }, secondPartyId: { in: maleIds } },
+async function fetchActiveUsers(specificUserIds: string[] = []): Promise<ActiveUser[]> {
+  const whereClause: any = {
+    status: {
+      in: [
+        UserStatus.ACTIVE,
+        UserStatus.PENDING_PHONE_VERIFICATION,
+        UserStatus.PENDING_EMAIL_VERIFICATION,
       ]
     },
+    profile: {
+      availabilityStatus: {
+        in: [AvailabilityStatus.AVAILABLE, AvailabilityStatus.PAUSED],
+      },
+      isProfileVisible: true,
+    }
+  };
+
+  if (specificUserIds.length > 0) {
+    whereClause.id = { in: specificUserIds };
+  }
+
+  const users = await prisma.user.findMany({
+    where: whereClause,
     select: {
-      firstPartyId: true,
-      secondPartyId: true,
+      id: true,
+      firstName: true,
+      lastName: true,
+      profile: {
+        select: {
+          gender: true,
+        }
+      }
     }
   });
 
-  for (const s of blockingSuggestions) {
-    // מוסיף את שני הכיוונים
-    blockedPairsSet.add(`${s.firstPartyId}_${s.secondPartyId}`);
-    blockedPairsSet.add(`${s.secondPartyId}_${s.firstPartyId}`);
-  }
-
-  // 2. PotentialMatches שנדחו
-  const dismissedMatches = await prisma.potentialMatch.findMany({
-    where: {
-      maleUserId: { in: maleIds },
-      femaleUserId: { in: femaleIds },
-      status: 'DISMISSED'
-    },
-    select: {
-      maleUserId: true,
-      femaleUserId: true,
-    }
-  });
-
-  for (const m of dismissedMatches) {
-    blockedPairsSet.add(`${m.maleUserId}_${m.femaleUserId}`);
-  }
-
-  return { blockedPairsSet };
-}
-
-async function buildNarrativeProfile(user: any): Promise<string> {
-  const p = user.profile;
-  if (!p) return '';
-
-  // אם יש סיכום AI - נשתמש בו
-  if (p.aiProfileSummary?.personalitySummary) {
-    return `
-שם: ${user.firstName} ${user.lastName}
-גיל: ${p.birthDate ? calculateAge(p.birthDate) : 'לא ידוע'}
-עיר: ${p.city || 'לא צוין'}
-עיסוק: ${p.occupation || 'לא צוין'}
-רמה דתית: ${p.religiousLevel || 'לא צוין'}
-
-=== סיכום אישיות ===
-${p.aiProfileSummary.personalitySummary}
-
-=== מה מחפש/ת ===
-${p.aiProfileSummary.lookingForSummary || 'לא צוין'}
-
-=== על עצמי ===
-${p.about || p.manualEntryText || 'לא צוין'}
-    `.trim();
-  }
-
-  // אחרת - נבנה מהנתונים הקיימים
-  return `
-שם: ${user.firstName} ${user.lastName}
-גיל: ${p.birthDate ? calculateAge(p.birthDate) : 'לא ידוע'}
-עיר: ${p.city || 'לא צוין'}
-עיסוק: ${p.occupation || 'לא צוין'}
-רמה דתית: ${p.religiousLevel || 'לא צוין'}
-
-=== על עצמי ===
-${p.about || p.manualEntryText || 'לא צוין'}
-
-=== הערות שדכן ===
-${p.matchingNotes || 'אין'}
-  `.trim();
-}
-
-interface BatchScanResult {
-  femaleId: string;
-  score: number;
-  reasoning: string;
-  femaleProfileUpdatedAt: Date;
-}
-
-async function scanBatchWithAI(
-  male: any,
-  maleNarrativeProfile: string,
-  maleBackgroundProfile: any,
-  maleAge: number,
-  females: any[]
-): Promise<BatchScanResult[]> {
-  const apiKey = process.env.GOOGLE_API_KEY;
-  if (!apiKey) {
-    throw new Error('GOOGLE_API_KEY is not configured');
-  }
-
-  const genAI = new GoogleGenerativeAI(apiKey);
-  const model = genAI.getGenerativeModel({
-    model: 'gemini-2.5-flash',
-    generationConfig: {
-      responseMimeType: 'application/json',
-      temperature: 0.3,
-    },
-  });
-
-  // בניית פרופילים של הבחורות
-  const candidatesText = females.map((female, index) => {
-    const femaleAge = female.profile?.birthDate 
-      ? calculateAge(female.profile.birthDate) 
-      : null;
-    
-    const femaleBackgroundProfile = createBackgroundProfile(
-      female.profile?.nativeLanguage,
-      female.profile?.additionalLanguages || [],
-      female.profile?.aliyaCountry,
-      female.profile?.aliyaYear,
-      female.profile?.origin,
-      female.profile?.about,
-      female.profile?.matchingNotes
-    );
-
-    const bgMatch = calculateBackgroundMatch(maleBackgroundProfile, femaleBackgroundProfile);
-
-    return `
-[מועמדת ${index + 1}]
-שם: ${female.firstName} ${female.lastName}
-גיל: ${femaleAge ?? 'לא ידוע'}
-רמה דתית: ${female.profile?.religiousLevel || 'לא צוין'}
-עיר: ${female.profile?.city || 'לא צוין'}
-עיסוק: ${female.profile?.occupation || 'לא צוין'}
-התאמת רקע: ${bgMatch.compatibility}
-
-${female.profile?.aiProfileSummary?.personalitySummary || female.profile?.about || female.profile?.manualEntryText || 'אין מידע'}
----`;
-  }).join('\n\n');
-
-  const prompt = `אתה שדכן AI מומחה במערכת NeshamaTech.
-
-=== פרופיל הגבר ===
-${maleNarrativeProfile}
-
-=== ${females.length} מועמדות לבדיקה ===
-${candidatesText}
-
-=== המשימה ===
-דרג כל מועמדת מ-0 עד 100 לפי התאמה לגבר.
-
-קריטריונים עיקריים:
-1. התאמה דתית והשקפתית (30 נקודות)
-2. התאמת גיל (10 נקודות)
-3. איזון קריירה-משפחה (15 נקודות)
-4. סגנון חיים (13 נקודות)
-5. שאפתנות ומוטיבציה (11 נקודות)
-6. סגנון תקשורת (11 נקודות)
-7. ערכים (10 נקודות)
-
-=== פורמט התשובה (JSON בלבד) ===
-{
-  "results": [
-    { "index": 1, "score": 85, "reasoning": "נימוק קצר" },
-    { "index": 2, "score": 72, "reasoning": "נימוק קצר" }
-  ]
-}
-
-התשובה חייבת להיות JSON תקין בלבד.`;
-
-  try {
-    const result = await model.generateContent(prompt);
-    const response = result.response;
-    let jsonString = response.text();
-    
-    // ניקוי אם יש markdown
-    if (jsonString.startsWith('```json')) {
-      jsonString = jsonString.slice(7, -3).trim();
-    } else if (jsonString.startsWith('```')) {
-      jsonString = jsonString.slice(3, -3).trim();
-    }
-
-    const parsed = JSON.parse(jsonString) as {
-      results: Array<{ index: number; score: number; reasoning: string }>;
-    };
-
-    return parsed.results.map(r => {
-      const female = females[r.index - 1];
-      return {
-        femaleId: female.id,
-        score: Math.min(100, Math.max(0, r.score)),
-        reasoning: r.reasoning || '',
-        femaleProfileUpdatedAt: female.profile?.updatedAt || new Date(),
-      };
-    });
-
-  } catch (error) {
-    console.error(`[BatchScan] AI error:`, error);
-    // במקרה של שגיאה, נחזיר ציון 0 לכל הבחורות
-    return females.map(f => ({
-      femaleId: f.id,
-      score: 0,
-      reasoning: 'AI error',
-      femaleProfileUpdatedAt: f.profile?.updatedAt || new Date(),
+  return users
+    .filter(u => u.profile?.gender)
+    .map(u => ({
+      userId: u.id,
+      firstName: u.firstName,
+      lastName: u.lastName,
+      gender: u.profile!.gender as 'MALE' | 'FEMALE',
     }));
-  }
-}
-
-async function saveToPotentialMatch(
-  maleUserId: string,
-  femaleUserId: string,
-  result: BatchScanResult
-): Promise<'new' | 'updated' | 'unchanged'> {
-  try {
-    const existing = await prisma.potentialMatch.findUnique({
-      where: {
-        maleUserId_femaleUserId: { maleUserId, femaleUserId }
-      }
-    });
-
-    if (existing) {
-      if (Math.abs(existing.aiScore - result.score) > 2 || existing.status === 'EXPIRED') {
-        await prisma.potentialMatch.update({
-          where: { id: existing.id },
-          data: {
-            aiScore: result.score,
-            shortReasoning: result.reasoning,
-            scannedAt: new Date(),
-            status: existing.status === 'EXPIRED' ? 'PENDING' : existing.status,
-          }
-        });
-        return 'updated';
-      }
-      return 'unchanged';
-    }
-
-    await prisma.potentialMatch.create({
-      data: {
-        maleUserId,
-        femaleUserId,
-        aiScore: result.score,
-        shortReasoning: result.reasoning,
-        status: 'PENDING',
-        scannedAt: new Date(),
-      }
-    });
-    return 'new';
-
-  } catch (error) {
-    console.warn(`[BatchScan] Could not save PotentialMatch:`, error);
-    return 'unchanged';
-  }
 }

@@ -508,6 +508,9 @@ const PanelHeaderComponent: React.FC<{
     forceRefresh: boolean,
     method: SearchMethod
   ) => void;
+  // 🆕 New prop for refreshing all methods
+  onRefreshAllMethods: (e: React.MouseEvent) => void;
+  isRefreshingAll: boolean;
   isAiLoading: boolean;
   currentSearchMethod: SearchMethod;
   isMobileView?: boolean;
@@ -534,6 +537,8 @@ const PanelHeaderComponent: React.FC<{
   isTargetPanel,
   onClearAiTarget,
   onFindAiMatches,
+  onRefreshAllMethods,
+  isRefreshingAll,
   isAiLoading,
   currentSearchMethod,
   isMobileView = false,
@@ -629,7 +634,7 @@ const PanelHeaderComponent: React.FC<{
             <span className="text-sm font-medium text-green-800 px-2">
               {dict.targetLabel.replace(
                 '{{name}}',
-                aiTargetCandidate.firstName
+                `${aiTargetCandidate.firstName} ${aiTargetCandidate.lastName}`
               )}
             </span>
             <Button
@@ -656,7 +661,11 @@ const PanelHeaderComponent: React.FC<{
                     ? vectorMatchesCount
                     : aiMatchesCount
                 }
-                targetName={aiTargetCandidate?.firstName || 'המועמד'}
+                targetName={
+                  aiTargetCandidate
+                    ? `${aiTargetCandidate.firstName} ${aiTargetCandidate.lastName}`
+                    : 'המועמד'
+                }
                 method={currentSearchMethod}
                 onViewResults={onViewResults}
                 onDismiss={onDismissBanner}
@@ -715,26 +724,39 @@ const PanelHeaderComponent: React.FC<{
                     </span>
                   </Button>
                 </motion.div>
-<motion.div className="flex-1 min-w-0" whileHover={{ scale: 1.02 }}>
-  <Button
-    onClick={(e) => onFindAiMatches(e, false, 'metrics_v2')} // שיטה חדשה
-    className={cn(
-      'w-full h-11 font-bold transition-all duration-300 shadow-lg px-2 sm:px-4',
-      'bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white'
-    )}
-  >
-    <Database className="w-5 h-5 ml-1.5 flex-shrink-0" />
-    <span className="truncate text-xs sm:text-sm">מדדים V2 🆕</span>
-  </Button>
-</motion.div>
+                <motion.div
+                  className="flex-1 min-w-0"
+                  whileHover={{ scale: 1.02 }}
+                >
+                  <Button
+                    onClick={(e) => onFindAiMatches(e, false, 'metrics_v2')} // שיטה חדשה
+                    className={cn(
+                      'w-full h-11 font-bold transition-all duration-300 shadow-lg px-2 sm:px-4',
+                      'bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white'
+                    )}
+                  >
+                    <Database className="w-5 h-5 ml-1.5 flex-shrink-0" />
+                    <span className="truncate text-xs sm:text-sm">
+                      מדדים V2 🆕
+                    </span>
+                  </Button>
+                </motion.div>
+                {/* 🔄 UPDATED: כפתור רענון שמפעיל את כל הסריקות */}
                 {hasAnyResults && (
                   <Button
                     size="icon"
                     variant="outline"
-                    onClick={(e) => onFindAiMatches(e, true, activeResultsTab)}
+                    onClick={onRefreshAllMethods}
+                    disabled={isRefreshingAll}
+                    title="רענן את כל הסריקות"
                     className="h-11 w-11 flex-shrink-0 bg-white shadow-sm border-gray-200 hover:bg-gray-50"
                   >
-                    <RefreshCw className="w-5 h-5 text-gray-600" />
+                    <RefreshCw
+                      className={cn(
+                        'w-5 h-5 text-gray-600',
+                        isRefreshingAll && 'animate-spin'
+                      )}
+                    />
                   </Button>
                 )}
               </div>
@@ -946,6 +968,9 @@ const SplitView: React.FC<SplitViewProps> = ({
   const [activeResultsTab, setActiveResultsTab] =
     useState<SearchMethod>('algorithmic');
   const [showCompleteBanner, setShowCompleteBanner] = useState(false);
+  // 🆕 State for tracking refresh all operation
+  const [isRefreshingAll, setIsRefreshingAll] = useState(false);
+  const [refreshQueue, setRefreshQueue] = useState<SearchMethod[]>([]);
 
   useEffect(() => {
     const checkScreenSize = () => setIsMobile(window.innerWidth < 768);
@@ -976,12 +1001,56 @@ const SplitView: React.FC<SplitViewProps> = ({
           });
           setActiveResultsTab('algorithmic');
         }
-        setShowCompleteBanner(true);
+
+        // 🆕 Check if we're in the middle of refreshing all methods
+        if (refreshQueue.length > 0) {
+          // Process next method in queue
+          const nextMethod = refreshQueue[0];
+          setRefreshQueue((prev) => prev.slice(1));
+
+          // Start the next scan
+          if (aiTargetCandidate) {
+            const isVirtual = (aiTargetCandidate as any).isVirtual;
+            const virtualData = (aiTargetCandidate as any).virtualData;
+            let extraParams = {};
+
+            if (isVirtual && virtualData) {
+              extraParams = {
+                isVirtualSearch: true,
+                virtualProfileId: virtualData.virtualProfileId,
+                virtualProfile: virtualData.virtualProfile,
+                gender: virtualData.gender,
+                religiousLevel: virtualData.religiousLevel,
+                editedSummary: virtualData.editedSummary,
+              };
+            }
+
+            startJob(
+              aiTargetCandidate.id,
+              aiTargetCandidate.firstName,
+              nextMethod,
+              true, // forceRefresh
+              extraParams
+            );
+          }
+        } else {
+          // All refreshes complete
+          setIsRefreshingAll(false);
+          setShowCompleteBanner(true);
+        }
       }
     });
 
     return unsubscribe;
-  }, [onJobComplete, currentJob.method, currentJob.fromCache, setAiMatches]);
+  }, [
+    onJobComplete,
+    currentJob.method,
+    currentJob.fromCache,
+    setAiMatches,
+    refreshQueue,
+    aiTargetCandidate,
+    startJob,
+  ]);
 
   // 🆕 Listen for "view results" event
   useEffect(() => {
@@ -1059,6 +1128,75 @@ const SplitView: React.FC<SplitViewProps> = ({
     [aiTargetCandidate, setAiMatches, startJob]
   );
 
+  // 🆕 NEW: Function to refresh all methods
+  const handleRefreshAllMethods = useCallback(
+    async (e: React.MouseEvent) => {
+      e.stopPropagation();
+
+      if (!aiTargetCandidate) {
+        toast.error('אנא בחר מועמד/ת מטרה תחילה', {
+          position: 'top-center',
+          icon: '⚠️',
+        });
+        return;
+      }
+
+      setIsRefreshingAll(true);
+      setShowCompleteBanner(false);
+
+      // Define all methods to refresh
+      const allMethods: SearchMethod[] = [
+        'algorithmic',
+        'vector',
+        'metrics_v2',
+      ];
+
+      // Queue the remaining methods (after the first one)
+      setRefreshQueue(allMethods.slice(1));
+
+      // Clear all previous results
+      setAiMatches([]);
+      setAiMatchMeta(null);
+      setVectorMatches([]);
+      setVectorMatchMeta(null);
+
+      // Prepare params
+      const isVirtual = (aiTargetCandidate as any).isVirtual;
+      const virtualData = (aiTargetCandidate as any).virtualData;
+      let extraParams = {};
+
+      if (isVirtual && virtualData) {
+        extraParams = {
+          isVirtualSearch: true,
+          virtualProfileId: virtualData.virtualProfileId,
+          virtualProfile: virtualData.virtualProfile,
+          gender: virtualData.gender,
+          religiousLevel: virtualData.religiousLevel,
+          editedSummary: virtualData.editedSummary,
+        };
+      }
+
+      // Start the first method
+      const firstMethod = allMethods[0];
+      setCurrentSearchMethod(firstMethod);
+
+      toast.info('מרענן את כל הסריקות...', {
+        position: 'top-center',
+        icon: '🔄',
+        description: `סורק ${allMethods.length} שיטות חיפוש`,
+      });
+
+      await startJob(
+        aiTargetCandidate.id,
+        aiTargetCandidate.firstName,
+        firstMethod,
+        true, // forceRefresh
+        extraParams
+      );
+    },
+    [aiTargetCandidate, setAiMatches, startJob]
+  );
+
   const handleViewResults = useCallback(() => {
     setShowCompleteBanner(false);
     const resultsEl = document.getElementById('candidates-results');
@@ -1100,8 +1238,12 @@ const SplitView: React.FC<SplitViewProps> = ({
         };
       })
       .sort((a, b) => {
-        if (a.aiRank && b.aiRank) return a.aiRank - b.aiRank;
-        return (b.aiScore ?? -1) - (a.aiScore ?? -1);
+        if (a.aiScore !== undefined && b.aiScore !== undefined) {
+          return b.aiScore - a.aiScore;
+        }
+        if (a.aiScore !== undefined) return -1;
+        if (b.aiScore !== undefined) return 1;
+        return 0;
       });
   }, [maleCandidates, aiMatches, vectorMatches, activeResultsTab]);
 
@@ -1132,22 +1274,38 @@ const SplitView: React.FC<SplitViewProps> = ({
         };
       })
       .sort((a, b) => {
-        if (a.aiRank && b.aiRank) return a.aiRank - b.aiRank;
-        return (b.aiScore ?? -1) - (a.aiScore ?? -1);
+        if (a.aiScore !== undefined && b.aiScore !== undefined) {
+          return b.aiScore - a.aiScore;
+        }
+        if (a.aiScore !== undefined) return -1;
+        if (b.aiScore !== undefined) return 1;
+        return 0;
       });
   }, [femaleCandidates, aiMatches, vectorMatches, activeResultsTab]);
 
+  // Determine which panel is the "target" panel and which is the "search" panel
+  const targetGender = aiTargetCandidate?.profile?.gender;
+  const isTargetMale = targetGender === 'MALE';
+  const isTargetFemale = targetGender === 'FEMALE';
+  const searchPanelGender: 'male' | 'female' | null = isTargetMale
+    ? 'female'
+    : isTargetFemale
+      ? 'male'
+      : null;
+
+  // Render panel header helper
   const renderPanelHeader = (
     gender: 'male' | 'female',
-    isMobileView: boolean = false
+    isMobileView = false
   ) => {
-    const panelGenderEnum = gender === 'male' ? Gender.MALE : Gender.FEMALE;
-    const isTargetPanel = aiTargetCandidate?.profile.gender === panelGenderEnum;
-    const isSearchPanel = !!(
-      aiTargetCandidate && aiTargetCandidate.profile.gender !== panelGenderEnum
-    );
     const count =
-      gender === 'male' ? maleCandidates.length : femaleCandidates.length;
+      gender === 'male'
+        ? maleCandidatesWithScores.length
+        : femaleCandidatesWithScores.length;
+    const isSearchPanel = searchPanelGender === gender;
+    const isTargetPanel =
+      (gender === 'male' && isTargetMale) ||
+      (gender === 'female' && isTargetFemale);
 
     return (
       <PanelHeaderComponent
@@ -1158,7 +1316,9 @@ const SplitView: React.FC<SplitViewProps> = ({
         isTargetPanel={isTargetPanel}
         onClearAiTarget={onClearAiTarget}
         onFindAiMatches={handleFindAiMatches}
-        isAiLoading={isJobRunning}
+        onRefreshAllMethods={handleRefreshAllMethods}
+        isRefreshingAll={isRefreshingAll}
+        isAiLoading={isAiLoading}
         currentSearchMethod={currentSearchMethod}
         isMobileView={isMobileView}
         dict={dict.candidatesManager.splitView.panelHeaders}
@@ -1168,7 +1328,6 @@ const SplitView: React.FC<SplitViewProps> = ({
         vectorMatchesCount={vectorMatches.length}
         activeResultsTab={activeResultsTab}
         onResultsTabChange={setActiveResultsTab}
-        // 🆕 Pass context data
         jobProgress={currentJob.progress}
         jobProgressMessage={currentJob.progressMessage}
         jobStatus={currentJob.status}
@@ -1180,29 +1339,35 @@ const SplitView: React.FC<SplitViewProps> = ({
     );
   };
 
+  // Render candidates list for mobile
   const renderCandidatesListForMobile = (
     candidates: CandidateWithAiData[],
     gender: 'male' | 'female',
-    searchQuery: string,
+    searchQuery?: string,
     onSearchChange?: (query: string) => void
   ) => {
-    if (isLoading) return <LoadingComponent gender={gender} />;
-    if (candidates.length === 0)
+    if (isLoading) {
+      return <LoadingComponent gender={gender} />;
+    }
+
+    if (candidates.length === 0) {
       return (
         <EmptyStateComponent
           gender={gender}
           searchQuery={searchQuery}
-          onClearSearch={() => onSearchChange?.('')}
+          onClearSearch={onSearchChange ? () => onSearchChange('') : undefined}
           dict={dict.candidatesManager.list.emptyState}
         />
       );
+    }
+
     return (
       <CandidatesList
         candidates={candidates}
         allCandidates={allCandidates}
         onOpenAiAnalysis={onOpenAiAnalysis}
-        onCandidateClick={onCandidateClick}
         onSendProfileFeedback={onSendProfileFeedback}
+        onCandidateClick={onCandidateClick}
         onCandidateAction={onCandidateAction}
         viewMode={viewMode}
         mobileView={mobileView}
