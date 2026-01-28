@@ -75,6 +75,17 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     // ✅ קבלת מילת החיפוש מהלקוח
 // קוד מתוקן
 const searchTerm = searchParams.get('searchTerm');
+
+// 🆕 NEW: Age range parameters
+const maleAgeMin = searchParams.get('maleAgeMin');
+const maleAgeMax = searchParams.get('maleAgeMax');
+const femaleAgeMin = searchParams.get('femaleAgeMin');
+const femaleAgeMax = searchParams.get('femaleAgeMax');
+
+// 🆕 NEW: Religious level per gender
+const maleReligiousLevel = searchParams.get('maleReligiousLevel');
+const femaleReligiousLevel = searchParams.get('femaleReligiousLevel');
+
     // 3. בניית Where clause
     const where: Prisma.PotentialMatchWhereInput = {
       aiScore: {
@@ -142,6 +153,88 @@ const searchTerm = searchParams.get('searchTerm');
         }
       ] as Prisma.PotentialMatchWhereInput['AND'];
     }
+
+    // 🆕 NEW: סינון לפי טווח גיל גברים
+if (maleAgeMin || maleAgeMax) {
+  const today = new Date();
+  const ageConditions: Prisma.PotentialMatchWhereInput[] = [];
+  
+  if (maleAgeMax) {
+    // גיל מקסימלי = תאריך לידה מינימלי (מי שנולד אחרי התאריך הזה צעיר יותר)
+    const minBirthDate = new Date(
+      today.getFullYear() - parseInt(maleAgeMax) - 1,
+      today.getMonth(),
+      today.getDate()
+    );
+    ageConditions.push({ male: { profile: { birthDate: { gte: minBirthDate } } } });
+  }
+  
+  if (maleAgeMin) {
+    // גיל מינימלי = תאריך לידה מקסימלי (מי שנולד לפני התאריך הזה מבוגר יותר)
+    const maxBirthDate = new Date(
+      today.getFullYear() - parseInt(maleAgeMin),
+      today.getMonth(),
+      today.getDate()
+    );
+    ageConditions.push({ male: { profile: { birthDate: { lte: maxBirthDate } } } });
+  }
+  
+  where.AND = [
+    ...(Array.isArray(where.AND) ? where.AND : []),
+    ...ageConditions
+  ] as Prisma.PotentialMatchWhereInput['AND'];
+}
+
+// 🆕 NEW: סינון לפי טווח גיל נשים
+if (femaleAgeMin || femaleAgeMax) {
+  const today = new Date();
+  const ageConditions: Prisma.PotentialMatchWhereInput[] = [];
+  
+  if (femaleAgeMax) {
+    const minBirthDate = new Date(
+      today.getFullYear() - parseInt(femaleAgeMax) - 1,
+      today.getMonth(),
+      today.getDate()
+    );
+    ageConditions.push({ female: { profile: { birthDate: { gte: minBirthDate } } } });
+  }
+  
+  if (femaleAgeMin) {
+    const maxBirthDate = new Date(
+      today.getFullYear() - parseInt(femaleAgeMin),
+      today.getMonth(),
+      today.getDate()
+    );
+    ageConditions.push({ female: { profile: { birthDate: { lte: maxBirthDate } } } });
+  }
+  
+  where.AND = [
+    ...(Array.isArray(where.AND) ? where.AND : []),
+    ...ageConditions
+  ] as Prisma.PotentialMatchWhereInput['AND'];
+}
+
+// 🆕 NEW: סינון לפי רמה דתית של גברים
+if (maleReligiousLevel) {
+  const levels = maleReligiousLevel.split(',').filter(l => l.trim());
+  if (levels.length > 0) {
+    where.AND = [
+      ...(Array.isArray(where.AND) ? where.AND : []),
+      { male: { profile: { religiousLevel: { in: levels } } } }
+    ] as Prisma.PotentialMatchWhereInput['AND'];
+  }
+}
+
+// 🆕 NEW: סינון לפי רמה דתית של נשים
+if (femaleReligiousLevel) {
+  const levels = femaleReligiousLevel.split(',').filter(l => l.trim());
+  if (levels.length > 0) {
+    where.AND = [
+      ...(Array.isArray(where.AND) ? where.AND : []),
+      { female: { profile: { religiousLevel: { in: levels } } } }
+    ] as Prisma.PotentialMatchWhereInput['AND'];
+  }
+}
 
     // 4. בניית Order By
     let orderBy: Prisma.PotentialMatchOrderByWithRelationInput = {};

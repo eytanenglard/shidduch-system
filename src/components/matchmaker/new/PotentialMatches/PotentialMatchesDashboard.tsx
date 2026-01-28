@@ -9,6 +9,8 @@ import React, {
   useRef,
 } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import PotentialMatchesFilters from './PotentialMatchesFilters';
+
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -21,6 +23,7 @@ import {
 } from '@/components/ui/select';
 import { useHiddenCandidates } from './hooks/useHiddenCandidates';
 import HiddenCandidatesDrawer from './HiddenCandidatesDrawer';
+import MatchmakerEditProfile from '../MatchmakerEditProfile';
 import HideCandidateDialog, { CandidateToHide } from './HideCandidateDialog';
 import {
   Dialog,
@@ -184,6 +187,7 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
   // --- AI Analysis & Feedback State ---
   const [analyzedCandidate, setAnalyzedCandidate] = useState<any | null>(null);
   const [feedbackCandidate, setFeedbackCandidate] = useState<any | null>(null);
+const [editProfileCandidate, setEditProfileCandidate] = useState<any | null>(null);
 
   // Suggestion form state
   const [suggestionPriority, setSuggestionPriority] = useState<'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT'>('MEDIUM');
@@ -418,7 +422,18 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
     scrollPositionRef.current = window.scrollY;
     setViewProfileId(userId);
   }, []);
+const handleEditProfile = useCallback((candidate: any) => {
+  scrollPositionRef.current = window.scrollY;
+  setEditProfileCandidate(candidate);
+}, []);
 
+const handleCloseEditProfile = useCallback(() => {
+  const savedPosition = scrollPositionRef.current;
+  setEditProfileCandidate(null);
+  requestAnimationFrame(() => {
+    window.scrollTo(0, savedPosition);
+  });
+}, []);
   const handleResetFilters = useCallback(() => {
     setLocalSearchTerm('');
     resetFilters();
@@ -553,7 +568,12 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
                     className="pr-10"
                   />
                 </div>
-
+{/* Advanced Filters */}
+<PotentialMatchesFilters
+  filters={filters}
+  onFiltersChange={setFilters}
+  onReset={resetFilters}
+/>
                 {/* Status Filter */}
                 <Select
                   value={filters.status}
@@ -851,19 +871,21 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
       {/* Profile Dialog */}
       <Dialog
         open={!!viewProfileId}
-        onOpenChange={(open) => {
-          if (!open) {
-            setViewProfileId(null);
-            setFullProfileData(null);
-            setQuestionnaireData(null);
-            setTimeout(() => {
-              window.scrollTo({
-                top: scrollPositionRef.current,
-                behavior: 'instant',
-              });
-            }, 100);
-          }
-        }}
+onOpenChange={(open) => {
+  if (!open) {
+    // שמור את המיקום לפני איפוס
+    const savedPosition = scrollPositionRef.current;
+    
+    setViewProfileId(null);
+    setFullProfileData(null);
+    setQuestionnaireData(null);
+    
+    // שחזר מיד ב-requestAnimationFrame
+    requestAnimationFrame(() => {
+      window.scrollTo(0, savedPosition);
+    });
+  }
+}}
       >
         <DialogContent
           className="max-w-6xl max-h-[90vh] overflow-y-auto p-0"
@@ -1236,6 +1258,15 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      {/* Edit Profile Sheet */}
+<MatchmakerEditProfile
+  isOpen={!!editProfileCandidate}
+  onClose={handleCloseEditProfile}
+  candidate={editProfileCandidate}
+  dict={matchmakerDict.candidatesManager.editProfile}
+  profileDict={profileDict}
+  locale={locale}
+/>
     </div>
   );
 };

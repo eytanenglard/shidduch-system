@@ -667,7 +667,7 @@ export async function findMatchesForVirtualUserVector(
 
   // אם אין וקטור, ניצור חדש
   if (!searchVector) {
-    const embedding = await genAI.getGenerativeModel({ model: 'text-embedding-004' })
+    const embedding = await genAI.getGenerativeModel({ model: 'gemini-embedding-001' })
       .embedContent(searchText);
     searchVector = embedding.embedding?.values || null;
   }

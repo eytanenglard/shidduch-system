@@ -1,6 +1,13 @@
 // src/components/matchmaker/new/MatchmakerEditProfile.tsx
 'use client';
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+} from '@/components/ui/sheet';
 import {
   Dialog,
   DialogContent,
@@ -10,6 +17,11 @@ import {
   DialogFooter,
   DialogClose,
 } from '@/components/ui/dialog';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -17,7 +29,7 @@ import { toast } from 'sonner';
 import { ProfileSection } from '@/components/profile';
 import { PhotosSection } from '@/components/profile';
 import { PreferencesSection } from '@/components/profile';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   Loader2,
   X,
@@ -35,13 +47,15 @@ import {
   Mail,
   FileText,
   Copy,
-  Activity, // <--- אייקון חדש
+  Activity,
+  ChevronDown,
+  ChevronUp,
+  CheckCircle2,
 } from 'lucide-react';
-// --- שינוי 1: ייבוא AvailabilityStatus ---
 import { AvailabilityStatus } from '@prisma/client';
 import type { UserProfile, UserImage } from '@/types/next-auth';
 import type { Candidate } from './types/candidates';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useSession } from 'next-auth/react';
 import type { MatchmakerPageDictionary } from '@/types/dictionaries/matchmaker';
 import type { ProfilePageDictionary } from '@/types/dictionary';
@@ -52,9 +66,9 @@ import {
   CardTitle,
   CardContent,
   CardDescription,
-  CardFooter,
 } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
+import { Badge } from '@/components/ui/badge';
 import {
   Select,
   SelectContent,
@@ -73,6 +87,130 @@ interface MatchmakerEditProfileProps {
   locale: string;
 }
 
+// =============================================================================
+// COLLAPSIBLE SECTION COMPONENT
+// =============================================================================
+interface CollapsibleSectionProps {
+  title: string;
+  description?: string;
+  icon: React.ReactNode;
+  defaultOpen?: boolean;
+  colorScheme?: 'blue' | 'indigo' | 'teal' | 'purple' | 'gray';
+  children: React.ReactNode;
+  badge?: React.ReactNode;
+  actions?: React.ReactNode;
+}
+
+const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({
+  title,
+  description,
+  icon,
+  defaultOpen = false,
+  colorScheme = 'gray',
+  children,
+  badge,
+  actions,
+}) => {
+  const [isOpen, setIsOpen] = useState(defaultOpen);
+
+  const colors = {
+    blue: {
+      bg: 'bg-blue-50/50',
+      border: 'border-blue-100',
+      text: 'text-blue-900',
+      icon: 'text-blue-600',
+      line: 'from-blue-500 to-cyan-500',
+    },
+    indigo: {
+      bg: 'bg-indigo-50/50',
+      border: 'border-indigo-100',
+      text: 'text-indigo-900',
+      icon: 'text-indigo-600',
+      line: 'from-indigo-500 to-purple-500',
+    },
+    teal: {
+      bg: 'bg-teal-50/50',
+      border: 'border-teal-100',
+      text: 'text-teal-900',
+      icon: 'text-teal-600',
+      line: 'from-teal-500 to-emerald-500',
+    },
+    purple: {
+      bg: 'bg-purple-50/50',
+      border: 'border-purple-100',
+      text: 'text-purple-900',
+      icon: 'text-purple-600',
+      line: 'from-purple-500 to-pink-500',
+    },
+    gray: {
+      bg: 'bg-gray-50/50',
+      border: 'border-gray-100',
+      text: 'text-gray-900',
+      icon: 'text-gray-600',
+      line: 'from-gray-400 to-gray-500',
+    },
+  };
+
+  const scheme = colors[colorScheme];
+
+  return (
+    <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+      <div className={cn('rounded-xl border overflow-hidden', scheme.border)}>
+        {/* Color line at top */}
+        <div className={cn('h-1 bg-gradient-to-r', scheme.line)} />
+
+        <CollapsibleTrigger asChild>
+          <button
+            className={cn(
+              'w-full px-4 py-3 flex items-center justify-between cursor-pointer transition-colors',
+              scheme.bg,
+              'hover:bg-opacity-70'
+            )}
+          >
+            <div className="flex items-center gap-3">
+              <div className={scheme.icon}>{icon}</div>
+              <div className="text-right">
+                <div className={cn('font-semibold text-sm', scheme.text)}>
+                  {title}
+                </div>
+                {description && (
+                  <div className="text-xs text-gray-500">{description}</div>
+                )}
+              </div>
+              {badge}
+            </div>
+            <div className="flex items-center gap-2">
+              {actions && (
+                <div onClick={(e) => e.stopPropagation()}>{actions}</div>
+              )}
+              <motion.div
+                animate={{ rotate: isOpen ? 180 : 0 }}
+                transition={{ duration: 0.2 }}
+              >
+                <ChevronDown className="w-5 h-5 text-gray-400" />
+              </motion.div>
+            </div>
+          </button>
+        </CollapsibleTrigger>
+
+        <CollapsibleContent>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="px-4 py-4 bg-white"
+          >
+            {children}
+          </motion.div>
+        </CollapsibleContent>
+      </div>
+    </Collapsible>
+  );
+};
+
+// =============================================================================
+// MAIN COMPONENT
+// =============================================================================
 const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
   isOpen,
   onClose,
@@ -85,36 +223,37 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
   const { data: session } = useSession();
   const isAdmin = session?.user?.role === 'ADMIN';
   const direction = locale === 'he' ? 'rtl' : 'ltr';
+  const scrollRef = useRef<HTMLDivElement>(null);
 
   // --- States ---
-  const [activeTab, setActiveTab] = useState('profile');
   const [isEditing, setIsEditing] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [images, setImages] = useState<UserImage[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [hasChanges, setHasChanges] = useState(false);
 
-  // שם פרטי ומשפחה
+  // Names
   const [names, setNames] = useState({ firstName: '', lastName: '' });
 
-  // טלפון
+  // Phone
   const [userPhone, setUserPhone] = useState<string | null>(null);
 
-  // --- שינוי 2: State לסטטוס ---
+  // Status
   const [statusState, setStatusState] = useState<{
     status: AvailabilityStatus;
     note: string;
   }>({ status: AvailabilityStatus.AVAILABLE, note: '' });
 
-  // מחיקת מועמד
+  // Delete candidate
   const [isDeleteCandidateDialogOpen, setIsDeleteCandidateDialogOpen] =
     useState(false);
   const [deleteCandidateConfirmText, setDeleteCandidateConfirmText] =
     useState('');
   const [isDeletingCandidate, setIsDeletingCandidate] = useState(false);
 
-  // הזמנת משתמש
+  // Invite user
   const [isSetupInviteOpen, setIsSetupInviteOpen] = useState(false);
   const [inviteEmail, setInviteEmail] = useState('');
   const [isSendingInvite, setIsSendingInvite] = useState(false);
@@ -127,9 +266,16 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
   const [isInsightDialogOpen, setIsInsightDialogOpen] = useState(false);
   const [isGeneratingInsight, setIsGeneratingInsight] = useState(false);
 
+  // Recently saved indicator
+  const [recentlySaved, setRecentlySaved] = useState<string | null>(null);
+
   const DELETE_CANDIDATE_CONFIRMATION_PHRASE = dict.deleteConfirmationPhrase;
 
   // --- Handlers ---
+  const showSaveSuccess = (field: string) => {
+    setRecentlySaved(field);
+    setTimeout(() => setRecentlySaved(null), 2000);
+  };
 
   const handleGenerateSummary = async () => {
     if (!candidate) return;
@@ -184,7 +330,6 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
           setUserPhone(candidate.phone);
         }
 
-        // --- שינוי 3: עדכון הסטטוס בטעינה ---
         if (data.profile) {
           setStatusState({
             status:
@@ -216,13 +361,12 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
     if (isOpen && candidate) {
       fetchProfileData();
     } else if (!isOpen) {
+      // Reset states on close
       setProfile(null);
       setImages([]);
       setNames({ firstName: '', lastName: '' });
       setUserPhone(null);
-      // --- שינוי 4: איפוס הסטטוס בסגירה ---
       setStatusState({ status: AvailabilityStatus.AVAILABLE, note: '' });
-      setActiveTab('profile');
       setIsLoading(true);
       setDeleteCandidateConfirmText('');
       setIsDeleteCandidateDialogOpen(false);
@@ -232,10 +376,11 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
       setInsightText(null);
       setIsInsightDialogOpen(false);
       setIsGeneratingInsight(false);
+      setHasChanges(false);
     }
   }, [isOpen, candidate, fetchProfileData]);
 
-  const handleProfileUpdate = async (updatedData: any) => {
+  const handleProfileUpdate = async (updatedData: any, fieldName?: string) => {
     if (!candidate || !profile) return;
     setIsSaving(true);
     try {
@@ -263,7 +408,6 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
         }));
       }
 
-      // --- שינוי 5: עדכון הסטייט הלוקאלי של הסטטוס אם הוא עודכן ---
       if (updatedData.availabilityStatus) {
         setStatusState((prev) => ({
           ...prev,
@@ -275,10 +419,15 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
         }));
       }
 
+      if (fieldName) {
+        showSaveSuccess(fieldName);
+      }
+
       toast.success(dict.toasts.updateSuccess, {
         position: 'top-center',
-        duration: 3000,
+        duration: 2000,
       });
+      setHasChanges(false);
     } catch (error) {
       console.error('Error updating profile:', error);
       toast.error(
@@ -296,9 +445,7 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
     try {
       const response = await fetch('/api/profile/neshama-insight', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId: candidate.id, locale }),
       });
 
@@ -452,7 +599,9 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
     try {
       const response = await fetch(
         `/api/matchmaker/candidates/${candidate.id}`,
-        { method: 'DELETE' }
+        {
+          method: 'DELETE',
+        }
       );
       const data = await response.json();
       if (!response.ok || !data.success)
@@ -507,584 +656,514 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
     }
   };
 
+  // Handle close - prevent scroll jump
+  const handleClose = () => {
+    onClose();
+  };
+
   if (!candidate && isOpen) return null;
   if (!candidate) return null;
 
+  // Get status badge color
+  const getStatusBadge = (status: AvailabilityStatus) => {
+    switch (status) {
+      case 'AVAILABLE':
+        return {
+          color: 'bg-green-100 text-green-700 border-green-200',
+          label: 'זמין/ה',
+        };
+      case 'UNAVAILABLE':
+        return {
+          color: 'bg-yellow-100 text-yellow-700 border-yellow-200',
+          label: 'עסוק/ה',
+        };
+      case 'DATING':
+        return {
+          color: 'bg-blue-100 text-blue-700 border-blue-200',
+          label: 'בתהליך',
+        };
+      case 'PAUSED':
+        return {
+          color: 'bg-orange-100 text-orange-700 border-orange-200',
+          label: 'מושהה',
+        };
+   
+      default:
+        return {
+          color: 'bg-gray-100 text-gray-700 border-gray-200',
+          label: status,
+        };
+    }
+  };
+
+  const statusBadgeInfo = getStatusBadge(statusState.status);
+
   return (
     <>
-      <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent
-          className="max-w-5xl max-h-[90vh] p-0 overflow-hidden"
+      <Sheet open={isOpen} onOpenChange={handleClose}>
+        <SheetContent
+          side={locale === 'he' ? 'right' : 'left'}
+          className="w-full sm:w-[650px] md:w-[750px] lg:w-[850px] xl:w-[900px] p-0 flex flex-col max-w-full"
           dir={direction}
+          onCloseAutoFocus={(e) => e.preventDefault()}
+          onPointerDownOutside={(e) => {
+            // Prevent closing when clicking on dialogs
+            if ((e.target as HTMLElement)?.closest('[role="dialog"]')) {
+              e.preventDefault();
+            }
+          }}
         >
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.3 }}
-            className="flex flex-col h-full max-h-[90vh]"
-          >
-            {/* ... Header Code (ללא שינוי) ... */}
-            <DialogHeader className="p-6 border-b bg-gradient-to-r from-blue-50/50 to-white flex-shrink-0">
-              <div className="flex items-center justify-between gap-4">
-                <div className="flex-1 min-w-0">
-                  <DialogTitle
-                    className={cn(
-                      'text-2xl font-bold text-primary/90 flex items-center gap-3',
-                      locale === 'he' ? 'text-right' : 'text-left'
-                    )}
-                  >
-                    {dict.header.title
-                      .replace(
-                        '{{firstName}}',
-                        names.firstName || candidate.firstName
-                      )
-                      .replace(
-                        '{{lastName}}',
-                        names.lastName || candidate.lastName
-                      )}
-                  </DialogTitle>
-                  <DialogDescription
-                    className={cn(
-                      'text-gray-500 mt-2 flex flex-col gap-1',
-                      locale === 'he' ? 'text-right' : 'text-left'
-                    )}
-                  >
-                    <span className="flex items-center gap-2">
-                      <Mail className="w-4 h-4 text-gray-400" />
-                      {candidate.email}
+          {/* Header */}
+          <div className="flex-shrink-0 border-b bg-gradient-to-r from-slate-50 to-white px-6 py-4">
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex-1 min-w-0">
+                <SheetTitle className="text-xl font-bold text-gray-800 flex items-center gap-2">
+                  {names.firstName || candidate.firstName}{' '}
+                  {names.lastName || candidate.lastName}
+                  <Badge className={cn('text-xs', statusBadgeInfo.color)}>
+                    {dict.statusSection?.statuses?.[statusState.status] ||
+                      statusBadgeInfo.label}
+                  </Badge>
+                </SheetTitle>
+                <SheetDescription className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
+                  <span className="flex items-center gap-1.5 text-gray-600">
+                    <Mail className="w-3.5 h-3.5" />
+                    {candidate.email}
+                  </span>
+                  {userPhone && (
+                    <span className="flex items-center gap-1.5 text-gray-700 font-medium">
+                      <Phone className="w-3.5 h-3.5 text-green-600" />
+                      <span dir="ltr">{userPhone}</span>
                     </span>
-                    {userPhone && (
-                      <span className="flex items-center gap-2 text-gray-700 font-medium">
-                        <Phone className="w-4 h-4 text-green-600" />
-                        <span dir="ltr">{userPhone}</span>
-                      </span>
-                    )}
-                  </DialogDescription>
-                </div>
-
-                <div className="flex items-center gap-2 shrink-0 self-start">
-                  {isSaving && (
-                    <div className="hidden sm:flex items-center bg-blue-50 text-blue-700 py-1 px-3 rounded-full text-sm border border-blue-100 shadow-sm">
-                      <Loader2 className="w-3 h-3 animate-spin mr-2" />
-                      {dict.header.saving}
-                    </div>
                   )}
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={onClose}
-                    disabled={isSaving}
-                    className="h-10 w-10 rounded-full hover:bg-gray-100/80 transition-colors -mr-2 sm:mr-0"
-                    title={dict.footer.buttons.close || 'סגור'}
+                </SheetDescription>
+              </div>
+
+              {/* Saving indicator */}
+              <AnimatePresence>
+                {isSaving && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.9 }}
+                    className="flex items-center gap-2 bg-blue-50 text-blue-700 px-3 py-1.5 rounded-full text-sm border border-blue-100"
                   >
-                    <X className="w-6 h-6 text-gray-500" />
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    {dict.header.saving}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          </div>
+
+          {/* Content */}
+          {isLoading ? (
+            <div className="flex-1 flex items-center justify-center">
+              <Loader2 className="w-10 h-10 animate-spin text-primary" />
+            </div>
+          ) : (
+            <ScrollArea className="flex-1" ref={scrollRef}>
+              <div className="p-4 space-y-3">
+                {/* Quick Actions Bar */}
+                <div className="flex flex-wrap gap-2 p-3 bg-gray-50 rounded-lg border">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setIsSetupInviteOpen(true)}
+                    disabled={
+                      isSaving || isDeletingCandidate || isSendingInvite
+                    }
+                    className="gap-1.5"
+                  >
+                    <Send className="w-3.5 h-3.5" />
+                    {dict.footer.buttons.sendInvite}
                   </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleGenerateInsightText}
+                    disabled={isGeneratingInsight}
+                    className="gap-1.5 border-indigo-200 text-indigo-700 hover:bg-indigo-50"
+                  >
+                    {isGeneratingInsight ? (
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    ) : (
+                      <FileText className="w-3.5 h-3.5" />
+                    )}
+                    {locale === 'he' ? 'ניתוח עומק' : 'Deep Analysis'}
+                  </Button>
+                  {isAdmin && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setIsDeleteCandidateDialogOpen(true)}
+                      disabled={isSaving || isDeletingCandidate}
+                      className="gap-1.5 border-red-200 text-red-600 hover:bg-red-50 mr-auto"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                      {dict.footer.buttons.deleteCandidate}
+                    </Button>
+                  )}
                 </div>
-              </div>
-            </DialogHeader>
 
-            {isLoading && !profile ? (
-              <div className="flex items-center justify-center h-64 flex-1">
-                <Loader2 className="w-10 h-10 animate-spin text-primary" />
-              </div>
-            ) : (
-              <>
-                <Tabs
-                  value={activeTab}
-                  onValueChange={setActiveTab}
-                  className="flex-1 flex flex-col min-h-0"
+                {/* 1. Basic Info & Status Section */}
+                <CollapsibleSection
+                  title={
+                    locale === 'he'
+                      ? 'פרטים בסיסיים וסטטוס'
+                      : 'Basic Info & Status'
+                  }
+                  description={
+                    locale === 'he'
+                      ? 'שם, סטטוס זמינות והערות'
+                      : 'Name, availability status and notes'
+                  }
+                  icon={<UserCog className="w-5 h-5" />}
+                  colorScheme="blue"
+                  defaultOpen={true}
                 >
-                  <div className="px-6 pt-4 flex-shrink-0">
-                    <TabsList className="w-full bg-muted/30 p-1 rounded-xl shadow-sm">
-                      <TabsTrigger
-                        value="profile"
-                        className="rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500/90 data-[state=active]:to-blue-600 data-[state=active]:text-white flex items-center gap-2"
-                      >
-                        <UserCog className="w-4 h-4" />
-                        {dict.tabs.profile}
-                      </TabsTrigger>
-                      <TabsTrigger
-                        value="photos"
-                        className="rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500/90 data-[state=active]:to-blue-600 data-[state=active]:text-white flex items-center gap-2"
-                      >
-                        <ImageIcon className="w-4 h-4" />
-                        {dict.tabs.photos}
-                      </TabsTrigger>
-                      <TabsTrigger
-                        value="preferences"
-                        className="rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500/90 data-[state=active]:to-blue-600 data-[state=active]:text-white flex items-center gap-2"
-                      >
-                        <Sliders className="w-4 h-4" />
-                        {dict.tabs.preferences}
-                      </TabsTrigger>
-                    </TabsList>
-                  </div>
-
-                  <div className="flex-1 overflow-hidden flex flex-col min-h-0">
-                    <TabsContent
-                      value="profile"
-                      className="flex-1 overflow-auto p-4 m-0 pb-16"
-                    >
-                      {profile ? (
-                        <div className="space-y-6">
-                          {/* 1. Basic Info Card */}
-                          <Card className="bg-white rounded-xl shadow-sm border overflow-hidden">
-                            <CardHeader className="bg-gray-50/50 pb-4">
-                              <CardTitle className="text-lg flex items-center gap-2">
-                                <UserCog className="w-5 h-5 text-gray-600" />
-                                {locale === 'he'
-                                  ? 'פרטים אישיים בסיסיים'
-                                  : 'Basic Information'}
-                              </CardTitle>
-                            </CardHeader>
-                            <CardContent className="pt-4 grid grid-cols-2 gap-4">
-                              <div className="space-y-2">
-                                <Label>
-                                  {locale === 'he' ? 'שם פרטי' : 'First Name'}
-                                </Label>
-                                <Input
-                                  value={names.firstName}
-                                  onChange={(e) =>
-                                    setNames((prev) => ({
-                                      ...prev,
-                                      firstName: e.target.value,
-                                    }))
-                                  }
-                                />
-                              </div>
-                              <div className="space-y-2">
-                                <Label>
-                                  {locale === 'he' ? 'שם משפחה' : 'Last Name'}
-                                </Label>
-                                <Input
-                                  value={names.lastName}
-                                  onChange={(e) =>
-                                    setNames((prev) => ({
-                                      ...prev,
-                                      lastName: e.target.value,
-                                    }))
-                                  }
-                                />
-                              </div>
-                            </CardContent>
-                            <CardFooter className="bg-gray-50/30 flex justify-end py-3">
-                              <Button
-                                size="sm"
-                                onClick={() =>
-                                  handleProfileUpdate({
-                                    firstName: names.firstName,
-                                    lastName: names.lastName,
-                                  })
-                                }
-                                disabled={isSaving}
-                                className="bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 shadow-sm"
-                              >
-                                {isSaving ? (
-                                  <Loader2 className="w-4 h-4 animate-spin ml-2" />
-                                ) : (
-                                  <Save className="w-4 h-4 ml-2" />
-                                )}
-                                {locale === 'he' ? 'שמור שמות' : 'Save Names'}
-                              </Button>
-                            </CardFooter>
-                          </Card>
-
-                          {/* --- שינוי 6: כרטיס סטטוס זמינות החדש --- */}
-                          <Card className="bg-white rounded-xl shadow-sm border overflow-hidden">
-                            <div className="h-1 bg-gradient-to-r from-teal-500 to-emerald-500"></div>
-                            <CardHeader className="bg-teal-50/30 pb-4">
-                              <div className="flex justify-between items-start">
-                                <div>
-                                  <CardTitle className="flex items-center gap-2 text-lg text-teal-900">
-                                    <Activity className="w-5 h-5 text-teal-600" />
-                                    {dict.statusSection?.title ||
-                                      'סטטוס זמינות'}
-                                  </CardTitle>
-                                  <CardDescription className="mt-1 text-teal-800/70">
-                                    {dict.statusSection?.description ||
-                                      'ניהול הסטטוס הנוכחי של המועמד/ת במערכת'}
-                                  </CardDescription>
-                                </div>
-                              </div>
-                            </CardHeader>
-                            <CardContent className="pt-4 space-y-4">
-                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div className="space-y-2">
-                                  <Label>
-                                    {dict.statusSection?.statusLabel ||
-                                      'סטטוס נוכחי'}
-                                  </Label>
-                                  <Select
-                                    value={statusState.status}
-                                    onValueChange={(value) =>
-                                      setStatusState((prev) => ({
-                                        ...prev,
-                                        status: value as AvailabilityStatus,
-                                      }))
-                                    }
-                                    dir={direction}
-                                  >
-                                    <SelectTrigger className="border-teal-200 focus:ring-teal-500">
-                                      <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      {Object.values(AvailabilityStatus).map(
-                                        (status) => (
-                                          <SelectItem
-                                            key={status}
-                                            value={status}
-                                          >
-                                            {dict.statusSection?.statuses?.[
-                                              status
-                                            ] || status}
-                                          </SelectItem>
-                                        )
-                                      )}
-                                    </SelectContent>
-                                  </Select>
-                                </div>
-                                <div className="space-y-2">
-                                  <Label>
-                                    {dict.statusSection?.noteLabel ||
-                                      'הערה לסטטוס'}
-                                  </Label>
-                                  <Input
-                                    value={statusState.note}
-                                    onChange={(e) =>
-                                      setStatusState((prev) => ({
-                                        ...prev,
-                                        note: e.target.value,
-                                      }))
-                                    }
-                                    placeholder={
-                                      dict.statusSection?.notePlaceholder || ''
-                                    }
-                                    className="border-teal-200 focus-visible:ring-teal-500"
-                                  />
-                                </div>
-                              </div>
-                            </CardContent>
-                            <CardFooter className="flex justify-end pt-2 pb-4 bg-teal-50/20">
-                              <Button
-                                size="sm"
-                                onClick={() =>
-                                  handleProfileUpdate({
-                                    availabilityStatus: statusState.status,
-                                    availabilityNote: statusState.note,
-                                  })
-                                }
-                                disabled={isSaving}
-                                className="bg-teal-600 hover:bg-teal-700 text-white shadow-md transition-transform active:scale-95"
-                              >
-                                {isSaving ? (
-                                  <Loader2 className="w-4 h-4 ml-2 animate-spin" />
-                                ) : (
-                                  <Save className="w-4 h-4 ml-2" />
-                                )}
-                                {isSaving
-                                  ? dict.statusSection?.savingButton ||
-                                    'שומר...'
-                                  : dict.statusSection?.saveButton ||
-                                    'שמור סטטוס'}
-                              </Button>
-                            </CardFooter>
-                          </Card>
-
-                          {/* 2. NeshamaTech Summary Card */}
-                          <Card className="bg-white rounded-xl shadow-sm border overflow-hidden">
-                            {/* ... NeshamaTech Summary content ... */}
-                            <div className="h-1 bg-gradient-to-r from-indigo-500 to-purple-500"></div>
-                            <CardHeader className="bg-slate-50/50 pb-4">
-                              <div className="flex justify-between items-start">
-                                <div>
-                                  <CardTitle className="flex items-center gap-2 text-lg">
-                                    <Award className="w-5 h-5 text-indigo-600" />
-                                    {dict.neshamaTechSummary.title}
-                                  </CardTitle>
-                                  <CardDescription className="mt-1">
-                                    {dict.neshamaTechSummary.description}
-                                  </CardDescription>
-                                </div>
-                                <Button
-                                  size="sm"
-                                  onClick={handleGenerateSummary}
-                                  disabled={isGeneratingSummary || isSaving}
-                                  className="bg-white hover:bg-gray-50 text-indigo-600 border border-indigo-200 shadow-sm hover:shadow transition-all"
-                                >
-                                  {isGeneratingSummary ? (
-                                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                                  ) : (
-                                    <Sparkles className="w-4 h-4 mr-2" />
-                                  )}
-                                  {isGeneratingSummary
-                                    ? dict.neshamaTechSummary.aiButtonLoading
-                                    : dict.neshamaTechSummary.aiButton}
-                                </Button>
-                              </div>
-                            </CardHeader>
-                            <CardContent className="pt-4">
-                              <Textarea
-                                value={profile.manualEntryText || ''}
-                                onChange={(e) =>
-                                  setProfile((p) =>
-                                    p
-                                      ? {
-                                          ...p,
-                                          manualEntryText: e.target.value,
-                                        }
-                                      : null
-                                  )
-                                }
-                                placeholder={
-                                  dict.neshamaTechSummary.placeholder
-                                }
-                                rows={6}
-                                className="min-h-[120px] focus-visible:ring-indigo-500"
-                              />
-                            </CardContent>
-                            <CardFooter className="flex justify-between pt-2 pb-4 bg-slate-50/30">
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={handleGenerateInsightText}
-                                disabled={isGeneratingInsight}
-                                className="border-indigo-200 text-indigo-700 hover:bg-indigo-50 gap-2"
-                              >
-                                {isGeneratingInsight ? (
-                                  <Loader2 className="w-4 h-4 animate-spin" />
-                                ) : (
-                                  <FileText className="w-4 h-4" />
-                                )}
-                                {isGeneratingInsight
-                                  ? locale === 'he'
-                                    ? 'מנתח נתונים...'
-                                    : 'Analyzing...'
-                                  : locale === 'he'
-                                    ? 'ניתוח עומק אישי'
-                                    : 'Deep Personal Analysis'}
-                              </Button>
-
-                              <Button
-                                size="sm"
-                                onClick={() =>
-                                  handleProfileUpdate({
-                                    manualEntryText:
-                                      profile.manualEntryText || null,
-                                  })
-                                }
-                                disabled={isSaving || isGeneratingSummary}
-                                className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-md transition-transform active:scale-95"
-                              >
-                                {isSaving ? (
-                                  <Loader2 className="w-4 h-4 ml-2 animate-spin" />
-                                ) : (
-                                  <Save className="w-4 h-4 ml-2" />
-                                )}
-                                {isSaving
-                                  ? dict.neshamaTechSummary.saveButtonLoading ||
-                                    'שומר...'
-                                  : dict.neshamaTechSummary.saveButton ||
-                                    'שמור תקציר'}
-                              </Button>
-                            </CardFooter>
-                          </Card>
-
-                          {/* 3. Conversation Summary Card */}
-                          <Card className="bg-white rounded-xl shadow-sm border overflow-hidden">
-                            {/* ... Conversation Summary content ... */}
-                            <div className="h-1 bg-gradient-to-r from-blue-500 to-cyan-500"></div>
-                            <CardHeader className="bg-blue-50/30 pb-4">
-                              <div className="flex justify-between items-start">
-                                <div>
-                                  <CardTitle className="flex items-center gap-2 text-lg text-blue-900">
-                                    <MessageSquare className="w-5 h-5 text-blue-600" />
-                                    {dict.conversationSummary?.title ||
-                                      'סיכום שיחה עם שדכן'}
-                                  </CardTitle>
-                                  <CardDescription className="mt-1 text-blue-800/70">
-                                    {dict.conversationSummary?.description ||
-                                      'כאן ניתן לתעד הערות פנימיות וסיכומים משיחותיך עם המועמד/ת.'}
-                                  </CardDescription>
-                                </div>
-                              </div>
-                            </CardHeader>
-                            <CardContent className="pt-4">
-                              <Textarea
-                                value={profile.conversationSummary || ''}
-                                onChange={(e) =>
-                                  setProfile((p) =>
-                                    p
-                                      ? {
-                                          ...p,
-                                          conversationSummary: e.target.value,
-                                        }
-                                      : null
-                                  )
-                                }
-                                placeholder={
-                                  dict.conversationSummary?.placeholder ||
-                                  'הקלד/י כאן את סיכום השיחה...'
-                                }
-                                rows={5}
-                                className="min-h-[100px] border-blue-200 focus-visible:ring-blue-500 bg-blue-50/10"
-                              />
-                            </CardContent>
-                            <CardFooter className="flex justify-end pt-2 pb-4 bg-blue-50/20">
-                              <Button
-                                size="sm"
-                                onClick={() =>
-                                  handleProfileUpdate({
-                                    conversationSummary:
-                                      profile.conversationSummary || null,
-                                  })
-                                }
-                                disabled={isSaving || isGeneratingSummary}
-                                className="bg-blue-600 hover:bg-blue-700 text-white shadow-md transition-transform active:scale-95"
-                              >
-                                {isSaving ? (
-                                  <Loader2 className="w-4 h-4 ml-2 animate-spin" />
-                                ) : (
-                                  <Save className="w-4 h-4 ml-2" />
-                                )}
-                                {isSaving
-                                  ? dict.conversationSummary
-                                      ?.saveButtonLoading || 'שומר...'
-                                  : dict.conversationSummary?.saveButton ||
-                                    'שמור סיכום שיחה'}
-                              </Button>
-                            </CardFooter>
-                          </Card>
-
-                          {/* 4. Main Profile Section */}
-                          <div className="bg-white rounded-xl shadow-sm border p-1">
-                            <ProfileSection
-                              profile={profile}
-                              isEditing={isEditing}
-                              setIsEditing={setIsEditing}
-                              onSave={handleProfileUpdate}
-                              dict={profileDict.profileSection}
-                              locale={locale}
-                            />
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="flex items-center justify-center h-full">
-                          <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
-                        </div>
-                      )}
-                    </TabsContent>
-
-                    <TabsContent
-                      value="photos"
-                      className="flex-1 overflow-auto p-4 m-0 pb-16"
-                    >
-                      <div className="bg-white rounded-xl shadow-sm border">
-                        <PhotosSection
-                          images={images}
-                          isUploading={isUploading}
-                          disabled={isSaving || isDeletingCandidate}
-                          onUpload={handleImageUpload}
-                          onSetMain={handleSetMainImage}
-                          onDelete={handleDeleteImage}
-                          maxImages={10}
-                          dict={profileDict.photosSection}
-                          locale={locale}
+                  <div className="space-y-4">
+                    {/* Names */}
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-1.5">
+                        <Label className="text-xs font-medium">
+                          {locale === 'he' ? 'שם פרטי' : 'First Name'}
+                        </Label>
+                        <Input
+                          value={names.firstName}
+                          onChange={(e) => {
+                            setNames((prev) => ({
+                              ...prev,
+                              firstName: e.target.value,
+                            }));
+                            setHasChanges(true);
+                          }}
+                          className="h-9"
                         />
                       </div>
-                    </TabsContent>
-
-                    <TabsContent
-                      value="preferences"
-                      className="flex-1 overflow-auto p-4 m-0 pb-16"
-                    >
-                      {profile ? (
-                        <div className="bg-white rounded-xl shadow-sm border">
-                          <PreferencesSection
-                            profile={profile}
-                            isEditing={isEditing}
-                            setIsEditing={setIsEditing}
-                            onChange={handleProfileUpdate}
-                            dictionary={profileDict.preferencesSection}
-                            locale={locale}
-                          />
-                        </div>
-                      ) : (
-                        <div className="flex items-center justify-center h-full">
-                          <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
-                        </div>
-                      )}
-                    </TabsContent>
-                  </div>
-                </Tabs>
-
-                {/* Footer and other Dialogs (Invite, Delete, Insight) remain unchanged... */}
-                {/* ... */}
-                <div className="p-4 border-t flex justify-between items-center mt-auto bg-white/95 backdrop-blur-sm sticky bottom-0 z-10 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] flex-shrink-0">
-                  <div>
-                    <span className="text-sm text-muted-foreground hidden sm:inline-block">
-                      {activeTab === 'profile'
-                        ? dict.footer.tabInfo.profile
-                        : activeTab === 'photos'
-                          ? dict.footer.tabInfo.photos
-                          : dict.footer.tabInfo.preferences}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <Button
-                      variant="outline"
-                      onClick={() => setIsSetupInviteOpen(true)}
-                      disabled={
-                        isSaving || isDeletingCandidate || isSendingInvite
-                      }
-                      className="border-indigo-200 text-indigo-700 hover:bg-indigo-50"
-                    >
-                      <Send
-                        className={cn(
-                          'w-4 h-4',
-                          locale === 'he' ? 'ml-2' : 'mr-2'
-                        )}
-                      />
-                      {dict.footer.buttons.sendInvite}
-                    </Button>
-                    {isAdmin && (
-                      <Button
-                        variant="destructive"
-                        onClick={() => setIsDeleteCandidateDialogOpen(true)}
-                        disabled={
-                          isSaving || isUploading || isDeletingCandidate
-                        }
-                        size="sm"
-                      >
-                        <Trash2
-                          className={cn(
-                            'w-4 h-4',
-                            locale === 'he' ? 'ml-2' : 'mr-2'
-                          )}
+                      <div className="space-y-1.5">
+                        <Label className="text-xs font-medium">
+                          {locale === 'he' ? 'שם משפחה' : 'Last Name'}
+                        </Label>
+                        <Input
+                          value={names.lastName}
+                          onChange={(e) => {
+                            setNames((prev) => ({
+                              ...prev,
+                              lastName: e.target.value,
+                            }));
+                            setHasChanges(true);
+                          }}
+                          className="h-9"
                         />
-                        {dict.footer.buttons.deleteCandidate}
-                      </Button>
-                    )}
-                    <Button
-                      variant="outline"
-                      onClick={onClose}
-                      disabled={isSaving || isDeletingCandidate}
-                      className="bg-gray-100 hover:bg-gray-200 transition-colors shadow-sm text-gray-700"
-                      size="sm"
-                    >
-                      <X className="w-4 h-4 mr-2" />
-                      {dict.footer.buttons.close}
-                    </Button>
-                  </div>
-                </div>
-              </>
-            )}
-          </motion.div>
-        </DialogContent>
-      </Dialog>
+                      </div>
+                    </div>
 
-      {/* --- Other Dialogs --- */}
+                    {/* Status */}
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-1.5">
+                        <Label className="text-xs font-medium">
+                          {dict.statusSection?.statusLabel || 'סטטוס נוכחי'}
+                        </Label>
+                        <Select
+                          value={statusState.status}
+                          onValueChange={(value) => {
+                            setStatusState((prev) => ({
+                              ...prev,
+                              status: value as AvailabilityStatus,
+                            }));
+                            setHasChanges(true);
+                          }}
+                          dir={direction}
+                        >
+                          <SelectTrigger className="h-9">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {Object.values(AvailabilityStatus).map((status) => (
+                              <SelectItem key={status} value={status}>
+                                {dict.statusSection?.statuses?.[status] ||
+                                  status}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label className="text-xs font-medium">
+                          {dict.statusSection?.noteLabel || 'הערה לסטטוס'}
+                        </Label>
+                        <Input
+                          value={statusState.note}
+                          onChange={(e) => {
+                            setStatusState((prev) => ({
+                              ...prev,
+                              note: e.target.value,
+                            }));
+                            setHasChanges(true);
+                          }}
+                          placeholder={
+                            dict.statusSection?.notePlaceholder || ''
+                          }
+                          className="h-9"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Save Button */}
+                    <div className="flex justify-end">
+                      <Button
+                        size="sm"
+                        onClick={() =>
+                          handleProfileUpdate(
+                            {
+                              firstName: names.firstName,
+                              lastName: names.lastName,
+                              availabilityStatus: statusState.status,
+                              availabilityNote: statusState.note,
+                            },
+                            'basicInfo'
+                          )
+                        }
+                        disabled={isSaving}
+                        className="gap-1.5"
+                      >
+                        {isSaving ? (
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        ) : recentlySaved === 'basicInfo' ? (
+                          <CheckCircle2 className="w-3.5 h-3.5" />
+                        ) : (
+                          <Save className="w-3.5 h-3.5" />
+                        )}
+                        {recentlySaved === 'basicInfo'
+                          ? locale === 'he'
+                            ? 'נשמר!'
+                            : 'Saved!'
+                          : locale === 'he'
+                            ? 'שמור'
+                            : 'Save'}
+                      </Button>
+                    </div>
+                  </div>
+                </CollapsibleSection>
+
+                {/* 2. NeshamaTech Summary */}
+                <CollapsibleSection
+                  title={dict.neshamaTechSummary.title}
+                  description={dict.neshamaTechSummary.description}
+                  icon={<Award className="w-5 h-5" />}
+                  colorScheme="indigo"
+                  defaultOpen={false}
+                  actions={
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={handleGenerateSummary}
+                      disabled={isGeneratingSummary || isSaving}
+                      className="h-7 px-2 text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50"
+                    >
+                      {isGeneratingSummary ? (
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      ) : (
+                        <Sparkles className="w-3.5 h-3.5" />
+                      )}
+                    </Button>
+                  }
+                >
+                  <div className="space-y-3">
+                    <Textarea
+                      value={profile?.manualEntryText || ''}
+                      onChange={(e) => {
+                        setProfile((p) =>
+                          p ? { ...p, manualEntryText: e.target.value } : null
+                        );
+                        setHasChanges(true);
+                      }}
+                      placeholder={dict.neshamaTechSummary.placeholder}
+                      rows={5}
+                      className="text-sm"
+                    />
+                    <div className="flex justify-end">
+                      <Button
+                        size="sm"
+                        onClick={() =>
+                          handleProfileUpdate(
+                            {
+                              manualEntryText: profile?.manualEntryText || null,
+                            },
+                            'summary'
+                          )
+                        }
+                        disabled={isSaving || isGeneratingSummary}
+                        className="gap-1.5 bg-indigo-600 hover:bg-indigo-700"
+                      >
+                        {isSaving ? (
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        ) : recentlySaved === 'summary' ? (
+                          <CheckCircle2 className="w-3.5 h-3.5" />
+                        ) : (
+                          <Save className="w-3.5 h-3.5" />
+                        )}
+                        {recentlySaved === 'summary'
+                          ? locale === 'he'
+                            ? 'נשמר!'
+                            : 'Saved!'
+                          : dict.neshamaTechSummary.saveButton || 'שמור תקציר'}
+                      </Button>
+                    </div>
+                  </div>
+                </CollapsibleSection>
+
+                {/* 3. Conversation Summary */}
+                <CollapsibleSection
+                  title={
+                    dict.conversationSummary?.title || 'סיכום שיחה עם שדכן'
+                  }
+                  description={
+                    dict.conversationSummary?.description ||
+                    'הערות פנימיות וסיכומים'
+                  }
+                  icon={<MessageSquare className="w-5 h-5" />}
+                  colorScheme="teal"
+                  defaultOpen={false}
+                >
+                  <div className="space-y-3">
+                    <Textarea
+                      value={profile?.conversationSummary || ''}
+                      onChange={(e) => {
+                        setProfile((p) =>
+                          p
+                            ? { ...p, conversationSummary: e.target.value }
+                            : null
+                        );
+                        setHasChanges(true);
+                      }}
+                      placeholder={
+                        dict.conversationSummary?.placeholder ||
+                        'הקלד/י כאן את סיכום השיחה...'
+                      }
+                      rows={4}
+                      className="text-sm"
+                    />
+                    <div className="flex justify-end">
+                      <Button
+                        size="sm"
+                        onClick={() =>
+                          handleProfileUpdate(
+                            {
+                              conversationSummary:
+                                profile?.conversationSummary || null,
+                            },
+                            'conversation'
+                          )
+                        }
+                        disabled={isSaving}
+                        className="gap-1.5 bg-teal-600 hover:bg-teal-700"
+                      >
+                        {isSaving ? (
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        ) : recentlySaved === 'conversation' ? (
+                          <CheckCircle2 className="w-3.5 h-3.5" />
+                        ) : (
+                          <Save className="w-3.5 h-3.5" />
+                        )}
+                        {recentlySaved === 'conversation'
+                          ? locale === 'he'
+                            ? 'נשמר!'
+                            : 'Saved!'
+                          : dict.conversationSummary?.saveButton ||
+                            'שמור סיכום'}
+                      </Button>
+                    </div>
+                  </div>
+                </CollapsibleSection>
+
+                {/* 4. Full Profile Section */}
+                <CollapsibleSection
+                  title={dict.tabs.profile}
+                  description={
+                    locale === 'he'
+                      ? 'כל הפרטים האישיים'
+                      : 'All personal details'
+                  }
+                  icon={<UserCog className="w-5 h-5" />}
+                  colorScheme="gray"
+                  defaultOpen={false}
+                >
+                  {profile && (
+                    <ProfileSection
+                      profile={profile}
+                      isEditing={isEditing}
+                      setIsEditing={setIsEditing}
+                      onSave={handleProfileUpdate}
+                      dict={profileDict.profileSection}
+                      locale={locale}
+                    />
+                  )}
+                </CollapsibleSection>
+
+                {/* 5. Photos Section */}
+                <CollapsibleSection
+                  title={dict.tabs.photos}
+                  description={`${images.length} ${locale === 'he' ? 'תמונות' : 'photos'}`}
+                  icon={<ImageIcon className="w-5 h-5" />}
+                  colorScheme="purple"
+                  defaultOpen={false}
+                  badge={
+                    images.length > 0 && (
+                      <Badge variant="secondary" className="text-xs">
+                        {images.length}
+                      </Badge>
+                    )
+                  }
+                >
+                  <PhotosSection
+                    images={images}
+                    isUploading={isUploading}
+                    disabled={isSaving || isDeletingCandidate}
+                    onUpload={handleImageUpload}
+                    onSetMain={handleSetMainImage}
+                    onDelete={handleDeleteImage}
+                    maxImages={10}
+                    dict={profileDict.photosSection}
+                    locale={locale}
+                  />
+                </CollapsibleSection>
+
+                {/* 6. Preferences Section */}
+                <CollapsibleSection
+                  title={dict.tabs.preferences}
+                  description={
+                    locale === 'he'
+                      ? 'העדפות לחיפוש בן/בת זוג'
+                      : 'Partner search preferences'
+                  }
+                  icon={<Sliders className="w-5 h-5" />}
+                  colorScheme="blue"
+                  defaultOpen={false}
+                >
+                  {profile && (
+                    <PreferencesSection
+                      profile={profile}
+                      isEditing={isEditing}
+                      setIsEditing={setIsEditing}
+                      onChange={handleProfileUpdate}
+                      dictionary={profileDict.preferencesSection}
+                      locale={locale}
+                    />
+                  )}
+                </CollapsibleSection>
+              </div>
+
+              {/* Bottom padding for scrolling */}
+              <div className="h-6" />
+            </ScrollArea>
+          )}
+        </SheetContent>
+      </Sheet>
+
+      {/* --- Insight Dialog --- */}
       <Dialog open={isInsightDialogOpen} onOpenChange={setIsInsightDialogOpen}>
-        {/* ... (Insight Dialog code) ... */}
         <DialogContent
           className="max-w-3xl max-h-[85vh] flex flex-col p-0 overflow-hidden"
           dir={direction}
@@ -1128,9 +1207,9 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
         </DialogContent>
       </Dialog>
 
+      {/* --- Invite Dialog --- */}
       {candidate && (
         <Dialog open={isSetupInviteOpen} onOpenChange={setIsSetupInviteOpen}>
-          {/* ... (Invite Dialog code) ... */}
           <DialogContent className="sm:max-w-md" dir={direction}>
             <DialogHeader>
               <DialogTitle>{dict.inviteDialog.title}</DialogTitle>
@@ -1189,6 +1268,7 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
         </Dialog>
       )}
 
+      {/* --- Delete Dialog --- */}
       {candidate && (
         <Dialog
           open={isDeleteCandidateDialogOpen}
@@ -1196,7 +1276,6 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
             !isDeletingCandidate && setIsDeleteCandidateDialogOpen(open)
           }
         >
-          {/* ... (Delete Dialog code) ... */}
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
               <DialogTitle className="text-xl flex items-center gap-2 text-red-600">

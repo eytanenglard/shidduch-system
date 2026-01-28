@@ -1472,6 +1472,11 @@ enum AttachmentStyle {
 // ProfileMetrics - מדדים מספריים לכל פרופיל
 // ═══════════════════════════════════════════════════════════════
 
+// ============================================================
+// NeshamaTech - Profile Metrics Model (UPDATED)
+// עדכון: כולל שדות חדשים, העדפות מורחבות, וסיכומי AI
+// ============================================================
+
 model ProfileMetrics {
   id                    String   @id @default(cuid())
   profileId             String   @unique
@@ -1480,174 +1485,230 @@ model ProfileMetrics {
   createdAt             DateTime @default(now())
   updatedAt             DateTime @updatedAt
   
-  // מטא-דאטה על החישוב
+  // ═══════════════════════════════════════════════════════════════
+  // META - מטא-דאטה על החישוב
+  // ═══════════════════════════════════════════════════════════════
+  
   calculatedBy          CalculatedBy @default(AI_AUTO)
   confidenceScore       Int      @default(50)  // 0-100: כמה בטוחים בדיוק המדדים
   dataCompleteness      Int      @default(0)   // 0-100: כמה מידע היה זמין
   lastAiAnalysisAt      DateTime?
   
-  // ═══════════════════════════════════════════════════════════
-  // SECTION A: SELF METRICS (מי אני) - ציונים 0-100
-  // ═══════════════════════════════════════════════════════════
+  // ═══════════════════════════════════════════════════════════════
+  // SECTION A: SELF METRICS - מי אני (ציונים 0-100)
+  // ═══════════════════════════════════════════════════════════════
   
   // 🧠 אישיות ואופי
-  socialEnergy          Int?     // 0=מופנם מאוד, 100=חברותי מאוד
-  emotionalExpression   Int?     // 0=שמור רגשית, 100=פתוח ומבטא
-  stabilityVsSpontaneity Int?    // 0=מאורגן ויציב, 100=ספונטני וגמיש
-  independenceLevel     Int?     // 0=אוהב תמיכה, 100=עצמאי מאוד
-  optimismLevel         Int?     // 0=ריאליסט/פסימי, 100=אופטימי מאוד
-  humorStyle            HumorStyle?
+  socialEnergy              Int?     // 0=מופנם מאוד, 100=חברותי מאוד
+  emotionalExpression       Int?     // 0=שמור רגשית, 100=פתוח ומבטא
+  stabilityVsSpontaneity    Int?     // 0=מאורגן ויציב, 100=ספונטני וגמיש
+  independenceLevel         Int?     // 0=אוהב תמיכה, 100=עצמאי מאוד
+  optimismLevel             Int?     // 0=ריאליסט/פסימי, 100=אופטימי מאוד
+  humorStyle                HumorStyle?
   
-  // 🎯 כיוון וקריירה
-  careerOrientation     Int?     // 0=איזון/משפחה, 100=קריירה מרכזית
-  intellectualOrientation Int?   // 0=הומני/חינוך/חברה, 100=ריאלי/טכנולוגי/מדעי
-  financialApproach     Int?     // 0=חסכן ושמרני, 100=נדיב/נהנתן
-  ambitionLevel         Int?     // 0=שביעות רצון ממה שיש, 100=שאפתנות גבוהה
+  // 🎯 קריירה וכסף
+  careerOrientation         Int?     // 0=איזון/משפחה, 100=קריירה מרכזית
+  intellectualOrientation   Int?     // 0=הומני/חינוך, 100=ריאלי/טכנולוגי
+  financialApproach         Int?     // 0=חסכן ושמרני, 100=נדיב/נהנתן
+  ambitionLevel             Int?     // 0=שביעות רצון, 100=שאפתנות גבוהה
   
   // ✡️ דת ומסורת
-  religiousStrictness   Int?     // 0=גמיש בהלכה, 100=מקפיד מאוד
-  spiritualDepth        Int?     // 0=פרקטי/טכני, 100=רוחני ועמוק
-  cultureConsumption    Int?     // 0=נמנע מתרבות כללית, 100=צורך בחופשיות
+  religiousStrictness       Int?     // 0=גמיש בהלכה, 100=מקפיד מאוד
+  spiritualDepth            Int?     // 0=פרקטי/טכני, 100=רוחני ועמוק
+  cultureConsumption        Int?     // 0=נמנע מתרבות כללית, 100=צורך בחופשיות
   
   // 🌍 רקע וזהות
-  urbanScore            Int?     // 0=כפרי/ישובי, 100=עירוני מובהק (ת"א)
-  englishFluency        Int?     // 0=לא דובר, 100=שפת אם
-  americanCompatibility Int?     // 0=ישראלי מובהק, 100=מתאים לאמריקאים
-  ethnicBackground      EthnicBackground?
-  backgroundCategory    BackgroundCategory?
+  urbanScore                Int?     // 0=כפרי/ישובי, 100=עירוני מובהק
+  englishFluency            Int?     // 0=לא דובר, 100=שפת אם
+  americanCompatibility     Int?     // 0=ישראלי מובהק, 100=מתאים לאמריקאים
+  ethnicBackground          EthnicBackground?
+  backgroundCategory        BackgroundCategory?
   
   // 💑 זוגיות ומשפחה
-  togetherVsAutonomy    Int?     // 0=צריך עצמאות, 100=רוצה הכל ביחד
-  familyInvolvement     Int?     // 0=עצמאי מהורים, 100=משפחה מאוד מעורבת
-  parenthoodPriority    Int?     // 0=לא מרכזי, 100=ילדים במרכז
-  growthVsAcceptance    Int?     // 0=קבלה מלאה, 100=אתגור וצמיחה
+  togetherVsAutonomy        Int?     // 0=צריך עצמאות, 100=רוצה הכל ביחד
+  familyInvolvement         Int?     // 0=עצמאי מהורים, 100=משפחה מעורבת
+  parenthoodPriority        Int?     // 0=לא מרכזי, 100=ילדים במרכז
+  growthVsAcceptance        Int?     // 0=קבלה מלאה, 100=אתגור וצמיחה
   
   // 🕐 סגנון חיים
-  nightOwlScore         Int?     // 0=בוקר, 100=לילה
-  adventureScore        Int?     // 0=שגרה ויציבות, 100=הרפתקנות ושינוי
-  petsAttitude          PetsAttitude?
+  nightOwlScore             Int?     // 0=בוקר, 100=לילה
+  adventureScore            Int?     // 0=שגרה ויציבות, 100=הרפתקנות
+  petsAttitude              PetsAttitude?
   
   // 💬 תקשורת והתמודדות
-  communicationStyle    CommunicationStyle?
-  conflictStyle         ConflictStyle?
-  supportStyle          SupportStyle?
+  communicationStyle        CommunicationStyle?
+  conflictStyle             ConflictStyle?
+  supportStyle              SupportStyle?
   
-  // 🚨 דגלים מיוחדים (לשדכן בלבד)
-  appearancePickiness   Int?     // 0=לא מקפיד על מראה, 100=מאוד מקפיד
-  difficultyFlags       Json?    // ["PICKY_ON_LOOKS", "NARROW_RELIGIOUS_RANGE", "UNREALISTIC_EXPECTATIONS"]
+  // 👀 בררנות
+  appearancePickiness       Int?     // 0=לא מקפיד על מראה, 100=מאוד מקפיד
   
-  // ═══════════════════════════════════════════════════════════
-  // SECTION B: PREFERENCE METRICS (מה אני מחפש)
+  // ═══════════════════════════════════════════════════════════════
+  // 🆕 SECTION A.2: NEW SELF METRICS - מדדים חדשים
+  // ═══════════════════════════════════════════════════════════════
+  
+  // 💰 רמה סוציו-אקונומית
+  socioEconomicLevel        Int?     // 0=נמוך, 50=בינוני, 100=גבוה
+  
+  // 💼 רמת בכירות בעבודה
+  jobSeniorityLevel         Int?     // 0=זוטר/סטודנט, 50=בינוני, 100=בכיר/ניהולי
+  
+  // 🎓 רמת השכלה (ציון מספרי)
+  educationLevelScore       Int?     // 0=תיכונית, 25=לימודים, 50=תואר ראשון, 75=תואר שני, 100=דוקטורט
+  
+  // ═══════════════════════════════════════════════════════════════
+  // SECTION B: PREFERENCE METRICS - מה אני מחפש/ת
   // לכל מדד: Min, Max, Weight (0-10)
-  // ═══════════════════════════════════════════════════════════
+  // ═══════════════════════════════════════════════════════════════
   
   // אישיות מבוקשת
-  prefSocialEnergyMin        Int?  @default(0)
-  prefSocialEnergyMax        Int?  @default(100)
-  prefSocialEnergyWeight     Int?  @default(5)   // 0-10: כמה חשוב
+  prefSocialEnergyMin            Int?  @default(0)
+  prefSocialEnergyMax            Int?  @default(100)
+  prefSocialEnergyWeight         Int?  @default(5)
   
-  prefEmotionalExpressionMin Int?  @default(0)
-  prefEmotionalExpressionMax Int?  @default(100)
-  prefEmotionalExpressionWeight Int? @default(5)
+  prefEmotionalExpressionMin     Int?  @default(0)
+  prefEmotionalExpressionMax     Int?  @default(100)
+  prefEmotionalExpressionWeight  Int?  @default(5)
   
-  prefStabilityMin           Int?  @default(0)
-  prefStabilityMax           Int?  @default(100)
-  prefStabilityWeight        Int?  @default(5)
+  prefStabilityMin               Int?  @default(0)
+  prefStabilityMax               Int?  @default(100)
+  prefStabilityWeight            Int?  @default(5)
   
   // דת
-  prefReligiousStrictnessMin Int?  @default(0)
-  prefReligiousStrictnessMax Int?  @default(100)
-  prefReligiousStrictnessWeight Int? @default(8)  // חשוב יותר כברירת מחדל
+  prefReligiousStrictnessMin     Int?  @default(0)
+  prefReligiousStrictnessMax     Int?  @default(100)
+  prefReligiousStrictnessWeight  Int?  @default(8)
   
-  prefSpiritualDepthMin      Int?  @default(0)
-  prefSpiritualDepthMax      Int?  @default(100)
-  prefSpiritualDepthWeight   Int?  @default(5)
+  prefSpiritualDepthMin          Int?  @default(0)
+  prefSpiritualDepthMax          Int?  @default(100)
+  prefSpiritualDepthWeight       Int?  @default(5)
   
   // קריירה וכלכלה
-  prefCareerOrientationMin   Int?  @default(0)
-  prefCareerOrientationMax   Int?  @default(100)
-  prefCareerOrientationWeight Int? @default(5)
+  prefCareerOrientationMin       Int?  @default(0)
+  prefCareerOrientationMax       Int?  @default(100)
+  prefCareerOrientationWeight    Int?  @default(5)
   
-  prefAmbitionMin            Int?  @default(0)
-  prefAmbitionMax            Int?  @default(100)
-  prefAmbitionWeight         Int?  @default(4)
+  prefAmbitionMin                Int?  @default(0)
+  prefAmbitionMax                Int?  @default(100)
+  prefAmbitionWeight             Int?  @default(4)
   
-  prefFinancialMin           Int?  @default(0)
-  prefFinancialMax           Int?  @default(100)
-  prefFinancialWeight        Int?  @default(4)
+  prefFinancialMin               Int?  @default(0)
+  prefFinancialMax               Int?  @default(100)
+  prefFinancialWeight            Int?  @default(4)
   
   // סגנון חיים
-  prefUrbanScoreMin          Int?  @default(0)
-  prefUrbanScoreMax          Int?  @default(100)
-  prefUrbanScoreWeight       Int?  @default(4)
+  prefUrbanScoreMin              Int?  @default(0)
+  prefUrbanScoreMax              Int?  @default(100)
+  prefUrbanScoreWeight           Int?  @default(4)
   
-  prefAdventureScoreMin      Int?  @default(0)
-  prefAdventureScoreMax      Int?  @default(100)
-  prefAdventureScoreWeight   Int?  @default(3)
+  prefAdventureScoreMin          Int?  @default(0)
+  prefAdventureScoreMax          Int?  @default(100)
+  prefAdventureScoreWeight       Int?  @default(3)
   
-  prefNightOwlMin            Int?  @default(0)
-  prefNightOwlMax            Int?  @default(100)
-  prefNightOwlWeight         Int?  @default(2)
+  prefNightOwlMin                Int?  @default(0)
+  prefNightOwlMax                Int?  @default(100)
+  prefNightOwlWeight             Int?  @default(2)
   
   // זוגיות
-  prefTogetherVsAutonomyMin  Int?  @default(0)
-  prefTogetherVsAutonomyMax  Int?  @default(100)
-  prefTogetherVsAutonomyWeight Int? @default(5)
+  prefTogetherVsAutonomyMin      Int?  @default(0)
+  prefTogetherVsAutonomyMax      Int?  @default(100)
+  prefTogetherVsAutonomyWeight   Int?  @default(5)
   
-  prefFamilyInvolvementMin   Int?  @default(0)
-  prefFamilyInvolvementMax   Int?  @default(100)
-  prefFamilyInvolvementWeight Int? @default(4)
+  prefFamilyInvolvementMin       Int?  @default(0)
+  prefFamilyInvolvementMax       Int?  @default(100)
+  prefFamilyInvolvementWeight    Int?  @default(4)
   
-  prefGrowthVsAcceptanceMin  Int?  @default(0)
-  prefGrowthVsAcceptanceMax  Int?  @default(100)
-  prefGrowthVsAcceptanceWeight Int? @default(3)
+  prefGrowthVsAcceptanceMin      Int?  @default(0)
+  prefGrowthVsAcceptanceMax      Int?  @default(100)
+  prefGrowthVsAcceptanceWeight   Int?  @default(3)
   
-  // ═══════════════════════════════════════════════════════════
-  // SECTION C: DEAL BREAKERS (קווים אדומים)
-  // ═══════════════════════════════════════════════════════════
+  // ═══════════════════════════════════════════════════════════════
+  // 🆕 SECTION B.2: NEW PREFERENCE METRICS - העדפות חדשות
+  // ═══════════════════════════════════════════════════════════════
+  
+  // רמה סוציו-אקונומית מבוקשת
+  prefSocioEconomicMin           Int?  @default(0)
+  prefSocioEconomicMax           Int?  @default(100)
+  prefSocioEconomicWeight        Int?  @default(5)
+  
+  // רמת בכירות מבוקשת
+  prefJobSeniorityMin            Int?  @default(0)
+  prefJobSeniorityMax            Int?  @default(100)
+  prefJobSeniorityWeight         Int?  @default(4)
+  
+  // רמת השכלה מבוקשת
+  prefEducationLevelMin          Int?  @default(0)
+  prefEducationLevelMax          Int?  @default(100)
+  prefEducationLevelWeight       Int?  @default(5)
+  
+  // ═══════════════════════════════════════════════════════════════
+  // SECTION C: DEAL BREAKERS - קווים אדומים
+  // ═══════════════════════════════════════════════════════════════
   
   // Deal Breakers קשיחים - פוסלים מיידית
-  // מבנה: [{ type, operator, value/values }]
-  dealBreakersHard      Json?    @default("[]")
+  dealBreakersHard               Json?    @default("[]")
   
-  // Deal Breakers רכים - מורידים ציון אבל לא פוסלים
-  // מבנה: [{ type, value, penalty }]
-  dealBreakersSoft      Json?    @default("[]")
+  // Deal Breakers רכים - מורידים ציון
+  dealBreakersSoft               Json?    @default("[]")
   
-  // ═══════════════════════════════════════════════════════════
-  // SECTION D: INFERRED TRAITS (תכונות שנגזרו)
-  // ═══════════════════════════════════════════════════════════
+  // ═══════════════════════════════════════════════════════════════
+  // SECTION D: INFERRED TRAITS - תכונות שנגזרו
+  // ═══════════════════════════════════════════════════════════════
   
-  inferredPersonalityType   PersonalityType?
-  inferredAttachmentStyle   AttachmentStyle?
+  inferredPersonalityType        PersonalityType?
+  inferredAttachmentStyle        AttachmentStyle?
+  inferredLoveLanguages          Json?    @default("[]")
+  inferredRelationshipGoals      Json?    @default("{}")
   
-  // שפות אהבה (מותאם לתיאוריית Gary Chapman)
-  // מבנה: ["QUALITY_TIME", "WORDS_OF_AFFIRMATION", "PHYSICAL_TOUCH", "ACTS_OF_SERVICE", "GIFTS"]
-  inferredLoveLanguages     Json?    @default("[]")
+  // ═══════════════════════════════════════════════════════════════
+  // 🆕 SECTION E: INFERRED HARD DATA - ערכים קשים שה-AI משלים
+  // כשהנתון חסר ב-Profile, ה-AI מנחש
+  // ═══════════════════════════════════════════════════════════════
   
-  // מטרות זוגיות
-  // מבנה: { timeline: "1-2_years", childrenImportance: "high", etc. }
-  inferredRelationshipGoals Json?    @default("{}")
+  inferredAge                    Int?              // אם birthDate חסר
+  inferredCity                   String?           // אם city חסר
+  inferredReligiousLevel         String?           // אם religiousLevel חסר
+  inferredPreferredAgeMin        Int?              // אם preferredAgeMin חסר
+  inferredPreferredAgeMax        Int?              // אם preferredAgeMax חסר
+  inferredPreferredReligiousLevels Json? @default("[]")  // אם preferredReligiousLevels חסר
+  inferredParentStatus           String?           // אם parentStatus חסר
+  inferredEducationLevel         String?           // אם educationLevel חסר
   
-  // ═══════════════════════════════════════════════════════════
-  // SECTION E: AI ANALYSIS CACHE
-  // שמירת ניתוחים קודמים למניעת חישוב מחדש
-  // ═══════════════════════════════════════════════════════════
+  // ═══════════════════════════════════════════════════════════════
+  // SECTION F: AI ANALYSIS - סיכומי AI
+  // ═══════════════════════════════════════════════════════════════
   
-  // הסבר מפורט לכל מדד (למה נתתי את הציון הזה)
-  metricsExplanations       Json?    @default("{}")
+  // הסבר מפורט לכל מדד
+  metricsExplanations            Json?    @default("{}")
   
-  // סיכום AI קצר של האישיות
-  aiPersonalitySummary      String?
+  // סיכום AI של האישיות (3 משפטים)
+  aiPersonalitySummary           String?  @db.Text
   
-  // סיכום AI קצר של מה מחפש
-  aiSeekingSummary          String?
+  // סיכום AI של מה מחפש (3 משפטים)
+  aiSeekingSummary               String?  @db.Text
+  
+  // 🆕 סיכום AI של הרקע (3 משפטים)
+  aiBackgroundSummary            String?  @db.Text
+  
+  // 🆕 הנחיות AI לשדכן (3 משפטים)
+  aiMatchmakerGuidelines         String?  @db.Text
+  
+  // 🆕 קווי אדום שה-AI הסיק
+  aiInferredDealBreakers         Json?    @default("[]")
+  
+  // 🆕 חובות שה-AI הסיק
+  aiInferredMustHaves            Json?    @default("[]")
+  
+  // דגלי קושי
+  difficultyFlags                Json?    @default("[]")
   
   @@index([profileId])
   @@index([calculatedBy])
   @@index([confidenceScore])
   @@map("profile_metrics")
 }
+
+
 // ═══════════════════════════════════════════════════════════════
 // ProfileVector - עדכון לתמיכה בשני וקטורים
 // ═══════════════════════════════════════════════════════════════
@@ -1674,11 +1735,11 @@ model ProfileVector {
   profile               Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
  
   // וקטור מורשת (לתאימות לאחור)
-  vector                Unsupported("vector(768)")?
+  vector                Unsupported("vector(3072)")?    // ← שנה מ-768
  
   // וקטורים חדשים
-  selfVector            Unsupported("vector(768)")?    // מי אני
-  seekingVector         Unsupported("vector(768)")?    // מה אני מחפש
+  selfVector            Unsupported("vector(3072)")?    // ← שנה מ-768
+  seekingVector         Unsupported("vector(3072)")?    // ← שנה מ-768
 
   selfVectorUpdatedAt   DateTime?
   seekingVectorUpdatedAt DateTime?

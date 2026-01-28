@@ -1,6 +1,7 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\admin
-# Generated on: 2025-11-03 09:07:19
+# Generated on: 2026-01-27 22:42:04
+# Filter: Only content of code files (.bat, .c, .cfg, .conf, .cpp, .cs, .css, .go, .h, .html, .ini, .java, .js, .json, .jsx, .kt, .less, .md, .php, .py, .rb, .rs, .scss, .sh, .sql, .swift, .ts, .tsx, .txt, .xml, .yaml, .yml) is included.
 ################################################################################
 
 ================================================================================
@@ -1485,6 +1486,1549 @@ export async function GET() {
       { status: 500 }
     );
   }
+}
+--- End of Content for route.ts ---
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\admin\fill-missing-summaries
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\admin\fill-missing-summaries\route.ts
+--------------------------------------------------------------------------------
+Content:
+import { NextResponse } from 'next/server';
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import prisma from "@/lib/prisma";
+import { UserRole, Prisma } from "@prisma/client";
+import aiService from '@/lib/services/aiService';
+import profileAiService from '@/lib/services/profileAiService';
+
+export const maxDuration = 300; 
+export const dynamic = 'force-dynamic';
+
+/**
+ * פונקציית הרקע שמבצעת את העבודה
+ */
+async function runBackfillProcess(usersToUpdate: { id: string, profileId: string }[]) {
+  console.log(`🚀 [Backfill AI Summary] Starting background process for ${usersToUpdate.length} users...`);
+  
+  let successCount = 0;
+  let failCount = 0;
+
+  for (const user of usersToUpdate) {
+    try {
+      // 1. יצירת הפרופיל הנרטיבי
+      const narrative = await profileAiService.generateNarrativeProfile(user.id);
+      
+      if (!narrative) {
+        console.warn(`⚠️ [Backfill] Failed to generate narrative for User ID: ${user.id}`);
+        failCount++;
+        continue;
+      }
+
+      // 2. שליחה ל-AI
+      const summaryResult = await aiService.generateProfileSummary(narrative);
+
+      if (!summaryResult) {
+        console.warn(`⚠️ [Backfill] AI returned null for User ID: ${user.id}`);
+        failCount++;
+        continue;
+      }
+
+      // 3. עדכון הדאטה-בייס (עם תיקון הטיפוסים)
+      await prisma.profile.update({
+        where: { id: user.profileId },
+        data: {
+          // תיקון: המרה כפולה כדי לרצות את TypeScript ו-Prisma
+          aiProfileSummary: summaryResult as unknown as Prisma.InputJsonValue
+        }
+      });
+
+      console.log(`✅ [Backfill] Updated summary for User ID: ${user.id}`);
+      successCount++;
+
+      // השהייה למניעת חסימה מגוגל
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+    } catch (error) {
+      console.error(`❌ [Backfill] Error processing User ID: ${user.id}`, error);
+      failCount++;
+    }
+  }
+
+  console.log(`\n🏁 [Backfill AI Summary] Process Completed.`);
+  console.log(`Total: ${usersToUpdate.length} | Success: ${successCount} | Failed: ${failCount}`);
+}
+
+export async function POST() {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id || session.user.role !== UserRole.ADMIN) {
+      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 403 });
+    }
+
+    console.log(`[Backfill API] Searching for users...`);
+
+    // תיקון השאילתה: במקום להסתבך עם טיפוסי Json בתוך ה-Where,
+    // נשלוף את המועמדים הרלוונטיים ונסנן בקוד (JS).
+    const users = await prisma.user.findMany({
+      where: {
+        role: 'CANDIDATE',
+        isProfileComplete: true,
+        profile: {
+          isNot: null // מוודא שיש פרופיל
+        }
+      },
+      select: {
+        id: true,
+        profile: {
+          select: { 
+            id: true,
+            aiProfileSummary: true // שולפים את השדה כדי לבדוק אותו
+          }
+        }
+      }
+    });
+
+    // סינון ב-JS: רק מי שאין לו aiProfileSummary (או שהוא null/ריק)
+    // הטיפוסים פה בטוחים יותר מאשר בשאילתת Prisma מורכבת
+    const targets = users
+      .filter(u => !u.profile?.aiProfileSummary) 
+      .map(u => ({ 
+        id: u.id, 
+        profileId: u.profile!.id // ה-! בטוח כאן כי סיננו ב-where למעלה
+      }));
+
+    if (targets.length === 0) {
+      return NextResponse.json({ success: true, message: "✅ כולם מעודכנים! לא נמצאו משתמשים לעדכון." });
+    }
+
+    // הפעלת התהליך ברקע
+    runBackfillProcess(targets).catch(err => {
+      console.error(`[Backfill API] Critical background error:`, err);
+    });
+
+    return NextResponse.json({ 
+      success: true, 
+      message: `נמצאו ${targets.length} משתמשים לעדכון. התהליך התחיל ברקע.` 
+    });
+
+  } catch (error) {
+    console.error('[Backfill API] Error:', error);
+    return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
+  }
+}
+--- End of Content for route.ts ---
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\admin\profiles
+================================================================================
+
+(This directory contains subdirectories but no files directly. See subdirectories below.)
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\admin\profiles\profiles
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\admin\profiles\profiles\profiles_contents.txt
+--------------------------------------------------------------------------------
+Content:
+################################################################################
+# Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\admin\profiles\profiles
+# Generated on: 2026-01-27 19:01:34
+# Filter: Only content of code files (.bat, .c, .cfg, .conf, .cpp, .cs, .css, .go, .h, .html, .ini, .java, .js, .json, .jsx, .kt, .less, .md, .php, .py, .rb, .rs, .scss, .sh, .sql, .swift, .ts, .tsx, .txt, .xml, .yaml, .yml) is included.
+################################################################################
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\admin\profiles\profiles
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\admin\profiles\profiles\profiles_contents.txt
+--------------------------------------------------------------------------------
+[This is the output log file itself. Content not included.]
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\admin\profiles\profiles\[profileId]
+================================================================================
+
+(This directory contains subdirectories but no files directly. See subdirectories below.)
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\admin\profiles\profiles\[profileId]\update-metrics
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\admin\profiles\profiles\[profileId]\update-metrics\route.ts
+--------------------------------------------------------------------------------
+Content:
+// ============================================================
+// NeshamaTech - Update Profile Metrics & Vectors API
+// src/app/api/admin/profiles/[profileId]/update-metrics/route.ts
+// ============================================================
+
+import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
+import prisma from '@/lib/prisma';
+import { updateProfileVectorsAndMetrics } from '@/lib/services/dualVectorService';
+
+// הגדרת טיפוס עבור הפרמטרים (תואם Next.js 15)
+type RouteContext = {
+  params: Promise<{ profileId: string }>;
+};
+
+// ═══════════════════════════════════════════════════════════════
+// POST - עדכון מדדים ווקטורים לפרופיל בודד
+// ═══════════════════════════════════════════════════════════════
+
+export async function POST(
+  request: NextRequest,
+  context: RouteContext // שינוי: שימוש ב-context במקום destructuring ישיר בחתימה
+) {
+  try {
+    // בדיקת הרשאות (רק אדמין/שדכן)
+    const session = await getServerSession(authOptions);
+    if (!session?.user || !['ADMIN', 'MATCHMAKER'].includes(session.user.role)) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
+    // שינוי: חילוץ הפרמטרים לאחר await
+    const { profileId } = await context.params;
+
+    // וידוא שהפרופיל קיים
+    const profile = await prisma.profile.findUnique({
+      where: { id: profileId },
+      select: { id: true, userId: true, gender: true },
+    });
+
+    if (!profile) {
+      return NextResponse.json(
+        { error: 'Profile not found' },
+        { status: 404 }
+      );
+    }
+
+    console.log(`[API] Starting metrics/vectors update for profile: ${profileId}`);
+    const startTime = Date.now();
+
+    // הפעלת העדכון
+    const result = await updateProfileVectorsAndMetrics(profileId);
+
+    const duration = Date.now() - startTime;
+
+    // לוג לדיבוג
+    await prisma.$executeRaw`
+      INSERT INTO metrics_calculation_log (
+        id, "profileId", "calculatedAt", "calculationType", 
+        "inputData", "outputMetrics", "durationMs", "errors"
+      ) VALUES (
+        ${`log_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`},
+        ${profileId},
+        NOW(),
+        'FULL',
+        ${JSON.stringify({ triggeredBy: session.user.email })}::jsonb,
+        ${JSON.stringify(result)}::jsonb,
+        ${duration},
+        ${result.errors.length > 0 ? JSON.stringify(result.errors) : null}::jsonb
+      )
+    `;
+
+    return NextResponse.json({
+      success: result.metricsUpdated && result.vectorsUpdated,
+      profileId,
+      metricsUpdated: result.metricsUpdated,
+      vectorsUpdated: result.vectorsUpdated,
+      errors: result.errors,
+      durationMs: duration,
+    });
+
+  } catch (error) {
+    console.error('[API] Update metrics failed:', error);
+    return NextResponse.json(
+      { error: 'Internal server error', details: String(error) },
+      { status: 500 }
+    );
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// GET - קבלת מדדים קיימים של פרופיל
+// ═══════════════════════════════════════════════════════════════
+
+export async function GET(
+  request: NextRequest,
+  context: RouteContext // שינוי: שימוש ב-context במקום destructuring ישיר
+) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user || !['ADMIN', 'MATCHMAKER'].includes(session.user.role)) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
+    // שינוי: חילוץ הפרמטרים לאחר await
+    const { profileId } = await context.params;
+
+    // שליפת המדדים
+    const metrics = await prisma.$queryRaw<any[]>`
+      SELECT * FROM profile_metrics WHERE "profileId" = ${profileId}
+    `;
+
+    // שליפת מצב הוקטורים
+    const vectors = await prisma.$queryRaw<any[]>`
+      SELECT 
+        "profileId",
+        "selfVector" IS NOT NULL as "hasSelfVector",
+        "seekingVector" IS NOT NULL as "hasSeekingVector",
+        "selfVectorUpdatedAt",
+        "seekingVectorUpdatedAt",
+        "updatedAt"
+      FROM profile_vectors 
+      WHERE "profileId" = ${profileId}
+    `;
+
+    if (!metrics[0]) {
+      return NextResponse.json({
+        exists: false,
+        metrics: null,
+        vectors: vectors[0] || null,
+      });
+    }
+
+    return NextResponse.json({
+      exists: true,
+      metrics: metrics[0],
+      vectors: vectors[0] || null,
+    });
+
+  } catch (error) {
+    console.error('[API] Get metrics failed:', error);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}
+--- End of Content for route.ts ---
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\admin\profiles\profiles\batch-update-metrics
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\admin\profiles\profiles\batch-update-metrics\route.ts
+--------------------------------------------------------------------------------
+Content:
+// ============================================================
+// NeshamaTech - Batch Update All Profiles Metrics & Vectors
+// src/app/api/admin/profiles/batch-update-metrics/route.ts
+// ============================================================
+
+import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
+import prisma from '@/lib/prisma';
+import { updateProfileVectorsAndMetrics } from '@/lib/services/dualVectorService';
+
+// ═══════════════════════════════════════════════════════════════
+// POST - עדכון מדדים ווקטורים לכל הפרופילים
+// ═══════════════════════════════════════════════════════════════
+
+export async function POST(request: NextRequest) {
+  try {
+    // בדיקת הרשאות (רק אדמין)
+    const session = await getServerSession(authOptions);
+    if (!session?.user || session.user.role !== 'ADMIN') {
+      return NextResponse.json(
+        { error: 'Unauthorized - Admin only' },
+        { status: 401 }
+      );
+    }
+
+    // פרמטרים אופציונליים
+    const body = await request.json().catch(() => ({}));
+    const {
+      limit = 50,           // כמה פרופילים לעדכן
+      onlyMissing = true,   // רק כאלה שחסר להם מדדים
+      gender = null,        // סינון לפי מגדר
+      forceUpdate = false,  // לעדכן גם את מי שכבר יש לו
+    } = body;
+
+    console.log(`[BatchUpdate] Starting batch update. Limit: ${limit}, OnlyMissing: ${onlyMissing}`);
+
+    // שליפת פרופילים לעדכון
+    let query = `
+      SELECT p.id, p.gender, p."userId",
+             pm.id IS NOT NULL as "hasMetrics",
+             pv."selfVector" IS NOT NULL as "hasSelfVector",
+             pv."seekingVector" IS NOT NULL as "hasSeekingVector"
+      FROM profiles p
+      LEFT JOIN profile_metrics pm ON pm."profileId" = p.id
+      LEFT JOIN profile_vectors pv ON pv."profileId" = p.id
+      WHERE p.status = 'AVAILABLE'
+    `;
+
+    if (onlyMissing && !forceUpdate) {
+      query += ` AND (pm.id IS NULL OR pv."selfVector" IS NULL OR pv."seekingVector" IS NULL)`;
+    }
+
+    if (gender) {
+      query += ` AND p.gender = '${gender}'`;
+    }
+
+    query += ` ORDER BY p."createdAt" DESC LIMIT ${limit}`;
+
+    const profilesToUpdate = await prisma.$queryRawUnsafe<any[]>(query);
+
+    console.log(`[BatchUpdate] Found ${profilesToUpdate.length} profiles to update`);
+
+    // עדכון כל פרופיל
+    const results: {
+      profileId: string;
+      success: boolean;
+      metricsUpdated: boolean;
+      vectorsUpdated: boolean;
+      errors: string[];
+      durationMs: number;
+    }[] = [];
+
+    for (const profile of profilesToUpdate) {
+      const startTime = Date.now();
+      
+      try {
+        console.log(`[BatchUpdate] Processing profile: ${profile.id}`);
+        
+        const result = await updateProfileVectorsAndMetrics(profile.id);
+        
+        results.push({
+          profileId: profile.id,
+          success: result.metricsUpdated && result.vectorsUpdated,
+          metricsUpdated: result.metricsUpdated,
+          vectorsUpdated: result.vectorsUpdated,
+          errors: result.errors,
+          durationMs: Date.now() - startTime,
+        });
+
+        // המתנה קצרה בין קריאות (rate limiting)
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+      } catch (error) {
+        results.push({
+          profileId: profile.id,
+          success: false,
+          metricsUpdated: false,
+          vectorsUpdated: false,
+          errors: [String(error)],
+          durationMs: Date.now() - startTime,
+        });
+      }
+    }
+
+    // סיכום
+    const summary = {
+      total: results.length,
+      successful: results.filter(r => r.success).length,
+      failed: results.filter(r => !r.success).length,
+      metricsUpdated: results.filter(r => r.metricsUpdated).length,
+      vectorsUpdated: results.filter(r => r.vectorsUpdated).length,
+      avgDurationMs: Math.round(results.reduce((sum, r) => sum + r.durationMs, 0) / results.length),
+    };
+
+    console.log(`[BatchUpdate] Completed. Summary:`, summary);
+
+    return NextResponse.json({
+      success: true,
+      summary,
+      results,
+    });
+
+  } catch (error) {
+    console.error('[BatchUpdate] Failed:', error);
+    return NextResponse.json(
+      { error: 'Internal server error', details: String(error) },
+      { status: 500 }
+    );
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// GET - סטטוס של המדדים והוקטורים במערכת
+// ═══════════════════════════════════════════════════════════════
+
+export async function GET(request: NextRequest) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user || !['ADMIN', 'MATCHMAKER'].includes(session.user.role)) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
+    // סטטיסטיקות כלליות
+    const stats = await prisma.$queryRaw<any[]>`
+      SELECT 
+        COUNT(DISTINCT p.id) as "totalProfiles",
+        COUNT(DISTINCT CASE WHEN p.status = 'AVAILABLE' THEN p.id END) as "availableProfiles",
+        COUNT(DISTINCT pm."profileId") as "profilesWithMetrics",
+        COUNT(DISTINCT CASE WHEN pv."selfVector" IS NOT NULL THEN pv."profileId" END) as "profilesWithSelfVector",
+        COUNT(DISTINCT CASE WHEN pv."seekingVector" IS NOT NULL THEN pv."profileId" END) as "profilesWithSeekingVector",
+        COUNT(DISTINCT CASE WHEN pv."selfVector" IS NOT NULL AND pv."seekingVector" IS NOT NULL THEN pv."profileId" END) as "profilesWithBothVectors"
+      FROM profiles p
+      LEFT JOIN profile_metrics pm ON pm."profileId" = p.id
+      LEFT JOIN profile_vectors pv ON pv."profileId" = p.id
+    `;
+
+    // פירוט לפי מגדר
+    const byGender = await prisma.$queryRaw<any[]>`
+      SELECT 
+        p.gender,
+        COUNT(p.id) as total,
+        COUNT(pm."profileId") as "withMetrics",
+        COUNT(CASE WHEN pv."selfVector" IS NOT NULL AND pv."seekingVector" IS NOT NULL THEN 1 END) as "withBothVectors"
+      FROM profiles p
+      LEFT JOIN profile_metrics pm ON pm."profileId" = p.id
+      LEFT JOIN profile_vectors pv ON pv."profileId" = p.id
+      WHERE p.status = 'AVAILABLE'
+      GROUP BY p.gender
+    `;
+
+    // ממוצע confidence
+    const avgConfidence = await prisma.$queryRaw<any[]>`
+      SELECT 
+        AVG("confidenceScore") as "avgConfidence",
+        AVG("dataCompleteness") as "avgDataCompleteness"
+      FROM profile_metrics
+    `;
+
+    // פרופילים שצריכים עדכון
+    const needsUpdate = await prisma.$queryRaw<any[]>`
+      SELECT COUNT(*) as count
+      FROM profiles p
+      LEFT JOIN profile_metrics pm ON pm."profileId" = p.id
+      LEFT JOIN profile_vectors pv ON pv."profileId" = p.id
+      WHERE p.status = 'AVAILABLE'
+        AND (pm.id IS NULL OR pv."selfVector" IS NULL OR pv."seekingVector" IS NULL)
+    `;
+
+    return NextResponse.json({
+      overall: stats[0],
+      byGender,
+      avgMetrics: avgConfidence[0],
+      needsUpdate: Number(needsUpdate[0]?.count || 0),
+    });
+
+  } catch (error) {
+    console.error('[BatchUpdate] Stats failed:', error);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}
+--- End of Content for route.ts ---
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\admin\profiles\profiles\scan
+================================================================================
+
+(This directory contains subdirectories but no files directly. See subdirectories below.)
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\admin\profiles\profiles\scan\[userId]
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\admin\profiles\profiles\scan\[userId]\route.ts
+--------------------------------------------------------------------------------
+Content:
+// ============================================================
+// NeshamaTech - Scan Single User API V2 (FIXED)
+// src/app/api/admin/scan/[userId]/route.ts
+// ============================================================
+
+import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
+import prisma from '@/lib/prisma';
+import { scanSingleUserV2, saveScanResults, ScanOptions } from '@/lib/services/scanSingleUserV2';
+import { Gender } from '@prisma/client';
+
+// ═══════════════════════════════════════════════════════════════
+// POST - הפעלת סריקה ליוזר בודד
+// ═══════════════════════════════════════════════════════════════
+
+export async function POST(
+  request: NextRequest,
+  { params }: { params: { userId: string } }
+) {
+  try {
+    // בדיקת הרשאות
+    const session = await getServerSession(authOptions);
+    if (!session?.user || !['ADMIN', 'MATCHMAKER'].includes(session.user.role)) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
+    const { userId } = params;
+
+    // פרמטרים מה-body
+    const body = await request.json().catch(() => ({}));
+    const options: ScanOptions = {
+      useVectors: body.useVectors ?? true,
+      useAIDeepAnalysis: body.useAIDeepAnalysis ?? true,
+      maxCandidates: body.maxCandidates ?? 100,
+      topForAI: body.topForAI ?? 30,
+      forceUpdateMetrics: body.forceUpdateMetrics ?? false,
+    };
+
+    console.log(`[API] Starting scan for user: ${userId}`, options);
+
+    // הפעלת הסריקה
+    const result = await scanSingleUserV2(userId, options);
+
+    // שמירה ל-DB (אם רוצים)
+    const saveToDb = body.saveToDb ?? true;
+    if (saveToDb && result.matches.length > 0) {
+      await saveScanResults(result);
+    }
+
+    // סיכום תמציתי
+    const summary = {
+      totalMatches: result.matches.length,
+      tier1: result.matches.filter(m => m.tier === 1).length,
+      tier2: result.matches.filter(m => m.tier === 2).length,
+      tier3: result.matches.filter(m => m.tier === 3).length,
+      excellent: result.matches.filter(m => m.recommendation === 'EXCELLENT').length,
+      good: result.matches.filter(m => m.recommendation === 'GOOD').length,
+      avgScore: result.matches.length > 0
+        ? Math.round(result.matches.reduce((sum, m) => sum + m.symmetricScore, 0) / result.matches.length)
+        : 0,
+    };
+
+    return NextResponse.json({
+      success: true,
+      userId,
+      profileId: result.profileId,
+      durationMs: result.durationMs,
+      stats: result.stats,
+      summary,
+      matches: result.matches,
+      errors: result.errors,
+      warnings: result.warnings,
+    });
+
+  } catch (error) {
+    console.error('[API] Scan failed:', error);
+    return NextResponse.json(
+      { error: 'Scan failed', details: String(error) },
+      { status: 500 }
+    );
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// GET - קבלת תוצאות סריקה קודמות
+// ═══════════════════════════════════════════════════════════════
+
+export async function GET(
+  request: NextRequest,
+  { params }: { params: { userId: string } }
+) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user || !['ADMIN', 'MATCHMAKER'].includes(session.user.role)) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
+    const { userId } = params;
+    const { searchParams } = new URL(request.url);
+    const limit = parseInt(searchParams.get('limit') || '50');
+    const minScore = parseInt(searchParams.get('minScore') || '0');
+
+    // שליפת הפרופיל
+    const profile = await prisma.profile.findFirst({
+      where: { userId },
+      select: { id: true, gender: true, lastScannedAt: true },
+    });
+
+    if (!profile) {
+      return NextResponse.json(
+        { error: 'Profile not found' },
+        { status: 404 }
+      );
+    }
+
+    const isMale = profile.gender === Gender.MALE;
+    
+    // שליפת התאמות קיימות
+    const matches = await prisma.potentialMatch.findMany({
+      where: {
+        OR: [
+          { maleUserId: userId },
+          { femaleUserId: userId },
+        ],
+        aiScore: { gte: minScore },
+        // תיקון: שימוש בסטטוסים הנכונים מה-enum
+        status: { notIn: ['DISMISSED', 'EXPIRED'] },
+      },
+      orderBy: { aiScore: 'desc' },
+      take: limit,
+    });
+
+    // שליפת פרטי המשתמשים בנפרד
+    const formattedMatches = await Promise.all(matches.map(async (match) => {
+      const candidateUserId = isMale ? match.femaleUserId : match.maleUserId;
+      
+      const candidateUser = await prisma.user.findUnique({
+        where: { id: candidateUserId },
+        select: {
+          firstName: true,
+          lastName: true,
+          profile: {
+            select: { id: true, city: true, birthDate: true }
+          }
+        }
+      });
+
+      const candidateAge = candidateUser?.profile?.birthDate
+        ? Math.floor((Date.now() - new Date(candidateUser.profile.birthDate).getTime()) / (1000 * 60 * 60 * 24 * 365.25))
+        : null;
+      
+      return {
+        matchId: match.id,
+        candidateUserId,
+        candidateProfileId: candidateUser?.profile?.id,
+        candidateName: candidateUser ? `${candidateUser.firstName} ${candidateUser.lastName}` : 'Unknown',
+        candidateCity: candidateUser?.profile?.city,
+        candidateAge,
+        aiScore: match.aiScore,
+        firstPassScore: match.firstPassScore,
+        status: match.status,
+        shortReasoning: match.shortReasoning,
+        scannedAt: match.scannedAt,
+      };
+    }));
+
+    return NextResponse.json({
+      userId,
+      profileId: profile.id,
+      lastScannedAt: profile.lastScannedAt,
+      matchCount: formattedMatches.length,
+      matches: formattedMatches,
+    });
+
+  } catch (error) {
+    console.error('[API] Get matches failed:', error);
+    return NextResponse.json(
+      { error: 'Failed to get matches', details: String(error) },
+      { status: 500 }
+    );
+  }
+}
+--- End of Content for route.ts ---
+
+--- End of Content for profiles_contents.txt ---
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\admin\profiles\profiles\[profileId]
+================================================================================
+
+(This directory contains subdirectories but no files directly. See subdirectories below.)
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\admin\profiles\profiles\[profileId]\update-metrics
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\admin\profiles\profiles\[profileId]\update-metrics\route.ts
+--------------------------------------------------------------------------------
+Content:
+// ============================================================
+// NeshamaTech - Update Profile Metrics & Vectors API
+// src/app/api/admin/profiles/[profileId]/update-metrics/route.ts
+// ============================================================
+
+import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
+import prisma from '@/lib/prisma';
+import { updateProfileVectorsAndMetrics } from '@/lib/services/dualVectorService';
+
+// הגדרת טיפוס עבור הפרמטרים (תואם Next.js 15)
+type RouteContext = {
+  params: Promise<{ profileId: string }>;
+};
+
+// ═══════════════════════════════════════════════════════════════
+// POST - עדכון מדדים ווקטורים לפרופיל בודד
+// ═══════════════════════════════════════════════════════════════
+
+export async function POST(
+  request: NextRequest,
+  context: RouteContext // שינוי: שימוש ב-context במקום destructuring ישיר בחתימה
+) {
+  try {
+    // בדיקת הרשאות (רק אדמין/שדכן)
+    const session = await getServerSession(authOptions);
+    if (!session?.user || !['ADMIN', 'MATCHMAKER'].includes(session.user.role)) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
+    // שינוי: חילוץ הפרמטרים לאחר await
+    const { profileId } = await context.params;
+
+    // וידוא שהפרופיל קיים
+    const profile = await prisma.profile.findUnique({
+      where: { id: profileId },
+      select: { id: true, userId: true, gender: true },
+    });
+
+    if (!profile) {
+      return NextResponse.json(
+        { error: 'Profile not found' },
+        { status: 404 }
+      );
+    }
+
+    console.log(`[API] Starting metrics/vectors update for profile: ${profileId}`);
+    const startTime = Date.now();
+
+    // הפעלת העדכון
+    const result = await updateProfileVectorsAndMetrics(profileId);
+
+    const duration = Date.now() - startTime;
+
+    // לוג לדיבוג
+    await prisma.$executeRaw`
+      INSERT INTO metrics_calculation_log (
+        id, "profileId", "calculatedAt", "calculationType", 
+        "inputData", "outputMetrics", "durationMs", "errors"
+      ) VALUES (
+        ${`log_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`},
+        ${profileId},
+        NOW(),
+        'FULL',
+        ${JSON.stringify({ triggeredBy: session.user.email })}::jsonb,
+        ${JSON.stringify(result)}::jsonb,
+        ${duration},
+        ${result.errors.length > 0 ? JSON.stringify(result.errors) : null}::jsonb
+      )
+    `;
+
+    return NextResponse.json({
+      success: result.metricsUpdated && result.vectorsUpdated,
+      profileId,
+      metricsUpdated: result.metricsUpdated,
+      vectorsUpdated: result.vectorsUpdated,
+      errors: result.errors,
+      durationMs: duration,
+    });
+
+  } catch (error) {
+    console.error('[API] Update metrics failed:', error);
+    return NextResponse.json(
+      { error: 'Internal server error', details: String(error) },
+      { status: 500 }
+    );
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// GET - קבלת מדדים קיימים של פרופיל
+// ═══════════════════════════════════════════════════════════════
+
+export async function GET(
+  request: NextRequest,
+  context: RouteContext // שינוי: שימוש ב-context במקום destructuring ישיר
+) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user || !['ADMIN', 'MATCHMAKER'].includes(session.user.role)) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
+    // שינוי: חילוץ הפרמטרים לאחר await
+    const { profileId } = await context.params;
+
+    // שליפת המדדים
+    const metrics = await prisma.$queryRaw<any[]>`
+      SELECT * FROM profile_metrics WHERE "profileId" = ${profileId}
+    `;
+
+    // שליפת מצב הוקטורים
+    const vectors = await prisma.$queryRaw<any[]>`
+      SELECT 
+        "profileId",
+        "selfVector" IS NOT NULL as "hasSelfVector",
+        "seekingVector" IS NOT NULL as "hasSeekingVector",
+        "selfVectorUpdatedAt",
+        "seekingVectorUpdatedAt",
+        "updatedAt"
+      FROM profile_vectors 
+      WHERE "profileId" = ${profileId}
+    `;
+
+    if (!metrics[0]) {
+      return NextResponse.json({
+        exists: false,
+        metrics: null,
+        vectors: vectors[0] || null,
+      });
+    }
+
+    return NextResponse.json({
+      exists: true,
+      metrics: metrics[0],
+      vectors: vectors[0] || null,
+    });
+
+  } catch (error) {
+    console.error('[API] Get metrics failed:', error);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}
+--- End of Content for route.ts ---
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\admin\profiles\profiles\batch-update-metrics
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\admin\profiles\profiles\batch-update-metrics\route.ts
+--------------------------------------------------------------------------------
+Content:
+// ============================================================
+// NeshamaTech - Batch Update All Profiles Metrics & Vectors
+// src/app/api/admin/profiles/batch-update-metrics/route.ts
+// ============================================================
+
+import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
+import prisma from '@/lib/prisma';
+import { updateProfileVectorsAndMetrics } from '@/lib/services/dualVectorService';
+
+// ═══════════════════════════════════════════════════════════════
+// POST - עדכון מדדים ווקטורים לכל הפרופילים
+// ═══════════════════════════════════════════════════════════════
+
+export async function POST(request: NextRequest) {
+  try {
+    // בדיקת הרשאות (רק אדמין)
+    const session = await getServerSession(authOptions);
+    if (!session?.user || session.user.role !== 'ADMIN') {
+      return NextResponse.json(
+        { error: 'Unauthorized - Admin only' },
+        { status: 401 }
+      );
+    }
+
+    // פרמטרים אופציונליים
+    const body = await request.json().catch(() => ({}));
+    const {
+      limit = 50,           // כמה פרופילים לעדכן
+      onlyMissing = true,   // רק כאלה שחסר להם מדדים
+      gender = null,        // סינון לפי מגדר
+      forceUpdate = false,  // לעדכן גם את מי שכבר יש לו
+    } = body;
+
+    console.log(`[BatchUpdate] Starting batch update. Limit: ${limit}, OnlyMissing: ${onlyMissing}`);
+
+    // שליפת פרופילים לעדכון
+// בקובץ batch-update-metrics/route.ts
+    let query = `
+      SELECT p.id, p.gender, p."userId",
+             pm.id IS NOT NULL as "hasMetrics",
+             pv."selfVector" IS NOT NULL as "hasSelfVector",
+             pv."seekingVector" IS NOT NULL as "hasSeekingVector"
+      FROM "Profile" p  -- שונה מ-profiles
+      LEFT JOIN "profile_metrics" pm ON pm."profileId" = p.id
+      LEFT JOIN "profile_vectors" pv ON pv."profileId" = p.id
+      WHERE p.status = 'AVAILABLE'
+    `;
+
+    if (onlyMissing && !forceUpdate) {
+      query += ` AND (pm.id IS NULL OR pv."selfVector" IS NULL OR pv."seekingVector" IS NULL)`;
+    }
+
+    if (gender) {
+      query += ` AND p.gender = '${gender}'`;
+    }
+
+    query += ` ORDER BY p."createdAt" DESC LIMIT ${limit}`;
+
+    const profilesToUpdate = await prisma.$queryRawUnsafe<any[]>(query);
+
+    console.log(`[BatchUpdate] Found ${profilesToUpdate.length} profiles to update`);
+
+    // עדכון כל פרופיל
+    const results: {
+      profileId: string;
+      success: boolean;
+      metricsUpdated: boolean;
+      vectorsUpdated: boolean;
+      errors: string[];
+      durationMs: number;
+    }[] = [];
+
+    for (const profile of profilesToUpdate) {
+      const startTime = Date.now();
+      
+      try {
+        console.log(`[BatchUpdate] Processing profile: ${profile.id}`);
+        
+        const result = await updateProfileVectorsAndMetrics(profile.id);
+        
+        results.push({
+          profileId: profile.id,
+          success: result.metricsUpdated && result.vectorsUpdated,
+          metricsUpdated: result.metricsUpdated,
+          vectorsUpdated: result.vectorsUpdated,
+          errors: result.errors,
+          durationMs: Date.now() - startTime,
+        });
+
+        // המתנה קצרה בין קריאות (rate limiting)
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+      } catch (error) {
+        results.push({
+          profileId: profile.id,
+          success: false,
+          metricsUpdated: false,
+          vectorsUpdated: false,
+          errors: [String(error)],
+          durationMs: Date.now() - startTime,
+        });
+      }
+    }
+
+    // סיכום
+    const summary = {
+      total: results.length,
+      successful: results.filter(r => r.success).length,
+      failed: results.filter(r => !r.success).length,
+      metricsUpdated: results.filter(r => r.metricsUpdated).length,
+      vectorsUpdated: results.filter(r => r.vectorsUpdated).length,
+      avgDurationMs: Math.round(results.reduce((sum, r) => sum + r.durationMs, 0) / results.length),
+    };
+
+    console.log(`[BatchUpdate] Completed. Summary:`, summary);
+
+    return NextResponse.json({
+      success: true,
+      summary,
+      results,
+    });
+
+  } catch (error) {
+    console.error('[BatchUpdate] Failed:', error);
+    return NextResponse.json(
+      { error: 'Internal server error', details: String(error) },
+      { status: 500 }
+    );
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// GET - סטטוס של המדדים והוקטורים במערכת
+// ═══════════════════════════════════════════════════════════════
+
+export async function GET(request: NextRequest) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user || !['ADMIN', 'MATCHMAKER'].includes(session.user.role)) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
+    // סטטיסטיקות כלליות
+    const stats = await prisma.$queryRaw<any[]>`
+      SELECT 
+        COUNT(DISTINCT p.id) as "totalProfiles",
+        COUNT(DISTINCT CASE WHEN p.status = 'AVAILABLE' THEN p.id END) as "availableProfiles",
+        COUNT(DISTINCT pm."profileId") as "profilesWithMetrics",
+        COUNT(DISTINCT CASE WHEN pv."selfVector" IS NOT NULL THEN pv."profileId" END) as "profilesWithSelfVector",
+        COUNT(DISTINCT CASE WHEN pv."seekingVector" IS NOT NULL THEN pv."profileId" END) as "profilesWithSeekingVector",
+        COUNT(DISTINCT CASE WHEN pv."selfVector" IS NOT NULL AND pv."seekingVector" IS NOT NULL THEN pv."profileId" END) as "profilesWithBothVectors"
+      FROM profiles p
+      LEFT JOIN profile_metrics pm ON pm."profileId" = p.id
+      LEFT JOIN profile_vectors pv ON pv."profileId" = p.id
+    `;
+
+    // פירוט לפי מגדר
+    const byGender = await prisma.$queryRaw<any[]>`
+      SELECT 
+        p.gender,
+        COUNT(p.id) as total,
+        COUNT(pm."profileId") as "withMetrics",
+        COUNT(CASE WHEN pv."selfVector" IS NOT NULL AND pv."seekingVector" IS NOT NULL THEN 1 END) as "withBothVectors"
+      FROM profiles p
+      LEFT JOIN profile_metrics pm ON pm."profileId" = p.id
+      LEFT JOIN profile_vectors pv ON pv."profileId" = p.id
+      WHERE p.status = 'AVAILABLE'
+      GROUP BY p.gender
+    `;
+
+    // ממוצע confidence
+    const avgConfidence = await prisma.$queryRaw<any[]>`
+      SELECT 
+        AVG("confidenceScore") as "avgConfidence",
+        AVG("dataCompleteness") as "avgDataCompleteness"
+      FROM profile_metrics
+    `;
+
+    // פרופילים שצריכים עדכון
+    const needsUpdate = await prisma.$queryRaw<any[]>`
+      SELECT COUNT(*) as count
+      FROM profiles p
+      LEFT JOIN profile_metrics pm ON pm."profileId" = p.id
+      LEFT JOIN profile_vectors pv ON pv."profileId" = p.id
+      WHERE p.status = 'AVAILABLE'
+        AND (pm.id IS NULL OR pv."selfVector" IS NULL OR pv."seekingVector" IS NULL)
+    `;
+
+    return NextResponse.json({
+      overall: stats[0],
+      byGender,
+      avgMetrics: avgConfidence[0],
+      needsUpdate: Number(needsUpdate[0]?.count || 0),
+    });
+
+  } catch (error) {
+    console.error('[BatchUpdate] Stats failed:', error);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}
+--- End of Content for route.ts ---
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\admin\profiles\profiles\scan
+================================================================================
+
+(This directory contains subdirectories but no files directly. See subdirectories below.)
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\admin\profiles\profiles\scan\[userId]
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\admin\profiles\profiles\scan\[userId]\route.ts
+--------------------------------------------------------------------------------
+Content:
+// ============================================================
+// NeshamaTech - Scan Single User API V2 (FIXED)
+// src/app/api/admin/profiles/profiles/scan/[userId]/route.ts
+// ============================================================
+
+import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
+import prisma from '@/lib/prisma';
+import { scanSingleUserV2, saveScanResults, ScanOptions } from '@/lib/services/scanSingleUserV2';
+import { Gender } from '@prisma/client';
+
+// הגדרת טיפוס עבור הפרמטרים של הנתיב (תואם Next.js 15)
+interface RouteContext {
+  params: Promise<{ userId: string }>;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// POST - הפעלת סריקה ליוזר בודד
+// ═══════════════════════════════════════════════════════════════
+
+export async function POST(
+  request: NextRequest,
+  context: RouteContext
+) {
+  try {
+    // 1. חילוץ הפרמטרים בצורה אסינכרונית (תואם לגרסאות חדשות)
+    const { userId } = await context.params;
+
+    // בדיקת הרשאות
+    const session = await getServerSession(authOptions);
+    if (!session?.user || !['ADMIN', 'MATCHMAKER'].includes(session.user.role)) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
+    // פרמטרים מה-body
+    const body = await request.json().catch(() => ({}));
+    const options: ScanOptions = {
+      useVectors: body.useVectors ?? true,
+      useAIDeepAnalysis: body.useAIDeepAnalysis ?? true,
+      maxCandidates: body.maxCandidates ?? 100,
+      topForAI: body.topForAI ?? 30,
+      forceUpdateMetrics: body.forceUpdateMetrics ?? false,
+    };
+
+    console.log(`[API] Starting scan for user: ${userId}`, options);
+
+    // הפעלת הסריקה
+    const result = await scanSingleUserV2(userId, options);
+
+    // שמירה ל-DB (אם רוצים)
+    const saveToDb = body.saveToDb ?? true;
+    if (saveToDb && result.matches.length > 0) {
+      await saveScanResults(result);
+    }
+
+    // סיכום תמציתי
+    const summary = {
+      totalMatches: result.matches.length,
+      tier1: result.matches.filter(m => m.tier === 1).length,
+      tier2: result.matches.filter(m => m.tier === 2).length,
+      tier3: result.matches.filter(m => m.tier === 3).length,
+      excellent: result.matches.filter(m => m.recommendation === 'EXCELLENT').length,
+      good: result.matches.filter(m => m.recommendation === 'GOOD').length,
+      avgScore: result.matches.length > 0
+        ? Math.round(result.matches.reduce((sum, m) => sum + m.symmetricScore, 0) / result.matches.length)
+        : 0,
+    };
+
+    return NextResponse.json({
+      success: true,
+      userId,
+      profileId: result.profileId,
+      durationMs: result.durationMs,
+      stats: result.stats,
+      summary,
+      matches: result.matches,
+      errors: result.errors,
+      warnings: result.warnings,
+    });
+
+  } catch (error) {
+    console.error('[API] Scan failed:', error);
+    return NextResponse.json(
+      { error: 'Scan failed', details: String(error) },
+      { status: 500 }
+    );
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// GET - קבלת תוצאות סריקה קודמות
+// ═══════════════════════════════════════════════════════════════
+
+export async function GET(
+  request: NextRequest,
+  context: RouteContext
+) {
+  try {
+    // 1. חילוץ הפרמטרים בצורה אסינכרונית
+    const { userId } = await context.params;
+
+    const session = await getServerSession(authOptions);
+    if (!session?.user || !['ADMIN', 'MATCHMAKER'].includes(session.user.role)) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
+    const { searchParams } = new URL(request.url);
+    const limit = parseInt(searchParams.get('limit') || '50');
+    const minScore = parseInt(searchParams.get('minScore') || '0');
+
+    // שליפת הפרופיל
+    const profile = await prisma.profile.findFirst({
+      where: { userId },
+      select: { id: true, gender: true, lastScannedAt: true },
+    });
+
+    if (!profile) {
+      return NextResponse.json(
+        { error: 'Profile not found' },
+        { status: 404 }
+      );
+    }
+
+    const isMale = profile.gender === Gender.MALE;
+    
+    // שליפת התאמות קיימות
+    const matches = await prisma.potentialMatch.findMany({
+      where: {
+        OR: [
+          { maleUserId: userId },
+          { femaleUserId: userId },
+        ],
+        aiScore: { gte: minScore },
+        // שימוש בסטטוסים הנכונים מה-enum
+        status: { notIn: ['DISMISSED', 'EXPIRED'] },
+      },
+      orderBy: { aiScore: 'desc' },
+      take: limit,
+    });
+
+    // שליפת פרטי המשתמשים בנפרד
+    const formattedMatches = await Promise.all(matches.map(async (match) => {
+      const candidateUserId = isMale ? match.femaleUserId : match.maleUserId;
+      
+      const candidateUser = await prisma.user.findUnique({
+        where: { id: candidateUserId },
+        select: {
+          firstName: true,
+          lastName: true,
+          profile: {
+            select: { id: true, city: true, birthDate: true }
+          }
+        }
+      });
+
+      const candidateAge = candidateUser?.profile?.birthDate
+        ? Math.floor((Date.now() - new Date(candidateUser.profile.birthDate).getTime()) / (1000 * 60 * 60 * 24 * 365.25))
+        : null;
+      
+      return {
+        matchId: match.id,
+        candidateUserId,
+        candidateProfileId: candidateUser?.profile?.id,
+        candidateName: candidateUser ? `${candidateUser.firstName} ${candidateUser.lastName}` : 'Unknown',
+        candidateCity: candidateUser?.profile?.city,
+        candidateAge,
+        aiScore: match.aiScore,
+        firstPassScore: match.firstPassScore,
+        status: match.status,
+        shortReasoning: match.shortReasoning,
+        scannedAt: match.scannedAt,
+      };
+    }));
+
+    return NextResponse.json({
+      userId,
+      profileId: profile.id,
+      lastScannedAt: profile.lastScannedAt,
+      matchCount: formattedMatches.length,
+      matches: formattedMatches,
+    });
+
+  } catch (error) {
+    console.error('[API] Get matches failed:', error);
+    return NextResponse.json(
+      { error: 'Failed to get matches', details: String(error) },
+      { status: 500 }
+    );
+  }
+}
+--- End of Content for route.ts ---
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\admin\update-all-metrics
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\admin\update-all-metrics\route.ts
+--------------------------------------------------------------------------------
+Content:
+import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
+import prisma from '@/lib/prisma';
+import { updateProfileVectorsAndMetrics } from '@/lib/services/dualVectorService';
+import { extractMetricsFromProfile } from '@/lib/services/metricsExtractionService';
+
+export async function POST(request: NextRequest) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user || session.user.role !== 'ADMIN') {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const body = await request.json().catch(() => ({}));
+    const limit = body.limit ?? 100;
+    const forceUpdate = body.forceUpdate ?? false;
+
+    console.log(`[UpdateAllMetrics] Starting batch update, limit: ${limit}, force: ${forceUpdate}`);
+
+    // שליפת פרופילים שצריכים עדכון
+    const profiles = await prisma.profile.findMany({
+      where: forceUpdate ? {} : {
+        OR: [
+          { metrics: null },
+          { vector: null },
+        ],
+      },
+      select: { id: true, userId: true },
+      take: limit,
+    });
+
+    console.log(`[UpdateAllMetrics] Found ${profiles.length} profiles to update`);
+
+    const results = {
+      total: profiles.length,
+      success: 0,
+      failed: 0,
+      errors: [] as string[],
+    };
+
+    for (const profile of profiles) {
+      try {
+        // עדכון מדדים
+        await extractMetricsFromProfile(profile.id);
+        
+        // עדכון וקטורים
+        await updateProfileVectorsAndMetrics(profile.id);
+        
+        results.success++;
+        
+        // Delay למניעת עומס על API
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+      } catch (error) {
+        results.failed++;
+        results.errors.push(`${profile.id}: ${error}`);
+      }
+    }
+
+    console.log(`[UpdateAllMetrics] Completed: ${results.success} success, ${results.failed} failed`);
+
+    return NextResponse.json({
+      success: true,
+      results,
+    });
+
+  } catch (error) {
+    console.error('[UpdateAllMetrics] Failed:', error);
+    return NextResponse.json(
+      { error: 'Update failed', details: String(error) },
+      { status: 500 }
+    );
+  }
+}
+--- End of Content for route.ts ---
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\admin\update-vectors
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\admin\update-vectors\route.ts
+--------------------------------------------------------------------------------
+Content:
+import { NextResponse, NextRequest } from 'next/server';
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import prisma from "@/lib/prisma";
+import { UserRole } from "@prisma/client";
+import { updateUserAiProfile } from '@/lib/services/profileAiService';
+
+export const maxDuration = 300; 
+export const dynamic = 'force-dynamic';
+
+async function runVectorUpdateProcess(usersToUpdate: { id: string, email: string }[]) {
+  console.log(`🚀 [Vector Update] Starting process for ${usersToUpdate.length} users...`);
+  
+  let successCount = 0;
+  let failCount = 0;
+
+  for (const user of usersToUpdate) {
+    try {
+      console.log(`Processing User: ${user.email} (${user.id})...`);
+      
+      // יצירת הנרטיב, שליחה ל-AI ושמירת הווקטור
+      await updateUserAiProfile(user.id);
+
+      console.log(`✅ [Vector Update] Updated vector for: ${user.email}`);
+      successCount++;
+
+      // השהייה למניעת חסימה
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+    } catch (error) {
+      console.error(`❌ [Vector Update] Error for: ${user.email}`, error);
+      failCount++;
+    }
+  }
+
+  console.log(`\n🏁 [Vector Update] DONE. Success: ${successCount}, Failed: ${failCount}`);
+}
+
+// הלוגיקה המרכזית (משותפת ל-POST ול-GET)
+async function handler(req: NextRequest) {
+  try {
+    const session = await getServerSession(authOptions);
+    
+    // בדיקת אדמין
+    if (!session?.user?.id || session.user.role !== UserRole.ADMIN) {
+      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 403 });
+    }
+
+    console.log(`[Vector Update API] Fetching active candidates...`);
+
+    const users = await prisma.user.findMany({
+      where: {
+        role: 'CANDIDATE',
+        status: 'ACTIVE', 
+        isProfileComplete: true,
+        profile: {
+          isNot: null
+        }
+      },
+      select: {
+        id: true,
+        email: true
+      }
+    });
+
+    if (users.length === 0) {
+      return NextResponse.json({ success: true, message: "No active users found to update." });
+    }
+
+    // הרצה ברקע (ללא await) כדי שהדפדפן לא יתקע ב-Timeout
+    runVectorUpdateProcess(users).catch(err => {
+      console.error(`[Vector Update API] Background error:`, err);
+    });
+
+    return NextResponse.json({ 
+      success: true, 
+      message: `תהליך העדכון התחיל עבור ${users.length} משתמשים. בדוק את ה-Terminal לראות את ההתקדמות.` 
+    });
+
+  } catch (error) {
+    console.error('[Vector Update API] Error:', error);
+    return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
+  }
+}
+
+// ייצוא גם ל-POST וגם ל-GET
+export async function POST(req: NextRequest) {
+  return handler(req);
+}
+
+export async function GET(req: NextRequest) {
+  return handler(req);
 }
 --- End of Content for route.ts ---
 

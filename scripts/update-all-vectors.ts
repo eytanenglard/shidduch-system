@@ -14,7 +14,7 @@ if (!apiKey) {
 }
 
 const genAI = new GoogleGenerativeAI(apiKey);
-const embeddingModel = genAI.getGenerativeModel({ model: 'text-embedding-004' });
+const embeddingModel = genAI.getGenerativeModel({ model: 'gemini-embedding-001' });
 
 // ==========================================
 // 1. פונקציות עזר (הועתקו מ-profileAiService.ts)

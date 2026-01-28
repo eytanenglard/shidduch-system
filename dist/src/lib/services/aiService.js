@@ -22,7 +22,7 @@ const genAI = new generative_ai_1.GoogleGenerativeAI(apiKey);
  */
 async function generateTextEmbedding(text) {
     try {
-        const model = genAI.getGenerativeModel({ model: 'text-embedding-004' });
+        const model = genAI.getGenerativeModel({ model: 'gemini-embedding-001' });
         const result = await model.embedContent(text);
         const embedding = result.embedding;
         if (embedding && embedding.values) {

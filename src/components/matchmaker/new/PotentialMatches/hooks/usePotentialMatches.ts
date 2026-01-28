@@ -64,6 +64,11 @@ export interface PotentialMatchFilters {
   hasWarning: boolean | null;
   scannedAfter: Date | null;
   sortBy: PotentialMatchSortBy;
+   gender?: 'MALE' | 'FEMALE' | null;  // סינון לפי מגדר
+  maleAgeRange?: { min: number; max: number };  // טווח גיל לגברים
+  femaleAgeRange?: { min: number; max: number }; // טווח גיל לנשים
+  maleReligiousLevel?: string[];  // רמה דתית לגברים
+  femaleReligiousLevel?: string[];  // רמה דתית לנשים
 }
 
 // --- Scan Types (V3) ---
@@ -190,6 +195,11 @@ const DEFAULT_FILTERS: PotentialMatchFilters = {
   hasWarning: null,
   scannedAfter: null,
   sortBy: 'score_desc',
+   gender: null,
+  maleAgeRange: undefined,
+  femaleAgeRange: undefined,
+  maleReligiousLevel: [],
+  femaleReligiousLevel: [],
 };
 
 const DEFAULT_PAGINATION = {
@@ -278,7 +288,23 @@ export function usePotentialMatches(options: {
       if (filters.hasWarning !== null) params.set('hasWarning', String(filters.hasWarning));
       if (filters.religiousLevel) params.set('religiousLevel', filters.religiousLevel);
       if (filters.city) params.set('city', filters.city);
+    // 🆕 NEW: Age range filters
+      if (filters.maleAgeRange) {
+        params.set('maleAgeMin', String(filters.maleAgeRange.min));
+        params.set('maleAgeMax', String(filters.maleAgeRange.max));
+      }
+      if (filters.femaleAgeRange) {
+        params.set('femaleAgeMin', String(filters.femaleAgeRange.min));
+        params.set('femaleAgeMax', String(filters.femaleAgeRange.max));
+      }
 
+      // 🆕 NEW: Religious level filters (per gender)
+      if (filters.maleReligiousLevel && filters.maleReligiousLevel.length > 0) {
+        params.set('maleReligiousLevel', filters.maleReligiousLevel.join(','));
+      }
+      if (filters.femaleReligiousLevel && filters.femaleReligiousLevel.length > 0) {
+        params.set('femaleReligiousLevel', filters.femaleReligiousLevel.join(','));
+      }
       const response = await fetch(`${API_BASE_MATCHES}?${params.toString()}`);
       const data = await response.json();
 

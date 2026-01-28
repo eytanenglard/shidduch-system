@@ -25,34 +25,56 @@ interface GenerateTextOptions {
   maxTokens?: number;
 }
 
+// src/lib/services/aiService.ts
+
 async function generateText(
   prompt: string,
   options: GenerateTextOptions = {}
 ): Promise<string> {
+  // תיקון: שימוש במודל יציב יותר אם 2.0 עושה בעיות, אבל נשאיר את הבחירה שלך כברירת מחדל
   const { model = 'gemini-2.0-flash', temperature = 0.3, maxTokens = 4000 } = options;
+  
+  // תיקון: שימוש במפתח הנכון (fallback למה שמוגדר)
+  const apiKey = process.env.GOOGLE_API_KEY || process.env.GOOGLE_GEMINI_API_KEY;
 
-  const response = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${process.env.GOOGLE_GEMINI_API_KEY}`,
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: { temperature, maxOutputTokens: maxTokens },
-      }),
+  if (!apiKey) {
+    throw new Error("Missing GOOGLE_API_KEY in environment variables");
+  }
+
+  try {
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: { temperature, maxOutputTokens: maxTokens },
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      // תיקון: קריאת תוכן השגיאה מגוגל כדי להבין למה זה נכשל
+      const errorBody = await response.text();
+      console.error(`[Gemini Error] Status: ${response.status}`, errorBody);
+      throw new Error(`Gemini API error: ${response.status} - ${errorBody}`);
     }
-  );
 
-  if (!response.ok) throw new Error(`Gemini API error: ${response.status}`);
-  const data = await response.json();
-  return data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    const data = await response.json();
+    return data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    
+  } catch (error) {
+    console.error('[generateText] Unexpected error:', error);
+    throw error;
+  }
 }
 
 export async function generateTextEmbedding(
   text: string
 ): Promise<number[] | null> {
   try {
-    const model = genAI.getGenerativeModel({ model: 'text-embedding-004' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-embedding-001' });
     const result = await model.embedContent(text);
     const embedding = result.embedding;
     if (embedding && embedding.values) {

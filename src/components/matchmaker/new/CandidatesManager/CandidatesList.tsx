@@ -62,7 +62,6 @@ interface CreateSuggestionData {
   secondPartyLanguage?: 'he' | 'en';
 }
 
-// 🆕 טיפוס לפירוט ציון
 interface ScoreBreakdown {
   religious: number;
   careerFamily: number;
@@ -72,7 +71,6 @@ interface ScoreBreakdown {
   values: number;
 }
 
-// 🆕 טיפוס מורחב למועמד עם נתוני AI
 type CandidateWithAiData = Candidate & {
   aiScore?: number;
   aiReasoning?: string;
@@ -86,7 +84,7 @@ type CandidateWithAiData = Candidate & {
     | 'possible'
     | 'problematic'
     | 'not_recommended';
-  aiSimilarity?: number; // 🆕 עבור Vector Search
+  aiSimilarity?: number;
 };
 
 interface CandidatesListProps {
@@ -139,39 +137,35 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
   profileDict,
 }) => {
   // Base states
-  const [selectedCandidate, setSelectedCandidate] = useState<Candidate | null>(
-    null
-  );
-  const [questionnaireResponse, setQuestionnaireResponse] =
-    useState<QuestionnaireResponse | null>(null);
+  const [selectedCandidate, setSelectedCandidate] = useState<Candidate | null>(null);
+  const [questionnaireResponse, setQuestionnaireResponse] = useState<QuestionnaireResponse | null>(null);
   const [isMatchmaker, setIsMatchmaker] = useState(true);
-  const [hoveredCandidate, setHoveredCandidate] =
-    useState<CandidateWithAiData | null>(null);
+  const [hoveredCandidate, setHoveredCandidate] = useState<CandidateWithAiData | null>(null);
   const [hoverPosition, setHoverPosition] = useState({ top: 0, left: 0 });
   const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const quickViewRef = useRef<HTMLDivElement>(null);
+  
+  // Store scroll position before opening dialogs
+  const scrollPositionRef = useRef<number>(0);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   // Dialog states
   const [showInviteDialog, setShowInviteDialog] = useState(false);
   const [showAvailabilityDialog, setShowAvailabilityDialog] = useState(false);
   const [showSuggestDialog, setShowSuggestDialog] = useState(false);
   const [showEditProfileDialog, setShowEditProfileDialog] = useState(false);
-  const [dialogCandidate, setDialogCandidate] = useState<Candidate | null>(
-    null
-  );
+  const [dialogCandidate, setDialogCandidate] = useState<Candidate | null>(null);
 
   const [isMobile, setIsMobile] = useState(false);
-  // הוסף אחרי שורה 150 (אחרי הגדרת ה-states)
+
   useEffect(() => {
     if (selectedCandidate) {
       console.log('[DEBUG] selectedCandidate:', selectedCandidate.firstName);
-      console.log(
-        '[DEBUG] selectedCandidate.images:',
-        selectedCandidate.images
-      );
+      console.log('[DEBUG] selectedCandidate.images:', selectedCandidate.images);
       console.log('[DEBUG] images count:', selectedCandidate.images?.length);
     }
   }, [selectedCandidate]);
+
   useEffect(() => {
     const checkScreenSize = () => {
       setIsMobile(window.innerWidth < 768);
@@ -218,10 +212,7 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
         params.append('userId', selectedCandidate.id);
         params.append('locale', locale);
 
-        const response = await fetch(
-          `/api/profile/questionnaire?${params.toString()}`
-        );
-
+        const response = await fetch(`/api/profile/questionnaire?${params.toString()}`);
         const data = await response.json();
         if (data.success && data.questionnaireResponse) {
           setQuestionnaireResponse(data.questionnaireResponse);
@@ -236,12 +227,10 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
     };
     loadQuestionnaire();
   }, [selectedCandidate, locale]);
+
   useEffect(() => {
     if (selectedCandidate) {
-      console.log(
-        '[CandidatesList] selectedCandidate.images:',
-        selectedCandidate.images
-      );
+      console.log('[CandidatesList] selectedCandidate.images:', selectedCandidate.images);
     }
   }, [selectedCandidate]);
 
@@ -283,14 +272,11 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
 
   const handleCreateSuggestion = async (data: CreateSuggestionData) => {
     try {
-      const response = await fetch(
-        `/api/matchmaker/suggestions?locale=${locale}`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(data),
-        }
-      );
+      const response = await fetch(`/api/matchmaker/suggestions?locale=${locale}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
       if (!response.ok) throw new Error('Failed to create suggestion');
       toast.success('ההצעה נוצרה בהצלחה');
       onCandidateAction?.('suggest', dialogCandidate!);
@@ -300,15 +286,36 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
     }
   };
 
+  // Save scroll position before opening edit dialog
   const handleEditProfile = (candidate: Candidate) => {
+    // Save current scroll position
+    const scrollContainer = containerRef.current?.closest('.overflow-y-auto, [data-radix-scroll-area-viewport]');
+    if (scrollContainer) {
+      scrollPositionRef.current = scrollContainer.scrollTop;
+    } else {
+      scrollPositionRef.current = window.scrollY;
+    }
+    
     setDialogCandidate(candidate);
     setShowEditProfileDialog(true);
   };
 
-  const handleMouseEnter = (
-    candidate: CandidateWithAiData,
-    e?: React.MouseEvent
-  ) => {
+  // Restore scroll position when edit dialog closes
+  const handleCloseEditProfile = useCallback(() => {
+    setShowEditProfileDialog(false);
+    
+    // Restore scroll position after dialog closes
+    requestAnimationFrame(() => {
+      const scrollContainer = containerRef.current?.closest('.overflow-y-auto, [data-radix-scroll-area-viewport]');
+      if (scrollContainer) {
+        scrollContainer.scrollTop = scrollPositionRef.current;
+      } else {
+        window.scrollTo(0, scrollPositionRef.current);
+      }
+    });
+  }, []);
+
+  const handleMouseEnter = (candidate: CandidateWithAiData, e?: React.MouseEvent) => {
     if (isMobile || !e || !isQuickViewEnabled) return;
 
     if (isMobile || !e) return;
@@ -344,10 +351,7 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
         left = window.innerWidth / 2 - quickViewWidth / 2;
         break;
     }
-    left = Math.max(
-      padding,
-      Math.min(left, window.innerWidth - quickViewWidth - padding)
-    );
+    left = Math.max(padding, Math.min(left, window.innerWidth - quickViewWidth - padding));
     hoverTimeoutRef.current = setTimeout(() => {
       setHoverPosition({ top, left });
       setHoveredCandidate(candidate);
@@ -368,10 +372,7 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
   };
 
   const handleAction = useCallback(
-    (
-      action: CandidateAction | 'analyze' | 'sendFeedback',
-      candidate: Candidate
-    ) => {
+    (action: CandidateAction | 'analyze' | 'sendFeedback', candidate: Candidate) => {
       setDialogCandidate(candidate);
       setHoveredCandidate(null);
       switch (action) {
@@ -384,10 +385,18 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
         case 'suggest':
           setShowSuggestDialog(true);
           break;
-        case 'view':
+        case 'view':{ 
+          // Save scroll position before opening view dialog
+          const scrollContainer = containerRef.current?.closest('.overflow-y-auto, [data-radix-scroll-area-viewport]');
+          if (scrollContainer) {
+            scrollPositionRef.current = scrollContainer.scrollTop;
+          } else {
+            scrollPositionRef.current = window.scrollY;
+          }
           setSelectedCandidate(candidate);
           onCandidateClick?.(candidate);
           break;
+        }
         case 'edit':
           handleEditProfile(candidate);
           break;
@@ -399,18 +408,30 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
             onSendProfileFeedback(candidate);
           }
           break;
-
         default:
           onCandidateAction?.(action as CandidateAction, candidate);
       }
     },
-    [
-      onCandidateAction,
-      onCandidateClick,
-      onOpenAiAnalysis,
-      onSendProfileFeedback,
-    ]
+    [onCandidateAction, onCandidateClick, onOpenAiAnalysis, onSendProfileFeedback]
   );
+
+  // Handle profile dialog close with scroll restoration
+  const handleCloseProfileDialog = useCallback((open: boolean) => {
+    if (!open) {
+      setSelectedCandidate(null);
+      setQuestionnaireResponse(null);
+      
+      // Restore scroll position
+      requestAnimationFrame(() => {
+        const scrollContainer = containerRef.current?.closest('.overflow-y-auto, [data-radix-scroll-area-viewport]');
+        if (scrollContainer) {
+          scrollContainer.scrollTop = scrollPositionRef.current;
+        } else {
+          window.scrollTo(0, scrollPositionRef.current);
+        }
+      });
+    }
+  }, []);
 
   const gridLayoutClass = useMemo(() => {
     if (isMobile) {
@@ -434,11 +455,7 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
       >
         {Array.from({ length: 6 }).map((_, i) => (
           <div key={i} className="relative">
-            <Skeleton
-              className={
-                viewMode === 'list' ? 'h-32 w-full' : 'h-[350px] w-full'
-              }
-            />
+            <Skeleton className={viewMode === 'list' ? 'h-32 w-full' : 'h-[350px] w-full'} />
             <div className="absolute top-3 right-3">
               <Skeleton className="h-6 w-16 rounded-full" />
             </div>
@@ -464,7 +481,7 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
 
   return (
     <>
-      <div className={cn(gridLayoutClass, className || '')}>
+      <div ref={containerRef} className={cn(gridLayoutClass, className || '')}>
         {candidates.map((candidate) => (
           <div
             key={candidate.id}
@@ -494,9 +511,7 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
                 handleAction('edit', c);
               }}
               className={cn(
-                viewMode === 'list' && !isMobile
-                  ? 'flex flex-row-reverse gap-4 h-32'
-                  : '',
+                viewMode === 'list' && !isMobile ? 'flex flex-row-reverse gap-4 h-32' : '',
                 isMobile && mobileView === 'double' ? 'transform scale-90' : '',
                 isMobile && mobileView === 'single' ? 'transform scale-95' : ''
               )}
@@ -545,7 +560,6 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
               onSetAiTarget={(c, e) => onSetAiTarget(c, e)}
               isAiTarget={aiTargetCandidate?.id === hoveredCandidate.id}
               dict={dict.candidatesManager.list.quickView}
-              // 🆕 העברת נתוני AI ל-QuickView
               aiScore={hoveredCandidate.aiScore}
               aiReasoning={hoveredCandidate.aiReasoning}
               aiRank={hoveredCandidate.aiRank}
@@ -556,20 +570,15 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
       )}
 
       {/* --- Main Profile Dialog --- */}
-      <Dialog
-        open={!!selectedCandidate}
-        onOpenChange={(open) => {
-          if (!open) {
-            setSelectedCandidate(null);
-            setQuestionnaireResponse(null);
-          }
-        }}
-      >
+      <Dialog open={!!selectedCandidate} onOpenChange={handleCloseProfileDialog}>
         <DialogContent
           className="max-w-6xl max-h-[90vh] overflow-y-auto p-0"
           dir={locale === 'he' ? 'rtl' : 'ltr'}
           onCloseAutoFocus={(e) => {
-            e.preventDefault(); // מונע מהדפדפן לגלול למעלה בניסיון להחזיר פוקוס
+            e.preventDefault(); // Prevent focus restoration that causes scroll jump
+          }}
+          onEscapeKeyDown={() => {
+            // Will trigger onOpenChange with false
           }}
         >
           {/* Custom Sticky Header */}
@@ -581,10 +590,7 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
                   : ''}
               </DialogTitle>
               {selectedCandidate?.isVerified && (
-                <Badge
-                  variant="secondary"
-                  className="bg-emerald-100 text-emerald-700"
-                >
+                <Badge variant="secondary" className="bg-emerald-100 text-emerald-700">
                   מאומת
                 </Badge>
               )}
@@ -593,16 +599,10 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
             <div className="flex items-center gap-2">
               <Select
                 value={isMatchmaker ? 'matchmaker' : 'candidate'}
-                onValueChange={(value) =>
-                  setIsMatchmaker(value === 'matchmaker')
-                }
+                onValueChange={(value) => setIsMatchmaker(value === 'matchmaker')}
               >
                 <SelectTrigger className="w-[140px] h-9">
-                  <SelectValue
-                    placeholder={
-                      dict.candidatesManager.list.profileDialog.viewAsLabel
-                    }
-                  />
+                  <SelectValue placeholder={dict.candidatesManager.list.profileDialog.viewAsLabel} />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="candidate">
@@ -627,7 +627,7 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => setSelectedCandidate(null)}
+                onClick={() => handleCloseProfileDialog(false)}
                 className="h-9 w-9 p-0 rounded-full hover:bg-red-50 hover:text-red-600"
               >
                 <X className="w-5 h-5" />
@@ -645,7 +645,7 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
                 isProfileComplete={selectedCandidate.isProfileComplete}
                 dict={profileDict.profileCard}
                 locale={locale}
-                onClose={() => setSelectedCandidate(null)}
+                onClose={() => handleCloseProfileDialog(false)}
               />
             </div>
           )}
@@ -686,7 +686,7 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
 
       <MatchmakerEditProfile
         isOpen={showEditProfileDialog}
-        onClose={() => setShowEditProfileDialog(false)}
+        onClose={handleCloseEditProfile}
         candidate={dialogCandidate}
         dict={dict.candidatesManager.editProfile}
         profileDict={profileDict}
