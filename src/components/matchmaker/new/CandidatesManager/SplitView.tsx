@@ -773,7 +773,23 @@ const PanelHeaderComponent: React.FC<{
                     </span>
                   </Button>
                 </motion.div>
-
+         <motion.div
+                  className="flex-1 min-w-[120px]"
+                  whileHover={{ scale: 1.02 }}
+                >
+                  <Button
+                    onClick={(e) => onFindAiMatches(e, false, 'metrics_v2')}
+                    className={cn(
+                      'w-full h-11 font-bold transition-all duration-300 shadow-lg px-2 sm:px-4',
+                      'bg-gradient-to-r from-indigo-500 to-violet-500 hover:from-indigo-600 hover:to-violet-600 text-white'
+                    )}
+                  >
+                    <Target className="w-5 h-5 ml-1.5 flex-shrink-0" />
+                    <span className="truncate text-xs sm:text-sm">
+                      מדדים V2 🎯
+                    </span>
+                  </Button>
+                </motion.div>
                 {/* כפתור רענון - קיים */}
                 {hasAnyResults && (
                   <Button

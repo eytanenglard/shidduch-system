@@ -55,6 +55,9 @@ import {
   Briefcase,
   Ruler,
   Languages,
+  ThumbsDown,
+  MessageSquareX,
+  Search, // הוספתי את הייבוא הזה לשימוש בכפתור הסינון
 } from 'lucide-react';
 import { cn, getRelativeCloudinaryPath } from '@/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
@@ -85,6 +88,7 @@ interface PotentialMatchCardProps {
   className?: string;
   onHideCandidate: (candidate: CandidateToHide) => void;
   hiddenCandidateIds?: Set<string>;
+  onFilterByUser: (fullName: string) => void; // הוספתי את הפונקציה הזו
 }
 
 // =============================================================================
@@ -197,6 +201,7 @@ const CandidatePreview: React.FC<{
   onAnalyze: () => void;
   onFeedback: () => void;
   onHide: (candidate: CandidateToHide) => void;
+  onFilterByName: () => void; // הוספתי את הפונקציה הזו
 }> = ({
   candidate,
   gender,
@@ -205,6 +210,7 @@ const CandidatePreview: React.FC<{
   onAnalyze,
   onFeedback,
   onHide,
+  onFilterByName,
 }) => {
   const genderIcon = gender === 'male' ? '👨' : '👩';
   const borderColor = gender === 'male' ? 'border-blue-200' : 'border-pink-200';
@@ -370,6 +376,28 @@ const CandidatePreview: React.FC<{
 
       {/* Actions */}
       <div className="mt-2 pt-2 border-t border-gray-200/50 flex items-center justify-center gap-2">
+        {/* כפתור סינון לפי שם (חדש) */}
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7 rounded-full bg-white/60 hover:bg-indigo-100 hover:text-indigo-600 shadow-sm border border-transparent hover:border-indigo-200 transition-all"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onFilterByName();
+                }}
+              >
+                <Search className="w-3.5 h-3.5" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>סנן לפי שם מועמד</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+
         {candidate.phone && (
           <TooltipProvider>
             <Tooltip>
@@ -607,6 +635,7 @@ const PotentialMatchCard: React.FC<PotentialMatchCardProps> = ({
   showSelection = false,
   className,
   onHideCandidate,
+  onFilterByUser, // Destructuring
 }) => {
   const [showDetails, setShowDetails] = useState(false);
   const [showReasoningDialog, setShowReasoningDialog] = useState(false);
@@ -647,6 +676,12 @@ const PotentialMatchCard: React.FC<PotentialMatchCardProps> = ({
     } catch (error) {
       console.error('Failed to submit feedback', error);
     }
+  };
+
+  // פעולה לדחייה מהירה
+  const handleQuickDismiss = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onDismiss(match.id);
   };
 
   return (
@@ -739,11 +774,18 @@ const PotentialMatchCard: React.FC<PotentialMatchCardProps> = ({
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
                       <DropdownMenuItem
+                        onClick={handleQuickDismiss}
+                        className="text-orange-600"
+                      >
+                        <ThumbsDown className="w-4 h-4 ml-2" />
+                        דחייה מהירה
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
                         onClick={handleDismissWithFeedback}
                         className="text-red-600"
                       >
-                        <X className="w-4 h-4 ml-2" />
-                        דחה התאמה
+                        <MessageSquareX className="w-4 h-4 ml-2" />
+                        דחייה עם פירוט
                       </DropdownMenuItem>
                     </>
                   )}
@@ -767,6 +809,11 @@ const PotentialMatchCard: React.FC<PotentialMatchCardProps> = ({
                 onAnalyze={() => onAnalyzeCandidate(match.male)}
                 onFeedback={() => onProfileFeedback(match.male)}
                 onHide={onHideCandidate}
+                onFilterByName={() =>
+                  onFilterByUser(
+                    `${match.male.firstName} ${match.male.lastName}`
+                  )
+                }
               />
 
               {/* Heart Connector */}
@@ -789,6 +836,11 @@ const PotentialMatchCard: React.FC<PotentialMatchCardProps> = ({
                 onAnalyze={() => onAnalyzeCandidate(match.female)}
                 onFeedback={() => onProfileFeedback(match.female)}
                 onHide={onHideCandidate}
+                onFilterByName={() =>
+                  onFilterByUser(
+                    `${match.female.firstName} ${match.female.lastName}`
+                  )
+                }
               />
             </div>
 
@@ -882,13 +934,32 @@ const PotentialMatchCard: React.FC<PotentialMatchCardProps> = ({
                   </Button>
                 )}
 
+                {/* Quick Reject Button */}
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="h-9 w-9 px-0 text-red-500 border-red-200 hover:bg-red-50 hover:text-red-600 hover:border-red-300"
+                        onClick={handleQuickDismiss}
+                      >
+                        <ThumbsDown className="w-4 h-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>דחייה מהירה (חוסר התאמה)</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+
+                {/* Detailed Reject Button */}
                 <Button
                   variant="outline"
                   className="flex-1 h-9 text-sm"
                   onClick={handleDismissWithFeedback}
                 >
-                  <X className="w-4 h-4 ml-2" />
-                  דחה
+                  <MessageSquareX className="w-4 h-4 ml-2" />
+                  דחה + פירוט
                 </Button>
               </div>
             )}

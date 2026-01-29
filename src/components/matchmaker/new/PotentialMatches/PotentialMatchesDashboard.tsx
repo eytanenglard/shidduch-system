@@ -875,7 +875,8 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
                         showSelection={showBulkActions}
                         onHideCandidate={handleHideCandidate}
                         hiddenCandidateIds={hiddenCandidateIds}
-                        // onFilterByUser was removed as it doesn't exist on component props
+                        // ---> התיקון כאן: הוספתי את הפונקציה החסרה
+                        onFilterByUser={handleFilterByUser}
                       />
                     ))}
                   </AnimatePresence>
