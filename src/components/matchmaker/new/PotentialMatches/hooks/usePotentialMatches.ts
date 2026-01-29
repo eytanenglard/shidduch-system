@@ -164,6 +164,11 @@ interface UsePotentialMatchesReturn {
   bulkReview: (matchIds: string[]) => Promise<number>;
   bulkRestore: (matchIds: string[]) => Promise<number>;
 
+bulkCreateSuggestions: (matchIds: string[], options?: {
+  priority?: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
+  suppressNotifications?: boolean;
+}) => Promise<{ success: number; failed: number; suggestionIds: string[] }>;
+
   // Scan Controls
   startScan: (options?: ScanOptions) => Promise<string | null>;
   cancelScan: () => Promise<boolean>;
@@ -504,6 +509,91 @@ export function usePotentialMatches(options: {
   const bulkDismiss = (ids: string[], reason?: string) => performBulkAction(ids, 'dismiss', reason).then(c => { if(c) toast.success(`${c} התאמות נדחו`); return c; });
   const bulkReview = (ids: string[]) => performBulkAction(ids, 'review').then(c => { if(c) toast.success(`${c} התאמות סומנו`); return c; });
   const bulkRestore = (ids: string[]) => performBulkAction(ids, 'restore').then(c => { if(c) toast.success(`${c} התאמות שוחזרו`); return c; });
+const bulkCreateSuggestions = useCallback(async (
+    matchIds: string[],
+    options?: {
+      priority?: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
+      suppressNotifications?: boolean;
+    }
+  ): Promise<{ success: number; failed: number; suggestionIds: string[] }> => {
+    if (matchIds.length === 0) {
+      return { success: 0, failed: 0, suggestionIds: [] };
+    }
+
+    setIsActioning(true);
+    const results = { success: 0, failed: 0, suggestionIds: [] as string[] };
+
+    try {
+      // שליחה מקבילית עם הגבלה (לא יותר מ-5 במקביל)
+      const chunkSize = 5;
+      
+      for (let i = 0; i < matchIds.length; i += chunkSize) {
+        const chunk = matchIds.slice(i, i + chunkSize);
+        
+        const promises = chunk.map(async (matchId) => {
+          try {
+            const response = await fetch(API_BASE_MATCHES, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                matchId,
+                action: 'create_suggestion',
+                priority: options?.priority || 'MEDIUM',
+                suppressNotifications: options?.suppressNotifications ?? false,
+              }),
+            });
+            
+            const result = await response.json();
+            
+            if (result.success && result.suggestionId) {
+              results.success++;
+              results.suggestionIds.push(result.suggestionId);
+              return { success: true, matchId };
+            } else {
+              results.failed++;
+              console.error(`Failed to create suggestion for match ${matchId}:`, result.error);
+              return { success: false, matchId, error: result.error };
+            }
+          } catch (err) {
+            results.failed++;
+            console.error(`Error creating suggestion for match ${matchId}:`, err);
+            return { success: false, matchId, error: err };
+          }
+        });
+
+        await Promise.all(promises);
+      }
+
+      // עדכון הסטייט המקומי - סמן את ההתאמות כ-SENT
+      setMatches(prev => prev.map(m => 
+        matchIds.includes(m.id) ? { ...m, status: 'SENT' as const } : m
+      ));
+
+      // ניקוי הבחירה
+      setSelectedMatchIds([]);
+
+      // הודעה למשתמש
+      if (results.success > 0) {
+        toast.success(`נוצרו ${results.success} הצעות בהצלחה!`, {
+          description: results.failed > 0 ? `${results.failed} נכשלו` : undefined,
+        });
+      } else if (results.failed > 0) {
+        toast.error(`כל ${results.failed} ההצעות נכשלו`);
+      }
+
+      // רענון הרשימה
+      await fetchMatches(false);
+
+      return results;
+
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'שגיאה ביצירת הצעות מרובות';
+      toast.error(msg);
+      return results;
+    } finally {
+      setIsActioning(false);
+    }
+  }, [fetchMatches]);
 
   // ==========================================================================
   // SCAN LOGIC - V3.0 (Streaming + Polling)
@@ -725,6 +815,7 @@ export function usePotentialMatches(options: {
     isActioning,
     error,
     isScanning,
+
     scanProgress,
     scanResult,
     filters,
@@ -748,6 +839,7 @@ export function usePotentialMatches(options: {
     selectAll,
     clearSelection,
     isSelected,
+    bulkCreateSuggestions,
   };
 }
 

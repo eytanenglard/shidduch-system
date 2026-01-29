@@ -1,6 +1,11 @@
 // ============================================================
-// NeshamaTech - Compatibility Calculation Service V2 (FIXED)
+// NeshamaTech - Compatibility Calculation Service V2.5
 // src/lib/services/compatibilityServiceV2.ts
+// 
+// עדכון: 29/01/2025
+// - שינוי 1: הסרת Deal Breaker שפה (אנגלית בלבד)
+// - שינוי 2: תמיכה בחישוב חד-כיווני (oneDirectional option)
+// - שינוי 3: שפה הפכה ל-Soft Penalty קל במקום Deal Breaker
 // ============================================================
 
 import prisma from "@/lib/prisma";
@@ -51,14 +56,22 @@ interface VectorSimilarityResult {
   symmetric: number;
 }
 
+// 🆕 אפשרויות לחישוב
+interface CalculationOptions {
+  oneDirectional?: boolean; // אם true - מחשב רק מ-A ל-B
+}
+
 // ═══════════════════════════════════════════════════════════════
 // MAIN FUNCTION
 // ═══════════════════════════════════════════════════════════════
 
 export async function calculatePairCompatibility(
   profileAId: string,
-  profileBId: string
+  profileBId: string,
+  options: CalculationOptions = {}
 ): Promise<PairCompatibilityResult> {
+  const { oneDirectional = false } = options;
+
   const [profileA, profileB] = await Promise.all([
     fetchProfileWithMetrics(profileAId),
     fetchProfileWithMetrics(profileBId),
@@ -68,14 +81,26 @@ export async function calculatePairCompatibility(
     throw new Error('One or both profiles not found');
   }
 
+  // חישוב מ-A ל-B (תמיד)
   const dealBreakersAtoB = checkHardDealBreakers(profileA, profileB);
-  const dealBreakersBtoA = checkHardDealBreakers(profileB, profileA);
-
   const softPenaltiesAtoB = calculateSoftPenalties(profileA, profileB);
-  const softPenaltiesBtoA = calculateSoftPenalties(profileB, profileA);
-
   const metricsAtoB = calculateMetricsCompatibility(profileA, profileB);
-  const metricsBtoA = calculateMetricsCompatibility(profileB, profileA);
+
+  // 🆕 חישוב מ-B ל-A (רק אם לא חד-כיווני)
+  let dealBreakersBtoA: { passed: boolean; failed: string[] };
+  let softPenaltiesBtoA: { totalPenalty: number; applied: { type: string; penalty: number }[] };
+  let metricsBtoA: { score: number; details: MetricCompatibilityResult[] };
+
+  if (oneDirectional) {
+    // בחישוב חד-כיווני - מעתיקים את הערכים מ-A→B
+    dealBreakersBtoA = { passed: true, failed: [] };
+    softPenaltiesBtoA = { totalPenalty: 0, applied: [] };
+    metricsBtoA = { score: metricsAtoB.score, details: [] };
+  } else {
+    dealBreakersBtoA = checkHardDealBreakers(profileB, profileA);
+    softPenaltiesBtoA = calculateSoftPenalties(profileB, profileA);
+    metricsBtoA = calculateMetricsCompatibility(profileB, profileA);
+  }
 
   const vectorSimilarity = await calculateVectorSimilarity(profileAId, profileBId);
 
@@ -86,14 +111,16 @@ export async function calculatePairCompatibility(
     dealBreakersAtoB.passed
   );
 
-  const scoreBtoA = calculateFinalScore(
+  // 🆕 בחישוב חד-כיווני - הציון ההפוך שווה לציון הישיר
+  const scoreBtoA = oneDirectional ? scoreAtoB : calculateFinalScore(
     metricsBtoA.score,
     vectorSimilarity?.selfToSeeking || 0,
     softPenaltiesBtoA.totalPenalty,
     dealBreakersBtoA.passed
   );
 
-  const symmetricScore = Math.min(scoreAtoB, scoreBtoA);
+  // 🆕 בחישוב חד-כיווני - הציון הסימטרי הוא פשוט הציון A→B
+  const symmetricScore = oneDirectional ? scoreAtoB : Math.min(scoreAtoB, scoreBtoA);
 
   const recommendation = determineRecommendation(
     symmetricScore,
@@ -148,9 +175,13 @@ async function fetchProfileWithMetrics(profileId: string): Promise<ProfileWithMe
 
   const metrics = metricsResult[0] || undefined;
 
-  const age = profile.birthDate
-    ? Math.floor((Date.now() - new Date(profile.birthDate).getTime()) / (1000 * 60 * 60 * 24 * 365.25))
-    : 0;
+  // 🆕 גיל עם fallback לערך מוסק
+  let age = 0;
+  if (profile.birthDate) {
+    age = Math.floor((Date.now() - new Date(profile.birthDate).getTime()) / (1000 * 60 * 60 * 24 * 365.25));
+  } else if (metrics?.inferredAge) {
+    age = metrics.inferredAge;
+  }
 
   return {
     id: profile.id,
@@ -158,17 +189,16 @@ async function fetchProfileWithMetrics(profileId: string): Promise<ProfileWithMe
     gender: profile.gender,
     age,
     height: profile.height || undefined,
-    city: profile.city || undefined,
-    religiousLevel: profile.religiousLevel || undefined,
+    city: profile.city || metrics?.inferredCity || undefined,
+    religiousLevel: profile.religiousLevel || metrics?.inferredReligiousLevel || undefined,
     nativeLanguage: profile.nativeLanguage || undefined,
     additionalLanguages: profile.additionalLanguages || undefined,
     hasChildrenFromPrevious: profile.hasChildrenFromPrevious || undefined,
-/*     smoking: profile.smoking || undefined,
- */    shomerNegiah: profile.shomerNegiah || undefined,
+    shomerNegiah: profile.shomerNegiah || undefined,
     headCovering: profile.headCovering || undefined,
     kippahType: profile.kippahType || undefined,
-    preferredAgeMin: profile.preferredAgeMin || undefined,
-    preferredAgeMax: profile.preferredAgeMax || undefined,
+    preferredAgeMin: profile.preferredAgeMin || metrics?.inferredPreferredAgeMin || undefined,
+    preferredAgeMax: profile.preferredAgeMax || metrics?.inferredPreferredAgeMax || undefined,
     preferredHeightMin: profile.preferredHeightMin || undefined,
     preferredHeightMax: profile.preferredHeightMax || undefined,
     preferredReligiousLevels: profile.preferredReligiousLevels || undefined,
@@ -184,7 +214,7 @@ async function fetchProfileWithMetrics(profileId: string): Promise<ProfileWithMe
 }
 
 // ═══════════════════════════════════════════════════════════════
-// HARD DEAL BREAKERS
+// HARD DEAL BREAKERS - 🆕 הוסרה בדיקת שפה!
 // ═══════════════════════════════════════════════════════════════
 
 interface DealBreakerCheckResult {
@@ -198,34 +228,41 @@ function checkHardDealBreakers(
 ): DealBreakerCheckResult {
   const failed: string[] = [];
 
-  // תיקון: השוואה עם Gender enum
+  // מגדר זהה
   if (seeker.gender === candidate.gender) {
     failed.push('SAME_GENDER');
   }
 
-  if (seeker.preferredAgeMin && candidate.age < seeker.preferredAgeMin) {
+  // גיל מתחת למינימום
+  if (seeker.preferredAgeMin && candidate.age > 0 && candidate.age < seeker.preferredAgeMin) {
     failed.push(`AGE_TOO_YOUNG: ${candidate.age} < ${seeker.preferredAgeMin}`);
   }
-  if (seeker.preferredAgeMax && candidate.age > seeker.preferredAgeMax) {
+  
+  // גיל מעל מקסימום
+  if (seeker.preferredAgeMax && candidate.age > 0 && candidate.age > seeker.preferredAgeMax) {
     failed.push(`AGE_TOO_OLD: ${candidate.age} > ${seeker.preferredAgeMax}`);
   }
 
+  // רמות דתיות מועדפות
   if (seeker.preferredReligiousLevels?.length && candidate.religiousLevel) {
     if (!seeker.preferredReligiousLevels.includes(candidate.religiousLevel)) {
       failed.push(`RELIGIOUS_LEVEL: ${candidate.religiousLevel} not in preferred`);
     }
   }
 
+  // תאימות דתית בסיסית
   if (seeker.religiousLevel && candidate.religiousLevel) {
     if (!areReligiousLevelsCompatible(seeker.religiousLevel, candidate.religiousLevel)) {
       failed.push(`RELIGIOUS_INCOMPATIBLE: ${seeker.religiousLevel} ↔ ${candidate.religiousLevel}`);
     }
   }
 
-  if (isEnglishOnly(seeker) && !speaksEnglish(candidate)) {
-    failed.push('LANGUAGE: English-only seeker, candidate no English');
-  }
+  // ═══════════════════════════════════════════════════════════
+  // 🆕 הוסר: בדיקת שפה כ-Deal Breaker!
+  // הועבר ל-Soft Penalties במקום
+  // ═══════════════════════════════════════════════════════════
 
+  // Deal Breakers מותאמים אישית מהמדדים
   if (seeker.metrics?.dealBreakersHard) {
     const hardDealBreakers = seeker.metrics.dealBreakersHard as HardDealBreaker[];
     for (const db of hardDealBreakers) {
@@ -244,28 +281,19 @@ function areReligiousLevelsCompatible(levelA: string, levelB: string): boolean {
   const masortiLevels = ['masorti_dati', 'masorti', 'masorti_hiloni'];
   const hiloniLevels = ['hiloni_traditional', 'hiloni', 'secular'];
 
+  // חרדי לא מתאים למסורתי/חילוני
   if (charediLevels.includes(levelA) && [...masortiLevels, ...hiloniLevels].includes(levelB)) return false;
   if (charediLevels.includes(levelB) && [...masortiLevels, ...hiloniLevels].includes(levelA)) return false;
+  
+  // דתי לאומי תורני לא מתאים לחילוני
   if (levelA === 'dati_leumi_torani' && hiloniLevels.includes(levelB)) return false;
   if (levelB === 'dati_leumi_torani' && hiloniLevels.includes(levelA)) return false;
+  
+  // מסורתי לא מתאים לחרדי
   if (masortiLevels.includes(levelA) && charediLevels.includes(levelB)) return false;
   if (masortiLevels.includes(levelB) && charediLevels.includes(levelA)) return false;
 
   return true;
-}
-
-function isEnglishOnly(profile: ProfileWithMetrics): boolean {
-  return (
-    profile.nativeLanguage?.toLowerCase() === 'english' &&
-    (!profile.additionalLanguages || 
-     !profile.additionalLanguages.some(l => ['hebrew', 'עברית'].includes(l.toLowerCase())))
-  );
-}
-
-function speaksEnglish(profile: ProfileWithMetrics): boolean {
-  if (profile.nativeLanguage?.toLowerCase() === 'english') return true;
-  if (profile.additionalLanguages?.some(l => l.toLowerCase() === 'english')) return true;
-  return false;
 }
 
 function evaluateHardDealBreaker(
@@ -309,7 +337,7 @@ function evaluateHardDealBreaker(
 }
 
 // ═══════════════════════════════════════════════════════════════
-// SOFT PENALTIES
+// SOFT PENALTIES - 🆕 שפה הועברה לכאן!
 // ═══════════════════════════════════════════════════════════════
 
 interface SoftPenaltiesResult {
@@ -323,15 +351,19 @@ function calculateSoftPenalties(
 ): SoftPenaltiesResult {
   const applied: { type: string; penalty: number }[] = [];
 
+  // גובה מתחת למינימום
   if (seeker.preferredHeightMin && candidate.height && candidate.height < seeker.preferredHeightMin) {
     const gap = seeker.preferredHeightMin - candidate.height;
     applied.push({ type: `HEIGHT_SHORT (-${gap}cm)`, penalty: Math.min(gap * 2, 20) });
   }
+  
+  // גובה מעל מקסימום
   if (seeker.preferredHeightMax && candidate.height && candidate.height > seeker.preferredHeightMax) {
     const gap = candidate.height - seeker.preferredHeightMax;
     applied.push({ type: `HEIGHT_TALL (+${gap}cm)`, penalty: Math.min(gap * 2, 15) });
   }
 
+  // אי התאמת רקע
   if (seeker.metrics?.backgroundCategory && candidate.metrics?.backgroundCategory) {
     const multiplier = BACKGROUND_COMPATIBILITY_MATRIX[seeker.metrics.backgroundCategory as BackgroundCategory]?.[candidate.metrics.backgroundCategory as BackgroundCategory];
     
@@ -340,6 +372,7 @@ function calculateSoftPenalties(
     }
   }
 
+  // אי התאמה אתנית
   if (seeker.metrics?.ethnicBackground && candidate.metrics?.ethnicBackground) {
     const ethnicPenalty = calculateEthnicPenalty(
       seeker.metrics.ethnicBackground as EthnicBackground,
@@ -350,6 +383,7 @@ function calculateSoftPenalties(
     }
   }
 
+  // אי התאמת אורבניות
   if (seeker.metrics?.urbanScore !== undefined && candidate.metrics?.urbanScore !== undefined) {
     const gap = Math.abs(seeker.metrics.urbanScore - candidate.metrics.urbanScore);
     if (gap > 40) {
@@ -357,6 +391,15 @@ function calculateSoftPenalties(
     }
   }
 
+  // ═══════════════════════════════════════════════════════════
+  // 🆕 שפה - Soft Penalty קל (לא Deal Breaker!)
+  // ═══════════════════════════════════════════════════════════
+  if (isEnglishOnly(seeker) && !speaksEnglish(candidate)) {
+    // קנס קטן - לא חוסם, רק מוריד קצת
+    applied.push({ type: 'LANGUAGE_BARRIER', penalty: 8 });
+  }
+
+  // Deal Breakers רכים מותאמים אישית
   if (seeker.metrics?.dealBreakersSoft) {
     for (const db of seeker.metrics.dealBreakersSoft as SoftDealBreaker[]) {
       if (db.penalty > 0) {
@@ -376,6 +419,21 @@ function calculateEthnicPenalty(ethnicA: EthnicBackground, ethnicB: EthnicBackgr
       (ethnicA === EthnicBackground.YEMENITE && ethnicB === EthnicBackground.ASHKENAZI)) return 10;
   if (ethnicA !== ethnicB) return 5;
   return 0;
+}
+
+// Helper functions לשפה
+function isEnglishOnly(profile: ProfileWithMetrics): boolean {
+  return (
+    profile.nativeLanguage?.toLowerCase() === 'english' &&
+    (!profile.additionalLanguages || 
+     !profile.additionalLanguages.some(l => ['hebrew', 'עברית'].includes(l.toLowerCase())))
+  );
+}
+
+function speaksEnglish(profile: ProfileWithMetrics): boolean {
+  if (profile.nativeLanguage?.toLowerCase() === 'english') return true;
+  if (profile.additionalLanguages?.some(l => l.toLowerCase() === 'english')) return true;
+  return false;
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -519,7 +577,7 @@ function collectFlags(
 ): string[] {
   const flags: string[] = [];
 
-  // תיקון: השוואה עם Gender enum
+  // דגל pickiness
   if (profileA.metrics?.appearancePickiness && profileA.metrics.appearancePickiness > 70) {
     flags.push(`⚠️ ${profileA.gender === Gender.MALE ? 'He' : 'She'} is picky on appearance`);
   }
@@ -527,6 +585,7 @@ function collectFlags(
     flags.push(`⚠️ ${profileB.gender === Gender.MALE ? 'He' : 'She'} is picky on appearance`);
   }
 
+  // דגלי קושי
   if (profileA.metrics?.difficultyFlags?.length) {
     flags.push(`📌 A: ${(profileA.metrics.difficultyFlags as string[]).join(', ')}`);
   }
@@ -534,19 +593,30 @@ function collectFlags(
     flags.push(`📌 B: ${(profileB.metrics.difficultyFlags as string[]).join(', ')}`);
   }
 
+  // פער דתי
   const religiousMetric = metricsAtoB.details.find(d => d.metric === 'religiousStrictness');
   if (religiousMetric && religiousMetric.compatibilityScore < 60) {
     flags.push(`⛪ Religious gap`);
   }
 
+  // פער אורבני
   const urbanMetric = metricsAtoB.details.find(d => d.metric === 'urbanScore');
   if (urbanMetric && urbanMetric.compatibilityScore < 50) {
     flags.push(`🏙️ Urban mismatch`);
   }
 
+  // 🆕 דגל שפה משותפת (אנגלית)
   if ((isEnglishOnly(profileA) || isEnglishOnly(profileB)) && 
       speaksEnglish(profileA) && speaksEnglish(profileB)) {
-    flags.push(`🌐 English-based couple`);
+    flags.push(`🌐 English-speaking couple`);
+  }
+
+  // 🆕 דגל אזהרה לשפה
+  if (isEnglishOnly(profileA) && !speaksEnglish(profileB)) {
+    flags.push(`🔤 Language barrier - A speaks only English`);
+  }
+  if (isEnglishOnly(profileB) && !speaksEnglish(profileA)) {
+    flags.push(`🔤 Language barrier - B speaks only English`);
   }
 
   return flags;

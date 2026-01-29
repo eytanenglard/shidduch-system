@@ -287,7 +287,6 @@ async function runScanWithV2(
           useVectors: true,
           useAIDeepAnalysis: true,
           maxCandidates: 100,
-          topForAI: 30,
           forceUpdateMetrics: forceRefresh && i === 0, // עדכון מדדים רק בסריקה הראשונה
           skipCandidateMetricsUpdate: i > 0, // דילוג על עדכון מועמדים אחרי הראשון
         });
@@ -301,7 +300,7 @@ async function runScanWithV2(
         const savedCount = await saveScanResults(scanResult);
         
         // עדכון מונים
-        const matchesAboveThreshold = scanResult.matches.filter(m => m.symmetricScore >= MIN_SCORE_THRESHOLD).length;
+const matchesAboveThreshold = scanResult.matches.filter(m => m.score >= MIN_SCORE_THRESHOLD).length;
         stats.matchesFound += matchesAboveThreshold;
         stats.newMatches += savedCount;
         

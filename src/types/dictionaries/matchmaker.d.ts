@@ -1245,6 +1245,10 @@ export type CandidateSelectorDict = {
       title: string;
       description: string; // יכיל את המשתנים {{name}} ו-{{withName}}
     };
+     pendingSuggestionWarning: {
+        title: string;
+        description: string;
+      }
   };
 };
 type MatchPreviewDict = {

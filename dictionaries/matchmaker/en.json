@@ -1539,7 +1539,11 @@
     "cannotSelectError": {
       "title": "This candidate cannot be selected",
       "description": "{{name}} is already in an active suggestion with {{withName}}."
-    }
+    },
+    "pendingSuggestionWarning": {
+    "title": "Attention - Existing Suggestion",
+    "description": "Candidate {{name}} already has an active suggestion with {{withName}}. You can still proceed."
+}
   }
 }
 ,

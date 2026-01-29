@@ -1,15 +1,14 @@
 // ============================================================
-// NeshamaTech - Single User Scan Service V2 (FULLY UPDATED)
+// NeshamaTech - Single User Scan Service V2.5 (MAJOR UPDATE)
 // src/lib/services/scanSingleUserV2.ts
 // 
-// עדכון: 28/01/2025
-// - תיקון 1: סינון גיל דו-כיווני ב-Tier 1
-// - תיקון 2: סינון היסטוריית MatchSuggestion
-// - תיקון 3: סף מינימלי 65+ לשמירה
-// - תיקון 4: עדכון אוטומטי של מדדים/וקטורים למועמדים
-// - תיקון 5: שימוש במדדים החדשים (socioEconomic, jobSeniority, educationLevel)
-// - תיקון 6: שימוש בערכים מוסקים (inferred) כשחסרים נתונים
-// - תיקון 7: סיכומי AI מורחבים (background, matchmakerGuidelines)
+// עדכון: 29/01/2025
+// - שינוי 1: סטטוס != NOT_AVAILABLE (במקום = AVAILABLE)
+// - שינוי 2: AI ב-batches גדולים (15 מועמדים) + השוואה ביניהם
+// - שינוי 3: Deep Analysis לטופ 15 עם דירוג
+// - שינוי 4: Background Multiplier (בונוס רקע תואם)
+// - שינוי 5: Cache לזוגות שכבר חושבו
+// - שינוי 6: חישוב חד-כיווני (רק מנקודת מבט היוזר)
 // ============================================================
 
 import prisma from "@/lib/prisma";
@@ -22,8 +21,10 @@ import { Gender } from "@prisma/client";
 // CONSTANTS
 // ═══════════════════════════════════════════════════════════════
 
-const MIN_SCORE_TO_SAVE = 65; // סף מינימלי לשמירה ב-DB
-const MAX_CANDIDATES_TO_UPDATE = 30; // כמה מועמדים לעדכן מדדים בכל סריקה
+const MIN_SCORE_TO_SAVE = 65;
+const MAX_CANDIDATES_TO_UPDATE = 30;
+const MAX_CANDIDATES_FOR_AI = 20; // 🆕 כמה מועמדים לשלוח ל-AI (batch אחד)
+const CACHE_VALIDITY_HOURS = 24;
 
 // ═══════════════════════════════════════════════════════════════
 // TYPES
@@ -33,9 +34,9 @@ export interface ScanOptions {
   useVectors?: boolean;
   useAIDeepAnalysis?: boolean;
   maxCandidates?: number;
-  topForAI?: number;
   forceUpdateMetrics?: boolean;
   skipCandidateMetricsUpdate?: boolean;
+  skipCache?: boolean; // 🆕 דלג על cache
 }
 
 export interface ScanResult {
@@ -52,6 +53,7 @@ export interface ScanResult {
     aiAnalyzed: number;
     candidatesUpdated: number;
     savedToDb: number;
+    fromCache: number; // 🆕
   };
   
   matches: ScoredMatch[];
@@ -66,22 +68,25 @@ export interface ScoredMatch {
   candidateAge: number;
   candidateCity?: string;
   
-  scoreForUser: number;
-  scoreForCandidate: number;
-  symmetricScore: number;
-  
+  // 🆕 ציון חד-כיווני (מנקודת מבט היוזר בלבד)
+  score: number;
   metricsScore: number;
+  aiScore?: number;
+  backgroundMultiplier: number; // 🆕
+  
   vectorScore?: number;
   softPenalties: number;
   
   recommendation: 'EXCELLENT' | 'GOOD' | 'FAIR' | 'POOR';
   tier: 1 | 2 | 3;
+  rank?: number; // 🆕 דירוג מה-AI
   
   flags: string[];
   failedDealBreakers: string[];
+  fromCache: boolean; // 🆕
   
-  // 🆕 מידע מורחב מהמדדים החדשים
   candidateBackground?: {
+    category?: string;
     socioEconomicLevel?: number;
     jobSeniorityLevel?: number;
     educationLevelScore?: number;
@@ -96,6 +101,60 @@ export interface ScoredMatch {
   };
 }
 
+// 🆕 מטריצת התאמת רקע
+type BackgroundCategory = 'sabra' | 'sabra_international' | 'oleh_veteran' | 'oleh_mid' | 'oleh_new' | 'unknown';
+
+const BACKGROUND_MULTIPLIER_MATRIX: Record<BackgroundCategory, Record<BackgroundCategory, number>> = {
+  sabra: {
+    sabra: 1.15,
+    sabra_international: 1.10,
+    oleh_veteran: 1.0,
+    oleh_mid: 0.9,
+    oleh_new: 0.8,
+    unknown: 1.0,
+  },
+  sabra_international: {
+    sabra: 1.10,
+    sabra_international: 1.15,
+    oleh_veteran: 1.10,
+    oleh_mid: 1.0,
+    oleh_new: 0.9,
+    unknown: 1.0,
+  },
+  oleh_veteran: {
+    sabra: 1.0,
+    sabra_international: 1.10,
+    oleh_veteran: 1.15,
+    oleh_mid: 1.05,
+    oleh_new: 0.95,
+    unknown: 1.0,
+  },
+  oleh_mid: {
+    sabra: 0.9,
+    sabra_international: 1.0,
+    oleh_veteran: 1.05,
+    oleh_mid: 1.15,
+    oleh_new: 1.05,
+    unknown: 1.0,
+  },
+  oleh_new: {
+    sabra: 0.8,
+    sabra_international: 0.9,
+    oleh_veteran: 0.95,
+    oleh_mid: 1.05,
+    oleh_new: 1.15,
+    unknown: 1.0,
+  },
+  unknown: {
+    sabra: 1.0,
+    sabra_international: 1.0,
+    oleh_veteran: 1.0,
+    oleh_mid: 1.0,
+    oleh_new: 1.0,
+    unknown: 1.0,
+  },
+};
+
 // ═══════════════════════════════════════════════════════════════
 // MAIN SCAN FUNCTION
 // ═══════════════════════════════════════════════════════════════
@@ -109,22 +168,22 @@ export async function scanSingleUserV2(
   const warnings: string[] = [];
 
   console.log(`\n${'='.repeat(60)}`);
-  console.log(`[ScanV2] Starting scan for user: ${userId}`);
+  console.log(`[ScanV2.5] Starting scan for user: ${userId}`);
   console.log(`${'='.repeat(60)}`);
 
   const {
     useVectors = true,
     useAIDeepAnalysis = true,
     maxCandidates = 100,
-    topForAI = 30,
     forceUpdateMetrics = false,
     skipCandidateMetricsUpdate = false,
+    skipCache = false,
   } = options;
 
   // ═══════════════════════════════════════════════════════════
   // TIER 0: וידוא מוכנות היוזר הנסרק
   // ═══════════════════════════════════════════════════════════
-  console.log(`\n[ScanV2] ═══ TIER 0: Readiness Check ═══`);
+  console.log(`\n[ScanV2.5] ═══ TIER 0: Readiness Check ═══`);
 
   const profile = await prisma.profile.findFirst({
     where: { userId },
@@ -135,7 +194,6 @@ export async function scanSingleUserV2(
     throw new Error(`Profile not found for user: ${userId}`);
   }
 
-  // 🆕 שליפת המדדים של היוזר כולל השדות החדשים
   const userMetrics = await prisma.$queryRaw<any[]>`
     SELECT 
       pm.*,
@@ -151,7 +209,8 @@ export async function scanSingleUserV2(
       pm."aiBackgroundSummary",
       pm."aiMatchmakerGuidelines",
       pm."aiInferredDealBreakers",
-      pm."aiInferredMustHaves"
+      pm."aiInferredMustHaves",
+      pm."backgroundCategory"
     FROM "profile_metrics" pm
     WHERE pm."profileId" = ${profile.id}
     LIMIT 1
@@ -159,32 +218,29 @@ export async function scanSingleUserV2(
 
   const metrics = userMetrics[0] || null;
 
-  // 🆕 חישוב גיל - עם fallback לערך מוסק
+  // חישוב גיל עם fallback
   let userAge: number;
   if (profile.birthDate) {
     userAge = Math.floor((Date.now() - new Date(profile.birthDate).getTime()) / (1000 * 60 * 60 * 24 * 365.25));
   } else if (metrics?.inferredAge) {
     userAge = metrics.inferredAge;
-    console.log(`[ScanV2] Using inferred age: ${userAge}`);
+    console.log(`[ScanV2.5] Using inferred age: ${userAge}`);
   } else {
-    userAge = 30; // ברירת מחדל
+    userAge = 30;
     warnings.push('No age found, using default 30');
   }
 
-  // 🆕 חישוב טווח גילאים - עם fallback לערכים מוסקים
+  // חישוב טווח גילאים עם fallback
   let preferredAgeMin: number;
   let preferredAgeMax: number;
 
   if (profile.preferredAgeMin !== null && profile.preferredAgeMax !== null) {
     preferredAgeMin = profile.preferredAgeMin;
     preferredAgeMax = profile.preferredAgeMax;
-    console.log(`[ScanV2] Using user's explicit age preferences: ${preferredAgeMin}-${preferredAgeMax}`);
   } else if (metrics?.inferredPreferredAgeMin && metrics?.inferredPreferredAgeMax) {
     preferredAgeMin = metrics.inferredPreferredAgeMin;
     preferredAgeMax = metrics.inferredPreferredAgeMax;
-    console.log(`[ScanV2] Using AI inferred age preferences: ${preferredAgeMin}-${preferredAgeMax}`);
   } else {
-    // ברירת מחדל חכמה לפי מגדר וגיל
     if (profile.gender === Gender.MALE) {
       preferredAgeMin = Math.max(18, userAge - 7);
       preferredAgeMax = userAge + 2;
@@ -192,66 +248,65 @@ export async function scanSingleUserV2(
       preferredAgeMin = Math.max(18, userAge - 2);
       preferredAgeMax = userAge + 10;
     }
-    console.log(`[ScanV2] Using smart default age range (${profile.gender}): ${preferredAgeMin}-${preferredAgeMax}`);
   }
 
-  // 🆕 עיר - עם fallback לערך מוסק
   const userCity = profile.city || metrics?.inferredCity || null;
-  if (!profile.city && metrics?.inferredCity) {
-    console.log(`[ScanV2] Using inferred city: ${metrics.inferredCity}`);
-  }
+  const userBackgroundCategory: BackgroundCategory = (metrics?.backgroundCategory as BackgroundCategory) || 'unknown';
 
-  console.log(`[ScanV2] User: ${profile.user.firstName} ${profile.user.lastName}, Age: ${userAge}, Gender: ${profile.gender}`);
-  console.log(`[ScanV2] City: ${userCity || 'Not specified'}`);
-  console.log(`[ScanV2] Looking for age range: ${preferredAgeMin} - ${preferredAgeMax}`);
+  console.log(`[ScanV2.5] User: ${profile.user.firstName} ${profile.user.lastName}, Age: ${userAge}, Gender: ${profile.gender}`);
+  console.log(`[ScanV2.5] Background: ${userBackgroundCategory}`);
+  console.log(`[ScanV2.5] Looking for age range: ${preferredAgeMin} - ${preferredAgeMax}`);
 
-  // בדיקה ועדכון מדדים/וקטורים של היוזר
+  // בדיקה ועדכון מדדים/וקטורים
   const metricsExist = await checkMetricsExist(profile.id);
   const vectorsExist = await checkVectorsExist(profile.id);
 
   if (!metricsExist || !vectorsExist || forceUpdateMetrics) {
-    console.log(`[ScanV2] Updating metrics/vectors for user profile...`);
+    console.log(`[ScanV2.5] Updating metrics/vectors for user profile...`);
     try {
       await updateProfileVectorsAndMetrics(profile.id);
-      console.log(`[ScanV2] User metrics updated ✓`);
+      console.log(`[ScanV2.5] User metrics updated ✓`);
     } catch (error) {
       warnings.push(`Failed to update user metrics: ${error}`);
-      console.error(`[ScanV2] Failed to update user metrics:`, error);
     }
-  } else {
-    console.log(`[ScanV2] User metrics exist ✓`);
   }
 
   // ═══════════════════════════════════════════════════════════
-  // TIER 0.5: עדכון מדדים/וקטורים למועמדים שחסר להם
+  // TIER 0.5: עדכון מדדים למועמדים שחסר להם
   // ═══════════════════════════════════════════════════════════
   const oppositeGender: Gender = profile.gender === Gender.MALE ? Gender.FEMALE : Gender.MALE;
   let candidatesUpdated = 0;
 
   if (!skipCandidateMetricsUpdate) {
-    console.log(`\n[ScanV2] ═══ TIER 0.5: Candidate Metrics Update ═══`);
-    
+    console.log(`\n[ScanV2.5] ═══ TIER 0.5: Candidate Metrics Update ═══`);
     try {
       const updateResult = await ensureCandidatesReady(oppositeGender, MAX_CANDIDATES_TO_UPDATE);
       candidatesUpdated = updateResult.updated;
-      
-      if (updateResult.failed > 0) {
-        warnings.push(`Failed to update ${updateResult.failed} candidate profiles`);
-      }
     } catch (error) {
       warnings.push(`Candidate update check failed: ${error}`);
-      console.error(`[ScanV2] Candidate update error:`, error);
     }
   }
 
   // ═══════════════════════════════════════════════════════════
-  // TIER 1: Deal Breaker Filter (SQL) - עם סינון גיל והיסטוריה
+  // 🆕 TIER 0.7: בדיקת Cache
   // ═══════════════════════════════════════════════════════════
-  console.log(`\n[ScanV2] ═══ TIER 1: Deal Breaker Filter ═══`);
+  let cachedMatches: Map<string, any> = new Map();
+  let fromCacheCount = 0;
+
+  if (!skipCache) {
+    console.log(`\n[ScanV2.5] ═══ TIER 0.7: Cache Check ═══`);
+    cachedMatches = await getCachedMatches(userId, CACHE_VALIDITY_HOURS);
+    console.log(`[ScanV2.5] Found ${cachedMatches.size} cached matches`);
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // TIER 1: Deal Breaker Filter (SQL) - 🆕 סטטוס != NOT_AVAILABLE
+  // ═══════════════════════════════════════════════════════════
+  console.log(`\n[ScanV2.5] ═══ TIER 1: Deal Breaker Filter ═══`);
 
   const preferredPartnerHasChildren = profile.preferredPartnerHasChildren ?? 'does_not_matter';
 
-  // 🆕 שאילתה מורחבת עם השדות החדשים
+  // 🆕 שאילתה מעודכנת: סטטוס != NOT_AVAILABLE
   const tier1Candidates = await prisma.$queryRaw<any[]>`
     SELECT 
       p.id as "profileId",
@@ -272,7 +327,6 @@ export async function scanSingleUserV2(
       p.occupation,
       p."parentStatus",
       
-      -- מדדים קיימים
       pm."confidenceScore",
       pm."religiousStrictness",
       pm."urbanScore",
@@ -282,22 +336,14 @@ export async function scanSingleUserV2(
       pm."socialEnergy",
       pm."careerOrientation",
       pm."spiritualDepth",
-      
-      -- 🆕 מדדים חדשים
       pm."socioEconomicLevel",
       pm."jobSeniorityLevel",
       pm."educationLevelScore",
-      
-      -- 🆕 ערכים מוסקים
       pm."inferredAge",
       pm."inferredCity",
       pm."inferredReligiousLevel",
       pm."inferredPreferredAgeMin",
       pm."inferredPreferredAgeMax",
-      pm."inferredParentStatus",
-      pm."inferredEducationLevel",
-      
-      -- 🆕 סיכומי AI
       pm."aiPersonalitySummary",
       pm."aiSeekingSummary",
       pm."aiBackgroundSummary",
@@ -306,15 +352,6 @@ export async function scanSingleUserV2(
       pm."aiInferredMustHaves",
       pm."difficultyFlags",
       
-      -- 🆕 העדפות חדשות
-      pm."prefSocioEconomicMin",
-      pm."prefSocioEconomicMax",
-      pm."prefJobSeniorityMin",
-      pm."prefJobSeniorityMax",
-      pm."prefEducationLevelMin",
-      pm."prefEducationLevelMax",
-      
-      -- חישוב גיל עם fallback לערך מוסק
       COALESCE(
         EXTRACT(YEAR FROM AGE(p."birthDate"))::int,
         pm."inferredAge"
@@ -324,15 +361,17 @@ export async function scanSingleUserV2(
     JOIN "User" u ON u.id = p."userId"
     LEFT JOIN "profile_metrics" pm ON pm."profileId" = p.id
     WHERE 
-      -- ═══ מגדר הפוך ═══
+      -- מגדר הפוך
       p.gender = ${oppositeGender}::"Gender"
       
-      -- ═══ סטטוס פעיל ═══
-      AND p."availabilityStatus" = 'AVAILABLE'::"AvailabilityStatus"
+      -- 🆕 סטטוס: כל דבר חוץ מ-NOT_AVAILABLE
+      AND (p."availabilityStatus" IS NULL OR p."availabilityStatus" != 'NOT_AVAILABLE'::"AvailabilityStatus")
+      
+      -- פרופיל גלוי
       AND (p."isProfileVisible" = true OR p."isProfileVisible" IS NULL)
       AND p.id != ${profile.id}
       
-      -- ═══ סינון גיל: המועמד בטווח שהיוזר מחפש ═══
+      -- סינון גיל: המועמד בטווח שהיוזר מחפש
       AND (
         COALESCE(
           EXTRACT(YEAR FROM AGE(p."birthDate"))::int,
@@ -346,7 +385,7 @@ export async function scanSingleUserV2(
         ) <= ${preferredAgeMax}
       )
       
-      -- ═══ סינון גיל הפוך: היוזר בטווח שהמועמד מחפש ═══
+      -- סינון גיל הפוך: היוזר בטווח שהמועמד מחפש
       AND (
         COALESCE(p."preferredAgeMin", pm."inferredPreferredAgeMin") IS NULL 
         OR ${userAge} >= COALESCE(p."preferredAgeMin", pm."inferredPreferredAgeMin")
@@ -356,7 +395,7 @@ export async function scanSingleUserV2(
         OR ${userAge} <= COALESCE(p."preferredAgeMax", pm."inferredPreferredAgeMax")
       )
       
-      -- ═══ סינון ילדים מקודם ═══
+      -- סינון ילדים מקודם
       AND (
         ${preferredPartnerHasChildren} = 'does_not_matter'
         OR ${preferredPartnerHasChildren} = 'yes_ok'
@@ -364,7 +403,7 @@ export async function scanSingleUserV2(
             AND (p."hasChildrenFromPrevious" IS NULL OR p."hasChildrenFromPrevious" = false))
       )
       
-      -- ═══ לא נדחה ב-PotentialMatch ═══
+      -- לא נדחה ב-PotentialMatch
       AND NOT EXISTS (
         SELECT 1 FROM "PotentialMatch" pm2
         WHERE ((pm2."maleUserId" = ${userId} AND pm2."femaleUserId" = p."userId")
@@ -372,7 +411,7 @@ export async function scanSingleUserV2(
           AND pm2.status::text IN ('DISMISSED', 'EXPIRED')
       )
       
-      -- ═══ לא היתה הצעה שנדחתה ב-MatchSuggestion ═══
+      -- לא היתה הצעה שנדחתה
       AND NOT EXISTS (
         SELECT 1 FROM "MatchSuggestion" ms
         WHERE ((ms."firstPartyId" = ${userId} AND ms."secondPartyId" = p."userId")
@@ -391,13 +430,9 @@ export async function scanSingleUserV2(
     LIMIT ${maxCandidates}
   `;
 
-  console.log(`[ScanV2] Tier 1 Results:`);
-  console.log(`  - Total candidates after all filters: ${tier1Candidates.length}`);
-  console.log(`  - Age range filter: ${preferredAgeMin}-${preferredAgeMax}`);
-  console.log(`  - User age for reverse filter: ${userAge}`);
+  console.log(`[ScanV2.5] Tier 1 Results: ${tier1Candidates.length} candidates`);
 
   if (tier1Candidates.length === 0) {
-    console.log(`[ScanV2] No candidates found, ending scan.`);
     return {
       userId,
       profileId: profile.id,
@@ -411,6 +446,7 @@ export async function scanSingleUserV2(
         aiAnalyzed: 0,
         candidatesUpdated,
         savedToDb: 0,
+        fromCache: 0,
       },
       matches: [],
       errors,
@@ -419,80 +455,130 @@ export async function scanSingleUserV2(
   }
 
   // ═══════════════════════════════════════════════════════════
-  // TIER 2 + 3: Compatibility Calculation
+  // TIER 2-3: Compatibility Calculation (חד-כיווני!)
   // ═══════════════════════════════════════════════════════════
-  console.log(`\n[ScanV2] ═══ TIER 2-3: Compatibility Calculation ═══`);
+  console.log(`\n[ScanV2.5] ═══ TIER 2-3: Compatibility Calculation ═══`);
 
   const scoredCandidates: {
     candidate: any;
-    compatibility: PairCompatibilityResult;
+    metricsScore: number;
+    vectorScore: number;
+    softPenalties: number;
+    backgroundMultiplier: number;
+    totalScore: number;
+    fromCache: boolean;
+    flags: string[];
   }[] = [];
 
-  let passedCount = 0;
-  let failedCount = 0;
-
   for (const candidate of tier1Candidates) {
+    // 🆕 בדיקת Cache
+    const cacheKey = `${profile.id}_${candidate.profileId}`;
+    const cached = cachedMatches.get(cacheKey);
+    
+    if (cached && !skipCache) {
+      scoredCandidates.push({
+        candidate,
+        metricsScore: cached.metricsScore,
+        vectorScore: cached.vectorScore || 0,
+        softPenalties: cached.softPenalties || 0,
+        backgroundMultiplier: cached.backgroundMultiplier || 1.0,
+        totalScore: cached.totalScore,
+        fromCache: true,
+        flags: cached.flags || [],
+      });
+      fromCacheCount++;
+      continue;
+    }
+
     try {
+      // 🆕 חישוב חד-כיווני - רק מנקודת מבט היוזר
       const compatibility = await calculatePairCompatibility(profile.id, candidate.profileId);
       
-      if (compatibility.breakdownAtoB.dealBreakersPassed && compatibility.breakdownBtoA.dealBreakersPassed) {
-        scoredCandidates.push({ candidate, compatibility });
-        passedCount++;
-      } else {
-        failedCount++;
+      // לוקחים רק את הציון מכיוון היוזר
+      const metricsScore = compatibility.breakdownAtoB.metricsScore;
+      const vectorScore = compatibility.breakdownAtoB.vectorScore || 0;
+      const softPenalties = compatibility.breakdownAtoB.softPenalties || 0;
+      
+      // 🆕 Background Multiplier
+      const candidateBgCategory: BackgroundCategory = (candidate.backgroundCategory as BackgroundCategory) || 'unknown';
+      const backgroundMultiplier = BACKGROUND_MULTIPLIER_MATRIX[userBackgroundCategory][candidateBgCategory];
+      
+      // חישוב ציון כולל
+      let totalScore = metricsScore;
+      if (vectorScore > 0) {
+        totalScore = metricsScore * 0.7 + vectorScore * 0.3;
       }
+      totalScore = Math.round((totalScore - softPenalties) * backgroundMultiplier);
+      totalScore = Math.max(0, Math.min(100, totalScore));
+      
+      scoredCandidates.push({
+        candidate,
+        metricsScore,
+        vectorScore,
+        softPenalties,
+        backgroundMultiplier,
+        totalScore,
+        fromCache: false,
+        flags: compatibility.flags,
+      });
+      
     } catch (error) {
       warnings.push(`Failed to calculate compatibility for ${candidate.firstName}: ${error}`);
-      failedCount++;
     }
   }
 
-  console.log(`[ScanV2] Tier 2-3 Results:`);
-  console.log(`  - Passed deal breakers: ${passedCount}`);
-  console.log(`  - Failed deal breakers: ${failedCount}`);
+  console.log(`[ScanV2.5] Scored ${scoredCandidates.length} candidates (${fromCacheCount} from cache)`);
 
   // מיון לפי ציון
-  scoredCandidates.sort((a, b) => b.compatibility.symmetricScore - a.compatibility.symmetricScore);
+  scoredCandidates.sort((a, b) => b.totalScore - a.totalScore);
 
   // ═══════════════════════════════════════════════════════════
-  // TIER 4: AI Deep Analysis (אופציונלי)
+  // 🆕 TIER 4: AI Batch Comparison (קריאה אחת בלבד!)
   // ═══════════════════════════════════════════════════════════
   let aiResults: Map<string, any> = new Map();
 
   if (useAIDeepAnalysis && scoredCandidates.length > 0) {
-    console.log(`\n[ScanV2] ═══ TIER 4: AI Deep Analysis ═══`);
+    console.log(`\n[ScanV2.5] ═══ TIER 4: AI Batch Comparison ═══`);
     
-    // רק מועמדים עם ציון סביר (60+) יעברו AI
+    // לוקחים את הטופ לפי ציון מדדים (55+) - עד 20 מועמדים
     const candidatesForAI = scoredCandidates
-      .filter(c => c.compatibility.symmetricScore >= 60)
-      .slice(0, topForAI);
+      .filter(c => c.totalScore >= 55 && !c.fromCache)
+      .slice(0, MAX_CANDIDATES_FOR_AI);
     
-    console.log(`[ScanV2] Analyzing ${candidatesForAI.length} candidates with AI (score >= 60)`);
-    
-    try {
-      aiResults = await performAIDeepAnalysis(profile, metrics, candidatesForAI);
-      console.log(`[ScanV2] AI analyzed ${aiResults.size} pairs`);
-    } catch (error) {
-      warnings.push(`AI analysis failed: ${error}`);
-      console.error(`[ScanV2] AI analysis error:`, error);
+    if (candidatesForAI.length >= 3) {
+      console.log(`[ScanV2.5] Sending top ${candidatesForAI.length} candidates to AI for comparison`);
+      
+      try {
+        const userDetails = await fetchProfileDetailsForAI(profile.id);
+        
+        // 🆕 קריאה אחת בלבד - ה-AI רואה את כולם ומשווה!
+        aiResults = await runBatchComparison(userDetails, candidatesForAI);
+        
+        console.log(`[ScanV2.5] AI comparison completed: ${aiResults.size} results`);
+        
+      } catch (error) {
+        warnings.push(`AI analysis failed: ${error}`);
+        console.error(`[ScanV2.5] AI analysis error:`, error);
+      }
+    } else {
+      console.log(`[ScanV2.5] Not enough candidates for AI comparison (need 3+, have ${candidatesForAI.length})`);
     }
   }
 
   // ═══════════════════════════════════════════════════════════
   // BUILD FINAL RESULTS
   // ═══════════════════════════════════════════════════════════
-  console.log(`\n[ScanV2] ═══ Building Final Results ═══`);
+  console.log(`\n[ScanV2.5] ═══ Building Final Results ═══`);
 
-  const matches: ScoredMatch[] = scoredCandidates.map(({ candidate, compatibility }) => {
-    // 🆕 שימוש בגיל עם fallback
+  const matches: ScoredMatch[] = scoredCandidates.map(({ candidate, metricsScore, vectorScore, softPenalties, backgroundMultiplier, totalScore, fromCache, flags }) => {
     const age = candidate.candidateAge || candidate.inferredAge || 0;
-
     const aiAnalysis = aiResults.get(candidate.profileId);
     
-    // חישוב ציון סופי: 60% מדדים + 40% AI (אם קיים)
-    let finalScore = compatibility.symmetricScore;
+    // 🆕 חישוב ציון סופי: אם יש AI, נותנים לו משקל משמעותי
+    let finalScore = totalScore;
     if (aiAnalysis?.score) {
-      finalScore = Math.round(compatibility.symmetricScore * 0.6 + aiAnalysis.score * 0.4);
+      // 50% מדדים + 50% AI (כי המדדים כבר סיננו)
+      finalScore = Math.round(totalScore * 0.5 + aiAnalysis.score * 0.5);
     }
 
     // קביעת דרגה
@@ -508,22 +594,24 @@ export async function scanSingleUserV2(
       candidateAge: age,
       candidateCity: candidate.city || candidate.inferredCity,
       
-      scoreForUser: compatibility.scoreAtoB,
-      scoreForCandidate: compatibility.scoreBtoA,
-      symmetricScore: finalScore,
+      score: finalScore,
+      metricsScore,
+      aiScore: aiAnalysis?.score,
+      backgroundMultiplier,
       
-      metricsScore: compatibility.breakdownAtoB.metricsScore,
-      vectorScore: compatibility.breakdownAtoB.vectorScore,
-      softPenalties: compatibility.breakdownAtoB.softPenalties,
+      vectorScore,
+      softPenalties,
       
       recommendation: determineRecommendation(finalScore),
       tier,
+      rank: aiAnalysis?.rank,
       
-      flags: compatibility.flags,
+      flags,
       failedDealBreakers: [],
+      fromCache,
       
-      // 🆕 מידע מורחב
       candidateBackground: {
+        category: candidate.backgroundCategory,
         socioEconomicLevel: candidate.socioEconomicLevel,
         jobSeniorityLevel: candidate.jobSeniorityLevel,
         educationLevelScore: candidate.educationLevelScore,
@@ -532,28 +620,37 @@ export async function scanSingleUserV2(
       
       aiAnalysis: aiAnalysis ? {
         score: aiAnalysis.score,
-        reasoning: aiAnalysis.reasoning,
+        reasoning: aiAnalysis.reasoning || '',
         strengths: aiAnalysis.strengths || [],
         concerns: aiAnalysis.concerns || [],
       } : undefined,
     };
   });
 
-  // מיון סופי לפי ציון
-  matches.sort((a, b) => b.symmetricScore - a.symmetricScore);
+  // מיון סופי - עדיפות לדירוג AI אם קיים
+  matches.sort((a, b) => {
+    if (a.rank && b.rank) return a.rank - b.rank;
+    if (a.rank) return -1;
+    if (b.rank) return 1;
+    return b.score - a.score;
+  });
 
-  // סטטיסטיקות לפי דרגות
+  // סטטיסטיקות
   const tier1Count = matches.filter(m => m.tier === 1).length;
   const tier2Count = matches.filter(m => m.tier === 2).length;
   const tier3Count = matches.filter(m => m.tier === 3).length;
-  const above65Count = matches.filter(m => m.symmetricScore >= MIN_SCORE_TO_SAVE).length;
+  const above65Count = matches.filter(m => m.score >= MIN_SCORE_TO_SAVE).length;
 
-  console.log(`[ScanV2] Final Results:`);
+  console.log(`[ScanV2.5] Final Results:`);
   console.log(`  - Total matches: ${matches.length}`);
   console.log(`  - Tier 1 (85+): ${tier1Count}`);
   console.log(`  - Tier 2 (70-84): ${tier2Count}`);
   console.log(`  - Tier 3 (<70): ${tier3Count}`);
+  console.log(`  - From cache: ${fromCacheCount}`);
   console.log(`  - Will be saved (${MIN_SCORE_TO_SAVE}+): ${above65Count}`);
+
+  // 🆕 שמירת Cache
+  await saveCachedMatches(userId, profile.id, scoredCandidates);
 
   const result: ScanResult = {
     userId,
@@ -568,16 +665,218 @@ export async function scanSingleUserV2(
       aiAnalyzed: aiResults.size,
       candidatesUpdated,
       savedToDb: above65Count,
+      fromCache: fromCacheCount,
     },
     matches,
     errors,
     warnings,
   };
 
-  console.log(`\n[ScanV2] ✅ Scan completed in ${result.durationMs}ms`);
+  console.log(`\n[ScanV2.5] ✅ Scan completed in ${result.durationMs}ms`);
   console.log(`${'='.repeat(60)}\n`);
 
   return result;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// 🆕 AI BATCH COMPARISON - קריאה אחת בלבד!
+// ═══════════════════════════════════════════════════════════════
+
+async function runBatchComparison(
+  userDetails: any,
+  candidates: any[]
+): Promise<Map<string, any>> {
+  
+  // בניית טקסט המועמדים
+  const candidatesText = candidates.map((c, index) => {
+    const cand = c.candidate;
+    const age = cand.candidateAge || cand.inferredAge || 'לא ידוע';
+    
+    return `[מועמד/ת ${index + 1}]
+שם: ${cand.firstName}
+גיל: ${age}
+עיר: ${cand.city || cand.inferredCity || 'לא צוין'}
+רמה דתית: ${cand.religiousLevel || cand.inferredReligiousLevel || 'לא צוין'}
+מקצוע: ${cand.occupation || 'לא צוין'}
+ציון מדדים: ${c.totalScore}/100
+מכפיל רקע: ${c.backgroundMultiplier.toFixed(2)}
+
+סיכום אישיות: ${cand.aiPersonalitySummary || 'לא זמין'}
+מה מחפש/ת: ${cand.aiSeekingSummary || 'לא זמין'}
+רקע: ${cand.aiBackgroundSummary || 'לא זמין'}
+---`;
+  }).join('\n\n');
+
+  const prompt = `אתה שדכן AI מומחה במערכת NeshamaTech.
+
+המשימה: לנתח ולהשוות ${candidates.length} מועמדים עבור המחפש/ת ולדרג אותם.
+
+=== פרופיל המחפש/ת ===
+שם: ${userDetails.name}
+גיל: ${userDetails.age}
+עיר: ${userDetails.city || 'לא צוין'}
+רמה דתית: ${userDetails.religiousLevel || 'לא צוין'}
+מקצוע: ${userDetails.occupation || 'לא צוין'}
+
+סיכום אישיות: ${userDetails.aiPersonalitySummary || 'לא זמין'}
+מה מחפש/ת: ${userDetails.aiSeekingSummary || 'לא זמין'}
+רקע: ${userDetails.aiBackgroundSummary || 'לא זמין'}
+הנחיות שדכן: ${userDetails.aiMatchmakerGuidelines || 'אין'}
+
+=== ${candidates.length} מועמדים לניתוח והשוואה ===
+${candidatesText}
+
+=== הנחיות ===
+1. השווה בין כל המועמדים - מי הכי מתאים/ה למחפש/ת?
+2. דרג את כולם מ-1 (הכי מתאים) עד ${candidates.length} (הכי פחות מתאים)
+3. לכל מועמד/ת תן ציון מ-50 עד 100:
+   - 90-100: התאמה יוצאת דופן - הכל מסתדר מצוין
+   - 80-89: התאמה טובה מאוד - רוב הפרמטרים מתאימים  
+   - 70-79: התאמה טובה - יש פוטנציאל עם כמה סימני שאלה
+   - 60-69: התאמה סבירה - יש חששות
+   - 50-59: התאמה בעייתית
+
+4. כתוב נימוק קצר (1-2 משפטים) לכל מועמד/ת
+
+חשוב: 
+- ציון המדדים כבר חושב - השתמש בו כבסיס אבל תן את הדעת שלך!
+- אתה רואה את כולם יחד - השווה ביניהם!
+- אל תפחד לתת 90+ אם ההתאמה באמת מעולה
+
+=== פורמט התשובה (JSON בלבד) ===
+{
+  "analysis": [
+    {
+      "index": 1,
+      "rank": 1,
+      "score": 92,
+      "reasoning": "התאמה מצוינת - רקע דומה, רמה דתית תואמת, שניהם שאפתניים",
+      "strengths": ["רקע דומה", "רמה דתית תואמת"],
+      "concerns": []
+    },
+    {
+      "index": 2,
+      "rank": 3,
+      "score": 78,
+      "reasoning": "התאמה טובה אך יש פער בגישה לקריירה",
+      "strengths": ["גיל מתאים", "עיר קרובה"],
+      "concerns": ["פער בשאפתנות"]
+    }
+  ]
+}
+
+החזר JSON תקין בלבד.`;
+
+  try {
+    console.log(`[ScanV2.5] Calling Gemini API with ${candidates.length} candidates...`);
+    const startTime = Date.now();
+    
+    const response = await callGeminiAPI(prompt);
+    const duration = Date.now() - startTime;
+    console.log(`[ScanV2.5] AI response received in ${duration}ms`);
+    
+    const cleaned = response.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+    const parsed = JSON.parse(cleaned);
+    
+    const results = new Map<string, any>();
+    
+    for (const result of parsed.analysis || []) {
+      const candidate = candidates[result.index - 1];
+      if (candidate) {
+        results.set(candidate.candidate.profileId, {
+          score: Math.min(100, Math.max(50, result.score)),
+          rank: result.rank,
+          reasoning: result.reasoning || '',
+          strengths: result.strengths || [],
+          concerns: result.concerns || [],
+        });
+      }
+    }
+    
+    // לוג תוצאות
+    console.log(`[ScanV2.5] AI Results (top 5):`);
+    const sorted = Array.from(results.entries()).sort((a, b) => a[1].rank - b[1].rank);
+    sorted.slice(0, 5).forEach(([profileId, r]) => {
+      const cand = candidates.find(c => c.candidate.profileId === profileId);
+      console.log(`  ${r.rank}. ${cand?.candidate.firstName} - Score: ${r.score} (metrics: ${cand?.totalScore})`);
+    });
+    
+    return results;
+    
+  } catch (error) {
+    console.error('[ScanV2.5] AI comparison error:', error);
+    return new Map();
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// 🆕 CACHE FUNCTIONS
+// ═══════════════════════════════════════════════════════════════
+
+async function getCachedMatches(
+  userId: string,
+  validityHours: number
+): Promise<Map<string, any>> {
+  const cached = new Map<string, any>();
+  
+  try {
+    const cutoffTime = new Date(Date.now() - validityHours * 60 * 60 * 1000);
+    
+    // שליפת PotentialMatches שנסרקו לאחרונה
+    const recentScans = await prisma.potentialMatch.findMany({
+      where: {
+        OR: [
+          { maleUserId: userId },
+          { femaleUserId: userId },
+        ],
+        scannedAt: { gte: cutoffTime },
+      },
+      select: {
+        maleUserId: true,
+        femaleUserId: true,
+        aiScore: true,
+        firstPassScore: true,
+      },
+    });
+    
+    const userProfile = await prisma.profile.findFirst({
+      where: { userId },
+      select: { id: true },
+    });
+    
+    if (!userProfile) return cached;
+    
+    for (const scan of recentScans) {
+      const candidateUserId = scan.maleUserId === userId ? scan.femaleUserId : scan.maleUserId;
+      const candidateProfile = await prisma.profile.findFirst({
+        where: { userId: candidateUserId },
+        select: { id: true },
+      });
+      
+      if (candidateProfile) {
+        const cacheKey = `${userProfile.id}_${candidateProfile.id}`;
+        cached.set(cacheKey, {
+          metricsScore: scan.firstPassScore || 0,
+          totalScore: scan.aiScore || scan.firstPassScore || 0,
+          backgroundMultiplier: 1.0,
+          flags: [],
+        });
+      }
+    }
+  } catch (error) {
+    console.error('[Cache] Error fetching cached matches:', error);
+  }
+  
+  return cached;
+}
+
+async function saveCachedMatches(
+  userId: string,
+  profileId: string,
+  scoredCandidates: any[]
+): Promise<void> {
+  // ה-cache נשמר אוטומטית דרך saveScanResults
+  // פונקציה זו יכולה לשמש לשמירה נוספת אם נדרש
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -609,10 +908,6 @@ function determineRecommendation(score: number): 'EXCELLENT' | 'GOOD' | 'FAIR' |
   return 'POOR';
 }
 
-// ═══════════════════════════════════════════════════════════════
-// ENSURE CANDIDATES HAVE METRICS/VECTORS
-// ═══════════════════════════════════════════════════════════════
-
 async function ensureCandidatesReady(
   oppositeGender: Gender,
   maxToUpdate: number = 30
@@ -628,7 +923,7 @@ async function ensureCandidatesReady(
     LEFT JOIN "profile_vectors" pv ON pv."profileId" = p.id
     WHERE 
       p.gender = ${oppositeGender}::"Gender"
-      AND p."availabilityStatus" = 'AVAILABLE'::"AvailabilityStatus"
+      AND (p."availabilityStatus" IS NULL OR p."availabilityStatus" != 'NOT_AVAILABLE'::"AvailabilityStatus")
       AND (p."isProfileVisible" = true OR p."isProfileVisible" IS NULL)
       AND (
         pm.id IS NULL
@@ -641,11 +936,11 @@ async function ensureCandidatesReady(
   `;
 
   if (candidatesNeedingUpdate.length === 0) {
-    console.log(`[ScanV2] All candidates have metrics/vectors ✓`);
+    console.log(`[ScanV2.5] All candidates have metrics/vectors ✓`);
     return { updated: 0, failed: 0 };
   }
 
-  console.log(`[ScanV2] Found ${candidatesNeedingUpdate.length} candidates needing metrics update`);
+  console.log(`[ScanV2.5] Found ${candidatesNeedingUpdate.length} candidates needing metrics update`);
 
   let updated = 0;
   let failed = 0;
@@ -657,59 +952,13 @@ async function ensureCandidatesReady(
       await new Promise(resolve => setTimeout(resolve, 200));
     } catch (error) {
       failed++;
-      console.error(`[ScanV2] Failed to update ${candidate.firstName}:`, error);
     }
   }
 
-  console.log(`[ScanV2] Metrics update: ${updated} success, ${failed} failed`);
+  console.log(`[ScanV2.5] Metrics update: ${updated} success, ${failed} failed`);
   return { updated, failed };
 }
 
-// ═══════════════════════════════════════════════════════════════
-// AI DEEP ANALYSIS - 🆕 מעודכן עם סיכומים חדשים
-// ═══════════════════════════════════════════════════════════════
-
-async function performAIDeepAnalysis(
-  userProfile: any,
-  userMetrics: any,
-  candidates: { candidate: any; compatibility: PairCompatibilityResult }[]
-): Promise<Map<string, any>> {
-  const results = new Map<string, any>();
-
-  const userDetails = await fetchProfileDetailsForAI(userProfile.id);
-
-  const batchSize = 5;
-  
-  for (let i = 0; i < candidates.length; i += batchSize) {
-    const batch = candidates.slice(i, i + batchSize);
-    
-    const batchPromises = batch.map(async ({ candidate, compatibility }) => {
-      try {
-        const candidateDetails = await fetchProfileDetailsForAI(candidate.profileId);
-        
-        const analysis = await analyzeMatchWithAI(
-          userDetails,
-          candidateDetails,
-          compatibility
-        );
-        
-        results.set(candidate.profileId, analysis);
-      } catch (error) {
-        console.error(`[AI] Failed to analyze ${candidate.firstName}:`, error);
-      }
-    });
-
-    await Promise.all(batchPromises);
-    
-    if (i + batchSize < candidates.length) {
-      await new Promise(resolve => setTimeout(resolve, 300));
-    }
-  }
-
-  return results;
-}
-
-// 🆕 פונקציה מעודכנת לשליפת פרטים עם השדות החדשים
 async function fetchProfileDetailsForAI(profileId: string): Promise<any> {
   const profile = await prisma.profile.findUnique({
     where: { id: profileId },
@@ -724,173 +973,41 @@ async function fetchProfileDetailsForAI(profileId: string): Promise<any> {
       "aiSeekingSummary",
       "aiBackgroundSummary",
       "aiMatchmakerGuidelines",
-      "aiInferredDealBreakers",
-      "aiInferredMustHaves",
-      "socialEnergy",
-      "religiousStrictness",
-      "careerOrientation",
-      "urbanScore",
-      "appearancePickiness",
-      "difficultyFlags",
-      "socioEconomicLevel",
-      "jobSeniorityLevel",
-      "educationLevelScore",
       "inferredAge",
       "inferredCity",
-      "inferredReligiousLevel",
-      "inferredPreferredAgeMin",
-      "inferredPreferredAgeMax"
+      "inferredReligiousLevel"
     FROM "profile_metrics" 
     WHERE "profileId" = ${profileId}
   `;
 
   const m = metrics[0] || {};
 
-  // 🆕 גיל עם fallback
   const age = profile.birthDate
     ? Math.floor((Date.now() - new Date(profile.birthDate).getTime()) / (1000 * 60 * 60 * 24 * 365.25))
     : m.inferredAge || 0;
 
-  // 🆕 עיר עם fallback
-  const city = profile.city || m.inferredCity || null;
-
   return {
-    name: `${profile.user.firstName}`,
+    name: profile.user.firstName,
     gender: profile.gender,
     age,
-    city,
+    city: profile.city || m.inferredCity,
     religiousLevel: profile.religiousLevel || m.inferredReligiousLevel,
     occupation: profile.occupation,
-    education: profile.education,
-    educationLevel: profile.educationLevel || m.inferredEducationLevel,
-    about: profile.about,
-    matchingNotes: profile.matchingNotes,
-    
-    // סיכומי AI
     aiPersonalitySummary: m.aiPersonalitySummary,
     aiSeekingSummary: m.aiSeekingSummary,
     aiBackgroundSummary: m.aiBackgroundSummary,
     aiMatchmakerGuidelines: m.aiMatchmakerGuidelines,
-    
-    // דגלים
-    aiInferredDealBreakers: m.aiInferredDealBreakers || [],
-    aiInferredMustHaves: m.aiInferredMustHaves || [],
-    
-    // מדדים
-    metrics: {
-      socialEnergy: m.socialEnergy,
-      religiousStrictness: m.religiousStrictness,
-      careerOrientation: m.careerOrientation,
-      urbanScore: m.urbanScore,
-      appearancePickiness: m.appearancePickiness,
-      socioEconomicLevel: m.socioEconomicLevel,
-      jobSeniorityLevel: m.jobSeniorityLevel,
-      educationLevelScore: m.educationLevelScore,
-      difficultyFlags: m.difficultyFlags || [],
-    },
-    
-    // העדפות
-    preferences: {
-      ageMin: profile.preferredAgeMin || m.inferredPreferredAgeMin,
-      ageMax: profile.preferredAgeMax || m.inferredPreferredAgeMax,
-    },
   };
-}
-
-// 🆕 פרומפט מעודכן עם סיכומים חדשים
-async function analyzeMatchWithAI(
-  userDetails: any,
-  candidateDetails: any,
-  compatibility: PairCompatibilityResult
-): Promise<any> {
-  const prompt = `אתה שדכן מומחה. נתח את ההתאמה בין שני הפרופילים הבאים.
-
-## פרופיל A (מחפש/ת):
-שם: ${userDetails.name}
-מגדר: ${userDetails.gender}
-גיל: ${userDetails.age}
-עיר: ${userDetails.city || 'לא צוין'}
-רמה דתית: ${userDetails.religiousLevel || 'לא צוין'}
-מקצוע: ${userDetails.occupation || 'לא צוין'}
-
-סיכום אישיות:
-${userDetails.aiPersonalitySummary || 'לא זמין'}
-
-מה מחפש/ת:
-${userDetails.aiSeekingSummary || 'לא זמין'}
-
-רקע:
-${userDetails.aiBackgroundSummary || 'לא זמין'}
-
-הנחיות שדכן:
-${userDetails.aiMatchmakerGuidelines || 'לא זמין'}
-
-חובות: ${userDetails.aiInferredMustHaves?.join(', ') || 'לא צוין'}
-קווי אדום: ${userDetails.aiInferredDealBreakers?.join(', ') || 'לא צוין'}
-
-## פרופיל B (מועמד/ת):
-שם: ${candidateDetails.name}
-מגדר: ${candidateDetails.gender}
-גיל: ${candidateDetails.age}
-עיר: ${candidateDetails.city || 'לא צוין'}
-רמה דתית: ${candidateDetails.religiousLevel || 'לא צוין'}
-מקצוע: ${candidateDetails.occupation || 'לא צוין'}
-
-סיכום אישיות:
-${candidateDetails.aiPersonalitySummary || 'לא זמין'}
-
-מה מחפש/ת:
-${candidateDetails.aiSeekingSummary || 'לא זמין'}
-
-רקע:
-${candidateDetails.aiBackgroundSummary || 'לא זמין'}
-
-חובות: ${candidateDetails.aiInferredMustHaves?.join(', ') || 'לא צוין'}
-קווי אדום: ${candidateDetails.aiInferredDealBreakers?.join(', ') || 'לא צוין'}
-
-## ציון מדדים מקדים: ${compatibility.symmetricScore}/100
-דגלים: ${compatibility.flags.join(', ') || 'אין'}
-
----
-
-נתח את ההתאמה והחזר JSON בלבד:
-
-{
-  "score": <50-100>,
-  "reasoning": "<הסבר קצר של 2-3 משפטים למה מתאימים/לא מתאימים>",
-  "strengths": ["<נקודת חוזק 1>", "<נקודת חוזק 2>"],
-  "concerns": ["<חשש 1>", "<חשש 2>"],
-  "suggestedApproach": "<איך להציג את ההצעה>"
-}`;
-
-  try {
-    const response = await callGeminiAPI(prompt);
-    
-    const cleaned = response
-      .replace(/```json\n?/g, '')
-      .replace(/```\n?/g, '')
-      .trim();
-
-    return JSON.parse(cleaned);
-  } catch (error) {
-    console.error('[AI] Parse error:', error);
-    return {
-      score: compatibility.symmetricScore,
-      reasoning: 'AI analysis unavailable',
-      strengths: [],
-      concerns: [],
-    };
-  }
 }
 
 async function callGeminiAPI(prompt: string): Promise<string> {
   const apiKey = process.env.GOOGLE_API_KEY || process.env.GOOGLE_GEMINI_API_KEY;
 
   if (!apiKey) {
-     throw new Error("Missing API Key for Gemini");
+    throw new Error("Missing API Key for Gemini");
   }
 
-  const model = 'gemini-2.0-flash'; 
+  const model = 'gemini-2.0-flash';
 
   const response = await fetch(
     `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
@@ -901,7 +1018,7 @@ async function callGeminiAPI(prompt: string): Promise<string> {
         contents: [{ parts: [{ text: prompt }] }],
         generationConfig: {
           temperature: 0.3,
-          maxOutputTokens: 500,
+          maxOutputTokens: 2000,
         },
       }),
     }
@@ -909,7 +1026,6 @@ async function callGeminiAPI(prompt: string): Promise<string> {
 
   if (!response.ok) {
     const errorText = await response.text();
-    console.error(`[ScanV2 AI Error] ${response.status}:`, errorText);
     throw new Error(`Gemini API error: ${response.status}`);
   }
 
@@ -927,13 +1043,13 @@ export async function saveScanResults(result: ScanResult): Promise<number> {
   });
 
   if (!userProfile) {
-    console.error(`[ScanV2] Cannot save - profile not found for user: ${result.userId}`);
+    console.error(`[ScanV2.5] Cannot save - profile not found for user: ${result.userId}`);
     return 0;
   }
 
-  const matchesToSave = result.matches.filter(m => m.symmetricScore >= MIN_SCORE_TO_SAVE);
+  const matchesToSave = result.matches.filter(m => m.score >= MIN_SCORE_TO_SAVE);
   
-  console.log(`[ScanV2] Saving to DB: ${matchesToSave.length} matches (${result.matches.length} total, filtered >= ${MIN_SCORE_TO_SAVE})`);
+  console.log(`[ScanV2.5] Saving to DB: ${matchesToSave.length} matches`);
 
   let savedCount = 0;
   let updatedCount = 0;
@@ -952,13 +1068,10 @@ export async function saveScanResults(result: ScanResult): Promise<number> {
         await prisma.potentialMatch.update({
           where: { id: existing.id },
           data: {
-            aiScore: match.symmetricScore,
+            aiScore: match.score,
             firstPassScore: match.metricsScore,
             shortReasoning: match.aiAnalysis?.reasoning || null,
             scannedAt: new Date(),
-            scoreForMale: isMale ? match.scoreForUser : match.scoreForCandidate,
-            scoreForFemale: isMale ? match.scoreForCandidate : match.scoreForUser,
-            asymmetryGap: Math.abs(match.scoreForUser - match.scoreForCandidate),
           },
         });
         updatedCount++;
@@ -967,19 +1080,16 @@ export async function saveScanResults(result: ScanResult): Promise<number> {
           data: {
             maleUserId,
             femaleUserId,
-            aiScore: match.symmetricScore,
+            aiScore: match.score,
             firstPassScore: match.metricsScore,
             status: 'PENDING',
             shortReasoning: match.aiAnalysis?.reasoning || null,
-            scoreForMale: isMale ? match.scoreForUser : match.scoreForCandidate,
-            scoreForFemale: isMale ? match.scoreForCandidate : match.scoreForUser,
-            asymmetryGap: Math.abs(match.scoreForUser - match.scoreForCandidate),
           },
         });
         savedCount++;
       }
     } catch (error) {
-      console.error(`[ScanV2] Failed to save match for ${match.candidateName}:`, error);
+      console.error(`[ScanV2.5] Failed to save match for ${match.candidateName}:`, error);
     }
   }
 
@@ -988,7 +1098,7 @@ export async function saveScanResults(result: ScanResult): Promise<number> {
     data: { lastScannedAt: new Date() },
   });
 
-  console.log(`[ScanV2] ✅ Saved ${savedCount} new, updated ${updatedCount} existing matches`);
+  console.log(`[ScanV2.5] ✅ Saved ${savedCount} new, updated ${updatedCount} existing matches`);
   
   return savedCount + updatedCount;
 }

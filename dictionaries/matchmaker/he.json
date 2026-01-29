@@ -1538,7 +1538,11 @@
     "cannotSelectError": {
       "title": "לא ניתן לבחור מועמד זה",
       "description": "{{name}} כבר נמצא/ת בהצעה פעילה עם {{withName}}."
-    }
+    },
+     "pendingSuggestionWarning": {
+        "title": "שים לב - הצעה קיימת",
+        "description": "למועמד/ת {{name}} יש כבר הצעה פעילה עם {{withName}}. ניתן להמשיך בכל זאת."
+      }
   }
 }
 ,
