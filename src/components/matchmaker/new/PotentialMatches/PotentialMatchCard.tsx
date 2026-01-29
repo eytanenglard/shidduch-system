@@ -50,18 +50,17 @@ import {
   ChevronUp,
   ExternalLink,
   Undo,
-  MessageCircle, // WhatsApp
-  Mail, // Email/Feedback
-  Briefcase, // NEW
-  Ruler,     // NEW
-  Languages, // NEW
+  MessageCircle,
+  Mail,
+  Briefcase,
+  Ruler,
+  Languages,
 } from 'lucide-react';
 import { cn, getRelativeCloudinaryPath } from '@/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
 import { he } from 'date-fns/locale';
 import type { PotentialMatch, ScoreBreakdown } from './types/potentialMatches';
 
-// --- New Integration: Rejection Feedback ---
 import RejectionFeedbackModal, {
   useRejectionFeedback,
 } from './RejectionFeedbackModal';
@@ -78,11 +77,8 @@ interface PotentialMatchCardProps {
   onRestore: (matchId: string) => void;
   onSave: (matchId: string) => void;
   onViewProfile: (userId: string) => void;
-
-  // New Action Callbacks
   onAnalyzeCandidate: (candidate: any) => void;
   onProfileFeedback: (candidate: any) => void;
-
   isSelected?: boolean;
   onToggleSelect?: (matchId: string) => void;
   showSelection?: boolean;
@@ -153,8 +149,6 @@ const getReligiousLevelLabel = (level: string | null): string => {
   return labels[level] || level;
 };
 
-// --- Helper Functions for New Fields ---
-
 const formatLanguages = (
   native: string | null | undefined,
   additional: string[] | null | undefined
@@ -175,7 +169,7 @@ const formatLanguages = (
 
   return langs
     .map((lang) => langMap[lang.toLowerCase()] || lang)
-    .slice(0, 3) // Limit to 3 to save space
+    .slice(0, 3)
     .join(', ');
 };
 
@@ -195,7 +189,6 @@ const getMaritalStatusLabel = (status: string | null | undefined): string => {
 // SUB-COMPONENTS
 // =============================================================================
 
-// כרטיס מועמד בודד (בתוך הזוג)
 const CandidatePreview: React.FC<{
   candidate: any;
   gender: 'male' | 'female';
@@ -218,7 +211,6 @@ const CandidatePreview: React.FC<{
   const bgGradient =
     gender === 'male' ? 'from-blue-50 to-cyan-50' : 'from-pink-50 to-rose-50';
 
-  // חישוב מחרוזת שפות לתצוגה
   const languagesStr = formatLanguages(
     candidate.nativeLanguage,
     candidate.additionalLanguages
@@ -247,7 +239,6 @@ const CandidatePreview: React.FC<{
 
     const subject = `היי ${candidate.firstName} מנשמהטק 💜`;
     const body = `היי ${candidate.firstName},
-
 זה איתן מנשמהטק.
 
 אני מאוד שמח שנרשמת למערכת שלנו ואני מקווה מאוד לעזור לך למצוא את הזוגיות שתמיד חלמת עליה.
@@ -267,13 +258,13 @@ const CandidatePreview: React.FC<{
   return (
     <div
       className={cn(
-        'relative flex-1 p-3 rounded-xl border-2 transition-all duration-300 hover:shadow-md flex flex-col',
+        'relative flex-1 min-w-0 overflow-hidden p-3 rounded-xl border-2 transition-all duration-300 hover:shadow-md flex flex-col',
         borderColor,
         `bg-gradient-to-br ${bgGradient}`
       )}
       onClick={onViewProfile}
     >
-      <div className="flex-1 cursor-pointer">
+      <div className="flex-1 cursor-pointer min-w-0 w-full">
         {/* תמונה וסטטוס */}
         <div className="relative w-16 h-16 mx-auto mb-2 rounded-full overflow-hidden border-2 border-white shadow-md">
           {candidate.mainImage ? (
@@ -297,59 +288,69 @@ const CandidatePreview: React.FC<{
         </div>
 
         {/* שם */}
-        <h4 className="text-center font-bold text-gray-800 text-sm mb-1 truncate">
+        <h4
+          className="text-center font-bold text-gray-800 text-sm mb-1 truncate px-1"
+          title={`${candidate.firstName} ${candidate.lastName}`}
+        >
           {candidate.firstName} {candidate.lastName}
         </h4>
 
-        {/* --- אזור המידע החדש (גיל, גובה, סטטוס, עיר, עיסוק, שפות) --- */}
-        <div className="flex flex-col gap-1.5 mb-2">
+        {/* אזור המידע */}
+        <div className="flex flex-col gap-1.5 mb-2 w-full overflow-hidden">
           {/* שורה 1: גיל | סטטוס | גובה */}
-          <div className="flex items-center justify-center gap-2 text-xs text-gray-700">
+          <div className="flex items-center justify-center gap-2 text-xs text-gray-700 flex-wrap">
             <span className="font-medium">{candidate.age}</span>
 
             {candidate.maritalStatus && (
               <>
                 <span className="text-gray-300">|</span>
-                <span>{getMaritalStatusLabel(candidate.maritalStatus)}</span>
+                <span
+                  className="truncate max-w-[80px]"
+                  title={getMaritalStatusLabel(candidate.maritalStatus)}
+                >
+                  {getMaritalStatusLabel(candidate.maritalStatus)}
+                </span>
               </>
             )}
 
             {candidate.height && (
               <>
                 <span className="text-gray-300">|</span>
-                <span className="flex items-center gap-0.5" title="גובה">
+                <span
+                  className="flex items-center gap-0.5 shrink-0"
+                  title="גובה"
+                >
                   {candidate.height} <Ruler className="w-3 h-3 text-gray-400" />
                 </span>
               </>
             )}
           </div>
 
-          {/* שורה 2: עיר (אם קיימת) */}
+          {/* שורה 2: עיר */}
           {candidate.city && (
-            <div className="flex items-center justify-center gap-1 text-xs text-gray-600">
+            <div className="flex items-center justify-center gap-1 text-xs text-gray-600 w-full min-w-0 px-2">
               <MapPin className="w-3 h-3 text-gray-400 shrink-0" />
-              <span className="truncate max-w-[120px]">{candidate.city}</span>
+              <span className="truncate" title={candidate.city}>
+                {candidate.city}
+              </span>
             </div>
           )}
 
-          {/* שורה 3: עיסוק (אם קיים) */}
+          {/* שורה 3: עיסוק */}
           {candidate.occupation && (
-            <div className="flex items-center justify-center gap-1 text-xs text-gray-600 px-2">
+            <div className="flex items-center justify-center gap-1 text-xs text-gray-600 w-full min-w-0 px-2">
               <Briefcase className="w-3 h-3 text-gray-400 shrink-0" />
-              <span
-                className="truncate max-w-full text-center"
-                title={candidate.occupation}
-              >
+              <span className="truncate" title={candidate.occupation}>
                 {candidate.occupation}
               </span>
             </div>
           )}
 
-          {/* שורה 4: שפות (אם קיימות) */}
+          {/* שורה 4: שפות */}
           {languagesStr && (
-            <div className="flex items-center justify-center gap-1 text-[10px] text-gray-500">
+            <div className="flex items-center justify-center gap-1 text-[10px] text-gray-500 w-full min-w-0 px-2">
               <Languages className="w-3 h-3 text-gray-400 shrink-0" />
-              <span className="truncate max-w-[140px]" title={languagesStr}>
+              <span className="truncate" title={languagesStr}>
                 {languagesStr}
               </span>
             </div>
@@ -357,8 +358,13 @@ const CandidatePreview: React.FC<{
         </div>
 
         {/* רמה דתית */}
-        <div className="text-center text-[10px] text-purple-600 font-medium bg-purple-50 rounded-full py-0.5 px-2 mx-auto w-fit max-w-full truncate">
-          {getReligiousLevelLabel(candidate.religiousLevel)}
+        <div className="flex justify-center w-full px-2">
+          <div
+            className="text-center text-[10px] text-purple-600 font-medium bg-purple-50 rounded-full py-0.5 px-2 max-w-full truncate"
+            title={getReligiousLevelLabel(candidate.religiousLevel)}
+          >
+            {getReligiousLevelLabel(candidate.religiousLevel)}
+          </div>
         </div>
       </div>
 
@@ -518,20 +524,18 @@ const ScoreBreakdownDisplay: React.FC<{
     </div>
   );
 };
+
 // קומפוננטת עזר לפורמט הנימוק
 const ReasoningContent: React.FC<{ reasoning: string | null | undefined }> = ({
   reasoning,
 }) => {
   if (!reasoning) return null;
 
-  // פיצול לפסקאות
   const paragraphs = reasoning.split(/\n\n+/).filter((p) => p.trim());
 
   const formatParagraph = (text: string, index: number) => {
-    // בדיקה אם זו כותרת
-    const isHeader = /^[*\-•]?\s*[\u0590-\u05FF\w\s]+:$/.test(text.trim());
+    const isHeader = /^[-•]?\s*[\u0590-\u05FF\w\s]+:$/.test(text.trim());
 
-    // בדיקה אם זו רשימה
     const isList =
       text.includes('\n- ') || text.includes('\n• ') || text.includes('\n* ');
 
@@ -583,6 +587,7 @@ const ReasoningContent: React.FC<{ reasoning: string | null | undefined }> = ({
     </div>
   );
 };
+
 // =============================================================================
 // MAIN COMPONENT
 // =============================================================================
@@ -606,7 +611,6 @@ const PotentialMatchCard: React.FC<PotentialMatchCardProps> = ({
   const [showDetails, setShowDetails] = useState(false);
   const [showReasoningDialog, setShowReasoningDialog] = useState(false);
 
-  // --- Rejection Feedback Hook ---
   const rejectionFeedback = useRejectionFeedback();
 
   const statusBadge = getStatusBadge(match.status);
@@ -615,21 +619,18 @@ const PotentialMatchCard: React.FC<PotentialMatchCardProps> = ({
   const isDismissed = match.status === 'DISMISSED';
   const isSent = match.status === 'SENT';
 
-  // --- Handlers ---
-
-  // פתיחת מודל הדחייה
   const handleDismissWithFeedback = () => {
     rejectionFeedback.open({
       partyA: {
         id: match.male.id,
-        profileId: match.male.profileId, // ⭐ Profile ID!
+        profileId: match.male.profileId,
         firstName: match.male.firstName,
         lastName: match.male.lastName,
         gender: 'MALE',
       },
       partyB: {
         id: match.female.id,
-        profileId: match.female.profileId, // ⭐ Profile ID!
+        profileId: match.female.profileId,
         firstName: match.female.firstName,
         lastName: match.female.lastName,
         gender: 'FEMALE',
@@ -639,11 +640,10 @@ const PotentialMatchCard: React.FC<PotentialMatchCardProps> = ({
     });
   };
 
-  // שליחת הפידבק וביצוע הדחייה בפועל
   const handleFeedbackSubmit = async (data: any) => {
     try {
-      await rejectionFeedback.submit(data); // שמירת הפידבק ב-DB
-      onDismiss(match.id); // עדכון סטטוס ההתאמה ל-DISMISSED בממשק
+      await rejectionFeedback.submit(data);
+      onDismiss(match.id);
     } catch (error) {
       console.error('Failed to submit feedback', error);
     }
@@ -885,7 +885,7 @@ const PotentialMatchCard: React.FC<PotentialMatchCardProps> = ({
                 <Button
                   variant="outline"
                   className="flex-1 h-9 text-sm"
-                  onClick={handleDismissWithFeedback} // Updated to use feedback modal
+                  onClick={handleDismissWithFeedback}
                 >
                   <X className="w-4 h-4 ml-2" />
                   דחה
@@ -925,7 +925,10 @@ const PotentialMatchCard: React.FC<PotentialMatchCardProps> = ({
             <div className="flex items-center gap-2 mt-2">
               <span className="text-sm text-gray-500">ציון התאמה:</span>
               <span
-                className={cn('text-lg font-bold', getScoreColor(match.aiScore))}
+                className={cn(
+                  'text-lg font-bold',
+                  getScoreColor(match.aiScore)
+                )}
               >
                 {Math.round(match.aiScore)}
               </span>
@@ -979,7 +982,9 @@ const PotentialMatchCard: React.FC<PotentialMatchCardProps> = ({
           onSubmit={handleFeedbackSubmit}
           partyA={rejectionFeedback.context.partyA}
           partyB={rejectionFeedback.context.partyB}
-          defaultRejectingParty={rejectionFeedback.context.defaultRejectingParty}
+          defaultRejectingParty={
+            rejectionFeedback.context.defaultRejectingParty
+          }
           potentialMatchId={rejectionFeedback.context.potentialMatchId}
         />
       )}
