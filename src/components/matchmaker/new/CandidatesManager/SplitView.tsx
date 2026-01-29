@@ -335,12 +335,14 @@ const SearchMethodTabs: React.FC<{
   onMethodChange: (method: SearchMethod) => void;
   algorithmicCount: number;
   vectorCount: number;
+  hybridCount: number; // 🆕
   isLoading: boolean;
 }> = ({
   activeMethod,
   onMethodChange,
   algorithmicCount,
   vectorCount,
+  hybridCount, // 🆕
   isLoading,
 }) => {
   return (
@@ -356,13 +358,14 @@ const SearchMethodTabs: React.FC<{
         )}
       >
         <Brain className="w-4 h-4" />
-        <span>AI מתקדם</span>
+        <span>AI</span>
         {algorithmicCount > 0 && (
           <Badge variant="secondary" className="text-xs px-1.5 py-0">
             {algorithmicCount}
           </Badge>
         )}
       </button>
+      
       <button
         onClick={() => onMethodChange('vector')}
         disabled={isLoading}
@@ -374,10 +377,30 @@ const SearchMethodTabs: React.FC<{
         )}
       >
         <Zap className="w-4 h-4" />
-        <span>דמיון מהיר</span>
+        <span>מהיר</span>
         {vectorCount > 0 && (
           <Badge variant="secondary" className="text-xs px-1.5 py-0">
             {vectorCount}
+          </Badge>
+        )}
+      </button>
+
+      {/* 🆕 Tab היברידי */}
+      <button
+        onClick={() => onMethodChange('hybrid')}
+        disabled={isLoading}
+        className={cn(
+          'flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all',
+          activeMethod === 'hybrid'
+            ? 'bg-white shadow-sm text-emerald-700'
+            : 'text-gray-600 hover:text-gray-800'
+        )}
+      >
+        <Users className="w-4 h-4" />
+        <span>היברידי</span>
+        {hybridCount > 0 && (
+          <Badge variant="secondary" className="text-xs px-1.5 py-0">
+            {hybridCount}
           </Badge>
         )}
       </button>
@@ -584,7 +607,7 @@ const PanelHeaderComponent: React.FC<{
 
   const config = genderConfig[gender];
   const IconComponent = config.icon;
-  const hasAnyResults = aiMatchesCount > 0 || vectorMatchesCount > 0;
+const hasAnyResults = aiMatchesCount > 0 || vectorMatchesCount > 0 || hybridMatches.length > 0;
   const isJobRunning = jobStatus === 'pending' || jobStatus === 'processing';
 
   return (
@@ -688,9 +711,10 @@ const PanelHeaderComponent: React.FC<{
           {/* Search buttons - always visible, not disabled during search */}
           {!isJobRunning && !showCompleteBanner && (
             <>
-              <div className="flex gap-2">
+              <div className="flex gap-2 flex-wrap">
+                {/* כפתור AI מתקדם - קיים */}
                 <motion.div
-                  className="flex-1 min-w-0"
+                  className="flex-1 min-w-[120px]"
                   whileHover={{ scale: 1.02 }}
                 >
                   <Button
@@ -702,13 +726,14 @@ const PanelHeaderComponent: React.FC<{
                   >
                     <Brain className="w-5 h-5 ml-1.5 flex-shrink-0" />
                     <span className="truncate text-xs sm:text-sm">
-                      חיפוש AI מתקדם
+                      AI מתקדם
                     </span>
                   </Button>
                 </motion.div>
 
+                {/* כפתור דמיון מהיר - קיים */}
                 <motion.div
-                  className="flex-1 min-w-0"
+                  className="flex-1 min-w-[120px]"
                   whileHover={{ scale: 1.02 }}
                 >
                   <Button
@@ -724,24 +749,27 @@ const PanelHeaderComponent: React.FC<{
                     </span>
                   </Button>
                 </motion.div>
+
+                {/* 🆕 כפתור סריקה היברידית - חדש! */}
                 <motion.div
-                  className="flex-1 min-w-0"
+                  className="flex-1 min-w-[120px]"
                   whileHover={{ scale: 1.02 }}
                 >
                   <Button
-                    onClick={(e) => onFindAiMatches(e, false, 'metrics_v2')} // שיטה חדשה
+                    onClick={(e) => onFindAiMatches(e, false, 'hybrid')}
                     className={cn(
                       'w-full h-11 font-bold transition-all duration-300 shadow-lg px-2 sm:px-4',
                       'bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white'
                     )}
                   >
-                    <Database className="w-5 h-5 ml-1.5 flex-shrink-0" />
+                    <Users className="w-5 h-5 ml-1.5 flex-shrink-0" />
                     <span className="truncate text-xs sm:text-sm">
-                      מדדים V2 🆕
+                      היברידי 🔥
                     </span>
                   </Button>
                 </motion.div>
-                {/* 🔄 UPDATED: כפתור רענון שמפעיל את כל הסריקות */}
+
+                {/* כפתור רענון - קיים */}
                 {hasAnyResults && (
                   <Button
                     size="icon"
@@ -761,14 +789,11 @@ const PanelHeaderComponent: React.FC<{
                 )}
               </div>
 
+              {/* תיאורי זמן מעודכנים */}
               <div className="flex gap-2 text-xs text-gray-500 mt-1">
-                <span className="flex-1 text-center truncate">
-                  ~3-5 דק • ניתוח
-                </span>
-                <span className="flex-1 text-center truncate">
-                  ~30 שנ • דמיון
-                </span>
-                {/* Spacer to align text under buttons when refresh button exists */}
+                <span className="flex-1 text-center truncate">~3-5 דק</span>
+                <span className="flex-1 text-center truncate">~30 שנ</span>
+                <span className="flex-1 text-center truncate">~1-2 דק 🆕</span>
                 {hasAnyResults && (
                   <div className="w-11 flex-shrink-0 hidden sm:block" />
                 )}
@@ -971,6 +996,8 @@ const SplitView: React.FC<SplitViewProps> = ({
   // 🆕 State for tracking refresh all operation
   const [isRefreshingAll, setIsRefreshingAll] = useState(false);
   const [refreshQueue, setRefreshQueue] = useState<SearchMethod[]>([]);
+const [hybridMatches, setHybridMatches] = useState<AiMatch[]>([]);
+const [hybridMatchMeta, setHybridMatchMeta] = useState<AiMatchMeta | null>(null);
 
   useEffect(() => {
     const checkScreenSize = () => setIsMobile(window.innerWidth < 768);
@@ -980,11 +1007,11 @@ const SplitView: React.FC<SplitViewProps> = ({
   }, []);
 
   // 🆕 Subscribe to job completion
-  useEffect(() => {
-    const unsubscribe = onJobComplete((result) => {
-      if (result?.matches) {
-        // Update the appropriate state based on method
-        if (currentJob.method === 'vector') {
+useEffect(() => {
+  const unsubscribe = onJobComplete((result) => {
+    if (result?.matches) {
+      switch (currentJob.method) {
+        case 'vector':
           setVectorMatches(result.matches as AiMatch[]);
           setVectorMatchMeta({
             fromCache: currentJob.fromCache,
@@ -992,7 +1019,20 @@ const SplitView: React.FC<SplitViewProps> = ({
             totalCandidatesScanned: result.meta?.totalCandidatesScanned,
           });
           setActiveResultsTab('vector');
-        } else {
+          break;
+          
+        case 'hybrid':
+        case 'metrics_v2':
+          setHybridMatches(result.matches as AiMatch[]);
+          setHybridMatchMeta({
+            fromCache: currentJob.fromCache,
+            algorithmVersion: result.meta?.algorithmVersion || 'hybrid-v1',
+            totalCandidatesScanned: result.meta?.totalCandidatesScanned,
+          });
+          setActiveResultsTab('hybrid');
+          break;
+          
+        default: // algorithmic
           setAiMatches(result.matches as AiMatch[]);
           setAiMatchMeta({
             fromCache: currentJob.fromCache,
@@ -1000,7 +1040,7 @@ const SplitView: React.FC<SplitViewProps> = ({
             totalCandidatesScanned: result.meta?.totalCandidatesScanned,
           });
           setActiveResultsTab('algorithmic');
-        }
+      }
 
         // 🆕 Check if we're in the middle of refreshing all methods
         if (refreshQueue.length > 0) {
@@ -1149,6 +1189,7 @@ const SplitView: React.FC<SplitViewProps> = ({
         'algorithmic',
         'vector',
         'metrics_v2',
+        'hybrid'
       ];
 
       // Queue the remaining methods (after the first one)
@@ -1159,7 +1200,8 @@ const SplitView: React.FC<SplitViewProps> = ({
       setAiMatchMeta(null);
       setVectorMatches([]);
       setVectorMatchMeta(null);
-
+ setHybridMatches([]); // 🆕
+    setHybridMatchMeta(null); // 🆕
       // Prepare params
       const isVirtual = (aiTargetCandidate as any).isVirtual;
       const virtualData = (aiTargetCandidate as any).virtualData;
@@ -1207,8 +1249,16 @@ const SplitView: React.FC<SplitViewProps> = ({
 
   // Get active matches
   const getActiveMatches = (): AiMatch[] => {
-    return activeResultsTab === 'vector' ? vectorMatches : aiMatches;
-  };
+  switch (activeResultsTab) {
+    case 'vector':
+      return vectorMatches;
+    case 'hybrid':
+      return hybridMatches;
+    case 'algorithmic':
+    default:
+      return aiMatches;
+  }
+};
 
   // Merge candidates with AI scores
   const maleCandidatesWithScores: CandidateWithAiData[] = useMemo(() => {

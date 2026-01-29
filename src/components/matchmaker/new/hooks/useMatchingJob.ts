@@ -13,7 +13,7 @@ import { toast } from 'sonner';
 // ============================================================================
 
 export type JobStatus = 'idle' | 'pending' | 'processing' | 'completed' | 'failed';
-export type SearchMethod = 'algorithmic' | 'vector' | 'metrics_v2';
+export type SearchMethod = 'algorithmic' | 'vector' | 'metrics_v2' | 'hybrid';
 
 export interface MatchResult {
   userId: string;
