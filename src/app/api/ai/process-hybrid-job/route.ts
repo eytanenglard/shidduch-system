@@ -10,7 +10,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { hybridScan, saveScanResultsToPotentialMatch, type HybridScanOptions } from "@/lib/services/hybridMatchingService";
+import { hybridScan, type HybridScanOptions } from "@/lib/services/hybridMatchingService";
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 300; // 5 דקות

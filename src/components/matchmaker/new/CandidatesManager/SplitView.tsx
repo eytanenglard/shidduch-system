@@ -365,7 +365,7 @@ const SearchMethodTabs: React.FC<{
           </Badge>
         )}
       </button>
-      
+
       <button
         onClick={() => onMethodChange('vector')}
         disabled={isLoading}
@@ -540,8 +540,10 @@ const PanelHeaderComponent: React.FC<{
   dict: MatchmakerPageDictionary['candidatesManager']['splitView']['panelHeaders'];
   aiMatchMeta: AiMatchMeta | null;
   vectorMatchMeta: AiMatchMeta | null;
+  hybridMatchMeta: AiMatchMeta | null;
   aiMatchesCount: number;
   vectorMatchesCount: number;
+  hybridMatchesCount: number;
   activeResultsTab: SearchMethod;
   onResultsTabChange: (method: SearchMethod) => void;
   // 🆕 Props from context
@@ -568,8 +570,10 @@ const PanelHeaderComponent: React.FC<{
   dict,
   aiMatchMeta,
   vectorMatchMeta,
+  hybridMatchMeta,
   aiMatchesCount,
   vectorMatchesCount,
+  hybridMatchesCount,
   activeResultsTab,
   onResultsTabChange,
   jobProgress,
@@ -607,7 +611,8 @@ const PanelHeaderComponent: React.FC<{
 
   const config = genderConfig[gender];
   const IconComponent = config.icon;
-const hasAnyResults = aiMatchesCount > 0 || vectorMatchesCount > 0 || hybridMatches.length > 0;
+  const hasAnyResults =
+    aiMatchesCount > 0 || vectorMatchesCount > 0 || hybridMatchesCount > 0; // <--- FIX HERE (Use count, not array)
   const isJobRunning = jobStatus === 'pending' || jobStatus === 'processing';
 
   return (
@@ -809,16 +814,23 @@ const hasAnyResults = aiMatchesCount > 0 || vectorMatchesCount > 0 || hybridMatc
                 onMethodChange={onResultsTabChange}
                 algorithmicCount={aiMatchesCount}
                 vectorCount={vectorMatchesCount}
+                hybridCount={hybridMatchesCount}
                 isLoading={isJobRunning}
               />
               <CacheInfoBadge
                 meta={
-                  activeResultsTab === 'vector' ? vectorMatchMeta : aiMatchMeta
+                  activeResultsTab === 'vector'
+                    ? vectorMatchMeta
+                    : activeResultsTab === 'hybrid'
+                      ? hybridMatchMeta // <--- הוסף תמיכה בהיברידי
+                      : aiMatchMeta
                 }
                 matchesCount={
                   activeResultsTab === 'vector'
                     ? vectorMatchesCount
-                    : aiMatchesCount
+                    : activeResultsTab === 'hybrid'
+                      ? hybridMatchesCount // <--- הוסף תמיכה בהיברידי
+                      : aiMatchesCount
                 }
                 method={activeResultsTab}
               />
@@ -988,6 +1000,7 @@ const SplitView: React.FC<SplitViewProps> = ({
   const [vectorMatchMeta, setVectorMatchMeta] = useState<AiMatchMeta | null>(
     null
   );
+
   const [currentSearchMethod, setCurrentSearchMethod] =
     useState<SearchMethod>('algorithmic');
   const [activeResultsTab, setActiveResultsTab] =
@@ -996,8 +1009,10 @@ const SplitView: React.FC<SplitViewProps> = ({
   // 🆕 State for tracking refresh all operation
   const [isRefreshingAll, setIsRefreshingAll] = useState(false);
   const [refreshQueue, setRefreshQueue] = useState<SearchMethod[]>([]);
-const [hybridMatches, setHybridMatches] = useState<AiMatch[]>([]);
-const [hybridMatchMeta, setHybridMatchMeta] = useState<AiMatchMeta | null>(null);
+  const [hybridMatches, setHybridMatches] = useState<AiMatch[]>([]);
+  const [hybridMatchMeta, setHybridMatchMeta] = useState<AiMatchMeta | null>(
+    null
+  );
 
   useEffect(() => {
     const checkScreenSize = () => setIsMobile(window.innerWidth < 768);
@@ -1007,40 +1022,40 @@ const [hybridMatchMeta, setHybridMatchMeta] = useState<AiMatchMeta | null>(null)
   }, []);
 
   // 🆕 Subscribe to job completion
-useEffect(() => {
-  const unsubscribe = onJobComplete((result) => {
-    if (result?.matches) {
-      switch (currentJob.method) {
-        case 'vector':
-          setVectorMatches(result.matches as AiMatch[]);
-          setVectorMatchMeta({
-            fromCache: currentJob.fromCache,
-            algorithmVersion: result.meta?.algorithmVersion || 'vector-v1',
-            totalCandidatesScanned: result.meta?.totalCandidatesScanned,
-          });
-          setActiveResultsTab('vector');
-          break;
-          
-        case 'hybrid':
-        case 'metrics_v2':
-          setHybridMatches(result.matches as AiMatch[]);
-          setHybridMatchMeta({
-            fromCache: currentJob.fromCache,
-            algorithmVersion: result.meta?.algorithmVersion || 'hybrid-v1',
-            totalCandidatesScanned: result.meta?.totalCandidatesScanned,
-          });
-          setActiveResultsTab('hybrid');
-          break;
-          
-        default: // algorithmic
-          setAiMatches(result.matches as AiMatch[]);
-          setAiMatchMeta({
-            fromCache: currentJob.fromCache,
-            algorithmVersion: result.meta?.algorithmVersion || 'v3.1',
-            totalCandidatesScanned: result.meta?.totalCandidatesScanned,
-          });
-          setActiveResultsTab('algorithmic');
-      }
+  useEffect(() => {
+    const unsubscribe = onJobComplete((result) => {
+      if (result?.matches) {
+        switch (currentJob.method) {
+          case 'vector':
+            setVectorMatches(result.matches as AiMatch[]);
+            setVectorMatchMeta({
+              fromCache: currentJob.fromCache,
+              algorithmVersion: result.meta?.algorithmVersion || 'vector-v1',
+              totalCandidatesScanned: result.meta?.totalCandidatesScanned,
+            });
+            setActiveResultsTab('vector');
+            break;
+
+          case 'hybrid':
+          case 'metrics_v2':
+            setHybridMatches(result.matches as AiMatch[]);
+            setHybridMatchMeta({
+              fromCache: currentJob.fromCache,
+              algorithmVersion: result.meta?.algorithmVersion || 'hybrid-v1',
+              totalCandidatesScanned: result.meta?.totalCandidatesScanned,
+            });
+            setActiveResultsTab('hybrid');
+            break;
+
+          default: // algorithmic
+            setAiMatches(result.matches as AiMatch[]);
+            setAiMatchMeta({
+              fromCache: currentJob.fromCache,
+              algorithmVersion: result.meta?.algorithmVersion || 'v3.1',
+              totalCandidatesScanned: result.meta?.totalCandidatesScanned,
+            });
+            setActiveResultsTab('algorithmic');
+        }
 
         // 🆕 Check if we're in the middle of refreshing all methods
         if (refreshQueue.length > 0) {
@@ -1189,7 +1204,7 @@ useEffect(() => {
         'algorithmic',
         'vector',
         'metrics_v2',
-        'hybrid'
+        'hybrid',
       ];
 
       // Queue the remaining methods (after the first one)
@@ -1200,8 +1215,8 @@ useEffect(() => {
       setAiMatchMeta(null);
       setVectorMatches([]);
       setVectorMatchMeta(null);
- setHybridMatches([]); // 🆕
-    setHybridMatchMeta(null); // 🆕
+      setHybridMatches([]); // 🆕
+      setHybridMatchMeta(null); // 🆕
       // Prepare params
       const isVirtual = (aiTargetCandidate as any).isVirtual;
       const virtualData = (aiTargetCandidate as any).virtualData;
@@ -1249,16 +1264,16 @@ useEffect(() => {
 
   // Get active matches
   const getActiveMatches = (): AiMatch[] => {
-  switch (activeResultsTab) {
-    case 'vector':
-      return vectorMatches;
-    case 'hybrid':
-      return hybridMatches;
-    case 'algorithmic':
-    default:
-      return aiMatches;
-  }
-};
+    switch (activeResultsTab) {
+      case 'vector':
+        return vectorMatches;
+      case 'hybrid':
+        return hybridMatches;
+      case 'algorithmic':
+      default:
+        return aiMatches;
+    }
+  };
 
   // Merge candidates with AI scores
   const maleCandidatesWithScores: CandidateWithAiData[] = useMemo(() => {
@@ -1372,8 +1387,10 @@ useEffect(() => {
         currentSearchMethod={currentSearchMethod}
         isMobileView={isMobileView}
         dict={dict.candidatesManager.splitView.panelHeaders}
+        hybridMatchesCount={hybridMatches.length}
         aiMatchMeta={aiMatchMeta}
         vectorMatchMeta={vectorMatchMeta}
+        hybridMatchMeta={hybridMatchMeta}
         aiMatchesCount={aiMatches.length}
         vectorMatchesCount={vectorMatches.length}
         activeResultsTab={activeResultsTab}

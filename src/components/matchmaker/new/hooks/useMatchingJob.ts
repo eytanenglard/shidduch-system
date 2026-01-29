@@ -132,37 +132,44 @@ export function useMatchingJob(options: UseMatchingJobOptions = {}) {
   // ============================================================================
   // Poll Job Status
   // ============================================================================
-  
-  const pollJobStatus = useCallback(async (jobId: string) => {
+  const getEndpoint = (method: SearchMethod) => {
+  if (method === 'hybrid') return '/api/ai/hybrid-scan';
+  return '/api/ai/find-matches-v2';
+};
+  const pollJobStatus = useCallback(async (jobId: string, methodToCheck: SearchMethod) => {
     try {
-      const response = await fetch(`/api/ai/find-matches-v2?jobId=${jobId}`);
+      // 1. קביעת ה-Endpoint הנכון לפי השיטה
+      const endpoint = getEndpoint(methodToCheck);
+      
+      // 2. ביצוע הקריאה לשרת
+      const response = await fetch(`${endpoint}?jobId=${jobId}`);
       const data = await response.json();
 
       if (!data.success) {
         throw new Error(data.error || 'Failed to get job status');
       }
 
-      // 🔧 תיקון: המרת result למבנה הנכון
+      // 3. נרמול מבנה התוצאות (Result Normalization)
+      // זה נועד למנוע קריסות אם ה-API מחזיר מערך ישירות או אובייקט עטוף
       let resultData: JobState['result'] = null;
       if (data.result) {
-        // אם result הוא מערך ישירות
         if (Array.isArray(data.result)) {
+          // אם התוצאה היא מערך של התאמות
           resultData = { matches: data.result };
-        } 
-        // אם result הוא אובייקט עם matches
-        else if (data.result.matches) {
+        } else if (data.result.matches) {
+          // אם התוצאה היא אובייקט שמכיל מערך matches
           resultData = data.result;
-        }
-        // אם result הוא אובייקט אחר - ננסה להשתמש בו
-        else {
+        } else {
+          // Fallback למקרה של אובייקט ריק או לא תקין
           resultData = { matches: [] };
         }
       }
 
+      // 4. עדכון ה-State המקומי עם המידע העדכני
       setState(prev => ({
         ...prev,
         status: data.status,
-        method: data.method?.replace('-virtual', '') as SearchMethod || prev.method,
+        method: methodToCheck, // שמירה על עקביות השיטה
         progress: data.progress || 0,
         progressMessage: data.progressMessage || '',
         result: resultData,
@@ -171,57 +178,70 @@ export function useMatchingJob(options: UseMatchingJobOptions = {}) {
         meta: {
           createdAt: data.meta?.createdAt ? new Date(data.meta.createdAt) : undefined,
           completedAt: data.meta?.completedAt ? new Date(data.meta.completedAt) : undefined,
-          matchesFound: data.meta?.matchesFound,
+          // לוקח את מספר ההתאמות מהמטא או מאורך המערך בפועל
+          matchesFound: data.meta?.matchesFound ?? (resultData?.matches?.length || 0),
           totalCandidates: data.meta?.totalCandidates
         }
       }));
 
-      // בדיקה אם Job הסתיים
+      // 5. טיפול בסיום מוצלח (Completed)
       if (data.status === 'completed') {
-        stopPolling();
+        stopPolling(); // עצירת הבדיקות החוזרות
         
         if (showToasts) {
           const matchCount = resultData?.matches?.length || data.meta?.matchesFound || 0;
-          toast.success(`✅ נמצאו ${matchCount} התאמות!`, {
-            description: 'לחץ להצגת התוצאות',
-            duration: 10000,
+          toast.success(`✅ הסריקה הסתיימה בהצלחה!`, {
+            description: `נמצאו ${matchCount} התאמות`,
+            duration: 5000, // 5 שניות
           });
         }
         
+        // הפעלת ה-Callback החיצוני אם קיים
         onComplete?.(resultData);
       } 
+      // 6. טיפול בכישלון (Failed)
       else if (data.status === 'failed') {
-        stopPolling();
+        stopPolling(); // עצירת הבדיקות החוזרות
         
         if (showToasts) {
           toast.error('❌ החיפוש נכשל', {
-            description: data.error || 'אירעה שגיאה',
+            description: data.error || 'אירעה שגיאה בעיבוד',
             duration: 5000,
           });
         }
         
+        // הפעלת ה-Callback החיצוני לשגיאות
         onError?.(data.error || 'Unknown error');
       }
 
     } catch (error) {
+      // טיפול בשגיאות רשת או שגיאות בתוך ה-Poll עצמו
       console.error('[useMatchingJob] Poll error:', error);
+      // הערה: בדרך כלל לא עוצרים פולינג על שגיאת רשת בודדת כדי להיות חסינים לנפילות רגעיות,
+      // אבל אם השגיאה חוזרת על עצמה, הלוגיקה תמשיך לרוץ עד שהמשתמש יבטל או שהדף ייסגר.
     }
   }, [stopPolling, onComplete, onError, showToasts]);
+
 
   // ============================================================================
   // Start Polling
   // ============================================================================
   
-  const startPolling = useCallback((jobId: string) => {
+const startPolling = useCallback((jobId: string, method: SearchMethod) => {
+    // מניעת כפילויות בפולינג
     if (isPollingRef.current) return;
     
     isPollingRef.current = true;
-    pollJobStatus(jobId);
+
+    // קריאה ראשונה מיידית (מעבירים גם את ה-method)
+    pollJobStatus(jobId, method);
     
+    // הגדרת האינטרוול (מעבירים גם את ה-method)
     pollingRef.current = setInterval(() => {
-      pollJobStatus(jobId);
+      pollJobStatus(jobId, method);
     }, pollingInterval);
   }, [pollJobStatus, pollingInterval]);
+
 
   // ============================================================================
   // Start Job
@@ -315,7 +335,7 @@ export function useMatchingJob(options: UseMatchingJobOptions = {}) {
         });
       }
 
-      startPolling(data.jobId);
+      startPolling(data.jobId, method); 
       return data.jobId;
 
     } catch (error) {
