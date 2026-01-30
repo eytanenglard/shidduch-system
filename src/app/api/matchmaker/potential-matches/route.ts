@@ -393,75 +393,97 @@ if (femaleReligiousLevel) {
     }
 
     // 7. עיבוד התוצאות
-    const processedMatches = matches.map(match => {
-      const maleAge = calculateAge(match.male.profile?.birthDate);
-      const femaleAge = calculateAge(match.female.profile?.birthDate);
+ // 7. עיבוד התוצאות
+const processedMatches = matches.map(match => {
+  const maleAge = calculateAge(match.male.profile?.birthDate);
+  const femaleAge = calculateAge(match.female.profile?.birthDate);
 
-      const maleActiveSuggestion = activeSuggestionMap.get(match.maleUserId) || null;
-      const femaleActiveSuggestion = activeSuggestionMap.get(match.femaleUserId) || null;
+  const maleActiveSuggestion = activeSuggestionMap.get(match.maleUserId) || null;
+  const femaleActiveSuggestion = activeSuggestionMap.get(match.femaleUserId) || null;
 
-      const hasActiveWarning = !!(
-        (maleActiveSuggestion?.isBlocking) || 
-        (femaleActiveSuggestion?.isBlocking)
-      );
+  const hasActiveWarning = !!(
+    (maleActiveSuggestion?.isBlocking) || 
+    (femaleActiveSuggestion?.isBlocking)
+  );
 
-      return {
-        id: match.id,
-        
-        male: {
-          id: match.male.id,
-            profileId: match.male.profile?.id || '',
-          firstName: match.male.firstName,
-          lastName: match.male.lastName,
-          age: maleAge,
-          phone: match.male.phone, 
-          city: match.male.profile?.city || null,
-          religiousLevel: match.male.profile?.religiousLevel || null,
-          occupation: match.male.profile?.occupation || null,
-          mainImage: match.male.images[0]?.url || null,
-          isVerified: match.male.isVerified,
-          isProfileComplete: match.male.isProfileComplete,
-          availabilityStatus: match.male.profile?.availabilityStatus || 'AVAILABLE',
-          lastActive: match.male.profile?.lastActive,
-          registeredAt: match.male.createdAt,
-        },
+  return {
+    id: match.id,
+    
+    male: {
+      id: match.male.id,
+      profileId: match.male.profile?.id || '',
+      firstName: match.male.firstName,
+      lastName: match.male.lastName,
+      age: maleAge,
+      phone: match.male.phone, 
+      city: match.male.profile?.city || null,
+      religiousLevel: match.male.profile?.religiousLevel || null,
+      occupation: match.male.profile?.occupation || null,
+      mainImage: match.male.images[0]?.url || null,
+      isVerified: match.male.isVerified,
+      isProfileComplete: match.male.isProfileComplete,
+      availabilityStatus: match.male.profile?.availabilityStatus || 'AVAILABLE',
+      lastActive: match.male.profile?.lastActive,
+      registeredAt: match.male.createdAt,
+    },
 
-        female: {
-          id: match.female.id,
-          profileId: match.female.profile?.id || '', 
-          firstName: match.female.firstName,
-          lastName: match.female.lastName,
-          age: femaleAge,
-          phone: match.female.phone,
-          city: match.female.profile?.city || null,
-          religiousLevel: match.female.profile?.religiousLevel || null,
-          occupation: match.female.profile?.occupation || null,
-          mainImage: match.female.images[0]?.url || null,
-          isVerified: match.female.isVerified,
-          isProfileComplete: match.female.isProfileComplete,
-          availabilityStatus: match.female.profile?.availabilityStatus || 'AVAILABLE',
-          lastActive: match.female.profile?.lastActive,
-          registeredAt: match.female.createdAt,
-        },
+    female: {
+      id: match.female.id,
+      profileId: match.female.profile?.id || '', 
+      firstName: match.female.firstName,
+      lastName: match.female.lastName,
+      age: femaleAge,
+      phone: match.female.phone,
+      city: match.female.profile?.city || null,
+      religiousLevel: match.female.profile?.religiousLevel || null,
+      occupation: match.female.profile?.occupation || null,
+      mainImage: match.female.images[0]?.url || null,
+      isVerified: match.female.isVerified,
+      isProfileComplete: match.female.isProfileComplete,
+      availabilityStatus: match.female.profile?.availabilityStatus || 'AVAILABLE',
+      lastActive: match.female.profile?.lastActive,
+      registeredAt: match.female.createdAt,
+    },
 
-        aiScore: match.aiScore,
-        firstPassScore: match.firstPassScore,
-        scoreBreakdown: match.scoreBreakdown,
-        shortReasoning: match.shortReasoning,
-        detailedReasoning: match.detailedReasoning,
-        backgroundCompatibility: match.backgroundCompatibility,
-        backgroundMultiplier: match.backgroundMultiplier,
+    // ציונים בסיסיים
+    aiScore: match.aiScore,
+    firstPassScore: match.firstPassScore,
+    scoreBreakdown: match.scoreBreakdown,
+    
+    // נימוקים
+    shortReasoning: match.shortReasoning,
+    detailedReasoning: match.detailedReasoning,
+    
+    // רקע
+    backgroundCompatibility: match.backgroundCompatibility,
+    backgroundMultiplier: match.backgroundMultiplier,
 
-        status: match.status,
-        scannedAt: match.scannedAt,
-        reviewedAt: match.reviewedAt,
-        suggestionId: match.suggestionId,
+    // ═══════════════════════════════════════════════════════════
+    // 🆕 ציונים לפי שיטת סריקה - הוספה חדשה!
+    // ═══════════════════════════════════════════════════════════
+    hybridScore: match.hybridScore,
+    hybridReasoning: match.hybridReasoning,
+    algorithmicScore: match.algorithmicScore,
+    algorithmicReasoning: match.algorithmicReasoning,
+    vectorScore: match.vectorScore,
+    vectorReasoning: match.vectorReasoning,
+    metricsV2Score: match.metricsV2Score,
+    metricsV2Reasoning: match.metricsV2Reasoning,
+    lastScanMethod: match.lastScanMethod,
+    // ═══════════════════════════════════════════════════════════
 
-        maleActiveSuggestion,
-        femaleActiveSuggestion,
-        hasActiveWarning,
-      };
-    });
+    // סטטוס ותאריכים
+    status: match.status,
+    scannedAt: match.scannedAt,
+    reviewedAt: match.reviewedAt,
+    suggestionId: match.suggestionId,
+
+    // אזהרות
+    maleActiveSuggestion,
+    femaleActiveSuggestion,
+    hasActiveWarning,
+  };
+});
 
     // 8. סינון נוסף לפי אזהרות (מבוצע בזיכרון כי זה שדה מחושב)
     // הערה: החיפוש הטקסטואלי כבר בוצע למעלה ב-DB, אז אין צורך לסנן אותו כאן שוב.

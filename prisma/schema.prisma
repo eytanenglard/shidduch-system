@@ -1015,7 +1015,7 @@ model VirtualProfile {
 // טבלה חדשה: התאמות פוטנציאליות שנמצאו בסריקה הלילית
 model PotentialMatch {
   id              String   @id @default(cuid())
-  
+   scanMethod    String?   // 'hybrid' | 'algorithmic' | 'vector'
   // הזוג
   maleUserId      String
   femaleUserId    String
@@ -1084,6 +1084,32 @@ model PotentialMatch {
   isExploratoryMatch    Boolean   @default(false)     // האם זו הצעה "ניסויית"
   explorationReason     String?                       // למה נבחרה כניסוי
 
+// ═══════════════════════════════════════════════════════════
+  // 🆕 ציונים לפי שיטת סריקה (כל שיטה שומרת בנפרד)
+  // ═══════════════════════════════════════════════════════════
+
+  // Hybrid Method (4-tier)
+  hybridScore           Float?
+  hybridReasoning       String?
+  hybridScannedAt       DateTime?
+  hybridScoreBreakdown  Json?
+  
+  // Algorithmic Method (AI Deep)
+  algorithmicScore      Float?
+  algorithmicReasoning  String?
+  algorithmicScannedAt  DateTime?
+  
+  // Vector Method (Fast similarity)
+  vectorScore           Float?
+  vectorReasoning       String?
+  vectorScannedAt       DateTime?
+  
+  // Metrics V2 Method
+  metricsV2Score        Float?
+  metricsV2Reasoning    String?
+  metricsV2ScannedAt    DateTime?
+
+    lastScanMethod        String?   // 'hybrid' | 'algorithmic' | 'vector' | 'metrics_v2'
 
   // Indexes
   @@unique([maleUserId, femaleUserId])

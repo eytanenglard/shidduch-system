@@ -74,6 +74,8 @@ export interface PotentialMatchFilters {
 // --- Scan Types (V3) ---
 export interface ScanProgress {
   phase: string;
+    method?: 'hybrid' | 'algorithmic' | 'vector' | 'metrics_v2'; // 🆕
+
   currentUserIndex: number;
   totalUsers: number;
   currentUserName?: string;
@@ -98,15 +100,16 @@ export interface ScanResult {
   durationMs: number;
 }
 
-export interface ScanOptions {
-  method?: 'algorithmic' | 'vector' | 'hybrid'; // Kept for V2 compatibility
-  action?: 'full_scan' | 'scan_single' | 'scan_new_users'; // V3 actions
+interface ScanOptions {
+  useStreaming?: boolean;
+  action?: 'full_scan' | 'scan_new_users' | 'scan_single';
+  method?: 'hybrid' | 'algorithmic' | 'vector' | 'metrics_v2'; // 🆕
   forceRefresh?: boolean;
   incremental?: boolean;
   userId?: string;
   userIds?: string[];
-  useStreaming?: boolean;
 }
+
 
 // --- Hook Return Interface ---
 interface UsePotentialMatchesReturn {
@@ -704,68 +707,81 @@ const bulkCreateSuggestions = useCallback(async (
       startPolling(scanId);
     };
   }, [updateScanState, handleScanCompletion, startPolling]);
+  
+const getMethodLabel = (method: string): string => {
+  const labels: Record<string, string> = {
+    hybrid: 'היברידית',
+    algorithmic: 'AI מתקדם',
+    vector: 'דמיון מהיר',
+    metrics_v2: 'מדדים V2',
+  };
+  return labels[method] || method;
+};
 
-  const startScan = useCallback(async (opts: ScanOptions = {}): Promise<string | null> => {
-    if (isScanning) {
-      toast.warning('סריקה כבר רצה');
-      return activeScanId;
-    }
+const startScan = useCallback(async (opts: ScanOptions = {}): Promise<string | null> => {
+  if (isScanning) {
+    toast.warning('סריקה כבר רצה');
+    return activeScanId;
+  }
 
-    setIsScanning(true);
-    setScanResult(null);
-    setScanProgress(null);
+  setIsScanning(true);
+  setScanResult(null);
+  setScanProgress(null);
 
-    const {
-      useStreaming = true,
-      action = 'full_scan',
-      forceRefresh = false,
-      incremental = false,
-      userId, userIds
-    } = opts;
+  const {
+    useStreaming = true,
+    action = 'full_scan',
+    method = 'hybrid', // 🆕 ברירת מחדל
+    forceRefresh = false,
+    incremental = false,
+    userId, userIds
+  } = opts;
 
-    try {
-      const response = await fetch(API_BASE_SCAN, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action,
-          forceRefresh,
-          incremental,
-          userId,
-          userIds
-        }),
-      });
+  try {
+    const response = await fetch(API_BASE_SCAN, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action,
+        method, // 🆕 שולח את השיטה
+        forceRefresh,
+        incremental,
+        userId,
+        userIds
+      }),
+    });
 
-      const data = await response.json();
+    const data = await response.json();
 
-      if (!data.success) {
-        if (data.status === 'already_running') {
-          toast.warning('סריקה כבר רצה ברקע');
-          setActiveScanId(data.scanId);
-          startPolling(data.scanId);
-          return data.scanId;
-        }
-        throw new Error(data.error || 'Failed to start scan');
-      }
-
-      toast.info('הסריקה החלה!');
-      setActiveScanId(data.scanId);
-
-      if (useStreaming && typeof EventSource !== 'undefined') {
-        startSSETracking(data.scanId);
-      } else {
+    if (!data.success) {
+      if (data.status === 'already_running') {
+        toast.warning('סריקה כבר רצה ברקע');
+        setActiveScanId(data.scanId);
         startPolling(data.scanId);
+        return data.scanId;
       }
-
-      return data.scanId;
-
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : 'הפעלת הסריקה נכשלה';
-      toast.error(msg);
-      setIsScanning(false);
-      return null;
+      throw new Error(data.error || 'Failed to start scan');
     }
-  }, [isScanning, activeScanId, startSSETracking, startPolling]);
+
+    toast.info(`סריקת ${getMethodLabel(method)} החלה!`); // 🆕 הודעה עם שם השיטה
+    setActiveScanId(data.scanId);
+
+    if (useStreaming && typeof EventSource !== 'undefined') {
+      startSSETracking(data.scanId);
+    } else {
+      startPolling(data.scanId);
+    }
+
+    return data.scanId;
+
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : 'הפעלת הסריקה נכשלה';
+    toast.error(msg);
+    setIsScanning(false);
+    return null;
+  }
+}, [isScanning, activeScanId, startSSETracking, startPolling]);
+
 
   const cancelScan = useCallback(async (): Promise<boolean> => {
     if (!activeScanId) return false;

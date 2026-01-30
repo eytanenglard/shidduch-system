@@ -1,12 +1,352 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmaker\new\PotentialMatches
-# Generated on: 2026-01-29 12:35:25
+# Generated on: 2026-01-30 14:07:01
 # Filter: Only content of code files (.bat, .c, .cfg, .conf, .cpp, .cs, .css, .go, .h, .html, .ini, .java, .js, .json, .jsx, .kt, .less, .md, .php, .py, .rb, .rs, .scss, .sh, .sql, .swift, .ts, .tsx, .txt, .xml, .yaml, .yml) is included.
 ################################################################################
 
 ================================================================================
 Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmaker\new\PotentialMatches
 ================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmaker\new\PotentialMatches\BatchScanButtons.tsx
+--------------------------------------------------------------------------------
+Content:
+// ============================================================
+// src/components/matchmaker/new/PotentialMatches/BatchScanButtons.tsx
+// ============================================================
+// 🎯 כפתורי סריקה לילית - בדיוק כמו ב-SplitView
+// ============================================================
+
+'use client';
+
+import React from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Progress } from '@/components/ui/progress';
+import { Badge } from '@/components/ui/badge';
+import {
+  Moon,
+  Brain,
+  Zap,
+  Users,
+  Target,
+  RefreshCw,
+  Loader2,
+  X,
+  CheckCircle2,
+  Clock,
+} from 'lucide-react';
+import { cn } from '@/lib/utils';
+
+// ═══════════════════════════════════════════════════════════════
+// Types
+// ═══════════════════════════════════════════════════════════════
+
+type ScanMethod = 'hybrid' | 'algorithmic' | 'vector' | 'metrics_v2';
+
+interface ScanProgress {
+  phase?: string;
+  method?: ScanMethod;
+  currentUserIndex?: number;
+  totalUsers?: number;
+  currentUserName?: string;
+  progressPercent?: number;
+  matchesFoundSoFar?: number;
+  newMatchesFoundSoFar?: number;
+  usersScanned?: number;
+  message?: string;
+  stats?: {
+    matchesFoundSoFar?: number;
+  };
+}
+
+interface ScanResult {
+  matchesFound?: number;
+  newMatches?: number;
+  totalMatchesFound?: number;
+  newMatchesFound?: number;
+}
+
+interface BatchScanButtonsProps {
+  isScanning: boolean;
+  scanProgress: ScanProgress | null;
+  scanResult: ScanResult | null;
+  onStartScan: (method: ScanMethod) => void;
+  onCancelScan: () => void;
+  lastScanInfo?: {
+    date: Date;
+    matchCount: number;
+  } | null;
+  className?: string;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// Method Configurations - בדיוק כמו ב-SplitView
+// ═══════════════════════════════════════════════════════════════
+
+const METHOD_CONFIG: Record<ScanMethod, {
+  label: string;
+  icon: typeof Brain;
+  gradient: string;
+  hoverGradient: string;
+  time: string;
+}> = {
+  algorithmic: {
+    label: 'AI מתקדם',
+    icon: Brain,
+    gradient: 'from-purple-500 to-purple-600',
+    hoverGradient: 'hover:from-purple-600 hover:to-purple-700',
+    time: '~3-5 דק',
+  },
+  vector: {
+    label: 'דמיון מהיר ⚡',
+    icon: Zap,
+    gradient: 'from-blue-500 to-cyan-500',
+    hoverGradient: 'hover:from-blue-600 hover:to-cyan-600',
+    time: '~30 שנ',
+  },
+  hybrid: {
+    label: 'היברידי 🔥',
+    icon: Users,
+    gradient: 'from-emerald-500 to-teal-500',
+    hoverGradient: 'hover:from-emerald-600 hover:to-teal-600',
+    time: '~1-2 דק',
+  },
+  metrics_v2: {
+    label: 'מדדים V2 🎯',
+    icon: Target,
+    gradient: 'from-indigo-500 to-violet-500',
+    hoverGradient: 'hover:from-indigo-600 hover:to-violet-600',
+    time: '~2-3 דק',
+  },
+};
+
+// סדר הכפתורים - בדיוק כמו ב-SplitView
+const METHODS_ORDER: ScanMethod[] = ['algorithmic', 'vector', 'hybrid', 'metrics_v2'];
+
+// ═══════════════════════════════════════════════════════════════
+// Main Component
+// ═══════════════════════════════════════════════════════════════
+
+const BatchScanButtons: React.FC<BatchScanButtonsProps> = ({
+  isScanning,
+  scanProgress,
+  scanResult,
+  onStartScan,
+  onCancelScan,
+  lastScanInfo,
+  className,
+}) => {
+  const currentMethod = scanProgress?.method;
+
+  const formatDate = (date: Date) => {
+    return new Date(date).toLocaleDateString('he-IL', {
+      day: 'numeric',
+      month: 'short',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  };
+
+  // ═══════════════════════════════════════════════════════════
+  // Render: Progress State (כמו InlineJobProgress ב-SplitView)
+  // ═══════════════════════════════════════════════════════════
+
+  if (isScanning && scanProgress) {
+    const config = METHOD_CONFIG[currentMethod || 'hybrid'];
+    const Icon = config.icon;
+
+    return (
+      <Card className={cn('p-4', className)}>
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="space-y-4"
+        >
+          {/* Header */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className={cn(
+                'p-2.5 rounded-xl bg-gradient-to-r shadow-lg',
+                config.gradient
+              )}>
+                <Loader2 className="w-5 h-5 text-white animate-spin" />
+              </div>
+              <div>
+                <h3 className="font-bold text-gray-800 flex items-center gap-2">
+                  סריקת {config.label.replace(' 🔥', '').replace(' ⚡', '').replace(' 🎯', '')}
+                  {scanProgress.currentUserName && (
+                    <Badge variant="secondary" className="font-normal text-xs">
+                      {scanProgress.currentUserName}
+                    </Badge>
+                  )}
+                </h3>
+                <p className="text-sm text-gray-500">
+                  {scanProgress.message || 'מעבד...'}
+                </p>
+              </div>
+            </div>
+            
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onCancelScan}
+              className="text-red-500 hover:text-red-700 hover:bg-red-50"
+            >
+              <X className="w-4 h-4 ml-1" />
+              בטל
+            </Button>
+          </div>
+
+          {/* Progress Bar */}
+          <div className="space-y-2">
+            <div className="flex justify-between text-sm">
+              <span className="text-gray-600">
+                {scanProgress.currentUserIndex || 0} / {scanProgress.totalUsers || '?'} משתמשים
+              </span>
+              <span className="font-medium text-gray-800">
+                {scanProgress.progressPercent || 0}%
+              </span>
+            </div>
+            <Progress 
+              value={scanProgress.progressPercent || 0} 
+              className="h-3"
+            />
+          </div>
+
+          {/* Stats */}
+          <div className="grid grid-cols-3 gap-3">
+            <div className="flex items-center gap-2 p-2 rounded-lg bg-blue-50 border border-blue-100">
+              <Users className="w-4 h-4 text-blue-600" />
+              <div className="flex flex-col">
+                <span className="text-xs text-blue-600">נסרקו</span>
+                <span className="font-bold text-blue-800">
+                  {scanProgress.usersScanned || scanProgress.currentUserIndex || 0}
+                </span>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 p-2 rounded-lg bg-emerald-50 border border-emerald-100">
+              <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+              <div className="flex flex-col">
+                <span className="text-xs text-emerald-600">התאמות</span>
+                <span className="font-bold text-emerald-800">
+                  {scanProgress.matchesFoundSoFar || scanProgress.stats?.matchesFoundSoFar || 0}
+                </span>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 p-2 rounded-lg bg-purple-50 border border-purple-100">
+              <Target className="w-4 h-4 text-purple-600" />
+              <div className="flex flex-col">
+                <span className="text-xs text-purple-600">חדשות</span>
+                <span className="font-bold text-purple-800">
+                  {scanProgress.newMatchesFoundSoFar || 0}
+                </span>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+      </Card>
+    );
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // Render: Buttons (בדיוק כמו ב-SplitView)
+  // ═══════════════════════════════════════════════════════════
+
+  return (
+    <Card className={cn('p-4', className)}>
+      <div className="space-y-3">
+        {/* Header */}
+        <div className="flex items-center gap-3 mb-2">
+          <div className="p-2 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-500 shadow-lg">
+            <Moon className="w-5 h-5 text-white" />
+          </div>
+          <div>
+            <h3 className="font-bold text-gray-800">סריקה לילית</h3>
+            <p className="text-sm text-gray-500">סרוק את כל המשתמשים</p>
+          </div>
+        </div>
+
+        {/* Buttons Row - בדיוק כמו ב-SplitView */}
+        <div className="flex gap-2 flex-wrap">
+          {METHODS_ORDER.map((method) => {
+            const config = METHOD_CONFIG[method];
+            const Icon = config.icon;
+            
+            return (
+              <motion.div
+                key={method}
+                className="flex-1 min-w-[120px]"
+                whileHover={{ scale: 1.02 }}
+              >
+                <Button
+                  onClick={() => onStartScan(method)}
+                  className={cn(
+                    'w-full h-11 font-bold transition-all duration-300 shadow-lg px-2 sm:px-4',
+                    `bg-gradient-to-r ${config.gradient} ${config.hoverGradient} text-white`
+                  )}
+                >
+                  <Icon className="w-5 h-5 ml-1.5 flex-shrink-0" />
+                  <span className="truncate text-xs sm:text-sm">
+                    {config.label}
+                  </span>
+                </Button>
+              </motion.div>
+            );
+          })}
+        </div>
+
+        {/* Time estimates - בדיוק כמו ב-SplitView */}
+        <div className="flex gap-2 text-xs text-gray-500 mt-1">
+          {METHODS_ORDER.map((method) => (
+            <span key={method} className="flex-1 text-center truncate min-w-[120px]">
+              {METHOD_CONFIG[method].time}
+            </span>
+          ))}
+        </div>
+
+        {/* Completion Banner */}
+        <AnimatePresence>
+          {scanResult && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="p-3 rounded-lg bg-emerald-50 border border-emerald-200 mt-2"
+            >
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="w-5 h-5 text-emerald-600" />
+                <span className="font-medium text-emerald-800">
+                  הסריקה הושלמה!
+                </span>
+              </div>
+              <p className="text-sm text-emerald-700 mt-1">
+                נמצאו {scanResult.matchesFound || scanResult.totalMatchesFound || 0} התאמות
+                {' '}({scanResult.newMatches || scanResult.newMatchesFound || 0} חדשות)
+              </p>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Last Scan Info */}
+        {lastScanInfo && !scanResult && (
+          <div className="flex items-center gap-2 text-sm text-gray-500 pt-2 border-t">
+            <Clock className="w-4 h-4" />
+            <span>
+              סריקה אחרונה: {formatDate(lastScanInfo.date)} 
+              ({lastScanInfo.matchCount} התאמות)
+            </span>
+          </div>
+        )}
+      </div>
+    </Card>
+  );
+};
+
+export default BatchScanButtons;
+--- End of Content for BatchScanButtons.tsx ---
 
 --------------------------------------------------------------------------------
 File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmaker\new\PotentialMatches\HiddenCandidatesDrawer.tsx
@@ -1570,8 +1910,9 @@ import {
   Briefcase,
   Ruler,
   Languages,
-  ThumbsDown, // הוספת האייקון החדש
-  MessageSquareX // אייקון לדחייה עם פירוט
+  ThumbsDown,
+  MessageSquareX,
+  Search, // הוספתי את הייבוא הזה לשימוש בכפתור הסינון
 } from 'lucide-react';
 import { cn, getRelativeCloudinaryPath } from '@/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
@@ -1602,6 +1943,7 @@ interface PotentialMatchCardProps {
   className?: string;
   onHideCandidate: (candidate: CandidateToHide) => void;
   hiddenCandidateIds?: Set<string>;
+  onFilterByUser: (fullName: string) => void; // הוספתי את הפונקציה הזו
 }
 
 // =============================================================================
@@ -1714,6 +2056,7 @@ const CandidatePreview: React.FC<{
   onAnalyze: () => void;
   onFeedback: () => void;
   onHide: (candidate: CandidateToHide) => void;
+  onFilterByName: () => void; // הוספתי את הפונקציה הזו
 }> = ({
   candidate,
   gender,
@@ -1722,6 +2065,7 @@ const CandidatePreview: React.FC<{
   onAnalyze,
   onFeedback,
   onHide,
+  onFilterByName,
 }) => {
   const genderIcon = gender === 'male' ? '👨' : '👩';
   const borderColor = gender === 'male' ? 'border-blue-200' : 'border-pink-200';
@@ -1887,6 +2231,28 @@ const CandidatePreview: React.FC<{
 
       {/* Actions */}
       <div className="mt-2 pt-2 border-t border-gray-200/50 flex items-center justify-center gap-2">
+        {/* כפתור סינון לפי שם (חדש) */}
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7 rounded-full bg-white/60 hover:bg-indigo-100 hover:text-indigo-600 shadow-sm border border-transparent hover:border-indigo-200 transition-all"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onFilterByName();
+                }}
+              >
+                <Search className="w-3.5 h-3.5" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>סנן לפי שם מועמד</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+
         {candidate.phone && (
           <TooltipProvider>
             <Tooltip>
@@ -2124,6 +2490,7 @@ const PotentialMatchCard: React.FC<PotentialMatchCardProps> = ({
   showSelection = false,
   className,
   onHideCandidate,
+  onFilterByUser, // Destructuring
 }) => {
   const [showDetails, setShowDetails] = useState(false);
   const [showReasoningDialog, setShowReasoningDialog] = useState(false);
@@ -2261,7 +2628,10 @@ const PotentialMatchCard: React.FC<PotentialMatchCardProps> = ({
                         סמן כנבדק
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
-                      <DropdownMenuItem onClick={handleQuickDismiss} className="text-orange-600">
+                      <DropdownMenuItem
+                        onClick={handleQuickDismiss}
+                        className="text-orange-600"
+                      >
                         <ThumbsDown className="w-4 h-4 ml-2" />
                         דחייה מהירה
                       </DropdownMenuItem>
@@ -2294,6 +2664,11 @@ const PotentialMatchCard: React.FC<PotentialMatchCardProps> = ({
                 onAnalyze={() => onAnalyzeCandidate(match.male)}
                 onFeedback={() => onProfileFeedback(match.male)}
                 onHide={onHideCandidate}
+                onFilterByName={() =>
+                  onFilterByUser(
+                    `${match.male.firstName} ${match.male.lastName}`
+                  )
+                }
               />
 
               {/* Heart Connector */}
@@ -2316,6 +2691,11 @@ const PotentialMatchCard: React.FC<PotentialMatchCardProps> = ({
                 onAnalyze={() => onAnalyzeCandidate(match.female)}
                 onFeedback={() => onProfileFeedback(match.female)}
                 onHide={onHideCandidate}
+                onFilterByName={() =>
+                  onFilterByUser(
+                    `${match.female.firstName} ${match.female.lastName}`
+                  )
+                }
               />
             </div>
 
@@ -2556,6 +2936,8 @@ import React, {
   useRef,
 } from 'react';
 
+import BatchScanButtons from './BatchScanButtons';
+
 import { motion, AnimatePresence } from 'framer-motion';
 import PotentialMatchesFilters from './PotentialMatchesFilters';
 
@@ -2696,6 +3078,7 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
   locale = 'he',
   profileDict,
   matchmakerDict,
+  
 }) => {
   // --- View Mode (Tabs) ---
   const [activeTab, setActiveTab] = useState<'overview' | 'matches'>(
@@ -2788,6 +3171,8 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
     isSelected,
     bulkCreateSuggestions,
     error,
+    cancelScan,
+scanResult,
   } = usePotentialMatches({
     initialFilters: { status: 'pending' },
     autoRefresh: true,
@@ -2936,10 +3321,15 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
     return result;
   }, [matches, hiddenCandidateIds, localSearchTerm]);
 
-  const handleStartScan = useCallback(async () => {
-    setConfirmScanDialog(false);
-    await startScan({ method: 'algorithmic' });
-  }, [startScan]);
+  const handleStartScan = (
+    method: 'hybrid' | 'algorithmic' | 'vector' | 'metrics_v2'
+  ) => {
+    startScan({
+      action: 'full_scan',
+      method,
+      forceRefresh: false,
+    });
+  };
 
   const handleHideCandidate = (candidate: CandidateToHide) => {
     setCandidateToHide(candidate);
@@ -3095,23 +3485,14 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
                   onUpdateReason={updateReason}
                   isLoading={isLoadingHidden}
                 />
-                <Button
-                  onClick={() => setConfirmScanDialog(true)}
-                  disabled={isScanning}
-                  className="bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white shadow-lg"
-                >
-                  {isScanning ? (
-                    <>
-                      <Loader2 className="w-4 h-4 ml-2 animate-spin" />
-                      סריקה... {scanProgress?.progressPercent || 0}%
-                    </>
-                  ) : (
-                    <>
-                      <Moon className="w-4 h-4 ml-2" />
-                      הפעל סריקה
-                    </>
-                  )}
-                </Button>
+                <BatchScanButtons
+        isScanning={isScanning}
+        scanProgress={scanProgress}
+        scanResult={scanResult}
+        onStartScan={handleStartScan}
+        onCancelScan={cancelScan}
+        lastScanInfo={lastScanInfo}
+      />
 
                 <Button
                   variant="outline"
@@ -3422,7 +3803,8 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
                         showSelection={showBulkActions}
                         onHideCandidate={handleHideCandidate}
                         hiddenCandidateIds={hiddenCandidateIds}
-                        // onFilterByUser was removed as it doesn't exist on component props
+                        // ---> התיקון כאן: הוספתי את הפונקציה החסרה
+                        onFilterByUser={handleFilterByUser}
                       />
                     ))}
                   </AnimatePresence>
@@ -5679,6 +6061,8 @@ export interface PotentialMatchFilters {
 // --- Scan Types (V3) ---
 export interface ScanProgress {
   phase: string;
+    method?: 'hybrid' | 'algorithmic' | 'vector' | 'metrics_v2'; // 🆕
+
   currentUserIndex: number;
   totalUsers: number;
   currentUserName?: string;
@@ -5703,15 +6087,16 @@ export interface ScanResult {
   durationMs: number;
 }
 
-export interface ScanOptions {
-  method?: 'algorithmic' | 'vector' | 'hybrid'; // Kept for V2 compatibility
-  action?: 'full_scan' | 'scan_single' | 'scan_new_users'; // V3 actions
+interface ScanOptions {
+  useStreaming?: boolean;
+  action?: 'full_scan' | 'scan_new_users' | 'scan_single';
+  method?: 'hybrid' | 'algorithmic' | 'vector' | 'metrics_v2'; // 🆕
   forceRefresh?: boolean;
   incremental?: boolean;
   userId?: string;
   userIds?: string[];
-  useStreaming?: boolean;
 }
+
 
 // --- Hook Return Interface ---
 interface UsePotentialMatchesReturn {
@@ -6309,68 +6694,81 @@ const bulkCreateSuggestions = useCallback(async (
       startPolling(scanId);
     };
   }, [updateScanState, handleScanCompletion, startPolling]);
+  
+const getMethodLabel = (method: string): string => {
+  const labels: Record<string, string> = {
+    hybrid: 'היברידית',
+    algorithmic: 'AI מתקדם',
+    vector: 'דמיון מהיר',
+    metrics_v2: 'מדדים V2',
+  };
+  return labels[method] || method;
+};
 
-  const startScan = useCallback(async (opts: ScanOptions = {}): Promise<string | null> => {
-    if (isScanning) {
-      toast.warning('סריקה כבר רצה');
-      return activeScanId;
-    }
+const startScan = useCallback(async (opts: ScanOptions = {}): Promise<string | null> => {
+  if (isScanning) {
+    toast.warning('סריקה כבר רצה');
+    return activeScanId;
+  }
 
-    setIsScanning(true);
-    setScanResult(null);
-    setScanProgress(null);
+  setIsScanning(true);
+  setScanResult(null);
+  setScanProgress(null);
 
-    const {
-      useStreaming = true,
-      action = 'full_scan',
-      forceRefresh = false,
-      incremental = false,
-      userId, userIds
-    } = opts;
+  const {
+    useStreaming = true,
+    action = 'full_scan',
+    method = 'hybrid', // 🆕 ברירת מחדל
+    forceRefresh = false,
+    incremental = false,
+    userId, userIds
+  } = opts;
 
-    try {
-      const response = await fetch(API_BASE_SCAN, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action,
-          forceRefresh,
-          incremental,
-          userId,
-          userIds
-        }),
-      });
+  try {
+    const response = await fetch(API_BASE_SCAN, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action,
+        method, // 🆕 שולח את השיטה
+        forceRefresh,
+        incremental,
+        userId,
+        userIds
+      }),
+    });
 
-      const data = await response.json();
+    const data = await response.json();
 
-      if (!data.success) {
-        if (data.status === 'already_running') {
-          toast.warning('סריקה כבר רצה ברקע');
-          setActiveScanId(data.scanId);
-          startPolling(data.scanId);
-          return data.scanId;
-        }
-        throw new Error(data.error || 'Failed to start scan');
-      }
-
-      toast.info('הסריקה החלה!');
-      setActiveScanId(data.scanId);
-
-      if (useStreaming && typeof EventSource !== 'undefined') {
-        startSSETracking(data.scanId);
-      } else {
+    if (!data.success) {
+      if (data.status === 'already_running') {
+        toast.warning('סריקה כבר רצה ברקע');
+        setActiveScanId(data.scanId);
         startPolling(data.scanId);
+        return data.scanId;
       }
-
-      return data.scanId;
-
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : 'הפעלת הסריקה נכשלה';
-      toast.error(msg);
-      setIsScanning(false);
-      return null;
+      throw new Error(data.error || 'Failed to start scan');
     }
-  }, [isScanning, activeScanId, startSSETracking, startPolling]);
+
+    toast.info(`סריקת ${getMethodLabel(method)} החלה!`); // 🆕 הודעה עם שם השיטה
+    setActiveScanId(data.scanId);
+
+    if (useStreaming && typeof EventSource !== 'undefined') {
+      startSSETracking(data.scanId);
+    } else {
+      startPolling(data.scanId);
+    }
+
+    return data.scanId;
+
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : 'הפעלת הסריקה נכשלה';
+    toast.error(msg);
+    setIsScanning(false);
+    return null;
+  }
+}, [isScanning, activeScanId, startSSETracking, startPolling]);
+
 
   const cancelScan = useCallback(async (): Promise<boolean> => {
     if (!activeScanId) return false;

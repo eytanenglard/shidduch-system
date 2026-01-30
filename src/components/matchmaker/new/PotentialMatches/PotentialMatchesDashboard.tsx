@@ -9,6 +9,8 @@ import React, {
   useRef,
 } from 'react';
 
+import BatchScanButtons from './BatchScanButtons';
+
 import { motion, AnimatePresence } from 'framer-motion';
 import PotentialMatchesFilters from './PotentialMatchesFilters';
 
@@ -241,6 +243,8 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
     isSelected,
     bulkCreateSuggestions,
     error,
+    cancelScan,
+    scanResult,
   } = usePotentialMatches({
     initialFilters: { status: 'pending' },
     autoRefresh: true,
@@ -389,10 +393,15 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
     return result;
   }, [matches, hiddenCandidateIds, localSearchTerm]);
 
-  const handleStartScan = useCallback(async () => {
-    setConfirmScanDialog(false);
-    await startScan({ method: 'algorithmic' });
-  }, [startScan]);
+  const handleStartScan = (
+    method: 'hybrid' | 'algorithmic' | 'vector' | 'metrics_v2'
+  ) => {
+    startScan({
+      action: 'full_scan',
+      method,
+      forceRefresh: false,
+    });
+  };
 
   const handleHideCandidate = (candidate: CandidateToHide) => {
     setCandidateToHide(candidate);
@@ -548,23 +557,14 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
                   onUpdateReason={updateReason}
                   isLoading={isLoadingHidden}
                 />
-                <Button
-                  onClick={() => setConfirmScanDialog(true)}
-                  disabled={isScanning}
-                  className="bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white shadow-lg"
-                >
-                  {isScanning ? (
-                    <>
-                      <Loader2 className="w-4 h-4 ml-2 animate-spin" />
-                      סריקה... {scanProgress?.progressPercent || 0}%
-                    </>
-                  ) : (
-                    <>
-                      <Moon className="w-4 h-4 ml-2" />
-                      הפעל סריקה
-                    </>
-                  )}
-                </Button>
+                <BatchScanButtons
+                  isScanning={isScanning}
+                  scanProgress={scanProgress}
+                  scanResult={scanResult}
+                  onStartScan={handleStartScan}
+                  onCancelScan={cancelScan}
+                  lastScanInfo={lastScanInfo}
+                />
 
                 <Button
                   variant="outline"
@@ -1079,7 +1079,7 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
           <AlertDialogFooter className="gap-2">
             <AlertDialogCancel>ביטול</AlertDialogCancel>
             <AlertDialogAction
-              onClick={handleStartScan}
+              onClick={() => handleStartScan('hybrid')}
               className="bg-gradient-to-r from-indigo-500 to-purple-500"
             >
               <HeartHandshake className="w-4 h-4 ml-2" />

@@ -115,6 +115,17 @@ export interface PotentialMatch {
   
   // קישור להצעה שנוצרה (אם יש)
   suggestionId: string | null;
+
+    hybridScore?: number | null;
+  hybridReasoning?: string | null;
+  algorithmicScore?: number | null;
+  algorithmicReasoning?: string | null;
+  vectorScore?: number | null;
+  vectorReasoning?: string | null;
+  metricsV2Score?: number | null;
+  metricsV2Reasoning?: string | null;
+  lastScanMethod?: string | null;
+
 }
 
 // =============================================================================

@@ -190,6 +190,84 @@ const getMaritalStatusLabel = (status: string | null | undefined): string => {
 };
 
 // =============================================================================
+// ALL SCORES DISPLAY - הצגת ציונים מכל השיטות
+// =============================================================================
+
+const AllScoresDisplay: React.FC<{
+  match: PotentialMatch;
+}> = ({ match }) => {
+  const scores = [
+    { 
+      key: 'hybrid', 
+      label: 'היברידי', 
+      score: match.hybridScore, 
+      icon: '🔥',
+      bgColor: 'bg-emerald-50',
+      textColor: 'text-emerald-700',
+      borderColor: 'border-emerald-200',
+    },
+    { 
+      key: 'algorithmic', 
+      label: 'AI', 
+      score: match.algorithmicScore, 
+      icon: '🧠',
+      bgColor: 'bg-purple-50',
+      textColor: 'text-purple-700',
+      borderColor: 'border-purple-200',
+    },
+    { 
+      key: 'vector', 
+      label: 'מהיר', 
+      score: match.vectorScore, 
+      icon: '⚡',
+      bgColor: 'bg-blue-50',
+      textColor: 'text-blue-700',
+      borderColor: 'border-blue-200',
+    },
+    { 
+      key: 'metricsV2', 
+      label: 'V2', 
+      score: match.metricsV2Score, 
+      icon: '🎯',
+      bgColor: 'bg-indigo-50',
+      textColor: 'text-indigo-700',
+      borderColor: 'border-indigo-200',
+    },
+  ].filter(s => s.score !== null && s.score !== undefined);
+
+  // אם אין ציונים נפרדים, הצג רק aiScore
+  if (scores.length === 0) {
+    return (
+      <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/90 backdrop-blur-sm shadow-sm">
+        <Sparkles className={cn('w-4 h-4', getScoreColor(match.aiScore))} />
+        <span className={cn('text-xl font-bold', getScoreColor(match.aiScore))}>
+          {Math.round(match.aiScore)}
+        </span>
+      </div>
+    );
+  }
+
+  // הצג את כל הציונים
+  return (
+    <div className="flex flex-wrap gap-1.5">
+      {scores.map(({ key, label, score, icon, bgColor, textColor, borderColor }) => (
+        <div 
+          key={key}
+          className={cn(
+            'flex items-center gap-1 px-2 py-1 rounded-lg border text-xs',
+            bgColor, borderColor,
+            key === match.lastScanMethod && 'ring-2 ring-offset-1 ring-emerald-400'
+          )}
+          title={key === match.lastScanMethod ? 'הציון הראשי' : ''}
+        >
+          <span>{icon}</span>
+          <span className={cn('font-bold', textColor)}>{Math.round(score!)}</span>
+        </div>
+      ))}
+    </div>
+  );
+};
+// =============================================================================
 // SUB-COMPONENTS
 // =============================================================================
 
@@ -725,25 +803,8 @@ const PotentialMatchCard: React.FC<PotentialMatchCardProps> = ({
                 </div>
               )}
 
-              {/* Score Badge */}
-              <div
-                className={cn(
-                  'flex items-center gap-2 px-3 py-1.5 rounded-full',
-                  'bg-white/90 backdrop-blur-sm shadow-sm'
-                )}
-              >
-                <Sparkles
-                  className={cn('w-4 h-4', getScoreColor(match.aiScore))}
-                />
-                <span
-                  className={cn(
-                    'text-xl font-bold',
-                    getScoreColor(match.aiScore)
-                  )}
-                >
-                  {Math.round(match.aiScore)}
-                </span>
-              </div>
+          {/* Score Badges - All Methods */}
+<AllScoresDisplay match={match} />
 
               {/* Status Badge */}
               <Badge className={cn('gap-1', statusBadge.color)}>
