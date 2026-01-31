@@ -320,13 +320,26 @@ const HiddenCandidatesDrawer: React.FC<HiddenCandidatesDrawerProps> = ({
         className="w-full sm:max-w-md p-0 flex flex-col"
       >
         <SheetHeader className="p-4 pb-2 border-b bg-gradient-to-br from-amber-50 to-orange-50">
-          <SheetTitle className="flex items-center gap-2 text-amber-800">
-            <EyeOff className="w-5 h-5" />
-            מועמדים מוסתרים
-            {count > 0 && (
-              <Badge className="bg-amber-600 text-white">{count}</Badge>
-            )}
-          </SheetTitle>
+          <div className="flex items-center justify-between">
+            <SheetTitle className="flex items-center gap-2 text-amber-800">
+              <EyeOff className="w-5 h-5" />
+              מועמדים מוסתרים
+              {count > 0 && (
+                <Badge className="bg-amber-600 text-white">{count}</Badge>
+              )}
+            </SheetTitle>
+
+            {/* כפתור סגירה ידני - X */}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="-ml-2 text-amber-800 hover:bg-amber-100 rounded-full"
+              onClick={() => setIsOpen(false)}
+            >
+              <X className="w-5 h-5" />
+            </Button>
+          </div>
+
           <SheetDescription className="text-amber-700/70 text-sm">
             מועמדים שהסתרת לא יופיעו בהצעות הפוטנציאליות
           </SheetDescription>
@@ -366,14 +379,22 @@ const HiddenCandidatesDrawer: React.FC<HiddenCandidatesDrawerProps> = ({
           )}
         </ScrollArea>
 
-        {/* Footer עם טיפ */}
-        {count > 0 && (
-          <div className="p-3 border-t bg-gray-50 text-center">
-            <p className="text-[10px] text-gray-500">
+        {/* Footer עם כפתור סגירה וטיפ */}
+        <div className="p-3 border-t bg-gray-50 flex flex-col gap-3">
+          {count > 0 && (
+            <p className="text-[10px] text-gray-500 text-center">
               💡 לחץ על כפתור ההחזרה כדי להציג שוב את ההצעות עם המועמד
             </p>
-          </div>
-        )}
+          )}
+
+          <Button
+            variant="outline"
+            className="w-full border-gray-300"
+            onClick={() => setIsOpen(false)}
+          >
+            סגור
+          </Button>
+        </div>
       </SheetContent>
     </Sheet>
   );
