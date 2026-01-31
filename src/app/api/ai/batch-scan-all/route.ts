@@ -332,8 +332,15 @@ if (scan.status as string === 'cancelled') {        console.log(`[BatchScan] Sca
 async function scanUserByMethod(
   userId: string,
   method: ScanMethod,
-  forceRefresh: boolean
+  forceRefresh: boolean,
+   scanId: string
 ): Promise<{ matches: any[] }> {
+
+
+    const checkCancelled = () => {
+    const scan = activeScans.get(scanId);
+    return scan?.status === 'cancelled';
+  };
   switch (method) {
     case 'hybrid':
       return await hybridScan(userId, {
@@ -348,6 +355,7 @@ async function scanUserByMethod(
         minScoreToSave: 65,
         autoSave: false,
         forceRefresh,
+        checkCancelled,
       });
 
     case 'algorithmic':

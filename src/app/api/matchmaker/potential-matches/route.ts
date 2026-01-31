@@ -94,22 +94,39 @@ const femaleReligiousLevel = searchParams.get('femaleReligiousLevel');
       }
     };
 
-    // ✅ לוגיקה לחיפוש טקסטואלי ברמת ה-DB
+ // ✅ לוגיקה שמחייבת את הופעת כל המילים (AND)
     if (searchTerm) {
-      const term = searchTerm.trim();
-      where.OR = [
-        // חיפוש בצד הגבר
-        { male: { firstName: { contains: term, mode: 'insensitive' } } },
-        { male: { lastName: { contains: term, mode: 'insensitive' } } },
-        { male: { phone: { contains: term } } }, // חיפוש גם בטלפון
-        // חיפוש בצד האישה
-        { female: { firstName: { contains: term, mode: 'insensitive' } } },
-        { female: { lastName: { contains: term, mode: 'insensitive' } } },
-        { female: { phone: { contains: term } } }, // חיפוש גם בטלפון
-        // חיפוש בנימוק
-        { shortReasoning: { contains: term, mode: 'insensitive' } }
-      ];
+      const cleanTerm = searchTerm.trim();
+      const parts = cleanTerm.split(/\s+/).filter(p => p.length > 0);
+
+      if (parts.length > 0) {
+        where.OR = [
+          // בדיקה על הגבר: האם הוא מכיל את *כל* המילים?
+          {
+            AND: parts.map(part => ({
+              OR: [
+                { male: { firstName: { contains: part, mode: 'insensitive' } } },
+                { male: { lastName: { contains: part, mode: 'insensitive' } } },
+                { male: { phone: { contains: part } } }
+              ]
+            }))
+          },
+          // בדיקה על האישה: האם היא מכילה את *כל* המילים?
+          {
+            AND: parts.map(part => ({
+              OR: [
+                { female: { firstName: { contains: part, mode: 'insensitive' } } },
+                { female: { lastName: { contains: part, mode: 'insensitive' } } },
+                { female: { phone: { contains: part } } }
+              ]
+            }))
+          },
+          // חיפוש חופשי בנימוק (כאן משאירים את הביטוי המלא)
+          { shortReasoning: { contains: cleanTerm, mode: 'insensitive' } }
+        ];
+      }
     }
+
 
 // סינון לפי סטטוס
     if (status === 'dismissed') {

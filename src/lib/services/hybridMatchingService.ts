@@ -1,10 +1,17 @@
 // ============================================================
-// NeshamaTech - Hybrid Matching Service V2.0
+// NeshamaTech - Hybrid Matching Service V2.1
 // src/lib/services/hybridMatchingService.ts
 // 
 // שילוב מושלם של:
 // - scanSingleUserV2: מדדים מתקדמים, ערכים מוסקים, AI summaries
 // - hybridMatchingService V1: רקע, שפה, שיטת Tiers, batch AI
+// - matchingAlgorithmService V3.4: Virtual profiles, ScannedPair, Enhanced prompts
+//
+// V2.1 Changes:
+// - Added hybridScanForVirtualUser() for virtual profile matching
+// - Added ScannedPair tracking for all evaluated pairs
+// - Enhanced AI prompts with background-specific guidelines
+// - Improved age scoring logic from V3.4
 // ============================================================
 
 import prisma from "@/lib/prisma";
@@ -49,7 +56,66 @@ export interface AgeScoreResult {
   description: string;
 }
 
-// --- 🆕 Extended Metrics (מ-scanSingleUserV2) ---
+// --- 🆕 V2.1: Virtual Profile Interface (from aiService) ---
+export interface GeneratedVirtualProfile {
+  inferredAge: number;
+  inferredCity: string | null;
+  inferredOccupation: string | null;
+  inferredMaritalStatus: string | null;
+  inferredEducation: string | null;
+  personalitySummary: string;
+  lookingForSummary: string;
+  preferredAgeMin: number;
+  preferredAgeMax: number;
+  preferredReligiousLevels: string[];
+  preferredLocations: string[];
+  keyTraits: string[];
+  idealPartnerTraits: string[];
+  dealBreakers: string[];
+  displaySummary: string;
+}
+
+// --- 🆕 V2.1: Virtual Scan Options ---
+export interface VirtualScanOptions {
+  maxCandidates?: number;
+  useAIFirstPass?: boolean;
+  useAIDeepAnalysis?: boolean;
+  minScoreToReturn?: number;
+}
+
+// --- 🆕 V2.1: Virtual Scan Result ---
+export interface VirtualScanResult {
+  virtualProfileId?: string;
+  scanStartedAt: Date;
+  scanCompletedAt: Date;
+  durationMs: number;
+  stats: {
+    totalCandidatesScanned: number;
+    passedFilters: number;
+    aiAnalyzed: number;
+    deepAnalyzed: number;
+  };
+  matches: VirtualMatchCandidate[];
+  warnings: string[];
+}
+
+export interface VirtualMatchCandidate {
+  userId: string;
+  profileId: string;
+  firstName: string;
+  lastName: string;
+  age: number | null;
+  city: string | null;
+  religiousLevel: string | null;
+  occupation: string | null;
+  score: number;
+  reasoning: string;
+  recommendation: 'EXCELLENT' | 'GOOD' | 'FAIR' | 'POOR';
+  strengths: string[];
+  concerns: string[];
+}
+
+// --- Extended Metrics (מ-scanSingleUserV2) ---
 export interface ExtendedMetrics {
   // מדדים בסיסיים
   confidenceScore: number | null;
@@ -60,12 +126,12 @@ export interface ExtendedMetrics {
   appearancePickiness: number | null;
   spiritualDepth: number | null;
   
-  // 🆕 מדדים חדשים
+  // מדדים חדשים
   socioEconomicLevel: number | null;
   jobSeniorityLevel: number | null;
   educationLevelScore: number | null;
   
-  // 🆕 ערכים מוסקים
+  // ערכים מוסקים
   inferredAge: number | null;
   inferredCity: string | null;
   inferredReligiousLevel: string | null;
@@ -74,7 +140,7 @@ export interface ExtendedMetrics {
   inferredParentStatus: string | null;
   inferredEducationLevel: string | null;
   
-  // 🆕 סיכומי AI מורחבים
+  // סיכומי AI מורחבים
   aiPersonalitySummary: string | null;
   aiSeekingSummary: string | null;
   aiBackgroundSummary: string | null;
@@ -83,7 +149,7 @@ export interface ExtendedMetrics {
   aiInferredMustHaves: string[] | null;
   difficultyFlags: string[] | null;
   
-  // 🆕 העדפות מורחבות
+  // העדפות מורחבות
   prefSocioEconomicMin: number | null;
   prefSocioEconomicMax: number | null;
   prefJobSeniorityMin: number | null;
@@ -98,8 +164,8 @@ export interface ScoreBreakdown {
   ageCompatibility: number;   // /10
   careerFamily: number;       // /15
   lifestyle: number;          // /10
-  socioEconomic: number;      // /10 🆕
-  education: number;          // /10 🆕
+  socioEconomic: number;      // /10
+  education: number;          // /10
   background: number;         // /10
   values: number;             // /10
 }
@@ -117,7 +183,7 @@ export interface HybridScanOptions {
   useBackgroundAnalysis?: boolean;
   useAIFirstPass?: boolean;
   useAIDeepAnalysis?: boolean;
-  useExtendedMetrics?: boolean;     // 🆕
+  useExtendedMetrics?: boolean;
   
   // Thresholds
   minScoreToSave?: number;
@@ -127,8 +193,13 @@ export interface HybridScanOptions {
   forceRefresh?: boolean;
   forceUpdateMetrics?: boolean;
   skipCandidateMetricsUpdate?: boolean;
-  maxCandidatesToUpdate?: number;   // 🆕
+  maxCandidatesToUpdate?: number;
   autoSave?: boolean;
+  
+  // 🆕 V2.1: ScannedPair tracking
+  saveScannedPairs?: boolean;
+    checkCancelled?: () => Promise<boolean> | boolean;
+
 }
 
 // --- Candidate Data (Internal) ---
@@ -161,7 +232,7 @@ interface RawCandidate {
   preferredAgeMin: number | null;
   preferredAgeMax: number | null;
   
-  // 🆕 Extended Metrics
+  // Extended Metrics
   metrics: ExtendedMetrics;
   
   // Profile dates
@@ -176,12 +247,12 @@ interface ScoredCandidate extends RawCandidate {
   backgroundMatch: BackgroundMatchResult | null;
   ageScore: AgeScoreResult | null;
   
-  // 🆕 Extended scores
+  // Extended scores
   socioEconomicScore: number;
   educationScore: number;
   jobSeniorityScore: number;
   
-  // 🆕 Compatibility flags
+  // Compatibility flags
   meetsUserMustHaves: boolean;
   violatesUserDealBreakers: boolean;
   meetsCandidateMustHaves: boolean;
@@ -203,9 +274,9 @@ interface FinalCandidate extends AIFirstPassCandidate {
   rank: number;
   detailedReasoning: string;
   recommendation: 'EXCELLENT' | 'GOOD' | 'FAIR' | 'POOR';
-  suggestedApproach?: string;        // 🆕
-  strengths: string[];               // 🆕
-  concerns: string[];                // 🆕
+  suggestedApproach?: string;
+  strengths: string[];
+  concerns: string[];
 }
 
 // --- Scan Result ---
@@ -217,7 +288,7 @@ export interface HybridScanResult {
   durationMs: number;
   
   tiers: {
-    tier0: { candidatesUpdated: number; durationMs: number };  // 🆕
+    tier0: { candidatesUpdated: number; durationMs: number };
     tier1: { input: number; output: number; durationMs: number };
     tier2: { input: number; output: number; durationMs: number };
     tier3: { input: number; output: number; durationMs: number };
@@ -231,7 +302,8 @@ export interface HybridScanResult {
     deepAnalyzed: number;
     savedToDb: number;
     fromCache: boolean;
-    candidatesWithDifficultyFlags: number;  // 🆕
+    candidatesWithDifficultyFlags: number;
+    scannedPairsSaved: number;  // 🆕 V2.1
   };
   
   matches: FinalCandidate[];
@@ -245,7 +317,7 @@ export interface HybridScanResult {
 
 const CURRENT_YEAR = new Date().getFullYear();
 const STALE_DAYS = 7;
-const AI_BATCH_SIZE = 10;    // 🆕 קטן יותר לניתוח מעמיק
+const AI_BATCH_SIZE = 10;
 const MIN_SCORE_TO_SAVE = 65;
 const MAX_CANDIDATES_TO_UPDATE = 30;
 
@@ -266,17 +338,26 @@ const BACKGROUND_MATRIX: Record<BackgroundCategory, Record<BackgroundCategory, n
   oleh_new: { sabra: 0.15, sabra_international: 0.6, oleh_veteran: 0.6, oleh_mid: 0.85, oleh_new: 1.0 },
 };
 
-// 🆕 Socio-Economic compatibility tolerance
-const SOCIO_ECONOMIC_TOLERANCE = 2; // רמות
+// 🆕 V2.1: Background category descriptions for AI prompts
+const BACKGROUND_DESCRIPTIONS: Record<BackgroundCategory, string> = {
+  sabra: 'ישראלי/ת ילידי הארץ - עברית שפת אם, משולב/ת תרבותית מלאה',
+  sabra_international: 'ישראלי/ת עם רקע בינלאומי - דובר/ת שפות, חשיפה לתרבויות',
+  oleh_veteran: 'עולה ותיק/ה (10+ שנים) - משולב/ת תרבותית, עברית טובה',
+  oleh_mid: 'עולה בתהליך קליטה (3-10 שנים) - בתהליך השתלבות תרבותית ושפתית',
+  oleh_new: 'עולה חדש/ה (פחות מ-3 שנים) - בתחילת תהליך הקליטה, אתגרי שפה ותרבות',
+};
 
-// 🆕 Job Seniority compatibility tolerance
+// Socio-Economic compatibility tolerance
+const SOCIO_ECONOMIC_TOLERANCE = 2;
+
+// Job Seniority compatibility tolerance
 const JOB_SENIORITY_TOLERANCE = 2;
 
-// 🆕 Education level compatibility tolerance
+// Education level compatibility tolerance
 const EDUCATION_TOLERANCE = 2;
 
 // ═══════════════════════════════════════════════════════════════
-// HELPER FUNCTIONS - Age
+// HELPER FUNCTIONS - Age (🆕 V2.1: Improved Logic from V3.4)
 // ═══════════════════════════════════════════════════════════════
 
 function calculateAge(birthDate: Date): number {
@@ -289,33 +370,63 @@ function calculateAge(birthDate: Date): number {
   return age;
 }
 
+/**
+ * 🆕 V2.1: Improved age scoring logic from V3.4
+ * - Perfect 100: Same age OR male 1-3 years older
+ * - Asymmetric: Male older tolerated more than female older
+ * - More granular scoring for edge cases
+ */
 function calculateAgeScore(maleAge: number, femaleAge: number): AgeScoreResult {
-  const ageDiff = maleAge - femaleAge;
+  const ageDiff = maleAge - femaleAge; // Positive = male older
   
+  // אידיאלי: אותו גיל או הגבר גדול ב-1-3 שנים
   if (ageDiff >= 0 && ageDiff <= 3) {
     return { 
       score: 100, 
       eligible: true,
-      description: ageDiff === 0 ? 'אותו גיל' : `הבן גדול ב-${ageDiff} שנים - אידיאלי`
+      description: ageDiff === 0 ? 'אותו גיל - מושלם' : `הגבר גדול ב-${ageDiff} שנים - אידיאלי`
     };
   }
   
-  if (ageDiff > 3 && ageDiff <= 7) {
-    const score = 100 - ((ageDiff - 3) * 8);
-    return { score: Math.round(score), eligible: true, description: `הבן גדול ב-${ageDiff} שנים` };
+  // הגבר גדול ב-4-5 שנים - עדיין טוב
+  if (ageDiff === 4) {
+    return { score: 90, eligible: true, description: 'הגבר גדול ב-4 שנים - מצוין' };
+  }
+  if (ageDiff === 5) {
+    return { score: 80, eligible: true, description: 'הגבר גדול ב-5 שנים - טוב' };
   }
   
+  // הגבר גדול ב-6-7 שנים - סביר
+  if (ageDiff === 6) {
+    return { score: 65, eligible: true, description: 'הגבר גדול ב-6 שנים - סביר' };
+  }
+  if (ageDiff === 7) {
+    return { score: 50, eligible: true, description: 'הגבר גדול ב-7 שנים - פער ניכר' };
+  }
+  
+  // הגבר גדול ביותר מ-7 שנים - לא מומלץ
   if (ageDiff > 7) {
-    return { score: 0, eligible: false, description: `פער גדול מדי (${ageDiff} שנים)` };
+    return { score: 0, eligible: false, description: `פער גדול מדי (${ageDiff} שנים) - הגבר מבוגר מדי` };
   }
   
+  // האישה גדולה מהגבר (ageDiff שלילי)
   const femaleOlder = Math.abs(ageDiff);
-  if (femaleOlder === 1) return { score: 80, eligible: true, description: 'הבת גדולה בשנה' };
-  if (femaleOlder === 2) return { score: 65, eligible: true, description: 'הבת גדולה ב-2 שנים' };
-  if (femaleOlder === 3) return { score: 45, eligible: true, description: 'הבת גדולה ב-3 שנים' };
-  if (femaleOlder === 4) return { score: 25, eligible: true, description: 'הבת גדולה ב-4 שנים' };
   
-  return { score: 0, eligible: false, description: `הבת גדולה ב-${femaleOlder} שנים - לא רלוונטי` };
+  if (femaleOlder === 1) {
+    return { score: 75, eligible: true, description: 'האישה גדולה בשנה - בסדר' };
+  }
+  if (femaleOlder === 2) {
+    return { score: 60, eligible: true, description: 'האישה גדולה ב-2 שנים - אפשרי' };
+  }
+  if (femaleOlder === 3) {
+    return { score: 40, eligible: true, description: 'האישה גדולה ב-3 שנים - מאתגר' };
+  }
+  if (femaleOlder === 4) {
+    return { score: 20, eligible: true, description: 'האישה גדולה ב-4 שנים - יוצא דופן' };
+  }
+  
+  // האישה גדולה ביותר מ-4 שנים - לא רלוונטי
+  return { score: 0, eligible: false, description: `האישה גדולה ב-${femaleOlder} שנים - לא רלוונטי` };
 }
 
 function calculateAgeScoreForMatch(
@@ -352,7 +463,7 @@ function getReligiousCompatibilityScore(level1: string | null, level2: string | 
 }
 
 // ═══════════════════════════════════════════════════════════════
-// 🆕 HELPER FUNCTIONS - Extended Metrics Scoring
+// HELPER FUNCTIONS - Extended Metrics Scoring
 // ═══════════════════════════════════════════════════════════════
 
 function calculateSocioEconomicScore(
@@ -363,9 +474,8 @@ function calculateSocioEconomicScore(
   candidatePrefMin: number | null,
   candidatePrefMax: number | null
 ): number {
-  if (userLevel === null || candidateLevel === null) return 70; // ניטרלי
+  if (userLevel === null || candidateLevel === null) return 70;
   
-  // בדיקת העדפות
   let userHappy = true;
   let candidateHappy = true;
   
@@ -376,7 +486,6 @@ function calculateSocioEconomicScore(
   
   if (!userHappy || !candidateHappy) return 30;
   
-  // ציון לפי קרבה
   const diff = Math.abs(userLevel - candidateLevel);
   if (diff === 0) return 100;
   if (diff === 1) return 90;
@@ -393,7 +502,6 @@ function calculateEducationScore(
 ): number {
   if (userLevel === null || candidateLevel === null) return 70;
   
-  // השכלה מינימלית נדרשת
   if (userPrefMin !== null && candidateLevel < userPrefMin) return 30;
   if (candidatePrefMin !== null && userLevel < candidatePrefMin) return 30;
   
@@ -423,7 +531,7 @@ function calculateJobSeniorityScore(
 }
 
 // ═══════════════════════════════════════════════════════════════
-// 🆕 HELPER FUNCTIONS - Deal Breakers & Must Haves
+// HELPER FUNCTIONS - Deal Breakers & Must Haves
 // ═══════════════════════════════════════════════════════════════
 
 function checkDealBreakers(
@@ -439,7 +547,6 @@ function checkDealBreakers(
   for (const dealBreaker of userDealBreakers) {
     const lower = dealBreaker.toLowerCase();
     
-    // בדיקות לפי תוכן ה-deal breaker
     if (lower.includes('ילדים') || lower.includes('children')) {
       if (candidateProfile.hasChildrenFromPrevious) {
         violations.push(`יש ילדים מקודם (דרישה: ${dealBreaker})`);
@@ -460,7 +567,6 @@ function checkDealBreakers(
       }
     }
     
-    // גיל
     const ageMatch = lower.match(/גיל\s*(\d+)/);
     if (ageMatch) {
       const maxAge = parseInt(ageMatch[1]);
@@ -487,10 +593,9 @@ function checkMustHaves(
   for (const mustHave of userMustHaves) {
     const lower = mustHave.toLowerCase();
     
-    // דוגמאות לבדיקות
     if (lower.includes('תואר') || lower.includes('degree')) {
       const eduLevel = candidateProfile.metrics.educationLevelScore;
-      if (eduLevel !== null && eduLevel < 3) { // תואר ראשון ומעלה
+      if (eduLevel !== null && eduLevel < 3) {
         missing.push(`השכלה אקדמית (נדרש: ${mustHave})`);
       }
     }
@@ -559,11 +664,10 @@ function createBackgroundProfile(
   origin: string | null,
   aboutText: string | null,
   matchingNotes: string | null,
-  aiBackgroundSummary: string | null  // 🆕
+  aiBackgroundSummary: string | null
 ): BackgroundProfile {
   const indicators: string[] = [];
   
-  // 🆕 משתמשים גם בסיכום הרקע של ה-AI
   const allText = [aboutText, matchingNotes, aiBackgroundSummary].filter(Boolean).join(' ');
   const textAnalysis = analyzeTextLanguage(allText);
   
@@ -619,7 +723,6 @@ function calculateBackgroundMatch(
   let bonusPoints = 0;
   const reasons: string[] = [];
   
-  // בונוס שפת אם זהה
   if (targetProfile.nativeLanguage && 
       candidateProfile.nativeLanguage &&
       targetProfile.nativeLanguage.toLowerCase() === candidateProfile.nativeLanguage.toLowerCase() &&
@@ -629,7 +732,6 @@ function calculateBackgroundMatch(
     reasons.push(`same native: ${targetProfile.nativeLanguage}`);
   }
   
-  // בונוס שפה משותפת
   const commonLangs = targetProfile.additionalLanguages.filter(
     lang => candidateProfile.additionalLanguages.includes(lang) ||
             candidateProfile.nativeLanguage?.toLowerCase() === lang.toLowerCase()
@@ -640,7 +742,6 @@ function calculateBackgroundMatch(
     reasons.push(`common langs: ${commonLangs.join(', ')}`);
   }
   
-  // בונוס ארץ מוצא זהה
   if (targetProfile.aliyaCountry && candidateProfile.aliyaCountry &&
       targetProfile.aliyaCountry.toLowerCase() === candidateProfile.aliyaCountry.toLowerCase()) {
     bonusPoints += 10;
@@ -656,6 +757,81 @@ function calculateBackgroundMatch(
   else compatibility = 'not_recommended';
   
   return { multiplier, compatibility, bonusPoints, reasoning: reasons.join('; ') };
+}
+
+// ═══════════════════════════════════════════════════════════════
+// 🆕 V2.1: SCANNED PAIR TRACKING
+// ═══════════════════════════════════════════════════════════════
+
+/**
+ * 🆕 V2.1: Save scanned pairs to database for monitoring and analytics
+ * Records all pairs that were evaluated during a scan, not for differential scanning
+ */
+async function saveScannedPairs(
+  targetUserId: string,
+  targetGender: Gender,
+  targetProfileUpdatedAt: Date,
+  candidates: FinalCandidate[]
+): Promise<number> {
+  let savedCount = 0;
+  
+  for (const candidate of candidates) {
+    try {
+      const maleUserId = targetGender === Gender.MALE ? targetUserId : candidate.userId;
+      const femaleUserId = targetGender === Gender.MALE ? candidate.userId : targetUserId;
+      const maleProfileUpdatedAt = targetGender === Gender.MALE ? targetProfileUpdatedAt : candidate.profileUpdatedAt;
+      const femaleProfileUpdatedAt = targetGender === Gender.MALE ? candidate.profileUpdatedAt : targetProfileUpdatedAt;
+      
+      // Check if pair already exists
+      const existing = await prisma.scannedPair.findUnique({
+        where: {
+          maleUserId_femaleUserId: { maleUserId, femaleUserId }
+        }
+      });
+      
+      const passedThreshold = candidate.finalScore >= MIN_SCORE_TO_SAVE;
+      const rejectionReason = !passedThreshold 
+        ? `Score ${candidate.finalScore} below threshold ${MIN_SCORE_TO_SAVE}` 
+        : null;
+      
+      if (existing) {
+        // Update existing record
+        await prisma.scannedPair.update({
+          where: { id: existing.id },
+          data: {
+            aiScore: candidate.finalScore,
+            passedThreshold,
+            rejectionReason,
+            lastScannedAt: new Date(),
+            maleProfileUpdatedAt,
+            femaleProfileUpdatedAt,
+          }
+        });
+      } else {
+        // Create new record
+        await prisma.scannedPair.create({
+          data: {
+            maleUserId,
+            femaleUserId,
+            aiScore: candidate.finalScore,
+            passedThreshold,
+            rejectionReason,
+            firstScannedAt: new Date(),
+            lastScannedAt: new Date(),
+            maleProfileUpdatedAt,
+            femaleProfileUpdatedAt,
+          }
+        });
+      }
+      
+      savedCount++;
+    } catch (error) {
+      console.error(`[ScannedPair] Failed to save pair with ${candidate.firstName}:`, error);
+    }
+  }
+  
+  console.log(`[ScannedPair] Saved ${savedCount} scanned pairs`);
+  return savedCount;
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -688,7 +864,6 @@ async function ensureUserReady(
   return { metricsExist, vectorsExist, updated: false };
 }
 
-// 🆕 פונקציה מורחבת לעדכון מועמדים
 async function ensureCandidatesReady(
   oppositeGender: Gender,
   maxToUpdate: number = 30
@@ -732,7 +907,7 @@ async function ensureCandidatesReady(
     try {
       await updateProfileVectorsAndMetrics(candidate.profileId);
       updated++;
-      await new Promise(resolve => setTimeout(resolve, 200)); // Rate limiting
+      await new Promise(resolve => setTimeout(resolve, 200));
     } catch (error) {
       failed++;
       console.error(`[Hybrid] Failed to update ${candidate.firstName}:`, error);
@@ -759,7 +934,6 @@ async function tier1SqlFilter(
 ): Promise<RawCandidate[]> {
   const oppositeGender = userGender === Gender.MALE ? Gender.FEMALE : Gender.MALE;
   
-  // 🆕 שאילתה מורחבת עם כל המדדים החדשים
   const candidates = await prisma.$queryRaw<any[]>`
     SELECT 
       p.id as "profileId",
@@ -795,12 +969,12 @@ async function tier1SqlFilter(
       pm."appearancePickiness",
       pm."spiritualDepth",
       
-      -- 🆕 New Metrics
+      -- New Metrics
       pm."socioEconomicLevel",
       pm."jobSeniorityLevel",
       pm."educationLevelScore",
       
-      -- 🆕 Inferred Values
+      -- Inferred Values
       pm."inferredAge",
       pm."inferredCity",
       pm."inferredReligiousLevel",
@@ -809,7 +983,7 @@ async function tier1SqlFilter(
       pm."inferredParentStatus",
       pm."inferredEducationLevel",
       
-      -- 🆕 AI Summaries
+      -- AI Summaries
       pm."aiPersonalitySummary",
       pm."aiSeekingSummary",
       pm."aiBackgroundSummary",
@@ -818,7 +992,7 @@ async function tier1SqlFilter(
       pm."aiInferredMustHaves",
       pm."difficultyFlags",
       
-      -- 🆕 Extended Preferences
+      -- Extended Preferences
       pm."prefSocioEconomicMin",
       pm."prefSocioEconomicMax",
       pm."prefJobSeniorityMin",
@@ -837,25 +1011,16 @@ async function tier1SqlFilter(
     LEFT JOIN "profile_metrics" pm ON pm."profileId" = p.id
     
     WHERE 
-      -- מגדר הפוך
       p.gender = ${oppositeGender}::"Gender"
-      
-      -- סטטוס פעיל
       AND (
         u.status = 'ACTIVE'
         OR (u.status = 'PENDING_EMAIL_VERIFICATION' AND u.source = 'MANUAL_ENTRY')
       )
-      
-      -- זמין ונראה
       AND p."availabilityStatus" = 'AVAILABLE'::"AvailabilityStatus"
       AND (p."isProfileVisible" = true OR p."isProfileVisible" IS NULL)
       AND p.id != ${profileId}
-      
-      -- סינון גיל: המועמד בטווח שהיוזר מחפש
       AND COALESCE(EXTRACT(YEAR FROM AGE(p."birthDate"))::int, pm."inferredAge") >= ${preferredAgeMin}
       AND COALESCE(EXTRACT(YEAR FROM AGE(p."birthDate"))::int, pm."inferredAge") <= ${preferredAgeMax}
-      
-      -- סינון גיל הפוך: היוזר בטווח שהמועמד מחפש
       AND (
         COALESCE(p."preferredAgeMin", pm."inferredPreferredAgeMin") IS NULL 
         OR ${userAge} >= COALESCE(p."preferredAgeMin", pm."inferredPreferredAgeMin")
@@ -864,24 +1029,18 @@ async function tier1SqlFilter(
         COALESCE(p."preferredAgeMax", pm."inferredPreferredAgeMax") IS NULL 
         OR ${userAge} <= COALESCE(p."preferredAgeMax", pm."inferredPreferredAgeMax")
       )
-      
-      -- סינון ילדים מקודם
       AND (
         ${preferredPartnerHasChildren} = 'does_not_matter'
         OR ${preferredPartnerHasChildren} = 'yes_ok'
         OR (${preferredPartnerHasChildren} = 'no_preferred' 
             AND (p."hasChildrenFromPrevious" IS NULL OR p."hasChildrenFromPrevious" = false))
       )
-      
-      -- לא נדחה ב-PotentialMatch
       AND NOT EXISTS (
         SELECT 1 FROM "PotentialMatch" pm2
         WHERE ((pm2."maleUserId" = ${userId} AND pm2."femaleUserId" = p."userId")
            OR (pm2."femaleUserId" = ${userId} AND pm2."maleUserId" = p."userId"))
           AND pm2.status::text IN ('DISMISSED', 'EXPIRED')
       )
-      
-      -- לא היתה הצעה שנדחתה
       AND NOT EXISTS (
         SELECT 1 FROM "MatchSuggestion" ms
         WHERE ((ms."firstPartyId" = ${userId} AND ms."secondPartyId" = p."userId")
@@ -896,7 +1055,6 @@ async function tier1SqlFilter(
     LIMIT ${maxCandidates}
   `;
 
-  // Transform to RawCandidate format
   return candidates.map(c => ({
     profileId: c.profileId,
     userId: c.userId,
@@ -979,17 +1137,14 @@ async function tier2MetricsScoring(
   const scoredCandidates: ScoredCandidate[] = [];
   
   for (const candidate of candidates) {
-    // 1. Age Score
     const candidateAge = candidate.age || candidate.metrics.inferredAge || 30;
     const ageScore = calculateAgeScoreForMatch(targetProfile.age, targetProfile.gender, candidateAge);
     
     if (!ageScore.eligible) continue;
     
-    // 2. Religious Compatibility
     const candidateReligious = candidate.religiousLevel || candidate.metrics.inferredReligiousLevel;
     const religiousScore = getReligiousCompatibilityScore(targetProfile.religiousLevel, candidateReligious);
     
-    // 3. Background Analysis
     let backgroundProfile: BackgroundProfile | null = null;
     let backgroundMatch: BackgroundMatchResult | null = null;
     
@@ -1002,12 +1157,11 @@ async function tier2MetricsScoring(
         candidate.origin,
         candidate.about,
         candidate.matchingNotes,
-        candidate.metrics.aiBackgroundSummary  // 🆕
+        candidate.metrics.aiBackgroundSummary
       );
       backgroundMatch = calculateBackgroundMatch(targetProfile.backgroundProfile, backgroundProfile);
     }
     
-    // 🆕 4. Socio-Economic Score
     const socioEconomicScore = calculateSocioEconomicScore(
       targetProfile.metrics.socioEconomicLevel,
       candidate.metrics.socioEconomicLevel,
@@ -1017,7 +1171,6 @@ async function tier2MetricsScoring(
       candidate.metrics.prefSocioEconomicMax
     );
     
-    // 🆕 5. Education Score
     const educationScore = calculateEducationScore(
       targetProfile.metrics.educationLevelScore,
       candidate.metrics.educationLevelScore,
@@ -1025,7 +1178,6 @@ async function tier2MetricsScoring(
       candidate.metrics.prefEducationLevelMin
     );
     
-    // 🆕 6. Job Seniority Score
     const jobSeniorityScore = calculateJobSeniorityScore(
       targetProfile.metrics.jobSeniorityLevel,
       candidate.metrics.jobSeniorityLevel,
@@ -1033,7 +1185,6 @@ async function tier2MetricsScoring(
       candidate.metrics.prefJobSeniorityMin
     );
     
-    // 🆕 7. Deal Breakers & Must Haves Check
     const dealBreakersCheck = checkDealBreakers(
       candidate,
       targetProfile.metrics.aiInferredDealBreakers
@@ -1044,12 +1195,10 @@ async function tier2MetricsScoring(
       targetProfile.metrics.aiInferredMustHaves
     );
     
-    // אם יש הפרה של deal breakers - ציון נמוך מאוד
     if (dealBreakersCheck.violated) {
       console.log(`[Tier2] ${candidate.firstName}: Deal breaker violated - ${dealBreakersCheck.violations.join(', ')}`);
     }
     
-    // 8. Social/Career Compatibility
     let socialScore = 70;
     if (targetProfile.metrics.socialEnergy !== null && candidate.metrics.socialEnergy !== null) {
       const diff = Math.abs(targetProfile.metrics.socialEnergy - candidate.metrics.socialEnergy);
@@ -1062,13 +1211,12 @@ async function tier2MetricsScoring(
       careerScore = Math.max(30, 100 - diff * 2);
     }
     
-    // 9. Calculate Metrics Score with new weights
     const weights = {
       religious: 0.22,
       age: 0.12,
-      socioEconomic: 0.12,  // 🆕
-      education: 0.10,       // 🆕
-      jobSeniority: 0.08,    // 🆕
+      socioEconomic: 0.12,
+      education: 0.10,
+      jobSeniority: 0.08,
       social: 0.10,
       career: 0.10,
       background: 0.08,
@@ -1087,21 +1235,16 @@ async function tier2MetricsScoring(
       (100 - Math.abs((targetProfile.metrics.urbanScore || 50) - (candidate.metrics.urbanScore || 50))) * weights.urban
     );
     
-    // Apply deal breaker penalty
     if (dealBreakersCheck.violated) {
-      metricsScore *= 0.4; // קנס משמעותי
+      metricsScore *= 0.4;
     }
     
-    // Apply must haves penalty
     if (!mustHavesCheck.met) {
-      metricsScore *= 0.7; // קנס מתון
+      metricsScore *= 0.7;
     }
     
-    // 10. Vector similarity (if available)
     const vectorScore: number | null = null;
-    // TODO: Implement vector similarity
     
-    // 11. Combined Tier 2 Score
     let tier2Score = metricsScore;
     
     if (backgroundMatch) {
@@ -1127,7 +1270,7 @@ async function tier2MetricsScoring(
       jobSeniorityScore: Math.round(jobSeniorityScore),
       meetsUserMustHaves: mustHavesCheck.met,
       violatesUserDealBreakers: dealBreakersCheck.violated,
-      meetsCandidateMustHaves: true, // יבדק בכיוון ההפוך
+      meetsCandidateMustHaves: true,
       violatesCandidateDealBreakers: false,
       tier2Score,
     });
@@ -1139,7 +1282,7 @@ async function tier2MetricsScoring(
 }
 
 // ═══════════════════════════════════════════════════════════════
-// TIER 3: AI FIRST PASS (Enhanced)
+// TIER 3: AI FIRST PASS (🆕 V2.1: Enhanced Prompts)
 // ═══════════════════════════════════════════════════════════════
 
 async function tier3AIFirstPass(
@@ -1184,7 +1327,6 @@ async function tier3AIFirstPass(
           lifestyle: 0, socioEconomic: 0, education: 0, background: 0, values: 0
         };
         
-        // Combined score: 45% Tier2 + 55% AI
         const tier3Score = Math.round(candidate.tier2Score * 0.45 + aiScore * 0.55);
         
         allResults.push({
@@ -1197,7 +1339,6 @@ async function tier3AIFirstPass(
       }
     } catch (error) {
       console.error(`[Tier3] Batch ${batchIdx + 1} failed:`, error);
-      // Fallback
       for (const candidate of batch) {
         allResults.push({
           ...candidate,
@@ -1212,7 +1353,6 @@ async function tier3AIFirstPass(
       }
     }
     
-    // Rate limiting
     if (batchIdx < totalBatches - 1) {
       await new Promise(resolve => setTimeout(resolve, 300));
     }
@@ -1222,7 +1362,9 @@ async function tier3AIFirstPass(
   return allResults.slice(0, maxOutput);
 }
 
-// 🆕 Prompt משופר עם כל המידע
+/**
+ * 🆕 V2.1: Enhanced prompt with background-specific guidelines
+ */
 function generateEnhancedFirstPassPrompt(
   targetProfile: {
     name: string;
@@ -1239,6 +1381,33 @@ function generateEnhancedFirstPassPrompt(
   totalBatches: number
 ): string {
   
+  // 🆕 V2.1: Build deal breakers section prominently
+  const dealBreakersSection = targetProfile.metrics.aiInferredDealBreakers?.length
+    ? `
+╔══════════════════════════════════════════════════════════════╗
+║  🚫 קווי אדום (DEAL BREAKERS) - חובה לבדוק!                  ║
+╠══════════════════════════════════════════════════════════════╣
+${targetProfile.metrics.aiInferredDealBreakers.map(db => `║  • ${db}`).join('\n')}
+╚══════════════════════════════════════════════════════════════╝
+⚠️ אם מועמד/ת מפר/ה קו אדום - ציון מקסימלי 40!
+`
+    : '';
+
+  const mustHavesSection = targetProfile.metrics.aiInferredMustHaves?.length
+    ? `
+┌──────────────────────────────────────────────────────────────┐
+│  ✅ חובות (MUST HAVES)                                       │
+├──────────────────────────────────────────────────────────────┤
+${targetProfile.metrics.aiInferredMustHaves.map(mh => `│  • ${mh}`).join('\n')}
+└──────────────────────────────────────────────────────────────┘
+`
+    : '';
+
+  // 🆕 V2.1: Background-specific guidelines
+  const backgroundGuidelines = getBackgroundMatchingGuidelines(
+    targetProfile.backgroundProfile.category
+  );
+
   const targetSummary = `
 שם: ${targetProfile.name}
 גיל: ${targetProfile.age}
@@ -1246,7 +1415,7 @@ function generateEnhancedFirstPassPrompt(
 עיר: ${targetProfile.city || targetProfile.metrics.inferredCity || 'לא צוין'}
 רמה דתית: ${targetProfile.religiousLevel || targetProfile.metrics.inferredReligiousLevel || 'לא צוין'}
 מקצוע: ${targetProfile.occupation || 'לא צוין'}
-רקע: ${getCategoryName(targetProfile.backgroundProfile.category)}
+רקע: ${BACKGROUND_DESCRIPTIONS[targetProfile.backgroundProfile.category]}
 
 === סיכום אישיות (AI) ===
 ${targetProfile.metrics.aiPersonalitySummary || 'לא זמין'}
@@ -1259,12 +1428,6 @@ ${targetProfile.metrics.aiBackgroundSummary || 'לא זמין'}
 
 === הנחיות שדכן ===
 ${targetProfile.metrics.aiMatchmakerGuidelines || 'אין הנחיות מיוחדות'}
-
-=== חובות ===
-${targetProfile.metrics.aiInferredMustHaves?.join(', ') || 'לא צוין'}
-
-=== קווי אדום (Deal Breakers) ===
-${targetProfile.metrics.aiInferredDealBreakers?.join(', ') || 'לא צוין'}
 
 === מדדים ===
 רמה כלכלית: ${targetProfile.metrics.socioEconomicLevel || 'N/A'}/10
@@ -1279,11 +1442,17 @@ ${targetProfile.metrics.aiInferredDealBreakers?.join(', ') || 'לא צוין'}
     const city = c.city || c.metrics.inferredCity || 'לא צוין';
     const religious = c.religiousLevel || c.metrics.inferredReligiousLevel || 'לא צוין';
     
+    // 🆕 V2.1: Include candidate's background category
+    const candidateBgDesc = c.backgroundProfile 
+      ? BACKGROUND_DESCRIPTIONS[c.backgroundProfile.category]
+      : 'לא ידוע';
+    
     return `
 [${idx + 1}] ${c.firstName} ${c.lastName}
 גיל: ${age} | עיר: ${city} | דתיות: ${religious}
 מקצוע: ${c.occupation || 'לא צוין'}
-רקע: ${c.backgroundMatch?.compatibility || 'N/A'}
+רקע: ${candidateBgDesc}
+התאמת רקע: ${c.backgroundMatch?.compatibility || 'N/A'}
 ציון מקדים: ${c.tier2Score}/100
 
 === סיכום אישיות ===
@@ -1292,17 +1461,28 @@ ${c.metrics.aiPersonalitySummary || c.about?.substring(0, 300) || 'לא זמין
 === מחפש/ת ===
 ${c.metrics.aiSeekingSummary || 'לא זמין'}
 
+=== קווי אדום של המועמד/ת ===
+${c.metrics.aiInferredDealBreakers?.join(', ') || 'לא צוין'}
+
 === מדדים ===
 כלכלי: ${c.metrics.socioEconomicLevel || 'N/A'} | השכלה: ${c.metrics.educationLevelScore || 'N/A'} | ותק: ${c.metrics.jobSeniorityLevel || 'N/A'}
 חברתי: ${c.metrics.socialEnergy || 'N/A'} | קריירה: ${c.metrics.careerOrientation || 'N/A'}
 
-${c.violatesUserDealBreakers ? '⚠️ מפר Deal Breaker!' : ''}
+${c.violatesUserDealBreakers ? '⚠️ מפר/ה Deal Breaker של המחפש/ת!' : ''}
 ${!c.meetsUserMustHaves ? '⚠️ חסר Must Have' : ''}
 ---`;
   }).join('\n');
 
-  return `אתה שדכן AI מקצועי. נתח התאמות בין פרופילים.
+  return `אתה שדכן AI מקצועי ב-NeshamaTech. נתח התאמות בין פרופילים.
 (Batch ${batchNum}/${totalBatches})
+
+${dealBreakersSection}
+${mustHavesSection}
+
+═══════════════════════════════════════
+הנחיות התאמת רקע (${BACKGROUND_DESCRIPTIONS[targetProfile.backgroundProfile.category]}):
+═══════════════════════════════════════
+${backgroundGuidelines}
 
 ═══════════════════════════════════════
 פרופיל המחפש/ת:
@@ -1321,18 +1501,18 @@ ${candidatesText}
 2. התאמת גיל (10 נק') - פער גילאים
 3. קריירה-משפחה (15 נק') - שאיפות, איזון
 4. סגנון חיים (10 נק') - חברתיות, תחביבים
-5. התאמה סוציו-אקונומית (10 נק') - רמה כלכלית 🆕
-6. התאמת השכלה (10 נק') - רמת ותחום השכלה 🆕
+5. התאמה סוציו-אקונומית (10 נק') - רמה כלכלית
+6. התאמת השכלה (10 נק') - רמת ותחום השכלה
 7. התאמת רקע (10 נק') - שפה, מוצא, עלייה
 8. ערכים ותקשורת (10 נק') - ערכים משותפים
 
 ═══════════════════════════════════════
-הוראות:
+הוראות קריטיות:
 ═══════════════════════════════════════
-- שים לב מיוחד ל-Deal Breakers ו-Must Haves
-- אם יש הפרת Deal Breaker - ציון נמוך (מקסימום 40)
-- התייחס להנחיות השדכן אם קיימות
-- נמק בקצרה (משפט אחד)
+⚠️ בדוק DEAL BREAKERS קודם! אם יש הפרה - ציון מקסימום 40
+⚠️ בדוק התאמת רקע - עולה חדש עם צבר זה אתגר משמעותי
+⚠️ התייחס להנחיות השדכן אם קיימות
+⚠️ נמק בקצרה (משפט אחד)
 
 ═══════════════════════════════════════
 פורמט JSON בלבד:
@@ -1358,8 +1538,48 @@ ${candidatesText}
 }`;
 }
 
+/**
+ * 🆕 V2.1: Get background-specific matching guidelines for AI prompts
+ */
+function getBackgroundMatchingGuidelines(category: BackgroundCategory): string {
+  const guidelines: Record<BackgroundCategory, string> = {
+    sabra: `
+- צבר/ית ישראלי/ת מחפש/ת בדרך כלל מישהו עם עברית שפת אם
+- התאמה מצוינת: צבר, צבר בינלאומי, עולה ותיק
+- התאמה בעייתית: עולה חדש (פערי תרבות ושפה)
+- חשוב לבדוק: האם המועמד/ת רוצה בן/בת זוג מרקע מסוים?`,
+    
+    sabra_international: `
+- צבר/ית עם רקע בינלאומי - פתוח/ה יותר לרקעים שונים
+- התאמה מצוינת: כל הרקעים חוץ מעולה חדש מאוד
+- יתרון: הבנה של תרבויות שונות, רגישות לאתגרי קליטה
+- חשוב לבדוק: שפות משותפות מעבר לעברית`,
+    
+    oleh_veteran: `
+- עולה ותיק/ה (10+ שנים) - משולב/ת היטב בחברה הישראלית
+- התאמה מצוינת: צברים, עולים ותיקים, עולים בתהליך
+- יתרון: מבין/ה את חווית העלייה אבל גם את התרבות המקומית
+- חשוב לבדוק: ארץ מוצא משותפת = בונוס משמעותי`,
+    
+    oleh_mid: `
+- עולה בתהליך קליטה (3-10 שנים) - עדיין בהשתלבות
+- התאמה מצוינת: עולים אחרים (כל הוותקים), צבר בינלאומי
+- התאמה מאתגרת: צבר "טהור" ללא רקע בינלאומי
+- חשוב לבדוק: רמת עברית, תמיכה בתהליך הקליטה`,
+    
+    oleh_new: `
+- עולה חדש/ה (פחות מ-3 שנים) - בתחילת הדרך
+- התאמה מצוינת: עולים חדשים וותיקים מאותה ארץ
+- התאמה מאתגרת מאוד: צברים ללא רקע בינלאומי
+- חשוב מאוד: שפה משותפת, ארץ מוצא, קהילת תמיכה
+- זהירות: פערי תרבות יכולים להיות משמעותיים מאוד`,
+  };
+  
+  return guidelines[category];
+}
+
 // ═══════════════════════════════════════════════════════════════
-// TIER 4: AI DEEP ANALYSIS (Enhanced)
+// TIER 4: AI DEEP ANALYSIS (🆕 V2.1: Enhanced Prompts)
 // ═══════════════════════════════════════════════════════════════
 
 async function tier4AIDeepAnalysis(
@@ -1430,6 +1650,9 @@ async function tier4AIDeepAnalysis(
   }
 }
 
+/**
+ * 🆕 V2.1: Enhanced deep analysis prompt with prominent deal breakers
+ */
 function generateEnhancedDeepAnalysisPrompt(
   targetProfile: {
     name: string;
@@ -1445,12 +1668,24 @@ function generateEnhancedDeepAnalysisPrompt(
   candidates: AIFirstPassCandidate[]
 ): string {
   
+  // 🆕 V2.1: Prominent deal breakers at the top
+  const dealBreakersWarning = targetProfile.metrics.aiInferredDealBreakers?.length
+    ? `
+╔══════════════════════════════════════════════════════════════════════╗
+║  🚫 קווי אדום של ${targetProfile.name} - חייבים לזכור!              ║
+╠══════════════════════════════════════════════════════════════════════╣
+${targetProfile.metrics.aiInferredDealBreakers.map(db => `║  ❌ ${db}`).join('\n')}
+╚══════════════════════════════════════════════════════════════════════╝
+`
+    : '';
+
   const candidatesText = candidates.map((c, idx) => {
     return `
 [${idx + 1}] ${c.firstName} ${c.lastName}
 ציון ביניים: ${c.tier3Score}/100
 נימוק קודם: ${c.shortReasoning}
 פירוט: דתי=${c.scoreBreakdown.religious}/25, כלכלי=${c.scoreBreakdown.socioEconomic}/10, השכלה=${c.scoreBreakdown.education}/10
+רקע: ${c.backgroundProfile ? BACKGROUND_DESCRIPTIONS[c.backgroundProfile.category] : 'לא ידוע'}
 
 סיכום אישיות:
 ${c.metrics.aiPersonalitySummary || 'לא זמין'}
@@ -1461,12 +1696,14 @@ ${c.metrics.aiSeekingSummary || 'לא זמין'}
 הנחיות שדכן:
 ${c.metrics.aiMatchmakerGuidelines || 'אין'}
 
-Deal Breakers:
+Deal Breakers של המועמד/ת:
 ${c.metrics.aiInferredDealBreakers?.join(', ') || 'אין'}
 ---`;
   }).join('\n');
 
-  return `אתה שדכן AI מומחה. בצע ניתוח מעמיק והשוואה של ${candidates.length} המועמדים המובילים.
+  return `אתה שדכן AI מומחה ב-NeshamaTech. בצע ניתוח מעמיק והשוואה של ${candidates.length} המועמדים המובילים.
+
+${dealBreakersWarning}
 
 ═══════════════════════════════════════
 פרופיל המחפש/ת: ${targetProfile.name}
@@ -1474,6 +1711,7 @@ ${c.metrics.aiInferredDealBreakers?.join(', ') || 'אין'}
 גיל: ${targetProfile.age} | עיר: ${targetProfile.city || 'לא צוין'}
 דתיות: ${targetProfile.religiousLevel || 'לא צוין'}
 מקצוע: ${targetProfile.occupation || 'לא צוין'}
+רקע: ${BACKGROUND_DESCRIPTIONS[targetProfile.backgroundProfile.category]}
 
 סיכום אישיות:
 ${targetProfile.metrics.aiPersonalitySummary || targetProfile.about || 'לא זמין'}
@@ -1485,7 +1723,6 @@ ${targetProfile.metrics.aiSeekingSummary || 'לא זמין'}
 ${targetProfile.metrics.aiMatchmakerGuidelines || 'אין הנחיות מיוחדות'}
 
 חובות: ${targetProfile.metrics.aiInferredMustHaves?.join(', ') || 'לא צוין'}
-קווי אדום: ${targetProfile.metrics.aiInferredDealBreakers?.join(', ') || 'לא צוין'}
 
 ═══════════════════════════════════════
 מועמדים מובילים:
@@ -1496,11 +1733,13 @@ ${candidatesText}
 המשימה:
 ═══════════════════════════════════════
 1. סקור כל מועמד/ת מחדש עם מבט מעמיק
-2. שקלל את הציונים הקודמים עם הבנה עמוקה יותר
-3. תן ציון סופי 0-100
-4. דרג מ-1 (הכי מתאים) עד ${candidates.length}
-5. ציין נקודות חוזק וחששות
-6. הצע איך להציג את ההצעה
+2. 🚫 וודא שאין הפרת Deal Breakers - אם יש, ציון נמוך!
+3. שקלל את הציונים הקודמים עם הבנה עמוקה יותר
+4. התחשב בהתאמת רקע תרבותי ושפתי
+5. תן ציון סופי 0-100
+6. דרג מ-1 (הכי מתאים) עד ${candidates.length}
+7. ציין נקודות חוזק וחששות ספציפיים
+8. הצע איך להציג את ההצעה לשני הצדדים
 
 ═══════════════════════════════════════
 פורמט JSON בלבד:
@@ -1511,10 +1750,10 @@ ${candidatesText}
       "index": 1,
       "finalScore": 92,
       "rank": 1,
-      "detailedReasoning": "התאמה יוצאת דופן...",
-      "strengths": ["רקע דומה", "שאיפות דומות"],
+      "detailedReasoning": "התאמה יוצאת דופן ברקע, ערכים ושאיפות...",
+      "strengths": ["רקע דומה מאותה ארץ", "שאיפות קריירה-משפחה זהות"],
       "concerns": ["פער גילאים קטן"],
-      "suggestedApproach": "להדגיש את..."
+      "suggestedApproach": "להדגיש את הרקע המשותף ואת החזון הדומה למשפחה"
     }
   ]
 }`;
@@ -1593,6 +1832,11 @@ async function saveResults(
             scoreForMale: isMale ? match.finalScore : match.tier3Score,
             scoreForFemale: isMale ? match.tier3Score : match.finalScore,
             asymmetryGap: Math.abs(match.finalScore - match.tier3Score),
+            // 🆕 V2.1: Save hybrid-specific fields
+            hybridScore: match.finalScore,
+            hybridReasoning: match.detailedReasoning,
+            hybridScannedAt: new Date(),
+            hybridScoreBreakdown: match.scoreBreakdown as any,
           },
         });
         updated++;
@@ -1608,6 +1852,11 @@ async function saveResults(
             scoreForMale: isMale ? match.finalScore : match.tier3Score,
             scoreForFemale: isMale ? match.tier3Score : match.finalScore,
             asymmetryGap: Math.abs(match.finalScore - match.tier3Score),
+            // 🆕 V2.1: Save hybrid-specific fields
+            hybridScore: match.finalScore,
+            hybridReasoning: match.detailedReasoning,
+            hybridScannedAt: new Date(),
+            hybridScoreBreakdown: match.scoreBreakdown as any,
           },
         });
         saved++;
@@ -1627,6 +1876,355 @@ async function saveResults(
 }
 
 // ═══════════════════════════════════════════════════════════════
+// 🆕 V2.1: VIRTUAL PROFILE SCANNING
+// ═══════════════════════════════════════════════════════════════
+
+/**
+ * 🆕 V2.1: Scan for matches for a virtual profile
+ * This allows matchmakers to find matches for profiles that don't exist in the system yet
+ * 
+ * @param virtualProfile - The generated virtual profile from aiService
+ * @param gender - Gender of the virtual profile (MALE or FEMALE)
+ * @param religiousLevel - Religious level of the virtual profile
+ * @param options - Scan options
+ * @returns VirtualScanResult with matched candidates
+ */
+export async function hybridScanForVirtualUser(
+  virtualProfile: GeneratedVirtualProfile,
+  gender: Gender,
+  religiousLevel: string,
+  options: VirtualScanOptions = {}
+): Promise<VirtualScanResult> {
+  const startTime = Date.now();
+  const warnings: string[] = [];
+  
+  const {
+    maxCandidates = 50,
+    useAIFirstPass = true,
+    useAIDeepAnalysis = true,
+    minScoreToReturn = 50,
+  } = options;
+  
+  console.log(`\n${'═'.repeat(70)}`);
+  console.log(`[VirtualScan] Starting scan for virtual profile`);
+  console.log(`[VirtualScan] Gender: ${gender}, Age: ${virtualProfile.inferredAge}, Religious: ${religiousLevel}`);
+  console.log(`${'═'.repeat(70)}`);
+  
+  // Build virtual user's extended metrics from the profile
+  const virtualMetrics: ExtendedMetrics = {
+    confidenceScore: 80,
+    religiousStrictness: null,
+    socialEnergy: null,
+    careerOrientation: null,
+    urbanScore: null,
+    appearancePickiness: null,
+    spiritualDepth: null,
+    socioEconomicLevel: null,
+    jobSeniorityLevel: null,
+    educationLevelScore: null,
+    inferredAge: virtualProfile.inferredAge,
+    inferredCity: virtualProfile.inferredCity,
+    inferredReligiousLevel: religiousLevel,
+    inferredPreferredAgeMin: virtualProfile.preferredAgeMin,
+    inferredPreferredAgeMax: virtualProfile.preferredAgeMax,
+    inferredParentStatus: virtualProfile.inferredMaritalStatus,
+    inferredEducationLevel: virtualProfile.inferredEducation,
+    aiPersonalitySummary: virtualProfile.personalitySummary,
+    aiSeekingSummary: virtualProfile.lookingForSummary,
+    aiBackgroundSummary: null,
+    aiMatchmakerGuidelines: null,
+    aiInferredDealBreakers: virtualProfile.dealBreakers,
+    aiInferredMustHaves: virtualProfile.idealPartnerTraits,
+    difficultyFlags: null,
+    prefSocioEconomicMin: null,
+    prefSocioEconomicMax: null,
+    prefJobSeniorityMin: null,
+    prefJobSeniorityMax: null,
+    prefEducationLevelMin: null,
+    prefEducationLevelMax: null,
+  };
+  
+  // Create background profile for virtual user
+  const virtualBackgroundProfile = createBackgroundProfile(
+    null,
+    [],
+    null,
+    null,
+    null,
+    virtualProfile.personalitySummary,
+    null,
+    null
+  );
+  
+  // Find candidates using SQL filter (simplified - no exclusions needed)
+  const oppositeGender = gender === Gender.MALE ? Gender.FEMALE : Gender.MALE;
+  
+  const candidates = await prisma.$queryRaw<any[]>`
+    SELECT 
+      p.id as "profileId",
+      p."userId",
+      u."firstName",
+      u."lastName",
+      p.gender,
+      p."birthDate",
+      p.city,
+      p."religiousLevel",
+      p.occupation,
+      p.education,
+      p."educationLevel",
+      p.about,
+      p."matchingNotes",
+      p."parentStatus",
+      p."hasChildrenFromPrevious",
+      p."nativeLanguage",
+      p."additionalLanguages",
+      p."aliyaCountry",
+      p."aliyaYear",
+      p.origin,
+      p."preferredAgeMin",
+      p."preferredAgeMax",
+      p."updatedAt" as "profileUpdatedAt",
+      pm."confidenceScore",
+      pm."religiousStrictness",
+      pm."socialEnergy",
+      pm."careerOrientation",
+      pm."urbanScore",
+      pm."appearancePickiness",
+      pm."spiritualDepth",
+      pm."socioEconomicLevel",
+      pm."jobSeniorityLevel",
+      pm."educationLevelScore",
+      pm."inferredAge",
+      pm."inferredCity",
+      pm."inferredReligiousLevel",
+      pm."inferredPreferredAgeMin",
+      pm."inferredPreferredAgeMax",
+      pm."inferredParentStatus",
+      pm."inferredEducationLevel",
+      pm."aiPersonalitySummary",
+      pm."aiSeekingSummary",
+      pm."aiBackgroundSummary",
+      pm."aiMatchmakerGuidelines",
+      pm."aiInferredDealBreakers",
+      pm."aiInferredMustHaves",
+      pm."difficultyFlags",
+      pm."prefSocioEconomicMin",
+      pm."prefSocioEconomicMax",
+      pm."prefJobSeniorityMin",
+      pm."prefJobSeniorityMax",
+      pm."prefEducationLevelMin",
+      pm."prefEducationLevelMax",
+      COALESCE(EXTRACT(YEAR FROM AGE(p."birthDate"))::int, pm."inferredAge") as "age"
+    FROM "Profile" p 
+    JOIN "User" u ON u.id = p."userId"
+    LEFT JOIN "profile_metrics" pm ON pm."profileId" = p.id
+    WHERE 
+      p.gender = ${oppositeGender}::"Gender"
+      AND (u.status = 'ACTIVE' OR (u.status = 'PENDING_EMAIL_VERIFICATION' AND u.source = 'MANUAL_ENTRY'))
+      AND p."availabilityStatus" = 'AVAILABLE'::"AvailabilityStatus"
+      AND (p."isProfileVisible" = true OR p."isProfileVisible" IS NULL)
+      AND COALESCE(EXTRACT(YEAR FROM AGE(p."birthDate"))::int, pm."inferredAge") >= ${virtualProfile.preferredAgeMin}
+      AND COALESCE(EXTRACT(YEAR FROM AGE(p."birthDate"))::int, pm."inferredAge") <= ${virtualProfile.preferredAgeMax}
+      AND (
+        COALESCE(p."preferredAgeMin", pm."inferredPreferredAgeMin") IS NULL 
+        OR ${virtualProfile.inferredAge} >= COALESCE(p."preferredAgeMin", pm."inferredPreferredAgeMin")
+      )
+      AND (
+        COALESCE(p."preferredAgeMax", pm."inferredPreferredAgeMax") IS NULL 
+        OR ${virtualProfile.inferredAge} <= COALESCE(p."preferredAgeMax", pm."inferredPreferredAgeMax")
+      )
+    ORDER BY pm."confidenceScore" DESC NULLS LAST
+    LIMIT ${maxCandidates}
+  `;
+  
+  console.log(`[VirtualScan] Found ${candidates.length} potential candidates`);
+  
+  if (candidates.length === 0) {
+    return {
+      scanStartedAt: new Date(startTime),
+      scanCompletedAt: new Date(),
+      durationMs: Date.now() - startTime,
+      stats: { totalCandidatesScanned: 0, passedFilters: 0, aiAnalyzed: 0, deepAnalyzed: 0 },
+      matches: [],
+      warnings: ['No candidates found matching age criteria'],
+    };
+  }
+  
+  // Transform to RawCandidate format
+  const rawCandidates: RawCandidate[] = candidates.map(c => ({
+    profileId: c.profileId,
+    userId: c.userId,
+    firstName: c.firstName,
+    lastName: c.lastName,
+    gender: c.gender,
+    birthDate: c.birthDate,
+    age: c.age,
+    city: c.city,
+    religiousLevel: c.religiousLevel,
+    occupation: c.occupation,
+    education: c.education,
+    educationLevel: c.educationLevel,
+    about: c.about,
+    matchingNotes: c.matchingNotes,
+    parentStatus: c.parentStatus,
+    hasChildrenFromPrevious: c.hasChildrenFromPrevious,
+    nativeLanguage: c.nativeLanguage,
+    additionalLanguages: c.additionalLanguages || [],
+    aliyaCountry: c.aliyaCountry,
+    aliyaYear: c.aliyaYear,
+    origin: c.origin,
+    preferredAgeMin: c.preferredAgeMin,
+    preferredAgeMax: c.preferredAgeMax,
+    profileUpdatedAt: c.profileUpdatedAt,
+    metrics: {
+      confidenceScore: c.confidenceScore,
+      religiousStrictness: c.religiousStrictness,
+      socialEnergy: c.socialEnergy,
+      careerOrientation: c.careerOrientation,
+      urbanScore: c.urbanScore,
+      appearancePickiness: c.appearancePickiness,
+      spiritualDepth: c.spiritualDepth,
+      socioEconomicLevel: c.socioEconomicLevel,
+      jobSeniorityLevel: c.jobSeniorityLevel,
+      educationLevelScore: c.educationLevelScore,
+      inferredAge: c.inferredAge,
+      inferredCity: c.inferredCity,
+      inferredReligiousLevel: c.inferredReligiousLevel,
+      inferredPreferredAgeMin: c.inferredPreferredAgeMin,
+      inferredPreferredAgeMax: c.inferredPreferredAgeMax,
+      inferredParentStatus: c.inferredParentStatus,
+      inferredEducationLevel: c.inferredEducationLevel,
+      aiPersonalitySummary: c.aiPersonalitySummary,
+      aiSeekingSummary: c.aiSeekingSummary,
+      aiBackgroundSummary: c.aiBackgroundSummary,
+      aiMatchmakerGuidelines: c.aiMatchmakerGuidelines,
+      aiInferredDealBreakers: c.aiInferredDealBreakers,
+      aiInferredMustHaves: c.aiInferredMustHaves,
+      difficultyFlags: c.difficultyFlags,
+      prefSocioEconomicMin: c.prefSocioEconomicMin,
+      prefSocioEconomicMax: c.prefSocioEconomicMax,
+      prefJobSeniorityMin: c.prefJobSeniorityMin,
+      prefJobSeniorityMax: c.prefJobSeniorityMax,
+      prefEducationLevelMin: c.prefEducationLevelMin,
+      prefEducationLevelMax: c.prefEducationLevelMax,
+    },
+  }));
+  
+  // Tier 2: Metrics scoring
+  const tier2Candidates = await tier2MetricsScoring(
+    rawCandidates,
+    {
+      age: virtualProfile.inferredAge,
+      gender: gender,
+      religiousLevel: religiousLevel,
+      backgroundProfile: virtualBackgroundProfile,
+      metrics: virtualMetrics,
+    },
+    false, // No vectors for virtual profiles
+    true,  // Use background analysis
+    maxCandidates
+  );
+  
+  console.log(`[VirtualScan] After metrics scoring: ${tier2Candidates.length} candidates`);
+  
+  // Tier 3: AI First Pass (if enabled)
+  let tier3Candidates: AIFirstPassCandidate[];
+  
+  if (useAIFirstPass && tier2Candidates.length > 0) {
+    tier3Candidates = await tier3AIFirstPass(
+      tier2Candidates.filter(c => c.tier2Score >= minScoreToReturn),
+      {
+        name: 'פרופיל וירטואלי',
+        age: virtualProfile.inferredAge,
+        gender: gender,
+        city: virtualProfile.inferredCity,
+        religiousLevel: religiousLevel,
+        occupation: virtualProfile.inferredOccupation,
+        backgroundProfile: virtualBackgroundProfile,
+        metrics: virtualMetrics,
+      },
+      Math.min(25, tier2Candidates.length)
+    );
+  } else {
+    tier3Candidates = tier2Candidates.slice(0, 25).map(c => ({
+      ...c,
+      aiFirstPassScore: c.tier2Score,
+      scoreBreakdown: { religious: 0, ageCompatibility: 0, careerFamily: 0, lifestyle: 0, socioEconomic: 0, education: 0, background: 0, values: 0 },
+      shortReasoning: 'AI skipped',
+      tier3Score: c.tier2Score,
+    }));
+  }
+  
+  // Tier 4: Deep Analysis (if enabled)
+  let finalCandidates: FinalCandidate[];
+  
+  if (useAIDeepAnalysis && tier3Candidates.length > 0) {
+    finalCandidates = await tier4AIDeepAnalysis(
+      tier3Candidates.slice(0, 15),
+      {
+        name: 'פרופיל וירטואלי',
+        age: virtualProfile.inferredAge,
+        gender: gender,
+        city: virtualProfile.inferredCity,
+        religiousLevel: religiousLevel,
+        occupation: virtualProfile.inferredOccupation,
+        about: virtualProfile.displaySummary,
+        backgroundProfile: virtualBackgroundProfile,
+        metrics: virtualMetrics,
+      }
+    );
+  } else {
+    finalCandidates = tier3Candidates.map((c, idx) => ({
+      ...c,
+      finalScore: c.tier3Score,
+      rank: idx + 1,
+      detailedReasoning: c.shortReasoning,
+      recommendation: c.tier3Score >= 70 ? 'GOOD' as const : 'FAIR' as const,
+      strengths: [],
+      concerns: [],
+    }));
+  }
+  
+  // Transform to VirtualMatchCandidate format
+  const matches: VirtualMatchCandidate[] = finalCandidates
+    .filter(c => c.finalScore >= minScoreToReturn)
+    .map(c => ({
+      userId: c.userId,
+      profileId: c.profileId,
+      firstName: c.firstName,
+      lastName: c.lastName,
+      age: c.age,
+      city: c.city || c.metrics.inferredCity,
+      religiousLevel: c.religiousLevel || c.metrics.inferredReligiousLevel,
+      occupation: c.occupation,
+      score: c.finalScore,
+      reasoning: c.detailedReasoning,
+      recommendation: c.recommendation,
+      strengths: c.strengths,
+      concerns: c.concerns,
+    }));
+  
+  const totalDuration = Date.now() - startTime;
+  
+  console.log(`[VirtualScan] ✅ Completed in ${totalDuration}ms`);
+  console.log(`[VirtualScan] Found ${matches.length} matches above score ${minScoreToReturn}`);
+  
+  return {
+    scanStartedAt: new Date(startTime),
+    scanCompletedAt: new Date(),
+    durationMs: totalDuration,
+    stats: {
+      totalCandidatesScanned: rawCandidates.length,
+      passedFilters: tier2Candidates.length,
+      aiAnalyzed: tier3Candidates.length,
+      deepAnalyzed: finalCandidates.length,
+    },
+    matches,
+    warnings,
+  };
+}
+
+// ═══════════════════════════════════════════════════════════════
 // MAIN EXPORT FUNCTION
 // ═══════════════════════════════════════════════════════════════
 
@@ -1638,7 +2236,6 @@ export async function hybridScan(
   const warnings: string[] = [];
   const errors: string[] = [];
 
-  // Default options
   const {
     maxTier1Candidates = 300,
     maxTier2Candidates = 60,
@@ -1656,10 +2253,12 @@ export async function hybridScan(
     skipCandidateMetricsUpdate = false,
     maxCandidatesToUpdate = MAX_CANDIDATES_TO_UPDATE,
     autoSave = true,
+    saveScannedPairs: shouldSaveScannedPairs = true,  // 🆕 V2.1
+    checkCancelled,
   } = options;
 
   console.log(`\n${'═'.repeat(70)}`);
-  console.log(`[HybridScan V2] Starting for user: ${userId}`);
+  console.log(`[HybridScan V2.1] Starting for user: ${userId}`);
   console.log(`${'═'.repeat(70)}`);
 
   const tiersStats = {
@@ -1683,13 +2282,11 @@ export async function hybridScan(
 
   if (!profile) throw new Error(`Profile not found for user: ${userId}`);
   
-  // 🆕 Fetch extended metrics
   const userMetrics = await prisma.$queryRaw<any[]>`
     SELECT * FROM "profile_metrics" WHERE "profileId" = ${profile.id} LIMIT 1
   `;
   const metrics: ExtendedMetrics = userMetrics[0] || {} as ExtendedMetrics;
   
-  // Calculate user's age with fallback
   let userAge: number;
   if (profile.birthDate) {
     userAge = calculateAge(profile.birthDate);
@@ -1701,7 +2298,6 @@ export async function hybridScan(
     warnings.push('No age found, using default 30');
   }
   
-  // Age preferences with fallback
   let preferredAgeMin: number, preferredAgeMax: number;
   if (profile.preferredAgeMin !== null && profile.preferredAgeMax !== null) {
     preferredAgeMin = profile.preferredAgeMin;
@@ -1720,7 +2316,6 @@ export async function hybridScan(
     }
   }
   
-  // Background profile
   const userBackgroundProfile = createBackgroundProfile(
     profile.nativeLanguage,
     profile.additionalLanguages || [],
@@ -1735,13 +2330,12 @@ export async function hybridScan(
   console.log(`[HybridScan] User: ${profile.user.firstName} ${profile.user.lastName}`);
   console.log(`[HybridScan] Age: ${userAge}, Gender: ${profile.gender}`);
   console.log(`[HybridScan] Preferred Age: ${preferredAgeMin}-${preferredAgeMax}`);
-  console.log(`[HybridScan] Background: ${userBackgroundProfile.category}`);
+  console.log(`[HybridScan] Background: ${userBackgroundProfile.category} (${BACKGROUND_DESCRIPTIONS[userBackgroundProfile.category]})`);
   console.log(`[HybridScan] Has AI Summaries: personality=${!!metrics.aiPersonalitySummary}, seeking=${!!metrics.aiSeekingSummary}`);
+  console.log(`[HybridScan] Deal Breakers: ${metrics.aiInferredDealBreakers?.length || 0}, Must Haves: ${metrics.aiInferredMustHaves?.length || 0}`);
 
-  // Ensure user has metrics
   await ensureUserReady(profile.id, forceUpdateMetrics);
 
-  // 🆕 Update candidate metrics
   const oppositeGender = profile.gender === Gender.MALE ? Gender.FEMALE : Gender.MALE;
   
   if (!skipCandidateMetricsUpdate) {
@@ -1755,6 +2349,10 @@ export async function hybridScan(
   
   tiersStats.tier0.durationMs = Date.now() - tier0Start;
   console.log(`[HybridScan] Tier 0: Updated ${tiersStats.tier0.candidatesUpdated} candidates in ${tiersStats.tier0.durationMs}ms`);
+
+    if (checkCancelled && await checkCancelled()) {
+    throw new Error('Scan cancelled by user request');
+  }
 
   // ═══════════════════════════════════════════════════════════
   // TIER 1: SQL Filtering
@@ -1788,6 +2386,10 @@ export async function hybridScan(
     return createEmptyResult(userId, profile.id, startTime, tiersStats, warnings, errors);
   }
 
+    if (checkCancelled && await checkCancelled()) {
+    throw new Error('Scan cancelled by user request (before Tier 2)');
+  }
+
   // ═══════════════════════════════════════════════════════════
   // TIER 2: Extended Metrics + Background Scoring
   // ═══════════════════════════════════════════════════════════
@@ -1814,7 +2416,6 @@ export async function hybridScan(
     durationMs: Date.now() - tier2Start,
   };
   
-  // Count difficulty flags
   const candidatesWithDifficulty = tier2Candidates.filter(
     c => c.metrics.difficultyFlags && c.metrics.difficultyFlags.length > 0
   ).length;
@@ -1825,6 +2426,10 @@ export async function hybridScan(
   tier2Candidates.slice(0, 5).forEach((c, i) => {
     console.log(`  ${i+1}. ${c.firstName} - Score: ${c.tier2Score}, BG: ${c.backgroundMatch?.compatibility || 'N/A'}, SE: ${c.socioEconomicScore}, Edu: ${c.educationScore}`);
   });
+
+    if (checkCancelled && await checkCancelled()) {
+    throw new Error('Scan cancelled by user request (before AI Batch)');
+  }
 
   // ═══════════════════════════════════════════════════════════
   // TIER 3: AI First Pass
@@ -1868,6 +2473,11 @@ export async function hybridScan(
       shortReasoning: 'AI skipped',
       tier3Score: c.tier2Score,
     }));
+  }
+
+    // 🆕 בדיקה 4: לפני Tier 4 (Deep Analysis)
+  if (checkCancelled && await checkCancelled()) {
+    throw new Error('Scan cancelled by user request (before Deep Analysis)');
   }
 
   // ═══════════════════════════════════════════════════════════
@@ -1919,11 +2529,23 @@ export async function hybridScan(
   // SAVE RESULTS
   // ═══════════════════════════════════════════════════════════
   let savedCount = 0;
+  let scannedPairsSaved = 0;
   
   if (autoSave && finalCandidates.length > 0) {
     console.log(`\n[HybridScan] ═══ Saving Results ═══`);
     savedCount = await saveResults(userId, profile.id, profile.gender, finalCandidates, minScoreToSave);
     console.log(`[HybridScan] Saved ${savedCount} matches to DB`);
+  }
+  
+  // 🆕 V2.1: Save ScannedPairs
+  if (shouldSaveScannedPairs && finalCandidates.length > 0) {
+    console.log(`\n[HybridScan] ═══ Saving ScannedPairs ═══`);
+    scannedPairsSaved = await saveScannedPairs(
+      userId,
+      profile.gender,
+      profile.updatedAt,
+      finalCandidates
+    );
   }
 
   // ═══════════════════════════════════════════════════════════
@@ -1955,6 +2577,7 @@ export async function hybridScan(
       savedToDb: savedCount,
       fromCache: false,
       candidatesWithDifficultyFlags: candidatesWithDifficulty,
+      scannedPairsSaved,  // 🆕 V2.1
     },
     matches: finalCandidates,
     warnings,
@@ -1989,6 +2612,7 @@ function createEmptyResult(
       savedToDb: 0,
       fromCache: false,
       candidatesWithDifficultyFlags: 0,
+      scannedPairsSaved: 0,
     },
     matches: [],
     warnings,
@@ -2002,6 +2626,7 @@ function createEmptyResult(
 
 export const hybridMatchingService = {
   hybridScan,
+  hybridScanForVirtualUser,  // 🆕 V2.1
   
   // Utility exports
   calculateAge,
@@ -2011,12 +2636,15 @@ export const hybridMatchingService = {
   calculateBackgroundMatch,
   getReligiousCompatibilityScore,
   
-  // 🆕 Extended metrics exports
+  // Extended metrics exports
   calculateSocioEconomicScore,
   calculateEducationScore,
   calculateJobSeniorityScore,
   checkDealBreakers,
   checkMustHaves,
+  
+  // 🆕 V2.1: ScannedPair tracking
+  saveScannedPairs,
 };
 
 export default hybridMatchingService;

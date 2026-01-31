@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmaker\new\PotentialMatches
-# Generated on: 2026-01-30 14:07:01
+# Generated on: 2026-01-31 19:12:04
 # Filter: Only content of code files (.bat, .c, .cfg, .conf, .cpp, .cs, .css, .go, .h, .html, .ini, .java, .js, .json, .jsx, .kt, .less, .md, .php, .py, .rb, .rs, .scss, .sh, .sql, .swift, .ts, .tsx, .txt, .xml, .yaml, .yml) is included.
 ################################################################################
 
@@ -2045,6 +2045,120 @@ const getMaritalStatusLabel = (status: string | null | undefined): string => {
 };
 
 // =============================================================================
+// ALL SCORES DISPLAY - הצגת ציונים מכל השיטות
+// =============================================================================
+
+const AllScoresDisplay: React.FC<{
+  match: PotentialMatch;
+}> = ({ match }) => {
+  const scores = [
+    {
+      key: 'hybrid',
+      label: 'היברידי',
+      description: 'סריקה היברידית (4 שלבים)',
+      score: match.hybridScore,
+      icon: '🔥',
+      bgColor: 'bg-emerald-50',
+      textColor: 'text-emerald-700',
+      borderColor: 'border-emerald-200',
+    },
+    {
+      key: 'algorithmic',
+      label: 'AI',
+      description: 'ניתוח AI מעמיק',
+      score: match.algorithmicScore,
+      icon: '🧠',
+      bgColor: 'bg-purple-50',
+      textColor: 'text-purple-700',
+      borderColor: 'border-purple-200',
+    },
+    {
+      key: 'vector',
+      label: 'מהיר',
+      description: 'סריקה וקטורית מהירה',
+      score: match.vectorScore,
+      icon: '⚡',
+      bgColor: 'bg-blue-50',
+      textColor: 'text-blue-700',
+      borderColor: 'border-blue-200',
+    },
+    {
+      key: 'metricsV2',
+      label: 'V2',
+      description: 'מטריקות גרסה 2',
+      score: match.metricsV2Score,
+      icon: '🎯',
+      bgColor: 'bg-indigo-50',
+      textColor: 'text-indigo-700',
+      borderColor: 'border-indigo-200',
+    },
+  ].filter((s) => s.score !== null && s.score !== undefined);
+
+  if (scores.length === 0) {
+    return (
+      <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/90 backdrop-blur-sm shadow-sm">
+        <Sparkles className={cn('w-4 h-4', getScoreColor(match.aiScore))} />
+        <span className={cn('text-xl font-bold', getScoreColor(match.aiScore))}>
+          {Math.round(match.aiScore)}
+        </span>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-wrap gap-1.5">
+      {scores.map(
+        ({
+          key,
+          label,
+          description,
+          score,
+          icon,
+          bgColor,
+          textColor,
+          borderColor,
+        }) => {
+          const isCurrentMethod =
+            key === match.lastScanMethod ||
+            (key === 'metricsV2' && match.lastScanMethod === 'metrics_v2');
+
+          return (
+            <TooltipProvider key={key}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div
+                    className={cn(
+                      'flex items-center gap-1 px-2 py-1 rounded-lg border text-xs cursor-help transition-all hover:scale-105',
+                      bgColor,
+                      borderColor,
+                      isCurrentMethod && 'ring-2 ring-offset-1 ring-emerald-400'
+                    )}
+                  >
+                    <span>{icon}</span>
+                    <span className={cn('font-bold', textColor)}>
+                      {Math.round(score!)}
+                    </span>
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent side="top" className="text-center">
+                  <p className="font-bold">{label}</p>
+                  <p className="text-xs text-gray-400">{description}</p>
+                  <p className="text-sm mt-1">{Math.round(score!)} נקודות</p>
+                  {isCurrentMethod && (
+                    <p className="text-emerald-400 text-xs mt-1 font-medium">
+                      ✓ שיטת הסריקה האחרונה
+                    </p>
+                  )}
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          );
+        }
+      )}
+    </div>
+  );
+};
+// =============================================================================
 // SUB-COMPONENTS
 // =============================================================================
 
@@ -2580,25 +2694,8 @@ const PotentialMatchCard: React.FC<PotentialMatchCardProps> = ({
                 </div>
               )}
 
-              {/* Score Badge */}
-              <div
-                className={cn(
-                  'flex items-center gap-2 px-3 py-1.5 rounded-full',
-                  'bg-white/90 backdrop-blur-sm shadow-sm'
-                )}
-              >
-                <Sparkles
-                  className={cn('w-4 h-4', getScoreColor(match.aiScore))}
-                />
-                <span
-                  className={cn(
-                    'text-xl font-bold',
-                    getScoreColor(match.aiScore)
-                  )}
-                >
-                  {Math.round(match.aiScore)}
-                </span>
-              </div>
+              {/* Score Badges - All Methods */}
+              <AllScoresDisplay match={match} />
 
               {/* Status Badge */}
               <Badge className={cn('gap-1', statusBadge.color)}>
@@ -3078,7 +3175,6 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
   locale = 'he',
   profileDict,
   matchmakerDict,
-  
 }) => {
   // --- View Mode (Tabs) ---
   const [activeTab, setActiveTab] = useState<'overview' | 'matches'>(
@@ -3172,7 +3268,7 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
     bulkCreateSuggestions,
     error,
     cancelScan,
-scanResult,
+    scanResult,
   } = usePotentialMatches({
     initialFilters: { status: 'pending' },
     autoRefresh: true,
@@ -3486,13 +3582,13 @@ scanResult,
                   isLoading={isLoadingHidden}
                 />
                 <BatchScanButtons
-        isScanning={isScanning}
-        scanProgress={scanProgress}
-        scanResult={scanResult}
-        onStartScan={handleStartScan}
-        onCancelScan={cancelScan}
-        lastScanInfo={lastScanInfo}
-      />
+                  isScanning={isScanning}
+                  scanProgress={scanProgress}
+                  scanResult={scanResult}
+                  onStartScan={handleStartScan}
+                  onCancelScan={cancelScan}
+                  lastScanInfo={lastScanInfo}
+                />
 
                 <Button
                   variant="outline"
@@ -4007,7 +4103,7 @@ scanResult,
           <AlertDialogFooter className="gap-2">
             <AlertDialogCancel>ביטול</AlertDialogCancel>
             <AlertDialogAction
-              onClick={handleStartScan}
+              onClick={() => handleStartScan('hybrid')}
               className="bg-gradient-to-r from-indigo-500 to-purple-500"
             >
               <HeartHandshake className="w-4 h-4 ml-2" />
@@ -6974,6 +7070,17 @@ export interface PotentialMatch {
   
   // קישור להצעה שנוצרה (אם יש)
   suggestionId: string | null;
+
+    hybridScore?: number | null;
+  hybridReasoning?: string | null;
+  algorithmicScore?: number | null;
+  algorithmicReasoning?: string | null;
+  vectorScore?: number | null;
+  vectorReasoning?: string | null;
+  metricsV2Score?: number | null;
+  metricsV2Reasoning?: string | null;
+  lastScanMethod?: string | null;
+
 }
 
 // =============================================================================

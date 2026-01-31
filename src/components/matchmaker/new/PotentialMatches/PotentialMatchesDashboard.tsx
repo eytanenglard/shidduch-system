@@ -364,34 +364,11 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
       );
     }
 
-    if (localSearchTerm && localSearchTerm.trim().length > 0) {
-      const searchTokens = localSearchTerm
-        .toLowerCase()
-        .trim()
-        .split(/\s+/)
-        .filter((token) => token.length > 0);
-
-      if (searchTokens.length > 0) {
-        result = result.filter((match) => {
-          const maleFullName =
-            `${match.male.firstName} ${match.male.lastName}`.toLowerCase();
-          const femaleFullName =
-            `${match.female.firstName} ${match.female.lastName}`.toLowerCase();
-
-          const isMaleMatch = searchTokens.every((token) =>
-            maleFullName.includes(token)
-          );
-          const isFemaleMatch = searchTokens.every((token) =>
-            femaleFullName.includes(token)
-          );
-
-          return isMaleMatch || isFemaleMatch;
-        });
-      }
-    }
+    // ❌ מחקנו מכאן את הבלוק של if (localSearchTerm && ...)
+    // כדי שהפרונטנד לא יסנן שוב את התוצאות שמגיעות מהשרת.
 
     return result;
-  }, [matches, hiddenCandidateIds, localSearchTerm]);
+  }, [matches, hiddenCandidateIds]); // ❌ מחקנו גם את localSearchTerm מהסוגריים
 
   const handleStartScan = (
     method: 'hybrid' | 'algorithmic' | 'vector' | 'metrics_v2'
