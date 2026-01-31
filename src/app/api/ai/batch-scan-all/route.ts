@@ -274,8 +274,7 @@ if (scan.status as string === 'cancelled') {        console.log(`[BatchScan] Sca
 
       try {
         // 🔥 Call appropriate scan method
-        const result = await scanUserByMethod(user.id, options.method, options.forceRefresh);
-
+const result = await scanUserByMethod(user.id, options.method, options.forceRefresh, scanId);
         // Save results with method tag
         const saved = await saveToPotentialMatches(
           user.id,
