@@ -1737,7 +1737,8 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                             )
                             .map((lang) => (
                               <SelectItem key={lang.value} value={lang.value}>
-                                {lang.label[locale] || lang.label['en']}{' '}
+                                {lang.label[locale as 'he' | 'en'] ??
+                                  lang.label.en}{' '}
                               </SelectItem>
                             ))}
                         </SelectContent>
@@ -1754,7 +1755,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                             variant="secondary"
                             className="bg-cyan-100/70 text-cyan-800 px-2 py-0.5 rounded-full text-[11px] font-medium flex items-center"
                           >
-                            {lang.label[locale] || lang.label['en']}{' '}
+                            {lang.label[locale as 'he' | 'en'] ?? lang.label.en}
                             {isEditing && !viewOnly && (
                               <button
                                 type="button"

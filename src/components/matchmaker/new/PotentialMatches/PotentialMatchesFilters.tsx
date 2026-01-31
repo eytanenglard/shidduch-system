@@ -11,6 +11,10 @@ import {
   Calendar,
   Scroll,
   Target,
+  Zap,
+  Brain,
+  Sparkles,
+  Users,
   Crown,
   Search,
   RotateCcw,
@@ -237,6 +241,8 @@ const PotentialMatchesFilters: React.FC<PotentialMatchesFiltersProps> = ({
   const countActiveFilters = () => {
     let count = 0;
     if (filters.gender) count++;
+        if (filters.scanMethod) count++; // 👈 הוסף את השורה הזו
+
     if (filters.maleAgeRange) count++;
     if (filters.femaleAgeRange) count++;
     if (filters.maleReligiousLevel && filters.maleReligiousLevel.length > 0) count++;
@@ -298,6 +304,46 @@ const PotentialMatchesFilters: React.FC<PotentialMatchesFiltersProps> = ({
             className="overflow-hidden"
           >
             <div className="p-4 space-y-4 bg-gradient-to-b from-white to-gray-50/50">
+                            {/* 👇 חדש: בחירת שיטת סריקה */}
+              <div className="bg-white/80 rounded-xl p-4 shadow-sm border border-gray-100">
+                <div className="flex items-center gap-2 mb-3">
+                  <Sparkles className="w-4 h-4 text-purple-600" />
+                  <p className="text-sm font-medium text-gray-700">מקור ההתאמה (שיטת סריקה)</p>
+                </div>
+                
+                <div className="flex flex-wrap gap-2">
+                  {[
+                    { value: null, label: 'הכל', icon: null },
+                    { value: 'hybrid', label: 'היברידי', icon: Users },
+                    { value: 'algorithmic', label: 'AI מתקדם', icon: Brain },
+                    { value: 'vector', label: 'דמיון מהיר', icon: Zap },
+                    { value: 'metrics_v2', label: 'מדדים V2', icon: Target },
+                  ].map((option) => {
+                    const isActive = filters.scanMethod === option.value || (option.value === null && !filters.scanMethod);
+                    const Icon = option.icon;
+                    
+                    return (
+                      <Button
+                        key={option.label}
+                        variant={isActive ? 'default' : 'outline'}
+                        size="sm"
+                        onClick={() => onFiltersChange({ scanMethod: option.value as any })}
+                        className={cn(
+                          'rounded-lg text-xs h-8 transition-all',
+                          isActive 
+                            ? 'bg-purple-600 text-white hover:bg-purple-700 border-purple-600 shadow-md' 
+                            : 'bg-white hover:bg-gray-50 text-gray-600 border-gray-200'
+                        )}
+                      >
+                        {Icon && <Icon className="w-3 h-3 ml-1.5 opacity-80" />}
+                        {option.label}
+                      </Button>
+                    );
+                  })}
+                </div>
+              </div>
+
+
               {/* Gender Toggle - Show which gender to filter */}
               <div className="bg-white/80 rounded-xl p-4 shadow-sm border border-gray-100">
                 <p className="text-sm font-medium text-gray-700 mb-3">הצג הצעות עם:</p>

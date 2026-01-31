@@ -289,6 +289,8 @@ export interface PotentialMatchFilters {
   sortBy: PotentialMatchSortBy;
   searchTerm?: string;
   candidateId?: string;
+    scanMethod?: 'hybrid' | 'algorithmic' | 'vector' | 'metrics_v2' | null;
+
 }
 
 // =============================================================================

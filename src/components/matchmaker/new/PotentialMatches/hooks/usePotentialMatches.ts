@@ -69,6 +69,8 @@ export interface PotentialMatchFilters {
   femaleAgeRange?: { min: number; max: number }; // טווח גיל לנשים
   maleReligiousLevel?: string[];  // רמה דתית לגברים
   femaleReligiousLevel?: string[];  // רמה דתית לנשים
+    scanMethod: null, 
+
 }
 
 // --- Scan Types (V3) ---
@@ -204,6 +206,8 @@ const DEFAULT_FILTERS: PotentialMatchFilters = {
   scannedAfter: null,
   sortBy: 'score_desc',
    gender: null,
+     scanMethod: null, 
+
   maleAgeRange: undefined,
   femaleAgeRange: undefined,
   maleReligiousLevel: [],
@@ -292,7 +296,10 @@ export function usePotentialMatches(options: {
       params.set('minScore', String(filters.minScore));
       params.set('maxScore', String(filters.maxScore));
       params.set('sortBy', filters.sortBy);
-      
+       if (filters.scanMethod) {
+        params.set('lastScanMethod', filters.scanMethod);
+      }
+
       if (filters.hasWarning !== null) params.set('hasWarning', String(filters.hasWarning));
       if (filters.religiousLevel) params.set('religiousLevel', filters.religiousLevel);
       if (filters.city) params.set('city', filters.city);
@@ -707,7 +714,7 @@ const bulkCreateSuggestions = useCallback(async (
       startPolling(scanId);
     };
   }, [updateScanState, handleScanCompletion, startPolling]);
-  
+
 const getMethodLabel = (method: string): string => {
   const labels: Record<string, string> = {
     hybrid: 'היברידית',

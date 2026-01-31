@@ -1621,15 +1621,17 @@ async function tier4AIDeepAnalysis(
       else recommendation = 'POOR';
       
       finalCandidates.push({
-        ...candidate,
-        finalScore,
-        rank,
-        detailedReasoning: aiResult.detailedReasoning || candidate.shortReasoning,
-        recommendation,
-        suggestedApproach: aiResult.suggestedApproach || undefined,
-        strengths: aiResult.strengths || [],
-        concerns: aiResult.concerns || [],
-      });
+  ...candidate,
+  finalScore,
+  rank,
+  scoreBreakdown: aiResult.breakdown || candidate.scoreBreakdown,  // ← להוסיף!
+  detailedReasoning: aiResult.detailedReasoning || candidate.shortReasoning,
+  recommendation,
+  suggestedApproach: aiResult.suggestedApproach || undefined,
+  strengths: aiResult.strengths || [],
+  concerns: aiResult.concerns || [],
+});
+
     }
     
     finalCandidates.sort((a, b) => a.rank - b.rank);
@@ -1758,6 +1760,16 @@ ${candidatesText}
       "index": 1,
       "finalScore": 92,
       "rank": 1,
+ "breakdown": {
+        "religious": 22,
+        "ageCompatibility": 9,
+        "careerFamily": 13,
+        "lifestyle": 8,
+        "socioEconomic": 9,
+        "education": 8,
+        "background": 8,
+        "values": 8
+      },
       "detailedReasoning": "כאן תכתוב את הפסקה הסיפורית המושקעת...",
       "strengths": ["רקע משותף", "שאיפות דומות"],
       "concerns": ["פער גילאים קטן"],
@@ -1835,7 +1847,7 @@ async function saveResults(
           data: {
             aiScore: match.finalScore,
             firstPassScore: match.tier2Score,
-            shortReasoning: match.shortReasoning,
+            shortReasoning: match.detailedReasoning,
             scannedAt: new Date(),
             scoreForMale: isMale ? match.finalScore : match.tier3Score,
             scoreForFemale: isMale ? match.tier3Score : match.finalScore,
@@ -1856,7 +1868,7 @@ async function saveResults(
             aiScore: match.finalScore,
             firstPassScore: match.tier2Score,
             status: 'PENDING',
-            shortReasoning: match.shortReasoning,
+            shortReasoning: match.detailedReasoning,
             scoreForMale: isMale ? match.finalScore : match.tier3Score,
             scoreForFemale: isMale ? match.tier3Score : match.finalScore,
             asymmetryGap: Math.abs(match.finalScore - match.tier3Score),

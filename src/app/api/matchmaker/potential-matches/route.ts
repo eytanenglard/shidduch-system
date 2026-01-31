@@ -85,6 +85,7 @@ const femaleAgeMax = searchParams.get('femaleAgeMax');
 // 🆕 NEW: Religious level per gender
 const maleReligiousLevel = searchParams.get('maleReligiousLevel');
 const femaleReligiousLevel = searchParams.get('femaleReligiousLevel');
+const lastScanMethod = searchParams.get('lastScanMethod');
 
     // 3. בניית Where clause
     const where: Prisma.PotentialMatchWhereInput = {
@@ -252,7 +253,9 @@ if (femaleReligiousLevel) {
     ] as Prisma.PotentialMatchWhereInput['AND'];
   }
 }
-
+if (lastScanMethod) {
+  where.lastScanMethod = lastScanMethod;
+}
     // 4. בניית Order By
     let orderBy: Prisma.PotentialMatchOrderByWithRelationInput = {};
     switch (sortBy) {
