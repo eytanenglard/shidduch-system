@@ -1653,6 +1653,12 @@ async function tier4AIDeepAnalysis(
 /**
  * 🆕 V2.1: Enhanced deep analysis prompt with prominent deal breakers
  */
+// בתוך src/lib/services/hybridMatchingService.ts
+
+/**
+ * 🆕 V2.2 Fix: "Soulful" Deep Analysis Prompt
+ * משלב את הנתונים המדויקים של ההיברידי עם יכולת הסיפור של V3.4
+ */
 function generateEnhancedDeepAnalysisPrompt(
   targetProfile: {
     name: string;
@@ -1668,78 +1674,80 @@ function generateEnhancedDeepAnalysisPrompt(
   candidates: AIFirstPassCandidate[]
 ): string {
   
-  // 🆕 V2.1: Prominent deal breakers at the top
+  // 1. Deal Breakers Section (נשאר אותו דבר - חשוב לסינון)
   const dealBreakersWarning = targetProfile.metrics.aiInferredDealBreakers?.length
     ? `
 ╔══════════════════════════════════════════════════════════════════════╗
-║  🚫 קווי אדום של ${targetProfile.name} - חייבים לזכור!              ║
+║  🚫 קווי אדום של ${targetProfile.name} (לשימוש פנימי בחישוב הציון)   ║
 ╠══════════════════════════════════════════════════════════════════════╣
 ${targetProfile.metrics.aiInferredDealBreakers.map(db => `║  ❌ ${db}`).join('\n')}
 ╚══════════════════════════════════════════════════════════════════════╝
 `
     : '';
 
+  // 2. בניית טקסט המועמדים - הוספנו דגש על האישיות
   const candidatesText = candidates.map((c, idx) => {
     return `
 [${idx + 1}] ${c.firstName} ${c.lastName}
-ציון ביניים: ${c.tier3Score}/100
-נימוק קודם: ${c.shortReasoning}
-פירוט: דתי=${c.scoreBreakdown.religious}/25, כלכלי=${c.scoreBreakdown.socioEconomic}/10, השכלה=${c.scoreBreakdown.education}/10
-רקע: ${c.backgroundProfile ? BACKGROUND_DESCRIPTIONS[c.backgroundProfile.category] : 'לא ידוע'}
+נתונים יבשים: גיל ${c.age || '?'}, ${c.religiousLevel || '?'}, ${c.occupation || '?'}
+ציון טכני: ${c.tier3Score}/100
 
-סיכום אישיות:
-${c.metrics.aiPersonalitySummary || 'לא זמין'}
+=== מי המועמד/ת (החלק החשוב לנימוק) ===
+${c.metrics.aiPersonalitySummary || c.about || 'אין מידע טקסטואלי רב'}
 
-מחפש/ת:
+=== מה מחפש/ת ===
 ${c.metrics.aiSeekingSummary || 'לא זמין'}
 
-הנחיות שדכן:
-${c.metrics.aiMatchmakerGuidelines || 'אין'}
-
-Deal Breakers של המועמד/ת:
-${c.metrics.aiInferredDealBreakers?.join(', ') || 'אין'}
+Deal Breakers של המועמד/ת: ${c.metrics.aiInferredDealBreakers?.join(', ') || 'אין'}
 ---`;
   }).join('\n');
 
-  return `אתה שדכן AI מומחה ב-NeshamaTech. בצע ניתוח מעמיק והשוואה של ${candidates.length} המועמדים המובילים.
+  return `אתה שדכן AI מומחה ב-NeshamaTech.
+המטרה שלך כעת היא לא רק לחשב ציונים, אלא **לכתוב את הנימוק שישכנע את המועמדים להיפגש**.
 
 ${dealBreakersWarning}
 
 ═══════════════════════════════════════
-פרופיל המחפש/ת: ${targetProfile.name}
+הלקוח/ה שלך: ${targetProfile.name}
 ═══════════════════════════════════════
-גיל: ${targetProfile.age} | עיר: ${targetProfile.city || 'לא צוין'}
-דתיות: ${targetProfile.religiousLevel || 'לא צוין'}
-מקצוע: ${targetProfile.occupation || 'לא צוין'}
+מידע אישי: בן/בת ${targetProfile.age}, ${targetProfile.religiousLevel}, ${targetProfile.occupation}
 רקע: ${BACKGROUND_DESCRIPTIONS[targetProfile.backgroundProfile.category]}
 
-סיכום אישיות:
+=== האישיות וה"וייב" (להתייחס לזה בנימוק) ===
 ${targetProfile.metrics.aiPersonalitySummary || targetProfile.about || 'לא זמין'}
 
-מחפש/ת:
+=== מה הוא/היא באמת מחפש/ת ===
 ${targetProfile.metrics.aiSeekingSummary || 'לא זמין'}
 
-הנחיות שדכן:
-${targetProfile.metrics.aiMatchmakerGuidelines || 'אין הנחיות מיוחדות'}
-
-חובות: ${targetProfile.metrics.aiInferredMustHaves?.join(', ') || 'לא צוין'}
-
 ═══════════════════════════════════════
-מועמדים מובילים:
+המועמדים לניתוח:
 ═══════════════════════════════════════
 ${candidatesText}
 
 ═══════════════════════════════════════
-המשימה:
+הוראות כתיבה קריטיות (חשוב מאוד!):
 ═══════════════════════════════════════
-1. סקור כל מועמד/ת מחדש עם מבט מעמיק
-2. 🚫 וודא שאין הפרת Deal Breakers - אם יש, ציון נמוך!
-3. שקלל את הציונים הקודמים עם הבנה עמוקה יותר
-4. התחשב בהתאמת רקע תרבותי ושפתי
-5. תן ציון סופי 0-100
-6. דרג מ-1 (הכי מתאים) עד ${candidates.length}
-7. ציין נקודות חוזק וחששות ספציפיים
-8. הצע איך להציג את ההצעה לשני הצדדים
+1. **הנימוק (detailedReasoning) חייב להיות אנושי וסיפורי (Narrative):**
+   - אל תכתוב רשימת מכולת ("יש התאמה בדת, יש התאמה בגיל").
+   - כתוב פסקה של 3-4 שורות שמסבירה למה החיבור הזה יכול לעבוד ברמה הרגשית והאישיותית.
+   - התייחס לדינמיקה פוטנציאלית, לאנרגיה, ולערכים משותפים.
+   - השתמש בשפה חמה ומקצועית של שדכן, לא של רובוט.
+
+2. **בדיקות טכניות (מאחורי הקלעים):**
+   - וודא שאין הפרת Deal Breakers (אם יש - הציון צונח, ציין זאת ב"concerns").
+   - התחשב ברקע ושפה.
+
+3. **מבנה התשובה:**
+   - detailedReasoning: הפסקה הסיפורית והאיכותית.
+   - strengths: נקודות קצרות (בולטים).
+   - concerns: חששות טכניים (בולטים).
+
+═══════════════════════════════════════
+דוגמה לנימוק טוב:
+"החיבור ביניהם נראה מבטיח מאוד בזכות השילוב בין הרוגע של דני לבין האנרגטיות של שרה. שניהם מגיעים מרקע אנגלו-סכסי ומחפשים בית תורני אך פתוח. נראה שיש כאן בסיס משותף חזק של ערכים, לצד שאיפות קריירה דומות שיאפשרו להם לצמוח יחד."
+
+דוגמה לנימוק גרוע (אל תעשה את זה!):
+"התאמה טובה. גיל מתאים. רמה דתית זהה. שניהם עובדים בהייטק."
 
 ═══════════════════════════════════════
 פורמט JSON בלבד:
@@ -1750,10 +1758,10 @@ ${candidatesText}
       "index": 1,
       "finalScore": 92,
       "rank": 1,
-      "detailedReasoning": "התאמה יוצאת דופן ברקע, ערכים ושאיפות...",
-      "strengths": ["רקע דומה מאותה ארץ", "שאיפות קריירה-משפחה זהות"],
+      "detailedReasoning": "כאן תכתוב את הפסקה הסיפורית המושקעת...",
+      "strengths": ["רקע משותף", "שאיפות דומות"],
       "concerns": ["פער גילאים קטן"],
-      "suggestedApproach": "להדגיש את הרקע המשותף ואת החזון הדומה למשפחה"
+      "suggestedApproach": "להדגיש את המכנה המשותף התרבותי"
     }
   ]
 }`;
