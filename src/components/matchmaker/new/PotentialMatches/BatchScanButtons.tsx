@@ -1,30 +1,34 @@
-// ============================================================
 // src/components/matchmaker/new/PotentialMatches/BatchScanButtons.tsx
-// ============================================================
-// 🎯 כפתורי סריקה לילית - בדיוק כמו ב-SplitView
-// ============================================================
 
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
 import {
   Moon,
   Brain,
   Zap,
   Users,
   Target,
-  RefreshCw,
   Loader2,
   X,
   CheckCircle2,
   Clock,
+  Rocket,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 // ═══════════════════════════════════════════════════════════════
 // Types
@@ -59,7 +63,7 @@ interface BatchScanButtonsProps {
   isScanning: boolean;
   scanProgress: ScanProgress | null;
   scanResult: ScanResult | null;
-  onStartScan: (method: ScanMethod) => void;
+  onStartScan: (method: ScanMethod, skipPreparation: boolean) => void;
   onCancelScan: () => void;
   lastScanInfo?: {
     date: Date;
@@ -69,7 +73,7 @@ interface BatchScanButtonsProps {
 }
 
 // ═══════════════════════════════════════════════════════════════
-// Method Configurations - בדיוק כמו ב-SplitView
+// Method Configurations
 // ═══════════════════════════════════════════════════════════════
 
 const METHOD_CONFIG: Record<ScanMethod, {
@@ -78,38 +82,42 @@ const METHOD_CONFIG: Record<ScanMethod, {
   gradient: string;
   hoverGradient: string;
   time: string;
+  fastTime: string; // זמן משוער במצב מהיר
 }> = {
   algorithmic: {
     label: 'AI מתקדם',
     icon: Brain,
     gradient: 'from-purple-500 to-purple-600',
     hoverGradient: 'hover:from-purple-600 hover:to-purple-700',
-    time: '~3-5 דק',
+    time: '~5 דק',
+    fastTime: '~2 דק',
   },
   vector: {
     label: 'דמיון מהיר ⚡',
     icon: Zap,
     gradient: 'from-blue-500 to-cyan-500',
     hoverGradient: 'hover:from-blue-600 hover:to-cyan-600',
-    time: '~30 שנ',
+    time: '~1 דק',
+    fastTime: '~20 שנ',
   },
   hybrid: {
     label: 'היברידי 🔥',
     icon: Users,
     gradient: 'from-emerald-500 to-teal-500',
     hoverGradient: 'hover:from-emerald-600 hover:to-teal-600',
-    time: '~1-2 דק',
+    time: '~3 דק',
+    fastTime: '~1 דק',
   },
   metrics_v2: {
     label: 'מדדים V2 🎯',
     icon: Target,
     gradient: 'from-indigo-500 to-violet-500',
     hoverGradient: 'hover:from-indigo-600 hover:to-violet-600',
-    time: '~2-3 דק',
+    time: '~4 דק',
+    fastTime: '~1.5 דק',
   },
 };
 
-// סדר הכפתורים - בדיוק כמו ב-SplitView
 const METHODS_ORDER: ScanMethod[] = ['algorithmic', 'vector', 'hybrid', 'metrics_v2'];
 
 // ═══════════════════════════════════════════════════════════════
@@ -125,6 +133,7 @@ const BatchScanButtons: React.FC<BatchScanButtonsProps> = ({
   lastScanInfo,
   className,
 }) => {
+  const [skipPreparation, setSkipPreparation] = useState(false);
   const currentMethod = scanProgress?.method;
 
   const formatDate = (date: Date) => {
@@ -137,12 +146,12 @@ const BatchScanButtons: React.FC<BatchScanButtonsProps> = ({
   };
 
   // ═══════════════════════════════════════════════════════════
-  // Render: Progress State (כמו InlineJobProgress ב-SplitView)
+  // Render: Progress State
   // ═══════════════════════════════════════════════════════════
 
   if (isScanning && scanProgress) {
     const config = METHOD_CONFIG[currentMethod || 'hybrid'];
-    const Icon = config.icon;
+    // const Icon = config.icon; // Removed unused variable
 
     return (
       <Card className={cn('p-4', className)}>
@@ -170,7 +179,11 @@ const BatchScanButtons: React.FC<BatchScanButtonsProps> = ({
                   )}
                 </h3>
                 <p className="text-sm text-gray-500">
-                  {scanProgress.message || 'מעבד...'}
+                  {scanProgress.phase === 'preparing' ? (
+                    <span className="text-amber-600 font-medium">📥 מכין נתונים...</span>
+                  ) : (
+                    scanProgress.message || 'מעבד...'
+                  )}
                 </p>
               </div>
             </div>
@@ -238,24 +251,59 @@ const BatchScanButtons: React.FC<BatchScanButtonsProps> = ({
   }
 
   // ═══════════════════════════════════════════════════════════
-  // Render: Buttons (בדיוק כמו ב-SplitView)
+  // Render: Buttons
   // ═══════════════════════════════════════════════════════════
 
   return (
     <Card className={cn('p-4', className)}>
-      <div className="space-y-3">
-        {/* Header */}
-        <div className="flex items-center gap-3 mb-2">
-          <div className="p-2 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-500 shadow-lg">
-            <Moon className="w-5 h-5 text-white" />
+      <div className="space-y-4">
+        {/* Header & Toggle */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-500 shadow-lg">
+              <Moon className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <h3 className="font-bold text-gray-800">סריקה לילית</h3>
+              <p className="text-xs text-gray-500">
+                {skipPreparation ? 'מצב מהיר פעיל' : 'מצב רגיל (כולל עדכון נתונים)'}
+              </p>
+            </div>
           </div>
-          <div>
-            <h3 className="font-bold text-gray-800">סריקה לילית</h3>
-            <p className="text-sm text-gray-500">סרוק את כל המשתמשים</p>
+
+          {/* Quick Scan Toggle */}
+          <div className="flex items-center gap-2 bg-gray-50 p-2 rounded-lg border border-gray-100">
+            <Checkbox 
+              id="skip-prep" 
+              checked={skipPreparation}
+              onCheckedChange={(checked) => setSkipPreparation(checked as boolean)}
+              className={cn(
+                "data-[state=checked]:bg-orange-500 data-[state=checked]:border-orange-500",
+                "w-5 h-5"
+              )}
+            />
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Label 
+                    htmlFor="skip-prep" 
+                    className="text-xs font-medium cursor-pointer flex items-center gap-1.5"
+                  >
+                    <Rocket className={cn("w-3.5 h-3.5", skipPreparation ? "text-orange-500" : "text-gray-400")} />
+                    סריקה מהירה
+                  </Label>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p className="text-xs max-w-[200px]">
+                    מדלג על עדכון מדדים ונתוני AI למועמדים (חוסך זמן משמעותי, אך הנתונים עשויים להיות פחות עדכניים)
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </div>
         </div>
 
-        {/* Buttons Row - בדיוק כמו ב-SplitView */}
+        {/* Buttons Row */}
         <div className="flex gap-2 flex-wrap">
           {METHODS_ORDER.map((method) => {
             const config = METHOD_CONFIG[method];
@@ -266,29 +314,33 @@ const BatchScanButtons: React.FC<BatchScanButtonsProps> = ({
                 key={method}
                 className="flex-1 min-w-[120px]"
                 whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
               >
                 <Button
-                  onClick={() => onStartScan(method)}
+                  onClick={() => onStartScan(method, skipPreparation)}
                   className={cn(
-                    'w-full h-11 font-bold transition-all duration-300 shadow-lg px-2 sm:px-4',
-                    `bg-gradient-to-r ${config.gradient} ${config.hoverGradient} text-white`
+                    'w-full h-11 font-bold transition-all duration-300 shadow-lg px-2 sm:px-4 flex-col gap-0',
+                    `bg-gradient-to-r ${config.gradient} ${config.hoverGradient} text-white`,
+                    skipPreparation && "ring-2 ring-orange-400 ring-offset-1"
                   )}
                 >
-                  <Icon className="w-5 h-5 ml-1.5 flex-shrink-0" />
-                  <span className="truncate text-xs sm:text-sm">
-                    {config.label}
-                  </span>
+                  <div className="flex items-center gap-1.5">
+                    <Icon className="w-4 h-4" />
+                    <span className="truncate text-xs sm:text-sm">
+                      {config.label}
+                    </span>
+                  </div>
                 </Button>
               </motion.div>
             );
           })}
         </div>
 
-        {/* Time estimates - בדיוק כמו ב-SplitView */}
-        <div className="flex gap-2 text-xs text-gray-500 mt-1">
+        {/* Time estimates */}
+        <div className="flex gap-2 text-[10px] text-gray-400 px-1">
           {METHODS_ORDER.map((method) => (
             <span key={method} className="flex-1 text-center truncate min-w-[120px]">
-              {METHOD_CONFIG[method].time}
+              {skipPreparation ? METHOD_CONFIG[method].fastTime : METHOD_CONFIG[method].time}
             </span>
           ))}
         </div>
@@ -318,8 +370,8 @@ const BatchScanButtons: React.FC<BatchScanButtonsProps> = ({
 
         {/* Last Scan Info */}
         {lastScanInfo && !scanResult && (
-          <div className="flex items-center gap-2 text-sm text-gray-500 pt-2 border-t">
-            <Clock className="w-4 h-4" />
+          <div className="flex items-center gap-2 text-xs text-gray-400 pt-3 border-t">
+            <Clock className="w-3.5 h-3.5" />
             <span>
               סריקה אחרונה: {formatDate(lastScanInfo.date)} 
               ({lastScanInfo.matchCount} התאמות)

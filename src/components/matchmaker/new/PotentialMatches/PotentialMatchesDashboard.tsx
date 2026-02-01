@@ -370,15 +370,17 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
     return result;
   }, [matches, hiddenCandidateIds]); // ❌ מחקנו גם את localSearchTerm מהסוגריים
 
-  const handleStartScan = (
-    method: 'hybrid' | 'algorithmic' | 'vector' | 'metrics_v2'
+   const handleStartScan = (
+    method: 'hybrid' | 'algorithmic' | 'vector' | 'metrics_v2',
+    skipPreparation: boolean // הוספנו את הפרמטר הזה
   ) => {
     startScan({
       action: 'full_scan',
       method,
       forceRefresh: false,
+      skipPreparation, // מעבירים אותו ל-HOOK
     });
-  };
+};
 
   const handleHideCandidate = (candidate: CandidateToHide) => {
     setCandidateToHide(candidate);
@@ -1056,7 +1058,7 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
           <AlertDialogFooter className="gap-2">
             <AlertDialogCancel>ביטול</AlertDialogCancel>
             <AlertDialogAction
-              onClick={() => handleStartScan('hybrid')}
+              onClick={() => handleStartScan('hybrid', false)} 
               className="bg-gradient-to-r from-indigo-500 to-purple-500"
             >
               <HeartHandshake className="w-4 h-4 ml-2" />

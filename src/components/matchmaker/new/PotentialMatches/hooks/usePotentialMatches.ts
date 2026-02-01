@@ -110,6 +110,8 @@ interface ScanOptions {
   incremental?: boolean;
   userId?: string;
   userIds?: string[];
+    skipPreparation?: boolean; // <--- הוספנו את השדה הזה
+
 }
 
 

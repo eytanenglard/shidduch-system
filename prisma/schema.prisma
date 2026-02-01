@@ -1098,7 +1098,8 @@ model PotentialMatch {
   algorithmicScore      Float?
   algorithmicReasoning  String?
   algorithmicScannedAt  DateTime?
-  
+  algorithmicScoreBreakdown  Json?
+
   // Vector Method (Fast similarity)
   vectorScore           Float?
   vectorReasoning       String?
@@ -1108,6 +1109,7 @@ model PotentialMatch {
   metricsV2Score        Float?
   metricsV2Reasoning    String?
   metricsV2ScannedAt    DateTime?
+metricsV2ScoreBreakdown    Json?
 
     lastScanMethod        String?   // 'hybrid' | 'algorithmic' | 'vector' | 'metrics_v2'
 

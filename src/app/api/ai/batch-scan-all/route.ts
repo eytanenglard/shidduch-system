@@ -875,6 +875,8 @@ async function getUsersToScan(options: {
 // Helper: Save to PotentialMatch with method tag
 // ═══════════════════════════════════════════════════════════════
 
+// batch-scan-all/route.ts - פונקציה saveToPotentialMatches
+
 async function saveToPotentialMatches(
   targetUserId: string,
   targetGender: Gender,
@@ -893,7 +895,11 @@ async function saveToPotentialMatches(
     const maleUserId = isMale ? targetUserId : match.userId;
     const femaleUserId = isMale ? match.userId : targetUserId;
 
+    // 🆕 שדות ספציפיים לשיטה
     const methodFields = getMethodFields(scanMethod, match, score);
+    
+    // 🆕 הנימוק הטוב ביותר לשדה הכללי
+    const bestReasoning = match.detailedReasoning || match.shortReasoning || match.reasoning || null;
 
     try {
       const existing = await prisma.potentialMatch.findUnique({
@@ -904,12 +910,16 @@ async function saveToPotentialMatches(
         await prisma.potentialMatch.update({
           where: { id: existing.id },
           data: {
+            // 🆕 עדכון הציון הכללי רק אם גבוה יותר
             ...(score > existing.aiScore ? {
               aiScore: score,
-              shortReasoning: match.detailedReasoning || match.shortReasoning || match.reasoning || null,
+              shortReasoning: bestReasoning,
               lastScanMethod: scanMethod,
             } : {}),
+            
+            // 🆕 תמיד לעדכן את השדות הספציפיים לשיטה
             ...methodFields,
+            
             scannedAt: new Date(),
           },
         });
@@ -920,7 +930,7 @@ async function saveToPotentialMatches(
             maleUserId,
             femaleUserId,
             aiScore: score,
-            shortReasoning: match.detailedReasoning || match.shortReasoning || match.reasoning || null,
+            shortReasoning: bestReasoning,
             status: 'PENDING',
             scannedAt: new Date(),
             lastScanMethod: scanMethod,
@@ -937,10 +947,16 @@ async function saveToPotentialMatches(
   return { new: newCount, updated: updatedCount };
 }
 
+// batch-scan-all/route.ts - שורה ~510 בערך
+
 function getMethodFields(method: ScanMethod, match: any, score: number): Record<string, any> {
   const now = new Date();
-  // 🆕 שימוש ב-detailedReasoning (האיכותי) במקום shortReasoning
+  
+  // 🆕 לקחת את הנימוק הכי טוב שיש
   const reasoning = match.detailedReasoning || match.shortReasoning || match.reasoning || '';
+  
+  // 🆕 לקחת את ה-scoreBreakdown אם קיים
+  const breakdown = match.scoreBreakdown || null;
 
   switch (method) {
     case 'hybrid':
@@ -948,13 +964,14 @@ function getMethodFields(method: ScanMethod, match: any, score: number): Record<
         hybridScore: score,
         hybridReasoning: reasoning,
         hybridScannedAt: now,
-        hybridScoreBreakdown: match.scoreBreakdown || null,
+        hybridScoreBreakdown: breakdown,
       };
     case 'algorithmic':
       return {
         algorithmicScore: score,
         algorithmicReasoning: reasoning,
         algorithmicScannedAt: now,
+        algorithmicScoreBreakdown: breakdown,
       };
     case 'vector':
       return {
@@ -967,6 +984,7 @@ function getMethodFields(method: ScanMethod, match: any, score: number): Record<
         metricsV2Score: score,
         metricsV2Reasoning: reasoning,
         metricsV2ScannedAt: now,
+        metricsV2ScoreBreakdown: breakdown,
       };
     default:
       return {};

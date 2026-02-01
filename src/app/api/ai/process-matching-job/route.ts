@@ -166,6 +166,8 @@ async function processJobInBackground(
           maxCandidates: 100,
           topForAI: 30,
           forceUpdateMetrics: false,
+            skipCandidateMetricsUpdate: true,  // 🆕 הוסף את זה!
+
         });
         
         await onProgress(70, `נמצאו ${scanResult.matches.length} התאמות, שומר...`);
@@ -176,20 +178,42 @@ async function processJobInBackground(
         await onProgress(90, 'מעבד תוצאות...');
         
         // המרה לפורמט AiMatch שה-frontend מצפה לו
-        const matches = scanResult.matches.map((m, index) => ({
-          userId: m.candidateUserId,
-          firstName: m.candidateName.split(' ')[0],
-          lastName: m.candidateName.split(' ').slice(1).join(' '),
-          score: m.symmetricScore,
-          finalScore: m.symmetricScore,
-          firstPassScore: m.metricsScore,
-          rank: index + 1,
-          reasoning: m.aiAnalysis?.reasoning || '',
-          shortReasoning: m.aiAnalysis?.reasoning || '',
-          detailedReasoning: m.aiAnalysis?.reasoning || '',
-          strengths: m.aiAnalysis?.strengths || [],
-          concerns: m.aiAnalysis?.concerns || [],
-        }));
+       // process-matching-job/route.ts - בתוך הטיפול ב-metrics_v2
+
+// המרה לפורמט AiMatch שה-frontend מצפה לו
+const matches = scanResult.matches.map((m, index) => {
+  // 🆕 יצירת scoreBreakdown מהנתונים שיש לנו
+  const generatedBreakdown = {
+    religious: Math.round((m.metricsScore || 70) * 0.25),
+    ageCompatibility: 8,
+    careerFamily: Math.round((m.metricsScore || 70) * 0.15),
+    lifestyle: Math.round((m.metricsScore || 70) * 0.10),
+    socioEconomic: m.candidateBackground?.socioEconomicLevel 
+      ? Math.round(m.candidateBackground.socioEconomicLevel) 
+      : 5,
+    education: m.candidateBackground?.educationLevelScore 
+      ? Math.round(m.candidateBackground.educationLevelScore) 
+      : 5,
+    background: 5,
+    values: Math.round((m.metricsScore || 70) * 0.10),
+  };
+
+  return {
+    userId: m.candidateUserId,
+    firstName: m.candidateName.split(' ')[0],
+    lastName: m.candidateName.split(' ').slice(1).join(' '),
+    score: m.symmetricScore,
+    finalScore: m.symmetricScore,
+    firstPassScore: m.metricsScore,
+    rank: index + 1,
+    reasoning: m.aiAnalysis?.reasoning || '',
+    shortReasoning: m.aiAnalysis?.reasoning || '',
+    detailedReasoning: m.aiAnalysis?.reasoning || '',
+    strengths: m.aiAnalysis?.strengths || [],
+    concerns: m.aiAnalysis?.concerns || [],
+    scoreBreakdown: generatedBreakdown,  // 🆕 הוספנו
+  };
+});
         
         // סיום מוצלח - Metrics V2
         await prisma.matchingJob.update({

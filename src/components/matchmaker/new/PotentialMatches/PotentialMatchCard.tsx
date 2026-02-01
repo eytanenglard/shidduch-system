@@ -6,6 +6,8 @@ import React, { useState } from 'react';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { Card } from '@/components/ui/card';
+import AllReasoningsDisplay from './AllReasoningsDisplay';
+
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -618,8 +620,9 @@ const CandidatePreview: React.FC<{
 const ScoreBreakdownDisplay: React.FC<{
   breakdown: ScoreBreakdown;
 }> = ({ breakdown }) => {
+  // PotentialMatchCard.tsx - ScoreBreakdownDisplay
   const categories = [
-    { key: 'religious', label: 'התאמה דתית', max: 35, color: 'bg-purple-500' },
+    { key: 'religious', label: 'התאמה דתית', max: 25, color: 'bg-purple-500' },
     {
       key: 'ageCompatibility',
       label: 'התאמת גיל',
@@ -632,10 +635,16 @@ const ScoreBreakdownDisplay: React.FC<{
       max: 15,
       color: 'bg-cyan-500',
     },
-    { key: 'lifestyle', label: 'סגנון חיים', max: 15, color: 'bg-green-500' },
-    { key: 'ambition', label: 'שאפתנות', max: 12, color: 'bg-orange-500' },
-    { key: 'communication', label: 'תקשורת', max: 12, color: 'bg-pink-500' },
-    { key: 'values', label: 'ערכים', max: 11, color: 'bg-indigo-500' },
+    { key: 'lifestyle', label: 'סגנון חיים', max: 10, color: 'bg-green-500' },
+    {
+      key: 'socioEconomic',
+      label: 'סוציו-אקונומי',
+      max: 10,
+      color: 'bg-orange-500',
+    }, // 🆕
+    { key: 'education', label: 'השכלה', max: 10, color: 'bg-pink-500' }, // 🆕
+    { key: 'background', label: 'רקע תרבותי', max: 10, color: 'bg-amber-500' }, // 🆕
+    { key: 'values', label: 'ערכים', max: 10, color: 'bg-indigo-500' },
   ];
 
   return (
@@ -753,6 +762,7 @@ const PotentialMatchCard: React.FC<PotentialMatchCardProps> = ({
 }) => {
   const [showDetails, setShowDetails] = useState(false);
   const [showReasoningDialog, setShowReasoningDialog] = useState(false);
+const [showAllReasonings, setShowAllReasonings] = useState(false);
 
   const rejectionFeedback = useRejectionFeedback();
 
@@ -941,34 +951,49 @@ const PotentialMatchCard: React.FC<PotentialMatchCardProps> = ({
               />
             </div>
 
-            {/* Reasoning Preview */}
-            {match.shortReasoning && (
-              <div
-                className="p-3 rounded-lg bg-gradient-to-br from-purple-50/80 to-indigo-50/80 backdrop-blur-sm cursor-pointer hover:from-purple-100/90 hover:to-indigo-100/90 transition-all duration-200 border border-purple-100 shadow-sm"
-                onClick={() => setShowReasoningDialog(true)}
-              >
-                <div className="flex items-start gap-2.5">
-                  <div className="p-1.5 rounded-lg bg-purple-100">
-                    <Brain className="w-4 h-4 text-purple-600" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs font-medium text-purple-700 mb-1">
-                      נימוק AI להתאמה
-                    </p>
-                    <p className="text-sm text-gray-700 line-clamp-3 leading-relaxed">
-                      {match.shortReasoning}
-                    </p>
-                    {(match.detailedReasoning ||
-                      match.shortReasoning.length > 150) && (
-                      <p className="text-xs text-purple-500 mt-1.5 flex items-center gap-1">
-                        <span>לחץ לקריאת הנימוק המלא</span>
-                        <ChevronDown className="w-3 h-3" />
-                      </p>
-                    )}
-                  </div>
-                </div>
-              </div>
-            )}
+        {/* Reasoning Preview */}
+{match.shortReasoning && (
+  <div
+    className="p-3 rounded-lg bg-gradient-to-br from-purple-50/80 to-indigo-50/80 backdrop-blur-sm cursor-pointer hover:from-purple-100/90 hover:to-indigo-100/90 transition-all duration-200 border border-purple-100 shadow-sm"
+    onClick={() => setShowAllReasonings(true)}  // 🆕 שינוי כאן
+  >
+    <div className="flex items-start gap-2.5">
+      <div className="p-1.5 rounded-lg bg-purple-100">
+        <Brain className="w-4 h-4 text-purple-600" />
+      </div>
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center justify-between mb-1">
+          <p className="text-xs font-medium text-purple-700">
+            נימוק AI להתאמה
+          </p>
+          {/* 🆕 הצגת כמה שיטות זמינות */}
+          <Badge variant="outline" className="text-[10px] bg-white/50">
+            {[
+              match.hybridReasoning,
+              match.algorithmicReasoning,
+              match.vectorReasoning,
+              match.metricsV2Reasoning,
+            ].filter(Boolean).length} שיטות
+          </Badge>
+        </div>
+        <p className="text-sm text-gray-700 line-clamp-3 leading-relaxed">
+          {match.shortReasoning}
+        </p>
+        <p className="text-xs text-purple-500 mt-1.5 flex items-center gap-1">
+          <span>לחץ לצפייה בכל הנימוקים</span>
+          <ChevronDown className="w-3 h-3" />
+        </p>
+      </div>
+    </div>
+  </div>
+)}
+
+{/* 🆕 All Reasonings Dialog */}
+<AllReasoningsDisplay
+  match={match}
+  isOpen={showAllReasonings}
+  onClose={() => setShowAllReasonings(false)}
+/>
 
             {/* Footer: Date & Details Toggle */}
             <div className="flex items-center justify-between mt-3 pt-2">

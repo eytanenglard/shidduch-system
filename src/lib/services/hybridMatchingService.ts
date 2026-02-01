@@ -1849,6 +1849,8 @@ async function saveResults(
             firstPassScore: match.tier2Score,
             shortReasoning: match.detailedReasoning,
             scannedAt: new Date(),
+                        scoreBreakdown: match.scoreBreakdown as any, 
+
             scoreForMale: isMale ? match.finalScore : match.tier3Score,
             scoreForFemale: isMale ? match.tier3Score : match.finalScore,
             asymmetryGap: Math.abs(match.finalScore - match.tier3Score),
@@ -1867,6 +1869,8 @@ async function saveResults(
             femaleUserId,
             aiScore: match.finalScore,
             firstPassScore: match.tier2Score,
+                        scoreBreakdown: match.scoreBreakdown as any,
+
             status: 'PENDING',
             shortReasoning: match.detailedReasoning,
             scoreForMale: isMale ? match.finalScore : match.tier3Score,

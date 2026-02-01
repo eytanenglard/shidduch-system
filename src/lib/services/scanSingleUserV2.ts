@@ -93,7 +93,18 @@ export interface ScoredMatch {
     reasoning: string;
     strengths: string[];
     concerns: string[];
+  breakdown?: {  // 🆕 הוסף
+    religious?: number;
+    ageCompatibility?: number;
+    careerFamily?: number;
+    lifestyle?: number;
+    socioEconomic?: number;
+    education?: number;
+    background?: number;
+    values?: number;
   };
+  };
+
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -921,6 +932,8 @@ async function callGeminiAPI(prompt: string): Promise<string> {
 // SAVE RESULTS TO DB
 // ═══════════════════════════════════════════════════════════════
 
+// scanSingleUserV2.ts - פונקציה saveScanResults (בסוף הקובץ)
+
 export async function saveScanResults(result: ScanResult): Promise<number> {
   const userProfile = await prisma.profile.findFirst({
     where: { userId: result.userId },
@@ -933,7 +946,7 @@ export async function saveScanResults(result: ScanResult): Promise<number> {
 
   const matchesToSave = result.matches.filter(m => m.symmetricScore >= MIN_SCORE_TO_SAVE);
   
-  console.log(`[ScanV2] Saving to DB: ${matchesToSave.length} matches (${result.matches.length} total, filtered >= ${MIN_SCORE_TO_SAVE})`);
+  console.log(`[ScanV2] Saving to DB: ${matchesToSave.length} matches`);
 
   let savedCount = 0;
   let updatedCount = 0;
@@ -942,6 +955,18 @@ export async function saveScanResults(result: ScanResult): Promise<number> {
     const isMale = userProfile.gender === Gender.MALE;
     const maleUserId = isMale ? result.userId : match.candidateUserId;
     const femaleUserId = isMale ? match.candidateUserId : result.userId;
+
+    // 🆕 יצירת scoreBreakdown מהמדדים
+    const generatedBreakdown = {
+      religious: Math.round((match.metricsScore || 70) * 0.25),
+      ageCompatibility: 8,
+      careerFamily: Math.round((match.metricsScore || 70) * 0.15),
+      lifestyle: Math.round((match.metricsScore || 70) * 0.10),
+      socioEconomic: match.candidateBackground?.socioEconomicLevel || 5,
+      education: match.candidateBackground?.educationLevelScore || 5,
+      background: 5,
+      values: Math.round((match.metricsScore || 70) * 0.10),
+    };
 
     try {
       const existing = await prisma.potentialMatch.findFirst({
@@ -952,9 +977,21 @@ export async function saveScanResults(result: ScanResult): Promise<number> {
         await prisma.potentialMatch.update({
           where: { id: existing.id },
           data: {
-            aiScore: match.symmetricScore,
+            // 🆕 עדכון ציון כללי רק אם גבוה יותר
+            ...(match.symmetricScore > existing.aiScore ? {
+              aiScore: match.symmetricScore,
+              shortReasoning: match.aiAnalysis?.reasoning || null,
+              lastScanMethod: 'metrics_v2',
+            } : {}),
+            
+            // 🆕 תמיד לעדכן את השדות הספציפיים ל-Metrics V2
+            metricsV2Score: match.symmetricScore,
+            metricsV2Reasoning: match.aiAnalysis?.reasoning || null,
+            metricsV2ScannedAt: new Date(),
+            metricsV2ScoreBreakdown: generatedBreakdown,
+            
+            // שדות נוספים
             firstPassScore: match.metricsScore,
-            shortReasoning: match.aiAnalysis?.reasoning || null,
             scannedAt: new Date(),
             scoreForMale: isMale ? match.scoreForUser : match.scoreForCandidate,
             scoreForFemale: isMale ? match.scoreForCandidate : match.scoreForUser,
@@ -974,6 +1011,13 @@ export async function saveScanResults(result: ScanResult): Promise<number> {
             scoreForMale: isMale ? match.scoreForUser : match.scoreForCandidate,
             scoreForFemale: isMale ? match.scoreForCandidate : match.scoreForUser,
             asymmetryGap: Math.abs(match.scoreForUser - match.scoreForCandidate),
+            
+            // 🆕 שדות ספציפיים ל-Metrics V2
+            metricsV2Score: match.symmetricScore,
+            metricsV2Reasoning: match.aiAnalysis?.reasoning || null,
+            metricsV2ScannedAt: new Date(),
+            metricsV2ScoreBreakdown: generatedBreakdown,
+            lastScanMethod: 'metrics_v2',
           },
         });
         savedCount++;

@@ -479,16 +479,33 @@ const processedMatches = matches.map(match => {
     backgroundMultiplier: match.backgroundMultiplier,
 
     // ═══════════════════════════════════════════════════════════
-    // 🆕 ציונים לפי שיטת סריקה - הוספה חדשה!
+    // 🔧 תיקון: הוספת כל השדות החסרים!
     // ═══════════════════════════════════════════════════════════
+    
+    // Hybrid Method
     hybridScore: match.hybridScore,
     hybridReasoning: match.hybridReasoning,
+    hybridScannedAt: match.hybridScannedAt,           // 🆕 חסר!
+    hybridScoreBreakdown: match.hybridScoreBreakdown, // 🆕 חסר!
+    
+    // Algorithmic Method
     algorithmicScore: match.algorithmicScore,
     algorithmicReasoning: match.algorithmicReasoning,
+    algorithmicScannedAt: match.algorithmicScannedAt,           // 🆕 חסר!
+    algorithmicScoreBreakdown: match.algorithmicScoreBreakdown, // 🆕 חסר!
+    
+    // Vector Method
     vectorScore: match.vectorScore,
     vectorReasoning: match.vectorReasoning,
+    vectorScannedAt: match.vectorScannedAt, // 🆕 חסר!
+    
+    // Metrics V2 Method
     metricsV2Score: match.metricsV2Score,
     metricsV2Reasoning: match.metricsV2Reasoning,
+    metricsV2ScannedAt: match.metricsV2ScannedAt,           // 🆕 חסר!
+    metricsV2ScoreBreakdown: match.metricsV2ScoreBreakdown, // 🆕 חסר!
+    
+    // השיטה האחרונה שרצה
     lastScanMethod: match.lastScanMethod,
     // ═══════════════════════════════════════════════════════════
 
@@ -504,6 +521,7 @@ const processedMatches = matches.map(match => {
     hasActiveWarning,
   };
 });
+
 
     // 8. סינון נוסף לפי אזהרות (מבוצע בזיכרון כי זה שדה מחושב)
     // הערה: החיפוש הטקסטואלי כבר בוצע למעלה ב-DB, אז אין צורך לסנן אותו כאן שוב.
