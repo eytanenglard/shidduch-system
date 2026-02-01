@@ -7,7 +7,7 @@ import { verifyMobileToken } from "@/lib/mobile-auth";
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // אימות Bearer token
@@ -21,7 +21,9 @@ export async function GET(
     }
 
     const userId = auth.userId;
-    const suggestionId = params.id;
+    // In Next.js 15, params must be awaited
+    const { id } = await params;
+    const suggestionId = id;
 
     // שליפת ההצעה עם כל הפרטים
     const suggestion = await prisma.matchSuggestion.findUnique({

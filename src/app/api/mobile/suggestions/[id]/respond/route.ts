@@ -14,7 +14,6 @@ const respondSchema = z.object({
 
 export async function POST(
   req: NextRequest,
-  // תיקון: הגדרת params כ-Promise כדי להתאים ל-Next.js 15
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
@@ -28,9 +27,9 @@ export async function POST(
       );
     }
 
-    // תיקון: שליפת ה-ID מתוך ה-Promise
-    const { id } = await params;
     const userId = auth.userId;
+    // In Next.js 15, params must be awaited
+    const { id } = await params;
     const suggestionId = id;
 
     // וולידציה
