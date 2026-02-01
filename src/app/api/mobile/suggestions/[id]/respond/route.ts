@@ -14,7 +14,8 @@ const respondSchema = z.object({
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  // תיקון: הגדרת params כ-Promise כדי להתאים ל-Next.js 15
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // אימות Bearer token
@@ -27,8 +28,10 @@ export async function POST(
       );
     }
 
+    // תיקון: שליפת ה-ID מתוך ה-Promise
+    const { id } = await params;
     const userId = auth.userId;
-    const suggestionId = params.id;
+    const suggestionId = id;
 
     // וולידציה
     const body = await req.json();
