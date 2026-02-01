@@ -1,5 +1,6 @@
-// src/app/api/auth/mobile-login/route.ts
+// src/app/api/mobile/login/route.ts
 // התחברות עם Email/Password למובייל
+// נתיב: POST /api/mobile/login
 
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
@@ -74,12 +75,12 @@ export async function POST(req: NextRequest) {
     await prisma.user.update({
       where: { id: user.id },
       data: { lastLogin: new Date() },
-    }).catch(err => console.error("[mobile-login] Failed to update lastLogin:", err));
+    }).catch(err => console.error("[mobile/login] Failed to update lastLogin:", err));
 
     // יצירת token
     const { token, expiresAt } = createMobileToken(user);
 
-    console.log(`[mobile-login] User ${user.email} logged in successfully from mobile`);
+    console.log(`[mobile/login] User ${user.email} logged in successfully from mobile`);
 
     return NextResponse.json({
       success: true,
@@ -91,10 +92,23 @@ export async function POST(req: NextRequest) {
     });
 
   } catch (error) {
-    console.error("[mobile-login] Error:", error);
+    console.error("[mobile/login] Error:", error);
     return NextResponse.json(
       { success: false, error: "Internal server error" },
       { status: 500 }
     );
   }
+}
+
+// תמיכה ב-GET לבדיקה שה-route עובד
+export async function GET() {
+  return NextResponse.json({
+    success: true,
+    message: "Mobile login endpoint is working. Use POST to login.",
+    method: "POST",
+    body: {
+      email: "string (required)",
+      password: "string (required, min 6 chars)"
+    }
+  });
 }

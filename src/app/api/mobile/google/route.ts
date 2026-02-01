@@ -1,5 +1,6 @@
-// src/app/api/auth/mobile-google/route.ts
+// src/app/api/mobile/google/route.ts
 // התחברות עם Google למובייל
+// נתיב: POST /api/mobile/google
 
 import { NextRequest, NextResponse } from "next/server";
 import { OAuth2Client } from "google-auth-library";
@@ -34,7 +35,7 @@ export async function POST(req: NextRequest) {
       });
       payload = ticket.getPayload();
     } catch (error) {
-      console.error("[mobile-google] Google token verification failed:", error);
+      console.error("[mobile/google] Google token verification failed:", error);
       return NextResponse.json(
         { success: false, error: "Invalid Google token" },
         { status: 401 }
@@ -84,12 +85,12 @@ export async function POST(req: NextRequest) {
     await prisma.user.update({
       where: { id: user.id },
       data: { lastLogin: new Date() },
-    }).catch(err => console.error("[mobile-google] Failed to update lastLogin:", err));
+    }).catch(err => console.error("[mobile/google] Failed to update lastLogin:", err));
 
     // יצירת token
     const { token, expiresAt } = createMobileToken(user);
 
-    console.log(`[mobile-google] User ${user.email} logged in via Google from mobile`);
+    console.log(`[mobile/google] User ${user.email} logged in via Google from mobile`);
 
     return NextResponse.json({
       success: true,
@@ -101,10 +102,18 @@ export async function POST(req: NextRequest) {
     });
 
   } catch (error) {
-    console.error("[mobile-google] Error:", error);
+    console.error("[mobile/google] Error:", error);
     return NextResponse.json(
       { success: false, error: "Authentication failed" },
       { status: 500 }
     );
   }
+}
+
+// תמיכה ב-GET לבדיקה
+export async function GET() {
+  return NextResponse.json({
+    success: true,
+    message: "Mobile Google login endpoint is working. Use POST with idToken.",
+  });
 }

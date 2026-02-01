@@ -1,5 +1,6 @@
-// src/app/api/notifications/register-device/route.ts
+// src/app/api/mobile/notifications/register-device/route.ts
 // רישום מכשיר להתראות Push
+// נתיב: POST /api/mobile/notifications/register-device
 
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
@@ -50,12 +51,12 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    console.log(`[register-device] Device registered for user ${auth.userId}, platform: ${platform}`);
+    console.log(`[mobile/notifications] Device registered for user ${auth.userId}, platform: ${platform}`);
 
     return NextResponse.json({ success: true });
 
   } catch (error) {
-    console.error("[register-device] Error:", error);
+    console.error("[mobile/notifications/register-device] Error:", error);
     return NextResponse.json(
       { success: false, error: "Internal server error" },
       { status: 500 }

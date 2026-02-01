@@ -1,5 +1,6 @@
-// src/app/api/auth/me/route.ts
-// קבלת פרטי המשתמש הנוכחי (למובייל)
+// src/app/api/mobile/me/route.ts
+// קבלת פרטי המשתמש הנוכחי
+// נתיב: GET /api/mobile/me
 
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
@@ -35,7 +36,7 @@ export async function GET(req: NextRequest) {
     });
 
   } catch (error) {
-    console.error("[auth/me] Error:", error);
+    console.error("[mobile/me] Error:", error);
     return NextResponse.json(
       { success: false, error: "Internal server error" },
       { status: 500 }
