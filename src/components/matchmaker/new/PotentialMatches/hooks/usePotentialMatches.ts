@@ -743,7 +743,8 @@ const startScan = useCallback(async (opts: ScanOptions = {}): Promise<string | n
     method = 'hybrid', // 🆕 ברירת מחדל
     forceRefresh = false,
     incremental = false,
-    userId, userIds
+    userId, userIds,
+      skipPreparation = false
   } = opts;
 
   try {
@@ -756,7 +757,8 @@ const startScan = useCallback(async (opts: ScanOptions = {}): Promise<string | n
         forceRefresh,
         incremental,
         userId,
-        userIds
+        userIds,
+        skipPreparation
       }),
     });
 
