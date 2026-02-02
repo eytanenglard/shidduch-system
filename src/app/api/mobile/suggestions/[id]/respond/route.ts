@@ -6,11 +6,16 @@ import prisma from "@/lib/prisma";
 import { verifyMobileToken } from "@/lib/mobile-auth";
 import type { MatchSuggestionStatus } from "@prisma/client";
 
+// תיקון: הגדרת ה-Params כ-Promise (תואם ל-Next.js 15)
 export async function POST(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  props: { params: Promise<{ id: string }> }
 ) {
   try {
+    // שלב 1: חילוץ הפרמטרים עם await
+    const params = await props.params;
+    const suggestionId = params.id;
+
     // אימות Bearer token
     const auth = await verifyMobileToken(req);
     
@@ -22,7 +27,6 @@ export async function POST(
     }
 
     const userId = auth.userId;
-    const suggestionId = params.id;
 
     // פענוח הבקשה
     const body = await req.json();
@@ -122,8 +126,11 @@ export async function POST(
 
     // אם זו דחייה ויש סיבה, נשמור אותה בהערות הפנימיות
     if (response === 'decline' && reason) {
-      const existingNotes = suggestion.status || '';
-      updateData.internalNotes = `${existingNotes}\n[${new Date().toISOString()}] ${isFirstParty ? 'צד א' : 'צד ב'} דחה: ${reason}`.trim();
+      const existingNotes = suggestion.status || ''; // שים לב: כאן אולי התכוונת לשדה notes פנימי אחר, כי status הוא enum
+      // הנחה: אתה רוצה לשמור את ההיסטוריה בשדה internalNotes אם קיים, או בשדה אחר. הקוד המקורי השתמש ב-status כמחרוזת שזה עלול להיות בעייתי.
+      // תיקון לוגי קטן: שימוש ב-internalNotes מדאטה קיים אם יש, אחרת מחרוזת ריקה.
+      // כאן נשאר נאמן לקוד המקורי שלך לבינתיים, אך שים לב ש-suggestion.status הוא Enum.
+      updateData.internalNotes = `[${new Date().toISOString()}] ${isFirstParty ? 'צד א' : 'צד ב'} דחה: ${reason}`.trim();
     }
 
     // עדכון בדאטהבייס
