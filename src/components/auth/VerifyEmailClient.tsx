@@ -5,6 +5,7 @@ import React, {
   useState,
   useRef,
   useEffect,
+  useCallback,
   KeyboardEvent,
   ClipboardEvent,
 } from 'react';
@@ -30,6 +31,8 @@ interface VerifyEmailClientProps {
 
 type VerificationStatus = 'idle' | 'verifying' | 'success' | 'error';
 
+const OTP_LENGTH = 6;
+
 export default function VerifyEmailClient({ locale }: VerifyEmailClientProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -37,12 +40,13 @@ export default function VerifyEmailClient({ locale }: VerifyEmailClientProps) {
   const isHebrew = locale === 'he';
 
   // State Management
-  const [code, setCode] = useState<string[]>(Array(6).fill(''));
+  const [code, setCode] = useState<string[]>(Array(OTP_LENGTH).fill(''));
   const [status, setStatus] = useState<VerificationStatus>('idle');
   const [errorMessage, setErrorMessage] = useState<string>('');
   const [canResend, setCanResend] = useState(false);
   const [resendCountdown, setResendCountdown] = useState(60);
   const [isResending, setIsResending] = useState(false);
+  const [focusedIndex, setFocusedIndex] = useState<number | null>(null);
 
   // Refs for input boxes
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
@@ -63,36 +67,76 @@ export default function VerifyEmailClient({ locale }: VerifyEmailClientProps) {
   // Auto-submit when all 6 digits are filled
   useEffect(() => {
     const fullCode = code.join('');
-    if (fullCode.length === 6 && status === 'idle') {
+    if (fullCode.length === OTP_LENGTH && status === 'idle') {
       handleVerifyCode(fullCode);
     }
   }, [code, status]);
 
-  const handleInputChange = (index: number, value: string) => {
-    if (!/^\d*$/.test(value)) return;
-    const newCode = [...code];
-    newCode[index] = value.slice(-1);
-    setCode(newCode);
-    if (value && index < 5) {
-      inputRefs.current[index + 1]?.focus();
-    }
-  };
-
-  const handleKeyDown = (index: number, e: KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Backspace' && !code[index] && index > 0) {
-      inputRefs.current[index - 1]?.focus();
-    }
-  };
-
-  const handlePaste = (e: ClipboardEvent<HTMLInputElement>) => {
-    e.preventDefault();
-    const pastedData = e.clipboardData.getData('text').trim();
-    if (/^\d{6}$/.test(pastedData)) {
-      const newCode = pastedData.split('');
+  const handleInputChange = useCallback(
+    (index: number, value: string) => {
+      if (!/^\d*$/.test(value)) return;
+      const newCode = [...code];
+      newCode[index] = value.slice(-1);
       setCode(newCode);
-      inputRefs.current[5]?.focus();
-    }
-  };
+      setErrorMessage('');
+
+      if (value && index < OTP_LENGTH - 1) {
+        inputRefs.current[index + 1]?.focus();
+      }
+    },
+    [code]
+  );
+
+  const handleKeyDown = useCallback(
+    (index: number, e: KeyboardEvent<HTMLInputElement>) => {
+      if (e.key === 'Backspace' && !code[index] && index > 0) {
+        inputRefs.current[index - 1]?.focus();
+      }
+      if (e.key === 'ArrowLeft' && index > 0) {
+        inputRefs.current[index - 1]?.focus();
+      }
+      if (e.key === 'ArrowRight' && index < OTP_LENGTH - 1) {
+        inputRefs.current[index + 1]?.focus();
+      }
+    },
+    [code]
+  );
+
+  // --------------------------------------------------------
+  // Handle Paste Event - Works from any input position
+  // --------------------------------------------------------
+  const handlePaste = useCallback(
+    (e: ClipboardEvent<HTMLInputElement>, index: number) => {
+      e.preventDefault();
+      // קבלת הטקסט מהלוח
+      const pastedData = e.clipboardData.getData('text');
+      // ניקוי תווים שאינם מספרים
+      const pastedNumbers = pastedData.replace(/\D/g, '').split('');
+
+      if (pastedNumbers.length === 0) return;
+
+      const newCode = [...code];
+      let nextIndex = index;
+
+      // מילוי המערך החל מהאינדקס הנוכחי
+      for (let i = 0; i < pastedNumbers.length; i++) {
+        if (nextIndex >= OTP_LENGTH) break;
+        newCode[nextIndex] = pastedNumbers[i];
+        nextIndex++;
+      }
+
+      setCode(newCode);
+      setErrorMessage('');
+
+      // העברת הפוקוס לשדה האחרון שמולא או לשדה הבא
+      const focusIndex = Math.min(nextIndex, OTP_LENGTH - 1);
+      if (inputRefs.current[focusIndex]) {
+        inputRefs.current[focusIndex]?.focus();
+      }
+    },
+    [code]
+  );
+  // --------------------------------------------------------
 
   const handleVerifyCode = async (verificationCode: string) => {
     setStatus('verifying');
@@ -123,7 +167,7 @@ export default function VerifyEmailClient({ locale }: VerifyEmailClientProps) {
       setErrorMessage(
         error instanceof Error ? error.message : 'אירעה שגיאה לא צפויה'
       );
-      setCode(Array(6).fill(''));
+      setCode(Array(OTP_LENGTH).fill(''));
       inputRefs.current[0]?.focus();
     }
   };
@@ -147,7 +191,7 @@ export default function VerifyEmailClient({ locale }: VerifyEmailClientProps) {
 
       setCanResend(false);
       setResendCountdown(60);
-      setCode(Array(6).fill(''));
+      setCode(Array(OTP_LENGTH).fill(''));
       inputRefs.current[0]?.focus();
     } catch (error) {
       setErrorMessage(
@@ -183,7 +227,10 @@ export default function VerifyEmailClient({ locale }: VerifyEmailClientProps) {
     securityNote: isHebrew
       ? 'הקוד תקף ל-15 דקות מרגע השליחה'
       : 'Code is valid for 15 minutes from sending',
+    digitAriaLabel: isHebrew ? 'ספרה {{index}}' : 'Digit {{index}}',
   };
+
+  const disableForm = status === 'verifying' || status === 'success';
 
   return (
     // UPDATED: Main Background (Slate/Teal/Orange)
@@ -215,8 +262,8 @@ export default function VerifyEmailClient({ locale }: VerifyEmailClientProps) {
             ease: 'easeInOut',
             delay: 4,
           }}
-          // Rose/Purple Orb (Center)
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-rose-200/30 rounded-full blur-3xl"
+          // Rose Orb
+          className="absolute top-1/2 left-1/3 w-56 h-56 bg-rose-200/30 rounded-full blur-3xl"
         />
       </div>
 
@@ -224,246 +271,265 @@ export default function VerifyEmailClient({ locale }: VerifyEmailClientProps) {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
+        transition={{ duration: 0.6, ease: 'easeOut' }}
         className="relative w-full max-w-md"
       >
-        <div className="bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/60 overflow-hidden">
-          {/* UPDATED: Gradient Header (Teal -> Orange -> Amber) */}
-          <div className="h-2 bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500"></div>
+        <div className="bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/50 p-8 relative overflow-hidden">
+          {/* Decorative shimmer */}
+          <div className="absolute inset-0 bg-gradient-to-br from-teal-100/20 via-transparent to-orange-100/20 pointer-events-none" />
 
-          <div className="p-8 sm:p-10">
-            {/* Icon & Title Section */}
-            <motion.div
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ delay: 0.2, duration: 0.5 }}
-              className="text-center mb-8"
-            >
-              <div className="relative inline-block mb-6">
-                <motion.div
-                  animate={{ rotate: [0, 5, -5, 0] }}
-                  transition={{
-                    duration: 4,
-                    repeat: Infinity,
-                    ease: 'easeInOut',
-                  }}
-                  // UPDATED: Main Icon Background (Teal -> Emerald)
-                  className="w-20 h-20 rounded-2xl bg-gradient-to-br from-teal-400 to-emerald-600 flex items-center justify-center shadow-lg shadow-teal-500/20"
-                >
-                  <Mail className="w-10 h-10 text-white" strokeWidth={2.5} />
-                </motion.div>
-                <motion.div
-                  animate={{ scale: [1, 1.2, 1], opacity: [0.5, 1, 0.5] }}
-                  transition={{ duration: 2, repeat: Infinity }}
-                  // UPDATED: Sparkle Background (Amber/Orange)
-                  className="absolute -top-1 -right-1 w-6 h-6 bg-gradient-to-br from-amber-400 to-orange-500 rounded-full flex items-center justify-center"
-                >
-                  <Sparkles className="w-4 h-4 text-white" />
-                </motion.div>
-              </div>
+          <div className="relative z-10">
+            {/* Header */}
+            <div className="text-center mb-8">
+              <motion.div
+                initial={{ scale: 0.8, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ delay: 0.2, duration: 0.5 }}
+                // Teal Icon Container
+                className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-teal-400 to-emerald-500 shadow-lg mb-4"
+              >
+                <Mail className="w-8 h-8 text-white" />
+              </motion.div>
 
-              <h1 className="text-3xl font-bold text-gray-800 mb-3">
+              <h1 className="text-2xl font-bold text-gray-800 mb-2">
                 {dict.title}
               </h1>
-              <p className="text-gray-600 text-base mb-4">{dict.subtitle}</p>
+              <p className="text-gray-600">{dict.subtitle}</p>
 
-              {/* UPDATED: Email Badge (Teal/Gray) */}
-              <div className="inline-flex items-center gap-2 px-4 py-2 bg-slate-50 rounded-full border border-slate-200">
-                <Mail className="w-4 h-4 text-teal-600" />
-                <span className="text-sm font-medium text-gray-700">
-                  {dict.emailSentTo}{' '}
-                  <span className="text-teal-700 font-bold">{email}</span>
-                </span>
-              </div>
-            </motion.div>
+              {email && (
+                <div className="mt-3 px-4 py-2 bg-gradient-to-r from-teal-50 to-emerald-50 rounded-xl border border-teal-100 inline-block">
+                  <p className="text-sm text-gray-500">{dict.emailSentTo}</p>
+                  <p className="font-semibold text-gray-800 break-all">
+                    {email}
+                  </p>
+                </div>
+              )}
+            </div>
 
             {/* Code Input Section */}
             <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
               transition={{ delay: 0.3, duration: 0.5 }}
-              className="mb-8"
+              className="mb-6"
             >
-              <label className="block text-sm font-medium text-gray-700 mb-4 text-center">
+              <p className="text-center text-sm text-gray-600 mb-4">
                 {dict.enterCode}
-              </label>
+              </p>
 
+              {/* OTP Input Boxes */}
               <div
                 className="flex justify-center gap-2 sm:gap-3 mb-6"
                 dir="ltr"
               >
                 {code.map((digit, index) => (
-                  <motion.input
+                  <motion.div
                     key={index}
-                    ref={(el) => {
-                      inputRefs.current[index] = el;
-                    }}
-                    type="text"
-                    inputMode="numeric"
-                    maxLength={1}
-                    value={digit}
-                    onChange={(e) => handleInputChange(index, e.target.value)}
-                    onKeyDown={(e) => handleKeyDown(index, e)}
-                    onPaste={index === 0 ? handlePaste : undefined}
-                    disabled={status === 'verifying' || status === 'success'}
-                    whileFocus={{ scale: 1.05 }}
-                    // UPDATED: Input Colors (Teal Focus/Fill)
-                    className={`
-                      w-12 h-14 sm:w-14 sm:h-16 text-center text-2xl font-bold rounded-xl
-                      border-2 transition-all duration-200
-                      ${
-                        status === 'error'
-                          ? 'border-red-400 bg-red-50 text-red-600'
-                          : status === 'success'
-                            ? 'border-green-400 bg-green-50 text-green-600'
-                            : digit
-                              ? 'border-teal-400 bg-teal-50 text-gray-800'
-                              : 'border-gray-200 bg-white text-gray-800 hover:border-teal-200'
-                      }
-                      focus:outline-none focus:ring-4 focus:ring-teal-500/20 focus:border-teal-500
-                      disabled:opacity-60 disabled:cursor-not-allowed
-                    `}
-                  />
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.3, delay: index * 0.05 }}
+                    whileHover={{ scale: disableForm ? 1 : 1.05 }}
+                  >
+                    <input
+                      ref={(el) => {
+                        inputRefs.current[index] = el;
+                      }}
+                      type="text"
+                      inputMode="numeric"
+                      maxLength={1}
+                      value={digit}
+                      onChange={(e) => handleInputChange(index, e.target.value)}
+                      onKeyDown={(e) => handleKeyDown(index, e)}
+                      // ▼▼▼ Paste Handler Connected to ALL inputs ▼▼▼
+                      onPaste={(e) => handlePaste(e, index)}
+                      // ▲▲▲
+                      onFocus={() => setFocusedIndex(index)}
+                      onBlur={() => setFocusedIndex(null)}
+                      disabled={disableForm}
+                      aria-label={dict.digitAriaLabel.replace(
+                        '{{index}}',
+                        (index + 1).toString()
+                      )}
+                      // UPDATED: Input Colors (Teal Focus/Fill)
+                      className={`
+                        w-12 h-14 sm:w-14 sm:h-16 
+                        text-center text-2xl font-bold rounded-xl
+                        border-2 transition-all duration-300
+                        shadow-md
+                        ${
+                          status === 'error'
+                            ? 'border-red-400 bg-red-50 text-red-600'
+                            : status === 'success'
+                              ? 'border-green-400 bg-green-50 text-green-600'
+                              : focusedIndex === index
+                                ? 'border-teal-500 ring-4 ring-teal-200 scale-105 bg-white'
+                                : digit
+                                  ? 'border-teal-400 bg-teal-50 text-gray-800'
+                                  : 'border-gray-200 bg-white text-gray-800 hover:border-teal-200'
+                        }
+                        focus:outline-none
+                        disabled:opacity-60 disabled:cursor-not-allowed
+                      `}
+                    />
+                  </motion.div>
                 ))}
               </div>
 
-              {/* Status Messages */}
-              <AnimatePresence mode="wait">
-                {status === 'verifying' && (
-                  // UPDATED: Text Color (Teal)
+              {/* Progress Indicator (like phone verification) */}
+              <div className="flex justify-center items-center gap-2 mb-4">
+                {code.map((digit, index) => (
                   <motion.div
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: 10 }}
-                    className="flex items-center justify-center gap-2 text-teal-600 mb-4"
-                  >
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                    <span className="text-sm font-medium">
-                      {dict.verifying}
-                    </span>
-                  </motion.div>
-                )}
-
-                {status === 'success' && (
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    className="text-center mb-4"
-                  >
-                    <motion.div
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
-                      transition={{
-                        type: 'spring',
-                        stiffness: 200,
-                        damping: 15,
-                      }}
-                      className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-green-50 to-emerald-50 rounded-full border-2 border-green-400 mb-2"
-                    >
-                      <CheckCircle className="w-6 h-6 text-green-600" />
-                      <span className="text-green-700 font-bold">
-                        {dict.success}
-                      </span>
-                    </motion.div>
-                    <p className="text-sm text-gray-600">
-                      {dict.successMessage}
-                    </p>
-                  </motion.div>
-                )}
-
-                {status === 'error' && errorMessage && (
-                  <motion.div
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: 10 }}
-                    className="bg-gradient-to-r from-red-50 to-rose-50 border-2 border-red-200 rounded-xl p-4 mb-4"
-                  >
-                    <div className="flex items-start gap-3">
-                      <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
-                      <div>
-                        <p className="font-semibold text-red-800 text-sm mb-1">
-                          {dict.errorTitle}
-                        </p>
-                        <p className="text-red-600 text-sm">{errorMessage}</p>
-                      </div>
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-
-              {/* Resend Section */}
-              {status !== 'success' && (
-                <div className="text-center space-y-3">
-                  <p className="text-sm text-gray-600">{dict.didntReceive}</p>
-
-                  {canResend ? (
-                    <Button
-                      onClick={handleResendCode}
-                      disabled={isResending}
-                      variant="outline"
-                      size="sm"
-                      // UPDATED: Resend Button (Teal Border/Text)
-                      className="border-2 border-teal-200 text-teal-700 hover:bg-teal-50 hover:border-teal-300 rounded-full px-6 py-2 transition-all"
-                    >
-                      {isResending ? (
-                        <>
-                          <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                          {isHebrew ? 'שולח...' : 'Sending...'}
-                        </>
-                      ) : (
-                        <>
-                          <RefreshCw className="w-4 h-4 mr-2" />
-                          {dict.resendCode}
-                        </>
-                      )}
-                    </Button>
-                  ) : (
-                    <div className="inline-flex items-center gap-2 px-4 py-2 bg-gray-50 rounded-full border border-gray-200">
-                      <Clock className="w-4 h-4 text-gray-500" />
-                      <span className="text-sm text-gray-600">
-                        {dict.resendIn}{' '}
-                        <span className="font-bold text-gray-800">
-                          {resendCountdown}
-                        </span>{' '}
-                        {dict.seconds}
-                      </span>
-                    </div>
-                  )}
-
-                  <p className="text-xs text-gray-500 italic">
-                    {dict.checkSpam}
-                  </p>
-                </div>
-              )}
-            </motion.div>
-
-            {/* UPDATED: Security Note (Warm/Amber background) */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.5, duration: 0.5 }}
-              className="bg-gradient-to-r from-amber-50 to-orange-50 rounded-xl p-4 border border-amber-100 mb-6"
-            >
-              <div className="flex items-start gap-3">
-                <Shield className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
-                <p className="text-sm text-amber-800">{dict.securityNote}</p>
+                    key={index}
+                    className={`h-1.5 rounded-full transition-all duration-300 ${
+                      digit
+                        ? 'bg-gradient-to-r from-teal-500 to-orange-500 w-8'
+                        : 'bg-gray-200 w-4'
+                    }`}
+                    animate={{
+                      scale: digit ? [1, 1.2, 1] : 1,
+                    }}
+                    transition={{ duration: 0.3 }}
+                  />
+                ))}
               </div>
             </motion.div>
 
-            {/* Back Link */}
-            <div className="text-center">
-              <Link
-                href={`/${locale}/auth/register`}
-                // UPDATED: Link Hover (Teal)
-                className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-teal-600 transition-colors group"
-              >
-                <ArrowLeft
-                  className={`w-4 h-4 group-hover:-translate-x-1 transition-transform ${isHebrew ? '' : 'rotate-180'}`}
-                />
-                <span>{dict.backToRegister}</span>
-              </Link>
-            </div>
+            {/* Status Messages */}
+            <AnimatePresence mode="wait">
+              {status === 'verifying' && (
+                // UPDATED: Text Color (Teal)
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 10 }}
+                  className="flex items-center justify-center gap-2 text-teal-600 mb-4"
+                >
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  <span className="text-sm font-medium">
+                    {dict.verifying}
+                  </span>
+                </motion.div>
+              )}
+
+              {status === 'success' && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="text-center mb-4"
+                >
+                  <motion.div
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{
+                      type: 'spring',
+                      stiffness: 200,
+                      damping: 15,
+                    }}
+                    className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-green-50 to-emerald-50 rounded-full border-2 border-green-400 mb-2"
+                  >
+                    <CheckCircle className="w-6 h-6 text-green-600" />
+                    <span className="text-green-700 font-bold">
+                      {dict.success}
+                    </span>
+                  </motion.div>
+                  <p className="text-sm text-gray-600">
+                    {dict.successMessage}
+                  </p>
+                </motion.div>
+              )}
+
+              {status === 'error' && errorMessage && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 10 }}
+                  className="bg-gradient-to-r from-red-50 to-rose-50 border-2 border-red-200 rounded-xl p-4 mb-4"
+                >
+                  <div className="flex items-start gap-3">
+                    <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="font-semibold text-red-800 text-sm mb-1">
+                        {dict.errorTitle}
+                      </p>
+                      <p className="text-red-600 text-sm">{errorMessage}</p>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Resend Section */}
+            {status !== 'success' && (
+              <div className="text-center space-y-3">
+                <p className="text-sm text-gray-600">{dict.didntReceive}</p>
+
+                {canResend ? (
+                  <Button
+                    onClick={handleResendCode}
+                    disabled={isResending}
+                    variant="outline"
+                    size="sm"
+                    // UPDATED: Resend Button (Teal Border/Text)
+                    className="border-2 border-teal-200 text-teal-700 hover:bg-teal-50 hover:border-teal-300 rounded-full px-6 py-2 transition-all"
+                  >
+                    {isResending ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                        {isHebrew ? 'שולח...' : 'Sending...'}
+                      </>
+                    ) : (
+                      <>
+                        <RefreshCw className="w-4 h-4 mr-2" />
+                        {dict.resendCode}
+                      </>
+                    )}
+                  </Button>
+                ) : (
+                  <div className="inline-flex items-center gap-2 px-4 py-2 bg-gray-50 rounded-full border border-gray-200">
+                    <Clock className="w-4 h-4 text-gray-500" />
+                    <span className="text-sm text-gray-600">
+                      {dict.resendIn}{' '}
+                      <span className="font-bold text-gray-800">
+                        {resendCountdown}
+                      </span>{' '}
+                      {dict.seconds}
+                    </span>
+                  </div>
+                )}
+
+                <p className="text-xs text-gray-500 italic">
+                  {dict.checkSpam}
+                </p>
+              </div>
+            )}
           </div>
+        </div>
+
+        {/* UPDATED: Security Note (Warm/Amber background) */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.5, duration: 0.5 }}
+          className="mt-4 bg-gradient-to-r from-amber-50 to-orange-50 rounded-xl p-4 border border-amber-100"
+        >
+          <div className="flex items-start gap-3">
+            <Shield className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+            <p className="text-sm text-amber-800">{dict.securityNote}</p>
+          </div>
+        </motion.div>
+
+        {/* Back Link */}
+        <div className="text-center mt-4">
+          <Link
+            href={`/${locale}/auth/register`}
+            // UPDATED: Link Hover (Teal)
+            className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-teal-600 transition-colors group"
+          >
+            <ArrowLeft
+              className={`w-4 h-4 group-hover:-translate-x-1 transition-transform ${isHebrew ? '' : 'rotate-180'}`}
+            />
+            <span>{dict.backToRegister}</span>
+          </Link>
         </div>
 
         {/* Floating Decorative Elements */}

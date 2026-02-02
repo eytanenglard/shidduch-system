@@ -1,7 +1,15 @@
 // src/components/auth/steps/EmailVerificationCodeStep.tsx
 'use client';
 
-import { useState, useRef, KeyboardEvent, useEffect, FormEvent } from 'react';
+import {
+  useState,
+  useRef,
+  KeyboardEvent,
+  useEffect,
+  FormEvent,
+  useCallback,
+  ClipboardEvent,
+} from 'react';
 import { useRouter } from 'next/navigation';
 import { signIn } from 'next-auth/react';
 import { useRegistration } from '../RegistrationContext';
@@ -34,28 +42,78 @@ const EmailVerificationCodeStep: React.FC<EmailVerificationCodeStepProps> = ({
   const [isResending, setIsResending] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
   const [resendMessage, setResendMessage] = useState<string | null>(null);
+  const [focusedIndex, setFocusedIndex] = useState<number | null>(null);
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   useEffect(() => {
     inputRefs.current[0]?.focus();
   }, []);
 
-  const handleChange = (element: HTMLInputElement, index: number) => {
-    const value = element.value.replace(/[^0-9]/g, '');
-    const newOtp = [...otp];
-    newOtp[index] = value.slice(-1);
-    setOtp(newOtp);
+  const handleChange = useCallback(
+    (element: HTMLInputElement, index: number) => {
+      const value = element.value.replace(/[^0-9]/g, '');
+      const newOtp = [...otp];
+      newOtp[index] = value.slice(-1);
+      setOtp(newOtp);
+      setApiError(null);
 
-    if (value && index < OTP_LENGTH - 1) {
-      inputRefs.current[index + 1]?.focus();
-    }
-  };
+      if (value && index < OTP_LENGTH - 1) {
+        inputRefs.current[index + 1]?.focus();
+      }
+    },
+    [otp]
+  );
 
-  const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>, index: number) => {
-    if (e.key === 'Backspace' && !otp[index] && index > 0) {
-      inputRefs.current[index - 1]?.focus();
-    }
-  };
+  const handleKeyDown = useCallback(
+    (e: KeyboardEvent<HTMLInputElement>, index: number) => {
+      if (e.key === 'Backspace' && !otp[index] && index > 0) {
+        inputRefs.current[index - 1]?.focus();
+      }
+      if (e.key === 'ArrowLeft' && index > 0) {
+        inputRefs.current[index - 1]?.focus();
+      }
+      if (e.key === 'ArrowRight' && index < OTP_LENGTH - 1) {
+        inputRefs.current[index + 1]?.focus();
+      }
+    },
+    [otp]
+  );
+
+  // --------------------------------------------------------
+  // Handle Paste Event - Works from any input position
+  // --------------------------------------------------------
+  const handlePaste = useCallback(
+    (e: ClipboardEvent<HTMLInputElement>, index: number) => {
+      e.preventDefault();
+      // קבלת הטקסט מהלוח
+      const pastedData = e.clipboardData.getData('text');
+      // ניקוי תווים שאינם מספרים
+      const pastedNumbers = pastedData.replace(/\D/g, '').split('');
+
+      if (pastedNumbers.length === 0) return;
+
+      const newOtp = [...otp];
+      let nextIndex = index;
+
+      // מילוי המערך החל מהאינדקס הנוכחי
+      for (let i = 0; i < pastedNumbers.length; i++) {
+        if (nextIndex >= OTP_LENGTH) break;
+        newOtp[nextIndex] = pastedNumbers[i];
+        nextIndex++;
+      }
+
+      setOtp(newOtp);
+      setApiError(null);
+
+      // העברת הפוקוס לשדה האחרון שמולא או לשדה הבא
+      const focusIndex = Math.min(nextIndex, OTP_LENGTH - 1);
+      if (inputRefs.current[focusIndex]) {
+        inputRefs.current[focusIndex]?.focus();
+      }
+    },
+    [otp]
+  );
+  // --------------------------------------------------------
 
   const handleFormSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -139,6 +197,8 @@ const EmailVerificationCodeStep: React.FC<EmailVerificationCodeStepProps> = ({
     visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
   };
 
+  const disableForm = isLoading || isResending;
+
   return (
     <motion.div
       className="space-y-6 text-center"
@@ -185,30 +245,79 @@ const EmailVerificationCodeStep: React.FC<EmailVerificationCodeStepProps> = ({
       <form onSubmit={handleFormSubmit}>
         <motion.div
           variants={itemVariants}
-          className="flex justify-center space-x-2 rtl:space-x-reverse"
+          className="flex justify-center gap-2 md:gap-3"
           dir="ltr"
         >
           {otp.map((digit, index) => (
-            <Input
+            <motion.div
               key={index}
-              type="text"
-              maxLength={1}
-              value={digit}
-              onChange={(e) =>
-                handleChange(e.target as HTMLInputElement, index)
-              }
-              onKeyDown={(e) =>
-                handleKeyDown(e as KeyboardEvent<HTMLInputElement>, index)
-              }
-              ref={(el) => {
-                inputRefs.current[index] = el;
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.3, delay: index * 0.05 }}
+              whileHover={{ scale: disableForm ? 1 : 1.05 }}
+            >
+              <Input
+                type="text"
+                maxLength={1}
+                value={digit}
+                onChange={(e) =>
+                  handleChange(e.target as HTMLInputElement, index)
+                }
+                onKeyDown={(e) =>
+                  handleKeyDown(e as KeyboardEvent<HTMLInputElement>, index)
+                }
+                // ▼▼▼ Paste Handler Connected to ALL inputs ▼▼▼
+                onPaste={(e) =>
+                  handlePaste(e as ClipboardEvent<HTMLInputElement>, index)
+                }
+                // ▲▲▲
+                onFocus={() => setFocusedIndex(index)}
+                onBlur={() => setFocusedIndex(null)}
+                ref={(el) => {
+                  inputRefs.current[index] = el;
+                }}
+                // UPDATED: Input Focus (Teal) with improved styling
+                className={`
+                  w-12 h-14 md:w-14 md:h-16 
+                  text-center text-xl md:text-2xl font-semibold 
+                  border-2 rounded-xl
+                  transition-all duration-300
+                  shadow-md
+                  ${
+                    focusedIndex === index
+                      ? 'border-teal-500 ring-4 ring-teal-200 scale-105 bg-white'
+                      : digit
+                        ? 'border-teal-400 bg-teal-50'
+                        : 'border-gray-200 bg-white/50 hover:border-teal-300'
+                  }
+                  ${disableForm ? 'opacity-50 cursor-not-allowed' : ''}
+                `}
+                disabled={disableForm}
+                aria-label={`OTP digit ${index + 1}`}
+                autoComplete="one-time-code"
+                inputMode="numeric"
+              />
+            </motion.div>
+          ))}
+        </motion.div>
+
+        {/* Progress Indicator (like phone verification) */}
+        <motion.div
+          variants={itemVariants}
+          className="flex justify-center items-center gap-2 mt-4"
+        >
+          {otp.map((digit, index) => (
+            <motion.div
+              key={index}
+              className={`h-1.5 rounded-full transition-all duration-300 ${
+                digit
+                  ? 'bg-gradient-to-r from-teal-500 to-orange-500 w-8'
+                  : 'bg-gray-200 w-4'
+              }`}
+              animate={{
+                scale: digit ? [1, 1.2, 1] : 1,
               }}
-              // UPDATED: Input Focus (Teal)
-              className="w-12 h-14 text-center text-xl font-semibold border-2 border-gray-200 focus:border-teal-500 focus:ring-4 focus:ring-teal-500/10 rounded-xl"
-              disabled={isLoading || isResending}
-              aria-label={`OTP digit ${index + 1}`}
-              autoComplete="one-time-code"
-              inputMode="numeric"
+              transition={{ duration: 0.3 }}
             />
           ))}
         </motion.div>
@@ -216,11 +325,9 @@ const EmailVerificationCodeStep: React.FC<EmailVerificationCodeStepProps> = ({
         <motion.div variants={itemVariants} className="mt-6">
           <Button
             type="submit"
-            disabled={
-              isLoading || isResending || otp.join('').length !== OTP_LENGTH
-            }
+            disabled={disableForm || otp.join('').length !== OTP_LENGTH}
             // UPDATED: Main Button Gradient (Teal -> Orange -> Amber)
-            className="w-full py-6 text-lg bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 hover:from-teal-600 hover:via-orange-600 hover:to-amber-600 shadow-lg transition-all"
+            className="w-full py-6 text-lg bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 hover:from-teal-600 hover:via-orange-600 hover:to-amber-600 shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isLoading ? (
               <>
@@ -243,7 +350,7 @@ const EmailVerificationCodeStep: React.FC<EmailVerificationCodeStepProps> = ({
           type="button"
           variant="link"
           onClick={handleResendCode}
-          disabled={isLoading || isResending}
+          disabled={disableForm}
           // UPDATED: Link Color (Teal)
           className="p-0 h-auto text-teal-600 hover:text-teal-700 font-semibold"
         >
@@ -263,7 +370,7 @@ const EmailVerificationCodeStep: React.FC<EmailVerificationCodeStepProps> = ({
           type="button"
           onClick={goBackToBasicInfo}
           variant="outline"
-          disabled={isLoading || isResending}
+          disabled={disableForm}
           className="hover:bg-gray-50 border-gray-200"
         >
           <ArrowRight

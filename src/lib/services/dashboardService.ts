@@ -444,9 +444,10 @@ async function getRecentActivity(limit: number = 10): Promise<RecentActivity[]> 
   return activities.slice(0, limit);
 }
 
+// ✅ אחרי - מתוקן
 async function getLastScanInfo(): Promise<DashboardData['lastScan']> {
   const lastScan = await prisma.scanSession.findFirst({
-    where: { status: 'completed' },
+    where: { status: 'COMPLETED' },  // ← תוקן לאותיות גדולות
     orderBy: { completedAt: 'desc' },
   });
 
