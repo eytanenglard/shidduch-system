@@ -74,6 +74,7 @@ virtualProfiles       VirtualProfile[]    @relation("MatchmakerVirtualProfiles")
  hiddenByMatchmakers   HiddenCandidate[] @relation("HiddenCandidates")
   hiddenCandidates      HiddenCandidate[] @relation("HiddenByMatchmaker")
   alerts      UserAlert[]
+  scanSessions              ScanSession[]  // ← הוסף שורה זו
 
   @@index([email])
   @@index([role])
@@ -1348,10 +1349,16 @@ model RejectionFeedback {
   @@index([createdAt])
 }
 
-
+enum ScanSessionStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  FAILED
+  CANCELLED
+}
 model ScanSession {
   id                    String    @id @default(cuid())
-  matchmakerId         String     
+  matchmakerId         String?     
   // סוג הסריקה
   scanType              String                        // nightly/hourly/manual/user_triggered
     progressData         Json?             // לשמירת מצב הסריקה
@@ -1364,7 +1371,7 @@ model ScanSession {
   matchesFound          Int       @default(0)
   newMatches            Int       @default(0)
   updatedMatches        Int       @default(0)
-    matchmaker           User              @relation(fields: [matchmakerId], references: [id])
+    matchmaker           User?              @relation(fields: [matchmakerId], references: [id])
 
   // פילטרים שהופעלו
   pairsSkippedByAge     Int       @default(0)
@@ -1385,7 +1392,7 @@ model ScanSession {
    currentUserName       String?   // שם המשתמש הנוכחי (לתצוגה)
 
   // סטטוס
-  status                String    @default("running") // running/completed/failed/partial
+  status                ScanSessionStatus   @default(PENDING)  // ← שינוי מ-String
   error                 String?   @db.Text
   
   // Timestamps

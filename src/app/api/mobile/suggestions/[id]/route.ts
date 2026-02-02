@@ -5,6 +5,19 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { verifyMobileToken } from "@/lib/mobile-auth";
 
+// פונקציה לחישוב גיל
+function calculateAge(birthDate: Date | null | undefined): number | null {
+  if (!birthDate) return null;
+  const today = new Date();
+  const birth = new Date(birthDate);
+  let age = today.getFullYear() - birth.getFullYear();
+  const monthDiff = today.getMonth() - birth.getMonth();
+  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+    age--;
+  }
+  return age;
+}
+
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -21,7 +34,6 @@ export async function GET(
     }
 
     const userId = auth.userId;
-    // In Next.js 15, params must be awaited
     const { id } = await params;
     const suggestionId = id;
 
@@ -44,14 +56,16 @@ export async function GET(
             phone: true,
             profile: {
               select: {
-                age: true,
+                birthDate: true,  // ✅ שונה מ-age
                 city: true,
                 occupation: true,
                 height: true,
                 about: true,
                 education: true,
                 religiousLevel: true,
-                familyBackground: true,
+                // familyBackground לא קיים ב-schema - הסרתי
+                parentStatus: true,  // ✅ במקום familyBackground
+                origin: true,        // ✅ אפשרות נוספת
               }
             },
             images: {
@@ -72,14 +86,15 @@ export async function GET(
             phone: true,
             profile: {
               select: {
-                age: true,
+                birthDate: true,  // ✅ שונה מ-age
                 city: true,
                 occupation: true,
                 height: true,
                 about: true,
                 education: true,
                 religiousLevel: true,
-                familyBackground: true,
+                parentStatus: true,
+                origin: true,
               }
             },
             images: {
@@ -140,7 +155,6 @@ export async function GET(
       matchmaker: {
         firstName: suggestion.matchmaker.firstName,
         lastName: suggestion.matchmaker.lastName,
-        // הצג טלפון של שדכן תמיד
         phone: suggestion.matchmaker.phone,
       },
       createdAt: suggestion.createdAt,
@@ -152,14 +166,15 @@ export async function GET(
         id: otherParty.id,
         firstName: otherParty.firstName,
         lastName: otherParty.lastName,
-        age: otherParty.profile?.age,
+        age: calculateAge(otherParty.profile?.birthDate),  // ✅ חישוב גיל
         city: otherParty.profile?.city,
         occupation: otherParty.profile?.occupation,
         height: otherParty.profile?.height,
         about: otherParty.profile?.about,
         education: otherParty.profile?.education,
         religiousLevel: otherParty.profile?.religiousLevel,
-        familyBackground: otherParty.profile?.familyBackground,
+        parentStatus: otherParty.profile?.parentStatus,  // ✅ תיקון
+        origin: otherParty.profile?.origin,
         images: otherParty.images,
         // פרטי קשר רק אם משותפים
         ...(showContactDetails && {
