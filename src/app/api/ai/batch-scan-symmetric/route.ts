@@ -34,7 +34,7 @@ export const maxDuration = 300; // 5 minutes
 interface ActiveScan {
   scanId: string;
   scanSessionId: string;
-  status: 'running' | 'completed' | 'failed' | 'cancelled';
+  status: 'RUNNING' | 'COMPLETED' | 'FAILED' | 'CANCELLED';
   progress: ScanProgress;
   result?: SymmetricScanResult;
   startedAt: Date;
@@ -42,7 +42,7 @@ interface ActiveScan {
 }
 
 export interface BatchScanProgress {
-  status: 'idle' | 'running' | 'completed' | 'failed' | 'cancelled';
+  status: 'IDLE' | 'RUNNING' | 'COMPLETED' | 'FAILED' | 'CANCELLED';
   scanId: string | null;
   progress: {
     phase: string;
@@ -79,7 +79,7 @@ setInterval(() => {
   
   for (const [scanId, scan] of activeScans.entries()) {
     if (now - scan.startedAt.getTime() > TEN_MINUTES && 
-        (scan.status === 'completed' || scan.status === 'failed' || scan.status === 'cancelled')) {
+        (scan.status === 'COMPLETED' || scan.status === 'FAILED' || scan.status === 'CANCELLED')) {
       activeScans.delete(scanId);
       console.log(`[BatchScan] 🧹 Cleaned up old scan: ${scanId}`);
     }
@@ -116,7 +116,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     console.log(`${'='.repeat(60)}\n`);
 
     // Check if a scan is already running
-    const runningScan = Array.from(activeScans.values()).find(s => s.status === 'running');
+    const runningScan = Array.from(activeScans.values()).find(s => s.status === 'RUNNING');
     if (runningScan && action !== 'cancel') {
       return NextResponse.json({
         success: false,
@@ -134,7 +134,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         const scanIdToCancel = body.scanId;
         if (scanIdToCancel && activeScans.has(scanIdToCancel)) {
           const scan = activeScans.get(scanIdToCancel)!;
-          scan.status = 'cancelled';
+          scan.status = 'CANCELLED';
           scan.progress.phase = 'failed';
           scan.progress.message = 'הסריקה בוטלה על ידי המשתמש';
           
@@ -142,7 +142,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
           if (scan.scanSessionId) {
             await prisma.scanSession.update({
               where: { id: scan.scanSessionId },
-              data: { status: 'cancelled' }
+              data: { status: 'CANCELLED' }
             }).catch(() => {});
           }
           
@@ -265,23 +265,23 @@ export async function GET(req: NextRequest): Promise<NextResponse | Response> {
 
         if (dbSession) {
           return NextResponse.json({
-            status: dbSession.status === 'completed' ? 'completed' : 
-                   dbSession.status === 'failed' ? 'failed' : 
-                   dbSession.status === 'cancelled' ? 'cancelled' : 'idle',
+            status: dbSession.status === 'COMPLETED' ? 'COMPLETED' : 
+                   dbSession.status === 'FAILED' ? 'FAILED' : 
+                   dbSession.status === 'CANCELLED' ? 'CANCELLED' : 'IDLE',
             scanId,
             progress: {
               phase: dbSession.status,
               currentUserIndex: dbSession.totalUsersScanned || 0,
               totalUsers: dbSession.totalUsersScanned || 0,
-              progressPercent: dbSession.status === 'completed' ? 100 : 0,
+              progressPercent: dbSession.status === 'COMPLETED' ? 100 : 0,
               pairsEvaluated: dbSession.pairsEvaluated || 0,
               pairsPassedQuickFilter: 0,
               pairsPassedVectorFilter: 0,
               pairsSentToAi: 0,
               matchesFoundSoFar: dbSession.matchesFound || 0,
-              message: dbSession.status === 'completed' ? 'הושלם' : dbSession.error || '',
+              message: dbSession.status === 'COMPLETED' ? 'הושלם' : dbSession.error || '',
             },
-            result: dbSession.status === 'completed' ? {
+            result: dbSession.status === 'COMPLETED' ? {
               matchesFound: dbSession.matchesFound || 0,
               newMatches: dbSession.newMatches || 0,
               updatedMatches: dbSession.updatedMatches || 0,
@@ -292,7 +292,7 @@ export async function GET(req: NextRequest): Promise<NextResponse | Response> {
         }
 
         return NextResponse.json({
-          status: 'idle',
+          status: 'IDLE',
           scanId: null,
           progress: {
             phase: 'idle',
@@ -345,11 +345,11 @@ export async function GET(req: NextRequest): Promise<NextResponse | Response> {
     // ==========================================================================
     // No scanId - Return overall status
     // ==========================================================================
-    const runningScan = Array.from(activeScans.values()).find(s => s.status === 'running');
+    const runningScan = Array.from(activeScans.values()).find(s => s.status === 'RUNNING');
     
     if (runningScan) {
       return NextResponse.json({
-        status: 'running',
+        status: 'RUNNING',
         scanId: runningScan.scanId,
         progress: {
           phase: runningScan.progress.phase,
@@ -369,12 +369,12 @@ export async function GET(req: NextRequest): Promise<NextResponse | Response> {
 
     // Get last completed scan from DB
     const lastScan = await prisma.scanSession.findFirst({
-      where: { status: 'completed' },
+      where: { status: 'COMPLETED' },
       orderBy: { completedAt: 'desc' }
     });
 
     return NextResponse.json({
-      status: 'idle',
+      status: 'IDLE',
       scanId: null,
       progress: {
         phase: 'idle',
@@ -444,9 +444,9 @@ function createSSEStream(scanId: string): Response {
         });
 
         // Close stream when done
-        if (currentScan.status === 'completed' || 
-            currentScan.status === 'failed' || 
-            currentScan.status === 'cancelled') {
+        if (currentScan.status === 'COMPLETED' || 
+            currentScan.status === 'FAILED' || 
+            currentScan.status === 'CANCELLED') {
           
           if (currentScan.result) {
             sendEvent({
@@ -519,7 +519,7 @@ async function runScanInBackground(
   const activeScan: ActiveScan = {
     scanId,
     scanSessionId: '',
-    status: 'running',
+    status: 'RUNNING',
     progress: initialProgress,
     startedAt: new Date(),
   };
@@ -532,7 +532,7 @@ async function runScanInBackground(
     // Progress callback
     const onProgress = async (progress: ScanProgress) => {
       const scan = activeScans.get(scanId);
-      if (scan && scan.status !== 'cancelled') {
+      if (scan && scan.status !== 'CANCELLED') {
         scan.progress = progress;
       }
     };
@@ -540,7 +540,7 @@ async function runScanInBackground(
     let result: SymmetricScanResult;
 
     switch (scanType) {
-   case 'single': { // 👈 הוספת סוגריים מסולסלים כאן
+      case 'single': { 
         if (!options.userId) throw new Error('userId required for single scan');
         const singleResult = await scanSingleUser(options.userId);
         result = {
@@ -564,7 +564,8 @@ async function runScanInBackground(
           topMatches: [],
         };
         break;
-      } // 👈 סגירת סוגריים מסולסלים כאן
+      } 
+      
       case 'new_users':
         result = await scanNewUsers();
         break;
@@ -593,7 +594,7 @@ async function runScanInBackground(
     // Update active scan with result
     const scan = activeScans.get(scanId);
     if (scan) {
-      scan.status = result.success ? 'completed' : 'failed';
+      scan.status = result.success ? 'COMPLETED' : 'FAILED';
       scan.result = result;
       scan.scanSessionId = result.scanSessionId;
       scan.progress = {
@@ -623,7 +624,7 @@ async function runScanInBackground(
     
     const scan = activeScans.get(scanId);
     if (scan) {
-      scan.status = 'failed';
+      scan.status = 'FAILED';
       scan.error = error instanceof Error ? error.message : 'Unknown error';
       scan.progress.phase = 'failed';
       scan.progress.message = `שגיאה: ${scan.error}`;
