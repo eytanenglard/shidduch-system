@@ -1351,10 +1351,11 @@ model RejectionFeedback {
 
 model ScanSession {
   id                    String    @id @default(cuid())
-  
+  matchmakerId         String     
   // סוג הסריקה
   scanType              String                        // nightly/hourly/manual/user_triggered
-  
+    progressData         Json?             // לשמירת מצב הסריקה
+
   // סטטיסטיקות
   totalUsersScanned     Int       @default(0)
   malesScanned          Int       @default(0)
@@ -1363,7 +1364,8 @@ model ScanSession {
   matchesFound          Int       @default(0)
   newMatches            Int       @default(0)
   updatedMatches        Int       @default(0)
-  
+    matchmaker           User              @relation(fields: [matchmakerId], references: [id])
+
   // פילטרים שהופעלו
   pairsSkippedByAge     Int       @default(0)
   pairsSkippedByReligion Int      @default(0)
@@ -1393,6 +1395,8 @@ model ScanSession {
   @@index([scanType])
   @@index([status])
   @@index([startedAt])
+    @@index([matchmakerId, status])
+
 }
 
 model VectorSimilarityCache {

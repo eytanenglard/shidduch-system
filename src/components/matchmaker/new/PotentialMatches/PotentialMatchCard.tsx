@@ -762,7 +762,7 @@ const PotentialMatchCard: React.FC<PotentialMatchCardProps> = ({
 }) => {
   const [showDetails, setShowDetails] = useState(false);
   const [showReasoningDialog, setShowReasoningDialog] = useState(false);
-const [showAllReasonings, setShowAllReasonings] = useState(false);
+  const [showAllReasonings, setShowAllReasonings] = useState(false);
 
   const rejectionFeedback = useRejectionFeedback();
 
@@ -951,49 +951,55 @@ const [showAllReasonings, setShowAllReasonings] = useState(false);
               />
             </div>
 
-        {/* Reasoning Preview */}
-{match.shortReasoning && (
-  <div
-    className="p-3 rounded-lg bg-gradient-to-br from-purple-50/80 to-indigo-50/80 backdrop-blur-sm cursor-pointer hover:from-purple-100/90 hover:to-indigo-100/90 transition-all duration-200 border border-purple-100 shadow-sm"
-    onClick={() => setShowAllReasonings(true)}  // 🆕 שינוי כאן
-  >
-    <div className="flex items-start gap-2.5">
-      <div className="p-1.5 rounded-lg bg-purple-100">
-        <Brain className="w-4 h-4 text-purple-600" />
-      </div>
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center justify-between mb-1">
-          <p className="text-xs font-medium text-purple-700">
-            נימוק AI להתאמה
-          </p>
-          {/* 🆕 הצגת כמה שיטות זמינות */}
-          <Badge variant="outline" className="text-[10px] bg-white/50">
-            {[
-              match.hybridReasoning,
-              match.algorithmicReasoning,
-              match.vectorReasoning,
-              match.metricsV2Reasoning,
-            ].filter(Boolean).length} שיטות
-          </Badge>
-        </div>
-        <p className="text-sm text-gray-700 line-clamp-3 leading-relaxed">
-          {match.shortReasoning}
-        </p>
-        <p className="text-xs text-purple-500 mt-1.5 flex items-center gap-1">
-          <span>לחץ לצפייה בכל הנימוקים</span>
-          <ChevronDown className="w-3 h-3" />
-        </p>
-      </div>
-    </div>
-  </div>
-)}
+            {/* Reasoning Preview */}
+            {match.shortReasoning && (
+              <div
+                className="p-3 rounded-lg bg-gradient-to-br from-purple-50/80 to-indigo-50/80 backdrop-blur-sm cursor-pointer hover:from-purple-100/90 hover:to-indigo-100/90 transition-all duration-200 border border-purple-100 shadow-sm"
+                onClick={() => setShowAllReasonings(true)} // 🆕 שינוי כאן
+              >
+                <div className="flex items-start gap-2.5">
+                  <div className="p-1.5 rounded-lg bg-purple-100">
+                    <Brain className="w-4 h-4 text-purple-600" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between mb-1">
+                      <p className="text-xs font-medium text-purple-700">
+                        נימוק AI להתאמה
+                      </p>
+                      {/* 🆕 הצגת כמה שיטות זמינות */}
+                      <Badge
+                        variant="outline"
+                        className="text-[10px] bg-white/50"
+                      >
+                        {
+                          [
+                            match.hybridReasoning,
+                            match.algorithmicReasoning,
+                            match.vectorReasoning,
+                            match.metricsV2Reasoning,
+                          ].filter(Boolean).length
+                        }{' '}
+                        שיטות
+                      </Badge>
+                    </div>
+                    <p className="text-sm text-gray-700 line-clamp-3 leading-relaxed">
+                      {match.shortReasoning}
+                    </p>
+                    <p className="text-xs text-purple-500 mt-1.5 flex items-center gap-1">
+                      <span>לחץ לצפייה בכל הנימוקים</span>
+                      <ChevronDown className="w-3 h-3" />
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
 
-{/* 🆕 All Reasonings Dialog */}
-<AllReasoningsDisplay
-  match={match}
-  isOpen={showAllReasonings}
-  onClose={() => setShowAllReasonings(false)}
-/>
+            {/* 🆕 All Reasonings Dialog */}
+            <AllReasoningsDisplay
+              match={match}
+              isOpen={showAllReasonings}
+              onClose={() => setShowAllReasonings(false)}
+            />
 
             {/* Footer: Date & Details Toggle */}
             <div className="flex items-center justify-between mt-3 pt-2">

@@ -1,4 +1,5 @@
 // src/components/matchmaker/new/PotentialMatches/hooks/usePotentialMatches.ts
+// 🆕 V2.3: Added active scan detection on page load
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { toast } from 'sonner';
@@ -7,7 +8,6 @@ import { toast } from 'sonner';
 // TYPES
 // =============================================================================
 
-// --- Data Types ---
 export interface PotentialMatch {
   id: string;
   maleUserId: string;
@@ -19,7 +19,6 @@ export interface PotentialMatch {
   status: 'PENDING' | 'REVIEWED' | 'SHORTLISTED' | 'SENT' | 'DECLINED';
   scannedAt: Date;
   hasWarning?: boolean;
-  // Expanded user objects
   male: {
     id: string;
     firstName: string;
@@ -51,12 +50,11 @@ export interface LastScanInfo {
   durationMs: number;
 }
 
-// --- Filter & Pagination Types ---
 export type PotentialMatchSortBy = 'score_desc' | 'score_asc' | 'date_desc' | 'date_asc';
 
 export interface PotentialMatchFilters {
   searchTerm?: string;
-  status: string; // 'pending' | 'reviewed' | ...
+  status: string;
   minScore: number;
   maxScore: number;
   religiousLevel: string | null;
@@ -64,33 +62,38 @@ export interface PotentialMatchFilters {
   hasWarning: boolean | null;
   scannedAfter: Date | null;
   sortBy: PotentialMatchSortBy;
-   gender?: 'MALE' | 'FEMALE' | null;  // סינון לפי מגדר
-  maleAgeRange?: { min: number; max: number };  // טווח גיל לגברים
-  femaleAgeRange?: { min: number; max: number }; // טווח גיל לנשים
-  maleReligiousLevel?: string[];  // רמה דתית לגברים
-  femaleReligiousLevel?: string[];  // רמה דתית לנשים
-    scanMethod: null, 
-
+  gender?: 'MALE' | 'FEMALE' | null;
+  maleAgeRange?: { min: number; max: number };
+  femaleAgeRange?: { min: number; max: number };
+  maleReligiousLevel?: string[];
+  femaleReligiousLevel?: string[];
+  scanMethod: string | null;
 }
 
-// --- Scan Types (V3) ---
 export interface ScanProgress {
   phase: string;
-    method?: 'hybrid' | 'algorithmic' | 'vector' | 'metrics_v2'; // 🆕
-
+  method?: 'hybrid' | 'algorithmic' | 'vector' | 'metrics_v2';
   currentUserIndex: number;
   totalUsers: number;
   currentUserName?: string;
   progressPercent: number;
-  // Detailed stats
   pairsEvaluated: number;
   pairsPassedQuickFilter: number;
   pairsPassedVectorFilter: number;
   pairsSentToAi: number;
   matchesFoundSoFar: number;
-  // System
+  // 🆕 V2.3: New fields
+  newMatchesFoundSoFar?: number;
+  usersScanned?: number;
+  preparationStats?: {
+    totalNeedingUpdate: number;
+    currentIndex: number;
+    currentUserName: string;
+    updated: number;
+    failed: number;
+  };
   scanId: string;
-  status: 'running' | 'completed' | 'failed' | 'partial';
+  status: 'running' | 'completed' | 'failed' | 'partial' | 'cancelled' | 'resuming';
   message?: string;
   error?: string | null;
 }
@@ -105,58 +108,40 @@ export interface ScanResult {
 interface ScanOptions {
   useStreaming?: boolean;
   action?: 'full_scan' | 'scan_new_users' | 'scan_single';
-  method?: 'hybrid' | 'algorithmic' | 'vector' | 'metrics_v2'; // 🆕
+  method?: 'hybrid' | 'algorithmic' | 'vector' | 'metrics_v2';
   forceRefresh?: boolean;
   incremental?: boolean;
   userId?: string;
   userIds?: string[];
-    skipPreparation?: boolean; // <--- הוספנו את השדה הזה
-
+  skipPreparation?: boolean;
 }
 
-
-// --- Hook Return Interface ---
 interface UsePotentialMatchesReturn {
-  // Data
   matches: PotentialMatch[];
   stats: PotentialMatchesStats | null;
   lastScanInfo: LastScanInfo | null;
-  
-  // Pagination
   pagination: {
     total: number;
     page: number;
     pageSize: number;
     totalPages: number;
   };
-
-  // Loading States
   isLoading: boolean;
   isRefreshing: boolean;
   isActioning: boolean;
-  
-  // Scan States (Enhanced)
   isScanning: boolean;
   scanProgress: ScanProgress | null;
   scanResult: ScanResult | null;
-  
-  // Filters
   filters: PotentialMatchFilters;
   setFilters: (filters: Partial<PotentialMatchFilters>) => void;
   resetFilters: () => void;
-
-  // Pagination Controls
   setPage: (page: number) => void;
   setPageSize: (size: number) => void;
-
-  // Actions
   refresh: () => Promise<void>;
   reviewMatch: (matchId: string) => Promise<boolean>;
   dismissMatch: (matchId: string, reason?: string) => Promise<boolean>;
   restoreMatch: (matchId: string) => Promise<boolean>;
   saveMatch: (matchId: string) => Promise<boolean>;
-  
-  // ✅ UPDATED SIGNATURE
   createSuggestion: (matchId: string, data?: {
     priority?: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
     firstPartyNotes?: string;
@@ -165,35 +150,29 @@ interface UsePotentialMatchesReturn {
     suppressNotifications?: boolean;
     swapParties?: boolean;
   }) => Promise<string | null>;
-
-  // Bulk Actions
   bulkDismiss: (matchIds: string[], reason?: string) => Promise<number>;
   bulkReview: (matchIds: string[]) => Promise<number>;
   bulkRestore: (matchIds: string[]) => Promise<number>;
-
-bulkCreateSuggestions: (matchIds: string[], options?: {
-  priority?: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
-  suppressNotifications?: boolean;
-}) => Promise<{ success: number; failed: number; suggestionIds: string[] }>;
-
-  // Scan Controls
+  bulkCreateSuggestions: (matchIds: string[], options?: {
+    priority?: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
+    suppressNotifications?: boolean;
+  }) => Promise<{ success: number; failed: number; suggestionIds: string[] }>;
   startScan: (options?: ScanOptions) => Promise<string | null>;
   cancelScan: () => Promise<boolean>;
-
-  // Selection
   selectedMatchIds: string[];
   toggleSelection: (matchId: string) => void;
   selectAll: () => void;
   clearSelection: () => void;
   isSelected: (matchId: string) => boolean;
-
-  // Error
   error: string | null;
+  // 🆕 V2.3: New property to indicate if we're reconnecting to an existing scan
+  isReconnecting: boolean;
 }
 
 // =============================================================================
 // CONSTANTS & DEFAULTS
 // =============================================================================
+
 const API_BASE_SCAN = '/api/ai/batch-scan-all';
 const API_BASE_MATCHES = '/api/matchmaker/potential-matches';
 const POLLING_INTERVAL = 3000;
@@ -207,9 +186,8 @@ const DEFAULT_FILTERS: PotentialMatchFilters = {
   hasWarning: null,
   scannedAfter: null,
   sortBy: 'score_desc',
-   gender: null,
-     scanMethod: null, 
-
+  gender: null,
+  scanMethod: null,
   maleAgeRange: undefined,
   femaleAgeRange: undefined,
   maleReligiousLevel: [],
@@ -226,6 +204,7 @@ const DEFAULT_PAGINATION = {
 // =============================================================================
 // HOOK IMPLEMENTATION
 // =============================================================================
+
 export function usePotentialMatches(options: {
   initialFilters?: Partial<PotentialMatchFilters>;
   autoRefresh?: boolean;
@@ -254,23 +233,25 @@ export function usePotentialMatches(options: {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isActioning, setIsActioning] = useState(false);
 
-  // --- State: Scanning (V3 Enhanced) ---
+  // --- State: Scanning ---
   const [isScanning, setIsScanning] = useState(false);
   const [scanProgress, setScanProgress] = useState<ScanProgress | null>(null);
   const [scanResult, setScanResult] = useState<ScanResult | null>(null);
   const [activeScanId, setActiveScanId] = useState<string | null>(null);
+  
+  // 🆕 V2.3: State for reconnection
+  const [isReconnecting, setIsReconnecting] = useState(false);
+  const [hasCheckedForActiveScan, setHasCheckedForActiveScan] = useState(false);
 
   // --- Refs ---
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const eventSourceRef = useRef<EventSource | null>(null);
   const lastFiltersRef = useRef<PotentialMatchFilters>(filters);
 
-  // Update ref when filters change
   useEffect(() => {
     lastFiltersRef.current = filters;
   }, [filters]);
 
-  // Cleanup on unmount
   useEffect(() => {
     return () => {
       if (pollingIntervalRef.current) clearInterval(pollingIntervalRef.current);
@@ -279,8 +260,73 @@ export function usePotentialMatches(options: {
   }, []);
 
   // ==========================================================================
+  // 🆕 V2.3: CHECK FOR ACTIVE SCAN ON PAGE LOAD
+  // ==========================================================================
+  
+  const checkForActiveScan = useCallback(async () => {
+    if (hasCheckedForActiveScan) return;
+    
+    try {
+      setIsReconnecting(true);
+      console.log('[usePotentialMatches] Checking for active scan...');
+      
+      const response = await fetch(`${API_BASE_SCAN}?checkActive=true`);
+      const data = await response.json();
+      
+      if (data.success && data.hasActiveScan && data.scan) {
+        console.log('[usePotentialMatches] Found active scan:', data.scan.id);
+        
+        // Set scanning state
+        setIsScanning(true);
+        setActiveScanId(data.scan.id);
+        
+        // Update progress from existing scan
+        setScanProgress({
+          phase: data.scan.phase || 'scanning',
+          method: data.scan.method,
+          currentUserIndex: data.scan.currentUserIndex || 0,
+          totalUsers: data.scan.totalUsers || 0,
+          currentUserName: data.scan.currentUserName,
+          progressPercent: data.scan.progressPercent || 0,
+          pairsEvaluated: data.scan.usersScanned || 0,
+          pairsPassedQuickFilter: 0,
+          pairsPassedVectorFilter: 0,
+          pairsSentToAi: 0,
+          matchesFoundSoFar: data.scan.matchesFoundSoFar || 0,
+          newMatchesFoundSoFar: data.scan.newMatchesFoundSoFar || 0,
+          usersScanned: data.scan.usersScanned || 0,
+          preparationStats: data.scan.preparationStats,
+          scanId: data.scan.id,
+          status: 'running',
+          message: data.scan.message || 'מתחבר לסריקה פעילה...',
+        });
+        
+        // Start polling
+        startPolling(data.scan.id);
+        
+        toast.info('מתחבר לסריקה פעילה...', {
+          description: `נמצאה סריקה שרצה ברקע`,
+        });
+      } else {
+        console.log('[usePotentialMatches] No active scan found');
+      }
+    } catch (err) {
+      console.error('[usePotentialMatches] Error checking for active scan:', err);
+    } finally {
+      setIsReconnecting(false);
+      setHasCheckedForActiveScan(true);
+    }
+  }, [hasCheckedForActiveScan]);
+
+  // Check for active scan on mount
+  useEffect(() => {
+    checkForActiveScan();
+  }, [checkForActiveScan]);
+
+  // ==========================================================================
   // FETCH DATA
   // ==========================================================================
+  
   const fetchMatches = useCallback(async (showLoadingState = true) => {
     if (showLoadingState) setIsLoading(true);
     else setIsRefreshing(true);
@@ -292,20 +338,17 @@ export function usePotentialMatches(options: {
       params.set('page', String(pagination.page));
       params.set('pageSize', String(pagination.pageSize));
       
-      // Filter Mapping
       if (filters.searchTerm) params.set('searchTerm', filters.searchTerm);
       params.set('status', filters.status);
       params.set('minScore', String(filters.minScore));
       params.set('maxScore', String(filters.maxScore));
       params.set('sortBy', filters.sortBy);
-       if (filters.scanMethod) {
+      if (filters.scanMethod) {
         params.set('lastScanMethod', filters.scanMethod);
       }
-
       if (filters.hasWarning !== null) params.set('hasWarning', String(filters.hasWarning));
       if (filters.religiousLevel) params.set('religiousLevel', filters.religiousLevel);
       if (filters.city) params.set('city', filters.city);
-    // 🆕 NEW: Age range filters
       if (filters.maleAgeRange) {
         params.set('maleAgeMin', String(filters.maleAgeRange.min));
         params.set('maleAgeMax', String(filters.maleAgeRange.max));
@@ -314,14 +357,13 @@ export function usePotentialMatches(options: {
         params.set('femaleAgeMin', String(filters.femaleAgeRange.min));
         params.set('femaleAgeMax', String(filters.femaleAgeRange.max));
       }
-
-      // 🆕 NEW: Religious level filters (per gender)
       if (filters.maleReligiousLevel && filters.maleReligiousLevel.length > 0) {
         params.set('maleReligiousLevel', filters.maleReligiousLevel.join(','));
       }
       if (filters.femaleReligiousLevel && filters.femaleReligiousLevel.length > 0) {
         params.set('femaleReligiousLevel', filters.femaleReligiousLevel.join(','));
       }
+      
       const response = await fetch(`${API_BASE_MATCHES}?${params.toString()}`);
       const data = await response.json();
 
@@ -337,7 +379,6 @@ export function usePotentialMatches(options: {
     } catch (err) {
       const message = err instanceof Error ? err.message : 'שגיאה בטעינת ההתאמות';
       setError(message);
-      // Don't show toast for background refresh errors to avoid spam
       if (showLoadingState) toast.error(message);
     } finally {
       setIsLoading(false);
@@ -345,12 +386,10 @@ export function usePotentialMatches(options: {
     }
   }, [filters, pagination.page, pagination.pageSize]);
 
-  // Initial fetch
   useEffect(() => {
     fetchMatches(true);
   }, [fetchMatches]);
 
-  // Auto refresh
   useEffect(() => {
     if (!autoRefresh) return;
     const interval = setInterval(() => {
@@ -362,6 +401,7 @@ export function usePotentialMatches(options: {
   // ==========================================================================
   // FILTERS & PAGINATION
   // ==========================================================================
+  
   const setFilters = useCallback((newFilters: Partial<PotentialMatchFilters>) => {
     setFiltersState(prev => ({ ...prev, ...newFilters }));
     setPagination(prev => ({ ...prev, page: 1 }));
@@ -383,6 +423,7 @@ export function usePotentialMatches(options: {
   // ==========================================================================
   // SINGLE ACTIONS
   // ==========================================================================
+  
   const performAction = useCallback(async (
     matchId: string,
     action: string,
@@ -400,7 +441,6 @@ export function usePotentialMatches(options: {
 
       if (!data.success) throw new Error(data.error || 'Action failed');
 
-      // Optimistic Updates
       setMatches(prev => {
         if (action === 'dismiss') return prev.filter(m => m.id !== matchId);
         
@@ -417,7 +457,6 @@ export function usePotentialMatches(options: {
         return prev;
       });
 
-      // Update selection if item removed
       if (action === 'dismiss') {
         setSelectedMatchIds(prev => prev.filter(id => id !== matchId));
       }
@@ -489,6 +528,7 @@ export function usePotentialMatches(options: {
   // ==========================================================================
   // BULK ACTIONS
   // ==========================================================================
+  
   const performBulkAction = useCallback(async (
     matchIds: string[],
     action: 'dismiss' | 'review' | 'restore',
@@ -521,7 +561,8 @@ export function usePotentialMatches(options: {
   const bulkDismiss = (ids: string[], reason?: string) => performBulkAction(ids, 'dismiss', reason).then(c => { if(c) toast.success(`${c} התאמות נדחו`); return c; });
   const bulkReview = (ids: string[]) => performBulkAction(ids, 'review').then(c => { if(c) toast.success(`${c} התאמות סומנו`); return c; });
   const bulkRestore = (ids: string[]) => performBulkAction(ids, 'restore').then(c => { if(c) toast.success(`${c} התאמות שוחזרו`); return c; });
-const bulkCreateSuggestions = useCallback(async (
+
+  const bulkCreateSuggestions = useCallback(async (
     matchIds: string[],
     options?: {
       priority?: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
@@ -536,7 +577,6 @@ const bulkCreateSuggestions = useCallback(async (
     const results = { success: 0, failed: 0, suggestionIds: [] as string[] };
 
     try {
-      // שליחה מקבילית עם הגבלה (לא יותר מ-5 במקביל)
       const chunkSize = 5;
       
       for (let i = 0; i < matchIds.length; i += chunkSize) {
@@ -563,12 +603,10 @@ const bulkCreateSuggestions = useCallback(async (
               return { success: true, matchId };
             } else {
               results.failed++;
-              console.error(`Failed to create suggestion for match ${matchId}:`, result.error);
               return { success: false, matchId, error: result.error };
             }
           } catch (err) {
             results.failed++;
-            console.error(`Error creating suggestion for match ${matchId}:`, err);
             return { success: false, matchId, error: err };
           }
         });
@@ -576,15 +614,12 @@ const bulkCreateSuggestions = useCallback(async (
         await Promise.all(promises);
       }
 
-      // עדכון הסטייט המקומי - סמן את ההתאמות כ-SENT
       setMatches(prev => prev.map(m => 
         matchIds.includes(m.id) ? { ...m, status: 'SENT' as const } : m
       ));
 
-      // ניקוי הבחירה
       setSelectedMatchIds([]);
 
-      // הודעה למשתמש
       if (results.success > 0) {
         toast.success(`נוצרו ${results.success} הצעות בהצלחה!`, {
           description: results.failed > 0 ? `${results.failed} נכשלו` : undefined,
@@ -593,7 +628,6 @@ const bulkCreateSuggestions = useCallback(async (
         toast.error(`כל ${results.failed} ההצעות נכשלו`);
       }
 
-      // רענון הרשימה
       await fetchMatches(false);
 
       return results;
@@ -608,7 +642,7 @@ const bulkCreateSuggestions = useCallback(async (
   }, [fetchMatches]);
 
   // ==========================================================================
-  // SCAN LOGIC - V3.0 (Streaming + Polling)
+  // SCAN LOGIC - 🆕 V2.3: With persistence support
   // ==========================================================================
   
   const updateScanState = useCallback((data: any) => {
@@ -616,15 +650,19 @@ const bulkCreateSuggestions = useCallback(async (
     
     setScanProgress({
       phase: data.phase || 'running',
+      method: data.method,
       currentUserIndex: data.currentUserIndex || 0,
       totalUsers: data.totalUsers || 0,
       currentUserName: data.currentUserName,
       progressPercent: data.progressPercent || 0,
-      pairsEvaluated: data.stats?.pairsEvaluated || data.candidatesScanned || 0,
+      pairsEvaluated: data.usersScanned || data.candidatesScanned || 0,
       pairsPassedQuickFilter: data.stats?.pairsPassedQuickFilter || 0,
       pairsPassedVectorFilter: data.stats?.pairsPassedVectorFilter || 0,
       pairsSentToAi: data.stats?.pairsSentToAi || 0,
-      matchesFoundSoFar: data.stats?.matchesFoundSoFar || data.matchesFound || 0,
+      matchesFoundSoFar: data.matchesFoundSoFar || data.stats?.matchesFoundSoFar || 0,
+      newMatchesFoundSoFar: data.newMatchesFoundSoFar || 0,
+      usersScanned: data.usersScanned || 0,
+      preparationStats: data.preparationStats,
       scanId: data.scanId || data.id,
       status: data.status || 'running',
       message: data.message,
@@ -648,7 +686,6 @@ const bulkCreateSuggestions = useCallback(async (
       duration: 5000,
     });
     
-    // Refresh list
     fetchMatches(false);
   }, [fetchMatches]);
 
@@ -663,17 +700,25 @@ const bulkCreateSuggestions = useCallback(async (
         if (data.success && data.scan) {
           updateScanState(data.scan);
           
-          if (['completed', 'failed', 'partial'].includes(data.scan.status)) {
-            if (data.scan.status === 'failed') {
-               setIsScanning(false);
-               toast.error(data.scan.error || 'הסריקה נכשלה');
+          if (['completed', 'failed', 'partial', 'cancelled'].includes(data.scan.status) ||
+              ['completed', 'failed', 'cancelled'].includes(data.scan.phase)) {
+            if (data.scan.status === 'failed' || data.scan.phase === 'failed') {
+              setIsScanning(false);
+              setActiveScanId(null);
+              if (pollingIntervalRef.current) clearInterval(pollingIntervalRef.current);
+              toast.error(data.scan.error || 'הסריקה נכשלה');
+            } else if (data.scan.status === 'cancelled' || data.scan.phase === 'cancelled') {
+              setIsScanning(false);
+              setActiveScanId(null);
+              if (pollingIntervalRef.current) clearInterval(pollingIntervalRef.current);
+              toast.info('הסריקה בוטלה');
             } else {
-               handleScanCompletion({
-                 matchesFound: data.scan.matchesFound,
-                 newMatches: data.scan.newMatches,
-                 updatedMatches: 0,
-                 durationMs: data.scan.durationMs
-               });
+              handleScanCompletion({
+                matchesFound: data.scan.matchesFoundSoFar || 0,
+                newMatches: data.scan.newMatchesFoundSoFar || 0,
+                updatedMatches: 0,
+                durationMs: 0
+              });
             }
           }
         }
@@ -717,82 +762,89 @@ const bulkCreateSuggestions = useCallback(async (
     };
   }, [updateScanState, handleScanCompletion, startPolling]);
 
-const getMethodLabel = (method: string): string => {
-  const labels: Record<string, string> = {
-    hybrid: 'היברידית',
-    algorithmic: 'AI מתקדם',
-    vector: 'דמיון מהיר',
-    metrics_v2: 'מדדים V2',
+  const getMethodLabel = (method: string): string => {
+    const labels: Record<string, string> = {
+      hybrid: 'היברידית',
+      algorithmic: 'AI מתקדם',
+      vector: 'דמיון מהיר',
+      metrics_v2: 'מדדים V2',
+    };
+    return labels[method] || method;
   };
-  return labels[method] || method;
-};
 
-const startScan = useCallback(async (opts: ScanOptions = {}): Promise<string | null> => {
-  if (isScanning) {
-    toast.warning('סריקה כבר רצה');
-    return activeScanId;
-  }
+  const startScan = useCallback(async (opts: ScanOptions = {}): Promise<string | null> => {
+    if (isScanning) {
+      toast.warning('סריקה כבר רצה');
+      return activeScanId;
+    }
 
-  setIsScanning(true);
-  setScanResult(null);
-  setScanProgress(null);
+    setIsScanning(true);
+    setScanResult(null);
+    setScanProgress(null);
 
-  const {
-    useStreaming = true,
-    action = 'full_scan',
-    method = 'hybrid', // 🆕 ברירת מחדל
-    forceRefresh = false,
-    incremental = false,
-    userId, userIds,
+    const {
+      useStreaming = true,
+      action = 'full_scan',
+      method = 'hybrid',
+      forceRefresh = false,
+      incremental = false,
+      userId, 
+      userIds,
       skipPreparation = false
-  } = opts;
+    } = opts;
 
-  try {
-    const response = await fetch(API_BASE_SCAN, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        action,
-        method, // 🆕 שולח את השיטה
-        forceRefresh,
-        incremental,
-        userId,
-        userIds,
-        skipPreparation
-      }),
-    });
+    try {
+      const response = await fetch(API_BASE_SCAN, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action,
+          method,
+          forceRefresh,
+          incremental,
+          userId,
+          userIds,
+          skipPreparation
+        }),
+      });
 
-    const data = await response.json();
+      const data = await response.json();
 
-    if (!data.success) {
-      if (data.status === 'already_running') {
-        toast.warning('סריקה כבר רצה ברקע');
-        setActiveScanId(data.scanId);
-        startPolling(data.scanId);
-        return data.scanId;
+      if (!data.success) {
+        // 🆕 V2.3: Handle already running or resuming
+        if (data.status === 'already_running' || data.status === 'resuming') {
+          toast.info(data.status === 'resuming' ? 'ממשיך סריקה קודמת...' : 'סריקה כבר רצה ברקע');
+          setActiveScanId(data.scanId);
+          
+          // If we have progress data, update state
+          if (data.progress) {
+            updateScanState(data.progress);
+          }
+          
+          startPolling(data.scanId);
+          return data.scanId;
+        }
+        throw new Error(data.error || 'Failed to start scan');
       }
-      throw new Error(data.error || 'Failed to start scan');
+
+      toast.info(`סריקת ${getMethodLabel(method)} החלה!`);
+      setActiveScanId(data.scanId);
+
+      if (useStreaming && typeof EventSource !== 'undefined') {
+        startSSETracking(data.scanId);
+      } else {
+        startPolling(data.scanId);
+      }
+
+      return data.scanId;
+
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'הפעלת הסריקה נכשלה';
+      toast.error(msg);
+      setIsScanning(false);
+      return null;
     }
-
-    toast.info(`סריקת ${getMethodLabel(method)} החלה!`); // 🆕 הודעה עם שם השיטה
-    setActiveScanId(data.scanId);
-
-    if (useStreaming && typeof EventSource !== 'undefined') {
-      startSSETracking(data.scanId);
-    } else {
-      startPolling(data.scanId);
-    }
-
-    return data.scanId;
-
-  } catch (err) {
-    const msg = err instanceof Error ? err.message : 'הפעלת הסריקה נכשלה';
-    toast.error(msg);
-    setIsScanning(false);
-    return null;
-  }
-}, [isScanning, activeScanId, startSSETracking, startPolling]);
-
+  }, [isScanning, activeScanId, startSSETracking, startPolling, updateScanState]);
 
   const cancelScan = useCallback(async (): Promise<boolean> => {
     if (!activeScanId) return false;
@@ -819,6 +871,7 @@ const startScan = useCallback(async (opts: ScanOptions = {}): Promise<string | n
   // ==========================================================================
   // SELECTION HELPERS
   // ==========================================================================
+  
   const toggleSelection = useCallback((matchId: string) => {
     setSelectedMatchIds(prev =>
       prev.includes(matchId) ? prev.filter(id => id !== matchId) : [...prev, matchId]
@@ -842,7 +895,6 @@ const startScan = useCallback(async (opts: ScanOptions = {}): Promise<string | n
     isActioning,
     error,
     isScanning,
-
     scanProgress,
     scanResult,
     filters,
@@ -867,6 +919,8 @@ const startScan = useCallback(async (opts: ScanOptions = {}): Promise<string | n
     clearSelection,
     isSelected,
     bulkCreateSuggestions,
+    // 🆕 V2.3
+    isReconnecting,
   };
 }
 

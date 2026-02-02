@@ -1,15 +1,19 @@
 // ===========================================
 // src/app/api/ai/batch-scan-all/route.ts
 // ===========================================
-// 🎯 סריקה לילית - תמיכה במספר שיטות סריקה
-// שיטות: hybrid, algorithmic, vector, metrics_v2
-// 🆕 V2: כולל שלב הכנת נתונים (מדדים + וקטורים + AI summaries)
+// 🎯 סריקה לילית V2.3 - עם Persistence ב-DB
+// 
+// 🆕 V2.3 Changes:
+// - Persistence ב-DB (ScanSession) במקום Map בזיכרון
+// - המשכיות סריקה אחרי restart/refresh
+// - מעקב משתמשים שנסרקו בסשן הנוכחי
+// - אפשרות לחדש סריקה שנעצרה
 // ===========================================
 
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { UserRole, AvailabilityStatus, Gender } from "@prisma/client";
+import { UserRole, Gender, ScanSessionStatus } from "@prisma/client";
 import prisma from "@/lib/prisma";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
@@ -63,19 +67,16 @@ function initGemini() {
 // ═══════════════════════════════════════════════════════════════
 
 type ScanMethod = 'hybrid' | 'algorithmic' | 'vector' | 'metrics_v2';
-
-// 🆕 Phase type
 type ScanPhase = 'preparing' | 'scanning' | 'completed' | 'failed' | 'cancelled';
 
-interface ActiveScan {
+// 🆕 V2.3: Interface for DB-based scan state
+interface ScanSessionState {
   id: string;
-  status: 'pending' | 'running' | 'completed' | 'failed' | 'cancelled';
+  status: ScanSessionStatus;
+  phase: ScanPhase;
   method: ScanMethod;
   
-  // 🆕 Phase tracking
-  phase: ScanPhase;
-  
-  // 🆕 Preparation phase stats
+  // Preparation stats
   preparationStats: {
     totalNeedingUpdate: number;
     currentIndex: number;
@@ -84,7 +85,7 @@ interface ActiveScan {
     failed: number;
   };
   
-  // Scanning phase stats
+  // Scanning stats  
   currentUserIndex: number;
   totalUsers: number;
   currentUserName?: string;
@@ -93,20 +94,220 @@ interface ActiveScan {
   usersScanned: number;
   progressPercent: number;
   
+  // 🆕 V2.3: List of user IDs already scanned in this session
+  scannedUserIds: string[];
+  
   message?: string;
   error?: string;
   startedAt: Date;
 }
 
-// In-memory store
-const activeScans = new Map<string, ActiveScan>();
-
 // ═══════════════════════════════════════════════════════════════
 // CONSTANTS
 // ═══════════════════════════════════════════════════════════════
 
-const PREPARATION_DELAY_MS = 3000; // השהיה בין עדכוני יוזרים בשלב ההכנה
+const PREPARATION_DELAY_MS = 3000;
 const MAX_NARRATIVE_LENGTH = 8000;
+const SCAN_TIMEOUT_MS = 60 * 60 * 1000; // 1 hour - consider scan "stuck" after this
+
+// ═══════════════════════════════════════════════════════════════
+// 🆕 V2.3: DB-BASED SCAN STATE MANAGEMENT
+// ═══════════════════════════════════════════════════════════════
+
+/**
+ * 🆕 V2.3: Get or create scan session in DB
+ */
+async function getOrCreateScanSession(
+  matchmakerId: string,
+  method: ScanMethod,
+  skipPreparation: boolean
+): Promise<{ session: any; isNew: boolean; isResuming: boolean }> {
+  
+  // Check for existing active session
+  const existingSession = await prisma.scanSession.findFirst({
+    where: {
+      matchmakerId,
+      status: { in: ['PENDING', 'IN_PROGRESS'] },
+      // Only consider sessions from the last hour as "active"
+      startedAt: { gte: new Date(Date.now() - SCAN_TIMEOUT_MS) },
+    },
+    orderBy: { startedAt: 'desc' },
+  });
+  
+  if (existingSession) {
+    console.log(`[BatchScan] Found existing session: ${existingSession.id}, status: ${existingSession.status}`);
+    
+    // Parse progress data
+    const progressData = existingSession.progressData as any || {};
+    
+    return {
+      session: existingSession,
+      isNew: false,
+      isResuming: existingSession.status === 'IN_PROGRESS' && progressData.scannedUserIds?.length > 0,
+    };
+  }
+  
+  // Create new session
+  const newSession = await prisma.scanSession.create({
+    data: {
+      matchmakerId,
+      scanType: method,
+      status: 'PENDING',
+      startedAt: new Date(),
+      progressData: {
+        phase: skipPreparation ? 'scanning' : 'preparing',
+        method,
+        preparationStats: {
+          totalNeedingUpdate: 0,
+          currentIndex: 0,
+          currentUserName: '',
+          updated: 0,
+          failed: 0,
+        },
+        currentUserIndex: 0,
+        totalUsers: 0,
+        matchesFoundSoFar: 0,
+        newMatchesFoundSoFar: 0,
+        usersScanned: 0,
+        progressPercent: 0,
+        scannedUserIds: [], // 🆕 Track scanned users
+        message: 'מתחיל סריקה...',
+      },
+    },
+  });
+  
+  console.log(`[BatchScan] Created new session: ${newSession.id}`);
+  
+  return { session: newSession, isNew: true, isResuming: false };
+}
+
+/**
+ * 🆕 V2.3: Update scan session progress in DB
+ */
+async function updateScanProgress(
+  sessionId: string,
+  updates: Partial<ScanSessionState>
+): Promise<void> {
+  try {
+    const session = await prisma.scanSession.findUnique({
+      where: { id: sessionId },
+      select: { progressData: true },
+    });
+    
+    const currentProgress = (session?.progressData as any) || {};
+    const newProgress = { ...currentProgress, ...updates };
+    
+    // Update DB status based on phase
+    let dbStatus: ScanSessionStatus = 'IN_PROGRESS';
+    if (updates.phase === 'completed') dbStatus = 'COMPLETED';
+    else if (updates.phase === 'failed') dbStatus = 'FAILED';
+    else if (updates.phase === 'cancelled') dbStatus = 'CANCELLED';
+    
+    await prisma.scanSession.update({
+      where: { id: sessionId },
+      data: {
+        status: dbStatus,
+        progressData: newProgress,
+        currentPhase: updates.phase,
+        currentUserIndex: updates.currentUserIndex,
+        totalUsersToProcess: updates.totalUsers,
+        totalUsersScanned: updates.usersScanned,
+        matchesFound: updates.matchesFoundSoFar,
+        ...(dbStatus === 'COMPLETED' || dbStatus === 'FAILED' || dbStatus === 'CANCELLED' 
+          ? { completedAt: new Date() } 
+          : {}),
+      },
+    });
+  } catch (error) {
+    console.error(`[BatchScan] Failed to update progress:`, error);
+  }
+}
+
+/**
+ * 🆕 V2.3: Mark a user as scanned in the current session
+ */
+async function markUserAsScanned(sessionId: string, userId: string): Promise<void> {
+  try {
+    const session = await prisma.scanSession.findUnique({
+      where: { id: sessionId },
+      select: { progressData: true },
+    });
+    
+    const progress = (session?.progressData as any) || {};
+    const scannedUserIds = progress.scannedUserIds || [];
+    
+    if (!scannedUserIds.includes(userId)) {
+      scannedUserIds.push(userId);
+      
+      await prisma.scanSession.update({
+        where: { id: sessionId },
+        data: {
+          progressData: { ...progress, scannedUserIds },
+        },
+      });
+    }
+  } catch (error) {
+    console.error(`[BatchScan] Failed to mark user as scanned:`, error);
+  }
+}
+
+/**
+ * 🆕 V2.3: Check if scan is cancelled
+ */
+async function isScanCancelled(sessionId: string): Promise<boolean> {
+  try {
+    const session = await prisma.scanSession.findUnique({
+      where: { id: sessionId },
+      select: { status: true },
+    });
+    return session?.status === 'CANCELLED';
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * 🆕 V2.3: Get scan session state from DB
+ */
+async function getScanSessionState(sessionId: string): Promise<ScanSessionState | null> {
+  try {
+    const session = await prisma.scanSession.findUnique({
+      where: { id: sessionId },
+    });
+    
+    if (!session) return null;
+    
+    const progress = (session.progressData as any) || {};
+    
+    return {
+      id: session.id,
+      status: session.status,
+      phase: progress.phase || 'scanning',
+      method: (session.scanType || 'hybrid') as ScanMethod,
+      preparationStats: progress.preparationStats || {
+        totalNeedingUpdate: 0,
+        currentIndex: 0,
+        currentUserName: '',
+        updated: 0,
+        failed: 0,
+      },
+      currentUserIndex: progress.currentUserIndex || session.currentUserIndex || 0,
+      totalUsers: progress.totalUsers || session.totalUsersToProcess || 0,
+      currentUserName: progress.currentUserName,
+      matchesFoundSoFar: progress.matchesFoundSoFar || session.matchesFound || 0,
+      newMatchesFoundSoFar: progress.newMatchesFoundSoFar || 0,
+      usersScanned: progress.usersScanned || session.totalUsersScanned || 0,
+      progressPercent: progress.progressPercent || 0,
+      scannedUserIds: progress.scannedUserIds || [],
+      message: progress.message,
+      error: progress.error,
+      startedAt: session.startedAt,
+    };
+  } catch (error) {
+    console.error(`[BatchScan] Failed to get session state:`, error);
+    return null;
+  }
+}
 
 // ═══════════════════════════════════════════════════════════════
 // POST - התחלת/ביטול סריקה
@@ -132,65 +333,52 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       userId,
       userIds,
       scanId: cancelScanId,
-      skipPreparation = false, // 🆕 אפשרות לדלג על שלב ההכנה
+      skipPreparation = false,
     } = body;
 
     // ═══════════════════════════════════════════════════════════
-    // Handle Cancel
+    // Handle Cancel - 🆕 V2.3: Cancel in DB
     // ═══════════════════════════════════════════════════════════
     if (action === 'cancel' && cancelScanId) {
-      const scan = activeScans.get(cancelScanId);
-      if (scan) {
-        scan.status = 'cancelled';
-        scan.phase = 'cancelled';
-        scan.message = 'בוטל על ידי המשתמש';
-      }
+      await prisma.scanSession.update({
+        where: { id: cancelScanId },
+        data: {
+          status: 'CANCELLED',
+          completedAt: new Date(),
+          progressData: {
+            phase: 'cancelled',
+            message: 'בוטל על ידי המשתמש',
+          },
+        },
+      }).catch(() => {});
+      
       return NextResponse.json({ success: true, message: 'Scan cancelled' });
     }
 
     // ═══════════════════════════════════════════════════════════
-    // Check for existing scan
+    // 🆕 V2.3: Check for existing scan in DB
     // ═══════════════════════════════════════════════════════════
-    const existingActiveScan = Array.from(activeScans.values()).find(
-      s => s.status === 'running' || s.status === 'pending'
+    const { session: scanSession, isNew, isResuming } = await getOrCreateScanSession(
+      session.user.id,
+      method as ScanMethod,
+      skipPreparation
     );
 
-    if (existingActiveScan) {
-      return NextResponse.json({
-        success: true,
-        status: 'already_running',
-        scanId: existingActiveScan.id,
-        method: existingActiveScan.method,
-        phase: existingActiveScan.phase,
-      });
+    if (!isNew) {
+      const state = await getScanSessionState(scanSession.id);
+      
+      // If scan is still running, return its status
+      if (scanSession.status === 'IN_PROGRESS' || scanSession.status === 'PENDING') {
+        return NextResponse.json({
+          success: true,
+          status: isResuming ? 'resuming' : 'already_running',
+          scanId: scanSession.id,
+          method: state?.method || method,
+          phase: state?.phase || 'scanning',
+          progress: state,
+        });
+      }
     }
-
-    // ═══════════════════════════════════════════════════════════
-    // Create new scan
-    // ═══════════════════════════════════════════════════════════
-    const scanId = `scan_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    
-    const newScan: ActiveScan = {
-      id: scanId,
-      status: 'pending',
-      method: method as ScanMethod,
-      phase: 'preparing',
-      preparationStats: {
-        totalNeedingUpdate: 0,
-        currentIndex: 0,
-        currentUserName: '',
-        updated: 0,
-        failed: 0,
-      },
-      currentUserIndex: 0,
-      totalUsers: 0,
-      matchesFoundSoFar: 0,
-      newMatchesFoundSoFar: 0,
-      usersScanned: 0,
-      progressPercent: 0,
-      startedAt: new Date(),
-    };
-    activeScans.set(scanId, newScan);
 
     const methodLabels: Record<ScanMethod, string> = {
       hybrid: 'היברידי 🔥',
@@ -200,13 +388,13 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     };
 
     console.log(`\n${'='.repeat(60)}`);
-    console.log(`[BatchScan] 🚀 Starting ${methodLabels[method as ScanMethod]} scan: ${scanId}`);
-    console.log(`[BatchScan] Method: ${method}, Action: ${action}, ForceRefresh: ${forceRefresh}`);
+    console.log(`[BatchScan] 🚀 Starting ${methodLabels[method as ScanMethod]} scan: ${scanSession.id}`);
+    console.log(`[BatchScan] Method: ${method}, IsNew: ${isNew}, IsResuming: ${isResuming}`);
     console.log(`[BatchScan] Skip Preparation: ${skipPreparation}`);
     console.log(`${'='.repeat(60)}\n`);
 
     // Start scan in background
-    runBatchScan(scanId, {
+    runBatchScan(scanSession.id, {
       action,
       method: method as ScanMethod,
       forceRefresh,
@@ -215,16 +403,22 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       userIds,
       matchmakerId: session.user.id,
       skipPreparation,
+      isResuming,
     }).catch(err => {
       console.error(`[BatchScan] Background scan error:`, err);
+      updateScanProgress(scanSession.id, {
+        phase: 'failed',
+        error: err.message,
+        message: `שגיאה: ${err.message}`,
+      });
     });
 
     return NextResponse.json({
       success: true,
-      scanId,
+      scanId: scanSession.id,
       method,
-      status: 'pending',
-      phase: 'preparing',
+      status: isResuming ? 'resuming' : 'pending',
+      phase: skipPreparation ? 'scanning' : 'preparing',
     });
 
   } catch (error) {
@@ -234,7 +428,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 }
 
 // ═══════════════════════════════════════════════════════════════
-// GET - בדיקת סטטוס
+// GET - בדיקת סטטוס - 🆕 V2.3: מה-DB
 // ═══════════════════════════════════════════════════════════════
 
 export async function GET(req: NextRequest): Promise<NextResponse> {
@@ -246,47 +440,69 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
 
     const { searchParams } = new URL(req.url);
     const scanId = searchParams.get('scanId');
+    const checkActive = searchParams.get('checkActive');
+
+    // 🆕 V2.3: Check for any active scan (for page load)
+    if (checkActive === 'true') {
+      const activeSession = await prisma.scanSession.findFirst({
+        where: {
+          matchmakerId: session.user.id,
+          status: { in: ['PENDING', 'IN_PROGRESS'] },
+          startedAt: { gte: new Date(Date.now() - SCAN_TIMEOUT_MS) },
+        },
+        orderBy: { startedAt: 'desc' },
+      });
+      
+      if (activeSession) {
+        const state = await getScanSessionState(activeSession.id);
+        return NextResponse.json({
+          success: true,
+          hasActiveScan: true,
+          scan: state,
+        });
+      }
+      
+      return NextResponse.json({
+        success: true,
+        hasActiveScan: false,
+      });
+    }
 
     if (!scanId) {
       return NextResponse.json({
         name: "NeshamaTech Multi-Method Batch Scan API",
-        version: "2.0",
+        version: "2.3",
         methods: ['hybrid', 'algorithmic', 'vector', 'metrics_v2'],
-        features: ['preparation_phase', 'auto_metrics_update'],
+        features: ['db_persistence', 'resume_after_restart', 'scanned_pair_optimization'],
       });
     }
 
-    const scan = activeScans.get(scanId);
-    if (!scan) {
+    const state = await getScanSessionState(scanId);
+    if (!state) {
       return NextResponse.json({ success: false, error: "Scan not found" }, { status: 404 });
     }
 
     return NextResponse.json({
       success: true,
       scan: {
-        id: scan.id,
-        status: scan.status,
-        method: scan.method,
-        phase: scan.phase,
-        
-        // 🆕 Preparation stats
-        preparationStats: scan.preparationStats,
-        
-        // Scanning stats
-        currentUserIndex: scan.currentUserIndex,
-        totalUsers: scan.totalUsers,
-        currentUserName: scan.currentUserName,
-        progressPercent: scan.progressPercent,
-        matchesFoundSoFar: scan.matchesFoundSoFar,
-        newMatchesFoundSoFar: scan.newMatchesFoundSoFar,
-        usersScanned: scan.usersScanned,
-        message: scan.message,
-        error: scan.error,
-        
+        id: state.id,
+        status: state.status,
+        method: state.method,
+        phase: state.phase,
+        preparationStats: state.preparationStats,
+        currentUserIndex: state.currentUserIndex,
+        totalUsers: state.totalUsers,
+        currentUserName: state.currentUserName,
+        progressPercent: state.progressPercent,
+        matchesFoundSoFar: state.matchesFoundSoFar,
+        newMatchesFoundSoFar: state.newMatchesFoundSoFar,
+        usersScanned: state.usersScanned,
+        message: state.message,
+        error: state.error,
         stats: {
-          matchesFoundSoFar: scan.matchesFoundSoFar,
-          preparationUpdated: scan.preparationStats.updated,
-          preparationFailed: scan.preparationStats.failed,
+          matchesFoundSoFar: state.matchesFoundSoFar,
+          preparationUpdated: state.preparationStats.updated,
+          preparationFailed: state.preparationStats.failed,
         },
       },
     });
@@ -298,7 +514,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
 }
 
 // ═══════════════════════════════════════════════════════════════
-// 🆕 PREPARATION PHASE - עדכון מדדים/וקטורים/AI לפני הסריקה
+// 🆕 V2.3: PREPARATION PHASE - עדכון מדדים/וקטורים/AI
 // ═══════════════════════════════════════════════════════════════
 
 interface UserNeedingUpdate {
@@ -311,9 +527,6 @@ interface UserNeedingUpdate {
   needsAiSummary: boolean;
 }
 
-/**
- * מוצא את כל המשתמשים שצריכים עדכון מדדים/וקטורים/AI
- */
 async function findUsersNeedingUpdate(): Promise<UserNeedingUpdate[]> {
   console.log('[Preparation] Finding users needing update...');
   
@@ -353,15 +566,12 @@ async function findUsersNeedingUpdate(): Promise<UserNeedingUpdate[]> {
 
     const profileUpdatedAt = user.profile.updatedAt;
     
-    // בדיקה: צריך עדכון מדדים?
     const metricsUpdatedAt = user.profile.metrics?.updatedAt;
     const needsMetrics = !metricsUpdatedAt || profileUpdatedAt > metricsUpdatedAt;
     
-    // בדיקה: צריך עדכון וקטורים?
     const vectorsUpdatedAt = user.profile.vector?.selfVectorUpdatedAt || user.profile.vector?.updatedAt;
     const needsVectors = !vectorsUpdatedAt || profileUpdatedAt > vectorsUpdatedAt;
     
-    // בדיקה: צריך עדכון AI Summary?
     const aiSummary = user.profile.aiProfileSummary as any;
     const aiUpdatedAt = aiSummary?.lastDeepAnalysisAt ? new Date(aiSummary.lastDeepAnalysisAt) : null;
     const hasValidSummary = aiSummary?.personalitySummary && aiSummary.personalitySummary.length > 50;
@@ -381,16 +591,10 @@ async function findUsersNeedingUpdate(): Promise<UserNeedingUpdate[]> {
   }
 
   console.log(`[Preparation] Found ${usersNeedingUpdate.length} users needing update`);
-  console.log(`[Preparation] - Needs Metrics: ${usersNeedingUpdate.filter(u => u.needsMetrics).length}`);
-  console.log(`[Preparation] - Needs Vectors: ${usersNeedingUpdate.filter(u => u.needsVectors).length}`);
-  console.log(`[Preparation] - Needs AI Summary: ${usersNeedingUpdate.filter(u => u.needsAiSummary).length}`);
 
   return usersNeedingUpdate;
 }
 
-/**
- * עדכון יוזר בודד - מדדים + וקטורים + AI Summary
- */
 async function updateSingleUserData(
   userId: string,
   profileId: string,
@@ -401,7 +605,6 @@ async function updateSingleUserData(
   console.log(`[Preparation] Updating ${firstName} ${lastName}...`);
 
   try {
-    // שליפת המידע המלא
     const user = await prisma.user.findUnique({
       where: { id: userId },
       include: {
@@ -420,9 +623,7 @@ async function updateSingleUserData(
     const profile = user.profile;
     const questionnaire = user.questionnaireResponses?.[0];
 
-    // ═══════════════════════════════════════════════════════════
-    // שלב 1: יצירת/עדכון AI Profile Summary
-    // ═══════════════════════════════════════════════════════════
+    // Step 1: AI Profile Summary
     let aiProfileSummary = profile.aiProfileSummary as any;
     
     const needsDeepAnalysis = !aiProfileSummary?.personalitySummary || 
@@ -455,9 +656,7 @@ async function updateSingleUserData(
       }
     }
 
-    // ═══════════════════════════════════════════════════════════
-    // שלב 2: חישוב מדדים
-    // ═══════════════════════════════════════════════════════════
+    // Step 2: Metrics
     if (metricsModel) {
       console.log(`   🤖 Calculating metrics...`);
       
@@ -471,7 +670,6 @@ async function updateSingleUserData(
         );
 
         if (metrics) {
-          // Upsert מדדים
           await prisma.profileMetrics.upsert({
             where: { profileId },
             create: {
@@ -487,9 +685,7 @@ async function updateSingleUserData(
           });
           console.log(`   ✓ Metrics saved`);
 
-          // ═══════════════════════════════════════════════════════════
-          // שלב 3: יצירת וקטורים
-          // ═══════════════════════════════════════════════════════════
+          // Step 3: Vectors
           console.log(`   📐 Creating vectors...`);
           
           const selfVector = await generateTextEmbedding(metrics.aiPersonalitySummary);
@@ -542,11 +738,11 @@ async function updateSingleUserData(
 }
 
 // ═══════════════════════════════════════════════════════════════
-// 🔥 Background Processing - Run Scan by Method
+// 🔥 Background Processing - 🆕 V2.3: With DB Persistence
 // ═══════════════════════════════════════════════════════════════
 
 async function runBatchScan(
-  scanId: string,
+  sessionId: string,
   options: {
     action: string;
     method: ScanMethod;
@@ -556,48 +752,68 @@ async function runBatchScan(
     userIds?: string[];
     matchmakerId: string;
     skipPreparation?: boolean;
+    isResuming?: boolean;
   }
 ): Promise<void> {
-  const scan = activeScans.get(scanId);
-  if (!scan) return;
-
   const startTime = Date.now();
-  scan.status = 'running';
 
   try {
+    // 🆕 V2.3: Update status to IN_PROGRESS
+    await updateScanProgress(sessionId, {
+      phase: options.skipPreparation ? 'scanning' : 'preparing',
+      message: 'מתחיל סריקה...',
+    });
+
     // ═══════════════════════════════════════════════════════════
-    // 🆕 PHASE 1: PREPARATION - עדכון מדדים/וקטורים/AI
+    // PHASE 1: PREPARATION
     // ═══════════════════════════════════════════════════════════
     
     if (!options.skipPreparation) {
-      scan.phase = 'preparing';
-      scan.message = 'בודק מי צריך עדכון נתונים...';
+      await updateScanProgress(sessionId, {
+        phase: 'preparing',
+        message: 'בודק מי צריך עדכון נתונים...',
+      });
       
-      // Initialize Gemini
       const geminiReady = initGemini();
-      if (!geminiReady) {
-        console.warn('[BatchScan] Gemini not available, skipping preparation');
-      } else {
+      if (geminiReady) {
         const usersNeedingUpdate = await findUsersNeedingUpdate();
         
-        scan.preparationStats.totalNeedingUpdate = usersNeedingUpdate.length;
+        await updateScanProgress(sessionId, {
+          preparationStats: {
+            totalNeedingUpdate: usersNeedingUpdate.length,
+            currentIndex: 0,
+            currentUserName: '',
+            updated: 0,
+            failed: 0,
+          },
+        });
         
         if (usersNeedingUpdate.length > 0) {
           console.log(`\n[BatchScan] ═══ PREPARATION PHASE ═══`);
-          console.log(`[BatchScan] Updating ${usersNeedingUpdate.length} users before scanning...`);
+          console.log(`[BatchScan] Updating ${usersNeedingUpdate.length} users...`);
+          
+          let updated = 0;
+          let failed = 0;
           
           for (let i = 0; i < usersNeedingUpdate.length; i++) {
-            // בדיקת ביטול
-            if (scan.status as string === 'cancelled') {
+            // 🆕 V2.3: Check cancellation from DB
+            if (await isScanCancelled(sessionId)) {
               console.log(`[BatchScan] Preparation cancelled at user ${i + 1}`);
               break;
             }
             
             const user = usersNeedingUpdate[i];
             
-            scan.preparationStats.currentIndex = i + 1;
-            scan.preparationStats.currentUserName = `${user.firstName} ${user.lastName}`;
-            scan.message = `מכין נתונים: ${user.firstName} ${user.lastName} (${i + 1}/${usersNeedingUpdate.length})`;
+            await updateScanProgress(sessionId, {
+              preparationStats: {
+                totalNeedingUpdate: usersNeedingUpdate.length,
+                currentIndex: i + 1,
+                currentUserName: `${user.firstName} ${user.lastName}`,
+                updated,
+                failed,
+              },
+              message: `מכין נתונים: ${user.firstName} ${user.lastName} (${i + 1}/${usersNeedingUpdate.length})`,
+            });
             
             const result = await updateSingleUserData(
               user.userId,
@@ -607,73 +823,108 @@ async function runBatchScan(
             );
             
             if (result.success) {
-              scan.preparationStats.updated++;
+              updated++;
             } else {
-              scan.preparationStats.failed++;
+              failed++;
             }
             
-            // השהיה בין עדכונים
             if (i < usersNeedingUpdate.length - 1) {
               await sleep(PREPARATION_DELAY_MS);
             }
           }
           
-          console.log(`[BatchScan] Preparation complete: ${scan.preparationStats.updated} updated, ${scan.preparationStats.failed} failed`);
-        } else {
-          console.log(`[BatchScan] No users need updating, proceeding to scan`);
+          console.log(`[BatchScan] Preparation complete: ${updated} updated, ${failed} failed`);
         }
       }
     }
 
-    // בדיקת ביטול לפני הסריקה
-    if (scan.status as string === 'cancelled') {
-      scan.phase = 'cancelled';
+    // Check cancellation before scanning
+    if (await isScanCancelled(sessionId)) {
+      await updateScanProgress(sessionId, {
+        phase: 'cancelled',
+        message: 'הסריקה בוטלה',
+      });
       return;
     }
 
     // ═══════════════════════════════════════════════════════════
-    // PHASE 2: SCANNING - סריקה רגילה
+    // PHASE 2: SCANNING
     // ═══════════════════════════════════════════════════════════
     
-    scan.phase = 'scanning';
-    scan.message = 'טוען משתמשים לסריקה...';
+    await updateScanProgress(sessionId, {
+      phase: 'scanning',
+      message: 'טוען משתמשים לסריקה...',
+    });
 
-    const usersToScan = await getUsersToScan(options);
+    // 🆕 V2.3: Get list of already scanned users (for resume)
+    const currentState = await getScanSessionState(sessionId);
+    const alreadyScannedUserIds = new Set(currentState?.scannedUserIds || []);
     
-    scan.totalUsers = usersToScan.length;
-    scan.message = `נמצאו ${usersToScan.length} משתמשים לסריקה`;
+    const allUsersToScan = await getUsersToScan(options);
+    
+    // 🆕 V2.3: Filter out already scanned users if resuming
+    const usersToScan = options.isResuming
+      ? allUsersToScan.filter(u => !alreadyScannedUserIds.has(u.id))
+      : allUsersToScan;
+    
+    const totalUsers = allUsersToScan.length;
+    const alreadyScannedCount = alreadyScannedUserIds.size;
+    
+    await updateScanProgress(sessionId, {
+      totalUsers,
+      usersScanned: alreadyScannedCount,
+      message: options.isResuming 
+        ? `ממשיך סריקה: ${usersToScan.length} משתמשים נותרו (${alreadyScannedCount} כבר נסרקו)`
+        : `נמצאו ${totalUsers} משתמשים לסריקה`,
+    });
     
     console.log(`\n[BatchScan] ═══ SCANNING PHASE ═══`);
-    console.log(`[BatchScan] Found ${usersToScan.length} users to scan with method: ${options.method}`);
+    console.log(`[BatchScan] Total: ${totalUsers}, Already scanned: ${alreadyScannedCount}, Remaining: ${usersToScan.length}`);
 
     if (usersToScan.length === 0) {
-      scan.status = 'completed';
-      scan.phase = 'completed';
-      scan.progressPercent = 100;
-      scan.message = 'אין משתמשים לסריקה';
+      await updateScanProgress(sessionId, {
+        phase: 'completed',
+        progressPercent: 100,
+        message: options.isResuming 
+          ? 'הסריקה כבר הושלמה קודם'
+          : 'אין משתמשים לסריקה',
+      });
       return;
     }
 
-    let totalMatches = 0;
-    let newMatches = 0;
+    let totalMatches = currentState?.matchesFoundSoFar || 0;
+    let newMatches = currentState?.newMatchesFoundSoFar || 0;
 
     for (let i = 0; i < usersToScan.length; i++) {
-      if (scan.status as string === 'cancelled') {
+      // 🆕 V2.3: Check cancellation from DB
+      if (await isScanCancelled(sessionId)) {
         console.log(`[BatchScan] Scan cancelled at user ${i + 1}`);
         break;
       }
 
       const user = usersToScan[i];
+      const overallIndex = alreadyScannedCount + i + 1;
       
-      scan.currentUserIndex = i + 1;
-      scan.currentUserName = `${user.firstName} ${user.lastName}`;
-      scan.progressPercent = Math.round((i / usersToScan.length) * 100);
-      scan.message = `סורק ${user.firstName} ${user.lastName}...`;
+      await updateScanProgress(sessionId, {
+        currentUserIndex: overallIndex,
+        currentUserName: `${user.firstName} ${user.lastName}`,
+        progressPercent: Math.round((overallIndex / totalUsers) * 100),
+        message: `סורק ${user.firstName} ${user.lastName}...`,
+      });
 
-      console.log(`[BatchScan] [${i + 1}/${usersToScan.length}] Scanning ${user.firstName} (${options.method})`);
+      console.log(`[BatchScan] [${overallIndex}/${totalUsers}] Scanning ${user.firstName} (${options.method})`);
 
       try {
-        const result = await scanUserByMethod(user.id, options.method, options.forceRefresh, scanId);
+        // 🆕 V2.3: Create cancellation checker that reads from DB
+        const checkCancelled = async () => await isScanCancelled(sessionId);
+        
+        const result = await scanUserByMethod(
+          user.id, 
+          options.method, 
+          options.forceRefresh, 
+          sessionId,
+          checkCancelled
+        );
 
         const saved = await saveToPotentialMatches(
           user.id,
@@ -684,14 +935,22 @@ async function runBatchScan(
 
         totalMatches += result.matches.length;
         newMatches += saved.new;
-        scan.matchesFoundSoFar = totalMatches;
-        scan.newMatchesFoundSoFar = newMatches;
-        scan.usersScanned = i + 1;
+        
+        // 🆕 V2.3: Mark user as scanned in DB
+        await markUserAsScanned(sessionId, user.id);
+        
+        await updateScanProgress(sessionId, {
+          matchesFoundSoFar: totalMatches,
+          newMatchesFoundSoFar: newMatches,
+          usersScanned: overallIndex,
+        });
 
         console.log(`[BatchScan] ✓ ${user.firstName}: ${result.matches.length} matches (${saved.new} new)`);
 
       } catch (userError) {
         console.error(`[BatchScan] Error scanning ${user.firstName}:`, userError);
+        // 🆕 V2.3: Still mark as scanned to avoid retry loop
+        await markUserAsScanned(sessionId, user.id);
       }
 
       await sleep(400);
@@ -701,27 +960,31 @@ async function runBatchScan(
     // PHASE 3: COMPLETE
     // ═══════════════════════════════════════════════════════════
     const duration = Date.now() - startTime;
+    const finalState = await getScanSessionState(sessionId);
     
-    scan.status = 'completed';
-    scan.phase = 'completed';
-    scan.progressPercent = 100;
-    scan.message = `הסריקה הושלמה! נמצאו ${totalMatches} התאמות (${newMatches} חדשות)`;
+    // Check if cancelled during scan
+    if (finalState?.phase === 'cancelled' || await isScanCancelled(sessionId)) {
+      return;
+    }
+    
+    await updateScanProgress(sessionId, {
+      phase: 'completed',
+      progressPercent: 100,
+      message: `הסריקה הושלמה! נמצאו ${totalMatches} התאמות (${newMatches} חדשות)`,
+    });
 
     console.log(`\n${'='.repeat(60)}`);
     console.log(`[BatchScan] ✅ ${options.method} scan completed in ${(duration / 1000 / 60).toFixed(1)} minutes`);
-    console.log(`[BatchScan] Preparation: ${scan.preparationStats.updated} updated, ${scan.preparationStats.failed} failed`);
-    console.log(`[BatchScan] Users scanned: ${scan.usersScanned}/${usersToScan.length}`);
     console.log(`[BatchScan] Matches: ${totalMatches} (${newMatches} new)`);
     console.log(`${'='.repeat(60)}\n`);
 
-    setTimeout(() => activeScans.delete(scanId), 60 * 60 * 1000);
-
   } catch (error) {
     const errorMsg = error instanceof Error ? error.message : 'Unknown error';
-    scan.status = 'failed';
-    scan.phase = 'failed';
-    scan.error = errorMsg;
-    scan.message = `שגיאה: ${errorMsg}`;
+    await updateScanProgress(sessionId, {
+      phase: 'failed',
+      error: errorMsg,
+      message: `שגיאה: ${errorMsg}`,
+    });
     console.error(`[BatchScan] ❌ Failed:`, error);
   }
 }
@@ -734,17 +997,24 @@ async function scanUserByMethod(
   userId: string,
   method: ScanMethod,
   forceRefresh: boolean,
-  scanId: string
+  sessionId: string,
+  checkCancelled?: () => Promise<boolean>
 ): Promise<{ matches: any[] }> {
 
-  const checkCancelled = () => {
-    const scan = activeScans.get(scanId);
-    return scan?.status === 'cancelled';
+  const baseOptions = {
+    autoSave: false,
+    forceRefresh,
+    checkCancelled,
+    // 🆕 V2.3: Enable ScannedPair optimization
+    skipAlreadyScannedPairs: true,
+    saveScannedPairs: true,
+    sessionId,
   };
 
   switch (method) {
     case 'hybrid':
       return await hybridScan(userId, {
+        ...baseOptions,
         maxTier1Candidates: 300,
         maxTier2Candidates: 50,
         maxTier3Candidates: 20,
@@ -754,13 +1024,11 @@ async function scanUserByMethod(
         useAIFirstPass: true,
         useAIDeepAnalysis: true,
         minScoreToSave: 65,
-        autoSave: false,
-        forceRefresh,
-        checkCancelled,
       });
 
     case 'algorithmic':
       return await hybridScan(userId, {
+        ...baseOptions,
         maxTier1Candidates: 200,
         maxTier2Candidates: 30,
         topForDeepAnalysis: 20,
@@ -769,12 +1037,11 @@ async function scanUserByMethod(
         useAIFirstPass: true,
         useAIDeepAnalysis: true,
         minScoreToSave: 65,
-        autoSave: false,
-        forceRefresh,
       });
 
     case 'vector':
       return await hybridScan(userId, {
+        ...baseOptions,
         maxTier1Candidates: 500,
         maxTier2Candidates: 100,
         topForDeepAnalysis: 0,
@@ -783,12 +1050,11 @@ async function scanUserByMethod(
         useAIFirstPass: false,
         useAIDeepAnalysis: false,
         minScoreToSave: 60,
-        autoSave: false,
-        forceRefresh,
       });
 
     case 'metrics_v2':
       return await hybridScan(userId, {
+        ...baseOptions,
         maxTier1Candidates: 300,
         maxTier2Candidates: 80,
         topForDeepAnalysis: 10,
@@ -797,12 +1063,10 @@ async function scanUserByMethod(
         useAIFirstPass: true,
         useAIDeepAnalysis: false,
         minScoreToSave: 65,
-        autoSave: false,
-        forceRefresh,
       });
 
     default:
-      return await hybridScan(userId, { autoSave: false, forceRefresh });
+      return await hybridScan(userId, baseOptions);
   }
 }
 
@@ -845,28 +1109,14 @@ async function getUsersToScan(options: {
     where.createdAt = { gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) };
   }
 
-  let users = await prisma.user.findMany({
+  const users = await prisma.user.findMany({
     where,
     select: { id: true, firstName: true, lastName: true, profile: { select: { gender: true } } },
     orderBy: { createdAt: 'desc' },
   });
 
-  if (!options.forceRefresh) {
-    const thresholdDate = new Date(Date.now() - 24 * 60 * 60 * 1000);
-    
-    const recentlyScanned = await prisma.matchingJob.findMany({
-      where: {
-        method: options.method,
-        status: 'completed',
-        completedAt: { gte: thresholdDate },
-      },
-      select: { targetUserId: true },
-      distinct: ['targetUserId'],
-    });
-
-    const recentSet = new Set(recentlyScanned.map(r => r.targetUserId));
-    users = users.filter(u => !recentSet.has(u.id));
-  }
+  // 🆕 V2.3: Don't filter by MatchingJob - we handle this via ScannedPair
+  // The old logic was incorrect anyway - batch scan doesn't create MatchingJob records
 
   return users.map(u => ({ ...u, gender: u.profile?.gender || Gender.MALE }));
 }
@@ -874,8 +1124,6 @@ async function getUsersToScan(options: {
 // ═══════════════════════════════════════════════════════════════
 // Helper: Save to PotentialMatch with method tag
 // ═══════════════════════════════════════════════════════════════
-
-// batch-scan-all/route.ts - פונקציה saveToPotentialMatches
 
 async function saveToPotentialMatches(
   targetUserId: string,
@@ -895,10 +1143,7 @@ async function saveToPotentialMatches(
     const maleUserId = isMale ? targetUserId : match.userId;
     const femaleUserId = isMale ? match.userId : targetUserId;
 
-    // 🆕 שדות ספציפיים לשיטה
     const methodFields = getMethodFields(scanMethod, match, score);
-    
-    // 🆕 הנימוק הטוב ביותר לשדה הכללי
     const bestReasoning = match.detailedReasoning || match.shortReasoning || match.reasoning || null;
 
     try {
@@ -910,16 +1155,12 @@ async function saveToPotentialMatches(
         await prisma.potentialMatch.update({
           where: { id: existing.id },
           data: {
-            // 🆕 עדכון הציון הכללי רק אם גבוה יותר
             ...(score > existing.aiScore ? {
               aiScore: score,
               shortReasoning: bestReasoning,
               lastScanMethod: scanMethod,
             } : {}),
-            
-            // 🆕 תמיד לעדכן את השדות הספציפיים לשיטה
             ...methodFields,
-            
             scannedAt: new Date(),
           },
         });
@@ -947,15 +1188,9 @@ async function saveToPotentialMatches(
   return { new: newCount, updated: updatedCount };
 }
 
-// batch-scan-all/route.ts - שורה ~510 בערך
-
 function getMethodFields(method: ScanMethod, match: any, score: number): Record<string, any> {
   const now = new Date();
-  
-  // 🆕 לקחת את הנימוק הכי טוב שיש
   const reasoning = match.detailedReasoning || match.shortReasoning || match.reasoning || '';
-  
-  // 🆕 לקחת את ה-scoreBreakdown אם קיים
   const breakdown = match.scoreBreakdown || null;
 
   switch (method) {
@@ -992,7 +1227,7 @@ function getMethodFields(method: ScanMethod, match: any, score: number): Record<
 }
 
 // ═══════════════════════════════════════════════════════════════
-// AI HELPER FUNCTIONS
+// AI HELPER FUNCTIONS (unchanged from original)
 // ═══════════════════════════════════════════════════════════════
 
 function sleep(ms: number): Promise<void> {
@@ -1005,9 +1240,6 @@ function calculateAge(birthDate: any): number | null {
   return Math.floor(diff / (1000 * 60 * 60 * 24 * 365.25));
 }
 
-/**
- * יצירת נרטיב לניתוח עומק (AI Profile Summary)
- */
 function generateNarrativeForDeepAnalysis(user: any, profile: any, questionnaire: any): string {
   const parts: string[] = [];
 
@@ -1058,9 +1290,6 @@ Professional & Education:
   return parts.join('\n\n---\n\n').substring(0, MAX_NARRATIVE_LENGTH);
 }
 
-/**
- * יצירת AI Profile Summary
- */
 async function generateAiProfileSummary(narrative: string): Promise<{ personalitySummary: string; lookingForSummary: string } | null> {
   if (!deepAnalysisModel) return null;
 
@@ -1099,9 +1328,6 @@ ${narrative}
   }
 }
 
-/**
- * בניית נרטיב מלא למדדים
- */
 function buildFullNarrativeWithHardData(
   user: any,
   profile: any,
@@ -1152,9 +1378,6 @@ function buildFullNarrativeWithHardData(
   return { narrative, missingFields };
 }
 
-/**
- * חישוב מדדים עם AI
- */
 async function calculateMetricsWithAI(
   narrative: string,
   gender: string,
@@ -1219,15 +1442,12 @@ ${narrative}
   }
 }
 
-/**
- * יצירת וקטור טקסט
- */
 async function generateTextEmbedding(text: string | null | undefined): Promise<number[] | null> {
   if (!text || text.length < 10 || !genAI || !GEMINI_API_KEY) return null;
 
   try {
     const response = await fetch(
-`https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-001:embedContent?key=${GEMINI_API_KEY}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-001:embedContent?key=${GEMINI_API_KEY}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -1250,9 +1470,6 @@ async function generateTextEmbedding(text: string | null | undefined): Promise<n
   }
 }
 
-/**
- * Retry wrapper for Gemini API calls
- */
 async function runGenAIWithRetry<T>(fn: () => Promise<T>, retries = 5, baseDelay = 5000): Promise<T> {
   for (let i = 0; i < retries; i++) {
     try {

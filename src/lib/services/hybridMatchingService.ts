@@ -1,17 +1,17 @@
 // ============================================================
-// NeshamaTech - Hybrid Matching Service V2.1
+// NeshamaTech - Hybrid Matching Service V2.2
 // src/lib/services/hybridMatchingService.ts
-// 
+//
 // שילוב מושלם של:
 // - scanSingleUserV2: מדדים מתקדמים, ערכים מוסקים, AI summaries
 // - hybridMatchingService V1: רקע, שפה, שיטת Tiers, batch AI
 // - matchingAlgorithmService V3.4: Virtual profiles, ScannedPair, Enhanced prompts
 //
-// V2.1 Changes:
-// - Added hybridScanForVirtualUser() for virtual profile matching
-// - Added ScannedPair tracking for all evaluated pairs
-// - Enhanced AI prompts with background-specific guidelines
-// - Improved age scoring logic from V3.4
+// V2.2 Changes:
+// - ScannedPair Optimization: SQL LEFT JOIN to fetch existing pair data
+// - Smart Caching: Skip re-scoring candidates if profiles haven't changed
+// - Performance: Massive reduction in AI costs for repeat scans
+// - Statistics: Detailed tracking of skipped vs. new pairs
 // ============================================================
 
 import prisma from "@/lib/prisma";
@@ -56,7 +56,7 @@ export interface AgeScoreResult {
   description: string;
 }
 
-// --- 🆕 V2.1: Virtual Profile Interface (from aiService) ---
+// --- Virtual Profile Interface ---
 export interface GeneratedVirtualProfile {
   inferredAge: number;
   inferredCity: string | null;
@@ -75,7 +75,7 @@ export interface GeneratedVirtualProfile {
   displaySummary: string;
 }
 
-// --- 🆕 V2.1: Virtual Scan Options ---
+// --- Virtual Scan Options ---
 export interface VirtualScanOptions {
   maxCandidates?: number;
   useAIFirstPass?: boolean;
@@ -83,7 +83,7 @@ export interface VirtualScanOptions {
   minScoreToReturn?: number;
 }
 
-// --- 🆕 V2.1: Virtual Scan Result ---
+// --- Virtual Scan Result ---
 export interface VirtualScanResult {
   virtualProfileId?: string;
   scanStartedAt: Date;
@@ -115,7 +115,7 @@ export interface VirtualMatchCandidate {
   concerns: string[];
 }
 
-// --- Extended Metrics (מ-scanSingleUserV2) ---
+// --- Extended Metrics ---
 export interface ExtendedMetrics {
   // מדדים בסיסיים
   confidenceScore: number | null;
@@ -160,14 +160,14 @@ export interface ExtendedMetrics {
 
 // --- Score Breakdown ---
 export interface ScoreBreakdown {
-  religious: number;          // /25
-  ageCompatibility: number;   // /10
-  careerFamily: number;       // /15
-  lifestyle: number;          // /10
-  socioEconomic: number;      // /10
-  education: number;          // /10
-  background: number;         // /10
-  values: number;             // /10
+  religious: number;
+  ageCompatibility: number;
+  careerFamily: number;
+  lifestyle: number;
+  socioEconomic: number;
+  education: number;
+  background: number;
+  values: number;
 }
 
 // --- Scan Options ---
@@ -196,10 +196,14 @@ export interface HybridScanOptions {
   maxCandidatesToUpdate?: number;
   autoSave?: boolean;
   
-  // 🆕 V2.1: ScannedPair tracking
-  saveScannedPairs?: boolean;
-    checkCancelled?: () => Promise<boolean> | boolean;
-
+  // 🆕 V2.2: ScannedPair optimization
+  skipAlreadyScannedPairs?: boolean;  // ברירת מחדל: true
+  scannedPairMaxAgeDays?: number;     // כמה ימים עד שסריקה נחשבת "ישנה" (ברירת מחדל: 30)
+  saveScannedPairs?: boolean;         // ברירת מחדל: true
+  
+  // 🆕 V2.2: Session tracking
+  sessionId?: string;
+  checkCancelled?: () => Promise<boolean> | boolean;
 }
 
 // --- Candidate Data (Internal) ---
@@ -237,6 +241,14 @@ interface RawCandidate {
   
   // Profile dates
   profileUpdatedAt: Date;
+
+  // 🆕 V2.2: ScannedPair info (if exists)
+  existingScannedPairId?: string | null;
+  existingAiScore?: number | null;
+  scannedPairLastScannedAt?: Date | null;
+  scannedPairMaleProfileUpdatedAt?: Date | null;
+  scannedPairFemaleProfileUpdatedAt?: Date | null;
+  canSkipFullScan?: boolean;
 }
 
 interface ScoredCandidate extends RawCandidate {
@@ -260,6 +272,9 @@ interface ScoredCandidate extends RawCandidate {
   
   // Combined Tier 2 score
   tier2Score: number;
+
+  // 🆕 V2.2: Was this score from cache?
+  fromScannedPairCache?: boolean;
 }
 
 interface AIFirstPassCandidate extends ScoredCandidate {
@@ -303,7 +318,11 @@ export interface HybridScanResult {
     savedToDb: number;
     fromCache: boolean;
     candidatesWithDifficultyFlags: number;
-    scannedPairsSaved: number;  // 🆕 V2.1
+    scannedPairsSaved: number;
+    
+    // 🆕 V2.2: ScannedPair stats
+    skippedFromScannedPair: number;
+    newPairsScanned: number;
   };
   
   matches: FinalCandidate[];
@@ -338,7 +357,6 @@ const BACKGROUND_MATRIX: Record<BackgroundCategory, Record<BackgroundCategory, n
   oleh_new: { sabra: 0.15, sabra_international: 0.6, oleh_veteran: 0.6, oleh_mid: 0.85, oleh_new: 1.0 },
 };
 
-// 🆕 V2.1: Background category descriptions for AI prompts
 const BACKGROUND_DESCRIPTIONS: Record<BackgroundCategory, string> = {
   sabra: 'ישראלי/ת ילידי הארץ - עברית שפת אם, משולב/ת תרבותית מלאה',
   sabra_international: 'ישראלי/ת עם רקע בינלאומי - דובר/ת שפות, חשיפה לתרבויות',
@@ -347,17 +365,8 @@ const BACKGROUND_DESCRIPTIONS: Record<BackgroundCategory, string> = {
   oleh_new: 'עולה חדש/ה (פחות מ-3 שנים) - בתחילת תהליך הקליטה, אתגרי שפה ותרבות',
 };
 
-// Socio-Economic compatibility tolerance
-const SOCIO_ECONOMIC_TOLERANCE = 2;
-
-// Job Seniority compatibility tolerance
-const JOB_SENIORITY_TOLERANCE = 2;
-
-// Education level compatibility tolerance
-const EDUCATION_TOLERANCE = 2;
-
 // ═══════════════════════════════════════════════════════════════
-// HELPER FUNCTIONS - Age (🆕 V2.1: Improved Logic from V3.4)
+// HELPER FUNCTIONS - Age
 // ═══════════════════════════════════════════════════════════════
 
 function calculateAge(birthDate: Date): number {
@@ -370,12 +379,6 @@ function calculateAge(birthDate: Date): number {
   return age;
 }
 
-/**
- * 🆕 V2.1: Improved age scoring logic from V3.4
- * - Perfect 100: Same age OR male 1-3 years older
- * - Asymmetric: Male older tolerated more than female older
- * - More granular scoring for edge cases
- */
 function calculateAgeScore(maleAge: number, femaleAge: number): AgeScoreResult {
   const ageDiff = maleAge - femaleAge; // Positive = male older
   
@@ -388,44 +391,24 @@ function calculateAgeScore(maleAge: number, femaleAge: number): AgeScoreResult {
     };
   }
   
-  // הגבר גדול ב-4-5 שנים - עדיין טוב
-  if (ageDiff === 4) {
-    return { score: 90, eligible: true, description: 'הגבר גדול ב-4 שנים - מצוין' };
-  }
-  if (ageDiff === 5) {
-    return { score: 80, eligible: true, description: 'הגבר גדול ב-5 שנים - טוב' };
-  }
+  if (ageDiff === 4) return { score: 90, eligible: true, description: 'הגבר גדול ב-4 שנים - מצוין' };
+  if (ageDiff === 5) return { score: 80, eligible: true, description: 'הגבר גדול ב-5 שנים - טוב' };
   
-  // הגבר גדול ב-6-7 שנים - סביר
-  if (ageDiff === 6) {
-    return { score: 65, eligible: true, description: 'הגבר גדול ב-6 שנים - סביר' };
-  }
-  if (ageDiff === 7) {
-    return { score: 50, eligible: true, description: 'הגבר גדול ב-7 שנים - פער ניכר' };
-  }
+  if (ageDiff === 6) return { score: 65, eligible: true, description: 'הגבר גדול ב-6 שנים - סביר' };
+  if (ageDiff === 7) return { score: 50, eligible: true, description: 'הגבר גדול ב-7 שנים - פער ניכר' };
   
-  // הגבר גדול ביותר מ-7 שנים - לא מומלץ
   if (ageDiff > 7) {
     return { score: 0, eligible: false, description: `פער גדול מדי (${ageDiff} שנים) - הגבר מבוגר מדי` };
   }
   
-  // האישה גדולה מהגבר (ageDiff שלילי)
+  // האישה גדולה מהגבר
   const femaleOlder = Math.abs(ageDiff);
   
-  if (femaleOlder === 1) {
-    return { score: 75, eligible: true, description: 'האישה גדולה בשנה - בסדר' };
-  }
-  if (femaleOlder === 2) {
-    return { score: 60, eligible: true, description: 'האישה גדולה ב-2 שנים - אפשרי' };
-  }
-  if (femaleOlder === 3) {
-    return { score: 40, eligible: true, description: 'האישה גדולה ב-3 שנים - מאתגר' };
-  }
-  if (femaleOlder === 4) {
-    return { score: 20, eligible: true, description: 'האישה גדולה ב-4 שנים - יוצא דופן' };
-  }
+  if (femaleOlder === 1) return { score: 75, eligible: true, description: 'האישה גדולה בשנה - בסדר' };
+  if (femaleOlder === 2) return { score: 60, eligible: true, description: 'האישה גדולה ב-2 שנים - אפשרי' };
+  if (femaleOlder === 3) return { score: 40, eligible: true, description: 'האישה גדולה ב-3 שנים - מאתגר' };
+  if (femaleOlder === 4) return { score: 20, eligible: true, description: 'האישה גדולה ב-4 שנים - יוצא דופן' };
   
-  // האישה גדולה ביותר מ-4 שנים - לא רלוונטי
   return { score: 0, eligible: false, description: `האישה גדולה ב-${femaleOlder} שנים - לא רלוונטי` };
 }
 
@@ -442,7 +425,7 @@ function calculateAgeScoreForMatch(
 }
 
 // ═══════════════════════════════════════════════════════════════
-// HELPER FUNCTIONS - Religious Level
+// HELPER FUNCTIONS - Religious & Metrics
 // ═══════════════════════════════════════════════════════════════
 
 function getReligiousCompatibilityScore(level1: string | null, level2: string | null): number {
@@ -461,10 +444,6 @@ function getReligiousCompatibilityScore(level1: string | null, level2: string | 
   if (distance === 3) return 55;
   return 30;
 }
-
-// ═══════════════════════════════════════════════════════════════
-// HELPER FUNCTIONS - Extended Metrics Scoring
-// ═══════════════════════════════════════════════════════════════
 
 function calculateSocioEconomicScore(
   userLevel: number | null,
@@ -501,7 +480,6 @@ function calculateEducationScore(
   candidatePrefMin: number | null
 ): number {
   if (userLevel === null || candidateLevel === null) return 70;
-  
   if (userPrefMin !== null && candidateLevel < userPrefMin) return 30;
   if (candidatePrefMin !== null && userLevel < candidatePrefMin) return 30;
   
@@ -519,7 +497,6 @@ function calculateJobSeniorityScore(
   candidatePrefMin: number | null
 ): number {
   if (userLevel === null || candidateLevel === null) return 70;
-  
   if (userPrefMin !== null && candidateLevel < userPrefMin) return 40;
   if (candidatePrefMin !== null && userLevel < candidatePrefMin) return 40;
   
@@ -529,10 +506,6 @@ function calculateJobSeniorityScore(
   if (diff === 3) return 60;
   return 45;
 }
-
-// ═══════════════════════════════════════════════════════════════
-// HELPER FUNCTIONS - Deal Breakers & Must Haves
-// ═══════════════════════════════════════════════════════════════
 
 function checkDealBreakers(
   candidateProfile: RawCandidate,
@@ -760,12 +733,38 @@ function calculateBackgroundMatch(
 }
 
 // ═══════════════════════════════════════════════════════════════
-// 🆕 V2.1: SCANNED PAIR TRACKING
+// 🆕 V2.2: SCANNED PAIR HELPERS
 // ═══════════════════════════════════════════════════════════════
 
 /**
- * 🆕 V2.1: Save scanned pairs to database for monitoring and analytics
- * Records all pairs that were evaluated during a scan, not for differential scanning
+ * 🆕 V2.2: Check if a pair can be skipped based on ScannedPair data
+ * Returns true if both profiles haven't changed since last scan
+ */
+function canSkipPairScan(
+  candidate: RawCandidate,
+  targetProfileUpdatedAt: Date
+): boolean {
+  // No existing scan data - must scan
+  if (!candidate.existingScannedPairId || !candidate.scannedPairLastScannedAt) {
+    return false;
+  }
+  
+  // Check if target profile was updated after last scan
+  if (targetProfileUpdatedAt > candidate.scannedPairLastScannedAt) {
+    return false;
+  }
+  
+  // Check if candidate profile was updated after last scan
+  if (candidate.profileUpdatedAt > candidate.scannedPairLastScannedAt) {
+    return false;
+  }
+  
+  // Both profiles haven't changed - can skip!
+  return true;
+}
+
+/**
+ * 🆕 V2.2: Save scanned pairs to database
  */
 async function saveScannedPairs(
   targetUserId: string,
@@ -782,47 +781,35 @@ async function saveScannedPairs(
       const maleProfileUpdatedAt = targetGender === Gender.MALE ? targetProfileUpdatedAt : candidate.profileUpdatedAt;
       const femaleProfileUpdatedAt = targetGender === Gender.MALE ? candidate.profileUpdatedAt : targetProfileUpdatedAt;
       
-      // Check if pair already exists
-      const existing = await prisma.scannedPair.findUnique({
-        where: {
-          maleUserId_femaleUserId: { maleUserId, femaleUserId }
-        }
-      });
-      
       const passedThreshold = candidate.finalScore >= MIN_SCORE_TO_SAVE;
       const rejectionReason = !passedThreshold 
         ? `Score ${candidate.finalScore} below threshold ${MIN_SCORE_TO_SAVE}` 
         : null;
       
-      if (existing) {
-        // Update existing record
-        await prisma.scannedPair.update({
-          where: { id: existing.id },
-          data: {
-            aiScore: candidate.finalScore,
-            passedThreshold,
-            rejectionReason,
-            lastScannedAt: new Date(),
-            maleProfileUpdatedAt,
-            femaleProfileUpdatedAt,
-          }
-        });
-      } else {
-        // Create new record
-        await prisma.scannedPair.create({
-          data: {
-            maleUserId,
-            femaleUserId,
-            aiScore: candidate.finalScore,
-            passedThreshold,
-            rejectionReason,
-            firstScannedAt: new Date(),
-            lastScannedAt: new Date(),
-            maleProfileUpdatedAt,
-            femaleProfileUpdatedAt,
-          }
-        });
-      }
+      await prisma.scannedPair.upsert({
+        where: {
+          maleUserId_femaleUserId: { maleUserId, femaleUserId }
+        },
+        create: {
+          maleUserId,
+          femaleUserId,
+          aiScore: candidate.finalScore,
+          passedThreshold,
+          rejectionReason,
+          firstScannedAt: new Date(),
+          lastScannedAt: new Date(),
+          maleProfileUpdatedAt,
+          femaleProfileUpdatedAt,
+        },
+        update: {
+          aiScore: candidate.finalScore,
+          passedThreshold,
+          rejectionReason,
+          lastScannedAt: new Date(),
+          maleProfileUpdatedAt,
+          femaleProfileUpdatedAt,
+        },
+      });
       
       savedCount++;
     } catch (error) {
@@ -918,7 +905,7 @@ async function ensureCandidatesReady(
 }
 
 // ═══════════════════════════════════════════════════════════════
-// TIER 1: SQL FILTERING (Extended)
+// TIER 1: SQL FILTERING (V2.2 Enhanced)
 // ═══════════════════════════════════════════════════════════════
 
 async function tier1SqlFilter(
@@ -930,10 +917,13 @@ async function tier1SqlFilter(
   preferredAgeMin: number,
   preferredAgeMax: number,
   preferredPartnerHasChildren: string,
-  maxCandidates: number
+  maxCandidates: number,
+  // 🆕 V2.2: New parameter unused but good for future expansion
+  includeScannedPairInfo: boolean = true 
 ): Promise<RawCandidate[]> {
   const oppositeGender = userGender === Gender.MALE ? Gender.FEMALE : Gender.MALE;
   
+  // 🆕 V2.2: Enhanced query with ScannedPair LEFT JOIN
   const candidates = await prisma.$queryRaw<any[]>`
     SELECT 
       p.id as "profileId",
@@ -1004,12 +994,26 @@ async function tier1SqlFilter(
       COALESCE(
         EXTRACT(YEAR FROM AGE(p."birthDate"))::int,
         pm."inferredAge"
-      ) as "age"
+      ) as "age",
+
+      -- 🆕 V2.2: ScannedPair info (if exists)
+      sp.id as "existingScannedPairId",
+      sp."aiScore" as "existingAiScore",
+      sp."lastScannedAt" as "scannedPairLastScannedAt",
+      sp."maleProfileUpdatedAt" as "scannedPairMaleProfileUpdatedAt",
+      sp."femaleProfileUpdatedAt" as "scannedPairFemaleProfileUpdatedAt"
       
     FROM "Profile" p 
     JOIN "User" u ON u.id = p."userId"
     LEFT JOIN "profile_metrics" pm ON pm."profileId" = p.id
     
+    -- 🆕 V2.2: LEFT JOIN to ScannedPair
+    LEFT JOIN "ScannedPair" sp ON (
+      (${userGender}::"Gender" = 'MALE' AND sp."maleUserId" = ${userId} AND sp."femaleUserId" = p."userId")
+      OR 
+      (${userGender}::"Gender" = 'FEMALE' AND sp."femaleUserId" = ${userId} AND sp."maleUserId" = p."userId")
+    )
+
     WHERE 
       p.gender = ${oppositeGender}::"Gender"
       AND (
@@ -1051,7 +1055,10 @@ async function tier1SqlFilter(
           )
       )
       
-    ORDER BY pm."confidenceScore" DESC NULLS LAST
+    ORDER BY 
+      -- 🆕 V2.2: Prioritize candidates we haven't scanned yet
+      CASE WHEN sp.id IS NULL THEN 0 ELSE 1 END,
+      pm."confidenceScore" DESC NULLS LAST
     LIMIT ${maxCandidates}
   `;
 
@@ -1080,6 +1087,13 @@ async function tier1SqlFilter(
     preferredAgeMin: c.preferredAgeMin,
     preferredAgeMax: c.preferredAgeMax,
     profileUpdatedAt: c.profileUpdatedAt,
+    
+    // 🆕 V2.2: Map new fields
+    existingScannedPairId: c.existingScannedPairId,
+    existingAiScore: c.existingAiScore,
+    scannedPairLastScannedAt: c.scannedPairLastScannedAt,
+    scannedPairMaleProfileUpdatedAt: c.scannedPairMaleProfileUpdatedAt,
+    scannedPairFemaleProfileUpdatedAt: c.scannedPairFemaleProfileUpdatedAt,
     
     metrics: {
       confidenceScore: c.confidenceScore,
@@ -1117,7 +1131,7 @@ async function tier1SqlFilter(
 }
 
 // ═══════════════════════════════════════════════════════════════
-// TIER 2: EXTENDED METRICS + BACKGROUND SCORING
+// TIER 2: EXTENDED METRICS + BACKGROUND SCORING (V2.2 Enhanced)
 // ═══════════════════════════════════════════════════════════════
 
 async function tier2MetricsScoring(
@@ -1128,15 +1142,47 @@ async function tier2MetricsScoring(
     religiousLevel: string | null;
     backgroundProfile: BackgroundProfile;
     metrics: ExtendedMetrics;
+    profileUpdatedAt: Date; // 🆕 V2.2
   },
   useVectors: boolean,
   useBackgroundAnalysis: boolean,
-  maxOutput: number
+  maxOutput: number,
+  skipAlreadyScannedPairs: boolean = true // 🆕 V2.2
 ): Promise<ScoredCandidate[]> {
   
   const scoredCandidates: ScoredCandidate[] = [];
+  let skippedCount = 0;
   
   for (const candidate of candidates) {
+    // 🆕 V2.2: Check if we can skip this pair
+    const canSkip = skipAlreadyScannedPairs && canSkipPairScan(candidate, targetProfile.profileUpdatedAt);
+    
+    if (canSkip && candidate.existingAiScore !== null) {
+      // Use cached score - much faster!
+      console.log(`[Tier2] ⚡ Skipping ${candidate.firstName} - using cached score: ${candidate.existingAiScore}`);
+      skippedCount++;
+      
+      scoredCandidates.push({
+        ...candidate,
+  metricsScore: candidate.existingAiScore ?? 0,  // 🔧 תיקון
+        vectorScore: null,
+        backgroundProfile: null,
+        backgroundMatch: null,
+        ageScore: null,
+        socioEconomicScore: 0,
+        educationScore: 0,
+        jobSeniorityScore: 0,
+        meetsUserMustHaves: true,
+        violatesUserDealBreakers: false,
+        meetsCandidateMustHaves: true,
+        violatesCandidateDealBreakers: false,
+  tier2Score: candidate.existingAiScore ?? 0,    // 🔧 תיקון
+        fromScannedPairCache: true, // Mark as cached
+      });
+      continue;
+    }
+
+    // --- Standard Scoring Logic Starts Here ---
     const candidateAge = candidate.age || candidate.metrics.inferredAge || 30;
     const ageScore = calculateAgeScoreForMatch(targetProfile.age, targetProfile.gender, candidateAge);
     
@@ -1273,16 +1319,18 @@ async function tier2MetricsScoring(
       meetsCandidateMustHaves: true,
       violatesCandidateDealBreakers: false,
       tier2Score,
+      fromScannedPairCache: false, // Not from cache
     });
   }
   
+  console.log(`[Tier2] ⚡ Skipped ${skippedCount} pairs using cached scores`);
   scoredCandidates.sort((a, b) => b.tier2Score - a.tier2Score);
   
   return scoredCandidates.slice(0, maxOutput);
 }
 
 // ═══════════════════════════════════════════════════════════════
-// TIER 3: AI FIRST PASS (🆕 V2.1: Enhanced Prompts)
+// TIER 3: AI FIRST PASS (Enhanced)
 // ═══════════════════════════════════════════════════════════════
 
 async function tier3AIFirstPass(
@@ -1303,12 +1351,28 @@ async function tier3AIFirstPass(
   const model = await getGeminiModel();
   const allResults: AIFirstPassCandidate[] = [];
   
-  const totalBatches = Math.ceil(candidates.length / AI_BATCH_SIZE);
+  // 🆕 V2.2: Separate candidates that need AI from cached ones
+  const candidatesForAI = candidates.filter(c => !c.fromScannedPairCache);
+  const cachedCandidates = candidates.filter(c => c.fromScannedPairCache);
+  
+  // Process cached candidates immediately
+  for (const c of cachedCandidates) {
+    allResults.push({
+      ...c,
+      aiFirstPassScore: c.tier2Score,
+      scoreBreakdown: { religious: 0, ageCompatibility: 0, careerFamily: 0, lifestyle: 0, socioEconomic: 0, education: 0, background: 0, values: 0 },
+      shortReasoning: 'Previously analyzed (Cached)',
+      tier3Score: c.tier2Score,
+    });
+  }
+
+  // Process new candidates
+  const totalBatches = Math.ceil(candidatesForAI.length / AI_BATCH_SIZE);
   
   for (let batchIdx = 0; batchIdx < totalBatches; batchIdx++) {
     const batchStart = batchIdx * AI_BATCH_SIZE;
-    const batchEnd = Math.min(batchStart + AI_BATCH_SIZE, candidates.length);
-    const batch = candidates.slice(batchStart, batchEnd);
+    const batchEnd = Math.min(batchStart + AI_BATCH_SIZE, candidatesForAI.length);
+    const batch = candidatesForAI.slice(batchStart, batchEnd);
     
     const prompt = generateEnhancedFirstPassPrompt(targetProfile, batch, batchIdx + 1, totalBatches);
     
@@ -1362,9 +1426,7 @@ async function tier3AIFirstPass(
   return allResults.slice(0, maxOutput);
 }
 
-/**
- * 🆕 V2.1: Enhanced prompt with background-specific guidelines
- */
+// ... (Enhanced Prompts Logic remains same as V2.1)
 function generateEnhancedFirstPassPrompt(
   targetProfile: {
     name: string;
@@ -1381,7 +1443,6 @@ function generateEnhancedFirstPassPrompt(
   totalBatches: number
 ): string {
   
-  // 🆕 V2.1: Build deal breakers section prominently
   const dealBreakersSection = targetProfile.metrics.aiInferredDealBreakers?.length
     ? `
 ╔══════════════════════════════════════════════════════════════╗
@@ -1403,7 +1464,6 @@ ${targetProfile.metrics.aiInferredMustHaves.map(mh => `│  • ${mh}`).join('\n
 `
     : '';
 
-  // 🆕 V2.1: Background-specific guidelines
   const backgroundGuidelines = getBackgroundMatchingGuidelines(
     targetProfile.backgroundProfile.category
   );
@@ -1441,8 +1501,6 @@ ${targetProfile.metrics.aiMatchmakerGuidelines || 'אין הנחיות מיוח�
     const age = c.age || c.metrics.inferredAge || 'לא ידוע';
     const city = c.city || c.metrics.inferredCity || 'לא צוין';
     const religious = c.religiousLevel || c.metrics.inferredReligiousLevel || 'לא צוין';
-    
-    // 🆕 V2.1: Include candidate's background category
     const candidateBgDesc = c.backgroundProfile 
       ? BACKGROUND_DESCRIPTIONS[c.backgroundProfile.category]
       : 'לא ידוע';
@@ -1538,9 +1596,6 @@ ${candidatesText}
 }`;
 }
 
-/**
- * 🆕 V2.1: Get background-specific matching guidelines for AI prompts
- */
 function getBackgroundMatchingGuidelines(category: BackgroundCategory): string {
   const guidelines: Record<BackgroundCategory, string> = {
     sabra: `
@@ -1548,25 +1603,21 @@ function getBackgroundMatchingGuidelines(category: BackgroundCategory): string {
 - התאמה מצוינת: צבר, צבר בינלאומי, עולה ותיק
 - התאמה בעייתית: עולה חדש (פערי תרבות ושפה)
 - חשוב לבדוק: האם המועמד/ת רוצה בן/בת זוג מרקע מסוים?`,
-    
     sabra_international: `
 - צבר/ית עם רקע בינלאומי - פתוח/ה יותר לרקעים שונים
 - התאמה מצוינת: כל הרקעים חוץ מעולה חדש מאוד
 - יתרון: הבנה של תרבויות שונות, רגישות לאתגרי קליטה
 - חשוב לבדוק: שפות משותפות מעבר לעברית`,
-    
     oleh_veteran: `
 - עולה ותיק/ה (10+ שנים) - משולב/ת היטב בחברה הישראלית
 - התאמה מצוינת: צברים, עולים ותיקים, עולים בתהליך
 - יתרון: מבין/ה את חווית העלייה אבל גם את התרבות המקומית
 - חשוב לבדוק: ארץ מוצא משותפת = בונוס משמעותי`,
-    
     oleh_mid: `
 - עולה בתהליך קליטה (3-10 שנים) - עדיין בהשתלבות
 - התאמה מצוינת: עולים אחרים (כל הוותקים), צבר בינלאומי
 - התאמה מאתגרת: צבר "טהור" ללא רקע בינלאומי
 - חשוב לבדוק: רמת עברית, תמיכה בתהליך הקליטה`,
-    
     oleh_new: `
 - עולה חדש/ה (פחות מ-3 שנים) - בתחילת הדרך
 - התאמה מצוינת: עולים חדשים וותיקים מאותה ארץ
@@ -1574,12 +1625,11 @@ function getBackgroundMatchingGuidelines(category: BackgroundCategory): string {
 - חשוב מאוד: שפה משותפת, ארץ מוצא, קהילת תמיכה
 - זהירות: פערי תרבות יכולים להיות משמעותיים מאוד`,
   };
-  
   return guidelines[category];
 }
 
 // ═══════════════════════════════════════════════════════════════
-// TIER 4: AI DEEP ANALYSIS (🆕 V2.1: Enhanced Prompts)
+// TIER 4: AI DEEP ANALYSIS
 // ═══════════════════════════════════════════════════════════════
 
 async function tier4AIDeepAnalysis(
@@ -1598,69 +1648,79 @@ async function tier4AIDeepAnalysis(
 ): Promise<FinalCandidate[]> {
   
   const model = await getGeminiModel();
-  const prompt = generateEnhancedDeepAnalysisPrompt(targetProfile, candidates);
   
-  try {
-    const result = await model.generateContent(prompt);
-    const jsonString = result.response.text();
-    const parsed = parseJsonResponse<{ deepAnalysis: any[] }>(jsonString);
-    
-    const finalCandidates: FinalCandidate[] = [];
-    
-    for (const aiResult of parsed.deepAnalysis || []) {
-      const candidate = candidates[aiResult.index - 1];
-      if (!candidate) continue;
-      
-      const finalScore = Math.min(100, Math.max(0, aiResult.finalScore || candidate.tier3Score));
-      const rank = aiResult.rank || 999;
-      
-      let recommendation: FinalCandidate['recommendation'];
-      if (finalScore >= 85) recommendation = 'EXCELLENT';
-      else if (finalScore >= 70) recommendation = 'GOOD';
-      else if (finalScore >= 55) recommendation = 'FAIR';
-      else recommendation = 'POOR';
-      
-      finalCandidates.push({
-  ...candidate,
-  finalScore,
-  rank,
-  scoreBreakdown: aiResult.breakdown || candidate.scoreBreakdown,  // ← להוסיף!
-  detailedReasoning: aiResult.detailedReasoning || candidate.shortReasoning,
-  recommendation,
-  suggestedApproach: aiResult.suggestedApproach || undefined,
-  strengths: aiResult.strengths || [],
-  concerns: aiResult.concerns || [],
-});
+  // 🆕 V2.2: Again, skip AI for cached candidates, but need to reconstruct FinalCandidate
+  const candidatesForAI = candidates.filter(c => !c.fromScannedPairCache);
+  const cachedCandidates = candidates.filter(c => c.fromScannedPairCache);
+  const finalCandidates: FinalCandidate[] = [];
 
-    }
-    
-    finalCandidates.sort((a, b) => a.rank - b.rank);
-    return finalCandidates;
-    
-  } catch (error) {
-    console.error(`[Tier4] Deep analysis failed:`, error);
-    
-    return candidates.map((c, idx) => ({
+  // Reconstruct cached ones
+  cachedCandidates.forEach((c, idx) => {
+    finalCandidates.push({
       ...c,
       finalScore: c.tier3Score,
-      rank: idx + 1,
-      detailedReasoning: c.shortReasoning,
-      recommendation: c.tier3Score >= 70 ? 'GOOD' as const : 'FAIR' as const,
+      rank: 999, // Will sort later
+      detailedReasoning: c.shortReasoning || 'Scanned pair (cached)',
+      recommendation: c.tier3Score >= 70 ? 'GOOD' : 'FAIR',
       strengths: [],
       concerns: [],
-    }));
+    });
+  });
+
+  if (candidatesForAI.length > 0) {
+    const prompt = generateEnhancedDeepAnalysisPrompt(targetProfile, candidatesForAI);
+    
+    try {
+      const result = await model.generateContent(prompt);
+      const jsonString = result.response.text();
+      const parsed = parseJsonResponse<{ deepAnalysis: any[] }>(jsonString);
+      
+      for (const aiResult of parsed.deepAnalysis || []) {
+        const candidate = candidatesForAI[aiResult.index - 1];
+        if (!candidate) continue;
+        
+        const finalScore = Math.min(100, Math.max(0, aiResult.finalScore || candidate.tier3Score));
+        const rank = aiResult.rank || 999;
+        
+        let recommendation: FinalCandidate['recommendation'];
+        if (finalScore >= 85) recommendation = 'EXCELLENT';
+        else if (finalScore >= 70) recommendation = 'GOOD';
+        else if (finalScore >= 55) recommendation = 'FAIR';
+        else recommendation = 'POOR';
+        
+        finalCandidates.push({
+          ...candidate,
+          finalScore,
+          rank,
+          scoreBreakdown: aiResult.breakdown || candidate.scoreBreakdown,
+          detailedReasoning: aiResult.detailedReasoning || candidate.shortReasoning,
+          recommendation,
+          suggestedApproach: aiResult.suggestedApproach || undefined,
+          strengths: aiResult.strengths || [],
+          concerns: aiResult.concerns || [],
+        });
+      }
+    } catch (error) {
+      console.error(`[Tier4] Deep analysis failed:`, error);
+      candidatesForAI.forEach((c, idx) => {
+        finalCandidates.push({
+          ...c,
+          finalScore: c.tier3Score,
+          rank: idx + 1,
+          detailedReasoning: c.shortReasoning,
+          recommendation: c.tier3Score >= 70 ? 'GOOD' : 'FAIR',
+          strengths: [],
+          concerns: [],
+        });
+      });
+    }
   }
+
+  finalCandidates.sort((a, b) => b.finalScore - a.finalScore);
+  // Re-assign ranks
+  return finalCandidates.map((c, i) => ({ ...c, rank: i + 1 }));
 }
 
-/**
- * 🆕 V2.1: Enhanced deep analysis prompt with prominent deal breakers
- */
-// בתוך src/lib/services/hybridMatchingService.ts
-
-/**
- * 🆕 V2.2 Fix: "Soulful" Deep Analysis Prompt
- * משלב את הנתונים המדויקים של ההיברידי עם יכולת הסיפור של V3.4
- */
 function generateEnhancedDeepAnalysisPrompt(
   targetProfile: {
     name: string;
@@ -1676,7 +1736,6 @@ function generateEnhancedDeepAnalysisPrompt(
   candidates: AIFirstPassCandidate[]
 ): string {
   
-  // 1. Deal Breakers Section (נשאר אותו דבר - חשוב לסינון)
   const dealBreakersWarning = targetProfile.metrics.aiInferredDealBreakers?.length
     ? `
 ╔══════════════════════════════════════════════════════════════════════╗
@@ -1687,7 +1746,6 @@ ${targetProfile.metrics.aiInferredDealBreakers.map(db => `║  ❌ ${db}`).join(
 `
     : '';
 
-  // 2. בניית טקסט המועמדים - הוספנו דגש על האישיות
   const candidatesText = candidates.map((c, idx) => {
     return `
 [${idx + 1}] ${c.firstName} ${c.lastName}
@@ -1745,13 +1803,6 @@ ${candidatesText}
    - concerns: חששות טכניים (בולטים).
 
 ═══════════════════════════════════════
-דוגמה לנימוק טוב:
-"החיבור ביניהם נראה מבטיח מאוד בזכות השילוב בין הרוגע של דני לבין האנרגטיות של שרה. שניהם מגיעים מרקע אנגלו-סכסי ומחפשים בית תורני אך פתוח. נראה שיש כאן בסיס משותף חזק של ערכים, לצד שאיפות קריירה דומות שיאפשרו להם לצמוח יחד."
-
-דוגמה לנימוק גרוע (אל תעשה את זה!):
-"התאמה טובה. גיל מתאים. רמה דתית זהה. שניהם עובדים בהייטק."
-
-═══════════════════════════════════════
 פורמט JSON בלבד:
 ═══════════════════════════════════════
 {
@@ -1760,7 +1811,7 @@ ${candidatesText}
       "index": 1,
       "finalScore": 92,
       "rank": 1,
- "breakdown": {
+      "breakdown": {
         "religious": 22,
         "ageCompatibility": 9,
         "careerFamily": 13,
@@ -1804,17 +1855,6 @@ function parseJsonResponse<T>(jsonString: string): T {
   return JSON.parse(cleaned) as T;
 }
 
-function getCategoryName(category: BackgroundCategory): string {
-  const names: Record<BackgroundCategory, string> = {
-    sabra: 'צבר/ית',
-    sabra_international: 'צבר/ית עם רקע בינלאומי',
-    oleh_veteran: 'עולה ותיק/ה (10+ שנים)',
-    oleh_mid: 'עולה (3-10 שנים)',
-    oleh_new: 'עולה חדש/ה',
-  };
-  return names[category];
-}
-
 // ═══════════════════════════════════════════════════════════════
 // SAVE RESULTS
 // ═══════════════════════════════════════════════════════════════
@@ -1849,12 +1889,10 @@ async function saveResults(
             firstPassScore: match.tier2Score,
             shortReasoning: match.detailedReasoning,
             scannedAt: new Date(),
-                        scoreBreakdown: match.scoreBreakdown as any, 
-
+            scoreBreakdown: match.scoreBreakdown as any, 
             scoreForMale: isMale ? match.finalScore : match.tier3Score,
             scoreForFemale: isMale ? match.tier3Score : match.finalScore,
             asymmetryGap: Math.abs(match.finalScore - match.tier3Score),
-            // 🆕 V2.1: Save hybrid-specific fields
             hybridScore: match.finalScore,
             hybridReasoning: match.detailedReasoning,
             hybridScannedAt: new Date(),
@@ -1869,14 +1907,12 @@ async function saveResults(
             femaleUserId,
             aiScore: match.finalScore,
             firstPassScore: match.tier2Score,
-                        scoreBreakdown: match.scoreBreakdown as any,
-
+            scoreBreakdown: match.scoreBreakdown as any,
             status: 'PENDING',
             shortReasoning: match.detailedReasoning,
             scoreForMale: isMale ? match.finalScore : match.tier3Score,
             scoreForFemale: isMale ? match.tier3Score : match.finalScore,
             asymmetryGap: Math.abs(match.finalScore - match.tier3Score),
-            // 🆕 V2.1: Save hybrid-specific fields
             hybridScore: match.finalScore,
             hybridReasoning: match.detailedReasoning,
             hybridScannedAt: new Date(),
@@ -1900,19 +1936,9 @@ async function saveResults(
 }
 
 // ═══════════════════════════════════════════════════════════════
-// 🆕 V2.1: VIRTUAL PROFILE SCANNING
+// VIRTUAL PROFILE SCANNING
 // ═══════════════════════════════════════════════════════════════
 
-/**
- * 🆕 V2.1: Scan for matches for a virtual profile
- * This allows matchmakers to find matches for profiles that don't exist in the system yet
- * 
- * @param virtualProfile - The generated virtual profile from aiService
- * @param gender - Gender of the virtual profile (MALE or FEMALE)
- * @param religiousLevel - Religious level of the virtual profile
- * @param options - Scan options
- * @returns VirtualScanResult with matched candidates
- */
 export async function hybridScanForVirtualUser(
   virtualProfile: GeneratedVirtualProfile,
   gender: Gender,
@@ -1931,10 +1957,8 @@ export async function hybridScanForVirtualUser(
   
   console.log(`\n${'═'.repeat(70)}`);
   console.log(`[VirtualScan] Starting scan for virtual profile`);
-  console.log(`[VirtualScan] Gender: ${gender}, Age: ${virtualProfile.inferredAge}, Religious: ${religiousLevel}`);
   console.log(`${'═'.repeat(70)}`);
   
-  // Build virtual user's extended metrics from the profile
   const virtualMetrics: ExtendedMetrics = {
     confidenceScore: 80,
     religiousStrictness: null,
@@ -1968,21 +1992,14 @@ export async function hybridScanForVirtualUser(
     prefEducationLevelMax: null,
   };
   
-  // Create background profile for virtual user
   const virtualBackgroundProfile = createBackgroundProfile(
-    null,
-    [],
-    null,
-    null,
-    null,
-    virtualProfile.personalitySummary,
-    null,
-    null
+    null, [], null, null, null, virtualProfile.personalitySummary, null, null
   );
   
-  // Find candidates using SQL filter (simplified - no exclusions needed)
+  // Reuse SQL filter, but since it's virtual, no user ID filtering or ScannedPair optimization needed
   const oppositeGender = gender === Gender.MALE ? Gender.FEMALE : Gender.MALE;
   
+  // Using simplified query for virtual
   const candidates = await prisma.$queryRaw<any[]>`
     SELECT 
       p.id as "profileId",
@@ -2049,32 +2066,11 @@ export async function hybridScanForVirtualUser(
       AND (p."isProfileVisible" = true OR p."isProfileVisible" IS NULL)
       AND COALESCE(EXTRACT(YEAR FROM AGE(p."birthDate"))::int, pm."inferredAge") >= ${virtualProfile.preferredAgeMin}
       AND COALESCE(EXTRACT(YEAR FROM AGE(p."birthDate"))::int, pm."inferredAge") <= ${virtualProfile.preferredAgeMax}
-      AND (
-        COALESCE(p."preferredAgeMin", pm."inferredPreferredAgeMin") IS NULL 
-        OR ${virtualProfile.inferredAge} >= COALESCE(p."preferredAgeMin", pm."inferredPreferredAgeMin")
-      )
-      AND (
-        COALESCE(p."preferredAgeMax", pm."inferredPreferredAgeMax") IS NULL 
-        OR ${virtualProfile.inferredAge} <= COALESCE(p."preferredAgeMax", pm."inferredPreferredAgeMax")
-      )
     ORDER BY pm."confidenceScore" DESC NULLS LAST
     LIMIT ${maxCandidates}
   `;
-  
-  console.log(`[VirtualScan] Found ${candidates.length} potential candidates`);
-  
-  if (candidates.length === 0) {
-    return {
-      scanStartedAt: new Date(startTime),
-      scanCompletedAt: new Date(),
-      durationMs: Date.now() - startTime,
-      stats: { totalCandidatesScanned: 0, passedFilters: 0, aiAnalyzed: 0, deepAnalyzed: 0 },
-      matches: [],
-      warnings: ['No candidates found matching age criteria'],
-    };
-  }
-  
-  // Transform to RawCandidate format
+
+  // Transform to RawCandidate
   const rawCandidates: RawCandidate[] = candidates.map(c => ({
     profileId: c.profileId,
     userId: c.userId,
@@ -2101,6 +2097,7 @@ export async function hybridScanForVirtualUser(
     preferredAgeMax: c.preferredAgeMax,
     profileUpdatedAt: c.profileUpdatedAt,
     metrics: {
+      // Map all metrics similarly to standard scan
       confidenceScore: c.confidenceScore,
       religiousStrictness: c.religiousStrictness,
       socialEnergy: c.socialEnergy,
@@ -2133,8 +2130,7 @@ export async function hybridScanForVirtualUser(
       prefEducationLevelMax: c.prefEducationLevelMax,
     },
   }));
-  
-  // Tier 2: Metrics scoring
+
   const tier2Candidates = await tier2MetricsScoring(
     rawCandidates,
     {
@@ -2143,17 +2139,15 @@ export async function hybridScanForVirtualUser(
       religiousLevel: religiousLevel,
       backgroundProfile: virtualBackgroundProfile,
       metrics: virtualMetrics,
+      profileUpdatedAt: new Date(), // Virtual profiles are always fresh
     },
-    false, // No vectors for virtual profiles
-    true,  // Use background analysis
-    maxCandidates
+    false,
+    true,
+    maxCandidates,
+    false // Don't skip pairs for virtual
   );
-  
-  console.log(`[VirtualScan] After metrics scoring: ${tier2Candidates.length} candidates`);
-  
-  // Tier 3: AI First Pass (if enabled)
+
   let tier3Candidates: AIFirstPassCandidate[];
-  
   if (useAIFirstPass && tier2Candidates.length > 0) {
     tier3Candidates = await tier3AIFirstPass(
       tier2Candidates.filter(c => c.tier2Score >= minScoreToReturn),
@@ -2178,10 +2172,8 @@ export async function hybridScanForVirtualUser(
       tier3Score: c.tier2Score,
     }));
   }
-  
-  // Tier 4: Deep Analysis (if enabled)
+
   let finalCandidates: FinalCandidate[];
-  
   if (useAIDeepAnalysis && tier3Candidates.length > 0) {
     finalCandidates = await tier4AIDeepAnalysis(
       tier3Candidates.slice(0, 15),
@@ -2203,13 +2195,12 @@ export async function hybridScanForVirtualUser(
       finalScore: c.tier3Score,
       rank: idx + 1,
       detailedReasoning: c.shortReasoning,
-      recommendation: c.tier3Score >= 70 ? 'GOOD' as const : 'FAIR' as const,
+      recommendation: c.tier3Score >= 70 ? 'GOOD' : 'FAIR',
       strengths: [],
       concerns: [],
     }));
   }
-  
-  // Transform to VirtualMatchCandidate format
+
   const matches: VirtualMatchCandidate[] = finalCandidates
     .filter(c => c.finalScore >= minScoreToReturn)
     .map(c => ({
@@ -2227,16 +2218,11 @@ export async function hybridScanForVirtualUser(
       strengths: c.strengths,
       concerns: c.concerns,
     }));
-  
-  const totalDuration = Date.now() - startTime;
-  
-  console.log(`[VirtualScan] ✅ Completed in ${totalDuration}ms`);
-  console.log(`[VirtualScan] Found ${matches.length} matches above score ${minScoreToReturn}`);
-  
+
   return {
     scanStartedAt: new Date(startTime),
     scanCompletedAt: new Date(),
-    durationMs: totalDuration,
+    durationMs: Date.now() - startTime,
     stats: {
       totalCandidatesScanned: rawCandidates.length,
       passedFilters: tier2Candidates.length,
@@ -2277,12 +2263,14 @@ export async function hybridScan(
     skipCandidateMetricsUpdate = false,
     maxCandidatesToUpdate = MAX_CANDIDATES_TO_UPDATE,
     autoSave = true,
-    saveScannedPairs: shouldSaveScannedPairs = true,  // 🆕 V2.1
+    // 🆕 V2.2: New options
+    skipAlreadyScannedPairs = true,
+    saveScannedPairs: shouldSaveScannedPairs = true,
     checkCancelled,
   } = options;
 
   console.log(`\n${'═'.repeat(70)}`);
-  console.log(`[HybridScan V2.1] Starting for user: ${userId}`);
+  console.log(`[HybridScan V2.2] Starting for user: ${userId}`);
   console.log(`${'═'.repeat(70)}`);
 
   const tiersStats = {
@@ -2351,37 +2339,26 @@ export async function hybridScan(
     metrics.aiBackgroundSummary
   );
   
-  console.log(`[HybridScan] User: ${profile.user.firstName} ${profile.user.lastName}`);
-  console.log(`[HybridScan] Age: ${userAge}, Gender: ${profile.gender}`);
-  console.log(`[HybridScan] Preferred Age: ${preferredAgeMin}-${preferredAgeMax}`);
-  console.log(`[HybridScan] Background: ${userBackgroundProfile.category} (${BACKGROUND_DESCRIPTIONS[userBackgroundProfile.category]})`);
-  console.log(`[HybridScan] Has AI Summaries: personality=${!!metrics.aiPersonalitySummary}, seeking=${!!metrics.aiSeekingSummary}`);
-  console.log(`[HybridScan] Deal Breakers: ${metrics.aiInferredDealBreakers?.length || 0}, Must Haves: ${metrics.aiInferredMustHaves?.length || 0}`);
-
   await ensureUserReady(profile.id, forceUpdateMetrics);
-
   const oppositeGender = profile.gender === Gender.MALE ? Gender.FEMALE : Gender.MALE;
   
   if (!skipCandidateMetricsUpdate) {
     const updateResult = await ensureCandidatesReady(oppositeGender, maxCandidatesToUpdate);
     tiersStats.tier0.candidatesUpdated = updateResult.updated;
-    
-    if (updateResult.failed > 0) {
-      warnings.push(`Failed to update ${updateResult.failed} candidate profiles`);
-    }
+    if (updateResult.failed > 0) warnings.push(`Failed to update ${updateResult.failed} candidate profiles`);
   }
   
   tiersStats.tier0.durationMs = Date.now() - tier0Start;
   console.log(`[HybridScan] Tier 0: Updated ${tiersStats.tier0.candidatesUpdated} candidates in ${tiersStats.tier0.durationMs}ms`);
 
-    if (checkCancelled && await checkCancelled()) {
+  if (checkCancelled && await checkCancelled()) {
     throw new Error('Scan cancelled by user request');
   }
 
   // ═══════════════════════════════════════════════════════════
   // TIER 1: SQL Filtering
   // ═══════════════════════════════════════════════════════════
-  console.log(`\n[HybridScan] ═══ TIER 1: SQL Filter ═══`);
+  console.log(`\n[HybridScan] ═══ TIER 1: SQL Filter (Enhanced) ═══`);
   const tier1Start = Date.now();
   
   const preferredPartnerHasChildren = profile.preferredPartnerHasChildren ?? 'does_not_matter';
@@ -2395,7 +2372,8 @@ export async function hybridScan(
     preferredAgeMin,
     preferredAgeMax,
     preferredPartnerHasChildren,
-    maxTier1Candidates
+    maxTier1Candidates,
+    true // includeScannedPairInfo
   );
   
   tiersStats.tier1 = {
@@ -2410,7 +2388,7 @@ export async function hybridScan(
     return createEmptyResult(userId, profile.id, startTime, tiersStats, warnings, errors);
   }
 
-    if (checkCancelled && await checkCancelled()) {
+  if (checkCancelled && await checkCancelled()) {
     throw new Error('Scan cancelled by user request (before Tier 2)');
   }
 
@@ -2428,10 +2406,12 @@ export async function hybridScan(
       religiousLevel: profile.religiousLevel,
       backgroundProfile: userBackgroundProfile,
       metrics: metrics,
+      profileUpdatedAt: profile.updatedAt, // 🆕 V2.2
     },
     useVectors,
     useBackgroundAnalysis,
-    maxTier2Candidates
+    maxTier2Candidates,
+    skipAlreadyScannedPairs // 🆕 V2.2
   );
   
   tiersStats.tier2 = {
@@ -2440,18 +2420,10 @@ export async function hybridScan(
     durationMs: Date.now() - tier2Start,
   };
   
-  const candidatesWithDifficulty = tier2Candidates.filter(
-    c => c.metrics.difficultyFlags && c.metrics.difficultyFlags.length > 0
-  ).length;
-  
-  console.log(`[HybridScan] Tier 2: ${tier2Candidates.length} candidates in ${tiersStats.tier2.durationMs}ms`);
-  console.log(`[HybridScan] Candidates with difficulty flags: ${candidatesWithDifficulty}`);
-  console.log(`[HybridScan] Top 5 after Tier 2:`);
-  tier2Candidates.slice(0, 5).forEach((c, i) => {
-    console.log(`  ${i+1}. ${c.firstName} - Score: ${c.tier2Score}, BG: ${c.backgroundMatch?.compatibility || 'N/A'}, SE: ${c.socioEconomicScore}, Edu: ${c.educationScore}`);
-  });
+  const skippedFromScannedPair = tier2Candidates.filter(c => c.fromScannedPairCache).length;
+  console.log(`[HybridScan] Tier 2: ${tier2Candidates.length} candidates (Skipped AI for: ${skippedFromScannedPair})`);
 
-    if (checkCancelled && await checkCancelled()) {
+  if (checkCancelled && await checkCancelled()) {
     throw new Error('Scan cancelled by user request (before AI Batch)');
   }
 
@@ -2464,8 +2436,9 @@ export async function hybridScan(
     console.log(`\n[HybridScan] ═══ TIER 3: AI First Pass ═══`);
     const tier3Start = Date.now();
     
-    const candidatesForAI = tier2Candidates.filter(c => c.tier2Score >= minScoreForAI);
-    console.log(`[HybridScan] Sending ${candidatesForAI.length} candidates to AI (score >= ${minScoreForAI})`);
+    // We send candidates to AI even if cached? No, function handles it internally.
+    // We filter for minScore unless it's cached (cached ones might have old high score)
+    const candidatesForAI = tier2Candidates.filter(c => c.tier2Score >= minScoreForAI || c.fromScannedPairCache);
     
     tier3Candidates = await tier3AIFirstPass(
       candidatesForAI,
@@ -2499,7 +2472,6 @@ export async function hybridScan(
     }));
   }
 
-    // 🆕 בדיקה 4: לפני Tier 4 (Deep Analysis)
   if (checkCancelled && await checkCancelled()) {
     throw new Error('Scan cancelled by user request (before Deep Analysis)');
   }
@@ -2543,7 +2515,7 @@ export async function hybridScan(
       finalScore: c.tier3Score,
       rank: idx + 1,
       detailedReasoning: c.shortReasoning,
-      recommendation: c.tier3Score >= 70 ? 'GOOD' as const : 'FAIR' as const,
+      recommendation: c.tier3Score >= 70 ? 'GOOD' : 'FAIR',
       strengths: [],
       concerns: [],
     }));
@@ -2558,10 +2530,9 @@ export async function hybridScan(
   if (autoSave && finalCandidates.length > 0) {
     console.log(`\n[HybridScan] ═══ Saving Results ═══`);
     savedCount = await saveResults(userId, profile.id, profile.gender, finalCandidates, minScoreToSave);
-    console.log(`[HybridScan] Saved ${savedCount} matches to DB`);
   }
   
-  // 🆕 V2.1: Save ScannedPairs
+  // 🆕 V2.2: Save ScannedPairs
   if (shouldSaveScannedPairs && finalCandidates.length > 0) {
     console.log(`\n[HybridScan] ═══ Saving ScannedPairs ═══`);
     scannedPairsSaved = await saveScannedPairs(
@@ -2572,18 +2543,9 @@ export async function hybridScan(
     );
   }
 
-  // ═══════════════════════════════════════════════════════════
-  // FINAL RESULT
-  // ═══════════════════════════════════════════════════════════
   const totalDuration = Date.now() - startTime;
   
   console.log(`\n[HybridScan] ✅ Completed in ${totalDuration}ms`);
-  console.log(`[HybridScan] Final Top 5:`);
-  finalCandidates.slice(0, 5).forEach((c, i) => {
-    console.log(`  ${i+1}. ${c.firstName} ${c.lastName} - Final: ${c.finalScore}, Rank: ${c.rank}, Rec: ${c.recommendation}`);
-    if (c.strengths.length > 0) console.log(`     Strengths: ${c.strengths.join(', ')}`);
-    if (c.concerns.length > 0) console.log(`     Concerns: ${c.concerns.join(', ')}`);
-  });
   console.log(`${'═'.repeat(70)}\n`);
 
   return {
@@ -2600,8 +2562,11 @@ export async function hybridScan(
       deepAnalyzed: tiersStats.tier4.output,
       savedToDb: savedCount,
       fromCache: false,
-      candidatesWithDifficultyFlags: candidatesWithDifficulty,
-      scannedPairsSaved,  // 🆕 V2.1
+      candidatesWithDifficultyFlags: tier2Candidates.filter(c => c.metrics.difficultyFlags?.length).length,
+      scannedPairsSaved,
+      // 🆕 V2.2: ScannedPair stats
+      skippedFromScannedPair: skippedFromScannedPair,
+      newPairsScanned: finalCandidates.filter(c => !c.fromScannedPairCache).length,
     },
     matches: finalCandidates,
     warnings,
@@ -2637,6 +2602,8 @@ function createEmptyResult(
       fromCache: false,
       candidatesWithDifficultyFlags: 0,
       scannedPairsSaved: 0,
+      skippedFromScannedPair: 0,
+      newPairsScanned: 0,
     },
     matches: [],
     warnings,
@@ -2650,24 +2617,18 @@ function createEmptyResult(
 
 export const hybridMatchingService = {
   hybridScan,
-  hybridScanForVirtualUser,  // 🆕 V2.1
-  
-  // Utility exports
+  hybridScanForVirtualUser,
   calculateAge,
   calculateAgeScore,
   calculateAgeScoreForMatch,
   createBackgroundProfile,
   calculateBackgroundMatch,
   getReligiousCompatibilityScore,
-  
-  // Extended metrics exports
   calculateSocioEconomicScore,
   calculateEducationScore,
   calculateJobSeniorityScore,
   checkDealBreakers,
   checkMustHaves,
-  
-  // 🆕 V2.1: ScannedPair tracking
   saveScannedPairs,
 };
 
