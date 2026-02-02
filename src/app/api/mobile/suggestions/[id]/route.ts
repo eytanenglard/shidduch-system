@@ -1,5 +1,5 @@
 // src/app/api/mobile/suggestions/[id]/route.ts
-// פרטי הצעת שידוך - למובייל
+// פרטי הצעת שידוך בודדת - למובייל
 
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
@@ -20,7 +20,7 @@ function calculateAge(birthDate: Date | null | undefined): number | null {
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } }
 ) {
   try {
     // אימות Bearer token
@@ -34,8 +34,7 @@ export async function GET(
     }
 
     const userId = auth.userId;
-    const { id } = await params;
-    const suggestionId = id;
+    const suggestionId = params.id;
 
     // שליפת ההצעה עם כל הפרטים
     const suggestion = await prisma.matchSuggestion.findUnique({
@@ -46,6 +45,7 @@ export async function GET(
             firstName: true, 
             lastName: true,
             phone: true,
+            email: true,
           } 
         },
         firstParty: {
@@ -54,27 +54,29 @@ export async function GET(
             firstName: true,
             lastName: true,
             phone: true,
+            email: true,
             profile: {
               select: {
-                birthDate: true,  // ✅ שונה מ-age
+                birthDate: true,
                 city: true,
                 occupation: true,
+                education: true,
+                educationLevel: true,
                 height: true,
                 about: true,
-                education: true,
                 religiousLevel: true,
-                // familyBackground לא קיים ב-schema - הסרתי
-                parentStatus: true,  // ✅ במקום familyBackground
-                origin: true,        // ✅ אפשרות נוספת
+                origin: true,
+                maritalStatus: true,
+                profileCharacterTraits: true,
+                profileHobbies: true,
               }
             },
             images: {
+              orderBy: { isMain: 'desc' },
               select: { 
-                id: true,
-                url: true, 
-                isMain: true 
-              },
-              orderBy: { isMain: 'desc' }
+                url: true,
+                isMain: true,
+              }
             }
           }
         },
@@ -84,32 +86,41 @@ export async function GET(
             firstName: true,
             lastName: true,
             phone: true,
+            email: true,
             profile: {
               select: {
-                birthDate: true,  // ✅ שונה מ-age
+                birthDate: true,
                 city: true,
                 occupation: true,
+                education: true,
+                educationLevel: true,
                 height: true,
                 about: true,
-                education: true,
                 religiousLevel: true,
-                parentStatus: true,
                 origin: true,
+                maritalStatus: true,
+                profileCharacterTraits: true,
+                profileHobbies: true,
               }
             },
             images: {
+              orderBy: { isMain: 'desc' },
               select: { 
-                id: true,
-                url: true, 
-                isMain: true 
-              },
-              orderBy: { isMain: 'desc' }
+                url: true,
+                isMain: true,
+              }
             }
           }
         },
         statusHistory: {
           orderBy: { createdAt: 'desc' },
           take: 10,
+          select: {
+            id: true,
+            status: true,
+            notes: true,
+            createdAt: true,
+          }
         },
       },
     });
@@ -121,78 +132,93 @@ export async function GET(
       );
     }
 
-    // בדיקה שהמשתמש הוא חלק מההצעה
+    // בדיקה שהמשתמש הוא אחד הצדדים בהצעה
     const isFirstParty = suggestion.firstPartyId === userId;
     const isSecondParty = suggestion.secondPartyId === userId;
 
     if (!isFirstParty && !isSecondParty) {
       return NextResponse.json(
-        { success: false, error: "You are not part of this suggestion" },
+        { success: false, error: "Access denied" },
         { status: 403 }
       );
     }
 
     // הצד השני
-    const otherParty = isFirstParty ? suggestion.secondParty : suggestion.firstParty;
+    const otherPartyRaw = isFirstParty ? suggestion.secondParty : suggestion.firstParty;
     const notes = isFirstParty ? suggestion.firstPartyNotes : suggestion.secondPartyNotes;
 
-    // בדיקה אם צריך להציג פרטי קשר
-    const showContactDetails = [
-      "CONTACT_DETAILS_SHARED",
-      "MEETING_PENDING",
-      "MEETING_SCHEDULED",
-      "DATING",
-      "ENGAGED",
-      "MARRIED",
-    ].includes(suggestion.status);
+    // בניית אובייקט התגובה
+    const otherParty = {
+      id: otherPartyRaw.id,
+      firstName: otherPartyRaw.firstName,
+      lastName: otherPartyRaw.lastName,
+      age: calculateAge(otherPartyRaw.profile?.birthDate),
+      city: otherPartyRaw.profile?.city || null,
+      occupation: otherPartyRaw.profile?.occupation || null,
+      education: otherPartyRaw.profile?.education || null,
+      educationLevel: otherPartyRaw.profile?.educationLevel || null,
+      height: otherPartyRaw.profile?.height || null,
+      about: otherPartyRaw.profile?.about || null,
+      religiousLevel: otherPartyRaw.profile?.religiousLevel || null,
+      origin: otherPartyRaw.profile?.origin || null,
+      maritalStatus: otherPartyRaw.profile?.maritalStatus || null,
+      characterTraits: otherPartyRaw.profile?.profileCharacterTraits || [],
+      hobbies: otherPartyRaw.profile?.profileHobbies || [],
+      images: otherPartyRaw.images?.map(img => img.url) || [],
+      mainImage: otherPartyRaw.images?.find(img => img.isMain)?.url || otherPartyRaw.images?.[0]?.url || null,
+    };
 
-    const response = {
+    // בדיקה אם להציג פרטי קשר (רק אם הסטטוס מאפשר)
+    const showContactDetails = suggestion.status === 'CONTACT_DETAILS_SHARED';
+
+    // הוספת פרטי קשר אם מותר
+    if (showContactDetails) {
+      Object.assign(otherParty, {
+        phone: otherPartyRaw.phone,
+        email: otherPartyRaw.email,
+      });
+    }
+
+    // בדיקה האם המשתמש יכול להגיב
+    const canRespond = 
+      (isFirstParty && suggestion.status === 'PENDING_FIRST_PARTY') ||
+      (isSecondParty && suggestion.status === 'PENDING_SECOND_PARTY');
+
+    const responseData = {
       id: suggestion.id,
       status: suggestion.status,
       priority: suggestion.priority,
       matchingReason: suggestion.matchingReason,
-      notes,
+      notes: notes,
+      createdAt: suggestion.createdAt,
+      updatedAt: suggestion.updatedAt,
+      decisionDeadline: suggestion.decisionDeadline,
+      lastStatusChange: suggestion.lastStatusChange,
+      isFirstParty,
+      canRespond,
+      showContactDetails,
       matchmaker: {
         firstName: suggestion.matchmaker.firstName,
         lastName: suggestion.matchmaker.lastName,
-        phone: suggestion.matchmaker.phone,
-      },
-      createdAt: suggestion.createdAt,
-      decisionDeadline: suggestion.decisionDeadline,
-      isFirstParty,
-      canRespond: (isFirstParty && suggestion.status === "PENDING_FIRST_PARTY") ||
-                  (isSecondParty && suggestion.status === "PENDING_SECOND_PARTY"),
-      otherParty: {
-        id: otherParty.id,
-        firstName: otherParty.firstName,
-        lastName: otherParty.lastName,
-        age: calculateAge(otherParty.profile?.birthDate),  // ✅ חישוב גיל
-        city: otherParty.profile?.city,
-        occupation: otherParty.profile?.occupation,
-        height: otherParty.profile?.height,
-        about: otherParty.profile?.about,
-        education: otherParty.profile?.education,
-        religiousLevel: otherParty.profile?.religiousLevel,
-        parentStatus: otherParty.profile?.parentStatus,  // ✅ תיקון
-        origin: otherParty.profile?.origin,
-        images: otherParty.images,
-        // פרטי קשר רק אם משותפים
+        // פרטי קשר של השדכן רק אם צריך
         ...(showContactDetails && {
-          phone: otherParty.phone,
+          phone: suggestion.matchmaker.phone,
+          email: suggestion.matchmaker.email,
         }),
       },
+      otherParty,
       statusHistory: suggestion.statusHistory,
     };
 
-    console.log(`[mobile/suggestions/detail] User ${userId} viewed suggestion ${suggestionId}`);
+    console.log(`[mobile/suggestions/${suggestionId}] Fetched for user ${userId}, isFirstParty: ${isFirstParty}`);
 
     return NextResponse.json({
       success: true,
-      suggestion: response,
+      data: responseData,
     });
 
   } catch (error) {
-    console.error("[mobile/suggestions/detail] Error:", error);
+    console.error("[mobile/suggestions/[id]] Error:", error);
     return NextResponse.json(
       { success: false, error: "Internal server error" },
       { status: 500 }

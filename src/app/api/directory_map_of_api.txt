@@ -1,0 +1,292 @@
+Directory Map for: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api
+==================================================================================
+
+api/
+└── admin/
+        └── admin_contents.txt  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\admin\admin_contents.txt)
+    └── engagement/
+            └── engagement_contents.txt  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\admin\engagement\engagement_contents.txt)
+        └── eligible-users/
+                └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\admin\engagement\eligible-users\route.ts)
+        └── run-evening/
+                └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\admin\engagement\run-evening\route.ts)
+        └── run-now/
+                └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\admin\engagement\run-now\route.ts)
+        └── search-users/
+                └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\admin\engagement\search-users\route.ts)
+        └── send-manual/
+                └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\admin\engagement\send-manual\route.ts)
+        └── stats/
+                └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\admin\engagement\stats\route.ts)
+    └── fill-missing-summaries/
+            └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\admin\fill-missing-summaries\route.ts)
+    └── profiles/
+        └── profiles/
+                └── profiles_contents.txt  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\admin\profiles\profiles\profiles_contents.txt)
+            └── batch-update-metrics/
+                    └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\admin\profiles\profiles\batch-update-metrics\route.ts)
+            └── scan/
+                └── [userId]/
+                        └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\admin\profiles\profiles\scan\[userId]\route.ts)
+            └── [profileId]/
+                └── update-metrics/
+                        └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\admin\profiles\profiles\[profileId]\update-metrics\route.ts)
+    └── update-all-metrics/
+            └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\admin\update-all-metrics\route.ts)
+    └── update-vectors/
+            └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\admin\update-vectors\route.ts)
+└── ai/
+        └── ai_contents.txt  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\ai_contents.txt)
+    └── analyze-my-profile/
+            └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\analyze-my-profile\route.ts)
+    └── analyze-suggestion/
+            └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\analyze-suggestion\route.ts)
+    └── batch-scan-all/
+            └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\batch-scan-all\route.ts)
+    └── batch-scan-symmetric/
+            └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\batch-scan-symmetric\route.ts)
+    └── find-matches/
+            └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\find-matches\route.ts)
+    └── find-matches-v2/
+            └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\find-matches-v2\route.ts)
+    └── generate-rationale/
+            └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\generate-rationale\route.ts)
+    └── generate-suggestion-rationale/
+            └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\generate-suggestion-rationale\route.ts)
+    └── hybrid-scan/
+            └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\hybrid-scan\route.ts)
+    └── matchmaker/
+            └── matchmaker_contents.txt  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\matchmaker\matchmaker_contents.txt)
+        └── analyze-profile/
+                └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\matchmaker\analyze-profile\route.ts)
+        └── batch-process/
+                └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\matchmaker\batch-process\route.ts)
+        └── generate-summary/
+                └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\matchmaker\generate-summary\route.ts)
+        └── prepare-feedback-email/
+                └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\matchmaker\prepare-feedback-email\route.ts)
+        └── send-feedback-email/
+                └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\matchmaker\send-feedback-email\route.ts)
+    └── process-hybrid-job/
+            └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\process-hybrid-job\route.ts)
+    └── process-matching-job/
+            └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\process-matching-job\route.ts)
+    └── scan-user/
+            └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\scan-user\route.ts)
+    └── test-connection/
+            └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\test-connection\route.ts)
+    └── update-all-profiles/
+            └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\update-all-profiles\route.ts)
+    └── virtual-profile/
+            └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\virtual-profile\route.ts)
+└── auth/
+        └── auth_contents.txt  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\auth\auth_contents.txt)
+    └── complete-password-change/
+            └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\auth\complete-password-change\route.ts)
+    └── complete-profile/
+            └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\auth\complete-profile\route.ts)
+    └── complete-setup/
+            └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\auth\complete-setup\route.ts)
+    └── delete/
+            └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\auth\delete\route.ts)
+    └── initiate-password-change/
+            └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\auth\initiate-password-change\route.ts)
+    └── register/
+            └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\auth\register\route.ts)
+    └── registration-info/
+            └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\auth\registration-info\route.ts)
+    └── request-password-reset/
+            └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\auth\request-password-reset\route.ts)
+    └── resend-phone-code/
+            └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\auth\resend-phone-code\route.ts)
+    └── resend-verification/
+            └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\auth\resend-verification\route.ts)
+    └── resend-verification-code/
+            └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\auth\resend-verification-code\route.ts)
+    └── reset-password/
+            └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\auth\reset-password\route.ts)
+    └── send-phone-code/
+            └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\auth\send-phone-code\route.ts)
+    └── send-verification/
+            └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\auth\send-verification\route.ts)
+    └── update-and-resend-code/
+            └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\auth\update-and-resend-code\route.ts)
+    └── verify-email-code/
+            └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\auth\verify-email-code\route.ts)
+    └── verify-phone-code/
+            └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\auth\verify-phone-code\route.ts)
+    └── [...nextauth]/
+            └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\auth\[...nextauth]\route.ts)
+└── availability/
+    └── check/
+            └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\availability\check\route.ts)
+└── chat/
+        └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\chat\route.ts)
+└── contact/
+        └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\contact\route.ts)
+└── feedback/
+        └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\feedback\route.ts)
+└── matchmaker/
+    └── alerts/
+            └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\alerts\route.ts)
+    └── candidates/
+            ├── candidates_contents.txt  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\candidates\candidates_contents.txt)
+            └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\candidates\route.ts)
+        └── manual/
+                └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\candidates\manual\route.ts)
+        └── [id]/
+                └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\candidates\[id]\route.ts)
+            └── images/
+                    └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\candidates\[id]\images\route.ts)
+                └── [imageId]/
+                        └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\candidates\[id]\images\[imageId]\route.ts)
+                    └── main/
+                            └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\candidates\[id]\images\[imageId]\main\route.ts)
+            └── invite-setup/
+                    └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\candidates\[id]\invite-setup\route.ts)
+    └── dashboard/
+            └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\dashboard\route.ts)
+    └── hidden-candidates/
+            └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\hidden-candidates\route.ts)
+        └── [id]/
+                └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\hidden-candidates\[id]\route.ts)
+    └── inquiries/
+        └── [id]/
+                └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\inquiries\[id]\route.ts)
+            └── respond/
+                    └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\inquiries\[id]\respond\route.ts)
+    └── potential-matches/
+            └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\potential-matches\route.ts)
+    └── rejection-feedback/
+            └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\rejection-feedback\route.ts)
+    └── suggestions/
+            ├── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\suggestions\route.ts)
+            └── suggestions_contents.txt  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\suggestions\suggestions_contents.txt)
+        └── [id]/
+                └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\suggestions\[id]\route.ts)
+            └── delete/
+                    └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\suggestions\[id]\delete\route.ts)
+            └── message/
+                    └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\suggestions\[id]\message\route.ts)
+            └── remind/
+                    └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\suggestions\[id]\remind\route.ts)
+            └── resend/
+                    └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\suggestions\[id]\resend\route.ts)
+            └── share-contact/
+                    └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\suggestions\[id]\share-contact\route.ts)
+            └── status/
+                    └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\suggestions\[id]\status\route.ts)
+└── messages/
+        └── messages_contents.txt  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\messages\messages_contents.txt)
+    └── feed/
+            └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\messages\feed\route.ts)
+    └── mark-as-read/
+            └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\messages\mark-as-read\route.ts)
+└── mobile/
+    └── google/
+            └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\mobile\google\route.ts)
+    └── login/
+            └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\mobile\login\route.ts)
+    └── me/
+            └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\mobile\me\route.ts)
+    └── notifications/
+        └── register-device/
+                └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\mobile\notifications\register-device\route.ts)
+        └── unregister-device/
+                └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\mobile\notifications\unregister-device\route.ts)
+    └── suggestions/
+        └── active/
+                └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\mobile\suggestions\active\route.ts)
+        └── history/
+                └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\mobile\suggestions\history\route.ts)
+        └── [id]/
+                └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\mobile\suggestions\[id]\route.ts)
+            └── respond/
+                    └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\mobile\suggestions\[id]\respond\route.ts)
+└── notifications/
+        └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\notifications\route.ts)
+└── og/
+        └── route.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\og\route.tsx)
+└── profile/
+        └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\profile\route.ts)
+    └── availability/
+            └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\profile\availability\route.ts)
+    └── cv/
+            └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\profile\cv\route.ts)
+    └── images/
+            └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\profile\images\route.ts)
+        └── [imageId]/
+                └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\profile\images\[imageId]\route.ts)
+    └── neshama-insight/
+            └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\profile\neshama-insight\route.ts)
+    └── questionnaire/
+            └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\profile\questionnaire\route.ts)
+    └── testimonials/
+            ├── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\profile\testimonials\route.ts)
+            └── testimonials_contents.txt  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\profile\testimonials\testimonials_contents.txt)
+        └── request-link/
+                └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\profile\testimonials\request-link\route.ts)
+        └── [testimonialId]/
+                └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\profile\testimonials\[testimonialId]\route.ts)
+    └── update/
+            └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\profile\update\route.ts)
+    └── viewed-preview/
+            └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\profile\viewed-preview\route.ts)
+└── questionnaire/
+        └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\questionnaire\route.ts)
+    └── complete/
+            └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\questionnaire\complete\route.ts)
+    └── world/
+            └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\questionnaire\world\route.ts)
+└── referral/
+        └── referral_contents.txt  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\referral\referral_contents.txt)
+    └── campaign/
+            └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\referral\campaign\route.ts)
+    └── leaderboard/
+            └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\referral\leaderboard\route.ts)
+    └── lookup/
+            └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\referral\lookup\route.ts)
+    └── register/
+            └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\referral\register\route.ts)
+    └── stats/
+            └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\referral\stats\route.ts)
+    └── track/
+        └── [code]/
+                └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\referral\track\[code]\route.ts)
+└── suggestions/
+        ├── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\suggestions\route.ts)
+        └── suggestions_contents.txt  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\suggestions\suggestions_contents.txt)
+    └── active/
+            └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\suggestions\active\route.ts)
+    └── history/
+            └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\suggestions\history\route.ts)
+    └── [id]/
+            └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\suggestions\[id]\route.ts)
+        └── delete/
+                └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\suggestions\[id]\delete\route.ts)
+        └── inquiries/
+                └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\suggestions\[id]\inquiries\route.ts)
+            └── mark-as-read/
+                    └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\suggestions\[id]\inquiries\mark-as-read\route.ts)
+        └── status/
+                └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\suggestions\[id]\status\route.ts)
+└── test/
+    └── check-update-detection/
+            └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\test\check-update-detection\route.ts)
+└── testimonials/
+        ├── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\testimonials\route.ts)
+        └── testimonials_contents.txt  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\testimonials\testimonials_contents.txt)
+    └── [testimonialId]/
+            └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\testimonials\[testimonialId]\route.ts)
+└── user/
+        └── user_contents.txt  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\user\user_contents.txt)
+    └── accept-terms/
+            └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\user\accept-terms\route.ts)
+    └── complete-onboarding/
+    └── consent-settings/
+            └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\user\consent-settings\route.ts)
+    └── marketing-consent/
+    └── settings/
+            └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\user\settings\route.ts)
+    └── unsubscribe/
+            └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\user\unsubscribe\route.ts)

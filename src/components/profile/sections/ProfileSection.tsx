@@ -904,6 +904,14 @@ const AddTestimonialModal: React.FC<{
     </Dialog>
   );
 };
+// פונקציית עזר לקבלת שם שפה בצורה בטוחה
+const getLanguageLabel = (
+  lang: { value: string; label: { he: string; en: string } },
+  locale: string
+): string => {
+  const normalizedLocale: 'he' | 'en' = locale.startsWith('he') ? 'he' : 'en';
+  return lang.label[normalizedLocale] || lang.label.en || lang.value;
+};
 
 // ========================================================================
 // ✨ Main Component: ProfileSection
@@ -1728,19 +1736,18 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                           className="max-h-[200px]"
                           position="item-aligned"
                         >
-                          {languageOptions
-                            .filter(
-                              (lang) =>
-                                !(formData.additionalLanguages || []).includes(
-                                  lang.value
-                                ) && lang.value !== formData.nativeLanguage
-                            )
-                            .map((lang) => (
-                              <SelectItem key={lang.value} value={lang.value}>
-                                {lang.label[locale as 'he' | 'en'] ??
-                                  lang.label.en}{' '}
-                              </SelectItem>
-                            ))}
+                    {languageOptions
+  .filter(
+    (lang) =>
+      !(formData.additionalLanguages || []).includes(
+        lang.value
+      ) && lang.value !== formData.nativeLanguage
+  )
+  .map((lang) => (
+    <SelectItem key={lang.value} value={lang.value}>
+      {getLanguageLabel(lang, locale)}
+    </SelectItem>
+  ))}
                         </SelectContent>
                       </Select>
                     ) : null}
@@ -1755,7 +1762,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                             variant="secondary"
                             className="bg-cyan-100/70 text-cyan-800 px-2 py-0.5 rounded-full text-[11px] font-medium flex items-center"
                           >
-                            {lang.label[locale as 'he' | 'en'] ?? lang.label.en}
+                            {getLanguageLabel(lang, locale)}
                             {isEditing && !viewOnly && (
                               <button
                                 type="button"

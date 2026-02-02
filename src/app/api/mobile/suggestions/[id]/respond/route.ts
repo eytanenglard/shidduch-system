@@ -2,19 +2,13 @@
 // תגובה להצעת שידוך - למובייל
 
 import { NextRequest, NextResponse } from "next/server";
-import { z } from "zod";
 import prisma from "@/lib/prisma";
 import { verifyMobileToken } from "@/lib/mobile-auth";
-import { MatchSuggestionStatus } from "@prisma/client";
-
-const respondSchema = z.object({
-  response: z.enum(["approve", "decline"]),
-  message: z.string().optional(),
-});
+import type { MatchSuggestionStatus } from "@prisma/client";
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } }
 ) {
   try {
     // אימות Bearer token
@@ -28,26 +22,33 @@ export async function POST(
     }
 
     const userId = auth.userId;
-    // In Next.js 15, params must be awaited
-    const { id } = await params;
-    const suggestionId = id;
+    const suggestionId = params.id;
 
-    // וולידציה
+    // פענוח הבקשה
     const body = await req.json();
-    const validation = respondSchema.safeParse(body);
+    const { response, reason, notes } = body as {
+      response: 'approve' | 'decline';
+      reason?: string;
+      notes?: string;
+    };
 
-    if (!validation.success) {
+    if (!response || !['approve', 'decline'].includes(response)) {
       return NextResponse.json(
-        { success: false, error: "Invalid input", details: validation.error.errors },
+        { success: false, error: "Invalid response. Must be 'approve' or 'decline'" },
         { status: 400 }
       );
     }
 
-    const { response, message } = validation.data;
-
     // שליפת ההצעה
     const suggestion = await prisma.matchSuggestion.findUnique({
       where: { id: suggestionId },
+      select: {
+        id: true,
+        status: true,
+        firstPartyId: true,
+        secondPartyId: true,
+        matchmakerId: true,
+      },
     });
 
     if (!suggestion) {
@@ -57,81 +58,141 @@ export async function POST(
       );
     }
 
-    // בדיקה שהמשתמש הוא חלק מההצעה
+    // בדיקה שהמשתמש הוא אחד הצדדים
     const isFirstParty = suggestion.firstPartyId === userId;
     const isSecondParty = suggestion.secondPartyId === userId;
 
     if (!isFirstParty && !isSecondParty) {
       return NextResponse.json(
-        { success: false, error: "You are not part of this suggestion" },
+        { success: false, error: "Access denied" },
         { status: 403 }
       );
     }
 
-    // בדיקת מצב נוכחי ועדכון
-    let newStatus: MatchSuggestionStatus;
-    let canRespond = false;
-
-    if (isFirstParty && suggestion.status === MatchSuggestionStatus.PENDING_FIRST_PARTY) {
-      canRespond = true;
-      newStatus = response === "approve" 
-        ? MatchSuggestionStatus.FIRST_PARTY_APPROVED 
-        : MatchSuggestionStatus.FIRST_PARTY_DECLINED;
-    } else if (isSecondParty && suggestion.status === MatchSuggestionStatus.PENDING_SECOND_PARTY) {
-      canRespond = true;
-      newStatus = response === "approve" 
-        ? MatchSuggestionStatus.SECOND_PARTY_APPROVED 
-        : MatchSuggestionStatus.SECOND_PARTY_DECLINED;
-    }
+    // בדיקה שזה התור של המשתמש להגיב
+    const canRespond = 
+      (isFirstParty && suggestion.status === 'PENDING_FIRST_PARTY') ||
+      (isSecondParty && suggestion.status === 'PENDING_SECOND_PARTY');
 
     if (!canRespond) {
       return NextResponse.json(
-        { success: false, error: "Cannot respond to this suggestion at this time" },
+        { success: false, error: "Cannot respond at this stage" },
         { status: 400 }
       );
     }
 
+    // חישוב הסטטוס החדש
+    let newStatus: MatchSuggestionStatus;
+    
+    if (response === 'approve') {
+      if (isFirstParty) {
+        newStatus = 'FIRST_PARTY_APPROVED';
+      } else {
+        // אם צד ב' מאשר, עוברים לשיתוף פרטים
+        newStatus = 'SECOND_PARTY_APPROVED';
+      }
+    } else {
+      // דחייה
+      if (isFirstParty) {
+        newStatus = 'FIRST_PARTY_DECLINED';
+      } else {
+        newStatus = 'SECOND_PARTY_DECLINED';
+      }
+    }
+
     // עדכון ההצעה
-    const updatedSuggestion = await prisma.$transaction(async (tx) => {
-      const updated = await tx.matchSuggestion.update({
-        where: { id: suggestionId },
-        data: {
-          status: newStatus,
-          previousStatus: suggestion.status,
-          lastStatusChange: new Date(),
-          lastActivity: new Date(),
-          // אם first party אישר, עובר ל-pending second party
-          ...(newStatus === MatchSuggestionStatus.FIRST_PARTY_APPROVED && {
-            status: MatchSuggestionStatus.PENDING_SECOND_PARTY,
-            secondPartySent: new Date(),
-          }),
-        },
-      });
+    const updateData: any = {
+      status: newStatus,
+      lastStatusChange: new Date(),
+      lastActivity: new Date(),
+    };
 
-      // יצירת רשומת היסטוריה
-      await tx.suggestionStatusHistory.create({
-        data: {
-          suggestionId,
-          status: newStatus,
-          notes: message || `${response === "approve" ? "Approved" : "Declined"} by ${isFirstParty ? "first" : "second"} party via mobile app`,
-        },
-      });
+    // עדכון הערות לפי הצד
+    if (isFirstParty) {
+      updateData.firstPartyResponded = new Date();
+      if (notes) {
+        updateData.firstPartyNotes = notes;
+      }
+    } else {
+      updateData.secondPartyResponded = new Date();
+      if (notes) {
+        updateData.secondPartyNotes = notes;
+      }
+    }
 
-      return updated;
+    // אם זו דחייה ויש סיבה, נשמור אותה בהערות הפנימיות
+    if (response === 'decline' && reason) {
+      const existingNotes = suggestion.status || '';
+      updateData.internalNotes = `${existingNotes}\n[${new Date().toISOString()}] ${isFirstParty ? 'צד א' : 'צד ב'} דחה: ${reason}`.trim();
+    }
+
+    // עדכון בדאטהבייס
+    const updatedSuggestion = await prisma.matchSuggestion.update({
+      where: { id: suggestionId },
+      data: updateData,
+      select: {
+        id: true,
+        status: true,
+        lastStatusChange: true,
+      },
     });
 
-    console.log(`[mobile/suggestions/respond] User ${userId} ${response}d suggestion ${suggestionId}`);
+    // יצירת רשומת היסטוריה
+    await prisma.suggestionStatusHistory.create({
+      data: {
+        suggestionId: suggestionId,
+        status: newStatus,
+        notes: response === 'approve' 
+          ? (notes || (isFirstParty ? 'צד א אישר' : 'צד ב אישר'))
+          : (reason || (isFirstParty ? 'צד א דחה' : 'צד ב דחה')),
+      },
+    });
+
+    // אם שני הצדדים אישרו, נעדכן לשיתוף פרטים
+    if (newStatus === 'SECOND_PARTY_APPROVED') {
+      // בדיקה שצד א' אישר קודם
+      const firstPartyApproved = await prisma.suggestionStatusHistory.findFirst({
+        where: {
+          suggestionId: suggestionId,
+          status: 'FIRST_PARTY_APPROVED',
+        },
+      });
+
+      if (firstPartyApproved) {
+        await prisma.matchSuggestion.update({
+          where: { id: suggestionId },
+          data: {
+            status: 'CONTACT_DETAILS_SHARED',
+            lastStatusChange: new Date(),
+          },
+        });
+
+        await prisma.suggestionStatusHistory.create({
+          data: {
+            suggestionId: suggestionId,
+            status: 'CONTACT_DETAILS_SHARED',
+            notes: 'שני הצדדים אישרו - פרטי קשר שותפו',
+          },
+        });
+
+        // TODO: שליחת התראות לשני הצדדים
+      }
+    }
+
+    console.log(`[mobile/suggestions/${suggestionId}/respond] User ${userId} responded: ${response}, new status: ${newStatus}`);
 
     return NextResponse.json({
       success: true,
-      suggestion: {
+      message: response === 'approve' ? 'ההצעה אושרה בהצלחה' : 'ההצעה נדחתה',
+      data: {
         id: updatedSuggestion.id,
         status: updatedSuggestion.status,
+        lastStatusChange: updatedSuggestion.lastStatusChange,
       },
     });
 
   } catch (error) {
-    console.error("[mobile/suggestions/respond] Error:", error);
+    console.error("[mobile/suggestions/[id]/respond] Error:", error);
     return NextResponse.json(
       { success: false, error: "Internal server error" },
       { status: 500 }
