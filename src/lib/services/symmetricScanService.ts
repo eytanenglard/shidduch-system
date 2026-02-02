@@ -113,7 +113,7 @@ const DEFAULT_OPTIONS: Required<Omit<SymmetricScanOptions, 'onProgress' | 'scanS
  */
 async function getChangedUsersSinceLastScan(): Promise<string[]> {
   const lastScan = await prisma.scanSession.findFirst({
-    where: { status: 'completed' },
+    where: { status: 'COMPLETED' },
     orderBy: { completedAt: 'desc' },
     select: { completedAt: true }
   });
@@ -252,7 +252,7 @@ export async function runSymmetricScan(
     const scanSession = await prisma.scanSession.create({
       data: {
         scanType: opts.usersToScan?.length ? 'manual' : opts.incrementalOnly ? 'incremental' : 'nightly',
-        status: 'running',
+        status: 'IN_PROGRESS',
       },
     });
     scanSessionId = scanSession.id;
@@ -322,7 +322,7 @@ export async function runSymmetricScan(
         await prisma.scanSession.update({
           where: { id: scanSessionId },
           data: {
-            status: 'completed',
+            status: 'COMPLETED',
             durationMs: Date.now() - startTime,
             completedAt: new Date(),
           }
@@ -447,7 +447,7 @@ export async function runSymmetricScan(
     await prisma.scanSession.update({
       where: { id: scanSessionId },
       data: {
-        status: 'completed',
+        status: 'COMPLETED',
         totalUsersScanned: stats.usersScanned,
         malesScanned: stats.malesScanned,
         femalesScanned: stats.femalesScanned,
@@ -485,7 +485,7 @@ export async function runSymmetricScan(
     await prisma.scanSession.update({
       where: { id: scanSessionId },
       data: {
-        status: 'failed',
+        status: 'FAILED',
         error: errorMessage,
         durationMs: Date.now() - startTime,
         completedAt: new Date(),
