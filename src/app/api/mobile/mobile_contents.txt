@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\mobile
-# Generated on: 2026-02-01 21:40:27
+# Generated on: 2026-02-02 09:13:25
 # Filter: Only content of code files (.bat, .c, .cfg, .conf, .cpp, .cs, .css, .go, .h, .html, .ini, .java, .js, .json, .jsx, .kt, .less, .md, .php, .py, .rb, .rs, .scss, .sh, .sql, .swift, .ts, .tsx, .txt, .xml, .yaml, .yml) is included.
 ################################################################################
 
@@ -467,9 +467,22 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { verifyMobileToken } from "@/lib/mobile-auth";
 
+// פונקציה לחישוב גיל
+function calculateAge(birthDate: Date | null | undefined): number | null {
+  if (!birthDate) return null;
+  const today = new Date();
+  const birth = new Date(birthDate);
+  let age = today.getFullYear() - birth.getFullYear();
+  const monthDiff = today.getMonth() - birth.getMonth();
+  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+    age--;
+  }
+  return age;
+}
+
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // אימות Bearer token
@@ -483,7 +496,8 @@ export async function GET(
     }
 
     const userId = auth.userId;
-    const suggestionId = params.id;
+    const { id } = await params;
+    const suggestionId = id;
 
     // שליפת ההצעה עם כל הפרטים
     const suggestion = await prisma.matchSuggestion.findUnique({
@@ -504,14 +518,16 @@ export async function GET(
             phone: true,
             profile: {
               select: {
-                age: true,
+                birthDate: true,  // ✅ שונה מ-age
                 city: true,
                 occupation: true,
                 height: true,
                 about: true,
                 education: true,
                 religiousLevel: true,
-                familyBackground: true,
+                // familyBackground לא קיים ב-schema - הסרתי
+                parentStatus: true,  // ✅ במקום familyBackground
+                origin: true,        // ✅ אפשרות נוספת
               }
             },
             images: {
@@ -532,14 +548,15 @@ export async function GET(
             phone: true,
             profile: {
               select: {
-                age: true,
+                birthDate: true,  // ✅ שונה מ-age
                 city: true,
                 occupation: true,
                 height: true,
                 about: true,
                 education: true,
                 religiousLevel: true,
-                familyBackground: true,
+                parentStatus: true,
+                origin: true,
               }
             },
             images: {
@@ -600,7 +617,6 @@ export async function GET(
       matchmaker: {
         firstName: suggestion.matchmaker.firstName,
         lastName: suggestion.matchmaker.lastName,
-        // הצג טלפון של שדכן תמיד
         phone: suggestion.matchmaker.phone,
       },
       createdAt: suggestion.createdAt,
@@ -612,14 +628,15 @@ export async function GET(
         id: otherParty.id,
         firstName: otherParty.firstName,
         lastName: otherParty.lastName,
-        age: otherParty.profile?.age,
+        age: calculateAge(otherParty.profile?.birthDate),  // ✅ חישוב גיל
         city: otherParty.profile?.city,
         occupation: otherParty.profile?.occupation,
         height: otherParty.profile?.height,
         about: otherParty.profile?.about,
         education: otherParty.profile?.education,
         religiousLevel: otherParty.profile?.religiousLevel,
-        familyBackground: otherParty.profile?.familyBackground,
+        parentStatus: otherParty.profile?.parentStatus,  // ✅ תיקון
+        origin: otherParty.profile?.origin,
         images: otherParty.images,
         // פרטי קשר רק אם משותפים
         ...(showContactDetails && {
@@ -670,7 +687,7 @@ const respondSchema = z.object({
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // אימות Bearer token
@@ -684,7 +701,9 @@ export async function POST(
     }
 
     const userId = auth.userId;
-    const suggestionId = params.id;
+    // In Next.js 15, params must be awaited
+    const { id } = await params;
+    const suggestionId = id;
 
     // וולידציה
     const body = await req.json();
@@ -809,6 +828,19 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { verifyMobileToken } from "@/lib/mobile-auth";
 
+// פונקציה לחישוב גיל
+function calculateAge(birthDate: Date | null | undefined): number | null {
+  if (!birthDate) return null;
+  const today = new Date();
+  const birth = new Date(birthDate);
+  let age = today.getFullYear() - birth.getFullYear();
+  const monthDiff = today.getMonth() - birth.getMonth();
+  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+    age--;
+  }
+  return age;
+}
+
 export async function GET(req: NextRequest) {
   try {
     // אימות Bearer token
@@ -855,7 +887,7 @@ export async function GET(req: NextRequest) {
             lastName: true,
             profile: {
               select: {
-                age: true,
+                birthDate: true,  // ✅ שונה מ-age
                 city: true,
                 occupation: true,
                 height: true,
@@ -876,7 +908,7 @@ export async function GET(req: NextRequest) {
             lastName: true,
             profile: {
               select: {
-                age: true,
+                birthDate: true,  // ✅ שונה מ-age
                 city: true,
                 occupation: true,
                 height: true,
@@ -914,7 +946,7 @@ export async function GET(req: NextRequest) {
           id: otherParty.id,
           firstName: otherParty.firstName,
           lastName: otherParty.lastName,
-          age: otherParty.profile?.age,
+          age: calculateAge(otherParty.profile?.birthDate),  // ✅ חישוב גיל
           city: otherParty.profile?.city,
           occupation: otherParty.profile?.occupation,
           height: otherParty.profile?.height,

@@ -5,6 +5,19 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { verifyMobileToken } from "@/lib/mobile-auth";
 
+// פונקציה לחישוב גיל
+function calculateAge(birthDate: Date | null | undefined): number | null {
+  if (!birthDate) return null;
+  const today = new Date();
+  const birth = new Date(birthDate);
+  let age = today.getFullYear() - birth.getFullYear();
+  const monthDiff = today.getMonth() - birth.getMonth();
+  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+    age--;
+  }
+  return age;
+}
+
 export async function GET(req: NextRequest) {
   try {
     // אימות Bearer token
@@ -51,7 +64,7 @@ export async function GET(req: NextRequest) {
             lastName: true,
             profile: {
               select: {
-                age: true,
+                birthDate: true,  // ✅ שונה מ-age
                 city: true,
                 occupation: true,
               }
@@ -70,7 +83,7 @@ export async function GET(req: NextRequest) {
             lastName: true,
             profile: {
               select: {
-                age: true,
+                birthDate: true,  // ✅ שונה מ-age
                 city: true,
                 occupation: true,
               }
@@ -103,7 +116,7 @@ export async function GET(req: NextRequest) {
           id: otherParty.id,
           firstName: otherParty.firstName,
           lastName: otherParty.lastName,
-          age: otherParty.profile?.age,
+          age: calculateAge(otherParty.profile?.birthDate),  // ✅ חישוב גיל
           city: otherParty.profile?.city,
           occupation: otherParty.profile?.occupation,
           image: otherParty.images?.[0]?.url || null,
