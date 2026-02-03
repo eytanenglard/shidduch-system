@@ -1,11 +1,15 @@
 // src/app/api/mobile/suggestions/history/route.ts
 // היסטוריית הצעות שידוך - למובייל
 
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import prisma from "@/lib/prisma";
-import { verifyMobileToken } from "@/lib/mobile-auth";
+import { 
+  verifyMobileToken,
+  corsJson,
+  corsError,
+  corsOptions
+} from "@/lib/mobile-auth";
 
-// פונקציה לחישוב גיל
 function calculateAge(birthDate: Date | null | undefined): number | null {
   if (!birthDate) return null;
   const today = new Date();
@@ -18,21 +22,20 @@ function calculateAge(birthDate: Date | null | undefined): number | null {
   return age;
 }
 
+export async function OPTIONS(req: NextRequest) {
+  return corsOptions(req);
+}
+
 export async function GET(req: NextRequest) {
   try {
-    // אימות Bearer token
     const auth = await verifyMobileToken(req);
     
     if (!auth) {
-      return NextResponse.json(
-        { success: false, error: "Unauthorized" },
-        { status: 401 }
-      );
+      return corsError(req, "Unauthorized", 401);
     }
 
     const userId = auth.userId;
 
-    // שליפת היסטוריית הצעות
     const historySuggestions = await prisma.matchSuggestion.findMany({
       where: {
         OR: [
@@ -64,7 +67,7 @@ export async function GET(req: NextRequest) {
             lastName: true,
             profile: {
               select: {
-                birthDate: true,  // ✅ שונה מ-age
+                birthDate: true,
                 city: true,
                 occupation: true,
               }
@@ -83,7 +86,7 @@ export async function GET(req: NextRequest) {
             lastName: true,
             profile: {
               select: {
-                birthDate: true,  // ✅ שונה מ-age
+                birthDate: true,
                 city: true,
                 occupation: true,
               }
@@ -99,7 +102,6 @@ export async function GET(req: NextRequest) {
       orderBy: { updatedAt: "desc" },
     });
 
-    // עיבוד התוצאות
     const suggestions = historySuggestions.map(suggestion => {
       const isFirstParty = suggestion.firstPartyId === userId;
       const otherParty = isFirstParty ? suggestion.secondParty : suggestion.firstParty;
@@ -116,7 +118,7 @@ export async function GET(req: NextRequest) {
           id: otherParty.id,
           firstName: otherParty.firstName,
           lastName: otherParty.lastName,
-          age: calculateAge(otherParty.profile?.birthDate),  // ✅ חישוב גיל
+          age: calculateAge(otherParty.profile?.birthDate),
           city: otherParty.profile?.city,
           occupation: otherParty.profile?.occupation,
           image: otherParty.images?.[0]?.url || null,
@@ -126,16 +128,13 @@ export async function GET(req: NextRequest) {
 
     console.log(`[mobile/suggestions/history] Found ${suggestions.length} history suggestions for user ${userId}`);
 
-    return NextResponse.json({
+    return corsJson(req, {
       success: true,
       suggestions,
     });
 
   } catch (error) {
     console.error("[mobile/suggestions/history] Error:", error);
-    return NextResponse.json(
-      { success: false, error: "Internal server error" },
-      { status: 500 }
-    );
+    return corsError(req, "Internal server error", 500);
   }
 }

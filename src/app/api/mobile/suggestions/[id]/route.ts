@@ -1,11 +1,15 @@
 // src/app/api/mobile/suggestions/[id]/route.ts
 // פרטי הצעת שידוך בודדת - למובייל
 
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import prisma from "@/lib/prisma";
-import { verifyMobileToken } from "@/lib/mobile-auth";
+import { 
+  verifyMobileToken,
+  corsJson,
+  corsError,
+  corsOptions
+} from "@/lib/mobile-auth";
 
-// פונקציה לחישוב גיל
 function calculateAge(birthDate: Date | null | undefined): number | null {
   if (!birthDate) return null;
   const today = new Date();
@@ -18,29 +22,26 @@ function calculateAge(birthDate: Date | null | undefined): number | null {
   return age;
 }
 
-// שינוי: הגדרת ה-params כ-Promise
+export async function OPTIONS(req: NextRequest) {
+  return corsOptions(req);
+}
+
 export async function GET(
   req: NextRequest,
   props: { params: Promise<{ id: string }> }
 ) {
   try {
-    // שלב 1: חילוץ הפרמטרים עם await
     const params = await props.params;
     const suggestionId = params.id;
 
-    // אימות Bearer token
     const auth = await verifyMobileToken(req);
     
     if (!auth) {
-      return NextResponse.json(
-        { success: false, error: "Unauthorized" },
-        { status: 401 }
-      );
+      return corsError(req, "Unauthorized", 401);
     }
 
     const userId = auth.userId;
 
-    // שליפת ההצעה עם כל הפרטים
     const suggestion = await prisma.matchSuggestion.findUnique({
       where: { id: suggestionId },
       include: {
@@ -130,29 +131,20 @@ export async function GET(
     });
 
     if (!suggestion) {
-      return NextResponse.json(
-        { success: false, error: "Suggestion not found" },
-        { status: 404 }
-      );
+      return corsError(req, "Suggestion not found", 404);
     }
 
-    // בדיקה שהמשתמש הוא אחד הצדדים בהצעה
     const isFirstParty = suggestion.firstPartyId === userId;
     const isSecondParty = suggestion.secondPartyId === userId;
 
     if (!isFirstParty && !isSecondParty) {
-      return NextResponse.json(
-        { success: false, error: "Access denied" },
-        { status: 403 }
-      );
+      return corsError(req, "Access denied", 403);
     }
 
-    // הצד השני
     const otherPartyRaw = isFirstParty ? suggestion.secondParty : suggestion.firstParty;
     const notes = isFirstParty ? suggestion.firstPartyNotes : suggestion.secondPartyNotes;
 
-    // בניית אובייקט התגובה
-    const otherParty = {
+    const otherParty: any = {
       id: otherPartyRaw.id,
       firstName: otherPartyRaw.firstName,
       lastName: otherPartyRaw.lastName,
@@ -172,18 +164,13 @@ export async function GET(
       mainImage: otherPartyRaw.images?.find(img => img.isMain)?.url || otherPartyRaw.images?.[0]?.url || null,
     };
 
-    // בדיקה אם להציג פרטי קשר (רק אם הסטטוס מאפשר)
     const showContactDetails = suggestion.status === 'CONTACT_DETAILS_SHARED';
 
-    // הוספת פרטי קשר אם מותר
     if (showContactDetails) {
-      Object.assign(otherParty, {
-        phone: otherPartyRaw.phone,
-        email: otherPartyRaw.email,
-      });
+      otherParty.phone = otherPartyRaw.phone;
+      otherParty.email = otherPartyRaw.email;
     }
 
-    // בדיקה האם המשתמש יכול להגיב
     const canRespond = 
       (isFirstParty && suggestion.status === 'PENDING_FIRST_PARTY') ||
       (isSecondParty && suggestion.status === 'PENDING_SECOND_PARTY');
@@ -204,7 +191,6 @@ export async function GET(
       matchmaker: {
         firstName: suggestion.matchmaker.firstName,
         lastName: suggestion.matchmaker.lastName,
-        // פרטי קשר של השדכן רק אם צריך
         ...(showContactDetails && {
           phone: suggestion.matchmaker.phone,
           email: suggestion.matchmaker.email,
@@ -216,16 +202,13 @@ export async function GET(
 
     console.log(`[mobile/suggestions/${suggestionId}] Fetched for user ${userId}, isFirstParty: ${isFirstParty}`);
 
-    return NextResponse.json({
+    return corsJson(req, {
       success: true,
       data: responseData,
     });
 
   } catch (error) {
     console.error("[mobile/suggestions/[id]] Error:", error);
-    return NextResponse.json(
-      { success: false, error: "Internal server error" },
-      { status: 500 }
-    );
+    return corsError(req, "Internal server error", 500);
   }
 }

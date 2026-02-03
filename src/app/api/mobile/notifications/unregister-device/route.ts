@@ -2,18 +2,24 @@
 // הסרת מכשיר מהתראות
 // נתיב: POST /api/mobile/notifications/unregister-device
 
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import prisma from "@/lib/prisma";
+import { 
+  corsJson,
+  corsError,
+  corsOptions
+} from "@/lib/mobile-auth";
+
+export async function OPTIONS(req: NextRequest) {
+  return corsOptions(req);
+}
 
 export async function POST(req: NextRequest) {
   try {
     const { token } = await req.json();
 
     if (!token) {
-      return NextResponse.json(
-        { success: false, error: "Token is required" },
-        { status: 400 }
-      );
+      return corsError(req, "Token is required", 400);
     }
 
     await prisma.deviceToken.deleteMany({
@@ -22,13 +28,10 @@ export async function POST(req: NextRequest) {
 
     console.log(`[mobile/notifications] Device token removed`);
 
-    return NextResponse.json({ success: true });
+    return corsJson(req, { success: true });
 
   } catch (error) {
     console.error("[mobile/notifications/unregister-device] Error:", error);
-    return NextResponse.json(
-      { success: false, error: "Internal server error" },
-      { status: 500 }
-    );
+    return corsError(req, "Internal server error", 500);
   }
 }

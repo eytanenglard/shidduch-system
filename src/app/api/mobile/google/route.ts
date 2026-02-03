@@ -2,33 +2,37 @@
 // התחברות עם Google למובייל
 // נתיב: POST /api/mobile/google
 
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { OAuth2Client } from "google-auth-library";
 import prisma from "@/lib/prisma";
-import { createMobileToken, formatUserForMobile } from "@/lib/mobile-auth";
+import { 
+  createMobileToken, 
+  formatUserForMobile,
+  corsJson,
+  corsError,
+  corsOptions
+} from "@/lib/mobile-auth";
 
-// אתחול Google OAuth client
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+
+export async function OPTIONS(req: NextRequest) {
+  return corsOptions(req);
+}
 
 export async function POST(req: NextRequest) {
   try {
     const { idToken } = await req.json();
 
     if (!idToken) {
-      return NextResponse.json(
-        { success: false, error: "ID token is required" },
-        { status: 400 }
-      );
+      return corsError(req, "ID token is required", 400);
     }
 
-    // אימות ה-token מול Google
     let payload;
     try {
       const ticket = await googleClient.verifyIdToken({
         idToken,
         audience: [
           process.env.GOOGLE_CLIENT_ID!,
-          // Client IDs של המובייל - הוסף כשיהיו לך
           process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID,
           process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID,
         ].filter(Boolean) as string[],
@@ -36,63 +40,43 @@ export async function POST(req: NextRequest) {
       payload = ticket.getPayload();
     } catch (error) {
       console.error("[mobile/google] Google token verification failed:", error);
-      return NextResponse.json(
-        { success: false, error: "Invalid Google token" },
-        { status: 401 }
-      );
+      return corsError(req, "Invalid Google token", 401);
     }
 
     if (!payload || !payload.email) {
-      return NextResponse.json(
-        { success: false, error: "Could not get email from Google" },
-        { status: 401 }
-      );
+      return corsError(req, "Could not get email from Google", 401);
     }
 
-    // מציאת המשתמש
     const user = await prisma.user.findUnique({
       where: { email: payload.email.toLowerCase() },
     });
 
     if (!user) {
-      // באפליקציית מובייל לא יוצרים משתמשים חדשים - צריך להירשם קודם באתר
-      return NextResponse.json(
-        { 
-          success: false, 
-          error: "Account not found. Please register at neshamatech.com first.",
-          errorCode: "USER_NOT_FOUND"
-        },
-        { status: 404 }
-      );
+      return corsJson(req, { 
+        success: false, 
+        error: "Account not found. Please register at neshamatech.com first.",
+        errorCode: "USER_NOT_FOUND"
+      }, { status: 404 });
     }
 
-    // בדיקת סטטוס
     if (user.status === "BLOCKED") {
-      return NextResponse.json(
-        { success: false, error: "Account is blocked" },
-        { status: 403 }
-      );
+      return corsError(req, "Account is blocked", 403);
     }
 
     if (user.status === "INACTIVE") {
-      return NextResponse.json(
-        { success: false, error: "Account is inactive" },
-        { status: 403 }
-      );
+      return corsError(req, "Account is inactive", 403);
     }
 
-    // עדכון lastLogin
     await prisma.user.update({
       where: { id: user.id },
       data: { lastLogin: new Date() },
     }).catch(err => console.error("[mobile/google] Failed to update lastLogin:", err));
 
-    // יצירת token
     const { token, expiresAt } = createMobileToken(user);
 
     console.log(`[mobile/google] User ${user.email} logged in via Google from mobile`);
 
-    return NextResponse.json({
+    return corsJson(req, {
       success: true,
       user: formatUserForMobile(user),
       tokens: {
@@ -103,16 +87,12 @@ export async function POST(req: NextRequest) {
 
   } catch (error) {
     console.error("[mobile/google] Error:", error);
-    return NextResponse.json(
-      { success: false, error: "Authentication failed" },
-      { status: 500 }
-    );
+    return corsError(req, "Authentication failed", 500);
   }
 }
 
-// תמיכה ב-GET לבדיקה
-export async function GET() {
-  return NextResponse.json({
+export async function GET(req: NextRequest) {
+  return corsJson(req, {
     success: true,
     message: "Mobile Google login endpoint is working. Use POST with idToken.",
   });

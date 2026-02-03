@@ -1,12 +1,21 @@
 // src/lib/mobile-auth.ts
-// פונקציות עזר לאימות מובייל
+// פונקציות עזר לאימות מובייל + CORS
 
 import jwt from "jsonwebtoken";
-import { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import type { User } from "@prisma/client";
 
 const JWT_SECRET = process.env.NEXTAUTH_SECRET!;
-const MOBILE_JWT_EXPIRES_IN = "30d"; // 30 ימים כמו ה-session הרגיל
+const MOBILE_JWT_EXPIRES_IN = "30d";
+
+// 🔴 הוסף: רשימת Origins מותרים
+const ALLOWED_ORIGINS = [
+  'https://www.neshamatech.com',
+  'https://neshamatech.com',
+  'http://localhost:8081',
+  'http://localhost:3000',
+  'http://localhost:19006',
+];
 
 export interface MobileJWTPayload {
   userId: string;
@@ -16,11 +25,71 @@ export interface MobileJWTPayload {
   exp?: number;
 }
 
+// ==================== CORS HELPERS ====================
+
+/**
+ * 🔴 חדש: קבלת CORS headers לפי ה-request
+ */
+export function getCorsHeaders(req: NextRequest): Record<string, string> {
+  const origin = req.headers.get('origin') || '';
+  const isAllowed = ALLOWED_ORIGINS.includes(origin) || origin.startsWith('exp://');
+  
+  return {
+    'Access-Control-Allow-Origin': isAllowed ? origin : ALLOWED_ORIGINS[0],
+    'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, PATCH, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With',
+    'Access-Control-Allow-Credentials': 'true',
+  };
+}
+
+/**
+ * 🔴 חדש: תגובת JSON עם CORS headers
+ */
+export function corsJson(
+  req: NextRequest, 
+  data: any, 
+  options: { status?: number } = {}
+): NextResponse {
+  return NextResponse.json(data, {
+    status: options.status || 200,
+    headers: getCorsHeaders(req),
+  });
+}
+
+/**
+ * 🔴 חדש: תגובת שגיאה עם CORS headers
+ */
+export function corsError(
+  req: NextRequest, 
+  error: string, 
+  status: number = 400
+): NextResponse {
+  return NextResponse.json(
+    { success: false, error },
+    { status, headers: getCorsHeaders(req) }
+  );
+}
+
+/**
+ * 🔴 חדש: תגובה ל-OPTIONS preflight
+ */
+export function corsOptions(req: NextRequest): NextResponse {
+  return new NextResponse(null, {
+    status: 204,
+    headers: {
+      ...getCorsHeaders(req),
+      'Access-Control-Max-Age': '86400',
+    },
+  });
+}
+
+// ==================== AUTH HELPERS ====================
+
 /**
  * יצירת JWT token למובייל
  */
 export function createMobileToken(user: User): { token: string; expiresAt: number } {
-  const expiresAt = Date.now() + 30 * 24 * 60 * 60 * 1000; // 30 ימים
+  const expiresAt = Date.now() + 30 * 24 * 60 * 60 * 1000;
   
   const token = jwt.sign(
     {
@@ -37,7 +106,6 @@ export function createMobileToken(user: User): { token: string; expiresAt: numbe
 
 /**
  * אימות Bearer token מ-request
- * מחזיר את הפרטים אם תקין, null אם לא
  */
 export async function verifyMobileToken(req: NextRequest): Promise<MobileJWTPayload | null> {
   try {

@@ -2,16 +2,26 @@
 // התחברות עם Email/Password למובייל
 // נתיב: POST /api/mobile/login
 
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { z } from "zod";
 import { compare } from "bcryptjs";
 import prisma from "@/lib/prisma";
-import { createMobileToken, formatUserForMobile } from "@/lib/mobile-auth";
+import { 
+  createMobileToken, 
+  formatUserForMobile,
+  corsJson,
+  corsError,
+  corsOptions
+} from "@/lib/mobile-auth";
 
 const loginSchema = z.object({
   email: z.string().email("Invalid email format"),
   password: z.string().min(6, "Password must be at least 6 characters"),
 });
+
+export async function OPTIONS(req: NextRequest) {
+  return corsOptions(req);
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -19,70 +29,50 @@ export async function POST(req: NextRequest) {
     const validation = loginSchema.safeParse(body);
 
     if (!validation.success) {
-      return NextResponse.json(
-        { success: false, error: "Invalid input", details: validation.error.errors },
-        { status: 400 }
-      );
+      return corsJson(req, { 
+        success: false, 
+        error: "Invalid input", 
+        details: validation.error.errors 
+      }, { status: 400 });
     }
 
     const { email, password } = validation.data;
 
-    // מציאת המשתמש
     const user = await prisma.user.findUnique({
       where: { email: email.toLowerCase() },
     });
 
     if (!user) {
-      return NextResponse.json(
-        { success: false, error: "Invalid credentials" },
-        { status: 401 }
-      );
+      return corsError(req, "Invalid credentials", 401);
     }
 
-    // בדיקה שיש סיסמה (אם נרשם רק עם Google, אין סיסמה)
     if (!user.password) {
-      return NextResponse.json(
-        { success: false, error: "Please use Google Sign-In for this account" },
-        { status: 401 }
-      );
+      return corsError(req, "Please use Google Sign-In for this account", 401);
     }
 
-    // אימות סיסמה
     const isValidPassword = await compare(password, user.password);
     if (!isValidPassword) {
-      return NextResponse.json(
-        { success: false, error: "Invalid credentials" },
-        { status: 401 }
-      );
+      return corsError(req, "Invalid credentials", 401);
     }
 
-    // בדיקת סטטוס משתמש
     if (user.status === "BLOCKED") {
-      return NextResponse.json(
-        { success: false, error: "Account is blocked" },
-        { status: 403 }
-      );
+      return corsError(req, "Account is blocked", 403);
     }
 
     if (user.status === "INACTIVE") {
-      return NextResponse.json(
-        { success: false, error: "Account is inactive" },
-        { status: 403 }
-      );
+      return corsError(req, "Account is inactive", 403);
     }
 
-    // עדכון lastLogin
     await prisma.user.update({
       where: { id: user.id },
       data: { lastLogin: new Date() },
     }).catch(err => console.error("[mobile/login] Failed to update lastLogin:", err));
 
-    // יצירת token
     const { token, expiresAt } = createMobileToken(user);
 
     console.log(`[mobile/login] User ${user.email} logged in successfully from mobile`);
 
-    return NextResponse.json({
+    return corsJson(req, {
       success: true,
       user: formatUserForMobile(user),
       tokens: {
@@ -93,16 +83,12 @@ export async function POST(req: NextRequest) {
 
   } catch (error) {
     console.error("[mobile/login] Error:", error);
-    return NextResponse.json(
-      { success: false, error: "Internal server error" },
-      { status: 500 }
-    );
+    return corsError(req, "Internal server error", 500);
   }
 }
 
-// תמיכה ב-GET לבדיקה שה-route עובד
-export async function GET() {
-  return NextResponse.json({
+export async function GET(req: NextRequest) {
+  return corsJson(req, {
     success: true,
     message: "Mobile login endpoint is working. Use POST to login.",
     method: "POST",

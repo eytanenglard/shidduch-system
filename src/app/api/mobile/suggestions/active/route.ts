@@ -1,11 +1,15 @@
 // src/app/api/mobile/suggestions/active/route.ts
 // הצעות שידוך פעילות - למובייל
 
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import prisma from "@/lib/prisma";
-import { verifyMobileToken } from "@/lib/mobile-auth";
+import { 
+  verifyMobileToken,
+  corsJson,
+  corsError,
+  corsOptions
+} from "@/lib/mobile-auth";
 
-// פונקציה לחישוב גיל
 function calculateAge(birthDate: Date | null | undefined): number | null {
   if (!birthDate) return null;
   const today = new Date();
@@ -18,21 +22,20 @@ function calculateAge(birthDate: Date | null | undefined): number | null {
   return age;
 }
 
+export async function OPTIONS(req: NextRequest) {
+  return corsOptions(req);
+}
+
 export async function GET(req: NextRequest) {
   try {
-    // אימות Bearer token
     const auth = await verifyMobileToken(req);
     
     if (!auth) {
-      return NextResponse.json(
-        { success: false, error: "Unauthorized" },
-        { status: 401 }
-      );
+      return corsError(req, "Unauthorized", 401);
     }
 
     const userId = auth.userId;
 
-    // שליפת הצעות פעילות
     const activeSuggestions = await prisma.matchSuggestion.findMany({
       where: {
         OR: [
@@ -64,7 +67,7 @@ export async function GET(req: NextRequest) {
             lastName: true,
             profile: {
               select: {
-                birthDate: true,  // ✅ שונה מ-age
+                birthDate: true,
                 city: true,
                 occupation: true,
                 height: true,
@@ -85,7 +88,7 @@ export async function GET(req: NextRequest) {
             lastName: true,
             profile: {
               select: {
-                birthDate: true,  // ✅ שונה מ-age
+                birthDate: true,
                 city: true,
                 occupation: true,
                 height: true,
@@ -103,7 +106,6 @@ export async function GET(req: NextRequest) {
       orderBy: { createdAt: "desc" },
     });
 
-    // עיבוד התוצאות - הצגת הצד השני למשתמש
     const suggestions = activeSuggestions.map(suggestion => {
       const isFirstParty = suggestion.firstPartyId === userId;
       const otherParty = isFirstParty ? suggestion.secondParty : suggestion.firstParty;
@@ -123,7 +125,7 @@ export async function GET(req: NextRequest) {
           id: otherParty.id,
           firstName: otherParty.firstName,
           lastName: otherParty.lastName,
-          age: calculateAge(otherParty.profile?.birthDate),  // ✅ חישוב גיל
+          age: calculateAge(otherParty.profile?.birthDate),
           city: otherParty.profile?.city,
           occupation: otherParty.profile?.occupation,
           height: otherParty.profile?.height,
@@ -135,16 +137,13 @@ export async function GET(req: NextRequest) {
 
     console.log(`[mobile/suggestions/active] Found ${suggestions.length} active suggestions for user ${userId}`);
 
-    return NextResponse.json({
+    return corsJson(req, {
       success: true,
       suggestions,
     });
 
   } catch (error) {
     console.error("[mobile/suggestions/active] Error:", error);
-    return NextResponse.json(
-      { success: false, error: "Internal server error" },
-      { status: 500 }
-    );
+    return corsError(req, "Internal server error", 500);
   }
 }
