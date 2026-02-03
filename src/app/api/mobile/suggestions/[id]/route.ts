@@ -18,11 +18,16 @@ function calculateAge(birthDate: Date | null | undefined): number | null {
   return age;
 }
 
+// שינוי: הגדרת ה-params כ-Promise
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  props: { params: Promise<{ id: string }> }
 ) {
   try {
+    // שלב 1: חילוץ הפרמטרים עם await
+    const params = await props.params;
+    const suggestionId = params.id;
+
     // אימות Bearer token
     const auth = await verifyMobileToken(req);
     
@@ -34,7 +39,6 @@ export async function GET(
     }
 
     const userId = auth.userId;
-    const suggestionId = params.id;
 
     // שליפת ההצעה עם כל הפרטים
     const suggestion = await prisma.matchSuggestion.findUnique({
