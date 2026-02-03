@@ -66,38 +66,31 @@ const nextConfig = {
   },
   poweredByHeader: false,
   
-  // ==================== START: Security Headers Block ====================
   async headers() {
     const siteUrl = process.env.NODE_ENV === 'production' 
-      ? 'https://www.neshamatech.com' // הדומיין שלך, כפי שמופיע במטא-דאטה
+      ? 'https://www.neshamatech.com'
       : 'http://localhost:3000';
 
     return [
       {
-        // החל את כותרות האבטחה הגלובליות על כל הנתיבים באתר
         source: '/:path*',
         headers: [
-          // (HSTS) מאלץ את הדפדפן לתקשר רק ב-HTTPS, מונע התקפות הורדת דרגה
           {
             key: 'Strict-Transport-Security',
             value: 'max-age=63072000; includeSubDomains; preload',
           },
-          // מונע טעינת האתר בתוך iframe באתרים אחרים, הגנה קריטית מפני Clickjacking
           {
             key: 'X-Frame-Options',
-            value: 'SAMEORIGIN', // אפשר גם 'DENY' אם אין צורך ב-iframes כלל
+            value: 'SAMEORIGIN',
           },
-          // הגנה מובנית בדפדפנים מפני התקפות XSS
           {
             key: 'X-XSS-Protection',
             value: '1; mode=block',
           },
-          // מונע מהדפדפן "לנחש" את סוג התוכן של קבצים, מונע התקפות מסוימות
           {
             key: 'X-Content-Type-Options',
-            value: 'nosiff',
+            value: 'nosniff',
           },
-          // (CSP) - מדיניות אבטחת תוכן. זוהי ההגנה החזקה ביותר נגד XSS.
           {
             key: 'Content-Security-Policy',
             value: [
@@ -105,10 +98,8 @@ const nextConfig = {
               "script-src 'self' 'unsafe-eval' 'unsafe-inline' *.google-analytics.com www.googletagmanager.com maps.googleapis.com",
               "script-src-elem 'self' 'unsafe-inline' *.google-analytics.com www.googletagmanager.com maps.googleapis.com",
               "style-src 'self' 'unsafe-inline' fonts.googleapis.com",
-              // כאן התיקון: הוספנו את blob: כדי לאפשר תצוגה מקדימה של תמונות
               "img-src 'self' data: blob: https://res.cloudinary.com",
               "font-src 'self' fonts.gstatic.com",
-              // הוספנו את הדומיין של Google Maps גם ל-connect-src
               `connect-src 'self' ${siteUrl} *.google-analytics.com www.googletagmanager.com https://api.upstash.com vitals.vercel-insights.com maps.googleapis.com`,
               "form-action 'self'",
               "frame-ancestors 'self'",
@@ -116,12 +107,21 @@ const nextConfig = {
           },
         ],
       },
-      // הגדרות CORS עבור נתיבי ה-API שלך
+      // 🔴 חדש: CORS עבור Mobile API - מאפשר גישה מכל מקור מותר
       {
-        source: '/api/:path*',
+        source: '/api/mobile/:path*',
         headers: [
           { key: 'Access-Control-Allow-Credentials', value: 'true' },
-          // חשוב: בסביבת פרודקשן, אנו מגבילים את הגישה רק לדומיין שלך
+          { key: 'Access-Control-Allow-Origin', value: '*' }, // הקוד ב-route יטפל בזה דינמית
+          { key: 'Access-Control-Allow-Methods', value: 'GET,DELETE,PATCH,POST,PUT,OPTIONS' },
+          { key: 'Access-Control-Allow-Headers', value: 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Authorization' },
+        ],
+      },
+      // CORS עבור שאר ה-API (לא מובייל)
+      {
+        source: '/api/:path((?!mobile).*)',
+        headers: [
+          { key: 'Access-Control-Allow-Credentials', value: 'true' },
           { key: 'Access-Control-Allow-Origin', value: siteUrl },
           { key: 'Access-Control-Allow-Methods', value: 'GET,DELETE,PATCH,POST,PUT' },
           { key: 'Access-Control-Allow-Headers', value: 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version' },
@@ -129,7 +129,6 @@ const nextConfig = {
       },
     ];
   },
-  // ==================== END: Security Headers Block ====================
 
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production' ? { exclude: ['error'] } : false,
@@ -148,4 +147,4 @@ const nextConfig = {
   }
 };
 
-module.exports = nextConfig;  
+module.exports = nextConfig;
