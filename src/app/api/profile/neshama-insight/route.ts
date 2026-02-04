@@ -1,6 +1,6 @@
 // src/app/api/profile/neshama-insight/route.ts
 // =====================================================
-// API Route - גרסה 7.0 (Clean Text & Positive Vibes)
+// API Route - גרסה 8.0 (ללא בדיקת השלמה כפולה)
 // =====================================================
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -68,7 +68,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Rate Limiting (למשתמשים רגילים בלבד)
+    // Rate Limiting - רק למשתמשים רגילים
     if (isSelf && !isMatchmakerOrAdmin && user.neshamaInsightLastGeneratedAt) {
       const lastGenerated = new Date(user.neshamaInsightLastGeneratedAt);
       const now = new Date();
@@ -79,31 +79,21 @@ export async function POST(req: NextRequest) {
         const hoursLeft = Math.ceil(24 - diffHours);
         const message =
           locale === 'he'
-            ? 'ניתן ליצור דוח חדש בעוד ' + hoursLeft + ' שעות'
-            : 'You can generate a new report in ' + hoursLeft + ' hours';
+            ? `ניתן ליצור דוח חדש בעוד ${hoursLeft} שעות`
+            : `You can generate a new report in ${hoursLeft} hours`;
         return NextResponse.json(
-          { success: false, message: message },
+          { success: false, message },
           { status: 429 }
         );
       }
     }
 
-    // בדיקת השלמת פרופיל (למשתמשים רגילים בלבד)
-    const completionResult = calculateProfileCompletion(user);
-    if (!completionResult.isComplete && !isMatchmakerOrAdmin) {
-      const message =
-        locale === 'he'
-          ? 'יש להשלים לפחות 95% מהפרופיל (כרגע: ' +
-            completionResult.completionPercent +
-            '%)'
-          : 'Please complete at least 95% of your profile (current: ' +
-            completionResult.completionPercent +
-            '%)';
-      return NextResponse.json(
-        { success: false, message: message },
-        { status: 400 }
-      );
-    }
+    // ========================================================
+    // הערה: בדיקת השלמת פרופיל הוסרה מכאן!
+    // הבדיקה מתבצעת בצד הקליינט (NeshmaInsightButton)
+    // שמקבל את אחוז ההשלמה מ-ProfileChecklist.
+    // זה מונע פערים בין שני חישובים שונים.
+    // ========================================================
 
     // 1. יצירת פרופיל נרטיבי
     const narrativeProfile = await generateNarrativeProfile(userId);
@@ -142,67 +132,6 @@ export async function POST(req: NextRequest) {
 }
 
 // =====================================================
-// Profile Completion Calculator
-// =====================================================
-
-interface CompletionResult {
-  isComplete: boolean;
-  completionPercent: number;
-}
-
-function calculateProfileCompletion(user: any): CompletionResult {
-  const profile = user.profile;
-  const questionnaire = user.questionnaireResponses[0];
-
-  if (!profile) {
-    return { isComplete: false, completionPercent: 0 };
-  }
-
-  const checks = [
-    { weight: 5, pass: user.images && user.images.length >= 1 },
-    { weight: 5, pass: Boolean(profile.profileHeadline) },
-    { weight: 10, pass: Boolean(profile.about) && profile.about.length >= 50 },
-    { weight: 5, pass: Boolean(profile.height) },
-    { weight: 5, pass: Boolean(profile.city) },
-    { weight: 5, pass: Boolean(profile.maritalStatus) },
-    { weight: 5, pass: Boolean(profile.religiousLevel) },
-    {
-      weight: 15,
-      pass: Boolean(questionnaire && questionnaire.valuesCompleted),
-    },
-    {
-      weight: 15,
-      pass: Boolean(questionnaire && questionnaire.personalityCompleted),
-    },
-    {
-      weight: 15,
-      pass: Boolean(questionnaire && questionnaire.relationshipCompleted),
-    },
-    {
-      weight: 15,
-      pass: Boolean(questionnaire && questionnaire.partnerCompleted),
-    },
-  ];
-
-  let totalWeight = 0;
-  let earnedWeight = 0;
-
-  for (let i = 0; i < checks.length; i++) {
-    totalWeight += checks[i].weight;
-    if (checks[i].pass) {
-      earnedWeight += checks[i].weight;
-    }
-  }
-
-  const completionPercent = Math.round((earnedWeight / totalWeight) * 100);
-
-  return {
-    isComplete: completionPercent >= 95,
-    completionPercent: completionPercent,
-  };
-}
-
-// =====================================================
 // AI Insight Generator
 // =====================================================
 
@@ -213,7 +142,7 @@ async function generateNeshmaInsightText(
 ) {
   const questionnaire = user.questionnaireResponses[0];
   const isHebrew = locale === 'he';
-  
+
   const prompt = buildCleanMatchmakerPrompt(
     narrativeProfile,
     questionnaire,
@@ -228,7 +157,7 @@ async function generateNeshmaInsightText(
   const model = genAI.getGenerativeModel({
     model: 'gemini-2.0-flash',
     generationConfig: {
-      temperature: 0.7, // טמפרטורה מאוזנת לטקסט קריא ולא "משוגע" מדי
+      temperature: 0.7,
       topP: 0.95,
       maxOutputTokens: 8192,
     },
@@ -320,7 +249,6 @@ ${questionnaireJson}
 זכור: שפה עשירה, רגישה, וללא שום סימני עיצוב מיוחדים.
 `;
   } else {
-    // English Prompt (Mirror of the Hebrew one)
     return `
 You are NeshamaTech AI, acting as an expert, sensitive, and wise matchmaker.
 
