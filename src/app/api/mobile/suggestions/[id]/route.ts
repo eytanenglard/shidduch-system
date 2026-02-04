@@ -1,5 +1,6 @@
 // src/app/api/mobile/suggestions/[id]/route.ts
 // פרטי הצעת שידוך בודדת - למובייל
+// UPDATED: Added questionnaire responses
 
 import { NextRequest } from "next/server";
 import prisma from "@/lib/prisma";
@@ -9,6 +10,8 @@ import {
   corsError,
   corsOptions
 } from "@/lib/mobile-auth";
+import { formatAnswers, KEY_MAPPING } from '@/lib/questionnaireFormatter';
+import type { WorldId } from "@/types/next-auth";
 
 function calculateAge(birthDate: Date | null | undefined): number | null {
   if (!birthDate) return null;
@@ -82,6 +85,19 @@ export async function GET(
                 url: true,
                 isMain: true,
               }
+            },
+            // NEW: Include questionnaire responses
+            questionnaireResponses: {
+              orderBy: { createdAt: 'desc' },
+              take: 1,
+              select: {
+                id: true,
+                valuesAnswers: true,
+                personalityAnswers: true,
+                relationshipAnswers: true,
+                partnerAnswers: true,
+                religionAnswers: true,
+              }
             }
           }
         },
@@ -114,6 +130,19 @@ export async function GET(
                 url: true,
                 isMain: true,
               }
+            },
+            // NEW: Include questionnaire responses
+            questionnaireResponses: {
+              orderBy: { createdAt: 'desc' },
+              take: 1,
+              select: {
+                id: true,
+                valuesAnswers: true,
+                personalityAnswers: true,
+                relationshipAnswers: true,
+                partnerAnswers: true,
+                religionAnswers: true,
+              }
             }
           }
         },
@@ -144,6 +173,25 @@ export async function GET(
     const otherPartyRaw = isFirstParty ? suggestion.secondParty : suggestion.firstParty;
     const notes = isFirstParty ? suggestion.firstPartyNotes : suggestion.secondPartyNotes;
 
+    // Process questionnaire responses
+    let questionnaireAnswers: Record<string, any[]> | null = null;
+    
+    if (otherPartyRaw.questionnaireResponses && otherPartyRaw.questionnaireResponses.length > 0) {
+      const qr = otherPartyRaw.questionnaireResponses[0];
+      questionnaireAnswers = {};
+      
+      // Format answers for each world
+      (Object.keys(KEY_MAPPING) as WorldId[]).forEach(worldKey => {
+        const dbKey = KEY_MAPPING[worldKey];
+        const answersJson = qr[dbKey as keyof typeof qr];
+        if (answersJson) {
+          const formatted = formatAnswers(answersJson);
+          // Only include visible answers
+          questionnaireAnswers![worldKey] = formatted.filter(a => a.isVisible !== false);
+        }
+      });
+    }
+
     const otherParty: any = {
       id: otherPartyRaw.id,
       firstName: otherPartyRaw.firstName,
@@ -162,6 +210,8 @@ export async function GET(
       hobbies: otherPartyRaw.profile?.profileHobbies || [],
       images: otherPartyRaw.images?.map(img => img.url) || [],
       mainImage: otherPartyRaw.images?.find(img => img.isMain)?.url || otherPartyRaw.images?.[0]?.url || null,
+      // NEW: Add questionnaire answers
+      questionnaireAnswers,
     };
 
     const showContactDetails = suggestion.status === 'CONTACT_DETAILS_SHARED';
@@ -200,7 +250,7 @@ export async function GET(
       statusHistory: suggestion.statusHistory,
     };
 
-    console.log(`[mobile/suggestions/${suggestionId}] Fetched for user ${userId}, isFirstParty: ${isFirstParty}`);
+    console.log(`[mobile/suggestions/${suggestionId}] Fetched for user ${userId}, isFirstParty: ${isFirstParty}, hasQuestionnaire: ${!!questionnaireAnswers}`);
 
     return corsJson(req, {
       success: true,

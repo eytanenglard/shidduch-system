@@ -39,6 +39,7 @@ const completeProfileSchema = z.object({
   
   // הוספת שדה עיר כחובה
   city: z.string().min(1, "City is required"),
+  origin: z.string().optional(), 
 
   height: z.coerce.number().int().min(120).max(220).optional(),
   occupation: z.string().optional(),
@@ -104,6 +105,7 @@ export async function POST(req: Request) {
         birthDate,
         maritalStatus,
         city, // חילוץ העיר
+        origin,
         height,
         occupation,
         education,
@@ -132,6 +134,7 @@ export async function POST(req: Request) {
           birthDate: new Date(birthDate),
           maritalStatus: maritalStatus,
           city: city, // שמירת העיר
+          origin: origin,
           height: height,
           occupation: occupation,
           education: education,
@@ -147,6 +150,7 @@ export async function POST(req: Request) {
           birthDate: new Date(birthDate),
           maritalStatus: maritalStatus,
           city: city, // עדכון העיר
+          origin: origin,
           height: height,
           occupation: occupation,
           education: education,

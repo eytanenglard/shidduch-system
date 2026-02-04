@@ -343,6 +343,8 @@ export type RegisterStepsDict = {
       male: string;
       female: string;
       birthDateLabel: string;
+       originLabel: string;
+      originPlaceholder: string;
         cityLabel: string;
   cityPlaceholder: string;
       maritalStatusLabel: string;
@@ -379,6 +381,7 @@ export type RegisterStepsDict = {
         consentRequired: string;
         engagementConsentRequired: string;
         religiousLevelRequired: string;
+            originRequired: string;
             cityRequired: string;
 
         consentApiError: string;
@@ -448,6 +451,7 @@ export type RegisterStepsDict = {
       maritalStatus: string;
       religiousLevel: string;
           city: string;
+      origin: string;
 
       terms: string;
       engagement: string;

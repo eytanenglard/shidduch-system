@@ -47,6 +47,8 @@ export interface RegistrationData {
   religiousLevel?: string;
 
   // שדות UI
+    origin: string; // ✨ הוסף שורה זו
+
   city: string;
   hasChildren: boolean;
   numberOfChildren: string;
@@ -81,6 +83,8 @@ const initialRegistrationData: RegistrationData = {
   religiousLevel: '',
 
   // אתחול שדות חדשים
+    origin: '', // ✨ הוסף שורה זו
+
   city: '',
   hasChildren: false,
   numberOfChildren: '',
@@ -254,6 +258,7 @@ export const RegistrationProvider: React.FC<{ children: ReactNode }> = ({
             education: profile.education || '',
             religiousLevel: profile.religiousLevel || '',
             city: profile.city || '',
+            origin: profile.origin || '', // ✨ הוסף שורה זו
 
             // מיפוי שדות מותאם אישית
             profession: profile.occupation || '', // שימוש ב-occupation כשדה profession

@@ -274,6 +274,8 @@
         "subtitle": "We need these details to continue with your registration process.",
         "firstNameLabel": "First Name",
         "firstNamePlaceholder": "e.g., John",
+          "originLabel": "Origin/Ethnicity",
+  "originPlaceholder": "e.g., Ashkenazi, Sephardic, Yemenite...",
         "lastNameLabel": "Last Name",
         "lastNamePlaceholder": "e.g., Doe",
         "languageLabel": "Preferred Communication Language",
@@ -318,6 +320,8 @@
         "nextButton": "Continue to Next Step",
         "nextButtonLoading": "Accepting terms...",
         "errors": {
+              "originRequired": "Origin/Ethnicity is required"
+,
           "firstNameRequired": "First name is a required field",
           "lastNameRequired": "Last name is a required field",
           "phoneRequired": "Phone number is a required field",
@@ -411,6 +415,8 @@
       "title": "Missing Information",
       "pleaseFill": "To proceed, please complete the following fields:",
       "fields": {
+            "origin": "Origin/Ethnicity"
+,
         "email": "Valid Email Address",
         "password": "Valid Password",
         "firstName": "First Name",

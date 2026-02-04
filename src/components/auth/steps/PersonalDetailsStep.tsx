@@ -13,6 +13,7 @@ import Autocomplete from 'react-google-autocomplete';
 import {
   User,
   Calendar,
+  Globe,
   Heart,
   Sparkles,
   CheckCircle2,
@@ -260,6 +261,7 @@ export default function PersonalDetailsStep({
   const [ageError, setAgeError] = useState('');
   const [religiousLevelError, setReligiousLevelError] = useState('');
   const [cityError, setCityError] = useState('');
+  const [originError, setOriginError] = useState('');
 
   // Local state for city input value to handle typing before selection
   const [cityInputValue, setCityInputValue] = useState(
@@ -463,6 +465,7 @@ export default function PersonalDetailsStep({
     setEngagementConsentError(null);
     setReligiousLevelError('');
     setCityError('');
+    setOriginError('');
     setMissingFields([]);
     setFirstNameError('');
     setLastNameError('');
@@ -510,6 +513,14 @@ export default function PersonalDetailsStep({
       currentMissing.push(personalDetailsDict.cityLabel || 'עיר');
       hasError = true;
     }
+    if (!registrationState.origin || !registrationState.origin.trim()) {
+      setOriginError(
+        personalDetailsDict.errors.originRequired || 'נא לציין מוצא'
+      );
+      currentMissing.push(validationDict.fields.origin);
+      hasError = true;
+    }
+
     if (!registrationState.maritalStatus) {
       currentMissing.push(validationDict.fields.maritalStatus);
       hasError = true;
@@ -589,6 +600,8 @@ export default function PersonalDetailsStep({
         maritalStatus: registrationState.maritalStatus,
         religiousLevel: registrationState.religiousLevel,
         city: registrationState.city,
+        origin: registrationState.origin, // <--- הוסף את זה כאן!
+
         height: registrationState.height,
         occupation: registrationState.occupation,
         education: registrationState.education,
@@ -818,43 +831,44 @@ export default function PersonalDetailsStep({
           </motion.div>
         </div>
 
-<motion.div variants={itemVariants} className="space-y-2">
-  <Label className="text-sm font-semibold text-gray-700 flex items-center">
-    {personalDetailsDict.phoneLabel}{' '}
-    <span className="text-red-500 mr-1">*</span>
-  </Label>
-  <PhoneNumberInput
-    value={registrationState.phone}
-    onChange={(value) => {
-      let cleanValue = value || '';
-      
-      // === תיקון: הסרת 0 מוביל בקידומת ישראלית ===
-      // אם המספר מתחיל ב-+9720, נחליף אותו ב-+972
-      if (cleanValue.startsWith('+9720')) {
-        cleanValue = cleanValue.replace('+9720', '+972');
-      }
-      // ==========================================
+        <motion.div variants={itemVariants} className="space-y-2">
+          <Label className="text-sm font-semibold text-gray-700 flex items-center">
+            {personalDetailsDict.phoneLabel}{' '}
+            <span className="text-red-500 mr-1">*</span>
+          </Label>
+          <PhoneNumberInput
+            value={registrationState.phone}
+            onChange={(value) => {
+              let cleanValue = value || '';
 
-      updateField('phone', cleanValue);
-      if (cleanValue && validatePhoneNumber(cleanValue)) setPhoneError('');
-    }}
-    disabled={isLoading}
-    error={
-      phoneError ||
-      (missingFields.includes(validationDict.fields.phone)
-        ? ' '
-        : undefined)
-    }
-    locale={locale}
-    // מומלץ: הוסף placeholder שמראה דוגמה ללא 0
-    placeholder="50 123 4567" 
-  />
-  {phoneError && (
-    <p className="text-xs text-red-600 flex items-center gap-1">
-      <AlertCircle className="w-3 h-3" /> {phoneError}
-    </p>
-  )}
-</motion.div>
+              // === תיקון: הסרת 0 מוביל בקידומת ישראלית ===
+              // אם המספר מתחיל ב-+9720, נחליף אותו ב-+972
+              if (cleanValue.startsWith('+9720')) {
+                cleanValue = cleanValue.replace('+9720', '+972');
+              }
+              // ==========================================
+
+              updateField('phone', cleanValue);
+              if (cleanValue && validatePhoneNumber(cleanValue))
+                setPhoneError('');
+            }}
+            disabled={isLoading}
+            error={
+              phoneError ||
+              (missingFields.includes(validationDict.fields.phone)
+                ? ' '
+                : undefined)
+            }
+            locale={locale}
+            // מומלץ: הוסף placeholder שמראה דוגמה ללא 0
+            placeholder="50 123 4567"
+          />
+          {phoneError && (
+            <p className="text-xs text-red-600 flex items-center gap-1">
+              <AlertCircle className="w-3 h-3" /> {phoneError}
+            </p>
+          )}
+        </motion.div>
 
         <motion.div variants={itemVariants} className="space-y-2">
           <Label className="text-sm font-semibold text-gray-700 flex items-center">
@@ -945,6 +959,43 @@ export default function PersonalDetailsStep({
             </p>
           )}
         </motion.div>
+
+        {/* --- התחלת שדה מוצא --- */}
+        <motion.div variants={itemVariants} className="space-y-2">
+          <Label
+            htmlFor="origin"
+            className="text-sm font-semibold text-gray-700 flex items-center"
+          >
+            {personalDetailsDict.originLabel}{' '}
+            <span className="text-red-500 mr-1">*</span>
+          </Label>
+          <FieldWrapper
+            icon={<Globe className="h-5 w-5" />} // וודא שייבאת את Globe מ-lucide-react
+            hasValue={!!registrationState.origin}
+          >
+            <Input
+              id="origin"
+              type="text"
+              value={registrationState.origin || ''}
+              onChange={(e) => {
+                updateField('origin', e.target.value);
+                if (e.target.value.trim()) setOriginError('');
+              }}
+              placeholder={personalDetailsDict.originPlaceholder}
+              disabled={isLoading}
+              className={inputBaseClasses(
+                !!originError ||
+                  missingFields.includes(validationDict.fields.origin)
+              )}
+            />
+          </FieldWrapper>
+          {originError && (
+            <p className="text-xs text-red-600 flex items-center gap-1">
+              <AlertCircle className="w-3 h-3" /> {originError}
+            </p>
+          )}
+        </motion.div>
+        {/* --- סיום שדה מוצא --- */}
 
         <motion.div variants={itemVariants} className="space-y-2">
           <Label

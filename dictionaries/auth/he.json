@@ -273,7 +273,10 @@
         "title": "פרטים אישיים חיוניים",
         "subtitle": "אנו צריכים פרטים אלו כדי להמשיך בתהליך ההרשמה שלך.",
         "firstNameLabel": "שם פרטי",
+
         "firstNamePlaceholder": "לדוגמה: ישראל",
+         "originLabel": "מוצא/עדה",
+  "originPlaceholder": "לדוגמה: אשכנזי, ספרדי, תימני, מעורב...",
 "languageLabel": "שפת התקשורת המועדפת", 
   "languagePlaceholder": "בחר שפה...",
         "lastNameLabel": "שם משפחה",
@@ -320,6 +323,8 @@
   "other": "אחר"
 },
        "errors": {
+            "originRequired": "יש לציין מוצא/עדה",
+
           "cityRequired": "עיר מגורים היא שדה חובה",
           "firstNameRequired": "שם פרטי הוא שדה חובה",
           "lastNameRequired": "שם משפחה הוא שדה חובה",
@@ -415,6 +420,8 @@
       "title": "שים לב, חסרים פרטים",
       "pleaseFill": "כדי להמשיך, אנא השלם את השדות הבאים:",
       "fields": {
+            "origin": "מוצא/עדה",
+
         "email": "כתובת אימייל תקינה",
         "password": "סיסמה חוקית",
         "firstName": "שם פרטי",
