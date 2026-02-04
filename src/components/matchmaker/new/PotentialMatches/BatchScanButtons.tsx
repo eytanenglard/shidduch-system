@@ -50,7 +50,6 @@ interface ScanProgress {
   stats?: {
     matchesFoundSoFar?: number;
   };
-  // 👇 Added this property based on your usage in the component
   preparationStats?: {
     currentIndex: number;
     totalNeedingUpdate: number;
@@ -59,9 +58,9 @@ interface ScanProgress {
     skipped?: number;
     failed: number;
     aiCallsMade?: number;
+    embeddingCallsMade?: number;
   };
 }
-
 
 interface ScanResult {
   matchesFound?: number;
@@ -87,14 +86,17 @@ interface BatchScanButtonsProps {
 // Method Configurations
 // ═══════════════════════════════════════════════════════════════
 
-const METHOD_CONFIG: Record<ScanMethod, {
-  label: string;
-  icon: typeof Brain;
-  gradient: string;
-  hoverGradient: string;
-  time: string;
-  fastTime: string; // זמן משוער במצב מהיר
-}> = {
+const METHOD_CONFIG: Record<
+  ScanMethod,
+  {
+    label: string;
+    icon: typeof Brain;
+    gradient: string;
+    hoverGradient: string;
+    time: string;
+    fastTime: string;
+  }
+> = {
   algorithmic: {
     label: 'AI מתקדם',
     icon: Brain,
@@ -129,7 +131,12 @@ const METHOD_CONFIG: Record<ScanMethod, {
   },
 };
 
-const METHODS_ORDER: ScanMethod[] = ['algorithmic', 'vector', 'hybrid', 'metrics_v2'];
+const METHODS_ORDER: ScanMethod[] = [
+  'algorithmic',
+  'vector',
+  'hybrid',
+  'metrics_v2',
+];
 
 // ═══════════════════════════════════════════════════════════════
 // Main Component
@@ -162,7 +169,6 @@ const BatchScanButtons: React.FC<BatchScanButtonsProps> = ({
 
   if (isScanning && scanProgress) {
     const config = METHOD_CONFIG[currentMethod || 'hybrid'];
-    // const Icon = config.icon; // Removed unused variable
 
     return (
       <Card className={cn('p-4', className)}>
@@ -174,63 +180,40 @@ const BatchScanButtons: React.FC<BatchScanButtonsProps> = ({
           {/* Header */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className={cn(
-                'p-2.5 rounded-xl bg-gradient-to-r shadow-lg',
-                config.gradient
-              )}>
+              <div
+                className={cn(
+                  'p-2.5 rounded-xl bg-gradient-to-r shadow-lg',
+                  config.gradient
+                )}
+              >
                 <Loader2 className="w-5 h-5 text-white animate-spin" />
               </div>
               <div>
                 <h3 className="font-bold text-gray-800 flex items-center gap-2">
-                  סריקת {config.label.replace(' 🔥', '').replace(' ⚡', '').replace(' 🎯', '')}
-                  {scanProgress.currentUserName && (
-                    <Badge variant="secondary" className="font-normal text-xs">
-                      {scanProgress.currentUserName}
-                    </Badge>
-                  )}
+                  סריקת{' '}
+                  {config.label
+                    .replace(' 🔥', '')
+                    .replace(' ⚡', '')
+                    .replace(' 🎯', '')}
+                  {scanProgress.phase !== 'preparing' &&
+                    scanProgress.currentUserName && (
+                      <Badge
+                        variant="secondary"
+                        className="font-normal text-xs"
+                      >
+                        {scanProgress.currentUserName}
+                      </Badge>
+                    )}
                 </h3>
+                {/* ✅ תוקן: הוצאנו את ה-div מתוך ה-p */}
                 <p className="text-sm text-gray-500">
-               {scanProgress.phase === 'preparing' && scanProgress.preparationStats && (
-  <div className="space-y-2 mt-3 p-3 bg-amber-50 rounded-lg border border-amber-100">
-    <div className="flex items-center gap-2 text-amber-700">
-      <Loader2 className="w-4 h-4 animate-spin" />
-      <span className="font-medium text-sm">
-        מכין נתונים ({scanProgress.preparationStats.currentIndex}/{scanProgress.preparationStats.totalNeedingUpdate})
-      </span>
-    </div>
-    
-    {scanProgress.preparationStats.currentUserName && (
-      <p className="text-xs text-amber-600">
-        מעדכן: {scanProgress.preparationStats.currentUserName}
-      </p>
-    )}
-    
-    {/* 🆕 Progress breakdown */}
-    <div className="grid grid-cols-4 gap-2 text-xs">
-      <div className="text-center p-1.5 bg-emerald-100 rounded">
-        <div className="font-bold text-emerald-700">{scanProgress.preparationStats.updated}</div>
-        <div className="text-emerald-600">עודכנו</div>
-      </div>
-      <div className="text-center p-1.5 bg-blue-100 rounded">
-        <div className="font-bold text-blue-700">{scanProgress.preparationStats.skipped || 0}</div>
-        <div className="text-blue-600">דולגו</div>
-      </div>
-      <div className="text-center p-1.5 bg-red-100 rounded">
-        <div className="font-bold text-red-700">{scanProgress.preparationStats.failed}</div>
-        <div className="text-red-600">נכשלו</div>
-      </div>
-      <div className="text-center p-1.5 bg-purple-100 rounded">
-        <div className="font-bold text-purple-700">{scanProgress.preparationStats.aiCallsMade || 0}</div>
-        <div className="text-purple-600">קריאות AI</div>
-      </div>
-    </div>
-  </div>
-)}
-
+                  {scanProgress.phase === 'preparing'
+                    ? 'מכין נתונים...'
+                    : scanProgress.message || 'מעבד...'}
                 </p>
               </div>
             </div>
-            
+
             <Button
               variant="ghost"
               size="sm"
@@ -242,59 +225,129 @@ const BatchScanButtons: React.FC<BatchScanButtonsProps> = ({
             </Button>
           </div>
 
-          {/* Progress Bar */}
-          <div className="space-y-2">
-            <div className="flex justify-between text-sm">
-              <span className="text-gray-600">
-                {scanProgress.currentUserIndex || 0} / {scanProgress.totalUsers || '?'} משתמשים
-              </span>
-              <span className="font-medium text-gray-800">
-                {scanProgress.progressPercent || 0}%
-              </span>
-            </div>
-            <Progress 
-              value={scanProgress.progressPercent || 0} 
-              className="h-3"
-            />
-          </div>
+          {/* ✅ Preparation Stats - הועבר למקום נפרד */}
+          {scanProgress.phase === 'preparing' &&
+            scanProgress.preparationStats && (
+              <div className="space-y-3 p-3 bg-amber-50 rounded-lg border border-amber-100">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-amber-700">
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span className="font-medium text-sm">
+                      מכין נתונים ({scanProgress.preparationStats.currentIndex}/
+                      {scanProgress.preparationStats.totalNeedingUpdate})
+                    </span>
+                  </div>
+                  {scanProgress.preparationStats.currentUserName && (
+                    <Badge variant="outline" className="text-xs bg-white">
+                      {scanProgress.preparationStats.currentUserName}
+                    </Badge>
+                  )}
+                </div>
 
-          {/* Stats */}
-          <div className="grid grid-cols-3 gap-3">
-            <div className="flex items-center gap-2 p-2 rounded-lg bg-blue-50 border border-blue-100">
-              <Users className="w-4 h-4 text-blue-600" />
-              <div className="flex flex-col">
-                <span className="text-xs text-blue-600">נסרקו</span>
-                <span className="font-bold text-blue-800">
-                  {scanProgress.usersScanned || scanProgress.currentUserIndex || 0}
+                {/* Progress Bar for Preparation */}
+                <Progress
+                  value={
+                    scanProgress.preparationStats.totalNeedingUpdate > 0
+                      ? (scanProgress.preparationStats.currentIndex /
+                          scanProgress.preparationStats.totalNeedingUpdate) *
+                        100
+                      : 0
+                  }
+                  className="h-2"
+                />
+
+                {/* Stats Grid */}
+                <div className="grid grid-cols-4 gap-2 text-xs">
+                  <div className="text-center p-1.5 bg-emerald-100 rounded">
+                    <div className="font-bold text-emerald-700">
+                      {scanProgress.preparationStats.updated}
+                    </div>
+                    <div className="text-emerald-600">עודכנו</div>
+                  </div>
+                  <div className="text-center p-1.5 bg-blue-100 rounded">
+                    <div className="font-bold text-blue-700">
+                      {scanProgress.preparationStats.skipped || 0}
+                    </div>
+                    <div className="text-blue-600">דולגו</div>
+                  </div>
+                  <div className="text-center p-1.5 bg-red-100 rounded">
+                    <div className="font-bold text-red-700">
+                      {scanProgress.preparationStats.failed}
+                    </div>
+                    <div className="text-red-600">נכשלו</div>
+                  </div>
+                  <div className="text-center p-1.5 bg-purple-100 rounded">
+                    <div className="font-bold text-purple-700">
+                      {scanProgress.preparationStats.aiCallsMade || 0}
+                    </div>
+                    <div className="text-purple-600">קריאות AI</div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+          {/* Progress Bar - Only show in scanning phase */}
+          {scanProgress.phase !== 'preparing' && (
+            <div className="space-y-2">
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-600">
+                  {scanProgress.currentUserIndex || 0} /{' '}
+                  {scanProgress.totalUsers || '?'} משתמשים
+                </span>
+                <span className="font-medium text-gray-800">
+                  {scanProgress.progressPercent || 0}%
                 </span>
               </div>
+              <Progress
+                value={scanProgress.progressPercent || 0}
+                className="h-3"
+              />
             </div>
-            <div className="flex items-center gap-2 p-2 rounded-lg bg-emerald-50 border border-emerald-100">
-              <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-              <div className="flex flex-col">
-                <span className="text-xs text-emerald-600">התאמות</span>
-                <span className="font-bold text-emerald-800">
-                  {scanProgress.matchesFoundSoFar || scanProgress.stats?.matchesFoundSoFar || 0}
-                </span>
+          )}
+
+          {/* Stats - Only show in scanning phase */}
+          {scanProgress.phase !== 'preparing' && (
+            <div className="grid grid-cols-3 gap-3">
+              <div className="flex items-center gap-2 p-2 rounded-lg bg-blue-50 border border-blue-100">
+                <Users className="w-4 h-4 text-blue-600" />
+                <div className="flex flex-col">
+                  <span className="text-xs text-blue-600">נסרקו</span>
+                  <span className="font-bold text-blue-800">
+                    {scanProgress.usersScanned ||
+                      scanProgress.currentUserIndex ||
+                      0}
+                  </span>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 p-2 rounded-lg bg-emerald-50 border border-emerald-100">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                <div className="flex flex-col">
+                  <span className="text-xs text-emerald-600">התאמות</span>
+                  <span className="font-bold text-emerald-800">
+                    {scanProgress.matchesFoundSoFar ||
+                      scanProgress.stats?.matchesFoundSoFar ||
+                      0}
+                  </span>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 p-2 rounded-lg bg-purple-50 border border-purple-100">
+                <Target className="w-4 h-4 text-purple-600" />
+                <div className="flex flex-col">
+                  <span className="text-xs text-purple-600">חדשות</span>
+                  <span className="font-bold text-purple-800">
+                    {scanProgress.newMatchesFoundSoFar || 0}
+                  </span>
+                </div>
               </div>
             </div>
-            <div className="flex items-center gap-2 p-2 rounded-lg bg-purple-50 border border-purple-100">
-              <Target className="w-4 h-4 text-purple-600" />
-              <div className="flex flex-col">
-                <span className="text-xs text-purple-600">חדשות</span>
-                <span className="font-bold text-purple-800">
-                  {scanProgress.newMatchesFoundSoFar || 0}
-                </span>
-              </div>
-            </div>
-          </div>
+          )}
         </motion.div>
       </Card>
     );
   }
 
   // ═══════════════════════════════════════════════════════════
-  // Render: Buttons
+  // Render: Buttons (idle state)
   // ═══════════════════════════════════════════════════════════
 
   return (
@@ -309,36 +362,46 @@ const BatchScanButtons: React.FC<BatchScanButtonsProps> = ({
             <div>
               <h3 className="font-bold text-gray-800">סריקה לילית</h3>
               <p className="text-xs text-gray-500">
-                {skipPreparation ? 'מצב מהיר פעיל' : 'מצב רגיל (כולל עדכון נתונים)'}
+                {skipPreparation
+                  ? 'מצב מהיר פעיל'
+                  : 'מצב רגיל (כולל עדכון נתונים)'}
               </p>
             </div>
           </div>
 
           {/* Quick Scan Toggle */}
           <div className="flex items-center gap-2 bg-gray-50 p-2 rounded-lg border border-gray-100">
-            <Checkbox 
-              id="skip-prep" 
+            <Checkbox
+              id="skip-prep"
               checked={skipPreparation}
-              onCheckedChange={(checked) => setSkipPreparation(checked as boolean)}
+              onCheckedChange={(checked) =>
+                setSkipPreparation(checked as boolean)
+              }
               className={cn(
-                "data-[state=checked]:bg-orange-500 data-[state=checked]:border-orange-500",
-                "w-5 h-5"
+                'data-[state=checked]:bg-orange-500 data-[state=checked]:border-orange-500',
+                'w-5 h-5'
               )}
             />
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Label 
-                    htmlFor="skip-prep" 
+                  <Label
+                    htmlFor="skip-prep"
                     className="text-xs font-medium cursor-pointer flex items-center gap-1.5"
                   >
-                    <Rocket className={cn("w-3.5 h-3.5", skipPreparation ? "text-orange-500" : "text-gray-400")} />
+                    <Rocket
+                      className={cn(
+                        'w-3.5 h-3.5',
+                        skipPreparation ? 'text-orange-500' : 'text-gray-400'
+                      )}
+                    />
                     סריקה מהירה
                   </Label>
                 </TooltipTrigger>
                 <TooltipContent>
                   <p className="text-xs max-w-[200px]">
-                    מדלג על עדכון מדדים ונתוני AI למועמדים (חוסך זמן משמעותי, אך הנתונים עשויים להיות פחות עדכניים)
+                    מדלג על עדכון מדדים ונתוני AI למועמדים (חוסך זמן משמעותי, אך
+                    הנתונים עשויים להיות פחות עדכניים)
                   </p>
                 </TooltipContent>
               </Tooltip>
@@ -351,7 +414,7 @@ const BatchScanButtons: React.FC<BatchScanButtonsProps> = ({
           {METHODS_ORDER.map((method) => {
             const config = METHOD_CONFIG[method];
             const Icon = config.icon;
-            
+
             return (
               <motion.div
                 key={method}
@@ -364,7 +427,7 @@ const BatchScanButtons: React.FC<BatchScanButtonsProps> = ({
                   className={cn(
                     'w-full h-11 font-bold transition-all duration-300 shadow-lg px-2 sm:px-4 flex-col gap-0',
                     `bg-gradient-to-r ${config.gradient} ${config.hoverGradient} text-white`,
-                    skipPreparation && "ring-2 ring-orange-400 ring-offset-1"
+                    skipPreparation && 'ring-2 ring-orange-400 ring-offset-1'
                   )}
                 >
                   <div className="flex items-center gap-1.5">
@@ -382,8 +445,13 @@ const BatchScanButtons: React.FC<BatchScanButtonsProps> = ({
         {/* Time estimates */}
         <div className="flex gap-2 text-[10px] text-gray-400 px-1">
           {METHODS_ORDER.map((method) => (
-            <span key={method} className="flex-1 text-center truncate min-w-[120px]">
-              {skipPreparation ? METHOD_CONFIG[method].fastTime : METHOD_CONFIG[method].time}
+            <span
+              key={method}
+              className="flex-1 text-center truncate min-w-[120px]"
+            >
+              {skipPreparation
+                ? METHOD_CONFIG[method].fastTime
+                : METHOD_CONFIG[method].time}
             </span>
           ))}
         </div>
@@ -404,8 +472,11 @@ const BatchScanButtons: React.FC<BatchScanButtonsProps> = ({
                 </span>
               </div>
               <p className="text-sm text-emerald-700 mt-1">
-                נמצאו {scanResult.matchesFound || scanResult.totalMatchesFound || 0} התאמות
-                {' '}({scanResult.newMatches || scanResult.newMatchesFound || 0} חדשות)
+                נמצאו{' '}
+                {scanResult.matchesFound || scanResult.totalMatchesFound || 0}{' '}
+                התאמות (
+                {scanResult.newMatches || scanResult.newMatchesFound || 0}{' '}
+                חדשות)
               </p>
             </motion.div>
           )}
@@ -416,8 +487,8 @@ const BatchScanButtons: React.FC<BatchScanButtonsProps> = ({
           <div className="flex items-center gap-2 text-xs text-gray-400 pt-3 border-t">
             <Clock className="w-3.5 h-3.5" />
             <span>
-              סריקה אחרונה: {formatDate(lastScanInfo.date)} 
-              ({lastScanInfo.matchCount} התאמות)
+              סריקה אחרונה: {formatDate(lastScanInfo.date)}(
+              {lastScanInfo.matchCount} התאמות)
             </span>
           </div>
         )}

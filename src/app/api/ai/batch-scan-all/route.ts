@@ -1,13 +1,13 @@
 // ===========================================
 // src/app/api/ai/batch-scan-all/route.ts
 // ===========================================
-// 🎯 סריקה לילית V2.3 - עם Persistence ב-DB
+// 🎯 סריקה לילית V2.4 - עם Smart Preparation
 // 
-// 🆕 V2.3 Changes:
-// - Persistence ב-DB (ScanSession) במקום Map בזיכרון
-// - המשכיות סריקה אחרי restart/refresh
-// - מעקב משתמשים שנסרקו בסשן הנוכחי
-// - אפשרות לחדש סריקה שנעצרה
+// 🆕 V2.4 Changes:
+// - Smart findUsersNeedingUpdate() - uses contentUpdatedAt
+// - Skip logic in updateSingleUserData() - no redundant AI calls
+// - Detailed preparation stats for frontend
+// - Dynamic delay based on actual work done
 // ===========================================
 
 import { NextRequest, NextResponse } from "next/server";
@@ -69,28 +69,23 @@ function initGemini() {
 type ScanMethod = 'hybrid' | 'algorithmic' | 'vector' | 'metrics_v2';
 type ScanPhase = 'preparing' | 'scanning' | 'completed' | 'failed' | 'cancelled';
 
-// 🆕 V2.3: Interface for DB-based scan state
 interface ScanSessionState {
   id: string;
   status: ScanSessionStatus;
   phase: ScanPhase;
   method: ScanMethod;
   
-  // Preparation stats
   preparationStats: {
     totalNeedingUpdate: number;
     currentIndex: number;
     currentUserName: string;
     updated: number;
+    skipped: number;
     failed: number;
-    // 🆕 Add these fields to match the usage in runBatchScan
-    skipped?: number;
-    currentStep?: string;
-    aiCallsMade?: number;
-    embeddingCallsMade?: number;
+    aiCallsMade: number;
+    embeddingCallsMade: number;
   };
   
-  // Scanning stats  
   currentUserIndex: number;
   totalUsers: number;
   currentUserName?: string;
@@ -98,8 +93,6 @@ interface ScanSessionState {
   newMatchesFoundSoFar: number;
   usersScanned: number;
   progressPercent: number;
-  
-  // 🆕 V2.3: List of user IDs already scanned in this session
   scannedUserIds: string[];
   
   message?: string;
@@ -107,43 +100,57 @@ interface ScanSessionState {
   startedAt: Date;
 }
 
+// 🆕 V2.4: Interface for users needing update
+interface UserNeedingUpdate {
+  userId: string;
+  profileId: string;
+  firstName: string;
+  lastName: string;
+  needsMetrics: boolean;
+  needsVectors: boolean;
+  needsAiSummary: boolean;
+}
+
+// 🆕 V2.4: Stats for single user update
+interface UpdateStats {
+  aiSummaryCreated: boolean;
+  metricsCalculated: boolean;
+  vectorsCreated: boolean;
+  skippedSteps: string[];
+  aiCallsMade: number;
+  embeddingCallsMade: number;
+}
 
 // ═══════════════════════════════════════════════════════════════
 // CONSTANTS
 // ═══════════════════════════════════════════════════════════════
 
-const PREPARATION_DELAY_MS = 3000;
+const PREPARATION_DELAY_MS = 2000; // Reduced from 3000
+const SKIP_DELAY_MS = 100; // Fast delay when skipping
 const MAX_NARRATIVE_LENGTH = 8000;
-const SCAN_TIMEOUT_MS = 60 * 60 * 1000; // 1 hour - consider scan "stuck" after this
+const SCAN_TIMEOUT_MS = 60 * 60 * 1000;
 
 // ═══════════════════════════════════════════════════════════════
-// 🆕 V2.3: DB-BASED SCAN STATE MANAGEMENT
+// DB-BASED SCAN STATE MANAGEMENT (unchanged from V2.3)
 // ═══════════════════════════════════════════════════════════════
 
-/**
- * 🆕 V2.3: Get or create scan session in DB
- */
 async function getOrCreateScanSession(
   matchmakerId: string,
   method: ScanMethod,
   skipPreparation: boolean
 ): Promise<{ session: any; isNew: boolean; isResuming: boolean }> {
   
-  // Check for existing active session
   const existingSession = await prisma.scanSession.findFirst({
     where: {
       matchmakerId,
       status: { in: ['PENDING', 'IN_PROGRESS'] },
-      // Only consider sessions from the last hour as "active"
       startedAt: { gte: new Date(Date.now() - SCAN_TIMEOUT_MS) },
     },
     orderBy: { startedAt: 'desc' },
   });
   
   if (existingSession) {
-    console.log(`[BatchScan] Found existing session: ${existingSession.id}, status: ${existingSession.status}`);
-    
-    // Parse progress data
+    console.log(`[BatchScan] Found existing session: ${existingSession.id}`);
     const progressData = existingSession.progressData as any || {};
     
     return {
@@ -153,7 +160,6 @@ async function getOrCreateScanSession(
     };
   }
   
-  // Create new session
   const newSession = await prisma.scanSession.create({
     data: {
       matchmakerId,
@@ -168,7 +174,10 @@ async function getOrCreateScanSession(
           currentIndex: 0,
           currentUserName: '',
           updated: 0,
+          skipped: 0,
           failed: 0,
+          aiCallsMade: 0,
+          embeddingCallsMade: 0,
         },
         currentUserIndex: 0,
         totalUsers: 0,
@@ -176,20 +185,16 @@ async function getOrCreateScanSession(
         newMatchesFoundSoFar: 0,
         usersScanned: 0,
         progressPercent: 0,
-        scannedUserIds: [], // 🆕 Track scanned users
+        scannedUserIds: [],
         message: 'מתחיל סריקה...',
       },
     },
   });
   
   console.log(`[BatchScan] Created new session: ${newSession.id}`);
-  
   return { session: newSession, isNew: true, isResuming: false };
 }
 
-/**
- * 🆕 V2.3: Update scan session progress in DB
- */
 async function updateScanProgress(
   sessionId: string,
   updates: Partial<ScanSessionState>
@@ -203,7 +208,14 @@ async function updateScanProgress(
     const currentProgress = (session?.progressData as any) || {};
     const newProgress = { ...currentProgress, ...updates };
     
-    // Update DB status based on phase
+    // Merge preparationStats properly
+    if (updates.preparationStats) {
+      newProgress.preparationStats = {
+        ...currentProgress.preparationStats,
+        ...updates.preparationStats,
+      };
+    }
+    
     let dbStatus: ScanSessionStatus = 'IN_PROGRESS';
     if (updates.phase === 'completed') dbStatus = 'COMPLETED';
     else if (updates.phase === 'failed') dbStatus = 'FAILED';
@@ -229,9 +241,6 @@ async function updateScanProgress(
   }
 }
 
-/**
- * 🆕 V2.3: Mark a user as scanned in the current session
- */
 async function markUserAsScanned(sessionId: string, userId: string): Promise<void> {
   try {
     const session = await prisma.scanSession.findUnique({
@@ -244,12 +253,9 @@ async function markUserAsScanned(sessionId: string, userId: string): Promise<voi
     
     if (!scannedUserIds.includes(userId)) {
       scannedUserIds.push(userId);
-      
       await prisma.scanSession.update({
         where: { id: sessionId },
-        data: {
-          progressData: { ...progress, scannedUserIds },
-        },
+        data: { progressData: { ...progress, scannedUserIds } },
       });
     }
   } catch (error) {
@@ -257,9 +263,6 @@ async function markUserAsScanned(sessionId: string, userId: string): Promise<voi
   }
 }
 
-/**
- * 🆕 V2.3: Check if scan is cancelled
- */
 async function isScanCancelled(sessionId: string): Promise<boolean> {
   try {
     const session = await prisma.scanSession.findUnique({
@@ -272,9 +275,6 @@ async function isScanCancelled(sessionId: string): Promise<boolean> {
   }
 }
 
-/**
- * 🆕 V2.3: Get scan session state from DB
- */
 async function getScanSessionState(sessionId: string): Promise<ScanSessionState | null> {
   try {
     const session = await prisma.scanSession.findUnique({
@@ -295,7 +295,10 @@ async function getScanSessionState(sessionId: string): Promise<ScanSessionState 
         currentIndex: 0,
         currentUserName: '',
         updated: 0,
+        skipped: 0,
         failed: 0,
+        aiCallsMade: 0,
+        embeddingCallsMade: 0,
       },
       currentUserIndex: progress.currentUserIndex || session.currentUserIndex || 0,
       totalUsers: progress.totalUsers || session.totalUsersToProcess || 0,
@@ -342,28 +345,21 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       skipPreparation = false,
     } = body;
 
-    // ═══════════════════════════════════════════════════════════
-    // Handle Cancel - 🆕 V2.3: Cancel in DB
-    // ═══════════════════════════════════════════════════════════
+    // Handle Cancel
     if (action === 'cancel' && cancelScanId) {
       await prisma.scanSession.update({
         where: { id: cancelScanId },
         data: {
           status: 'CANCELLED',
           completedAt: new Date(),
-          progressData: {
-            phase: 'cancelled',
-            message: 'בוטל על ידי המשתמש',
-          },
+          progressData: { phase: 'cancelled', message: 'בוטל על ידי המשתמש' },
         },
       }).catch(() => {});
       
       return NextResponse.json({ success: true, message: 'Scan cancelled' });
     }
 
-    // ═══════════════════════════════════════════════════════════
-    // 🆕 V2.3: Check for existing scan in DB
-    // ═══════════════════════════════════════════════════════════
+    // Check for existing scan
     const { session: scanSession, isNew, isResuming } = await getOrCreateScanSession(
       session.user.id,
       method as ScanMethod,
@@ -373,7 +369,6 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     if (!isNew) {
       const state = await getScanSessionState(scanSession.id);
       
-      // If scan is still running, return its status
       if (scanSession.status === 'IN_PROGRESS' || scanSession.status === 'PENDING') {
         return NextResponse.json({
           success: true,
@@ -434,7 +429,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 }
 
 // ═══════════════════════════════════════════════════════════════
-// GET - בדיקת סטטוס - 🆕 V2.3: מה-DB
+// GET - בדיקת סטטוס
 // ═══════════════════════════════════════════════════════════════
 
 export async function GET(req: NextRequest): Promise<NextResponse> {
@@ -448,7 +443,6 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     const scanId = searchParams.get('scanId');
     const checkActive = searchParams.get('checkActive');
 
-    // 🆕 V2.3: Check for any active scan (for page load)
     if (checkActive === 'true') {
       const activeSession = await prisma.scanSession.findFirst({
         where: {
@@ -461,25 +455,18 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       
       if (activeSession) {
         const state = await getScanSessionState(activeSession.id);
-        return NextResponse.json({
-          success: true,
-          hasActiveScan: true,
-          scan: state,
-        });
+        return NextResponse.json({ success: true, hasActiveScan: true, scan: state });
       }
       
-      return NextResponse.json({
-        success: true,
-        hasActiveScan: false,
-      });
+      return NextResponse.json({ success: true, hasActiveScan: false });
     }
 
     if (!scanId) {
       return NextResponse.json({
         name: "NeshamaTech Multi-Method Batch Scan API",
-        version: "2.3",
+        version: "2.4",
         methods: ['hybrid', 'algorithmic', 'vector', 'metrics_v2'],
-        features: ['db_persistence', 'resume_after_restart', 'scanned_pair_optimization'],
+        features: ['smart_preparation', 'skip_redundant_ai', 'contentUpdatedAt'],
       });
     }
 
@@ -508,6 +495,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
         stats: {
           matchesFoundSoFar: state.matchesFoundSoFar,
           preparationUpdated: state.preparationStats.updated,
+          preparationSkipped: state.preparationStats.skipped,
           preparationFailed: state.preparationStats.failed,
         },
       },
@@ -520,41 +508,37 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
 }
 
 // ═══════════════════════════════════════════════════════════════
-// 🆕 V2.3: PREPARATION PHASE - עדכון מדדים/וקטורים/AI
+// 🆕 V2.4: SMART PREPARATION - findUsersNeedingUpdate
 // ═══════════════════════════════════════════════════════════════
 
-interface UserNeedingUpdate {
-  userId: string;
-  profileId: string;
-  firstName: string;
-  lastName: string;
-  needsMetrics: boolean;
-  needsVectors: boolean;
-  needsAiSummary: boolean;
-}
-
-// src/app/api/ai/batch-scan-all/route.ts
-
 async function findUsersNeedingUpdate(): Promise<UserNeedingUpdate[]> {
-  console.log('[Preparation] Finding users needing update...');
+  console.log('[Preparation] Finding users truly needing update...');
   
-  // 🆕 V2.4: Query optimized - use contentUpdatedAt instead of updatedAt
-  const usersNeedingUpdate = await prisma.$queryRaw<UserNeedingUpdate[]>`
+  // 🆕 V2.4: Smart query that checks actual needs
+  const usersNeedingUpdate = await prisma.$queryRaw<any[]>`
     SELECT 
       u.id as "userId",
       p.id as "profileId",
       u."firstName",
       u."lastName",
       
-      -- Check what's missing or outdated
+      -- Check if metrics are missing
       CASE WHEN pm.id IS NULL THEN true ELSE false END as "needsMetrics",
+      
+      -- Check if vectors are missing
       CASE WHEN pv."selfVector" IS NULL THEN true ELSE false END as "needsVectors",
+      
+      -- Check if AI Summary is missing or too short
       CASE 
         WHEN p."aiProfileSummary" IS NULL THEN true
         WHEN p."aiProfileSummary"->>'personalitySummary' IS NULL THEN true
-        WHEN LENGTH(p."aiProfileSummary"->>'personalitySummary') < 50 THEN true
+        WHEN LENGTH(COALESCE(p."aiProfileSummary"->>'personalitySummary', '')) < 50 THEN true
         ELSE false 
-      END as "needsAiSummary"
+      END as "needsAiSummary",
+      
+      -- For debugging
+      p."contentUpdatedAt",
+      pm."updatedAt" as "metricsUpdatedAt"
       
     FROM "User" u
     JOIN "Profile" p ON p."userId" = u.id
@@ -562,16 +546,16 @@ async function findUsersNeedingUpdate(): Promise<UserNeedingUpdate[]> {
     LEFT JOIN "profile_vectors" pv ON pv."profileId" = p.id
     
     WHERE 
-      -- תנאי 1: חסרים נתונים בכלל
+      -- Condition 1: Missing data entirely
       (
         pm.id IS NULL
         OR pv."selfVector" IS NULL
         OR p."aiProfileSummary" IS NULL
         OR p."aiProfileSummary"->>'personalitySummary' IS NULL
-        OR LENGTH(p."aiProfileSummary"->>'personalitySummary') < 50
+        OR LENGTH(COALESCE(p."aiProfileSummary"->>'personalitySummary', '')) < 50
       )
       OR
-      -- תנאי 2: תוכן הפרופיל השתנה אחרי חישוב המדדים האחרון
+      -- Condition 2: Content was updated after metrics were calculated
       (
         pm.id IS NOT NULL 
         AND p."contentUpdatedAt" IS NOT NULL
@@ -579,43 +563,49 @@ async function findUsersNeedingUpdate(): Promise<UserNeedingUpdate[]> {
       )
       
     ORDER BY 
-      -- משתמשים חדשים (בלי metrics) קודם
+      -- New users (no metrics) first
       CASE WHEN pm.id IS NULL THEN 0 ELSE 1 END,
+      -- Then by content update date
       p."contentUpdatedAt" DESC NULLS LAST
+      
+    LIMIT 100
   `;
 
+  // 🆕 V2.4: Enhanced logging with breakdown
+  const breakdown = {
+    missingMetrics: usersNeedingUpdate.filter(u => u.needsMetrics).length,
+    missingVectors: usersNeedingUpdate.filter(u => u.needsVectors).length,
+    missingAiSummary: usersNeedingUpdate.filter(u => u.needsAiSummary).length,
+    contentChanged: usersNeedingUpdate.filter(u => !u.needsMetrics && !u.needsVectors && !u.needsAiSummary).length,
+  };
+
   console.log(`[Preparation] Found ${usersNeedingUpdate.length} users truly needing update`);
-  
-  // 🆕 Log breakdown
-  const missingMetrics = usersNeedingUpdate.filter(u => u.needsMetrics).length;
-  const missingVectors = usersNeedingUpdate.filter(u => u.needsVectors).length;
-  const missingAiSummary = usersNeedingUpdate.filter(u => u.needsAiSummary).length;
-  const contentChanged = usersNeedingUpdate.length - missingMetrics;
-  
-  console.log(`[Preparation] Breakdown: Missing Metrics: ${missingMetrics}, Missing Vectors: ${missingVectors}, Missing AI Summary: ${missingAiSummary}, Content Changed: ${contentChanged}`);
+  console.log(`[Preparation] Breakdown:`);
+  console.log(`   - Missing Metrics: ${breakdown.missingMetrics}`);
+  console.log(`   - Missing Vectors: ${breakdown.missingVectors}`);
+  console.log(`   - Missing AI Summary: ${breakdown.missingAiSummary}`);
+  console.log(`   - Content Changed: ${breakdown.contentChanged}`);
 
-  return usersNeedingUpdate;
+  return usersNeedingUpdate.map(u => ({
+    userId: u.userId,
+    profileId: u.profileId,
+    firstName: u.firstName,
+    lastName: u.lastName,
+    needsMetrics: u.needsMetrics,
+    needsVectors: u.needsVectors,
+    needsAiSummary: u.needsAiSummary,
+  }));
 }
 
-// 🆕 Update interface
-interface UserNeedingUpdate {
-  userId: string;
-  profileId: string;
-  firstName: string;
-  lastName: string;
-  needsMetrics: boolean;
-  needsVectors: boolean;
-  needsAiSummary: boolean;
-}
-
-// src/app/api/ai/batch-scan-all/route.ts
+// ═══════════════════════════════════════════════════════════════
+// 🆕 V2.4: SMART updateSingleUserData - Skip redundant steps
+// ═══════════════════════════════════════════════════════════════
 
 async function updateSingleUserData(
   userId: string,
   profileId: string,
   firstName: string,
   lastName: string,
-  // 🆕 מקבל מידע מה באמת צריך לעדכן
   needsMetrics: boolean,
   needsVectors: boolean,
   needsAiSummary: boolean
@@ -625,7 +615,9 @@ async function updateSingleUserData(
     aiSummaryCreated: false,
     metricsCalculated: false,
     vectorsCreated: false,
-    skippedSteps: [] as string[],
+    skippedSteps: [],
+    aiCallsMade: 0,
+    embeddingCallsMade: 0,
   };
 
   console.log(`[Preparation] Updating ${firstName} ${lastName}...`);
@@ -676,10 +668,11 @@ async function updateSingleUserData(
           });
 
           stats.aiSummaryCreated = true;
+          stats.aiCallsMade++;
           console.log(`   ✓ AI Summary created`);
         }
       }
-    } else {
+    } else if (!needsAiSummary) {
       stats.skippedSteps.push('ai_summary');
       console.log(`   ⏭️ AI Summary exists, skipping`);
     }
@@ -715,59 +708,28 @@ async function updateSingleUserData(
           });
           
           stats.metricsCalculated = true;
+          stats.aiCallsMade++;
           console.log(`   ✓ Metrics saved`);
 
-          // ═══════════════════════════════════════════════════════
-          // Step 3: Vectors (only after new metrics, or if missing)
-          // ═══════════════════════════════════════════════════════
-          if (needsVectors || stats.metricsCalculated) {
-            console.log(`   📐 Creating vectors...`);
-            
-            const selfVector = await generateTextEmbedding(metrics.aiPersonalitySummary);
-            const seekingVector = await generateTextEmbedding(metrics.aiSeekingSummary);
+          // Step 3a: Vectors (after creating new metrics)
+          console.log(`   📐 Creating vectors...`);
+          
+          const selfVector = await generateTextEmbedding(metrics.aiPersonalitySummary);
+          const seekingVector = await generateTextEmbedding(metrics.aiSeekingSummary);
 
-            if (selfVector && seekingVector) {
-              const selfVectorStr = `[${selfVector.join(',')}]`;
-              const seekingVectorStr = `[${seekingVector.join(',')}]`;
-
-              const existingVector = await prisma.$queryRaw<any[]>`
-                SELECT id FROM "profile_vectors" WHERE "profileId" = ${profileId}
-              `;
-
-              if (existingVector && existingVector.length > 0) {
-                await prisma.$executeRawUnsafe(`
-                  UPDATE "profile_vectors"
-                  SET 
-                    "selfVector" = $1::vector,
-                    "seekingVector" = $2::vector,
-                    "selfVectorUpdatedAt" = NOW(),
-                    "seekingVectorUpdatedAt" = NOW(),
-                    "updatedAt" = NOW()
-                  WHERE "profileId" = $3
-                `, selfVectorStr, seekingVectorStr, profileId);
-              } else {
-                await prisma.$executeRawUnsafe(`
-                  INSERT INTO "profile_vectors" (
-                    "id", "profileId", "createdAt", "updatedAt",
-                    "selfVector", "seekingVector", "selfVectorUpdatedAt", "seekingVectorUpdatedAt"
-                  ) VALUES (
-                    gen_random_uuid(), $1, NOW(), NOW(),
-                    $2::vector, $3::vector, NOW(), NOW()
-                  )
-                `, profileId, selfVectorStr, seekingVectorStr);
-              }
-              
-              stats.vectorsCreated = true;
-              console.log(`   ✓ Vectors saved`);
-            }
+          if (selfVector && seekingVector) {
+            await saveVectors(profileId, selfVector, seekingVector);
+            stats.vectorsCreated = true;
+            stats.embeddingCallsMade += 2;
+            console.log(`   ✓ Vectors saved`);
           }
         }
       }
-    } else {
+    } else if (!needsMetrics) {
       stats.skippedSteps.push('metrics');
       console.log(`   ⏭️ Metrics exist and up-to-date, skipping`);
       
-      // Still check if vectors are missing
+      // Step 3b: Maybe still need vectors from existing metrics
       if (needsVectors) {
         console.log(`   📐 Creating vectors from existing metrics...`);
         
@@ -781,39 +743,31 @@ async function updateSingleUserData(
           const seekingVector = await generateTextEmbedding(existingMetrics.aiSeekingSummary);
           
           if (selfVector && seekingVector) {
-            const selfVectorStr = `[${selfVector.join(',')}]`;
-            const seekingVectorStr = `[${seekingVector.join(',')}]`;
-            
-            await prisma.$executeRawUnsafe(`
-              INSERT INTO "profile_vectors" (
-                "id", "profileId", "createdAt", "updatedAt",
-                "selfVector", "seekingVector", "selfVectorUpdatedAt", "seekingVectorUpdatedAt"
-              ) VALUES (
-                gen_random_uuid(), $1, NOW(), NOW(),
-                $2::vector, $3::vector, NOW(), NOW()
-              )
-              ON CONFLICT ("profileId") DO UPDATE SET
-                "selfVector" = $2::vector,
-                "seekingVector" = $3::vector,
-                "selfVectorUpdatedAt" = NOW(),
-                "seekingVectorUpdatedAt" = NOW(),
-                "updatedAt" = NOW()
-            `, profileId, selfVectorStr, seekingVectorStr);
-            
+            await saveVectors(profileId, selfVector, seekingVector);
             stats.vectorsCreated = true;
+            stats.embeddingCallsMade += 2;
             console.log(`   ✓ Vectors saved`);
           }
         }
+      } else {
+        stats.skippedSteps.push('vectors');
+        console.log(`   ⏭️ Vectors exist, skipping`);
       }
     }
 
+    // Summary log
     const actionsTaken = [
       stats.aiSummaryCreated ? 'AI Summary' : null,
       stats.metricsCalculated ? 'Metrics' : null,
       stats.vectorsCreated ? 'Vectors' : null,
     ].filter(Boolean);
 
-    console.log(`   ✅ ${firstName} ${lastName} - Updated: ${actionsTaken.join(', ') || 'Nothing (all current)'}`);
+    if (actionsTaken.length > 0) {
+      console.log(`   ✅ ${firstName} ${lastName} - Updated: ${actionsTaken.join(', ')}`);
+    } else {
+      console.log(`   ✅ ${firstName} ${lastName} - Nothing needed (all current)`);
+    }
+    
     return { success: true, stats };
 
   } catch (error) {
@@ -823,15 +777,41 @@ async function updateSingleUserData(
   }
 }
 
-interface UpdateStats {
-  aiSummaryCreated: boolean;
-  metricsCalculated: boolean;
-  vectorsCreated: boolean;
-  skippedSteps: string[];
+// Helper function to save vectors
+async function saveVectors(profileId: string, selfVector: number[], seekingVector: number[]): Promise<void> {
+  const selfVectorStr = `[${selfVector.join(',')}]`;
+  const seekingVectorStr = `[${seekingVector.join(',')}]`;
+
+  const existingVector = await prisma.$queryRaw<any[]>`
+    SELECT id FROM "profile_vectors" WHERE "profileId" = ${profileId}
+  `;
+
+  if (existingVector && existingVector.length > 0) {
+    await prisma.$executeRawUnsafe(`
+      UPDATE "profile_vectors"
+      SET 
+        "selfVector" = $1::vector,
+        "seekingVector" = $2::vector,
+        "selfVectorUpdatedAt" = NOW(),
+        "seekingVectorUpdatedAt" = NOW(),
+        "updatedAt" = NOW()
+      WHERE "profileId" = $3
+    `, selfVectorStr, seekingVectorStr, profileId);
+  } else {
+    await prisma.$executeRawUnsafe(`
+      INSERT INTO "profile_vectors" (
+        "id", "profileId", "createdAt", "updatedAt",
+        "selfVector", "seekingVector", "selfVectorUpdatedAt", "seekingVectorUpdatedAt"
+      ) VALUES (
+        gen_random_uuid(), $1, NOW(), NOW(),
+        $2::vector, $3::vector, NOW(), NOW()
+      )
+    `, profileId, selfVectorStr, seekingVectorStr);
+  }
 }
 
 // ═══════════════════════════════════════════════════════════════
-// 🔥 Background Processing - 🆕 V2.3: With DB Persistence
+// 🔥 MAIN BATCH SCAN - Updated with smart preparation
 // ═══════════════════════════════════════════════════════════════
 
 async function runBatchScan(
@@ -851,25 +831,33 @@ async function runBatchScan(
   const startTime = Date.now();
 
   try {
-    // 🆕 V2.3: Update status to IN_PROGRESS
     await updateScanProgress(sessionId, {
       phase: options.skipPreparation ? 'scanning' : 'preparing',
       message: 'מתחיל סריקה...',
     });
 
     // ═══════════════════════════════════════════════════════════
-    // PHASE 1: PREPARATION
+    // PHASE 1: SMART PREPARATION
     // ═══════════════════════════════════════════════════════════
     
     if (!options.skipPreparation) {
       await updateScanProgress(sessionId, {
         phase: 'preparing',
-        message: 'בודק מי צריך עדכון נתונים...',
+        message: 'בודק מי באמת צריך עדכון נתונים...',
       });
       
       const geminiReady = initGemini();
+      
       if (geminiReady) {
+        // 🆕 V2.4: Smart detection
         const usersNeedingUpdate = await findUsersNeedingUpdate();
+        
+        // Initialize stats
+        let updated = 0;
+        let skipped = 0;
+        let failed = 0;
+        let totalAiCalls = 0;
+        let totalEmbeddingCalls = 0;
         
         await updateScanProgress(sessionId, {
           preparationStats: {
@@ -877,81 +865,85 @@ async function runBatchScan(
             currentIndex: 0,
             currentUserName: '',
             updated: 0,
+            skipped: 0,
             failed: 0,
+            aiCallsMade: 0,
+            embeddingCallsMade: 0,
           },
         });
         
-       // בתוך runBatchScan()
-
-if (usersNeedingUpdate.length > 0) {
-  console.log(`\n[BatchScan] ═══ PREPARATION PHASE ═══`);
-  console.log(`[BatchScan] Updating ${usersNeedingUpdate.length} users...`);
-  
-  let updated = 0;
-  let failed = 0;
-  let skipped = 0;
-  let aiCallsMade = 0;
-  let embeddingCallsMade = 0;
-  
-  for (let i = 0; i < usersNeedingUpdate.length; i++) {
-    if (await isScanCancelled(sessionId)) {
-      console.log(`[BatchScan] Preparation cancelled at user ${i + 1}`);
-      break;
-    }
-    
-    const user = usersNeedingUpdate[i];
-    
-    await updateScanProgress(sessionId, {
-      preparationStats: {
-        totalNeedingUpdate: usersNeedingUpdate.length,
-        currentIndex: i + 1,
-        currentUserName: `${user.firstName} ${user.lastName}`,
-        updated,
-        failed,
-        skipped,
-        // 🆕 New fields for frontend
-        currentStep: 'processing',
-        aiCallsMade,
-        embeddingCallsMade,
-      },
-      message: `מכין נתונים: ${user.firstName} ${user.lastName} (${i + 1}/${usersNeedingUpdate.length})`,
-    });
-    
-    const result = await updateSingleUserData(
-      user.userId,
-      user.profileId,
-      user.firstName,
-      user.lastName,
-      user.needsMetrics,
-      user.needsVectors,
-      user.needsAiSummary
-    );
-    
-    if (result.success) {
-      if (result.stats.metricsCalculated || result.stats.aiSummaryCreated || result.stats.vectorsCreated) {
-        updated++;
-      } else {
-        skipped++;
-      }
-      
-      // Count AI calls
-      if (result.stats.aiSummaryCreated) aiCallsMade++;
-      if (result.stats.metricsCalculated) aiCallsMade++;
-      if (result.stats.vectorsCreated) embeddingCallsMade += 2;
-    } else {
-      failed++;
-    }
-    
-    // 🆕 Dynamic delay - shorter if we skipped
-    const delay = result.stats.skippedSteps.length === 3 ? 100 : PREPARATION_DELAY_MS;
-    if (i < usersNeedingUpdate.length - 1) {
-      await sleep(delay);
-    }
-  }
-  
-  console.log(`[BatchScan] Preparation complete: ${updated} updated, ${skipped} skipped, ${failed} failed`);
-  console.log(`[BatchScan] AI Calls: ${aiCallsMade}, Embedding Calls: ${embeddingCallsMade}`);
-}
+        if (usersNeedingUpdate.length > 0) {
+          console.log(`\n[BatchScan] ═══ PREPARATION PHASE ═══`);
+          console.log(`[BatchScan] Updating ${usersNeedingUpdate.length} users (smart detection)...`);
+          
+          for (let i = 0; i < usersNeedingUpdate.length; i++) {
+            if (await isScanCancelled(sessionId)) {
+              console.log(`[BatchScan] Preparation cancelled at user ${i + 1}`);
+              break;
+            }
+            
+            const user = usersNeedingUpdate[i];
+            
+            await updateScanProgress(sessionId, {
+              preparationStats: {
+                totalNeedingUpdate: usersNeedingUpdate.length,
+                currentIndex: i + 1,
+                currentUserName: `${user.firstName} ${user.lastName}`,
+                updated,
+                skipped,
+                failed,
+                aiCallsMade: totalAiCalls,
+                embeddingCallsMade: totalEmbeddingCalls,
+              },
+              message: `מכין נתונים: ${user.firstName} ${user.lastName} (${i + 1}/${usersNeedingUpdate.length})`,
+            });
+            
+            // 🆕 V2.4: Pass the specific needs
+            const result = await updateSingleUserData(
+              user.userId,
+              user.profileId,
+              user.firstName,
+              user.lastName,
+              user.needsMetrics,
+              user.needsVectors,
+              user.needsAiSummary
+            );
+            
+            if (result.success) {
+              const didWork = result.stats.aiSummaryCreated || 
+                              result.stats.metricsCalculated || 
+                              result.stats.vectorsCreated;
+              
+              if (didWork) {
+                updated++;
+              } else {
+                skipped++;
+              }
+              
+              totalAiCalls += result.stats.aiCallsMade;
+              totalEmbeddingCalls += result.stats.embeddingCallsMade;
+            } else {
+              failed++;
+            }
+            
+            // 🆕 V2.4: Dynamic delay - shorter if we skipped everything
+            const didWork = result.stats.aiCallsMade > 0 || result.stats.embeddingCallsMade > 0;
+            const delay = didWork ? PREPARATION_DELAY_MS : SKIP_DELAY_MS;
+            
+            if (i < usersNeedingUpdate.length - 1) {
+              await sleep(delay);
+            }
+          }
+          
+          console.log(`[BatchScan] Preparation complete:`);
+          console.log(`   - Updated: ${updated}`);
+          console.log(`   - Skipped: ${skipped}`);
+          console.log(`   - Failed: ${failed}`);
+          console.log(`   - AI Calls: ${totalAiCalls}`);
+          console.log(`   - Embedding Calls: ${totalEmbeddingCalls}`);
+        } else {
+          console.log(`[BatchScan] No users need preparation - all up to date! 🎉`);
+        }
       }
     }
 
@@ -965,7 +957,7 @@ if (usersNeedingUpdate.length > 0) {
     }
 
     // ═══════════════════════════════════════════════════════════
-    // PHASE 2: SCANNING
+    // PHASE 2: SCANNING (unchanged from V2.3)
     // ═══════════════════════════════════════════════════════════
     
     await updateScanProgress(sessionId, {
@@ -973,13 +965,11 @@ if (usersNeedingUpdate.length > 0) {
       message: 'טוען משתמשים לסריקה...',
     });
 
-    // 🆕 V2.3: Get list of already scanned users (for resume)
     const currentState = await getScanSessionState(sessionId);
     const alreadyScannedUserIds = new Set(currentState?.scannedUserIds || []);
     
     const allUsersToScan = await getUsersToScan(options);
     
-    // 🆕 V2.3: Filter out already scanned users if resuming
     const usersToScan = options.isResuming
       ? allUsersToScan.filter(u => !alreadyScannedUserIds.has(u.id))
       : allUsersToScan;
@@ -991,7 +981,7 @@ if (usersNeedingUpdate.length > 0) {
       totalUsers,
       usersScanned: alreadyScannedCount,
       message: options.isResuming 
-        ? `ממשיך סריקה: ${usersToScan.length} משתמשים נותרו (${alreadyScannedCount} כבר נסרקו)`
+        ? `ממשיך סריקה: ${usersToScan.length} משתמשים נותרו`
         : `נמצאו ${totalUsers} משתמשים לסריקה`,
     });
     
@@ -1013,7 +1003,6 @@ if (usersNeedingUpdate.length > 0) {
     let newMatches = currentState?.newMatchesFoundSoFar || 0;
 
     for (let i = 0; i < usersToScan.length; i++) {
-      // 🆕 V2.3: Check cancellation from DB
       if (await isScanCancelled(sessionId)) {
         console.log(`[BatchScan] Scan cancelled at user ${i + 1}`);
         break;
@@ -1032,7 +1021,6 @@ if (usersNeedingUpdate.length > 0) {
       console.log(`[BatchScan] [${overallIndex}/${totalUsers}] Scanning ${user.firstName} (${options.method})`);
 
       try {
-        // 🆕 V2.3: Create cancellation checker that reads from DB
         const checkCancelled = async () => await isScanCancelled(sessionId);
         
         const result = await scanUserByMethod(
@@ -1053,7 +1041,6 @@ if (usersNeedingUpdate.length > 0) {
         totalMatches += result.matches.length;
         newMatches += saved.new;
         
-        // 🆕 V2.3: Mark user as scanned in DB
         await markUserAsScanned(sessionId, user.id);
         
         await updateScanProgress(sessionId, {
@@ -1066,7 +1053,6 @@ if (usersNeedingUpdate.length > 0) {
 
       } catch (userError) {
         console.error(`[BatchScan] Error scanning ${user.firstName}:`, userError);
-        // 🆕 V2.3: Still mark as scanned to avoid retry loop
         await markUserAsScanned(sessionId, user.id);
       }
 
@@ -1076,10 +1062,10 @@ if (usersNeedingUpdate.length > 0) {
     // ═══════════════════════════════════════════════════════════
     // PHASE 3: COMPLETE
     // ═══════════════════════════════════════════════════════════
+    
     const duration = Date.now() - startTime;
     const finalState = await getScanSessionState(sessionId);
     
-    // Check if cancelled during scan
     if (finalState?.phase === 'cancelled' || await isScanCancelled(sessionId)) {
       return;
     }
@@ -1107,7 +1093,7 @@ if (usersNeedingUpdate.length > 0) {
 }
 
 // ═══════════════════════════════════════════════════════════════
-// 🔀 Scan User By Method
+// SCAN BY METHOD (unchanged)
 // ═══════════════════════════════════════════════════════════════
 
 async function scanUserByMethod(
@@ -1122,7 +1108,6 @@ async function scanUserByMethod(
     autoSave: false,
     forceRefresh,
     checkCancelled,
-    // 🆕 V2.3: Enable ScannedPair optimization
     skipAlreadyScannedPairs: true,
     saveScannedPairs: true,
     sessionId,
@@ -1188,7 +1173,7 @@ async function scanUserByMethod(
 }
 
 // ═══════════════════════════════════════════════════════════════
-// Helper: Get users to scan
+// HELPER FUNCTIONS (unchanged)
 // ═══════════════════════════════════════════════════════════════
 
 async function getUsersToScan(options: {
@@ -1217,9 +1202,7 @@ async function getUsersToScan(options: {
   }
 
   const where: any = {
-    profile: {
-      isNot: null,
-    },
+    profile: { isNot: null },
   };
 
   if (options.action === 'scan_new_users') {
@@ -1232,15 +1215,8 @@ async function getUsersToScan(options: {
     orderBy: { createdAt: 'desc' },
   });
 
-  // 🆕 V2.3: Don't filter by MatchingJob - we handle this via ScannedPair
-  // The old logic was incorrect anyway - batch scan doesn't create MatchingJob records
-
   return users.map(u => ({ ...u, gender: u.profile?.gender || Gender.MALE }));
 }
-
-// ═══════════════════════════════════════════════════════════════
-// Helper: Save to PotentialMatch with method tag
-// ═══════════════════════════════════════════════════════════════
 
 async function saveToPotentialMatches(
   targetUserId: string,
@@ -1344,7 +1320,7 @@ function getMethodFields(method: ScanMethod, match: any, score: number): Record<
 }
 
 // ═══════════════════════════════════════════════════════════════
-// AI HELPER FUNCTIONS (unchanged from original)
+// AI HELPER FUNCTIONS
 // ═══════════════════════════════════════════════════════════════
 
 function sleep(ms: number): Promise<void> {
