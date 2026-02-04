@@ -22,7 +22,7 @@ interface NeshmaInsightButtonProps {
   completionPercentage: number;
   lastGeneratedAt?: string | null;
   generatedCount?: number;
-  userRole?: string; // --- הוספה: קבלת תפקיד המשתמש ---
+  userRole?: string;
   dict: {
     buttonText: string;
     buttonSubtitle: string;
@@ -36,8 +36,8 @@ interface NeshmaInsightButtonProps {
   };
 }
 
-// --- CONSTANT: Threshold for unlocking the feature ---
-const COMPLETION_THRESHOLD = 95;
+// --- שונה מ-95 ל-90 ---
+const COMPLETION_THRESHOLD = 90;
 
 export const NeshmaInsightButton: React.FC<NeshmaInsightButtonProps> = ({
   userId,
@@ -45,7 +45,7 @@ export const NeshmaInsightButton: React.FC<NeshmaInsightButtonProps> = ({
   completionPercentage,
   lastGeneratedAt,
   generatedCount = 0,
-  userRole, // שימוש בתפקיד
+  userRole,
   dict,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -54,17 +54,13 @@ export const NeshmaInsightButton: React.FC<NeshmaInsightButtonProps> = ({
   const [isMinimized, setIsMinimized] = useState(false);
   const direction = locale === 'he' ? 'rtl' : 'ltr';
 
-  // --- לוגיקת הרשאות חדשה ---
-  // אם המשתמש הוא שדכן או אדמין, הוא נחשב כאילו הפרופיל מלא
   const isPrivilegedUser = userRole === 'MATCHMAKER' || userRole === 'ADMIN';
 
   const isProfileComplete =
     completionPercentage >= COMPLETION_THRESHOLD || isPrivilegedUser;
 
   const canGenerateToday = () => {
-    // גם שדכנים יכולים לעקוף את מגבלת הזמן אם רוצים, אבל כרגע נשאיר את זה
-    // או שנוסיף: if (isPrivilegedUser) return true;
-    if (isPrivilegedUser) return true; // שדכן יכול לייצר מתי שרוצה
+    if (isPrivilegedUser) return true;
 
     if (!lastGeneratedAt) return true;
     const lastGenDate = new Date(lastGeneratedAt);
@@ -127,7 +123,6 @@ export const NeshmaInsightButton: React.FC<NeshmaInsightButtonProps> = ({
           : 'Your Full Picture was generated successfully!'
       );
 
-      // ריענון רק אם זה משתמש רגיל, לשדכן זה פחות קריטי
       if (!isPrivilegedUser) {
         setTimeout(() => {
           window.location.reload();
@@ -318,7 +313,7 @@ export const NeshmaInsightButton: React.FC<NeshmaInsightButtonProps> = ({
   );
 };
 
-// --- Insight Dialog (Same as before) ---
+// --- Insight Dialog ---
 interface InsightDialogProps {
   isOpen: boolean;
   setIsOpen: (open: boolean) => void;

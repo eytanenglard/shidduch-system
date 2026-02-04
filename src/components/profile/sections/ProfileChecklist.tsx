@@ -13,7 +13,6 @@ import {
   ChevronUp,
   ChevronDown,
   Sparkles,
-  Edit3,
   Lock,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -23,7 +22,7 @@ import type { QuestionnaireResponse } from '@/types/next-auth';
 import { Gender } from '@prisma/client';
 import { ProfileChecklistDict } from '@/types/dictionary';
 
-// --- FIXED: Updated counts based on actual question files ---
+// --- כמות שאלות בכל עולם ---
 const QUESTION_COUNTS: Record<
   'VALUES' | 'PERSONALITY' | 'RELATIONSHIP' | 'PARTNER' | 'RELIGION',
   number
@@ -272,14 +271,12 @@ export const ProfileChecklist: React.FC<ProfileChecklistProps> = ({
   const [activeItemId, setActiveItemId] = useState<string | null>(null);
   const missingItemsDict = dict.missingItems;
 
-  // ✅ FIX: Helper function with fallback - prevents undefined when key is missing from dictionary
   const getLabel = (key: string): string => {
     return missingItemsDict?.[key as keyof typeof missingItemsDict] || key;
   };
 
   const direction = locale === 'he' ? 'rtl' : 'ltr';
 
-  // --- Logic to check if user is religious (to enforce fields like Kippah/HeadCovering) ---
   const isReligious = useMemo(() => {
     const level = user.profile?.religiousLevel;
     if (!level) return false;
@@ -292,22 +289,17 @@ export const ProfileChecklist: React.FC<ProfileChecklistProps> = ({
     return !nonReligiousLevels.includes(level);
   }, [user.profile?.religiousLevel]);
 
+  // ============================================
+  // getMissingItems - מה חסר למשתמש (להצגה)
+  // הוסרו: testimonials, influentialRabbi, serviceDetails
+  // ============================================
   const getMissingItems = useMemo(() => {
     const p = user.profile;
     if (!p) return { personalDetails: [], partnerPreferences: [] };
 
-    // ✅ FIX: Using getLabel() instead of direct dictionary access
     const personalDetails = [
       !p.profileHeadline && getLabel('profileHeadline'),
       (!p.about || p.about.trim().length < 100) && getLabel('about'),
-
-      // Testimonials
-      (!p.testimonials ||
-        p.testimonials.filter((t) => t.status === 'APPROVED').length < 1) &&
-        getLabel('testimonials'),
-
-      // Influential Rabbi - Only for religious
-      isReligious && !p.influentialRabbi && getLabel('influentialRabbi'),
 
       // Medical info
       (p.hasMedicalInfo === null || p.hasMedicalInfo === undefined) &&
@@ -352,7 +344,7 @@ export const ProfileChecklist: React.FC<ProfileChecklistProps> = ({
       !p.education && getLabel('educationDetails'),
       !p.occupation && getLabel('occupation'),
       !p.serviceType && getLabel('serviceType'),
-      !p.serviceDetails && getLabel('serviceDetails'),
+      // הוסר: serviceDetails
 
       // Character & Hobbies
       (!p.profileCharacterTraits || p.profileCharacterTraits.length === 0) &&
@@ -361,7 +353,6 @@ export const ProfileChecklist: React.FC<ProfileChecklistProps> = ({
         getLabel('hobbies'),
     ].filter(Boolean);
 
-    // ✅ FIX: Removed contactPreference (doesn't exist in form)
     const partnerPreferences = [
       (!p.matchingNotes || p.matchingNotes.trim().length === 0) &&
         getLabel('matchingNotes'),
@@ -402,7 +393,7 @@ export const ProfileChecklist: React.FC<ProfileChecklistProps> = ({
         getLabel('preferredHobbies'),
     ].filter(Boolean);
 
-    // Gender specific checks - ONLY IF RELIGIOUS for coverage
+    // Gender specific checks - ONLY IF RELIGIOUS
     if (p.gender === Gender.FEMALE) {
       if (isReligious && !p.headCovering)
         personalDetails.push(getLabel('headCovering'));
@@ -458,21 +449,19 @@ export const ProfileChecklist: React.FC<ProfileChecklistProps> = ({
   }, [questionnaireResponse]);
 
   const isQuestionnaireFullyAnswered = useMemo(() => {
-    // אם אין נתוני התקדמות, השאלון לא הושלם
     if (!questionnaireProgress || questionnaireProgress.length === 0)
       return false;
-
-    // בדיקה האם בכל "עולם" מספר השאלות שנענו שווה או גדול מסך השאלות
     return questionnaireProgress.every(
       (world) => world.completed >= world.total
     );
   }, [questionnaireProgress]);
 
-  // --- UPDATED: Checkmark logic ---
-  // השאלון מסומן כהושלם אם השרת אומר שהושלם (completed flag)
-  // או אם חישבנו ידנית שכל השאלות נענו
   const questionnaireCompleted =
     (questionnaireResponse?.completed ?? false) || isQuestionnaireFullyAnswered;
+
+  // ============================================
+  // tasks - רק 4 משימות (הוסר review/hasSeenPreview)
+  // ============================================
   const tasks = [
     {
       id: 'photo',
@@ -518,17 +507,13 @@ export const ProfileChecklist: React.FC<ProfileChecklistProps> = ({
       icon: BookOpen,
       worldProgress: questionnaireProgress ?? undefined,
     },
-    {
-      id: 'review',
-      isCompleted: hasSeenPreview,
-      title: dict.tasks.review.title,
-      description: dict.tasks.review.description,
-      onClick: onPreviewClick,
-      icon: Edit3,
-      missingItems: !hasSeenPreview ? [dict.tasks.review.missing] : [],
-    },
   ];
 
+  // ============================================
+  // completionPercentage - חישוב אחוזי השלמה
+  // הוסרו: testimonials, influentialRabbi, serviceDetails, hasSeenPreview
+  // תוקן: באג של about כפול
+  // ============================================
   const completionPercentage = useMemo(() => {
     const QUESTIONNAIRE_WEIGHT = 20;
     const OTHER_TASKS_WEIGHT = 80;
@@ -549,27 +534,18 @@ export const ProfileChecklist: React.FC<ProfileChecklistProps> = ({
     const p = user.profile;
     const otherTasksStatus: boolean[] = [];
 
-    // Task 1: Photos
+    // Task 1: Photos (3 לפחות)
     otherTasksStatus.push((user.images?.length ?? 0) >= 3);
 
     if (p) {
-      // --- Personal Details Checks ---
+      // --- Personal Details ---
       otherTasksStatus.push(!!p.profileHeadline);
       otherTasksStatus.push(!!(p.about && p.about.trim().length >= 100));
 
-      // Testimonials
-      otherTasksStatus.push(!!(p.about && p.about.trim().length >= 100));
-
-      // Rabbi - Conditional
-      if (isReligious) otherTasksStatus.push(!!p.influentialRabbi);
-
       // Medical info
-      // Medical info - בדיקה שבוצע מענה על השאלה הרפואית
       const medicalAnswered =
         p.hasMedicalInfo !== null && p.hasMedicalInfo !== undefined;
       otherTasksStatus.push(medicalAnswered);
-
-      // אם סימן שיש מידע רפואי, נדרוש את פירוט השדות הנוספים
       if (p.hasMedicalInfo === true) {
         otherTasksStatus.push(!!p.medicalInfoDetails);
         otherTasksStatus.push(!!p.medicalInfoDisclosureTiming);
@@ -605,12 +581,11 @@ export const ProfileChecklist: React.FC<ProfileChecklistProps> = ({
         p.shomerNegiah !== null && p.shomerNegiah !== undefined
       );
 
-      // Education & Work
+      // Education & Work (הוסר serviceDetails)
       otherTasksStatus.push(!!p.educationLevel);
       otherTasksStatus.push(!!p.education);
       otherTasksStatus.push(!!p.occupation);
       otherTasksStatus.push(!!p.serviceType);
-      otherTasksStatus.push(!!p.serviceDetails);
 
       // Character & Hobbies
       otherTasksStatus.push(
@@ -620,8 +595,7 @@ export const ProfileChecklist: React.FC<ProfileChecklistProps> = ({
         !!(p.profileHobbies && p.profileHobbies.length > 0)
       );
 
-      // --- Partner Preferences Checks ---
-      // ✅ FIX: Removed contactPreference (doesn't exist in form)
+      // --- Partner Preferences ---
       otherTasksStatus.push(
         !!(p.matchingNotes && p.matchingNotes.trim().length > 0)
       );
@@ -670,7 +644,7 @@ export const ProfileChecklist: React.FC<ProfileChecklistProps> = ({
         !!(p.preferredHobbies && p.preferredHobbies.length > 0)
       );
 
-      // --- Gender-specific checks (CONDITIONAL) ---
+      // --- Gender-specific (CONDITIONAL for religious) ---
       if (p.gender === Gender.FEMALE) {
         if (isReligious) otherTasksStatus.push(!!p.headCovering);
         if (isReligious)
@@ -686,11 +660,10 @@ export const ProfileChecklist: React.FC<ProfileChecklistProps> = ({
       }
     } else {
       // If no profile, add placeholders
-      otherTasksStatus.push(...Array(50).fill(false));
+      otherTasksStatus.push(...Array(40).fill(false));
     }
 
-    // Task 5: Review
-    otherTasksStatus.push(hasSeenPreview);
+    // הוסר: hasSeenPreview
 
     const totalOtherTasks = otherTasksStatus.length;
     const completedOtherTasks = otherTasksStatus.filter(Boolean).length;
@@ -701,7 +674,7 @@ export const ProfileChecklist: React.FC<ProfileChecklistProps> = ({
         : 0;
 
     return Math.round(questionnaireContribution + otherTasksContribution);
-  }, [user, questionnaireProgress, hasSeenPreview, isReligious]);
+  }, [user, questionnaireProgress, isReligious]);
 
   const isAllComplete = completionPercentage >= 100;
 
@@ -829,7 +802,7 @@ export const ProfileChecklist: React.FC<ProfileChecklistProps> = ({
                 exit={{ height: 0, opacity: 0, transition: { duration: 0.3 } }}
                 className="overflow-hidden"
               >
-                <ul className="mt-6 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 sm:gap-4">
+                <ul className="mt-6 grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
                   {tasks.map((task) => (
                     <li key={task.id}>
                       <ChecklistItem
