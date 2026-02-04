@@ -146,6 +146,8 @@ export const generateDemoData = async (locale: Locale) => {
       acceptanceRate: null,
       avgMatchScore: null,
       lastActiveAt: null,
+            contentUpdatedAt: new Date(),
+
     },
     questionnaireResponses: [noaQuestionnaireResponse],
     
@@ -237,6 +239,8 @@ export const generateDemoData = async (locale: Locale) => {
       acceptanceRate: null,
       avgMatchScore: null,
       lastActiveAt: null,
+            contentUpdatedAt: new Date(),
+
     },
     questionnaireResponses: [danielQuestionnaireResponse],
   };
