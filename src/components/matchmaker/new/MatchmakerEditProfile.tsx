@@ -1,6 +1,6 @@
 // src/components/matchmaker/new/MatchmakerEditProfile.tsx
 'use client';
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import {
   Sheet,
   SheetContent,
@@ -17,11 +17,7 @@ import {
   DialogFooter,
   DialogClose,
 } from '@/components/ui/dialog';
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from '@/components/ui/collapsible';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -30,9 +26,9 @@ import { ProfileSection } from '@/components/profile';
 import { PhotosSection } from '@/components/profile';
 import { PreferencesSection } from '@/components/profile';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Progress } from '@/components/ui/progress';
 import {
   Loader2,
-  X,
   UserCog,
   Sparkles,
   Award,
@@ -47,10 +43,13 @@ import {
   Mail,
   FileText,
   Copy,
-  Activity,
-  ChevronDown,
-  ChevronUp,
   CheckCircle2,
+  User,
+  Calendar,
+  MapPin,
+  Heart,
+  GraduationCap,
+  Briefcase,
 } from 'lucide-react';
 import { AvailabilityStatus } from '@prisma/client';
 import type { UserProfile, UserImage } from '@/types/next-auth';
@@ -60,13 +59,6 @@ import { useSession } from 'next-auth/react';
 import type { MatchmakerPageDictionary } from '@/types/dictionaries/matchmaker';
 import type { ProfilePageDictionary } from '@/types/dictionary';
 import { cn } from '@/lib/utils';
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardContent,
-  CardDescription,
-} from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -76,6 +68,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 interface MatchmakerEditProfileProps {
   isOpen: boolean;
@@ -88,123 +86,415 @@ interface MatchmakerEditProfileProps {
 }
 
 // =============================================================================
-// COLLAPSIBLE SECTION COMPONENT
+// PROFILE COMPLETION SCORE COMPONENT
 // =============================================================================
-interface CollapsibleSectionProps {
-  title: string;
-  description?: string;
-  icon: React.ReactNode;
-  defaultOpen?: boolean;
-  colorScheme?: 'blue' | 'indigo' | 'teal' | 'purple' | 'gray';
-  children: React.ReactNode;
-  badge?: React.ReactNode;
-  actions?: React.ReactNode;
+interface ProfileCompletionProps {
+  profile: UserProfile | null;
+  images: UserImage[];
+  locale: string;
+  names: { firstName: string; lastName: string }; // הוסף שורה זו
 }
 
-const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({
-  title,
-  description,
-  icon,
-  defaultOpen = false,
-  colorScheme = 'gray',
-  children,
-  badge,
-  actions,
-}) => {
-  const [isOpen, setIsOpen] = useState(defaultOpen);
 
-  const colors = {
-    blue: {
-      bg: 'bg-blue-50/50',
-      border: 'border-blue-100',
-      text: 'text-blue-900',
-      icon: 'text-blue-600',
-      line: 'from-blue-500 to-cyan-500',
-    },
-    indigo: {
-      bg: 'bg-indigo-50/50',
-      border: 'border-indigo-100',
-      text: 'text-indigo-900',
-      icon: 'text-indigo-600',
-      line: 'from-indigo-500 to-purple-500',
-    },
-    teal: {
-      bg: 'bg-teal-50/50',
-      border: 'border-teal-100',
-      text: 'text-teal-900',
-      icon: 'text-teal-600',
-      line: 'from-teal-500 to-emerald-500',
-    },
-    purple: {
-      bg: 'bg-purple-50/50',
-      border: 'border-purple-100',
-      text: 'text-purple-900',
-      icon: 'text-purple-600',
-      line: 'from-purple-500 to-pink-500',
-    },
-    gray: {
-      bg: 'bg-gray-50/50',
-      border: 'border-gray-100',
-      text: 'text-gray-900',
-      icon: 'text-gray-600',
-      line: 'from-gray-400 to-gray-500',
-    },
+const ProfileCompletionScore: React.FC<ProfileCompletionProps> = ({
+  profile,
+  images,
+  locale,
+    names, // הוסף כאן
+
+}) => {
+  const score = useMemo(() => {
+    if (!profile) return { percentage: 0, details: [] };
+
+   const checks = [
+  { 
+    key: 'basicInfo', 
+    label: locale === 'he' ? 'פרטים בסיסיים' : 'Basic Info',
+    completed: !!(names.firstName && names.lastName && profile.birthDate), // שנה לזה
+    weight: 15 
+  },
+      { 
+        key: 'location', 
+        label: locale === 'he' ? 'מיקום' : 'Location',
+        completed: !!(profile.city),
+        weight: 10 
+      },
+      { 
+        key: 'education', 
+        label: locale === 'he' ? 'השכלה' : 'Education',
+        completed: !!(profile.educationLevel),
+        weight: 10 
+      },
+      { 
+        key: 'occupation', 
+        label: locale === 'he' ? 'תעסוקה' : 'Occupation',
+        completed: !!(profile.occupation),
+        weight: 10 
+      },
+      { 
+        key: 'religion', 
+        label: locale === 'he' ? 'רמה דתית' : 'Religious Level',
+        completed: !!(profile.religiousLevel),
+        weight: 15 
+      },
+      { 
+        key: 'about', 
+        label: locale === 'he' ? 'אודות' : 'About',
+        completed: !!(profile.about && profile.about.length > 50),
+        weight: 15 
+      },
+      { 
+        key: 'photos', 
+        label: locale === 'he' ? 'תמונות' : 'Photos',
+        completed: images.length >= 2,
+        weight: 15 
+      },
+      { 
+        key: 'summary', 
+        label: locale === 'he' ? 'תקציר שדכן' : 'Matchmaker Summary',
+        completed: !!(profile.manualEntryText && profile.manualEntryText.length > 20),
+        weight: 10 
+      },
+    ];
+
+    const completedWeight = checks
+      .filter((c) => c.completed)
+      .reduce((sum, c) => sum + c.weight, 0);
+
+    return {
+      percentage: completedWeight,
+      details: checks,
+    };
+  }, [profile, images, locale]);
+
+  const getScoreColor = (percentage: number) => {
+    if (percentage >= 80) return 'text-green-600';
+    if (percentage >= 50) return 'text-yellow-600';
+    return 'text-red-500';
   };
 
-  const scheme = colors[colorScheme];
+  const getProgressColor = (percentage: number) => {
+    if (percentage >= 80) return 'bg-green-500';
+    if (percentage >= 50) return 'bg-yellow-500';
+    return 'bg-red-500';
+  };
 
   return (
-    <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-      <div className={cn('rounded-xl border overflow-hidden', scheme.border)}>
-        {/* Color line at top */}
-        <div className={cn('h-1 bg-gradient-to-r', scheme.line)} />
-
-        <CollapsibleTrigger asChild>
-          <button
-            className={cn(
-              'w-full px-4 py-3 flex items-center justify-between cursor-pointer transition-colors',
-              scheme.bg,
-              'hover:bg-opacity-70'
-            )}
-          >
-            <div className="flex items-center gap-3">
-              <div className={scheme.icon}>{icon}</div>
-              <div className="text-right">
-                <div className={cn('font-semibold text-sm', scheme.text)}>
-                  {title}
-                </div>
-                {description && (
-                  <div className="text-xs text-gray-500">{description}</div>
-                )}
-              </div>
-              {badge}
-            </div>
-            <div className="flex items-center gap-2">
-              {actions && (
-                <div onClick={(e) => e.stopPropagation()}>{actions}</div>
-              )}
-              <motion.div
-                animate={{ rotate: isOpen ? 180 : 0 }}
-                transition={{ duration: 0.2 }}
-              >
-                <ChevronDown className="w-5 h-5 text-gray-400" />
-              </motion.div>
-            </div>
-          </button>
-        </CollapsibleTrigger>
-
-        <CollapsibleContent>
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="px-4 py-4 bg-white"
-          >
-            {children}
-          </motion.div>
-        </CollapsibleContent>
+    <div className="bg-gradient-to-r from-slate-50 to-gray-50 rounded-xl p-4 border">
+      <div className="flex items-center justify-between mb-3">
+        <span className="text-sm font-medium text-gray-700">
+          {locale === 'he' ? 'שלמות הפרופיל' : 'Profile Completion'}
+        </span>
+        <span className={cn('text-lg font-bold', getScoreColor(score.percentage))}>
+          {score.percentage}%
+        </span>
       </div>
-    </Collapsible>
+      
+      <div className="relative h-2 bg-gray-200 rounded-full overflow-hidden mb-3">
+        <motion.div
+          initial={{ width: 0 }}
+          animate={{ width: `${score.percentage}%` }}
+          transition={{ duration: 0.8, ease: 'easeOut' }}
+          className={cn('absolute h-full rounded-full', getProgressColor(score.percentage))}
+        />
+      </div>
+
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+        {score.details.map((item) => (
+          <TooltipProvider key={item.key}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div
+                  className={cn(
+                    'flex items-center gap-1.5 text-xs px-2 py-1 rounded-md transition-colors',
+                    item.completed
+                      ? 'bg-green-100 text-green-700'
+                      : 'bg-gray-100 text-gray-500'
+                  )}
+                >
+                  {item.completed ? (
+                    <CheckCircle2 className="w-3 h-3" />
+                  ) : (
+                    <div className="w-3 h-3 rounded-full border border-current" />
+                  )}
+                  <span className="truncate">{item.label}</span>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>
+                  {item.completed
+                    ? locale === 'he' ? '✓ הושלם' : '✓ Completed'
+                    : locale === 'he' ? '○ חסר' : '○ Missing'}
+                </p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+// =============================================================================
+// TAB CONTENT COMPONENTS
+// =============================================================================
+
+// Basic Info Tab
+interface BasicInfoTabProps {
+  names: { firstName: string; lastName: string };
+  setNames: React.Dispatch<React.SetStateAction<{ firstName: string; lastName: string }>>;
+  statusState: { status: AvailabilityStatus; note: string };
+  setStatusState: React.Dispatch<React.SetStateAction<{ status: AvailabilityStatus; note: string }>>;
+  profile: UserProfile | null;
+  setProfile: React.Dispatch<React.SetStateAction<UserProfile | null>>;
+  onSave: (data: any, fieldName?: string) => Promise<void>;
+  isSaving: boolean;
+  recentlySaved: string | null;
+  dict: MatchmakerPageDictionary['candidatesManager']['editProfile'];
+  locale: string;
+  direction: 'rtl' | 'ltr';
+}
+
+const BasicInfoTab: React.FC<BasicInfoTabProps> = ({
+  names,
+  setNames,
+  statusState,
+  setStatusState,
+  profile,
+  setProfile,
+  onSave,
+  isSaving,
+  recentlySaved,
+  dict,
+  locale,
+  direction,
+}) => {
+  const [hasChanges, setHasChanges] = useState(false);
+
+  return (
+    <div className="space-y-6">
+      {/* Names & Status Row */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Personal Info Card */}
+        <div className="bg-white rounded-xl border p-5 space-y-4">
+          <div className="flex items-center gap-2 text-blue-700 mb-4">
+            <User className="w-5 h-5" />
+            <h3 className="font-semibold">
+              {locale === 'he' ? 'פרטים אישיים' : 'Personal Details'}
+            </h3>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">
+                {locale === 'he' ? 'שם פרטי' : 'First Name'}
+              </Label>
+              <Input
+                value={names.firstName}
+                onChange={(e) => {
+                  setNames((prev) => ({ ...prev, firstName: e.target.value }));
+                  setHasChanges(true);
+                }}
+                className="h-10"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">
+                {locale === 'he' ? 'שם משפחה' : 'Last Name'}
+              </Label>
+              <Input
+                value={names.lastName}
+                onChange={(e) => {
+                  setNames((prev) => ({ ...prev, lastName: e.target.value }));
+                  setHasChanges(true);
+                }}
+                className="h-10"
+              />
+            </div>
+          </div>
+
+          {/* Additional fields in grid */}
+          <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="space-y-2">
+              <Label className="text-sm font-medium flex items-center gap-1.5">
+                <Calendar className="w-3.5 h-3.5 text-gray-500" />
+                {locale === 'he' ? 'תאריך לידה' : 'Birth Date'}
+              </Label>
+              <Input
+                type="date"
+                value={profile?.birthDate ? new Date(profile.birthDate).toISOString().split('T')[0] : ''}
+                onChange={(e) => {
+                  setProfile((p) => p ? { ...p, birthDate: new Date(e.target.value) } : null);
+                  setHasChanges(true);
+                }}
+                className="h-10"
+                dir="ltr"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-sm font-medium flex items-center gap-1.5">
+                <MapPin className="w-3.5 h-3.5 text-gray-500" />
+                {locale === 'he' ? 'עיר מגורים' : 'City'}
+              </Label>
+              <Input
+                value={profile?.city || ''}
+                onChange={(e) => {
+                  setProfile((p) => p ? { ...p, city: e.target.value } : null);
+                  setHasChanges(true);
+                }}
+                className="h-10"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-sm font-medium flex items-center gap-1.5">
+                <Heart className="w-3.5 h-3.5 text-gray-500" />
+                {locale === 'he' ? 'מצב משפחתי' : 'Marital Status'}
+              </Label>
+              <Select
+                value={profile?.maritalStatus || ''}
+                onValueChange={(value) => {
+                  setProfile((p) => p ? { ...p, maritalStatus: value } : null);
+                  setHasChanges(true);
+                }}
+                dir={direction}
+              >
+                <SelectTrigger className="h-10">
+                  <SelectValue placeholder={locale === 'he' ? 'בחר...' : 'Select...'} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="SINGLE">{locale === 'he' ? 'רווק/ה' : 'Single'}</SelectItem>
+                  <SelectItem value="DIVORCED">{locale === 'he' ? 'גרוש/ה' : 'Divorced'}</SelectItem>
+                  <SelectItem value="WIDOWED">{locale === 'he' ? 'אלמן/ה' : 'Widowed'}</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </div>
+
+        {/* Status Card */}
+        <div className="bg-white rounded-xl border p-5 space-y-4">
+          <div className="flex items-center gap-2 text-teal-700 mb-4">
+            <Sparkles className="w-5 h-5" />
+            <h3 className="font-semibold">
+              {locale === 'he' ? 'סטטוס וזמינות' : 'Status & Availability'}
+            </h3>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">
+                {dict.statusSection?.statusLabel || 'סטטוס נוכחי'}
+              </Label>
+              <Select
+                value={statusState.status}
+                onValueChange={(value) => {
+                  setStatusState((prev) => ({
+                    ...prev,
+                    status: value as AvailabilityStatus,
+                  }));
+                  setHasChanges(true);
+                }}
+                dir={direction}
+              >
+                <SelectTrigger className="h-10">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {Object.values(AvailabilityStatus).map((status) => (
+                    <SelectItem key={status} value={status}>
+                      {dict.statusSection?.statuses?.[status] || status}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">
+                {dict.statusSection?.noteLabel || 'הערה לסטטוס'}
+              </Label>
+              <Input
+                value={statusState.note}
+                onChange={(e) => {
+                  setStatusState((prev) => ({ ...prev, note: e.target.value }));
+                  setHasChanges(true);
+                }}
+                placeholder={dict.statusSection?.notePlaceholder || ''}
+                className="h-10"
+              />
+            </div>
+          </div>
+
+          {/* Education & Occupation */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+            <div className="space-y-2">
+              <Label className="text-sm font-medium flex items-center gap-1.5">
+                <GraduationCap className="w-3.5 h-3.5 text-gray-500" />
+                {locale === 'he' ? 'השכלה' : 'Education'}
+              </Label>
+              <Input
+                value={profile?.educationLevel || ''}
+                onChange={(e) => {
+                  setProfile((p) => p ? { ...p, educationLevel: e.target.value } : null);
+                  setHasChanges(true);
+                }}
+                className="h-10"
+                placeholder={locale === 'he' ? 'לדוגמה: תואר ראשון' : 'e.g., Bachelor\'s Degree'}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-sm font-medium flex items-center gap-1.5">
+                <Briefcase className="w-3.5 h-3.5 text-gray-500" />
+                {locale === 'he' ? 'תעסוקה' : 'Occupation'}
+              </Label>
+              <Input
+                value={profile?.occupation || ''}
+                onChange={(e) => {
+                  setProfile((p) => p ? { ...p, occupation: e.target.value } : null);
+                  setHasChanges(true);
+                }}
+                className="h-10"
+                placeholder={locale === 'he' ? 'לדוגמה: מהנדס תוכנה' : 'e.g., Software Engineer'}
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Save Button */}
+      <div className="flex justify-end">
+        <Button
+          onClick={() =>
+            onSave(
+              {
+                firstName: names.firstName,
+                lastName: names.lastName,
+                availabilityStatus: statusState.status,
+                availabilityNote: statusState.note,
+                birthDate: profile?.birthDate,
+                city: profile?.city,
+                maritalStatus: profile?.maritalStatus,
+                educationLevel: profile?.educationLevel,
+                occupation: profile?.occupation,
+              },
+              'basicInfo'
+            )
+          }
+          disabled={isSaving}
+          className="gap-2"
+        >
+          {isSaving ? (
+            <Loader2 className="w-4 h-4 animate-spin" />
+          ) : recentlySaved === 'basicInfo' ? (
+            <CheckCircle2 className="w-4 h-4" />
+          ) : (
+            <Save className="w-4 h-4" />
+          )}
+          {recentlySaved === 'basicInfo'
+            ? locale === 'he' ? 'נשמר בהצלחה!' : 'Saved!'
+            : locale === 'he' ? 'שמור שינויים' : 'Save Changes'}
+        </Button>
+      </div>
+    </div>
   );
 };
 
@@ -222,10 +512,10 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
 }) => {
   const { data: session } = useSession();
   const isAdmin = session?.user?.role === 'ADMIN';
-  const direction = locale === 'he' ? 'rtl' : 'ltr';
-  const scrollRef = useRef<HTMLDivElement>(null);
+const direction: 'rtl' | 'ltr' = locale === 'he' ? 'rtl' : 'ltr';  const scrollRef = useRef<HTMLDivElement>(null);
 
   // --- States ---
+  const [activeTab, setActiveTab] = useState('basic');
   const [isEditing, setIsEditing] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
@@ -247,10 +537,8 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
   }>({ status: AvailabilityStatus.AVAILABLE, note: '' });
 
   // Delete candidate
-  const [isDeleteCandidateDialogOpen, setIsDeleteCandidateDialogOpen] =
-    useState(false);
-  const [deleteCandidateConfirmText, setDeleteCandidateConfirmText] =
-    useState('');
+  const [isDeleteCandidateDialogOpen, setIsDeleteCandidateDialogOpen] = useState(false);
+  const [deleteCandidateConfirmText, setDeleteCandidateConfirmText] = useState('');
   const [isDeletingCandidate, setIsDeletingCandidate] = useState(false);
 
   // Invite user
@@ -332,16 +620,12 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
 
         if (data.profile) {
           setStatusState({
-            status:
-              data.profile.availabilityStatus || AvailabilityStatus.AVAILABLE,
+            status: data.profile.availabilityStatus || AvailabilityStatus.AVAILABLE,
             note: data.profile.availabilityNote || '',
           });
         }
 
-        if (
-          candidate.email &&
-          !candidate.email.endsWith('@shidduch.placeholder.com')
-        ) {
+        if (candidate.email && !candidate.email.endsWith('@shidduch.placeholder.com')) {
           setInviteEmail(candidate.email);
         } else {
           setInviteEmail('');
@@ -360,6 +644,7 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
   useEffect(() => {
     if (isOpen && candidate) {
       fetchProfileData();
+      setActiveTab('basic');
     } else if (!isOpen) {
       // Reset states on close
       setProfile(null);
@@ -384,22 +669,17 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
     if (!candidate || !profile) return;
     setIsSaving(true);
     try {
-      const response = await fetch(
-        `/api/matchmaker/candidates/${candidate.id}`,
-        {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(updatedData),
-        }
-      );
+      const response = await fetch(`/api/matchmaker/candidates/${candidate.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updatedData),
+      });
       const data = await response.json();
       if (!response.ok || !data.success) {
         throw new Error(data.error || 'Failed to update profile');
       }
 
-      setProfile(
-        (prevProfile) => ({ ...prevProfile, ...updatedData }) as UserProfile
-      );
+      setProfile((prevProfile) => ({ ...prevProfile, ...updatedData }) as UserProfile);
 
       if (updatedData.firstName || updatedData.lastName) {
         setNames((prev) => ({
@@ -412,10 +692,7 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
         setStatusState((prev) => ({
           ...prev,
           status: updatedData.availabilityStatus,
-          note:
-            updatedData.availabilityNote !== undefined
-              ? updatedData.availabilityNote
-              : prev.note,
+          note: updatedData.availabilityNote !== undefined ? updatedData.availabilityNote : prev.note,
         }));
       }
 
@@ -459,9 +736,7 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
       setIsInsightDialogOpen(true);
     } catch (error: any) {
       console.error('Error generating insight:', error);
-      toast.error(
-        locale === 'he' ? 'שגיאה ביצירת הדוח' : 'Error generating report'
-      );
+      toast.error(locale === 'he' ? 'שגיאה ביצירת הדוח' : 'Error generating report');
     } finally {
       setIsGeneratingInsight(false);
     }
@@ -480,15 +755,13 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
       const formData = new FormData();
       formData.append('image', file);
       formData.append('userId', candidate.id);
-      const response = await fetch(
-        `/api/matchmaker/candidates/${candidate.id}/images`,
-        { method: 'POST', body: formData }
-      );
+      const response = await fetch(`/api/matchmaker/candidates/${candidate.id}/images`, {
+        method: 'POST',
+        body: formData,
+      });
       const data = await response.json();
       if (!response.ok || !data.success) {
-        throw new Error(
-          `שגיאה בהעלאת הקובץ ${file.name}: ${data.error || 'שגיאת שרת'}`
-        );
+        throw new Error(`שגיאה בהעלאת הקובץ ${file.name}: ${data.error || 'שגיאת שרת'}`);
       }
       return data.image;
     });
@@ -497,10 +770,7 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
       setImages((prev) => [...prev, ...newImages]);
       toast.success(
         newImages.length > 1
-          ? dict.toasts.uploadSuccessMultiple.replace(
-              '{{count}}',
-              String(newImages.length)
-            )
+          ? dict.toasts.uploadSuccessMultiple.replace('{{count}}', String(newImages.length))
           : dict.toasts.uploadSuccessSingle
       );
     } catch (error) {
@@ -521,11 +791,8 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
         { method: 'PATCH' }
       );
       const data = await response.json();
-      if (!response.ok || !data.success)
-        throw new Error(data.error || 'Failed to set main image');
-      setImages((prev) =>
-        prev.map((img) => ({ ...img, isMain: img.id === imageId }))
-      );
+      if (!response.ok || !data.success) throw new Error(data.error || 'Failed to set main image');
+      setImages((prev) => prev.map((img) => ({ ...img, isMain: img.id === imageId })));
       toast.success(dict.toasts.setMainSuccess);
     } catch (error) {
       console.error('Error setting main image:', error);
@@ -538,27 +805,20 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
     setIsUploading(true);
     try {
       const currentMainImage = images.find((img) => img.isMain);
-      const isMainImageBeingDeleted = currentMainImage
-        ? imageIds.includes(currentMainImage.id)
-        : false;
+      const isMainImageBeingDeleted = currentMainImage ? imageIds.includes(currentMainImage.id) : false;
       const deletePromises = imageIds.map((id) =>
-        fetch(`/api/matchmaker/candidates/${candidate.id}/images/${id}`, {
-          method: 'DELETE',
-        })
+        fetch(`/api/matchmaker/candidates/${candidate.id}/images/${id}`, { method: 'DELETE' })
       );
       const responses = await Promise.all(deletePromises);
       for (const response of responses) {
         if (!response.ok && response.status !== 204) {
           const errorData = await response.json().catch(() => null);
           throw new Error(
-            errorData?.error ||
-              `Error deleting one of the images (status: ${response.status})`
+            errorData?.error || `Error deleting one of the images (status: ${response.status})`
           );
         }
       }
-      const remainingImages = images.filter(
-        (img) => !imageIds.includes(img.id)
-      );
+      const remainingImages = images.filter((img) => !imageIds.includes(img.id));
       if (isMainImageBeingDeleted && remainingImages.length > 0) {
         setImages(remainingImages);
         await handleSetMainImage(remainingImages[0].id);
@@ -567,18 +827,13 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
       }
       toast.success(
         imageIds.length > 1
-          ? dict.toasts.deleteImageSuccessMultiple.replace(
-              '{{count}}',
-              String(imageIds.length)
-            )
+          ? dict.toasts.deleteImageSuccessMultiple.replace('{{count}}', String(imageIds.length))
           : dict.toasts.deleteImageSuccessSingle,
         { position: 'top-center' }
       );
     } catch (error) {
       console.error('Error deleting image(s):', error);
-      toast.error(
-        error instanceof Error ? error.message : dict.toasts.deleteImageError
-      );
+      toast.error(error instanceof Error ? error.message : dict.toasts.deleteImageError);
     } finally {
       setIsUploading(false);
     }
@@ -597,15 +852,11 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
     }
     setIsDeletingCandidate(true);
     try {
-      const response = await fetch(
-        `/api/matchmaker/candidates/${candidate.id}`,
-        {
-          method: 'DELETE',
-        }
-      );
+      const response = await fetch(`/api/matchmaker/candidates/${candidate.id}`, {
+        method: 'DELETE',
+      });
       const data = await response.json();
-      if (!response.ok || !data.success)
-        throw new Error(data.error || 'Failed to delete candidate profile');
+      if (!response.ok || !data.success) throw new Error(data.error || 'Failed to delete candidate profile');
       toast.success(dict.toasts.deleteCandidateSuccess, {
         position: 'top-center',
         duration: 3000,
@@ -631,32 +882,23 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
     }
     setIsSendingInvite(true);
     try {
-      const response = await fetch(
-        `/api/matchmaker/candidates/${candidate.id}/invite-setup`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email: inviteEmail }),
-        }
-      );
+      const response = await fetch(`/api/matchmaker/candidates/${candidate.id}/invite-setup`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: inviteEmail }),
+      });
       const result = await response.json();
-      if (!response.ok || !result.success)
-        throw new Error(result.error || dict.toasts.sendInviteErrorGeneral);
+      if (!response.ok || !result.success) throw new Error(result.error || dict.toasts.sendInviteErrorGeneral);
       toast.success(dict.toasts.sendInviteSuccess);
       setIsSetupInviteOpen(false);
     } catch (error) {
       console.error('Error sending setup invite:', error);
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : dict.toasts.sendInviteErrorGeneral
-      );
+      toast.error(error instanceof Error ? error.message : dict.toasts.sendInviteErrorGeneral);
     } finally {
       setIsSendingInvite(false);
     }
   };
 
-  // Handle close - prevent scroll jump
   const handleClose = () => {
     onClose();
   };
@@ -668,61 +910,52 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
   const getStatusBadge = (status: AvailabilityStatus) => {
     switch (status) {
       case 'AVAILABLE':
-        return {
-          color: 'bg-green-100 text-green-700 border-green-200',
-          label: 'זמין/ה',
-        };
+        return { color: 'bg-green-100 text-green-700 border-green-200', label: 'זמין/ה' };
       case 'UNAVAILABLE':
-        return {
-          color: 'bg-yellow-100 text-yellow-700 border-yellow-200',
-          label: 'עסוק/ה',
-        };
+        return { color: 'bg-yellow-100 text-yellow-700 border-yellow-200', label: 'עסוק/ה' };
       case 'DATING':
-        return {
-          color: 'bg-blue-100 text-blue-700 border-blue-200',
-          label: 'בתהליך',
-        };
+        return { color: 'bg-blue-100 text-blue-700 border-blue-200', label: 'בתהליך' };
       case 'PAUSED':
-        return {
-          color: 'bg-orange-100 text-orange-700 border-orange-200',
-          label: 'מושהה',
-        };
-   
+        return { color: 'bg-orange-100 text-orange-700 border-orange-200', label: 'מושהה' };
       default:
-        return {
-          color: 'bg-gray-100 text-gray-700 border-gray-200',
-          label: status,
-        };
+        return { color: 'bg-gray-100 text-gray-700 border-gray-200', label: status };
     }
   };
 
   const statusBadgeInfo = getStatusBadge(statusState.status);
+
+  // Tab definitions
+  const tabs = [
+    { id: 'basic', label: locale === 'he' ? 'פרטים בסיסיים' : 'Basic Info', icon: UserCog },
+    { id: 'summary', label: locale === 'he' ? 'תקצירים' : 'Summaries', icon: Award },
+    { id: 'profile', label: locale === 'he' ? 'פרופיל מלא' : 'Full Profile', icon: FileText },
+    { id: 'photos', label: locale === 'he' ? 'תמונות' : 'Photos', icon: ImageIcon },
+    { id: 'preferences', label: locale === 'he' ? 'העדפות' : 'Preferences', icon: Sliders },
+  ];
 
   return (
     <>
       <Sheet open={isOpen} onOpenChange={handleClose}>
         <SheetContent
           side={locale === 'he' ? 'right' : 'left'}
-          className="w-full sm:w-[650px] md:w-[750px] lg:w-[850px] xl:w-[900px] p-0 flex flex-col max-w-full"
+          className="w-full sm:max-w-[95vw] lg:max-w-[85vw] xl:max-w-[1400px] p-0 flex flex-col"
           dir={direction}
           onCloseAutoFocus={(e) => e.preventDefault()}
           onPointerDownOutside={(e) => {
-            // Prevent closing when clicking on dialogs
             if ((e.target as HTMLElement)?.closest('[role="dialog"]')) {
               e.preventDefault();
             }
           }}
         >
-          {/* Header */}
-          <div className="flex-shrink-0 border-b bg-gradient-to-r from-slate-50 to-white px-6 py-4">
-            <div className="flex items-start justify-between gap-4">
+          {/* Sticky Header */}
+          <div className="flex-shrink-0 border-b bg-gradient-to-r from-slate-50 via-white to-slate-50 px-6 py-4 sticky top-0 z-10">
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+              {/* Left: Name & Status */}
               <div className="flex-1 min-w-0">
-                <SheetTitle className="text-xl font-bold text-gray-800 flex items-center gap-2">
-                  {names.firstName || candidate.firstName}{' '}
-                  {names.lastName || candidate.lastName}
+                <SheetTitle className="text-xl lg:text-2xl font-bold text-gray-800 flex items-center gap-3 flex-wrap">
+                  {names.firstName || candidate.firstName} {names.lastName || candidate.lastName}
                   <Badge className={cn('text-xs', statusBadgeInfo.color)}>
-                    {dict.statusSection?.statuses?.[statusState.status] ||
-                      statusBadgeInfo.label}
+                    {dict.statusSection?.statuses?.[statusState.status] || statusBadgeInfo.label}
                   </Badge>
                 </SheetTitle>
                 <SheetDescription className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
@@ -739,426 +972,347 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
                 </SheetDescription>
               </div>
 
-              {/* Saving indicator */}
-              <AnimatePresence>
-                {isSaving && (
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.9 }}
-                    className="flex items-center gap-2 bg-blue-50 text-blue-700 px-3 py-1.5 rounded-full text-sm border border-blue-100"
-                  >
+              {/* Right: Quick Actions */}
+              <div className="flex flex-wrap items-center gap-2">
+                <AnimatePresence>
+                  {isSaving && (
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.9 }}
+                      className="flex items-center gap-2 bg-blue-50 text-blue-700 px-3 py-1.5 rounded-full text-sm border border-blue-100"
+                    >
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      {dict.header.saving}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setIsSetupInviteOpen(true)}
+                  disabled={isSaving || isDeletingCandidate || isSendingInvite}
+                  className="gap-1.5"
+                >
+                  <Send className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">{dict.footer.buttons.sendInvite}</span>
+                </Button>
+                
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleGenerateInsightText}
+                  disabled={isGeneratingInsight}
+                  className="gap-1.5 border-indigo-200 text-indigo-700 hover:bg-indigo-50"
+                >
+                  {isGeneratingInsight ? (
                     <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                    {dict.header.saving}
-                  </motion.div>
+                  ) : (
+                    <Sparkles className="w-3.5 h-3.5" />
+                  )}
+                  <span className="hidden sm:inline">
+                    {locale === 'he' ? 'ניתוח עומק' : 'Deep Analysis'}
+                  </span>
+                </Button>
+
+                {isAdmin && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setIsDeleteCandidateDialogOpen(true)}
+                    disabled={isSaving || isDeletingCandidate}
+                    className="gap-1.5 border-red-200 text-red-600 hover:bg-red-50"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                    <span className="hidden sm:inline">{dict.footer.buttons.deleteCandidate}</span>
+                  </Button>
                 )}
-              </AnimatePresence>
+              </div>
             </div>
           </div>
 
           {/* Content */}
           {isLoading ? (
             <div className="flex-1 flex items-center justify-center">
-              <Loader2 className="w-10 h-10 animate-spin text-primary" />
+              <div className="text-center">
+                <Loader2 className="w-10 h-10 animate-spin text-primary mx-auto mb-4" />
+                <p className="text-gray-500">{locale === 'he' ? 'טוען נתונים...' : 'Loading data...'}</p>
+              </div>
             </div>
           ) : (
-            <ScrollArea className="flex-1" ref={scrollRef}>
-              <div className="p-4 space-y-3">
-                {/* Quick Actions Bar */}
-                <div className="flex flex-wrap gap-2 p-3 bg-gray-50 rounded-lg border">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setIsSetupInviteOpen(true)}
-                    disabled={
-                      isSaving || isDeletingCandidate || isSendingInvite
-                    }
-                    className="gap-1.5"
-                  >
-                    <Send className="w-3.5 h-3.5" />
-                    {dict.footer.buttons.sendInvite}
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleGenerateInsightText}
-                    disabled={isGeneratingInsight}
-                    className="gap-1.5 border-indigo-200 text-indigo-700 hover:bg-indigo-50"
-                  >
-                    {isGeneratingInsight ? (
-                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                    ) : (
-                      <FileText className="w-3.5 h-3.5" />
-                    )}
-                    {locale === 'he' ? 'ניתוח עומק' : 'Deep Analysis'}
-                  </Button>
-                  {isAdmin && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setIsDeleteCandidateDialogOpen(true)}
-                      disabled={isSaving || isDeletingCandidate}
-                      className="gap-1.5 border-red-200 text-red-600 hover:bg-red-50 mr-auto"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                      {dict.footer.buttons.deleteCandidate}
-                    </Button>
-                  )}
-                </div>
+            <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
+              {/* Sidebar - Tabs (Desktop) */}
+              <div className="hidden lg:flex flex-col w-64 border-l bg-gray-50/50 p-4 space-y-3">
+                {/* Profile Completion */}
+<ProfileCompletionScore profile={profile} images={images} locale={locale} names={names} />
 
-                {/* 1. Basic Info & Status Section */}
-                <CollapsibleSection
-                  title={
-                    locale === 'he'
-                      ? 'פרטים בסיסיים וסטטוס'
-                      : 'Basic Info & Status'
-                  }
-                  description={
-                    locale === 'he'
-                      ? 'שם, סטטוס זמינות והערות'
-                      : 'Name, availability status and notes'
-                  }
-                  icon={<UserCog className="w-5 h-5" />}
-                  colorScheme="blue"
-                  defaultOpen={true}
-                >
-                  <div className="space-y-4">
-                    {/* Names */}
-                    <div className="grid grid-cols-2 gap-3">
-                      <div className="space-y-1.5">
-                        <Label className="text-xs font-medium">
-                          {locale === 'he' ? 'שם פרטי' : 'First Name'}
-                        </Label>
-                        <Input
-                          value={names.firstName}
-                          onChange={(e) => {
-                            setNames((prev) => ({
-                              ...prev,
-                              firstName: e.target.value,
-                            }));
-                            setHasChanges(true);
-                          }}
-                          className="h-9"
-                        />
-                      </div>
-                      <div className="space-y-1.5">
-                        <Label className="text-xs font-medium">
-                          {locale === 'he' ? 'שם משפחה' : 'Last Name'}
-                        </Label>
-                        <Input
-                          value={names.lastName}
-                          onChange={(e) => {
-                            setNames((prev) => ({
-                              ...prev,
-                              lastName: e.target.value,
-                            }));
-                            setHasChanges(true);
-                          }}
-                          className="h-9"
-                        />
-                      </div>
-                    </div>
-
-                    {/* Status */}
-                    <div className="grid grid-cols-2 gap-3">
-                      <div className="space-y-1.5">
-                        <Label className="text-xs font-medium">
-                          {dict.statusSection?.statusLabel || 'סטטוס נוכחי'}
-                        </Label>
-                        <Select
-                          value={statusState.status}
-                          onValueChange={(value) => {
-                            setStatusState((prev) => ({
-                              ...prev,
-                              status: value as AvailabilityStatus,
-                            }));
-                            setHasChanges(true);
-                          }}
-                          dir={direction}
-                        >
-                          <SelectTrigger className="h-9">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {Object.values(AvailabilityStatus).map((status) => (
-                              <SelectItem key={status} value={status}>
-                                {dict.statusSection?.statuses?.[status] ||
-                                  status}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div className="space-y-1.5">
-                        <Label className="text-xs font-medium">
-                          {dict.statusSection?.noteLabel || 'הערה לסטטוס'}
-                        </Label>
-                        <Input
-                          value={statusState.note}
-                          onChange={(e) => {
-                            setStatusState((prev) => ({
-                              ...prev,
-                              note: e.target.value,
-                            }));
-                            setHasChanges(true);
-                          }}
-                          placeholder={
-                            dict.statusSection?.notePlaceholder || ''
-                          }
-                          className="h-9"
-                        />
-                      </div>
-                    </div>
-
-                    {/* Save Button */}
-                    <div className="flex justify-end">
-                      <Button
-                        size="sm"
-                        onClick={() =>
-                          handleProfileUpdate(
-                            {
-                              firstName: names.firstName,
-                              lastName: names.lastName,
-                              availabilityStatus: statusState.status,
-                              availabilityNote: statusState.note,
-                            },
-                            'basicInfo'
-                          )
-                        }
-                        disabled={isSaving}
-                        className="gap-1.5"
-                      >
-                        {isSaving ? (
-                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                        ) : recentlySaved === 'basicInfo' ? (
-                          <CheckCircle2 className="w-3.5 h-3.5" />
-                        ) : (
-                          <Save className="w-3.5 h-3.5" />
-                        )}
-                        {recentlySaved === 'basicInfo'
-                          ? locale === 'he'
-                            ? 'נשמר!'
-                            : 'Saved!'
-                          : locale === 'he'
-                            ? 'שמור'
-                            : 'Save'}
-                      </Button>
-                    </div>
-                  </div>
-                </CollapsibleSection>
-
-                {/* 2. NeshamaTech Summary */}
-                <CollapsibleSection
-                  title={dict.neshamaTechSummary.title}
-                  description={dict.neshamaTechSummary.description}
-                  icon={<Award className="w-5 h-5" />}
-                  colorScheme="indigo"
-                  defaultOpen={false}
-                  actions={
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={handleGenerateSummary}
-                      disabled={isGeneratingSummary || isSaving}
-                      className="h-7 px-2 text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50"
-                    >
-                      {isGeneratingSummary ? (
-                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                      ) : (
-                        <Sparkles className="w-3.5 h-3.5" />
+                {/* Vertical Tabs */}
+                <nav className="space-y-1">
+                  {tabs.map((tab) => (
+                    <button
+                      key={tab.id}
+                      onClick={() => setActiveTab(tab.id)}
+                      className={cn(
+                        'w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all',
+                        activeTab === tab.id
+                          ? 'bg-white shadow-sm border border-gray-200 text-primary'
+                          : 'text-gray-600 hover:bg-white/70 hover:text-gray-900'
                       )}
-                    </Button>
-                  }
-                >
-                  <div className="space-y-3">
-                    <Textarea
-                      value={profile?.manualEntryText || ''}
-                      onChange={(e) => {
-                        setProfile((p) =>
-                          p ? { ...p, manualEntryText: e.target.value } : null
-                        );
-                        setHasChanges(true);
-                      }}
-                      placeholder={dict.neshamaTechSummary.placeholder}
-                      rows={5}
-                      className="text-sm"
-                    />
-                    <div className="flex justify-end">
-                      <Button
-                        size="sm"
-                        onClick={() =>
-                          handleProfileUpdate(
-                            {
-                              manualEntryText: profile?.manualEntryText || null,
-                            },
-                            'summary'
-                          )
-                        }
-                        disabled={isSaving || isGeneratingSummary}
-                        className="gap-1.5 bg-indigo-600 hover:bg-indigo-700"
-                      >
-                        {isSaving ? (
-                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                        ) : recentlySaved === 'summary' ? (
-                          <CheckCircle2 className="w-3.5 h-3.5" />
-                        ) : (
-                          <Save className="w-3.5 h-3.5" />
-                        )}
-                        {recentlySaved === 'summary'
-                          ? locale === 'he'
-                            ? 'נשמר!'
-                            : 'Saved!'
-                          : dict.neshamaTechSummary.saveButton || 'שמור תקציר'}
-                      </Button>
-                    </div>
-                  </div>
-                </CollapsibleSection>
-
-                {/* 3. Conversation Summary */}
-                <CollapsibleSection
-                  title={
-                    dict.conversationSummary?.title || 'סיכום שיחה עם שדכן'
-                  }
-                  description={
-                    dict.conversationSummary?.description ||
-                    'הערות פנימיות וסיכומים'
-                  }
-                  icon={<MessageSquare className="w-5 h-5" />}
-                  colorScheme="teal"
-                  defaultOpen={false}
-                >
-                  <div className="space-y-3">
-                    <Textarea
-                      value={profile?.conversationSummary || ''}
-                      onChange={(e) => {
-                        setProfile((p) =>
-                          p
-                            ? { ...p, conversationSummary: e.target.value }
-                            : null
-                        );
-                        setHasChanges(true);
-                      }}
-                      placeholder={
-                        dict.conversationSummary?.placeholder ||
-                        'הקלד/י כאן את סיכום השיחה...'
-                      }
-                      rows={4}
-                      className="text-sm"
-                    />
-                    <div className="flex justify-end">
-                      <Button
-                        size="sm"
-                        onClick={() =>
-                          handleProfileUpdate(
-                            {
-                              conversationSummary:
-                                profile?.conversationSummary || null,
-                            },
-                            'conversation'
-                          )
-                        }
-                        disabled={isSaving}
-                        className="gap-1.5 bg-teal-600 hover:bg-teal-700"
-                      >
-                        {isSaving ? (
-                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                        ) : recentlySaved === 'conversation' ? (
-                          <CheckCircle2 className="w-3.5 h-3.5" />
-                        ) : (
-                          <Save className="w-3.5 h-3.5" />
-                        )}
-                        {recentlySaved === 'conversation'
-                          ? locale === 'he'
-                            ? 'נשמר!'
-                            : 'Saved!'
-                          : dict.conversationSummary?.saveButton ||
-                            'שמור סיכום'}
-                      </Button>
-                    </div>
-                  </div>
-                </CollapsibleSection>
-
-                {/* 4. Full Profile Section */}
-                <CollapsibleSection
-                  title={dict.tabs.profile}
-                  description={
-                    locale === 'he'
-                      ? 'כל הפרטים האישיים'
-                      : 'All personal details'
-                  }
-                  icon={<UserCog className="w-5 h-5" />}
-                  colorScheme="gray"
-                  defaultOpen={false}
-                >
-                  {profile && (
-                    <ProfileSection
-                      profile={profile}
-                      isEditing={isEditing}
-                      setIsEditing={setIsEditing}
-                      onSave={handleProfileUpdate}
-                      dict={profileDict.profileSection}
-                      locale={locale}
-                    />
-                  )}
-                </CollapsibleSection>
-
-                {/* 5. Photos Section */}
-                <CollapsibleSection
-                  title={dict.tabs.photos}
-                  description={`${images.length} ${locale === 'he' ? 'תמונות' : 'photos'}`}
-                  icon={<ImageIcon className="w-5 h-5" />}
-                  colorScheme="purple"
-                  defaultOpen={false}
-                  badge={
-                    images.length > 0 && (
-                      <Badge variant="secondary" className="text-xs">
-                        {images.length}
-                      </Badge>
-                    )
-                  }
-                >
-                  <PhotosSection
-                    images={images}
-                    isUploading={isUploading}
-                    disabled={isSaving || isDeletingCandidate}
-                    onUpload={handleImageUpload}
-                    onSetMain={handleSetMainImage}
-                    onDelete={handleDeleteImage}
-                    maxImages={10}
-                    dict={profileDict.photosSection}
-                    locale={locale}
-                  />
-                </CollapsibleSection>
-
-                {/* 6. Preferences Section */}
-                <CollapsibleSection
-                  title={dict.tabs.preferences}
-                  description={
-                    locale === 'he'
-                      ? 'העדפות לחיפוש בן/בת זוג'
-                      : 'Partner search preferences'
-                  }
-                  icon={<Sliders className="w-5 h-5" />}
-                  colorScheme="blue"
-                  defaultOpen={false}
-                >
-                  {profile && (
-                    <PreferencesSection
-                      profile={profile}
-                      isEditing={isEditing}
-                      setIsEditing={setIsEditing}
-                      onChange={handleProfileUpdate}
-                      dictionary={profileDict.preferencesSection}
-                      locale={locale}
-                    />
-                  )}
-                </CollapsibleSection>
+                    >
+                      <tab.icon className="w-4 h-4" />
+                      {tab.label}
+                      {tab.id === 'photos' && images.length > 0 && (
+                        <Badge variant="secondary" className="mr-auto text-xs">
+                          {images.length}
+                        </Badge>
+                      )}
+                    </button>
+                  ))}
+                </nav>
               </div>
 
-              {/* Bottom padding for scrolling */}
-              <div className="h-6" />
-            </ScrollArea>
+              {/* Mobile Tabs */}
+              <div className="lg:hidden border-b bg-white px-4 py-2 overflow-x-auto flex-shrink-0">
+                <div className="flex gap-1 min-w-max">
+                  {tabs.map((tab) => (
+                    <button
+                      key={tab.id}
+                      onClick={() => setActiveTab(tab.id)}
+                      className={cn(
+                        'flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap',
+                        activeTab === tab.id
+                          ? 'bg-primary text-white'
+                          : 'text-gray-600 hover:bg-gray-100'
+                      )}
+                    >
+                      <tab.icon className="w-4 h-4" />
+                      {tab.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Main Content Area */}
+              <ScrollArea className="flex-1" ref={scrollRef}>
+                <div className="p-6 max-w-5xl mx-auto">
+                  {/* Mobile Profile Completion */}
+                  <div className="lg:hidden mb-6">
+<ProfileCompletionScore profile={profile} images={images} locale={locale} names={names} />
+                  </div>
+
+                  {/* Tab Content */}
+                  <AnimatePresence mode="wait">
+                    <motion.div
+                      key={activeTab}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      {activeTab === 'basic' && (
+                        <BasicInfoTab
+                          names={names}
+                          setNames={setNames}
+                          statusState={statusState}
+                          setStatusState={setStatusState}
+                          profile={profile}
+                          setProfile={setProfile}
+                          onSave={handleProfileUpdate}
+                          isSaving={isSaving}
+                          recentlySaved={recentlySaved}
+                          dict={dict}
+                          locale={locale}
+                          direction={direction}
+                        />
+                      )}
+
+                      {activeTab === 'summary' && (
+                        <div className="space-y-6">
+                          {/* NeshamaTech Summary */}
+                          <div className="bg-white rounded-xl border p-5">
+                            <div className="flex items-center justify-between mb-4">
+                              <div className="flex items-center gap-2 text-indigo-700">
+                                <Award className="w-5 h-5" />
+                                <h3 className="font-semibold">{dict.neshamaTechSummary.title}</h3>
+                              </div>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={handleGenerateSummary}
+                                disabled={isGeneratingSummary || isSaving}
+                                className="gap-1.5 border-indigo-200 text-indigo-600 hover:bg-indigo-50"
+                              >
+                                {isGeneratingSummary ? (
+                                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                ) : (
+                                  <Sparkles className="w-3.5 h-3.5" />
+                                )}
+                                {locale === 'he' ? 'צור עם AI' : 'Generate with AI'}
+                              </Button>
+                            </div>
+                            <p className="text-sm text-gray-500 mb-3">
+                              {dict.neshamaTechSummary.description}
+                            </p>
+                            <Textarea
+                              value={profile?.manualEntryText || ''}
+                              onChange={(e) => {
+                                setProfile((p) => (p ? { ...p, manualEntryText: e.target.value } : null));
+                                setHasChanges(true);
+                              }}
+                              placeholder={dict.neshamaTechSummary.placeholder}
+                              rows={6}
+                              className="text-sm"
+                            />
+                            <div className="flex justify-end mt-4">
+                              <Button
+                                size="sm"
+                                onClick={() =>
+                                  handleProfileUpdate(
+                                    { manualEntryText: profile?.manualEntryText || null },
+                                    'summary'
+                                  )
+                                }
+                                disabled={isSaving || isGeneratingSummary}
+                                className="gap-1.5 bg-indigo-600 hover:bg-indigo-700"
+                              >
+                                {isSaving ? (
+                                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                ) : recentlySaved === 'summary' ? (
+                                  <CheckCircle2 className="w-3.5 h-3.5" />
+                                ) : (
+                                  <Save className="w-3.5 h-3.5" />
+                                )}
+                                {recentlySaved === 'summary'
+                                  ? locale === 'he' ? 'נשמר!' : 'Saved!'
+                                  : dict.neshamaTechSummary.saveButton || 'שמור תקציר'}
+                              </Button>
+                            </div>
+                          </div>
+
+                          {/* Conversation Summary */}
+                          <div className="bg-white rounded-xl border p-5">
+                            <div className="flex items-center gap-2 text-teal-700 mb-4">
+                              <MessageSquare className="w-5 h-5" />
+                              <h3 className="font-semibold">
+                                {dict.conversationSummary?.title || 'סיכום שיחה עם שדכן'}
+                              </h3>
+                            </div>
+                            <p className="text-sm text-gray-500 mb-3">
+                              {dict.conversationSummary?.description || 'הערות פנימיות וסיכומים'}
+                            </p>
+                            <Textarea
+                              value={profile?.conversationSummary || ''}
+                              onChange={(e) => {
+                                setProfile((p) => (p ? { ...p, conversationSummary: e.target.value } : null));
+                                setHasChanges(true);
+                              }}
+                              placeholder={dict.conversationSummary?.placeholder || 'הקלד/י כאן את סיכום השיחה...'}
+                              rows={5}
+                              className="text-sm"
+                            />
+                            <div className="flex justify-end mt-4">
+                              <Button
+                                size="sm"
+                                onClick={() =>
+                                  handleProfileUpdate(
+                                    { conversationSummary: profile?.conversationSummary || null },
+                                    'conversation'
+                                  )
+                                }
+                                disabled={isSaving}
+                                className="gap-1.5 bg-teal-600 hover:bg-teal-700"
+                              >
+                                {isSaving ? (
+                                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                ) : recentlySaved === 'conversation' ? (
+                                  <CheckCircle2 className="w-3.5 h-3.5" />
+                                ) : (
+                                  <Save className="w-3.5 h-3.5" />
+                                )}
+                                {recentlySaved === 'conversation'
+                                  ? locale === 'he' ? 'נשמר!' : 'Saved!'
+                                  : dict.conversationSummary?.saveButton || 'שמור סיכום'}
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {activeTab === 'profile' && profile && (
+                        <div className="bg-white rounded-xl border p-5">
+                          <ProfileSection
+                            profile={profile}
+                            isEditing={isEditing}
+                            setIsEditing={setIsEditing}
+                            onSave={handleProfileUpdate}
+                            dict={profileDict.profileSection}
+                            locale={locale}
+                          />
+                        </div>
+                      )}
+
+                      {activeTab === 'photos' && (
+                        <div className="bg-white rounded-xl border p-5">
+                          <div className="flex items-center gap-2 text-purple-700 mb-4">
+                            <ImageIcon className="w-5 h-5" />
+                            <h3 className="font-semibold">{dict.tabs.photos}</h3>
+                            <Badge variant="secondary" className="mr-2">
+                              {images.length} / 10
+                            </Badge>
+                          </div>
+                          <PhotosSection
+                            images={images}
+                            isUploading={isUploading}
+                            disabled={isSaving || isDeletingCandidate}
+                            onUpload={handleImageUpload}
+                            onSetMain={handleSetMainImage}
+                            onDelete={handleDeleteImage}
+                            maxImages={10}
+                            dict={profileDict.photosSection}
+                            locale={locale}
+                          />
+                        </div>
+                      )}
+
+                      {activeTab === 'preferences' && profile && (
+                        <div className="bg-white rounded-xl border p-5">
+                          <PreferencesSection
+                            profile={profile}
+                            isEditing={isEditing}
+                            setIsEditing={setIsEditing}
+                            onChange={handleProfileUpdate}
+                            dictionary={profileDict.preferencesSection}
+                            locale={locale}
+                          />
+                        </div>
+                      )}
+                    </motion.div>
+                  </AnimatePresence>
+                </div>
+
+                {/* Bottom padding */}
+                <div className="h-8" />
+              </ScrollArea>
+            </div>
           )}
+
+          {/* Sticky Footer */}
+          <div className="flex-shrink-0 border-t bg-white px-6 py-3 flex items-center justify-between">
+            <div className="text-sm text-gray-500">
+              {hasChanges && (
+                <span className="flex items-center gap-1.5 text-amber-600">
+                  <AlertCircle className="w-4 h-4" />
+                  {locale === 'he' ? 'יש שינויים שלא נשמרו' : 'Unsaved changes'}
+                </span>
+              )}
+            </div>
+            <div className="flex items-center gap-3">
+              <Button variant="outline" onClick={handleClose}>
+                {locale === 'he' ? 'סגור' : 'Close'}
+              </Button>
+            </div>
+          </div>
         </SheetContent>
       </Sheet>
 
@@ -1189,11 +1343,7 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
           </div>
 
           <DialogFooter className="p-4 border-t bg-white gap-2 sm:gap-0">
-            <Button
-              variant="outline"
-              onClick={copyInsightToClipboard}
-              className="gap-2"
-            >
+            <Button variant="outline" onClick={copyInsightToClipboard} className="gap-2">
               <Copy className="w-4 h-4" />
               {locale === 'he' ? 'העתק טקסט' : 'Copy Text'}
             </Button>
@@ -1239,11 +1389,7 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
             </div>
             <DialogFooter>
               <DialogClose asChild>
-                <Button
-                  type="button"
-                  variant="secondary"
-                  disabled={isSendingInvite}
-                >
+                <Button type="button" variant="secondary" disabled={isSendingInvite}>
                   {dict.inviteDialog.buttons.cancel}
                 </Button>
               </DialogClose>
@@ -1255,9 +1401,7 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
                 {isSendingInvite ? (
                   <Loader2 className="ml-2 h-4 w-4 animate-spin" />
                 ) : (
-                  <Send
-                    className={cn('w-4 h-4', locale === 'he' ? 'ml-2' : 'mr-2')}
-                  />
+                  <Send className={cn('w-4 h-4', locale === 'he' ? 'ml-2' : 'mr-2')} />
                 )}
                 {isSendingInvite
                   ? dict.inviteDialog.buttons.sending
@@ -1272,9 +1416,7 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
       {candidate && (
         <Dialog
           open={isDeleteCandidateDialogOpen}
-          onOpenChange={(open) =>
-            !isDeletingCandidate && setIsDeleteCandidateDialogOpen(open)
-          }
+          onOpenChange={(open) => !isDeletingCandidate && setIsDeleteCandidateDialogOpen(open)}
         >
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
@@ -1307,11 +1449,8 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
                 dir="rtl"
               />
               {deleteCandidateConfirmText &&
-                deleteCandidateConfirmText !==
-                  DELETE_CANDIDATE_CONFIRMATION_PHRASE && (
-                  <p className="text-xs text-red-600">
-                    {dict.deleteDialog.mismatchError}
-                  </p>
+                deleteCandidateConfirmText !== DELETE_CANDIDATE_CONFIRMATION_PHRASE && (
+                  <p className="text-xs text-red-600">{dict.deleteDialog.mismatchError}</p>
                 )}
             </div>
             <DialogFooter>
@@ -1331,8 +1470,7 @@ const MatchmakerEditProfile: React.FC<MatchmakerEditProfileProps> = ({
                 onClick={handleDeleteCandidateRequest}
                 disabled={
                   isDeletingCandidate ||
-                  deleteCandidateConfirmText !==
-                    DELETE_CANDIDATE_CONFIRMATION_PHRASE
+                  deleteCandidateConfirmText !== DELETE_CANDIDATE_CONFIRMATION_PHRASE
                 }
               >
                 {isDeletingCandidate ? (
