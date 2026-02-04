@@ -68,6 +68,32 @@ function initGemini() {
 
 type ScanMethod = 'hybrid' | 'algorithmic' | 'vector' | 'metrics_v2';
 type ScanPhase = 'preparing' | 'scanning' | 'completed' | 'failed' | 'cancelled';
+interface AICallStats {
+  tier3FirstPass: {
+    batchesSent: number;
+    candidatesAnalyzed: number;
+    cachedSkipped: number;
+    callsMade: number;
+    totalTokensEstimated: number;
+    durationMs: number;
+  };
+  tier4DeepAnalysis: {
+    candidatesAnalyzed: number;
+    cachedSkipped: number;
+    callsMade: number;
+    totalTokensEstimated: number;
+    durationMs: number;
+  };
+  embeddings: {
+    callsMade: number;
+    durationMs: number;
+  };
+  total: {
+    aiCalls: number;
+    embeddingCalls: number;
+    estimatedCost: number;
+  };
+}
 
 interface ScanSessionState {
   id: string;
@@ -94,7 +120,8 @@ interface ScanSessionState {
   usersScanned: number;
   progressPercent: number;
   scannedUserIds: string[];
-  
+    aiCallStats?: AICallStats;
+
   message?: string;
   error?: string;
   startedAt: Date;
@@ -492,6 +519,12 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
         usersScanned: state.usersScanned,
         message: state.message,
         error: state.error,
+         // 🆕 V2.3: AI Call Statistics
+      aiCallStats: state.aiCallStats || {
+        tier3FirstPass: { callsMade: 0, candidatesAnalyzed: 0, cachedSkipped: 0 },
+        tier4DeepAnalysis: { callsMade: 0, candidatesAnalyzed: 0, cachedSkipped: 0 },
+        total: { aiCalls: 0, embeddingCalls: 0, estimatedCost: 0 }
+      },
         stats: {
           matchesFoundSoFar: state.matchesFoundSoFar,
           preparationUpdated: state.preparationStats.updated,

@@ -1,5 +1,5 @@
 // ============================================================
-// NeshamaTech - Hybrid Matching Service V2.2
+// NeshamaTech - Hybrid Matching Service V2.3
 // src/lib/services/hybridMatchingService.ts
 //
 // שילוב מושלם של:
@@ -12,6 +12,10 @@
 // - Smart Caching: Skip re-scoring candidates if profiles haven't changed
 // - Performance: Massive reduction in AI costs for repeat scans
 // - Statistics: Detailed tracking of skipped vs. new pairs
+//
+// V2.3 Changes:
+// - 🆕 AI Call Tracking: Detailed stats for all AI/embedding calls
+// - aiCallStats in result for frontend display
 // ============================================================
 
 import prisma from "@/lib/prisma";
@@ -21,6 +25,34 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 // ═══════════════════════════════════════════════════════════════
 // TYPES & INTERFACES
 // ═══════════════════════════════════════════════════════════════
+
+// 🆕 V2.3: AI Call Statistics
+export interface AICallStats {
+  tier3FirstPass: {
+    batchesSent: number;
+    candidatesAnalyzed: number;
+    cachedSkipped: number;
+    callsMade: number;
+    totalTokensEstimated: number;
+    durationMs: number;
+  };
+  tier4DeepAnalysis: {
+    candidatesAnalyzed: number;
+    cachedSkipped: number;
+    callsMade: number;
+    totalTokensEstimated: number;
+    durationMs: number;
+  };
+  embeddings: {
+    callsMade: number;
+    durationMs: number;
+  };
+  total: {
+    aiCalls: number;
+    embeddingCalls: number;
+    estimatedCost: number; // בדולרים (הערכה גסה)
+  };
+}
 
 // --- Background Types ---
 export type BackgroundCategory = 
@@ -324,6 +356,9 @@ export interface HybridScanResult {
     skippedFromScannedPair: number;
     newPairsScanned: number;
   };
+
+  // 🆕 V2.3: AI Call Statistics
+  aiCallStats: AICallStats;
   
   matches: FinalCandidate[];
   warnings: string[];
@@ -1164,7 +1199,7 @@ async function tier2MetricsScoring(
       
       scoredCandidates.push({
         ...candidate,
-  metricsScore: candidate.existingAiScore ?? 0,  // 🔧 תיקון
+        metricsScore: candidate.existingAiScore ?? 0,
         vectorScore: null,
         backgroundProfile: null,
         backgroundMatch: null,
@@ -1176,7 +1211,7 @@ async function tier2MetricsScoring(
         violatesUserDealBreakers: false,
         meetsCandidateMustHaves: true,
         violatesCandidateDealBreakers: false,
-  tier2Score: candidate.existingAiScore ?? 0,    // 🔧 תיקון
+        tier2Score: candidate.existingAiScore ?? 0,
         fromScannedPairCache: true, // Mark as cached
       });
       continue;
@@ -1330,7 +1365,7 @@ async function tier2MetricsScoring(
 }
 
 // ═══════════════════════════════════════════════════════════════
-// TIER 3: AI FIRST PASS (Enhanced)
+// TIER 3: AI FIRST PASS (Updated with tracking)
 // ═══════════════════════════════════════════════════════════════
 
 async function tier3AIFirstPass(
@@ -1346,14 +1381,28 @@ async function tier3AIFirstPass(
     metrics: ExtendedMetrics;
   },
   maxOutput: number
-): Promise<AIFirstPassCandidate[]> {
+): Promise<{ candidates: AIFirstPassCandidate[]; stats: AICallStats['tier3FirstPass'] }> {
   
   const model = await getGeminiModel();
   const allResults: AIFirstPassCandidate[] = [];
   
-  // 🆕 V2.2: Separate candidates that need AI from cached ones
+  // 🆕 V2.3: Initialize stats
+  const stats: AICallStats['tier3FirstPass'] = {
+    batchesSent: 0,
+    candidatesAnalyzed: 0,
+    cachedSkipped: 0,
+    callsMade: 0,
+    totalTokensEstimated: 0,
+    durationMs: 0,
+  };
+  
+  const startTime = Date.now();
+  
+  // Separate candidates that need AI from cached ones
   const candidatesForAI = candidates.filter(c => !c.fromScannedPairCache);
   const cachedCandidates = candidates.filter(c => c.fromScannedPairCache);
+  
+  stats.cachedSkipped = cachedCandidates.length;
   
   // Process cached candidates immediately
   for (const c of cachedCandidates) {
@@ -1376,14 +1425,26 @@ async function tier3AIFirstPass(
     
     const prompt = generateEnhancedFirstPassPrompt(targetProfile, batch, batchIdx + 1, totalBatches);
     
+    // 🆕 V2.3: Estimate tokens (rough: ~4 chars per token)
+    stats.totalTokensEstimated += Math.ceil(prompt.length / 4);
+    
     try {
+      stats.callsMade++;
+      stats.batchesSent++;
+      
       const result = await model.generateContent(prompt);
       const jsonString = result.response.text();
+      
+      // 🆕 V2.3: Add response tokens
+      stats.totalTokensEstimated += Math.ceil(jsonString.length / 4);
+      
       const parsed = parseJsonResponse<{ candidates: any[] }>(jsonString);
       
       for (const aiResult of parsed.candidates || []) {
         const candidate = batch[aiResult.index - 1];
         if (!candidate) continue;
+        
+        stats.candidatesAnalyzed++;
         
         const aiScore = Math.min(100, Math.max(0, aiResult.totalScore || 0));
         const breakdown: ScoreBreakdown = aiResult.breakdown || {
@@ -1422,8 +1483,16 @@ async function tier3AIFirstPass(
     }
   }
   
+  stats.durationMs = Date.now() - startTime;
+  
+  // 🆕 V2.3: Log stats
+  console.log(`[Tier3] AI Stats: ${stats.callsMade} calls, ${stats.candidatesAnalyzed} analyzed, ${stats.cachedSkipped} cached, ~${stats.totalTokensEstimated} tokens`);
+  
   allResults.sort((a, b) => b.tier3Score - a.tier3Score);
-  return allResults.slice(0, maxOutput);
+  return { 
+    candidates: allResults.slice(0, maxOutput),
+    stats 
+  };
 }
 
 // ... (Enhanced Prompts Logic remains same as V2.1)
@@ -1629,7 +1698,7 @@ function getBackgroundMatchingGuidelines(category: BackgroundCategory): string {
 }
 
 // ═══════════════════════════════════════════════════════════════
-// TIER 4: AI DEEP ANALYSIS
+// TIER 4: AI DEEP ANALYSIS (Updated with tracking)
 // ═══════════════════════════════════════════════════════════════
 
 async function tier4AIDeepAnalysis(
@@ -1645,14 +1714,26 @@ async function tier4AIDeepAnalysis(
     backgroundProfile: BackgroundProfile;
     metrics: ExtendedMetrics;
   }
-): Promise<FinalCandidate[]> {
+): Promise<{ candidates: FinalCandidate[]; stats: AICallStats['tier4DeepAnalysis'] }> {
   
   const model = await getGeminiModel();
   
-  // 🆕 V2.2: Again, skip AI for cached candidates, but need to reconstruct FinalCandidate
+  // 🆕 V2.3: Initialize stats
+  const stats: AICallStats['tier4DeepAnalysis'] = {
+    candidatesAnalyzed: 0,
+    cachedSkipped: 0,
+    callsMade: 0,
+    totalTokensEstimated: 0,
+    durationMs: 0,
+  };
+  
+  const startTime = Date.now();
+  
   const candidatesForAI = candidates.filter(c => !c.fromScannedPairCache);
   const cachedCandidates = candidates.filter(c => c.fromScannedPairCache);
   const finalCandidates: FinalCandidate[] = [];
+
+  stats.cachedSkipped = cachedCandidates.length;
 
   // Reconstruct cached ones
   cachedCandidates.forEach((c, idx) => {
@@ -1670,14 +1751,25 @@ async function tier4AIDeepAnalysis(
   if (candidatesForAI.length > 0) {
     const prompt = generateEnhancedDeepAnalysisPrompt(targetProfile, candidatesForAI);
     
+    // 🆕 V2.3: Estimate tokens
+    stats.totalTokensEstimated += Math.ceil(prompt.length / 4);
+    
     try {
+      stats.callsMade++;
+      
       const result = await model.generateContent(prompt);
       const jsonString = result.response.text();
+      
+      // 🆕 V2.3: Add response tokens
+      stats.totalTokensEstimated += Math.ceil(jsonString.length / 4);
+      
       const parsed = parseJsonResponse<{ deepAnalysis: any[] }>(jsonString);
       
       for (const aiResult of parsed.deepAnalysis || []) {
         const candidate = candidatesForAI[aiResult.index - 1];
         if (!candidate) continue;
+        
+        stats.candidatesAnalyzed++;
         
         const finalScore = Math.min(100, Math.max(0, aiResult.finalScore || candidate.tier3Score));
         const rank = aiResult.rank || 999;
@@ -1716,9 +1808,17 @@ async function tier4AIDeepAnalysis(
     }
   }
 
+  stats.durationMs = Date.now() - startTime;
+  
+  // 🆕 V2.3: Log stats
+  console.log(`[Tier4] AI Stats: ${stats.callsMade} calls, ${stats.candidatesAnalyzed} analyzed, ${stats.cachedSkipped} cached, ~${stats.totalTokensEstimated} tokens`);
+
   finalCandidates.sort((a, b) => b.finalScore - a.finalScore);
   // Re-assign ranks
-  return finalCandidates.map((c, i) => ({ ...c, rank: i + 1 }));
+  return { 
+    candidates: finalCandidates.map((c, i) => ({ ...c, rank: i + 1 })),
+    stats 
+  };
 }
 
 function generateEnhancedDeepAnalysisPrompt(
@@ -2149,7 +2249,7 @@ export async function hybridScanForVirtualUser(
 
   let tier3Candidates: AIFirstPassCandidate[];
   if (useAIFirstPass && tier2Candidates.length > 0) {
-    tier3Candidates = await tier3AIFirstPass(
+    const tier3Result = await tier3AIFirstPass(
       tier2Candidates.filter(c => c.tier2Score >= minScoreToReturn),
       {
         name: 'פרופיל וירטואלי',
@@ -2163,6 +2263,7 @@ export async function hybridScanForVirtualUser(
       },
       Math.min(25, tier2Candidates.length)
     );
+    tier3Candidates = tier3Result.candidates;
   } else {
     tier3Candidates = tier2Candidates.slice(0, 25).map(c => ({
       ...c,
@@ -2175,7 +2276,7 @@ export async function hybridScanForVirtualUser(
 
   let finalCandidates: FinalCandidate[];
   if (useAIDeepAnalysis && tier3Candidates.length > 0) {
-    finalCandidates = await tier4AIDeepAnalysis(
+    const tier4Result = await tier4AIDeepAnalysis(
       tier3Candidates.slice(0, 15),
       {
         name: 'פרופיל וירטואלי',
@@ -2189,6 +2290,7 @@ export async function hybridScanForVirtualUser(
         metrics: virtualMetrics,
       }
     );
+    finalCandidates = tier4Result.candidates;
   } else {
     finalCandidates = tier3Candidates.map((c, idx) => ({
       ...c,
@@ -2235,7 +2337,7 @@ export async function hybridScanForVirtualUser(
 }
 
 // ═══════════════════════════════════════════════════════════════
-// MAIN EXPORT FUNCTION
+// MAIN EXPORT FUNCTION (Updated)
 // ═══════════════════════════════════════════════════════════════
 
 export async function hybridScan(
@@ -2245,6 +2347,34 @@ export async function hybridScan(
   const startTime = Date.now();
   const warnings: string[] = [];
   const errors: string[] = [];
+
+  // 🆕 V2.3: Initialize AI call stats
+  const aiCallStats: AICallStats = {
+    tier3FirstPass: {
+      batchesSent: 0,
+      candidatesAnalyzed: 0,
+      cachedSkipped: 0,
+      callsMade: 0,
+      totalTokensEstimated: 0,
+      durationMs: 0,
+    },
+    tier4DeepAnalysis: {
+      candidatesAnalyzed: 0,
+      cachedSkipped: 0,
+      callsMade: 0,
+      totalTokensEstimated: 0,
+      durationMs: 0,
+    },
+    embeddings: {
+      callsMade: 0,
+      durationMs: 0,
+    },
+    total: {
+      aiCalls: 0,
+      embeddingCalls: 0,
+      estimatedCost: 0,
+    },
+  };
 
   const {
     maxTier1Candidates = 300,
@@ -2263,14 +2393,13 @@ export async function hybridScan(
     skipCandidateMetricsUpdate = false,
     maxCandidatesToUpdate = MAX_CANDIDATES_TO_UPDATE,
     autoSave = true,
-    // 🆕 V2.2: New options
     skipAlreadyScannedPairs = true,
     saveScannedPairs: shouldSaveScannedPairs = true,
     checkCancelled,
   } = options;
 
   console.log(`\n${'═'.repeat(70)}`);
-  console.log(`[HybridScan V2.2] Starting for user: ${userId}`);
+  console.log(`[HybridScan V2.3] Starting for user: ${userId}`);
   console.log(`${'═'.repeat(70)}`);
 
   const tiersStats = {
@@ -2385,7 +2514,7 @@ export async function hybridScan(
   console.log(`[HybridScan] Tier 1: ${tier1Candidates.length} candidates in ${tiersStats.tier1.durationMs}ms`);
 
   if (tier1Candidates.length === 0) {
-    return createEmptyResult(userId, profile.id, startTime, tiersStats, warnings, errors);
+    return createEmptyResultWithAIStats(userId, profile.id, startTime, tiersStats, aiCallStats, warnings, errors);
   }
 
   if (checkCancelled && await checkCancelled()) {
@@ -2428,7 +2557,7 @@ export async function hybridScan(
   }
 
   // ═══════════════════════════════════════════════════════════
-  // TIER 3: AI First Pass
+  // TIER 3: AI First Pass (Updated to capture stats)
   // ═══════════════════════════════════════════════════════════
   let tier3Candidates: AIFirstPassCandidate[];
   
@@ -2440,7 +2569,8 @@ export async function hybridScan(
     // We filter for minScore unless it's cached (cached ones might have old high score)
     const candidatesForAI = tier2Candidates.filter(c => c.tier2Score >= minScoreForAI || c.fromScannedPairCache);
     
-    tier3Candidates = await tier3AIFirstPass(
+    // 🆕 V2.3: Capture AI stats
+    const tier3Result = await tier3AIFirstPass(
       candidatesForAI,
       {
         name: profile.user.firstName,
@@ -2455,13 +2585,16 @@ export async function hybridScan(
       maxTier3Candidates
     );
     
+    tier3Candidates = tier3Result.candidates;
+    aiCallStats.tier3FirstPass = tier3Result.stats;
+    
     tiersStats.tier3 = {
       input: candidatesForAI.length,
       output: tier3Candidates.length,
       durationMs: Date.now() - tier3Start,
     };
     
-    console.log(`[HybridScan] Tier 3: ${tier3Candidates.length} candidates in ${tiersStats.tier3.durationMs}ms`);
+    console.log(`[HybridScan] Tier 3: ${tier3Candidates.length} candidates, ${aiCallStats.tier3FirstPass.callsMade} AI calls`);
   } else {
     tier3Candidates = tier2Candidates.slice(0, maxTier3Candidates).map(c => ({
       ...c,
@@ -2477,7 +2610,7 @@ export async function hybridScan(
   }
 
   // ═══════════════════════════════════════════════════════════
-  // TIER 4: AI Deep Analysis
+  // TIER 4: AI Deep Analysis (Updated to capture stats)
   // ═══════════════════════════════════════════════════════════
   let finalCandidates: FinalCandidate[];
   
@@ -2487,7 +2620,8 @@ export async function hybridScan(
     
     const topForDeep = tier3Candidates.slice(0, topForDeepAnalysis);
     
-    finalCandidates = await tier4AIDeepAnalysis(
+    // 🆕 V2.3: Capture AI stats
+    const tier4Result = await tier4AIDeepAnalysis(
       topForDeep,
       {
         name: profile.user.firstName,
@@ -2502,13 +2636,16 @@ export async function hybridScan(
       }
     );
     
+    finalCandidates = tier4Result.candidates;
+    aiCallStats.tier4DeepAnalysis = tier4Result.stats;
+    
     tiersStats.tier4 = {
       input: topForDeep.length,
       output: finalCandidates.length,
       durationMs: Date.now() - tier4Start,
     };
     
-    console.log(`[HybridScan] Tier 4: ${finalCandidates.length} candidates in ${tiersStats.tier4.durationMs}ms`);
+    console.log(`[HybridScan] Tier 4: ${finalCandidates.length} candidates, ${aiCallStats.tier4DeepAnalysis.callsMade} AI calls`);
   } else {
     finalCandidates = tier3Candidates.map((c, idx) => ({
       ...c,
@@ -2520,6 +2657,17 @@ export async function hybridScan(
       concerns: [],
     }));
   }
+
+  // ═══════════════════════════════════════════════════════════
+  // 🆕 V2.3: Calculate totals
+  // ═══════════════════════════════════════════════════════════
+  aiCallStats.total = {
+    aiCalls: aiCallStats.tier3FirstPass.callsMade + aiCallStats.tier4DeepAnalysis.callsMade,
+    embeddingCalls: aiCallStats.embeddings.callsMade,
+    // Gemini 2.0 Flash pricing: ~$0.10 per 1M input tokens, ~$0.40 per 1M output tokens
+    // Rough estimate: average ~$0.20 per 1M tokens
+    estimatedCost: ((aiCallStats.tier3FirstPass.totalTokensEstimated + aiCallStats.tier4DeepAnalysis.totalTokensEstimated) / 1000000) * 0.20,
+  };
 
   // ═══════════════════════════════════════════════════════════
   // SAVE RESULTS
@@ -2545,7 +2693,13 @@ export async function hybridScan(
 
   const totalDuration = Date.now() - startTime;
   
-  console.log(`\n[HybridScan] ✅ Completed in ${totalDuration}ms`);
+  // 🆕 V2.3: Enhanced summary log
+  console.log(`\n${'═'.repeat(70)}`);
+  console.log(`[HybridScan] ✅ Completed in ${totalDuration}ms`);
+  console.log(`[HybridScan] 📊 AI Stats Summary:`);
+  console.log(`   Tier 3: ${aiCallStats.tier3FirstPass.callsMade} calls, ${aiCallStats.tier3FirstPass.candidatesAnalyzed} analyzed, ${aiCallStats.tier3FirstPass.cachedSkipped} cached`);
+  console.log(`   Tier 4: ${aiCallStats.tier4DeepAnalysis.callsMade} calls, ${aiCallStats.tier4DeepAnalysis.candidatesAnalyzed} analyzed, ${aiCallStats.tier4DeepAnalysis.cachedSkipped} cached`);
+  console.log(`   Total: ${aiCallStats.total.aiCalls} AI calls, ~$${aiCallStats.total.estimatedCost.toFixed(4)} estimated cost`);
   console.log(`${'═'.repeat(70)}\n`);
 
   return {
@@ -2568,6 +2722,7 @@ export async function hybridScan(
       skippedFromScannedPair: skippedFromScannedPair,
       newPairsScanned: finalCandidates.filter(c => !c.fromScannedPairCache).length,
     },
+    aiCallStats, // 🆕 V2.3
     matches: finalCandidates,
     warnings,
     errors,
@@ -2578,11 +2733,13 @@ export async function hybridScan(
 // HELPER FUNCTIONS
 // ═══════════════════════════════════════════════════════════════
 
-function createEmptyResult(
+// 🆕 V2.3: Helper for empty result with AI stats
+function createEmptyResultWithAIStats(
   userId: string,
   profileId: string,
   startTime: number,
   tiers: HybridScanResult['tiers'],
+  aiCallStats: AICallStats,
   warnings: string[],
   errors: string[]
 ): HybridScanResult {
@@ -2605,6 +2762,7 @@ function createEmptyResult(
       skippedFromScannedPair: 0,
       newPairsScanned: 0,
     },
+    aiCallStats,
     matches: [],
     warnings,
     errors,
