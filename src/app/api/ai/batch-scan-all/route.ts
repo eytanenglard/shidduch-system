@@ -83,6 +83,11 @@ interface ScanSessionState {
     currentUserName: string;
     updated: number;
     failed: number;
+    // 🆕 Add these fields to match the usage in runBatchScan
+    skipped?: number;
+    currentStep?: string;
+    aiCallsMade?: number;
+    embeddingCallsMade?: number;
   };
   
   // Scanning stats  
@@ -101,6 +106,7 @@ interface ScanSessionState {
   error?: string;
   startedAt: Date;
 }
+
 
 // ═══════════════════════════════════════════════════════════════
 // CONSTANTS
@@ -527,82 +533,103 @@ interface UserNeedingUpdate {
   needsAiSummary: boolean;
 }
 
+// src/app/api/ai/batch-scan-all/route.ts
+
 async function findUsersNeedingUpdate(): Promise<UserNeedingUpdate[]> {
   console.log('[Preparation] Finding users needing update...');
   
-  const users = await prisma.user.findMany({
-    where: {
-      profile: { isNot: null },
-    },
-    select: {
-      id: true,
-      firstName: true,
-      lastName: true,
-      profile: {
-        select: {
-          id: true,
-          updatedAt: true,
-          aiProfileSummary: true,
-          metrics: {
-            select: {
-              updatedAt: true,
-            },
-          },
-          vector: {
-            select: {
-              updatedAt: true,
-              selfVectorUpdatedAt: true,
-            },
-          },
-        },
-      },
-    },
-  });
-
-  const usersNeedingUpdate: UserNeedingUpdate[] = [];
-
-  for (const user of users) {
-    if (!user.profile) continue;
-
-    const profileUpdatedAt = user.profile.updatedAt;
+  // 🆕 V2.4: Query optimized - use contentUpdatedAt instead of updatedAt
+  const usersNeedingUpdate = await prisma.$queryRaw<UserNeedingUpdate[]>`
+    SELECT 
+      u.id as "userId",
+      p.id as "profileId",
+      u."firstName",
+      u."lastName",
+      
+      -- Check what's missing or outdated
+      CASE WHEN pm.id IS NULL THEN true ELSE false END as "needsMetrics",
+      CASE WHEN pv."selfVector" IS NULL THEN true ELSE false END as "needsVectors",
+      CASE 
+        WHEN p."aiProfileSummary" IS NULL THEN true
+        WHEN p."aiProfileSummary"->>'personalitySummary' IS NULL THEN true
+        WHEN LENGTH(p."aiProfileSummary"->>'personalitySummary') < 50 THEN true
+        ELSE false 
+      END as "needsAiSummary"
+      
+    FROM "User" u
+    JOIN "Profile" p ON p."userId" = u.id
+    LEFT JOIN "profile_metrics" pm ON pm."profileId" = p.id
+    LEFT JOIN "profile_vectors" pv ON pv."profileId" = p.id
     
-    const metricsUpdatedAt = user.profile.metrics?.updatedAt;
-    const needsMetrics = !metricsUpdatedAt || profileUpdatedAt > metricsUpdatedAt;
-    
-    const vectorsUpdatedAt = user.profile.vector?.selfVectorUpdatedAt || user.profile.vector?.updatedAt;
-    const needsVectors = !vectorsUpdatedAt || profileUpdatedAt > vectorsUpdatedAt;
-    
-    const aiSummary = user.profile.aiProfileSummary as any;
-    const aiUpdatedAt = aiSummary?.lastDeepAnalysisAt ? new Date(aiSummary.lastDeepAnalysisAt) : null;
-    const hasValidSummary = aiSummary?.personalitySummary && aiSummary.personalitySummary.length > 50;
-    const needsAiSummary = !hasValidSummary || !aiUpdatedAt || profileUpdatedAt > aiUpdatedAt;
+    WHERE 
+      -- תנאי 1: חסרים נתונים בכלל
+      (
+        pm.id IS NULL
+        OR pv."selfVector" IS NULL
+        OR p."aiProfileSummary" IS NULL
+        OR p."aiProfileSummary"->>'personalitySummary' IS NULL
+        OR LENGTH(p."aiProfileSummary"->>'personalitySummary') < 50
+      )
+      OR
+      -- תנאי 2: תוכן הפרופיל השתנה אחרי חישוב המדדים האחרון
+      (
+        pm.id IS NOT NULL 
+        AND p."contentUpdatedAt" IS NOT NULL
+        AND p."contentUpdatedAt" > pm."updatedAt"
+      )
+      
+    ORDER BY 
+      -- משתמשים חדשים (בלי metrics) קודם
+      CASE WHEN pm.id IS NULL THEN 0 ELSE 1 END,
+      p."contentUpdatedAt" DESC NULLS LAST
+  `;
 
-    if (needsMetrics || needsVectors || needsAiSummary) {
-      usersNeedingUpdate.push({
-        userId: user.id,
-        profileId: user.profile.id,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        needsMetrics,
-        needsVectors,
-        needsAiSummary,
-      });
-    }
-  }
-
-  console.log(`[Preparation] Found ${usersNeedingUpdate.length} users needing update`);
+  console.log(`[Preparation] Found ${usersNeedingUpdate.length} users truly needing update`);
+  
+  // 🆕 Log breakdown
+  const missingMetrics = usersNeedingUpdate.filter(u => u.needsMetrics).length;
+  const missingVectors = usersNeedingUpdate.filter(u => u.needsVectors).length;
+  const missingAiSummary = usersNeedingUpdate.filter(u => u.needsAiSummary).length;
+  const contentChanged = usersNeedingUpdate.length - missingMetrics;
+  
+  console.log(`[Preparation] Breakdown: Missing Metrics: ${missingMetrics}, Missing Vectors: ${missingVectors}, Missing AI Summary: ${missingAiSummary}, Content Changed: ${contentChanged}`);
 
   return usersNeedingUpdate;
 }
+
+// 🆕 Update interface
+interface UserNeedingUpdate {
+  userId: string;
+  profileId: string;
+  firstName: string;
+  lastName: string;
+  needsMetrics: boolean;
+  needsVectors: boolean;
+  needsAiSummary: boolean;
+}
+
+// src/app/api/ai/batch-scan-all/route.ts
 
 async function updateSingleUserData(
   userId: string,
   profileId: string,
   firstName: string,
-  lastName: string
-): Promise<{ success: boolean; error?: string }> {
+  lastName: string,
+  // 🆕 מקבל מידע מה באמת צריך לעדכן
+  needsMetrics: boolean,
+  needsVectors: boolean,
+  needsAiSummary: boolean
+): Promise<{ success: boolean; error?: string; stats: UpdateStats }> {
   
+  const stats: UpdateStats = {
+    aiSummaryCreated: false,
+    metricsCalculated: false,
+    vectorsCreated: false,
+    skippedSteps: [] as string[],
+  };
+
   console.log(`[Preparation] Updating ${firstName} ${lastName}...`);
+  console.log(`   📋 Needs: Metrics=${needsMetrics}, Vectors=${needsVectors}, AI Summary=${needsAiSummary}`);
 
   try {
     const user = await prisma.user.findUnique({
@@ -617,19 +644,17 @@ async function updateSingleUserData(
     });
 
     if (!user || !user.profile) {
-      return { success: false, error: 'User or profile not found' };
+      return { success: false, error: 'User or profile not found', stats };
     }
 
     const profile = user.profile;
     const questionnaire = user.questionnaireResponses?.[0];
-
-    // Step 1: AI Profile Summary
     let aiProfileSummary = profile.aiProfileSummary as any;
-    
-    const needsDeepAnalysis = !aiProfileSummary?.personalitySummary || 
-                              aiProfileSummary.personalitySummary.length < 50;
 
-    if (needsDeepAnalysis && deepAnalysisModel) {
+    // ═══════════════════════════════════════════════════════════
+    // Step 1: AI Profile Summary (only if truly needed)
+    // ═══════════════════════════════════════════════════════════
+    if (needsAiSummary && deepAnalysisModel) {
       console.log(`   📊 Creating AI profile summary...`);
       
       const narrative = generateNarrativeForDeepAnalysis(user, profile, questionnaire);
@@ -638,7 +663,7 @@ async function updateSingleUserData(
         const newSummary = await generateAiProfileSummary(narrative);
         
         if (newSummary) {
-          const updatedAiProfile = {
+          aiProfileSummary = {
             ...(aiProfileSummary || {}),
             personalitySummary: newSummary.personalitySummary,
             lookingForSummary: newSummary.lookingForSummary,
@@ -647,17 +672,22 @@ async function updateSingleUserData(
 
           await prisma.profile.update({
             where: { id: profileId },
-            data: { aiProfileSummary: updatedAiProfile },
+            data: { aiProfileSummary },
           });
 
-          aiProfileSummary = updatedAiProfile;
+          stats.aiSummaryCreated = true;
           console.log(`   ✓ AI Summary created`);
         }
       }
+    } else {
+      stats.skippedSteps.push('ai_summary');
+      console.log(`   ⏭️ AI Summary exists, skipping`);
     }
 
-    // Step 2: Metrics
-    if (metricsModel) {
+    // ═══════════════════════════════════════════════════════════
+    // Step 2: Metrics (only if truly needed)
+    // ═══════════════════════════════════════════════════════════
+    if (needsMetrics && metricsModel) {
       console.log(`   🤖 Calculating metrics...`);
       
       const narrativeResult = buildFullNarrativeWithHardData(user, profile, questionnaire, aiProfileSummary);
@@ -683,58 +713,121 @@ async function updateSingleUserData(
               ...metrics,
             },
           });
+          
+          stats.metricsCalculated = true;
           console.log(`   ✓ Metrics saved`);
 
-          // Step 3: Vectors
-          console.log(`   📐 Creating vectors...`);
-          
-          const selfVector = await generateTextEmbedding(metrics.aiPersonalitySummary);
-          const seekingVector = await generateTextEmbedding(metrics.aiSeekingSummary);
+          // ═══════════════════════════════════════════════════════
+          // Step 3: Vectors (only after new metrics, or if missing)
+          // ═══════════════════════════════════════════════════════
+          if (needsVectors || stats.metricsCalculated) {
+            console.log(`   📐 Creating vectors...`);
+            
+            const selfVector = await generateTextEmbedding(metrics.aiPersonalitySummary);
+            const seekingVector = await generateTextEmbedding(metrics.aiSeekingSummary);
 
+            if (selfVector && seekingVector) {
+              const selfVectorStr = `[${selfVector.join(',')}]`;
+              const seekingVectorStr = `[${seekingVector.join(',')}]`;
+
+              const existingVector = await prisma.$queryRaw<any[]>`
+                SELECT id FROM "profile_vectors" WHERE "profileId" = ${profileId}
+              `;
+
+              if (existingVector && existingVector.length > 0) {
+                await prisma.$executeRawUnsafe(`
+                  UPDATE "profile_vectors"
+                  SET 
+                    "selfVector" = $1::vector,
+                    "seekingVector" = $2::vector,
+                    "selfVectorUpdatedAt" = NOW(),
+                    "seekingVectorUpdatedAt" = NOW(),
+                    "updatedAt" = NOW()
+                  WHERE "profileId" = $3
+                `, selfVectorStr, seekingVectorStr, profileId);
+              } else {
+                await prisma.$executeRawUnsafe(`
+                  INSERT INTO "profile_vectors" (
+                    "id", "profileId", "createdAt", "updatedAt",
+                    "selfVector", "seekingVector", "selfVectorUpdatedAt", "seekingVectorUpdatedAt"
+                  ) VALUES (
+                    gen_random_uuid(), $1, NOW(), NOW(),
+                    $2::vector, $3::vector, NOW(), NOW()
+                  )
+                `, profileId, selfVectorStr, seekingVectorStr);
+              }
+              
+              stats.vectorsCreated = true;
+              console.log(`   ✓ Vectors saved`);
+            }
+          }
+        }
+      }
+    } else {
+      stats.skippedSteps.push('metrics');
+      console.log(`   ⏭️ Metrics exist and up-to-date, skipping`);
+      
+      // Still check if vectors are missing
+      if (needsVectors) {
+        console.log(`   📐 Creating vectors from existing metrics...`);
+        
+        const existingMetrics = await prisma.profileMetrics.findUnique({
+          where: { profileId },
+          select: { aiPersonalitySummary: true, aiSeekingSummary: true }
+        });
+        
+        if (existingMetrics?.aiPersonalitySummary && existingMetrics?.aiSeekingSummary) {
+          const selfVector = await generateTextEmbedding(existingMetrics.aiPersonalitySummary);
+          const seekingVector = await generateTextEmbedding(existingMetrics.aiSeekingSummary);
+          
           if (selfVector && seekingVector) {
             const selfVectorStr = `[${selfVector.join(',')}]`;
             const seekingVectorStr = `[${seekingVector.join(',')}]`;
-
-            const existingVector = await prisma.$queryRaw<any[]>`
-              SELECT id FROM "profile_vectors" WHERE "profileId" = ${profileId}
-            `;
-
-            if (existingVector && existingVector.length > 0) {
-              await prisma.$executeRawUnsafe(`
-                UPDATE "profile_vectors"
-                SET 
-                  "selfVector" = $1::vector,
-                  "seekingVector" = $2::vector,
-                  "selfVectorUpdatedAt" = NOW(),
-                  "seekingVectorUpdatedAt" = NOW(),
-                  "updatedAt" = NOW()
-                WHERE "profileId" = $3
-              `, selfVectorStr, seekingVectorStr, profileId);
-            } else {
-              await prisma.$executeRawUnsafe(`
-                INSERT INTO "profile_vectors" (
-                  "id", "profileId", "createdAt", "updatedAt",
-                  "selfVector", "seekingVector", "selfVectorUpdatedAt", "seekingVectorUpdatedAt"
-                ) VALUES (
-                  gen_random_uuid(), $1, NOW(), NOW(),
-                  $2::vector, $3::vector, NOW(), NOW()
-                )
-              `, profileId, selfVectorStr, seekingVectorStr);
-            }
+            
+            await prisma.$executeRawUnsafe(`
+              INSERT INTO "profile_vectors" (
+                "id", "profileId", "createdAt", "updatedAt",
+                "selfVector", "seekingVector", "selfVectorUpdatedAt", "seekingVectorUpdatedAt"
+              ) VALUES (
+                gen_random_uuid(), $1, NOW(), NOW(),
+                $2::vector, $3::vector, NOW(), NOW()
+              )
+              ON CONFLICT ("profileId") DO UPDATE SET
+                "selfVector" = $2::vector,
+                "seekingVector" = $3::vector,
+                "selfVectorUpdatedAt" = NOW(),
+                "seekingVectorUpdatedAt" = NOW(),
+                "updatedAt" = NOW()
+            `, profileId, selfVectorStr, seekingVectorStr);
+            
+            stats.vectorsCreated = true;
             console.log(`   ✓ Vectors saved`);
           }
         }
       }
     }
 
-    console.log(`   ✅ ${firstName} ${lastName} updated successfully`);
-    return { success: true };
+    const actionsTaken = [
+      stats.aiSummaryCreated ? 'AI Summary' : null,
+      stats.metricsCalculated ? 'Metrics' : null,
+      stats.vectorsCreated ? 'Vectors' : null,
+    ].filter(Boolean);
+
+    console.log(`   ✅ ${firstName} ${lastName} - Updated: ${actionsTaken.join(', ') || 'Nothing (all current)'}`);
+    return { success: true, stats };
 
   } catch (error) {
     const errorMsg = error instanceof Error ? error.message : 'Unknown error';
     console.error(`   ❌ Error updating ${firstName}: ${errorMsg}`);
-    return { success: false, error: errorMsg };
+    return { success: false, error: errorMsg, stats };
   }
+}
+
+interface UpdateStats {
+  aiSummaryCreated: boolean;
+  metricsCalculated: boolean;
+  vectorsCreated: boolean;
+  skippedSteps: string[];
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -788,53 +881,77 @@ async function runBatchScan(
           },
         });
         
-        if (usersNeedingUpdate.length > 0) {
-          console.log(`\n[BatchScan] ═══ PREPARATION PHASE ═══`);
-          console.log(`[BatchScan] Updating ${usersNeedingUpdate.length} users...`);
-          
-          let updated = 0;
-          let failed = 0;
-          
-          for (let i = 0; i < usersNeedingUpdate.length; i++) {
-            // 🆕 V2.3: Check cancellation from DB
-            if (await isScanCancelled(sessionId)) {
-              console.log(`[BatchScan] Preparation cancelled at user ${i + 1}`);
-              break;
-            }
-            
-            const user = usersNeedingUpdate[i];
-            
-            await updateScanProgress(sessionId, {
-              preparationStats: {
-                totalNeedingUpdate: usersNeedingUpdate.length,
-                currentIndex: i + 1,
-                currentUserName: `${user.firstName} ${user.lastName}`,
-                updated,
-                failed,
-              },
-              message: `מכין נתונים: ${user.firstName} ${user.lastName} (${i + 1}/${usersNeedingUpdate.length})`,
-            });
-            
-            const result = await updateSingleUserData(
-              user.userId,
-              user.profileId,
-              user.firstName,
-              user.lastName
-            );
-            
-            if (result.success) {
-              updated++;
-            } else {
-              failed++;
-            }
-            
-            if (i < usersNeedingUpdate.length - 1) {
-              await sleep(PREPARATION_DELAY_MS);
-            }
-          }
-          
-          console.log(`[BatchScan] Preparation complete: ${updated} updated, ${failed} failed`);
-        }
+       // בתוך runBatchScan()
+
+if (usersNeedingUpdate.length > 0) {
+  console.log(`\n[BatchScan] ═══ PREPARATION PHASE ═══`);
+  console.log(`[BatchScan] Updating ${usersNeedingUpdate.length} users...`);
+  
+  let updated = 0;
+  let failed = 0;
+  let skipped = 0;
+  let aiCallsMade = 0;
+  let embeddingCallsMade = 0;
+  
+  for (let i = 0; i < usersNeedingUpdate.length; i++) {
+    if (await isScanCancelled(sessionId)) {
+      console.log(`[BatchScan] Preparation cancelled at user ${i + 1}`);
+      break;
+    }
+    
+    const user = usersNeedingUpdate[i];
+    
+    await updateScanProgress(sessionId, {
+      preparationStats: {
+        totalNeedingUpdate: usersNeedingUpdate.length,
+        currentIndex: i + 1,
+        currentUserName: `${user.firstName} ${user.lastName}`,
+        updated,
+        failed,
+        skipped,
+        // 🆕 New fields for frontend
+        currentStep: 'processing',
+        aiCallsMade,
+        embeddingCallsMade,
+      },
+      message: `מכין נתונים: ${user.firstName} ${user.lastName} (${i + 1}/${usersNeedingUpdate.length})`,
+    });
+    
+    const result = await updateSingleUserData(
+      user.userId,
+      user.profileId,
+      user.firstName,
+      user.lastName,
+      user.needsMetrics,
+      user.needsVectors,
+      user.needsAiSummary
+    );
+    
+    if (result.success) {
+      if (result.stats.metricsCalculated || result.stats.aiSummaryCreated || result.stats.vectorsCreated) {
+        updated++;
+      } else {
+        skipped++;
+      }
+      
+      // Count AI calls
+      if (result.stats.aiSummaryCreated) aiCallsMade++;
+      if (result.stats.metricsCalculated) aiCallsMade++;
+      if (result.stats.vectorsCreated) embeddingCallsMade += 2;
+    } else {
+      failed++;
+    }
+    
+    // 🆕 Dynamic delay - shorter if we skipped
+    const delay = result.stats.skippedSteps.length === 3 ? 100 : PREPARATION_DELAY_MS;
+    if (i < usersNeedingUpdate.length - 1) {
+      await sleep(delay);
+    }
+  }
+  
+  console.log(`[BatchScan] Preparation complete: ${updated} updated, ${skipped} skipped, ${failed} failed`);
+  console.log(`[BatchScan] AI Calls: ${aiCallsMade}, Embedding Calls: ${embeddingCallsMade}`);
+}
       }
     }
 

@@ -64,7 +64,10 @@ export async function DELETE(
     await prisma.userImage.delete({
       where: { id: imageId },
     });
-
+  await prisma.profile.update({
+        where: { userId: session.user.id }, // שים לב: image.userId זמין גם כן
+        data: { contentUpdatedAt: new Date() }
+    });
     if (image.isMain) {
       const remainingImage = await prisma.userImage.findFirst({
         where: { userId: image.userId },
@@ -76,6 +79,10 @@ export async function DELETE(
           where: { id: remainingImage.id },
           data: { isMain: true },
         });
+          await prisma.profile.update({
+        where: { userId: image.userId },
+        data: { contentUpdatedAt: new Date() }
+    });
       }
     }
 

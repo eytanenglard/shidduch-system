@@ -65,6 +65,7 @@ export async function PUT(req: Request) {
     status: "ACTIVE",
     updatedAt: new Date() // 🆕 הוסף
   }
+  
 })
 
     ]);

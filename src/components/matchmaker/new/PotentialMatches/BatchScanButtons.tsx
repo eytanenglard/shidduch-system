@@ -50,7 +50,18 @@ interface ScanProgress {
   stats?: {
     matchesFoundSoFar?: number;
   };
+  // 👇 Added this property based on your usage in the component
+  preparationStats?: {
+    currentIndex: number;
+    totalNeedingUpdate: number;
+    currentUserName?: string;
+    updated: number;
+    skipped?: number;
+    failed: number;
+    aiCallsMade?: number;
+  };
 }
+
 
 interface ScanResult {
   matchesFound?: number;
@@ -179,11 +190,43 @@ const BatchScanButtons: React.FC<BatchScanButtonsProps> = ({
                   )}
                 </h3>
                 <p className="text-sm text-gray-500">
-                  {scanProgress.phase === 'preparing' ? (
-                    <span className="text-amber-600 font-medium">📥 מכין נתונים...</span>
-                  ) : (
-                    scanProgress.message || 'מעבד...'
-                  )}
+               {scanProgress.phase === 'preparing' && scanProgress.preparationStats && (
+  <div className="space-y-2 mt-3 p-3 bg-amber-50 rounded-lg border border-amber-100">
+    <div className="flex items-center gap-2 text-amber-700">
+      <Loader2 className="w-4 h-4 animate-spin" />
+      <span className="font-medium text-sm">
+        מכין נתונים ({scanProgress.preparationStats.currentIndex}/{scanProgress.preparationStats.totalNeedingUpdate})
+      </span>
+    </div>
+    
+    {scanProgress.preparationStats.currentUserName && (
+      <p className="text-xs text-amber-600">
+        מעדכן: {scanProgress.preparationStats.currentUserName}
+      </p>
+    )}
+    
+    {/* 🆕 Progress breakdown */}
+    <div className="grid grid-cols-4 gap-2 text-xs">
+      <div className="text-center p-1.5 bg-emerald-100 rounded">
+        <div className="font-bold text-emerald-700">{scanProgress.preparationStats.updated}</div>
+        <div className="text-emerald-600">עודכנו</div>
+      </div>
+      <div className="text-center p-1.5 bg-blue-100 rounded">
+        <div className="font-bold text-blue-700">{scanProgress.preparationStats.skipped || 0}</div>
+        <div className="text-blue-600">דולגו</div>
+      </div>
+      <div className="text-center p-1.5 bg-red-100 rounded">
+        <div className="font-bold text-red-700">{scanProgress.preparationStats.failed}</div>
+        <div className="text-red-600">נכשלו</div>
+      </div>
+      <div className="text-center p-1.5 bg-purple-100 rounded">
+        <div className="font-bold text-purple-700">{scanProgress.preparationStats.aiCallsMade || 0}</div>
+        <div className="text-purple-600">קריאות AI</div>
+      </div>
+    </div>
+  </div>
+)}
+
                 </p>
               </div>
             </div>

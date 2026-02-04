@@ -227,6 +227,8 @@ metrics  ProfileMetrics?
   availabilityUpdatedAt     DateTime?
   createdAt                 DateTime           @default(now())
   updatedAt                 DateTime           @updatedAt
+    contentUpdatedAt        DateTime?   @default(now())
+
   lastActive                DateTime?
 
   user                    User           @relation(fields: [userId], references: [id], onDelete: Cascade)

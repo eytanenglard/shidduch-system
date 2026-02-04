@@ -105,13 +105,14 @@ export async function POST(
         userId: id,
         url: uploadResult.secure_url,
         cloudinaryPublicId: uploadResult.public_id,
-        isMain: existingImages === 0
+        isMain: existingImages === 0,
+        
       }
     });
 
     await prisma.profile.update({
       where: { userId: id },
-      data: { lastActive: new Date() }
+      data: { lastActive: new Date(), contentUpdatedAt: new Date() }
     });
 
     return NextResponse.json({

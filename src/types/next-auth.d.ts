@@ -95,6 +95,7 @@ export interface UserProfile extends Omit<PrismaProfile, 'gender' | 'birthDate' 
   referredBy?: string | null;
   // --- הוספה חדשה: מערך המלצות ---
   testimonials?: FriendTestimonial[];
+  contentUpdatedAt?: Date | null;
   // --- הוספה חדשה ---
   isMedicalInfoVisible: boolean; // זה לא אופציונלי כי יש לו ברירת מחדל בדאטהבייס
   // --- Existing Preference Fields ---

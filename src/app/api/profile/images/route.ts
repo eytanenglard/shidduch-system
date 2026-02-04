@@ -193,7 +193,10 @@ export async function POST(req: NextRequest) {
       where: { id: session.user.id },
       data: { updatedAt: new Date() }
     });
-
+ await prisma.profile.update({
+        where: { userId: session.user.id },
+        data: { contentUpdatedAt: new Date() }
+    });
     console.log(
       `[Upload] Database save completed in ${Date.now() - startTime}ms`
     );
@@ -282,7 +285,10 @@ export async function DELETE(req: Request) {
         userId: userId,
       },
     });
-
+  await prisma.profile.update({
+        where: { userId: userId },
+        data: { contentUpdatedAt: new Date() }
+    });
     // 5. אם התמונה הראשית נמחקה, נגדיר חדשה (הכי חדשה שנשארה)
     if (wasMainImageDeleted) {
       const newMainImage = await prisma.userImage.findFirst({

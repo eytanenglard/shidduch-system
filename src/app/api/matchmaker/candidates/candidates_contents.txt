@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\candidates
-# Generated on: 2026-01-26 22:43:01
+# Generated on: 2026-02-04 11:17:29
 # Filter: Only content of code files (.bat, .c, .cfg, .conf, .cpp, .cs, .css, .go, .h, .html, .ini, .java, .js, .json, .jsx, .kt, .less, .md, .php, .py, .rb, .rs, .scss, .sh, .sql, .swift, .ts, .tsx, .txt, .xml, .yaml, .yml) is included.
 ################################################################################
 
@@ -119,7 +119,11 @@ images: {
     },
   },
 });
-
+// DEBUG: Check images count for first few users
+console.log('[API DEBUG] Sample images counts:');
+users.slice(0, 5).forEach(u => {
+  console.log(`  - ${u.firstName} ${u.lastName}: ${u.images?.length || 0} images`);
+});
     // ================== 🚨 START SERVER DEBUG: LINOY 🚨 ==================
     const targetEmail = 'linoyreznik032@gmail.com';
     const foundUser = users.find(u => u.email === targetEmail);

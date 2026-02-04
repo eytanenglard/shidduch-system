@@ -106,6 +106,8 @@ export async function POST(req: Request) {
         cvUrl: uploadResult.secure_url,
         cvSummary: cvSummaryMarkdown,
         needsAiProfileUpdate: true,
+                contentUpdatedAt: new Date(),
+
       },
     });
 
@@ -156,6 +158,8 @@ export async function DELETE(req: Request) {
                 cvUrl: null,
                 cvSummary: null,
                 needsAiProfileUpdate: true,
+                                contentUpdatedAt: new Date(),
+
             },
         });
 

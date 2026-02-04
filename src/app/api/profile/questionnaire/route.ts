@@ -156,7 +156,7 @@ if (!worldKey || !questionId || !value || !value.type || !KEY_MAPPING[worldKey])
 
      await prisma.profile.update({
        where: { userId },
-       data: { needsAiProfileUpdate: true }
+       data: { needsAiProfileUpdate: true,  contentUpdatedAt: new Date()}
      });
 await prisma.user.update({
   where: { id: userId },

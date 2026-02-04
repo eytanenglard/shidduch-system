@@ -232,6 +232,8 @@ export async function PATCH(
             updatedAt: new Date(),
             lastActive: new Date(),
             needsAiProfileUpdate: true, // מסמנים זמנית שצריך עדכון, עד שתהליך הרקע יסתיים
+                     contentUpdatedAt: new Date(),
+
           }
         });
 

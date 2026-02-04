@@ -121,6 +121,8 @@ export async function POST(req: NextRequest) {
       height: height,
       religiousLevel: religiousLevel,
       maritalStatus,
+            contentUpdatedAt: new Date(),
+
     };
 
     // --- START: הוספת שדה מקור הפניה ---

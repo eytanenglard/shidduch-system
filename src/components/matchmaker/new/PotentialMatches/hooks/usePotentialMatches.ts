@@ -91,7 +91,12 @@ export interface ScanProgress {
     currentUserName: string;
     updated: number;
     failed: number;
+    skipped: number;              // 🆕
+    currentStep: 'checking' | 'ai_summary' | 'metrics' | 'vectors' | 'done';  // 🆕
+    aiCallsMade: number;          // 🆕
+    embeddingCallsMade: number;   // 🆕
   };
+
   scanId: string;
   status: 'running' | 'completed' | 'failed' | 'partial' | 'cancelled' | 'resuming';
   message?: string;

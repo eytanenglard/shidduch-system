@@ -83,7 +83,11 @@ export async function PUT(req: Request) {
       });
    await tx.profile.update({
         where: { userId },
-        data: { needsAiProfileUpdate: true }
+         data: { 
+            needsAiProfileUpdate: true,
+            // ✅ הוסף שורה זו:
+            contentUpdatedAt: new Date() 
+        }
       });
       await tx.user.update({
   where: { id: userId },

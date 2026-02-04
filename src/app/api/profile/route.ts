@@ -145,6 +145,7 @@ export async function GET(req: Request) {
       verifiedBy: dbProfile.verifiedBy || undefined,
       createdAt: new Date(dbProfile.createdAt),
       updatedAt: new Date(dbProfile.updatedAt),
+      contentUpdatedAt: dbProfile.contentUpdatedAt ? new Date(dbProfile.contentUpdatedAt) : null, 
       lastActive: dbProfile.lastActive ? new Date(dbProfile.lastActive) : null,
       hasViewedProfilePreview: dbProfile.hasViewedProfilePreview,
       needsAiProfileUpdate: dbProfile.needsAiProfileUpdate,
@@ -231,6 +232,7 @@ export async function PUT(req: Request) {
       data: {
         ...updateData,
         updatedAt: new Date(),
+        contentUpdatedAt: new Date(),
       },
       include: {
         testimonials: {
@@ -347,6 +349,8 @@ export async function PUT(req: Request) {
       verifiedBy: dbProfile.verifiedBy || undefined,
       createdAt: new Date(dbProfile.createdAt),
       updatedAt: new Date(dbProfile.updatedAt),
+            contentUpdatedAt: new Date(), // או להשתמש בערך מה-updatedProfile אם שלפת אותו
+
       lastActive: dbProfile.lastActive ? new Date(dbProfile.lastActive) : null,
       hasViewedProfilePreview: dbProfile.hasViewedProfilePreview,
       needsAiProfileUpdate: dbProfile.needsAiProfileUpdate,

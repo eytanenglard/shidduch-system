@@ -320,6 +320,7 @@ export async function PUT(req: NextRequest) {
         dataToUpdate.availabilityUpdatedAt = toDateOrNull(availabilityUpdatedAt);
     }
     dataToUpdate.lastActive = new Date();
+    dataToUpdate.contentUpdatedAt = new Date(); 
 
     // --- Perform Update ---
     let updatedProfileRecord: Profile | null = null;
