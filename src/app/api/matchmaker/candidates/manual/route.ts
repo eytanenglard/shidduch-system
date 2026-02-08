@@ -60,8 +60,7 @@ export async function POST(req: NextRequest) {
     const firstName = formData.get('firstName') as string;
     const lastName = formData.get('lastName') as string;
     const phoneValue = formData.get('phone') as string | null;
-// אחרי religiousLevel
-const origin = formData.get('origin') as string | null;
+    const origin = formData.get('origin') as string | null;
     const emailValue = formData.get('email') as string | null;
     const gender = formData.get('gender') as Gender;
     const birthDateStr = formData.get('birthDate') as string;
@@ -72,14 +71,20 @@ const origin = formData.get('origin') as string | null;
     const images = formData.getAll('images') as File[];
     const birthDateIsApproximate = formData.get('birthDateIsApproximate') === 'true';
     
-    // --- START: שדה מקור הפניה ---
+    // מקור הפניה
     const referredBy = formData.get('referredBy') as string | null;
-    // --- END: שדה מקור הפניה ---
     
-    // --- START: שדות מקצוע הורים ---
+    // מקצוע הורים
     const fatherOccupation = formData.get('fatherOccupation') as string | null;
     const motherOccupation = formData.get('motherOccupation') as string | null;
-    // --- END: שדות מקצוע הורים ---
+
+    // --- שדות חדשים שנשלחים מ-CardBasedImportDialog ---
+    const city = formData.get('city') as string | null;
+    const occupation = formData.get('occupation') as string | null;
+    const education = formData.get('education') as string | null;
+    const educationLevel = formData.get('educationLevel') as string | null;
+    const about = formData.get('about') as string | null;
+    const hasChildrenFromPreviousStr = formData.get('hasChildrenFromPrevious') as string | null;
 
     let height: number | null = null;
     if (heightStr && heightStr.trim() !== '') {
@@ -124,17 +129,14 @@ const origin = formData.get('origin') as string | null;
       height: height,
       religiousLevel: religiousLevel,
       maritalStatus,
-        origin: origin || null, // 👈 הוסף שורה זו
-
-            contentUpdatedAt: new Date(),
-
+      origin: origin || null,
+      contentUpdatedAt: new Date(),
     };
 
-    // --- START: הוספת שדה מקור הפניה ---
+    // מקור הפניה
     if (referredBy && referredBy.trim() !== '') {
       profileCreateData.referredBy = referredBy.trim();
     }
-    // --- END: הוספת שדה מקור הפניה ---
 
     if (!maritalStatus) {
       return NextResponse.json({ error: 'Marital status is required' }, { status: 400 });
@@ -145,6 +147,27 @@ const origin = formData.get('origin') as string | null;
     if (motherOccupation) {
         profileCreateData.motherOccupation = motherOccupation;
     }
+
+    // --- שדות חדשים ---
+    if (city && city.trim() !== '') {
+      profileCreateData.city = city.trim();
+    }
+    if (occupation && occupation.trim() !== '') {
+      profileCreateData.occupation = occupation.trim();
+    }
+    if (education && education.trim() !== '') {
+      profileCreateData.education = education.trim();
+    }
+    if (educationLevel && educationLevel.trim() !== '') {
+      profileCreateData.educationLevel = educationLevel.trim();
+    }
+    if (about && about.trim() !== '') {
+      profileCreateData.about = about.trim();
+    }
+    if (hasChildrenFromPreviousStr !== null && hasChildrenFromPreviousStr !== '') {
+      profileCreateData.hasChildrenFromPrevious = hasChildrenFromPreviousStr === 'true';
+    }
+
     if (hasMedicalInfo !== null) {
       profileCreateData.hasMedicalInfo = hasMedicalInfo === 'true';
     }
@@ -163,8 +186,7 @@ const origin = formData.get('origin') as string | null;
         firstName,
         lastName,
         email,
-            phone: phoneValue?.trim() || null, // הוסף שורה זו
-
+        phone: phoneValue?.trim() || null,
         password: null,
         role: UserRole.CANDIDATE,
         status: UserStatus.PENDING_EMAIL_VERIFICATION,

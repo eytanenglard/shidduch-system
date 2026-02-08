@@ -36,6 +36,7 @@ import {
   Zap,
   Grid3X3,
   Check,
+  ZoomIn,
 } from 'lucide-react';
 import {
   Select,
@@ -53,17 +54,14 @@ import Image from 'next/image';
 interface CandidateImage {
   file: File;
   preview: string;
-  isFormImage: boolean; // whether AI detected text/form in this image
+  isFormImage: boolean;
 }
 
 interface CardData {
   id: string;
-  // Raw input
   images: CandidateImage[];
   rawText: string;
-  // AI-extracted fields
   extracted: ExtractedFields | null;
-  // Status
   status:
     | 'empty'
     | 'has-input'
@@ -99,6 +97,7 @@ interface ExtractedFields {
   militaryService: string;
   languages: string;
   manualEntryText: string;
+  hasChildrenFromPrevious: string; // 'true' | 'false' | ''
 }
 
 interface CardBasedImportDialogProps {
@@ -138,6 +137,7 @@ const EMPTY_FIELDS: ExtractedFields = {
   militaryService: '',
   languages: '',
   manualEntryText: '',
+  hasChildrenFromPrevious: '',
 };
 
 function createEmptyCard(): CardData {
@@ -201,7 +201,6 @@ export const CardBasedImportDialog: React.FC<CardBasedImportDialogProps> = ({
         prev.map((card) => {
           if (card.id !== cardId) return card;
           const updated = { ...card, ...updates };
-          // Auto-update status
           if (!updates.status) {
             if (
               updated.images.length > 0 ||
@@ -233,43 +232,51 @@ export const CardBasedImportDialog: React.FC<CardBasedImportDialogProps> = ({
   );
 
   // =========================================================================
-  // Image handling
+  // Image handling — shared helper
   // =========================================================================
+  const addImagesToCard = useCallback(
+    (cardId: string, files: File[]) => {
+      const card = cards.find((c) => c.id === cardId);
+      if (!card) return;
+
+      const newImages: CandidateImage[] = [];
+
+      for (const file of files) {
+        if (card.images.length + newImages.length >= MAX_IMAGES_PER_CARD) {
+          toast.warning(`מקסימום ${MAX_IMAGES_PER_CARD} תמונות לכרטיס`);
+          break;
+        }
+        if (file.size > MAX_IMAGE_SIZE_MB * 1024 * 1024) {
+          toast.error(`${file.name} גדול מדי (מקס ${MAX_IMAGE_SIZE_MB}MB)`);
+          continue;
+        }
+        if (!file.type.startsWith('image/')) {
+          toast.error(`${file.name} אינו קובץ תמונה`);
+          continue;
+        }
+        newImages.push({
+          file,
+          preview: URL.createObjectURL(file),
+          isFormImage: false,
+        });
+      }
+
+      if (newImages.length > 0) {
+        updateCard(cardId, {
+          images: [...card.images, ...newImages],
+          status: 'has-input',
+        });
+      }
+    },
+    [cards, updateCard]
+  );
+
   const handleImageUpload = (
     cardId: string,
     e: React.ChangeEvent<HTMLInputElement>
   ) => {
     if (!e.target.files) return;
-    const card = cards.find((c) => c.id === cardId);
-    if (!card) return;
-
-    const newFiles = Array.from(e.target.files);
-    const newImages: CandidateImage[] = [];
-
-    for (const file of newFiles) {
-      if (card.images.length + newImages.length >= MAX_IMAGES_PER_CARD) {
-        toast.warning(`מקסימום ${MAX_IMAGES_PER_CARD} תמונות לכרטיס`);
-        break;
-      }
-      if (file.size > MAX_IMAGE_SIZE_MB * 1024 * 1024) {
-        toast.error(`${file.name} גדול מדי (מקס ${MAX_IMAGE_SIZE_MB}MB)`);
-        continue;
-      }
-      newImages.push({
-        file,
-        preview: URL.createObjectURL(file),
-        isFormImage: false,
-      });
-    }
-
-    if (newImages.length > 0) {
-      updateCard(cardId, {
-        images: [...card.images, ...newImages],
-        status: 'has-input',
-      });
-    }
-
-    // Reset file input
+    addImagesToCard(cardId, Array.from(e.target.files));
     if (e.target) e.target.value = '';
   };
 
@@ -327,6 +334,23 @@ export const CardBasedImportDialog: React.FC<CardBasedImportDialogProps> = ({
       }
     },
     [cards, updateCard]
+  );
+
+  // =========================================================================
+  // Drag & Drop handler
+  // =========================================================================
+  const handleDrop = useCallback(
+    (cardId: string, e: React.DragEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const files = Array.from(e.dataTransfer.files).filter((f) =>
+        f.type.startsWith('image/')
+      );
+      if (files.length > 0) {
+        addImagesToCard(cardId, files);
+      }
+    },
+    [addImagesToCard]
   );
 
   // =========================================================================
@@ -405,7 +429,6 @@ export const CardBasedImportDialog: React.FC<CardBasedImportDialogProps> = ({
       } catch {
         failCount++;
       }
-      // Small delay between requests
       await new Promise((r) => setTimeout(r, 500));
     }
 
@@ -446,6 +469,18 @@ export const CardBasedImportDialog: React.FC<CardBasedImportDialogProps> = ({
       if (fields.height) formData.append('height', fields.height);
       if (fields.referredBy) formData.append('referredBy', fields.referredBy);
 
+      // --- שדות מובנים שנשלחים ישירות לפרופיל ---
+      if (fields.city) formData.append('city', fields.city);
+      if (fields.occupation) formData.append('occupation', fields.occupation);
+      if (fields.education) formData.append('education', fields.education);
+      if (fields.educationLevel)
+        formData.append('educationLevel', fields.educationLevel);
+      if (fields.hasChildrenFromPrevious)
+        formData.append(
+          'hasChildrenFromPrevious',
+          fields.hasChildrenFromPrevious
+        );
+
       // Birth date from age
       if (fields.age) {
         const ageNum = parseInt(fields.age, 10);
@@ -457,23 +492,32 @@ export const CardBasedImportDialog: React.FC<CardBasedImportDialogProps> = ({
         }
       }
 
-      // Build manual entry text
-      const manualLines: string[] = [];
-      if (fields.personality) manualLines.push(`אופי: ${fields.personality}`);
-      if (fields.lookingFor) manualLines.push(`מחפש/ת: ${fields.lookingFor}`);
-      if (fields.hobbies) manualLines.push(`תחביבים: ${fields.hobbies}`);
+      // --- בניית טקסט about מכל הפרטים התיאוריים ---
+      const aboutLines: string[] = [];
+      if (fields.personality) aboutLines.push(fields.personality);
+      if (fields.lookingFor) aboutLines.push(`מחפש/ת: ${fields.lookingFor}`);
+      if (fields.hobbies) aboutLines.push(`תחביבים: ${fields.hobbies}`);
       if (fields.familyDescription)
-        manualLines.push(`משפחה: ${fields.familyDescription}`);
+        aboutLines.push(`משפחה: ${fields.familyDescription}`);
       if (fields.militaryService)
-        manualLines.push(`שירות: ${fields.militaryService}`);
-      if (fields.education) manualLines.push(`לימודים: ${fields.education}`);
-      if (fields.occupation) manualLines.push(`עיסוק: ${fields.occupation}`);
-      if (fields.city) manualLines.push(`עיר: ${fields.city}`);
-      if (fields.languages) manualLines.push(`שפות: ${fields.languages}`);
-      if (fields.manualEntryText)
-        manualLines.push(`\n--- טקסט מקורי ---\n${fields.manualEntryText}`);
-      else if (card.rawText)
-        manualLines.push(`\n--- טקסט מקורי ---\n${card.rawText}`);
+        aboutLines.push(`שירות: ${fields.militaryService}`);
+      if (fields.languages) aboutLines.push(`שפות: ${fields.languages}`);
+
+      if (aboutLines.length > 0) {
+        formData.append('about', aboutLines.join('\n'));
+      }
+
+      // --- בניית manualEntryText — הטקסט המקורי לעיון ---
+      const manualLines: string[] = [];
+      if (fields.manualEntryText) manualLines.push(fields.manualEntryText);
+      else if (card.rawText) manualLines.push(card.rawText);
+
+      if (manualLines.length === 0) {
+        if (fields.personality) manualLines.push(`אופי: ${fields.personality}`);
+        if (fields.lookingFor) manualLines.push(`מחפש/ת: ${fields.lookingFor}`);
+        if (fields.occupation) manualLines.push(`עיסוק: ${fields.occupation}`);
+        if (fields.city) manualLines.push(`עיר: ${fields.city}`);
+      }
 
       formData.append(
         'manualEntryText',
@@ -485,7 +529,6 @@ export const CardBasedImportDialog: React.FC<CardBasedImportDialogProps> = ({
       for (const img of photoImages) {
         formData.append('images', img.file);
       }
-      // If no non-form images, add all images
       if (photoImages.length === 0) {
         for (const img of card.images) {
           formData.append('images', img.file);
@@ -530,7 +573,6 @@ export const CardBasedImportDialog: React.FC<CardBasedImportDialogProps> = ({
   // Close & Cleanup
   // =========================================================================
   const handleClose = () => {
-    // Clean up object URLs
     cards.forEach((card) => {
       card.images.forEach((img) => URL.revokeObjectURL(img.preview));
     });
@@ -574,7 +616,6 @@ export const CardBasedImportDialog: React.FC<CardBasedImportDialogProps> = ({
               </DialogDescription>
             </div>
 
-            {/* Stats badges */}
             <div className="flex items-center gap-2">
               {filledCards > 0 && (
                 <Badge
@@ -611,9 +652,7 @@ export const CardBasedImportDialog: React.FC<CardBasedImportDialogProps> = ({
             </div>
           </div>
 
-          {/* Controls bar */}
           <div className="flex items-center gap-3 mt-3">
-            {/* Card count selector */}
             <div className="flex items-center gap-2">
               <Label className="text-sm text-gray-600">מספר כרטיסים:</Label>
               <div className="flex gap-1">
@@ -642,7 +681,6 @@ export const CardBasedImportDialog: React.FC<CardBasedImportDialogProps> = ({
 
             <div className="flex-1" />
 
-            {/* Analyze all button */}
             <Button
               onClick={analyzeAllCards}
               disabled={isAnalyzingAll || filledCards === 0}
@@ -672,6 +710,7 @@ export const CardBasedImportDialog: React.FC<CardBasedImportDialogProps> = ({
                 onImageUpload={handleImageUpload}
                 onRemoveImage={removeImage}
                 onPaste={handlePaste}
+                onDrop={handleDrop}
                 onAnalyze={analyzeCard}
                 onSave={saveCard}
                 onReset={resetCard}
@@ -713,6 +752,7 @@ interface CandidateCardProps {
   onImageUpload: (id: string, e: React.ChangeEvent<HTMLInputElement>) => void;
   onRemoveImage: (id: string, index: number) => void;
   onPaste: (id: string, e: React.ClipboardEvent) => void;
+  onDrop: (id: string, e: React.DragEvent) => void;
   onAnalyze: (id: string) => void;
   onSave: (id: string) => void;
   onReset: (id: string) => void;
@@ -728,12 +768,15 @@ const CandidateCard: React.FC<CandidateCardProps> = React.memo(
     onImageUpload,
     onRemoveImage,
     onPaste,
+    onDrop,
     onAnalyze,
     onSave,
     onReset,
     fileInputRef,
   }) => {
     const [isExpanded, setIsExpanded] = useState(false);
+    const [isDragOver, setIsDragOver] = useState(false);
+    const [previewImage, setPreviewImage] = useState<string | null>(null);
 
     const statusConfig: Record<
       CardData['status'],
@@ -802,9 +845,27 @@ const CandidateCard: React.FC<CandidateCardProps> = React.memo(
     const isSaving = card.status === 'saving';
     const isDisabled = isSaved || isAnalyzing || isSaving;
 
+    // --- Drag handlers ---
+    const handleDragOver = (e: React.DragEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (!isDisabled) setIsDragOver(true);
+    };
+    const handleDragLeave = (e: React.DragEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setIsDragOver(false);
+    };
+    const handleDropOnCard = (e: React.DragEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setIsDragOver(false);
+      if (!isDisabled) onDrop(card.id, e);
+    };
+
     return (
       <div
-        className={`rounded-xl border-2 ${config.border} ${config.bg} transition-all duration-200 overflow-hidden ${isSaved ? 'opacity-60' : ''}`}
+        className={`rounded-xl border-2 ${config.border} ${config.bg} transition-all duration-200 ${isSaved ? 'opacity-60' : ''}`}
       >
         {/* Card Header */}
         <div className="flex items-center justify-between px-3 py-2 border-b border-gray-100">
@@ -848,13 +909,20 @@ const CandidateCard: React.FC<CandidateCardProps> = React.memo(
           </div>
         </div>
 
-        {/* Input Area (shown when not yet analyzed or when expanded) */}
+        {/* Input Area */}
         {(card.status === 'empty' ||
           card.status === 'has-input' ||
           card.status === 'error') && (
           <div className="p-3 space-y-2">
-            {/* Image upload zone */}
-            <div onPaste={(e) => onPaste(card.id, e)} className="relative">
+            {/* Image upload zone with drag & drop */}
+            <div
+              onPaste={(e) => onPaste(card.id, e)}
+              onDragOver={handleDragOver}
+              onDragEnter={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDropOnCard}
+              className="relative"
+            >
               {card.images.length > 0 ? (
                 <div className="grid grid-cols-3 gap-1.5 mb-2">
                   {card.images.map((img, imgIdx) => (
@@ -864,6 +932,13 @@ const CandidateCard: React.FC<CandidateCardProps> = React.memo(
                         className="rounded-lg object-cover w-full h-full border border-gray-200"
                         alt=""
                       />
+                      <button
+                        type="button"
+                        onClick={() => setPreviewImage(img.preview)}
+                        className="absolute bottom-1 left-1 bg-black/50 text-white rounded-full w-5 h-5 text-xs flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <ZoomIn className="w-3 h-3" />
+                      </button>
                       {!isDisabled && (
                         <button
                           type="button"
@@ -890,13 +965,23 @@ const CandidateCard: React.FC<CandidateCardProps> = React.memo(
                   )}
                 </div>
               ) : (
-                <label className="flex flex-col items-center justify-center h-24 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-indigo-400 hover:bg-indigo-50/30 transition-colors">
-                  <Upload className="w-5 h-5 text-gray-400 mb-1" />
-                  <span className="text-xs text-gray-500">
-                    העלה או הדבק תמונות
+                <label
+                  className={`flex flex-col items-center justify-center h-24 border-2 border-dashed rounded-lg cursor-pointer transition-all ${
+                    isDragOver
+                      ? 'border-indigo-500 bg-indigo-100/50 scale-[1.02]'
+                      : 'border-gray-300 hover:border-indigo-400 hover:bg-indigo-50/30'
+                  }`}
+                >
+                  <Upload
+                    className={`w-5 h-5 mb-1 ${isDragOver ? 'text-indigo-500' : 'text-gray-400'}`}
+                  />
+                  <span
+                    className={`text-xs ${isDragOver ? 'text-indigo-600 font-medium' : 'text-gray-500'}`}
+                  >
+                    {isDragOver ? 'שחרר כאן' : 'גרור, העלה או הדבק תמונות'}
                   </span>
                   <span className="text-[10px] text-gray-400">
-                    Ctrl+V להדבקה
+                    Ctrl+V להדבקה · גרירה מהמחשב
                   </span>
                   <input
                     type="file"
@@ -908,9 +993,20 @@ const CandidateCard: React.FC<CandidateCardProps> = React.memo(
                   />
                 </label>
               )}
+
+              {/* Drag overlay when images already exist */}
+              {isDragOver && card.images.length > 0 && (
+                <div className="absolute inset-0 bg-indigo-100/80 border-2 border-dashed border-indigo-500 rounded-lg flex items-center justify-center z-10">
+                  <div className="text-center">
+                    <Upload className="w-6 h-6 text-indigo-600 mx-auto mb-1" />
+                    <span className="text-sm text-indigo-700 font-medium">
+                      שחרר להוספת תמונות
+                    </span>
+                  </div>
+                </div>
+              )}
             </div>
 
-            {/* Text input */}
             <Textarea
               value={card.rawText}
               onChange={(e) =>
@@ -927,7 +1023,6 @@ const CandidateCard: React.FC<CandidateCardProps> = React.memo(
               className="text-sm resize-none"
             />
 
-            {/* Error message */}
             {card.error && (
               <p className="text-xs text-red-500 flex items-center gap-1">
                 <AlertCircle className="w-3 h-3" />
@@ -935,7 +1030,6 @@ const CandidateCard: React.FC<CandidateCardProps> = React.memo(
               </p>
             )}
 
-            {/* Analyze button */}
             <Button
               onClick={() => onAnalyze(card.id)}
               disabled={
@@ -962,10 +1056,12 @@ const CandidateCard: React.FC<CandidateCardProps> = React.memo(
               {/* Quick summary */}
               {!isExpanded && (
                 <div className="space-y-2">
-                  {/* Name + basic info */}
                   <div className="flex items-center gap-2">
                     {card.images.length > 0 && (
-                      <div className="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0">
+                      <div
+                        className="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0 cursor-pointer"
+                        onClick={() => setPreviewImage(card.images[0].preview)}
+                      >
                         <img
                           src={card.images[0].preview}
                           className="w-full h-full object-cover"
@@ -994,14 +1090,12 @@ const CandidateCard: React.FC<CandidateCardProps> = React.memo(
                     </div>
                   </div>
 
-                  {/* AI notes */}
                   {card.aiNotes && (
                     <p className="text-[10px] text-amber-600 bg-amber-50 px-2 py-1 rounded">
                       💡 {card.aiNotes}
                     </p>
                   )}
 
-                  {/* Actions */}
                   {!isSaved && (
                     <div className="flex gap-2">
                       <Button
@@ -1029,9 +1123,9 @@ const CandidateCard: React.FC<CandidateCardProps> = React.memo(
                 </div>
               )}
 
-              {/* Expanded edit form */}
+              {/* Expanded edit form — with internal scroll */}
               {isExpanded && (
-                <div className="space-y-3">
+                <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-1">
                   {/* Images */}
                   {card.images.length > 0 && (
                     <div className="flex gap-1.5 overflow-x-auto pb-1">
@@ -1042,8 +1136,9 @@ const CandidateCard: React.FC<CandidateCardProps> = React.memo(
                         >
                           <img
                             src={img.preview}
-                            className="rounded-md object-cover w-full h-full border"
+                            className="rounded-md object-cover w-full h-full border cursor-pointer"
                             alt=""
+                            onClick={() => setPreviewImage(img.preview)}
                           />
                           {!isDisabled && (
                             <button
@@ -1063,29 +1158,89 @@ const CandidateCard: React.FC<CandidateCardProps> = React.memo(
                   <div className="grid grid-cols-2 gap-2">
                     {[
                       {
-                        key: 'firstName' as const,
+                        key: 'firstName' as keyof ExtractedFields,
                         label: 'שם פרטי',
                         required: true,
+                        type: 'text',
+                        dir: 'rtl',
                       },
                       {
-                        key: 'lastName' as const,
+                        key: 'lastName' as keyof ExtractedFields,
                         label: 'שם משפחה',
                         required: true,
+                        type: 'text',
+                        dir: 'rtl',
                       },
-                      { key: 'age' as const, label: 'גיל', type: 'number' },
                       {
-                        key: 'height' as const,
-                        label: 'גובה (ס״מ)',
+                        key: 'age' as keyof ExtractedFields,
+                        label: 'גיל',
+                        required: false,
                         type: 'number',
+                        dir: 'rtl',
                       },
-                      { key: 'city' as const, label: 'עיר' },
-                      { key: 'occupation' as const, label: 'עיסוק' },
-                      { key: 'education' as const, label: 'לימודים' },
-                      { key: 'phone' as const, label: 'טלפון', dir: 'ltr' },
-                      // הסרנו את origin מכאן!
-                      { key: 'referredBy' as const, label: 'הופנה ע״י' },
-                      { key: 'languages' as const, label: 'שפות' },
-                      { key: 'militaryService' as const, label: 'שירות צבאי' },
+                      {
+                        key: 'height' as keyof ExtractedFields,
+                        label: 'גובה (ס״מ)',
+                        required: false,
+                        type: 'number',
+                        dir: 'rtl',
+                      },
+                      {
+                        key: 'city' as keyof ExtractedFields,
+                        label: 'עיר',
+                        required: false,
+                        type: 'text',
+                        dir: 'rtl',
+                      },
+                      {
+                        key: 'occupation' as keyof ExtractedFields,
+                        label: 'עיסוק',
+                        required: false,
+                        type: 'text',
+                        dir: 'rtl',
+                      },
+                      {
+                        key: 'education' as keyof ExtractedFields,
+                        label: 'לימודים',
+                        required: false,
+                        type: 'text',
+                        dir: 'rtl',
+                      },
+                      {
+                        key: 'educationLevel' as keyof ExtractedFields,
+                        label: 'רמת השכלה',
+                        required: false,
+                        type: 'text',
+                        dir: 'rtl',
+                      },
+                      {
+                        key: 'phone' as keyof ExtractedFields,
+                        label: 'טלפון',
+                        required: false,
+                        type: 'text',
+                        dir: 'ltr',
+                      },
+                      {
+                        key: 'referredBy' as keyof ExtractedFields,
+                        label: 'הופנה ע״י',
+                        required: false,
+                        type: 'text',
+                        dir: 'rtl',
+                      },
+                      {
+                        key: 'languages' as keyof ExtractedFields,
+                        label: 'שפות',
+                        required: false,
+                        type: 'text',
+                        dir: 'rtl',
+                      },
+                      {
+                        key: 'militaryService' as keyof ExtractedFields,
+                        label: 'שירות צבאי',
+                        required: false,
+                        type: 'text',
+                        dir: 'rtl',
+                      },
                     ].map(({ key, label, type, dir, required }) => (
                       <div key={key}>
                         <Label className="text-[10px] text-gray-500">
@@ -1097,8 +1252,8 @@ const CandidateCard: React.FC<CandidateCardProps> = React.memo(
                           onChange={(e) =>
                             onUpdateField(card.id, key, e.target.value)
                           }
-                          dir={(dir as 'ltr' | 'rtl') || 'rtl'}
-                          type={type || 'text'}
+                          dir={dir as 'ltr' | 'rtl'}
+                          type={type}
                           className="h-7 text-xs"
                           disabled={isDisabled}
                         />
@@ -1127,7 +1282,7 @@ const CandidateCard: React.FC<CandidateCardProps> = React.memo(
                       </Select>
                     </div>
 
-                    {/* Marital status select */}
+                    {/* Marital status — FIXED: UPPERCASE values to match DB/edit */}
                     <div>
                       <Label className="text-[10px] text-gray-500">
                         מצב משפחתי
@@ -1143,15 +1298,14 @@ const CandidateCard: React.FC<CandidateCardProps> = React.memo(
                           <SelectValue placeholder="בחר" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="single">רווק/ה</SelectItem>
-                          <SelectItem value="divorced">גרוש/ה</SelectItem>
-                          <SelectItem value="widowed">אלמן/ה</SelectItem>
-                          <SelectItem value="separated">פרוד/ה</SelectItem>
+                          <SelectItem value="SINGLE">רווק/ה</SelectItem>
+                          <SelectItem value="DIVORCED">גרוש/ה</SelectItem>
+                          <SelectItem value="WIDOWED">אלמן/ה</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
 
-                    {/* Religious level select */}
+                    {/* Religious level */}
                     <div>
                       <Label className="text-[10px] text-gray-500">
                         רמה דתית
@@ -1208,7 +1362,7 @@ const CandidateCard: React.FC<CandidateCardProps> = React.memo(
                       </Select>
                     </div>
 
-                    {/* Origin select - Hebrew with expanded options - הוסף כאן! */}
+                    {/* Origin */}
                     <div>
                       <Label className="text-[10px] text-gray-500">מוצא</Label>
                       <Select
@@ -1239,6 +1393,28 @@ const CandidateCard: React.FC<CandidateCardProps> = React.memo(
                           <SelectItem value="תורכי">תורכי</SelectItem>
                           <SelectItem value="מעורב">מעורב</SelectItem>
                           <SelectItem value="אחר">אחר</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {/* Has children from previous */}
+                    <div>
+                      <Label className="text-[10px] text-gray-500">
+                        ילדים מקשר קודם
+                      </Label>
+                      <Select
+                        value={card.extracted?.hasChildrenFromPrevious || ''}
+                        onValueChange={(v) =>
+                          onUpdateField(card.id, 'hasChildrenFromPrevious', v)
+                        }
+                        disabled={isDisabled}
+                      >
+                        <SelectTrigger className="h-7 text-xs" dir="rtl">
+                          <SelectValue placeholder="בחר" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="true">כן</SelectItem>
+                          <SelectItem value="false">לא</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -1313,6 +1489,29 @@ const CandidateCard: React.FC<CandidateCardProps> = React.memo(
               )}
             </div>
           )}
+
+        {/* Image Preview Modal */}
+        {previewImage && (
+          <div
+            className="fixed inset-0 z-[100] bg-black/70 flex items-center justify-center cursor-pointer"
+            onClick={() => setPreviewImage(null)}
+          >
+            <div className="relative max-w-[90vw] max-h-[90vh]">
+              <img
+                src={previewImage}
+                alt="תצוגה מקדימה"
+                className="max-w-full max-h-[85vh] object-contain rounded-lg shadow-2xl"
+              />
+              <button
+                type="button"
+                onClick={() => setPreviewImage(null)}
+                className="absolute top-2 right-2 bg-black/60 text-white rounded-full w-8 h-8 flex items-center justify-center hover:bg-black/80"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     );
   }

@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\mobile
-# Generated on: 2026-02-04 08:43:54
+# Generated on: 2026-02-08 22:56:47
 # Filter: Only content of code files (.bat, .c, .cfg, .conf, .cpp, .cs, .css, .go, .h, .html, .ini, .java, .js, .json, .jsx, .kt, .less, .md, .php, .py, .rb, .rs, .scss, .sh, .sql, .swift, .ts, .tsx, .txt, .xml, .yaml, .yml) is included.
 ################################################################################
 
@@ -419,7 +419,24 @@ export async function POST(req: NextRequest) {
 Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\mobile\suggestions
 ================================================================================
 
-(This directory contains subdirectories but no files directly. See subdirectories below.)
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\mobile\suggestions\suggestions_contents.txt
+--------------------------------------------------------------------------------
+Content:
+################################################################################
+# Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\mobile\suggestions
+# Generated on: 2026-02-04 14:50:37
+# Filter: Only content of code files (.bat, .c, .cfg, .conf, .cpp, .cs, .css, .go, .h, .html, .ini, .java, .js, .json, .jsx, .kt, .less, .md, .php, .py, .rb, .rs, .scss, .sh, .sql, .swift, .ts, .tsx, .txt, .xml, .yaml, .yml) is included.
+################################################################################
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\mobile\suggestions
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\mobile\suggestions\suggestions_contents.txt
+--------------------------------------------------------------------------------
+[This is the output log file itself. Content not included.]
 
 ================================================================================
 Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\mobile\suggestions\[id]
@@ -632,6 +649,777 @@ export async function GET(
     };
 
     console.log(`[mobile/suggestions/${suggestionId}] Fetched for user ${userId}, isFirstParty: ${isFirstParty}`);
+
+    return corsJson(req, {
+      success: true,
+      data: responseData,
+    });
+
+  } catch (error) {
+    console.error("[mobile/suggestions/[id]] Error:", error);
+    return corsError(req, "Internal server error", 500);
+  }
+}
+--- End of Content for route.ts ---
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\mobile\suggestions\[id]\respond
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\mobile\suggestions\[id]\respond\route.ts
+--------------------------------------------------------------------------------
+Content:
+// src/app/api/mobile/suggestions/[id]/respond/route.ts
+// תגובה להצעת שידוך - למובייל
+
+import { NextRequest } from "next/server";
+import prisma from "@/lib/prisma";
+import { 
+  verifyMobileToken,
+  corsJson,
+  corsError,
+  corsOptions
+} from "@/lib/mobile-auth";
+import type { MatchSuggestionStatus } from "@prisma/client";
+
+export async function OPTIONS(req: NextRequest) {
+  return corsOptions(req);
+}
+
+export async function POST(
+  req: NextRequest,
+  props: { params: Promise<{ id: string }> }
+) {
+  try {
+    const params = await props.params;
+    const suggestionId = params.id;
+
+    const auth = await verifyMobileToken(req);
+    
+    if (!auth) {
+      return corsError(req, "Unauthorized", 401);
+    }
+
+    const userId = auth.userId;
+
+    const body = await req.json();
+    const { response, reason, notes } = body as {
+      response: 'approve' | 'decline';
+      reason?: string;
+      notes?: string;
+    };
+
+    if (!response || !['approve', 'decline'].includes(response)) {
+      return corsError(req, "Invalid response. Must be 'approve' or 'decline'", 400);
+    }
+
+    const suggestion = await prisma.matchSuggestion.findUnique({
+      where: { id: suggestionId },
+      select: {
+        id: true,
+        status: true,
+        firstPartyId: true,
+        secondPartyId: true,
+        matchmakerId: true,
+      },
+    });
+
+    if (!suggestion) {
+      return corsError(req, "Suggestion not found", 404);
+    }
+
+    const isFirstParty = suggestion.firstPartyId === userId;
+    const isSecondParty = suggestion.secondPartyId === userId;
+
+    if (!isFirstParty && !isSecondParty) {
+      return corsError(req, "Access denied", 403);
+    }
+
+    const canRespond = 
+      (isFirstParty && suggestion.status === 'PENDING_FIRST_PARTY') ||
+      (isSecondParty && suggestion.status === 'PENDING_SECOND_PARTY');
+
+    if (!canRespond) {
+      return corsError(req, "Cannot respond at this stage", 400);
+    }
+
+    let newStatus: MatchSuggestionStatus;
+    
+    if (response === 'approve') {
+      if (isFirstParty) {
+        newStatus = 'FIRST_PARTY_APPROVED';
+      } else {
+        newStatus = 'SECOND_PARTY_APPROVED';
+      }
+    } else {
+      if (isFirstParty) {
+        newStatus = 'FIRST_PARTY_DECLINED';
+      } else {
+        newStatus = 'SECOND_PARTY_DECLINED';
+      }
+    }
+
+    const updateData: any = {
+      status: newStatus,
+      lastStatusChange: new Date(),
+      lastActivity: new Date(),
+    };
+
+    if (isFirstParty) {
+      updateData.firstPartyResponded = new Date();
+      if (notes) {
+        updateData.firstPartyNotes = notes;
+      }
+    } else {
+      updateData.secondPartyResponded = new Date();
+      if (notes) {
+        updateData.secondPartyNotes = notes;
+      }
+    }
+
+    if (response === 'decline' && reason) {
+      updateData.internalNotes = `[${new Date().toISOString()}] ${isFirstParty ? 'צד א' : 'צד ב'} דחה: ${reason}`.trim();
+    }
+
+    const updatedSuggestion = await prisma.matchSuggestion.update({
+      where: { id: suggestionId },
+      data: updateData,
+      select: {
+        id: true,
+        status: true,
+        lastStatusChange: true,
+      },
+    });
+
+    await prisma.suggestionStatusHistory.create({
+      data: {
+        suggestionId: suggestionId,
+        status: newStatus,
+        notes: response === 'approve' 
+          ? (notes || (isFirstParty ? 'צד א אישר' : 'צד ב אישר'))
+          : (reason || (isFirstParty ? 'צד א דחה' : 'צד ב דחה')),
+      },
+    });
+
+    if (newStatus === 'SECOND_PARTY_APPROVED') {
+      const firstPartyApproved = await prisma.suggestionStatusHistory.findFirst({
+        where: {
+          suggestionId: suggestionId,
+          status: 'FIRST_PARTY_APPROVED',
+        },
+      });
+
+      if (firstPartyApproved) {
+        await prisma.matchSuggestion.update({
+          where: { id: suggestionId },
+          data: {
+            status: 'CONTACT_DETAILS_SHARED',
+            lastStatusChange: new Date(),
+          },
+        });
+
+        await prisma.suggestionStatusHistory.create({
+          data: {
+            suggestionId: suggestionId,
+            status: 'CONTACT_DETAILS_SHARED',
+            notes: 'שני הצדדים אישרו - פרטי קשר שותפו',
+          },
+        });
+      }
+    }
+
+    console.log(`[mobile/suggestions/${suggestionId}/respond] User ${userId} responded: ${response}, new status: ${newStatus}`);
+
+    return corsJson(req, {
+      success: true,
+      message: response === 'approve' ? 'ההצעה אושרה בהצלחה' : 'ההצעה נדחתה',
+      data: {
+        id: updatedSuggestion.id,
+        status: updatedSuggestion.status,
+        lastStatusChange: updatedSuggestion.lastStatusChange,
+      },
+    });
+
+  } catch (error) {
+    console.error("[mobile/suggestions/[id]/respond] Error:", error);
+    return corsError(req, "Internal server error", 500);
+  }
+}
+--- End of Content for route.ts ---
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\mobile\suggestions\active
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\mobile\suggestions\active\route.ts
+--------------------------------------------------------------------------------
+Content:
+// src/app/api/mobile/suggestions/active/route.ts
+// הצעות שידוך פעילות - למובייל
+
+import { NextRequest } from "next/server";
+import prisma from "@/lib/prisma";
+import { 
+  verifyMobileToken,
+  corsJson,
+  corsError,
+  corsOptions
+} from "@/lib/mobile-auth";
+
+function calculateAge(birthDate: Date | null | undefined): number | null {
+  if (!birthDate) return null;
+  const today = new Date();
+  const birth = new Date(birthDate);
+  let age = today.getFullYear() - birth.getFullYear();
+  const monthDiff = today.getMonth() - birth.getMonth();
+  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+    age--;
+  }
+  return age;
+}
+
+export async function OPTIONS(req: NextRequest) {
+  return corsOptions(req);
+}
+
+export async function GET(req: NextRequest) {
+  try {
+    const auth = await verifyMobileToken(req);
+    
+    if (!auth) {
+      return corsError(req, "Unauthorized", 401);
+    }
+
+    const userId = auth.userId;
+
+    const activeSuggestions = await prisma.matchSuggestion.findMany({
+      where: {
+        OR: [
+          { 
+            firstPartyId: userId, 
+            status: { 
+              in: ["PENDING_FIRST_PARTY", "FIRST_PARTY_APPROVED", "PENDING_SECOND_PARTY", "SECOND_PARTY_APPROVED", "CONTACT_DETAILS_SHARED"] 
+            } 
+          },
+          { 
+            secondPartyId: userId, 
+            status: { 
+              in: ["PENDING_SECOND_PARTY", "SECOND_PARTY_APPROVED", "CONTACT_DETAILS_SHARED"] 
+            } 
+          },
+        ],
+      },
+      include: {
+        matchmaker: { 
+          select: { 
+            firstName: true, 
+            lastName: true 
+          } 
+        },
+        firstParty: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            profile: {
+              select: {
+                birthDate: true,
+                city: true,
+                occupation: true,
+                height: true,
+                about: true,
+              }
+            },
+            images: {
+              where: { isMain: true },
+              take: 1,
+              select: { url: true }
+            }
+          }
+        },
+        secondParty: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            profile: {
+              select: {
+                birthDate: true,
+                city: true,
+                occupation: true,
+                height: true,
+                about: true,
+              }
+            },
+            images: {
+              where: { isMain: true },
+              take: 1,
+              select: { url: true }
+            }
+          }
+        },
+      },
+      orderBy: { createdAt: "desc" },
+    });
+
+    const suggestions = activeSuggestions.map(suggestion => {
+      const isFirstParty = suggestion.firstPartyId === userId;
+      const otherParty = isFirstParty ? suggestion.secondParty : suggestion.firstParty;
+      const notes = isFirstParty ? suggestion.firstPartyNotes : suggestion.secondPartyNotes;
+      
+      return {
+        id: suggestion.id,
+        status: suggestion.status,
+        priority: suggestion.priority,
+        matchingReason: suggestion.matchingReason,
+        notes: notes,
+        matchmaker: suggestion.matchmaker,
+        createdAt: suggestion.createdAt,
+        decisionDeadline: suggestion.decisionDeadline,
+        isFirstParty,
+        otherParty: {
+          id: otherParty.id,
+          firstName: otherParty.firstName,
+          lastName: otherParty.lastName,
+          age: calculateAge(otherParty.profile?.birthDate),
+          city: otherParty.profile?.city,
+          occupation: otherParty.profile?.occupation,
+          height: otherParty.profile?.height,
+          about: otherParty.profile?.about,
+          image: otherParty.images?.[0]?.url || null,
+        }
+      };
+    });
+
+    console.log(`[mobile/suggestions/active] Found ${suggestions.length} active suggestions for user ${userId}`);
+
+    return corsJson(req, {
+      success: true,
+      suggestions,
+    });
+
+  } catch (error) {
+    console.error("[mobile/suggestions/active] Error:", error);
+    return corsError(req, "Internal server error", 500);
+  }
+}
+--- End of Content for route.ts ---
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\mobile\suggestions\history
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\mobile\suggestions\history\route.ts
+--------------------------------------------------------------------------------
+Content:
+// src/app/api/mobile/suggestions/history/route.ts
+// היסטוריית הצעות שידוך - למובייל
+
+import { NextRequest } from "next/server";
+import prisma from "@/lib/prisma";
+import { 
+  verifyMobileToken,
+  corsJson,
+  corsError,
+  corsOptions
+} from "@/lib/mobile-auth";
+
+function calculateAge(birthDate: Date | null | undefined): number | null {
+  if (!birthDate) return null;
+  const today = new Date();
+  const birth = new Date(birthDate);
+  let age = today.getFullYear() - birth.getFullYear();
+  const monthDiff = today.getMonth() - birth.getMonth();
+  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+    age--;
+  }
+  return age;
+}
+
+export async function OPTIONS(req: NextRequest) {
+  return corsOptions(req);
+}
+
+export async function GET(req: NextRequest) {
+  try {
+    const auth = await verifyMobileToken(req);
+    
+    if (!auth) {
+      return corsError(req, "Unauthorized", 401);
+    }
+
+    const userId = auth.userId;
+
+    const historySuggestions = await prisma.matchSuggestion.findMany({
+      where: {
+        OR: [
+          { 
+            firstPartyId: userId, 
+            status: { 
+              in: ["FIRST_PARTY_DECLINED", "SECOND_PARTY_DECLINED", "MATCH_DECLINED", "CLOSED", "CANCELLED", "MARRIED", "ENGAGED"] 
+            } 
+          },
+          { 
+            secondPartyId: userId, 
+            status: { 
+              in: ["SECOND_PARTY_DECLINED", "MATCH_DECLINED", "CLOSED", "CANCELLED", "MARRIED", "ENGAGED"] 
+            } 
+          },
+        ],
+      },
+      include: {
+        matchmaker: { 
+          select: { 
+            firstName: true, 
+            lastName: true 
+          } 
+        },
+        firstParty: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            profile: {
+              select: {
+                birthDate: true,
+                city: true,
+                occupation: true,
+              }
+            },
+            images: {
+              where: { isMain: true },
+              take: 1,
+              select: { url: true }
+            }
+          }
+        },
+        secondParty: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            profile: {
+              select: {
+                birthDate: true,
+                city: true,
+                occupation: true,
+              }
+            },
+            images: {
+              where: { isMain: true },
+              take: 1,
+              select: { url: true }
+            }
+          }
+        },
+      },
+      orderBy: { updatedAt: "desc" },
+    });
+
+    const suggestions = historySuggestions.map(suggestion => {
+      const isFirstParty = suggestion.firstPartyId === userId;
+      const otherParty = isFirstParty ? suggestion.secondParty : suggestion.firstParty;
+      
+      return {
+        id: suggestion.id,
+        status: suggestion.status,
+        matchmaker: suggestion.matchmaker,
+        createdAt: suggestion.createdAt,
+        updatedAt: suggestion.updatedAt,
+        closedAt: suggestion.closedAt,
+        isFirstParty,
+        otherParty: {
+          id: otherParty.id,
+          firstName: otherParty.firstName,
+          lastName: otherParty.lastName,
+          age: calculateAge(otherParty.profile?.birthDate),
+          city: otherParty.profile?.city,
+          occupation: otherParty.profile?.occupation,
+          image: otherParty.images?.[0]?.url || null,
+        }
+      };
+    });
+
+    console.log(`[mobile/suggestions/history] Found ${suggestions.length} history suggestions for user ${userId}`);
+
+    return corsJson(req, {
+      success: true,
+      suggestions,
+    });
+
+  } catch (error) {
+    console.error("[mobile/suggestions/history] Error:", error);
+    return corsError(req, "Internal server error", 500);
+  }
+}
+--- End of Content for route.ts ---
+
+--- End of Content for suggestions_contents.txt ---
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\mobile\suggestions\[id]
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\mobile\suggestions\[id]\route.ts
+--------------------------------------------------------------------------------
+Content:
+// src/app/api/mobile/suggestions/[id]/route.ts
+// פרטי הצעת שידוך בודדת - למובייל
+// UPDATED: Added questionnaire responses
+
+import { NextRequest } from "next/server";
+import prisma from "@/lib/prisma";
+import { 
+  verifyMobileToken,
+  corsJson,
+  corsError,
+  corsOptions
+} from "@/lib/mobile-auth";
+import { formatAnswers, KEY_MAPPING } from '@/lib/questionnaireFormatter';
+import type { WorldId } from "@/types/next-auth";
+
+function calculateAge(birthDate: Date | null | undefined): number | null {
+  if (!birthDate) return null;
+  const today = new Date();
+  const birth = new Date(birthDate);
+  let age = today.getFullYear() - birth.getFullYear();
+  const monthDiff = today.getMonth() - birth.getMonth();
+  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+    age--;
+  }
+  return age;
+}
+
+export async function OPTIONS(req: NextRequest) {
+  return corsOptions(req);
+}
+
+export async function GET(
+  req: NextRequest,
+  props: { params: Promise<{ id: string }> }
+) {
+  try {
+    const params = await props.params;
+    const suggestionId = params.id;
+
+    const auth = await verifyMobileToken(req);
+    
+    if (!auth) {
+      return corsError(req, "Unauthorized", 401);
+    }
+
+    const userId = auth.userId;
+
+    const suggestion = await prisma.matchSuggestion.findUnique({
+      where: { id: suggestionId },
+      include: {
+        matchmaker: { 
+          select: { 
+            firstName: true, 
+            lastName: true,
+            phone: true,
+            email: true,
+          } 
+        },
+        firstParty: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            phone: true,
+            email: true,
+            profile: {
+              select: {
+                birthDate: true,
+                city: true,
+                occupation: true,
+                education: true,
+                educationLevel: true,
+                height: true,
+                about: true,
+                religiousLevel: true,
+                origin: true,
+                maritalStatus: true,
+                profileCharacterTraits: true,
+                profileHobbies: true,
+              }
+            },
+            images: {
+              orderBy: { isMain: 'desc' },
+              select: { 
+                url: true,
+                isMain: true,
+              }
+            },
+            // NEW: Include questionnaire responses
+            questionnaireResponses: {
+              orderBy: { createdAt: 'desc' },
+              take: 1,
+              select: {
+                id: true,
+                valuesAnswers: true,
+                personalityAnswers: true,
+                relationshipAnswers: true,
+                partnerAnswers: true,
+                religionAnswers: true,
+              }
+            }
+          }
+        },
+        secondParty: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            phone: true,
+            email: true,
+            profile: {
+              select: {
+                birthDate: true,
+                city: true,
+                occupation: true,
+                education: true,
+                educationLevel: true,
+                height: true,
+                about: true,
+                religiousLevel: true,
+                origin: true,
+                maritalStatus: true,
+                profileCharacterTraits: true,
+                profileHobbies: true,
+              }
+            },
+            images: {
+              orderBy: { isMain: 'desc' },
+              select: { 
+                url: true,
+                isMain: true,
+              }
+            },
+            // NEW: Include questionnaire responses
+            questionnaireResponses: {
+              orderBy: { createdAt: 'desc' },
+              take: 1,
+              select: {
+                id: true,
+                valuesAnswers: true,
+                personalityAnswers: true,
+                relationshipAnswers: true,
+                partnerAnswers: true,
+                religionAnswers: true,
+              }
+            }
+          }
+        },
+        statusHistory: {
+          orderBy: { createdAt: 'desc' },
+          take: 10,
+          select: {
+            id: true,
+            status: true,
+            notes: true,
+            createdAt: true,
+          }
+        },
+      },
+    });
+
+    if (!suggestion) {
+      return corsError(req, "Suggestion not found", 404);
+    }
+
+    const isFirstParty = suggestion.firstPartyId === userId;
+    const isSecondParty = suggestion.secondPartyId === userId;
+
+    if (!isFirstParty && !isSecondParty) {
+      return corsError(req, "Access denied", 403);
+    }
+
+    const otherPartyRaw = isFirstParty ? suggestion.secondParty : suggestion.firstParty;
+    const notes = isFirstParty ? suggestion.firstPartyNotes : suggestion.secondPartyNotes;
+
+    // Process questionnaire responses
+    let questionnaireAnswers: Record<string, any[]> | null = null;
+    
+    if (otherPartyRaw.questionnaireResponses && otherPartyRaw.questionnaireResponses.length > 0) {
+      const qr = otherPartyRaw.questionnaireResponses[0];
+      questionnaireAnswers = {};
+      
+      // Format answers for each world
+      (Object.keys(KEY_MAPPING) as WorldId[]).forEach(worldKey => {
+        const dbKey = KEY_MAPPING[worldKey];
+        const answersJson = qr[dbKey as keyof typeof qr];
+        if (answersJson) {
+          const formatted = formatAnswers(answersJson);
+          // Only include visible answers
+          questionnaireAnswers![worldKey] = formatted.filter(a => a.isVisible !== false);
+        }
+      });
+    }
+
+    const otherParty: any = {
+      id: otherPartyRaw.id,
+      firstName: otherPartyRaw.firstName,
+      lastName: otherPartyRaw.lastName,
+      age: calculateAge(otherPartyRaw.profile?.birthDate),
+      city: otherPartyRaw.profile?.city || null,
+      occupation: otherPartyRaw.profile?.occupation || null,
+      education: otherPartyRaw.profile?.education || null,
+      educationLevel: otherPartyRaw.profile?.educationLevel || null,
+      height: otherPartyRaw.profile?.height || null,
+      about: otherPartyRaw.profile?.about || null,
+      religiousLevel: otherPartyRaw.profile?.religiousLevel || null,
+      origin: otherPartyRaw.profile?.origin || null,
+      maritalStatus: otherPartyRaw.profile?.maritalStatus || null,
+      characterTraits: otherPartyRaw.profile?.profileCharacterTraits || [],
+      hobbies: otherPartyRaw.profile?.profileHobbies || [],
+      images: otherPartyRaw.images?.map(img => img.url) || [],
+      mainImage: otherPartyRaw.images?.find(img => img.isMain)?.url || otherPartyRaw.images?.[0]?.url || null,
+      // NEW: Add questionnaire answers
+      questionnaireAnswers,
+    };
+
+    const showContactDetails = suggestion.status === 'CONTACT_DETAILS_SHARED';
+
+    if (showContactDetails) {
+      otherParty.phone = otherPartyRaw.phone;
+      otherParty.email = otherPartyRaw.email;
+    }
+
+    const canRespond = 
+      (isFirstParty && suggestion.status === 'PENDING_FIRST_PARTY') ||
+      (isSecondParty && suggestion.status === 'PENDING_SECOND_PARTY');
+
+    const responseData = {
+      id: suggestion.id,
+      status: suggestion.status,
+      priority: suggestion.priority,
+      matchingReason: suggestion.matchingReason,
+      notes: notes,
+      createdAt: suggestion.createdAt,
+      updatedAt: suggestion.updatedAt,
+      decisionDeadline: suggestion.decisionDeadline,
+      lastStatusChange: suggestion.lastStatusChange,
+      isFirstParty,
+      canRespond,
+      showContactDetails,
+      matchmaker: {
+        firstName: suggestion.matchmaker.firstName,
+        lastName: suggestion.matchmaker.lastName,
+        ...(showContactDetails && {
+          phone: suggestion.matchmaker.phone,
+          email: suggestion.matchmaker.email,
+        }),
+      },
+      otherParty,
+      statusHistory: suggestion.statusHistory,
+    };
+
+    console.log(`[mobile/suggestions/${suggestionId}] Fetched for user ${userId}, isFirstParty: ${isFirstParty}, hasQuestionnaire: ${!!questionnaireAnswers}`);
 
     return corsJson(req, {
       success: true,
