@@ -484,7 +484,7 @@ export const AddManualCandidateDialog: React.FC<
                   </SelectContent>
                 </Select>
               </FormField>
-{/* הוסף אחרי השדה של religiousLevel */}
+{/* Origin field - updated with Hebrew values and expanded options */}
 <FormField>
   <Label htmlFor="origin" className="text-sm font-medium">
     מוצא
@@ -496,11 +496,24 @@ export const AddManualCandidateDialog: React.FC<
     <SelectTrigger id="origin" dir="rtl" className="bg-white">
       <SelectValue placeholder="בחר מוצא" />
     </SelectTrigger>
-    <SelectContent>
-      <SelectItem value="ASHKENAZI">אשכנזי</SelectItem>
-      <SelectItem value="SEPHARDI">ספרדי</SelectItem>
-      <SelectItem value="MIXED">מעורב</SelectItem>
-      <SelectItem value="OTHER">אחר</SelectItem>
+    <SelectContent className="max-h-[300px]">
+      <SelectItem value="אשכנזי">אשכנזי</SelectItem>
+      <SelectItem value="ספרדי">ספרדי</SelectItem>
+      <SelectItem value="מזרחי">מזרחי</SelectItem>
+      <SelectItem value="תימני">תימני</SelectItem>
+      <SelectItem value="מרוקאי">מרוקאי</SelectItem>
+      <SelectItem value="עיראקי">עיראקי</SelectItem>
+      <SelectItem value="פרסי">פרסי</SelectItem>
+      <SelectItem value="כורדי">כורדי</SelectItem>
+      <SelectItem value="תוניסאי">תוניסאי</SelectItem>
+      <SelectItem value="לובי">לובי</SelectItem>
+      <SelectItem value="אתיופי">אתיופי</SelectItem>
+      <SelectItem value="גרוזיני">גרוזיני</SelectItem>
+      <SelectItem value="בוכרי">בוכרי</SelectItem>
+      <SelectItem value="הודי">הודי</SelectItem>
+      <SelectItem value="תורכי">תורכי</SelectItem>
+      <SelectItem value="מעורב">מעורב</SelectItem>
+      <SelectItem value="אחר">אחר</SelectItem>
     </SelectContent>
   </Select>
 </FormField>

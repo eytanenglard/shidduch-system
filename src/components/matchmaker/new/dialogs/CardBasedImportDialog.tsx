@@ -64,7 +64,14 @@ interface CardData {
   // AI-extracted fields
   extracted: ExtractedFields | null;
   // Status
-  status: 'empty' | 'has-input' | 'analyzing' | 'analyzed' | 'saving' | 'saved' | 'error';
+  status:
+    | 'empty'
+    | 'has-input'
+    | 'analyzing'
+    | 'analyzed'
+    | 'saving'
+    | 'saved'
+    | 'error';
   error: string | null;
   aiConfidence: 'high' | 'medium' | 'low' | null;
   aiNotes: string | null;
@@ -170,7 +177,10 @@ export const CardBasedImportDialog: React.FC<CardBasedImportDialogProps> = ({
     setCardCount(count);
     setCards((prev) => {
       if (count > prev.length) {
-        return [...prev, ...Array.from({ length: count - prev.length }, createEmptyCard)];
+        return [
+          ...prev,
+          ...Array.from({ length: count - prev.length }, createEmptyCard),
+        ];
       }
       return prev.slice(0, count);
     });
@@ -185,21 +195,27 @@ export const CardBasedImportDialog: React.FC<CardBasedImportDialogProps> = ({
   // =========================================================================
   // Card update helpers
   // =========================================================================
-  const updateCard = useCallback((cardId: string, updates: Partial<CardData>) => {
-    setCards((prev) =>
-      prev.map((card) => {
-        if (card.id !== cardId) return card;
-        const updated = { ...card, ...updates };
-        // Auto-update status
-        if (!updates.status) {
-          if (updated.images.length > 0 || updated.rawText.trim().length > 0) {
-            if (updated.status === 'empty') updated.status = 'has-input';
+  const updateCard = useCallback(
+    (cardId: string, updates: Partial<CardData>) => {
+      setCards((prev) =>
+        prev.map((card) => {
+          if (card.id !== cardId) return card;
+          const updated = { ...card, ...updates };
+          // Auto-update status
+          if (!updates.status) {
+            if (
+              updated.images.length > 0 ||
+              updated.rawText.trim().length > 0
+            ) {
+              if (updated.status === 'empty') updated.status = 'has-input';
+            }
           }
-        }
-        return updated;
-      })
-    );
-  }, []);
+          return updated;
+        })
+      );
+    },
+    []
+  );
 
   const updateExtractedField = useCallback(
     (cardId: string, field: keyof ExtractedFields, value: string) => {
@@ -219,7 +235,10 @@ export const CardBasedImportDialog: React.FC<CardBasedImportDialogProps> = ({
   // =========================================================================
   // Image handling
   // =========================================================================
-  const handleImageUpload = (cardId: string, e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = (
+    cardId: string,
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
     if (!e.target.files) return;
     const card = cards.find((c) => c.id === cardId);
     if (!card) return;
@@ -262,7 +281,10 @@ export const CardBasedImportDialog: React.FC<CardBasedImportDialogProps> = ({
         return {
           ...card,
           images: newImages,
-          status: newImages.length === 0 && !card.rawText.trim() ? 'empty' : card.status,
+          status:
+            newImages.length === 0 && !card.rawText.trim()
+              ? 'empty'
+              : card.status,
         };
       })
     );
@@ -286,7 +308,8 @@ export const CardBasedImportDialog: React.FC<CardBasedImportDialogProps> = ({
           e.preventDefault();
           const file = item.getAsFile();
           if (!file) continue;
-          if (card.images.length + newImages.length >= MAX_IMAGES_PER_CARD) break;
+          if (card.images.length + newImages.length >= MAX_IMAGES_PER_CARD)
+            break;
 
           newImages.push({
             file,
@@ -345,7 +368,9 @@ export const CardBasedImportDialog: React.FC<CardBasedImportDialogProps> = ({
         aiNotes: result.data.notes,
       });
 
-      toast.success(`ניתוח הושלם: ${result.data.fields.firstName} ${result.data.fields.lastName}`);
+      toast.success(
+        `ניתוח הושלם: ${result.data.fields.firstName} ${result.data.fields.lastName}`
+      );
     } catch (err) {
       updateCard(cardId, {
         status: 'error',
@@ -360,7 +385,8 @@ export const CardBasedImportDialog: React.FC<CardBasedImportDialogProps> = ({
   // =========================================================================
   const analyzeAllCards = async () => {
     const cardsToAnalyze = cards.filter(
-      (c) => c.status === 'has-input' && (c.images.length > 0 || c.rawText.trim())
+      (c) =>
+        c.status === 'has-input' && (c.images.length > 0 || c.rawText.trim())
     );
 
     if (cardsToAnalyze.length === 0) {
@@ -412,8 +438,10 @@ export const CardBasedImportDialog: React.FC<CardBasedImportDialogProps> = ({
       formData.append('gender', fields.gender);
 
       if (fields.phone) formData.append('phone', fields.phone);
-      if (fields.maritalStatus) formData.append('maritalStatus', fields.maritalStatus);
-      if (fields.religiousLevel) formData.append('religiousLevel', fields.religiousLevel);
+      if (fields.maritalStatus)
+        formData.append('maritalStatus', fields.maritalStatus);
+      if (fields.religiousLevel)
+        formData.append('religiousLevel', fields.religiousLevel);
       if (fields.origin) formData.append('origin', fields.origin);
       if (fields.height) formData.append('height', fields.height);
       if (fields.referredBy) formData.append('referredBy', fields.referredBy);
@@ -434,16 +462,23 @@ export const CardBasedImportDialog: React.FC<CardBasedImportDialogProps> = ({
       if (fields.personality) manualLines.push(`אופי: ${fields.personality}`);
       if (fields.lookingFor) manualLines.push(`מחפש/ת: ${fields.lookingFor}`);
       if (fields.hobbies) manualLines.push(`תחביבים: ${fields.hobbies}`);
-      if (fields.familyDescription) manualLines.push(`משפחה: ${fields.familyDescription}`);
-      if (fields.militaryService) manualLines.push(`שירות: ${fields.militaryService}`);
+      if (fields.familyDescription)
+        manualLines.push(`משפחה: ${fields.familyDescription}`);
+      if (fields.militaryService)
+        manualLines.push(`שירות: ${fields.militaryService}`);
       if (fields.education) manualLines.push(`לימודים: ${fields.education}`);
       if (fields.occupation) manualLines.push(`עיסוק: ${fields.occupation}`);
       if (fields.city) manualLines.push(`עיר: ${fields.city}`);
       if (fields.languages) manualLines.push(`שפות: ${fields.languages}`);
-      if (fields.manualEntryText) manualLines.push(`\n--- טקסט מקורי ---\n${fields.manualEntryText}`);
-      else if (card.rawText) manualLines.push(`\n--- טקסט מקורי ---\n${card.rawText}`);
+      if (fields.manualEntryText)
+        manualLines.push(`\n--- טקסט מקורי ---\n${fields.manualEntryText}`);
+      else if (card.rawText)
+        manualLines.push(`\n--- טקסט מקורי ---\n${card.rawText}`);
 
-      formData.append('manualEntryText', manualLines.join('\n') || 'imported via card import');
+      formData.append(
+        'manualEntryText',
+        manualLines.join('\n') || 'imported via card import'
+      );
 
       // Add profile photos (not form images)
       const photoImages = card.images.filter((img) => !img.isFormImage);
@@ -485,7 +520,9 @@ export const CardBasedImportDialog: React.FC<CardBasedImportDialogProps> = ({
   const resetCard = (cardId: string) => {
     const newCard = createEmptyCard();
     setCards((prev) =>
-      prev.map((card) => (card.id === cardId ? { ...newCard, id: cardId } : card))
+      prev.map((card) =>
+        card.id === cardId ? { ...newCard, id: cardId } : card
+      )
     );
   };
 
@@ -509,7 +546,9 @@ export const CardBasedImportDialog: React.FC<CardBasedImportDialogProps> = ({
   // Stats
   // =========================================================================
   const filledCards = cards.filter((c) => c.status !== 'empty').length;
-  const analyzedCards = cards.filter((c) => c.status === 'analyzed' || c.status === 'saved').length;
+  const analyzedCards = cards.filter(
+    (c) => c.status === 'analyzed' || c.status === 'saved'
+  ).length;
   const savedCards = cards.filter((c) => c.status === 'saved').length;
   const errorCards = cards.filter((c) => c.status === 'error').length;
 
@@ -538,22 +577,34 @@ export const CardBasedImportDialog: React.FC<CardBasedImportDialogProps> = ({
             {/* Stats badges */}
             <div className="flex items-center gap-2">
               {filledCards > 0 && (
-                <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                <Badge
+                  variant="outline"
+                  className="bg-blue-50 text-blue-700 border-blue-200"
+                >
                   {filledCards} עם תוכן
                 </Badge>
               )}
               {analyzedCards > 0 && (
-                <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200">
+                <Badge
+                  variant="outline"
+                  className="bg-purple-50 text-purple-700 border-purple-200"
+                >
                   {analyzedCards} נותחו
                 </Badge>
               )}
               {savedCards > 0 && (
-                <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                <Badge
+                  variant="outline"
+                  className="bg-green-50 text-green-700 border-green-200"
+                >
                   {savedCards} נשמרו ✓
                 </Badge>
               )}
               {errorCards > 0 && (
-                <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">
+                <Badge
+                  variant="outline"
+                  className="bg-red-50 text-red-700 border-red-200"
+                >
                   {errorCards} שגיאות
                 </Badge>
               )}
@@ -654,7 +705,11 @@ interface CandidateCardProps {
   card: CardData;
   index: number;
   onUpdateCard: (id: string, updates: Partial<CardData>) => void;
-  onUpdateField: (id: string, field: keyof ExtractedFields, value: string) => void;
+  onUpdateField: (
+    id: string,
+    field: keyof ExtractedFields,
+    value: string
+  ) => void;
   onImageUpload: (id: string, e: React.ChangeEvent<HTMLInputElement>) => void;
   onRemoveImage: (id: string, index: number) => void;
   onPaste: (id: string, e: React.ClipboardEvent) => void;
@@ -682,7 +737,13 @@ const CandidateCard: React.FC<CandidateCardProps> = React.memo(
 
     const statusConfig: Record<
       CardData['status'],
-      { color: string; bg: string; border: string; label: string; icon: React.ReactNode }
+      {
+        color: string;
+        bg: string;
+        border: string;
+        label: string;
+        icon: React.ReactNode;
+      }
     > = {
       empty: {
         color: 'text-gray-400',
@@ -751,13 +812,13 @@ const CandidateCard: React.FC<CandidateCardProps> = React.memo(
             <span className="text-xs font-bold text-gray-400 bg-gray-100 rounded-full w-6 h-6 flex items-center justify-center">
               {index + 1}
             </span>
-            <div className={`flex items-center gap-1 text-xs font-medium ${config.color}`}>
+            <div
+              className={`flex items-center gap-1 text-xs font-medium ${config.color}`}
+            >
               {config.icon}
               {config.label}
             </div>
-            {card.aiConfidence && (
-              <ConfidenceBadge level={card.aiConfidence} />
-            )}
+            {card.aiConfidence && <ConfidenceBadge level={card.aiConfidence} />}
           </div>
           <div className="flex items-center gap-1">
             {!isSaved && (
@@ -788,13 +849,12 @@ const CandidateCard: React.FC<CandidateCardProps> = React.memo(
         </div>
 
         {/* Input Area (shown when not yet analyzed or when expanded) */}
-        {(card.status === 'empty' || card.status === 'has-input' || card.status === 'error') && (
+        {(card.status === 'empty' ||
+          card.status === 'has-input' ||
+          card.status === 'error') && (
           <div className="p-3 space-y-2">
             {/* Image upload zone */}
-            <div
-              onPaste={(e) => onPaste(card.id, e)}
-              className="relative"
-            >
+            <div onPaste={(e) => onPaste(card.id, e)} className="relative">
               {card.images.length > 0 ? (
                 <div className="grid grid-cols-3 gap-1.5 mb-2">
                   {card.images.map((img, imgIdx) => (
@@ -832,8 +892,12 @@ const CandidateCard: React.FC<CandidateCardProps> = React.memo(
               ) : (
                 <label className="flex flex-col items-center justify-center h-24 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-indigo-400 hover:bg-indigo-50/30 transition-colors">
                   <Upload className="w-5 h-5 text-gray-400 mb-1" />
-                  <span className="text-xs text-gray-500">העלה או הדבק תמונות</span>
-                  <span className="text-[10px] text-gray-400">Ctrl+V להדבקה</span>
+                  <span className="text-xs text-gray-500">
+                    העלה או הדבק תמונות
+                  </span>
+                  <span className="text-[10px] text-gray-400">
+                    Ctrl+V להדבקה
+                  </span>
                   <input
                     type="file"
                     multiple
@@ -850,7 +914,10 @@ const CandidateCard: React.FC<CandidateCardProps> = React.memo(
             <Textarea
               value={card.rawText}
               onChange={(e) =>
-                onUpdateCard(card.id, { rawText: e.target.value, status: 'has-input' })
+                onUpdateCard(card.id, {
+                  rawText: e.target.value,
+                  status: 'has-input',
+                })
               }
               onPaste={(e) => onPaste(card.id, e)}
               placeholder="הדבק כאן טקסט מהוואטסאפ..."
@@ -871,7 +938,9 @@ const CandidateCard: React.FC<CandidateCardProps> = React.memo(
             {/* Analyze button */}
             <Button
               onClick={() => onAnalyze(card.id)}
-              disabled={isDisabled || (card.images.length === 0 && !card.rawText.trim())}
+              disabled={
+                isDisabled || (card.images.length === 0 && !card.rawText.trim())
+              }
               size="sm"
               className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white"
             >
@@ -886,262 +955,364 @@ const CandidateCard: React.FC<CandidateCardProps> = React.memo(
         )}
 
         {/* Analyzed Fields Display */}
-        {card.extracted && card.status !== 'empty' && card.status !== 'has-input' && (
-          <div className="p-3 space-y-2">
-            {/* Quick summary */}
-            {!isExpanded && (
-              <div className="space-y-2">
-                {/* Name + basic info */}
-                <div className="flex items-center gap-2">
-                  {card.images.length > 0 && (
-                    <div className="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0">
-                      <img
-                        src={card.images[0].preview}
-                        className="w-full h-full object-cover"
-                        alt=""
-                      />
-                    </div>
-                  )}
-                  <div className="min-w-0">
-                    <p className="font-bold text-gray-800 truncate">
-                      {card.extracted.firstName} {card.extracted.lastName}
-                    </p>
-                    <p className="text-xs text-gray-500">
-                      {[
-                        card.extracted.age && `גיל ${card.extracted.age}`,
-                        card.extracted.city,
-                        card.extracted.religiousLevel,
-                        card.extracted.gender === 'MALE' ? '♂' : card.extracted.gender === 'FEMALE' ? '♀' : '',
-                      ]
-                        .filter(Boolean)
-                        .join(' · ')}
-                    </p>
-                  </div>
-                </div>
-
-                {/* AI notes */}
-                {card.aiNotes && (
-                  <p className="text-[10px] text-amber-600 bg-amber-50 px-2 py-1 rounded">
-                    💡 {card.aiNotes}
-                  </p>
-                )}
-
-                {/* Actions */}
-                {!isSaved && (
-                  <div className="flex gap-2">
-                    <Button
-                      onClick={() => onSave(card.id)}
-                      disabled={isSaving}
-                      size="sm"
-                      className="flex-1 bg-green-600 hover:bg-green-700 text-white"
-                    >
-                      {isSaving ? (
-                        <Loader2 className="w-3.5 h-3.5 ml-1.5 animate-spin" />
-                      ) : (
-                        <Save className="w-3.5 h-3.5 ml-1.5" />
-                      )}
-                      {isSaving ? 'שומר...' : 'אשר ושמור'}
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setIsExpanded(true)}
-                    >
-                      ערוך
-                    </Button>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Expanded edit form */}
-            {isExpanded && (
-              <div className="space-y-3">
-                {/* Images */}
-                {card.images.length > 0 && (
-                  <div className="flex gap-1.5 overflow-x-auto pb-1">
-                    {card.images.map((img, imgIdx) => (
-                      <div key={imgIdx} className="relative flex-shrink-0 w-14 h-14 group">
+        {card.extracted &&
+          card.status !== 'empty' &&
+          card.status !== 'has-input' && (
+            <div className="p-3 space-y-2">
+              {/* Quick summary */}
+              {!isExpanded && (
+                <div className="space-y-2">
+                  {/* Name + basic info */}
+                  <div className="flex items-center gap-2">
+                    {card.images.length > 0 && (
+                      <div className="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0">
                         <img
-                          src={img.preview}
-                          className="rounded-md object-cover w-full h-full border"
+                          src={card.images[0].preview}
+                          className="w-full h-full object-cover"
                           alt=""
                         />
-                        {!isDisabled && (
-                          <button
-                            type="button"
-                            onClick={() => onRemoveImage(card.id, imgIdx)}
-                            className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-4 h-4 text-[10px] flex items-center justify-center opacity-0 group-hover:opacity-100"
-                          >
-                            ×
-                          </button>
+                      </div>
+                    )}
+                    <div className="min-w-0">
+                      <p className="font-bold text-gray-800 truncate">
+                        {card.extracted.firstName} {card.extracted.lastName}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        {[
+                          card.extracted.age && `גיל ${card.extracted.age}`,
+                          card.extracted.city,
+                          card.extracted.religiousLevel,
+                          card.extracted.gender === 'MALE'
+                            ? '♂'
+                            : card.extracted.gender === 'FEMALE'
+                              ? '♀'
+                              : '',
+                        ]
+                          .filter(Boolean)
+                          .join(' · ')}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* AI notes */}
+                  {card.aiNotes && (
+                    <p className="text-[10px] text-amber-600 bg-amber-50 px-2 py-1 rounded">
+                      💡 {card.aiNotes}
+                    </p>
+                  )}
+
+                  {/* Actions */}
+                  {!isSaved && (
+                    <div className="flex gap-2">
+                      <Button
+                        onClick={() => onSave(card.id)}
+                        disabled={isSaving}
+                        size="sm"
+                        className="flex-1 bg-green-600 hover:bg-green-700 text-white"
+                      >
+                        {isSaving ? (
+                          <Loader2 className="w-3.5 h-3.5 ml-1.5 animate-spin" />
+                        ) : (
+                          <Save className="w-3.5 h-3.5 ml-1.5" />
                         )}
+                        {isSaving ? 'שומר...' : 'אשר ושמור'}
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setIsExpanded(true)}
+                      >
+                        ערוך
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Expanded edit form */}
+              {isExpanded && (
+                <div className="space-y-3">
+                  {/* Images */}
+                  {card.images.length > 0 && (
+                    <div className="flex gap-1.5 overflow-x-auto pb-1">
+                      {card.images.map((img, imgIdx) => (
+                        <div
+                          key={imgIdx}
+                          className="relative flex-shrink-0 w-14 h-14 group"
+                        >
+                          <img
+                            src={img.preview}
+                            className="rounded-md object-cover w-full h-full border"
+                            alt=""
+                          />
+                          {!isDisabled && (
+                            <button
+                              type="button"
+                              onClick={() => onRemoveImage(card.id, imgIdx)}
+                              className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-4 h-4 text-[10px] flex items-center justify-center opacity-0 group-hover:opacity-100"
+                            >
+                              ×
+                            </button>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Fields grid */}
+                  <div className="grid grid-cols-2 gap-2">
+                    {[
+                      {
+                        key: 'firstName' as const,
+                        label: 'שם פרטי',
+                        required: true,
+                      },
+                      {
+                        key: 'lastName' as const,
+                        label: 'שם משפחה',
+                        required: true,
+                      },
+                      { key: 'age' as const, label: 'גיל', type: 'number' },
+                      {
+                        key: 'height' as const,
+                        label: 'גובה (ס״מ)',
+                        type: 'number',
+                      },
+                      { key: 'city' as const, label: 'עיר' },
+                      { key: 'occupation' as const, label: 'עיסוק' },
+                      { key: 'education' as const, label: 'לימודים' },
+                      { key: 'phone' as const, label: 'טלפון', dir: 'ltr' },
+                      // הסרנו את origin מכאן!
+                      { key: 'referredBy' as const, label: 'הופנה ע״י' },
+                      { key: 'languages' as const, label: 'שפות' },
+                      { key: 'militaryService' as const, label: 'שירות צבאי' },
+                    ].map(({ key, label, type, dir, required }) => (
+                      <div key={key}>
+                        <Label className="text-[10px] text-gray-500">
+                          {label}
+                          {required && <span className="text-red-500">*</span>}
+                        </Label>
+                        <Input
+                          value={card.extracted?.[key] || ''}
+                          onChange={(e) =>
+                            onUpdateField(card.id, key, e.target.value)
+                          }
+                          dir={(dir as 'ltr' | 'rtl') || 'rtl'}
+                          type={type || 'text'}
+                          className="h-7 text-xs"
+                          disabled={isDisabled}
+                        />
                       </div>
                     ))}
-                  </div>
-                )}
 
-                {/* Fields grid */}
-                <div className="grid grid-cols-2 gap-2">
-                  {[
-                    { key: 'firstName' as const, label: 'שם פרטי', required: true },
-                    { key: 'lastName' as const, label: 'שם משפחה', required: true },
-                    { key: 'age' as const, label: 'גיל', type: 'number' },
-                    { key: 'height' as const, label: 'גובה (ס״מ)', type: 'number' },
-                    { key: 'city' as const, label: 'עיר' },
-                    { key: 'occupation' as const, label: 'עיסוק' },
-                    { key: 'education' as const, label: 'לימודים' },
-                    { key: 'phone' as const, label: 'טלפון', dir: 'ltr' },
-                    { key: 'origin' as const, label: 'מוצא' },
-                    { key: 'referredBy' as const, label: 'הופנה ע״י' },
-                    { key: 'languages' as const, label: 'שפות' },
-                    { key: 'militaryService' as const, label: 'שירות צבאי' },
-                  ].map(({ key, label, type, dir, required }) => (
-                    <div key={key}>
+                    {/* Gender select */}
+                    <div>
                       <Label className="text-[10px] text-gray-500">
-                        {label}
-                        {required && <span className="text-red-500">*</span>}
+                        מגדר<span className="text-red-500">*</span>
                       </Label>
-                      <Input
-                        value={card.extracted?.[key] || ''}
-                        onChange={(e) => onUpdateField(card.id, key, e.target.value)}
-                        dir={(dir as 'ltr' | 'rtl') || 'rtl'}
-                        type={type || 'text'}
-                        className="h-7 text-xs"
+                      <Select
+                        value={card.extracted?.gender || ''}
+                        onValueChange={(v) =>
+                          onUpdateField(card.id, 'gender', v)
+                        }
                         disabled={isDisabled}
-                      />
+                      >
+                        <SelectTrigger className="h-7 text-xs" dir="rtl">
+                          <SelectValue placeholder="בחר" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="MALE">זכר</SelectItem>
+                          <SelectItem value="FEMALE">נקבה</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
-                  ))}
 
-                  {/* Gender select */}
+                    {/* Marital status select */}
+                    <div>
+                      <Label className="text-[10px] text-gray-500">
+                        מצב משפחתי
+                      </Label>
+                      <Select
+                        value={card.extracted?.maritalStatus || ''}
+                        onValueChange={(v) =>
+                          onUpdateField(card.id, 'maritalStatus', v)
+                        }
+                        disabled={isDisabled}
+                      >
+                        <SelectTrigger className="h-7 text-xs" dir="rtl">
+                          <SelectValue placeholder="בחר" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="single">רווק/ה</SelectItem>
+                          <SelectItem value="divorced">גרוש/ה</SelectItem>
+                          <SelectItem value="widowed">אלמן/ה</SelectItem>
+                          <SelectItem value="separated">פרוד/ה</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {/* Religious level select */}
+                    <div>
+                      <Label className="text-[10px] text-gray-500">
+                        רמה דתית
+                      </Label>
+                      <Select
+                        value={card.extracted?.religiousLevel || ''}
+                        onValueChange={(v) =>
+                          onUpdateField(card.id, 'religiousLevel', v)
+                        }
+                        disabled={isDisabled}
+                      >
+                        <SelectTrigger className="h-7 text-xs" dir="rtl">
+                          <SelectValue placeholder="בחר" />
+                        </SelectTrigger>
+                        <SelectContent className="max-h-[300px]">
+                          <SelectItem value="dati_leumi_standard">
+                            דתי/ה לאומי/ת (סטנדרטי)
+                          </SelectItem>
+                          <SelectItem value="dati_leumi_liberal">
+                            דתי/ה לאומי/ת ליברלי/ת
+                          </SelectItem>
+                          <SelectItem value="dati_leumi_torani">
+                            דתי/ה לאומי/ת תורני/ת
+                          </SelectItem>
+                          <SelectItem value="masorti_strong">
+                            מסורתי/ת (קרוב/ה לדת)
+                          </SelectItem>
+                          <SelectItem value="masorti_light">
+                            מסורתי/ת (קשר קל למסורת)
+                          </SelectItem>
+                          <SelectItem value="secular_traditional_connection">
+                            חילוני/ת עם זיקה למסורת
+                          </SelectItem>
+                          <SelectItem value="secular">חילוני/ת</SelectItem>
+                          <SelectItem value="spiritual_not_religious">
+                            רוחני/ת (לאו דווקא דתי/ה)
+                          </SelectItem>
+                          <SelectItem value="charedi_modern">
+                            חרדי/ת מודרני/ת
+                          </SelectItem>
+                          <SelectItem value="charedi_litvak">
+                            חרדי/ת ליטאי/ת
+                          </SelectItem>
+                          <SelectItem value="charedi_sephardic">
+                            חרדי/ת ספרדי/ת
+                          </SelectItem>
+                          <SelectItem value="charedi_hasidic">
+                            חרדי/ת חסידי/ת
+                          </SelectItem>
+                          <SelectItem value="chabad">חב״ד</SelectItem>
+                          <SelectItem value="breslov">ברסלב</SelectItem>
+                          <SelectItem value="other">אחר</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {/* Origin select - Hebrew with expanded options - הוסף כאן! */}
+                    <div>
+                      <Label className="text-[10px] text-gray-500">מוצא</Label>
+                      <Select
+                        value={card.extracted?.origin || ''}
+                        onValueChange={(v) =>
+                          onUpdateField(card.id, 'origin', v)
+                        }
+                        disabled={isDisabled}
+                      >
+                        <SelectTrigger className="h-7 text-xs" dir="rtl">
+                          <SelectValue placeholder="בחר מוצא" />
+                        </SelectTrigger>
+                        <SelectContent className="max-h-[300px]">
+                          <SelectItem value="אשכנזי">אשכנזי</SelectItem>
+                          <SelectItem value="ספרדי">ספרדי</SelectItem>
+                          <SelectItem value="מזרחי">מזרחי</SelectItem>
+                          <SelectItem value="תימני">תימני</SelectItem>
+                          <SelectItem value="מרוקאי">מרוקאי</SelectItem>
+                          <SelectItem value="עיראקי">עיראקי</SelectItem>
+                          <SelectItem value="פרסי">פרסי</SelectItem>
+                          <SelectItem value="כורדי">כורדי</SelectItem>
+                          <SelectItem value="תוניסאי">תוניסאי</SelectItem>
+                          <SelectItem value="לובי">לובי</SelectItem>
+                          <SelectItem value="אתיופי">אתיופי</SelectItem>
+                          <SelectItem value="גרוזיני">גרוזיני</SelectItem>
+                          <SelectItem value="בוכרי">בוכרי</SelectItem>
+                          <SelectItem value="הודי">הודי</SelectItem>
+                          <SelectItem value="תורכי">תורכי</SelectItem>
+                          <SelectItem value="מעורב">מעורב</SelectItem>
+                          <SelectItem value="אחר">אחר</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  {/* Text fields */}
                   <div>
                     <Label className="text-[10px] text-gray-500">
-                      מגדר<span className="text-red-500">*</span>
+                      אופי ותכונות
                     </Label>
-                    <Select
-                      value={card.extracted?.gender || ''}
-                      onValueChange={(v) => onUpdateField(card.id, 'gender', v)}
+                    <Textarea
+                      value={card.extracted?.personality || ''}
+                      onChange={(e) =>
+                        onUpdateField(card.id, 'personality', e.target.value)
+                      }
+                      rows={2}
+                      dir="rtl"
+                      className="text-xs resize-none"
                       disabled={isDisabled}
-                    >
-                      <SelectTrigger className="h-7 text-xs" dir="rtl">
-                        <SelectValue placeholder="בחר" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="MALE">זכר</SelectItem>
-                        <SelectItem value="FEMALE">נקבה</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    />
                   </div>
-
-                  {/* Marital status select */}
                   <div>
-                    <Label className="text-[10px] text-gray-500">מצב משפחתי</Label>
-                    <Select
-                      value={card.extracted?.maritalStatus || ''}
-                      onValueChange={(v) => onUpdateField(card.id, 'maritalStatus', v)}
+                    <Label className="text-[10px] text-gray-500">מחפש/ת</Label>
+                    <Textarea
+                      value={card.extracted?.lookingFor || ''}
+                      onChange={(e) =>
+                        onUpdateField(card.id, 'lookingFor', e.target.value)
+                      }
+                      rows={2}
+                      dir="rtl"
+                      className="text-xs resize-none"
                       disabled={isDisabled}
-                    >
-                      <SelectTrigger className="h-7 text-xs" dir="rtl">
-                        <SelectValue placeholder="בחר" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="single">רווק/ה</SelectItem>
-                        <SelectItem value="divorced">גרוש/ה</SelectItem>
-                        <SelectItem value="widowed">אלמן/ה</SelectItem>
-                        <SelectItem value="separated">פרוד/ה</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    />
                   </div>
 
-                  {/* Religious level select */}
-                  <div>
-                    <Label className="text-[10px] text-gray-500">רמה דתית</Label>
-                    <Select
-                      value={card.extracted?.religiousLevel || ''}
-                      onValueChange={(v) => onUpdateField(card.id, 'religiousLevel', v)}
-                      disabled={isDisabled}
-                    >
-                      <SelectTrigger className="h-7 text-xs" dir="rtl">
-                        <SelectValue placeholder="בחר" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="haredi">חרדי</SelectItem>
-                        <SelectItem value="haredi_modern">חרדי מודרני</SelectItem>
-                        <SelectItem value="dati">דתי</SelectItem>
-                        <SelectItem value="dati_leumi">דתי לאומי</SelectItem>
-                        <SelectItem value="hardal">חרד&quot;ל</SelectItem>
-                        <SelectItem value="masorti">מסורתי</SelectItem>
-                        <SelectItem value="hiloni">חילוני</SelectItem>
-                        <SelectItem value="baal_teshuva">בעל/ת תשובה</SelectItem>
-                        <SelectItem value="chabad">חב&quot;ד</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
+                  {/* Actions */}
+                  {!isSaved && (
+                    <div className="flex gap-2 pt-1">
+                      <Button
+                        onClick={() => onSave(card.id)}
+                        disabled={isSaving}
+                        size="sm"
+                        className="flex-1 bg-green-600 hover:bg-green-700 text-white"
+                      >
+                        {isSaving ? (
+                          <Loader2 className="w-3.5 h-3.5 ml-1.5 animate-spin" />
+                        ) : (
+                          <Save className="w-3.5 h-3.5 ml-1.5" />
+                        )}
+                        אשר ושמור
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setIsExpanded(false)}
+                      >
+                        <ChevronUp className="w-3 h-3 ml-1" />
+                        סגור
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => onAnalyze(card.id)}
+                        className="text-purple-600"
+                      >
+                        <RotateCcw className="w-3 h-3 ml-1" />
+                        נתח שוב
+                      </Button>
+                    </div>
+                  )}
                 </div>
-
-                {/* Text fields */}
-                <div>
-                  <Label className="text-[10px] text-gray-500">אופי ותכונות</Label>
-                  <Textarea
-                    value={card.extracted?.personality || ''}
-                    onChange={(e) => onUpdateField(card.id, 'personality', e.target.value)}
-                    rows={2}
-                    dir="rtl"
-                    className="text-xs resize-none"
-                    disabled={isDisabled}
-                  />
-                </div>
-                <div>
-                  <Label className="text-[10px] text-gray-500">מחפש/ת</Label>
-                  <Textarea
-                    value={card.extracted?.lookingFor || ''}
-                    onChange={(e) => onUpdateField(card.id, 'lookingFor', e.target.value)}
-                    rows={2}
-                    dir="rtl"
-                    className="text-xs resize-none"
-                    disabled={isDisabled}
-                  />
-                </div>
-
-                {/* Actions */}
-                {!isSaved && (
-                  <div className="flex gap-2 pt-1">
-                    <Button
-                      onClick={() => onSave(card.id)}
-                      disabled={isSaving}
-                      size="sm"
-                      className="flex-1 bg-green-600 hover:bg-green-700 text-white"
-                    >
-                      {isSaving ? (
-                        <Loader2 className="w-3.5 h-3.5 ml-1.5 animate-spin" />
-                      ) : (
-                        <Save className="w-3.5 h-3.5 ml-1.5" />
-                      )}
-                      אשר ושמור
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setIsExpanded(false)}
-                    >
-                      <ChevronUp className="w-3 h-3 ml-1" />
-                      סגור
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => onAnalyze(card.id)}
-                      className="text-purple-600"
-                    >
-                      <RotateCcw className="w-3 h-3 ml-1" />
-                      נתח שוב
-                    </Button>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-        )}
+              )}
+            </div>
+          )}
       </div>
     );
   }

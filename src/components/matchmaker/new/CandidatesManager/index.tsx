@@ -1255,7 +1255,16 @@ const [showCardImportDialog, setShowCardImportDialog] = useState(false);
         }}
         locale={locale}
       />
-
+      {/* --- NEW: Card-Based Import Dialog --- */}
+      <CardBasedImportDialog
+        isOpen={showCardImportDialog}
+        onClose={() => setShowCardImportDialog(false)}
+        onImportComplete={() => {
+          refresh();
+          toast.success('הייבוא הושלם בהצלחה!');
+        }}
+        locale={locale}
+      />
       <AiMatchAnalysisDialog
         isOpen={isAnalysisDialogOpen}
         onClose={() => setIsAnalysisDialogOpen(false)}
