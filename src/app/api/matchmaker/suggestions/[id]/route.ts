@@ -3,8 +3,34 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { UserRole } from "@prisma/client";
+import { MatchSuggestionStatus, UserRole } from "@prisma/client";
 import { SuggestionService } from "@/components/matchmaker/suggestions/services/suggestions/SuggestionService";
+import prisma from "@/lib/prisma"; // הוספת ייבוא Prisma
+
+// פונקציית עזר לחישוב קטגוריה (הועתקה מהלוגיקה של הסטטוס)
+const getSuggestionCategory = (status: MatchSuggestionStatus) => {
+  switch (status) {
+    case "DRAFT":
+    case "AWAITING_MATCHMAKER_APPROVAL":
+    case "PENDING_FIRST_PARTY":
+    case "PENDING_SECOND_PARTY":
+      return "PENDING";
+    
+    case "FIRST_PARTY_DECLINED":
+    case "SECOND_PARTY_DECLINED":
+    case "MATCH_DECLINED":
+    case "ENDED_AFTER_FIRST_DATE":
+    case "ENGAGED":
+    case "MARRIED":
+    case "EXPIRED":
+    case "CLOSED":
+    case "CANCELLED":
+      return "HISTORY";
+    
+    default:
+      return "ACTIVE";
+  }
+};
 
 export async function PATCH(
   req: NextRequest,
@@ -31,9 +57,52 @@ export async function PATCH(
     const suggestionId = params.id;
     const data = await req.json();
     
+    // =========================================================================
+    // תיקון: טיפול בעדכון סטטוס אם נשלח בבקשה זו
+    // =========================================================================
+    if (data.status) {
+      const currentSuggestion = await prisma.matchSuggestion.findUnique({
+        where: { id: suggestionId },
+        select: { status: true }
+      });
+
+      // מעדכנים סטטוס רק אם הוא שונה מהנוכחי
+      if (currentSuggestion && currentSuggestion.status !== data.status) {
+        await prisma.$transaction(async (tx) => {
+          const newStatus = data.status as MatchSuggestionStatus;
+          
+          await tx.matchSuggestion.update({
+            where: { id: suggestionId },
+            data: {
+              status: newStatus,
+              previousStatus: currentSuggestion.status,
+              lastStatusChange: new Date(),
+              lastActivity: new Date(),
+              category: getSuggestionCategory(newStatus),
+              // עדכון שדות רלוונטיים לפי הסטטוס החדש
+              ...(newStatus === MatchSuggestionStatus.CLOSED ? { closedAt: new Date() } : {}),
+              ...(newStatus === MatchSuggestionStatus.PENDING_FIRST_PARTY ? { firstPartySent: new Date() } : {}),
+              ...(newStatus === MatchSuggestionStatus.PENDING_SECOND_PARTY ? { secondPartySent: new Date() } : {}),
+            },
+          });
+
+          // יצירת רשומת היסטוריה
+          await tx.suggestionStatusHistory.create({
+            data: {
+              suggestionId,
+              status: newStatus,
+              notes: data.internalNotes || `סטטוס עודכן כחלק מעריכת הצעה על ידי ${session.user.firstName} ${session.user.lastName}`,
+            },
+          });
+        });
+      }
+    }
+    // =========================================================================
+
     const suggestionService = SuggestionService.getInstance();
     
     try {
+      // המשך עדכון שאר הפרטים (הערות, עדיפות וכו') דרך השירות הקיים
       const updatedSuggestion = await suggestionService.updateSuggestion(
         suggestionId,
         session.user.id,

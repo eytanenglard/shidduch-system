@@ -19,6 +19,7 @@ import {
   RotateCw,
   Bot,
   Loader2,
+  Grid3X3,
   Columns,
   View,
   Users,
@@ -29,7 +30,9 @@ import {
   EyeOff,
   GitCompare,
   X,
-  UserCircle, // <-- אייקון חדש לחיפוש וירטואלי
+  UserCircle,
+  Upload, // <-- NEW: אייקון לייבוא
+  ChevronDown, // <-- NEW: אייקון לתפריט נפתח
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -73,7 +76,8 @@ import { AddManualCandidateDialog } from '../dialogs/AddManualCandidateDialog';
 import { AiMatchAnalysisDialog } from '../dialogs/AiMatchAnalysisDialog';
 import { ProfileFeedbackDialog } from '../dialogs/ProfileFeedbackDialog';
 import { AiMatchmakerProfileAdvisorDialog } from '../dialogs/AiMatchmakerProfileAdvisorDialog';
-
+import { BulkImportDialog } from '../dialogs/BulkImportDialog'; // <-- NEW: ייבוא הקומפוננטה החדשה
+import { CardBasedImportDialog } from '../dialogs/CardBasedImportDialog';
 // --- Virtual Search Components (NEW) ---
 import { VirtualUserDialog, SavedVirtualProfiles } from '../VirtualSearch';
 
@@ -89,13 +93,11 @@ import { SORT_OPTIONS, VIEW_OPTIONS } from '../constants/filterOptions';
 import type { MatchmakerPageDictionary } from '@/types/dictionaries/matchmaker';
 import type { ProfilePageDictionary } from '@/types/dictionary';
 
-
 // הוספת שדה מותאם אישית ל-Candidate כדי למנוע שגיאות TS (אפשר גם להשתמש ב-as any)
 type VirtualCandidate = Candidate & {
   isVirtual: boolean;
   virtualData?: any; // אובייקט לשמירת הנתונים הגולמיים
 };
-
 
 // --- Interfaces Definitions ---
 type BackgroundCompatibility =
@@ -133,6 +135,9 @@ interface AiMatch {
 // ============================================================================
 // Minimal Compact Header Component
 // ============================================================================
+// ============================================================================
+// Minimal Compact Header Component (UPDATED)
+// ============================================================================
 const MinimalHeader: React.FC<{
   stats: {
     total: number;
@@ -143,6 +148,8 @@ const MinimalHeader: React.FC<{
     profilesComplete: number;
   };
   onAddCandidate: () => void;
+  onBulkImport: () => void;
+  onCardImport: () => void; // <-- חדש
   onRefresh: () => void;
   isRefreshing: boolean;
   onBulkUpdate?: () => void;
@@ -154,6 +161,8 @@ const MinimalHeader: React.FC<{
 }> = ({
   stats,
   onAddCandidate,
+  onBulkImport,
+  onCardImport, // <-- חדש
   onRefresh,
   isRefreshing,
   onBulkUpdate,
@@ -206,14 +215,44 @@ const MinimalHeader: React.FC<{
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <Button
-                onClick={onAddCandidate}
-                size="sm"
-                className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white shadow-md"
-              >
-                <UserPlus className="w-4 h-4 ml-1" />
-                {dict.addButton}
-              </Button>
+              {/* --- Dropdown Menu (COMPACT) --- */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    size="sm"
+                    className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white shadow-md"
+                  >
+                    <UserPlus className="w-4 h-4 ml-1" />
+                    הוסף
+                    <ChevronDown className="w-3 h-3 mr-1 opacity-70" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" dir="rtl">
+                  <DropdownMenuItem
+                    onClick={onAddCandidate}
+                    className="cursor-pointer"
+                  >
+                    <UserPlus className="w-4 h-4 ml-2 text-indigo-500" />
+                    הוסף מועמד בודד
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={onBulkImport}
+                    className="cursor-pointer"
+                  >
+                    <Upload className="w-4 h-4 ml-2 text-purple-500" />
+                    ייבוא מקבוצת וואטסאפ
+                  </DropdownMenuItem>
+                  {/* === חדש: כפתור ייבוא בכרטיסים === */}
+                  <DropdownMenuItem
+                    onClick={onCardImport}
+                    className="cursor-pointer"
+                  >
+                    <Grid3X3 className="w-4 h-4 ml-2 text-indigo-500" />
+                    ייבוא בכרטיסים (תמונה + טקסט)
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+
               <Button
                 onClick={onRefresh}
                 variant="outline"
@@ -269,15 +308,44 @@ const MinimalHeader: React.FC<{
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <Button
-                  onClick={onAddCandidate}
-                  size="sm"
-                  className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white shadow-lg"
-                >
-                  <UserPlus className="w-4 h-4 ml-2" />
-                  {dict.addCandidateButton}
-                  <Sparkles className="w-3 h-3 mr-1" />
-                </Button>
+                {/* --- Dropdown Menu (EXPANDED) --- */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      size="sm"
+                      className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white shadow-lg"
+                    >
+                      <UserPlus className="w-4 h-4 ml-2" />
+                      הוסף מועמדים
+                      <ChevronDown className="w-3 h-3 mr-1 opacity-70" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" dir="rtl">
+                    <DropdownMenuItem
+                      onClick={onAddCandidate}
+                      className="cursor-pointer"
+                    >
+                      <UserPlus className="w-4 h-4 ml-2 text-indigo-500" />
+                      הוסף מועמד בודד
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={onBulkImport}
+                      className="cursor-pointer"
+                    >
+                      <Upload className="w-4 h-4 ml-2 text-purple-500" />
+                      ייבוא מקבוצת וואטסאפ
+                    </DropdownMenuItem>
+                    {/* === חדש: כפתור ייבוא בכרטיסים === */}
+                    <DropdownMenuItem
+                      onClick={onCardImport}
+                      className="cursor-pointer"
+                    >
+                      <Grid3X3 className="w-4 h-4 ml-2 text-indigo-500" />
+                      ייבוא בכרטיסים (תמונה + טקסט)
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+
                 <Button
                   onClick={onRefresh}
                   variant="outline"
@@ -413,6 +481,9 @@ const CandidatesManager: React.FC<CandidatesManagerProps> = ({
   const [isHeaderCompact, setIsHeaderCompact] = useState(true);
   const [isQuickViewEnabled, setIsQuickViewEnabled] = useState(false);
 
+  // --- NEW: State for Bulk Import Dialog ---
+  const [showBulkImportDialog, setShowBulkImportDialog] = useState(false);
+const [showCardImportDialog, setShowCardImportDialog] = useState(false);
   // --- Virtual Search State ---
   const [showVirtualUserDialog, setShowVirtualUserDialog] = useState(false);
   const [showSavedVirtualProfiles, setShowSavedVirtualProfiles] =
@@ -636,15 +707,15 @@ const CandidatesManager: React.FC<CandidatesManagerProps> = ({
       aiReasoning:
         virtualProfile.editedSummary ||
         virtualProfile.generatedProfile.displaySummary,
-      
+
       // 🔥 התיקון: שמירת המידע הגולמי לשימוש בחיפוש 🔥
       virtualData: {
         virtualProfileId: virtualProfile.id,
         virtualProfile: virtualProfile.generatedProfile,
         gender: virtualProfile.gender,
         religiousLevel: virtualProfile.religiousLevel,
-        editedSummary: virtualProfile.editedSummary
-      }
+        editedSummary: virtualProfile.editedSummary,
+      },
     } as unknown as VirtualCandidate;
 
     setAiTargetCandidate(mockCandidate);
@@ -653,7 +724,6 @@ const CandidatesManager: React.FC<CandidatesManagerProps> = ({
 
     toast.success('פרופיל וירטואלי נטען! כעת ניתן לבצע חיפוש AI.');
   }, []);
-
 
   const handleUpdateAllProfiles = async () => {
     if (
@@ -739,6 +809,8 @@ const CandidatesManager: React.FC<CandidatesManagerProps> = ({
       <MinimalHeader
         stats={heroStats}
         onAddCandidate={() => setShowManualAddDialog(true)}
+        onBulkImport={() => setShowBulkImportDialog(true)} // <-- NEW: Connect button to dialog
+        onCardImport={() => setShowCardImportDialog(true)}
         onRefresh={refresh}
         isRefreshing={loading}
         onBulkUpdate={handleUpdateAllProfiles}
@@ -1170,6 +1242,17 @@ const CandidatesManager: React.FC<CandidatesManagerProps> = ({
         onClose={() => setShowManualAddDialog(false)}
         onCandidateAdded={handleCandidateAdded}
         dict={matchmakerDict.candidatesManager.addManualCandidateDialog}
+        locale={locale}
+      />
+
+      {/* --- NEW: Bulk Import Dialog --- */}
+      <BulkImportDialog
+        isOpen={showBulkImportDialog}
+        onClose={() => setShowBulkImportDialog(false)}
+        onImportComplete={() => {
+          refresh(); // Update the list
+          toast.success('הייבוא הושלם בהצלחה!');
+        }}
         locale={locale}
       />
 

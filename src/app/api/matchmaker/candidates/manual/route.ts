@@ -59,6 +59,9 @@ export async function POST(req: NextRequest) {
     const formData = await req.formData();
     const firstName = formData.get('firstName') as string;
     const lastName = formData.get('lastName') as string;
+    const phoneValue = formData.get('phone') as string | null;
+// אחרי religiousLevel
+const origin = formData.get('origin') as string | null;
     const emailValue = formData.get('email') as string | null;
     const gender = formData.get('gender') as Gender;
     const birthDateStr = formData.get('birthDate') as string;
@@ -121,6 +124,8 @@ export async function POST(req: NextRequest) {
       height: height,
       religiousLevel: religiousLevel,
       maritalStatus,
+        origin: origin || null, // 👈 הוסף שורה זו
+
             contentUpdatedAt: new Date(),
 
     };
@@ -158,6 +163,8 @@ export async function POST(req: NextRequest) {
         firstName,
         lastName,
         email,
+            phone: phoneValue?.trim() || null, // הוסף שורה זו
+
         password: null,
         role: UserRole.CANDIDATE,
         status: UserStatus.PENDING_EMAIL_VERIFICATION,

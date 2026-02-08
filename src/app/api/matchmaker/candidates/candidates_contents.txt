@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\candidates
-# Generated on: 2026-02-04 11:17:29
+# Generated on: 2026-02-08 09:58:25
 # Filter: Only content of code files (.bat, .c, .cfg, .conf, .cpp, .cs, .css, .go, .h, .html, .ini, .java, .js, .json, .jsx, .kt, .less, .md, .php, .py, .rb, .rs, .scss, .sh, .sql, .swift, .ts, .tsx, .txt, .xml, .yaml, .yml) is included.
 ################################################################################
 
@@ -567,6 +567,8 @@ export async function PATCH(
             updatedAt: new Date(),
             lastActive: new Date(),
             needsAiProfileUpdate: true, // מסמנים זמנית שצריך עדכון, עד שתהליך הרקע יסתיים
+                     contentUpdatedAt: new Date(),
+
           }
         });
 
@@ -899,13 +901,14 @@ export async function POST(
         userId: id,
         url: uploadResult.secure_url,
         cloudinaryPublicId: uploadResult.public_id,
-        isMain: existingImages === 0
+        isMain: existingImages === 0,
+        
       }
     });
 
     await prisma.profile.update({
       where: { userId: id },
-      data: { lastActive: new Date() }
+      data: { lastActive: new Date(), contentUpdatedAt: new Date() }
     });
 
     return NextResponse.json({
@@ -1411,6 +1414,8 @@ export async function POST(req: NextRequest) {
       height: height,
       religiousLevel: religiousLevel,
       maritalStatus,
+            contentUpdatedAt: new Date(),
+
     };
 
     // --- START: הוספת שדה מקור הפניה ---

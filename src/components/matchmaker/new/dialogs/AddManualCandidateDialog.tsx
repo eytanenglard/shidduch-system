@@ -15,7 +15,22 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
-import { Loader2, UserPlus, X, UploadCloud, Trash2 } from 'lucide-react';
+import {
+  Loader2,
+  UserPlus,
+  X,
+  UploadCloud,
+  Trash2,
+  User,
+  Phone,
+  Mail,
+  Calendar,
+  Ruler,
+  Heart,
+  FileText,
+  Camera,
+  Users,
+} from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import Image from 'next/image';
 import { Gender } from '@prisma/client';
@@ -41,36 +56,67 @@ interface AddManualCandidateDialogProps {
 const MAX_IMAGES = 5;
 const MAX_IMAGE_SIZE_MB = 5;
 
+// Section Header Component
+const SectionHeader: React.FC<{
+  icon: React.ReactNode;
+  title: string;
+}> = ({ icon, title }) => (
+  <div className="flex items-center gap-2 mb-3 pb-2 border-b border-gray-200">
+    <div className="text-primary">{icon}</div>
+    <h3 className="font-semibold text-gray-700">{title}</h3>
+  </div>
+);
+
+// Form Field Wrapper Component
+const FormField: React.FC<{
+  children: React.ReactNode;
+  className?: string;
+}> = ({ children, className = '' }) => (
+  <div className={`space-y-1.5 ${className}`}>{children}</div>
+);
+
 export const AddManualCandidateDialog: React.FC<
   AddManualCandidateDialogProps
 > = ({ isOpen, onClose, onCandidateAdded, dict }) => {
+  // Basic Info
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
+  
+  // Personal Details
   const [gender, setGender] = useState<Gender | undefined>(undefined);
   const [maritalStatus, setMaritalStatus] = useState<string>('');
   const [religiousLevel, setReligiousLevel] = useState<string>('');
+  const [origin, setOrigin] = useState<string>('');
+
   const [height, setHeight] = useState('');
+  
+  // Birth Date
   const [birthDate, setBirthDate] = useState<Date | undefined>(undefined);
+  const [birthDateInputMode, setBirthDateInputMode] = useState<'date' | 'age'>('date');
+  const [ageInput, setAgeInput] = useState<string>('');
+  
+  // Additional Info
   const [manualEntryText, setManualEntryText] = useState('');
+  const [referredBy, setReferredBy] = useState('');
+  
+  // Images
   const [images, setImages] = useState<File[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+  
+  // UI State
   const [sendInvite, setSendInvite] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const [birthDateInputMode, setBirthDateInputMode] = useState<'date' | 'age'>(
-    'date'
-  );
-  const [ageInput, setAgeInput] = useState<string>('');
-
-  // --- START: שדה מקור הפניה ---
-  const [referredBy, setReferredBy] = useState('');
-  // --- END: שדה מקור הפניה ---
 
   const resetForm = useCallback(() => {
     setFirstName('');
     setLastName('');
     setEmail('');
+    setPhone('');
     setGender(undefined);
+    setOrigin('');
+
     setMaritalStatus('');
     setReligiousLevel('');
     setHeight('');
@@ -82,7 +128,7 @@ export const AddManualCandidateDialog: React.FC<
     setIsSaving(false);
     setBirthDateInputMode('date');
     setAgeInput('');
-    setReferredBy(''); // Reset referredBy
+    setReferredBy('');
   }, []);
 
   const handleClose = () => {
@@ -171,6 +217,8 @@ export const AddManualCandidateDialog: React.FC<
     formData.append('firstName', firstName);
     formData.append('lastName', lastName);
     if (email) formData.append('email', email);
+    if (phone) formData.append('phone', phone);
+   if (origin) formData.append('origin', origin);
     formData.append('gender', gender);
     formData.append('maritalStatus', maritalStatus);
     formData.append('religiousLevel', religiousLevel);
@@ -179,11 +227,9 @@ export const AddManualCandidateDialog: React.FC<
     formData.append('birthDateIsApproximate', String(isBirthDateApproximate));
     formData.append('manualEntryText', manualEntryText);
 
-    // --- START: שליחת שדה מקור הפניה ---
     if (referredBy.trim()) {
       formData.append('referredBy', referredBy.trim());
     }
-    // --- END: שליחת שדה מקור הפניה ---
 
     images.forEach((image) => formData.append('images', image));
 
@@ -233,182 +279,199 @@ export const AddManualCandidateDialog: React.FC<
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent
-        className="sm:max-w-2xl max-h-[90vh] overflow-y-auto"
+        className="sm:max-w-2xl max-h-[90vh] overflow-y-auto p-0"
         dir="rtl"
       >
-        <DialogHeader className="text-right">
-          <DialogTitle className="flex items-center gap-2">
-            <UserPlus className="w-5 h-5" />
+        {/* Header */}
+        <DialogHeader className="px-6 pt-6 pb-4 border-b bg-gradient-to-l from-primary/5 to-transparent">
+          <DialogTitle className="flex items-center gap-3 text-xl">
+            <div className="p-2 bg-primary/10 rounded-lg">
+              <UserPlus className="w-5 h-5 text-primary" />
+            </div>
             {dict.title}
           </DialogTitle>
-          <DialogDescription>{dict.description}</DialogDescription>
+          <DialogDescription className="text-right mt-1">
+            {dict.description}
+          </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4 py-4">
-          {/* Basic Info Row */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="firstName" className="text-right block">
-                {dict.fields.firstName.label}{' '}
-                <span className="text-red-500">*</span>
-              </Label>
-              <Input
-                id="firstName"
-                value={firstName}
-                onChange={(e) => setFirstName(e.target.value)}
-                placeholder={dict.fields.firstName.placeholder}
-                required
-                dir="rtl"
-              />
-            </div>
-            <div>
-              <Label htmlFor="lastName" className="text-right block">
-                {dict.fields.lastName.label}{' '}
-                <span className="text-red-500">*</span>
-              </Label>
-              <Input
-                id="lastName"
-                value={lastName}
-                onChange={(e) => setLastName(e.target.value)}
-                placeholder={dict.fields.lastName.placeholder}
-                required
-                dir="rtl"
-              />
-            </div>
-          </div>
 
-          {/* Email Row */}
-          <div>
-            <Label htmlFor="email" className="text-right block">
-              {dict.fields.email.label}
-            </Label>
-            <Input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder={dict.fields.email.placeholder}
-              dir="ltr"
-              className="text-left"
+        <form onSubmit={handleSubmit} className="px-6 py-5 space-y-6">
+          {/* Section 1: Basic Information */}
+          <div className="bg-gray-50/50 rounded-xl p-4 border border-gray-100">
+            <SectionHeader
+              icon={<User className="w-4 h-4" />}
+              title="פרטים בסיסיים"
             />
-            <p className="text-xs text-gray-500 mt-1 text-right">
-              {dict.fields.email.description}
-            </p>
-          </div>
-
-          {/* --- START: שדה מקור הפניה --- */}
-          <div>
-            <Label htmlFor="referredBy" className="text-right block">
-              {dict.fields.referredBy?.label || 'דרך מי הגיע/ה?'}
-            </Label>
-            <Input
-              id="referredBy"
-              value={referredBy}
-              onChange={(e) => setReferredBy(e.target.value)}
-              placeholder={
-                dict.fields.referredBy?.placeholder ||
-                'שם ופרטי התקשרות של איש הקשר'
-              }
-              dir="rtl"
-            />
-            <p className="text-xs text-gray-500 mt-1 text-right">
-              {dict.fields.referredBy?.description ||
-                'עם מי להיות בקשר בנוגע למועמד/ת זו'}
-            </p>
-          </div>
-          {/* --- END: שדה מקור הפניה --- */}
-
-          {/* Send Invite Checkbox (only if email provided) */}
-          {email && (
-            <div className="flex items-center space-x-2 rtl:space-x-reverse bg-blue-50 p-3 rounded-md">
-              <Checkbox
-                id="sendInvite"
-                checked={sendInvite}
-                onCheckedChange={(checked) => setSendInvite(checked as boolean)}
-              />
-              <label
-                htmlFor="sendInvite"
-                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-              >
-                {dict.fields.sendInvite.label}
-              </label>
-            </div>
-          )}
-
-          {/* Gender and Marital Status Row */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="gender" className="text-right block">
-                {dict.fields.gender.label}{' '}
-                <span className="text-red-500">*</span>
-              </Label>
-              <Select
-                value={gender}
-                onValueChange={(value: Gender) => setGender(value)}
-                required
-              >
-                <SelectTrigger id="gender" dir="rtl">
-                  <SelectValue placeholder={dict.fields.gender.placeholder} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="MALE">
-                    {dict.fields.gender.male}
-                  </SelectItem>
-                  <SelectItem value="FEMALE">
-                    {dict.fields.gender.female}
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            {dict.fields.maritalStatus && (
-              <div>
-                <Label htmlFor="maritalStatus" className="text-right block">
-                  {dict.fields.maritalStatus.label}{' '}
-                  <span className="text-red-500">*</span>
+            
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <FormField>
+                <Label htmlFor="firstName" className="text-sm font-medium">
+                  {dict.fields.firstName.label}
+                  <span className="text-red-500 mr-1">*</span>
                 </Label>
-                <Select
-                  value={maritalStatus}
-                  onValueChange={(value: string) => setMaritalStatus(value)}
+                <Input
+                  id="firstName"
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                  placeholder={dict.fields.firstName.placeholder}
                   required
+                  dir="rtl"
+                  className="bg-white"
+                />
+              </FormField>
+
+              <FormField>
+                <Label htmlFor="lastName" className="text-sm font-medium">
+                  {dict.fields.lastName.label}
+                  <span className="text-red-500 mr-1">*</span>
+                </Label>
+                <Input
+                  id="lastName"
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
+                  placeholder={dict.fields.lastName.placeholder}
+                  required
+                  dir="rtl"
+                  className="bg-white"
+                />
+              </FormField>
+            </div>
+          </div>
+
+          {/* Section 2: Contact Information */}
+          <div className="bg-gray-50/50 rounded-xl p-4 border border-gray-100">
+            <SectionHeader
+              icon={<Mail className="w-4 h-4" />}
+              title="פרטי התקשרות"
+            />
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <FormField>
+                <Label htmlFor="email" className="text-sm font-medium flex items-center gap-1.5">
+                  <Mail className="w-3.5 h-3.5 text-gray-400" />
+                  {dict.fields.email.label}
+                </Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder={dict.fields.email.placeholder}
+                  dir="ltr"
+                  className="text-left bg-white"
+                />
+                <p className="text-xs text-gray-500">
+                  {dict.fields.email.description}
+                </p>
+              </FormField>
+
+              <FormField>
+                <Label htmlFor="phone" className="text-sm font-medium flex items-center gap-1.5">
+                  <Phone className="w-3.5 h-3.5 text-gray-400" />
+                  טלפון
+                </Label>
+                <Input
+                  id="phone"
+                  type="tel"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  placeholder="050-0000000"
+                  dir="ltr"
+                  className="text-left bg-white"
+                />
+                <p className="text-xs text-gray-500">
+                  מספר טלפון ליצירת קשר
+                </p>
+              </FormField>
+            </div>
+
+            {/* Send Invite Checkbox */}
+            {email && (
+              <div className="mt-4 flex items-center gap-3 bg-blue-50 p-3 rounded-lg border border-blue-100">
+                <Checkbox
+                  id="sendInvite"
+                  checked={sendInvite}
+                  onCheckedChange={(checked) => setSendInvite(checked as boolean)}
+                  className="data-[state=checked]:bg-blue-600"
+                />
+                <label
+                  htmlFor="sendInvite"
+                  className="text-sm font-medium text-blue-900 cursor-pointer"
                 >
-                  <SelectTrigger id="maritalStatus" dir="rtl">
-                    <SelectValue
-                      placeholder={dict.fields.maritalStatus.placeholder}
-                    />
-                  </SelectTrigger>
-                  <SelectContent className="max-h-[200px]">
-                    {dict.fields.maritalStatus.options &&
-                      Object.entries(dict.fields.maritalStatus.options).map(
-                        ([value, label]) => (
-                          <SelectItem key={value} value={value}>
-                            {label}
-                          </SelectItem>
-                        )
-                      )}
-                  </SelectContent>
-                </Select>
+                  {dict.fields.sendInvite.label}
+                </label>
               </div>
             )}
           </div>
 
-          {/* Religious Level and Height Row */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {/* Column 1: Religious Level & Height */}
-            <div className="space-y-4">
-              {/* Religious Level */}
-              <div>
-                <Label htmlFor="religiousLevel" className="text-right block">
-                  {dict.fields.religiousLevel.label}{' '}
-                  <span className="text-red-500">*</span>
+          {/* Section 3: Personal Details */}
+          <div className="bg-gray-50/50 rounded-xl p-4 border border-gray-100">
+            <SectionHeader
+              icon={<Heart className="w-4 h-4" />}
+              title="פרטים אישיים"
+            />
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <FormField>
+                <Label htmlFor="gender" className="text-sm font-medium">
+                  {dict.fields.gender.label}
+                  <span className="text-red-500 mr-1">*</span>
+                </Label>
+                <Select
+                  value={gender}
+                  onValueChange={(value: Gender) => setGender(value)}
+                  required
+                >
+                  <SelectTrigger id="gender" dir="rtl" className="bg-white">
+                    <SelectValue placeholder={dict.fields.gender.placeholder} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="MALE">{dict.fields.gender.male}</SelectItem>
+                    <SelectItem value="FEMALE">{dict.fields.gender.female}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </FormField>
+
+              {dict.fields.maritalStatus && (
+                <FormField>
+                  <Label htmlFor="maritalStatus" className="text-sm font-medium">
+                    {dict.fields.maritalStatus.label}
+                    <span className="text-red-500 mr-1">*</span>
+                  </Label>
+                  <Select
+                    value={maritalStatus}
+                    onValueChange={(value: string) => setMaritalStatus(value)}
+                    required
+                  >
+                    <SelectTrigger id="maritalStatus" dir="rtl" className="bg-white">
+                      <SelectValue placeholder={dict.fields.maritalStatus.placeholder} />
+                    </SelectTrigger>
+                    <SelectContent className="max-h-[200px]">
+                      {dict.fields.maritalStatus.options &&
+                        Object.entries(dict.fields.maritalStatus.options).map(
+                          ([value, label]) => (
+                            <SelectItem key={value} value={value}>
+                              {label}
+                            </SelectItem>
+                          )
+                        )}
+                    </SelectContent>
+                  </Select>
+                </FormField>
+              )}
+
+              <FormField>
+                <Label htmlFor="religiousLevel" className="text-sm font-medium">
+                  {dict.fields.religiousLevel.label}
+                  <span className="text-red-500 mr-1">*</span>
                 </Label>
                 <Select
                   value={religiousLevel}
                   onValueChange={(value: string) => setReligiousLevel(value)}
                   required
                 >
-                  <SelectTrigger id="religiousLevel" dir="rtl">
-                    <SelectValue
-                      placeholder={dict.fields.religiousLevel.placeholder}
-                    />
+                  <SelectTrigger id="religiousLevel" dir="rtl" className="bg-white">
+                    <SelectValue placeholder={dict.fields.religiousLevel.placeholder} />
                   </SelectTrigger>
                   <SelectContent className="max-h-[200px]">
                     {Object.entries(dict.fields.religiousLevel.options).map(
@@ -420,11 +483,30 @@ export const AddManualCandidateDialog: React.FC<
                     )}
                   </SelectContent>
                 </Select>
-              </div>
-
-              {/* Height Input */}
-              <div>
-                <Label htmlFor="height" className="text-right block">
+              </FormField>
+{/* הוסף אחרי השדה של religiousLevel */}
+<FormField>
+  <Label htmlFor="origin" className="text-sm font-medium">
+    מוצא
+  </Label>
+  <Select
+    value={origin}
+    onValueChange={(value: string) => setOrigin(value)}
+  >
+    <SelectTrigger id="origin" dir="rtl" className="bg-white">
+      <SelectValue placeholder="בחר מוצא" />
+    </SelectTrigger>
+    <SelectContent>
+      <SelectItem value="ASHKENAZI">אשכנזי</SelectItem>
+      <SelectItem value="SEPHARDI">ספרדי</SelectItem>
+      <SelectItem value="MIXED">מעורב</SelectItem>
+      <SelectItem value="OTHER">אחר</SelectItem>
+    </SelectContent>
+  </Select>
+</FormField>
+              <FormField>
+                <Label htmlFor="height" className="text-sm font-medium flex items-center gap-1.5">
+                  <Ruler className="w-3.5 h-3.5 text-gray-400" />
                   {dict.fields.height.label}
                 </Label>
                 <Input
@@ -436,112 +518,158 @@ export const AddManualCandidateDialog: React.FC<
                   onChange={(e) => setHeight(e.target.value)}
                   placeholder={dict.fields.height.placeholder}
                   dir="rtl"
+                  className="bg-white"
                 />
-              </div>
+              </FormField>
             </div>
+          </div>
 
-            {/* Column 2: Birth Date */}
-            <div>
+          {/* Section 4: Birth Date */}
+          <div className="bg-gray-50/50 rounded-xl p-4 border border-gray-100">
+            <SectionHeader
+              icon={<Calendar className="w-4 h-4" />}
+              title="תאריך לידה"
+            />
+
+            <div className="space-y-4">
               <div>
-                <Label className="text-right block mb-2">
-                  {dict.fields.birthDate.modeLabel}{' '}
-                  <span className="text-red-500">*</span>
+                <Label className="text-sm font-medium mb-3 block">
+                  {dict.fields.birthDate.modeLabel}
+                  <span className="text-red-500 mr-1">*</span>
                 </Label>
                 <RadioGroup
                   dir="rtl"
                   value={birthDateInputMode}
-                  onValueChange={(value: 'date' | 'age') =>
-                    setBirthDateInputMode(value)
-                  }
-                  className="flex space-x-4 rtl:space-x-reverse mb-3"
+                  onValueChange={(value: 'date' | 'age') => setBirthDateInputMode(value)}
+                  className="flex gap-6"
                 >
-                  <div className="flex items-center space-x-2 rtl:space-x-reverse">
+                  <div className="flex items-center gap-2">
                     <RadioGroupItem value="date" id="r-date" />
-                    <Label htmlFor="r-date" className="cursor-pointer">
+                    <Label htmlFor="r-date" className="cursor-pointer text-sm">
                       {dict.fields.birthDate.dateMode}
                     </Label>
                   </div>
-                  <div className="flex items-center space-x-2 rtl:space-x-reverse">
+                  <div className="flex items-center gap-2">
                     <RadioGroupItem value="age" id="r-age" />
-                    <Label htmlFor="r-age" className="cursor-pointer">
+                    <Label htmlFor="r-age" className="cursor-pointer text-sm">
                       {dict.fields.birthDate.ageMode}
                     </Label>
                   </div>
                 </RadioGroup>
               </div>
-              {birthDateInputMode === 'date' ? (
-                <div>
-                  <Label htmlFor="birthDate" className="text-right block">
-                    {dict.fields.birthDate.dateLabel}{' '}
-                    <span className="text-red-500">*</span>
-                  </Label>
-                  <DatePicker
-                    value={birthDate ? { from: birthDate } : undefined}
-                    onChange={({ from }) => setBirthDate(from)}
-                    isRange={false}
-                    placeholder={dict.fields.birthDate.datePlaceholder}
-                    className="w-full"
-                  />
-                </div>
-              ) : (
-                <div>
-                  <Label htmlFor="ageInput" className="text-right block">
-                    {dict.fields.birthDate.ageLabel}{' '}
-                    <span className="text-red-500">*</span>
-                  </Label>
-                  <Input
-                    id="ageInput"
-                    type="number"
-                    value={ageInput}
-                    onChange={(e) => setAgeInput(e.target.value)}
-                    placeholder={dict.fields.birthDate.agePlaceholder}
-                    required={birthDateInputMode === 'age'}
-                    dir="rtl"
-                    min="1"
-                    max="120"
-                  />
-                  <p className="text-xs text-gray-500 mt-1 text-right">
-                    {dict.fields.birthDate.ageDescription}
-                  </p>
-                </div>
-              )}
+
+              <div className="max-w-xs">
+                {birthDateInputMode === 'date' ? (
+                  <FormField>
+                    <Label htmlFor="birthDate" className="text-sm font-medium">
+                      {dict.fields.birthDate.dateLabel}
+                      <span className="text-red-500 mr-1">*</span>
+                    </Label>
+                    <DatePicker
+                      value={birthDate ? { from: birthDate } : undefined}
+                      onChange={({ from }) => setBirthDate(from)}
+                      isRange={false}
+                      placeholder={dict.fields.birthDate.datePlaceholder}
+                      className="w-full bg-white"
+                    />
+                  </FormField>
+                ) : (
+                  <FormField>
+                    <Label htmlFor="ageInput" className="text-sm font-medium">
+                      {dict.fields.birthDate.ageLabel}
+                      <span className="text-red-500 mr-1">*</span>
+                    </Label>
+                    <Input
+                      id="ageInput"
+                      type="number"
+                      value={ageInput}
+                      onChange={(e) => setAgeInput(e.target.value)}
+                      placeholder={dict.fields.birthDate.agePlaceholder}
+                      required={birthDateInputMode === 'age'}
+                      dir="rtl"
+                      min="1"
+                      max="120"
+                      className="bg-white"
+                    />
+                    <p className="text-xs text-gray-500">
+                      {dict.fields.birthDate.ageDescription}
+                    </p>
+                  </FormField>
+                )}
+              </div>
             </div>
           </div>
 
-          <div>
-            <Label htmlFor="manualEntryText" className="text-right block">
-              {dict.fields.notes.label} <span className="text-red-500">*</span>
-            </Label>
-            <Textarea
-              id="manualEntryText"
-              value={manualEntryText}
-              onChange={(e) => setManualEntryText(e.target.value)}
-              placeholder={dict.fields.notes.placeholder}
-              rows={6}
-              required
-              className="min-h-[100px]"
-              dir="rtl"
+          {/* Section 5: Additional Info */}
+          <div className="bg-gray-50/50 rounded-xl p-4 border border-gray-100">
+            <SectionHeader
+              icon={<FileText className="w-4 h-4" />}
+              title="מידע נוסף"
             />
+
+            <div className="space-y-4">
+              <FormField>
+                <Label htmlFor="referredBy" className="text-sm font-medium flex items-center gap-1.5">
+                  <Users className="w-3.5 h-3.5 text-gray-400" />
+                  {dict.fields.referredBy?.label || 'דרך מי הגיע/ה?'}
+                </Label>
+                <Input
+                  id="referredBy"
+                  value={referredBy}
+                  onChange={(e) => setReferredBy(e.target.value)}
+                  placeholder={dict.fields.referredBy?.placeholder || 'שם ופרטי התקשרות של איש הקשר'}
+                  dir="rtl"
+                  className="bg-white"
+                />
+                <p className="text-xs text-gray-500">
+                  {dict.fields.referredBy?.description || 'עם מי להיות בקשר בנוגע למועמד/ת זו'}
+                </p>
+              </FormField>
+
+              <FormField>
+                <Label htmlFor="manualEntryText" className="text-sm font-medium">
+                  {dict.fields.notes.label}
+                  <span className="text-red-500 mr-1">*</span>
+                </Label>
+                <Textarea
+                  id="manualEntryText"
+                  value={manualEntryText}
+                  onChange={(e) => setManualEntryText(e.target.value)}
+                  placeholder={dict.fields.notes.placeholder}
+                  rows={5}
+                  required
+                  className="min-h-[120px] bg-white resize-none"
+                  dir="rtl"
+                />
+              </FormField>
+            </div>
           </div>
-          <div>
-            <Label htmlFor="image-upload" className="text-right block">
-              {dict.fields.photos.label.replace('{{max}}', String(MAX_IMAGES))}
-            </Label>
-            <div className="mt-2 flex items-center justify-center w-full">
+
+          {/* Section 6: Photos */}
+          <div className="bg-gray-50/50 rounded-xl p-4 border border-gray-100">
+            <SectionHeader
+              icon={<Camera className="w-4 h-4" />}
+              title="תמונות"
+            />
+
+            <div>
+              <Label className="text-sm font-medium block mb-3">
+                {dict.fields.photos.label.replace('{{max}}', String(MAX_IMAGES))}
+              </Label>
+              
               <label
                 htmlFor="image-upload"
-                className="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100"
+                className="flex flex-col items-center justify-center w-full h-28 border-2 border-dashed border-gray-300 rounded-xl cursor-pointer bg-white hover:bg-gray-50 hover:border-primary/50 transition-colors"
               >
-                <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                  <UploadCloud className="w-8 h-8 mb-2 text-gray-500" />
-                  <p className="mb-2 text-sm text-gray-500 text-center">
+                <div className="flex flex-col items-center justify-center py-4">
+                  <div className="p-2 bg-gray-100 rounded-full mb-2">
+                    <UploadCloud className="w-5 h-5 text-gray-500" />
+                  </div>
+                  <p className="text-sm text-gray-600 font-medium">
                     {dict.fields.photos.cta}
                   </p>
-                  <p className="text-xs text-gray-500">
-                    {dict.fields.photos.description.replace(
-                      '{{maxSize}}',
-                      String(MAX_IMAGE_SIZE_MB)
-                    )}
+                  <p className="text-xs text-gray-400 mt-1">
+                    {dict.fields.photos.description.replace('{{maxSize}}', String(MAX_IMAGE_SIZE_MB))}
                   </p>
                 </div>
                 <Input
@@ -554,62 +682,59 @@ export const AddManualCandidateDialog: React.FC<
                   disabled={images.length >= MAX_IMAGES}
                 />
               </label>
+
+              {imagePreviews.length > 0 && (
+                <div className="mt-4 grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
+                  {imagePreviews.map((preview, index) => (
+                    <div key={index} className="relative group aspect-square">
+                      <Image
+                        src={preview}
+                        alt={dict.fields.photos.previewAlt.replace('{{index}}', String(index + 1))}
+                        fill
+                        className="rounded-lg object-cover border border-gray-200"
+                        onLoad={() => URL.revokeObjectURL(preview)}
+                      />
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        size="icon"
+                        className="absolute -top-2 -right-2 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity shadow-md"
+                        onClick={() => removeImage(index)}
+                      >
+                        <Trash2 className="h-3 w-3" />
+                        <span className="sr-only">{dict.fields.photos.removeLabel}</span>
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
-            {imagePreviews.length > 0 && (
-              <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                {imagePreviews.map((preview, index) => (
-                  <div key={index} className="relative group">
-                    <Image
-                      src={preview}
-                      alt={dict.fields.photos.previewAlt.replace(
-                        '{{index}}',
-                        String(index + 1)
-                      )}
-                      width={100}
-                      height={100}
-                      className="rounded-md object-cover w-full aspect-square"
-                      onLoad={() => URL.revokeObjectURL(preview)}
-                    />
-                    <Button
-                      type="button"
-                      variant="destructive"
-                      size="icon"
-                      className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity p-0"
-                      onClick={() => removeImage(index)}
-                    >
-                      <Trash2 className="h-3 w-3" />
-                      <span className="sr-only">
-                        {dict.fields.photos.removeLabel}
-                      </span>
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            )}
           </div>
-          <DialogFooter className="pt-4 sm:justify-start">
+
+          {/* Footer */}
+          <DialogFooter className="flex flex-col-reverse sm:flex-row gap-2 pt-4 border-t">
+            <DialogClose asChild>
+              <Button
+                variant="outline"
+                type="button"
+                className="w-full sm:w-auto"
+              >
+                <X className="w-4 h-4 ml-2" />
+                {dict.buttons.cancel}
+              </Button>
+            </DialogClose>
             <Button
               type="submit"
               disabled={isSaving}
               className="w-full sm:w-auto"
             >
               {isSaving ? (
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                <Loader2 className="w-4 h-4 ml-2 animate-spin" />
               ) : (
-                <UserPlus className="w-4 h-4 mr-2" />
+                <UserPlus className="w-4 h-4 ml-2" />
               )}
               {isSaving ? dict.buttons.adding : dict.buttons.add}
             </Button>
-            <DialogClose asChild>
-              <Button
-                variant="outline"
-                type="button"
-                className="w-full sm:w-auto mt-2 sm:mt-0"
-              >
-                <X className="w-4 h-4 mr-2" />
-                {dict.buttons.cancel}
-              </Button>
-            </DialogClose>
           </DialogFooter>
         </form>
       </DialogContent>

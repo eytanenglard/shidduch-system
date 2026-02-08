@@ -853,7 +853,11 @@ type AddManualCandidateDialogDict = {
       placeholder: string;
       options: Record<string, string>; // רשימת הרמות (מפתח-ערך)
     };
-
+ phone: {
+      label: string;
+      placeholder: string;
+      description: string;
+    }
     notes: {
       label: string;
       placeholder: string;
