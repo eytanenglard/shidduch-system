@@ -95,7 +95,9 @@ interface ExtractedFields {
   hobbies: string;
   familyDescription: string;
   militaryService: string;
-  languages: string;
+  nativeLanguage: string;
+  additionalLanguages: string;
+  about: string;
   manualEntryText: string;
   hasChildrenFromPrevious: string; // 'true' | 'false' | ''
 }
@@ -129,13 +131,15 @@ const EMPTY_FIELDS: ExtractedFields = {
   education: '',
   educationLevel: '',
   phone: '',
-  referredBy: '',
+  referredBy: 'קבוצת שידוכים שוובל',
   personality: '',
   lookingFor: '',
   hobbies: '',
   familyDescription: '',
   militaryService: '',
-  languages: '',
+  nativeLanguage: '',
+  additionalLanguages: '',
+  about: '',
   manualEntryText: '',
   hasChildrenFromPrevious: '',
 };
@@ -232,7 +236,7 @@ export const CardBasedImportDialog: React.FC<CardBasedImportDialogProps> = ({
   );
 
   // =========================================================================
-  // Image handling — shared helper
+  // Image handling
   // =========================================================================
   const addImagesToCard = useCallback(
     (cardId: string, files: File[]) => {
@@ -298,7 +302,7 @@ export const CardBasedImportDialog: React.FC<CardBasedImportDialogProps> = ({
   };
 
   // =========================================================================
-  // Handle paste (images from clipboard)
+  // Handle paste
   // =========================================================================
   const handlePaste = useCallback(
     (cardId: string, e: React.ClipboardEvent) => {
@@ -385,16 +389,25 @@ export const CardBasedImportDialog: React.FC<CardBasedImportDialogProps> = ({
         throw new Error(result.error || 'Analysis failed');
       }
 
+      // Ensure referredBy has default
+      const fields = result.data.fields;
+      if (!fields.referredBy || fields.referredBy.trim() === '') {
+        fields.referredBy = 'קבוצת שידוכים שוובל';
+      }
+
+      // Ensure about has the raw text
+      if (!fields.about && card.rawText.trim()) {
+        fields.about = card.rawText;
+      }
+
       updateCard(cardId, {
-        extracted: result.data.fields,
+        extracted: fields,
         status: 'analyzed',
         aiConfidence: result.data.confidence,
         aiNotes: result.data.notes,
       });
 
-      toast.success(
-        `ניתוח הושלם: ${result.data.fields.firstName} ${result.data.fields.lastName}`
-      );
+      toast.success(`ניתוח הושלם: ${fields.firstName} ${fields.lastName}`);
     } catch (err) {
       updateCard(cardId, {
         status: 'error',
@@ -467,7 +480,9 @@ export const CardBasedImportDialog: React.FC<CardBasedImportDialogProps> = ({
         formData.append('religiousLevel', fields.religiousLevel);
       if (fields.origin) formData.append('origin', fields.origin);
       if (fields.height) formData.append('height', fields.height);
-      if (fields.referredBy) formData.append('referredBy', fields.referredBy);
+
+      // referredBy — default is already set
+      formData.append('referredBy', fields.referredBy || 'קבוצת שידוכים שוובל');
 
       // --- שדות מובנים שנשלחים ישירות לפרופיל ---
       if (fields.city) formData.append('city', fields.city);
@@ -481,6 +496,16 @@ export const CardBasedImportDialog: React.FC<CardBasedImportDialogProps> = ({
           fields.hasChildrenFromPrevious
         );
 
+      // --- שפות ---
+      if (fields.nativeLanguage)
+        formData.append('nativeLanguage', fields.nativeLanguage);
+      if (fields.additionalLanguages)
+        formData.append('additionalLanguages', fields.additionalLanguages);
+
+      // --- שירות צבאי / לאומי ---
+      if (fields.militaryService)
+        formData.append('serviceDetails', fields.militaryService);
+
       // Birth date from age
       if (fields.age) {
         const ageNum = parseInt(fields.age, 10);
@@ -492,24 +517,15 @@ export const CardBasedImportDialog: React.FC<CardBasedImportDialogProps> = ({
         }
       }
 
-      // --- בניית טקסט about מכל הפרטים התיאוריים ---
-      const aboutLines: string[] = [];
-      if (fields.personality) aboutLines.push(fields.personality);
-      if (fields.lookingFor) aboutLines.push(`מחפש/ת: ${fields.lookingFor}`);
-      if (fields.hobbies) aboutLines.push(`תחביבים: ${fields.hobbies}`);
-      if (fields.familyDescription)
-        aboutLines.push(`משפחה: ${fields.familyDescription}`);
-      if (fields.militaryService)
-        aboutLines.push(`שירות: ${fields.militaryService}`);
-      if (fields.languages) aboutLines.push(`שפות: ${fields.languages}`);
-
-      if (aboutLines.length > 0) {
-        formData.append('about', aboutLines.join('\n'));
+      // --- about — הטקסט המקורי כמו שהוא ---
+      if (fields.about && fields.about.trim()) {
+        formData.append('about', fields.about.trim());
       }
 
-      // --- בניית manualEntryText — הטקסט המקורי לעיון ---
+      // --- manualEntryText — for internal reference ---
       const manualLines: string[] = [];
       if (fields.manualEntryText) manualLines.push(fields.manualEntryText);
+      else if (fields.about) manualLines.push(fields.about);
       else if (card.rawText) manualLines.push(card.rawText);
 
       if (manualLines.length === 0) {
@@ -1078,6 +1094,15 @@ const CandidateCard: React.FC<CandidateCardProps> = React.memo(
                           card.extracted.age && `גיל ${card.extracted.age}`,
                           card.extracted.city,
                           card.extracted.religiousLevel,
+                          card.extracted.maritalStatus === 'single'
+                            ? 'רווק/ה'
+                            : card.extracted.maritalStatus === 'divorced'
+                              ? 'גרוש/ה'
+                              : card.extracted.maritalStatus === 'widowed'
+                                ? 'אלמן/ה'
+                                : card.extracted.maritalStatus === 'separated'
+                                  ? 'פרוד/ה'
+                                  : '',
                           card.extracted.gender === 'MALE'
                             ? '♂'
                             : card.extracted.gender === 'FEMALE'
@@ -1123,7 +1148,7 @@ const CandidateCard: React.FC<CandidateCardProps> = React.memo(
                 </div>
               )}
 
-              {/* Expanded edit form — with internal scroll */}
+              {/* Expanded edit form */}
               {isExpanded && (
                 <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-1">
                   {/* Images */}
@@ -1201,7 +1226,7 @@ const CandidateCard: React.FC<CandidateCardProps> = React.memo(
                       },
                       {
                         key: 'education' as keyof ExtractedFields,
-                        label: 'לימודים',
+                        label: 'לימודים / מוסד',
                         required: false,
                         type: 'text',
                         dir: 'rtl',
@@ -1228,15 +1253,22 @@ const CandidateCard: React.FC<CandidateCardProps> = React.memo(
                         dir: 'rtl',
                       },
                       {
-                        key: 'languages' as keyof ExtractedFields,
-                        label: 'שפות',
+                        key: 'nativeLanguage' as keyof ExtractedFields,
+                        label: 'שפת אם',
+                        required: false,
+                        type: 'text',
+                        dir: 'rtl',
+                      },
+                      {
+                        key: 'additionalLanguages' as keyof ExtractedFields,
+                        label: 'שפות נוספות',
                         required: false,
                         type: 'text',
                         dir: 'rtl',
                       },
                       {
                         key: 'militaryService' as keyof ExtractedFields,
-                        label: 'שירות צבאי',
+                        label: 'שירות צבאי / לאומי',
                         required: false,
                         type: 'text',
                         dir: 'rtl',
@@ -1282,10 +1314,10 @@ const CandidateCard: React.FC<CandidateCardProps> = React.memo(
                       </Select>
                     </div>
 
-                    {/* Marital status — FIXED: UPPERCASE values to match DB/edit */}
+                    {/* Marital status */}
                     <div>
                       <Label className="text-[10px] text-gray-500">
-                        מצב משפחתי
+                        מצב משפחתי (סטטוס)
                       </Label>
                       <Select
                         value={card.extracted?.maritalStatus || ''}
@@ -1420,7 +1452,25 @@ const CandidateCard: React.FC<CandidateCardProps> = React.memo(
                     </div>
                   </div>
 
-                  {/* Text fields */}
+                  {/* About — raw source text */}
+                  <div>
+                    <Label className="text-[10px] text-gray-500 font-semibold">
+                      📄 טקסט מקור (אודות)
+                    </Label>
+                    <Textarea
+                      value={card.extracted?.about || ''}
+                      onChange={(e) =>
+                        onUpdateField(card.id, 'about', e.target.value)
+                      }
+                      rows={4}
+                      dir="rtl"
+                      className="text-xs resize-none bg-amber-50/50 border-amber-200"
+                      disabled={isDisabled}
+                      placeholder="הטקסט המקורי מהמקור (וואטסאפ / תמונה)"
+                    />
+                  </div>
+
+                  {/* Personality & Looking for */}
                   <div>
                     <Label className="text-[10px] text-gray-500">
                       אופי ותכונות
@@ -1520,7 +1570,7 @@ const CandidateCard: React.FC<CandidateCardProps> = React.memo(
 CandidateCard.displayName = 'CandidateCard';
 
 // ---------------------------------------------------------------------------
-// ConfidenceBadge (small)
+// ConfidenceBadge
 // ---------------------------------------------------------------------------
 const ConfidenceBadge = ({ level }: { level: string }) => {
   const cfg: Record<string, { label: string; cls: string }> = {

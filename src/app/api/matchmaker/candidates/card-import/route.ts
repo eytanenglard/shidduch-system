@@ -83,7 +83,6 @@ const MARITAL_STATUS_MAP: Record<string, string> = {
 };
 
 const RELIGIOUS_LEVEL_MAP: Record<string, string> = {
-  // דתי לאומי - וריאציות
   'דתי לאומי': 'dati_leumi_standard',
   'דתית לאומית': 'dati_leumi_standard',
   'דתיה לאומית': 'dati_leumi_standard',
@@ -92,82 +91,54 @@ const RELIGIOUS_LEVEL_MAP: Record<string, string> = {
   'דתית לאומית סטנדרטית': 'dati_leumi_standard',
   'דתי': 'dati_leumi_standard',
   'דתית': 'dati_leumi_standard',
-  
-  // דתי לאומי ליברלי
   'דתי לאומי ליברלי': 'dati_leumi_liberal',
   'דתית לאומית ליברלית': 'dati_leumi_liberal',
   'דתי ליברלי': 'dati_leumi_liberal',
   'דתית ליברלית': 'dati_leumi_liberal',
-  
-  // דתי לאומי תורני / חרד"ל
   'דתי לאומי תורני': 'dati_leumi_torani',
   'דתית לאומית תורנית': 'dati_leumi_torani',
   'חרד"ל': 'dati_leumi_torani',
   'חרדל': 'dati_leumi_torani',
   'תורני': 'dati_leumi_torani',
   'תורנית': 'dati_leumi_torani',
-  
-  // מסורתי חזק (קרוב לדת)
   'מסורתי': 'masorti_strong',
   'מסורתית': 'masorti_strong',
   'מסורתי קרוב לדת': 'masorti_strong',
   'מסורתית קרובה לדת': 'masorti_strong',
   'מסורתי חזק': 'masorti_strong',
-  
-  // מסורתי קל
   'מסורתי לייט': 'masorti_light',
   'מסורתי קל': 'masorti_light',
   'מסורתית קלה': 'masorti_light',
   'קצת מסורתי': 'masorti_light',
-  
-  // חילוני עם זיקה למסורת
   'חילוני עם זיקה למסורת': 'secular_traditional_connection',
   'חילונית עם זיקה למסורת': 'secular_traditional_connection',
   'חילוני מסורתי': 'secular_traditional_connection',
   'חילונית מסורתית': 'secular_traditional_connection',
-  
-  // חילוני
   'חילוני': 'secular',
   'חילונית': 'secular',
-  
-  // רוחני
   'רוחני': 'spiritual_not_religious',
   'רוחנית': 'spiritual_not_religious',
   'רוחני לא דתי': 'spiritual_not_religious',
-  
-  // חרדי מודרני
   'חרדי מודרני': 'charedi_modern',
   'חרדית מודרנית': 'charedi_modern',
-  
-  // חרדי ליטאי
   'חרדי ליטאי': 'charedi_litvak',
   'חרדית ליטאית': 'charedi_litvak',
   'ליטאי': 'charedi_litvak',
   'ליטאית': 'charedi_litvak',
-  'חרדי': 'charedi_litvak', // ברירת מחדל לחרדי
+  'חרדי': 'charedi_litvak',
   'חרדית': 'charedi_litvak',
-  
-  // חרדי ספרדי
   'חרדי ספרדי': 'charedi_sephardic',
   'חרדית ספרדית': 'charedi_sephardic',
   'ש"ס': 'charedi_sephardic',
-  
-  // חרדי חסידי
   'חרדי חסידי': 'charedi_hasidic',
   'חרדית חסידית': 'charedi_hasidic',
   'חסידי': 'charedi_hasidic',
   'חסידית': 'charedi_hasidic',
-  
-  // חב"ד
   'חב"ד': 'chabad',
   'חבד': 'chabad',
   "חב''ד": 'chabad',
-  
-  // ברסלב
   'ברסלב': 'breslov',
   'ברסלבר': 'breslov',
-  
-  // אחר / בעל תשובה
   'בעל תשובה': 'other',
   'בעלת תשובה': 'other',
   'חוזר בתשובה': 'other',
@@ -176,7 +147,6 @@ const RELIGIOUS_LEVEL_MAP: Record<string, string> = {
 };
 
 const ORIGIN_MAP: Record<string, string> = {
-  // אשכנזי
   'אשכנזי': 'אשכנזי',
   'אשכנזית': 'אשכנזי',
   'אשכנזיה': 'אשכנזי',
@@ -187,8 +157,6 @@ const ORIGIN_MAP: Record<string, string> = {
   'הונגרי': 'אשכנזי',
   'רומני': 'אשכנזי',
   'גרמני': 'אשכנזי',
-  
-  // ספרדי
   'ספרדי': 'ספרדי',
   'ספרדית': 'ספרדי',
   'ספרדיה': 'ספרדי',
@@ -196,30 +164,20 @@ const ORIGIN_MAP: Record<string, string> = {
   'ספרדי טהור': 'ספרדי',
   'בולגרי': 'ספרדי',
   'יווני': 'ספרדי',
-  
-  // מזרחי (כללי)
   'מזרחי': 'מזרחי',
   'מזרחית': 'מזרחי',
   'מזרחיה': 'מזרחי',
-  
-  // תימני
   'תימני': 'תימני',
   'תימנית': 'תימני',
   'תימניה': 'תימני',
   'תימן': 'תימני',
-  
-  // מרוקאי
   'מרוקאי': 'מרוקאי',
   'מרוקאית': 'מרוקאי',
   'מרוקו': 'מרוקאי',
-  
-  // עיראקי
   'עיראקי': 'עיראקי',
   'עיראקית': 'עיראקי',
   'עירק': 'עיראקי',
   'בבלי': 'עיראקי',
-  
-  // פרסי
   'פרסי': 'פרסי',
   'פרסית': 'פרסי',
   'פרסיה': 'פרסי',
@@ -227,64 +185,44 @@ const ORIGIN_MAP: Record<string, string> = {
   'איראנית': 'פרסי',
   'איראן': 'פרסי',
   'פרס': 'פרסי',
-  
-  // כורדי
   'כורדי': 'כורדי',
   'כורדית': 'כורדי',
   'כורדיסטן': 'כורדי',
-  
-  // תוניסאי
   'תוניסאי': 'תוניסאי',
   'תוניסאית': 'תוניסאי',
   'תוניסיה': 'תוניסאי',
   'תוניס': 'תוניסאי',
-  
-  // לובי
   'לובי': 'לובי',
   'לובית': 'לובי',
   'טריפוליטאי': 'לובי',
   'טריפוליטאית': 'לובי',
   'לוב': 'לובי',
-  
-  // אתיופי
   'אתיופי': 'אתיופי',
   'אתיופית': 'אתיופי',
   'אתיופיה': 'אתיופי',
-  
-  // גרוזיני
   'גרוזיני': 'גרוזיני',
   'גרוזינית': 'גרוזיני',
   'גורג\'י': 'גרוזיני',
   'גורג\'ית': 'גרוזיני',
   'גאורגי': 'גרוזיני',
   'גאורגיה': 'גרוזיני',
-  
-  // בוכרי
   'בוכרי': 'בוכרי',
   'בוכרית': 'בוכרי',
   'בוכרה': 'בוכרי',
   'אוזבקי': 'בוכרי',
-  
-  // הודי
   'הודי': 'הודי',
   'הודית': 'הודי',
   'קוצ\'יני': 'הודי',
   'קוצ\'ינית': 'הודי',
   'בני ישראל': 'הודי',
-  
-  // תורכי
   'תורכי': 'תורכי',
   'תורכית': 'תורכי',
   'תורכיה': 'תורכי',
-  
-  // מעורב
   'מעורב': 'מעורב',
   'מעורבת': 'מעורב',
   'MIXED': 'מעורב',
   'חצי חצי': 'מעורב',
   'משולב': 'מעורב',
-  
-  // אחר
   'אחר': 'אחר',
   'OTHER': 'אחר',
   'לא ידוע': 'אחר',
@@ -294,84 +232,48 @@ const ORIGIN_MAP: Record<string, string> = {
 function mapValue(val: string | null | undefined, map: Record<string, string>): string {
   if (!val) return '';
   const normalized = val.trim();
-  
-  // Try exact match first
   if (map[normalized]) return map[normalized];
-  
-  // Try lowercase match
   const lowerVal = normalized.toLowerCase();
   for (const [key, value] of Object.entries(map)) {
     if (key.toLowerCase() === lowerVal) return value;
   }
-  
-  // Try partial match (contains)
   for (const [key, value] of Object.entries(map)) {
     if (normalized.includes(key) || key.includes(normalized)) return value;
   }
-  
-  return val; // Return original if no match
+  return val;
 }
 
-// Validate that the value is in the allowed list
 function validateReligiousLevel(value: string): string {
-  if (VALID_RELIGIOUS_LEVELS.includes(value as any)) {
-    return value;
-  }
-  // If not valid, try to map it
+  if (VALID_RELIGIOUS_LEVELS.includes(value as any)) return value;
   const mapped = mapValue(value, RELIGIOUS_LEVEL_MAP);
-  if (VALID_RELIGIOUS_LEVELS.includes(mapped as any)) {
-    return mapped;
-  }
-  return 'other'; // Default fallback
+  if (VALID_RELIGIOUS_LEVELS.includes(mapped as any)) return mapped;
+  return 'other';
 }
 
 function validateMaritalStatus(value: string): string {
-  if (VALID_MARITAL_STATUSES.includes(value as any)) {
-    return value;
-  }
+  if (VALID_MARITAL_STATUSES.includes(value as any)) return value;
   const mapped = mapValue(value, MARITAL_STATUS_MAP);
-  if (VALID_MARITAL_STATUSES.includes(mapped as any)) {
-    return mapped;
-  }
-  return 'single'; // Default fallback
+  if (VALID_MARITAL_STATUSES.includes(mapped as any)) return mapped;
+  return 'single';
 }
 
 function validateOrigin(value: string): string {
   if (!value) return '';
-  
-  // Check if already a valid value
-  if (VALID_ORIGINS.includes(value as any)) {
-    return value;
-  }
-  
-  // Try to map it
+  if (VALID_ORIGINS.includes(value as any)) return value;
   const normalized = value.trim();
-  
-  // Exact match
-  if (ORIGIN_MAP[normalized]) {
-    return ORIGIN_MAP[normalized];
-  }
-  
-  // Case-insensitive match
+  if (ORIGIN_MAP[normalized]) return ORIGIN_MAP[normalized];
   for (const [key, mappedValue] of Object.entries(ORIGIN_MAP)) {
-    if (key.toLowerCase() === normalized.toLowerCase()) {
-      return mappedValue;
-    }
+    if (key.toLowerCase() === normalized.toLowerCase()) return mappedValue;
   }
-  
-  // Partial match
   for (const [key, mappedValue] of Object.entries(ORIGIN_MAP)) {
-    if (normalized.includes(key) || key.includes(normalized)) {
-      return mappedValue;
-    }
+    if (normalized.includes(key) || key.includes(normalized)) return mappedValue;
   }
-  
-  return 'אחר'; // Default fallback
+  return 'אחר';
 }
 
 
 // ---------------------------------------------------------------------------
-// Prompt with exact valid options
+// Prompt — UPDATED: split languages, about = raw source, referredBy default
 // ---------------------------------------------------------------------------
 
 const SINGLE_CARD_PROMPT = `You are an expert data extraction system for a Jewish matchmaking (shidduch) platform in Israel.
@@ -395,7 +297,7 @@ FIELDS TO EXTRACT (all optional except firstName, lastName, gender):
 - gender: "MALE" or "FEMALE" (infer from Hebrew grammar or photo)
 - age: גיל (number)
 - height: גובה בס"מ (if written as 1.75 convert to 175)
-- maritalStatus: MUST be one of: "single", "divorced", "widowed", "separated"
+- maritalStatus: סטטוס - MUST be one of: "single" (רווק/ה), "divorced" (גרוש/ה), "widowed" (אלמן/ה), "separated" (פרוד/ה)
 - religiousLevel: MUST be EXACTLY one of these values:
   * "dati_leumi_standard" - דתי/ה לאומי/ת (סטנדרטי)
   * "dati_leumi_liberal" - דתי/ה לאומי/ת ליברלי/ת
@@ -413,43 +315,36 @@ FIELDS TO EXTRACT (all optional except firstName, lastName, gender):
   * "breslov" - ברסלב
   * "other" - אחר
 - origin: מוצא עדתי - MUST be EXACTLY one of these Hebrew values:
-  * "אשכנזי" - Ashkenazi (European origin)
-  * "ספרדי" - Sephardi (Spanish/Portuguese origin)
-  * "מזרחי" - Mizrachi (Middle Eastern - general)
-  * "תימני" - Yemenite
-  * "מרוקאי" - Moroccan
-  * "עיראקי" - Iraqi
-  * "פרסי" - Persian/Iranian
-  * "כורדי" - Kurdish
-  * "תוניסאי" - Tunisian
-  * "לובי" - Libyan/Tripolitanian
-  * "אתיופי" - Ethiopian
-  * "גרוזיני" - Georgian
-  * "בוכרי" - Bukharian
-  * "הודי" - Indian
-  * "תורכי" - Turkish
-  * "מעורב" - Mixed
-  * "אחר" - Other
+  * "אשכנזי", "ספרדי", "מזרחי", "תימני", "מרוקאי", "עיראקי", "פרסי", "כורדי", "תוניסאי", "לובי", "אתיופי", "גרוזיני", "בוכרי", "הודי", "תורכי", "מעורב", "אחר"
 - city: עיר/אזור מגורים
 - occupation: עיסוק/מקצוע
-- education: מוסד לימודים / מה למד
-- educationLevel: רמת השכלה (תיכון, תואר ראשון, תואר שני, סמינר, ישיבה)
+- education: מוסד לימודים / מה למד (שם המוסד או התחום)
+- educationLevel: רמת השכלה - one of: "תיכון", "סמינר", "ישיבה", "מכינה", "תואר ראשון", "תואר שני", "תואר שלישי", "הנדסאי", "תעודה מקצועית", "אחר"
 - phone: מספר טלפון
-- referredBy: ממליץ / דרך מי הגיע (שם + טלפון של איש קשר)
+- referredBy: ממליץ / דרך מי הגיע. If not mentioned in the text, set to "קבוצת שידוכים שוובל"
 - personality: תיאור אופי ותכונות
 - lookingFor: מה מחפש/ת בבן/בת זוג
 - hobbies: תחביבים
-- familyDescription: תיאור המשפחה
-- militaryService: שירות צבאי/לאומי
-- languages: שפות
+- familyDescription: תיאור המשפחה (כולל מקצוע הורים, אחים וכו')
+- militaryService: שירות צבאי / שירות לאומי (סוג השירות, היכן, תפקיד וכו')
+- nativeLanguage: שפת אם (השפה העיקרית, בדרך כלל עברית)
+- additionalLanguages: שפות נוספות שהמועמד/ת דובר/ת, מופרדות בפסיקים (למשל: "אנגלית, צרפתית, רוסית")
+- hasChildrenFromPrevious: "true" if has children from previous relationship, "false" if explicitly stated no, "" if unknown
+- about: CRITICAL — This field must contain the COMPLETE ORIGINAL TEXT from all sources, EXACTLY as written.
+  * If text was pasted: include the full pasted text word-for-word
+  * If text was extracted from images via OCR: include ALL the extracted text as-is
+  * If both: combine them with a separator
+  * Do NOT summarize, restructure, or modify this text in any way
+  * This is the raw source material that the matchmaker needs to see
 
 IMPORTANT:
 - Extract EVERY piece of information, even if partially readable
 - For OCR from images: read Hebrew handwriting carefully, even if messy
 - Mark unclear text with [?]
-- Keep original Hebrew text in manualEntryText
 - Set confidence based on data quality
 - CRITICAL: For religiousLevel, maritalStatus, and origin - use ONLY the exact values listed above!
+- If referredBy is not found in the text, default to "קבוצת שידוכים שוובל"
+- The "about" field MUST contain the raw source text, not a summary
 
 Return ONLY valid JSON:
 {
@@ -473,8 +368,11 @@ Return ONLY valid JSON:
     "hobbies": "",
     "familyDescription": "",
     "militaryService": "",
-    "languages": "",
-    "manualEntryText": "full original text combined from all sources"
+    "nativeLanguage": "",
+    "additionalLanguages": "",
+    "hasChildrenFromPrevious": "true" | "false" | "",
+    "about": "the complete raw original text from all sources, exactly as written",
+    "manualEntryText": "same as about - full original text combined from all sources"
   },
   "imageClassifications": [
     { "index": 0, "type": "photo" | "form" | "combined", "extractedText": "text if any" }
@@ -489,7 +387,6 @@ Return ONLY valid JSON:
 
 export async function POST(req: NextRequest) {
   try {
-    // Auth check
     const session = await getServerSession(authOptions);
     if (
       !session?.user?.id ||
@@ -579,7 +476,7 @@ export async function POST(req: NextRequest) {
 
     const fields = parsed.fields || {};
 
-    // Validate and normalize values to ensure they match exact enum values
+    // Validate and normalize values
     if (fields.maritalStatus) {
       fields.maritalStatus = validateMaritalStatus(fields.maritalStatus);
     }
@@ -593,25 +490,60 @@ export async function POST(req: NextRequest) {
     // Normalize height
     if (fields.height) {
       let h = parseFloat(fields.height);
-      if (h < 3) h = Math.round(h * 100); // 1.75 → 175
+      if (h < 3) h = Math.round(h * 100);
       if (h < 100 || h > 250) fields.height = '';
       else fields.height = String(Math.round(h));
     }
 
-    // Build manualEntryText if AI didn't
-    if (!fields.manualEntryText && rawText.trim()) {
-      fields.manualEntryText = rawText;
+    // Default referredBy if empty
+    if (!fields.referredBy || fields.referredBy.trim() === '') {
+      fields.referredBy = 'קבוצת שידוכים שוובל';
     }
 
-    // Add any OCR text from images
+    // Ensure about has the raw source text
+    if (!fields.about && rawText.trim()) {
+      fields.about = rawText;
+    }
+
+    // Build manualEntryText if AI didn't
+    if (!fields.manualEntryText) {
+      fields.manualEntryText = fields.about || rawText || '';
+    }
+
+    // Add any OCR text from images to about & manualEntryText
     const imageClassifications = parsed.imageClassifications || [];
     const ocrTexts = imageClassifications
       .filter((ic: any) => ic.extractedText && ic.type !== 'photo')
       .map((ic: any) => ic.extractedText);
 
     if (ocrTexts.length > 0) {
-      fields.manualEntryText =
-        (fields.manualEntryText || '') + '\n\n--- טקסט מתמונות ---\n' + ocrTexts.join('\n');
+      const ocrBlock = '\n\n--- טקסט שחולץ מתמונות ---\n' + ocrTexts.join('\n');
+      
+      // Add OCR text to about if not already there
+      if (fields.about && !fields.about.includes('טקסט שחולץ מתמונות')) {
+        fields.about = fields.about + ocrBlock;
+      } else if (!fields.about) {
+        fields.about = ocrTexts.join('\n');
+      }
+
+      if (fields.manualEntryText && !fields.manualEntryText.includes('טקסט שחולץ מתמונות')) {
+        fields.manualEntryText = fields.manualEntryText + ocrBlock;
+      }
+    }
+
+    // Ensure nativeLanguage and additionalLanguages exist
+    // (backward compat: if AI returned old 'languages' field, split it)
+    if (fields.languages && !fields.nativeLanguage) {
+      const langs = fields.languages.split(/[,،、]\s*/).map((l: string) => l.trim()).filter(Boolean);
+      fields.nativeLanguage = langs[0] || 'עברית';
+      fields.additionalLanguages = langs.slice(1).join(', ');
+      delete fields.languages;
+    }
+    if (!fields.nativeLanguage) {
+      fields.nativeLanguage = '';
+    }
+    if (!fields.additionalLanguages) {
+      fields.additionalLanguages = '';
     }
 
     // Mark form images

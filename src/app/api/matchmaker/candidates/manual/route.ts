@@ -25,6 +25,8 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
+const DEFAULT_REFERRED_BY = "קבוצת שידוכים שוובל";
+
 async function uploadImageToCloudinary(file: File, userId: string): Promise<{ url: string; publicId: string }> {
   const bytes = await file.arrayBuffer();
   const buffer = Buffer.from(bytes);
@@ -44,7 +46,6 @@ async function uploadImageToCloudinary(file: File, userId: string): Promise<{ ur
 }
 
 export async function POST(req: NextRequest) {
-  // Apply rate limiting: 15 manual creations per matchmaker per hour (resource intensive)
   const rateLimitResponse = await applyRateLimitWithRoleCheck(req, { requests: 15, window: '1 h' });
   if (rateLimitResponse) {
     return rateLimitResponse;
@@ -57,6 +58,8 @@ export async function POST(req: NextRequest) {
     const matchmakerId = session.user.id;
 
     const formData = await req.formData();
+
+    // --- שדות בסיסיים ---
     const firstName = formData.get('firstName') as string;
     const lastName = formData.get('lastName') as string;
     const phoneValue = formData.get('phone') as string | null;
@@ -70,15 +73,15 @@ export async function POST(req: NextRequest) {
     const manualEntryText = formData.get('manualEntryText') as string;
     const images = formData.getAll('images') as File[];
     const birthDateIsApproximate = formData.get('birthDateIsApproximate') === 'true';
-    
-    // מקור הפניה
+
+    // --- מקור הפניה ---
     const referredBy = formData.get('referredBy') as string | null;
-    
-    // מקצוע הורים
+
+    // --- מקצוע הורים ---
     const fatherOccupation = formData.get('fatherOccupation') as string | null;
     const motherOccupation = formData.get('motherOccupation') as string | null;
 
-    // --- שדות חדשים שנשלחים מ-CardBasedImportDialog ---
+    // --- שדות מובנים ---
     const city = formData.get('city') as string | null;
     const occupation = formData.get('occupation') as string | null;
     const education = formData.get('education') as string | null;
@@ -86,19 +89,31 @@ export async function POST(req: NextRequest) {
     const about = formData.get('about') as string | null;
     const hasChildrenFromPreviousStr = formData.get('hasChildrenFromPrevious') as string | null;
 
+    // --- שירות צבאי / לאומי ---
+    // תומך בשני שמות: 'militaryService' (מ-CardBasedImportDialog ישן) ו-'serviceDetails' (מ-CardBasedImportDialog חדש)
+    const militaryService = (formData.get('militaryService') as string | null)
+      || (formData.get('serviceDetails') as string | null);
+
+    // --- שפות ---
+    const nativeLanguage = formData.get('nativeLanguage') as string | null;
+    const additionalLanguagesStr = formData.get('additionalLanguages') as string | null;
+
+    // --- גובה ---
     let height: number | null = null;
     if (heightStr && heightStr.trim() !== '') {
-        const parsedHeight = parseInt(heightStr, 10);
-        if (!isNaN(parsedHeight)) {
-            height = parsedHeight;
-        }
+      const parsedHeight = parseInt(heightStr, 10);
+      if (!isNaN(parsedHeight)) {
+        height = parsedHeight;
+      }
     }
 
+    // --- מידע רפואי ---
     const hasMedicalInfo = formData.get('hasMedicalInfo');
     const medicalInfoDetails = formData.get('medicalInfoDetails') as string | null;
     const medicalInfoDisclosureTiming = formData.get('medicalInfoDisclosureTiming') as string | null;
     const isMedicalInfoVisible = formData.get('isMedicalInfoVisible');
 
+    // --- ולידציה ---
     if (!firstName || !lastName || !gender || !birthDateStr || !manualEntryText) {
       return NextResponse.json({ success: false, error: "Missing required fields" }, { status: 400 });
     }
@@ -108,24 +123,30 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, error: "Invalid birth date" }, { status: 400 });
     }
 
-    let email: string;
-    if (emailValue && emailValue.trim() !== '') {
-        email = emailValue.trim().toLowerCase();
-        const existingUser = await prisma.user.findUnique({ where: { email } });
-        if (existingUser) {
-            return NextResponse.json({ success: false, error: "משתמש עם כתובת אימייל זו כבר קיים במערכת." }, { status: 409 });
-        }
-    } else {
-        email = `manual_${createId()}@shidduch.placeholder.com`;
+    if (!maritalStatus) {
+      return NextResponse.json({ error: 'Marital status is required' }, { status: 400 });
     }
 
+    // --- אימייל ---
+    let email: string;
+    if (emailValue && emailValue.trim() !== '') {
+      email = emailValue.trim().toLowerCase();
+      const existingUser = await prisma.user.findUnique({ where: { email } });
+      if (existingUser) {
+        return NextResponse.json({ success: false, error: "משתמש עם כתובת אימייל זו כבר קיים במערכת." }, { status: 409 });
+      }
+    } else {
+      email = `manual_${createId()}@shidduch.placeholder.com`;
+    }
+
+    // --- בניית אובייקט פרופיל ---
     const profileCreateData: Prisma.ProfileCreateWithoutUserInput = {
       gender,
       birthDate,
       birthDateIsApproximate,
       manualEntryText,
       availabilityStatus: 'AVAILABLE',
-      isProfileVisible: true, 
+      isProfileVisible: true,
       height: height,
       religiousLevel: religiousLevel,
       maritalStatus,
@@ -133,41 +154,69 @@ export async function POST(req: NextRequest) {
       contentUpdatedAt: new Date(),
     };
 
-    // מקור הפניה
+    // --- מקור הפניה: ברירת מחדל ---
     if (referredBy && referredBy.trim() !== '') {
       profileCreateData.referredBy = referredBy.trim();
+    } else {
+      profileCreateData.referredBy = DEFAULT_REFERRED_BY;
     }
 
-    if (!maritalStatus) {
-      return NextResponse.json({ error: 'Marital status is required' }, { status: 400 });
-    }
+    // --- מקצוע הורים ---
     if (fatherOccupation) {
-        profileCreateData.fatherOccupation = fatherOccupation;
+      profileCreateData.fatherOccupation = fatherOccupation;
     }
     if (motherOccupation) {
-        profileCreateData.motherOccupation = motherOccupation;
+      profileCreateData.motherOccupation = motherOccupation;
     }
 
-    // --- שדות חדשים ---
+    // --- עיר ---
     if (city && city.trim() !== '') {
       profileCreateData.city = city.trim();
     }
+
+    // --- עיסוק ---
     if (occupation && occupation.trim() !== '') {
       profileCreateData.occupation = occupation.trim();
     }
+
+    // --- לימודים / השכלה ---
     if (education && education.trim() !== '') {
       profileCreateData.education = education.trim();
     }
     if (educationLevel && educationLevel.trim() !== '') {
       profileCreateData.educationLevel = educationLevel.trim();
     }
+
+    // --- about: הטקסט המקורי כמות שהוא ---
     if (about && about.trim() !== '') {
       profileCreateData.about = about.trim();
     }
+
+    // --- ילדים מקשר קודם ---
     if (hasChildrenFromPreviousStr !== null && hasChildrenFromPreviousStr !== '') {
       profileCreateData.hasChildrenFromPrevious = hasChildrenFromPreviousStr === 'true';
     }
 
+    // --- שירות צבאי / לאומי ---
+    if (militaryService && militaryService.trim() !== '') {
+      profileCreateData.serviceDetails = militaryService.trim();
+    }
+
+    // --- שפות: שפת אם + שפות נוספות ---
+    if (nativeLanguage && nativeLanguage.trim() !== '') {
+      profileCreateData.nativeLanguage = nativeLanguage.trim();
+    }
+    if (additionalLanguagesStr && additionalLanguagesStr.trim() !== '') {
+      const additionalLangs = additionalLanguagesStr
+        .split(/[,;،|]/)
+        .map((lang) => lang.trim())
+        .filter((lang) => lang.length > 0);
+      if (additionalLangs.length > 0) {
+        profileCreateData.additionalLanguages = additionalLangs;
+      }
+    }
+
+    // --- מידע רפואי ---
     if (hasMedicalInfo !== null) {
       profileCreateData.hasMedicalInfo = hasMedicalInfo === 'true';
     }
@@ -181,6 +230,7 @@ export async function POST(req: NextRequest) {
       profileCreateData.isMedicalInfoVisible = isMedicalInfoVisible === 'true';
     }
 
+    // --- יצירת המשתמש + פרופיל ---
     const newManualCandidate = await prisma.user.create({
       data: {
         firstName,
@@ -203,6 +253,7 @@ export async function POST(req: NextRequest) {
       },
     });
 
+    // --- העלאת תמונות ---
     type UserImageCreateInput = {
       userId: string;
       url: string;
@@ -215,13 +266,13 @@ export async function POST(req: NextRequest) {
     if (images && images.length > 0) {
       for (const file of images) {
         if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
-            return NextResponse.json({ success: false, error: `Invalid file type: ${file.name}. Only JPG, PNG, WEBP allowed.` }, { status: 400 });
+          return NextResponse.json({ success: false, error: `Invalid file type: ${file.name}. Only JPG, PNG, WEBP allowed.` }, { status: 400 });
         }
         if (file.size > 5 * 1024 * 1024) {
-            return NextResponse.json({ success: false, error: `File too large: ${file.name}. Max 5MB.` }, { status: 400 });
+          return NextResponse.json({ success: false, error: `File too large: ${file.name}. Max 5MB.` }, { status: 400 });
         }
       }
-      
+
       for (let i = 0; i < images.length; i++) {
         try {
           const { url, publicId } = await uploadImageToCloudinary(images[i], newManualCandidate.id);
@@ -232,11 +283,11 @@ export async function POST(req: NextRequest) {
             isMain: i === 0,
           });
         } catch (uploadError) {
-            console.error("Failed to upload an image during manual candidate creation:", uploadError);
-            return NextResponse.json({
-                success: false,
-                error: `Failed to upload image ${images[i].name}. ${(uploadError as Error).message}`
-            }, { status: 500 });
+          console.error("Failed to upload an image during manual candidate creation:", uploadError);
+          return NextResponse.json({
+            success: false,
+            error: `Failed to upload image ${images[i].name}. ${(uploadError as Error).message}`
+          }, { status: 500 });
         }
       }
 
@@ -246,14 +297,16 @@ export async function POST(req: NextRequest) {
         });
       }
     }
-   
+
+    // --- עדכון פרופיל AI ברקע ---
     updateUserAiProfile(newManualCandidate.id).catch(err => {
-        console.error(`[AI Profile Trigger] Failed to create AI profile for manual candidate ${newManualCandidate.id}:`, err);
+      console.error(`[AI Profile Trigger] Failed to create AI profile for manual candidate ${newManualCandidate.id}:`, err);
     });
 
+    // --- החזרת התוצאה ---
     const candidateToReturn = await prisma.user.findUnique({
-        where: { id: newManualCandidate.id },
-        include: { profile: true, images: true }
+      where: { id: newManualCandidate.id },
+      include: { profile: true, images: true }
     });
 
     return NextResponse.json({ success: true, candidate: candidateToReturn });
@@ -262,12 +315,12 @@ export async function POST(req: NextRequest) {
     console.error("Error in POST /api/matchmaker/candidates/manual:", error);
     let errorMessage = "Internal server error.";
     if (error instanceof Error) {
-        errorMessage = error.message;
+      errorMessage = error.message;
     }
     if (error instanceof SyntaxError && error.message.includes("Unexpected token") && error.message.includes("in JSON at position")) {
-        errorMessage = "Invalid request body or FormData. Ensure all fields are correctly formatted.";
+      errorMessage = "Invalid request body or FormData. Ensure all fields are correctly formatted.";
     } else if (error instanceof TypeError && error.message.includes("Could not parse content as FormData")) {
-        errorMessage = "Invalid request format. Expected FormData.";
+      errorMessage = "Invalid request format. Expected FormData.";
     }
 
     return NextResponse.json({ success: false, error: errorMessage }, { status: 500 });
