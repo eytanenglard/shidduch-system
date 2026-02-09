@@ -24,12 +24,12 @@ const model = genAI.getGenerativeModel({
   model: 'gemini-2.5-flash',
   generationConfig: {
     responseMimeType: 'application/json',
-    temperature: 0.1, // נמוך יותר לתוצאות עקביות יותר
+    temperature: 0.1,
   },
 });
 
 // ---------------------------------------------------------------------------
-// Valid options (must match AddManualCandidateDialog exactly)
+// Valid options - EXACTLY as in the system
 // ---------------------------------------------------------------------------
 
 const VALID_RELIGIOUS_LEVELS = [
@@ -50,7 +50,8 @@ const VALID_RELIGIOUS_LEVELS = [
   'other',
 ] as const;
 
-const VALID_MARITAL_STATUSES = ['single', 'divorced', 'widowed', 'separated'] as const;
+// רק 3 אופציות תקינות!
+const VALID_MARITAL_STATUSES = ['single', 'divorced', 'widowed'] as const;
 
 const VALID_ORIGINS = [
   'אשכנזי',
@@ -81,17 +82,14 @@ const MARITAL_STATUS_MAP: Record<string, string> = {
   'רווק': 'single',
   'גרוש': 'divorced',
   'אלמן': 'widowed',
-  'פרוד': 'separated',
   // עברית - נקבה
   'רווקה': 'single',
   'גרושה': 'divorced',
   'אלמנה': 'widowed',
-  'פרודה': 'separated',
   // אנגלית
   'single': 'single',
   'divorced': 'divorced',
   'widowed': 'widowed',
-  'separated': 'separated',
   // וריאציות
   'לא נשוי': 'single',
   'לא נשואה': 'single',
@@ -106,6 +104,10 @@ const MARITAL_STATUS_MAP: Record<string, string> = {
   'after divorce': 'divorced',
   'widow': 'widowed',
   'widower': 'widowed',
+  // פרוד -> גרוש (כי אין אופציה פרוד)
+  'פרוד': 'divorced',
+  'פרודה': 'divorced',
+  'separated': 'divorced',
 };
 
 const RELIGIOUS_LEVEL_MAP: Record<string, string> = {
@@ -443,37 +445,48 @@ function validateOrigin(value: string | null | undefined): string {
   return 'אחר';
 }
 
+/**
+ * זיהוי שפה לפי תוכן הטקסט
+ */
+function detectLanguageFromText(text: string): string {
+  if (!text || text.trim() === '') return 'עברית';
+  
+  // ספירת תווים עבריים ואנגליים
+  const hebrewChars = (text.match(/[\u0590-\u05FF]/g) || []).length;
+  const englishChars = (text.match(/[a-zA-Z]/g) || []).length;
+  
+  if (hebrewChars > englishChars) {
+    return 'עברית';
+  } else if (englishChars > hebrewChars) {
+    return 'אנגלית';
+  }
+  
+  return 'עברית'; // ברירת מחדל
+}
+
 
 // ---------------------------------------------------------------------------
-// Improved Prompt with explicit enum values
+// Improved Prompt - ONLY 3 marital status options!
 // ---------------------------------------------------------------------------
 
 const SINGLE_CARD_PROMPT = `You are an expert data extraction system for a Jewish matchmaking (shidduch) platform in Israel.
 
-CRITICAL: You MUST extract maritalStatus and religiousLevel from the text. These are essential fields.
+CRITICAL RULES FOR MARITAL STATUS:
+There are ONLY 3 valid options - you MUST choose one of these:
+1. "single" - רווק/ה (never married)
+2. "divorced" - גרוש/ה (was married and divorced, OR separated/פרוד)
+3. "widowed" - אלמן/ה (spouse passed away)
 
-MARITAL STATUS DETECTION:
-- Look for words: רווק/רווקה, גרוש/גרושה, אלמן/אלמנה, פרוד/פרודה
-- Look for age context: young people (18-30) without mention of divorce are usually "single"
-- If the text mentions "לא היה/היתה נשוי/נשואה" = "single"
-- If unsure, default to "single" for young candidates
+MARITAL STATUS DETECTION LOGIC:
+- If text says: רווק, רווקה, פנוי, פנויה, לא נשוי, לא נשואה → return "single"
+- If text says: גרוש, גרושה, פרוד, פרודה, נשוי בעבר, התגרש → return "divorced"
+- If text says: אלמן, אלמנה → return "widowed"
+- If NO marital status mentioned AND NO children mentioned → return "single" (default for dating profiles)
+- If children are mentioned but no marital status → return "divorced" (likely was married)
 
-RELIGIOUS LEVEL DETECTION:
-- Look for explicit mentions: דתי, דתי לאומי, חילוני, מסורתי, חרדי, etc.
-- Look for indicators: כיפה, צנוע/צנועה, שומר שבת, אורח חיים דתי
-- Look for yeshiva/seminary names as indicators
-- If text mentions ישיבה הסדר/מכינה = likely "dati_leumi_standard" or "dati_leumi_torani"
-- If text mentions סמינר בית יעקב = likely "charedi_litvak" or "charedi_sephardic"
-
-VALID MARITAL STATUS VALUES (use ONLY these exact strings):
-- "single" - רווק/ה, לא נשוי/אה, פנוי/ה
-- "divorced" - גרוש/ה, היה/היתה נשוי/אה
-- "widowed" - אלמן/ה
-- "separated" - פרוד/ה
-
-VALID RELIGIOUS LEVEL VALUES (use ONLY these exact strings):
+RELIGIOUS LEVEL - Choose the BEST match from these options:
 - "dati_leumi_standard" - דתי/ה לאומי/ת רגיל/ה
-- "dati_leumi_liberal" - דתי/ה לאומי/ת ליברלי/ת, דתי לייט
+- "dati_leumi_liberal" - דתי/ה לאומי/ת ליברלי/ת, דתי לייט, פתוח
 - "dati_leumi_torani" - דתי/ה תורני/ת, חרד"ל
 - "masorti_strong" - מסורתי/ת שומר/ת מסורת
 - "masorti_light" - מסורתי/ת קל/ה
@@ -488,36 +501,31 @@ VALID RELIGIOUS LEVEL VALUES (use ONLY these exact strings):
 - "breslov" - ברסלב
 - "other" - אחר
 
-VALID ORIGIN VALUES (use ONLY these exact Hebrew strings):
+LANGUAGE DETECTION:
+- nativeLanguage: Detect from text language. If text is mostly Hebrew → "עברית". If mostly English → "אנגלית"
+- additionalLanguages: Any other languages mentioned
+
+VALID ORIGIN VALUES (Hebrew):
 "אשכנזי", "ספרדי", "מזרחי", "תימני", "מרוקאי", "עיראקי", "פרסי", "כורדי", "תוניסאי", "לובי", "אתיופי", "גרוזיני", "בוכרי", "הודי", "תורכי", "מעורב", "אחר"
 
-OTHER FIELDS TO EXTRACT:
+OTHER FIELDS:
 - firstName, lastName: שם פרטי ושם משפחה
-- gender: "MALE" or "FEMALE" (infer from Hebrew grammar: מחפש vs מחפשת, רווק vs רווקה)
-- age: גיל (number only)
-- height: גובה בס"מ (convert 1.75 to 175)
-- city: עיר מגורים
-- occupation: עיסוק/מקצוע
-- education: מוסד לימודים
+- gender: "MALE" or "FEMALE" (infer from Hebrew: מחפש=MALE, מחפשת=FEMALE, רווק=MALE, רווקה=FEMALE)
+- age: number only
+- height: in cm (convert 1.75 → 175)
+- city: city name
+- occupation: job/profession
+- education: institution or field of study
 - educationLevel: "תיכון", "סמינר", "ישיבה", "מכינה", "תואר ראשון", "תואר שני", "תואר שלישי", "הנדסאי", "תעודה מקצועית", "אחר"
-- phone: מספר טלפון
-- referredBy: ממליץ (default: "קבוצת שידוכים שוובל")
-- personality: תיאור אופי
-- lookingFor: מה מחפש/ת
-- hobbies: תחביבים
-- familyDescription: תיאור משפחה
-- militaryService: שירות צבאי/לאומי
-- nativeLanguage: שפת אם
-- additionalLanguages: שפות נוספות (comma separated)
-- hasChildrenFromPrevious: "true"/"false"/""
-- about: THE COMPLETE ORIGINAL TEXT - copy everything as-is
-
-IMPORTANT RULES:
-1. ALWAYS try to determine maritalStatus - if not explicitly stated, infer from context
-2. ALWAYS try to determine religiousLevel - look for any religious indicators
-3. Use EXACT string values from the lists above
-4. For gender: use grammar clues (רווק=MALE, רווקה=FEMALE)
-5. Copy the ENTIRE original text into "about" field unchanged
+- phone: phone number
+- referredBy: default "קבוצת שידוכים שוובל" if not specified
+- personality: character description
+- lookingFor: what they're looking for in a partner
+- hobbies: hobbies/interests
+- familyDescription: family background
+- militaryService: military/national service
+- hasChildrenFromPrevious: "true" if has children, "false" if explicitly no, "" if unknown
+- about: COPY THE ENTIRE ORIGINAL TEXT AS-IS
 
 Return ONLY valid JSON:
 {
@@ -527,9 +535,9 @@ Return ONLY valid JSON:
     "gender": "MALE" | "FEMALE" | "",
     "age": "",
     "height": "",
-    "maritalStatus": "<MUST be one of: single, divorced, widowed, separated>",
-    "religiousLevel": "<MUST be one of the exact values listed above>",
-    "origin": "<one of the Hebrew values listed above>",
+    "maritalStatus": "single" | "divorced" | "widowed",
+    "religiousLevel": "<one of the exact values above>",
+    "origin": "<Hebrew value from list>",
     "city": "",
     "occupation": "",
     "education": "",
@@ -541,7 +549,7 @@ Return ONLY valid JSON:
     "hobbies": "",
     "familyDescription": "",
     "militaryService": "",
-    "nativeLanguage": "",
+    "nativeLanguage": "עברית" | "אנגלית" | "<detected language>",
     "additionalLanguages": "",
     "hasChildrenFromPrevious": "",
     "about": "<complete original text>",
@@ -551,11 +559,7 @@ Return ONLY valid JSON:
     { "index": 0, "type": "photo" | "form" | "combined", "extractedText": "" }
   ],
   "confidence": "high" | "medium" | "low",
-  "notes": "issues or things to verify",
-  "extractionDetails": {
-    "maritalStatusSource": "explain how you determined marital status",
-    "religiousLevelSource": "explain how you determined religious level"
-  }
+  "notes": ""
 }`;
 
 // ---------------------------------------------------------------------------
@@ -623,7 +627,7 @@ export async function POST(req: NextRequest) {
     }
 
     if (imageFiles.length > 0) {
-      promptText += `${imageFiles.length} image(s) attached. Analyze each one - extract text from form images, classify as photo/form/combined.\n\n`;
+      promptText += `${imageFiles.length} image(s) attached. Analyze each one.\n\n`;
     }
 
     promptText += 'Return JSON:';
@@ -662,14 +666,9 @@ export async function POST(req: NextRequest) {
 
     const fields = parsed.fields || {};
 
-    // Log extraction details for debugging
-    if (parsed.extractionDetails) {
-      console.log(`[CardImport] Extraction details:`, parsed.extractionDetails);
-    }
-
     // Log raw values before validation
-    console.log(`[CardImport] Raw maritalStatus: "${fields.maritalStatus}"`);
-    console.log(`[CardImport] Raw religiousLevel: "${fields.religiousLevel}"`);
+    console.log(`[CardImport] Raw maritalStatus from AI: "${fields.maritalStatus}"`);
+    console.log(`[CardImport] Raw religiousLevel from AI: "${fields.religiousLevel}"`);
 
     // Validate and normalize values
     fields.maritalStatus = validateMaritalStatus(fields.maritalStatus);
@@ -706,7 +705,18 @@ export async function POST(req: NextRequest) {
       fields.manualEntryText = fields.about || rawText || '';
     }
 
-    // Add any OCR text from images to about & manualEntryText
+    // Handle language detection - if AI didn't detect, use our function
+    if (!fields.nativeLanguage || fields.nativeLanguage.trim() === '') {
+      const sourceText = fields.about || rawText || '';
+      fields.nativeLanguage = detectLanguageFromText(sourceText);
+      console.log(`[CardImport] Detected nativeLanguage: "${fields.nativeLanguage}"`);
+    }
+
+    if (!fields.additionalLanguages) {
+      fields.additionalLanguages = '';
+    }
+
+    // Add any OCR text from images
     const imageClassifications = parsed.imageClassifications || [];
     const ocrTexts = imageClassifications
       .filter((ic: any) => ic.extractedText && ic.type !== 'photo')
@@ -724,14 +734,6 @@ export async function POST(req: NextRequest) {
       if (fields.manualEntryText && !fields.manualEntryText.includes('טקסט שחולץ מתמונות')) {
         fields.manualEntryText = fields.manualEntryText + ocrBlock;
       }
-    }
-
-    // Ensure language fields exist
-    if (!fields.nativeLanguage) {
-      fields.nativeLanguage = '';
-    }
-    if (!fields.additionalLanguages) {
-      fields.additionalLanguages = '';
     }
 
     // Mark form images
