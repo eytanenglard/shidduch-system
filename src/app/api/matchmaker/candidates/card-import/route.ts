@@ -260,7 +260,8 @@ const RELIGIOUS_LEVEL_MAP: Record<string, string> = {
   'other': 'other',
 };
 
-const ORIGIN_MAP: Record<string, string> = {
+// מיפוי מוצא בודד - ממפה כל וריאציה לערך הסטנדרטי
+const SINGLE_ORIGIN_MAP: Record<string, string> = {
   'אשכנזי': 'אשכנזי',
   'אשכנזית': 'אשכנזי',
   'אשכנזיה': 'אשכנזי',
@@ -361,8 +362,6 @@ const ORIGIN_MAP: Record<string, string> = {
   'מעורב': 'מעורב',
   'מעורבת': 'מעורב',
   'mixed': 'מעורב',
-  'חצי חצי': 'מעורב',
-  'משולב': 'מעורב',
   
   'אחר': 'אחר',
   'other': 'אחר',
@@ -406,10 +405,8 @@ function mapValue(val: string | null | undefined, map: Record<string, string>): 
 function validateReligiousLevel(value: string | null | undefined): string {
   if (!value) return '';
   
-  // אם זה כבר ערך תקין
   if (VALID_RELIGIOUS_LEVELS.includes(value as any)) return value;
   
-  // נסה למפות
   const mapped = mapValue(value, RELIGIOUS_LEVEL_MAP);
   if (VALID_RELIGIOUS_LEVELS.includes(mapped as any)) return mapped;
   
@@ -418,12 +415,10 @@ function validateReligiousLevel(value: string | null | undefined): string {
 }
 
 function validateMaritalStatus(value: string | null | undefined): string {
-  if (!value) return 'single'; // ברירת מחדל לרווק
+  if (!value) return 'single';
   
-  // אם זה כבר ערך תקין
   if (VALID_MARITAL_STATUSES.includes(value as any)) return value;
   
-  // נסה למפות
   const mapped = mapValue(value, MARITAL_STATUS_MAP);
   if (VALID_MARITAL_STATUSES.includes(mapped as any)) return mapped;
   
@@ -431,18 +426,86 @@ function validateMaritalStatus(value: string | null | undefined): string {
   return 'single';
 }
 
+/**
+ * מפה מוצא בודד לערך תקין
+ */
+function mapSingleOrigin(origin: string): string | null {
+  const trimmed = origin.trim();
+  if (!trimmed) return null;
+  
+  // בדיקה ישירה
+  if (VALID_ORIGINS.includes(trimmed as any)) return trimmed;
+  
+  // נסה למפות
+  const mapped = SINGLE_ORIGIN_MAP[trimmed] || SINGLE_ORIGIN_MAP[trimmed.toLowerCase()];
+  if (mapped && VALID_ORIGINS.includes(mapped as any)) return mapped;
+  
+  // בדיקה case-insensitive
+  for (const [key, value] of Object.entries(SINGLE_ORIGIN_MAP)) {
+    if (key.toLowerCase() === trimmed.toLowerCase()) return value;
+  }
+  
+  return null; // לא נמצא - יטופל בהמשך
+}
+
+/**
+ * מאמת ומנרמל מוצא - תומך במספר מוצאות!
+ * אם יש יותר ממוצא אחד, מחזיר אותם מופרדים בפסיק
+ * "מעורב" יוחזר רק אם נכתב במפורש
+ */
 function validateOrigin(value: string | null | undefined): string {
   if (!value) return '';
   
-  // אם זה כבר ערך תקין
-  if (VALID_ORIGINS.includes(value as any)) return value;
+  const trimmed = value.trim();
   
-  // נסה למפות
-  const mapped = mapValue(value, ORIGIN_MAP);
-  if (VALID_ORIGINS.includes(mapped as any)) return mapped;
+  // אם כתוב במפורש "מעורב" - להחזיר מעורב
+  if (trimmed === 'מעורב' || trimmed === 'מעורבת' || trimmed.toLowerCase() === 'mixed') {
+    return 'מעורב';
+  }
   
-  console.log(`[CardImport] Unknown origin: "${value}" -> defaulting to "אחר"`);
-  return 'אחר';
+  // פיצול לפי מפרידים שונים: פסיק, "ו", "and", "/", "-"
+  const separators = /[,،/-]|\s+ו\s*|\s+and\s+/gi;
+  const parts = trimmed.split(separators).map(p => p.trim()).filter(p => p.length > 0);
+  
+  if (parts.length === 0) return '';
+  
+  // מיפוי כל חלק
+  const mappedOrigins: string[] = [];
+  const seenOrigins = new Set<string>();
+  
+  for (const part of parts) {
+    const mapped = mapSingleOrigin(part);
+    if (mapped && mapped !== 'מעורב' && mapped !== 'אחר' && !seenOrigins.has(mapped)) {
+      mappedOrigins.push(mapped);
+      seenOrigins.add(mapped);
+    }
+  }
+  
+  // אם לא נמצאו מוצאות תקינים
+  if (mappedOrigins.length === 0) {
+    // נסה למצוא מוצאות בתוך הטקסט המלא
+    for (const origin of VALID_ORIGINS) {
+      if (origin !== 'מעורב' && origin !== 'אחר' && trimmed.includes(origin)) {
+        if (!seenOrigins.has(origin)) {
+          mappedOrigins.push(origin);
+          seenOrigins.add(origin);
+        }
+      }
+    }
+  }
+  
+  if (mappedOrigins.length === 0) {
+    console.log(`[CardImport] Unknown origin: "${value}" -> defaulting to "אחר"`);
+    return 'אחר';
+  }
+  
+  if (mappedOrigins.length === 1) {
+    return mappedOrigins[0];
+  }
+  
+  // יותר ממוצא אחד - מחזיר מופרד בפסיק
+  console.log(`[CardImport] Multiple origins detected: "${value}" -> "${mappedOrigins.join(', ')}"`);
+  return mappedOrigins.join(', ');
 }
 
 /**
@@ -451,7 +514,6 @@ function validateOrigin(value: string | null | undefined): string {
 function detectLanguageFromText(text: string): string {
   if (!text || text.trim() === '') return 'עברית';
   
-  // ספירת תווים עבריים ואנגליים
   const hebrewChars = (text.match(/[\u0590-\u05FF]/g) || []).length;
   const englishChars = (text.match(/[a-zA-Z]/g) || []).length;
   
@@ -461,12 +523,12 @@ function detectLanguageFromText(text: string): string {
     return 'אנגלית';
   }
   
-  return 'עברית'; // ברירת מחדל
+  return 'עברית';
 }
 
 
 // ---------------------------------------------------------------------------
-// Improved Prompt - ONLY 3 marital status options!
+// Improved Prompt with multiple origins support
 // ---------------------------------------------------------------------------
 
 const SINGLE_CARD_PROMPT = `You are an expert data extraction system for a Jewish matchmaking (shidduch) platform in Israel.
@@ -501,12 +563,21 @@ RELIGIOUS LEVEL - Choose the BEST match from these options:
 - "breslov" - ברסלב
 - "other" - אחר
 
+ORIGIN (מוצא) - IMPORTANT RULES:
+Valid single origins: "אשכנזי", "ספרדי", "מזרחי", "תימני", "מרוקאי", "עיראקי", "פרסי", "כורדי", "תוניסאי", "לובי", "אתיופי", "גרוזיני", "בוכרי", "הודי", "תורכי", "אחר"
+
+MULTIPLE ORIGINS RULE:
+- If someone has TWO or more origins (e.g., "אשכנזי וספרדי", "חצי מרוקאי חצי עיראקי"), return BOTH separated by comma: "אשכנזי, ספרדי" or "מרוקאי, עיראקי"
+- ONLY return "מעורב" if the person explicitly wrote "מעורב" or "מעורבת"
+- Examples:
+  * "אבא אשכנזי אמא ספרדיה" → "אשכנזי, ספרדי"
+  * "חצי תימני חצי מרוקאי" → "תימני, מרוקאי"
+  * "מוצא מעורב" → "מעורב"
+  * "אשכנזי ותימני" → "אשכנזי, תימני"
+
 LANGUAGE DETECTION:
 - nativeLanguage: Detect from text language. If text is mostly Hebrew → "עברית". If mostly English → "אנגלית"
 - additionalLanguages: Any other languages mentioned
-
-VALID ORIGIN VALUES (Hebrew):
-"אשכנזי", "ספרדי", "מזרחי", "תימני", "מרוקאי", "עיראקי", "פרסי", "כורדי", "תוניסאי", "לובי", "אתיופי", "גרוזיני", "בוכרי", "הודי", "תורכי", "מעורב", "אחר"
 
 OTHER FIELDS:
 - firstName, lastName: שם פרטי ושם משפחה
@@ -537,7 +608,7 @@ Return ONLY valid JSON:
     "height": "",
     "maritalStatus": "single" | "divorced" | "widowed",
     "religiousLevel": "<one of the exact values above>",
-    "origin": "<Hebrew value from list>",
+    "origin": "<single origin OR multiple origins separated by comma, e.g. 'אשכנזי, ספרדי'>",
     "city": "",
     "occupation": "",
     "education": "",
@@ -568,7 +639,6 @@ Return ONLY valid JSON:
 
 export async function POST(req: NextRequest) {
   try {
-    // בדיקת API key
     if (!process.env.GEMINI_API_KEY) {
       console.error('[CardImport] GEMINI_API_KEY is not configured!');
       return NextResponse.json(
@@ -669,18 +739,17 @@ export async function POST(req: NextRequest) {
     // Log raw values before validation
     console.log(`[CardImport] Raw maritalStatus from AI: "${fields.maritalStatus}"`);
     console.log(`[CardImport] Raw religiousLevel from AI: "${fields.religiousLevel}"`);
+    console.log(`[CardImport] Raw origin from AI: "${fields.origin}"`);
 
     // Validate and normalize values
     fields.maritalStatus = validateMaritalStatus(fields.maritalStatus);
     fields.religiousLevel = validateReligiousLevel(fields.religiousLevel);
-    
-    if (fields.origin) {
-      fields.origin = validateOrigin(fields.origin);
-    }
+    fields.origin = validateOrigin(fields.origin);
 
     // Log validated values
     console.log(`[CardImport] Validated maritalStatus: "${fields.maritalStatus}"`);
     console.log(`[CardImport] Validated religiousLevel: "${fields.religiousLevel}"`);
+    console.log(`[CardImport] Validated origin: "${fields.origin}"`);
 
     // Normalize height
     if (fields.height) {
@@ -705,7 +774,7 @@ export async function POST(req: NextRequest) {
       fields.manualEntryText = fields.about || rawText || '';
     }
 
-    // Handle language detection - if AI didn't detect, use our function
+    // Handle language detection
     if (!fields.nativeLanguage || fields.nativeLanguage.trim() === '') {
       const sourceText = fields.about || rawText || '';
       fields.nativeLanguage = detectLanguageFromText(sourceText);
