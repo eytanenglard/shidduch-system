@@ -30,6 +30,12 @@ import {
   FileText,
   Camera,
   Users,
+  GraduationCap,
+  Briefcase,
+  MapPin,
+  Globe,
+  Shield,
+  Baby,
 } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import Image from 'next/image';
@@ -55,6 +61,7 @@ interface AddManualCandidateDialogProps {
 
 const MAX_IMAGES = 5;
 const MAX_IMAGE_SIZE_MB = 5;
+const DEFAULT_REFERRED_BY = 'קבוצת שידוכים שוובל';
 
 // Section Header Component
 const SectionHeader: React.FC<{
@@ -83,28 +90,51 @@ export const AddManualCandidateDialog: React.FC<
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
-  
+
   // Personal Details
   const [gender, setGender] = useState<Gender | undefined>(undefined);
   const [maritalStatus, setMaritalStatus] = useState<string>('');
   const [religiousLevel, setReligiousLevel] = useState<string>('');
   const [origin, setOrigin] = useState<string>('');
-
   const [height, setHeight] = useState('');
-  
+  const [hasChildrenFromPrevious, setHasChildrenFromPrevious] =
+    useState<string>('');
+
+  // Location
+  const [city, setCity] = useState('');
+
   // Birth Date
   const [birthDate, setBirthDate] = useState<Date | undefined>(undefined);
-  const [birthDateInputMode, setBirthDateInputMode] = useState<'date' | 'age'>('date');
+  const [birthDateInputMode, setBirthDateInputMode] = useState<'date' | 'age'>(
+    'date'
+  );
   const [ageInput, setAgeInput] = useState<string>('');
-  
+
+  // Education & Career
+  const [occupation, setOccupation] = useState('');
+  const [education, setEducation] = useState('');
+  const [educationLevel, setEducationLevel] = useState('');
+
+  // Military Service
+  const [militaryService, setMilitaryService] = useState('');
+
+  // Languages
+  const [nativeLanguage, setNativeLanguage] = useState('');
+  const [additionalLanguages, setAdditionalLanguages] = useState('');
+
+  // Family
+  const [fatherOccupation, setFatherOccupation] = useState('');
+  const [motherOccupation, setMotherOccupation] = useState('');
+
   // Additional Info
+  const [about, setAbout] = useState('');
   const [manualEntryText, setManualEntryText] = useState('');
-  const [referredBy, setReferredBy] = useState('');
-  
+  const [referredBy, setReferredBy] = useState(DEFAULT_REFERRED_BY);
+
   // Images
   const [images, setImages] = useState<File[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
-  
+
   // UI State
   const [sendInvite, setSendInvite] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -116,19 +146,29 @@ export const AddManualCandidateDialog: React.FC<
     setPhone('');
     setGender(undefined);
     setOrigin('');
-
     setMaritalStatus('');
     setReligiousLevel('');
     setHeight('');
+    setHasChildrenFromPrevious('');
+    setCity('');
     setBirthDate(undefined);
+    setBirthDateInputMode('date');
+    setAgeInput('');
+    setOccupation('');
+    setEducation('');
+    setEducationLevel('');
+    setMilitaryService('');
+    setNativeLanguage('');
+    setAdditionalLanguages('');
+    setFatherOccupation('');
+    setMotherOccupation('');
+    setAbout('');
     setManualEntryText('');
+    setReferredBy(DEFAULT_REFERRED_BY);
     setImages([]);
     setImagePreviews([]);
     setSendInvite(false);
     setIsSaving(false);
-    setBirthDateInputMode('date');
-    setAgeInput('');
-    setReferredBy('');
   }, []);
 
   const handleClose = () => {
@@ -214,23 +254,50 @@ export const AddManualCandidateDialog: React.FC<
     }
 
     const formData = new FormData();
+
+    // --- שדות חובה ---
     formData.append('firstName', firstName);
     formData.append('lastName', lastName);
-    if (email) formData.append('email', email);
-    if (phone) formData.append('phone', phone);
-   if (origin) formData.append('origin', origin);
     formData.append('gender', gender);
     formData.append('maritalStatus', maritalStatus);
     formData.append('religiousLevel', religiousLevel);
-    if (height) formData.append('height', height);
     formData.append('birthDate', finalBirthDate.toISOString());
     formData.append('birthDateIsApproximate', String(isBirthDateApproximate));
     formData.append('manualEntryText', manualEntryText);
 
-    if (referredBy.trim()) {
-      formData.append('referredBy', referredBy.trim());
-    }
+    // --- שדות אופציונליים ---
+    if (email) formData.append('email', email);
+    if (phone) formData.append('phone', phone);
+    if (origin) formData.append('origin', origin);
+    if (height) formData.append('height', height);
+    if (city.trim()) formData.append('city', city.trim());
+    if (occupation.trim()) formData.append('occupation', occupation.trim());
+    if (education.trim()) formData.append('education', education.trim());
+    if (educationLevel) formData.append('educationLevel', educationLevel);
+    if (about.trim()) formData.append('about', about.trim());
+    if (hasChildrenFromPrevious)
+      formData.append('hasChildrenFromPrevious', hasChildrenFromPrevious);
 
+    // שירות צבאי / לאומי
+    if (militaryService.trim())
+      formData.append('militaryService', militaryService.trim());
+
+    // שפות
+    if (nativeLanguage.trim())
+      formData.append('nativeLanguage', nativeLanguage.trim());
+    if (additionalLanguages.trim())
+      formData.append('additionalLanguages', additionalLanguages.trim());
+
+    // משפחה
+    if (fatherOccupation.trim())
+      formData.append('fatherOccupation', fatherOccupation.trim());
+    if (motherOccupation.trim())
+      formData.append('motherOccupation', motherOccupation.trim());
+
+    // מקור הפניה
+    formData.append('referredBy', referredBy.trim() || DEFAULT_REFERRED_BY);
+
+    // תמונות
     images.forEach((image) => formData.append('images', image));
 
     try {
@@ -296,13 +363,15 @@ export const AddManualCandidateDialog: React.FC<
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="px-6 py-5 space-y-6">
+          {/* ============================================================= */}
           {/* Section 1: Basic Information */}
+          {/* ============================================================= */}
           <div className="bg-gray-50/50 rounded-xl p-4 border border-gray-100">
             <SectionHeader
               icon={<User className="w-4 h-4" />}
               title="פרטים בסיסיים"
             />
-            
+
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <FormField>
                 <Label htmlFor="firstName" className="text-sm font-medium">
@@ -338,7 +407,9 @@ export const AddManualCandidateDialog: React.FC<
             </div>
           </div>
 
+          {/* ============================================================= */}
           {/* Section 2: Contact Information */}
+          {/* ============================================================= */}
           <div className="bg-gray-50/50 rounded-xl p-4 border border-gray-100">
             <SectionHeader
               icon={<Mail className="w-4 h-4" />}
@@ -347,7 +418,10 @@ export const AddManualCandidateDialog: React.FC<
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <FormField>
-                <Label htmlFor="email" className="text-sm font-medium flex items-center gap-1.5">
+                <Label
+                  htmlFor="email"
+                  className="text-sm font-medium flex items-center gap-1.5"
+                >
                   <Mail className="w-3.5 h-3.5 text-gray-400" />
                   {dict.fields.email.label}
                 </Label>
@@ -366,7 +440,10 @@ export const AddManualCandidateDialog: React.FC<
               </FormField>
 
               <FormField>
-                <Label htmlFor="phone" className="text-sm font-medium flex items-center gap-1.5">
+                <Label
+                  htmlFor="phone"
+                  className="text-sm font-medium flex items-center gap-1.5"
+                >
                   <Phone className="w-3.5 h-3.5 text-gray-400" />
                   טלפון
                 </Label>
@@ -379,9 +456,7 @@ export const AddManualCandidateDialog: React.FC<
                   dir="ltr"
                   className="text-left bg-white"
                 />
-                <p className="text-xs text-gray-500">
-                  מספר טלפון ליצירת קשר
-                </p>
+                <p className="text-xs text-gray-500">מספר טלפון ליצירת קשר</p>
               </FormField>
             </div>
 
@@ -391,7 +466,9 @@ export const AddManualCandidateDialog: React.FC<
                 <Checkbox
                   id="sendInvite"
                   checked={sendInvite}
-                  onCheckedChange={(checked) => setSendInvite(checked as boolean)}
+                  onCheckedChange={(checked) =>
+                    setSendInvite(checked as boolean)
+                  }
                   className="data-[state=checked]:bg-blue-600"
                 />
                 <label
@@ -404,7 +481,9 @@ export const AddManualCandidateDialog: React.FC<
             )}
           </div>
 
+          {/* ============================================================= */}
           {/* Section 3: Personal Details */}
+          {/* ============================================================= */}
           <div className="bg-gray-50/50 rounded-xl p-4 border border-gray-100">
             <SectionHeader
               icon={<Heart className="w-4 h-4" />}
@@ -412,6 +491,7 @@ export const AddManualCandidateDialog: React.FC<
             />
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* Gender */}
               <FormField>
                 <Label htmlFor="gender" className="text-sm font-medium">
                   {dict.fields.gender.label}
@@ -426,15 +506,23 @@ export const AddManualCandidateDialog: React.FC<
                     <SelectValue placeholder={dict.fields.gender.placeholder} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="MALE">{dict.fields.gender.male}</SelectItem>
-                    <SelectItem value="FEMALE">{dict.fields.gender.female}</SelectItem>
+                    <SelectItem value="MALE">
+                      {dict.fields.gender.male}
+                    </SelectItem>
+                    <SelectItem value="FEMALE">
+                      {dict.fields.gender.female}
+                    </SelectItem>
                   </SelectContent>
                 </Select>
               </FormField>
 
+              {/* Marital Status */}
               {dict.fields.maritalStatus && (
                 <FormField>
-                  <Label htmlFor="maritalStatus" className="text-sm font-medium">
+                  <Label
+                    htmlFor="maritalStatus"
+                    className="text-sm font-medium"
+                  >
                     {dict.fields.maritalStatus.label}
                     <span className="text-red-500 mr-1">*</span>
                   </Label>
@@ -443,8 +531,14 @@ export const AddManualCandidateDialog: React.FC<
                     onValueChange={(value: string) => setMaritalStatus(value)}
                     required
                   >
-                    <SelectTrigger id="maritalStatus" dir="rtl" className="bg-white">
-                      <SelectValue placeholder={dict.fields.maritalStatus.placeholder} />
+                    <SelectTrigger
+                      id="maritalStatus"
+                      dir="rtl"
+                      className="bg-white"
+                    >
+                      <SelectValue
+                        placeholder={dict.fields.maritalStatus.placeholder}
+                      />
                     </SelectTrigger>
                     <SelectContent className="max-h-[200px]">
                       {dict.fields.maritalStatus.options &&
@@ -460,6 +554,7 @@ export const AddManualCandidateDialog: React.FC<
                 </FormField>
               )}
 
+              {/* Religious Level */}
               <FormField>
                 <Label htmlFor="religiousLevel" className="text-sm font-medium">
                   {dict.fields.religiousLevel.label}
@@ -470,8 +565,14 @@ export const AddManualCandidateDialog: React.FC<
                   onValueChange={(value: string) => setReligiousLevel(value)}
                   required
                 >
-                  <SelectTrigger id="religiousLevel" dir="rtl" className="bg-white">
-                    <SelectValue placeholder={dict.fields.religiousLevel.placeholder} />
+                  <SelectTrigger
+                    id="religiousLevel"
+                    dir="rtl"
+                    className="bg-white"
+                  >
+                    <SelectValue
+                      placeholder={dict.fields.religiousLevel.placeholder}
+                    />
                   </SelectTrigger>
                   <SelectContent className="max-h-[200px]">
                     {Object.entries(dict.fields.religiousLevel.options).map(
@@ -484,41 +585,47 @@ export const AddManualCandidateDialog: React.FC<
                   </SelectContent>
                 </Select>
               </FormField>
-{/* Origin field - updated with Hebrew values and expanded options */}
-<FormField>
-  <Label htmlFor="origin" className="text-sm font-medium">
-    מוצא
-  </Label>
-  <Select
-    value={origin}
-    onValueChange={(value: string) => setOrigin(value)}
-  >
-    <SelectTrigger id="origin" dir="rtl" className="bg-white">
-      <SelectValue placeholder="בחר מוצא" />
-    </SelectTrigger>
-    <SelectContent className="max-h-[300px]">
-      <SelectItem value="אשכנזי">אשכנזי</SelectItem>
-      <SelectItem value="ספרדי">ספרדי</SelectItem>
-      <SelectItem value="מזרחי">מזרחי</SelectItem>
-      <SelectItem value="תימני">תימני</SelectItem>
-      <SelectItem value="מרוקאי">מרוקאי</SelectItem>
-      <SelectItem value="עיראקי">עיראקי</SelectItem>
-      <SelectItem value="פרסי">פרסי</SelectItem>
-      <SelectItem value="כורדי">כורדי</SelectItem>
-      <SelectItem value="תוניסאי">תוניסאי</SelectItem>
-      <SelectItem value="לובי">לובי</SelectItem>
-      <SelectItem value="אתיופי">אתיופי</SelectItem>
-      <SelectItem value="גרוזיני">גרוזיני</SelectItem>
-      <SelectItem value="בוכרי">בוכרי</SelectItem>
-      <SelectItem value="הודי">הודי</SelectItem>
-      <SelectItem value="תורכי">תורכי</SelectItem>
-      <SelectItem value="מעורב">מעורב</SelectItem>
-      <SelectItem value="אחר">אחר</SelectItem>
-    </SelectContent>
-  </Select>
-</FormField>
+
+              {/* Origin */}
               <FormField>
-                <Label htmlFor="height" className="text-sm font-medium flex items-center gap-1.5">
+                <Label htmlFor="origin" className="text-sm font-medium">
+                  מוצא
+                </Label>
+                <Select
+                  value={origin}
+                  onValueChange={(value: string) => setOrigin(value)}
+                >
+                  <SelectTrigger id="origin" dir="rtl" className="bg-white">
+                    <SelectValue placeholder="בחר מוצא" />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-[300px]">
+                    <SelectItem value="אשכנזי">אשכנזי</SelectItem>
+                    <SelectItem value="ספרדי">ספרדי</SelectItem>
+                    <SelectItem value="מזרחי">מזרחי</SelectItem>
+                    <SelectItem value="תימני">תימני</SelectItem>
+                    <SelectItem value="מרוקאי">מרוקאי</SelectItem>
+                    <SelectItem value="עיראקי">עיראקי</SelectItem>
+                    <SelectItem value="פרסי">פרסי</SelectItem>
+                    <SelectItem value="כורדי">כורדי</SelectItem>
+                    <SelectItem value="תוניסאי">תוניסאי</SelectItem>
+                    <SelectItem value="לובי">לובי</SelectItem>
+                    <SelectItem value="אתיופי">אתיופי</SelectItem>
+                    <SelectItem value="גרוזיני">גרוזיני</SelectItem>
+                    <SelectItem value="בוכרי">בוכרי</SelectItem>
+                    <SelectItem value="הודי">הודי</SelectItem>
+                    <SelectItem value="תורכי">תורכי</SelectItem>
+                    <SelectItem value="מעורב">מעורב</SelectItem>
+                    <SelectItem value="אחר">אחר</SelectItem>
+                  </SelectContent>
+                </Select>
+              </FormField>
+
+              {/* Height */}
+              <FormField>
+                <Label
+                  htmlFor="height"
+                  className="text-sm font-medium flex items-center gap-1.5"
+                >
                   <Ruler className="w-3.5 h-3.5 text-gray-400" />
                   {dict.fields.height.label}
                 </Label>
@@ -534,10 +641,60 @@ export const AddManualCandidateDialog: React.FC<
                   className="bg-white"
                 />
               </FormField>
+
+              {/* City */}
+              <FormField>
+                <Label
+                  htmlFor="city"
+                  className="text-sm font-medium flex items-center gap-1.5"
+                >
+                  <MapPin className="w-3.5 h-3.5 text-gray-400" />
+                  עיר מגורים
+                </Label>
+                <Input
+                  id="city"
+                  value={city}
+                  onChange={(e) => setCity(e.target.value)}
+                  placeholder="למשל: ירושלים, תל אביב..."
+                  dir="rtl"
+                  className="bg-white"
+                />
+              </FormField>
+
+              {/* Has Children from Previous */}
+              <FormField>
+                <Label
+                  htmlFor="hasChildrenFromPrevious"
+                  className="text-sm font-medium flex items-center gap-1.5"
+                >
+                  <Baby className="w-3.5 h-3.5 text-gray-400" />
+                  ילדים מקשר קודם
+                </Label>
+                <Select
+                  value={hasChildrenFromPrevious}
+                  onValueChange={(value: string) =>
+                    setHasChildrenFromPrevious(value)
+                  }
+                >
+                  <SelectTrigger
+                    id="hasChildrenFromPrevious"
+                    dir="rtl"
+                    className="bg-white"
+                  >
+                    <SelectValue placeholder="בחר" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="true">כן</SelectItem>
+                    <SelectItem value="false">לא</SelectItem>
+                  </SelectContent>
+                </Select>
+              </FormField>
             </div>
           </div>
 
+          {/* ============================================================= */}
           {/* Section 4: Birth Date */}
+          {/* ============================================================= */}
           <div className="bg-gray-50/50 rounded-xl p-4 border border-gray-100">
             <SectionHeader
               icon={<Calendar className="w-4 h-4" />}
@@ -553,7 +710,9 @@ export const AddManualCandidateDialog: React.FC<
                 <RadioGroup
                   dir="rtl"
                   value={birthDateInputMode}
-                  onValueChange={(value: 'date' | 'age') => setBirthDateInputMode(value)}
+                  onValueChange={(value: 'date' | 'age') =>
+                    setBirthDateInputMode(value)
+                  }
                   className="flex gap-6"
                 >
                   <div className="flex items-center gap-2">
@@ -613,7 +772,202 @@ export const AddManualCandidateDialog: React.FC<
             </div>
           </div>
 
-          {/* Section 5: Additional Info */}
+          {/* ============================================================= */}
+          {/* Section 5: Education & Career */}
+          {/* ============================================================= */}
+          <div className="bg-gray-50/50 rounded-xl p-4 border border-gray-100">
+            <SectionHeader
+              icon={<GraduationCap className="w-4 h-4" />}
+              title="השכלה ותעסוקה"
+            />
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* Occupation */}
+              <FormField>
+                <Label
+                  htmlFor="occupation"
+                  className="text-sm font-medium flex items-center gap-1.5"
+                >
+                  <Briefcase className="w-3.5 h-3.5 text-gray-400" />
+                  עיסוק / מקצוע
+                </Label>
+                <Input
+                  id="occupation"
+                  value={occupation}
+                  onChange={(e) => setOccupation(e.target.value)}
+                  placeholder="למשל: מהנדס תוכנה, עורכת דין..."
+                  dir="rtl"
+                  className="bg-white"
+                />
+              </FormField>
+
+              {/* Education */}
+              <FormField>
+                <Label
+                  htmlFor="education"
+                  className="text-sm font-medium flex items-center gap-1.5"
+                >
+                  <GraduationCap className="w-3.5 h-3.5 text-gray-400" />
+                  לימודים / מוסד
+                </Label>
+                <Input
+                  id="education"
+                  value={education}
+                  onChange={(e) => setEducation(e.target.value)}
+                  placeholder="למשל: מדעי המחשב, אוניברסיטת בר אילן"
+                  dir="rtl"
+                  className="bg-white"
+                />
+              </FormField>
+
+              {/* Education Level */}
+              <FormField>
+                <Label htmlFor="educationLevel" className="text-sm font-medium">
+                  רמת השכלה
+                </Label>
+                <Select
+                  value={educationLevel}
+                  onValueChange={(value: string) => setEducationLevel(value)}
+                >
+                  <SelectTrigger
+                    id="educationLevel"
+                    dir="rtl"
+                    className="bg-white"
+                  >
+                    <SelectValue placeholder="בחר רמת השכלה" />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-[250px]">
+                    <SelectItem value="תיכון">תיכון</SelectItem>
+                    <SelectItem value="סמינר">סמינר</SelectItem>
+                    <SelectItem value="ישיבה">ישיבה</SelectItem>
+                    <SelectItem value="מכינה">מכינה</SelectItem>
+                    <SelectItem value="תעודה מקצועית">תעודה מקצועית</SelectItem>
+                    <SelectItem value="הנדסאי">הנדסאי</SelectItem>
+                    <SelectItem value="תואר ראשון">תואר ראשון</SelectItem>
+                    <SelectItem value="תואר שני">תואר שני</SelectItem>
+                    <SelectItem value="תואר שלישי">תואר שלישי</SelectItem>
+                    <SelectItem value="אחר">אחר</SelectItem>
+                  </SelectContent>
+                </Select>
+              </FormField>
+            </div>
+          </div>
+
+          {/* ============================================================= */}
+          {/* Section 6: Military Service */}
+          {/* ============================================================= */}
+          <div className="bg-gray-50/50 rounded-xl p-4 border border-gray-100">
+            <SectionHeader
+              icon={<Shield className="w-4 h-4" />}
+              title="שירות צבאי / לאומי"
+            />
+
+            <FormField>
+              <Label htmlFor="militaryService" className="text-sm font-medium">
+                פירוט שירות
+              </Label>
+              <Input
+                id="militaryService"
+                value={militaryService}
+                onChange={(e) => setMilitaryService(e.target.value)}
+                placeholder="למשל: קצין חי״ר, שירות לאומי בבית חולים..."
+                dir="rtl"
+                className="bg-white"
+              />
+              <p className="text-xs text-gray-500">סוג השירות, תפקיד, יחידה</p>
+            </FormField>
+          </div>
+
+          {/* ============================================================= */}
+          {/* Section 7: Languages */}
+          {/* ============================================================= */}
+          <div className="bg-gray-50/50 rounded-xl p-4 border border-gray-100">
+            <SectionHeader icon={<Globe className="w-4 h-4" />} title="שפות" />
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <FormField>
+                <Label htmlFor="nativeLanguage" className="text-sm font-medium">
+                  שפת אם
+                </Label>
+                <Input
+                  id="nativeLanguage"
+                  value={nativeLanguage}
+                  onChange={(e) => setNativeLanguage(e.target.value)}
+                  placeholder="למשל: עברית"
+                  dir="rtl"
+                  className="bg-white"
+                />
+              </FormField>
+
+              <FormField>
+                <Label
+                  htmlFor="additionalLanguages"
+                  className="text-sm font-medium"
+                >
+                  שפות נוספות
+                </Label>
+                <Input
+                  id="additionalLanguages"
+                  value={additionalLanguages}
+                  onChange={(e) => setAdditionalLanguages(e.target.value)}
+                  placeholder="למשל: אנגלית, צרפתית"
+                  dir="rtl"
+                  className="bg-white"
+                />
+                <p className="text-xs text-gray-500">הפרדה בפסיקים</p>
+              </FormField>
+            </div>
+          </div>
+
+          {/* ============================================================= */}
+          {/* Section 8: Family */}
+          {/* ============================================================= */}
+          <div className="bg-gray-50/50 rounded-xl p-4 border border-gray-100">
+            <SectionHeader
+              icon={<Users className="w-4 h-4" />}
+              title="רקע משפחתי"
+            />
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <FormField>
+                <Label
+                  htmlFor="fatherOccupation"
+                  className="text-sm font-medium"
+                >
+                  מקצוע האב
+                </Label>
+                <Input
+                  id="fatherOccupation"
+                  value={fatherOccupation}
+                  onChange={(e) => setFatherOccupation(e.target.value)}
+                  placeholder="למשל: רב, מורה, רואה חשבון..."
+                  dir="rtl"
+                  className="bg-white"
+                />
+              </FormField>
+
+              <FormField>
+                <Label
+                  htmlFor="motherOccupation"
+                  className="text-sm font-medium"
+                >
+                  מקצוע האם
+                </Label>
+                <Input
+                  id="motherOccupation"
+                  value={motherOccupation}
+                  onChange={(e) => setMotherOccupation(e.target.value)}
+                  placeholder="למשל: מנהלת, אחות, מעצבת..."
+                  dir="rtl"
+                  className="bg-white"
+                />
+              </FormField>
+            </div>
+          </div>
+
+          {/* ============================================================= */}
+          {/* Section 9: Additional Info */}
+          {/* ============================================================= */}
           <div className="bg-gray-50/50 rounded-xl p-4 border border-gray-100">
             <SectionHeader
               icon={<FileText className="w-4 h-4" />}
@@ -621,26 +975,57 @@ export const AddManualCandidateDialog: React.FC<
             />
 
             <div className="space-y-4">
+              {/* Referred By */}
               <FormField>
-                <Label htmlFor="referredBy" className="text-sm font-medium flex items-center gap-1.5">
+                <Label
+                  htmlFor="referredBy"
+                  className="text-sm font-medium flex items-center gap-1.5"
+                >
                   <Users className="w-3.5 h-3.5 text-gray-400" />
-                  {dict.fields.referredBy?.label || 'דרך מי הגיע/ה?'}
+                  {dict.fields.referredBy?.label || 'הופנה ע״י'}
                 </Label>
                 <Input
                   id="referredBy"
                   value={referredBy}
                   onChange={(e) => setReferredBy(e.target.value)}
-                  placeholder={dict.fields.referredBy?.placeholder || 'שם ופרטי התקשרות של איש הקשר'}
+                  placeholder={
+                    dict.fields.referredBy?.placeholder ||
+                    'שם ופרטי התקשרות של איש הקשר'
+                  }
                   dir="rtl"
                   className="bg-white"
                 />
                 <p className="text-xs text-gray-500">
-                  {dict.fields.referredBy?.description || 'עם מי להיות בקשר בנוגע למועמד/ת זו'}
+                  {dict.fields.referredBy?.description ||
+                    'ברירת מחדל: קבוצת שידוכים שוובל'}
                 </p>
               </FormField>
 
+              {/* About — free text */}
               <FormField>
-                <Label htmlFor="manualEntryText" className="text-sm font-medium">
+                <Label htmlFor="about" className="text-sm font-medium">
+                  📄 אודות / תיאור חופשי
+                </Label>
+                <Textarea
+                  id="about"
+                  value={about}
+                  onChange={(e) => setAbout(e.target.value)}
+                  placeholder="תיאור כללי, אופי, תכונות, מה מחפש/ת, תחביבים..."
+                  rows={4}
+                  className="min-h-[100px] bg-white resize-none"
+                  dir="rtl"
+                />
+                <p className="text-xs text-gray-500">
+                  שדה חופשי — כל מה שחשוב לדעת על המועמד/ת
+                </p>
+              </FormField>
+
+              {/* Manual Entry Text */}
+              <FormField>
+                <Label
+                  htmlFor="manualEntryText"
+                  className="text-sm font-medium"
+                >
                   {dict.fields.notes.label}
                   <span className="text-red-500 mr-1">*</span>
                 </Label>
@@ -658,7 +1043,9 @@ export const AddManualCandidateDialog: React.FC<
             </div>
           </div>
 
-          {/* Section 6: Photos */}
+          {/* ============================================================= */}
+          {/* Section 10: Photos */}
+          {/* ============================================================= */}
           <div className="bg-gray-50/50 rounded-xl p-4 border border-gray-100">
             <SectionHeader
               icon={<Camera className="w-4 h-4" />}
@@ -667,9 +1054,12 @@ export const AddManualCandidateDialog: React.FC<
 
             <div>
               <Label className="text-sm font-medium block mb-3">
-                {dict.fields.photos.label.replace('{{max}}', String(MAX_IMAGES))}
+                {dict.fields.photos.label.replace(
+                  '{{max}}',
+                  String(MAX_IMAGES)
+                )}
               </Label>
-              
+
               <label
                 htmlFor="image-upload"
                 className="flex flex-col items-center justify-center w-full h-28 border-2 border-dashed border-gray-300 rounded-xl cursor-pointer bg-white hover:bg-gray-50 hover:border-primary/50 transition-colors"
@@ -682,7 +1072,10 @@ export const AddManualCandidateDialog: React.FC<
                     {dict.fields.photos.cta}
                   </p>
                   <p className="text-xs text-gray-400 mt-1">
-                    {dict.fields.photos.description.replace('{{maxSize}}', String(MAX_IMAGE_SIZE_MB))}
+                    {dict.fields.photos.description.replace(
+                      '{{maxSize}}',
+                      String(MAX_IMAGE_SIZE_MB)
+                    )}
                   </p>
                 </div>
                 <Input
@@ -702,7 +1095,10 @@ export const AddManualCandidateDialog: React.FC<
                     <div key={index} className="relative group aspect-square">
                       <Image
                         src={preview}
-                        alt={dict.fields.photos.previewAlt.replace('{{index}}', String(index + 1))}
+                        alt={dict.fields.photos.previewAlt.replace(
+                          '{{index}}',
+                          String(index + 1)
+                        )}
                         fill
                         className="rounded-lg object-cover border border-gray-200"
                         onLoad={() => URL.revokeObjectURL(preview)}
@@ -715,7 +1111,9 @@ export const AddManualCandidateDialog: React.FC<
                         onClick={() => removeImage(index)}
                       >
                         <Trash2 className="h-3 w-3" />
-                        <span className="sr-only">{dict.fields.photos.removeLabel}</span>
+                        <span className="sr-only">
+                          {dict.fields.photos.removeLabel}
+                        </span>
                       </Button>
                     </div>
                   ))}
@@ -724,7 +1122,9 @@ export const AddManualCandidateDialog: React.FC<
             </div>
           </div>
 
+          {/* ============================================================= */}
           {/* Footer */}
+          {/* ============================================================= */}
           <DialogFooter className="flex flex-col-reverse sm:flex-row gap-2 pt-4 border-t">
             <DialogClose asChild>
               <Button
