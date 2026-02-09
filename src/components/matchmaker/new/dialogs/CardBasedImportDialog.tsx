@@ -394,27 +394,29 @@ export const CardBasedImportDialog: React.FC<CardBasedImportDialogProps> = ({
   // =========================================================================
   // Handle paste
   // =========================================================================
-  const handlePaste = useCallback(
-    (cardId: string, e: React.ClipboardEvent) => {
-      const items = e.clipboardData?.items;
-      if (!items) return;
+ const handlePaste = useCallback(
+  (cardId: string, e: React.ClipboardEvent) => {
+    const items = e.clipboardData?.items;
+    if (!items) return;
 
-      const imageFiles: File[] = [];
+    const imageFiles: File[] = [];
 
-      for (const item of Array.from(items)) {
-        if (item.type.startsWith('image/')) {
-          e.preventDefault();
-          const file = item.getAsFile();
-          if (file) imageFiles.push(file);
-        }
+    for (const item of Array.from(items)) {
+      if (item.type.startsWith('image/')) {
+        const file = item.getAsFile();
+        if (file) imageFiles.push(file);
       }
+    }
 
-      if (imageFiles.length > 0) {
-        addImagesToCard(cardId, imageFiles);
-      }
-    },
-    [addImagesToCard]
-  );
+    // רק אם יש תמונות — עצור התפשטות ומנע כפילות
+    if (imageFiles.length > 0) {
+      e.preventDefault();
+      e.stopPropagation(); // ← מונע את ה-bubble לdiv העוטף
+      addImagesToCard(cardId, imageFiles);
+    }
+  },
+  [addImagesToCard]
+);
 
   // =========================================================================
   // Drag & Drop handler
@@ -1079,7 +1081,6 @@ const CandidateCard: React.FC<CandidateCardProps> = React.memo(
                   status: 'has-input',
                 })
               }
-              onPaste={(e) => onPaste(card.id, e)}
               placeholder="הדבק כאן טקסט מהוואטסאפ..."
               rows={isMobile ? 2 : 3}
               dir="rtl"
