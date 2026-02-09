@@ -50,7 +50,6 @@ const VALID_RELIGIOUS_LEVELS = [
   'other',
 ] as const;
 
-// רק 3 אופציות תקינות!
 const VALID_MARITAL_STATUSES = ['single', 'divorced', 'widowed'] as const;
 
 const VALID_ORIGINS = [
@@ -104,7 +103,6 @@ const MARITAL_STATUS_MAP: Record<string, string> = {
   'after divorce': 'divorced',
   'widow': 'widowed',
   'widower': 'widowed',
-  // פרוד -> גרוש (כי אין אופציה פרוד)
   'פרוד': 'divorced',
   'פרודה': 'divorced',
   'separated': 'divorced',
@@ -260,7 +258,6 @@ const RELIGIOUS_LEVEL_MAP: Record<string, string> = {
   'other': 'other',
 };
 
-// מיפוי מוצא בודד - ממפה כל וריאציה לערך הסטנדרטי
 const SINGLE_ORIGIN_MAP: Record<string, string> = {
   'אשכנזי': 'אשכנזי',
   'אשכנזית': 'אשכנזי',
@@ -368,7 +365,6 @@ const SINGLE_ORIGIN_MAP: Record<string, string> = {
   'לא ידוע': 'אחר',
 };
 
-
 function normalizeString(val: string): string {
   return val
     .trim()
@@ -382,16 +378,13 @@ function mapValue(val: string | null | undefined, map: Record<string, string>): 
   
   const normalized = normalizeString(val);
   
-  // בדיקה ישירה
   if (map[val]) return map[val];
   if (map[normalized]) return map[normalized];
   
-  // בדיקה case-insensitive
   for (const [key, value] of Object.entries(map)) {
     if (normalizeString(key) === normalized) return value;
   }
   
-  // בדיקת הכלה
   for (const [key, value] of Object.entries(map)) {
     const normalizedKey = normalizeString(key);
     if (normalized.includes(normalizedKey) || normalizedKey.includes(normalized)) {
@@ -426,50 +419,36 @@ function validateMaritalStatus(value: string | null | undefined): string {
   return 'single';
 }
 
-/**
- * מפה מוצא בודד לערך תקין
- */
 function mapSingleOrigin(origin: string): string | null {
   const trimmed = origin.trim();
   if (!trimmed) return null;
   
-  // בדיקה ישירה
   if (VALID_ORIGINS.includes(trimmed as any)) return trimmed;
   
-  // נסה למפות
   const mapped = SINGLE_ORIGIN_MAP[trimmed] || SINGLE_ORIGIN_MAP[trimmed.toLowerCase()];
   if (mapped && VALID_ORIGINS.includes(mapped as any)) return mapped;
   
-  // בדיקה case-insensitive
   for (const [key, value] of Object.entries(SINGLE_ORIGIN_MAP)) {
     if (key.toLowerCase() === trimmed.toLowerCase()) return value;
   }
   
-  return null; // לא נמצא - יטופל בהמשך
+  return null;
 }
 
-/**
- * מאמת ומנרמל מוצא - תומך במספר מוצאות!
- * אם יש יותר ממוצא אחד, מחזיר אותם מופרדים בפסיק
- * "מעורב" יוחזר רק אם נכתב במפורש
- */
 function validateOrigin(value: string | null | undefined): string {
   if (!value) return '';
   
   const trimmed = value.trim();
   
-  // אם כתוב במפורש "מעורב" - להחזיר מעורב
   if (trimmed === 'מעורב' || trimmed === 'מעורבת' || trimmed.toLowerCase() === 'mixed') {
     return 'מעורב';
   }
   
-  // פיצול לפי מפרידים שונים: פסיק, "ו", "and", "/", "-"
   const separators = /[,،/-]|\s+ו\s*|\s+and\s+/gi;
   const parts = trimmed.split(separators).map(p => p.trim()).filter(p => p.length > 0);
   
   if (parts.length === 0) return '';
   
-  // מיפוי כל חלק
   const mappedOrigins: string[] = [];
   const seenOrigins = new Set<string>();
   
@@ -481,9 +460,7 @@ function validateOrigin(value: string | null | undefined): string {
     }
   }
   
-  // אם לא נמצאו מוצאות תקינים
   if (mappedOrigins.length === 0) {
-    // נסה למצוא מוצאות בתוך הטקסט המלא
     for (const origin of VALID_ORIGINS) {
       if (origin !== 'מעורב' && origin !== 'אחר' && trimmed.includes(origin)) {
         if (!seenOrigins.has(origin)) {
@@ -503,14 +480,10 @@ function validateOrigin(value: string | null | undefined): string {
     return mappedOrigins[0];
   }
   
-  // יותר ממוצא אחד - מחזיר מופרד בפסיק
   console.log(`[CardImport] Multiple origins detected: "${value}" -> "${mappedOrigins.join(', ')}"`);
   return mappedOrigins.join(', ');
 }
 
-/**
- * זיהוי שפה לפי תוכן הטקסט
- */
 function detectLanguageFromText(text: string): string {
   if (!text || text.trim() === '') return 'עברית';
   
@@ -526,27 +499,78 @@ function detectLanguageFromText(text: string): string {
   return 'עברית';
 }
 
-
 // ---------------------------------------------------------------------------
-// Improved Prompt with multiple origins support
+// UPDATED PROMPT - NO INVENTION, NO DUPLICATION
 // ---------------------------------------------------------------------------
 
 const SINGLE_CARD_PROMPT = `You are an expert data extraction system for a Jewish matchmaking (shidduch) platform in Israel.
 
-CRITICAL RULES FOR MARITAL STATUS:
-There are ONLY 3 valid options - you MUST choose one of these:
+=== CRITICAL EXTRACTION RULE - DO NOT INVENT ANYTHING ===
+You must ONLY extract information that is EXPLICITLY written in the source.
+- If a field is not mentioned → return ""
+- DO NOT infer, guess, or generate content
+- Copy EXACT wording from source when available
+- DO NOT duplicate content in multiple fields
+
+=== FIELD-SPECIFIC RULES ===
+
+PERSONALITY (אופי ותכונות):
+- ONLY copy text that EXPLICITLY describes character/personality traits
+- Look for keywords: "אופי", "תכונות", "אני", descriptions like "רגוע", "שמח", "חברותי"
+- If source says "אופי: רגוע ושמח" → copy exactly "רגוע ושמח"
+- If NO explicit personality description → return ""
+- DO NOT infer personality from job, hobbies, or other fields
+- DO NOT generate generic descriptions
+
+Examples:
+✅ Source: "אופי: חברותי ואחראי" → personality: "חברותי ואחראי"
+✅ Source: "תכונות: רגוע, אוהב לעזור" → personality: "רגוע, אוהב לעזור"
+❌ Source: "עובד בהייטק" → personality: "" (NOT "טכנולוגי" - that's invention!)
+❌ Source: no personality mentioned → personality: "" (NOT "נחמד" - that's invention!)
+
+LOOKING FOR (מחפש/ת):
+- ONLY copy text that EXPLICITLY describes what they seek in a partner
+- Look for keywords: "מחפש", "מחפשת", "רוצה", "חשוב לי ש", "מעוניין ב"
+- Copy the EXACT wording from source
+- If NO explicit "looking for" section → return ""
+- DO NOT infer or generate preferences
+
+Examples:
+✅ Source: "מחפשת: בחור דתי לאומי רציני" → lookingFor: "בחור דתי לאומי רציני"
+✅ Source: "רוצה מישהי חברותית ואחראית" → lookingFor: "מישהי חברותית ואחראית"
+❌ Source: no "looking for" mentioned → lookingFor: "" (NOT "מישהו דומה" - that's invention!)
+
+CITY (עיר מגורים):
+- ONLY extract if city name is EXPLICITLY mentioned
+- Look for: "גר/ה ב", "מ", "תושב/ת", specific city names
+- If source says "גר בירושלים" → "ירושלים"
+- If source says "מתל אביב" → "תל אביב"
+- If source says only "מרכז" or "השרון" without specific city → return ""
+- If NO city mentioned → return ""
+- DO NOT guess city from phone area codes, institutions, or other clues
+
+Examples:
+✅ Source: "גר בחיפה" → city: "חיפה"
+✅ Source: "מירושלים" → city: "ירושלים"
+❌ Source: "לומד בישיבה בירושלים" → city: "" (studying there ≠ living there)
+❌ Source: "מרכז הארץ" → city: "" (region, not city)
+❌ Source: "052-xxx" → city: "" (phone area code is NOT city!)
+
+=== MARITAL STATUS (ONLY 3 OPTIONS) ===
+You MUST choose one of these EXACT values:
 1. "single" - רווק/ה (never married)
-2. "divorced" - גרוש/ה (was married and divorced, OR separated/פרוד)
+2. "divorced" - גרוש/ה (was married, OR separated/פרוד)
 3. "widowed" - אלמן/ה (spouse passed away)
 
-MARITAL STATUS DETECTION LOGIC:
-- If text says: רווק, רווקה, פנוי, פנויה, לא נשוי, לא נשואה → return "single"
-- If text says: גרוש, גרושה, פרוד, פרודה, נשוי בעבר, התגרש → return "divorced"
-- If text says: אלמן, אלמנה → return "widowed"
-- If NO marital status mentioned AND NO children mentioned → return "single" (default for dating profiles)
-- If children are mentioned but no marital status → return "divorced" (likely was married)
+Detection logic:
+- רווק, רווקה, פנוי, פנויה, לא נשוי, לא נשואה → "single"
+- גרוש, גרושה, פרוד, פרודה, התגרש, התגרשה, נשוי בעבר → "divorced"
+- אלמן, אלמנה → "widowed"
+- No marital status mentioned + no children mentioned → "single" (default for dating profiles)
+- Children mentioned but no marital status → "divorced" (likely was married before)
 
-RELIGIOUS LEVEL - Choose the BEST match from these options:
+=== RELIGIOUS LEVEL ===
+Choose the BEST matching value from this EXACT list:
 - "dati_leumi_standard" - דתי/ה לאומי/ת רגיל/ה
 - "dati_leumi_liberal" - דתי/ה לאומי/ת ליברלי/ת, דתי לייט, פתוח
 - "dati_leumi_torani" - דתי/ה תורני/ת, חרד"ל
@@ -563,42 +587,54 @@ RELIGIOUS LEVEL - Choose the BEST match from these options:
 - "breslov" - ברסלב
 - "other" - אחר
 
-ORIGIN (מוצא) - IMPORTANT RULES:
+If not explicitly mentioned → return ""
+
+=== ORIGIN (מוצא) ===
 Valid single origins: "אשכנזי", "ספרדי", "מזרחי", "תימני", "מרוקאי", "עיראקי", "פרסי", "כורדי", "תוניסאי", "לובי", "אתיופי", "גרוזיני", "בוכרי", "הודי", "תורכי", "אחר"
 
-MULTIPLE ORIGINS RULE:
-- If someone has TWO or more origins (e.g., "אשכנזי וספרדי", "חצי מרוקאי חצי עיראקי"), return BOTH separated by comma: "אשכנזי, ספרדי" or "מרוקאי, עיראקי"
-- ONLY return "מעורב" if the person explicitly wrote "מעורב" or "מעורבת"
-- Examples:
-  * "אבא אשכנזי אמא ספרדיה" → "אשכנזי, ספרדי"
-  * "חצי תימני חצי מרוקאי" → "תימני, מרוקאי"
-  * "מוצא מעורב" → "מעורב"
-  * "אשכנזי ותימני" → "אשכנזי, תימני"
+MULTIPLE ORIGINS handling:
+- If TWO or more origins mentioned (e.g., "אשכנזי וספרדי", "חצי מרוקאי חצי עיראקי") → return BOTH separated by comma: "אשכנזי, ספרדי" or "מרוקאי, עיראקי"
+- ONLY return "מעורב" if person explicitly wrote "מעורב" or "מעורבת"
+- If no origin mentioned → return ""
 
-LANGUAGE DETECTION:
-- nativeLanguage: Detect from text language. If text is mostly Hebrew → "עברית". If mostly English → "אנגלית"
-- additionalLanguages: Any other languages mentioned
+Examples:
+✅ "אבא אשכנזי אמא ספרדיה" → "אשכנזי, ספרדי"
+✅ "חצי תימני חצי מרוקאי" → "תימני, מרוקאי"
+✅ "מוצא מעורב" → "מעורב"
+✅ "אשכנזי" → "אשכנזי"
+❌ Not mentioned → ""
 
-OTHER FIELDS:
-- firstName, lastName: שם פרטי ושם משפחה
-- gender: "MALE" or "FEMALE" (infer from Hebrew: מחפש=MALE, מחפשת=FEMALE, רווק=MALE, רווקה=FEMALE)
-- age: number only
-- height: in cm (convert 1.75 → 175)
-- city: city name
-- occupation: job/profession
-- education: institution or field of study
-- educationLevel: "תיכון", "סמינר", "ישיבה", "מכינה", "תואר ראשון", "תואר שני", "תואר שלישי", "הנדסאי", "תעודה מקצועית", "אחר"
-- phone: phone number
-- referredBy: default "קבוצת שידוכים שוובל" if not specified
-- personality: character description
-- lookingFor: what they're looking for in a partner
-- hobbies: hobbies/interests
-- familyDescription: family background
-- militaryService: military/national service
-- hasChildrenFromPrevious: "true" if has children, "false" if explicitly no, "" if unknown
-- about: COPY THE ENTIRE ORIGINAL TEXT AS-IS
+=== ABOUT FIELD (טקסט מקור) ===
+CRITICAL: Copy the COMPLETE original source text EXACTLY ONCE
+- DO NOT duplicate any content
+- DO NOT add interpretations or summaries
+- DO NOT reorganize or reformat
+- Just the raw original text as-is, ONE TIME ONLY
+- This field should contain the ENTIRE source text for reference
 
-Return ONLY valid JSON:
+=== MANUAL ENTRY TEXT ===
+Leave this field EMPTY (""). It will be constructed server-side to avoid duplication.
+
+=== OTHER FIELDS (only if explicitly mentioned) ===
+- firstName, lastName: Extract from text
+- gender: "MALE" or "FEMALE" (infer from Hebrew grammar: מחפש=MALE, מחפשת=FEMALE, רווק=MALE, רווקה=FEMALE)
+- age: Number only (if mentioned)
+- height: In cm, e.g., 175 (convert 1.75 → 175)
+- occupation: Job/profession - ONLY if explicitly mentioned, otherwise ""
+- education: Institution or field - ONLY if explicitly mentioned, otherwise ""
+- educationLevel: ONLY if explicitly mentioned, otherwise ""
+- phone: Phone number if mentioned
+- referredBy: Default "קבוצת שידוכים שוובל" if not specified
+- hobbies: ONLY if explicitly mentioned, otherwise ""
+- familyDescription: ONLY if explicitly mentioned, otherwise ""
+- militaryService: ONLY if explicitly mentioned, otherwise ""
+- nativeLanguage: Detect from text language (mostly Hebrew → "עברית", mostly English → "אנגלית")
+- additionalLanguages: ONLY if other languages explicitly mentioned, otherwise ""
+- hasChildrenFromPrevious: "true" only if explicitly stated, "false" if explicitly stated no children, "" if not mentioned
+
+=== OUTPUT FORMAT ===
+Return ONLY valid JSON (avoid all duplication):
+
 {
   "fields": {
     "firstName": "",
@@ -607,8 +643,8 @@ Return ONLY valid JSON:
     "age": "",
     "height": "",
     "maritalStatus": "single" | "divorced" | "widowed",
-    "religiousLevel": "<one of the exact values above>",
-    "origin": "<single origin OR multiple origins separated by comma, e.g. 'אשכנזי, ספרדי'>",
+    "religiousLevel": "",
+    "origin": "",
     "city": "",
     "occupation": "",
     "education": "",
@@ -620,11 +656,11 @@ Return ONLY valid JSON:
     "hobbies": "",
     "familyDescription": "",
     "militaryService": "",
-    "nativeLanguage": "עברית" | "אנגלית" | "<detected language>",
+    "nativeLanguage": "",
     "additionalLanguages": "",
     "hasChildrenFromPrevious": "",
-    "about": "<complete original text>",
-    "manualEntryText": "<complete original text>"
+    "about": "<complete original text ONCE - no duplication>",
+    "manualEntryText": ""
   },
   "imageClassifications": [
     { "index": 0, "type": "photo" | "form" | "combined", "extractedText": "" }
@@ -740,16 +776,29 @@ export async function POST(req: NextRequest) {
     console.log(`[CardImport] Raw maritalStatus from AI: "${fields.maritalStatus}"`);
     console.log(`[CardImport] Raw religiousLevel from AI: "${fields.religiousLevel}"`);
     console.log(`[CardImport] Raw origin from AI: "${fields.origin}"`);
+    console.log(`[CardImport] Raw city from AI: "${fields.city}"`);
 
     // Validate and normalize values
     fields.maritalStatus = validateMaritalStatus(fields.maritalStatus);
     fields.religiousLevel = validateReligiousLevel(fields.religiousLevel);
     fields.origin = validateOrigin(fields.origin);
 
+    // Validate city - only keep if it's an actual city name
+    if (fields.city) {
+      const cityLower = fields.city.toLowerCase().trim();
+      // רשימה של ביטויים שאינם שמות ערים
+      const invalidCityTerms = ['מרכז', 'דרום', 'צפון', 'השרון', 'שפלה', 'הגליל', 'הנגב', 'יהודה', 'שומרון'];
+      if (invalidCityTerms.some(term => cityLower.includes(term))) {
+        console.log(`[CardImport] "${fields.city}" is a region, not a city - clearing`);
+        fields.city = '';
+      }
+    }
+
     // Log validated values
     console.log(`[CardImport] Validated maritalStatus: "${fields.maritalStatus}"`);
     console.log(`[CardImport] Validated religiousLevel: "${fields.religiousLevel}"`);
     console.log(`[CardImport] Validated origin: "${fields.origin}"`);
+    console.log(`[CardImport] Validated city: "${fields.city}"`);
 
     // Normalize height
     if (fields.height) {
@@ -764,15 +813,36 @@ export async function POST(req: NextRequest) {
       fields.referredBy = 'קבוצת שידוכים שוובל';
     }
 
-    // Ensure about has the raw source text
-    if (!fields.about && rawText.trim()) {
-      fields.about = rawText;
+    // =========================================================================
+    // CRITICAL: Handle "about" field - ensure it contains the source text ONCE
+    // =========================================================================
+    if (!fields.about || fields.about.trim() === '') {
+      // If AI didn't populate about, use the raw text
+      if (rawText.trim()) {
+        fields.about = rawText.trim();
+      }
+    } else {
+      // AI did provide about - remove any duplication within it
+      const aboutLines = fields.about.split('\n');
+      const uniqueLines: string[] = [];
+      const seenLines = new Set<string>();
+      
+      for (const line of aboutLines) {
+        const trimmed = line.trim();
+        if (trimmed && !seenLines.has(trimmed)) {
+          seenLines.add(trimmed);
+          uniqueLines.push(line);
+        } else if (!trimmed) {
+          // Keep empty lines for formatting
+          uniqueLines.push(line);
+        }
+      }
+      
+      fields.about = uniqueLines.join('\n').trim();
     }
 
-    // Build manualEntryText if AI didn't
-    if (!fields.manualEntryText) {
-      fields.manualEntryText = fields.about || rawText || '';
-    }
+    // manualEntryText should be empty - we'll build it at save time to avoid duplication
+    fields.manualEntryText = '';
 
     // Handle language detection
     if (!fields.nativeLanguage || fields.nativeLanguage.trim() === '') {
@@ -785,23 +855,21 @@ export async function POST(req: NextRequest) {
       fields.additionalLanguages = '';
     }
 
-    // Add any OCR text from images
+    // Add any OCR text from images to about (if not already there)
     const imageClassifications = parsed.imageClassifications || [];
     const ocrTexts = imageClassifications
       .filter((ic: any) => ic.extractedText && ic.type !== 'photo')
-      .map((ic: any) => ic.extractedText);
+      .map((ic: any) => ic.extractedText.trim())
+      .filter((text: string) => text.length > 0);
 
     if (ocrTexts.length > 0) {
       const ocrBlock = '\n\n--- טקסט שחולץ מתמונות ---\n' + ocrTexts.join('\n');
       
+      // Only add if not already present
       if (fields.about && !fields.about.includes('טקסט שחולץ מתמונות')) {
         fields.about = fields.about + ocrBlock;
       } else if (!fields.about) {
-        fields.about = ocrTexts.join('\n');
-      }
-
-      if (fields.manualEntryText && !fields.manualEntryText.includes('טקסט שחולץ מתמונות')) {
-        fields.manualEntryText = fields.manualEntryText + ocrBlock;
+        fields.about = '--- טקסט שחולץ מתמונות ---\n' + ocrTexts.join('\n');
       }
     }
 
@@ -815,6 +883,10 @@ export async function POST(req: NextRequest) {
     if (!fields.religiousLevel) {
       notes += notes ? ' | ' : '';
       notes += '⚠️ לא זוהתה רמה דתית - נא לבחור ידנית';
+    }
+    if (!fields.city) {
+      notes += notes ? ' | ' : '';
+      notes += '⚠️ לא זוהה מיקום מגורים - נא להזין ידנית';
     }
 
     return NextResponse.json({
