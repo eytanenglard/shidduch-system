@@ -1,5 +1,5 @@
 // ============================================================
-// NeshamaTech - Hybrid Matching Service V2.3
+// NeshamaTech - Hybrid Matching Service V2.5
 // src/lib/services/hybridMatchingService.ts
 //
 // שילוב מושלם של:
@@ -7,15 +7,14 @@
 // - hybridMatchingService V1: רקע, שפה, שיטת Tiers, batch AI
 // - matchingAlgorithmService V3.4: Virtual profiles, ScannedPair, Enhanced prompts
 //
-// V2.2 Changes:
-// - ScannedPair Optimization: SQL LEFT JOIN to fetch existing pair data
-// - Smart Caching: Skip re-scoring candidates if profiles haven't changed
-// - Performance: Massive reduction in AI costs for repeat scans
-// - Statistics: Detailed tracking of skipped vs. new pairs
-//
-// V2.3 Changes:
-// - 🆕 AI Call Tracking: Detailed stats for all AI/embedding calls
-// - aiCallStats in result for frontend display
+// V2.5 Changes:
+// - 🆕 ScannedPair Exclusion: זוגות שנסרקו לא נכנסים בכלל ל-pipeline
+//   (במקום להיכנס ולקבל ציון מקאש)
+// - 🆕 NOT EXISTS on ScannedPair in Tier 1 SQL (with updatedAt check)
+// - 🆕 Removed all fromScannedPairCache logic from Tier 2, 3, 4
+// - 🆕 existingMatches: שליפת התאמות קיימות מה-DB בסוף הסריקה
+// - 🆕 Pipeline cleaner: כל ה-slots ב-Tier 2-4 למועמדים חדשים בלבד
+// - AI Call Tracking: Detailed stats for all AI/embedding calls
 // ============================================================
 
 import prisma from "@/lib/prisma";
@@ -26,19 +25,17 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 // TYPES & INTERFACES
 // ═══════════════════════════════════════════════════════════════
 
-// 🆕 V2.3: AI Call Statistics
+// AI Call Statistics
 export interface AICallStats {
   tier3FirstPass: {
     batchesSent: number;
     candidatesAnalyzed: number;
-    cachedSkipped: number;
     callsMade: number;
     totalTokensEstimated: number;
     durationMs: number;
   };
   tier4DeepAnalysis: {
     candidatesAnalyzed: number;
-    cachedSkipped: number;
     callsMade: number;
     totalTokensEstimated: number;
     durationMs: number;
@@ -50,7 +47,7 @@ export interface AICallStats {
   total: {
     aiCalls: number;
     embeddingCalls: number;
-    estimatedCost: number; // בדולרים (הערכה גסה)
+    estimatedCost: number;
   };
 }
 
@@ -228,17 +225,21 @@ export interface HybridScanOptions {
   maxCandidatesToUpdate?: number;
   autoSave?: boolean;
   
-  // 🆕 V2.2: ScannedPair optimization
-  skipAlreadyScannedPairs?: boolean;  // ברירת מחדל: true
-  scannedPairMaxAgeDays?: number;     // כמה ימים עד שסריקה נחשבת "ישנה" (ברירת מחדל: 30)
-  saveScannedPairs?: boolean;         // ברירת מחדל: true
+  // 🆕 V2.5: ScannedPair exclusion
+  excludeAlreadyScannedPairs?: boolean;  // ברירת מחדל: true
+  saveScannedPairs?: boolean;            // ברירת מחדל: true
   
-  // 🆕 V2.2: Session tracking
+  // 🆕 V2.5: Existing matches from DB
+  includeExistingMatches?: boolean;      // ברירת מחדל: true
+  existingMatchesMinScore?: number;      // ברירת מחדל: minScoreToSave
+  
+  // Session tracking
   sessionId?: string;
   checkCancelled?: () => Promise<boolean> | boolean;
 }
 
 // --- Candidate Data (Internal) ---
+// 🆕 V2.5: Removed ScannedPair fields - they don't enter the pipeline anymore
 interface RawCandidate {
   profileId: string;
   userId: string;
@@ -273,14 +274,6 @@ interface RawCandidate {
   
   // Profile dates
   profileUpdatedAt: Date;
-
-  // 🆕 V2.2: ScannedPair info (if exists)
-  existingScannedPairId?: string | null;
-  existingAiScore?: number | null;
-  scannedPairLastScannedAt?: Date | null;
-  scannedPairMaleProfileUpdatedAt?: Date | null;
-  scannedPairFemaleProfileUpdatedAt?: Date | null;
-  canSkipFullScan?: boolean;
 }
 
 interface ScoredCandidate extends RawCandidate {
@@ -290,7 +283,7 @@ interface ScoredCandidate extends RawCandidate {
   backgroundProfile: BackgroundProfile | null;
   backgroundMatch: BackgroundMatchResult | null;
   ageScore: AgeScoreResult | null;
-    tier2Breakdown?: ScoreBreakdown;  // 🆕
+  tier2Breakdown?: ScoreBreakdown;
 
   // Extended scores
   socioEconomicScore: number;
@@ -305,9 +298,6 @@ interface ScoredCandidate extends RawCandidate {
   
   // Combined Tier 2 score
   tier2Score: number;
-
-  // 🆕 V2.2: Was this score from cache?
-  fromScannedPairCache?: boolean;
 }
 
 interface AIFirstPassCandidate extends ScoredCandidate {
@@ -325,6 +315,23 @@ interface FinalCandidate extends AIFirstPassCandidate {
   suggestedApproach?: string;
   strengths: string[];
   concerns: string[];
+}
+
+// 🆕 V2.5: Existing match from DB (already scanned pairs)
+export interface ExistingMatch {
+  potentialMatchId: string;
+  userId: string;
+  firstName: string;
+  lastName: string;
+  age: number | null;
+  city: string | null;
+  religiousLevel: string | null;
+  occupation: string | null;
+  aiScore: number;
+  reasoning: string | null;
+  recommendation: 'EXCELLENT' | 'GOOD' | 'FAIR' | 'POOR';
+  scannedAt: Date | null;
+  scoreBreakdown: ScoreBreakdown | null;
 }
 
 // --- Scan Result ---
@@ -353,15 +360,15 @@ export interface HybridScanResult {
     candidatesWithDifficultyFlags: number;
     scannedPairsSaved: number;
     
-    // 🆕 V2.2: ScannedPair stats
-    skippedFromScannedPair: number;
-    newPairsScanned: number;
+    // 🆕 V2.5: Clearer stats
+    excludedByScannedPair: number;   // כמה זוגות לא נכנסו בכלל כי כבר נסרקו
+    existingMatchesLoaded: number;   // כמה התאמות קיימות נטענו מה-DB
   };
 
-  // 🆕 V2.3: AI Call Statistics
   aiCallStats: AICallStats;
   
-  matches: FinalCandidate[];
+  matches: FinalCandidate[];            // 🆕 חדשים בלבד מהסריקה הנוכחית
+  existingMatches: ExistingMatch[];     // 🆕 V2.5: התאמות קיימות מה-DB
   warnings: string[];
   errors: string[];
 }
@@ -402,324 +409,97 @@ const BACKGROUND_DESCRIPTIONS: Record<BackgroundCategory, string> = {
 };
 
 const RELIGIOUS_COMPATIBILITY_MATRIX: Record<string, Record<string, number>> = {
-  // ═══════════════════════════════════════════════════
-  // חרדי חסידי
-  // ═══════════════════════════════════════════════════
   charedi_hasidic: {
-    charedi_hasidic:       100,
-    charedi_litvak:         50,  // פער תרבותי משמעותי בין חסידים לליטאים
-    charedi_sephardic:      40,  // עולמות שונים מאוד
-    chabad:                 60,  // שניהם מסורת חסידית, אך חב"ד ייחודי
-    breslov:                65,  // ברסלב קרוב לעולם החסידי
-    charedi_modern:         30,  // פער גדול באורח חיים
-    dati_leumi_torani:      20,  // עולמות שונים
-    dati_leumi_standard:    10,
-    dati_leumi_liberal:      5,
-    masorti_strong:          5,
-    masorti_light:           5,
-    secular_traditional_connection: 5,
-    secular:                 5,
-    spiritual_not_religious:  5,
-    other:                  30,
+    charedi_hasidic: 100, charedi_litvak: 50, charedi_sephardic: 40, chabad: 60, breslov: 65,
+    charedi_modern: 30, dati_leumi_torani: 20, dati_leumi_standard: 10, dati_leumi_liberal: 5,
+    masorti_strong: 5, masorti_light: 5, secular_traditional_connection: 5, secular: 5,
+    spiritual_not_religious: 5, other: 30,
   },
-
-  // ═══════════════════════════════════════════════════
-  // חרדי ליטאי
-  // ═══════════════════════════════════════════════════
   charedi_litvak: {
-    charedi_hasidic:        50,  // פער תרבותי - ליטאים וחסידים עולמות שונים
-    charedi_litvak:        100,
-    charedi_sephardic:      55,  // שניהם בעולם הישיבות אך תרבות שונה
-    chabad:                 40,  // ליטאים לעיתים מסתייגים מחב"ד
-    breslov:                35,  // ליטאים מסתייגים מברסלב
-    charedi_modern:         70,  // חרדי מודרני לעיתים מרקע ליטאי
-    dati_leumi_torani:      40,  // יש חפיפה בעולם הלימוד
-    dati_leumi_standard:    20,
-    dati_leumi_liberal:     10,
-    masorti_strong:         10,
-    masorti_light:           5,
-    secular_traditional_connection: 5,
-    secular:                 5,
-    spiritual_not_religious:  5,
-    other:                  30,
+    charedi_hasidic: 50, charedi_litvak: 100, charedi_sephardic: 55, chabad: 40, breslov: 35,
+    charedi_modern: 70, dati_leumi_torani: 40, dati_leumi_standard: 20, dati_leumi_liberal: 10,
+    masorti_strong: 10, masorti_light: 5, secular_traditional_connection: 5, secular: 5,
+    spiritual_not_religious: 5, other: 30,
   },
-
-  // ═══════════════════════════════════════════════════
-  // חרדי ספרדי
-  // ═══════════════════════════════════════════════════
   charedi_sephardic: {
-    charedi_hasidic:        40,  // עולמות שונים מאוד
-    charedi_litvak:         55,  // חפיפה בישיבות אך תרבות שונה
-    charedi_sephardic:     100,
-    chabad:                 50,  // חב"ד עושה הרבה עבודה עם ספרדים
-    breslov:                50,  // לברסלב יש קהילה ספרדית
-    charedi_modern:         60,  // לעולם הספרדי יש גרסה מודרנית יותר
-    dati_leumi_torani:      45,  // יש חפיפה מסוימת
-    dati_leumi_standard:    30,
-    dati_leumi_liberal:     15,
-    masorti_strong:         25,  // מסורתי ספרדי קרוב יותר
-    masorti_light:          15,
-    secular_traditional_connection: 10,
-    secular:                 5,
-    spiritual_not_religious:  5,
-    other:                  30,
+    charedi_hasidic: 40, charedi_litvak: 55, charedi_sephardic: 100, chabad: 50, breslov: 50,
+    charedi_modern: 60, dati_leumi_torani: 45, dati_leumi_standard: 30, dati_leumi_liberal: 15,
+    masorti_strong: 25, masorti_light: 15, secular_traditional_connection: 10, secular: 5,
+    spiritual_not_religious: 5, other: 30,
   },
-
-  // ═══════════════════════════════════════════════════
-  // חב"ד
-  // ═══════════════════════════════════════════════════
   chabad: {
-    charedi_hasidic:        60,  // שניהם חסידים אך חב"ד ייחודי
-    charedi_litvak:         40,
-    charedi_sephardic:      50,
-    chabad:                100,
-    breslov:                50,  // שניהם חסידים עם גישה פתוחה
-    charedi_modern:         55,  // חב"ד פתוח יחסית
-    dati_leumi_torani:      50,  // חב"ד מגשר בין עולמות
-    dati_leumi_standard:    40,
-    dati_leumi_liberal:     25,
-    masorti_strong:         30,
-    masorti_light:          20,
-    secular_traditional_connection: 15,
-    secular:                10,
-    spiritual_not_religious: 15,  // חב"ד עובד עם כולם
-    other:                  35,
+    charedi_hasidic: 60, charedi_litvak: 40, charedi_sephardic: 50, chabad: 100, breslov: 50,
+    charedi_modern: 55, dati_leumi_torani: 50, dati_leumi_standard: 40, dati_leumi_liberal: 25,
+    masorti_strong: 30, masorti_light: 20, secular_traditional_connection: 15, secular: 10,
+    spiritual_not_religious: 15, other: 35,
   },
-
-  // ═══════════════════════════════════════════════════
-  // ברסלב
-  // ═══════════════════════════════════════════════════
   breslov: {
-    charedi_hasidic:        65,  // ברסלב זה חסידות
-    charedi_litvak:         35,
-    charedi_sephardic:      50,  // יש ברסלביים ספרדים
-    chabad:                 50,
-    breslov:               100,
-    charedi_modern:         40,
-    dati_leumi_torani:      35,
-    dati_leumi_standard:    25,
-    dati_leumi_liberal:     15,
-    masorti_strong:         15,
-    masorti_light:          10,
-    secular_traditional_connection: 10,
-    secular:                 5,
-    spiritual_not_religious: 15,  // ברסלב מושך גם רוחניים
-    other:                  30,
+    charedi_hasidic: 65, charedi_litvak: 35, charedi_sephardic: 50, chabad: 50, breslov: 100,
+    charedi_modern: 40, dati_leumi_torani: 35, dati_leumi_standard: 25, dati_leumi_liberal: 15,
+    masorti_strong: 15, masorti_light: 10, secular_traditional_connection: 10, secular: 5,
+    spiritual_not_religious: 15, other: 30,
   },
-
-  // ═══════════════════════════════════════════════════
-  // חרדי מודרני
-  // ═══════════════════════════════════════════════════
   charedi_modern: {
-    charedi_hasidic:        30,
-    charedi_litvak:         70,  // חרדי מודרני לעיתים מרקע ליטאי
-    charedi_sephardic:      60,
-    chabad:                 55,
-    breslov:                40,
-    charedi_modern:        100,
-    dati_leumi_torani:      80,  // חפיפה גדולה! זה הגשר
-    dati_leumi_standard:    55,
-    dati_leumi_liberal:     30,
-    masorti_strong:         20,
-    masorti_light:          10,
-    secular_traditional_connection: 10,
-    secular:                 5,
-    spiritual_not_religious:  5,
-    other:                  30,
+    charedi_hasidic: 30, charedi_litvak: 70, charedi_sephardic: 60, chabad: 55, breslov: 40,
+    charedi_modern: 100, dati_leumi_torani: 80, dati_leumi_standard: 55, dati_leumi_liberal: 30,
+    masorti_strong: 20, masorti_light: 10, secular_traditional_connection: 10, secular: 5,
+    spiritual_not_religious: 5, other: 30,
   },
-
-  // ═══════════════════════════════════════════════════
-  // דתי לאומי תורני
-  // ═══════════════════════════════════════════════════
   dati_leumi_torani: {
-    charedi_hasidic:        20,
-    charedi_litvak:         40,
-    charedi_sephardic:      45,
-    chabad:                 50,
-    breslov:                35,
-    charedi_modern:         80,  // חפיפה גדולה
-    dati_leumi_torani:     100,
-    dati_leumi_standard:    75,  // שניהם דתי לאומי אך תורני יותר מחמיר
-    dati_leumi_liberal:     40,  // פער משמעותי בהשקפה
-    masorti_strong:         25,
-    masorti_light:          15,
-    secular_traditional_connection: 10,
-    secular:                 5,
-    spiritual_not_religious: 10,
-    other:                  30,
+    charedi_hasidic: 20, charedi_litvak: 40, charedi_sephardic: 45, chabad: 50, breslov: 35,
+    charedi_modern: 80, dati_leumi_torani: 100, dati_leumi_standard: 75, dati_leumi_liberal: 40,
+    masorti_strong: 25, masorti_light: 15, secular_traditional_connection: 10, secular: 5,
+    spiritual_not_religious: 10, other: 30,
   },
-
-  // ═══════════════════════════════════════════════════
-  // דתי לאומי סטנדרטי
-  // ═══════════════════════════════════════════════════
   dati_leumi_standard: {
-    charedi_hasidic:        10,
-    charedi_litvak:         20,
-    charedi_sephardic:      30,
-    chabad:                 40,
-    breslov:                25,
-    charedi_modern:         55,
-    dati_leumi_torani:      75,
-    dati_leumi_standard:   100,
-    dati_leumi_liberal:     70,  // שניהם דתי לאומי, פער קטן יחסית
-    masorti_strong:         50,
-    masorti_light:          30,
-    secular_traditional_connection: 20,
-    secular:                10,
-    spiritual_not_religious: 15,
-    other:                  35,
+    charedi_hasidic: 10, charedi_litvak: 20, charedi_sephardic: 30, chabad: 40, breslov: 25,
+    charedi_modern: 55, dati_leumi_torani: 75, dati_leumi_standard: 100, dati_leumi_liberal: 70,
+    masorti_strong: 50, masorti_light: 30, secular_traditional_connection: 20, secular: 10,
+    spiritual_not_religious: 15, other: 35,
   },
-
-  // ═══════════════════════════════════════════════════
-  // דתי לאומי ליברלי
-  // ═══════════════════════════════════════════════════
   dati_leumi_liberal: {
-    charedi_hasidic:         5,
-    charedi_litvak:         10,
-    charedi_sephardic:      15,
-    chabad:                 25,
-    breslov:                15,
-    charedi_modern:         30,
-    dati_leumi_torani:      40,  // פער בהשקפה
-    dati_leumi_standard:    70,
-    dati_leumi_liberal:    100,
-    masorti_strong:         70,  // קרוב מאוד
-    masorti_light:          50,
-    secular_traditional_connection: 40,
-    secular:                20,
-    spiritual_not_religious: 30,
-    other:                  35,
+    charedi_hasidic: 5, charedi_litvak: 10, charedi_sephardic: 15, chabad: 25, breslov: 15,
+    charedi_modern: 30, dati_leumi_torani: 40, dati_leumi_standard: 70, dati_leumi_liberal: 100,
+    masorti_strong: 70, masorti_light: 50, secular_traditional_connection: 40, secular: 20,
+    spiritual_not_religious: 30, other: 35,
   },
-
-  // ═══════════════════════════════════════════════════
-  // מסורתי חזק
-  // ═══════════════════════════════════════════════════
   masorti_strong: {
-    charedi_hasidic:         5,
-    charedi_litvak:         10,
-    charedi_sephardic:      25,  // מסורתי ספרדי קרוב לחרדי ספרדי
-    chabad:                 30,
-    breslov:                15,
-    charedi_modern:         20,
-    dati_leumi_torani:      25,
-    dati_leumi_standard:    50,
-    dati_leumi_liberal:     70,
-    masorti_strong:        100,
-    masorti_light:          80,
-    secular_traditional_connection: 65,
-    secular:                30,
-    spiritual_not_religious: 40,
-    other:                  40,
+    charedi_hasidic: 5, charedi_litvak: 10, charedi_sephardic: 25, chabad: 30, breslov: 15,
+    charedi_modern: 20, dati_leumi_torani: 25, dati_leumi_standard: 50, dati_leumi_liberal: 70,
+    masorti_strong: 100, masorti_light: 80, secular_traditional_connection: 65, secular: 30,
+    spiritual_not_religious: 40, other: 40,
   },
-
-  // ═══════════════════════════════════════════════════
-  // מסורתי לייט
-  // ═══════════════════════════════════════════════════
   masorti_light: {
-    charedi_hasidic:         5,
-    charedi_litvak:          5,
-    charedi_sephardic:      15,
-    chabad:                 20,
-    breslov:                10,
-    charedi_modern:         10,
-    dati_leumi_torani:      15,
-    dati_leumi_standard:    30,
-    dati_leumi_liberal:     50,
-    masorti_strong:         80,
-    masorti_light:         100,
-    secular_traditional_connection: 80,
-    secular:                50,
-    spiritual_not_religious: 50,
-    other:                  40,
+    charedi_hasidic: 5, charedi_litvak: 5, charedi_sephardic: 15, chabad: 20, breslov: 10,
+    charedi_modern: 10, dati_leumi_torani: 15, dati_leumi_standard: 30, dati_leumi_liberal: 50,
+    masorti_strong: 80, masorti_light: 100, secular_traditional_connection: 80, secular: 50,
+    spiritual_not_religious: 50, other: 40,
   },
-
-  // ═══════════════════════════════════════════════════
-  // חילוני עם קשר למסורת
-  // ═══════════════════════════════════════════════════
   secular_traditional_connection: {
-    charedi_hasidic:         5,
-    charedi_litvak:          5,
-    charedi_sephardic:      10,
-    chabad:                 15,
-    breslov:                10,
-    charedi_modern:         10,
-    dati_leumi_torani:      10,
-    dati_leumi_standard:    20,
-    dati_leumi_liberal:     40,
-    masorti_strong:         65,
-    masorti_light:          80,
-    secular_traditional_connection: 100,
-    secular:                75,
-    spiritual_not_religious: 60,
-    other:                  45,
+    charedi_hasidic: 5, charedi_litvak: 5, charedi_sephardic: 10, chabad: 15, breslov: 10,
+    charedi_modern: 10, dati_leumi_torani: 10, dati_leumi_standard: 20, dati_leumi_liberal: 40,
+    masorti_strong: 65, masorti_light: 80, secular_traditional_connection: 100, secular: 75,
+    spiritual_not_religious: 60, other: 45,
   },
-
-  // ═══════════════════════════════════════════════════
-  // חילוני
-  // ═══════════════════════════════════════════════════
   secular: {
-    charedi_hasidic:         5,
-    charedi_litvak:          5,
-    charedi_sephardic:       5,
-    chabad:                 10,
-    breslov:                 5,
-    charedi_modern:          5,
-    dati_leumi_torani:       5,
-    dati_leumi_standard:    10,
-    dati_leumi_liberal:     20,
-    masorti_strong:         30,
-    masorti_light:          50,
-    secular_traditional_connection: 75,
-    secular:               100,
-    spiritual_not_religious: 70,
-    other:                  45,
+    charedi_hasidic: 5, charedi_litvak: 5, charedi_sephardic: 5, chabad: 10, breslov: 5,
+    charedi_modern: 5, dati_leumi_torani: 5, dati_leumi_standard: 10, dati_leumi_liberal: 20,
+    masorti_strong: 30, masorti_light: 50, secular_traditional_connection: 75, secular: 100,
+    spiritual_not_religious: 70, other: 45,
   },
-
-  // ═══════════════════════════════════════════════════
-  // רוחני לא דתי
-  // ═══════════════════════════════════════════════════
   spiritual_not_religious: {
-    charedi_hasidic:         5,
-    charedi_litvak:          5,
-    charedi_sephardic:       5,
-    chabad:                 15,  // חב"ד מושך רוחניים
-    breslov:                15,  // ברסלב מושך רוחניים
-    charedi_modern:          5,
-    dati_leumi_torani:      10,
-    dati_leumi_standard:    15,
-    dati_leumi_liberal:     30,
-    masorti_strong:         40,
-    masorti_light:          50,
-    secular_traditional_connection: 60,
-    secular:                70,
-    spiritual_not_religious: 100,
-    other:                  50,
+    charedi_hasidic: 5, charedi_litvak: 5, charedi_sephardic: 5, chabad: 15, breslov: 15,
+    charedi_modern: 5, dati_leumi_torani: 10, dati_leumi_standard: 15, dati_leumi_liberal: 30,
+    masorti_strong: 40, masorti_light: 50, secular_traditional_connection: 60, secular: 70,
+    spiritual_not_religious: 100, other: 50,
   },
-
-  // ═══════════════════════════════════════════════════
-  // אחר
-  // ═══════════════════════════════════════════════════
   other: {
-    charedi_hasidic:        30,
-    charedi_litvak:         30,
-    charedi_sephardic:      30,
-    chabad:                 35,
-    breslov:                30,
-    charedi_modern:         30,
-    dati_leumi_torani:      30,
-    dati_leumi_standard:    35,
-    dati_leumi_liberal:     35,
-    masorti_strong:         40,
-    masorti_light:          40,
-    secular_traditional_connection: 45,
-    secular:                45,
-    spiritual_not_religious: 50,
-    other:                  70,  // "אחר" עם "אחר" - לא בהכרח מתאים
+    charedi_hasidic: 30, charedi_litvak: 30, charedi_sephardic: 30, chabad: 35, breslov: 30,
+    charedi_modern: 30, dati_leumi_torani: 30, dati_leumi_standard: 35, dati_leumi_liberal: 35,
+    masorti_strong: 40, masorti_light: 40, secular_traditional_connection: 45, secular: 45,
+    spiritual_not_religious: 50, other: 70,
   },
 };
-
-
-
 
 // ═══════════════════════════════════════════════════════════════
 // HELPER FUNCTIONS - Age
@@ -736,30 +516,21 @@ function calculateAge(birthDate: Date): number {
 }
 
 function calculateAgeScore(maleAge: number, femaleAge: number): AgeScoreResult {
-  const ageDiff = maleAge - femaleAge; // Positive = male older
+  const ageDiff = maleAge - femaleAge;
   
-  // אידיאלי: אותו גיל או הגבר גדול ב-1-3 שנים
   if (ageDiff >= 0 && ageDiff <= 3) {
     return { 
-      score: 100, 
-      eligible: true,
+      score: 100, eligible: true,
       description: ageDiff === 0 ? 'אותו גיל - מושלם' : `הגבר גדול ב-${ageDiff} שנים - אידיאלי`
     };
   }
-  
   if (ageDiff === 4) return { score: 90, eligible: true, description: 'הגבר גדול ב-4 שנים - מצוין' };
   if (ageDiff === 5) return { score: 80, eligible: true, description: 'הגבר גדול ב-5 שנים - טוב' };
-  
   if (ageDiff === 6) return { score: 65, eligible: true, description: 'הגבר גדול ב-6 שנים - סביר' };
   if (ageDiff === 7) return { score: 50, eligible: true, description: 'הגבר גדול ב-7 שנים - פער ניכר' };
+  if (ageDiff > 7) return { score: 0, eligible: false, description: `פער גדול מדי (${ageDiff} שנים) - הגבר מבוגר מדי` };
   
-  if (ageDiff > 7) {
-    return { score: 0, eligible: false, description: `פער גדול מדי (${ageDiff} שנים) - הגבר מבוגר מדי` };
-  }
-  
-  // האישה גדולה מהגבר
   const femaleOlder = Math.abs(ageDiff);
-  
   if (femaleOlder === 1) return { score: 75, eligible: true, description: 'האישה גדולה בשנה - בסדר' };
   if (femaleOlder === 2) return { score: 60, eligible: true, description: 'האישה גדולה ב-2 שנים - אפשרי' };
   if (femaleOlder === 3) return { score: 40, eligible: true, description: 'האישה גדולה ב-3 שנים - מאתגר' };
@@ -769,15 +540,11 @@ function calculateAgeScore(maleAge: number, femaleAge: number): AgeScoreResult {
 }
 
 function calculateAgeScoreForMatch(
-  targetAge: number,
-  targetGender: Gender,
-  candidateAge: number
+  targetAge: number, targetGender: Gender, candidateAge: number
 ): AgeScoreResult {
-  if (targetGender === 'MALE') {
-    return calculateAgeScore(targetAge, candidateAge);
-  } else {
-    return calculateAgeScore(candidateAge, targetAge);
-  }
+  return targetGender === 'MALE'
+    ? calculateAgeScore(targetAge, candidateAge)
+    : calculateAgeScore(candidateAge, targetAge);
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -785,21 +552,14 @@ function calculateAgeScoreForMatch(
 // ═══════════════════════════════════════════════════════════════
 
 function getReligiousCompatibilityScore(level1: string | null, level2: string | null): number {
-  if (!level1 || !level2) return 50; // שונה מ-70 - אם אין מידע, לא נותנים ציון גבוה
-
-  // חיפוש במטריצה
+  if (!level1 || !level2) return 50;
   const row = RELIGIOUS_COMPATIBILITY_MATRIX[level1];
-  if (row && row[level2] !== undefined) {
-    return row[level2];
-  }
-
-  // Fallback: אם הערך לא נמצא במטריצה (רמה לא מוכרת)
-  // נשתמש בלוגיקה הליניארית הישנה כ-fallback
+  if (row && row[level2] !== undefined) return row[level2];
+  
+  // Fallback: linear
   const idx1 = RELIGIOUS_LEVEL_ORDER.indexOf(level1);
   const idx2 = RELIGIOUS_LEVEL_ORDER.indexOf(level2);
-
   if (idx1 === -1 || idx2 === -1) return 50;
-
   const distance = Math.abs(idx1 - idx2);
   if (distance === 0) return 100;
   if (distance === 1) return 80;
@@ -808,27 +568,18 @@ function getReligiousCompatibilityScore(level1: string | null, level2: string | 
   return 20;
 }
 
-
 function calculateSocioEconomicScore(
-  userLevel: number | null,
-  candidateLevel: number | null,
-  userPrefMin: number | null,
-  userPrefMax: number | null,
-  candidatePrefMin: number | null,
-  candidatePrefMax: number | null
+  userLevel: number | null, candidateLevel: number | null,
+  userPrefMin: number | null, userPrefMax: number | null,
+  candidatePrefMin: number | null, candidatePrefMax: number | null
 ): number {
   if (userLevel === null || candidateLevel === null) return 70;
-  
-  let userHappy = true;
-  let candidateHappy = true;
-  
+  let userHappy = true, candidateHappy = true;
   if (userPrefMin !== null && candidateLevel < userPrefMin) userHappy = false;
   if (userPrefMax !== null && candidateLevel > userPrefMax) userHappy = false;
   if (candidatePrefMin !== null && userLevel < candidatePrefMin) candidateHappy = false;
   if (candidatePrefMax !== null && userLevel > candidatePrefMax) candidateHappy = false;
-  
   if (!userHappy || !candidateHappy) return 30;
-  
   const diff = Math.abs(userLevel - candidateLevel);
   if (diff === 0) return 100;
   if (diff === 1) return 90;
@@ -838,15 +589,12 @@ function calculateSocioEconomicScore(
 }
 
 function calculateEducationScore(
-  userLevel: number | null,
-  candidateLevel: number | null,
-  userPrefMin: number | null,
-  candidatePrefMin: number | null
+  userLevel: number | null, candidateLevel: number | null,
+  userPrefMin: number | null, candidatePrefMin: number | null
 ): number {
   if (userLevel === null || candidateLevel === null) return 70;
   if (userPrefMin !== null && candidateLevel < userPrefMin) return 30;
   if (candidatePrefMin !== null && userLevel < candidatePrefMin) return 30;
-  
   const diff = Math.abs(userLevel - candidateLevel);
   if (diff === 0) return 100;
   if (diff === 1) return 85;
@@ -855,15 +603,12 @@ function calculateEducationScore(
 }
 
 function calculateJobSeniorityScore(
-  userLevel: number | null,
-  candidateLevel: number | null,
-  userPrefMin: number | null,
-  candidatePrefMin: number | null
+  userLevel: number | null, candidateLevel: number | null,
+  userPrefMin: number | null, candidatePrefMin: number | null
 ): number {
   if (userLevel === null || candidateLevel === null) return 70;
   if (userPrefMin !== null && candidateLevel < userPrefMin) return 40;
   if (candidatePrefMin !== null && userLevel < candidatePrefMin) return 40;
-  
   const diff = Math.abs(userLevel - candidateLevel);
   if (diff <= 1) return 100;
   if (diff === 2) return 80;
@@ -872,85 +617,56 @@ function calculateJobSeniorityScore(
 }
 
 function checkDealBreakers(
-  candidateProfile: RawCandidate,
-  userDealBreakers: string[] | null
+  candidateProfile: RawCandidate, userDealBreakers: string[] | null
 ): { violated: boolean; violations: string[] } {
-  if (!userDealBreakers || userDealBreakers.length === 0) {
-    return { violated: false, violations: [] };
-  }
-  
+  if (!userDealBreakers || userDealBreakers.length === 0) return { violated: false, violations: [] };
   const violations: string[] = [];
   
   for (const dealBreaker of userDealBreakers) {
     const lower = dealBreaker.toLowerCase();
-    
-    if (lower.includes('ילדים') || lower.includes('children')) {
-      if (candidateProfile.hasChildrenFromPrevious) {
-        violations.push(`יש ילדים מקודם (דרישה: ${dealBreaker})`);
-      }
+    if ((lower.includes('ילדים') || lower.includes('children')) && candidateProfile.hasChildrenFromPrevious) {
+      violations.push(`יש ילדים מקודם (דרישה: ${dealBreaker})`);
     }
-    
-    if (lower.includes('חרדי') || lower.includes('charedi')) {
+    if ((lower.includes('חרדי') || lower.includes('charedi'))) {
       const level = candidateProfile.religiousLevel || candidateProfile.metrics.inferredReligiousLevel;
-      if (level?.startsWith('charedi')) {
-        violations.push(`רמה דתית לא מתאימה (${level})`);
-      }
+      if (level?.startsWith('charedi')) violations.push(`רמה דתית לא מתאימה (${level})`);
     }
-    
-    if (lower.includes('חילוני') || lower.includes('secular')) {
+    if ((lower.includes('חילוני') || lower.includes('secular'))) {
       const level = candidateProfile.religiousLevel || candidateProfile.metrics.inferredReligiousLevel;
-      if (level === 'secular') {
-        violations.push(`חילוני (דרישה: ${dealBreaker})`);
-      }
+      if (level === 'secular') violations.push(`חילוני (דרישה: ${dealBreaker})`);
     }
-    
     const ageMatch = lower.match(/גיל\s*(\d+)/);
     if (ageMatch) {
       const maxAge = parseInt(ageMatch[1]);
       const candidateAge = candidateProfile.age || candidateProfile.metrics.inferredAge;
-      if (candidateAge && candidateAge > maxAge) {
-        violations.push(`גיל ${candidateAge} (מקסימום: ${maxAge})`);
-      }
+      if (candidateAge && candidateAge > maxAge) violations.push(`גיל ${candidateAge} (מקסימום: ${maxAge})`);
     }
   }
-  
   return { violated: violations.length > 0, violations };
 }
 
 function checkMustHaves(
-  candidateProfile: RawCandidate,
-  userMustHaves: string[] | null
+  candidateProfile: RawCandidate, userMustHaves: string[] | null
 ): { met: boolean; missing: string[] } {
-  if (!userMustHaves || userMustHaves.length === 0) {
-    return { met: true, missing: [] };
-  }
-  
+  if (!userMustHaves || userMustHaves.length === 0) return { met: true, missing: [] };
   const missing: string[] = [];
   
   for (const mustHave of userMustHaves) {
     const lower = mustHave.toLowerCase();
-    
-    if (lower.includes('תואר') || lower.includes('degree')) {
+    if ((lower.includes('תואר') || lower.includes('degree'))) {
       const eduLevel = candidateProfile.metrics.educationLevelScore;
-      if (eduLevel !== null && eduLevel < 3) {
-        missing.push(`השכלה אקדמית (נדרש: ${mustHave})`);
-      }
+      if (eduLevel !== null && eduLevel < 3) missing.push(`השכלה אקדמית (נדרש: ${mustHave})`);
     }
-    
-    if (lower.includes('עובד') || lower.includes('employed')) {
-      if (!candidateProfile.occupation) {
-        missing.push(`תעסוקה לא ידועה (נדרש: ${mustHave})`);
-      }
+    if ((lower.includes('עובד') || lower.includes('employed')) && !candidateProfile.occupation) {
+      missing.push(`תעסוקה לא ידועה (נדרש: ${mustHave})`);
     }
-    
-    if (lower.includes('ירושלים') || lower.includes('jerusalem')) {
+    if ((lower.includes('ירושלים') || lower.includes('jerusalem'))) {
       const city = candidateProfile.city || candidateProfile.metrics.inferredCity;
       if (!city?.includes('ירושלים') && !city?.toLowerCase().includes('jerusalem')) {
         missing.push(`לא בירושלים (נדרש: ${mustHave})`);
       }
     }
   }
-  
   return { met: missing.length === 0, missing };
 }
 
@@ -962,16 +678,11 @@ function analyzeTextLanguage(text: string | null | undefined): {
   language: 'hebrew' | 'english' | 'mixed' | 'other';
   hebrewQuality: 'native' | 'strong' | 'moderate' | 'weak' | 'none';
 } {
-  if (!text || text.trim().length === 0) {
-    return { language: 'other', hebrewQuality: 'none' };
-  }
-
+  if (!text || text.trim().length === 0) return { language: 'other', hebrewQuality: 'none' };
   const hebrewChars = (text.match(/[\u0590-\u05FF]/g) || []).length;
   const latinChars = (text.match(/[a-zA-Z]/g) || []).length;
   const totalChars = hebrewChars + latinChars;
-  
   if (totalChars === 0) return { language: 'other', hebrewQuality: 'none' };
-
   const hebrewRatio = hebrewChars / totalChars;
   
   let language: 'hebrew' | 'english' | 'mixed' | 'other';
@@ -980,31 +691,21 @@ function analyzeTextLanguage(text: string | null | undefined): {
   else language = 'mixed';
 
   let hebrewQuality: 'native' | 'strong' | 'moderate' | 'weak' | 'none';
-  if (language === 'english') {
-    hebrewQuality = 'none';
-  } else if (language === 'hebrew' && text.length > 100) {
-    hebrewQuality = 'native';
-  } else if (language === 'hebrew') {
-    hebrewQuality = 'strong';
-  } else {
-    hebrewQuality = hebrewRatio > 0.5 ? 'moderate' : 'weak';
-  }
+  if (language === 'english') hebrewQuality = 'none';
+  else if (language === 'hebrew' && text.length > 100) hebrewQuality = 'native';
+  else if (language === 'hebrew') hebrewQuality = 'strong';
+  else hebrewQuality = hebrewRatio > 0.5 ? 'moderate' : 'weak';
 
   return { language, hebrewQuality };
 }
 
 function createBackgroundProfile(
-  nativeLanguage: string | null,
-  additionalLanguages: string[],
-  aliyaCountry: string | null,
-  aliyaYear: number | null,
-  origin: string | null,
-  aboutText: string | null,
-  matchingNotes: string | null,
-  aiBackgroundSummary: string | null
+  nativeLanguage: string | null, additionalLanguages: string[],
+  aliyaCountry: string | null, aliyaYear: number | null,
+  origin: string | null, aboutText: string | null,
+  matchingNotes: string | null, aiBackgroundSummary: string | null
 ): BackgroundProfile {
   const indicators: string[] = [];
-  
   const allText = [aboutText, matchingNotes, aiBackgroundSummary].filter(Boolean).join(' ');
   const textAnalysis = analyzeTextLanguage(allText);
   
@@ -1014,8 +715,7 @@ function createBackgroundProfile(
     indicators.push(`aliyah: ${aliyaYear} (${yearsInIsrael}y)`);
   }
   
-  const hebrewAsNative = nativeLanguage?.toLowerCase() === 'hebrew' || 
-                         nativeLanguage?.toLowerCase() === 'עברית';
+  const hebrewAsNative = nativeLanguage?.toLowerCase() === 'hebrew' || nativeLanguage?.toLowerCase() === 'עברית';
   const noAliyaInfo = !aliyaCountry && !aliyaYear;
   const originIsrael = !origin || origin.toLowerCase() === 'israel' || origin === 'ישראל';
   
@@ -1023,45 +723,36 @@ function createBackgroundProfile(
   let confidence: number;
   
   if (hebrewAsNative && noAliyaInfo && originIsrael && textAnalysis.hebrewQuality === 'native') {
-    category = 'sabra';
-    confidence = 0.95;
+    category = 'sabra'; confidence = 0.95;
   } else if (hebrewAsNative && (additionalLanguages.length > 0 || !originIsrael)) {
-    category = 'sabra_international';
-    confidence = 0.85;
+    category = 'sabra_international'; confidence = 0.85;
   } else if (yearsInIsrael !== null) {
     if (yearsInIsrael >= 10) { category = 'oleh_veteran'; confidence = 0.9; }
     else if (yearsInIsrael >= 3) { category = 'oleh_mid'; confidence = 0.9; }
     else { category = 'oleh_new'; confidence = 0.9; }
   } else if (textAnalysis.language === 'english' && textAnalysis.hebrewQuality === 'none') {
-    category = 'oleh_new';
-    confidence = 0.7;
+    category = 'oleh_new'; confidence = 0.7;
   } else if (textAnalysis.language === 'english' || textAnalysis.hebrewQuality === 'weak') {
-    category = 'oleh_mid';
-    confidence = 0.6;
+    category = 'oleh_mid'; confidence = 0.6;
   } else {
-    category = 'sabra_international';
-    confidence = 0.4;
+    category = 'sabra_international'; confidence = 0.4;
   }
   
   return {
     category, confidence, nativeLanguage, additionalLanguages,
     aliyaCountry, aliyaYear, yearsInIsrael,
-    textLanguage: textAnalysis.language,
-    hebrewQuality: textAnalysis.hebrewQuality,
-    indicators,
+    textLanguage: textAnalysis.language, hebrewQuality: textAnalysis.hebrewQuality, indicators,
   };
 }
 
 function calculateBackgroundMatch(
-  targetProfile: BackgroundProfile,
-  candidateProfile: BackgroundProfile
+  targetProfile: BackgroundProfile, candidateProfile: BackgroundProfile
 ): BackgroundMatchResult {
   let multiplier = BACKGROUND_MATRIX[targetProfile.category][candidateProfile.category];
   let bonusPoints = 0;
   const reasons: string[] = [];
   
-  if (targetProfile.nativeLanguage && 
-      candidateProfile.nativeLanguage &&
+  if (targetProfile.nativeLanguage && candidateProfile.nativeLanguage &&
       targetProfile.nativeLanguage.toLowerCase() === candidateProfile.nativeLanguage.toLowerCase() &&
       !['hebrew', 'עברית'].includes(targetProfile.nativeLanguage.toLowerCase())) {
     bonusPoints += 15;
@@ -1097,44 +788,15 @@ function calculateBackgroundMatch(
 }
 
 // ═══════════════════════════════════════════════════════════════
-// 🆕 V2.2: SCANNED PAIR HELPERS
+// SCANNED PAIR HELPERS (Save only - no caching logic)
 // ═══════════════════════════════════════════════════════════════
 
 /**
- * 🆕 V2.2: Check if a pair can be skipped based on ScannedPair data
- * Returns true if both profiles haven't changed since last scan
- */
-function canSkipPairScan(
-  candidate: RawCandidate,
-  targetProfileUpdatedAt: Date
-): boolean {
-  // No existing scan data - must scan
-  if (!candidate.existingScannedPairId || !candidate.scannedPairLastScannedAt) {
-    return false;
-  }
-  
-  // Check if target profile was updated after last scan
-  if (targetProfileUpdatedAt > candidate.scannedPairLastScannedAt) {
-    return false;
-  }
-  
-  // Check if candidate profile was updated after last scan
-  if (candidate.profileUpdatedAt > candidate.scannedPairLastScannedAt) {
-    return false;
-  }
-  
-  // Both profiles haven't changed - can skip!
-  return true;
-}
-
-/**
- * 🆕 V2.2: Save scanned pairs to database
+ * Save scanned pairs to database for future exclusion
  */
 async function saveScannedPairs(
-  targetUserId: string,
-  targetGender: Gender,
-  targetProfileUpdatedAt: Date,
-  candidates: FinalCandidate[]
+  targetUserId: string, targetGender: Gender,
+  targetProfileUpdatedAt: Date, candidates: FinalCandidate[]
 ): Promise<number> {
   let savedCount = 0;
   
@@ -1151,30 +813,21 @@ async function saveScannedPairs(
         : null;
       
       await prisma.scannedPair.upsert({
-        where: {
-          maleUserId_femaleUserId: { maleUserId, femaleUserId }
-        },
+        where: { maleUserId_femaleUserId: { maleUserId, femaleUserId } },
         create: {
-          maleUserId,
-          femaleUserId,
+          maleUserId, femaleUserId,
           aiScore: candidate.finalScore,
-          passedThreshold,
-          rejectionReason,
-          firstScannedAt: new Date(),
-          lastScannedAt: new Date(),
-          maleProfileUpdatedAt,
-          femaleProfileUpdatedAt,
+          passedThreshold, rejectionReason,
+          firstScannedAt: new Date(), lastScannedAt: new Date(),
+          maleProfileUpdatedAt, femaleProfileUpdatedAt,
         },
         update: {
           aiScore: candidate.finalScore,
-          passedThreshold,
-          rejectionReason,
+          passedThreshold, rejectionReason,
           lastScannedAt: new Date(),
-          maleProfileUpdatedAt,
-          femaleProfileUpdatedAt,
+          maleProfileUpdatedAt, femaleProfileUpdatedAt,
         },
       });
-      
       savedCount++;
     } catch (error) {
       console.error(`[ScannedPair] Failed to save pair with ${candidate.firstName}:`, error);
@@ -1190,8 +843,7 @@ async function saveScannedPairs(
 // ═══════════════════════════════════════════════════════════════
 
 async function ensureUserReady(
-  profileId: string, 
-  forceUpdate: boolean = false
+  profileId: string, forceUpdate: boolean = false
 ): Promise<{ metricsExist: boolean; vectorsExist: boolean; updated: boolean }> {
   const [metricsResult, vectorsResult] = await Promise.all([
     prisma.$queryRaw<any[]>`SELECT 1 FROM "profile_metrics" WHERE "profileId" = ${profileId} LIMIT 1`,
@@ -1216,15 +868,12 @@ async function ensureUserReady(
 }
 
 async function ensureCandidatesReady(
-  oppositeGender: Gender,
-  maxToUpdate: number = 30
+  oppositeGender: Gender, maxToUpdate: number = 30
 ): Promise<{ updated: number; failed: number; durationMs: number }> {
   const startTime = Date.now();
   
   const candidatesNeedingUpdate = await prisma.$queryRaw<{ profileId: string; firstName: string }[]>`
-    SELECT 
-      p.id as "profileId",
-      u."firstName"
+    SELECT p.id as "profileId", u."firstName"
     FROM "Profile" p
     JOIN "User" u ON u.id = p."userId"
     LEFT JOIN "profile_metrics" pm ON pm."profileId" = p.id
@@ -1233,12 +882,7 @@ async function ensureCandidatesReady(
       p.gender = ${oppositeGender}::"Gender"
       AND p."availabilityStatus" = 'AVAILABLE'::"AvailabilityStatus"
       AND (p."isProfileVisible" = true OR p."isProfileVisible" IS NULL)
-      AND (
-        pm.id IS NULL
-        OR pv.id IS NULL
-        OR pv."selfVector" IS NULL
-        OR pv."seekingVector" IS NULL
-      )
+      AND (pm.id IS NULL OR pv.id IS NULL OR pv."selfVector" IS NULL OR pv."seekingVector" IS NULL)
     ORDER BY p."updatedAt" DESC
     LIMIT ${maxToUpdate}
   `;
@@ -1249,9 +893,7 @@ async function ensureCandidatesReady(
 
   console.log(`[Hybrid] Found ${candidatesNeedingUpdate.length} candidates needing metrics update`);
 
-  let updated = 0;
-  let failed = 0;
-
+  let updated = 0, failed = 0;
   const { updateProfileVectorsAndMetrics } = await import('./dualVectorService');
 
   for (const candidate of candidatesNeedingUpdate) {
@@ -1269,7 +911,7 @@ async function ensureCandidatesReady(
 }
 
 // ═══════════════════════════════════════════════════════════════
-// TIER 1: SQL FILTERING (V2.2 Enhanced)
+// TIER 1: SQL FILTERING (V2.5 - ScannedPair Exclusion)
 // ═══════════════════════════════════════════════════════════════
 
 async function tier1SqlFilter(
@@ -1282,12 +924,36 @@ async function tier1SqlFilter(
   preferredAgeMax: number,
   preferredPartnerHasChildren: string,
   maxCandidates: number,
-  // 🆕 V2.2: New parameter unused but good for future expansion
-  includeScannedPairInfo: boolean = true 
-): Promise<RawCandidate[]> {
+  targetProfileUpdatedAt: Date,           // 🆕 V2.5
+  excludeAlreadyScannedPairs: boolean     // 🆕 V2.5
+): Promise<{ candidates: RawCandidate[]; excludedByScannedPair: number }> {
   const oppositeGender = userGender === Gender.MALE ? Gender.FEMALE : Gender.MALE;
   
-  // 🆕 V2.2: Enhanced query with ScannedPair LEFT JOIN
+  // 🆕 V2.5: Count how many we're excluding (for stats)
+  let excludedByScannedPair = 0;
+  
+  if (excludeAlreadyScannedPairs) {
+    const excludedCount = await prisma.$queryRaw<[{ count: bigint }]>`
+      SELECT COUNT(*) as count
+      FROM "ScannedPair" sp
+      JOIN "Profile" p ON (
+        (${userGender}::"Gender" = 'MALE' AND p."userId" = sp."femaleUserId")
+        OR 
+        (${userGender}::"Gender" = 'FEMALE' AND p."userId" = sp."maleUserId")
+      )
+      WHERE (
+        (${userGender}::"Gender" = 'MALE' AND sp."maleUserId" = ${userId})
+        OR 
+        (${userGender}::"Gender" = 'FEMALE' AND sp."femaleUserId" = ${userId})
+      )
+      -- Only exclude if both profiles haven't changed since last scan
+      AND sp."lastScannedAt" >= p."updatedAt"
+      AND sp."lastScannedAt" >= ${targetProfileUpdatedAt}::timestamp
+    `;
+    excludedByScannedPair = Number(excludedCount[0]?.count || 0);
+  }
+
+  // 🆕 V2.5: Clean query - NO LEFT JOIN to ScannedPair, use NOT EXISTS instead
   const candidates = await prisma.$queryRaw<any[]>`
     SELECT 
       p.id as "profileId",
@@ -1314,7 +980,7 @@ async function tier1SqlFilter(
       p."preferredAgeMax",
       p."updatedAt" as "profileUpdatedAt",
       
-      -- Basic Metrics
+      -- Metrics
       pm."confidenceScore",
       pm."religiousStrictness",
       pm."socialEnergy",
@@ -1322,13 +988,9 @@ async function tier1SqlFilter(
       pm."urbanScore",
       pm."appearancePickiness",
       pm."spiritualDepth",
-      
-      -- New Metrics
       pm."socioEconomicLevel",
       pm."jobSeniorityLevel",
       pm."educationLevelScore",
-      
-      -- Inferred Values
       pm."inferredAge",
       pm."inferredCity",
       pm."inferredReligiousLevel",
@@ -1336,8 +998,6 @@ async function tier1SqlFilter(
       pm."inferredPreferredAgeMax",
       pm."inferredParentStatus",
       pm."inferredEducationLevel",
-      
-      -- AI Summaries
       pm."aiPersonalitySummary",
       pm."aiSeekingSummary",
       pm."aiBackgroundSummary",
@@ -1345,8 +1005,6 @@ async function tier1SqlFilter(
       pm."aiInferredDealBreakers",
       pm."aiInferredMustHaves",
       pm."difficultyFlags",
-      
-      -- Extended Preferences
       pm."prefSocioEconomicMin",
       pm."prefSocioEconomicMax",
       pm."prefJobSeniorityMin",
@@ -1354,30 +1012,15 @@ async function tier1SqlFilter(
       pm."prefEducationLevelMin",
       pm."prefEducationLevelMax",
       
-      -- Computed age with fallback
       COALESCE(
         EXTRACT(YEAR FROM AGE(p."birthDate"))::int,
         pm."inferredAge"
-      ) as "age",
-
-      -- 🆕 V2.2: ScannedPair info (if exists)
-      sp.id as "existingScannedPairId",
-      sp."aiScore" as "existingAiScore",
-      sp."lastScannedAt" as "scannedPairLastScannedAt",
-      sp."maleProfileUpdatedAt" as "scannedPairMaleProfileUpdatedAt",
-      sp."femaleProfileUpdatedAt" as "scannedPairFemaleProfileUpdatedAt"
+      ) as "age"
       
     FROM "Profile" p 
     JOIN "User" u ON u.id = p."userId"
     LEFT JOIN "profile_metrics" pm ON pm."profileId" = p.id
     
-    -- 🆕 V2.2: LEFT JOIN to ScannedPair
-    LEFT JOIN "ScannedPair" sp ON (
-      (${userGender}::"Gender" = 'MALE' AND sp."maleUserId" = ${userId} AND sp."femaleUserId" = p."userId")
-      OR 
-      (${userGender}::"Gender" = 'FEMALE' AND sp."femaleUserId" = ${userId} AND sp."maleUserId" = p."userId")
-    )
-
     WHERE 
       p.gender = ${oppositeGender}::"Gender"
       AND (
@@ -1403,12 +1046,16 @@ async function tier1SqlFilter(
         OR (${preferredPartnerHasChildren} = 'no_preferred' 
             AND (p."hasChildrenFromPrevious" IS NULL OR p."hasChildrenFromPrevious" = false))
       )
+      
+      -- Exclude dismissed/expired PotentialMatch
       AND NOT EXISTS (
         SELECT 1 FROM "PotentialMatch" pm2
         WHERE ((pm2."maleUserId" = ${userId} AND pm2."femaleUserId" = p."userId")
            OR (pm2."femaleUserId" = ${userId} AND pm2."maleUserId" = p."userId"))
           AND pm2.status::text IN ('DISMISSED', 'EXPIRED')
       )
+      
+      -- Exclude declined/closed MatchSuggestion
       AND NOT EXISTS (
         SELECT 1 FROM "MatchSuggestion" ms
         WHERE ((ms."firstPartyId" = ${userId} AND ms."secondPartyId" = p."userId")
@@ -1419,14 +1066,30 @@ async function tier1SqlFilter(
           )
       )
       
-    ORDER BY 
-      -- 🆕 V2.2: Prioritize candidates we haven't scanned yet
-      CASE WHEN sp.id IS NULL THEN 0 ELSE 1 END,
-      pm."confidenceScore" DESC NULLS LAST
+      -- 🆕 V2.5: Exclude already-scanned pairs (if both profiles unchanged)
+      ${excludeAlreadyScannedPairs ? prisma.$queryRaw`
+      AND NOT EXISTS (
+        SELECT 1 FROM "ScannedPair" sp
+        WHERE (
+          (${userGender}::"Gender" = 'MALE' 
+           AND sp."maleUserId" = ${userId} 
+           AND sp."femaleUserId" = p."userId")
+          OR 
+          (${userGender}::"Gender" = 'FEMALE' 
+           AND sp."femaleUserId" = ${userId} 
+           AND sp."maleUserId" = p."userId")
+        )
+        -- Only exclude if scan is still relevant (both profiles unchanged since last scan)
+        AND sp."lastScannedAt" >= p."updatedAt"
+        AND sp."lastScannedAt" >= ${targetProfileUpdatedAt}::timestamp
+      )
+      ` : prisma.$queryRaw``}
+      
+    ORDER BY pm."confidenceScore" DESC NULLS LAST
     LIMIT ${maxCandidates}
   `;
 
-  return candidates.map(c => ({
+  const mappedCandidates: RawCandidate[] = candidates.map(c => ({
     profileId: c.profileId,
     userId: c.userId,
     firstName: c.firstName,
@@ -1451,14 +1114,6 @@ async function tier1SqlFilter(
     preferredAgeMin: c.preferredAgeMin,
     preferredAgeMax: c.preferredAgeMax,
     profileUpdatedAt: c.profileUpdatedAt,
-    
-    // 🆕 V2.2: Map new fields
-    existingScannedPairId: c.existingScannedPairId,
-    existingAiScore: c.existingAiScore,
-    scannedPairLastScannedAt: c.scannedPairLastScannedAt,
-    scannedPairMaleProfileUpdatedAt: c.scannedPairMaleProfileUpdatedAt,
-    scannedPairFemaleProfileUpdatedAt: c.scannedPairFemaleProfileUpdatedAt,
-    
     metrics: {
       confidenceScore: c.confidenceScore,
       religiousStrictness: c.religiousStrictness,
@@ -1492,11 +1147,14 @@ async function tier1SqlFilter(
       prefEducationLevelMax: c.prefEducationLevelMax,
     },
   }));
+  
+  return { candidates: mappedCandidates, excludedByScannedPair };
 }
 
 // ═══════════════════════════════════════════════════════════════
-// TIER 2: EXTENDED METRICS + BACKGROUND SCORING (V2.2 Enhanced)
+// TIER 2: EXTENDED METRICS + BACKGROUND SCORING (V2.5 - Clean)
 // ═══════════════════════════════════════════════════════════════
+// 🆕 V2.5: No more caching logic - all candidates are new
 
 async function tier2MetricsScoring(
   candidates: RawCandidate[],
@@ -1506,47 +1164,15 @@ async function tier2MetricsScoring(
     religiousLevel: string | null;
     backgroundProfile: BackgroundProfile;
     metrics: ExtendedMetrics;
-    profileUpdatedAt: Date; // 🆕 V2.2
   },
   useVectors: boolean,
   useBackgroundAnalysis: boolean,
-  maxOutput: number,
-  skipAlreadyScannedPairs: boolean = true // 🆕 V2.2
+  maxOutput: number
 ): Promise<ScoredCandidate[]> {
   
   const scoredCandidates: ScoredCandidate[] = [];
-  let skippedCount = 0;
   
   for (const candidate of candidates) {
-    // 🆕 V2.2: Check if we can skip this pair
-    const canSkip = skipAlreadyScannedPairs && canSkipPairScan(candidate, targetProfile.profileUpdatedAt);
-    
-    if (canSkip && candidate.existingAiScore !== null) {
-      // Use cached score - much faster!
-      console.log(`[Tier2] ⚡ Skipping ${candidate.firstName} - using cached score: ${candidate.existingAiScore}`);
-      skippedCount++;
-      
-      scoredCandidates.push({
-        ...candidate,
-        metricsScore: candidate.existingAiScore ?? 0,
-        vectorScore: null,
-        backgroundProfile: null,
-        backgroundMatch: null,
-        ageScore: null,
-        socioEconomicScore: 0,
-        educationScore: 0,
-        jobSeniorityScore: 0,
-        meetsUserMustHaves: true,
-        violatesUserDealBreakers: false,
-        meetsCandidateMustHaves: true,
-        violatesCandidateDealBreakers: false,
-        tier2Score: candidate.existingAiScore ?? 0,
-        fromScannedPairCache: true, // Mark as cached
-      });
-      continue;
-    }
-
-    // --- Standard Scoring Logic Starts Here ---
     const candidateAge = candidate.age || candidate.metrics.inferredAge || 30;
     const ageScore = calculateAgeScoreForMatch(targetProfile.age, targetProfile.gender, candidateAge);
     
@@ -1560,77 +1186,46 @@ async function tier2MetricsScoring(
     
     if (useBackgroundAnalysis) {
       backgroundProfile = createBackgroundProfile(
-        candidate.nativeLanguage,
-        candidate.additionalLanguages || [],
-        candidate.aliyaCountry,
-        candidate.aliyaYear,
-        candidate.origin,
-        candidate.about,
-        candidate.matchingNotes,
-        candidate.metrics.aiBackgroundSummary
+        candidate.nativeLanguage, candidate.additionalLanguages || [],
+        candidate.aliyaCountry, candidate.aliyaYear, candidate.origin,
+        candidate.about, candidate.matchingNotes, candidate.metrics.aiBackgroundSummary
       );
       backgroundMatch = calculateBackgroundMatch(targetProfile.backgroundProfile, backgroundProfile);
     }
     
     const socioEconomicScore = calculateSocioEconomicScore(
-      targetProfile.metrics.socioEconomicLevel,
-      candidate.metrics.socioEconomicLevel,
-      targetProfile.metrics.prefSocioEconomicMin,
-      targetProfile.metrics.prefSocioEconomicMax,
-      candidate.metrics.prefSocioEconomicMin,
-      candidate.metrics.prefSocioEconomicMax
+      targetProfile.metrics.socioEconomicLevel, candidate.metrics.socioEconomicLevel,
+      targetProfile.metrics.prefSocioEconomicMin, targetProfile.metrics.prefSocioEconomicMax,
+      candidate.metrics.prefSocioEconomicMin, candidate.metrics.prefSocioEconomicMax
     );
-    
     const educationScore = calculateEducationScore(
-      targetProfile.metrics.educationLevelScore,
-      candidate.metrics.educationLevelScore,
-      targetProfile.metrics.prefEducationLevelMin,
-      candidate.metrics.prefEducationLevelMin
+      targetProfile.metrics.educationLevelScore, candidate.metrics.educationLevelScore,
+      targetProfile.metrics.prefEducationLevelMin, candidate.metrics.prefEducationLevelMin
     );
-    
     const jobSeniorityScore = calculateJobSeniorityScore(
-      targetProfile.metrics.jobSeniorityLevel,
-      candidate.metrics.jobSeniorityLevel,
-      targetProfile.metrics.prefJobSeniorityMin,
-      candidate.metrics.prefJobSeniorityMin
+      targetProfile.metrics.jobSeniorityLevel, candidate.metrics.jobSeniorityLevel,
+      targetProfile.metrics.prefJobSeniorityMin, candidate.metrics.prefJobSeniorityMin
     );
     
-    const dealBreakersCheck = checkDealBreakers(
-      candidate,
-      targetProfile.metrics.aiInferredDealBreakers
-    );
-    
-    const mustHavesCheck = checkMustHaves(
-      candidate,
-      targetProfile.metrics.aiInferredMustHaves
-    );
+    const dealBreakersCheck = checkDealBreakers(candidate, targetProfile.metrics.aiInferredDealBreakers);
+    const mustHavesCheck = checkMustHaves(candidate, targetProfile.metrics.aiInferredMustHaves);
     
     if (dealBreakersCheck.violated) {
-      console.log(`[Tier2] ${candidate.firstName}: Deal breaker violated - ${dealBreakersCheck.violations.join(', ')}`);
+      console.log(`[Tier2] ${candidate.firstName}: Deal breaker - ${dealBreakersCheck.violations.join(', ')}`);
     }
     
     let socialScore = 70;
     if (targetProfile.metrics.socialEnergy !== null && candidate.metrics.socialEnergy !== null) {
-      const diff = Math.abs(targetProfile.metrics.socialEnergy - candidate.metrics.socialEnergy);
-      socialScore = Math.max(30, 100 - diff * 2);
+      socialScore = Math.max(30, 100 - Math.abs(targetProfile.metrics.socialEnergy - candidate.metrics.socialEnergy) * 2);
     }
-    
     let careerScore = 70;
     if (targetProfile.metrics.careerOrientation !== null && candidate.metrics.careerOrientation !== null) {
-      const diff = Math.abs(targetProfile.metrics.careerOrientation - candidate.metrics.careerOrientation);
-      careerScore = Math.max(30, 100 - diff * 2);
+      careerScore = Math.max(30, 100 - Math.abs(targetProfile.metrics.careerOrientation - candidate.metrics.careerOrientation) * 2);
     }
     
     const weights = {
-      religious: 0.22,
-      age: 0.12,
-      socioEconomic: 0.12,
-      education: 0.10,
-      jobSeniority: 0.08,
-      social: 0.10,
-      career: 0.10,
-      background: 0.08,
-      urban: 0.08,
+      religious: 0.22, age: 0.12, socioEconomic: 0.12, education: 0.10,
+      jobSeniority: 0.08, social: 0.10, career: 0.10, background: 0.08, urban: 0.08,
     };
     
     let metricsScore = (
@@ -1645,29 +1240,15 @@ async function tier2MetricsScoring(
       (100 - Math.abs((targetProfile.metrics.urbanScore || 50) - (candidate.metrics.urbanScore || 50))) * weights.urban
     );
     
-    if (dealBreakersCheck.violated) {
-      metricsScore *= 0.4;
-    }
-    
-    if (!mustHavesCheck.met) {
-      metricsScore *= 0.7;
-    }
-    
-    const vectorScore: number | null = null;
+    if (dealBreakersCheck.violated) metricsScore *= 0.4;
+    if (!mustHavesCheck.met) metricsScore *= 0.7;
     
     let tier2Score = metricsScore;
-    
     if (backgroundMatch) {
-      tier2Score = tier2Score * backgroundMatch.multiplier;
-      tier2Score += backgroundMatch.bonusPoints;
+      tier2Score = tier2Score * backgroundMatch.multiplier + backgroundMatch.bonusPoints;
     }
-    
-    if (vectorScore !== null) {
-      tier2Score = tier2Score * 0.7 + vectorScore * 0.3;
-    }
-    
     tier2Score = Math.min(100, Math.max(0, Math.round(tier2Score)));
-    // 🆕 חישוב scoreBreakdown מ-metrics עבור cached candidates
+    
     const tier2Breakdown: ScoreBreakdown = {
       religious: Math.round(religiousScore * 25 / 100),
       ageCompatibility: Math.round(ageScore.score * 10 / 100),
@@ -1678,13 +1259,12 @@ async function tier2MetricsScoring(
       background: Math.round((backgroundMatch?.multiplier || 0.7) * 100 * 10 / 100),
       values: Math.round(((socialScore + careerScore) / 2) * 10 / 100),
     };
+    
     scoredCandidates.push({
       ...candidate,
       metricsScore: Math.round(metricsScore),
-      vectorScore,
-      backgroundProfile,
-      backgroundMatch,
-      ageScore,
+      vectorScore: null,
+      backgroundProfile, backgroundMatch, ageScore,
       socioEconomicScore: Math.round(socioEconomicScore),
       educationScore: Math.round(educationScore),
       jobSeniorityScore: Math.round(jobSeniorityScore),
@@ -1693,20 +1273,16 @@ async function tier2MetricsScoring(
       meetsCandidateMustHaves: true,
       violatesCandidateDealBreakers: false,
       tier2Score,
-            tier2Breakdown,           // 🆕 הוסף שורה זו
-
-      fromScannedPairCache: false, // Not from cache
+      tier2Breakdown,
     });
   }
   
-  console.log(`[Tier2] ⚡ Skipped ${skippedCount} pairs using cached scores`);
   scoredCandidates.sort((a, b) => b.tier2Score - a.tier2Score);
-  
   return scoredCandidates.slice(0, maxOutput);
 }
 
 // ═══════════════════════════════════════════════════════════════
-// TIER 3: AI FIRST PASS (Updated with tracking)
+// TIER 3: AI FIRST PASS (V2.5 - Clean, no cache logic)
 // ═══════════════════════════════════════════════════════════════
 
 async function tier3AIFirstPass(
@@ -1727,47 +1303,23 @@ async function tier3AIFirstPass(
   const model = await getGeminiModel();
   const allResults: AIFirstPassCandidate[] = [];
   
-  // 🆕 V2.3: Initialize stats
   const stats: AICallStats['tier3FirstPass'] = {
     batchesSent: 0,
     candidatesAnalyzed: 0,
-    cachedSkipped: 0,
     callsMade: 0,
     totalTokensEstimated: 0,
     durationMs: 0,
   };
   
   const startTime = Date.now();
-  
-  // Separate candidates that need AI from cached ones
-  const candidatesForAI = candidates.filter(c => !c.fromScannedPairCache);
-  const cachedCandidates = candidates.filter(c => c.fromScannedPairCache);
-  
-  stats.cachedSkipped = cachedCandidates.length;
-  
-  // Process cached candidates immediately
-  // Process cached candidates - use tier2 breakdown instead of zeros
-  for (const c of cachedCandidates) {
-    allResults.push({
-      ...c,
-      aiFirstPassScore: c.tier2Score,
-      scoreBreakdown: c.tier2Breakdown || { religious: 0, ageCompatibility: 0, careerFamily: 0, lifestyle: 0, socioEconomic: 0, education: 0, background: 0, values: 0 },
-      shortReasoning: 'Previously analyzed (Cached)',
-      tier3Score: c.tier2Score,
-    });
-  }
-
-  // Process new candidates
-  const totalBatches = Math.ceil(candidatesForAI.length / AI_BATCH_SIZE);
+  const totalBatches = Math.ceil(candidates.length / AI_BATCH_SIZE);
   
   for (let batchIdx = 0; batchIdx < totalBatches; batchIdx++) {
     const batchStart = batchIdx * AI_BATCH_SIZE;
-    const batchEnd = Math.min(batchStart + AI_BATCH_SIZE, candidatesForAI.length);
-    const batch = candidatesForAI.slice(batchStart, batchEnd);
+    const batchEnd = Math.min(batchStart + AI_BATCH_SIZE, candidates.length);
+    const batch = candidates.slice(batchStart, batchEnd);
     
     const prompt = generateEnhancedFirstPassPrompt(targetProfile, batch, batchIdx + 1, totalBatches);
-    
-    // 🆕 V2.3: Estimate tokens (rough: ~4 chars per token)
     stats.totalTokensEstimated += Math.ceil(prompt.length / 4);
     
     try {
@@ -1776,8 +1328,6 @@ async function tier3AIFirstPass(
       
       const result = await model.generateContent(prompt);
       const jsonString = result.response.text();
-      
-      // 🆕 V2.3: Add response tokens
       stats.totalTokensEstimated += Math.ceil(jsonString.length / 4);
       
       const parsed = parseJsonResponse<{ candidates: any[] }>(jsonString);
@@ -1826,28 +1376,21 @@ async function tier3AIFirstPass(
   }
   
   stats.durationMs = Date.now() - startTime;
-  
-  // 🆕 V2.3: Log stats
-  console.log(`[Tier3] AI Stats: ${stats.callsMade} calls, ${stats.candidatesAnalyzed} analyzed, ${stats.cachedSkipped} cached, ~${stats.totalTokensEstimated} tokens`);
+  console.log(`[Tier3] AI Stats: ${stats.callsMade} calls, ${stats.candidatesAnalyzed} analyzed, ~${stats.totalTokensEstimated} tokens`);
   
   allResults.sort((a, b) => b.tier3Score - a.tier3Score);
-  return { 
-    candidates: allResults.slice(0, maxOutput),
-    stats 
-  };
+  return { candidates: allResults.slice(0, maxOutput), stats };
 }
 
-// ... (Enhanced Prompts Logic remains same as V2.1)
+// ═══════════════════════════════════════════════════════════════
+// PROMPT GENERATORS (unchanged from V2.3)
+// ═══════════════════════════════════════════════════════════════
+
 function generateEnhancedFirstPassPrompt(
   targetProfile: {
-    name: string;
-    age: number;
-    gender: Gender;
-    city: string | null;
-    religiousLevel: string | null;
-    occupation: string | null;
-    backgroundProfile: BackgroundProfile;
-    metrics: ExtendedMetrics;
+    name: string; age: number; gender: Gender; city: string | null;
+    religiousLevel: string | null; occupation: string | null;
+    backgroundProfile: BackgroundProfile; metrics: ExtendedMetrics;
   },
   candidates: ScoredCandidate[],
   batchNum: number,
@@ -1855,29 +1398,21 @@ function generateEnhancedFirstPassPrompt(
 ): string {
   
   const dealBreakersSection = targetProfile.metrics.aiInferredDealBreakers?.length
-    ? `
-╔══════════════════════════════════════════════════════════════╗
+    ? `\n╔══════════════════════════════════════════════════════════════╗
 ║  🚫 קווי אדום (DEAL BREAKERS) - חובה לבדוק!                  ║
 ╠══════════════════════════════════════════════════════════════╣
 ${targetProfile.metrics.aiInferredDealBreakers.map(db => `║  • ${db}`).join('\n')}
 ╚══════════════════════════════════════════════════════════════╝
-⚠️ אם מועמד/ת מפר/ה קו אדום - ציון מקסימלי 40!
-`
-    : '';
+⚠️ אם מועמד/ת מפר/ה קו אדום - ציון מקסימלי 40!\n` : '';
 
   const mustHavesSection = targetProfile.metrics.aiInferredMustHaves?.length
-    ? `
-┌──────────────────────────────────────────────────────────────┐
+    ? `\n┌──────────────────────────────────────────────────────────────┐
 │  ✅ חובות (MUST HAVES)                                       │
 ├──────────────────────────────────────────────────────────────┤
 ${targetProfile.metrics.aiInferredMustHaves.map(mh => `│  • ${mh}`).join('\n')}
-└──────────────────────────────────────────────────────────────┘
-`
-    : '';
+└──────────────────────────────────────────────────────────────┘\n` : '';
 
-  const backgroundGuidelines = getBackgroundMatchingGuidelines(
-    targetProfile.backgroundProfile.category
-  );
+  const backgroundGuidelines = getBackgroundMatchingGuidelines(targetProfile.backgroundProfile.category);
 
   const targetSummary = `
 שם: ${targetProfile.name}
@@ -1905,16 +1440,13 @@ ${targetProfile.metrics.aiMatchmakerGuidelines || 'אין הנחיות מיוח�
 ותק תעסוקתי: ${targetProfile.metrics.jobSeniorityLevel || 'N/A'}/10
 השכלה: ${targetProfile.metrics.educationLevelScore || 'N/A'}/10
 אנרגיה חברתית: ${targetProfile.metrics.socialEnergy || 'N/A'}/100
-כיוון קריירה: ${targetProfile.metrics.careerOrientation || 'N/A'}/100
-`;
+כיוון קריירה: ${targetProfile.metrics.careerOrientation || 'N/A'}/100`;
 
   const candidatesText = candidates.map((c, idx) => {
     const age = c.age || c.metrics.inferredAge || 'לא ידוע';
     const city = c.city || c.metrics.inferredCity || 'לא צוין';
     const religious = c.religiousLevel || c.metrics.inferredReligiousLevel || 'לא צוין';
-    const candidateBgDesc = c.backgroundProfile 
-      ? BACKGROUND_DESCRIPTIONS[c.backgroundProfile.category]
-      : 'לא ידוע';
+    const candidateBgDesc = c.backgroundProfile ? BACKGROUND_DESCRIPTIONS[c.backgroundProfile.category] : 'לא ידוע';
     
     return `
 [${idx + 1}] ${c.firstName} ${c.lastName}
@@ -2009,28 +1541,23 @@ ${candidatesText}
 
 function getBackgroundMatchingGuidelines(category: BackgroundCategory): string {
   const guidelines: Record<BackgroundCategory, string> = {
-    sabra: `
-- צבר/ית ישראלי/ת מחפש/ת בדרך כלל מישהו עם עברית שפת אם
+    sabra: `- צבר/ית ישראלי/ת מחפש/ת בדרך כלל מישהו עם עברית שפת אם
 - התאמה מצוינת: צבר, צבר בינלאומי, עולה ותיק
 - התאמה בעייתית: עולה חדש (פערי תרבות ושפה)
 - חשוב לבדוק: האם המועמד/ת רוצה בן/בת זוג מרקע מסוים?`,
-    sabra_international: `
-- צבר/ית עם רקע בינלאומי - פתוח/ה יותר לרקעים שונים
+    sabra_international: `- צבר/ית עם רקע בינלאומי - פתוח/ה יותר לרקעים שונים
 - התאמה מצוינת: כל הרקעים חוץ מעולה חדש מאוד
 - יתרון: הבנה של תרבויות שונות, רגישות לאתגרי קליטה
 - חשוב לבדוק: שפות משותפות מעבר לעברית`,
-    oleh_veteran: `
-- עולה ותיק/ה (10+ שנים) - משולב/ת היטב בחברה הישראלית
+    oleh_veteran: `- עולה ותיק/ה (10+ שנים) - משולב/ת היטב בחברה הישראלית
 - התאמה מצוינת: צברים, עולים ותיקים, עולים בתהליך
 - יתרון: מבין/ה את חווית העלייה אבל גם את התרבות המקומית
 - חשוב לבדוק: ארץ מוצא משותפת = בונוס משמעותי`,
-    oleh_mid: `
-- עולה בתהליך קליטה (3-10 שנים) - עדיין בהשתלבות
+    oleh_mid: `- עולה בתהליך קליטה (3-10 שנים) - עדיין בהשתלבות
 - התאמה מצוינת: עולים אחרים (כל הוותקים), צבר בינלאומי
 - התאמה מאתגרת: צבר "טהור" ללא רקע בינלאומי
 - חשוב לבדוק: רמת עברית, תמיכה בתהליך הקליטה`,
-    oleh_new: `
-- עולה חדש/ה (פחות מ-3 שנים) - בתחילת הדרך
+    oleh_new: `- עולה חדש/ה (פחות מ-3 שנים) - בתחילת הדרך
 - התאמה מצוינת: עולים חדשים וותיקים מאותה ארץ
 - התאמה מאתגרת מאוד: צברים ללא רקע בינלאומי
 - חשוב מאוד: שפה משותפת, ארץ מוצא, קהילת תמיכה
@@ -2040,81 +1567,45 @@ function getBackgroundMatchingGuidelines(category: BackgroundCategory): string {
 }
 
 // ═══════════════════════════════════════════════════════════════
-// TIER 4: AI DEEP ANALYSIS (Updated with tracking)
+// TIER 4: AI DEEP ANALYSIS (V2.5 - Clean, no cache logic)
 // ═══════════════════════════════════════════════════════════════
 
 async function tier4AIDeepAnalysis(
   candidates: AIFirstPassCandidate[],
   targetProfile: {
-    name: string;
-    age: number;
-    gender: Gender;
-    city: string | null;
-    religiousLevel: string | null;
-    occupation: string | null;
-    about: string | null;
-    backgroundProfile: BackgroundProfile;
+    name: string; age: number; gender: Gender; city: string | null;
+    religiousLevel: string | null; occupation: string | null;
+    about: string | null; backgroundProfile: BackgroundProfile;
     metrics: ExtendedMetrics;
   }
 ): Promise<{ candidates: FinalCandidate[]; stats: AICallStats['tier4DeepAnalysis'] }> {
   
   const model = await getGeminiModel();
-  
-  // 🆕 V2.3: Initialize stats
   const stats: AICallStats['tier4DeepAnalysis'] = {
-    candidatesAnalyzed: 0,
-    cachedSkipped: 0,
-    callsMade: 0,
-    totalTokensEstimated: 0,
-    durationMs: 0,
+    candidatesAnalyzed: 0, callsMade: 0, totalTokensEstimated: 0, durationMs: 0,
   };
   
   const startTime = Date.now();
-  
-  const candidatesForAI = candidates.filter(c => !c.fromScannedPairCache);
-  const cachedCandidates = candidates.filter(c => c.fromScannedPairCache);
   const finalCandidates: FinalCandidate[] = [];
 
-  stats.cachedSkipped = cachedCandidates.length;
-
-  // Reconstruct cached ones
-  cachedCandidates.forEach((c, idx) => {
-    finalCandidates.push({
-      ...c,
-      finalScore: c.tier3Score,
-      rank: 999, // Will sort later
-      detailedReasoning: c.shortReasoning || 'Scanned pair (cached)',
-      recommendation: c.tier3Score >= 70 ? 'GOOD' : 'FAIR',
-      strengths: [],
-      concerns: [],
-    });
-  });
-
-  if (candidatesForAI.length > 0) {
-    const prompt = generateEnhancedDeepAnalysisPrompt(targetProfile, candidatesForAI);
-    
-    // 🆕 V2.3: Estimate tokens
+  if (candidates.length > 0) {
+    const prompt = generateEnhancedDeepAnalysisPrompt(targetProfile, candidates);
     stats.totalTokensEstimated += Math.ceil(prompt.length / 4);
     
     try {
       stats.callsMade++;
-      
       const result = await model.generateContent(prompt);
       const jsonString = result.response.text();
-      
-      // 🆕 V2.3: Add response tokens
       stats.totalTokensEstimated += Math.ceil(jsonString.length / 4);
       
       const parsed = parseJsonResponse<{ deepAnalysis: any[] }>(jsonString);
       
       for (const aiResult of parsed.deepAnalysis || []) {
-        const candidate = candidatesForAI[aiResult.index - 1];
+        const candidate = candidates[aiResult.index - 1];
         if (!candidate) continue;
         
         stats.candidatesAnalyzed++;
-        
         const finalScore = Math.min(100, Math.max(0, aiResult.finalScore || candidate.tier3Score));
-        const rank = aiResult.rank || 999;
         
         let recommendation: FinalCandidate['recommendation'];
         if (finalScore >= 85) recommendation = 'EXCELLENT';
@@ -2125,7 +1616,7 @@ async function tier4AIDeepAnalysis(
         finalCandidates.push({
           ...candidate,
           finalScore,
-          rank,
+          rank: aiResult.rank || 999,
           scoreBreakdown: aiResult.breakdown || candidate.scoreBreakdown,
           detailedReasoning: aiResult.detailedReasoning || candidate.shortReasoning,
           recommendation,
@@ -2136,73 +1627,59 @@ async function tier4AIDeepAnalysis(
       }
     } catch (error) {
       console.error(`[Tier4] Deep analysis failed:`, error);
-      candidatesForAI.forEach((c, idx) => {
+      candidates.forEach((c, idx) => {
         finalCandidates.push({
           ...c,
           finalScore: c.tier3Score,
           rank: idx + 1,
           detailedReasoning: c.shortReasoning,
           recommendation: c.tier3Score >= 70 ? 'GOOD' : 'FAIR',
-          strengths: [],
-          concerns: [],
+          strengths: [], concerns: [],
         });
       });
     }
   }
 
   stats.durationMs = Date.now() - startTime;
-  
-  // 🆕 V2.3: Log stats
-  console.log(`[Tier4] AI Stats: ${stats.callsMade} calls, ${stats.candidatesAnalyzed} analyzed, ${stats.cachedSkipped} cached, ~${stats.totalTokensEstimated} tokens`);
+  console.log(`[Tier4] AI Stats: ${stats.callsMade} calls, ${stats.candidatesAnalyzed} analyzed, ~${stats.totalTokensEstimated} tokens`);
 
   finalCandidates.sort((a, b) => b.finalScore - a.finalScore);
-  // Re-assign ranks
   return { 
     candidates: finalCandidates.map((c, i) => ({ ...c, rank: i + 1 })),
-    stats 
+    stats,
   };
 }
 
 function generateEnhancedDeepAnalysisPrompt(
   targetProfile: {
-    name: string;
-    age: number;
-    gender: Gender;
-    city: string | null;
-    religiousLevel: string | null;
-    occupation: string | null;
-    about: string | null;
-    backgroundProfile: BackgroundProfile;
+    name: string; age: number; gender: Gender; city: string | null;
+    religiousLevel: string | null; occupation: string | null;
+    about: string | null; backgroundProfile: BackgroundProfile;
     metrics: ExtendedMetrics;
   },
   candidates: AIFirstPassCandidate[]
 ): string {
   
   const dealBreakersWarning = targetProfile.metrics.aiInferredDealBreakers?.length
-    ? `
-╔══════════════════════════════════════════════════════════════════════╗
+    ? `\n╔══════════════════════════════════════════════════════════════════════╗
 ║  🚫 קווי אדום של ${targetProfile.name} (לשימוש פנימי בחישוב הציון)   ║
 ╠══════════════════════════════════════════════════════════════════════╣
 ${targetProfile.metrics.aiInferredDealBreakers.map(db => `║  ❌ ${db}`).join('\n')}
-╚══════════════════════════════════════════════════════════════════════╝
-`
-    : '';
+╚══════════════════════════════════════════════════════════════════════╝\n` : '';
 
-  const candidatesText = candidates.map((c, idx) => {
-    return `
+  const candidatesText = candidates.map((c, idx) => `
 [${idx + 1}] ${c.firstName} ${c.lastName}
 נתונים יבשים: גיל ${c.age || '?'}, ${c.religiousLevel || '?'}, ${c.occupation || '?'}
 ציון טכני: ${c.tier3Score}/100
 
-=== מי המועמד/ת (החלק החשוב לנימוק) ===
+=== מי המועמד/ת ===
 ${c.metrics.aiPersonalitySummary || c.about || 'אין מידע טקסטואלי רב'}
 
 === מה מחפש/ת ===
 ${c.metrics.aiSeekingSummary || 'לא זמין'}
 
 Deal Breakers של המועמד/ת: ${c.metrics.aiInferredDealBreakers?.join(', ') || 'אין'}
----`;
-  }).join('\n');
+---`).join('\n');
 
   return `אתה שדכן AI מומחה ב-NeshamaTech.
 המטרה שלך כעת היא לא רק לחשב ציונים, אלא **לכתוב את הנימוק שישכנע את המועמדים להיפגש**.
@@ -2215,7 +1692,7 @@ ${dealBreakersWarning}
 מידע אישי: בן/בת ${targetProfile.age}, ${targetProfile.religiousLevel}, ${targetProfile.occupation}
 רקע: ${BACKGROUND_DESCRIPTIONS[targetProfile.backgroundProfile.category]}
 
-=== האישיות וה"וייב" (להתייחס לזה בנימוק) ===
+=== האישיות וה"וייב" ===
 ${targetProfile.metrics.aiPersonalitySummary || targetProfile.about || 'לא זמין'}
 
 === מה הוא/היא באמת מחפש/ת ===
@@ -2227,22 +1704,21 @@ ${targetProfile.metrics.aiSeekingSummary || 'לא זמין'}
 ${candidatesText}
 
 ═══════════════════════════════════════
-הוראות כתיבה קריטיות (חשוב מאוד!):
+הוראות כתיבה קריטיות:
 ═══════════════════════════════════════
-1. **הנימוק (detailedReasoning) חייב להיות אנושי וסיפורי (Narrative):**
-   - אל תכתוב רשימת מכולת ("יש התאמה בדת, יש התאמה בגיל").
-   - כתוב פסקה של 3-4 שורות שמסבירה למה החיבור הזה יכול לעבוד ברמה הרגשית והאישיותית.
-   - התייחס לדינמיקה פוטנציאלית, לאנרגיה, ולערכים משותפים.
-   - השתמש בשפה חמה ומקצועית של שדכן, לא של רובוט.
+1. **הנימוק חייב להיות אנושי וסיפורי:**
+   - כתוב פסקה של 3-4 שורות שמסבירה למה החיבור יכול לעבוד ברמה הרגשית והאישיותית.
+   - התייחס לדינמיקה פוטנציאלית, אנרגיה, וערכים משותפים.
+   - שפה חמה ומקצועית של שדכן.
 
 2. **בדיקות טכניות (מאחורי הקלעים):**
-   - וודא שאין הפרת Deal Breakers (אם יש - הציון צונח, ציין זאת ב"concerns").
-   - התחשב ברקע ושפה.
+   - וודא שאין הפרת Deal Breakers
+   - התחשב ברקע ושפה
 
 3. **מבנה התשובה:**
-   - detailedReasoning: הפסקה הסיפורית והאיכותית.
-   - strengths: נקודות קצרות (בולטים).
-   - concerns: חששות טכניים (בולטים).
+   - detailedReasoning: פסקה סיפורית איכותית
+   - strengths: נקודות בולטות
+   - concerns: חששות טכניים
 
 ═══════════════════════════════════════
 פורמט JSON בלבד:
@@ -2254,16 +1730,10 @@ ${candidatesText}
       "finalScore": 92,
       "rank": 1,
       "breakdown": {
-        "religious": 22,
-        "ageCompatibility": 9,
-        "careerFamily": 13,
-        "lifestyle": 8,
-        "socioEconomic": 9,
-        "education": 8,
-        "background": 8,
-        "values": 8
+        "religious": 22, "ageCompatibility": 9, "careerFamily": 13,
+        "lifestyle": 8, "socioEconomic": 9, "education": 8, "background": 8, "values": 8
       },
-      "detailedReasoning": "כאן תכתוב את הפסקה הסיפורית המושקעת...",
+      "detailedReasoning": "פסקה סיפורית מושקעת...",
       "strengths": ["רקע משותף", "שאיפות דומות"],
       "concerns": ["פער גילאים קטן"],
       "suggestedApproach": "להדגיש את המכנה המשותף התרבותי"
@@ -2279,14 +1749,10 @@ ${candidatesText}
 async function getGeminiModel() {
   const apiKey = process.env.GOOGLE_API_KEY || process.env.GOOGLE_GEMINI_API_KEY;
   if (!apiKey) throw new Error('GOOGLE_API_KEY not configured');
-  
   const genAI = new GoogleGenerativeAI(apiKey);
   return genAI.getGenerativeModel({
     model: 'gemini-2.0-flash',
-    generationConfig: {
-      responseMimeType: 'application/json',
-      temperature: 0.3,
-    },
+    generationConfig: { responseMimeType: 'application/json', temperature: 0.3 },
   });
 }
 
@@ -2302,16 +1768,11 @@ function parseJsonResponse<T>(jsonString: string): T {
 // ═══════════════════════════════════════════════════════════════
 
 async function saveResults(
-  userId: string,
-  profileId: string,
-  userGender: Gender,
-  matches: FinalCandidate[],
-  minScoreToSave: number
+  userId: string, profileId: string, userGender: Gender,
+  matches: FinalCandidate[], minScoreToSave: number
 ): Promise<number> {
   const matchesToSave = matches.filter(m => m.finalScore >= minScoreToSave);
-  
-  let saved = 0;
-  let updated = 0;
+  let saved = 0, updated = 0;
   
   for (const match of matchesToSave) {
     const isMale = userGender === Gender.MALE;
@@ -2345,8 +1806,7 @@ async function saveResults(
       } else {
         await prisma.potentialMatch.create({
           data: {
-            maleUserId,
-            femaleUserId,
+            maleUserId, femaleUserId,
             aiScore: match.finalScore,
             firstPassScore: match.tier2Score,
             scoreBreakdown: match.scoreBreakdown as any,
@@ -2378,7 +1838,91 @@ async function saveResults(
 }
 
 // ═══════════════════════════════════════════════════════════════
-// VIRTUAL PROFILE SCANNING
+// 🆕 V2.5: LOAD EXISTING MATCHES FROM DB
+// ═══════════════════════════════════════════════════════════════
+
+async function loadExistingMatches(
+  userId: string,
+  userGender: Gender,
+  minScore: number,
+  excludeUserIds: Set<string>
+): Promise<ExistingMatch[]> {
+  const isMale = userGender === Gender.MALE;
+  
+  const existingPotentialMatches = await prisma.potentialMatch.findMany({
+    where: {
+      ...(isMale ? { maleUserId: userId } : { femaleUserId: userId }),
+      aiScore: { gte: minScore },
+      status: { notIn: ['DISMISSED', 'EXPIRED'] },
+    },
+    include: {
+      male: {
+        select: {
+          id: true, firstName: true, lastName: true,
+          profile: {
+            select: {
+              city: true, religiousLevel: true, occupation: true, birthDate: true,
+            },
+          },
+        },
+      },
+      female: {
+        select: {
+          id: true, firstName: true, lastName: true,
+          profile: {
+            select: {
+              city: true, religiousLevel: true, occupation: true, birthDate: true,
+            },
+          },
+        },
+      },
+    },
+    orderBy: { aiScore: 'desc' },
+  });
+
+  const results: ExistingMatch[] = [];
+  
+  for (const pm of existingPotentialMatches) {
+    const otherUser = isMale ? pm.female : pm.male;
+    const otherProfile = otherUser.profile;
+    
+    // Skip candidates that were just scanned (they're in the new matches)
+    if (excludeUserIds.has(otherUser.id)) continue;
+    
+    let age: number | null = null;
+    if (otherProfile?.birthDate) {
+      age = calculateAge(otherProfile.birthDate);
+    }
+    
+    let recommendation: ExistingMatch['recommendation'];
+    if (pm.aiScore >= 85) recommendation = 'EXCELLENT';
+    else if (pm.aiScore >= 70) recommendation = 'GOOD';
+    else if (pm.aiScore >= 55) recommendation = 'FAIR';
+    else recommendation = 'POOR';
+    
+    results.push({
+      potentialMatchId: pm.id,
+      userId: otherUser.id,
+      firstName: otherUser.firstName,
+      lastName: otherUser.lastName,
+      age,
+      city: otherProfile?.city || null,
+      religiousLevel: otherProfile?.religiousLevel || null,
+      occupation: otherProfile?.occupation || null,
+      aiScore: pm.aiScore,
+      reasoning: pm.shortReasoning || pm.hybridReasoning || null,
+      recommendation,
+      scannedAt: pm.scannedAt || pm.hybridScannedAt || null,
+      scoreBreakdown: (pm.scoreBreakdown || pm.hybridScoreBreakdown || null) as ScoreBreakdown | null,
+    });
+  }
+  
+  console.log(`[ExistingMatches] Loaded ${results.length} existing matches from DB (min score: ${minScore})`);
+  return results;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// VIRTUAL PROFILE SCANNING (unchanged, no ScannedPair logic)
 // ═══════════════════════════════════════════════════════════════
 
 export async function hybridScanForVirtualUser(
@@ -2402,15 +1946,9 @@ export async function hybridScanForVirtualUser(
   console.log(`${'═'.repeat(70)}`);
   
   const virtualMetrics: ExtendedMetrics = {
-    confidenceScore: 80,
-    religiousStrictness: null,
-    socialEnergy: null,
-    careerOrientation: null,
-    urbanScore: null,
-    appearancePickiness: null,
-    spiritualDepth: null,
-    socioEconomicLevel: null,
-    jobSeniorityLevel: null,
+    confidenceScore: 80, religiousStrictness: null, socialEnergy: null,
+    careerOrientation: null, urbanScore: null, appearancePickiness: null,
+    spiritualDepth: null, socioEconomicLevel: null, jobSeniorityLevel: null,
     educationLevelScore: null,
     inferredAge: virtualProfile.inferredAge,
     inferredCity: virtualProfile.inferredCity,
@@ -2421,82 +1959,39 @@ export async function hybridScanForVirtualUser(
     inferredEducationLevel: virtualProfile.inferredEducation,
     aiPersonalitySummary: virtualProfile.personalitySummary,
     aiSeekingSummary: virtualProfile.lookingForSummary,
-    aiBackgroundSummary: null,
-    aiMatchmakerGuidelines: null,
+    aiBackgroundSummary: null, aiMatchmakerGuidelines: null,
     aiInferredDealBreakers: virtualProfile.dealBreakers,
     aiInferredMustHaves: virtualProfile.idealPartnerTraits,
     difficultyFlags: null,
-    prefSocioEconomicMin: null,
-    prefSocioEconomicMax: null,
-    prefJobSeniorityMin: null,
-    prefJobSeniorityMax: null,
-    prefEducationLevelMin: null,
-    prefEducationLevelMax: null,
+    prefSocioEconomicMin: null, prefSocioEconomicMax: null,
+    prefJobSeniorityMin: null, prefJobSeniorityMax: null,
+    prefEducationLevelMin: null, prefEducationLevelMax: null,
   };
   
-  const virtualBackgroundProfile = createBackgroundProfile(
-    null, [], null, null, null, virtualProfile.personalitySummary, null, null
-  );
-  
-  // Reuse SQL filter, but since it's virtual, no user ID filtering or ScannedPair optimization needed
+  const virtualBackgroundProfile = createBackgroundProfile(null, [], null, null, null, virtualProfile.personalitySummary, null, null);
   const oppositeGender = gender === Gender.MALE ? Gender.FEMALE : Gender.MALE;
   
-  // Using simplified query for virtual
   const candidates = await prisma.$queryRaw<any[]>`
     SELECT 
-      p.id as "profileId",
-      p."userId",
-      u."firstName",
-      u."lastName",
-      p.gender,
-      p."birthDate",
-      p.city,
-      p."religiousLevel",
-      p.occupation,
-      p.education,
-      p."educationLevel",
-      p.about,
-      p."matchingNotes",
-      p."parentStatus",
-      p."hasChildrenFromPrevious",
-      p."nativeLanguage",
-      p."additionalLanguages",
-      p."aliyaCountry",
-      p."aliyaYear",
-      p.origin,
-      p."preferredAgeMin",
-      p."preferredAgeMax",
+      p.id as "profileId", p."userId", u."firstName", u."lastName",
+      p.gender, p."birthDate", p.city, p."religiousLevel", p.occupation,
+      p.education, p."educationLevel", p.about, p."matchingNotes",
+      p."parentStatus", p."hasChildrenFromPrevious", p."nativeLanguage",
+      p."additionalLanguages", p."aliyaCountry", p."aliyaYear", p.origin,
+      p."preferredAgeMin", p."preferredAgeMax",
       p."updatedAt" as "profileUpdatedAt",
-      pm."confidenceScore",
-      pm."religiousStrictness",
-      pm."socialEnergy",
-      pm."careerOrientation",
-      pm."urbanScore",
-      pm."appearancePickiness",
-      pm."spiritualDepth",
-      pm."socioEconomicLevel",
-      pm."jobSeniorityLevel",
-      pm."educationLevelScore",
-      pm."inferredAge",
-      pm."inferredCity",
-      pm."inferredReligiousLevel",
-      pm."inferredPreferredAgeMin",
-      pm."inferredPreferredAgeMax",
-      pm."inferredParentStatus",
-      pm."inferredEducationLevel",
-      pm."aiPersonalitySummary",
-      pm."aiSeekingSummary",
-      pm."aiBackgroundSummary",
-      pm."aiMatchmakerGuidelines",
-      pm."aiInferredDealBreakers",
-      pm."aiInferredMustHaves",
-      pm."difficultyFlags",
-      pm."prefSocioEconomicMin",
-      pm."prefSocioEconomicMax",
-      pm."prefJobSeniorityMin",
-      pm."prefJobSeniorityMax",
-      pm."prefEducationLevelMin",
-      pm."prefEducationLevelMax",
+      pm."confidenceScore", pm."religiousStrictness", pm."socialEnergy",
+      pm."careerOrientation", pm."urbanScore", pm."appearancePickiness",
+      pm."spiritualDepth", pm."socioEconomicLevel", pm."jobSeniorityLevel",
+      pm."educationLevelScore", pm."inferredAge", pm."inferredCity",
+      pm."inferredReligiousLevel", pm."inferredPreferredAgeMin",
+      pm."inferredPreferredAgeMax", pm."inferredParentStatus",
+      pm."inferredEducationLevel", pm."aiPersonalitySummary", pm."aiSeekingSummary",
+      pm."aiBackgroundSummary", pm."aiMatchmakerGuidelines",
+      pm."aiInferredDealBreakers", pm."aiInferredMustHaves", pm."difficultyFlags",
+      pm."prefSocioEconomicMin", pm."prefSocioEconomicMax",
+      pm."prefJobSeniorityMin", pm."prefJobSeniorityMax",
+      pm."prefEducationLevelMin", pm."prefEducationLevelMax",
       COALESCE(EXTRACT(YEAR FROM AGE(p."birthDate"))::int, pm."inferredAge") as "age"
     FROM "Profile" p 
     JOIN "User" u ON u.id = p."userId"
@@ -2512,81 +2007,47 @@ export async function hybridScanForVirtualUser(
     LIMIT ${maxCandidates}
   `;
 
-  // Transform to RawCandidate
   const rawCandidates: RawCandidate[] = candidates.map(c => ({
-    profileId: c.profileId,
-    userId: c.userId,
-    firstName: c.firstName,
-    lastName: c.lastName,
-    gender: c.gender,
-    birthDate: c.birthDate,
-    age: c.age,
-    city: c.city,
-    religiousLevel: c.religiousLevel,
-    occupation: c.occupation,
-    education: c.education,
-    educationLevel: c.educationLevel,
-    about: c.about,
-    matchingNotes: c.matchingNotes,
-    parentStatus: c.parentStatus,
-    hasChildrenFromPrevious: c.hasChildrenFromPrevious,
-    nativeLanguage: c.nativeLanguage,
-    additionalLanguages: c.additionalLanguages || [],
-    aliyaCountry: c.aliyaCountry,
-    aliyaYear: c.aliyaYear,
-    origin: c.origin,
-    preferredAgeMin: c.preferredAgeMin,
-    preferredAgeMax: c.preferredAgeMax,
+    profileId: c.profileId, userId: c.userId, firstName: c.firstName, lastName: c.lastName,
+    gender: c.gender, birthDate: c.birthDate, age: c.age, city: c.city,
+    religiousLevel: c.religiousLevel, occupation: c.occupation, education: c.education,
+    educationLevel: c.educationLevel, about: c.about, matchingNotes: c.matchingNotes,
+    parentStatus: c.parentStatus, hasChildrenFromPrevious: c.hasChildrenFromPrevious,
+    nativeLanguage: c.nativeLanguage, additionalLanguages: c.additionalLanguages || [],
+    aliyaCountry: c.aliyaCountry, aliyaYear: c.aliyaYear, origin: c.origin,
+    preferredAgeMin: c.preferredAgeMin, preferredAgeMax: c.preferredAgeMax,
     profileUpdatedAt: c.profileUpdatedAt,
     metrics: {
-      // Map all metrics similarly to standard scan
-      confidenceScore: c.confidenceScore,
-      religiousStrictness: c.religiousStrictness,
-      socialEnergy: c.socialEnergy,
-      careerOrientation: c.careerOrientation,
-      urbanScore: c.urbanScore,
-      appearancePickiness: c.appearancePickiness,
-      spiritualDepth: c.spiritualDepth,
-      socioEconomicLevel: c.socioEconomicLevel,
-      jobSeniorityLevel: c.jobSeniorityLevel,
-      educationLevelScore: c.educationLevelScore,
-      inferredAge: c.inferredAge,
-      inferredCity: c.inferredCity,
+      confidenceScore: c.confidenceScore, religiousStrictness: c.religiousStrictness,
+      socialEnergy: c.socialEnergy, careerOrientation: c.careerOrientation,
+      urbanScore: c.urbanScore, appearancePickiness: c.appearancePickiness,
+      spiritualDepth: c.spiritualDepth, socioEconomicLevel: c.socioEconomicLevel,
+      jobSeniorityLevel: c.jobSeniorityLevel, educationLevelScore: c.educationLevelScore,
+      inferredAge: c.inferredAge, inferredCity: c.inferredCity,
       inferredReligiousLevel: c.inferredReligiousLevel,
       inferredPreferredAgeMin: c.inferredPreferredAgeMin,
       inferredPreferredAgeMax: c.inferredPreferredAgeMax,
       inferredParentStatus: c.inferredParentStatus,
       inferredEducationLevel: c.inferredEducationLevel,
-      aiPersonalitySummary: c.aiPersonalitySummary,
-      aiSeekingSummary: c.aiSeekingSummary,
-      aiBackgroundSummary: c.aiBackgroundSummary,
-      aiMatchmakerGuidelines: c.aiMatchmakerGuidelines,
-      aiInferredDealBreakers: c.aiInferredDealBreakers,
-      aiInferredMustHaves: c.aiInferredMustHaves,
+      aiPersonalitySummary: c.aiPersonalitySummary, aiSeekingSummary: c.aiSeekingSummary,
+      aiBackgroundSummary: c.aiBackgroundSummary, aiMatchmakerGuidelines: c.aiMatchmakerGuidelines,
+      aiInferredDealBreakers: c.aiInferredDealBreakers, aiInferredMustHaves: c.aiInferredMustHaves,
       difficultyFlags: c.difficultyFlags,
-      prefSocioEconomicMin: c.prefSocioEconomicMin,
-      prefSocioEconomicMax: c.prefSocioEconomicMax,
-      prefJobSeniorityMin: c.prefJobSeniorityMin,
-      prefJobSeniorityMax: c.prefJobSeniorityMax,
-      prefEducationLevelMin: c.prefEducationLevelMin,
-      prefEducationLevelMax: c.prefEducationLevelMax,
+      prefSocioEconomicMin: c.prefSocioEconomicMin, prefSocioEconomicMax: c.prefSocioEconomicMax,
+      prefJobSeniorityMin: c.prefJobSeniorityMin, prefJobSeniorityMax: c.prefJobSeniorityMax,
+      prefEducationLevelMin: c.prefEducationLevelMin, prefEducationLevelMax: c.prefEducationLevelMax,
     },
   }));
 
   const tier2Candidates = await tier2MetricsScoring(
     rawCandidates,
     {
-      age: virtualProfile.inferredAge,
-      gender: gender,
+      age: virtualProfile.inferredAge, gender: gender,
       religiousLevel: religiousLevel,
       backgroundProfile: virtualBackgroundProfile,
       metrics: virtualMetrics,
-      profileUpdatedAt: new Date(), // Virtual profiles are always fresh
     },
-    false,
-    true,
-    maxCandidates,
-    false // Don't skip pairs for virtual
+    false, true, maxCandidates
   );
 
   let tier3Candidates: AIFirstPassCandidate[];
@@ -2594,25 +2055,19 @@ export async function hybridScanForVirtualUser(
     const tier3Result = await tier3AIFirstPass(
       tier2Candidates.filter(c => c.tier2Score >= minScoreToReturn),
       {
-        name: 'פרופיל וירטואלי',
-        age: virtualProfile.inferredAge,
-        gender: gender,
-        city: virtualProfile.inferredCity,
-        religiousLevel: religiousLevel,
+        name: 'פרופיל וירטואלי', age: virtualProfile.inferredAge, gender: gender,
+        city: virtualProfile.inferredCity, religiousLevel: religiousLevel,
         occupation: virtualProfile.inferredOccupation,
-        backgroundProfile: virtualBackgroundProfile,
-        metrics: virtualMetrics,
+        backgroundProfile: virtualBackgroundProfile, metrics: virtualMetrics,
       },
       Math.min(25, tier2Candidates.length)
     );
     tier3Candidates = tier3Result.candidates;
   } else {
     tier3Candidates = tier2Candidates.slice(0, 25).map(c => ({
-      ...c,
-      aiFirstPassScore: c.tier2Score,
+      ...c, aiFirstPassScore: c.tier2Score,
       scoreBreakdown: { religious: 0, ageCompatibility: 0, careerFamily: 0, lifestyle: 0, socioEconomic: 0, education: 0, background: 0, values: 0 },
-      shortReasoning: 'AI skipped',
-      tier3Score: c.tier2Score,
+      shortReasoning: 'AI skipped', tier3Score: c.tier2Score,
     }));
   }
 
@@ -2621,51 +2076,37 @@ export async function hybridScanForVirtualUser(
     const tier4Result = await tier4AIDeepAnalysis(
       tier3Candidates.slice(0, 15),
       {
-        name: 'פרופיל וירטואלי',
-        age: virtualProfile.inferredAge,
-        gender: gender,
-        city: virtualProfile.inferredCity,
-        religiousLevel: religiousLevel,
+        name: 'פרופיל וירטואלי', age: virtualProfile.inferredAge, gender: gender,
+        city: virtualProfile.inferredCity, religiousLevel: religiousLevel,
         occupation: virtualProfile.inferredOccupation,
         about: virtualProfile.displaySummary,
-        backgroundProfile: virtualBackgroundProfile,
-        metrics: virtualMetrics,
+        backgroundProfile: virtualBackgroundProfile, metrics: virtualMetrics,
       }
     );
     finalCandidates = tier4Result.candidates;
   } else {
     finalCandidates = tier3Candidates.map((c, idx) => ({
-      ...c,
-      finalScore: c.tier3Score,
-      rank: idx + 1,
+      ...c, finalScore: c.tier3Score, rank: idx + 1,
       detailedReasoning: c.shortReasoning,
-      recommendation: c.tier3Score >= 70 ? 'GOOD' : 'FAIR',
-      strengths: [],
-      concerns: [],
+      recommendation: c.tier3Score >= 70 ? 'GOOD' as const : 'FAIR' as const,
+      strengths: [], concerns: [],
     }));
   }
 
   const matches: VirtualMatchCandidate[] = finalCandidates
     .filter(c => c.finalScore >= minScoreToReturn)
     .map(c => ({
-      userId: c.userId,
-      profileId: c.profileId,
-      firstName: c.firstName,
-      lastName: c.lastName,
-      age: c.age,
-      city: c.city || c.metrics.inferredCity,
+      userId: c.userId, profileId: c.profileId,
+      firstName: c.firstName, lastName: c.lastName,
+      age: c.age, city: c.city || c.metrics.inferredCity,
       religiousLevel: c.religiousLevel || c.metrics.inferredReligiousLevel,
-      occupation: c.occupation,
-      score: c.finalScore,
-      reasoning: c.detailedReasoning,
-      recommendation: c.recommendation,
-      strengths: c.strengths,
-      concerns: c.concerns,
+      occupation: c.occupation, score: c.finalScore,
+      reasoning: c.detailedReasoning, recommendation: c.recommendation,
+      strengths: c.strengths, concerns: c.concerns,
     }));
 
   return {
-    scanStartedAt: new Date(startTime),
-    scanCompletedAt: new Date(),
+    scanStartedAt: new Date(startTime), scanCompletedAt: new Date(),
     durationMs: Date.now() - startTime,
     stats: {
       totalCandidatesScanned: rawCandidates.length,
@@ -2673,13 +2114,12 @@ export async function hybridScanForVirtualUser(
       aiAnalyzed: tier3Candidates.length,
       deepAnalyzed: finalCandidates.length,
     },
-    matches,
-    warnings,
+    matches, warnings,
   };
 }
 
 // ═══════════════════════════════════════════════════════════════
-// MAIN EXPORT FUNCTION (Updated)
+// MAIN EXPORT FUNCTION (V2.5)
 // ═══════════════════════════════════════════════════════════════
 
 export async function hybridScan(
@@ -2690,32 +2130,16 @@ export async function hybridScan(
   const warnings: string[] = [];
   const errors: string[] = [];
 
-  // 🆕 V2.3: Initialize AI call stats
   const aiCallStats: AICallStats = {
     tier3FirstPass: {
-      batchesSent: 0,
-      candidatesAnalyzed: 0,
-      cachedSkipped: 0,
-      callsMade: 0,
-      totalTokensEstimated: 0,
-      durationMs: 0,
+      batchesSent: 0, candidatesAnalyzed: 0, callsMade: 0,
+      totalTokensEstimated: 0, durationMs: 0,
     },
     tier4DeepAnalysis: {
-      candidatesAnalyzed: 0,
-      cachedSkipped: 0,
-      callsMade: 0,
-      totalTokensEstimated: 0,
-      durationMs: 0,
+      candidatesAnalyzed: 0, callsMade: 0, totalTokensEstimated: 0, durationMs: 0,
     },
-    embeddings: {
-      callsMade: 0,
-      durationMs: 0,
-    },
-    total: {
-      aiCalls: 0,
-      embeddingCalls: 0,
-      estimatedCost: 0,
-    },
+    embeddings: { callsMade: 0, durationMs: 0 },
+    total: { aiCalls: 0, embeddingCalls: 0, estimatedCost: 0 },
   };
 
   const {
@@ -2735,13 +2159,19 @@ export async function hybridScan(
     skipCandidateMetricsUpdate = false,
     maxCandidatesToUpdate = MAX_CANDIDATES_TO_UPDATE,
     autoSave = true,
-    skipAlreadyScannedPairs = true,
+    excludeAlreadyScannedPairs = true,     // 🆕 V2.5
     saveScannedPairs: shouldSaveScannedPairs = true,
+    includeExistingMatches = true,          // 🆕 V2.5
+    existingMatchesMinScore,                // 🆕 V2.5
     checkCancelled,
   } = options;
 
+  const effectiveExistingMinScore = existingMatchesMinScore ?? minScoreToSave;
+
   console.log(`\n${'═'.repeat(70)}`);
-  console.log(`[HybridScan V2.3] Starting for user: ${userId}`);
+  console.log(`[HybridScan V2.5] Starting for user: ${userId}`);
+  console.log(`[HybridScan V2.5] excludeAlreadyScannedPairs: ${excludeAlreadyScannedPairs}`);
+  console.log(`[HybridScan V2.5] includeExistingMatches: ${includeExistingMatches}`);
   console.log(`${'═'.repeat(70)}`);
 
   const tiersStats = {
@@ -2762,7 +2192,6 @@ export async function hybridScan(
     where: { userId },
     include: { user: true },
   });
-
   if (!profile) throw new Error(`Profile not found for user: ${userId}`);
   
   const userMetrics = await prisma.$queryRaw<any[]>`
@@ -2788,7 +2217,6 @@ export async function hybridScan(
   } else if (metrics?.inferredPreferredAgeMin && metrics?.inferredPreferredAgeMax) {
     preferredAgeMin = metrics.inferredPreferredAgeMin;
     preferredAgeMax = metrics.inferredPreferredAgeMax;
-    console.log(`[HybridScan] Using AI inferred age preferences: ${preferredAgeMin}-${preferredAgeMax}`);
   } else {
     if (profile.gender === Gender.MALE) {
       preferredAgeMin = Math.max(18, userAge - 7);
@@ -2800,14 +2228,9 @@ export async function hybridScan(
   }
   
   const userBackgroundProfile = createBackgroundProfile(
-    profile.nativeLanguage,
-    profile.additionalLanguages || [],
-    profile.aliyaCountry,
-    profile.aliyaYear,
-    profile.origin,
-    profile.about,
-    profile.matchingNotes,
-    metrics.aiBackgroundSummary
+    profile.nativeLanguage, profile.additionalLanguages || [],
+    profile.aliyaCountry, profile.aliyaYear, profile.origin,
+    profile.about, profile.matchingNotes, metrics.aiBackgroundSummary
   );
   
   await ensureUserReady(profile.id, forceUpdateMetrics);
@@ -2820,32 +2243,27 @@ export async function hybridScan(
   }
   
   tiersStats.tier0.durationMs = Date.now() - tier0Start;
-  console.log(`[HybridScan] Tier 0: Updated ${tiersStats.tier0.candidatesUpdated} candidates in ${tiersStats.tier0.durationMs}ms`);
 
-  if (checkCancelled && await checkCancelled()) {
-    throw new Error('Scan cancelled by user request');
-  }
+  if (checkCancelled && await checkCancelled()) throw new Error('Scan cancelled by user request');
 
   // ═══════════════════════════════════════════════════════════
-  // TIER 1: SQL Filtering
+  // TIER 1: SQL Filtering (V2.5 - with ScannedPair exclusion)
   // ═══════════════════════════════════════════════════════════
-  console.log(`\n[HybridScan] ═══ TIER 1: SQL Filter (Enhanced) ═══`);
+  console.log(`\n[HybridScan] ═══ TIER 1: SQL Filter (V2.5 - Exclude Scanned) ═══`);
   const tier1Start = Date.now();
   
   const preferredPartnerHasChildren = profile.preferredPartnerHasChildren ?? 'does_not_matter';
   
-  const tier1Candidates = await tier1SqlFilter(
-    userId,
-    profile.id,
-    profile.gender,
-    userAge,
-    profile.religiousLevel,
-    preferredAgeMin,
-    preferredAgeMax,
-    preferredPartnerHasChildren,
-    maxTier1Candidates,
-    true // includeScannedPairInfo
+  const tier1Result = await tier1SqlFilter(
+    userId, profile.id, profile.gender, userAge,
+    profile.religiousLevel, preferredAgeMin, preferredAgeMax,
+    preferredPartnerHasChildren, maxTier1Candidates,
+    profile.updatedAt,               // 🆕 V2.5: target profile updatedAt
+    excludeAlreadyScannedPairs       // 🆕 V2.5: exclude flag
   );
+  
+  const tier1Candidates = tier1Result.candidates;
+  const excludedByScannedPair = tier1Result.excludedByScannedPair;
   
   tiersStats.tier1 = {
     input: maxTier1Candidates,
@@ -2853,76 +2271,64 @@ export async function hybridScan(
     durationMs: Date.now() - tier1Start,
   };
   
-  console.log(`[HybridScan] Tier 1: ${tier1Candidates.length} candidates in ${tiersStats.tier1.durationMs}ms`);
+  console.log(`[HybridScan] Tier 1: ${tier1Candidates.length} new candidates (${excludedByScannedPair} excluded as already scanned)`);
 
-  if (tier1Candidates.length === 0) {
-    return createEmptyResultWithAIStats(userId, profile.id, startTime, tiersStats, aiCallStats, warnings, errors);
+  if (tier1Candidates.length === 0 && !includeExistingMatches) {
+    return createEmptyResultWithAIStats(userId, profile.id, startTime, tiersStats, aiCallStats, excludedByScannedPair, warnings, errors);
   }
 
-  if (checkCancelled && await checkCancelled()) {
-    throw new Error('Scan cancelled by user request (before Tier 2)');
-  }
+  if (checkCancelled && await checkCancelled()) throw new Error('Scan cancelled by user request (before Tier 2)');
 
   // ═══════════════════════════════════════════════════════════
   // TIER 2: Extended Metrics + Background Scoring
   // ═══════════════════════════════════════════════════════════
-  console.log(`\n[HybridScan] ═══ TIER 2: Extended Metrics + Background ═══`);
-  const tier2Start = Date.now();
+  let tier2Candidates: ScoredCandidate[] = [];
   
-  const tier2Candidates = await tier2MetricsScoring(
-    tier1Candidates,
-    {
-      age: userAge,
-      gender: profile.gender,
-      religiousLevel: profile.religiousLevel,
-      backgroundProfile: userBackgroundProfile,
-      metrics: metrics,
-      profileUpdatedAt: profile.updatedAt, // 🆕 V2.2
-    },
-    useVectors,
-    useBackgroundAnalysis,
-    maxTier2Candidates,
-    skipAlreadyScannedPairs // 🆕 V2.2
-  );
-  
-  tiersStats.tier2 = {
-    input: tier1Candidates.length,
-    output: tier2Candidates.length,
-    durationMs: Date.now() - tier2Start,
-  };
-  
-  const skippedFromScannedPair = tier2Candidates.filter(c => c.fromScannedPairCache).length;
-  console.log(`[HybridScan] Tier 2: ${tier2Candidates.length} candidates (Skipped AI for: ${skippedFromScannedPair})`);
-
-  if (checkCancelled && await checkCancelled()) {
-    throw new Error('Scan cancelled by user request (before AI Batch)');
+  if (tier1Candidates.length > 0) {
+    console.log(`\n[HybridScan] ═══ TIER 2: Extended Metrics + Background ═══`);
+    const tier2Start = Date.now();
+    
+    tier2Candidates = await tier2MetricsScoring(
+      tier1Candidates,
+      {
+        age: userAge, gender: profile.gender,
+        religiousLevel: profile.religiousLevel,
+        backgroundProfile: userBackgroundProfile,
+        metrics: metrics,
+      },
+      useVectors, useBackgroundAnalysis, maxTier2Candidates
+    );
+    
+    tiersStats.tier2 = {
+      input: tier1Candidates.length,
+      output: tier2Candidates.length,
+      durationMs: Date.now() - tier2Start,
+    };
+    
+    console.log(`[HybridScan] Tier 2: ${tier2Candidates.length} candidates (all new)`);
   }
 
+  if (checkCancelled && await checkCancelled()) throw new Error('Scan cancelled before AI');
+
   // ═══════════════════════════════════════════════════════════
-  // TIER 3: AI First Pass (Updated to capture stats)
+  // TIER 3: AI First Pass
   // ═══════════════════════════════════════════════════════════
-  let tier3Candidates: AIFirstPassCandidate[];
+  let tier3Candidates: AIFirstPassCandidate[] = [];
   
-  if (useAIFirstPass) {
+  if (useAIFirstPass && tier2Candidates.length > 0) {
     console.log(`\n[HybridScan] ═══ TIER 3: AI First Pass ═══`);
     const tier3Start = Date.now();
     
-    // We send candidates to AI even if cached? No, function handles it internally.
-    // We filter for minScore unless it's cached (cached ones might have old high score)
-    const candidatesForAI = tier2Candidates.filter(c => c.tier2Score >= minScoreForAI || c.fromScannedPairCache);
+    const candidatesForAI = tier2Candidates.filter(c => c.tier2Score >= minScoreForAI);
     
-    // 🆕 V2.3: Capture AI stats
     const tier3Result = await tier3AIFirstPass(
       candidatesForAI,
       {
-        name: profile.user.firstName,
-        age: userAge,
-        gender: profile.gender,
+        name: profile.user.firstName, age: userAge, gender: profile.gender,
         city: profile.city || metrics.inferredCity,
         religiousLevel: profile.religiousLevel || metrics.inferredReligiousLevel,
         occupation: profile.occupation,
-        backgroundProfile: userBackgroundProfile,
-        metrics: metrics,
+        backgroundProfile: userBackgroundProfile, metrics: metrics,
       },
       maxTier3Candidates
     );
@@ -2937,24 +2343,20 @@ export async function hybridScan(
     };
     
     console.log(`[HybridScan] Tier 3: ${tier3Candidates.length} candidates, ${aiCallStats.tier3FirstPass.callsMade} AI calls`);
-  } else {
+  } else if (tier2Candidates.length > 0) {
     tier3Candidates = tier2Candidates.slice(0, maxTier3Candidates).map(c => ({
-      ...c,
-      aiFirstPassScore: c.tier2Score,
+      ...c, aiFirstPassScore: c.tier2Score,
       scoreBreakdown: { religious: 0, ageCompatibility: 0, careerFamily: 0, lifestyle: 0, socioEconomic: 0, education: 0, background: 0, values: 0 },
-      shortReasoning: 'AI skipped',
-      tier3Score: c.tier2Score,
+      shortReasoning: 'AI skipped', tier3Score: c.tier2Score,
     }));
   }
 
-  if (checkCancelled && await checkCancelled()) {
-    throw new Error('Scan cancelled by user request (before Deep Analysis)');
-  }
+  if (checkCancelled && await checkCancelled()) throw new Error('Scan cancelled before Deep Analysis');
 
   // ═══════════════════════════════════════════════════════════
-  // TIER 4: AI Deep Analysis (Updated to capture stats)
+  // TIER 4: AI Deep Analysis
   // ═══════════════════════════════════════════════════════════
-  let finalCandidates: FinalCandidate[];
+  let finalCandidates: FinalCandidate[] = [];
   
   if (useAIDeepAnalysis && tier3Candidates.length > 0) {
     console.log(`\n[HybridScan] ═══ TIER 4: AI Deep Analysis ═══`);
@@ -2962,19 +2364,14 @@ export async function hybridScan(
     
     const topForDeep = tier3Candidates.slice(0, topForDeepAnalysis);
     
-    // 🆕 V2.3: Capture AI stats
     const tier4Result = await tier4AIDeepAnalysis(
       topForDeep,
       {
-        name: profile.user.firstName,
-        age: userAge,
-        gender: profile.gender,
+        name: profile.user.firstName, age: userAge, gender: profile.gender,
         city: profile.city || metrics.inferredCity,
         religiousLevel: profile.religiousLevel || metrics.inferredReligiousLevel,
-        occupation: profile.occupation,
-        about: profile.about,
-        backgroundProfile: userBackgroundProfile,
-        metrics: metrics,
+        occupation: profile.occupation, about: profile.about,
+        backgroundProfile: userBackgroundProfile, metrics: metrics,
       }
     );
     
@@ -2988,26 +2385,21 @@ export async function hybridScan(
     };
     
     console.log(`[HybridScan] Tier 4: ${finalCandidates.length} candidates, ${aiCallStats.tier4DeepAnalysis.callsMade} AI calls`);
-  } else {
+  } else if (tier3Candidates.length > 0) {
     finalCandidates = tier3Candidates.map((c, idx) => ({
-      ...c,
-      finalScore: c.tier3Score,
-      rank: idx + 1,
+      ...c, finalScore: c.tier3Score, rank: idx + 1,
       detailedReasoning: c.shortReasoning,
-      recommendation: c.tier3Score >= 70 ? 'GOOD' : 'FAIR',
-      strengths: [],
-      concerns: [],
+      recommendation: c.tier3Score >= 70 ? 'GOOD' as const : 'FAIR' as const,
+      strengths: [], concerns: [],
     }));
   }
 
   // ═══════════════════════════════════════════════════════════
-  // 🆕 V2.3: Calculate totals
+  // Calculate AI cost totals
   // ═══════════════════════════════════════════════════════════
   aiCallStats.total = {
     aiCalls: aiCallStats.tier3FirstPass.callsMade + aiCallStats.tier4DeepAnalysis.callsMade,
     embeddingCalls: aiCallStats.embeddings.callsMade,
-    // Gemini 2.0 Flash pricing: ~$0.10 per 1M input tokens, ~$0.40 per 1M output tokens
-    // Rough estimate: average ~$0.20 per 1M tokens
     estimatedCost: ((aiCallStats.tier3FirstPass.totalTokensEstimated + aiCallStats.tier4DeepAnalysis.totalTokensEstimated) / 1000000) * 0.20,
   };
 
@@ -3022,26 +2414,36 @@ export async function hybridScan(
     savedCount = await saveResults(userId, profile.id, profile.gender, finalCandidates, minScoreToSave);
   }
   
-  // 🆕 V2.2: Save ScannedPairs
   if (shouldSaveScannedPairs && finalCandidates.length > 0) {
     console.log(`\n[HybridScan] ═══ Saving ScannedPairs ═══`);
-    scannedPairsSaved = await saveScannedPairs(
-      userId,
-      profile.gender,
-      profile.updatedAt,
-      finalCandidates
+    scannedPairsSaved = await saveScannedPairs(userId, profile.gender, profile.updatedAt, finalCandidates);
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // 🆕 V2.5: LOAD EXISTING MATCHES FROM DB
+  // ═══════════════════════════════════════════════════════════
+  let existingMatches: ExistingMatch[] = [];
+  
+  if (includeExistingMatches) {
+    console.log(`\n[HybridScan] ═══ Loading Existing Matches ═══`);
+    
+    // Exclude candidates we just scanned (they're already in finalCandidates)
+    const newlyScannedUserIds = new Set(finalCandidates.map(c => c.userId));
+    
+    existingMatches = await loadExistingMatches(
+      userId, profile.gender, effectiveExistingMinScore, newlyScannedUserIds
     );
   }
 
   const totalDuration = Date.now() - startTime;
   
-  // 🆕 V2.3: Enhanced summary log
   console.log(`\n${'═'.repeat(70)}`);
-  console.log(`[HybridScan] ✅ Completed in ${totalDuration}ms`);
-  console.log(`[HybridScan] 📊 AI Stats Summary:`);
-  console.log(`   Tier 3: ${aiCallStats.tier3FirstPass.callsMade} calls, ${aiCallStats.tier3FirstPass.candidatesAnalyzed} analyzed, ${aiCallStats.tier3FirstPass.cachedSkipped} cached`);
-  console.log(`   Tier 4: ${aiCallStats.tier4DeepAnalysis.callsMade} calls, ${aiCallStats.tier4DeepAnalysis.candidatesAnalyzed} analyzed, ${aiCallStats.tier4DeepAnalysis.cachedSkipped} cached`);
-  console.log(`   Total: ${aiCallStats.total.aiCalls} AI calls, ~$${aiCallStats.total.estimatedCost.toFixed(4)} estimated cost`);
+  console.log(`[HybridScan V2.5] ✅ Completed in ${totalDuration}ms`);
+  console.log(`[HybridScan V2.5] 📊 Results:`);
+  console.log(`   🆕 New matches scanned: ${finalCandidates.length}`);
+  console.log(`   📋 Existing matches loaded: ${existingMatches.length}`);
+  console.log(`   🚫 Excluded (already scanned): ${excludedByScannedPair}`);
+  console.log(`   💰 AI Stats: ${aiCallStats.total.aiCalls} calls, ~$${aiCallStats.total.estimatedCost.toFixed(4)}`);
   console.log(`${'═'.repeat(70)}\n`);
 
   return {
@@ -3060,12 +2462,12 @@ export async function hybridScan(
       fromCache: false,
       candidatesWithDifficultyFlags: tier2Candidates.filter(c => c.metrics.difficultyFlags?.length).length,
       scannedPairsSaved,
-      // 🆕 V2.2: ScannedPair stats
-      skippedFromScannedPair: skippedFromScannedPair,
-      newPairsScanned: finalCandidates.filter(c => !c.fromScannedPairCache).length,
+      excludedByScannedPair,                          // 🆕 V2.5
+      existingMatchesLoaded: existingMatches.length,   // 🆕 V2.5
     },
-    aiCallStats, // 🆕 V2.3
-    matches: finalCandidates,
+    aiCallStats,
+    matches: finalCandidates,           // 🆕 Only new matches from this scan
+    existingMatches,                     // 🆕 V2.5: Existing matches from DB
     warnings,
     errors,
   };
@@ -3075,39 +2477,27 @@ export async function hybridScan(
 // HELPER FUNCTIONS
 // ═══════════════════════════════════════════════════════════════
 
-// 🆕 V2.3: Helper for empty result with AI stats
 function createEmptyResultWithAIStats(
-  userId: string,
-  profileId: string,
-  startTime: number,
-  tiers: HybridScanResult['tiers'],
-  aiCallStats: AICallStats,
-  warnings: string[],
-  errors: string[]
+  userId: string, profileId: string, startTime: number,
+  tiers: HybridScanResult['tiers'], aiCallStats: AICallStats,
+  excludedByScannedPair: number,
+  warnings: string[], errors: string[]
 ): HybridScanResult {
   return {
-    userId,
-    profileId,
-    scanStartedAt: new Date(startTime),
-    scanCompletedAt: new Date(),
+    userId, profileId,
+    scanStartedAt: new Date(startTime), scanCompletedAt: new Date(),
     durationMs: Date.now() - startTime,
     tiers,
     stats: {
-      totalCandidatesScanned: 0,
-      passedFilters: 0,
-      aiAnalyzed: 0,
-      deepAnalyzed: 0,
-      savedToDb: 0,
-      fromCache: false,
-      candidatesWithDifficultyFlags: 0,
-      scannedPairsSaved: 0,
-      skippedFromScannedPair: 0,
-      newPairsScanned: 0,
+      totalCandidatesScanned: 0, passedFilters: 0, aiAnalyzed: 0,
+      deepAnalyzed: 0, savedToDb: 0, fromCache: false,
+      candidatesWithDifficultyFlags: 0, scannedPairsSaved: 0,
+      excludedByScannedPair, existingMatchesLoaded: 0,
     },
     aiCallStats,
     matches: [],
-    warnings,
-    errors,
+    existingMatches: [],
+    warnings, errors,
   };
 }
 
@@ -3130,6 +2520,7 @@ export const hybridMatchingService = {
   checkDealBreakers,
   checkMustHaves,
   saveScannedPairs,
+  loadExistingMatches,   // 🆕 V2.5
 };
 
 export default hybridMatchingService;
