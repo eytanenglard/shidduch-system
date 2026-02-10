@@ -23,6 +23,7 @@
     "test:dry-run": "tsx src/scripts/testDryRun.ts"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.74.0",
     "@aws-sdk/client-s3": "^3.817.0",
     "@faker-js/faker": "^9.8.0",
     "@google-cloud/aiplatform": "^4.2.0",

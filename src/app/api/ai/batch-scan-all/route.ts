@@ -601,7 +601,6 @@ async function findUsersNeedingUpdate(): Promise<UserNeedingUpdate[]> {
       -- Then by content update date
       p."contentUpdatedAt" DESC NULLS LAST
       
-    LIMIT 100
   `;
 
   // 🆕 V2.4: Enhanced logging with breakdown
