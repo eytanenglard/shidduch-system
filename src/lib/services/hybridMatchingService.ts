@@ -400,6 +400,326 @@ const BACKGROUND_DESCRIPTIONS: Record<BackgroundCategory, string> = {
   oleh_new: 'עולה חדש/ה (פחות מ-3 שנים) - בתחילת תהליך הקליטה, אתגרי שפה ותרבות',
 };
 
+const RELIGIOUS_COMPATIBILITY_MATRIX: Record<string, Record<string, number>> = {
+  // ═══════════════════════════════════════════════════
+  // חרדי חסידי
+  // ═══════════════════════════════════════════════════
+  charedi_hasidic: {
+    charedi_hasidic:       100,
+    charedi_litvak:         50,  // פער תרבותי משמעותי בין חסידים לליטאים
+    charedi_sephardic:      40,  // עולמות שונים מאוד
+    chabad:                 60,  // שניהם מסורת חסידית, אך חב"ד ייחודי
+    breslov:                65,  // ברסלב קרוב לעולם החסידי
+    charedi_modern:         30,  // פער גדול באורח חיים
+    dati_leumi_torani:      20,  // עולמות שונים
+    dati_leumi_standard:    10,
+    dati_leumi_liberal:      5,
+    masorti_strong:          5,
+    masorti_light:           5,
+    secular_traditional_connection: 5,
+    secular:                 5,
+    spiritual_not_religious:  5,
+    other:                  30,
+  },
+
+  // ═══════════════════════════════════════════════════
+  // חרדי ליטאי
+  // ═══════════════════════════════════════════════════
+  charedi_litvak: {
+    charedi_hasidic:        50,  // פער תרבותי - ליטאים וחסידים עולמות שונים
+    charedi_litvak:        100,
+    charedi_sephardic:      55,  // שניהם בעולם הישיבות אך תרבות שונה
+    chabad:                 40,  // ליטאים לעיתים מסתייגים מחב"ד
+    breslov:                35,  // ליטאים מסתייגים מברסלב
+    charedi_modern:         70,  // חרדי מודרני לעיתים מרקע ליטאי
+    dati_leumi_torani:      40,  // יש חפיפה בעולם הלימוד
+    dati_leumi_standard:    20,
+    dati_leumi_liberal:     10,
+    masorti_strong:         10,
+    masorti_light:           5,
+    secular_traditional_connection: 5,
+    secular:                 5,
+    spiritual_not_religious:  5,
+    other:                  30,
+  },
+
+  // ═══════════════════════════════════════════════════
+  // חרדי ספרדי
+  // ═══════════════════════════════════════════════════
+  charedi_sephardic: {
+    charedi_hasidic:        40,  // עולמות שונים מאוד
+    charedi_litvak:         55,  // חפיפה בישיבות אך תרבות שונה
+    charedi_sephardic:     100,
+    chabad:                 50,  // חב"ד עושה הרבה עבודה עם ספרדים
+    breslov:                50,  // לברסלב יש קהילה ספרדית
+    charedi_modern:         60,  // לעולם הספרדי יש גרסה מודרנית יותר
+    dati_leumi_torani:      45,  // יש חפיפה מסוימת
+    dati_leumi_standard:    30,
+    dati_leumi_liberal:     15,
+    masorti_strong:         25,  // מסורתי ספרדי קרוב יותר
+    masorti_light:          15,
+    secular_traditional_connection: 10,
+    secular:                 5,
+    spiritual_not_religious:  5,
+    other:                  30,
+  },
+
+  // ═══════════════════════════════════════════════════
+  // חב"ד
+  // ═══════════════════════════════════════════════════
+  chabad: {
+    charedi_hasidic:        60,  // שניהם חסידים אך חב"ד ייחודי
+    charedi_litvak:         40,
+    charedi_sephardic:      50,
+    chabad:                100,
+    breslov:                50,  // שניהם חסידים עם גישה פתוחה
+    charedi_modern:         55,  // חב"ד פתוח יחסית
+    dati_leumi_torani:      50,  // חב"ד מגשר בין עולמות
+    dati_leumi_standard:    40,
+    dati_leumi_liberal:     25,
+    masorti_strong:         30,
+    masorti_light:          20,
+    secular_traditional_connection: 15,
+    secular:                10,
+    spiritual_not_religious: 15,  // חב"ד עובד עם כולם
+    other:                  35,
+  },
+
+  // ═══════════════════════════════════════════════════
+  // ברסלב
+  // ═══════════════════════════════════════════════════
+  breslov: {
+    charedi_hasidic:        65,  // ברסלב זה חסידות
+    charedi_litvak:         35,
+    charedi_sephardic:      50,  // יש ברסלביים ספרדים
+    chabad:                 50,
+    breslov:               100,
+    charedi_modern:         40,
+    dati_leumi_torani:      35,
+    dati_leumi_standard:    25,
+    dati_leumi_liberal:     15,
+    masorti_strong:         15,
+    masorti_light:          10,
+    secular_traditional_connection: 10,
+    secular:                 5,
+    spiritual_not_religious: 15,  // ברסלב מושך גם רוחניים
+    other:                  30,
+  },
+
+  // ═══════════════════════════════════════════════════
+  // חרדי מודרני
+  // ═══════════════════════════════════════════════════
+  charedi_modern: {
+    charedi_hasidic:        30,
+    charedi_litvak:         70,  // חרדי מודרני לעיתים מרקע ליטאי
+    charedi_sephardic:      60,
+    chabad:                 55,
+    breslov:                40,
+    charedi_modern:        100,
+    dati_leumi_torani:      80,  // חפיפה גדולה! זה הגשר
+    dati_leumi_standard:    55,
+    dati_leumi_liberal:     30,
+    masorti_strong:         20,
+    masorti_light:          10,
+    secular_traditional_connection: 10,
+    secular:                 5,
+    spiritual_not_religious:  5,
+    other:                  30,
+  },
+
+  // ═══════════════════════════════════════════════════
+  // דתי לאומי תורני
+  // ═══════════════════════════════════════════════════
+  dati_leumi_torani: {
+    charedi_hasidic:        20,
+    charedi_litvak:         40,
+    charedi_sephardic:      45,
+    chabad:                 50,
+    breslov:                35,
+    charedi_modern:         80,  // חפיפה גדולה
+    dati_leumi_torani:     100,
+    dati_leumi_standard:    75,  // שניהם דתי לאומי אך תורני יותר מחמיר
+    dati_leumi_liberal:     40,  // פער משמעותי בהשקפה
+    masorti_strong:         25,
+    masorti_light:          15,
+    secular_traditional_connection: 10,
+    secular:                 5,
+    spiritual_not_religious: 10,
+    other:                  30,
+  },
+
+  // ═══════════════════════════════════════════════════
+  // דתי לאומי סטנדרטי
+  // ═══════════════════════════════════════════════════
+  dati_leumi_standard: {
+    charedi_hasidic:        10,
+    charedi_litvak:         20,
+    charedi_sephardic:      30,
+    chabad:                 40,
+    breslov:                25,
+    charedi_modern:         55,
+    dati_leumi_torani:      75,
+    dati_leumi_standard:   100,
+    dati_leumi_liberal:     70,  // שניהם דתי לאומי, פער קטן יחסית
+    masorti_strong:         50,
+    masorti_light:          30,
+    secular_traditional_connection: 20,
+    secular:                10,
+    spiritual_not_religious: 15,
+    other:                  35,
+  },
+
+  // ═══════════════════════════════════════════════════
+  // דתי לאומי ליברלי
+  // ═══════════════════════════════════════════════════
+  dati_leumi_liberal: {
+    charedi_hasidic:         5,
+    charedi_litvak:         10,
+    charedi_sephardic:      15,
+    chabad:                 25,
+    breslov:                15,
+    charedi_modern:         30,
+    dati_leumi_torani:      40,  // פער בהשקפה
+    dati_leumi_standard:    70,
+    dati_leumi_liberal:    100,
+    masorti_strong:         70,  // קרוב מאוד
+    masorti_light:          50,
+    secular_traditional_connection: 40,
+    secular:                20,
+    spiritual_not_religious: 30,
+    other:                  35,
+  },
+
+  // ═══════════════════════════════════════════════════
+  // מסורתי חזק
+  // ═══════════════════════════════════════════════════
+  masorti_strong: {
+    charedi_hasidic:         5,
+    charedi_litvak:         10,
+    charedi_sephardic:      25,  // מסורתי ספרדי קרוב לחרדי ספרדי
+    chabad:                 30,
+    breslov:                15,
+    charedi_modern:         20,
+    dati_leumi_torani:      25,
+    dati_leumi_standard:    50,
+    dati_leumi_liberal:     70,
+    masorti_strong:        100,
+    masorti_light:          80,
+    secular_traditional_connection: 65,
+    secular:                30,
+    spiritual_not_religious: 40,
+    other:                  40,
+  },
+
+  // ═══════════════════════════════════════════════════
+  // מסורתי לייט
+  // ═══════════════════════════════════════════════════
+  masorti_light: {
+    charedi_hasidic:         5,
+    charedi_litvak:          5,
+    charedi_sephardic:      15,
+    chabad:                 20,
+    breslov:                10,
+    charedi_modern:         10,
+    dati_leumi_torani:      15,
+    dati_leumi_standard:    30,
+    dati_leumi_liberal:     50,
+    masorti_strong:         80,
+    masorti_light:         100,
+    secular_traditional_connection: 80,
+    secular:                50,
+    spiritual_not_religious: 50,
+    other:                  40,
+  },
+
+  // ═══════════════════════════════════════════════════
+  // חילוני עם קשר למסורת
+  // ═══════════════════════════════════════════════════
+  secular_traditional_connection: {
+    charedi_hasidic:         5,
+    charedi_litvak:          5,
+    charedi_sephardic:      10,
+    chabad:                 15,
+    breslov:                10,
+    charedi_modern:         10,
+    dati_leumi_torani:      10,
+    dati_leumi_standard:    20,
+    dati_leumi_liberal:     40,
+    masorti_strong:         65,
+    masorti_light:          80,
+    secular_traditional_connection: 100,
+    secular:                75,
+    spiritual_not_religious: 60,
+    other:                  45,
+  },
+
+  // ═══════════════════════════════════════════════════
+  // חילוני
+  // ═══════════════════════════════════════════════════
+  secular: {
+    charedi_hasidic:         5,
+    charedi_litvak:          5,
+    charedi_sephardic:       5,
+    chabad:                 10,
+    breslov:                 5,
+    charedi_modern:          5,
+    dati_leumi_torani:       5,
+    dati_leumi_standard:    10,
+    dati_leumi_liberal:     20,
+    masorti_strong:         30,
+    masorti_light:          50,
+    secular_traditional_connection: 75,
+    secular:               100,
+    spiritual_not_religious: 70,
+    other:                  45,
+  },
+
+  // ═══════════════════════════════════════════════════
+  // רוחני לא דתי
+  // ═══════════════════════════════════════════════════
+  spiritual_not_religious: {
+    charedi_hasidic:         5,
+    charedi_litvak:          5,
+    charedi_sephardic:       5,
+    chabad:                 15,  // חב"ד מושך רוחניים
+    breslov:                15,  // ברסלב מושך רוחניים
+    charedi_modern:          5,
+    dati_leumi_torani:      10,
+    dati_leumi_standard:    15,
+    dati_leumi_liberal:     30,
+    masorti_strong:         40,
+    masorti_light:          50,
+    secular_traditional_connection: 60,
+    secular:                70,
+    spiritual_not_religious: 100,
+    other:                  50,
+  },
+
+  // ═══════════════════════════════════════════════════
+  // אחר
+  // ═══════════════════════════════════════════════════
+  other: {
+    charedi_hasidic:        30,
+    charedi_litvak:         30,
+    charedi_sephardic:      30,
+    chabad:                 35,
+    breslov:                30,
+    charedi_modern:         30,
+    dati_leumi_torani:      30,
+    dati_leumi_standard:    35,
+    dati_leumi_liberal:     35,
+    masorti_strong:         40,
+    masorti_light:          40,
+    secular_traditional_connection: 45,
+    secular:                45,
+    spiritual_not_religious: 50,
+    other:                  70,  // "אחר" עם "אחר" - לא בהכרח מתאים
+  },
+};
+
+
+
+
 // ═══════════════════════════════════════════════════════════════
 // HELPER FUNCTIONS - Age
 // ═══════════════════════════════════════════════════════════════
@@ -464,21 +784,29 @@ function calculateAgeScoreForMatch(
 // ═══════════════════════════════════════════════════════════════
 
 function getReligiousCompatibilityScore(level1: string | null, level2: string | null): number {
-  if (!level1 || !level2) return 70;
-  
+  if (!level1 || !level2) return 50; // שונה מ-70 - אם אין מידע, לא נותנים ציון גבוה
+
+  // חיפוש במטריצה
+  const row = RELIGIOUS_COMPATIBILITY_MATRIX[level1];
+  if (row && row[level2] !== undefined) {
+    return row[level2];
+  }
+
+  // Fallback: אם הערך לא נמצא במטריצה (רמה לא מוכרת)
+  // נשתמש בלוגיקה הליניארית הישנה כ-fallback
   const idx1 = RELIGIOUS_LEVEL_ORDER.indexOf(level1);
   const idx2 = RELIGIOUS_LEVEL_ORDER.indexOf(level2);
-  
-  if (idx1 === -1 || idx2 === -1) return 70;
-  
+
+  if (idx1 === -1 || idx2 === -1) return 50;
+
   const distance = Math.abs(idx1 - idx2);
-  
   if (distance === 0) return 100;
-  if (distance === 1) return 90;
-  if (distance === 2) return 75;
-  if (distance === 3) return 55;
-  return 30;
+  if (distance === 1) return 80;
+  if (distance === 2) return 60;
+  if (distance === 3) return 40;
+  return 20;
 }
+
 
 function calculateSocioEconomicScore(
   userLevel: number | null,
