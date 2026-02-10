@@ -77,15 +77,19 @@ const VALID_ORIGINS = [
 // ---------------------------------------------------------------------------
 
 const MARITAL_STATUS_MAP: Record<string, string> = {
+  // עברית - זכר
   'רווק': 'single',
   'גרוש': 'divorced',
   'אלמן': 'widowed',
+  // עברית - נקבה
   'רווקה': 'single',
   'גרושה': 'divorced',
   'אלמנה': 'widowed',
+  // אנגלית
   'single': 'single',
   'divorced': 'divorced',
   'widowed': 'widowed',
+  // וריאציות
   'לא נשוי': 'single',
   'לא נשואה': 'single',
   'לא היה נשוי': 'single',
@@ -105,6 +109,7 @@ const MARITAL_STATUS_MAP: Record<string, string> = {
 };
 
 const RELIGIOUS_LEVEL_MAP: Record<string, string> = {
+  // דתי לאומי סטנדרטי
   'דתי לאומי': 'dati_leumi_standard',
   'דתית לאומית': 'dati_leumi_standard',
   'דתיה לאומית': 'dati_leumi_standard',
@@ -119,6 +124,8 @@ const RELIGIOUS_LEVEL_MAP: Record<string, string> = {
   'dati': 'dati_leumi_standard',
   'dati leumi': 'dati_leumi_standard',
   'dati_leumi_standard': 'dati_leumi_standard',
+  
+  // דתי לאומי ליברלי
   'דתי לאומי ליברלי': 'dati_leumi_liberal',
   'דתית לאומית ליברלית': 'dati_leumi_liberal',
   'דתי ליברלי': 'dati_leumi_liberal',
@@ -130,6 +137,8 @@ const RELIGIOUS_LEVEL_MAP: Record<string, string> = {
   'דתי פתוח': 'dati_leumi_liberal',
   'דתית פתוחה': 'dati_leumi_liberal',
   'dati_leumi_liberal': 'dati_leumi_liberal',
+  
+  // דתי לאומי תורני / חרד"ל
   'דתי לאומי תורני': 'dati_leumi_torani',
   'דתית לאומית תורנית': 'dati_leumi_torani',
   'חרד"ל': 'dati_leumi_torani',
@@ -141,6 +150,8 @@ const RELIGIOUS_LEVEL_MAP: Record<string, string> = {
   'דתית תורנית': 'dati_leumi_torani',
   'torani': 'dati_leumi_torani',
   'dati_leumi_torani': 'dati_leumi_torani',
+  
+  // מסורתי חזק
   'מסורתי': 'masorti_strong',
   'מסורתית': 'masorti_strong',
   'מסורתי קרוב לדת': 'masorti_strong',
@@ -152,6 +163,8 @@ const RELIGIOUS_LEVEL_MAP: Record<string, string> = {
   'masorti': 'masorti_strong',
   'traditional': 'masorti_strong',
   'masorti_strong': 'masorti_strong',
+  
+  // מסורתי לייט
   'מסורתי לייט': 'masorti_light',
   'מסורתי קל': 'masorti_light',
   'מסורתית קלה': 'masorti_light',
@@ -159,30 +172,40 @@ const RELIGIOUS_LEVEL_MAP: Record<string, string> = {
   'קצת מסורתית': 'masorti_light',
   'מסורתי רחוק מדת': 'masorti_light',
   'masorti_light': 'masorti_light',
+  
+  // חילוני עם זיקה למסורת
   'חילוני עם זיקה למסורת': 'secular_traditional_connection',
   'חילונית עם זיקה למסורת': 'secular_traditional_connection',
   'חילוני מסורתי': 'secular_traditional_connection',
   'חילונית מסורתית': 'secular_traditional_connection',
   'חילוני עם מסורת': 'secular_traditional_connection',
   'secular_traditional_connection': 'secular_traditional_connection',
+  
+  // חילוני
   'חילוני': 'secular',
   'חילונית': 'secular',
   'חילוני לגמרי': 'secular',
   'לא דתי': 'secular',
   'לא דתית': 'secular',
   'secular': 'secular',
+  
+  // רוחני
   'רוחני': 'spiritual_not_religious',
   'רוחנית': 'spiritual_not_religious',
   'רוחני לא דתי': 'spiritual_not_religious',
   'רוחנית לא דתית': 'spiritual_not_religious',
   'spiritual': 'spiritual_not_religious',
   'spiritual_not_religious': 'spiritual_not_religious',
+  
+  // חרדי מודרני
   'חרדי מודרני': 'charedi_modern',
   'חרדית מודרנית': 'charedi_modern',
   'חרדי לייט': 'charedi_modern',
   'חרדית לייט': 'charedi_modern',
   'חרדי פתוח': 'charedi_modern',
   'charedi_modern': 'charedi_modern',
+  
+  // חרדי ליטאי
   'חרדי ליטאי': 'charedi_litvak',
   'חרדית ליטאית': 'charedi_litvak',
   'ליטאי': 'charedi_litvak',
@@ -192,12 +215,16 @@ const RELIGIOUS_LEVEL_MAP: Record<string, string> = {
   'litvak': 'charedi_litvak',
   'charedi': 'charedi_litvak',
   'charedi_litvak': 'charedi_litvak',
+  
+  // חרדי ספרדי
   'חרדי ספרדי': 'charedi_sephardic',
   'חרדית ספרדית': 'charedi_sephardic',
   'ש"ס': 'charedi_sephardic',
   'שס': 'charedi_sephardic',
   'ספרדי חרדי': 'charedi_sephardic',
   'charedi_sephardic': 'charedi_sephardic',
+  
+  // חרדי חסידי
   'חרדי חסידי': 'charedi_hasidic',
   'חרדית חסידית': 'charedi_hasidic',
   'חסידי': 'charedi_hasidic',
@@ -205,16 +232,22 @@ const RELIGIOUS_LEVEL_MAP: Record<string, string> = {
   'חסיד': 'charedi_hasidic',
   'hasidic': 'charedi_hasidic',
   'charedi_hasidic': 'charedi_hasidic',
+  
+  // חב"ד
   'חב"ד': 'chabad',
   'חבד': 'chabad',
   "חב''ד": 'chabad',
   'חב״ד': 'chabad',
   'lubavitch': 'chabad',
   'chabad': 'chabad',
+  
+  // ברסלב
   'ברסלב': 'breslov',
   'ברסלבר': 'breslov',
   'נ נח': 'breslov',
   'breslov': 'breslov',
+  
+  // אחר
   'בעל תשובה': 'other',
   'בעלת תשובה': 'other',
   'חוזר בתשובה': 'other',
@@ -236,6 +269,7 @@ const SINGLE_ORIGIN_MAP: Record<string, string> = {
   'הונגרי': 'אשכנזי',
   'רומני': 'אשכנזי',
   'גרמני': 'אשכנזי',
+  
   'ספרדי': 'ספרדי',
   'ספרדית': 'ספרדי',
   'ספרדיה': 'ספרדי',
@@ -243,24 +277,29 @@ const SINGLE_ORIGIN_MAP: Record<string, string> = {
   'ספרדי טהור': 'ספרדי',
   'בולגרי': 'ספרדי',
   'יווני': 'ספרדי',
+  
   'מזרחי': 'מזרחי',
   'מזרחית': 'מזרחי',
   'מזרחיה': 'מזרחי',
   'mizrachi': 'מזרחי',
+  
   'תימני': 'תימני',
   'תימנית': 'תימני',
   'תימניה': 'תימני',
   'תימן': 'תימני',
   'yemenite': 'תימני',
+  
   'מרוקאי': 'מרוקאי',
   'מרוקאית': 'מרוקאי',
   'מרוקו': 'מרוקאי',
   'moroccan': 'מרוקאי',
+  
   'עיראקי': 'עיראקי',
   'עיראקית': 'עיראקי',
   'עירק': 'עיראקי',
   'בבלי': 'עיראקי',
   'iraqi': 'עיראקי',
+  
   'פרסי': 'פרסי',
   'פרסית': 'פרסי',
   'פרסיה': 'פרסי',
@@ -270,47 +309,57 @@ const SINGLE_ORIGIN_MAP: Record<string, string> = {
   'פרס': 'פרסי',
   'persian': 'פרסי',
   'iranian': 'פרסי',
+  
   'כורדי': 'כורדי',
   'כורדית': 'כורדי',
   'כורדיסטן': 'כורדי',
   'kurdish': 'כורדי',
+  
   'תוניסאי': 'תוניסאי',
   'תוניסאית': 'תוניסאי',
   'תוניסיה': 'תוניסאי',
   'תוניס': 'תוניסאי',
   'tunisian': 'תוניסאי',
+  
   'לובי': 'לובי',
   'לובית': 'לובי',
   'טריפוליטאי': 'לובי',
   'טריפוליטאית': 'לובי',
   'לוב': 'לובי',
   'libyan': 'לובי',
+  
   'אתיופי': 'אתיופי',
   'אתיופית': 'אתיופי',
   'אתיופיה': 'אתיופי',
   'ethiopian': 'אתיופי',
+  
   'גרוזיני': 'גרוזיני',
   'גרוזינית': 'גרוזיני',
   'גאורגי': 'גרוזיני',
   'גאורגיה': 'גרוזיני',
   'georgian': 'גרוזיני',
+  
   'בוכרי': 'בוכרי',
   'בוכרית': 'בוכרי',
   'בוכרה': 'בוכרי',
   'אוזבקי': 'בוכרי',
   'bukharian': 'בוכרי',
+  
   'הודי': 'הודי',
   'הודית': 'הודי',
   'קוצ\'יני': 'הודי',
   'בני ישראל': 'הודי',
   'indian': 'הודי',
+  
   'תורכי': 'תורכי',
   'תורכית': 'תורכי',
   'תורכיה': 'תורכי',
   'turkish': 'תורכי',
+  
   'מעורב': 'מעורב',
   'מעורבת': 'מעורב',
   'mixed': 'מעורב',
+  
   'אחר': 'אחר',
   'other': 'אחר',
   'לא ידוע': 'אחר',
@@ -573,7 +622,7 @@ Leave this field EMPTY (""). It will be constructed server-side to avoid duplica
 - height: In cm, e.g., 175 (convert 1.75 → 175)
 - occupation: Job/profession - ONLY if explicitly mentioned, otherwise ""
 - education: Institution or field - ONLY if explicitly mentioned, otherwise ""
-- educationLevel: Level achieved - ONLY if explicitly mentioned, otherwise ""
+- educationLevel: ONLY if explicitly mentioned, otherwise ""
 - phone: Phone number if mentioned
 - referredBy: Default "קבוצת שידוכים שוובל" if not specified
 - hobbies: ONLY if explicitly mentioned, otherwise ""
@@ -613,6 +662,9 @@ Return ONLY valid JSON (avoid all duplication):
     "about": "<complete original text ONCE - no duplication>",
     "manualEntryText": ""
   },
+  "imageClassifications": [
+    { "index": 0, "type": "photo" | "form" | "combined", "extractedText": "" }
+  ],
   "confidence": "high" | "medium" | "low",
   "notes": ""
 }`;
@@ -681,7 +733,7 @@ export async function POST(req: NextRequest) {
     }
 
     if (imageFiles.length > 0) {
-      promptText += `${imageFiles.length} image(s) attached. Extract text from forms/documents if present.\n\n`;
+      promptText += `${imageFiles.length} image(s) attached. Analyze each one.\n\n`;
     }
 
     promptText += 'Return JSON:';
@@ -734,6 +786,7 @@ export async function POST(req: NextRequest) {
     // Validate city - only keep if it's an actual city name
     if (fields.city) {
       const cityLower = fields.city.toLowerCase().trim();
+      // רשימה של ביטויים שאינם שמות ערים
       const invalidCityTerms = ['מרכז', 'דרום', 'צפון', 'השרון', 'שפלה', 'הגליל', 'הנגב', 'יהודה', 'שומרון'];
       if (invalidCityTerms.some(term => cityLower.includes(term))) {
         console.log(`[CardImport] "${fields.city}" is a region, not a city - clearing`);
@@ -760,13 +813,16 @@ export async function POST(req: NextRequest) {
       fields.referredBy = 'קבוצת שידוכים שוובל';
     }
 
-    // Handle "about" field - ensure it contains the source text ONCE, no duplication
+    // =========================================================================
+    // CRITICAL: Handle "about" field - ensure it contains the source text ONCE
+    // =========================================================================
     if (!fields.about || fields.about.trim() === '') {
+      // If AI didn't populate about, use the raw text
       if (rawText.trim()) {
         fields.about = rawText.trim();
       }
     } else {
-      // Remove duplicate lines
+      // AI did provide about - remove any duplication within it
       const aboutLines = fields.about.split('\n');
       const uniqueLines: string[] = [];
       const seenLines = new Set<string>();
@@ -777,6 +833,7 @@ export async function POST(req: NextRequest) {
           seenLines.add(trimmed);
           uniqueLines.push(line);
         } else if (!trimmed) {
+          // Keep empty lines for formatting
           uniqueLines.push(line);
         }
       }
@@ -784,7 +841,7 @@ export async function POST(req: NextRequest) {
       fields.about = uniqueLines.join('\n').trim();
     }
 
-    // manualEntryText should be empty - built at save time
+    // manualEntryText should be empty - we'll build it at save time to avoid duplication
     fields.manualEntryText = '';
 
     // Handle language detection
@@ -797,6 +854,29 @@ export async function POST(req: NextRequest) {
     if (!fields.additionalLanguages) {
       fields.additionalLanguages = '';
     }
+
+    // Add any OCR text from images to about (if not already there)
+    const imageClassifications = parsed.imageClassifications || [];
+    const ocrTexts = imageClassifications
+      .filter((ic: any) => ic.extractedText && ic.type !== 'photo')
+      .map((ic: any) => ic.extractedText.trim())
+      .filter((text: string) => text.length > 0);
+
+    if (ocrTexts.length > 0) {
+      const ocrBlock = '\n\n--- טקסט שחולץ מתמונות ---\n' + ocrTexts.join('\n');
+      
+      // Only add if not already present
+      if (fields.about && !fields.about.includes('טקסט שחולץ מתמונות')) {
+        fields.about = fields.about + ocrBlock;
+      } else if (!fields.about) {
+        fields.about = '--- טקסט שחולץ מתמונות ---\n' + ocrTexts.join('\n');
+      }
+    }
+
+    // Mark form images
+    const formImageIndices = imageClassifications
+      .filter((ic: any) => ic.type === 'form' || ic.type === 'combined')
+      .map((ic: any) => ic.index);
 
     // Add notes about missing critical fields
     let notes = parsed.notes || '';
@@ -813,6 +893,8 @@ export async function POST(req: NextRequest) {
       success: true,
       data: {
         fields,
+        imageClassifications,
+        formImageIndices,
         confidence: parsed.confidence || 'medium',
         notes: notes || null,
       },
