@@ -1534,8 +1534,7 @@ ${narrative}
   "appearancePickiness": 50,
   "inferredAge": null,
   "inferredCity": null,
-  "inferredReligiousLevel": null,
-  "inferredPreferredAgeMin": null,
+"inferredReligiousLevel": "דתי לאומי / חרדי / מסורתי / חילוני / null",  "inferredPreferredAgeMin": null,
   "inferredPreferredAgeMax": null,
   "aiPersonalitySummary": "סיכום קצר של האישיות",
   "aiSeekingSummary": "סיכום קצר של מה מחפש/ת",
@@ -1560,8 +1559,14 @@ ${narrative}
       jsonString = jsonString.slice(3, -3).trim();
     }
 
-    return JSON.parse(jsonString);
-  } catch (error) {
+const parsed = JSON.parse(jsonString);
+    
+    // Sanitize: inferredReligiousLevel must be String or null
+    if (parsed.inferredReligiousLevel != null && typeof parsed.inferredReligiousLevel !== 'string') {
+      parsed.inferredReligiousLevel = String(parsed.inferredReligiousLevel);
+    }
+    
+    return parsed;  } catch (error) {
     console.error('[AI] Metrics calculation error:', error);
     return null;
   }
