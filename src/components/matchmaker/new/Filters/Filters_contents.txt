@@ -1,3 +1,550 @@
+################################################################################
+# Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmaker\new\Filters
+# Generated on: 2026-02-10 10:41:31
+# Filter: Only content of code files (.bat, .c, .cfg, .conf, .cpp, .cs, .css, .go, .h, .html, .ini, .java, .js, .json, .jsx, .kt, .less, .md, .php, .py, .rb, .rs, .scss, .sh, .sql, .swift, .ts, .tsx, .txt, .xml, .yaml, .yml) is included.
+################################################################################
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmaker\new\Filters
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmaker\new\Filters\ActiveFilters.tsx
+--------------------------------------------------------------------------------
+Content:
+// src/components/matchmaker/new/Filters/ActiveFilters.tsx
+'use client';
+
+import React from 'react';
+import { X, RefreshCw, Sparkles, Filter, Star, Zap, Crown } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import type { CandidatesFilter } from '../types/candidates';
+import { motion, AnimatePresence } from 'framer-motion';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+import { cn } from '@/lib/utils';
+import type { MatchmakerPageDictionary } from '@/types/dictionaries/matchmaker';
+
+interface ActiveFiltersProps {
+  filters: CandidatesFilter;
+  onRemoveFilter: (key: keyof CandidatesFilter, value?: string) => void;
+  onResetAll: () => void;
+  onSuggestFilter?: () => void;
+  className?: string;
+  dict: MatchmakerPageDictionary['candidatesManager']['activeFilters'];
+}
+
+interface ActiveFilter {
+  key: keyof CandidatesFilter;
+  label: string;
+  value?: string;
+  color?: string;
+  icon?: React.ReactNode;
+  priority?: 'high' | 'medium' | 'low';
+}
+
+const ActiveFilters: React.FC<ActiveFiltersProps> = ({
+  filters,
+  onRemoveFilter,
+  onResetAll,
+  onSuggestFilter,
+  className,
+  dict,
+}) => {
+  const getActiveFilters = (): ActiveFilter[] => {
+    const activeFilters: ActiveFilter[] = [];
+
+    if (!filters.separateFiltering && filters.searchQuery) {
+      activeFilters.push({
+        key: 'searchQuery',
+        label: dict.labels.search.replace('{{query}}', filters.searchQuery),
+        color: 'primary',
+        icon: <Sparkles className="w-3 h-3" />,
+        priority: 'high',
+      });
+    }
+
+    if (filters.separateFiltering && filters.maleSearchQuery) {
+      activeFilters.push({
+        key: 'maleSearchQuery',
+        label: dict.labels.maleSearch.replace(
+          '{{query}}',
+          filters.maleSearchQuery
+        ),
+        color: 'male',
+        icon: <Star className="w-3 h-3" />,
+        priority: 'high',
+      });
+    }
+
+    if (filters.separateFiltering && filters.femaleSearchQuery) {
+      activeFilters.push({
+        key: 'femaleSearchQuery',
+        label: dict.labels.femaleSearch.replace(
+          '{{query}}',
+          filters.femaleSearchQuery
+        ),
+        color: 'female',
+        icon: <Crown className="w-3 h-3" />,
+        priority: 'high',
+      });
+    }
+
+    if (filters.separateFiltering) {
+      activeFilters.push({
+        key: 'separateFiltering',
+        label: dict.labels.separateFiltering,
+        color: 'special',
+        icon: <Zap className="w-3 h-3" />,
+        priority: 'high',
+      });
+    }
+
+    if (filters.gender) {
+      const genderLabel =
+        filters.gender === 'MALE'
+          ? dict.labels.genders.MALE
+          : dict.labels.genders.FEMALE;
+      activeFilters.push({
+        key: 'gender',
+        label: dict.labels.gender.replace('{{gender}}', genderLabel),
+        color: filters.gender === 'MALE' ? 'male' : 'female',
+        priority: 'high',
+      });
+    }
+
+    if (filters.ageRange) {
+      const isDefaultMin = filters.ageRange.min === 18;
+      const isDefaultMax = filters.ageRange.max === 99;
+
+      if (!isDefaultMin || !isDefaultMax) {
+        let label = '';
+        if (!isDefaultMin && !isDefaultMax) {
+          label = dict.labels.age
+            .replace('{{min}}', String(filters.ageRange.min))
+            .replace('{{max}}', String(filters.ageRange.max));
+        } else if (!isDefaultMin) {
+          label = dict.labels.ageAbove.replace(
+            '{{min}}',
+            String(filters.ageRange.min)
+          );
+        } else if (!isDefaultMax) {
+          label = dict.labels.ageBelow.replace(
+            '{{max}}',
+            String(filters.ageRange.max)
+          );
+        }
+        activeFilters.push({
+          key: 'ageRange',
+          label,
+          color: 'primary',
+          priority: 'high',
+        });
+      }
+    }
+
+    if (filters.heightRange) {
+      const isDefaultMin = filters.heightRange.min === 140;
+      const isDefaultMax = filters.heightRange.max === 210;
+
+      if (!isDefaultMin || !isDefaultMax) {
+        let label = '';
+        if (!isDefaultMin && !isDefaultMax) {
+          label = dict.labels.height
+            .replace('{{min}}', String(filters.heightRange.min))
+            .replace('{{max}}', String(filters.heightRange.max));
+        } else if (!isDefaultMin) {
+          label = dict.labels.heightAbove.replace(
+            '{{min}}',
+            String(filters.heightRange.min)
+          );
+        } else if (!isDefaultMax) {
+          label = dict.labels.heightBelow.replace(
+            '{{max}}',
+            String(filters.heightRange.max)
+          );
+        }
+        activeFilters.push({
+          key: 'heightRange',
+          label,
+          color: 'secondary',
+          priority: 'medium',
+        });
+      }
+    }
+
+    // FIXED: Joined the array of religious levels into a string
+    if (filters.religiousLevel && filters.religiousLevel.length > 0) {
+      activeFilters.push({
+        key: 'religiousLevel',
+        label: dict.labels.religiousLevel.replace(
+          '{{level}}',
+          filters.religiousLevel.join(', ')
+        ),
+        color: 'warning',
+        priority: 'medium',
+      });
+    }
+
+    if (filters.educationLevel) {
+      activeFilters.push({
+        key: 'educationLevel',
+        label: dict.labels.educationLevel.replace(
+          '{{level}}',
+          filters.educationLevel
+        ),
+        color: 'secondary',
+        priority: 'medium',
+      });
+    }
+
+    filters.cities?.forEach((city) => {
+      activeFilters.push({
+        key: 'cities',
+        value: city,
+        label: dict.labels.city.replace('{{city}}', city),
+        color: 'success',
+        priority: 'medium',
+      });
+    });
+
+    filters.occupations?.forEach((occupation) => {
+      activeFilters.push({
+        key: 'occupations',
+        value: occupation,
+        label: dict.labels.occupation.replace('{{occupation}}', occupation),
+        color: 'primary',
+        priority: 'medium',
+      });
+    });
+
+    if (filters.availabilityStatus) {
+      const status =
+        filters.availabilityStatus as keyof typeof dict.labels.availability;
+      const statusLabel =
+        dict.labels.availability[status] || filters.availabilityStatus;
+      activeFilters.push({
+        key: 'availabilityStatus',
+        label: dict.labels.status.replace('{{status}}', statusLabel),
+        color:
+          filters.availabilityStatus === 'AVAILABLE' ? 'success' : 'warning',
+        priority: 'high',
+      });
+    }
+
+    if (filters.maritalStatus) {
+      activeFilters.push({
+        key: 'maritalStatus',
+        label: dict.labels.maritalStatus.replace(
+          '{{status}}',
+          filters.maritalStatus
+        ),
+        color: 'secondary',
+        priority: 'medium',
+      });
+    }
+
+    if (filters.isVerified) {
+      activeFilters.push({
+        key: 'isVerified',
+        label: dict.labels.verifiedOnly,
+        color: 'primary',
+        icon: <Star className="w-3 h-3" />,
+        priority: 'high',
+      });
+    }
+
+    if (filters.hasReferences) {
+      activeFilters.push({
+        key: 'hasReferences',
+        label: dict.labels.withRecommendations,
+        color: 'success',
+        priority: 'medium',
+      });
+    }
+
+    if (filters.isProfileComplete) {
+      activeFilters.push({
+        key: 'isProfileComplete',
+        label: dict.labels.fullProfile,
+        color: 'primary',
+        priority: 'medium',
+      });
+    }
+
+    if (filters.lastActiveDays) {
+      let label: string;
+      switch (filters.lastActiveDays) {
+        case 1:
+          label = dict.labels.activeToday;
+          break;
+        case 3:
+          label = dict.labels.activeLast3Days;
+          break;
+        case 7:
+          label = dict.labels.activeLast7Days;
+          break;
+        case 30:
+          label = dict.labels.activeLast30Days;
+          break;
+        default:
+          label = dict.labels.activeInDays.replace(
+            '{{days}}',
+            String(filters.lastActiveDays)
+          );
+      }
+      activeFilters.push({
+        key: 'lastActiveDays',
+        label,
+        color: 'special',
+        priority: 'medium',
+      });
+    }
+
+    return activeFilters;
+  };
+
+  const getFilterColors = (color?: string) => {
+    const colorSchemes = {
+      primary: {
+        badge:
+          'bg-gradient-to-r from-blue-500 to-cyan-500 text-white border-0 shadow-lg',
+        hover: 'hover:from-blue-600 hover:to-cyan-600',
+      },
+      secondary: {
+        badge:
+          'bg-gradient-to-r from-purple-500 to-pink-500 text-white border-0 shadow-lg',
+        hover: 'hover:from-purple-600 hover:to-pink-600',
+      },
+      success: {
+        badge:
+          'bg-gradient-to-r from-emerald-500 to-green-500 text-white border-0 shadow-lg',
+        hover: 'hover:from-emerald-600 hover:to-green-600',
+      },
+      warning: {
+        badge:
+          'bg-gradient-to-r from-amber-500 to-orange-500 text-white border-0 shadow-lg',
+        hover: 'hover:from-amber-600 hover:to-orange-600',
+      },
+      male: {
+        badge:
+          'bg-gradient-to-r from-blue-600 to-indigo-600 text-white border-0 shadow-lg',
+        hover: 'hover:from-blue-700 hover:to-indigo-700',
+      },
+      female: {
+        badge:
+          'bg-gradient-to-r from-purple-600 to-pink-600 text-white border-0 shadow-lg',
+        hover: 'hover:from-purple-700 hover:to-pink-700',
+      },
+      special: {
+        badge:
+          'bg-gradient-to-r from-indigo-500 to-purple-500 text-white border-0 shadow-lg',
+        hover: 'hover:from-indigo-600 hover:to-purple-600',
+      },
+    };
+    return (
+      colorSchemes[color as keyof typeof colorSchemes] || colorSchemes.primary
+    );
+  };
+
+  const activeFilters = getActiveFilters();
+  const sortedFilters = activeFilters.sort((a, b) => {
+    const priorityOrder = { high: 3, medium: 2, low: 1 };
+    return (
+      priorityOrder[b.priority || 'low'] - priorityOrder[a.priority || 'low']
+    );
+  });
+
+  if (activeFilters.length === 0) {
+    return null;
+  }
+
+  return (
+    <div className={cn('relative', className)}>
+      <div className="absolute inset-0">
+        <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-200/20 to-cyan-200/20 rounded-full blur-2xl"></div>
+        <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-br from-purple-200/20 to-pink-200/20 rounded-full blur-xl"></div>
+      </div>
+      <div className="relative z-10 bg-gradient-to-r from-white via-purple-50/30 to-pink-50/30 backdrop-blur-sm rounded-2xl p-6 shadow-xl border-0">
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-3">
+            <div className="p-3 rounded-full bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-lg">
+              <Filter className="w-6 h-6" />
+            </div>
+            <div>
+              <h3 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">
+                {dict.title}
+              </h3>
+              <p className="text-sm text-gray-600 mt-1">
+                {activeFilters.length === 1
+                  ? dict.filterActive
+                  : dict.filtersActive.replace(
+                      '{{count}}',
+                      String(activeFilters.length)
+                    )}
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            {onSuggestFilter && (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={onSuggestFilter}
+                      className="bg-gradient-to-r from-emerald-50 to-green-50 hover:from-emerald-100 hover:to-green-100 text-emerald-700 border border-emerald-200 rounded-xl transition-all duration-300 hover:scale-105 shadow-lg"
+                    >
+                      <Sparkles className="w-4 h-4 mr-2" />
+                      {dict.suggestButton}
+                      <Zap className="w-3 h-3 ml-1" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>{dict.suggestTooltip}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            )}
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={onResetAll}
+                    className="bg-gradient-to-r from-red-50 to-pink-50 hover:from-red-100 hover:to-pink-100 text-red-700 border border-red-200 rounded-xl transition-all duration-300 hover:scale-105 shadow-lg"
+                  >
+                    <RefreshCw className="w-4 h-4 mr-2" />
+                    {dict.clearAllButton}
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{dict.clearAllTooltip}</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
+        </div>
+        <div className="flex flex-wrap gap-3">
+          <AnimatePresence mode="popLayout">
+            {sortedFilters.map((filter, index) => {
+              const colors = getFilterColors(filter.color);
+              return (
+                <motion.div
+                  key={`${filter.key}-${filter.value || index}`}
+                  initial={{ opacity: 0, scale: 0.8, y: 20 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.8, y: -20 }}
+                  transition={{
+                    duration: 0.3,
+                    delay: index * 0.05,
+                    type: 'spring',
+                    stiffness: 300,
+                    damping: 25,
+                  }}
+                  whileHover={{ scale: 1.05 }}
+                >
+                  <Badge
+                    className={cn(
+                      'px-4 py-2.5 whitespace-nowrap font-bold text-sm rounded-xl transition-all duration-300 group cursor-pointer shadow-lg hover:shadow-xl',
+                      colors.badge,
+                      colors.hover,
+                      filter.priority === 'high' && 'ring-2 ring-white/50'
+                    )}
+                  >
+                    <div className="flex items-center gap-2">
+                      {filter.icon && (
+                        <span className="opacity-90 group-hover:opacity-100 transition-opacity">
+                          {filter.icon}
+                        </span>
+                      )}
+                      <span className="max-w-[200px] truncate font-medium">
+                        {filter.label}
+                      </span>
+                      <button
+                        className="ml-2 hover:bg-white/20 rounded-full p-1 transition-all duration-200 hover:scale-110 group-hover:bg-white/30"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onRemoveFilter(filter.key, filter.value);
+                        }}
+                        aria-label={`הסר פילטר ${filter.label}`}
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </Badge>
+                </motion.div>
+              );
+            })}
+          </AnimatePresence>
+        </div>
+        {activeFilters.length > 3 && (
+          <div className="mt-6 pt-4 border-t border-gray-200/50">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 text-sm text-gray-600">
+                <Sparkles className="w-4 h-4 text-blue-500" />
+                <span>
+                  {dict.summary.title.replace(
+                    '{{count}}',
+                    String(activeFilters.length)
+                  )}
+                </span>
+              </div>
+              <div className="flex items-center gap-1">
+                {activeFilters.filter((f) => f.priority === 'high').length >
+                  0 && (
+                  <Badge
+                    variant="outline"
+                    className="bg-red-50 text-red-700 border-red-200 text-xs"
+                  >
+                    {dict.summary.highPriority.replace(
+                      '{{count}}',
+                      String(
+                        activeFilters.filter((f) => f.priority === 'high')
+                          .length
+                      )
+                    )}
+                  </Badge>
+                )}
+                {activeFilters.filter((f) => f.priority === 'medium').length >
+                  0 && (
+                  <Badge
+                    variant="outline"
+                    className="bg-yellow-50 text-yellow-700 border-yellow-200 text-xs"
+                  >
+                    {dict.summary.mediumPriority.replace(
+                      '{{count}}',
+                      String(
+                        activeFilters.filter((f) => f.priority === 'medium')
+                          .length
+                      )
+                    )}
+                  </Badge>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+        <div className="absolute inset-0 bg-gradient-to-r from-blue-400/5 via-purple-400/5 to-pink-400/5 rounded-2xl pointer-events-none"></div>
+      </div>
+    </div>
+  );
+};
+
+export default ActiveFilters;
+--- End of Content for ActiveFilters.tsx ---
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmaker\new\Filters\FilterPanel.tsx
+--------------------------------------------------------------------------------
+Content:
 // src/components/matchmaker/new/Filters/FilterPanel.tsx
 'use client';
 
@@ -92,8 +639,6 @@ const RELIGIOUS_OPTIONS = [
   { value: 'secular', label: 'חילוני/ת' },
   { value: 'spiritual_not_religious', label: 'רוחני/ת (לאו דווקא דתי/ה)' },
   { value: 'other', label: 'אחר' },
-    { value: 'not_defined', label: 'לא מוגדר / ללא רמה דתית' }, 
-
 ];
 
 // Interfaces
@@ -1512,3 +2057,1034 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
   );
 };
 export default FilterPanel;
+--- End of Content for FilterPanel.tsx ---
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmaker\new\Filters\Filters_contents.txt
+--------------------------------------------------------------------------------
+[This is the output log file itself. Content not included.]
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmaker\new\Filters\SavedFilters.tsx
+--------------------------------------------------------------------------------
+Content:
+// SavedFilters.tsx - This file is correct. The issue lies in the UI component definitions.
+'use client';
+import React from 'react';
+import {
+  Star,
+  MoreVertical,
+  Edit,
+  Trash,
+  Crown,
+  Bookmark,
+  Calendar,
+  Sparkles,
+  Zap,
+  Award,
+} from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Badge } from '@/components/ui/badge';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { motion, AnimatePresence } from 'framer-motion';
+import type { CandidatesFilter } from '../types/candidates';
+import { cn } from '@/lib/utils';
+import type { MatchmakerPageDictionary } from '@/types/dictionaries/matchmaker';
+
+interface SavedFilter {
+  id: string;
+  name: string;
+  filter: CandidatesFilter;
+  isDefault?: boolean;
+  createdAt: Date;
+}
+
+interface SavedFiltersProps {
+  filters: SavedFilter[];
+  activeFilterId?: string;
+  onSelect: (filter: SavedFilter) => void;
+  onDelete: (filterId: string) => void;
+  onEdit: (filter: SavedFilter) => void;
+  onSetDefault: (filterId: string) => void;
+  className?: string;
+  dict: MatchmakerPageDictionary['candidatesManager']['filterPanel']['savedFilters'];
+}
+
+// Enhanced filter summary function outside component for performance
+const formatFilterSummary = (
+  filter: CandidatesFilter,
+  dict: SavedFiltersProps['dict']['filterCard']['summary']
+): string => {
+  const parts: string[] = [];
+
+  if (filter.searchQuery) {
+    parts.push(dict.search.replace('{{query}}', filter.searchQuery));
+  }
+  if (filter.gender) {
+    parts.push(dict.gender.replace('{{gender}}', filter.gender));
+  }
+  if (filter.ageRange) {
+    parts.push(
+      `${dict.age} ${dict.ageValue.replace('{{min}}', String(filter.ageRange.min)).replace('{{max}}', String(filter.ageRange.max))}`
+    );
+  }
+  if (filter.heightRange) {
+    parts.push(
+      `${dict.height} ${dict.heightValue.replace('{{min}}', String(filter.heightRange.min)).replace('{{max}}', String(filter.heightRange.max))}`
+    );
+  }
+  if (filter.cities?.length) {
+    if (filter.cities.length === 1) {
+      parts.push(dict.city.replace('{{city}}', filter.cities[0]));
+    } else {
+      parts.push(
+        dict.cities.replace('{{count}}', String(filter.cities.length))
+      );
+    }
+  }
+ if (filter.religiousLevel && filter.religiousLevel.length > 0) {
+    parts.push(dict.religiousLevel.replace('{{level}}', filter.religiousLevel.join(', ')));
+  }
+  if (filter.educationLevel) {
+    parts.push(dict.educationLevel.replace('{{level}}', filter.educationLevel));
+  }
+  if (filter.maritalStatus) {
+    parts.push(dict.maritalStatus.replace('{{status}}', filter.maritalStatus));
+  }
+  if (filter.occupations?.length) {
+    if (filter.occupations.length === 1) {
+      parts.push(
+        dict.occupation.replace('{{occupation}}', filter.occupations[0])
+      );
+    } else {
+      parts.push(
+        dict.occupations.replace('{{count}}', String(filter.occupations.length))
+      );
+    }
+  }
+  if (filter.availabilityStatus) {
+    const statusKey = filter.availabilityStatus as keyof typeof dict.statuses;
+    parts.push(dict.status.replace('{{status}}', dict.statuses[statusKey]));
+  }
+  if (filter.isVerified) {
+    parts.push(dict.verifiedOnly);
+  }
+  if (filter.hasReferences) {
+    parts.push(dict.withRecommendations);
+  }
+  if (filter.isProfileComplete) {
+    parts.push(dict.fullProfile);
+  }
+  if (filter.lastActiveDays) {
+    let label;
+    switch (filter.lastActiveDays) {
+      case 1:
+        label = dict.activeToday;
+        break;
+      case 7:
+        label = dict.activeLastWeek;
+        break;
+      case 30:
+        label = dict.activeLastMonth;
+        break;
+      default:
+        label = dict.activeInDays.replace(
+          '{{days}}',
+          String(filter.lastActiveDays)
+        );
+    }
+    parts.push(label);
+  }
+  if (filter.separateFiltering) {
+    parts.push(dict.separateFiltering);
+  }
+
+  if (parts.length === 0) {
+    return dict.noCriteria;
+  }
+  if (parts.length <= 3) {
+    return parts.join(' • ');
+  } else {
+    return `${parts.slice(0, 2).join(' • ')} ${dict.andMore.replace('{{count}}', String(parts.length - 2))}`;
+  }
+};
+
+const SavedFilters: React.FC<SavedFiltersProps> = ({
+  filters,
+  activeFilterId,
+  onSelect,
+  onDelete,
+  onEdit,
+  onSetDefault,
+  className,
+  dict,
+}) => {
+  const formatDate = (date: Date) => {
+    return new Intl.DateTimeFormat('he-IL', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+    }).format(date);
+  };
+
+  const getFilterComplexity = (
+    filter: CandidatesFilter
+  ): { score: number; label: string; color: string } => {
+    const score = Object.keys(filter).filter(
+      (key) => filter[key as keyof CandidatesFilter] !== undefined
+    ).length;
+
+    if (score <= 2)
+      return {
+        score,
+        label: dict.filterCard.complexity.basic,
+        color: 'from-green-500 to-emerald-500',
+      };
+    if (score <= 5)
+      return {
+        score,
+        label: dict.filterCard.complexity.advanced,
+        color: 'from-blue-500 to-cyan-500',
+      };
+    if (score <= 8)
+      return {
+        score,
+        label: dict.filterCard.complexity.complex,
+        color: 'from-purple-500 to-pink-500',
+      };
+    return {
+      score,
+      label: dict.filterCard.complexity.expert,
+      color: 'from-amber-500 to-orange-500',
+    };
+  };
+
+  return (
+    <div className={cn('space-y-4', className)}>
+      <div className="flex items-center justify-between p-4 bg-gradient-to-r from-white via-purple-50/30 to-pink-50/30 rounded-2xl shadow-lg border border-gray-100/50">
+        <div className="flex items-center gap-3">
+          <div className="p-2 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg">
+            <Bookmark className="w-5 h-5" />
+          </div>
+          <div>
+            <h3 className="text-lg font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+              {dict.header.title}
+            </h3>
+            <p className="text-sm text-gray-600">
+              {dict.header.subtitle
+                .replace('{{count}}', String(filters.length))
+                .replace(
+                  '{{label}}',
+                  filters.length === 1
+                    ? dict.header.singleFilter
+                    : dict.header.multipleFilters
+                )}
+            </p>
+          </div>
+        </div>
+        <Badge className="bg-gradient-to-r from-purple-500 to-pink-500 text-white border-0 shadow-lg px-3 py-1 font-bold">
+          {filters.length}
+        </Badge>
+      </div>
+
+      <ScrollArea className="h-[400px] rounded-2xl">
+        <div className="space-y-3 p-1">
+          <AnimatePresence>
+            {filters.map((filter, index) => {
+              const complexity = getFilterComplexity(filter.filter);
+              const isActive = activeFilterId === filter.id;
+              return (
+                <motion.div
+                  key={filter.id}
+                  initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -20, scale: 0.95 }}
+                  transition={{
+                    delay: index * 0.05,
+                    type: 'spring',
+                    stiffness: 300,
+                    damping: 25,
+                  }}
+                  whileHover={{ scale: 1.02, y: -2 }}
+                  className={cn(
+                    'relative group cursor-pointer rounded-2xl overflow-hidden shadow-xl border-0 transition-all duration-300',
+                    isActive
+                      ? 'ring-4 ring-purple-400 ring-opacity-60 shadow-purple-200'
+                      : 'shadow-gray-200 hover:shadow-2xl'
+                  )}
+                  onClick={() => onSelect(filter)}
+                >
+                  <div
+                    className={cn(
+                      'absolute inset-0 bg-gradient-to-br transition-opacity duration-300',
+                      isActive
+                        ? 'from-purple-50 via-pink-50/50 to-purple-50 opacity-90'
+                        : 'from-white via-gray-50/30 to-white opacity-95 group-hover:opacity-100'
+                    )}
+                  />
+                  <div className="relative z-10 p-5">
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="flex items-center gap-3">
+                        {filter.isDefault && (
+                          <motion.div
+                            initial={{ scale: 0 }}
+                            animate={{ scale: 1 }}
+                            className="p-2 rounded-full bg-gradient-to-r from-yellow-400 to-orange-400 text-white shadow-lg"
+                          >
+                            <Crown className="w-4 h-4" />
+                          </motion.div>
+                        )}
+                        <div
+                          className={cn(
+                            'p-2 rounded-full text-white shadow-lg bg-gradient-to-r',
+                            complexity.color
+                          )}
+                        >
+                          {complexity.score <= 2 ? (
+                            <Star className="w-4 h-4" />
+                          ) : complexity.score <= 5 ? (
+                            <Sparkles className="w-4 h-4" />
+                          ) : complexity.score <= 8 ? (
+                            <Zap className="w-4 h-4" />
+                          ) : (
+                            <Award className="w-4 h-4" />
+                          )}
+                        </div>
+                        <div className="flex-1">
+                          <h4 className="font-bold text-lg text-gray-800 group-hover:text-purple-700 transition-colors">
+                            {filter.name}
+                          </h4>
+                          <p className="text-sm text-gray-500 mt-1">
+                            {formatFilterSummary(
+                              filter.filter,
+                              dict.filterCard.summary
+                            )}
+                          </p>
+                        </div>
+                      </div>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-purple-100 rounded-full"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <MoreVertical className="h-4 w-4 text-gray-600" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent
+                          align="end"
+                          className="bg-white/95 backdrop-blur-sm border-0 shadow-2xl rounded-xl"
+                        >
+                          <DropdownMenuItem
+                            onClick={() => onEdit(filter)}
+                            className="hover:bg-blue-50 rounded-lg"
+                          >
+                            <Edit className="mr-2 h-4 w-4 text-blue-600" />
+                            <span className="text-blue-700">
+                              {dict.filterCard.actions.edit}
+                            </span>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => onSetDefault(filter.id)}
+                            disabled={filter.isDefault}
+                            className="hover:bg-yellow-50 rounded-lg"
+                          >
+                            <Crown className="mr-2 h-4 w-4 text-yellow-600" />
+                            <span className="text-yellow-700">
+                              {filter.isDefault
+                                ? dict.filterCard.actions.isDefault
+                                : dict.filterCard.actions.setDefault}
+                            </span>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => onDelete(filter.id)}
+                            className="hover:bg-red-50 rounded-lg"
+                          >
+                            <Trash className="mr-2 h-4 w-4 text-red-600" />
+                            <span className="text-red-700">
+                              {dict.filterCard.actions.delete}
+                            </span>
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <Badge
+                          className={cn(
+                            'text-white border-0 shadow-lg font-bold px-3 py-1 bg-gradient-to-r',
+                            complexity.color
+                          )}
+                        >
+                          {complexity.label} •{' '}
+                          {dict.filterCard.criteria.replace(
+                            '{{count}}',
+                            String(complexity.score)
+                          )}
+                        </Badge>
+                        <div className="flex items-center gap-2 text-xs text-gray-500">
+                          <Calendar className="w-3 h-3" />
+                          <span>{formatDate(filter.createdAt)}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="absolute inset-0 bg-gradient-to-r from-purple-400/0 via-pink-400/0 to-purple-400/0 group-hover:from-purple-400/10 group-hover:via-pink-400/10 group-hover:to-purple-400/10 transition-all duration-500 pointer-events-none rounded-2xl"></div>
+                  {isActive && (
+                    <motion.div
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      className="absolute top-3 left-3 w-3 h-3 bg-purple-500 rounded-full shadow-lg"
+                    >
+                      <div className="w-full h-full bg-purple-400 rounded-full animate-ping"></div>
+                    </motion.div>
+                  )}
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent transform -translate-x-full group-hover:translate-x-full transition-transform duration-1000 rounded-2xl"></div>
+                </motion.div>
+              );
+            })}
+          </AnimatePresence>
+        </div>
+      </ScrollArea>
+
+      {filters.length === 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-center py-12 bg-gradient-to-br from-white via-gray-50/30 to-white rounded-2xl shadow-xl border border-gray-100/50"
+        >
+          <div className="w-20 h-20 rounded-full bg-gradient-to-br from-purple-100 to-pink-100 flex items-center justify-center mx-auto mb-6">
+            <Bookmark className="w-10 h-10 text-purple-400" />
+          </div>
+          <h3 className="text-xl font-bold text-gray-800 mb-3">
+            {dict.emptyState.title}
+          </h3>
+          <p className="text-gray-600 mb-6 max-w-sm mx-auto">
+            {dict.emptyState.description}
+          </p>
+          <div className="flex flex-wrap gap-2 justify-center">
+            <Badge
+              variant="outline"
+              className="bg-blue-50 text-blue-600 border-blue-200"
+            >
+              <Star className="w-3 h-3 mr-1" />
+              {dict.emptyState.fastSearches}
+            </Badge>
+            <Badge
+              variant="outline"
+              className="bg-purple-50 text-purple-600 border-purple-200"
+            >
+              <Sparkles className="w-3 h-3 mr-1" />
+              {dict.emptyState.advancedFiltering}
+            </Badge>
+            <Badge
+              variant="outline"
+              className="bg-green-50 text-green-600 border-green-200"
+            >
+              <Award className="w-3 h-3 mr-1" />
+              {dict.emptyState.quickAccess}
+            </Badge>
+          </div>
+        </motion.div>
+      )}
+
+      {filters.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+          className="bg-gradient-to-r from-indigo-50 via-purple-50 to-pink-50 rounded-2xl p-4 shadow-lg border border-gray-100/50"
+        >
+          <div className="grid grid-cols-3 gap-4 text-center">
+            <div>
+              <div className="text-lg font-bold text-indigo-600">
+                {filters.filter((f) => f.isDefault).length}
+              </div>
+              <div className="text-xs text-gray-600">{dict.stats.default}</div>
+            </div>
+            <div>
+              <div className="text-lg font-bold text-purple-600">
+                {
+                  filters.filter((f) => getFilterComplexity(f.filter).score > 5)
+                    .length
+                }
+              </div>
+              <div className="text-xs text-gray-600">{dict.stats.advanced}</div>
+            </div>
+            <div>
+              <div className="text-lg font-bold text-pink-600">
+                {Math.round(
+                  filters.reduce(
+                    (acc, f) => acc + getFilterComplexity(f.filter).score,
+                    0
+                  ) / (filters.length || 1)
+                )}
+              </div>
+              <div className="text-xs text-gray-600">
+                {dict.stats.avgCriteria}
+              </div>
+            </div>
+          </div>
+        </motion.div>
+      )}
+    </div>
+  );
+};
+
+export default SavedFilters;
+--- End of Content for SavedFilters.tsx ---
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmaker\new\Filters\SearchBar.tsx
+--------------------------------------------------------------------------------
+Content:
+// SearchBar.tsx - גרסה סופית ומתקדמת עם תיקון z-index ו-RTL
+'use client';
+
+import React, { useState, useEffect, useRef } from 'react';
+import {
+  Search,
+  X,
+  History,
+  Sparkles,
+  Target,
+  Crown,
+  Star,
+  TrendingUp,
+  Zap,
+} from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { motion, AnimatePresence } from 'framer-motion';
+import type { Candidate } from '../types/candidates';
+import { cn } from '@/lib/utils';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+import {
+  Popover,
+  PopoverContent,
+  PopoverAnchor,
+} from '@/components/ui/popover';
+import type { MatchmakerPageDictionary } from '@/types/dictionaries/matchmaker';
+
+interface SearchBarProps {
+  value: string;
+  onChange: (value: string) => void;
+  onSelect?: (candidate: Candidate) => void;
+  recentSearches?: string[];
+  onSaveSearch?: (value: string) => void;
+  onClearRecentSearches?: () => void;
+  suggestions?: Candidate[];
+  loading?: boolean;
+  className?: string;
+  placeholder?: string;
+  autoFocus?: boolean;
+  genderTarget?: 'male' | 'female' | 'all';
+  separateMode?: boolean;
+  dict: MatchmakerPageDictionary['candidatesManager']['searchBar'];
+}
+
+const SearchBar: React.FC<SearchBarProps> = ({
+  value,
+  onChange,
+  onSelect,
+  recentSearches = [],
+  onSaveSearch,
+  onClearRecentSearches,
+  suggestions = [],
+  loading = false,
+  className = '',
+  placeholder, // We will now primarily use the placeholder from dict
+  autoFocus = false,
+  genderTarget = 'all',
+  separateMode = false,
+  dict,
+}) => {
+  const [inputValue, setInputValue] = useState(value);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
+  const [isFocused, setIsFocused] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    setInputValue(value);
+  }, [value]);
+
+  const searchCategories = [
+    {
+      id: 'name',
+      label: dict.categories.name,
+      icon: <Star className="w-3 h-3" />,
+      gradient: 'from-blue-500 to-cyan-500',
+    },
+    {
+      id: 'city',
+      label: dict.categories.city,
+      icon: <Target className="w-3 h-3" />,
+      gradient: 'from-emerald-500 to-green-500',
+    },
+    {
+      id: 'occupation',
+      label: dict.categories.occupation,
+      icon: <Zap className="w-3 h-3" />,
+      gradient: 'from-purple-500 to-pink-500',
+    },
+    {
+      id: 'all',
+      label: dict.categories.all,
+      icon: <Sparkles className="w-3 h-3" />,
+      gradient: 'from-indigo-500 to-purple-500',
+    },
+  ];
+  const [searchCategory, setSearchCategory] = useState<string>('all');
+
+  const getSearchPlaceholder = () => {
+    if (placeholder) return placeholder; // Allow override
+    if (separateMode) {
+      if (genderTarget === 'male') return dict.malePlaceholder;
+      if (genderTarget === 'female') return dict.femalePlaceholder;
+    }
+    return dict.generalPlaceholder;
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue = e.target.value;
+    setInputValue(newValue);
+    onChange(newValue);
+    if (!showDropdown) {
+      setShowDropdown(true);
+    }
+  };
+
+  const handleSearch = (searchValue: string) => {
+    if (searchValue.trim()) {
+      onChange(searchValue.trim());
+      if (onSaveSearch) {
+        onSaveSearch(searchValue.trim());
+      }
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && inputValue.trim()) {
+      handleSearch(inputValue);
+      setShowDropdown(false);
+    } else if (e.key === 'Escape') {
+      setShowDropdown(false);
+    }
+  };
+
+  const handleClear = () => {
+    setInputValue('');
+    onChange('');
+    inputRef.current?.focus();
+  };
+
+  const handleSuggestionSelect = (candidate: Candidate) => {
+    if (onSelect) {
+      onSelect(candidate);
+    } else {
+      const searchText = `${candidate.firstName} ${candidate.lastName}`;
+      setInputValue(searchText);
+      onChange(searchText);
+    }
+    setShowDropdown(false);
+  };
+
+  const getStyling = () => {
+    if (!separateMode || genderTarget === 'all') {
+      return {
+        gradient: 'from-indigo-500 via-purple-500 to-pink-500',
+        ring: 'focus:ring-purple-200',
+        badge: 'bg-gradient-to-r from-indigo-500 to-purple-500',
+      };
+    }
+    if (genderTarget === 'male') {
+      return {
+        gradient: 'from-blue-500 to-cyan-500',
+        ring: 'focus:ring-blue-200',
+        badge: 'bg-gradient-to-r from-blue-500 to-cyan-500',
+      };
+    }
+    return {
+      gradient: 'from-purple-500 to-pink-500',
+      ring: 'focus:ring-purple-200',
+      badge: 'bg-gradient-to-r from-purple-500 to-pink-500',
+    };
+  };
+
+  const styling = getStyling();
+
+  return (
+    <Popover open={showDropdown} onOpenChange={setShowDropdown}>
+      <div className={cn('relative group', className)}>
+        <PopoverAnchor asChild>
+          <motion.div
+            className={cn(
+              'relative flex items-center rounded-2xl shadow-xl transition-all duration-300 backdrop-blur-sm border-0',
+              `bg-gradient-to-r from-white via-gray-50/30 to-white`,
+              isFocused || isHovered ? 'shadow-2xl scale-[1.02]' : 'shadow-lg',
+              isFocused && `ring-2 ${styling.ring}`
+            )}
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
+            whileHover={{ y: -2 }}
+            transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+          >
+            <div
+              className={cn(
+                'absolute inset-0 bg-gradient-to-r opacity-5 rounded-2xl',
+                styling.gradient
+              )}
+            />
+
+            {separateMode && genderTarget !== 'all' && (
+              <motion.div
+                className="absolute left-4 top-1/2 -translate-y-1/2 z-10"
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ type: 'spring', stiffness: 500, damping: 25 }}
+              >
+                <Badge
+                  className={cn(
+                    'text-white border-0 shadow-lg font-bold px-3 py-1.5 rounded-xl',
+                    styling.badge
+                  )}
+                >
+                  <div className="flex items-center gap-2">
+                    {genderTarget === 'male' ? (
+                      <Target className="w-4 h-4" />
+                    ) : (
+                      <Crown className="w-4 h-4" />
+                    )}
+                    {genderTarget === 'male'
+                      ? dict.tooltips.maleTarget
+                      : dict.tooltips.femaleTarget}
+                  </div>
+                </Badge>
+              </motion.div>
+            )}
+
+            <input
+              ref={inputRef}
+              type="text"
+              value={inputValue}
+              onChange={handleInputChange}
+              onKeyDown={handleKeyDown}
+              onFocus={() => {
+                setShowDropdown(true);
+                setIsFocused(true);
+              }}
+              onBlur={() => setIsFocused(false)}
+              placeholder={getSearchPlaceholder()}
+              className={cn(
+                'w-full h-14 bg-transparent border-0 rounded-2xl text-lg font-medium relative z-10',
+                'placeholder:text-gray-500 text-gray-800',
+                'focus:outline-none transition-all duration-200',
+                separateMode ? 'pl-32 pr-16' : 'pl-6 pr-16'
+              )}
+              autoFocus={autoFocus}
+              autoComplete="off"
+              spellCheck="false"
+            />
+
+            <div className="absolute right-4 top-1/2 -translate-y-1/2 z-10">
+              <motion.div
+                animate={{
+                  rotate: loading ? 360 : 0,
+                  scale: isHovered || isFocused ? 1.1 : 1,
+                }}
+                transition={{
+                  rotate: {
+                    duration: 1,
+                    repeat: loading ? Infinity : 0,
+                    ease: 'linear',
+                  },
+                  scale: { duration: 0.2 },
+                }}
+                className={cn(
+                  'p-2.5 rounded-full text-white shadow-lg',
+                  `bg-gradient-to-r ${styling.gradient}`
+                )}
+              >
+                <Search className="w-5 h-5" />
+              </motion.div>
+            </div>
+
+            <AnimatePresence>
+              {inputValue && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.8 }}
+                  className={cn(
+                    'absolute top-1/2 -translate-y-1/2 z-10',
+                    separateMode ? 'left-32' : 'left-4'
+                  )}
+                >
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <button
+                          type="button"
+                          onClick={handleClear}
+                          className="w-7 h-7 bg-gray-100 hover:bg-gray-200 rounded-full flex items-center justify-center transition-all duration-200 hover:scale-110 shadow-md"
+                        >
+                          <X className="w-4 h-4 text-gray-600" />
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>{dict.clearTooltip}</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent transform -translate-x-full group-hover:translate-x-full transition-transform duration-1000 rounded-2xl pointer-events-none"></div>
+          </motion.div>
+        </PopoverAnchor>
+      </div>
+
+      <PopoverContent
+        onOpenAutoFocus={(e) => e.preventDefault()}
+        className="w-[--radix-popover-trigger-width] p-0 mt-2 z-[99] border-0 shadow-2xl rounded-2xl overflow-hidden bg-white/95 backdrop-blur-xl"
+      >
+        <div
+          className={cn('p-4 bg-gradient-to-r text-white', styling.gradient)}
+        >
+          <div className="flex items-center justify-between mb-3 text-right">
+            <div className="text-sm opacity-90">
+              {dict.resultsCount.replace(
+                '{{count}}',
+                String(suggestions.length)
+              )}
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="font-bold">{dict.smartSearch}</span>
+              <Sparkles className="w-5 h-5" />
+            </div>
+          </div>
+          <div className="relative">
+            <Search className="absolute right-3 top-2.5 h-4 w-4 text-white/70" />
+            <input
+              type="text"
+              value={inputValue}
+              onChange={handleInputChange}
+              className="w-full bg-white/20 backdrop-blur-sm border border-white/30 rounded-xl px-4 pr-10 py-2 text-sm text-white placeholder:text-white/70 focus:outline-none focus:ring-2 focus:ring-white/50 text-right"
+              placeholder={dict.filterResultsPlaceholder}
+            />
+          </div>
+        </div>
+
+        <div className="max-h-96 overflow-y-auto">
+          {loading === false &&
+            suggestions.length === 0 &&
+            recentSearches.length === 0 && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="p-8 text-center"
+              >
+                <div className="w-16 h-16 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center mx-auto mb-4">
+                  <Search className="w-8 h-8 text-gray-400" />
+                </div>
+                <h3 className="font-bold text-gray-800 mb-2">
+                  {dict.noResultsTitle}
+                </h3>
+                <p className="text-sm text-gray-500">
+                  {dict.noResultsDescription}
+                </p>
+              </motion.div>
+            )}
+
+          {loading === true && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="p-8 text-center"
+            >
+              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center mx-auto mb-4">
+                <Search className="w-8 h-8 text-gray-400 animate-pulse" />
+              </div>
+              <h3 className="font-bold text-gray-800 mb-2">מחפש...</h3>
+              <p className="text-sm text-gray-500">אנא המתן...</p>
+            </motion.div>
+          )}
+
+          {recentSearches.length > 0 && (
+            <div className="border-b border-gray-100">
+              <div className="px-4 py-3 bg-gradient-to-r from-gray-50 to-gray-100/50">
+                <div className="flex justify-between items-center">
+                  {onClearRecentSearches && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onClearRecentSearches();
+                      }}
+                      className="h-6 text-xs text-gray-500 hover:text-gray-700 px-2"
+                    >
+                      {dict.clearHistory}
+                    </Button>
+                  )}
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium text-gray-700">
+                      {dict.recentSearches}
+                    </span>
+                    <History className="w-4 h-4 text-gray-500" />
+                  </div>
+                </div>
+              </div>
+              <div className="p-2">
+                {recentSearches.slice(0, 5).map((search, index) => (
+                  <motion.div
+                    key={`recent-${index}`}
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: index * 0.05 }}
+                    className="flex items-center gap-3 px-3 py-2.5 hover:bg-gradient-to-r hover:from-blue-50 hover:to-cyan-50 rounded-xl cursor-pointer transition-all duration-200 group"
+                    onClick={() => {
+                      handleSearch(search);
+                      setShowDropdown(false);
+                    }}
+                  >
+                    <div className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Zap className="w-3 h-3 text-blue-500" />
+                    </div>
+                    <span className="text-sm font-medium text-gray-700 group-hover:text-blue-700">
+                      {search}
+                    </span>
+                    <div className="p-1.5 rounded-lg bg-gradient-to-r from-blue-100 to-cyan-100 group-hover:from-blue-200 group-hover:to-cyan-200 transition-all duration-200">
+                      <History className="h-3 w-3 text-blue-600" />
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {suggestions.length > 0 && (
+            <div>
+              <div className="px-4 py-3 bg-gradient-to-r from-emerald-50 to-green-50 border-b border-gray-100">
+                <div className="flex items-center justify-end gap-2">
+                  <span className="text-sm font-medium text-emerald-800">
+                    {dict.matchingResults.replace(
+                      '{{count}}',
+                      String(suggestions.length)
+                    )}
+                  </span>
+                  <Star className="w-4 h-4 text-emerald-600" />
+                </div>
+              </div>
+              <div className="p-2 space-y-1">
+                {suggestions.map((candidate, index) => (
+                  <motion.div
+                    key={candidate.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.05 }}
+                    className="flex items-center gap-3 px-3 py-3 hover:bg-gradient-to-r hover:from-purple-50 hover:to-pink-50 rounded-xl cursor-pointer transition-all duration-200 group"
+                    onClick={() => handleSuggestionSelect(candidate)}
+                  >
+                    <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className="p-1.5 rounded-lg bg-gradient-to-r from-purple-100 to-pink-100">
+                        <Sparkles className="w-3 h-3 text-purple-600" />
+                      </div>
+                    </div>
+                    <div className="flex-1 min-w-0 text-right">
+                      <div className="font-medium text-gray-800 group-hover:text-purple-700 transition-colors">{`${candidate.firstName} ${candidate.lastName}`}</div>
+                      <div className="text-xs text-gray-500 truncate mt-0.5">
+                        {[
+                          candidate.profile.city,
+                          candidate.profile.occupation,
+                          candidate.profile.religiousLevel,
+                        ]
+                          .filter(Boolean)
+                          .join(' • ')}
+                      </div>
+                    </div>
+                    <div className="relative">
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-100 to-pink-100 flex items-center justify-center group-hover:scale-110 transition-transform duration-200">
+                        <span className="text-sm font-bold text-purple-600">
+                          {candidate.firstName.charAt(0)}
+                          {candidate.lastName.charAt(0)}
+                        </span>
+                      </div>
+                      {candidate.isVerified && (
+                        <div className="absolute -top-1 -right-1 w-4 h-4 bg-gradient-to-r from-emerald-500 to-green-500 rounded-full flex items-center justify-center">
+                          <Star className="w-2 h-2 text-white" />
+                        </div>
+                      )}
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div className="md:hidden border-t border-gray-100">
+            <div className="px-4 py-3 bg-gradient-to-r from-indigo-50 to-purple-50">
+              <div className="flex items-center justify-end gap-2 mb-3">
+                <span className="text-sm font-medium text-indigo-800">
+                  חפש לפי קטגוריה
+                </span>
+                <TrendingUp className="w-4 h-4 text-indigo-600" />
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                {searchCategories.map((category) => (
+                  <motion.div key={category.id} whileHover={{ scale: 1.02 }}>
+                    <Button
+                      variant={
+                        searchCategory === category.id ? 'default' : 'outline'
+                      }
+                      size="sm"
+                      className={cn(
+                        'w-full justify-start gap-2 rounded-xl transition-all duration-200',
+                        searchCategory === category.id
+                          ? `bg-gradient-to-r ${category.gradient} text-white shadow-lg border-0`
+                          : 'bg-white/80 hover:bg-white border border-gray-200 hover:border-gray-300'
+                      )}
+                      onClick={() => setSearchCategory(category.id)}
+                    >
+                      {category.icon}
+                      <span className="text-xs">{category.label}</span>
+                    </Button>
+                  </motion.div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div className="p-4 bg-gradient-to-r from-gray-50 to-gray-100/50 border-t border-gray-100">
+            <div className="flex items-start gap-2 text-right">
+              <Sparkles className="w-4 h-4 text-gray-500 mt-0.5 flex-shrink-0" />
+              <div className="text-xs text-gray-600 leading-relaxed">
+                <span className="font-medium">{dict.tip}</span>{' '}
+                {dict.tipContent}
+              </div>
+            </div>
+          </div>
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+};
+
+export default SearchBar;
+--- End of Content for SearchBar.tsx ---
+

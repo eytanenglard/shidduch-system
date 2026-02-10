@@ -241,9 +241,17 @@ export const useCandidates = (initialFilters: CandidatesFilter = {}): UseCandida
       }
 
       // בדיקת רמת דתיות
-    if (filters.religiousLevel?.length && candidate.profile.religiousLevel) {
-        if (!filters.religiousLevel.includes(candidate.profile.religiousLevel)) {
-          return false;
+   // בדיקת רמת דתיות - מעודכן כולל "לא מוגדר"
+      if (filters.religiousLevel?.length) {
+        const candidateLevel = candidate.profile.religiousLevel;
+        const includeNotDefined = filters.religiousLevel.includes('not_defined');
+
+        if (!candidateLevel) {
+          // אם למועמד אין רמה דתית, נשאיר אותו רק אם המשתמש בחר "לא מוגדר"
+          if (!includeNotDefined) return false;
+        } else {
+          // אם יש רמה דתית, נבדוק אם היא ברשימה שנבחרה
+          if (!filters.religiousLevel.includes(candidateLevel)) return false;
         }
       }
 
@@ -336,9 +344,17 @@ export const useCandidates = (initialFilters: CandidatesFilter = {}): UseCandida
             }
 
             // בדיקת רמת דתיות
-        if (filters.maleFilters.religiousLevel?.length && candidate.profile.religiousLevel) {
-              if (!filters.maleFilters.religiousLevel.includes(candidate.profile.religiousLevel)) {
-                return false;
+       // בדיקת רמת דתיות (עבור גברים בסינון נפרד)
+            if (filters.maleFilters.religiousLevel?.length) {
+              const candidateLevel = candidate.profile.religiousLevel;
+              const showUndefined = filters.maleFilters.religiousLevel.includes('not_defined');
+
+              if (!candidateLevel) {
+                if (!showUndefined) return false;
+              } else {
+                if (!filters.maleFilters.religiousLevel.includes(candidateLevel)) {
+                  return false;
+                }
               }
             }
 
@@ -430,9 +446,17 @@ export const useCandidates = (initialFilters: CandidatesFilter = {}): UseCandida
             }
 
             // בדיקת רמת דתיות
-     if (filters.femaleFilters.religiousLevel?.length && candidate.profile.religiousLevel) {
-              if (!filters.femaleFilters.religiousLevel.includes(candidate.profile.religiousLevel)) {
-                return false;
+   // בדיקת רמת דתיות (עבור נשים בסינון נפרד)
+            if (filters.femaleFilters.religiousLevel?.length) {
+              const candidateLevel = candidate.profile.religiousLevel;
+              const showUndefined = filters.femaleFilters.religiousLevel.includes('not_defined');
+
+              if (!candidateLevel) {
+                if (!showUndefined) return false;
+              } else {
+                if (!filters.femaleFilters.religiousLevel.includes(candidateLevel)) {
+                  return false;
+                }
               }
             }
 
