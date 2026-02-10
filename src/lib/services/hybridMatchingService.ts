@@ -290,7 +290,8 @@ interface ScoredCandidate extends RawCandidate {
   backgroundProfile: BackgroundProfile | null;
   backgroundMatch: BackgroundMatchResult | null;
   ageScore: AgeScoreResult | null;
-  
+    tier2Breakdown?: ScoreBreakdown;  // 🆕
+
   // Extended scores
   socioEconomicScore: number;
   educationScore: number;
@@ -1666,7 +1667,17 @@ async function tier2MetricsScoring(
     }
     
     tier2Score = Math.min(100, Math.max(0, Math.round(tier2Score)));
-    
+    // 🆕 חישוב scoreBreakdown מ-metrics עבור cached candidates
+    const tier2Breakdown: ScoreBreakdown = {
+      religious: Math.round(religiousScore * 25 / 100),
+      ageCompatibility: Math.round(ageScore.score * 10 / 100),
+      careerFamily: Math.round(((careerScore + jobSeniorityScore) / 2) * 15 / 100),
+      lifestyle: Math.round(((socialScore + (100 - Math.abs((targetProfile.metrics.urbanScore || 50) - (candidate.metrics.urbanScore || 50)))) / 2) * 10 / 100),
+      socioEconomic: Math.round(socioEconomicScore * 10 / 100),
+      education: Math.round(educationScore * 10 / 100),
+      background: Math.round((backgroundMatch?.multiplier || 0.7) * 100 * 10 / 100),
+      values: Math.round(((socialScore + careerScore) / 2) * 10 / 100),
+    };
     scoredCandidates.push({
       ...candidate,
       metricsScore: Math.round(metricsScore),
@@ -1682,6 +1693,8 @@ async function tier2MetricsScoring(
       meetsCandidateMustHaves: true,
       violatesCandidateDealBreakers: false,
       tier2Score,
+            tier2Breakdown,           // 🆕 הוסף שורה זו
+
       fromScannedPairCache: false, // Not from cache
     });
   }
@@ -1733,11 +1746,12 @@ async function tier3AIFirstPass(
   stats.cachedSkipped = cachedCandidates.length;
   
   // Process cached candidates immediately
+  // Process cached candidates - use tier2 breakdown instead of zeros
   for (const c of cachedCandidates) {
     allResults.push({
       ...c,
       aiFirstPassScore: c.tier2Score,
-      scoreBreakdown: { religious: 0, ageCompatibility: 0, careerFamily: 0, lifestyle: 0, socioEconomic: 0, education: 0, background: 0, values: 0 },
+      scoreBreakdown: c.tier2Breakdown || { religious: 0, ageCompatibility: 0, careerFamily: 0, lifestyle: 0, socioEconomic: 0, education: 0, background: 0, values: 0 },
       shortReasoning: 'Previously analyzed (Cached)',
       tier3Score: c.tier2Score,
     });
