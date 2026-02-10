@@ -1073,8 +1073,14 @@ async function runBatchScan(
         totalMatches += result.matches.length;
         newMatches += saved.new;
         
-        await markUserAsScanned(sessionId, user.id);
+       await markUserAsScanned(sessionId, user.id);
         
+        // 🆕 עדכון lastScannedAt על הפרופיל
+        await prisma.profile.updateMany({
+          where: { userId: user.id },
+          data: { lastScannedAt: new Date() },
+        });
+                
         await updateScanProgress(sessionId, {
           matchesFoundSoFar: totalMatches,
           newMatchesFoundSoFar: newMatches,
@@ -1243,11 +1249,22 @@ async function getUsersToScan(options: {
 
   const users = await prisma.user.findMany({
     where,
-    select: { id: true, firstName: true, lastName: true, profile: { select: { gender: true } } },
+    select: { id: true, firstName: true, lastName: true, profile: { select: { gender: true, lastScannedAt: true } } },
     orderBy: { createdAt: 'desc' },
   });
 
-  return users.map(u => ({ ...u, gender: u.profile?.gender || Gender.MALE }));
+  const sorted = users.sort((a, b) => {
+    const aScanned = a.profile?.lastScannedAt;
+    const bScanned = b.profile?.lastScannedAt;
+
+    if (!aScanned && bScanned) return -1;
+    if (aScanned && !bScanned) return 1;
+    if (!aScanned && !bScanned) return 0;
+
+    return aScanned!.getTime() - bScanned!.getTime();
+  });
+
+  return sorted.map(u => ({ ...u, gender: u.profile?.gender || Gender.MALE }));
 }
 
 async function saveToPotentialMatches(
