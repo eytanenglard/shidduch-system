@@ -1046,20 +1046,24 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
       })),
     [dict.options.serviceType]
   );
-  const headCoveringOptions = useMemo(
+ const headCoveringOptions = useMemo(
     () => [
-      // ✨ FIX: Added explicit "Undecided" option logic
       ...Object.entries(dict.options.headCovering).map(([value, label]) => ({
         value,
         label,
       })),
+      // ✅ הוספת אופציית פאה באופן ידני (אם חסרה במילון)
+      {
+        value: 'WIG',
+        label: locale === 'he' ? 'פאה' : 'Wig',
+      },
       {
         value: 'UNDECIDED',
         label:
-          dict.options.headCovering.UNDECIDED || "Not decided yet / Don't know",
+          dict.options.headCovering.UNDECIDED || "לא הוחלט / לא יודעת",
       },
     ],
-    [dict.options.headCovering]
+    [dict.options.headCovering, locale]
   );
 
   const kippahTypeOptions = useMemo(
@@ -1171,7 +1175,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
     }
   }, [profileProp, initializeFormData]);
 
-  const handleChange = (
+ const handleChange = (
     field: keyof UserProfile,
     value:
       | UserProfile[keyof UserProfile]
@@ -1182,46 +1186,55 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
       | string[]
       | null
   ) => {
-    // ✅ FIX: Clear related medical fields when unchecking hasMedicalInfo
+    // טיפול במידע רפואי - איפוס שדות נלווים
     if (field === 'hasMedicalInfo') {
       if (!value) {
-        // When unchecking hasMedicalInfo, clear all related fields
         setFormData((prev) => ({
           ...prev,
           hasMedicalInfo: false,
-          medicalInfoDetails: undefined,
-          medicalInfoDisclosureTiming: undefined,
+          medicalInfoDetails: null, // ✅ שינוי ל-null
+          medicalInfoDisclosureTiming: null, // ✅ שינוי ל-null
           isMedicalInfoVisible: false,
         }));
         return;
       } else {
-        // When checking hasMedicalInfo, just update the field
         setFormData((prev) => ({ ...prev, hasMedicalInfo: true }));
         return;
       }
     }
 
     setFormData((prev) => {
-      let finalValue: UserProfile[keyof UserProfile] | undefined = undefined;
+      let finalValue: any = value;
 
-      if (['height', 'siblings', 'position', 'aliyaYear'].includes(field)) {
-        const rawValue = value as string | number;
-        if (rawValue === '' || rawValue === null || rawValue === undefined) {
-          finalValue = undefined;
+      // המרה למספרים בשדות מספריים
+      if (['height', 'siblings', 'position', 'aliyaYear', 'preferredAgeMin', 'preferredAgeMax', 'preferredHeightMin', 'preferredHeightMax'].includes(field)) {
+        if (value === '' || value === null || value === undefined) {
+          finalValue = null;
         } else {
-          const parsed = parseInt(String(rawValue), 10);
-          finalValue = !isNaN(parsed)
-            ? (parsed as UserProfile[typeof field])
-            : undefined;
+          const parsed = Number(value);
+          finalValue = isNaN(parsed) ? null : parsed;
         }
-      } else if (field === 'birthDate') {
-        finalValue = ensureDateObject(
-          value as string | Date | null | undefined
-        ) as UserProfile[typeof field];
-      } else {
-        finalValue = (
-          value === '' || value === null ? undefined : value
-        ) as UserProfile[typeof field];
+      }
+      // המרה לתאריכים
+      else if (field === 'birthDate' || field === 'availabilityUpdatedAt') {
+         // שימוש בפונקציית העזר שלך, אך מוודאים שלא חוזר undefined
+         const dateVal = ensureDateObject(value as any);
+         finalValue = dateVal || null;
+      }
+      // בוליאנים (כמו שומר נגיעה)
+      else if (typeof value === 'boolean') {
+          finalValue = value;
+      }
+      // מערכים (כמו שפות, תחביבים)
+      else if (Array.isArray(value)) {
+          finalValue = value;
+      }
+      // כל השאר (מחרוזות, Enums)
+      else {
+        // ✅ התיקון הקריטי: אם זה ריק, זה null. לא undefined!
+        if (value === '' || value === null || value === undefined) {
+          finalValue = null;
+        }
       }
 
       return {
@@ -1711,16 +1724,16 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                     {isEditing && !viewOnly ? (
                       <Select
                         dir={direction}
-                        onValueChange={(value) => {
-                          const currentLanguages =
-                            formData.additionalLanguages || [];
-                          if (!currentLanguages.includes(value)) {
-                            handleChange('additionalLanguages', [
-                              ...currentLanguages,
-                              value,
-                            ]);
-                          }
-                        }}
+                    onValueChange={(value) => {
+  if (value === 'YES') {
+    handleChange('shomerNegiah', true);
+  } else if (value === 'NO') {
+    handleChange('shomerNegiah', false);
+  } else {
+    handleChange('shomerNegiah', null); // ✅ שליחת null מפורשת
+  }
+}}
+
                       >
                         <SelectTrigger
                           id="additionalLanguages"
@@ -2296,15 +2309,20 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                       {dict.cards.religion.matchmakerGenderLabel}
                     </Label>
                     {isEditing && !viewOnly ? (
-                      <Select
+<Select
                         dir={direction}
-                        value={formData.preferredMatchmakerGender || ''}
-                        onValueChange={(value) =>
-                          handleChange(
-                            'preferredMatchmakerGender',
-                            (value as Gender) || undefined
-                          )
-                        }
+                        // לוגיקת תצוגה: אם הערך הוא null/undefined, ה-Select יציג את אופציית NONE
+                        value={formData.preferredMatchmakerGender || 'NONE'}
+                        onValueChange={(value) => {
+                          if (value === 'MALE') {
+                            handleChange('preferredMatchmakerGender', 'MALE');
+                          } else if (value === 'FEMALE') {
+                            handleChange('preferredMatchmakerGender', 'FEMALE');
+                          } else {
+                            // ✅ אם נבחר NONE (לא משנה), נשלח null לדאטה בייס
+                            handleChange('preferredMatchmakerGender', null);
+                          }
+                        }}
                       >
                         <SelectTrigger
                           id="preferredMatchmakerGender"
@@ -2317,11 +2335,20 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                           />
                         </SelectTrigger>
                         <SelectContent>
-                          {preferredMatchmakerGenderOptions.map((opt) => (
-                            <SelectItem key={opt.value} value={opt.value}>
-                              {opt.label}
-                            </SelectItem>
-                          ))}
+                          {/* אופציה: זכר */}
+                          <SelectItem value="MALE">
+                             {dict.options.matchmakerGender.MALE}
+                          </SelectItem>
+                          
+                          {/* אופציה: נקבה */}
+                          <SelectItem value="FEMALE">
+                             {dict.options.matchmakerGender.FEMALE}
+                          </SelectItem>
+                          
+                          {/* אופציה: לא משנה (NONE) */}
+                          <SelectItem value="NONE">
+                             {dict.options.matchmakerGender.NONE}
+                          </SelectItem>
                         </SelectContent>
                       </Select>
                     ) : (

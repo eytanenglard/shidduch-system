@@ -529,6 +529,7 @@ enum HeadCoveringType {
   HAT_BERET
   SCARF_ONLY_SOMETIMES
   NONE
+  WIG
   UNDECIDED  // ✅ הוסף
 }
 

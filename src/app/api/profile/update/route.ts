@@ -86,9 +86,8 @@ export async function PUT(req: NextRequest) {
     let body;
     try {
       body = await req.json();
-      // --- LOG 1: בדיקת ה-Body הנכנס ---
-      console.log("🔹 [Update Profile] Incoming Body Keys:", Object.keys(body));
-      console.log("🔹 [Update Profile] Value of 'internalMatchmakerNotes' in body:", body.internalMatchmakerNotes);
+      // --- LOG: בדיקת ה-Body הנכנס ---
+      // console.log("🔹 [Update Profile] Incoming Body Keys:", Object.keys(body));
     } catch (error) {
       console.error("Invalid JSON body:", error);
       return NextResponse.json(
@@ -100,6 +99,7 @@ export async function PUT(req: NextRequest) {
     const {
       gender,
       birthDate,
+      birthDateIsApproximate, // <--- הוספה חדשה
       nativeLanguage,
       additionalLanguages,
       height,
@@ -129,7 +129,7 @@ export async function PUT(req: NextRequest) {
       availabilityNote,
       availabilityUpdatedAt,
       matchingNotes,
-      internalMatchmakerNotes, // <--- Destructuring here
+      internalMatchmakerNotes, 
       shomerNegiah,
       serviceType,
       serviceDetails,
@@ -182,6 +182,11 @@ export async function PUT(req: NextRequest) {
          return NextResponse.json({ success: false, message: "Invalid birthDate provided." }, { status: 400 });
       }
     }
+    // <--- הוספה חדשה ללוגיקה
+    if (birthDateIsApproximate !== undefined) {
+        dataToUpdate.birthDateIsApproximate = birthDateIsApproximate;
+    }
+
     if (nativeLanguage !== undefined) dataToUpdate.nativeLanguage = emptyStringToNull(nativeLanguage);
     if (additionalLanguages !== undefined) dataToUpdate.additionalLanguages = additionalLanguages || [];
     if (height !== undefined) dataToUpdate.height = toNumberOrNull(height);
@@ -216,6 +221,7 @@ export async function PUT(req: NextRequest) {
              dataToUpdate.religiousJourney = null;
         }
     }
+    // בוליאן/null - עובר כמו שהוא
     if (shomerNegiah !== undefined) dataToUpdate.shomerNegiah = shomerNegiah;
 
     // Gender Logic for HeadCovering/Kippah
@@ -238,8 +244,18 @@ export async function PUT(req: NextRequest) {
             if (kippahType !== undefined) dataToUpdate.kippahType = emptyStringToNull(kippahType) as KippahType | null;
         }
     }
-    if (preferredMatchmakerGender !== undefined) dataToUpdate.preferredMatchmakerGender = emptyStringToNull(preferredMatchmakerGender) as Gender | null;
-
+// --- תיקון: מגדר שדכן ---
+    if (preferredMatchmakerGender !== undefined) {
+      const val = emptyStringToNull(preferredMatchmakerGender);
+      // בדיקה קפדנית: רק אם זה MALE או FEMALE נשמור את הערך.
+      // כל ערך אחר (כמו "BOTH", "ANY" וכו') יהפוך ל-null.
+      if (val === 'MALE' || val === 'FEMALE') {
+        dataToUpdate.preferredMatchmakerGender = val as Gender;
+      } else {
+        dataToUpdate.preferredMatchmakerGender = null;
+      }
+    }
+    
     // --- Traits ---
     if (profileCharacterTraits !== undefined) dataToUpdate.profileCharacterTraits = profileCharacterTraits || [];
     if (profileHobbies !== undefined) dataToUpdate.profileHobbies = profileHobbies || [];
@@ -253,13 +269,10 @@ export async function PUT(req: NextRequest) {
     // --- NOTES & INTERNAL DATA ---
     if (matchingNotes !== undefined) dataToUpdate.matchingNotes = emptyStringToNull(matchingNotes);
     
-    // --- LOG 2: בדיקה לפני ההוספה לאובייקט העדכון ---
     if (internalMatchmakerNotes !== undefined) {
         console.log("✅ [Update Profile] internalMatchmakerNotes found in payload, updating to:", internalMatchmakerNotes);
         dataToUpdate.internalMatchmakerNotes = emptyStringToNull(internalMatchmakerNotes);
-    } else {
-        console.log("⚠️ [Update Profile] internalMatchmakerNotes is UNDEFINED in payload - skipping update.");
-    }
+    } 
 
     if (contactPreference !== undefined) dataToUpdate.contactPreference = emptyStringToNull(contactPreference);
     
@@ -325,9 +338,6 @@ export async function PUT(req: NextRequest) {
     // --- Perform Update ---
     let updatedProfileRecord: Profile | null = null;
     
-    // --- LOG 3: האובייקט שנשלח ל-Prisma ---
-    console.log("🔹 [Update Profile] Final Prisma Data Object:", JSON.stringify(dataToUpdate, null, 2));
-
     if (Object.keys(dataToUpdate).length > 0) {
       try {
          dataToUpdate.needsAiProfileUpdate = true;
@@ -366,15 +376,13 @@ export async function PUT(req: NextRequest) {
     
     const dbProfile = refreshedUserWithProfile.profile;
 
-    // --- LOG 4: בדיקת הערך בדאטה בייס אחרי השמירה ---
-    console.log("🔹 [Update Profile] Value in DB after update:", dbProfile.internalMatchmakerNotes);
-
     // Construct Response
     const responseUserProfile: UserProfile = {
       id: dbProfile.id,
       userId: dbProfile.userId,
       gender: dbProfile.gender, 
       birthDate: new Date(dbProfile.birthDate),
+      birthDateIsApproximate: dbProfile.birthDateIsApproximate ?? undefined, // <--- הוספה לתשובה
       nativeLanguage: dbProfile.nativeLanguage || undefined,
       additionalLanguages: dbProfile.additionalLanguages || [],
       height: dbProfile.height ?? null,
@@ -411,7 +419,6 @@ export async function PUT(req: NextRequest) {
       availabilityUpdatedAt: dbProfile.availabilityUpdatedAt ? new Date(dbProfile.availabilityUpdatedAt) : null,
       matchingNotes: dbProfile.matchingNotes || "",
       
-      // ✅ ודא שזה מוחזר כאן!
       internalMatchmakerNotes: dbProfile.internalMatchmakerNotes || "", 
 
       shomerNegiah: dbProfile.shomerNegiah ?? undefined,
@@ -466,7 +473,6 @@ export async function PUT(req: NextRequest) {
 
   } catch (error) {
     console.error('❌ [Update Profile] Fatal Error:', error);
-    // ... Error handling blocks
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
       if (error.code === 'P2002' && error.meta?.target) {
          return NextResponse.json({ success: false, message: `Error: A field violates a unique constraint (${JSON.stringify(error.meta.target)}).` }, { status: 409 });
