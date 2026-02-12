@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmaker\suggestions\NewSuggestionForm
-# Generated on: 2026-01-29 07:27:26
+# Generated on: 2026-02-11 23:02:56
 # Filter: Only content of code files (.bat, .c, .cfg, .conf, .cpp, .cs, .css, .go, .h, .html, .ini, .java, .js, .json, .jsx, .kt, .less, .md, .php, .py, .rb, .rs, .scss, .sh, .sql, .swift, .ts, .tsx, .txt, .xml, .yaml, .yml) is included.
 ################################################################################
 
@@ -79,12 +79,16 @@ const EnhancedCandidateCard: React.FC<{
   const mainImage = candidate.images.find((img) => img.isMain)?.url;
 
   const getStatusInfo = () => {
+    // 🔄 שינוי: במקום לחסום (BLOCKED), מציגים רק אזהרה
+    // המועמד עדיין יהיה ניתן לבחירה
+
     if (isBlocked) {
+      // 🆕 שינוי: הורדנו את ה-isBlocked מהלוגיקה הבסיסית
+      // עכשיו isBlocked מגיע מ-prop ורק מסמן ויזואלית
       return {
         icon: Shield,
         label: dict.status.blocked,
-        className:
-          'bg-gradient-to-r from-red-500 to-pink-500 text-white animate-pulse',
+        className: 'bg-gradient-to-r from-red-500 to-pink-500 text-white',
         description: dict.status.blockedDescription.replace(
           '{{name}}',
           candidate.suggestionStatus?.withCandidateName || ''
@@ -92,11 +96,13 @@ const EnhancedCandidateCard: React.FC<{
       };
     }
 
+    // 🆕 שינוי: PENDING עכשיו מציג אזהרה בלבד, לא חוסם
     if (candidate.suggestionStatus?.status === 'PENDING') {
       return {
         icon: Clock,
         label: dict.status.pending,
-        className: 'bg-gradient-to-r from-yellow-500 to-amber-500 text-white',
+        // 🔄 שינוי: צבע כתום במקום אדום - אזהרה לא חסימה
+        className: 'bg-gradient-to-r from-amber-400 to-orange-400 text-white',
         description: dict.status.pendingDescription.replace(
           '{{name}}',
           candidate.suggestionStatus.withCandidateName
@@ -124,7 +130,7 @@ const EnhancedCandidateCard: React.FC<{
         isBlocked && 'opacity-60 cursor-not-allowed',
         !isBlocked && 'hover:scale-105 hover:border-purple-300'
       )}
-      onClick={!isBlocked ? onClick : undefined}
+      onClick={onClick}
     >
       <div className="absolute inset-0">
         <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-purple-200/20 to-pink-200/20 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
@@ -136,6 +142,14 @@ const EnhancedCandidateCard: React.FC<{
             <StatusIcon className="w-3 h-3 ml-1" />
             {statusInfo.label}
           </Badge>
+          {candidate.suggestionStatus?.status === 'PENDING' && (
+  <div className="absolute top-2 left-2 z-10">
+    <div className="p-1.5 rounded-full bg-amber-100 border border-amber-300 shadow-sm">
+      <Clock className="w-3 h-3 text-amber-600" />
+    </div>
+  </div>
+)}
+
           {candidate.profile.religiousLevel && (
             <Badge className="bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-lg">
               <Crown className="w-3 h-3 ml-1" />
@@ -143,6 +157,7 @@ const EnhancedCandidateCard: React.FC<{
             </Badge>
           )}
         </div>
+
         <div className="flex items-center gap-4">
           <div className="relative">
             <Avatar className="w-16 h-16 border-4 border-white shadow-xl ring-2 ring-purple-200 group-hover:ring-purple-400 transition-all duration-300">
@@ -252,17 +267,32 @@ const CandidateSelector: React.FC<CandidateSelectorProps> = ({
 
   const handleSelect = useCallback(
     (candidate: Candidate) => {
-      if (candidate.suggestionStatus?.status === 'BLOCKED') {
-        toast.error(dict.toasts.cannotSelectError.title, {
-          description: dict.toasts.cannotSelectError.description
-            .replace('{{name}}', `${candidate.firstName} ${candidate.lastName}`)
-            .replace(
-              '{{withName}}',
-              candidate.suggestionStatus.withCandidateName
-            ),
-        });
-        return;
+      // 🗑️ הסרנו את הבדיקה הקודמת שחסמה בחירה:
+      // if (candidate.suggestionStatus?.status === 'BLOCKED') { return; }
+
+      // 🆕 חדש: במקום לחסום, מציגים toast עם אזהרה
+      if (candidate.suggestionStatus?.status === 'PENDING') {
+        toast.warning(
+          dict.toasts?.pendingSuggestionWarning?.title || 'שים לב - הצעה קיימת',
+          {
+            description: (
+              dict.toasts?.pendingSuggestionWarning?.description ||
+              'למועמד/ת {{name}} יש כבר הצעה פעילה עם {{withName}}'
+            )
+              .replace(
+                '{{name}}',
+                `${candidate.firstName} ${candidate.lastName}`
+              )
+              .replace(
+                '{{withName}}',
+                candidate.suggestionStatus.withCandidateName
+              ),
+            duration: 5000,
+          }
+        );
       }
+
+      // ✅ תמיד מאפשרים בחירה
       onChange(candidate);
       setOpen(false);
       setInputValue('');

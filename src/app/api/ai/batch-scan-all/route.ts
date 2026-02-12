@@ -1,12 +1,12 @@
 // ===========================================
 // src/app/api/ai/batch-scan-all/route.ts
 // ===========================================
-// 🎯 סריקה לילית V2.5 - Compatible with hybridMatchingService V2.5
+// 🎯 סריקה לילית V2.6 - עם מילוי שדות חסרים אוטומטי
 // 
-// 🆕 V2.5 Changes:
-// - Updated AICallStats interface (removed cachedSkipped)
-// - Updated scan result handling for existingMatches
-// - Updated stats display
+// 🆕 V2.6 Changes:
+// - Auto-fill missing profile fields (religiousLevel, maritalStatus, height, birthDate)
+// - AI inference with confidence levels (HIGH/MEDIUM/LOW)
+// - Only fills fields if confidence >= MEDIUM and field is empty
 // ===========================================
 
 import { NextRequest, NextResponse } from "next/server";
@@ -56,13 +56,36 @@ function initGemini() {
 }
 
 // ═══════════════════════════════════════════════════════════════
+// 🆕 V2.6: VALID VALUES FOR AI INFERENCE
+// ═══════════════════════════════════════════════════════════════
+
+const VALID_MARITAL_STATUSES = ['SINGLE', 'DIVORCED', 'WIDOWED'] as const;
+
+const VALID_RELIGIOUS_LEVELS = [
+  'dati_leumi_standard',
+  'dati_leumi_liberal',
+  'dati_leumi_torani',
+  'masorti_strong',
+  'masorti_light',
+  'secular_traditional_connection',
+  'secular',
+  'spiritual_not_religious',
+  'charedi_modern',
+  'charedi_litvak',
+  'charedi_sephardic',
+  'charedi_hasidic',
+  'chabad',
+  'breslov',
+  'other',
+] as const;
+
+// ═══════════════════════════════════════════════════════════════
 // Types
 // ═══════════════════════════════════════════════════════════════
 
 type ScanMethod = 'hybrid' | 'algorithmic' | 'vector' | 'metrics_v2';
 type ScanPhase = 'preparing' | 'scanning' | 'completed' | 'failed' | 'cancelled';
 
-// 🆕 V2.5: Updated AICallStats (no cachedSkipped)
 interface AICallStats {
   tier3FirstPass: {
     batchesSent: number;
@@ -103,6 +126,7 @@ interface ScanSessionState {
     failed: number;
     aiCallsMade: number;
     embeddingCallsMade: number;
+    fieldsAutoFilled: number; // 🆕 V2.6
   };
   
   currentUserIndex: number;
@@ -137,6 +161,7 @@ interface UpdateStats {
   skippedSteps: string[];
   aiCallsMade: number;
   embeddingCallsMade: number;
+  fieldsAutoFilled: string[]; // 🆕 V2.6
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -185,6 +210,7 @@ async function getOrCreateScanSession(
         preparationStats: {
           totalNeedingUpdate: 0, currentIndex: 0, currentUserName: '',
           updated: 0, skipped: 0, failed: 0, aiCallsMade: 0, embeddingCallsMade: 0,
+          fieldsAutoFilled: 0,
         },
         currentUserIndex: 0, totalUsers: 0,
         matchesFoundSoFar: 0, newMatchesFoundSoFar: 0,
@@ -276,6 +302,7 @@ async function getScanSessionState(sessionId: string): Promise<ScanSessionState 
       preparationStats: progress.preparationStats || {
         totalNeedingUpdate: 0, currentIndex: 0, currentUserName: '',
         updated: 0, skipped: 0, failed: 0, aiCallsMade: 0, embeddingCallsMade: 0,
+        fieldsAutoFilled: 0,
       },
       currentUserIndex: progress.currentUserIndex || session.currentUserIndex || 0,
       totalUsers: progress.totalUsers || session.totalUsersToProcess || 0,
@@ -347,8 +374,8 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     }
 
     console.log(`\n${'='.repeat(60)}`);
-    console.log(`[BatchScan V2.5] 🚀 Starting scan: ${scanSession.id}`);
-    console.log(`[BatchScan V2.5] Method: ${method}, Skip Preparation: ${skipPreparation}`);
+    console.log(`[BatchScan V2.6] 🚀 Starting scan: ${scanSession.id}`);
+    console.log(`[BatchScan V2.6] Method: ${method}, Skip Preparation: ${skipPreparation}`);
     console.log(`${'='.repeat(60)}\n`);
 
     runBatchScan(scanSession.id, {
@@ -409,9 +436,9 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     if (!scanId) {
       return NextResponse.json({
         name: "NeshamaTech Multi-Method Batch Scan API",
-        version: "2.5",
+        version: "2.6",
         methods: ['hybrid', 'algorithmic', 'vector', 'metrics_v2'],
-        features: ['scanned_pair_exclusion', 'existing_matches_loading', 'smart_preparation'],
+        features: ['scanned_pair_exclusion', 'existing_matches_loading', 'smart_preparation', 'auto_fill_missing_fields'],
       });
     }
 
@@ -447,6 +474,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
           preparationUpdated: state.preparationStats.updated,
           preparationSkipped: state.preparationStats.skipped,
           preparationFailed: state.preparationStats.failed,
+          fieldsAutoFilled: state.preparationStats.fieldsAutoFilled,
         },
       },
     });
@@ -515,6 +543,7 @@ async function updateSingleUserData(
   const stats: UpdateStats = {
     aiSummaryCreated: false, metricsCalculated: false, vectorsCreated: false,
     skippedSteps: [], aiCallsMade: 0, embeddingCallsMade: 0,
+    fieldsAutoFilled: [], // 🆕 V2.6
   };
 
   try {
@@ -557,8 +586,14 @@ async function updateSingleUserData(
     if (needsMetrics && metricsModel) {
       const narrativeResult = buildFullNarrativeWithHardData(user, profile, questionnaire, aiProfileSummary);
       if (narrativeResult && narrativeResult.narrative.length >= 200) {
-        const metrics = await calculateMetricsWithAI(narrativeResult.narrative, profile.gender, narrativeResult.missingFields);
+        const metrics = await calculateMetricsWithAI(
+          narrativeResult.narrative, 
+          profile.gender, 
+          narrativeResult.missingFields
+        );
+        
         if (metrics) {
+          // שמירת המטריקות
           await prisma.profileMetrics.upsert({
             where: { profileId },
             create: { profileId, calculatedBy: 'AI_AUTO', ...metrics },
@@ -566,6 +601,14 @@ async function updateSingleUserData(
           });
           stats.metricsCalculated = true;
           stats.aiCallsMade++;
+
+          // 🆕 V2.6: עדכון שדות חסרים בפרופיל
+          const autoFilledFields = await autoFillMissingProfileFields(
+            profileId, 
+            profile, 
+            metrics
+          );
+          stats.fieldsAutoFilled = autoFilledFields;
 
           // Step 3a: Vectors after new metrics
           const selfVector = await generateTextEmbedding(metrics.aiPersonalitySummary);
@@ -604,6 +647,165 @@ async function updateSingleUserData(
   } catch (error) {
     return { success: false, error: error instanceof Error ? error.message : 'Unknown error', stats };
   }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// 🆕 V2.6: AUTO-FILL MISSING PROFILE FIELDS
+// ═══════════════════════════════════════════════════════════════
+
+async function autoFillMissingProfileFields(
+  profileId: string,
+  currentProfile: any,
+  metrics: any
+): Promise<string[]> {
+  const filledFields: string[] = [];
+  const profileUpdates: any = {};
+
+  // בדיקת רמת ביטחון - רק MEDIUM או HIGH
+  const confidence = metrics.inferredConfidence?.toUpperCase();
+  if (confidence !== 'HIGH' && confidence !== 'MEDIUM') {
+    console.log(`[AutoFill] Skipping - confidence too low: ${confidence}`);
+    return filledFields;
+  }
+
+  // 1. עדכון רמה דתית (religiousLevel)
+  if (!currentProfile.religiousLevel && metrics.inferredReligiousLevel) {
+    const validLevel = validateReligiousLevel(metrics.inferredReligiousLevel);
+    if (validLevel) {
+      profileUpdates.religiousLevel = validLevel;
+      filledFields.push('religiousLevel');
+    }
+  }
+
+  // 2. עדכון מצב משפחתי (maritalStatus)
+  if (!currentProfile.maritalStatus && metrics.inferredMaritalStatus) {
+    const validStatus = validateMaritalStatus(metrics.inferredMaritalStatus);
+    if (validStatus) {
+      profileUpdates.maritalStatus = validStatus;
+      filledFields.push('maritalStatus');
+    }
+  }
+
+  // 3. עדכון גובה (height)
+  if (!currentProfile.height && metrics.inferredHeight) {
+    const height = parseInt(metrics.inferredHeight);
+    if (height >= 140 && height <= 220) {
+      profileUpdates.height = height;
+      filledFields.push('height');
+    }
+  }
+
+  // 4. עדכון תאריך לידה (birthDate) מגיל
+  if (!currentProfile.birthDate && metrics.inferredAge) {
+    const age = parseInt(metrics.inferredAge);
+    if (age >= 18 && age <= 120) {
+      const birthYear = new Date().getFullYear() - age;
+      // קובעים ל-1 ביולי כדי להיות במרכז השנה
+      profileUpdates.birthDate = new Date(`${birthYear}-07-01`);
+      filledFields.push('birthDate');
+    }
+  }
+
+  // ביצוע העדכון אם יש שדות לעדכן
+  if (Object.keys(profileUpdates).length > 0) {
+    try {
+      await prisma.profile.update({
+        where: { id: profileId },
+        data: profileUpdates
+      });
+      console.log(`[AutoFill] ✅ Updated profile ${profileId}:`, filledFields.join(', '));
+    } catch (error) {
+      console.error(`[AutoFill] ❌ Failed to update profile ${profileId}:`, error);
+      return [];
+    }
+  }
+
+  return filledFields;
+}
+
+// 🆕 V2.6: Validation helpers
+function validateReligiousLevel(value: string | null | undefined): string | null {
+  if (!value) return null;
+  
+  const normalized = value.toLowerCase().trim();
+  
+  // בדיקה ישירה
+  if (VALID_RELIGIOUS_LEVELS.includes(normalized as any)) {
+    return normalized;
+  }
+  
+  // מיפוי ערכים נפוצים
+  const mappings: Record<string, string> = {
+    'דתי לאומי': 'dati_leumi_standard',
+    'דתי': 'dati_leumi_standard',
+    'דתי לאומי ליברלי': 'dati_leumi_liberal',
+    'דתל': 'dati_leumi_liberal',
+    'דתי לאומי תורני': 'dati_leumi_torani',
+    'חרדל': 'dati_leumi_torani',
+    'מסורתי': 'masorti_strong',
+    'מסורתי חזק': 'masorti_strong',
+    'מסורתי לייט': 'masorti_light',
+    'חילוני': 'secular',
+    'חילוני מסורתי': 'secular_traditional_connection',
+    'חרדי': 'charedi_modern',
+    'חרדי מודרני': 'charedi_modern',
+    'חרדי ליטאי': 'charedi_litvak',
+    'ליטאי': 'charedi_litvak',
+    'חרדי ספרדי': 'charedi_sephardic',
+    'ספרדי': 'charedi_sephardic',
+    'חרדי חסידי': 'charedi_hasidic',
+    'חסידי': 'charedi_hasidic',
+    'חבד': 'chabad',
+    "חב''ד": 'chabad',
+    'ברסלב': 'breslov',
+    'רוחני': 'spiritual_not_religious',
+  };
+  
+  if (mappings[normalized]) {
+    return mappings[normalized];
+  }
+  
+  // חיפוש חלקי
+  for (const [key, val] of Object.entries(mappings)) {
+    if (normalized.includes(key) || key.includes(normalized)) {
+      return val;
+    }
+  }
+  
+  return null;
+}
+
+function validateMaritalStatus(value: string | null | undefined): string | null {
+  if (!value) return null;
+  
+  const normalized = value.toUpperCase().trim();
+  
+  // בדיקה ישירה
+  if (VALID_MARITAL_STATUSES.includes(normalized as any)) {
+    return normalized;
+  }
+  
+  // מיפוי ערכים נפוצים
+  const mappings: Record<string, string> = {
+    'רווק': 'SINGLE',
+    'רווקה': 'SINGLE',
+    'single': 'SINGLE',
+    'גרוש': 'DIVORCED',
+    'גרושה': 'DIVORCED',
+    'divorced': 'DIVORCED',
+    'פרוד': 'DIVORCED',
+    'פרודה': 'DIVORCED',
+    'אלמן': 'WIDOWED',
+    'אלמנה': 'WIDOWED',
+    'widowed': 'WIDOWED',
+  };
+  
+  const lowerValue = value.toLowerCase().trim();
+  if (mappings[lowerValue]) {
+    return mappings[lowerValue];
+  }
+  
+  return null;
 }
 
 async function saveVectors(profileId: string, selfVector: number[], seekingVector: number[]): Promise<void> {
@@ -646,6 +848,7 @@ async function runBatchScan(
   }
 ): Promise<void> {
   const startTime = Date.now();
+  let totalFieldsAutoFilled = 0; // 🆕 V2.6
 
   try {
     await updateScanProgress(sessionId, {
@@ -672,6 +875,7 @@ async function runBatchScan(
             currentIndex: 0, currentUserName: '',
             updated: 0, skipped: 0, failed: 0,
             aiCallsMade: 0, embeddingCallsMade: 0,
+            fieldsAutoFilled: 0,
           },
         });
         
@@ -688,6 +892,7 @@ async function runBatchScan(
                 currentUserName: `${user.firstName} ${user.lastName}`,
                 updated, skipped, failed,
                 aiCallsMade: totalAiCalls, embeddingCallsMade: totalEmbeddingCalls,
+                fieldsAutoFilled: totalFieldsAutoFilled,
               },
               message: `מכין נתונים: ${user.firstName} ${user.lastName} (${i + 1}/${usersNeedingUpdate.length})`,
             });
@@ -702,6 +907,12 @@ async function runBatchScan(
               if (didWork) updated++; else skipped++;
               totalAiCalls += result.stats.aiCallsMade;
               totalEmbeddingCalls += result.stats.embeddingCallsMade;
+              totalFieldsAutoFilled += result.stats.fieldsAutoFilled.length; // 🆕 V2.6
+              
+              // 🆕 V2.6: Log auto-filled fields
+              if (result.stats.fieldsAutoFilled.length > 0) {
+                console.log(`[BatchScan] 🔧 Auto-filled for ${user.firstName}: ${result.stats.fieldsAutoFilled.join(', ')}`);
+              }
             } else {
               failed++;
             }
@@ -711,6 +922,8 @@ async function runBatchScan(
             if (i < usersNeedingUpdate.length - 1) await sleep(delay);
           }
         }
+        
+        console.log(`[BatchScan] 🔧 Total fields auto-filled: ${totalFieldsAutoFilled}`);
       }
     }
 
@@ -771,7 +984,6 @@ async function runBatchScan(
           user.id, options.method, options.forceRefresh, sessionId, checkCancelled
         );
 
-        // 🆕 V2.5: result.matches = new matches only
         const saved = await saveToPotentialMatches(
           user.id, user.gender, result.matches, options.method
         );
@@ -810,12 +1022,13 @@ async function runBatchScan(
     
     await updateScanProgress(sessionId, {
       phase: 'completed', progressPercent: 100,
-      message: `הסריקה הושלמה! נמצאו ${totalMatches} התאמות חדשות (${newMatches} נשמרו)`,
+      message: `הסריקה הושלמה! נמצאו ${totalMatches} התאמות חדשות (${newMatches} נשמרו), ${totalFieldsAutoFilled} שדות הושלמו אוטומטית`,
     });
 
     console.log(`\n${'='.repeat(60)}`);
-    console.log(`[BatchScan V2.5] ✅ Completed in ${(duration / 1000 / 60).toFixed(1)} minutes`);
-    console.log(`[BatchScan V2.5] New Matches: ${totalMatches} (${newMatches} saved)`);
+    console.log(`[BatchScan V2.6] ✅ Completed in ${(duration / 1000 / 60).toFixed(1)} minutes`);
+    console.log(`[BatchScan V2.6] New Matches: ${totalMatches} (${newMatches} saved)`);
+    console.log(`[BatchScan V2.6] Fields Auto-Filled: ${totalFieldsAutoFilled}`);
     console.log(`${'='.repeat(60)}\n`);
 
   } catch (error) {
@@ -840,9 +1053,9 @@ async function scanUserByMethod(
     autoSave: false,
     forceRefresh,
     checkCancelled,
-    excludeAlreadyScannedPairs: true,  // 🆕 V2.5
+    excludeAlreadyScannedPairs: true,
     saveScannedPairs: true,
-    includeExistingMatches: false,      // 🆕 V2.5: Batch scan doesn't need existing matches per-user
+    includeExistingMatches: false,
     sessionId,
   };
 
@@ -1093,8 +1306,10 @@ function buildFullNarrativeWithHardData(user: any, profile: any, questionnaire: 
 שם: ${user.firstName} ${user.lastName}
 מגדר: ${profile.gender}
 גיל: ${age || 'לא צוין'}
+גובה: ${profile.height || 'לא צוין'}
 עיר: ${profile.city || 'לא צוין'}
 רמה דתית: ${profile.religiousLevel || 'לא צוין'}
+מצב משפחתי: ${profile.maritalStatus || 'לא צוין'}
 מקצוע: ${profile.occupation || 'לא צוין'}
 השכלה: ${profile.education || 'לא צוין'}`);
 
@@ -1103,8 +1318,11 @@ function buildFullNarrativeWithHardData(user: any, profile: any, questionnaire: 
   if (aiProfileSummary?.lookingForSummary) parts.push(`=== מה מחפש/ת ===\n${aiProfileSummary.lookingForSummary}`);
   if (profile.matchingNotes) parts.push(`=== הערות שידוך ===\n${profile.matchingNotes}`);
 
+  // 🆕 V2.6: הוספת שדות חסרים לרשימה
   if (!profile.city) missingFields.push('city');
   if (!profile.religiousLevel) missingFields.push('religiousLevel');
+  if (!profile.maritalStatus) missingFields.push('maritalStatus');
+  if (!profile.height) missingFields.push('height');
   if (!profile.preferredAgeMin) missingFields.push('preferredAgeMin');
   if (!profile.preferredAgeMax) missingFields.push('preferredAgeMax');
 
@@ -1113,29 +1331,70 @@ function buildFullNarrativeWithHardData(user: any, profile: any, questionnaire: 
   return { narrative, missingFields };
 }
 
+// 🆕 V2.6: Updated prompt with inference fields
 async function calculateMetricsWithAI(narrative: string, gender: string, missingFields: string[]): Promise<any | null> {
   if (!metricsModel) return null;
 
-  const prompt = `אתה מנתח פרופילים מומחה. חשב מדדים מספריים (0-100) עבור הפרופיל הבא.
-${missingFields.length > 0 ? `שדות חסרים שצריך לנחש: ${missingFields.join(', ')}` : ''}
---- פרופיל ---
+  const prompt = `אתה מנתח פרופילים מומחה בקהילה הדתית והחרדית בישראל.
+נתח את הפרופיל הבא וחשב מדדים מספריים (0-100).
+
+בנוסף, אם יש שדות חסרים, בצע הסקה לוגית מהטקסט (אודות, סיכום אישיות, שאלונים).
+הסק רק אם אתה בטוח ברמת MEDIUM או HIGH. אם אין מספיק מידע, השאר null.
+
+שדות חסרים שצריך לנסות להסיק: ${missingFields.join(', ') || 'אין'}
+
+=== ערכים תקינים ===
+רמה דתית (religiousLevel) - אחד מ:
+'dati_leumi_standard', 'dati_leumi_liberal', 'dati_leumi_torani', 'masorti_strong', 'masorti_light', 'secular_traditional_connection', 'secular', 'spiritual_not_religious', 'charedi_modern', 'charedi_litvak', 'charedi_sephardic', 'charedi_hasidic', 'chabad', 'breslov', 'other'
+
+מצב משפחתי (maritalStatus) - אחד מ:
+'SINGLE', 'DIVORCED', 'WIDOWED'
+
+=== פרופיל לניתוח ===
 ${narrative}
---- סוף פרופיל ---
+=== סוף פרופיל ===
+
 החזר JSON בלבד עם המבנה הבא:
 {
-  "confidenceScore": 70, "dataCompleteness": 60, "socialEnergy": 50,
-  "emotionalExpression": 50, "stabilityVsSpontaneity": 50, "religiousStrictness": 50,
-  "careerOrientation": 50, "urbanScore": 50, "socioEconomicLevel": 50,
-  "jobSeniorityLevel": 50, "educationLevelScore": 50, "appearancePickiness": 50,
-  "inferredAge": null, "inferredCity": null,
-  "inferredReligiousLevel": "דתי לאומי / חרדי / מסורתי / חילוני / null",
-  "inferredPreferredAgeMin": null, "inferredPreferredAgeMax": null,
+  "confidenceScore": 70,
+  "dataCompleteness": 60,
+  "socialEnergy": 50,
+  "emotionalExpression": 50,
+  "stabilityVsSpontaneity": 50,
+  "religiousStrictness": 50,
+  "careerOrientation": 50,
+  "urbanScore": 50,
+  "socioEconomicLevel": 50,
+  "jobSeniorityLevel": 50,
+  "educationLevelScore": 50,
+  "appearancePickiness": 50,
+  
+  "inferredAge": null,
+  "inferredHeight": null,
+  "inferredCity": null,
+  "inferredReligiousLevel": null,
+  "inferredMaritalStatus": null,
+  "inferredPreferredAgeMin": null,
+  "inferredPreferredAgeMax": null,
+  
+  "inferredConfidence": "HIGH/MEDIUM/LOW",
+  "inferenceReasoning": "הסבר קצר להסקה",
+  
   "aiPersonalitySummary": "סיכום קצר של האישיות",
   "aiSeekingSummary": "סיכום קצר של מה מחפש/ת",
   "aiBackgroundSummary": "סיכום רקע",
   "aiMatchmakerGuidelines": "הנחיות לשדכן",
-  "aiInferredDealBreakers": [], "aiInferredMustHaves": [], "difficultyFlags": []
-}`;
+  "aiInferredDealBreakers": [],
+  "aiInferredMustHaves": [],
+  "difficultyFlags": []
+}
+
+=== הנחיות להסקה ===
+1. גיל (inferredAge): אם כתוב "בן 25" או "בת 30" - הסק את הגיל. אם כתוב "צעיר/ה" ללא גיל מדויק - השאר null.
+2. גובה (inferredHeight): אם כתוב "גובה 175" או "1.80" - הסק (בס"מ). אם לא צוין - השאר null.
+3. רמה דתית (inferredReligiousLevel): הסק מסוג כיפה, שמירת נגיעה, סוג ישיבה, כיסוי ראש.
+4. מצב משפחתי (inferredMaritalStatus): אם כתוב "גרוש/ה" או "יש ילדים מנישואים קודמים" - DIVORCED. אם לא צוין - השאר null או SINGLE.
+5. רמת ביטחון (inferredConfidence): HIGH אם יש ראיות ברורות בטקסט, MEDIUM אם יש רמזים, LOW אם זה ניחוש.`;
 
   try {
     const result = await runGenAIWithRetry(async () => await metricsModel.generateContent(prompt));
@@ -1144,9 +1403,12 @@ ${narrative}
     if (jsonString.startsWith('```json')) jsonString = jsonString.slice(7, -3).trim();
     else if (jsonString.startsWith('```')) jsonString = jsonString.slice(3, -3).trim();
     const parsed = JSON.parse(jsonString);
+    
+    // Ensure string type for inferred religious level
     if (parsed.inferredReligiousLevel != null && typeof parsed.inferredReligiousLevel !== 'string') {
       parsed.inferredReligiousLevel = String(parsed.inferredReligiousLevel);
     }
+    
     return parsed;
   } catch (error) {
     console.error('[AI] Metrics calculation error:', error);

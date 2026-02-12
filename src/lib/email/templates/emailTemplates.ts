@@ -543,11 +543,340 @@ const profileFeedbackTemplateSource = `
 </html>
 `;
 
+// ============================================================================
+// NEW: Suggestion Invitation Template – "הזמנה אישית"
+// זו התבנית שמחליפה את הודעת ההצעה היבשה בחוויה רגשית ויוקרתית
+// ============================================================================
+const suggestionInvitationTemplateSource = `
+<!DOCTYPE html>
+<html dir="{{#if (eq locale 'he')}}rtl{{else}}ltr{{/if}}" lang="{{locale}}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{dict.title}}</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            direction: {{#if (eq locale 'he')}}rtl{{else}}ltr{{/if}};
+            text-align: {{#if (eq locale 'he')}}right{{else}}left{{/if}};
+            line-height: 1.7;
+            margin: 0;
+            padding: 0;
+            background-color: #faf5f0;
+            color: #374151;
+        }
+
+        .email-container {
+            max-width: 600px;
+            margin: 30px auto;
+            background-color: #ffffff;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.08);
+            overflow: hidden;
+        }
+
+        /* Header – Dark & Warm Gold */
+        .email-header {
+            background: linear-gradient(135deg, #1e293b 0%, #334155 50%, #1e293b 100%);
+            color: #ffffff;
+            padding: 45px 35px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .email-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(ellipse, rgba(251,191,36,0.15) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .header-sparkle {
+            font-size: 36px;
+            margin-bottom: 15px;
+            display: block;
+        }
+
+        .email-header h1 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: 700;
+            color: #fbbf24;
+            letter-spacing: -0.5px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header-subtitle {
+            margin-top: 12px;
+            font-size: 16px;
+            color: #cbd5e1;
+            font-weight: 400;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Body */
+        .email-body {
+            padding: 40px 35px;
+            font-size: 16px;
+        }
+
+        .greeting {
+            font-size: 22px;
+            color: #1e293b;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+
+        .intro-text {
+            color: #475569;
+            line-height: 1.8;
+            margin-bottom: 25px;
+            font-size: 16px;
+        }
+
+        /* Personal Note from Matchmaker – הקטע הכי חשוב */
+        .matchmaker-note {
+            background: linear-gradient(135deg, #fffbeb, #fef3c7);
+            border-{{#if (eq locale 'he')}}right{{else}}left{{/if}}: 5px solid #f59e0b;
+            border-radius: 12px;
+            padding: 25px 25px 20px;
+            margin: 25px 0;
+            position: relative;
+        }
+
+        .matchmaker-note-icon {
+            position: absolute;
+            top: -14px;
+            {{#if (eq locale 'he')}}right{{else}}left{{/if}}: 20px;
+            font-size: 26px;
+            background: #fffbeb;
+            padding: 0 8px;
+            border-radius: 50%;
+        }
+
+        .matchmaker-note-label {
+            color: #92400e;
+            font-weight: 700;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+        }
+
+        .matchmaker-note-text {
+            color: #78350f;
+            font-size: 16px;
+            line-height: 1.8;
+            font-style: italic;
+        }
+
+        /* Mystery Card – כרטיס הסקרנות */
+        .mystery-card {
+            background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
+            border: 2px solid #bae6fd;
+            border-radius: 16px;
+            padding: 35px 30px;
+            margin: 30px 0;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .mystery-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 30% 50%, rgba(6,182,212,0.08), transparent 60%);
+            pointer-events: none;
+        }
+
+        .mystery-icon {
+            font-size: 52px;
+            margin-bottom: 18px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .mystery-title {
+            font-size: 20px;
+            color: #0c4a6e;
+            font-weight: 700;
+            margin-bottom: 10px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .mystery-text {
+            font-size: 15px;
+            color: #0369a1;
+            line-height: 1.6;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* CTA Button */
+        .cta-section {
+            text-align: center;
+            margin: 35px 0 20px;
+        }
+
+        .cta-button {
+            display: inline-block;
+            padding: 18px 50px;
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: #1e293b !important;
+            text-decoration: none;
+            border-radius: 50px;
+            font-weight: 800;
+            font-size: 18px;
+            letter-spacing: 0.5px;
+            box-shadow: 0 8px 25px rgba(245, 158, 11, 0.35);
+        }
+
+        .cta-hint {
+            margin-top: 14px;
+            font-size: 13px;
+            color: #9ca3af;
+        }
+
+        /* Deadline (subtle) */
+        .deadline-note {
+            text-align: center;
+            margin: 20px 0;
+            padding: 12px 20px;
+            background: #fef2f2;
+            border-radius: 10px;
+            font-size: 13px;
+            color: #991b1b;
+        }
+
+        /* Signature */
+        .signature {
+            margin-top: 35px;
+            padding-top: 20px;
+            border-top: 1px solid #e5e7eb;
+            color: #6b7280;
+            font-size: 15px;
+        }
+
+        .signature-name {
+            color: #1e293b;
+            font-weight: 700;
+            font-size: 17px;
+            margin: 4px 0;
+        }
+
+        .signature-role {
+            color: #94a3b8;
+            font-size: 14px;
+        }
+
+        /* Footer */
+        .email-footer {
+            background-color: #f8fafc;
+            padding: 25px;
+            text-align: center;
+            font-size: 13px;
+            color: #94a3b8;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .email-footer a {
+            color: #06b6d4;
+            text-decoration: none;
+        }
+
+        @media (max-width: 600px) {
+            .email-body { padding: 25px 20px; }
+            .email-header { padding: 35px 20px; }
+            .email-header h1 { font-size: 24px; }
+            .cta-button { padding: 16px 35px; font-size: 16px; }
+            .mystery-card { padding: 25px 20px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+
+        <!-- Header -->
+        <div class="email-header">
+            <span class="header-sparkle">💌</span>
+            <h1>{{dict.title}}</h1>
+            <p class="header-subtitle">{{dict.subtitle}}</p>
+        </div>
+
+        <!-- Body -->
+        <div class="email-body">
+
+            <div class="greeting">{{greeting}}</div>
+
+            <p class="intro-text">{{dict.intro}}</p>
+
+            {{#if matchmakerNote}}
+            <div class="matchmaker-note">
+                <span class="matchmaker-note-icon">✍️</span>
+                <div class="matchmaker-note-label">{{dict.personalNoteLabel}}</div>
+                <div class="matchmaker-note-text">"{{matchmakerNote}}"</div>
+            </div>
+            {{/if}}
+
+            <div class="mystery-card">
+                <div class="mystery-icon">🎁</div>
+                <div class="mystery-title">{{dict.mysteryTitle}}</div>
+                <div class="mystery-text">{{dict.mysteryText}}</div>
+            </div>
+
+            <div class="cta-section">
+                <a href="{{reviewUrl}}" class="cta-button">{{dict.ctaButton}}</a>
+                <p class="cta-hint">{{dict.ctaHint}}</p>
+            </div>
+
+            {{#if deadlineText}}
+            <div class="deadline-note">
+                ⏳ {{deadlineText}}
+            </div>
+            {{/if}}
+
+            <div class="signature">
+                <p>{{dict.signatureText}}</p>
+                <p class="signature-name">{{matchmakerName}}</p>
+                <p class="signature-role">{{dict.signatureRole}}</p>
+            </div>
+
+        </div>
+
+        <!-- Footer -->
+        <div class="email-footer">
+            <p>{{sharedDict.supportPrompt}} <a href="mailto:{{supportEmail}}">{{supportEmail}}</a></p>
+            <p>© {{currentYear}} NeshamaTech. {{sharedDict.rightsReserved}}</p>
+        </div>
+
+    </div>
+</body>
+</html>
+`;
+
+// ============================================================================
 // Compile templates once at module load
+// ============================================================================
 const footerTemplate = Handlebars.compile(footerTemplateSource);
 const profileFeedbackTemplate = Handlebars.compile(profileFeedbackTemplateSource);
+const suggestionInvitationTemplate = Handlebars.compile(suggestionInvitationTemplateSource);
 
-// --- הגדרות טיפוסים לקונטקסט של כל תבנית ---
+// ============================================================================
+// הגדרות טיפוסים לקונטקסט של כל תבנית
+// ============================================================================
+
 interface BaseTemplateContext {
   locale: Locale;
   supportEmail: string;
@@ -648,7 +977,20 @@ export interface InternalFeedbackNotificationTemplateContext {
     feedbackId: string;
 }
 
+// ===== NEW: Suggestion Invitation Context =====
+export interface SuggestionInvitationTemplateContext extends BaseTemplateContext {
+  dict: EmailDictionary['suggestionInvitation'];
+  recipientName: string;
+  matchmakerName: string;
+  matchmakerNote?: string;   // ההערה האישית של השדכן לצד הרלוונטי
+  reviewUrl: string;          // קישור לדף הייעודי לצפייה בהצעה
+  deadlineText?: string;      // טקסט דדליין אופציונלי (לדוגמה: "ההצעה פתוחה עד 25 בפברואר")
+  greeting: string;           // שלום [שם],
+}
+
+// ============================================================================
 // מפה בין שם התבנית לסוג הקונטקסט שלה
+// ============================================================================
 export type TemplateContextMap = {
   welcome: WelcomeTemplateContext;
   accountSetup: AccountSetupTemplateContext;
@@ -662,6 +1004,7 @@ export type TemplateContextMap = {
   profileSummaryUpdate: ProfileSummaryUpdateTemplateContext;
   'internal-feedback-notification': InternalFeedbackNotificationTemplateContext;
   'profileFeedback': ProfileFeedbackTemplateContext;
+  suggestionInvitation: SuggestionInvitationTemplateContext; // ← NEW
 };
 
 // --- פונקציית עזר ליצירת HTML בסיסי לאימיילים פנימיים ---
@@ -829,7 +1172,9 @@ const createBaseEmailHtml = (title: string, content: string, context: BaseTempla
 };
 
 
-// --- מיפוי התבניות ---
+// ============================================================================
+// מיפוי התבניות
+// ============================================================================
 export const emailTemplates: {
   [K in keyof TemplateContextMap]: (context: TemplateContextMap[K]) => string;
 } = {
@@ -860,7 +1205,7 @@ export const emailTemplates: {
     <p>${context.dict.nextStep}</p>
   `, context),
   
-profileSummaryUpdate: (context) => {
+  profileSummaryUpdate: (context) => {
     const introText = context.matchmakerName
       ? context.dict.introMatchmaker.replace('{{matchmakerName}}', context.matchmakerName)
       : context.dict.introSystem;
@@ -877,7 +1222,6 @@ profileSummaryUpdate: (context) => {
       </p>
     `, context);
   },
-
 
   emailOtpVerification: (context) => createBaseEmailHtml(context.dict.title, `
     <p>${context.sharedDict.greeting.replace('{{name}}', context.name || 'משתמש יקר')}</p>
@@ -1009,5 +1353,10 @@ profileSummaryUpdate: (context) => {
     }
     
     return createInternalBaseEmailHtml(`${context.feedbackType} Feedback - NeshamaTech`, content);
+  },
+
+  // ===== NEW: Suggestion Invitation – "הזמנה אישית" =====
+  suggestionInvitation: (context) => {
+    return suggestionInvitationTemplate(context);
   },
 };

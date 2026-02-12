@@ -54,6 +54,9 @@ export class SuggestionService {
    * יצירת הצעת שידוך חדשה.
    * הפונקציה מקבלת את נתוני ההצעה, אובייקט המכיל את המילונים (עברית ואנגלית),
    * ואת העדפות השפה של הצדדים.
+   * 
+   * ← שינוי: ההודעה למועמד נשלחת כעת כ"הזמנה אישית" (מוד סקרנות)
+   *   ולא כעדכון טכני יבש. הלוגיקה נמצאת ב-NotificationService.
    */
   public async createSuggestion(
     data: CreateSuggestionData,
@@ -144,14 +147,25 @@ export class SuggestionService {
       return newSuggestion;
     });
 
-    // 5. שליחת התראות (Notifications)
+    // 5. שליחת התראות – "הזמנה אישית" (הלוגיקה ב-NotificationService)
+    //    NotificationService מזהה אוטומטית שהסטטוס הוא PENDING_FIRST_PARTY
+    //    ושולח "הזמנה" עם סקרנות במקום הודעה טכנית.
     try {
-      console.log('Sending notifications for new suggestion...');
+      console.log('═══════════════════════════════════════════════');
+      console.log('📨 Sending INVITATION notification for new suggestion');
+      console.log(`   Suggestion ID: ${suggestion.id}`);
+      console.log(`   First party: ${suggestion.firstParty.firstName} ${suggestion.firstParty.lastName} (${languageOptions.firstParty})`);
+      console.log(`   Second party: ${suggestion.secondParty.firstName} ${suggestion.secondParty.lastName} (${languageOptions.secondParty})`);
+      console.log(`   Matchmaker: ${suggestion.matchmaker.firstName} ${suggestion.matchmaker.lastName}`);
+      console.log(`   Personal note for first party: ${data.notes?.forFirstParty ? '✅ included (' + data.notes.forFirstParty.substring(0, 50) + '...)' : '❌ none'}`);
+      console.log(`   Decision deadline: ${data.decisionDeadline}`);
+      console.log('═══════════════════════════════════════════════');
       
-      // כאן אנו קוראים ישירות ל-notificationService (ולא דרך statusTransitionService כי זו יצירה ראשונית)
+      // קריאה ל-notificationService
+      // הוא יזהה אוטומטית שמדובר ב-PENDING_FIRST_PARTY וישלח "הזמנה אישית"
       await notificationService.handleSuggestionStatusChange(
         suggestion,
-        dictionaries, // העברת אובייקט המילונים
+        dictionaries,
         {
           channels: ['email', 'whatsapp'],
           notifyParties: ['first'] // בהצעה חדשה שולחים רק לצד א'
@@ -162,8 +176,10 @@ export class SuggestionService {
             matchmaker: 'he' // ברירת מחדל לשדכן
         }
       );
+
+      console.log('✅ Invitation notification sent successfully');
     } catch (error) {
-      console.error('Error sending initial suggestion notifications:', error);
+      console.error('❌ Error sending invitation notification:', error);
       // לא זורקים שגיאה כדי לא לבטל את יצירת ההצעה
     }
 
@@ -249,7 +265,6 @@ export class SuggestionService {
     this.validateStatusChangePermission(suggestion, userId, newStatus);
     
     // שליפת העדפות שפה מהמשתמשים (אם קיימות) או שימוש בברירת מחדל
-    // הערה: User מ-Prisma מכיל שדה language אם הוספת אותו לסכמה. אם לא, נשתמש ב-'he'
     const firstPartyLang = (suggestion.firstParty as any).language || 'he';
     const secondPartyLang = (suggestion.secondParty as any).language || 'he';
     const matchmakerLang = (suggestion.matchmaker as any).language || 'he';

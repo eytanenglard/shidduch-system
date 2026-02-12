@@ -58,6 +58,12 @@ interface TemplateContext {
   pageUrl?: string;
   screenshotUrl?: string;
   feedbackId?: string;
+
+  // ← NEW: שדות עבור תבנית ההזמנה האישית
+  matchmakerNote?: string;
+  reviewUrl?: string;
+  deadlineText?: string;
+  greeting?: string;
 }
 
 interface EmailConfig {
@@ -146,6 +152,17 @@ interface PasswordChangedConfirmationParams {
     locale: Locale;
     email: string;
     firstName?: string;
+}
+
+// ===== NEW: פרמטרים עבור מייל "הזמנה אישית" =====
+interface SuggestionInvitationEmailParams {
+  locale: Locale;
+  email: string;
+  recipientName: string;
+  matchmakerName: string;
+  matchmakerNote?: string;       // ההערה האישית של השדכן – ה-game changer
+  reviewUrl: string;              // קישור לדף הייעודי
+  deadlineText?: string;          // טקסט דדליין אופציונלי
 }
 
 // ================= מחלקת השירות =================
@@ -239,19 +256,18 @@ class EmailService {
     }
   }
 
-  // ================= פונקציות שליחה (ללא שינוי) =================
+  // ================= פונקציות שליחה קיימות (ללא שינוי) =================
 
-async sendWelcomeEmail(params: WelcomeEmailParams): Promise<void> {
+  async sendWelcomeEmail(params: WelcomeEmailParams): Promise<void> {
     const locale = await this.resolveLocale(params.email, params.locale);
     const dictionary = await getDictionary(locale);
     const emailDict = dictionary.email;
 
-    // --- תיקון: החלפת המשתנה בתוך מחרוזת הכותרת ---
     const subject = emailDict.welcome.subject.replace('{{firstName}}', params.firstName);
 
     await this.sendEmail({
       to: params.email,
-      subject: subject, // שימוש במשתנה המעובד
+      subject: subject,
       templateName: 'welcome',
       context: {
         locale,
@@ -266,18 +282,17 @@ async sendWelcomeEmail(params: WelcomeEmailParams): Promise<void> {
     });
   }
 
-async sendAccountSetupEmail(params: AccountSetupEmailParams): Promise<void> {
+  async sendAccountSetupEmail(params: AccountSetupEmailParams): Promise<void> {
     const locale = await this.resolveLocale(params.email, params.locale);
     const dictionary = await getDictionary(locale);
     const emailDict = dictionary.email;
     const setupLink = `${process.env.NEXT_PUBLIC_BASE_URL}/auth/setup-account?token=${params.setupToken}`;
     
-    // --- תיקון: החלפת שם השדכן בכותרת ---
     const subject = emailDict.accountSetup.subject.replace('{{matchmakerName}}', params.matchmakerName);
 
     await this.sendEmail({
       to: params.email,
-      subject: subject, // שימוש במשתנה המעובד
+      subject: subject,
       templateName: 'accountSetup',
       context: {
         locale,
@@ -312,7 +327,6 @@ async sendAccountSetupEmail(params: AccountSetupEmailParams): Promise<void> {
       }
     });
   }
-
 
   async sendVerificationEmail(params: VerificationEmailParams): Promise<void> {
     const locale = await this.resolveLocale(params.email, params.locale);
@@ -406,6 +420,52 @@ async sendAccountSetupEmail(params: AccountSetupEmailParams): Promise<void> {
         matchmakerName: params.matchmakerName,
         suggestionDetails: params.suggestionDetails,
         dashboardUrl: `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/dashboard/suggestions`,
+      }
+    });
+  }
+
+  // ===== NEW: שליחת "הזמנה אישית" דרך emailService (לשימוש ישיר אם נרצה) =====
+  /**
+   * שולחת מייל "הזמנה אישית" למועמד שקיבל הצעת שידוך חדשה.
+   * במקום לחשוף פרטים על הצד השני, יוצרת סקרנות ומושכת לאפליקציה.
+   * ההערה האישית של השדכן (matchmakerNote) היא מה שהופך את ההודעה לאישית.
+   */
+  async sendSuggestionInvitation(params: SuggestionInvitationEmailParams): Promise<void> {
+    const locale = await this.resolveLocale(params.email, params.locale);
+    const dictionary = await getDictionary(locale);
+    const emailDict = dictionary.email;
+
+    // בדיקה שסעיף ההזמנה קיים במילון
+    if (!emailDict.suggestionInvitation) {
+      console.warn('suggestionInvitation dictionary section not found, falling back to regular suggestion notification');
+      return this.sendSuggestionNotification({
+        locale: params.locale,
+        email: params.email,
+        recipientName: params.recipientName,
+        matchmakerName: params.matchmakerName,
+      });
+    }
+
+    const isHebrew = locale === 'he';
+    const greeting = isHebrew 
+      ? `שלום ${params.recipientName},` 
+      : `Hello ${params.recipientName},`;
+
+    await this.sendEmail({
+      to: params.email,
+      subject: emailDict.suggestionInvitation.subject,
+      templateName: 'suggestionInvitation',
+      context: {
+        locale,
+        dict: emailDict.suggestionInvitation,
+        sharedDict: emailDict.shared,
+        name: params.recipientName,
+        recipientName: params.recipientName,
+        matchmakerName: params.matchmakerName,
+        matchmakerNote: params.matchmakerNote,
+        reviewUrl: params.reviewUrl,
+        deadlineText: params.deadlineText,
+        greeting,
       }
     });
   }
@@ -526,4 +586,5 @@ export type {
   PasswordChangedConfirmationParams,
   AccountSetupEmailParams,
   ProfileSummaryUpdateEmailParams,
+  SuggestionInvitationEmailParams, // ← NEW
 };

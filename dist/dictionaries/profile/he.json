@@ -754,7 +754,7 @@
                 "OTHER": "אחר"
             },
             "matchmakerGender": {
-                "MALE": "משדך",
+                "MALE": "שדכן",
                 "FEMALE": "שדכנית",
                 "NONE": "ללא העדפה"
             },
@@ -1186,7 +1186,7 @@
             "serviceType": { "MILITARY_COMBATANT": "צבאי - לוחם/ת", "MILITARY_SUPPORT": "צבאי - תומכ/ת לחימה", "MILITARY_OFFICER": "צבאי - קצונה", "MILITARY_INTELLIGENCE_CYBER_TECH": "צבאי - מודיעין/סייבר/טכנולוגי", "NATIONAL_SERVICE_ONE_YEAR": "שירות לאומי - שנה", "NATIONAL_SERVICE_TWO_YEARS": "שירות לאומי - שנתיים", "HESDER_YESHIVA": "ישיבת הסדר", "YESHIVA_ONLY_POST_HS": "ישיבה גבוהה / מדרשה (ללא שירות צבאי/לאומי)", "PRE_MILITARY_ACADEMY_AND_SERVICE": "מכינה קדם-צבאית ושירות", "EXEMPTED": "פטור משירות", "CIVILIAN_SERVICE": "שירות אזרחי", "OTHER": "אחר / לא רלוונטי" },
             "headCovering": { "FULL_COVERAGE": "כיסוי ראש מלא", "PARTIAL_COVERAGE": "כיסוי ראש חלקי", "HAT_BERET": "כובע / ברט", "SCARF_ONLY_SOMETIMES": "מטפחת (רק באירועים/בית כנסת)", "NONE": "ללא כיסוי ראש" },
             "kippahType": { "BLACK_VELVET": "קטיפה שחורה", "KNITTED_SMALL": "סרוגה קטנה", "KNITTED_LARGE": "סרוגה גדולה", "CLOTH": "בד", "BRESLEV": "ברסלב (לבנה גדולה)", "NONE_AT_WORK_OR_CASUAL": "לא בעבודה / ביומיום", "NONE_USUALLY": "לרוב לא חובש", "OTHER": "אחר" },
-            "matchmakerGender": { "MALE": "משדך", "FEMALE": "שדכנית", "NONE": "ללא העדפה" },
+            "matchmakerGender": { "MALE": "שדכן", "FEMALE": "שדכנית", "NONE": "ללא העדפה" },
             "medicalTiming": { "FROM_THE_START": "מההתחלה (מומלץ לנושאים מהותיים)", "AFTER_FIRST_DATES": "לאחר דייט ראשון או שני", "WHEN_SERIOUS": "כשהקשר הופך לרציני", "IN_COORDINATION_ONLY": "אך ורק בתיאום טלפוני אישי איתי" },
             "traits": { "empathetic": "אמפתי/ת", "driven": "שאפתן/ית", "optimistic": "אופטימי/ת", "family_oriented": "משפחתי/ת", "intellectual": "אינטלקטואל/ית", "organized": "מאורגנ/ת", "calm": "רגוע/ה", "humorous": "בעל/ת חוש הומור", "sociable": "חברותי/ת", "sensitive": "רגיש/ה", "independent": "עצמאי/ת", "creative": "יצירתי/ת", "honest": "כן/ה וישר/ה", "responsible": "אחראי/ת", "easy_going": "זורם/ת וקליל/ה" },
             "hobbies": { "travel": "טיולים", "sports": "ספורט", "reading": "קריאה", "cooking_baking": "בישול/אפיה", "music_playing_instrument": "מוזיקה/נגינה", "art_crafts": "אומנות/יצירה", "volunteering": "התנדבות", "learning_courses": "למידה/קורסים", "board_games_puzzles": "משחקי קופסא/פאזלים", "movies_theater": "סרטים/תיאטרון", "dancing": "ריקוד", "writing": "כתיבה", "nature_hiking": "טבע/טיולים רגליים", "photography": "צילום" }

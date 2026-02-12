@@ -17502,7 +17502,7 @@ Content:
         "OTHER": "אחר"
       },
       "matchmakerGender": {
-        "MALE": "משדך",
+        "MALE": "שדכן",
         "FEMALE": "שדכנית",
         "NONE": "ללא העדפה"
       },

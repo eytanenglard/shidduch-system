@@ -135,10 +135,36 @@ type EngagementEmailDict = {
 // ======================================================================== //
 // ✨ הטיפוס הראשי והמאוחד: EmailDictionary ✨
 // ======================================================================== //
+export interface SuggestionInvitationDictionary {
+  /** כותרת המייל (subject line) – סקרנית, לא חושפת פרטים */
+  subject: string;
+  /** כותרת ראשית בגוף המייל */
+  title: string;
+  /** תת-כותרת מתחת לכותרת הראשית */
+  subtitle: string;
+  /** פסקת פתיחה – טון חם, לא חושפת פרטים */
+  intro: string;
+  /** תווית מעל ההערה האישית של השדכן */
+  personalNoteLabel: string;
+  /** כותרת כרטיס הסקרנות (🎁) */
+  mysteryTitle: string;
+  /** טקסט כרטיס הסקרנות */
+  mysteryText: string;
+  /** טקסט כפתור ה-CTA */
+  ctaButton: string;
+  /** טקסט רמז מתחת לכפתור */
+  ctaHint: string;
+  /** טקסט חתימה (לפני שם השדכן) */
+  signatureText: string;
+  /** תפקיד בחתימה */
+  signatureRole: string;
+  /** תחילית לטקסט דדליין */
+  deadlinePrefix: string;
+}
 
 export type EmailDictionary = {
   engagement: EngagementEmailDict;
-
+suggestionInvitation: SuggestionInvitationDictionary;
   shared: {
     greeting: string;
     closing: string;

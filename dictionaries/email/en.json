@@ -64,6 +64,20 @@
 "tipContent": "A first phone call can be a bit nerve-wracking, and that's natural. Take a breath, remember the goal is simply to get acquainted, and most importantly - be yourself. We recommend making initial contact within the next 24-48 hours.",
 "goodLuck": "We wish you a pleasant conversation and a successful meeting!"
 },
+"suggestionInvitation": {
+  "subject": "✨ Someone special was chosen just for you",
+  "title": "We Have Exciting News",
+  "subtitle": "Someone was thinking of you today ❤️",
+  "intro": "We've carefully reviewed, considered, and found someone we believe would be a wonderful match for you. We won't reveal everything here – some things are best discovered in person...",
+  "personalNoteLabel": "A personal note from your matchmaker",
+  "mysteryTitle": "Your match is waiting in your personal area",
+  "mysteryText": "We've prepared a detailed profile with everything you need to know. Log in to discover it.",
+  "ctaButton": "Discover My Match →",
+  "ctaHint": "Your match is waiting in your personal area",
+  "signatureText": "With warm regards,",
+  "signatureRole": "Your matchmaker at NeshamaTech",
+  "deadlinePrefix": "This match is open until"
+},
 "availabilityCheck": {
 "subject": "An availability check from your matchmaker",
 "title": "Checking if This is a Good Time",
