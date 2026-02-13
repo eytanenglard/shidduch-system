@@ -16,6 +16,7 @@ import {
   Target,
   XCircle,
   Loader2,
+  Sparkles,
 } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -50,6 +51,7 @@ import type {
 //   - Teal/Emerald: from-teal-400 via-teal-500 to-emerald-500 (Knowledge/New)
 //   - Orange/Amber: from-orange-400 via-amber-500 to-yellow-500 (Action/Warmth)
 //   - Rose/Pink:    from-rose-400 via-pink-500 to-red-500 (Love/Connection)
+//   - Violet/Purple: from-violet-500 via-purple-500 to-indigo-500 (Daily AI Suggestion)
 //
 // Background Gradients:
 //   - Page: from-slate-50 via-teal-50/20 to-orange-50/20
@@ -61,6 +63,9 @@ import type {
 // Accent Lines:
 //   - from-teal-400 via-orange-400 to-rose-400
 // =============================================================================
+
+// ID של יוזר המערכת שמייצר הצעות יומיות
+const SYSTEM_MATCHMAKER_ID = 'system-matchmaker-neshamatech';
 
 // --- Simplified Loading Skeleton ---
 const LoadingSkeleton: React.FC<{
@@ -188,6 +193,19 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
       (s.status === 'PENDING_SECOND_PARTY' && !isFirstParty)
     );
   }).length;
+
+  // ===== NEW: זיהוי הצעה יומית פעילה שממתינה לתגובת היוזר =====
+  const dailySuggestion = React.useMemo(() => {
+    return activeSuggestions.find((s) => {
+      if (s.matchmakerId !== SYSTEM_MATCHMAKER_ID) return false;
+      const isFirstParty = s.firstPartyId === userId;
+      // ההצעה ממתינה לתגובת היוזר הנוכחי
+      return (
+        (s.status === 'PENDING_FIRST_PARTY' && isFirstParty) ||
+        (s.status === 'PENDING_SECOND_PARTY' && !isFirstParty)
+      );
+    });
+  }, [activeSuggestions, userId]);
 
   const fetchSuggestions = useCallback(
     async (showLoadingState = true) => {
@@ -390,6 +408,17 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
     return <LoadingSkeleton dict={suggestionsDict.container.loading} />;
   }
 
+  // ===== i18n texts for the daily suggestion section =====
+  const dailyDict = (suggestionsDict.container as any).dailySuggestion as
+    | {
+        cardTitle?: string;
+        cardSubtitle?: string;
+        matchingNote?: string;
+        aiPowered?: string;
+        basedOnLearning?: string;
+      }
+    | undefined;
+
   return (
     <div
       className={cn(
@@ -442,6 +471,54 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
           </CardHeader>
 
           <CardContent className="p-6">
+            {/* ===== NEW: Daily Suggestion Highlight Section ===== */}
+            {dailySuggestion && (
+              <div className="mb-6 p-5 bg-gradient-to-r from-violet-50 via-purple-50/50 to-indigo-50 border border-violet-200/50 rounded-2xl shadow-sm">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-violet-500 via-purple-500 to-indigo-600 flex items-center justify-center shadow-md">
+                    <Sparkles className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent">
+                      {dailyDict?.cardTitle ||
+                        (locale === 'he'
+                          ? '✨ ההצעה היומית שלך'
+                          : '✨ Your Daily Match')}
+                    </h3>
+                    <p className="text-sm text-violet-600/80">
+                      {dailyDict?.cardSubtitle ||
+                        (locale === 'he'
+                          ? 'כל יום אנחנו מחפשים עבורך את ההתאמה הכי טובה'
+                          : 'Every day we search for your best possible match')}
+                    </p>
+                  </div>
+                </div>
+                <p className="text-sm text-gray-600 leading-relaxed mb-3">
+                  {dailyDict?.matchingNote ||
+                    (locale === 'he'
+                      ? 'הצעה זו נבחרה על סמך ניתוח מעמיק של הפרופיל שלך, תשובותיך לשאלון, והעדפותיך. המערכת שלנו לומדת ומשתפרת כל הזמן.'
+                      : 'This match was selected based on deep analysis of your profile, questionnaire answers, and preferences. Our system learns and improves continuously.')}
+                </p>
+                <div className="flex items-center gap-2">
+                  <Badge className="bg-gradient-to-r from-violet-500 to-purple-500 text-white border-0 text-xs">
+                    {dailyDict?.aiPowered ||
+                      (locale === 'he'
+                        ? 'מותאם אישית ע"י AI'
+                        : 'AI-Personalized')}
+                  </Badge>
+                  <Badge
+                    variant="outline"
+                    className="border-violet-300 text-violet-700 text-xs"
+                  >
+                    {dailyDict?.basedOnLearning ||
+                      (locale === 'he'
+                        ? 'מבוסס על למידת המערכת'
+                        : 'Based on system learning')}
+                  </Badge>
+                </div>
+              </div>
+            )}
+
             <Tabs
               value={activeTab}
               onValueChange={setActiveTab}

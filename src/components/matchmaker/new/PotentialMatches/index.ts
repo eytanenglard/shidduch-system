@@ -1,5 +1,5 @@
 // =============================================================================
-// src/components/matchmaker/PotentialMatches/index.ts
+// src/components/matchmaker/new/PotentialMatches/index.ts
 // Export file for PotentialMatches components
 // =============================================================================
 
@@ -10,6 +10,9 @@ export { default } from './PotentialMatchesDashboard';
 // Sub-components
 export { default as PotentialMatchCard } from './PotentialMatchCard';
 export { default as PotentialMatchesStats } from './PotentialMatchesStats';
+
+// Daily Suggestions Dashboard (NEW)
+export { default as DailySuggestionsDashboard } from './DailySuggestionsDashboard';
 
 // Hooks
 export { usePotentialMatches } from './hooks/usePotentialMatches';

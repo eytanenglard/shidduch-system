@@ -562,75 +562,65 @@ const suggestionInvitationTemplateSource = `
             line-height: 1.7;
             margin: 0;
             padding: 0;
-            background-color: #faf5f0;
+            background-color: #f8f9fa;
             color: #374151;
         }
 
         .email-container {
             max-width: 600px;
-            margin: 30px auto;
+            margin: 20px auto;
             background-color: #ffffff;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.08);
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
             overflow: hidden;
         }
 
-        /* Header – Dark & Warm Gold */
+        /* ========== Header — ציאן, כמו שאר המיילים ========== */
         .email-header {
-            background: linear-gradient(135deg, #1e293b 0%, #334155 50%, #1e293b 100%);
+            background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
             color: #ffffff;
-            padding: 45px 35px;
+            padding: 40px 30px;
             text-align: center;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .email-header::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(ellipse, rgba(251,191,36,0.15) 0%, transparent 70%);
-            pointer-events: none;
+            border-bottom: 5px solid #0891b2;
         }
 
         .header-sparkle {
             font-size: 36px;
-            margin-bottom: 15px;
+            margin-bottom: 12px;
             display: block;
         }
 
         .email-header h1 {
             margin: 0;
-            font-size: 28px;
+            font-size: 26px;
             font-weight: 700;
-            color: #fbbf24;
+            color: #ffffff;
             letter-spacing: -0.5px;
-            position: relative;
-            z-index: 1;
         }
 
         .header-subtitle {
-            margin-top: 12px;
-            font-size: 16px;
-            color: #cbd5e1;
+            margin-top: 10px;
+            font-size: 15px;
+            color: rgba(255,255,255,0.85);
             font-weight: 400;
-            position: relative;
-            z-index: 1;
         }
 
-        /* Body */
+        /* ========== Body ========== */
         .email-body {
-            padding: 40px 35px;
+            padding: 30px 30px;
             font-size: 16px;
+        }
+
+        .email-body p {
+            margin-bottom: 1em;
+            line-height: 1.6;
         }
 
         .greeting {
-            font-size: 22px;
+            font-size: 20px;
             color: #1e293b;
-            margin-bottom: 20px;
+            margin-bottom: 18px;
             font-weight: 600;
         }
 
@@ -641,129 +631,115 @@ const suggestionInvitationTemplateSource = `
             font-size: 16px;
         }
 
-        /* Personal Note from Matchmaker – הקטע הכי חשוב */
+        /* ========== הערה אישית — highlight-box style ========== */
         .matchmaker-note {
-            background: linear-gradient(135deg, #fffbeb, #fef3c7);
-            border-{{#if (eq locale 'he')}}right{{else}}left{{/if}}: 5px solid #f59e0b;
-            border-radius: 12px;
-            padding: 25px 25px 20px;
+            background-color: #fef9e7;
+            border-{{#if (eq locale 'he')}}right{{else}}left{{/if}}: 4px solid #f7c75c;
+            border-radius: 5px;
+            padding: 20px;
             margin: 25px 0;
             position: relative;
         }
 
         .matchmaker-note-icon {
             position: absolute;
-            top: -14px;
-            {{#if (eq locale 'he')}}right{{else}}left{{/if}}: 20px;
-            font-size: 26px;
-            background: #fffbeb;
-            padding: 0 8px;
+            top: -12px;
+            {{#if (eq locale 'he')}}right{{else}}left{{/if}}: 16px;
+            font-size: 22px;
+            background: #fef9e7;
+            padding: 0 6px;
             border-radius: 50%;
         }
 
         .matchmaker-note-label {
             color: #92400e;
             font-weight: 700;
-            font-size: 13px;
+            font-size: 12px;
             text-transform: uppercase;
             letter-spacing: 1px;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
         }
 
         .matchmaker-note-text {
             color: #78350f;
-            font-size: 16px;
+            font-size: 15px;
             line-height: 1.8;
             font-style: italic;
         }
 
-        /* Mystery Card – כרטיס הסקרנות */
+        /* ========== כרטיס הסקרנות — attributes-list style ========== */
         .mystery-card {
-            background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
-            border: 2px solid #bae6fd;
-            border-radius: 16px;
-            padding: 35px 30px;
-            margin: 30px 0;
+            background-color: #f8f9fa;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 30px 25px;
+            margin: 25px 0;
             text-align: center;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .mystery-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: radial-gradient(circle at 30% 50%, rgba(6,182,212,0.08), transparent 60%);
-            pointer-events: none;
         }
 
         .mystery-icon {
-            font-size: 52px;
-            margin-bottom: 18px;
-            position: relative;
-            z-index: 1;
+            font-size: 48px;
+            margin-bottom: 15px;
         }
 
         .mystery-title {
-            font-size: 20px;
-            color: #0c4a6e;
+            font-size: 18px;
+            color: #1e293b;
             font-weight: 700;
-            margin-bottom: 10px;
-            position: relative;
-            z-index: 1;
+            margin-bottom: 8px;
         }
 
         .mystery-text {
-            font-size: 15px;
-            color: #0369a1;
+            font-size: 14px;
+            color: #64748b;
             line-height: 1.6;
-            position: relative;
-            z-index: 1;
         }
 
-        /* CTA Button */
+        /* ========== CTA Button — ציאן כמו שאר המיילים ========== */
         .cta-section {
             text-align: center;
-            margin: 35px 0 20px;
+            margin: 30px 0 20px;
         }
 
         .cta-button {
             display: inline-block;
-            padding: 18px 50px;
-            background: linear-gradient(135deg, #f59e0b, #d97706);
-            color: #1e293b !important;
+            padding: 12px 30px;
+            background: linear-gradient(135deg, #06b6d4, #0891b2);
+            color: white !important;
             text-decoration: none;
-            border-radius: 50px;
-            font-weight: 800;
-            font-size: 18px;
-            letter-spacing: 0.5px;
-            box-shadow: 0 8px 25px rgba(245, 158, 11, 0.35);
+            border-radius: 5px;
+            font-weight: 600;
+            font-size: 17px;
+            box-shadow: 0 4px 12px rgba(6, 182, 212, 0.3);
+            transition: transform 0.2s;
+        }
+
+        .cta-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(6, 182, 212, 0.4);
         }
 
         .cta-hint {
-            margin-top: 14px;
-            font-size: 13px;
+            margin-top: 12px;
+            font-size: 12px;
             color: #9ca3af;
         }
 
-        /* Deadline (subtle) */
+        /* ========== Deadline ========== */
         .deadline-note {
             text-align: center;
-            margin: 20px 0;
-            padding: 12px 20px;
+            margin: 15px 0;
+            padding: 10px 16px;
             background: #fef2f2;
-            border-radius: 10px;
+            border-radius: 5px;
             font-size: 13px;
             color: #991b1b;
         }
 
-        /* Signature */
+        /* ========== Signature ========== */
         .signature {
-            margin-top: 35px;
-            padding-top: 20px;
+            margin-top: 30px;
+            padding-top: 18px;
             border-top: 1px solid #e5e7eb;
             color: #6b7280;
             font-size: 15px;
@@ -772,22 +748,22 @@ const suggestionInvitationTemplateSource = `
         .signature-name {
             color: #1e293b;
             font-weight: 700;
-            font-size: 17px;
+            font-size: 16px;
             margin: 4px 0;
         }
 
         .signature-role {
             color: #94a3b8;
-            font-size: 14px;
+            font-size: 13px;
         }
 
-        /* Footer */
+        /* ========== Footer — זהה לשאר המיילים ========== */
         .email-footer {
             background-color: #f8fafc;
             padding: 25px;
             text-align: center;
-            font-size: 13px;
-            color: #94a3b8;
+            font-size: 14px;
+            color: #64748b;
             border-top: 1px solid #e2e8f0;
         }
 
@@ -797,25 +773,25 @@ const suggestionInvitationTemplateSource = `
         }
 
         @media (max-width: 600px) {
-            .email-body { padding: 25px 20px; }
-            .email-header { padding: 35px 20px; }
-            .email-header h1 { font-size: 24px; }
-            .cta-button { padding: 16px 35px; font-size: 16px; }
-            .mystery-card { padding: 25px 20px; }
+            .email-body { padding: 20px; }
+            .email-header { padding: 30px 20px; }
+            .email-header h1 { font-size: 22px; }
+            .cta-button { padding: 12px 25px; font-size: 16px; }
+            .mystery-card { padding: 20px 15px; }
         }
     </style>
 </head>
 <body>
     <div class="email-container">
 
-        <!-- Header -->
+        <!-- ========== Header — ציאן ========== -->
         <div class="email-header">
             <span class="header-sparkle">💌</span>
             <h1>{{dict.title}}</h1>
             <p class="header-subtitle">{{dict.subtitle}}</p>
         </div>
 
-        <!-- Body -->
+        <!-- ========== Body ========== -->
         <div class="email-body">
 
             <div class="greeting">{{greeting}}</div>
@@ -855,16 +831,52 @@ const suggestionInvitationTemplateSource = `
 
         </div>
 
-        <!-- Footer -->
+        <!-- ========== Footer — זהה לשאר המיילים (עם לוגו + gradient) ========== -->
         <div class="email-footer">
-            <p>{{sharedDict.supportPrompt}} <a href="mailto:{{supportEmail}}">{{supportEmail}}</a></p>
-            <p>© {{currentYear}} NeshamaTech. {{sharedDict.rightsReserved}}</p>
+            <div style="margin-bottom: 20px;">
+                <img 
+                    src="https://res.cloudinary.com/dmfxoi6g0/image/upload/v1764757309/ChatGPT_Image_Dec_3_2025_12_21_36_PM_qk8mjz.png" 
+                    alt="NeshamaTech Logo" 
+                    style="height: 50px; width: auto; display: inline-block;"
+                />
+            </div>
+            <div style="margin-bottom: 15px;">
+                <span style="font-size: 24px; font-weight: bold; background: linear-gradient(to right, #0891b2, #f97316, #fbbf24); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
+                    NeshamaTech
+                </span>
+            </div>
+            <p style="color: #6b7280; font-size: 14px; margin: 10px 0 20px 0; font-style: italic;">
+                {{#if (eq locale 'he')}}מחברים לבבות, בונים עתיד משותף{{else}}Connecting Hearts, Building Shared Futures{{/if}}
+            </p>
+            <div style="margin: 20px 0; padding: 15px; background-color: #f9fafb; border-radius: 8px; display: inline-block;">
+                <p style="margin: 5px 0; color: #4b5563; font-size: 13px;">
+                    <strong>{{#if (eq locale 'he')}}צור קשר:{{else}}Contact:{{/if}}</strong>
+                </p>
+                <p style="margin: 5px 0; color: #6b7280; font-size: 13px;">
+                    📧 <a href="mailto:{{supportEmail}}">{{supportEmail}}</a>
+                </p>
+                <p style="margin: 5px 0; color: #6b7280; font-size: 13px;">
+                    🌐 <a href="{{baseUrl}}">{{baseUrl}}</a>
+                </p>
+            </div>
+            <p style="color: #9ca3af; font-size: 12px; margin: 15px 0 5px 0;">
+                © {{currentYear}} NeshamaTech. {{#if (eq locale 'he')}}כל הזכויות שמורות{{else}}All rights reserved{{/if}}
+            </p>
+            <p style="color: #9ca3af; font-size: 11px; margin: 5px 0;">
+                <a href="{{baseUrl}}/privacy" style="color: #6b7280; text-decoration: none; margin: 0 5px;">
+                    {{#if (eq locale 'he')}}מדיניות פרטיות{{else}}Privacy Policy{{/if}}
+                </a> | 
+                <a href="{{baseUrl}}/terms" style="color: #6b7280; text-decoration: none; margin: 0 5px;">
+                    {{#if (eq locale 'he')}}תנאי שימוש{{else}}Terms of Service{{/if}}
+                </a>
+            </p>
         </div>
 
     </div>
 </body>
 </html>
 `;
+
 
 // ============================================================================
 // Compile templates once at module load

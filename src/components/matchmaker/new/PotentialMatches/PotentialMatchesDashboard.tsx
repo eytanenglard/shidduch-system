@@ -8,7 +8,7 @@ import React, {
   useEffect,
   useRef,
 } from 'react';
-
+import DailySuggestionsDashboard from './DailySuggestionsDashboard';
 import BatchScanButtons from './BatchScanButtons';
 
 import { motion, AnimatePresence } from 'framer-motion';
@@ -153,9 +153,10 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
   matchmakerDict,
 }) => {
   // --- View Mode (Tabs) ---
-  const [activeTab, setActiveTab] = useState<'overview' | 'matches'>(
+  const [activeTab, setActiveTab] = useState<'overview' | 'matches' | 'daily'>(
     'overview'
   );
+
   // ניהול החלפת צדדים (False = גבר צד א', True = אישה צד א')
   const [isPartiesSwapped, setIsPartiesSwapped] = useState(false);
 
@@ -370,7 +371,7 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
     return result;
   }, [matches, hiddenCandidateIds]); // ❌ מחקנו גם את localSearchTerm מהסוגריים
 
-   const handleStartScan = (
+  const handleStartScan = (
     method: 'hybrid' | 'algorithmic' | 'vector' | 'metrics_v2',
     skipPreparation: boolean // הוספנו את הפרמטר הזה
   ) => {
@@ -380,7 +381,7 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
       forceRefresh: false,
       skipPreparation, // מעבירים אותו ל-HOOK
     });
-};
+  };
 
   const handleHideCandidate = (candidate: CandidateToHide) => {
     setCandidateToHide(candidate);
@@ -523,6 +524,13 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
                     <Sparkles className="w-3.5 h-3.5" />
                     ניהול התאמות ({stats ? stats.pending : '...'})
                   </button>
+                  <button
+                    onClick={() => setActiveTab('daily')}
+                    className={`flex items-center gap-1 text-sm px-2 py-0.5 rounded transition-all ${activeTab === 'daily' ? 'bg-violet-50 text-violet-700 font-bold shadow-sm' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'}`}
+                  >
+                    <Sparkles className="w-3.5 h-3.5" />
+                    הצעות יומיות
+                  </button>
                 </div>
               </div>
             </div>
@@ -568,6 +576,8 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
         {/* Conditional Rendering based on Tab */}
         {activeTab === 'overview' ? (
           <MatchmakerDashboardV2 />
+        ) : activeTab === 'daily' ? (
+          <DailySuggestionsDashboard />
         ) : (
           <>
             {/* Stats */}
@@ -1058,7 +1068,7 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
           <AlertDialogFooter className="gap-2">
             <AlertDialogCancel>ביטול</AlertDialogCancel>
             <AlertDialogAction
-              onClick={() => handleStartScan('hybrid', false)} 
+              onClick={() => handleStartScan('hybrid', false)}
               className="bg-gradient-to-r from-indigo-500 to-purple-500"
             >
               <HeartHandshake className="w-4 h-4 ml-2" />

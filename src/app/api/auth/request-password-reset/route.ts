@@ -21,6 +21,8 @@ type LogMetadata = {
   action?: string;
   status?: UserStatus | VerificationStatus;
   locale?: 'he' | 'en';
+  isOAuthUser?: boolean;
+  providers?: string | string[]; // ✅ הוספת providers ל-type
 };
 
 const logger = {
@@ -51,7 +53,10 @@ export async function POST(req: NextRequest) {
         action,
         error: validation.error.flatten().fieldErrors,
       });
-      return NextResponse.json({ success: false, error: validation.error.flatten().fieldErrors.email?.[0] || "כתובת מייל לא תקינה" }, { status: 400 });
+      return NextResponse.json({ 
+        success: false, 
+        error: validation.error.flatten().fieldErrors.email?.[0] || "כתובת מייל לא תקינה" 
+      }, { status: 400 });
     }
 
     const { email } = validation.data;
@@ -60,6 +65,13 @@ export async function POST(req: NextRequest) {
 
     const user = await prisma.user.findUnique({
       where: { email: normalizedEmail },
+      include: {
+        accounts: {
+          select: {
+            provider: true,
+          }
+        }
+      }
     });
 
     const genericSuccessMessage = locale === 'he'
@@ -73,25 +85,68 @@ export async function POST(req: NextRequest) {
 
     const finalLocale = user.language || locale;
 
+    // בדיקה אם המשתמש נרשם דרך OAuth
+    const hasOAuthAccount = user.accounts && user.accounts.length > 0;
+    const isPasswordlessUser = !user.password;
+
+    if (hasOAuthAccount && isPasswordlessUser) {
+      const oauthProviders = user.accounts.map(acc => acc.provider);
+      const providersText = oauthProviders.map(provider => {
+        switch(provider) {
+          case 'google': return 'Google';
+          case 'facebook': return 'Facebook';
+          default: return provider;
+        }
+      }).join(', ');
+
+      logger.info('Password reset attempted for OAuth-only user', { 
+        action, 
+        email: normalizedEmail, 
+        userId: user.id,
+        isOAuthUser: true,
+        providers: providersText // ✅ עכשיו זה תקין
+      });
+
+      const oauthMessage = finalLocale === 'he'
+        ? `חשבון זה נרשם דרך ${providersText}. לא ניתן לאפס סיסמה - אנא היכנס באמצעות ${providersText}.`
+        : `This account was registered via ${providersText}. Password reset is not available - please sign in using ${providersText}.`;
+
+      return NextResponse.json({ 
+        success: false, 
+        error: oauthMessage,
+        isOAuthAccount: true,
+        providers: oauthProviders // שולחים את הספקים לקליינט
+      }, { status: 400 });
+    }
+
     if (!user.password) {
-      logger.info('Password reset attempted for account without a password (e.g., OAuth user)', { action, email: normalizedEmail, userId: user.id });
+      logger.info('Password reset attempted for account without password', { 
+        action, 
+        email: normalizedEmail, 
+        userId: user.id 
+      });
       return NextResponse.json({ success: true, message: genericSuccessMessage }, { status: 200 });
     }
     
     if (user.status === UserStatus.BLOCKED || user.status === UserStatus.INACTIVE) {
-        logger.warn('Password reset attempted for blocked or inactive user', { action, email: normalizedEmail, userId: user.id, status: user.status });
-        return NextResponse.json({ success: true, message: genericSuccessMessage }, { status: 200 });
+      logger.warn('Password reset attempted for blocked or inactive user', { 
+        action, 
+        email: normalizedEmail, 
+        userId: user.id, 
+        status: user.status 
+      });
+      return NextResponse.json({ success: true, message: genericSuccessMessage }, { status: 200 });
     }
 
     await prisma.verification.updateMany({
-        where: {
-            userId: user.id,
-            type: VerificationType.PASSWORD_RESET,
-            status: VerificationStatus.PENDING,
-        },
-        data: {
-            status: VerificationStatus.EXPIRED,
-        },
+      where: {
+        userId: user.id,
+        type: VerificationType.PASSWORD_RESET,
+        status: VerificationStatus.PENDING,
+      },
+      data: {
+        status: VerificationStatus.EXPIRED,
+      },
     });
     logger.info('Invalidated previous pending password reset OTPs', { action, userId: user.id });
 
@@ -108,7 +163,7 @@ export async function POST(req: NextRequest) {
       const expiresInText = finalLocale === 'he' ? `${expiresInMinutes} דקות` : `${expiresInMinutes} minutes`;
 
       await emailService.sendPasswordResetOtpEmail({
-         locale: finalLocale,
+        locale: finalLocale,
         email: user.email,
         otp: generatedOtp,
         firstName: user.firstName,

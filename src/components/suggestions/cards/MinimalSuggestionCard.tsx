@@ -43,12 +43,14 @@ import type { SuggestionsCardDict } from '@/types/dictionary';
 //   - Teal/Emerald: from-teal-400 via-teal-500 to-emerald-500 (Knowledge/New)
 //   - Orange/Amber: from-orange-400 via-amber-500 to-yellow-500 (Action/Warmth)
 //   - Rose/Pink:    from-rose-400 via-pink-500 to-red-500 (Love/Connection)
+//   - Violet/Purple: from-violet-500 via-purple-500 to-indigo-500 (Daily AI Suggestion)
 //
 // Background Gradients:
 //   - Page: from-slate-50 via-teal-50/20 to-orange-50/20
 //   - Cards: from-teal-50 via-white to-emerald-50 (Teal variant)
 //           from-orange-50 via-white to-amber-50 (Orange variant)
 //           from-rose-50 via-white to-red-50 (Rose variant)
+//           from-violet-50 via-white to-purple-50 (Daily Suggestion variant)
 //
 // Buttons:
 //   - Primary Action: from-teal-500 to-emerald-500 (Approve/View)
@@ -59,6 +61,16 @@ import type { SuggestionsCardDict } from '@/types/dictionary';
 //   - Focus ring: ring-teal-500
 //   - Hover states: hover:bg-teal-50, hover:border-teal-200
 // =============================================================================
+
+// ID של יוזר המערכת שמייצר הצעות יומיות
+const SYSTEM_MATCHMAKER_ID = 'system-matchmaker-neshamatech';
+
+/**
+ * בדיקה האם ההצעה היא "הצעה יומית" של המערכת
+ */
+const isDailySuggestion = (suggestion: ExtendedMatchSuggestion): boolean => {
+  return suggestion.matchmakerId === SYSTEM_MATCHMAKER_ID;
+};
 
 interface MinimalSuggestionCardProps {
   suggestion: ExtendedMatchSuggestion;
@@ -140,36 +152,69 @@ const MinimalSuggestionCard: React.FC<MinimalSuggestionCardProps> = ({
     onClick(suggestion);
   };
 
+  // האם זו הצעה יומית אוטומטית?
+  const isDaily = isDailySuggestion(suggestion);
+
   return (
     <Card
       className={cn(
         'group w-full rounded-2xl overflow-hidden shadow-lg border-0 bg-white transition-all duration-500 hover:shadow-xl hover:-translate-y-1',
         // Urgent Ring: Orange (Action/Warmth - matching Hero)
-        isUrgent && 'ring-2 ring-orange-400 ring-opacity-60',
+        isUrgent && !isDaily && 'ring-2 ring-orange-400 ring-opacity-60',
+        // Daily Suggestion Ring: Violet/Purple
+        isDaily && 'ring-2 ring-violet-400 ring-opacity-60',
         className
       )}
     >
-      {/* Header Gradient: Teal -> White -> Orange (matching Hero) */}
-      <div className="relative p-4 bg-gradient-to-r from-teal-50/80 via-white to-orange-50/50 border-b border-teal-100/50">
+      {/* Header Gradient */}
+      <div
+        className={cn(
+          'relative p-4 border-b',
+          isDaily
+            ? 'bg-gradient-to-r from-violet-50/80 via-white to-purple-50/50 border-violet-100/50'
+            : 'bg-gradient-to-r from-teal-50/80 via-white to-orange-50/50 border-teal-100/50'
+        )}
+      >
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            {/* Avatar: Teal gradient (Knowledge/Professional) */}
-            <Avatar className="w-10 h-10 border-2 border-white shadow-md">
-              <AvatarFallback className="bg-gradient-to-br from-teal-500 to-emerald-600 text-white font-bold text-sm">
-                {getInitials(
-                  `${suggestion.matchmaker.firstName} ${suggestion.matchmaker.lastName}`
-                )}
-              </AvatarFallback>
-            </Avatar>
-            <div>
-              <p className="text-xs text-teal-600 font-medium">
-                {dict.suggestedBy}
-              </p>
-              <p className="text-sm font-bold text-gray-800">
-                {suggestion.matchmaker.firstName}{' '}
-                {suggestion.matchmaker.lastName}
-              </p>
-            </div>
+            {isDaily ? (
+              /* ===== Daily Suggestion Header: Violet/Purple ===== */
+              <>
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-violet-500 via-purple-500 to-indigo-600 flex items-center justify-center border-2 border-white shadow-md">
+                  <Sparkles className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <p className="text-xs text-violet-600 font-medium">
+                    {locale === 'he' ? '✨ הצעה יומית' : '✨ Daily Match'}
+                  </p>
+                  <p className="text-sm font-bold text-gray-800">
+                    {locale === 'he'
+                      ? 'המערכת החכמה של NeshamaTech'
+                      : 'NeshamaTech Smart System'}
+                  </p>
+                </div>
+              </>
+            ) : (
+              /* ===== Regular Matchmaker Header: Teal ===== */
+              <>
+                <Avatar className="w-10 h-10 border-2 border-white shadow-md">
+                  <AvatarFallback className="bg-gradient-to-br from-teal-500 to-emerald-600 text-white font-bold text-sm">
+                    {getInitials(
+                      `${suggestion.matchmaker.firstName} ${suggestion.matchmaker.lastName}`
+                    )}
+                  </AvatarFallback>
+                </Avatar>
+                <div>
+                  <p className="text-xs text-teal-600 font-medium">
+                    {dict.suggestedBy}
+                  </p>
+                  <p className="text-sm font-bold text-gray-800">
+                    {suggestion.matchmaker.firstName}{' '}
+                    {suggestion.matchmaker.lastName}
+                  </p>
+                </div>
+              </>
+            )}
           </div>
           <div className="flex flex-col items-end gap-1">
             <Badge
@@ -204,12 +249,39 @@ const MinimalSuggestionCard: React.FC<MinimalSuggestionCardProps> = ({
           </div>
         </div>
         {/* Urgent Badge: Orange -> Red gradient (matching Hero urgent states) */}
-        {isUrgent && (
+        {isUrgent && !isDaily && (
           <div className="absolute top-2 left-2">
             <Badge className="flex items-center gap-1.5 bg-gradient-to-r from-orange-500 to-red-500 text-white border-0 shadow-lg animate-pulse">
               <AlertTriangle className="w-3 h-3" />
               <span className="font-semibold text-xs">{dict.urgent}</span>
             </Badge>
+          </div>
+        )}
+        {/* Daily Suggestion Badge: Violet/Purple */}
+        {isDaily && (
+          <div
+            className={cn(
+              'absolute top-2',
+              locale === 'he' ? 'left-2' : 'right-2'
+            )}
+          >
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger>
+                  <Badge className="flex items-center gap-1 bg-gradient-to-r from-violet-500 via-purple-500 to-indigo-500 text-white border-0 shadow-lg text-xs font-semibold">
+                    <Sparkles className="w-3 h-3" />
+                    {locale === 'he' ? 'הצעה יומית' : 'Daily Match'}
+                  </Badge>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p className="text-sm">
+                    {locale === 'he'
+                      ? 'הצעה שנבחרה במיוחד עבורך על ידי המערכת החכמה'
+                      : 'A match specially selected for you by our smart system'}
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </div>
         )}
       </div>
@@ -253,7 +325,12 @@ const MinimalSuggestionCard: React.FC<MinimalSuggestionCardProps> = ({
                 )}
               </div>
               {/* Sparkle icon with glassmorphism */}
-              <div className="p-2 rounded-full bg-white/20 backdrop-blur-sm">
+              <div
+                className={cn(
+                  'p-2 rounded-full backdrop-blur-sm',
+                  isDaily ? 'bg-violet-500/30' : 'bg-white/20'
+                )}
+              >
                 <Sparkles className="w-5 h-5 text-white" />
               </div>
             </div>
@@ -279,21 +356,50 @@ const MinimalSuggestionCard: React.FC<MinimalSuggestionCardProps> = ({
             {/* Grid content placeholder */}
           </div>
 
-          {/* "Why Special" / Teaser Box: Orange/Amber (Personal/Warmth - matching Hero) */}
-          <div className="relative p-4 bg-gradient-to-r from-orange-50/50 to-amber-50/50 border border-orange-100/50 rounded-xl">
+          {/* "Why Special" / Teaser Box */}
+          <div
+            className={cn(
+              'relative p-4 border rounded-xl',
+              isDaily
+                ? 'bg-gradient-to-r from-violet-50/50 to-purple-50/50 border-violet-100/50'
+                : 'bg-gradient-to-r from-orange-50/50 to-amber-50/50 border-orange-100/50'
+            )}
+          >
             <div className="flex items-start gap-3">
-              <Quote className="w-4 h-4 text-orange-500 mt-1 flex-shrink-0" />
+              <Quote
+                className={cn(
+                  'w-4 h-4 mt-1 flex-shrink-0',
+                  isDaily ? 'text-violet-500' : 'text-orange-500'
+                )}
+              />
               <div className="flex-1">
-                <h4 className="text-sm font-bold text-orange-800 mb-1">
+                <h4
+                  className={cn(
+                    'text-sm font-bold mb-1',
+                    isDaily ? 'text-violet-800' : 'text-orange-800'
+                  )}
+                >
                   {dict.whySpecial}
                 </h4>
-                <p className="text-sm text-orange-900/80 leading-relaxed">
+                <p
+                  className={cn(
+                    'text-sm leading-relaxed',
+                    isDaily ? 'text-violet-900/80' : 'text-orange-900/80'
+                  )}
+                >
                   {reasonTeaser}
                 </p>
               </div>
             </div>
             {/* Decorative corner */}
-            <div className="absolute top-0 right-0 w-6 h-6 bg-gradient-to-br from-orange-200/50 to-amber-200/50 rounded-bl-xl"></div>
+            <div
+              className={cn(
+                'absolute top-0 right-0 w-6 h-6 rounded-bl-xl',
+                isDaily
+                  ? 'bg-gradient-to-br from-violet-200/50 to-purple-200/50'
+                  : 'bg-gradient-to-br from-orange-200/50 to-amber-200/50'
+              )}
+            ></div>
           </div>
 
           <div className="text-center py-2">

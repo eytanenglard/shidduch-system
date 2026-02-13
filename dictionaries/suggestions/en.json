@@ -51,7 +51,36 @@
       "matchmakerNotified": "Your matchmaker has been notified and will guide the process forward.",
       "refreshSuccessTitle": "Data Refreshed",
       "refreshSuccessDescription": "Your introductions are now up to date."
-    }
+    },
+    "dailySuggestion": {
+    "badge": "✨ Daily Match",
+    "badgeTooltip": "This introduction was specially selected for you by our smart system",
+    "systemMatchmaker": "NeshamaTech Smart System",
+    "systemMatchmakerShort": "NeshamaTech AI",
+    
+    "matchingNote": "This match was selected based on a deep analysis of your profile, questionnaire responses, and preferences. Our system has learned from successful matches to find the best match for you.",
+    "basedOnLearning": "Based on system learning",
+    "aiPowered": "Personalized by AI",
+    
+    "cardTitle": "Your Daily Match",
+    "cardSubtitle": "Every day we search for the best match for you",
+    "noSuggestionToday": "We're searching for your best match. We'll update you as soon as we find one!",
+    "score": "Match score: {{score}}",
+    
+    "reminderTitle": "⏰ Your Match is Waiting",
+    "reminderSubject": "⏰ Your match is still waiting for you",
+    "reminderBody": "We sent you a specially selected match that's still waiting for your response. Take a moment to review it.",
+    "reminderCta": "View Match",
+    
+    "emailSubject": "💌 A new daily match is waiting for you",
+    "emailNote": "This match was selected by our smart system, which learned your preferences and found a unique match for you.",
+    
+    "emptyTitle": "Your Daily Match is Coming",
+    "emptyDescription": "Our system is working around the clock to find your perfect match. We'll update you the moment we find one!",
+    
+    "howItWorks": "How does it work?",
+    "howItWorksText": "Every day, our smart system scans hundreds of profiles and selects the best match for you, based on your profile, questionnaire responses, and stated preferences."
+  }
   },
    "card": {
     "suggestedBy": "Introduction from",

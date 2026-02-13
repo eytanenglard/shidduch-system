@@ -314,6 +314,7 @@ model Meeting {
 
 model MatchSuggestion {
   id                    String                    @id @default(cuid())
+ isAutoSuggestion  Boolean   @default(false)
   matchmakerId          String
   firstPartyId          String
   secondPartyId         String

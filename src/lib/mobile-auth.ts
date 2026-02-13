@@ -15,6 +15,7 @@ const ALLOWED_ORIGINS = [
   'http://localhost:8081',
   'http://localhost:3000',
   'http://localhost:19006',
+   'exp://192.168.1.94:8081',
 ];
 
 export interface MobileJWTPayload {
