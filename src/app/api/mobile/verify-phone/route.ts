@@ -67,8 +67,7 @@ export async function POST(req: NextRequest) {
       // Mark verification as verified
       await tx.verification.update({
         where: { id: verification.id },
-        data: { status: 'VERIFIED', verifiedAt: new Date() },
-      });
+data: { status: 'COMPLETED', completedAt: new Date() },      });
 
       // Activate user
       const user = await tx.user.update({
