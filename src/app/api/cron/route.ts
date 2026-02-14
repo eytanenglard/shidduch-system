@@ -6,6 +6,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { DailySuggestionOrchestrator } from '@/lib/engagement/DailySuggestionOrchestrator';
+import prisma from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 300; // 5 minutes max (adjust for your plan)
@@ -63,8 +64,15 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     // 3. Run the daily suggestion orchestrator
     console.log('[Daily Suggestions Cron] Starting daily suggestion run...');
     
-    const result = await DailySuggestionOrchestrator.runDailySuggestions();
-
+const cronMatchmaker = await prisma.user.findFirst({
+  where: { role: { in: ['ADMIN', 'MATCHMAKER'] }, status: 'ACTIVE' },
+  select: { id: true },
+  orderBy: { createdAt: 'asc' },
+});
+if (!cronMatchmaker) {
+  return NextResponse.json({ success: false, error: 'No matchmaker found' }, { status: 500 });
+}
+const result = await DailySuggestionOrchestrator.runDailySuggestions(cronMatchmaker.id);
     const durationMs = Date.now() - startTime;
 
     // 4. Return results
@@ -119,7 +127,6 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     success: true,
     endpoint: 'daily-suggestions',
     status: 'healthy',
-    systemMatchmakerId: process.env.SYSTEM_MATCHMAKER_ID || 'system-matchmaker-neshamatech',
     timestamp: new Date().toISOString(),
   });
 }
