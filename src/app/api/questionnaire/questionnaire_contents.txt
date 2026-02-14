@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\questionnaire
-# Generated on: 2026-02-04 11:16:51
+# Generated on: 2026-02-14 22:03:43
 # Filter: Only content of code files (.bat, .c, .cfg, .conf, .cpp, .cs, .css, .go, .h, .html, .ini, .java, .js, .json, .jsx, .kt, .less, .md, .php, .py, .rb, .rs, .scss, .sh, .sql, .swift, .ts, .tsx, .txt, .xml, .yaml, .yml) is included.
 ################################################################################
 
@@ -233,6 +233,7 @@ export async function PUT(req: Request) {
       const existingResponse = await prisma.questionnaireResponse.findFirst({
         where: { userId: session.user.id },
         orderBy: { createdAt: 'desc' },
+        
       });
 
       const mergedAnswers: MergedAnswers = {
@@ -283,7 +284,10 @@ export async function PUT(req: Request) {
           mergedAnswers[worldKey as keyof MergedAnswers] = uniqueAnswers;
         }
       }
-
+ await prisma.profile.update({
+          where: { userId: session.user.id },
+          data: { contentUpdatedAt: new Date() }
+      });
       const savedQuestionnaire = await prisma.questionnaireResponse.upsert({
         where: {
           id: existingResponse?.id || 'new-response',
@@ -481,6 +485,7 @@ export async function PUT(req: Request) {
     status: "ACTIVE",
     updatedAt: new Date() // 🆕 הוסף
   }
+  
 })
 
     ]);
@@ -600,7 +605,11 @@ export async function PUT(req: Request) {
       });
    await tx.profile.update({
         where: { userId },
-        data: { needsAiProfileUpdate: true }
+         data: { 
+            needsAiProfileUpdate: true,
+            // ✅ הוסף שורה זו:
+            contentUpdatedAt: new Date() 
+        }
       });
       await tx.user.update({
   where: { id: userId },

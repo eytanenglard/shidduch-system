@@ -1,0 +1,43 @@
+Directory Map for: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\mobile
+=========================================================================================
+
+mobile/
+└── complete-profile/
+        └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\mobile\complete-profile\route.ts)
+└── google/
+        └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\mobile\google\route.ts)
+└── images/
+        ├── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\mobile\images\route.ts)
+    └── [imageId]/
+            └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\mobile\images\[imageId]\route.ts)
+└── login/
+        └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\mobile\login\route.ts)
+└── me/
+        └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\mobile\me\route.ts)
+└── notifications/
+    └── register-device/
+            └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\mobile\notifications\register-device\route.ts)
+    └── unregister-device/
+            └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\mobile\notifications\unregister-device\route.ts)
+└── profile/
+        └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\mobile\profile\route.ts)
+└── questionnaire/
+        └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\mobile\questionnaire\route.ts)
+└── register/
+        └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\mobile\register\route.ts)
+└── send-phone-code/
+        └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\mobile\send-phone-code\route.ts)
+└── suggestions/
+        ├── suggestions_contents.txt  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\mobile\suggestions\suggestions_contents.txt)
+    └── active/
+            └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\mobile\suggestions\active\route.ts)
+    └── history/
+            └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\mobile\suggestions\history\route.ts)
+    └── [id]/
+            ├── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\mobile\suggestions\[id]\route.ts)
+        └── respond/
+                └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\mobile\suggestions\[id]\respond\route.ts)
+└── verify-email/
+        └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\mobile\verify-email\route.ts)
+└── verify-phone/
+        └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\mobile\verify-phone\route.ts)
