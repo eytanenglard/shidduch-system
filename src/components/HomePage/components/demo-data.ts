@@ -30,14 +30,13 @@ export const generateDemoData = async (locale: Locale) => {
     worldsCompleted: ['VALUES', 'RELATIONSHIP', 'PARTNER', 'PERSONALITY', 'RELIGION'],
     completed: true, startedAt: new Date(), completedAt: new Date(), lastSaved: new Date(), createdAt: new Date(), updatedAt: new Date(),
     formattedAnswers: femaleProfileContent.formattedAnswers,
-        currentQuestionIndices: {
+    currentQuestionIndices: {
       PERSONALITY: 0,
       VALUES: 0,
       RELATIONSHIP: 0,
       PARTNER: 0,
       RELIGION: 0,
     },
-
   };
 
   const danielQuestionnaireResponse: QuestionnaireResponseType = {
@@ -67,7 +66,7 @@ export const generateDemoData = async (locale: Locale) => {
         { id: 'img2', url: 'https://res.cloudinary.com/dmfxoi6g0/image/upload/v1753967772/IMG-20250731-WA0078_l5mhu1.jpg', isMain: false, userId: 'demo-profile-noa', createdAt: new Date(), updatedAt: new Date(), cloudinaryPublicId: null },
         { id: 'img3', url: 'https://res.cloudinary.com/dmfxoi6g0/image/upload/v1753967770/IMG-20250731-WA0076_wy6uhe.jpg', isMain: false, userId: 'demo-profile-noa', createdAt: new Date(), updatedAt: new Date(), cloudinaryPublicId: null },
     ],
- profile: {
+    profile: {
       id: 'profile-noa-demo', userId: 'demo-profile-noa', gender: Gender.FEMALE, birthDate: new Date('1996-05-15T00:00:00.000Z'), height: 168, maritalStatus: 'רווקה',
       occupation: femaleProfileContent.occupation, education: femaleProfileContent.education, city: femaleProfileContent.city, religiousLevel: 'דתי-לאומי ליברלי',
       shomerNegiah: false, serviceType: ServiceType.NATIONAL_SERVICE_TWO_YEARS, serviceDetails: femaleProfileContent.serviceDetails, about: femaleProfileContent.about,
@@ -97,7 +96,7 @@ export const generateDemoData = async (locale: Locale) => {
       isAboutVisible: true,
       isFriendsSectionVisible: true,
       isNeshamaTechSummaryVisible: true,
-      referredBy: null, // <--- ADDED HERE
+      referredBy: null,
       cvUrl: null,
       cvSummary: null,
       aiProfileSummary: null,
@@ -124,7 +123,6 @@ export const generateDemoData = async (locale: Locale) => {
           createdAt: new Date(),
         },
       ],
-      // --- New Internal Fields Fix ---
       priorityScore: 0,
       priorityCategory: null,
       priorityUpdatedAt: null,
@@ -146,11 +144,9 @@ export const generateDemoData = async (locale: Locale) => {
       acceptanceRate: null,
       avgMatchScore: null,
       lastActiveAt: null,
-            contentUpdatedAt: new Date(),
-
+      contentUpdatedAt: new Date(),
     },
     questionnaireResponses: [noaQuestionnaireResponse],
-    
   };
 
   const danielProfile: PartyInfo = {
@@ -160,7 +156,7 @@ export const generateDemoData = async (locale: Locale) => {
         { id: 'img2m', url: 'https://res.cloudinary.com/dmfxoi6g0/image/upload/v1753967649/IMG-20250731-WA0060_ia8nka.jpg', isMain: false, userId: 'demo-profile-daniel', createdAt: new Date(), updatedAt: new Date(), cloudinaryPublicId: null },
         { id: 'img3m', url: 'https://res.cloudinary.com/dmfxoi6g0/image/upload/v1753967649/IMG-20250731-WA0061_aug5ix.jpg', isMain: false, userId: 'demo-profile-daniel', createdAt: new Date(), updatedAt: new Date(), cloudinaryPublicId: null },
     ],
- profile: {
+    profile: {
       id: 'profile-daniel-demo', userId: 'demo-profile-daniel', gender: Gender.MALE, birthDate: new Date('1994-08-20T00:00:00.000Z'), height: 182, maritalStatus: 'רווק',
       occupation: maleProfileContent.occupation, education: maleProfileContent.education, city: maleProfileContent.city, religiousLevel: 'דתי-לאומי תורני',
       shomerNegiah: true, serviceType: ServiceType.MILITARY_OFFICER, serviceDetails: maleProfileContent.serviceDetails, about: maleProfileContent.about, profileHeadline: maleProfileContent.profileHeadline,
@@ -190,7 +186,7 @@ export const generateDemoData = async (locale: Locale) => {
       isAboutVisible: true,
       isFriendsSectionVisible: true,
       isNeshamaTechSummaryVisible: true,
-      referredBy: null, // <--- ADDED HERE
+      referredBy: null,
       cvUrl: null,
       cvSummary: null,
       aiProfileSummary: null,
@@ -217,7 +213,6 @@ export const generateDemoData = async (locale: Locale) => {
           createdAt: new Date(),
         },
       ],
-      // --- New Internal Fields Fix ---
       priorityScore: 0,
       priorityCategory: null,
       priorityUpdatedAt: null,
@@ -239,8 +234,7 @@ export const generateDemoData = async (locale: Locale) => {
       acceptanceRate: null,
       avgMatchScore: null,
       lastActiveAt: null,
-            contentUpdatedAt: new Date(),
-
+      contentUpdatedAt: new Date(),
     },
     questionnaireResponses: [danielQuestionnaireResponse],
   };
@@ -253,7 +247,7 @@ export const generateDemoData = async (locale: Locale) => {
   const viewerAsNoa: PartyInfo = {
     id: VISITOR_ID,
     email: 'noa.demo@example.com',
-    firstName: femaleProfileContent.firstName, // "נועה"
+    firstName: femaleProfileContent.firstName,
     lastName: femaleProfileContent.lastName,
     isProfileComplete: true,
     profile: null, 
@@ -264,7 +258,7 @@ export const generateDemoData = async (locale: Locale) => {
   const viewerAsDaniel: PartyInfo = {
     id: VISITOR_ID,
     email: 'daniel.demo@example.com',
-    firstName: maleProfileContent.firstName, // "דניאל"
+    firstName: maleProfileContent.firstName,
     lastName: maleProfileContent.lastName,
     isProfileComplete: true,
     profile: null,
@@ -275,11 +269,11 @@ export const generateDemoData = async (locale: Locale) => {
   // --- הצעות השידוך המעודכנות ---
 
   // ההצעה עבור הצופה (נועה) לראות את דניאל
-  const demoSuggestionDataMale: ExtendedMatchSuggestion = {
+  const demoSuggestionDataMale = {
     id: 'demo-suggestion-homepage-male', 
+    isAutoSuggestion: false,
     firstPartyId: VISITOR_ID, 
     secondPartyId: 'demo-profile-daniel', 
-    isAutoSuggestion: false,
     status: 'PENDING_FIRST_PARTY', 
     priority: 'HIGH',
     matchingReason: suggestionContent.femaleToMaleReason, 
@@ -288,22 +282,22 @@ export const generateDemoData = async (locale: Locale) => {
     internalNotes: null, followUpNotes: null, responseDeadline: null,     
     matchmaker: { firstName: matchmakerContent.eytan.firstName, lastName: matchmakerContent.eytan.lastName },
     secondParty: danielProfile, 
-    firstParty: viewerAsNoa, // הצופה היא נועה
+    firstParty: viewerAsNoa,
     matchmakerId: 'matchmaker-demo-2', 
     createdAt: new Date(), updatedAt: new Date(),
     lastActivity: new Date(), category: 'ACTIVE', decisionDeadline: new Date(), lastStatusChange: new Date(), previousStatus: 'DRAFT',
     firstPartySent: new Date(), firstPartyResponded: null, secondPartySent: null, secondPartyResponded: null, firstMeetingScheduled: null, closedAt: null,
     statusHistory: [],
-      firstPartyLastViewedAt: null,
+    firstPartyLastViewedAt: null,
     secondPartyLastViewedAt: null,
-  };
+  } as ExtendedMatchSuggestion;
 
   // ההצעה עבור הצופה (דניאל) לראות את נועה
-  const demoSuggestionDataFemale: ExtendedMatchSuggestion = {
+  const demoSuggestionDataFemale = {
     id: 'demo-suggestion-homepage-female', 
+    isAutoSuggestion: false,
     firstPartyId: VISITOR_ID, 
     secondPartyId: 'demo-profile-noa', 
-    isAutoSuggestion: false,
     status: 'PENDING_FIRST_PARTY', 
     priority: 'HIGH',
     matchingReason: suggestionContent.maleToFemaleReason, 
@@ -312,15 +306,15 @@ export const generateDemoData = async (locale: Locale) => {
     internalNotes: null, followUpNotes: null, responseDeadline: null,  
     matchmaker: { firstName: matchmakerContent.dina.firstName, lastName: matchmakerContent.dina.lastName },
     secondParty: noaProfile, 
-    firstParty: viewerAsDaniel, // הצופה הוא דניאל
+    firstParty: viewerAsDaniel,
     matchmakerId: 'matchmaker-demo', 
     createdAt: new Date(), updatedAt: new Date(),
     lastActivity: new Date(), category: 'ACTIVE', decisionDeadline: new Date(), lastStatusChange: new Date(), previousStatus: 'DRAFT',
     firstPartySent: new Date(), firstPartyResponded: null, secondPartySent: null, secondPartyResponded: null, firstMeetingScheduled: null, closedAt: null,
     statusHistory: [],
-      firstPartyLastViewedAt: null,
+    firstPartyLastViewedAt: null,
     secondPartyLastViewedAt: null,
-  };
+  } as ExtendedMatchSuggestion;
   
   const demoAiAnalysisForDaniel: AiSuggestionAnalysisResult = {
     overallScore: 91, 
