@@ -42,6 +42,104 @@ const emptyStringToNull = (value: string | null | undefined): string | null => {
 };
 
 // ==========================================
+// Helper: Build profile response shape
+// Shared between GET and PUT responses
+// ==========================================
+function buildProfileResponse(p: Profile) {
+  return {
+    // IDs
+    id: p.id,
+    userId: p.userId,
+
+    // Basic Info
+    gender: p.gender,
+    birthDate: p.birthDate,
+    birthDateIsApproximate: p.birthDateIsApproximate ?? false,
+    height: p.height,
+    maritalStatus: p.maritalStatus,
+    hasChildrenFromPrevious: p.hasChildrenFromPrevious,
+    occupation: p.occupation,
+    education: p.education,
+    educationLevel: p.educationLevel,
+    city: p.city,
+    origin: p.origin,
+    aliyaCountry: p.aliyaCountry,
+    aliyaYear: p.aliyaYear,
+    nativeLanguage: p.nativeLanguage,
+    additionalLanguages: p.additionalLanguages || [],
+
+    // Family
+    parentStatus: p.parentStatus,
+    fatherOccupation: p.fatherOccupation,
+    motherOccupation: p.motherOccupation,
+    siblings: p.siblings,
+    position: p.position,
+
+    // Religion
+    religiousLevel: p.religiousLevel,
+    religiousJourney: p.religiousJourney,
+    shomerNegiah: p.shomerNegiah,
+    serviceType: p.serviceType,
+    serviceDetails: p.serviceDetails,
+    headCovering: p.headCovering,
+    kippahType: p.kippahType,
+
+    // Character & About
+    profileHeadline: p.profileHeadline,
+    about: p.about,
+    isAboutVisible: p.isAboutVisible ?? true,
+    inspiringCoupleStory: p.inspiringCoupleStory,
+    influentialRabbi: p.influentialRabbi,
+    internalMatchmakerNotes: p.internalMatchmakerNotes,
+    profileCharacterTraits: p.profileCharacterTraits || [],
+    profileHobbies: p.profileHobbies || [],
+
+    // Matchmaker Preference
+    preferredMatchmakerGender: p.preferredMatchmakerGender,
+
+    // Medical Info
+    hasMedicalInfo: p.hasMedicalInfo,
+    medicalInfoDetails: p.medicalInfoDetails,
+    medicalInfoDisclosureTiming: p.medicalInfoDisclosureTiming,
+    isMedicalInfoVisible: p.isMedicalInfoVisible,
+
+    // Preferences - Ranges
+    preferredAgeMin: p.preferredAgeMin,
+    preferredAgeMax: p.preferredAgeMax,
+    preferredHeightMin: p.preferredHeightMin,
+    preferredHeightMax: p.preferredHeightMax,
+
+    // Preferences - Single Select
+    preferredShomerNegiah: p.preferredShomerNegiah,
+    preferredPartnerHasChildren: p.preferredPartnerHasChildren,
+    preferredAliyaStatus: p.preferredAliyaStatus,
+
+    // Preferences - Multi Select
+    preferredLocations: p.preferredLocations || [],
+    preferredReligiousLevels: p.preferredReligiousLevels || [],
+    preferredReligiousJourneys: p.preferredReligiousJourneys || [],
+    preferredEducation: p.preferredEducation || [],
+    preferredOccupations: p.preferredOccupations || [],
+    preferredMaritalStatuses: p.preferredMaritalStatuses || [],
+    preferredOrigins: p.preferredOrigins || [],
+    preferredServiceTypes: p.preferredServiceTypes || [],
+    preferredHeadCoverings: p.preferredHeadCoverings || [],
+    preferredKippahTypes: p.preferredKippahTypes || [],
+    preferredCharacterTraits: p.preferredCharacterTraits || [],
+    preferredHobbies: p.preferredHobbies || [],
+
+    // Notes
+    matchingNotes: p.matchingNotes,
+
+    // System
+    availabilityStatus: p.availabilityStatus,
+
+    createdAt: p.createdAt,
+    updatedAt: p.updatedAt,
+  };
+}
+
+// ==========================================
 // OPTIONS (CORS)
 // ==========================================
 export async function OPTIONS(req: NextRequest) {
@@ -84,87 +182,7 @@ export async function GET(req: NextRequest) {
       return corsError(req, "Profile not found. Please complete your profile on the website first.", 404);
     }
 
-    const p = userWithProfile.profile;
-
-    const profile = {
-      // IDs
-      id: p.id,
-      userId: p.userId,
-
-      // Basic Info
-      gender: p.gender,
-      birthDate: p.birthDate,
-      birthDateIsApproximate: p.birthDateIsApproximate ?? false,
-      height: p.height,
-      maritalStatus: p.maritalStatus,
-      hasChildrenFromPrevious: p.hasChildrenFromPrevious,
-      occupation: p.occupation,
-      education: p.education,
-      educationLevel: p.educationLevel,
-      city: p.city,
-      origin: p.origin,
-      aliyaCountry: p.aliyaCountry,
-      aliyaYear: p.aliyaYear,
-      nativeLanguage: p.nativeLanguage,
-      additionalLanguages: p.additionalLanguages || [],
-
-      // Family
-      parentStatus: p.parentStatus,
-      fatherOccupation: p.fatherOccupation,
-      motherOccupation: p.motherOccupation,
-      siblings: p.siblings,
-      position: p.position,
-
-      // Religion
-      religiousLevel: p.religiousLevel,
-      religiousJourney: p.religiousJourney,
-      shomerNegiah: p.shomerNegiah,
-      serviceType: p.serviceType,
-      serviceDetails: p.serviceDetails,
-      headCovering: p.headCovering,
-      kippahType: p.kippahType,
-
-      // Character & About
-      profileHeadline: p.profileHeadline,
-      about: p.about,
-      isAboutVisible: p.isAboutVisible ?? true,
-      profileCharacterTraits: p.profileCharacterTraits || [],
-      profileHobbies: p.profileHobbies || [],
-
-      // Preferences - Ranges
-      preferredAgeMin: p.preferredAgeMin,
-      preferredAgeMax: p.preferredAgeMax,
-      preferredHeightMin: p.preferredHeightMin,
-      preferredHeightMax: p.preferredHeightMax,
-
-      // Preferences - Single Select
-      preferredShomerNegiah: p.preferredShomerNegiah,
-      preferredPartnerHasChildren: p.preferredPartnerHasChildren,
-      preferredAliyaStatus: p.preferredAliyaStatus,
-
-      // Preferences - Multi Select
-      preferredLocations: p.preferredLocations || [],
-      preferredReligiousLevels: p.preferredReligiousLevels || [],
-      preferredReligiousJourneys: p.preferredReligiousJourneys || [],
-      preferredEducation: p.preferredEducation || [],
-      preferredOccupations: p.preferredOccupations || [],
-      preferredMaritalStatuses: p.preferredMaritalStatuses || [],
-      preferredOrigins: p.preferredOrigins || [],
-      preferredServiceTypes: p.preferredServiceTypes || [],
-      preferredHeadCoverings: p.preferredHeadCoverings || [],
-      preferredKippahTypes: p.preferredKippahTypes || [],
-      preferredCharacterTraits: p.preferredCharacterTraits || [],
-      preferredHobbies: p.preferredHobbies || [],
-
-      // Notes
-      matchingNotes: p.matchingNotes,
-
-      // System
-      availabilityStatus: p.availabilityStatus,
-
-      createdAt: p.createdAt,
-      updatedAt: p.updatedAt,
-    };
+    const profile = buildProfileResponse(userWithProfile.profile);
 
     console.log(`[mobile/profile] GET profile for user ${userId}`);
 
@@ -233,10 +251,12 @@ export async function PUT(req: NextRequest) {
     if (body.position !== undefined) dataToUpdate.position = toNumberOrNull(body.position);
 
     // ---- Religion (limited editable fields from mobile) ----
-    // Note: gender, birthDate, maritalStatus, religiousLevel, religiousJourney, 
-    // educationLevel, serviceType are NOT editable from mobile - must use web app
     if (body.shomerNegiah !== undefined) dataToUpdate.shomerNegiah = body.shomerNegiah;
     if (body.serviceDetails !== undefined) dataToUpdate.serviceDetails = emptyStringToNull(body.serviceDetails);
+    if (body.influentialRabbi !== undefined) dataToUpdate.influentialRabbi = emptyStringToNull(body.influentialRabbi);
+   if (body.preferredMatchmakerGender !== undefined) {
+  dataToUpdate.preferredMatchmakerGender = emptyStringToNull(body.preferredMatchmakerGender) as Gender | null;
+}
 
     // ---- Traits & Character ----
     if (body.profileCharacterTraits !== undefined) dataToUpdate.profileCharacterTraits = body.profileCharacterTraits || [];
@@ -246,6 +266,22 @@ export async function PUT(req: NextRequest) {
     if (body.profileHeadline !== undefined) dataToUpdate.profileHeadline = emptyStringToNull(body.profileHeadline);
     if (body.about !== undefined) dataToUpdate.about = emptyStringToNull(body.about);
     if (body.isAboutVisible !== undefined) dataToUpdate.isAboutVisible = body.isAboutVisible;
+    if (body.inspiringCoupleStory !== undefined) dataToUpdate.inspiringCoupleStory = emptyStringToNull(body.inspiringCoupleStory);
+    if (body.internalMatchmakerNotes !== undefined) dataToUpdate.internalMatchmakerNotes = emptyStringToNull(body.internalMatchmakerNotes);
+
+    // ---- Medical Info ----
+    if (body.hasMedicalInfo !== undefined) {
+      dataToUpdate.hasMedicalInfo = body.hasMedicalInfo;
+      // If user unchecks medical info, clear the details
+      if (!body.hasMedicalInfo) {
+        dataToUpdate.medicalInfoDetails = null;
+        dataToUpdate.medicalInfoDisclosureTiming = null;
+        dataToUpdate.isMedicalInfoVisible = false;
+      }
+    }
+    if (body.medicalInfoDetails !== undefined) dataToUpdate.medicalInfoDetails = emptyStringToNull(body.medicalInfoDetails);
+    if (body.medicalInfoDisclosureTiming !== undefined) dataToUpdate.medicalInfoDisclosureTiming = emptyStringToNull(body.medicalInfoDisclosureTiming);
+    if (body.isMedicalInfoVisible !== undefined) dataToUpdate.isMedicalInfoVisible = body.isMedicalInfoVisible;
 
     // ---- Notes ----
     if (body.matchingNotes !== undefined) dataToUpdate.matchingNotes = emptyStringToNull(body.matchingNotes);
@@ -289,7 +325,6 @@ export async function PUT(req: NextRequest) {
 
     // ---- Perform Update ----
     if (Object.keys(dataToUpdate).length <= 3) {
-      // Only system fields (lastActive, contentUpdatedAt, needsAiProfileUpdate) - nothing meaningful to update
       console.log(`[mobile/profile] No meaningful data to update for user ${userId}`);
       return corsError(req, "No data provided to update", 400);
     }
@@ -312,72 +347,10 @@ export async function PUT(req: NextRequest) {
 
     console.log(`[mobile/profile] PUT success for user ${userId}`);
 
-    // Return the updated profile in the same shape as GET
-    const p = updatedProfile;
-    const responseProfile = {
-      id: p.id,
-      userId: p.userId,
-      gender: p.gender,
-      birthDate: p.birthDate,
-      birthDateIsApproximate: p.birthDateIsApproximate ?? false,
-      height: p.height,
-      maritalStatus: p.maritalStatus,
-      hasChildrenFromPrevious: p.hasChildrenFromPrevious,
-      occupation: p.occupation,
-      education: p.education,
-      educationLevel: p.educationLevel,
-      city: p.city,
-      origin: p.origin,
-      aliyaCountry: p.aliyaCountry,
-      aliyaYear: p.aliyaYear,
-      nativeLanguage: p.nativeLanguage,
-      additionalLanguages: p.additionalLanguages || [],
-      parentStatus: p.parentStatus,
-      fatherOccupation: p.fatherOccupation,
-      motherOccupation: p.motherOccupation,
-      siblings: p.siblings,
-      position: p.position,
-      religiousLevel: p.religiousLevel,
-      religiousJourney: p.religiousJourney,
-      shomerNegiah: p.shomerNegiah,
-      serviceType: p.serviceType,
-      serviceDetails: p.serviceDetails,
-      headCovering: p.headCovering,
-      kippahType: p.kippahType,
-      profileHeadline: p.profileHeadline,
-      about: p.about,
-      isAboutVisible: p.isAboutVisible ?? true,
-      profileCharacterTraits: p.profileCharacterTraits || [],
-      profileHobbies: p.profileHobbies || [],
-      preferredAgeMin: p.preferredAgeMin,
-      preferredAgeMax: p.preferredAgeMax,
-      preferredHeightMin: p.preferredHeightMin,
-      preferredHeightMax: p.preferredHeightMax,
-      preferredShomerNegiah: p.preferredShomerNegiah,
-      preferredPartnerHasChildren: p.preferredPartnerHasChildren,
-      preferredAliyaStatus: p.preferredAliyaStatus,
-      preferredLocations: p.preferredLocations || [],
-      preferredReligiousLevels: p.preferredReligiousLevels || [],
-      preferredReligiousJourneys: p.preferredReligiousJourneys || [],
-      preferredEducation: p.preferredEducation || [],
-      preferredOccupations: p.preferredOccupations || [],
-      preferredMaritalStatuses: p.preferredMaritalStatuses || [],
-      preferredOrigins: p.preferredOrigins || [],
-      preferredServiceTypes: p.preferredServiceTypes || [],
-      preferredHeadCoverings: p.preferredHeadCoverings || [],
-      preferredKippahTypes: p.preferredKippahTypes || [],
-      preferredCharacterTraits: p.preferredCharacterTraits || [],
-      preferredHobbies: p.preferredHobbies || [],
-      matchingNotes: p.matchingNotes,
-      availabilityStatus: p.availabilityStatus,
-      createdAt: p.createdAt,
-      updatedAt: p.updatedAt,
-    };
-
     return corsJson(req, {
       success: true,
       data: {
-        profile: responseProfile,
+        profile: buildProfileResponse(updatedProfile),
       },
     });
   } catch (error) {
