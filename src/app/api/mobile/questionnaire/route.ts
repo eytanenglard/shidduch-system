@@ -189,3 +189,40 @@ export async function PATCH(req: NextRequest) {
     return corsError(req, 'Failed to update questionnaire', 500);
   }
 }
+
+export async function POST(req: NextRequest) {
+  try {
+    const auth = await verifyMobileToken(req);
+    if (!auth) return corsError(req, 'Unauthorized', 401);
+
+    // Check if questionnaire already exists
+    const existing = await prisma.questionnaireResponse.findFirst({
+      where: { userId: auth.userId },
+    });
+
+    if (existing) {
+      return corsJson(req, { success: true, data: existing });
+    }
+
+    // Create new empty questionnaire
+    const now = new Date();
+    const questionnaire = await prisma.questionnaireResponse.create({
+      data: {
+        userId: auth.userId,
+        personalityAnswers: [],
+        valuesAnswers: [],
+        relationshipAnswers: [],
+        partnerAnswers: [],
+        religionAnswers: [],
+        completed: false,
+        startedAt: now,
+        lastSaved: now,
+      },
+    });
+
+    return corsJson(req, { success: true, data: questionnaire });
+  } catch (error) {
+    console.error('[Mobile Questionnaire POST] Error:', error);
+    return corsError(req, 'Failed to create questionnaire', 500);
+  }
+}
