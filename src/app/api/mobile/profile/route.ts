@@ -45,7 +45,7 @@ const emptyStringToNull = (value: string | null | undefined): string | null => {
 // Helper: Build profile response shape
 // Shared between GET and PUT responses
 // ==========================================
-function buildProfileResponse(p: Profile) {
+function buildProfileResponse(p: Profile, testimonials?: any[]) {
   return {
     // IDs
     id: p.id,
@@ -102,6 +102,18 @@ function buildProfileResponse(p: Profile) {
     medicalInfoDetails: p.medicalInfoDetails,
     medicalInfoDisclosureTiming: p.medicalInfoDisclosureTiming,
     isMedicalInfoVisible: p.isMedicalInfoVisible,
+
+    // CV
+    cvUrl: p.cvUrl,
+    cvSummary: p.cvSummary,
+
+    // AI Summary
+    aiProfileSummary: p.aiProfileSummary,
+    manualEntryText: p.manualEntryText,
+    isNeshamaTechSummaryVisible: p.isNeshamaTechSummaryVisible ?? true,
+
+    // Testimonials (only from GET, not from PUT)
+    ...(testimonials !== undefined && { testimonials }),
 
     // Preferences - Ranges
     preferredAgeMin: p.preferredAgeMin,
@@ -162,7 +174,22 @@ export async function GET(req: NextRequest) {
     const userWithProfile = await prisma.user.findUnique({
       where: { id: userId },
       include: {
-        profile: true,
+        profile: {
+          include: {
+            testimonials: {
+              where: { status: "APPROVED" },
+              orderBy: { createdAt: "desc" },
+              select: {
+                id: true,
+                authorName: true,
+                relationship: true,
+                content: true,
+                status: true,
+                createdAt: true,
+              },
+            },
+          },
+        },
         images: {
           orderBy: { isMain: "desc" },
           select: {
@@ -182,7 +209,11 @@ export async function GET(req: NextRequest) {
       return corsError(req, "Profile not found. Please complete your profile on the website first.", 404);
     }
 
-    const profile = buildProfileResponse(userWithProfile.profile);
+    const profileWithTestimonials = userWithProfile.profile as any;
+    const profile = buildProfileResponse(
+      userWithProfile.profile,
+      profileWithTestimonials.testimonials || []
+    );
 
     console.log(`[mobile/profile] GET profile for user ${userId}`);
 
@@ -254,8 +285,12 @@ export async function PUT(req: NextRequest) {
     if (body.shomerNegiah !== undefined) dataToUpdate.shomerNegiah = body.shomerNegiah;
     if (body.serviceDetails !== undefined) dataToUpdate.serviceDetails = emptyStringToNull(body.serviceDetails);
     if (body.influentialRabbi !== undefined) dataToUpdate.influentialRabbi = emptyStringToNull(body.influentialRabbi);
-   if (body.preferredMatchmakerGender !== undefined) {
-  dataToUpdate.preferredMatchmakerGender = emptyStringToNull(body.preferredMatchmakerGender) as Gender | null;
+  if (body.preferredMatchmakerGender !== undefined) {
+  const value = emptyStringToNull(body.preferredMatchmakerGender);
+  dataToUpdate.preferredMatchmakerGender = 
+    value && Object.values(Gender).includes(value as Gender) 
+      ? (value as Gender) 
+      : null;
 }
 
     // ---- Traits & Character ----
