@@ -400,7 +400,7 @@ type AiMatchAnalysisDialogDict = {
 
 // Main dictionary type for the Matchmaker Page
 export type MatchmakerPageDictionary = {
-    suggestionDetailsDialog: SuggestionDetailsDialogDict; 
+  suggestionDetailsDialog: SuggestionDetailsDialogDict;
   candidatesManager: {
     header: MinimalHeaderDict;
     controls: {
@@ -408,11 +408,11 @@ export type MatchmakerPageDictionary = {
       sortBy: string;
       filters: string;
       hideFilters: string;
-            disableQuickView: string; // <--- הוסף
-      enableQuickView: string; // <--- הוסף
-      disableQuickViewTooltip: string; // <--- הוסף
-      enableQuickViewTooltip: string; // <--- הוסף
-compareButton: string;
+      disableQuickView: string;
+      enableQuickView: string;
+      disableQuickViewTooltip: string;
+      enableQuickViewTooltip: string;
+      compareButton: string;
       mobile: {
         split: string;
         singleCol: string;
@@ -426,24 +426,59 @@ compareButton: string;
     filterPanel: FilterPanelDict;
     list: CandidatesListDict;
     splitView: SplitViewDict;
-    // --- התיקון כאן ---
-    // העברנו את aiAnalysis להיות חלק מ-candidatesManager
     aiAnalysis: AiMatchAnalysisDialogDict;
-        aiProfileAdvisor: AiAdvisorDialogDict; // <-- הוסף את השורה הזו
-
-        stats: CandidatesStatsDict;
-            editProfile: MatchmakerEditProfileDict;
+    aiProfileAdvisor: AiAdvisorDialogDict;
+    stats: CandidatesStatsDict;
+    editProfile: MatchmakerEditProfileDict;
     actionDialogs: ActionDialogsDict;
- 
     addManualCandidateDialog: AddManualCandidateDialogDict;
-        profileFeedbackDialog: ProfileFeedbackDialogDict; // <-- הוסף את השורה הזו
-
+    profileFeedbackDialog: ProfileFeedbackDialogDict;
   };
-    statusBadges: StatusBadgeDict;
-      pagination: PaginationDict;
+  statusBadges: StatusBadgeDict;
+  pagination: PaginationDict;
   loadingStates: LoadingStatesDict;
-suggestionsDashboard: MatchmakerSuggestionsDashboardDict; 
-potentialMatches: PotentialMatchesDict;
+  suggestionsDashboard: MatchmakerSuggestionsDashboardDict;
+  potentialMatches: PotentialMatchesDict;
+  // ===== NEW: matchmakerMessagesPage =====
+  matchmakerMessagesPage: {
+    header: {
+      title: string;
+      subtitle: string;
+    };
+    tabs: {
+      chat: string;
+      availability: string;
+    };
+    chatPanel: {
+      activeSuggestions: string;
+      noActiveSuggestions: string;
+      selectSuggestion: string;
+      selectSuggestionDescription: string;
+      back: string;
+      noMessages: string;
+      noMessagesDescription: string;
+      placeholder: string;
+      sendError: string;
+      messages: string;
+      senderLabels: {
+        matchmaker: string;
+        system: string;
+      };
+      partyLabels: {
+        partyA: string;
+        partyB: string;
+      };
+      statusLabels: {
+        PENDING_FIRST_PARTY: string;
+        PENDING_SECOND_PARTY: string;
+        FIRST_PARTY_APPROVED: string;
+        SECOND_PARTY_APPROVED: string;
+        CONTACT_DETAILS_SHARED: string;
+        DATING: string;
+        AWAITING_FIRST_DATE_FEEDBACK: string;
+      };
+    };
+  };
 };
 // הגדרת המילון עבור דיאלוג העריכה והשליחה
 type ProfileFeedbackDialogDict = {
@@ -1397,8 +1432,8 @@ type SuggestionDetailsDict = {
 };
 type SuggestionDetailsDialogDict = {
   header: {
-    title: string; // "הצעה #{{id}}"
-    subtitle: string; // "{{party1}} ו{{party2}}"
+    title: string;
+    subtitle: string;
     fullscreenTooltip: string;
     minimizeTooltip: string;
   };
@@ -1407,12 +1442,29 @@ type SuggestionDetailsDialogDict = {
     party1: string;
     party2: string;
     timeline: string;
-    communication: string;
+    chat: string;       // ← שונה מ-communication
     actions: string;
+  };
+  // ===== NEW: chatTab =====
+  chatTab: {
+    title: string;
+    header: string;
+    noMessages: string;
+    noMessagesDescription: string;
+    placeholder: string;
+    sendError: string;
+    senderLabels: {
+      matchmaker: string;
+      system: string;
+    };
+    partyLabels: {
+      partyA: string;
+      partyB: string;
+    };
   };
   overview: {
     statusSummaryTitle: string;
-    progressCompleted: string; // "{{percent}}% הושלמו"
+    progressCompleted: string;
     matchmakerLabel: string;
     detailsTitle: string;
     details: {
@@ -1434,7 +1486,7 @@ type SuggestionDetailsDialogDict = {
     };
     deadlineAlert: {
       today: string;
-      daysLeft: string; // "{{count}} ימים"
+      daysLeft: string;
     };
   };
   timeline: {
@@ -1476,7 +1528,6 @@ type SuggestionDetailsDialogDict = {
   toasts: {
     statusUpdateError: string;
   };
-  // כולל תרגומים שכבר קיימים במקומות אחרים, למען שלמות הרכיב
   statusLabels: Record<string, string>;
   priorityLabels: Record<string, string>;
 };

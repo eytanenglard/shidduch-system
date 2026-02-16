@@ -1,31 +1,23 @@
-// app/api/mobile/suggestions/[id]/chat/route.ts
-// ==========================================
-// NeshamaTech - Mobile Chat API
-// GET: Fetch messages for a suggestion
-// POST: Send a new message from user to matchmaker
-// ==========================================
-
-import { NextRequest, NextResponse } from "next/server";
-import prisma from "@/lib/prisma";
-import { verifyMobileToken } from "@/lib/mobile-auth";
+import { notifyMatchmakerNewMessage } from '@/lib/pushNotifications';
+import { NextRequest, NextResponse } from 'next/server';
+import prisma from '@/lib/prisma';
+import { verifyMobileToken } from '@/lib/mobile-auth';
 
 export async function GET(
   req: NextRequest,
   context: { params: Promise<{ id: string }> }
 ) {
   try {
-    // 1. Auth
     const user = await verifyMobileToken(req);
     if (!user) {
       return NextResponse.json(
-        { success: false, error: "Unauthorized" },
+        { success: false, error: 'Unauthorized' },
         { status: 401 }
       );
     }
 
     const { id: suggestionId } = await context.params;
 
-    // 2. Verify user is part of this suggestion
     const suggestion = await prisma.matchSuggestion.findUnique({
       where: { id: suggestionId },
       select: {
@@ -38,7 +30,7 @@ export async function GET(
 
     if (!suggestion) {
       return NextResponse.json(
-        { success: false, error: "Suggestion not found" },
+        { success: false, error: 'Suggestion not found' },
         { status: 404 }
       );
     }
@@ -49,27 +41,33 @@ export async function GET(
 
     if (!isParty) {
       return NextResponse.json(
-        { success: false, error: "Not authorized to view this chat" },
+        { success: false, error: 'Not authorized to view this chat' },
         { status: 403 }
       );
     }
 
-    // 3. Fetch messages - user sees only their messages + matchmaker messages
-    // (not messages between matchmaker and the OTHER party)
+    // ✅ תיקון: סינון הודעות - רואה רק מה שמיועד לו
     const messages = await prisma.suggestionMessage.findMany({
       where: {
         suggestionId,
         OR: [
-          { senderId: user.userId }, // Messages sent by this user
+          // הודעות שהמועמד עצמו שלח
+          { senderId: user.userId },
+          // הודעות מהשדכן שמיועדות ספציפית למועמד הזה
           {
-            senderType: "MATCHMAKER", // Messages from matchmaker
-            // Note: matchmaker messages to both parties are visible
-            // If you want to separate, add a targetUserId field
+            senderType: 'MATCHMAKER',
+            targetUserId: user.userId,
           },
-          { senderType: "SYSTEM" }, // System messages
+          // הודעות ישנות מהשדכן בלי targetUserId (תאימות לאחור)
+          {
+            senderType: 'MATCHMAKER',
+            targetUserId: null,
+          },
+          // הודעות מערכת
+          { senderType: 'SYSTEM' },
         ],
       },
-      orderBy: { createdAt: "asc" },
+      orderBy: { createdAt: 'asc' },
       select: {
         id: true,
         content: true,
@@ -84,14 +82,14 @@ export async function GET(
       success: true,
       messages: messages.map((m) => ({
         ...m,
-        senderType: m.senderType.toLowerCase(), // 'user' | 'matchmaker' | 'system'
+        senderType: m.senderType.toLowerCase(),
         createdAt: m.createdAt.toISOString(),
       })),
     });
   } catch (error) {
-    console.error("[Mobile Chat GET] Error:", error);
+    console.error('[Mobile Chat GET] Error:', error);
     return NextResponse.json(
-      { success: false, error: "Failed to fetch messages" },
+      { success: false, error: 'Failed to fetch messages' },
       { status: 500 }
     );
   }
@@ -102,11 +100,10 @@ export async function POST(
   context: { params: Promise<{ id: string }> }
 ) {
   try {
-    // 1. Auth
     const user = await verifyMobileToken(req);
     if (!user) {
       return NextResponse.json(
-        { success: false, error: "Unauthorized" },
+        { success: false, error: 'Unauthorized' },
         { status: 401 }
       );
     }
@@ -114,14 +111,13 @@ export async function POST(
     const { id: suggestionId } = await context.params;
     const { content } = await req.json();
 
-    if (!content || typeof content !== "string" || !content.trim()) {
+    if (!content || typeof content !== 'string' || !content.trim()) {
       return NextResponse.json(
-        { success: false, error: "Message content is required" },
+        { success: false, error: 'Message content is required' },
         { status: 400 }
       );
     }
 
-    // 2. Verify user is part of this suggestion
     const suggestion = await prisma.matchSuggestion.findUnique({
       where: { id: suggestionId },
       select: {
@@ -129,15 +125,12 @@ export async function POST(
         firstPartyId: true,
         secondPartyId: true,
         matchmakerId: true,
-        matchmaker: {
-          select: { firstName: true, lastName: true, email: true },
-        },
       },
     });
 
     if (!suggestion) {
       return NextResponse.json(
-        { success: false, error: "Suggestion not found" },
+        { success: false, error: 'Suggestion not found' },
         { status: 404 }
       );
     }
@@ -148,17 +141,18 @@ export async function POST(
 
     if (!isParty) {
       return NextResponse.json(
-        { success: false, error: "Not authorized to send messages here" },
+        { success: false, error: 'Not authorized to send messages here' },
         { status: 403 }
       );
     }
 
-    // 3. Create the message
+    // ✅ הודעה מהמועמד - targetUserId הוא השדכן (אופציונלי, בעיקר לעקביות)
     const message = await prisma.suggestionMessage.create({
       data: {
         suggestionId,
         senderId: user.userId,
-        senderType: "USER",
+        senderType: 'USER',
+        targetUserId: suggestion.matchmakerId, // ההודעה מיועדת לשדכן
         content: content.trim(),
       },
       select: {
@@ -171,20 +165,29 @@ export async function POST(
       },
     });
 
-    // 4. Update suggestion lastActivity
     await prisma.matchSuggestion.update({
       where: { id: suggestionId },
       data: { lastActivity: new Date() },
     });
 
-    // 5. (Optional) Send push notification to matchmaker
-    // TODO: Implement push notification to matchmaker
-    // You can use your existing notification system here:
-    // await sendPushToMatchmaker(suggestion.matchmakerId, {
-    //   title: `הודעה חדשה מ${user.firstName}`,
-    //   body: content.trim().substring(0, 100),
-    //   data: { type: 'CHAT_MESSAGE', suggestionId },
-    // });
+    // Push notification לשדכן
+    if (suggestion.matchmakerId) {
+      const senderUser = await prisma.user.findUnique({
+        where: { id: user.userId },
+        select: { firstName: true, lastName: true },
+      });
+
+      notifyMatchmakerNewMessage({
+        matchmakerUserId: suggestion.matchmakerId,
+        senderName: senderUser
+          ? `${senderUser.firstName} ${senderUser.lastName}`.trim()
+          : 'מועמד/ת',
+        messagePreview: content,
+        suggestionId,
+      }).catch((err) =>
+        console.error('[chat] Matchmaker push error:', err)
+      );
+    }
 
     return NextResponse.json({
       success: true,
@@ -195,9 +198,9 @@ export async function POST(
       },
     });
   } catch (error) {
-    console.error("[Mobile Chat POST] Error:", error);
+    console.error('[Mobile Chat POST] Error:', error);
     return NextResponse.json(
-      { success: false, error: "Failed to send message" },
+      { success: false, error: 'Failed to send message' },
       { status: 500 }
     );
   }

@@ -551,6 +551,61 @@ export type SuggestionsContainerDict = {
     refreshSuccessDescription: string;
   };
 };
+export type ChatTabDict = {
+  title: string;
+  header: string;
+  noMessages: string;
+  noMessagesDescription: string;
+  placeholder: string;
+  sendError: string;
+  senderLabels: {
+    matchmaker: string;
+    system: string;
+  };
+  partyLabels: {
+    partyA: string;
+    partyB: string;
+  };
+};
+export type MatchmakerMessagesPageDict = {
+  header: {
+    title: string;
+    subtitle: string;
+  };
+  tabs: {
+    chat: string;
+    availability: string;
+  };
+  chatPanel: {
+    activeSuggestions: string;
+    noActiveSuggestions: string;
+    selectSuggestion: string;
+    selectSuggestionDescription: string;
+    back: string;
+    noMessages: string;
+    noMessagesDescription: string;
+    placeholder: string;
+    sendError: string;
+    messages: string;
+    senderLabels: {
+      matchmaker: string;
+      system: string;
+    };
+    partyLabels: {
+      partyA: string;
+      partyB: string;
+    };
+    statusLabels: {
+      PENDING_FIRST_PARTY: string;
+      PENDING_SECOND_PARTY: string;
+      FIRST_PARTY_APPROVED: string;
+      SECOND_PARTY_APPROVED: string;
+      CONTACT_DETAILS_SHARED: string;
+      DATING: string;
+      AWAITING_FIRST_DATE_FEEDBACK: string;
+    };
+  };
+};
 
 // This is the main type for the new modular dictionary
 export type SuggestionsDictionary = {
@@ -615,6 +670,8 @@ export type {
   MatchmakerPageDictionary,
   AuthDictionary,   // <-- הוסף שורה זו
   EmailDictionary,  // <-- והוסף שורה זו
+  ChatTabDict,                    // ← חדש
+  MatchmakerMessagesPageDict,     // ← חדש
 
 };
 

@@ -1,10 +1,4 @@
 // src/components/matchmaker/suggestions/details/SuggestionChatTab.tsx
-// ==========================================
-// NeshamaTech - Chat Tab for SuggestionDetailsDialog
-// Shows chat messages between matchmaker and parties
-// Allows matchmaker to send messages
-// ==========================================
-
 'use client';
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
@@ -14,9 +8,9 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { toast } from 'sonner';
-import { Send, Loader2, MessageCircle, User, Bot, RefreshCw } from 'lucide-react';
+import { Send, Loader2, MessageCircle, Bot, RefreshCw } from 'lucide-react';
 import { cn, getInitials } from '@/lib/utils';
-import { formatDistanceToNow, format } from 'date-fns';
+import { format } from 'date-fns';
 import { he, enUS } from 'date-fns/locale';
 import type { Locale } from '../../../../../i18n-config';
 
@@ -30,6 +24,7 @@ interface ChatMessage {
   senderId: string;
   senderType: 'user' | 'matchmaker' | 'system';
   senderName: string;
+  targetUserId?: string | null;
   isRead: boolean;
   createdAt: string;
   isFirstParty?: boolean;
@@ -41,39 +36,68 @@ interface PartyInfo {
   name: string;
 }
 
+export interface ChatTabDict {
+  header: string;
+  noMessages: string;
+  noMessagesDescription: string;
+  placeholder: string;
+  sendError: string;
+  senderLabels: { matchmaker: string; system: string };
+  partyLabels: { partyA: string; partyB: string };
+}
+
+const defaultDict: ChatTabDict = {
+  header: 'הודעות',
+  noMessages: 'אין הודעות עדיין',
+  noMessagesDescription: 'שלח/י הודעה למועמד/ת',
+  placeholder: 'כתוב/י הודעה...',
+  sendError: 'שגיאה בשליחת ההודעה',
+  senderLabels: { matchmaker: 'את/ה (שדכן)', system: 'מערכת' },
+  partyLabels: { partyA: "צד א'", partyB: "צד ב'" },
+};
+
 interface SuggestionChatTabProps {
   suggestionId: string;
   locale: Locale;
+  dict?: ChatTabDict;
 }
-
-// ==========================================
-// Component
-// ==========================================
 
 export default function SuggestionChatTab({
   suggestionId,
   locale,
+  dict,
 }: SuggestionChatTabProps) {
+  const t = dict || defaultDict;
   const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [parties, setParties] = useState<{ firstParty?: PartyInfo; secondParty?: PartyInfo }>({});
+  const [parties, setParties] = useState<{
+    firstParty?: PartyInfo;
+    secondParty?: PartyInfo;
+  }>({});
   const [newMessage, setNewMessage] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [isSending, setIsSending] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
+
+  // ✅ חדש: מצב הצד הנבחר
+  const [selectedParty, setSelectedParty] = useState<'first' | 'second'>(
+    'first'
+  );
+
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const isHe = locale === 'he';
 
   // ==========================================
-  // Fetch Messages
+  // Fetch messages
   // ==========================================
 
   const fetchMessages = useCallback(async () => {
     try {
-      const response = await fetch(`/api/matchmaker/suggestions/${suggestionId}/chat`);
+      const response = await fetch(
+        `/api/matchmaker/suggestions/${suggestionId}/chat`
+      );
       if (!response.ok) throw new Error('Failed to fetch messages');
       const data = await response.json();
-
       if (data.success) {
         setMessages(data.messages || []);
         setParties(data.parties || {});
@@ -86,47 +110,92 @@ export default function SuggestionChatTab({
     }
   }, [suggestionId]);
 
-  // Initial load + polling
   useEffect(() => {
     fetchMessages();
-    const interval = setInterval(fetchMessages, 15000); // Poll every 15 seconds
+    const interval = setInterval(fetchMessages, 15000);
     return () => clearInterval(interval);
   }, [fetchMessages]);
 
-  // Auto-scroll to bottom
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
-  }, [messages]);
+  }, [messages, selectedParty]);
 
-  // Mark as read when tab opens
   useEffect(() => {
     if (unreadCount > 0) {
       fetch(`/api/matchmaker/suggestions/${suggestionId}/chat`, {
         method: 'PATCH',
-      }).then(() => setUnreadCount(0)).catch(console.error);
+      })
+        .then(() => setUnreadCount(0))
+        .catch(console.error);
     }
   }, [suggestionId, unreadCount]);
 
   // ==========================================
-  // Send Message
+  // ✅ חדש: סינון הודעות לפי הצד הנבחר
+  // ==========================================
+
+  const selectedPartyId =
+    selectedParty === 'first'
+      ? parties.firstParty?.id
+      : parties.secondParty?.id;
+
+  const filteredMessages = messages.filter((msg) => {
+    // הודעות מערכת - מראים תמיד
+    if (msg.senderType === 'system') return true;
+
+    // הודעות שהמועמד שלח - מראים רק אם הוא הצד הנבחר
+    if (msg.senderType === 'user') {
+      return msg.senderId === selectedPartyId;
+    }
+
+    // הודעות שהשדכן שלח - מראים רק אם מיועדות לצד הנבחר
+    if (msg.senderType === 'matchmaker') {
+      // הודעות ישנות בלי targetUserId - מראים לכולם (תאימות לאחור)
+      if (!msg.targetUserId) return true;
+      return msg.targetUserId === selectedPartyId;
+    }
+
+    return true;
+  });
+
+  // ספירת הודעות לא נקראות לכל צד
+  const firstPartyUnread = messages.filter(
+    (m) =>
+      m.senderType === 'user' &&
+      m.senderId === parties.firstParty?.id &&
+      !m.isRead
+  ).length;
+
+  const secondPartyUnread = messages.filter(
+    (m) =>
+      m.senderType === 'user' &&
+      m.senderId === parties.secondParty?.id &&
+      !m.isRead
+  ).length;
+
+  // ==========================================
+  // ✅ עדכון: שליחה עם targetUserId
   // ==========================================
 
   const handleSend = async () => {
-    if (!newMessage.trim() || isSending) return;
-
+    if (!newMessage.trim() || isSending || !selectedPartyId) return;
     setIsSending(true);
     try {
-      const response = await fetch(`/api/matchmaker/suggestions/${suggestionId}/chat`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ content: newMessage.trim() }),
-      });
-
+      const response = await fetch(
+        `/api/matchmaker/suggestions/${suggestionId}/chat`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            content: newMessage.trim(),
+            targetUserId: selectedPartyId, // ✅ חדש!
+          }),
+        }
+      );
       if (!response.ok) throw new Error('Failed to send');
       const data = await response.json();
-
       if (data.success && data.message) {
         setMessages((prev) => [...prev, data.message]);
         setNewMessage('');
@@ -134,7 +203,7 @@ export default function SuggestionChatTab({
       }
     } catch (error) {
       console.error('Send error:', error);
-      toast.error(isHe ? 'שגיאה בשליחת ההודעה' : 'Failed to send message');
+      toast.error(t.sendError);
     } finally {
       setIsSending(false);
     }
@@ -152,10 +221,11 @@ export default function SuggestionChatTab({
   // ==========================================
 
   const getSenderLabel = (msg: ChatMessage) => {
-    if (msg.senderType === 'matchmaker') return isHe ? 'את/ה (שדכן)' : 'You (Matchmaker)';
-    if (msg.senderType === 'system') return isHe ? 'מערכת' : 'System';
+    if (msg.senderType === 'matchmaker') return t.senderLabels.matchmaker;
+    if (msg.senderType === 'system') return t.senderLabels.system;
     if (msg.isFirstParty && parties.firstParty) return parties.firstParty.name;
-    if (msg.isSecondParty && parties.secondParty) return parties.secondParty.name;
+    if (msg.isSecondParty && parties.secondParty)
+      return parties.secondParty.name;
     return msg.senderName;
   };
 
@@ -164,12 +234,6 @@ export default function SuggestionChatTab({
     if (msg.senderType === 'system') return 'from-gray-400 to-slate-500';
     if (msg.isFirstParty) return 'from-blue-500 to-cyan-500';
     return 'from-emerald-500 to-green-500';
-  };
-
-  const getPartyLabel = (msg: ChatMessage) => {
-    if (msg.isFirstParty) return isHe ? 'צד א\'' : 'Party A';
-    if (msg.isSecondParty) return isHe ? 'צד ב\'' : 'Party B';
-    return null;
   };
 
   // ==========================================
@@ -186,51 +250,81 @@ export default function SuggestionChatTab({
 
   return (
     <div className="flex flex-col h-[500px]">
-      {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b bg-gray-50/50">
-        <div className="flex items-center gap-2">
-          <MessageCircle className="w-5 h-5 text-purple-500" />
-          <span className="font-medium text-gray-700">
-            {isHe ? 'הודעות' : 'Messages'}
-          </span>
-          {messages.length > 0 && (
-            <Badge variant="secondary" className="text-xs">
-              {messages.length}
-            </Badge>
-          )}
+      {/* ✅ חדש: Header עם טאבים לבחירת צד */}
+      <div className="flex flex-col border-b bg-gray-50/50">
+        <div className="flex items-center justify-between px-4 py-2">
+          <div className="flex items-center gap-2">
+            <MessageCircle className="w-5 h-5 text-purple-500" />
+            <span className="font-medium text-gray-700">{t.header}</span>
+          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={fetchMessages}
+            className="text-gray-500 hover:text-purple-600"
+          >
+            <RefreshCw className="w-4 h-4" />
+          </Button>
         </div>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={fetchMessages}
-          className="text-gray-500 hover:text-purple-600"
-        >
-          <RefreshCw className="w-4 h-4" />
-        </Button>
+
+        {/* ✅ טאבים לבחירת צד */}
+        {parties.firstParty && parties.secondParty && (
+          <div className="flex border-t">
+            <button
+              onClick={() => setSelectedParty('first')}
+              className={cn(
+                'flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-medium transition-all border-b-2',
+                selectedParty === 'first'
+                  ? 'border-blue-500 text-blue-700 bg-blue-50/50'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+              )}
+            >
+              <span className="w-2 h-2 rounded-full bg-blue-400" />
+              {parties.firstParty.name}
+              {firstPartyUnread > 0 && (
+                <Badge className="bg-red-500 text-white text-[10px] px-1.5 py-0 min-w-[18px] h-[18px] border-0">
+                  {firstPartyUnread}
+                </Badge>
+              )}
+            </button>
+            <button
+              onClick={() => setSelectedParty('second')}
+              className={cn(
+                'flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-medium transition-all border-b-2',
+                selectedParty === 'second'
+                  ? 'border-emerald-500 text-emerald-700 bg-emerald-50/50'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+              )}
+            >
+              <span className="w-2 h-2 rounded-full bg-emerald-400" />
+              {parties.secondParty.name}
+              {secondPartyUnread > 0 && (
+                <Badge className="bg-red-500 text-white text-[10px] px-1.5 py-0 min-w-[18px] h-[18px] border-0">
+                  {secondPartyUnread}
+                </Badge>
+              )}
+            </button>
+          </div>
+        )}
       </div>
 
-      {/* Messages Area */}
+      {/* Messages area */}
       <ScrollArea className="flex-1 px-4" ref={scrollRef}>
-        {messages.length === 0 ? (
+        {filteredMessages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full py-12 text-center">
             <div className="w-16 h-16 rounded-full bg-gradient-to-br from-purple-100 to-pink-100 flex items-center justify-center mb-4">
               <MessageCircle className="w-8 h-8 text-purple-400" />
             </div>
-            <h3 className="font-medium text-gray-700 mb-1">
-              {isHe ? 'אין הודעות עדיין' : 'No messages yet'}
-            </h3>
+            <h3 className="font-medium text-gray-700 mb-1">{t.noMessages}</h3>
             <p className="text-sm text-gray-500 max-w-xs">
-              {isHe
-                ? 'שלח/י הודעה למועמדים בהקשר של ההצעה הזו'
-                : 'Send a message to the candidates about this suggestion'}
+              {t.noMessagesDescription}
             </p>
           </div>
         ) : (
           <div className="space-y-3 py-3">
-            {messages.map((msg) => {
+            {filteredMessages.map((msg) => {
               const isMatchmaker = msg.senderType === 'matchmaker';
               const isSystem = msg.senderType === 'system';
-              const partyLabel = getPartyLabel(msg);
 
               if (isSystem) {
                 return (
@@ -247,10 +341,15 @@ export default function SuggestionChatTab({
                   key={msg.id}
                   className={cn(
                     'flex gap-2',
-                    isMatchmaker ? (isHe ? 'flex-row-reverse' : 'flex-row') : (isHe ? 'flex-row' : 'flex-row-reverse')
+                    isMatchmaker
+                      ? isHe
+                        ? 'flex-row-reverse'
+                        : 'flex-row'
+                      : isHe
+                        ? 'flex-row'
+                        : 'flex-row-reverse'
                   )}
                 >
-                  {/* Avatar */}
                   <Avatar className="w-8 h-8 flex-shrink-0 shadow-sm">
                     <AvatarFallback
                       className={cn(
@@ -266,7 +365,6 @@ export default function SuggestionChatTab({
                     </AvatarFallback>
                   </Avatar>
 
-                  {/* Bubble */}
                   <div
                     className={cn(
                       'max-w-[75%] rounded-2xl px-4 py-2.5 shadow-sm',
@@ -275,51 +373,41 @@ export default function SuggestionChatTab({
                         : 'bg-white border border-gray-200 text-gray-800'
                     )}
                   >
-                    {/* Sender info */}
-                    <div className={cn(
-                      'flex items-center gap-1.5 mb-1',
-                      isHe ? 'flex-row-reverse' : 'flex-row'
-                    )}>
-                      <span className={cn(
-                        'text-xs font-medium',
-                        isMatchmaker ? 'text-purple-100' : 'text-gray-500'
-                      )}>
+                    <div
+                      className={cn(
+                        'flex items-center gap-1.5 mb-1',
+                        isHe ? 'flex-row-reverse' : 'flex-row'
+                      )}
+                    >
+                      <span
+                        className={cn(
+                          'text-xs font-medium',
+                          isMatchmaker ? 'text-purple-100' : 'text-gray-500'
+                        )}
+                      >
                         {getSenderLabel(msg)}
                       </span>
-                      {partyLabel && (
-                        <Badge
-                          variant="outline"
-                          className={cn(
-                            'text-[10px] px-1.5 py-0',
-                            isMatchmaker
-                              ? 'border-purple-300 text-purple-100'
-                              : msg.isFirstParty
-                              ? 'border-blue-300 text-blue-600'
-                              : 'border-emerald-300 text-emerald-600'
-                          )}
-                        >
-                          {partyLabel}
-                        </Badge>
-                      )}
                     </div>
-
-                    {/* Content */}
-                    <p className={cn(
-                      'text-sm leading-relaxed whitespace-pre-wrap',
-                      isHe ? 'text-right' : 'text-left'
-                    )}>
+                    <p
+                      className={cn(
+                        'text-sm leading-relaxed whitespace-pre-wrap',
+                        isHe ? 'text-right' : 'text-left'
+                      )}
+                    >
                       {msg.content}
                     </p>
-
-                    {/* Time */}
-                    <div className={cn(
-                      'flex items-center gap-1 mt-1',
-                      isHe ? 'flex-row-reverse' : 'flex-row'
-                    )}>
-                      <span className={cn(
-                        'text-[10px]',
-                        isMatchmaker ? 'text-purple-200' : 'text-gray-400'
-                      )}>
+                    <div
+                      className={cn(
+                        'flex items-center gap-1 mt-1',
+                        isHe ? 'flex-row-reverse' : 'flex-row'
+                      )}
+                    >
+                      <span
+                        className={cn(
+                          'text-[10px]',
+                          isMatchmaker ? 'text-purple-200' : 'text-gray-400'
+                        )}
+                      >
                         {format(new Date(msg.createdAt), 'HH:mm', {
                           locale: isHe ? he : enUS,
                         })}
@@ -336,15 +424,40 @@ export default function SuggestionChatTab({
         )}
       </ScrollArea>
 
-      {/* Input Area */}
+      {/* Input area */}
       <div className="border-t bg-white p-3">
+        {/* ✅ חדש: מציג למי ההודעה נשלחת */}
+        {selectedPartyId && (
+          <div
+            className={cn(
+              'flex items-center gap-1.5 mb-2 text-xs',
+              isHe ? 'flex-row-reverse' : 'flex-row'
+            )}
+          >
+            <span
+              className={cn(
+                'w-2 h-2 rounded-full',
+                selectedParty === 'first' ? 'bg-blue-400' : 'bg-emerald-400'
+              )}
+            />
+            <span className="text-gray-500">
+              {isHe ? 'שולח ל:' : 'Sending to:'}{' '}
+              <span className="font-medium text-gray-700">
+                {selectedParty === 'first'
+                  ? parties.firstParty?.name
+                  : parties.secondParty?.name}
+              </span>
+            </span>
+          </div>
+        )}
+
         <div className="flex items-end gap-2">
           <Textarea
             ref={textareaRef}
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder={isHe ? 'כתוב/י הודעה...' : 'Type a message...'}
+            placeholder={t.placeholder}
             className={cn(
               'flex-1 min-h-[44px] max-h-[120px] resize-none rounded-xl border-gray-200 focus:border-purple-400',
               isHe ? 'text-right' : 'text-left'
@@ -353,7 +466,7 @@ export default function SuggestionChatTab({
           />
           <Button
             onClick={handleSend}
-            disabled={!newMessage.trim() || isSending}
+            disabled={!newMessage.trim() || isSending || !selectedPartyId}
             size="icon"
             className={cn(
               'rounded-xl h-11 w-11 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 shadow-lg',
@@ -367,23 +480,6 @@ export default function SuggestionChatTab({
             )}
           </Button>
         </div>
-
-        {/* Party labels hint */}
-        {parties.firstParty && parties.secondParty && (
-          <div className={cn(
-            'flex items-center gap-3 mt-2 text-xs text-gray-400',
-            isHe ? 'flex-row-reverse' : 'flex-row'
-          )}>
-            <span className="flex items-center gap-1">
-              <span className="w-2 h-2 rounded-full bg-blue-400" />
-              {isHe ? 'צד א\'' : 'Party A'}: {parties.firstParty.name}
-            </span>
-            <span className="flex items-center gap-1">
-              <span className="w-2 h-2 rounded-full bg-emerald-400" />
-              {isHe ? 'צד ב\'' : 'Party B'}: {parties.secondParty.name}
-            </span>
-          </div>
-        )}
       </div>
     </div>
   );

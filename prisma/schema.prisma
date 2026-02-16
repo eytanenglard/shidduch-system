@@ -1820,6 +1820,7 @@ model SuggestionMessage {
   suggestionId String
   senderId     String
   senderType   MessageSenderType
+  targetUserId String?           // למי ההודעה מיועדת (null = הודעת מערכת לכולם)
   content      String            @db.Text
   isRead       Boolean           @default(false)
   createdAt    DateTime          @default(now())
@@ -1830,4 +1831,5 @@ model SuggestionMessage {
   @@index([suggestionId, createdAt])
   @@index([suggestionId, isRead])
   @@index([senderId])
+  @@index([targetUserId])
 }

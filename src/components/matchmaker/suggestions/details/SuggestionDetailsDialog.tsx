@@ -2,11 +2,11 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import InquiryThreadView from '@/components/suggestions/inquiries/InquiryThreadView';
 import { useNotifications } from '@/app/[locale]/contexts/NotificationContext';
 import SuggestionChatTab from './SuggestionChatTab';
 
-import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
@@ -297,13 +297,12 @@ const getEnhancedStatusInfo = (status: MatchSuggestionStatus): StatusInfo => {
   );
 };
 
-// Tab configuration with icons - chat tab added
+// Tab configuration with icons
 const TAB_ICONS: Record<string, LucideIcon> = {
   overview: Eye,
   party1: User,
   party2: User,
   timeline: Calendar,
-  communication: MessageCircle,
   chat: MessageCircle,
   actions: Settings,
 };
@@ -389,37 +388,34 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
   const statusInfo = getEnhancedStatusInfo(suggestion.status);
   const statusLabel = dict.statusLabels[suggestion.status] || suggestion.status;
 
-  // Build tabs list: original tabs + chat tab
-  const tabEntries: [string, string][] = [
-    ...Object.entries(dict.tabs),
-    ['chat', locale === 'he' ? 'צ\'אט' : 'Chat'],
-  ];
+  // Build tabs list from dictionary (chat is now included in dict.tabs)
+  const tabEntries: [string, string][] = Object.entries(dict.tabs);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-    <DialogContent
-  className={cn(
-    'p-0 shadow-2xl border-0 bg-white overflow-hidden z-[50] flex flex-col transition-all duration-300 ease-in-out',
-    isFullscreen
-      ? '!w-screen !h-screen !max-w-none !max-h-none !rounded-none !fixed !inset-0 !m-0'
-      : 'md:max-w-7xl md:w-[95vw] md:h-[95vh] md:rounded-3xl'
-  )}
-  dir={locale === 'he' ? 'rtl' : 'ltr'}
-  onOpenAutoFocus={(e) => e.preventDefault()}
->
-  {/* כותרת נגישות - מוסתרת ויזואלית אך נגישה לקוראי מסך */}
-  <DialogTitle className="sr-only">
-    {dict.header.title.replace(
-      '{{id}}',
-      suggestion?.id?.toString().split('-')[0] || ''
-    )}
-  </DialogTitle>
+      <DialogContent
+        className={cn(
+          'p-0 shadow-2xl border-0 bg-white overflow-hidden z-[50] flex flex-col transition-all duration-300 ease-in-out',
+          isFullscreen
+            ? '!w-screen !h-screen !max-w-none !max-h-none !rounded-none !fixed !inset-0 !m-0'
+            : 'md:max-w-7xl md:w-[95vw] md:h-[95vh] md:rounded-3xl'
+        )}
+        dir={locale === 'he' ? 'rtl' : 'ltr'}
+        onOpenAutoFocus={(e) => e.preventDefault()}
+      >
+        {/* כותרת נגישות - מוסתרת ויזואלית אך נגישה לקוראי מסך */}
+        <DialogTitle className="sr-only">
+          {dict.header.title.replace(
+            '{{id}}',
+            suggestion?.id?.toString().split('-')[0] || ''
+          )}
+        </DialogTitle>
 
-  <Tabs
-    value={activeTab}
-    onValueChange={setActiveTab}
-    className="flex-1 flex flex-col overflow-hidden"
-  >
+        <Tabs
+          value={activeTab}
+          onValueChange={setActiveTab}
+          className="flex-1 flex flex-col overflow-hidden"
+        >
           {/* Header and Tabs Component */}
           <div
             className={cn(
@@ -604,31 +600,13 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
                 </div>
               </div>
             </TabsContent>
-            <TabsContent value="communication" className="m-0 h-full">
-              <div className="p-6">
-                <div className="bg-white rounded-2xl shadow-xl border-0 p-6">
-                  <h3 className="text-2xl font-bold mb-6 flex items-center gap-3">
-                    <div className="p-3 rounded-full bg-gradient-to-r from-pink-500 to-rose-500 text-white shadow-lg">
-                      <MessageCircle className="w-6 h-6" />
-                    </div>
-                    {dict.communication.title}
-                  </h3>
-                  <InquiryThreadView
-                    suggestionId={suggestion.id}
-                    userId={userId}
-                    showComposer={true}
-                    dict={suggestionsDict.inquiryThread}
-                    locale= {locale}
-                  />
-                </div>
-              </div>
-            </TabsContent>
 
-            {/* ===== NEW: Chat Tab ===== */}
+            {/* Chat Tab */}
             <TabsContent value="chat" className="m-0 h-full">
               <SuggestionChatTab
                 suggestionId={suggestion.id}
                 locale={locale}
+                dict={dict.chatTab}
               />
             </TabsContent>
 

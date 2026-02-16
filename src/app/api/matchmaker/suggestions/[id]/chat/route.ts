@@ -1,15 +1,9 @@
-// app/api/matchmaker/suggestions/[id]/chat/route.ts
-// ==========================================
-// NeshamaTech - Matchmaker Chat API (Web Dashboard)
-// GET: Fetch all messages for a suggestion (matchmaker sees all)
-// POST: Send a message from matchmaker to a party
-// ==========================================
-
-import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
-import prisma from "@/lib/prisma";
-import { UserRole } from "@prisma/client";
+import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
+import prisma from '@/lib/prisma';
+import { UserRole } from '@prisma/client';
+import { notifyChatMessage } from '@/lib/pushNotifications';
 
 export async function GET(
   req: NextRequest,
@@ -18,7 +12,7 @@ export async function GET(
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     if (
@@ -26,14 +20,13 @@ export async function GET(
       session.user.role !== UserRole.ADMIN
     ) {
       return NextResponse.json(
-        { error: "Insufficient permissions" },
+        { error: 'Insufficient permissions' },
         { status: 403 }
       );
     }
 
     const { id: suggestionId } = await context.params;
 
-    // Verify suggestion exists and belongs to this matchmaker
     const suggestion = await prisma.matchSuggestion.findUnique({
       where: { id: suggestionId },
       select: {
@@ -48,7 +41,7 @@ export async function GET(
 
     if (!suggestion) {
       return NextResponse.json(
-        { error: "Suggestion not found" },
+        { error: 'Suggestion not found' },
         { status: 404 }
       );
     }
@@ -58,15 +51,14 @@ export async function GET(
       session.user.role !== UserRole.ADMIN
     ) {
       return NextResponse.json(
-        { error: "Not your suggestion" },
+        { error: 'Not your suggestion' },
         { status: 403 }
       );
     }
 
-    // Matchmaker sees ALL messages for this suggestion
     const messages = await prisma.suggestionMessage.findMany({
       where: { suggestionId },
-      orderBy: { createdAt: "asc" },
+      orderBy: { createdAt: 'asc' },
       include: {
         sender: {
           select: { id: true, firstName: true, lastName: true, role: true },
@@ -74,11 +66,10 @@ export async function GET(
       },
     });
 
-    // Count unread (messages from users that matchmaker hasn't read)
     const unreadCount = await prisma.suggestionMessage.count({
       where: {
         suggestionId,
-        senderType: "USER",
+        senderType: 'USER',
         isRead: false,
       },
     });
@@ -91,9 +82,9 @@ export async function GET(
         senderId: m.senderId,
         senderType: m.senderType.toLowerCase(),
         senderName: `${m.sender.firstName} ${m.sender.lastName}`,
+        targetUserId: m.targetUserId, // ✅ חדש
         isRead: m.isRead,
         createdAt: m.createdAt.toISOString(),
-        // Help matchmaker identify which party sent this
         isFirstParty: m.senderId === suggestion.firstPartyId,
         isSecondParty: m.senderId === suggestion.secondPartyId,
       })),
@@ -110,9 +101,9 @@ export async function GET(
       },
     });
   } catch (error) {
-    console.error("[Matchmaker Chat GET] Error:", error);
+    console.error('[Matchmaker Chat GET] Error:', error);
     return NextResponse.json(
-      { error: "Failed to fetch messages" },
+      { error: 'Failed to fetch messages' },
       { status: 500 }
     );
   }
@@ -125,7 +116,7 @@ export async function POST(
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     if (
@@ -133,30 +124,42 @@ export async function POST(
       session.user.role !== UserRole.ADMIN
     ) {
       return NextResponse.json(
-        { error: "Insufficient permissions" },
+        { error: 'Insufficient permissions' },
         { status: 403 }
       );
     }
 
     const { id: suggestionId } = await context.params;
-    const { content } = await req.json();
+    const { content, targetUserId } = await req.json(); // ✅ חדש: targetUserId
 
-    if (!content || typeof content !== "string" || !content.trim()) {
+    if (!content || typeof content !== 'string' || !content.trim()) {
       return NextResponse.json(
-        { error: "Message content is required" },
+        { error: 'Message content is required' },
         { status: 400 }
       );
     }
 
-    // Verify suggestion
+    // ✅ חדש: חובה לציין למי ההודעה
+    if (!targetUserId) {
+      return NextResponse.json(
+        { error: 'targetUserId is required' },
+        { status: 400 }
+      );
+    }
+
     const suggestion = await prisma.matchSuggestion.findUnique({
       where: { id: suggestionId },
-      select: { id: true, matchmakerId: true },
+      select: {
+        id: true,
+        matchmakerId: true,
+        firstPartyId: true,
+        secondPartyId: true,
+      },
     });
 
     if (!suggestion) {
       return NextResponse.json(
-        { error: "Suggestion not found" },
+        { error: 'Suggestion not found' },
         { status: 404 }
       );
     }
@@ -166,17 +169,28 @@ export async function POST(
       session.user.role !== UserRole.ADMIN
     ) {
       return NextResponse.json(
-        { error: "Not your suggestion" },
+        { error: 'Not your suggestion' },
         { status: 403 }
       );
     }
 
-    // Create the message
+    // ✅ חדש: וידוא שה-targetUserId הוא אחד הצדדים
+    if (
+      targetUserId !== suggestion.firstPartyId &&
+      targetUserId !== suggestion.secondPartyId
+    ) {
+      return NextResponse.json(
+        { error: 'targetUserId must be one of the suggestion parties' },
+        { status: 400 }
+      );
+    }
+
     const message = await prisma.suggestionMessage.create({
       data: {
         suggestionId,
         senderId: session.user.id,
-        senderType: "MATCHMAKER",
+        senderType: 'MATCHMAKER',
+        targetUserId, // ✅ חדש
         content: content.trim(),
       },
       include: {
@@ -186,11 +200,20 @@ export async function POST(
       },
     });
 
-    // Update suggestion lastActivity
     await prisma.matchSuggestion.update({
       where: { id: suggestionId },
       data: { lastActivity: new Date() },
     });
+
+    // ✅ תיקון: Push notification רק לצד הנכון
+    const matchmakerName = `${message.sender.firstName} ${message.sender.lastName}`.trim();
+
+    notifyChatMessage({
+      recipientUserIds: [targetUserId], // ✅ רק הנמען!
+      senderName: matchmakerName || 'השדכן/ית',
+      messagePreview: content,
+      suggestionId,
+    }).catch((err) => console.error('[chat] Push notification error:', err));
 
     return NextResponse.json({
       success: true,
@@ -199,21 +222,21 @@ export async function POST(
         content: message.content,
         senderId: message.senderId,
         senderType: message.senderType.toLowerCase(),
-        senderName: `${message.sender.firstName} ${message.sender.lastName}`,
+        senderName: matchmakerName,
+        targetUserId: message.targetUserId, // ✅ חדש
         isRead: message.isRead,
         createdAt: message.createdAt.toISOString(),
       },
     });
   } catch (error) {
-    console.error("[Matchmaker Chat POST] Error:", error);
+    console.error('[Matchmaker Chat POST] Error:', error);
     return NextResponse.json(
-      { error: "Failed to send message" },
+      { error: 'Failed to send message' },
       { status: 500 }
     );
   }
 }
 
-// PATCH - Mark messages as read (matchmaker reads user messages)
 export async function PATCH(
   req: NextRequest,
   context: { params: Promise<{ id: string }> }
@@ -221,16 +244,15 @@ export async function PATCH(
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const { id: suggestionId } = await context.params;
 
-    // Mark user messages as read
     const result = await prisma.suggestionMessage.updateMany({
       where: {
         suggestionId,
-        senderType: "USER",
+        senderType: 'USER',
         isRead: false,
       },
       data: { isRead: true },
@@ -241,9 +263,9 @@ export async function PATCH(
       markedCount: result.count,
     });
   } catch (error) {
-    console.error("[Matchmaker Chat PATCH] Error:", error);
+    console.error('[Matchmaker Chat PATCH] Error:', error);
     return NextResponse.json(
-      { error: "Failed to mark as read" },
+      { error: 'Failed to mark as read' },
       { status: 500 }
     );
   }

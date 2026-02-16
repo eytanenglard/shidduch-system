@@ -48,50 +48,58 @@ export function NotificationProvider({
   // --- FIX: Provide 'undefined' as the initial value for useRef ---
   const pollingInterval = useRef<NodeJS.Timeout | undefined>(undefined);
 
-  const fetchNotifications = useCallback(async () => {
-    if (status !== "authenticated" || !session?.user?.id) {
-      setNotifications({ availabilityRequests: 0, messages: 0, total: 0 });
-      setIsLoadingNotifications(false);
-      return;
-    }
+const fetchNotifications = useCallback(async () => {
+  if (status !== "authenticated" || !session?.user?.id) {
+    setNotifications({ availabilityRequests: 0, messages: 0, total: 0 });
+    setIsLoadingNotifications(false);
+    return;
+  }
 
-    setIsLoadingNotifications(true);
-    try {
-      // --- START OF CHANGE: Call the new API endpoint ---
-      const response = await fetch("/api/messages/feed");
-      if (!response.ok) {
-        throw new Error(`Server responded with ${response.status}`);
-      }
-      const data = await response.json();
-      
-      // --- START OF CHANGE: Calculate counts from the new feed ---
+  setIsLoadingNotifications(true);
+  try {
+    // ✅ שינוי: שולפים גם הודעות רגילות וגם הודעות צ'אט במקביל
+    const [feedResponse, chatResponse] = await Promise.all([
+      fetch("/api/messages/feed"),
+      fetch("/api/matchmaker/chat/unread"),  // ← חדש! endpoint לצ'אט
+    ]);
+
+    // חישוב הודעות רגילות (כמו קודם)
+    let actionRequiredCount = 0;
+    if (feedResponse.ok) {
+      const data = await feedResponse.json();
       if (data.success && Array.isArray(data.feed)) {
         const feed: FeedItem[] = data.feed;
-        const actionRequiredCount = feed.filter(item => item.type === 'ACTION_REQUIRED').length;
-        
-        // כאן ניתן בעתיד להוסיף ספירה של הודעות שלא נקראו
-        const unreadMessagesCount = 0; 
-        
-        const newNotifications: NotificationCount = {
-          // availabilityRequests נשאר כאן למקרה שנרצה להשתמש בו בעתיד, כרגע הוא משולב ב-total
-          availabilityRequests: actionRequiredCount, 
-          messages: unreadMessagesCount,
-          total: actionRequiredCount + unreadMessagesCount,
-        };
-        setNotifications(newNotifications);
-      } else {
-        // אם ה-API לא החזיר מבנה תקין
-        setNotifications({ availabilityRequests: 0, messages: 0, total: 0 });
+        actionRequiredCount = feed.filter(
+          (item) => item.type === "ACTION_REQUIRED"
+        ).length;
       }
-      // --- END OF CHANGE ---
-      
-    } catch (error) {
-      console.error("[NotificationContext] Error fetching notifications:", error);
-      setNotifications({ availabilityRequests: 0, messages: 0, total: 0 });
-    } finally {
-      setIsLoadingNotifications(false);
     }
-  }, [status, session?.user?.id]);
+
+    // ✅ חדש: חישוב הודעות צ'אט שלא נקראו
+    let chatUnreadCount = 0;
+    if (chatResponse.ok) {
+      const chatData = await chatResponse.json();
+      if (chatData.success) {
+        chatUnreadCount = chatData.totalUnread || 0;
+      }
+    }
+
+    const newNotifications: NotificationCount = {
+      availabilityRequests: actionRequiredCount,
+      messages: chatUnreadCount,  // ← עכשיו כולל הודעות צ'אט
+      total: actionRequiredCount + chatUnreadCount,  // ← סה"כ כולל הכל
+    };
+    setNotifications(newNotifications);
+  } catch (error) {
+    console.error(
+      "[NotificationContext] Error fetching notifications:",
+      error
+    );
+    setNotifications({ availabilityRequests: 0, messages: 0, total: 0 });
+  } finally {
+    setIsLoadingNotifications(false);
+  }
+}, [status, session?.user?.id]);
 
   useEffect(() => {
     // The rest of the useEffect remains the same, it will now call the updated fetchNotifications

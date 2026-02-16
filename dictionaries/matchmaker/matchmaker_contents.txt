@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\dictionaries\matchmaker
-# Generated on: 2026-01-18 08:24:22
+# Generated on: 2026-02-16 16:38:11
 # Filter: Only content of code files (.bat, .c, .cfg, .conf, .cpp, .cs, .css, .go, .h, .html, .ini, .java, .js, .json, .jsx, .kt, .less, .md, .php, .py, .rb, .rs, .scss, .sh, .sql, .swift, .ts, .tsx, .txt, .xml, .yaml, .yml) is included.
 ################################################################################
 
@@ -150,6 +150,23 @@ Content:
     },
     "editProfile": {
       "deleteConfirmationPhrase": "I confirm deletion",
+      "statusSection": {
+  "title": "Availability Status",
+  "description": "Manage the candidate's current availability in the system",
+  "statusLabel": "Current Status",
+  "noteLabel": "Status Note (Optional)",
+  "notePlaceholder": "E.g., Taking a break due to studies...",
+  "saveButton": "Save Status",
+  "savingButton": "Saving...",
+  "statuses": {
+    "AVAILABLE": "Available",
+    "DATING": "Dating",
+    "UNAVAILABLE": "Unavailable",
+    "PAUSED": "Paused",
+    "ENGAGED": "Engaged",
+    "MARRIED": "Married"
+  }
+},
       "toasts": {
         "loadError": "Error loading candidate data",
         "updateSuccess": "Candidate profile updated successfully",
@@ -303,6 +320,15 @@ Content:
       "description": "Enter the details of the candidate you want to add manually to the system.",
       "close": "Close",
       "fields": {
+        "maritalStatus": {
+  "label": "Marital Status",
+  "placeholder": "Select marital status",
+  "options": {
+    "single": "Single",
+    "divorced": "Divorced",
+    "widowed": "Widowed"
+  }
+},
         "firstName": {
           "label": "First Name",
           "placeholder": "e.g., Israel"
@@ -340,6 +366,28 @@ Content:
           "agePlaceholder": "e.g., 25",
           "ageDescription": "An approximate birth date (Jan 1st of the birth year) will be entered based on the age provided."
         },
+                "religiousLevel": {
+          "label": "Religious Level",
+          "placeholder": "Select religious level",
+          "options": {
+            "dati_leumi_standard": "Religious Zionist (Standard)",
+            "dati_leumi_liberal": "Religious Zionist (Liberal)",
+            "dati_leumi_torani": "Religious Zionist (Torani)",
+            "masorti_strong": "Traditional (Strong connection)",
+            "masorti_light": "Traditional (Light connection)",
+            "secular_traditional_connection": "Secular with traditional connection",
+            "secular": "Secular",
+            "spiritual_not_religious": "Spiritual (not necessarily religious)",
+            "charedi_modern": "Modern Ultra-Orthodox (Charedi)",
+            "charedi_litvak": "Litvak Ultra-Orthodox",
+            "charedi_sephardic": "Sephardic Ultra-Orthodox",
+            "charedi_hasidic": "Hasidic Ultra-Orthodox",
+            "chabad": "Chabad",
+            "breslov": "Breslov",
+            "other": "Other"
+          }
+        }
+,
         "notes": {
           "label": "Free Text about the Candidate",
           "placeholder": "Describe the candidate, background, traits, what they are looking for, etc..."
@@ -352,6 +400,12 @@ Content:
           "fileTooLargeError": "File {{fileName}} is too large (max {{maxSize}}MB).",
           "previewAlt": "Preview {{index}}",
           "removeLabel": "Remove image"
+         
+        },
+          "referredBy": {
+          "label": "Referred by",
+          "placeholder": "Contact name and details",
+          "description": "Who to contact regarding this candidate"
         }
       },
       "buttons": {
@@ -1499,7 +1553,11 @@ Content:
     "cannotSelectError": {
       "title": "This candidate cannot be selected",
       "description": "{{name}} is already in an active suggestion with {{withName}}."
-    }
+    },
+    "pendingSuggestionWarning": {
+    "title": "Attention - Existing Suggestion",
+    "description": "Candidate {{name}} already has an active suggestion with {{withName}}. You can still proceed."
+}
   }
 }
 ,
@@ -1582,6 +1640,14 @@ Content:
         "HIGH": { "title": "High", "description": "Increased priority" },
         "MEDIUM": { "title": "Regular", "description": "Standard priority" },
         "LOW": { "title": "Low", "description": "No urgency" }
+      }
+    },
+     "language": {
+      "label": "Email language for {{name}}",
+      "description": "In which language should we send the suggestion?",
+      "options": {
+        "he": "Hebrew",
+        "en": "English"
       }
     },
     "rationale": {
@@ -1896,7 +1962,13 @@ Content:
       "of": "of",
       "page": "Page",
       "perPage": "per page"
-    }
+    },
+    "tooltips": {
+        "whatsapp": "Send WhatsApp",
+        "edit": "Edit Profile",
+        "aiAnalysis": "AI Profile Analysis",
+        "sendReport": "Send Profile Report"
+      }
   }
 
 
@@ -1944,6 +2016,23 @@ Content:
     },
         "editProfile": {
       "deleteConfirmationPhrase": "אני מאשר מחיקה",
+      "statusSection": {
+  "title": "סטטוס זמינות",
+  "description": "ניהול הסטטוס הנוכחי של המועמד/ת במערכת",
+  "statusLabel": "סטטוס נוכחי",
+  "noteLabel": "הערה לסטטוס (אופציונלי)",
+  "notePlaceholder": "לדוגמה: יצא להפסקה עקב עומס בלימודים...",
+  "saveButton": "שמור סטטוס",
+  "savingButton": "שומר...",
+  "statuses": {
+    "AVAILABLE": "פנוי/ה",
+    "DATING": "בתהליך היכרות",
+    "UNAVAILABLE": "לא פנוי/ה",
+    "PAUSED": "בהפסקה",
+    "ENGAGED": "מאורס/ת",
+    "MARRIED": "נשוי/אה"
+  }
+},
       "toasts": {
         "loadError": "שגיאה בטעינת נתוני המועמד",
         "updateSuccess": "פרופיל המועמד עודכן בהצלחה",
@@ -2096,10 +2185,20 @@ Content:
       "description": "הזן את פרטי המועמד שברצונך להוסיף למערכת באופן ידני.",
       "close": "סגור",
       "fields": {
+        "maritalStatus": {
+  "label": "מצב משפחתי",
+  "placeholder": "בחר מצב משפחתי",
+  "options": {
+    "single": "רווק/ה",
+    "divorced": "גרוש/ה",
+    "widowed": "אלמן/ה"
+  }
+},
         "firstName": {
           "label": "שם פרטי",
           "placeholder": "לדוגמה: ישראל"
         },
+
         "lastName": {
           "label": "שם משפחה",
           "placeholder": "לדוגמה: ישראלי"
@@ -2133,6 +2232,32 @@ Content:
           "agePlaceholder": "לדוגמה: 25",
           "ageDescription": "יוזן תאריך לידה משוער (1 בינואר של שנת הלידה) בהתאם לגיל שהוזן."
         },
+                "religiousLevel": {
+          "label": "רמת דתיות",
+          "placeholder": "בחר רמת דתיות",
+          "options": {
+            "dati_leumi_standard": "דתי/ה לאומי/ת (סטנדרטי)",
+            "dati_leumi_liberal": "דתי/ה לאומי/ת ליברלי/ת",
+            "dati_leumi_torani": "דתי/ה לאומי/ת תורני/ת",
+            "masorti_strong": "מסורתי/ת (קרוב/ה לדת)",
+            "masorti_light": "מסורתי/ת (קשר קל למסורת)",
+            "secular_traditional_connection": "חילוני/ת עם זיקה למסורת",
+            "secular": "חילוני/ת",
+            "spiritual_not_religious": "רוחני/ת (לאו דווקא דתי/ה)",
+            "charedi_modern": "חרדי/ת מודרני/ת",
+            "charedi_litvak": "חרדי/ת ליטאי/ת",
+            "charedi_sephardic": "חרדי/ת ספרדי/ת",
+            "charedi_hasidic": "חרדי/ת חסידי/ת",
+            "chabad": "חב״ד",
+            "breslov": "ברסלב",
+            "other": "אחר"
+          }
+        },
+    "phone": {
+      "label": "טלפון",
+      "placeholder": "050-0000000",
+      "description": "מספר טלפון ליצירת קשר"
+    },
         "notes": {
           "label": "טקסט חופשי על המועמד",
           "placeholder": "ספר על המועמד, רקע, תכונות, מה מחפש/ת וכו'..."
@@ -2145,6 +2270,12 @@ Content:
           "fileTooLargeError": "הקובץ {{fileName}} גדול מדי (מקסימום {{maxSize}}MB).",
           "previewAlt": "תצוגה מקדימה {{index}}",
           "removeLabel": "הסר תמונה"
+        
+        },
+           "referredBy": {
+          "label": "דרך מי הגיע/ה?",
+          "placeholder": "שם ופרטי התקשרות של איש הקשר",
+          "description": "עם מי להיות בקשר בנוגע למועמד/ת זו"
         }
       },
       "buttons": {
@@ -2435,6 +2566,7 @@ Content:
     "list": {
       "quickViewTooltip": "תצוגה מהירה",
       "editProfileTooltip": "ערוך פרופיל",
+
       "emptyState": {
         "title": "לא נמצאו מועמדים",
         "description": "נסו להרחיב את החיפוש או להסיר חלק מהמסננים."
@@ -3397,7 +3529,11 @@ Content:
     "cannotSelectError": {
       "title": "לא ניתן לבחור מועמד זה",
       "description": "{{name}} כבר נמצא/ת בהצעה פעילה עם {{withName}}."
-    }
+    },
+     "pendingSuggestionWarning": {
+        "title": "שים לב - הצעה קיימת",
+        "description": "למועמד/ת {{name}} יש כבר הצעה פעילה עם {{withName}}. ניתן להמשיך בכל זאת."
+      }
   }
 }
 ,
@@ -3483,6 +3619,14 @@ Content:
           "LOW": { "title": "נמוכה", "description": "ללא דחיפות" }
         }
       },
+      "language": {
+      "label": "שפת ההודעה ל{{name}}",
+      "description": "באיזו שפה לשלוח את הצעת השידוך?",
+      "options": {
+        "he": "עברית",
+        "en": "אנגלית"
+      }
+    },
       "rationale": {
         "title": "סיבת ההתאמה הכללית",
         "description": "נימוק מפורט המסביר מדוע יש התאמה בין הצדדים",
@@ -3798,7 +3942,14 @@ Content:
       "of": "מתוך",
       "page": "עמוד",
       "perPage": "לעמוד"
-    }
+    },
+          "tooltips": {
+        "whatsapp": "שלח וואטסאפ",
+        "edit": "ערוך פרופיל",
+        "aiAnalysis": "ניתוח פרופיל AI",
+        "sendReport": "שלח דוח פרופיל"
+      }
+
   }
 
 
