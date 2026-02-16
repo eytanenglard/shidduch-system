@@ -1,0 +1,32 @@
+Directory Map for: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\(authenticated)
+=======================================================================================================
+
+(authenticated)/
+└── admin/
+    └── engagement/
+            └── page.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\(authenticated)\admin\engagement\page.tsx)
+└── matches/
+        ├── MatchesClientPage.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\(authenticated)\matches\MatchesClientPage.tsx)
+        └── page.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\(authenticated)\matches\page.tsx)
+└── matchmaker/
+    └── clients/
+            ├── CandidatesManagerClient.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\(authenticated)\matchmaker\clients\CandidatesManagerClient.tsx)
+            └── page.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\(authenticated)\matchmaker\clients\page.tsx)
+    └── messages/
+            ├── MatchmakerMessagesClientPage.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\(authenticated)\matchmaker\messages\MatchmakerMessagesClientPage.tsx)
+            └── page.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\(authenticated)\matchmaker\messages\page.tsx)
+    └── potential-matches/
+            ├── PotentialMatchesClient.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\(authenticated)\matchmaker\potential-matches\PotentialMatchesClient.tsx)
+            └── page.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\(authenticated)\matchmaker\potential-matches\page.tsx)
+    └── suggestions/
+            ├── MatchmakerDashboardPageClient.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\(authenticated)\matchmaker\suggestions\MatchmakerDashboardPageClient.tsx)
+            └── page.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\(authenticated)\matchmaker\suggestions\page.tsx)
+└── messages/
+        ├── MessagesClientPage.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\(authenticated)\messages\MessagesClientPage.tsx)
+        └── page.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\(authenticated)\messages\page.tsx)
+└── profile/
+        ├── ProfilePageClient.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\(authenticated)\profile\ProfilePageClient.tsx)
+        └── page.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\(authenticated)\profile\page.tsx)
+└── settings/
+        ├── SettingsClientPage.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\(authenticated)\settings\SettingsClientPage.tsx)
+        └── page.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\(authenticated)\settings\page.tsx)

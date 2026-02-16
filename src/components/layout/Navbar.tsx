@@ -50,7 +50,7 @@ const Logo = ({ locale }: { locale: string }) => (
         className="object-contain transition-transform duration-300 group-hover:scale-110"
         priority
         sizes="36px"
-        unoptimized // ✅ הוספנו כבקשתך לחדות מירבית
+        unoptimized
       />
     </div>
     <span className="text-xl font-bold bg-gradient-to-r from-teal-600 via-orange-500 to-amber-500 text-transparent bg-clip-text bg-size-200 bg-pos-0 group-hover:bg-pos-100 transition-all duration-700 ease-in-out">
@@ -177,7 +177,6 @@ const MobileHomePageLink = ({
   icon: React.ReactNode;
   onClick: () => void;
 }) => {
-  // ✅ תיקון: שימוש ב-React.MouseEvent בלבד והסרת onTouchEnd למניעת קונפליקטים
   const handleScroll = (e: React.MouseEvent<HTMLAnchorElement>) => {
     e.preventDefault();
     const element = document.querySelector(href);
@@ -193,7 +192,6 @@ const MobileHomePageLink = ({
     <a
       href={href}
       onClick={handleScroll}
-      // removed onTouchEnd - causes issues on mobile
       className="flex items-center px-4 py-3 rounded-xl text-base font-medium transition-colors duration-150 group text-gray-600 hover:bg-gray-50 hover:text-gray-900 gap-4 touch-manipulation active:bg-gray-100"
     >
       <span className="text-gray-400 group-hover:text-gray-600">{icon}</span>
@@ -330,6 +328,9 @@ const Navbar = ({ dict }: NavbarProps) => {
     : 'bg-transparent border-b border-transparent';
   const profileIconSize = 'w-10 h-10';
 
+  // ✅ קביעת נתיב ההודעות לפי תפקיד
+  const messagesHref = isMatchmaker ? '/matchmaker/messages' : '/messages';
+
   return (
     <>
       <nav
@@ -392,8 +393,9 @@ const Navbar = ({ dict }: NavbarProps) => {
                       href="/questionnaire"
                       text={dict.navbar.matchmakingQuestionnaire}
                     />
+                    {/* ✅ שינוי: שימוש ב-messagesHref במקום /messages קבוע */}
                     <NavItem
-                      href="/messages"
+                      href={messagesHref}
                       id="onboarding-target-messages-link"
                       text={dict.navbar.messages}
                       badge={
@@ -455,7 +457,6 @@ const Navbar = ({ dict }: NavbarProps) => {
                   />
                   <NavItem href="/auth/signin" text={dict.navbar.login} />
 
-                  {/* ✅ תיקון קריטי: הסרת ה-<Button> מתוך ה-<Link> והעברת העיצוב ללינק עצמו */}
                   <Link
                     href={`/${locale}/auth/register`}
                     className="group relative overflow-hidden bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 hover:from-teal-600 hover:via-orange-600 hover:to-amber-600 text-white rounded-full shadow-md hover:shadow-lg transition-all duration-300 px-6 py-2.5 inline-flex items-center justify-center"
@@ -675,9 +676,10 @@ const Navbar = ({ dict }: NavbarProps) => {
                     onClick={toggleMobileMenu}
                     isRtl={isRtl}
                   />
+                  {/* ✅ שינוי: שימוש ב-messagesHref גם במובייל */}
                   <MobileNavItem
                     id="onboarding-target-messages-link"
-                    href="/messages"
+                    href={messagesHref}
                     text={dict.navbar.messages}
                     icon={<MessageCircle className="h-5 w-5" />}
                     badge={
