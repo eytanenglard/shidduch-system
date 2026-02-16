@@ -611,6 +611,7 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
                     userId={userId}
                     showComposer={true}
                     dict={suggestionsDict.inquiryThread}
+                    locale= {locale}
                   />
                 </div>
               </div>
