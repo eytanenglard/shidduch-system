@@ -5,7 +5,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { useParams } from 'next/navigation';
+import { useParams, usePathname } from 'next/navigation'; 
 
 import {
   History,
@@ -139,11 +139,19 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
   suggestionsDict,
   profileCardDict,
 }) => {
-  const params = useParams();
-  const locale = (
-    Array.isArray(params.lang) ? params.lang[0] : params.lang || 'en'
-  ) as 'he' | 'en';
+ const params = useParams();
 
+  // --- תיקון: לוגיקה לקביעת השפה (ללא let כדי למנוע שגיאות) ---
+  // אנחנו בודקים אם קיים פרמטר בשם locale (החדש) או lang (הישן)
+  const rawParam = params?.locale || params?.lang;
+  
+  // מחלצים את המחרוזת (במקרה שזה מערך)
+  const localeString = Array.isArray(rawParam) ? rawParam[0] : rawParam;
+  
+  // קובעים סופית: אם זה 'he' אז עברית, אחרת ברירת מחדל אנגלית
+  const locale: 'he' | 'en' = localeString === 'he' ? 'he' : 'en';
+
+  console.log('🔍 [MatchSuggestionsContainer] Final Locale:', locale);
   const [activeSuggestions, setActiveSuggestions] = useState<
     ExtendedMatchSuggestion[]
   >([]);

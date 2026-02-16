@@ -342,12 +342,13 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
         }
       );
       if (!response.ok) throw new Error('Failed to send inquiry');
-      toast.success('השאלה נשלחה בהצלחה לשדכן', {
-        description: 'השדכן יחזור אליך עם תשובה בהקדם',
-      });
+    toast.success(suggestionsDict.inquiryThread.toasts.sendSuccessTitle, {
+  description: suggestionsDict.inquiryThread.toasts.sendSuccessDescription
+});
       setShowAskDialog(false);
     } catch (error) {
-      toast.error('אירעה שגיאה בשליחת השאלה');
+      toast.error(suggestionsDict.inquiryThread.toasts.sendError);
+
     }
   };
 

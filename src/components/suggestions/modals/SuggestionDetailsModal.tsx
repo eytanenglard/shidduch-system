@@ -308,106 +308,64 @@ const EnhancedHeroSection: React.FC<{
             {(personalNote || matchingReason) && (
               // Insights Card - Orange/Teal
               <Card className="border-0 shadow-xl bg-gradient-to-br from-orange-50 via-white to-teal-50 overflow-hidden">
-                <CardContent className="p-6 relative">
-                  <div
-                    className={cn(
-                      'flex items-start gap-4',
-                      locale === 'he' ? 'flex-row-reverse' : 'flex-row'
-                    )}
-                  >
-                    <div className="p-4 rounded-full bg-gradient-to-r from-orange-400 to-amber-500 text-white shadow-lg flex-shrink-0">
-                      <Lightbulb className="w-7 h-7" />
-                    </div>
-                    <div
-                      className={cn(
-                        'flex-1',
-                        locale === 'he' ? 'text-right' : 'text-left'
-                      )}
-                    >
-                      <h3 className="font-bold text-orange-800 text-xl mb-4">
-                        {dict.matchmakerInsight}
-                      </h3>
-                      {personalNote && (
-                        // Personal Note - Orange tint
-                        <div
-                          className="mb-4 p-4 bg-white/70 rounded-xl shadow-inner border border-orange-100"
-                          dir={locale === 'he' ? 'rtl' : 'ltr'}
-                        >
-                          <div
-                            className={cn(
-                              'flex items-start gap-2',
-                              locale === 'he' ? 'flex-row-reverse' : 'flex-row'
-                            )}
-                          >
-                            <Quote
-                              className={cn(
-                                'w-5 h-5 text-orange-500 mt-1 flex-shrink-0',
-                                locale === 'he' ? 'ml-2' : 'mr-2'
-                              )}
-                            />
-                            <div>
-                              <h4
-                                className={cn(
-                                  'font-semibold text-orange-700 mb-2',
-                                  locale === 'he' ? 'text-right' : 'text-left'
-                                )}
-                              >
-                                {dict.whyYou}
-                              </h4>
-                              <p
-                                className={cn(
-                                  'text-orange-800 leading-relaxed italic font-medium',
-                                  locale === 'he' ? 'text-right' : 'text-left'
-                                )}
-                              >
-                                &quot;{personalNote}&quot;
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-                      {matchingReason && (
-                        // Matching Reason - Teal tint
-                        <div
-                          className="p-4 bg-white/70 rounded-xl shadow-inner border border-teal-100"
-                          dir={locale === 'he' ? 'rtl' : 'ltr'}
-                        >
-                          <div
-                            className={cn(
-                              'flex items-start gap-2',
-                              locale === 'he' ? 'flex-row-reverse' : 'flex-row'
-                            )}
-                          >
-                            <Puzzle
-                              className={cn(
-                                'w-5 h-5 text-teal-500 mt-1 flex-shrink-0',
-                                locale === 'he' ? 'ml-2' : 'mr-2'
-                              )}
-                            />
-                            <div>
-                              <h4
-                                className={cn(
-                                  'font-semibold text-teal-700 mb-2',
-                                  locale === 'he' ? 'text-right' : 'text-left'
-                                )}
-                              >
-                                {dict.ourConnection}
-                              </h4>
-                              <p
-                                className={cn(
-                                  'text-teal-800 leading-relaxed font-medium',
-                                  locale === 'he' ? 'text-right' : 'text-left'
-                                )}
-                              >
-                                &quot;{matchingReason}&quot;
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </CardContent>
+            <CardContent className="p-6 relative" dir={locale === 'he' ? 'rtl' : 'ltr'}>
+  <div className="flex items-start gap-4"> {/* הסרנו את התנאי של flex-row-reverse */}
+    <div className="p-4 rounded-full bg-gradient-to-r from-orange-400 to-amber-500 text-white shadow-lg flex-shrink-0">
+      <Lightbulb className="w-7 h-7" />
+    </div>
+    <div className="flex-1"> {/* הסרנו את התנאי של text-right/left כי ה-dir למעלה מטפל בזה */}
+      <h3 className="font-bold text-orange-800 text-xl mb-4">
+        {dict.matchmakerInsight}
+      </h3>
+      {personalNote && (
+        // Personal Note
+        <div
+          className="mb-4 p-4 bg-white/70 rounded-xl shadow-inner border border-orange-100"
+          // dir מוגדר כבר באבא, לא צריך כאן שוב
+        >
+          <div className="flex items-start gap-2"> {/* הסרנו flex-row-reverse */}
+            <Quote
+              className={cn(
+                'w-5 h-5 text-orange-500 mt-1 flex-shrink-0',
+                // אין צורך בשינוי margin ידני אם ה-dir מוגדר נכון, אבל ליתר ביטחון נשאיר לוגיקה פשוטה
+                // או פשוט נמחק את ה-ml/mr ונסמוך על gap
+              )}
+            />
+            <div>
+              <h4 className="font-semibold text-orange-700 mb-2">
+                {dict.whyYou}
+              </h4>
+              <p className="text-orange-800 leading-relaxed italic font-medium">
+                &quot;{personalNote}&quot;
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+      {matchingReason && (
+        // Matching Reason
+        <div
+          className="p-4 bg-white/70 rounded-xl shadow-inner border border-teal-100"
+        >
+          <div className="flex items-start gap-2"> {/* הסרנו flex-row-reverse */}
+            <Puzzle
+              className="w-5 h-5 text-teal-500 mt-1 flex-shrink-0"
+            />
+            <div>
+              <h4 className="font-semibold text-teal-700 mb-2">
+                {dict.ourConnection}
+              </h4>
+              <p className="text-teal-800 leading-relaxed font-medium">
+                &quot;{matchingReason}&quot;
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  </div>
+</CardContent>
+
               </Card>
             )}
           </div>
@@ -681,6 +639,8 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
   demoAnalysisData = null,
   dict,
 }) => {
+   console.log('🔍 [SuggestionDetailsModal] Received Locale:', locale);
+  console.log('🔍 [SuggestionDetailsModal] Derived Direction:', locale === 'he' ? 'rtl' : 'ltr');
   const [activeTab, setActiveTab] = useState('presentation');
   const [showAskDialog, setShowAskDialog] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -744,10 +704,13 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ question }),
       });
-      toast.success('Question sent!');
+      toast.success(dict.suggestions.inquiryThread.toasts.sendSuccessTitle, {
+        description:
+          dict.suggestions.inquiryThread.toasts.sendSuccessDescription,
+      });
       setShowAskDialog(false);
     } catch (error) {
-      toast.error('Failed to send question.');
+      toast.error(dict.suggestions.inquiryThread.toasts.sendError);
     } finally {
       setIsSubmitting(false);
     }
@@ -819,9 +782,12 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
                 />
               </TabsContent>
               <TabsContent
-                value="profile"
-                className="mt-0 p-4 md:p-6 bg-gradient-to-br from-slate-50 via-white to-teal-50"
-              >
+  value="profile"
+  // הוספנו כאן text-start כדי לכפות יישור לפי כיוון השפה
+  className="mt-0 p-4 md:p-6 bg-gradient-to-br from-slate-50 via-white to-teal-50 text-start"
+  // הוספנו כאן את ה-dir שיגרום לכל התוכן להתהפך כמו שצריך
+  dir={locale === 'he' ? 'rtl' : 'ltr'}
+>
                 {isQuestionnaireLoading ? (
                   <div className="flex justify-center items-center h-64">
                     <div className="text-center">
@@ -931,6 +897,7 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
                   <SuggestionTimeline
                     statusHistory={suggestion.statusHistory}
                     dict={dict.suggestions.timeline}
+                    locale={locale}
                   />
                   <InquiryThreadView
                     suggestionId={suggestion.id}
@@ -938,6 +905,7 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
                     showComposer={true}
                     isDemo={isDemo}
                     dict={dict.suggestions.inquiryThread}
+                    locale={locale}
                   />
                 </div>
               </TabsContent>

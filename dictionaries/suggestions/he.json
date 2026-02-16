@@ -83,6 +83,10 @@
   }
   },
    "card": {
+     "toasts": {
+    "approveDisabledTitle": "לא ניתן לאשר הצעה חדשה",
+    "approveDisabledDescription": "יש לך כבר הצעה אחרת בתהליך פעיל."
+  },
     "suggestedBy": "הצעה מ",
     "yourTurn": "תורך!",
     "urgent": "דחוף",

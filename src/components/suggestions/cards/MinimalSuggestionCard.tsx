@@ -445,9 +445,9 @@ const MinimalSuggestionCard: React.FC<MinimalSuggestionCardProps> = ({
                         onClick={(e) => {
                           e.stopPropagation();
                           if (isApprovalDisabled) {
-                            toast.info('לא ניתן לאשר הצעה חדשה', {
-                              description: 'יש לך כבר הצעה אחרת בתהליך פעיל.',
-                            });
+                          toast.info(dict.toasts.approveDisabledTitle, {
+  description: dict.toasts.approveDisabledDescription,
+});
                           } else {
                             onApprove?.(suggestion);
                           }

@@ -83,6 +83,10 @@
   }
   },
    "card": {
+     "toasts": {
+    "approveDisabledTitle": "Cannot Approve New Match",
+    "approveDisabledDescription": "You already have an active process with another suggestion."
+  },
     "suggestedBy": "Introduction from",
     "yourTurn": "Your Turn!",
     "urgent": "Urgent",

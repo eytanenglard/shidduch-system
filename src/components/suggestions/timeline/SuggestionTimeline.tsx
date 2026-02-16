@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { format, differenceInCalendarDays } from 'date-fns';
-import { he } from 'date-fns/locale';
+import { he, enUS } from 'date-fns/locale';
 import {
   Clock,
   MessageCircle,
@@ -39,6 +39,8 @@ interface SuggestionTimelineProps {
   statusHistory: StatusHistoryItem[];
   className?: string;
   dict: SuggestionTimelineDict;
+    locale: 'he' | 'en'; // <--- הוסף שורה זו
+
 }
 
 const getStatusVisuals = (status: MatchSuggestionStatus) => {
@@ -138,6 +140,8 @@ const SuggestionTimeline: React.FC<SuggestionTimelineProps> = ({
   statusHistory,
   className,
   dict,
+    locale, // <--- הוסף כאן
+
 }) => {
   const sortedHistory = [...statusHistory].sort(
     (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
@@ -184,14 +188,19 @@ const SuggestionTimeline: React.FC<SuggestionTimelineProps> = ({
             const statusVisuals = getStatusVisuals(statusKey);
             const isLatest = index === 0;
             const isLast = index === sortedHistory.length - 1;
-            const formattedDate = format(
-              new Date(item.createdAt),
-              'dd בMMMM yyyy',
-              { locale: he }
-            );
-            const formattedTime = format(new Date(item.createdAt), 'HH:mm', {
-              locale: he,
-            });
+           
+         const dateFnsLocale = locale === 'he' ? he : enUS;
+        const dateFormat = locale === 'he' ? 'dd בMMMM yyyy' : 'MMMM dd, yyyy';
+
+        const formattedDate = format(
+          new Date(item.createdAt),
+          dateFormat,
+          { locale: dateFnsLocale }
+        );
+        
+        const formattedTime = format(new Date(item.createdAt), 'HH:mm', {
+          locale: dateFnsLocale,
+        });
 
             return (
               <div key={item.id} className="flex gap-4">

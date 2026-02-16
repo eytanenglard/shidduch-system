@@ -324,6 +324,10 @@ export type CookieBannerDict = {
 // ======================================================================== //
 
 export type SuggestionsCardDict = {
+   toasts: {
+    approveDisabledTitle: string;
+    approveDisabledDescription: string;
+   }
    suggestedBy: string;
   yourTurn: string;
   urgent: string;

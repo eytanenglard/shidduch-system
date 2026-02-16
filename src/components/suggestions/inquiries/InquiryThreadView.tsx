@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useSession } from 'next-auth/react';
 import { UserRole } from '@prisma/client';
 import { format } from 'date-fns';
-import { he } from 'date-fns/locale';
+import { he, enUS } from 'date-fns/locale';
 import { toast } from 'sonner';
 
 import {
@@ -56,6 +56,7 @@ interface InquiryThreadViewProps {
   className?: string;
   isDemo?: boolean;
   dict: InquiryThreadDict;
+  locale: 'he' | 'en'; // <--- הוסף שורה זו
 }
 
 // --- Sub-components ---
@@ -135,6 +136,7 @@ const MessageBubble: React.FC<{
   suggestionId: string;
   onAnswerSent: () => void;
   dict: InquiryThreadDict;
+  locale: 'he' | 'en'; // <--- הוסף שורה זו
 }> = ({
   inquiry,
   userId,
@@ -143,6 +145,7 @@ const MessageBubble: React.FC<{
   suggestionId,
   onAnswerSent,
   dict,
+  locale, // <--- הוסף כאן
 }) => {
   const isMyQuestion = inquiry.fromUserId === userId;
 
@@ -184,7 +187,14 @@ const MessageBubble: React.FC<{
   const formatDate = (date: string | Date | null) => {
     if (!date) return '';
     try {
-      return format(new Date(date), 'dd בMMMM yyyy, HH:mm', { locale: he });
+      // --- התחלת השינוי ---
+      const dateFnsLocale = locale === 'he' ? he : enUS;
+      // בעברית: "16 ביוני 2024, 14:00" | באנגלית: "June 16, 2024, 14:00"
+      const dateFormat =
+        locale === 'he' ? 'dd בMMMM yyyy, HH:mm' : 'MMMM dd, yyyy, HH:mm';
+
+      return format(new Date(date), dateFormat, { locale: dateFnsLocale });
+      // --- סוף השינוי ---
     } catch (e) {
       console.error('Error formatting date:', date, e);
       return dict.invalidDate;
@@ -325,6 +335,7 @@ const InquiryThreadView: React.FC<InquiryThreadViewProps> = ({
   className,
   isDemo = false,
   dict,
+  locale, // <--- הוסף כאן
 }) => {
   const [inquiries, setInquiries] = useState<Inquiry[]>([]);
   const [isLoading, setIsLoading] = useState(!isDemo);
@@ -464,6 +475,7 @@ const InquiryThreadView: React.FC<InquiryThreadViewProps> = ({
               suggestionId={suggestionId}
               onAnswerSent={fetchInquiries}
               dict={dict}
+              locale={locale} // <--- הוסף שורה זו (העברת ה-prop לילד)
             />
           ))
         )}

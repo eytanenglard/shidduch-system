@@ -34,7 +34,13 @@ const HeroIntroduction: React.FC<{
   dict: SuggestionsPresentationDict['hero'];
 }> = ({ matchmaker, personalNote, dict }) => (
   // Background: Teal -> Orange -> Rose (Soft)
-  <div className="text-center p-6 rounded-2xl bg-gradient-to-br from-teal-100/50 via-orange-100/50 to-rose-100/50 border border-teal-200/40 shadow-lg">
+  <div
+    className="text-center p-6 rounded-2xl bg-gradient-to-br from-teal-100/50 via-orange-100/50 to-rose-100/50 border border-teal-200/40 shadow-lg"
+    dir="rtl" // או דינמי אם יש לך את ה-locale כאן, אבל ה-Props לא כוללים locale כרגע.
+    // מכיוון שאין locale ב-props של הקומפוננטה הזו, צריך להוסיף אותו לממשק או להסתמך על היישור למרכז (text-center) שקיים כבר.
+    // הבעיה היא בציטוט למטה.
+  >
+    {' '}
     <div className="flex justify-center mb-4">
       <Avatar className="w-16 h-16 border-4 border-white shadow-md">
         {/* Avatar: Teal Gradient */}
@@ -76,7 +82,10 @@ const ProfilePeek: React.FC<{
     : null;
   const mainImage = targetParty.images?.find((img) => img.isMain)?.url;
   return (
-    <Card className="overflow-hidden shadow-xl transition-all hover:shadow-2xl border-0">
+    <Card
+      className="overflow-hidden shadow-xl transition-all hover:shadow-2xl border-0"
+      dir={locale === 'he' ? 'rtl' : 'ltr'} // הוספת כיוון לכרטיס
+    >
       <div className="grid grid-cols-1 md:grid-cols-3">
         <div className="relative h-64 md:h-auto">
           {mainImage ? (
@@ -92,7 +101,7 @@ const ProfilePeek: React.FC<{
             </div>
           )}
         </div>
-        <div className="md:col-span-2 p-6 flex flex-col justify-between bg-white">
+        <div className="md:col-span-2 p-6 flex flex-col justify-between bg-white text-start">
           <div>
             <p className="text-sm font-semibold text-teal-600">
               {dict.opportunity}
@@ -118,14 +127,20 @@ const ProfilePeek: React.FC<{
               </div>
             </div>
           </div>
-          <div className={cn("mt-6", locale === 'he' ? 'text-left' : 'text-right')}>
+          <div
+            className={cn('mt-6', locale === 'he' ? 'text-left' : 'text-right')}
+          >
             <Button
               onClick={onViewProfileClick}
               size="lg"
               className="font-bold bg-teal-600 hover:bg-teal-700 text-white rounded-xl shadow-lg hover:shadow-xl transition-all"
             >
               {dict.viewProfileButton}
-              {locale === 'he' ? <ChevronLeft className="w-5 h-5 mr-2" /> : <ChevronRight className="w-5 h-5 ml-2" />}
+              {locale === 'he' ? (
+                <ChevronLeft className="w-5 h-5 mr-2" />
+              ) : (
+                <ChevronRight className="w-5 h-5 ml-2" />
+              )}
             </Button>
           </div>
         </div>
@@ -227,7 +242,7 @@ const MatchPresentationView: React.FC<MatchPresentationViewProps> = ({
   const targetParty = isFirstParty
     ? suggestion.secondParty
     : suggestion.firstParty;
-  
+
   const currentUserParty = isFirstParty
     ? suggestion.firstParty
     : suggestion.secondParty;
