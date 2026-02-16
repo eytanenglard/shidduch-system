@@ -10,7 +10,7 @@ import { verifyMobileToken } from "@/lib/mobile-auth";
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     const user = await verifyMobileToken(req);
@@ -21,7 +21,7 @@ export async function POST(
       );
     }
 
-    const suggestionId = params.id;
+    const { id: suggestionId } = await context.params;
 
     // Verify user is part of this suggestion
     const suggestion = await prisma.matchSuggestion.findUnique({

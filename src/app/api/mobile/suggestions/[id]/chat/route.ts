@@ -7,11 +7,11 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { verifyMobileToken } from "@/lib/mobile-auth"; // adjust to your auth utility
+import { verifyMobileToken } from "@/lib/mobile-auth";
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     // 1. Auth
@@ -23,7 +23,7 @@ export async function GET(
       );
     }
 
-    const suggestionId = params.id;
+    const { id: suggestionId } = await context.params;
 
     // 2. Verify user is part of this suggestion
     const suggestion = await prisma.matchSuggestion.findUnique({
@@ -99,7 +99,7 @@ export async function GET(
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     // 1. Auth
@@ -111,7 +111,7 @@ export async function POST(
       );
     }
 
-    const suggestionId = params.id;
+    const { id: suggestionId } = await context.params;
     const { content } = await req.json();
 
     if (!content || typeof content !== "string" || !content.trim()) {
