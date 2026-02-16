@@ -1453,6 +1453,7 @@ type SuggestionDetailsDialogDict = {
     noMessagesDescription: string;
     placeholder: string;
     sendError: string;
+    sendingTo: string;
     senderLabels: {
       matchmaker: string;
       system: string;

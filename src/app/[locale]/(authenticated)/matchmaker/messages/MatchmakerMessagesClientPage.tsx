@@ -19,6 +19,7 @@ import {
   ChevronDown,
   ChevronUp,
   ChevronLeft,
+  ChevronRight,
   Users,
   Inbox,
   Send,
@@ -112,8 +113,7 @@ const defaultDict: MatchmakerMessagesDict = {
     activeSuggestions: 'הצעות פעילות',
     noActiveSuggestions: 'אין הצעות פעילות כרגע',
     selectSuggestion: 'בחר/י הצעה',
-    selectSuggestionDescription:
-      'כאן תוכל/י לנהל שיחות עם המועמדים בנוגע להצעות שידוך',
+    selectSuggestionDescription: 'כאן תוכל/י לנהל שיחות עם המועמדים בנוגע להצעות שידוך',
     selectParty: 'בחר/י מועמד/ת לשיחה',
     selectPartyDescription: "לחץ/י על אחד המועמדים כדי לפתוח צ'אט",
     back: 'חזרה',
@@ -283,23 +283,13 @@ interface ChatPanelProps {
   dict: MatchmakerMessagesDict['chatPanel'];
 }
 
-function ChatPanel({
-  locale,
-  unreadMap,
-  onMessagesRead,
-  dict: t,
-}: ChatPanelProps) {
+function ChatPanel({ locale, unreadMap, onMessagesRead, dict: t }: ChatPanelProps) {
   const [suggestions, setSuggestions] = useState<SuggestionSummary[]>([]);
-  const [expandedSuggestions, setExpandedSuggestions] = useState<Set<string>>(
-    new Set()
-  );
+  const [expandedSuggestions, setExpandedSuggestions] = useState<Set<string>>(new Set());
   const [selectedChat, setSelectedChat] = useState<SelectedChat | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [lastMessages, setLastMessages] = useState<
-    Record<
-      string,
-      { firstParty?: LastMessageInfo; secondParty?: LastMessageInfo }
-    >
+    Record<string, { firstParty?: LastMessageInfo; secondParty?: LastMessageInfo }>
   >({});
   const isHe = locale === 'he';
 
@@ -311,8 +301,7 @@ function ChatPanel({
         if (!res.ok) throw new Error();
         const data = await res.json();
         const active = data.filter(
-          (s: SuggestionSummary & { category?: string }) =>
-            s.category !== 'HISTORY'
+          (s: SuggestionSummary & { category?: string }) => s.category !== 'HISTORY'
         );
         active.sort(
           (a: SuggestionSummary, b: SuggestionSummary) =>
@@ -349,15 +338,13 @@ function ChatPanel({
       const firstPartyMsgs = msgs.filter(
         (m) =>
           (m.senderType === 'user' && m.senderId === s.firstParty.id) ||
-          (m.senderType === 'matchmaker' &&
-            m.targetUserId === s.firstParty.id) ||
+          (m.senderType === 'matchmaker' && m.targetUserId === s.firstParty.id) ||
           (m.senderType === 'matchmaker' && !m.targetUserId)
       );
       const secondPartyMsgs = msgs.filter(
         (m) =>
           (m.senderType === 'user' && m.senderId === s.secondParty.id) ||
-          (m.senderType === 'matchmaker' &&
-            m.targetUserId === s.secondParty.id) ||
+          (m.senderType === 'matchmaker' && m.targetUserId === s.secondParty.id) ||
           (m.senderType === 'matchmaker' && !m.targetUserId)
       );
 
@@ -368,18 +355,10 @@ function ChatPanel({
         ...prev,
         [s.id]: {
           firstParty: lastFirst
-            ? {
-                content: lastFirst.content,
-                time: lastFirst.createdAt,
-                senderType: lastFirst.senderType,
-              }
+            ? { content: lastFirst.content, time: lastFirst.createdAt, senderType: lastFirst.senderType }
             : undefined,
           secondParty: lastSecond
-            ? {
-                content: lastSecond.content,
-                time: lastSecond.createdAt,
-                senderType: lastSecond.senderType,
-              }
+            ? { content: lastSecond.content, time: lastSecond.createdAt, senderType: lastSecond.senderType }
             : undefined,
         },
       }));
@@ -442,7 +421,7 @@ function ChatPanel({
               className="gap-1 text-gray-600 hover:text-gray-900 hover:bg-teal-50"
             >
               {/* CSS logical: chevron-left in RTL already points right */}
-              <ChevronLeft className="w-4 h-4 rtl:rotate-180" />
+              <ChevronLeft className="w-4 h-4 rtl:-scale-x-100" />
               {t.backToList}
             </Button>
             <div className="h-6 w-px bg-gray-200" />
@@ -464,9 +443,7 @@ function ChatPanel({
                   {selectedChat.partyName}
                 </p>
                 <p className="text-xs text-gray-500">
-                  {selectedChat.isFirstParty
-                    ? t.partyLabels.partyA
-                    : t.partyLabels.partyB}
+                  {selectedChat.isFirstParty ? t.partyLabels.partyA : t.partyLabels.partyB}
                   {' · '}
                   {selectedChat.suggestionName}
                 </p>
@@ -519,9 +496,7 @@ function ChatPanel({
               <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-teal-50 to-amber-50 flex items-center justify-center mb-4">
                 <Inbox className="w-8 h-8 text-gray-300" />
               </div>
-              <p className="text-gray-500 font-medium">
-                {t.noActiveSuggestions}
-              </p>
+              <p className="text-gray-500 font-medium">{t.noActiveSuggestions}</p>
             </div>
           ) : (
             <div className="divide-y divide-gray-100">
@@ -545,16 +520,12 @@ function ChatPanel({
                         <div className="relative flex-shrink-0">
                           <Avatar className="w-11 h-11 shadow-sm ring-2 ring-white">
                             <AvatarFallback className="bg-gradient-to-br from-teal-400 to-cyan-500 text-white text-xs font-bold">
-                              {getInitials(
-                                `${s.firstParty.firstName} ${s.firstParty.lastName}`
-                              )}
+                              {getInitials(`${s.firstParty.firstName} ${s.firstParty.lastName}`)}
                             </AvatarFallback>
                           </Avatar>
-                          <Avatar className="w-7 h-7 absolute -bottom-0.5 -start-2 shadow-sm ring-2 ring-white">
+                          <Avatar className="w-7 h-7 absolute -bottom-0.5 -end-2 shadow-sm ring-2 ring-white">
                             <AvatarFallback className="bg-gradient-to-br from-amber-400 to-orange-500 text-white text-[9px] font-bold">
-                              {getInitials(
-                                `${s.secondParty.firstName} ${s.secondParty.lastName}`
-                              )}
+                              {getInitials(`${s.secondParty.firstName} ${s.secondParty.lastName}`)}
                             </AvatarFallback>
                           </Avatar>
                         </div>
@@ -664,13 +635,7 @@ function PartyCard({
       )}
     >
       <Avatar className="w-10 h-10 shadow-sm flex-shrink-0">
-        <AvatarFallback
-          className={cn(
-            'text-white text-sm font-bold bg-gradient-to-br',
-            colorFrom,
-            colorTo
-          )}
-        >
+        <AvatarFallback className={cn('text-white text-sm font-bold bg-gradient-to-br', colorFrom, colorTo)}>
           {getInitials(name)}
         </AvatarFallback>
       </Avatar>
@@ -684,10 +649,7 @@ function PartyCard({
                 {formatMessageTime(lastMessage.time, locale, t)}
               </span>
             )}
-            <Badge
-              variant="outline"
-              className={cn('text-[10px] px-1.5 py-0', badgeColor)}
-            >
+            <Badge variant="outline" className={cn('text-[10px] px-1.5 py-0', badgeColor)}>
               {partyLabel}
             </Badge>
           </div>
@@ -704,7 +666,7 @@ function PartyCard({
         )}
       </div>
       {/* Logical arrow: in RTL chevron-left already points correct direction */}
-      <ChevronLeft className="w-4 h-4 text-gray-300 flex-shrink-0 rtl:rotate-180" />
+      <ChevronRight className="w-4 h-4 text-gray-300 flex-shrink-0 rtl:-scale-x-100" />
     </button>
   );
 }
@@ -742,17 +704,13 @@ function ChatView({
 
   const fetchMessages = useCallback(async () => {
     try {
-      const res = await fetch(
-        `/api/matchmaker/suggestions/${suggestionId}/chat`
-      );
+      const res = await fetch(`/api/matchmaker/suggestions/${suggestionId}/chat`);
       if (!res.ok) throw new Error();
       const data = await res.json();
       if (data.success) {
         setMessages(data.messages || []);
         if (data.unreadCount > 0) {
-          await fetch(`/api/matchmaker/suggestions/${suggestionId}/chat`, {
-            method: 'PATCH',
-          });
+          await fetch(`/api/matchmaker/suggestions/${suggestionId}/chat`, { method: 'PATCH' });
           onMessagesRead();
         }
       }
@@ -791,14 +749,11 @@ function ChatView({
     if (!newMessage.trim() || isSending) return;
     setIsSending(true);
     try {
-      const res = await fetch(
-        `/api/matchmaker/suggestions/${suggestionId}/chat`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ content: newMessage.trim(), targetUserId }),
-        }
-      );
+      const res = await fetch(`/api/matchmaker/suggestions/${suggestionId}/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content: newMessage.trim(), targetUserId }),
+      });
       if (!res.ok) {
         const errorData = await res.json();
         throw new Error(errorData.error || 'Failed to send');
@@ -848,12 +803,10 @@ function ChatView({
               <MessageCircle className="w-8 h-8 text-teal-300" />
             </div>
             <h3 className="font-medium text-gray-700 mb-1">{t.noMessages}</h3>
-            <p className="text-sm text-gray-400 max-w-xs">
-              {t.noMessagesDescription}
-            </p>
+            <p className="text-sm text-gray-400 max-w-xs">{t.noMessagesDescription}</p>
           </div>
         ) : (
-          <div className="space-y-3 py-4">
+          <div className="space-y-3 py-4" dir="ltr">
             {filteredMessages.map((msg) => {
               const isMatchmaker = msg.senderType === 'matchmaker';
               const isSystem = msg.senderType === 'system';
@@ -873,7 +826,6 @@ function ChatView({
                   key={msg.id}
                   className={cn(
                     'flex gap-2.5',
-                    // Semantic: matchmaker bubbles on one side, user on the other
                     isMatchmaker ? 'flex-row-reverse' : 'flex-row'
                   )}
                 >
@@ -888,20 +840,17 @@ function ChatView({
                             : 'from-amber-400 to-orange-500'
                       )}
                     >
-                      {isMatchmaker ? (
-                        <Bot className="w-4 h-4" />
-                      ) : (
-                        getInitials(msg.senderName)
-                      )}
+                      {isMatchmaker ? <Bot className="w-4 h-4" /> : getInitials(msg.senderName)}
                     </AvatarFallback>
                   </Avatar>
 
                   <div
+                    dir={isHe ? 'rtl' : 'ltr'}
                     className={cn(
                       'max-w-[75%] rounded-2xl px-4 py-2.5 shadow-sm',
                       isMatchmaker
-                        ? 'bg-gradient-to-br from-teal-500 to-teal-600 text-white rounded-ee-md'
-                        : 'bg-white border border-gray-100 text-gray-800 rounded-es-md'
+                        ? 'bg-gradient-to-br from-teal-500 to-teal-600 text-white rounded-tr-md'
+                        : 'bg-white border border-gray-100 text-gray-800 rounded-tl-md'
                     )}
                   >
                     <span
@@ -912,10 +861,11 @@ function ChatView({
                     >
                       {getSenderLabel(msg)}
                     </span>
-                    <p className="text-sm leading-relaxed whitespace-pre-wrap">
-                      {msg.content}
-                    </p>
-                    <div className="flex items-center gap-1 mt-1.5 justify-end">
+                    <p className="text-sm leading-relaxed whitespace-pre-wrap">{msg.content}</p>
+                    <div className={cn(
+                      'flex items-center gap-1 mt-1.5',
+                      isMatchmaker ? 'justify-start' : 'justify-end'
+                    )}>
                       <span
                         className={cn(
                           'text-[10px]',
@@ -928,10 +878,7 @@ function ChatView({
                       </span>
                       {isMatchmaker && (
                         <CheckCheck
-                          className={cn(
-                            'w-3.5 h-3.5',
-                            msg.isRead ? 'text-teal-200' : 'text-teal-300/50'
-                          )}
+                          className={cn('w-3.5 h-3.5', msg.isRead ? 'text-teal-200' : 'text-teal-300/50')}
                         />
                       )}
                       {!msg.isRead && !isMatchmaker && (
@@ -952,9 +899,7 @@ function ChatView({
         <div
           className={cn(
             'flex items-center gap-2 mb-2.5 px-3 py-2 rounded-lg text-xs',
-            isFirstParty
-              ? 'bg-teal-50 border border-teal-100'
-              : 'bg-amber-50 border border-amber-100'
+            isFirstParty ? 'bg-teal-50 border border-teal-100' : 'bg-amber-50 border border-amber-100'
           )}
         >
           <div
@@ -965,12 +910,7 @@ function ChatView({
           />
           <span className="text-gray-600">
             {t.sendingTo}{' '}
-            <span
-              className={cn(
-                'font-semibold',
-                isFirstParty ? 'text-teal-700' : 'text-amber-700'
-              )}
-            >
+            <span className={cn('font-semibold', isFirstParty ? 'text-teal-700' : 'text-amber-700')}>
               {targetUserName}
             </span>
           </span>

@@ -8,14 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { toast } from 'sonner';
-import {
-  Send,
-  Loader2,
-  MessageCircle,
-  Bot,
-  RefreshCw,
-  CheckCheck,
-} from 'lucide-react';
+import { Send, Loader2, MessageCircle, Bot, RefreshCw, CheckCheck } from 'lucide-react';
 import { cn, getInitials } from '@/lib/utils';
 import { format } from 'date-fns';
 import { he, enUS } from 'date-fns/locale';
@@ -90,9 +83,7 @@ export default function SuggestionChatTab({
   const [isLoading, setIsLoading] = useState(true);
   const [isSending, setIsSending] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
-  const [selectedParty, setSelectedParty] = useState<'first' | 'second'>(
-    defaultParty
-  );
+  const [selectedParty, setSelectedParty] = useState<'first' | 'second'>(defaultParty);
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -114,9 +105,7 @@ export default function SuggestionChatTab({
 
   const fetchMessages = useCallback(async () => {
     try {
-      const response = await fetch(
-        `/api/matchmaker/suggestions/${suggestionId}/chat`
-      );
+      const response = await fetch(`/api/matchmaker/suggestions/${suggestionId}/chat`);
       if (!response.ok) throw new Error('Failed to fetch messages');
       const data = await response.json();
 
@@ -146,9 +135,7 @@ export default function SuggestionChatTab({
 
   useEffect(() => {
     if (unreadCount > 0) {
-      fetch(`/api/matchmaker/suggestions/${suggestionId}/chat`, {
-        method: 'PATCH',
-      })
+      fetch(`/api/matchmaker/suggestions/${suggestionId}/chat`, { method: 'PATCH' })
         .then(() => setUnreadCount(0))
         .catch(console.error);
     }
@@ -171,17 +158,11 @@ export default function SuggestionChatTab({
   });
 
   const firstPartyUnread = messages.filter(
-    (m) =>
-      m.senderType === 'user' &&
-      m.senderId === parties.firstParty?.id &&
-      !m.isRead
+    (m) => m.senderType === 'user' && m.senderId === parties.firstParty?.id && !m.isRead
   ).length;
 
   const secondPartyUnread = messages.filter(
-    (m) =>
-      m.senderType === 'user' &&
-      m.senderId === parties.secondParty?.id &&
-      !m.isRead
+    (m) => m.senderType === 'user' && m.senderId === parties.secondParty?.id && !m.isRead
   ).length;
 
   // ==========================================
@@ -199,14 +180,11 @@ export default function SuggestionChatTab({
 
     setIsSending(true);
     try {
-      const response = await fetch(
-        `/api/matchmaker/suggestions/${suggestionId}/chat`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ content: newMessage.trim(), targetUserId }),
-        }
-      );
+      const response = await fetch(`/api/matchmaker/suggestions/${suggestionId}/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content: newMessage.trim(), targetUserId }),
+      });
 
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || 'Failed to send');
@@ -239,8 +217,7 @@ export default function SuggestionChatTab({
     if (msg.senderType === 'matchmaker') return t.senderLabels.matchmaker;
     if (msg.senderType === 'system') return t.senderLabels.system;
     if (msg.isFirstParty && parties.firstParty) return parties.firstParty.name;
-    if (msg.isSecondParty && parties.secondParty)
-      return parties.secondParty.name;
+    if (msg.isSecondParty && parties.secondParty) return parties.secondParty.name;
     return msg.senderName;
   };
 
@@ -331,12 +308,10 @@ export default function SuggestionChatTab({
               <MessageCircle className="w-8 h-8 text-teal-300" />
             </div>
             <h3 className="font-medium text-gray-700 mb-1">{t.noMessages}</h3>
-            <p className="text-sm text-gray-400 max-w-xs">
-              {t.noMessagesDescription}
-            </p>
+            <p className="text-sm text-gray-400 max-w-xs">{t.noMessagesDescription}</p>
           </div>
         ) : (
-          <div className="space-y-3 py-3">
+          <div className="space-y-3 py-3" dir="ltr">
             {filteredMessages.map((msg) => {
               const isMatchmaker = msg.senderType === 'matchmaker';
               const isSystem = msg.senderType === 'system';
@@ -356,31 +331,24 @@ export default function SuggestionChatTab({
                   key={msg.id}
                   className={cn(
                     'flex gap-2',
-                    // Semantic: matchmaker = end, user = start
                     isMatchmaker ? 'flex-row-reverse' : 'flex-row'
                   )}
                 >
                   <Avatar className="w-8 h-8 flex-shrink-0 shadow-sm">
                     <AvatarFallback
-                      className={cn(
-                        'text-white text-xs font-bold bg-gradient-to-br',
-                        getSenderColor(msg)
-                      )}
+                      className={cn('text-white text-xs font-bold bg-gradient-to-br', getSenderColor(msg))}
                     >
-                      {isMatchmaker ? (
-                        <Bot className="w-4 h-4" />
-                      ) : (
-                        getInitials(msg.senderName)
-                      )}
+                      {isMatchmaker ? <Bot className="w-4 h-4" /> : getInitials(msg.senderName)}
                     </AvatarFallback>
                   </Avatar>
 
                   <div
+                    dir={isHe ? 'rtl' : 'ltr'}
                     className={cn(
                       'max-w-[75%] rounded-2xl px-4 py-2.5 shadow-sm',
                       isMatchmaker
-                        ? 'bg-gradient-to-br from-teal-500 to-teal-600 text-white rounded-ee-md'
-                        : 'bg-white border border-gray-100 text-gray-800 rounded-es-md'
+                        ? 'bg-gradient-to-br from-teal-500 to-teal-600 text-white rounded-tr-md'
+                        : 'bg-white border border-gray-100 text-gray-800 rounded-tl-md'
                     )}
                   >
                     <span
@@ -391,10 +359,11 @@ export default function SuggestionChatTab({
                     >
                       {getSenderLabel(msg)}
                     </span>
-                    <p className="text-sm leading-relaxed whitespace-pre-wrap">
-                      {msg.content}
-                    </p>
-                    <div className="flex items-center gap-1 mt-1.5 justify-end">
+                    <p className="text-sm leading-relaxed whitespace-pre-wrap">{msg.content}</p>
+                    <div className={cn(
+                      'flex items-center gap-1 mt-1.5',
+                      isMatchmaker ? 'justify-start' : 'justify-end'
+                    )}>
                       <span
                         className={cn(
                           'text-[10px]',
@@ -407,10 +376,7 @@ export default function SuggestionChatTab({
                       </span>
                       {isMatchmaker && (
                         <CheckCheck
-                          className={cn(
-                            'w-3.5 h-3.5',
-                            msg.isRead ? 'text-teal-200' : 'text-teal-300/50'
-                          )}
+                          className={cn('w-3.5 h-3.5', msg.isRead ? 'text-teal-200' : 'text-teal-300/50')}
                         />
                       )}
                       {!msg.isRead && !isMatchmaker && (
@@ -451,9 +417,7 @@ export default function SuggestionChatTab({
                   selectedParty === 'first' ? 'text-teal-700' : 'text-amber-700'
                 )}
               >
-                {selectedParty === 'first'
-                  ? parties.firstParty?.name
-                  : parties.secondParty?.name}
+                {selectedParty === 'first' ? parties.firstParty?.name : parties.secondParty?.name}
               </span>
             </span>
           </div>
@@ -462,10 +426,7 @@ export default function SuggestionChatTab({
         {/* Warning if no parties */}
         {!selectedPartyId && !isLoading && (
           <div className="mb-2 p-2 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-700">
-            ⚠️{' '}
-            {isHe
-              ? 'לא נמצאו פרטי הצדדים - לא ניתן לשלוח הודעה'
-              : 'No party details found - cannot send message'}
+            ⚠️ {isHe ? 'לא נמצאו פרטי הצדדים - לא ניתן לשלוח הודעה' : 'No party details found - cannot send message'}
           </div>
         )}
 

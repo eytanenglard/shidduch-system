@@ -1818,6 +1818,7 @@
       "noMessagesDescription": "Send a message to the candidates in the context of this suggestion",
       "placeholder": "Type a message...",
       "sendError": "Error sending message",
+      "sendingTo": "Sending to",
       "senderLabels": {
         "matchmaker": "You (Matchmaker)",
         "system": "System"

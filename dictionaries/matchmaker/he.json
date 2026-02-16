@@ -713,6 +713,7 @@
         "loadError": "שגיאה בהכנת טיוטת המייל.",
         "sendSuccess": "מייל המשוב נשלח בהצלחה!",
         "sendError": "שגיאה בשליחת המייל."
+          
       }
     },
     "aiAnalysis": {
@@ -1821,6 +1822,7 @@
       "noMessagesDescription": "שלח/י הודעה למועמדים בהקשר של ההצעה הזו",
       "placeholder": "כתוב/י הודעה...",
       "sendError": "שגיאה בשליחת ההודעה",
+      "sendingTo": "שולח/ת אל",
       "senderLabels": {
         "matchmaker": "את/ה (שדכן)",
         "system": "מערכת"
