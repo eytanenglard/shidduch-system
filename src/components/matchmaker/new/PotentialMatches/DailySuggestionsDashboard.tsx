@@ -56,6 +56,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+
+import PreviewSuggestionsPanel from './PreviewSuggestionsPanel';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 
@@ -128,12 +130,7 @@ interface PersonalRunResult {
   userName: string;
   requested: number;
   sent: number;
-  suggestions: {
-    suggestionId: string;
-    matchId: string;
-    aiScore: number;
-    otherPartyName: string;
-  }[];
+  suggestions: { suggestionId: string; matchId: string; aiScore: number; otherPartyName: string }[];
   skipped: string[];
   errors: string[];
 }
@@ -165,17 +162,12 @@ const calculateAge = (birthDate: string | null): number | null => {
   return age > 0 ? age : null;
 };
 
-const getStatusDisplay = (
-  status: string
-): {
+const getStatusDisplay = (status: string): {
   label: string;
   color: string;
   icon: React.ReactNode;
 } => {
-  const statusMap: Record<
-    string,
-    { label: string; color: string; icon: React.ReactNode }
-  > = {
+  const statusMap: Record<string, { label: string; color: string; icon: React.ReactNode }> = {
     PENDING_FIRST_PARTY: {
       label: 'ממתין לצד ראשון',
       color: 'bg-amber-100 text-amber-800 border-amber-200',
@@ -218,13 +210,11 @@ const getStatusDisplay = (
     },
   };
 
-  return (
-    statusMap[status] || {
-      label: status.replace(/_/g, ' '),
-      color: 'bg-gray-100 text-gray-800 border-gray-200',
-      icon: <Clock size={12} />,
-    }
-  );
+  return statusMap[status] || {
+    label: status.replace(/_/g, ' '),
+    color: 'bg-gray-100 text-gray-800 border-gray-200',
+    icon: <Clock size={12} />,
+  };
 };
 
 // =============================================================================
@@ -262,8 +252,7 @@ const PartyMiniCard: React.FC<{
 }> = ({ party, label }) => {
   const age = calculateAge(party.birthDate);
   const genderIcon = party.gender === 'MALE' ? '♂' : '♀';
-  const genderColor =
-    party.gender === 'MALE' ? 'text-blue-500' : 'text-pink-500';
+  const genderColor = party.gender === 'MALE' ? 'text-blue-500' : 'text-pink-500';
 
   return (
     <div className="flex items-center gap-3 min-w-0">
@@ -281,17 +270,13 @@ const PartyMiniCard: React.FC<{
             </div>
           )}
         </div>
-        <span
-          className={`absolute -bottom-0.5 -left-0.5 text-xs font-bold ${genderColor}`}
-        >
+        <span className={`absolute -bottom-0.5 -left-0.5 text-xs font-bold ${genderColor}`}>
           {genderIcon}
         </span>
       </div>
       <div className="min-w-0 flex-1">
         <p className="text-xs text-gray-400">{label}</p>
-        <p className="text-sm font-semibold text-gray-800 truncate">
-          {party.name}
-        </p>
+        <p className="text-sm font-semibold text-gray-800 truncate">{party.name}</p>
         <div className="flex items-center gap-2 text-xs text-gray-500">
           {age && <span>{age}</span>}
           {party.city && (
@@ -316,9 +301,7 @@ const SuggestionRow: React.FC<{
   const createdAt = new Date(suggestion.createdAt);
 
   // Extract PotentialMatch score from internalNotes
-  const scoreMatch = suggestion.internalNotes?.match(
-    /Score:\s*(\d+(?:\.\d+)?)/
-  );
+  const scoreMatch = suggestion.internalNotes?.match(/Score:\s*(\d+(?:\.\d+)?)/);
   const aiScore = scoreMatch ? parseFloat(scoreMatch[1]) : null;
 
   return (
@@ -337,9 +320,7 @@ const SuggestionRow: React.FC<{
           {aiScore && (
             <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 flex flex-col items-center justify-center text-white shadow-sm">
               <span className="text-xs font-medium opacity-80">AI</span>
-              <span className="text-sm font-bold leading-none">
-                {Math.round(aiScore)}
-              </span>
+              <span className="text-sm font-bold leading-none">{Math.round(aiScore)}</span>
             </div>
           )}
 
@@ -386,9 +367,7 @@ const SuggestionRow: React.FC<{
               {/* Matching Reason */}
               {suggestion.matchingReason && (
                 <div className="bg-violet-50 rounded-lg p-3">
-                  <p className="text-xs font-semibold text-violet-700 mb-1">
-                    סיבת ההתאמה:
-                  </p>
+                  <p className="text-xs font-semibold text-violet-700 mb-1">סיבת ההתאמה:</p>
                   <p className="text-sm text-violet-900/80 leading-relaxed">
                     {suggestion.matchingReason}
                   </p>
@@ -398,64 +377,56 @@ const SuggestionRow: React.FC<{
               {/* Internal Notes */}
               {suggestion.internalNotes && (
                 <div className="bg-gray-50 rounded-lg p-3">
-                  <p className="text-xs font-semibold text-gray-500 mb-1">
-                    הערות פנימיות:
-                  </p>
-                  <p className="text-xs text-gray-600 font-mono">
-                    {suggestion.internalNotes}
-                  </p>
+                  <p className="text-xs font-semibold text-gray-500 mb-1">הערות פנימיות:</p>
+                  <p className="text-xs text-gray-600 font-mono">{suggestion.internalNotes}</p>
                 </div>
               )}
 
               {/* Contact Details */}
               <div className="grid grid-cols-2 gap-3">
-                {[suggestion.firstParty, suggestion.secondParty].map(
-                  (party, idx) => (
-                    <div key={party.id} className="bg-gray-50 rounded-lg p-3">
-                      <p className="text-xs font-semibold text-gray-500 mb-2">
-                        {idx === 0 ? 'צד ראשון' : 'צד שני'} - {party.name}
-                      </p>
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-1.5 text-xs text-gray-600">
-                          <Mail size={11} />
-                          <span className="truncate">{party.email}</span>
-                        </div>
-                        {party.phone && (
-                          <div className="flex items-center gap-1.5 text-xs text-gray-600">
-                            <Phone size={11} />
-                            <span>{party.phone}</span>
-                          </div>
-                        )}
-                        {party.city && (
-                          <div className="flex items-center gap-1.5 text-xs text-gray-600">
-                            <MapPin size={11} />
-                            <span>{party.city}</span>
-                          </div>
-                        )}
+                {[suggestion.firstParty, suggestion.secondParty].map((party, idx) => (
+                  <div key={party.id} className="bg-gray-50 rounded-lg p-3">
+                    <p className="text-xs font-semibold text-gray-500 mb-2">
+                      {idx === 0 ? 'צד ראשון' : 'צד שני'} - {party.name}
+                    </p>
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-1.5 text-xs text-gray-600">
+                        <Mail size={11} />
+                        <span className="truncate">{party.email}</span>
                       </div>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        className="mt-2 h-7 text-xs text-violet-600 hover:text-violet-700 hover:bg-violet-50"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onViewUser(party.id);
-                        }}
-                      >
-                        <Eye size={12} className="ml-1" />
-                        צפה בפרופיל
-                      </Button>
+                      {party.phone && (
+                        <div className="flex items-center gap-1.5 text-xs text-gray-600">
+                          <Phone size={11} />
+                          <span>{party.phone}</span>
+                        </div>
+                      )}
+                      {party.city && (
+                        <div className="flex items-center gap-1.5 text-xs text-gray-600">
+                          <MapPin size={11} />
+                          <span>{party.city}</span>
+                        </div>
+                      )}
                     </div>
-                  )
-                )}
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="mt-2 h-7 text-xs text-violet-600 hover:text-violet-700 hover:bg-violet-50"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onViewUser(party.id);
+                      }}
+                    >
+                      <Eye size={12} className="ml-1" />
+                      צפה בפרופיל
+                    </Button>
+                  </div>
+                ))}
               </div>
 
               {/* Status History */}
               {suggestion.statusHistory.length > 0 && (
                 <div>
-                  <p className="text-xs font-semibold text-gray-500 mb-2">
-                    היסטוריית סטטוס:
-                  </p>
+                  <p className="text-xs font-semibold text-gray-500 mb-2">היסטוריית סטטוס:</p>
                   <div className="space-y-1">
                     {suggestion.statusHistory.map((h) => (
                       <div
@@ -467,9 +438,7 @@ const SuggestionRow: React.FC<{
                           {getStatusDisplay(h.status).label}
                         </span>
                         {h.notes && (
-                          <span className="text-gray-400 truncate">
-                            - {h.notes}
-                          </span>
+                          <span className="text-gray-400 truncate">- {h.notes}</span>
                         )}
                         <span className="text-gray-300 mr-auto">
                           {format(new Date(h.createdAt), 'dd/MM HH:mm')}
@@ -503,17 +472,12 @@ export default function DailySuggestionsDashboard() {
 
   // ===== Personal Mode State =====
   const [personalSearchQuery, setPersonalSearchQuery] = useState('');
-  const [personalSearchResults, setPersonalSearchResults] = useState<
-    UserSearchResult[]
-  >([]);
+  const [personalSearchResults, setPersonalSearchResults] = useState<UserSearchResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
-  const [selectedUser, setSelectedUser] = useState<UserSearchResult | null>(
-    null
-  );
+  const [selectedUser, setSelectedUser] = useState<UserSearchResult | null>(null);
   const [personalCount, setPersonalCount] = useState(1);
   const [isRunningPersonal, setIsRunningPersonal] = useState(false);
-  const [personalResult, setPersonalResult] =
-    useState<PersonalRunResult | null>(null);
+  const [personalResult, setPersonalResult] = useState<PersonalRunResult | null>(null);
 
   // ===== Fetch today's suggestions =====
   const fetchSuggestions = useCallback(async () => {
@@ -521,9 +485,7 @@ export default function DailySuggestionsDashboard() {
       setIsLoading(true);
       setError(null);
 
-      const response = await fetch(
-        '/api/matchmaker/daily-suggestions?date=today'
-      );
+      const response = await fetch('/api/matchmaker/daily-suggestions?date=today');
       if (!response.ok) throw new Error('Failed to fetch daily suggestions');
 
       const data = await response.json();
@@ -595,9 +557,7 @@ export default function DailySuggestionsDashboard() {
 
     try {
       setIsSearching(true);
-      const response = await fetch(
-        `/api/matchmaker/users/search?q=${encodeURIComponent(query)}&limit=8`
-      );
+      const response = await fetch(`/api/matchmaker/users/search?q=${encodeURIComponent(query)}&limit=8`);
       if (!response.ok) throw new Error('Search failed');
       const data = await response.json();
       setPersonalSearchResults(data.users || []);
@@ -617,10 +577,7 @@ export default function DailySuggestionsDashboard() {
       setIsRunningPersonal(true);
       setPersonalResult(null);
 
-      toast.loading(
-        `שולח ${personalCount} הצעות ל${selectedUser.firstName}...`,
-        { id: 'personal-run' }
-      );
+      toast.loading(`שולח ${personalCount} הצעות ל${selectedUser.firstName}...`, { id: 'personal-run' });
 
       const response = await fetch('/api/matchmaker/daily-suggestions', {
         method: 'POST',
@@ -643,9 +600,7 @@ export default function DailySuggestionsDashboard() {
       if (result.success) {
         toast.success(`נשלחו ${result.sent} הצעות!`, {
           id: 'personal-run',
-          description: result.suggestions
-            .map((s) => `${s.otherPartyName} (${Math.round(s.aiScore)})`)
-            .join(', '),
+          description: result.suggestions.map((s) => `${s.otherPartyName} (${Math.round(s.aiScore)})`).join(', '),
           duration: 10000,
         });
       } else {
@@ -683,9 +638,7 @@ export default function DailySuggestionsDashboard() {
             <Sparkles className="w-6 h-6 text-white" />
           </div>
           <div>
-            <h2 className="text-xl font-bold text-gray-800">
-              הצעות יומיות אוטומטיות
-            </h2>
+            <h2 className="text-xl font-bold text-gray-800">הצעות יומיות אוטומטיות</h2>
             <p className="text-sm text-gray-500">
               הרצה ידנית ומעקב אחרי הצעות שנשלחו היום
             </p>
@@ -700,9 +653,7 @@ export default function DailySuggestionsDashboard() {
             disabled={isLoading}
             className="rounded-xl"
           >
-            <RefreshCw
-              className={cn('w-4 h-4 ml-1', isLoading && 'animate-spin')}
-            />
+            <RefreshCw className={cn('w-4 h-4 ml-1', isLoading && 'animate-spin')} />
             רענן
           </Button>
 
@@ -730,6 +681,9 @@ export default function DailySuggestionsDashboard() {
           </TooltipProvider>
         </div>
       </div>
+
+      {/* ===== Preview Suggestions Panel ===== */}
+      <PreviewSuggestionsPanel onViewProfile={handleViewUser} />
 
       {/* ===== Stats Cards ===== */}
       {stats && (
@@ -789,12 +743,8 @@ export default function DailySuggestionsDashboard() {
         >
           <div className="flex items-center gap-2 mb-3">
             <Zap className="w-4 h-4 text-violet-600" />
-            <h3 className="text-sm font-bold text-violet-800">
-              תוצאות ההרצה האחרונה
-            </h3>
-            <span className="text-xs text-violet-500">
-              ({lastRunResult.durationFormatted})
-            </span>
+            <h3 className="text-sm font-bold text-violet-800">תוצאות ההרצה האחרונה</h3>
+            <span className="text-xs text-violet-500">({lastRunResult.durationFormatted})</span>
           </div>
           <div className="flex flex-wrap gap-3">
             <Badge variant="outline" className="border-gray-300">
@@ -832,32 +782,22 @@ export default function DailySuggestionsDashboard() {
                     key={i}
                     className="flex items-center gap-2 text-xs py-1 border-b border-violet-100/50 last:border-0"
                   >
-                    <span className="font-mono text-gray-400 w-24 truncate">
-                      {d.userId.slice(0, 12)}...
-                    </span>
+                    <span className="font-mono text-gray-400 w-24 truncate">{d.userId.slice(0, 12)}...</span>
                     <Badge
                       className={cn(
                         'text-[10px] h-5',
-                        d.action === 'new_suggestion' &&
-                          'bg-emerald-100 text-emerald-700',
-                        d.action === 'reminder' &&
-                          'bg-amber-100 text-amber-700',
+                        d.action === 'new_suggestion' && 'bg-emerald-100 text-emerald-700',
+                        d.action === 'reminder' && 'bg-amber-100 text-amber-700',
                         d.action === 'skipped' && 'bg-gray-100 text-gray-600',
                         d.action === 'error' && 'bg-red-100 text-red-700'
                       )}
                     >
-                      {d.action === 'new_suggestion'
-                        ? '✅ הצעה'
-                        : d.action === 'reminder'
-                          ? '🔔 תזכורת'
-                          : d.action === 'skipped'
-                            ? '⏭️ דולג'
-                            : '❌ שגיאה'}
+                      {d.action === 'new_suggestion' ? '✅ הצעה' :
+                       d.action === 'reminder' ? '🔔 תזכורת' :
+                       d.action === 'skipped' ? '⏭️ דולג' : '❌ שגיאה'}
                     </Badge>
                     {d.reason && (
-                      <span className="text-gray-400 truncate flex-1">
-                        {d.reason}
-                      </span>
+                      <span className="text-gray-400 truncate flex-1">{d.reason}</span>
                     )}
                   </div>
                 ))}
@@ -924,11 +864,7 @@ export default function DailySuggestionsDashboard() {
                 >
                   <div className="w-9 h-9 rounded-full bg-gray-200 overflow-hidden flex-shrink-0">
                     {u.mainImage ? (
-                      <img
-                        src={u.mainImage}
-                        alt=""
-                        className="w-full h-full object-cover"
-                      />
+                      <img src={u.mainImage} alt="" className="w-full h-full object-cover" />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center text-gray-400">
                         <Users size={16} />
@@ -938,23 +874,14 @@ export default function DailySuggestionsDashboard() {
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-semibold text-gray-800 truncate">
                       {u.firstName} {u.lastName}
-                      <span
-                        className={cn(
-                          'mr-1 text-xs',
-                          u.gender === 'MALE'
-                            ? 'text-blue-500'
-                            : 'text-pink-500'
-                        )}
-                      >
+                      <span className={cn('mr-1 text-xs', u.gender === 'MALE' ? 'text-blue-500' : 'text-pink-500')}>
                         {u.gender === 'MALE' ? '♂' : '♀'}
                       </span>
                     </p>
                     <p className="text-xs text-gray-400 truncate">{u.email}</p>
                   </div>
                   {u.city && (
-                    <span className="text-xs text-gray-400 flex-shrink-0">
-                      {u.city}
-                    </span>
+                    <span className="text-xs text-gray-400 flex-shrink-0">{u.city}</span>
                   )}
                 </button>
               ))}
@@ -968,11 +895,7 @@ export default function DailySuggestionsDashboard() {
                 <div className="flex items-center gap-3">
                   <div className="w-11 h-11 rounded-full bg-gray-200 overflow-hidden flex-shrink-0">
                     {selectedUser.mainImage ? (
-                      <img
-                        src={selectedUser.mainImage}
-                        alt=""
-                        className="w-full h-full object-cover"
-                      />
+                      <img src={selectedUser.mainImage} alt="" className="w-full h-full object-cover" />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center text-gray-400">
                         <Users size={20} />
@@ -982,20 +905,11 @@ export default function DailySuggestionsDashboard() {
                   <div>
                     <p className="text-sm font-bold text-gray-800">
                       {selectedUser.firstName} {selectedUser.lastName}
-                      <span
-                        className={cn(
-                          'mr-1',
-                          selectedUser.gender === 'MALE'
-                            ? 'text-blue-500'
-                            : 'text-pink-500'
-                        )}
-                      >
+                      <span className={cn('mr-1', selectedUser.gender === 'MALE' ? 'text-blue-500' : 'text-pink-500')}>
                         {selectedUser.gender === 'MALE' ? '♂' : '♀'}
                       </span>
                     </p>
-                    <p className="text-xs text-gray-400">
-                      {selectedUser.email}
-                    </p>
+                    <p className="text-xs text-gray-400">{selectedUser.email}</p>
                   </div>
                 </div>
                 <Button
@@ -1085,13 +999,8 @@ export default function DailySuggestionsDashboard() {
                       <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center text-white text-xs font-bold">
                         {Math.round(s.aiScore)}
                       </div>
-                      <span className="font-medium text-gray-800">
-                        {s.otherPartyName}
-                      </span>
-                      <Badge
-                        variant="outline"
-                        className="text-[10px] h-5 border-emerald-300 text-emerald-700 mr-auto"
-                      >
+                      <span className="font-medium text-gray-800">{s.otherPartyName}</span>
+                      <Badge variant="outline" className="text-[10px] h-5 border-emerald-300 text-emerald-700 mr-auto">
                         נשלח ✓
                       </Badge>
                     </div>
@@ -1140,12 +1049,9 @@ export default function DailySuggestionsDashboard() {
             <div className="p-4 bg-violet-50 rounded-full mb-4">
               <Sparkles className="w-8 h-8 text-violet-400" />
             </div>
-            <h3 className="text-lg font-bold text-gray-700 mb-2">
-              אין הצעות היום
-            </h3>
+            <h3 className="text-lg font-bold text-gray-700 mb-2">אין הצעות היום</h3>
             <p className="text-sm text-gray-500 max-w-md mb-4">
-              לא נשלחו עדיין הצעות יומיות היום. לחץ על &quot;הרץ הצעות
-              יומיות&quot; כדי לשלוח הצעות לכל היוזרים הזכאים.
+              לא נשלחו עדיין הצעות יומיות היום. לחץ על &quot;הרץ הצעות יומיות&quot; כדי לשלוח הצעות לכל היוזרים הזכאים.
             </p>
             <Button
               onClick={() => setShowConfirmRun(true)}
@@ -1179,12 +1085,10 @@ export default function DailySuggestionsDashboard() {
             </AlertDialogTitle>
             <AlertDialogDescription className="text-center text-gray-600 leading-relaxed space-y-2">
               <p>
-                פעולה זו תשלח הצעת שידוך יומית אחת לכל יוזר זכאי שעדיין לא קיבל
-                הצעה היום.
+                פעולה זו תשלח הצעת שידוך יומית אחת לכל יוזר זכאי שעדיין לא קיבל הצעה היום.
               </p>
               <p className="text-sm text-amber-600 font-medium">
-                ⚠️ יוזרים שכבר קיבלו הצעה שממתינה לתגובתם יקבלו תזכורת במקום
-                הצעה חדשה.
+                ⚠️ יוזרים שכבר קיבלו הצעה שממתינה לתגובתם יקבלו תזכורת במקום הצעה חדשה.
               </p>
             </AlertDialogDescription>
           </AlertDialogHeader>

@@ -13,6 +13,7 @@ export { default as PotentialMatchesStats } from './PotentialMatchesStats';
 
 // Daily Suggestions Dashboard (NEW)
 export { default as DailySuggestionsDashboard } from './DailySuggestionsDashboard';
+export { default as PreviewSuggestionsPanel } from './PreviewSuggestionsPanel';
 
 // Hooks
 export { usePotentialMatches } from './hooks/usePotentialMatches';

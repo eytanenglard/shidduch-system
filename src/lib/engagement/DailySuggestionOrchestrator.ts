@@ -813,4 +813,238 @@ export class DailySuggestionOrchestrator {
 
     return validMatches;
   }
+
+  // ==========================================================================
+  // ===== Preview Mode - הכנת הצעות לתצוגה מקדימה בלי שמירה ב-DB =====
+  // ==========================================================================
+
+  /**
+   * מחזיר רשימת הצעות מוצעות לכל היוזרים הזכאים — ללא שמירה ב-DB.
+   * לכל יוזר: top 3 התאמות אפשריות + מידע על הצד השני.
+   */
+  static async generatePreview(): Promise<{
+    eligibleCount: number;
+    withMatches: number;
+    withoutMatches: number;
+    hasBlockingSuggestion: number;
+    previews: PreviewItem[];
+  }> {
+    console.log('\n═══════════════════════════════════════════════════════');
+    console.log('👁️ [Preview Mode] Generating preview for all eligible users...');
+    console.log('═══════════════════════════════════════════════════════\n');
+
+    const eligibleUsers = await this.getEligibleUsers();
+    console.log(`📊 Found ${eligibleUsers.length} eligible users\n`);
+
+    const previews: PreviewItem[] = [];
+    let withMatches = 0;
+    let withoutMatches = 0;
+    let hasBlockingSuggestion = 0;
+
+    for (const user of eligibleUsers) {
+      // Check blocking suggestion
+      const blockingSuggestion = await prisma.matchSuggestion.findFirst({
+        where: {
+          OR: [
+            { firstPartyId: user.id },
+            { secondPartyId: user.id },
+          ],
+          status: { in: BLOCKING_SUGGESTION_STATUSES },
+        },
+        select: { id: true, status: true },
+      });
+
+      if (blockingSuggestion) {
+        hasBlockingSuggestion++;
+        continue; // דלג — יש ליוזר כבר הצעה פעילה
+      }
+
+      // Find top 3 matches
+      const topMatches = await this.findTopMatches(user, 3);
+
+      // Enrich with other party info
+      const enrichedMatches: PreviewMatch[] = [];
+      for (const match of topMatches) {
+        const otherPartyId = user.id === match.maleUserId ? match.femaleUserId : match.maleUserId;
+        const otherParty = await prisma.user.findUnique({
+          where: { id: otherPartyId },
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+            profile: {
+              select: {
+                gender: true,
+                city: true,
+                birthDate: true,
+                religiousLevel: true,
+              },
+            },
+            images: {
+              where: { isMain: true },
+              select: { url: true },
+              take: 1,
+            },
+          },
+        });
+
+        if (otherParty) {
+          enrichedMatches.push({
+            matchId: match.id,
+            aiScore: match.aiScore,
+            shortReasoning: match.shortReasoning,
+            otherParty: {
+              id: otherParty.id,
+              firstName: otherParty.firstName,
+              lastName: otherParty.lastName,
+              gender: otherParty.profile?.gender || null,
+              city: otherParty.profile?.city || null,
+              birthDate: otherParty.profile?.birthDate?.toISOString() || null,
+              religiousLevel: otherParty.profile?.religiousLevel || null,
+              mainImage: otherParty.images[0]?.url || null,
+            },
+          });
+        }
+      }
+
+      if (enrichedMatches.length > 0) {
+        withMatches++;
+      } else {
+        withoutMatches++;
+      }
+
+      previews.push({
+        user: {
+          id: user.id,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          email: user.email,
+          gender: user.profile?.gender || null,
+        },
+        selectedMatchId: enrichedMatches[0]?.matchId || null,
+        matches: enrichedMatches,
+        status: enrichedMatches.length > 0 ? 'ready' : 'no_matches',
+      });
+    }
+
+    console.log(`\n👁️ [Preview] Done: ${withMatches} with matches, ${withoutMatches} without, ${hasBlockingSuggestion} blocked\n`);
+
+    return {
+      eligibleCount: eligibleUsers.length,
+      withMatches,
+      withoutMatches,
+      hasBlockingSuggestion,
+      previews,
+    };
+  }
+
+  /**
+   * שולח הצעות מותאמות אישית לפי רשימה שהשדכן אישר.
+   * @param assignments - רשימה של { userId, matchId } שהשדכן בחר
+   * @param matchmakerId - ID של השדכן
+   */
+  static async sendApprovedSuggestions(
+    assignments: { userId: string; matchId: string }[],
+    matchmakerId: string
+  ): Promise<{
+    sent: number;
+    errors: { userId: string; error: string }[];
+  }> {
+    console.log(`\n🚀 [Send Approved] Sending ${assignments.length} approved suggestions...\n`);
+
+    const [dictHe, dictEn] = await Promise.all([
+      getDictionary('he'),
+      getDictionary('en'),
+    ]);
+    const dictionaries = { he: dictHe.email, en: dictEn.email };
+
+    let sent = 0;
+    const errors: { userId: string; error: string }[] = [];
+
+    for (const { userId, matchId } of assignments) {
+      try {
+        // Fetch user
+        const user = await prisma.user.findUnique({
+          where: { id: userId },
+          select: {
+            id: true,
+            email: true,
+            firstName: true,
+            lastName: true,
+            phone: true,
+            language: true,
+            profile: { select: { id: true, gender: true, availabilityStatus: true } },
+          },
+        });
+
+        if (!user || !user.profile) {
+          errors.push({ userId, error: 'User or profile not found' });
+          continue;
+        }
+
+        // Fetch match
+        const match = await prisma.potentialMatch.findUnique({
+          where: { id: matchId },
+          select: {
+            id: true,
+            maleUserId: true,
+            femaleUserId: true,
+            aiScore: true,
+            shortReasoning: true,
+            detailedReasoning: true,
+          },
+        });
+
+        if (!match) {
+          errors.push({ userId, error: `Match ${matchId} not found` });
+          continue;
+        }
+
+        await this.createAutoSuggestion(user, match, matchmakerId, dictionaries);
+        sent++;
+        console.log(`  ✅ Sent to ${user.firstName} ${user.lastName}`);
+      } catch (err) {
+        const errMsg = err instanceof Error ? err.message : 'Unknown error';
+        errors.push({ userId, error: errMsg });
+        console.error(`  ❌ Error for ${userId}: ${errMsg}`);
+      }
+    }
+
+    console.log(`\n🚀 [Send Approved] Done: ${sent}/${assignments.length} sent\n`);
+    return { sent, errors };
+  }
+}
+
+// =============================================================================
+// TYPES for Preview
+// =============================================================================
+
+export interface PreviewMatch {
+  matchId: string;
+  aiScore: number;
+  shortReasoning: string | null;
+  otherParty: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    gender: string | null;
+    city: string | null;
+    birthDate: string | null;
+    religiousLevel: string | null;
+    mainImage: string | null;
+  };
+}
+
+export interface PreviewItem {
+  user: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    gender: string | null;
+  };
+  selectedMatchId: string | null;
+  matches: PreviewMatch[];
+  status: 'ready' | 'no_matches';
 }
