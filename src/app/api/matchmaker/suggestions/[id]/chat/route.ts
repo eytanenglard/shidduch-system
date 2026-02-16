@@ -1,7 +1,7 @@
 // app/api/matchmaker/suggestions/[id]/chat/route.ts
 // ==========================================
 // NeshamaTech - Matchmaker Chat API (Web Dashboard)
-// GET: Fetch all messages for a suggestion (matchmaker seesall)
+// GET: Fetch all messages for a suggestion (matchmaker sees all)
 // POST: Send a message from matchmaker to a party
 // ==========================================
 
@@ -13,7 +13,7 @@ import { UserRole } from "@prisma/client";
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -31,7 +31,7 @@ export async function GET(
       );
     }
 
-    const suggestionId = params.id;
+    const { id: suggestionId } = await context.params;
 
     // Verify suggestion exists and belongs to this matchmaker
     const suggestion = await prisma.matchSuggestion.findUnique({
@@ -120,7 +120,7 @@ export async function GET(
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -138,7 +138,7 @@ export async function POST(
       );
     }
 
-    const suggestionId = params.id;
+    const { id: suggestionId } = await context.params;
     const { content } = await req.json();
 
     if (!content || typeof content !== "string" || !content.trim()) {
@@ -216,7 +216,7 @@ export async function POST(
 // PATCH - Mark messages as read (matchmaker reads user messages)
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -224,7 +224,7 @@ export async function PATCH(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const suggestionId = params.id;
+    const { id: suggestionId } = await context.params;
 
     // Mark user messages as read
     const result = await prisma.suggestionMessage.updateMany({
