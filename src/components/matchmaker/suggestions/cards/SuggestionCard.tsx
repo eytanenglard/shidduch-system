@@ -26,17 +26,14 @@ import {
   CalendarClock,
   Heart,
   MapPin,
-
   Star,
   Sparkles,
   Crown,
   Target,
-
   Quote,
   Briefcase,
   GraduationCap,
   ArrowRight,
-
   Flame,
   TrendingUp,
   Shield,
@@ -57,9 +54,7 @@ import type {
 import { Progress } from '@/components/ui/progress';
 import { cn, getRelativeCloudinaryPath, getInitials } from '@/lib/utils';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import {
-  TooltipProvider,
-} from '@/components/ui/tooltip';
+import { TooltipProvider } from '@/components/ui/tooltip';
 import type { MatchmakerPageDictionary } from '@/types/dictionary';
 
 // Media query hook
@@ -95,6 +90,7 @@ interface SuggestionCardProps {
   dict: MatchmakerPageDictionary['suggestionsDashboard']['suggestionCard'];
   className?: string;
   variant?: 'full' | 'compact';
+  unreadChatCount?: number;
 }
 
 const calculateAge = (birthDate: Date): number => {
@@ -102,7 +98,10 @@ const calculateAge = (birthDate: Date): number => {
   const birth = new Date(birthDate);
   let age = today.getFullYear() - birth.getFullYear();
   const monthDiff = today.getMonth() - birth.getMonth();
-  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+  if (
+    monthDiff < 0 ||
+    (monthDiff === 0 && today.getDate() < birth.getDate())
+  ) {
     age--;
   }
   return age;
@@ -353,6 +352,7 @@ const SuggestionCard: React.FC<SuggestionCardProps> = ({
   dict,
   className,
   variant = 'full',
+  unreadChatCount = 0,
 }) => {
   const isMobile = useMediaQuery('(max-width: 768px)');
 
@@ -576,9 +576,15 @@ const SuggestionCard: React.FC<SuggestionCardProps> = ({
                   </DropdownMenuItem>
                   <DropdownMenuItem
                     onClick={() => onAction('message', suggestion)}
+                    className="relative"
                   >
                     <MessageCircle className="w-4 h-4 ml-2" />
                     <span>{dict.actions.sendMessage}</span>
+                    {unreadChatCount > 0 && (
+                      <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] bg-gradient-to-r from-red-500 to-pink-500 text-white text-[10px] rounded-full flex items-center justify-center shadow-md animate-pulse">
+                        {unreadChatCount}
+                      </span>
+                    )}
                   </DropdownMenuItem>
                   <DropdownMenuItem
                     onClick={() => onAction('delete', suggestion)}
@@ -838,10 +844,15 @@ const SuggestionCard: React.FC<SuggestionCardProps> = ({
                 variant="ghost"
                 size="sm"
                 onClick={() => onAction('message', suggestion)}
-                className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-xl font-medium"
+                className="relative text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-xl font-medium"
               >
                 <MessageCircle className="w-4 h-4 ml-2" />
                 {dict.actions.sendMessage}
+                {unreadChatCount > 0 && (
+                  <span className="absolute -top-2 -right-2 min-w-[18px] h-[18px] bg-gradient-to-r from-red-500 to-pink-500 text-white text-[10px] rounded-full flex items-center justify-center shadow-md animate-pulse">
+                    {unreadChatCount}
+                  </span>
+                )}
               </Button>
               {canBeResent && (
                 <Button

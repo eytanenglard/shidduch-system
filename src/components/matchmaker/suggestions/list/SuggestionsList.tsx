@@ -2,6 +2,8 @@
 
 import React, { useState, useMemo } from 'react';
 import { Input } from '@/components/ui/input';
+import { useUnreadChatCounts } from '@/hooks/useUnreadChatCounts';
+
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -384,6 +386,7 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
   const [statusFilter, setStatusFilter] = useState<string[]>([]);
   const [showFilters, setShowFilters] = useState(false);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+const { bySuggestion: unreadCounts } = useUnreadChatCounts();
 
   const stats = useMemo(() => {
     const total = suggestions.length;
@@ -542,6 +545,8 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
                 onAction={onAction}
                 dict={dashboardDict.suggestionCard}
                 className="h-full"
+                  unreadChatCount={unreadCounts[suggestion.id] || 0}  // ← הוסף
+
               />
             </div>
           ))}

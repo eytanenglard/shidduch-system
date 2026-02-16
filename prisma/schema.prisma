@@ -75,7 +75,7 @@ virtualProfiles       VirtualProfile[]    @relation("MatchmakerVirtualProfiles")
   hiddenCandidates      HiddenCandidate[] @relation("HiddenByMatchmaker")
   alerts      UserAlert[]
   scanSessions              ScanSession[]  // ← הוסף שורה זו
-
+ suggestionMessages  SuggestionMessage[] @relation("UserSuggestionMessages")
   @@index([email])
   @@index([role])
   @@index([status])
@@ -351,6 +351,7 @@ model MatchSuggestion {
   firstPartyLastViewedAt  DateTime?  // מתי צד א' צפה בהצעה לאחרונה
   secondPartyLastViewedAt DateTime?  // מתי צד ב' צפה בהצעה לאחרונה
  potentialMatch  PotentialMatch?
+ messages    SuggestionMessage[]
 
   @@index([category])
   @@index([matchmakerId])
@@ -1808,4 +1809,21 @@ model DeviceToken {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   
   @@index([userId])
+}
+
+model SuggestionMessage {
+  id           String            @id @default(cuid())
+  suggestionId String
+  senderId     String
+  senderType   MessageSenderType
+  content      String            @db.Text
+  isRead       Boolean           @default(false)
+  createdAt    DateTime          @default(now())
+
+  suggestion   MatchSuggestion   @relation(fields: [suggestionId], references: [id], onDelete: Cascade)
+  sender       User              @relation("UserSuggestionMessages", fields: [senderId], references: [id], onDelete: Cascade)
+
+  @@index([suggestionId, createdAt])
+  @@index([suggestionId, isRead])
+  @@index([senderId])
 }

@@ -4,6 +4,7 @@
 import React, { useState, useEffect } from 'react';
 import InquiryThreadView from '@/components/suggestions/inquiries/InquiryThreadView';
 import { useNotifications } from '@/app/[locale]/contexts/NotificationContext';
+import SuggestionChatTab from './SuggestionChatTab';
 
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -27,8 +28,8 @@ import {
   Edit,
   Calendar,
   Clock,
-  ArrowLeft, // להוספה
-  Edit2, // להוספה (אייקון עריכה קטן)
+  ArrowLeft,
+  Edit2,
   AlarmClock,
   Trash2,
   User,
@@ -107,8 +108,8 @@ interface SuggestionDetailsDialogProps {
   userId: string;
   matchmakerDict: MatchmakerPageDictionary;
   suggestionsDict: SuggestionsDictionary;
-  profileDict: ProfilePageDictionary; // ✅ הוספת המילון החדש
-  locale: 'he' | 'en'; // <-- 1. הוסף את locale לממשק ה-props
+  profileDict: ProfilePageDictionary;
+  locale: 'he' | 'en';
 }
 
 interface StatusInfo {
@@ -297,7 +298,16 @@ const getEnhancedStatusInfo = (status: MatchSuggestionStatus): StatusInfo => {
   );
 };
 
-// ... Internal Components updated to receive and use dict ...
+// Tab configuration with icons - chat tab added
+const TAB_ICONS: Record<string, LucideIcon> = {
+  overview: Eye,
+  party1: User,
+  party2: User,
+  timeline: Calendar,
+  communication: MessageCircle,
+  chat: MessageCircle,
+  actions: Settings,
+};
 
 const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
   suggestion,
@@ -308,7 +318,7 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
   matchmakerDict,
   suggestionsDict,
   profileDict,
-  locale, // <-- 2. קבל את locale
+  locale,
 }) => {
   const dict = matchmakerDict.suggestionDetailsDialog;
   const [activeTab, setActiveTab] = useState('overview');
@@ -379,6 +389,13 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
 
   const statusInfo = getEnhancedStatusInfo(suggestion.status);
   const statusLabel = dict.statusLabels[suggestion.status] || suggestion.status;
+
+  // Build tabs list: original tabs + chat tab
+  const tabEntries: [string, string][] = [
+    ...Object.entries(dict.tabs),
+    ['chat', locale === 'he' ? 'צ\'אט' : 'Chat'],
+  ];
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent
@@ -388,7 +405,7 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
             ? '!w-screen !h-screen !max-w-none !max-h-none !rounded-none !fixed !inset-0 !m-0'
             : 'md:max-w-7xl md:w-[95vw] md:h-[95vh] md:rounded-3xl'
         )}
-        dir={locale === 'he' ? 'rtl' : 'ltr'} // <-- ✨ 3. השתמש ב-locale לקביעת הכיווניות
+        dir={locale === 'he' ? 'rtl' : 'ltr'}
         onOpenAutoFocus={(e) => e.preventDefault()}
       >
         <Tabs
@@ -487,17 +504,17 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
                   </Button>
                 </div>
               </div>
-              <TabsList className="grid w-full grid-cols-3 sm:grid-cols-6 bg-white/60 backdrop-blur-sm rounded-2xl p-1.5 h-auto shadow-lg border border-white/50">
-                {Object.entries(dict.tabs).map(([key, label]) => {
-                  const IconComponent =
-                    {
-                      overview: Eye,
-                      party1: User,
-                      party2: User,
-                      timeline: Calendar,
-                      communication: MessageCircle,
-                      actions: Settings,
-                    }[key] || Eye;
+              <TabsList
+                className={cn(
+                  'grid w-full bg-white/60 backdrop-blur-sm rounded-2xl p-1.5 h-auto shadow-lg border border-white/50',
+                  `grid-cols-3 sm:grid-cols-${tabEntries.length}`
+                )}
+                style={{
+                  gridTemplateColumns: `repeat(${tabEntries.length}, minmax(0, 1fr))`,
+                }}
+              >
+                {tabEntries.map(([key, label]) => {
+                  const IconComponent = TAB_ICONS[key] || Eye;
                   return (
                     <TabsTrigger
                       key={key}
@@ -523,7 +540,7 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
 
           <div className="flex-1 overflow-y-auto bg-slate-50">
             <TabsContent value="overview" className="m-0 h-full">
-              {/* OverviewTabContent Component would be here, but we'll inline it */}
+              {/* OverviewTabContent Component would be here */}
             </TabsContent>
             <TabsContent value="firstParty" className="m-0 h-full">
               <div className="p-6">
@@ -598,6 +615,15 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
                 </div>
               </div>
             </TabsContent>
+
+            {/* ===== NEW: Chat Tab ===== */}
+            <TabsContent value="chat" className="m-0 h-full">
+              <SuggestionChatTab
+                suggestionId={suggestion.id}
+                locale={locale}
+              />
+            </TabsContent>
+
             <TabsContent value="actions" className="m-0 h-full">
               <div className="p-6">
                 <h3 className="text-2xl font-bold mb-6 flex items-center gap-3">
@@ -730,8 +756,6 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
                           className="justify-between h-auto py-3 px-4 border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-all text-right group"
                           onClick={() => {
                             setNewStatus(action.nextStatus);
-                            // אפשר להוסיף הערה אוטומטית לפי הפעולה
-                            // setStatusChangeNote(action.label);
                           }}
                         >
                           <span className="font-medium text-gray-700 group-hover:text-blue-700">
@@ -758,7 +782,7 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
 
                 <div className="border-t border-gray-100 my-4"></div>
 
-                {/* בחירה ידנית (כמו שהיה קודם, למקרי חירום) */}
+                {/* בחירה ידנית */}
                 <div>
                   <label className="block text-xs font-semibold uppercase tracking-wider text-gray-500 mb-2">
                     {dict.statusChangeModal.newStatusLabel} (בחירה ידנית)
