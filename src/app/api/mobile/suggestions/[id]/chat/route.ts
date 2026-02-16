@@ -44,8 +44,8 @@ export async function GET(
     }
 
     const isParty =
-      suggestion.firstPartyId === user.id ||
-      suggestion.secondPartyId === user.id;
+      suggestion.firstPartyId === user.userId ||
+      suggestion.secondPartyId === user.userId;
 
     if (!isParty) {
       return NextResponse.json(
@@ -60,7 +60,7 @@ export async function GET(
       where: {
         suggestionId,
         OR: [
-          { senderId: user.id }, // Messages sent by this user
+          { senderId: user.userId }, // Messages sent by this user
           {
             senderType: "MATCHMAKER", // Messages from matchmaker
             // Note: matchmaker messages to both parties are visible
@@ -143,8 +143,8 @@ export async function POST(
     }
 
     const isParty =
-      suggestion.firstPartyId === user.id ||
-      suggestion.secondPartyId === user.id;
+      suggestion.firstPartyId === user.userId ||
+      suggestion.secondPartyId === user.userId;
 
     if (!isParty) {
       return NextResponse.json(
@@ -157,7 +157,7 @@ export async function POST(
     const message = await prisma.suggestionMessage.create({
       data: {
         suggestionId,
-        senderId: user.id,
+        senderId: user.userId,
         senderType: "USER",
         content: content.trim(),
       },

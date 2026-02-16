@@ -37,8 +37,8 @@ export async function POST(
     }
 
     const isParty =
-      suggestion.firstPartyId === user.id ||
-      suggestion.secondPartyId === user.id;
+      suggestion.firstPartyId === user.userId ||
+      suggestion.secondPartyId === user.userId;
 
     if (!isParty) {
       return NextResponse.json(
@@ -52,7 +52,7 @@ export async function POST(
     const result = await prisma.suggestionMessage.updateMany({
       where: {
         suggestionId,
-        senderId: { not: user.id },
+        senderId: { not: user.userId },
         isRead: false,
       },
       data: { isRead: true },

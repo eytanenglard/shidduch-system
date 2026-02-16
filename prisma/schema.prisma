@@ -1810,7 +1810,11 @@ model DeviceToken {
   
   @@index([userId])
 }
-
+enum MessageSenderType {
+  USER
+  MATCHMAKER
+  SYSTEM
+}
 model SuggestionMessage {
   id           String            @id @default(cuid())
   suggestionId String
