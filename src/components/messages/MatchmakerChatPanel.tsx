@@ -1,10 +1,4 @@
 // src/components/messages/MatchmakerChatPanel.tsx
-// ==========================================
-// NeshamaTech - Matchmaker Chat Panel 
-// Standalone panel for the Messages page
-// Shows all suggestion chats with unread badges
-// ==========================================
-
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
@@ -13,20 +7,18 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Separator } from '@/components/ui/separator';
 import {
   MessageCircle,
   Loader2,
   ChevronLeft,
   ChevronRight,
-  ArrowRight,
-  ArrowLeft,
+  ChevronDown,
+  ChevronUp,
   Users,
   Inbox,
+  ArrowLeft,
 } from 'lucide-react';
 import { cn, getInitials } from '@/lib/utils';
-import { formatDistanceToNow } from 'date-fns';
-import { he, enUS } from 'date-fns/locale';
 import SuggestionChatTab from '../matchmaker/suggestions/details/SuggestionChatTab';
 import type { Locale } from '../../../i18n-config';
 
@@ -34,17 +26,27 @@ import type { Locale } from '../../../i18n-config';
 // Types
 // ==========================================
 
+interface PartyInfo {
+  id: string;
+  name: string;
+  lastMessage?: string;
+  lastMessageTime?: string;
+  unreadCount: number;
+}
+
 interface SuggestionChatSummary {
   suggestionId: string;
-  firstPartyName: string;
-  secondPartyName: string;
-  lastMessage?: {
-    content: string;
-    senderType: string;
-    createdAt: string;
-  };
-  unreadCount: number;
+  firstParty: PartyInfo;
+  secondParty: PartyInfo;
   status: string;
+  totalUnread: number;
+}
+
+interface SelectedChat {
+  suggestionId: string;
+  partyId: string;
+  partyName: string;
+  isFirstParty: boolean;
 }
 
 interface MatchmakerChatPanelProps {
@@ -57,50 +59,70 @@ interface MatchmakerChatPanelProps {
 
 export default function MatchmakerChatPanel({ locale }: MatchmakerChatPanelProps) {
   const [chatSummaries, setChatSummaries] = useState<SuggestionChatSummary[]>([]);
-  const [selectedSuggestionId, setSelectedSuggestionId] = useState<string | null>(null);
+  const [expandedSuggestions, setExpandedSuggestions] = useState<Set<string>>(new Set());
+  const [selectedChat, setSelectedChat] = useState<SelectedChat | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [unreadMap, setUnreadMap] = useState<Record<string, number>>({});
   const isHe = locale === 'he';
 
   // ==========================================
-  // Load suggestions with messages
+  // Load data
   // ==========================================
 
   const loadChatSummaries = useCallback(async () => {
     try {
-      // 1. Get all suggestions
-      const suggestionsRes = await fetch('/api/matchmaker/suggestions');
-      if (!suggestionsRes.ok) throw new Error('Failed to fetch suggestions');
-      const suggestions = await suggestionsRes.json();
+      const [suggestionsRes, unreadRes] = await Promise.all([
+        fetch('/api/matchmaker/suggestions'),
+        fetch('/api/matchmaker/chat/unread'),
+      ]);
 
-      // 2. Get unread counts
-      const unreadRes = await fetch('/api/matchmaker/chat/unread');
+      if (!suggestionsRes.ok) throw new Error('Failed to fetch suggestions');
+
+      const suggestions = await suggestionsRes.json();
       let unreadData: { bySuggestion?: Record<string, number> } = {};
       if (unreadRes.ok) {
         unreadData = await unreadRes.json();
       }
-      const unread = unreadData.bySuggestion || {};
-      setUnreadMap(unread);
+      const unreadMap = unreadData.bySuggestion || {};
 
-      // 3. Build summaries - only include suggestions that have messages or unread
-      // For now, we show all active suggestions (matchmaker can message any)
+      // Build summaries
       const summaries: SuggestionChatSummary[] = suggestions
         .filter((s: { category: string }) => s.category !== 'HISTORY')
         .map((s: {
           id: string;
           status: string;
-          firstParty: { firstName: string; lastName: string };
-          secondParty: { firstName: string; lastName: string };
-        }) => ({
-          suggestionId: s.id,
-          firstPartyName: `${s.firstParty.firstName} ${s.firstParty.lastName}`,
-          secondPartyName: `${s.secondParty.firstName} ${s.secondParty.lastName}`,
-          unreadCount: unread[s.id] || 0,
-          status: s.status,
-        }))
-        .sort((a: SuggestionChatSummary, b: SuggestionChatSummary) => b.unreadCount - a.unreadCount);
+          firstParty: { id: string; firstName: string; lastName: string };
+          secondParty: { id: string; firstName: string; lastName: string };
+        }) => {
+          const suggestionUnread = unreadMap[s.id] || 0;
+          
+          return {
+            suggestionId: s.id,
+            firstParty: {
+              id: s.firstParty.id,
+              name: `${s.firstParty.firstName} ${s.firstParty.lastName}`,
+              unreadCount: 0, // Will be updated separately if needed
+            },
+            secondParty: {
+              id: s.secondParty.id,
+              name: `${s.secondParty.firstName} ${s.secondParty.lastName}`,
+              unreadCount: 0,
+            },
+            status: s.status,
+            totalUnread: suggestionUnread,
+          };
+        })
+        .sort((a: SuggestionChatSummary, b: SuggestionChatSummary) => 
+          b.totalUnread - a.totalUnread
+        );
 
       setChatSummaries(summaries);
+
+      // Auto-expand suggestions with unread messages
+      const withUnread = summaries
+        .filter((s: SuggestionChatSummary) => s.totalUnread > 0)
+        .map((s: SuggestionChatSummary) => s.suggestionId);
+      setExpandedSuggestions(new Set(withUnread));
+
     } catch (error) {
       console.error('Error loading chat summaries:', error);
     } finally {
@@ -110,22 +132,52 @@ export default function MatchmakerChatPanel({ locale }: MatchmakerChatPanelProps
 
   useEffect(() => {
     loadChatSummaries();
-    const interval = setInterval(loadChatSummaries, 30000); // Refresh every 30s
+    const interval = setInterval(loadChatSummaries, 30000);
     return () => clearInterval(interval);
   }, [loadChatSummaries]);
+
+  // ==========================================
+  // Handlers
+  // ==========================================
+
+  const toggleExpand = (suggestionId: string) => {
+    setExpandedSuggestions((prev) => {
+      const next = new Set(prev);
+      if (next.has(suggestionId)) {
+        next.delete(suggestionId);
+      } else {
+        next.add(suggestionId);
+      }
+      return next;
+    });
+  };
+
+  const openChat = (
+    suggestionId: string,
+    partyId: string,
+    partyName: string,
+    isFirstParty: boolean
+  ) => {
+    setSelectedChat({ suggestionId, partyId, partyName, isFirstParty });
+  };
+
+  const closeChat = () => {
+    setSelectedChat(null);
+    loadChatSummaries(); // Refresh to update unread counts
+  };
 
   // ==========================================
   // Helpers
   // ==========================================
 
-  const totalUnread = Object.values(unreadMap).reduce((sum, n) => sum + n, 0);
+  const totalUnread = chatSummaries.reduce((sum, s) => sum + s.totalUnread, 0);
 
   const getStatusLabel = (status: string) => {
     const labels: Record<string, { he: string; en: string; color: string }> = {
-      PENDING_FIRST_PARTY: { he: 'ממתין לצד א\'', en: 'Pending Party A', color: 'bg-yellow-100 text-yellow-700' },
-      PENDING_SECOND_PARTY: { he: 'ממתין לצד ב\'', en: 'Pending Party B', color: 'bg-blue-100 text-blue-700' },
-      FIRST_PARTY_APPROVED: { he: 'צד א\' אישר', en: 'Party A Approved', color: 'bg-green-100 text-green-700' },
-      SECOND_PARTY_APPROVED: { he: 'צד ב\' אישר', en: 'Party B Approved', color: 'bg-green-100 text-green-700' },
+      PENDING_FIRST_PARTY: { he: "ממתין לצד א'", en: 'Pending Party A', color: 'bg-yellow-100 text-yellow-700' },
+      PENDING_SECOND_PARTY: { he: "ממתין לצד ב'", en: 'Pending Party B', color: 'bg-blue-100 text-blue-700' },
+      FIRST_PARTY_APPROVED: { he: "צד א' אישר", en: 'Party A Approved', color: 'bg-green-100 text-green-700' },
+      SECOND_PARTY_APPROVED: { he: "צד ב' אישר", en: 'Party B Approved', color: 'bg-green-100 text-green-700' },
       CONTACT_DETAILS_SHARED: { he: 'פרטי קשר נשלחו', en: 'Details Shared', color: 'bg-purple-100 text-purple-700' },
       DATING: { he: 'בדייט', en: 'Dating', color: 'bg-pink-100 text-pink-700' },
     };
@@ -134,7 +186,61 @@ export default function MatchmakerChatPanel({ locale }: MatchmakerChatPanelProps
   };
 
   // ==========================================
-  // Render
+  // Render - Chat View
+  // ==========================================
+
+  if (selectedChat) {
+    return (
+      <Card className="shadow-lg border-0 overflow-hidden">
+        <CardHeader className="bg-gradient-to-r from-purple-50 to-pink-50 border-b py-3">
+          <div className="flex items-center gap-3">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={closeChat}
+              className="gap-1 text-gray-600 hover:text-gray-900"
+            >
+              {isHe ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
+              {isHe ? 'חזרה' : 'Back'}
+            </Button>
+            <div className="flex items-center gap-2">
+              <Avatar className="w-8 h-8 shadow-sm">
+                <AvatarFallback
+                  className={cn(
+                    'text-white text-xs font-bold bg-gradient-to-br',
+                    selectedChat.isFirstParty
+                      ? 'from-blue-400 to-cyan-400'
+                      : 'from-emerald-400 to-green-400'
+                  )}
+                >
+                  {getInitials(selectedChat.partyName)}
+                </AvatarFallback>
+              </Avatar>
+              <div>
+                <p className="font-semibold text-gray-800">{selectedChat.partyName}</p>
+                <p className="text-xs text-gray-500">
+                  {selectedChat.isFirstParty
+                    ? (isHe ? "צד א'" : 'Party A')
+                    : (isHe ? "צד ב'" : 'Party B')}
+                </p>
+              </div>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="p-0">
+          <SuggestionChatTab
+            suggestionId={selectedChat.suggestionId}
+            locale={locale}
+            defaultParty={selectedChat.isFirstParty ? 'first' : 'second'}
+            hidePartyTabs={true}
+          />
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // ==========================================
+  // Render - List View
   // ==========================================
 
   if (isLoading) {
@@ -157,10 +263,10 @@ export default function MatchmakerChatPanel({ locale }: MatchmakerChatPanelProps
             </div>
             <div>
               <CardTitle className="text-lg">
-                {isHe ? 'צ\'אט עם מועמדים' : 'Chat with Candidates'}
+                {isHe ? "צ'אט עם מועמדים" : 'Chat with Candidates'}
               </CardTitle>
               <p className="text-sm text-gray-500">
-                {isHe ? 'הודעות פנימיות על הצעות שידוך' : 'Internal messages about suggestions'}
+                {isHe ? 'בחר/י מועמד/ת לשיחה' : 'Select a candidate to chat'}
               </p>
             </div>
           </div>
@@ -173,130 +279,174 @@ export default function MatchmakerChatPanel({ locale }: MatchmakerChatPanelProps
       </CardHeader>
 
       <CardContent className="p-0">
-        <div className="flex h-[600px]">
-          {/* Left panel - Chat list */}
-          <div className={cn(
-            'w-80 border-l flex flex-col',
-            isHe ? 'border-l' : 'border-r',
-            selectedSuggestionId ? 'hidden md:flex' : 'flex w-full md:w-80'
-          )}>
-            <div className="p-3 border-b bg-gray-50/50">
-              <div className="flex items-center gap-2 text-sm text-gray-600">
-                <Users className="w-4 h-4" />
-                <span>
-                  {chatSummaries.length} {isHe ? 'הצעות פעילות' : 'active suggestions'}
-                </span>
-              </div>
+        <ScrollArea className="h-[600px]">
+          {chatSummaries.length === 0 ? (
+            <div className="flex flex-col items-center justify-center h-full py-12 text-center px-4">
+              <Inbox className="w-12 h-12 text-gray-300 mb-3" />
+              <p className="text-sm text-gray-500">
+                {isHe ? 'אין הצעות פעילות כרגע' : 'No active suggestions'}
+              </p>
             </div>
+          ) : (
+            <div className="divide-y">
+              {chatSummaries.map((summary) => {
+                const isExpanded = expandedSuggestions.has(summary.suggestionId);
+                const statusInfo = getStatusLabel(summary.status);
 
-            <ScrollArea className="flex-1">
-              {chatSummaries.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-full py-12 text-center px-4">
-                  <Inbox className="w-12 h-12 text-gray-300 mb-3" />
-                  <p className="text-sm text-gray-500">
-                    {isHe ? 'אין הצעות פעילות כרגע' : 'No active suggestions'}
-                  </p>
-                </div>
-              ) : (
-                <div className="divide-y">
-                  {chatSummaries.map((summary) => {
-                    const isSelected = selectedSuggestionId === summary.suggestionId;
-                    const statusInfo = getStatusLabel(summary.status);
-
-                    return (
-                      <button
-                        key={summary.suggestionId}
-                        onClick={() => setSelectedSuggestionId(summary.suggestionId)}
-                        className={cn(
-                          'w-full p-3 transition-all duration-200 hover:bg-gray-50',
-                          isHe ? 'text-right' : 'text-left',
-                          isSelected && 'bg-purple-50 border-r-2 border-purple-500'
-                        )}
-                      >
-                        <div className="flex items-start gap-3">
-                          {/* Combined avatar */}
-                          <div className="relative flex-shrink-0">
-                            <Avatar className="w-10 h-10 shadow-sm">
-                              <AvatarFallback className="bg-gradient-to-br from-blue-400 to-cyan-400 text-white text-xs font-bold">
-                                {getInitials(summary.firstPartyName)}
-                              </AvatarFallback>
-                            </Avatar>
-                            <Avatar className={cn(
+                return (
+                  <div key={summary.suggestionId} className="bg-white">
+                    {/* Suggestion Header */}
+                    <button
+                      onClick={() => toggleExpand(summary.suggestionId)}
+                      className={cn(
+                        'w-full p-4 flex items-center justify-between hover:bg-gray-50 transition-colors',
+                        isHe ? 'text-right' : 'text-left'
+                      )}
+                    >
+                      <div className="flex items-center gap-3">
+                        {/* Combined Avatar */}
+                        <div className="relative">
+                          <Avatar className="w-10 h-10 shadow-sm">
+                            <AvatarFallback className="bg-gradient-to-br from-blue-400 to-cyan-400 text-white text-xs font-bold">
+                              {getInitials(summary.firstParty.name)}
+                            </AvatarFallback>
+                          </Avatar>
+                          <Avatar
+                            className={cn(
                               'w-7 h-7 absolute -bottom-1 shadow-sm border-2 border-white',
                               isHe ? '-left-2' : '-right-2'
-                            )}>
-                              <AvatarFallback className="bg-gradient-to-br from-emerald-400 to-green-400 text-white text-[9px] font-bold">
-                                {getInitials(summary.secondPartyName)}
-                              </AvatarFallback>
-                            </Avatar>
-                          </div>
-
-                          {/* Info */}
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center justify-between mb-0.5">
-                              <span className="font-medium text-sm text-gray-800 truncate">
-                                {summary.firstPartyName.split(' ')[0]} & {summary.secondPartyName.split(' ')[0]}
-                              </span>
-                              {summary.unreadCount > 0 && (
-                                <Badge className="bg-red-500 text-white text-[10px] px-1.5 py-0 min-w-[18px] h-[18px] flex items-center justify-center border-0">
-                                  {summary.unreadCount}
-                                </Badge>
-                              )}
-                            </div>
-                            <Badge variant="secondary" className={cn('text-[10px] px-1.5 py-0', statusInfo.color)}>
-                              {statusInfo.label}
-                            </Badge>
-                          </div>
+                            )}
+                          >
+                            <AvatarFallback className="bg-gradient-to-br from-emerald-400 to-green-400 text-white text-[9px] font-bold">
+                              {getInitials(summary.secondParty.name)}
+                            </AvatarFallback>
+                          </Avatar>
                         </div>
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
-            </ScrollArea>
-          </div>
 
-          {/* Right panel - Chat view */}
-          <div className={cn(
-            'flex-1 flex flex-col',
-            !selectedSuggestionId ? 'hidden md:flex' : 'flex'
-          )}>
-            {selectedSuggestionId ? (
-              <>
-                {/* Back button on mobile */}
-                <div className="md:hidden border-b p-2">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setSelectedSuggestionId(null)}
-                    className="gap-1"
-                  >
-                    {isHe ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
-                    {isHe ? 'חזרה לרשימה' : 'Back to list'}
-                  </Button>
-                </div>
-                <SuggestionChatTab
-                  suggestionId={selectedSuggestionId}
-                  locale={locale}
-                />
-              </>
-            ) : (
-              <div className="flex flex-col items-center justify-center h-full text-center px-8">
-                <div className="w-20 h-20 rounded-full bg-gradient-to-br from-purple-100 to-pink-100 flex items-center justify-center mb-4">
-                  <MessageCircle className="w-10 h-10 text-purple-400" />
-                </div>
-                <h3 className="text-lg font-medium text-gray-700 mb-2">
-                  {isHe ? 'בחר/י הצעה כדי לפתוח צ\'אט' : 'Select a suggestion to open chat'}
-                </h3>
-                <p className="text-sm text-gray-500 max-w-sm">
-                  {isHe
-                    ? 'כאן תוכל/י לנהל שיחות עם המועמדים בנוגע להצעות שידוך'
-                    : 'Here you can manage conversations with candidates about suggestions'}
-                </p>
-              </div>
-            )}
-          </div>
-        </div>
+                        <div>
+                          <p className="font-semibold text-gray-800">
+                            {summary.firstParty.name.split(' ')[0]} &{' '}
+                            {summary.secondParty.name.split(' ')[0]}
+                          </p>
+                          <Badge
+                            variant="secondary"
+                            className={cn('text-[10px] px-1.5 py-0 mt-1', statusInfo.color)}
+                          >
+                            {statusInfo.label}
+                          </Badge>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        {summary.totalUnread > 0 && (
+                          <Badge className="bg-red-500 text-white text-xs px-2 py-0.5 border-0">
+                            {summary.totalUnread}
+                          </Badge>
+                        )}
+                        {isExpanded ? (
+                          <ChevronUp className="w-5 h-5 text-gray-400" />
+                        ) : (
+                          <ChevronDown className="w-5 h-5 text-gray-400" />
+                        )}
+                      </div>
+                    </button>
+
+                    {/* Expanded: Party Cards */}
+                    {isExpanded && (
+                      <div className="px-4 pb-4 space-y-2 bg-gray-50/50">
+                        {/* First Party Chat Card */}
+                        <button
+                          onClick={() =>
+                            openChat(
+                              summary.suggestionId,
+                              summary.firstParty.id,
+                              summary.firstParty.name,
+                              true
+                            )
+                          }
+                          className={cn(
+                            'w-full p-3 rounded-xl bg-white border border-gray-200 hover:border-blue-300 hover:bg-blue-50/50 transition-all flex items-center gap-3 shadow-sm',
+                            isHe ? 'text-right' : 'text-left'
+                          )}
+                        >
+                          <Avatar className="w-10 h-10 shadow-sm">
+                            <AvatarFallback className="bg-gradient-to-br from-blue-400 to-cyan-400 text-white text-sm font-bold">
+                              {getInitials(summary.firstParty.name)}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between">
+                              <p className="font-medium text-gray-800">
+                                {summary.firstParty.name}
+                              </p>
+                              <Badge
+                                variant="outline"
+                                className="text-[10px] border-blue-200 text-blue-600"
+                              >
+                                {isHe ? "צד א'" : 'Party A'}
+                              </Badge>
+                            </div>
+                            <p className="text-xs text-gray-500 mt-0.5 truncate">
+                              {isHe ? 'לחץ/י לפתיחת שיחה' : 'Click to open chat'}
+                            </p>
+                          </div>
+                          {isHe ? (
+                            <ChevronLeft className="w-5 h-5 text-gray-400" />
+                          ) : (
+                            <ChevronRight className="w-5 h-5 text-gray-400" />
+                          )}
+                        </button>
+
+                        {/* Second Party Chat Card */}
+                        <button
+                          onClick={() =>
+                            openChat(
+                              summary.suggestionId,
+                              summary.secondParty.id,
+                              summary.secondParty.name,
+                              false
+                            )
+                          }
+                          className={cn(
+                            'w-full p-3 rounded-xl bg-white border border-gray-200 hover:border-emerald-300 hover:bg-emerald-50/50 transition-all flex items-center gap-3 shadow-sm',
+                            isHe ? 'text-right' : 'text-left'
+                          )}
+                        >
+                          <Avatar className="w-10 h-10 shadow-sm">
+                            <AvatarFallback className="bg-gradient-to-br from-emerald-400 to-green-400 text-white text-sm font-bold">
+                              {getInitials(summary.secondParty.name)}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between">
+                              <p className="font-medium text-gray-800">
+                                {summary.secondParty.name}
+                              </p>
+                              <Badge
+                                variant="outline"
+                                className="text-[10px] border-emerald-200 text-emerald-600"
+                              >
+                                {isHe ? "צד ב'" : 'Party B'}
+                              </Badge>
+                            </div>
+                            <p className="text-xs text-gray-500 mt-0.5 truncate">
+                              {isHe ? 'לחץ/י לפתיחת שיחה' : 'Click to open chat'}
+                            </p>
+                          </div>
+                          {isHe ? (
+                            <ChevronLeft className="w-5 h-5 text-gray-400" />
+                          ) : (
+                            <ChevronRight className="w-5 h-5 text-gray-400" />
+                          )}
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </ScrollArea>
       </CardContent>
     </Card>
   );

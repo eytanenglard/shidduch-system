@@ -60,12 +60,16 @@ interface SuggestionChatTabProps {
   suggestionId: string;
   locale: Locale;
   dict?: ChatTabDict;
+  defaultParty?: 'first' | 'second'; // ✅ חדש - איזה צד לבחור כברירת מחדל
+  hidePartyTabs?: boolean; // ✅ חדש - האם להסתיר את הטאבים
 }
 
 export default function SuggestionChatTab({
   suggestionId,
   locale,
   dict,
+  defaultParty = 'first', // ✅ ברירת מחדל: צד ראשון
+  hidePartyTabs = false, // ✅ ברירת מחדל: להציג טאבים
 }: SuggestionChatTabProps) {
   const t = dict || defaultDict;
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -78,9 +82,9 @@ export default function SuggestionChatTab({
   const [isSending, setIsSending] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
 
-  // ✅ חדש: מצב הצד הנבחר
+  // ✅ מעודכן: משתמש ב-defaultParty
   const [selectedParty, setSelectedParty] = useState<'first' | 'second'>(
-    'first'
+    defaultParty
   );
 
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -133,7 +137,7 @@ export default function SuggestionChatTab({
   }, [suggestionId, unreadCount]);
 
   // ==========================================
-  // ✅ חדש: סינון הודעות לפי הצד הנבחר
+  // סינון הודעות לפי הצד הנבחר
   // ==========================================
 
   const selectedPartyId =
@@ -176,7 +180,7 @@ export default function SuggestionChatTab({
   ).length;
 
   // ==========================================
-  // ✅ עדכון: שליחה עם targetUserId
+  // שליחה עם targetUserId
   // ==========================================
 
   const handleSend = async () => {
@@ -190,7 +194,7 @@ export default function SuggestionChatTab({
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             content: newMessage.trim(),
-            targetUserId: selectedPartyId, // ✅ חדש!
+            targetUserId: selectedPartyId,
           }),
         }
       );
@@ -250,7 +254,7 @@ export default function SuggestionChatTab({
 
   return (
     <div className="flex flex-col h-[500px]">
-      {/* ✅ חדש: Header עם טאבים לבחירת צד */}
+      {/* Header */}
       <div className="flex flex-col border-b bg-gray-50/50">
         <div className="flex items-center justify-between px-4 py-2">
           <div className="flex items-center gap-2">
@@ -267,8 +271,8 @@ export default function SuggestionChatTab({
           </Button>
         </div>
 
-        {/* ✅ טאבים לבחירת צד */}
-        {parties.firstParty && parties.secondParty && (
+        {/* ✅ טאבים לבחירת צד - מוסתרים אם hidePartyTabs=true */}
+        {!hidePartyTabs && parties.firstParty && parties.secondParty && (
           <div className="flex border-t">
             <button
               onClick={() => setSelectedParty('first')}
@@ -426,7 +430,7 @@ export default function SuggestionChatTab({
 
       {/* Input area */}
       <div className="border-t bg-white p-3">
-        {/* ✅ חדש: מציג למי ההודעה נשלחת */}
+        {/* מציג למי ההודעה נשלחת */}
         {selectedPartyId && (
           <div
             className={cn(
