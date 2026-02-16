@@ -819,29 +819,95 @@ export class DailySuggestionOrchestrator {
   // ==========================================================================
 
   /**
-   * מחזיר רשימת הצעות מוצעות לכל היוזרים הזכאים — ללא שמירה ב-DB.
-   * לכל יוזר: top 3 התאמות אפשריות + מידע על הצד השני.
+   * מחזיר רשימת הצעות מוצעות ליוזרים הזכאים — ללא שמירה ב-DB.
+   * תומך בסינון, מיון, הגבלת כמות, וחיפוש לפי שם.
    */
-  static async generatePreview(): Promise<{
+  static async generatePreview(filters?: PreviewFilters): Promise<{
     eligibleCount: number;
+    filteredCount: number;
     withMatches: number;
     withoutMatches: number;
     hasBlockingSuggestion: number;
     previews: PreviewItem[];
   }> {
     console.log('\n═══════════════════════════════════════════════════════');
-    console.log('👁️ [Preview Mode] Generating preview for all eligible users...');
+    console.log('👁️ [Preview Mode] Generating preview...');
+    if (filters) console.log('🔍 Filters:', JSON.stringify(filters));
     console.log('═══════════════════════════════════════════════════════\n');
 
-    const eligibleUsers = await this.getEligibleUsers();
-    console.log(`📊 Found ${eligibleUsers.length} eligible users\n`);
+    // 1. Get all eligible users with extra data for filtering/sorting
+    const allUsers = await this.getEligibleUsersEnriched();
+    const eligibleCount = allUsers.length;
+    console.log(`📊 Found ${eligibleCount} eligible users`);
 
+    // 2. Apply filters
+    let filteredUsers = allUsers;
+
+    // Filter: gender
+    if (filters?.gender) {
+      filteredUsers = filteredUsers.filter(u => u.profile?.gender === filters.gender);
+    }
+
+    // Filter: search by name
+    if (filters?.searchName) {
+      const term = filters.searchName.toLowerCase();
+      filteredUsers = filteredUsers.filter(u =>
+        `${u.firstName} ${u.lastName}`.toLowerCase().includes(term) ||
+        u.email.toLowerCase().includes(term)
+      );
+    }
+
+    // Filter: no suggestion in X days
+    if (filters?.noSuggestionDays && filters.noSuggestionDays > 0) {
+      const cutoff = new Date();
+      cutoff.setDate(cutoff.getDate() - filters.noSuggestionDays);
+      filteredUsers = filteredUsers.filter(u =>
+        !u.lastSuggestionDate || u.lastSuggestionDate < cutoff
+      );
+    }
+
+    // Filter: specific user IDs
+    if (filters?.userIds && filters.userIds.length > 0) {
+      const idSet = new Set(filters.userIds);
+      filteredUsers = filteredUsers.filter(u => idSet.has(u.id));
+    }
+
+    // 3. Sort
+    const sortBy = filters?.sortBy || 'waiting_time';
+    filteredUsers.sort((a, b) => {
+      switch (sortBy) {
+    case 'waiting_time': {
+        // מי שלא קיבל הצעה הכי הרבה זמן → ראשון
+        const aTime = a.lastSuggestionDate?.getTime() || 0;
+        const bTime = b.lastSuggestionDate?.getTime() || 0;
+        return aTime - bTime;
+    }
+    case 'best_match':
+          // לפי ציון ההתאמה הטובה ביותר (מוכרח לסדר אחרי שנמצא matches, נעשה ב-post)
+          return 0;
+        case 'registration_date':
+          return (a.createdAt?.getTime() || 0) - (b.createdAt?.getTime() || 0);
+        default:
+          return 0;
+      }
+    });
+
+    // 4. Limit count
+    const limit = filters?.limit;
+    if (limit && limit > 0) {
+      filteredUsers = filteredUsers.slice(0, limit);
+    }
+
+    const filteredCount = filteredUsers.length;
+    console.log(`🔍 After filters: ${filteredCount} users\n`);
+
+    // 5. Generate previews
     const previews: PreviewItem[] = [];
     let withMatches = 0;
     let withoutMatches = 0;
     let hasBlockingSuggestion = 0;
 
-    for (const user of eligibleUsers) {
+    for (const user of filteredUsers) {
       // Check blocking suggestion
       const blockingSuggestion = await prisma.matchSuggestion.findFirst({
         where: {
@@ -856,7 +922,7 @@ export class DailySuggestionOrchestrator {
 
       if (blockingSuggestion) {
         hasBlockingSuggestion++;
-        continue; // דלג — יש ליוזר כבר הצעה פעילה
+        continue;
       }
 
       // Find top 3 matches
@@ -914,6 +980,10 @@ export class DailySuggestionOrchestrator {
         withoutMatches++;
       }
 
+      const daysSinceLastSuggestion = user.lastSuggestionDate
+        ? Math.floor((Date.now() - user.lastSuggestionDate.getTime()) / (1000 * 60 * 60 * 24))
+        : null;
+
       previews.push({
         user: {
           id: user.id,
@@ -921,17 +991,31 @@ export class DailySuggestionOrchestrator {
           lastName: user.lastName,
           email: user.email,
           gender: user.profile?.gender || null,
+          lastSuggestionDate: user.lastSuggestionDate?.toISOString() || null,
+          daysSinceLastSuggestion,
+          mainImage: user.mainImage || null,
         },
         selectedMatchId: enrichedMatches[0]?.matchId || null,
+        customMatchingReason: null,
         matches: enrichedMatches,
         status: enrichedMatches.length > 0 ? 'ready' : 'no_matches',
+      });
+    }
+
+    // Post-sort by best_match if needed
+    if (sortBy === 'best_match') {
+      previews.sort((a, b) => {
+        const aScore = a.matches[0]?.aiScore || 0;
+        const bScore = b.matches[0]?.aiScore || 0;
+        return bScore - aScore;
       });
     }
 
     console.log(`\n👁️ [Preview] Done: ${withMatches} with matches, ${withoutMatches} without, ${hasBlockingSuggestion} blocked\n`);
 
     return {
-      eligibleCount: eligibleUsers.length,
+      eligibleCount,
+      filteredCount,
       withMatches,
       withoutMatches,
       hasBlockingSuggestion,
@@ -939,13 +1023,100 @@ export class DailySuggestionOrchestrator {
     };
   }
 
+  // ========== Enriched eligible users (with lastSuggestionDate) ==========
+
+  private static async getEligibleUsersEnriched() {
+    const users = await prisma.user.findMany({
+      where: {
+        source: 'REGISTRATION',
+        status: 'ACTIVE',
+        isPhoneVerified: true,
+        email: { not: '' },
+        phone: { not: null },
+        role: 'CANDIDATE',
+        engagementEmailsConsent: true,
+        profile: { isNot: null },
+      },
+      select: {
+        id: true,
+        email: true,
+        firstName: true,
+        lastName: true,
+        phone: true,
+        language: true,
+        createdAt: true,
+        profile: {
+          select: {
+            id: true,
+            gender: true,
+            availabilityStatus: true,
+          },
+        },
+        images: {
+          where: { isMain: true },
+          select: { url: true },
+          take: 1,
+        },
+      },
+      orderBy: { createdAt: 'asc' },
+    });
+
+    const availableUsers = users.filter(u => u.profile?.availabilityStatus === 'AVAILABLE');
+
+    // Batch query: last suggestion date per user
+    const userIds = availableUsers.map(u => u.id);
+    const lastSuggestionDates = new Map<string, Date>();
+
+    if (userIds.length > 0) {
+      // Query as firstParty
+      const asFirst = await prisma.matchSuggestion.groupBy({
+        by: ['firstPartyId'],
+        where: { firstPartyId: { in: userIds } },
+        _max: { createdAt: true },
+      });
+      for (const row of asFirst) {
+        if (row._max.createdAt) {
+          lastSuggestionDates.set(row.firstPartyId, row._max.createdAt);
+        }
+      }
+
+      // Query as secondParty
+      const asSecond = await prisma.matchSuggestion.groupBy({
+        by: ['secondPartyId'],
+        where: { secondPartyId: { in: userIds } },
+        _max: { createdAt: true },
+      });
+      for (const row of asSecond) {
+        if (row._max.createdAt) {
+          const existing = lastSuggestionDates.get(row.secondPartyId);
+          if (!existing || row._max.createdAt > existing) {
+            lastSuggestionDates.set(row.secondPartyId, row._max.createdAt);
+          }
+        }
+      }
+    }
+
+    return availableUsers.map(u => ({
+      id: u.id,
+      email: u.email,
+      firstName: u.firstName,
+      lastName: u.lastName,
+      phone: u.phone,
+      language: u.language,
+      createdAt: u.createdAt,
+      profile: u.profile,
+      mainImage: u.images[0]?.url || null,
+      lastSuggestionDate: lastSuggestionDates.get(u.id) || null,
+    }));
+  }
+
   /**
    * שולח הצעות מותאמות אישית לפי רשימה שהשדכן אישר.
-   * @param assignments - רשימה של { userId, matchId } שהשדכן בחר
+   * @param assignments - רשימה של { userId, matchId, customMatchingReason? }
    * @param matchmakerId - ID של השדכן
    */
   static async sendApprovedSuggestions(
-    assignments: { userId: string; matchId: string }[],
+    assignments: { userId: string; matchId: string; customMatchingReason?: string }[],
     matchmakerId: string
   ): Promise<{
     sent: number;
@@ -962,9 +1133,8 @@ export class DailySuggestionOrchestrator {
     let sent = 0;
     const errors: { userId: string; error: string }[] = [];
 
-    for (const { userId, matchId } of assignments) {
+    for (const { userId, matchId, customMatchingReason } of assignments) {
       try {
-        // Fetch user
         const user = await prisma.user.findUnique({
           where: { id: userId },
           select: {
@@ -983,7 +1153,6 @@ export class DailySuggestionOrchestrator {
           continue;
         }
 
-        // Fetch match
         const match = await prisma.potentialMatch.findUnique({
           where: { id: matchId },
           select: {
@@ -1001,7 +1170,12 @@ export class DailySuggestionOrchestrator {
           continue;
         }
 
-        await this.createAutoSuggestion(user, match, matchmakerId, dictionaries);
+        // Override shortReasoning if custom reason was provided
+        const matchWithReason = customMatchingReason
+          ? { ...match, shortReasoning: customMatchingReason }
+          : match;
+
+        await this.createAutoSuggestion(user, matchWithReason, matchmakerId, dictionaries);
         sent++;
         console.log(`  ✅ Sent to ${user.firstName} ${user.lastName}`);
       } catch (err) {
@@ -1019,6 +1193,15 @@ export class DailySuggestionOrchestrator {
 // =============================================================================
 // TYPES for Preview
 // =============================================================================
+
+export interface PreviewFilters {
+  gender?: 'MALE' | 'FEMALE';
+  searchName?: string;
+  noSuggestionDays?: number;    // לא קיבל הצעה ב-X ימים
+  limit?: number;               // הגבלת כמות יוזרים
+  userIds?: string[];           // יוזרים ספציפיים
+  sortBy?: 'waiting_time' | 'best_match' | 'registration_date';
+}
 
 export interface PreviewMatch {
   matchId: string;
@@ -1043,8 +1226,12 @@ export interface PreviewItem {
     lastName: string;
     email: string;
     gender: string | null;
+    lastSuggestionDate: string | null;
+    daysSinceLastSuggestion: number | null;
+    mainImage: string | null;
   };
   selectedMatchId: string | null;
+  customMatchingReason: string | null;
   matches: PreviewMatch[];
   status: 'ready' | 'no_matches';
 }

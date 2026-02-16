@@ -22,10 +22,13 @@ import {
   Eye,
   Search as SearchIcon,
   Zap,
+  Pencil,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import {
   Select,
   SelectContent,
@@ -75,10 +78,22 @@ interface PreviewItem {
     lastName: string;
     email: string;
     gender: string | null;
+    lastSuggestionDate: string | null;
+    daysSinceLastSuggestion: number | null;
+    mainImage: string | null;
   };
   selectedMatchId: string | null;
+  customMatchingReason: string | null;
   matches: PreviewMatch[];
   status: 'ready' | 'no_matches';
+}
+
+interface PreviewFilters {
+  gender: string;
+  searchName: string;
+  noSuggestionDays: string;
+  limit: string;
+  sortBy: string;
 }
 
 interface PreviewSuggestionsPanelProps {
@@ -132,12 +147,26 @@ const PreviewCard: React.FC<{
   onViewProfile: (userId: string) => void;
   onScanUser: (userId: string) => void;
   isScanningUser: boolean;
-}> = ({ item, onRemove, onChangeMatch, onViewProfile, onScanUser, isScanningUser }) => {
+  onEditReason: (userId: string, reason: string) => void;
+}> = ({ item, onRemove, onChangeMatch, onViewProfile, onScanUser, isScanningUser, onEditReason }) => {
+  const [isEditingReason, setIsEditingReason] = useState(false);
+  const [editedReason, setEditedReason] = useState('');
+
   const selectedMatch = item.matches.find((m) => m.matchId === item.selectedMatchId);
   const otherParty = selectedMatch?.otherParty;
   const age = otherParty ? calculateAge(otherParty.birthDate) : null;
   const genderIcon = item.user.gender === 'MALE' ? '♂' : '♀';
   const genderColor = item.user.gender === 'MALE' ? 'text-blue-500' : 'text-pink-500';
+  const displayReason = item.customMatchingReason || selectedMatch?.shortReasoning;
+
+  const handleStartEdit = () => {
+    setEditedReason(displayReason || '');
+    setIsEditingReason(true);
+  };
+  const handleSaveReason = () => {
+    onEditReason(item.user.id, editedReason);
+    setIsEditingReason(false);
+  };
 
   return (
     <motion.div
@@ -151,18 +180,52 @@ const PreviewCard: React.FC<{
       )}
     >
       {/* User Row */}
-      <div className="p-3 flex items-center gap-3 border-b border-gray-50">
+      <div className="p-3 flex items-center gap-2 border-b border-gray-50">
         <button
           onClick={() => onViewProfile(item.user.id)}
-          className="flex items-center gap-2 min-w-0 flex-1 hover:opacity-80 transition-opacity"
+          className="w-8 h-8 rounded-full bg-gray-200 overflow-hidden flex-shrink-0 hover:ring-2 ring-violet-300 transition-all"
+          title="לחץ לצפייה בפרופיל"
+        >
+          {item.user.mainImage ? (
+            <img src={item.user.mainImage} alt="" className="w-full h-full object-cover" />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center text-gray-400">
+              <Users size={14} />
+            </div>
+          )}
+        </button>
+        <button
+          onClick={() => onViewProfile(item.user.id)}
+          className="flex items-center gap-1 min-w-0 flex-1 hover:opacity-80 transition-opacity"
           title="לחץ לצפייה בפרופיל"
         >
           <span className={cn('text-sm font-bold', genderColor)}>{genderIcon}</span>
           <span className="text-sm font-semibold text-gray-800 truncate">
             {item.user.firstName} {item.user.lastName}
           </span>
-          <Eye size={12} className="text-gray-300 flex-shrink-0" />
         </button>
+
+        {/* Days indicator */}
+        {item.user.daysSinceLastSuggestion !== null ? (
+          <Badge
+            variant="outline"
+            className={cn(
+              'text-[10px] h-5 flex-shrink-0',
+              item.user.daysSinceLastSuggestion >= 7
+                ? 'border-red-300 text-red-600 bg-red-50'
+                : item.user.daysSinceLastSuggestion >= 3
+                  ? 'border-amber-300 text-amber-600 bg-amber-50'
+                  : 'border-gray-200 text-gray-500'
+            )}
+            title={`הצעה אחרונה לפני ${item.user.daysSinceLastSuggestion} ימים`}
+          >
+            {item.user.daysSinceLastSuggestion}d
+          </Badge>
+        ) : (
+          <Badge variant="outline" className="text-[10px] h-5 flex-shrink-0 border-purple-300 text-purple-600 bg-purple-50" title="לא קיבל הצעה מעולם">
+            חדש
+          </Badge>
+        )}
 
         <Button
           size="sm"
@@ -232,11 +295,42 @@ const PreviewCard: React.FC<{
             </button>
           )}
 
-          {/* Reasoning */}
-          {selectedMatch?.shortReasoning && (
-            <p className="text-[11px] text-gray-500 leading-relaxed line-clamp-2 px-1">
-              {selectedMatch.shortReasoning}
-            </p>
+          {/* Editable Reasoning */}
+          {selectedMatch && (
+            <div className="px-1">
+              {isEditingReason ? (
+                <div className="space-y-1.5">
+                  <Textarea
+                    value={editedReason}
+                    onChange={(e) => setEditedReason(e.target.value)}
+                    className="text-xs min-h-[60px] resize-none"
+                    placeholder="סיבת ההתאמה..."
+                    dir="rtl"
+                  />
+                  <div className="flex gap-1 justify-end">
+                    <Button size="sm" variant="ghost" className="h-6 text-[10px] px-2" onClick={() => setIsEditingReason(false)}>
+                      ביטול
+                    </Button>
+                    <Button size="sm" className="h-6 text-[10px] px-2 bg-violet-600 text-white" onClick={handleSaveReason}>
+                      שמור
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex items-start gap-1 group">
+                  <p className="text-[11px] text-gray-500 leading-relaxed line-clamp-2 flex-1">
+                    {displayReason || <span className="italic text-gray-300">ללא סיבה</span>}
+                  </p>
+                  <button
+                    onClick={handleStartEdit}
+                    className="opacity-0 group-hover:opacity-100 transition-opacity text-gray-300 hover:text-violet-500 flex-shrink-0 mt-0.5"
+                    title="ערוך סיבת התאמה"
+                  >
+                    <Pencil size={11} />
+                  </button>
+                </div>
+              )}
+            </div>
           )}
 
           {/* Match selector dropdown */}
@@ -284,6 +378,7 @@ export default function PreviewSuggestionsPanel({ onViewProfile }: PreviewSugges
   const [previews, setPreviews] = useState<PreviewItem[]>([]);
   const [stats, setStats] = useState<{
     eligibleCount: number;
+    filteredCount: number;
     withMatches: number;
     withoutMatches: number;
     hasBlockingSuggestion: number;
@@ -293,6 +388,20 @@ export default function PreviewSuggestionsPanel({ onViewProfile }: PreviewSugges
   const [showConfirmSend, setShowConfirmSend] = useState(false);
   const [hasGenerated, setHasGenerated] = useState(false);
   const [scanningUserIds, setScanningUserIds] = useState<Set<string>>(new Set());
+  const [showFilters, setShowFilters] = useState(false);
+
+  // ===== Filter State =====
+  const [filters, setFilters] = useState<PreviewFilters>({
+    gender: '',
+    searchName: '',
+    noSuggestionDays: '',
+    limit: '',
+    sortBy: 'waiting_time',
+  });
+
+  const updateFilter = (key: keyof PreviewFilters, value: string) => {
+    setFilters((prev) => ({ ...prev, [key]: value }));
+  };
 
   // ===== Generate Preview =====
   const handleGenerate = useCallback(async () => {
@@ -300,13 +409,22 @@ export default function PreviewSuggestionsPanel({ onViewProfile }: PreviewSugges
       setIsGenerating(true);
       toast.loading('מכין תצוגה מקדימה...', { id: 'preview-gen' });
 
-      const response = await fetch('/api/matchmaker/daily-suggestions/preview');
+      const params = new URLSearchParams();
+      if (filters.gender) params.set('gender', filters.gender);
+      if (filters.searchName) params.set('searchName', filters.searchName);
+      if (filters.noSuggestionDays) params.set('noSuggestionDays', filters.noSuggestionDays);
+      if (filters.limit) params.set('limit', filters.limit);
+      if (filters.sortBy) params.set('sortBy', filters.sortBy);
+
+      const qs = params.toString();
+      const response = await fetch(`/api/matchmaker/daily-suggestions/preview${qs ? `?${qs}` : ''}`);
       if (!response.ok) throw new Error('Failed to generate preview');
 
       const data = await response.json();
       setPreviews(data.previews || []);
       setStats({
         eligibleCount: data.eligibleCount,
+        filteredCount: data.filteredCount,
         withMatches: data.withMatches,
         withoutMatches: data.withoutMatches,
         hasBlockingSuggestion: data.hasBlockingSuggestion,
@@ -322,7 +440,7 @@ export default function PreviewSuggestionsPanel({ onViewProfile }: PreviewSugges
     } finally {
       setIsGenerating(false);
     }
-  }, []);
+  }, [filters]);
 
   // ===== Remove from preview =====
   const handleRemove = useCallback((userId: string) => {
@@ -333,7 +451,16 @@ export default function PreviewSuggestionsPanel({ onViewProfile }: PreviewSugges
   const handleChangeMatch = useCallback((userId: string, matchId: string) => {
     setPreviews((prev) =>
       prev.map((p) =>
-        p.user.id === userId ? { ...p, selectedMatchId: matchId } : p
+        p.user.id === userId ? { ...p, selectedMatchId: matchId, customMatchingReason: null } : p
+      )
+    );
+  }, []);
+
+  // ===== Edit matching reason =====
+  const handleEditReason = useCallback((userId: string, reason: string) => {
+    setPreviews((prev) =>
+      prev.map((p) =>
+        p.user.id === userId ? { ...p, customMatchingReason: reason || null } : p
       )
     );
   }, []);
@@ -426,6 +553,7 @@ export default function PreviewSuggestionsPanel({ onViewProfile }: PreviewSugges
     const assignments = readyItems.map((p) => ({
       userId: p.user.id,
       matchId: p.selectedMatchId!,
+      ...(p.customMatchingReason ? { customMatchingReason: p.customMatchingReason } : {}),
     }));
 
     try {
@@ -522,6 +650,136 @@ export default function PreviewSuggestionsPanel({ onViewProfile }: PreviewSugges
           </div>
         </div>
 
+        {/* ===== Filter Bar ===== */}
+        <div className="space-y-2">
+          <button
+            onClick={() => setShowFilters(!showFilters)}
+            className="flex items-center gap-1.5 text-xs text-violet-600 hover:text-violet-800 transition-colors"
+          >
+            <SearchIcon size={12} />
+            <span>{showFilters ? 'הסתר סינונים' : 'סינון ומיון'}</span>
+            <ChevronDown size={12} className={cn('transition-transform', showFilters && 'rotate-180')} />
+          </button>
+
+          <AnimatePresence>
+            {showFilters && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                className="overflow-hidden"
+              >
+                <div className="bg-white/70 rounded-xl border border-violet-100 p-3 space-y-3">
+                  {/* Row 1: Search + Gender + Limit */}
+                  <div className="flex flex-wrap gap-2 items-end">
+                    {/* Search by name */}
+                    <div className="flex-1 min-w-[180px]">
+                      <label className="text-[10px] text-gray-500 mb-0.5 block">חיפוש לפי שם</label>
+                      <Input
+                        value={filters.searchName}
+                        onChange={(e) => updateFilter('searchName', e.target.value)}
+                        placeholder="שם פרטי, משפחה או מייל..."
+                        className="h-8 text-xs"
+                        dir="rtl"
+                      />
+                    </div>
+
+                    {/* Gender */}
+                    <div className="min-w-[100px]">
+                      <label className="text-[10px] text-gray-500 mb-0.5 block">מגדר</label>
+                      <Select
+                        value={filters.gender || 'all'}
+                        onValueChange={(v) => updateFilter('gender', v === 'all' ? '' : v)}
+                      >
+                        <SelectTrigger className="h-8 text-xs">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">הכל</SelectItem>
+                          <SelectItem value="MALE">♂ גברים</SelectItem>
+                          <SelectItem value="FEMALE">♀ נשים</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {/* Limit */}
+                    <div className="min-w-[100px]">
+                      <label className="text-[10px] text-gray-500 mb-0.5 block">הגבלת כמות</label>
+                      <Select
+                        value={filters.limit || 'all'}
+                        onValueChange={(v) => updateFilter('limit', v === 'all' ? '' : v)}
+                      >
+                        <SelectTrigger className="h-8 text-xs">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">הכל</SelectItem>
+                          <SelectItem value="5">5 ראשונים</SelectItem>
+                          <SelectItem value="10">10 ראשונים</SelectItem>
+                          <SelectItem value="20">20 ראשונים</SelectItem>
+                          <SelectItem value="50">50 ראשונים</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  {/* Row 2: No suggestion days + Sort */}
+                  <div className="flex flex-wrap gap-2 items-end">
+                    {/* No suggestion in X days */}
+                    <div className="min-w-[160px]">
+                      <label className="text-[10px] text-gray-500 mb-0.5 block">לא קיבל הצעה ב-</label>
+                      <Select
+                        value={filters.noSuggestionDays || 'any'}
+                        onValueChange={(v) => updateFilter('noSuggestionDays', v === 'any' ? '' : v)}
+                      >
+                        <SelectTrigger className="h-8 text-xs">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="any">ללא הגבלה</SelectItem>
+                          <SelectItem value="3">3 ימים+</SelectItem>
+                          <SelectItem value="7">שבוע+</SelectItem>
+                          <SelectItem value="14">שבועיים+</SelectItem>
+                          <SelectItem value="30">חודש+</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {/* Sort */}
+                    <div className="min-w-[160px]">
+                      <label className="text-[10px] text-gray-500 mb-0.5 block">מיון לפי</label>
+                      <Select
+                        value={filters.sortBy}
+                        onValueChange={(v) => updateFilter('sortBy', v)}
+                      >
+                        <SelectTrigger className="h-8 text-xs">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="waiting_time">⏰ זמן המתנה (הכי ארוך קודם)</SelectItem>
+                          <SelectItem value="best_match">🏆 ציון התאמה (הכי גבוה קודם)</SelectItem>
+                          <SelectItem value="registration_date">📅 תאריך הרשמה (חדשים קודם)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {/* Apply button */}
+                    <Button
+                      size="sm"
+                      onClick={handleGenerate}
+                      disabled={isGenerating}
+                      className="h-8 text-xs bg-violet-600 text-white hover:bg-violet-700 rounded-lg"
+                    >
+                      {isGenerating ? <Loader2 className="w-3 h-3 animate-spin ml-1" /> : <SearchIcon size={12} className="ml-1" />}
+                      הכן עם סינון
+                    </Button>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+
         {/* Stats bar */}
         {stats && (
           <div className="flex flex-wrap gap-2">
@@ -529,6 +787,12 @@ export default function PreviewSuggestionsPanel({ onViewProfile }: PreviewSugges
               <Users size={12} className="ml-1" />
               {stats.eligibleCount} זכאים
             </Badge>
+            {stats.filteredCount !== stats.eligibleCount && (
+              <Badge className="bg-violet-100 text-violet-700 border-violet-200">
+                <SearchIcon size={12} className="ml-1" />
+                {stats.filteredCount} אחרי סינון
+              </Badge>
+            )}
             <Badge className="bg-emerald-100 text-emerald-800 border-emerald-200">
               <CheckCircle size={12} className="ml-1" />
               {stats.withMatches} עם התאמה
@@ -575,6 +839,7 @@ export default function PreviewSuggestionsPanel({ onViewProfile }: PreviewSugges
                   onViewProfile={onViewProfile}
                   onScanUser={handleScanUser}
                   isScanningUser={scanningUserIds.has(item.user.id)}
+                  onEditReason={handleEditReason}
                 />
               ))}
             </AnimatePresence>

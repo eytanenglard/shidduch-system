@@ -42,7 +42,31 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
 
-    const preview = await DailySuggestionOrchestrator.generatePreview();
+    // Parse filter query params
+    const { searchParams } = new URL(req.url);
+    const filters: Record<string, any> = {};
+
+    const gender = searchParams.get('gender');
+    if (gender === 'MALE' || gender === 'FEMALE') filters.gender = gender;
+
+    const searchName = searchParams.get('searchName');
+    if (searchName) filters.searchName = searchName;
+
+    const noSuggestionDays = searchParams.get('noSuggestionDays');
+    if (noSuggestionDays) filters.noSuggestionDays = parseInt(noSuggestionDays, 10);
+
+    const limit = searchParams.get('limit');
+    if (limit) filters.limit = parseInt(limit, 10);
+
+    const userIds = searchParams.get('userIds');
+    if (userIds) filters.userIds = userIds.split(',');
+
+    const sortBy = searchParams.get('sortBy');
+    if (sortBy) filters.sortBy = sortBy;
+
+    const preview = await DailySuggestionOrchestrator.generatePreview(
+      Object.keys(filters).length > 0 ? filters : undefined
+    );
 
     return NextResponse.json({
       success: true,
@@ -70,7 +94,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     }
 
     const body = await req.json();
-    const { assignments } = body as { assignments: { userId: string; matchId: string }[] };
+    const { assignments } = body as { assignments: { userId: string; matchId: string; customMatchingReason?: string }[] };
 
     if (!assignments || !Array.isArray(assignments) || assignments.length === 0) {
       return NextResponse.json(
