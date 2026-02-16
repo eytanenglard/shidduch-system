@@ -6,8 +6,7 @@ import InquiryThreadView from '@/components/suggestions/inquiries/InquiryThreadV
 import { useNotifications } from '@/app/[locale]/contexts/NotificationContext';
 import SuggestionChatTab from './SuggestionChatTab';
 
-import { Dialog, DialogContent } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
@@ -398,21 +397,29 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent
-        className={cn(
-          'p-0 shadow-2xl border-0 bg-white overflow-hidden z-[50] flex flex-col transition-all duration-300 ease-in-out',
-          isFullscreen
-            ? '!w-screen !h-screen !max-w-none !max-h-none !rounded-none !fixed !inset-0 !m-0'
-            : 'md:max-w-7xl md:w-[95vw] md:h-[95vh] md:rounded-3xl'
-        )}
-        dir={locale === 'he' ? 'rtl' : 'ltr'}
-        onOpenAutoFocus={(e) => e.preventDefault()}
-      >
-        <Tabs
-          value={activeTab}
-          onValueChange={setActiveTab}
-          className="flex-1 flex flex-col overflow-hidden"
-        >
+    <DialogContent
+  className={cn(
+    'p-0 shadow-2xl border-0 bg-white overflow-hidden z-[50] flex flex-col transition-all duration-300 ease-in-out',
+    isFullscreen
+      ? '!w-screen !h-screen !max-w-none !max-h-none !rounded-none !fixed !inset-0 !m-0'
+      : 'md:max-w-7xl md:w-[95vw] md:h-[95vh] md:rounded-3xl'
+  )}
+  dir={locale === 'he' ? 'rtl' : 'ltr'}
+  onOpenAutoFocus={(e) => e.preventDefault()}
+>
+  {/* כותרת נגישות - מוסתרת ויזואלית אך נגישה לקוראי מסך */}
+  <DialogTitle className="sr-only">
+    {dict.header.title.replace(
+      '{{id}}',
+      suggestion?.id?.toString().split('-')[0] || ''
+    )}
+  </DialogTitle>
+
+  <Tabs
+    value={activeTab}
+    onValueChange={setActiveTab}
+    className="flex-1 flex flex-col overflow-hidden"
+  >
           {/* Header and Tabs Component */}
           <div
             className={cn(
