@@ -73,7 +73,7 @@ function buildProfileResponse(p: Profile, testimonials?: any[]) {
     fatherOccupation: p.fatherOccupation,
     motherOccupation: p.motherOccupation,
     siblings: p.siblings,
-    position: p.position,
+    positionInFamily: p.position,
 
     // Religion
     religiousLevel: p.religiousLevel,
@@ -263,6 +263,25 @@ export async function PUT(req: NextRequest) {
     // Build the Prisma update object - only include fields that were sent
     const dataToUpdate: Prisma.ProfileUpdateInput = {};
 
+    // ---- Gender ----
+    if (body.gender !== undefined) {
+      const genderVal = emptyStringToNull(body.gender);
+      if (genderVal && Object.values(Gender).includes(genderVal as Gender)) {
+        dataToUpdate.gender = genderVal as Gender;
+      }
+    }
+
+  // ---- Birth Date (required field - cannot be null) ----
+if (body.birthDate !== undefined) {
+  if (body.birthDate !== null && body.birthDate !== '') {
+    const parsed = new Date(body.birthDate);
+    if (!isNaN(parsed.getTime())) {
+      dataToUpdate.birthDate = parsed;
+    }
+  }
+  // If null/empty - skip (don't clear a required field)
+}
+
     // ---- Personal & Demographic ----
     if (body.height !== undefined) dataToUpdate.height = toNumberOrNull(body.height);
     if (body.city !== undefined) dataToUpdate.city = emptyStringToNull(body.city);
@@ -274,24 +293,94 @@ export async function PUT(req: NextRequest) {
     if (body.aliyaCountry !== undefined) dataToUpdate.aliyaCountry = emptyStringToNull(body.aliyaCountry);
     if (body.aliyaYear !== undefined) dataToUpdate.aliyaYear = toNumberOrNull(body.aliyaYear);
 
+    // ---- Marital Status ----
+    if (body.maritalStatus !== undefined) {
+      dataToUpdate.maritalStatus = emptyStringToNull(body.maritalStatus);
+    }
+
+    // ---- Has Children From Previous ----
+    if (body.hasChildrenFromPrevious !== undefined) {
+      if (body.hasChildrenFromPrevious === null) {
+        dataToUpdate.hasChildrenFromPrevious = null;
+      } else {
+        dataToUpdate.hasChildrenFromPrevious = Boolean(body.hasChildrenFromPrevious);
+      }
+    }
+
+    // ---- Education Level ----
+    if (body.educationLevel !== undefined) {
+      dataToUpdate.educationLevel = emptyStringToNull(body.educationLevel);
+    }
+
     // ---- Family ----
     if (body.parentStatus !== undefined) dataToUpdate.parentStatus = emptyStringToNull(body.parentStatus);
     if (body.fatherOccupation !== undefined) dataToUpdate.fatherOccupation = emptyStringToNull(body.fatherOccupation);
     if (body.motherOccupation !== undefined) dataToUpdate.motherOccupation = emptyStringToNull(body.motherOccupation);
     if (body.siblings !== undefined) dataToUpdate.siblings = toNumberOrNull(body.siblings);
-    if (body.position !== undefined) dataToUpdate.position = toNumberOrNull(body.position);
+    if (body.positionInFamily !== undefined) dataToUpdate.position = toNumberOrNull(body.positionInFamily);
 
-    // ---- Religion (limited editable fields from mobile) ----
-    if (body.shomerNegiah !== undefined) dataToUpdate.shomerNegiah = body.shomerNegiah;
+    // ---- Religion ----
+    if (body.religiousLevel !== undefined) {
+      dataToUpdate.religiousLevel = emptyStringToNull(body.religiousLevel);
+    }
+
+    if (body.religiousJourney !== undefined) {
+      const rjVal = emptyStringToNull(body.religiousJourney);
+      if (rjVal && Object.values(ReligiousJourney).includes(rjVal as ReligiousJourney)) {
+        dataToUpdate.religiousJourney = rjVal as ReligiousJourney;
+      } else {
+        dataToUpdate.religiousJourney = null;
+      }
+    }
+
+    if (body.shomerNegiah !== undefined) {
+      if (body.shomerNegiah === null) {
+        dataToUpdate.shomerNegiah = null;
+      } else {
+        dataToUpdate.shomerNegiah = Boolean(body.shomerNegiah);
+      }
+    }
+
+    // ---- Service ----
+    if (body.serviceType !== undefined) {
+      const stVal = emptyStringToNull(body.serviceType);
+      if (stVal && Object.values(ServiceType).includes(stVal as ServiceType)) {
+        dataToUpdate.serviceType = stVal as ServiceType;
+      } else {
+        dataToUpdate.serviceType = null;
+      }
+    }
     if (body.serviceDetails !== undefined) dataToUpdate.serviceDetails = emptyStringToNull(body.serviceDetails);
+
+    // ---- Head Covering ----
+    if (body.headCovering !== undefined) {
+      const hcVal = emptyStringToNull(body.headCovering);
+      if (hcVal && Object.values(HeadCoveringType).includes(hcVal as HeadCoveringType)) {
+        dataToUpdate.headCovering = hcVal as HeadCoveringType;
+      } else {
+        dataToUpdate.headCovering = null;
+      }
+    }
+
+    // ---- Kippah Type ----
+    if (body.kippahType !== undefined) {
+      const ktVal = emptyStringToNull(body.kippahType);
+      if (ktVal && Object.values(KippahType).includes(ktVal as KippahType)) {
+        dataToUpdate.kippahType = ktVal as KippahType;
+      } else {
+        dataToUpdate.kippahType = null;
+      }
+    }
+
     if (body.influentialRabbi !== undefined) dataToUpdate.influentialRabbi = emptyStringToNull(body.influentialRabbi);
-  if (body.preferredMatchmakerGender !== undefined) {
-  const value = emptyStringToNull(body.preferredMatchmakerGender);
-  dataToUpdate.preferredMatchmakerGender = 
-    value && Object.values(Gender).includes(value as Gender) 
-      ? (value as Gender) 
-      : null;
-}
+
+    if (body.preferredMatchmakerGender !== undefined) {
+      const value = emptyStringToNull(body.preferredMatchmakerGender);
+      dataToUpdate.preferredMatchmakerGender =
+        value && Object.values(Gender).includes(value as Gender)
+          ? (value as Gender)
+          : null;
+    }
 
     // ---- Traits & Character ----
     if (body.profileCharacterTraits !== undefined) dataToUpdate.profileCharacterTraits = body.profileCharacterTraits || [];
@@ -307,7 +396,6 @@ export async function PUT(req: NextRequest) {
     // ---- Medical Info ----
     if (body.hasMedicalInfo !== undefined) {
       dataToUpdate.hasMedicalInfo = body.hasMedicalInfo;
-      // If user unchecks medical info, clear the details
       if (!body.hasMedicalInfo) {
         dataToUpdate.medicalInfoDetails = null;
         dataToUpdate.medicalInfoDisclosureTiming = null;

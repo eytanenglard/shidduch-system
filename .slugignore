@@ -1,15 +1,22 @@
-# Next.js Cache (חובה להשאיר את זה, זה הכבד ביותר)
+# Next.js Cache
 .next/cache
 
 # בדיקות
 test
 tests
 spec
+__tests__
+*.test.*
+*.spec.*
 
 # קבצים כלליים
 README.md
 LICENSE
+CHANGELOG*
 .eslintrc.json
 .eslintignore
 .github
 .git
+docs/
+.env.example
+*.md
