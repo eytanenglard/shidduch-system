@@ -4,14 +4,21 @@
 // Server-side: sends push notifications via Expo's Push API
 // ==========================================
 //
-// SETUP: npm install expo-server-sdk
+// ✅ FIX: Uses plain fetch() instead of expo-server-sdk
+//    This avoids node: module errors when bundled by Webpack
+//    (expo-server-sdk uses undici which requires node:assert, node:buffer etc.)
+//
+// ❌ REMOVED: npm install expo-server-sdk  ← no longer needed
 //
 
-import Expo, { ExpoPushMessage, ExpoPushTicket } from 'expo-server-sdk';
 import prisma from '@/lib/prisma';
 
-// Create a single Expo SDK client (reuse across requests)
-const expo = new Expo();
+// ==========================================
+// Constants
+// ==========================================
+
+const EXPO_PUSH_URL = 'https://exp.host/--/api/v2/push/send';
+const MAX_CHUNK_SIZE = 100; // Expo recommends max 100 per request
 
 // ==========================================
 // Types
@@ -24,6 +31,76 @@ export interface PushPayload {
   sound?: 'default' | null;
   badge?: number;
   channelId?: string;
+}
+
+interface ExpoPushTicket {
+  status: 'ok' | 'error';
+  id?: string;
+  message?: string;
+  details?: { error?: string };
+}
+
+// ==========================================
+// Helper: validate Expo push token format
+// ==========================================
+
+function isExpoPushToken(token: string): boolean {
+  return (
+    typeof token === 'string' &&
+    (token.startsWith('ExponentPushToken[') || token.startsWith('ExpoPushToken['))
+  );
+}
+
+// ==========================================
+// Helper: chunk array
+// ==========================================
+
+function chunkArray<T>(array: T[], size: number): T[][] {
+  const chunks: T[][] = [];
+  for (let i = 0; i < array.length; i += size) {
+    chunks.push(array.slice(i, i + size));
+  }
+  return chunks;
+}
+
+// ==========================================
+// Core: Send push to Expo API via fetch
+// ==========================================
+
+async function sendToExpoApi(
+  messages: Array<{
+    to: string;
+    title: string;
+    body: string;
+    data?: Record<string, string>;
+    sound?: string | null;
+    badge?: number;
+    channelId?: string;
+    priority?: string;
+  }>
+): Promise<ExpoPushTicket[]> {
+  try {
+    const response = await fetch(EXPO_PUSH_URL, {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        'Accept-Encoding': 'gzip, deflate',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(messages),
+    });
+
+    if (!response.ok) {
+      console.error(`[push] Expo API error: ${response.status} ${response.statusText}`);
+      return messages.map(() => ({ status: 'error' as const, message: `HTTP ${response.status}` }));
+    }
+
+    const result = await response.json();
+    return result.data || [];
+  } catch (error) {
+    console.error('[push] Expo API fetch error:', error);
+    return messages.map(() => ({ status: 'error' as const, message: String(error) }));
+  }
 }
 
 // ==========================================
@@ -49,7 +126,7 @@ export async function sendPushToUser(
     // Filter valid Expo push tokens
     const validTokens = devices
       .map((d) => d.token)
-      .filter((token) => Expo.isExpoPushToken(token));
+      .filter((token) => isExpoPushToken(token));
 
     if (validTokens.length === 0) {
       console.log(`[push] No valid Expo push tokens for user ${userId}`);
@@ -57,7 +134,7 @@ export async function sendPushToUser(
     }
 
     // Build messages
-    const messages: ExpoPushMessage[] = validTokens.map((token) => ({
+    const messages = validTokens.map((token) => ({
       to: token,
       title: payload.title,
       body: payload.body,
@@ -68,37 +145,33 @@ export async function sendPushToUser(
       priority: 'high' as const,
     }));
 
-    // Send in chunks (Expo recommends batching)
-    const chunks = expo.chunkPushNotifications(messages);
+    // Send in chunks
+    const chunks = chunkArray(messages, MAX_CHUNK_SIZE);
     let sent = 0;
     let errors = 0;
 
     for (const chunk of chunks) {
-      try {
-        const tickets: ExpoPushTicket[] = await expo.sendPushNotificationsAsync(chunk);
+      const tickets = await sendToExpoApi(chunk);
 
-        for (const ticket of tickets) {
-          if (ticket.status === 'ok') {
-            sent++;
-          } else {
-            errors++;
-            console.error(`[push] Error sending to user ${userId}:`, ticket.message);
+      for (let i = 0; i < tickets.length; i++) {
+        const ticket = tickets[i];
+        if (ticket.status === 'ok') {
+          sent++;
+        } else {
+          errors++;
+          console.error(`[push] Error sending to user ${userId}:`, ticket.message);
 
-            // If token is invalid, clean it up
-            if (
-              ticket.details?.error === 'DeviceNotRegistered' ||
-              ticket.details?.error === 'InvalidCredentials'
-            ) {
-              const failedToken = chunk[tickets.indexOf(ticket)]?.to;
-              if (failedToken && typeof failedToken === 'string') {
-                await cleanupInvalidToken(failedToken);
-              }
+          // If token is invalid, clean it up
+          if (
+            ticket.details?.error === 'DeviceNotRegistered' ||
+            ticket.details?.error === 'InvalidCredentials'
+          ) {
+            const failedToken = chunk[i]?.to;
+            if (failedToken) {
+              await cleanupInvalidToken(failedToken);
             }
           }
         }
-      } catch (chunkError) {
-        console.error('[push] Chunk send error:', chunkError);
-        errors += chunk.length;
       }
     }
 
@@ -121,7 +194,6 @@ export async function sendPushToUsers(
   let totalSent = 0;
   let totalErrors = 0;
 
-  // Send in parallel but with a concurrency limit
   const results = await Promise.allSettled(
     userIds.map((userId) => sendPushToUser(userId, payload))
   );
@@ -175,7 +247,6 @@ export async function notifyChatMessage({
 
 /**
  * Notify matchmaker when user sends a chat message
- * (Uses email notification since matchmaker is on web)
  */
 export async function notifyMatchmakerNewMessage({
   matchmakerUserId,
@@ -188,9 +259,6 @@ export async function notifyMatchmakerNewMessage({
   messagePreview: string;
   suggestionId: string;
 }) {
-  // Matchmakers primarily use web dashboard, so we just log it.
-  // The polling mechanism + unread badges handle web notifications.
-  // If the matchmaker also has the mobile app, they'll get push too:
   return sendPushToUser(matchmakerUserId, {
     title: `📩 הודעה חדשה מ${senderName}`,
     body:
