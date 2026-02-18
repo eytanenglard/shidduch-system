@@ -33,8 +33,8 @@ import {
 import { toast } from 'sonner';
 import { addDays } from 'date-fns';
 import { cn, getRelativeCloudinaryPath, getInitials, calculateAge } from '@/lib/utils';
-import type { Candidate } from '../new/types/candidates';
-import NewSuggestionForm from '../suggestions/NewSuggestionForm';
+import type { Candidate } from '../types/candidates';
+import NewSuggestionForm from '../../suggestions/NewSuggestionForm';
 import type { MatchmakerPageDictionary } from '@/types/dictionaries/matchmaker';
 
 // ═══════════════════════════════════════════════════════════════
@@ -531,19 +531,18 @@ const BulkSuggestionsDialog: React.FC<BulkSuggestionsDialogProps> = ({
 
       {/* ── NewSuggestionForm בmoad עריכה (נפתח מעל הדיאלוג הראשי) ── */}
       {editingItem && (
-        <NewSuggestionForm
-          isOpen={!!editingSecondPartyId}
-          onClose={() => setEditingSecondPartyId(null)}
-          allCandidates={[firstPartyCandidate, editingItem.secondParty]}
-          prefilledFirstParty={firstPartyCandidate}
-          prefilledSecondParty={editingItem.secondParty}
-          isBulkMode
-          onDraftSave={(data) =>
-            handleDraftSave(editingItem.secondParty.id, data)
-          }
-          dict={dict}
-          locale={locale}
-        />
+      <NewSuggestionForm
+  isOpen={!!editingSecondPartyId}
+  onClose={() => setEditingSecondPartyId(null)}
+  candidates={[firstPartyCandidate, editingItem.secondParty]}
+  prefilledFirstParty={firstPartyCandidate}
+  prefilledSecondParty={editingItem.secondParty}
+  isBulkMode
+  onDraftSave={(data) => handleDraftSave(editingItem.secondParty.id, data)}
+  onSubmit={async () => {}} 
+  dict={dict}
+  locale={locale}
+/>
       )}
     </>
   );
