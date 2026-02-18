@@ -1,7 +1,13 @@
 // src/components/messages/MatchmakerChatPanel.tsx
 'use client';
 
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  useRef,
+  useMemo,
+} from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -18,6 +24,8 @@ import {
   Inbox,
   Clock,
   Send,
+  Search,
+  X,
 } from 'lucide-react';
 import { cn, getInitials } from '@/lib/utils';
 import { format, isToday, isYesterday } from 'date-fns';
@@ -95,6 +103,38 @@ function truncate(text: string, maxLen: number) {
   return text.slice(0, maxLen) + '…';
 }
 
+/** Highlight matching text segments */
+function HighlightText({
+  text,
+  highlight,
+}: {
+  text: string;
+  highlight: string;
+}) {
+  if (!highlight.trim()) return <>{text}</>;
+  const regex = new RegExp(
+    `(${highlight.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`,
+    'gi'
+  );
+  const parts = text.split(regex);
+  return (
+    <>
+      {parts.map((part, i) =>
+        regex.test(part) ? (
+          <mark
+            key={i}
+            className="bg-amber-200/70 text-inherit rounded-sm px-0.5"
+          >
+            {part}
+          </mark>
+        ) : (
+          <span key={i}>{part}</span>
+        )
+      )}
+    </>
+  );
+}
+
 // ==========================================
 // DirectChatView Sub-Component
 // ==========================================
@@ -132,7 +172,6 @@ function DirectChatView({
 
   useEffect(() => {
     loadMessages();
-    // Mark as read
     fetch(`/api/matchmaker/direct-chats/${userId}`, { method: 'PATCH' }).catch(
       console.error
     );
@@ -307,6 +346,12 @@ export default function MatchmakerChatPanel({
   );
   const [selectedChat, setSelectedChat] = useState<SelectedChat | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+
+  // ====== SEARCH STATE ======
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
   const isHe = locale === 'he';
 
   // ==========================================
@@ -330,7 +375,6 @@ export default function MatchmakerChatPanel({
       }
       const unreadMap = unreadData.bySuggestion || {};
 
-      // Handle direct chats
       if (directRes.ok) {
         const directData = await directRes.json();
         if (directData.success) {
@@ -369,12 +413,14 @@ export default function MatchmakerChatPanel({
 
       setChatSummaries(summaries);
 
-      const withUnread = summaries
-        .filter((s: SuggestionChatSummary) => s.totalUnread > 0)
-        .map((s: SuggestionChatSummary) => s.suggestionId);
-      setExpandedSuggestions(new Set(withUnread));
+      // Only auto-expand unread when NOT searching
+      if (!searchQuery.trim()) {
+        const withUnread = summaries
+          .filter((s: SuggestionChatSummary) => s.totalUnread > 0)
+          .map((s: SuggestionChatSummary) => s.suggestionId);
+        setExpandedSuggestions(new Set(withUnread));
+      }
 
-      // Fetch last messages per suggestion in background
       for (const summary of summaries) {
         fetchLastMessagesForSummary(summary, suggestions);
       }
@@ -383,6 +429,7 @@ export default function MatchmakerChatPanel({
     } finally {
       setIsLoading(false);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchLastMessagesForSummary = async (
@@ -465,6 +512,43 @@ export default function MatchmakerChatPanel({
   }, [loadChatSummaries]);
 
   // ==========================================
+  // Filtered data (search)
+  // ==========================================
+
+  const normalizedQuery = searchQuery.trim().toLowerCase();
+
+  const filteredSummaries = useMemo(() => {
+    if (!normalizedQuery) return chatSummaries;
+    return chatSummaries.filter(
+      (s) =>
+        s.firstParty.name.toLowerCase().includes(normalizedQuery) ||
+        s.secondParty.name.toLowerCase().includes(normalizedQuery)
+    );
+  }, [chatSummaries, normalizedQuery]);
+
+  const filteredDirectChats = useMemo(() => {
+    if (!normalizedQuery) return directChats;
+    return directChats.filter((dc) =>
+      dc.name.toLowerCase().includes(normalizedQuery)
+    );
+  }, [directChats, normalizedQuery]);
+
+  // Auto-expand all matching suggestions when searching
+  useEffect(() => {
+    if (normalizedQuery) {
+      const matchingIds = filteredSummaries.map((s) => s.suggestionId);
+      setExpandedSuggestions(new Set(matchingIds));
+    }
+    // When clearing search, revert to showing only unread expanded
+    if (!normalizedQuery && chatSummaries.length > 0) {
+      const withUnread = chatSummaries
+        .filter((s) => s.totalUnread > 0)
+        .map((s) => s.suggestionId);
+      setExpandedSuggestions(new Set(withUnread));
+    }
+  }, [normalizedQuery, filteredSummaries, chatSummaries]);
+
+  // ==========================================
   // Handlers
   // ==========================================
 
@@ -492,6 +576,11 @@ export default function MatchmakerChatPanel({
   const closeChat = () => {
     setSelectedChat(null);
     loadChatSummaries();
+  };
+
+  const clearSearch = () => {
+    setSearchQuery('');
+    searchInputRef.current?.focus();
   };
 
   // ==========================================
@@ -629,9 +718,13 @@ export default function MatchmakerChatPanel({
     );
   }
 
+  const hasResults =
+    filteredSummaries.length > 0 || filteredDirectChats.length > 0;
+  const isSearching = normalizedQuery.length > 0;
+
   return (
     <Card className="shadow-lg border-0 overflow-hidden bg-white/80 backdrop-blur-sm">
-      <CardHeader className="bg-gradient-to-r from-teal-50 to-amber-50/40 border-b">
+      <CardHeader className="bg-gradient-to-r from-teal-50 to-amber-50/40 border-b pb-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="p-2 rounded-xl bg-gradient-to-br from-teal-500 to-teal-600 text-white shadow-md">
@@ -652,30 +745,122 @@ export default function MatchmakerChatPanel({
             </Badge>
           )}
         </div>
+
+        {/* ====== SEARCH BAR ====== */}
+        <div className="mt-3">
+          <div className="relative">
+            <Search
+              className={cn(
+                'absolute top-1/2 -translate-y-1/2 w-4 h-4 transition-colors',
+                isSearchFocused ? 'text-teal-500' : 'text-gray-400',
+                isHe ? 'right-3' : 'left-3'
+              )}
+            />
+            <input
+              ref={searchInputRef}
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onFocus={() => setIsSearchFocused(true)}
+              onBlur={() => setIsSearchFocused(false)}
+              placeholder={
+                isHe ? 'חיפוש מועמד/ת לפי שם...' : 'Search candidate by name...'
+              }
+              className={cn(
+                'w-full py-2.5 rounded-xl border bg-white text-sm transition-all duration-200',
+                'focus:outline-none focus:ring-2 focus:ring-teal-300 focus:border-teal-400',
+                'placeholder:text-gray-400',
+                isHe ? 'pr-10 pl-10' : 'pl-10 pr-10',
+                isSearchFocused
+                  ? 'border-teal-300 shadow-sm'
+                  : 'border-gray-200'
+              )}
+              dir={isHe ? 'rtl' : 'ltr'}
+            />
+            {/* Clear button */}
+            {searchQuery && (
+              <button
+                onClick={clearSearch}
+                className={cn(
+                  'absolute top-1/2 -translate-y-1/2 p-1 rounded-full hover:bg-gray-100 transition-colors',
+                  isHe ? 'left-2' : 'right-2'
+                )}
+              >
+                <X className="w-4 h-4 text-gray-400 hover:text-gray-600" />
+              </button>
+            )}
+          </div>
+
+          {/* Search result count */}
+          {isSearching && (
+            <div className="flex items-center gap-2 mt-2 px-1">
+              <Badge
+                variant="outline"
+                className={cn(
+                  'text-xs font-medium',
+                  hasResults
+                    ? 'border-teal-200 text-teal-700 bg-teal-50/50'
+                    : 'border-gray-200 text-gray-500'
+                )}
+              >
+                <Search className="w-3 h-3 me-1" />
+                {hasResults
+                  ? isHe
+                    ? `נמצאו ${filteredSummaries.length} הצעות ו-${filteredDirectChats.length} שיחות ישירות`
+                    : `Found ${filteredSummaries.length} suggestions & ${filteredDirectChats.length} direct chats`
+                  : isHe
+                    ? 'לא נמצאו תוצאות'
+                    : 'No results found'}
+              </Badge>
+            </div>
+          )}
+        </div>
       </CardHeader>
 
       <CardContent className="p-0">
         <ScrollArea className="h-[600px]">
-          {chatSummaries.length === 0 && directChats.length === 0 ? (
+          {!hasResults ? (
             <div className="flex flex-col items-center justify-center h-full py-12 text-center px-4">
               <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-teal-50 to-amber-50 flex items-center justify-center mb-4">
-                <Inbox className="w-8 h-8 text-gray-300" />
+                {isSearching ? (
+                  <Search className="w-8 h-8 text-gray-300" />
+                ) : (
+                  <Inbox className="w-8 h-8 text-gray-300" />
+                )}
               </div>
-              <p className="text-sm text-gray-500">
-                {isHe ? 'אין הצעות פעילות כרגע' : 'No active suggestions'}
+              <p className="text-sm font-medium text-gray-600 mb-1">
+                {isSearching
+                  ? isHe
+                    ? `לא נמצאו תוצאות עבור "${searchQuery}"`
+                    : `No results for "${searchQuery}"`
+                  : isHe
+                    ? 'אין הצעות פעילות כרגע'
+                    : 'No active suggestions'}
               </p>
+              {isSearching && (
+                <p className="text-xs text-gray-400">
+                  {isHe
+                    ? 'נסה/י לחפש שם אחר או לנקות את החיפוש'
+                    : 'Try a different name or clear the search'}
+                </p>
+              )}
             </div>
           ) : (
             <div className="divide-y divide-gray-100">
               {/* ======== Direct Chats Section ======== */}
-              {directChats.length > 0 && (
+              {filteredDirectChats.length > 0 && (
                 <>
                   <div className="px-5 py-2.5 bg-purple-50/50 border-b">
                     <p className="text-xs font-semibold text-purple-600 uppercase tracking-wider">
                       {isHe ? 'שיחות כלליות' : 'General Chats'}
+                      {isSearching && (
+                        <span className="text-purple-400 font-normal ms-1">
+                          ({filteredDirectChats.length})
+                        </span>
+                      )}
                     </p>
                   </div>
-                  {directChats.map((dc) => (
+                  {filteredDirectChats.map((dc) => (
                     <button
                       key={dc.userId}
                       onClick={() =>
@@ -698,7 +883,10 @@ export default function MatchmakerChatPanel({
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between mb-0.5">
                           <p className="font-medium text-gray-800 text-sm">
-                            {dc.name}
+                            <HighlightText
+                              text={dc.name}
+                              highlight={searchQuery}
+                            />
                           </p>
                           {dc.lastMessageTime && (
                             <span className="text-[10px] text-gray-400">
@@ -717,9 +905,7 @@ export default function MatchmakerChatPanel({
                           </p>
                         ) : (
                           <p className="text-xs text-gray-400 italic">
-                            {isHe
-                              ? 'לחץ/י לפתיחת שיחה'
-                              : 'Click to open chat'}
+                            {isHe ? 'לחץ/י לפתיחת שיחה' : 'Click to open chat'}
                           </p>
                         )}
                       </div>
@@ -730,22 +916,53 @@ export default function MatchmakerChatPanel({
                       )}
                     </button>
                   ))}
-                  {chatSummaries.length > 0 && (
+                  {filteredSummaries.length > 0 && (
                     <div className="px-5 py-2.5 bg-teal-50/50 border-b">
                       <p className="text-xs font-semibold text-teal-600 uppercase tracking-wider">
                         {isHe ? 'שיחות לפי הצעה' : 'Suggestion Chats'}
+                        {isSearching && (
+                          <span className="text-teal-400 font-normal ms-1">
+                            ({filteredSummaries.length})
+                          </span>
+                        )}
                       </p>
                     </div>
                   )}
                 </>
               )}
 
+              {/* Show section header even when no direct chats but searching */}
+              {filteredDirectChats.length === 0 &&
+                filteredSummaries.length > 0 &&
+                isSearching && (
+                  <div className="px-5 py-2.5 bg-teal-50/50 border-b">
+                    <p className="text-xs font-semibold text-teal-600 uppercase tracking-wider">
+                      {isHe ? 'שיחות לפי הצעה' : 'Suggestion Chats'}
+                      <span className="text-teal-400 font-normal ms-1">
+                        ({filteredSummaries.length})
+                      </span>
+                    </p>
+                  </div>
+                )}
+
               {/* ======== Suggestion Chats Section ======== */}
-              {chatSummaries.map((summary) => {
+              {filteredSummaries.map((summary) => {
                 const isExpanded = expandedSuggestions.has(
                   summary.suggestionId
                 );
                 const statusInfo = getStatusLabel(summary.status);
+
+                // Determine which party matches the search (for visual hint)
+                const firstMatches =
+                  isSearching &&
+                  summary.firstParty.name
+                    .toLowerCase()
+                    .includes(normalizedQuery);
+                const secondMatches =
+                  isSearching &&
+                  summary.secondParty.name
+                    .toLowerCase()
+                    .includes(normalizedQuery);
 
                 return (
                   <div key={summary.suggestionId}>
@@ -754,17 +971,28 @@ export default function MatchmakerChatPanel({
                       onClick={() => toggleExpand(summary.suggestionId)}
                       className={cn(
                         'w-full px-5 py-3.5 flex items-center justify-between hover:bg-gray-50/80 transition-colors text-start',
-                        summary.totalUnread > 0 && 'bg-teal-50/30'
+                        summary.totalUnread > 0 && 'bg-teal-50/30',
+                        isSearching && 'bg-teal-50/20'
                       )}
                     >
                       <div className="flex items-center gap-3">
                         <div className="relative flex-shrink-0">
-                          <Avatar className="w-11 h-11 shadow-sm ring-2 ring-white">
+                          <Avatar
+                            className={cn(
+                              'w-11 h-11 shadow-sm ring-2',
+                              firstMatches ? 'ring-amber-300' : 'ring-white'
+                            )}
+                          >
                             <AvatarFallback className="bg-gradient-to-br from-teal-400 to-cyan-500 text-white text-xs font-bold">
                               {getInitials(summary.firstParty.name)}
                             </AvatarFallback>
                           </Avatar>
-                          <Avatar className="w-7 h-7 absolute -bottom-0.5 -end-2 shadow-sm ring-2 ring-white">
+                          <Avatar
+                            className={cn(
+                              'w-7 h-7 absolute -bottom-0.5 -end-2 shadow-sm ring-2',
+                              secondMatches ? 'ring-amber-300' : 'ring-white'
+                            )}
+                          >
                             <AvatarFallback className="bg-gradient-to-br from-amber-400 to-orange-500 text-white text-[9px] font-bold">
                               {getInitials(summary.secondParty.name)}
                             </AvatarFallback>
@@ -773,8 +1001,15 @@ export default function MatchmakerChatPanel({
 
                         <div>
                           <p className="font-semibold text-gray-800 text-sm">
-                            {summary.firstParty.name.split(' ')[0]} &{' '}
-                            {summary.secondParty.name.split(' ')[0]}
+                            <HighlightText
+                              text={summary.firstParty.name.split(' ')[0]}
+                              highlight={searchQuery}
+                            />
+                            {' & '}
+                            <HighlightText
+                              text={summary.secondParty.name.split(' ')[0]}
+                              highlight={searchQuery}
+                            />
                           </p>
                           <Badge
                             variant="outline"
@@ -815,7 +1050,12 @@ export default function MatchmakerChatPanel({
                               true
                             )
                           }
-                          className="w-full p-3 rounded-xl bg-white border border-gray-200 hover:border-teal-300 hover:bg-teal-50/40 transition-all flex items-center gap-3 shadow-sm text-start"
+                          className={cn(
+                            'w-full p-3 rounded-xl bg-white border hover:border-teal-300 hover:bg-teal-50/40 transition-all flex items-center gap-3 shadow-sm text-start',
+                            firstMatches
+                              ? 'border-amber-300 bg-amber-50/20'
+                              : 'border-gray-200'
+                          )}
                         >
                           <Avatar className="w-10 h-10 shadow-sm flex-shrink-0">
                             <AvatarFallback className="bg-gradient-to-br from-teal-400 to-cyan-500 text-white text-sm font-bold">
@@ -825,7 +1065,10 @@ export default function MatchmakerChatPanel({
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center justify-between mb-0.5">
                               <p className="font-medium text-gray-800 text-sm">
-                                {summary.firstParty.name}
+                                <HighlightText
+                                  text={summary.firstParty.name}
+                                  highlight={searchQuery}
+                                />
                               </p>
                               <div className="flex items-center gap-1.5">
                                 {summary.firstParty.lastMessageTime && (
@@ -876,7 +1119,12 @@ export default function MatchmakerChatPanel({
                               false
                             )
                           }
-                          className="w-full p-3 rounded-xl bg-white border border-gray-200 hover:border-amber-300 hover:bg-amber-50/40 transition-all flex items-center gap-3 shadow-sm text-start"
+                          className={cn(
+                            'w-full p-3 rounded-xl bg-white border hover:border-amber-300 hover:bg-amber-50/40 transition-all flex items-center gap-3 shadow-sm text-start',
+                            secondMatches
+                              ? 'border-amber-300 bg-amber-50/20'
+                              : 'border-gray-200'
+                          )}
                         >
                           <Avatar className="w-10 h-10 shadow-sm flex-shrink-0">
                             <AvatarFallback className="bg-gradient-to-br from-amber-400 to-orange-500 text-white text-sm font-bold">
@@ -886,7 +1134,10 @@ export default function MatchmakerChatPanel({
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center justify-between mb-0.5">
                               <p className="font-medium text-gray-800 text-sm">
-                                {summary.secondParty.name}
+                                <HighlightText
+                                  text={summary.secondParty.name}
+                                  highlight={searchQuery}
+                                />
                               </p>
                               <div className="flex items-center gap-1.5">
                                 {summary.secondParty.lastMessageTime && (
