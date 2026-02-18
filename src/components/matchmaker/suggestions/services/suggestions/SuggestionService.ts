@@ -61,7 +61,7 @@ export class SuggestionService {
   public async createSuggestion(
     data: CreateSuggestionData,
     dictionaries: { he: EmailDictionary; en: EmailDictionary }, 
-    languageOptions: LanguageOptions
+    languageOptions: LanguageOptions,
   ): Promise<SuggestionWithParties> {
     // 1. וידוא הרשאות השדכן
     const matchmaker = await prisma.user.findUnique({
@@ -83,31 +83,9 @@ export class SuggestionService {
         throw new Error("One or both candidates not found.");
     }
     
-    // 3. בדיקה אם לאחד המועמדים כבר יש הצעה פעילה
-    const blockingSuggestion = await prisma.matchSuggestion.findFirst({
-        where: {
-            OR: [
-                { firstPartyId: data.firstPartyId },
-                { secondPartyId: data.firstPartyId },
-                { firstPartyId: data.secondPartyId },
-                { secondPartyId: data.secondPartyId },
-            ],
-            status: { in: BLOCKING_SUGGESTION_STATUSES },
-        },
-    });
 
-    if (blockingSuggestion) {
-        const hasBlockingSuggestion = (id: string) => 
-            blockingSuggestion.firstPartyId === id || blockingSuggestion.secondPartyId === id;
-            
-        if (hasBlockingSuggestion(data.firstPartyId)) {
-            throw new Error(`לא ניתן ליצור הצעה חדשה. ל${firstParty.firstName} ${firstParty.lastName} יש כבר הצעה פעילה.`);
-        }
-        if (hasBlockingSuggestion(data.secondPartyId)) {
-            throw new Error(`לא ניתן ליצור הצעה חדשה. ל${secondParty.firstName} ${secondParty.lastName} יש כבר הצעה פעילה.`);
-        }
-    }
 
+ 
     // 4. יצירת ההצעה בטרנזקציה להבטחת שלמות הנתונים
     const suggestion = await prisma.$transaction(async (tx) => {
       const cleanedData = {

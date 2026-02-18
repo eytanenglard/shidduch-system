@@ -179,22 +179,23 @@ const NewSuggestionForm: React.FC<NewSuggestionFormProps> = ({
     },
   });
 
-  useEffect(() => {
-    if (isOpen) {
-      form.reset({
-        priority: Priority.MEDIUM,
-        status: MatchSuggestionStatus.DRAFT,
-        decisionDeadline: new Date(
-          new Date().setDate(new Date().getDate() + 14)
-        ),
-        firstPartyId: selectedCandidate?.id || '',
-        secondPartyId: '',
-      });
-      setFirstParty(selectedCandidate || null);
-      setSecondParty(null);
-      setCurrentStep(0);
-    }
-  }, [isOpen, selectedCandidate, form]);
+ useEffect(() => {
+  if (isOpen) {
+    const initialFirst = prefilledFirstParty ?? selectedCandidate ?? null;
+    const initialSecond = prefilledSecondParty ?? null;
+    form.reset({
+      priority: Priority.MEDIUM,
+      status: MatchSuggestionStatus.DRAFT,
+      decisionDeadline: new Date(new Date().setDate(new Date().getDate() + 14)),
+      firstPartyId: initialFirst?.id || '',
+      secondPartyId: initialSecond?.id || '',
+    });
+    setFirstParty(initialFirst);
+    setSecondParty(initialSecond);
+    setCurrentStep(0);
+  }
+}, [isOpen, selectedCandidate, prefilledFirstParty, prefilledSecondParty, form]);
+
 
   const handleCandidateSelect =
     (type: 'first' | 'second') => (candidate: Candidate | null) => {
