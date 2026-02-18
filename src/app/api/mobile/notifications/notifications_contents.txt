@@ -1,0 +1,138 @@
+################################################################################
+# Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\mobile\notifications
+# Generated on: 2026-02-18 17:12:48
+# Filter: Only content of code files (.bat, .c, .cfg, .conf, .cpp, .cs, .css, .go, .h, .html, .ini, .java, .js, .json, .jsx, .kt, .less, .md, .php, .py, .rb, .rs, .scss, .sh, .sql, .swift, .ts, .tsx, .txt, .xml, .yaml, .yml) is included.
+################################################################################
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\mobile\notifications
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\mobile\notifications\notifications_contents.txt
+--------------------------------------------------------------------------------
+[This is the output log file itself. Content not included.]
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\mobile\notifications\register-device
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\mobile\notifications\register-device\route.ts
+--------------------------------------------------------------------------------
+Content:
+// src/app/api/mobile/notifications/register-device/route.ts
+// רישום מכשיר להתראות Push
+// נתיב: POST /api/mobile/notifications/register-device
+
+import { NextRequest } from "next/server";
+import { z } from "zod";
+import prisma from "@/lib/prisma";
+import { 
+  verifyMobileToken,
+  corsJson,
+  corsError,
+  corsOptions
+} from "@/lib/mobile-auth";
+
+const registerSchema = z.object({
+  token: z.string().min(1, "Push token is required"),
+  platform: z.enum(["ios", "android"]),
+});
+
+export async function OPTIONS(req: NextRequest) {
+  return corsOptions(req);
+}
+
+export async function POST(req: NextRequest) {
+  try {
+    const auth = await verifyMobileToken(req);
+    if (!auth) {
+      return corsError(req, "Unauthorized", 401);
+    }
+
+    const body = await req.json();
+    const validation = registerSchema.safeParse(body);
+
+    if (!validation.success) {
+      return corsJson(req, { 
+        success: false, 
+        error: "Invalid input", 
+        details: validation.error.errors 
+      }, { status: 400 });
+    }
+
+    const { token: pushToken, platform } = validation.data;
+
+    await prisma.deviceToken.upsert({
+      where: { token: pushToken },
+      update: {
+        userId: auth.userId,
+        platform,
+        updatedAt: new Date(),
+      },
+      create: {
+        userId: auth.userId,
+        token: pushToken,
+        platform,
+      },
+    });
+
+    console.log(`[mobile/notifications] Device registered for user ${auth.userId}, platform: ${platform}`);
+
+    return corsJson(req, { success: true });
+
+  } catch (error) {
+    console.error("[mobile/notifications/register-device] Error:", error);
+    return corsError(req, "Internal server error", 500);
+  }
+}
+--- End of Content for route.ts ---
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\mobile\notifications\unregister-device
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\mobile\notifications\unregister-device\route.ts
+--------------------------------------------------------------------------------
+Content:
+// src/app/api/mobile/notifications/unregister-device/route.ts
+// הסרת מכשיר מהתראות
+// נתיב: POST /api/mobile/notifications/unregister-device
+
+import { NextRequest } from "next/server";
+import prisma from "@/lib/prisma";
+import { 
+  corsJson,
+  corsError,
+  corsOptions
+} from "@/lib/mobile-auth";
+
+export async function OPTIONS(req: NextRequest) {
+  return corsOptions(req);
+}
+
+export async function POST(req: NextRequest) {
+  try {
+    const { token } = await req.json();
+
+    if (!token) {
+      return corsError(req, "Token is required", 400);
+    }
+
+    await prisma.deviceToken.deleteMany({
+      where: { token },
+    });
+
+    console.log(`[mobile/notifications] Device token removed`);
+
+    return corsJson(req, { success: true });
+
+  } catch (error) {
+    console.error("[mobile/notifications/unregister-device] Error:", error);
+    return corsError(req, "Internal server error", 500);
+  }
+}
+--- End of Content for route.ts ---
+
