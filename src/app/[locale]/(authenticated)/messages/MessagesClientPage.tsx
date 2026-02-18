@@ -1,13 +1,25 @@
-// src/app/[locale]/messages/MessagesClientPage.tsx
+// =============================================================================
+// 25. User Messages Page — Two Tabs Layout
+// File: src/app/[locale]/(authenticated)/messages/MessagesClientPage.tsx
+// =============================================================================
+//
+// REPLACES the existing MessagesClientPage.tsx
+// Has 2 tabs:
+//   1. צ'אטים (Chats) — UserChatPanel
+//   2. עדכונים (Updates) — the existing notification feed (now inlined)
+//
+// =============================================================================
+
 'use client';
-import StandardizedLoadingSpinner from '@/components/questionnaire/common/StandardizedLoadingSpinner';
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
-import { Loader2, Inbox, Zap, RefreshCw } from 'lucide-react';
+import { Loader2, Inbox, Zap, RefreshCw, MessageCircle, Bell } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
+import StandardizedLoadingSpinner from '@/components/questionnaire/common/StandardizedLoadingSpinner';
 import type { FeedItem } from '@/types/messages';
 import NotificationCard from '@/components/messages/NotificationCard';
+import UserChatPanel from '@/components/messages/UserChatPanel';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
@@ -16,6 +28,7 @@ import type { MessagesPageDict } from '@/types/dictionary';
 import type { Locale } from '../../../../../i18n-config';
 
 type FilterType = 'all' | 'action_required' | 'updates';
+type MainTab = 'chats' | 'updates';
 
 interface MessagesClientPageProps {
   dict: MessagesPageDict;
@@ -24,12 +37,21 @@ interface MessagesClientPageProps {
 
 export default function MessagesClientPage({ dict, locale }: MessagesClientPageProps) {
   const { data: session } = useSession();
+  const [mainTab, setMainTab] = useState<MainTab>('chats');
+
+  // ==========================================
+  // Feed state (for updates tab)
+  // ==========================================
   const [feedItems, setFeedItems] = useState<FeedItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeFilter, setActiveFilter] = useState<FilterType>('all');
 
+  // Chat unread count
+  const [chatUnread, setChatUnread] = useState(0);
+
   const userId = session?.user?.id;
+  const isHe = locale === 'he';
 
   const fetchFeed = useCallback(async () => {
     setIsLoading(true);
@@ -44,21 +66,42 @@ export default function MessagesClientPage({ dict, locale }: MessagesClientPageP
         throw new Error(data.error || 'API returned an error');
       }
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : 'An unknown error occurred'
-      );
+      setError(err instanceof Error ? err.message : 'An unknown error occurred');
     } finally {
       setIsLoading(false);
+    }
+  }, []);
+
+  // Fetch chat unread count
+  const fetchChatUnread = useCallback(async () => {
+    try {
+      const res = await fetch('/api/messages/chats');
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success) {
+          setChatUnread(data.totalUnread || 0);
+        }
+      }
+    } catch {
+      /* silent */
     }
   }, []);
 
   useEffect(() => {
     if (userId) {
       fetchFeed();
+      fetchChatUnread();
     } else {
-      setIsLoading(false); 
+      setIsLoading(false);
     }
-  }, [userId, fetchFeed]);
+  }, [userId, fetchFeed, fetchChatUnread]);
+
+  // Polling for chat unreads
+  useEffect(() => {
+    if (!userId) return;
+    const interval = setInterval(fetchChatUnread, 30000);
+    return () => clearInterval(interval);
+  }, [userId, fetchChatUnread]);
 
   const filteredItems = React.useMemo(() => {
     if (activeFilter === 'all') return feedItems;
@@ -66,8 +109,7 @@ export default function MessagesClientPage({ dict, locale }: MessagesClientPageP
       return feedItems.filter((item) => item.type === 'ACTION_REQUIRED');
     if (activeFilter === 'updates')
       return feedItems.filter(
-        (item) =>
-          item.type === 'STATUS_UPDATE' || item.type === 'NEW_SUGGESTION'
+        (item) => item.type === 'STATUS_UPDATE' || item.type === 'NEW_SUGGESTION'
       );
     return feedItems;
   }, [feedItems, activeFilter]);
@@ -75,126 +117,197 @@ export default function MessagesClientPage({ dict, locale }: MessagesClientPageP
   const actionRequiredCount = feedItems.filter(
     (item) => item.type === 'ACTION_REQUIRED'
   ).length;
-  if (isLoading) {
-    // החלפת ה-div הישן. משתמשים ב-className כדי להתאים לגובה שהיה קודם
-    return (
-      <StandardizedLoadingSpinner className="h-[calc(100vh-80px)]" />
-    );
+
+  if (!userId) {
+    return <StandardizedLoadingSpinner className="h-[calc(100vh-80px)]" />;
   }
 
+  // ==========================================
+  // Render
+  // ==========================================
 
   return (
-    <div 
+    <div
       className="min-h-screen bg-gradient-to-br from-slate-50 via-cyan-50/20 to-emerald-50/20"
-      dir={locale === 'he' ? 'rtl' : 'ltr'}
+      dir={isHe ? 'rtl' : 'ltr'}
     >
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
-        <header className="text-center mb-10">
+      <div className="container mx-auto px-4 py-8 max-w-5xl">
+        {/* Header */}
+        <header className="text-center mb-8">
           <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-purple-600 via-cyan-600 to-emerald-600 bg-clip-text text-transparent mb-3">
-            {dict.header.title}
+            {dict.header?.title || (isHe ? 'מרכז ההודעות' : 'Message Center')}
           </h1>
           <p className="text-lg text-gray-600">
-            {dict.header.subtitle}
+            {dict.header?.subtitle || (isHe ? 'כל השיחות והעדכונים שלך במקום אחד' : 'All your chats and updates in one place')}
           </p>
         </header>
 
-        <AnimatePresence>
-          {actionRequiredCount > 0 && (
-            <motion.div
-              initial={{ opacity: 0, y: -20, height: 0 }}
-              animate={{ opacity: 1, y: 0, height: 'auto' }}
-              exit={{ opacity: 0, y: -20, height: 0 }}
-              transition={{ duration: 0.5, ease: 'easeInOut' }}
-              className="mb-8"
-            >
-              <Alert className="bg-gradient-to-r from-orange-400 to-amber-400 text-white border-0 shadow-2xl rounded-2xl">
-                <Zap className="h-5 w-5 text-white" />
-                <AlertTitle className="font-bold text-lg">
-                  {actionRequiredCount === 1
-                    ? dict.actionBanner.titleSingle
-                    : dict.actionBanner.titleMultiple.replace('{{count}}', actionRequiredCount.toString())}
-                </AlertTitle>
-                <AlertDescription>
-                  {dict.actionBanner.description}
-                </AlertDescription>
-              </Alert>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-8">
-          <div className="flex items-center gap-2 p-1 bg-white/80 backdrop-blur-sm rounded-full shadow-md border border-gray-200">
-            <Button
-              variant={activeFilter === 'all' ? 'default' : 'ghost'}
-              onClick={() => setActiveFilter('all')}
-              className="rounded-full"
-            >
-              {dict.filters.all}
-            </Button>
-            <Button
-              variant={activeFilter === 'action_required' ? 'default' : 'ghost'}
-              onClick={() => setActiveFilter('action_required')}
-              className="rounded-full relative"
-            >
-              {dict.filters.actionRequired}
-              {actionRequiredCount > 0 && (
-                <Badge className="absolute -top-1 -right-2 bg-orange-500 text-white animate-pulse">
-                  {actionRequiredCount}
-                </Badge>
-              )}
-            </Button>
-            <Button
-              variant={activeFilter === 'updates' ? 'default' : 'ghost'}
-              onClick={() => setActiveFilter('updates')}
-              className="rounded-full"
-            >
-              {dict.filters.updates}
-            </Button>
-          </div>
-          <Button variant="outline" onClick={fetchFeed} disabled={isLoading}>
-            <RefreshCw
-              className={cn('w-4 h-4', locale === 'he' ? 'ml-2' : 'mr-2', isLoading && 'animate-spin')}
-            />
-            {dict.filters.refresh}
-          </Button>
+        {/* Main Tabs */}
+        <div className="flex items-center justify-center gap-2 p-1.5 bg-white/80 backdrop-blur-sm rounded-2xl shadow-md border border-gray-200 mb-8 max-w-md mx-auto">
+          <button
+            onClick={() => setMainTab('chats')}
+            className={cn(
+              'flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl font-medium text-sm transition-all duration-200',
+              mainTab === 'chats'
+                ? 'bg-gradient-to-r from-teal-500 to-cyan-500 text-white shadow-md'
+                : 'text-gray-600 hover:bg-gray-100'
+            )}
+          >
+            <MessageCircle className="w-4 h-4" />
+            {isHe ? "צ'אטים" : 'Chats'}
+            {chatUnread > 0 && (
+              <Badge
+                className={cn(
+                  'text-xs px-1.5 py-0 border-0',
+                  mainTab === 'chats'
+                    ? 'bg-white/30 text-white'
+                    : 'bg-teal-500 text-white animate-pulse'
+                )}
+              >
+                {chatUnread}
+              </Badge>
+            )}
+          </button>
+          <button
+            onClick={() => setMainTab('updates')}
+            className={cn(
+              'flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl font-medium text-sm transition-all duration-200',
+              mainTab === 'updates'
+                ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-md'
+                : 'text-gray-600 hover:bg-gray-100'
+            )}
+          >
+            <Bell className="w-4 h-4" />
+            {isHe ? 'עדכונים' : 'Updates'}
+            {actionRequiredCount > 0 && (
+              <Badge
+                className={cn(
+                  'text-xs px-1.5 py-0 border-0',
+                  mainTab === 'updates'
+                    ? 'bg-white/30 text-white'
+                    : 'bg-orange-500 text-white animate-pulse'
+                )}
+              >
+                {actionRequiredCount}
+              </Badge>
+            )}
+          </button>
         </div>
 
-        {error && (
-          <div className="text-center p-4 bg-red-50 text-red-700 rounded-lg">
-            {dict.error.replace('{{error}}', error)}
-          </div>
+        {/* Tab Content */}
+        {mainTab === 'chats' && (
+          <UserChatPanel locale={locale} />
         )}
 
-        {filteredItems.length === 0 && !isLoading ? (
-          <div className="flex flex-col items-center justify-center min-h-[400px] text-center p-8 bg-white/50 rounded-2xl shadow-inner border border-gray-200/50">
-            <Inbox className="w-20 h-20 text-gray-300 mb-6" />
-            <h3 className="text-2xl font-bold text-gray-700">{dict.emptyState.title}</h3>
-            <p className="text-gray-500 mt-2 max-w-md">
-              {activeFilter === 'all'
-                ? dict.emptyState.descriptionAll
-                : dict.emptyState.descriptionFiltered}
-            </p>
-          </div>
-        ) : (
-          <div className="space-y-4">
+        {mainTab === 'updates' && (
+          <div>
+            {/* Action Required Banner */}
             <AnimatePresence>
-              {filteredItems.map((item, index) => (
+              {actionRequiredCount > 0 && (
                 <motion.div
-                  key={item.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
-                  transition={{ duration: 0.3, delay: index * 0.05 }}
+                  initial={{ opacity: 0, y: -20, height: 0 }}
+                  animate={{ opacity: 1, y: 0, height: 'auto' }}
+                  exit={{ opacity: 0, y: -20, height: 0 }}
+                  transition={{ duration: 0.5, ease: 'easeInOut' }}
+                  className="mb-8"
                 >
-                  <NotificationCard 
-                    item={item} 
-                    userId={userId!} 
-                    dict={dict.notificationCard}
-                    locale={locale}
-                  />
+                  <Alert className="bg-gradient-to-r from-orange-400 to-amber-400 text-white border-0 shadow-2xl rounded-2xl">
+                    <Zap className="h-5 w-5 text-white" />
+                    <AlertTitle className="font-bold text-lg">
+                      {actionRequiredCount === 1
+                        ? dict.actionBanner?.titleSingle
+                        : dict.actionBanner?.titleMultiple?.replace('{{count}}', actionRequiredCount.toString())}
+                    </AlertTitle>
+                    <AlertDescription>
+                      {dict.actionBanner?.description}
+                    </AlertDescription>
+                  </Alert>
                 </motion.div>
-              ))}
+              )}
             </AnimatePresence>
+
+            {/* Filters */}
+            <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-8">
+              <div className="flex items-center gap-2 p-1 bg-white/80 backdrop-blur-sm rounded-full shadow-md border border-gray-200">
+                <Button
+                  variant={activeFilter === 'all' ? 'default' : 'ghost'}
+                  onClick={() => setActiveFilter('all')}
+                  className="rounded-full"
+                >
+                  {dict.filters?.all || (isHe ? 'הכל' : 'All')}
+                </Button>
+                <Button
+                  variant={activeFilter === 'action_required' ? 'default' : 'ghost'}
+                  onClick={() => setActiveFilter('action_required')}
+                  className="rounded-full relative"
+                >
+                  {dict.filters?.actionRequired || (isHe ? 'דורש תגובה' : 'Action Required')}
+                  {actionRequiredCount > 0 && (
+                    <Badge className="absolute -top-1 -right-2 bg-orange-500 text-white animate-pulse">
+                      {actionRequiredCount}
+                    </Badge>
+                  )}
+                </Button>
+                <Button
+                  variant={activeFilter === 'updates' ? 'default' : 'ghost'}
+                  onClick={() => setActiveFilter('updates')}
+                  className="rounded-full"
+                >
+                  {dict.filters?.updates || (isHe ? 'עדכונים' : 'Updates')}
+                </Button>
+              </div>
+              <Button variant="outline" onClick={fetchFeed} disabled={isLoading}>
+                <RefreshCw
+                  className={cn('w-4 h-4', isHe ? 'ml-2' : 'mr-2', isLoading && 'animate-spin')}
+                />
+                {dict.filters?.refresh || (isHe ? 'רענון' : 'Refresh')}
+              </Button>
+            </div>
+
+            {/* Error */}
+            {error && (
+              <div className="text-center p-4 bg-red-50 text-red-700 rounded-lg mb-4">
+                {error}
+              </div>
+            )}
+
+            {/* Feed */}
+            {isLoading ? (
+              <StandardizedLoadingSpinner className="h-64" />
+            ) : filteredItems.length === 0 ? (
+              <div className="flex flex-col items-center justify-center min-h-[400px] text-center p-8 bg-white/50 rounded-2xl shadow-inner border border-gray-200/50">
+                <Inbox className="w-20 h-20 text-gray-300 mb-6" />
+                <h3 className="text-2xl font-bold text-gray-700">
+                  {dict.emptyState?.title || (isHe ? 'אין עדכונים' : 'No updates')}
+                </h3>
+                <p className="text-gray-500 mt-2 max-w-md">
+                  {activeFilter === 'all'
+                    ? dict.emptyState?.descriptionAll
+                    : dict.emptyState?.descriptionFiltered}
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <AnimatePresence>
+                  {filteredItems.map((item, index) => (
+                    <motion.div
+                      key={item.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -20 }}
+                      transition={{ duration: 0.3, delay: index * 0.05 }}
+                    >
+                      <NotificationCard
+                        item={item}
+                        userId={userId!}
+                        dict={dict.notificationCard}
+                        locale={locale}
+                      />
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
+              </div>
+            )}
           </div>
         )}
       </div>

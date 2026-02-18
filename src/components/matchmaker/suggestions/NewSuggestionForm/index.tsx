@@ -13,6 +13,7 @@ import { toast } from 'sonner';
 import { useForm, FormProvider } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Priority, MatchSuggestionStatus } from '@prisma/client';
+import { addDays } from 'date-fns';
 import {
   UserPlus,
   Sparkles,
@@ -31,7 +32,6 @@ import {
 // Types
 import type { Candidate } from '../../new/types/candidates';
 import { newSuggestionSchema, type NewSuggestionFormData } from './schema';
-// <=== שינוי 1: עדכון הטיפוס של המילון שמתקבל ===>
 import type { MatchmakerPageDictionary } from '@/types/dictionaries/matchmaker';
 
 // Components
@@ -41,6 +41,20 @@ import CandidateSelector from './CandidateSelector';
 import { AiMatchAnalysisDialog } from '../../new/dialogs/AiMatchAnalysisDialog';
 import { cn } from '@/lib/utils';
 
+// ── טיפוס הנתונים שמוחזרים ל-BulkSuggestionsDialog ──────────────────────────
+export interface BulkSuggestionItemData {
+  priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
+  decisionDeadline: Date;
+  firstPartyLanguage: 'he' | 'en';
+  secondPartyLanguage: 'he' | 'en';
+  notes?: {
+    matchingReason?: string;
+    forFirstParty?: string;
+    forSecondParty?: string;
+    internal?: string;
+  };
+}
+
 interface NewSuggestionFormProps {
   locale: string;
   dict: MatchmakerPageDictionary;
@@ -49,6 +63,16 @@ interface NewSuggestionFormProps {
   candidates: Candidate[];
   selectedCandidate?: Candidate | null;
   onSubmit: (data: NewSuggestionFormData) => Promise<void>;
+  /** Pre-fills first party and locks it (for bulk mode) */
+  prefilledFirstParty?: Candidate | null;
+  /** Pre-fills second party and locks it (for bulk mode) */
+  prefilledSecondParty?: Candidate | null;
+  /**
+   * כשמוגדר true, כפתור ה"שמור" לא שולח ל-API אלא קורא ל-onDraftSave
+   * ומאפשר ל-BulkSuggestionsDialog לשמור את הנתונים ב-state.
+   */
+  isBulkMode?: boolean;
+  onDraftSave?: (data: BulkSuggestionItemData) => void;
 }
 
 const StepIndicator: React.FC<{
@@ -112,11 +136,13 @@ const NewSuggestionForm: React.FC<NewSuggestionFormProps> = ({
   onClose,
   candidates,
   selectedCandidate,
-  locale, // <--- הוסף את זה
-
+  locale,
   onSubmit,
+  prefilledFirstParty,
+  prefilledSecondParty,
+  isBulkMode = false,
+  onDraftSave,
 }) => {
-  // <=== שינוי 3: שימוש בנתיב הנכון והמלא לאובייקט המילון של הטופס ===>
   const formDict = dict.suggestionsDashboard.newSuggestionForm;
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -125,7 +151,19 @@ const NewSuggestionForm: React.FC<NewSuggestionFormProps> = ({
   const [showAnalysisDialog, setShowAnalysisDialog] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
 
-  // <=== שינוי 4: בניית מערך השלבים מתוך המילון ===>
+  // ── Pre-fill מ-props בעת bulk mode ──────────────────────────────────────────
+  useEffect(() => {
+    if (prefilledFirstParty) {
+      setFirstParty(prefilledFirstParty);
+    }
+  }, [prefilledFirstParty]);
+
+  useEffect(() => {
+    if (prefilledSecondParty) {
+      setSecondParty(prefilledSecondParty);
+    }
+  }, [prefilledSecondParty]);
+
   const steps = [
     { label: formDict.steps.select.label, icon: Users },
     { label: formDict.steps.analyze.label, icon: BarChart2 },
@@ -187,6 +225,23 @@ const NewSuggestionForm: React.FC<NewSuggestionFormProps> = ({
       return;
     }
 
+    // ── Bulk mode: שמור ב-state במקום לשלוח ל-API ────────────────────────────
+    if (isBulkMode && onDraftSave) {
+      onDraftSave({
+        priority: data.priority as 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT',
+        decisionDeadline: data.decisionDeadline,
+        firstPartyLanguage: (data as any).firstPartyLanguage ?? 'he',
+        secondPartyLanguage: (data as any).secondPartyLanguage ?? 'he',
+        notes: {
+          matchingReason: (data as any).matchingReason,
+          forFirstParty: (data as any).firstPartyNotes,
+          forSecondParty: (data as any).secondPartyNotes,
+          internal: (data as any).internalNotes,
+        },
+      });
+      return; // מפסיק לפני שליחה ל-API
+    }
+
     setIsSubmitting(true);
     try {
       await onSubmit(data);
@@ -235,6 +290,7 @@ const NewSuggestionForm: React.FC<NewSuggestionFormProps> = ({
               otherParty={secondParty}
               fieldName="firstPartyId"
               error={form.formState.errors.firstPartyId?.message}
+              disabled={isBulkMode && !!prefilledFirstParty}
             />
             <CandidateSelector
               dict={formDict.candidateSelector}
@@ -245,6 +301,7 @@ const NewSuggestionForm: React.FC<NewSuggestionFormProps> = ({
               otherParty={firstParty}
               fieldName="secondPartyId"
               error={form.formState.errors.secondPartyId?.message}
+              disabled={isBulkMode && !!prefilledSecondParty}
             />
           </div>
         );
@@ -264,7 +321,6 @@ const NewSuggestionForm: React.FC<NewSuggestionFormProps> = ({
         }
         return (
           <div className="space-y-8">
-            {/* <=== שינוי 5: העברת החלק הנכון במילון לקומפוננטת הילד ===> */}
             <MatchPreview
               dict={formDict.matchPreview}
               firstParty={firstParty}
@@ -299,7 +355,6 @@ const NewSuggestionForm: React.FC<NewSuggestionFormProps> = ({
           );
         }
         return (
-          // <=== שינוי 6: העברת החלק הנכון במילון לקומפוננטת הילד ===>
           <SuggestionDetails
             dict={formDict.suggestionDetails}
             firstParty={firstParty}
@@ -400,7 +455,7 @@ const NewSuggestionForm: React.FC<NewSuggestionFormProps> = ({
                     ) : (
                       <>
                         <Gift className="w-5 h-5 ml-2" />
-                        {formDict.buttons.create}
+                        {isBulkMode ? 'שמור טיוטה' : formDict.buttons.create}
                         <Sparkles className="w-4 h-4 mr-2" />
                       </>
                     )}
@@ -422,9 +477,8 @@ const NewSuggestionForm: React.FC<NewSuggestionFormProps> = ({
           onClose={() => setShowAnalysisDialog(false)}
           targetCandidate={firstParty}
           comparisonCandidates={[secondParty]}
-          // <=== שינוי 7: העברת החלק הנכון של המילון לדיאלוג ה-AI ===>
           dict={dict.candidatesManager.aiAnalysis}
-          locale={locale} // <--- הוסף את השורה הזו
+          locale={locale}
         />
       )}
     </>

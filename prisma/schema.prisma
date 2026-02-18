@@ -23,66 +23,120 @@ model User {
   isVerified        Boolean    @default(false)
   isPhoneVerified   Boolean    @default(false)
   isProfileComplete Boolean    @default(false)
-  deviceTokens          DeviceToken[]
+  deviceTokens      DeviceToken[]
 
-  source                    UserSource @default(REGISTRATION) // New field
-  addedByMatchmakerId       String? // Optional: ID of matchmaker who added this manual user
-  matchmakerWhoAdded        User?      @relation("ManuallyAddedBy", fields: [addedByMatchmakerId], references: [id]) // New relation
-  termsAndPrivacyAcceptedAt DateTime? // מתי המשתמש אישר את התנאים ומדיניות הפרטיות
-  engagementEmailsConsent     Boolean    @default(false) // הסכמה למיילי מעורבות (טיפים, פידבק, תזכורות)
-  promotionalEmailsConsent    Boolean    @default(false) // הסכמה למיילים שיווקיים (מבצעים, אירועים)
-  language                  Language   @default(he) 
+  source                    UserSource @default(REGISTRATION)
+  addedByMatchmakerId       String?
+  matchmakerWhoAdded        User?      @relation("ManuallyAddedBy", fields: [addedByMatchmakerId], references: [id])
+  termsAndPrivacyAcceptedAt DateTime?
+  engagementEmailsConsent   Boolean    @default(false)
+  promotionalEmailsConsent  Boolean    @default(false)
+  language                  Language   @default(he)
+
+  // === Assigned Matchmaker (NEW) ===
+  assignedMatchmakerId   String?
+  assignedMatchmaker     User?   @relation("AssignedMatchmaker", fields: [assignedMatchmakerId], references: [id])
+  assignedUsers          User[]  @relation("AssignedMatchmaker")
+
+  // === Direct Messages (NEW) ===
+  sentDirectMessages     DirectMessage[] @relation("SentDirectMessages")
+  receivedDirectMessages DirectMessage[] @relation("ReceivedDirectMessages")
+
+  // === Availability Inquiries ===
   firstPartyInquiries             AvailabilityInquiry[]   @relation("FirstPartyInquiries")
   matchmakerAvailabilityInquiries AvailabilityInquiry[]   @relation("MatchmakerInquiries")
   secondPartyInquiries            AvailabilityInquiry[]   @relation("SecondPartyInquiries")
+
+  // === Date Feedback ===
   givenFeedback                   DateFeedback[]          @relation("UserFeedback")
+
+  // === Invitations ===
   sentInvitations                 Invitation[]            @relation("MatchmakerInvitations")
   receivedInvitation              Invitation?             @relation("ReceivedInvitation")
+
+  // === Match Suggestions ===
   firstPartySuggestions           MatchSuggestion[]       @relation("FirstPartySuggestions")
   createdSuggestions              MatchSuggestion[]       @relation("MatchmakerSuggestions")
+  secondPartySuggestions          MatchSuggestion[]       @relation("SecondPartySuggestions")
+  approvedSuggestions             MatchSuggestion[]       @relation("ApprovedSuggestions")
+  reviewedSuggestions             MatchSuggestion[]       @relation("ReviewedSuggestions")
+
+  // === Auth ===
   accounts                        Account[]
   sessions                        Session[]
-  secondPartySuggestions          MatchSuggestion[]       @relation("SecondPartySuggestions")
+  oneTimeAuthTokens               OneTimeAuthToken[]
+
+  // === Profile & Questionnaire ===
   profile                         Profile?
   verifiedUsers                   Profile[]               @relation("VerifiedByMatchmaker")
   questionnaireResponses          QuestionnaireResponse[]
+
+  // === Suggestion Inquiries ===
   sentSuggestionInquiries         SuggestionInquiry[]     @relation("SentSuggestionInquiries")
   receivedSuggestionInquiries     SuggestionInquiry[]     @relation("ReceivedSuggestionInquiries")
+
+  // === Media ===
   images                          UserImage[]
-  verifications                   Verification[]
   videos                          Video[]
-  approvedSuggestions             MatchSuggestion[]       @relation("ApprovedSuggestions")
-  reviewedSuggestions             MatchSuggestion[]       @relation("ReviewedSuggestions")
-  oneTimeAuthTokens               OneTimeAuthToken[]
-  manuallyAddedCandidates         User[]                  @relation("ManuallyAddedBy") // New relation back to matchmaker
+
+  // === Verification ===
+  verifications                   Verification[]
+
+  // === Manually Added Candidates ===
+  manuallyAddedCandidates         User[]                  @relation("ManuallyAddedBy")
+
+  // === Feedback ===
   feedbacks                       Feedback[]
-  dripCampaign              UserDripCampaign?
-lastOnboardingEmailSent DateTime? // מתי שלחנו מייל onboarding אחרון
-  onboardingCompleted     Boolean   @default(false) // סיים את ה-onboarding?
-neshamaInsightLastGeneratedAt   DateTime?     
-  neshamaInsightGeneratedCount    Int       @default(0)  // 👈 הוסף שדה זה
-referral    Referral?  @relation("ReferredUser")
-  targetUserSearches    SavedMatchSearch[]  @relation("TargetUserSearches")
-  matchmakerSearches    SavedMatchSearch[]  @relation("MatchmakerSearches")
-targetUserVectorSearches    SavedVectorMatchSearch[]  @relation("TargetUserVectorSearches")
-matchmakerVectorSearches    SavedVectorMatchSearch[]  @relation("MatchmakerVectorSearches")
-virtualProfiles       VirtualProfile[]    @relation("MatchmakerVirtualProfiles")
-  maleMatches     PotentialMatch[] @relation("MaleMatches")
-  femaleMatches   PotentialMatch[] @relation("FemaleMatches")
-  maleScannedPairs    ScannedPair[] @relation("MaleScannedPairs")
-  femaleScannedPairs  ScannedPair[] @relation("FemaleScannedPairs")
- hiddenByMatchmakers   HiddenCandidate[] @relation("HiddenCandidates")
-  hiddenCandidates      HiddenCandidate[] @relation("HiddenByMatchmaker")
-  alerts      UserAlert[]
-  scanSessions              ScanSession[]  // ← הוסף שורה זו
- suggestionMessages  SuggestionMessage[] @relation("UserSuggestionMessages")
+
+  // === Drip Campaign & Onboarding ===
+  dripCampaign                    UserDripCampaign?
+  lastOnboardingEmailSent         DateTime?
+  onboardingCompleted             Boolean   @default(false)
+
+  // === Neshama Insight ===
+  neshamaInsightLastGeneratedAt   DateTime?
+  neshamaInsightGeneratedCount    Int       @default(0)
+
+  // === Referral ===
+  referral                        Referral?  @relation("ReferredUser")
+
+  // === Saved Searches ===
+  targetUserSearches              SavedMatchSearch[]       @relation("TargetUserSearches")
+  matchmakerSearches              SavedMatchSearch[]       @relation("MatchmakerSearches")
+  targetUserVectorSearches        SavedVectorMatchSearch[] @relation("TargetUserVectorSearches")
+  matchmakerVectorSearches        SavedVectorMatchSearch[] @relation("MatchmakerVectorSearches")
+
+  // === Virtual Profiles ===
+  virtualProfiles                 VirtualProfile[]         @relation("MatchmakerVirtualProfiles")
+
+  // === Potential Matches ===
+  maleMatches                     PotentialMatch[]         @relation("MaleMatches")
+  femaleMatches                   PotentialMatch[]         @relation("FemaleMatches")
+
+  // === Scanned Pairs ===
+  maleScannedPairs                ScannedPair[]            @relation("MaleScannedPairs")
+  femaleScannedPairs              ScannedPair[]            @relation("FemaleScannedPairs")
+
+  // === Hidden Candidates ===
+  hiddenByMatchmakers             HiddenCandidate[]        @relation("HiddenCandidates")
+  hiddenCandidates                HiddenCandidate[]        @relation("HiddenByMatchmaker")
+
+  // === Alerts ===
+  alerts                          UserAlert[]
+
+  // === Scan Sessions ===
+  scanSessions                    ScanSession[]
+
+  // === Suggestion Messages ===
+  suggestionMessages              SuggestionMessage[]      @relation("UserSuggestionMessages")
+
   @@index([email])
   @@index([role])
   @@index([status])
-  @@index([source]) // Index the new field
+  @@index([source])
   @@index([addedByMatchmakerId])
+  @@index([assignedMatchmakerId])
 }
-
 model Account {
   id                String  @id @default(cuid())
   userId            String
@@ -1833,3 +1887,22 @@ model SuggestionMessage {
   @@index([senderId])
   @@index([targetUserId])
 }
+
+model DirectMessage {
+  id         String   @id @default(cuid())
+  senderId   String
+  receiverId String
+  content    String   @db.Text
+  isRead     Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  sender   User @relation("SentDirectMessages", fields: [senderId], references: [id], onDelete: Cascade)
+  receiver User @relation("ReceivedDirectMessages", fields: [receiverId], references: [id], onDelete: Cascade)
+
+  @@index([senderId])
+  @@index([receiverId])
+  @@index([senderId, receiverId, createdAt])
+  @@index([receiverId, isRead])
+}
+

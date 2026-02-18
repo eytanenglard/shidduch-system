@@ -39,11 +39,11 @@ import {
 } from '@/lib/utils';
 import type { Candidate } from '../../new/types/candidates';
 import { toast } from 'sonner';
-import type { CandidateSelectorDict } from '@/types/dictionaries/matchmaker'; // <--- ייבוא הטיפוס של המילון
+import type { CandidateSelectorDict } from '@/types/dictionaries/matchmaker';
 
 // ===> עדכון Props <===
 interface CandidateSelectorProps {
-  dict: CandidateSelectorDict; // <-- הוספת המילון כ-prop
+  dict: CandidateSelectorDict;
   value: Candidate | null;
   onChange: (candidate: Candidate | null) => void;
   otherParty?: Candidate | null;
@@ -52,10 +52,11 @@ interface CandidateSelectorProps {
   className?: string;
   fieldName: string;
   error?: string;
+  disabled?: boolean; // ✅ שינוי 1: הוספת disabled ל-props
 }
 
 const EnhancedCandidateCard: React.FC<{
-  dict: CandidateSelectorDict; // <-- קבלת המילון
+  dict: CandidateSelectorDict;
   candidate: Candidate;
   onClick: () => void;
   isActive: boolean;
@@ -65,12 +66,7 @@ const EnhancedCandidateCard: React.FC<{
   const mainImage = candidate.images.find((img) => img.isMain)?.url;
 
   const getStatusInfo = () => {
-    // 🔄 שינוי: במקום לחסום (BLOCKED), מציגים רק אזהרה
-    // המועמד עדיין יהיה ניתן לבחירה
-
     if (isBlocked) {
-      // 🆕 שינוי: הורדנו את ה-isBlocked מהלוגיקה הבסיסית
-      // עכשיו isBlocked מגיע מ-prop ורק מסמן ויזואלית
       return {
         icon: Shield,
         label: dict.status.blocked,
@@ -82,12 +78,10 @@ const EnhancedCandidateCard: React.FC<{
       };
     }
 
-    // 🆕 שינוי: PENDING עכשיו מציג אזהרה בלבד, לא חוסם
     if (candidate.suggestionStatus?.status === 'PENDING') {
       return {
         icon: Clock,
         label: dict.status.pending,
-        // 🔄 שינוי: צבע כתום במקום אדום - אזהרה לא חסימה
         className: 'bg-gradient-to-r from-amber-400 to-orange-400 text-white',
         description: dict.status.pendingDescription.replace(
           '{{name}}',
@@ -129,12 +123,12 @@ const EnhancedCandidateCard: React.FC<{
             {statusInfo.label}
           </Badge>
           {candidate.suggestionStatus?.status === 'PENDING' && (
-  <div className="absolute top-2 left-2 z-10">
-    <div className="p-1.5 rounded-full bg-amber-100 border border-amber-300 shadow-sm">
-      <Clock className="w-3 h-3 text-amber-600" />
-    </div>
-  </div>
-)}
+            <div className="absolute top-2 left-2 z-10">
+              <div className="p-1.5 rounded-full bg-amber-100 border border-amber-300 shadow-sm">
+                <Clock className="w-3 h-3 text-amber-600" />
+              </div>
+            </div>
+          )}
 
           {candidate.profile.religiousLevel && (
             <Badge className="bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-lg">
@@ -225,6 +219,7 @@ const CandidateSelector: React.FC<CandidateSelectorProps> = ({
   candidates,
   className,
   error,
+  disabled = false, // ✅ שינוי 2: קבלת disabled עם ברירת מחדל false
 }) => {
   const [open, setOpen] = useState(false);
   const [inputValue, setInputValue] = useState('');
@@ -253,10 +248,6 @@ const CandidateSelector: React.FC<CandidateSelectorProps> = ({
 
   const handleSelect = useCallback(
     (candidate: Candidate) => {
-      // 🗑️ הסרנו את הבדיקה הקודמת שחסמה בחירה:
-      // if (candidate.suggestionStatus?.status === 'BLOCKED') { return; }
-
-      // 🆕 חדש: במקום לחסום, מציגים toast עם אזהרה
       if (candidate.suggestionStatus?.status === 'PENDING') {
         toast.warning(
           dict.toasts?.pendingSuggestionWarning?.title || 'שים לב - הצעה קיימת',
@@ -278,7 +269,6 @@ const CandidateSelector: React.FC<CandidateSelectorProps> = ({
         );
       }
 
-      // ✅ תמיד מאפשרים בחירה
       onChange(candidate);
       setOpen(false);
       setInputValue('');
@@ -322,8 +312,25 @@ const CandidateSelector: React.FC<CandidateSelectorProps> = ({
             <User className="w-5 h-5" />
           </div>
           <label className="text-lg font-bold text-gray-800">{label}</label>
+          {/* ✅ שינוי 3a: אינדיקציה ויזואלית שהשדה נעול */}
+          {disabled && (
+            <Badge
+              variant="outline"
+              className="text-xs bg-gray-100 text-gray-500 border-gray-300"
+            >
+              🔒 נעול
+            </Badge>
+          )}
         </div>
-        <Popover open={open} onOpenChange={setOpen}>
+        <Popover
+          open={disabled ? false : open}
+          onOpenChange={(val) => {
+            if (!disabled) {
+              setOpen(val);
+            }
+          }}
+        >
+          {' '}
           <PopoverTrigger asChild>
             <div className="relative group">
               <div className="absolute inset-0 bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-2xl blur opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
@@ -332,12 +339,19 @@ const CandidateSelector: React.FC<CandidateSelectorProps> = ({
                 <Input
                   value={value ? formatCandidateDisplay(value) : inputValue}
                   onChange={(e) => {
+                    if (disabled) return; // ✅ שינוי 3b: חסימת שינוי ב-disabled
                     setInputValue(e.target.value);
                     if (!open) setOpen(true);
                     setActiveIndex(-1);
                   }}
                   onKeyDown={handleKeyDown}
-                  onClick={() => !open && setOpen(true)}
+                  onClick={() => {
+                    if (disabled) return;
+                    if (!open) {
+                      setOpen(true);
+                    }
+                  }}
+                  disabled={disabled} // ✅ שינוי 3d: העברת disabled ל-Input
                   placeholder={dict.searchPlaceholder}
                   className={cn(
                     'h-14 pr-14 text-right text-lg border-2 transition-all duration-300 rounded-2xl shadow-lg',
@@ -345,7 +359,8 @@ const CandidateSelector: React.FC<CandidateSelectorProps> = ({
                     'border-purple-200 hover:border-purple-300 focus:border-purple-500 focus:ring-purple-200',
                     'placeholder:text-gray-400',
                     error &&
-                      'border-red-300 focus:border-red-500 focus:ring-red-200'
+                      'border-red-300 focus:border-red-500 focus:ring-red-200',
+                    disabled && 'opacity-70 cursor-not-allowed bg-gray-50' // ✅ שינוי 3e: סגנון disabled
                   )}
                   role="combobox"
                   aria-expanded={open}
@@ -438,15 +453,18 @@ const CandidateSelector: React.FC<CandidateSelectorProps> = ({
                   {dict.selectedDisplay.title}
                 </h4>
               </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => onChange(null)}
-                className="text-red-600 hover:text-red-700 hover:bg-red-50 rounded-xl transition-all duration-300"
-              >
-                <Zap className="w-4 h-4 ml-1" />
-                {dict.selectedDisplay.removeButton}
-              </Button>
+              {/* ✅ שינוי 4: הסתרת כפתור "הסר" כש-disabled */}
+              {!disabled && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => onChange(null)}
+                  className="text-red-600 hover:text-red-700 hover:bg-red-50 rounded-xl transition-all duration-300"
+                >
+                  <Zap className="w-4 h-4 ml-1" />
+                  {dict.selectedDisplay.removeButton}
+                </Button>
+              )}
             </div>
             <EnhancedCandidateCard
               dict={dict}

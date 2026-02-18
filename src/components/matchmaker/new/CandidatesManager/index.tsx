@@ -31,8 +31,9 @@ import {
   GitCompare,
   X,
   UserCircle,
-  Upload, // <-- NEW: אייקון לייבוא
-  ChevronDown, // <-- NEW: אייקון לתפריט נפתח
+  Upload,
+  ChevronDown,
+  Layers,
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -76,8 +77,10 @@ import { AddManualCandidateDialog } from '../dialogs/AddManualCandidateDialog';
 import { AiMatchAnalysisDialog } from '../dialogs/AiMatchAnalysisDialog';
 import { ProfileFeedbackDialog } from '../dialogs/ProfileFeedbackDialog';
 import { AiMatchmakerProfileAdvisorDialog } from '../dialogs/AiMatchmakerProfileAdvisorDialog';
-import { BulkImportDialog } from '../dialogs/BulkImportDialog'; // <-- NEW: ייבוא הקומפוננטה החדשה
+import { BulkImportDialog } from '../dialogs/BulkImportDialog';
 import { CardBasedImportDialog } from '../dialogs/CardBasedImportDialog';
+import BulkSuggestionsDialog from '../dialogs/BulkSuggestionsDialog';
+
 // --- Virtual Search Components (NEW) ---
 import { VirtualUserDialog, SavedVirtualProfiles } from '../VirtualSearch';
 
@@ -96,7 +99,7 @@ import type { ProfilePageDictionary } from '@/types/dictionary';
 // הוספת שדה מותאם אישית ל-Candidate כדי למנוע שגיאות TS (אפשר גם להשתמש ב-as any)
 type VirtualCandidate = Candidate & {
   isVirtual: boolean;
-  virtualData?: any; // אובייקט לשמירת הנתונים הגולמיים
+  virtualData?: any;
 };
 
 // --- Interfaces Definitions ---
@@ -135,9 +138,6 @@ interface AiMatch {
 // ============================================================================
 // Minimal Compact Header Component
 // ============================================================================
-// ============================================================================
-// Minimal Compact Header Component (UPDATED)
-// ============================================================================
 const MinimalHeader: React.FC<{
   stats: {
     total: number;
@@ -149,7 +149,7 @@ const MinimalHeader: React.FC<{
   };
   onAddCandidate: () => void;
   onBulkImport: () => void;
-  onCardImport: () => void; // <-- חדש
+  onCardImport: () => void;
   onRefresh: () => void;
   isRefreshing: boolean;
   onBulkUpdate?: () => void;
@@ -162,7 +162,7 @@ const MinimalHeader: React.FC<{
   stats,
   onAddCandidate,
   onBulkImport,
-  onCardImport, // <-- חדש
+  onCardImport,
   onRefresh,
   isRefreshing,
   onBulkUpdate,
@@ -242,7 +242,6 @@ const MinimalHeader: React.FC<{
                     <Upload className="w-4 h-4 ml-2 text-purple-500" />
                     ייבוא מקבוצת וואטסאפ
                   </DropdownMenuItem>
-                  {/* === חדש: כפתור ייבוא בכרטיסים === */}
                   <DropdownMenuItem
                     onClick={onCardImport}
                     className="cursor-pointer"
@@ -335,7 +334,6 @@ const MinimalHeader: React.FC<{
                       <Upload className="w-4 h-4 ml-2 text-purple-500" />
                       ייבוא מקבוצת וואטסאפ
                     </DropdownMenuItem>
-                    {/* === חדש: כפתור ייבוא בכרטיסים === */}
                     <DropdownMenuItem
                       onClick={onCardImport}
                       className="cursor-pointer"
@@ -483,7 +481,11 @@ const CandidatesManager: React.FC<CandidatesManagerProps> = ({
 
   // --- NEW: State for Bulk Import Dialog ---
   const [showBulkImportDialog, setShowBulkImportDialog] = useState(false);
-const [showCardImportDialog, setShowCardImportDialog] = useState(false);
+  const [showCardImportDialog, setShowCardImportDialog] = useState(false);
+
+  // --- NEW: State for Bulk Suggestions Dialog ---
+  const [showBulkSuggestionsDialog, setShowBulkSuggestionsDialog] = useState(false);
+
   // --- Virtual Search State ---
   const [showVirtualUserDialog, setShowVirtualUserDialog] = useState(false);
   const [showSavedVirtualProfiles, setShowSavedVirtualProfiles] =
@@ -675,7 +677,6 @@ const [showCardImportDialog, setShowCardImportDialog] = useState(false);
 
   // --- Virtual Profile Handler ---
   const handleVirtualProfileSelect = useCallback((virtualProfile: any) => {
-    // המרת הפרופיל הוירטואלי למבנה של מועמד (Candidate)
     const mockCandidate: VirtualCandidate = {
       id: virtualProfile.id,
       firstName: virtualProfile.name || 'משתמש',
@@ -690,10 +691,8 @@ const [showCardImportDialog, setShowCardImportDialog] = useState(false);
       profile: {
         gender: virtualProfile.gender,
         religiousLevel: virtualProfile.religiousLevel,
-        // ממלאים פרטים נוספים מהפרופיל הגנרטיבי
         city: virtualProfile.generatedProfile.inferredCity,
         occupation: virtualProfile.generatedProfile.inferredOccupation,
-        // חישוב גיל ליום הולדת
         birthDate: new Date(
           new Date().setFullYear(
             new Date().getFullYear() -
@@ -702,13 +701,10 @@ const [showCardImportDialog, setShowCardImportDialog] = useState(false);
         ),
         availabilityStatus: 'AVAILABLE',
       },
-      // שדות מיוחדים לזיהוי וירטואלי ותצוגת AI
       isVirtual: true,
       aiReasoning:
         virtualProfile.editedSummary ||
         virtualProfile.generatedProfile.displaySummary,
-
-      // 🔥 התיקון: שמירת המידע הגולמי לשימוש בחיפוש 🔥
       virtualData: {
         virtualProfileId: virtualProfile.id,
         virtualProfile: virtualProfile.generatedProfile,
@@ -739,7 +735,6 @@ const [showCardImportDialog, setShowCardImportDialog] = useState(false);
     });
 
     try {
-      // שלב 1: איפוס דגלים
       const resetRes = await fetch('/api/ai/matchmaker/batch-process', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -755,7 +750,6 @@ const [showCardImportDialog, setShowCardImportDialog] = useState(false);
         id: toastId,
       });
 
-      // שלב 2: לולאת עיבוד
       let completed = false;
 
       while (!completed) {
@@ -809,7 +803,7 @@ const [showCardImportDialog, setShowCardImportDialog] = useState(false);
       <MinimalHeader
         stats={heroStats}
         onAddCandidate={() => setShowManualAddDialog(true)}
-        onBulkImport={() => setShowBulkImportDialog(true)} // <-- NEW: Connect button to dialog
+        onBulkImport={() => setShowBulkImportDialog(true)}
         onCardImport={() => setShowCardImportDialog(true)}
         onRefresh={refresh}
         isRefreshing={loading}
@@ -910,7 +904,7 @@ const [showCardImportDialog, setShowCardImportDialog] = useState(false);
                     : matchmakerDict.candidatesManager.controls.enableQuickView}
                 </Button>
 
-                {/* --- כפתור חיפוש וירטואלי חדש --- */}
+                {/* --- כפתור חיפוש וירטואלי --- */}
                 <Button
                   variant="outline"
                   size="sm"
@@ -1155,6 +1149,8 @@ const [showCardImportDialog, setShowCardImportDialog] = useState(false);
           </div>
         </div>
       </main>
+
+      {/* ── Floating Bar with Compare + Bulk Suggestions ── */}
       <AnimatePresence>
         {aiTargetCandidate && Object.keys(comparisonSelection).length > 0 && (
           <motion.div
@@ -1208,6 +1204,16 @@ const [showCardImportDialog, setShowCardImportDialog] = useState(false);
                   String(Object.keys(comparisonSelection).length)
                 )}
               </Button>
+
+              {/* ── כפתור "הכן הצעות" ── */}
+              <Button
+                onClick={() => setShowBulkSuggestionsDialog(true)}
+                className="bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white font-bold shadow-lg"
+              >
+                <Layers className={cn('w-4 h-4', locale === 'he' ? 'ml-2' : 'mr-2')} />
+                הכן הצעות
+              </Button>
+
               <Button
                 variant="ghost"
                 size="icon"
@@ -1245,17 +1251,18 @@ const [showCardImportDialog, setShowCardImportDialog] = useState(false);
         locale={locale}
       />
 
-      {/* --- NEW: Bulk Import Dialog --- */}
+      {/* --- Bulk Import Dialog --- */}
       <BulkImportDialog
         isOpen={showBulkImportDialog}
         onClose={() => setShowBulkImportDialog(false)}
         onImportComplete={() => {
-          refresh(); // Update the list
+          refresh();
           toast.success('הייבוא הושלם בהצלחה!');
         }}
         locale={locale}
       />
-      {/* --- NEW: Card-Based Import Dialog --- */}
+
+      {/* --- Card-Based Import Dialog --- */}
       <CardBasedImportDialog
         isOpen={showCardImportDialog}
         onClose={() => setShowCardImportDialog(false)}
@@ -1265,6 +1272,7 @@ const [showCardImportDialog, setShowCardImportDialog] = useState(false);
         }}
         locale={locale}
       />
+
       <AiMatchAnalysisDialog
         isOpen={isAnalysisDialogOpen}
         onClose={() => setIsAnalysisDialogOpen(false)}
@@ -1274,7 +1282,19 @@ const [showCardImportDialog, setShowCardImportDialog] = useState(false);
         locale={locale}
       />
 
-      {/* --- Virtual Search Dialogs (NEW) --- */}
+      {/* ── Bulk Suggestions Dialog ── */}
+      {aiTargetCandidate && (
+        <BulkSuggestionsDialog
+          isOpen={showBulkSuggestionsDialog}
+          onClose={() => setShowBulkSuggestionsDialog(false)}
+          firstPartyCandidate={aiTargetCandidate}
+          secondPartyCandidates={Object.values(comparisonSelection)}
+          dict={matchmakerDict}
+          locale={locale}
+        />
+      )}
+
+      {/* --- Virtual Search Dialogs --- */}
       <VirtualUserDialog
         isOpen={showVirtualUserDialog}
         onClose={() => setShowVirtualUserDialog(false)}
