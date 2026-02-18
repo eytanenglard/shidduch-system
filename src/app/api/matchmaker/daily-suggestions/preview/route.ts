@@ -64,6 +64,12 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     const sortBy = searchParams.get('sortBy');
     if (sortBy) filters.sortBy = sortBy;
 
+    const scanMethod = searchParams.get('scanMethod');
+    if (scanMethod) filters.scanMethod = scanMethod;
+
+    const scanAfter = searchParams.get('scanAfter');
+    if (scanAfter) filters.scanAfter = scanAfter;
+
     const preview = await DailySuggestionOrchestrator.generatePreview(
       Object.keys(filters).length > 0 ? filters : undefined
     );

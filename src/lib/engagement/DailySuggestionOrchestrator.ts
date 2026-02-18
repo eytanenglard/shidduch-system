@@ -719,7 +719,8 @@ export class DailySuggestionOrchestrator {
 
   private static async findTopMatches(
     user: { id: string; profile: { gender: string } | null },
-    count: number
+    count: number,
+    options?: { scanMethod?: string; scanAfter?: string }
   ) {
     if (!user.profile) return [];
 
@@ -733,6 +734,10 @@ export class DailySuggestionOrchestrator {
         ...(isMale ? { maleUserId: user.id } : { femaleUserId: user.id }),
         status: { in: ['PENDING', 'REVIEWED'] as PotentialMatchStatus[] },
         aiScore: { gte: MIN_AI_SCORE },
+        // Filter by scan method
+        ...(options?.scanMethod ? { lastScanMethod: options.scanMethod } : {}),
+        // Filter by scan date
+        ...(options?.scanAfter ? { scannedAt: { gte: new Date(options.scanAfter) } } : {}),
         ...(isMale
           ? {
               female: {
@@ -876,13 +881,12 @@ export class DailySuggestionOrchestrator {
     const sortBy = filters?.sortBy || 'waiting_time';
     filteredUsers.sort((a, b) => {
       switch (sortBy) {
-    case 'waiting_time': {
-        // מי שלא קיבל הצעה הכי הרבה זמן → ראשון
-        const aTime = a.lastSuggestionDate?.getTime() || 0;
-        const bTime = b.lastSuggestionDate?.getTime() || 0;
-        return aTime - bTime;
-    }
-    case 'best_match':
+            case 'waiting_time': {
+          const aTime = a.lastSuggestionDate?.getTime() || 0;
+          const bTime = b.lastSuggestionDate?.getTime() || 0;
+          return aTime - bTime;
+        }
+        case 'best_match':
           // לפי ציון ההתאמה הטובה ביותר (מוכרח לסדר אחרי שנמצא matches, נעשה ב-post)
           return 0;
         case 'registration_date':
@@ -925,8 +929,11 @@ export class DailySuggestionOrchestrator {
         continue;
       }
 
-      // Find top 3 matches
-      const topMatches = await this.findTopMatches(user, 3);
+      // Find top 3 matches (with optional scan method/date filter)
+      const topMatches = await this.findTopMatches(user, 3, {
+        scanMethod: filters?.scanMethod,
+        scanAfter: filters?.scanAfter,
+      });
 
       // Enrich with other party info
       const enrichedMatches: PreviewMatch[] = [];
@@ -1197,10 +1204,12 @@ export class DailySuggestionOrchestrator {
 export interface PreviewFilters {
   gender?: 'MALE' | 'FEMALE';
   searchName?: string;
-  noSuggestionDays?: number;    // לא קיבל הצעה ב-X ימים
-  limit?: number;               // הגבלת כמות יוזרים
-  userIds?: string[];           // יוזרים ספציפיים
+  noSuggestionDays?: number;
+  limit?: number;
+  userIds?: string[];
   sortBy?: 'waiting_time' | 'best_match' | 'registration_date';
+  scanMethod?: 'hybrid' | 'algorithmic' | 'vector' | 'metrics_v2';
+  scanAfter?: string; // ISO date — only use PotentialMatches scanned after this date
 }
 
 export interface PreviewMatch {

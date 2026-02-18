@@ -78,9 +78,15 @@ function truncate(text: string, maxLen: number) {
 // Component
 // ==========================================
 
-export default function MatchmakerChatPanel({ locale }: MatchmakerChatPanelProps) {
-  const [chatSummaries, setChatSummaries] = useState<SuggestionChatSummary[]>([]);
-  const [expandedSuggestions, setExpandedSuggestions] = useState<Set<string>>(new Set());
+export default function MatchmakerChatPanel({
+  locale,
+}: MatchmakerChatPanelProps) {
+  const [chatSummaries, setChatSummaries] = useState<SuggestionChatSummary[]>(
+    []
+  );
+  const [expandedSuggestions, setExpandedSuggestions] = useState<Set<string>>(
+    new Set()
+  );
   const [selectedChat, setSelectedChat] = useState<SelectedChat | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const isHe = locale === 'he';
@@ -129,7 +135,10 @@ export default function MatchmakerChatPanel({ locale }: MatchmakerChatPanelProps
             totalUnread: unreadMap[s.id] || 0,
           })
         )
-        .sort((a: SuggestionChatSummary, b: SuggestionChatSummary) => b.totalUnread - a.totalUnread);
+        .sort(
+          (a: SuggestionChatSummary, b: SuggestionChatSummary) =>
+            b.totalUnread - a.totalUnread
+        );
 
       setChatSummaries(summaries);
 
@@ -158,7 +167,9 @@ export default function MatchmakerChatPanel({ locale }: MatchmakerChatPanelProps
     }>
   ) => {
     try {
-      const res = await fetch(`/api/matchmaker/suggestions/${summary.suggestionId}/chat`);
+      const res = await fetch(
+        `/api/matchmaker/suggestions/${summary.suggestionId}/chat`
+      );
       if (!res.ok) return;
       const data = await res.json();
       if (!data.success || !data.messages?.length) return;
@@ -170,7 +181,9 @@ export default function MatchmakerChatPanel({ locale }: MatchmakerChatPanelProps
         senderId: string;
         targetUserId?: string | null;
       }>;
-      const suggestion = allSuggestions.find((s) => s.id === summary.suggestionId);
+      const suggestion = allSuggestions.find(
+        (s) => s.id === summary.suggestionId
+      );
       if (!suggestion) return;
 
       const firstId = suggestion.firstParty.id;
@@ -179,12 +192,14 @@ export default function MatchmakerChatPanel({ locale }: MatchmakerChatPanelProps
       const firstMsgs = msgs.filter(
         (m) =>
           (m.senderType === 'user' && m.senderId === firstId) ||
-          (m.senderType === 'matchmaker' && (m.targetUserId === firstId || !m.targetUserId))
+          (m.senderType === 'matchmaker' &&
+            (m.targetUserId === firstId || !m.targetUserId))
       );
       const secondMsgs = msgs.filter(
         (m) =>
           (m.senderType === 'user' && m.senderId === secondId) ||
-          (m.senderType === 'matchmaker' && (m.targetUserId === secondId || !m.targetUserId))
+          (m.senderType === 'matchmaker' &&
+            (m.targetUserId === secondId || !m.targetUserId))
       );
 
       const lastFirst = firstMsgs[firstMsgs.length - 1];
@@ -238,7 +253,12 @@ export default function MatchmakerChatPanel({ locale }: MatchmakerChatPanelProps
     });
   };
 
-  const openChat = (suggestionId: string, partyId: string, partyName: string, isFirstParty: boolean) => {
+  const openChat = (
+    suggestionId: string,
+    partyId: string,
+    partyName: string,
+    isFirstParty: boolean
+  ) => {
     setSelectedChat({ suggestionId, partyId, partyName, isFirstParty });
   };
 
@@ -255,14 +275,42 @@ export default function MatchmakerChatPanel({ locale }: MatchmakerChatPanelProps
 
   const getStatusLabel = (status: string) => {
     const labels: Record<string, { he: string; en: string; color: string }> = {
-      PENDING_FIRST_PARTY: { he: "ממתין לצד א'", en: 'Pending Party A', color: 'bg-amber-50 text-amber-700 border-amber-200' },
-      PENDING_SECOND_PARTY: { he: "ממתין לצד ב'", en: 'Pending Party B', color: 'bg-teal-50 text-teal-700 border-teal-200' },
-      FIRST_PARTY_APPROVED: { he: "צד א' אישר/ה", en: 'Party A Approved', color: 'bg-green-50 text-green-700 border-green-200' },
-      SECOND_PARTY_APPROVED: { he: "צד ב' אישר/ה", en: 'Party B Approved', color: 'bg-green-50 text-green-700 border-green-200' },
-      CONTACT_DETAILS_SHARED: { he: 'פרטי קשר נשלחו', en: 'Details Shared', color: 'bg-teal-50 text-teal-700 border-teal-200' },
-      DATING: { he: 'בדייט', en: 'Dating', color: 'bg-amber-50 text-amber-700 border-amber-200' },
+      PENDING_FIRST_PARTY: {
+        he: "ממתין לצד א'",
+        en: 'Pending Party A',
+        color: 'bg-amber-50 text-amber-700 border-amber-200',
+      },
+      PENDING_SECOND_PARTY: {
+        he: "ממתין לצד ב'",
+        en: 'Pending Party B',
+        color: 'bg-teal-50 text-teal-700 border-teal-200',
+      },
+      FIRST_PARTY_APPROVED: {
+        he: "צד א' אישר/ה",
+        en: 'Party A Approved',
+        color: 'bg-green-50 text-green-700 border-green-200',
+      },
+      SECOND_PARTY_APPROVED: {
+        he: "צד ב' אישר/ה",
+        en: 'Party B Approved',
+        color: 'bg-green-50 text-green-700 border-green-200',
+      },
+      CONTACT_DETAILS_SHARED: {
+        he: 'פרטי קשר נשלחו',
+        en: 'Details Shared',
+        color: 'bg-teal-50 text-teal-700 border-teal-200',
+      },
+      DATING: {
+        he: 'בדייט',
+        en: 'Dating',
+        color: 'bg-amber-50 text-amber-700 border-amber-200',
+      },
     };
-    const info = labels[status] || { he: status, en: status, color: 'bg-gray-100 text-gray-700' };
+    const info = labels[status] || {
+      he: status,
+      en: status,
+      color: 'bg-gray-100 text-gray-700',
+    };
     return { label: isHe ? info.he : info.en, color: info.color };
   };
 
@@ -290,16 +338,26 @@ export default function MatchmakerChatPanel({ locale }: MatchmakerChatPanelProps
                 <AvatarFallback
                   className={cn(
                     'text-white text-xs font-bold bg-gradient-to-br',
-                    selectedChat.isFirstParty ? 'from-teal-400 to-cyan-500' : 'from-amber-400 to-orange-500'
+                    selectedChat.isFirstParty
+                      ? 'from-teal-400 to-cyan-500'
+                      : 'from-amber-400 to-orange-500'
                   )}
                 >
                   {getInitials(selectedChat.partyName)}
                 </AvatarFallback>
               </Avatar>
               <div>
-                <p className="font-semibold text-gray-800 text-sm">{selectedChat.partyName}</p>
+                <p className="font-semibold text-gray-800 text-sm">
+                  {selectedChat.partyName}
+                </p>
                 <p className="text-xs text-gray-500">
-                  {selectedChat.isFirstParty ? (isHe ? "צד א'" : 'Party A') : (isHe ? "צד ב'" : 'Party B')}
+                  {selectedChat.isFirstParty
+                    ? isHe
+                      ? "צד א'"
+                      : 'Party A'
+                    : isHe
+                      ? "צד ב'"
+                      : 'Party B'}
                 </p>
               </div>
             </div>
@@ -370,7 +428,9 @@ export default function MatchmakerChatPanel({ locale }: MatchmakerChatPanelProps
           ) : (
             <div className="divide-y divide-gray-100">
               {chatSummaries.map((summary) => {
-                const isExpanded = expandedSuggestions.has(summary.suggestionId);
+                const isExpanded = expandedSuggestions.has(
+                  summary.suggestionId
+                );
                 const statusInfo = getStatusLabel(summary.status);
 
                 return (
@@ -404,7 +464,10 @@ export default function MatchmakerChatPanel({ locale }: MatchmakerChatPanelProps
                           </p>
                           <Badge
                             variant="outline"
-                            className={cn('text-[10px] px-1.5 py-0 mt-0.5 border', statusInfo.color)}
+                            className={cn(
+                              'text-[10px] px-1.5 py-0 mt-0.5 border',
+                              statusInfo.color
+                            )}
                           >
                             {statusInfo.label}
                           </Badge>
@@ -431,7 +494,12 @@ export default function MatchmakerChatPanel({ locale }: MatchmakerChatPanelProps
                         {/* First Party */}
                         <button
                           onClick={() =>
-                            openChat(summary.suggestionId, summary.firstParty.id, summary.firstParty.name, true)
+                            openChat(
+                              summary.suggestionId,
+                              summary.firstParty.id,
+                              summary.firstParty.name,
+                              true
+                            )
                           }
                           className="w-full p-3 rounded-xl bg-white border border-gray-200 hover:border-teal-300 hover:bg-teal-50/40 transition-all flex items-center gap-3 shadow-sm text-start"
                         >
@@ -442,29 +510,42 @@ export default function MatchmakerChatPanel({ locale }: MatchmakerChatPanelProps
                           </Avatar>
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center justify-between mb-0.5">
-                              <p className="font-medium text-gray-800 text-sm">{summary.firstParty.name}</p>
+                              <p className="font-medium text-gray-800 text-sm">
+                                {summary.firstParty.name}
+                              </p>
                               <div className="flex items-center gap-1.5">
                                 {summary.firstParty.lastMessageTime && (
                                   <span className="text-[10px] text-gray-400 flex items-center gap-0.5">
                                     <Clock className="w-3 h-3" />
-                                    {formatTime(summary.firstParty.lastMessageTime, locale)}
+                                    {formatTime(
+                                      summary.firstParty.lastMessageTime,
+                                      locale
+                                    )}
                                   </span>
                                 )}
-                                <Badge variant="outline" className="text-[10px] border-teal-200 text-teal-700 px-1.5 py-0">
+                                <Badge
+                                  variant="outline"
+                                  className="text-[10px] border-teal-200 text-teal-700 px-1.5 py-0"
+                                >
                                   {isHe ? "צד א'" : 'Party A'}
                                 </Badge>
                               </div>
                             </div>
                             {summary.firstParty.lastMessage ? (
                               <p className="text-xs text-gray-500 truncate">
-                                {summary.firstParty.lastMessageSenderType === 'matchmaker' && (
-                                  <span className="text-teal-600 font-medium">{isHe ? 'את/ה: ' : 'You: '}</span>
+                                {summary.firstParty.lastMessageSenderType ===
+                                  'matchmaker' && (
+                                  <span className="text-teal-600 font-medium">
+                                    {isHe ? 'את/ה: ' : 'You: '}
+                                  </span>
                                 )}
                                 {truncate(summary.firstParty.lastMessage, 50)}
                               </p>
                             ) : (
                               <p className="text-xs text-gray-400 italic">
-                                {isHe ? 'לחץ/י לפתיחת שיחה' : 'Click to open chat'}
+                                {isHe
+                                  ? 'לחץ/י לפתיחת שיחה'
+                                  : 'Click to open chat'}
                               </p>
                             )}
                           </div>
@@ -474,7 +555,12 @@ export default function MatchmakerChatPanel({ locale }: MatchmakerChatPanelProps
                         {/* Second Party */}
                         <button
                           onClick={() =>
-                            openChat(summary.suggestionId, summary.secondParty.id, summary.secondParty.name, false)
+                            openChat(
+                              summary.suggestionId,
+                              summary.secondParty.id,
+                              summary.secondParty.name,
+                              false
+                            )
                           }
                           className="w-full p-3 rounded-xl bg-white border border-gray-200 hover:border-amber-300 hover:bg-amber-50/40 transition-all flex items-center gap-3 shadow-sm text-start"
                         >
@@ -485,29 +571,42 @@ export default function MatchmakerChatPanel({ locale }: MatchmakerChatPanelProps
                           </Avatar>
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center justify-between mb-0.5">
-                              <p className="font-medium text-gray-800 text-sm">{summary.secondParty.name}</p>
+                              <p className="font-medium text-gray-800 text-sm">
+                                {summary.secondParty.name}
+                              </p>
                               <div className="flex items-center gap-1.5">
                                 {summary.secondParty.lastMessageTime && (
                                   <span className="text-[10px] text-gray-400 flex items-center gap-0.5">
                                     <Clock className="w-3 h-3" />
-                                    {formatTime(summary.secondParty.lastMessageTime, locale)}
+                                    {formatTime(
+                                      summary.secondParty.lastMessageTime,
+                                      locale
+                                    )}
                                   </span>
                                 )}
-                                <Badge variant="outline" className="text-[10px] border-amber-200 text-amber-700 px-1.5 py-0">
+                                <Badge
+                                  variant="outline"
+                                  className="text-[10px] border-amber-200 text-amber-700 px-1.5 py-0"
+                                >
                                   {isHe ? "צד ב'" : 'Party B'}
                                 </Badge>
                               </div>
                             </div>
                             {summary.secondParty.lastMessage ? (
                               <p className="text-xs text-gray-500 truncate">
-                                {summary.secondParty.lastMessageSenderType === 'matchmaker' && (
-                                  <span className="text-teal-600 font-medium">{isHe ? 'את/ה: ' : 'You: '}</span>
+                                {summary.secondParty.lastMessageSenderType ===
+                                  'matchmaker' && (
+                                  <span className="text-teal-600 font-medium">
+                                    {isHe ? 'את/ה: ' : 'You: '}
+                                  </span>
                                 )}
                                 {truncate(summary.secondParty.lastMessage, 50)}
                               </p>
                             ) : (
                               <p className="text-xs text-gray-400 italic">
-                                {isHe ? 'לחץ/י לפתיחת שיחה' : 'Click to open chat'}
+                                {isHe
+                                  ? 'לחץ/י לפתיחת שיחה'
+                                  : 'Click to open chat'}
                               </p>
                             )}
                           </div>

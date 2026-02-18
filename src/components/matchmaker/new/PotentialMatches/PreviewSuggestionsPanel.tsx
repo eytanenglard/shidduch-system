@@ -94,6 +94,8 @@ interface PreviewFilters {
   noSuggestionDays: string;
   limit: string;
   sortBy: string;
+  scanMethod: string;
+  scanAfter: string;
 }
 
 interface PreviewSuggestionsPanelProps {
@@ -397,6 +399,8 @@ export default function PreviewSuggestionsPanel({ onViewProfile }: PreviewSugges
     noSuggestionDays: '',
     limit: '',
     sortBy: 'waiting_time',
+    scanMethod: '',
+    scanAfter: '',
   });
 
   const updateFilter = (key: keyof PreviewFilters, value: string) => {
@@ -415,6 +419,8 @@ export default function PreviewSuggestionsPanel({ onViewProfile }: PreviewSugges
       if (filters.noSuggestionDays) params.set('noSuggestionDays', filters.noSuggestionDays);
       if (filters.limit) params.set('limit', filters.limit);
       if (filters.sortBy) params.set('sortBy', filters.sortBy);
+      if (filters.scanMethod) params.set('scanMethod', filters.scanMethod);
+      if (filters.scanAfter) params.set('scanAfter', filters.scanAfter);
 
       const qs = params.toString();
       const response = await fetch(`/api/matchmaker/daily-suggestions/preview${qs ? `?${qs}` : ''}`);
@@ -759,6 +765,50 @@ export default function PreviewSuggestionsPanel({ onViewProfile }: PreviewSugges
                           <SelectItem value="waiting_time">⏰ זמן המתנה (הכי ארוך קודם)</SelectItem>
                           <SelectItem value="best_match">🏆 ציון התאמה (הכי גבוה קודם)</SelectItem>
                           <SelectItem value="registration_date">📅 תאריך הרשמה (חדשים קודם)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  {/* Row 3: Scan method + Scan date + Apply */}
+                  <div className="flex flex-wrap gap-2 items-end">
+                    {/* Scan method */}
+                    <div className="min-w-[140px]">
+                      <label className="text-[10px] text-gray-500 mb-0.5 block">שיטת סריקה</label>
+                      <Select
+                        value={filters.scanMethod || 'any'}
+                        onValueChange={(v) => updateFilter('scanMethod', v === 'any' ? '' : v)}
+                      >
+                        <SelectTrigger className="h-8 text-xs">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="any">כל השיטות</SelectItem>
+                          <SelectItem value="hybrid">🔀 Hybrid</SelectItem>
+                          <SelectItem value="algorithmic">🤖 Algorithmic</SelectItem>
+                          <SelectItem value="vector">📐 Vector</SelectItem>
+                          <SelectItem value="metrics_v2">📊 Metrics V2</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {/* Scan date */}
+                    <div className="min-w-[140px]">
+                      <label className="text-[10px] text-gray-500 mb-0.5 block">סריקה מתאריך</label>
+                      <Select
+                        value={filters.scanAfter || 'any'}
+                        onValueChange={(v) => updateFilter('scanAfter', v === 'any' ? '' : v)}
+                      >
+                        <SelectTrigger className="h-8 text-xs">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="any">הכל</SelectItem>
+                          <SelectItem value={new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString()}>אתמול+</SelectItem>
+                          <SelectItem value={new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString()}>3 ימים אחרונים</SelectItem>
+                          <SelectItem value={new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()}>שבוע אחרון</SelectItem>
+                          <SelectItem value={new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString()}>שבועיים אחרונים</SelectItem>
+                          <SelectItem value={new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()}>חודש אחרון</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
