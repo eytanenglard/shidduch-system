@@ -1,17 +1,20 @@
-// FILE B: src/app/api/matchmaker/direct-chats/[userId]/route.ts
 // =============================================================================
-// IMPORTANT: Create this as a SEPARATE file at the path above.
-// The code below goes into that separate file.
+// src/app/api/matchmaker/direct-chats/[userId]/route.ts
 // =============================================================================
-
+//
+// GET  — fetch direct messages with specific user
+// POST — send a direct message to user
+// PATCH — mark messages as read
+// =============================================================================
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
-import { notifyChatMessage } from '@/lib/pushNotifications';
 
+// ==========================================
 // GET — fetch messages with specific user
+// ==========================================
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ userId: string }> }
@@ -66,16 +69,24 @@ export async function GET(
       success: true,
       messages: formattedMessages,
       user: targetUser
-        ? { id: userId, name: `${targetUser.firstName} ${targetUser.lastName}` }
+        ? {
+            id: userId,
+            name: `${targetUser.firstName} ${targetUser.lastName}`,
+          }
         : null,
     });
   } catch (error) {
     console.error('[matchmaker/direct-chats/userId] GET error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
   }
 }
 
+// ==========================================
 // POST — send message to user
+// ==========================================
 export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ userId: string }> }
@@ -91,7 +102,10 @@ export async function POST(
     const { content } = await req.json();
 
     if (!content?.trim()) {
-      return NextResponse.json({ error: 'Message content required' }, { status: 400 });
+      return NextResponse.json(
+        { error: 'Message content required' },
+        { status: 400 }
+      );
     }
 
     const message = await prisma.directMessage.create({
@@ -101,14 +115,6 @@ export async function POST(
         content: content.trim(),
       },
     });
-
-    // Push notification to user
-    notifyChatMessage({
-      recipientUserIds: [userId],
-      senderName: session.user.name || 'השדכן/ית',
-      messagePreview: content.trim(),
-      suggestionId: 'direct',
-    }).catch((err) => console.error('[matchmaker/direct-chat] Push error:', err));
 
     return NextResponse.json({
       success: true,
@@ -125,11 +131,16 @@ export async function POST(
     });
   } catch (error) {
     console.error('[matchmaker/direct-chats/userId] POST error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
   }
 }
 
+// ==========================================
 // PATCH — mark messages as read
+// ==========================================
 export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ userId: string }> }
@@ -155,6 +166,9 @@ export async function PATCH(
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('[matchmaker/direct-chats/userId] PATCH error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
   }
 }

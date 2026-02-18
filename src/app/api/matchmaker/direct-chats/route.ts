@@ -1,4 +1,8 @@
-// FILE A: src/app/api/matchmaker/direct-chats/route.ts
+// =============================================================================
+// src/app/api/matchmaker/direct-chats/route.ts
+// =============================================================================
+//
+// GET — list all users who have direct chats with this matchmaker
 // =============================================================================
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -15,17 +19,12 @@ export async function GET(req: NextRequest) {
 
     const matchmakerId = session.user.id;
 
-    // Verify user is a matchmaker
-    const matchmaker = await prisma.user.findUnique({
-      where: { id: matchmakerId },
-      select: { role: true },
+    // Get all assigned users + anyone who has messaged this matchmaker
+    const assignedUsers = await prisma.user.findMany({
+      where: { assignedMatchmakerId: matchmakerId },
+      select: { id: true, firstName: true, lastName: true },
     });
 
-    if (matchmaker?.role !== 'MATCHMAKER' && matchmaker?.role !== 'ADMIN') {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-    }
-
-    // Get all unique users who have direct messages with this matchmaker
     const sentMessages = await prisma.directMessage.findMany({
       where: { receiverId: matchmakerId },
       select: { senderId: true },
@@ -38,20 +37,15 @@ export async function GET(req: NextRequest) {
       distinct: ['receiverId'],
     });
 
-    // Also get all assigned users (they should always appear even with 0 messages)
-    const assignedUsers = await prisma.user.findMany({
-      where: { assignedMatchmakerId: matchmakerId },
-      select: { id: true, firstName: true, lastName: true },
-    });
-
+    // Merge all unique user IDs
     const userIdSet = new Set<string>();
+    assignedUsers.forEach((u) => userIdSet.add(u.id));
     sentMessages.forEach((m) => userIdSet.add(m.senderId));
     receivedMessages.forEach((m) => userIdSet.add(m.receiverId));
-    assignedUsers.forEach((u) => userIdSet.add(u.id));
 
     const userIds = Array.from(userIdSet);
 
-    // Fetch user details + last message + unread count for each
+    // Only return users who have at least 1 message (or who sent a message)
     const chatSummaries = await Promise.all(
       userIds.map(async (uid) => {
         const user = await prisma.user.findUnique({
@@ -76,6 +70,9 @@ export async function GET(req: NextRequest) {
           },
         });
 
+        // Skip users with no messages at all
+        if (!lastMsg) return null;
+
         const unreadCount = await prisma.directMessage.count({
           where: {
             senderId: uid,
@@ -87,15 +84,14 @@ export async function GET(req: NextRequest) {
         return {
           userId: user.id,
           name: `${user.firstName} ${user.lastName}`,
-          lastMessage: lastMsg?.content,
-          lastMessageTime: lastMsg?.createdAt.toISOString(),
-          lastMessageIsMine: lastMsg?.senderId === matchmakerId,
+          lastMessage: lastMsg.content,
+          lastMessageTime: lastMsg.createdAt.toISOString(),
+          lastMessageIsMine: lastMsg.senderId === matchmakerId,
           unreadCount,
         };
       })
     );
 
-    // Filter nulls and sort by unread then last message time
     const validSummaries = chatSummaries
       .filter(Boolean)
       .sort((a, b) => {

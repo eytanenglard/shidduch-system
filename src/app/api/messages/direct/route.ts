@@ -1,24 +1,20 @@
 // =============================================================================
-// 22. API Route — Direct Messages (General Chat)
-// File: src/app/api/messages/direct/route.ts
+// File 22: User Direct Messages API
+// Path: src/app/api/messages/direct/route.ts
 // =============================================================================
 //
-// General chat between user and their assigned matchmaker.
-// Not tied to any specific suggestion.
-//
-// GET  — fetch direct messages with assigned matchmaker
-// POST — send a direct message to assigned matchmaker
-// PATCH — mark direct messages as read
+// GET   — Fetch direct messages with assigned matchmaker
+// POST  — Send a direct message to assigned matchmaker
+// PATCH — Mark direct messages as read
 // =============================================================================
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
-import { notifyMatchmakerNewMessage } from '@/lib/pushNotifications';
 
 // ==========================================
-// GET — Fetch direct messages
+// GET — Fetch messages with assigned matchmaker
 // ==========================================
 export async function GET(req: NextRequest) {
   try {
@@ -29,7 +25,7 @@ export async function GET(req: NextRequest) {
 
     const userId = session.user.id;
 
-    // Get user's assigned matchmaker
+    // Get assigned matchmaker
     const user = await prisma.user.findUnique({
       where: { id: userId },
       select: {
@@ -40,18 +36,17 @@ export async function GET(req: NextRequest) {
       },
     });
 
-    if (!user?.assignedMatchmakerId || !user.assignedMatchmaker) {
+    if (!user?.assignedMatchmaker) {
       return NextResponse.json({
         success: true,
         messages: [],
         matchmaker: null,
-        noMatchmaker: true,
       });
     }
 
-    const matchmakerId = user.assignedMatchmakerId;
+    const matchmakerId = user.assignedMatchmakerId!;
+    const matchmakerName = `${user.assignedMatchmaker.firstName} ${user.assignedMatchmaker.lastName}`;
 
-    // Fetch all direct messages between user and matchmaker
     const messages = await prisma.directMessage.findMany({
       where: {
         OR: [
@@ -74,10 +69,9 @@ export async function GET(req: NextRequest) {
       content: msg.content,
       senderId: msg.senderId,
       senderType: msg.senderId === userId ? 'user' : 'matchmaker',
-      senderName:
-        msg.senderId === userId
-          ? session.user.name || 'אני'
-          : `${user.assignedMatchmaker!.firstName} ${user.assignedMatchmaker!.lastName}`,
+      senderName: msg.senderId === userId
+        ? session.user.name || 'אני'
+        : matchmakerName,
       isRead: msg.isRead,
       createdAt: msg.createdAt.toISOString(),
       isMine: msg.senderId === userId,
@@ -87,8 +81,8 @@ export async function GET(req: NextRequest) {
       success: true,
       messages: formattedMessages,
       matchmaker: {
-        id: user.assignedMatchmaker.id,
-        name: `${user.assignedMatchmaker.firstName} ${user.assignedMatchmaker.lastName}`,
+        id: matchmakerId,
+        name: matchmakerName,
       },
     });
   } catch (error) {
@@ -101,7 +95,7 @@ export async function GET(req: NextRequest) {
 }
 
 // ==========================================
-// POST — Send direct message
+// POST — Send message to assigned matchmaker
 // ==========================================
 export async function POST(req: NextRequest) {
   try {
@@ -115,7 +109,7 @@ export async function POST(req: NextRequest) {
 
     if (!content?.trim()) {
       return NextResponse.json(
-        { error: 'Message content is required' },
+        { error: 'Message content required' },
         { status: 400 }
       );
     }
@@ -128,7 +122,7 @@ export async function POST(req: NextRequest) {
 
     if (!user?.assignedMatchmakerId) {
       return NextResponse.json(
-        { error: 'No assigned matchmaker found' },
+        { error: 'No assigned matchmaker' },
         { status: 400 }
       );
     }
@@ -140,14 +134,6 @@ export async function POST(req: NextRequest) {
         content: content.trim(),
       },
     });
-
-    // Push notification to matchmaker
-    notifyMatchmakerNewMessage({
-      matchmakerUserId: user.assignedMatchmakerId,
-      senderName: session.user.name || 'מועמד/ת',
-      messagePreview: content.trim(),
-      suggestionId: 'direct', // special marker for direct messages
-    }).catch((err) => console.error('[messages/direct] Push error:', err));
 
     return NextResponse.json({
       success: true,
@@ -183,9 +169,19 @@ export async function PATCH(req: NextRequest) {
 
     const userId = session.user.id;
 
-    // Mark all messages FROM matchmaker TO this user as read
+    // Mark all messages FROM matchmaker TO user as read
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { assignedMatchmakerId: true },
+    });
+
+    if (!user?.assignedMatchmakerId) {
+      return NextResponse.json({ success: true });
+    }
+
     await prisma.directMessage.updateMany({
       where: {
+        senderId: user.assignedMatchmakerId,
         receiverId: userId,
         isRead: false,
       },
