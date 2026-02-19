@@ -1,29 +1,41 @@
+// src/app/api/mobile/suggestions/[id]/chat/route.ts
 // =============================================================================
-// 21. API Route — User Suggestion Chat (Web)
-// File: src/app/api/suggestions/[id]/chat/route.ts
+// Mobile Chat API - Fixed Authentication (Token based instead of Session)
 // =============================================================================
 
-import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { NextRequest } from 'next/server';
 import prisma from '@/lib/prisma';
 import { notifyMatchmakerNewMessage } from '@/lib/pushNotifications';
+import { 
+  verifyMobileToken, 
+  corsJson, 
+  corsError, 
+  corsOptions 
+} from "@/lib/mobile-auth";
+
+// Handle CORS Preflight
+export async function OPTIONS(req: NextRequest) {
+  return corsOptions(req);
+}
 
 // ==========================================
 // GET — Fetch messages
 // ==========================================
 export async function GET(
   req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  props: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const params = await props.params;
+    const suggestionId = params.id;
+    
+    // 1. Verify Mobile Token instead of Server Session
+    const auth = await verifyMobileToken(req);
+    if (!auth) {
+      return corsError(req, 'Unauthorized', 401);
     }
 
-    const { id: suggestionId } = await params;
-    const userId = session.user.id;
+    const userId = auth.userId;
 
     // Verify user is party to this suggestion
     const suggestion = await prisma.matchSuggestion.findFirst({
@@ -31,11 +43,7 @@ export async function GET(
         id: suggestionId,
         OR: [{ firstPartyId: userId }, { secondPartyId: userId }],
       },
-      select: {
-        id: true,
-        firstPartyId: true,
-        secondPartyId: true,
-        matchmakerId: true,
+      include: {
         matchmaker: {
           select: { id: true, firstName: true, lastName: true },
         },
@@ -43,10 +51,7 @@ export async function GET(
     });
 
     if (!suggestion) {
-      return NextResponse.json(
-        { error: 'Suggestion not found' },
-        { status: 404 }
-      );
+      return corsError(req, 'Suggestion not found', 404);
     }
 
     const isFirstParty = suggestion.firstPartyId === userId;
@@ -89,13 +94,13 @@ export async function GET(
           ? `${suggestion.matchmaker.firstName} ${suggestion.matchmaker.lastName}`
           : msg.senderType === 'SYSTEM'
             ? 'מערכת'
-            : session.user.name || 'אני',
+            : 'אני', // באפליקציה, הודעות שלי הן תמיד "אני"
       isRead: msg.isRead,
       createdAt: msg.createdAt.toISOString(),
       isMine: msg.senderId === userId,
     }));
 
-    return NextResponse.json({
+    return corsJson(req, {
       success: true,
       messages: formattedMessages,
       matchmaker: {
@@ -105,11 +110,8 @@ export async function GET(
       isFirstParty,
     });
   } catch (error) {
-    console.error('[user/suggestion-chat] GET error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    console.error('[mobile/suggestion-chat] GET error:', error);
+    return corsError(req, 'Internal server error', 500);
   }
 }
 
@@ -118,23 +120,23 @@ export async function GET(
 // ==========================================
 export async function POST(
   req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  props: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const params = await props.params;
+    const suggestionId = params.id;
+
+    // 1. Verify Mobile Token
+    const auth = await verifyMobileToken(req);
+    if (!auth) {
+      return corsError(req, 'Unauthorized', 401);
     }
 
-    const { id: suggestionId } = await params;
-    const userId = session.user.id;
+    const userId = auth.userId;
     const { content } = await req.json();
 
     if (!content?.trim()) {
-      return NextResponse.json(
-        { error: 'Message content is required' },
-        { status: 400 }
-      );
+      return corsError(req, 'Message content is required', 400);
     }
 
     const suggestion = await prisma.matchSuggestion.findFirst({
@@ -151,13 +153,16 @@ export async function POST(
     });
 
     if (!suggestion) {
-      return NextResponse.json(
-        { error: 'Suggestion not found' },
-        { status: 404 }
-      );
+      return corsError(req, 'Suggestion not found', 404);
     }
 
-    const userName = session.user.name || 'מועמד/ת';
+    // Get user details for notification (optional but good for push)
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { firstName: true, lastName: true }
+    });
+
+    const userName = user ? `${user.firstName} ${user.lastName}` : 'מועמד/ת';
 
     const message = await prisma.suggestionMessage.create({
       data: {
@@ -169,7 +174,7 @@ export async function POST(
       },
     });
 
-    // Push notification to matchmaker (fire and forget)
+    // Push notification to matchmaker
     if (suggestion.matchmakerId) {
       notifyMatchmakerNewMessage({
         matchmakerUserId: suggestion.matchmakerId,
@@ -177,29 +182,26 @@ export async function POST(
         messagePreview: content.trim(),
         suggestionId,
       }).catch((err) =>
-        console.error('[user/suggestion-chat] Push error:', err)
+        console.error('[mobile/suggestion-chat] Push error:', err)
       );
     }
 
-    return NextResponse.json({
+    return corsJson(req, {
       success: true,
       message: {
         id: message.id,
         content: message.content,
         senderId: message.senderId,
         senderType: message.senderType,
-        senderName: userName,
+        senderName: 'אני',
         isRead: false,
         createdAt: message.createdAt.toISOString(),
         isMine: true,
       },
     });
   } catch (error) {
-    console.error('[user/suggestion-chat] POST error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    console.error('[mobile/suggestion-chat] POST error:', error);
+    return corsError(req, 'Internal server error', 500);
   }
 }
 
@@ -208,16 +210,19 @@ export async function POST(
 // ==========================================
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  props: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const params = await props.params;
+    const suggestionId = params.id;
+
+    // 1. Verify Mobile Token
+    const auth = await verifyMobileToken(req);
+    if (!auth) {
+      return corsError(req, 'Unauthorized', 401);
     }
 
-    const { id: suggestionId } = await params;
-    const userId = session.user.id;
+    const userId = auth.userId;
 
     await prisma.suggestionMessage.updateMany({
       where: {
@@ -233,12 +238,9 @@ export async function PATCH(
       data: { isRead: true },
     });
 
-    return NextResponse.json({ success: true });
+    return corsJson(req, { success: true });
   } catch (error) {
-    console.error('[user/suggestion-chat] PATCH error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    console.error('[mobile/suggestion-chat] PATCH error:', error);
+    return corsError(req, 'Internal server error', 500);
   }
 }

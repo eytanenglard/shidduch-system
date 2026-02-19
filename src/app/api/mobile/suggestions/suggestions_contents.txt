@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\mobile\suggestions
-# Generated on: 2026-02-04 14:50:37
+# Generated on: 2026-02-19 11:55:32
 # Filter: Only content of code files (.bat, .c, .cfg, .conf, .cpp, .cs, .css, .go, .h, .html, .ini, .java, .js, .json, .jsx, .kt, .less, .md, .php, .py, .rb, .rs, .scss, .sh, .sql, .swift, .ts, .tsx, .txt, .xml, .yaml, .yml) is included.
 ################################################################################
 
@@ -23,6 +23,7 @@ File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\mobile\sugg
 Content:
 // src/app/api/mobile/suggestions/[id]/route.ts
 // פרטי הצעת שידוך בודדת - למובייל
+// UPDATED: Added questionnaire responses
 
 import { NextRequest } from "next/server";
 import prisma from "@/lib/prisma";
@@ -32,6 +33,8 @@ import {
   corsError,
   corsOptions
 } from "@/lib/mobile-auth";
+import { formatAnswers, KEY_MAPPING } from '@/lib/questionnaireFormatter';
+import type { WorldId } from "@/types/next-auth";
 
 function calculateAge(birthDate: Date | null | undefined): number | null {
   if (!birthDate) return null;
@@ -105,6 +108,19 @@ export async function GET(
                 url: true,
                 isMain: true,
               }
+            },
+            // NEW: Include questionnaire responses
+            questionnaireResponses: {
+              orderBy: { createdAt: 'desc' },
+              take: 1,
+              select: {
+                id: true,
+                valuesAnswers: true,
+                personalityAnswers: true,
+                relationshipAnswers: true,
+                partnerAnswers: true,
+                religionAnswers: true,
+              }
             }
           }
         },
@@ -137,6 +153,19 @@ export async function GET(
                 url: true,
                 isMain: true,
               }
+            },
+            // NEW: Include questionnaire responses
+            questionnaireResponses: {
+              orderBy: { createdAt: 'desc' },
+              take: 1,
+              select: {
+                id: true,
+                valuesAnswers: true,
+                personalityAnswers: true,
+                relationshipAnswers: true,
+                partnerAnswers: true,
+                religionAnswers: true,
+              }
             }
           }
         },
@@ -167,6 +196,25 @@ export async function GET(
     const otherPartyRaw = isFirstParty ? suggestion.secondParty : suggestion.firstParty;
     const notes = isFirstParty ? suggestion.firstPartyNotes : suggestion.secondPartyNotes;
 
+    // Process questionnaire responses
+    let questionnaireAnswers: Record<string, any[]> | null = null;
+    
+    if (otherPartyRaw.questionnaireResponses && otherPartyRaw.questionnaireResponses.length > 0) {
+      const qr = otherPartyRaw.questionnaireResponses[0];
+      questionnaireAnswers = {};
+      
+      // Format answers for each world
+      (Object.keys(KEY_MAPPING) as WorldId[]).forEach(worldKey => {
+        const dbKey = KEY_MAPPING[worldKey];
+        const answersJson = qr[dbKey as keyof typeof qr];
+        if (answersJson) {
+          const formatted = formatAnswers(answersJson);
+          // Only include visible answers
+          questionnaireAnswers![worldKey] = formatted.filter(a => a.isVisible !== false);
+        }
+      });
+    }
+
     const otherParty: any = {
       id: otherPartyRaw.id,
       firstName: otherPartyRaw.firstName,
@@ -185,6 +233,8 @@ export async function GET(
       hobbies: otherPartyRaw.profile?.profileHobbies || [],
       images: otherPartyRaw.images?.map(img => img.url) || [],
       mainImage: otherPartyRaw.images?.find(img => img.isMain)?.url || otherPartyRaw.images?.[0]?.url || null,
+      // NEW: Add questionnaire answers
+      questionnaireAnswers,
     };
 
     const showContactDetails = suggestion.status === 'CONTACT_DETAILS_SHARED';
@@ -223,7 +273,7 @@ export async function GET(
       statusHistory: suggestion.statusHistory,
     };
 
-    console.log(`[mobile/suggestions/${suggestionId}] Fetched for user ${userId}, isFirstParty: ${isFirstParty}`);
+    console.log(`[mobile/suggestions/${suggestionId}] Fetched for user ${userId}, isFirstParty: ${isFirstParty}, hasQuestionnaire: ${!!questionnaireAnswers}`);
 
     return corsJson(req, {
       success: true,
@@ -233,6 +283,342 @@ export async function GET(
   } catch (error) {
     console.error("[mobile/suggestions/[id]] Error:", error);
     return corsError(req, "Internal server error", 500);
+  }
+}
+--- End of Content for route.ts ---
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\mobile\suggestions\[id]\chat
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\mobile\suggestions\[id]\chat\route.ts
+--------------------------------------------------------------------------------
+Content:
+// =============================================================================
+// 21. API Route — User Suggestion Chat (Web)
+// File: src/app/api/suggestions/[id]/chat/route.ts
+// =============================================================================
+
+import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
+import prisma from '@/lib/prisma';
+import { notifyMatchmakerNewMessage } from '@/lib/pushNotifications';
+
+// ==========================================
+// GET — Fetch messages
+// ==========================================
+export async function GET(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const { id: suggestionId } = await params;
+    const userId = session.user.id;
+
+    // Verify user is party to this suggestion
+    const suggestion = await prisma.matchSuggestion.findFirst({
+      where: {
+        id: suggestionId,
+        OR: [{ firstPartyId: userId }, { secondPartyId: userId }],
+      },
+      select: {
+        id: true,
+        firstPartyId: true,
+        secondPartyId: true,
+        matchmakerId: true,
+        matchmaker: {
+          select: { id: true, firstName: true, lastName: true },
+        },
+      },
+    });
+
+    if (!suggestion) {
+      return NextResponse.json(
+        { error: 'Suggestion not found' },
+        { status: 404 }
+      );
+    }
+
+    const isFirstParty = suggestion.firstPartyId === userId;
+
+    // Fetch messages relevant to this user
+    const messages = await prisma.suggestionMessage.findMany({
+      where: {
+        suggestionId,
+        OR: [
+          { senderId: userId, senderType: 'USER' },
+          {
+            senderType: 'MATCHMAKER',
+            OR: [
+              { targetUserId: userId },
+              { targetUserId: null },
+            ],
+          },
+          { senderType: 'SYSTEM' },
+        ],
+      },
+      orderBy: { createdAt: 'asc' },
+      select: {
+        id: true,
+        content: true,
+        senderId: true,
+        senderType: true,
+        isRead: true,
+        createdAt: true,
+        targetUserId: true,
+      },
+    });
+
+    const formattedMessages = messages.map((msg) => ({
+      id: msg.id,
+      content: msg.content,
+      senderId: msg.senderId,
+      senderType: msg.senderType,
+      senderName:
+        msg.senderType === 'MATCHMAKER'
+          ? `${suggestion.matchmaker.firstName} ${suggestion.matchmaker.lastName}`
+          : msg.senderType === 'SYSTEM'
+            ? 'מערכת'
+            : session.user.name || 'אני',
+      isRead: msg.isRead,
+      createdAt: msg.createdAt.toISOString(),
+      isMine: msg.senderId === userId,
+    }));
+
+    return NextResponse.json({
+      success: true,
+      messages: formattedMessages,
+      matchmaker: {
+        id: suggestion.matchmaker.id,
+        name: `${suggestion.matchmaker.firstName} ${suggestion.matchmaker.lastName}`,
+      },
+      isFirstParty,
+    });
+  } catch (error) {
+    console.error('[user/suggestion-chat] GET error:', error);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}
+
+// ==========================================
+// POST — Send message
+// ==========================================
+export async function POST(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const { id: suggestionId } = await params;
+    const userId = session.user.id;
+    const { content } = await req.json();
+
+    if (!content?.trim()) {
+      return NextResponse.json(
+        { error: 'Message content is required' },
+        { status: 400 }
+      );
+    }
+
+    const suggestion = await prisma.matchSuggestion.findFirst({
+      where: {
+        id: suggestionId,
+        OR: [{ firstPartyId: userId }, { secondPartyId: userId }],
+      },
+      select: {
+        id: true,
+        firstPartyId: true,
+        secondPartyId: true,
+        matchmakerId: true,
+      },
+    });
+
+    if (!suggestion) {
+      return NextResponse.json(
+        { error: 'Suggestion not found' },
+        { status: 404 }
+      );
+    }
+
+    const userName = session.user.name || 'מועמד/ת';
+
+    const message = await prisma.suggestionMessage.create({
+      data: {
+        suggestionId,
+        content: content.trim(),
+        senderId: userId,
+        senderType: 'USER',
+        targetUserId: suggestion.matchmakerId,
+      },
+    });
+
+    // Push notification to matchmaker (fire and forget)
+    if (suggestion.matchmakerId) {
+      notifyMatchmakerNewMessage({
+        matchmakerUserId: suggestion.matchmakerId,
+        senderName: userName,
+        messagePreview: content.trim(),
+        suggestionId,
+      }).catch((err) =>
+        console.error('[user/suggestion-chat] Push error:', err)
+      );
+    }
+
+    return NextResponse.json({
+      success: true,
+      message: {
+        id: message.id,
+        content: message.content,
+        senderId: message.senderId,
+        senderType: message.senderType,
+        senderName: userName,
+        isRead: false,
+        createdAt: message.createdAt.toISOString(),
+        isMine: true,
+      },
+    });
+  } catch (error) {
+    console.error('[user/suggestion-chat] POST error:', error);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}
+
+// ==========================================
+// PATCH — Mark messages as read
+// ==========================================
+export async function PATCH(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const { id: suggestionId } = await params;
+    const userId = session.user.id;
+
+    await prisma.suggestionMessage.updateMany({
+      where: {
+        suggestionId,
+        isRead: false,
+        NOT: { senderId: userId },
+        OR: [
+          { targetUserId: userId },
+          { targetUserId: null },
+          { senderType: 'SYSTEM' },
+        ],
+      },
+      data: { isRead: true },
+    });
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error('[user/suggestion-chat] PATCH error:', error);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}
+--- End of Content for route.ts ---
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\mobile\suggestions\[id]\chat\read
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\mobile\suggestions\[id]\chat\read\route.ts
+--------------------------------------------------------------------------------
+Content:
+// app/api/mobile/suggestions/[id]/chat/read/route.ts
+// ==========================================
+// NeshamaTech - Mark Chat Messages as Read
+// POST: Mark all messages as read for the current user
+// ==========================================
+
+import { NextRequest, NextResponse } from "next/server";
+import prisma from "@/lib/prisma";
+import { verifyMobileToken } from "@/lib/mobile-auth";
+
+export async function POST(
+  req: NextRequest,
+  context: { params: Promise<{ id: string }> }
+) {
+  try {
+    const user = await verifyMobileToken(req);
+    if (!user) {
+      return NextResponse.json(
+        { success: false, error: "Unauthorized" },
+        { status: 401 }
+      );
+    }
+
+    const { id: suggestionId } = await context.params;
+
+    // Verify user is part of this suggestion
+    const suggestion = await prisma.matchSuggestion.findUnique({
+      where: { id: suggestionId },
+      select: { firstPartyId: true, secondPartyId: true },
+    });
+
+    if (!suggestion) {
+      return NextResponse.json(
+        { success: false, error: "Suggestion not found" },
+        { status: 404 }
+      );
+    }
+
+    const isParty =
+      suggestion.firstPartyId === user.userId ||
+      suggestion.secondPartyId === user.userId;
+
+    if (!isParty) {
+      return NextResponse.json(
+        { success: false, error: "Forbidden" },
+        { status: 403 }
+      );
+    }
+
+    // Mark all messages NOT sent by this user as read
+    // (i.e., messages from matchmaker/system that this user hasn't read)
+    const result = await prisma.suggestionMessage.updateMany({
+      where: {
+        suggestionId,
+        senderId: { not: user.userId },
+        isRead: false,
+      },
+      data: { isRead: true },
+    });
+
+    return NextResponse.json({
+      success: true,
+      markedCount: result.count,
+    });
+  } catch (error) {
+    console.error("[Mobile Chat Read] Error:", error);
+    return NextResponse.json(
+      { success: false, error: "Failed to mark messages as read" },
+      { status: 500 }
+    );
   }
 }
 --- End of Content for route.ts ---
