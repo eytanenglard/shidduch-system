@@ -2,19 +2,12 @@
 // 25. User Messages Page — Two Tabs Layout
 // File: src/app/[locale]/(authenticated)/messages/MessagesClientPage.tsx
 // =============================================================================
-//
-// REPLACES the existing MessagesClientPage.tsx
-// Has 2 tabs:
-//   1. צ'אטים (Chats) — UserChatPanel
-//   2. עדכונים (Updates) — the existing notification feed (now inlined)
-//
-// =============================================================================
 
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
-import { Loader2, Inbox, Zap, RefreshCw, MessageCircle, Bell } from 'lucide-react';
+import { Inbox, Zap, RefreshCw, MessageCircle, Bell } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import StandardizedLoadingSpinner from '@/components/questionnaire/common/StandardizedLoadingSpinner';
 import type { FeedItem } from '@/types/messages';
@@ -35,7 +28,10 @@ interface MessagesClientPageProps {
   locale: Locale;
 }
 
-export default function MessagesClientPage({ dict, locale }: MessagesClientPageProps) {
+export default function MessagesClientPage({
+  dict,
+  locale,
+}: MessagesClientPageProps) {
   const { data: session } = useSession();
   const [mainTab, setMainTab] = useState<MainTab>('chats');
 
@@ -47,7 +43,7 @@ export default function MessagesClientPage({ dict, locale }: MessagesClientPageP
   const [error, setError] = useState<string | null>(null);
   const [activeFilter, setActiveFilter] = useState<FilterType>('all');
 
-  // Chat unread count
+  // Chat unread count — delegated from UserChatPanel
   const [chatUnread, setChatUnread] = useState(0);
 
   const userId = session?.user?.id;
@@ -66,42 +62,26 @@ export default function MessagesClientPage({ dict, locale }: MessagesClientPageP
         throw new Error(data.error || 'API returned an error');
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An unknown error occurred');
+      setError(
+        err instanceof Error ? err.message : 'An unknown error occurred'
+      );
     } finally {
       setIsLoading(false);
     }
   }, []);
 
-  // Fetch chat unread count
-  const fetchChatUnread = useCallback(async () => {
-    try {
-      const res = await fetch('/api/messages/chats');
-      if (res.ok) {
-        const data = await res.json();
-        if (data.success) {
-          setChatUnread(data.totalUnread || 0);
-        }
-      }
-    } catch {
-      /* silent */
-    }
+  // Callback for UserChatPanel to report unread count
+  const handleChatUnreadUpdate = useCallback((count: number) => {
+    setChatUnread(count);
   }, []);
 
   useEffect(() => {
     if (userId) {
       fetchFeed();
-      fetchChatUnread();
     } else {
       setIsLoading(false);
     }
-  }, [userId, fetchFeed, fetchChatUnread]);
-
-  // Polling for chat unreads
-  useEffect(() => {
-    if (!userId) return;
-    const interval = setInterval(fetchChatUnread, 30000);
-    return () => clearInterval(interval);
-  }, [userId, fetchChatUnread]);
+  }, [userId, fetchFeed]);
 
   const filteredItems = React.useMemo(() => {
     if (activeFilter === 'all') return feedItems;
@@ -109,7 +89,8 @@ export default function MessagesClientPage({ dict, locale }: MessagesClientPageP
       return feedItems.filter((item) => item.type === 'ACTION_REQUIRED');
     if (activeFilter === 'updates')
       return feedItems.filter(
-        (item) => item.type === 'STATUS_UPDATE' || item.type === 'NEW_SUGGESTION'
+        (item) =>
+          item.type === 'STATUS_UPDATE' || item.type === 'NEW_SUGGESTION'
       );
     return feedItems;
   }, [feedItems, activeFilter]);
@@ -138,7 +119,10 @@ export default function MessagesClientPage({ dict, locale }: MessagesClientPageP
             {dict.header?.title || (isHe ? 'מרכז ההודעות' : 'Message Center')}
           </h1>
           <p className="text-lg text-gray-600">
-            {dict.header?.subtitle || (isHe ? 'כל השיחות והעדכונים שלך במקום אחד' : 'All your chats and updates in one place')}
+            {dict.header?.subtitle ||
+              (isHe
+                ? 'כל השיחות והעדכונים שלך במקום אחד'
+                : 'All your chats and updates in one place')}
           </p>
         </header>
 
@@ -196,7 +180,10 @@ export default function MessagesClientPage({ dict, locale }: MessagesClientPageP
 
         {/* Tab Content */}
         {mainTab === 'chats' && (
-          <UserChatPanel locale={locale} />
+          <UserChatPanel
+            locale={locale}
+            onUnreadUpdate={handleChatUnreadUpdate}
+          />
         )}
 
         {mainTab === 'updates' && (
@@ -216,7 +203,10 @@ export default function MessagesClientPage({ dict, locale }: MessagesClientPageP
                     <AlertTitle className="font-bold text-lg">
                       {actionRequiredCount === 1
                         ? dict.actionBanner?.titleSingle
-                        : dict.actionBanner?.titleMultiple?.replace('{{count}}', actionRequiredCount.toString())}
+                        : dict.actionBanner?.titleMultiple?.replace(
+                            '{{count}}',
+                            actionRequiredCount.toString()
+                          )}
                     </AlertTitle>
                     <AlertDescription>
                       {dict.actionBanner?.description}
@@ -237,11 +227,14 @@ export default function MessagesClientPage({ dict, locale }: MessagesClientPageP
                   {dict.filters?.all || (isHe ? 'הכל' : 'All')}
                 </Button>
                 <Button
-                  variant={activeFilter === 'action_required' ? 'default' : 'ghost'}
+                  variant={
+                    activeFilter === 'action_required' ? 'default' : 'ghost'
+                  }
                   onClick={() => setActiveFilter('action_required')}
                   className="rounded-full relative"
                 >
-                  {dict.filters?.actionRequired || (isHe ? 'דורש תגובה' : 'Action Required')}
+                  {dict.filters?.actionRequired ||
+                    (isHe ? 'דורש תגובה' : 'Action Required')}
                   {actionRequiredCount > 0 && (
                     <Badge className="absolute -top-1 -right-2 bg-orange-500 text-white animate-pulse">
                       {actionRequiredCount}
@@ -256,9 +249,17 @@ export default function MessagesClientPage({ dict, locale }: MessagesClientPageP
                   {dict.filters?.updates || (isHe ? 'עדכונים' : 'Updates')}
                 </Button>
               </div>
-              <Button variant="outline" onClick={fetchFeed} disabled={isLoading}>
+              <Button
+                variant="outline"
+                onClick={fetchFeed}
+                disabled={isLoading}
+              >
                 <RefreshCw
-                  className={cn('w-4 h-4', isHe ? 'ml-2' : 'mr-2', isLoading && 'animate-spin')}
+                  className={cn(
+                    'w-4 h-4',
+                    isHe ? 'ml-2' : 'mr-2',
+                    isLoading && 'animate-spin'
+                  )}
                 />
                 {dict.filters?.refresh || (isHe ? 'רענון' : 'Refresh')}
               </Button>
@@ -271,14 +272,15 @@ export default function MessagesClientPage({ dict, locale }: MessagesClientPageP
               </div>
             )}
 
-            {/* Feed */}
+            {/* Feed — CSS animations instead of AnimatePresence */}
             {isLoading ? (
               <StandardizedLoadingSpinner className="h-64" />
             ) : filteredItems.length === 0 ? (
               <div className="flex flex-col items-center justify-center min-h-[400px] text-center p-8 bg-white/50 rounded-2xl shadow-inner border border-gray-200/50">
                 <Inbox className="w-20 h-20 text-gray-300 mb-6" />
                 <h3 className="text-2xl font-bold text-gray-700">
-                  {dict.emptyState?.title || (isHe ? 'אין עדכונים' : 'No updates')}
+                  {dict.emptyState?.title ||
+                    (isHe ? 'אין עדכונים' : 'No updates')}
                 </h3>
                 <p className="text-gray-500 mt-2 max-w-md">
                   {activeFilter === 'all'
@@ -288,24 +290,19 @@ export default function MessagesClientPage({ dict, locale }: MessagesClientPageP
               </div>
             ) : (
               <div className="space-y-4">
-                <AnimatePresence>
-                  {filteredItems.map((item, index) => (
-                    <motion.div
-                      key={item.id}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -20 }}
-                      transition={{ duration: 0.3, delay: index * 0.05 }}
-                    >
-                      <NotificationCard
-                        item={item}
-                        userId={userId!}
-                        dict={dict.notificationCard}
-                        locale={locale}
-                      />
-                    </motion.div>
-                  ))}
-                </AnimatePresence>
+                {filteredItems.map((item) => (
+                  <div
+                    key={item.id}
+                    className="animate-in fade-in slide-in-from-bottom-2 duration-300"
+                  >
+                    <NotificationCard
+                      item={item}
+                      userId={userId!}
+                      dict={dict.notificationCard}
+                      locale={locale}
+                    />
+                  </div>
+                ))}
               </div>
             )}
           </div>

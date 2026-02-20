@@ -7,6 +7,8 @@ import React, {
   useCallback,
   useRef,
   useMemo,
+  useImperativeHandle,
+  forwardRef,
 } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -20,7 +22,6 @@ import {
   ChevronRight,
   ChevronDown,
   ChevronUp,
-  Users,
   Inbox,
   Clock,
   Send,
@@ -81,12 +82,18 @@ interface SelectedChat {
   directUserId?: string;
 }
 
-interface MatchmakerChatPanelProps {
+export interface MatchmakerChatPanelHandle {
+  refresh: () => void;
+}
+
+// שינוי 1: הוספת onUnreadUpdate prop
+export interface MatchmakerChatPanelProps {
   locale: Locale;
+  onUnreadUpdate?: (total: number) => void;
 }
 
 // ==========================================
-// Helpers
+// Helpers (module-level) — שינוי 4: STATUS_LABELS מחוץ לקומפוננטה
 // ==========================================
 
 function formatTime(dateStr: string | undefined, locale: Locale) {
@@ -103,8 +110,52 @@ function truncate(text: string, maxLen: number) {
   return text.slice(0, maxLen) + '…';
 }
 
-/** Highlight matching text segments */
-function HighlightText({
+// שינוי 4: STATUS_LABELS static מחוץ לקומפוננטה
+const STATUS_LABELS: Record<string, { he: string; en: string; color: string }> =
+  {
+    PENDING_FIRST_PARTY: {
+      he: "ממתין לצד א'",
+      en: 'Pending Party A',
+      color: 'bg-amber-50 text-amber-700 border-amber-200',
+    },
+    PENDING_SECOND_PARTY: {
+      he: "ממתין לצד ב'",
+      en: 'Pending Party B',
+      color: 'bg-teal-50 text-teal-700 border-teal-200',
+    },
+    FIRST_PARTY_APPROVED: {
+      he: "צד א' אישר/ה",
+      en: 'Party A Approved',
+      color: 'bg-green-50 text-green-700 border-green-200',
+    },
+    SECOND_PARTY_APPROVED: {
+      he: "צד ב' אישר/ה",
+      en: 'Party B Approved',
+      color: 'bg-green-50 text-green-700 border-green-200',
+    },
+    CONTACT_DETAILS_SHARED: {
+      he: 'פרטי קשר נשלחו',
+      en: 'Details Shared',
+      color: 'bg-teal-50 text-teal-700 border-teal-200',
+    },
+    DATING: {
+      he: 'בדייט',
+      en: 'Dating',
+      color: 'bg-amber-50 text-amber-700 border-amber-200',
+    },
+  };
+
+function getStatusLabel(status: string, isHe: boolean) {
+  const info = STATUS_LABELS[status] || {
+    he: status,
+    en: status,
+    color: 'bg-gray-100 text-gray-700',
+  };
+  return { label: isHe ? info.he : info.en, color: info.color };
+}
+
+// שינוי 5: Memoize HighlightText
+const HighlightText = React.memo(function HighlightText({
   text,
   highlight,
 }: {
@@ -133,7 +184,7 @@ function HighlightText({
       )}
     </>
   );
-}
+});
 
 // ==========================================
 // DirectChatView Sub-Component
@@ -331,12 +382,13 @@ function DirectChatView({
 }
 
 // ==========================================
-// Main Component
+// Main Component (forwardRef) — שינוי 1: onUnreadUpdate prop
 // ==========================================
 
-export default function MatchmakerChatPanel({
-  locale,
-}: MatchmakerChatPanelProps) {
+const MatchmakerChatPanel = forwardRef<
+  MatchmakerChatPanelHandle,
+  MatchmakerChatPanelProps
+>(function MatchmakerChatPanel({ locale, onUnreadUpdate }, ref) {
   const [chatSummaries, setChatSummaries] = useState<SuggestionChatSummary[]>(
     []
   );
@@ -355,167 +407,93 @@ export default function MatchmakerChatPanel({
   const isHe = locale === 'he';
 
   // ==========================================
-  // Load data
+  // שינוי 2: loadChatSummaries החדש — קריאה אחת ל-/api/matchmaker/chat/summaries
   // ==========================================
 
   const loadChatSummaries = useCallback(async () => {
     try {
-      const [suggestionsRes, unreadRes, directRes] = await Promise.all([
-        fetch('/api/matchmaker/suggestions'),
-        fetch('/api/matchmaker/chat/unread'),
-        fetch('/api/matchmaker/direct-chats'),
-      ]);
+      const res = await fetch('/api/matchmaker/chat/summaries');
+      if (!res.ok) throw new Error('Failed to fetch chat summaries');
+      const data = await res.json();
 
-      if (!suggestionsRes.ok) throw new Error('Failed to fetch suggestions');
+      if (data.success) {
+        setChatSummaries(data.suggestions || []);
+        setDirectChats(data.directChats || []);
 
-      const suggestions = await suggestionsRes.json();
-      let unreadData: { bySuggestion?: Record<string, number> } = {};
-      if (unreadRes.ok) {
-        unreadData = await unreadRes.json();
-      }
-      const unreadMap = unreadData.bySuggestion || {};
-
-      if (directRes.ok) {
-        const directData = await directRes.json();
-        if (directData.success) {
-          setDirectChats(directData.chats || []);
+        // Auto-expand unread (only when not searching)
+        if (!searchQuery.trim()) {
+          const withUnread = (data.suggestions || [])
+            .filter((s: SuggestionChatSummary) => s.totalUnread > 0)
+            .map((s: SuggestionChatSummary) => s.suggestionId);
+          setExpandedSuggestions(new Set(withUnread));
         }
-      }
 
-      const summaries: SuggestionChatSummary[] = suggestions
-        .filter((s: { category: string }) => s.category !== 'HISTORY')
-        .map(
-          (s: {
-            id: string;
-            status: string;
-            firstParty: { id: string; firstName: string; lastName: string };
-            secondParty: { id: string; firstName: string; lastName: string };
-          }) => ({
-            suggestionId: s.id,
-            firstParty: {
-              id: s.firstParty.id,
-              name: `${s.firstParty.firstName} ${s.firstParty.lastName}`,
-              unreadCount: 0,
-            },
-            secondParty: {
-              id: s.secondParty.id,
-              name: `${s.secondParty.firstName} ${s.secondParty.lastName}`,
-              unreadCount: 0,
-            },
-            status: s.status,
-            totalUnread: unreadMap[s.id] || 0,
-          })
-        )
-        .sort(
-          (a: SuggestionChatSummary, b: SuggestionChatSummary) =>
-            b.totalUnread - a.totalUnread
-        );
-
-      setChatSummaries(summaries);
-
-      // Only auto-expand unread when NOT searching
-      if (!searchQuery.trim()) {
-        const withUnread = summaries
-          .filter((s: SuggestionChatSummary) => s.totalUnread > 0)
-          .map((s: SuggestionChatSummary) => s.suggestionId);
-        setExpandedSuggestions(new Set(withUnread));
-      }
-
-      for (const summary of summaries) {
-        fetchLastMessagesForSummary(summary, suggestions);
+        // דווח ל-parent על total unread
+        onUnreadUpdate?.(data.totalUnread || 0);
       }
     } catch (error) {
       console.error('Error loading chat summaries:', error);
     } finally {
       setIsLoading(false);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [searchQuery, onUnreadUpdate]);
 
-  const fetchLastMessagesForSummary = async (
-    summary: SuggestionChatSummary,
-    allSuggestions: Array<{
-      id: string;
-      firstParty: { id: string };
-      secondParty: { id: string };
-    }>
-  ) => {
-    try {
-      const res = await fetch(
-        `/api/matchmaker/suggestions/${summary.suggestionId}/chat`
-      );
-      if (!res.ok) return;
-      const data = await res.json();
-      if (!data.success || !data.messages?.length) return;
+  // Expose refresh via imperative handle
+  useImperativeHandle(
+    ref,
+    () => ({
+      refresh: loadChatSummaries,
+    }),
+    [loadChatSummaries]
+  );
 
-      const msgs = data.messages as Array<{
-        content: string;
-        createdAt: string;
-        senderType: 'user' | 'matchmaker' | 'system';
-        senderId: string;
-        targetUserId?: string | null;
-      }>;
-      const suggestion = allSuggestions.find(
-        (s) => s.id === summary.suggestionId
-      );
-      if (!suggestion) return;
-
-      const firstId = suggestion.firstParty.id;
-      const secondId = suggestion.secondParty.id;
-
-      const firstMsgs = msgs.filter(
-        (m) =>
-          (m.senderType === 'user' && m.senderId === firstId) ||
-          (m.senderType === 'matchmaker' &&
-            (m.targetUserId === firstId || !m.targetUserId))
-      );
-      const secondMsgs = msgs.filter(
-        (m) =>
-          (m.senderType === 'user' && m.senderId === secondId) ||
-          (m.senderType === 'matchmaker' &&
-            (m.targetUserId === secondId || !m.targetUserId))
-      );
-
-      const lastFirst = firstMsgs[firstMsgs.length - 1];
-      const lastSecond = secondMsgs[secondMsgs.length - 1];
-
-      setChatSummaries((prev) =>
-        prev.map((s) =>
-          s.suggestionId === summary.suggestionId
-            ? {
-                ...s,
-                firstParty: {
-                  ...s.firstParty,
-                  lastMessage: lastFirst?.content,
-                  lastMessageTime: lastFirst?.createdAt,
-                  lastMessageSenderType: lastFirst?.senderType,
-                },
-                secondParty: {
-                  ...s.secondParty,
-                  lastMessage: lastSecond?.content,
-                  lastMessageTime: lastSecond?.createdAt,
-                  lastMessageSenderType: lastSecond?.senderType,
-                },
-              }
-            : s
-        )
-      );
-    } catch {
-      /* silent */
-    }
-  };
+  // ==========================================
+  // שינוי 3: Visibility-aware polling
+  // ==========================================
 
   useEffect(() => {
     loadChatSummaries();
-    const interval = setInterval(loadChatSummaries, 30000);
-    return () => clearInterval(interval);
+
+    let interval: NodeJS.Timeout | null = null;
+
+    const startPolling = () => {
+      if (interval) clearInterval(interval);
+      interval = setInterval(loadChatSummaries, 30000);
+    };
+
+    const stopPolling = () => {
+      if (interval) {
+        clearInterval(interval);
+        interval = null;
+      }
+    };
+
+    const handleVisibility = () => {
+      if (document.hidden) {
+        stopPolling();
+      } else {
+        loadChatSummaries(); // רענן מיד כשחוזרים
+        startPolling();
+      }
+    };
+
+    startPolling();
+    document.addEventListener('visibilitychange', handleVisibility);
+
+    return () => {
+      stopPolling();
+      document.removeEventListener('visibilitychange', handleVisibility);
+    };
   }, [loadChatSummaries]);
 
   // ==========================================
   // Filtered data (search)
   // ==========================================
 
-  const normalizedQuery = searchQuery.trim().toLowerCase();
+  const normalizedQuery = useMemo(
+    () => searchQuery.trim().toLowerCase(),
+    [searchQuery]
+  );
 
   const filteredSummaries = useMemo(() => {
     if (!normalizedQuery) return chatSummaries;
@@ -539,7 +517,6 @@ export default function MatchmakerChatPanel({
       const matchingIds = filteredSummaries.map((s) => s.suggestionId);
       setExpandedSuggestions(new Set(matchingIds));
     }
-    // When clearing search, revert to showing only unread expanded
     if (!normalizedQuery && chatSummaries.length > 0) {
       const withUnread = chatSummaries
         .filter((s) => s.totalUnread > 0)
@@ -552,7 +529,7 @@ export default function MatchmakerChatPanel({
   // Handlers
   // ==========================================
 
-  const toggleExpand = (suggestionId: string) => {
+  const toggleExpand = useCallback((suggestionId: string) => {
     setExpandedSuggestions((prev) => {
       const next = new Set(prev);
       if (next.has(suggestionId)) {
@@ -562,7 +539,7 @@ export default function MatchmakerChatPanel({
       }
       return next;
     });
-  };
+  }, []);
 
   const openChat = (
     suggestionId: string,
@@ -584,53 +561,12 @@ export default function MatchmakerChatPanel({
   };
 
   // ==========================================
-  // Helpers
+  // Computed values
   // ==========================================
 
   const totalUnread =
     chatSummaries.reduce((sum, s) => sum + s.totalUnread, 0) +
     directChats.reduce((sum, dc) => sum + dc.unreadCount, 0);
-
-  const getStatusLabel = (status: string) => {
-    const labels: Record<string, { he: string; en: string; color: string }> = {
-      PENDING_FIRST_PARTY: {
-        he: "ממתין לצד א'",
-        en: 'Pending Party A',
-        color: 'bg-amber-50 text-amber-700 border-amber-200',
-      },
-      PENDING_SECOND_PARTY: {
-        he: "ממתין לצד ב'",
-        en: 'Pending Party B',
-        color: 'bg-teal-50 text-teal-700 border-teal-200',
-      },
-      FIRST_PARTY_APPROVED: {
-        he: "צד א' אישר/ה",
-        en: 'Party A Approved',
-        color: 'bg-green-50 text-green-700 border-green-200',
-      },
-      SECOND_PARTY_APPROVED: {
-        he: "צד ב' אישר/ה",
-        en: 'Party B Approved',
-        color: 'bg-green-50 text-green-700 border-green-200',
-      },
-      CONTACT_DETAILS_SHARED: {
-        he: 'פרטי קשר נשלחו',
-        en: 'Details Shared',
-        color: 'bg-teal-50 text-teal-700 border-teal-200',
-      },
-      DATING: {
-        he: 'בדייט',
-        en: 'Dating',
-        color: 'bg-amber-50 text-amber-700 border-amber-200',
-      },
-    };
-    const info = labels[status] || {
-      he: status,
-      en: status,
-      color: 'bg-gray-100 text-gray-700',
-    };
-    return { label: isHe ? info.he : info.en, color: info.color };
-  };
 
   // ==========================================
   // Render - Chat View
@@ -777,7 +713,6 @@ export default function MatchmakerChatPanel({
               )}
               dir={isHe ? 'rtl' : 'ltr'}
             />
-            {/* Clear button */}
             {searchQuery && (
               <button
                 onClick={clearSearch}
@@ -791,7 +726,6 @@ export default function MatchmakerChatPanel({
             )}
           </div>
 
-          {/* Search result count */}
           {isSearching && (
             <div className="flex items-center gap-2 mt-2 px-1">
               <Badge
@@ -931,7 +865,6 @@ export default function MatchmakerChatPanel({
                 </>
               )}
 
-              {/* Show section header even when no direct chats but searching */}
               {filteredDirectChats.length === 0 &&
                 filteredSummaries.length > 0 &&
                 isSearching && (
@@ -950,9 +883,9 @@ export default function MatchmakerChatPanel({
                 const isExpanded = expandedSuggestions.has(
                   summary.suggestionId
                 );
-                const statusInfo = getStatusLabel(summary.status);
+                // שינוי 4: שימוש בפונקציה שמחוץ לקומפוננטה
+                const statusInfo = getStatusLabel(summary.status, isHe);
 
-                // Determine which party matches the search (for visual hint)
                 const firstMatches =
                   isSearching &&
                   summary.firstParty.name
@@ -1188,4 +1121,6 @@ export default function MatchmakerChatPanel({
       </CardContent>
     </Card>
   );
-}
+});
+
+export default MatchmakerChatPanel;

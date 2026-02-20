@@ -2,13 +2,6 @@
 // 26. UserChatPanel — Chat sidebar + active chat view
 // File: src/components/messages/UserChatPanel.tsx
 // =============================================================================
-//
-// Two-pane layout:
-//   Left: list of chats (direct + per-suggestion)
-//   Right: active chat view
-//
-// Mobile: shows one pane at a time with back button
-// =============================================================================
 
 'use client';
 
@@ -69,6 +62,7 @@ interface ChatMessage {
 
 interface UserChatPanelProps {
   locale: Locale;
+  onUnreadUpdate?: (count: number) => void;
 }
 
 // ==========================================
@@ -93,7 +87,10 @@ function truncate(text: string, maxLen: number) {
 // Component
 // ==========================================
 
-export default function UserChatPanel({ locale }: UserChatPanelProps) {
+export default function UserChatPanel({
+  locale,
+  onUnreadUpdate,
+}: UserChatPanelProps) {
   const [chats, setChats] = useState<ChatSummary[]>([]);
   const [selectedChatId, setSelectedChatId] = useState<string | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -105,7 +102,23 @@ export default function UserChatPanel({ locale }: UserChatPanelProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const isHe = locale === 'he';
 
+  // ==========================================
+  // Smart auto-scroll refs
+  // ==========================================
+  const prevMessageCountRef = useRef(0);
+  const userScrolledUpRef = useRef(false);
+
   const selectedChat = chats.find((c) => c.id === selectedChatId);
+
+  // ==========================================
+  // Track if user scrolled up
+  // ==========================================
+  const handleScroll = useCallback(() => {
+    if (!scrollRef.current) return;
+    const { scrollTop, scrollHeight, clientHeight } = scrollRef.current;
+    const isAtBottom = scrollHeight - scrollTop - clientHeight < 50;
+    userScrolledUpRef.current = !isAtBottom;
+  }, []);
 
   // ==========================================
   // Load chat list
@@ -118,18 +131,46 @@ export default function UserChatPanel({ locale }: UserChatPanelProps) {
       const data = await res.json();
       if (data.success) {
         setChats(data.chats);
+        // Report unread count to parent
+        if (onUnreadUpdate) {
+          onUnreadUpdate(data.totalUnread || 0);
+        }
       }
     } catch (error) {
       console.error('Error loading chats:', error);
     } finally {
       setIsLoadingList(false);
     }
-  }, []);
+  }, [onUnreadUpdate]);
 
+  // Visibility-aware polling for chat list
   useEffect(() => {
     loadChats();
-    const interval = setInterval(loadChats, 30000);
-    return () => clearInterval(interval);
+    let interval: NodeJS.Timeout | null = null;
+
+    const start = () => {
+      interval = setInterval(loadChats, 30000);
+    };
+    const stop = () => {
+      if (interval) clearInterval(interval);
+      interval = null;
+    };
+
+    const onVisibility = () => {
+      if (document.hidden) {
+        stop();
+      } else {
+        loadChats();
+        start();
+      }
+    };
+
+    start();
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => {
+      stop();
+      document.removeEventListener('visibilitychange', onVisibility);
+    };
   }, [loadChats]);
 
   // ==========================================
@@ -171,28 +212,76 @@ export default function UserChatPanel({ locale }: UserChatPanelProps) {
     }
   }, [selectedChatId, loadMessages]);
 
-  // Poll messages when chat is open
+  // Visibility-aware polling for messages
   useEffect(() => {
     if (!selectedChatId) return;
-    const interval = setInterval(loadMessages, 12000);
-    return () => clearInterval(interval);
+
+    let interval: NodeJS.Timeout | null = null;
+    const start = () => {
+      interval = setInterval(loadMessages, 12000);
+    };
+    const stop = () => {
+      if (interval) clearInterval(interval);
+      interval = null;
+    };
+
+    const onVisibility = () => {
+      if (document.hidden) {
+        stop();
+      } else {
+        loadMessages();
+        start();
+      }
+    };
+
+    start();
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => {
+      stop();
+      document.removeEventListener('visibilitychange', onVisibility);
+    };
   }, [selectedChatId, loadMessages]);
 
-  // Auto-scroll
+  // Smart auto-scroll
   useEffect(() => {
-    if (scrollRef.current) {
+    if (!scrollRef.current) return;
+
+    const isNewMessage = messages.length > prevMessageCountRef.current;
+    prevMessageCountRef.current = messages.length;
+
+    // Scroll only if:
+    // 1. New messages arrived AND user is at bottom
+    // 2. OR it's the initial load (prevCount was 0)
+    if (isNewMessage && !userScrolledUpRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [messages]);
 
   // ==========================================
-  // Send message
+  // Send message (optimistic)
   // ==========================================
 
   const handleSend = async () => {
     if (!newMessage.trim() || isSending || !selectedChatId) return;
-    setIsSending(true);
 
+    const tempId = `temp-${Date.now()}`;
+    const optimisticMsg: ChatMessage = {
+      id: tempId,
+      content: newMessage.trim(),
+      senderId: '',
+      senderType: 'user',
+      senderName: '',
+      isRead: false,
+      createdAt: new Date().toISOString(),
+      isMine: true,
+    };
+
+    // Add to UI immediately
+    setMessages((prev) => [...prev, optimisticMsg]);
+    setNewMessage('');
+    userScrolledUpRef.current = false; // force scroll to bottom
+
+    setIsSending(true);
     try {
       const endpoint =
         selectedChatId === 'direct'
@@ -202,22 +291,26 @@ export default function UserChatPanel({ locale }: UserChatPanelProps) {
       const res = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ content: newMessage.trim() }),
+        body: JSON.stringify({ content: optimisticMsg.content }),
       });
 
       if (!res.ok) throw new Error('Failed to send');
       const data = await res.json();
 
       if (data.success && data.message) {
-        setMessages((prev) => [...prev, data.message]);
-        setNewMessage('');
-        textareaRef.current?.focus();
+        // Replace temp message with real one
+        setMessages((prev) =>
+          prev.map((m) => (m.id === tempId ? data.message : m))
+        );
       }
     } catch (error) {
+      // Remove temp message on error
+      setMessages((prev) => prev.filter((m) => m.id !== tempId));
       console.error('Send error:', error);
       toast.error(isHe ? 'שגיאה בשליחת ההודעה' : 'Error sending message');
     } finally {
       setIsSending(false);
+      textareaRef.current?.focus();
     }
   };
 
@@ -231,11 +324,15 @@ export default function UserChatPanel({ locale }: UserChatPanelProps) {
   const openChat = (chatId: string) => {
     setSelectedChatId(chatId);
     setMessages([]);
+    prevMessageCountRef.current = 0;
+    userScrolledUpRef.current = false;
   };
 
   const closeChat = () => {
     setSelectedChatId(null);
     setMessages([]);
+    prevMessageCountRef.current = 0;
+    userScrolledUpRef.current = false;
     loadChats(); // Refresh unread counts
   };
 
@@ -301,7 +398,11 @@ export default function UserChatPanel({ locale }: UserChatPanelProps) {
         {/* Messages */}
         <CardContent className="p-0">
           <div className="flex flex-col h-[500px]">
-            <ScrollArea className="flex-1 px-4" ref={scrollRef}>
+            <ScrollArea
+              className="flex-1 px-4"
+              ref={scrollRef}
+              onScroll={handleScroll}
+            >
               {isLoadingMessages ? (
                 <div className="flex items-center justify-center h-full py-12">
                   <Loader2 className="w-6 h-6 animate-spin text-teal-500" />
@@ -342,7 +443,9 @@ export default function UserChatPanel({ locale }: UserChatPanelProps) {
                             'max-w-[75%] rounded-2xl px-4 py-2.5 shadow-sm',
                             msg.isMine
                               ? 'bg-gradient-to-br from-teal-500 to-cyan-500 text-white rounded-br-md'
-                              : 'bg-white border border-gray-200 text-gray-800 rounded-bl-md'
+                              : 'bg-white border border-gray-200 text-gray-800 rounded-bl-md',
+                            // Dim temp messages slightly
+                            msg.id.startsWith('temp-') && 'opacity-70'
                           )}
                         >
                           {!msg.isMine && (
@@ -438,7 +541,9 @@ export default function UserChatPanel({ locale }: UserChatPanelProps) {
                 {isHe ? 'השיחות שלי' : 'My Conversations'}
               </CardTitle>
               <p className="text-sm text-gray-500">
-                {isHe ? 'שיחות עם השדכן/ית שלך' : 'Conversations with your matchmaker'}
+                {isHe
+                  ? 'שיחות עם השדכן/ית שלך'
+                  : 'Conversations with your matchmaker'}
               </p>
             </div>
           </div>
@@ -460,7 +565,7 @@ export default function UserChatPanel({ locale }: UserChatPanelProps) {
               <Inbox className="w-8 h-8 text-gray-300" />
             </div>
             <p className="text-sm text-gray-500 mb-1 font-medium">
-              {isHe ? "אין שיחות עדיין" : 'No conversations yet'}
+              {isHe ? 'אין שיחות עדיין' : 'No conversations yet'}
             </p>
             <p className="text-xs text-gray-400">
               {isHe

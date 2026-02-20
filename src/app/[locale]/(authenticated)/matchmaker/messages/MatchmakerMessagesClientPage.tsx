@@ -1,19 +1,7 @@
-// =============================================================================
 // src/app/[locale]/(authenticated)/matchmaker/messages/MatchmakerMessagesClientPage.tsx
-// =============================================================================
-//
-// REPLACES existing MatchmakerMessagesClientPage.tsx (1012 lines → ~170 lines)
-//
-// Changes:
-//   1. Imports MatchmakerChatPanel (which has both suggestion + direct chats)
-//   2. Adds "שלח הודעה" button that opens MatchmakerUserSearchDialog
-//   3. Removes inline ChatPanel (moved to MatchmakerChatPanel component)
-//
-// =============================================================================
-
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import { useSession } from 'next-auth/react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
@@ -21,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { MessageSquare, ClipboardCheck, Megaphone } from 'lucide-react';
 import MessagesPage from '@/components/messages/MessagesPage';
 import MatchmakerChatPanel from '@/components/messages/MatchmakerChatPanel';
+import type { MatchmakerChatPanelHandle } from '@/components/messages/MatchmakerChatPanel';
 import MatchmakerUserSearchDialog from '@/components/messages/MatchmakerUserSearchDialog';
 import StandardizedLoadingSpinner from '@/components/questionnaire/common/StandardizedLoadingSpinner';
 import type { Locale } from '../../../../../../i18n-config';
@@ -59,54 +48,24 @@ export default function MatchmakerMessagesClientPage({ locale, dict }: Props) {
   // Search dialog state
   const [searchDialogOpen, setSearchDialogOpen] = useState(false);
 
-  // Unread counts for tab badges
-  const [suggestionUnread, setSuggestionUnread] = useState(0);
-  const [directUnread, setDirectUnread] = useState(0);
+  // שינוי 1: Unread count — מתעדכן דרך callback מ-MatchmakerChatPanel
+  const [totalUnread, setTotalUnread] = useState(0);
 
-  // Key to force MatchmakerChatPanel refresh after broadcast
-  const [chatPanelKey, setChatPanelKey] = useState(0);
+  // Ref to call refresh on MatchmakerChatPanel without remounting
+  const chatPanelRef = useRef<MatchmakerChatPanelHandle>(null);
 
-  const fetchUnreadCounts = useCallback(async () => {
-    try {
-      const [sugRes, dirRes] = await Promise.all([
-        fetch('/api/matchmaker/chat/unread'),
-        fetch('/api/matchmaker/direct-chats'),
-      ]);
-
-      if (sugRes.ok) {
-        const data = await sugRes.json();
-        if (data.success) setSuggestionUnread(data.totalUnread || 0);
-      }
-
-      if (dirRes.ok) {
-        const data = await dirRes.json();
-        if (data.success) setDirectUnread(data.totalUnread || 0);
-      }
-    } catch (e) {
-      console.error('Error fetching unread counts:', e);
-    }
+  const handleUnreadUpdate = useCallback((total: number) => {
+    setTotalUnread(total);
   }, []);
 
-  useEffect(() => {
-    if (session?.user) {
-      fetchUnreadCounts();
-      const interval = setInterval(fetchUnreadCounts, 30000);
-      return () => clearInterval(interval);
-    }
-  }, [session, fetchUnreadCounts]);
-
-  const handleBroadcastSent = () => {
+  const handleBroadcastSent = useCallback(() => {
     setSearchDialogOpen(false);
-    // Force MatchmakerChatPanel to reload by changing key
-    setChatPanelKey((prev) => prev + 1);
-    fetchUnreadCounts();
-  };
+    chatPanelRef.current?.refresh();
+  }, []);
 
   if (!session?.user) {
     return <StandardizedLoadingSpinner className="h-[calc(100vh-80px)]" />;
   }
-
-  const totalUnread = suggestionUnread + directUnread;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-teal-50/40 via-white to-amber-50/30">
@@ -155,7 +114,12 @@ export default function MatchmakerMessagesClientPage({ locale, dict }: Props) {
           </div>
 
           <TabsContent value="chat" className="mt-0">
-            <MatchmakerChatPanel key={chatPanelKey} locale={locale} />
+            {/* שינוי 3: העברת onUnreadUpdate ל-MatchmakerChatPanel */}
+            <MatchmakerChatPanel
+              ref={chatPanelRef}
+              locale={locale}
+              onUnreadUpdate={handleUnreadUpdate}
+            />
           </TabsContent>
           <TabsContent value="availability" className="mt-0">
             <MessagesPage />
