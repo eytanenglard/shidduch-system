@@ -223,14 +223,20 @@ export type AboutMeDict = {
   placeholder: string;
   tooltip: string;
   minChars: string;
-  guidanceTitle: string;    // ← חדש
-  guide1: string;           // ← חדש
-  guide2: string;           // ← חדש
-  guide3: string;           // ← חדש
-  guide4: string;           // ← חדש
-  guide5: string;           // ← חדש
-  guide6: string;           // ← חדש
-  guidanceNote: string;     // ← חדש
+  guidanceTitle: string;
+  guide1: string;
+  guide2: string;
+  guide3: string;
+  guide4: string;
+  guide5: string;
+  guide6: string;
+  guide7: string;
+  guide8: string;
+  guide9: string;
+  guide10: string;
+  guide11: string;
+  guide12: string;
+  guidanceNote: string;
   promptsTitle: string;
   prompt1: string;
   prompt2: string;

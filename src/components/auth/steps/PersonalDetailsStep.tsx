@@ -1328,71 +1328,97 @@ export default function PersonalDetailsStep({
           title={personalDetailsDict.aboutMe?.title || 'כרטיס ההיכרות שלי'}
           subtitle={
             personalDetailsDict.aboutMe?.subtitle ||
-            'זה הכרטיס האישי שלכם - מה שהשדכנים רואים ומה שנשלח לצד השני כשמציעים לכם שידוך. ככל שתכתבו יותר, כך ההצעות יהיו מדויקות יותר.'
+            'הכרטיס הזה הוא מה שהשדכנים שלנו רואים, ומה שנשלח לצד השני כשמציעים שידוך. כתבו אותו כאילו אתם מציגים את עצמכם למישהו שרוצה להכיר אתכם באמת.'
           }
           gradient="from-purple-500 to-indigo-500"
           required={true}
         />
 
-        {/* Guidance Block - Topics to cover */}
+        {/* Structured Format Guide */}
         <motion.div variants={itemVariants}>
           <div className="bg-gradient-to-br from-purple-50/70 via-indigo-50/50 to-violet-50/40 rounded-2xl p-4 md:p-5 border border-purple-100/80">
             <p className="text-sm font-semibold text-purple-800 mb-3 flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-purple-500" />
+              <ListChecks className="w-4 h-4 text-purple-500" />
               {personalDetailsDict.aboutMe?.guidanceTitle ||
-                'מה כדאי לכלול בכרטיס?'}
+                'מה לכלול בכרטיס? (לפי הסדר)'}
             </p>
-            <div className="grid grid-cols-2 gap-2 md:gap-2.5">
+            <div className="space-y-1.5">
               {[
+                {
+                  emoji: '😊',
+                  text: personalDetailsDict.aboutMe?.guide1 || 'שם, גיל וגובה',
+                },
+                {
+                  emoji: '🌍',
+                  text: personalDetailsDict.aboutMe?.guide2 || 'עדה / מוצא',
+                },
+                {
+                  emoji: '📍',
+                  text: personalDetailsDict.aboutMe?.guide3 || 'אזור מגורים',
+                },
+                {
+                  emoji: '💍',
+                  text:
+                    personalDetailsDict.aboutMe?.guide4 ||
+                    'סטטוס (רווק/ה, גרוש/ה, אלמן/ה + ילדים)',
+                },
+                {
+                  emoji: '🙏',
+                  text: personalDetailsDict.aboutMe?.guide5 || 'רמה דתית ומגזר',
+                },
+                {
+                  emoji: '🎓',
+                  text:
+                    personalDetailsDict.aboutMe?.guide6 ||
+                    'לימודים ורקע (ישיבה/מדרשה, תואר, קורסים)',
+                },
+                {
+                  emoji: '🇮🇱',
+                  text:
+                    personalDetailsDict.aboutMe?.guide7 || 'שירות צבאי / לאומי',
+                },
+                {
+                  emoji: '💼',
+                  text: personalDetailsDict.aboutMe?.guide8 || 'עיסוק ותעסוקה',
+                },
                 {
                   emoji: '🎭',
                   text:
-                    personalDetailsDict.aboutMe?.guide1 ||
-                    'תכונות אופי - מי אתם באמת?',
+                    personalDetailsDict.aboutMe?.guide9 ||
+                    'תכונות אופי – מי אני?',
                 },
                 {
                   emoji: '👨‍👩‍👧‍👦',
                   text:
-                    personalDetailsDict.aboutMe?.guide2 ||
-                    'קצת על המשפחה והרקע שלכם',
-                },
-                {
-                  emoji: '🎯',
-                  text:
-                    personalDetailsDict.aboutMe?.guide3 ||
-                    'מה אתם מחפשים בבן/בת זוג?',
-                },
-                {
-                  emoji: '💼',
-                  text:
-                    personalDetailsDict.aboutMe?.guide4 ||
-                    'עיסוק, לימודים ושאיפות',
+                    personalDetailsDict.aboutMe?.guide10 || 'קצת על המשפחה שלי',
                 },
                 {
                   emoji: '🎨',
                   text:
-                    personalDetailsDict.aboutMe?.guide5 ||
-                    'תחביבים ומה שאתם אוהבים',
+                    personalDetailsDict.aboutMe?.guide11 ||
+                    'תחביבים ומה שאני אוהב/ת',
                 },
                 {
-                  emoji: '💡',
+                  emoji: '🎯',
                   text:
-                    personalDetailsDict.aboutMe?.guide6 ||
-                    'ערכים ומה שחשוב לכם בחיים',
+                    personalDetailsDict.aboutMe?.guide12 ||
+                    'מה אני מחפש/ת בבן/בת זוג',
                 },
               ].map((item, index) => (
                 <div
                   key={index}
-                  className="flex items-start gap-2 text-xs md:text-sm text-gray-700 leading-snug"
+                  className="flex items-center gap-2.5 text-sm text-gray-700 leading-snug"
                 >
-                  <span className="text-base shrink-0 mt-px">{item.emoji}</span>
+                  <span className="text-base shrink-0 w-6 text-center">
+                    {item.emoji}
+                  </span>
                   <span>{item.text}</span>
                 </div>
               ))}
             </div>
-            <p className="text-xs text-purple-600/80 mt-3 leading-relaxed">
+            <p className="text-xs text-purple-600/80 mt-3.5 leading-relaxed border-t border-purple-100/60 pt-3">
               {personalDetailsDict.aboutMe?.guidanceNote ||
-                'אין פורמט מחייב - כתבו בסגנון שלכם, בחופשיות. אלה רק רעיונות כדי לעזור לכם להתחיל.'}
+                "💡 לא חובה לכתוב את כל הסעיפים, אבל ככל שתכתבו יותר – כך נוכל למצוא לכם התאמות מדויקות יותר. אפשר להשתמש באימוג'ים כמו בדוגמה, או לכתוב בצורה חופשית."}
             </p>
           </div>
         </motion.div>
@@ -1403,8 +1429,7 @@ export default function PersonalDetailsStep({
               htmlFor="aboutMe"
               className="text-sm font-semibold text-gray-700 flex items-center gap-1"
             >
-              {personalDetailsDict.aboutMe?.label ||
-                'כתבו את כרטיס ההיכרות שלכם'}
+              {personalDetailsDict.aboutMe?.label || 'כרטיס ההיכרות שלכם'}
               <span className="text-red-500 mr-1">*</span>
               <TooltipProvider>
                 <Tooltip>
@@ -1423,7 +1448,7 @@ export default function PersonalDetailsStep({
                   >
                     <p>
                       {personalDetailsDict.aboutMe?.tooltip ||
-                        'הכרטיס הזה הוא מה שהשדכנים שלנו רואים כשהם מחפשים עבורכם התאמות, ומה שהצד השני מקבל כשמציעים לו אתכם. שווה להשקיע בו!'}
+                        'הכרטיס הזה נשלח לצד השני כשמציעים שידוך – ככה הוא/היא מקבל/ת תמונה אמיתית של מי אתם. שווה להשקיע!'}
                     </p>
                   </TooltipContent>
                 </Tooltip>
@@ -1437,10 +1462,10 @@ export default function PersonalDetailsStep({
             onChange={(e) => setAboutMe(e.target.value)}
             placeholder={
               personalDetailsDict.aboutMe?.placeholder ||
-              'למשל:\nאני בן/בת [גיל], גר/ה ב[עיר]. [עדה/מוצא].\nעוסק/ת ב[עיסוק] ולמדתי [לימודים].\nמה שמאפיין אותי: [תכונות אופי].\nבזמני הפנוי אני אוהב/ת [תחביבים].\nאני מחפש/ת [מה חשוב לכם בבן/בת זוג]...'
+              '😊 שם: ישראל ישראלי, בן 28, גובה 1.75\n🌍 עדה: חצי מרוקאי חצי פולני\n📍 מגורים: רעננה\n💍 סטטוס: רווק\n🙏 דתי לאומי\n🎓 בוגר ישיבת הסדר, תואר ראשון במנהל עסקים\n🇮🇱 שירות צבאי מלא - קצין ביחידה קרבית\n💼 עובד בהייטק כמנהל מוצר\n🎭 אופי: חברותי, אופטימי, אוהב אנשים ושיחות עומק\n👨‍👩‍👧‍👦 משפחה חמה ומשפחתית, שני מתוך ארבעה\n🎨 אוהב ספורט, טיולים, בישול ומוזיקה\n🎯 מחפש בחורה עם לב טוב, שמחת חיים, ערכים דומים וחוש הומור'
             }
             disabled={isLoading}
-            className={`min-h-[180px] py-3 border-2 rounded-xl transition-colors duration-200 bg-white/95 resize-none text-base md:text-sm ${
+            className={`min-h-[220px] py-3 border-2 rounded-xl transition-colors duration-200 bg-white/95 resize-none text-base md:text-sm ${
               aboutMe.trim().length < MIN_ABOUT_LENGTH &&
               missingFields.includes(
                 personalDetailsDict.aboutMe?.fieldName || 'כרטיס ההיכרות'
@@ -1450,7 +1475,7 @@ export default function PersonalDetailsStep({
                   ? 'border-amber-300 focus:ring-amber-200 focus:border-amber-400'
                   : 'border-gray-200 hover:border-gray-300 focus:border-purple-400 focus:ring-2 focus:ring-purple-200'
             }`}
-            rows={8}
+            rows={10}
           />
 
           <div className="flex justify-between items-center">
