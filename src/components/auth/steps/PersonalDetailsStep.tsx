@@ -1325,14 +1325,77 @@ export default function PersonalDetailsStep({
       <div className="space-y-6">
         <SectionHeader
           icon={<FileText className="w-5 h-5" />}
-          title={personalDetailsDict.aboutMe?.title || 'הסיפור שלי במילים שלי'}
+          title={personalDetailsDict.aboutMe?.title || 'כרטיס ההיכרות שלי'}
           subtitle={
             personalDetailsDict.aboutMe?.subtitle ||
-            'ספרו על עצמכם - זה החלק שהכי עוזר לשדכנים להכיר אתכם'
+            'זה הכרטיס האישי שלכם - מה שהשדכנים רואים ומה שנשלח לצד השני כשמציעים לכם שידוך. ככל שתכתבו יותר, כך ההצעות יהיו מדויקות יותר.'
           }
           gradient="from-purple-500 to-indigo-500"
           required={true}
         />
+
+        {/* Guidance Block - Topics to cover */}
+        <motion.div variants={itemVariants}>
+          <div className="bg-gradient-to-br from-purple-50/70 via-indigo-50/50 to-violet-50/40 rounded-2xl p-4 md:p-5 border border-purple-100/80">
+            <p className="text-sm font-semibold text-purple-800 mb-3 flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-purple-500" />
+              {personalDetailsDict.aboutMe?.guidanceTitle ||
+                'מה כדאי לכלול בכרטיס?'}
+            </p>
+            <div className="grid grid-cols-2 gap-2 md:gap-2.5">
+              {[
+                {
+                  emoji: '🎭',
+                  text:
+                    personalDetailsDict.aboutMe?.guide1 ||
+                    'תכונות אופי - מי אתם באמת?',
+                },
+                {
+                  emoji: '👨‍👩‍👧‍👦',
+                  text:
+                    personalDetailsDict.aboutMe?.guide2 ||
+                    'קצת על המשפחה והרקע שלכם',
+                },
+                {
+                  emoji: '🎯',
+                  text:
+                    personalDetailsDict.aboutMe?.guide3 ||
+                    'מה אתם מחפשים בבן/בת זוג?',
+                },
+                {
+                  emoji: '💼',
+                  text:
+                    personalDetailsDict.aboutMe?.guide4 ||
+                    'עיסוק, לימודים ושאיפות',
+                },
+                {
+                  emoji: '🎨',
+                  text:
+                    personalDetailsDict.aboutMe?.guide5 ||
+                    'תחביבים ומה שאתם אוהבים',
+                },
+                {
+                  emoji: '💡',
+                  text:
+                    personalDetailsDict.aboutMe?.guide6 ||
+                    'ערכים ומה שחשוב לכם בחיים',
+                },
+              ].map((item, index) => (
+                <div
+                  key={index}
+                  className="flex items-start gap-2 text-xs md:text-sm text-gray-700 leading-snug"
+                >
+                  <span className="text-base shrink-0 mt-px">{item.emoji}</span>
+                  <span>{item.text}</span>
+                </div>
+              ))}
+            </div>
+            <p className="text-xs text-purple-600/80 mt-3 leading-relaxed">
+              {personalDetailsDict.aboutMe?.guidanceNote ||
+                'אין פורמט מחייב - כתבו בסגנון שלכם, בחופשיות. אלה רק רעיונות כדי לעזור לכם להתחיל.'}
+            </p>
+          </div>
+        </motion.div>
 
         <motion.div variants={itemVariants} className="space-y-2">
           <div className="flex items-center justify-between">
@@ -1340,7 +1403,8 @@ export default function PersonalDetailsStep({
               htmlFor="aboutMe"
               className="text-sm font-semibold text-gray-700 flex items-center gap-1"
             >
-              {personalDetailsDict.aboutMe?.label || 'ספרו על עצמכם'}
+              {personalDetailsDict.aboutMe?.label ||
+                'כתבו את כרטיס ההיכרות שלכם'}
               <span className="text-red-500 mr-1">*</span>
               <TooltipProvider>
                 <Tooltip>
@@ -1359,7 +1423,7 @@ export default function PersonalDetailsStep({
                   >
                     <p>
                       {personalDetailsDict.aboutMe?.tooltip ||
-                        'שתפו על התחביבים, הערכים, מה חשוב לכם בחיים ובמערכת יחסים'}
+                        'הכרטיס הזה הוא מה שהשדכנים שלנו רואים כשהם מחפשים עבורכם התאמות, ומה שהצד השני מקבל כשמציעים לו אתכם. שווה להשקיע בו!'}
                     </p>
                   </TooltipContent>
                 </Tooltip>
@@ -1372,27 +1436,28 @@ export default function PersonalDetailsStep({
             value={aboutMe}
             onChange={(e) => setAboutMe(e.target.value)}
             placeholder={
-              personalDetailsDict.aboutMe?.placeholder || 'ספרו על עצמכם...'
+              personalDetailsDict.aboutMe?.placeholder ||
+              'למשל:\nאני בן/בת [גיל], גר/ה ב[עיר]. [עדה/מוצא].\nעוסק/ת ב[עיסוק] ולמדתי [לימודים].\nמה שמאפיין אותי: [תכונות אופי].\nבזמני הפנוי אני אוהב/ת [תחביבים].\nאני מחפש/ת [מה חשוב לכם בבן/בת זוג]...'
             }
             disabled={isLoading}
-            className={`min-h-[150px] py-3 border-2 rounded-xl transition-colors duration-200 bg-white/95 resize-none text-base md:text-sm ${
+            className={`min-h-[180px] py-3 border-2 rounded-xl transition-colors duration-200 bg-white/95 resize-none text-base md:text-sm ${
               aboutMe.trim().length < MIN_ABOUT_LENGTH &&
               missingFields.includes(
-                personalDetailsDict.aboutMe?.fieldName || 'הסיפור שלי'
+                personalDetailsDict.aboutMe?.fieldName || 'כרטיס ההיכרות'
               )
                 ? 'border-red-300 focus:ring-red-200 focus:border-red-400'
                 : aboutMe.length > 0 && aboutMe.trim().length < MIN_ABOUT_LENGTH
                   ? 'border-amber-300 focus:ring-amber-200 focus:border-amber-400'
                   : 'border-gray-200 hover:border-gray-300 focus:border-purple-400 focus:ring-2 focus:ring-purple-200'
             }`}
-            rows={6}
+            rows={8}
           />
 
           <div className="flex justify-between items-center">
             <div>
               {aboutMe.trim().length < MIN_ABOUT_LENGTH &&
               missingFields.includes(
-                personalDetailsDict.aboutMe?.fieldName || 'הסיפור שלי'
+                personalDetailsDict.aboutMe?.fieldName || 'כרטיס ההיכרות'
               ) ? (
                 <p className="text-xs text-red-600 flex items-center gap-1">
                   <AlertCircle className="w-3 h-3" />

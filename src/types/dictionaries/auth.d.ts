@@ -223,13 +223,21 @@ export type AboutMeDict = {
   placeholder: string;
   tooltip: string;
   minChars: string;
+  guidanceTitle: string;    // ← חדש
+  guide1: string;           // ← חדש
+  guide2: string;           // ← חדש
+  guide3: string;           // ← חדש
+  guide4: string;           // ← חדש
+  guide5: string;           // ← חדש
+  guide6: string;           // ← חדש
+  guidanceNote: string;     // ← חדש
   promptsTitle: string;
   prompt1: string;
   prompt2: string;
   prompt3: string;
   prompt4: string;
-  fieldName: string; // שם השדה לוולידציה
-  required: string; // הודעת שגיאה כשחסר
+  fieldName: string;
+  required: string;
 };
 
 export type RegisterStepsDict = {

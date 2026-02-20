@@ -356,18 +356,26 @@
           "required": "Please upload at least one photo"
         },
         "aboutMe": {
-          "title": "My Story in My Own Words",
-          "subtitle": "Tell us about yourself - this helps matchmakers get to know you better",
-          "label": "Tell us about yourself",
-          "placeholder": "Share about yourself, what matters to you in life, your hobbies, and what you're looking for in a partner...\n\nDon't be shy to write personally - that's exactly what helps matchmakers understand who you really are.",
-          "tooltip": "Share your hobbies, values, what matters to you in life and relationships. The more you write, the better matchmakers can get to know you.",
+          "title": "My Introduction Card",
+          "subtitle": "This is your personal card – what our matchmakers see and what gets sent to the other side when suggesting a match. The more you share, the more accurate your matches will be.",
+          "label": "Write your introduction card",
+          "placeholder": "For example:\nAbout me – [share your personality, what defines you]\nFamily – [describe your family briefly]\nWhat I do – [work, education, military/national service]\nIn my free time – [hobbies, what you enjoy]\nWhat I'm looking for – [qualities, values, what matters to you in a partner]\n\nDon't be shy to write personally and authentically – that's exactly what helps us find you the right match.",
+          "tooltip": "This card is what our matchmakers see when searching for matches for you, and what the other side receives when you're suggested. It's worth investing in!",
           "minChars": "{{remaining}} more characters minimum",
+          "guidanceTitle": "What to include in your card?",
+          "guide1": "Personality traits – who are you really?",
+          "guide2": "A bit about your family and background",
+          "guide3": "What are you looking for in a partner?",
+          "guide4": "Work, education and aspirations",
+          "guide5": "Hobbies and what you love",
+          "guide6": "Values and what matters to you in life",
+          "guidanceNote": "No required format – write in your own style, freely. These are just ideas to help you get started.",
           "promptsTitle": "Ideas for what to write:",
           "prompt1": "What do you enjoy doing in your free time?",
           "prompt2": "What values are most important to you?",
           "prompt3": "What does your perfect day look like?",
           "prompt4": "What are you looking for in a partner?",
-          "fieldName": "My story",
+          "fieldName": "Introduction card",
           "required": "Please write at least 100 characters"
         }
       },
@@ -431,7 +439,7 @@
         "terms": "Terms of Service Agreement",
         "engagement": "Engagement Updates Consent",
         "photos": "Profile Photos",
-        "aboutMe": "My Story"
+        "aboutMe": "Introduction card"
       }
     },
     "consentCheckbox": {
