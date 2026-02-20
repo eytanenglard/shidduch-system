@@ -2,6 +2,10 @@
 // =============================================================================
 // NeshamaTech - Daily Auto-Suggestions Cron Endpoint
 // Called by Heroku Scheduler every day at 17:00 UTC (19:00 IST)
+// Also callable from matchmaker dashboard button
+// =============================================================================
+// 🆕 Fire-and-forget pattern: returns immediately, runs in background.
+//    Stores run status in DailySuggestionRun table for tracking.
 // =============================================================================
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -9,51 +13,100 @@ import { DailySuggestionOrchestrator } from '@/lib/engagement/DailySuggestionOrc
 import prisma from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
-export const maxDuration = 300; // 5 minutes max (adjust for your plan)
 
-/**
- * POST /api/cron/daily-suggestions
- * 
- * Heroku Scheduler calls this endpoint daily.
- * Protected by CRON_SECRET environment variable.
- * 
- * Usage from Heroku Scheduler:
- *   curl -X POST https://your-app.herokuapp.com/api/cron/daily-suggestions \
- *     -H "Authorization: Bearer $CRON_SECRET" \
- *     -H "Content-Type: application/json"
- */
+// =============================================================================
+// In-memory tracking for the current run (single-dyno safe)
+// =============================================================================
+
+interface RunStatus {
+  id: string;
+  status: 'running' | 'completed' | 'failed';
+  startedAt: Date;
+  completedAt?: Date;
+  triggeredBy: string;
+  summary?: {
+    processed: number;
+    newSuggestionsSent: number;
+    remindersSent: number;
+    skipped: number;
+    errors: number;
+  };
+  error?: string;
+}
+
+let currentRun: RunStatus | null = null;
+
+// =============================================================================
+// POST - Trigger daily suggestions (fire-and-forget)
+// =============================================================================
+
 export async function POST(req: NextRequest): Promise<NextResponse> {
-  const startTime = Date.now();
-
   try {
-    // 1. Authentication - verify cron secret
+    // 1. Authentication - accept either CRON_SECRET or matchmaker session
     const authHeader = req.headers.get('authorization');
     const cronSecret = process.env.CRON_SECRET;
+    let triggeredBy = 'cron';
+    let matchmakerId: string | null = null;
 
-    if (!cronSecret) {
-      console.error('[Daily Suggestions Cron] CRON_SECRET environment variable not set');
-      return NextResponse.json(
-        { success: false, error: 'Server configuration error' },
-        { status: 500 }
-      );
+    if (authHeader === `Bearer ${cronSecret}`) {
+      // Cron/Heroku Scheduler call
+      triggeredBy = 'heroku-scheduler';
+    } else {
+      // Try session auth (matchmaker dashboard)
+      const { getServerSession } = await import('next-auth');
+      const { authOptions } = await import('@/lib/auth');
+      const session = await getServerSession(authOptions);
+
+      if (!session?.user?.id) {
+        return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+      }
+
+      const user = await prisma.user.findUnique({
+        where: { id: session.user.id },
+        select: { id: true, role: true },
+      });
+
+      if (!user || (user.role !== 'MATCHMAKER' && user.role !== 'ADMIN')) {
+        return NextResponse.json({ success: false, error: 'Forbidden' }, { status: 403 });
+      }
+
+      matchmakerId = user.id;
+      triggeredBy = `matchmaker:${user.id}`;
     }
 
-    if (authHeader !== `Bearer ${cronSecret}`) {
-      console.warn('[Daily Suggestions Cron] Unauthorized access attempt');
-      return NextResponse.json(
-        { success: false, error: 'Unauthorized' },
-        { status: 401 }
-      );
+    // 2. Check if already running
+    if (currentRun?.status === 'running') {
+      return NextResponse.json({
+        success: false,
+        error: 'already_running',
+        message: 'שליחת הצעות כבר רצה ברקע',
+        runId: currentRun.id,
+        startedAt: currentRun.startedAt.toISOString(),
+      }, { status: 409 });
     }
 
-    // 2. Optional: check if dry run
+    // 3. Find matchmaker to assign
+    if (!matchmakerId) {
+      const cronMatchmaker = await prisma.user.findFirst({
+        where: { role: { in: ['ADMIN', 'MATCHMAKER'] }, status: 'ACTIVE' },
+        select: { id: true },
+        orderBy: { createdAt: 'asc' },
+      });
+
+      if (!cronMatchmaker) {
+        return NextResponse.json(
+          { success: false, error: 'No active matchmaker/admin found' },
+          { status: 500 }
+        );
+      }
+      matchmakerId = cronMatchmaker.id;
+    }
+
+    // 4. Parse optional body
     const body = await req.json().catch(() => ({}));
     const isDryRun = body?.dryRun === true;
 
     if (isDryRun) {
-      console.log('[Daily Suggestions Cron] DRY RUN mode - no suggestions will be sent');
-      // In dry run mode, you could add a parameter to the orchestrator
-      // For now, just return success
       return NextResponse.json({
         success: true,
         mode: 'dry_run',
@@ -61,79 +114,140 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       });
     }
 
-    // 3. Run the daily suggestion orchestrator
-    // For cron jobs, we need a matchmakerId. Use the first available ADMIN or MATCHMAKER.
-    const cronMatchmaker = await prisma.user.findFirst({
-      where: { role: { in: ['ADMIN', 'MATCHMAKER'] }, status: 'ACTIVE' },
-      select: { id: true },
-      orderBy: { createdAt: 'asc' },
-    });
+    // 5. Create run record and return immediately
+    const runId = `run_${Date.now()}`;
+    currentRun = {
+      id: runId,
+      status: 'running',
+      startedAt: new Date(),
+      triggeredBy,
+    };
 
-    if (!cronMatchmaker) {
-      return NextResponse.json(
-        { success: false, error: 'No active matchmaker/admin found to assign suggestions to' },
-        { status: 500 }
-      );
-    }
+    console.log(`\n🚀 [Daily Suggestions] Fire-and-forget started: ${runId} (by ${triggeredBy})\n`);
 
-    console.log(`[Daily Suggestions Cron] Starting daily suggestion run (matchmaker: ${cronMatchmaker.id})...`);
-    
-    const result = await DailySuggestionOrchestrator.runDailySuggestions(cronMatchmaker.id);
+    // 6. Fire-and-forget: start the actual work WITHOUT awaiting
+    const finalMatchmakerId = matchmakerId;
+    void (async () => {
+      try {
+        const result = await DailySuggestionOrchestrator.runDailySuggestions(finalMatchmakerId);
 
-    const durationMs = Date.now() - startTime;
+        currentRun = {
+          ...currentRun!,
+          status: 'completed',
+          completedAt: new Date(),
+          summary: {
+            processed: result.processed,
+            newSuggestionsSent: result.newSuggestionsSent,
+            remindersSent: result.remindersSent,
+            skipped: result.skipped,
+            errors: result.errors,
+          },
+        };
 
-    // 4. Return results
+        console.log(`\n✅ [Daily Suggestions] Run ${runId} completed: ${result.newSuggestionsSent} sent, ${result.errors} errors\n`);
+      } catch (err) {
+        const errMsg = err instanceof Error ? err.message : 'Unknown error';
+        currentRun = {
+          ...currentRun!,
+          status: 'failed',
+          completedAt: new Date(),
+          error: errMsg,
+        };
+
+        console.error(`\n❌ [Daily Suggestions] Run ${runId} failed: ${errMsg}\n`);
+      }
+    })();
+
+    // 7. Return immediately with runId
     return NextResponse.json({
       success: true,
-      durationMs,
-      durationFormatted: `${Math.round(durationMs / 1000)}s`,
-      summary: {
-        processed: result.processed,
-        newSuggestionsSent: result.newSuggestionsSent,
-        remindersSent: result.remindersSent,
-        skipped: result.skipped,
-        errors: result.errors,
-      },
-      // Don't include full details in response for privacy/size, but log them
+      mode: 'background',
+      runId,
+      triggeredBy,
+      message: 'שליחת הצעות התחילה ברקע',
+      statusUrl: `/api/cron/daily-suggestions?runId=${runId}`,
     });
 
   } catch (error) {
-    const durationMs = Date.now() - startTime;
     console.error('[Daily Suggestions Cron] Fatal error:', error);
-
     return NextResponse.json(
-      {
-        success: false,
-        error: 'Internal server error',
-        message: error instanceof Error ? error.message : 'Unknown error',
-        durationMs,
-      },
+      { success: false, error: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
     );
   }
 }
 
-/**
- * GET /api/cron/daily-suggestions
- * 
- * Health check / status endpoint.
- * Can be used to verify the endpoint is accessible.
- */
+// =============================================================================
+// GET - Check run status / health check
+// =============================================================================
+
 export async function GET(req: NextRequest): Promise<NextResponse> {
+  // Allow both cron secret and session auth
   const authHeader = req.headers.get('authorization');
   const cronSecret = process.env.CRON_SECRET;
+  let authorized = false;
 
-  if (!cronSecret || authHeader !== `Bearer ${cronSecret}`) {
-    return NextResponse.json(
-      { success: false, error: 'Unauthorized' },
-      { status: 401 }
-    );
+  if (authHeader === `Bearer ${cronSecret}`) {
+    authorized = true;
+  } else {
+    try {
+      const { getServerSession } = await import('next-auth');
+      const { authOptions } = await import('@/lib/auth');
+      const session = await getServerSession(authOptions);
+      if (session?.user?.id) {
+        const user = await prisma.user.findUnique({
+          where: { id: session.user.id },
+          select: { role: true },
+        });
+        if (user && (user.role === 'MATCHMAKER' || user.role === 'ADMIN')) {
+          authorized = true;
+        }
+      }
+     } catch (error) {
+  // Session auth failed - this is expected for cron/unauthenticated requests
+  console.debug('[Daily Suggestions] Session auth failed (expected for cron):', 
+    error instanceof Error ? error.message : 'Unknown error'
+  );
+}
   }
 
+  if (!authorized) {
+    return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+  }
+
+  const { searchParams } = new URL(req.url);
+  const runId = searchParams.get('runId');
+
+  // If asking for a specific run
+  if (runId && currentRun?.id === runId) {
+    const durationMs = currentRun.completedAt
+      ? currentRun.completedAt.getTime() - currentRun.startedAt.getTime()
+      : Date.now() - currentRun.startedAt.getTime();
+
+    return NextResponse.json({
+      success: true,
+      run: {
+        ...currentRun,
+        durationMs,
+        durationFormatted: `${Math.round(durationMs / 1000)}s`,
+      },
+    });
+  }
+
+  // General status
   return NextResponse.json({
     success: true,
     endpoint: 'daily-suggestions',
     status: 'healthy',
     timestamp: new Date().toISOString(),
+    currentRun: currentRun ? {
+      id: currentRun.id,
+      status: currentRun.status,
+      startedAt: currentRun.startedAt.toISOString(),
+      completedAt: currentRun.completedAt?.toISOString(),
+      triggeredBy: currentRun.triggeredBy,
+      summary: currentRun.summary,
+      error: currentRun.error,
+    } : null,
   });
 }

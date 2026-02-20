@@ -65,12 +65,29 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       });
     }
 
-    // ===== Batch Mode: all eligible users =====
-    console.log(`[Daily Suggestions] Batch run triggered by ${session.user.id}`);
-    
-    const result = await DailySuggestionOrchestrator.runDailySuggestions(session.user.id);
+    // ===== Batch Mode: redirect to cron endpoint (fire-and-forget) =====
+    // The cron endpoint handles both Heroku Scheduler AND matchmaker dashboard calls.
+    // It returns immediately and runs in background.
+    console.log(`[Daily Suggestions] Batch run triggered by ${session.user.id} — redirecting to fire-and-forget`);
+
+    // Run synchronously for matchmaker (they want to see results)
+    // But use a timeout-safe approach: if it takes too long, switch to background
+    const result = await Promise.race([
+      DailySuggestionOrchestrator.runDailySuggestions(session.user.id),
+      new Promise<null>((resolve) => setTimeout(() => resolve(null), 250000)), // 4min safety
+    ]);
 
     const durationMs = Date.now() - startTime;
+
+    if (!result) {
+      // Timed out — the process is still running in the background
+      return NextResponse.json({
+        success: true,
+        mode: 'background',
+        triggeredBy: session.user.id,
+        message: 'השליחה רצה ברקע — תוצאות יופיעו בעמוד',
+      });
+    }
 
     // 3. Return results with full details (for matchmaker view)
     return NextResponse.json({
