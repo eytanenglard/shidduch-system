@@ -43,9 +43,8 @@ const SETUP_PATHS = [
   '/settings',
 ];
 
-const POST_SETUP_PATHS = [
-  '/profile',
-];
+const POST_SETUP_PATHS: string[] = [];
+
 
 const PUBLIC_API_PATHS = ['/api/feedback'];
 
