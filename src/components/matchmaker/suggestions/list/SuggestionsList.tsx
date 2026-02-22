@@ -2,7 +2,8 @@
 
 import React, { useState, useMemo } from 'react';
 import { Input } from '@/components/ui/input';
-import { useUnreadChatCounts } from '@/hooks/useUnreadChatCounts';
+// ✅ הוסר: import { useUnreadChatCounts } from '@/hooks/useUnreadChatCounts';
+// unreadChatCount מגיע עכשיו מתוך ה-suggestion object דרך ה-API החדש
 
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -25,18 +26,13 @@ import {
   CheckCircle,
   XCircle,
   Heart,
- 
   TrendingUp,
   Activity,
   BarChart3,
-
   Sparkles,
-
   Flame,
-
   RefreshCw,
   Calendar,
-
 } from 'lucide-react';
 import type { MatchSuggestion } from '@prisma/client';
 import type { UserProfile, UserImage } from '@/types/next-auth';
@@ -100,6 +96,7 @@ interface ExtendedMatchSuggestion extends MatchSuggestion {
   firstParty: PartyInfo;
   secondParty: PartyInfo;
   statusHistory: SuggestionStatusHistory[];
+  unreadChatCount?: number; // ✅ חדש - מגיע מה-API
 }
 
 interface SuggestionsListProps {
@@ -120,6 +117,7 @@ interface SuggestionsListProps {
   ) => void;
   className?: string;
   dict: MatchmakerPageDictionary['suggestionsDashboard'];
+  isMobile?: boolean; // ✅ חדש - מועבר ל-SuggestionCard
 }
 
 const EnhancedListStats: React.FC<{
@@ -379,6 +377,7 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
   onAction,
   className,
   dict: dashboardDict,
+  isMobile = false, // ✅ חדש
 }) => {
   const dict = dashboardDict.suggestionsList;
   const [searchQuery, setSearchQuery] = useState('');
@@ -386,7 +385,9 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
   const [statusFilter, setStatusFilter] = useState<string[]>([]);
   const [showFilters, setShowFilters] = useState(false);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-const { bySuggestion: unreadCounts } = useUnreadChatCounts();
+
+  // ✅ הוסר: const { bySuggestion: unreadCounts } = useUnreadChatCounts();
+  // unreadChatCount מגיע עכשיו מתוך כל suggestion object
 
   const stats = useMemo(() => {
     const total = suggestions.length;
@@ -442,7 +443,7 @@ const { bySuggestion: unreadCounts } = useUnreadChatCounts();
           );
         });
         break;
-      case 'priority':{ 
+      case 'priority': {
         const priorityOrder = { URGENT: 0, HIGH: 1, MEDIUM: 2, LOW: 3 };
         result.sort(
           (a, b) =>
@@ -525,30 +526,27 @@ const { bySuggestion: unreadCounts } = useUnreadChatCounts();
       ) : (
         <div
           className={cn(
-            'animate-fade-in-up',
             viewMode === 'grid'
               ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'
               : 'space-y-6'
           )}
         >
-          {filteredSuggestions.map((suggestion, index) => (
-            <div
+          {/* ✅ הוסר: stagger animation (animationDelay: index * 100ms)
+              היה גורם ל-5 שניות המתנה עם 50 פריטים!
+              ✅ הוסר: wrapper div מיותר
+              ✅ unreadChatCount מגיע מתוך ה-suggestion object */}
+          {filteredSuggestions.map((suggestion) => (
+            <SuggestionCard
               key={suggestion.id}
-              className="animate-scale-in"
-              style={{
-                animationDelay: `${index * 100}ms`,
-                animationFillMode: 'both',
-              }}
-            >
-              <SuggestionCard
-                suggestion={suggestion as unknown as Suggestion}
-                onAction={onAction}
-                dict={dashboardDict.suggestionCard}
-                className="h-full"
-                  unreadChatCount={unreadCounts[suggestion.id] || 0}  // ← הוסף
-
-              />
-            </div>
+              suggestion={suggestion as unknown as Suggestion}
+              onAction={onAction}
+              dict={dashboardDict.suggestionCard}
+              className="h-full"
+              unreadChatCount={
+                (suggestion as ExtendedMatchSuggestion).unreadChatCount || 0
+              }
+              isMobile={isMobile}
+            />
           ))}
         </div>
       )}

@@ -1,6 +1,6 @@
 // src/app/components/matchmaker/suggestions/cards/SuggestionCard.tsx
 
-import React, { useState, useEffect } from 'react';
+import React, { useMemo } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -15,9 +15,7 @@ import {
   Clock,
   MessageCircle,
   Eye,
-  AlertCircle,
   MoreHorizontal,
-  Send,
   RefreshCw,
   Trash2,
   Edit,
@@ -26,26 +24,17 @@ import {
   CalendarClock,
   Heart,
   MapPin,
-  Star,
   Sparkles,
-  Crown,
-  Target,
   Quote,
   Briefcase,
   GraduationCap,
   ArrowRight,
   Flame,
   TrendingUp,
-  Shield,
-  Gem,
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { he } from 'date-fns/locale';
-import type {
-  MatchSuggestionStatus,
-  Priority,
-  UserImage,
-} from '@prisma/client';
+import type { UserImage } from '@prisma/client';
 import type {
   Suggestion,
   ActionAdditionalData,
@@ -57,20 +46,15 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import type { MatchmakerPageDictionary } from '@/types/dictionary';
 
-// Media query hook
-const useMediaQuery = (query: string) => {
-  const [matches, setMatches] = useState(false);
-  useEffect(() => {
-    const media = window.matchMedia(query);
-    if (media.matches !== matches) {
-      setMatches(media.matches);
-    }
-    const listener = () => setMatches(media.matches);
-    window.addEventListener('resize', listener);
-    return () => window.removeEventListener('resize', listener);
-  }, [matches, query]);
-  return matches;
-};
+// ✅ import משותף במקום הגדרה מקומית מכופלת
+import {
+  getEnhancedStatusInfo,
+  getEnhancedPriorityInfo,
+  calculateAge,
+  getDaysLeft,
+} from '@/lib/suggestion-status-utils';
+
+// ✅ useMediaQuery הוסר לגמרי! isMobile מגיע כ-prop מה-parent
 
 interface SuggestionCardProps {
   suggestion: Suggestion;
@@ -91,154 +75,8 @@ interface SuggestionCardProps {
   className?: string;
   variant?: 'full' | 'compact';
   unreadChatCount?: number;
+  isMobile?: boolean; // ✅ חדש - מגיע מ-parent במקום useMediaQuery פנימי
 }
-
-const calculateAge = (birthDate: Date): number => {
-  const today = new Date();
-  const birth = new Date(birthDate);
-  let age = today.getFullYear() - birth.getFullYear();
-  const monthDiff = today.getMonth() - birth.getMonth();
-  if (
-    monthDiff < 0 ||
-    (monthDiff === 0 && today.getDate() < birth.getDate())
-  ) {
-    age--;
-  }
-  return age;
-};
-
-const getEnhancedStatusInfo = (status: MatchSuggestionStatus) => {
-  const defaults = {
-    icon: RefreshCw,
-    progress: 30,
-    pulse: false,
-    color: 'text-gray-600',
-    bgColor: 'from-gray-50 to-slate-50',
-  };
-  const statusMap: Partial<
-    Record<MatchSuggestionStatus, Partial<typeof defaults>>
-  > = {
-    PENDING_FIRST_PARTY: {
-      color: 'text-yellow-600',
-      bgColor: 'from-yellow-50 to-amber-50',
-      icon: Clock,
-      progress: 25,
-      pulse: true,
-    },
-    PENDING_SECOND_PARTY: {
-      color: 'text-blue-600',
-      bgColor: 'from-blue-50 to-cyan-50',
-      icon: Clock,
-      progress: 50,
-      pulse: true,
-    },
-    FIRST_PARTY_APPROVED: {
-      color: 'text-green-600',
-      bgColor: 'from-green-50 to-emerald-50',
-      icon: CheckCircle,
-      progress: 40,
-    },
-    SECOND_PARTY_APPROVED: {
-      color: 'text-green-600',
-      bgColor: 'from-green-50 to-emerald-50',
-      icon: CheckCircle,
-      progress: 60,
-    },
-    FIRST_PARTY_DECLINED: {
-      color: 'text-red-600',
-      bgColor: 'from-red-50 to-pink-50',
-      icon: XCircle,
-      progress: 100,
-    },
-    SECOND_PARTY_DECLINED: {
-      color: 'text-red-600',
-      bgColor: 'from-red-50 to-pink-50',
-      icon: XCircle,
-      progress: 100,
-    },
-    CONTACT_DETAILS_SHARED: {
-      color: 'text-purple-600',
-      bgColor: 'from-purple-50 to-pink-50',
-      icon: Send,
-      progress: 70,
-    },
-    DATING: {
-      color: 'text-pink-600',
-      bgColor: 'from-pink-50 to-rose-50',
-      icon: Heart,
-      progress: 80,
-    },
-    ENGAGED: {
-      color: 'text-yellow-600',
-      bgColor: 'from-yellow-50 to-orange-50',
-      icon: Gem,
-      progress: 95,
-    },
-    MARRIED: {
-      color: 'text-emerald-600',
-      bgColor: 'from-emerald-50 to-green-50',
-      icon: Crown,
-      progress: 100,
-    },
-    AWAITING_FIRST_DATE_FEEDBACK: {
-      color: 'text-orange-600',
-      bgColor: 'from-orange-50 to-amber-50',
-      icon: AlertCircle,
-      progress: 75,
-      pulse: true,
-    },
-    EXPIRED: {
-      color: 'text-gray-600',
-      bgColor: 'from-gray-50 to-slate-50',
-      icon: Clock,
-      progress: 100,
-    },
-  };
-  return { ...defaults, ...(statusMap[status] || {}) };
-};
-
-const getEnhancedPriorityInfo = (priority: Priority) => {
-  const priorityMap = {
-    URGENT: {
-      icon: Flame,
-      borderColor: 'border-red-500',
-      bgGradient: 'from-red-50 to-pink-50',
-      badgeClass:
-        'bg-gradient-to-r from-red-500 to-pink-500 text-white border-0 shadow-xl animate-pulse',
-    },
-    HIGH: {
-      icon: Star,
-      borderColor: 'border-orange-500',
-      bgGradient: 'from-orange-50 to-amber-50',
-      badgeClass:
-        'bg-gradient-to-r from-orange-500 to-amber-500 text-white border-0 shadow-lg',
-    },
-    MEDIUM: {
-      icon: Target,
-      borderColor: 'border-blue-500',
-      bgGradient: 'from-blue-50 to-cyan-50',
-      badgeClass:
-        'bg-gradient-to-r from-blue-500 to-cyan-500 text-white border-0 shadow-lg',
-    },
-    LOW: {
-      icon: Shield,
-      borderColor: 'border-gray-400',
-      bgGradient: 'from-gray-50 to-slate-50',
-      badgeClass:
-        'bg-gradient-to-r from-gray-500 to-slate-500 text-white border-0 shadow-lg',
-    },
-  };
-  return priorityMap[priority] || priorityMap.MEDIUM;
-};
-
-const getDaysLeft = (decisionDeadline?: Date | string | null) => {
-  if (!decisionDeadline) return null;
-  const deadline = new Date(decisionDeadline);
-  const today = new Date();
-  const diffTime = deadline.getTime() - today.getTime();
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-  return diffDays > 0 ? diffDays : 0;
-};
 
 const HighlightPill: React.FC<{
   icon: React.ElementType;
@@ -353,18 +191,35 @@ const SuggestionCard: React.FC<SuggestionCardProps> = ({
   className,
   variant = 'full',
   unreadChatCount = 0,
+  isMobile = false, // ✅ prop במקום useMediaQuery
 }) => {
-  const isMobile = useMediaQuery('(max-width: 768px)');
-
   const { firstParty, secondParty, matchmaker } = suggestion;
-  const statusInfo = getEnhancedStatusInfo(suggestion.status);
-  const priorityInfo = getEnhancedPriorityInfo(suggestion.priority);
+
+  // ✅ Memoize חישובים כבדים - לא מחושבים מחדש אם ה-props לא השתנו
+  const statusInfo = useMemo(
+    () => getEnhancedStatusInfo(suggestion.status),
+    [suggestion.status]
+  );
+  const priorityInfo = useMemo(
+    () => getEnhancedPriorityInfo(suggestion.priority),
+    [suggestion.priority]
+  );
+  const daysLeft = useMemo(
+    () => getDaysLeft(suggestion.decisionDeadline),
+    [suggestion.decisionDeadline]
+  );
+  const firstPartyAge = useMemo(
+    () => calculateAge(firstParty.profile.birthDate),
+    [firstParty.profile.birthDate]
+  );
+  const secondPartyAge = useMemo(
+    () => calculateAge(secondParty.profile.birthDate),
+    [secondParty.profile.birthDate]
+  );
+
   const statusText = dict.statuses[suggestion.status] || dict.statuses.DEFAULT;
   const priorityText =
     dict.priorities[suggestion.priority] || dict.priorities.MEDIUM;
-  const daysLeft = getDaysLeft(suggestion.decisionDeadline);
-  const firstPartyAge = calculateAge(firstParty.profile.birthDate);
-  const secondPartyAge = calculateAge(secondParty.profile.birthDate);
 
   const highlights = [
     {
@@ -384,6 +239,9 @@ const SuggestionCard: React.FC<SuggestionCardProps> = ({
     },
   ].slice(0, 3);
 
+  // ─────────────────────────────────────────────────────────────────────────
+  // Mobile Compact View
+  // ─────────────────────────────────────────────────────────────────────────
   if (isMobile && variant === 'compact') {
     const StatusIcon = statusInfo.icon;
     return (
@@ -453,6 +311,9 @@ const SuggestionCard: React.FC<SuggestionCardProps> = ({
     );
   }
 
+  // ─────────────────────────────────────────────────────────────────────────
+  // Mobile Full View
+  // ─────────────────────────────────────────────────────────────────────────
   if (isMobile && variant === 'full') {
     return (
       <Card
@@ -602,6 +463,9 @@ const SuggestionCard: React.FC<SuggestionCardProps> = ({
     );
   }
 
+  // ─────────────────────────────────────────────────────────────────────────
+  // Desktop View (default)
+  // ─────────────────────────────────────────────────────────────────────────
   const StatusIcon = statusInfo.icon;
   const PriorityIcon = priorityInfo.icon;
   const canBeResent = [
@@ -629,11 +493,7 @@ const SuggestionCard: React.FC<SuggestionCardProps> = ({
           <div className="relative z-10">
             <div className="flex justify-between items-center mb-4">
               <div className="flex items-center gap-3">
-                <div
-                  className={cn(
-                    'p-3 rounded-full shadow-lg group-hover:scale-110 transition-transform bg-white/20 backdrop-blur-sm'
-                  )}
-                >
+                <div className="p-3 rounded-full shadow-lg group-hover:scale-110 transition-transform bg-white/20 backdrop-blur-sm">
                   <StatusIcon className={cn('w-6 h-6', statusInfo.color)} />
                 </div>
                 <div>
@@ -918,4 +778,5 @@ const SuggestionCard: React.FC<SuggestionCardProps> = ({
   );
 };
 
-export default SuggestionCard;
+// ✅ React.memo - מונע re-render אם ה-props לא השתנו
+export default React.memo(SuggestionCard);

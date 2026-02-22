@@ -1,7 +1,13 @@
 // src/components/matchmaker/suggestions/details/SuggestionChatTab.tsx
 'use client';
 
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, {
+  useState,
+  useEffect,
+  useRef,
+  useCallback,
+  useMemo,
+} from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
@@ -99,6 +105,18 @@ export default function SuggestionChatTab({
   const isHe = locale === 'he';
 
   // ==========================================
+  // ✅ Smart auto-scroll tracking
+  // ==========================================
+  const isNearBottom = useRef(true);
+  const prevMessageCount = useRef(0);
+
+  const handleScroll = useCallback(() => {
+    if (!scrollRef.current) return;
+    const { scrollTop, scrollHeight, clientHeight } = scrollRef.current;
+    isNearBottom.current = scrollHeight - scrollTop - clientHeight < 100;
+  }, []);
+
+  // ==========================================
   // Selected party ID
   // ==========================================
 
@@ -132,14 +150,55 @@ export default function SuggestionChatTab({
     }
   }, [suggestionId]);
 
+  // ==========================================
+  // ✅ Visibility-aware polling
+  // במקום polling שרץ גם כשהטאב מוסתר
+  // ==========================================
   useEffect(() => {
     fetchMessages();
-    const interval = setInterval(fetchMessages, 15000);
-    return () => clearInterval(interval);
+
+    let interval: NodeJS.Timeout | null = null;
+
+    const startPolling = () => {
+      if (interval) clearInterval(interval);
+      interval = setInterval(fetchMessages, 15000);
+    };
+
+    const stopPolling = () => {
+      if (interval) {
+        clearInterval(interval);
+        interval = null;
+      }
+    };
+
+    const handleVisibility = () => {
+      if (document.hidden) {
+        stopPolling();
+      } else {
+        fetchMessages();
+        startPolling();
+      }
+    };
+
+    startPolling();
+    document.addEventListener('visibilitychange', handleVisibility);
+
+    return () => {
+      stopPolling();
+      document.removeEventListener('visibilitychange', handleVisibility);
+    };
   }, [fetchMessages]);
 
+  // ==========================================
+  // ✅ Smart auto-scroll
+  // גולל לתחתית רק כשהמשתמש קרוב לתחתית או כשיש הודעה חדשה
+  // ==========================================
   useEffect(() => {
-    if (scrollRef.current) {
+    const newCount = messages.length;
+    const countChanged = newCount > prevMessageCount.current;
+    prevMessageCount.current = newCount;
+
+    if (scrollRef.current && (isNearBottom.current || countChanged)) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [messages, selectedParty]);
@@ -155,34 +214,42 @@ export default function SuggestionChatTab({
   }, [suggestionId, unreadCount]);
 
   // ==========================================
-  // Filter messages by selected party
+  // ✅ Memoized filtered messages
   // ==========================================
 
   const selectedPartyId = getSelectedPartyId();
 
-  const filteredMessages = messages.filter((msg) => {
-    if (msg.senderType === 'system') return true;
-    if (msg.senderType === 'user') return msg.senderId === selectedPartyId;
-    if (msg.senderType === 'matchmaker') {
-      if (!msg.targetUserId) return true;
-      return msg.targetUserId === selectedPartyId;
-    }
-    return true;
-  });
+  const filteredMessages = useMemo(
+    () =>
+      messages.filter((msg) => {
+        if (msg.senderType === 'system') return true;
+        if (msg.senderType === 'user') return msg.senderId === selectedPartyId;
+        if (msg.senderType === 'matchmaker') {
+          if (!msg.targetUserId) return true;
+          return msg.targetUserId === selectedPartyId;
+        }
+        return true;
+      }),
+    [messages, selectedPartyId]
+  );
 
-  const firstPartyUnread = messages.filter(
-    (m) =>
-      m.senderType === 'user' &&
-      m.senderId === parties.firstParty?.id &&
-      !m.isRead
-  ).length;
-
-  const secondPartyUnread = messages.filter(
-    (m) =>
-      m.senderType === 'user' &&
-      m.senderId === parties.secondParty?.id &&
-      !m.isRead
-  ).length;
+  const { firstPartyUnread, secondPartyUnread } = useMemo(
+    () => ({
+      firstPartyUnread: messages.filter(
+        (m) =>
+          m.senderType === 'user' &&
+          m.senderId === parties.firstParty?.id &&
+          !m.isRead
+      ).length,
+      secondPartyUnread: messages.filter(
+        (m) =>
+          m.senderType === 'user' &&
+          m.senderId === parties.secondParty?.id &&
+          !m.isRead
+      ).length,
+    }),
+    [messages, parties.firstParty?.id, parties.secondParty?.id]
+  );
 
   // ==========================================
   // Send with targetUserId
@@ -324,7 +391,11 @@ export default function SuggestionChatTab({
       </div>
 
       {/* Messages area */}
-      <ScrollArea className="flex-1 px-4" ref={scrollRef}>
+      <ScrollArea
+        className="flex-1 px-4"
+        ref={scrollRef}
+        onScroll={handleScroll}
+      >
         {filteredMessages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full py-12 text-center">
             <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-teal-50 to-amber-50 flex items-center justify-center mb-4">
