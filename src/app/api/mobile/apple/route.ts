@@ -7,8 +7,8 @@
 // ==========================================
 
 import { NextRequest } from "next/server";
-import * as jwt from "jsonwebtoken";
-import * as jwksClient from "jwks-rsa";
+import jwt from "jsonwebtoken";
+import jwksRsa from "jwks-rsa";
 import prisma from "@/lib/prisma";
 import { UserRole, UserStatus, UserSource, Gender } from "@prisma/client";
 import {
@@ -22,7 +22,7 @@ import {
 // ==========================================
 // Apple JWKS client for verifying tokens
 // ==========================================
-const appleJwksClient = jwksClient({
+const appleJwksClient = jwksRsa({
   jwksUri: "https://appleid.apple.com/auth/keys",
   cache: true,
   cacheMaxAge: 86400000, // 24 hours
@@ -31,23 +31,35 @@ const appleJwksClient = jwksClient({
 /**
  * Get Apple's signing key for token verification
  */
-async function getAppleSigningKey(kid: string): Promise<string> {
-  const key = await appleJwksClient.getSigningKey(kid);
-  return key.getPublicKey();
+function getAppleSigningKey(kid: string): Promise<string> {
+  return new Promise((resolve, reject) => {
+    appleJwksClient.getSigningKey(kid, (err, key) => {
+      if (err) {
+        reject(err);
+        return;
+      }
+      if (!key) {
+        reject(new Error("No signing key found"));
+        return;
+      }
+      const signingKey = key.getPublicKey();
+      resolve(signingKey);
+    });
+  });
 }
 
 /**
  * Verify and decode an Apple identity token
  */
 async function verifyAppleToken(identityToken: string): Promise<{
-  sub: string; // Apple user ID (unique, stable)
+  sub: string;
   email?: string;
   email_verified?: string | boolean;
   is_private_email?: string | boolean;
 }> {
   // Decode the header to get the key ID
   const decoded = jwt.decode(identityToken, { complete: true });
-  if (!decoded || !decoded.header || !decoded.header.kid) {
+  if (!decoded || typeof decoded === "string" || !decoded.header?.kid) {
     throw new Error("Invalid Apple token format");
   }
 
@@ -98,21 +110,23 @@ export async function POST(req: NextRequest) {
       return corsError(req, "Could not get email from Apple", 401);
     }
 
-    // --- Check if user exists (by email or Apple ID) ---
-    let user = await prisma.user.findFirst({
-      where: {
-        OR: [
-          { email: email.toLowerCase() },
-          { appleId: appleUserId },
-        ],
-      },
+    // --- Check if user exists ---
+    // First try by Apple ID, then by email
+    let user = await prisma.user.findUnique({
+      where: { appleId: appleUserId },
     });
+
+    if (!user) {
+      user = await prisma.user.findUnique({
+        where: { email: email.toLowerCase() },
+      });
+    }
 
     let isNewUser = false;
 
     if (!user) {
       // ✅ Auto-register new Apple user
-      // Apple only sends fullName on the FIRST sign-in, so we capture it here
+      // Apple only sends fullName on the FIRST sign-in
       const firstName = fullName?.givenName || "";
       const lastName = fullName?.familyName || "";
 
@@ -122,7 +136,9 @@ export async function POST(req: NextRequest) {
           appleId: appleUserId,
           firstName,
           lastName,
-          isVerified: applePayload.email_verified === "true" || applePayload.email_verified === true,
+          isVerified:
+            applePayload.email_verified === "true" ||
+            applePayload.email_verified === true,
           role: UserRole.CANDIDATE,
           status: UserStatus.PENDING_PHONE_VERIFICATION,
           isProfileComplete: false,
@@ -145,15 +161,19 @@ export async function POST(req: NextRequest) {
       });
 
       isNewUser = true;
-      console.log(`[mobile/apple] Created new user ${user.email} via Apple Sign-In`);
+      console.log(
+        `[mobile/apple] Created new user ${user.email} via Apple Sign-In`
+      );
     } else if (!user.appleId) {
       // Link Apple ID to existing account
-      await prisma.user.update({
-        where: { id: user.id },
-        data: { appleId: appleUserId },
-      }).catch((err) =>
-        console.error("[mobile/apple] Failed to link Apple ID:", err)
-      );
+      await prisma.user
+        .update({
+          where: { id: user.id },
+          data: { appleId: appleUserId },
+        })
+        .catch((err) =>
+          console.error("[mobile/apple] Failed to link Apple ID:", err)
+        );
     }
 
     // --- Check user status ---
@@ -165,18 +185,21 @@ export async function POST(req: NextRequest) {
     }
 
     // --- Update last login ---
-    await prisma.user.update({
-      where: { id: user.id },
-      data: {
-        lastLogin: new Date(),
-        ...(applePayload.email_verified &&
-          !user.isVerified && {
-            isVerified: true,
-          }),
-      },
-    }).catch((err) =>
-      console.error("[mobile/apple] Failed to update user:", err)
-    );
+    await prisma.user
+      .update({
+        where: { id: user.id },
+        data: {
+          lastLogin: new Date(),
+          ...((applePayload.email_verified === "true" ||
+            applePayload.email_verified === true) &&
+            !user.isVerified && {
+              isVerified: true,
+            }),
+        },
+      })
+      .catch((err) =>
+        console.error("[mobile/apple] Failed to update user:", err)
+      );
 
     // --- Create JWT token ---
     const { token, expiresAt } = createMobileToken(user);
