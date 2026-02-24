@@ -1,8 +1,8 @@
 // src/app/api/mobile/profile/route.ts
 // ==========================================
 // NeshamaTech Mobile - Profile API
-// GET: Fetch authenticated user's full profile
-// PUT: Update authenticated user's profile
+// GET:        Fetch authenticated user's full profile
+// PUT/PATCH:  Update authenticated user's profile
 // ==========================================
 
 import { NextRequest } from "next/server";
@@ -43,7 +43,7 @@ const emptyStringToNull = (value: string | null | undefined): string | null => {
 
 // ==========================================
 // Helper: Build profile response shape
-// Shared between GET and PUT responses
+// Shared between GET and PUT/PATCH responses
 // ==========================================
 function buildProfileResponse(p: Profile, testimonials?: any[]) {
   return {
@@ -112,7 +112,7 @@ function buildProfileResponse(p: Profile, testimonials?: any[]) {
     manualEntryText: p.manualEntryText,
     isNeshamaTechSummaryVisible: p.isNeshamaTechSummaryVisible ?? true,
 
-    // Testimonials (only from GET, not from PUT)
+    // Testimonials (only from GET, not from PUT/PATCH)
     ...(testimonials !== undefined && { testimonials }),
 
     // Preferences - Ranges
@@ -468,7 +468,7 @@ if (body.birthDate !== undefined) {
       throw dbError;
     }
 
-    console.log(`[mobile/profile] PUT success for user ${userId}`);
+    console.log(`[mobile/profile] Profile updated successfully for user ${userId}`);
 
     return corsJson(req, {
       success: true,
@@ -477,7 +477,7 @@ if (body.birthDate !== undefined) {
       },
     });
   } catch (error) {
-    console.error("[mobile/profile] PUT Error:", error);
+    console.error("[mobile/profile] PUT/PATCH Error:", error);
 
     if (error instanceof Prisma.PrismaClientValidationError) {
       return corsError(req, "Data validation failed", 400);
@@ -485,4 +485,13 @@ if (body.birthDate !== undefined) {
 
     return corsError(req, "Internal server error", 500);
   }
+}
+
+// ==========================================
+// PATCH /api/mobile/profile
+// Alias for PUT - the mobile client sends PATCH
+// for partial profile updates
+// ==========================================
+export async function PATCH(req: NextRequest) {
+  return PUT(req);
 }
