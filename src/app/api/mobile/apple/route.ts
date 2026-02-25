@@ -87,6 +87,12 @@ export async function OPTIONS(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
+    // ✅ בדיקה אם Apple Auth מוגדר
+    if (!process.env.APPLE_BUNDLE_ID) {
+      console.warn("[mobile/apple] Apple Auth not configured");
+      return corsError(req, "Apple authentication is not configured", 503);
+    }
+
     const body = await req.json();
     const { identityToken, fullName, email: clientEmail } = body;
 
