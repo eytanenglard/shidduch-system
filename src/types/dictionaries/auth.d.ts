@@ -6,6 +6,7 @@ export type SignInDict = {
   emailLabel: string;
   emailPlaceholder: string;
   passwordLabel: string;
+  
   passwordPlaceholder: string;
   forgotPasswordLink: string;
   submitButton: string;
@@ -13,6 +14,9 @@ export type SignInDict = {
   orDivider: string;
   googleButton: string;
   googleButtonLoading: string;
+    appleButton: string;          // 🍎 חדש
+  appleButtonLoading: string;   // 🍎 חדש
+
   noAccountPrompt: string;
   signUpLink: string;
   loader: {
