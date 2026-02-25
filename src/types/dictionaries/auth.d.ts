@@ -278,6 +278,7 @@ export type RegisterStepsDict = {
       title: string;
       subtitle: string;
       googleButton: string;
+          appleButton: string;  // 🍎 חדש
       emailButton: string;
       signInPrompt: string;
       signInLink: string;

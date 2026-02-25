@@ -12,6 +12,8 @@
     "orDivider": "או",
     "googleButton": "התחברות עם גוגל",
     "googleButtonLoading": "מתחבר עם גוגל...",
+    "appleButton": "התחברות עם Apple",
+"appleButtonLoading": "מתחבר עם Apple...",
     "noAccountPrompt": "אין לך עדיין חשבון?",
     "signUpLink": "הרשמה עכשיו",
     "loader": {
@@ -208,6 +210,7 @@
         "title": "ברוכים הבאים!",
         "subtitle": "אנחנו שמחים שבחרת להצטרף אלינו. בואו נתחיל בתהליך הרשמה קצר ופשוט שיאפשר לנו להכיר אותך טוב יותר.",
         "googleButton": "המשך עם Google",
+        "appleButton": "המשך עם Apple",
         "emailButton": "המשך עם אימייל",
         "signInPrompt": "כבר יש לך חשבון?",
         "signInLink": "התחברות"

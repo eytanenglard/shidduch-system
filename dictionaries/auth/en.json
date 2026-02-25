@@ -12,6 +12,8 @@
     "orDivider": "OR",
     "googleButton": "Sign in with Google",
     "googleButtonLoading": "Signing in with Google...",
+      "appleButton": "Sign in with Apple",
+    "appleButtonLoading": "Signing in with Apple...",
     "noAccountPrompt": "Don't have an account yet?",
     "signUpLink": "Sign up now",
     "loader": {
@@ -207,6 +209,7 @@
         "title": "Welcome!",
         "subtitle": "We're happy you've chosen to join us. Let's start with a short and simple registration process that will allow us to get to know you better.",
         "googleButton": "Continue with Google",
+        "appleButton": "Continue with Apple",
         "emailButton": "Continue with Email",
         "signInPrompt": "Already have an account?",
         "signInLink": "Sign In"

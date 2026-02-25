@@ -32,7 +32,6 @@ interface BasicInfoStepProps {
   locale: 'he' | 'en';
 }
 
-// פונקציות עזר לולידציה
 const isValidEmail = (email: string): boolean => {
   const emailRegex = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i;
   return email.trim() !== '' && emailRegex.test(email);
@@ -43,7 +42,6 @@ const isValidPassword = (password: string): boolean => {
   return passwordRegex.test(password);
 };
 
-// קודי שגיאה שמצדיקים הצעה להירשם עם Google
 const GOOGLE_SIGNUP_SUGGESTED_ERRORS = [
   'DB_CONNECTION_ERROR',
   'DB_INIT_ERROR',
@@ -64,31 +62,19 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
     useRegistration();
   const router = useRouter();
 
-  // ניהול מצבי שגיאה מקומיים
   const [passwordError, setPasswordError] = useState('');
   const [emailError, setEmailError] = useState('');
-
-  // ניהול מצבי טעינה ושגיאות כלליות
   const [isLoading, setIsLoading] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
-
-  // מצב להצגת הצעת Google
   const [showGoogleSuggestion, setShowGoogleSuggestion] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
-
-  // ========== 🔴 הוספה: מצבים חדשים לטיפול במייל קיים ==========
+  const [isAppleLoading, setIsAppleLoading] = useState(false);
   const [isAttemptingLogin, setIsAttemptingLogin] = useState(false);
   const [showExistingUserOptions, setShowExistingUserOptions] = useState(false);
   const [existingUserEmail, setExistingUserEmail] = useState('');
-  // =============================================================
-
-  // ניהול נראות סיסמה
   const [passwordVisible, setPasswordVisible] = useState(false);
-
-  // רשימת השדות החסרים לתצוגה בראש הטופס
   const [missingFields, setMissingFields] = useState<string[]>([]);
 
-  // פונקציה להרשמה עם Google
   const handleGoogleSignup = async () => {
     setIsGoogleLoading(true);
     try {
@@ -102,7 +88,19 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
     }
   };
 
-  // ========== 🔴 הוספה: פונקציה לניסיון התחברות עם מייל קיים ==========
+  const handleAppleSignup = async () => {
+    setIsAppleLoading(true);
+    try {
+      await signIn('apple', {
+        callbackUrl: `/${locale}/auth/register`,
+        redirect: true,
+      });
+    } catch (error) {
+      console.error('Apple signup error:', error);
+      setIsAppleLoading(false);
+    }
+  };
+
   const handleAttemptLoginWithExistingEmail = async () => {
     setIsAttemptingLogin(true);
     setApiError(null);
@@ -116,13 +114,12 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
       const result = await signIn('credentials', {
         email: data.email.toLowerCase(),
         password: data.password,
-        redirect: false, // חשוב! לא לעשות redirect אוטומטי כדי שנוכל לטפל בתוצאה
+        redirect: false,
       });
 
       console.log('[BasicInfoStep] SignIn result:', result);
 
       if (result?.error) {
-        // הסיסמה שגויה - הפנה לדף שחזור סיסמה
         console.log(
           '[BasicInfoStep] Login failed - redirecting to forgot password'
         );
@@ -133,15 +130,12 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
       }
 
       if (result?.ok) {
-        // ההתחברות הצליחה! נקבל את הסשן ונפנה לפי redirectUrl
         console.log(
           '[BasicInfoStep] Login successful - fetching session for redirect'
         );
 
-        // מחכים רגע לסשן להתעדכן
         await new Promise((resolve) => setTimeout(resolve, 500));
 
-        // מביאים את הסשן המעודכן כדי לדעת לאן להפנות
         const sessionResponse = await fetch('/api/auth/session');
         const session = await sessionResponse.json();
 
@@ -151,18 +145,15 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
           console.log('[BasicInfoStep] Redirecting to:', session.redirectUrl);
           router.push(session.redirectUrl);
         } else if (session?.user) {
-          // אם אין redirectUrl ספציפי, נפנה לפרופיל
           console.log('[BasicInfoStep] No redirectUrl, going to profile');
           router.push('/profile');
         } else {
-          // משהו לא עבד - ננסה להפנות לדף הראשי
           console.log('[BasicInfoStep] No session found, going to home');
           router.push('/');
         }
       }
     } catch (error) {
       console.error('[BasicInfoStep] Error during login attempt:', error);
-      // במקרה של שגיאה כללית - הפנה לשחזור סיסמה
       router.push(
         `/${locale}/auth/forgot-password?email=${encodeURIComponent(data.email)}`
       );
@@ -171,62 +162,51 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
     }
   };
 
-  // פונקציה להפניה ישירה לשחזור סיסמה
   const handleGoToForgotPassword = () => {
     router.push(
       `/${locale}/auth/forgot-password?email=${encodeURIComponent(existingUserEmail || data.email)}`
     );
   };
-  // ====================================================================
 
   const handleRegisterSubmit = async () => {
-    // 1. איפוס שגיאות קודמות
     setApiError(null);
     setMissingFields([]);
     setEmailError('');
     setPasswordError('');
     setShowGoogleSuggestion(false);
-    setShowExistingUserOptions(false); // 🔴 הוספה
+    setShowExistingUserOptions(false);
 
     let hasError = false;
     const currentMissing: string[] = [];
 
-    // 2. ולידציה של השדות
-
-    // בדיקת אימייל
     if (!isValidEmail(data.email)) {
       setEmailError(dict.errors.invalidEmail);
       currentMissing.push(validationDict.fields.email);
       hasError = true;
     }
 
-    // בדיקת סיסמה
     if (!isValidPassword(data.password)) {
       setPasswordError(dict.errors.invalidPassword);
       currentMissing.push(validationDict.fields.password);
       hasError = true;
     }
 
-    // בדיקת שם פרטי
     if (!data.firstName.trim()) {
       currentMissing.push(validationDict.fields.firstName);
       hasError = true;
     }
 
-    // בדיקת שם משפחה
     if (!data.lastName.trim()) {
       currentMissing.push(validationDict.fields.lastName);
       hasError = true;
     }
 
-    // 3. אם יש שגיאות - עצור והצג אותן
     if (hasError) {
       setMissingFields(currentMissing);
       window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
 
-    // 4. אם הכל תקין - שלח לשרת
     setIsLoading(true);
 
     try {
@@ -247,7 +227,6 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
       if (!response.ok) {
         const errorCode = result.errorCode || '';
 
-        // ========== 🔴 תיקון: טיפול מיוחד בשגיאת EMAIL_EXISTS ==========
         if (errorCode === 'EMAIL_EXISTS') {
           console.log(
             '[BasicInfoStep] Email exists - attempting automatic login'
@@ -255,13 +234,10 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
           setExistingUserEmail(data.email);
           setIsLoading(false);
 
-          // ננסה להתחבר אוטומטית עם הסיסמה שהוזנה
           await handleAttemptLoginWithExistingEmail();
           return;
         }
-        // ================================================================
 
-        // בדיקה אם להציע הרשמה עם Google (שגיאות DB)
         if (
           GOOGLE_SIGNUP_SUGGESTED_ERRORS.includes(errorCode) ||
           result.error?.includes('שגיאת חיבור') ||
@@ -273,7 +249,6 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
         throw new Error(result.error || dict.errors.default);
       }
 
-      // מעבר לשלב אימות מייל עם האימייל שהתקבל מהשרת
       proceedToEmailVerification(result.email);
     } catch (error) {
       setApiError(error instanceof Error ? error.message : dict.errors.default);
@@ -282,7 +257,6 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
     }
   };
 
-  // הגדרות אנימציה
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: { opacity: 1, transition: { staggerChildren: 0.1 } },
@@ -293,6 +267,8 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
   };
 
   const isRTL = locale === 'he';
+  const isAnyLoading =
+    isLoading || isAttemptingLogin || isGoogleLoading || isAppleLoading;
 
   return (
     <motion.div
@@ -301,7 +277,7 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
       initial="hidden"
       animate="visible"
     >
-      {/* ========== 🔴 הוספה: הודעה בזמן ניסיון התחברות אוטומטי ========== */}
+      {/* Auto-login overlay */}
       <AnimatePresence>
         {isAttemptingLogin && (
           <motion.div
@@ -326,9 +302,8 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
           </motion.div>
         )}
       </AnimatePresence>
-      {/* ================================================================= */}
 
-      {/* התראת שגיאה כללית (מהשרת) */}
+      {/* API Error */}
       {apiError && (
         <motion.div variants={itemVariants}>
           <Alert variant="destructive" role="alert">
@@ -339,7 +314,7 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
         </motion.div>
       )}
 
-      {/* הצעה להירשם עם Google (שגיאות DB) */}
+      {/* Google/Apple suggestion on DB errors */}
       <AnimatePresence>
         {showGoogleSuggestion && (
           <motion.div
@@ -362,10 +337,43 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
                   </div>
                 </div>
 
+                {/* Apple Button */}
+                <Button
+                  type="button"
+                  onClick={handleAppleSignup}
+                  disabled={isAppleLoading || isGoogleLoading}
+                  className="w-full flex items-center justify-center gap-2 bg-black hover:bg-gray-900 text-white border-0 shadow-sm"
+                >
+                  {isAppleLoading ? (
+                    <>
+                      <Loader2 className="h-5 w-5 animate-spin" />
+                      <span>
+                        {locale === 'he' ? 'מתחבר...' : 'Connecting...'}
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      <svg
+                        className="h-5 w-5"
+                        viewBox="0 0 24 24"
+                        fill="currentColor"
+                      >
+                        <path d="M17.05 20.28c-.98.95-2.05.88-3.08.4-1.09-.5-2.08-.48-3.24 0-1.44.62-2.2.44-3.06-.4C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z" />
+                      </svg>
+                      <span>
+                        {locale === 'he'
+                          ? 'הרשמה עם Apple'
+                          : 'Sign up with Apple'}
+                      </span>
+                    </>
+                  )}
+                </Button>
+
+                {/* Google Button */}
                 <Button
                   type="button"
                   onClick={handleGoogleSignup}
-                  disabled={isGoogleLoading}
+                  disabled={isGoogleLoading || isAppleLoading}
                   className="w-full flex items-center justify-center gap-2 bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 shadow-sm"
                 >
                   {isGoogleLoading ? (
@@ -403,7 +411,7 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
         )}
       </AnimatePresence>
 
-      {/* התראת ולידציה (שדות חסרים) */}
+      {/* Validation errors */}
       <AnimatePresence>
         {missingFields.length > 0 && (
           <motion.div
@@ -449,7 +457,7 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
       </motion.h2>
 
       <motion.div variants={itemVariants} className="space-y-4">
-        {/* שדה אימייל */}
+        {/* Email */}
         <div className="space-y-1">
           <label
             htmlFor="emailBasic"
@@ -473,9 +481,9 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
                 )
               }
               placeholder={dict.emailPlaceholder}
-              disabled={isLoading || isAttemptingLogin}
+              disabled={isAnyLoading}
               className={`w-full pr-10 pl-3 py-3 border rounded-lg focus:ring-2 focus:outline-none transition-colors 
-                ${isLoading || isAttemptingLogin ? 'bg-gray-100' : ''} 
+                ${isAnyLoading ? 'bg-gray-100' : ''} 
                 ${
                   emailError ||
                   missingFields.includes(validationDict.fields.email)
@@ -491,7 +499,7 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
           )}
         </div>
 
-        {/* שדה סיסמה */}
+        {/* Password */}
         <div className="space-y-1">
           <label
             htmlFor="passwordBasic"
@@ -517,9 +525,9 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
                 )
               }
               placeholder={dict.passwordPlaceholder}
-              disabled={isLoading || isAttemptingLogin}
+              disabled={isAnyLoading}
               className={`w-full pr-10 pl-10 py-3 border rounded-lg focus:ring-2 focus:outline-none transition-colors 
-                ${isLoading || isAttemptingLogin ? 'bg-gray-100' : ''} 
+                ${isAnyLoading ? 'bg-gray-100' : ''} 
                 ${
                   passwordError ||
                   missingFields.includes(validationDict.fields.password)
@@ -548,9 +556,8 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
           <p className="text-xs text-gray-500 mt-1">{dict.passwordHint}</p>
         </div>
 
-        {/* שדות שם */}
+        {/* Names */}
         <div className="grid grid-cols-2 gap-4">
-          {/* שם פרטי */}
           <div className="space-y-1">
             <label
               htmlFor="firstNameBasic"
@@ -566,9 +573,9 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
                 value={data.firstName}
                 onChange={(e) => updateField('firstName', e.target.value)}
                 placeholder={dict.firstNamePlaceholder}
-                disabled={isLoading || isAttemptingLogin}
+                disabled={isAnyLoading}
                 className={`w-full pr-10 pl-3 py-3 border rounded-lg focus:ring-2 focus:outline-none transition-colors
-                  ${isLoading || isAttemptingLogin ? 'bg-gray-100' : ''}
+                  ${isAnyLoading ? 'bg-gray-100' : ''}
                   ${
                     missingFields.includes(validationDict.fields.firstName)
                       ? 'border-red-500 focus:ring-red-200'
@@ -578,7 +585,6 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
             </div>
           </div>
 
-          {/* שם משפחה */}
           <div className="space-y-1">
             <label
               htmlFor="lastNameBasic"
@@ -594,9 +600,9 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
                 value={data.lastName}
                 onChange={(e) => updateField('lastName', e.target.value)}
                 placeholder={dict.lastNamePlaceholder}
-                disabled={isLoading || isAttemptingLogin}
+                disabled={isAnyLoading}
                 className={`w-full pr-10 pl-3 py-3 border rounded-lg focus:ring-2 focus:outline-none transition-colors
-                  ${isLoading || isAttemptingLogin ? 'bg-gray-100' : ''}
+                  ${isAnyLoading ? 'bg-gray-100' : ''}
                   ${
                     missingFields.includes(validationDict.fields.lastName)
                       ? 'border-red-500 focus:ring-red-200'
@@ -608,7 +614,7 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
         </div>
       </motion.div>
 
-      {/* כפתורי ניווט */}
+      {/* Navigation buttons */}
       <motion.div
         variants={itemVariants}
         className="flex justify-between gap-4 pt-4"
@@ -617,7 +623,7 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
           type="button"
           onClick={prevStep}
           variant="outline"
-          disabled={isLoading || isAttemptingLogin}
+          disabled={isAnyLoading}
           className="flex items-center gap-2"
         >
           {isRTL ? (
@@ -631,7 +637,7 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
         <Button
           type="button"
           onClick={handleRegisterSubmit}
-          disabled={isLoading || isAttemptingLogin}
+          disabled={isAnyLoading}
           className="flex-1 bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-white flex items-center justify-center gap-2"
         >
           {isLoading ? (
