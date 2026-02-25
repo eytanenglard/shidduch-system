@@ -3,6 +3,7 @@
 // NeshamaTech Mobile API - Complete Profile
 // POST /api/mobile/complete-profile
 // Requires JWT auth. Saves profile + sends WhatsApp OTP.
+// UPDATED: Added termsAndPrivacyAcceptedAt support
 // ==========================================
 
 import { NextRequest } from "next/server";
@@ -89,6 +90,7 @@ export async function POST(req: NextRequest) {
       language = 'he',
       engagementEmailsConsent = false,
       promotionalEmailsConsent = false,
+      acceptTerms = false,
     } = body;
 
     // --- Transaction: update profile + user ---
@@ -128,7 +130,19 @@ export async function POST(req: NextRequest) {
         },
       });
 
-      // 2. Update user record
+      // 2. Check if user already accepted terms (don't overwrite existing date)
+      let termsData = {};
+      if (acceptTerms) {
+        const existingUser = await tx.user.findUnique({
+          where: { id: userId },
+          select: { termsAndPrivacyAcceptedAt: true },
+        });
+        if (!existingUser?.termsAndPrivacyAcceptedAt) {
+          termsData = { termsAndPrivacyAcceptedAt: new Date() };
+        }
+      }
+
+      // 3. Update user record
       const user = await tx.user.update({
         where: { id: userId },
         data: {
@@ -140,6 +154,7 @@ export async function POST(req: NextRequest) {
           status: UserStatus.PENDING_PHONE_VERIFICATION,
           engagementEmailsConsent,
           promotionalEmailsConsent,
+          ...termsData,
           updatedAt: new Date(),
         },
       });

@@ -108,7 +108,17 @@ export async function POST(req: NextRequest) {
     }
 
     // Validate type
-    const validTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp'];
+// src/app/api/mobile/images/route.ts
+// בתוך POST:
+
+const validTypes = [
+  'image/jpeg', 
+  'image/png', 
+  'image/jpg', 
+  'image/webp',
+  'image/heic',  // ✅ iOS format
+  'image/heif',  // ✅ iOS format
+];
     if (!validTypes.includes(file.type)) {
       return corsError(req, 'Invalid file type. Only JPG, PNG and WEBP allowed', 400);
     }
