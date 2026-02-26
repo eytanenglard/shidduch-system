@@ -279,6 +279,8 @@ metrics  ProfileMetrics?
   internalMatchmakerNotes String?
   verifiedBy                String?
   availabilityStatus        AvailabilityStatus @default(AVAILABLE)
+  wantsToBeFirstParty  Boolean  @default(true)
+
   availabilityNote          String?
   availabilityUpdatedAt     DateTime?
   createdAt                 DateTime           @default(now())

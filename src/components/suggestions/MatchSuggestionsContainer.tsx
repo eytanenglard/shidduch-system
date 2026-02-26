@@ -5,7 +5,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { useParams, usePathname } from 'next/navigation'; 
+import { useParams, usePathname } from 'next/navigation';
 
 import {
   History,
@@ -43,6 +43,9 @@ import type {
   SuggestionsDictionary,
   ProfileCardDict,
 } from '@/types/dictionary';
+
+// ← הוספת import של הרכיב החדש
+import FirstPartyPreferenceToggle from '@/components/suggestions/FirstPartyPreferenceToggle';
 
 // =============================================================================
 // COLOR PALETTE REFERENCE (Matching HeroSection.tsx)
@@ -125,11 +128,13 @@ const LoadingSkeleton: React.FC<{
   </div>
 );
 
+// ← הוספת prop חדש ל-interface
 interface MatchSuggestionsContainerProps {
   userId: string;
   className?: string;
   suggestionsDict: SuggestionsDictionary;
   profileCardDict: ProfileCardDict;
+  wantsToBeFirstParty?: boolean; // ← prop חדש
 }
 
 // --- Main Container ---
@@ -138,16 +143,17 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
   className,
   suggestionsDict,
   profileCardDict,
+  wantsToBeFirstParty = true, // ← הוספת הפרמטר עם ברירת מחדל
 }) => {
- const params = useParams();
+  const params = useParams();
 
   // --- תיקון: לוגיקה לקביעת השפה (ללא let כדי למנוע שגיאות) ---
   // אנחנו בודקים אם קיים פרמטר בשם locale (החדש) או lang (הישן)
   const rawParam = params?.locale || params?.lang;
-  
+
   // מחלצים את המחרוזת (במקרה שזה מערך)
   const localeString = Array.isArray(rawParam) ? rawParam[0] : rawParam;
-  
+
   // קובעים סופית: אם זה 'he' אז עברית, אחרת ברירת מחדל אנגלית
   const locale: 'he' | 'en' = localeString === 'he' ? 'he' : 'en';
 
@@ -526,6 +532,13 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
                 </div>
               </div>
             )}
+
+            {/* ===== Preference Toggle: Auto-Scan ===== */}
+            <FirstPartyPreferenceToggle
+              initialValue={wantsToBeFirstParty}
+              locale={locale}
+              className="mb-6"
+            />
 
             <Tabs
               value={activeTab}

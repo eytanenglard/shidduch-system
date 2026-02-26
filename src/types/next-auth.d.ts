@@ -75,6 +75,7 @@ export interface UserProfile extends Omit<PrismaProfile, 'gender' | 'birthDate' 
   fatherOccupation?: string | null;
   motherOccupation?: string | null;
   siblings?: number | null;
+  wantsToBeFirstParty?: string;
   position?: number | null;
  manualEntryText?: string | null; 
    isAboutVisible?: boolean | null;
