@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\suggestions
-# Generated on: 2026-02-16 06:50:16
+# Generated on: 2026-02-25 21:36:30
 # Filter: Only content of code files (.bat, .c, .cfg, .conf, .cpp, .cs, .css, .go, .h, .html, .ini, .java, .js, .json, .jsx, .kt, .less, .md, .php, .py, .rb, .rs, .scss, .sh, .sql, .swift, .ts, .tsx, .txt, .xml, .yaml, .yml) is included.
 ################################################################################
 
@@ -19,7 +19,7 @@ Content:
 import React, { useState, useEffect, useCallback } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { useParams } from 'next/navigation';
+import { useParams, usePathname } from 'next/navigation'; 
 
 import {
   History,
@@ -153,11 +153,19 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
   suggestionsDict,
   profileCardDict,
 }) => {
-  const params = useParams();
-  const locale = (
-    Array.isArray(params.lang) ? params.lang[0] : params.lang || 'en'
-  ) as 'he' | 'en';
+ const params = useParams();
 
+  // --- תיקון: לוגיקה לקביעת השפה (ללא let כדי למנוע שגיאות) ---
+  // אנחנו בודקים אם קיים פרמטר בשם locale (החדש) או lang (הישן)
+  const rawParam = params?.locale || params?.lang;
+  
+  // מחלצים את המחרוזת (במקרה שזה מערך)
+  const localeString = Array.isArray(rawParam) ? rawParam[0] : rawParam;
+  
+  // קובעים סופית: אם זה 'he' אז עברית, אחרת ברירת מחדל אנגלית
+  const locale: 'he' | 'en' = localeString === 'he' ? 'he' : 'en';
+
+  console.log('🔍 [MatchSuggestionsContainer] Final Locale:', locale);
   const [activeSuggestions, setActiveSuggestions] = useState<
     ExtendedMatchSuggestion[]
   >([]);
@@ -1229,9 +1237,9 @@ const MinimalSuggestionCard: React.FC<MinimalSuggestionCardProps> = ({
                         onClick={(e) => {
                           e.stopPropagation();
                           if (isApprovalDisabled) {
-                            toast.info('לא ניתן לאשר הצעה חדשה', {
-                              description: 'יש לך כבר הצעה אחרת בתהליך פעיל.',
-                            });
+                          toast.info(dict.toasts.approveDisabledTitle, {
+  description: dict.toasts.approveDisabledDescription,
+});
                           } else {
                             onApprove?.(suggestion);
                           }
@@ -3284,7 +3292,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useSession } from 'next-auth/react';
 import { UserRole } from '@prisma/client';
 import { format } from 'date-fns';
-import { he } from 'date-fns/locale';
+import { he, enUS } from 'date-fns/locale';
 import { toast } from 'sonner';
 
 import {
@@ -3336,6 +3344,7 @@ interface InquiryThreadViewProps {
   className?: string;
   isDemo?: boolean;
   dict: InquiryThreadDict;
+  locale: 'he' | 'en'; // <--- הוסף שורה זו
 }
 
 // --- Sub-components ---
@@ -3415,6 +3424,7 @@ const MessageBubble: React.FC<{
   suggestionId: string;
   onAnswerSent: () => void;
   dict: InquiryThreadDict;
+  locale: 'he' | 'en'; // <--- הוסף שורה זו
 }> = ({
   inquiry,
   userId,
@@ -3423,6 +3433,7 @@ const MessageBubble: React.FC<{
   suggestionId,
   onAnswerSent,
   dict,
+  locale, // <--- הוסף כאן
 }) => {
   const isMyQuestion = inquiry.fromUserId === userId;
 
@@ -3464,7 +3475,14 @@ const MessageBubble: React.FC<{
   const formatDate = (date: string | Date | null) => {
     if (!date) return '';
     try {
-      return format(new Date(date), 'dd בMMMM yyyy, HH:mm', { locale: he });
+      // --- התחלת השינוי ---
+      const dateFnsLocale = locale === 'he' ? he : enUS;
+      // בעברית: "16 ביוני 2024, 14:00" | באנגלית: "June 16, 2024, 14:00"
+      const dateFormat =
+        locale === 'he' ? 'dd בMMMM yyyy, HH:mm' : 'MMMM dd, yyyy, HH:mm';
+
+      return format(new Date(date), dateFormat, { locale: dateFnsLocale });
+      // --- סוף השינוי ---
     } catch (e) {
       console.error('Error formatting date:', date, e);
       return dict.invalidDate;
@@ -3605,6 +3623,7 @@ const InquiryThreadView: React.FC<InquiryThreadViewProps> = ({
   className,
   isDemo = false,
   dict,
+  locale, // <--- הוסף כאן
 }) => {
   const [inquiries, setInquiries] = useState<Inquiry[]>([]);
   const [isLoading, setIsLoading] = useState(!isDemo);
@@ -3744,6 +3763,7 @@ const InquiryThreadView: React.FC<InquiryThreadViewProps> = ({
               suggestionId={suggestionId}
               onAnswerSent={fetchInquiries}
               dict={dict}
+              locale={locale} // <--- הוסף שורה זו (העברת ה-prop לילד)
             />
           ))
         )}
@@ -4156,12 +4176,13 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
         }
       );
       if (!response.ok) throw new Error('Failed to send inquiry');
-      toast.success('השאלה נשלחה בהצלחה לשדכן', {
-        description: 'השדכן יחזור אליך עם תשובה בהקדם',
-      });
+    toast.success(suggestionsDict.inquiryThread.toasts.sendSuccessTitle, {
+  description: suggestionsDict.inquiryThread.toasts.sendSuccessDescription
+});
       setShowAskDialog(false);
     } catch (error) {
-      toast.error('אירעה שגיאה בשליחת השאלה');
+      toast.error(suggestionsDict.inquiryThread.toasts.sendError);
+
     }
   };
 
@@ -4851,106 +4872,64 @@ const EnhancedHeroSection: React.FC<{
             {(personalNote || matchingReason) && (
               // Insights Card - Orange/Teal
               <Card className="border-0 shadow-xl bg-gradient-to-br from-orange-50 via-white to-teal-50 overflow-hidden">
-                <CardContent className="p-6 relative">
-                  <div
-                    className={cn(
-                      'flex items-start gap-4',
-                      locale === 'he' ? 'flex-row-reverse' : 'flex-row'
-                    )}
-                  >
-                    <div className="p-4 rounded-full bg-gradient-to-r from-orange-400 to-amber-500 text-white shadow-lg flex-shrink-0">
-                      <Lightbulb className="w-7 h-7" />
-                    </div>
-                    <div
-                      className={cn(
-                        'flex-1',
-                        locale === 'he' ? 'text-right' : 'text-left'
-                      )}
-                    >
-                      <h3 className="font-bold text-orange-800 text-xl mb-4">
-                        {dict.matchmakerInsight}
-                      </h3>
-                      {personalNote && (
-                        // Personal Note - Orange tint
-                        <div
-                          className="mb-4 p-4 bg-white/70 rounded-xl shadow-inner border border-orange-100"
-                          dir={locale === 'he' ? 'rtl' : 'ltr'}
-                        >
-                          <div
-                            className={cn(
-                              'flex items-start gap-2',
-                              locale === 'he' ? 'flex-row-reverse' : 'flex-row'
-                            )}
-                          >
-                            <Quote
-                              className={cn(
-                                'w-5 h-5 text-orange-500 mt-1 flex-shrink-0',
-                                locale === 'he' ? 'ml-2' : 'mr-2'
-                              )}
-                            />
-                            <div>
-                              <h4
-                                className={cn(
-                                  'font-semibold text-orange-700 mb-2',
-                                  locale === 'he' ? 'text-right' : 'text-left'
-                                )}
-                              >
-                                {dict.whyYou}
-                              </h4>
-                              <p
-                                className={cn(
-                                  'text-orange-800 leading-relaxed italic font-medium',
-                                  locale === 'he' ? 'text-right' : 'text-left'
-                                )}
-                              >
-                                &quot;{personalNote}&quot;
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-                      {matchingReason && (
-                        // Matching Reason - Teal tint
-                        <div
-                          className="p-4 bg-white/70 rounded-xl shadow-inner border border-teal-100"
-                          dir={locale === 'he' ? 'rtl' : 'ltr'}
-                        >
-                          <div
-                            className={cn(
-                              'flex items-start gap-2',
-                              locale === 'he' ? 'flex-row-reverse' : 'flex-row'
-                            )}
-                          >
-                            <Puzzle
-                              className={cn(
-                                'w-5 h-5 text-teal-500 mt-1 flex-shrink-0',
-                                locale === 'he' ? 'ml-2' : 'mr-2'
-                              )}
-                            />
-                            <div>
-                              <h4
-                                className={cn(
-                                  'font-semibold text-teal-700 mb-2',
-                                  locale === 'he' ? 'text-right' : 'text-left'
-                                )}
-                              >
-                                {dict.ourConnection}
-                              </h4>
-                              <p
-                                className={cn(
-                                  'text-teal-800 leading-relaxed font-medium',
-                                  locale === 'he' ? 'text-right' : 'text-left'
-                                )}
-                              >
-                                &quot;{matchingReason}&quot;
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </CardContent>
+            <CardContent className="p-6 relative" dir={locale === 'he' ? 'rtl' : 'ltr'}>
+  <div className="flex items-start gap-4"> {/* הסרנו את התנאי של flex-row-reverse */}
+    <div className="p-4 rounded-full bg-gradient-to-r from-orange-400 to-amber-500 text-white shadow-lg flex-shrink-0">
+      <Lightbulb className="w-7 h-7" />
+    </div>
+    <div className="flex-1"> {/* הסרנו את התנאי של text-right/left כי ה-dir למעלה מטפל בזה */}
+      <h3 className="font-bold text-orange-800 text-xl mb-4">
+        {dict.matchmakerInsight}
+      </h3>
+      {personalNote && (
+        // Personal Note
+        <div
+          className="mb-4 p-4 bg-white/70 rounded-xl shadow-inner border border-orange-100"
+          // dir מוגדר כבר באבא, לא צריך כאן שוב
+        >
+          <div className="flex items-start gap-2"> {/* הסרנו flex-row-reverse */}
+            <Quote
+              className={cn(
+                'w-5 h-5 text-orange-500 mt-1 flex-shrink-0',
+                // אין צורך בשינוי margin ידני אם ה-dir מוגדר נכון, אבל ליתר ביטחון נשאיר לוגיקה פשוטה
+                // או פשוט נמחק את ה-ml/mr ונסמוך על gap
+              )}
+            />
+            <div>
+              <h4 className="font-semibold text-orange-700 mb-2">
+                {dict.whyYou}
+              </h4>
+              <p className="text-orange-800 leading-relaxed italic font-medium">
+                &quot;{personalNote}&quot;
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+      {matchingReason && (
+        // Matching Reason
+        <div
+          className="p-4 bg-white/70 rounded-xl shadow-inner border border-teal-100"
+        >
+          <div className="flex items-start gap-2"> {/* הסרנו flex-row-reverse */}
+            <Puzzle
+              className="w-5 h-5 text-teal-500 mt-1 flex-shrink-0"
+            />
+            <div>
+              <h4 className="font-semibold text-teal-700 mb-2">
+                {dict.ourConnection}
+              </h4>
+              <p className="text-teal-800 leading-relaxed font-medium">
+                &quot;{matchingReason}&quot;
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  </div>
+</CardContent>
+
               </Card>
             )}
           </div>
@@ -5224,6 +5203,8 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
   demoAnalysisData = null,
   dict,
 }) => {
+   console.log('🔍 [SuggestionDetailsModal] Received Locale:', locale);
+  console.log('🔍 [SuggestionDetailsModal] Derived Direction:', locale === 'he' ? 'rtl' : 'ltr');
   const [activeTab, setActiveTab] = useState('presentation');
   const [showAskDialog, setShowAskDialog] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -5287,10 +5268,13 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ question }),
       });
-      toast.success('Question sent!');
+      toast.success(dict.suggestions.inquiryThread.toasts.sendSuccessTitle, {
+        description:
+          dict.suggestions.inquiryThread.toasts.sendSuccessDescription,
+      });
       setShowAskDialog(false);
     } catch (error) {
-      toast.error('Failed to send question.');
+      toast.error(dict.suggestions.inquiryThread.toasts.sendError);
     } finally {
       setIsSubmitting(false);
     }
@@ -5362,9 +5346,12 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
                 />
               </TabsContent>
               <TabsContent
-                value="profile"
-                className="mt-0 p-4 md:p-6 bg-gradient-to-br from-slate-50 via-white to-teal-50"
-              >
+  value="profile"
+  // הוספנו כאן text-start כדי לכפות יישור לפי כיוון השפה
+  className="mt-0 p-4 md:p-6 bg-gradient-to-br from-slate-50 via-white to-teal-50 text-start"
+  // הוספנו כאן את ה-dir שיגרום לכל התוכן להתהפך כמו שצריך
+  dir={locale === 'he' ? 'rtl' : 'ltr'}
+>
                 {isQuestionnaireLoading ? (
                   <div className="flex justify-center items-center h-64">
                     <div className="text-center">
@@ -5474,6 +5461,7 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
                   <SuggestionTimeline
                     statusHistory={suggestion.statusHistory}
                     dict={dict.suggestions.timeline}
+                    locale={locale}
                   />
                   <InquiryThreadView
                     suggestionId={suggestion.id}
@@ -5481,6 +5469,7 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
                     showComposer={true}
                     isDemo={isDemo}
                     dict={dict.suggestions.inquiryThread}
+                    locale={locale}
                   />
                 </div>
               </TabsContent>
@@ -5659,7 +5648,13 @@ const HeroIntroduction: React.FC<{
   dict: SuggestionsPresentationDict['hero'];
 }> = ({ matchmaker, personalNote, dict }) => (
   // Background: Teal -> Orange -> Rose (Soft)
-  <div className="text-center p-6 rounded-2xl bg-gradient-to-br from-teal-100/50 via-orange-100/50 to-rose-100/50 border border-teal-200/40 shadow-lg">
+  <div
+    className="text-center p-6 rounded-2xl bg-gradient-to-br from-teal-100/50 via-orange-100/50 to-rose-100/50 border border-teal-200/40 shadow-lg"
+    dir="rtl" // או דינמי אם יש לך את ה-locale כאן, אבל ה-Props לא כוללים locale כרגע.
+    // מכיוון שאין locale ב-props של הקומפוננטה הזו, צריך להוסיף אותו לממשק או להסתמך על היישור למרכז (text-center) שקיים כבר.
+    // הבעיה היא בציטוט למטה.
+  >
+    {' '}
     <div className="flex justify-center mb-4">
       <Avatar className="w-16 h-16 border-4 border-white shadow-md">
         {/* Avatar: Teal Gradient */}
@@ -5701,7 +5696,10 @@ const ProfilePeek: React.FC<{
     : null;
   const mainImage = targetParty.images?.find((img) => img.isMain)?.url;
   return (
-    <Card className="overflow-hidden shadow-xl transition-all hover:shadow-2xl border-0">
+    <Card
+      className="overflow-hidden shadow-xl transition-all hover:shadow-2xl border-0"
+      dir={locale === 'he' ? 'rtl' : 'ltr'} // הוספת כיוון לכרטיס
+    >
       <div className="grid grid-cols-1 md:grid-cols-3">
         <div className="relative h-64 md:h-auto">
           {mainImage ? (
@@ -5717,7 +5715,7 @@ const ProfilePeek: React.FC<{
             </div>
           )}
         </div>
-        <div className="md:col-span-2 p-6 flex flex-col justify-between bg-white">
+        <div className="md:col-span-2 p-6 flex flex-col justify-between bg-white text-start">
           <div>
             <p className="text-sm font-semibold text-teal-600">
               {dict.opportunity}
@@ -5743,14 +5741,20 @@ const ProfilePeek: React.FC<{
               </div>
             </div>
           </div>
-          <div className={cn("mt-6", locale === 'he' ? 'text-left' : 'text-right')}>
+          <div
+            className={cn('mt-6', locale === 'he' ? 'text-left' : 'text-right')}
+          >
             <Button
               onClick={onViewProfileClick}
               size="lg"
               className="font-bold bg-teal-600 hover:bg-teal-700 text-white rounded-xl shadow-lg hover:shadow-xl transition-all"
             >
               {dict.viewProfileButton}
-              {locale === 'he' ? <ChevronLeft className="w-5 h-5 mr-2" /> : <ChevronRight className="w-5 h-5 ml-2" />}
+              {locale === 'he' ? (
+                <ChevronLeft className="w-5 h-5 mr-2" />
+              ) : (
+                <ChevronRight className="w-5 h-5 ml-2" />
+              )}
             </Button>
           </div>
         </div>
@@ -5852,7 +5856,7 @@ const MatchPresentationView: React.FC<MatchPresentationViewProps> = ({
   const targetParty = isFirstParty
     ? suggestion.secondParty
     : suggestion.firstParty;
-  
+
   const currentUserParty = isFirstParty
     ? suggestion.firstParty
     : suggestion.secondParty;
@@ -6011,7 +6015,7 @@ Content:
 
 import React from 'react';
 import { format, differenceInCalendarDays } from 'date-fns';
-import { he } from 'date-fns/locale';
+import { he, enUS } from 'date-fns/locale';
 import {
   Clock,
   MessageCircle,
@@ -6048,6 +6052,8 @@ interface SuggestionTimelineProps {
   statusHistory: StatusHistoryItem[];
   className?: string;
   dict: SuggestionTimelineDict;
+    locale: 'he' | 'en'; // <--- הוסף שורה זו
+
 }
 
 const getStatusVisuals = (status: MatchSuggestionStatus) => {
@@ -6147,6 +6153,8 @@ const SuggestionTimeline: React.FC<SuggestionTimelineProps> = ({
   statusHistory,
   className,
   dict,
+    locale, // <--- הוסף כאן
+
 }) => {
   const sortedHistory = [...statusHistory].sort(
     (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
@@ -6193,14 +6201,19 @@ const SuggestionTimeline: React.FC<SuggestionTimelineProps> = ({
             const statusVisuals = getStatusVisuals(statusKey);
             const isLatest = index === 0;
             const isLast = index === sortedHistory.length - 1;
-            const formattedDate = format(
-              new Date(item.createdAt),
-              'dd בMMMM yyyy',
-              { locale: he }
-            );
-            const formattedTime = format(new Date(item.createdAt), 'HH:mm', {
-              locale: he,
-            });
+           
+         const dateFnsLocale = locale === 'he' ? he : enUS;
+        const dateFormat = locale === 'he' ? 'dd בMMMM yyyy' : 'MMMM dd, yyyy';
+
+        const formattedDate = format(
+          new Date(item.createdAt),
+          dateFormat,
+          { locale: dateFnsLocale }
+        );
+        
+        const formattedTime = format(new Date(item.createdAt), 'HH:mm', {
+          locale: dateFnsLocale,
+        });
 
             return (
               <div key={item.id} className="flex gap-4">
