@@ -2,6 +2,10 @@
 // =============================================================================
 // NeshamaTech - Daily Auto-Suggestion Orchestrator
 // שולח הצעת שידוך יומית אחת לכל יוזר זכאי בשעה 19:00
+// 
+// 🆕 V2.1 - wantsToBeFirstParty Support:
+// - If user opted out of being first party → swap parties (other party becomes first)
+// - If BOTH users opted out → send generic notification email, don't create suggestion
 // =============================================================================
 
 import prisma from '@/lib/prisma';
@@ -193,6 +197,7 @@ export class DailySuggestionOrchestrator {
             id: true,
             gender: true,
             availabilityStatus: true,
+            wantsToBeFirstParty: true, // 🆕 V2.1
           },
         },
       },
@@ -272,8 +277,40 @@ export class DailySuggestionOrchestrator {
       };
     }
 
-    // Check 3: Create the suggestion
-    const suggestion = await this.createAutoSuggestion(user, bestMatch, matchmakerId, dictionaries);
+    // =========================================================================
+    // 🆕 V2.1: Check 3 - Determine party assignment based on wantsToBeFirstParty
+    // =========================================================================
+    const otherPartyId = user.id === bestMatch.maleUserId ? bestMatch.femaleUserId : bestMatch.maleUserId;
+    const userWantsFirst = user.profile?.wantsToBeFirstParty ?? true;
+
+    let swapParties = false;
+
+    if (!userWantsFirst) {
+      // User doesn't want to be first party → check other party's preference
+      const otherPartyProfile = await prisma.profile.findUnique({
+        where: { userId: otherPartyId },
+        select: { wantsToBeFirstParty: true },
+      });
+      const otherWantsFirst = otherPartyProfile?.wantsToBeFirstParty ?? true;
+
+      if (!otherWantsFirst) {
+        // ❌ Both opted out → send generic notification, don't create suggestion
+        console.log(`  🚫 Both parties opted out of first party — sending generic notification`);
+        await this.sendBothOptedOutNotification(user, bestMatch, dictionaries);
+        return {
+          userId: user.id,
+          action: 'skipped',
+          reason: `Both parties opted out of auto-scan first party — generic notification sent (Match: ${bestMatch.id})`,
+        };
+      }
+
+      // 🔄 Other party is OK being first → swap sides
+      swapParties = true;
+      console.log(`  🔄 Swapping parties: ${user.firstName} opted out of first party → other party (${otherPartyId}) will be first`);
+    }
+
+    // Check 4: Create the suggestion (with optional party swap)
+    const suggestion = await this.createAutoSuggestion(user, bestMatch, matchmakerId, dictionaries, swapParties);
 
     return {
       userId: user.id,
@@ -409,15 +446,31 @@ export class DailySuggestionOrchestrator {
       detailedReasoning: string | null;
     },
     matchmakerId: string,
-    dictionaries: { he: EmailDictionary; en: EmailDictionary }
+    dictionaries: { he: EmailDictionary; en: EmailDictionary },
+    swapParties: boolean = false // 🆕 V2.1: אם true — מחליפים צד ראשון ושני
   ) {
-    const firstPartyId = user.id;
-    const secondPartyId = user.id === match.maleUserId ? match.femaleUserId : match.maleUserId;
+    // =========================================================================
+    // 🆕 V2.1: Determine party assignment (with optional swap)
+    // =========================================================================
+    const defaultFirstPartyId = user.id;
+    const defaultSecondPartyId = user.id === match.maleUserId ? match.femaleUserId : match.maleUserId;
+
+    const firstPartyId = swapParties ? defaultSecondPartyId : defaultFirstPartyId;
+    const secondPartyId = swapParties ? defaultFirstPartyId : defaultSecondPartyId;
 
     const decisionDeadline = new Date();
     decisionDeadline.setDate(decisionDeadline.getDate() + DECISION_DEADLINE_DAYS);
 
-    const locale = (user.language as 'he' | 'en') || 'he';
+    // 🆕 V2.1: Get first party's language for the notes text
+    // If swapped, we need to fetch the actual first party's language
+    let noteLocale: 'he' | 'en' = (user.language as 'he' | 'en') || 'he';
+    if (swapParties) {
+      const firstPartyUser = await prisma.user.findUnique({
+        where: { id: firstPartyId },
+        select: { language: true },
+      });
+      noteLocale = (firstPartyUser?.language as 'he' | 'en') || 'he';
+    }
 
     const suggestion = await prisma.$transaction(async (tx) => {
       const newSuggestion = await tx.matchSuggestion.create({
@@ -429,11 +482,12 @@ export class DailySuggestionOrchestrator {
           status: 'PENDING_FIRST_PARTY',
           priority: 'MEDIUM',
           matchingReason: match.shortReasoning || `התאמת AI - ציון ${Math.round(match.aiScore)}`,
-          firstPartyNotes: locale === 'he'
+          firstPartyNotes: noteLocale === 'he'
             ? 'הצעה זו נבחרה על סמך ניתוח מעמיק של הפרופיל שלך, תשובותיך לשאלון, והעדפותיך. המערכת שלנו למדה מאלפי התאמות כדי למצוא את ההצעה הכי מתאימה עבורך.'
             : 'This match was selected based on a deep analysis of your profile, questionnaire responses, and preferences. Our system has learned from thousands of matches to find the best fit for you.',
           secondPartyNotes: null,
-          internalNotes: `הצעה יומית אוטומטית | PotentialMatch: ${match.id} | Score: ${match.aiScore}`,
+          // 🆕 V2.1: Internal notes include swap info
+          internalNotes: `הצעה יומית אוטומטית | PotentialMatch: ${match.id} | Score: ${match.aiScore}${swapParties ? ' | 🔄 Parties Swapped (wantsToBeFirstParty preference)' : ''}`,
           decisionDeadline,
           firstPartySent: new Date(),
           lastActivity: new Date(),
@@ -450,7 +504,9 @@ export class DailySuggestionOrchestrator {
         data: {
           suggestionId: newSuggestion.id,
           status: 'PENDING_FIRST_PARTY',
-          notes: 'הצעה יומית אוטומטית - נשלחה לצד הראשון',
+          notes: swapParties
+            ? 'הצעה יומית אוטומטית - הצדדים הוחלפו (העדפת משתמש) - נשלחה לצד הראשון'
+            : 'הצעה יומית אוטומטית - נשלחה לצד הראשון',
         },
       });
 
@@ -466,7 +522,7 @@ export class DailySuggestionOrchestrator {
       return newSuggestion;
     });
 
-    // Send notification (non-blocking)
+    // Send notification to the first party (non-blocking)
     try {
       const notificationService = initNotificationService();
 
@@ -487,7 +543,7 @@ export class DailySuggestionOrchestrator {
         }
       );
 
-      console.log(`  📨 Notification sent for suggestion ${suggestion.id}`);
+      console.log(`  📨 Notification sent for suggestion ${suggestion.id}${swapParties ? ' (parties swapped)' : ''}`);
     } catch (notifError) {
       console.error(`  ⚠️ Failed to send notification for suggestion ${suggestion.id}:`, notifError);
     }
@@ -568,6 +624,129 @@ export class DailySuggestionOrchestrator {
     }
   }
 
+  // =========================================================================
+  // 🆕 V2.1: Send notification when BOTH parties opted out of being first party
+  // =========================================================================
+
+  private static async sendBothOptedOutNotification(
+    user: EligibleUser,
+    match: {
+      id: string;
+      maleUserId: string;
+      femaleUserId: string;
+      aiScore: number;
+    },
+    dictionaries: { he: EmailDictionary; en: EmailDictionary }
+  ): Promise<void> {
+    const locale = (user.language as 'he' | 'en') || 'he';
+    const isHebrew = locale === 'he';
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+    const matchesUrl = `${baseUrl}/matches`;
+    const settingsUrl = `${baseUrl}/settings`;
+
+    const subject = isHebrew
+      ? '💡 מצאנו הצעה מעניינת בשבילך'
+      : '💡 We found an interesting match for you';
+
+    const body = [
+      isHebrew ? `שלום ${user.firstName},` : `Hello ${user.firstName},`,
+      '',
+      isHebrew
+        ? 'המערכת שלנו מצאה עבורך הצעת שידוך שנראית מעניינת במיוחד.'
+        : 'Our system found a match that looks especially interesting for you.',
+      '',
+      isHebrew
+        ? 'מכיוון שבחרת שלא לקבל הצעות מהסריקה האוטומטית כצד ראשון, לא שלחנו אותה ישירות.'
+        : 'Since you chose not to receive auto-scan suggestions as first party, we didn\'t send it directly.',
+      '',
+      isHebrew
+        ? 'אם את/ה מעוניין/ת לשמוע על ההצעה, פשוט פנה/י אלינו דרך המערכת ונשמח לספר לך.'
+        : 'If you\'re interested, simply reach out to us through the system and we\'ll be happy to share.',
+      '',
+      isHebrew ? `👉 פנה אלינו: ${matchesUrl}` : `👉 Contact us: ${matchesUrl}`,
+      '',
+      isHebrew ? 'בברכה,' : 'Best regards,',
+      isHebrew ? 'NeshamaTech' : 'NeshamaTech',
+    ].join('\n');
+
+    const htmlBody = `
+      <div style="background: linear-gradient(135deg, #1e293b 0%, #334155 50%, #1e293b 100%); color: #ffffff; padding: 35px 25px; text-align: center; border-radius: 16px 16px 0 0;">
+        <span style="font-size: 32px; display: block; margin-bottom: 10px;">💡</span>
+        <h1 style="margin: 0; font-size: 22px; color: #a78bfa;">
+          ${isHebrew ? 'מצאנו הצעה מעניינת בשבילך' : 'We Found an Interesting Match'}
+        </h1>
+      </div>
+      <div style="padding: 30px 25px; font-family: 'Segoe UI', Tahoma, sans-serif; direction: ${isHebrew ? 'rtl' : 'ltr'}; text-align: ${isHebrew ? 'right' : 'left'}; background-color: #ffffff;">
+        <p style="font-size: 18px; color: #1e293b; margin-bottom: 15px;">
+          ${isHebrew ? `שלום ${user.firstName},` : `Hello ${user.firstName},`}
+        </p>
+        
+        <p style="color: #475569; line-height: 1.8; margin-bottom: 20px;">
+          ${isHebrew
+            ? 'המערכת שלנו מצאה עבורך הצעת שידוך שנראית לנו מעניינת במיוחד. 🌟'
+            : 'Our system found a match that looks especially interesting for you. 🌟'
+          }
+        </p>
+
+        <div style="background: linear-gradient(135deg, #f5f3ff, #ede9fe); border: 1px solid #ddd6fe; border-radius: 12px; padding: 20px; margin-bottom: 20px;">
+          <p style="color: #5b21b6; font-weight: 600; margin: 0 0 8px 0; font-size: 15px;">
+            ${isHebrew ? '📋 למה לא שלחנו ישירות?' : '📋 Why didn\'t we send it directly?'}
+          </p>
+          <p style="color: #6d28d9; margin: 0; line-height: 1.6; font-size: 14px;">
+            ${isHebrew
+              ? 'מכיוון שבחרת בהגדרות הפרופיל שלך שלא לקבל הצעות מהסריקה האוטומטית כצד ראשון, לא שלחנו את ההצעה באופן אוטומטי. אנחנו מכבדים את ההעדפות שלך.'
+              : 'Because you chose in your profile settings not to receive auto-scan suggestions as first party, we didn\'t send the suggestion automatically. We respect your preferences.'
+            }
+          </p>
+        </div>
+
+        <p style="color: #475569; line-height: 1.8; margin-bottom: 25px;">
+          ${isHebrew
+            ? 'אם את/ה מעוניין/ת לשמוע על ההצעה, פשוט פנה/י אלינו דרך המערכת ונשמח לספר לך עליה. 😊'
+            : 'If you\'re interested in hearing about this match, simply reach out to us through the system and we\'ll be happy to share more. 😊'
+          }
+        </p>
+
+        <div style="text-align: center; margin: 25px 0;">
+          <a href="${matchesUrl}" style="display: inline-block; padding: 16px 45px; background: linear-gradient(135deg, #8b5cf6, #7c3aed); color: #ffffff !important; text-decoration: none; border-radius: 50px; font-weight: 800; font-size: 16px; box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3);">
+            ${isHebrew ? '💬 פנה אלינו דרך המערכת' : '💬 Contact Us Through the System'}
+          </a>
+        </div>
+
+        <div style="margin-top: 25px; padding-top: 15px; border-top: 1px solid #e5e7eb; color: #9ca3af; font-size: 13px; text-align: center;">
+          <p style="margin: 0;">
+            ${isHebrew
+              ? 'ניתן לשנות את הגדרות קבלת ההצעות בכל עת'
+              : 'You can change your suggestion preferences anytime'
+            }
+            — <a href="${settingsUrl}" style="color: #8b5cf6; text-decoration: underline;">
+              ${isHebrew ? 'הגדרות פרופיל' : 'Profile Settings'}
+            </a>
+          </p>
+          <p style="margin: 8px 0 0 0;">NeshamaTech 💜</p>
+        </div>
+      </div>
+    `;
+
+    try {
+      const notificationService = initNotificationService();
+
+      await notificationService.sendNotification(
+        {
+          email: user.email,
+          phone: user.phone || undefined,
+          name: user.firstName,
+        },
+        { subject, body, htmlBody },
+        { channels: ['email'] } // רק אימייל — לא וואטסאפ, כי זה לא הצעה ממשית
+      );
+
+      console.log(`  📧 Both-opted-out notification sent to ${user.email} (Match: ${match.id})`);
+    } catch (error) {
+      console.error(`  ⚠️ Failed to send both-opted-out notification to ${user.email}:`, error);
+    }
+  }
+
   // ==========================================================================
   // ===== מצב אישי - הרצה על יוזר ספציפי עם N הצעות =====
   // ==========================================================================
@@ -575,6 +754,8 @@ export class DailySuggestionOrchestrator {
   /**
    * שולח N הצעות יומיות ליוזר ספציפי.
    * מתעלם מהמגבלה של "הצעה אחת בו-זמנית" — מיועד להרצה ידנית ע"י שדכן.
+   * 
+   * 🆕 V2.1: Supports wantsToBeFirstParty — swaps parties or skips if both opted out.
    * 
    * @param userId - ID של היוזר
    * @param count - כמה הצעות לשלוח (ברירת מחדל: 1)
@@ -610,7 +791,7 @@ export class DailySuggestionOrchestrator {
     };
 
     try {
-      // 1. Fetch the user with profile
+      // 1. Fetch the user with profile (🆕 V2.1: includes wantsToBeFirstParty)
       const user = await prisma.user.findUnique({
         where: { id: userId },
         select: {
@@ -626,6 +807,7 @@ export class DailySuggestionOrchestrator {
               id: true,
               gender: true,
               availabilityStatus: true,
+              wantsToBeFirstParty: true, // 🆕 V2.1
             },
           },
         },
@@ -645,6 +827,7 @@ export class DailySuggestionOrchestrator {
 
       console.log(`👤 User: ${user.firstName} ${user.lastName} (${user.profile.gender})`);
       console.log(`📧 Email: ${user.email}`);
+      console.log(`🔄 wantsToBeFirstParty: ${user.profile.wantsToBeFirstParty}`); // 🆕 V2.1
       console.log(`📊 Requesting ${count} suggestions\n`);
 
       // 3. Load dictionaries
@@ -665,6 +848,12 @@ export class DailySuggestionOrchestrator {
 
       console.log(`  📋 Found ${topMatches.length} eligible matches (requested ${count})\n`);
 
+      // 🆕 V2.1: Get user's first party preference once (used in the loop)
+      const userWantsFirst = user.profile.wantsToBeFirstParty ?? true;
+
+      // Track if we already sent a both-opted-out notification (to avoid spam)
+      let bothOptedOutNotificationSent = false;
+
       // 5. Create suggestions for each match
       for (let i = 0; i < topMatches.length; i++) {
         const match = topMatches[i];
@@ -673,7 +862,38 @@ export class DailySuggestionOrchestrator {
         console.log(`  [${i + 1}/${topMatches.length}] Creating suggestion — Score: ${Math.round(match.aiScore)}, Other: ${otherPartyId}`);
 
         try {
-          const suggestion = await this.createAutoSuggestion(user, match, matchmakerId, dictionaries);
+          // =====================================================================
+          // 🆕 V2.1: Determine party assignment based on wantsToBeFirstParty
+          // =====================================================================
+          let swapParties = false;
+
+          if (!userWantsFirst) {
+            const otherProfile = await prisma.profile.findUnique({
+              where: { userId: otherPartyId },
+              select: { wantsToBeFirstParty: true },
+            });
+            const otherWantsFirst = otherProfile?.wantsToBeFirstParty ?? true;
+
+            if (!otherWantsFirst) {
+              // Both opted out → skip this match, try next
+              console.log(`  🚫 Both parties opted out of first party — skipping match ${match.id}`);
+              const skipReason = `Match ${match.id}: Both parties opted out of first party`;
+              result.skipped.push(skipReason);
+
+              // Send notification only once (to avoid spam)
+              if (!bothOptedOutNotificationSent) {
+                await this.sendBothOptedOutNotification(user, match, dictionaries);
+                bothOptedOutNotificationSent = true;
+                console.log(`  📧 Both-opted-out notification sent`);
+              }
+              continue;
+            }
+
+            swapParties = true;
+            console.log(`  🔄 Swapping parties: user opted out of first party`);
+          }
+
+          const suggestion = await this.createAutoSuggestion(user, match, matchmakerId, dictionaries, swapParties);
 
           // Get other party name for the result
           const otherParty = await prisma.user.findUnique({
@@ -689,7 +909,7 @@ export class DailySuggestionOrchestrator {
           });
           result.sent++;
 
-          console.log(`  ✅ Suggestion created: ${suggestion.id}`);
+          console.log(`  ✅ Suggestion created: ${suggestion.id}${swapParties ? ' (parties swapped)' : ''}`);
         } catch (err) {
           const errMsg = err instanceof Error ? err.message : 'Unknown error';
           result.errors.push(`Match ${match.id}: ${errMsg}`);
@@ -1057,6 +1277,7 @@ export class DailySuggestionOrchestrator {
             id: true,
             gender: true,
             availabilityStatus: true,
+            wantsToBeFirstParty: true, // 🆕 V2.1
           },
         },
         images: {
@@ -1119,6 +1340,9 @@ export class DailySuggestionOrchestrator {
 
   /**
    * שולח הצעות מותאמות אישית לפי רשימה שהשדכן אישר.
+   * 
+   * 🆕 V2.1: Supports wantsToBeFirstParty — swaps parties or skips if both opted out.
+   * 
    * @param assignments - רשימה של { userId, matchId, customMatchingReason? }
    * @param matchmakerId - ID של השדכן
    */
@@ -1151,7 +1375,14 @@ export class DailySuggestionOrchestrator {
             lastName: true,
             phone: true,
             language: true,
-            profile: { select: { id: true, gender: true, availabilityStatus: true } },
+            profile: {
+              select: {
+                id: true,
+                gender: true,
+                availabilityStatus: true,
+                wantsToBeFirstParty: true, // 🆕 V2.1
+              },
+            },
           },
         });
 
@@ -1182,9 +1413,33 @@ export class DailySuggestionOrchestrator {
           ? { ...match, shortReasoning: customMatchingReason }
           : match;
 
-        await this.createAutoSuggestion(user, matchWithReason, matchmakerId, dictionaries);
+        // =====================================================================
+        // 🆕 V2.1: Check wantsToBeFirstParty — same logic as batch mode
+        // =====================================================================
+        let swapParties = false;
+        const userWantsFirst = user.profile.wantsToBeFirstParty ?? true;
+
+        if (!userWantsFirst) {
+          const otherPartyId = userId === match.maleUserId ? match.femaleUserId : match.maleUserId;
+          const otherProfile = await prisma.profile.findUnique({
+            where: { userId: otherPartyId },
+            select: { wantsToBeFirstParty: true },
+          });
+          const otherWantsFirst = otherProfile?.wantsToBeFirstParty ?? true;
+
+          if (!otherWantsFirst) {
+            errors.push({ userId, error: 'Both parties opted out of being first party in auto-suggestions' });
+            console.log(`  🚫 Skipped ${user.firstName}: both parties opted out of first party`);
+            continue;
+          }
+
+          swapParties = true;
+          console.log(`  🔄 Swapping parties for ${user.firstName}: opted out of first party`);
+        }
+
+        await this.createAutoSuggestion(user, matchWithReason, matchmakerId, dictionaries, swapParties);
         sent++;
-        console.log(`  ✅ Sent to ${user.firstName} ${user.lastName}`);
+        console.log(`  ✅ Sent to ${user.firstName} ${user.lastName}${swapParties ? ' (parties swapped)' : ''}`);
       } catch (err) {
         const errMsg = err instanceof Error ? err.message : 'Unknown error';
         errors.push({ userId, error: errMsg });
