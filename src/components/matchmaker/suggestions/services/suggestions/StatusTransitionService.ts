@@ -234,6 +234,12 @@ export class StatusTransitionService {
       PENDING_FIRST_PARTY: [
         MatchSuggestionStatus.FIRST_PARTY_APPROVED,
         MatchSuggestionStatus.FIRST_PARTY_DECLINED,
+        MatchSuggestionStatus.FIRST_PARTY_INTERESTED, // ← NEW
+        MatchSuggestionStatus.CANCELLED
+      ],
+      FIRST_PARTY_INTERESTED: [                        // ← NEW ENTRY
+        MatchSuggestionStatus.FIRST_PARTY_APPROVED,    // activate from waitlist
+        MatchSuggestionStatus.FIRST_PARTY_DECLINED,    // remove from waitlist
         MatchSuggestionStatus.CANCELLED
       ],
       FIRST_PARTY_APPROVED: [
@@ -326,7 +332,9 @@ export class StatusTransitionService {
       DRAFT: "טיוטה",
       PENDING_FIRST_PARTY: "ממתין לתשובת הצד הראשון",
       FIRST_PARTY_APPROVED: "הצד הראשון אישר",
-      FIRST_PARTY_DECLINED: "הצד הראשון דחה",
+            FIRST_PARTY_DECLINED: "הצד הראשון דחה",
+      FIRST_PARTY_INTERESTED: "הצד הראשון שמר לגיבוי",  // ← NEW
+
       PENDING_SECOND_PARTY: "ממתין לתשובת הצד השני",
       SECOND_PARTY_APPROVED: "הצד השני אישר",
       SECOND_PARTY_DECLINED: "הצד השני דחה",
@@ -381,8 +389,17 @@ export class StatusTransitionService {
           { id: "cancel", label: "ביטול ההצעה", nextStatus: MatchSuggestionStatus.CANCELLED }
         ]
       },
-      FIRST_PARTY_DECLINED: { matchmaker: [{ id: "close", label: "סגירת הצעה", nextStatus: MatchSuggestionStatus.CLOSED }] },
-      PENDING_SECOND_PARTY: {
+  FIRST_PARTY_DECLINED: { matchmaker: [{ id: "close", label: "סגירת הצעה", nextStatus: MatchSuggestionStatus.CLOSED }] },
+      FIRST_PARTY_INTERESTED: {                        // ← NEW ENTRY
+        firstParty: [
+          { id: "approve", label: "אישור ההצעה", nextStatus: MatchSuggestionStatus.FIRST_PARTY_APPROVED },
+          { id: "decline", label: "הסרה מרשימת ההמתנה", nextStatus: MatchSuggestionStatus.FIRST_PARTY_DECLINED }
+        ],
+        matchmaker: [
+          { id: "cancel", label: "ביטול ההצעה", nextStatus: MatchSuggestionStatus.CANCELLED }
+        ]
+      },
+            PENDING_SECOND_PARTY: {
         secondParty: [
           { id: "approve", label: "אישור ההצעה", nextStatus: MatchSuggestionStatus.SECOND_PARTY_APPROVED },
           { id: "decline", label: "דחיית ההצעה", nextStatus: MatchSuggestionStatus.SECOND_PARTY_DECLINED }

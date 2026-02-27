@@ -1,13 +1,14 @@
 // src/app/api/mobile/suggestions/active/route.ts
 // הצעות שידוך פעילות - למובייל
+// UPDATED: Added FIRST_PARTY_INTERESTED support + firstPartyRank
 
 import { NextRequest } from "next/server";
 import prisma from "@/lib/prisma";
-import { 
+import {
   verifyMobileToken,
   corsJson,
   corsError,
-  corsOptions
+  corsOptions,
 } from "@/lib/mobile-auth";
 
 function calculateAge(birthDate: Date | null | undefined): number | null {
@@ -16,7 +17,10 @@ function calculateAge(birthDate: Date | null | undefined): number | null {
   const birth = new Date(birthDate);
   let age = today.getFullYear() - birth.getFullYear();
   const monthDiff = today.getMonth() - birth.getMonth();
-  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+  if (
+    monthDiff < 0 ||
+    (monthDiff === 0 && today.getDate() < birth.getDate())
+  ) {
     age--;
   }
   return age;
@@ -29,7 +33,7 @@ export async function OPTIONS(req: NextRequest) {
 export async function GET(req: NextRequest) {
   try {
     const auth = await verifyMobileToken(req);
-    
+
     if (!auth) {
       return corsError(req, "Unauthorized", 401);
     }
@@ -39,26 +43,37 @@ export async function GET(req: NextRequest) {
     const activeSuggestions = await prisma.matchSuggestion.findMany({
       where: {
         OR: [
-          { 
-            firstPartyId: userId, 
-            status: { 
-              in: ["PENDING_FIRST_PARTY", "FIRST_PARTY_APPROVED", "PENDING_SECOND_PARTY", "SECOND_PARTY_APPROVED", "CONTACT_DETAILS_SHARED"] 
-            } 
+          {
+            firstPartyId: userId,
+            status: {
+              in: [
+                "PENDING_FIRST_PARTY",
+                "FIRST_PARTY_APPROVED",
+                "FIRST_PARTY_INTERESTED", // ← NEW
+                "PENDING_SECOND_PARTY",
+                "SECOND_PARTY_APPROVED",
+                "CONTACT_DETAILS_SHARED",
+              ],
+            },
           },
-          { 
-            secondPartyId: userId, 
-            status: { 
-              in: ["PENDING_SECOND_PARTY", "SECOND_PARTY_APPROVED", "CONTACT_DETAILS_SHARED"] 
-            } 
+          {
+            secondPartyId: userId,
+            status: {
+              in: [
+                "PENDING_SECOND_PARTY",
+                "SECOND_PARTY_APPROVED",
+                "CONTACT_DETAILS_SHARED",
+              ],
+            },
           },
         ],
       },
       include: {
-        matchmaker: { 
-          select: { 
-            firstName: true, 
-            lastName: true 
-          } 
+        matchmaker: {
+          select: {
+            firstName: true,
+            lastName: true,
+          },
         },
         firstParty: {
           select: {
@@ -72,14 +87,14 @@ export async function GET(req: NextRequest) {
                 occupation: true,
                 height: true,
                 about: true,
-              }
+              },
             },
             images: {
               where: { isMain: true },
               take: 1,
-              select: { url: true }
-            }
-          }
+              select: { url: true },
+            },
+          },
         },
         secondParty: {
           select: {
@@ -93,24 +108,31 @@ export async function GET(req: NextRequest) {
                 occupation: true,
                 height: true,
                 about: true,
-              }
+              },
             },
             images: {
               where: { isMain: true },
               take: 1,
-              select: { url: true }
-            }
-          }
+              select: { url: true },
+            },
+          },
         },
       },
-      orderBy: { createdAt: "desc" },
+      orderBy: [
+        { firstPartyRank: "asc" }, // INTERESTED suggestions sorted by rank
+        { createdAt: "desc" },
+      ],
     });
 
-    const suggestions = activeSuggestions.map(suggestion => {
+    const suggestions = activeSuggestions.map((suggestion) => {
       const isFirstParty = suggestion.firstPartyId === userId;
-      const otherParty = isFirstParty ? suggestion.secondParty : suggestion.firstParty;
-      const notes = isFirstParty ? suggestion.firstPartyNotes : suggestion.secondPartyNotes;
-      
+      const otherParty = isFirstParty
+        ? suggestion.secondParty
+        : suggestion.firstParty;
+      const notes = isFirstParty
+        ? suggestion.firstPartyNotes
+        : suggestion.secondPartyNotes;
+
       return {
         id: suggestion.id,
         status: suggestion.status,
@@ -119,8 +141,12 @@ export async function GET(req: NextRequest) {
         notes: notes,
         matchmaker: suggestion.matchmaker,
         createdAt: suggestion.createdAt,
+        updatedAt: suggestion.updatedAt,
         decisionDeadline: suggestion.decisionDeadline,
         isFirstParty,
+        // NEW: rank fields for INTERESTED suggestions
+        firstPartyRank: suggestion.firstPartyRank,
+        firstPartyInterestedAt: suggestion.firstPartyInterestedAt,
         otherParty: {
           id: otherParty.id,
           firstName: otherParty.firstName,
@@ -131,17 +157,18 @@ export async function GET(req: NextRequest) {
           height: otherParty.profile?.height,
           about: otherParty.profile?.about,
           image: otherParty.images?.[0]?.url || null,
-        }
+        },
       };
     });
 
-    console.log(`[mobile/suggestions/active] Found ${suggestions.length} active suggestions for user ${userId}`);
+    console.log(
+      `[mobile/suggestions/active] Found ${suggestions.length} active suggestions for user ${userId}`
+    );
 
     return corsJson(req, {
       success: true,
       suggestions,
     });
-
   } catch (error) {
     console.error("[mobile/suggestions/active] Error:", error);
     return corsError(req, "Internal server error", 500);
