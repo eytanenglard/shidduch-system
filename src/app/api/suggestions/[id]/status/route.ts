@@ -97,6 +97,7 @@ export async function PATCH(
         case "AWAITING_MATCHMAKER_APPROVAL":
         case "PENDING_FIRST_PARTY":
         case "PENDING_SECOND_PARTY":
+        case "FIRST_PARTY_INTERESTED": // INTERESTED stays in PENDING
           return "PENDING";
         
         case "FIRST_PARTY_DECLINED":
@@ -133,6 +134,62 @@ export async function PATCH(
           ...(status === MatchSuggestionStatus.SECOND_PARTY_APPROVED || status === MatchSuggestionStatus.SECOND_PARTY_DECLINED ? { secondPartyResponded: new Date() } : {}),
         },
       });
+
+      // Handle FIRST_PARTY_INTERESTED status - auto-assign rank and timestamp
+      if (status === 'FIRST_PARTY_INTERESTED') {
+        // Find the highest existing rank for this user
+        const highestRank = await tx.matchSuggestion.findFirst({
+          where: {
+            firstPartyId: suggestion.firstPartyId,
+            status: 'FIRST_PARTY_INTERESTED',
+            id: { not: suggestionId }, // exclude current suggestion
+          },
+          orderBy: { firstPartyRank: 'desc' },
+          select: { firstPartyRank: true },
+        });
+
+        const nextRank = (highestRank?.firstPartyRank ?? 0) + 1;
+
+        await tx.matchSuggestion.update({
+          where: { id: suggestionId },
+          data: {
+            firstPartyRank: nextRank,
+            firstPartyInterestedAt: new Date(),
+          },
+        });
+      }
+
+      // Handle transition from INTERESTED to APPROVED - clean up rank
+      if (
+        status === 'FIRST_PARTY_APPROVED' &&
+        suggestion.status === 'FIRST_PARTY_INTERESTED'
+      ) {
+        await tx.matchSuggestion.update({
+          where: { id: suggestionId },
+          data: {
+            firstPartyRank: null,
+            firstPartyResponded: new Date(),
+          },
+        });
+
+        // Re-rank remaining INTERESTED suggestions to close gaps
+        const remainingInterested = await tx.matchSuggestion.findMany({
+          where: {
+            firstPartyId: suggestion.firstPartyId,
+            status: 'FIRST_PARTY_INTERESTED',
+          },
+          orderBy: { firstPartyRank: 'asc' },
+          select: { id: true },
+        });
+
+        // Re-rank: 1, 2, 3, ...
+        for (let i = 0; i < remainingInterested.length; i++) {
+          await tx.matchSuggestion.update({
+            where: { id: remainingInterested[i].id },
+            data: { firstPartyRank: i + 1 },
+          });
+        }
+      }
 
       // Add status history record
       await tx.suggestionStatusHistory.create({

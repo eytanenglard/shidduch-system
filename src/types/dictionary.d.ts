@@ -1,10 +1,10 @@
 // src/types/dictionary.d.ts
 import type { MatchmakerPageDictionary } from './dictionaries/matchmaker';
-import { WORLD_KEYS } from '@/components/profile/constants'; 
+import { WORLD_KEYS } from '@/components/profile/constants';
 import type { AuthDictionary } from './dictionaries/auth';
 import type { WorldId } from '@/components/questionnaire/types/types';
 import type { EmailDictionary } from './dictionaries/email';
-import { MatchSuggestionStatus } from '@prisma/client'; 
+import { MatchSuggestionStatus } from '@prisma/client';
 import type { AdminDictionary } from './dictionaries/admin';
 
 // --- Navbar ---
@@ -17,10 +17,11 @@ export type NavbarDict = {
   engagementDashboard: string;
   register: string;
   toQuestionnaire: string;
-    matchmakerSuggestions: string;
+  matchmakerSuggestions: string;
   matchmakerClients: string;
   potentialMatches: string;
 };
+
 // --- User Dropdown ---
 export type UserDropdownDict = {
   openMenuAriaLabel: string;
@@ -31,12 +32,11 @@ export type UserDropdownDict = {
   signOut: string;
 };
 
-
 // --- Hero Section ---
 export type PrincipleDict = {
   title: string;
   shortTitle: string;
-  description:string;
+  description: string;
 };
 
 export type HeroSectionDict = {
@@ -93,7 +93,6 @@ export type WorldDict = {
   personalExample: string;
   insight: string;
 };
-
 
 export type OurMethodDict = {
   constellation: {
@@ -160,15 +159,14 @@ export type HowItWorksDict = {
     button: string;
     features: string;
   };
-    suggestionDemo: SuggestionDemoDict;
+  suggestionDemo: SuggestionDemoDict;
 };
-
 
 export type StickyNavDict = {
   homepageAriaLabel: string;
   signUpButton: string;
-  toQuestionnaireButton: string;  // ← חדש
-  signInLink: string;              // ← חדש
+  toQuestionnaireButton: string;
+  signInLink: string;
   mobileTitle?: string;
   closeNavAriaLabel: string;
   openNavAriaLabel: string;
@@ -320,18 +318,20 @@ export type CookieBannerDict = {
 };
 
 // ======================================================================== //
-// ✨ START: NEW TYPES FOR SUGGESTIONS FEATURE ✨
+// ✨ START: TYPES FOR SUGGESTIONS FEATURE ✨
 // ======================================================================== //
 
 export type SuggestionsCardDict = {
-   toasts: {
+  toasts: {
     approveDisabledTitle: string;
     approveDisabledDescription: string;
-   }
-   suggestedBy: string;
+    interestedTitle: string;
+    interestedDescription: string;
+  };
+  suggestedBy: string;
   yourTurn: string;
   urgent: string;
-  viewDetailsAria: string; // e.g., "View full details for {{name}}"
+  viewDetailsAria: string;
   whySpecial: string;
   reasonTeaserDefault: string;
   clickForDetails: string;
@@ -339,10 +339,13 @@ export type SuggestionsCardDict = {
     decline: string;
     approve: string;
     approveDisabledTooltip: string;
+    interested: string;
+    activateNow: string;
+    removeFromList: string;
     askMatchmaker: string;
     viewDetails: string;
   };
-    statusIndicator: {
+  statusIndicator: {
     yourTurn: string;
     waitingForYou: string;
     matchmaker: string;
@@ -350,11 +353,16 @@ export type SuggestionsCardDict = {
     secondParty: string;
     bothParties: string;
   };
+  statusLabels: {
+    interested: string;
+    pending: string;
+  };
   statusDescriptions: {
     [key: string]: string;
   };
-
-
+  partyIndicators: {
+    interestedSaved: string;
+  };
 };
 
 export type SuggestionsModalDict = {
@@ -364,7 +372,7 @@ export type SuggestionsModalDict = {
     subtitleLine2: string;
     suggestedBy: string;
     discoverMore: string;
-    ageInYears: string; // e.g., "{{age}} years old"
+    ageInYears: string;
     matchStoryTitle: string;
     matchStorySubtitle1: string;
     matchStorySubtitle2: string;
@@ -418,8 +426,6 @@ export type SuggestionsModalDict = {
     button: string;
   };
 };
-
-// No changes needed in SuggestionsDictionary, as SuggestionsModalDict is already there.
 
 export type AiAnalysisDict = {
   dialogTitle: string;
@@ -492,8 +498,8 @@ export type SuggestionsListDict = {
     clearAll: string;
   };
   resultsCount: {
-    showingSingle: string; // e.g., "Showing {{count}} suggestion of {{total}}"
-    showingMultiple: string; // e.g., "Showing {{count}} suggestions of {{total}}"
+    showingSingle: string;
+    showingMultiple: string;
     qualityMatches: string;
   };
 };
@@ -522,12 +528,15 @@ export type SuggestionsContainerDict = {
       urgent: string;
       history: string;
     };
-    errorLoading: string; // e.g., "An error occurred: {error}"
+    errorLoading: string;
     unknownError: string;
   };
   dialogs: {
     approveTitle: string;
     declineTitle: string;
+    interestedTitle: string;
+    interestedDescription: string;
+    confirmInterested: string;
     approveDescription: string;
     declineDescription: string;
     cancel: string;
@@ -540,7 +549,7 @@ export type SuggestionsContainerDict = {
     newSuggestionsTitle: string;
     newSuggestionsDescription: string;
     statusUpdateSuccess: string;
-    statusUpdateError: string; // e.g., "Error updating status: {error}"
+    statusUpdateError: string;
     approvedSuccess: string;
     approvedFirstPartyDesc: string;
     approvedSecondPartyDesc: string;
@@ -549,8 +558,37 @@ export type SuggestionsContainerDict = {
     matchmakerNotified: string;
     refreshSuccessTitle: string;
     refreshSuccessDescription: string;
+    interestedSuccess: string;
+    interestedSuccessDesc: string;
+    activateSuccess: string;
+    activateSuccessDesc: string;
+    removeFromListSuccess: string;
+  };
+  dailySuggestion: {
+    badge: string;
+    badgeTooltip: string;
+    systemMatchmaker: string;
+    systemMatchmakerShort: string;
+    matchingNote: string;
+    basedOnLearning: string;
+    aiPowered: string;
+    cardTitle: string;
+    cardSubtitle: string;
+    noSuggestionToday: string;
+    score: string;
+    reminderTitle: string;
+    reminderSubject: string;
+    reminderBody: string;
+    reminderCta: string;
+    emailSubject: string;
+    emailNote: string;
+    emptyTitle: string;
+    emptyDescription: string;
+    howItWorks: string;
+    howItWorksText: string;
   };
 };
+
 export type ChatTabDict = {
   title: string;
   header: string;
@@ -567,6 +605,7 @@ export type ChatTabDict = {
     partyB: string;
   };
 };
+
 export type MatchmakerMessagesPageDict = {
   header: {
     title: string;
@@ -607,82 +646,14 @@ export type MatchmakerMessagesPageDict = {
   };
 };
 
-// This is the main type for the new modular dictionary
-export type SuggestionsDictionary = {
-  container: SuggestionsContainerDict;
-  card: SuggestionsCardDict;
-  modal: SuggestionsModalDict;
-  aiAnalysis: AiAnalysisDict;
-  list: SuggestionsListDict;
-  presentation: SuggestionsPresentationDict;
-    quickView: SuggestionsQuickViewDict; 
-  compatibility: SuggestionsCompatibilityDict; // <-- Add this line
-  askMatchmaker: AskMatchmakerDict; // <-- Add this line
-  inquiryThread: InquiryThreadDict; // <-- Add this line
-  timeline: SuggestionTimelineDict; // <-- Add this line
-
-};
-
-// ======================================================================== //
-// ✨ END: NEW TYPES FOR SUGGESTIONS FEATURE ✨
-// ======================================================================== //
-
-// --- The COMPLETE Dictionary Type for the entire app ---
-export type Dictionary = {
-  // Keys from the main dictionary
-  navbar: NavbarDict;
-  userDropdown: UserDropdownDict;
-  stickyNav: StickyNavDict;
-  heroSection: HeroSectionDict;
-  valueProposition: ValuePropositionDict;
-  ourMethod: OurMethodDict;
-  howItWorks: HowItWorksDict;
-  matchmakerTeam: MatchmakerTeamDict;
-  successStories: SuccessStoriesDict;
-  faq: FaqDict;
-  privacyAssurance: PrivacyAssuranceDict;
-  cta: CtaDict;
-  footer: FooterDict;
-  chatWidget: ChatWidgetDict;
-  cookieBanner: CookieBannerDict;
-    metadata: MetadataDict;
-      questionnaire: QuestionnaireDictionary; 
-  email: EmailDictionary;
-
-  demoProfileCard: DemoProfileCardDict;
-  unsavedChangesModal: UnsavedChangesModalDict;
-metadata: MetadataDict
-  // New, namespaced key for the modular dictionary
-  suggestions: SuggestionsDictionary;
-  profilePage: ProfilePageDictionary;
-    matchmakerPage: MatchmakerPageDictionary;
-  auth: AuthDictionary; // <--- 2. הוספת המפתח והטיפוס החדש
-contactPage: ContactPageDict;
-  feedbackWidget: FeedbackWidgetDict; // <--- הוסף את השורה הזו
-  messagesPage: MessagesPageDict; // <-- הוספנו את המפתח החדש
-admin: AdminDictionary; 
-neshmaInsight: NeshmaInsightDict;  
-};
-export type {
-  SuggestionsDictionary,
-  QuestionnaireDictionary,
-  ProfilePageDictionary,
-  MatchmakerPageDictionary,
-  AuthDictionary,   // <-- הוסף שורה זו
-  EmailDictionary,  // <-- והוסף שורה זו
-  ChatTabDict,                    // ← חדש
-  MatchmakerMessagesPageDict,     // ← חדש
-
-};
-
 export type SuggestionsPresentationDict = {
   hero: {
     title: string;
-    matchmakerThoughts: string; // e.g., "Thoughts from the matchmaker, {{name}}:"
+    matchmakerThoughts: string;
   };
   peek: {
     opportunity: string;
-    age: string; // e.g., ", {{age}}"
+    age: string;
     notSpecified: string;
     viewProfileButton: string;
   };
@@ -698,47 +669,20 @@ export type SuggestionsPresentationDict = {
     title: string;
     description: string;
   };
-  // Add this new object for the MatchmakerRationale component
   rationale: {
     title: string;
-    description: string; // e.g., "Thoughts from the matchmaker {{name}}"
+    description: string;
     personalNoteTitle: string;
     generalReasonTitle: string;
     noReasonText: string;
   };
 };
-export type MetadataDict = {
-  title: string;
-  description: string;
-  keywords: string[];
-  openGraph: {
-    title: string;
-    description: string;
-    url: string;
-    siteName: string;
-    images: {
-      url: string;
-      width: number;
-      height: number;
-      alt: string;
-    }[];
-    locale: string;
-    type: string;
-  };
-  twitter: {
-    card: string;
-    title: string;
-    description: string;
-    images: string[];
-  };
-};
-
 
 export type SuggestionsQuickViewDict = {
   unitCm: string;
   aboutTitle: string;
   reasonTitle: string;
-  deadlineText: string; // e.g., "Response needed by {{date}}"
+  deadlineText: string;
   buttons: {
     viewProfile: string;
     approve: string;
@@ -761,8 +705,8 @@ export type SuggestionsCompatibilityDict = {
     descriptionGood: string;
     descriptionModerate: string;
     descriptionChallenging: string;
-    progressText: string; // e.g., "{{compatibleCount}} of {{totalCount}} criteria match"
-    overallScoreLabel: string; // e.g., "Overall Score: {{score}}%"
+    progressText: string;
+    overallScoreLabel: string;
   };
   categoryTitles: {
     basic: string;
@@ -770,8 +714,8 @@ export type SuggestionsCompatibilityDict = {
     values: string;
     preferences: string;
   };
-  categorySubtitle: string; // e.g., "{{compatibleCount}} of {{totalCount}} compatible"
-  compatibilityLabel: string; // "Compatibility"
+  categorySubtitle: string;
+  compatibilityLabel: string;
   importance: {
     high: string;
     medium: string;
@@ -791,8 +735,8 @@ export type SuggestionsCompatibilityDict = {
     language: string;
   };
   reasons: {
-    mutualMatch: string; // "Mutual match in {{criterion}} expectations"
-    mismatch: string; // "Mismatch in {{criterion}} expectations"
+    mutualMatch: string;
+    mismatch: string;
     sameOrigin: string;
     differentOrigin: string;
     sharedLanguage: string;
@@ -808,10 +752,9 @@ type QuestionTopicDict = {
   questions: string[];
 };
 
-// Add this new type definition before the SuggestionsDictionary type
 export type AskMatchmakerDict = {
-  title: string; // "Question for {{name}}" or "Question for the Matchmaker"
-  titleDefault: string; // "Question for the Matchmaker"
+  title: string;
+  titleDefault: string;
   description: string;
   statusBadge: string;
   errorSubmitting: string;
@@ -820,12 +763,12 @@ export type AskMatchmakerDict = {
     subtitle: string;
   };
   sampleQuestions: {
-    title: string; // "Sample Questions - {{topic}}"
+    title: string;
   };
   input: {
     label: string;
     placeholder: string;
-    charCount: string; // "{{count}}/500 characters"
+    charCount: string;
     info: string;
   };
   buttons: {
@@ -861,7 +804,7 @@ export type InquiryThreadDict = {
   composer: {
     label: string;
     placeholder: string;
-    charCount: string; // e.g., "{{count}}/500"
+    charCount: string;
     sendButton: string;
     sendingButton: string;
   };
@@ -880,6 +823,7 @@ export type InquiryThreadDict = {
   };
   invalidDate: string;
 };
+
 export type SuggestionTimelineDict = {
   title: string;
   subtitle: string;
@@ -902,38 +846,52 @@ export type SuggestionTimelineDict = {
   };
 };
 
-export type MatchSuggestionStatus = 
-  | 'DRAFT' | 'PENDING_FIRST_PARTY' | 'FIRST_PARTY_APPROVED' | 'FIRST_PARTY_DECLINED'
-  | 'PENDING_SECOND_PARTY' | 'SECOND_PARTY_APPROVED' | 'SECOND_PARTY_DECLINED'
-  | 'AWAITING_MATCHMAKER_APPROVAL' | 'CONTACT_DETAILS_SHARED' | 'AWAITING_FIRST_DATE_FEEDBACK'
-  | 'THINKING_AFTER_DATE' | 'PROCEEDING_TO_SECOND_DATE' | 'ENDED_AFTER_FIRST_DATE'
-  | 'MEETING_PENDING' | 'MEETING_SCHEDULED' | 'MATCH_APPROVED' | 'MATCH_DECLINED'
-  | 'DATING' | 'ENGAGED' | 'MARRIED' | 'EXPIRED' | 'CLOSED' | 'CANCELLED';
+export type MatchSuggestionStatus =
+  | 'DRAFT'
+  | 'PENDING_FIRST_PARTY'
+  | 'FIRST_PARTY_APPROVED'
+  | 'FIRST_PARTY_DECLINED'
+  | 'PENDING_SECOND_PARTY'
+  | 'SECOND_PARTY_APPROVED'
+  | 'SECOND_PARTY_DECLINED'
+  | 'AWAITING_MATCHMAKER_APPROVAL'
+  | 'CONTACT_DETAILS_SHARED'
+  | 'AWAITING_FIRST_DATE_FEEDBACK'
+  | 'THINKING_AFTER_DATE'
+  | 'PROCEEDING_TO_SECOND_DATE'
+  | 'ENDED_AFTER_FIRST_DATE'
+  | 'MEETING_PENDING'
+  | 'MEETING_SCHEDULED'
+  | 'MATCH_APPROVED'
+  | 'MATCH_DECLINED'
+  | 'DATING'
+  | 'ENGAGED'
+  | 'MARRIED'
+  | 'EXPIRED'
+  | 'CLOSED'
+  | 'CANCELLED';
 
-
-  export type DemoProfileCardDict = {
-  tabs: {
-    essence: string;
-    story: string;
-    vision: string;
-  };
-  vision: {
-    q1: string;
-    a1: string;
-    q2: string;
-    a2: string;
-  };
-  ctaButton: string;
-  imageNav: {
-    prev: string;
-    next: string;
-    showImage: string; // e.g., "Show image number {{number}}"
-  };
-  tablistLabel: string;
+// This is the main type for the modular suggestions dictionary
+export type SuggestionsDictionary = {
+  container: SuggestionsContainerDict;
+  card: SuggestionsCardDict;
+  modal: SuggestionsModalDict;
+  aiAnalysis: AiAnalysisDict;
+  list: SuggestionsListDict;
+  presentation: SuggestionsPresentationDict;
+  quickView: SuggestionsQuickViewDict;
+  compatibility: SuggestionsCompatibilityDict;
+  askMatchmaker: AskMatchmakerDict;
+  inquiryThread: InquiryThreadDict;
+  timeline: SuggestionTimelineDict;
 };
 
 // ======================================================================== //
-// ✨ START: NEW TYPES FOR QUESTIONNAIRE FEATURE ✨
+// ✨ END: TYPES FOR SUGGESTIONS FEATURE ✨
+// ======================================================================== //
+
+// ======================================================================== //
+// ✨ START: TYPES FOR QUESTIONNAIRE FEATURE ✨
 // ======================================================================== //
 
 export type WorldIntroDict = {
@@ -943,7 +901,6 @@ export type WorldIntroDict = {
     estimatedTime: string;
     totalQuestions: string;
     requiredQuestions: string;
-    
   };
   statsValues: {
     minutes: string;
@@ -951,10 +908,7 @@ export type WorldIntroDict = {
   whyTitle: string;
   whatYouWillDiscoverTitle: string;
   startButton: string;
-
 };
-
-
 
 export type QuestionCardDict = {
   depthLabels: {
@@ -968,7 +922,7 @@ export type QuestionCardDict = {
     EXPERT: string;
   };
   requiredBadge: string;
-  estimatedTime: string; // e.g., "{{minutes}} min left"
+  estimatedTime: string;
   benefitMessages: string[];
   encouragementMessage: string;
   tooltips: {
@@ -997,7 +951,6 @@ export type QuestionCardDict = {
   };
 };
 
-
 export type QuestionnaireCompletionDict = {
   title: string;
   loggedInDescription: string;
@@ -1012,13 +965,12 @@ export type QuestionnaireCompletionDict = {
   guestContent: {
     loginButton: string;
   };
-  // --- New Fields ---
   stats: {
     completion: string;
     answered: string;
     time: string;
   };
-  unlocksTitle: string; // e.g. "Achievements Unlocked"
+  unlocksTitle: string;
   achievements: {
     completed: {
       title: string;
@@ -1026,7 +978,7 @@ export type QuestionnaireCompletionDict = {
     };
     speed: {
       title: string;
-      description: string; // Placeholder: {{minutes}}
+      description: string;
     };
     profile: {
       title: string;
@@ -1049,10 +1001,10 @@ export type MatchmakingQuestionnaireDict = {
     worldProgressSaved: string;
     worldProgressSavedBrowser: string;
     worldCompletionError: string;
-    worldFinished: string; // e.g., "Well done! You completed {{worldName}} world"
-    allWorldsFinished: string; // --- New ---
+    worldFinished: string;
+    allWorldsFinished: string;
     submitSuccess: string;
-    nextWorldAction: string; // "Continue to {{name}}"
+    nextWorldAction: string;
   };
   errors: {
     invalidSubmission: string;
@@ -1069,12 +1021,11 @@ export type MatchmakingQuestionnaireDict = {
     logoutButton: string;
     stayActiveButton: string;
   };
-  lastSaved: string; // e.g., "Last saved: {{time}}"
+  lastSaved: string;
   loading: string;
   loadingSubtext: string;
   lastSavedIndicatorLabel: string;
 };
-
 
 export type QuestionnairePageDict = {
   loading: string;
@@ -1083,41 +1034,12 @@ export type QuestionnairePageDict = {
   completionError: string;
 };
 
-// Main dictionary for the questionnaire feature
-export type QuestionnaireDictionary = {
-  worldIntro: WorldIntroDict;
-  questionCard: QuestionCardDict;
-    worlds: Record<WorldId, { title: string; description: string }>; // <--- הוסף מפתח זה לנוחות
-
-  completion: QuestionnaireCompletionDict;
-  matchmaking: MatchmakingQuestionnaireDict;
-  page: QuestionnairePageDict;
-    landingPage: QuestionnaireLandingPageDict; // <-- הוספה
-  worldsMap: WorldsMapDict; // <-- הוספה
-   layout: QuestionnaireLayoutDict;
-  world: WorldComponentDict;
-    answerInput: AnswerInputDict;
-  interactiveScale: InteractiveScaleDict;
-  faq: QuestionnaireFaqDict; // <-- הוספה
-  accessibilityFeatures: AccessibilityFeaturesDict; // <-- הוספה
-  questionnaireProgress: QuestionnaireProgressDict; // <-- הוספה
-  userStats: UserStatsDict; // <-- הוספה
-  questionnaireRestore: QuestionnaireRestoreDict; // <-- הוספה
-  questionnaireCompletePage: QuestionnaireCompletePageDict; // <-- הוספה
-  questionsList: QuestionsListDict; // <-- הוספה
-  matchResultCard: MatchResultCardDict; // <-- הוספה
-  questions: QuestionsDictionary; // <--- הוספת המפתח החדש
-
-  // Add other component dictionaries here as needed
-};
-
 export type QuestionsListDict = {
   depthLabels: {
     BASIC: string;
     ADVANCED: string;
     EXPERT: string;
   };
-  // --- New Fields ---
   stats: {
     answeredQuestions: string;
     complete: string;
@@ -1137,11 +1059,6 @@ export type QuestionsListDict = {
   };
 };
 
-// ======================================================================== //
-// ✨ END: NEW TYPES FOR QUESTIONNAIRE FEATURE ✨
-// ======================================================================== //
-
-// START: Additions for QuestionnaireComplete.tsx
 export type QuestionnaireCompletePageDict = {
   loading: string;
   title: string;
@@ -1150,10 +1067,7 @@ export type QuestionnaireCompletePageDict = {
   profilePrompt: string;
   continueButton: string;
 };
-// END: Additions for QuestionnaireComplete.tsx
 
-
-// START: Additions for QuestionnaireRestore.tsx
 export type QuestionnaireRestoreDict = {
   loading: string;
   restoringTitle: string;
@@ -1161,17 +1075,15 @@ export type QuestionnaireRestoreDict = {
   error: string;
   backButton: string;
 };
-// END: Additions for QuestionnaireRestore.tsx
 
-// START: Additions for UserStats.tsx
 export type UserStatsDict = {
   matchStatsCard: {
     title: string;
     activeMatches: string;
     pendingMatches: string;
     matchScore: string;
-    daysActive: string; // Placeholder: {{days}}
-    joinDate: string; // Placeholder: {{date}}
+    daysActive: string;
+    joinDate: string;
   };
   profileProgressCard: {
     title: string;
@@ -1185,7 +1097,7 @@ export type UserStatsDict = {
     title: string;
   };
   tooltips: {
-    traitScore: string; // Placeholder: {{score}}
+    traitScore: string;
   };
   common: {
     notAvailable: string;
@@ -1199,396 +1111,14 @@ export type UserStatsDict = {
     low: string;
   };
 };
-// END: Additions for UserStats.tsx
 
-// src/types/dictionary.d.ts
-
-// --- טיפוסים חדשים עבור עמוד הפרופיל ---
-
-export type ProfileChecklistDict = {
-  welcome: string; // Placeholder: {{firstName}}
-  welcome_female?: string; // הוסף את השורה הזו
-  allComplete: string; // Placeholder: {{firstName}}
-  allComplete_female?: string; // הוסף את השורה הזו```
-  welcomeSubtitle: string;
-  allCompleteSubtitle: string;
-    checklistPurpose: string; // ✨ הוסף שורה זו
-
-  completionLabel: string;
-  expandLabel: string;
-  minimizeLabel: string;
-  missingItemsTitle: string;
-  tasks: {
-    photos: {
-      title: string;
-      description:string;
-      missing: string; // Placeholder: {{count}}
-    };
-    personalDetails: {
-      title: string;
-      description: string;
-    };
-    partnerPreferences: {
-      title: string;
-      description: string;
-    };
-    questionnaire: {
-      title: string;
-      description: string;
-    };
-    review: {
-      title: string;
-      description: string;
-      missing: string;
-    };
-  };
-  missingItems: { [key: string]: string }; // <-- הוסף שורה זו
-privacyNote?: string; // הערת פרטיות בצ'קליסט
-};
-export type PhotosSectionDict = {
-  title: string;
-  subtitle: string; // Placeholder: {{maxImages}}
-  uploadingMultiple: string; // Placeholder: {{count}}
-  selectForDeletion: string;
-  uploadButton: string;
-  selectionHeader: string; // Placeholder: {{count}}
-  deselectAll: string;
-  selectAll: string;
-  deleteSelected: string;
-  setAsMainTooltip: string;
-  deleteTooltip: string;
-  mainBadge: string;
-  uploadPlaceholder: {
-    title: string;
-    remaining: string; // Placeholder: {{count}}
-    prompt: string;
-  };
-  uploadingPlaceholder: string;
-  emptyState: {
-    title: string;
-    description: string;
-  };
-  emptyStateDisabled: {
-    title: string;
-  };
-  deleteDialog: {
-    title: string;
-    description: string;
-    cancel: string;
-    confirm: string;
-  };
-  imageViewer: {
-    closeLabel: string;
-    altText: string; // Placeholder: {{index}}
-    prevLabel: string;
-    nextLabel: string;
-    setMainButton: string;
-    deleteButton: string;
-    counter: string; // Placeholders: {{current}}, {{total}}
-  };
-  toasts: {
-    maxImagesError: string;
-    slotsError: string; // Placeholder: {{count}}
-    invalidFileTypeError: string; // Placeholder: {{fileName}}
-    fileTooLargeError: string; // Placeholder: {{fileName}}
-    uploadSuccess: string; // Placeholder: {{count}}
-    uploadError: string;
-    selectOneError: string;
-    bulkDeleteSuccess: string; // Placeholder: {{count}}
-    bulkDeleteError: string;
-    singleDeleteSuccess: string;
-    singleDeleteError: string;
-    setMainSuccess: string;
-    setMainError: string;
-  };
-  confirmations: {
-    bulkDelete: string; // Placeholder: {{count}}
-  };
-  privacyNote?: string; // הערת פרטיות לתמונות
-};
-
-
-export type AIAdvisorDialogDict = {
-  triggerButton: string;
-  dialogTitle: string;
-  dialogDescription: string;
-  closeButton: string;
-  loadingTitle: string;
-  loadingDescription: string;
-  // שדות ייעודיים לאלרט השגיאה שמופיע בתוך הדיאלוג
-  errorAlertTitle: string; 
-  errorAlertDescription: string;
-  retryButton: string;
-  initialState: string;
-  // אובייקט ייעודי להודעות ה-toast שקופצות
-  toast: {
-    errorTitle: string;
-    errorDescription: string; // Placeholder: {{error}}
-  };
-};
-
-
-export type AnalysisResultDisplayDict = {
-  tabs: {
-    summary: string;
-    completeness: string;
-    tips: string;
-  };
-  summary: {
-    myPersonalityTitle: string;
-    myPersonalityDescription: string;
-    lookingForTitle: string;
-    lookingForDescription: string;
-  };
-  completeness: {
-    title: string;
-    description: string;
-    status: {
-      complete: string;
-      partial: string;
-      missing: string;
-    };
-  };
-  tips: {
-    title: string;
-    description: string;
-  };
-};
-
-export type NeshamaInsightButtonDict = {
-  buttonText: string;
-  buttonSubtitle: string;
-  dialogTitle: string;
-  generating: string;
-  downloadPdf: string;
-  close: string;
-  lockedTitle: string;
-  lockedDescription: string; // Placeholder: {{percentage}}
-  alreadyGeneratedToday: string;
-  minimizedButtonText: string;
-};
-
-// 2. עדכן את הטיפוס UnifiedProfileDashboardDict כך שיכיל את כל השדות החדשים
-export type UnifiedProfileDashboardDict = {
-  // הודעות כלליות וסטטוסים
-  loadingData: string;
-  loadError: string; // Placeholder: {{error}}
-  updateSuccess: string;
-  updateError: string; // Placeholder: {{error}}
-  
-  // כפתור ודיאלוג תצוגה מקדימה
-  previewButton: string;
-  previewLoading: string;
-  viewedPreviewSuccess: string;
-  viewedPreviewError: string;
-  
-  // טאבים
-  tabs: {
-    overview: string;
-    photos: string;
-    preferences: string;
-    questionnaire: string;
-  };
-
-  // תוכן הטאבים (מצבי טעינה וריק)
-  tabContent: {
-    loadingOverview: string;
-    loadingPreferences: string;
-    loadingQuestionnaire: string;
-    noQuestionnaire: string;
-    fillQuestionnaireLink: string;
-    questionnaireUpdateSuccess: string;
-    questionnaireUpdateError: string;
-  };
-
-  // באנרים של פרטיות
-  privacyAssurances: {
-    banner: {
-      text: string;
-      subtext: string;
-    };
-    preview: string;
-  };
-
-  // רכיבים פנימיים (הפניות לטיפוסים שקיימים או שהוספת)
-  checklist: ProfileChecklistDict;
-  aiAdvisor: AIAdvisorDialogDict;
-  analysisResult: AnalysisResultDisplayDict;
-  neshmaInsightButton: NeshamaInsightButtonDict; // <-- החדש שהוספנו
-};
-
-export type PreferencesSectionDict = {
-  header: {
-    title: string;
-    subtitleEdit: string;
-    subtitleView: string;
-  };
-  buttons: {
-    edit: string;
-    cancel: string;
-    save: string;
-    saveChanges: string;      // ✨ חדש
-    unsavedChanges: string;   // ✨ חדש
-    editHint: string;         // ✨ חדש
-  };
-  cards: {
-    general: {
-      title: string;
-      notesLabel: string;
-      notesTooltip: string;
-      notesPlaceholder: string;
-      notesEmpty: string;
-      contactPreferenceLabel: string;
-      contactPreferencePlaceholder: string;
-      contactPreferenceEmpty: string;
-    };
-    ageAndHeight: {
-      title: string;
-      ageLegend: string;
-      ageTooltip: string;
-      ageMinPlaceholder: string;
-      ageMaxPlaceholder: string;
-      ageEmpty: string;
-      heightLegend: string;
-      heightMinPlaceholder: string;
-      heightMaxPlaceholder: string;
-      heightEmpty: string;
-    };
-    locationAndReligion: {
-      title: string;
-      locationsLabel: string;
-      locationsPlaceholder: string;
-      locationsRemoveLabel: string; // Placeholder: {{loc}}
-      locationsEmpty: string;
-      religiousLevelsLegend: string;
-      religiousLevelsTooltip: string;
-      religiousLevelsEmpty: string;
-      religiousJourneysLegend: string;
-      religiousJourneysEmpty: string;
-      shomerNegiahLabel: string;
-      shomerNegiahPlaceholder: string;
-      headCoveringLegend: string;
-      headCoveringEmpty: string;
-      kippahTypeLegend: string;
-      kippahTypeEmpty: string;
-    };
-    educationAndCareer: {
-      title: string;
-      educationLegend: string;
-      educationEmpty: string;
-      occupationLegend: string;
-      occupationEmpty: string;
-      serviceTypeLegend: string;
-      serviceTypeEmpty: string;
-    };
-    personalBackground: {
-      title: string;
-      maritalStatusLegend: string;
-      maritalStatusEmpty: string;
-      partnerHasChildrenLabel: string;
-      partnerHasChildrenPlaceholder: string;
-      originLegend: string;
-      originPlaceholder: string;
-      originRemoveLabel: string; // Placeholder: {{origin}}
-      originEmpty: string;
-      aliyaStatusLabel: string;
-      aliyaStatusPlaceholder: string;
-    };
-    characterAndInterests: {
-      title: string;
-      traitsLegend: string;
-      traitsEmpty: string;
-      hobbiesLegend: string;
-      hobbiesEmpty: string;
-    };
-  };
-  options: {
-    // We will store all select/multi-select options here
-    contactPreference: { direct: string; matchmaker: string; both: string; };
-    religiousLevels: { [key: string]: string };
-    religiousJourneys: { [key: string]: string };
-    shomerNegiah: { yes: string; no: string; flexible: string; };
-    education: { [key: string]: string };
-    occupation: { [key: string]: string };
-    serviceTypes: { [key: string]: string };
-    headCovering: { [key: string]: string };
-    kippahType: { [key: string]: string };
-    maritalStatus: { [key: string]: string };
-    partnerHasChildren: { yes_ok: string; no_preferred: string; does_not_matter: string; };
-    aliyaStatus: { oleh: string; tzabar: string; no_preference: string; };
-    origins: { [key: string]: string };
-    traits: { [key: string]: string };
-    hobbies: { [key: string]: string };
-  };
-};
-export type FaqAnswerPart = {
-  type: 'p' | 'list' | 'tip' | 'info' | 'star' | 'alert';
-  title?: string;
-  content: string | string[];
-};
-
-
-type FaqItemDict = {
-  question: string;
-  answer: FaqAnswerPart[];
-};
-
-export type QuestionnaireFaqDict = {
-  title: string;
-  subtitle: string;
-  searchPlaceholder: string;
-  popularBadge: string;
-  emptyState: string;
-  categories: {
-    all: string;
-    process: string;
-    technical: string;
-    privacy: string;
-    results: string;
-    general: string;
-  };
-  items: {
-    'save-progress': FaqItemDict;
-    'time-to-complete': FaqItemDict;
-    'required-questions': FaqItemDict;
-    'how-matching-works': FaqItemDict;
-    'privacy-info': FaqItemDict;
-    'edit-answers': FaqItemDict;
-    'match-percentage': FaqItemDict;
-    'incomplete-questionnaire': FaqItemDict;
-    'inactive-account': FaqItemDict;
-  };
-};
-// END: Additions for FAQ.tsx
-
-// --- טיפוס-על המאגד את כל מילוני הפרופיל ---
-export type ProfilePageDictionary = {
-  pageLoader: string;
-  dashboard: UnifiedProfileDashboardDict;
-    photosSection: PhotosSectionDict; // הוספת הטיפוס החדש
-  preferencesSection: PreferencesSectionDict; // הוספת הטיפוס החדש
-  profileSection: ProfileSectionDict; // This line is added
-  profileCard: ProfileCardDict; // This line is added
-  minimalCard: MinimalCardDict;
-  statsCard: StatsCardDict;
-  visibilityControl: VisibilityControlDict;
-  budgetDisplay: BudgetDisplayDict;
-  utils: ProfileUtilsDict;
-    questionnaireSection: QuestionnaireSectionDictionary;
-  availabilityStatus: AvailabilityStatusDict;
-  accountSettings: AccountSettingsDict;
-
-  // כאן יתווספו מילונים עבור רכיבים נוספים כמו ProfileSection, PreferencesSection וכו'
-};
-
-// START: Additions for QuestionnaireProgress.tsx
 type AchievementDict = {
   name: string;
   description: string;
 };
 
 export type QuestionnaireProgressDict = {
-        worldLabels: Record<WorldId, string>;
+  worldLabels: Record<WorldId, string>;
   mobile: {
     title: string;
     totalLabel: string;
@@ -1606,7 +1136,7 @@ export type QuestionnaireProgressDict = {
     tooltip: {
       progressInfoTitle: string;
       progressInfoDesc: string;
-      completionDetails: string; // Placeholder: {{answered}}, {{total}}
+      completionDetails: string;
     };
     accordion: {
       recommendations: string;
@@ -1616,7 +1146,7 @@ export type QuestionnaireProgressDict = {
   statusBadge: {
     complete: string;
     started: string;
-    progress: string; // Placeholder: {{progress}}
+    progress: string;
   };
   timeStrings: {
     lessThanAMinute: string;
@@ -1624,14 +1154,14 @@ export type QuestionnaireProgressDict = {
     hours: string;
     and: string;
     savedNow: string;
-    savedMinutesAgo: string; // Placeholder: {{minutes}}
-    savedHoursAgo: string; // Placeholder: {{hours}}
-    savedAtTime: string; // Placeholder: {{time}}
+    savedMinutesAgo: string;
+    savedHoursAgo: string;
+    savedAtTime: string;
   };
   rewards: {
     title: string;
     achievedText: string;
-    moreToGo: string; // Placeholder: {{count}}
+    moreToGo: string;
     prompt: string;
     achievements: {
       goal: AchievementDict;
@@ -1650,14 +1180,12 @@ export type QuestionnaireProgressDict = {
     ctaButton: string;
   };
   timeBreakdown: {
-    title: string; // Placeholder: {{timeLeft}}
+    title: string;
     subtitle: string;
     statusCompleted: string;
-    timePerWorld: string; // Placeholder: {{time}}
+    timePerWorld: string;
   };
 };
-// END: Additions for QuestionnaireProgress.tsx
-
 
 type WorldInfoDict = {
   title: string;
@@ -1677,7 +1205,7 @@ export type QuestionnaireLandingPageDict = {
   };
   cta: {
     continue: string;
-    startAsUser: string; // Placeholder: {{name}}
+    startAsUser: string;
     startDefault: string;
     login: string;
   };
@@ -1712,7 +1240,6 @@ export type QuestionnaireLandingPageDict = {
   worldsSection: {
     title: string;
     subtitle: string;
-    // Using explicit keys to ensure type safety
     worlds: {
       PERSONALITY: WorldInfoDict;
       VALUES: WorldInfoDict;
@@ -1720,7 +1247,7 @@ export type QuestionnaireLandingPageDict = {
       PARTNER: WorldInfoDict;
       RELIGION: WorldInfoDict;
     };
-    worldLabel: string; // Placeholder: {{number}}
+    worldLabel: string;
   };
   featuresSection: {
     title: string;
@@ -1738,29 +1265,28 @@ export type QuestionnaireLandingPageDict = {
     assurance: string;
   };
   footer: {
-    copyright: string; // Placeholder: {{year}}
+    copyright: string;
   };
 };
 
-
-
-export type WorldsMapWorldContent = {  title: string;
-  description: string; // החליף את 'subtitle'
+export type WorldsMapWorldContent = {
+  title: string;
+  description: string;
   whyIsItImportant: string;
-  benefits: string[]; // החליף את 'whatYouWillDiscover'
+  benefits: string[];
   guidingThought: string;
 };
 
 export type WorldsMapDict = {
   worldLabels: Record<WorldId, string>;
   progressHeader: {
-    greeting: string; // "Hi {{name}},"
-    greetingNoName: string; // "Hello," (New)
-    journeyQuestion: string; 
-    journeyTitle: string; // (New - for the title when no user name)
-    progressText: string; 
-    ctaButton: string; 
-    mapTitle: string; 
+    greeting: string;
+    greetingNoName: string;
+    journeyQuestion: string;
+    journeyTitle: string;
+    progressText: string;
+    ctaButton: string;
+    mapTitle: string;
     milestones: {
       start: string;
       onTrack: string;
@@ -1769,7 +1295,7 @@ export type WorldsMapDict = {
       completed: string;
     };
     nextStepTitle: string;
-    nextStepPrompt: string; 
+    nextStepPrompt: string;
     completionTitle: string;
     completionSubtitle: string;
   };
@@ -1780,13 +1306,13 @@ export type WorldsMapDict = {
   };
   worldCard: {
     discoverTitle: string;
-    questionsLabel: string; // (New) e.g. "questions"
-    minutesLabel: string;   // (New) e.g. "minutes"
-    worldNumberLabel: string; 
-    progressLabel: string; 
-    recommendedRibbon: string; 
-    expandButton: string; // (New) "What will you discover?"
-    benefitsTitle: string; // (New) "What you'll discover:"
+    questionsLabel: string;
+    minutesLabel: string;
+    worldNumberLabel: string;
+    progressLabel: string;
+    recommendedRibbon: string;
+    expandButton: string;
+    benefitsTitle: string;
     statuses: {
       completed: string;
       recommended: string;
@@ -1803,18 +1329,15 @@ export type WorldsMapDict = {
     };
   };
   completionBanner: {
-    title: string; 
-    titleNoName: string; // (New)
+    title: string;
+    titleNoName: string;
     subtitle: string;
     description: string;
-    statWorlds: string; 
-    statReport: string; 
+    statWorlds: string;
+    statReport: string;
   };
   worldsContent: Record<WorldId, WorldsMapWorldContent>;
 };
-
-
-
 
 export type QuestionnaireLayoutDict = {
   navHeader: string;
@@ -1825,20 +1348,20 @@ export type QuestionnaireLayoutDict = {
   };
   sidebarProgress: {
     title: string;
-    worldsLabel: string; // e.g., "{{completedCount}}/{{totalCount}} worlds"
+    worldsLabel: string;
     completionMessage: string;
   };
   navButtonStatus: {
     active: string;
     completed: string;
-    available: string; // e.g., "World {{order}}"
+    available: string;
   };
   saveButton: {
     default: string;
     saving: string;
     saved: string;
   };
-  lastSavedSuccess: string; // e.g., "Saved at {{time}}"
+  lastSavedSuccess: string;
   actionButtons: {
     review: string;
     exitToMap: string;
@@ -1880,8 +1403,6 @@ export type QuestionnaireLayoutDict = {
   };
 };
 
-
-
 export type WorldComponentDict = {
   header: {
     questionLabel: string;
@@ -1903,19 +1424,18 @@ export type WorldComponentDict = {
       };
     };
     overallProgress: string;
-    // --- New: Last saved messages for mobile header ---
     lastSaved: {
       now: string;
       minuteAgo: string;
-      minutesAgo: string; // {{count}}
-      hoursAgo: string; // {{count}}
+      minutesAgo: string;
+      hoursAgo: string;
     };
   };
   errors: {
     loadingFailedTitle: string;
     loadingFailedDescription: string;
     invalidQuestion: string;
-    noQuestionFound: string; // --- New ---
+    noQuestionFound: string;
     validation: {
       required: string;
       minLength: string;
@@ -1924,7 +1444,7 @@ export type WorldComponentDict = {
       maxSelections: string;
       budgetAllocation: string;
       budgetRequired: string;
-      generalRequired: string; // --- New: "Please answer all required (X/Y)" ---
+      generalRequired: string;
     };
   };
   buttons: {
@@ -1937,8 +1457,7 @@ export type WorldComponentDict = {
     finish: string;
     save: string;
     saving: string;
-    completing: string; // --- New ---
-    // --- New: Short labels for mobile ---
+    completing: string;
     prevShort: string;
     nextShort: string;
     finishShort: string;
@@ -1960,36 +1479,6 @@ export type WorldComponentDict = {
   };
 };
 
-
-
-export type AnalysisResultDisplayDict = {
-  tabs: {
-    summary: string;
-    completeness: string;
-    tips: string;
-  };
-  summary: {
-    // השמות הנכונים הם myPersonality...
-    myPersonalityTitle: string;
-    myPersonalityDescription: string;
-    lookingForTitle: string;
-    lookingForDescription: string;
-  };
-  completeness: {
-    title: string;
-    description: string;
-    status: {
-      complete: string;
-      partial: string;
-      missing: string;
-    };
-  };
-  tips: {
-    title: string;
-    description: string;
-  };
-
- };
 export type AnswerInputDict = {
   clearSelection: string;
   tooltips: {
@@ -2021,33 +1510,29 @@ export type AnswerInputDict = {
     minLengthInfoRecommended: string;
     estimatedTime: string;
     tipsButton: string;
-    // --- New Fields ---
-    wordCount: string; // e.g. "{{count}} words"
-    readingTime: string; // e.g. "{{count}} min read"
-    completionPercentage: string; // e.g. "{{count}}% complete"
-    writingGreat: string; // e.g. "Great writing! Keep going"
+    wordCount: string;
+    readingTime: string;
+    completionPercentage: string;
+    writingGreat: string;
   };
   budgetAllocation: {
     totalAllocated: string;
-    remaining: string; // Used for tooltips/labels
+    remaining: string;
     surplus: string;
     resetButton: string;
-    // --- New Fields ---
-    statusComplete: string; // "Budget complete!"
-    statusRemaining: string; // "Remaining to allocate: {{count}}"
-    statusExceeded: string; // "Exceeded by {{count}}"
+    statusComplete: string;
+    statusRemaining: string;
+    statusExceeded: string;
   };
   unsupportedType: string;
-  supportContactMessage: string; // New field
+  supportContactMessage: string;
 };
 
 export type InteractiveScaleDict = {
-  selectedValue: string; // e.g., "ערך נבחר: {{value}}"
-  ariaLabel: string; // e.g., "Scale value {{value}}"
+  selectedValue: string;
+  ariaLabel: string;
 };
 
-
-// START: Additions for AccessibilityFeatures.tsx
 type ContrastOptionDict = {
   label: string;
   description: string;
@@ -2099,55 +1584,434 @@ export type AccessibilityFeaturesDict = {
     soundEnabled: string;
   };
   toasts: {
-    settingUpdated: string; // Placeholder: {{settingName}}
+    settingUpdated: string;
     settingsReset: string;
     readerEnabled: string;
   };
 };
-// END: Additions for AccessibilityFeatures.tsx
-export interface NeshmaInsightDict {
-  badge: string;
-  title: {
-    part1: string;
-    highlight: string;
-    part2: string;
-  };
+
+export type FaqAnswerPart = {
+  type: 'p' | 'list' | 'tip' | 'info' | 'star' | 'alert';
+  title?: string;
+  content: string | string[];
+};
+
+type FaqItemDict = {
+  question: string;
+  answer: FaqAnswerPart[];
+};
+
+export type QuestionnaireFaqDict = {
+  title: string;
   subtitle: string;
-  chatHeader: {
-    name: string;
-    status: string;
+  searchPlaceholder: string;
+  popularBadge: string;
+  emptyState: string;
+  categories: {
+    all: string;
+    process: string;
+    technical: string;
+    privacy: string;
+    results: string;
+    general: string;
   };
-  progressLabels: string[]; // Array of strings for the phone progress bar
-  conversation: {
-    sender: 'user' | 'friend';
-    text: string;
-    // logic like 'isEureka' and 'delay' is handled in the component to keep JSON clean
-  }[];
-  placeholder: string; // Chat input placeholder
-  transitionText: string;
-  insights: {
-    title: string;
-    items: {
+  items: {
+    'save-progress': FaqItemDict;
+    'time-to-complete': FaqItemDict;
+    'required-questions': FaqItemDict;
+    'how-matching-works': FaqItemDict;
+    'privacy-info': FaqItemDict;
+    'edit-answers': FaqItemDict;
+    'match-percentage': FaqItemDict;
+    'incomplete-questionnaire': FaqItemDict;
+    'inactive-account': FaqItemDict;
+  };
+};
+
+type QuestionContent = {
+  question: string;
+  placeholder?: string;
+  helpText?: string;
+  labels?: { min: string; max: string; middle?: string };
+  options?: Record<string, string | { text: string; description: string }>;
+  categories?: Record<string, string | { label: string; description?: string }>;
+};
+
+type WorldQuestionsContent = Record<string, QuestionContent>;
+
+export type QuestionsDictionary = Record<WorldId, WorldQuestionsContent>;
+
+// Main dictionary for the questionnaire feature
+export type QuestionnaireDictionary = {
+  worldIntro: WorldIntroDict;
+  questionCard: QuestionCardDict;
+  worlds: Record<WorldId, { title: string; description: string }>;
+  completion: QuestionnaireCompletionDict;
+  matchmaking: MatchmakingQuestionnaireDict;
+  page: QuestionnairePageDict;
+  landingPage: QuestionnaireLandingPageDict;
+  worldsMap: WorldsMapDict;
+  layout: QuestionnaireLayoutDict;
+  world: WorldComponentDict;
+  answerInput: AnswerInputDict;
+  interactiveScale: InteractiveScaleDict;
+  faq: QuestionnaireFaqDict;
+  accessibilityFeatures: AccessibilityFeaturesDict;
+  questionnaireProgress: QuestionnaireProgressDict;
+  userStats: UserStatsDict;
+  questionnaireRestore: QuestionnaireRestoreDict;
+  questionnaireCompletePage: QuestionnaireCompletePageDict;
+  questionsList: QuestionsListDict;
+  matchResultCard: MatchResultCardDict;
+  questions: QuestionsDictionary;
+};
+
+// ======================================================================== //
+// ✨ END: TYPES FOR QUESTIONNAIRE FEATURE ✨
+// ======================================================================== //
+
+// ======================================================================== //
+// ✨ START: TYPES FOR PROFILE PAGE ✨
+// ======================================================================== //
+
+export type ProfileChecklistDict = {
+  welcome: string;
+  welcome_female?: string;
+  allComplete: string;
+  allComplete_female?: string;
+  welcomeSubtitle: string;
+  allCompleteSubtitle: string;
+  checklistPurpose: string;
+  completionLabel: string;
+  expandLabel: string;
+  minimizeLabel: string;
+  missingItemsTitle: string;
+  tasks: {
+    photos: {
       title: string;
       description: string;
-    }[];
+      missing: string;
+    };
+    personalDetails: {
+      title: string;
+      description: string;
+    };
+    partnerPreferences: {
+      title: string;
+      description: string;
+    };
+    questionnaire: {
+      title: string;
+      description: string;
+    };
+    review: {
+      title: string;
+      description: string;
+      missing: string;
+    };
   };
-  transitionCTA: string;
-  cta: {
-    button: string;
-    subtitle: string;
+  missingItems: { [key: string]: string };
+  privacyNote?: string;
+};
+
+export type PhotosSectionDict = {
+  title: string;
+  subtitle: string;
+  uploadingMultiple: string;
+  selectForDeletion: string;
+  uploadButton: string;
+  selectionHeader: string;
+  deselectAll: string;
+  selectAll: string;
+  deleteSelected: string;
+  setAsMainTooltip: string;
+  deleteTooltip: string;
+  mainBadge: string;
+  uploadPlaceholder: {
+    title: string;
+    remaining: string;
+    prompt: string;
   };
-  postConversationTransition: {
-    line1: string;
-    line2: string;
+  uploadingPlaceholder: string;
+  emptyState: {
+    title: string;
+    description: string;
   };
-}
+  emptyStateDisabled: {
+    title: string;
+  };
+  deleteDialog: {
+    title: string;
+    description: string;
+    cancel: string;
+    confirm: string;
+  };
+  imageViewer: {
+    closeLabel: string;
+    altText: string;
+    prevLabel: string;
+    nextLabel: string;
+    setMainButton: string;
+    deleteButton: string;
+    counter: string;
+  };
+  toasts: {
+    maxImagesError: string;
+    slotsError: string;
+    invalidFileTypeError: string;
+    fileTooLargeError: string;
+    uploadSuccess: string;
+    uploadError: string;
+    selectOneError: string;
+    bulkDeleteSuccess: string;
+    bulkDeleteError: string;
+    singleDeleteSuccess: string;
+    singleDeleteError: string;
+    setMainSuccess: string;
+    setMainError: string;
+  };
+  confirmations: {
+    bulkDelete: string;
+  };
+  privacyNote?: string;
+};
 
+export type AIAdvisorDialogDict = {
+  triggerButton: string;
+  dialogTitle: string;
+  dialogDescription: string;
+  closeButton: string;
+  loadingTitle: string;
+  loadingDescription: string;
+  errorAlertTitle: string;
+  errorAlertDescription: string;
+  retryButton: string;
+  initialState: string;
+  toast: {
+    errorTitle: string;
+    errorDescription: string;
+  };
+};
 
+export type AnalysisResultDisplayDict = {
+  tabs: {
+    summary: string;
+    completeness: string;
+    tips: string;
+  };
+  summary: {
+    myPersonalityTitle: string;
+    myPersonalityDescription: string;
+    lookingForTitle: string;
+    lookingForDescription: string;
+  };
+  completeness: {
+    title: string;
+    description: string;
+    status: {
+      complete: string;
+      partial: string;
+      missing: string;
+    };
+  };
+  tips: {
+    title: string;
+    description: string;
+  };
+};
 
+export type NeshamaInsightButtonDict = {
+  buttonText: string;
+  buttonSubtitle: string;
+  dialogTitle: string;
+  generating: string;
+  downloadPdf: string;
+  close: string;
+  lockedTitle: string;
+  lockedDescription: string;
+  alreadyGeneratedToday: string;
+  minimizedButtonText: string;
+};
+
+export type UnifiedProfileDashboardDict = {
+  loadingData: string;
+  loadError: string;
+  updateSuccess: string;
+  updateError: string;
+  previewButton: string;
+  previewLoading: string;
+  viewedPreviewSuccess: string;
+  viewedPreviewError: string;
+  tabs: {
+    overview: string;
+    photos: string;
+    preferences: string;
+    questionnaire: string;
+  };
+  tabContent: {
+    loadingOverview: string;
+    loadingPreferences: string;
+    loadingQuestionnaire: string;
+    noQuestionnaire: string;
+    fillQuestionnaireLink: string;
+    questionnaireUpdateSuccess: string;
+    questionnaireUpdateError: string;
+  };
+  privacyAssurances: {
+    banner: {
+      text: string;
+      subtext: string;
+    };
+    preview: string;
+  };
+  checklist: ProfileChecklistDict;
+  aiAdvisor: AIAdvisorDialogDict;
+  analysisResult: AnalysisResultDisplayDict;
+  neshmaInsightButton: NeshamaInsightButtonDict;
+};
+
+export type PreferencesSectionDict = {
+  header: {
+    title: string;
+    subtitleEdit: string;
+    subtitleView: string;
+  };
+  buttons: {
+    edit: string;
+    cancel: string;
+    save: string;
+    saveChanges: string;
+    unsavedChanges: string;
+    editHint: string;
+  };
+  cards: {
+    general: {
+      title: string;
+      notesLabel: string;
+      notesTooltip: string;
+      notesPlaceholder: string;
+      notesEmpty: string;
+      contactPreferenceLabel: string;
+      contactPreferencePlaceholder: string;
+      contactPreferenceEmpty: string;
+    };
+    ageAndHeight: {
+      title: string;
+      ageLegend: string;
+      ageTooltip: string;
+      ageMinPlaceholder: string;
+      ageMaxPlaceholder: string;
+      ageEmpty: string;
+      heightLegend: string;
+      heightMinPlaceholder: string;
+      heightMaxPlaceholder: string;
+      heightEmpty: string;
+    };
+    locationAndReligion: {
+      title: string;
+      locationsLabel: string;
+      locationsPlaceholder: string;
+      locationsRemoveLabel: string;
+      locationsEmpty: string;
+      religiousLevelsLegend: string;
+      religiousLevelsTooltip: string;
+      religiousLevelsEmpty: string;
+      religiousJourneysLegend: string;
+      religiousJourneysEmpty: string;
+      shomerNegiahLabel: string;
+      shomerNegiahPlaceholder: string;
+      headCoveringLegend: string;
+      headCoveringEmpty: string;
+      kippahTypeLegend: string;
+      kippahTypeEmpty: string;
+    };
+    educationAndCareer: {
+      title: string;
+      educationLegend: string;
+      educationEmpty: string;
+      occupationLegend: string;
+      occupationEmpty: string;
+      serviceTypeLegend: string;
+      serviceTypeEmpty: string;
+    };
+    personalBackground: {
+      title: string;
+      maritalStatusLegend: string;
+      maritalStatusEmpty: string;
+      partnerHasChildrenLabel: string;
+      partnerHasChildrenPlaceholder: string;
+      originLegend: string;
+      originPlaceholder: string;
+      originRemoveLabel: string;
+      originEmpty: string;
+      aliyaStatusLabel: string;
+      aliyaStatusPlaceholder: string;
+    };
+    characterAndInterests: {
+      title: string;
+      traitsLegend: string;
+      traitsEmpty: string;
+      hobbiesLegend: string;
+      hobbiesEmpty: string;
+    };
+  };
+  options: {
+    contactPreference: { direct: string; matchmaker: string; both: string };
+    religiousLevels: { [key: string]: string };
+    religiousJourneys: { [key: string]: string };
+    shomerNegiah: { yes: string; no: string; flexible: string };
+    education: { [key: string]: string };
+    occupation: { [key: string]: string };
+    serviceTypes: { [key: string]: string };
+    headCovering: { [key: string]: string };
+    kippahType: { [key: string]: string };
+    maritalStatus: { [key: string]: string };
+    partnerHasChildren: { yes_ok: string; no_preferred: string; does_not_matter: string };
+    aliyaStatus: { oleh: string; tzabar: string; no_preference: string };
+    origins: { [key: string]: string };
+    traits: { [key: string]: string };
+    hobbies: { [key: string]: string };
+  };
+};
+
+export type FriendTestimonialsDict = {
+  cardTitle: string;
+  addManualButton: string;
+  requestLinkButton: string;
+  pendingApproval: string;
+  approvedAndVisible: string;
+  hidden: string;
+  approveButton: string;
+  hideButton: string;
+  showButton: string;
+  deleteButton: string;
+  deleteConfirm: string;
+  addModal: {
+    title: string;
+    authorNameLabel: string;
+    authorNamePlaceholder: string;
+    relationshipLabel: string;
+    relationshipPlaceholder: string;
+    contentLabel: string;
+    contentPlaceholder: string;
+    phoneLabel: string;
+    phonePlaceholder: string;
+    consentLabel: string;
+    saveButton: string;
+    cancelButton: string;
+  };
+  linkModal: {
+    title: string;
+    description: string;
+    copyButton: string;
+    copiedTooltip: string;
+    closeButton: string;
+  };
+  visibilityTooltip: string;
+  emptyState: string;
+};
 
 export type ProfileSectionDict = {
-    // --- הוספות חדשות ---
   aboutMe: {
     cardTitle: string;
     placeholder: string;
@@ -2159,8 +2023,7 @@ export type ProfileSectionDict = {
     emptyState: string;
     visibilityTooltip: string;
   };
-  friendTestimonials: FriendTestimonialsDict; // שימוש בממשק החדש שיצרנו
-  // --- סוף הוספות ---
+  friendTestimonials: FriendTestimonialsDict;
   loading: string;
   header: {
     title: string;
@@ -2182,8 +2045,7 @@ export type ProfileSectionDict = {
       genderPlaceholder: string;
       birthDateLabel: string;
       heightLabel: string;
-        heightUnit: string; // <--- הוסף שורה זו
-
+      heightUnit: string;
       heightPlaceholder: string;
       cityLabel: string;
       cityPlaceholder: string;
@@ -2198,7 +2060,7 @@ export type ProfileSectionDict = {
       additionalLanguagesLabel: string;
       additionalLanguagesPlaceholder: string;
       noAdditionalLanguages: string;
-      removeLanguageLabel: string; // Placeholder: {{lang}}
+      removeLanguageLabel: string;
     };
     family: {
       title: string;
@@ -2217,7 +2079,6 @@ export type ProfileSectionDict = {
       positionLabel: string;
       positionPlaceholder: string;
     };
-// שורה 2158
     religion: {
       title: string;
       religiousLevelLabel: string;
@@ -2226,8 +2087,8 @@ export type ProfileSectionDict = {
       religiousJourneyPlaceholder: string;
       shomerNegiahLabel: string;
       shomerNegiahYes: string;
-      shomerNegiahNo: string;              // ← הוסף שורה זו
-      shomerNegiahPlaceholder: string;     // ← הוסף שורה זו
+      shomerNegiahNo: string;
+      shomerNegiahPlaceholder: string;
       headCoveringLabel: string;
       headCoveringPlaceholder: string;
       headCoveringDefault: string;
@@ -2260,7 +2121,7 @@ export type ProfileSectionDict = {
       privateNotesPlaceholder: string;
       privateNotesEmpty: string;
     };
-medical: {
+    medical: {
       title: string;
       tooltip: string;
       description: string;
@@ -2289,7 +2150,7 @@ medical: {
         visibleBadge: string;
         hiddenBadge: string;
       };
-      privacyNote?: string; // הערת פרטיות למידע רפואי
+      privacyNote?: string;
     };
     education: {
       title: string;
@@ -2320,15 +2181,15 @@ medical: {
   };
   tooltips: {
     headline: string;
-    about: string; // Placeholder: {{count}}
+    about: string;
     inspiringCouple: string;
     influentialRabbi: string;
     privateNotes: string;
   };
   toasts: {
     validationErrorTitle: string;
-    aboutMinLength: string; // Placeholder: {{count}}
-     uploadSuccess: string;
+    aboutMinLength: string;
+    uploadSuccess: string;
     uploadError: string;
     deleteSuccess: string;
     deleteError: string;
@@ -2344,15 +2205,12 @@ medical: {
       widowed: string;
       annulled: string;
     };
-religiousLevel: {
-      // חרדים חדשים
+    religiousLevel: {
       charedi_litvak: string;
       charedi_sephardic: string;
       charedi_hasidic: string;
       chabad: string;
       breslov: string;
-      
-      // קיימים
       charedi_modern: string;
       dati_leumi_torani: string;
       dati_leumi_liberal: string;
@@ -2400,55 +2258,28 @@ religiousLevel: {
     traits: { [key: string]: string };
     hobbies: { [key: string]: string };
   };
-  charCount: string; // e.g., " / {{count}}+ characters"
+  charCount: string;
 };
 
-export interface UnsavedChangesModalDict {
+export type CvSectionDict = {
   title: string;
-  description: string;
-  cancelButton: string;
-  continueWithoutSavingButton: string;
-  saveAndContinueButton: string;
-  savingButton: string;
-}
-// בקובץ: src/types/dictionary.d.ts
-
-export type FriendTestimonialsDict = {
-  cardTitle: string;
-  addManualButton: string;
-  requestLinkButton: string;
-  pendingApproval: string;
-  approvedAndVisible: string;
-  hidden: string;
-  approveButton: string;
-  hideButton: string;
-  showButton: string;
+  subtitle: string;
+  uploadButton: string;
+  replaceButton: string;
   deleteButton: string;
-  deleteConfirm: string;
-  addModal: {
-    title: string;
-    authorNameLabel: string;
-    authorNamePlaceholder: string;
-    relationshipLabel: string;
-    relationshipPlaceholder: string;
-    contentLabel: string;
-    contentPlaceholder: string;
-    phoneLabel: string;
-    phonePlaceholder: string;
-    consentLabel: string;
-    saveButton: string;
-    cancelButton: string;
+  uploading: string;
+  successBadge: string;
+  fileTypes: string;
+  toasts: {
+    invalidFileType: string;
+    fileTooLarge: string;
+    uploadSuccess: string;
+    uploadError: string;
+    deleteSuccess: string;
+    deleteError: string;
   };
-  linkModal: {
-    title: string;
-    description: string;
-    copyButton: string;
-    copiedTooltip: string;
-    closeButton: string;
-  };
-  visibilityTooltip: string;
-  emptyState: string;
 };
+
 export type ProfileCardDisplayDict = {
   placeholders: {
     willDiscover: string;
@@ -2486,12 +2317,11 @@ export type ProfileCardDisplayDict = {
     flexible: string;
   };
   header: {
-    profileImageAlt: string; // Placeholder: {{name}}
-    storyOf: string; // Placeholder: {{name}}
-    ageLabel: string; // Placeholder: {{age}}
-     heightLabel: string;
-       languagesLabel: string; // <--- הוסף שורה זו
-
+    profileImageAlt: string;
+    storyOf: string;
+    ageLabel: string;
+    heightLabel: string;
+    languagesLabel: string;
     availabilityBadge: {
       available_short: string;
       unavailable_short: string;
@@ -2511,15 +2341,15 @@ export type ProfileCardDisplayDict = {
     location: string;
   };
   gallery: {
-    title: string; // Placeholder: {{name}}
+    title: string;
     subtitle: string;
-    showImageAlt: string; // Placeholder: {{index}}
-    imageAlt: string; // Placeholder: {{index}}
+    showImageAlt: string;
+    imageAlt: string;
     mainBadge: string;
   };
   imageDialog: {
     closeLabel: string;
-    title: string; // Placeholders: {{current}}, {{total}}
+    title: string;
     prevLabel: string;
     nextLabel: string;
     thumbAlt: string;
@@ -2534,8 +2364,7 @@ export type ProfileCardDisplayDict = {
   tabs: {
     essence: { label: string; shortLabel: string };
     deepDive: { label: string; shortLabel: string };
-    recommendations: { label: string; shortLabel: string }; // <-- הוספה
-
+    recommendations: { label: string; shortLabel: string };
     journey: { label: string; shortLabel: string };
     spirit: { label: string; shortLabel: string };
     vision: { label: string; shortLabel: string };
@@ -2543,16 +2372,16 @@ export type ProfileCardDisplayDict = {
     professional: { label: string; shortLabel: string };
   };
   content: {
-      systemRationaleTitle: string; // <-- הוספה (לדוגמה: "תובנת השדכן")
-    recommendationsTitle: string; // <-- הוספה
-    recommendationsSubtitle: string; // <-- הוספה
-    noRecommendationsYet: string; // <-- הוספה
+    systemRationaleTitle: string;
+    recommendationsTitle: string;
+    recommendationsSubtitle: string;
+    noRecommendationsYet: string;
     emptyStateTitle: string;
-          inspiringCouple: { title: string };
-influentialRabbi: { title: string };
+    inspiringCouple: { title: string };
+    influentialRabbi: { title: string };
     emptyStateDescription: string;
     openingSentence: string;
-    aboutMeSubtitle: string; // Placeholder: {{name}}
+    aboutMeSubtitle: string;
     whatMakesMeSpecial: string;
     myTraits: string;
     whatFillsMySoul: string;
@@ -2587,30 +2416,29 @@ influentialRabbi: { title: string };
     professionalDetails: string;
     emptyPrefsTitle: string;
     emptyPrefsDescription: string;
-        neshamaTechSummary: {
-      title: string; // e.g., "Our Introduction to {{name}}"
+    neshamaTechSummary: {
+      title: string;
     };
     aboutMe: {
-      titleCard: string; // e.g., "A Bit About {{name}}"
+      titleCard: string;
     };
-friendTestimonials: {
-  title: string;
-  callButton: string; // e.g., "Talk to {{name}}"
-  callDisclaimer: string;
-  focusSubtitle: string; // e.g., "{{count}} personal testimonials await"
-  viewButton: string; // e.g., "View Testimonials"
-  emptyState: {
+    friendTestimonials: {
       title: string;
-      description: string;
-  }
-};
-
+      callButton: string;
+      callDisclaimer: string;
+      focusSubtitle: string;
+      viewButton: string;
+      emptyState: {
+        title: string;
+        description: string;
+      };
+    };
     focus: {
       aboutMe: string;
       myStory: string;
       quickSummary: string;
       importantDetails: string;
-       readFullStory: string;
+      readFullStory: string;
       whatMakesMeUnique: string;
       traitsAndHobbies: string;
       myTraits: string;
@@ -2620,7 +2448,7 @@ friendTestimonials: {
       letsGetToKnow: string;
     };
     questionnaire: {
-      questionFromCategory: string; // Placeholder: {{worldName}}
+      questionFromCategory: string;
       confidential: string;
       confidentialTooltip: string;
     };
@@ -2637,13 +2465,12 @@ friendTestimonials: {
       lastActive: string;
       unknown: string;
     };
-    
-        detailLabels: {
+    detailLabels: {
       worldview: string;
       religiousJourney: string;
       shomerNegiah: string;
       shomerNegiahNo: string;
-shomerNegiahPlaceholder: string;
+      shomerNegiahPlaceholder: string;
       headCovering: string;
       kippahType: string;
       educationLevel: string;
@@ -2659,7 +2486,6 @@ shomerNegiahPlaceholder: string;
       countryOfOrigin: string;
       aliyaYear: string;
     };
-
     worlds: {
       values: { label: string; description: string };
       personality: { label: string; description: string };
@@ -2673,9 +2499,8 @@ shomerNegiahPlaceholder: string;
 
 export type ProfileCardDict = {
   loading: string;
-    budgetDisplay: BudgetDisplayDict; // הוסף שורה זו
-  display: ProfileCardDisplayDict; // <-- הוסף שורה זו
-
+  budgetDisplay: BudgetDisplayDict;
+  display: ProfileCardDisplayDict;
   header: {
     title: string;
     subtitleEdit: string;
@@ -2708,7 +2533,7 @@ export type ProfileCardDict = {
       additionalLanguagesLabel: string;
       additionalLanguagesPlaceholder: string;
       noAdditionalLanguages: string;
-      removeLanguageLabel: string; // Placeholder: {{lang}}
+      removeLanguageLabel: string;
     };
     family: {
       title: string;
@@ -2727,7 +2552,7 @@ export type ProfileCardDict = {
       positionLabel: string;
       positionPlaceholder: string;
     };
-     religion: {
+    religion: {
       title: string;
       religiousLevelLabel: string;
       religiousLevelPlaceholder: string;
@@ -2735,8 +2560,8 @@ export type ProfileCardDict = {
       religiousJourneyPlaceholder: string;
       shomerNegiahLabel: string;
       shomerNegiahYes: string;
-      shomerNegiahNo: string;              // ← 🔥 הוסף שורה זו
-      shomerNegiahPlaceholder: string;     // ← 🔥 הוסף שורה זו
+      shomerNegiahNo: string;
+      shomerNegiahPlaceholder: string;
       headCoveringLabel: string;
       headCoveringPlaceholder: string;
       headCoveringDefault: string;
@@ -2750,7 +2575,6 @@ export type ProfileCardDict = {
       influentialRabbiPlaceholder: string;
       influentialRabbiEmpty: string;
     };
-
     about: {
       title: string;
       headlineLabel: string;
@@ -2828,14 +2652,14 @@ export type ProfileCardDict = {
   };
   tooltips: {
     headline: string;
-    about: string; // Placeholder: {{count}}
+    about: string;
     inspiringCouple: string;
     influentialRabbi: string;
     privateNotes: string;
   };
   toasts: {
     validationErrorTitle: string;
-    aboutMinLength: string; // Placeholder: {{count}}
+    aboutMinLength: string;
   };
   options: {
     gender: {
@@ -2863,17 +2687,16 @@ export type ProfileCardDict = {
     traits: { [key: string]: string };
     hobbies: { [key: string]: string };
   };
-  charCount: string; // e.g., " / {{count}}+ characters"
+  charCount: string;
 };
 
-// START: Additions for MatchResultCard.tsx
 export type MatchResultCardDict = {
   premiumBadge: string;
-  matchPercentageBadge: string; // Placeholder: {{percentage}}
+  matchPercentageBadge: string;
   tooltips: {
     addToBookmarks: string;
     removeFromBookmarks: string;
-    traitDescription: string; // Placeholder: {{description}}
+    traitDescription: string;
   };
   buttons: {
     reject: string;
@@ -2886,27 +2709,24 @@ export type MatchResultCardDict = {
     viewFullProfile: string;
   };
   sections: {
-    about: string; // Placeholder: {{name}}
+    about: string;
     topMatches: string;
     commonInterests: string;
-    lastActive: string; // Placeholder: {{time}}
+    lastActive: string;
   };
   lastActiveFormat: {
     unknown: string;
     today: string;
     yesterday: string;
-    daysAgo: string; // Placeholder: {{count}}
-    weeksAgo: string; // Placeholder: {{count}}
-    monthsAgo: string; // Placeholder: {{count}}
+    daysAgo: string;
+    weeksAgo: string;
+    monthsAgo: string;
   };
 };
-// END: Additions for MatchResultCard.tsx
-
-// START: Additions for Profile Elements & Utils
 
 export type MinimalCardDict = {
   nameNotAvailable: string;
-  yearsOld: string; // Placeholder: {{age}}
+  yearsOld: string;
   profileImageAlt: string;
   available: string;
   inProcess: string;
@@ -2915,8 +2735,8 @@ export type MinimalCardDict = {
 export type StatsCardDict = {
   availabilityStatusTitle: string;
   availabilityValue: {
-    available: string; // e.g., "פנוי/ה"
-    unavailable: string; // e.g., "לא פנוי/ה"
+    available: string;
+    unavailable: string;
   };
 };
 
@@ -2932,7 +2752,7 @@ export type VisibilityControlDict = {
     hide: string;
     show: string;
   };
-  ariaLabel: string; // Placeholder: {{status}} -> "visible" or "hidden"
+  ariaLabel: string;
 };
 
 export type BudgetDisplayDict = {
@@ -2946,26 +2766,18 @@ export type ProfileUtilsDict = {
   };
 };
 
-// END: Additions for Profile Elements & Utils
 export type QuestionnaireSectionDictionary = {
-  // הגדרה דינמית של כותרות ה"עולמות" על בסיס הקבועים
   worlds: Record<typeof WORLD_KEYS[keyof typeof WORLD_KEYS], { title: string }>;
-
-  // טקסטים למצב שבו השאלון כלל לא מולא
   emptyState: {
     title: string;
     subtitle: string;
     button: string;
   };
-
-  // טקסטים למצב שבו השאלון התחיל אך אין עדיין תשובות
   noAnswersState: {
     title: string;
     subtitle: string;
     button: string;
   };
-
-  // טקסטים לכותרת הראשית של אזור השאלון
   header: {
     title: {
       completed: string;
@@ -2979,8 +2791,6 @@ export type QuestionnaireSectionDictionary = {
       finish: string;
     };
   };
-
-  // טקסטים עבור רכיב WorldSection
   worldSection: {
     answerSingular: string;
     answerPlural: string;
@@ -2989,34 +2799,28 @@ export type QuestionnaireSectionDictionary = {
       inProgress: string;
     };
   };
-
-  // טקסטים עבור רכיב QuestionCard
   questionCard: {
     languageBadge: {
       en: string;
       he: string;
     };
     languageTooltip: string;
-
     toasts: {
       emptyAnswer: string;
       updateSuccess: string;
       updateError: string;
       visibilitySuccess: string;
       visibilityError: string;
-            deleteSuccess: string; // <-- הוסף שורה זו
-      deleteError: string; // <-- הוסף שורה זו
-
+      deleteSuccess: string;
+      deleteError: string;
     };
-        deleteConfirm: { // <-- הוסף את כל האובייקט הזה
+    deleteConfirm: {
       message: string;
     };
-
-       visibilityButton: {
+    visibilityButton: {
       visible: string;
       hidden: string;
     };
-
     visibilityTooltip: {
       editing: {
         visible: string;
@@ -3036,20 +2840,15 @@ export type QuestionnaireSectionDictionary = {
     editTooltip: {
       text: string;
       budget: string;
-            delete: string; // <-- הוסף שורה זו
-
+      delete: string;
     };
   };
-   buttons?: {
+  buttons?: {
     editingMode: string;
     editHint: string;
   };
 };
 
-type SuggestionDemoDict = {
-  hoverTitle: string;
-  hoverSubtitle: string;
-};
 export type AvailabilityStatusDict = {
   dialogTitle: string;
   dialogDescription: string;
@@ -3075,7 +2874,6 @@ export type AvailabilityStatusDict = {
   };
 };
 
-// Type for AccountSettings component
 export type AccountSettingsDict = {
   loadingText: string;
   cardHeader: {
@@ -3114,25 +2912,24 @@ export type AccountSettingsDict = {
       createdAt: string;
       lastLogin: string;
     };
-    communication: { // שינינו את שם המפתח לכללי יותר
+    communication: {
       title: string;
-      engagement: { // הוספנו אובייקט ייעודי
+      engagement: {
         label: string;
         description: string;
       };
-      promotional: { // הוספנו אובייקט ייעודי
+      promotional: {
         label: string;
         description: string;
       };
     };
-
     security: {
       title: string;
       description: string;
       changePasswordButton: string;
       accountVerificationLabel: string;
       passwordManagementLabel: string;
-      managedByProvider: string; // Placeholder: {{provider}}
+      managedByProvider: string;
       managedExternally: string;
     };
     delete: {
@@ -3140,13 +2937,12 @@ export type AccountSettingsDict = {
       description: string;
       deleteButton: string;
     };
-     language: { // <-- הוסף את כל האובייקט הזה
+    language: {
       title: string;
       label: string;
       description: string;
     };
   };
-
   cardFooter: {
     notice: string;
   };
@@ -3172,20 +2968,20 @@ export type AccountSettingsDict = {
     passwordUpdateError: string;
     passwordUpdateDesc: string;
     invalidDeleteConfirmation: string;
-    invalidDeleteConfirmationDesc: string; // Placeholder: {{phrase}}
+    invalidDeleteConfirmationDesc: string;
     deleteSuccess: string;
     deleteSuccessDesc: string;
     deleteError: string;
     deleteErrorDesc: string;
     consentUpdateSuccess: string;
-      consentUpdateError: string;
-    languageUpdateSuccess: string; // <-- הוסף שורה זו
-    languageUpdateError: string; // <-- הוסף שורה זו
+    consentUpdateError: string;
+    languageUpdateSuccess: string;
+    languageUpdateError: string;
   };
   passwordDialog: {
     title: string;
-step1Description: string;
-    step2Description: string; // Placeholder: {{email}}
+    step1Description: string;
+    step2Description: string;
     step1Label: string;
     step2Label: string;
     currentPasswordLabel: string;
@@ -3194,13 +2990,12 @@ step1Description: string;
     newPasswordPlaceholder: string;
     confirmPasswordLabel: string;
     confirmPasswordPlaceholder: string;
-        strengthLabel: string; // This was missing
-    showPassword: string;  // This was missing
-    hidePassword: string;  // This was missing
-
+    strengthLabel: string;
+    showPassword: string;
+    hidePassword: string;
     passwordStrengthLabel: string;
     requirements: {
-      length: string; // Placeholder: {{count}}
+      length: string;
       uppercase: string;
       lowercase: string;
       number: string;
@@ -3216,9 +3011,8 @@ step1Description: string;
     cancelButton: string;
     continueButton: string;
     confirmButton: string;
-        loadingButton: string; // הוספה
-    backButton: string; // הוספה
-
+    loadingButton: string;
+    backButton: string;
     loading: {
       sending: string;
       verifying: string;
@@ -3241,183 +3035,258 @@ step1Description: string;
     deletingButton: string;
   };
 };
-type QuestionContent = {
-  question: string;
-  placeholder?: string;
-  helpText?: string;
-  labels?: { min: string; max: string; middle?: string };
-  options?: Record<string, string | { text: string; description: string }>;
-  categories?: Record<string, string | { label: string; description?: string }>;
+
+// Profile Page Dictionary
+export type ProfilePageDictionary = {
+  pageLoader: string;
+  dashboard: UnifiedProfileDashboardDict;
+  photosSection: PhotosSectionDict;
+  preferencesSection: PreferencesSectionDict;
+  profileSection: ProfileSectionDict;
+  profileCard: ProfileCardDict;
+  minimalCard: MinimalCardDict;
+  statsCard: StatsCardDict;
+  visibilityControl: VisibilityControlDict;
+  budgetDisplay: BudgetDisplayDict;
+  utils: ProfileUtilsDict;
+  questionnaireSection: QuestionnaireSectionDictionary;
+  availabilityStatus: AvailabilityStatusDict;
+  accountSettings: AccountSettingsDict;
 };
-type WorldQuestionsContent = Record<string, QuestionContent>;
 
-export type QuestionsDictionary = Record<WorldId, WorldQuestionsContent>;
+// ======================================================================== //
+// ✨ END: TYPES FOR PROFILE PAGE ✨
+// ======================================================================== //
 
+// ======================================================================== //
+// ✨ START: OTHER TYPES ✨
+// ======================================================================== //
+
+export type DemoProfileCardDict = {
+  tabs: {
+    essence: string;
+    story: string;
+    vision: string;
+  };
+  vision: {
+    q1: string;
+    a1: string;
+    q2: string;
+    a2: string;
+  };
+  ctaButton: string;
+  imageNav: {
+    prev: string;
+    next: string;
+    showImage: string;
+  };
+  tablistLabel: string;
+};
+
+export type UnsavedChangesModalDict = {
+  title: string;
+  description: string;
+  cancelButton: string;
+  continueWithoutSavingButton: string;
+  saveAndContinueButton: string;
+  savingButton: string;
+};
+
+export type MetadataDict = {
+  title: string;
+  description: string;
+  keywords: string[];
+  openGraph: {
+    title: string;
+    description: string;
+    url: string;
+    siteName: string;
+    images: {
+      url: string;
+      width: number;
+      height: number;
+      alt: string;
+    }[];
+    locale: string;
+    type: string;
+  };
+  twitter: {
+    card: string;
+    title: string;
+    description: string;
+    images: string[];
+  };
+};
+
+export interface NeshmaInsightDict {
+  badge: string;
+  title: {
+    part1: string;
+    highlight: string;
+    part2: string;
+  };
+  subtitle: string;
+  chatHeader: {
+    name: string;
+    status: string;
+  };
+  progressLabels: string[];
+  conversation: {
+    sender: 'user' | 'friend';
+    text: string;
+  }[];
+  placeholder: string;
+  transitionText: string;
+  insights: {
+    title: string;
+    items: {
+      title: string;
+      description: string;
+    }[];
+  };
+  transitionCTA: string;
+  cta: {
+    button: string;
+    subtitle: string;
+  };
+  postConversationTransition: {
+    line1: string;
+    line2: string;
+  };
+}
+
+type SuggestionDemoDict = {
+  hoverTitle: string;
+  hoverSubtitle: string;
+};
 
 type ContactFormErrorMessages = {
-    nameMin: string;
-    emailInvalid: string;
-    categoryRequired: string;
-    messageMin: string;
-    sendError: string;
-    unexpectedError: string;
+  nameMin: string;
+  emailInvalid: string;
+  categoryRequired: string;
+  messageMin: string;
+  sendError: string;
+  unexpectedError: string;
 };
 
 type ContactCategory = {
-    value: string;
-    label: string;
+  value: string;
+  label: string;
 };
 
-type FaqItem = {
-    question: string;
-    answer: string;
+type ContactFaqItem = {
+  question: string;
+  answer: string;
 };
 
-type TeamMember = {
-    name: string;
-    role: string;
-    description: string;
+type ContactTeamMember = {
+  name: string;
+  role: string;
+  description: string;
 };
 
 export type ContactPageDict = {
-    backToHome: string;
-    hero: {
-        header: string;
+  backToHome: string;
+  hero: {
+    header: string;
+    title: string;
+    highlightedTitle: string;
+    subtitle: string;
+    guarantee: string;
+  };
+  form: {
+    title: string;
+    description: string;
+    nameLabel: string;
+    namePlaceholder: string;
+    emailLabel: string;
+    emailPlaceholder: string;
+    categoryLabel: string;
+    messageLabel: string;
+    messagePlaceholder: string;
+    submitButton: string;
+    submitButtonLoading: string;
+    privacyCommitment: string;
+    errors: ContactFormErrorMessages;
+    categories: ContactCategory[];
+  };
+  successMessage: {
+    title: string;
+    description: string;
+    signUpButton: string;
+    questionnaireButton: string;
+  };
+  sidebar: {
+    team: {
+      title: string;
+      members: ContactTeamMember[];
+    };
+    faq: {
+      title: string;
+      items: ContactFaqItem[];
+    };
+    otherWays: {
+      title: string;
+      phone: string;
+      email: string;
+      hours: string;
+      commitment: {
         title: string;
-        highlightedTitle: string;
-        subtitle: string;
-        guarantee: string;
+        body: string;
+      };
     };
-    form: {
-        title: string;
-        description: string;
-        nameLabel: string;
-        namePlaceholder: string;
-        emailLabel: string;
-        emailPlaceholder: string;
-        categoryLabel: string;
-        messageLabel: string;
-        messagePlaceholder: string;
-        submitButton: string;
-        submitButtonLoading: string;
-        privacyCommitment: string;
-        errors: ContactFormErrorMessages;
-        categories: ContactCategory[];
+    cta: {
+      title: string;
+      description: string;
+      signUpButton: string;
+      questionnaireButton: string;
     };
-    successMessage: {
-        title: string;
-        description: string;
-        signUpButton: string;
-        questionnaireButton: string;
-    };
-    sidebar: {
-        team: {
-            title: string;
-            members: TeamMember[];
-        };
-        faq: {
-            title: string;
-            items: FaqItem[];
-        };
-        otherWays: {
-            title: string;
-            phone: string;
-            email: string;
-            hours: string;
-            commitment: {
-                title: string;
-                body: string;
-            };
-        };
-        cta: {
-            title: string;
-            description: string;
-            signUpButton: string;
-            questionnaireButton: string;
-        };
-    };
-    footer: {
-        tagline: string;
-        copyright: string;
-    };
+  };
+  footer: {
+    tagline: string;
+    copyright: string;
+  };
 };
 
-export type FeedbackWidgetDict  = {
+export type FeedbackWidgetDict = {
   openAriaLabel: string;
-  closeAriaLabel: string; // חדש
+  closeAriaLabel: string;
   title: string;
   subtitle: string;
   tabLabel: string;
-  step_type_title: string; // חדש: "איך נוכל לשפר?"
+  step_type_title: string;
   types: {
-    suggestion: { label: string; description: string; }; // מבנה מורחב
-    bug: { label: string; description: string; }; // מבנה מורחב
-    positive: { label: string; description: string; }; // מבנה מורחב
+    suggestion: { label: string; description: string };
+    bug: { label: string; description: string };
+    positive: { label: string; description: string };
   };
   placeholder: string;
   attachScreenshot: string;
-  screenshotTooltip: string; // חדש
-  fileInstructions: string; // חדש
+  screenshotTooltip: string;
+  fileInstructions: string;
   cancelButton: string;
   submitButton: string;
-  submittingButton: string; // חדש: "שולח..."
+  submittingButton: string;
   toasts: {
     imageTooLarge: string;
     contentRequired: string;
     submitSuccess: string;
     submitError: string;
   };
-}
-
-
-
-export type MessagesPageDict = {
-  header: {
-    title: string;
-    subtitle: string;
-  };
-  actionBanner: {
-    titleSingle: string; // e.g., "פעולה אחת ממתינה לך!"
-    titleMultiple: string; // e.g., "{{count}} פעולות ממתינות לך!"
-    description: string;
-  };
-  filters: {
-    all: string;
-    actionRequired: string;
-    updates: string;
-    refresh: string;
-  };
-  error: string; // e.g., "שגיאה: {{error}}"
-  emptyState: {
-    title: string;
-    descriptionAll: string;
-    descriptionFiltered: string;
-  };
-  notificationCard: {
-    matchmakerPrefix: string; // e.g., "הצעה מהשדכן/ית"
-    suggestionWith: string; // e.g., "עם {{name}}"
-    viewDetails: string;
-  };
-  badges: {
-    match: string; // e.g., "התאמה!"
-  };
-    messageList: MessageListDict;
-  messageListItem: MessageListItemDict;
-  availabilityRequestCard: AvailabilityRequestCardDict;
-
 };
+
 export type MessageListItemDict = {
   matchBadge: string;
 };
 
 export type MessageListDict = {
   header: string;
-  subtitle: string; // e.g., "{{count}} suggestions and updates"
+  subtitle: string;
 };
 
 export type AvailabilityRequestCardDict = {
   title: string;
-  fromMatchmaker: string; // e.g., "From {{name}}"
+  fromMatchmaker: string;
   firstPartyLabel: string;
   secondPartyLabel: string;
   progressLabel: string;
@@ -3427,27 +3296,128 @@ export type AvailabilityRequestCardDict = {
     unavailable: string;
   };
   responses: {
-    [key: string]: string; // PENDING, AVAILABLE, UNAVAILABLE
+    [key: string]: string;
   };
 };
 
-// בקובץ: src/types/dictionary.d.ts
-
-export type CvSectionDict = {
-  title: string;
-  subtitle: string;
-  uploadButton: string;
-  replaceButton: string;
-  deleteButton: string;
-  uploading: string;
-  successBadge: string;
-  fileTypes: string;
-  toasts: {
-    invalidFileType: string;
-    fileTooLarge: string;
-    uploadSuccess: string;
-    uploadError: string;
-    deleteSuccess: string;
-    deleteError: string;
+export type MessagesPageDict = {
+  header: {
+    title: string;
+    subtitle: string;
   };
+  actionBanner: {
+    titleSingle: string;
+    titleMultiple: string;
+    description: string;
+  };
+  filters: {
+    all: string;
+    actionRequired: string;
+    updates: string;
+    refresh: string;
+  };
+  error: string;
+  emptyState: {
+    title: string;
+    descriptionAll: string;
+    descriptionFiltered: string;
+  };
+  notificationCard: {
+    matchmakerPrefix: string;
+    suggestionWith: string;
+    viewDetails: string;
+  };
+  badges: {
+    match: string;
+  };
+  messageList: MessageListDict;
+  messageListItem: MessageListItemDict;
+  availabilityRequestCard: AvailabilityRequestCardDict;
 };
+
+// ======================================================================== //
+// ✨ END: OTHER TYPES ✨
+// ======================================================================== //
+
+// ======================================================================== //
+// ✨ MAIN DICTIONARY TYPE ✨
+// ======================================================================== //
+
+// --- The COMPLETE Dictionary Type for the entire app ---
+export type Dictionary = {
+  navbar: NavbarDict;
+  userDropdown: UserDropdownDict;
+  stickyNav: StickyNavDict;
+  heroSection: HeroSectionDict;
+  valueProposition: ValuePropositionDict;
+  ourMethod: OurMethodDict;
+  howItWorks: HowItWorksDict;
+  matchmakerTeam: MatchmakerTeamDict;
+  successStories: SuccessStoriesDict;
+  faq: FaqDict;
+  privacyAssurance: PrivacyAssuranceDict;
+  cta: CtaDict;
+  footer: FooterDict;
+  chatWidget: ChatWidgetDict;
+  cookieBanner: CookieBannerDict;
+  metadata: MetadataDict;
+  questionnaire: QuestionnaireDictionary;
+  email: EmailDictionary;
+  demoProfileCard: DemoProfileCardDict;
+  unsavedChangesModal: UnsavedChangesModalDict;
+  suggestions: SuggestionsDictionary;
+  profilePage: ProfilePageDictionary;
+  matchmakerPage: MatchmakerPageDictionary;
+  auth: AuthDictionary;
+  contactPage: ContactPageDict;
+  feedbackWidget: FeedbackWidgetDict;
+  messagesPage: MessagesPageDict;
+  admin: AdminDictionary;
+  neshmaInsight: NeshmaInsightDict;
+};
+
+// ======================================================================== //
+// ✨ TYPE EXPORTS ✨
+// ======================================================================== //
+
+export type {
+  SuggestionsDictionary,
+  QuestionnaireDictionary,
+  ProfilePageDictionary,
+  MatchmakerPageDictionary,
+  AuthDictionary,
+  EmailDictionary,
+  ChatTabDict,
+  MatchmakerMessagesPageDict,
+};
+
+// Service Type Enums (should be imported from schema or defined here)
+export type ServiceType =
+  | 'MILITARY_COMBATANT'
+  | 'MILITARY_SUPPORT'
+  | 'MILITARY_OFFICER'
+  | 'MILITARY_INTELLIGENCE_CYBER_TECH'
+  | 'NATIONAL_SERVICE_ONE_YEAR'
+  | 'NATIONAL_SERVICE_TWO_YEARS'
+  | 'YESHIVA_HESDER'
+  | 'YESHIVA_FULL_TIME'
+  | 'SEMINARY'
+  | 'MIDRASHA' 
+  | 'NONE'
+  | 'OTHER';
+  
+export type HeadCoveringType =
+  | 'NONE'
+  | 'SOMETIMES'
+  | 'MITPACHAT'
+  | 'WIG'
+  | 'BOTH'
+  | 'OTHER';
+
+export type KippahType =
+  | 'NONE'
+  | 'SOMETIMES'
+  | 'SRUGA'
+  | 'BLACK'
+  | 'LARGE'
+  | 'OTHER';

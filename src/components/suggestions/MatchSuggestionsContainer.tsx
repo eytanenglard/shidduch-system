@@ -2,10 +2,10 @@
 
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { useParams, usePathname } from 'next/navigation';
+import { useParams } from 'next/navigation';
 
 import {
   History,
@@ -17,6 +17,7 @@ import {
   XCircle,
   Loader2,
   Sparkles,
+  Bookmark,
 } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -25,6 +26,7 @@ import { toast } from 'sonner';
 import type { MatchSuggestion } from '@prisma/client';
 
 import SuggestionsList from './list/SuggestionsList';
+import InterestedQueue from '@/components/suggestions/interested/InterestedQueue';
 import type { ExtendedMatchSuggestion } from './types';
 import { cn } from '@/lib/utils';
 
@@ -44,7 +46,6 @@ import type {
   ProfileCardDict,
 } from '@/types/dictionary';
 
-// ← הוספת import של הרכיב החדש
 import FirstPartyPreferenceToggle from '@/components/suggestions/FirstPartyPreferenceToggle';
 
 // =============================================================================
@@ -67,10 +68,12 @@ import FirstPartyPreferenceToggle from '@/components/suggestions/FirstPartyPrefe
 //   - from-teal-400 via-orange-400 to-rose-400
 // =============================================================================
 
-// ID של יוזר המערכת שמייצר הצעות יומיות
 const SYSTEM_MATCHMAKER_ID = 'system-matchmaker-neshamatech';
 
-// --- Simplified Loading Skeleton ---
+// --- Action Type (extended to include 'interested') ---
+type ActionType = 'approve' | 'decline' | 'interested';
+
+// --- Loading Skeleton ---
 const LoadingSkeleton: React.FC<{
   dict: SuggestionsDictionary['container']['loading'];
 }> = ({ dict }) => (
@@ -79,7 +82,7 @@ const LoadingSkeleton: React.FC<{
       <div className="shadow-2xl border-0 bg-white/95 backdrop-blur-sm overflow-hidden rounded-3xl">
         <div className="px-8 py-6 bg-gradient-to-r from-teal-50/80 via-white to-orange-50/30 border-b border-gray-100">
           <div className="flex items-center justify-center">
-            <div className="h-7 bg-gray-200 rounded-lg w-48 animate-pulse"></div>
+            <div className="h-7 bg-gray-200 rounded-lg w-48 animate-pulse" />
           </div>
         </div>
 
@@ -90,14 +93,14 @@ const LoadingSkeleton: React.FC<{
                 <div
                   key={index}
                   className="px-6 py-3 rounded-xl bg-gray-200 animate-pulse w-28 h-10"
-                ></div>
+                />
               ))}
             </div>
           </div>
 
           <div className="flex flex-col items-center justify-center min-h-[300px] text-center space-y-6">
             <div className="relative">
-              <div className="w-20 h-20 rounded-full bg-gradient-to-br from-teal-100 via-orange-100 to-rose-100 animate-pulse border-4 border-white shadow-xl"></div>
+              <div className="w-20 h-20 rounded-full bg-gradient-to-br from-teal-100 via-orange-100 to-rose-100 animate-pulse border-4 border-white shadow-xl" />
               <div className="absolute inset-0 flex items-center justify-center">
                 <Loader2 className="w-10 h-10 text-teal-600 animate-spin" />
               </div>
@@ -118,7 +121,7 @@ const LoadingSkeleton: React.FC<{
                   key={index}
                   className="w-2.5 h-2.5 rounded-full bg-gradient-to-r from-teal-500 to-orange-500 animate-bounce"
                   style={{ animationDelay: `${index * 0.2}s` }}
-                ></div>
+                />
               ))}
             </div>
           </div>
@@ -128,13 +131,13 @@ const LoadingSkeleton: React.FC<{
   </div>
 );
 
-// ← הוספת prop חדש ל-interface
+// --- Props Interface ---
 interface MatchSuggestionsContainerProps {
   userId: string;
   className?: string;
   suggestionsDict: SuggestionsDictionary;
   profileCardDict: ProfileCardDict;
-  wantsToBeFirstParty?: boolean; // ← prop חדש
+  wantsToBeFirstParty?: boolean;
 }
 
 // --- Main Container ---
@@ -143,21 +146,17 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
   className,
   suggestionsDict,
   profileCardDict,
-  wantsToBeFirstParty = true, // ← הוספת הפרמטר עם ברירת מחדל
+  wantsToBeFirstParty = true,
 }) => {
   const params = useParams();
 
-  // --- תיקון: לוגיקה לקביעת השפה (ללא let כדי למנוע שגיאות) ---
-  // אנחנו בודקים אם קיים פרמטר בשם locale (החדש) או lang (הישן)
+  // --- Locale Resolution ---
   const rawParam = params?.locale || params?.lang;
-
-  // מחלצים את המחרוזת (במקרה שזה מערך)
   const localeString = Array.isArray(rawParam) ? rawParam[0] : rawParam;
-
-  // קובעים סופית: אם זה 'he' אז עברית, אחרת ברירת מחדל אנגלית
   const locale: 'he' | 'en' = localeString === 'he' ? 'he' : 'en';
+  const isRtl = locale === 'he';
 
-  console.log('🔍 [MatchSuggestionsContainer] Final Locale:', locale);
+  // --- State ---
   const [activeSuggestions, setActiveSuggestions] = useState<
     ExtendedMatchSuggestion[]
   >([]);
@@ -175,16 +174,35 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [suggestionForAction, setSuggestionForAction] =
     useState<ExtendedMatchSuggestion | null>(null);
-  const [actionType, setActionType] = useState<'approve' | 'decline' | null>(
-    null
-  );
+  const [actionType, setActionType] = useState<ActionType | null>(null);
 
-  // Sort suggestions: urgent (user's turn) first, then others
-  const sortedActiveSuggestions = React.useMemo(() => {
+  // --- Derived: INTERESTED suggestions (sorted by rank) ---
+  const interestedSuggestions = useMemo(() => {
+    return activeSuggestions
+      .filter(
+        (s) =>
+          s.status === 'FIRST_PARTY_INTERESTED' && s.firstPartyId === userId
+      )
+      .sort(
+        (a, b) =>
+          ((a as any).firstPartyRank ?? 999) -
+          ((b as any).firstPartyRank ?? 999)
+      );
+  }, [activeSuggestions, userId]);
+
+  // --- Derived: active suggestions WITHOUT interested ---
+  const nonInterestedActiveSuggestions = useMemo(() => {
+    return activeSuggestions.filter(
+      (s) => s.status !== 'FIRST_PARTY_INTERESTED'
+    );
+  }, [activeSuggestions]);
+
+  // --- Derived: sorted active suggestions (urgent first, excluding INTERESTED) ---
+  const sortedActiveSuggestions = useMemo(() => {
     const urgent: ExtendedMatchSuggestion[] = [];
     const others: ExtendedMatchSuggestion[] = [];
 
-    activeSuggestions.forEach((s) => {
+    nonInterestedActiveSuggestions.forEach((s) => {
       const isFirstParty = s.firstPartyId === userId;
       const isMyTurn =
         (s.status === 'PENDING_FIRST_PARTY' && isFirstParty) ||
@@ -198,22 +216,26 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
     });
 
     return [...urgent, ...others];
-  }, [activeSuggestions, userId]);
+  }, [nonInterestedActiveSuggestions, userId]);
 
-  const urgentCount = sortedActiveSuggestions.filter((s) => {
-    const isFirstParty = s.firstPartyId === userId;
-    return (
-      (s.status === 'PENDING_FIRST_PARTY' && isFirstParty) ||
-      (s.status === 'PENDING_SECOND_PARTY' && !isFirstParty)
-    );
-  }).length;
+  // --- Derived: urgent count ---
+  const urgentCount = useMemo(
+    () =>
+      sortedActiveSuggestions.filter((s) => {
+        const isFirstParty = s.firstPartyId === userId;
+        return (
+          (s.status === 'PENDING_FIRST_PARTY' && isFirstParty) ||
+          (s.status === 'PENDING_SECOND_PARTY' && !isFirstParty)
+        );
+      }).length,
+    [sortedActiveSuggestions, userId]
+  );
 
-  // ===== NEW: זיהוי הצעה יומית פעילה שממתינה לתגובת היוזר =====
-  const dailySuggestion = React.useMemo(() => {
+  // --- Derived: daily AI suggestion awaiting user response ---
+  const dailySuggestion = useMemo(() => {
     return activeSuggestions.find((s) => {
       if (s.matchmakerId !== SYSTEM_MATCHMAKER_ID) return false;
       const isFirstParty = s.firstPartyId === userId;
-      // ההצעה ממתינה לתגובת היוזר הנוכחי
       return (
         (s.status === 'PENDING_FIRST_PARTY' && isFirstParty) ||
         (s.status === 'PENDING_SECOND_PARTY' && !isFirstParty)
@@ -221,6 +243,7 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
     });
   }, [activeSuggestions, userId]);
 
+  // --- Data Fetching ---
   const fetchSuggestions = useCallback(
     async (showLoadingState = true) => {
       try {
@@ -232,8 +255,8 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
         setError(null);
 
         const [activeResponse, historyResponse] = await Promise.all([
-          fetch(`/api/suggestions/active`),
-          fetch(`/api/suggestions/history`),
+          fetch('/api/suggestions/active'),
+          fetch('/api/suggestions/history'),
         ]);
 
         if (!activeResponse.ok || !historyResponse.ok) {
@@ -257,10 +280,10 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
 
         setActiveSuggestions(activeData.suggestions);
         setHistorySuggestions(historyData.suggestions);
-      } catch (error) {
+      } catch (err) {
         const errorMessage =
-          error instanceof Error
-            ? error.message
+          err instanceof Error
+            ? err.message
             : suggestionsDict.container.main.unknownError;
         setError(
           suggestionsDict.container.main.errorLoading.replace(
@@ -279,6 +302,7 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
     [activeSuggestions.length, suggestionsDict]
   );
 
+  // --- Status Change Handler ---
   const handleStatusChange = useCallback(
     async (suggestionId: string, newStatus: string, notes?: string) => {
       try {
@@ -319,6 +343,10 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
             suggestionsDict.container.toasts.approvedSecondPartyDesc;
         } else if (newStatus.includes('DECLINED')) {
           description = suggestionsDict.container.toasts.declinedDesc;
+        } else if (newStatus === 'FIRST_PARTY_INTERESTED') {
+          description = isRtl
+            ? 'ההצעה נשמרה ברשימת ההמתנה שלך'
+            : 'Suggestion saved to your waitlist';
         } else {
           description = suggestionsDict.container.toasts.matchmakerNotified;
         }
@@ -328,10 +356,10 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
             suggestionsDict.container.toasts.statusUpdateSuccess,
           { description }
         );
-      } catch (error) {
+      } catch (err) {
         const errorMessage =
-          error instanceof Error
-            ? error.message
+          err instanceof Error
+            ? err.message
             : suggestionsDict.container.main.unknownError;
         toast.error(
           suggestionsDict.container.toasts.statusUpdateError.replace(
@@ -341,11 +369,15 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
         );
       }
     },
-    [fetchSuggestions, suggestionsDict]
+    [fetchSuggestions, suggestionsDict, isRtl]
   );
 
+  // --- Action Request (opens confirmation dialog) ---
   const handleRequestAction = useCallback(
-    (suggestion: ExtendedMatchSuggestion, action: 'approve' | 'decline') => {
+    (
+      suggestion: ExtendedMatchSuggestion,
+      action: 'approve' | 'decline' | 'interested'
+    ) => {
       setSuggestionForAction(suggestion);
       setActionType(action);
       setShowConfirmDialog(true);
@@ -353,19 +385,23 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
     []
   );
 
+  // --- Confirm Action ---
   const handleConfirmAction = useCallback(async () => {
     if (!suggestionForAction || !actionType) return;
 
     const isFirstParty = suggestionForAction.firstPartyId === userId;
     let newStatus = '';
+
     if (actionType === 'approve') {
       newStatus = isFirstParty
         ? 'FIRST_PARTY_APPROVED'
         : 'SECOND_PARTY_APPROVED';
-    } else {
+    } else if (actionType === 'decline') {
       newStatus = isFirstParty
         ? 'FIRST_PARTY_DECLINED'
         : 'SECOND_PARTY_DECLINED';
+    } else if (actionType === 'interested') {
+      newStatus = 'FIRST_PARTY_INTERESTED';
     }
 
     await handleStatusChange(suggestionForAction.id, newStatus);
@@ -375,6 +411,45 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
     setActionType(null);
   }, [suggestionForAction, actionType, userId, handleStatusChange]);
 
+  // --- Rank Update Handler (for InterestedQueue drag-and-drop) ---
+  const handleRankUpdate = useCallback(
+    async (rankedIds: string[]) => {
+      const response = await fetch('/api/suggestions/interested/rank', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ rankedSuggestionIds: rankedIds }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update ranks');
+      }
+
+      await fetchSuggestions(false);
+    },
+    [fetchSuggestions]
+  );
+
+  // --- Remove suggestion from INTERESTED queue ---
+  const handleRemoveFromInterested = useCallback(
+    (suggestion: ExtendedMatchSuggestion) => {
+      setSuggestionForAction(suggestion);
+      setActionType('decline');
+      setShowConfirmDialog(true);
+    },
+    []
+  );
+
+  // --- Activate an INTERESTED suggestion ---
+  const handleActivateInterested = useCallback(
+    (suggestion: ExtendedMatchSuggestion) => {
+      setSuggestionForAction(suggestion);
+      setActionType('approve');
+      setShowConfirmDialog(true);
+    },
+    []
+  );
+
+  // --- Effects ---
   useEffect(() => {
     fetchSuggestions();
     const intervalId = setInterval(
@@ -398,6 +473,7 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
       'MATCH_APPROVED',
       'DATING',
       'ENGAGED',
+      // NOT: FIRST_PARTY_INTERESTED - it's not an active process
     ];
     const hasActiveProcess = activeSuggestions.some((s) =>
       activeProcessStatuses.includes(s.status)
@@ -411,6 +487,7 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
     }
   }, [activeTab]);
 
+  // --- Manual Refresh ---
   const handleRefresh = useCallback(async () => {
     await fetchSuggestions(false);
     toast.success(suggestionsDict.container.toasts.refreshSuccessTitle, {
@@ -418,11 +495,12 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
     });
   }, [fetchSuggestions, suggestionsDict]);
 
+  // --- Loading State ---
   if (isLoading) {
     return <LoadingSkeleton dict={suggestionsDict.container.loading} />;
   }
 
-  // ===== i18n texts for the daily suggestion section =====
+  // --- i18n texts for daily suggestion section ---
   const dailyDict = (suggestionsDict.container as any).dailySuggestion as
     | {
         cardTitle?: string;
@@ -433,13 +511,14 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
       }
     | undefined;
 
+  // --- Render ---
   return (
     <div
       className={cn(
         'min-h-screen bg-gradient-to-br from-slate-50 via-teal-50/20 to-orange-50/20',
         className
       )}
-      dir={locale === 'he' ? 'rtl' : 'ltr'}
+      dir={isRtl ? 'rtl' : 'ltr'}
     >
       <div className="container mx-auto px-4 py-8">
         {/* Main Card */}
@@ -465,12 +544,7 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
                 </Button>
                 {hasNewSuggestions && (
                   <Badge className="bg-gradient-to-r from-orange-500 to-amber-500 text-white border-0 shadow-xl animate-pulse">
-                    <Bell
-                      className={cn(
-                        'w-3 h-3',
-                        locale === 'he' ? 'ml-1' : 'mr-1'
-                      )}
-                    />
+                    <Bell className={cn('w-3 h-3', isRtl ? 'ml-1' : 'mr-1')} />
                     {suggestionsDict.container.main.newSuggestions}
                   </Badge>
                 )}
@@ -480,12 +554,12 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
                   {suggestionsDict.container.main.title}
                 </CardTitle>
               </div>
-              <div className="w-16"></div>
+              <div className="w-16" />
             </div>
           </CardHeader>
 
           <CardContent className="p-6">
-            {/* ===== NEW: Daily Suggestion Highlight Section ===== */}
+            {/* ===== Daily Suggestion Highlight Section ===== */}
             {dailySuggestion && (
               <div className="mb-6 p-5 bg-gradient-to-r from-violet-50 via-purple-50/50 to-indigo-50 border border-violet-200/50 rounded-2xl shadow-sm">
                 <div className="flex items-center gap-3 mb-3">
@@ -495,13 +569,11 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
                   <div>
                     <h3 className="text-lg font-bold bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent">
                       {dailyDict?.cardTitle ||
-                        (locale === 'he'
-                          ? '✨ ההצעה היומית שלך'
-                          : '✨ Your Daily Match')}
+                        (isRtl ? '✨ ההצעה היומית שלך' : '✨ Your Daily Match')}
                     </h3>
                     <p className="text-sm text-violet-600/80">
                       {dailyDict?.cardSubtitle ||
-                        (locale === 'he'
+                        (isRtl
                           ? 'כל יום אנחנו מחפשים עבורך את ההתאמה הכי טובה'
                           : 'Every day we search for your best possible match')}
                     </p>
@@ -509,23 +581,21 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
                 </div>
                 <p className="text-sm text-gray-600 leading-relaxed mb-3">
                   {dailyDict?.matchingNote ||
-                    (locale === 'he'
+                    (isRtl
                       ? 'הצעה זו נבחרה על סמך ניתוח מעמיק של הפרופיל שלך, תשובותיך לשאלון, והעדפותיך. המערכת שלנו לומדת ומשתפרת כל הזמן.'
                       : 'This match was selected based on deep analysis of your profile, questionnaire answers, and preferences. Our system learns and improves continuously.')}
                 </p>
                 <div className="flex items-center gap-2">
                   <Badge className="bg-gradient-to-r from-violet-500 to-purple-500 text-white border-0 text-xs">
                     {dailyDict?.aiPowered ||
-                      (locale === 'he'
-                        ? 'מותאם אישית ע"י AI'
-                        : 'AI-Personalized')}
+                      (isRtl ? 'מותאם אישית ע"י AI' : 'AI-Personalized')}
                   </Badge>
                   <Badge
                     variant="outline"
                     className="border-violet-300 text-violet-700 text-xs"
                   >
                     {dailyDict?.basedOnLearning ||
-                      (locale === 'he'
+                      (isRtl
                         ? 'מבוסס על למידת המערכת'
                         : 'Based on system learning')}
                   </Badge>
@@ -540,10 +610,11 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
               className="mb-6"
             />
 
+            {/* ===== Tabs ===== */}
             <Tabs
               value={activeTab}
               onValueChange={setActiveTab}
-              dir={locale === 'he' ? 'rtl' : 'ltr'}
+              dir={isRtl ? 'rtl' : 'ltr'}
               className="space-y-6"
             >
               <div className="flex justify-center">
@@ -587,14 +658,15 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
                 </TabsList>
               </div>
 
+              {/* Error Alert */}
               {error && (
                 <Alert
                   variant="destructive"
                   className="border-red-200 bg-red-50"
-                  dir={locale === 'he' ? 'rtl' : 'ltr'}
+                  dir={isRtl ? 'rtl' : 'ltr'}
                 >
                   <AlertCircle
-                    className={cn('h-5 w-5', locale === 'he' ? 'ml-2' : 'mr-2')}
+                    className={cn('h-5 w-5', isRtl ? 'ml-2' : 'mr-2')}
                   />
                   <AlertDescription className="text-red-800 font-medium">
                     {error}
@@ -602,7 +674,25 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
                 </Alert>
               )}
 
+              {/* Active Tab Content */}
               <TabsContent value="active" className="space-y-6">
+                {/* ===== Interested Queue ===== */}
+                {interestedSuggestions.length > 0 && (
+                  <InterestedQueue
+                    suggestions={interestedSuggestions}
+                    userId={userId}
+                    locale={locale}
+                    isUserInActiveProcess={isUserInActiveProcess}
+                    onActivate={handleActivateInterested}
+                    onRemove={handleRemoveFromInterested}
+                    onViewDetails={() => {
+                      // TODO: open SuggestionDetailsModal
+                    }}
+                    onRankUpdate={handleRankUpdate}
+                    className="mb-4"
+                  />
+                )}
+
                 <SuggestionsList
                   locale={locale}
                   suggestions={sortedActiveSuggestions}
@@ -618,6 +708,7 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
                 />
               </TabsContent>
 
+              {/* History Tab Content */}
               <TabsContent value="history" className="space-y-6">
                 <SuggestionsList
                   locale={locale}
@@ -646,12 +737,20 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
             <AlertDialogTitle className="text-xl font-bold text-center">
               {actionType === 'approve'
                 ? suggestionsDict.container.dialogs.approveTitle
-                : suggestionsDict.container.dialogs.declineTitle}
+                : actionType === 'interested'
+                  ? isRtl
+                    ? 'שמירה לגיבוי'
+                    : 'Save for later'
+                  : suggestionsDict.container.dialogs.declineTitle}
             </AlertDialogTitle>
             <AlertDialogDescription className="text-center text-gray-600 leading-relaxed">
               {actionType === 'approve'
                 ? suggestionsDict.container.dialogs.approveDescription
-                : suggestionsDict.container.dialogs.declineDescription}
+                : actionType === 'interested'
+                  ? isRtl
+                    ? 'ההצעה תישמר ברשימת ההמתנה שלך. תוכל/י לאשר אותה מאוחר יותר כשתהיה פנוי/ה.'
+                    : "This suggestion will be saved to your waitlist. You can approve it later when you're available."
+                  : suggestionsDict.container.dialogs.declineDescription}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="gap-3">
@@ -664,21 +763,28 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
                 'rounded-xl font-medium shadow-lg hover:shadow-xl transition-all duration-300',
                 actionType === 'approve'
                   ? 'bg-gradient-to-r from-teal-500 to-emerald-600 hover:from-teal-600 hover:to-emerald-700'
-                  : 'bg-gradient-to-r from-rose-500 to-red-600 hover:from-rose-600 hover:to-red-700'
+                  : actionType === 'interested'
+                    ? 'bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600'
+                    : 'bg-gradient-to-r from-rose-500 to-red-600 hover:from-rose-600 hover:to-red-700'
               )}
             >
               {actionType === 'approve' ? (
                 <>
                   <CheckCircle
-                    className={cn('w-4 h-4', locale === 'he' ? 'ml-2' : 'mr-2')}
+                    className={cn('w-4 h-4', isRtl ? 'ml-2' : 'mr-2')}
                   />
                   {suggestionsDict.container.dialogs.confirmApproval}
                 </>
+              ) : actionType === 'interested' ? (
+                <>
+                  <Bookmark
+                    className={cn('w-4 h-4', isRtl ? 'ml-2' : 'mr-2')}
+                  />
+                  {isRtl ? 'שמור/י לגיבוי' : 'Save for later'}
+                </>
               ) : (
                 <>
-                  <XCircle
-                    className={cn('w-4 h-4', locale === 'he' ? 'ml-2' : 'mr-2')}
-                  />
+                  <XCircle className={cn('w-4 h-4', isRtl ? 'ml-2' : 'mr-2')} />
                   {suggestionsDict.container.dialogs.confirmDecline}
                 </>
               )}

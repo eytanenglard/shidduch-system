@@ -6,7 +6,7 @@ import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { formatAnswers, KEY_MAPPING, FormattedAnswersType } from '@/lib/questionnaireFormatter';
 import type { ExtendedMatchSuggestion, PartyInfo, QuestionnaireResponse } from "@/components/suggestions/types";
-import type {  WorldId } from "@/types/next-auth";
+import type { WorldId } from "@/types/next-auth";
 export const dynamic = 'force-dynamic';
 // --- טיפוסים חזקים ומדויקים לתהליך העיבוד ---
 type ProcessedQuestionnaireResponse = Omit<QuestionnaireResponse, 'valuesAnswers' | 'personalityAnswers' | 'relationshipAnswers' | 'partnerAnswers' | 'religionAnswers'> & {
@@ -37,21 +37,53 @@ export async function GET() {
     const activeSuggestions = await prisma.matchSuggestion.findMany({
       where: {
         OR: [
-          { firstPartyId: session.user.id, status: { in: ["PENDING_FIRST_PARTY", "FIRST_PARTY_APPROVED", "PENDING_SECOND_PARTY", "SECOND_PARTY_APPROVED", "CONTACT_DETAILS_SHARED"] } },
-          { secondPartyId: session.user.id, status: { in: ["PENDING_SECOND_PARTY", "SECOND_PARTY_APPROVED", "CONTACT_DETAILS_SHARED"] } },
+          {
+            firstPartyId: session.user.id,
+            status: {
+              in: [
+                "PENDING_FIRST_PARTY",
+                "FIRST_PARTY_APPROVED",
+                "FIRST_PARTY_INTERESTED",
+                "PENDING_SECOND_PARTY",
+                "SECOND_PARTY_APPROVED",
+                "CONTACT_DETAILS_SHARED",
+              ],
+            },
+          },
+          {
+            secondPartyId: session.user.id,
+            status: {
+              in: [
+                "PENDING_SECOND_PARTY",
+                "SECOND_PARTY_APPROVED",
+                "CONTACT_DETAILS_SHARED",
+              ],
+            },
+          },
         ],
       },
       include: {
         statusHistory: { orderBy: { createdAt: 'desc' } },
         matchmaker: { select: { firstName: true, lastName: true } },
         firstParty: {
-          include: { profile: true, images: true, questionnaireResponses: { orderBy: { createdAt: 'desc' }, take: 1 } },
+          include: {
+            profile: true,
+            images: true,
+            questionnaireResponses: { orderBy: { createdAt: 'desc' }, take: 1 },
+          },
         },
         secondParty: {
-          include: { profile: true, images: true, questionnaireResponses: { orderBy: { createdAt: 'desc' }, take: 1 } },
+          include: {
+            profile: true,
+            images: true,
+            questionnaireResponses: { orderBy: { createdAt: 'desc' }, take: 1 },
+          },
         },
       },
-      orderBy: { createdAt: "desc" },
+      orderBy: [
+        { firstPartyRank: "asc" },
+        { createdAt: "desc" },
+      ],
     });
 
     // --- עיבוד נתונים עם טיפוסים חזקים (ללא any) ---

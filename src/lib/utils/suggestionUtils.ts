@@ -18,7 +18,8 @@ import {
   Gift,
   AlertTriangle,
   FileX,
-  Ban
+  Ban,
+  Bookmark
 } from "lucide-react";
 
 export interface StatusWithPartyInfo {
@@ -29,7 +30,7 @@ export interface StatusWithPartyInfo {
   icon: React.ElementType;
   className: string;
   pulse: boolean;
-  category: "pending" | "approved" | "declined" | "progress" | "completed";
+  category: "pending" | "approved" | "declined" | "progress" | "completed" | "interested";
 }
 
 export function getEnhancedStatusInfo(
@@ -49,12 +50,12 @@ export function getEnhancedStatusInfo(
       pulse: false,
       category: "pending"
     },
-    
+
     // --- Pending First Party: Orange/Amber (Action Required) ---
     PENDING_FIRST_PARTY: {
       label: isFirstParty ? "ממתין לתשובתך" : "נשלח לצד הראשון",
       shortLabel: isFirstParty ? dict.statusIndicator.waitingForYou : dict.statusIndicator.firstParty,
-      description: isFirstParty 
+      description: isFirstParty
         ? dict.statusDescriptions.pendingFirstPartyUser
         : dict.statusDescriptions.pendingFirstPartyOther,
       currentParty: "first",
@@ -62,6 +63,27 @@ export function getEnhancedStatusInfo(
       className: "bg-gradient-to-r from-orange-50 to-amber-50 text-orange-700 border-orange-200",
       pulse: true,
       category: "pending"
+    },
+
+    // --- First Party Interested: Amber (Saved/Queued) ---
+    FIRST_PARTY_INTERESTED: {
+      label: isFirstParty
+        ? (dict.statusLabels?.interested || "ממתין בתור")
+        : (dict.statusLabels?.pending || "ממתין"),
+      shortLabel: isFirstParty
+        ? (dict.statusLabels?.interested || "ממתין בתור")
+        : (dict.statusLabels?.pending || "ממתין"),
+      description: isFirstParty
+        ? (dict.statusDescriptions?.interestedFirstParty ||
+          "ההצעה שמורה ברשימת ההמתנה שלך. תוכל/י לאשר אותה כשתהיה/י פנוי/ה.")
+        : "",
+      currentParty: isFirstParty ? "first" : "none",
+      icon: isFirstParty ? Bookmark : Clock,
+      className: isFirstParty
+        ? "bg-gradient-to-r from-amber-50 to-yellow-50 text-amber-700 border-amber-200"
+        : "bg-gradient-to-r from-gray-50 to-slate-50 text-gray-600 border-gray-200",
+      pulse: false,
+      category: "interested"
     },
 
     // --- First Party Approved: Teal/Emerald (Success) ---
@@ -342,7 +364,23 @@ export function getPartyIndicator(
   className: string;
 } {
   const statusInfo = getEnhancedStatusInfo(status, isFirstParty, dict);
-  
+
+  // Special handling for FIRST_PARTY_INTERESTED
+  if (status === "FIRST_PARTY_INTERESTED") {
+    if (isFirstParty) {
+      return {
+        show: true,
+        text: dict.partyIndicators?.interestedSaved || "שמרת לגיבוי",
+        className: "bg-amber-500 text-white"
+      };
+    }
+    return {
+      show: false,
+      text: "",
+      className: ""
+    };
+  }
+
   switch (statusInfo.currentParty) {
     // First Party: Orange (Action Required)
     case "first":

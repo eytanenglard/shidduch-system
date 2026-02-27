@@ -14,7 +14,6 @@
       "approved": "אושרו",
       "approvedDesc": "הצעות שאושרו על ידך"
     },
-    
     "main": {
       "title": "ניהול ההצעות",
       "refreshAriaLabel": "רענן הצעות",
@@ -30,6 +29,9 @@
     "dialogs": {
       "approveTitle": "אישור הצעת השידוך",
       "declineTitle": "דחיית הצעת השידוך",
+      "interestedTitle": "שמירה לגיבוי",
+      "interestedDescription": "ההצעה תישמר ברשימת ההמתנה שלך. תוכל/י לאשר אותה מאוחר יותר כשתהיה/י פנוי/ה.",
+      "confirmInterested": "שמור/י לגיבוי",
       "approveDescription": "אישור הצעה הוא צעד מרגש. האם אתה בטוח שברצונך להתקדם? לאחר האישור, השדכן יקבל הודעה וימשיך בתהליך עבורכם.",
       "declineDescription": "כל תשובה מקדמת אותך. האם אתה בטוח שברצונך לדחות הצעה זו? המשוב שלך חשוב מאוד ויעזור לנו לדייק את החיפוש עבורך.",
       "cancel": "ביטול",
@@ -50,43 +52,44 @@
       "declinedDesc": "תודה על המשוב - זה עוזר לנו להציע התאמות טובות יותר",
       "matchmakerNotified": "השדכן יקבל הודעה ויתקדם עם התהליך",
       "refreshSuccessTitle": "הנתונים עודכנו בהצלחה",
-      "refreshSuccessDescription": "כל ההצעות עודכנו למצב הנוכחי"
+      "refreshSuccessDescription": "כל ההצעות עודכנו למצב הנוכחי",
+      "interestedSuccess": "ההצעה נשמרה",
+      "interestedSuccessDesc": "ההצעה נוספה לרשימת ההמתנה שלך. תוכל/י לאשר אותה בכל שלב.",
+      "activateSuccess": "ההצעה אושרה!",
+      "activateSuccessDesc": "ההצעה תועבר כעת לטיפול השדכן.",
+      "removeFromListSuccess": "ההצעה הוסרה מרשימת ההמתנה"
     },
-     "dailySuggestion": {
-    "badge": "✨ הצעה יומית",
-    "badgeTooltip": "הצעה זו נבחרה במיוחד עבורך על ידי המערכת החכמה שלנו",
-    "systemMatchmaker": "המערכת החכמה של NeshamaTech",
-    "systemMatchmakerShort": "NeshamaTech AI",
-    
-    "matchingNote": "הצעה זו נבחרה על סמך ניתוח מעמיק של הפרופיל שלך, תשובותיך לשאלון, והעדפותיך. המערכת שלנו למדה מהתאמות מוצלחות כדי למצוא את ההצעה הכי מתאימה עבורך.",
-    "basedOnLearning": "מבוסס על למידת המערכת",
-    "aiPowered": "מותאם אישית ע\"י AI",
-    
-    "cardTitle": "ההצעה היומית שלך",
-    "cardSubtitle": "כל יום אנחנו מחפשים עבורך את ההתאמה הכי טובה",
-    "noSuggestionToday": "אנחנו מחפשים עבורך את ההתאמה הטובה ביותר. נעדכן אותך כשנמצא!",
-    "score": "ציון התאמה: {{score}}",
-    
-    "reminderTitle": "⏰ ההצעה שלך מחכה",
-    "reminderSubject": "⏰ ההצעה שלך עדיין מחכה לך",
-    "reminderBody": "שלחנו לך הצעת שידוך שנבחרה במיוחד עבורך. היא עדיין מחכה לתגובתך. קח/י רגע לצפות בה.",
-    "reminderCta": "צפה בהצעה",
-    
-    "emailSubject": "💌 הצעה יומית חדשה מחכה לך",
-    "emailNote": "הצעה זו נבחרה על ידי המערכת החכמה שלנו, שלמדה את ההעדפות שלך ומצאה התאמה ייחודית עבורך.",
-    
-    "emptyTitle": "ההצעה היומית בדרך",
-    "emptyDescription": "המערכת שלנו עובדת ללא הפסקה למציאת ההתאמה המושלמת עבורך. נעדכן אותך ברגע שנמצא!",
-    
-    "howItWorks": "איך זה עובד?",
-    "howItWorksText": "בכל יום, המערכת החכמה שלנו סורקת מאות פרופילים ובוחרת עבורך את ההתאמה הטובה ביותר, בהתאם לפרופיל שלך, לתשובותיך לשאלון, ולהעדפות שציינת."
-  }
+    "dailySuggestion": {
+      "badge": "✨ הצעה יומית",
+      "badgeTooltip": "הצעה זו נבחרה במיוחד עבורך על ידי המערכת החכמה שלנו",
+      "systemMatchmaker": "המערכת החכמה של NeshamaTech",
+      "systemMatchmakerShort": "NeshamaTech AI",
+      "matchingNote": "הצעה זו נבחרה על סמך ניתוח מעמיק של הפרופיל שלך, תשובותיך לשאלון, והעדפותיך. המערכת שלנו למדה מהתאמות מוצלחות כדי למצוא את ההצעה הכי מתאימה עבורך.",
+      "basedOnLearning": "מבוסס על למידת המערכת",
+      "aiPowered": "מותאם אישית ע\"י AI",
+      "cardTitle": "ההצעה היומית שלך",
+      "cardSubtitle": "כל יום אנחנו מחפשים עבורך את ההתאמה הכי טובה",
+      "noSuggestionToday": "אנחנו מחפשים עבורך את ההתאמה הטובה ביותר. נעדכן אותך כשנמצא!",
+      "score": "ציון התאמה: {{score}}",
+      "reminderTitle": "⏰ ההצעה שלך מחכה",
+      "reminderSubject": "⏰ ההצעה שלך עדיין מחכה לך",
+      "reminderBody": "שלחנו לך הצעת שידוך שנבחרה במיוחד עבורך. היא עדיין מחכה לתגובתך. קח/י רגע לצפות בה.",
+      "reminderCta": "צפה בהצעה",
+      "emailSubject": "💌 הצעה יומית חדשה מחכה לך",
+      "emailNote": "הצעה זו נבחרה על ידי המערכת החכמה שלנו, שלמדה את ההעדפות שלך ומצאה התאמה ייחודית עבורך.",
+      "emptyTitle": "ההצעה היומית בדרך",
+      "emptyDescription": "המערכת שלנו עובדת ללא הפסקה למציאת ההתאמה המושלמת עבורך. נעדכן אותך ברגע שנמצא!",
+      "howItWorks": "איך זה עובד?",
+      "howItWorksText": "בכל יום, המערכת החכמה שלנו סורקת מאות פרופילים ובוחרת עבורך את ההתאמה הטובה ביותר, בהתאם לפרופיל שלך, לתשובותיך לשאלון, ולהעדפות שציינת."
+    }
   },
-   "card": {
-     "toasts": {
-    "approveDisabledTitle": "לא ניתן לאשר הצעה חדשה",
-    "approveDisabledDescription": "יש לך כבר הצעה אחרת בתהליך פעיל."
-  },
+  "card": {
+    "toasts": {
+      "approveDisabledTitle": "לא ניתן לאשר הצעה חדשה",
+      "approveDisabledDescription": "יש לך כבר הצעה אחרת בתהליך פעיל.",
+      "interestedTitle": "ההצעה נשמרה ✨",
+      "interestedDescription": "ההצעה נוספה לרשימת ההמתנה שלך"
+    },
     "suggestedBy": "הצעה מ",
     "yourTurn": "תורך!",
     "urgent": "דחוף",
@@ -98,6 +101,9 @@
       "decline": "לא מתאים",
       "approve": "מעוניין/ת להכיר!",
       "approveDisabledTooltip": "לא ניתן לאשר הצעה חדשה כשיש הצעה בתהליך פעיל.",
+      "interested": "שומר/ת לגיבוי",
+      "activateNow": "אשר/י עכשיו",
+      "removeFromList": "הסר/י מהרשימה",
       "askMatchmaker": "שאלה לשדכן/ית",
       "viewDetails": "צפה בפרטים"
     },
@@ -108,6 +114,10 @@
       "firstParty": "צד ראשון",
       "secondParty": "צד שני",
       "bothParties": "שני הצדדים"
+    },
+    "statusLabels": {
+      "interested": "שמור/ה בתור",
+      "pending": "ממתין"
     },
     "statusDescriptions": {
       "draft": "השדכן/ית מכין/ה את ההצעה",
@@ -138,11 +148,14 @@
       "married": "נישואין! 🎉 מזל טוב על החתונה! איזו הצלחה",
       "expired": "ההצעה פגה מפאת אי מענה",
       "closed": "התהליך הסתיים והקובץ נסגר",
-      "cancelled": "ההצעה בוטלה על ידי השדכן/ית"
+      "cancelled": "ההצעה בוטלה על ידי השדכן/ית",
+      "interestedFirstParty": "ההצעה שמורה ברשימת ההמתנה שלך. תוכל/י לאשר אותה כשתסיים/י את התהליך הנוכחי."
+    },
+    "partyIndicators": {
+      "interestedSaved": "שמור/ה לגיבוי"
     }
   },
-
-   "modal": {
+  "modal": {
     "header": {
       "title": "הצעה שנבחרה במיוחד עבורך",
       "subtitleLine1": "חשבנו עליך כשראינו את הפרופיל הזה.",
@@ -278,7 +291,7 @@
       "qualityMatches": "התאמות איכותיות עבורך"
     }
   },
-    "presentation": {
+  "presentation": {
     "hero": {
       "title": "הצעה מיוחדת בדרך אליך...",
       "matchmakerThoughts": "מחשבות מהשדכן/ית, {{name}}:"
@@ -301,7 +314,7 @@
       "title": "רוצה חוות דעת נוספת?",
       "description": "קבל ניתוח מעמיק מבוסס AI על נקודות החיבור, פוטנציאל לצמיחה ואפילו רעיונות לפתיחת שיחה."
     },
-        "rationale": {
+    "rationale": {
       "title": "הצעה מיוחדת עבורך",
       "description": "מחשבות מהשדכן/ית {{name}}",
       "personalNoteTitle": "למה חשבתי שזה מתאים במיוחד עבורך",
@@ -309,7 +322,7 @@
       "noReasonText": "השדכן/ית סומך/ת על הנתונים שידברו בעד עצמם."
     }
   },
-    "quickView": {
+  "quickView": {
     "unitCm": "ס״מ",
     "aboutTitle": "אודות:",
     "reasonTitle": "סיבת ההצעה:",
@@ -321,7 +334,7 @@
       "ask": "שאלה לשדכן"
     }
   },
-    "compatibility": {
+  "compatibility": {
     "mainTitle": "ניתוח התאמה מפורט",
     "mainSubtitle": "ניתוח מעמיק של נקודות החיבור והאתגרים הפוטנציאליים",
     "errorTitle": "לא ניתן לחשב התאמה",
@@ -375,7 +388,7 @@
     "matchmakerRationaleTitle": "נימוק השדכן להצעה",
     "unitCm": "ס\"מ"
   },
-    "askMatchmaker": {
+  "askMatchmaker": {
     "title": "שאלה ל{{name}}",
     "titleDefault": "שאלה לשדכן",
     "description": "השדכן/ית זמין/ה לענות על כל שאלה שיש לך לגבי המועמד/ת",
@@ -459,7 +472,7 @@
       }
     }
   },
-    "inquiryThread": {
+  "inquiryThread": {
     "title": "שיחה עם השדכן",
     "subtitle": "שאל שאלות וקבל תשובות מקצועיות",
     "status": {
@@ -496,7 +509,7 @@
     },
     "invalidDate": "תאריך לא תקין"
   },
-    "timeline": {
+  "timeline": {
     "title": "מסלול ההצעה",
     "subtitle": "עקוב אחר התקדמות ההצעה לאורך זמן",
     "emptyState": {
@@ -510,30 +523,103 @@
       "approvals": "אישורים",
       "currentStatus": "סטטוס נוכחי"
     },
-     "statuses": {
-      "DRAFT": { "label": "טיוטה", "description": "ההצעה בהכנה על ידי השדכן." },
-      "PENDING_FIRST_PARTY": { "label": "ממתין לצד א'", "description": "ההצעה נשלחה וממתינה לאישור מהצד הראשון." },
-      "FIRST_PARTY_APPROVED": { "label": "צד א' אישר", "description": "הצד הראשון אישר את ההצעה. ממתינים לצד השני." },
-      "FIRST_PARTY_DECLINED": { "label": "צד א' דחה", "description": "הצד הראשון בחר לדחות את ההצעה." },
-      "PENDING_SECOND_PARTY": { "label": "ממתין לצד ב'", "description": "ההצעה נשלחה וממתינה לאישור מהצד השני." },
-      "SECOND_PARTY_APPROVED": { "label": "צד ב' אישר", "description": "הצד השני אישר את ההצעה. ממתינים לשלב הבא." },
-      "SECOND_PARTY_DECLINED": { "label": "צד ב' דחה", "description": "הצד השני בחר לדחות את ההצעה." },
-      "AWAITING_MATCHMAKER_APPROVAL": { "label": "ממתין לשדכן", "description": "שני הצדדים אישרו, ממתינים לאישור סופי מהשדכן." },
-      "CONTACT_DETAILS_SHARED": { "label": "פרטים הועברו", "description": "פרטי הקשר הוחלפו בין שני הצדדים. בהצלחה!" },
-      "AWAITING_FIRST_DATE_FEEDBACK": { "label": "ממתין למשוב", "description": "הפגישה התקיימה, ממתינים למשוב מהצדדים." },
-      "THINKING_AFTER_DATE": { "label": "מתלבטים", "description": "אחד הצדדים או שניהם מתלבטים לגבי המשך הקשר." },
-      "PROCEEDING_TO_SECOND_DATE": { "label": "ממשיכים לפגישה שניה", "description": "שני הצדדים מעוניינים להמשיך לפגישה נוספת." },
-      "ENDED_AFTER_FIRST_DATE": { "label": "הסתיים לאחר פגישה", "description": "הקשר לא ימשיך לאחר הפגישה הראשונה." },
-      "MEETING_PENDING": { "label": "תיאום פגישה", "description": "הצדדים נמצאים בתהליך תיאום פגישה ראשונה." },
-      "MEETING_SCHEDULED": { "label": "נקבעה פגישה", "description": "פגישה ראשונה נקבעה בין הצדדים." },
-      "MATCH_APPROVED": { "label": "שידוך אושר", "description": "השידוך אושר על ידי השדכן. התהליך מתקדם." },
-      "MATCH_DECLINED": { "label": "שידוך נדחה", "description": "השידוך נדחה על ידי השדכן." },
-      "DATING": { "label": "יוצאים", "description": "הקשר התקדם והצדדים יוצאים באופן רשמי." },
-      "ENGAGED": { "label": "מאורסים", "description": "מזל טוב! הזוג התארס." },
-      "MARRIED": { "label": "נשואים", "description": "בניין עדי עד! הזוג התחתן." },
-      "EXPIRED": { "label": "פג תוקף", "description": "הזמן להחלטה על ההצעה עבר." },
-      "CLOSED": { "label": "סגור", "description": "תהליך ההצעה הסתיים." },
-      "CANCELLED": { "label": "בוטל", "description": "ההצעה בוטלה." }
+    "statuses": {
+      "DRAFT": {
+        "label": "טיוטה",
+        "description": "ההצעה בהכנה על ידי השדכן."
+      },
+      "PENDING_FIRST_PARTY": {
+        "label": "ממתין לצד א'",
+        "description": "ההצעה נשלחה וממתינה לאישור מהצד הראשון."
+      },
+      "FIRST_PARTY_APPROVED": {
+        "label": "צד א' אישר",
+        "description": "הצד הראשון אישר את ההצעה. ממתינים לצד השני."
+      },
+      "FIRST_PARTY_DECLINED": {
+        "label": "צד א' דחה",
+        "description": "הצד הראשון בחר לדחות את ההצעה."
+      },
+      "FIRST_PARTY_INTERESTED": {
+  "label": "נשמר לגיבוי",
+  "description": "שמרת את ההצעה הזו ברשימת ההמתנה שלך לשיקול מאוחר יותר."
+},
+      "PENDING_SECOND_PARTY": {
+        "label": "ממתין לצד ב'",
+        "description": "ההצעה נשלחה וממתינה לאישור מהצד השני."
+      },
+      "SECOND_PARTY_APPROVED": {
+        "label": "צד ב' אישר",
+        "description": "הצד השני אישר את ההצעה. ממתינים לשלב הבא."
+      },
+      "SECOND_PARTY_DECLINED": {
+        "label": "צד ב' דחה",
+        "description": "הצד השני בחר לדחות את ההצעה."
+      },
+      "AWAITING_MATCHMAKER_APPROVAL": {
+        "label": "ממתין לשדכן",
+        "description": "שני הצדדים אישרו, ממתינים לאישור סופי מהשדכן."
+      },
+      "CONTACT_DETAILS_SHARED": {
+        "label": "פרטים הועברו",
+        "description": "פרטי הקשר הוחלפו בין שני הצדדים. בהצלחה!"
+      },
+      "AWAITING_FIRST_DATE_FEEDBACK": {
+        "label": "ממתין למשוב",
+        "description": "הפגישה התקיימה, ממתינים למשוב מהצדדים."
+      },
+      "THINKING_AFTER_DATE": {
+        "label": "מתלבטים",
+        "description": "אחד הצדדים או שניהם מתלבטים לגבי המשך הקשר."
+      },
+      "PROCEEDING_TO_SECOND_DATE": {
+        "label": "ממשיכים לפגישה שניה",
+        "description": "שני הצדדים מעוניינים להמשיך לפגישה נוספת."
+      },
+      "ENDED_AFTER_FIRST_DATE": {
+        "label": "הסתיים לאחר פגישה",
+        "description": "הקשר לא ימשיך לאחר הפגישה הראשונה."
+      },
+      "MEETING_PENDING": {
+        "label": "תיאום פגישה",
+        "description": "הצדדים נמצאים בתהליך תיאום פגישה ראשונה."
+      },
+      "MEETING_SCHEDULED": {
+        "label": "נקבעה פגישה",
+        "description": "פגישה ראשונה נקבעה בין הצדדים."
+      },
+      "MATCH_APPROVED": {
+        "label": "שידוך אושר",
+        "description": "השידוך אושר על ידי השדכן. התהליך מתקדם."
+      },
+      "MATCH_DECLINED": {
+        "label": "שידוך נדחה",
+        "description": "השידוך נדחה על ידי השדכן."
+      },
+      "DATING": {
+        "label": "יוצאים",
+        "description": "הקשר התקדם והצדדים יוצאים באופן רשמי."
+      },
+      "ENGAGED": {
+        "label": "מאורסים",
+        "description": "מזל טוב! הזוג התארס."
+      },
+      "MARRIED": {
+        "label": "נשואים",
+        "description": "בניין עדי עד! הזוג התחתן."
+      },
+      "EXPIRED": {
+        "label": "פג תוקף",
+        "description": "הזמן להחלטה על ההצעה עבר."
+      },
+      "CLOSED": {
+        "label": "סגור",
+        "description": "תהליך ההצעה הסתיים."
+      },
+      "CANCELLED": {
+        "label": "בוטל",
+        "description": "ההצעה בוטלה."
+      }
     }
   }
 }

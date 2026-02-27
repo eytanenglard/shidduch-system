@@ -14,7 +14,6 @@
       "approved": "Approved",
       "approvedDesc": "Introductions you've expressed interest in."
     },
-    
     "main": {
       "title": "Manage Your Introductions",
       "refreshAriaLabel": "Refresh introductions",
@@ -30,6 +29,9 @@
     "dialogs": {
       "approveTitle": "Confirm Your Interest",
       "declineTitle": "Decline Introduction",
+      "interestedTitle": "Save for Later",
+      "interestedDescription": "This introduction will be saved to your waitlist. You can approve it later when you're available.",
+      "confirmInterested": "Save for Later",
       "approveDescription": "Expressing interest is an exciting step forward. This lets your matchmaker know you're open to learning more. Are you ready to proceed?",
       "declineDescription": "Every decision helps us refine your search. Are you sure you'd like to pass on this introduction? Your feedback is a valuable part of the journey.",
       "cancel": "Cancel",
@@ -50,43 +52,44 @@
       "declinedDesc": "Thank you for your feedback. This helps us find even better matches for you.",
       "matchmakerNotified": "Your matchmaker has been notified and will guide the process forward.",
       "refreshSuccessTitle": "Data Refreshed",
-      "refreshSuccessDescription": "Your introductions are now up to date."
+      "refreshSuccessDescription": "Your introductions are now up to date.",
+      "interestedSuccess": "Introduction Saved",
+      "interestedSuccessDesc": "The introduction has been added to your waitlist. You can approve it at any time.",
+      "activateSuccess": "Introduction Approved!",
+      "activateSuccessDesc": "The introduction will now be forwarded to the matchmaker.",
+      "removeFromListSuccess": "Introduction removed from waitlist"
     },
     "dailySuggestion": {
-    "badge": "✨ Daily Match",
-    "badgeTooltip": "This introduction was specially selected for you by our smart system",
-    "systemMatchmaker": "NeshamaTech Smart System",
-    "systemMatchmakerShort": "NeshamaTech AI",
-    
-    "matchingNote": "This match was selected based on a deep analysis of your profile, questionnaire responses, and preferences. Our system has learned from successful matches to find the best match for you.",
-    "basedOnLearning": "Based on system learning",
-    "aiPowered": "Personalized by AI",
-    
-    "cardTitle": "Your Daily Match",
-    "cardSubtitle": "Every day we search for the best match for you",
-    "noSuggestionToday": "We're searching for your best match. We'll update you as soon as we find one!",
-    "score": "Match score: {{score}}",
-    
-    "reminderTitle": "⏰ Your Match is Waiting",
-    "reminderSubject": "⏰ Your match is still waiting for you",
-    "reminderBody": "We sent you a specially selected match that's still waiting for your response. Take a moment to review it.",
-    "reminderCta": "View Match",
-    
-    "emailSubject": "💌 A new daily match is waiting for you",
-    "emailNote": "This match was selected by our smart system, which learned your preferences and found a unique match for you.",
-    
-    "emptyTitle": "Your Daily Match is Coming",
-    "emptyDescription": "Our system is working around the clock to find your perfect match. We'll update you the moment we find one!",
-    
-    "howItWorks": "How does it work?",
-    "howItWorksText": "Every day, our smart system scans hundreds of profiles and selects the best match for you, based on your profile, questionnaire responses, and stated preferences."
-  }
+      "badge": "✨ Daily Match",
+      "badgeTooltip": "This introduction was specially selected for you by our smart system",
+      "systemMatchmaker": "NeshamaTech Smart System",
+      "systemMatchmakerShort": "NeshamaTech AI",
+      "matchingNote": "This match was selected based on a deep analysis of your profile, questionnaire responses, and preferences. Our system has learned from successful matches to find the best match for you.",
+      "basedOnLearning": "Based on system learning",
+      "aiPowered": "Personalized by AI",
+      "cardTitle": "Your Daily Match",
+      "cardSubtitle": "Every day we search for the best match for you",
+      "noSuggestionToday": "We're searching for your best match. We'll update you as soon as we find one!",
+      "score": "Match score: {{score}}",
+      "reminderTitle": "⏰ Your Match is Waiting",
+      "reminderSubject": "⏰ Your match is still waiting for you",
+      "reminderBody": "We sent you a specially selected match that's still waiting for your response. Take a moment to review it.",
+      "reminderCta": "View Match",
+      "emailSubject": "💌 A new daily match is waiting for you",
+      "emailNote": "This match was selected by our smart system, which learned your preferences and found a unique match for you.",
+      "emptyTitle": "Your Daily Match is Coming",
+      "emptyDescription": "Our system is working around the clock to find your perfect match. We'll update you the moment we find one!",
+      "howItWorks": "How does it work?",
+      "howItWorksText": "Every day, our smart system scans hundreds of profiles and selects the best match for you, based on your profile, questionnaire responses, and stated preferences."
+    }
   },
-   "card": {
-     "toasts": {
-    "approveDisabledTitle": "Cannot Approve New Match",
-    "approveDisabledDescription": "You already have an active process with another suggestion."
-  },
+  "card": {
+    "toasts": {
+      "approveDisabledTitle": "Cannot Approve New Match",
+      "approveDisabledDescription": "You already have an active process with another suggestion.",
+      "interestedTitle": "Introduction Saved ✨",
+      "interestedDescription": "Added to your waitlist"
+    },
     "suggestedBy": "Introduction from",
     "yourTurn": "Your Turn!",
     "urgent": "Urgent",
@@ -98,6 +101,9 @@
       "decline": "Not the right fit",
       "approve": "I'd like to learn more",
       "approveDisabledTooltip": "You cannot approve a new introduction while another is in an active process.",
+      "interested": "Save for Later",
+      "activateNow": "Approve Now",
+      "removeFromList": "Remove from List",
       "askMatchmaker": "Ask Your Matchmaker",
       "viewDetails": "View Details"
     },
@@ -108,6 +114,10 @@
       "firstParty": "First Party",
       "secondParty": "Second Party",
       "bothParties": "Both Parties"
+    },
+    "statusLabels": {
+      "interested": "Saved for Later",
+     "pending": "Pending"
     },
     "statusDescriptions": {
       "draft": "The matchmaker is preparing the suggestion.",
@@ -138,15 +148,18 @@
       "married": "Married! 🎉 Mazel Tov on your wedding! What a success!",
       "expired": "The suggestion has expired due to no response.",
       "closed": "The process has ended and the file has been closed.",
-      "cancelled": "The suggestion was cancelled by the matchmaker."
+      "cancelled": "The suggestion was cancelled by the matchmaker.",
+      "interestedFirstParty": "This introduction is saved on your waitlist. You can approve it once your current process concludes."
+    },
+    "partyIndicators": {
+      "interestedSaved": "Saved for Later"
     }
   },
-
   "modal": {
     "header": {
       "title": "An Introduction, With You in Mind",
       "subtitleLine1": "When we came across this profile, we immediately thought of you.",
-      "subtitleLine2": "Here’s why we believe this could be the start of something meaningful.",
+      "subtitleLine2": "Here's why we believe this could be the start of something meaningful.",
       "suggestedBy": "Introduction from",
       "discoverMore": "Discover More →",
       "ageInYears": "{{age}} years old",
@@ -511,29 +524,102 @@
       "currentStatus": "Current Status"
     },
     "statuses": {
-      "DRAFT": { "label": "Draft", "description": "The matchmaker is preparing this introduction." },
-      "PENDING_FIRST_PARTY": { "label": "Pending Your Review", "description": "This introduction is awaiting your review and decision." },
-      "FIRST_PARTY_APPROVED": { "label": "You Approved", "description": "You approved the introduction. Now awaiting the other party's review." },
-      "FIRST_PARTY_DECLINED": { "label": "You Declined", "description": "You declined this introduction." },
-      "PENDING_SECOND_PARTY": { "label": "Pending Other Party", "description": "The introduction is awaiting review from the other party." },
-      "SECOND_PARTY_APPROVED": { "label": "They Approved", "description": "The other party has approved the introduction. Awaiting the next step." },
-      "SECOND_PARTY_DECLINED": { "label": "They Declined", "description": "The other party declined this introduction." },
-      "AWAITING_MATCHMAKER_APPROVAL": { "label": "Awaiting Matchmaker", "description": "Both parties have approved! Awaiting the matchmaker's final confirmation." },
-      "CONTACT_DETAILS_SHARED": { "label": "Contact Details Shared", "description": "Contact details have been exchanged. We wish you the best!" },
-      "AWAITING_FIRST_DATE_FEEDBACK": { "label": "Awaiting Feedback", "description": "The first meeting took place, and we're awaiting feedback." },
-      "THINKING_AFTER_DATE": { "label": "Considering", "description": "One or both parties are thinking about the next step." },
-      "PROCEEDING_TO_SECOND_DATE": { "label": "Moving to a 2nd Date", "description": "Both parties are interested in a second date." },
-      "ENDED_AFTER_FIRST_DATE": { "label": "Ended After 1st Date", "description": "The connection will not continue after the first meeting." },
-      "MEETING_PENDING": { "label": "Scheduling Meeting", "description": "The parties are coordinating a time to meet." },
-      "MEETING_SCHEDULED": { "label": "Meeting Scheduled", "description": "A first meeting has been scheduled." },
-      "MATCH_APPROVED": { "label": "Match Confirmed", "description": "The match was confirmed by the matchmaker. The process is moving forward." },
-      "MATCH_DECLINED": { "label": "Match Declined", "description": "The match was declined by the matchmaker." },
-      "DATING": { "label": "Dating", "description": "The couple is officially dating." },
-      "ENGAGED": { "label": "Engaged", "description": "Congratulations! The couple is engaged." },
-      "MARRIED": { "label": "Married", "description": "Mazel Tov! The couple is married." },
-      "EXPIRED": { "label": "Expired", "description": "The time to decide on this introduction has passed." },
-      "CLOSED": { "label": "Closed", "description": "The introduction process has been closed." },
-      "CANCELLED": { "label": "Cancelled", "description": "This introduction was cancelled by the matchmaker." }
+      "DRAFT": {
+        "label": "Draft",
+        "description": "The matchmaker is preparing this introduction."
+      },
+      "PENDING_FIRST_PARTY": {
+        "label": "Pending Your Review",
+        "description": "This introduction is awaiting your review and decision."
+      },
+      "FIRST_PARTY_APPROVED": {
+        "label": "You Approved",
+        "description": "You approved the introduction. Now awaiting the other party's review."
+      },
+      "FIRST_PARTY_DECLINED": {
+        "label": "You Declined",
+        "description": "You declined this introduction."
+      },
+      "FIRST_PARTY_INTERESTED": {
+  "label": "Saved for Later",
+  "description": "You saved this introduction to your waitlist for later consideration."
+},
+      "PENDING_SECOND_PARTY": {
+        "label": "Pending Other Party",
+        "description": "The introduction is awaiting review from the other party."
+      },
+      "SECOND_PARTY_APPROVED": {
+        "label": "They Approved",
+        "description": "The other party has approved the introduction. Awaiting the next step."
+      },
+      "SECOND_PARTY_DECLINED": {
+        "label": "They Declined",
+        "description": "The other party declined this introduction."
+      },
+      "AWAITING_MATCHMAKER_APPROVAL": {
+        "label": "Awaiting Matchmaker",
+        "description": "Both parties have approved! Awaiting the matchmaker's final confirmation."
+      },
+      "CONTACT_DETAILS_SHARED": {
+        "label": "Contact Details Shared",
+        "description": "Contact details have been exchanged. We wish you the best!"
+      },
+      "AWAITING_FIRST_DATE_FEEDBACK": {
+        "label": "Awaiting Feedback",
+        "description": "The first meeting took place, and we're awaiting feedback."
+      },
+      "THINKING_AFTER_DATE": {
+        "label": "Considering",
+        "description": "One or both parties are thinking about the next step."
+      },
+      "PROCEEDING_TO_SECOND_DATE": {
+        "label": "Moving to a 2nd Date",
+        "description": "Both parties are interested in a second date."
+      },
+      "ENDED_AFTER_FIRST_DATE": {
+        "label": "Ended After 1st Date",
+        "description": "The connection will not continue after the first meeting."
+      },
+      "MEETING_PENDING": {
+        "label": "Scheduling Meeting",
+        "description": "The parties are coordinating a time to meet."
+      },
+      "MEETING_SCHEDULED": {
+        "label": "Meeting Scheduled",
+        "description": "A first meeting has been scheduled."
+      },
+      "MATCH_APPROVED": {
+        "label": "Match Confirmed",
+        "description": "The match was confirmed by the matchmaker. The process is moving forward."
+      },
+      "MATCH_DECLINED": {
+        "label": "Match Declined",
+        "description": "The match was declined by the matchmaker."
+      },
+      "DATING": {
+        "label": "Dating",
+        "description": "The couple is officially dating."
+      },
+      "ENGAGED": {
+        "label": "Engaged",
+        "description": "Congratulations! The couple is engaged."
+      },
+      "MARRIED": {
+        "label": "Married",
+        "description": "Mazel Tov! The couple is married."
+      },
+      "EXPIRED": {
+        "label": "Expired",
+        "description": "The time to decide on this introduction has passed."
+      },
+      "CLOSED": {
+        "label": "Closed",
+        "description": "The introduction process has been closed."
+      },
+      "CANCELLED": {
+        "label": "Cancelled",
+        "description": "This introduction was cancelled by the matchmaker."
+      }
     }
   }
 }

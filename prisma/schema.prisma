@@ -410,7 +410,10 @@ model MatchSuggestion {
   secondPartyLastViewedAt DateTime?  // מתי צד ב' צפה בהצעה לאחרונה
  potentialMatch  PotentialMatch?
  messages    SuggestionMessage[]
+ firstPartyRank            Int?      // דירוג עדיפות של צד א' (1 = הכי גבוה). null = לא רלוונטי
+  firstPartyInterestedAt    DateTime? // מתי צד א' סימן "מעוניין"
 
+  @@index([firstPartyId, status, firstPartyRank])
   @@index([category])
   @@index([matchmakerId])
   @@index([firstPartyId])
@@ -653,6 +656,7 @@ enum MatchSuggestionStatus {
   DRAFT
   PENDING_FIRST_PARTY
   FIRST_PARTY_APPROVED
+    FIRST_PARTY_INTERESTED  
   FIRST_PARTY_DECLINED
   PENDING_SECOND_PARTY
   SECOND_PARTY_APPROVED
