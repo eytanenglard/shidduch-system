@@ -3399,20 +3399,30 @@ export type ServiceType =
   | 'MILITARY_INTELLIGENCE_CYBER_TECH'
   | 'NATIONAL_SERVICE_ONE_YEAR'
   | 'NATIONAL_SERVICE_TWO_YEARS'
+  | 'HESDER_YESHIVA'
+  | 'YESHIVA_ONLY_POST_HS'
+  | 'PRE_MILITARY_ACADEMY_AND_SERVICE'
+  | 'EXEMPTED'
+  | 'CIVILIAN_SERVICE'
   | 'YESHIVA_HESDER'
   | 'YESHIVA_FULL_TIME'
   | 'SEMINARY'
-  | 'MIDRASHA' 
+  | 'MIDRASHA'
   | 'NONE'
   | 'OTHER';
-  
+
 export type HeadCoveringType =
   | 'NONE'
   | 'SOMETIMES'
   | 'MITPACHAT'
   | 'WIG'
   | 'BOTH'
-  | 'OTHER';
+  | 'OTHER'
+  | 'FULL_COVERAGE'
+  | 'PARTIAL_COVERAGE'
+  | 'HAT_BERET'
+  | 'SCARF_ONLY_SOMETIMES'
+  | 'UNDECIDED';
 
 export type KippahType =
   | 'NONE'
@@ -3420,4 +3430,11 @@ export type KippahType =
   | 'SRUGA'
   | 'BLACK'
   | 'LARGE'
-  | 'OTHER';
+  | 'OTHER'
+  | 'BLACK_VELVET'
+  | 'KNITTED_SMALL'
+  | 'KNITTED_LARGE'
+  | 'CLOTH'
+  | 'BRESLEV'
+  | 'NONE_AT_WORK_OR_CASUAL'
+  | 'NONE_USUALLY';

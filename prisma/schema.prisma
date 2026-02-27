@@ -569,7 +569,6 @@ recipientReadAt DateTime?
   @@index([fromUserId])
   @@index([toUserId])
 }
-
 enum ServiceType {
   MILITARY_COMBATANT
   MILITARY_SUPPORT
@@ -582,12 +581,12 @@ enum ServiceType {
   PRE_MILITARY_ACADEMY_AND_SERVICE
   EXEMPTED
   CIVILIAN_SERVICE
-  OTHER
-  NONE
   YESHIVA_HESDER
   YESHIVA_FULL_TIME
   SEMINARY
   MIDRASHA
+  NONE
+  OTHER
 }
 
 enum HeadCoveringType {
