@@ -54,6 +54,14 @@ export function getServerStatusInfo(
       priority: "low",
       category: "declined"
     },
+       
+    FIRST_PARTY_INTERESTED: {
+      requiresUserAction: false,
+      currentParty: "matchmaker",
+      isUrgent: false,
+      priority: "medium",
+      category: "approved"
+    },
     
     PENDING_SECOND_PARTY: {
       requiresUserAction: isSecondParty,
@@ -401,6 +409,11 @@ export function getPersonalizedStatusMessage(
       first: "דחית את ההצעה",
       second: "הצד הראשון דחה את ההצעה"
     },
+        FIRST_PARTY_INTERESTED: {
+      first: "שמרת את ההצעה לגיבוי - נחזור אליך בהמשך",
+      second: "הצד הראשון מתעניין - השדכן יעדכן בהמשך"
+    },
+
     SECOND_PARTY_DECLINED: {
       first: "הצד השני דחה את ההצעה",
       second: "דחית את ההצעה"
