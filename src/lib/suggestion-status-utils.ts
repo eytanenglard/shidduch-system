@@ -5,6 +5,7 @@
 // מחליף getEnhancedStatusInfo שהיה מכופל ב-SuggestionCard, SuggestionDetailsDialog
 
 import {
+  Bookmark,
   Clock,
   CheckCircle,
   XCircle,
@@ -70,6 +71,13 @@ const STATUS_MAP: Record<string, StatusInfo> = {
     bgColor: 'from-red-50 to-pink-50',
     badgeColor: 'bg-gradient-to-r from-red-500 to-pink-500 text-white',
     progress: 100,
+  },
+    FIRST_PARTY_INTERESTED: {
+    icon: Bookmark,
+    color: 'text-amber-600',
+    bgColor: 'from-amber-50 to-orange-50',
+    badgeColor: 'bg-gradient-to-r from-amber-500 to-orange-500 text-white',
+    progress: 30,
   },
   PENDING_SECOND_PARTY: {
     icon: Clock,

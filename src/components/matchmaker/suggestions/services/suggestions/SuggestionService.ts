@@ -326,7 +326,11 @@ if (suggestion.matchmakerId !== matchmakerId) {
              throw new Error("Only first party (or matchmaker) can approve/decline at this stage");
         }
         break;
-
+ case MatchSuggestionStatus.FIRST_PARTY_INTERESTED:  // ← הוסף את זה
+        if (!isFirstParty && !isMatchmaker) {
+             throw new Error("Only first party (or matchmaker) can approve/decline at this stage");
+        }
+        break;
       case MatchSuggestionStatus.SECOND_PARTY_APPROVED:
       case MatchSuggestionStatus.SECOND_PARTY_DECLINED:
         if (!isSecondParty && !isMatchmaker) {

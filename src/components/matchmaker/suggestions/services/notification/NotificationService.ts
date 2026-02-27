@@ -507,6 +507,7 @@ export class NotificationService {
         break;
       case MatchSuggestionStatus.FIRST_PARTY_APPROVED:
       case MatchSuggestionStatus.FIRST_PARTY_DECLINED:
+      case MatchSuggestionStatus.FIRST_PARTY_INTERESTED:  // ← הוסף את זה  
       case MatchSuggestionStatus.SECOND_PARTY_APPROVED:
       case MatchSuggestionStatus.SECOND_PARTY_DECLINED:
       case MatchSuggestionStatus.THINKING_AFTER_DATE:
