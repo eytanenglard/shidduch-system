@@ -1495,19 +1495,18 @@
   "SEMINARY": "סמינר",
 "MIDRASHA": "מדרשה"
 },
-     "headCovering": {
+"headCovering": {
   "FULL_COVERAGE": "כיסוי ראש מלא",
   "PARTIAL_COVERAGE": "כיסוי ראש חלקי",
   "HAT_BERET": "כובע / ברט",
-  "SCARF_ONLY_SOMETIMES": "מטפחת (לאירועים)",
-  "NONE": "ללא כיסוי ראש",
+  "SCARF_ONLY_SOMETIMES": "מטפחת (רק באירועים/בית כנסת)",
   "UNDECIDED": "עוד לא החלטתי",
+  "NONE": "ללא כיסוי ראש",
   "OTHER": "אחר",
   "WIG": "פאה",
   "SOMETIMES": "לפעמים",
   "MITPACHAT": "מטפחת",
-  "BOTH": "פאה ומטפחת",
-  "any": "כל האפשרויות פתוחות"
+  "BOTH": "פאה ומטפחת"
 },
       "kippahType": {
   "BLACK_VELVET": "קטיפה שחורה",
