@@ -16,6 +16,7 @@ import {
 } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import {
+  Bookmark,
   Search,
   Filter,
   SortDesc,
@@ -70,6 +71,11 @@ const STATIC_STATUS_OPTIONS = [
     value: 'FIRST_PARTY_APPROVED',
     color: 'from-green-500 to-emerald-500',
     icon: CheckCircle,
+  },
+  {
+    value: 'FIRST_PARTY_INTERESTED',
+    color: 'from-amber-500 to-orange-500',
+    icon: Bookmark,
   },
   {
     value: 'SECOND_PARTY_APPROVED',

@@ -1424,7 +1424,8 @@
         },
         "partyStatus": {
           "approved": "Approved the suggestion",
-          "declined": "Declined the suggestion"
+          "declined": "Declined the suggestion",
+          "interested": "Interested"
         }
       },
       "actions": {

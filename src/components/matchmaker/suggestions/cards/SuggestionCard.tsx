@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import Image from 'next/image';
 import {
+  Bookmark,
   Clock,
   MessageCircle,
   Eye,
@@ -555,18 +556,26 @@ const SuggestionCard: React.FC<SuggestionCardProps> = ({
                 )}
               </div>
               {(suggestion.status === 'FIRST_PARTY_APPROVED' ||
-                suggestion.status === 'FIRST_PARTY_DECLINED') && (
+                suggestion.status === 'FIRST_PARTY_DECLINED' ||
+                suggestion.status === 'FIRST_PARTY_INTERESTED') && (
                 <Badge
                   className={
                     suggestion.status === 'FIRST_PARTY_APPROVED'
                       ? 'bg-gradient-to-r from-green-500 to-emerald-500 text-white border-0 shadow-lg'
-                      : 'bg-gradient-to-r from-red-500 to-pink-500 text-white border-0 shadow-lg'
+                      : suggestion.status === 'FIRST_PARTY_INTERESTED'
+                        ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white border-0 shadow-lg'
+                        : 'bg-gradient-to-r from-red-500 to-pink-500 text-white border-0 shadow-lg'
                   }
                 >
                   {suggestion.status === 'FIRST_PARTY_APPROVED' ? (
                     <>
                       <CheckCircle className="w-4 h-4 ml-2" />
                       {dict.desktop.partyStatus.approved}
+                    </>
+                  ) : suggestion.status === 'FIRST_PARTY_INTERESTED' ? (
+                    <>
+                      <Bookmark className="w-4 h-4 ml-2" />
+                      {dict.desktop.partyStatus.interested || 'שמר/ה לגיבוי'}
                     </>
                   ) : (
                     <>

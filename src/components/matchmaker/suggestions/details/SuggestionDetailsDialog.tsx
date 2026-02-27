@@ -19,6 +19,7 @@ import {
 import { ProfileCard } from '@/components/profile';
 import { Timeline } from '@/components/ui/timeline';
 import {
+    Bookmark,
   CheckCircle,
   XCircle,
   MessageCircle,
@@ -152,6 +153,14 @@ const getEnhancedStatusInfo = (status: MatchSuggestionStatus): StatusInfo => {
       badgeColor: 'bg-gradient-to-r from-red-500 to-pink-500 text-white',
       progress: 0,
     },
+        FIRST_PARTY_INTERESTED: {
+      icon: Bookmark,
+      color: 'text-amber-600',
+      bgColor: 'from-amber-50 to-orange-50',
+      badgeColor: 'bg-gradient-to-r from-amber-500 to-orange-500 text-white',
+      progress: 30,
+    },
+
     PENDING_SECOND_PARTY: {
       icon: Clock,
       color: 'text-blue-600',

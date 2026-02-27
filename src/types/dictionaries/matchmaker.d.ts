@@ -1173,6 +1173,7 @@ type SuggestionCardDict = {
     partyStatus: {
       approved: string;
       declined: string;
+      interested: string;
     };
   };
   actions: {

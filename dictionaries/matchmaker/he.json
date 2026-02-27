@@ -1428,7 +1428,8 @@
         },
         "partyStatus": {
           "approved": "אישר את ההצעה",
-          "declined": "דחה את ההצעה"
+          "declined": "דחה את ההצעה",
+          "interested": "מעוניין"
         }
       },
       "actions": {
