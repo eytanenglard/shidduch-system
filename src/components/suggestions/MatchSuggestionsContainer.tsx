@@ -28,6 +28,7 @@ import type { MatchSuggestion } from '@prisma/client';
 import SuggestionsList from './list/SuggestionsList';
 import InterestedQueue from '@/components/suggestions/interested/InterestedQueue';
 import ActiveSuggestionHero from '@/components/suggestions/ActiveSuggestionHero';
+import SuggestionDetailsModal from '@/components/suggestions/modals/SuggestionDetailsModal';
 import type { ExtendedMatchSuggestion } from '../../types/suggestions';
 import { cn } from '@/lib/utils';
 
@@ -49,26 +50,6 @@ import type {
 
 import FirstPartyPreferenceToggle from '@/components/suggestions/FirstPartyPreferenceToggle';
 
-// =============================================================================
-// COLOR PALETTE REFERENCE (Matching HeroSection.tsx)
-// =============================================================================
-// Primary Colors:
-//   - Teal/Emerald: from-teal-400 via-teal-500 to-emerald-500 (Knowledge/New)
-//   - Orange/Amber: from-orange-400 via-amber-500 to-yellow-500 (Action/Warmth)
-//   - Rose/Pink:    from-rose-400 via-pink-500 to-red-500 (Love/Connection)
-//   - Violet/Purple: from-violet-500 via-purple-500 to-indigo-500 (Daily AI Suggestion)
-//
-// Background Gradients:
-//   - Page: from-slate-50 via-teal-50/20 to-orange-50/20
-//   - Cards: from-teal-50 via-white to-emerald-50 (Teal variant)
-//
-// Text Gradients:
-//   - from-teal-600 via-orange-600 to-amber-600
-//
-// Accent Lines:
-//   - from-teal-400 via-orange-400 to-rose-400
-// =============================================================================
-
 const SYSTEM_MATCHMAKER_ID = 'system-matchmaker-neshamatech';
 
 // --- Active Process Statuses ---
@@ -88,7 +69,7 @@ const ACTIVE_PROCESS_STATUSES = [
   'ENGAGED',
 ] as const;
 
-// --- Action Type (extended to include 'interested') ---
+// --- Action Type ---
 type ActionType = 'approve' | 'decline' | 'interested';
 
 // --- Loading Skeleton ---
@@ -103,7 +84,6 @@ const LoadingSkeleton: React.FC<{
             <div className="h-7 bg-gray-200 rounded-lg w-48 animate-pulse" />
           </div>
         </div>
-
         <div className="p-6">
           <div className="flex justify-center mb-6">
             <div className="grid grid-cols-2 bg-teal-50/50 rounded-2xl p-1 h-14 w-fit gap-2">
@@ -115,7 +95,6 @@ const LoadingSkeleton: React.FC<{
               ))}
             </div>
           </div>
-
           <div className="flex flex-col items-center justify-center min-h-[300px] text-center space-y-6">
             <div className="relative">
               <div className="w-20 h-20 rounded-full bg-gradient-to-br from-teal-100 via-orange-100 to-rose-100 animate-pulse border-4 border-white shadow-xl" />
@@ -123,7 +102,6 @@ const LoadingSkeleton: React.FC<{
                 <Loader2 className="w-10 h-10 text-teal-600 animate-spin" />
               </div>
             </div>
-
             <div className="space-y-3">
               <h3 className="text-xl font-bold bg-gradient-to-r from-teal-600 via-orange-600 to-rose-600 bg-clip-text text-transparent">
                 {dict.title}
@@ -132,7 +110,6 @@ const LoadingSkeleton: React.FC<{
                 {dict.subtitle}
               </p>
             </div>
-
             <div className="flex items-center gap-2">
               {Array.from({ length: 3 }).map((_, index) => (
                 <div
@@ -148,6 +125,21 @@ const LoadingSkeleton: React.FC<{
     </div>
   </div>
 );
+
+// --- Helper: enhance questionnaire data ---
+const enhanceQuestionnaireData = (
+  suggestion: ExtendedMatchSuggestion | null,
+  userId: string
+) => {
+  if (!suggestion) return null;
+  const isFirstParty = suggestion.firstPartyId === userId;
+  const targetParty = isFirstParty
+    ? suggestion.secondParty
+    : suggestion.firstParty;
+  const rawQuestionnaire = targetParty?.questionnaireResponses?.[0];
+  if (!rawQuestionnaire) return null;
+  return rawQuestionnaire;
+};
 
 // --- Props Interface ---
 interface MatchSuggestionsContainerProps {
@@ -189,10 +181,18 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
   const [hasNewSuggestions, setHasNewSuggestions] = useState(false);
   const [isUserInActiveProcess, setIsUserInActiveProcess] = useState(false);
 
+  // --- Confirmation Dialog State ---
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [suggestionForAction, setSuggestionForAction] =
     useState<ExtendedMatchSuggestion | null>(null);
   const [actionType, setActionType] = useState<ActionType | null>(null);
+
+  // --- Details Modal State (NEW) ---
+  const [selectedSuggestion, setSelectedSuggestion] =
+    useState<ExtendedMatchSuggestion | null>(null);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [detailsModalInitialTab, setDetailsModalInitialTab] =
+    useState<string>('presentation');
 
   // --- Derived: Active Process Suggestion (Hero Card) ---
   const activeProcessSuggestion = useMemo(() => {
@@ -226,7 +226,7 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
     );
   }, [activeSuggestions]);
 
-  // --- Derived: sorted active suggestions (urgent first, excluding INTERESTED & ACTIVE_PROCESS) ---
+  // --- Derived: sorted active suggestions ---
   const sortedActiveSuggestions = useMemo(() => {
     const urgent: ExtendedMatchSuggestion[] = [];
     const others: ExtendedMatchSuggestion[] = [];
@@ -260,7 +260,7 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
     [sortedActiveSuggestions, userId]
   );
 
-  // --- Derived: daily AI suggestion awaiting user response ---
+  // --- Derived: daily AI suggestion ---
   const dailySuggestion = useMemo(() => {
     return activeSuggestions.find((s) => {
       if (s.matchmakerId !== SYSTEM_MATCHMAKER_ID) return false;
@@ -271,6 +271,11 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
       );
     });
   }, [activeSuggestions, userId]);
+
+  // --- Derived: questionnaire for selected suggestion ---
+  const selectedQuestionnaireData = useMemo(() => {
+    return enhanceQuestionnaireData(selectedSuggestion, userId);
+  }, [selectedSuggestion, userId]);
 
   // --- Data Fetching ---
   const fetchSuggestions = useCallback(
@@ -440,7 +445,7 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
     setActionType(null);
   }, [suggestionForAction, actionType, userId, handleStatusChange]);
 
-  // --- Rank Update Handler (for InterestedQueue drag-and-drop) ---
+  // --- Rank Update Handler ---
   const handleRankUpdate = useCallback(
     async (rankedIds: string[]) => {
       const response = await fetch('/api/suggestions/interested/rank', {
@@ -458,7 +463,7 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
     [fetchSuggestions]
   );
 
-  // --- Remove suggestion from INTERESTED queue ---
+  // --- Remove from INTERESTED ---
   const handleRemoveFromInterested = useCallback(
     (suggestion: ExtendedMatchSuggestion) => {
       setSuggestionForAction(suggestion);
@@ -468,7 +473,7 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
     []
   );
 
-  // --- Activate an INTERESTED suggestion ---
+  // --- Activate INTERESTED ---
   const handleActivateInterested = useCallback(
     (suggestion: ExtendedMatchSuggestion) => {
       setSuggestionForAction(suggestion);
@@ -478,27 +483,32 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
     []
   );
 
-  // --- Contact Matchmaker Handler ---
-  const handleContactMatchmaker = useCallback(
-    (suggestion: ExtendedMatchSuggestion) => {
-      // TODO: Implement chat/inquiry modal or navigation
-      toast.info(
-        isRtl ? 'פתיחת צ׳אט עם השדכן/ית...' : 'Opening chat with matchmaker...'
-      );
-      // Example: setSelectedSuggestion(suggestion); setShowInquiryModal(true);
-    },
-    [isRtl]
-  );
-
-  // --- View Details Handler ---
+  // --- View Details Handler (opens modal - presentation tab) ---
   const handleViewDetails = useCallback(
     (suggestion: ExtendedMatchSuggestion) => {
-      // TODO: Implement details modal
-      toast.info(isRtl ? 'פתיחת פרטים מלאים...' : 'Opening full details...');
-      // Example: setSelectedSuggestion(suggestion); setShowDetailsModal(true);
+      setSelectedSuggestion(suggestion);
+      setDetailsModalInitialTab('presentation');
+      setShowDetailsModal(true);
     },
-    [isRtl]
+    []
   );
+
+  // --- Contact Matchmaker Handler (opens modal - details/chat tab) ---
+  const handleContactMatchmaker = useCallback(
+    (suggestion: ExtendedMatchSuggestion) => {
+      setSelectedSuggestion(suggestion);
+      setDetailsModalInitialTab('details');
+      setShowDetailsModal(true);
+    },
+    []
+  );
+
+  // --- Close Details Modal ---
+  const handleCloseDetailsModal = useCallback(() => {
+    setShowDetailsModal(false);
+    setSelectedSuggestion(null);
+    setDetailsModalInitialTab('presentation');
+  }, []);
 
   // --- Effects ---
   useEffect(() => {
@@ -653,7 +663,7 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
               </div>
             )}
 
-            {/* ===== Preference Toggle: Auto-Scan ===== */}
+            {/* ===== Preference Toggle ===== */}
             <FirstPartyPreferenceToggle
               initialValue={wantsToBeFirstParty}
               locale={locale}
@@ -669,7 +679,6 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
             >
               <div className="flex justify-center">
                 <TabsList className="grid grid-cols-2 bg-teal-50/50 rounded-2xl p-1 h-14 w-fit">
-                  {/* Tab: Active (Teal) */}
                   <TabsTrigger
                     value="active"
                     className="relative flex items-center gap-3 px-6 py-3 rounded-xl transition-all data-[state=active]:bg-white data-[state=active]:shadow-lg font-semibold text-base"
@@ -692,7 +701,6 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
                     )}
                   </TabsTrigger>
 
-                  {/* Tab: History (Gray) */}
                   <TabsTrigger
                     value="history"
                     className="flex items-center gap-3 px-6 py-3 rounded-xl transition-all data-[state=active]:bg-white data-[state=active]:shadow-lg font-semibold text-base"
@@ -753,7 +761,7 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
                   />
                 )}
 
-                {/* ===== Regular Suggestion Cards (PENDING only) ===== */}
+                {/* ===== Regular Suggestion Cards ===== */}
                 <SuggestionsList
                   locale={locale}
                   suggestions={sortedActiveSuggestions}
@@ -790,6 +798,23 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
           </CardContent>
         </Card>
       </div>
+
+      {/* ===== Details Modal (for Hero & InterestedQueue) ===== */}
+      <SuggestionDetailsModal
+        suggestion={selectedSuggestion}
+        userId={userId}
+        locale={locale}
+        isOpen={showDetailsModal}
+        onClose={handleCloseDetailsModal}
+        onActionRequest={handleRequestAction}
+        questionnaire={selectedQuestionnaireData}
+        isDemo={false}
+        initialTab={detailsModalInitialTab}
+        dict={{
+          suggestions: suggestionsDict,
+          profileCard: profileCardDict,
+        }}
+      />
 
       {/* Confirmation Dialog */}
       <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>

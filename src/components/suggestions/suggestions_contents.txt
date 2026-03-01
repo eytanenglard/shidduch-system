@@ -1,12 +1,521 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\suggestions
-# Generated on: 2026-02-25 21:36:30
+# Generated on: 2026-03-01 19:07:40
 # Filter: Only content of code files (.bat, .c, .cfg, .conf, .cpp, .cs, .css, .go, .h, .html, .ini, .java, .js, .json, .jsx, .kt, .less, .md, .php, .py, .rb, .rs, .scss, .sh, .sql, .swift, .ts, .tsx, .txt, .xml, .yaml, .yml) is included.
 ################################################################################
 
 ================================================================================
 Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\suggestions
 ================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\suggestions\ActiveSuggestionHero.tsx
+--------------------------------------------------------------------------------
+Content:
+// src/components/suggestions/ActiveSuggestionHero.tsx
+// ============================================================
+// NeshamaTech Web - Active Suggestion Hero Card
+// Shown at top of suggestions page when user has an active
+// suggestion (FIRST_PARTY_APPROVED → DATING/ENGAGED)
+// Shows: other party info, status progress, "contact matchmaker" CTA
+// ============================================================
+
+'use client';
+
+import React from 'react';
+import Image from 'next/image';
+import {
+  Heart,
+  Clock,
+  CheckCircle2,
+  Phone,
+  MessageCircle,
+  Calendar,
+  TrendingUp,
+  Star,
+  Lightbulb,
+  Gem,
+  Crown,
+  User,
+  ChevronLeft,
+  ChevronRight,
+  Send,
+} from 'lucide-react';
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
+import { cn, getRelativeCloudinaryPath } from '@/lib/utils';
+import type { ExtendedMatchSuggestion } from '../../types/suggestions';
+import type { MatchSuggestionStatus } from '@prisma/client';
+
+// ============================================================
+// Status config
+// ============================================================
+interface StatusConfig {
+  labelHe: string;
+  labelEn: string;
+  descriptionHe: string;
+  descriptionEn: string;
+  icon: React.ElementType;
+  gradient: string;
+  iconBg: string;
+  progress: number;
+}
+
+const STATUS_CONFIG: Record<string, StatusConfig> = {
+  FIRST_PARTY_APPROVED: {
+    labelHe: 'ממתין לשדכן',
+    labelEn: 'Waiting for matchmaker',
+    descriptionHe: 'אישרת את ההצעה. השדכן/ית יעביר/ו לצד השני.',
+    descriptionEn:
+      'You approved. The matchmaker will forward to the other party.',
+    icon: Clock,
+    gradient: 'from-emerald-500 to-teal-600',
+    iconBg: 'bg-emerald-100 text-emerald-600',
+    progress: 30,
+  },
+  PENDING_SECOND_PARTY: {
+    labelHe: 'ממתין לצד השני',
+    labelEn: 'Waiting for other party',
+    descriptionHe: 'ההצעה נשלחה לצד השני. ממתינים לתשובה.',
+    descriptionEn: 'Sent to the other party. Waiting for their response.',
+    icon: Clock,
+    gradient: 'from-blue-500 to-indigo-600',
+    iconBg: 'bg-blue-100 text-blue-600',
+    progress: 45,
+  },
+  SECOND_PARTY_APPROVED: {
+    labelHe: 'שני הצדדים אישרו!',
+    labelEn: 'Both parties approved!',
+    descriptionHe: 'שניכם אישרתם! השדכן/ית ישתפו פרטי קשר בקרוב.',
+    descriptionEn: 'You both approved! Contact details coming soon.',
+    icon: CheckCircle2,
+    gradient: 'from-violet-500 to-purple-600',
+    iconBg: 'bg-violet-100 text-violet-600',
+    progress: 60,
+  },
+  CONTACT_DETAILS_SHARED: {
+    labelHe: 'פרטי קשר שותפו! 🎉',
+    labelEn: 'Contact details shared! 🎉',
+    descriptionHe: 'הגיע הזמן ליצור קשר ולקבוע פגישה.',
+    descriptionEn: 'Time to reach out and schedule a meeting.',
+    icon: Phone,
+    gradient: 'from-pink-500 to-rose-600',
+    iconBg: 'bg-pink-100 text-pink-600',
+    progress: 70,
+  },
+  AWAITING_FIRST_DATE_FEEDBACK: {
+    labelHe: 'ממתין למשוב פגישה',
+    labelEn: 'Waiting for date feedback',
+    descriptionHe: 'איך הלכה הפגישה? השדכן/ית ישמחו לשמוע.',
+    descriptionEn: 'How did it go? Your matchmaker would love to hear.',
+    icon: MessageCircle,
+    gradient: 'from-amber-500 to-orange-600',
+    iconBg: 'bg-amber-100 text-amber-600',
+    progress: 75,
+  },
+  THINKING_AFTER_DATE: {
+    labelHe: 'בחשיבה לאחר פגישה',
+    labelEn: 'Thinking after date',
+    descriptionHe: 'קח/י את הזמן. עדכנו את השדכן/ית כשתהיו מוכנים.',
+    descriptionEn: 'Take your time. Update your matchmaker when ready.',
+    icon: Lightbulb,
+    gradient: 'from-indigo-500 to-violet-600',
+    iconBg: 'bg-indigo-100 text-indigo-600',
+    progress: 78,
+  },
+  PROCEEDING_TO_SECOND_DATE: {
+    labelHe: 'בדרך לפגישה שנייה ✨',
+    labelEn: 'Heading to second date ✨',
+    descriptionHe: 'מתקדמים! בהצלחה בפגישה הבאה.',
+    descriptionEn: 'Making progress! Good luck on the next date.',
+    icon: TrendingUp,
+    gradient: 'from-teal-500 to-cyan-600',
+    iconBg: 'bg-teal-100 text-teal-600',
+    progress: 82,
+  },
+  MEETING_SCHEDULED: {
+    labelHe: 'פגישה קבועה! 📅',
+    labelEn: 'Meeting scheduled! 📅',
+    descriptionHe: 'יש לך פגישה קבועה. בהצלחה!',
+    descriptionEn: 'You have a scheduled meeting. Good luck!',
+    icon: Calendar,
+    gradient: 'from-emerald-500 to-green-600',
+    iconBg: 'bg-emerald-100 text-emerald-600',
+    progress: 74,
+  },
+  DATING: {
+    labelHe: 'בתהליך היכרות 💕',
+    labelEn: 'Getting to know each other 💕',
+    descriptionHe: 'מאחלים לכם הצלחה!',
+    descriptionEn: 'Wishing you the best!',
+    icon: Heart,
+    gradient: 'from-rose-500 to-pink-600',
+    iconBg: 'bg-rose-100 text-rose-600',
+    progress: 85,
+  },
+  ENGAGED: {
+    labelHe: 'מאורסים! 💍',
+    labelEn: 'Engaged! 💍',
+    descriptionHe: 'מזל טוב!! שמחים איתכם!',
+    descriptionEn: 'Congratulations!!',
+    icon: Gem,
+    gradient: 'from-amber-500 to-yellow-600',
+    iconBg: 'bg-amber-100 text-amber-600',
+    progress: 95,
+  },
+};
+
+const DEFAULT_CONFIG: StatusConfig = {
+  labelHe: 'הצעה פעילה',
+  labelEn: 'Active suggestion',
+  descriptionHe: '',
+  descriptionEn: '',
+  icon: Heart,
+  gradient: 'from-indigo-500 to-violet-600',
+  iconBg: 'bg-indigo-100 text-indigo-600',
+  progress: 50,
+};
+
+// ============================================================
+// Component
+// ============================================================
+interface ActiveSuggestionHeroProps {
+  suggestion: ExtendedMatchSuggestion;
+  userId: string;
+  locale: 'he' | 'en';
+  onContactMatchmaker: (suggestion: ExtendedMatchSuggestion) => void;
+  onViewDetails: (suggestion: ExtendedMatchSuggestion) => void;
+  className?: string;
+}
+const calculateAge = (dateOfBirth?: Date | string | null): number | null => {
+  if (!dateOfBirth) return null;
+  const today = new Date();
+  const birth = new Date(dateOfBirth);
+  let age = today.getFullYear() - birth.getFullYear();
+  const monthDiff = today.getMonth() - birth.getMonth();
+  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+    age--;
+  }
+  return age;
+};
+const ActiveSuggestionHero: React.FC<ActiveSuggestionHeroProps> = ({
+  suggestion,
+  userId,
+  locale,
+  onContactMatchmaker,
+  onViewDetails,
+  className,
+}) => {
+  const config = STATUS_CONFIG[suggestion.status] || DEFAULT_CONFIG;
+  const StatusIcon = config.icon;
+
+  const isFirstParty = suggestion.firstPartyId === userId;
+  const otherParty = isFirstParty
+    ? suggestion.secondParty
+    : suggestion.firstParty;
+  const otherPartyImage = otherParty?.images?.[0];
+  const imageSrc = otherPartyImage
+    ? getRelativeCloudinaryPath(otherPartyImage.url)
+    : null;
+
+  const statusLabel = locale === 'he' ? config.labelHe : config.labelEn;
+  const statusDescription =
+    locale === 'he' ? config.descriptionHe : config.descriptionEn;
+  const ChevronIcon = locale === 'he' ? ChevronLeft : ChevronRight;
+
+  return (
+    <Card
+      className={cn(
+        'overflow-hidden border-0 shadow-xl cursor-pointer group',
+        className
+      )}
+      onClick={() => onViewDetails(suggestion)}
+    >
+      <div
+        className={cn(
+          'bg-gradient-to-br p-6 relative overflow-hidden',
+          config.gradient
+        )}
+      >
+        {/* Decorative elements */}
+        <div className="absolute top-0 right-0 w-40 h-40 bg-white/5 rounded-full blur-2xl" />
+        <div className="absolute bottom-0 left-0 w-32 h-32 bg-white/5 rounded-full blur-xl" />
+
+        <div className="relative z-10">
+          {/* Top: Label + Status badge */}
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center">
+                <Star className="w-3.5 h-3.5 text-white" />
+              </div>
+              <span className="text-white/90 text-sm font-semibold tracking-wide">
+                {locale === 'he' ? 'ההצעה הפעילה שלי' : 'My Active Suggestion'}
+              </span>
+            </div>
+            <Badge className="bg-white/15 text-white border-white/20 text-xs">
+              <StatusIcon className="w-3 h-3 mr-1" />
+              {statusLabel}
+            </Badge>
+          </div>
+
+          {/* Main: Avatar + Info */}
+          <div className="flex items-center gap-4 mb-4">
+            <div className="relative flex-shrink-0">
+              <div className="w-16 h-16 rounded-full overflow-hidden ring-3 ring-white/30 shadow-xl">
+                {imageSrc ? (
+                  <Image
+                    src={imageSrc}
+                    alt={otherParty?.firstName || ''}
+                    width={64}
+                    height={64}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center bg-white/20">
+                    <User className="w-7 h-7 text-white/70" />
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="flex-1 min-w-0">
+              <h3 className="text-white font-bold text-lg truncate">
+                {otherParty?.firstName} {otherParty?.lastName}
+                {(() => {
+                  const age = calculateAge(otherParty?.profile?.birthDate);
+                  return age ? `, ${age}` : '';
+                })()}{' '}
+              </h3>
+              <div className="flex items-center flex-wrap gap-2 mt-1">
+                {otherParty?.profile?.city && (
+                  <span className="text-white/70 text-xs bg-white/10 px-2 py-0.5 rounded-md">
+                    📍 {otherParty.profile.city}
+                  </span>
+                )}
+                {otherParty?.profile?.occupation && (
+                  <span className="text-white/70 text-xs bg-white/10 px-2 py-0.5 rounded-md truncate max-w-[150px]">
+                    💼 {otherParty.profile.occupation}
+                  </span>
+                )}
+              </div>
+              {statusDescription && (
+                <p className="text-white/60 text-xs mt-2 leading-relaxed line-clamp-2">
+                  {statusDescription}
+                </p>
+              )}
+            </div>
+          </div>
+
+          {/* Progress */}
+          <div className="flex items-center gap-3 mb-4">
+            <Progress
+              value={config.progress}
+              className="h-2 bg-white/15 flex-1"
+            />
+            <span className="text-white/50 text-xs font-bold w-8 text-center">
+              {config.progress}%
+            </span>
+          </div>
+
+          {/* CTA: Contact Matchmaker */}
+          <Button
+            variant="secondary"
+            className="w-full bg-white hover:bg-white/95 text-gray-800 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 h-11 font-semibold group/btn"
+            onClick={(e) => {
+              e.stopPropagation();
+              onContactMatchmaker(suggestion);
+            }}
+          >
+            <Send
+              className={cn(
+                'w-4 h-4 group-hover/btn:translate-x-0.5 transition-transform',
+                locale === 'he' ? 'ml-2' : 'mr-2'
+              )}
+            />
+            {locale === 'he' ? 'צור/י קשר עם השדכן/ית' : 'Contact Matchmaker'}
+            <ChevronIcon className="w-4 h-4 opacity-40 mr-auto" />
+          </Button>
+        </div>
+      </div>
+    </Card>
+  );
+};
+
+export default ActiveSuggestionHero;
+--- End of Content for ActiveSuggestionHero.tsx ---
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\suggestions\FirstPartyPreferenceToggle.tsx
+--------------------------------------------------------------------------------
+Content:
+'use client';
+
+import React, { useState, useCallback } from 'react';
+import { Bell, BellOff, Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
+
+interface FirstPartyPreferenceToggleProps {
+  /** הערך הנוכחי - האם היוזר רוצה לקבל הצעות כצד א' */
+  initialValue: boolean;
+  locale: 'he' | 'en';
+  className?: string;
+}
+
+/**
+ * FirstPartyPreferenceToggle
+ *
+ * כפתור שמאפשר ליוזר לבחור האם הוא רוצה לקבל הצעות שידוך
+ * כ"צד א'" בסריקה האוטומטית היומית.
+ *
+ * שימוש נפוץ: בנות שמעדיפות שרק שדכן יפנה אליהן ולא המערכת
+ * ישירות.
+ */
+const FirstPartyPreferenceToggle: React.FC<FirstPartyPreferenceToggleProps> = ({
+  initialValue,
+  locale,
+  className,
+}) => {
+  const [wantsToBeFirst, setWantsToBeFirst] = useState(initialValue);
+  const [isSaving, setIsSaving] = useState(false);
+
+  const isHe = locale === 'he';
+
+  const handleToggle = useCallback(
+    async (newValue: boolean) => {
+      if (isSaving) return;
+
+      setIsSaving(true);
+      const previousValue = wantsToBeFirst;
+      setWantsToBeFirst(newValue); // Optimistic update
+
+      try {
+        const response = await fetch('/api/profile/first-party-preference', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ wantsToBeFirstParty: newValue }),
+        });
+
+        if (!response.ok) throw new Error('Failed to update');
+
+        toast.success(
+          newValue
+            ? isHe
+              ? '✅ תקבל/י הצעות בסריקה האוטומטית'
+              : '✅ You will receive auto-scan suggestions'
+            : isHe
+              ? '🔕 לא תקבל/י הצעות בסריקה האוטומטית'
+              : '🔕 Auto-scan suggestions disabled'
+        );
+      } catch {
+        setWantsToBeFirst(previousValue); // Rollback
+        toast.error(
+          isHe ? 'שגיאה בשמירה, נסה שוב' : 'Save failed, please try again'
+        );
+      } finally {
+        setIsSaving(false);
+      }
+    },
+    [isSaving, wantsToBeFirst, isHe]
+  );
+
+  return (
+    <div
+      className={cn(
+        'p-4 bg-white/80 backdrop-blur-sm border border-gray-100 rounded-2xl shadow-sm',
+        className
+      )}
+      dir={isHe ? 'rtl' : 'ltr'}
+    >
+      {/* כותרת */}
+      <div className="flex items-center gap-2 mb-3">
+        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-teal-400 to-emerald-500 flex items-center justify-center shadow-sm">
+          <Bell className="w-4 h-4 text-white" />
+        </div>
+        <p className="text-sm font-semibold text-gray-700">
+          {isHe ? 'הצעות מהסריקה האוטומטית' : 'Auto-Scan Suggestions'}
+        </p>
+      </div>
+
+      <p className="text-xs text-gray-500 mb-4 leading-relaxed">
+        {isHe
+          ? 'האם תרצה/י לקבל הצעות שידוך ישירות מהסריקה הכללית היומית?'
+          : 'Would you like to receive match suggestions directly from the daily auto-scan?'}
+      </p>
+
+      {/* שני כפתורים */}
+      <div className="grid grid-cols-2 gap-2">
+        {/* כפתור: כן */}
+        <button
+          onClick={() => handleToggle(true)}
+          disabled={isSaving}
+          className={cn(
+            'relative flex flex-col items-center gap-1.5 px-3 py-3 rounded-xl text-sm font-medium transition-all duration-200',
+            wantsToBeFirst
+              ? 'bg-gradient-to-br from-teal-500 to-emerald-600 text-white shadow-lg shadow-teal-200 scale-[1.02]'
+              : 'bg-gray-50 text-gray-500 hover:bg-teal-50 hover:text-teal-600 border border-gray-200'
+          )}
+        >
+          {isSaving && wantsToBeFirst ? (
+            <Loader2 className="w-4 h-4 animate-spin" />
+          ) : (
+            <Bell className="w-4 h-4" />
+          )}
+          <span className="text-xs leading-tight text-center">
+            {isHe ? 'כן, אשמח לקבל' : 'Yes, receive them'}
+          </span>
+          {wantsToBeFirst && (
+            <span className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-amber-400 rounded-full flex items-center justify-center shadow-sm">
+              <span className="text-[9px] font-bold text-white">✓</span>
+            </span>
+          )}
+        </button>
+
+        {/* כפתור: לא */}
+        <button
+          onClick={() => handleToggle(false)}
+          disabled={isSaving}
+          className={cn(
+            'relative flex flex-col items-center gap-1.5 px-3 py-3 rounded-xl text-sm font-medium transition-all duration-200',
+            !wantsToBeFirst
+              ? 'bg-gradient-to-br from-rose-400 to-red-500 text-white shadow-lg shadow-rose-200 scale-[1.02]'
+              : 'bg-gray-50 text-gray-500 hover:bg-rose-50 hover:text-rose-600 border border-gray-200'
+          )}
+        >
+          {isSaving && !wantsToBeFirst ? (
+            <Loader2 className="w-4 h-4 animate-spin" />
+          ) : (
+            <BellOff className="w-4 h-4" />
+          )}
+          <span className="text-xs leading-tight text-center">
+            {isHe ? 'לא, רק דרך שדכן' : 'No, matchmaker only'}
+          </span>
+          {!wantsToBeFirst && (
+            <span className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-amber-400 rounded-full flex items-center justify-center shadow-sm">
+              <span className="text-[9px] font-bold text-white">✓</span>
+            </span>
+          )}
+        </button>
+      </div>
+
+      {/* הסבר מצב נוכחי */}
+      <p className="text-[11px] text-center mt-3 text-gray-400 leading-relaxed">
+        {wantsToBeFirst
+          ? isHe
+            ? 'הגדרה נוכחית: המערכת יכולה לשלוח לך הצעות ישירות'
+            : 'Current: The system may send you suggestions directly'
+          : isHe
+            ? 'הגדרה נוכחית: הצעות יגיעו רק דרך שדכן אנושי'
+            : 'Current: Suggestions will only come via a matchmaker'}
+      </p>
+    </div>
+  );
+};
+
+export default FirstPartyPreferenceToggle;
+--- End of Content for FirstPartyPreferenceToggle.tsx ---
 
 --------------------------------------------------------------------------------
 File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\suggestions\MatchSuggestionsContainer.tsx
@@ -16,10 +525,10 @@ Content:
 
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { useParams, usePathname } from 'next/navigation'; 
+import { useParams } from 'next/navigation';
 
 import {
   History,
@@ -31,6 +540,7 @@ import {
   XCircle,
   Loader2,
   Sparkles,
+  Bookmark,
 } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -39,7 +549,9 @@ import { toast } from 'sonner';
 import type { MatchSuggestion } from '@prisma/client';
 
 import SuggestionsList from './list/SuggestionsList';
-import type { ExtendedMatchSuggestion } from './types';
+import InterestedQueue from '@/components/suggestions/interested/InterestedQueue';
+import ActiveSuggestionHero from '@/components/suggestions/ActiveSuggestionHero';
+import type { ExtendedMatchSuggestion } from '../../types/suggestions';
 import { cn } from '@/lib/utils';
 
 import {
@@ -57,6 +569,8 @@ import type {
   SuggestionsDictionary,
   ProfileCardDict,
 } from '@/types/dictionary';
+
+import FirstPartyPreferenceToggle from '@/components/suggestions/FirstPartyPreferenceToggle';
 
 // =============================================================================
 // COLOR PALETTE REFERENCE (Matching HeroSection.tsx)
@@ -78,10 +592,29 @@ import type {
 //   - from-teal-400 via-orange-400 to-rose-400
 // =============================================================================
 
-// ID של יוזר המערכת שמייצר הצעות יומיות
 const SYSTEM_MATCHMAKER_ID = 'system-matchmaker-neshamatech';
 
-// --- Simplified Loading Skeleton ---
+// --- Active Process Statuses ---
+const ACTIVE_PROCESS_STATUSES = [
+  'FIRST_PARTY_APPROVED',
+  'PENDING_SECOND_PARTY',
+  'SECOND_PARTY_APPROVED',
+  'AWAITING_MATCHMAKER_APPROVAL',
+  'CONTACT_DETAILS_SHARED',
+  'AWAITING_FIRST_DATE_FEEDBACK',
+  'THINKING_AFTER_DATE',
+  'PROCEEDING_TO_SECOND_DATE',
+  'MEETING_PENDING',
+  'MEETING_SCHEDULED',
+  'MATCH_APPROVED',
+  'DATING',
+  'ENGAGED',
+] as const;
+
+// --- Action Type (extended to include 'interested') ---
+type ActionType = 'approve' | 'decline' | 'interested';
+
+// --- Loading Skeleton ---
 const LoadingSkeleton: React.FC<{
   dict: SuggestionsDictionary['container']['loading'];
 }> = ({ dict }) => (
@@ -90,7 +623,7 @@ const LoadingSkeleton: React.FC<{
       <div className="shadow-2xl border-0 bg-white/95 backdrop-blur-sm overflow-hidden rounded-3xl">
         <div className="px-8 py-6 bg-gradient-to-r from-teal-50/80 via-white to-orange-50/30 border-b border-gray-100">
           <div className="flex items-center justify-center">
-            <div className="h-7 bg-gray-200 rounded-lg w-48 animate-pulse"></div>
+            <div className="h-7 bg-gray-200 rounded-lg w-48 animate-pulse" />
           </div>
         </div>
 
@@ -101,14 +634,14 @@ const LoadingSkeleton: React.FC<{
                 <div
                   key={index}
                   className="px-6 py-3 rounded-xl bg-gray-200 animate-pulse w-28 h-10"
-                ></div>
+                />
               ))}
             </div>
           </div>
 
           <div className="flex flex-col items-center justify-center min-h-[300px] text-center space-y-6">
             <div className="relative">
-              <div className="w-20 h-20 rounded-full bg-gradient-to-br from-teal-100 via-orange-100 to-rose-100 animate-pulse border-4 border-white shadow-xl"></div>
+              <div className="w-20 h-20 rounded-full bg-gradient-to-br from-teal-100 via-orange-100 to-rose-100 animate-pulse border-4 border-white shadow-xl" />
               <div className="absolute inset-0 flex items-center justify-center">
                 <Loader2 className="w-10 h-10 text-teal-600 animate-spin" />
               </div>
@@ -129,7 +662,7 @@ const LoadingSkeleton: React.FC<{
                   key={index}
                   className="w-2.5 h-2.5 rounded-full bg-gradient-to-r from-teal-500 to-orange-500 animate-bounce"
                   style={{ animationDelay: `${index * 0.2}s` }}
-                ></div>
+                />
               ))}
             </div>
           </div>
@@ -139,11 +672,13 @@ const LoadingSkeleton: React.FC<{
   </div>
 );
 
+// --- Props Interface ---
 interface MatchSuggestionsContainerProps {
   userId: string;
   className?: string;
   suggestionsDict: SuggestionsDictionary;
   profileCardDict: ProfileCardDict;
+  wantsToBeFirstParty?: boolean;
 }
 
 // --- Main Container ---
@@ -152,20 +687,17 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
   className,
   suggestionsDict,
   profileCardDict,
+  wantsToBeFirstParty = true,
 }) => {
- const params = useParams();
+  const params = useParams();
 
-  // --- תיקון: לוגיקה לקביעת השפה (ללא let כדי למנוע שגיאות) ---
-  // אנחנו בודקים אם קיים פרמטר בשם locale (החדש) או lang (הישן)
+  // --- Locale Resolution ---
   const rawParam = params?.locale || params?.lang;
-  
-  // מחלצים את המחרוזת (במקרה שזה מערך)
   const localeString = Array.isArray(rawParam) ? rawParam[0] : rawParam;
-  
-  // קובעים סופית: אם זה 'he' אז עברית, אחרת ברירת מחדל אנגלית
   const locale: 'he' | 'en' = localeString === 'he' ? 'he' : 'en';
+  const isRtl = locale === 'he';
 
-  console.log('🔍 [MatchSuggestionsContainer] Final Locale:', locale);
+  // --- State ---
   const [activeSuggestions, setActiveSuggestions] = useState<
     ExtendedMatchSuggestion[]
   >([]);
@@ -183,16 +715,46 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [suggestionForAction, setSuggestionForAction] =
     useState<ExtendedMatchSuggestion | null>(null);
-  const [actionType, setActionType] = useState<'approve' | 'decline' | null>(
-    null
-  );
+  const [actionType, setActionType] = useState<ActionType | null>(null);
 
-  // Sort suggestions: urgent (user's turn) first, then others
-  const sortedActiveSuggestions = React.useMemo(() => {
+  // --- Derived: Active Process Suggestion (Hero Card) ---
+  const activeProcessSuggestion = useMemo(() => {
+    return (
+      activeSuggestions.find((s) =>
+        ACTIVE_PROCESS_STATUSES.includes(s.status as any)
+      ) || null
+    );
+  }, [activeSuggestions]);
+
+  // --- Derived: INTERESTED suggestions (sorted by rank) ---
+  const interestedSuggestions = useMemo(() => {
+    return activeSuggestions
+      .filter(
+        (s) =>
+          s.status === 'FIRST_PARTY_INTERESTED' && s.firstPartyId === userId
+      )
+      .sort(
+        (a, b) =>
+          ((a as any).firstPartyRank ?? 999) -
+          ((b as any).firstPartyRank ?? 999)
+      );
+  }, [activeSuggestions, userId]);
+
+  // --- Derived: active suggestions WITHOUT interested AND WITHOUT active process ---
+  const nonInterestedActiveSuggestions = useMemo(() => {
+    return activeSuggestions.filter(
+      (s) =>
+        s.status !== 'FIRST_PARTY_INTERESTED' &&
+        !ACTIVE_PROCESS_STATUSES.includes(s.status as any)
+    );
+  }, [activeSuggestions]);
+
+  // --- Derived: sorted active suggestions (urgent first, excluding INTERESTED & ACTIVE_PROCESS) ---
+  const sortedActiveSuggestions = useMemo(() => {
     const urgent: ExtendedMatchSuggestion[] = [];
     const others: ExtendedMatchSuggestion[] = [];
 
-    activeSuggestions.forEach((s) => {
+    nonInterestedActiveSuggestions.forEach((s) => {
       const isFirstParty = s.firstPartyId === userId;
       const isMyTurn =
         (s.status === 'PENDING_FIRST_PARTY' && isFirstParty) ||
@@ -206,22 +768,26 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
     });
 
     return [...urgent, ...others];
-  }, [activeSuggestions, userId]);
+  }, [nonInterestedActiveSuggestions, userId]);
 
-  const urgentCount = sortedActiveSuggestions.filter((s) => {
-    const isFirstParty = s.firstPartyId === userId;
-    return (
-      (s.status === 'PENDING_FIRST_PARTY' && isFirstParty) ||
-      (s.status === 'PENDING_SECOND_PARTY' && !isFirstParty)
-    );
-  }).length;
+  // --- Derived: urgent count ---
+  const urgentCount = useMemo(
+    () =>
+      sortedActiveSuggestions.filter((s) => {
+        const isFirstParty = s.firstPartyId === userId;
+        return (
+          (s.status === 'PENDING_FIRST_PARTY' && isFirstParty) ||
+          (s.status === 'PENDING_SECOND_PARTY' && !isFirstParty)
+        );
+      }).length,
+    [sortedActiveSuggestions, userId]
+  );
 
-  // ===== NEW: זיהוי הצעה יומית פעילה שממתינה לתגובת היוזר =====
-  const dailySuggestion = React.useMemo(() => {
+  // --- Derived: daily AI suggestion awaiting user response ---
+  const dailySuggestion = useMemo(() => {
     return activeSuggestions.find((s) => {
       if (s.matchmakerId !== SYSTEM_MATCHMAKER_ID) return false;
       const isFirstParty = s.firstPartyId === userId;
-      // ההצעה ממתינה לתגובת היוזר הנוכחי
       return (
         (s.status === 'PENDING_FIRST_PARTY' && isFirstParty) ||
         (s.status === 'PENDING_SECOND_PARTY' && !isFirstParty)
@@ -229,6 +795,7 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
     });
   }, [activeSuggestions, userId]);
 
+  // --- Data Fetching ---
   const fetchSuggestions = useCallback(
     async (showLoadingState = true) => {
       try {
@@ -240,8 +807,8 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
         setError(null);
 
         const [activeResponse, historyResponse] = await Promise.all([
-          fetch(`/api/suggestions/active`),
-          fetch(`/api/suggestions/history`),
+          fetch('/api/suggestions/active'),
+          fetch('/api/suggestions/history'),
         ]);
 
         if (!activeResponse.ok || !historyResponse.ok) {
@@ -265,10 +832,10 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
 
         setActiveSuggestions(activeData.suggestions);
         setHistorySuggestions(historyData.suggestions);
-      } catch (error) {
+      } catch (err) {
         const errorMessage =
-          error instanceof Error
-            ? error.message
+          err instanceof Error
+            ? err.message
             : suggestionsDict.container.main.unknownError;
         setError(
           suggestionsDict.container.main.errorLoading.replace(
@@ -287,6 +854,7 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
     [activeSuggestions.length, suggestionsDict]
   );
 
+  // --- Status Change Handler ---
   const handleStatusChange = useCallback(
     async (suggestionId: string, newStatus: string, notes?: string) => {
       try {
@@ -327,6 +895,10 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
             suggestionsDict.container.toasts.approvedSecondPartyDesc;
         } else if (newStatus.includes('DECLINED')) {
           description = suggestionsDict.container.toasts.declinedDesc;
+        } else if (newStatus === 'FIRST_PARTY_INTERESTED') {
+          description = isRtl
+            ? 'ההצעה נשמרה ברשימת ההמתנה שלך'
+            : 'Suggestion saved to your waitlist';
         } else {
           description = suggestionsDict.container.toasts.matchmakerNotified;
         }
@@ -336,10 +908,10 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
             suggestionsDict.container.toasts.statusUpdateSuccess,
           { description }
         );
-      } catch (error) {
+      } catch (err) {
         const errorMessage =
-          error instanceof Error
-            ? error.message
+          err instanceof Error
+            ? err.message
             : suggestionsDict.container.main.unknownError;
         toast.error(
           suggestionsDict.container.toasts.statusUpdateError.replace(
@@ -349,11 +921,15 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
         );
       }
     },
-    [fetchSuggestions, suggestionsDict]
+    [fetchSuggestions, suggestionsDict, isRtl]
   );
 
+  // --- Action Request (opens confirmation dialog) ---
   const handleRequestAction = useCallback(
-    (suggestion: ExtendedMatchSuggestion, action: 'approve' | 'decline') => {
+    (
+      suggestion: ExtendedMatchSuggestion,
+      action: 'approve' | 'decline' | 'interested'
+    ) => {
       setSuggestionForAction(suggestion);
       setActionType(action);
       setShowConfirmDialog(true);
@@ -361,19 +937,23 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
     []
   );
 
+  // --- Confirm Action ---
   const handleConfirmAction = useCallback(async () => {
     if (!suggestionForAction || !actionType) return;
 
     const isFirstParty = suggestionForAction.firstPartyId === userId;
     let newStatus = '';
+
     if (actionType === 'approve') {
       newStatus = isFirstParty
         ? 'FIRST_PARTY_APPROVED'
         : 'SECOND_PARTY_APPROVED';
-    } else {
+    } else if (actionType === 'decline') {
       newStatus = isFirstParty
         ? 'FIRST_PARTY_DECLINED'
         : 'SECOND_PARTY_DECLINED';
+    } else if (actionType === 'interested') {
+      newStatus = 'FIRST_PARTY_INTERESTED';
     }
 
     await handleStatusChange(suggestionForAction.id, newStatus);
@@ -383,6 +963,67 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
     setActionType(null);
   }, [suggestionForAction, actionType, userId, handleStatusChange]);
 
+  // --- Rank Update Handler (for InterestedQueue drag-and-drop) ---
+  const handleRankUpdate = useCallback(
+    async (rankedIds: string[]) => {
+      const response = await fetch('/api/suggestions/interested/rank', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ rankedSuggestionIds: rankedIds }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update ranks');
+      }
+
+      await fetchSuggestions(false);
+    },
+    [fetchSuggestions]
+  );
+
+  // --- Remove suggestion from INTERESTED queue ---
+  const handleRemoveFromInterested = useCallback(
+    (suggestion: ExtendedMatchSuggestion) => {
+      setSuggestionForAction(suggestion);
+      setActionType('decline');
+      setShowConfirmDialog(true);
+    },
+    []
+  );
+
+  // --- Activate an INTERESTED suggestion ---
+  const handleActivateInterested = useCallback(
+    (suggestion: ExtendedMatchSuggestion) => {
+      setSuggestionForAction(suggestion);
+      setActionType('approve');
+      setShowConfirmDialog(true);
+    },
+    []
+  );
+
+  // --- Contact Matchmaker Handler ---
+  const handleContactMatchmaker = useCallback(
+    (suggestion: ExtendedMatchSuggestion) => {
+      // TODO: Implement chat/inquiry modal or navigation
+      toast.info(
+        isRtl ? 'פתיחת צ׳אט עם השדכן/ית...' : 'Opening chat with matchmaker...'
+      );
+      // Example: setSelectedSuggestion(suggestion); setShowInquiryModal(true);
+    },
+    [isRtl]
+  );
+
+  // --- View Details Handler ---
+  const handleViewDetails = useCallback(
+    (suggestion: ExtendedMatchSuggestion) => {
+      // TODO: Implement details modal
+      toast.info(isRtl ? 'פתיחת פרטים מלאים...' : 'Opening full details...');
+      // Example: setSelectedSuggestion(suggestion); setShowDetailsModal(true);
+    },
+    [isRtl]
+  );
+
+  // --- Effects ---
   useEffect(() => {
     fetchSuggestions();
     const intervalId = setInterval(
@@ -419,6 +1060,7 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
     }
   }, [activeTab]);
 
+  // --- Manual Refresh ---
   const handleRefresh = useCallback(async () => {
     await fetchSuggestions(false);
     toast.success(suggestionsDict.container.toasts.refreshSuccessTitle, {
@@ -426,11 +1068,12 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
     });
   }, [fetchSuggestions, suggestionsDict]);
 
+  // --- Loading State ---
   if (isLoading) {
     return <LoadingSkeleton dict={suggestionsDict.container.loading} />;
   }
 
-  // ===== i18n texts for the daily suggestion section =====
+  // --- i18n texts for daily suggestion section ---
   const dailyDict = (suggestionsDict.container as any).dailySuggestion as
     | {
         cardTitle?: string;
@@ -441,13 +1084,14 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
       }
     | undefined;
 
+  // --- Render ---
   return (
     <div
       className={cn(
         'min-h-screen bg-gradient-to-br from-slate-50 via-teal-50/20 to-orange-50/20',
         className
       )}
-      dir={locale === 'he' ? 'rtl' : 'ltr'}
+      dir={isRtl ? 'rtl' : 'ltr'}
     >
       <div className="container mx-auto px-4 py-8">
         {/* Main Card */}
@@ -473,12 +1117,7 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
                 </Button>
                 {hasNewSuggestions && (
                   <Badge className="bg-gradient-to-r from-orange-500 to-amber-500 text-white border-0 shadow-xl animate-pulse">
-                    <Bell
-                      className={cn(
-                        'w-3 h-3',
-                        locale === 'he' ? 'ml-1' : 'mr-1'
-                      )}
-                    />
+                    <Bell className={cn('w-3 h-3', isRtl ? 'ml-1' : 'mr-1')} />
                     {suggestionsDict.container.main.newSuggestions}
                   </Badge>
                 )}
@@ -488,12 +1127,12 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
                   {suggestionsDict.container.main.title}
                 </CardTitle>
               </div>
-              <div className="w-16"></div>
+              <div className="w-16" />
             </div>
           </CardHeader>
 
           <CardContent className="p-6">
-            {/* ===== NEW: Daily Suggestion Highlight Section ===== */}
+            {/* ===== Daily Suggestion Highlight Section ===== */}
             {dailySuggestion && (
               <div className="mb-6 p-5 bg-gradient-to-r from-violet-50 via-purple-50/50 to-indigo-50 border border-violet-200/50 rounded-2xl shadow-sm">
                 <div className="flex items-center gap-3 mb-3">
@@ -503,13 +1142,11 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
                   <div>
                     <h3 className="text-lg font-bold bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent">
                       {dailyDict?.cardTitle ||
-                        (locale === 'he'
-                          ? '✨ ההצעה היומית שלך'
-                          : '✨ Your Daily Match')}
+                        (isRtl ? '✨ ההצעה היומית שלך' : '✨ Your Daily Match')}
                     </h3>
                     <p className="text-sm text-violet-600/80">
                       {dailyDict?.cardSubtitle ||
-                        (locale === 'he'
+                        (isRtl
                           ? 'כל יום אנחנו מחפשים עבורך את ההתאמה הכי טובה'
                           : 'Every day we search for your best possible match')}
                     </p>
@@ -517,23 +1154,21 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
                 </div>
                 <p className="text-sm text-gray-600 leading-relaxed mb-3">
                   {dailyDict?.matchingNote ||
-                    (locale === 'he'
+                    (isRtl
                       ? 'הצעה זו נבחרה על סמך ניתוח מעמיק של הפרופיל שלך, תשובותיך לשאלון, והעדפותיך. המערכת שלנו לומדת ומשתפרת כל הזמן.'
                       : 'This match was selected based on deep analysis of your profile, questionnaire answers, and preferences. Our system learns and improves continuously.')}
                 </p>
                 <div className="flex items-center gap-2">
                   <Badge className="bg-gradient-to-r from-violet-500 to-purple-500 text-white border-0 text-xs">
                     {dailyDict?.aiPowered ||
-                      (locale === 'he'
-                        ? 'מותאם אישית ע"י AI'
-                        : 'AI-Personalized')}
+                      (isRtl ? 'מותאם אישית ע"י AI' : 'AI-Personalized')}
                   </Badge>
                   <Badge
                     variant="outline"
                     className="border-violet-300 text-violet-700 text-xs"
                   >
                     {dailyDict?.basedOnLearning ||
-                      (locale === 'he'
+                      (isRtl
                         ? 'מבוסס על למידת המערכת'
                         : 'Based on system learning')}
                   </Badge>
@@ -541,10 +1176,18 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
               </div>
             )}
 
+            {/* ===== Preference Toggle: Auto-Scan ===== */}
+            <FirstPartyPreferenceToggle
+              initialValue={wantsToBeFirstParty}
+              locale={locale}
+              className="mb-6"
+            />
+
+            {/* ===== Tabs ===== */}
             <Tabs
               value={activeTab}
               onValueChange={setActiveTab}
-              dir={locale === 'he' ? 'rtl' : 'ltr'}
+              dir={isRtl ? 'rtl' : 'ltr'}
               className="space-y-6"
             >
               <div className="flex justify-center">
@@ -588,14 +1231,15 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
                 </TabsList>
               </div>
 
+              {/* Error Alert */}
               {error && (
                 <Alert
                   variant="destructive"
                   className="border-red-200 bg-red-50"
-                  dir={locale === 'he' ? 'rtl' : 'ltr'}
+                  dir={isRtl ? 'rtl' : 'ltr'}
                 >
                   <AlertCircle
-                    className={cn('h-5 w-5', locale === 'he' ? 'ml-2' : 'mr-2')}
+                    className={cn('h-5 w-5', isRtl ? 'ml-2' : 'mr-2')}
                   />
                   <AlertDescription className="text-red-800 font-medium">
                     {error}
@@ -603,7 +1247,36 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
                 </Alert>
               )}
 
+              {/* Active Tab Content */}
               <TabsContent value="active" className="space-y-6">
+                {/* ===== Hero Card for Active Process ===== */}
+                {activeProcessSuggestion && (
+                  <ActiveSuggestionHero
+                    suggestion={activeProcessSuggestion}
+                    userId={userId}
+                    locale={locale}
+                    onContactMatchmaker={handleContactMatchmaker}
+                    onViewDetails={handleViewDetails}
+                    className="mb-2"
+                  />
+                )}
+
+                {/* ===== Interested Queue ===== */}
+                {interestedSuggestions.length > 0 && (
+                  <InterestedQueue
+                    suggestions={interestedSuggestions}
+                    userId={userId}
+                    locale={locale}
+                    isUserInActiveProcess={isUserInActiveProcess}
+                    onActivate={handleActivateInterested}
+                    onRemove={handleRemoveFromInterested}
+                    onViewDetails={handleViewDetails}
+                    onRankUpdate={handleRankUpdate}
+                    className="mb-4"
+                  />
+                )}
+
+                {/* ===== Regular Suggestion Cards (PENDING only) ===== */}
                 <SuggestionsList
                   locale={locale}
                   suggestions={sortedActiveSuggestions}
@@ -619,6 +1292,7 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
                 />
               </TabsContent>
 
+              {/* History Tab Content */}
               <TabsContent value="history" className="space-y-6">
                 <SuggestionsList
                   locale={locale}
@@ -647,12 +1321,20 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
             <AlertDialogTitle className="text-xl font-bold text-center">
               {actionType === 'approve'
                 ? suggestionsDict.container.dialogs.approveTitle
-                : suggestionsDict.container.dialogs.declineTitle}
+                : actionType === 'interested'
+                  ? isRtl
+                    ? 'שמירה לגיבוי'
+                    : 'Save for later'
+                  : suggestionsDict.container.dialogs.declineTitle}
             </AlertDialogTitle>
             <AlertDialogDescription className="text-center text-gray-600 leading-relaxed">
               {actionType === 'approve'
                 ? suggestionsDict.container.dialogs.approveDescription
-                : suggestionsDict.container.dialogs.declineDescription}
+                : actionType === 'interested'
+                  ? isRtl
+                    ? 'ההצעה תישמר ברשימת ההמתנה שלך. תוכל/י לאשר אותה מאוחר יותר כשתהיה פנוי/ה.'
+                    : "This suggestion will be saved to your waitlist. You can approve it later when you're available."
+                  : suggestionsDict.container.dialogs.declineDescription}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="gap-3">
@@ -665,21 +1347,28 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
                 'rounded-xl font-medium shadow-lg hover:shadow-xl transition-all duration-300',
                 actionType === 'approve'
                   ? 'bg-gradient-to-r from-teal-500 to-emerald-600 hover:from-teal-600 hover:to-emerald-700'
-                  : 'bg-gradient-to-r from-rose-500 to-red-600 hover:from-rose-600 hover:to-red-700'
+                  : actionType === 'interested'
+                    ? 'bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600'
+                    : 'bg-gradient-to-r from-rose-500 to-red-600 hover:from-rose-600 hover:to-red-700'
               )}
             >
               {actionType === 'approve' ? (
                 <>
                   <CheckCircle
-                    className={cn('w-4 h-4', locale === 'he' ? 'ml-2' : 'mr-2')}
+                    className={cn('w-4 h-4', isRtl ? 'ml-2' : 'mr-2')}
                   />
                   {suggestionsDict.container.dialogs.confirmApproval}
                 </>
+              ) : actionType === 'interested' ? (
+                <>
+                  <Bookmark
+                    className={cn('w-4 h-4', isRtl ? 'ml-2' : 'mr-2')}
+                  />
+                  {isRtl ? 'שמור/י לגיבוי' : 'Save for later'}
+                </>
               ) : (
                 <>
-                  <XCircle
-                    className={cn('w-4 h-4', locale === 'he' ? 'ml-2' : 'mr-2')}
-                  />
+                  <XCircle className={cn('w-4 h-4', isRtl ? 'ml-2' : 'mr-2')} />
                   {suggestionsDict.container.dialogs.confirmDecline}
                 </>
               )}
@@ -698,89 +1387,6 @@ export default MatchSuggestionsContainer;
 File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\suggestions\suggestions_contents.txt
 --------------------------------------------------------------------------------
 [This is the output log file itself. Content not included.]
-
---------------------------------------------------------------------------------
-File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\suggestions\types.ts
---------------------------------------------------------------------------------
-Content:
-// src/app/components/suggestions/types.ts
-
-import type {
-  MatchSuggestion,
-  Profile as PrismaProfile, // שינינו את השם כדי למנוע התנגשות
-  User,
-  UserImage,
-  QuestionnaireResponse as PrismaQuestionnaireResponse,
-  TestimonialStatus, // ייבוא הטיפוסים הנדרשים
-  SubmissionSource,   // ייבוא הטיפוסים הנדרשים
-} from '@prisma/client';
-import { QuestionnaireResponse as CustomQuestionnaireResponse } from '@/types/next-auth';
-
-// 1. הגדרת טיפוס עבור המלצת חבר בודדת
-export interface FriendTestimonial {
-  id: string;
-  authorName: string;
-  relationship: string;
-  content: string;
-  authorPhone?: string | null;
-  isPhoneVisibleToMatch: boolean;
-  status: TestimonialStatus;
-  submittedBy: SubmissionSource;
-  createdAt: Date;
-}
-
-// 2. הגדרת הטיפוס UserProfile כך שירחיב את הטיפוס של פריזמה ויוסיף את ההמלצות
-export interface UserProfile extends PrismaProfile {
-  testimonials?: FriendTestimonial[]; // הוספנו את השדה החסר כאן
-}
-
-// הגדרת טיפוס מרכזי לעולמות השאלון
-export type WorldId =
-  | 'values'
-  | 'personality'
-  | 'relationship'
-  | 'partner'
-  | 'religion';
-
-export type QuestionnaireResponse = CustomQuestionnaireResponse;
-
-// PartyInfo עכשיו ישתמש ב-UserProfile המעודכן שלנו
-export interface PartyInfo {
-  // Fields from User model
-  id: string;
-  email: string;
-  firstName: string;
-  lastName: string;
-  isProfileComplete: boolean;
-
-  // Relation to Profile (which can be null)
-  profile: UserProfile | null; // כאן יבוא לידי ביטוי התיקון
-
-  // Relation to Images (which is a full UserImage array)
-  images: UserImage[];
-
-  questionnaireResponses?: QuestionnaireResponse[];
-}
-
-export interface StatusHistoryItem {
-  id: string;
-  suggestionId: string;
-  status: string;
-  notes?: string | null;
-  createdAt: Date | string;
-}
-
-export interface ExtendedMatchSuggestion
-  extends Omit<MatchSuggestion, 'firstParty' | 'secondParty' | 'matchmaker'> {
-  matchmaker: {
-    firstName: string;
-    lastName: string;
-  };
-  firstParty: PartyInfo;
-  secondParty: PartyInfo;
-  statusHistory: StatusHistoryItem[];
-}
---- End of Content for types.ts ---
 
 ================================================================================
 Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\suggestions\cards
@@ -807,6 +1413,9 @@ import {
   ChevronLeft,
   Quote,
   Zap,
+  Bookmark,
+  Info,
+  Trash2,
 } from 'lucide-react';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -818,14 +1427,13 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { getRelativeCloudinaryPath, getInitials } from '@/lib/utils';
 import {
   getEnhancedStatusInfo,
   getPartyIndicator,
 } from '@/lib/utils/suggestionUtils';
-import type { ExtendedMatchSuggestion } from '../types';
+import type { ExtendedMatchSuggestion } from '../../../types/suggestions';
 import type { SuggestionsCardDict } from '@/types/dictionary';
 
 // =============================================================================
@@ -869,11 +1477,12 @@ interface MinimalSuggestionCardProps {
   userId: string;
   onClick: (suggestion: ExtendedMatchSuggestion) => void;
   onApprove?: (suggestion: ExtendedMatchSuggestion) => void;
+  onInterested?: (suggestion: ExtendedMatchSuggestion) => void;
   onInquiry?: (suggestion: ExtendedMatchSuggestion) => void;
   onDecline?: (suggestion: ExtendedMatchSuggestion) => void;
   className?: string;
   isHistory?: boolean;
-  isApprovalDisabled?: boolean;
+  isUserInActiveProcess?: boolean;
   dict: SuggestionsCardDict;
   locale: 'he' | 'en';
 }
@@ -896,11 +1505,12 @@ const MinimalSuggestionCard: React.FC<MinimalSuggestionCardProps> = ({
   userId,
   onClick,
   onApprove,
+  onInterested,
   onInquiry,
   onDecline,
   className,
   isHistory = false,
-  isApprovalDisabled = false,
+  isUserInActiveProcess = false,
   dict,
   locale,
 }) => {
@@ -992,7 +1602,7 @@ const MinimalSuggestionCard: React.FC<MinimalSuggestionCardProps> = ({
                 <Avatar className="w-10 h-10 border-2 border-white shadow-md">
                   <AvatarFallback className="bg-gradient-to-br from-teal-500 to-emerald-600 text-white font-bold text-sm">
                     {getInitials(
-                      `${suggestion.matchmaker.firstName} ${suggestion.matchmaker.lastName}`
+                      `${suggestion.matchmaker?.firstName} ${suggestion.matchmaker?.lastName}`
                     )}
                   </AvatarFallback>
                 </Avatar>
@@ -1001,8 +1611,8 @@ const MinimalSuggestionCard: React.FC<MinimalSuggestionCardProps> = ({
                     {dict.suggestedBy}
                   </p>
                   <p className="text-sm font-bold text-gray-800">
-                    {suggestion.matchmaker.firstName}{' '}
-                    {suggestion.matchmaker.lastName}
+                    {suggestion.matchmaker?.firstName}{' '}
+                    {suggestion.matchmaker?.lastName}
                   </p>
                 </div>
               </>
@@ -1205,10 +1815,122 @@ const MinimalSuggestionCard: React.FC<MinimalSuggestionCardProps> = ({
       {/* Footer Actions */}
       {!isHistory && (
         <CardFooter className="p-4 bg-gradient-to-r from-gray-50/50 to-slate-50/50 border-t border-gray-100">
-          {(suggestion.status === 'PENDING_FIRST_PARTY' && isFirstParty) ||
-          (suggestion.status === 'PENDING_SECOND_PARTY' && !isFirstParty) ? (
+          {/* ═══════════════════════════════════════════════
+              CASE: First party PENDING
+              ═══════════════════════════════════════════════ */}
+          {suggestion.status === 'PENDING_FIRST_PARTY' && isFirstParty ? (
+            isUserInActiveProcess ? (
+              /* ─── LAYOUT A: Has active process ─── */
+              <div className="w-full space-y-2">
+                {/* Save for Later - full width, primary amber */}
+                <Button
+                  size="sm"
+                  variant="default"
+                  className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl font-medium h-10"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onInterested?.(suggestion);
+                  }}
+                >
+                  <Bookmark
+                    className={cn('w-4 h-4', locale === 'he' ? 'ml-2' : 'mr-2')}
+                  />
+                  {dict.buttons.interested ||
+                    (locale === 'he' ? 'שומר/ת לגיבוי' : 'Save for later')}
+                </Button>
+
+                {/* Explanation banner */}
+                <div className="flex items-start gap-2 px-3 py-2 bg-amber-50 rounded-lg border border-amber-200/50">
+                  <Info className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
+                  <p className="text-xs text-amber-800 leading-relaxed">
+                    {dict.activeProcessExplanation ||
+                      (locale === 'he'
+                        ? 'יש לך כבר הצעה בתהליך פעיל. ההצעה הזו תישמר ברשימת ההמתנה שלך ותוכל/י לאשר אותה כשהתהליך הנוכחי יסתיים.'
+                        : 'You already have an active suggestion. This one will be saved to your waitlist and you can approve it when the current process ends.')}
+                  </p>
+                </div>
+
+                {/* Decline - full width */}
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="w-full text-rose-600 hover:text-rose-700 hover:bg-rose-50 border-rose-200 hover:border-rose-300 rounded-xl font-medium transition-all duration-300 h-9"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDecline?.(suggestion);
+                  }}
+                >
+                  <XCircle
+                    className={cn('w-4 h-4', locale === 'he' ? 'ml-2' : 'mr-2')}
+                  />
+                  {dict.buttons.decline}
+                </Button>
+              </div>
+            ) : (
+              /* ─── LAYOUT B: No active process - all 3 buttons ─── */
+              <div className="w-full space-y-2">
+                {/* Approve - full width */}
+                <Button
+                  size="sm"
+                  variant="default"
+                  className="w-full bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 text-white shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl font-medium h-10"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onApprove?.(suggestion);
+                  }}
+                >
+                  <Heart
+                    className={cn('w-4 h-4', locale === 'he' ? 'ml-2' : 'mr-2')}
+                  />
+                  {dict.buttons.approve}
+                </Button>
+
+                {/* Save for Later + Decline row */}
+                <div className="grid grid-cols-2 gap-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="w-full text-amber-600 hover:text-amber-700 hover:bg-amber-50 border-amber-200 hover:border-amber-300 rounded-xl font-medium transition-all duration-300 text-xs h-9"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onInterested?.(suggestion);
+                    }}
+                  >
+                    <Bookmark
+                      className={cn(
+                        'w-3.5 h-3.5',
+                        locale === 'he' ? 'ml-1.5' : 'mr-1.5'
+                      )}
+                    />
+                    {dict.buttons.interested ||
+                      (locale === 'he' ? 'שומר/ת לגיבוי' : 'Save for later')}
+                  </Button>
+
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="w-full text-rose-600 hover:text-rose-700 hover:bg-rose-50 border-rose-200 hover:border-rose-300 rounded-xl font-medium transition-all duration-300 text-xs h-9"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onDecline?.(suggestion);
+                    }}
+                  >
+                    <XCircle
+                      className={cn(
+                        'w-3.5 h-3.5',
+                        locale === 'he' ? 'ml-1.5' : 'mr-1.5'
+                      )}
+                    />
+                    {dict.buttons.decline}
+                  </Button>
+                </div>
+              </div>
+            )
+          ) : suggestion.status === 'PENDING_SECOND_PARTY' && !isFirstParty ? (
+            /* ═══════════════════════════════════════════════
+               CASE: Second party PENDING - original 2 buttons
+               ═══════════════════════════════════════════════ */
             <div className="grid grid-cols-2 gap-3 w-full">
-              {/* Decline Button: Rose/Red (matching Hero decline actions) */}
               <Button
                 size="sm"
                 variant="outline"
@@ -1224,48 +1946,76 @@ const MinimalSuggestionCard: React.FC<MinimalSuggestionCardProps> = ({
                 {dict.buttons.decline}
               </Button>
 
-              {/* Approve Button: Teal -> Emerald (matching Hero primary CTA) */}
-              <TooltipProvider>
-                <Tooltip delayDuration={100}>
-                  <TooltipTrigger asChild>
-                    <div className="w-full">
-                      <Button
-                        size="sm"
-                        variant="default"
-                        className="w-full bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 text-white shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl font-medium"
-                        disabled={isApprovalDisabled}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          if (isApprovalDisabled) {
-                          toast.info(dict.toasts.approveDisabledTitle, {
-  description: dict.toasts.approveDisabledDescription,
-});
-                          } else {
-                            onApprove?.(suggestion);
-                          }
-                        }}
-                      >
-                        <Heart
-                          className={cn(
-                            'w-4 h-4',
-                            locale === 'he' ? 'ml-2' : 'mr-2'
-                          )}
-                        />
-                        {dict.buttons.approve}
-                      </Button>
-                    </div>
-                  </TooltipTrigger>
-                  {isApprovalDisabled && (
-                    <TooltipContent>
-                      <p>{dict.buttons.approveDisabledTooltip}</p>
-                    </TooltipContent>
-                  )}
-                </Tooltip>
-              </TooltipProvider>
+              <Button
+                size="sm"
+                variant="default"
+                className="w-full bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 text-white shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl font-medium"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onApprove?.(suggestion);
+                }}
+              >
+                <Heart
+                  className={cn('w-4 h-4', locale === 'he' ? 'ml-2' : 'mr-2')}
+                />
+                {dict.buttons.approve}
+              </Button>
+            </div>
+          ) : suggestion.status === 'FIRST_PARTY_INTERESTED' && isFirstParty ? (
+            /* ═══════════════════════════════════════════════
+               CASE: INTERESTED - activate or remove
+               ═══════════════════════════════════════════════ */
+            <div className="w-full space-y-2">
+              {!isUserInActiveProcess && (
+                <Button
+                  size="sm"
+                  variant="default"
+                  className="w-full bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 text-white shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl font-medium h-10"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onApprove?.(suggestion);
+                  }}
+                >
+                  <Heart
+                    className={cn('w-4 h-4', locale === 'he' ? 'ml-2' : 'mr-2')}
+                  />
+                  {dict.buttons.activateNow ||
+                    (locale === 'he' ? 'אשר/י עכשיו' : 'Approve now')}
+                </Button>
+              )}
+
+              <Button
+                size="sm"
+                variant="outline"
+                className="w-full text-rose-500 hover:text-rose-600 hover:bg-rose-50 border-rose-200 rounded-xl font-medium transition-all duration-300 h-9"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDecline?.(suggestion);
+                }}
+              >
+                <Trash2
+                  className={cn('w-4 h-4', locale === 'he' ? 'ml-2' : 'mr-2')}
+                />
+                {dict.buttons.removeFromList ||
+                  (locale === 'he' ? 'הסר מהרשימה' : 'Remove')}
+              </Button>
+
+              {isUserInActiveProcess && (
+                <div className="flex items-start gap-2 px-3 py-2 bg-gray-50 rounded-lg">
+                  <Info className="w-3.5 h-3.5 text-gray-400 mt-0.5 flex-shrink-0" />
+                  <p className="text-xs text-gray-500 leading-relaxed">
+                    {locale === 'he'
+                      ? 'יש לך הצעה פעילה. כשתסתיים, תוכל/י לאשר מהרשימה.'
+                      : 'You have an active suggestion. Once it ends, you can approve from the waitlist.'}
+                  </p>
+                </div>
+              )}
             </div>
           ) : (
+            /* ═══════════════════════════════════════════════
+               CASE: Other statuses (in progress, etc.)
+               ═══════════════════════════════════════════════ */
             <div className="grid grid-cols-2 gap-3 w-full">
-              {/* Ask Matchmaker: Teal accent on hover */}
               <Button
                 size="sm"
                 variant="outline"
@@ -1281,7 +2031,6 @@ const MinimalSuggestionCard: React.FC<MinimalSuggestionCardProps> = ({
                 {dict.buttons.askMatchmaker}
               </Button>
 
-              {/* View Details: Teal gradient (matching Hero secondary CTA) */}
               <Button
                 size="sm"
                 variant="default"
@@ -1292,11 +2041,6 @@ const MinimalSuggestionCard: React.FC<MinimalSuggestionCardProps> = ({
                   className={cn('w-4 h-4', locale === 'he' ? 'ml-2' : 'mr-2')}
                 />
                 {dict.buttons.viewDetails}
-                {locale === 'he' ? (
-                  <ChevronLeft className="w-3 h-3 mr-2" />
-                ) : (
-                  <ChevronRight className="w-3 h-3 ml-2" />
-                )}
               </Button>
             </div>
           )}
@@ -1341,7 +2085,7 @@ import {
   Users,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import type { PartyInfo } from '../types';
+import type { PartyInfo } from '@/types/suggestions';
 import type { SuggestionsCompatibilityDict } from '@/types/dictionary';
 
 // =============================================================================
@@ -3825,6 +4569,505 @@ export default InquiryThreadView;
 --- End of Content for InquiryThreadView.tsx ---
 
 ================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\suggestions\interested
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\suggestions\interested\InterestedQueue.tsx
+--------------------------------------------------------------------------------
+Content:
+// src/components/suggestions/interested/InterestedQueue.tsx
+// V3: Merged version with drag-and-drop, improved UX, and mobile-aligned flow
+
+'use client';
+
+import React, { useState, useCallback, useEffect } from 'react';
+import Image from 'next/image';
+import {
+  Bookmark,
+  Heart,
+  Trash2,
+  GripVertical,
+  User,
+  ArrowUpCircle,
+  Eye,
+  Info,
+  Crown,
+} from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+import { toast } from 'sonner';
+import { cn, getRelativeCloudinaryPath } from '@/lib/utils';
+import type { ExtendedMatchSuggestion } from '../../../types/suggestions';
+
+// dnd-kit imports
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+
+// =============================================================================
+// TEXTS
+// =============================================================================
+const TEXTS = {
+  he: {
+    title: 'רשימת ההמתנה שלי',
+    subtitle: 'גרור/י לשינוי סדר עדיפויות',
+    empty: 'אין הצעות בהמתנה. סמן/י הצעות כ"שומר/ת לגיבוי" והן יופיעו כאן.',
+    nextInLine: 'הבאה בתור',
+    rank: 'מקום',
+    activateNow: 'אשר/י עכשיו',
+    remove: 'הסר/י מהרשימה',
+    removeConfirm: 'ההצעה הוסרה מרשימת ההמתנה',
+    viewProfile: 'צפה בפרופיל',
+    rankUpdated: 'סדר העדיפויות עודכן',
+    rankError: 'שגיאה בעדכון הסדר',
+    activateSuccess: 'ההצעה אושרה! תועבר לטיפול השדכן.',
+    activeProcessInfo: 'יש לך הצעה פעילה. כשתסתיים, תוכל/י לאשר מהרשימה.',
+    dragToReorder: 'גרור/י כדי לשנות סדר',
+  },
+  en: {
+    title: 'My Waitlist',
+    subtitle: 'Drag to reorder priorities',
+    empty:
+      'No suggestions on waitlist. Mark suggestions as "Save for later" and they\'ll appear here.',
+    nextInLine: 'Next in line',
+    rank: 'Rank',
+    activateNow: 'Approve now',
+    remove: 'Remove from list',
+    removeConfirm: 'Suggestion removed from waitlist',
+    viewProfile: 'View profile',
+    rankUpdated: 'Priority order updated',
+    rankError: 'Error updating order',
+    activateSuccess:
+      'Suggestion approved! Will be forwarded to the matchmaker.',
+    activeProcessInfo:
+      'You have an active suggestion. Once it ends, you can approve from the waitlist.',
+    dragToReorder: 'Drag to reorder',
+  },
+};
+
+// =============================================================================
+// HELPER: Calculate Age
+// =============================================================================
+const calculateAge = (birthDate?: Date | string | null): number | null => {
+  if (!birthDate) return null;
+  const today = new Date();
+  const birth = new Date(birthDate);
+  if (isNaN(birth.getTime())) return null;
+  let age = today.getFullYear() - birth.getFullYear();
+  const m = today.getMonth() - birth.getMonth();
+  if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
+  return age > 0 ? age : null;
+};
+
+// =============================================================================
+// SORTABLE ITEM COMPONENT
+// =============================================================================
+interface SortableItemProps {
+  suggestion: ExtendedMatchSuggestion;
+  index: number;
+  userId: string;
+  locale: 'he' | 'en';
+  isUserInActiveProcess: boolean;
+  onActivate: (suggestion: ExtendedMatchSuggestion) => void;
+  onRemove: (suggestion: ExtendedMatchSuggestion) => void;
+  onViewDetails: (suggestion: ExtendedMatchSuggestion) => void;
+}
+
+const SortableItem: React.FC<SortableItemProps> = ({
+  suggestion,
+  index,
+  userId,
+  locale,
+  isUserInActiveProcess,
+  onActivate,
+  onRemove,
+  onViewDetails,
+}) => {
+  const texts = TEXTS[locale];
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: suggestion.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    zIndex: isDragging ? 50 : undefined,
+  };
+
+  const targetParty =
+    suggestion.firstPartyId === userId
+      ? suggestion.secondParty
+      : suggestion.firstParty;
+
+  const mainImage = targetParty?.images?.find((img) => img.isMain);
+  const age = calculateAge(targetParty?.profile?.birthDate);
+  const isFirst = index === 0;
+
+  if (!targetParty || !targetParty.profile) return null;
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={cn(
+        'group relative flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200',
+        isFirst
+          ? 'bg-gradient-to-r from-amber-50 via-white to-orange-50 border border-amber-200/50 shadow-sm'
+          : 'bg-white border border-gray-100',
+        isDragging &&
+          'bg-amber-100 shadow-xl ring-2 ring-amber-400/50 scale-[1.02]',
+        !isDragging &&
+          'hover:bg-amber-50/30 hover:border-amber-200/50 hover:shadow-sm'
+      )}
+    >
+      {/* Drag Handle */}
+      <TooltipProvider>
+        <Tooltip delayDuration={300}>
+          <TooltipTrigger asChild>
+            <button
+              className="cursor-grab active:cursor-grabbing p-1 rounded-md hover:bg-amber-100 transition-colors touch-none"
+              {...attributes}
+              {...listeners}
+            >
+              <GripVertical
+                className={cn(
+                  'w-4 h-4 transition-colors',
+                  isDragging
+                    ? 'text-amber-600'
+                    : 'text-gray-300 group-hover:text-amber-400'
+                )}
+              />
+            </button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>{texts.dragToReorder}</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+
+      {/* Rank Badge */}
+      {isFirst ? (
+        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-md flex-shrink-0">
+          <Crown className="w-4 h-4 text-white" />
+        </div>
+      ) : (
+        <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0">
+          <span className="text-gray-600 text-xs font-bold">{index + 1}</span>
+        </div>
+      )}
+
+      {/* Avatar */}
+      <button
+        onClick={() => onViewDetails(suggestion)}
+        className="flex-shrink-0"
+      >
+        <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-white shadow-sm hover:shadow-md transition-shadow">
+          {mainImage ? (
+            <Image
+              src={getRelativeCloudinaryPath(mainImage.url)}
+              alt={targetParty.firstName}
+              width={48}
+              height={48}
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <div className="w-full h-full bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center">
+              <User className="w-6 h-6 text-slate-400" />
+            </div>
+          )}
+        </div>
+      </button>
+
+      {/* Info Section */}
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => onViewDetails(suggestion)}
+            className="font-semibold text-gray-900 text-sm hover:text-amber-700 transition-colors truncate"
+          >
+            {targetParty.firstName}
+          </button>
+          {age && (
+            <span className="text-xs text-gray-500 flex-shrink-0">({age})</span>
+          )}
+          {isFirst && !isUserInActiveProcess && (
+            <Badge className="bg-gradient-to-r from-amber-400 to-orange-400 text-white border-0 text-[10px] px-1.5 py-0 flex-shrink-0">
+              <ArrowUpCircle className="w-3 h-3 mr-0.5" />
+              {texts.nextInLine}
+            </Badge>
+          )}
+        </div>
+        <div className="flex items-center gap-2 text-xs text-gray-500 mt-0.5">
+          {targetParty.profile.city && (
+            <span className="truncate">{targetParty.profile.city}</span>
+          )}
+          {targetParty.profile.city && targetParty.profile.occupation && (
+            <span>•</span>
+          )}
+          {targetParty.profile.occupation && (
+            <span className="truncate">{targetParty.profile.occupation}</span>
+          )}
+        </div>
+      </div>
+
+      {/* Action Buttons */}
+      <div className="flex items-center gap-1 flex-shrink-0">
+        {/* View Profile */}
+        <TooltipProvider>
+          <Tooltip delayDuration={100}>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 hover:bg-amber-100 text-gray-400 hover:text-gray-600"
+                onClick={() => onViewDetails(suggestion)}
+              >
+                <Eye className="w-4 h-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>{texts.viewProfile}</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+
+        {/* Remove */}
+        <TooltipProvider>
+          <Tooltip delayDuration={100}>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 hover:bg-rose-100 text-gray-400 hover:text-rose-500"
+                onClick={() => {
+                  onRemove(suggestion);
+                  toast.success(texts.removeConfirm);
+                }}
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>{texts.remove}</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      </div>
+    </div>
+  );
+};
+
+// =============================================================================
+// MAIN COMPONENT: InterestedQueue
+// =============================================================================
+interface InterestedQueueProps {
+  suggestions: ExtendedMatchSuggestion[];
+  userId: string;
+  locale: 'he' | 'en';
+  isUserInActiveProcess: boolean;
+  onActivate: (suggestion: ExtendedMatchSuggestion) => void;
+  onRemove: (suggestion: ExtendedMatchSuggestion) => void;
+  onViewDetails: (suggestion: ExtendedMatchSuggestion) => void;
+  onRankUpdate: (rankedIds: string[]) => Promise<void>;
+  className?: string;
+}
+
+const InterestedQueue: React.FC<InterestedQueueProps> = ({
+  suggestions,
+  userId,
+  locale,
+  isUserInActiveProcess,
+  onActivate,
+  onRemove,
+  onViewDetails,
+  onRankUpdate,
+  className,
+}) => {
+  const texts = TEXTS[locale];
+  const [items, setItems] = useState<ExtendedMatchSuggestion[]>([]);
+  const [isReordering, setIsReordering] = useState(false);
+
+  // Sort by rank and sync with prop changes
+  useEffect(() => {
+    const sorted = [...suggestions].sort(
+      (a, b) => (a.firstPartyRank ?? 999) - (b.firstPartyRank ?? 999)
+    );
+    setItems(sorted);
+  }, [suggestions]);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: { distance: 8 },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  const handleDragEnd = useCallback(
+    async (event: DragEndEvent) => {
+      const { active, over } = event;
+      if (!over || active.id === over.id || isReordering) return;
+
+      const oldIndex = items.findIndex((item) => item.id === active.id);
+      const newIndex = items.findIndex((item) => item.id === over.id);
+
+      if (oldIndex === -1 || newIndex === -1) return;
+
+      const newItems = arrayMove(items, oldIndex, newIndex);
+      setItems(newItems); // Optimistic update
+
+      setIsReordering(true);
+      try {
+        await onRankUpdate(newItems.map((s) => s.id));
+        toast.success(texts.rankUpdated);
+      } catch (error) {
+        setItems(items); // Revert on error
+        toast.error(texts.rankError);
+      } finally {
+        setIsReordering(false);
+      }
+    },
+    [items, isReordering, onRankUpdate, texts]
+  );
+
+  if (suggestions.length === 0) return null;
+
+  const firstSuggestion = items[0];
+  const firstPartyName =
+    firstSuggestion?.firstPartyId === userId
+      ? firstSuggestion.secondParty?.firstName
+      : firstSuggestion.firstParty?.firstName;
+
+  return (
+    <Card
+      className={cn(
+        'border-0 shadow-lg bg-gradient-to-br from-amber-50/80 via-white to-orange-50/50 rounded-2xl overflow-hidden',
+        className
+      )}
+    >
+      {/* Header */}
+      <CardHeader className="pb-3 border-b border-amber-100/50">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-amber-400 via-orange-400 to-amber-500 flex items-center justify-center shadow-md">
+            <Bookmark className="w-5 h-5 text-white" />
+          </div>
+          <div className="flex-1">
+            <CardTitle className="text-lg font-bold bg-gradient-to-r from-amber-700 via-orange-600 to-amber-700 bg-clip-text text-transparent">
+              {texts.title}
+            </CardTitle>
+            <p className="text-sm text-amber-600/80">{texts.subtitle}</p>
+          </div>
+          <Badge className="bg-amber-100 text-amber-700 border-amber-200 font-bold">
+            {suggestions.length}
+          </Badge>
+        </div>
+      </CardHeader>
+
+      <CardContent className="p-4 space-y-2">
+        {/* Draggable List */}
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragEnd={handleDragEnd}
+        >
+          <SortableContext
+            items={items.map((s) => s.id)}
+            strategy={verticalListSortingStrategy}
+          >
+            <div className="space-y-2">
+              {items.map((suggestion, index) => (
+                <SortableItem
+                  key={suggestion.id}
+                  suggestion={suggestion}
+                  index={index}
+                  userId={userId}
+                  locale={locale}
+                  isUserInActiveProcess={isUserInActiveProcess}
+                  onActivate={onActivate}
+                  onRemove={onRemove}
+                  onViewDetails={onViewDetails}
+                />
+              ))}
+            </div>
+          </SortableContext>
+        </DndContext>
+
+        {/* CTA: Activate next suggestion */}
+        {!isUserInActiveProcess && items.length > 0 && (
+          <div className="mt-3 p-3 bg-gradient-to-r from-teal-50 to-emerald-50 border border-teal-200/50 rounded-xl">
+            <div className="flex items-center gap-2">
+              <ArrowUpCircle className="w-4 h-4 text-teal-600 flex-shrink-0" />
+              <span className="text-sm text-teal-800 font-medium flex-1">
+                {locale === 'he'
+                  ? `מוכן/ה לאשר את ${firstPartyName}?`
+                  : `Ready to approve ${firstPartyName}?`}
+              </span>
+              <Button
+                size="sm"
+                className="bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 text-white rounded-lg text-xs px-3 h-8 shadow-md hover:shadow-lg transition-all"
+                onClick={() => {
+                  onActivate(firstSuggestion);
+                  toast.success(texts.activateSuccess);
+                }}
+              >
+                <Heart
+                  className={cn(
+                    'w-3.5 h-3.5',
+                    locale === 'he' ? 'ml-1.5' : 'mr-1.5'
+                  )}
+                />
+                {texts.activateNow}
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {/* Info: Active process blocking */}
+        {isUserInActiveProcess && items.length > 0 && (
+          <div className="flex items-center gap-2 p-3 bg-gray-50 border border-gray-200/50 rounded-xl">
+            <Info className="w-4 h-4 text-gray-400 flex-shrink-0" />
+            <p className="text-xs text-gray-600 leading-relaxed">
+              {texts.activeProcessInfo}
+            </p>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+};
+
+export default InterestedQueue;
+--- End of Content for InterestedQueue.tsx ---
+
+================================================================================
 Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\suggestions\list
 ================================================================================
 
@@ -3876,7 +5119,7 @@ import MinimalSuggestionCard from '../cards/MinimalSuggestionCard';
 import SuggestionDetailsModal from '../modals/SuggestionDetailsModal';
 import AskMatchmakerDialog from '../dialogs/AskMatchmakerDialog';
 import { cn } from '@/lib/utils';
-import type { ExtendedMatchSuggestion } from '../types';
+import type { ExtendedMatchSuggestion } from '../../../types/suggestions';
 import type {
   SuggestionsDictionary,
   ProfileCardDict,
@@ -4176,13 +5419,13 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
         }
       );
       if (!response.ok) throw new Error('Failed to send inquiry');
-    toast.success(suggestionsDict.inquiryThread.toasts.sendSuccessTitle, {
-  description: suggestionsDict.inquiryThread.toasts.sendSuccessDescription
-});
+      toast.success(suggestionsDict.inquiryThread.toasts.sendSuccessTitle, {
+        description:
+          suggestionsDict.inquiryThread.toasts.sendSuccessDescription,
+      });
       setShowAskDialog(false);
     } catch (error) {
       toast.error(suggestionsDict.inquiryThread.toasts.sendError);
-
     }
   };
 
@@ -4510,7 +5753,7 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
                   onApprove={() => handleStatusAction(suggestion, 'approve')}
                   onDecline={() => handleStatusAction(suggestion, 'decline')}
                   isHistory={isHistory}
-                  isApprovalDisabled={isUserInActiveProcess}
+                  isUserInActiveProcess={isUserInActiveProcess} // ← renamed from isApprovalDisabled
                   className={cn(
                     'card-hover-elegant',
                     viewMode === 'list' ? 'flex' : ''
@@ -4544,7 +5787,7 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
         isOpen={showAskDialog}
         onClose={() => setShowAskDialog(false)}
         onSubmit={handleSendQuestion}
-        matchmakerName={selectedSuggestion?.matchmaker.firstName}
+        matchmakerName={selectedSuggestion?.matchmaker?.firstName}
         dict={suggestionsDict.askMatchmaker}
       />
     </>
@@ -4621,7 +5864,7 @@ import SuggestionTimeline from '../timeline/SuggestionTimeline';
 import InquiryThreadView from '../inquiries/InquiryThreadView';
 import { AskMatchmakerDialog } from '../dialogs/AskMatchmakerDialog';
 import { UserAiAnalysisDialog } from '../dialogs/UserAiAnalysisDialog';
-import type { ExtendedMatchSuggestion } from '../types';
+import type { ExtendedMatchSuggestion } from '../../../types/suggestions';
 import type {
   SuggestionsDictionary,
   ProfileCardDict,
@@ -4678,7 +5921,7 @@ const useFullscreenModal = (isOpen: boolean) => {
 
 // --- Hero Section (Teal/Orange/Rose Palette - Matching HeroSection.tsx) ---
 const EnhancedHeroSection: React.FC<{
-  matchmaker: { firstName: string; lastName: string };
+  matchmaker: { firstName: string; lastName: string } | undefined; // ← הוסף | undefined
   targetParty: ExtendedMatchSuggestion['secondParty'];
   personalNote?: string | null;
   matchingReason?: string | null;
@@ -4696,6 +5939,10 @@ const EnhancedHeroSection: React.FC<{
   dict,
   locale,
 }) => {
+  const matchmakerDisplay = {
+    firstName: matchmaker?.firstName ?? '',
+    lastName: matchmaker?.lastName ?? '',
+  };
   const age = targetParty.profile?.birthDate
     ? new Date().getFullYear() -
       new Date(targetParty.profile.birthDate).getFullYear()
@@ -4723,7 +5970,9 @@ const EnhancedHeroSection: React.FC<{
           <div className="inline-flex items-center gap-2 mb-6 p-3 bg-white/90 backdrop-blur-lg rounded-2xl shadow-lg border border-teal-100 animate-fade-in-up">
             <Avatar className="w-12 h-12 border-2 border-white shadow-lg">
               <AvatarFallback className="bg-gradient-to-br from-teal-500 to-emerald-600 text-white text-sm font-bold">
-                {getInitials(`${matchmaker.firstName} ${matchmaker.lastName}`)}
+                {getInitials(
+                  `${matchmakerDisplay.firstName} ${matchmakerDisplay.lastName}`
+                )}
               </AvatarFallback>
             </Avatar>
             <div className={cn(locale === 'he' ? 'text-right' : 'text-left')}>
@@ -4731,7 +5980,7 @@ const EnhancedHeroSection: React.FC<{
                 {dict.suggestedBy}
               </p>
               <p className="text-lg font-bold text-gray-800">
-                {matchmaker.firstName} {matchmaker.lastName}
+                {matchmakerDisplay.firstName} {matchmakerDisplay.lastName}
               </p>
             </div>
           </div>
@@ -4872,64 +6121,70 @@ const EnhancedHeroSection: React.FC<{
             {(personalNote || matchingReason) && (
               // Insights Card - Orange/Teal
               <Card className="border-0 shadow-xl bg-gradient-to-br from-orange-50 via-white to-teal-50 overflow-hidden">
-            <CardContent className="p-6 relative" dir={locale === 'he' ? 'rtl' : 'ltr'}>
-  <div className="flex items-start gap-4"> {/* הסרנו את התנאי של flex-row-reverse */}
-    <div className="p-4 rounded-full bg-gradient-to-r from-orange-400 to-amber-500 text-white shadow-lg flex-shrink-0">
-      <Lightbulb className="w-7 h-7" />
-    </div>
-    <div className="flex-1"> {/* הסרנו את התנאי של text-right/left כי ה-dir למעלה מטפל בזה */}
-      <h3 className="font-bold text-orange-800 text-xl mb-4">
-        {dict.matchmakerInsight}
-      </h3>
-      {personalNote && (
-        // Personal Note
-        <div
-          className="mb-4 p-4 bg-white/70 rounded-xl shadow-inner border border-orange-100"
-          // dir מוגדר כבר באבא, לא צריך כאן שוב
-        >
-          <div className="flex items-start gap-2"> {/* הסרנו flex-row-reverse */}
-            <Quote
-              className={cn(
-                'w-5 h-5 text-orange-500 mt-1 flex-shrink-0',
-                // אין צורך בשינוי margin ידני אם ה-dir מוגדר נכון, אבל ליתר ביטחון נשאיר לוגיקה פשוטה
-                // או פשוט נמחק את ה-ml/mr ונסמוך על gap
-              )}
-            />
-            <div>
-              <h4 className="font-semibold text-orange-700 mb-2">
-                {dict.whyYou}
-              </h4>
-              <p className="text-orange-800 leading-relaxed italic font-medium">
-                &quot;{personalNote}&quot;
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
-      {matchingReason && (
-        // Matching Reason
-        <div
-          className="p-4 bg-white/70 rounded-xl shadow-inner border border-teal-100"
-        >
-          <div className="flex items-start gap-2"> {/* הסרנו flex-row-reverse */}
-            <Puzzle
-              className="w-5 h-5 text-teal-500 mt-1 flex-shrink-0"
-            />
-            <div>
-              <h4 className="font-semibold text-teal-700 mb-2">
-                {dict.ourConnection}
-              </h4>
-              <p className="text-teal-800 leading-relaxed font-medium">
-                &quot;{matchingReason}&quot;
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  </div>
-</CardContent>
-
+                <CardContent
+                  className="p-6 relative"
+                  dir={locale === 'he' ? 'rtl' : 'ltr'}
+                >
+                  <div className="flex items-start gap-4">
+                    {' '}
+                    {/* הסרנו את התנאי של flex-row-reverse */}
+                    <div className="p-4 rounded-full bg-gradient-to-r from-orange-400 to-amber-500 text-white shadow-lg flex-shrink-0">
+                      <Lightbulb className="w-7 h-7" />
+                    </div>
+                    <div className="flex-1">
+                      {' '}
+                      {/* הסרנו את התנאי של text-right/left כי ה-dir למעלה מטפל בזה */}
+                      <h3 className="font-bold text-orange-800 text-xl mb-4">
+                        {dict.matchmakerInsight}
+                      </h3>
+                      {personalNote && (
+                        // Personal Note
+                        <div
+                          className="mb-4 p-4 bg-white/70 rounded-xl shadow-inner border border-orange-100"
+                          // dir מוגדר כבר באבא, לא צריך כאן שוב
+                        >
+                          <div className="flex items-start gap-2">
+                            {' '}
+                            {/* הסרנו flex-row-reverse */}
+                            <Quote
+                              className={cn(
+                                'w-5 h-5 text-orange-500 mt-1 flex-shrink-0'
+                                // אין צורך בשינוי margin ידני אם ה-dir מוגדר נכון, אבל ליתר ביטחון נשאיר לוגיקה פשוטה
+                                // או פשוט נמחק את ה-ml/mr ונסמוך על gap
+                              )}
+                            />
+                            <div>
+                              <h4 className="font-semibold text-orange-700 mb-2">
+                                {dict.whyYou}
+                              </h4>
+                              <p className="text-orange-800 leading-relaxed italic font-medium">
+                                &quot;{personalNote}&quot;
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                      {matchingReason && (
+                        // Matching Reason
+                        <div className="p-4 bg-white/70 rounded-xl shadow-inner border border-teal-100">
+                          <div className="flex items-start gap-2">
+                            {' '}
+                            {/* הסרנו flex-row-reverse */}
+                            <Puzzle className="w-5 h-5 text-teal-500 mt-1 flex-shrink-0" />
+                            <div>
+                              <h4 className="font-semibold text-teal-700 mb-2">
+                                {dict.ourConnection}
+                              </h4>
+                              <p className="text-teal-800 leading-relaxed font-medium">
+                                &quot;{matchingReason}&quot;
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </CardContent>
               </Card>
             )}
           </div>
@@ -5203,8 +6458,11 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
   demoAnalysisData = null,
   dict,
 }) => {
-   console.log('🔍 [SuggestionDetailsModal] Received Locale:', locale);
-  console.log('🔍 [SuggestionDetailsModal] Derived Direction:', locale === 'he' ? 'rtl' : 'ltr');
+  console.log('🔍 [SuggestionDetailsModal] Received Locale:', locale);
+  console.log(
+    '🔍 [SuggestionDetailsModal] Derived Direction:',
+    locale === 'he' ? 'rtl' : 'ltr'
+  );
   const [activeTab, setActiveTab] = useState('presentation');
   const [showAskDialog, setShowAskDialog] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -5346,12 +6604,12 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
                 />
               </TabsContent>
               <TabsContent
-  value="profile"
-  // הוספנו כאן text-start כדי לכפות יישור לפי כיוון השפה
-  className="mt-0 p-4 md:p-6 bg-gradient-to-br from-slate-50 via-white to-teal-50 text-start"
-  // הוספנו כאן את ה-dir שיגרום לכל התוכן להתהפך כמו שצריך
-  dir={locale === 'he' ? 'rtl' : 'ltr'}
->
+                value="profile"
+                // הוספנו כאן text-start כדי לכפות יישור לפי כיוון השפה
+                className="mt-0 p-4 md:p-6 bg-gradient-to-br from-slate-50 via-white to-teal-50 text-start"
+                // הוספנו כאן את ה-dir שיגרום לכל התוכן להתהפך כמו שצריך
+                dir={locale === 'he' ? 'rtl' : 'ltr'}
+              >
                 {isQuestionnaireLoading ? (
                   <div className="flex justify-center items-center h-64">
                     <div className="text-center">
@@ -5492,7 +6750,7 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
         isOpen={showAskDialog}
         onClose={() => setShowAskDialog(false)}
         onSubmit={handleSendQuestion}
-        matchmakerName={`${suggestion.matchmaker.firstName} ${suggestion.matchmaker.lastName}`}
+        matchmakerName={`${suggestion.matchmaker?.firstName} ${suggestion.matchmaker?.lastName}`}
         dict={dict.suggestions.askMatchmaker}
       />
     </>
@@ -5626,7 +6884,7 @@ import {
   Briefcase,
   Quote,
   ChevronLeft,
-  ChevronRight, // הוספתי לייבוא כי היה חסר בחלק מהמקרים
+  ChevronRight,
 } from 'lucide-react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -5634,7 +6892,8 @@ import { Card, CardContent } from '@/components/ui/card';
 import { UserAiAnalysisDialog } from '../dialogs/UserAiAnalysisDialog';
 import { getInitials } from '@/lib/utils';
 import { cn } from '@/lib/utils';
-import type { ExtendedMatchSuggestion } from '../types';
+import type { ExtendedMatchSuggestion } from '../../../types/suggestions';
+
 import type {
   SuggestionsPresentationDict,
   AiAnalysisDict,
@@ -5643,52 +6902,61 @@ import type {
 // --- Sub-components Updated ---
 
 const HeroIntroduction: React.FC<{
-  matchmaker: { firstName: string; lastName: string };
+  matchmaker: { firstName: string; lastName: string } | undefined;
   personalNote?: string | null;
   dict: SuggestionsPresentationDict['hero'];
-}> = ({ matchmaker, personalNote, dict }) => (
-  // Background: Teal -> Orange -> Rose (Soft)
-  <div
-    className="text-center p-6 rounded-2xl bg-gradient-to-br from-teal-100/50 via-orange-100/50 to-rose-100/50 border border-teal-200/40 shadow-lg"
-    dir="rtl" // או דינמי אם יש לך את ה-locale כאן, אבל ה-Props לא כוללים locale כרגע.
-    // מכיוון שאין locale ב-props של הקומפוננטה הזו, צריך להוסיף אותו לממשק או להסתמך על היישור למרכז (text-center) שקיים כבר.
-    // הבעיה היא בציטוט למטה.
-  >
-    {' '}
-    <div className="flex justify-center mb-4">
-      <Avatar className="w-16 h-16 border-4 border-white shadow-md">
-        {/* Avatar: Teal Gradient */}
-        <AvatarFallback className="bg-gradient-to-br from-teal-500 to-teal-600 text-white text-xl font-bold">
-          {getInitials(`${matchmaker.firstName} ${matchmaker.lastName}`)}
-        </AvatarFallback>
-      </Avatar>
-    </div>
-    <h2 className="text-2xl md:text-3xl font-bold text-gray-800 tracking-tight">
-      {dict.title}
-    </h2>
-    <p className="text-gray-600 mt-2">
-      {dict.matchmakerThoughts.replace('{{name}}', matchmaker.firstName)}
-    </p>
-    {personalNote && (
-      <div className="mt-4 max-w-2xl mx-auto">
-        {/* Quote Box: Orange Tint */}
-        <div className="relative bg-white/60 p-4 rounded-xl shadow-inner border border-orange-100">
-          <Quote className="absolute top-2 right-2 w-8 h-8 text-orange-200/80 transform scale-x-[-1]" />
-          <p className="text-lg text-orange-900 italic font-medium leading-relaxed">
-            {personalNote}
-          </p>
-          <Quote className="absolute bottom-2 left-2 w-8 h-8 text-orange-200/80" />
-        </div>
+}> = ({ matchmaker, personalNote, dict }) => {
+  const matchmakerDisplay = {
+    firstName: matchmaker?.firstName ?? '',
+    lastName: matchmaker?.lastName ?? '',
+  };
+
+  return (
+    <div
+      className="text-center p-6 rounded-2xl bg-gradient-to-br from-teal-100/50 via-orange-100/50 to-rose-100/50 border border-teal-200/40 shadow-lg"
+      dir="rtl"
+    >
+      {' '}
+      <div className="flex justify-center mb-4">
+        <Avatar className="w-16 h-16 border-4 border-white shadow-md">
+          {/* Avatar: Teal Gradient */}
+          <AvatarFallback className="bg-gradient-to-br from-teal-500 to-teal-600 text-white text-xl font-bold">
+            {getInitials(
+              `${matchmakerDisplay.firstName} ${matchmakerDisplay.lastName}`
+            )}
+          </AvatarFallback>
+        </Avatar>
       </div>
-    )}
-  </div>
-);
+      <h2 className="text-2xl md:text-3xl font-bold text-gray-800 tracking-tight">
+        {dict.title}
+      </h2>
+      <p className="text-gray-600 mt-2">
+        {dict.matchmakerThoughts.replace(
+          '{{name}}',
+          matchmakerDisplay.firstName
+        )}
+      </p>
+      {personalNote && (
+        <div className="mt-4 max-w-2xl mx-auto">
+          {/* Quote Box: Orange Tint */}
+          <div className="relative bg-white/60 p-4 rounded-xl shadow-inner border border-orange-100">
+            <Quote className="absolute top-2 right-2 w-8 h-8 text-orange-200/80 transform scale-x-[-1]" />
+            <p className="text-lg text-orange-900 italic font-medium leading-relaxed">
+              {personalNote}
+            </p>
+            <Quote className="absolute bottom-2 left-2 w-8 h-8 text-orange-200/80" />
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
 
 const ProfilePeek: React.FC<{
   targetParty: ExtendedMatchSuggestion['secondParty'];
   onViewProfileClick: () => void;
   dict: SuggestionsPresentationDict['peek'];
-  locale: 'he' | 'en'; // Added locale for direction
+  locale: 'he' | 'en';
 }> = ({ targetParty, onViewProfileClick, dict, locale }) => {
   const age = targetParty.profile?.birthDate
     ? new Date().getFullYear() -
@@ -5698,7 +6966,7 @@ const ProfilePeek: React.FC<{
   return (
     <Card
       className="overflow-hidden shadow-xl transition-all hover:shadow-2xl border-0"
-      dir={locale === 'he' ? 'rtl' : 'ltr'} // הוספת כיוון לכרטיס
+      dir={locale === 'he' ? 'rtl' : 'ltr'}
     >
       <div className="grid grid-cols-1 md:grid-cols-3">
         <div className="relative h-64 md:h-auto">

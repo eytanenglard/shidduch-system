@@ -76,6 +76,7 @@ interface SuggestionDetailsModalProps {
   questionnaire: QuestionnaireResponse | null;
   isDemo?: boolean;
   demoAnalysisData?: AiSuggestionAnalysisResult | null;
+  initialTab?: string; // ← NEW PROP
   dict: {
     suggestions: SuggestionsDictionary;
     profileCard: ProfileCardDict;
@@ -112,9 +113,9 @@ const useFullscreenModal = (isOpen: boolean) => {
   return { isFullscreen, isTransitioning, toggleFullscreen };
 };
 
-// --- Hero Section (Teal/Orange/Rose Palette - Matching HeroSection.tsx) ---
+// --- Hero Section ---
 const EnhancedHeroSection: React.FC<{
-  matchmaker: { firstName: string; lastName: string } | undefined; // ← הוסף | undefined
+  matchmaker: { firstName: string; lastName: string } | undefined;
   targetParty: ExtendedMatchSuggestion['secondParty'];
   personalNote?: string | null;
   matchingReason?: string | null;
@@ -144,7 +145,6 @@ const EnhancedHeroSection: React.FC<{
 
   return (
     <div className="relative min-h-screen bg-gradient-to-br from-slate-50 via-teal-50/30 to-orange-50/30 overflow-hidden">
-      {/* Background elements - Teal/Orange/Rose Blobs (matching HeroSection) */}
       <div className="absolute inset-0">
         <div className="absolute top-10 right-10 w-72 h-72 bg-gradient-to-br from-teal-200/40 to-emerald-200/40 rounded-full blur-3xl animate-float"></div>
         <div
@@ -159,7 +159,6 @@ const EnhancedHeroSection: React.FC<{
 
       <div className="relative z-10 p-4 md:p-8 lg:p-12">
         <div className="text-center mb-8 lg:mb-12">
-          {/* Matchmaker Badge - Teal */}
           <div className="inline-flex items-center gap-2 mb-6 p-3 bg-white/90 backdrop-blur-lg rounded-2xl shadow-lg border border-teal-100 animate-fade-in-up">
             <Avatar className="w-12 h-12 border-2 border-white shadow-lg">
               <AvatarFallback className="bg-gradient-to-br from-teal-500 to-emerald-600 text-white text-sm font-bold">
@@ -178,7 +177,6 @@ const EnhancedHeroSection: React.FC<{
             </div>
           </div>
           <div className="max-w-4xl mx-auto mb-8">
-            {/* Title Gradient - Teal/Orange/Rose (matching HeroSection) */}
             <h1
               className="text-4xl md:text-5xl lg:text-6xl font-bold bg-gradient-to-r from-teal-600 via-orange-500 to-rose-500 bg-clip-text text-transparent mb-6 leading-tight animate-fade-in-up"
               style={{ animationDelay: '0.5s' }}
@@ -197,12 +195,10 @@ const EnhancedHeroSection: React.FC<{
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 mb-12">
-          {/* Image Card */}
           <div
             className="relative group animate-fade-in-up"
             style={{ animationDelay: '1.5s' }}
           >
-            {/* Glow Effect - Teal/Orange/Rose */}
             <div className="absolute -inset-4 bg-gradient-to-r from-teal-400/50 via-orange-400/50 to-rose-400/50 rounded-3xl blur-lg opacity-70 group-hover:opacity-100 transition-opacity animate-pulse"></div>
             <Card className="relative overflow-hidden shadow-2xl border-0 bg-white/95 backdrop-blur-sm">
               <div className="relative h-96 lg:h-[600px]">
@@ -228,7 +224,6 @@ const EnhancedHeroSection: React.FC<{
                           {targetParty.firstName}
                         </h2>
                         {age && (
-                          // Age Badge - Orange/Amber (matching HeroSection button)
                           <Badge className="bg-gradient-to-r from-orange-500 to-amber-500 text-white border-0 shadow-lg text-lg px-4 py-2">
                             <Calendar
                               className={cn(
@@ -244,7 +239,6 @@ const EnhancedHeroSection: React.FC<{
                         <div className="w-16 h-16 rounded-full bg-gradient-to-r from-teal-400 to-emerald-500 flex items-center justify-center shadow-lg mb-2">
                           <Telescope className="w-8 h-8 text-white" />
                         </div>
-                        {/* Discover More - Teal/Emerald */}
                         <Button
                           onClick={onViewProfile}
                           className="bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 text-white shadow-xl rounded-full px-6 py-3 font-bold text-base"
@@ -263,7 +257,6 @@ const EnhancedHeroSection: React.FC<{
             className="space-y-8 animate-fade-in-up"
             style={{ animationDelay: '2s' }}
           >
-            {/* Story Card - Teal/Orange/Rose gradient */}
             <Card className="border-0 shadow-2xl bg-gradient-to-br from-teal-50 via-white to-orange-50 overflow-hidden">
               <CardContent className="p-8 relative">
                 <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-teal-200/30 to-orange-200/30 rounded-full blur-2xl"></div>
@@ -272,7 +265,6 @@ const EnhancedHeroSection: React.FC<{
                     {dict.matchStoryTitle}
                   </h2>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-8">
-                    {/* View Profile - Teal/Orange (matching HeroSection CTA) */}
                     <Button
                       onClick={onViewProfile}
                       size="lg"
@@ -291,7 +283,6 @@ const EnhancedHeroSection: React.FC<{
                         <ArrowRight className="w-4 h-4 ml-2" />
                       )}
                     </Button>
-                    {/* Questions - Teal Outline (matching HeroSection secondary) */}
                     <Button
                       onClick={onStartConversation}
                       variant="outline"
@@ -312,40 +303,23 @@ const EnhancedHeroSection: React.FC<{
             </Card>
 
             {(personalNote || matchingReason) && (
-              // Insights Card - Orange/Teal
               <Card className="border-0 shadow-xl bg-gradient-to-br from-orange-50 via-white to-teal-50 overflow-hidden">
                 <CardContent
                   className="p-6 relative"
                   dir={locale === 'he' ? 'rtl' : 'ltr'}
                 >
                   <div className="flex items-start gap-4">
-                    {' '}
-                    {/* הסרנו את התנאי של flex-row-reverse */}
                     <div className="p-4 rounded-full bg-gradient-to-r from-orange-400 to-amber-500 text-white shadow-lg flex-shrink-0">
                       <Lightbulb className="w-7 h-7" />
                     </div>
                     <div className="flex-1">
-                      {' '}
-                      {/* הסרנו את התנאי של text-right/left כי ה-dir למעלה מטפל בזה */}
                       <h3 className="font-bold text-orange-800 text-xl mb-4">
                         {dict.matchmakerInsight}
                       </h3>
                       {personalNote && (
-                        // Personal Note
-                        <div
-                          className="mb-4 p-4 bg-white/70 rounded-xl shadow-inner border border-orange-100"
-                          // dir מוגדר כבר באבא, לא צריך כאן שוב
-                        >
+                        <div className="mb-4 p-4 bg-white/70 rounded-xl shadow-inner border border-orange-100">
                           <div className="flex items-start gap-2">
-                            {' '}
-                            {/* הסרנו flex-row-reverse */}
-                            <Quote
-                              className={cn(
-                                'w-5 h-5 text-orange-500 mt-1 flex-shrink-0'
-                                // אין צורך בשינוי margin ידני אם ה-dir מוגדר נכון, אבל ליתר ביטחון נשאיר לוגיקה פשוטה
-                                // או פשוט נמחק את ה-ml/mr ונסמוך על gap
-                              )}
-                            />
+                            <Quote className="w-5 h-5 text-orange-500 mt-1 flex-shrink-0" />
                             <div>
                               <h4 className="font-semibold text-orange-700 mb-2">
                                 {dict.whyYou}
@@ -358,11 +332,8 @@ const EnhancedHeroSection: React.FC<{
                         </div>
                       )}
                       {matchingReason && (
-                        // Matching Reason
                         <div className="p-4 bg-white/70 rounded-xl shadow-inner border border-teal-100">
                           <div className="flex items-start gap-2">
-                            {' '}
-                            {/* הסרנו flex-row-reverse */}
                             <Puzzle className="w-5 h-5 text-teal-500 mt-1 flex-shrink-0" />
                             <div>
                               <h4 className="font-semibold text-teal-700 mb-2">
@@ -387,7 +358,7 @@ const EnhancedHeroSection: React.FC<{
   );
 };
 
-// --- Quick Actions (Teal/Orange/Rose Palette) ---
+// --- Quick Actions ---
 const EnhancedQuickActions: React.FC<{
   isExpanded: boolean;
   onToggleExpand: () => void;
@@ -421,7 +392,6 @@ const EnhancedQuickActions: React.FC<{
         onClick={onToggleExpand}
       >
         <div className="flex items-center gap-3">
-          {/* Main Icon - Orange/Amber (Celebration) */}
           <div className="w-10 h-10 rounded-full bg-gradient-to-r from-orange-400 to-amber-500 flex items-center justify-center shadow-lg">
             <PartyPopper className="w-5 h-5 text-white" />
           </div>
@@ -450,7 +420,6 @@ const EnhancedQuickActions: React.FC<{
         <div className="mt-6 animate-in fade-in-50 slide-in-from-bottom-4 duration-500">
           <div className="grid grid-cols-1 gap-4 md:flex md:gap-6">
             {canAct && (
-              // Approve - Teal/Orange (matching HeroSection CTA gradient)
               <Button
                 className="relative w-full md:flex-1 bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 hover:from-teal-600 hover:via-orange-600 hover:to-amber-600 text-white shadow-2xl hover:shadow-3xl transition-all duration-300 rounded-2xl h-16 font-bold text-lg transform hover:scale-105"
                 disabled={isSubmitting}
@@ -485,7 +454,6 @@ const EnhancedQuickActions: React.FC<{
                 )}
               </Button>
             )}
-            {/* Ask - Teal Outline (matching HeroSection secondary button) */}
             <Button
               variant="outline"
               onClick={onAskQuestion}
@@ -498,7 +466,6 @@ const EnhancedQuickActions: React.FC<{
               <span>{dict.ask}</span>
             </Button>
             {canAct && (
-              // Decline - Ghost/Rose hover
               <Button
                 variant="ghost"
                 className="w-full md:flex-1 text-gray-600 hover:bg-rose-50 hover:text-rose-700 transition-all duration-300 rounded-2xl h-16 font-bold text-lg transform hover:scale-105"
@@ -541,7 +508,7 @@ const EnhancedQuickActions: React.FC<{
   </div>
 );
 
-// --- Tabs (Teal/Orange/Rose Palette - Matching HeroSection principles) ---
+// --- Tabs ---
 const EnhancedTabsSection: React.FC<{
   activeTab: string;
   onTabChange: (tab: string) => void;
@@ -564,7 +531,6 @@ const EnhancedTabsSection: React.FC<{
   <div className="border-b border-teal-100 px-2 sm:px-6 pt-4 bg-gradient-to-r from-teal-50/80 via-white to-orange-50/80 backdrop-blur-sm sticky top-0 z-20">
     <div className="flex items-center justify-between mb-4">
       <TabsList className="grid w-full grid-cols-4 bg-white/90 backdrop-blur-sm rounded-3xl p-2 h-20 shadow-xl border-2 border-teal-100 overflow-hidden">
-        {/* Presentation - Orange/Amber (matching HeroSection privacy principle) */}
         <TabsTrigger
           value="presentation"
           className="flex flex-col items-center justify-center gap-1.5 rounded-2xl text-xs sm:text-sm data-[state=active]:bg-gradient-to-br data-[state=active]:from-orange-400 data-[state=active]:via-amber-500 data-[state=active]:to-yellow-500 data-[state=active]:text-white data-[state=active]:shadow-xl font-bold"
@@ -573,7 +539,6 @@ const EnhancedTabsSection: React.FC<{
           <span className="hidden sm:inline">{dict.presentation}</span>
           <span className="sm:hidden">{dict.presentationShort}</span>
         </TabsTrigger>
-        {/* Profile - Teal/Emerald (matching HeroSection knowledge principle) */}
         <TabsTrigger
           value="profile"
           className="flex flex-col items-center justify-center gap-1.5 rounded-2xl text-xs sm:text-sm data-[state=active]:bg-gradient-to-br data-[state=active]:from-teal-400 data-[state=active]:via-teal-500 data-[state=active]:to-emerald-500 data-[state=active]:text-white data-[state=active]:shadow-xl font-bold"
@@ -582,7 +547,6 @@ const EnhancedTabsSection: React.FC<{
           <span className="hidden sm:inline">{dict.profile}</span>
           <span className="sm:hidden">{dict.profileShort}</span>
         </TabsTrigger>
-        {/* Compatibility - Rose/Pink (matching HeroSection personal principle) */}
         <TabsTrigger
           value="compatibility"
           className="flex flex-col items-center justify-center gap-1.5 rounded-2xl text-xs sm:text-sm data-[state=active]:bg-gradient-to-br data-[state=active]:from-rose-400 data-[state=active]:via-pink-500 data-[state=active]:to-red-500 data-[state=active]:text-white data-[state=active]:shadow-xl font-bold"
@@ -591,7 +555,6 @@ const EnhancedTabsSection: React.FC<{
           <span className="hidden sm:inline">{dict.compatibility}</span>
           <span className="sm:hidden">{dict.compatibilityShort}</span>
         </TabsTrigger>
-        {/* Details - Slate/Gray (neutral) */}
         <TabsTrigger
           value="details"
           className="flex flex-col items-center justify-center gap-1.5 rounded-2xl text-xs sm:text-sm data-[state=active]:bg-gradient-to-br data-[state=active]:from-slate-500 data-[state=active]:to-gray-500 data-[state=active]:text-white data-[state=active]:shadow-xl font-bold"
@@ -649,13 +612,9 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
   questionnaire,
   isDemo = false,
   demoAnalysisData = null,
+  initialTab,          // ← NEW
   dict,
 }) => {
-  console.log('🔍 [SuggestionDetailsModal] Received Locale:', locale);
-  console.log(
-    '🔍 [SuggestionDetailsModal] Derived Direction:',
-    locale === 'he' ? 'rtl' : 'ltr'
-  );
   const [activeTab, setActiveTab] = useState('presentation');
   const [showAskDialog, setShowAskDialog] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -666,6 +625,7 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
   const { isFullscreen, isTransitioning, toggleFullscreen } =
     useFullscreenModal(isOpen);
   const searchParams = useSearchParams();
+
   useEffect(() => {
     if (isOpen && (isMobile || isFullscreen)) {
       document.body.style.overflow = 'hidden';
@@ -680,13 +640,18 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
     };
   }, [isOpen, isMobile, isFullscreen]);
 
+  // ← UPDATED: use initialTab prop, fallback to searchParams, then 'presentation'
   useEffect(() => {
     if (isOpen) {
-      const view = searchParams.get('view');
-      setActiveTab(view === 'chat' ? 'details' : 'presentation');
+      if (initialTab) {
+        setActiveTab(initialTab);
+      } else {
+        const view = searchParams.get('view');
+        setActiveTab(view === 'chat' ? 'details' : 'presentation');
+      }
       setIsActionsExpanded(false);
     }
-  }, [isOpen, searchParams, suggestion?.id]);
+  }, [isOpen, searchParams, suggestion?.id, initialTab]);
 
   const isFirstParty = suggestion?.firstPartyId === userId;
   const targetParty = suggestion
@@ -694,6 +659,7 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
       ? suggestion.secondParty
       : suggestion.firstParty
     : null;
+
   const profileWithUser = useMemo(() => {
     if (!targetParty || !targetParty.profile) {
       return null;
@@ -706,6 +672,7 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
       },
     };
   }, [targetParty]);
+
   const canActOnSuggestion =
     (isFirstParty && suggestion?.status === 'PENDING_FIRST_PARTY') ||
     (!isFirstParty && suggestion?.status === 'PENDING_SECOND_PARTY');
@@ -746,7 +713,6 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
     const baseClasses =
       'p-0 shadow-2xl border-0 bg-white overflow-hidden z-[50] flex flex-col transition-all duration-300 ease-in-out';
     if (isMobile) {
-      // 👇 הוספת !transform-none
       return `${baseClasses} !w-screen !h-screen !max-w-none !max-h-none !rounded-none !fixed !inset-0 !m-0 !transform-none`;
     } else if (isFullscreen) {
       return `${baseClasses} !w-screen !h-screen !max-w-none !max-h-none !rounded-none !fixed !inset-0 !m-0 !translate-x-0 !translate-y-0 !transform-none`;
@@ -754,6 +720,7 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
       return `${baseClasses} md:max-w-7xl md:w-[95vw] md:h-[95vh] md:rounded-3xl`;
     }
   };
+
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
@@ -798,9 +765,7 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
               </TabsContent>
               <TabsContent
                 value="profile"
-                // הוספנו כאן text-start כדי לכפות יישור לפי כיוון השפה
                 className="mt-0 p-4 md:p-6 bg-gradient-to-br from-slate-50 via-white to-teal-50 text-start"
-                // הוספנו כאן את ה-dir שיגרום לכל התוכן להתהפך כמו שצריך
                 dir={locale === 'he' ? 'rtl' : 'ltr'}
               >
                 {isQuestionnaireLoading ? (
@@ -852,11 +817,9 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
               >
                 <div className="flex flex-col items-center justify-center h-full min-h-[600px] text-center space-y-8 p-6">
                   <div className="relative">
-                    {/* Bot Icon - Teal */}
                     <div className="w-32 h-32 rounded-full bg-gradient-to-br from-teal-100 to-emerald-100 flex items-center justify-center mx-auto shadow-2xl">
                       <Bot className="w-16 h-16 text-teal-600" />
                     </div>
-                    {/* Badge - Orange/Amber */}
                     <div className="absolute -top-4 -right-4 w-12 h-12 bg-gradient-to-r from-orange-400 to-amber-500 rounded-full flex items-center justify-center shadow-lg animate-bounce">
                       <Wand2 className="w-6 h-6 text-white" />
                     </div>

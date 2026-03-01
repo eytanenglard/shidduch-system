@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\suggestions
-# Generated on: 2026-02-26 20:29:13
+# Generated on: 2026-03-01 18:59:14
 # Filter: Only content of code files (.bat, .c, .cfg, .conf, .cpp, .cs, .css, .go, .h, .html, .ini, .java, .js, .json, .jsx, .kt, .less, .md, .php, .py, .rb, .rs, .scss, .sh, .sql, .swift, .ts, .tsx, .txt, .xml, .yaml, .yml) is included.
 ################################################################################
 
@@ -672,6 +672,7 @@ export async function PATCH(
         case "AWAITING_MATCHMAKER_APPROVAL":
         case "PENDING_FIRST_PARTY":
         case "PENDING_SECOND_PARTY":
+        case "FIRST_PARTY_INTERESTED": // INTERESTED stays in PENDING
           return "PENDING";
         
         case "FIRST_PARTY_DECLINED":
@@ -708,6 +709,62 @@ export async function PATCH(
           ...(status === MatchSuggestionStatus.SECOND_PARTY_APPROVED || status === MatchSuggestionStatus.SECOND_PARTY_DECLINED ? { secondPartyResponded: new Date() } : {}),
         },
       });
+
+      // Handle FIRST_PARTY_INTERESTED status - auto-assign rank and timestamp
+      if (status === 'FIRST_PARTY_INTERESTED') {
+        // Find the highest existing rank for this user
+        const highestRank = await tx.matchSuggestion.findFirst({
+          where: {
+            firstPartyId: suggestion.firstPartyId,
+            status: 'FIRST_PARTY_INTERESTED',
+            id: { not: suggestionId }, // exclude current suggestion
+          },
+          orderBy: { firstPartyRank: 'desc' },
+          select: { firstPartyRank: true },
+        });
+
+        const nextRank = (highestRank?.firstPartyRank ?? 0) + 1;
+
+        await tx.matchSuggestion.update({
+          where: { id: suggestionId },
+          data: {
+            firstPartyRank: nextRank,
+            firstPartyInterestedAt: new Date(),
+          },
+        });
+      }
+
+      // Handle transition from INTERESTED to APPROVED - clean up rank
+      if (
+        status === 'FIRST_PARTY_APPROVED' &&
+        suggestion.status === 'FIRST_PARTY_INTERESTED'
+      ) {
+        await tx.matchSuggestion.update({
+          where: { id: suggestionId },
+          data: {
+            firstPartyRank: null,
+            firstPartyResponded: new Date(),
+          },
+        });
+
+        // Re-rank remaining INTERESTED suggestions to close gaps
+        const remainingInterested = await tx.matchSuggestion.findMany({
+          where: {
+            firstPartyId: suggestion.firstPartyId,
+            status: 'FIRST_PARTY_INTERESTED',
+          },
+          orderBy: { firstPartyRank: 'asc' },
+          select: { id: true },
+        });
+
+        // Re-rank: 1, 2, 3, ...
+        for (let i = 0; i < remainingInterested.length; i++) {
+          await tx.matchSuggestion.update({
+            where: { id: remainingInterested[i].id },
+            data: { firstPartyRank: i + 1 },
+          });
+        }
+      }
 
       // Add status history record
       await tx.suggestionStatusHistory.create({
@@ -970,7 +1027,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { formatAnswers, KEY_MAPPING, FormattedAnswersType } from '@/lib/questionnaireFormatter';
-import type { ExtendedMatchSuggestion, PartyInfo, QuestionnaireResponse } from "@/components/suggestions/types";
+import type { ExtendedMatchSuggestion, PartyInfo, QuestionnaireResponse } from "@/types/suggestions";
 import type {  WorldId } from "@/types/next-auth";
 export const dynamic = 'force-dynamic';
 // --- טיפוסים חזקים ומדויקים לתהליך העיבוד ---
@@ -1085,7 +1142,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { formatAnswers, KEY_MAPPING, FormattedAnswersType } from '@/lib/questionnaireFormatter';
-import type { ExtendedMatchSuggestion, PartyInfo, QuestionnaireResponse, WorldId } from "@/components/suggestions/types";
+import type { ExtendedMatchSuggestion, PartyInfo, QuestionnaireResponse, WorldId } from "@/types/suggestions";
 export const dynamic = 'force-dynamic';
 // --- טיפוסים חזקים ומדויקים לתהליך העיבוד ---
 type ProcessedQuestionnaireResponse = Omit<QuestionnaireResponse, 'valuesAnswers' | 'personalityAnswers' | 'relationshipAnswers' | 'partnerAnswers' | 'religionAnswers'> & {
@@ -1174,6 +1231,107 @@ export async function GET() {
     console.error("Error fetching suggestion history:", error);
     const errorMessage = error instanceof Error ? error.message : "Internal server error";
     return NextResponse.json({ error: errorMessage }, { status: 500 });
+  }
+}
+--- End of Content for route.ts ---
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\suggestions\interested
+================================================================================
+
+(This directory contains subdirectories but no files directly. See subdirectories below.)
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\suggestions\interested\rank
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\suggestions\interested\rank\route.ts
+--------------------------------------------------------------------------------
+Content:
+// src/app/api/suggestions/interested/rank/route.ts
+
+import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import prisma from "@/lib/prisma";
+import { z } from "zod";
+
+// ===================================================================
+// PUT: עדכון סדר העדיפויות של הצעות INTERESTED
+// היוזר שולח מערך מסודר של suggestion IDs לפי סדר העדיפות החדש
+// ===================================================================
+
+const updateRanksSchema = z.object({
+  rankedSuggestionIds: z.array(z.string()).min(1),
+});
+
+export async function PUT(req: NextRequest) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const body = await req.json();
+    const validation = updateRanksSchema.safeParse(body);
+    if (!validation.success) {
+      return NextResponse.json(
+        { error: "Invalid request data", details: validation.error.errors },
+        { status: 400 }
+      );
+    }
+
+    const { rankedSuggestionIds } = validation.data;
+    const userId = session.user.id;
+
+    // וידוא שכל ההצעות שייכות ליוזר ובסטטוס INTERESTED
+    const suggestions = await prisma.matchSuggestion.findMany({
+      where: {
+        id: { in: rankedSuggestionIds },
+        firstPartyId: userId,
+        status: "FIRST_PARTY_INTERESTED",
+      },
+      select: { id: true },
+    });
+
+    const validIds = new Set(suggestions.map((s) => s.id));
+    const invalidIds = rankedSuggestionIds.filter((id) => !validIds.has(id));
+
+    if (invalidIds.length > 0) {
+      return NextResponse.json(
+        {
+          error: "Some suggestions are not valid for ranking",
+          invalidIds,
+        },
+        { status: 400 }
+      );
+    }
+
+    // עדכון ה-rank ב-transaction
+    await prisma.$transaction(
+      rankedSuggestionIds.map((id, index) =>
+        prisma.matchSuggestion.update({
+          where: { id },
+          data: {
+            firstPartyRank: index + 1, // rank 1 = עדיפות הכי גבוהה
+            lastActivity: new Date(),
+          },
+        })
+      )
+    );
+
+    return NextResponse.json({
+      success: true,
+      message: "Ranks updated successfully",
+      count: rankedSuggestionIds.length,
+    });
+  } catch (error) {
+    console.error("Error updating suggestion ranks:", error);
+    return NextResponse.json(
+      { error: "Failed to update ranks" },
+      { status: 500 }
+    );
   }
 }
 --- End of Content for route.ts ---
