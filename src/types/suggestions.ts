@@ -60,7 +60,7 @@ export interface UserProfile extends PrismaProfile {
 }
 
 // =============================================================================
-// ✅ Party Info - מידע על צד בהצעה
+// ✅ Party Info - מידע על צד בהצעה (כללי - profile יכול להיות null)
 // =============================================================================
 export interface PartyInfo {
   // Fields from User model
@@ -70,7 +70,7 @@ export interface PartyInfo {
   lastName: string;
   isProfileComplete: boolean;
 
-  // Relation to Profile
+  // Relation to Profile (which can be null)
   profile: UserProfile | null;
 
   // Relation to Images
@@ -80,7 +80,16 @@ export interface PartyInfo {
   questionnaireResponses?: QuestionnaireResponse[];
 }
 
-// Alias for backward compatibility
+// =============================================================================
+// ✅ Suggestion Party With Profile - צד עם פרופיל מובטח (לשימוש בהצעות)
+// =============================================================================
+export interface SuggestionPartyWithProfile extends Omit<PartyInfo, 'profile'> {
+  profile: UserProfile;
+}
+
+// =============================================================================
+// ✅ Alias for backward compatibility
+// =============================================================================
 export type SuggestionParty = PartyInfo;
 
 // =============================================================================
@@ -140,7 +149,7 @@ export interface SuggestionInquiry extends PrismaSuggestionInquiry {
 // ✅ Action Additional Data
 // =============================================================================
 export interface ActionAdditionalData {
-  partyType?: "first" | "second" | "both";
+  partyType?: 'first' | 'second' | 'both';
   type?: string;
   newStatus?: MatchSuggestionStatus;
   notes?: string;
@@ -158,63 +167,24 @@ export interface MatchmakerInfo {
 
 // =============================================================================
 // ✅ Extended Match Suggestion - המודל המרכזי
+// משתמש ב-Omit כדי לרשת את כל השדות מ-Prisma ולהחליף רק את ה-relations
 // =============================================================================
-export interface ExtendedMatchSuggestion {
-  // === Base IDs ===
-  id: string;
-  matchmakerId: string;
-  firstPartyId: string;
-  secondPartyId: string;
-
-  // === Status & Priority ===
-  status: MatchSuggestionStatus;
-  priority: Priority;
-  category: SuggestionCategory;
-  previousStatus?: MatchSuggestionStatus | null;
-
-  // === Notes ===
-  internalNotes?: string | null;
-  firstPartyNotes?: string | null;
-  secondPartyNotes?: string | null;
-  matchingReason?: string | null;
-  followUpNotes?: string | null;
-
-  // === Dates ===
-  responseDeadline?: Date | string | null;
-  decisionDeadline?: Date | string | null;
-  lastStatusChange?: Date | string | null;
-  lastActivity: Date | string;
-  firstPartySent?: Date | string | null;
-  firstPartyResponded?: Date | string | null;
-  secondPartySent?: Date | string | null;
-  secondPartyResponded?: Date | string | null;
-  firstMeetingScheduled?: Date | string | null;
-  closedAt?: Date | string | null;
-  createdAt: Date | string;
-  updatedAt: Date | string;
-
-  // === Relations ===
+export interface ExtendedMatchSuggestion
+  extends Omit<
+    PrismaMatchSuggestion,
+    'firstParty' | 'secondParty' | 'matchmaker'
+  > {
+  // === Relations (overridden with our custom types) ===
   matchmaker: MatchmakerInfo;
-  firstParty: PartyInfo;
-  secondParty: PartyInfo;
+  firstParty: SuggestionPartyWithProfile;
+  secondParty: SuggestionPartyWithProfile;
   statusHistory: StatusHistoryItem[];
+
+  // === Relations (additional) ===
   meetings?: Meeting[];
   feedback?: DateFeedback[];
   reviewedBy?: User[];
   approvedBy?: User[];
-
-  // === Auto Suggestion ===
-  isAutoSuggestion: boolean;
-
-  // === View Tracking ===
-  firstPartyLastViewedAt?: Date | string | null;
-  secondPartyLastViewedAt?: Date | string | null;
-
-  // === Interested Queue ===
-  firstPartyRank?: number | null;
-  firstPartyInterestedAt?: Date | string | null;
-
-  // === Chat/Inquiries ===
   inquiries?: SuggestionInquiry[];
 }
 
@@ -272,10 +242,10 @@ export interface UpdateSuggestionData {
 // ✅ Filters & Sorting
 // =============================================================================
 export type SortByOption =
-  | "lastActivity"
-  | "createdAt"
-  | "priority"
-  | "decisionDeadline";
+  | 'lastActivity'
+  | 'createdAt'
+  | 'priority'
+  | 'decisionDeadline';
 
 export interface SuggestionFilters {
   status?: MatchSuggestionStatus[];
@@ -330,7 +300,9 @@ export interface SuggestionStats {
 // =============================================================================
 // ✅ Category Helper
 // =============================================================================
-export const getSuggestionCategory = (status: MatchSuggestionStatus): SuggestionCategory => {
+export const getSuggestionCategory = (
+  status: MatchSuggestionStatus
+): SuggestionCategory => {
   switch (status) {
     case 'DRAFT':
     case 'AWAITING_MATCHMAKER_APPROVAL':
@@ -357,18 +329,18 @@ export const getSuggestionCategory = (status: MatchSuggestionStatus): Suggestion
 // =============================================================================
 // ✅ Enums Re-export
 // =============================================================================
-export { 
-  MatchSuggestionStatus, 
-  Priority, 
+export {
+  MatchSuggestionStatus,
+  Priority,
   MeetingStatus,
-  SuggestionCategory 
+  SuggestionCategory,
 } from '@prisma/client';
 
 const suggestionEnums = {
   MatchSuggestionStatus,
   Priority,
   MeetingStatus,
-  SuggestionCategory
+  SuggestionCategory,
 };
 
 export default suggestionEnums;
