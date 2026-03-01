@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { ZoomIn } from 'lucide-react';
 import MinimalSuggestionCard from '@/components/suggestions/cards/MinimalSuggestionCard';
 import SuggestionDetailsModal from '@/components/suggestions/modals/SuggestionDetailsModal';
-import type { ExtendedMatchSuggestion } from '@/components/suggestions/types';
+import type { ExtendedMatchSuggestion } from '../../../types/suggestions';
 import type { AiSuggestionAnalysisResult } from '@/lib/services/aiService';
 import type {
   SuggestionsDictionary,

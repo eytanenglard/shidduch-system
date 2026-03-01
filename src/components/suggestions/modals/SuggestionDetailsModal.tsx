@@ -57,7 +57,7 @@ import SuggestionTimeline from '../timeline/SuggestionTimeline';
 import InquiryThreadView from '../inquiries/InquiryThreadView';
 import { AskMatchmakerDialog } from '../dialogs/AskMatchmakerDialog';
 import { UserAiAnalysisDialog } from '../dialogs/UserAiAnalysisDialog';
-import type { ExtendedMatchSuggestion } from '../types';
+import type { ExtendedMatchSuggestion } from '../../../types/suggestions';
 import type {
   SuggestionsDictionary,
   ProfileCardDict,
@@ -114,7 +114,7 @@ const useFullscreenModal = (isOpen: boolean) => {
 
 // --- Hero Section (Teal/Orange/Rose Palette - Matching HeroSection.tsx) ---
 const EnhancedHeroSection: React.FC<{
-  matchmaker: { firstName: string; lastName: string };
+  matchmaker: { firstName: string; lastName: string } | undefined; // ← הוסף | undefined
   targetParty: ExtendedMatchSuggestion['secondParty'];
   personalNote?: string | null;
   matchingReason?: string | null;
@@ -132,6 +132,10 @@ const EnhancedHeroSection: React.FC<{
   dict,
   locale,
 }) => {
+  const matchmakerDisplay = {
+    firstName: matchmaker?.firstName ?? '',
+    lastName: matchmaker?.lastName ?? '',
+  };
   const age = targetParty.profile?.birthDate
     ? new Date().getFullYear() -
       new Date(targetParty.profile.birthDate).getFullYear()
@@ -159,7 +163,9 @@ const EnhancedHeroSection: React.FC<{
           <div className="inline-flex items-center gap-2 mb-6 p-3 bg-white/90 backdrop-blur-lg rounded-2xl shadow-lg border border-teal-100 animate-fade-in-up">
             <Avatar className="w-12 h-12 border-2 border-white shadow-lg">
               <AvatarFallback className="bg-gradient-to-br from-teal-500 to-emerald-600 text-white text-sm font-bold">
-                {getInitials(`${matchmaker.firstName} ${matchmaker.lastName}`)}
+                {getInitials(
+                  `${matchmakerDisplay.firstName} ${matchmakerDisplay.lastName}`
+                )}
               </AvatarFallback>
             </Avatar>
             <div className={cn(locale === 'he' ? 'text-right' : 'text-left')}>
@@ -167,7 +173,7 @@ const EnhancedHeroSection: React.FC<{
                 {dict.suggestedBy}
               </p>
               <p className="text-lg font-bold text-gray-800">
-                {matchmaker.firstName} {matchmaker.lastName}
+                {matchmakerDisplay.firstName} {matchmakerDisplay.lastName}
               </p>
             </div>
           </div>
@@ -308,64 +314,70 @@ const EnhancedHeroSection: React.FC<{
             {(personalNote || matchingReason) && (
               // Insights Card - Orange/Teal
               <Card className="border-0 shadow-xl bg-gradient-to-br from-orange-50 via-white to-teal-50 overflow-hidden">
-            <CardContent className="p-6 relative" dir={locale === 'he' ? 'rtl' : 'ltr'}>
-  <div className="flex items-start gap-4"> {/* הסרנו את התנאי של flex-row-reverse */}
-    <div className="p-4 rounded-full bg-gradient-to-r from-orange-400 to-amber-500 text-white shadow-lg flex-shrink-0">
-      <Lightbulb className="w-7 h-7" />
-    </div>
-    <div className="flex-1"> {/* הסרנו את התנאי של text-right/left כי ה-dir למעלה מטפל בזה */}
-      <h3 className="font-bold text-orange-800 text-xl mb-4">
-        {dict.matchmakerInsight}
-      </h3>
-      {personalNote && (
-        // Personal Note
-        <div
-          className="mb-4 p-4 bg-white/70 rounded-xl shadow-inner border border-orange-100"
-          // dir מוגדר כבר באבא, לא צריך כאן שוב
-        >
-          <div className="flex items-start gap-2"> {/* הסרנו flex-row-reverse */}
-            <Quote
-              className={cn(
-                'w-5 h-5 text-orange-500 mt-1 flex-shrink-0',
-                // אין צורך בשינוי margin ידני אם ה-dir מוגדר נכון, אבל ליתר ביטחון נשאיר לוגיקה פשוטה
-                // או פשוט נמחק את ה-ml/mr ונסמוך על gap
-              )}
-            />
-            <div>
-              <h4 className="font-semibold text-orange-700 mb-2">
-                {dict.whyYou}
-              </h4>
-              <p className="text-orange-800 leading-relaxed italic font-medium">
-                &quot;{personalNote}&quot;
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
-      {matchingReason && (
-        // Matching Reason
-        <div
-          className="p-4 bg-white/70 rounded-xl shadow-inner border border-teal-100"
-        >
-          <div className="flex items-start gap-2"> {/* הסרנו flex-row-reverse */}
-            <Puzzle
-              className="w-5 h-5 text-teal-500 mt-1 flex-shrink-0"
-            />
-            <div>
-              <h4 className="font-semibold text-teal-700 mb-2">
-                {dict.ourConnection}
-              </h4>
-              <p className="text-teal-800 leading-relaxed font-medium">
-                &quot;{matchingReason}&quot;
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  </div>
-</CardContent>
-
+                <CardContent
+                  className="p-6 relative"
+                  dir={locale === 'he' ? 'rtl' : 'ltr'}
+                >
+                  <div className="flex items-start gap-4">
+                    {' '}
+                    {/* הסרנו את התנאי של flex-row-reverse */}
+                    <div className="p-4 rounded-full bg-gradient-to-r from-orange-400 to-amber-500 text-white shadow-lg flex-shrink-0">
+                      <Lightbulb className="w-7 h-7" />
+                    </div>
+                    <div className="flex-1">
+                      {' '}
+                      {/* הסרנו את התנאי של text-right/left כי ה-dir למעלה מטפל בזה */}
+                      <h3 className="font-bold text-orange-800 text-xl mb-4">
+                        {dict.matchmakerInsight}
+                      </h3>
+                      {personalNote && (
+                        // Personal Note
+                        <div
+                          className="mb-4 p-4 bg-white/70 rounded-xl shadow-inner border border-orange-100"
+                          // dir מוגדר כבר באבא, לא צריך כאן שוב
+                        >
+                          <div className="flex items-start gap-2">
+                            {' '}
+                            {/* הסרנו flex-row-reverse */}
+                            <Quote
+                              className={cn(
+                                'w-5 h-5 text-orange-500 mt-1 flex-shrink-0'
+                                // אין צורך בשינוי margin ידני אם ה-dir מוגדר נכון, אבל ליתר ביטחון נשאיר לוגיקה פשוטה
+                                // או פשוט נמחק את ה-ml/mr ונסמוך על gap
+                              )}
+                            />
+                            <div>
+                              <h4 className="font-semibold text-orange-700 mb-2">
+                                {dict.whyYou}
+                              </h4>
+                              <p className="text-orange-800 leading-relaxed italic font-medium">
+                                &quot;{personalNote}&quot;
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                      {matchingReason && (
+                        // Matching Reason
+                        <div className="p-4 bg-white/70 rounded-xl shadow-inner border border-teal-100">
+                          <div className="flex items-start gap-2">
+                            {' '}
+                            {/* הסרנו flex-row-reverse */}
+                            <Puzzle className="w-5 h-5 text-teal-500 mt-1 flex-shrink-0" />
+                            <div>
+                              <h4 className="font-semibold text-teal-700 mb-2">
+                                {dict.ourConnection}
+                              </h4>
+                              <p className="text-teal-800 leading-relaxed font-medium">
+                                &quot;{matchingReason}&quot;
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </CardContent>
               </Card>
             )}
           </div>
@@ -639,8 +651,11 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
   demoAnalysisData = null,
   dict,
 }) => {
-   console.log('🔍 [SuggestionDetailsModal] Received Locale:', locale);
-  console.log('🔍 [SuggestionDetailsModal] Derived Direction:', locale === 'he' ? 'rtl' : 'ltr');
+  console.log('🔍 [SuggestionDetailsModal] Received Locale:', locale);
+  console.log(
+    '🔍 [SuggestionDetailsModal] Derived Direction:',
+    locale === 'he' ? 'rtl' : 'ltr'
+  );
   const [activeTab, setActiveTab] = useState('presentation');
   const [showAskDialog, setShowAskDialog] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -782,12 +797,12 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
                 />
               </TabsContent>
               <TabsContent
-  value="profile"
-  // הוספנו כאן text-start כדי לכפות יישור לפי כיוון השפה
-  className="mt-0 p-4 md:p-6 bg-gradient-to-br from-slate-50 via-white to-teal-50 text-start"
-  // הוספנו כאן את ה-dir שיגרום לכל התוכן להתהפך כמו שצריך
-  dir={locale === 'he' ? 'rtl' : 'ltr'}
->
+                value="profile"
+                // הוספנו כאן text-start כדי לכפות יישור לפי כיוון השפה
+                className="mt-0 p-4 md:p-6 bg-gradient-to-br from-slate-50 via-white to-teal-50 text-start"
+                // הוספנו כאן את ה-dir שיגרום לכל התוכן להתהפך כמו שצריך
+                dir={locale === 'he' ? 'rtl' : 'ltr'}
+              >
                 {isQuestionnaireLoading ? (
                   <div className="flex justify-center items-center h-64">
                     <div className="text-center">
@@ -928,7 +943,7 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
         isOpen={showAskDialog}
         onClose={() => setShowAskDialog(false)}
         onSubmit={handleSendQuestion}
-        matchmakerName={`${suggestion.matchmaker.firstName} ${suggestion.matchmaker.lastName}`}
+        matchmakerName={`${suggestion.matchmaker?.firstName} ${suggestion.matchmaker?.lastName}`}
         dict={dict.suggestions.askMatchmaker}
       />
     </>

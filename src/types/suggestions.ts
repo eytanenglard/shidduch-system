@@ -1,40 +1,50 @@
-import { 
-  MatchSuggestionStatus, 
-  Priority, 
+// src/types/suggestions.ts
+
+import {
+  MatchSuggestionStatus,
+  Priority,
   MeetingStatus,
   User,
   Meeting,
-  SuggestionInquiry as PrismaSuggestionInquiry, // <<< הוסף את זה
+  SuggestionInquiry as PrismaSuggestionInquiry,
 } from '@prisma/client';
 
 import type {
   UserProfile,
   UserImage,
-} from "@/types/next-auth";
+  QuestionnaireResponse,
+} from '@/types/next-auth';
 
-
-
+// =============================================================================
+// Party Info with Profile & Images
+// =============================================================================
 export interface SuggestionParty extends User {
-  profile: UserProfile;
+  profile: UserProfile | null;
   images: UserImage[];
+  questionnaireResponses?: QuestionnaireResponse[];
 }
 
+// =============================================================================
+// Action Additional Data
+// =============================================================================
 export interface ActionAdditionalData {
-  partyType?: "first" | "second" | "both";
+  partyType?: 'first' | 'second' | 'both';
   type?: string;
   newStatus?: MatchSuggestionStatus;
   notes?: string;
 }
 
-// Rest of the interfaces remain the same
+// =============================================================================
+// Create Suggestion Data
+// =============================================================================
 export interface CreateSuggestionData {
   matchmakerId: string;
   firstPartyId: string;
   secondPartyId: string;
   status?: MatchSuggestionStatus;
   priority?: Priority;
-  decisionDeadline: Date | string; // Update to accept string as well
-    firstPartyLanguage?: 'he' | 'en';
+  decisionDeadline: Date | string;
+  firstPartyLanguage?: 'he' | 'en';
   secondPartyLanguage?: 'he' | 'en';
   notes?: {
     internal?: string;
@@ -44,6 +54,10 @@ export interface CreateSuggestionData {
     followUpNotes?: string;
   };
 }
+
+// =============================================================================
+// Suggestion Meeting
+// =============================================================================
 export interface SuggestionMeeting {
   id: string;
   suggestionId: string;
@@ -56,15 +70,21 @@ export interface SuggestionMeeting {
   updatedAt: Date | string;
 }
 
+// =============================================================================
+// Status History
+// =============================================================================
 export interface SuggestionStatusHistory {
   id: string;
   suggestionId: string;
   status: MatchSuggestionStatus;
-  reason?: string;
-  notes?: string;
+  reason?: string | null;
+  notes?: string | null;
   createdAt: Date | string;
 }
 
+// =============================================================================
+// Date Feedback
+// =============================================================================
 export interface DateFeedback {
   id: string;
   suggestionId: string;
@@ -77,6 +97,17 @@ export interface DateFeedback {
   createdAt: Date | string;
 }
 
+// =============================================================================
+// Suggestion Inquiry (with user details)
+// =============================================================================
+export interface SuggestionInquiry extends PrismaSuggestionInquiry {
+  fromUser: Partial<User>;
+  toUser: Partial<User>;
+}
+
+// =============================================================================
+// Base Suggestion Interface
+// =============================================================================
 export interface Suggestion {
   id: string;
   matchmakerId: string;
@@ -85,18 +116,18 @@ export interface Suggestion {
   status: MatchSuggestionStatus;
   priority: Priority;
   category: 'ACTIVE' | 'PENDING' | 'HISTORY';
+  isAutoSuggestion: boolean;
   internalNotes?: string | null;
   firstPartyNotes?: string | null;
   secondPartyNotes?: string | null;
   matchingReason?: string | null;
   followUpNotes?: string | null;
-  
-  // Update date type definitions to be consistent
+
   responseDeadline?: Date | string | null;
   decisionDeadline?: Date | string | null;
   lastStatusChange?: Date | string | null;
   previousStatus?: MatchSuggestionStatus | null;
-  
+
   lastActivity: Date | string;
   firstPartySent?: Date | string | null;
   firstPartyResponded?: Date | string | null;
@@ -106,6 +137,7 @@ export interface Suggestion {
   closedAt?: Date | string | null;
   createdAt: Date | string;
   updatedAt: Date | string;
+
   statusHistory: SuggestionStatusHistory[];
   matchmaker?: User;
   firstParty: SuggestionParty;
@@ -116,12 +148,34 @@ export interface Suggestion {
   approvedBy?: User[];
 }
 
+// =============================================================================
+// Extended Match Suggestion
+// =============================================================================
+export interface ExtendedMatchSuggestion extends Suggestion {
+  // View Tracking
+  firstPartyLastViewedAt?: Date | string | null;
+  secondPartyLastViewedAt?: Date | string | null;
+
+  // Interested Queue
+  firstPartyRank?: number | null;
+  firstPartyInterestedAt?: Date | string | null;
+
+  // Chat/Inquiries
+  inquiries?: SuggestionInquiry[];
+}
+
+// =============================================================================
+// Update Status Data
+// =============================================================================
 export interface UpdateSuggestionStatusData {
   status: MatchSuggestionStatus;
   reason?: string;
   notes?: string;
 }
 
+// =============================================================================
+// Update Suggestion Data
+// =============================================================================
 export interface UpdateSuggestionData {
   id: string;
   status?: MatchSuggestionStatus;
@@ -137,11 +191,15 @@ export interface UpdateSuggestionData {
   };
 }
 
-export type SortByOption = 
-  | "lastActivity" 
-  | "createdAt" 
-  | "priority" 
-  | "decisionDeadline";
+// =============================================================================
+// Filters & Sorting
+// =============================================================================
+export type SortByOption =
+  | 'lastActivity'
+  | 'createdAt'
+  | 'priority'
+  | 'decisionDeadline';
+
 export interface SuggestionFilters {
   status?: MatchSuggestionStatus[];
   priority?: Priority[];
@@ -154,10 +212,13 @@ export interface SuggestionFilters {
   requiresAction?: boolean;
   hasDeadlinePassed?: boolean;
   searchTerm?: string;
-  userId?: string;           // סינון לפי מזהה משתמש ספציפי
-  sortBy?: SortByOption; 
+  userId?: string;
+  sortBy?: SortByOption;
 }
 
+// =============================================================================
+// API Responses
+// =============================================================================
 export interface SuggestionResponse {
   success: boolean;
   data?: Suggestion;
@@ -175,6 +236,9 @@ export interface SuggestionsListResponse {
   error?: string;
 }
 
+// =============================================================================
+// Statistics
+// =============================================================================
 export interface SuggestionStats {
   total: number;
   activeCount: number;
@@ -186,14 +250,9 @@ export interface SuggestionStats {
   successRate: number;
 }
 
-const suggestionEnums = {
-  MatchSuggestionStatus,
-  Priority,
-  MeetingStatus
-};
-
-export default suggestionEnums;
-
+// =============================================================================
+// Category Helper
+// =============================================================================
 export const getSuggestionCategory = (status: MatchSuggestionStatus) => {
   switch (status) {
     case 'DRAFT':
@@ -201,7 +260,7 @@ export const getSuggestionCategory = (status: MatchSuggestionStatus) => {
     case 'PENDING_FIRST_PARTY':
     case 'PENDING_SECOND_PARTY':
       return 'PENDING';
-    
+
     case 'FIRST_PARTY_DECLINED':
     case 'SECOND_PARTY_DECLINED':
     case 'MATCH_DECLINED':
@@ -212,22 +271,19 @@ export const getSuggestionCategory = (status: MatchSuggestionStatus) => {
     case 'CLOSED':
     case 'CANCELLED':
       return 'HISTORY';
-    
+
     default:
       return 'ACTIVE';
   }
 };
-// --- START OF NEW CODE ---
-// Defines a single inquiry/chat message with user details
-export interface SuggestionInquiry extends PrismaSuggestionInquiry {
-  fromUser: Partial<User>;
-  toUser: Partial<User>;
-}
 
-// Defines an "extended" suggestion that INCLUDES the chat history
-export interface ExtendedMatchSuggestion extends Suggestion {
-  inquiries?: SuggestionInquiry[]; // The missing property
-}
-// --- END OF NEW CODE ---
+// =============================================================================
+// Enums Export
+// =============================================================================
+const suggestionEnums = {
+  MatchSuggestionStatus,
+  Priority,
+  MeetingStatus,
+};
 
-
+export default suggestionEnums;

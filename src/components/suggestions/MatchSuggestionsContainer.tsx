@@ -28,7 +28,7 @@ import type { MatchSuggestion } from '@prisma/client';
 import SuggestionsList from './list/SuggestionsList';
 import InterestedQueue from '@/components/suggestions/interested/InterestedQueue';
 import ActiveSuggestionHero from '@/components/suggestions/ActiveSuggestionHero';
-import type { ExtendedMatchSuggestion } from './types';
+import type { ExtendedMatchSuggestion } from '../../types/suggestions';
 import { cn } from '@/lib/utils';
 
 import {
@@ -71,7 +71,7 @@ import FirstPartyPreferenceToggle from '@/components/suggestions/FirstPartyPrefe
 
 const SYSTEM_MATCHMAKER_ID = 'system-matchmaker-neshamatech';
 
-// Statuses that represent an active dating process (shown in Hero)
+// --- Active Process Statuses ---
 const ACTIVE_PROCESS_STATUSES = [
   'FIRST_PARTY_APPROVED',
   'PENDING_SECOND_PARTY',
@@ -86,7 +86,7 @@ const ACTIVE_PROCESS_STATUSES = [
   'MATCH_APPROVED',
   'DATING',
   'ENGAGED',
-];
+] as const;
 
 // --- Action Type (extended to include 'interested') ---
 type ActionType = 'approve' | 'decline' | 'interested';
@@ -194,17 +194,11 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
     useState<ExtendedMatchSuggestion | null>(null);
   const [actionType, setActionType] = useState<ActionType | null>(null);
 
-  // --- Modal State (for details / inquiry) ---
-  const [selectedSuggestion, setSelectedSuggestion] =
-    useState<ExtendedMatchSuggestion | null>(null);
-  const [showDetailsModal, setShowDetailsModal] = useState(false);
-  const [showInquiryModal, setShowInquiryModal] = useState(false);
-
-  // --- Derived: Active Process Suggestion (shown in Hero) ---
+  // --- Derived: Active Process Suggestion (Hero Card) ---
   const activeProcessSuggestion = useMemo(() => {
     return (
       activeSuggestions.find((s) =>
-        ACTIVE_PROCESS_STATUSES.includes(s.status)
+        ACTIVE_PROCESS_STATUSES.includes(s.status as any)
       ) || null
     );
   }, [activeSuggestions]);
@@ -223,16 +217,16 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
       );
   }, [activeSuggestions, userId]);
 
-  // --- Derived: active suggestions WITHOUT interested AND without active process ---
+  // --- Derived: active suggestions WITHOUT interested AND WITHOUT active process ---
   const nonInterestedActiveSuggestions = useMemo(() => {
     return activeSuggestions.filter(
       (s) =>
         s.status !== 'FIRST_PARTY_INTERESTED' &&
-        !ACTIVE_PROCESS_STATUSES.includes(s.status)
+        !ACTIVE_PROCESS_STATUSES.includes(s.status as any)
     );
   }, [activeSuggestions]);
 
-  // --- Derived: sorted active suggestions (urgent first, excluding INTERESTED & active process) ---
+  // --- Derived: sorted active suggestions (urgent first, excluding INTERESTED & ACTIVE_PROCESS) ---
   const sortedActiveSuggestions = useMemo(() => {
     const urgent: ExtendedMatchSuggestion[] = [];
     const others: ExtendedMatchSuggestion[] = [];
@@ -484,22 +478,26 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
     []
   );
 
-  // --- Contact Matchmaker (from ActiveSuggestionHero) ---
+  // --- Contact Matchmaker Handler ---
   const handleContactMatchmaker = useCallback(
     (suggestion: ExtendedMatchSuggestion) => {
-      setSelectedSuggestion(suggestion);
-      setShowInquiryModal(true);
+      // TODO: Implement chat/inquiry modal or navigation
+      toast.info(
+        isRtl ? 'פתיחת צ׳אט עם השדכן/ית...' : 'Opening chat with matchmaker...'
+      );
+      // Example: setSelectedSuggestion(suggestion); setShowInquiryModal(true);
     },
-    []
+    [isRtl]
   );
 
-  // --- View Details ---
+  // --- View Details Handler ---
   const handleViewDetails = useCallback(
     (suggestion: ExtendedMatchSuggestion) => {
-      setSelectedSuggestion(suggestion);
-      setShowDetailsModal(true);
+      // TODO: Implement details modal
+      toast.info(isRtl ? 'פתיחת פרטים מלאים...' : 'Opening full details...');
+      // Example: setSelectedSuggestion(suggestion); setShowDetailsModal(true);
     },
-    []
+    [isRtl]
   );
 
   // --- Effects ---
@@ -526,7 +524,6 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
       'MATCH_APPROVED',
       'DATING',
       'ENGAGED',
-      // NOT: FIRST_PARTY_INTERESTED - it's not an active process
     ];
     const hasActiveProcess = activeSuggestions.some((s) =>
       activeProcessStatuses.includes(s.status)

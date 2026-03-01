@@ -35,7 +35,7 @@ import {
   getEnhancedStatusInfo,
   getPartyIndicator,
 } from '@/lib/utils/suggestionUtils';
-import type { ExtendedMatchSuggestion } from '../types';
+import type { ExtendedMatchSuggestion } from '../../../types/suggestions';
 import type { SuggestionsCardDict } from '@/types/dictionary';
 
 // =============================================================================
@@ -204,7 +204,7 @@ const MinimalSuggestionCard: React.FC<MinimalSuggestionCardProps> = ({
                 <Avatar className="w-10 h-10 border-2 border-white shadow-md">
                   <AvatarFallback className="bg-gradient-to-br from-teal-500 to-emerald-600 text-white font-bold text-sm">
                     {getInitials(
-                      `${suggestion.matchmaker.firstName} ${suggestion.matchmaker.lastName}`
+                      `${suggestion.matchmaker?.firstName} ${suggestion.matchmaker?.lastName}`
                     )}
                   </AvatarFallback>
                 </Avatar>
@@ -213,8 +213,8 @@ const MinimalSuggestionCard: React.FC<MinimalSuggestionCardProps> = ({
                     {dict.suggestedBy}
                   </p>
                   <p className="text-sm font-bold text-gray-800">
-                    {suggestion.matchmaker.firstName}{' '}
-                    {suggestion.matchmaker.lastName}
+                    {suggestion.matchmaker?.firstName}{' '}
+                    {suggestion.matchmaker?.lastName}
                   </p>
                 </div>
               </>

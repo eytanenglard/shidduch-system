@@ -27,7 +27,7 @@ import {
 } from '@/components/ui/tooltip';
 import { toast } from 'sonner';
 import { cn, getRelativeCloudinaryPath } from '@/lib/utils';
-import type { ExtendedMatchSuggestion } from '../types';
+import type { ExtendedMatchSuggestion } from '../../../types/suggestions';
 
 // dnd-kit imports
 import {

@@ -12,7 +12,7 @@ import {
   Briefcase,
   Quote,
   ChevronLeft,
-  ChevronRight, // הוספתי לייבוא כי היה חסר בחלק מהמקרים
+  ChevronRight,
 } from 'lucide-react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -20,7 +20,8 @@ import { Card, CardContent } from '@/components/ui/card';
 import { UserAiAnalysisDialog } from '../dialogs/UserAiAnalysisDialog';
 import { getInitials } from '@/lib/utils';
 import { cn } from '@/lib/utils';
-import type { ExtendedMatchSuggestion } from '../types';
+import type { ExtendedMatchSuggestion } from '../../../types/suggestions';
+
 import type {
   SuggestionsPresentationDict,
   AiAnalysisDict,
@@ -29,52 +30,61 @@ import type {
 // --- Sub-components Updated ---
 
 const HeroIntroduction: React.FC<{
-  matchmaker: { firstName: string; lastName: string };
+  matchmaker: { firstName: string; lastName: string } | undefined;
   personalNote?: string | null;
   dict: SuggestionsPresentationDict['hero'];
-}> = ({ matchmaker, personalNote, dict }) => (
-  // Background: Teal -> Orange -> Rose (Soft)
-  <div
-    className="text-center p-6 rounded-2xl bg-gradient-to-br from-teal-100/50 via-orange-100/50 to-rose-100/50 border border-teal-200/40 shadow-lg"
-    dir="rtl" // או דינמי אם יש לך את ה-locale כאן, אבל ה-Props לא כוללים locale כרגע.
-    // מכיוון שאין locale ב-props של הקומפוננטה הזו, צריך להוסיף אותו לממשק או להסתמך על היישור למרכז (text-center) שקיים כבר.
-    // הבעיה היא בציטוט למטה.
-  >
-    {' '}
-    <div className="flex justify-center mb-4">
-      <Avatar className="w-16 h-16 border-4 border-white shadow-md">
-        {/* Avatar: Teal Gradient */}
-        <AvatarFallback className="bg-gradient-to-br from-teal-500 to-teal-600 text-white text-xl font-bold">
-          {getInitials(`${matchmaker.firstName} ${matchmaker.lastName}`)}
-        </AvatarFallback>
-      </Avatar>
-    </div>
-    <h2 className="text-2xl md:text-3xl font-bold text-gray-800 tracking-tight">
-      {dict.title}
-    </h2>
-    <p className="text-gray-600 mt-2">
-      {dict.matchmakerThoughts.replace('{{name}}', matchmaker.firstName)}
-    </p>
-    {personalNote && (
-      <div className="mt-4 max-w-2xl mx-auto">
-        {/* Quote Box: Orange Tint */}
-        <div className="relative bg-white/60 p-4 rounded-xl shadow-inner border border-orange-100">
-          <Quote className="absolute top-2 right-2 w-8 h-8 text-orange-200/80 transform scale-x-[-1]" />
-          <p className="text-lg text-orange-900 italic font-medium leading-relaxed">
-            {personalNote}
-          </p>
-          <Quote className="absolute bottom-2 left-2 w-8 h-8 text-orange-200/80" />
-        </div>
+}> = ({ matchmaker, personalNote, dict }) => {
+  const matchmakerDisplay = {
+    firstName: matchmaker?.firstName ?? '',
+    lastName: matchmaker?.lastName ?? '',
+  };
+
+  return (
+    <div
+      className="text-center p-6 rounded-2xl bg-gradient-to-br from-teal-100/50 via-orange-100/50 to-rose-100/50 border border-teal-200/40 shadow-lg"
+      dir="rtl"
+    >
+      {' '}
+      <div className="flex justify-center mb-4">
+        <Avatar className="w-16 h-16 border-4 border-white shadow-md">
+          {/* Avatar: Teal Gradient */}
+          <AvatarFallback className="bg-gradient-to-br from-teal-500 to-teal-600 text-white text-xl font-bold">
+            {getInitials(
+              `${matchmakerDisplay.firstName} ${matchmakerDisplay.lastName}`
+            )}
+          </AvatarFallback>
+        </Avatar>
       </div>
-    )}
-  </div>
-);
+      <h2 className="text-2xl md:text-3xl font-bold text-gray-800 tracking-tight">
+        {dict.title}
+      </h2>
+      <p className="text-gray-600 mt-2">
+        {dict.matchmakerThoughts.replace(
+          '{{name}}',
+          matchmakerDisplay.firstName
+        )}
+      </p>
+      {personalNote && (
+        <div className="mt-4 max-w-2xl mx-auto">
+          {/* Quote Box: Orange Tint */}
+          <div className="relative bg-white/60 p-4 rounded-xl shadow-inner border border-orange-100">
+            <Quote className="absolute top-2 right-2 w-8 h-8 text-orange-200/80 transform scale-x-[-1]" />
+            <p className="text-lg text-orange-900 italic font-medium leading-relaxed">
+              {personalNote}
+            </p>
+            <Quote className="absolute bottom-2 left-2 w-8 h-8 text-orange-200/80" />
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
 
 const ProfilePeek: React.FC<{
   targetParty: ExtendedMatchSuggestion['secondParty'];
   onViewProfileClick: () => void;
   dict: SuggestionsPresentationDict['peek'];
-  locale: 'he' | 'en'; // Added locale for direction
+  locale: 'he' | 'en';
 }> = ({ targetParty, onViewProfileClick, dict, locale }) => {
   const age = targetParty.profile?.birthDate
     ? new Date().getFullYear() -
@@ -84,7 +94,7 @@ const ProfilePeek: React.FC<{
   return (
     <Card
       className="overflow-hidden shadow-xl transition-all hover:shadow-2xl border-0"
-      dir={locale === 'he' ? 'rtl' : 'ltr'} // הוספת כיוון לכרטיס
+      dir={locale === 'he' ? 'rtl' : 'ltr'}
     >
       <div className="grid grid-cols-1 md:grid-cols-3">
         <div className="relative h-64 md:h-auto">

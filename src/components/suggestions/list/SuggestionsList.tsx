@@ -42,7 +42,7 @@ import MinimalSuggestionCard from '../cards/MinimalSuggestionCard';
 import SuggestionDetailsModal from '../modals/SuggestionDetailsModal';
 import AskMatchmakerDialog from '../dialogs/AskMatchmakerDialog';
 import { cn } from '@/lib/utils';
-import type { ExtendedMatchSuggestion } from '../types';
+import type { ExtendedMatchSuggestion } from '../../../types/suggestions';
 import type {
   SuggestionsDictionary,
   ProfileCardDict,
@@ -710,7 +710,7 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
         isOpen={showAskDialog}
         onClose={() => setShowAskDialog(false)}
         onSubmit={handleSendQuestion}
-        matchmakerName={selectedSuggestion?.matchmaker.firstName}
+        matchmakerName={selectedSuggestion?.matchmaker?.firstName}
         dict={suggestionsDict.askMatchmaker}
       />
     </>

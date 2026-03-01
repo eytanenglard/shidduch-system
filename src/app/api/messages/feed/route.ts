@@ -5,7 +5,7 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import type { FeedItem, FeedItemType, ExtendedSuggestionInquiry } from "@/types/messages";
-import type { ExtendedMatchSuggestion } from "@/components/suggestions/types";
+import type { ExtendedMatchSuggestion } from '@/types/suggestions';
 import { MatchSuggestionStatus, UserRole } from "@prisma/client";
 
 export const dynamic = 'force-dynamic';
@@ -109,7 +109,7 @@ export async function GET() {
       if ((s.status === "PENDING_FIRST_PARTY" && isFirstParty) || (s.status === "PENDING_SECOND_PARTY" && !isFirstParty)) {
         type = 'ACTION_REQUIRED';
         title = `הצעה חדשה ממתינה לך!`;
-        description = `${s.matchmaker.firstName} חושב/ת שיש כאן פוטנציאל גדול.`;
+        description = `${s.matchmaker?.firstName} חושב/ת שיש כאן פוטנציאל גדול.`;
       } else if (s.status === "CONTACT_DETAILS_SHARED") {
         title = "מזל טוב, יש התאמה!";
         description = `פרטי הקשר הועברו. זה הזמן ליצור קשר.`;
