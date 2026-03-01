@@ -1,5 +1,5 @@
 import type { Locale } from '../../../../i18n-config';
-import type { ExtendedMatchSuggestion, PartyInfo } from '@/components/suggestions/types';
+import type { ExtendedMatchSuggestion, PartyInfo } from '@/types/suggestions';
 import type { QuestionnaireResponse as QuestionnaireResponseType } from '@/types/next-auth';
 import type { AiSuggestionAnalysisResult } from '@/lib/services/aiService';
 import { ReligiousJourney, ServiceType, Gender, AvailabilityStatus, KippahType, TestimonialStatus, SubmissionSource } from '@prisma/client';

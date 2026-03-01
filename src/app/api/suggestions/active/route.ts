@@ -5,7 +5,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { formatAnswers, KEY_MAPPING, FormattedAnswersType } from '@/lib/questionnaireFormatter';
-import type { ExtendedMatchSuggestion, PartyInfo, QuestionnaireResponse } from "@/components/suggestions/types";
+import type { ExtendedMatchSuggestion, PartyInfo, QuestionnaireResponse } from "@/types/suggestions";
 import type {  WorldId } from "@/types/next-auth";
 export const dynamic = 'force-dynamic';
 // --- טיפוסים חזקים ומדויקים לתהליך העיבוד ---
