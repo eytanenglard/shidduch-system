@@ -1,21 +1,20 @@
 // src/components/suggestions/interested/InterestedQueue.tsx
+// V3: Merged version with drag-and-drop, improved UX, and mobile-aligned flow
 
 'use client';
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import Image from 'next/image';
 import {
   Bookmark,
-  ChevronUp,
-  ChevronDown,
   Heart,
   Trash2,
   GripVertical,
   User,
-  Sparkles,
   ArrowUpCircle,
-  Crown,
   Eye,
+  Info,
+  Crown,
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -30,41 +29,53 @@ import { toast } from 'sonner';
 import { cn, getRelativeCloudinaryPath } from '@/lib/utils';
 import type { ExtendedMatchSuggestion } from '../types';
 
+// dnd-kit imports
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+
 // =============================================================================
-// טקסטים (בהמשך יעברו ל-dictionary)
+// TEXTS
 // =============================================================================
 const TEXTS = {
   he: {
     title: 'רשימת ההמתנה שלי',
-    subtitle: 'הצעות שמעוניין/ת בהן – ממתינות לתורן',
+    subtitle: 'גרור/י לשינוי סדר עדיפויות',
     empty: 'אין הצעות בהמתנה. סמן/י הצעות כ"שומר/ת לגיבוי" והן יופיעו כאן.',
     nextInLine: 'הבאה בתור',
     rank: 'מקום',
-    moveUp: 'הזז למעלה',
-    moveDown: 'הזז למטה',
     activateNow: 'אשר/י עכשיו',
-    activateTooltip: 'שלח/י הצעה זו לאישור השדכן',
-    activateDisabled: 'יש לך כבר הצעה פעילה. המתן/י עד שתסתיים.',
     remove: 'הסר/י מהרשימה',
     removeConfirm: 'ההצעה הוסרה מרשימת ההמתנה',
     viewProfile: 'צפה בפרופיל',
     rankUpdated: 'סדר העדיפויות עודכן',
     rankError: 'שגיאה בעדכון הסדר',
     activateSuccess: 'ההצעה אושרה! תועבר לטיפול השדכן.',
+    activeProcessInfo: 'יש לך הצעה פעילה. כשתסתיים, תוכל/י לאשר מהרשימה.',
+    dragToReorder: 'גרור/י כדי לשנות סדר',
   },
   en: {
     title: 'My Waitlist',
-    subtitle: "Suggestions you're interested in – waiting their turn",
+    subtitle: 'Drag to reorder priorities',
     empty:
-      'No suggestions on waitlist. Mark suggestions as "Save for later" to add them here.',
+      'No suggestions on waitlist. Mark suggestions as "Save for later" and they\'ll appear here.',
     nextInLine: 'Next in line',
     rank: 'Rank',
-    moveUp: 'Move up',
-    moveDown: 'Move down',
     activateNow: 'Approve now',
-    activateTooltip: 'Send this suggestion to the matchmaker for approval',
-    activateDisabled:
-      'You already have an active suggestion. Wait until it concludes.',
     remove: 'Remove from list',
     removeConfirm: 'Suggestion removed from waitlist',
     viewProfile: 'View profile',
@@ -72,11 +83,14 @@ const TEXTS = {
     rankError: 'Error updating order',
     activateSuccess:
       'Suggestion approved! Will be forwarded to the matchmaker.',
+    activeProcessInfo:
+      'You have an active suggestion. Once it ends, you can approve from the waitlist.',
+    dragToReorder: 'Drag to reorder',
   },
 };
 
 // =============================================================================
-// Helper: חישוב גיל
+// HELPER: Calculate Age
 // =============================================================================
 const calculateAge = (birthDate?: Date | string | null): number | null => {
   if (!birthDate) return null;
@@ -90,7 +104,210 @@ const calculateAge = (birthDate?: Date | string | null): number | null => {
 };
 
 // =============================================================================
-// Props
+// SORTABLE ITEM COMPONENT
+// =============================================================================
+interface SortableItemProps {
+  suggestion: ExtendedMatchSuggestion;
+  index: number;
+  userId: string;
+  locale: 'he' | 'en';
+  isUserInActiveProcess: boolean;
+  onActivate: (suggestion: ExtendedMatchSuggestion) => void;
+  onRemove: (suggestion: ExtendedMatchSuggestion) => void;
+  onViewDetails: (suggestion: ExtendedMatchSuggestion) => void;
+}
+
+const SortableItem: React.FC<SortableItemProps> = ({
+  suggestion,
+  index,
+  userId,
+  locale,
+  isUserInActiveProcess,
+  onActivate,
+  onRemove,
+  onViewDetails,
+}) => {
+  const texts = TEXTS[locale];
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: suggestion.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    zIndex: isDragging ? 50 : undefined,
+  };
+
+  const targetParty =
+    suggestion.firstPartyId === userId
+      ? suggestion.secondParty
+      : suggestion.firstParty;
+
+  const mainImage = targetParty?.images?.find((img) => img.isMain);
+  const age = calculateAge(targetParty?.profile?.birthDate);
+  const isFirst = index === 0;
+
+  if (!targetParty || !targetParty.profile) return null;
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={cn(
+        'group relative flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200',
+        isFirst
+          ? 'bg-gradient-to-r from-amber-50 via-white to-orange-50 border border-amber-200/50 shadow-sm'
+          : 'bg-white border border-gray-100',
+        isDragging &&
+          'bg-amber-100 shadow-xl ring-2 ring-amber-400/50 scale-[1.02]',
+        !isDragging &&
+          'hover:bg-amber-50/30 hover:border-amber-200/50 hover:shadow-sm'
+      )}
+    >
+      {/* Drag Handle */}
+      <TooltipProvider>
+        <Tooltip delayDuration={300}>
+          <TooltipTrigger asChild>
+            <button
+              className="cursor-grab active:cursor-grabbing p-1 rounded-md hover:bg-amber-100 transition-colors touch-none"
+              {...attributes}
+              {...listeners}
+            >
+              <GripVertical
+                className={cn(
+                  'w-4 h-4 transition-colors',
+                  isDragging
+                    ? 'text-amber-600'
+                    : 'text-gray-300 group-hover:text-amber-400'
+                )}
+              />
+            </button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>{texts.dragToReorder}</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+
+      {/* Rank Badge */}
+      {isFirst ? (
+        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-md flex-shrink-0">
+          <Crown className="w-4 h-4 text-white" />
+        </div>
+      ) : (
+        <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0">
+          <span className="text-gray-600 text-xs font-bold">{index + 1}</span>
+        </div>
+      )}
+
+      {/* Avatar */}
+      <button
+        onClick={() => onViewDetails(suggestion)}
+        className="flex-shrink-0"
+      >
+        <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-white shadow-sm hover:shadow-md transition-shadow">
+          {mainImage ? (
+            <Image
+              src={getRelativeCloudinaryPath(mainImage.url)}
+              alt={targetParty.firstName}
+              width={48}
+              height={48}
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <div className="w-full h-full bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center">
+              <User className="w-6 h-6 text-slate-400" />
+            </div>
+          )}
+        </div>
+      </button>
+
+      {/* Info Section */}
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => onViewDetails(suggestion)}
+            className="font-semibold text-gray-900 text-sm hover:text-amber-700 transition-colors truncate"
+          >
+            {targetParty.firstName}
+          </button>
+          {age && (
+            <span className="text-xs text-gray-500 flex-shrink-0">({age})</span>
+          )}
+          {isFirst && !isUserInActiveProcess && (
+            <Badge className="bg-gradient-to-r from-amber-400 to-orange-400 text-white border-0 text-[10px] px-1.5 py-0 flex-shrink-0">
+              <ArrowUpCircle className="w-3 h-3 mr-0.5" />
+              {texts.nextInLine}
+            </Badge>
+          )}
+        </div>
+        <div className="flex items-center gap-2 text-xs text-gray-500 mt-0.5">
+          {targetParty.profile.city && (
+            <span className="truncate">{targetParty.profile.city}</span>
+          )}
+          {targetParty.profile.city && targetParty.profile.occupation && (
+            <span>•</span>
+          )}
+          {targetParty.profile.occupation && (
+            <span className="truncate">{targetParty.profile.occupation}</span>
+          )}
+        </div>
+      </div>
+
+      {/* Action Buttons */}
+      <div className="flex items-center gap-1 flex-shrink-0">
+        {/* View Profile */}
+        <TooltipProvider>
+          <Tooltip delayDuration={100}>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 hover:bg-amber-100 text-gray-400 hover:text-gray-600"
+                onClick={() => onViewDetails(suggestion)}
+              >
+                <Eye className="w-4 h-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>{texts.viewProfile}</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+
+        {/* Remove */}
+        <TooltipProvider>
+          <Tooltip delayDuration={100}>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 hover:bg-rose-100 text-gray-400 hover:text-rose-500"
+                onClick={() => {
+                  onRemove(suggestion);
+                  toast.success(texts.removeConfirm);
+                }}
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>{texts.remove}</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      </div>
+    </div>
+  );
+};
+
+// =============================================================================
+// MAIN COMPONENT: InterestedQueue
 // =============================================================================
 interface InterestedQueueProps {
   suggestions: ExtendedMatchSuggestion[];
@@ -104,9 +321,6 @@ interface InterestedQueueProps {
   className?: string;
 }
 
-// =============================================================================
-// Component
-// =============================================================================
 const InterestedQueue: React.FC<InterestedQueueProps> = ({
   suggestions,
   userId,
@@ -118,50 +332,61 @@ const InterestedQueue: React.FC<InterestedQueueProps> = ({
   onRankUpdate,
   className,
 }) => {
-  const t = TEXTS[locale];
-  const [isUpdating, setIsUpdating] = useState(false);
+  const texts = TEXTS[locale];
+  const [items, setItems] = useState<ExtendedMatchSuggestion[]>([]);
+  const [isReordering, setIsReordering] = useState(false);
 
-  // מיון לפי rank
-  const sortedSuggestions = React.useMemo(() => {
-    return [...suggestions].sort(
+  // Sort by rank and sync with prop changes
+  useEffect(() => {
+    const sorted = [...suggestions].sort(
       (a, b) => (a.firstPartyRank ?? 999) - (b.firstPartyRank ?? 999)
     );
+    setItems(sorted);
   }, [suggestions]);
 
-  // הזזת הצעה למעלה/למטה
-  const handleMove = useCallback(
-    async (index: number, direction: 'up' | 'down') => {
-      if (isUpdating) return;
-
-      const newOrder = [...sortedSuggestions];
-      const targetIndex = direction === 'up' ? index - 1 : index + 1;
-
-      if (targetIndex < 0 || targetIndex >= newOrder.length) return;
-
-      // החלפה
-      [newOrder[index], newOrder[targetIndex]] = [
-        newOrder[targetIndex],
-        newOrder[index],
-      ];
-
-      const rankedIds = newOrder.map((s) => s.id);
-
-      setIsUpdating(true);
-      try {
-        await onRankUpdate(rankedIds);
-        toast.success(t.rankUpdated);
-      } catch {
-        toast.error(t.rankError);
-      } finally {
-        setIsUpdating(false);
-      }
-    },
-    [sortedSuggestions, isUpdating, onRankUpdate, t]
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: { distance: 8 },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
   );
 
-  if (suggestions.length === 0) {
-    return null; // לא מציגים כלום אם אין הצעות בהמתנה
-  }
+  const handleDragEnd = useCallback(
+    async (event: DragEndEvent) => {
+      const { active, over } = event;
+      if (!over || active.id === over.id || isReordering) return;
+
+      const oldIndex = items.findIndex((item) => item.id === active.id);
+      const newIndex = items.findIndex((item) => item.id === over.id);
+
+      if (oldIndex === -1 || newIndex === -1) return;
+
+      const newItems = arrayMove(items, oldIndex, newIndex);
+      setItems(newItems); // Optimistic update
+
+      setIsReordering(true);
+      try {
+        await onRankUpdate(newItems.map((s) => s.id));
+        toast.success(texts.rankUpdated);
+      } catch (error) {
+        setItems(items); // Revert on error
+        toast.error(texts.rankError);
+      } finally {
+        setIsReordering(false);
+      }
+    },
+    [items, isReordering, onRankUpdate, texts]
+  );
+
+  if (suggestions.length === 0) return null;
+
+  const firstSuggestion = items[0];
+  const firstPartyName =
+    firstSuggestion?.firstPartyId === userId
+      ? firstSuggestion.secondParty?.firstName
+      : firstSuggestion.firstParty?.firstName;
 
   return (
     <Card
@@ -178,9 +403,9 @@ const InterestedQueue: React.FC<InterestedQueueProps> = ({
           </div>
           <div className="flex-1">
             <CardTitle className="text-lg font-bold bg-gradient-to-r from-amber-700 via-orange-600 to-amber-700 bg-clip-text text-transparent">
-              {t.title}
+              {texts.title}
             </CardTitle>
-            <p className="text-sm text-amber-600/80">{t.subtitle}</p>
+            <p className="text-sm text-amber-600/80">{texts.subtitle}</p>
           </div>
           <Badge className="bg-amber-100 text-amber-700 border-amber-200 font-bold">
             {suggestions.length}
@@ -188,220 +413,72 @@ const InterestedQueue: React.FC<InterestedQueueProps> = ({
         </div>
       </CardHeader>
 
-      <CardContent className="p-4 space-y-3">
-        {sortedSuggestions.map((suggestion, index) => {
-          const targetParty =
-            suggestion.firstPartyId === userId
-              ? suggestion.secondParty
-              : suggestion.firstParty;
-          const mainImage = targetParty?.images?.find((img) => img.isMain);
-          const age = calculateAge(targetParty?.profile?.birthDate);
-          const isFirst = index === 0;
-
-          if (!targetParty || !targetParty.profile) return null;
-
-          return (
-            <div
-              key={suggestion.id}
-              className={cn(
-                'relative flex items-center gap-3 p-3 rounded-xl border transition-all duration-300',
-                isFirst
-                  ? 'bg-gradient-to-r from-amber-50 via-white to-orange-50 border-amber-200 shadow-md ring-1 ring-amber-200/50'
-                  : 'bg-white border-gray-100 hover:border-amber-200 hover:shadow-sm'
-              )}
-            >
-              {/* Rank Number */}
-              <div
-                className={cn(
-                  'flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm',
-                  isFirst
-                    ? 'bg-gradient-to-br from-amber-400 to-orange-500 text-white shadow-md'
-                    : 'bg-gray-100 text-gray-500'
-                )}
-              >
-                {isFirst ? <Crown className="w-4 h-4" /> : index + 1}
-              </div>
-
-              {/* Avatar */}
-              <button
-                onClick={() => onViewDetails(suggestion)}
-                className="flex-shrink-0"
-              >
-                <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-white shadow-sm">
-                  {mainImage ? (
-                    <Image
-                      src={getRelativeCloudinaryPath(mainImage.url)}
-                      alt={targetParty.firstName}
-                      width={48}
-                      height={48}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center">
-                      <User className="w-6 h-6 text-slate-400" />
-                    </div>
-                  )}
-                </div>
-              </button>
-
-              {/* Info */}
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => onViewDetails(suggestion)}
-                    className="font-semibold text-gray-800 text-sm hover:text-amber-700 transition-colors truncate"
-                  >
-                    {targetParty.firstName}
-                  </button>
-                  {age && (
-                    <span className="text-xs text-gray-500">({age})</span>
-                  )}
-                  {isFirst && !isUserInActiveProcess && (
-                    <Badge className="bg-gradient-to-r from-amber-400 to-orange-400 text-white border-0 text-[10px] px-1.5 py-0">
-                      {t.nextInLine}
-                    </Badge>
-                  )}
-                </div>
-                <div className="flex items-center gap-2 text-xs text-gray-500">
-                  {targetParty.profile.city && (
-                    <span>{targetParty.profile.city}</span>
-                  )}
-                  {targetParty.profile.city &&
-                    targetParty.profile.occupation && <span>•</span>}
-                  {targetParty.profile.occupation && (
-                    <span className="truncate">
-                      {targetParty.profile.occupation}
-                    </span>
-                  )}
-                </div>
-              </div>
-
-              {/* Actions */}
-              <div className="flex items-center gap-1 flex-shrink-0">
-                {/* Move Up/Down */}
-                <div className="flex flex-col gap-0.5">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-6 w-6 hover:bg-amber-100"
-                    disabled={index === 0 || isUpdating}
-                    onClick={() => handleMove(index, 'up')}
-                  >
-                    <ChevronUp className="w-3.5 h-3.5" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-6 w-6 hover:bg-amber-100"
-                    disabled={
-                      index === sortedSuggestions.length - 1 || isUpdating
-                    }
-                    onClick={() => handleMove(index, 'down')}
-                  >
-                    <ChevronDown className="w-3.5 h-3.5" />
-                  </Button>
-                </div>
-
-                {/* View Profile */}
-                <TooltipProvider>
-                  <Tooltip delayDuration={100}>
-                    <TooltipTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 hover:bg-amber-100"
-                        onClick={() => onViewDetails(suggestion)}
-                      >
-                        <Eye className="w-4 h-4 text-gray-500" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>{t.viewProfile}</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-
-                {/* Activate (Approve) */}
-                <TooltipProvider>
-                  <Tooltip delayDuration={100}>
-                    <TooltipTrigger asChild>
-                      <div>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className={cn(
-                            'h-8 w-8',
-                            isUserInActiveProcess
-                              ? 'opacity-40 cursor-not-allowed'
-                              : 'hover:bg-teal-100 text-teal-600'
-                          )}
-                          disabled={isUserInActiveProcess}
-                          onClick={() => {
-                            if (isUserInActiveProcess) {
-                              toast.info(t.activateDisabled);
-                            } else {
-                              onActivate(suggestion);
-                            }
-                          }}
-                        >
-                          <Heart className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>
-                        {isUserInActiveProcess
-                          ? t.activateDisabled
-                          : t.activateTooltip}
-                      </p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-
-                {/* Remove */}
-                <TooltipProvider>
-                  <Tooltip delayDuration={100}>
-                    <TooltipTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 hover:bg-rose-100 text-gray-400 hover:text-rose-500"
-                        onClick={() => onRemove(suggestion)}
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>{t.remove}</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </div>
+      <CardContent className="p-4 space-y-2">
+        {/* Draggable List */}
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragEnd={handleDragEnd}
+        >
+          <SortableContext
+            items={items.map((s) => s.id)}
+            strategy={verticalListSortingStrategy}
+          >
+            <div className="space-y-2">
+              {items.map((suggestion, index) => (
+                <SortableItem
+                  key={suggestion.id}
+                  suggestion={suggestion}
+                  index={index}
+                  userId={userId}
+                  locale={locale}
+                  isUserInActiveProcess={isUserInActiveProcess}
+                  onActivate={onActivate}
+                  onRemove={onRemove}
+                  onViewDetails={onViewDetails}
+                />
+              ))}
             </div>
-          );
-        })}
+          </SortableContext>
+        </DndContext>
 
-        {/* Highlight: Next suggestion to activate */}
-        {!isUserInActiveProcess && sortedSuggestions.length > 0 && (
-          <div className="mt-2 p-3 bg-gradient-to-r from-teal-50 to-emerald-50 border border-teal-200/50 rounded-xl">
-            <div className="flex items-center gap-2 text-sm">
+        {/* CTA: Activate next suggestion */}
+        {!isUserInActiveProcess && items.length > 0 && (
+          <div className="mt-3 p-3 bg-gradient-to-r from-teal-50 to-emerald-50 border border-teal-200/50 rounded-xl">
+            <div className="flex items-center gap-2">
               <ArrowUpCircle className="w-4 h-4 text-teal-600 flex-shrink-0" />
-              <span className="text-teal-800 font-medium">
+              <span className="text-sm text-teal-800 font-medium flex-1">
                 {locale === 'he'
-                  ? `אפשר לאשר את ההצעה הבאה בתור – ${sortedSuggestions[0]?.secondParty?.firstName || sortedSuggestions[0]?.firstParty?.firstName}`
-                  : `Ready to approve the next suggestion – ${sortedSuggestions[0]?.secondParty?.firstName || sortedSuggestions[0]?.firstParty?.firstName}`}
+                  ? `מוכן/ה לאשר את ${firstPartyName}?`
+                  : `Ready to approve ${firstPartyName}?`}
               </span>
               <Button
                 size="sm"
-                className="bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 text-white rounded-lg text-xs px-3 h-7 mr-auto"
-                onClick={() => onActivate(sortedSuggestions[0])}
+                className="bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 text-white rounded-lg text-xs px-3 h-8 shadow-md hover:shadow-lg transition-all"
+                onClick={() => {
+                  onActivate(firstSuggestion);
+                  toast.success(texts.activateSuccess);
+                }}
               >
                 <Heart
-                  className={cn('w-3 h-3', locale === 'he' ? 'ml-1' : 'mr-1')}
+                  className={cn(
+                    'w-3.5 h-3.5',
+                    locale === 'he' ? 'ml-1.5' : 'mr-1.5'
+                  )}
                 />
-                {t.activateNow}
+                {texts.activateNow}
               </Button>
             </div>
+          </div>
+        )}
+
+        {/* Info: Active process blocking */}
+        {isUserInActiveProcess && items.length > 0 && (
+          <div className="flex items-center gap-2 p-3 bg-gray-50 border border-gray-200/50 rounded-xl">
+            <Info className="w-4 h-4 text-gray-400 flex-shrink-0" />
+            <p className="text-xs text-gray-600 leading-relaxed">
+              {texts.activeProcessInfo}
+            </p>
           </div>
         )}
       </CardContent>

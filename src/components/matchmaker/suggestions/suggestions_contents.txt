@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmaker\suggestions
-# Generated on: 2026-02-05 07:13:05
+# Generated on: 2026-03-01 09:53:59
 # Filter: Only content of code files (.bat, .c, .cfg, .conf, .cpp, .cs, .css, .go, .h, .html, .ini, .java, .js, .json, .jsx, .kt, .less, .md, .php, .py, .rb, .rs, .scss, .sh, .sql, .swift, .ts, .tsx, .txt, .xml, .yaml, .yml) is included.
 ################################################################################
 
@@ -897,11 +897,11 @@ import {
 } from '@/lib/utils';
 import type { Candidate } from '../../new/types/candidates';
 import { toast } from 'sonner';
-import type { CandidateSelectorDict } from '@/types/dictionaries/matchmaker'; // <--- ייבוא הטיפוס של המילון
+import type { CandidateSelectorDict } from '@/types/dictionaries/matchmaker';
 
 // ===> עדכון Props <===
 interface CandidateSelectorProps {
-  dict: CandidateSelectorDict; // <-- הוספת המילון כ-prop
+  dict: CandidateSelectorDict;
   value: Candidate | null;
   onChange: (candidate: Candidate | null) => void;
   otherParty?: Candidate | null;
@@ -910,10 +910,11 @@ interface CandidateSelectorProps {
   className?: string;
   fieldName: string;
   error?: string;
+  disabled?: boolean; // ✅ שינוי 1: הוספת disabled ל-props
 }
 
 const EnhancedCandidateCard: React.FC<{
-  dict: CandidateSelectorDict; // <-- קבלת המילון
+  dict: CandidateSelectorDict;
   candidate: Candidate;
   onClick: () => void;
   isActive: boolean;
@@ -923,12 +924,7 @@ const EnhancedCandidateCard: React.FC<{
   const mainImage = candidate.images.find((img) => img.isMain)?.url;
 
   const getStatusInfo = () => {
-    // 🔄 שינוי: במקום לחסום (BLOCKED), מציגים רק אזהרה
-    // המועמד עדיין יהיה ניתן לבחירה
-
     if (isBlocked) {
-      // 🆕 שינוי: הורדנו את ה-isBlocked מהלוגיקה הבסיסית
-      // עכשיו isBlocked מגיע מ-prop ורק מסמן ויזואלית
       return {
         icon: Shield,
         label: dict.status.blocked,
@@ -940,12 +936,10 @@ const EnhancedCandidateCard: React.FC<{
       };
     }
 
-    // 🆕 שינוי: PENDING עכשיו מציג אזהרה בלבד, לא חוסם
     if (candidate.suggestionStatus?.status === 'PENDING') {
       return {
         icon: Clock,
         label: dict.status.pending,
-        // 🔄 שינוי: צבע כתום במקום אדום - אזהרה לא חסימה
         className: 'bg-gradient-to-r from-amber-400 to-orange-400 text-white',
         description: dict.status.pendingDescription.replace(
           '{{name}}',
@@ -987,12 +981,12 @@ const EnhancedCandidateCard: React.FC<{
             {statusInfo.label}
           </Badge>
           {candidate.suggestionStatus?.status === 'PENDING' && (
-  <div className="absolute top-2 left-2 z-10">
-    <div className="p-1.5 rounded-full bg-amber-100 border border-amber-300 shadow-sm">
-      <Clock className="w-3 h-3 text-amber-600" />
-    </div>
-  </div>
-)}
+            <div className="absolute top-2 left-2 z-10">
+              <div className="p-1.5 rounded-full bg-amber-100 border border-amber-300 shadow-sm">
+                <Clock className="w-3 h-3 text-amber-600" />
+              </div>
+            </div>
+          )}
 
           {candidate.profile.religiousLevel && (
             <Badge className="bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-lg">
@@ -1083,6 +1077,7 @@ const CandidateSelector: React.FC<CandidateSelectorProps> = ({
   candidates,
   className,
   error,
+  disabled = false, // ✅ שינוי 2: קבלת disabled עם ברירת מחדל false
 }) => {
   const [open, setOpen] = useState(false);
   const [inputValue, setInputValue] = useState('');
@@ -1111,10 +1106,6 @@ const CandidateSelector: React.FC<CandidateSelectorProps> = ({
 
   const handleSelect = useCallback(
     (candidate: Candidate) => {
-      // 🗑️ הסרנו את הבדיקה הקודמת שחסמה בחירה:
-      // if (candidate.suggestionStatus?.status === 'BLOCKED') { return; }
-
-      // 🆕 חדש: במקום לחסום, מציגים toast עם אזהרה
       if (candidate.suggestionStatus?.status === 'PENDING') {
         toast.warning(
           dict.toasts?.pendingSuggestionWarning?.title || 'שים לב - הצעה קיימת',
@@ -1136,7 +1127,6 @@ const CandidateSelector: React.FC<CandidateSelectorProps> = ({
         );
       }
 
-      // ✅ תמיד מאפשרים בחירה
       onChange(candidate);
       setOpen(false);
       setInputValue('');
@@ -1180,8 +1170,25 @@ const CandidateSelector: React.FC<CandidateSelectorProps> = ({
             <User className="w-5 h-5" />
           </div>
           <label className="text-lg font-bold text-gray-800">{label}</label>
+          {/* ✅ שינוי 3a: אינדיקציה ויזואלית שהשדה נעול */}
+          {disabled && (
+            <Badge
+              variant="outline"
+              className="text-xs bg-gray-100 text-gray-500 border-gray-300"
+            >
+              🔒 נעול
+            </Badge>
+          )}
         </div>
-        <Popover open={open} onOpenChange={setOpen}>
+        <Popover
+          open={disabled ? false : open}
+          onOpenChange={(val) => {
+            if (!disabled) {
+              setOpen(val);
+            }
+          }}
+        >
+          {' '}
           <PopoverTrigger asChild>
             <div className="relative group">
               <div className="absolute inset-0 bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-2xl blur opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
@@ -1190,12 +1197,19 @@ const CandidateSelector: React.FC<CandidateSelectorProps> = ({
                 <Input
                   value={value ? formatCandidateDisplay(value) : inputValue}
                   onChange={(e) => {
+                    if (disabled) return; // ✅ שינוי 3b: חסימת שינוי ב-disabled
                     setInputValue(e.target.value);
                     if (!open) setOpen(true);
                     setActiveIndex(-1);
                   }}
                   onKeyDown={handleKeyDown}
-                  onClick={() => !open && setOpen(true)}
+                  onClick={() => {
+                    if (disabled) return;
+                    if (!open) {
+                      setOpen(true);
+                    }
+                  }}
+                  disabled={disabled} // ✅ שינוי 3d: העברת disabled ל-Input
                   placeholder={dict.searchPlaceholder}
                   className={cn(
                     'h-14 pr-14 text-right text-lg border-2 transition-all duration-300 rounded-2xl shadow-lg',
@@ -1203,7 +1217,8 @@ const CandidateSelector: React.FC<CandidateSelectorProps> = ({
                     'border-purple-200 hover:border-purple-300 focus:border-purple-500 focus:ring-purple-200',
                     'placeholder:text-gray-400',
                     error &&
-                      'border-red-300 focus:border-red-500 focus:ring-red-200'
+                      'border-red-300 focus:border-red-500 focus:ring-red-200',
+                    disabled && 'opacity-70 cursor-not-allowed bg-gray-50' // ✅ שינוי 3e: סגנון disabled
                   )}
                   role="combobox"
                   aria-expanded={open}
@@ -1296,15 +1311,18 @@ const CandidateSelector: React.FC<CandidateSelectorProps> = ({
                   {dict.selectedDisplay.title}
                 </h4>
               </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => onChange(null)}
-                className="text-red-600 hover:text-red-700 hover:bg-red-50 rounded-xl transition-all duration-300"
-              >
-                <Zap className="w-4 h-4 ml-1" />
-                {dict.selectedDisplay.removeButton}
-              </Button>
+              {/* ✅ שינוי 4: הסתרת כפתור "הסר" כש-disabled */}
+              {!disabled && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => onChange(null)}
+                  className="text-red-600 hover:text-red-700 hover:bg-red-50 rounded-xl transition-all duration-300"
+                >
+                  <Zap className="w-4 h-4 ml-1" />
+                  {dict.selectedDisplay.removeButton}
+                </Button>
+              )}
             </div>
             <EnhancedCandidateCard
               dict={dict}
@@ -1841,7 +1859,7 @@ File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmak
 Content:
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmaker\suggestions\NewSuggestionForm
-# Generated on: 2026-01-29 07:27:26
+# Generated on: 2026-02-18 07:23:05
 # Filter: Only content of code files (.bat, .c, .cfg, .conf, .cpp, .cs, .css, .go, .h, .html, .ini, .java, .js, .json, .jsx, .kt, .less, .md, .php, .py, .rb, .rs, .scss, .sh, .sql, .swift, .ts, .tsx, .txt, .xml, .yaml, .yml) is included.
 ################################################################################
 
@@ -1920,12 +1938,16 @@ const EnhancedCandidateCard: React.FC<{
   const mainImage = candidate.images.find((img) => img.isMain)?.url;
 
   const getStatusInfo = () => {
+    // 🔄 שינוי: במקום לחסום (BLOCKED), מציגים רק אזהרה
+    // המועמד עדיין יהיה ניתן לבחירה
+
     if (isBlocked) {
+      // 🆕 שינוי: הורדנו את ה-isBlocked מהלוגיקה הבסיסית
+      // עכשיו isBlocked מגיע מ-prop ורק מסמן ויזואלית
       return {
         icon: Shield,
         label: dict.status.blocked,
-        className:
-          'bg-gradient-to-r from-red-500 to-pink-500 text-white animate-pulse',
+        className: 'bg-gradient-to-r from-red-500 to-pink-500 text-white',
         description: dict.status.blockedDescription.replace(
           '{{name}}',
           candidate.suggestionStatus?.withCandidateName || ''
@@ -1933,11 +1955,13 @@ const EnhancedCandidateCard: React.FC<{
       };
     }
 
+    // 🆕 שינוי: PENDING עכשיו מציג אזהרה בלבד, לא חוסם
     if (candidate.suggestionStatus?.status === 'PENDING') {
       return {
         icon: Clock,
         label: dict.status.pending,
-        className: 'bg-gradient-to-r from-yellow-500 to-amber-500 text-white',
+        // 🔄 שינוי: צבע כתום במקום אדום - אזהרה לא חסימה
+        className: 'bg-gradient-to-r from-amber-400 to-orange-400 text-white',
         description: dict.status.pendingDescription.replace(
           '{{name}}',
           candidate.suggestionStatus.withCandidateName
@@ -1965,7 +1989,7 @@ const EnhancedCandidateCard: React.FC<{
         isBlocked && 'opacity-60 cursor-not-allowed',
         !isBlocked && 'hover:scale-105 hover:border-purple-300'
       )}
-      onClick={!isBlocked ? onClick : undefined}
+      onClick={onClick}
     >
       <div className="absolute inset-0">
         <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-purple-200/20 to-pink-200/20 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
@@ -1977,6 +2001,14 @@ const EnhancedCandidateCard: React.FC<{
             <StatusIcon className="w-3 h-3 ml-1" />
             {statusInfo.label}
           </Badge>
+          {candidate.suggestionStatus?.status === 'PENDING' && (
+  <div className="absolute top-2 left-2 z-10">
+    <div className="p-1.5 rounded-full bg-amber-100 border border-amber-300 shadow-sm">
+      <Clock className="w-3 h-3 text-amber-600" />
+    </div>
+  </div>
+)}
+
           {candidate.profile.religiousLevel && (
             <Badge className="bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-lg">
               <Crown className="w-3 h-3 ml-1" />
@@ -1984,6 +2016,7 @@ const EnhancedCandidateCard: React.FC<{
             </Badge>
           )}
         </div>
+
         <div className="flex items-center gap-4">
           <div className="relative">
             <Avatar className="w-16 h-16 border-4 border-white shadow-xl ring-2 ring-purple-200 group-hover:ring-purple-400 transition-all duration-300">
@@ -2093,17 +2126,32 @@ const CandidateSelector: React.FC<CandidateSelectorProps> = ({
 
   const handleSelect = useCallback(
     (candidate: Candidate) => {
-      if (candidate.suggestionStatus?.status === 'BLOCKED') {
-        toast.error(dict.toasts.cannotSelectError.title, {
-          description: dict.toasts.cannotSelectError.description
-            .replace('{{name}}', `${candidate.firstName} ${candidate.lastName}`)
-            .replace(
-              '{{withName}}',
-              candidate.suggestionStatus.withCandidateName
-            ),
-        });
-        return;
+      // 🗑️ הסרנו את הבדיקה הקודמת שחסמה בחירה:
+      // if (candidate.suggestionStatus?.status === 'BLOCKED') { return; }
+
+      // 🆕 חדש: במקום לחסום, מציגים toast עם אזהרה
+      if (candidate.suggestionStatus?.status === 'PENDING') {
+        toast.warning(
+          dict.toasts?.pendingSuggestionWarning?.title || 'שים לב - הצעה קיימת',
+          {
+            description: (
+              dict.toasts?.pendingSuggestionWarning?.description ||
+              'למועמד/ת {{name}} יש כבר הצעה פעילה עם {{withName}}'
+            )
+              .replace(
+                '{{name}}',
+                `${candidate.firstName} ${candidate.lastName}`
+              )
+              .replace(
+                '{{withName}}',
+                candidate.suggestionStatus.withCandidateName
+              ),
+            duration: 5000,
+          }
+        );
       }
+
+      // ✅ תמיד מאפשרים בחירה
       onChange(candidate);
       setOpen(false);
       setInputValue('');
@@ -4866,6 +4914,7 @@ import { toast } from 'sonner';
 import { useForm, FormProvider } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Priority, MatchSuggestionStatus } from '@prisma/client';
+import { addDays } from 'date-fns';
 import {
   UserPlus,
   Sparkles,
@@ -4884,7 +4933,6 @@ import {
 // Types
 import type { Candidate } from '../../new/types/candidates';
 import { newSuggestionSchema, type NewSuggestionFormData } from './schema';
-// <=== שינוי 1: עדכון הטיפוס של המילון שמתקבל ===>
 import type { MatchmakerPageDictionary } from '@/types/dictionaries/matchmaker';
 
 // Components
@@ -4894,6 +4942,20 @@ import CandidateSelector from './CandidateSelector';
 import { AiMatchAnalysisDialog } from '../../new/dialogs/AiMatchAnalysisDialog';
 import { cn } from '@/lib/utils';
 
+// ── טיפוס הנתונים שמוחזרים ל-BulkSuggestionsDialog ──────────────────────────
+export interface BulkSuggestionItemData {
+  priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
+  decisionDeadline: Date;
+  firstPartyLanguage: 'he' | 'en';
+  secondPartyLanguage: 'he' | 'en';
+  notes?: {
+    matchingReason?: string;
+    forFirstParty?: string;
+    forSecondParty?: string;
+    internal?: string;
+  };
+}
+
 interface NewSuggestionFormProps {
   locale: string;
   dict: MatchmakerPageDictionary;
@@ -4902,6 +4964,16 @@ interface NewSuggestionFormProps {
   candidates: Candidate[];
   selectedCandidate?: Candidate | null;
   onSubmit: (data: NewSuggestionFormData) => Promise<void>;
+  /** Pre-fills first party and locks it (for bulk mode) */
+  prefilledFirstParty?: Candidate | null;
+  /** Pre-fills second party and locks it (for bulk mode) */
+  prefilledSecondParty?: Candidate | null;
+  /**
+   * כשמוגדר true, כפתור ה"שמור" לא שולח ל-API אלא קורא ל-onDraftSave
+   * ומאפשר ל-BulkSuggestionsDialog לשמור את הנתונים ב-state.
+   */
+  isBulkMode?: boolean;
+  onDraftSave?: (data: BulkSuggestionItemData) => void;
 }
 
 const StepIndicator: React.FC<{
@@ -4965,11 +5037,13 @@ const NewSuggestionForm: React.FC<NewSuggestionFormProps> = ({
   onClose,
   candidates,
   selectedCandidate,
-  locale, // <--- הוסף את זה
-
+  locale,
   onSubmit,
+  prefilledFirstParty,
+  prefilledSecondParty,
+  isBulkMode = false,
+  onDraftSave,
 }) => {
-  // <=== שינוי 3: שימוש בנתיב הנכון והמלא לאובייקט המילון של הטופס ===>
   const formDict = dict.suggestionsDashboard.newSuggestionForm;
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -4978,7 +5052,19 @@ const NewSuggestionForm: React.FC<NewSuggestionFormProps> = ({
   const [showAnalysisDialog, setShowAnalysisDialog] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
 
-  // <=== שינוי 4: בניית מערך השלבים מתוך המילון ===>
+  // ── Pre-fill מ-props בעת bulk mode ──────────────────────────────────────────
+  useEffect(() => {
+    if (prefilledFirstParty) {
+      setFirstParty(prefilledFirstParty);
+    }
+  }, [prefilledFirstParty]);
+
+  useEffect(() => {
+    if (prefilledSecondParty) {
+      setSecondParty(prefilledSecondParty);
+    }
+  }, [prefilledSecondParty]);
+
   const steps = [
     { label: formDict.steps.select.label, icon: Users },
     { label: formDict.steps.analyze.label, icon: BarChart2 },
@@ -4994,22 +5080,23 @@ const NewSuggestionForm: React.FC<NewSuggestionFormProps> = ({
     },
   });
 
-  useEffect(() => {
-    if (isOpen) {
-      form.reset({
-        priority: Priority.MEDIUM,
-        status: MatchSuggestionStatus.DRAFT,
-        decisionDeadline: new Date(
-          new Date().setDate(new Date().getDate() + 14)
-        ),
-        firstPartyId: selectedCandidate?.id || '',
-        secondPartyId: '',
-      });
-      setFirstParty(selectedCandidate || null);
-      setSecondParty(null);
-      setCurrentStep(0);
-    }
-  }, [isOpen, selectedCandidate, form]);
+ useEffect(() => {
+  if (isOpen) {
+    const initialFirst = prefilledFirstParty ?? selectedCandidate ?? null;
+    const initialSecond = prefilledSecondParty ?? null;
+    form.reset({
+      priority: Priority.MEDIUM,
+      status: MatchSuggestionStatus.DRAFT,
+      decisionDeadline: new Date(new Date().setDate(new Date().getDate() + 14)),
+      firstPartyId: initialFirst?.id || '',
+      secondPartyId: initialSecond?.id || '',
+    });
+    setFirstParty(initialFirst);
+    setSecondParty(initialSecond);
+    setCurrentStep(0);
+  }
+}, [isOpen, selectedCandidate, prefilledFirstParty, prefilledSecondParty, form]);
+
 
   const handleCandidateSelect =
     (type: 'first' | 'second') => (candidate: Candidate | null) => {
@@ -5038,6 +5125,23 @@ const NewSuggestionForm: React.FC<NewSuggestionFormProps> = ({
     if (!firstParty || !secondParty) {
       toast.error(formDict.toasts.selectParties);
       return;
+    }
+
+    // ── Bulk mode: שמור ב-state במקום לשלוח ל-API ────────────────────────────
+    if (isBulkMode && onDraftSave) {
+      onDraftSave({
+        priority: data.priority as 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT',
+        decisionDeadline: data.decisionDeadline,
+        firstPartyLanguage: (data as any).firstPartyLanguage ?? 'he',
+        secondPartyLanguage: (data as any).secondPartyLanguage ?? 'he',
+        notes: {
+          matchingReason: (data as any).matchingReason,
+          forFirstParty: (data as any).firstPartyNotes,
+          forSecondParty: (data as any).secondPartyNotes,
+          internal: (data as any).internalNotes,
+        },
+      });
+      return; // מפסיק לפני שליחה ל-API
     }
 
     setIsSubmitting(true);
@@ -5088,6 +5192,7 @@ const NewSuggestionForm: React.FC<NewSuggestionFormProps> = ({
               otherParty={secondParty}
               fieldName="firstPartyId"
               error={form.formState.errors.firstPartyId?.message}
+              disabled={isBulkMode && !!prefilledFirstParty}
             />
             <CandidateSelector
               dict={formDict.candidateSelector}
@@ -5098,6 +5203,7 @@ const NewSuggestionForm: React.FC<NewSuggestionFormProps> = ({
               otherParty={firstParty}
               fieldName="secondPartyId"
               error={form.formState.errors.secondPartyId?.message}
+              disabled={isBulkMode && !!prefilledSecondParty}
             />
           </div>
         );
@@ -5117,7 +5223,6 @@ const NewSuggestionForm: React.FC<NewSuggestionFormProps> = ({
         }
         return (
           <div className="space-y-8">
-            {/* <=== שינוי 5: העברת החלק הנכון במילון לקומפוננטת הילד ===> */}
             <MatchPreview
               dict={formDict.matchPreview}
               firstParty={firstParty}
@@ -5152,7 +5257,6 @@ const NewSuggestionForm: React.FC<NewSuggestionFormProps> = ({
           );
         }
         return (
-          // <=== שינוי 6: העברת החלק הנכון במילון לקומפוננטת הילד ===>
           <SuggestionDetails
             dict={formDict.suggestionDetails}
             firstParty={firstParty}
@@ -5253,7 +5357,7 @@ const NewSuggestionForm: React.FC<NewSuggestionFormProps> = ({
                     ) : (
                       <>
                         <Gift className="w-5 h-5 ml-2" />
-                        {formDict.buttons.create}
+                        {isBulkMode ? 'שמור טיוטה' : formDict.buttons.create}
                         <Sparkles className="w-4 h-4 mr-2" />
                       </>
                     )}
@@ -5275,9 +5379,8 @@ const NewSuggestionForm: React.FC<NewSuggestionFormProps> = ({
           onClose={() => setShowAnalysisDialog(false)}
           targetCandidate={firstParty}
           comparisonCandidates={[secondParty]}
-          // <=== שינוי 7: העברת החלק הנכון של המילון לדיאלוג ה-AI ===>
           dict={dict.candidatesManager.aiAnalysis}
-          locale={locale} // <--- הוסף את השורה הזו
+          locale={locale}
         />
       )}
     </>
@@ -5437,7 +5540,7 @@ File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmak
 Content:
 // src/app/components/matchmaker/suggestions/cards/SuggestionCard.tsx
 
-import React, { useState, useEffect } from 'react';
+import React, { useMemo } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -5449,12 +5552,11 @@ import {
 } from '@/components/ui/dropdown-menu';
 import Image from 'next/image';
 import {
+  Bookmark,
   Clock,
   MessageCircle,
   Eye,
-  AlertCircle,
   MoreHorizontal,
-  Send,
   RefreshCw,
   Trash2,
   Edit,
@@ -5463,29 +5565,17 @@ import {
   CalendarClock,
   Heart,
   MapPin,
-
-  Star,
   Sparkles,
-  Crown,
-  Target,
-
   Quote,
   Briefcase,
   GraduationCap,
   ArrowRight,
-
   Flame,
   TrendingUp,
-  Shield,
-  Gem,
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { he } from 'date-fns/locale';
-import type {
-  MatchSuggestionStatus,
-  Priority,
-  UserImage,
-} from '@prisma/client';
+import type { UserImage } from '@prisma/client';
 import type {
   Suggestion,
   ActionAdditionalData,
@@ -5494,25 +5584,18 @@ import type {
 import { Progress } from '@/components/ui/progress';
 import { cn, getRelativeCloudinaryPath, getInitials } from '@/lib/utils';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import {
-  TooltipProvider,
-} from '@/components/ui/tooltip';
+import { TooltipProvider } from '@/components/ui/tooltip';
 import type { MatchmakerPageDictionary } from '@/types/dictionary';
 
-// Media query hook
-const useMediaQuery = (query: string) => {
-  const [matches, setMatches] = useState(false);
-  useEffect(() => {
-    const media = window.matchMedia(query);
-    if (media.matches !== matches) {
-      setMatches(media.matches);
-    }
-    const listener = () => setMatches(media.matches);
-    window.addEventListener('resize', listener);
-    return () => window.removeEventListener('resize', listener);
-  }, [matches, query]);
-  return matches;
-};
+// ✅ import משותף במקום הגדרה מקומית מכופלת
+import {
+  getEnhancedStatusInfo,
+  getEnhancedPriorityInfo,
+  calculateAge,
+  getDaysLeft,
+} from '@/lib/suggestion-status-utils';
+
+// ✅ useMediaQuery הוסר לגמרי! isMobile מגיע כ-prop מה-parent
 
 interface SuggestionCardProps {
   suggestion: Suggestion;
@@ -5532,151 +5615,9 @@ interface SuggestionCardProps {
   dict: MatchmakerPageDictionary['suggestionsDashboard']['suggestionCard'];
   className?: string;
   variant?: 'full' | 'compact';
+  unreadChatCount?: number;
+  isMobile?: boolean; // ✅ חדש - מגיע מ-parent במקום useMediaQuery פנימי
 }
-
-const calculateAge = (birthDate: Date): number => {
-  const today = new Date();
-  const birth = new Date(birthDate);
-  let age = today.getFullYear() - birth.getFullYear();
-  const monthDiff = today.getMonth() - birth.getMonth();
-  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
-    age--;
-  }
-  return age;
-};
-
-const getEnhancedStatusInfo = (status: MatchSuggestionStatus) => {
-  const defaults = {
-    icon: RefreshCw,
-    progress: 30,
-    pulse: false,
-    color: 'text-gray-600',
-    bgColor: 'from-gray-50 to-slate-50',
-  };
-  const statusMap: Partial<
-    Record<MatchSuggestionStatus, Partial<typeof defaults>>
-  > = {
-    PENDING_FIRST_PARTY: {
-      color: 'text-yellow-600',
-      bgColor: 'from-yellow-50 to-amber-50',
-      icon: Clock,
-      progress: 25,
-      pulse: true,
-    },
-    PENDING_SECOND_PARTY: {
-      color: 'text-blue-600',
-      bgColor: 'from-blue-50 to-cyan-50',
-      icon: Clock,
-      progress: 50,
-      pulse: true,
-    },
-    FIRST_PARTY_APPROVED: {
-      color: 'text-green-600',
-      bgColor: 'from-green-50 to-emerald-50',
-      icon: CheckCircle,
-      progress: 40,
-    },
-    SECOND_PARTY_APPROVED: {
-      color: 'text-green-600',
-      bgColor: 'from-green-50 to-emerald-50',
-      icon: CheckCircle,
-      progress: 60,
-    },
-    FIRST_PARTY_DECLINED: {
-      color: 'text-red-600',
-      bgColor: 'from-red-50 to-pink-50',
-      icon: XCircle,
-      progress: 100,
-    },
-    SECOND_PARTY_DECLINED: {
-      color: 'text-red-600',
-      bgColor: 'from-red-50 to-pink-50',
-      icon: XCircle,
-      progress: 100,
-    },
-    CONTACT_DETAILS_SHARED: {
-      color: 'text-purple-600',
-      bgColor: 'from-purple-50 to-pink-50',
-      icon: Send,
-      progress: 70,
-    },
-    DATING: {
-      color: 'text-pink-600',
-      bgColor: 'from-pink-50 to-rose-50',
-      icon: Heart,
-      progress: 80,
-    },
-    ENGAGED: {
-      color: 'text-yellow-600',
-      bgColor: 'from-yellow-50 to-orange-50',
-      icon: Gem,
-      progress: 95,
-    },
-    MARRIED: {
-      color: 'text-emerald-600',
-      bgColor: 'from-emerald-50 to-green-50',
-      icon: Crown,
-      progress: 100,
-    },
-    AWAITING_FIRST_DATE_FEEDBACK: {
-      color: 'text-orange-600',
-      bgColor: 'from-orange-50 to-amber-50',
-      icon: AlertCircle,
-      progress: 75,
-      pulse: true,
-    },
-    EXPIRED: {
-      color: 'text-gray-600',
-      bgColor: 'from-gray-50 to-slate-50',
-      icon: Clock,
-      progress: 100,
-    },
-  };
-  return { ...defaults, ...(statusMap[status] || {}) };
-};
-
-const getEnhancedPriorityInfo = (priority: Priority) => {
-  const priorityMap = {
-    URGENT: {
-      icon: Flame,
-      borderColor: 'border-red-500',
-      bgGradient: 'from-red-50 to-pink-50',
-      badgeClass:
-        'bg-gradient-to-r from-red-500 to-pink-500 text-white border-0 shadow-xl animate-pulse',
-    },
-    HIGH: {
-      icon: Star,
-      borderColor: 'border-orange-500',
-      bgGradient: 'from-orange-50 to-amber-50',
-      badgeClass:
-        'bg-gradient-to-r from-orange-500 to-amber-500 text-white border-0 shadow-lg',
-    },
-    MEDIUM: {
-      icon: Target,
-      borderColor: 'border-blue-500',
-      bgGradient: 'from-blue-50 to-cyan-50',
-      badgeClass:
-        'bg-gradient-to-r from-blue-500 to-cyan-500 text-white border-0 shadow-lg',
-    },
-    LOW: {
-      icon: Shield,
-      borderColor: 'border-gray-400',
-      bgGradient: 'from-gray-50 to-slate-50',
-      badgeClass:
-        'bg-gradient-to-r from-gray-500 to-slate-500 text-white border-0 shadow-lg',
-    },
-  };
-  return priorityMap[priority] || priorityMap.MEDIUM;
-};
-
-const getDaysLeft = (decisionDeadline?: Date | string | null) => {
-  if (!decisionDeadline) return null;
-  const deadline = new Date(decisionDeadline);
-  const today = new Date();
-  const diffTime = deadline.getTime() - today.getTime();
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-  return diffDays > 0 ? diffDays : 0;
-};
 
 const HighlightPill: React.FC<{
   icon: React.ElementType;
@@ -5790,18 +5731,36 @@ const SuggestionCard: React.FC<SuggestionCardProps> = ({
   dict,
   className,
   variant = 'full',
+  unreadChatCount = 0,
+  isMobile = false, // ✅ prop במקום useMediaQuery
 }) => {
-  const isMobile = useMediaQuery('(max-width: 768px)');
-
   const { firstParty, secondParty, matchmaker } = suggestion;
-  const statusInfo = getEnhancedStatusInfo(suggestion.status);
-  const priorityInfo = getEnhancedPriorityInfo(suggestion.priority);
+
+  // ✅ Memoize חישובים כבדים - לא מחושבים מחדש אם ה-props לא השתנו
+  const statusInfo = useMemo(
+    () => getEnhancedStatusInfo(suggestion.status),
+    [suggestion.status]
+  );
+  const priorityInfo = useMemo(
+    () => getEnhancedPriorityInfo(suggestion.priority),
+    [suggestion.priority]
+  );
+  const daysLeft = useMemo(
+    () => getDaysLeft(suggestion.decisionDeadline),
+    [suggestion.decisionDeadline]
+  );
+  const firstPartyAge = useMemo(
+    () => calculateAge(firstParty.profile.birthDate),
+    [firstParty.profile.birthDate]
+  );
+  const secondPartyAge = useMemo(
+    () => calculateAge(secondParty.profile.birthDate),
+    [secondParty.profile.birthDate]
+  );
+
   const statusText = dict.statuses[suggestion.status] || dict.statuses.DEFAULT;
   const priorityText =
     dict.priorities[suggestion.priority] || dict.priorities.MEDIUM;
-  const daysLeft = getDaysLeft(suggestion.decisionDeadline);
-  const firstPartyAge = calculateAge(firstParty.profile.birthDate);
-  const secondPartyAge = calculateAge(secondParty.profile.birthDate);
 
   const highlights = [
     {
@@ -5821,6 +5780,9 @@ const SuggestionCard: React.FC<SuggestionCardProps> = ({
     },
   ].slice(0, 3);
 
+  // ─────────────────────────────────────────────────────────────────────────
+  // Mobile Compact View
+  // ─────────────────────────────────────────────────────────────────────────
   if (isMobile && variant === 'compact') {
     const StatusIcon = statusInfo.icon;
     return (
@@ -5890,6 +5852,9 @@ const SuggestionCard: React.FC<SuggestionCardProps> = ({
     );
   }
 
+  // ─────────────────────────────────────────────────────────────────────────
+  // Mobile Full View
+  // ─────────────────────────────────────────────────────────────────────────
   if (isMobile && variant === 'full') {
     return (
       <Card
@@ -6013,9 +5978,15 @@ const SuggestionCard: React.FC<SuggestionCardProps> = ({
                   </DropdownMenuItem>
                   <DropdownMenuItem
                     onClick={() => onAction('message', suggestion)}
+                    className="relative"
                   >
                     <MessageCircle className="w-4 h-4 ml-2" />
                     <span>{dict.actions.sendMessage}</span>
+                    {unreadChatCount > 0 && (
+                      <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] bg-gradient-to-r from-red-500 to-pink-500 text-white text-[10px] rounded-full flex items-center justify-center shadow-md animate-pulse">
+                        {unreadChatCount}
+                      </span>
+                    )}
                   </DropdownMenuItem>
                   <DropdownMenuItem
                     onClick={() => onAction('delete', suggestion)}
@@ -6033,6 +6004,9 @@ const SuggestionCard: React.FC<SuggestionCardProps> = ({
     );
   }
 
+  // ─────────────────────────────────────────────────────────────────────────
+  // Desktop View (default)
+  // ─────────────────────────────────────────────────────────────────────────
   const StatusIcon = statusInfo.icon;
   const PriorityIcon = priorityInfo.icon;
   const canBeResent = [
@@ -6060,11 +6034,7 @@ const SuggestionCard: React.FC<SuggestionCardProps> = ({
           <div className="relative z-10">
             <div className="flex justify-between items-center mb-4">
               <div className="flex items-center gap-3">
-                <div
-                  className={cn(
-                    'p-3 rounded-full shadow-lg group-hover:scale-110 transition-transform bg-white/20 backdrop-blur-sm'
-                  )}
-                >
+                <div className="p-3 rounded-full shadow-lg group-hover:scale-110 transition-transform bg-white/20 backdrop-blur-sm">
                   <StatusIcon className={cn('w-6 h-6', statusInfo.color)} />
                 </div>
                 <div>
@@ -6126,18 +6096,26 @@ const SuggestionCard: React.FC<SuggestionCardProps> = ({
                 )}
               </div>
               {(suggestion.status === 'FIRST_PARTY_APPROVED' ||
-                suggestion.status === 'FIRST_PARTY_DECLINED') && (
+                suggestion.status === 'FIRST_PARTY_DECLINED' ||
+                suggestion.status === 'FIRST_PARTY_INTERESTED') && (
                 <Badge
                   className={
                     suggestion.status === 'FIRST_PARTY_APPROVED'
                       ? 'bg-gradient-to-r from-green-500 to-emerald-500 text-white border-0 shadow-lg'
-                      : 'bg-gradient-to-r from-red-500 to-pink-500 text-white border-0 shadow-lg'
+                      : suggestion.status === 'FIRST_PARTY_INTERESTED'
+                        ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white border-0 shadow-lg'
+                        : 'bg-gradient-to-r from-red-500 to-pink-500 text-white border-0 shadow-lg'
                   }
                 >
                   {suggestion.status === 'FIRST_PARTY_APPROVED' ? (
                     <>
                       <CheckCircle className="w-4 h-4 ml-2" />
                       {dict.desktop.partyStatus.approved}
+                    </>
+                  ) : suggestion.status === 'FIRST_PARTY_INTERESTED' ? (
+                    <>
+                      <Bookmark className="w-4 h-4 ml-2" />
+                      {dict.desktop.partyStatus.interested || 'שמר/ה לגיבוי'}
                     </>
                   ) : (
                     <>
@@ -6275,10 +6253,15 @@ const SuggestionCard: React.FC<SuggestionCardProps> = ({
                 variant="ghost"
                 size="sm"
                 onClick={() => onAction('message', suggestion)}
-                className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-xl font-medium"
+                className="relative text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-xl font-medium"
               >
                 <MessageCircle className="w-4 h-4 ml-2" />
                 {dict.actions.sendMessage}
+                {unreadChatCount > 0 && (
+                  <span className="absolute -top-2 -right-2 min-w-[18px] h-[18px] bg-gradient-to-r from-red-500 to-pink-500 text-white text-[10px] rounded-full flex items-center justify-center shadow-md animate-pulse">
+                    {unreadChatCount}
+                  </span>
+                )}
               </Button>
               {canBeResent && (
                 <Button
@@ -6344,7 +6327,8 @@ const SuggestionCard: React.FC<SuggestionCardProps> = ({
   );
 };
 
-export default SuggestionCard;
+// ✅ React.memo - מונע re-render אם ה-props לא השתנו
+export default React.memo(SuggestionCard);
 --- End of Content for SuggestionCard.tsx ---
 
 ================================================================================
@@ -6823,61 +6807,60 @@ export default function MatchmakerDashboard({
     }
   };
 
- // בתוך MatchmakerDashboard.tsx
+  // בתוך MatchmakerDashboard.tsx
 
-const handleStatusChange = async (
-  suggestionId: string,
-  newStatus: MatchSuggestionStatus,
-  notes?: string
-) => {
-  setIsSubmitting(true);
-  try {
-    const response = await fetch(
-      `/api/matchmaker/suggestions/${suggestionId}/status`,
-      {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          status: newStatus,
-          notes: notes || `סטטוס שונה מממשק ניהול`,
-        }),
+  const handleStatusChange = async (
+    suggestionId: string,
+    newStatus: MatchSuggestionStatus,
+    notes?: string
+  ) => {
+    setIsSubmitting(true);
+    try {
+      const response = await fetch(
+        `/api/matchmaker/suggestions/${suggestionId}/status`,
+        {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            status: newStatus,
+            notes: notes || `סטטוס שונה מממשק ניהול`,
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to update status');
       }
-    );
-    
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error || 'Failed to update status');
+
+      const data = await response.json(); // ה-API מחזיר את ההצעה המעודכנת (חלקית או מלאה)
+
+      toast.success(toastsDict.statusUpdateSuccess);
+
+      // 1. עדכון הרשימה הראשית ברקע
+      fetchSuggestions();
+
+      // 2. עדכון הדיאלוג הפתוח בזמן אמת (כדי שהסטטוס יתחלף מול העיניים)
+      if (selectedSuggestion && selectedSuggestion.id === suggestionId) {
+        setSelectedSuggestion((prev) => {
+          if (!prev) return null;
+          return {
+            ...prev,
+            status: newStatus,
+            lastActivity: new Date(), // עדכון זמן פעילות אחרון
+            // אם ה-API מחזיר היסטוריה מעודכנת, אפשר להוסיף אותה כאן, אבל לרוב הסטטוס מספיק ל-UI
+          };
+        });
+      }
+    } catch (error: unknown) {
+      console.error('Error updating suggestion status:', error);
+      toast.error(
+        `${toastsDict.statusUpdateError}: ${error instanceof Error ? error.message : ''}`
+      );
+    } finally {
+      setIsSubmitting(false);
     }
-
-    const data = await response.json(); // ה-API מחזיר את ההצעה המעודכנת (חלקית או מלאה)
-
-    toast.success(toastsDict.statusUpdateSuccess);
-    
-    // 1. עדכון הרשימה הראשית ברקע
-    fetchSuggestions();
-
-    // 2. עדכון הדיאלוג הפתוח בזמן אמת (כדי שהסטטוס יתחלף מול העיניים)
-    if (selectedSuggestion && selectedSuggestion.id === suggestionId) {
-      setSelectedSuggestion(prev => {
-        if (!prev) return null;
-        return {
-          ...prev,
-          status: newStatus,
-          lastActivity: new Date(), // עדכון זמן פעילות אחרון
-          // אם ה-API מחזיר היסטוריה מעודכנת, אפשר להוסיף אותה כאן, אבל לרוב הסטטוס מספיק ל-UI
-        };
-      });
-    }
-
-  } catch (error: unknown) {
-    console.error('Error updating suggestion status:', error);
-    toast.error(
-      `${toastsDict.statusUpdateError}: ${error instanceof Error ? error.message : ''}`
-    );
-  } finally {
-    setIsSubmitting(false);
-  }
-};
+  };
 
   const handleUpdateSuggestion = async ({
     suggestionId,
@@ -7031,7 +7014,10 @@ const handleStatusChange = async (
         )
       ) {
         columns.requiresAction.suggestions.push(suggestion);
-      } else if (suggestion.status.includes('APPROVED')) {
+      } else if (
+        suggestion.status.includes('APPROVED') ||
+        suggestion.status === 'FIRST_PARTY_INTERESTED'
+      ) {
         columns.pendingResponse.suggestions.push(suggestion);
       } else if (suggestion.category === 'ACTIVE') {
         columns.inProgress.suggestions.push(suggestion);
@@ -8700,6 +8686,586 @@ Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\mat
 ================================================================================
 
 --------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmaker\suggestions\details\SuggestionChatTab.tsx
+--------------------------------------------------------------------------------
+Content:
+// src/components/matchmaker/suggestions/details/SuggestionChatTab.tsx
+'use client';
+
+import React, {
+  useState,
+  useEffect,
+  useRef,
+  useCallback,
+  useMemo,
+} from 'react';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { toast } from 'sonner';
+import {
+  Send,
+  Loader2,
+  MessageCircle,
+  Bot,
+  RefreshCw,
+  CheckCheck,
+} from 'lucide-react';
+import { cn, getInitials } from '@/lib/utils';
+import { format } from 'date-fns';
+import { he, enUS } from 'date-fns/locale';
+import type { Locale } from '../../../../../i18n-config';
+
+// ==========================================
+// Types
+// ==========================================
+
+interface ChatMessage {
+  id: string;
+  content: string;
+  senderId: string;
+  senderType: 'user' | 'matchmaker' | 'system';
+  senderName: string;
+  targetUserId?: string | null;
+  isRead: boolean;
+  createdAt: string;
+  isFirstParty?: boolean;
+  isSecondParty?: boolean;
+}
+
+interface PartyInfo {
+  id: string;
+  name: string;
+}
+
+export interface ChatTabDict {
+  header: string;
+  noMessages: string;
+  noMessagesDescription: string;
+  placeholder: string;
+  sendError: string;
+  sendingTo: string;
+  senderLabels: { matchmaker: string; system: string };
+  partyLabels: { partyA: string; partyB: string };
+}
+
+const defaultDict: ChatTabDict = {
+  header: 'הודעות',
+  noMessages: 'אין הודעות עדיין',
+  noMessagesDescription: 'שלח/י הודעה ראשונה למועמד/ת',
+  placeholder: 'כתוב/י הודעה...',
+  sendError: 'שגיאה בשליחת ההודעה',
+  sendingTo: 'שולח/ת ל:',
+  senderLabels: { matchmaker: 'את/ה (שדכן/ית)', system: 'מערכת' },
+  partyLabels: { partyA: "צד א'", partyB: "צד ב'" },
+};
+
+interface SuggestionChatTabProps {
+  suggestionId: string;
+  locale: Locale;
+  dict?: ChatTabDict;
+  defaultParty?: 'first' | 'second';
+  hidePartyTabs?: boolean;
+}
+
+export default function SuggestionChatTab({
+  suggestionId,
+  locale,
+  dict,
+  defaultParty = 'first',
+  hidePartyTabs = false,
+}: SuggestionChatTabProps) {
+  const t = dict || defaultDict;
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [parties, setParties] = useState<{
+    firstParty?: PartyInfo;
+    secondParty?: PartyInfo;
+  }>({});
+  const [newMessage, setNewMessage] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSending, setIsSending] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [selectedParty, setSelectedParty] = useState<'first' | 'second'>(
+    defaultParty
+  );
+
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const isHe = locale === 'he';
+
+  // ==========================================
+  // ✅ Smart auto-scroll tracking
+  // ==========================================
+  const isNearBottom = useRef(true);
+  const prevMessageCount = useRef(0);
+
+  const handleScroll = useCallback(() => {
+    if (!scrollRef.current) return;
+    const { scrollTop, scrollHeight, clientHeight } = scrollRef.current;
+    isNearBottom.current = scrollHeight - scrollTop - clientHeight < 100;
+  }, []);
+
+  // ==========================================
+  // Selected party ID
+  // ==========================================
+
+  const getSelectedPartyId = useCallback(() => {
+    return selectedParty === 'first'
+      ? parties.firstParty?.id
+      : parties.secondParty?.id;
+  }, [selectedParty, parties]);
+
+  // ==========================================
+  // Fetch messages
+  // ==========================================
+
+  const fetchMessages = useCallback(async () => {
+    try {
+      const response = await fetch(
+        `/api/matchmaker/suggestions/${suggestionId}/chat`
+      );
+      if (!response.ok) throw new Error('Failed to fetch messages');
+      const data = await response.json();
+
+      if (data.success) {
+        setMessages(data.messages || []);
+        setParties(data.parties || {});
+        setUnreadCount(data.unreadCount || 0);
+      }
+    } catch (error) {
+      console.error('[fetchMessages] Error:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [suggestionId]);
+
+  // ==========================================
+  // ✅ Visibility-aware polling
+  // במקום polling שרץ גם כשהטאב מוסתר
+  // ==========================================
+  useEffect(() => {
+    fetchMessages();
+
+    let interval: NodeJS.Timeout | null = null;
+
+    const startPolling = () => {
+      if (interval) clearInterval(interval);
+      interval = setInterval(fetchMessages, 15000);
+    };
+
+    const stopPolling = () => {
+      if (interval) {
+        clearInterval(interval);
+        interval = null;
+      }
+    };
+
+    const handleVisibility = () => {
+      if (document.hidden) {
+        stopPolling();
+      } else {
+        fetchMessages();
+        startPolling();
+      }
+    };
+
+    startPolling();
+    document.addEventListener('visibilitychange', handleVisibility);
+
+    return () => {
+      stopPolling();
+      document.removeEventListener('visibilitychange', handleVisibility);
+    };
+  }, [fetchMessages]);
+
+  // ==========================================
+  // ✅ Smart auto-scroll
+  // גולל לתחתית רק כשהמשתמש קרוב לתחתית או כשיש הודעה חדשה
+  // ==========================================
+  useEffect(() => {
+    const newCount = messages.length;
+    const countChanged = newCount > prevMessageCount.current;
+    prevMessageCount.current = newCount;
+
+    if (scrollRef.current && (isNearBottom.current || countChanged)) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }, [messages, selectedParty]);
+
+  useEffect(() => {
+    if (unreadCount > 0) {
+      fetch(`/api/matchmaker/suggestions/${suggestionId}/chat`, {
+        method: 'PATCH',
+      })
+        .then(() => setUnreadCount(0))
+        .catch(console.error);
+    }
+  }, [suggestionId, unreadCount]);
+
+  // ==========================================
+  // ✅ Memoized filtered messages
+  // ==========================================
+
+  const selectedPartyId = getSelectedPartyId();
+
+  const filteredMessages = useMemo(
+    () =>
+      messages.filter((msg) => {
+        if (msg.senderType === 'system') return true;
+        if (msg.senderType === 'user') return msg.senderId === selectedPartyId;
+        if (msg.senderType === 'matchmaker') {
+          if (!msg.targetUserId) return true;
+          return msg.targetUserId === selectedPartyId;
+        }
+        return true;
+      }),
+    [messages, selectedPartyId]
+  );
+
+  const { firstPartyUnread, secondPartyUnread } = useMemo(
+    () => ({
+      firstPartyUnread: messages.filter(
+        (m) =>
+          m.senderType === 'user' &&
+          m.senderId === parties.firstParty?.id &&
+          !m.isRead
+      ).length,
+      secondPartyUnread: messages.filter(
+        (m) =>
+          m.senderType === 'user' &&
+          m.senderId === parties.secondParty?.id &&
+          !m.isRead
+      ).length,
+    }),
+    [messages, parties.firstParty?.id, parties.secondParty?.id]
+  );
+
+  // ==========================================
+  // Send with targetUserId
+  // ==========================================
+
+  const handleSend = async () => {
+    const targetUserId = getSelectedPartyId();
+    if (!newMessage.trim() || isSending || !targetUserId) {
+      if (!targetUserId && !isLoading) {
+        toast.error('לא נבחר נמען להודעה');
+      }
+      return;
+    }
+
+    setIsSending(true);
+    try {
+      const response = await fetch(
+        `/api/matchmaker/suggestions/${suggestionId}/chat`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ content: newMessage.trim(), targetUserId }),
+        }
+      );
+
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Failed to send');
+
+      if (data.success && data.message) {
+        setMessages((prev) => [...prev, data.message]);
+        setNewMessage('');
+        textareaRef.current?.focus();
+      }
+    } catch (error) {
+      console.error('[handleSend] Error:', error);
+      toast.error(t.sendError);
+    } finally {
+      setIsSending(false);
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSend();
+    }
+  };
+
+  // ==========================================
+  // Helpers
+  // ==========================================
+
+  const getSenderLabel = (msg: ChatMessage) => {
+    if (msg.senderType === 'matchmaker') return t.senderLabels.matchmaker;
+    if (msg.senderType === 'system') return t.senderLabels.system;
+    if (msg.isFirstParty && parties.firstParty) return parties.firstParty.name;
+    if (msg.isSecondParty && parties.secondParty)
+      return parties.secondParty.name;
+    return msg.senderName;
+  };
+
+  const getSenderColor = (msg: ChatMessage) => {
+    if (msg.senderType === 'matchmaker') return 'from-teal-500 to-teal-600';
+    if (msg.senderType === 'system') return 'from-gray-400 to-slate-500';
+    if (msg.isFirstParty) return 'from-teal-400 to-cyan-500';
+    return 'from-amber-400 to-orange-500';
+  };
+
+  // ==========================================
+  // Render
+  // ==========================================
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="w-6 h-6 animate-spin text-teal-500" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col h-[500px]">
+      {/* Header */}
+      <div className="flex flex-col border-b bg-gray-50/50">
+        <div className="flex items-center justify-between px-4 py-2">
+          <div className="flex items-center gap-2">
+            <MessageCircle className="w-5 h-5 text-teal-500" />
+            <span className="font-medium text-gray-700">{t.header}</span>
+          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={fetchMessages}
+            className="text-gray-500 hover:text-teal-600"
+          >
+            <RefreshCw className="w-4 h-4" />
+          </Button>
+        </div>
+
+        {/* Party tabs */}
+        {!hidePartyTabs && parties.firstParty && parties.secondParty && (
+          <div className="flex border-t">
+            <button
+              onClick={() => setSelectedParty('first')}
+              className={cn(
+                'flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-medium transition-all border-b-2',
+                selectedParty === 'first'
+                  ? 'border-teal-500 text-teal-700 bg-teal-50/50'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+              )}
+            >
+              <span className="w-2 h-2 rounded-full bg-teal-400" />
+              {parties.firstParty.name}
+              {firstPartyUnread > 0 && (
+                <Badge className="bg-amber-500 text-white text-[10px] px-1.5 py-0 min-w-[18px] h-[18px] border-0">
+                  {firstPartyUnread}
+                </Badge>
+              )}
+            </button>
+            <button
+              onClick={() => setSelectedParty('second')}
+              className={cn(
+                'flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-medium transition-all border-b-2',
+                selectedParty === 'second'
+                  ? 'border-amber-500 text-amber-700 bg-amber-50/50'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+              )}
+            >
+              <span className="w-2 h-2 rounded-full bg-amber-400" />
+              {parties.secondParty.name}
+              {secondPartyUnread > 0 && (
+                <Badge className="bg-amber-500 text-white text-[10px] px-1.5 py-0 min-w-[18px] h-[18px] border-0">
+                  {secondPartyUnread}
+                </Badge>
+              )}
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* Messages area */}
+      <ScrollArea
+        className="flex-1 px-4"
+        ref={scrollRef}
+        onScroll={handleScroll}
+      >
+        {filteredMessages.length === 0 ? (
+          <div className="flex flex-col items-center justify-center h-full py-12 text-center">
+            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-teal-50 to-amber-50 flex items-center justify-center mb-4">
+              <MessageCircle className="w-8 h-8 text-teal-300" />
+            </div>
+            <h3 className="font-medium text-gray-700 mb-1">{t.noMessages}</h3>
+            <p className="text-sm text-gray-400 max-w-xs">
+              {t.noMessagesDescription}
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-3 py-3" dir="ltr">
+            {filteredMessages.map((msg) => {
+              const isMatchmaker = msg.senderType === 'matchmaker';
+              const isSystem = msg.senderType === 'system';
+
+              if (isSystem) {
+                return (
+                  <div key={msg.id} className="flex justify-center">
+                    <div className="bg-gray-100 text-gray-500 text-[11px] px-3 py-1.5 rounded-full">
+                      {msg.content}
+                    </div>
+                  </div>
+                );
+              }
+
+              return (
+                <div
+                  key={msg.id}
+                  className={cn(
+                    'flex gap-2',
+                    isMatchmaker ? 'flex-row-reverse' : 'flex-row'
+                  )}
+                >
+                  <Avatar className="w-8 h-8 flex-shrink-0 shadow-sm">
+                    <AvatarFallback
+                      className={cn(
+                        'text-white text-xs font-bold bg-gradient-to-br',
+                        getSenderColor(msg)
+                      )}
+                    >
+                      {isMatchmaker ? (
+                        <Bot className="w-4 h-4" />
+                      ) : (
+                        getInitials(msg.senderName)
+                      )}
+                    </AvatarFallback>
+                  </Avatar>
+
+                  <div
+                    dir={isHe ? 'rtl' : 'ltr'}
+                    className={cn(
+                      'max-w-[75%] rounded-2xl px-4 py-2.5 shadow-sm',
+                      isMatchmaker
+                        ? 'bg-gradient-to-br from-teal-500 to-teal-600 text-white rounded-tr-md'
+                        : 'bg-white border border-gray-100 text-gray-800 rounded-tl-md'
+                    )}
+                  >
+                    <span
+                      className={cn(
+                        'text-[11px] font-medium block mb-1',
+                        isMatchmaker ? 'text-teal-100' : 'text-gray-400'
+                      )}
+                    >
+                      {getSenderLabel(msg)}
+                    </span>
+                    <p className="text-sm leading-relaxed whitespace-pre-wrap">
+                      {msg.content}
+                    </p>
+                    <div
+                      className={cn(
+                        'flex items-center gap-1 mt-1.5',
+                        isMatchmaker ? 'justify-start' : 'justify-end'
+                      )}
+                    >
+                      <span
+                        className={cn(
+                          'text-[10px]',
+                          isMatchmaker ? 'text-teal-200' : 'text-gray-400'
+                        )}
+                      >
+                        {format(new Date(msg.createdAt), 'HH:mm', {
+                          locale: isHe ? he : enUS,
+                        })}
+                      </span>
+                      {isMatchmaker && (
+                        <CheckCheck
+                          className={cn(
+                            'w-3.5 h-3.5',
+                            msg.isRead ? 'text-teal-200' : 'text-teal-300/50'
+                          )}
+                        />
+                      )}
+                      {!msg.isRead && !isMatchmaker && (
+                        <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </ScrollArea>
+
+      {/* Input area */}
+      <div className="border-t bg-white p-3">
+        {/* Sending to banner */}
+        {selectedPartyId && (
+          <div
+            className={cn(
+              'flex items-center gap-2 mb-2.5 px-3 py-2 rounded-lg text-xs',
+              selectedParty === 'first'
+                ? 'bg-teal-50 border border-teal-100'
+                : 'bg-amber-50 border border-amber-100'
+            )}
+          >
+            <div
+              className={cn(
+                'w-2 h-2 rounded-full flex-shrink-0',
+                selectedParty === 'first' ? 'bg-teal-400' : 'bg-amber-400'
+              )}
+            />
+            <span className="text-gray-600">
+              {t.sendingTo || (isHe ? 'שולח/ת ל:' : 'Sending to:')}{' '}
+              <span
+                className={cn(
+                  'font-semibold',
+                  selectedParty === 'first' ? 'text-teal-700' : 'text-amber-700'
+                )}
+              >
+                {selectedParty === 'first'
+                  ? parties.firstParty?.name
+                  : parties.secondParty?.name}
+              </span>
+            </span>
+          </div>
+        )}
+
+        {/* Warning if no parties */}
+        {!selectedPartyId && !isLoading && (
+          <div className="mb-2 p-2 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-700">
+            ⚠️{' '}
+            {isHe
+              ? 'לא נמצאו פרטי הצדדים - לא ניתן לשלוח הודעה'
+              : 'No party details found - cannot send message'}
+          </div>
+        )}
+
+        <div className="flex items-end gap-2">
+          <Textarea
+            ref={textareaRef}
+            value={newMessage}
+            onChange={(e) => setNewMessage(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder={t.placeholder}
+            className="flex-1 min-h-[44px] max-h-[120px] resize-none rounded-xl border-gray-200 focus:border-teal-400 focus:ring-teal-400/20"
+            rows={1}
+          />
+          <Button
+            onClick={handleSend}
+            disabled={!newMessage.trim() || isSending || !selectedPartyId}
+            size="icon"
+            className="rounded-xl h-11 w-11 bg-gradient-to-r from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700 shadow-md transition-all disabled:opacity-40"
+          >
+            {isSending ? (
+              <Loader2 className="w-5 h-5 animate-spin" />
+            ) : (
+              <Send className="w-5 h-5 rtl:-scale-x-100" />
+            )}
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+--- End of Content for SuggestionChatTab.tsx ---
+
+--------------------------------------------------------------------------------
 File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmaker\suggestions\details\SuggestionDetailsDialog.tsx
 --------------------------------------------------------------------------------
 Content:
@@ -8707,10 +9273,10 @@ Content:
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import InquiryThreadView from '@/components/suggestions/inquiries/InquiryThreadView';
 import { useNotifications } from '@/app/[locale]/contexts/NotificationContext';
+import SuggestionChatTab from './SuggestionChatTab';
 
-import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -8724,6 +9290,7 @@ import {
 import { ProfileCard } from '@/components/profile';
 import { Timeline } from '@/components/ui/timeline';
 import {
+    Bookmark,
   CheckCircle,
   XCircle,
   MessageCircle,
@@ -8732,8 +9299,8 @@ import {
   Edit,
   Calendar,
   Clock,
-  ArrowLeft, // להוספה
-  Edit2, // להוספה (אייקון עריכה קטן)
+  ArrowLeft,
+  Edit2,
   AlarmClock,
   Trash2,
   User,
@@ -8812,8 +9379,8 @@ interface SuggestionDetailsDialogProps {
   userId: string;
   matchmakerDict: MatchmakerPageDictionary;
   suggestionsDict: SuggestionsDictionary;
-  profileDict: ProfilePageDictionary; // ✅ הוספת המילון החדש
-  locale: 'he' | 'en'; // <-- 1. הוסף את locale לממשק ה-props
+  profileDict: ProfilePageDictionary;
+  locale: 'he' | 'en';
 }
 
 interface StatusInfo {
@@ -8857,6 +9424,14 @@ const getEnhancedStatusInfo = (status: MatchSuggestionStatus): StatusInfo => {
       badgeColor: 'bg-gradient-to-r from-red-500 to-pink-500 text-white',
       progress: 0,
     },
+        FIRST_PARTY_INTERESTED: {
+      icon: Bookmark,
+      color: 'text-amber-600',
+      bgColor: 'from-amber-50 to-orange-50',
+      badgeColor: 'bg-gradient-to-r from-amber-500 to-orange-500 text-white',
+      progress: 30,
+    },
+
     PENDING_SECOND_PARTY: {
       icon: Clock,
       color: 'text-blue-600',
@@ -9002,7 +9577,15 @@ const getEnhancedStatusInfo = (status: MatchSuggestionStatus): StatusInfo => {
   );
 };
 
-// ... Internal Components updated to receive and use dict ...
+// Tab configuration with icons
+const TAB_ICONS: Record<string, LucideIcon> = {
+  overview: Eye,
+  party1: User,
+  party2: User,
+  timeline: Calendar,
+  chat: MessageCircle,
+  actions: Settings,
+};
 
 const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
   suggestion,
@@ -9013,7 +9596,7 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
   matchmakerDict,
   suggestionsDict,
   profileDict,
-  locale, // <-- 2. קבל את locale
+  locale,
 }) => {
   const dict = matchmakerDict.suggestionDetailsDialog;
   const [activeTab, setActiveTab] = useState('overview');
@@ -9084,6 +9667,10 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
 
   const statusInfo = getEnhancedStatusInfo(suggestion.status);
   const statusLabel = dict.statusLabels[suggestion.status] || suggestion.status;
+
+  // Build tabs list from dictionary (chat is now included in dict.tabs)
+  const tabEntries: [string, string][] = Object.entries(dict.tabs);
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent
@@ -9093,9 +9680,17 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
             ? '!w-screen !h-screen !max-w-none !max-h-none !rounded-none !fixed !inset-0 !m-0'
             : 'md:max-w-7xl md:w-[95vw] md:h-[95vh] md:rounded-3xl'
         )}
-        dir={locale === 'he' ? 'rtl' : 'ltr'} // <-- ✨ 3. השתמש ב-locale לקביעת הכיווניות
+        dir={locale === 'he' ? 'rtl' : 'ltr'}
         onOpenAutoFocus={(e) => e.preventDefault()}
       >
+        {/* כותרת נגישות - מוסתרת ויזואלית אך נגישה לקוראי מסך */}
+        <DialogTitle className="sr-only">
+          {dict.header.title.replace(
+            '{{id}}',
+            suggestion?.id?.toString().split('-')[0] || ''
+          )}
+        </DialogTitle>
+
         <Tabs
           value={activeTab}
           onValueChange={setActiveTab}
@@ -9192,17 +9787,17 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
                   </Button>
                 </div>
               </div>
-              <TabsList className="grid w-full grid-cols-3 sm:grid-cols-6 bg-white/60 backdrop-blur-sm rounded-2xl p-1.5 h-auto shadow-lg border border-white/50">
-                {Object.entries(dict.tabs).map(([key, label]) => {
-                  const IconComponent =
-                    {
-                      overview: Eye,
-                      party1: User,
-                      party2: User,
-                      timeline: Calendar,
-                      communication: MessageCircle,
-                      actions: Settings,
-                    }[key] || Eye;
+              <TabsList
+                className={cn(
+                  'grid w-full bg-white/60 backdrop-blur-sm rounded-2xl p-1.5 h-auto shadow-lg border border-white/50',
+                  `grid-cols-3 sm:grid-cols-${tabEntries.length}`
+                )}
+                style={{
+                  gridTemplateColumns: `repeat(${tabEntries.length}, minmax(0, 1fr))`,
+                }}
+              >
+                {tabEntries.map(([key, label]) => {
+                  const IconComponent = TAB_ICONS[key] || Eye;
                   return (
                     <TabsTrigger
                       key={key}
@@ -9228,7 +9823,7 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
 
           <div className="flex-1 overflow-y-auto bg-slate-50">
             <TabsContent value="overview" className="m-0 h-full">
-              {/* OverviewTabContent Component would be here, but we'll inline it */}
+              {/* OverviewTabContent Component would be here */}
             </TabsContent>
             <TabsContent value="firstParty" className="m-0 h-full">
               <div className="p-6">
@@ -9285,24 +9880,16 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
                 </div>
               </div>
             </TabsContent>
-            <TabsContent value="communication" className="m-0 h-full">
-              <div className="p-6">
-                <div className="bg-white rounded-2xl shadow-xl border-0 p-6">
-                  <h3 className="text-2xl font-bold mb-6 flex items-center gap-3">
-                    <div className="p-3 rounded-full bg-gradient-to-r from-pink-500 to-rose-500 text-white shadow-lg">
-                      <MessageCircle className="w-6 h-6" />
-                    </div>
-                    {dict.communication.title}
-                  </h3>
-                  <InquiryThreadView
-                    suggestionId={suggestion.id}
-                    userId={userId}
-                    showComposer={true}
-                    dict={suggestionsDict.inquiryThread}
-                  />
-                </div>
-              </div>
+
+            {/* Chat Tab */}
+            <TabsContent value="chat" className="m-0 h-full">
+              <SuggestionChatTab
+                suggestionId={suggestion.id}
+                locale={locale}
+                dict={dict.chatTab}
+              />
             </TabsContent>
+
             <TabsContent value="actions" className="m-0 h-full">
               <div className="p-6">
                 <h3 className="text-2xl font-bold mb-6 flex items-center gap-3">
@@ -9435,8 +10022,6 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
                           className="justify-between h-auto py-3 px-4 border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-all text-right group"
                           onClick={() => {
                             setNewStatus(action.nextStatus);
-                            // אפשר להוסיף הערה אוטומטית לפי הפעולה
-                            // setStatusChangeNote(action.label);
                           }}
                         >
                           <span className="font-medium text-gray-700 group-hover:text-blue-700">
@@ -9463,7 +10048,7 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
 
                 <div className="border-t border-gray-100 my-4"></div>
 
-                {/* בחירה ידנית (כמו שהיה קודם, למקרי חירום) */}
+                {/* בחירה ידנית */}
                 <div>
                   <label className="block text-xs font-semibold uppercase tracking-wider text-gray-500 mb-2">
                     {dict.statusChangeModal.newStatusLabel} (בחירה ידנית)
@@ -9932,6 +10517,9 @@ Content:
 
 import React, { useState, useMemo } from 'react';
 import { Input } from '@/components/ui/input';
+// ✅ הוסר: import { useUnreadChatCounts } from '@/hooks/useUnreadChatCounts';
+// unreadChatCount מגיע עכשיו מתוך ה-suggestion object דרך ה-API החדש
+
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -9943,6 +10531,7 @@ import {
 } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import {
+  Bookmark,
   Search,
   Filter,
   SortDesc,
@@ -9953,18 +10542,13 @@ import {
   CheckCircle,
   XCircle,
   Heart,
- 
   TrendingUp,
   Activity,
   BarChart3,
-
   Sparkles,
-
   Flame,
-
   RefreshCw,
   Calendar,
-
 } from 'lucide-react';
 import type { MatchSuggestion } from '@prisma/client';
 import type { UserProfile, UserImage } from '@/types/next-auth';
@@ -10004,6 +10588,11 @@ const STATIC_STATUS_OPTIONS = [
     icon: CheckCircle,
   },
   {
+    value: 'FIRST_PARTY_INTERESTED',
+    color: 'from-amber-500 to-orange-500',
+    icon: Bookmark,
+  },
+  {
     value: 'SECOND_PARTY_APPROVED',
     color: 'from-green-500 to-emerald-500',
     icon: CheckCircle,
@@ -10028,6 +10617,7 @@ interface ExtendedMatchSuggestion extends MatchSuggestion {
   firstParty: PartyInfo;
   secondParty: PartyInfo;
   statusHistory: SuggestionStatusHistory[];
+  unreadChatCount?: number; // ✅ חדש - מגיע מה-API
 }
 
 interface SuggestionsListProps {
@@ -10048,6 +10638,7 @@ interface SuggestionsListProps {
   ) => void;
   className?: string;
   dict: MatchmakerPageDictionary['suggestionsDashboard'];
+  isMobile?: boolean; // ✅ חדש - מועבר ל-SuggestionCard
 }
 
 const EnhancedListStats: React.FC<{
@@ -10307,6 +10898,7 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
   onAction,
   className,
   dict: dashboardDict,
+  isMobile = false, // ✅ חדש
 }) => {
   const dict = dashboardDict.suggestionsList;
   const [searchQuery, setSearchQuery] = useState('');
@@ -10314,6 +10906,9 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
   const [statusFilter, setStatusFilter] = useState<string[]>([]);
   const [showFilters, setShowFilters] = useState(false);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+
+  // ✅ הוסר: const { bySuggestion: unreadCounts } = useUnreadChatCounts();
+  // unreadChatCount מגיע עכשיו מתוך כל suggestion object
 
   const stats = useMemo(() => {
     const total = suggestions.length;
@@ -10369,7 +10964,7 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
           );
         });
         break;
-      case 'priority':{ 
+      case 'priority': {
         const priorityOrder = { URGENT: 0, HIGH: 1, MEDIUM: 2, LOW: 3 };
         result.sort(
           (a, b) =>
@@ -10452,28 +11047,27 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
       ) : (
         <div
           className={cn(
-            'animate-fade-in-up',
             viewMode === 'grid'
               ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'
               : 'space-y-6'
           )}
         >
-          {filteredSuggestions.map((suggestion, index) => (
-            <div
+          {/* ✅ הוסר: stagger animation (animationDelay: index * 100ms)
+              היה גורם ל-5 שניות המתנה עם 50 פריטים!
+              ✅ הוסר: wrapper div מיותר
+              ✅ unreadChatCount מגיע מתוך ה-suggestion object */}
+          {filteredSuggestions.map((suggestion) => (
+            <SuggestionCard
               key={suggestion.id}
-              className="animate-scale-in"
-              style={{
-                animationDelay: `${index * 100}ms`,
-                animationFillMode: 'both',
-              }}
-            >
-              <SuggestionCard
-                suggestion={suggestion as unknown as Suggestion}
-                onAction={onAction}
-                dict={dashboardDict.suggestionCard}
-                className="h-full"
-              />
-            </div>
+              suggestion={suggestion as unknown as Suggestion}
+              onAction={onAction}
+              dict={dashboardDict.suggestionCard}
+              className="h-full"
+              unreadChatCount={
+                (suggestion as ExtendedMatchSuggestion).unreadChatCount || 0
+              }
+              isMobile={isMobile}
+            />
           ))}
         </div>
       )}
@@ -10604,6 +11198,7 @@ Content:
 import { MatchSuggestionStatus } from '@prisma/client';
 import { SuggestionWithParties } from '../suggestions/StatusTransitionService';
 import { EmailDictionary } from '@/types/dictionary'; // ייבוא הטיפוס המאוחד
+
 export type LanguagePreferences = {
   firstParty: 'he' | 'en';
   secondParty: 'he' | 'en';
@@ -10685,17 +11280,20 @@ export class NotificationService {
     return results;
   }
 
+  /**
+   * פונקציה ראשית: טיפול בשינוי סטטוס של הצעת שידוך.
+   * מזהה אוטומטית אם מדובר בהצעה חדשה (PENDING_FIRST/SECOND_PARTY)
+   * ושולחת "הזמנה אישית" במקום הודעה טכנית יבשה.
+   */
   public async handleSuggestionStatusChange(
     suggestion: SuggestionWithParties,
-    // שינוי: מקבלים אובייקט עם שני המילונים
     dictionaries: { he: EmailDictionary; en: EmailDictionary },
     options: Partial<NotificationOptions> = {},
-    // שינוי: פרמטר חדש להעדפות שפה
     languagePrefs: LanguagePreferences = { firstParty: 'he', secondParty: 'he', matchmaker: 'he' }
   ): Promise<void> {
-    console.log(`Processing notifications for suggestion ${suggestion.id}`);
+    console.log(`Processing notifications for suggestion ${suggestion.id}, status: ${suggestion.status}`);
     
-    // קבלת הנמענים
+    // קבלת הנמענים לפי הסטטוס הנוכחי
     const recipientsWithChannels = this.getRecipientsForSuggestion(suggestion);
   
     for (const { recipient, preferredChannels, partyType } of recipientsWithChannels) {
@@ -10708,16 +11306,44 @@ export class NotificationService {
       let targetLocale: 'he' | 'en' = 'he';
       if (partyType === 'first') targetLocale = languagePrefs.firstParty;
       if (partyType === 'second') targetLocale = languagePrefs.secondParty;
-      // לשדכן נשלח כרגע בעברית (או לפי העדפה אם נוסיף בעתיד)
       if (partyType === 'matchmaker') targetLocale = languagePrefs.matchmaker;
 
       // 2. שליפת המילון המתאים
-      const selectedDictionary = dictionaries[targetLocale].notifications;
+      const fullDictionary = dictionaries[targetLocale];
+      const notificationsDictionary = fullDictionary.notifications;
 
-      // 3. יצירת התוכן עם המילון הנכון
-      const contentGenerator = options.customMessage 
-        ? this.getCustomMessageContent(options.customMessage, suggestion.id, selectedDictionary)
-        : this.getSuggestionContentFromDict(suggestion, selectedDictionary);
+      // 3. הכרעה: איזה סוג תוכן לייצר
+      //    ← זה השינוי המרכזי: לסטטוסים של הצעה חדשה למועמד, נשלח "הזמנה אישית"
+      const isNewSuggestionForCandidate = 
+        (suggestion.status === MatchSuggestionStatus.PENDING_FIRST_PARTY || 
+         suggestion.status === MatchSuggestionStatus.PENDING_SECOND_PARTY) &&
+        partyType !== 'matchmaker';
+
+      let contentGenerator: ((partyType: 'first' | 'second' | 'matchmaker') => NotificationContent) | null;
+
+      if (isNewSuggestionForCandidate) {
+        // ====== מוד "הזמנה אישית" – סקרנות ללא פרטים ======
+        console.log(`  📨 Using INVITATION mode for ${partyType} party (${recipient.name}) in ${targetLocale}`);
+        contentGenerator = this.buildSuggestionInvitationContent(
+          suggestion,
+          fullDictionary,
+          targetLocale,                        // ✅ FIX: מעבירים locale כפרמטר נפרד
+          partyType as 'first' | 'second'
+        );
+      } else if (options.customMessage) {
+        // ====== הודעה מותאמת אישית מהשדכן ======
+        contentGenerator = this.getCustomMessageContent(
+          options.customMessage,
+          suggestion.id,
+          notificationsDictionary
+        );
+      } else {
+        // ====== מוד רגיל – לסטטוסים אחרים (אישור, דחייה, וכו') ======
+        contentGenerator = this.getSuggestionContentFromDict(
+          suggestion,
+          notificationsDictionary
+        );
+      }
 
       if (!contentGenerator) {
         console.log(`No template found for status ${suggestion.status} in ${targetLocale} - skipping`);
@@ -10726,7 +11352,7 @@ export class NotificationService {
       
       const personalizedContent = contentGenerator(partyType);
       
-      // הוספת סימון כיווניות (RTL/LTR) ל-HTML בהתאם לשפה
+      // 4. הוספת סימון כיווניות (RTL/LTR) ל-HTML בהתאם לשפה
       if (personalizedContent.htmlBody && targetLocale === 'he') {
          personalizedContent.htmlBody = `<div dir="rtl" style="text-align: right;">${personalizedContent.htmlBody}</div>`;
       } else if (personalizedContent.htmlBody && targetLocale === 'en') {
@@ -10735,6 +11361,7 @@ export class NotificationService {
 
       const channelsToUse = options.channels || preferredChannels || ['email'];
       
+      // 5. שליחה בפועל
       await this.sendNotification(
         recipient,
         personalizedContent,
@@ -10743,6 +11370,256 @@ export class NotificationService {
     }
   }
 
+  // ============================================================================
+  // NEW: בניית תוכן "הזמנה אישית" – ללא פרטים, עם סקרנות ורגש
+  // עיצוב מותאם לברנד NeshamaTech (ציאן + אמבר אקסנט)
+  // ============================================================================
+
+  /**
+   * יוצרת תוכן "הזמנה אישית" עבור מועמד שמקבל הצעת שידוך חדשה.
+   * במקום לחשוף פרטים (שם, גיל, עיסוק) – יוצרת סקרנות ומושכת לאפליקציה.
+   * ההערה האישית של השדכן (firstPartyNotes / secondPartyNotes) היא ה-game changer.
+   */
+  private buildSuggestionInvitationContent(
+    suggestion: SuggestionWithParties,
+    dictionary: EmailDictionary,
+    locale: 'he' | 'en',                    // ✅ FIX: locale כפרמטר נפרד (לא dictionary.locale)
+    partyType: 'first' | 'second'
+  ): (pt: 'first' | 'second' | 'matchmaker') => NotificationContent {
+    
+    // שליפת סעיף ההזמנה מהמילון
+    const dict = dictionary.suggestionInvitation;
+    if (!dict) {
+      console.warn('suggestionInvitation dictionary section not found, falling back to regular notification');
+      return this.getSuggestionContentFromDict(suggestion, dictionary.notifications)!;
+    }
+
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+    const supportEmail = process.env.SUPPORT_EMAIL || 'support@neshamatech.com';
+    const reviewUrl = `${baseUrl}/matches`;
+
+    // שליפת ההערה האישית של השדכן לצד הרלוונטי
+    const matchmakerNote = partyType === 'first' 
+      ? suggestion.firstPartyNotes 
+      : suggestion.secondPartyNotes;
+
+    // שם הנמען
+    const partyName = partyType === 'first' 
+      ? suggestion.firstParty.firstName 
+      : suggestion.secondParty.firstName;
+
+    // שם מלא של השדכן
+    const matchmakerFullName = `${suggestion.matchmaker.firstName} ${suggestion.matchmaker.lastName}`;
+
+    // חישוב דדליין אם קיים
+    let deadlineText: string | undefined;
+    if (suggestion.decisionDeadline) {
+      const deadline = new Date(suggestion.decisionDeadline);
+      const localeString = locale === 'he' ? 'he-IL' : 'en-US';  // ✅ FIX: משתמש ב-locale parameter
+      const formatted = deadline.toLocaleDateString(localeString, { 
+        day: 'numeric', 
+        month: 'long' 
+      });
+      deadlineText = `${dict.deadlinePrefix} ${formatted}`;
+    }
+
+    // ברכה אישית + כיווניות
+    const isHebrew = locale === 'he';  // ✅ FIX: משתמש ב-locale parameter
+    const greeting = isHebrew ? `שלום ${partyName},` : `Hello ${partyName},`;
+    const direction = isHebrew ? 'rtl' : 'ltr';
+    const textAlign = isHebrew ? 'right' : 'left';
+    const borderSide = isHebrew ? 'right' : 'left';
+    const marginSide = isHebrew ? 'left' : 'right';
+    const currentYear = new Date().getFullYear();
+
+    // Shared dictionary (for footer)
+    const sharedDict = dictionary.shared;
+    const tagline = isHebrew 
+      ? 'מחברים לבבות, בונים עתיד משותף'
+      : 'Connecting Hearts, Building Shared Futures';
+    const contactLabel = isHebrew ? 'צור קשר:' : 'Contact:';
+    const rightsText = isHebrew ? 'כל הזכויות שמורות' : 'All rights reserved';
+    const privacyText = isHebrew ? 'מדיניות פרטיות' : 'Privacy Policy';
+    const termsText = isHebrew ? 'תנאי שימוש' : 'Terms of Service';
+
+    return (): NotificationContent => {
+      // ============================================
+      // Subject – כותרת המייל
+      // ============================================
+      const subject = dict.subject;
+
+      // ============================================
+      // Body – טקסט פשוט עבור WhatsApp / SMS
+      // ============================================
+      const whatsappLines: string[] = [
+        `${greeting}`,
+        '',
+      ];
+
+      if (matchmakerNote) {
+        whatsappLines.push(`✍️ ${dict.personalNoteLabel}:`);
+        whatsappLines.push(`"${matchmakerNote.length > 120 ? matchmakerNote.substring(0, 120) + '...' : matchmakerNote}"`);
+        whatsappLines.push('');
+      }
+
+      whatsappLines.push(`🎁 ${dict.mysteryTitle}`);
+      whatsappLines.push('');
+      whatsappLines.push(`👉 ${dict.ctaButton}: ${reviewUrl}`);
+
+      if (deadlineText) {
+        whatsappLines.push('');
+        whatsappLines.push(`⏳ ${deadlineText}`);
+      }
+
+      whatsappLines.push('');
+      whatsappLines.push(`${dict.signatureText}`);
+      whatsappLines.push(`${matchmakerFullName}, ${dict.signatureRole}`);
+
+      const body = whatsappLines.join('\n');
+
+      // ============================================
+      // HTML Body – עיצוב תואם לברנד NeshamaTech
+      // ============================================
+      // צבעי ברנד:
+      //   Primary: #06b6d4 (ציאן) / #0891b2 (ציאן כהה)
+      //   Accent:  #f59e0b (אמבר) / #fbbf24 (זהב) — לקופסאות הייליט
+      //   Pink:    #ec4899 — לקודי OTP
+      //   Footer gradient: #0891b2 → #f97316 → #fbbf24
+      // ============================================
+      const htmlBody = `
+<!DOCTYPE html>
+<html dir="${direction}" lang="${locale}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${dict.title}</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #f8f9fa; width: 100% !important;">
+
+  <!-- Email Container -->
+  <div style="max-width: 600px; margin: 20px auto; background-color: #ffffff; border: 1px solid #dee2e6; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.05); overflow: hidden; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #343a40; direction: ${direction}; text-align: ${textAlign};">
+
+    <!-- ========== HEADER — ציאן כמו שאר המיילים ========== -->
+    <div style="background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%); color: #ffffff; padding: 40px 30px; text-align: center; border-bottom: 5px solid #0891b2;">
+      <span style="font-size: 36px; display: block; margin-bottom: 12px;">💌</span>
+      <h1 style="margin: 0; font-size: 26px; font-weight: 700; color: #ffffff; letter-spacing: -0.5px;">${dict.title}</h1>
+      <p style="margin-top: 10px; font-size: 15px; color: rgba(255,255,255,0.85); font-weight: 400;">${dict.subtitle}</p>
+    </div>
+
+    <!-- ========== BODY ========== -->
+    <div style="padding: 30px 30px; font-size: 16px; line-height: 1.6;">
+
+      <!-- ברכה -->
+      <p style="font-size: 20px; color: #1e293b; margin-bottom: 18px; font-weight: 600;">${greeting}</p>
+
+      <!-- טקסט מבוא -->
+      <p style="color: #475569; line-height: 1.8; margin-bottom: 25px;">${dict.intro}</p>
+
+      ${matchmakerNote ? `
+      <!-- ========== הערה אישית מהשדכן — highlight-box style ========== -->
+      <div style="background-color: #fef9e7; border-${borderSide}: 4px solid #f7c75c; border-radius: 5px; padding: 20px; margin: 25px 0; position: relative;">
+        <span style="position: absolute; top: -12px; ${borderSide}: 16px; font-size: 22px; background: #fef9e7; padding: 0 6px; border-radius: 50%;">✍️</span>
+        <p style="color: #92400e; font-weight: 700; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; margin: 0 0 8px 0;">${dict.personalNoteLabel}</p>
+        <p style="color: #78350f; font-size: 15px; line-height: 1.8; font-style: italic; margin: 0;">"${matchmakerNote}"</p>
+      </div>
+      ` : ''}
+
+      <!-- ========== כרטיס הסקרנות — attributes-list style ========== -->
+      <div style="background-color: #f8f9fa; border: 1px solid #e2e8f0; border-radius: 8px; padding: 30px 25px; margin: 25px 0; text-align: center;">
+        <div style="font-size: 48px; margin-bottom: 15px;">🎁</div>
+        <p style="font-size: 18px; color: #1e293b; font-weight: 700; margin: 0 0 8px 0;">${dict.mysteryTitle}</p>
+        <p style="font-size: 14px; color: #64748b; line-height: 1.6; margin: 0;">${dict.mysteryText}</p>
+      </div>
+
+      <!-- ========== CTA Button — ציאן כמו שאר המיילים ========== -->
+      <div style="text-align: center; margin: 30px 0 20px;">
+        <a href="${reviewUrl}" style="display: inline-block; padding: 12px 30px; background: linear-gradient(135deg, #06b6d4, #0891b2); color: white !important; text-decoration: none; border-radius: 5px; font-weight: 600; font-size: 17px; box-shadow: 0 4px 12px rgba(6, 182, 212, 0.3);">
+          ${dict.ctaButton}
+        </a>
+        <p style="margin-top: 12px; font-size: 12px; color: #9ca3af;">${dict.ctaHint}</p>
+      </div>
+
+      ${deadlineText ? `
+      <!-- ========== דדליין (עדין) ========== -->
+      <div style="text-align: center; margin: 15px 0; padding: 10px 16px; background: #fef2f2; border-radius: 5px; font-size: 13px; color: #991b1b;">
+        ⏳ ${deadlineText}
+      </div>
+      ` : ''}
+
+      <!-- ========== חתימה ========== -->
+      <div style="margin-top: 30px; padding-top: 18px; border-top: 1px solid #e5e7eb; color: #6b7280; font-size: 15px;">
+        <p style="margin: 0 0 4px 0;">${dict.signatureText}</p>
+        <p style="color: #1e293b; font-weight: 700; font-size: 16px; margin: 4px 0;">${matchmakerFullName}</p>
+        <p style="color: #94a3b8; font-size: 13px; margin: 0;">${dict.signatureRole}</p>
+      </div>
+
+    </div>
+
+    <!-- ========== FOOTER — זהה לשאר המיילים ========== -->
+    <table role="presentation" style="width: 100%; margin-top: 20px; border-top: 2px solid #e5e7eb;">
+      <tr>
+        <td style="padding: 30px 20px; text-align: center;">
+          <!-- Logo -->
+          <div style="margin-bottom: 20px;">
+            <img 
+              src="https://res.cloudinary.com/dmfxoi6g0/image/upload/v1764757309/ChatGPT_Image_Dec_3_2025_12_21_36_PM_qk8mjz.png" 
+              alt="NeshamaTech Logo" 
+              style="height: 50px; width: auto; display: inline-block;"
+            />
+          </div>
+          
+          <!-- Company Name with Gradient -->
+          <div style="margin-bottom: 15px;">
+            <span style="font-size: 24px; font-weight: bold; background: linear-gradient(to right, #0891b2, #f97316, #fbbf24); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
+              NeshamaTech
+            </span>
+          </div>
+          
+          <!-- Tagline -->
+          <p style="color: #6b7280; font-size: 14px; margin: 10px 0 20px 0; font-style: italic;">
+            ${tagline}
+          </p>
+          
+          <!-- Contact -->
+          <div style="margin: 20px 0; padding: 15px; background-color: #f9fafb; border-radius: 8px; display: inline-block;">
+            <p style="margin: 5px 0; color: #4b5563; font-size: 13px;">
+              <strong>${contactLabel}</strong>
+            </p>
+            <p style="margin: 5px 0; color: #6b7280; font-size: 13px;">
+              📧 <a href="mailto:${supportEmail}" style="color: #06b6d4; text-decoration: none;">${supportEmail}</a>
+            </p>
+            <p style="margin: 5px 0; color: #6b7280; font-size: 13px;">
+              🌐 <a href="${baseUrl}" style="color: #06b6d4; text-decoration: none;">${baseUrl}</a>
+            </p>
+          </div>
+          
+          <!-- Copyright -->
+          <p style="color: #9ca3af; font-size: 12px; margin: 15px 0 5px 0;">
+            © ${currentYear} NeshamaTech. ${rightsText}
+          </p>
+          
+          <!-- Legal -->
+          <p style="color: #9ca3af; font-size: 11px; margin: 5px 0;">
+            <a href="${baseUrl}/privacy" style="color: #6b7280; text-decoration: none; margin: 0 5px;">${privacyText}</a> | 
+            <a href="${baseUrl}/terms" style="color: #6b7280; text-decoration: none; margin: 0 5px;">${termsText}</a>
+          </p>
+        </td>
+      </tr>
+    </table>
+
+  </div>
+
+</body>
+</html>
+      `;
+
+      return { subject, body, htmlBody };
+    };
+  }
+
+  // ============================================================================
+  // EXISTING: תוכן רגיל לפי סטטוס (ללא שינוי)
+  // ============================================================================
 
   private getSuggestionContentFromDict(
     suggestion: SuggestionWithParties,
@@ -10756,8 +11633,8 @@ export class NotificationService {
       return null;
     }
     
-const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
-const reviewUrl = `${baseUrl}/matches`;
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+    const reviewUrl = `${baseUrl}/matches`;
     const dashboardUrl = `${baseUrl}/dashboard/suggestions/${suggestion.id}`;
 
     return (partyType: 'first' | 'second' | 'matchmaker'): NotificationContent => {
@@ -10787,7 +11664,8 @@ const reviewUrl = `${baseUrl}/matches`;
     suggestionId: string,
     dictionary: EmailDictionary['notifications']
   ): (partyType: 'first' | 'second' | 'matchmaker') => NotificationContent {
-const reviewUrl = `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/matches`;    return () => ({
+    const reviewUrl = `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/matches`;
+    return () => ({
         subject: dictionary.customMessage.subject,
         body: `${customMessage}\n\nלצפייה בפרטי ההצעה: ${reviewUrl}`,
         htmlBody: `<div dir="rtl"><p>${customMessage}</p><p>לצפייה בפרטי ההצעה: <a href="${reviewUrl}">לחץ כאן</a></p></div>`
@@ -10824,6 +11702,7 @@ const reviewUrl = `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
         break;
       case MatchSuggestionStatus.FIRST_PARTY_APPROVED:
       case MatchSuggestionStatus.FIRST_PARTY_DECLINED:
+      case MatchSuggestionStatus.FIRST_PARTY_INTERESTED:  // ← הוסף את זה  
       case MatchSuggestionStatus.SECOND_PARTY_APPROVED:
       case MatchSuggestionStatus.SECOND_PARTY_DECLINED:
       case MatchSuggestionStatus.THINKING_AFTER_DATE:
@@ -10894,7 +11773,8 @@ File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmak
 Content:
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmaker\suggestions\services\notification
-# Generated on: 2025-10-05 13:49:41
+# Generated on: 2026-02-13 08:35:22
+# Filter: Only content of code files (.bat, .c, .cfg, .conf, .cpp, .cs, .css, .go, .h, .html, .ini, .java, .js, .json, .jsx, .kt, .less, .md, .php, .py, .rb, .rs, .scss, .sh, .sql, .swift, .ts, .tsx, .txt, .xml, .yaml, .yml) is included.
 ################################################################################
 
 ================================================================================
@@ -10910,6 +11790,12 @@ Content:
 import { MatchSuggestionStatus } from '@prisma/client';
 import { SuggestionWithParties } from '../suggestions/StatusTransitionService';
 import { EmailDictionary } from '@/types/dictionary'; // ייבוא הטיפוס המאוחד
+
+export type LanguagePreferences = {
+  firstParty: 'he' | 'en';
+  secondParty: 'he' | 'en';
+  matchmaker: 'he' | 'en';
+};
 
 // --- הגדרות טיפוסים פנימיות של השירות ---
 
@@ -10986,45 +11872,260 @@ export class NotificationService {
     return results;
   }
 
+  /**
+   * פונקציה ראשית: טיפול בשינוי סטטוס של הצעת שידוך.
+   * מזהה אוטומטית אם מדובר בהצעה חדשה (PENDING_FIRST/SECOND_PARTY)
+   * ושולחת "הזמנה אישית" במקום הודעה טכנית יבשה.
+   */
   public async handleSuggestionStatusChange(
     suggestion: SuggestionWithParties,
-    dictionary: EmailDictionary,
-    options: Partial<NotificationOptions> = {}
+    dictionaries: { he: EmailDictionary; en: EmailDictionary },
+    options: Partial<NotificationOptions> = {},
+    languagePrefs: LanguagePreferences = { firstParty: 'he', secondParty: 'he', matchmaker: 'he' }
   ): Promise<void> {
-    console.log(`Processing notifications for suggestion ${suggestion.id} with status ${suggestion.status}`);
+    console.log(`Processing notifications for suggestion ${suggestion.id}, status: ${suggestion.status}`);
     
-    // אנו עובדים עם תת-המילון של ההתראות
-    const notificationDict = dictionary.notifications; 
-    
-    const contentGenerator = options.customMessage 
-      ? this.getCustomMessageContent(options.customMessage, suggestion.id, notificationDict)
-      : this.getSuggestionContentFromDict(suggestion, notificationDict);
-
-    if (!contentGenerator) {
-      console.log(`No template found for status ${suggestion.status} - skipping notification`);
-      return;
-    }
-  
+    // קבלת הנמענים לפי הסטטוס הנוכחי
     const recipientsWithChannels = this.getRecipientsForSuggestion(suggestion);
   
     for (const { recipient, preferredChannels, partyType } of recipientsWithChannels) {
+      // דילוג אם הנמען לא ברשימת התפוצה
       if (options.notifyParties && !options.notifyParties.includes(partyType)) {
-        console.log(`Skipping recipient ${recipient.name} (${partyType}) - not in notifyParties`, options.notifyParties);
+        continue;
+      }
+
+      // 1. בחירת השפה עבור הנמען הספציפי
+      let targetLocale: 'he' | 'en' = 'he';
+      if (partyType === 'first') targetLocale = languagePrefs.firstParty;
+      if (partyType === 'second') targetLocale = languagePrefs.secondParty;
+      if (partyType === 'matchmaker') targetLocale = languagePrefs.matchmaker;
+
+      // 2. שליפת המילון המתאים
+      const fullDictionary = dictionaries[targetLocale];
+      const notificationsDictionary = fullDictionary.notifications;
+
+      // 3. הכרעה: איזה סוג תוכן לייצר
+      //    ← זה השינוי המרכזי: לסטטוסים של הצעה חדשה למועמד, נשלח "הזמנה אישית"
+      const isNewSuggestionForCandidate = 
+        (suggestion.status === MatchSuggestionStatus.PENDING_FIRST_PARTY || 
+         suggestion.status === MatchSuggestionStatus.PENDING_SECOND_PARTY) &&
+        partyType !== 'matchmaker';
+
+      let contentGenerator: ((partyType: 'first' | 'second' | 'matchmaker') => NotificationContent) | null;
+
+      if (isNewSuggestionForCandidate) {
+        // ====== מוד "הזמנה אישית" – סקרנות ללא פרטים ======
+        console.log(`  📨 Using INVITATION mode for ${partyType} party (${recipient.name}) in ${targetLocale}`);
+        contentGenerator = this.buildSuggestionInvitationContent(
+          suggestion,
+          fullDictionary,
+           targetLocale,
+          partyType as 'first' | 'second'
+        );
+      } else if (options.customMessage) {
+        // ====== הודעה מותאמת אישית מהשדכן ======
+        contentGenerator = this.getCustomMessageContent(
+          options.customMessage,
+          suggestion.id,
+          notificationsDictionary
+        );
+      } else {
+        // ====== מוד רגיל – לסטטוסים אחרים (אישור, דחייה, וכו') ======
+        contentGenerator = this.getSuggestionContentFromDict(
+          suggestion,
+          notificationsDictionary
+        );
+      }
+
+      if (!contentGenerator) {
+        console.log(`No template found for status ${suggestion.status} in ${targetLocale} - skipping`);
         continue;
       }
       
       const personalizedContent = contentGenerator(partyType);
       
+      // 4. הוספת סימון כיווניות (RTL/LTR) ל-HTML בהתאם לשפה
+      if (personalizedContent.htmlBody && targetLocale === 'he') {
+         personalizedContent.htmlBody = `<div dir="rtl" style="text-align: right;">${personalizedContent.htmlBody}</div>`;
+      } else if (personalizedContent.htmlBody && targetLocale === 'en') {
+         personalizedContent.htmlBody = `<div dir="ltr" style="text-align: left;">${personalizedContent.htmlBody}</div>`;
+      }
+
       const channelsToUse = options.channels || preferredChannels || ['email'];
       
+      // 5. שליחה בפועל
       await this.sendNotification(
         recipient,
         personalizedContent,
         { channels: channelsToUse }
       );
     }
-    console.log(`Finished processing notifications for suggestion ${suggestion.id}`);
   }
+
+  // ============================================================================
+  // NEW: בניית תוכן "הזמנה אישית" – ללא פרטים, עם סקרנות ורגש
+  // ============================================================================
+
+  /**
+   * יוצרת תוכן "הזמנה אישית" עבור מועמד שמקבל הצעת שידוך חדשה.
+   * במקום לחשוף פרטים (שם, גיל, עיסוק) – יוצרת סקרנות ומושכת לאפליקציה.
+   * ההערה האישית של השדכן (firstPartyNotes / secondPartyNotes) היא ה-game changer.
+   */
+  private buildSuggestionInvitationContent(
+    suggestion: SuggestionWithParties,
+    dictionary: EmailDictionary,
+    locale: 'he' | 'en', 
+    partyType: 'first' | 'second'
+  ): (pt: 'first' | 'second' | 'matchmaker') => NotificationContent {
+    
+    // שליפת סעיף ההזמנה מהמילון
+    const dict = dictionary.suggestionInvitation;
+    if (!dict) {
+      console.warn('suggestionInvitation dictionary section not found, falling back to regular notification');
+      return this.getSuggestionContentFromDict(suggestion, dictionary.notifications)!;
+    }
+
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+    const reviewUrl = `${baseUrl}/matches`;
+
+    // שליפת ההערה האישית של השדכן לצד הרלוונטי
+    const matchmakerNote = partyType === 'first' 
+      ? suggestion.firstPartyNotes 
+      : suggestion.secondPartyNotes;
+
+    // שם הנמען
+    const partyName = partyType === 'first' 
+      ? suggestion.firstParty.firstName 
+      : suggestion.secondParty.firstName;
+
+    // שם מלא של השדכן
+    const matchmakerFullName = `${suggestion.matchmaker.firstName} ${suggestion.matchmaker.lastName}`;
+
+    // חישוב דדליין אם קיים
+    let deadlineText: string | undefined;
+    if (suggestion.decisionDeadline) {
+      const deadline = new Date(suggestion.decisionDeadline);
+const localeString = locale === 'he' ? 'he-IL' : 'en-US';
+      const formatted = deadline.toLocaleDateString(localeString, { 
+        day: 'numeric', 
+        month: 'long' 
+      });
+      deadlineText = `${dict.deadlinePrefix} ${formatted}`;
+    }
+
+    // ברכה אישית
+const isHebrew = locale === 'he';
+    const greeting = isHebrew ? `שלום ${partyName},` : `Hello ${partyName},`;
+
+    return (): NotificationContent => {
+      // ============================================
+      // Subject – כותרת המייל (סקרנית, לא חושפת פרטים)
+      // ============================================
+      const subject = dict.subject;
+
+      // ============================================
+      // Body – טקסט פשוט עבור WhatsApp / SMS (טיזר קצר וסקרני)
+      // ============================================
+      const whatsappLines: string[] = [
+        `${greeting}`,
+        '',
+      ];
+
+      if (matchmakerNote) {
+        // אם יש הערה אישית מהשדכן – זה הדבר הכי חשוב
+        whatsappLines.push(`✍️ ${dict.personalNoteLabel}:`);
+        whatsappLines.push(`"${matchmakerNote.length > 120 ? matchmakerNote.substring(0, 120) + '...' : matchmakerNote}"`);
+        whatsappLines.push('');
+      }
+
+      whatsappLines.push(`🎁 ${dict.mysteryTitle}`);
+      whatsappLines.push('');
+      whatsappLines.push(`👉 ${dict.ctaButton}: ${reviewUrl}`);
+
+      if (deadlineText) {
+        whatsappLines.push('');
+        whatsappLines.push(`⏳ ${deadlineText}`);
+      }
+
+      whatsappLines.push('');
+      whatsappLines.push(`${dict.signatureText}`);
+      whatsappLines.push(`${matchmakerFullName}, ${dict.signatureRole}`);
+
+      const body = whatsappLines.join('\n');
+
+      // ============================================
+      // HTML Body – מייל עשיר ויוקרתי (ההזמנה המלאה)
+      // ============================================
+      const htmlBody = `
+        <!-- Header -->
+        <div style="background: linear-gradient(135deg, #1e293b 0%, #334155 50%, #1e293b 100%); color: #ffffff; padding: 45px 35px; text-align: center; position: relative; overflow: hidden; border-radius: 20px 20px 0 0;">
+          <div style="position: relative; z-index: 1;">
+            <span style="font-size: 36px; display: block; margin-bottom: 15px;">💌</span>
+            <h1 style="margin: 0; font-size: 28px; font-weight: 700; color: #fbbf24; letter-spacing: -0.5px;">${dict.title}</h1>
+            <p style="margin-top: 12px; font-size: 16px; color: #cbd5e1; font-weight: 400;">${dict.subtitle}</p>
+          </div>
+        </div>
+
+        <!-- Body -->
+        <div style="padding: 40px 35px; font-size: 16px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; direction: ${isHebrew ? 'rtl' : 'ltr'}; text-align: ${isHebrew ? 'right' : 'left'};">
+
+          <p style="font-size: 22px; color: #1e293b; margin-bottom: 20px; font-weight: 600;">${greeting}</p>
+
+          <p style="color: #475569; line-height: 1.8; margin-bottom: 25px;">${dict.intro}</p>
+
+          ${matchmakerNote ? `
+          <!-- הערה אישית מהשדכן – הקטע הכי חשוב -->
+          <div style="background: linear-gradient(135deg, #fffbeb, #fef3c7); border-${isHebrew ? 'right' : 'left'}: 5px solid #f59e0b; border-radius: 12px; padding: 25px; margin: 25px 0; position: relative;">
+            <span style="position: absolute; top: -14px; ${isHebrew ? 'right' : 'left'}: 20px; font-size: 26px; background: #fffbeb; padding: 0 8px; border-radius: 50%;">✍️</span>
+            <p style="color: #92400e; font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 1px; margin: 0 0 10px 0;">${dict.personalNoteLabel}</p>
+            <p style="color: #78350f; font-size: 16px; line-height: 1.8; font-style: italic; margin: 0;">"${matchmakerNote}"</p>
+          </div>
+          ` : ''}
+
+          <!-- כרטיס הסקרנות -->
+          <div style="background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border: 2px solid #bae6fd; border-radius: 16px; padding: 35px 30px; margin: 30px 0; text-align: center;">
+            <div style="font-size: 52px; margin-bottom: 18px;">🎁</div>
+            <p style="font-size: 20px; color: #0c4a6e; font-weight: 700; margin: 0 0 10px 0;">${dict.mysteryTitle}</p>
+            <p style="font-size: 15px; color: #0369a1; line-height: 1.6; margin: 0;">${dict.mysteryText}</p>
+          </div>
+
+          <!-- CTA Button -->
+          <div style="text-align: center; margin: 35px 0 20px;">
+            <a href="${reviewUrl}" style="display: inline-block; padding: 18px 50px; background: linear-gradient(135deg, #f59e0b, #d97706); color: #1e293b !important; text-decoration: none; border-radius: 50px; font-weight: 800; font-size: 18px; letter-spacing: 0.5px; box-shadow: 0 8px 25px rgba(245, 158, 11, 0.35);">
+              ${dict.ctaButton}
+            </a>
+            <p style="margin-top: 14px; font-size: 13px; color: #9ca3af;">${dict.ctaHint}</p>
+          </div>
+
+          ${deadlineText ? `
+          <!-- דדליין עדין -->
+          <div style="text-align: center; margin: 20px 0; padding: 12px 20px; background: #fef2f2; border-radius: 10px; font-size: 13px; color: #991b1b;">
+            ⏳ ${deadlineText}
+          </div>
+          ` : ''}
+
+          <!-- חתימה -->
+          <div style="margin-top: 35px; padding-top: 20px; border-top: 1px solid #e5e7eb; color: #6b7280; font-size: 15px;">
+            <p style="margin: 0 0 4px 0;">${dict.signatureText}</p>
+            <p style="color: #1e293b; font-weight: 700; font-size: 17px; margin: 4px 0;">${matchmakerFullName}</p>
+            <p style="color: #94a3b8; font-size: 14px; margin: 0;">${dict.signatureRole}</p>
+          </div>
+
+        </div>
+
+        <!-- Footer -->
+        <div style="background-color: #f8fafc; padding: 25px; text-align: center; font-size: 13px; color: #94a3b8; border-top: 1px solid #e2e8f0;">
+          <p style="margin: 5px 0;">© ${new Date().getFullYear()} NeshamaTech</p>
+        </div>
+      `;
+
+      return { subject, body, htmlBody };
+    };
+  }
+
+  // ============================================================================
+  // EXISTING: תוכן רגיל לפי סטטוס (ללא שינוי)
+  // ============================================================================
 
   private getSuggestionContentFromDict(
     suggestion: SuggestionWithParties,
@@ -11039,7 +12140,7 @@ export class NotificationService {
     }
     
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
-    const reviewUrl = `${baseUrl}/suggestions/${suggestion.id}/review`;
+    const reviewUrl = `${baseUrl}/matches`;
     const dashboardUrl = `${baseUrl}/dashboard/suggestions/${suggestion.id}`;
 
     return (partyType: 'first' | 'second' | 'matchmaker'): NotificationContent => {
@@ -11069,7 +12170,7 @@ export class NotificationService {
     suggestionId: string,
     dictionary: EmailDictionary['notifications']
   ): (partyType: 'first' | 'second' | 'matchmaker') => NotificationContent {
-    const reviewUrl = `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/suggestions/${suggestionId}/review`;
+    const reviewUrl = `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/matches`;
     return () => ({
         subject: dictionary.customMessage.subject,
         body: `${customMessage}\n\nלצפייה בפרטי ההצעה: ${reviewUrl}`,
@@ -11816,11 +12917,12 @@ Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\mat
 File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmaker\suggestions\services\suggestions\StatusTransitionService.ts
 --------------------------------------------------------------------------------
 Content:
-// src/app/components/matchmaker/suggestions/services/suggestions/StatusTransitionService.ts
+// src/components/matchmaker/suggestions/services/suggestions/StatusTransitionService.ts
 
 import { MatchSuggestionStatus, User, MatchSuggestion, Profile } from "@prisma/client";
 import prisma from "@/lib/prisma";
 import { notificationService } from "../notification/NotificationService";
+import { notifyNewSuggestion, notifyStatusChange, sendPushToUser } from "@/lib/pushNotifications"; // ✅ NEW
 import type { EmailDictionary } from "@/types/dictionary";
 
 type UserWithProfile = User & {
@@ -11856,17 +12958,13 @@ export class StatusTransitionService {
     return StatusTransitionService.instance;
   }
 
-  /**
-   * ביצוע מעבר סטטוס להצעה.
-   * הפונקציה עודכנה לקבל אובייקט מילונים (עברית/אנגלית) והעדפות שפה.
-   */
   async transitionStatus(
     suggestion: SuggestionWithParties,
     newStatus: MatchSuggestionStatus,
-    dictionaries: { he: EmailDictionary; en: EmailDictionary }, // תיקון: קבלת שני המילונים
+    dictionaries: { he: EmailDictionary; en: EmailDictionary },
     notes?: string,
     options: TransitionOptions = {},
-    languagePrefs: LanguagePrefs = { firstParty: 'he', secondParty: 'he', matchmaker: 'he' } // תיקון: הוספת פרמטר ששי (אופציונלי)
+    languagePrefs: LanguagePrefs = { firstParty: 'he', secondParty: 'he', matchmaker: 'he' }
   ): Promise<SuggestionWithParties> {
     const previousStatus = suggestion.status;
     const mergedOptions = {
@@ -11875,10 +12973,8 @@ export class StatusTransitionService {
       ...options
     };
 
-    // Validate the transition
     this.validateStatusTransition(previousStatus, newStatus);
 
-    // Perform the status transition in a transaction
     const updatedSuggestion = await prisma.$transaction(async (tx) => {
       const updated = await tx.matchSuggestion.update({
         where: { id: suggestion.id },
@@ -11911,31 +13007,143 @@ export class StatusTransitionService {
       return updated;
     });
 
-    // Only send notifications if option is enabled
+    // Email + WhatsApp notifications (existing)
     if (mergedOptions.sendNotifications) {
       try {
-        // קריאה לשירות ההתראות עם הפרמטרים החדשים
         await notificationService.handleSuggestionStatusChange(
           updatedSuggestion, 
-          dictionaries, // העברת אובייקט המילונים (he/en)
+          dictionaries,
           {           
             channels: ['email', 'whatsapp'],
             notifyParties: mergedOptions.notifyParties as ('first' | 'second' | 'matchmaker')[],
             customMessage: mergedOptions.customMessage
           },
-          languagePrefs // העברת העדפות השפה
+          languagePrefs
         );
         
         console.log(`Notifications sent for suggestion ${updatedSuggestion.id} status change to ${newStatus}`);
       } catch (error) {
-        // Log error but don't fail the transition
         console.error('Error sending status transition notifications:', error);
+      }
+
+      // =====================================================
+      // ✅ NEW: Push Notifications לפלאפון
+      // =====================================================
+      try {
+        await this.sendPushForStatusChange(updatedSuggestion, newStatus);
+      } catch (pushError) {
+        // Don't fail the transition if push fails
+        console.error('[push] Error in status change push (non-fatal):', pushError);
       }
     }
 
     return updatedSuggestion;
   }
 
+  // =====================================================
+  // ✅ NEW: Push notification logic for status changes
+  // =====================================================
+  private async sendPushForStatusChange(
+    suggestion: SuggestionWithParties,
+    newStatus: MatchSuggestionStatus
+  ): Promise<void> {
+    const matchmakerName = `${suggestion.matchmaker.firstName} ${suggestion.matchmaker.lastName}`;
+
+    switch (newStatus) {
+      // ── הצעה נשלחה לצד שני ──
+      case MatchSuggestionStatus.PENDING_SECOND_PARTY:
+        await notifyNewSuggestion({
+          userId: suggestion.secondPartyId,
+          matchmakerName,
+          suggestionId: suggestion.id,
+        });
+        break;
+
+      // ── צד ראשון אישר → עדכון לשדכן ──
+      case MatchSuggestionStatus.FIRST_PARTY_APPROVED:
+        await notifyStatusChange({
+          userId: suggestion.matchmakerId,
+          suggestionId: suggestion.id,
+          statusMessage: `${suggestion.firstParty.firstName} ${suggestion.firstParty.lastName} אישר/ה את ההצעה! ✅`,
+        });
+        break;
+
+      // ── צד ראשון דחה → עדכון לשדכן ──
+      case MatchSuggestionStatus.FIRST_PARTY_DECLINED:
+        await notifyStatusChange({
+          userId: suggestion.matchmakerId,
+          suggestionId: suggestion.id,
+          statusMessage: `${suggestion.firstParty.firstName} ${suggestion.firstParty.lastName} דחה/תה את ההצעה`,
+        });
+        break;
+
+      // ── צד שני אישר → עדכון לשדכן ──
+      case MatchSuggestionStatus.SECOND_PARTY_APPROVED:
+        await notifyStatusChange({
+          userId: suggestion.matchmakerId,
+          suggestionId: suggestion.id,
+          statusMessage: `${suggestion.secondParty.firstName} ${suggestion.secondParty.lastName} אישר/ה את ההצעה! ✅ שני הצדדים אישרו!`,
+        });
+        break;
+
+      // ── צד שני דחה → עדכון לשדכן ──
+      case MatchSuggestionStatus.SECOND_PARTY_DECLINED:
+        await notifyStatusChange({
+          userId: suggestion.matchmakerId,
+          suggestionId: suggestion.id,
+          statusMessage: `${suggestion.secondParty.firstName} ${suggestion.secondParty.lastName} דחה/תה את ההצעה`,
+        });
+        break;
+
+      // ── פרטי קשר שותפו → עדכון לשני הצדדים ──
+      case MatchSuggestionStatus.CONTACT_DETAILS_SHARED:
+        await Promise.all([
+          sendPushToUser(suggestion.firstPartyId, {
+            title: '🎉 פרטי קשר שותפו!',
+            body: 'שני הצדדים אישרו! לחץ/י לראות את פרטי הקשר',
+            data: { type: 'STATUS_CHANGE', suggestionId: suggestion.id },
+            sound: 'default',
+          }),
+          sendPushToUser(suggestion.secondPartyId, {
+            title: '🎉 פרטי קשר שותפו!',
+            body: 'שני הצדדים אישרו! לחץ/י לראות את פרטי הקשר',
+            data: { type: 'STATUS_CHANGE', suggestionId: suggestion.id },
+            sound: 'default',
+          }),
+        ]);
+        break;
+
+      // ── אירוסין / נישואין → כולם ──
+      case MatchSuggestionStatus.ENGAGED:
+      case MatchSuggestionStatus.MARRIED: {
+        const emoji = newStatus === 'ENGAGED' ? '💍' : '💒';
+        const label = newStatus === 'ENGAGED' ? 'מזל טוב! אירוסין!' : 'מזל טוב! נישואין!';
+        await Promise.all([
+          sendPushToUser(suggestion.firstPartyId, {
+            title: `${emoji} ${label}`,
+            body: 'מזל טוב! שמחים לבשר על ההתקדמות!',
+            data: { type: 'STATUS_CHANGE', suggestionId: suggestion.id },
+            sound: 'default',
+          }),
+          sendPushToUser(suggestion.secondPartyId, {
+            title: `${emoji} ${label}`,
+            body: 'מזל טוב! שמחים לבשר על ההתקדמות!',
+            data: { type: 'STATUS_CHANGE', suggestionId: suggestion.id },
+            sound: 'default',
+          }),
+        ]);
+        break;
+      }
+
+      default:
+        console.log(`[push] No push notification defined for status: ${newStatus}`);
+        break;
+    }
+  }
+
+  // ============================================================
+  // validateStatusTransition - UNCHANGED
+  // ============================================================
   private validateStatusTransition(
     currentStatus: MatchSuggestionStatus, 
     newStatus: MatchSuggestionStatus
@@ -11945,6 +13153,12 @@ export class StatusTransitionService {
       PENDING_FIRST_PARTY: [
         MatchSuggestionStatus.FIRST_PARTY_APPROVED,
         MatchSuggestionStatus.FIRST_PARTY_DECLINED,
+        MatchSuggestionStatus.FIRST_PARTY_INTERESTED, // ← NEW
+        MatchSuggestionStatus.CANCELLED
+      ],
+      FIRST_PARTY_INTERESTED: [                        // ← NEW ENTRY
+        MatchSuggestionStatus.FIRST_PARTY_APPROVED,    // activate from waitlist
+        MatchSuggestionStatus.FIRST_PARTY_DECLINED,    // remove from waitlist
         MatchSuggestionStatus.CANCELLED
       ],
       FIRST_PARTY_APPROVED: [
@@ -12029,12 +13243,17 @@ export class StatusTransitionService {
     }
   }
   
+  // ============================================================
+  // getStatusLabel - UNCHANGED
+  // ============================================================
   getStatusLabel(status: MatchSuggestionStatus): string {
     const statusLabels: Record<MatchSuggestionStatus, string> = {
       DRAFT: "טיוטה",
       PENDING_FIRST_PARTY: "ממתין לתשובת הצד הראשון",
       FIRST_PARTY_APPROVED: "הצד הראשון אישר",
-      FIRST_PARTY_DECLINED: "הצד הראשון דחה",
+            FIRST_PARTY_DECLINED: "הצד הראשון דחה",
+      FIRST_PARTY_INTERESTED: "הצד הראשון שמר לגיבוי",  // ← NEW
+
       PENDING_SECOND_PARTY: "ממתין לתשובת הצד השני",
       SECOND_PARTY_APPROVED: "הצד השני אישר",
       SECOND_PARTY_DECLINED: "הצד השני דחה",
@@ -12059,6 +13278,9 @@ export class StatusTransitionService {
     return statusLabels[status] || status;
   }
   
+  // ============================================================
+  // getAvailableActions - UNCHANGED (keeping full code for completeness)
+  // ============================================================
   getAvailableActions(
     suggestion: SuggestionWithParties, 
     userId: string
@@ -12072,19 +13294,13 @@ export class StatusTransitionService {
       secondParty?: { id: string; label: string; nextStatus: MatchSuggestionStatus }[];
       matchmaker?: { id: string; label: string; nextStatus: MatchSuggestionStatus }[];
     }> = {
-      DRAFT: {
-        matchmaker: [
-          { id: "send-to-first", label: "שליחה לצד הראשון", nextStatus: MatchSuggestionStatus.PENDING_FIRST_PARTY }
-        ]
-      },
+      DRAFT: { matchmaker: [{ id: "send-to-first", label: "שליחה לצד הראשון", nextStatus: MatchSuggestionStatus.PENDING_FIRST_PARTY }] },
       PENDING_FIRST_PARTY: {
         firstParty: [
           { id: "approve", label: "אישור ההצעה", nextStatus: MatchSuggestionStatus.FIRST_PARTY_APPROVED },
           { id: "decline", label: "דחיית ההצעה", nextStatus: MatchSuggestionStatus.FIRST_PARTY_DECLINED }
         ],
-        matchmaker: [
-          { id: "cancel", label: "ביטול ההצעה", nextStatus: MatchSuggestionStatus.CANCELLED }
-        ]
+        matchmaker: [{ id: "cancel", label: "ביטול ההצעה", nextStatus: MatchSuggestionStatus.CANCELLED }]
       },
       FIRST_PARTY_APPROVED: {
         matchmaker: [
@@ -12092,19 +13308,22 @@ export class StatusTransitionService {
           { id: "cancel", label: "ביטול ההצעה", nextStatus: MatchSuggestionStatus.CANCELLED }
         ]
       },
-      FIRST_PARTY_DECLINED: {
-        matchmaker: [
-          { id: "close", label: "סגירת הצעה", nextStatus: MatchSuggestionStatus.CLOSED }
-        ]
-      },
-      PENDING_SECOND_PARTY: {
-        secondParty: [
-          { id: "approve", label: "אישור ההצעה", nextStatus: MatchSuggestionStatus.SECOND_PARTY_APPROVED },
-          { id: "decline", label: "דחיית ההצעה", nextStatus: MatchSuggestionStatus.SECOND_PARTY_DECLINED }
+  FIRST_PARTY_DECLINED: { matchmaker: [{ id: "close", label: "סגירת הצעה", nextStatus: MatchSuggestionStatus.CLOSED }] },
+      FIRST_PARTY_INTERESTED: {                        // ← NEW ENTRY
+        firstParty: [
+          { id: "approve", label: "אישור ההצעה", nextStatus: MatchSuggestionStatus.FIRST_PARTY_APPROVED },
+          { id: "decline", label: "הסרה מרשימת ההמתנה", nextStatus: MatchSuggestionStatus.FIRST_PARTY_DECLINED }
         ],
         matchmaker: [
           { id: "cancel", label: "ביטול ההצעה", nextStatus: MatchSuggestionStatus.CANCELLED }
         ]
+      },
+            PENDING_SECOND_PARTY: {
+        secondParty: [
+          { id: "approve", label: "אישור ההצעה", nextStatus: MatchSuggestionStatus.SECOND_PARTY_APPROVED },
+          { id: "decline", label: "דחיית ההצעה", nextStatus: MatchSuggestionStatus.SECOND_PARTY_DECLINED }
+        ],
+        matchmaker: [{ id: "cancel", label: "ביטול ההצעה", nextStatus: MatchSuggestionStatus.CANCELLED }]
       },
       SECOND_PARTY_APPROVED: {
         matchmaker: [
@@ -12112,11 +13331,7 @@ export class StatusTransitionService {
           { id: "cancel", label: "ביטול ההצעה", nextStatus: MatchSuggestionStatus.CANCELLED }
         ]
       },
-      SECOND_PARTY_DECLINED: {
-        matchmaker: [
-          { id: "close", label: "סגירת הצעה", nextStatus: MatchSuggestionStatus.CLOSED }
-        ]
-      },
+      SECOND_PARTY_DECLINED: { matchmaker: [{ id: "close", label: "סגירת הצעה", nextStatus: MatchSuggestionStatus.CLOSED }] },
       AWAITING_MATCHMAKER_APPROVAL: {
         matchmaker: [
           { id: "approve-share", label: "אישור שיתוף פרטים", nextStatus: MatchSuggestionStatus.CONTACT_DETAILS_SHARED },
@@ -12124,65 +13339,53 @@ export class StatusTransitionService {
         ]
       },
       CONTACT_DETAILS_SHARED: {
-        firstParty: [
-          { id: "provide-feedback", label: "דיווח משוב לאחר פגישה", nextStatus: MatchSuggestionStatus.AWAITING_FIRST_DATE_FEEDBACK }
-        ],
-        secondParty: [
-          { id: "provide-feedback", label: "דיווח משוב לאחר פגישה", nextStatus: MatchSuggestionStatus.AWAITING_FIRST_DATE_FEEDBACK }
-        ],
+        firstParty: [{ id: "provide-feedback", label: "דיווח משוב לאחר פגישה", nextStatus: MatchSuggestionStatus.AWAITING_FIRST_DATE_FEEDBACK }],
+        secondParty: [{ id: "provide-feedback", label: "דיווח משוב לאחר פגישה", nextStatus: MatchSuggestionStatus.AWAITING_FIRST_DATE_FEEDBACK }],
         matchmaker: [
           { id: "request-feedback", label: "בקש משוב", nextStatus: MatchSuggestionStatus.AWAITING_FIRST_DATE_FEEDBACK },
           { id: "cancel", label: "ביטול ההצעה", nextStatus: MatchSuggestionStatus.CANCELLED }
         ]
       },
       AWAITING_FIRST_DATE_FEEDBACK: {
-         matchmaker: [
-            { id: "mark-thinking", label: "סמן כ'בחשיבה'", nextStatus: MatchSuggestionStatus.THINKING_AFTER_DATE },
-            { id: "mark-ended-first", label: "סמן כ'הסתיים לאחר פגישה'", nextStatus: MatchSuggestionStatus.ENDED_AFTER_FIRST_DATE },
-            { id: "cancel", label: "ביטול ההצעה", nextStatus: MatchSuggestionStatus.CANCELLED }
-         ]
+        matchmaker: [
+          { id: "mark-thinking", label: "סמן כ'בחשיבה'", nextStatus: MatchSuggestionStatus.THINKING_AFTER_DATE },
+          { id: "mark-ended-first", label: "סמן כ'הסתיים לאחר פגישה'", nextStatus: MatchSuggestionStatus.ENDED_AFTER_FIRST_DATE },
+          { id: "cancel", label: "ביטול ההצעה", nextStatus: MatchSuggestionStatus.CANCELLED }
+        ]
       },
       THINKING_AFTER_DATE: {
-         matchmaker: [
-            { id: "proceed-second", label: "המשך לפגישה שניה", nextStatus: MatchSuggestionStatus.PROCEEDING_TO_SECOND_DATE },
-            { id: "mark-ended-first", label: "סמן כ'הסתיים לאחר פגישה'", nextStatus: MatchSuggestionStatus.ENDED_AFTER_FIRST_DATE },
-            { id: "cancel", label: "ביטול ההצעה", nextStatus: MatchSuggestionStatus.CANCELLED }
-         ]
+        matchmaker: [
+          { id: "proceed-second", label: "המשך לפגישה שניה", nextStatus: MatchSuggestionStatus.PROCEEDING_TO_SECOND_DATE },
+          { id: "mark-ended-first", label: "סמן כ'הסתיים לאחר פגישה'", nextStatus: MatchSuggestionStatus.ENDED_AFTER_FIRST_DATE },
+          { id: "cancel", label: "ביטול ההצעה", nextStatus: MatchSuggestionStatus.CANCELLED }
+        ]
       },
       PROCEEDING_TO_SECOND_DATE: {
-         matchmaker: [
-            { id: "mark-dating", label: "סמן כ'בתהליך היכרות'", nextStatus: MatchSuggestionStatus.DATING },
-            { id: "cancel", label: "ביטול ההצעה", nextStatus: MatchSuggestionStatus.CANCELLED }
-         ]
-      },
-      ENDED_AFTER_FIRST_DATE: {
         matchmaker: [
-          { id: "close", label: "סגירת הצעה", nextStatus: MatchSuggestionStatus.CLOSED }
+          { id: "mark-dating", label: "סמן כ'בתהליך היכרות'", nextStatus: MatchSuggestionStatus.DATING },
+          { id: "cancel", label: "ביטול ההצעה", nextStatus: MatchSuggestionStatus.CANCELLED }
         ]
       },
+      ENDED_AFTER_FIRST_DATE: { matchmaker: [{ id: "close", label: "סגירת הצעה", nextStatus: MatchSuggestionStatus.CLOSED }] },
       MEETING_PENDING: {
-         matchmaker: [
-            { id: "schedule-meeting", label: "קביעת פגישה", nextStatus: MatchSuggestionStatus.MEETING_SCHEDULED },
-            { id: "cancel", label: "ביטול ההצעה", nextStatus: MatchSuggestionStatus.CANCELLED }
-         ]
+        matchmaker: [
+          { id: "schedule-meeting", label: "קביעת פגישה", nextStatus: MatchSuggestionStatus.MEETING_SCHEDULED },
+          { id: "cancel", label: "ביטול ההצעה", nextStatus: MatchSuggestionStatus.CANCELLED }
+        ]
       },
       MEETING_SCHEDULED: {
-         matchmaker: [
-            { id: "mark-dating", label: "סמן כ'בתהליך היכרות'", nextStatus: MatchSuggestionStatus.DATING },
-            { id: "cancel", label: "ביטול ההצעה", nextStatus: MatchSuggestionStatus.CANCELLED }
-         ]
-      },
-      MATCH_APPROVED: {
-         matchmaker: [
-            { id: "mark-dating", label: "סמן כ'בתהליך היכרות'", nextStatus: MatchSuggestionStatus.DATING },
-            { id: "cancel", label: "ביטול ההצעה", nextStatus: MatchSuggestionStatus.CANCELLED }
-         ]
-      },
-      MATCH_DECLINED: {
         matchmaker: [
-          { id: "close", label: "סגירת הצעה", nextStatus: MatchSuggestionStatus.CLOSED }
+          { id: "mark-dating", label: "סמן כ'בתהליך היכרות'", nextStatus: MatchSuggestionStatus.DATING },
+          { id: "cancel", label: "ביטול ההצעה", nextStatus: MatchSuggestionStatus.CANCELLED }
         ]
       },
+      MATCH_APPROVED: {
+        matchmaker: [
+          { id: "mark-dating", label: "סמן כ'בתהליך היכרות'", nextStatus: MatchSuggestionStatus.DATING },
+          { id: "cancel", label: "ביטול ההצעה", nextStatus: MatchSuggestionStatus.CANCELLED }
+        ]
+      },
+      MATCH_DECLINED: { matchmaker: [{ id: "close", label: "סגירת הצעה", nextStatus: MatchSuggestionStatus.CLOSED }] },
       DATING: {
         matchmaker: [
           { id: "mark-engaged", label: "עדכון אירוסין", nextStatus: MatchSuggestionStatus.ENGAGED },
@@ -12202,23 +13405,13 @@ export class StatusTransitionService {
       CANCELLED: {}
     };
     
-    if (isFirstParty && actions[suggestion.status]?.firstParty) {
-      return actions[suggestion.status].firstParty || [];
-    }
-    
-    if (isSecondParty && actions[suggestion.status]?.secondParty) {
-      return actions[suggestion.status].secondParty || [];
-    }
-    
-    if (isMatchmaker && actions[suggestion.status]?.matchmaker) {
-      return actions[suggestion.status].matchmaker || [];
-    }
-    
+    if (isFirstParty && actions[suggestion.status]?.firstParty) return actions[suggestion.status].firstParty || [];
+    if (isSecondParty && actions[suggestion.status]?.secondParty) return actions[suggestion.status].secondParty || [];
+    if (isMatchmaker && actions[suggestion.status]?.matchmaker) return actions[suggestion.status].matchmaker || [];
     return [];
   }
 }
 
-// Export singleton instance
 export const statusTransitionService = StatusTransitionService.getInstance();
 --- End of Content for StatusTransitionService.ts ---
 
@@ -12232,6 +13425,7 @@ import { MatchSuggestionStatus, Priority, UserRole } from "@prisma/client";
 import prisma from "@/lib/prisma";
 import { statusTransitionService, type SuggestionWithParties } from "./StatusTransitionService";
 import { initNotificationService } from "../notification/initNotifications";
+import { notifyNewSuggestion } from "@/lib/pushNotifications"; // ✅ NEW
 import type { 
   CreateSuggestionData,
   UpdateSuggestionData,
@@ -12262,10 +13456,6 @@ const BLOCKING_SUGGESTION_STATUSES: MatchSuggestionStatus[] = [
   'DATING',
 ];
 
-/**
- * שירות מרכזי לניהול הלוגיקה העסקית של הצעות שידוכים.
- * הוא אחראי על יצירה, עדכון, שינוי סטטוס, ואחזור של הצעות.
- */
 export class SuggestionService {
   private static instance: SuggestionService;
 
@@ -12278,15 +13468,10 @@ export class SuggestionService {
     return SuggestionService.instance;
   }
 
-  /**
-   * יצירת הצעת שידוך חדשה.
-   * הפונקציה מקבלת את נתוני ההצעה, אובייקט המכיל את המילונים (עברית ואנגלית),
-   * ואת העדפות השפה של הצדדים.
-   */
   public async createSuggestion(
     data: CreateSuggestionData,
     dictionaries: { he: EmailDictionary; en: EmailDictionary }, 
-    languageOptions: LanguageOptions
+    languageOptions: LanguageOptions,
   ): Promise<SuggestionWithParties> {
     // 1. וידוא הרשאות השדכן
     const matchmaker = await prisma.user.findUnique({
@@ -12306,31 +13491,6 @@ export class SuggestionService {
 
     if (!firstParty || !secondParty) {
         throw new Error("One or both candidates not found.");
-    }
-    
-    // 3. בדיקה אם לאחד המועמדים כבר יש הצעה פעילה
-    const blockingSuggestion = await prisma.matchSuggestion.findFirst({
-        where: {
-            OR: [
-                { firstPartyId: data.firstPartyId },
-                { secondPartyId: data.firstPartyId },
-                { firstPartyId: data.secondPartyId },
-                { secondPartyId: data.secondPartyId },
-            ],
-            status: { in: BLOCKING_SUGGESTION_STATUSES },
-        },
-    });
-
-    if (blockingSuggestion) {
-        const hasBlockingSuggestion = (id: string) => 
-            blockingSuggestion.firstPartyId === id || blockingSuggestion.secondPartyId === id;
-            
-        if (hasBlockingSuggestion(data.firstPartyId)) {
-            throw new Error(`לא ניתן ליצור הצעה חדשה. ל${firstParty.firstName} ${firstParty.lastName} יש כבר הצעה פעילה.`);
-        }
-        if (hasBlockingSuggestion(data.secondPartyId)) {
-            throw new Error(`לא ניתן ליצור הצעה חדשה. ל${secondParty.firstName} ${secondParty.lastName} יש כבר הצעה פעילה.`);
-        }
     }
 
     // 4. יצירת ההצעה בטרנזקציה להבטחת שלמות הנתונים
@@ -12372,35 +13532,59 @@ export class SuggestionService {
       return newSuggestion;
     });
 
-    // 5. שליחת התראות (Notifications)
+    // 5. שליחת התראות – email + WhatsApp (קיים)
     try {
-      console.log('Sending notifications for new suggestion...');
+      console.log('═══════════════════════════════════════════════');
+      console.log('📨 Sending INVITATION notification for new suggestion');
+      console.log(`   Suggestion ID: ${suggestion.id}`);
+      console.log(`   First party: ${suggestion.firstParty.firstName} ${suggestion.firstParty.lastName} (${languageOptions.firstParty})`);
+      console.log(`   Second party: ${suggestion.secondParty.firstName} ${suggestion.secondParty.lastName} (${languageOptions.secondParty})`);
+      console.log(`   Matchmaker: ${suggestion.matchmaker.firstName} ${suggestion.matchmaker.lastName}`);
+      console.log(`   Personal note for first party: ${data.notes?.forFirstParty ? '✅ included (' + data.notes.forFirstParty.substring(0, 50) + '...)' : '❌ none'}`);
+      console.log(`   Decision deadline: ${data.decisionDeadline}`);
+      console.log('═══════════════════════════════════════════════');
       
-      // כאן אנו קוראים ישירות ל-notificationService (ולא דרך statusTransitionService כי זו יצירה ראשונית)
       await notificationService.handleSuggestionStatusChange(
         suggestion,
-        dictionaries, // העברת אובייקט המילונים
+        dictionaries,
         {
           channels: ['email', 'whatsapp'],
-          notifyParties: ['first'] // בהצעה חדשה שולחים רק לצד א'
+          notifyParties: ['first']
         },
         {
             firstParty: languageOptions.firstParty,
             secondParty: languageOptions.secondParty,
-            matchmaker: 'he' // ברירת מחדל לשדכן
+            matchmaker: 'he'
         }
       );
+
+      console.log('✅ Invitation notification sent successfully');
     } catch (error) {
-      console.error('Error sending initial suggestion notifications:', error);
-      // לא זורקים שגיאה כדי לא לבטל את יצירת ההצעה
+      console.error('❌ Error sending invitation notification:', error);
+    }
+
+    // =====================================================
+    // ✅ NEW: שליחת Push Notification לפלאפון של צד ראשון
+    // =====================================================
+    try {
+      const matchmakerFullName = `${suggestion.matchmaker.firstName} ${suggestion.matchmaker.lastName}`;
+      await notifyNewSuggestion({
+        userId: suggestion.firstPartyId,
+        matchmakerName: matchmakerFullName,
+        suggestionId: suggestion.id,
+      });
+      console.log('✅ Push notification sent to first party');
+    } catch (pushError) {
+      // Don't fail suggestion creation if push fails
+      console.error('❌ Push notification error (non-fatal):', pushError);
     }
 
     return suggestion;
   }
 
-  /**
-   * עדכון פרטי הצעת שידוך (ללא שינוי סטטוס).
-   */
+  // ============================================================
+  // updateSuggestion - unchanged
+  // ============================================================
   public async updateSuggestion(
     id: string,
     matchmakerId: string,
@@ -12419,14 +13603,12 @@ export class SuggestionService {
       throw new Error("Suggestion not found");
     }
 
-    // רק השדכן המקורי או אדמין יכולים לערוך (בדיקת האדמין נעשית ב-API בדרך כלל, כאן אנו בודקים בעלות)
-    // הערה: אם רוצים לאפשר לאדמין כלשהו, יש להעביר את ה-role לפונקציה
-    if (suggestion.matchmakerId !== matchmakerId) {
-       // אנו מניחים שאם הגיע לכאן, כבר בוצעה בדיקת הרשאות בסיסית ב-API Route,
-       // אך זו בדיקת הגנה נוספת.
-       // אם המשתמש הוא אדמין, הבדיקה הזו עשויה להיכשל אם לא נטפל בזה.
-       // לצורך הקוד הנקי, נשאיר את זה כך, אך מומלץ לוודא ב-Controller.
-    }
+    // ✅ תיקון - תחליף בזה:
+if (suggestion.matchmakerId !== matchmakerId) {
+  // Allow admins to edit any suggestion (permission check done in API route)
+  // For non-admins, this is a security fallback
+  console.warn(`[SuggestionService] User ${matchmakerId} is editing suggestion owned by ${suggestion.matchmakerId}`);
+}
 
     const cleanedUpdateData = {
       ...(data.notes?.matchingReason !== undefined && { matchingReason: data.notes.matchingReason }),
@@ -12450,15 +13632,14 @@ export class SuggestionService {
     });
   }
 
-  /**
-   * עדכון סטטוס של הצעת שידוך.
-   * הפונקציה מקבלת את המילונים כדי להעביר אותם לשירות המעבר, שישלח התראות מתורגמות.
-   */
+  // ============================================================
+  // updateSuggestionStatus - unchanged
+  // ============================================================
   public async updateSuggestionStatus(
     id: string,
     newStatus: MatchSuggestionStatus,
     userId: string,
-    dictionaries: { he: EmailDictionary; en: EmailDictionary }, // קבלת צמד המילונים
+    dictionaries: { he: EmailDictionary; en: EmailDictionary },
     notes?: string
   ): Promise<SuggestionWithParties> {
     const suggestion = await prisma.matchSuggestion.findUnique({
@@ -12476,20 +13657,17 @@ export class SuggestionService {
 
     this.validateStatusChangePermission(suggestion, userId, newStatus);
     
-    // שליפת העדפות שפה מהמשתמשים (אם קיימות) או שימוש בברירת מחדל
-    // הערה: User מ-Prisma מכיל שדה language אם הוספת אותו לסכמה. אם לא, נשתמש ב-'he'
     const firstPartyLang = (suggestion.firstParty as any).language || 'he';
     const secondPartyLang = (suggestion.secondParty as any).language || 'he';
     const matchmakerLang = (suggestion.matchmaker as any).language || 'he';
 
-    // קריאה לשירות המעבר
     return await statusTransitionService.transitionStatus(
       suggestion, 
       newStatus, 
       dictionaries, 
       notes,
-      {}, // אפשרויות ברירת מחדל
-      { // העדפות שפה
+      {},
+      {
           firstParty: firstPartyLang,
           secondParty: secondPartyLang,
           matchmaker: matchmakerLang
@@ -12497,9 +13675,9 @@ export class SuggestionService {
     );
   }
 
-  /**
-   * קבלת פרטי הצעת שידוך מלאים.
-   */
+  // ============================================================
+  // getSuggestionDetails - unchanged
+  // ============================================================
   public async getSuggestionDetails(id: string, userId: string): Promise<SuggestionWithParties> {
     const suggestion = await prisma.matchSuggestion.findUnique({
       where: { id },
@@ -12521,16 +13699,15 @@ export class SuggestionService {
       userId !== suggestion.firstPartyId &&
       userId !== suggestion.secondPartyId
     ) {
-      // כאן ניתן להוסיף בדיקה אם המשתמש הוא Admin גלובלי
       throw new Error("Unauthorized to view this suggestion");
     }
 
     return suggestion;
   }
 
-  /**
-   * קבלת כל הצעות השידוך הקשורות למשתמש מסוים.
-   */
+  // ============================================================
+  // getUserSuggestions - unchanged
+  // ============================================================
   public async getUserSuggestions(userId: string): Promise<SuggestionWithParties[]> {
     return await prisma.matchSuggestion.findMany({
       where: {
@@ -12551,9 +13728,9 @@ export class SuggestionService {
     });
   }
 
-  /**
-   * פונקציית עזר פנימית לאימות הרשאות לשינוי סטטוס.
-   */
+  // ============================================================
+  // validateStatusChangePermission - unchanged
+  // ============================================================
   private validateStatusChangePermission(
     suggestion: SuggestionWithParties,
     userId: string,
@@ -12570,7 +13747,11 @@ export class SuggestionService {
              throw new Error("Only first party (or matchmaker) can approve/decline at this stage");
         }
         break;
-
+ case MatchSuggestionStatus.FIRST_PARTY_INTERESTED:  // ← הוסף את זה
+        if (!isFirstParty && !isMatchmaker) {
+             throw new Error("Only first party (or matchmaker) can approve/decline at this stage");
+        }
+        break;
       case MatchSuggestionStatus.SECOND_PARTY_APPROVED:
       case MatchSuggestionStatus.SECOND_PARTY_DECLINED:
         if (!isSecondParty && !isMatchmaker) {
@@ -12579,7 +13760,6 @@ export class SuggestionService {
         break;
       
       default:
-        // כברירת מחדל, רוב שינויי הסטטוס האחרים מבוצעים על ידי השדכן.
         if (!isMatchmaker) {
             throw new Error("Only matchmaker can change status at this stage");
         }
@@ -12587,7 +13767,6 @@ export class SuggestionService {
   }
 }
 
-// ייצוא מופע יחיד של השירות (Singleton)
 export const suggestionService = SuggestionService.getInstance();
 --- End of Content for SuggestionService.ts ---
 

@@ -1,0 +1,448 @@
+################################################################################
+# Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\direct-chats
+# Generated on: 2026-03-01 09:56:39
+# Filter: Only content of code files (.bat, .c, .cfg, .conf, .cpp, .cs, .css, .go, .h, .html, .ini, .java, .js, .json, .jsx, .kt, .less, .md, .php, .py, .rb, .rs, .scss, .sh, .sql, .swift, .ts, .tsx, .txt, .xml, .yaml, .yml) is included.
+################################################################################
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\direct-chats
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\direct-chats\direct-chats_contents.txt
+--------------------------------------------------------------------------------
+[This is the output log file itself. Content not included.]
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\direct-chats\route.ts
+--------------------------------------------------------------------------------
+Content:
+// =============================================================================
+// src/app/api/matchmaker/direct-chats/route.ts
+// =============================================================================
+//
+// GET — list all users who have direct chats with this matchmaker
+// =============================================================================
+
+import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
+import prisma from '@/lib/prisma';
+
+export async function GET(req: NextRequest) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const matchmakerId = session.user.id;
+
+    // Get all assigned users + anyone who has messaged this matchmaker
+    const assignedUsers = await prisma.user.findMany({
+      where: { assignedMatchmakerId: matchmakerId },
+      select: { id: true, firstName: true, lastName: true },
+    });
+
+    const sentMessages = await prisma.directMessage.findMany({
+      where: { receiverId: matchmakerId },
+      select: { senderId: true },
+      distinct: ['senderId'],
+    });
+
+    const receivedMessages = await prisma.directMessage.findMany({
+      where: { senderId: matchmakerId },
+      select: { receiverId: true },
+      distinct: ['receiverId'],
+    });
+
+    // Merge all unique user IDs
+    const userIdSet = new Set<string>();
+    assignedUsers.forEach((u) => userIdSet.add(u.id));
+    sentMessages.forEach((m) => userIdSet.add(m.senderId));
+    receivedMessages.forEach((m) => userIdSet.add(m.receiverId));
+
+    const userIds = Array.from(userIdSet);
+
+    // Only return users who have at least 1 message (or who sent a message)
+    const chatSummaries = await Promise.all(
+      userIds.map(async (uid) => {
+        const user = await prisma.user.findUnique({
+          where: { id: uid },
+          select: { id: true, firstName: true, lastName: true },
+        });
+
+        if (!user) return null;
+
+        const lastMsg = await prisma.directMessage.findFirst({
+          where: {
+            OR: [
+              { senderId: uid, receiverId: matchmakerId },
+              { senderId: matchmakerId, receiverId: uid },
+            ],
+          },
+          orderBy: { createdAt: 'desc' },
+          select: {
+            content: true,
+            createdAt: true,
+            senderId: true,
+          },
+        });
+
+        // Skip users with no messages at all
+        if (!lastMsg) return null;
+
+        const unreadCount = await prisma.directMessage.count({
+          where: {
+            senderId: uid,
+            receiverId: matchmakerId,
+            isRead: false,
+          },
+        });
+
+        return {
+          userId: user.id,
+          name: `${user.firstName} ${user.lastName}`,
+          lastMessage: lastMsg.content,
+          lastMessageTime: lastMsg.createdAt.toISOString(),
+          lastMessageIsMine: lastMsg.senderId === matchmakerId,
+          unreadCount,
+        };
+      })
+    );
+
+    const validSummaries = chatSummaries
+      .filter(Boolean)
+      .sort((a, b) => {
+        if (a!.unreadCount !== b!.unreadCount)
+          return b!.unreadCount - a!.unreadCount;
+        const timeA = a!.lastMessageTime
+          ? new Date(a!.lastMessageTime).getTime()
+          : 0;
+        const timeB = b!.lastMessageTime
+          ? new Date(b!.lastMessageTime).getTime()
+          : 0;
+        return timeB - timeA;
+      });
+
+    const totalUnread = validSummaries.reduce(
+      (sum, s) => sum + (s?.unreadCount || 0),
+      0
+    );
+
+    return NextResponse.json({
+      success: true,
+      chats: validSummaries,
+      totalUnread,
+    });
+  } catch (error) {
+    console.error('[matchmaker/direct-chats] GET error:', error);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}
+--- End of Content for route.ts ---
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\direct-chats\[userId]
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\direct-chats\[userId]\route.ts
+--------------------------------------------------------------------------------
+Content:
+// =============================================================================
+// src/app/api/matchmaker/direct-chats/[userId]/route.ts
+// =============================================================================
+//
+// GET  — fetch direct messages with specific user
+// POST — send a direct message to user
+// PATCH — mark messages as read
+// =============================================================================
+
+import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
+import prisma from '@/lib/prisma';
+
+// ==========================================
+// GET — fetch messages with specific user
+// ==========================================
+export async function GET(
+  req: NextRequest,
+  { params }: { params: Promise<{ userId: string }> }
+) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const matchmakerId = session.user.id;
+    const { userId } = await params;
+
+    const messages = await prisma.directMessage.findMany({
+      where: {
+        OR: [
+          { senderId: matchmakerId, receiverId: userId },
+          { senderId: userId, receiverId: matchmakerId },
+        ],
+      },
+      orderBy: { createdAt: 'asc' },
+      select: {
+        id: true,
+        content: true,
+        senderId: true,
+        isRead: true,
+        createdAt: true,
+      },
+    });
+
+    // Get user info
+    const targetUser = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { firstName: true, lastName: true },
+    });
+
+    const formattedMessages = messages.map((msg) => ({
+      id: msg.id,
+      content: msg.content,
+      senderId: msg.senderId,
+      senderType: msg.senderId === matchmakerId ? 'matchmaker' : 'user',
+      senderName:
+        msg.senderId === matchmakerId
+          ? session.user.name || 'שדכן/ית'
+          : `${targetUser?.firstName || ''} ${targetUser?.lastName || ''}`.trim(),
+      isRead: msg.isRead,
+      createdAt: msg.createdAt.toISOString(),
+      isMine: msg.senderId === matchmakerId,
+    }));
+
+    return NextResponse.json({
+      success: true,
+      messages: formattedMessages,
+      user: targetUser
+        ? {
+            id: userId,
+            name: `${targetUser.firstName} ${targetUser.lastName}`,
+          }
+        : null,
+    });
+  } catch (error) {
+    console.error('[matchmaker/direct-chats/userId] GET error:', error);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}
+
+// ==========================================
+// POST — send message to user
+// ==========================================
+export async function POST(
+  req: NextRequest,
+  { params }: { params: Promise<{ userId: string }> }
+) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const matchmakerId = session.user.id;
+    const { userId } = await params;
+    const { content } = await req.json();
+
+    if (!content?.trim()) {
+      return NextResponse.json(
+        { error: 'Message content required' },
+        { status: 400 }
+      );
+    }
+
+    const message = await prisma.directMessage.create({
+      data: {
+        senderId: matchmakerId,
+        receiverId: userId,
+        content: content.trim(),
+      },
+    });
+
+    return NextResponse.json({
+      success: true,
+      message: {
+        id: message.id,
+        content: message.content,
+        senderId: message.senderId,
+        senderType: 'matchmaker',
+        senderName: session.user.name || 'שדכן/ית',
+        isRead: false,
+        createdAt: message.createdAt.toISOString(),
+        isMine: true,
+      },
+    });
+  } catch (error) {
+    console.error('[matchmaker/direct-chats/userId] POST error:', error);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}
+
+// ==========================================
+// PATCH — mark messages as read
+// ==========================================
+export async function PATCH(
+  req: NextRequest,
+  { params }: { params: Promise<{ userId: string }> }
+) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const matchmakerId = session.user.id;
+    const { userId } = await params;
+
+    await prisma.directMessage.updateMany({
+      where: {
+        senderId: userId,
+        receiverId: matchmakerId,
+        isRead: false,
+      },
+      data: { isRead: true },
+    });
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error('[matchmaker/direct-chats/userId] PATCH error:', error);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}
+--- End of Content for route.ts ---
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\direct-chats\broadcast
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\direct-chats\broadcast\route.ts
+--------------------------------------------------------------------------------
+Content:
+// =============================================================================
+// src/app/api/matchmaker/direct-chats/broadcast/route.ts
+// =============================================================================
+//
+// POST — Send a direct message to multiple users at once
+// Body: { content: string, userIds: string[] | 'all' }
+//
+// If userIds === 'all', sends to all registered candidates with profiles
+// =============================================================================
+
+import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
+import prisma from '@/lib/prisma';
+
+export async function POST(req: NextRequest) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const matchmakerId = session.user.id;
+
+    // Verify matchmaker/admin role
+    const currentUser = await prisma.user.findUnique({
+      where: { id: matchmakerId },
+      select: { role: true },
+    });
+
+    if (!currentUser || !['MATCHMAKER', 'ADMIN'].includes(currentUser.role)) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
+    const { content, userIds } = await req.json();
+
+    if (!content?.trim()) {
+      return NextResponse.json(
+        { error: 'Message content is required' },
+        { status: 400 }
+      );
+    }
+
+    // Determine target user IDs
+    let targetUserIds: string[] = [];
+
+    if (userIds === 'all') {
+      // Fetch all registered candidates with profiles
+      const allUsers = await prisma.user.findMany({
+        where: {
+          role: 'CANDIDATE',
+          source: 'REGISTRATION',
+          profile: { isNot: null },
+        },
+        select: { id: true },
+      });
+      targetUserIds = allUsers.map((u) => u.id);
+    } else if (Array.isArray(userIds) && userIds.length > 0) {
+      targetUserIds = userIds;
+    } else {
+      return NextResponse.json(
+        { error: 'userIds must be an array or "all"' },
+        { status: 400 }
+      );
+    }
+
+    if (targetUserIds.length === 0) {
+      return NextResponse.json(
+        { error: 'No eligible users found' },
+        { status: 400 }
+      );
+    }
+
+    // Create messages in batch using createMany
+    const messageData = targetUserIds.map((userId) => ({
+      senderId: matchmakerId,
+      receiverId: userId,
+      content: content.trim(),
+    }));
+
+    const result = await prisma.directMessage.createMany({
+      data: messageData,
+    });
+
+    // Also ensure all these users have assignedMatchmakerId set
+    // (auto-assign if they don't have one)
+    await prisma.user.updateMany({
+      where: {
+        id: { in: targetUserIds },
+        assignedMatchmakerId: null,
+      },
+      data: { assignedMatchmakerId: matchmakerId },
+    });
+
+    return NextResponse.json({
+      success: true,
+      sentCount: result.count,
+      totalTargeted: targetUserIds.length,
+    });
+  } catch (error) {
+    console.error('[matchmaker/direct-chats/broadcast] POST error:', error);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}
+--- End of Content for route.ts ---
+

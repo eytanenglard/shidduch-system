@@ -30,6 +30,7 @@
       "approveTitle": "אישור הצעת השידוך",
       "declineTitle": "דחיית הצעת השידוך",
       "interestedTitle": "שמירה לגיבוי",
+      
       "interestedDescription": "ההצעה תישמר ברשימת ההמתנה שלך. תוכל/י לאשר אותה מאוחר יותר כשתהיה/י פנוי/ה.",
       "confirmInterested": "שמור/י לגיבוי",
       "approveDescription": "אישור הצעה הוא צעד מרגש. האם אתה בטוח שברצונך להתקדם? לאחר האישור, השדכן יקבל הודעה וימשיך בתהליך עבורכם.",
@@ -84,6 +85,8 @@
     }
   },
   "card": {
+      "activeProcessExplanation": "יש לך כבר הצעה בתהליך פעיל. ההצעה הזו תישמר ברשימת ההמתנה שלך ותוכל/י לאשר אותה כשהתהליך הנוכחי יסתיים."
+,
     "toasts": {
       "approveDisabledTitle": "לא ניתן לאשר הצעה חדשה",
       "approveDisabledDescription": "יש לך כבר הצעה אחרת בתהליך פעיל.",
@@ -102,6 +105,8 @@
       "approve": "מעוניין/ת להכיר!",
       "approveDisabledTooltip": "לא ניתן לאשר הצעה חדשה כשיש הצעה בתהליך פעיל.",
       "interested": "שומר/ת לגיבוי",
+                
+
       "activateNow": "אשר/י עכשיו",
       "removeFromList": "הסר/י מהרשימה",
       "askMatchmaker": "שאלה לשדכן/ית",

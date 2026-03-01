@@ -892,6 +892,8 @@
       "PENDING_FIRST_PARTY": "ממתין לצד ראשון",
       "FIRST_PARTY_APPROVED": "אושר ע\"י צד ראשון",
       "FIRST_PARTY_DECLINED": "נדחה ע\"י צד ראשון",
+      "FIRST_PARTY_INTERESTED": "שמר/ה לגיבוי",
+
       "PENDING_SECOND_PARTY": "ממתין לצד שני",
       "SECOND_PARTY_APPROVED": "אושר ע\"י צד שני",
       "SECOND_PARTY_DECLINED": "נדחה ע\"י צד שני",
@@ -959,6 +961,8 @@
           "PENDING_FIRST_PARTY": "ממתין לצד א׳",
           "PENDING_SECOND_PARTY": "ממתין לצד ב׳",
           "FIRST_PARTY_APPROVED": "צד א׳ אישר",
+          "FIRST_PARTY_INTERESTED": "שמר/ה לגיבוי",
+
           "SECOND_PARTY_APPROVED": "צד ב׳ אישר",
           "CONTACT_DETAILS_SHARED": "פרטי קשר שותפו",
           "DATING": "בתהליך היכרות"
@@ -1290,6 +1294,8 @@
           "PENDING_FIRST_PARTY": "ממתין לתשובת צד א'",
           "PENDING_SECOND_PARTY": "ממתין לתשובת צד ב'",
           "FIRST_PARTY_APPROVED": "צד א' אישר",
+          "FIRST_PARTY_INTERESTED": "שמר/ה לגיבוי",
+
           "SECOND_PARTY_APPROVED": "צד ב' אישר",
           "DATING": "בתהליך היכרות"
         },
@@ -1343,6 +1349,11 @@
           "shortLabel": "א׳ דחה",
           "description": "הצד הראשון דחה את ההצעה"
         },
+        "FIRST_PARTY_INTERESTED": {
+  "label": "שמר/ה לגיבוי",
+  "shortLabel": "מעוניין/ת",
+  "description": "הצד הראשון שמר את ההצעה לגיבוי"
+},
         "SECOND_PARTY_DECLINED": {
           "label": "צד ב׳ דחה",
           "shortLabel": "ב׳ דחה",
@@ -1507,6 +1518,8 @@
         "DRAFT": "טיוטה",
         "PENDING_FIRST_PARTY": "ממתין לתשובת צד א'",
         "FIRST_PARTY_APPROVED": "צד א' אישר",
+        "FIRST_PARTY_INTERESTED": "שמר/ה לגיבוי",
+
         "FIRST_PARTY_DECLINED": "צד א' דחה",
         "PENDING_SECOND_PARTY": "ממתין לתשובת צד ב'",
         "SECOND_PARTY_APPROVED": "צד ב' אישר",
@@ -1963,6 +1976,8 @@
         "PENDING_FIRST_PARTY": "ממתין לצד א'",
         "PENDING_SECOND_PARTY": "ממתין לצד ב'",
         "FIRST_PARTY_APPROVED": "צד א' אישר",
+        "FIRST_PARTY_INTERESTED": "שמר/ה לגיבוי",
+
         "SECOND_PARTY_APPROVED": "צד ב' אישר",
         "CONTACT_DETAILS_SHARED": "פרטי קשר נשלחו",
         "DATING": "בדייטים",

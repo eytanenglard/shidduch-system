@@ -342,13 +342,13 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
         }
       );
       if (!response.ok) throw new Error('Failed to send inquiry');
-    toast.success(suggestionsDict.inquiryThread.toasts.sendSuccessTitle, {
-  description: suggestionsDict.inquiryThread.toasts.sendSuccessDescription
-});
+      toast.success(suggestionsDict.inquiryThread.toasts.sendSuccessTitle, {
+        description:
+          suggestionsDict.inquiryThread.toasts.sendSuccessDescription,
+      });
       setShowAskDialog(false);
     } catch (error) {
       toast.error(suggestionsDict.inquiryThread.toasts.sendError);
-
     }
   };
 
@@ -676,7 +676,7 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
                   onApprove={() => handleStatusAction(suggestion, 'approve')}
                   onDecline={() => handleStatusAction(suggestion, 'decline')}
                   isHistory={isHistory}
-                  isApprovalDisabled={isUserInActiveProcess}
+                  isUserInActiveProcess={isUserInActiveProcess} // ← renamed from isApprovalDisabled
                   className={cn(
                     'card-hover-elegant',
                     viewMode === 'list' ? 'flex' : ''

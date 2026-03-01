@@ -888,6 +888,8 @@
       "PENDING_FIRST_PARTY": "Pending First Party",
       "FIRST_PARTY_APPROVED": "First Party Approved",
       "FIRST_PARTY_DECLINED": "First Party Declined",
+      "FIRST_PARTY_INTERESTED": "Saved for Later",
+
       "PENDING_SECOND_PARTY": "Pending Second Party",
       "SECOND_PARTY_APPROVED": "Second Party Approved",
       "SECOND_PARTY_DECLINED": "Second Party Declined",
@@ -955,6 +957,8 @@
           "PENDING_FIRST_PARTY": "Pending Party A",
           "PENDING_SECOND_PARTY": "Pending Party B",
           "FIRST_PARTY_APPROVED": "Party A Approved",
+          "FIRST_PARTY_INTERESTED": "Saved for Later",
+
           "SECOND_PARTY_APPROVED": "Party B Approved",
           "CONTACT_DETAILS_SHARED": "Contacts Shared",
           "DATING": "Dating"
@@ -1286,6 +1290,8 @@
           "PENDING_FIRST_PARTY": "Pending Party A",
           "PENDING_SECOND_PARTY": "Pending Party B",
           "FIRST_PARTY_APPROVED": "Party A Approved",
+          "FIRST_PARTY_INTERESTED": "Saved for Later",
+
           "SECOND_PARTY_APPROVED": "Party B Approved",
           "DATING": "Dating"
         },
@@ -1339,6 +1345,12 @@
           "shortLabel": "A Declined",
           "description": "The first party has declined the suggestion."
         },
+        "FIRST_PARTY_INTERESTED": {
+  "label": "Saved for Later",
+  "shortLabel": "Interested",
+  "description": "The first party saved the suggestion for later consideration."
+},
+
         "SECOND_PARTY_DECLINED": {
           "label": "Party B Declined",
           "shortLabel": "B Declined",
@@ -1504,6 +1516,8 @@
         "PENDING_FIRST_PARTY": "Pending Party A",
         "FIRST_PARTY_APPROVED": "Party A Approved",
         "FIRST_PARTY_DECLINED": "Party A Declined",
+        "FIRST_PARTY_INTERESTED": "Saved for Later",
+
         "PENDING_SECOND_PARTY": "Pending Party B",
         "SECOND_PARTY_APPROVED": "Party B Approved",
         "SECOND_PARTY_DECLINED": "Party B Declined",
@@ -1900,6 +1914,8 @@
       "PENDING_FIRST_PARTY": "Pending Party A",
       "FIRST_PARTY_APPROVED": "Party A Approved",
       "FIRST_PARTY_DECLINED": "Party A Declined",
+      "FIRST_PARTY_INTERESTED": "Saved for Later",
+
       "PENDING_SECOND_PARTY": "Pending Party B",
       "SECOND_PARTY_APPROVED": "Party B Approved",
       "SECOND_PARTY_DECLINED": "Party B Declined",

@@ -27,6 +27,7 @@ import type { MatchSuggestion } from '@prisma/client';
 
 import SuggestionsList from './list/SuggestionsList';
 import InterestedQueue from '@/components/suggestions/interested/InterestedQueue';
+import ActiveSuggestionHero from '@/components/suggestions/ActiveSuggestionHero';
 import type { ExtendedMatchSuggestion } from './types';
 import { cn } from '@/lib/utils';
 
@@ -69,6 +70,23 @@ import FirstPartyPreferenceToggle from '@/components/suggestions/FirstPartyPrefe
 // =============================================================================
 
 const SYSTEM_MATCHMAKER_ID = 'system-matchmaker-neshamatech';
+
+// Statuses that represent an active dating process (shown in Hero)
+const ACTIVE_PROCESS_STATUSES = [
+  'FIRST_PARTY_APPROVED',
+  'PENDING_SECOND_PARTY',
+  'SECOND_PARTY_APPROVED',
+  'AWAITING_MATCHMAKER_APPROVAL',
+  'CONTACT_DETAILS_SHARED',
+  'AWAITING_FIRST_DATE_FEEDBACK',
+  'THINKING_AFTER_DATE',
+  'PROCEEDING_TO_SECOND_DATE',
+  'MEETING_PENDING',
+  'MEETING_SCHEDULED',
+  'MATCH_APPROVED',
+  'DATING',
+  'ENGAGED',
+];
 
 // --- Action Type (extended to include 'interested') ---
 type ActionType = 'approve' | 'decline' | 'interested';
@@ -176,6 +194,21 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
     useState<ExtendedMatchSuggestion | null>(null);
   const [actionType, setActionType] = useState<ActionType | null>(null);
 
+  // --- Modal State (for details / inquiry) ---
+  const [selectedSuggestion, setSelectedSuggestion] =
+    useState<ExtendedMatchSuggestion | null>(null);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [showInquiryModal, setShowInquiryModal] = useState(false);
+
+  // --- Derived: Active Process Suggestion (shown in Hero) ---
+  const activeProcessSuggestion = useMemo(() => {
+    return (
+      activeSuggestions.find((s) =>
+        ACTIVE_PROCESS_STATUSES.includes(s.status)
+      ) || null
+    );
+  }, [activeSuggestions]);
+
   // --- Derived: INTERESTED suggestions (sorted by rank) ---
   const interestedSuggestions = useMemo(() => {
     return activeSuggestions
@@ -190,14 +223,16 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
       );
   }, [activeSuggestions, userId]);
 
-  // --- Derived: active suggestions WITHOUT interested ---
+  // --- Derived: active suggestions WITHOUT interested AND without active process ---
   const nonInterestedActiveSuggestions = useMemo(() => {
     return activeSuggestions.filter(
-      (s) => s.status !== 'FIRST_PARTY_INTERESTED'
+      (s) =>
+        s.status !== 'FIRST_PARTY_INTERESTED' &&
+        !ACTIVE_PROCESS_STATUSES.includes(s.status)
     );
   }, [activeSuggestions]);
 
-  // --- Derived: sorted active suggestions (urgent first, excluding INTERESTED) ---
+  // --- Derived: sorted active suggestions (urgent first, excluding INTERESTED & active process) ---
   const sortedActiveSuggestions = useMemo(() => {
     const urgent: ExtendedMatchSuggestion[] = [];
     const others: ExtendedMatchSuggestion[] = [];
@@ -449,6 +484,24 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
     []
   );
 
+  // --- Contact Matchmaker (from ActiveSuggestionHero) ---
+  const handleContactMatchmaker = useCallback(
+    (suggestion: ExtendedMatchSuggestion) => {
+      setSelectedSuggestion(suggestion);
+      setShowInquiryModal(true);
+    },
+    []
+  );
+
+  // --- View Details ---
+  const handleViewDetails = useCallback(
+    (suggestion: ExtendedMatchSuggestion) => {
+      setSelectedSuggestion(suggestion);
+      setShowDetailsModal(true);
+    },
+    []
+  );
+
   // --- Effects ---
   useEffect(() => {
     fetchSuggestions();
@@ -676,6 +729,18 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
 
               {/* Active Tab Content */}
               <TabsContent value="active" className="space-y-6">
+                {/* ===== Hero Card for Active Process ===== */}
+                {activeProcessSuggestion && (
+                  <ActiveSuggestionHero
+                    suggestion={activeProcessSuggestion}
+                    userId={userId}
+                    locale={locale}
+                    onContactMatchmaker={handleContactMatchmaker}
+                    onViewDetails={handleViewDetails}
+                    className="mb-2"
+                  />
+                )}
+
                 {/* ===== Interested Queue ===== */}
                 {interestedSuggestions.length > 0 && (
                   <InterestedQueue
@@ -685,14 +750,13 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
                     isUserInActiveProcess={isUserInActiveProcess}
                     onActivate={handleActivateInterested}
                     onRemove={handleRemoveFromInterested}
-                    onViewDetails={() => {
-                      // TODO: open SuggestionDetailsModal
-                    }}
+                    onViewDetails={handleViewDetails}
                     onRankUpdate={handleRankUpdate}
                     className="mb-4"
                   />
                 )}
 
+                {/* ===== Regular Suggestion Cards (PENDING only) ===== */}
                 <SuggestionsList
                   locale={locale}
                   suggestions={sortedActiveSuggestions}

@@ -84,6 +84,8 @@
     }
   },
   "card": {
+       "activeProcessExplanation":"You already have an active suggestion. This one will be saved to your waitlist and you can approve it when the current process ends."
+,
     "toasts": {
       "approveDisabledTitle": "Cannot Approve New Match",
       "approveDisabledDescription": "You already have an active process with another suggestion.",
@@ -102,6 +104,7 @@
       "approve": "I'd like to learn more",
       "approveDisabledTooltip": "You cannot approve a new introduction while another is in an active process.",
       "interested": "Save for Later",
+         
       "activateNow": "Approve Now",
       "removeFromList": "Remove from List",
       "askMatchmaker": "Ask Your Matchmaker",

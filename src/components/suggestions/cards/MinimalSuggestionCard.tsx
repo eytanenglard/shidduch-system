@@ -15,6 +15,9 @@ import {
   ChevronLeft,
   Quote,
   Zap,
+  Bookmark,
+  Info,
+  Trash2,
 } from 'lucide-react';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -26,7 +29,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { getRelativeCloudinaryPath, getInitials } from '@/lib/utils';
 import {
@@ -77,11 +79,12 @@ interface MinimalSuggestionCardProps {
   userId: string;
   onClick: (suggestion: ExtendedMatchSuggestion) => void;
   onApprove?: (suggestion: ExtendedMatchSuggestion) => void;
+  onInterested?: (suggestion: ExtendedMatchSuggestion) => void;
   onInquiry?: (suggestion: ExtendedMatchSuggestion) => void;
   onDecline?: (suggestion: ExtendedMatchSuggestion) => void;
   className?: string;
   isHistory?: boolean;
-  isApprovalDisabled?: boolean;
+  isUserInActiveProcess?: boolean;
   dict: SuggestionsCardDict;
   locale: 'he' | 'en';
 }
@@ -104,11 +107,12 @@ const MinimalSuggestionCard: React.FC<MinimalSuggestionCardProps> = ({
   userId,
   onClick,
   onApprove,
+  onInterested,
   onInquiry,
   onDecline,
   className,
   isHistory = false,
-  isApprovalDisabled = false,
+  isUserInActiveProcess = false,
   dict,
   locale,
 }) => {
@@ -413,10 +417,122 @@ const MinimalSuggestionCard: React.FC<MinimalSuggestionCardProps> = ({
       {/* Footer Actions */}
       {!isHistory && (
         <CardFooter className="p-4 bg-gradient-to-r from-gray-50/50 to-slate-50/50 border-t border-gray-100">
-          {(suggestion.status === 'PENDING_FIRST_PARTY' && isFirstParty) ||
-          (suggestion.status === 'PENDING_SECOND_PARTY' && !isFirstParty) ? (
+          {/* ═══════════════════════════════════════════════
+              CASE: First party PENDING
+              ═══════════════════════════════════════════════ */}
+          {suggestion.status === 'PENDING_FIRST_PARTY' && isFirstParty ? (
+            isUserInActiveProcess ? (
+              /* ─── LAYOUT A: Has active process ─── */
+              <div className="w-full space-y-2">
+                {/* Save for Later - full width, primary amber */}
+                <Button
+                  size="sm"
+                  variant="default"
+                  className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl font-medium h-10"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onInterested?.(suggestion);
+                  }}
+                >
+                  <Bookmark
+                    className={cn('w-4 h-4', locale === 'he' ? 'ml-2' : 'mr-2')}
+                  />
+                  {dict.buttons.interested ||
+                    (locale === 'he' ? 'שומר/ת לגיבוי' : 'Save for later')}
+                </Button>
+
+                {/* Explanation banner */}
+                <div className="flex items-start gap-2 px-3 py-2 bg-amber-50 rounded-lg border border-amber-200/50">
+                  <Info className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
+                  <p className="text-xs text-amber-800 leading-relaxed">
+                    {dict.activeProcessExplanation ||
+                      (locale === 'he'
+                        ? 'יש לך כבר הצעה בתהליך פעיל. ההצעה הזו תישמר ברשימת ההמתנה שלך ותוכל/י לאשר אותה כשהתהליך הנוכחי יסתיים.'
+                        : 'You already have an active suggestion. This one will be saved to your waitlist and you can approve it when the current process ends.')}
+                  </p>
+                </div>
+
+                {/* Decline - full width */}
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="w-full text-rose-600 hover:text-rose-700 hover:bg-rose-50 border-rose-200 hover:border-rose-300 rounded-xl font-medium transition-all duration-300 h-9"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDecline?.(suggestion);
+                  }}
+                >
+                  <XCircle
+                    className={cn('w-4 h-4', locale === 'he' ? 'ml-2' : 'mr-2')}
+                  />
+                  {dict.buttons.decline}
+                </Button>
+              </div>
+            ) : (
+              /* ─── LAYOUT B: No active process - all 3 buttons ─── */
+              <div className="w-full space-y-2">
+                {/* Approve - full width */}
+                <Button
+                  size="sm"
+                  variant="default"
+                  className="w-full bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 text-white shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl font-medium h-10"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onApprove?.(suggestion);
+                  }}
+                >
+                  <Heart
+                    className={cn('w-4 h-4', locale === 'he' ? 'ml-2' : 'mr-2')}
+                  />
+                  {dict.buttons.approve}
+                </Button>
+
+                {/* Save for Later + Decline row */}
+                <div className="grid grid-cols-2 gap-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="w-full text-amber-600 hover:text-amber-700 hover:bg-amber-50 border-amber-200 hover:border-amber-300 rounded-xl font-medium transition-all duration-300 text-xs h-9"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onInterested?.(suggestion);
+                    }}
+                  >
+                    <Bookmark
+                      className={cn(
+                        'w-3.5 h-3.5',
+                        locale === 'he' ? 'ml-1.5' : 'mr-1.5'
+                      )}
+                    />
+                    {dict.buttons.interested ||
+                      (locale === 'he' ? 'שומר/ת לגיבוי' : 'Save for later')}
+                  </Button>
+
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="w-full text-rose-600 hover:text-rose-700 hover:bg-rose-50 border-rose-200 hover:border-rose-300 rounded-xl font-medium transition-all duration-300 text-xs h-9"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onDecline?.(suggestion);
+                    }}
+                  >
+                    <XCircle
+                      className={cn(
+                        'w-3.5 h-3.5',
+                        locale === 'he' ? 'ml-1.5' : 'mr-1.5'
+                      )}
+                    />
+                    {dict.buttons.decline}
+                  </Button>
+                </div>
+              </div>
+            )
+          ) : suggestion.status === 'PENDING_SECOND_PARTY' && !isFirstParty ? (
+            /* ═══════════════════════════════════════════════
+               CASE: Second party PENDING - original 2 buttons
+               ═══════════════════════════════════════════════ */
             <div className="grid grid-cols-2 gap-3 w-full">
-              {/* Decline Button: Rose/Red (matching Hero decline actions) */}
               <Button
                 size="sm"
                 variant="outline"
@@ -432,48 +548,76 @@ const MinimalSuggestionCard: React.FC<MinimalSuggestionCardProps> = ({
                 {dict.buttons.decline}
               </Button>
 
-              {/* Approve Button: Teal -> Emerald (matching Hero primary CTA) */}
-              <TooltipProvider>
-                <Tooltip delayDuration={100}>
-                  <TooltipTrigger asChild>
-                    <div className="w-full">
-                      <Button
-                        size="sm"
-                        variant="default"
-                        className="w-full bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 text-white shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl font-medium"
-                        disabled={isApprovalDisabled}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          if (isApprovalDisabled) {
-                          toast.info(dict.toasts.approveDisabledTitle, {
-  description: dict.toasts.approveDisabledDescription,
-});
-                          } else {
-                            onApprove?.(suggestion);
-                          }
-                        }}
-                      >
-                        <Heart
-                          className={cn(
-                            'w-4 h-4',
-                            locale === 'he' ? 'ml-2' : 'mr-2'
-                          )}
-                        />
-                        {dict.buttons.approve}
-                      </Button>
-                    </div>
-                  </TooltipTrigger>
-                  {isApprovalDisabled && (
-                    <TooltipContent>
-                      <p>{dict.buttons.approveDisabledTooltip}</p>
-                    </TooltipContent>
-                  )}
-                </Tooltip>
-              </TooltipProvider>
+              <Button
+                size="sm"
+                variant="default"
+                className="w-full bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 text-white shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl font-medium"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onApprove?.(suggestion);
+                }}
+              >
+                <Heart
+                  className={cn('w-4 h-4', locale === 'he' ? 'ml-2' : 'mr-2')}
+                />
+                {dict.buttons.approve}
+              </Button>
+            </div>
+          ) : suggestion.status === 'FIRST_PARTY_INTERESTED' && isFirstParty ? (
+            /* ═══════════════════════════════════════════════
+               CASE: INTERESTED - activate or remove
+               ═══════════════════════════════════════════════ */
+            <div className="w-full space-y-2">
+              {!isUserInActiveProcess && (
+                <Button
+                  size="sm"
+                  variant="default"
+                  className="w-full bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 text-white shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl font-medium h-10"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onApprove?.(suggestion);
+                  }}
+                >
+                  <Heart
+                    className={cn('w-4 h-4', locale === 'he' ? 'ml-2' : 'mr-2')}
+                  />
+                  {dict.buttons.activateNow ||
+                    (locale === 'he' ? 'אשר/י עכשיו' : 'Approve now')}
+                </Button>
+              )}
+
+              <Button
+                size="sm"
+                variant="outline"
+                className="w-full text-rose-500 hover:text-rose-600 hover:bg-rose-50 border-rose-200 rounded-xl font-medium transition-all duration-300 h-9"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDecline?.(suggestion);
+                }}
+              >
+                <Trash2
+                  className={cn('w-4 h-4', locale === 'he' ? 'ml-2' : 'mr-2')}
+                />
+                {dict.buttons.removeFromList ||
+                  (locale === 'he' ? 'הסר מהרשימה' : 'Remove')}
+              </Button>
+
+              {isUserInActiveProcess && (
+                <div className="flex items-start gap-2 px-3 py-2 bg-gray-50 rounded-lg">
+                  <Info className="w-3.5 h-3.5 text-gray-400 mt-0.5 flex-shrink-0" />
+                  <p className="text-xs text-gray-500 leading-relaxed">
+                    {locale === 'he'
+                      ? 'יש לך הצעה פעילה. כשתסתיים, תוכל/י לאשר מהרשימה.'
+                      : 'You have an active suggestion. Once it ends, you can approve from the waitlist.'}
+                  </p>
+                </div>
+              )}
             </div>
           ) : (
+            /* ═══════════════════════════════════════════════
+               CASE: Other statuses (in progress, etc.)
+               ═══════════════════════════════════════════════ */
             <div className="grid grid-cols-2 gap-3 w-full">
-              {/* Ask Matchmaker: Teal accent on hover */}
               <Button
                 size="sm"
                 variant="outline"
@@ -489,7 +633,6 @@ const MinimalSuggestionCard: React.FC<MinimalSuggestionCardProps> = ({
                 {dict.buttons.askMatchmaker}
               </Button>
 
-              {/* View Details: Teal gradient (matching Hero secondary CTA) */}
               <Button
                 size="sm"
                 variant="default"
@@ -500,11 +643,6 @@ const MinimalSuggestionCard: React.FC<MinimalSuggestionCardProps> = ({
                   className={cn('w-4 h-4', locale === 'he' ? 'ml-2' : 'mr-2')}
                 />
                 {dict.buttons.viewDetails}
-                {locale === 'he' ? (
-                  <ChevronLeft className="w-3 h-3 mr-2" />
-                ) : (
-                  <ChevronRight className="w-3 h-3 ml-2" />
-                )}
               </Button>
             </div>
           )}
