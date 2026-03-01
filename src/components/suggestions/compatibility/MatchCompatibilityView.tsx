@@ -22,7 +22,7 @@ import {
   Users,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import type { PartyInfo } from '../types';
+import type { PartyInfo } from '@/types/suggestions';
 import type { SuggestionsCompatibilityDict } from '@/types/dictionary';
 
 // =============================================================================
