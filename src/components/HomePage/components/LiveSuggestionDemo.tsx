@@ -79,13 +79,13 @@ export const LiveSuggestionDemo: React.FC<LiveSuggestionDemoProps> = ({
           onInquiry={handleOpenModal}
           onApprove={handleOpenModal}
           onDecline={handleOpenModal}
-          isApprovalDisabled={true}
+          isUserInActiveProcess={true}
           dict={suggestionsDict.card}
           locale={locale}
         />
 
-        {/* 
-         * שכבת הריחוף (Overlay) - עודכנה לגרדיאנט Teal עמוק ושקיפות 
+        {/*
+         * שכבת הריחוף (Overlay) - עודכנה לגרדיאנט Teal עמוק ושקיפות
          * במקום שחור פשוט, כדי להתאים לאווירה היוקרתית והנקייה של ה-Hero.
          */}
         <div className="absolute inset-0 bg-gradient-to-t from-teal-900/95 via-teal-800/60 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300 flex flex-col items-center justify-center text-white p-4 pointer-events-none backdrop-blur-[2px]">
@@ -93,14 +93,14 @@ export const LiveSuggestionDemo: React.FC<LiveSuggestionDemoProps> = ({
           <div className="bg-white/10 p-3 rounded-full mb-3 backdrop-blur-sm border border-white/20 transform group-hover:scale-110 transition-transform duration-300">
             <ZoomIn className="w-10 h-10 text-white drop-shadow-md" />
           </div>
-          
+
           <p className="font-bold text-xl text-center drop-shadow-sm">
             {suggestionDemoDict.hoverTitle}
           </p>
           <p className="text-sm text-center text-teal-50 mt-1 max-w-[80%] leading-relaxed">
             {suggestionDemoDict.hoverSubtitle}
           </p>
-          
+
           {/* פס קישוט תחתון התואם לגרדיאנט של הכפתור הראשי */}
           <div className="mt-4 w-12 h-1 bg-gradient-to-r from-teal-400 via-orange-400 to-amber-400 rounded-full shadow-lg shadow-orange-500/30" />
         </div>
