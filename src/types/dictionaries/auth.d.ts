@@ -816,9 +816,7 @@ export type ChildSafetyDict = {
   contact: {
     title: string;
     p1: string;
-    safetyTeamLabel: string;
-    generalSupportLabel: string;
-    emailLabel: string;
+    emailLabel: string;      // ← שונה - רק שדה אחד
     responseTime: string;
   };
   updates: {

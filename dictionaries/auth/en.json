@@ -826,14 +826,12 @@
       "item5": "Updates on relevant legislation and regulations"
     }
   },
-  "contact": {
-    "title": "Contact Us",
-    "p1": "For any questions or concerns regarding child safety, please contact us:",
-    "safetyTeamLabel": "Safety Team:",
-    "generalSupportLabel": "General Support:",
-    "emailLabel": "Email:",
-    "responseTime": "We commit to responding to every child safety inquiry within 24 hours."
-  },
+ "contact": {
+  "title": "Contact Us",
+  "p1": "For any questions or concerns regarding child safety, please contact us:",
+  "emailLabel": "Email:",
+  "responseTime": "We commit to responding to every child safety inquiry within 24 hours."
+},
   "updates": {
     "title": "Policy Updates",
     "p1": "This policy is regularly reviewed and updated to ensure it meets the latest standards.",

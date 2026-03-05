@@ -30,12 +30,14 @@ const ChildSafetyClient: React.FC<ChildSafetyClientProps> = ({
   const companyNameLegal = `ג'ואיש מאצ'פוינט בע"מ`;
   const companyNumber = '517172631';
   const lastUpdatedDate = '25 בפברואר 2026';
-  const safetyEmail = 'safety@neshamatech.com';
-  const supportEmail = 'neshamatech.jsmatch@gmail.com';
+  const contactEmail = 'neshamatech.jsmatch@gmail.com';
   const siteUrl = 'https://www.jewishmatchpoint.com';
 
   const pageTitle = dict.pageTitle.replace('{brandName}', brandName);
-  const pageDescription = dict.pageDescription.replace('{brandName}', brandName);
+  const pageDescription = dict.pageDescription.replace(
+    '{brandName}',
+    brandName
+  );
 
   return (
     <>
@@ -92,12 +94,18 @@ const ChildSafetyClient: React.FC<ChildSafetyClientProps> = ({
                 }}
               />
               <p>{dict.commitment.p2}</p>
-              
+
               <div className="bg-gray-50 p-4 rounded-lg mt-4">
-                <p className="font-semibold text-gray-800 mb-2">{dict.commitment.definitionsTitle}</p>
+                <p className="font-semibold text-gray-800 mb-2">
+                  {dict.commitment.definitionsTitle}
+                </p>
                 <ul className="space-y-2">
-                  <li><strong>CSAE</strong> - {dict.commitment.csaeDefinition}</li>
-                  <li><strong>CSAM</strong> - {dict.commitment.csamDefinition}</li>
+                  <li>
+                    <strong>CSAE</strong> - {dict.commitment.csaeDefinition}
+                  </li>
+                  <li>
+                    <strong>CSAM</strong> - {dict.commitment.csamDefinition}
+                  </li>
                 </ul>
               </div>
             </section>
@@ -110,14 +118,18 @@ const ChildSafetyClient: React.FC<ChildSafetyClientProps> = ({
               </h2>
               <p>{dict.zeroTolerance.p1}</p>
               <ul className="space-y-2">
-                {Object.values(dict.zeroTolerance.prohibitedList).map((item, index) => (
-                  <li key={index} className="flex items-start gap-2">
-                    <XCircle className="w-5 h-5 text-red-500 mt-1 flex-shrink-0" />
-                    <span>{item}</span>
-                  </li>
-                ))}
+                {Object.values(dict.zeroTolerance.prohibitedList).map(
+                  (item, index) => (
+                    <li key={index} className="flex items-start gap-2">
+                      <XCircle className="w-5 h-5 text-red-500 mt-1 flex-shrink-0" />
+                      <span>{item}</span>
+                    </li>
+                  )
+                )}
               </ul>
-              <p className="font-semibold text-red-700 mt-4">{dict.zeroTolerance.consequence}</p>
+              <p className="font-semibold text-red-700 mt-4">
+                {dict.zeroTolerance.consequence}
+              </p>
             </section>
 
             {/* Section 3: Age Restrictions */}
@@ -128,9 +140,11 @@ const ChildSafetyClient: React.FC<ChildSafetyClientProps> = ({
               </h2>
               <p>{dict.ageRestrictions.p1}</p>
               <ul>
-                {Object.values(dict.ageRestrictions.measures).map((item, index) => (
-                  <li key={index}>{item}</li>
-                ))}
+                {Object.values(dict.ageRestrictions.measures).map(
+                  (item, index) => (
+                    <li key={index}>{item}</li>
+                  )
+                )}
               </ul>
               <p>{dict.ageRestrictions.p2}</p>
             </section>
@@ -156,16 +170,18 @@ const ChildSafetyClient: React.FC<ChildSafetyClientProps> = ({
                 {dict.reporting.title}
               </h2>
               <p>{dict.reporting.p1}</p>
-              
+
               <div className="bg-orange-50 p-4 rounded-lg mt-4">
-                <p className="font-semibold mb-2">{dict.reporting.howToReportTitle}</p>
+                <p className="font-semibold mb-2">
+                  {dict.reporting.howToReportTitle}
+                </p>
                 <ul>
                   {Object.values(dict.reporting.methods).map((item, index) => (
                     <li key={index}>{item}</li>
                   ))}
                 </ul>
               </div>
-              
+
               <p className="mt-4">{dict.reporting.anonymity}</p>
               <p>{dict.reporting.noRetaliation}</p>
             </section>
@@ -192,9 +208,11 @@ const ChildSafetyClient: React.FC<ChildSafetyClientProps> = ({
               </h2>
               <p>{dict.authorities.p1}</p>
               <ul>
-                {Object.values(dict.authorities.organizations).map((item, index) => (
-                  <li key={index}>{item}</li>
-                ))}
+                {Object.values(dict.authorities.organizations).map(
+                  (item, index) => (
+                    <li key={index}>{item}</li>
+                  )
+                )}
               </ul>
               <p>{dict.authorities.p2}</p>
             </section>
@@ -207,9 +225,11 @@ const ChildSafetyClient: React.FC<ChildSafetyClientProps> = ({
               </h2>
               <p>{dict.dataProtection.p1}</p>
               <ul>
-                {Object.values(dict.dataProtection.measures).map((item, index) => (
-                  <li key={index}>{item}</li>
-                ))}
+                {Object.values(dict.dataProtection.measures).map(
+                  (item, index) => (
+                    <li key={index}>{item}</li>
+                  )
+                )}
               </ul>
             </section>
 
@@ -233,34 +253,19 @@ const ChildSafetyClient: React.FC<ChildSafetyClientProps> = ({
                 {dict.contact.title}
               </h2>
               <p>{dict.contact.p1}</p>
-              
+
               <div className="bg-gray-50 p-6 rounded-lg mt-4">
                 <p className="mb-2">
-                  <strong>{dict.contact.safetyTeamLabel}</strong>
-                </p>
-                <p>
-                  {dict.contact.emailLabel}{' '}
+                  <strong>{dict.contact.emailLabel}</strong>{' '}
                   <a
-                    href={`mailto:${safetyEmail}`}
+                    href={`mailto:${contactEmail}`}
                     className="text-cyan-600 hover:text-cyan-700 font-semibold"
                   >
-                    {safetyEmail}
-                  </a>
-                </p>
-                <p className="mt-4">
-                  <strong>{dict.contact.generalSupportLabel}</strong>
-                </p>
-                <p>
-                  {dict.contact.emailLabel}{' '}
-                  <a
-                    href={`mailto:${supportEmail}`}
-                    className="text-cyan-600 hover:text-cyan-700"
-                  >
-                    {supportEmail}
+                    {contactEmail}
                   </a>
                 </p>
               </div>
-              
+
               <p className="mt-4 text-sm text-gray-500">
                 {dict.contact.responseTime}
               </p>
@@ -272,7 +277,10 @@ const ChildSafetyClient: React.FC<ChildSafetyClientProps> = ({
               <p>{dict.updates.p1}</p>
               <p
                 dangerouslySetInnerHTML={{
-                  __html: dict.updates.p2.replace('{lastUpdatedDate}', lastUpdatedDate),
+                  __html: dict.updates.p2.replace(
+                    '{lastUpdatedDate}',
+                    lastUpdatedDate
+                  ),
                 }}
               />
             </section>
