@@ -8,7 +8,6 @@ import { MatchSuggestionStatus } from "@prisma/client";
 import { formatAnswers, KEY_MAPPING, FormattedAnswersType } from '@/lib/questionnaireFormatter';
 import type { QuestionnaireResponse } from "@/types/suggestions";
 import type { WorldId } from "@/types/next-auth";
-
 export const dynamic = 'force-dynamic';
 
 // =====================================================================
@@ -48,10 +47,7 @@ const SECOND_PARTY_ACTIVE_STATUSES: MatchSuggestionStatus[] = [
 ];
 
 // --- טיפוס עזר לעיבוד השאלון ---
-type ProcessedQuestionnaireResponse = Omit<
-  QuestionnaireResponse,
-  'valuesAnswers' | 'personalityAnswers' | 'relationshipAnswers' | 'partnerAnswers' | 'religionAnswers'
-> & {
+type ProcessedQuestionnaireResponse = Omit<QuestionnaireResponse, 'valuesAnswers' | 'personalityAnswers' | 'relationshipAnswers' | 'partnerAnswers' | 'religionAnswers'> & {
   formattedAnswers: FormattedAnswersType;
 };
 
@@ -96,79 +92,55 @@ export async function GET() {
       orderBy: { createdAt: "desc" },
     });
 
-    // --- סינון ראשוני: הסרת suggestions עם firstParty או secondParty חסרים ---
-    const validSuggestions = activeSuggestions.filter(
-      (suggestion) => suggestion.firstParty && suggestion.secondParty
-    );
+    // --- עיבוד: פורמט שאלונים בלבד, ללא casting מיותר ---
+    const processedSuggestions = activeSuggestions.map((suggestion) => {
 
-    // --- עיבוד: פורמט שאלונים ---
-    const processedSuggestions = validSuggestions
-      .map((suggestion) => {
-        const formatPartyQuestionnaire = (party: typeof suggestion.firstParty) => {
-          // בדיקת null safety
-          if (!party) {
-            return null;
-          }
+      const formatPartyQuestionnaire = (party: typeof suggestion.firstParty) => {
+        const { questionnaireResponses, ...restOfParty } = party;
 
-          const { questionnaireResponses, ...restOfParty } = party;
+        if (questionnaireResponses && questionnaireResponses.length > 0) {
+          const qr = questionnaireResponses[0];
+          const formattedAnswers: Partial<FormattedAnswersType> = {};
 
-          if (questionnaireResponses && questionnaireResponses.length > 0) {
-            const qr = questionnaireResponses[0];
-            const formattedAnswers: Partial<FormattedAnswersType> = {};
+          (Object.keys(KEY_MAPPING) as WorldId[]).forEach(worldKey => {
+            const dbKey = KEY_MAPPING[worldKey];
+            const answersJson = (qr as any)[dbKey];
+            formattedAnswers[worldKey] = formatAnswers(answersJson);
+          });
 
-            (Object.keys(KEY_MAPPING) as WorldId[]).forEach((worldKey) => {
-              const dbKey = KEY_MAPPING[worldKey];
-              const answersJson = (qr as any)[dbKey];
-              formattedAnswers[worldKey] = formatAnswers(answersJson);
-            });
+          const {
+            valuesAnswers,
+            personalityAnswers,
+            relationshipAnswers,
+            partnerAnswers,
+            religionAnswers,
+            ...restOfQr
+          } = qr;
 
-            const {
-              valuesAnswers,
-              personalityAnswers,
-              relationshipAnswers,
-              partnerAnswers,
-              religionAnswers,
-              ...restOfQr
-            } = qr;
-
-            return {
-              ...restOfParty,
-              questionnaireResponses: [
-                {
-                  ...restOfQr,
-                  formattedAnswers: formattedAnswers as FormattedAnswersType,
-                },
-              ],
-            };
-          }
-
-          return { ...restOfParty, questionnaireResponses: [] };
-        };
-
-        const firstParty = formatPartyQuestionnaire(suggestion.firstParty);
-        const secondParty = formatPartyQuestionnaire(suggestion.secondParty);
-
-        // בדיקת בטיחות נוספת - אם אחד מהם null, לא כולל את ההצעה
-        if (!firstParty || !secondParty) {
-          console.warn(
-            `[Active Suggestions] Skipping suggestion ${suggestion.id} - missing party data`
-          );
-          return null;
+          return {
+            ...restOfParty,
+            questionnaireResponses: [{
+              ...restOfQr,
+              formattedAnswers: formattedAnswers as FormattedAnswersType,
+            }],
+          };
         }
 
-        return {
-          ...suggestion,
-          firstParty,
-          secondParty,
-        };
-      })
-      // סינון null values
-      .filter((suggestion): suggestion is NonNullable<typeof suggestion> => suggestion !== null);
+        return { ...restOfParty, questionnaireResponses: [] };
+      };
+
+      return {
+        ...suggestion,
+        firstParty: formatPartyQuestionnaire(suggestion.firstParty),
+        secondParty: formatPartyQuestionnaire(suggestion.secondParty),
+      };
+    });
 
     return NextResponse.json({
       success: true,
       suggestions: processedSuggestions,
     });
+
   } catch (error) {
     console.error("Error fetching active suggestions:", error);
     const errorMessage = error instanceof Error ? error.message : "Internal server error";
