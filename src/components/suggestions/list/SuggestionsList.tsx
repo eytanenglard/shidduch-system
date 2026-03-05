@@ -87,7 +87,7 @@ interface SuggestionsListProps {
   isUserInActiveProcess?: boolean;
   onActionRequest: (
     suggestion: ExtendedMatchSuggestion,
-    action: 'approve' | 'decline'
+    action: 'approve' | 'decline' | 'interested'
   ) => void;
   suggestionsDict: SuggestionsDictionary;
   profileCardDict: ProfileCardDict;
@@ -325,7 +325,7 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
 
   const handleStatusAction = (
     suggestion: ExtendedMatchSuggestion,
-    action: 'approve' | 'decline'
+    action: 'approve' | 'decline' | 'interested'
   ) => {
     onActionRequest(suggestion, action);
   };
@@ -674,9 +674,12 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
                   onClick={() => handleOpenDetails(suggestion)}
                   onInquiry={() => handleInquiry(suggestion)}
                   onApprove={() => handleStatusAction(suggestion, 'approve')}
+                  onInterested={() =>
+                    onActionRequest(suggestion, 'interested' as any)
+                  }
                   onDecline={() => handleStatusAction(suggestion, 'decline')}
                   isHistory={isHistory}
-                  isUserInActiveProcess={isUserInActiveProcess} // ← renamed from isApprovalDisabled
+                  isUserInActiveProcess={isUserInActiveProcess}
                   className={cn(
                     'card-hover-elegant',
                     viewMode === 'list' ? 'flex' : ''
