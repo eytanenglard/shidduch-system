@@ -17,6 +17,8 @@ const PUBLIC_PATHS = [
   '/auth/error',
   '/legal/privacy-policy',
   '/legal/terms-of-service',
+  '/legal/accessibility-statement',  // ← הוסף גם את זה אם חסר
+  '/legal/child-safety',             // ← הוסף שורה זו!
   '/questionnaire',
   '/contact',
   '/feedback',
