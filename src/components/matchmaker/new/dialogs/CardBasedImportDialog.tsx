@@ -114,6 +114,37 @@ const CARD_COUNT_OPTIONS = [5, 10, 20, 50];
 const MAX_IMAGES_PER_CARD = 5;
 const MAX_IMAGE_SIZE_MB = 10;
 
+// Marital status mapping: API returns lowercase, Select uses uppercase
+const MARITAL_STATUS_NORMALIZE: Record<string, string> = {
+  single: 'SINGLE',
+  divorced: 'DIVORCED',
+  widowed: 'WIDOWED',
+  SINGLE: 'SINGLE',
+  DIVORCED: 'DIVORCED',
+  WIDOWED: 'WIDOWED',
+  רווק: 'SINGLE',
+  רווקה: 'SINGLE',
+  גרוש: 'DIVORCED',
+  גרושה: 'DIVORCED',
+  אלמן: 'WIDOWED',
+  אלמנה: 'WIDOWED',
+  פרוד: 'DIVORCED',
+  פרודה: 'DIVORCED',
+  separated: 'DIVORCED',
+};
+
+const MARITAL_STATUS_DISPLAY: Record<string, string> = {
+  SINGLE: 'רווק/ה',
+  DIVORCED: 'גרוש/ה',
+  WIDOWED: 'אלמן/ה',
+};
+
+function normalizeMaritalStatus(value: string | null | undefined): string {
+  if (!value) return 'SINGLE';
+  const normalized = MARITAL_STATUS_NORMALIZE[value.trim()];
+  return normalized || 'SINGLE';
+}
+
 function createEmptyCard(): CardData {
   return {
     id: crypto.randomUUID(),
@@ -170,12 +201,12 @@ const ImageStrip: React.FC<ImageStripProps> = ({
 }) => {
   const fileRef = useRef<HTMLInputElement>(null);
   const sizeClass =
-    size === 'sm' ? 'w-12 h-12 sm:w-14 sm:h-14' : 'w-16 h-16 sm:w-20 sm:h-20';
+    size === 'sm' ? 'w-14 h-14 sm:w-14 sm:h-14' : 'w-18 h-18 sm:w-20 sm:h-20';
   const addSizeClass =
-    size === 'sm' ? 'w-12 h-12 sm:w-14 sm:h-14' : 'w-16 h-16 sm:w-20 sm:h-20';
+    size === 'sm' ? 'w-14 h-14 sm:w-14 sm:h-14' : 'w-18 h-18 sm:w-20 sm:h-20';
 
   return (
-    <div className="flex gap-1.5 overflow-x-auto pb-1.5 -mx-0.5 px-0.5 scrollbar-thin items-center">
+    <div className="flex gap-2 overflow-x-auto pb-2 -mx-0.5 px-0.5 scrollbar-thin items-center">
       {images.map((img, imgIdx) => (
         <div
           key={imgIdx}
@@ -183,7 +214,7 @@ const ImageStrip: React.FC<ImageStripProps> = ({
         >
           <img
             src={img.preview}
-            className="rounded-lg object-cover w-full h-full border border-gray-200 cursor-pointer"
+            className="rounded-lg object-cover w-full h-full border border-gray-200 cursor-pointer active:scale-95 transition-transform"
             alt=""
             onClick={() => onPreview(img.preview)}
           />
@@ -193,9 +224,9 @@ const ImageStrip: React.FC<ImageStripProps> = ({
               e.stopPropagation();
               onPreview(img.preview);
             }}
-            className="absolute bottom-0.5 left-0.5 bg-black/50 text-white rounded-full w-5 h-5 text-xs flex items-center justify-center sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
+            className="absolute bottom-0.5 left-0.5 bg-black/50 text-white rounded-full w-6 h-6 sm:w-5 sm:h-5 text-xs flex items-center justify-center sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
           >
-            <ZoomIn className="w-3 h-3" />
+            <ZoomIn className="w-3.5 h-3.5 sm:w-3 sm:h-3" />
           </button>
           {canEdit && (
             <button
@@ -204,7 +235,7 @@ const ImageStrip: React.FC<ImageStripProps> = ({
                 e.stopPropagation();
                 onRemoveImage(cardId, imgIdx);
               }}
-              className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-5 h-5 text-xs flex items-center justify-center sm:opacity-0 sm:group-hover:opacity-100 transition-opacity shadow"
+              className="absolute -top-1.5 -right-1.5 bg-red-500 text-white rounded-full w-6 h-6 sm:w-5 sm:h-5 text-xs flex items-center justify-center opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity shadow-lg"
             >
               ×
             </button>
@@ -215,10 +246,10 @@ const ImageStrip: React.FC<ImageStripProps> = ({
       {/* Add image button */}
       {canEdit && images.length < MAX_IMAGES_PER_CARD && (
         <label
-          className={`flex-shrink-0 ${addSizeClass} border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-indigo-400 hover:bg-indigo-50/50 transition-colors active:bg-indigo-100/50`}
+          className={`flex-shrink-0 ${addSizeClass} border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-indigo-400 hover:bg-indigo-50/50 transition-colors active:bg-indigo-100/50 active:scale-95`}
         >
-          <Plus className="w-4 h-4 text-gray-400" />
-          <span className="text-[9px] text-gray-400 mt-0.5">הוסף</span>
+          <Plus className="w-5 h-5 sm:w-4 sm:h-4 text-gray-400" />
+          <span className="text-[10px] text-gray-400 mt-0.5">הוסף</span>
           <input
             ref={fileRef}
             type="file"
@@ -235,10 +266,10 @@ const ImageStrip: React.FC<ImageStripProps> = ({
         <button
           type="button"
           onClick={() => fileRef.current?.click()}
-          className={`flex-shrink-0 ${addSizeClass} border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-indigo-400 hover:bg-indigo-50/50 transition-colors active:bg-indigo-100/50`}
+          className={`flex-shrink-0 ${addSizeClass} border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-indigo-400 hover:bg-indigo-50/50 transition-colors active:bg-indigo-100/50 active:scale-95`}
         >
-          <Camera className="w-5 h-5 text-gray-400" />
-          <span className="text-[9px] text-gray-400 mt-0.5">
+          <Camera className="w-6 h-6 sm:w-5 sm:h-5 text-gray-400" />
+          <span className="text-[10px] text-gray-400 mt-0.5">
             {isMobile ? 'הוסף תמונה' : 'הוסף תמונות'}
           </span>
         </button>
@@ -394,29 +425,28 @@ export const CardBasedImportDialog: React.FC<CardBasedImportDialogProps> = ({
   // =========================================================================
   // Handle paste
   // =========================================================================
- const handlePaste = useCallback(
-  (cardId: string, e: React.ClipboardEvent) => {
-    const items = e.clipboardData?.items;
-    if (!items) return;
+  const handlePaste = useCallback(
+    (cardId: string, e: React.ClipboardEvent) => {
+      const items = e.clipboardData?.items;
+      if (!items) return;
 
-    const imageFiles: File[] = [];
+      const imageFiles: File[] = [];
 
-    for (const item of Array.from(items)) {
-      if (item.type.startsWith('image/')) {
-        const file = item.getAsFile();
-        if (file) imageFiles.push(file);
+      for (const item of Array.from(items)) {
+        if (item.type.startsWith('image/')) {
+          const file = item.getAsFile();
+          if (file) imageFiles.push(file);
+        }
       }
-    }
 
-    // רק אם יש תמונות — עצור התפשטות ומנע כפילות
-    if (imageFiles.length > 0) {
-      e.preventDefault();
-      e.stopPropagation(); // ← מונע את ה-bubble לdiv העוטף
-      addImagesToCard(cardId, imageFiles);
-    }
-  },
-  [addImagesToCard]
-);
+      if (imageFiles.length > 0) {
+        e.preventDefault();
+        e.stopPropagation();
+        addImagesToCard(cardId, imageFiles);
+      }
+    },
+    [addImagesToCard]
+  );
 
   // =========================================================================
   // Drag & Drop handler
@@ -436,7 +466,7 @@ export const CardBasedImportDialog: React.FC<CardBasedImportDialogProps> = ({
   );
 
   // =========================================================================
-  // AI Analysis - Single Card
+  // AI Analysis - Single Card (with retry for mobile)
   // =========================================================================
   const analyzeCard = async (cardId: string) => {
     const card = cards.find((c) => c.id === cardId);
@@ -448,49 +478,98 @@ export const CardBasedImportDialog: React.FC<CardBasedImportDialogProps> = ({
 
     updateCard(cardId, { status: 'analyzing', error: null });
 
-    try {
-      const formData = new FormData();
-      formData.append('mode', 'single-card');
-      formData.append('rawText', card.rawText);
+    const maxRetries = 2;
+    let lastError: Error | null = null;
 
-      for (const img of card.images) {
-        formData.append('images', img.file);
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+      try {
+        if (attempt > 0) {
+          toast.info(`ניסיון ${attempt + 1}...`);
+          await new Promise((r) => setTimeout(r, 1000));
+        }
+
+        const formData = new FormData();
+        formData.append('mode', 'single-card');
+        formData.append('rawText', card.rawText);
+
+        for (const img of card.images) {
+          formData.append('images', img.file);
+        }
+
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 55000); // 55s timeout
+
+        const res = await fetch('/api/matchmaker/candidates/card-import', {
+          method: 'POST',
+          body: formData,
+          signal: controller.signal,
+        });
+
+        clearTimeout(timeoutId);
+
+        const result = await res.json();
+        if (!res.ok || !result.success) {
+          throw new Error(result.error || 'Analysis failed');
+        }
+
+        const fields = result.data.fields;
+
+        // === NORMALIZE: maritalStatus from lowercase to uppercase ===
+        if (fields.maritalStatus) {
+          fields.maritalStatus = normalizeMaritalStatus(fields.maritalStatus);
+        } else {
+          fields.maritalStatus = 'SINGLE';
+        }
+
+        // === NORMALIZE: lastName fallback ===
+        if (!fields.lastName || fields.lastName.trim() === '') {
+          fields.lastName = 'לא ידוע';
+        }
+
+        if (!fields.referredBy || fields.referredBy.trim() === '') {
+          fields.referredBy = 'קבוצת שידוכים שוובל';
+        }
+
+        if (!fields.about && card.rawText.trim()) {
+          fields.about = card.rawText;
+        }
+
+        updateCard(cardId, {
+          extracted: fields,
+          status: 'analyzed',
+          aiConfidence: result.data.confidence,
+          aiNotes: result.data.notes,
+        });
+
+        toast.success(`ניתוח הושלם: ${fields.firstName} ${fields.lastName}`);
+        return; // Success - exit retry loop
+      } catch (err) {
+        lastError = err as Error;
+
+        if ((err as Error).name === 'AbortError') {
+          lastError = new Error('הניתוח ארך יותר מדי זמן. נסה שוב.');
+        }
+
+        // Don't retry on non-retryable errors
+        if (
+          (err as Error).message?.includes('Unauthorized') ||
+          (err as Error).message?.includes('not configured')
+        ) {
+          break;
+        }
+
+        if (attempt === maxRetries) {
+          break;
+        }
       }
-
-      const res = await fetch('/api/matchmaker/candidates/card-import', {
-        method: 'POST',
-        body: formData,
-      });
-
-      const result = await res.json();
-      if (!res.ok || !result.success) {
-        throw new Error(result.error || 'Analysis failed');
-      }
-
-      const fields = result.data.fields;
-      if (!fields.referredBy || fields.referredBy.trim() === '') {
-        fields.referredBy = 'קבוצת שידוכים שוובל';
-      }
-
-      if (!fields.about && card.rawText.trim()) {
-        fields.about = card.rawText;
-      }
-
-      updateCard(cardId, {
-        extracted: fields,
-        status: 'analyzed',
-        aiConfidence: result.data.confidence,
-        aiNotes: result.data.notes,
-      });
-
-      toast.success(`ניתוח הושלם: ${fields.firstName} ${fields.lastName}`);
-    } catch (err) {
-      updateCard(cardId, {
-        status: 'error',
-        error: (err as Error).message,
-      });
-      toast.error(`שגיאה בניתוח: ${(err as Error).message}`);
     }
+
+    // All retries failed
+    updateCard(cardId, {
+      status: 'error',
+      error: lastError?.message || 'שגיאה לא ידועה',
+    });
+    toast.error(`שגיאה בניתוח: ${lastError?.message || 'נסה שוב'}`);
   };
 
   // =========================================================================
@@ -536,9 +615,14 @@ export const CardBasedImportDialog: React.FC<CardBasedImportDialogProps> = ({
     }
 
     const fields = card.extracted;
-    if (!fields.firstName || !fields.lastName || !fields.gender) {
-      toast.error('חסרים שדות חובה: שם פרטי, שם משפחה, מגדר');
+    if (!fields.firstName || !fields.gender) {
+      toast.error('חסרים שדות חובה: שם פרטי, מגדר');
       return;
+    }
+
+    // Ensure lastName has a value
+    if (!fields.lastName || fields.lastName.trim() === '') {
+      fields.lastName = 'לא ידוע';
     }
 
     updateCard(cardId, { status: 'saving' });
@@ -550,8 +634,13 @@ export const CardBasedImportDialog: React.FC<CardBasedImportDialogProps> = ({
       formData.append('gender', fields.gender);
 
       if (fields.phone) formData.append('phone', fields.phone);
-      if (fields.maritalStatus)
-        formData.append('maritalStatus', fields.maritalStatus);
+
+      // Convert maritalStatus back to lowercase for API (DB stores lowercase)
+      if (fields.maritalStatus) {
+        const msLower = fields.maritalStatus.toLowerCase();
+        formData.append('maritalStatus', msLower);
+      }
+
       if (fields.religiousLevel)
         formData.append('religiousLevel', fields.religiousLevel);
       if (fields.origin) formData.append('origin', fields.origin);
@@ -672,7 +761,7 @@ export const CardBasedImportDialog: React.FC<CardBasedImportDialogProps> = ({
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
       <DialogContent
-        className="w-[95vw] sm:w-[95vw] sm:max-w-[1400px] h-[100dvh] sm:h-auto sm:max-h-[93vh] overflow-hidden flex flex-col p-0 gap-0 rounded-none sm:rounded-lg"
+        className="w-full sm:w-[95vw] sm:max-w-[1400px] h-[100dvh] sm:h-auto sm:max-h-[93vh] overflow-hidden flex flex-col p-0 gap-0 rounded-none sm:rounded-lg max-w-full"
         dir="rtl"
       >
         {/* Header */}
@@ -681,10 +770,10 @@ export const CardBasedImportDialog: React.FC<CardBasedImportDialogProps> = ({
             <div className="min-w-0">
               <DialogTitle className="flex items-center gap-1.5 sm:gap-2 text-base sm:text-xl">
                 <Grid3X3 className="w-4 h-4 sm:w-5 sm:h-5 text-indigo-600 flex-shrink-0" />
-                <span className="truncate">ייבוא מועמדים בכרטיסים</span>
+                <span className="truncate">ייבוא מועמדים</span>
               </DialogTitle>
               <DialogDescription className="mt-0.5 sm:mt-1 text-xs sm:text-sm">
-                הדבק תמונות וטקסט, נתח עם AI, ואשר לשמירה
+                הדבק תמונות וטקסט, נתח עם AI, ואשר
               </DialogDescription>
             </div>
 
@@ -735,7 +824,7 @@ export const CardBasedImportDialog: React.FC<CardBasedImportDialogProps> = ({
                     key={count}
                     variant={cardCount === count ? 'default' : 'outline'}
                     size="sm"
-                    className="h-7 px-2 sm:px-3 text-xs min-w-[32px]"
+                    className="h-8 sm:h-7 px-3 sm:px-3 text-xs min-w-[36px] sm:min-w-[32px]"
                     onClick={() => handleCardCountChange(count)}
                   >
                     {count}
@@ -745,7 +834,7 @@ export const CardBasedImportDialog: React.FC<CardBasedImportDialogProps> = ({
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-7 text-xs flex-shrink-0"
+                className="h-8 sm:h-7 text-xs flex-shrink-0"
                 onClick={() => addMoreCards(5)}
               >
                 <Plus className="w-3 h-3 ml-1" />
@@ -758,7 +847,7 @@ export const CardBasedImportDialog: React.FC<CardBasedImportDialogProps> = ({
             <Button
               onClick={analyzeAllCards}
               disabled={isAnalyzingAll || filledCards === 0}
-              className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white h-8 sm:h-9"
+              className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white h-10 sm:h-9"
               size="sm"
             >
               {isAnalyzingAll ? (
@@ -772,7 +861,7 @@ export const CardBasedImportDialog: React.FC<CardBasedImportDialogProps> = ({
         </DialogHeader>
 
         {/* Cards Grid */}
-        <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain">
+        <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain -webkit-overflow-scrolling-touch">
           <div className="p-2 sm:p-4 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4">
             {cards.map((card, index) => (
               <CandidateCard
@@ -795,11 +884,16 @@ export const CardBasedImportDialog: React.FC<CardBasedImportDialogProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="px-3 sm:px-6 py-2 sm:py-3 border-t bg-gray-50 flex items-center justify-between flex-shrink-0">
+        <div className="px-3 sm:px-6 py-3 sm:py-3 border-t bg-gray-50 flex items-center justify-between flex-shrink-0 safe-area-bottom">
           <div className="text-xs sm:text-sm text-gray-500">
             {savedCards > 0 && `${savedCards} מועמדים נשמרו`}
           </div>
-          <Button variant="outline" size="sm" onClick={handleClose}>
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-9 sm:h-8"
+            onClick={handleClose}
+          >
             {savedCards > 0 ? 'סגור ורענן' : 'ביטול'}
           </Button>
         </div>
@@ -915,7 +1009,6 @@ const CandidateCard: React.FC<CandidateCardProps> = React.memo(
     const isSaved = card.status === 'saved';
     const isAnalyzing = card.status === 'analyzing';
     const isSaving = card.status === 'saving';
-    // Images can be edited unless saving or saved
     const canEditImages = !isSaved && !isSaving;
     const isInputDisabled = isSaved || isAnalyzing || isSaving;
 
@@ -936,61 +1029,59 @@ const CandidateCard: React.FC<CandidateCardProps> = React.memo(
       if (canEditImages) onDrop(card.id, e);
     };
 
-    // Is in the pre-analysis input phase?
     const isInputPhase =
       card.status === 'empty' ||
       card.status === 'has-input' ||
       card.status === 'error';
 
-    // Is in the post-analysis phase?
     const isPostAnalysis = card.extracted && !isInputPhase;
 
     return (
       <div
         className={`rounded-xl border-2 ${config.border} ${config.bg} transition-all duration-200 ${
           isSaved ? 'opacity-60' : ''
-        } overflow-hidden`}
+        } overflow-hidden relative`}
         onDragOver={handleDragOver}
         onDragEnter={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDropOnCard}
       >
         {/* Card Header */}
-        <div className="flex items-center justify-between px-2.5 sm:px-3 py-1.5 sm:py-2 border-b border-gray-100">
-          <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
-            <span className="text-[10px] sm:text-xs font-bold text-gray-400 bg-gray-100 rounded-full w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center flex-shrink-0">
+        <div className="flex items-center justify-between px-3 sm:px-3 py-2 sm:py-2 border-b border-gray-100">
+          <div className="flex items-center gap-2 sm:gap-2 min-w-0">
+            <span className="text-[10px] sm:text-xs font-bold text-gray-400 bg-gray-100 rounded-full w-6 h-6 sm:w-6 sm:h-6 flex items-center justify-center flex-shrink-0">
               {index + 1}
             </span>
             <div
-              className={`flex items-center gap-1 text-[10px] sm:text-xs font-medium ${config.color} truncate`}
+              className={`flex items-center gap-1 text-[11px] sm:text-xs font-medium ${config.color} truncate`}
             >
               {config.icon}
               <span className="truncate">{config.label}</span>
             </div>
             {card.aiConfidence && <ConfidenceBadge level={card.aiConfidence} />}
           </div>
-          <div className="flex items-center gap-0.5 sm:gap-1 flex-shrink-0">
+          <div className="flex items-center gap-1 sm:gap-1 flex-shrink-0">
             {!isSaved && (
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-7 w-7 sm:h-6 sm:w-6 p-0 text-gray-400 hover:text-red-500"
+                className="h-8 w-8 sm:h-6 sm:w-6 p-0 text-gray-400 hover:text-red-500"
                 onClick={() => onReset(card.id)}
               >
-                <RotateCcw className="w-3 h-3" />
+                <RotateCcw className="w-3.5 h-3.5 sm:w-3 sm:h-3" />
               </Button>
             )}
             {card.extracted && (
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-7 w-7 sm:h-6 sm:w-6 p-0"
+                className="h-8 w-8 sm:h-6 sm:w-6 p-0"
                 onClick={() => setIsExpanded(!isExpanded)}
               >
                 {isExpanded ? (
-                  <ChevronUp className="w-3.5 h-3.5" />
+                  <ChevronUp className="w-4 h-4 sm:w-3.5 sm:h-3.5" />
                 ) : (
-                  <ChevronDown className="w-3.5 h-3.5" />
+                  <ChevronDown className="w-4 h-4 sm:w-3.5 sm:h-3.5" />
                 )}
               </Button>
             )}
@@ -998,11 +1089,11 @@ const CandidateCard: React.FC<CandidateCardProps> = React.memo(
         </div>
 
         {/* ================================================================ */}
-        {/* INPUT PHASE - before analysis                                    */}
+        {/* INPUT PHASE                                                      */}
         {/* ================================================================ */}
         {isInputPhase && (
           <div
-            className="p-2.5 sm:p-3 space-y-2"
+            className="p-3 sm:p-3 space-y-2.5"
             onPaste={(e) => onPaste(card.id, e)}
           >
             {/* Image upload zone */}
@@ -1021,22 +1112,20 @@ const CandidateCard: React.FC<CandidateCardProps> = React.memo(
                 </div>
               ) : (
                 <label
-                  className={`flex flex-col items-center justify-center h-20 sm:h-24 border-2 border-dashed rounded-lg cursor-pointer transition-all active:scale-[0.98] ${
+                  className={`flex flex-col items-center justify-center h-24 sm:h-24 border-2 border-dashed rounded-xl cursor-pointer transition-all active:scale-[0.98] ${
                     isDragOver
                       ? 'border-indigo-500 bg-indigo-100/50 scale-[1.02]'
                       : 'border-gray-300 hover:border-indigo-400 hover:bg-indigo-50/30'
                   }`}
                 >
                   <Upload
-                    className={`w-5 h-5 mb-1 ${
+                    className={`w-6 h-6 sm:w-5 sm:h-5 mb-1.5 ${
                       isDragOver ? 'text-indigo-500' : 'text-gray-400'
                     }`}
                   />
                   <span
-                    className={`text-xs ${
-                      isDragOver
-                        ? 'text-indigo-600 font-medium'
-                        : 'text-gray-500'
+                    className={`text-sm sm:text-xs font-medium ${
+                      isDragOver ? 'text-indigo-600' : 'text-gray-500'
                     }`}
                   >
                     {isDragOver
@@ -1046,7 +1135,7 @@ const CandidateCard: React.FC<CandidateCardProps> = React.memo(
                         : 'גרור, העלה או הדבק תמונות'}
                   </span>
                   {!isMobile && (
-                    <span className="text-[10px] text-gray-400">
+                    <span className="text-[10px] text-gray-400 mt-0.5">
                       Ctrl+V להדבקה · גרירה מהמחשב
                     </span>
                   )}
@@ -1060,7 +1149,6 @@ const CandidateCard: React.FC<CandidateCardProps> = React.memo(
                 </label>
               )}
 
-              {/* Drag overlay */}
               {isDragOver && card.images.length > 0 && (
                 <div className="absolute inset-0 bg-indigo-100/80 border-2 border-dashed border-indigo-500 rounded-lg flex items-center justify-center z-10">
                   <div className="text-center">
@@ -1082,17 +1170,26 @@ const CandidateCard: React.FC<CandidateCardProps> = React.memo(
                 })
               }
               placeholder="הדבק כאן טקסט מהוואטסאפ..."
-              rows={isMobile ? 2 : 3}
+              rows={isMobile ? 3 : 3}
               dir="rtl"
               disabled={isInputDisabled}
-              className="text-sm resize-none"
+              className="text-sm resize-none min-h-[72px]"
             />
 
             {card.error && (
-              <p className="text-xs text-red-500 flex items-center gap-1">
-                <AlertCircle className="w-3 h-3 flex-shrink-0" />
-                <span className="truncate">{card.error}</span>
-              </p>
+              <div className="text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg p-2 flex items-start gap-1.5">
+                <AlertCircle className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
+                <div>
+                  <span className="font-medium">שגיאה: </span>
+                  <span>{card.error}</span>
+                  <button
+                    onClick={() => onAnalyze(card.id)}
+                    className="block mt-1 text-red-700 underline font-medium"
+                  >
+                    לחץ לנסות שוב
+                  </button>
+                </div>
+              </div>
             )}
 
             <Button
@@ -1102,14 +1199,14 @@ const CandidateCard: React.FC<CandidateCardProps> = React.memo(
                 (card.images.length === 0 && !card.rawText.trim())
               }
               size="sm"
-              className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white h-9 sm:h-8 text-sm"
+              className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white h-11 sm:h-9 text-sm font-medium active:scale-[0.98] transition-transform"
             >
               {isAnalyzing ? (
-                <Loader2 className="w-3.5 h-3.5 ml-1.5 animate-spin" />
+                <Loader2 className="w-4 h-4 ml-2 animate-spin" />
               ) : (
-                <Sparkles className="w-3.5 h-3.5 ml-1.5" />
+                <Sparkles className="w-4 h-4 ml-2" />
               )}
-              {isAnalyzing ? 'מנתח...' : 'נתח עם AI'}
+              {isAnalyzing ? 'מנתח...' : 'סריקת AI'}
             </Button>
           </div>
         )}
@@ -1118,11 +1215,9 @@ const CandidateCard: React.FC<CandidateCardProps> = React.memo(
         {/* POST-ANALYSIS PHASE                                              */}
         {/* ================================================================ */}
         {isPostAnalysis && (
-          <div className="p-2.5 sm:p-3 space-y-2">
-            {/* ---- Collapsed summary ---- */}
+          <div className="p-3 sm:p-3 space-y-2.5">
             {!isExpanded && (
-              <div className="space-y-2">
-                {/* Image strip – always visible, always editable (unless saved) */}
+              <div className="space-y-2.5">
                 <ImageStrip
                   cardId={card.id}
                   images={card.images}
@@ -1134,25 +1229,17 @@ const CandidateCard: React.FC<CandidateCardProps> = React.memo(
                   onPreview={setPreviewImage}
                 />
 
-                {/* Name & details */}
                 <div className="min-w-0">
-                  <p className="font-bold text-gray-800 truncate text-sm sm:text-base">
+                  <p className="font-bold text-gray-800 truncate text-base sm:text-base">
                     {card.extracted!.firstName} {card.extracted!.lastName}
                   </p>
-                  <p className="text-[11px] sm:text-xs text-gray-500 truncate">
+                  <p className="text-xs sm:text-xs text-gray-500 truncate mt-0.5">
                     {[
                       card.extracted!.age && `גיל ${card.extracted!.age}`,
                       card.extracted!.city,
                       card.extracted!.religiousLevel,
-                      card.extracted!.maritalStatus === 'single'
-                        ? 'רווק/ה'
-                        : card.extracted!.maritalStatus === 'divorced'
-                          ? 'גרוש/ה'
-                          : card.extracted!.maritalStatus === 'widowed'
-                            ? 'אלמן/ה'
-                            : card.extracted!.maritalStatus === 'separated'
-                              ? 'פרוד/ה'
-                              : '',
+                      MARITAL_STATUS_DISPLAY[card.extracted!.maritalStatus] ||
+                        '',
                       card.extracted!.gender === 'MALE'
                         ? '♂'
                         : card.extracted!.gender === 'FEMALE'
@@ -1165,7 +1252,7 @@ const CandidateCard: React.FC<CandidateCardProps> = React.memo(
                 </div>
 
                 {card.aiNotes && (
-                  <p className="text-[10px] text-amber-600 bg-amber-50 px-2 py-1 rounded leading-relaxed">
+                  <p className="text-[11px] text-amber-600 bg-amber-50 px-2.5 py-1.5 rounded-lg leading-relaxed">
                     💡 {card.aiNotes}
                   </p>
                 )}
@@ -1176,19 +1263,19 @@ const CandidateCard: React.FC<CandidateCardProps> = React.memo(
                       onClick={() => onSave(card.id)}
                       disabled={isSaving}
                       size="sm"
-                      className="flex-1 bg-green-600 hover:bg-green-700 text-white h-9 sm:h-8"
+                      className="flex-1 bg-green-600 hover:bg-green-700 text-white h-11 sm:h-9 text-sm font-medium active:scale-[0.98] transition-transform"
                     >
                       {isSaving ? (
-                        <Loader2 className="w-3.5 h-3.5 ml-1.5 animate-spin" />
+                        <Loader2 className="w-4 h-4 ml-2 animate-spin" />
                       ) : (
-                        <Save className="w-3.5 h-3.5 ml-1.5" />
+                        <Save className="w-4 h-4 ml-2" />
                       )}
                       {isSaving ? 'שומר...' : 'אשר ושמור'}
                     </Button>
                     <Button
                       variant="outline"
                       size="sm"
-                      className="h-9 sm:h-8"
+                      className="h-11 sm:h-9 px-4"
                       onClick={() => setIsExpanded(true)}
                     >
                       ערוך
@@ -1198,7 +1285,6 @@ const CandidateCard: React.FC<CandidateCardProps> = React.memo(
               </div>
             )}
 
-            {/* ---- Expanded edit form ---- */}
             {isExpanded && (
               <ExpandedEditForm
                 card={card}
@@ -1219,7 +1305,7 @@ const CandidateCard: React.FC<CandidateCardProps> = React.memo(
           </div>
         )}
 
-        {/* Drag overlay for the whole card (post-analysis) */}
+        {/* Drag overlay */}
         {isDragOver && isPostAnalysis && (
           <div className="absolute inset-0 bg-indigo-100/80 border-2 border-dashed border-indigo-500 rounded-xl flex items-center justify-center z-10">
             <div className="text-center">
@@ -1246,7 +1332,7 @@ const CandidateCard: React.FC<CandidateCardProps> = React.memo(
               <button
                 type="button"
                 onClick={() => setPreviewImage(null)}
-                className="absolute top-2 right-2 bg-black/60 text-white rounded-full w-9 h-9 sm:w-8 sm:h-8 flex items-center justify-center hover:bg-black/80"
+                className="absolute top-2 right-2 bg-black/60 text-white rounded-full w-10 h-10 sm:w-8 sm:h-8 flex items-center justify-center hover:bg-black/80"
               >
                 <X className="w-5 h-5 sm:w-4 sm:h-4" />
               </button>
@@ -1322,21 +1408,19 @@ const ExpandedEditForm: React.FC<ExpandedEditFormProps> = ({
   ];
 
   return (
-    <div className="space-y-3 max-h-[55vh] sm:max-h-[60vh] overflow-y-auto overscroll-contain pr-1 -mr-1">
-      {/* ============================================================= */}
-      {/* Image management section – full controls                      */}
-      {/* ============================================================= */}
+    <div className="space-y-3 max-h-[60vh] sm:max-h-[60vh] overflow-y-auto overscroll-contain pr-1 -mr-1 pb-2">
+      {/* Image management */}
       <div>
-        <div className="flex items-center justify-between mb-1.5">
-          <Label className="text-[10px] text-gray-500 font-semibold flex items-center gap-1">
+        <div className="flex items-center justify-between mb-2">
+          <Label className="text-xs text-gray-500 font-semibold flex items-center gap-1">
             <Camera className="w-3 h-3" />
             תמונות ({card.images.length}/{MAX_IMAGES_PER_CARD})
           </Label>
           {canEditImages && card.images.length < MAX_IMAGES_PER_CARD && (
             <label className="cursor-pointer">
-              <span className="text-[10px] text-indigo-600 hover:text-indigo-700 font-medium flex items-center gap-0.5">
+              <span className="text-xs text-indigo-600 hover:text-indigo-700 font-medium flex items-center gap-0.5">
                 <Plus className="w-3 h-3" />
-                הוסף תמונה
+                הוסף
               </span>
               <input
                 type="file"
@@ -1362,19 +1446,19 @@ const ExpandedEditForm: React.FC<ExpandedEditFormProps> = ({
       </div>
 
       {/* Fields grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+      <div className="grid grid-cols-2 sm:grid-cols-2 gap-2.5 sm:gap-2">
         {FIELD_DEFINITIONS.map(({ key, label, type, dir, required }) => (
           <div key={key}>
-            <Label className="text-[10px] text-gray-500">
+            <Label className="text-[11px] sm:text-[10px] text-gray-500 mb-1 block">
               {label}
-              {required && <span className="text-red-500">*</span>}
+              {required && <span className="text-red-500 mr-0.5">*</span>}
             </Label>
             <Input
               value={card.extracted?.[key] || ''}
               onChange={(e) => onUpdateField(card.id, key, e.target.value)}
               dir={dir || 'rtl'}
               type={type || 'text'}
-              className="h-8 sm:h-7 text-xs"
+              className="h-10 sm:h-8 text-sm sm:text-xs"
               disabled={isDisabled}
             />
           </div>
@@ -1382,15 +1466,15 @@ const ExpandedEditForm: React.FC<ExpandedEditFormProps> = ({
 
         {/* Gender */}
         <div>
-          <Label className="text-[10px] text-gray-500">
-            מגדר<span className="text-red-500">*</span>
+          <Label className="text-[11px] sm:text-[10px] text-gray-500 mb-1 block">
+            מגדר<span className="text-red-500 mr-0.5">*</span>
           </Label>
           <Select
             value={card.extracted?.gender || ''}
             onValueChange={(v) => onUpdateField(card.id, 'gender', v)}
             disabled={isDisabled}
           >
-            <SelectTrigger className="h-8 sm:h-7 text-xs" dir="rtl">
+            <SelectTrigger className="h-10 sm:h-8 text-sm sm:text-xs" dir="rtl">
               <SelectValue placeholder="בחר" />
             </SelectTrigger>
             <SelectContent>
@@ -1400,15 +1484,17 @@ const ExpandedEditForm: React.FC<ExpandedEditFormProps> = ({
           </Select>
         </div>
 
-        {/* Marital status */}
+        {/* Marital status - uses UPPERCASE values */}
         <div>
-          <Label className="text-[10px] text-gray-500">מצב משפחתי</Label>
+          <Label className="text-[11px] sm:text-[10px] text-gray-500 mb-1 block">
+            מצב משפחתי
+          </Label>
           <Select
-            value={card.extracted?.maritalStatus || ''}
+            value={card.extracted?.maritalStatus || 'SINGLE'}
             onValueChange={(v) => onUpdateField(card.id, 'maritalStatus', v)}
             disabled={isDisabled}
           >
-            <SelectTrigger className="h-8 sm:h-7 text-xs" dir="rtl">
+            <SelectTrigger className="h-10 sm:h-8 text-sm sm:text-xs" dir="rtl">
               <SelectValue placeholder="בחר" />
             </SelectTrigger>
             <SelectContent>
@@ -1421,16 +1507,18 @@ const ExpandedEditForm: React.FC<ExpandedEditFormProps> = ({
 
         {/* Religious level */}
         <div>
-          <Label className="text-[10px] text-gray-500">רמה דתית</Label>
+          <Label className="text-[11px] sm:text-[10px] text-gray-500 mb-1 block">
+            רמה דתית
+          </Label>
           <Select
             value={card.extracted?.religiousLevel || ''}
             onValueChange={(v) => onUpdateField(card.id, 'religiousLevel', v)}
             disabled={isDisabled}
           >
-            <SelectTrigger className="h-8 sm:h-7 text-xs" dir="rtl">
+            <SelectTrigger className="h-10 sm:h-8 text-sm sm:text-xs" dir="rtl">
               <SelectValue placeholder="בחר" />
             </SelectTrigger>
-            <SelectContent className="max-h-[200px] sm:max-h-[300px]">
+            <SelectContent className="max-h-[250px] sm:max-h-[300px]">
               <SelectItem value="dati_leumi_standard">
                 דתי/ה לאומי/ת (סטנדרטי)
               </SelectItem>
@@ -1462,16 +1550,18 @@ const ExpandedEditForm: React.FC<ExpandedEditFormProps> = ({
 
         {/* Origin */}
         <div>
-          <Label className="text-[10px] text-gray-500">מוצא</Label>
+          <Label className="text-[11px] sm:text-[10px] text-gray-500 mb-1 block">
+            מוצא
+          </Label>
           <Select
             value={card.extracted?.origin || ''}
             onValueChange={(v) => onUpdateField(card.id, 'origin', v)}
             disabled={isDisabled}
           >
-            <SelectTrigger className="h-8 sm:h-7 text-xs" dir="rtl">
+            <SelectTrigger className="h-10 sm:h-8 text-sm sm:text-xs" dir="rtl">
               <SelectValue placeholder="בחר מוצא" />
             </SelectTrigger>
-            <SelectContent className="max-h-[200px] sm:max-h-[300px]">
+            <SelectContent className="max-h-[250px] sm:max-h-[300px]">
               <SelectItem value="אשכנזי">אשכנזי</SelectItem>
               <SelectItem value="ספרדי">ספרדי</SelectItem>
               <SelectItem value="מזרחי">מזרחי</SelectItem>
@@ -1495,7 +1585,9 @@ const ExpandedEditForm: React.FC<ExpandedEditFormProps> = ({
 
         {/* Has children */}
         <div>
-          <Label className="text-[10px] text-gray-500">ילדים מקשר קודם</Label>
+          <Label className="text-[11px] sm:text-[10px] text-gray-500 mb-1 block">
+            ילדים מקשר קודם
+          </Label>
           <Select
             value={card.extracted?.hasChildrenFromPrevious || ''}
             onValueChange={(v) =>
@@ -1503,7 +1595,7 @@ const ExpandedEditForm: React.FC<ExpandedEditFormProps> = ({
             }
             disabled={isDisabled}
           >
-            <SelectTrigger className="h-8 sm:h-7 text-xs" dir="rtl">
+            <SelectTrigger className="h-10 sm:h-8 text-sm sm:text-xs" dir="rtl">
               <SelectValue placeholder="בחר" />
             </SelectTrigger>
             <SelectContent>
@@ -1516,7 +1608,7 @@ const ExpandedEditForm: React.FC<ExpandedEditFormProps> = ({
 
       {/* About */}
       <div>
-        <Label className="text-[10px] text-gray-500 font-semibold">
+        <Label className="text-[11px] sm:text-[10px] text-gray-500 font-semibold mb-1 block">
           📄 טקסט מקור (אודות)
         </Label>
         <Textarea
@@ -1524,7 +1616,7 @@ const ExpandedEditForm: React.FC<ExpandedEditFormProps> = ({
           onChange={(e) => onUpdateField(card.id, 'about', e.target.value)}
           rows={3}
           dir="rtl"
-          className="text-xs resize-none bg-amber-50/50 border-amber-200"
+          className="text-sm sm:text-xs resize-none bg-amber-50/50 border-amber-200"
           disabled={isDisabled}
           placeholder="הטקסט המקורי מהמקור"
         />
@@ -1532,7 +1624,9 @@ const ExpandedEditForm: React.FC<ExpandedEditFormProps> = ({
 
       {/* Personality */}
       <div>
-        <Label className="text-[10px] text-gray-500">אופי ותכונות</Label>
+        <Label className="text-[11px] sm:text-[10px] text-gray-500 mb-1 block">
+          אופי ותכונות
+        </Label>
         <Textarea
           value={card.extracted?.personality || ''}
           onChange={(e) =>
@@ -1540,56 +1634,58 @@ const ExpandedEditForm: React.FC<ExpandedEditFormProps> = ({
           }
           rows={2}
           dir="rtl"
-          className="text-xs resize-none"
+          className="text-sm sm:text-xs resize-none"
           disabled={isDisabled}
         />
       </div>
 
       {/* Looking for */}
       <div>
-        <Label className="text-[10px] text-gray-500">מחפש/ת</Label>
+        <Label className="text-[11px] sm:text-[10px] text-gray-500 mb-1 block">
+          מחפש/ת
+        </Label>
         <Textarea
           value={card.extracted?.lookingFor || ''}
           onChange={(e) => onUpdateField(card.id, 'lookingFor', e.target.value)}
           rows={2}
           dir="rtl"
-          className="text-xs resize-none"
+          className="text-sm sm:text-xs resize-none"
           disabled={isDisabled}
         />
       </div>
 
-      {/* Actions */}
+      {/* Actions - sticky at bottom */}
       {!isSaved && (
-        <div className="flex gap-2 pt-1 sticky bottom-0 bg-inherit pb-1">
+        <div className="flex gap-2 pt-2 sticky bottom-0 bg-white/90 backdrop-blur-sm pb-2 -mx-1 px-1 border-t border-gray-100 mt-3">
           <Button
             onClick={() => onSave(card.id)}
             disabled={isSaving}
             size="sm"
-            className="flex-1 bg-green-600 hover:bg-green-700 text-white h-9 sm:h-8"
+            className="flex-1 bg-green-600 hover:bg-green-700 text-white h-11 sm:h-9 text-sm font-medium active:scale-[0.98] transition-transform"
           >
             {isSaving ? (
-              <Loader2 className="w-3.5 h-3.5 ml-1.5 animate-spin" />
+              <Loader2 className="w-4 h-4 ml-2 animate-spin" />
             ) : (
-              <Save className="w-3.5 h-3.5 ml-1.5" />
+              <Save className="w-4 h-4 ml-2" />
             )}
             אשר ושמור
           </Button>
           <Button
             variant="outline"
             size="sm"
-            className="h-9 sm:h-8"
+            className="h-11 sm:h-9 px-3"
             onClick={() => setIsExpanded(false)}
           >
-            <ChevronUp className="w-3 h-3 ml-1" />
+            <ChevronUp className="w-3.5 h-3.5 ml-1" />
             סגור
           </Button>
           <Button
             variant="ghost"
             size="sm"
-            className="text-purple-600 h-9 sm:h-8"
+            className="text-purple-600 h-11 sm:h-9 px-3"
             onClick={() => onAnalyze(card.id)}
           >
-            <RotateCcw className="w-3 h-3 ml-1" />
+            <RotateCcw className="w-3.5 h-3.5 ml-1" />
             שוב
           </Button>
         </div>
