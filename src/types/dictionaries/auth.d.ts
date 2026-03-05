@@ -752,10 +752,90 @@ export type TermsOfServiceDict = {
   };
 };
 
+export type ChildSafetyDict = {
+  pageTitle: string;
+  pageDescription: string;
+  mainTitle: string;
+  siteName: string;
+  lastUpdated: string;
+  emergencyBanner: string;
+  commitment: {
+    title: string;
+    p1: string;
+    p2: string;
+    definitionsTitle: string;
+    csaeDefinition: string;
+    csamDefinition: string;
+  };
+  zeroTolerance: {
+    title: string;
+    p1: string;
+    prohibitedList: Record<string, string>;
+    consequence: string;
+  };
+  ageRestrictions: {
+    title: string;
+    p1: string;
+    measures: Record<string, string>;
+    p2: string;
+  };
+  detection: {
+    title: string;
+    p1: string;
+    methods: Record<string, string>;
+  };
+  reporting: {
+    title: string;
+    p1: string;
+    howToReportTitle: string;
+    methods: Record<string, string>;
+    anonymity: string;
+    noRetaliation: string;
+  };
+  response: {
+    title: string;
+    p1: string;
+    steps: Record<string, string>;
+  };
+  authorities: {
+    title: string;
+    p1: string;
+    organizations: Record<string, string>;
+    p2: string;
+  };
+  dataProtection: {
+    title: string;
+    p1: string;
+    measures: Record<string, string>;
+  };
+  training: {
+    title: string;
+    p1: string;
+    topics: Record<string, string>;
+  };
+  contact: {
+    title: string;
+    p1: string;
+    safetyTeamLabel: string;
+    generalSupportLabel: string;
+    emailLabel: string;
+    responseTime: string;
+  };
+  updates: {
+    title: string;
+    p1: string;
+    p2: string;
+  };
+  footerCommitment: string;
+};
+
+
 export type LegalDictionary = {
   accessibilityStatement: AccessibilityStatementDict;
   privacyPolicy: PrivacyPolicyDict;
   termsOfService: TermsOfServiceDict;
+    childSafety: ChildSafetyDict;  // ← הוסף שורה זו
+
 };
 
 export type UnsubscribePageDict = {

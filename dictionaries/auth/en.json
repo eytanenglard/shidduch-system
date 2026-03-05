@@ -720,6 +720,126 @@
         "p9_1": "<strong>9.1. Contact.</strong> For any questions, you can contact us at the email address:",
         "p9_2": "<strong>9.2. Notice and Takedown Procedure.</strong> The Company respects the rights of users. If you have encountered content that violates this agreement or is offensive to you in any way, please contact us immediately at the above email address, detailing the nature of the offense and including a relevant link or identifying details. We will endeavor to review and address your inquiry as soon as possible."
       }
+    },
+    "childSafety": {
+  "pageTitle": "Child Safety Standards | {brandName}",
+  "pageDescription": "{brandName}'s safety standards for preventing child sexual abuse and exploitation (CSAE/CSAM)",
+  "mainTitle": "Child Safety Standards",
+  "siteName": "{brandName}",
+  "lastUpdated": "Last Updated: {lastUpdatedDate}",
+  "emergencyBanner": "If you witness an emergency or immediate danger to a child, please contact local authorities or police immediately.",
+  "commitment": {
+    "title": "Our Commitment",
+    "p1": "<strong>{companyNameLegal}</strong>, operating the <strong>{brandName}</strong> platform, is absolutely committed to protecting children and preventing any form of child sexual abuse or exploitation.",
+    "p2": "We implement a zero-tolerance policy towards any content or behavior related to child sexual abuse.",
+    "definitionsTitle": "Definitions:",
+    "csaeDefinition": "Child Sexual Abuse and Exploitation",
+    "csamDefinition": "Child Sexual Abuse Material"
+  },
+  "zeroTolerance": {
+    "title": "Zero Tolerance Policy",
+    "p1": "The following actions are strictly prohibited on our platform:",
+    "prohibitedList": {
+      "item1": "Uploading, sharing, or distributing any CSAM material",
+      "item2": "Contacting or attempting to contact minor users",
+      "item3": "Grooming - establishing contact with minors for exploitation purposes",
+      "item4": "Sharing any sexual content involving minors, in any form",
+      "item5": "Any other behavior that endangers child safety"
+    },
+    "consequence": "Violation of this policy will result in immediate account suspension, reporting to law enforcement, and legal action."
+  },
+  "ageRestrictions": {
+    "title": "Age Restrictions and Verification",
+    "p1": "NeshamaTech is intended for users aged 18 and over only. We implement the following measures:",
+    "measures": {
+      "item1": "Age declaration during registration",
+      "item2": "Age verification mechanisms",
+      "item3": "Active monitoring to identify minor users",
+      "item4": "Immediate removal of identified minor accounts"
+    },
+    "p2": "Users found to have misrepresented their age will be permanently removed from the platform."
+  },
+  "detection": {
+    "title": "Detection and Prevention",
+    "p1": "We use advanced technologies and methods to detect and prevent harmful content:",
+    "methods": {
+      "item1": "Automatic visual content scanning using hash matching technologies",
+      "item2": "AI systems for detecting suspicious content",
+      "item3": "Human team for reviewing reports",
+      "item4": "Monitoring suspicious behavior patterns",
+      "item5": "Collaboration with child safety organizations"
     }
+  },
+  "reporting": {
+    "title": "Reporting Mechanisms",
+    "p1": "We encourage all users to report any suspicious content or behavior. Your reports help us maintain a safe community.",
+    "howToReportTitle": "How to Report:",
+    "methods": {
+      "item1": "'Report' button on every profile or message in the app",
+      "item2": "Email directly to our safety team",
+      "item3": "Dedicated reporting form on the website"
+    },
+    "anonymity": "All reports are kept strictly confidential. Anonymous reporting is available.",
+    "noRetaliation": "We guarantee protection against retaliation for anyone who reports in good faith."
+  },
+  "response": {
+    "title": "Response Procedures",
+    "p1": "Upon receiving a report of harmful content or behavior, we take the following actions:",
+    "steps": {
+      "step1": "Immediate review of the report by our safety team",
+      "step2": "Temporary removal of suspicious content during review",
+      "step3": "Suspension of the suspicious account until investigation is complete",
+      "step4": "Evidence preservation for transfer to authorities",
+      "step5": "Reporting to law enforcement and relevant organizations",
+      "step6": "Updating the reporter on actions taken (when possible)"
+    }
+  },
+  "authorities": {
+    "title": "Cooperation with Authorities",
+    "p1": "We fully cooperate with law enforcement authorities and child protection organizations, including:",
+    "organizations": {
+      "item1": "Israel Police - Cyber Unit",
+      "item2": "NCMEC (National Center for Missing & Exploited Children)",
+      "item3": "Local authorities in every country where we operate",
+      "item4": "International child safety organizations"
+    },
+    "p2": "Every case of CSAM content is immediately reported to the appropriate authorities as required by law."
+  },
+  "dataProtection": {
+    "title": "Data Protection and Privacy",
+    "p1": "When handling child safety reports, we ensure:",
+    "measures": {
+      "item1": "Maintaining reporter confidentiality",
+      "item2": "Securing sensitive information according to strict standards",
+      "item3": "Secure evidence preservation for investigations",
+      "item4": "Deletion of harmful content from all systems after transfer to authorities"
+    }
+  },
+  "training": {
+    "title": "Training and Education",
+    "p1": "NeshamaTech staff undergo regular training on child safety topics, including:",
+    "topics": {
+      "item1": "Recognizing warning signs of child abuse",
+      "item2": "Reporting and escalation procedures",
+      "item3": "Working with law enforcement authorities",
+      "item4": "Using safety and prevention tools",
+      "item5": "Updates on relevant legislation and regulations"
+    }
+  },
+  "contact": {
+    "title": "Contact Us",
+    "p1": "For any questions or concerns regarding child safety, please contact us:",
+    "safetyTeamLabel": "Safety Team:",
+    "generalSupportLabel": "General Support:",
+    "emailLabel": "Email:",
+    "responseTime": "We commit to responding to every child safety inquiry within 24 hours."
+  },
+  "updates": {
+    "title": "Policy Updates",
+    "p1": "This policy is regularly reviewed and updated to ensure it meets the latest standards.",
+    "p2": "Last Updated: <strong>{lastUpdatedDate}</strong>"
+  },
+  "footerCommitment": "{brandName} is committed to protecting children and maintaining a safe environment for all our users."
+}
   }
 }

@@ -1,1926 +1,1926 @@
-generator client {
-  provider        = "prisma-client-js"
-  previewFeatures = ["postgresqlExtensions"]
-}
-
-datasource db {
-  provider   = "postgresql"
-  url        = env("DATABASE_URL")
-}
-
-model User {
-  id                String     @id @default(cuid())
-  email             String     @unique
-  password          String?
-  firstName         String
-  lastName          String
-    appleId  String?  @unique  // Apple user ID for Sign in with Apple
-
-  phone             String?    @unique
-  createdAt         DateTime   @default(now())
-  updatedAt         DateTime   @updatedAt
-  lastLogin         DateTime?
-  status            UserStatus @default(PENDING_PHONE_VERIFICATION)
-  role              UserRole   @default(CANDIDATE)
-  isVerified        Boolean    @default(false)
-  isPhoneVerified   Boolean    @default(false)
-  isProfileComplete Boolean    @default(false)
-  deviceTokens      DeviceToken[]
-
-  source                    UserSource @default(REGISTRATION)
-  addedByMatchmakerId       String?
-  matchmakerWhoAdded        User?      @relation("ManuallyAddedBy", fields: [addedByMatchmakerId], references: [id])
-  termsAndPrivacyAcceptedAt DateTime?
-  engagementEmailsConsent   Boolean    @default(false)
-  promotionalEmailsConsent  Boolean    @default(false)
-  language                  Language   @default(he)
-
-  // === Assigned Matchmaker (NEW) ===
-  assignedMatchmakerId   String?
-  assignedMatchmaker     User?   @relation("AssignedMatchmaker", fields: [assignedMatchmakerId], references: [id])
-  assignedUsers          User[]  @relation("AssignedMatchmaker")
-
-  // === Direct Messages (NEW) ===
-  sentDirectMessages     DirectMessage[] @relation("SentDirectMessages")
-  receivedDirectMessages DirectMessage[] @relation("ReceivedDirectMessages")
-
-  // === Availability Inquiries ===
-  firstPartyInquiries             AvailabilityInquiry[]   @relation("FirstPartyInquiries")
-  matchmakerAvailabilityInquiries AvailabilityInquiry[]   @relation("MatchmakerInquiries")
-  secondPartyInquiries            AvailabilityInquiry[]   @relation("SecondPartyInquiries")
-
-  // === Date Feedback ===
-  givenFeedback                   DateFeedback[]          @relation("UserFeedback")
-
-  // === Invitations ===
-  sentInvitations                 Invitation[]            @relation("MatchmakerInvitations")
-  receivedInvitation              Invitation?             @relation("ReceivedInvitation")
-
-  // === Match Suggestions ===
-  firstPartySuggestions           MatchSuggestion[]       @relation("FirstPartySuggestions")
-  createdSuggestions              MatchSuggestion[]       @relation("MatchmakerSuggestions")
-  secondPartySuggestions          MatchSuggestion[]       @relation("SecondPartySuggestions")
-  approvedSuggestions             MatchSuggestion[]       @relation("ApprovedSuggestions")
-  reviewedSuggestions             MatchSuggestion[]       @relation("ReviewedSuggestions")
-
-  // === Auth ===
-  accounts                        Account[]
-  sessions                        Session[]
-  oneTimeAuthTokens               OneTimeAuthToken[]
-
-  // === Profile & Questionnaire ===
-  profile                         Profile?
-  verifiedUsers                   Profile[]               @relation("VerifiedByMatchmaker")
-  questionnaireResponses          QuestionnaireResponse[]
-
-  // === Suggestion Inquiries ===
-  sentSuggestionInquiries         SuggestionInquiry[]     @relation("SentSuggestionInquiries")
-  receivedSuggestionInquiries     SuggestionInquiry[]     @relation("ReceivedSuggestionInquiries")
-
-  // === Media ===
-  images                          UserImage[]
-  videos                          Video[]
-
-  // === Verification ===
-  verifications                   Verification[]
-
-  // === Manually Added Candidates ===
-  manuallyAddedCandidates         User[]                  @relation("ManuallyAddedBy")
-
-  // === Feedback ===
-  feedbacks                       Feedback[]
-
-  // === Drip Campaign & Onboarding ===
-  dripCampaign                    UserDripCampaign?
-  lastOnboardingEmailSent         DateTime?
-  onboardingCompleted             Boolean   @default(false)
-
-  // === Neshama Insight ===
-  neshamaInsightLastGeneratedAt   DateTime?
-  neshamaInsightGeneratedCount    Int       @default(0)
-
-  // === Referral ===
-  referral                        Referral?  @relation("ReferredUser")
-
-  // === Saved Searches ===
-  targetUserSearches              SavedMatchSearch[]       @relation("TargetUserSearches")
-  matchmakerSearches              SavedMatchSearch[]       @relation("MatchmakerSearches")
-  targetUserVectorSearches        SavedVectorMatchSearch[] @relation("TargetUserVectorSearches")
-  matchmakerVectorSearches        SavedVectorMatchSearch[] @relation("MatchmakerVectorSearches")
-
-  // === Virtual Profiles ===
-  virtualProfiles                 VirtualProfile[]         @relation("MatchmakerVirtualProfiles")
-
-  // === Potential Matches ===
-  maleMatches                     PotentialMatch[]         @relation("MaleMatches")
-  femaleMatches                   PotentialMatch[]         @relation("FemaleMatches")
-
-  // === Scanned Pairs ===
-  maleScannedPairs                ScannedPair[]            @relation("MaleScannedPairs")
-  femaleScannedPairs              ScannedPair[]            @relation("FemaleScannedPairs")
-
-  // === Hidden Candidates ===
-  hiddenByMatchmakers             HiddenCandidate[]        @relation("HiddenCandidates")
-  hiddenCandidates                HiddenCandidate[]        @relation("HiddenByMatchmaker")
-
-  // === Alerts ===
-  alerts                          UserAlert[]
-
-  // === Scan Sessions ===
-  scanSessions                    ScanSession[]
-
-  // === Suggestion Messages ===
-  suggestionMessages              SuggestionMessage[]      @relation("UserSuggestionMessages")
-
-  @@index([email])
-  @@index([role])
-  @@index([status])
-  @@index([source])
-  @@index([addedByMatchmakerId])
-  @@index([assignedMatchmakerId])
-}
-model Account {
-  id                String  @id @default(cuid())
-  userId            String
-  type              String
-  provider          String
-  providerAccountId String
-  refresh_token     String? @db.Text
-  access_token      String? @db.Text
-  expires_at        Int?
-  token_type        String?
-  scope             String?
-  id_token          String? @db.Text
-  session_state     String?
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade) // ✅ היה קיים
-
-  @@unique([provider, providerAccountId])
-  @@index([userId])
-}
-
-model OneTimeAuthToken {
-  id        String   @id @default(cuid())
-  token     String   @unique
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade) // ✅ היה קיים
-  expiresAt DateTime
-  createdAt DateTime @default(now())
-
-  @@index([userId])
-}
-
-model Session {
-  id           String   @id @default(cuid())
-  sessionToken String   @unique
-  userId       String
-  expires      DateTime
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade) // ✅ היה קיים
-
-  @@index([userId])
-}
-
-model Verification {
-  id          String             @id @default(cuid())
-  userId      String?
-  type        VerificationType
-  token       String
-  target      String?
-  expiresAt   DateTime
-  status      VerificationStatus @default(PENDING)
-  attempts    Int                @default(0)
-  metadata    Json?
-  createdAt   DateTime           @default(now())
-  completedAt DateTime?
-  user        User?              @relation(fields: [userId], references: [id], onDelete: Cascade) // ❗️ הוספתי/שיניתי
-
-  @@index([userId, type, status])
-  @@index([target, type, status])
-  @@index([token, type, status])
-}
-
-// model Profile in your schema.prisma
-
-model Profile {
-  id                     String   @id @default(cuid())
-  userId                 String   @unique
-  gender                 Gender
-  birthDate              DateTime
-  birthDateIsApproximate Boolean? @default(false) // <--- הוסף שדה זה
-
-  nativeLanguage          String?
-  additionalLanguages     String[]
-  height                  Int?
-  maritalStatus           String? // Marital status of the user
-  occupation              String?
-  education               String?
-  educationLevel          String?
-  city                    String?
-  origin                  String? // Origin of the user
-  religiousLevel          String? // Religious level of the user
-  religiousJourney        ReligiousJourney? // <--- הוספת השדה החדש
-  testimonialRequests     TestimonialRequest[] // <-- ADD THIS LINE
-  shomerNegiah            Boolean?
-  serviceType             ServiceType? // Service type of the user
-  serviceDetails          String?
-  manualEntryText         String?
-  headCovering            HeadCoveringType?
-  kippahType              KippahType?
-  hasChildrenFromPrevious Boolean?          @default(false)
-  profileCharacterTraits  String[]          @default([]) // User's own traits
-  profileHobbies          String[]          @default([]) // User's own hobbies
-  aliyaCountry            String?
-  aliyaYear               Int?
-  about                   String?
-  isAboutVisible Boolean? @default(true)
-  testimonials          FriendTestimonial[]
-isFriendsSectionVisible Boolean? @default(true)
-isNeshamaTechSummaryVisible Boolean? @default(true)
-    profileHeadline       String? // כותרת אישית לפרופיל
-  inspiringCoupleStory  String? // סיפור על זוג מעורר השראה
-  influentialRabbi      String? // דמות רבנית/רוחנית משפיעה
-  parentStatus            String?
-  fatherOccupation        String? // מקצוע האב
-  motherOccupation        String? // מקצוע האם
-  siblings                Int?
-  position                Int?
- hasMedicalInfo              Boolean?
-  medicalInfoDetails          String?
-  medicalInfoDisclosureTiming String? // לדוגמה: 'FROM_THE_START', 'WHEN_SERIOUS'
-  // שדה זה קובע האם המידע הרפואי יוצג בכרטיס הפרופיל הנשלח לצד השני
-  isMedicalInfoVisible        Boolean  @default(false)
-  // --- Existing Preference Fields ---
-  preferredAgeMin                  Int?
-  preferredAgeMax                  Int?
-  preferredHeightMin               Int?
-  preferredHeightMax               Int?
-  preferredReligiousLevels         String[] @default([])
-  preferredLocations               String[] @default([])
-  preferredEducation               String[] @default([]) // Corresponds to educationPreferenceOptions
-  preferredOccupations             String[] @default([]) // Corresponds to occupationPreferenceOptions
-  contactPreference                String?
-
-  // --- New Preference Fields ---
-  preferredMaritalStatuses    String[]           @default([]) // Preferred marital status(es) of the partner
-  preferredShomerNegiah       String? // e.g., "yes", "no", "flexible"
-  preferredPartnerHasChildren String? // e.g., "yes_ok", "no_preferred", "does_not_matter"
-  preferredOrigins            String[]           @default([]) // Preferred origin(s) of the partner
-  preferredServiceTypes       ServiceType[]      @default([]) // Preferred service type(s) of the partner
-  preferredHeadCoverings      HeadCoveringType[] @default([]) // Preferred head covering(s) if partner is female
-  preferredKippahTypes        KippahType[]       @default([]) // Preferred kippah type(s) if partner is male
-  preferredCharacterTraits    String[]           @default([]) // Preferred character trait(s) of the partner
-  preferredHobbies            String[]           @default([]) // Preferred hobbies of the partner
-  preferredAliyaStatus        String? // e.g., "oleh", "tzabar", "no_preference"
-preferredReligiousJourneys  ReligiousJourney[] @default([]) 
-metrics  ProfileMetrics?
-  isProfileVisible          Boolean            @default(true)
-  preferredMatchmakerGender Gender?
-  matchingNotes             String? // General notes about the desired match
-  internalMatchmakerNotes String?
-  verifiedBy                String?
-  availabilityStatus        AvailabilityStatus @default(AVAILABLE)
-  wantsToBeFirstParty  Boolean  @default(true)
-
-  availabilityNote          String?
-  availabilityUpdatedAt     DateTime?
-  createdAt                 DateTime           @default(now())
-  updatedAt                 DateTime           @updatedAt
-    contentUpdatedAt        DateTime?   @default(now())
-
-  lastActive                DateTime?
-
-  user                    User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  verifiedByMatchmaker    User?          @relation("VerifiedByMatchmaker", fields: [verifiedBy], references: [id], onDelete: SetNull)
-  vector                  ProfileVector? // הוספת קשר הפוך
-  hasViewedProfilePreview Boolean        @default(false)
-    needsAiProfileUpdate    Boolean    @default(true)
-    aiProfileSummary        Json?      
-    cvUrl                   String? // URL to the CV file stored in Cloudinary
-  cvSummary               String? @db.Text // AI-generated summary of the CV
-conversationSummary     String? @db.Text 
-
-referredBy              String?   // דרך מי הגיע - איש קשר להתקשרות
-
-  // ==========================================================================
-  // 🆕 Priority System
-  // ==========================================================================
-  priorityScore           Float?    @default(50)      // ציון עדיפות 0-100
-  priorityCategory        String?   @default("MEDIUM") // CRITICAL/HIGH/MEDIUM/LOW
-  priorityUpdatedAt       DateTime?                    // מתי עודכן הציון
-  
-  // ==========================================================================
-  // 🆕 Scanning & Suggestions Tracking
-  // ==========================================================================
-  lastScannedAt           DateTime?                    // מתי נסרק לאחרונה
-  lastSuggestedAt         DateTime?                    // מתי קיבל הצעה אחרונה
-  pendingMatchesCount     Int       @default(0)        // כמה PotentialMatches ממתינים
-  
-  // ==========================================================================
-  // 🆕 Engagement Metrics
-  // ==========================================================================
-  lastActiveAt            DateTime?                    // פעילות אחרונה
-  suggestionsReceived     Int       @default(0)        // כמה הצעות קיבל
-  suggestionsAccepted     Int       @default(0)        // כמה הצעות קיבל (אישר)
-  suggestionsDeclined     Int       @default(0)        // כמה הצעות דחה
-  averageResponseTimeHours Float?                      // זמן תגובה ממוצע בשעות
-  
-  // ==========================================================================
-  // 🆕 Matchmaker Impressions (הערכה סובייקטיבית)
-  // ==========================================================================
-  matchmakerImpression    String?   @db.Text           // התרשמות כללית
-  impressionScore         Int?                         // ציון התרשמות 1-10
-  redFlags                String[]  @default([])       // דגלים אדומים
-  greenFlags              String[]  @default([])       // נקודות חיוביות
-  difficultyScore         Int?      @default(5)        // קושי בשידוך 1-10
-  readinessLevel          ReadinessLevel? @default(READY)
-  
-  // ==========================================================================
-  // 🆕 Profile Completeness
-  // ==========================================================================
-  profileCompletenessScore Float?   @default(0)        // אחוז מילוי 0-100
-  missingFields           String[]  @default([])       // שדות חסרים
-  
-  // ==========================================================================
-  // 🆕 Derived Stats (מחושב מהדאטה)
-  // ==========================================================================
-  acceptanceRate          Float?                       // שיעור קבלת הצעות
-  avgMatchScore           Float?                       // ציון התאמה ממוצע
-  
-  // Relations
-  rejectionFeedbacks      RejectionFeedback[] @relation("RejectedUser")
-  givenRejectionFeedbacks RejectionFeedback[] @relation("RejectingUser")
-
-
-}
-
-
-model Meeting {
-  id            String          @id @default(cuid())
-  suggestionId  String
-  scheduledDate DateTime
-  status        MeetingStatus
-  location      String?
-  notes         String?
-  createdAt     DateTime        @default(now())
-  updatedAt     DateTime        @updatedAt
-  feedback      DateFeedback[]  @relation("MeetingFeedback")
-  suggestion    MatchSuggestion @relation(fields: [suggestionId], references: [id], onDelete: Cascade) // ❗️ הוספתי/שיניתי
-
-  @@index([suggestionId])
-  @@index([status])
-}
-
-model MatchSuggestion {
-  id                    String                    @id @default(cuid())
- isAutoSuggestion  Boolean   @default(false)
-  matchmakerId          String
-  firstPartyId          String
-  secondPartyId         String
-  status                MatchSuggestionStatus     @default(DRAFT)
-  priority              Priority                  @default(MEDIUM)
-  internalNotes         String?
-  firstPartyNotes       String?
-  secondPartyNotes      String?
-  matchingReason        String?
-  followUpNotes         String?
-  responseDeadline      DateTime?
-  decisionDeadline      DateTime?
-  lastStatusChange      DateTime?
-  previousStatus        MatchSuggestionStatus?
-  lastActivity          DateTime                  @default(now())
-  firstPartySent        DateTime?
-  firstPartyResponded   DateTime?
-  secondPartySent       DateTime?
-  secondPartyResponded  DateTime?
-  firstMeetingScheduled DateTime?
-  closedAt              DateTime?
-  category              SuggestionCategory        @default(ACTIVE)
-  createdAt             DateTime                  @default(now())
-  updatedAt             DateTime                  @updatedAt
-  feedback              DateFeedback[]            @relation("SuggestionFeedback")
-  firstParty            User                      @relation("FirstPartySuggestions", fields: [firstPartyId], references: [id], onDelete: Cascade) // ✅ היה קיים
-  matchmaker            User                      @relation("MatchmakerSuggestions", fields: [matchmakerId], references: [id], onDelete: Cascade) // ✅ היה קיים
-  secondParty           User                      @relation("SecondPartySuggestions", fields: [secondPartyId], references: [id], onDelete: Cascade) // ✅ היה קיים
-  meetings              Meeting[]
-  inquiries             SuggestionInquiry[]
-  statusHistory         SuggestionStatusHistory[]
-  approvedBy            User[]                    @relation("ApprovedSuggestions")
-  reviewedBy            User[]                    @relation("ReviewedSuggestions")
-  firstPartyLastViewedAt  DateTime?  // מתי צד א' צפה בהצעה לאחרונה
-  secondPartyLastViewedAt DateTime?  // מתי צד ב' צפה בהצעה לאחרונה
- potentialMatch  PotentialMatch?
- messages    SuggestionMessage[]
- firstPartyRank            Int?      // דירוג עדיפות של צד א' (1 = הכי גבוה). null = לא רלוונטי
-  firstPartyInterestedAt    DateTime? // מתי צד א' סימן "מעוניין"
-
-  @@index([firstPartyId, status, firstPartyRank])
-  @@index([category])
-  @@index([matchmakerId])
-  @@index([firstPartyId])
-  @@index([secondPartyId])
-  @@index([status])
-  @@index([priority])
-  @@index([lastActivity])
-}
-
-model SuggestionStatusHistory {
-  id           String                @id @default(cuid())
-  suggestionId String
-  status       MatchSuggestionStatus
-  reason       String?
-  notes        String?
-  createdAt    DateTime              @default(now())
-  suggestion   MatchSuggestion       @relation(fields: [suggestionId], references: [id], onDelete: Cascade) // ✅ היה קיים
-
-  @@index([suggestionId])
-}
-
-model Invitation {
-  id           String           @id @default(cuid())
-  matchmakerId String
-  email        String
-  token        String           @unique
-  expires      DateTime
-  status       InvitationStatus @default(PENDING)
-  metadata     Json?
-  userId       String?          @unique
-  createdAt    DateTime         @default(now())
-  updatedAt    DateTime         @updatedAt
-  matchmaker   User             @relation("MatchmakerInvitations", fields: [matchmakerId], references: [id], onDelete: Cascade) // ❗️ הוספתי/שיניתי
-  user         User?            @relation("ReceivedInvitation", fields: [userId], references: [id], onDelete: Cascade) // ❗️ הוספתי/שיניתי
-
-  @@index([matchmakerId])
-  @@index([email])
-  @@index([status])
-}
-
-model Video {
-  id        String      @id @default(cuid())
-  userId    String
-  url       String
-  type      VideoType
-  status    VideoStatus @default(PENDING)
-  createdAt DateTime    @default(now())
-  updatedAt DateTime    @updatedAt
-  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade) // ❗️ הוספתי/שיניתי
-}
-
-model AvailabilityInquiry {
-  id                  String   @id @default(cuid())
-  matchmakerId        String
-  firstPartyId        String
-  secondPartyId       String
-  firstPartyResponse  Boolean?
-  secondPartyResponse Boolean?
-  note                String?
-  createdAt           DateTime @default(now())
-  updatedAt           DateTime @updatedAt
-  expiresAt           DateTime
-  firstParty          User     @relation("FirstPartyInquiries", fields: [firstPartyId], references: [id], onDelete: Cascade) // ❗️ הוספתי/שיניתי
-  matchmaker          User     @relation("MatchmakerInquiries", fields: [matchmakerId], references: [id], onDelete: Cascade) // ❗️ הוספתי/שיניתי
-  secondParty         User     @relation("SecondPartyInquiries", fields: [secondPartyId], references: [id], onDelete: Cascade) // ❗️ הוספתי/שיניתי
-
-  @@index([matchmakerId])
-  @@index([firstPartyId])
-  @@index([secondPartyId])
-}
-
-model QuestionnaireResponse {
-  id                    String    @id @default(cuid())
-  userId                String
-  valuesAnswers         Json?
-  personalityAnswers    Json?
-  relationshipAnswers   Json?
-  partnerAnswers        Json?
-  religionAnswers       Json?
-  valuesCompleted       Boolean   @default(false)
-  personalityCompleted  Boolean   @default(false)
-  relationshipCompleted Boolean   @default(false)
-  partnerCompleted      Boolean   @default(false)
-  religionCompleted     Boolean   @default(false)
-  worldsCompleted       String[]
-  completed             Boolean   @default(false)
-  startedAt             DateTime
-  completedAt           DateTime?
-  lastSaved             DateTime  @default(now())
-    currentQuestionIndices Json?
-
-  createdAt             DateTime  @default(now())
-  updatedAt             DateTime  @updatedAt
-  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade) // ❗️ הוספתי/שיניתי
-
-  @@index([userId])
-  @@index([completed])
-  @@index([valuesCompleted])
-  @@index([personalityCompleted])
-  @@index([relationshipCompleted])
-  @@index([partnerCompleted])
-  @@index([religionCompleted])
-}
-
-model UserImage {
-  id                 String   @id @default(cuid())
-  url                String
-  isMain             Boolean  @default(false)
-  cloudinaryPublicId String?
-  userId             String
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
-  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade) // ✅ היה קיים
-
-  @@index([userId])
-}
-
-model DateFeedback {
-  id            String          @id @default(cuid())
-  suggestionId  String
-  partyId       String
-  meetingId     String
-  meetingNumber Int
-  feedback      String
-  status        String
-  nextSteps     String?
-  createdAt     DateTime        @default(now())
-  meeting       Meeting         @relation("MeetingFeedback", fields: [meetingId], references: [id], onDelete: Cascade) // ❗️ הוספתי/שיניתי
-  party         User            @relation("UserFeedback", fields: [partyId], references: [id], onDelete: Cascade) // ❗️ הוספתי/שיניתי
-  suggestion    MatchSuggestion @relation("SuggestionFeedback", fields: [suggestionId], references: [id], onDelete: Cascade) // ❗️ הוספתי/שיניתי
-
-  @@index([suggestionId])
-  @@index([partyId])
-  @@index([meetingId])
-}
-
-model SuggestionInquiry {
-  id           String          @id @default(cuid())
-  suggestionId String
-  fromUserId   String
-  toUserId     String
-  question     String
-  answer       String?
-  status       InquiryStatus   @default(PENDING)
-  createdAt    DateTime        @default(now())
-  answeredAt   DateTime?
-  fromUser     User            @relation("SentSuggestionInquiries", fields: [fromUserId], references: [id], onDelete: Cascade) // ❗️ הוספתי/שיניתי
-  suggestion   MatchSuggestion @relation(fields: [suggestionId], references: [id], onDelete: Cascade) // ✅ היה קיים
-  toUser       User            @relation("ReceivedSuggestionInquiries", fields: [toUserId], references: [id], onDelete: Cascade) // ❗️ הוספתי/שיניתי
-recipientReadAt DateTime?
-
-  @@index([suggestionId])
-  @@index([fromUserId])
-  @@index([toUserId])
-}
-enum ServiceType {
-  MILITARY_COMBATANT
-  MILITARY_SUPPORT
-  MILITARY_OFFICER
-  MILITARY_INTELLIGENCE_CYBER_TECH
-  NATIONAL_SERVICE_ONE_YEAR
-  NATIONAL_SERVICE_TWO_YEARS
-  HESDER_YESHIVA
-  YESHIVA_ONLY_POST_HS
-  PRE_MILITARY_ACADEMY_AND_SERVICE
-  EXEMPTED
-  CIVILIAN_SERVICE
-  YESHIVA_HESDER
-  YESHIVA_FULL_TIME
-  SEMINARY
-  MIDRASHA
-  NONE
-  OTHER
-}
-
-enum HeadCoveringType {
-  NONE
-  SOMETIMES
-  MITPACHAT
-  WIG
-  BOTH
-  OTHER
-  FULL_COVERAGE
-  PARTIAL_COVERAGE
-  HAT_BERET
-  SCARF_ONLY_SOMETIMES
-  UNDECIDED
-}
-
-enum KippahType {
-  NONE
-  SOMETIMES
-  SRUGA
-  BLACK
-  LARGE
-  OTHER
-  BLACK_VELVET
-  KNITTED_SMALL
-  KNITTED_LARGE
-  CLOTH
-  BRESLEV
-  NONE_AT_WORK_OR_CASUAL
-  NONE_USUALLY
-}
-enum MeetingStatus {
-  SCHEDULED
-  COMPLETED
-  CANCELLED
-  RESCHEDULED
-}
-
-enum Gender {
-  MALE
-  FEMALE
-}
-
-enum UserRole {
-  CANDIDATE
-  MATCHMAKER
-  ADMIN
-}
-
-enum UserStatus {
-  PENDING_EMAIL_VERIFICATION
-  PENDING_PHONE_VERIFICATION
-  ACTIVE
-  INACTIVE
-  BLOCKED
-}
-
-enum VideoType {
-  INTRODUCTION
-  PERSONAL_STORY
-  OTHER
-}
-
-enum VideoStatus {
-  PENDING
-  APPROVED
-  REJECTED
-}
-
-enum ContactMethod {
-  EMAIL
-  WHATSAPP
-  PHONE
-}
-
-enum MatchSuggestionStatus {
-  DRAFT
-  PENDING_FIRST_PARTY
-  FIRST_PARTY_APPROVED
-    FIRST_PARTY_INTERESTED  
-  FIRST_PARTY_DECLINED
-  PENDING_SECOND_PARTY
-  SECOND_PARTY_APPROVED
-  SECOND_PARTY_DECLINED
-  AWAITING_MATCHMAKER_APPROVAL
-  CONTACT_DETAILS_SHARED
-  AWAITING_FIRST_DATE_FEEDBACK
-  THINKING_AFTER_DATE
-  PROCEEDING_TO_SECOND_DATE
-  ENDED_AFTER_FIRST_DATE
-  MEETING_PENDING
-  MEETING_SCHEDULED
-  MATCH_APPROVED
-  MATCH_DECLINED
-  DATING
-  ENGAGED
-  MARRIED
-  EXPIRED
-  CLOSED
-  CANCELLED
-}
-
-enum SuggestionCategory {
-  ACTIVE
-  PENDING
-  HISTORY
-}
-
-enum UserSource {
-  REGISTRATION // User registered themselves
-  MANUAL_ENTRY // User added manually by a matchmaker
-  IMPORTED // Future: User imported from another system
-}
-
-enum AvailabilityStatus {
-  AVAILABLE
-  UNAVAILABLE
-  DATING
-  PAUSED
-  ENGAGED
-  MARRIED
-}
-
-enum ReligiousJourney {
-  BORN_INTO_CURRENT_LIFESTYLE // גדלתי בסביבה דומה
-  BORN_SECULAR
-  BAAL_TESHUVA                // חזרתי בתשובה
-  DATLASH                     // יצאתי בשאלה
-  CONVERT                     // גר/גיורת
-  IN_PROCESS                  // בתהליך של שינוי
-  OTHER                       // אחר
-}
-
-enum InvitationStatus {
-  PENDING
-  ACCEPTED
-  EXPIRED
-  CANCELLED
-}
-
-enum VerificationType {
-  EMAIL
-  PHONE_WHATSAPP
-  DOCUMENT
-  REFERENCE
-  PASSWORD_RESET
-  ACCOUNT_SETUP
-}
-
-enum VerificationStatus {
-  PENDING
-  COMPLETED
-  EXPIRED
-  FAILED
-}
-
-enum Priority {
-  LOW
-  MEDIUM
-  HIGH
-  URGENT
-}
-
-enum InquiryStatus {
-  PENDING
-  ANSWERED
-  CLOSED
-}
-
-model Feedback {
-  id            String         @id @default(cuid())
-  createdAt     DateTime       @default(now())
-  userId        String?
-  user          User?          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  pageUrl       String
-  feedbackType  FeedbackType
-  content       String         @db.Text
-  status        FeedbackStatus @default(NEW)
-  userAgent     String?
-  screenshotUrl String?      // Field for the screenshot URL
-
-  @@index([userId])
-}
-
-enum FeedbackType {
-  SUGGESTION
-  BUG
-  POSITIVE
-}
-
-enum FeedbackStatus {
-  NEW
-  IN_PROGRESS
-  RESOLVED
-  WONT_FIX
-}
-
-model FriendTestimonial {
-  id           String   @id @default(cuid())
-  profileId    String
-  profile      Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
-  
-  authorName   String   // שם החבר/ה הממליצ/ה
-  relationship String   // הקשר למועמד/ת (למשל: "חבר ילדות")
-  content      String   @db.Text
-  authorPhone  String?  // מספר הטלפון של הממליצ/ה (אופציונלי)
-  
-  // --- שדות בקרה ופרטיות ---
-  isPhoneVisibleToMatch Boolean   @default(false) // הסכמה מפורשת להצגת המספר
-  status                TestimonialStatus @default(PENDING) // סטטוס ההמלצה
-  submittedBy           SubmissionSource  @default(USER)   // איך ההמלצה הוגשה
-  
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-
-  @@index([profileId])
-}
-
-// --- הוספת Enums חדשים ---
-enum TestimonialStatus {
-  PENDING   // ממתין לאישור המועמד/ת
-  APPROVED  // מאושר ומוצג בפרופיל
-  HIDDEN    // מאושר אך מוסתר זמנית על ידי המועמד/ת
-}
-
-
-enum SubmissionSource {
-  USER   // הוזן ידנית על ידי המועמד/ת
-  FRIEND // הוגש על ידי חבר דרך קישור מאובטח
-}
-
-enum TestimonialRequestStatus {
-  PENDING
-  COMPLETED
-}
-
-model TestimonialRequest {
-  id        String    @id @default(cuid())
-  token     String    @unique // The secure, random token for the URL
-  expiresAt DateTime  // The date when the link will expire
-  status    TestimonialRequestStatus @default(PENDING) // Tracks if the token has been used
-  
-  profileId String
-  profile   Profile   @relation(fields: [profileId], references: [id], onDelete: Cascade)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([profileId])
-}
-
-model UserDripCampaign {
-  id            String         @id @default(cuid())
-  userId        String         @unique
-  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  currentStep   Int            @default(1)
-  nextSendDate  DateTime
-  status        CampaignStatus @default(ACTIVE)
-  lastSentType  String?        // To track which type of message was last sent
-  sentEmailTypes String[] @default([])
-    lastEveningEmailSent   DateTime?  // מתי שלחנו מייל ערב אחרון
-  eveningEmailsCount     Int        @default(0)  // כמה מיילי ערב שלחנו
-  lastAiSummarySent      DateTime?  // מתי שלחנו AI Summary אחרון
-  aiSummaryCount         Int        @default(0)  // כמה פעמים שלחנו AI Summary
-  
-
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
-
-  @@index([nextSendDate, status])
-   @@index([lastEveningEmailSent])
-}
-
-enum CampaignStatus {
-  ACTIVE
-  PAUSED
-  UNSUBSCRIBED
-  PROCESSING 
-  COMPLETED
-}
-
-enum Language {
-  en
-  he
-}
-
-model ReferralCampaign {
-  id          String   @id @default(cuid())
-  name        String   // "קמפיין קיץ 2025"
-  slug        String   @unique // "summer-2025" - לזיהוי בקלות
-  description String?  @db.Text
-  
-  // תאריכים
-  startDate   DateTime
-  endDate     DateTime
-  isActive    Boolean  @default(true)
-  
-  // פרסים
-  prizeTiers  Json?    // [{ threshold: 3, prize: "קפה", prizeValue: 50 }, ...]
-  grandPrize  String?  // "ארוחה זוגית פרימיום"
-  
-  // הגדרות
-  settings    Json?    // { requireVerification: true, minAgeForReferral: 0 }
-  
-  referrers   Referrer[]
-  
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  
-  @@index([isActive])
-  @@index([slug])
-  @@index([startDate, endDate])
-}
-
-model Referrer {
-  id           String   @id @default(cuid())
-  campaignId   String
-  campaign     ReferralCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
-  
-  // פרטי המפנה
-  name         String
-  email        String?
-  phone        String?
-  code         String   @unique  // "DAVID", "SARA123" - קוד קצר וייחודי
-  
-  // סוג המפנה
-  tier         ReferrerTier @default(COMMUNITY)
-  
-  // הערות פנימיות
-  notes        String?  @db.Text
-  
-  // סטטיסטיקות מטמון (לביצועים - מתעדכן בכל אירוע)
-  clickCount       Int @default(0)
-  registrationCount Int @default(0)
-  verifiedCount    Int @default(0)
-  completedCount   Int @default(0)
-  
-  // פרסים שהתקבלו
-  prizesAwarded    Json?  // [{ prize: "קפה", awardedAt: "2025-06-15" }]
-  
-  referrals    Referral[]
-  
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-  
-  @@index([campaignId])
-  @@index([code])
-  @@index([tier])
-  @@index([verifiedCount])
-}
-
-model Referral {
-  id          String   @id @default(cuid())
-  referrerId  String
-  referrer    Referrer @relation(fields: [referrerId], references: [id], onDelete: Cascade)
-  
-  // המשתמש שנרשם (null עד שמשלים רישום)
-  userId      String?  @unique
-  user        User?    @relation("ReferredUser", fields: [userId], references: [id], onDelete: SetNull)
-  
-  // מעקב התקדמות
-  status      ReferralStatus @default(CLICKED)
-  
-  // מידע טכני למניעת הונאות
-  ipAddress   String?
-  userAgent   String?
-  sessionId   String?  // לזיהוי סשן ייחודי
-  
-  // תאריכים לכל שלב
-  clickedAt    DateTime @default(now())
-  startedAt    DateTime?  // התחיל למלא טופס
-  registeredAt DateTime?  // סיים רישום בסיסי
-  verifiedAt   DateTime?  // אימת טלפון
-  completedAt  DateTime?  // השלים פרופיל
-  
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-  
-  @@index([referrerId])
-  @@index([userId])
-  @@index([status])
-  @@index([ipAddress])
-  @@index([clickedAt])
-}
-
-// --- Enums חדשים ---
-
-enum ReferrerTier {
-  AMBASSADOR  // שגריר - חבר קרוב שקיבל ערכה מלאה
-  COMMUNITY   // קהילה - נרשם דרך הדף הציבורי
-}
-
-enum ReferralStatus {
-  CLICKED      // לחץ על הקישור
-  STARTED      // התחיל הרשמה (נכנס לטופס)
-  REGISTERED   // סיים הרשמה בסיסית
-  VERIFIED     // אימת טלפון
-  COMPLETED    // השלים פרופיל + תמונה
-}
-model SavedMatchSearch {
-  id               String   @id @default(cuid())
-  
-  // המועמד שחיפשנו עבורו התאמות
-  targetUserId     String   @unique  // @unique = רק חיפוש אחד שמור לכל מועמד
-  targetUser       User     @relation("TargetUserSearches", fields: [targetUserId], references: [id], onDelete: Cascade)
-  
-  // השדכן שהפעיל את החיפוש
-  matchmakerId     String
-  matchmaker       User     @relation("MatchmakerSearches", fields: [matchmakerId], references: [id], onDelete: Cascade)
-  
-  // תוצאות החיפוש (JSON)
-  // מבנה: [{ userId, score, reasoning, firstName, lastName }]
-  results          Json
-  
-  // מטא-דאטה
-  algorithmVersion String   @default("v2.0")
-  candidatesCount  Int      @default(0)  // כמה מועמדים נותחו
-  
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
-  
-  @@index([targetUserId])
-  @@index([matchmakerId])
-  @@index([createdAt])
-}
-
-model SavedVectorMatchSearch {
-  id               String   @id @default(cuid())
-  targetUserId     String   @unique
-  targetUser       User     @relation("TargetUserVectorSearches", fields: [targetUserId], references: [id], onDelete: Cascade)
-  matchmakerId     String
-  matchmaker       User     @relation("MatchmakerVectorSearches", fields: [matchmakerId], references: [id], onDelete: Cascade)
-  results          Json
-  algorithmVersion String   @default("vector-v1.0")
-  candidatesCount  Int      @default(0)
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
-  
-  @@index([targetUserId])
-  @@index([matchmakerId])
-}
-
-model MatchingJob {
-  id              String    @id @default(cuid())
-  targetUserId    String
-  matchmakerId    String
-  method          String
-  status          String    @default("pending")
-  progress        Int       @default(0)
-  progressMessage String?
-  result          Json?
-  error           String?
-  totalCandidates Int?
-  matchesFound    Int?
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
-  completedAt     DateTime?
-
-  @@index([targetUserId])
-  @@index([matchmakerId])
-  @@index([status])
-  @@index([createdAt])
-}
-  
-model VirtualProfile {
-  id                  String   @id @default(cuid())
-  
-  // מי יצר את הפרופיל הוירטואלי
-  matchmakerId        String
-  matchmaker          User     @relation("MatchmakerVirtualProfiles", fields: [matchmakerId], references: [id], onDelete: Cascade)
-  
-  // קלט השדכן
-  name                String?              // שם לזיהוי (אופציונלי)
-  sourceText          String   @db.Text    // הטקסט החופשי שהשדכן הזין
-  
-  // פרמטרים שהשדכן בוחר (חובה)
-  gender              Gender               // מגדר היוזר הוירטואלי
-  religiousLevel      String               // רמה דתית
-  
-  // הפרופיל שה-AI יצר
-  generatedProfile    Json?                // { personalitySummary, lookingForSummary, inferredAge, ... }
-  
-  // סיכום ערוך (אם השדכן ערך את הסיכום)
-  editedSummary       String?  @db.Text    // סיכום שהשדכן ערך ידנית
-  wasEdited           Boolean  @default(false)
-  
-  // וקטור להתאמה (נוצר מהפרופיל)
-  vector              Unsupported("vector(768)")?
-  
-  // מטא-דאטה
-  isStarred           Boolean  @default(false)
-  lastUsedAt          DateTime?
-  usageCount          Int      @default(0)
-  
-  createdAt           DateTime @default(now())
-  updatedAt           DateTime @updatedAt
-  
-  @@index([matchmakerId])
-  @@index([isStarred])
-  @@index([lastUsedAt])
-}
-
-
-
-// טבלה חדשה: התאמות פוטנציאליות שנמצאו בסריקה הלילית
-model PotentialMatch {
-  id              String   @id @default(cuid())
-   scanMethod    String?   // 'hybrid' | 'algorithmic' | 'vector'
-  // הזוג
-  maleUserId      String
-  femaleUserId    String
-  
-  // ציונים
-  aiScore         Float    // הציון הסופי (finalScore)
-  firstPassScore  Float?   // ציון המעבר הראשון
-  
-  // פירוט הציון
-  scoreBreakdown  Json?    // ScoreBreakdown object
-  
-  // נימוקים
-  shortReasoning  String?  @db.Text
-  detailedReasoning String? @db.Text
-  
-  // מידע רקע
-  backgroundCompatibility String? // excellent/good/possible/problematic/not_recommended
-  backgroundMultiplier    Float?
-  
-  // סטטוס מעקב
-  status          PotentialMatchStatus @default(PENDING)
-  
-  // תאריכים
-  scannedAt       DateTime @default(now())
-  reviewedAt      DateTime?
-  dismissedAt     DateTime?
-  sentAt          DateTime? // מתי נשלחה הצעה
-  
-  // מי סקר/דחה
-  reviewedBy      String?
-  dismissReason   String?
-  
-  // קישור להצעה אם נוצרה
-  suggestionId    String?  @unique
-  
-  // Relations
-  male            User     @relation("MaleMatches", fields: [maleUserId], references: [id], onDelete: Cascade)
-  female          User     @relation("FemaleMatches", fields: [femaleUserId], references: [id], onDelete: Cascade)
-  suggestion      MatchSuggestion? @relation(fields: [suggestionId], references: [id])
-  
+  generator client {
+    provider        = "prisma-client-js"
+    previewFeatures = ["postgresqlExtensions"]
+  }
+
+  datasource db {
+    provider   = "postgresql"
+    url        = env("DATABASE_URL")
+  }
+
+  model User {
+    id                String     @id @default(cuid())
+    email             String     @unique
+    password          String?
+    firstName         String
+    lastName          String
+      appleId  String?  @unique  // Apple user ID for Sign in with Apple
+
+    phone             String?    @unique
+    createdAt         DateTime   @default(now())
+    updatedAt         DateTime   @updatedAt
+    lastLogin         DateTime?
+    status            UserStatus @default(PENDING_PHONE_VERIFICATION)
+    role              UserRole   @default(CANDIDATE)
+    isVerified        Boolean    @default(false)
+    isPhoneVerified   Boolean    @default(false)
+    isProfileComplete Boolean    @default(false)
+    deviceTokens      DeviceToken[]
+
+    source                    UserSource @default(REGISTRATION)
+    addedByMatchmakerId       String?
+    matchmakerWhoAdded        User?      @relation("ManuallyAddedBy", fields: [addedByMatchmakerId], references: [id])
+    termsAndPrivacyAcceptedAt DateTime?
+    engagementEmailsConsent   Boolean    @default(false)
+    promotionalEmailsConsent  Boolean    @default(false)
+    language                  Language   @default(he)
+
+    // === Assigned Matchmaker (NEW) ===
+    assignedMatchmakerId   String?
+    assignedMatchmaker     User?   @relation("AssignedMatchmaker", fields: [assignedMatchmakerId], references: [id])
+    assignedUsers          User[]  @relation("AssignedMatchmaker")
+
+    // === Direct Messages (NEW) ===
+    sentDirectMessages     DirectMessage[] @relation("SentDirectMessages")
+    receivedDirectMessages DirectMessage[] @relation("ReceivedDirectMessages")
+
+    // === Availability Inquiries ===
+    firstPartyInquiries             AvailabilityInquiry[]   @relation("FirstPartyInquiries")
+    matchmakerAvailabilityInquiries AvailabilityInquiry[]   @relation("MatchmakerInquiries")
+    secondPartyInquiries            AvailabilityInquiry[]   @relation("SecondPartyInquiries")
+
+    // === Date Feedback ===
+    givenFeedback                   DateFeedback[]          @relation("UserFeedback")
+
+    // === Invitations ===
+    sentInvitations                 Invitation[]            @relation("MatchmakerInvitations")
+    receivedInvitation              Invitation?             @relation("ReceivedInvitation")
+
+    // === Match Suggestions ===
+    firstPartySuggestions           MatchSuggestion[]       @relation("FirstPartySuggestions")
+    createdSuggestions              MatchSuggestion[]       @relation("MatchmakerSuggestions")
+    secondPartySuggestions          MatchSuggestion[]       @relation("SecondPartySuggestions")
+    approvedSuggestions             MatchSuggestion[]       @relation("ApprovedSuggestions")
+    reviewedSuggestions             MatchSuggestion[]       @relation("ReviewedSuggestions")
+
+    // === Auth ===
+    accounts                        Account[]
+    sessions                        Session[]
+    oneTimeAuthTokens               OneTimeAuthToken[]
+
+    // === Profile & Questionnaire ===
+    profile                         Profile?
+    verifiedUsers                   Profile[]               @relation("VerifiedByMatchmaker")
+    questionnaireResponses          QuestionnaireResponse[]
+
+    // === Suggestion Inquiries ===
+    sentSuggestionInquiries         SuggestionInquiry[]     @relation("SentSuggestionInquiries")
+    receivedSuggestionInquiries     SuggestionInquiry[]     @relation("ReceivedSuggestionInquiries")
+
+    // === Media ===
+    images                          UserImage[]
+    videos                          Video[]
+
+    // === Verification ===
+    verifications                   Verification[]
+
+    // === Manually Added Candidates ===
+    manuallyAddedCandidates         User[]                  @relation("ManuallyAddedBy")
+
+    // === Feedback ===
+    feedbacks                       Feedback[]
+
+    // === Drip Campaign & Onboarding ===
+    dripCampaign                    UserDripCampaign?
+    lastOnboardingEmailSent         DateTime?
+    onboardingCompleted             Boolean   @default(false)
+
+    // === Neshama Insight ===
+    neshamaInsightLastGeneratedAt   DateTime?
+    neshamaInsightGeneratedCount    Int       @default(0)
+
+    // === Referral ===
+    referral                        Referral?  @relation("ReferredUser")
+
+    // === Saved Searches ===
+    targetUserSearches              SavedMatchSearch[]       @relation("TargetUserSearches")
+    matchmakerSearches              SavedMatchSearch[]       @relation("MatchmakerSearches")
+    targetUserVectorSearches        SavedVectorMatchSearch[] @relation("TargetUserVectorSearches")
+    matchmakerVectorSearches        SavedVectorMatchSearch[] @relation("MatchmakerVectorSearches")
+
+    // === Virtual Profiles ===
+    virtualProfiles                 VirtualProfile[]         @relation("MatchmakerVirtualProfiles")
+
+    // === Potential Matches ===
+    maleMatches                     PotentialMatch[]         @relation("MaleMatches")
+    femaleMatches                   PotentialMatch[]         @relation("FemaleMatches")
+
+    // === Scanned Pairs ===
+    maleScannedPairs                ScannedPair[]            @relation("MaleScannedPairs")
+    femaleScannedPairs              ScannedPair[]            @relation("FemaleScannedPairs")
+
+    // === Hidden Candidates ===
+    hiddenByMatchmakers             HiddenCandidate[]        @relation("HiddenCandidates")
+    hiddenCandidates                HiddenCandidate[]        @relation("HiddenByMatchmaker")
+
+    // === Alerts ===
+    alerts                          UserAlert[]
+
+    // === Scan Sessions ===
+    scanSessions                    ScanSession[]
+
+    // === Suggestion Messages ===
+    suggestionMessages              SuggestionMessage[]      @relation("UserSuggestionMessages")
+
+    @@index([email])
+    @@index([role])
+    @@index([status])
+    @@index([source])
+    @@index([addedByMatchmakerId])
+    @@index([assignedMatchmakerId])
+  }
+  model Account {
+    id                String  @id @default(cuid())
+    userId            String
+    type              String
+    provider          String
+    providerAccountId String
+    refresh_token     String? @db.Text
+    access_token      String? @db.Text
+    expires_at        Int?
+    token_type        String?
+    scope             String?
+    id_token          String? @db.Text
+    session_state     String?
+
+    user User @relation(fields: [userId], references: [id], onDelete: Cascade) // ✅ היה קיים
+
+    @@unique([provider, providerAccountId])
+    @@index([userId])
+  }
+
+  model OneTimeAuthToken {
+    id        String   @id @default(cuid())
+    token     String   @unique
+    userId    String
+    user      User     @relation(fields: [userId], references: [id], onDelete: Cascade) // ✅ היה קיים
+    expiresAt DateTime
+    createdAt DateTime @default(now())
+
+    @@index([userId])
+  }
+
+  model Session {
+    id           String   @id @default(cuid())
+    sessionToken String   @unique
+    userId       String
+    expires      DateTime
+    user         User     @relation(fields: [userId], references: [id], onDelete: Cascade) // ✅ היה קיים
+
+    @@index([userId])
+  }
+
+  model Verification {
+    id          String             @id @default(cuid())
+    userId      String?
+    type        VerificationType
+    token       String
+    target      String?
+    expiresAt   DateTime
+    status      VerificationStatus @default(PENDING)
+    attempts    Int                @default(0)
+    metadata    Json?
+    createdAt   DateTime           @default(now())
+    completedAt DateTime?
+    user        User?              @relation(fields: [userId], references: [id], onDelete: Cascade) // ❗️ הוספתי/שיניתי
+
+    @@index([userId, type, status])
+    @@index([target, type, status])
+    @@index([token, type, status])
+  }
+
+  // model Profile in your schema.prisma
+
+  model Profile {
+    id                     String   @id @default(cuid())
+    userId                 String   @unique
+    gender                 Gender
+    birthDate              DateTime
+    birthDateIsApproximate Boolean? @default(false) // <--- הוסף שדה זה
+
+    nativeLanguage          String?
+    additionalLanguages     String[]
+    height                  Int?
+    maritalStatus           String? // Marital status of the user
+    occupation              String?
+    education               String?
+    educationLevel          String?
+    city                    String?
+    origin                  String? // Origin of the user
+    religiousLevel          String? // Religious level of the user
+    religiousJourney        ReligiousJourney? // <--- הוספת השדה החדש
+    testimonialRequests     TestimonialRequest[] // <-- ADD THIS LINE
+    shomerNegiah            Boolean?
+    serviceType             ServiceType? // Service type of the user
+    serviceDetails          String?
+    manualEntryText         String?
+    headCovering            HeadCoveringType?
+    kippahType              KippahType?
+    hasChildrenFromPrevious Boolean?          @default(false)
+    profileCharacterTraits  String[]          @default([]) // User's own traits
+    profileHobbies          String[]          @default([]) // User's own hobbies
+    aliyaCountry            String?
+    aliyaYear               Int?
+    about                   String?
+    isAboutVisible Boolean? @default(true)
+    testimonials          FriendTestimonial[]
+  isFriendsSectionVisible Boolean? @default(true)
+  isNeshamaTechSummaryVisible Boolean? @default(true)
+      profileHeadline       String? // כותרת אישית לפרופיל
+    inspiringCoupleStory  String? // סיפור על זוג מעורר השראה
+    influentialRabbi      String? // דמות רבנית/רוחנית משפיעה
+    parentStatus            String?
+    fatherOccupation        String? // מקצוע האב
+    motherOccupation        String? // מקצוע האם
+    siblings                Int?
+    position                Int?
+  hasMedicalInfo              Boolean?
+    medicalInfoDetails          String?
+    medicalInfoDisclosureTiming String? // לדוגמה: 'FROM_THE_START', 'WHEN_SERIOUS'
+    // שדה זה קובע האם המידע הרפואי יוצג בכרטיס הפרופיל הנשלח לצד השני
+    isMedicalInfoVisible        Boolean  @default(false)
+    // --- Existing Preference Fields ---
+    preferredAgeMin                  Int?
+    preferredAgeMax                  Int?
+    preferredHeightMin               Int?
+    preferredHeightMax               Int?
+    preferredReligiousLevels         String[] @default([])
+    preferredLocations               String[] @default([])
+    preferredEducation               String[] @default([]) // Corresponds to educationPreferenceOptions
+    preferredOccupations             String[] @default([]) // Corresponds to occupationPreferenceOptions
+    contactPreference                String?
+
+    // --- New Preference Fields ---
+    preferredMaritalStatuses    String[]           @default([]) // Preferred marital status(es) of the partner
+    preferredShomerNegiah       String? // e.g., "yes", "no", "flexible"
+    preferredPartnerHasChildren String? // e.g., "yes_ok", "no_preferred", "does_not_matter"
+    preferredOrigins            String[]           @default([]) // Preferred origin(s) of the partner
+    preferredServiceTypes       ServiceType[]      @default([]) // Preferred service type(s) of the partner
+    preferredHeadCoverings      HeadCoveringType[] @default([]) // Preferred head covering(s) if partner is female
+    preferredKippahTypes        KippahType[]       @default([]) // Preferred kippah type(s) if partner is male
+    preferredCharacterTraits    String[]           @default([]) // Preferred character trait(s) of the partner
+    preferredHobbies            String[]           @default([]) // Preferred hobbies of the partner
+    preferredAliyaStatus        String? // e.g., "oleh", "tzabar", "no_preference"
+  preferredReligiousJourneys  ReligiousJourney[] @default([]) 
+  metrics  ProfileMetrics?
+    isProfileVisible          Boolean            @default(true)
+    preferredMatchmakerGender Gender?
+    matchingNotes             String? // General notes about the desired match
+    internalMatchmakerNotes String?
+    verifiedBy                String?
+    availabilityStatus        AvailabilityStatus @default(AVAILABLE)
+    wantsToBeFirstParty  Boolean  @default(true)
+
+    availabilityNote          String?
+    availabilityUpdatedAt     DateTime?
+    createdAt                 DateTime           @default(now())
+    updatedAt                 DateTime           @updatedAt
+      contentUpdatedAt        DateTime?   @default(now())
+
+    lastActive                DateTime?
+
+    user                    User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+    verifiedByMatchmaker    User?          @relation("VerifiedByMatchmaker", fields: [verifiedBy], references: [id], onDelete: SetNull)
+    vector                  ProfileVector? // הוספת קשר הפוך
+    hasViewedProfilePreview Boolean        @default(false)
+      needsAiProfileUpdate    Boolean    @default(true)
+      aiProfileSummary        Json?      
+      cvUrl                   String? // URL to the CV file stored in Cloudinary
+    cvSummary               String? @db.Text // AI-generated summary of the CV
+  conversationSummary     String? @db.Text 
+
+  referredBy              String?   // דרך מי הגיע - איש קשר להתקשרות
 
     // ==========================================================================
-  // 🆕 Asymmetric Scoring - ציונים נפרדים לכל צד
-  // ==========================================================================
-  scoreForMale          Float?                        // כמה היא מתאימה לו
-  scoreForFemale        Float?                        // כמה הוא מתאים לה
-  asymmetryGap          Float?                        // פער בין הציונים
-  
-  // ==========================================================================
-  // 🆕 Multi-Dimensional Scores
-  // ==========================================================================
-  surfaceMatchScore     Float?                        // התאמה "על הנייר"
-  valuesAlignmentScore  Float?                        // התאמת ערכים
-  personalityScore      Float?                        // דינמיקת אישיות
-  practicalFitScore     Float?                        // התאמה מעשית
-  
-  // ==========================================================================
-  // 🆕 Confidence & Quality
-  // ==========================================================================
-  confidenceLevel       Float?    @default(0.5)       // רמת ביטחון בציון 0-1
-  dataQuality           String?   @default("medium")  // low/medium/high
-  
-  // ==========================================================================
-  // 🆕 Exploration Flag
-  // ==========================================================================
-  isExploratoryMatch    Boolean   @default(false)     // האם זו הצעה "ניסויית"
-  explorationReason     String?                       // למה נבחרה כניסוי
+    // 🆕 Priority System
+    // ==========================================================================
+    priorityScore           Float?    @default(50)      // ציון עדיפות 0-100
+    priorityCategory        String?   @default("MEDIUM") // CRITICAL/HIGH/MEDIUM/LOW
+    priorityUpdatedAt       DateTime?                    // מתי עודכן הציון
+    
+    // ==========================================================================
+    // 🆕 Scanning & Suggestions Tracking
+    // ==========================================================================
+    lastScannedAt           DateTime?                    // מתי נסרק לאחרונה
+    lastSuggestedAt         DateTime?                    // מתי קיבל הצעה אחרונה
+    pendingMatchesCount     Int       @default(0)        // כמה PotentialMatches ממתינים
+    
+    // ==========================================================================
+    // 🆕 Engagement Metrics
+    // ==========================================================================
+    lastActiveAt            DateTime?                    // פעילות אחרונה
+    suggestionsReceived     Int       @default(0)        // כמה הצעות קיבל
+    suggestionsAccepted     Int       @default(0)        // כמה הצעות קיבל (אישר)
+    suggestionsDeclined     Int       @default(0)        // כמה הצעות דחה
+    averageResponseTimeHours Float?                      // זמן תגובה ממוצע בשעות
+    
+    // ==========================================================================
+    // 🆕 Matchmaker Impressions (הערכה סובייקטיבית)
+    // ==========================================================================
+    matchmakerImpression    String?   @db.Text           // התרשמות כללית
+    impressionScore         Int?                         // ציון התרשמות 1-10
+    redFlags                String[]  @default([])       // דגלים אדומים
+    greenFlags              String[]  @default([])       // נקודות חיוביות
+    difficultyScore         Int?      @default(5)        // קושי בשידוך 1-10
+    readinessLevel          ReadinessLevel? @default(READY)
+    
+    // ==========================================================================
+    // 🆕 Profile Completeness
+    // ==========================================================================
+    profileCompletenessScore Float?   @default(0)        // אחוז מילוי 0-100
+    missingFields           String[]  @default([])       // שדות חסרים
+    
+    // ==========================================================================
+    // 🆕 Derived Stats (מחושב מהדאטה)
+    // ==========================================================================
+    acceptanceRate          Float?                       // שיעור קבלת הצעות
+    avgMatchScore           Float?                       // ציון התאמה ממוצע
+    
+    // Relations
+    rejectionFeedbacks      RejectionFeedback[] @relation("RejectedUser")
+    givenRejectionFeedbacks RejectionFeedback[] @relation("RejectingUser")
 
-// ═══════════════════════════════════════════════════════════
-  // 🆕 ציונים לפי שיטת סריקה (כל שיטה שומרת בנפרד)
+
+  }
+
+
+  model Meeting {
+    id            String          @id @default(cuid())
+    suggestionId  String
+    scheduledDate DateTime
+    status        MeetingStatus
+    location      String?
+    notes         String?
+    createdAt     DateTime        @default(now())
+    updatedAt     DateTime        @updatedAt
+    feedback      DateFeedback[]  @relation("MeetingFeedback")
+    suggestion    MatchSuggestion @relation(fields: [suggestionId], references: [id], onDelete: Cascade) // ❗️ הוספתי/שיניתי
+
+    @@index([suggestionId])
+    @@index([status])
+  }
+
+  model MatchSuggestion {
+    id                    String                    @id @default(cuid())
+  isAutoSuggestion  Boolean   @default(false)
+    matchmakerId          String
+    firstPartyId          String
+    secondPartyId         String
+    status                MatchSuggestionStatus     @default(DRAFT)
+    priority              Priority                  @default(MEDIUM)
+    internalNotes         String?
+    firstPartyNotes       String?
+    secondPartyNotes      String?
+    matchingReason        String?
+    followUpNotes         String?
+    responseDeadline      DateTime?
+    decisionDeadline      DateTime?
+    lastStatusChange      DateTime?
+    previousStatus        MatchSuggestionStatus?
+    lastActivity          DateTime                  @default(now())
+    firstPartySent        DateTime?
+    firstPartyResponded   DateTime?
+    secondPartySent       DateTime?
+    secondPartyResponded  DateTime?
+    firstMeetingScheduled DateTime?
+    closedAt              DateTime?
+    category              SuggestionCategory        @default(ACTIVE)
+    createdAt             DateTime                  @default(now())
+    updatedAt             DateTime                  @updatedAt
+    feedback              DateFeedback[]            @relation("SuggestionFeedback")
+    firstParty            User                      @relation("FirstPartySuggestions", fields: [firstPartyId], references: [id], onDelete: Cascade) // ✅ היה קיים
+    matchmaker            User                      @relation("MatchmakerSuggestions", fields: [matchmakerId], references: [id], onDelete: Cascade) // ✅ היה קיים
+    secondParty           User                      @relation("SecondPartySuggestions", fields: [secondPartyId], references: [id], onDelete: Cascade) // ✅ היה קיים
+    meetings              Meeting[]
+    inquiries             SuggestionInquiry[]
+    statusHistory         SuggestionStatusHistory[]
+    approvedBy            User[]                    @relation("ApprovedSuggestions")
+    reviewedBy            User[]                    @relation("ReviewedSuggestions")
+    firstPartyLastViewedAt  DateTime?  // מתי צד א' צפה בהצעה לאחרונה
+    secondPartyLastViewedAt DateTime?  // מתי צד ב' צפה בהצעה לאחרונה
+  potentialMatch  PotentialMatch?
+  messages    SuggestionMessage[]
+  firstPartyRank            Int?      // דירוג עדיפות של צד א' (1 = הכי גבוה). null = לא רלוונטי
+    firstPartyInterestedAt    DateTime? // מתי צד א' סימן "מעוניין"
+
+    @@index([firstPartyId, status, firstPartyRank])
+    @@index([category])
+    @@index([matchmakerId])
+    @@index([firstPartyId])
+    @@index([secondPartyId])
+    @@index([status])
+    @@index([priority])
+    @@index([lastActivity])
+  }
+
+  model SuggestionStatusHistory {
+    id           String                @id @default(cuid())
+    suggestionId String
+    status       MatchSuggestionStatus
+    reason       String?
+    notes        String?
+    createdAt    DateTime              @default(now())
+    suggestion   MatchSuggestion       @relation(fields: [suggestionId], references: [id], onDelete: Cascade) // ✅ היה קיים
+
+    @@index([suggestionId])
+  }
+
+  model Invitation {
+    id           String           @id @default(cuid())
+    matchmakerId String
+    email        String
+    token        String           @unique
+    expires      DateTime
+    status       InvitationStatus @default(PENDING)
+    metadata     Json?
+    userId       String?          @unique
+    createdAt    DateTime         @default(now())
+    updatedAt    DateTime         @updatedAt
+    matchmaker   User             @relation("MatchmakerInvitations", fields: [matchmakerId], references: [id], onDelete: Cascade) // ❗️ הוספתי/שיניתי
+    user         User?            @relation("ReceivedInvitation", fields: [userId], references: [id], onDelete: Cascade) // ❗️ הוספתי/שיניתי
+
+    @@index([matchmakerId])
+    @@index([email])
+    @@index([status])
+  }
+
+  model Video {
+    id        String      @id @default(cuid())
+    userId    String
+    url       String
+    type      VideoType
+    status    VideoStatus @default(PENDING)
+    createdAt DateTime    @default(now())
+    updatedAt DateTime    @updatedAt
+    user      User        @relation(fields: [userId], references: [id], onDelete: Cascade) // ❗️ הוספתי/שיניתי
+  }
+
+  model AvailabilityInquiry {
+    id                  String   @id @default(cuid())
+    matchmakerId        String
+    firstPartyId        String
+    secondPartyId       String
+    firstPartyResponse  Boolean?
+    secondPartyResponse Boolean?
+    note                String?
+    createdAt           DateTime @default(now())
+    updatedAt           DateTime @updatedAt
+    expiresAt           DateTime
+    firstParty          User     @relation("FirstPartyInquiries", fields: [firstPartyId], references: [id], onDelete: Cascade) // ❗️ הוספתי/שיניתי
+    matchmaker          User     @relation("MatchmakerInquiries", fields: [matchmakerId], references: [id], onDelete: Cascade) // ❗️ הוספתי/שיניתי
+    secondParty         User     @relation("SecondPartyInquiries", fields: [secondPartyId], references: [id], onDelete: Cascade) // ❗️ הוספתי/שיניתי
+
+    @@index([matchmakerId])
+    @@index([firstPartyId])
+    @@index([secondPartyId])
+  }
+
+  model QuestionnaireResponse {
+    id                    String    @id @default(cuid())
+    userId                String
+    valuesAnswers         Json?
+    personalityAnswers    Json?
+    relationshipAnswers   Json?
+    partnerAnswers        Json?
+    religionAnswers       Json?
+    valuesCompleted       Boolean   @default(false)
+    personalityCompleted  Boolean   @default(false)
+    relationshipCompleted Boolean   @default(false)
+    partnerCompleted      Boolean   @default(false)
+    religionCompleted     Boolean   @default(false)
+    worldsCompleted       String[]
+    completed             Boolean   @default(false)
+    startedAt             DateTime
+    completedAt           DateTime?
+    lastSaved             DateTime  @default(now())
+      currentQuestionIndices Json?
+
+    createdAt             DateTime  @default(now())
+    updatedAt             DateTime  @updatedAt
+    user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade) // ❗️ הוספתי/שיניתי
+
+    @@index([userId])
+    @@index([completed])
+    @@index([valuesCompleted])
+    @@index([personalityCompleted])
+    @@index([relationshipCompleted])
+    @@index([partnerCompleted])
+    @@index([religionCompleted])
+  }
+
+  model UserImage {
+    id                 String   @id @default(cuid())
+    url                String
+    isMain             Boolean  @default(false)
+    cloudinaryPublicId String?
+    userId             String
+    createdAt          DateTime @default(now())
+    updatedAt          DateTime @updatedAt
+    user               User     @relation(fields: [userId], references: [id], onDelete: Cascade) // ✅ היה קיים
+
+    @@index([userId])
+  }
+
+  model DateFeedback {
+    id            String          @id @default(cuid())
+    suggestionId  String
+    partyId       String
+    meetingId     String
+    meetingNumber Int
+    feedback      String
+    status        String
+    nextSteps     String?
+    createdAt     DateTime        @default(now())
+    meeting       Meeting         @relation("MeetingFeedback", fields: [meetingId], references: [id], onDelete: Cascade) // ❗️ הוספתי/שיניתי
+    party         User            @relation("UserFeedback", fields: [partyId], references: [id], onDelete: Cascade) // ❗️ הוספתי/שיניתי
+    suggestion    MatchSuggestion @relation("SuggestionFeedback", fields: [suggestionId], references: [id], onDelete: Cascade) // ❗️ הוספתי/שיניתי
+
+    @@index([suggestionId])
+    @@index([partyId])
+    @@index([meetingId])
+  }
+
+  model SuggestionInquiry {
+    id           String          @id @default(cuid())
+    suggestionId String
+    fromUserId   String
+    toUserId     String
+    question     String
+    answer       String?
+    status       InquiryStatus   @default(PENDING)
+    createdAt    DateTime        @default(now())
+    answeredAt   DateTime?
+    fromUser     User            @relation("SentSuggestionInquiries", fields: [fromUserId], references: [id], onDelete: Cascade) // ❗️ הוספתי/שיניתי
+    suggestion   MatchSuggestion @relation(fields: [suggestionId], references: [id], onDelete: Cascade) // ✅ היה קיים
+    toUser       User            @relation("ReceivedSuggestionInquiries", fields: [toUserId], references: [id], onDelete: Cascade) // ❗️ הוספתי/שיניתי
+  recipientReadAt DateTime?
+
+    @@index([suggestionId])
+    @@index([fromUserId])
+    @@index([toUserId])
+  }
+  enum ServiceType {
+    MILITARY_COMBATANT
+    MILITARY_SUPPORT
+    MILITARY_OFFICER
+    MILITARY_INTELLIGENCE_CYBER_TECH
+    NATIONAL_SERVICE_ONE_YEAR
+    NATIONAL_SERVICE_TWO_YEARS
+    HESDER_YESHIVA
+    YESHIVA_ONLY_POST_HS
+    PRE_MILITARY_ACADEMY_AND_SERVICE
+    EXEMPTED
+    CIVILIAN_SERVICE
+    YESHIVA_HESDER
+    YESHIVA_FULL_TIME
+    SEMINARY
+    MIDRASHA
+    NONE
+    OTHER
+  }
+
+  enum HeadCoveringType {
+    NONE
+    SOMETIMES
+    MITPACHAT
+    WIG
+    BOTH
+    OTHER
+    FULL_COVERAGE
+    PARTIAL_COVERAGE
+    HAT_BERET
+    SCARF_ONLY_SOMETIMES
+    UNDECIDED
+  }
+
+  enum KippahType {
+    NONE
+    SOMETIMES
+    SRUGA
+    BLACK
+    LARGE
+    OTHER
+    BLACK_VELVET
+    KNITTED_SMALL
+    KNITTED_LARGE
+    CLOTH
+    BRESLEV
+    NONE_AT_WORK_OR_CASUAL
+    NONE_USUALLY
+  }
+  enum MeetingStatus {
+    SCHEDULED
+    COMPLETED
+    CANCELLED
+    RESCHEDULED
+  }
+
+  enum Gender {
+    MALE
+    FEMALE
+  }
+
+  enum UserRole {
+    CANDIDATE
+    MATCHMAKER
+    ADMIN
+  }
+
+  enum UserStatus {
+    PENDING_EMAIL_VERIFICATION
+    PENDING_PHONE_VERIFICATION
+    ACTIVE
+    INACTIVE
+    BLOCKED
+  }
+
+  enum VideoType {
+    INTRODUCTION
+    PERSONAL_STORY
+    OTHER
+  }
+
+  enum VideoStatus {
+    PENDING
+    APPROVED
+    REJECTED
+  }
+
+  enum ContactMethod {
+    EMAIL
+    WHATSAPP
+    PHONE
+  }
+
+  enum MatchSuggestionStatus {
+    DRAFT
+    PENDING_FIRST_PARTY
+    FIRST_PARTY_APPROVED
+      FIRST_PARTY_INTERESTED  
+    FIRST_PARTY_DECLINED
+    PENDING_SECOND_PARTY
+    SECOND_PARTY_APPROVED
+    SECOND_PARTY_DECLINED
+    AWAITING_MATCHMAKER_APPROVAL
+    CONTACT_DETAILS_SHARED
+    AWAITING_FIRST_DATE_FEEDBACK
+    THINKING_AFTER_DATE
+    PROCEEDING_TO_SECOND_DATE
+    ENDED_AFTER_FIRST_DATE
+    MEETING_PENDING
+    MEETING_SCHEDULED
+    MATCH_APPROVED
+    MATCH_DECLINED
+    DATING
+    ENGAGED
+    MARRIED
+    EXPIRED
+    CLOSED
+    CANCELLED
+  }
+
+  enum SuggestionCategory {
+    ACTIVE
+    PENDING
+    HISTORY
+  }
+
+  enum UserSource {
+    REGISTRATION // User registered themselves
+    MANUAL_ENTRY // User added manually by a matchmaker
+    IMPORTED // Future: User imported from another system
+  }
+
+  enum AvailabilityStatus {
+    AVAILABLE
+    UNAVAILABLE
+    DATING
+    PAUSED
+    ENGAGED
+    MARRIED
+  }
+
+  enum ReligiousJourney {
+    BORN_INTO_CURRENT_LIFESTYLE // גדלתי בסביבה דומה
+    BORN_SECULAR
+    BAAL_TESHUVA                // חזרתי בתשובה
+    DATLASH                     // יצאתי בשאלה
+    CONVERT                     // גר/גיורת
+    IN_PROCESS                  // בתהליך של שינוי
+    OTHER                       // אחר
+  }
+
+  enum InvitationStatus {
+    PENDING
+    ACCEPTED
+    EXPIRED
+    CANCELLED
+  }
+
+  enum VerificationType {
+    EMAIL
+    PHONE_WHATSAPP
+    DOCUMENT
+    REFERENCE
+    PASSWORD_RESET
+    ACCOUNT_SETUP
+  }
+
+  enum VerificationStatus {
+    PENDING
+    COMPLETED
+    EXPIRED
+    FAILED
+  }
+
+  enum Priority {
+    LOW
+    MEDIUM
+    HIGH
+    URGENT
+  }
+
+  enum InquiryStatus {
+    PENDING
+    ANSWERED
+    CLOSED
+  }
+
+  model Feedback {
+    id            String         @id @default(cuid())
+    createdAt     DateTime       @default(now())
+    userId        String?
+    user          User?          @relation(fields: [userId], references: [id], onDelete: Cascade)
+    pageUrl       String
+    feedbackType  FeedbackType
+    content       String         @db.Text
+    status        FeedbackStatus @default(NEW)
+    userAgent     String?
+    screenshotUrl String?      // Field for the screenshot URL
+
+    @@index([userId])
+  }
+
+  enum FeedbackType {
+    SUGGESTION
+    BUG
+    POSITIVE
+  }
+
+  enum FeedbackStatus {
+    NEW
+    IN_PROGRESS
+    RESOLVED
+    WONT_FIX
+  }
+
+  model FriendTestimonial {
+    id           String   @id @default(cuid())
+    profileId    String
+    profile      Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+    
+    authorName   String   // שם החבר/ה הממליצ/ה
+    relationship String   // הקשר למועמד/ת (למשל: "חבר ילדות")
+    content      String   @db.Text
+    authorPhone  String?  // מספר הטלפון של הממליצ/ה (אופציונלי)
+    
+    // --- שדות בקרה ופרטיות ---
+    isPhoneVisibleToMatch Boolean   @default(false) // הסכמה מפורשת להצגת המספר
+    status                TestimonialStatus @default(PENDING) // סטטוס ההמלצה
+    submittedBy           SubmissionSource  @default(USER)   // איך ההמלצה הוגשה
+    
+    createdAt    DateTime @default(now())
+    updatedAt    DateTime @updatedAt
+
+    @@index([profileId])
+  }
+
+  // --- הוספת Enums חדשים ---
+  enum TestimonialStatus {
+    PENDING   // ממתין לאישור המועמד/ת
+    APPROVED  // מאושר ומוצג בפרופיל
+    HIDDEN    // מאושר אך מוסתר זמנית על ידי המועמד/ת
+  }
+
+
+  enum SubmissionSource {
+    USER   // הוזן ידנית על ידי המועמד/ת
+    FRIEND // הוגש על ידי חבר דרך קישור מאובטח
+  }
+
+  enum TestimonialRequestStatus {
+    PENDING
+    COMPLETED
+  }
+
+  model TestimonialRequest {
+    id        String    @id @default(cuid())
+    token     String    @unique // The secure, random token for the URL
+    expiresAt DateTime  // The date when the link will expire
+    status    TestimonialRequestStatus @default(PENDING) // Tracks if the token has been used
+    
+    profileId String
+    profile   Profile   @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@index([profileId])
+  }
+
+  model UserDripCampaign {
+    id            String         @id @default(cuid())
+    userId        String         @unique
+    user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+    currentStep   Int            @default(1)
+    nextSendDate  DateTime
+    status        CampaignStatus @default(ACTIVE)
+    lastSentType  String?        // To track which type of message was last sent
+    sentEmailTypes String[] @default([])
+      lastEveningEmailSent   DateTime?  // מתי שלחנו מייל ערב אחרון
+    eveningEmailsCount     Int        @default(0)  // כמה מיילי ערב שלחנו
+    lastAiSummarySent      DateTime?  // מתי שלחנו AI Summary אחרון
+    aiSummaryCount         Int        @default(0)  // כמה פעמים שלחנו AI Summary
+    
+
+    createdAt     DateTime       @default(now())
+    updatedAt     DateTime       @updatedAt
+
+    @@index([nextSendDate, status])
+    @@index([lastEveningEmailSent])
+  }
+
+  enum CampaignStatus {
+    ACTIVE
+    PAUSED
+    UNSUBSCRIBED
+    PROCESSING 
+    COMPLETED
+  }
+
+  enum Language {
+    en
+    he
+  }
+
+  model ReferralCampaign {
+    id          String   @id @default(cuid())
+    name        String   // "קמפיין קיץ 2025"
+    slug        String   @unique // "summer-2025" - לזיהוי בקלות
+    description String?  @db.Text
+    
+    // תאריכים
+    startDate   DateTime
+    endDate     DateTime
+    isActive    Boolean  @default(true)
+    
+    // פרסים
+    prizeTiers  Json?    // [{ threshold: 3, prize: "קפה", prizeValue: 50 }, ...]
+    grandPrize  String?  // "ארוחה זוגית פרימיום"
+    
+    // הגדרות
+    settings    Json?    // { requireVerification: true, minAgeForReferral: 0 }
+    
+    referrers   Referrer[]
+    
+    createdAt   DateTime @default(now())
+    updatedAt   DateTime @updatedAt
+    
+    @@index([isActive])
+    @@index([slug])
+    @@index([startDate, endDate])
+  }
+
+  model Referrer {
+    id           String   @id @default(cuid())
+    campaignId   String
+    campaign     ReferralCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+    
+    // פרטי המפנה
+    name         String
+    email        String?
+    phone        String?
+    code         String   @unique  // "DAVID", "SARA123" - קוד קצר וייחודי
+    
+    // סוג המפנה
+    tier         ReferrerTier @default(COMMUNITY)
+    
+    // הערות פנימיות
+    notes        String?  @db.Text
+    
+    // סטטיסטיקות מטמון (לביצועים - מתעדכן בכל אירוע)
+    clickCount       Int @default(0)
+    registrationCount Int @default(0)
+    verifiedCount    Int @default(0)
+    completedCount   Int @default(0)
+    
+    // פרסים שהתקבלו
+    prizesAwarded    Json?  // [{ prize: "קפה", awardedAt: "2025-06-15" }]
+    
+    referrals    Referral[]
+    
+    createdAt    DateTime @default(now())
+    updatedAt    DateTime @updatedAt
+    
+    @@index([campaignId])
+    @@index([code])
+    @@index([tier])
+    @@index([verifiedCount])
+  }
+
+  model Referral {
+    id          String   @id @default(cuid())
+    referrerId  String
+    referrer    Referrer @relation(fields: [referrerId], references: [id], onDelete: Cascade)
+    
+    // המשתמש שנרשם (null עד שמשלים רישום)
+    userId      String?  @unique
+    user        User?    @relation("ReferredUser", fields: [userId], references: [id], onDelete: SetNull)
+    
+    // מעקב התקדמות
+    status      ReferralStatus @default(CLICKED)
+    
+    // מידע טכני למניעת הונאות
+    ipAddress   String?
+    userAgent   String?
+    sessionId   String?  // לזיהוי סשן ייחודי
+    
+    // תאריכים לכל שלב
+    clickedAt    DateTime @default(now())
+    startedAt    DateTime?  // התחיל למלא טופס
+    registeredAt DateTime?  // סיים רישום בסיסי
+    verifiedAt   DateTime?  // אימת טלפון
+    completedAt  DateTime?  // השלים פרופיל
+    
+    createdAt    DateTime @default(now())
+    updatedAt    DateTime @updatedAt
+    
+    @@index([referrerId])
+    @@index([userId])
+    @@index([status])
+    @@index([ipAddress])
+    @@index([clickedAt])
+  }
+
+  // --- Enums חדשים ---
+
+  enum ReferrerTier {
+    AMBASSADOR  // שגריר - חבר קרוב שקיבל ערכה מלאה
+    COMMUNITY   // קהילה - נרשם דרך הדף הציבורי
+  }
+
+  enum ReferralStatus {
+    CLICKED      // לחץ על הקישור
+    STARTED      // התחיל הרשמה (נכנס לטופס)
+    REGISTERED   // סיים הרשמה בסיסית
+    VERIFIED     // אימת טלפון
+    COMPLETED    // השלים פרופיל + תמונה
+  }
+  model SavedMatchSearch {
+    id               String   @id @default(cuid())
+    
+    // המועמד שחיפשנו עבורו התאמות
+    targetUserId     String   @unique  // @unique = רק חיפוש אחד שמור לכל מועמד
+    targetUser       User     @relation("TargetUserSearches", fields: [targetUserId], references: [id], onDelete: Cascade)
+    
+    // השדכן שהפעיל את החיפוש
+    matchmakerId     String
+    matchmaker       User     @relation("MatchmakerSearches", fields: [matchmakerId], references: [id], onDelete: Cascade)
+    
+    // תוצאות החיפוש (JSON)
+    // מבנה: [{ userId, score, reasoning, firstName, lastName }]
+    results          Json
+    
+    // מטא-דאטה
+    algorithmVersion String   @default("v2.0")
+    candidatesCount  Int      @default(0)  // כמה מועמדים נותחו
+    
+    createdAt        DateTime @default(now())
+    updatedAt        DateTime @updatedAt
+    
+    @@index([targetUserId])
+    @@index([matchmakerId])
+    @@index([createdAt])
+  }
+
+  model SavedVectorMatchSearch {
+    id               String   @id @default(cuid())
+    targetUserId     String   @unique
+    targetUser       User     @relation("TargetUserVectorSearches", fields: [targetUserId], references: [id], onDelete: Cascade)
+    matchmakerId     String
+    matchmaker       User     @relation("MatchmakerVectorSearches", fields: [matchmakerId], references: [id], onDelete: Cascade)
+    results          Json
+    algorithmVersion String   @default("vector-v1.0")
+    candidatesCount  Int      @default(0)
+    createdAt        DateTime @default(now())
+    updatedAt        DateTime @updatedAt
+    
+    @@index([targetUserId])
+    @@index([matchmakerId])
+  }
+
+  model MatchingJob {
+    id              String    @id @default(cuid())
+    targetUserId    String
+    matchmakerId    String
+    method          String
+    status          String    @default("pending")
+    progress        Int       @default(0)
+    progressMessage String?
+    result          Json?
+    error           String?
+    totalCandidates Int?
+    matchesFound    Int?
+    createdAt       DateTime  @default(now())
+    updatedAt       DateTime  @updatedAt
+    completedAt     DateTime?
+
+    @@index([targetUserId])
+    @@index([matchmakerId])
+    @@index([status])
+    @@index([createdAt])
+  }
+    
+  model VirtualProfile {
+    id                  String   @id @default(cuid())
+    
+    // מי יצר את הפרופיל הוירטואלי
+    matchmakerId        String
+    matchmaker          User     @relation("MatchmakerVirtualProfiles", fields: [matchmakerId], references: [id], onDelete: Cascade)
+    
+    // קלט השדכן
+    name                String?              // שם לזיהוי (אופציונלי)
+    sourceText          String   @db.Text    // הטקסט החופשי שהשדכן הזין
+    
+    // פרמטרים שהשדכן בוחר (חובה)
+    gender              Gender               // מגדר היוזר הוירטואלי
+    religiousLevel      String               // רמה דתית
+    
+    // הפרופיל שה-AI יצר
+    generatedProfile    Json?                // { personalitySummary, lookingForSummary, inferredAge, ... }
+    
+    // סיכום ערוך (אם השדכן ערך את הסיכום)
+    editedSummary       String?  @db.Text    // סיכום שהשדכן ערך ידנית
+    wasEdited           Boolean  @default(false)
+    
+    // וקטור להתאמה (נוצר מהפרופיל)
+    vector              Unsupported("vector(768)")?
+    
+    // מטא-דאטה
+    isStarred           Boolean  @default(false)
+    lastUsedAt          DateTime?
+    usageCount          Int      @default(0)
+    
+    createdAt           DateTime @default(now())
+    updatedAt           DateTime @updatedAt
+    
+    @@index([matchmakerId])
+    @@index([isStarred])
+    @@index([lastUsedAt])
+  }
+
+
+
+  // טבלה חדשה: התאמות פוטנציאליות שנמצאו בסריקה הלילית
+  model PotentialMatch {
+    id              String   @id @default(cuid())
+    scanMethod    String?   // 'hybrid' | 'algorithmic' | 'vector'
+    // הזוג
+    maleUserId      String
+    femaleUserId    String
+    
+    // ציונים
+    aiScore         Float    // הציון הסופי (finalScore)
+    firstPassScore  Float?   // ציון המעבר הראשון
+    
+    // פירוט הציון
+    scoreBreakdown  Json?    // ScoreBreakdown object
+    
+    // נימוקים
+    shortReasoning  String?  @db.Text
+    detailedReasoning String? @db.Text
+    
+    // מידע רקע
+    backgroundCompatibility String? // excellent/good/possible/problematic/not_recommended
+    backgroundMultiplier    Float?
+    
+    // סטטוס מעקב
+    status          PotentialMatchStatus @default(PENDING)
+    
+    // תאריכים
+    scannedAt       DateTime @default(now())
+    reviewedAt      DateTime?
+    dismissedAt     DateTime?
+    sentAt          DateTime? // מתי נשלחה הצעה
+    
+    // מי סקר/דחה
+    reviewedBy      String?
+    dismissReason   String?
+    
+    // קישור להצעה אם נוצרה
+    suggestionId    String?  @unique
+    
+    // Relations
+    male            User     @relation("MaleMatches", fields: [maleUserId], references: [id], onDelete: Cascade)
+    female          User     @relation("FemaleMatches", fields: [femaleUserId], references: [id], onDelete: Cascade)
+    suggestion      MatchSuggestion? @relation(fields: [suggestionId], references: [id])
+    
+
+      // ==========================================================================
+    // 🆕 Asymmetric Scoring - ציונים נפרדים לכל צד
+    // ==========================================================================
+    scoreForMale          Float?                        // כמה היא מתאימה לו
+    scoreForFemale        Float?                        // כמה הוא מתאים לה
+    asymmetryGap          Float?                        // פער בין הציונים
+    
+    // ==========================================================================
+    // 🆕 Multi-Dimensional Scores
+    // ==========================================================================
+    surfaceMatchScore     Float?                        // התאמה "על הנייר"
+    valuesAlignmentScore  Float?                        // התאמת ערכים
+    personalityScore      Float?                        // דינמיקת אישיות
+    practicalFitScore     Float?                        // התאמה מעשית
+    
+    // ==========================================================================
+    // 🆕 Confidence & Quality
+    // ==========================================================================
+    confidenceLevel       Float?    @default(0.5)       // רמת ביטחון בציון 0-1
+    dataQuality           String?   @default("medium")  // low/medium/high
+    
+    // ==========================================================================
+    // 🆕 Exploration Flag
+    // ==========================================================================
+    isExploratoryMatch    Boolean   @default(false)     // האם זו הצעה "ניסויית"
+    explorationReason     String?                       // למה נבחרה כניסוי
+
   // ═══════════════════════════════════════════════════════════
+    // 🆕 ציונים לפי שיטת סריקה (כל שיטה שומרת בנפרד)
+    // ═══════════════════════════════════════════════════════════
 
-  // Hybrid Method (4-tier)
-  hybridScore           Float?
-  hybridReasoning       String?
-  hybridScannedAt       DateTime?
-  hybridScoreBreakdown  Json?
-  
-  // Algorithmic Method (AI Deep)
-  algorithmicScore      Float?
-  algorithmicReasoning  String?
-  algorithmicScannedAt  DateTime?
-  algorithmicScoreBreakdown  Json?
+    // Hybrid Method (4-tier)
+    hybridScore           Float?
+    hybridReasoning       String?
+    hybridScannedAt       DateTime?
+    hybridScoreBreakdown  Json?
+    
+    // Algorithmic Method (AI Deep)
+    algorithmicScore      Float?
+    algorithmicReasoning  String?
+    algorithmicScannedAt  DateTime?
+    algorithmicScoreBreakdown  Json?
 
-  // Vector Method (Fast similarity)
-  vectorScore           Float?
-  vectorReasoning       String?
-  vectorScannedAt       DateTime?
-  
-  // Metrics V2 Method
-  metricsV2Score        Float?
-  metricsV2Reasoning    String?
-  metricsV2ScannedAt    DateTime?
-metricsV2ScoreBreakdown    Json?
+    // Vector Method (Fast similarity)
+    vectorScore           Float?
+    vectorReasoning       String?
+    vectorScannedAt       DateTime?
+    
+    // Metrics V2 Method
+    metricsV2Score        Float?
+    metricsV2Reasoning    String?
+    metricsV2ScannedAt    DateTime?
+  metricsV2ScoreBreakdown    Json?
 
-    lastScanMethod        String?   // 'hybrid' | 'algorithmic' | 'vector' | 'metrics_v2'
+      lastScanMethod        String?   // 'hybrid' | 'algorithmic' | 'vector' | 'metrics_v2'
 
-  // Indexes
-  @@unique([maleUserId, femaleUserId])
-  @@index([aiScore(sort: Desc)])
-  @@index([status])
-  @@index([scannedAt])
-  @@index([maleUserId])
-  @@index([femaleUserId])
-}
+    // Indexes
+    @@unique([maleUserId, femaleUserId])
+    @@index([aiScore(sort: Desc)])
+    @@index([status])
+    @@index([scannedAt])
+    @@index([maleUserId])
+    @@index([femaleUserId])
+  }
 
-// Enum לסטטוס ההתאמה הפוטנציאלית
-enum PotentialMatchStatus {
-  PENDING      // טרם נבדק
-  REVIEWED     // נבדק אך לא הוחלט
-  SENT         // נשלחה הצעה
-  DISMISSED    // נדחה ע"י השדכן
-  EXPIRED      // פג תוקף (סריקה ישנה מדי)
-  SHORTLISTED 
-}
+  // Enum לסטטוס ההתאמה הפוטנציאלית
+  enum PotentialMatchStatus {
+    PENDING      // טרם נבדק
+    REVIEWED     // נבדק אך לא הוחלט
+    SENT         // נשלחה הצעה
+    DISMISSED    // נדחה ע"י השדכן
+    EXPIRED      // פג תוקף (סריקה ישנה מדי)
+    SHORTLISTED 
+  }
 
-// טבלה חדשה: לוג סריקות לילה
-model NightlyScanLog {
-  id                  String   @id @default(cuid())
-  
-  // סטטיסטיקות
-  totalCandidates     Int
-  candidatesScanned   Int
-  matchesFound        Int
-  newMatches          Int      // התאמות שלא היו קיימות קודם
-  updatedMatches      Int      // התאמות שעודכנו
-  
-  // זמנים
-  startedAt           DateTime
-  completedAt         DateTime?
-  durationMs          Int?
-  
-  // סטטוס
-  status              String   // running/completed/failed/partial
-  error               String?  @db.Text
-  
-  // פרטים נוספים
-  method              String   @default("algorithmic") // algorithmic/vector/hybrid
-  minScoreThreshold   Float    @default(70)
-  
-  @@index([startedAt])
-  @@index([status])
-}
+  // טבלה חדשה: לוג סריקות לילה
+  model NightlyScanLog {
+    id                  String   @id @default(cuid())
+    
+    // סטטיסטיקות
+    totalCandidates     Int
+    candidatesScanned   Int
+    matchesFound        Int
+    newMatches          Int      // התאמות שלא היו קיימות קודם
+    updatedMatches      Int      // התאמות שעודכנו
+    
+    // זמנים
+    startedAt           DateTime
+    completedAt         DateTime?
+    durationMs          Int?
+    
+    // סטטוס
+    status              String   // running/completed/failed/partial
+    error               String?  @db.Text
+    
+    // פרטים נוספים
+    method              String   @default("algorithmic") // algorithmic/vector/hybrid
+    minScoreThreshold   Float    @default(70)
+    
+    @@index([startedAt])
+    @@index([status])
+  }
 
-model ScannedPair {
-  id              String   @id @default(cuid())
-  
-  maleUserId      String
-  femaleUserId    String
-  
-  // תוצאת הסריקה
-  aiScore         Float?   // הציון שקיבל (null אם לא הגיע ל-AI)
-  passedThreshold Boolean  @default(false) // האם עבר סף 70
-  
-  // סיבת פסילה (אם לא עבר)
-  rejectionReason String?  // "age_gap", "religious_mismatch", "background_incompatible", "low_ai_score"
-  
-  // תאריכים
-  firstScannedAt  DateTime @default(now())
-  lastScannedAt   DateTime @default(now())
-  
-  // וורסיה של הפרופילים בזמן הסריקה
-  maleProfileUpdatedAt   DateTime? // profile.updatedAt של הגבר בזמן הסריקה
-  femaleProfileUpdatedAt DateTime? // profile.updatedAt של הבחורה בזמן הסריקה
-  
-  // Relations
-  male            User     @relation("MaleScannedPairs", fields: [maleUserId], references: [id], onDelete: Cascade)
-  female          User     @relation("FemaleScannedPairs", fields: [femaleUserId], references: [id], onDelete: Cascade)
-  
-  @@unique([maleUserId, femaleUserId])
-  @@index([maleUserId])
-  @@index([femaleUserId])
-  @@index([passedThreshold])
-  @@index([lastScannedAt])
-}
+  model ScannedPair {
+    id              String   @id @default(cuid())
+    
+    maleUserId      String
+    femaleUserId    String
+    
+    // תוצאת הסריקה
+    aiScore         Float?   // הציון שקיבל (null אם לא הגיע ל-AI)
+    passedThreshold Boolean  @default(false) // האם עבר סף 70
+    
+    // סיבת פסילה (אם לא עבר)
+    rejectionReason String?  // "age_gap", "religious_mismatch", "background_incompatible", "low_ai_score"
+    
+    // תאריכים
+    firstScannedAt  DateTime @default(now())
+    lastScannedAt   DateTime @default(now())
+    
+    // וורסיה של הפרופילים בזמן הסריקה
+    maleProfileUpdatedAt   DateTime? // profile.updatedAt של הגבר בזמן הסריקה
+    femaleProfileUpdatedAt DateTime? // profile.updatedAt של הבחורה בזמן הסריקה
+    
+    // Relations
+    male            User     @relation("MaleScannedPairs", fields: [maleUserId], references: [id], onDelete: Cascade)
+    female          User     @relation("FemaleScannedPairs", fields: [femaleUserId], references: [id], onDelete: Cascade)
+    
+    @@unique([maleUserId, femaleUserId])
+    @@index([maleUserId])
+    @@index([femaleUserId])
+    @@index([passedThreshold])
+    @@index([lastScannedAt])
+  }
 
-model HiddenCandidate {
-  id           String   @id @default(cuid())
-  matchmakerId String
-  candidateId  String
-  reason       String?
-  hiddenAt     DateTime @default(now())
-  
-  matchmaker   User @relation("HiddenByMatchmaker", fields: [matchmakerId], references: [id], onDelete: Cascade)
-  candidate    User @relation("HiddenCandidates", fields: [candidateId], references: [id], onDelete: Cascade)
-  
-  @@unique([matchmakerId, candidateId])
-  @@index([matchmakerId])
-  @@index([candidateId])
-}
+  model HiddenCandidate {
+    id           String   @id @default(cuid())
+    matchmakerId String
+    candidateId  String
+    reason       String?
+    hiddenAt     DateTime @default(now())
+    
+    matchmaker   User @relation("HiddenByMatchmaker", fields: [matchmakerId], references: [id], onDelete: Cascade)
+    candidate    User @relation("HiddenCandidates", fields: [candidateId], references: [id], onDelete: Cascade)
+    
+    @@unique([matchmakerId, candidateId])
+    @@index([matchmakerId])
+    @@index([candidateId])
+  }
 
-enum AlertType {
-  NEW_USER_NO_SUGGESTION      // משתמש חדש 48+ שעות בלי הצעה
-  LONG_WAIT                   // מחכה 10+ ימים להצעה
-  HIGH_DIFFICULTY             // קושי גבוה בשידוך (הרבה דחיות)
-  INACTIVE_WITH_MATCHES       // יש לו התאמות אבל לא פעיל
-  PROFILE_INCOMPLETE          // פרופיל פחות מ-50% מלא
-  NO_POTENTIAL_MATCHES        // אין לו התאמות במערכת
-  STALE_MATCHES               // ההתאמות שלו ישנות מדי
-  HIGH_REJECTION_RATE         // שיעור דחיות גבוה
-  NEW_HIGH_QUALITY_MATCH      // נמצאה התאמה איכותית חדשה
-}
+  enum AlertType {
+    NEW_USER_NO_SUGGESTION      // משתמש חדש 48+ שעות בלי הצעה
+    LONG_WAIT                   // מחכה 10+ ימים להצעה
+    HIGH_DIFFICULTY             // קושי גבוה בשידוך (הרבה דחיות)
+    INACTIVE_WITH_MATCHES       // יש לו התאמות אבל לא פעיל
+    PROFILE_INCOMPLETE          // פרופיל פחות מ-50% מלא
+    NO_POTENTIAL_MATCHES        // אין לו התאמות במערכת
+    STALE_MATCHES               // ההתאמות שלו ישנות מדי
+    HIGH_REJECTION_RATE         // שיעור דחיות גבוה
+    NEW_HIGH_QUALITY_MATCH      // נמצאה התאמה איכותית חדשה
+  }
 
-enum AlertSeverity {
-  CRITICAL    // 🔴 דחוף - לטפל עכשיו
-  HIGH        // 🟠 גבוה - לטפל היום
-  MEDIUM      // 🟡 בינוני - לטפל השבוע
-  LOW         // 🟢 נמוך - לידיעה
-  INFO        // 🔵 מידע
-}
+  enum AlertSeverity {
+    CRITICAL    // 🔴 דחוף - לטפל עכשיו
+    HIGH        // 🟠 גבוה - לטפל היום
+    MEDIUM      // 🟡 בינוני - לטפל השבוע
+    LOW         // 🟢 נמוך - לידיעה
+    INFO        // 🔵 מידע
+  }
 
-enum RejectionCategory {
-  // סיבות אובייקטיביות
-  AGE_GAP                     // פער גיל גדול מדי
-  RELIGIOUS_GAP               // פער רמה דתית
-  BACKGROUND_GAP              // פער רקע/עדה
-  EDUCATION_GAP               // פער השכלה/קריירה
-  GEOGRAPHIC_GAP              // פער גיאוגרפי
-  KNOWS_PERSONALLY            // מכיר/ה אישית
-  
-  // סיבות סובייקטיביות
-  NOT_ATTRACTED               // לא מושך/ת
-  NOT_INTERESTING             // לא מעניין/ת
-  NO_CONNECTION               // לא הרגשתי חיבור
-  GUT_FEELING                 // תחושת בטן שלילית
-  SOMETHING_OFF               // משהו לא הסתדר
-  
-  // סיבות תזמון
-  NOT_AVAILABLE_NOW           // לא זמין/ה כרגע
-  IN_PROCESS_WITH_OTHER       // בתהליך עם מישהו אחר
-  NEEDS_TIME                  // צריך/ה זמן לחשוב
-  EXTERNAL_PRESSURE           // לחץ חיצוני
-  
-  // Red Flags
-  INCONSISTENT_STORY          // חוסר עקביות בסיפור
-  PROBLEMATIC_BEHAVIOR        // התנהגות בעייתית
-  UNREALISTIC_EXPECTATIONS    // ציפיות לא ריאליסטיות
-  CONCERNING_HISTORY          // היסטוריה מדאיגה
-  
-  // אחר
-  OTHER                       // סיבה אחרת
-}
+  enum RejectionCategory {
+    // סיבות אובייקטיביות
+    AGE_GAP                     // פער גיל גדול מדי
+    RELIGIOUS_GAP               // פער רמה דתית
+    BACKGROUND_GAP              // פער רקע/עדה
+    EDUCATION_GAP               // פער השכלה/קריירה
+    GEOGRAPHIC_GAP              // פער גיאוגרפי
+    KNOWS_PERSONALLY            // מכיר/ה אישית
+    
+    // סיבות סובייקטיביות
+    NOT_ATTRACTED               // לא מושך/ת
+    NOT_INTERESTING             // לא מעניין/ת
+    NO_CONNECTION               // לא הרגשתי חיבור
+    GUT_FEELING                 // תחושת בטן שלילית
+    SOMETHING_OFF               // משהו לא הסתדר
+    
+    // סיבות תזמון
+    NOT_AVAILABLE_NOW           // לא זמין/ה כרגע
+    IN_PROCESS_WITH_OTHER       // בתהליך עם מישהו אחר
+    NEEDS_TIME                  // צריך/ה זמן לחשוב
+    EXTERNAL_PRESSURE           // לחץ חיצוני
+    
+    // Red Flags
+    INCONSISTENT_STORY          // חוסר עקביות בסיפור
+    PROBLEMATIC_BEHAVIOR        // התנהגות בעייתית
+    UNREALISTIC_EXPECTATIONS    // ציפיות לא ריאליסטיות
+    CONCERNING_HISTORY          // היסטוריה מדאיגה
+    
+    // אחר
+    OTHER                       // סיבה אחרת
+  }
 
-enum ReadinessLevel {
-  NOT_READY           // 1 - לא מוכן כלל
-  UNCERTAIN           // 2 - לא בטוח
-  SOMEWHAT_READY      // 3 - מוכן חלקית
-  READY               // 4 - מוכן
-  VERY_READY          // 5 - מוכן מאוד ופעיל
-}
+  enum ReadinessLevel {
+    NOT_READY           // 1 - לא מוכן כלל
+    UNCERTAIN           // 2 - לא בטוח
+    SOMEWHAT_READY      // 3 - מוכן חלקית
+    READY               // 4 - מוכן
+    VERY_READY          // 5 - מוכן מאוד ופעיל
+  }
 
 
 
-model UserAlert {
-  id            String         @id @default(cuid())
-  
-  // הקשר למשתמש
-  userId        String
-  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  // פרטי ההתראה
-  type          AlertType
-  severity      AlertSeverity
-  title         String                              // כותרת קצרה
-  message       String         @db.Text             // הודעה מפורטת
-  data          Json?                               // מידע נוסף (JSON)
-  
-  // פעולה מומלצת
-  actionType    String?                             // סוג הפעולה המומלצת
-  actionUrl     String?                             // קישור לפעולה
-  
-  // סטטוס
-  isRead        Boolean        @default(false)
-  isDismissed   Boolean        @default(false)
-  dismissedAt   DateTime?
-  dismissedBy   String?                             // ID של מי שדחה
-  dismissReason String?                             // סיבת הדחייה
-  
-  // מתי ההתראה רלוונטית
-  expiresAt     DateTime?                           // תפוגה אוטומטית
-  
-  // Timestamps
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
-  
-  @@index([userId])
-  @@index([severity])
-  @@index([type])
-  @@index([isDismissed, isRead])
-  @@index([createdAt])
-}
+  model UserAlert {
+    id            String         @id @default(cuid())
+    
+    // הקשר למשתמש
+    userId        String
+    user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+    
+    // פרטי ההתראה
+    type          AlertType
+    severity      AlertSeverity
+    title         String                              // כותרת קצרה
+    message       String         @db.Text             // הודעה מפורטת
+    data          Json?                               // מידע נוסף (JSON)
+    
+    // פעולה מומלצת
+    actionType    String?                             // סוג הפעולה המומלצת
+    actionUrl     String?                             // קישור לפעולה
+    
+    // סטטוס
+    isRead        Boolean        @default(false)
+    isDismissed   Boolean        @default(false)
+    dismissedAt   DateTime?
+    dismissedBy   String?                             // ID של מי שדחה
+    dismissReason String?                             // סיבת הדחייה
+    
+    // מתי ההתראה רלוונטית
+    expiresAt     DateTime?                           // תפוגה אוטומטית
+    
+    // Timestamps
+    createdAt     DateTime       @default(now())
+    updatedAt     DateTime       @updatedAt
+    
+    @@index([userId])
+    @@index([severity])
+    @@index([type])
+    @@index([isDismissed, isRead])
+    @@index([createdAt])
+  }
 
-// =============================================================================
-// 🆕 Model RejectionFeedback - למידה מדחיות
-// =============================================================================
+  // =============================================================================
+  // 🆕 Model RejectionFeedback - למידה מדחיות
+  // =============================================================================
 
-model RejectionFeedback {
-  id                  String            @id @default(cuid())
-  
-  // הזוג
-  rejectedUserId      String                          // מי נדחה
-  rejectingUserId     String                          // מי דחה (אם ידוע)
-  
-  // הקשר להצעה
-  suggestionId        String?                         // MatchSuggestion אם רלוונטי
-  potentialMatchId    String?                         // PotentialMatch אם רלוונטי
-  
-  // פרטי הדחייה
-  category            RejectionCategory               // קטגוריה ראשית
-  subcategory         String?                         // תת-קטגוריה
-  freeText            String?           @db.Text      // הסבר חופשי
-  
-  // מי תיעד
-  recordedBy          String                          // ID של השדכן
-  
-  // האם הדחייה הייתה צפויה
-  wasExpected         Boolean?                        // האם השדכן ציפה לזה
-  
-  // Timestamps
-  createdAt           DateTime          @default(now())
-  
-  // Relations
-  rejectedUser        Profile           @relation("RejectedUser", fields: [rejectedUserId], references: [id], onDelete: Cascade)
-  rejectingUser       Profile           @relation("RejectingUser", fields: [rejectingUserId], references: [id], onDelete: Cascade)
-  
-  @@index([rejectedUserId])
-  @@index([rejectingUserId])
-  @@index([category])
-  @@index([createdAt])
-}
+  model RejectionFeedback {
+    id                  String            @id @default(cuid())
+    
+    // הזוג
+    rejectedUserId      String                          // מי נדחה
+    rejectingUserId     String                          // מי דחה (אם ידוע)
+    
+    // הקשר להצעה
+    suggestionId        String?                         // MatchSuggestion אם רלוונטי
+    potentialMatchId    String?                         // PotentialMatch אם רלוונטי
+    
+    // פרטי הדחייה
+    category            RejectionCategory               // קטגוריה ראשית
+    subcategory         String?                         // תת-קטגוריה
+    freeText            String?           @db.Text      // הסבר חופשי
+    
+    // מי תיעד
+    recordedBy          String                          // ID של השדכן
+    
+    // האם הדחייה הייתה צפויה
+    wasExpected         Boolean?                        // האם השדכן ציפה לזה
+    
+    // Timestamps
+    createdAt           DateTime          @default(now())
+    
+    // Relations
+    rejectedUser        Profile           @relation("RejectedUser", fields: [rejectedUserId], references: [id], onDelete: Cascade)
+    rejectingUser       Profile           @relation("RejectingUser", fields: [rejectingUserId], references: [id], onDelete: Cascade)
+    
+    @@index([rejectedUserId])
+    @@index([rejectingUserId])
+    @@index([category])
+    @@index([createdAt])
+  }
 
-enum ScanSessionStatus {
-  PENDING
-  IN_PROGRESS
-  COMPLETED
-  FAILED
-  CANCELLED
-}
-model ScanSession {
-  id                    String    @id @default(cuid())
-  matchmakerId         String?     
-  // סוג הסריקה
-  scanType              String                        // nightly/hourly/manual/user_triggered
-    progressData         Json?             // לשמירת מצב הסריקה
+  enum ScanSessionStatus {
+    PENDING
+    IN_PROGRESS
+    COMPLETED
+    FAILED
+    CANCELLED
+  }
+  model ScanSession {
+    id                    String    @id @default(cuid())
+    matchmakerId         String?     
+    // סוג הסריקה
+    scanType              String                        // nightly/hourly/manual/user_triggered
+      progressData         Json?             // לשמירת מצב הסריקה
 
-  // סטטיסטיקות
-  totalUsersScanned     Int       @default(0)
-  malesScanned          Int       @default(0)
-  femalesScanned        Int       @default(0)
-  pairsEvaluated        Int       @default(0)
-  matchesFound          Int       @default(0)
-  newMatches            Int       @default(0)
-  updatedMatches        Int       @default(0)
-    matchmaker           User?              @relation(fields: [matchmakerId], references: [id])
+    // סטטיסטיקות
+    totalUsersScanned     Int       @default(0)
+    malesScanned          Int       @default(0)
+    femalesScanned        Int       @default(0)
+    pairsEvaluated        Int       @default(0)
+    matchesFound          Int       @default(0)
+    newMatches            Int       @default(0)
+    updatedMatches        Int       @default(0)
+      matchmaker           User?              @relation(fields: [matchmakerId], references: [id])
 
-  // פילטרים שהופעלו
-  pairsSkippedByAge     Int       @default(0)
-  pairsSkippedByReligion Int      @default(0)
-  pairsSkippedByHistory Int       @default(0)
-  pairsSkippedByVector  Int       @default(0)
-  
-  // ביצועים
-  durationMs            Int?
-  aiCallsCount          Int       @default(0)
-  aiTokensUsed          Int       @default(0)
-  
+    // פילטרים שהופעלו
+    pairsSkippedByAge     Int       @default(0)
+    pairsSkippedByReligion Int      @default(0)
+    pairsSkippedByHistory Int       @default(0)
+    pairsSkippedByVector  Int       @default(0)
+    
+    // ביצועים
+    durationMs            Int?
+    aiCallsCount          Int       @default(0)
+    aiTokensUsed          Int       @default(0)
+    
 
-   currentPhase          String?   // הפאזה הנוכחית של הסריקה
-   currentUserIndex      Int       @default(0)     // אינדקס המשתמש הנוכחי
-  totalUsersToProcess   Int       @default(0)     // סה"כ משתמשים לעיבוד
-  progressPercent       Int       @default(0)     // אחוז התקדמות
-   currentUserName       String?   // שם המשתמש הנוכחי (לתצוגה)
+    currentPhase          String?   // הפאזה הנוכחית של הסריקה
+    currentUserIndex      Int       @default(0)     // אינדקס המשתמש הנוכחי
+    totalUsersToProcess   Int       @default(0)     // סה"כ משתמשים לעיבוד
+    progressPercent       Int       @default(0)     // אחוז התקדמות
+    currentUserName       String?   // שם המשתמש הנוכחי (לתצוגה)
 
-  // סטטוס
-  status                ScanSessionStatus   @default(PENDING)  // ← שינוי מ-String
-  error                 String?   @db.Text
-  
-  // Timestamps
-  startedAt             DateTime  @default(now())
-  completedAt           DateTime?
-  
-  @@index([scanType])
-  @@index([status])
-  @@index([startedAt])
-    @@index([matchmakerId, status])
+    // סטטוס
+    status                ScanSessionStatus   @default(PENDING)  // ← שינוי מ-String
+    error                 String?   @db.Text
+    
+    // Timestamps
+    startedAt             DateTime  @default(now())
+    completedAt           DateTime?
+    
+    @@index([scanType])
+    @@index([status])
+    @@index([startedAt])
+      @@index([matchmakerId, status])
 
-}
+  }
 
-model VectorSimilarityCache {
-  id            String   @id @default(cuid())
-  profileId1    String
-  profileId2    String
-  similarity    Float
-  calculatedAt  DateTime @default(now())
-  
-  @@unique([profileId1, profileId2])
-  @@index([profileId1])
-  @@index([profileId2])
-  @@index([calculatedAt])
-}
+  model VectorSimilarityCache {
+    id            String   @id @default(cuid())
+    profileId1    String
+    profileId2    String
+    similarity    Float
+    calculatedAt  DateTime @default(now())
+    
+    @@unique([profileId1, profileId2])
+    @@index([profileId1])
+    @@index([profileId2])
+    @@index([calculatedAt])
+  }
 
-// ============================================================
-// NeshamaTech - Profile Metrics & Dual Vector System
-// להוספה ל-schema.prisma הקיים
-// ============================================================
+  // ============================================================
+  // NeshamaTech - Profile Metrics & Dual Vector System
+  // להוספה ל-schema.prisma הקיים
+  // ============================================================
 
-// ═══════════════════════════════════════════════════════════════
-// ENUMS - סוגים קבועים
-// ═══════════════════════════════════════════════════════════════
-
-enum CalculatedBy {
-  AI_AUTO           // חושב אוטומטית על ידי AI
-  MATCHMAKER_EDIT   // נערך ידנית על ידי שדכן
-  USER_QUESTIONNAIRE // מגיע ישירות מתשובת השאלון
-}
-
-enum HumorStyle {
-  CYNICAL           // ציני/סרקסטי
-  LIGHT             // קליל ומשעשע
-  WORDPLAY          // משחקי מילים
-  SELF_DEPRECATING  // הומור עצמי
-  PHYSICAL          // קומדיה פיזית
-  DRY               // יבש
-}
-
-enum EthnicBackground {
-  ASHKENAZI         // אשכנזי
-  SEPHARDI          // ספרדי/מזרחי
-  MIXED             // מעורב
-  ETHIOPIAN         // אתיופי
-  YEMENITE          // תימני
-  OTHER             // אחר
-}
-
-enum BackgroundCategory {
-  SABRA             // צבר ישראלי
-  SABRA_INTERNATIONAL // צבר עם רקע בינלאומי
-  OLEH_VETERAN      // עולה ותיק (10+ שנים)
-  OLEH_MID          // עולה בינוני (3-10 שנים)
-  OLEH_NEW          // עולה חדש (פחות מ-3 שנים)
-}
-
-enum CommunicationStyle {
-  DIRECT            // ישיר וברור
-  EMPATHETIC        // אמפתי ורגיש
-  ANALYTICAL        // אנליטי ולוגי
-  HUMOROUS          // הומוריסטי
-  EMOTIONAL         // רגשי ופתוח
-}
-
-enum ConflictStyle {
-  CONFRONTING       // מתמודד ישירות
-  AVOIDING          // נמנע מעימותים
-  COMPROMISING      // מחפש פשרות
-  NEEDS_TIME        // צריך זמן לעבד
-  COLLABORATIVE     // שיתופי - מחפש פתרונות יחד
-}
-
-enum SupportStyle {
-  LISTENING         // מקשיב ותומך רגשית
-  SOLVING           // מציע פתרונות מעשיים
-  DISTRACTING       // מסיח דעת ומשמח
-  SPACE             // נותן מרחב ושקט
-  PHYSICAL          // מביע תמיכה פיזית (חיבוק וכו')
-}
-
-enum PetsAttitude {
-  LOVE              // אוהב חיות מחמד
-  NEUTRAL           // ניטרלי
-  DISLIKE           // לא אוהב
-  ALLERGIC          // אלרגי
-}
-
-enum PersonalityType {
-  LEADER            // מוביל/יוזם
-  SUPPORTER         // תומך/עוזר
-  ANALYTICAL        // אנליטי/חושב
-  CREATIVE          // יצירתי/אמן
-  CAREGIVER         // מטפל/דואג
-  ADVENTURER        // הרפתקן
-  HARMONIZER        // מאזן/מפשר
-}
-
-enum AttachmentStyle {
-  SECURE            // בטוח
-  ANXIOUS           // חרד
-  AVOIDANT          // נמנע
-  DISORGANIZED      // לא מאורגן (מעורב)
-}
-
-// ═══════════════════════════════════════════════════════════════
-// ProfileMetrics - מדדים מספריים לכל פרופיל
-// ═══════════════════════════════════════════════════════════════
-
-// ============================================================
-// NeshamaTech - Profile Metrics Model (UPDATED)
-// עדכון: כולל שדות חדשים, העדפות מורחבות, וסיכומי AI
-// ============================================================
-
-model ProfileMetrics {
-  id                    String   @id @default(cuid())
-  profileId             String   @unique
-  profile               Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
-  
-  createdAt             DateTime @default(now())
-  updatedAt             DateTime @updatedAt
-  
   // ═══════════════════════════════════════════════════════════════
-  // META - מטא-דאטה על החישוב
+  // ENUMS - סוגים קבועים
   // ═══════════════════════════════════════════════════════════════
-  
-  calculatedBy          CalculatedBy @default(AI_AUTO)
-  confidenceScore       Int      @default(50)  // 0-100: כמה בטוחים בדיוק המדדים
-  dataCompleteness      Int      @default(0)   // 0-100: כמה מידע היה זמין
-  lastAiAnalysisAt      DateTime?
-  
+
+  enum CalculatedBy {
+    AI_AUTO           // חושב אוטומטית על ידי AI
+    MATCHMAKER_EDIT   // נערך ידנית על ידי שדכן
+    USER_QUESTIONNAIRE // מגיע ישירות מתשובת השאלון
+  }
+
+  enum HumorStyle {
+    CYNICAL           // ציני/סרקסטי
+    LIGHT             // קליל ומשעשע
+    WORDPLAY          // משחקי מילים
+    SELF_DEPRECATING  // הומור עצמי
+    PHYSICAL          // קומדיה פיזית
+    DRY               // יבש
+  }
+
+  enum EthnicBackground {
+    ASHKENAZI         // אשכנזי
+    SEPHARDI          // ספרדי/מזרחי
+    MIXED             // מעורב
+    ETHIOPIAN         // אתיופי
+    YEMENITE          // תימני
+    OTHER             // אחר
+  }
+
+  enum BackgroundCategory {
+    SABRA             // צבר ישראלי
+    SABRA_INTERNATIONAL // צבר עם רקע בינלאומי
+    OLEH_VETERAN      // עולה ותיק (10+ שנים)
+    OLEH_MID          // עולה בינוני (3-10 שנים)
+    OLEH_NEW          // עולה חדש (פחות מ-3 שנים)
+  }
+
+  enum CommunicationStyle {
+    DIRECT            // ישיר וברור
+    EMPATHETIC        // אמפתי ורגיש
+    ANALYTICAL        // אנליטי ולוגי
+    HUMOROUS          // הומוריסטי
+    EMOTIONAL         // רגשי ופתוח
+  }
+
+  enum ConflictStyle {
+    CONFRONTING       // מתמודד ישירות
+    AVOIDING          // נמנע מעימותים
+    COMPROMISING      // מחפש פשרות
+    NEEDS_TIME        // צריך זמן לעבד
+    COLLABORATIVE     // שיתופי - מחפש פתרונות יחד
+  }
+
+  enum SupportStyle {
+    LISTENING         // מקשיב ותומך רגשית
+    SOLVING           // מציע פתרונות מעשיים
+    DISTRACTING       // מסיח דעת ומשמח
+    SPACE             // נותן מרחב ושקט
+    PHYSICAL          // מביע תמיכה פיזית (חיבוק וכו')
+  }
+
+  enum PetsAttitude {
+    LOVE              // אוהב חיות מחמד
+    NEUTRAL           // ניטרלי
+    DISLIKE           // לא אוהב
+    ALLERGIC          // אלרגי
+  }
+
+  enum PersonalityType {
+    LEADER            // מוביל/יוזם
+    SUPPORTER         // תומך/עוזר
+    ANALYTICAL        // אנליטי/חושב
+    CREATIVE          // יצירתי/אמן
+    CAREGIVER         // מטפל/דואג
+    ADVENTURER        // הרפתקן
+    HARMONIZER        // מאזן/מפשר
+  }
+
+  enum AttachmentStyle {
+    SECURE            // בטוח
+    ANXIOUS           // חרד
+    AVOIDANT          // נמנע
+    DISORGANIZED      // לא מאורגן (מעורב)
+  }
+
   // ═══════════════════════════════════════════════════════════════
-  // SECTION A: SELF METRICS - מי אני (ציונים 0-100)
+  // ProfileMetrics - מדדים מספריים לכל פרופיל
   // ═══════════════════════════════════════════════════════════════
-  
-  // 🧠 אישיות ואופי
-  socialEnergy              Int?     // 0=מופנם מאוד, 100=חברותי מאוד
-  emotionalExpression       Int?     // 0=שמור רגשית, 100=פתוח ומבטא
-  stabilityVsSpontaneity    Int?     // 0=מאורגן ויציב, 100=ספונטני וגמיש
-  independenceLevel         Int?     // 0=אוהב תמיכה, 100=עצמאי מאוד
-  optimismLevel             Int?     // 0=ריאליסט/פסימי, 100=אופטימי מאוד
-  humorStyle                HumorStyle?
-  
-  // 🎯 קריירה וכסף
-  careerOrientation         Int?     // 0=איזון/משפחה, 100=קריירה מרכזית
-  intellectualOrientation   Int?     // 0=הומני/חינוך, 100=ריאלי/טכנולוגי
-  financialApproach         Int?     // 0=חסכן ושמרני, 100=נדיב/נהנתן
-  ambitionLevel             Int?     // 0=שביעות רצון, 100=שאפתנות גבוהה
-  
-  // ✡️ דת ומסורת
-  religiousStrictness       Int?     // 0=גמיש בהלכה, 100=מקפיד מאוד
-  spiritualDepth            Int?     // 0=פרקטי/טכני, 100=רוחני ועמוק
-  cultureConsumption        Int?     // 0=נמנע מתרבות כללית, 100=צורך בחופשיות
-  
-  // 🌍 רקע וזהות
-  urbanScore                Int?     // 0=כפרי/ישובי, 100=עירוני מובהק
-  englishFluency            Int?     // 0=לא דובר, 100=שפת אם
-  americanCompatibility     Int?     // 0=ישראלי מובהק, 100=מתאים לאמריקאים
-  ethnicBackground          EthnicBackground?
-  backgroundCategory        BackgroundCategory?
-  
-  // 💑 זוגיות ומשפחה
-  togetherVsAutonomy        Int?     // 0=צריך עצמאות, 100=רוצה הכל ביחד
-  familyInvolvement         Int?     // 0=עצמאי מהורים, 100=משפחה מעורבת
-  parenthoodPriority        Int?     // 0=לא מרכזי, 100=ילדים במרכז
-  growthVsAcceptance        Int?     // 0=קבלה מלאה, 100=אתגור וצמיחה
-  
-  // 🕐 סגנון חיים
-  nightOwlScore             Int?     // 0=בוקר, 100=לילה
-  adventureScore            Int?     // 0=שגרה ויציבות, 100=הרפתקנות
-  petsAttitude              PetsAttitude?
-  
-  // 💬 תקשורת והתמודדות
-  communicationStyle        CommunicationStyle?
-  conflictStyle             ConflictStyle?
-  supportStyle              SupportStyle?
-  
-  // 👀 בררנות
-  appearancePickiness       Int?     // 0=לא מקפיד על מראה, 100=מאוד מקפיד
-  
-  // ═══════════════════════════════════════════════════════════════
-  // 🆕 SECTION A.2: NEW SELF METRICS - מדדים חדשים
-  // ═══════════════════════════════════════════════════════════════
-  
-  // 💰 רמה סוציו-אקונומית
-  socioEconomicLevel        Int?     // 0=נמוך, 50=בינוני, 100=גבוה
-  
-  // 💼 רמת בכירות בעבודה
-  jobSeniorityLevel         Int?     // 0=זוטר/סטודנט, 50=בינוני, 100=בכיר/ניהולי
-  
-  // 🎓 רמת השכלה (ציון מספרי)
-  educationLevelScore       Int?     // 0=תיכונית, 25=לימודים, 50=תואר ראשון, 75=תואר שני, 100=דוקטורט
-  
-  // ═══════════════════════════════════════════════════════════════
-  // SECTION B: PREFERENCE METRICS - מה אני מחפש/ת
-  // לכל מדד: Min, Max, Weight (0-10)
-  // ═══════════════════════════════════════════════════════════════
-  
-  // אישיות מבוקשת
-  prefSocialEnergyMin            Int?  @default(0)
-  prefSocialEnergyMax            Int?  @default(100)
-  prefSocialEnergyWeight         Int?  @default(5)
-  
-  prefEmotionalExpressionMin     Int?  @default(0)
-  prefEmotionalExpressionMax     Int?  @default(100)
-  prefEmotionalExpressionWeight  Int?  @default(5)
-  
-  prefStabilityMin               Int?  @default(0)
-  prefStabilityMax               Int?  @default(100)
-  prefStabilityWeight            Int?  @default(5)
-  
-  // דת
-  prefReligiousStrictnessMin     Int?  @default(0)
-  prefReligiousStrictnessMax     Int?  @default(100)
-  prefReligiousStrictnessWeight  Int?  @default(8)
-  
-  prefSpiritualDepthMin          Int?  @default(0)
-  prefSpiritualDepthMax          Int?  @default(100)
-  prefSpiritualDepthWeight       Int?  @default(5)
-  
-  // קריירה וכלכלה
-  prefCareerOrientationMin       Int?  @default(0)
-  prefCareerOrientationMax       Int?  @default(100)
-  prefCareerOrientationWeight    Int?  @default(5)
-  
-  prefAmbitionMin                Int?  @default(0)
-  prefAmbitionMax                Int?  @default(100)
-  prefAmbitionWeight             Int?  @default(4)
-  
-  prefFinancialMin               Int?  @default(0)
-  prefFinancialMax               Int?  @default(100)
-  prefFinancialWeight            Int?  @default(4)
-  
-  // סגנון חיים
-  prefUrbanScoreMin              Int?  @default(0)
-  prefUrbanScoreMax              Int?  @default(100)
-  prefUrbanScoreWeight           Int?  @default(4)
-  
-  prefAdventureScoreMin          Int?  @default(0)
-  prefAdventureScoreMax          Int?  @default(100)
-  prefAdventureScoreWeight       Int?  @default(3)
-  
-  prefNightOwlMin                Int?  @default(0)
-  prefNightOwlMax                Int?  @default(100)
-  prefNightOwlWeight             Int?  @default(2)
-  
-  // זוגיות
-  prefTogetherVsAutonomyMin      Int?  @default(0)
-  prefTogetherVsAutonomyMax      Int?  @default(100)
-  prefTogetherVsAutonomyWeight   Int?  @default(5)
-  
-  prefFamilyInvolvementMin       Int?  @default(0)
-  prefFamilyInvolvementMax       Int?  @default(100)
-  prefFamilyInvolvementWeight    Int?  @default(4)
-  
-  prefGrowthVsAcceptanceMin      Int?  @default(0)
-  prefGrowthVsAcceptanceMax      Int?  @default(100)
-  prefGrowthVsAcceptanceWeight   Int?  @default(3)
-  
-  // ═══════════════════════════════════════════════════════════════
-  // 🆕 SECTION B.2: NEW PREFERENCE METRICS - העדפות חדשות
-  // ═══════════════════════════════════════════════════════════════
-  
-  // רמה סוציו-אקונומית מבוקשת
-  prefSocioEconomicMin           Int?  @default(0)
-  prefSocioEconomicMax           Int?  @default(100)
-  prefSocioEconomicWeight        Int?  @default(5)
-  
-  // רמת בכירות מבוקשת
-  prefJobSeniorityMin            Int?  @default(0)
-  prefJobSeniorityMax            Int?  @default(100)
-  prefJobSeniorityWeight         Int?  @default(4)
-  
-  // רמת השכלה מבוקשת
-  prefEducationLevelMin          Int?  @default(0)
-  prefEducationLevelMax          Int?  @default(100)
-  prefEducationLevelWeight       Int?  @default(5)
-  
-  // ═══════════════════════════════════════════════════════════════
-  // SECTION C: DEAL BREAKERS - קווים אדומים
-  // ═══════════════════════════════════════════════════════════════
-  
-  // Deal Breakers קשיחים - פוסלים מיידית
-  dealBreakersHard               Json?    @default("[]")
-  
-  // Deal Breakers רכים - מורידים ציון
-  dealBreakersSoft               Json?    @default("[]")
-  
-  // ═══════════════════════════════════════════════════════════════
-  // SECTION D: INFERRED TRAITS - תכונות שנגזרו
-  // ═══════════════════════════════════════════════════════════════
-  
-  inferredPersonalityType        PersonalityType?
-  inferredAttachmentStyle        AttachmentStyle?
-  inferredLoveLanguages          Json?    @default("[]")
-  inferredRelationshipGoals      Json?    @default("{}")
-  
-  // ═══════════════════════════════════════════════════════════════
-  // 🆕 SECTION E: INFERRED HARD DATA - ערכים קשים שה-AI משלים
-  // כשהנתון חסר ב-Profile, ה-AI מנחש
-  // ═══════════════════════════════════════════════════════════════
-  
-  inferredAge                    Int?              // אם birthDate חסר
-  inferredCity                   String?           // אם city חסר
-  inferredReligiousLevel         String?           // אם religiousLevel חסר
-  inferredPreferredAgeMin        Int?              // אם preferredAgeMin חסר
-  inferredPreferredAgeMax        Int?              // אם preferredAgeMax חסר
-  inferredPreferredReligiousLevels Json? @default("[]")  // אם preferredReligiousLevels חסר
-  inferredParentStatus           String?           // אם parentStatus חסר
-  inferredEducationLevel         String?           // אם educationLevel חסר
-  
-  // ═══════════════════════════════════════════════════════════════
-  // SECTION F: AI ANALYSIS - סיכומי AI
-  // ═══════════════════════════════════════════════════════════════
-  
-  // הסבר מפורט לכל מדד
-  metricsExplanations            Json?    @default("{}")
-  
-  // סיכום AI של האישיות (3 משפטים)
-  aiPersonalitySummary           String?  @db.Text
-  
-  // סיכום AI של מה מחפש (3 משפטים)
-  aiSeekingSummary               String?  @db.Text
-  
-  // 🆕 סיכום AI של הרקע (3 משפטים)
-  aiBackgroundSummary            String?  @db.Text
-  
-  // 🆕 הנחיות AI לשדכן (3 משפטים)
-  aiMatchmakerGuidelines         String?  @db.Text
-  
-  // 🆕 קווי אדום שה-AI הסיק
-  aiInferredDealBreakers         Json?    @default("[]")
-  
-  // 🆕 חובות שה-AI הסיק
-  aiInferredMustHaves            Json?    @default("[]")
-  
-  // דגלי קושי
-  difficultyFlags                Json?    @default("[]")
-  
-  @@index([profileId])
-  @@index([calculatedBy])
-  @@index([confidenceScore])
-  @@map("profile_metrics")
-}
+
+  // ============================================================
+  // NeshamaTech - Profile Metrics Model (UPDATED)
+  // עדכון: כולל שדות חדשים, העדפות מורחבות, וסיכומי AI
+  // ============================================================
+
+  model ProfileMetrics {
+    id                    String   @id @default(cuid())
+    profileId             String   @unique
+    profile               Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+    
+    createdAt             DateTime @default(now())
+    updatedAt             DateTime @updatedAt
+    
+    // ═══════════════════════════════════════════════════════════════
+    // META - מטא-דאטה על החישוב
+    // ═══════════════════════════════════════════════════════════════
+    
+    calculatedBy          CalculatedBy @default(AI_AUTO)
+    confidenceScore       Int      @default(50)  // 0-100: כמה בטוחים בדיוק המדדים
+    dataCompleteness      Int      @default(0)   // 0-100: כמה מידע היה זמין
+    lastAiAnalysisAt      DateTime?
+    
+    // ═══════════════════════════════════════════════════════════════
+    // SECTION A: SELF METRICS - מי אני (ציונים 0-100)
+    // ═══════════════════════════════════════════════════════════════
+    
+    // 🧠 אישיות ואופי
+    socialEnergy              Int?     // 0=מופנם מאוד, 100=חברותי מאוד
+    emotionalExpression       Int?     // 0=שמור רגשית, 100=פתוח ומבטא
+    stabilityVsSpontaneity    Int?     // 0=מאורגן ויציב, 100=ספונטני וגמיש
+    independenceLevel         Int?     // 0=אוהב תמיכה, 100=עצמאי מאוד
+    optimismLevel             Int?     // 0=ריאליסט/פסימי, 100=אופטימי מאוד
+    humorStyle                HumorStyle?
+    
+    // 🎯 קריירה וכסף
+    careerOrientation         Int?     // 0=איזון/משפחה, 100=קריירה מרכזית
+    intellectualOrientation   Int?     // 0=הומני/חינוך, 100=ריאלי/טכנולוגי
+    financialApproach         Int?     // 0=חסכן ושמרני, 100=נדיב/נהנתן
+    ambitionLevel             Int?     // 0=שביעות רצון, 100=שאפתנות גבוהה
+    
+    // ✡️ דת ומסורת
+    religiousStrictness       Int?     // 0=גמיש בהלכה, 100=מקפיד מאוד
+    spiritualDepth            Int?     // 0=פרקטי/טכני, 100=רוחני ועמוק
+    cultureConsumption        Int?     // 0=נמנע מתרבות כללית, 100=צורך בחופשיות
+    
+    // 🌍 רקע וזהות
+    urbanScore                Int?     // 0=כפרי/ישובי, 100=עירוני מובהק
+    englishFluency            Int?     // 0=לא דובר, 100=שפת אם
+    americanCompatibility     Int?     // 0=ישראלי מובהק, 100=מתאים לאמריקאים
+    ethnicBackground          EthnicBackground?
+    backgroundCategory        BackgroundCategory?
+    
+    // 💑 זוגיות ומשפחה
+    togetherVsAutonomy        Int?     // 0=צריך עצמאות, 100=רוצה הכל ביחד
+    familyInvolvement         Int?     // 0=עצמאי מהורים, 100=משפחה מעורבת
+    parenthoodPriority        Int?     // 0=לא מרכזי, 100=ילדים במרכז
+    growthVsAcceptance        Int?     // 0=קבלה מלאה, 100=אתגור וצמיחה
+    
+    // 🕐 סגנון חיים
+    nightOwlScore             Int?     // 0=בוקר, 100=לילה
+    adventureScore            Int?     // 0=שגרה ויציבות, 100=הרפתקנות
+    petsAttitude              PetsAttitude?
+    
+    // 💬 תקשורת והתמודדות
+    communicationStyle        CommunicationStyle?
+    conflictStyle             ConflictStyle?
+    supportStyle              SupportStyle?
+    
+    // 👀 בררנות
+    appearancePickiness       Int?     // 0=לא מקפיד על מראה, 100=מאוד מקפיד
+    
+    // ═══════════════════════════════════════════════════════════════
+    // 🆕 SECTION A.2: NEW SELF METRICS - מדדים חדשים
+    // ═══════════════════════════════════════════════════════════════
+    
+    // 💰 רמה סוציו-אקונומית
+    socioEconomicLevel        Int?     // 0=נמוך, 50=בינוני, 100=גבוה
+    
+    // 💼 רמת בכירות בעבודה
+    jobSeniorityLevel         Int?     // 0=זוטר/סטודנט, 50=בינוני, 100=בכיר/ניהולי
+    
+    // 🎓 רמת השכלה (ציון מספרי)
+    educationLevelScore       Int?     // 0=תיכונית, 25=לימודים, 50=תואר ראשון, 75=תואר שני, 100=דוקטורט
+    
+    // ═══════════════════════════════════════════════════════════════
+    // SECTION B: PREFERENCE METRICS - מה אני מחפש/ת
+    // לכל מדד: Min, Max, Weight (0-10)
+    // ═══════════════════════════════════════════════════════════════
+    
+    // אישיות מבוקשת
+    prefSocialEnergyMin            Int?  @default(0)
+    prefSocialEnergyMax            Int?  @default(100)
+    prefSocialEnergyWeight         Int?  @default(5)
+    
+    prefEmotionalExpressionMin     Int?  @default(0)
+    prefEmotionalExpressionMax     Int?  @default(100)
+    prefEmotionalExpressionWeight  Int?  @default(5)
+    
+    prefStabilityMin               Int?  @default(0)
+    prefStabilityMax               Int?  @default(100)
+    prefStabilityWeight            Int?  @default(5)
+    
+    // דת
+    prefReligiousStrictnessMin     Int?  @default(0)
+    prefReligiousStrictnessMax     Int?  @default(100)
+    prefReligiousStrictnessWeight  Int?  @default(8)
+    
+    prefSpiritualDepthMin          Int?  @default(0)
+    prefSpiritualDepthMax          Int?  @default(100)
+    prefSpiritualDepthWeight       Int?  @default(5)
+    
+    // קריירה וכלכלה
+    prefCareerOrientationMin       Int?  @default(0)
+    prefCareerOrientationMax       Int?  @default(100)
+    prefCareerOrientationWeight    Int?  @default(5)
+    
+    prefAmbitionMin                Int?  @default(0)
+    prefAmbitionMax                Int?  @default(100)
+    prefAmbitionWeight             Int?  @default(4)
+    
+    prefFinancialMin               Int?  @default(0)
+    prefFinancialMax               Int?  @default(100)
+    prefFinancialWeight            Int?  @default(4)
+    
+    // סגנון חיים
+    prefUrbanScoreMin              Int?  @default(0)
+    prefUrbanScoreMax              Int?  @default(100)
+    prefUrbanScoreWeight           Int?  @default(4)
+    
+    prefAdventureScoreMin          Int?  @default(0)
+    prefAdventureScoreMax          Int?  @default(100)
+    prefAdventureScoreWeight       Int?  @default(3)
+    
+    prefNightOwlMin                Int?  @default(0)
+    prefNightOwlMax                Int?  @default(100)
+    prefNightOwlWeight             Int?  @default(2)
+    
+    // זוגיות
+    prefTogetherVsAutonomyMin      Int?  @default(0)
+    prefTogetherVsAutonomyMax      Int?  @default(100)
+    prefTogetherVsAutonomyWeight   Int?  @default(5)
+    
+    prefFamilyInvolvementMin       Int?  @default(0)
+    prefFamilyInvolvementMax       Int?  @default(100)
+    prefFamilyInvolvementWeight    Int?  @default(4)
+    
+    prefGrowthVsAcceptanceMin      Int?  @default(0)
+    prefGrowthVsAcceptanceMax      Int?  @default(100)
+    prefGrowthVsAcceptanceWeight   Int?  @default(3)
+    
+    // ═══════════════════════════════════════════════════════════════
+    // 🆕 SECTION B.2: NEW PREFERENCE METRICS - העדפות חדשות
+    // ═══════════════════════════════════════════════════════════════
+    
+    // רמה סוציו-אקונומית מבוקשת
+    prefSocioEconomicMin           Int?  @default(0)
+    prefSocioEconomicMax           Int?  @default(100)
+    prefSocioEconomicWeight        Int?  @default(5)
+    
+    // רמת בכירות מבוקשת
+    prefJobSeniorityMin            Int?  @default(0)
+    prefJobSeniorityMax            Int?  @default(100)
+    prefJobSeniorityWeight         Int?  @default(4)
+    
+    // רמת השכלה מבוקשת
+    prefEducationLevelMin          Int?  @default(0)
+    prefEducationLevelMax          Int?  @default(100)
+    prefEducationLevelWeight       Int?  @default(5)
+    
+    // ═══════════════════════════════════════════════════════════════
+    // SECTION C: DEAL BREAKERS - קווים אדומים
+    // ═══════════════════════════════════════════════════════════════
+    
+    // Deal Breakers קשיחים - פוסלים מיידית
+    dealBreakersHard               Json?    @default("[]")
+    
+    // Deal Breakers רכים - מורידים ציון
+    dealBreakersSoft               Json?    @default("[]")
+    
+    // ═══════════════════════════════════════════════════════════════
+    // SECTION D: INFERRED TRAITS - תכונות שנגזרו
+    // ═══════════════════════════════════════════════════════════════
+    
+    inferredPersonalityType        PersonalityType?
+    inferredAttachmentStyle        AttachmentStyle?
+    inferredLoveLanguages          Json?    @default("[]")
+    inferredRelationshipGoals      Json?    @default("{}")
+    
+    // ═══════════════════════════════════════════════════════════════
+    // 🆕 SECTION E: INFERRED HARD DATA - ערכים קשים שה-AI משלים
+    // כשהנתון חסר ב-Profile, ה-AI מנחש
+    // ═══════════════════════════════════════════════════════════════
+    
+    inferredAge                    Int?              // אם birthDate חסר
+    inferredCity                   String?           // אם city חסר
+    inferredReligiousLevel         String?           // אם religiousLevel חסר
+    inferredPreferredAgeMin        Int?              // אם preferredAgeMin חסר
+    inferredPreferredAgeMax        Int?              // אם preferredAgeMax חסר
+    inferredPreferredReligiousLevels Json? @default("[]")  // אם preferredReligiousLevels חסר
+    inferredParentStatus           String?           // אם parentStatus חסר
+    inferredEducationLevel         String?           // אם educationLevel חסר
+    
+    // ═══════════════════════════════════════════════════════════════
+    // SECTION F: AI ANALYSIS - סיכומי AI
+    // ═══════════════════════════════════════════════════════════════
+    
+    // הסבר מפורט לכל מדד
+    metricsExplanations            Json?    @default("{}")
+    
+    // סיכום AI של האישיות (3 משפטים)
+    aiPersonalitySummary           String?  @db.Text
+    
+    // סיכום AI של מה מחפש (3 משפטים)
+    aiSeekingSummary               String?  @db.Text
+    
+    // 🆕 סיכום AI של הרקע (3 משפטים)
+    aiBackgroundSummary            String?  @db.Text
+    
+    // 🆕 הנחיות AI לשדכן (3 משפטים)
+    aiMatchmakerGuidelines         String?  @db.Text
+    
+    // 🆕 קווי אדום שה-AI הסיק
+    aiInferredDealBreakers         Json?    @default("[]")
+    
+    // 🆕 חובות שה-AI הסיק
+    aiInferredMustHaves            Json?    @default("[]")
+    
+    // דגלי קושי
+    difficultyFlags                Json?    @default("[]")
+    
+    @@index([profileId])
+    @@index([calculatedBy])
+    @@index([confidenceScore])
+    @@map("profile_metrics")
+  }
 
 
-// ═══════════════════════════════════════════════════════════════
-// ProfileVector - עדכון לתמיכה בשני וקטורים
-// ═══════════════════════════════════════════════════════════════
+  // ═══════════════════════════════════════════════════════════════
+  // ProfileVector - עדכון לתמיכה בשני וקטורים
+  // ═══════════════════════════════════════════════════════════════
 
-// הערה: יש לעדכן את הטבלה הקיימת profile_vectors
-// להוסיף את השדות החדשים
+  // הערה: יש לעדכן את הטבלה הקיימת profile_vectors
+  // להוסיף את השדות החדשים
 
-// ALTER TABLE "profile_vectors" 
-// ADD COLUMN "selfVector" vector(768),
-// ADD COLUMN "seekingVector" vector(768),
-// ADD COLUMN "selfVectorUpdatedAt" TIMESTAMP,
-// ADD COLUMN "seekingVectorUpdatedAt" TIMESTAMP;
+  // ALTER TABLE "profile_vectors" 
+  // ADD COLUMN "selfVector" vector(768),
+  // ADD COLUMN "seekingVector" vector(768),
+  // ADD COLUMN "selfVectorUpdatedAt" TIMESTAMP,
+  // ADD COLUMN "seekingVectorUpdatedAt" TIMESTAMP;
 
-// -- העתקת הוקטור הקיים לשדה selfVector (כנקודת התחלה)
-// UPDATE "profile_vectors" 
-// SET "selfVector" = vector,
-//     "selfVectorUpdatedAt" = "updatedAt"
-// WHERE vector IS NOT NULL;
+  // -- העתקת הוקטור הקיים לשדה selfVector (כנקודת התחלה)
+  // UPDATE "profile_vectors" 
+  // SET "selfVector" = vector,
+  //     "selfVectorUpdatedAt" = "updatedAt"
+  // WHERE vector IS NOT NULL;
 
 
-model ProfileVector {
-  id                    String   @id @default(cuid())
-  profileId             String   @unique
-  profile               Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
- 
-  // וקטור מורשת (לתאימות לאחור)
-  vector                Unsupported("vector(3072)")?    // ← שנה מ-768
- 
-  // וקטורים חדשים
-  selfVector            Unsupported("vector(3072)")?    // ← שנה מ-768
-  seekingVector         Unsupported("vector(3072)")?    // ← שנה מ-768
-
-  selfVectorUpdatedAt   DateTime?
-  seekingVectorUpdatedAt DateTime?
-
-  createdAt             DateTime @default(now())
-  updatedAt             DateTime @updatedAt
-
-  @@map("profile_vectors")
-}
-
-// ============================================
-// Device Tokens for Mobile Push Notifications
-// ============================================
-model DeviceToken {
-  id        String   @id @default(cuid())
-  userId    String
-  token     String   @unique
-  platform  String   // 'ios' or 'android'
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  model ProfileVector {
+    id                    String   @id @default(cuid())
+    profileId             String   @unique
+    profile               Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
   
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+    // וקטור מורשת (לתאימות לאחור)
+    vector                Unsupported("vector(3072)")?    // ← שנה מ-768
   
-  @@index([userId])
-}
-enum MessageSenderType {
-  USER
-  MATCHMAKER
-  SYSTEM
-}
-model SuggestionMessage {
-  id           String            @id @default(cuid())
-  suggestionId String
-  senderId     String
-  senderType   MessageSenderType
-  targetUserId String?           // למי ההודעה מיועדת (null = הודעת מערכת לכולם)
-  content      String            @db.Text
-  isRead       Boolean           @default(false)
-  createdAt    DateTime          @default(now())
+    // וקטורים חדשים
+    selfVector            Unsupported("vector(3072)")?    // ← שנה מ-768
+    seekingVector         Unsupported("vector(3072)")?    // ← שנה מ-768
 
-  suggestion   MatchSuggestion   @relation(fields: [suggestionId], references: [id], onDelete: Cascade)
-  sender       User              @relation("UserSuggestionMessages", fields: [senderId], references: [id], onDelete: Cascade)
+    selfVectorUpdatedAt   DateTime?
+    seekingVectorUpdatedAt DateTime?
 
-  @@index([suggestionId, createdAt])
-  @@index([suggestionId, isRead])
-  @@index([senderId])
-  @@index([targetUserId])
-}
+    createdAt             DateTime @default(now())
+    updatedAt             DateTime @updatedAt
 
-model DirectMessage {
-  id         String   @id @default(cuid())
-  senderId   String
-  receiverId String
-  content    String   @db.Text
-  isRead     Boolean  @default(false)
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+    @@map("profile_vectors")
+  }
 
-  sender   User @relation("SentDirectMessages", fields: [senderId], references: [id], onDelete: Cascade)
-  receiver User @relation("ReceivedDirectMessages", fields: [receiverId], references: [id], onDelete: Cascade)
+  // ============================================
+  // Device Tokens for Mobile Push Notifications
+  // ============================================
+  model DeviceToken {
+    id        String   @id @default(cuid())
+    userId    String
+    token     String   @unique
+    platform  String   // 'ios' or 'android'
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+    
+    user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+    
+    @@index([userId])
+  }
+  enum MessageSenderType {
+    USER
+    MATCHMAKER
+    SYSTEM
+  }
+  model SuggestionMessage {
+    id           String            @id @default(cuid())
+    suggestionId String
+    senderId     String
+    senderType   MessageSenderType
+    targetUserId String?           // למי ההודעה מיועדת (null = הודעת מערכת לכולם)
+    content      String            @db.Text
+    isRead       Boolean           @default(false)
+    createdAt    DateTime          @default(now())
 
-  @@index([senderId])
-  @@index([receiverId])
-  @@index([senderId, receiverId, createdAt])
-  @@index([receiverId, isRead])
-}
+    suggestion   MatchSuggestion   @relation(fields: [suggestionId], references: [id], onDelete: Cascade)
+    sender       User              @relation("UserSuggestionMessages", fields: [senderId], references: [id], onDelete: Cascade)
+
+    @@index([suggestionId, createdAt])
+    @@index([suggestionId, isRead])
+    @@index([senderId])
+    @@index([targetUserId])
+  }
+
+  model DirectMessage {
+    id         String   @id @default(cuid())
+    senderId   String
+    receiverId String
+    content    String   @db.Text
+    isRead     Boolean  @default(false)
+    createdAt  DateTime @default(now())
+    updatedAt  DateTime @updatedAt
+
+    sender   User @relation("SentDirectMessages", fields: [senderId], references: [id], onDelete: Cascade)
+    receiver User @relation("ReceivedDirectMessages", fields: [receiverId], references: [id], onDelete: Cascade)
+
+    @@index([senderId])
+    @@index([receiverId])
+    @@index([senderId, receiverId, createdAt])
+    @@index([receiverId, isRead])
+  }
 
