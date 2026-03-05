@@ -612,7 +612,7 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
   questionnaire,
   isDemo = false,
   demoAnalysisData = null,
-  initialTab,          // ← NEW
+  initialTab, // ← NEW
   dict,
 }) => {
   const [activeTab, setActiveTab] = useState('presentation');
@@ -859,8 +859,8 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
                     demoAnalysisData={demoAnalysisData}
                     currentUserName={
                       isFirstParty
-                        ? suggestion.firstParty.firstName
-                        : suggestion.secondParty.firstName
+                        ? (suggestion.firstParty?.firstName ?? '')
+                        : (suggestion.secondParty?.firstName ?? '')
                     }
                     suggestedUserName={targetParty.firstName}
                     locale={locale}
