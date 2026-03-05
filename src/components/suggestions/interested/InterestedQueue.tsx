@@ -385,8 +385,8 @@ const InterestedQueue: React.FC<InterestedQueueProps> = ({
   const firstSuggestion = items[0];
   const firstPartyName =
     firstSuggestion?.firstPartyId === userId
-      ? firstSuggestion.secondParty?.firstName
-      : firstSuggestion.firstParty?.firstName;
+      ? firstSuggestion?.secondParty?.firstName
+      : firstSuggestion?.firstParty?.firstName;
 
   return (
     <Card
