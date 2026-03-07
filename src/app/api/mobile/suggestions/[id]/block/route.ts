@@ -1,7 +1,10 @@
 // src/app/api/mobile/suggestions/[id]/block/route.ts
+// ============================================================
 // חסימת משתמש מהצעת שידוך
 // Apple Guideline 1.2 compliance: mechanism for blocking abusive users
 // Blocking removes content from user's feed instantly + notifies developer
+// UPDATED: Now sends email notification to matchmaker + admin
+// ============================================================
 
 import { NextRequest } from "next/server";
 import prisma from "@/lib/prisma";
@@ -11,6 +14,7 @@ import {
   corsError,
   corsOptions,
 } from "@/lib/mobile-auth";
+import { emailService } from "@/lib/email/emailService";
 
 export async function OPTIONS(req: NextRequest) {
   return corsOptions(req);
@@ -62,10 +66,14 @@ export async function POST(
       ? suggestion.secondPartyId
       : suggestion.firstPartyId;
 
+    // Variable to store the report ID for email notification
+    let autoReportId: string | null = null;
+
     // Execute block in a transaction:
     // 1. Create block record (or skip if already blocked)
     // 2. Close/cancel the suggestion immediately
     // 3. Create status history entry
+    // 4. Auto-create a report for the dev team
     await prisma.$transaction(async (tx) => {
       // 1. Create the block (upsert to handle duplicates gracefully)
       await tx.userBlock.upsert({
@@ -123,8 +131,8 @@ export async function POST(
         });
       }
 
-      // 4. Also auto-create a report for the dev team to review within 24 hours
-      await tx.userReport.create({
+      // 4. Auto-create a report for the dev team to review within 24 hours
+      const autoReport = await tx.userReport.create({
         data: {
           reporterId: userId,
           reportedUserId: blockedUserId,
@@ -133,11 +141,81 @@ export async function POST(
           details: `[Auto-created from block] ${reason || "User blocked without specific reason"}`,
         },
       });
+
+      autoReportId = autoReport.id;
     });
 
     console.log(
       `[mobile/suggestions/${suggestionId}/block] User ${userId} blocked user ${blockedUserId}`
     );
+
+    // ============================================================
+    // Send email notification to matchmaker + admin
+    // ============================================================
+    try {
+      // Get blocker (reporter) info
+      const blocker = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { firstName: true, lastName: true, email: true, language: true },
+      });
+
+      // Get blocked user info
+      const blockedUser = await prisma.user.findUnique({
+        where: { id: blockedUserId },
+        select: { firstName: true, lastName: true, email: true },
+      });
+
+      // Get matchmaker info
+      const matchmaker = await prisma.user.findUnique({
+        where: { id: suggestion.matchmakerId },
+        select: { firstName: true, lastName: true, email: true },
+      });
+
+      if (blocker && blockedUser && matchmaker && autoReportId) {
+        const emailParams = {
+          locale: (blocker.language as "he" | "en") || "he",
+          reporterName: `${blocker.firstName} ${blocker.lastName}`,
+          reporterEmail: blocker.email,
+          reportedUserName: `${blockedUser.firstName} ${blockedUser.lastName}`,
+          reportedUserEmail: blockedUser.email,
+          reason: "HARASSMENT",
+          details: reason
+            ? `[Block] ${reason}`
+            : "[Block] User blocked without specific reason",
+          reportType: "BLOCK" as const,
+          suggestionId,
+          reportId: autoReportId,
+        };
+
+        // Send to matchmaker
+        await emailService.sendReportNotification({
+          ...emailParams,
+          toEmail: matchmaker.email,
+          toName: `${matchmaker.firstName} ${matchmaker.lastName}`,
+        });
+
+        console.log(
+          `[Block] Email notification sent to matchmaker: ${matchmaker.email}`
+        );
+
+        // Also send to admin email (if configured and different from matchmaker)
+        const adminEmail =
+          process.env.ADMIN_REPORT_EMAIL || process.env.SUPPORT_EMAIL;
+        if (adminEmail && adminEmail !== matchmaker.email) {
+          await emailService.sendReportNotification({
+            ...emailParams,
+            locale: "he",
+            toEmail: adminEmail,
+            toName: "Admin",
+          });
+
+          console.log(`[Block] Email notification sent to admin: ${adminEmail}`);
+        }
+      }
+    } catch (emailError) {
+      // Don't fail the request if email fails - block is still processed
+      console.error("[Block] Failed to send email notification:", emailError);
+    }
 
     return corsJson(req, {
       success: true,
