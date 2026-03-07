@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\suggestions
-# Generated on: 2026-03-01 19:07:40
+# Generated on: 2026-03-06 01:15:50
 # Filter: Only content of code files (.bat, .c, .cfg, .conf, .cpp, .cs, .css, .go, .h, .html, .ini, .java, .js, .json, .jsx, .kt, .less, .md, .php, .py, .rb, .rs, .scss, .sh, .sql, .swift, .ts, .tsx, .txt, .xml, .yaml, .yml) is included.
 ################################################################################
 
@@ -13,12 +13,6 @@ File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\suggesti
 --------------------------------------------------------------------------------
 Content:
 // src/components/suggestions/ActiveSuggestionHero.tsx
-// ============================================================
-// NeshamaTech Web - Active Suggestion Hero Card
-// Shown at top of suggestions page when user has an active
-// suggestion (FIRST_PARTY_APPROVED → DATING/ENGAGED)
-// Shows: other party info, status progress, "contact matchmaker" CTA
-// ============================================================
 
 'use client';
 
@@ -37,17 +31,16 @@ import {
   Gem,
   Crown,
   User,
+  Send,
   ChevronLeft,
   ChevronRight,
-  Send,
+  Sparkles,
 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
 import { cn, getRelativeCloudinaryPath } from '@/lib/utils';
 import type { ExtendedMatchSuggestion } from '../../types/suggestions';
-import type { MatchSuggestionStatus } from '@prisma/client';
 
 // ============================================================
 // Status config
@@ -58,8 +51,9 @@ interface StatusConfig {
   descriptionHe: string;
   descriptionEn: string;
   icon: React.ElementType;
-  gradient: string;
-  iconBg: string;
+  accentColor: string; // for border, badge bg
+  iconBg: string; // icon container bg
+  badgeClass: string; // badge styling
   progress: number;
 }
 
@@ -71,8 +65,9 @@ const STATUS_CONFIG: Record<string, StatusConfig> = {
     descriptionEn:
       'You approved. The matchmaker will forward to the other party.',
     icon: Clock,
-    gradient: 'from-emerald-500 to-teal-600',
-    iconBg: 'bg-emerald-100 text-emerald-600',
+    accentColor: 'border-emerald-200',
+    iconBg: 'bg-emerald-50 text-emerald-600',
+    badgeClass: 'bg-emerald-50 text-emerald-700 border-emerald-200',
     progress: 30,
   },
   PENDING_SECOND_PARTY: {
@@ -81,8 +76,9 @@ const STATUS_CONFIG: Record<string, StatusConfig> = {
     descriptionHe: 'ההצעה נשלחה לצד השני. ממתינים לתשובה.',
     descriptionEn: 'Sent to the other party. Waiting for their response.',
     icon: Clock,
-    gradient: 'from-blue-500 to-indigo-600',
-    iconBg: 'bg-blue-100 text-blue-600',
+    accentColor: 'border-blue-200',
+    iconBg: 'bg-blue-50 text-blue-600',
+    badgeClass: 'bg-blue-50 text-blue-700 border-blue-200',
     progress: 45,
   },
   SECOND_PARTY_APPROVED: {
@@ -91,8 +87,9 @@ const STATUS_CONFIG: Record<string, StatusConfig> = {
     descriptionHe: 'שניכם אישרתם! השדכן/ית ישתפו פרטי קשר בקרוב.',
     descriptionEn: 'You both approved! Contact details coming soon.',
     icon: CheckCircle2,
-    gradient: 'from-violet-500 to-purple-600',
-    iconBg: 'bg-violet-100 text-violet-600',
+    accentColor: 'border-violet-200',
+    iconBg: 'bg-violet-50 text-violet-600',
+    badgeClass: 'bg-violet-50 text-violet-700 border-violet-200',
     progress: 60,
   },
   CONTACT_DETAILS_SHARED: {
@@ -101,8 +98,9 @@ const STATUS_CONFIG: Record<string, StatusConfig> = {
     descriptionHe: 'הגיע הזמן ליצור קשר ולקבוע פגישה.',
     descriptionEn: 'Time to reach out and schedule a meeting.',
     icon: Phone,
-    gradient: 'from-pink-500 to-rose-600',
-    iconBg: 'bg-pink-100 text-pink-600',
+    accentColor: 'border-pink-200',
+    iconBg: 'bg-pink-50 text-pink-600',
+    badgeClass: 'bg-pink-50 text-pink-700 border-pink-200',
     progress: 70,
   },
   AWAITING_FIRST_DATE_FEEDBACK: {
@@ -111,8 +109,9 @@ const STATUS_CONFIG: Record<string, StatusConfig> = {
     descriptionHe: 'איך הלכה הפגישה? השדכן/ית ישמחו לשמוע.',
     descriptionEn: 'How did it go? Your matchmaker would love to hear.',
     icon: MessageCircle,
-    gradient: 'from-amber-500 to-orange-600',
-    iconBg: 'bg-amber-100 text-amber-600',
+    accentColor: 'border-amber-200',
+    iconBg: 'bg-amber-50 text-amber-600',
+    badgeClass: 'bg-amber-50 text-amber-700 border-amber-200',
     progress: 75,
   },
   THINKING_AFTER_DATE: {
@@ -121,8 +120,9 @@ const STATUS_CONFIG: Record<string, StatusConfig> = {
     descriptionHe: 'קח/י את הזמן. עדכנו את השדכן/ית כשתהיו מוכנים.',
     descriptionEn: 'Take your time. Update your matchmaker when ready.',
     icon: Lightbulb,
-    gradient: 'from-indigo-500 to-violet-600',
-    iconBg: 'bg-indigo-100 text-indigo-600',
+    accentColor: 'border-indigo-200',
+    iconBg: 'bg-indigo-50 text-indigo-600',
+    badgeClass: 'bg-indigo-50 text-indigo-700 border-indigo-200',
     progress: 78,
   },
   PROCEEDING_TO_SECOND_DATE: {
@@ -131,8 +131,9 @@ const STATUS_CONFIG: Record<string, StatusConfig> = {
     descriptionHe: 'מתקדמים! בהצלחה בפגישה הבאה.',
     descriptionEn: 'Making progress! Good luck on the next date.',
     icon: TrendingUp,
-    gradient: 'from-teal-500 to-cyan-600',
-    iconBg: 'bg-teal-100 text-teal-600',
+    accentColor: 'border-teal-200',
+    iconBg: 'bg-teal-50 text-teal-600',
+    badgeClass: 'bg-teal-50 text-teal-700 border-teal-200',
     progress: 82,
   },
   MEETING_SCHEDULED: {
@@ -141,8 +142,9 @@ const STATUS_CONFIG: Record<string, StatusConfig> = {
     descriptionHe: 'יש לך פגישה קבועה. בהצלחה!',
     descriptionEn: 'You have a scheduled meeting. Good luck!',
     icon: Calendar,
-    gradient: 'from-emerald-500 to-green-600',
-    iconBg: 'bg-emerald-100 text-emerald-600',
+    accentColor: 'border-emerald-200',
+    iconBg: 'bg-emerald-50 text-emerald-600',
+    badgeClass: 'bg-emerald-50 text-emerald-700 border-emerald-200',
     progress: 74,
   },
   DATING: {
@@ -151,8 +153,9 @@ const STATUS_CONFIG: Record<string, StatusConfig> = {
     descriptionHe: 'מאחלים לכם הצלחה!',
     descriptionEn: 'Wishing you the best!',
     icon: Heart,
-    gradient: 'from-rose-500 to-pink-600',
-    iconBg: 'bg-rose-100 text-rose-600',
+    accentColor: 'border-rose-200',
+    iconBg: 'bg-rose-50 text-rose-600',
+    badgeClass: 'bg-rose-50 text-rose-700 border-rose-200',
     progress: 85,
   },
   ENGAGED: {
@@ -161,8 +164,9 @@ const STATUS_CONFIG: Record<string, StatusConfig> = {
     descriptionHe: 'מזל טוב!! שמחים איתכם!',
     descriptionEn: 'Congratulations!!',
     icon: Gem,
-    gradient: 'from-amber-500 to-yellow-600',
-    iconBg: 'bg-amber-100 text-amber-600',
+    accentColor: 'border-amber-300',
+    iconBg: 'bg-amber-50 text-amber-600',
+    badgeClass: 'bg-amber-50 text-amber-700 border-amber-200',
     progress: 95,
   },
 };
@@ -173,22 +177,15 @@ const DEFAULT_CONFIG: StatusConfig = {
   descriptionHe: '',
   descriptionEn: '',
   icon: Heart,
-  gradient: 'from-indigo-500 to-violet-600',
-  iconBg: 'bg-indigo-100 text-indigo-600',
+  accentColor: 'border-indigo-200',
+  iconBg: 'bg-indigo-50 text-indigo-600',
+  badgeClass: 'bg-indigo-50 text-indigo-700 border-indigo-200',
   progress: 50,
 };
 
 // ============================================================
-// Component
+// Helper
 // ============================================================
-interface ActiveSuggestionHeroProps {
-  suggestion: ExtendedMatchSuggestion;
-  userId: string;
-  locale: 'he' | 'en';
-  onContactMatchmaker: (suggestion: ExtendedMatchSuggestion) => void;
-  onViewDetails: (suggestion: ExtendedMatchSuggestion) => void;
-  className?: string;
-}
 const calculateAge = (dateOfBirth?: Date | string | null): number | null => {
   if (!dateOfBirth) return null;
   const today = new Date();
@@ -200,22 +197,36 @@ const calculateAge = (dateOfBirth?: Date | string | null): number | null => {
   }
   return age;
 };
+
+// ============================================================
+// Component
+// ============================================================
+interface ActiveSuggestionHeroProps {
+  suggestion: ExtendedMatchSuggestion;
+  userId: string;
+  locale: 'he' | 'en';
+  onViewDetails: (suggestion: ExtendedMatchSuggestion) => void;
+  onContactMatchmaker: (suggestion: ExtendedMatchSuggestion) => void;
+  className?: string;
+}
+
 const ActiveSuggestionHero: React.FC<ActiveSuggestionHeroProps> = ({
   suggestion,
   userId,
   locale,
-  onContactMatchmaker,
   onViewDetails,
+  onContactMatchmaker,
   className,
 }) => {
   const config = STATUS_CONFIG[suggestion.status] || DEFAULT_CONFIG;
   const StatusIcon = config.icon;
+  const isRtl = locale === 'he';
 
   const isFirstParty = suggestion.firstPartyId === userId;
   const otherParty = isFirstParty
     ? suggestion.secondParty
     : suggestion.firstParty;
-  const otherPartyImage = otherParty?.images?.[0];
+  const otherPartyImage = otherParty?.images?.find((img) => img.isMain);
   const imageSrc = otherPartyImage
     ? getRelativeCloudinaryPath(otherPartyImage.url)
     : null;
@@ -223,120 +234,145 @@ const ActiveSuggestionHero: React.FC<ActiveSuggestionHeroProps> = ({
   const statusLabel = locale === 'he' ? config.labelHe : config.labelEn;
   const statusDescription =
     locale === 'he' ? config.descriptionHe : config.descriptionEn;
+  const age = calculateAge(otherParty?.profile?.birthDate);
   const ChevronIcon = locale === 'he' ? ChevronLeft : ChevronRight;
 
   return (
     <Card
       className={cn(
-        'overflow-hidden border-0 shadow-xl cursor-pointer group',
+        'overflow-hidden border shadow-md hover:shadow-lg transition-all duration-300 cursor-pointer group bg-white rounded-2xl',
+        config.accentColor,
         className
       )}
       onClick={() => onViewDetails(suggestion)}
     >
-      <div
-        className={cn(
-          'bg-gradient-to-br p-6 relative overflow-hidden',
-          config.gradient
-        )}
-      >
-        {/* Decorative elements */}
-        <div className="absolute top-0 right-0 w-40 h-40 bg-white/5 rounded-full blur-2xl" />
-        <div className="absolute bottom-0 left-0 w-32 h-32 bg-white/5 rounded-full blur-xl" />
-
-        <div className="relative z-10">
-          {/* Top: Label + Status badge */}
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center">
-                <Star className="w-3.5 h-3.5 text-white" />
-              </div>
-              <span className="text-white/90 text-sm font-semibold tracking-wide">
-                {locale === 'he' ? 'ההצעה הפעילה שלי' : 'My Active Suggestion'}
-              </span>
-            </div>
-            <Badge className="bg-white/15 text-white border-white/20 text-xs">
-              <StatusIcon className="w-3 h-3 mr-1" />
-              {statusLabel}
-            </Badge>
-          </div>
-
-          {/* Main: Avatar + Info */}
-          <div className="flex items-center gap-4 mb-4">
-            <div className="relative flex-shrink-0">
-              <div className="w-16 h-16 rounded-full overflow-hidden ring-3 ring-white/30 shadow-xl">
-                {imageSrc ? (
-                  <Image
-                    src={imageSrc}
-                    alt={otherParty?.firstName || ''}
-                    width={64}
-                    height={64}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center bg-white/20">
-                    <User className="w-7 h-7 text-white/70" />
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <div className="flex-1 min-w-0">
-              <h3 className="text-white font-bold text-lg truncate">
-                {otherParty?.firstName} {otherParty?.lastName}
-                {(() => {
-                  const age = calculateAge(otherParty?.profile?.birthDate);
-                  return age ? `, ${age}` : '';
-                })()}{' '}
-              </h3>
-              <div className="flex items-center flex-wrap gap-2 mt-1">
-                {otherParty?.profile?.city && (
-                  <span className="text-white/70 text-xs bg-white/10 px-2 py-0.5 rounded-md">
-                    📍 {otherParty.profile.city}
-                  </span>
-                )}
-                {otherParty?.profile?.occupation && (
-                  <span className="text-white/70 text-xs bg-white/10 px-2 py-0.5 rounded-md truncate max-w-[150px]">
-                    💼 {otherParty.profile.occupation}
-                  </span>
-                )}
-              </div>
-              {statusDescription && (
-                <p className="text-white/60 text-xs mt-2 leading-relaxed line-clamp-2">
-                  {statusDescription}
-                </p>
+      <div className="p-4">
+        {/* Top Row: Label */}
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <div
+              className={cn(
+                'w-8 h-8 rounded-full flex items-center justify-center',
+                config.iconBg
               )}
+            >
+              <Star className="w-4 h-4" />
             </div>
-          </div>
-
-          {/* Progress */}
-          <div className="flex items-center gap-3 mb-4">
-            <Progress
-              value={config.progress}
-              className="h-2 bg-white/15 flex-1"
-            />
-            <span className="text-white/50 text-xs font-bold w-8 text-center">
-              {config.progress}%
+            <span className="text-sm font-semibold text-gray-700">
+              {locale === 'he' ? 'ההצעה הפעילה שלי' : 'My Active Suggestion'}
             </span>
           </div>
-
-          {/* CTA: Contact Matchmaker */}
-          <Button
-            variant="secondary"
-            className="w-full bg-white hover:bg-white/95 text-gray-800 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 h-11 font-semibold group/btn"
-            onClick={(e) => {
-              e.stopPropagation();
-              onContactMatchmaker(suggestion);
-            }}
+          <Badge
+            variant="outline"
+            className={cn('text-xs font-medium', config.badgeClass)}
           >
-            <Send
-              className={cn(
-                'w-4 h-4 group-hover/btn:translate-x-0.5 transition-transform',
-                locale === 'he' ? 'ml-2' : 'mr-2'
+            <StatusIcon className={cn('w-3 h-3', isRtl ? 'ml-1' : 'mr-1')} />
+            {statusLabel}
+          </Badge>
+        </div>
+
+        {/* Main Row: Avatar + Info + CTA */}
+        <div className="flex items-center gap-4">
+          {/* Avatar */}
+          <div className="relative flex-shrink-0">
+            <div className="w-14 h-14 rounded-full overflow-hidden ring-2 ring-gray-100 shadow-sm group-hover:ring-teal-200 transition-all">
+              {imageSrc ? (
+                <Image
+                  src={imageSrc}
+                  alt={otherParty?.firstName || ''}
+                  width={56}
+                  height={56}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center bg-gray-100">
+                  <User className="w-6 h-6 text-gray-400" />
+                </div>
               )}
+            </div>
+            {/* Online-style indicator dot */}
+            <div
+              className={cn(
+                'absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full border-2 border-white flex items-center justify-center',
+                config.iconBg
+              )}
+            >
+              <StatusIcon className="w-2.5 h-2.5" />
+            </div>
+          </div>
+
+          {/* Info */}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2">
+              <h3 className="font-bold text-gray-900 text-base truncate">
+                {otherParty?.firstName} {otherParty?.lastName}
+              </h3>
+              {age && (
+                <span className="text-sm text-gray-500 flex-shrink-0">
+                  ({age})
+                </span>
+              )}
+            </div>
+            <div className="flex items-center gap-2 mt-0.5">
+              {otherParty?.profile?.city && (
+                <span className="text-xs text-gray-500">
+                  📍 {otherParty.profile.city}
+                </span>
+              )}
+              {otherParty?.profile?.city && otherParty?.profile?.occupation && (
+                <span className="text-gray-300">•</span>
+              )}
+              {otherParty?.profile?.occupation && (
+                <span className="text-xs text-gray-500 truncate max-w-[120px]">
+                  💼 {otherParty.profile.occupation}
+                </span>
+              )}
+            </div>
+            {statusDescription && (
+              <p className="text-xs text-gray-400 mt-1 line-clamp-1">
+                {statusDescription}
+              </p>
+            )}
+          </div>
+
+          {/* CTA Buttons */}
+          <div className="flex items-center gap-2 flex-shrink-0">
+            {/* Contact Matchmaker */}
+            <Button
+              variant="outline"
+              size="sm"
+              className="rounded-xl border-gray-200 hover:border-teal-300 hover:bg-teal-50 text-gray-600 hover:text-teal-700 transition-all h-9 px-3"
+              onClick={(e) => {
+                e.stopPropagation();
+                onContactMatchmaker(suggestion);
+              }}
+            >
+              <Send
+                className={cn('w-3.5 h-3.5', isRtl ? 'ml-1.5' : 'mr-1.5')}
+              />
+              <span className="hidden sm:inline text-xs font-medium">
+                {locale === 'he' ? 'שדכן/ית' : 'Matchmaker'}
+              </span>
+            </Button>
+
+            {/* View Details Arrow */}
+            <div className="w-8 h-8 rounded-full bg-gray-50 group-hover:bg-teal-50 flex items-center justify-center transition-colors">
+              <ChevronIcon className="w-4 h-4 text-gray-400 group-hover:text-teal-600 transition-colors" />
+            </div>
+          </div>
+        </div>
+
+        {/* Progress Bar */}
+        <div className="flex items-center gap-3 mt-3">
+          <div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+            <div
+              className="h-full rounded-full bg-gradient-to-r from-teal-400 to-emerald-400 transition-all duration-500"
+              style={{ width: `${config.progress}%` }}
             />
-            {locale === 'he' ? 'צור/י קשר עם השדכן/ית' : 'Contact Matchmaker'}
-            <ChevronIcon className="w-4 h-4 opacity-40 mr-auto" />
-          </Button>
+          </div>
+          <span className="text-[10px] text-gray-400 font-medium w-7 text-center">
+            {config.progress}%
+          </span>
         </div>
       </div>
     </Card>
@@ -551,6 +587,7 @@ import type { MatchSuggestion } from '@prisma/client';
 import SuggestionsList from './list/SuggestionsList';
 import InterestedQueue from '@/components/suggestions/interested/InterestedQueue';
 import ActiveSuggestionHero from '@/components/suggestions/ActiveSuggestionHero';
+import SuggestionDetailsModal from '@/components/suggestions/modals/SuggestionDetailsModal';
 import type { ExtendedMatchSuggestion } from '../../types/suggestions';
 import { cn } from '@/lib/utils';
 
@@ -572,26 +609,6 @@ import type {
 
 import FirstPartyPreferenceToggle from '@/components/suggestions/FirstPartyPreferenceToggle';
 
-// =============================================================================
-// COLOR PALETTE REFERENCE (Matching HeroSection.tsx)
-// =============================================================================
-// Primary Colors:
-//   - Teal/Emerald: from-teal-400 via-teal-500 to-emerald-500 (Knowledge/New)
-//   - Orange/Amber: from-orange-400 via-amber-500 to-yellow-500 (Action/Warmth)
-//   - Rose/Pink:    from-rose-400 via-pink-500 to-red-500 (Love/Connection)
-//   - Violet/Purple: from-violet-500 via-purple-500 to-indigo-500 (Daily AI Suggestion)
-//
-// Background Gradients:
-//   - Page: from-slate-50 via-teal-50/20 to-orange-50/20
-//   - Cards: from-teal-50 via-white to-emerald-50 (Teal variant)
-//
-// Text Gradients:
-//   - from-teal-600 via-orange-600 to-amber-600
-//
-// Accent Lines:
-//   - from-teal-400 via-orange-400 to-rose-400
-// =============================================================================
-
 const SYSTEM_MATCHMAKER_ID = 'system-matchmaker-neshamatech';
 
 // --- Active Process Statuses ---
@@ -611,7 +628,7 @@ const ACTIVE_PROCESS_STATUSES = [
   'ENGAGED',
 ] as const;
 
-// --- Action Type (extended to include 'interested') ---
+// --- Action Type ---
 type ActionType = 'approve' | 'decline' | 'interested';
 
 // --- Loading Skeleton ---
@@ -626,7 +643,6 @@ const LoadingSkeleton: React.FC<{
             <div className="h-7 bg-gray-200 rounded-lg w-48 animate-pulse" />
           </div>
         </div>
-
         <div className="p-6">
           <div className="flex justify-center mb-6">
             <div className="grid grid-cols-2 bg-teal-50/50 rounded-2xl p-1 h-14 w-fit gap-2">
@@ -638,7 +654,6 @@ const LoadingSkeleton: React.FC<{
               ))}
             </div>
           </div>
-
           <div className="flex flex-col items-center justify-center min-h-[300px] text-center space-y-6">
             <div className="relative">
               <div className="w-20 h-20 rounded-full bg-gradient-to-br from-teal-100 via-orange-100 to-rose-100 animate-pulse border-4 border-white shadow-xl" />
@@ -646,7 +661,6 @@ const LoadingSkeleton: React.FC<{
                 <Loader2 className="w-10 h-10 text-teal-600 animate-spin" />
               </div>
             </div>
-
             <div className="space-y-3">
               <h3 className="text-xl font-bold bg-gradient-to-r from-teal-600 via-orange-600 to-rose-600 bg-clip-text text-transparent">
                 {dict.title}
@@ -655,7 +669,6 @@ const LoadingSkeleton: React.FC<{
                 {dict.subtitle}
               </p>
             </div>
-
             <div className="flex items-center gap-2">
               {Array.from({ length: 3 }).map((_, index) => (
                 <div
@@ -671,6 +684,21 @@ const LoadingSkeleton: React.FC<{
     </div>
   </div>
 );
+
+// --- Helper: enhance questionnaire data ---
+const enhanceQuestionnaireData = (
+  suggestion: ExtendedMatchSuggestion | null,
+  userId: string
+) => {
+  if (!suggestion) return null;
+  const isFirstParty = suggestion.firstPartyId === userId;
+  const targetParty = isFirstParty
+    ? suggestion.secondParty
+    : suggestion.firstParty;
+  const rawQuestionnaire = targetParty?.questionnaireResponses?.[0];
+  if (!rawQuestionnaire) return null;
+  return rawQuestionnaire;
+};
 
 // --- Props Interface ---
 interface MatchSuggestionsContainerProps {
@@ -712,10 +740,18 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
   const [hasNewSuggestions, setHasNewSuggestions] = useState(false);
   const [isUserInActiveProcess, setIsUserInActiveProcess] = useState(false);
 
+  // --- Confirmation Dialog State ---
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [suggestionForAction, setSuggestionForAction] =
     useState<ExtendedMatchSuggestion | null>(null);
   const [actionType, setActionType] = useState<ActionType | null>(null);
+
+  // --- Details Modal State (NEW) ---
+  const [selectedSuggestion, setSelectedSuggestion] =
+    useState<ExtendedMatchSuggestion | null>(null);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [detailsModalInitialTab, setDetailsModalInitialTab] =
+    useState<string>('presentation');
 
   // --- Derived: Active Process Suggestion (Hero Card) ---
   const activeProcessSuggestion = useMemo(() => {
@@ -749,7 +785,7 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
     );
   }, [activeSuggestions]);
 
-  // --- Derived: sorted active suggestions (urgent first, excluding INTERESTED & ACTIVE_PROCESS) ---
+  // --- Derived: sorted active suggestions ---
   const sortedActiveSuggestions = useMemo(() => {
     const urgent: ExtendedMatchSuggestion[] = [];
     const others: ExtendedMatchSuggestion[] = [];
@@ -783,7 +819,7 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
     [sortedActiveSuggestions, userId]
   );
 
-  // --- Derived: daily AI suggestion awaiting user response ---
+  // --- Derived: daily AI suggestion ---
   const dailySuggestion = useMemo(() => {
     return activeSuggestions.find((s) => {
       if (s.matchmakerId !== SYSTEM_MATCHMAKER_ID) return false;
@@ -794,6 +830,11 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
       );
     });
   }, [activeSuggestions, userId]);
+
+  // --- Derived: questionnaire for selected suggestion ---
+  const selectedQuestionnaireData = useMemo(() => {
+    return enhanceQuestionnaireData(selectedSuggestion, userId);
+  }, [selectedSuggestion, userId]);
 
   // --- Data Fetching ---
   const fetchSuggestions = useCallback(
@@ -963,7 +1004,7 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
     setActionType(null);
   }, [suggestionForAction, actionType, userId, handleStatusChange]);
 
-  // --- Rank Update Handler (for InterestedQueue drag-and-drop) ---
+  // --- Rank Update Handler ---
   const handleRankUpdate = useCallback(
     async (rankedIds: string[]) => {
       const response = await fetch('/api/suggestions/interested/rank', {
@@ -981,7 +1022,7 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
     [fetchSuggestions]
   );
 
-  // --- Remove suggestion from INTERESTED queue ---
+  // --- Remove from INTERESTED ---
   const handleRemoveFromInterested = useCallback(
     (suggestion: ExtendedMatchSuggestion) => {
       setSuggestionForAction(suggestion);
@@ -991,7 +1032,7 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
     []
   );
 
-  // --- Activate an INTERESTED suggestion ---
+  // --- Activate INTERESTED ---
   const handleActivateInterested = useCallback(
     (suggestion: ExtendedMatchSuggestion) => {
       setSuggestionForAction(suggestion);
@@ -1001,27 +1042,32 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
     []
   );
 
-  // --- Contact Matchmaker Handler ---
-  const handleContactMatchmaker = useCallback(
-    (suggestion: ExtendedMatchSuggestion) => {
-      // TODO: Implement chat/inquiry modal or navigation
-      toast.info(
-        isRtl ? 'פתיחת צ׳אט עם השדכן/ית...' : 'Opening chat with matchmaker...'
-      );
-      // Example: setSelectedSuggestion(suggestion); setShowInquiryModal(true);
-    },
-    [isRtl]
-  );
-
-  // --- View Details Handler ---
+  // --- View Details Handler (opens modal - presentation tab) ---
   const handleViewDetails = useCallback(
     (suggestion: ExtendedMatchSuggestion) => {
-      // TODO: Implement details modal
-      toast.info(isRtl ? 'פתיחת פרטים מלאים...' : 'Opening full details...');
-      // Example: setSelectedSuggestion(suggestion); setShowDetailsModal(true);
+      setSelectedSuggestion(suggestion);
+      setDetailsModalInitialTab('presentation');
+      setShowDetailsModal(true);
     },
-    [isRtl]
+    []
   );
+
+  // --- Contact Matchmaker Handler (opens modal - details/chat tab) ---
+  const handleContactMatchmaker = useCallback(
+    (suggestion: ExtendedMatchSuggestion) => {
+      setSelectedSuggestion(suggestion);
+      setDetailsModalInitialTab('details');
+      setShowDetailsModal(true);
+    },
+    []
+  );
+
+  // --- Close Details Modal ---
+  const handleCloseDetailsModal = useCallback(() => {
+    setShowDetailsModal(false);
+    setSelectedSuggestion(null);
+    setDetailsModalInitialTab('presentation');
+  }, []);
 
   // --- Effects ---
   useEffect(() => {
@@ -1176,7 +1222,7 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
               </div>
             )}
 
-            {/* ===== Preference Toggle: Auto-Scan ===== */}
+            {/* ===== Preference Toggle ===== */}
             <FirstPartyPreferenceToggle
               initialValue={wantsToBeFirstParty}
               locale={locale}
@@ -1192,7 +1238,6 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
             >
               <div className="flex justify-center">
                 <TabsList className="grid grid-cols-2 bg-teal-50/50 rounded-2xl p-1 h-14 w-fit">
-                  {/* Tab: Active (Teal) */}
                   <TabsTrigger
                     value="active"
                     className="relative flex items-center gap-3 px-6 py-3 rounded-xl transition-all data-[state=active]:bg-white data-[state=active]:shadow-lg font-semibold text-base"
@@ -1215,7 +1260,6 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
                     )}
                   </TabsTrigger>
 
-                  {/* Tab: History (Gray) */}
                   <TabsTrigger
                     value="history"
                     className="flex items-center gap-3 px-6 py-3 rounded-xl transition-all data-[state=active]:bg-white data-[state=active]:shadow-lg font-semibold text-base"
@@ -1276,7 +1320,7 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
                   />
                 )}
 
-                {/* ===== Regular Suggestion Cards (PENDING only) ===== */}
+                {/* ===== Regular Suggestion Cards ===== */}
                 <SuggestionsList
                   locale={locale}
                   suggestions={sortedActiveSuggestions}
@@ -1313,6 +1357,23 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
           </CardContent>
         </Card>
       </div>
+
+      {/* ===== Details Modal (for Hero & InterestedQueue) ===== */}
+      <SuggestionDetailsModal
+        suggestion={selectedSuggestion}
+        userId={userId}
+        locale={locale}
+        isOpen={showDetailsModal}
+        onClose={handleCloseDetailsModal}
+        onActionRequest={handleRequestAction}
+        questionnaire={selectedQuestionnaireData}
+        isDemo={false}
+        initialTab={detailsModalInitialTab}
+        dict={{
+          suggestions: suggestionsDict,
+          profileCard: profileCardDict,
+        }}
+      />
 
       {/* Confirmation Dialog */}
       <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
@@ -4390,7 +4451,7 @@ const InquiryThreadView: React.FC<InquiryThreadViewProps> = ({
       const res = await fetch(`/api/suggestions/${suggestionId}/inquiries`);
       if (!res.ok) throw new Error('Failed');
       const data = await res.json();
-      setInquiries(data);
+      setInquiries(Array.isArray(data) ? data : (data.inquiries ?? []));
     } catch (e) {
       setError('Failed to load');
     } finally {
@@ -4963,8 +5024,8 @@ const InterestedQueue: React.FC<InterestedQueueProps> = ({
   const firstSuggestion = items[0];
   const firstPartyName =
     firstSuggestion?.firstPartyId === userId
-      ? firstSuggestion.secondParty?.firstName
-      : firstSuggestion.firstParty?.firstName;
+      ? firstSuggestion?.secondParty?.firstName
+      : firstSuggestion?.firstParty?.firstName;
 
   return (
     <Card
@@ -5164,7 +5225,7 @@ interface SuggestionsListProps {
   isUserInActiveProcess?: boolean;
   onActionRequest: (
     suggestion: ExtendedMatchSuggestion,
-    action: 'approve' | 'decline'
+    action: 'approve' | 'decline' | 'interested'
   ) => void;
   suggestionsDict: SuggestionsDictionary;
   profileCardDict: ProfileCardDict;
@@ -5402,7 +5463,7 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
 
   const handleStatusAction = (
     suggestion: ExtendedMatchSuggestion,
-    action: 'approve' | 'decline'
+    action: 'approve' | 'decline' | 'interested'
   ) => {
     onActionRequest(suggestion, action);
   };
@@ -5751,9 +5812,12 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
                   onClick={() => handleOpenDetails(suggestion)}
                   onInquiry={() => handleInquiry(suggestion)}
                   onApprove={() => handleStatusAction(suggestion, 'approve')}
+                  onInterested={() =>
+                    onActionRequest(suggestion, 'interested' as any)
+                  }
                   onDecline={() => handleStatusAction(suggestion, 'decline')}
                   isHistory={isHistory}
-                  isUserInActiveProcess={isUserInActiveProcess} // ← renamed from isApprovalDisabled
+                  isUserInActiveProcess={isUserInActiveProcess}
                   className={cn(
                     'card-hover-elegant',
                     viewMode === 'list' ? 'flex' : ''
@@ -5860,8 +5924,8 @@ import type { QuestionnaireResponse } from '@/types/next-auth';
 import type { AiSuggestionAnalysisResult } from '@/lib/services/aiService';
 
 import { ProfileCard } from '@/components/profile';
-import SuggestionTimeline from '../timeline/SuggestionTimeline';
-import InquiryThreadView from '../inquiries/InquiryThreadView';
+import MiniTimeline from '../timeline/MiniTimeline';
+import SuggestionChat from '@/components/messages/SuggestionChat';
 import { AskMatchmakerDialog } from '../dialogs/AskMatchmakerDialog';
 import { UserAiAnalysisDialog } from '../dialogs/UserAiAnalysisDialog';
 import type { ExtendedMatchSuggestion } from '../../../types/suggestions';
@@ -5883,6 +5947,7 @@ interface SuggestionDetailsModalProps {
   questionnaire: QuestionnaireResponse | null;
   isDemo?: boolean;
   demoAnalysisData?: AiSuggestionAnalysisResult | null;
+  initialTab?: string;
   dict: {
     suggestions: SuggestionsDictionary;
     profileCard: ProfileCardDict;
@@ -5919,9 +5984,9 @@ const useFullscreenModal = (isOpen: boolean) => {
   return { isFullscreen, isTransitioning, toggleFullscreen };
 };
 
-// --- Hero Section (Teal/Orange/Rose Palette - Matching HeroSection.tsx) ---
+// --- Hero Section ---
 const EnhancedHeroSection: React.FC<{
-  matchmaker: { firstName: string; lastName: string } | undefined; // ← הוסף | undefined
+  matchmaker: { firstName: string; lastName: string } | undefined;
   targetParty: ExtendedMatchSuggestion['secondParty'];
   personalNote?: string | null;
   matchingReason?: string | null;
@@ -5951,7 +6016,6 @@ const EnhancedHeroSection: React.FC<{
 
   return (
     <div className="relative min-h-screen bg-gradient-to-br from-slate-50 via-teal-50/30 to-orange-50/30 overflow-hidden">
-      {/* Background elements - Teal/Orange/Rose Blobs (matching HeroSection) */}
       <div className="absolute inset-0">
         <div className="absolute top-10 right-10 w-72 h-72 bg-gradient-to-br from-teal-200/40 to-emerald-200/40 rounded-full blur-3xl animate-float"></div>
         <div
@@ -5966,7 +6030,6 @@ const EnhancedHeroSection: React.FC<{
 
       <div className="relative z-10 p-4 md:p-8 lg:p-12">
         <div className="text-center mb-8 lg:mb-12">
-          {/* Matchmaker Badge - Teal */}
           <div className="inline-flex items-center gap-2 mb-6 p-3 bg-white/90 backdrop-blur-lg rounded-2xl shadow-lg border border-teal-100 animate-fade-in-up">
             <Avatar className="w-12 h-12 border-2 border-white shadow-lg">
               <AvatarFallback className="bg-gradient-to-br from-teal-500 to-emerald-600 text-white text-sm font-bold">
@@ -5985,7 +6048,6 @@ const EnhancedHeroSection: React.FC<{
             </div>
           </div>
           <div className="max-w-4xl mx-auto mb-8">
-            {/* Title Gradient - Teal/Orange/Rose (matching HeroSection) */}
             <h1
               className="text-4xl md:text-5xl lg:text-6xl font-bold bg-gradient-to-r from-teal-600 via-orange-500 to-rose-500 bg-clip-text text-transparent mb-6 leading-tight animate-fade-in-up"
               style={{ animationDelay: '0.5s' }}
@@ -6004,12 +6066,10 @@ const EnhancedHeroSection: React.FC<{
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 mb-12">
-          {/* Image Card */}
           <div
             className="relative group animate-fade-in-up"
             style={{ animationDelay: '1.5s' }}
           >
-            {/* Glow Effect - Teal/Orange/Rose */}
             <div className="absolute -inset-4 bg-gradient-to-r from-teal-400/50 via-orange-400/50 to-rose-400/50 rounded-3xl blur-lg opacity-70 group-hover:opacity-100 transition-opacity animate-pulse"></div>
             <Card className="relative overflow-hidden shadow-2xl border-0 bg-white/95 backdrop-blur-sm">
               <div className="relative h-96 lg:h-[600px]">
@@ -6035,7 +6095,6 @@ const EnhancedHeroSection: React.FC<{
                           {targetParty.firstName}
                         </h2>
                         {age && (
-                          // Age Badge - Orange/Amber (matching HeroSection button)
                           <Badge className="bg-gradient-to-r from-orange-500 to-amber-500 text-white border-0 shadow-lg text-lg px-4 py-2">
                             <Calendar
                               className={cn(
@@ -6051,7 +6110,6 @@ const EnhancedHeroSection: React.FC<{
                         <div className="w-16 h-16 rounded-full bg-gradient-to-r from-teal-400 to-emerald-500 flex items-center justify-center shadow-lg mb-2">
                           <Telescope className="w-8 h-8 text-white" />
                         </div>
-                        {/* Discover More - Teal/Emerald */}
                         <Button
                           onClick={onViewProfile}
                           className="bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 text-white shadow-xl rounded-full px-6 py-3 font-bold text-base"
@@ -6070,7 +6128,6 @@ const EnhancedHeroSection: React.FC<{
             className="space-y-8 animate-fade-in-up"
             style={{ animationDelay: '2s' }}
           >
-            {/* Story Card - Teal/Orange/Rose gradient */}
             <Card className="border-0 shadow-2xl bg-gradient-to-br from-teal-50 via-white to-orange-50 overflow-hidden">
               <CardContent className="p-8 relative">
                 <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-teal-200/30 to-orange-200/30 rounded-full blur-2xl"></div>
@@ -6079,7 +6136,6 @@ const EnhancedHeroSection: React.FC<{
                     {dict.matchStoryTitle}
                   </h2>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-8">
-                    {/* View Profile - Teal/Orange (matching HeroSection CTA) */}
                     <Button
                       onClick={onViewProfile}
                       size="lg"
@@ -6098,7 +6154,6 @@ const EnhancedHeroSection: React.FC<{
                         <ArrowRight className="w-4 h-4 ml-2" />
                       )}
                     </Button>
-                    {/* Questions - Teal Outline (matching HeroSection secondary) */}
                     <Button
                       onClick={onStartConversation}
                       variant="outline"
@@ -6119,40 +6174,23 @@ const EnhancedHeroSection: React.FC<{
             </Card>
 
             {(personalNote || matchingReason) && (
-              // Insights Card - Orange/Teal
               <Card className="border-0 shadow-xl bg-gradient-to-br from-orange-50 via-white to-teal-50 overflow-hidden">
                 <CardContent
                   className="p-6 relative"
                   dir={locale === 'he' ? 'rtl' : 'ltr'}
                 >
                   <div className="flex items-start gap-4">
-                    {' '}
-                    {/* הסרנו את התנאי של flex-row-reverse */}
                     <div className="p-4 rounded-full bg-gradient-to-r from-orange-400 to-amber-500 text-white shadow-lg flex-shrink-0">
                       <Lightbulb className="w-7 h-7" />
                     </div>
                     <div className="flex-1">
-                      {' '}
-                      {/* הסרנו את התנאי של text-right/left כי ה-dir למעלה מטפל בזה */}
                       <h3 className="font-bold text-orange-800 text-xl mb-4">
                         {dict.matchmakerInsight}
                       </h3>
                       {personalNote && (
-                        // Personal Note
-                        <div
-                          className="mb-4 p-4 bg-white/70 rounded-xl shadow-inner border border-orange-100"
-                          // dir מוגדר כבר באבא, לא צריך כאן שוב
-                        >
+                        <div className="mb-4 p-4 bg-white/70 rounded-xl shadow-inner border border-orange-100">
                           <div className="flex items-start gap-2">
-                            {' '}
-                            {/* הסרנו flex-row-reverse */}
-                            <Quote
-                              className={cn(
-                                'w-5 h-5 text-orange-500 mt-1 flex-shrink-0'
-                                // אין צורך בשינוי margin ידני אם ה-dir מוגדר נכון, אבל ליתר ביטחון נשאיר לוגיקה פשוטה
-                                // או פשוט נמחק את ה-ml/mr ונסמוך על gap
-                              )}
-                            />
+                            <Quote className="w-5 h-5 text-orange-500 mt-1 flex-shrink-0" />
                             <div>
                               <h4 className="font-semibold text-orange-700 mb-2">
                                 {dict.whyYou}
@@ -6165,11 +6203,8 @@ const EnhancedHeroSection: React.FC<{
                         </div>
                       )}
                       {matchingReason && (
-                        // Matching Reason
                         <div className="p-4 bg-white/70 rounded-xl shadow-inner border border-teal-100">
                           <div className="flex items-start gap-2">
-                            {' '}
-                            {/* הסרנו flex-row-reverse */}
                             <Puzzle className="w-5 h-5 text-teal-500 mt-1 flex-shrink-0" />
                             <div>
                               <h4 className="font-semibold text-teal-700 mb-2">
@@ -6194,7 +6229,7 @@ const EnhancedHeroSection: React.FC<{
   );
 };
 
-// --- Quick Actions (Teal/Orange/Rose Palette) ---
+// --- Quick Actions ---
 const EnhancedQuickActions: React.FC<{
   isExpanded: boolean;
   onToggleExpand: () => void;
@@ -6228,7 +6263,6 @@ const EnhancedQuickActions: React.FC<{
         onClick={onToggleExpand}
       >
         <div className="flex items-center gap-3">
-          {/* Main Icon - Orange/Amber (Celebration) */}
           <div className="w-10 h-10 rounded-full bg-gradient-to-r from-orange-400 to-amber-500 flex items-center justify-center shadow-lg">
             <PartyPopper className="w-5 h-5 text-white" />
           </div>
@@ -6257,7 +6291,6 @@ const EnhancedQuickActions: React.FC<{
         <div className="mt-6 animate-in fade-in-50 slide-in-from-bottom-4 duration-500">
           <div className="grid grid-cols-1 gap-4 md:flex md:gap-6">
             {canAct && (
-              // Approve - Teal/Orange (matching HeroSection CTA gradient)
               <Button
                 className="relative w-full md:flex-1 bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 hover:from-teal-600 hover:via-orange-600 hover:to-amber-600 text-white shadow-2xl hover:shadow-3xl transition-all duration-300 rounded-2xl h-16 font-bold text-lg transform hover:scale-105"
                 disabled={isSubmitting}
@@ -6292,7 +6325,6 @@ const EnhancedQuickActions: React.FC<{
                 )}
               </Button>
             )}
-            {/* Ask - Teal Outline (matching HeroSection secondary button) */}
             <Button
               variant="outline"
               onClick={onAskQuestion}
@@ -6305,7 +6337,6 @@ const EnhancedQuickActions: React.FC<{
               <span>{dict.ask}</span>
             </Button>
             {canAct && (
-              // Decline - Ghost/Rose hover
               <Button
                 variant="ghost"
                 className="w-full md:flex-1 text-gray-600 hover:bg-rose-50 hover:text-rose-700 transition-all duration-300 rounded-2xl h-16 font-bold text-lg transform hover:scale-105"
@@ -6348,7 +6379,7 @@ const EnhancedQuickActions: React.FC<{
   </div>
 );
 
-// --- Tabs (Teal/Orange/Rose Palette - Matching HeroSection principles) ---
+// --- Tabs ---
 const EnhancedTabsSection: React.FC<{
   activeTab: string;
   onTabChange: (tab: string) => void;
@@ -6371,7 +6402,6 @@ const EnhancedTabsSection: React.FC<{
   <div className="border-b border-teal-100 px-2 sm:px-6 pt-4 bg-gradient-to-r from-teal-50/80 via-white to-orange-50/80 backdrop-blur-sm sticky top-0 z-20">
     <div className="flex items-center justify-between mb-4">
       <TabsList className="grid w-full grid-cols-4 bg-white/90 backdrop-blur-sm rounded-3xl p-2 h-20 shadow-xl border-2 border-teal-100 overflow-hidden">
-        {/* Presentation - Orange/Amber (matching HeroSection privacy principle) */}
         <TabsTrigger
           value="presentation"
           className="flex flex-col items-center justify-center gap-1.5 rounded-2xl text-xs sm:text-sm data-[state=active]:bg-gradient-to-br data-[state=active]:from-orange-400 data-[state=active]:via-amber-500 data-[state=active]:to-yellow-500 data-[state=active]:text-white data-[state=active]:shadow-xl font-bold"
@@ -6380,7 +6410,6 @@ const EnhancedTabsSection: React.FC<{
           <span className="hidden sm:inline">{dict.presentation}</span>
           <span className="sm:hidden">{dict.presentationShort}</span>
         </TabsTrigger>
-        {/* Profile - Teal/Emerald (matching HeroSection knowledge principle) */}
         <TabsTrigger
           value="profile"
           className="flex flex-col items-center justify-center gap-1.5 rounded-2xl text-xs sm:text-sm data-[state=active]:bg-gradient-to-br data-[state=active]:from-teal-400 data-[state=active]:via-teal-500 data-[state=active]:to-emerald-500 data-[state=active]:text-white data-[state=active]:shadow-xl font-bold"
@@ -6389,7 +6418,6 @@ const EnhancedTabsSection: React.FC<{
           <span className="hidden sm:inline">{dict.profile}</span>
           <span className="sm:hidden">{dict.profileShort}</span>
         </TabsTrigger>
-        {/* Compatibility - Rose/Pink (matching HeroSection personal principle) */}
         <TabsTrigger
           value="compatibility"
           className="flex flex-col items-center justify-center gap-1.5 rounded-2xl text-xs sm:text-sm data-[state=active]:bg-gradient-to-br data-[state=active]:from-rose-400 data-[state=active]:via-pink-500 data-[state=active]:to-red-500 data-[state=active]:text-white data-[state=active]:shadow-xl font-bold"
@@ -6398,12 +6426,11 @@ const EnhancedTabsSection: React.FC<{
           <span className="hidden sm:inline">{dict.compatibility}</span>
           <span className="sm:hidden">{dict.compatibilityShort}</span>
         </TabsTrigger>
-        {/* Details - Slate/Gray (neutral) */}
         <TabsTrigger
           value="details"
           className="flex flex-col items-center justify-center gap-1.5 rounded-2xl text-xs sm:text-sm data-[state=active]:bg-gradient-to-br data-[state=active]:from-slate-500 data-[state=active]:to-gray-500 data-[state=active]:text-white data-[state=active]:shadow-xl font-bold"
         >
-          <Info className="w-5 h-5 sm:w-6 sm:h-6" />
+          <MessageCircle className="w-5 h-5 sm:w-6 sm:h-6" />
           <span className="hidden sm:inline">{dict.details}</span>
           <span className="sm:hidden">{dict.detailsShort}</span>
         </TabsTrigger>
@@ -6446,6 +6473,7 @@ const EnhancedTabsSection: React.FC<{
   </div>
 );
 
+// --- Main Component ---
 const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
   suggestion,
   userId,
@@ -6456,13 +6484,9 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
   questionnaire,
   isDemo = false,
   demoAnalysisData = null,
+  initialTab,
   dict,
 }) => {
-  console.log('🔍 [SuggestionDetailsModal] Received Locale:', locale);
-  console.log(
-    '🔍 [SuggestionDetailsModal] Derived Direction:',
-    locale === 'he' ? 'rtl' : 'ltr'
-  );
   const [activeTab, setActiveTab] = useState('presentation');
   const [showAskDialog, setShowAskDialog] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -6473,6 +6497,8 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
   const { isFullscreen, isTransitioning, toggleFullscreen } =
     useFullscreenModal(isOpen);
   const searchParams = useSearchParams();
+  const isHe = locale === 'he';
+
   useEffect(() => {
     if (isOpen && (isMobile || isFullscreen)) {
       document.body.style.overflow = 'hidden';
@@ -6489,11 +6515,15 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
 
   useEffect(() => {
     if (isOpen) {
-      const view = searchParams.get('view');
-      setActiveTab(view === 'chat' ? 'details' : 'presentation');
+      if (initialTab) {
+        setActiveTab(initialTab);
+      } else {
+        const view = searchParams.get('view');
+        setActiveTab(view === 'chat' ? 'details' : 'presentation');
+      }
       setIsActionsExpanded(false);
     }
-  }, [isOpen, searchParams, suggestion?.id]);
+  }, [isOpen, searchParams, suggestion?.id, initialTab]);
 
   const isFirstParty = suggestion?.firstPartyId === userId;
   const targetParty = suggestion
@@ -6501,6 +6531,7 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
       ? suggestion.secondParty
       : suggestion.firstParty
     : null;
+
   const profileWithUser = useMemo(() => {
     if (!targetParty || !targetParty.profile) {
       return null;
@@ -6513,6 +6544,7 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
       },
     };
   }, [targetParty]);
+
   const canActOnSuggestion =
     (isFirstParty && suggestion?.status === 'PENDING_FIRST_PARTY') ||
     (!isFirstParty && suggestion?.status === 'PENDING_SECOND_PARTY');
@@ -6521,18 +6553,22 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
     if (!suggestion) return;
     setIsSubmitting(true);
     try {
-      await fetch(`/api/suggestions/${suggestion.id}/inquiries`, {
+      await fetch(`/api/suggestions/${suggestion.id}/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ question }),
+        body: JSON.stringify({ content: question }),
       });
-      toast.success(dict.suggestions.inquiryThread.toasts.sendSuccessTitle, {
-        description:
-          dict.suggestions.inquiryThread.toasts.sendSuccessDescription,
-      });
+      toast.success(
+        isHe ? 'ההודעה נשלחה בהצלחה!' : 'Message sent successfully!',
+        {
+          description: isHe
+            ? 'השדכן/ית יקבל/תקבל את ההודעה שלך בקרוב'
+            : 'Your matchmaker will receive your message soon',
+        }
+      );
       setShowAskDialog(false);
     } catch (error) {
-      toast.error(dict.suggestions.inquiryThread.toasts.sendError);
+      toast.error(isHe ? 'שגיאה בשליחת ההודעה' : 'Error sending message');
     } finally {
       setIsSubmitting(false);
     }
@@ -6553,7 +6589,6 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
     const baseClasses =
       'p-0 shadow-2xl border-0 bg-white overflow-hidden z-[50] flex flex-col transition-all duration-300 ease-in-out';
     if (isMobile) {
-      // 👇 הוספת !transform-none
       return `${baseClasses} !w-screen !h-screen !max-w-none !max-h-none !rounded-none !fixed !inset-0 !m-0 !transform-none`;
     } else if (isFullscreen) {
       return `${baseClasses} !w-screen !h-screen !max-w-none !max-h-none !rounded-none !fixed !inset-0 !m-0 !translate-x-0 !translate-y-0 !transform-none`;
@@ -6561,6 +6596,7 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
       return `${baseClasses} md:max-w-7xl md:w-[95vw] md:h-[95vh] md:rounded-3xl`;
     }
   };
+
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
@@ -6587,6 +6623,8 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
                 isTransitioning={isTransitioning}
                 dict={dict.suggestions.modal.tabs}
               />
+
+              {/* TAB: Presentation */}
               <TabsContent value="presentation" className="mt-0">
                 <EnhancedHeroSection
                   matchmaker={suggestion.matchmaker}
@@ -6599,15 +6637,15 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
                   }
                   matchingReason={suggestion.matchingReason}
                   onViewProfile={() => setActiveTab('profile')}
-                  onStartConversation={() => setShowAskDialog(true)}
+                  onStartConversation={() => setActiveTab('details')}
                   dict={dict.suggestions.modal.header}
                 />
               </TabsContent>
+
+              {/* TAB: Profile */}
               <TabsContent
                 value="profile"
-                // הוספנו כאן text-start כדי לכפות יישור לפי כיוון השפה
                 className="mt-0 p-4 md:p-6 bg-gradient-to-br from-slate-50 via-white to-teal-50 text-start"
-                // הוספנו כאן את ה-dir שיגרום לכל התוכן להתהפך כמו שצריך
                 dir={locale === 'he' ? 'rtl' : 'ltr'}
               >
                 {isQuestionnaireLoading ? (
@@ -6644,7 +6682,7 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
                       {dict.suggestions.modal.profile.errorDescription}
                     </p>
                     <Button
-                      onClick={() => setShowAskDialog(true)}
+                      onClick={() => setActiveTab('details')}
                       className="mt-6 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white"
                     >
                       <MessageCircle className="w-4 h-4 ml-2" />
@@ -6653,17 +6691,17 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
                   </div>
                 )}
               </TabsContent>
+
+              {/* TAB: Compatibility / AI Analysis */}
               <TabsContent
                 value="compatibility"
                 className="mt-0 p-4 md:p-6 bg-gradient-to-br from-slate-50 via-white to-rose-50"
               >
                 <div className="flex flex-col items-center justify-center h-full min-h-[600px] text-center space-y-8 p-6">
                   <div className="relative">
-                    {/* Bot Icon - Teal */}
                     <div className="w-32 h-32 rounded-full bg-gradient-to-br from-teal-100 to-emerald-100 flex items-center justify-center mx-auto shadow-2xl">
                       <Bot className="w-16 h-16 text-teal-600" />
                     </div>
-                    {/* Badge - Orange/Amber */}
                     <div className="absolute -top-4 -right-4 w-12 h-12 bg-gradient-to-r from-orange-400 to-amber-500 rounded-full flex items-center justify-center shadow-lg animate-bounce">
                       <Wand2 className="w-6 h-6 text-white" />
                     </div>
@@ -6703,36 +6741,49 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
                     demoAnalysisData={demoAnalysisData}
                     currentUserName={
                       isFirstParty
-                        ? suggestion.firstParty.firstName
-                        : suggestion.secondParty.firstName
+                        ? (suggestion.firstParty?.firstName ?? '')
+                        : (suggestion.secondParty?.firstName ?? '')
                     }
                     suggestedUserName={targetParty.firstName}
                     locale={locale}
                   />
                 </div>
               </TabsContent>
+
+              {/* TAB: Details — Chat + Mini Timeline */}
               <TabsContent
                 value="details"
-                className="mt-0 p-6 md:p-8 space-y-8 bg-gradient-to-br from-slate-50 via-white to-gray-50"
+                className="mt-0 p-4 md:p-6 bg-[#f0f2f5] min-h-[600px]"
               >
-                <div className="max-w-6xl mx-auto space-y-8">
-                  <SuggestionTimeline
+                <div className="max-w-3xl mx-auto space-y-4">
+                  {/* Mini Timeline — collapsible */}
+                  <MiniTimeline
                     statusHistory={suggestion.statusHistory}
                     dict={dict.suggestions.timeline}
                     locale={locale}
                   />
-                  <InquiryThreadView
+
+                  {/* Chat — the main content of this tab */}
+                  <SuggestionChat
                     suggestionId={suggestion.id}
-                    userId={userId}
-                    showComposer={true}
-                    isDemo={isDemo}
-                    dict={dict.suggestions.inquiryThread}
                     locale={locale}
+                    compact
+                    heightClass="h-[calc(60vh-120px)] min-h-[350px]"
+                    header={{
+                      title: isHe
+                        ? `שיחה עם ${suggestion.matchmaker?.firstName || 'השדכן/ית'}`
+                        : `Chat with ${suggestion.matchmaker?.firstName || 'Matchmaker'}`,
+                      subtitle: isHe
+                        ? 'שאל/י שאלות, קבל/י עדכונים'
+                        : 'Ask questions, get updates',
+                    }}
                   />
                 </div>
               </TabsContent>
             </Tabs>
           </ScrollArea>
+
+          {/* Quick Actions Footer */}
           <EnhancedQuickActions
             isExpanded={isActionsExpanded}
             onToggleExpand={() => setIsActionsExpanded((prev) => !prev)}
@@ -6740,12 +6791,13 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
             isSubmitting={isSubmitting}
             onApprove={handleApprove}
             onDecline={handleDecline}
-            onAskQuestion={() => setShowAskDialog(true)}
+            onAskQuestion={() => setActiveTab('details')}
             dict={dict.suggestions.modal.actions}
             locale={locale}
           />
         </DialogContent>
       </Dialog>
+
       <AskMatchmakerDialog
         isOpen={showAskDialog}
         onClose={() => setShowAskDialog(false)}
@@ -7274,6 +7326,160 @@ export default MatchmakerRationale;
 ================================================================================
 Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\suggestions\timeline
 ================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\suggestions\timeline\MiniTimeline.tsx
+--------------------------------------------------------------------------------
+Content:
+// src/components/suggestions/timeline/MiniTimeline.tsx
+
+'use client';
+
+import React, { useState } from 'react';
+import { format } from 'date-fns';
+import { he, enUS } from 'date-fns/locale';
+import { ChevronDown, ChevronUp } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import type { MatchSuggestionStatus } from '@prisma/client';
+import type { SuggestionTimelineDict } from '@/types/dictionary';
+import SuggestionTimeline from './SuggestionTimeline';
+
+interface StatusHistoryItem {
+  id: string;
+  status: string;
+  notes?: string | null;
+  createdAt: Date | string;
+}
+
+interface MiniTimelineProps {
+  statusHistory: StatusHistoryItem[];
+  locale: 'he' | 'en';
+  dict: SuggestionTimelineDict;
+  className?: string;
+}
+
+const getCategoryDot = (status: string): string => {
+  const s = status as MatchSuggestionStatus;
+  if (
+    s === 'MATCH_APPROVED' ||
+    s === 'DATING' ||
+    s === 'ENGAGED' ||
+    s === 'MARRIED'
+  )
+    return 'bg-amber-400';
+  if (s.includes('APPROVED') || s === 'PROCEEDING_TO_SECOND_DATE')
+    return 'bg-emerald-400';
+  if (
+    s.includes('DECLINED') ||
+    s === 'CANCELLED' ||
+    s === 'CLOSED' ||
+    s === 'EXPIRED' ||
+    s === 'ENDED_AFTER_FIRST_DATE'
+  )
+    return 'bg-rose-400';
+  if (
+    s === 'CONTACT_DETAILS_SHARED' ||
+    s === 'AWAITING_MATCHMAKER_APPROVAL' ||
+    s === 'AWAITING_FIRST_DATE_FEEDBACK' ||
+    s === 'MEETING_PENDING' ||
+    s === 'MEETING_SCHEDULED'
+  )
+    return 'bg-blue-400';
+  return 'bg-orange-400'; // PENDING, DRAFT, THINKING
+};
+
+export default function MiniTimeline({
+  statusHistory,
+  locale,
+  dict,
+  className,
+}: MiniTimelineProps) {
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  if (!statusHistory || statusHistory.length === 0) return null;
+
+  const sortedHistory = [...statusHistory].sort(
+    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+  );
+
+  const latestStatus = sortedHistory[0];
+  const statusKey = latestStatus.status as MatchSuggestionStatus;
+  const statusInfo = dict.statuses[statusKey] || {
+    label: latestStatus.status,
+    description: '',
+  };
+
+  const dateFnsLocale = locale === 'he' ? he : enUS;
+  const formattedDate = format(
+    new Date(latestStatus.createdAt),
+    locale === 'he' ? 'dd/MM/yy' : 'MM/dd/yy',
+    { locale: dateFnsLocale }
+  );
+
+  return (
+    <div className={cn('space-y-0', className)}>
+      {/* Mini bar */}
+      <button
+        onClick={() => setIsExpanded((prev) => !prev)}
+        className={cn(
+          'w-full flex items-center justify-between gap-3 px-4 py-3',
+          'bg-white/80 backdrop-blur-sm rounded-xl border border-gray-100',
+          'hover:bg-gray-50 transition-colors group cursor-pointer',
+          'shadow-sm'
+        )}
+      >
+        <div className="flex items-center gap-3 min-w-0">
+          {/* Animated dot */}
+          <div className="relative flex-shrink-0">
+            <div
+              className={cn(
+                'w-3 h-3 rounded-full',
+                getCategoryDot(latestStatus.status)
+              )}
+            />
+            {/* Pulse ring for active statuses */}
+            {!latestStatus.status.includes('DECLINED') &&
+              !['CANCELLED', 'CLOSED', 'EXPIRED', 'MARRIED'].includes(
+                latestStatus.status
+              ) && (
+                <div
+                  className={cn(
+                    'absolute inset-0 w-3 h-3 rounded-full animate-ping opacity-40',
+                    getCategoryDot(latestStatus.status)
+                  )}
+                />
+              )}
+          </div>
+
+          <span className="text-sm font-medium text-gray-700 truncate">
+            {statusInfo.label}
+          </span>
+        </div>
+
+        <div className="flex items-center gap-2 flex-shrink-0">
+          <span className="text-xs text-gray-400">{formattedDate}</span>
+          {isExpanded ? (
+            <ChevronUp className="w-4 h-4 text-gray-400 group-hover:text-gray-600 transition-colors" />
+          ) : (
+            <ChevronDown className="w-4 h-4 text-gray-400 group-hover:text-gray-600 transition-colors" />
+          )}
+        </div>
+      </button>
+
+      {/* Expanded full timeline */}
+      {isExpanded && (
+        <div className="mt-3 animate-in slide-in-from-top-2 fade-in-50 duration-300">
+          <SuggestionTimeline
+            statusHistory={statusHistory}
+            dict={dict}
+            locale={locale}
+          />
+        </div>
+      )}
+    </div>
+  );
+}
+--- End of Content for MiniTimeline.tsx ---
 
 --------------------------------------------------------------------------------
 File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\suggestions\timeline\SuggestionTimeline.tsx

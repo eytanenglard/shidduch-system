@@ -53,8 +53,8 @@ import type { QuestionnaireResponse } from '@/types/next-auth';
 import type { AiSuggestionAnalysisResult } from '@/lib/services/aiService';
 
 import { ProfileCard } from '@/components/profile';
-import SuggestionTimeline from '../timeline/SuggestionTimeline';
-import InquiryThreadView from '../inquiries/InquiryThreadView';
+import MiniTimeline from '../timeline/MiniTimeline';
+import SuggestionChat from '@/components/messages/SuggestionChat';
 import { AskMatchmakerDialog } from '../dialogs/AskMatchmakerDialog';
 import { UserAiAnalysisDialog } from '../dialogs/UserAiAnalysisDialog';
 import type { ExtendedMatchSuggestion } from '../../../types/suggestions';
@@ -76,7 +76,7 @@ interface SuggestionDetailsModalProps {
   questionnaire: QuestionnaireResponse | null;
   isDemo?: boolean;
   demoAnalysisData?: AiSuggestionAnalysisResult | null;
-  initialTab?: string; // ← NEW PROP
+  initialTab?: string;
   dict: {
     suggestions: SuggestionsDictionary;
     profileCard: ProfileCardDict;
@@ -559,7 +559,7 @@ const EnhancedTabsSection: React.FC<{
           value="details"
           className="flex flex-col items-center justify-center gap-1.5 rounded-2xl text-xs sm:text-sm data-[state=active]:bg-gradient-to-br data-[state=active]:from-slate-500 data-[state=active]:to-gray-500 data-[state=active]:text-white data-[state=active]:shadow-xl font-bold"
         >
-          <Info className="w-5 h-5 sm:w-6 sm:h-6" />
+          <MessageCircle className="w-5 h-5 sm:w-6 sm:h-6" />
           <span className="hidden sm:inline">{dict.details}</span>
           <span className="sm:hidden">{dict.detailsShort}</span>
         </TabsTrigger>
@@ -602,6 +602,7 @@ const EnhancedTabsSection: React.FC<{
   </div>
 );
 
+// --- Main Component ---
 const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
   suggestion,
   userId,
@@ -612,7 +613,7 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
   questionnaire,
   isDemo = false,
   demoAnalysisData = null,
-  initialTab, // ← NEW
+  initialTab,
   dict,
 }) => {
   const [activeTab, setActiveTab] = useState('presentation');
@@ -625,6 +626,7 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
   const { isFullscreen, isTransitioning, toggleFullscreen } =
     useFullscreenModal(isOpen);
   const searchParams = useSearchParams();
+  const isHe = locale === 'he';
 
   useEffect(() => {
     if (isOpen && (isMobile || isFullscreen)) {
@@ -640,7 +642,6 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
     };
   }, [isOpen, isMobile, isFullscreen]);
 
-  // ← UPDATED: use initialTab prop, fallback to searchParams, then 'presentation'
   useEffect(() => {
     if (isOpen) {
       if (initialTab) {
@@ -681,18 +682,22 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
     if (!suggestion) return;
     setIsSubmitting(true);
     try {
-      await fetch(`/api/suggestions/${suggestion.id}/inquiries`, {
+      await fetch(`/api/suggestions/${suggestion.id}/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ question }),
+        body: JSON.stringify({ content: question }),
       });
-      toast.success(dict.suggestions.inquiryThread.toasts.sendSuccessTitle, {
-        description:
-          dict.suggestions.inquiryThread.toasts.sendSuccessDescription,
-      });
+      toast.success(
+        isHe ? 'ההודעה נשלחה בהצלחה!' : 'Message sent successfully!',
+        {
+          description: isHe
+            ? 'השדכן/ית יקבל/תקבל את ההודעה שלך בקרוב'
+            : 'Your matchmaker will receive your message soon',
+        }
+      );
       setShowAskDialog(false);
     } catch (error) {
-      toast.error(dict.suggestions.inquiryThread.toasts.sendError);
+      toast.error(isHe ? 'שגיאה בשליחת ההודעה' : 'Error sending message');
     } finally {
       setIsSubmitting(false);
     }
@@ -747,6 +752,8 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
                 isTransitioning={isTransitioning}
                 dict={dict.suggestions.modal.tabs}
               />
+
+              {/* TAB: Presentation */}
               <TabsContent value="presentation" className="mt-0">
                 <EnhancedHeroSection
                   matchmaker={suggestion.matchmaker}
@@ -759,10 +766,12 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
                   }
                   matchingReason={suggestion.matchingReason}
                   onViewProfile={() => setActiveTab('profile')}
-                  onStartConversation={() => setShowAskDialog(true)}
+                  onStartConversation={() => setActiveTab('details')}
                   dict={dict.suggestions.modal.header}
                 />
               </TabsContent>
+
+              {/* TAB: Profile */}
               <TabsContent
                 value="profile"
                 className="mt-0 p-4 md:p-6 bg-gradient-to-br from-slate-50 via-white to-teal-50 text-start"
@@ -802,7 +811,7 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
                       {dict.suggestions.modal.profile.errorDescription}
                     </p>
                     <Button
-                      onClick={() => setShowAskDialog(true)}
+                      onClick={() => setActiveTab('details')}
                       className="mt-6 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white"
                     >
                       <MessageCircle className="w-4 h-4 ml-2" />
@@ -811,6 +820,8 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
                   </div>
                 )}
               </TabsContent>
+
+              {/* TAB: Compatibility / AI Analysis */}
               <TabsContent
                 value="compatibility"
                 className="mt-0 p-4 md:p-6 bg-gradient-to-br from-slate-50 via-white to-rose-50"
@@ -867,28 +878,41 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
                   />
                 </div>
               </TabsContent>
+
+              {/* TAB: Details — Chat + Mini Timeline */}
               <TabsContent
                 value="details"
-                className="mt-0 p-6 md:p-8 space-y-8 bg-gradient-to-br from-slate-50 via-white to-gray-50"
+                className="mt-0 p-4 md:p-6 bg-[#f0f2f5] min-h-[600px]"
               >
-                <div className="max-w-6xl mx-auto space-y-8">
-                  <SuggestionTimeline
+                <div className="max-w-3xl mx-auto space-y-4">
+                  {/* Mini Timeline — collapsible */}
+                  <MiniTimeline
                     statusHistory={suggestion.statusHistory}
                     dict={dict.suggestions.timeline}
                     locale={locale}
                   />
-                  <InquiryThreadView
+
+                  {/* Chat — the main content of this tab */}
+                  <SuggestionChat
                     suggestionId={suggestion.id}
-                    userId={userId}
-                    showComposer={true}
-                    isDemo={isDemo}
-                    dict={dict.suggestions.inquiryThread}
                     locale={locale}
+                    compact
+                    heightClass="h-[calc(60vh-120px)] min-h-[350px]"
+                    header={{
+                      title: isHe
+                        ? `שיחה עם ${suggestion.matchmaker?.firstName || 'השדכן/ית'}`
+                        : `Chat with ${suggestion.matchmaker?.firstName || 'Matchmaker'}`,
+                      subtitle: isHe
+                        ? 'שאל/י שאלות, קבל/י עדכונים'
+                        : 'Ask questions, get updates',
+                    }}
                   />
                 </div>
               </TabsContent>
             </Tabs>
           </ScrollArea>
+
+          {/* Quick Actions Footer */}
           <EnhancedQuickActions
             isExpanded={isActionsExpanded}
             onToggleExpand={() => setIsActionsExpanded((prev) => !prev)}
@@ -896,12 +920,13 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
             isSubmitting={isSubmitting}
             onApprove={handleApprove}
             onDecline={handleDecline}
-            onAskQuestion={() => setShowAskDialog(true)}
+            onAskQuestion={() => setActiveTab('details')}
             dict={dict.suggestions.modal.actions}
             locale={locale}
           />
         </DialogContent>
       </Dialog>
+
       <AskMatchmakerDialog
         isOpen={showAskDialog}
         onClose={() => setShowAskDialog(false)}

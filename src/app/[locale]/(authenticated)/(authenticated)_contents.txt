@@ -1,0 +1,1155 @@
+################################################################################
+# Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\(authenticated)
+# Generated on: 2026-03-06 01:22:40
+# Filter: Only content of code files (.bat, .c, .cfg, .conf, .cpp, .cs, .css, .go, .h, .html, .ini, .java, .js, .json, .jsx, .kt, .less, .md, .php, .py, .rb, .rs, .scss, .sh, .sql, .swift, .ts, .tsx, .txt, .xml, .yaml, .yml) is included.
+################################################################################
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\(authenticated)
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\(authenticated)\(authenticated)_contents.txt
+--------------------------------------------------------------------------------
+[This is the output log file itself. Content not included.]
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\(authenticated)\admin
+================================================================================
+
+(This directory contains subdirectories but no files directly. See subdirectories below.)
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\(authenticated)\admin\engagement
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\(authenticated)\admin\engagement\page.tsx
+--------------------------------------------------------------------------------
+Content:
+// src/app/[locale]/(authenticated)/admin/engagement/page.tsx
+import { Suspense } from 'react';
+import { getServerSession } from 'next-auth';
+import { redirect } from 'next/navigation';
+import EngagementDashboard from '@/components/admin/EngagementDashboard';
+import { getDictionary } from '@/lib/dictionaries';
+import type { Locale } from '../../../../../../i18n-config';
+import { authOptions } from '@/lib/auth';
+import StandardizedLoadingSpinner from '@/components/questionnaire/common/StandardizedLoadingSpinner';
+
+type EngagementPageProps = {
+  params: Promise<{ locale: Locale }>;
+};
+
+export default async function EngagementPage({ params }: EngagementPageProps) {
+  const { locale } = await params;
+  const session = await getServerSession(authOptions);
+
+  if (session?.user?.role !== 'ADMIN') {
+    redirect('/');
+  }
+
+  const dict = await getDictionary(locale);
+
+  return (
+    <Suspense
+      fallback={
+        <StandardizedLoadingSpinner
+          text="טוען נתוני מעורבות..."
+          subtext="מנתחים את הפעילות במערכת"
+        />
+      }
+    >
+      <EngagementDashboard dict={dict} />
+    </Suspense>
+  );
+}
+--- End of Content for page.tsx ---
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\(authenticated)\matches
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\(authenticated)\matches\MatchesClientPage.tsx
+--------------------------------------------------------------------------------
+Content:
+// src/app/[locale]/matches/MatchesClientPage.tsx
+
+'use client';
+
+import { useSession } from 'next-auth/react';
+import MatchSuggestionsContainer from '@/components/suggestions/MatchSuggestionsContainer';
+import StandardizedLoadingSpinner from '@/components/questionnaire/common/StandardizedLoadingSpinner';
+import type {
+  SuggestionsDictionary,
+  ProfileCardDict,
+} from '@/types/dictionary';
+
+/**
+ * הממשק (interface) מגדיר את ה-props שהרכיב הזה מקבל.
+ * הוא מצפה לקבל אובייקט 'dict' המכיל את שני מילוני התרגום
+ * הדרושים לו ולרכיבי הילד שלו: מילון ההצעות ומילון כרטיס הפרופיל.
+ */
+interface MatchesClientPageProps {
+  suggestionsDict: SuggestionsDictionary;
+  profileCardDict: ProfileCardDict;
+}
+
+/**
+ * רכיב צד-לקוח (Client Component) האחראי על הצגת עמוד ההצעות.
+ * הוא מנהל את אימות המשתמש ומעביר את הנתונים והתרגומים לרכיב התצוגה הראשי.
+ */
+export default function MatchesClientPage({ suggestionsDict, profileCardDict }: MatchesClientPageProps) {
+  // קבלת נתוני המשתמש והסטטוס של החיבור
+  const { data: session, status } = useSession();
+
+  // בזמן שהחיבור מתבצע, הצג את רכיב הטעינה האחיד
+  if (status === 'loading') {
+    return (
+      <StandardizedLoadingSpinner 
+        text="טוען התאמות..." 
+        subtext="מחפשים את השידוכים המתאימים ביותר עבורך"
+        className="min-h-[60vh]"
+      />
+    );
+  }
+
+  // אם המשתמש אינו מחובר, הצג הודעה מתאימה
+  if (!session?.user?.id) {
+    // ניתן להוסיף כאן רכיב מעוצב יותר או הפנייה לדף ההתחברות
+    return (
+      <div className="container mx-auto p-6 text-center text-red-600">
+        אינך מורשה לצפות בדף זה. יש להתחבר למערכת.
+      </div>
+    );
+  }
+
+  // אם המשתמש מחובר, רנדר את קונטיינר ההצעות והעבר לו את הנתונים הנדרשים
+  return (
+    <MatchSuggestionsContainer
+      userId={session.user.id}
+      suggestionsDict={suggestionsDict}
+      profileCardDict={profileCardDict}
+    />
+  );
+}
+--- End of Content for MatchesClientPage.tsx ---
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\(authenticated)\matches\page.tsx
+--------------------------------------------------------------------------------
+Content:
+// src/app/[locale]/(authenticated)/matches/page.tsx
+import { getDictionary } from '@/lib/dictionaries';
+import type { Locale } from '../../../../../i18n-config';
+import MatchesClientPage from './MatchesClientPage';
+
+// הגדרת ה-props הנכונה
+type MatchesPageProps = {
+  params: Promise<{ locale: Locale }>;
+};
+
+export default async function MatchesPage({ params }: MatchesPageProps) {
+  // שימוש ב-await כדי לחלץ את המידע מה-Promise
+  const { locale } = await params;
+  const dictionary = await getDictionary(locale);
+
+  return (
+    <MatchesClientPage
+      suggestionsDict={dictionary.suggestions}
+      profileCardDict={dictionary.profilePage.profileCard}
+    />
+  );
+}
+--- End of Content for page.tsx ---
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\(authenticated)\matchmaker
+================================================================================
+
+(This directory contains subdirectories but no files directly. See subdirectories below.)
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\(authenticated)\matchmaker\clients
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\(authenticated)\matchmaker\clients\CandidatesManagerClient.tsx
+--------------------------------------------------------------------------------
+Content:
+// File: CandidatesManagerClient.tsx
+
+'use client';
+
+import CandidatesManager from '@/components/matchmaker/new/CandidatesManager/index';
+import type { MatchmakerPageDictionary } from '@/types/dictionaries/matchmaker';
+import type { ProfilePageDictionary } from '@/types/dictionary';
+
+interface CandidatesManagerClientProps {
+  matchmakerDict: MatchmakerPageDictionary;
+  profileDict: ProfilePageDictionary;
+  locale: string; // ▼▼▼ ADDED: locale prop ▼▼▼
+}
+
+export default function CandidatesManagerClient({
+  matchmakerDict,
+  profileDict,
+  locale, // ▼▼▼ ADDED: destructure locale ▼▼▼
+}: CandidatesManagerClientProps) {
+  // ▼▼▼ CHANGE: Pass the dictionaries and the new locale prop down ▼▼▼
+  return (
+    <CandidatesManager
+      matchmakerDict={matchmakerDict}
+      profileDict={profileDict}
+      locale={locale}
+    />
+  );
+}
+--- End of Content for CandidatesManagerClient.tsx ---
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\(authenticated)\matchmaker\clients\page.tsx
+--------------------------------------------------------------------------------
+Content:
+// src/app/[locale]/(authenticated)/matchmaker/clients/page.tsx
+import { Suspense } from 'react';
+import { getDictionary } from '@/lib/dictionaries';
+import type { Locale } from '../../../../../../i18n-config';
+import CandidatesManagerClient from './CandidatesManagerClient';
+import StandardizedLoadingSpinner from '@/components/questionnaire/common/StandardizedLoadingSpinner';
+
+type ClientsPageProps = {
+  params: Promise<{ locale: Locale }>;
+};
+
+export default async function ClientsPage({ params }: ClientsPageProps) {
+  const { locale } = await params;
+  const dictionary = await getDictionary(locale);
+
+  return (
+    <Suspense
+      fallback={
+        <StandardizedLoadingSpinner
+          text="טוען את מנהל המועמדים..."
+          subtext="מכינים את רשימת הלקוחות והפרופילים"
+        />
+      }
+    >
+      <CandidatesManagerClient
+        matchmakerDict={dictionary.matchmakerPage}
+        profileDict={dictionary.profilePage}
+        locale={locale}
+      />
+    </Suspense>
+  );
+}
+--- End of Content for page.tsx ---
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\(authenticated)\matchmaker\messages
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\(authenticated)\matchmaker\messages\MatchmakerMessagesClientPage.tsx
+--------------------------------------------------------------------------------
+Content:
+// src/app/[locale]/(authenticated)/matchmaker/messages/MatchmakerMessagesClientPage.tsx
+'use client';
+
+import React, { useState, useCallback, useRef } from 'react';
+import { useSession } from 'next-auth/react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { MessageSquare, ClipboardCheck, Megaphone } from 'lucide-react';
+import MessagesPage from '@/components/messages/MessagesPage';
+import MatchmakerChatPanel from '@/components/messages/MatchmakerChatPanel';
+import type { MatchmakerChatPanelHandle } from '@/components/messages/MatchmakerChatPanel';
+import MatchmakerUserSearchDialog from '@/components/messages/MatchmakerUserSearchDialog';
+import StandardizedLoadingSpinner from '@/components/questionnaire/common/StandardizedLoadingSpinner';
+import type { Locale } from '../../../../../../i18n-config';
+
+// ==========================================
+// Dictionary
+// ==========================================
+
+interface MatchmakerMessagesDict {
+  header: { title: string; subtitle: string };
+  tabs: { chat: string; availability: string };
+}
+
+const defaultDict: MatchmakerMessagesDict = {
+  header: {
+    title: 'מרכז הודעות',
+    subtitle: 'נהל/י תקשורת עם מועמדים ובקשות זמינות',
+  },
+  tabs: { chat: "צ'אט עם מועמדים", availability: 'בקשות זמינות' },
+};
+
+// ==========================================
+// Main Component
+// ==========================================
+
+interface Props {
+  locale: Locale;
+  dict?: MatchmakerMessagesDict;
+}
+
+export default function MatchmakerMessagesClientPage({ locale, dict }: Props) {
+  const t = dict || defaultDict;
+  const { data: session } = useSession();
+  const isHe = locale === 'he';
+
+  // Search dialog state
+  const [searchDialogOpen, setSearchDialogOpen] = useState(false);
+
+  // שינוי 1: Unread count — מתעדכן דרך callback מ-MatchmakerChatPanel
+  const [totalUnread, setTotalUnread] = useState(0);
+
+  // Ref to call refresh on MatchmakerChatPanel without remounting
+  const chatPanelRef = useRef<MatchmakerChatPanelHandle>(null);
+
+  const handleUnreadUpdate = useCallback((total: number) => {
+    setTotalUnread(total);
+  }, []);
+
+  const handleBroadcastSent = useCallback(() => {
+    setSearchDialogOpen(false);
+    chatPanelRef.current?.refresh();
+  }, []);
+
+  if (!session?.user) {
+    return <StandardizedLoadingSpinner className="h-[calc(100vh-80px)]" />;
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-teal-50/40 via-white to-amber-50/30">
+      <div className="container mx-auto px-4 py-8 max-w-6xl">
+        {/* Header */}
+        <header className="text-center mb-10">
+          <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-teal-700 via-teal-600 to-amber-600 bg-clip-text text-transparent mb-3">
+            {t.header.title}
+          </h1>
+          <p className="text-base text-gray-500">{t.header.subtitle}</p>
+        </header>
+
+        {/* Tabs */}
+        <Tabs defaultValue="chat">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-8">
+            <TabsList className="bg-white/90 backdrop-blur-sm rounded-2xl p-1.5 shadow-md border border-gray-100 h-auto">
+              <TabsTrigger
+                value="chat"
+                className="rounded-xl px-6 py-3 text-sm font-medium data-[state=active]:bg-gradient-to-r data-[state=active]:from-teal-500 data-[state=active]:to-teal-600 data-[state=active]:text-white data-[state=active]:shadow-md transition-all relative gap-2"
+              >
+                <MessageSquare className="w-4 h-4" />
+                {t.tabs.chat}
+                {totalUnread > 0 && (
+                  <Badge className="bg-amber-500 text-white text-[10px] px-1.5 py-0 min-w-[20px] h-5 border-0 shadow-sm">
+                    {totalUnread}
+                  </Badge>
+                )}
+              </TabsTrigger>
+              <TabsTrigger
+                value="availability"
+                className="rounded-xl px-6 py-3 text-sm font-medium data-[state=active]:bg-gradient-to-r data-[state=active]:from-teal-500 data-[state=active]:to-teal-600 data-[state=active]:text-white data-[state=active]:shadow-md transition-all gap-2"
+              >
+                <ClipboardCheck className="w-4 h-4" />
+                {t.tabs.availability}
+              </TabsTrigger>
+            </TabsList>
+
+            {/* Broadcast Button */}
+            <Button
+              onClick={() => setSearchDialogOpen(true)}
+              className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white rounded-xl shadow-md px-5 py-2.5 h-auto gap-2"
+            >
+              <Megaphone className="w-4 h-4" />
+              {isHe ? 'שלח הודעה' : 'Send Message'}
+            </Button>
+          </div>
+
+          <TabsContent value="chat" className="mt-0">
+            {/* שינוי 3: העברת onUnreadUpdate ל-MatchmakerChatPanel */}
+            <MatchmakerChatPanel
+              ref={chatPanelRef}
+              locale={locale}
+              onUnreadUpdate={handleUnreadUpdate}
+            />
+          </TabsContent>
+          <TabsContent value="availability" className="mt-0">
+            <MessagesPage />
+          </TabsContent>
+        </Tabs>
+      </div>
+
+      {/* Search & Broadcast Dialog */}
+      <MatchmakerUserSearchDialog
+        open={searchDialogOpen}
+        onClose={() => setSearchDialogOpen(false)}
+        onSent={handleBroadcastSent}
+        locale={locale}
+      />
+    </div>
+  );
+}
+--- End of Content for MatchmakerMessagesClientPage.tsx ---
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\(authenticated)\matchmaker\messages\page.tsx
+--------------------------------------------------------------------------------
+Content:
+// src/app/[locale]/(authenticated)/matchmaker/messages/page.tsx
+// ==========================================
+// NeshamaTech - Matchmaker Messages Page (Server Component)
+// Route: /he/matchmaker/messages or /en/matchmaker/messages
+// ==========================================
+
+import { getDictionary } from '@/lib/dictionaries';
+import type { Locale } from '../../../../../../i18n-config';
+import MatchmakerMessagesClientPage from './MatchmakerMessagesClientPage';
+
+type MatchmakerMessagesPageProps = {
+  params: Promise<{ locale: Locale }>;
+};
+
+export default async function MatchmakerMessagesPage({ params }: MatchmakerMessagesPageProps) {
+  const { locale } = await params;
+  const dictionary = await getDictionary(locale);
+
+  return (
+    <MatchmakerMessagesClientPage
+      locale={locale}
+      // אם יש מילון ייעודי להודעות שדכן, העבר אותו כאן:
+      // dict={dictionary.matchmakerMessagesPage}
+    />
+  );
+}
+--- End of Content for page.tsx ---
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\(authenticated)\matchmaker\potential-matches
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\(authenticated)\matchmaker\potential-matches\PotentialMatchesClient.tsx
+--------------------------------------------------------------------------------
+Content:
+'use client';
+
+import PotentialMatchesDashboard from '@/components/matchmaker/new/PotentialMatches/PotentialMatchesDashboard';
+import type { MatchmakerPageDictionary } from '@/types/dictionaries/matchmaker';
+import type { ProfilePageDictionary } from '@/types/dictionary';
+
+interface PotentialMatchesClientProps {
+  matchmakerDict: MatchmakerPageDictionary;
+  profileDict: ProfilePageDictionary;
+  locale: string;
+}
+
+export default function PotentialMatchesClient({
+  matchmakerDict,
+  profileDict,
+  locale,
+}: PotentialMatchesClientProps) {
+  return (
+    <PotentialMatchesDashboard
+      matchmakerDict={matchmakerDict} // <-- הוספנו את זה כדי לתקן את השגיאה
+      profileDict={profileDict}
+      locale={locale}
+    />
+  );
+}
+--- End of Content for PotentialMatchesClient.tsx ---
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\(authenticated)\matchmaker\potential-matches\page.tsx
+--------------------------------------------------------------------------------
+Content:
+// src/app/[locale]/(authenticated)/matchmaker/potential-matches/page.tsx
+import { Suspense } from 'react';
+import { getDictionary } from '@/lib/dictionaries';
+import type { Locale } from '../../../../../../i18n-config';
+import PotentialMatchesClient from './PotentialMatchesClient';
+import StandardizedLoadingSpinner from '@/components/questionnaire/common/StandardizedLoadingSpinner';
+
+type PotentialMatchesPageProps = {
+  params: Promise<{ locale: Locale }>;
+};
+
+export default async function PotentialMatchesPage({ params }: PotentialMatchesPageProps) {
+  const { locale } = await params;
+  const dictionary = await getDictionary(locale);
+
+  return (
+    <Suspense
+      fallback={
+        <StandardizedLoadingSpinner
+          text="טוען התאמות פוטנציאליות..."
+          subtext="מכינים את רשימת ההתאמות"
+        />
+      }
+    >
+      <PotentialMatchesClient
+        matchmakerDict={dictionary.matchmakerPage}
+        profileDict={dictionary.profilePage}
+        locale={locale}
+      />
+    </Suspense>
+  );
+}
+--- End of Content for page.tsx ---
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\(authenticated)\matchmaker\suggestions
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\(authenticated)\matchmaker\suggestions\MatchmakerDashboardPageClient.tsx
+--------------------------------------------------------------------------------
+Content:
+// src/app/[locale]/matchmaker/dashboard/MatchmakerDashboardPageClient.tsx
+
+"use client";
+
+import { Suspense } from "react";
+import MatchmakerDashboard from "@/components/matchmaker/suggestions/container/MatchmakerDashboard";
+import StandardizedLoadingSpinner from "@/components/questionnaire/common/StandardizedLoadingSpinner";
+import type {
+  SuggestionsDictionary,
+  MatchmakerPageDictionary,
+  ProfilePageDictionary,
+} from "@/types/dictionary";
+
+// ✅ 1. הגדר את ה-props כפרמטרים נפרדים
+interface MatchmakerDashboardPageClientProps {
+  suggestionsDict: SuggestionsDictionary;
+  matchmakerDict: MatchmakerPageDictionary;
+  profileDict: ProfilePageDictionary;
+}
+
+// ✅ 2. עדכן את הרכיב כך שיקבל את המילונים הנפרדים
+export default function MatchmakerDashboardPageClient({
+  suggestionsDict,
+  matchmakerDict,
+  profileDict,
+}: MatchmakerDashboardPageClientProps) {
+  return (
+    <div className="min-h-screen bg-background">
+      <Suspense
+        fallback={
+          <StandardizedLoadingSpinner 
+            text="טוען לוח בקרה לשדכנים..." 
+            subtext="מכינים את המועמדים וההצעות"
+          />
+        }
+      >
+        {/* ✅ 3. העבר את המילונים הנפרדים הלאה לרכיב MatchmakerDashboard */}
+        <MatchmakerDashboard
+          suggestionsDict={suggestionsDict}
+          matchmakerDict={matchmakerDict}
+          profileDict={profileDict}
+        />
+      </Suspense>
+    </div>
+  );
+}
+--- End of Content for MatchmakerDashboardPageClient.tsx ---
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\(authenticated)\matchmaker\suggestions\page.tsx
+--------------------------------------------------------------------------------
+Content:
+// src/app/[locale]/(authenticated)/matchmaker/suggestions/page.tsx
+import { getDictionary } from '@/lib/dictionaries';
+import type { Locale } from '../../../../../../i18n-config';
+import MatchmakerDashboardPageClient from './MatchmakerDashboardPageClient';
+import type {
+  MatchmakerPageDictionary,
+  SuggestionsDictionary,
+  ProfilePageDictionary,
+} from '@/types/dictionary';
+
+// הגדרת ה-props הנכונה
+type SuggestionsPageProps = {
+  params: Promise<{ locale: Locale }>;
+};
+
+export default async function SuggestionsPage({ params }: SuggestionsPageProps) {
+  // שימוש ב-await כדי לחלץ את המידע מה-Promise
+  const { locale } = await params;
+  const dictionary = await getDictionary(locale);
+
+  return (
+    <MatchmakerDashboardPageClient
+      suggestionsDict={dictionary.suggestions as SuggestionsDictionary}
+      matchmakerDict={dictionary.matchmakerPage as MatchmakerPageDictionary}
+      profileDict={dictionary.profilePage as ProfilePageDictionary}
+    />
+  );
+}
+--- End of Content for page.tsx ---
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\(authenticated)\messages
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\(authenticated)\messages\MessagesClientPage.tsx
+--------------------------------------------------------------------------------
+Content:
+// =============================================================================
+// 25. User Messages Page — Two Tabs Layout
+// File: src/app/[locale]/(authenticated)/messages/MessagesClientPage.tsx
+// =============================================================================
+
+'use client';
+
+import React, { useState, useEffect, useCallback } from 'react';
+import { useSession } from 'next-auth/react';
+import { Inbox, Zap, RefreshCw, MessageCircle, Bell } from 'lucide-react';
+import { AnimatePresence, motion } from 'framer-motion';
+import StandardizedLoadingSpinner from '@/components/questionnaire/common/StandardizedLoadingSpinner';
+import type { FeedItem } from '@/types/messages';
+import NotificationCard from '@/components/messages/NotificationCard';
+import UserChatPanel from '@/components/messages/UserChatPanel';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { cn } from '@/lib/utils';
+import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
+import type { MessagesPageDict } from '@/types/dictionary';
+import type { Locale } from '../../../../../i18n-config';
+
+type FilterType = 'all' | 'action_required' | 'updates';
+type MainTab = 'chats' | 'updates';
+
+interface MessagesClientPageProps {
+  dict: MessagesPageDict;
+  locale: Locale;
+}
+
+export default function MessagesClientPage({
+  dict,
+  locale,
+}: MessagesClientPageProps) {
+  const { data: session } = useSession();
+  const [mainTab, setMainTab] = useState<MainTab>('chats');
+
+  // ==========================================
+  // Feed state (for updates tab)
+  // ==========================================
+  const [feedItems, setFeedItems] = useState<FeedItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [activeFilter, setActiveFilter] = useState<FilterType>('all');
+
+  // Chat unread count — delegated from UserChatPanel
+  const [chatUnread, setChatUnread] = useState(0);
+
+  const userId = session?.user?.id;
+  const isHe = locale === 'he';
+
+  const fetchFeed = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const response = await fetch('/api/messages/feed');
+      if (!response.ok) throw new Error('Failed to fetch activity feed');
+      const data = await response.json();
+      if (data.success) {
+        setFeedItems(data.feed);
+      } else {
+        throw new Error(data.error || 'API returned an error');
+      }
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : 'An unknown error occurred'
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  // Callback for UserChatPanel to report unread count
+  const handleChatUnreadUpdate = useCallback((count: number) => {
+    setChatUnread(count);
+  }, []);
+
+  useEffect(() => {
+    if (userId) {
+      fetchFeed();
+    } else {
+      setIsLoading(false);
+    }
+  }, [userId, fetchFeed]);
+
+  const filteredItems = React.useMemo(() => {
+    if (activeFilter === 'all') return feedItems;
+    if (activeFilter === 'action_required')
+      return feedItems.filter((item) => item.type === 'ACTION_REQUIRED');
+    if (activeFilter === 'updates')
+      return feedItems.filter(
+        (item) =>
+          item.type === 'STATUS_UPDATE' || item.type === 'NEW_SUGGESTION'
+      );
+    return feedItems;
+  }, [feedItems, activeFilter]);
+
+  const actionRequiredCount = feedItems.filter(
+    (item) => item.type === 'ACTION_REQUIRED'
+  ).length;
+
+  if (!userId) {
+    return <StandardizedLoadingSpinner className="h-[calc(100vh-80px)]" />;
+  }
+
+  // ==========================================
+  // Render
+  // ==========================================
+
+  return (
+    <div
+      className="min-h-screen bg-gradient-to-br from-slate-50 via-cyan-50/20 to-emerald-50/20"
+      dir={isHe ? 'rtl' : 'ltr'}
+    >
+      <div className="container mx-auto px-4 py-8 max-w-5xl">
+        {/* Header */}
+        <header className="text-center mb-8">
+          <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-purple-600 via-cyan-600 to-emerald-600 bg-clip-text text-transparent mb-3">
+            {dict.header?.title || (isHe ? 'מרכז ההודעות' : 'Message Center')}
+          </h1>
+          <p className="text-lg text-gray-600">
+            {dict.header?.subtitle ||
+              (isHe
+                ? 'כל השיחות והעדכונים שלך במקום אחד'
+                : 'All your chats and updates in one place')}
+          </p>
+        </header>
+
+        {/* Main Tabs */}
+        <div className="flex items-center justify-center gap-2 p-1.5 bg-white/80 backdrop-blur-sm rounded-2xl shadow-md border border-gray-200 mb-8 max-w-md mx-auto">
+          <button
+            onClick={() => setMainTab('chats')}
+            className={cn(
+              'flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl font-medium text-sm transition-all duration-200',
+              mainTab === 'chats'
+                ? 'bg-gradient-to-r from-teal-500 to-cyan-500 text-white shadow-md'
+                : 'text-gray-600 hover:bg-gray-100'
+            )}
+          >
+            <MessageCircle className="w-4 h-4" />
+            {isHe ? "צ'אטים" : 'Chats'}
+            {chatUnread > 0 && (
+              <Badge
+                className={cn(
+                  'text-xs px-1.5 py-0 border-0',
+                  mainTab === 'chats'
+                    ? 'bg-white/30 text-white'
+                    : 'bg-teal-500 text-white animate-pulse'
+                )}
+              >
+                {chatUnread}
+              </Badge>
+            )}
+          </button>
+          <button
+            onClick={() => setMainTab('updates')}
+            className={cn(
+              'flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl font-medium text-sm transition-all duration-200',
+              mainTab === 'updates'
+                ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-md'
+                : 'text-gray-600 hover:bg-gray-100'
+            )}
+          >
+            <Bell className="w-4 h-4" />
+            {isHe ? 'עדכונים' : 'Updates'}
+            {actionRequiredCount > 0 && (
+              <Badge
+                className={cn(
+                  'text-xs px-1.5 py-0 border-0',
+                  mainTab === 'updates'
+                    ? 'bg-white/30 text-white'
+                    : 'bg-orange-500 text-white animate-pulse'
+                )}
+              >
+                {actionRequiredCount}
+              </Badge>
+            )}
+          </button>
+        </div>
+
+        {/* Tab Content */}
+        {mainTab === 'chats' && (
+          <UserChatPanel
+            locale={locale}
+            onUnreadUpdate={handleChatUnreadUpdate}
+          />
+        )}
+
+        {mainTab === 'updates' && (
+          <div>
+            {/* Action Required Banner */}
+            <AnimatePresence>
+              {actionRequiredCount > 0 && (
+                <motion.div
+                  initial={{ opacity: 0, y: -20, height: 0 }}
+                  animate={{ opacity: 1, y: 0, height: 'auto' }}
+                  exit={{ opacity: 0, y: -20, height: 0 }}
+                  transition={{ duration: 0.5, ease: 'easeInOut' }}
+                  className="mb-8"
+                >
+                  <Alert className="bg-gradient-to-r from-orange-400 to-amber-400 text-white border-0 shadow-2xl rounded-2xl">
+                    <Zap className="h-5 w-5 text-white" />
+                    <AlertTitle className="font-bold text-lg">
+                      {actionRequiredCount === 1
+                        ? dict.actionBanner?.titleSingle
+                        : dict.actionBanner?.titleMultiple?.replace(
+                            '{{count}}',
+                            actionRequiredCount.toString()
+                          )}
+                    </AlertTitle>
+                    <AlertDescription>
+                      {dict.actionBanner?.description}
+                    </AlertDescription>
+                  </Alert>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Filters */}
+            <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-8">
+              <div className="flex items-center gap-2 p-1 bg-white/80 backdrop-blur-sm rounded-full shadow-md border border-gray-200">
+                <Button
+                  variant={activeFilter === 'all' ? 'default' : 'ghost'}
+                  onClick={() => setActiveFilter('all')}
+                  className="rounded-full"
+                >
+                  {dict.filters?.all || (isHe ? 'הכל' : 'All')}
+                </Button>
+                <Button
+                  variant={
+                    activeFilter === 'action_required' ? 'default' : 'ghost'
+                  }
+                  onClick={() => setActiveFilter('action_required')}
+                  className="rounded-full relative"
+                >
+                  {dict.filters?.actionRequired ||
+                    (isHe ? 'דורש תגובה' : 'Action Required')}
+                  {actionRequiredCount > 0 && (
+                    <Badge className="absolute -top-1 -right-2 bg-orange-500 text-white animate-pulse">
+                      {actionRequiredCount}
+                    </Badge>
+                  )}
+                </Button>
+                <Button
+                  variant={activeFilter === 'updates' ? 'default' : 'ghost'}
+                  onClick={() => setActiveFilter('updates')}
+                  className="rounded-full"
+                >
+                  {dict.filters?.updates || (isHe ? 'עדכונים' : 'Updates')}
+                </Button>
+              </div>
+              <Button
+                variant="outline"
+                onClick={fetchFeed}
+                disabled={isLoading}
+              >
+                <RefreshCw
+                  className={cn(
+                    'w-4 h-4',
+                    isHe ? 'ml-2' : 'mr-2',
+                    isLoading && 'animate-spin'
+                  )}
+                />
+                {dict.filters?.refresh || (isHe ? 'רענון' : 'Refresh')}
+              </Button>
+            </div>
+
+            {/* Error */}
+            {error && (
+              <div className="text-center p-4 bg-red-50 text-red-700 rounded-lg mb-4">
+                {error}
+              </div>
+            )}
+
+            {/* Feed — CSS animations instead of AnimatePresence */}
+            {isLoading ? (
+              <StandardizedLoadingSpinner className="h-64" />
+            ) : filteredItems.length === 0 ? (
+              <div className="flex flex-col items-center justify-center min-h-[400px] text-center p-8 bg-white/50 rounded-2xl shadow-inner border border-gray-200/50">
+                <Inbox className="w-20 h-20 text-gray-300 mb-6" />
+                <h3 className="text-2xl font-bold text-gray-700">
+                  {dict.emptyState?.title ||
+                    (isHe ? 'אין עדכונים' : 'No updates')}
+                </h3>
+                <p className="text-gray-500 mt-2 max-w-md">
+                  {activeFilter === 'all'
+                    ? dict.emptyState?.descriptionAll
+                    : dict.emptyState?.descriptionFiltered}
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {filteredItems.map((item) => (
+                  <div
+                    key={item.id}
+                    className="animate-in fade-in slide-in-from-bottom-2 duration-300"
+                  >
+                    <NotificationCard
+                      item={item}
+                      userId={userId!}
+                      dict={dict.notificationCard}
+                      locale={locale}
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+--- End of Content for MessagesClientPage.tsx ---
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\(authenticated)\messages\page.tsx
+--------------------------------------------------------------------------------
+Content:
+// src/app/[locale]/(authenticated)/messages/page.tsx
+import { getDictionary } from '@/lib/dictionaries';
+import type { Locale } from '../../../../../i18n-config';
+import MessagesClientPage from './MessagesClientPage';
+
+// הגדרת ה-props הנכונה
+type MessagesPageProps = {
+  params: Promise<{ locale: Locale }>;
+};
+
+export default async function MessagesPage({ params }: MessagesPageProps) {
+  // שימוש ב-await כדי לחלץ את המידע מה-Promise
+  const { locale } = await params;
+  const dictionary = await getDictionary(locale);
+
+  return <MessagesClientPage dict={dictionary.messagesPage} locale={locale} />;
+}
+--- End of Content for page.tsx ---
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\(authenticated)\profile
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\(authenticated)\profile\ProfilePageClient.tsx
+--------------------------------------------------------------------------------
+Content:
+'use client';
+
+import React, { Suspense } from 'react';
+import UnifiedProfileDashboard from '@/components/profile/sections/UnifiedProfileDashboard';
+import { useSearchParams } from 'next/navigation';
+import { ProfilePageDictionary } from '@/types/dictionary';
+
+// ממשק ה-props של ProfilePageContent נשאר כפי שהוא
+interface ProfilePageContentProps {
+  dict: ProfilePageDictionary;
+  locale: 'he' | 'en';
+}
+
+// קומפוננטת התוכן
+const ProfilePageContent = ({ dict, locale }: ProfilePageContentProps) => {
+  const searchParams = useSearchParams();
+  const tabFromUrl = searchParams.get('tab');
+  console.log(
+    '---[ CLIENT LOG 1 | ProfilePageClient.tsx ]--- קורא את פרמטר ה-URL. הערך של "tab" הוא:',
+    tabFromUrl
+  );
+  const viewOnly = searchParams.get('viewOnly') === 'true';
+  const userId = searchParams.get('userId') || undefined;
+  const initialTab = searchParams.get('tab') || 'overview';
+  console.log(
+    `---[ CLIENT LOG 2 | ProfilePageClient.tsx ]--- מגדיר את initialTab לערך "${initialTab}". הערך הזה מועבר ל-UnifiedProfileDashboard.`
+  );
+  
+  return (
+    <div className="min-h-screen bg-background">
+      <UnifiedProfileDashboard
+        viewOnly={viewOnly}
+        userId={userId}
+        initialTab={initialTab}
+        dict={dict}
+        locale={locale} // <-- העברת ה-locale לקומפוננטה
+      />
+    </div>
+  );
+};
+
+// ממשק ה-props של ProfilePageClient עודכן
+interface ProfilePageClientProps {
+  dict: ProfilePageDictionary;
+  locale: 'he' | 'en'; // <--- ✨ התיקון כאן
+}
+
+// רכיב הלקוח הראשי
+const ProfilePageClient = ({ dict, locale }: ProfilePageClientProps) => {
+  return (
+    <Suspense>
+      {/* Suspense פנימי עבור useSearchParams */}
+      {/* מעבירים את ה-locale הלאה ל-ProfilePageContent */}
+      <ProfilePageContent dict={dict} locale={locale} />
+    </Suspense>
+  );
+};
+
+export default ProfilePageClient;
+--- End of Content for ProfilePageClient.tsx ---
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\(authenticated)\profile\page.tsx
+--------------------------------------------------------------------------------
+Content:
+// src/app/[locale]/(authenticated)/profile/page.tsx
+import React, { Suspense } from 'react';
+import { getDictionary } from '@/lib/dictionaries';
+import { Locale } from '@/../i18n-config';
+import ProfilePageClient from './ProfilePageClient';
+import StandardizedLoadingSpinner from '@/components/questionnaire/common/StandardizedLoadingSpinner';
+
+// הגדרת ה-props הנכונה
+type ProfilePageProps = {
+  params: Promise<{ locale: Locale }>;
+};
+
+export default async function ProfilePage({ params }: ProfilePageProps) {
+  // שימוש ב-await כדי לחלץ את המידע מה-Promise
+  const { locale } = await params;
+  
+  console.log(
+    `---[ SERVER LOG | page.tsx ]--- עמוד הפרופיל נטען עבור שפה: "${locale}".`
+  );
+  
+  const dictionary = await getDictionary(locale);
+
+  return (
+    <Suspense
+      fallback={
+        <StandardizedLoadingSpinner text={dictionary.profilePage.pageLoader} />
+      }
+    >
+      <ProfilePageClient dict={dictionary.profilePage} locale={locale} />
+    </Suspense>
+  );
+}
+--- End of Content for page.tsx ---
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\(authenticated)\settings
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\(authenticated)\settings\SettingsClientPage.tsx
+--------------------------------------------------------------------------------
+Content:
+// src/app/[locale]/settings/SettingsClientPage.tsx
+
+'use client';
+
+import { useSession } from 'next-auth/react';
+import AccountSettings from '@/components/profile/account-settings';
+import StandardizedLoadingSpinner from '@/components/questionnaire/common/StandardizedLoadingSpinner';
+import type { AccountSettingsDict } from '@/types/dictionary';
+import type { Locale } from '../../../../../i18n-config';
+
+interface SettingsClientPageProps {
+  dict: AccountSettingsDict;
+  locale: Locale;
+}
+
+export default function SettingsClientPage({
+  dict,
+  locale,
+}: SettingsClientPageProps) {
+  const { data: session, status } = useSession();
+
+  if (status === 'loading') {
+    return (
+      <StandardizedLoadingSpinner
+        text="טוען הגדרות חשבון..."
+        className="min-h-[600px]"
+      />
+    );
+  }
+
+  if (status === 'unauthenticated') {
+    return (
+      <div className="container mx-auto p-6 text-center text-red-600">
+        Access Denied. Please sign in to view your account settings.
+      </div>
+    );
+  }
+
+  if (!session?.user) {
+    return (
+      <div className="container mx-auto p-6 text-center text-red-600">
+        Error: Could not load user data. The session might be invalid.
+      </div>
+    );
+  }
+
+  const userData = {
+    id: session.user.id,
+    email: session.user.email,
+    firstName: session.user.firstName,
+    lastName: session.user.lastName,
+    role: session.user.role,
+    status: session.user.status,
+    isVerified: session.user.isVerified,
+    lastLogin: session.user.lastLogin ?? null,
+    createdAt: session.user.createdAt,
+    engagementEmailsConsent: session.user.engagementEmailsConsent,
+    promotionalEmailsConsent: session.user.promotionalEmailsConsent,
+  };
+
+  return <AccountSettings user={userData} dict={dict} locale={locale} />;
+}
+--- End of Content for SettingsClientPage.tsx ---
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\(authenticated)\settings\page.tsx
+--------------------------------------------------------------------------------
+Content:
+// src/app/[locale]/(authenticated)/settings/page.tsx
+import { getDictionary } from '@/lib/dictionaries';
+import type { Locale } from '../../../../../i18n-config';
+import SettingsClientPage from './SettingsClientPage';
+import { redirect } from 'next/navigation';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
+
+// הגדרת ה-props הנכונה
+type SettingsPageProps = {
+  params: Promise<{ locale: Locale }>;
+};
+
+export default async function SettingsPage({ params }: SettingsPageProps) {
+  // שימוש ב-await כדי לחלץ את המידע מה-Promise
+  const { locale } = await params;
+  const session = await getServerSession(authOptions);
+  if (!session?.user) {
+    redirect(`/${locale}/auth/signin?callbackUrl=/${locale}/settings`);
+  }
+
+  const dictionary = await getDictionary(locale);
+
+  return (
+    <div className="container mx-auto p-4 sm:p-6">
+      <SettingsClientPage
+        dict={dictionary.profilePage.accountSettings}
+        locale={locale}
+      />
+    </div>
+  );
+}
+--- End of Content for page.tsx ---
+

@@ -1,6 +1,8 @@
 // =============================================================================
-// 23. API Route — User Chat List (All Chats Summary)
+// API Route — User Chat List (All Chats Summary)
 // File: src/app/api/messages/chats/route.ts
+//
+// ✅ OPTIMIZED: Replaced N+1 loop queries with 2 batch raw SQL queries
 // =============================================================================
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -87,85 +89,103 @@ export async function GET(req: NextRequest) {
     }
 
     // ==========================================
-    // 2. Suggestion-based chats
+    // 2. Suggestion-based chats — BATCHED QUERIES
     // ==========================================
-   const suggestions = await prisma.matchSuggestion.findMany({
-  where: {
-    OR: [{ firstPartyId: userId }, { secondPartyId: userId }],
-    status: {
-  notIn: [
-    'FIRST_PARTY_DECLINED',
-    'SECOND_PARTY_DECLINED',
-    'MATCH_DECLINED',
-    'CANCELLED',
-    'CLOSED',
-    'EXPIRED',
-    'ENDED_AFTER_FIRST_DATE',
-  ],
-},
-  },
-  include: {
-    firstParty: { select: { firstName: true, lastName: true } },
-    secondParty: { select: { firstName: true, lastName: true } },
-    matchmaker: { select: { id: true, firstName: true, lastName: true } },
-  },
-});
-
-    for (const suggestion of suggestions) {
-      const isFirstParty = suggestion.firstPartyId === userId;
-      const otherParty = isFirstParty
-        ? suggestion.secondParty
-        : suggestion.firstParty;
-      const matchmakerName = `${suggestion.matchmaker.firstName} ${suggestion.matchmaker.lastName}`;
-
-      // Get last message in this suggestion for this user
-      const lastMsg = await prisma.suggestionMessage.findFirst({
-        where: {
-          suggestionId: suggestion.id,
-          OR: [
-            { senderId: userId, senderType: 'USER' },
-            {
-              senderType: 'MATCHMAKER',
-              OR: [{ targetUserId: userId }, { targetUserId: null }],
-            },
-            { senderType: 'SYSTEM' },
+    const suggestions = await prisma.matchSuggestion.findMany({
+      where: {
+        OR: [{ firstPartyId: userId }, { secondPartyId: userId }],
+        status: {
+          notIn: [
+            'FIRST_PARTY_DECLINED',
+            'SECOND_PARTY_DECLINED',
+            'MATCH_DECLINED',
+            'CANCELLED',
+            'CLOSED',
+            'EXPIRED',
+            'ENDED_AFTER_FIRST_DATE',
           ],
         },
-        orderBy: { createdAt: 'desc' },
-        select: {
-          content: true,
-          createdAt: true,
-          senderId: true,
-        },
-      });
+      },
+      include: {
+        firstParty: { select: { firstName: true, lastName: true } },
+        secondParty: { select: { firstName: true, lastName: true } },
+        matchmaker: { select: { id: true, firstName: true, lastName: true } },
+      },
+    });
 
-      // Count unread messages for this user in this suggestion
-      const unreadCount = await prisma.suggestionMessage.count({
-        where: {
+    if (suggestions.length > 0) {
+      const suggestionIds = suggestions.map((s) => s.id);
+
+      // ✅ BATCH QUERY 1: Last message per suggestion (single query for all)
+      const lastMessages = await prisma.$queryRaw<
+        Array<{
+          suggestionId: string;
+          content: string;
+          createdAt: Date;
+          senderId: string;
+        }>
+      >`
+        SELECT DISTINCT ON ("suggestionId")
+          "suggestionId", "content", "createdAt", "senderId"
+        FROM "SuggestionMessage"
+        WHERE "suggestionId" = ANY(${suggestionIds})
+          AND (
+            ("senderId" = ${userId} AND "senderType" = 'USER')
+            OR ("senderType" = 'MATCHMAKER' AND ("targetUserId" = ${userId} OR "targetUserId" IS NULL))
+            OR "senderType" = 'SYSTEM'
+          )
+        ORDER BY "suggestionId", "createdAt" DESC
+      `;
+
+      // ✅ BATCH QUERY 2: Unread count per suggestion (single query for all)
+      const unreadCounts = await prisma.$queryRaw<
+        Array<{ suggestionId: string; count: bigint }>
+      >`
+        SELECT "suggestionId", COUNT(*) as count
+        FROM "SuggestionMessage"
+        WHERE "suggestionId" = ANY(${suggestionIds})
+          AND "isRead" = false
+          AND "senderId" != ${userId}
+          AND (
+            "targetUserId" = ${userId}
+            OR "targetUserId" IS NULL
+            OR "senderType" = 'SYSTEM'
+          )
+        GROUP BY "suggestionId"
+      `;
+
+      // Build lookup maps for O(1) access
+      const lastMsgMap = new Map(
+        lastMessages.map((m) => [m.suggestionId, m])
+      );
+      const unreadMap = new Map(
+        unreadCounts.map((u) => [u.suggestionId, Number(u.count)])
+      );
+
+      // Build chat summaries — NO additional queries inside the loop
+      for (const suggestion of suggestions) {
+        const isFirstParty = suggestion.firstPartyId === userId;
+        const otherParty = isFirstParty
+          ? suggestion.secondParty
+          : suggestion.firstParty;
+        const matchmakerName = `${suggestion.matchmaker.firstName} ${suggestion.matchmaker.lastName}`;
+        const lastMsg = lastMsgMap.get(suggestion.id);
+        const unreadCount = unreadMap.get(suggestion.id) || 0;
+
+        chats.push({
+          id: suggestion.id,
+          type: 'suggestion',
+          title: `${otherParty.firstName} ${otherParty.lastName}`,
+          subtitle: matchmakerName,
+          matchmakerName,
+          lastMessage: lastMsg?.content,
+          lastMessageTime: lastMsg?.createdAt.toISOString(),
+          lastMessageIsMine: lastMsg?.senderId === userId,
+          unreadCount,
           suggestionId: suggestion.id,
-          isRead: false,
-          NOT: { senderId: userId },
-          OR: [
-            { targetUserId: userId },
-            { targetUserId: null },
-            { senderType: 'SYSTEM' },
-          ],
-        },
-      });
-
-      chats.push({
-        id: suggestion.id,
-        type: 'suggestion',
-        title: `${otherParty.firstName} ${otherParty.lastName}`,
-        subtitle: matchmakerName,
-        matchmakerName,
-        lastMessage: lastMsg?.content,
-        lastMessageTime: lastMsg?.createdAt.toISOString(),
-        lastMessageIsMine: lastMsg?.senderId === userId,
-        unreadCount,
-        suggestionId: suggestion.id,
-        status: suggestion.status,
-      });
+          status: suggestion.status,
+        });
+      }
     }
 
     // Sort: direct first, then by last message time (newest first)

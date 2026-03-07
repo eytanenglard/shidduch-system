@@ -358,7 +358,7 @@ const InquiryThreadView: React.FC<InquiryThreadViewProps> = ({
       const res = await fetch(`/api/suggestions/${suggestionId}/inquiries`);
       if (!res.ok) throw new Error('Failed');
       const data = await res.json();
-      setInquiries(data);
+      setInquiries(Array.isArray(data) ? data : (data.inquiries ?? []));
     } catch (e) {
       setError('Failed to load');
     } finally {

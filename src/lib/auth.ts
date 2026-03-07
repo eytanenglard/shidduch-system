@@ -1,4 +1,9 @@
 // src/lib/auth.ts
+//
+// ✅ OPTIMIZED:
+//   - JWT callback: logs only on actual triggers (signIn, update), not on every session validation
+//   - Redirect callback: logs only in development mode
+//   - signIn callback: reduced verbose logging (kept essential logs)
 
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { NextAuthOptions, Profile as OAuthProfile } from "next-auth";
@@ -18,8 +23,10 @@ import { UserRole, UserStatus, UserSource, Language } from "@prisma/client";
 
 console.log("Auth options file loaded");
 
+const isDev = process.env.NODE_ENV === "development";
+
 // ============================================================================
-// 🔴 פונקציה חדשה: קביעת ה-redirectUrl בהתאם למצב המשתמש
+// 🔴 פונקציה: קביעת ה-redirectUrl בהתאם למצב המשתמש
 // ============================================================================
 interface UserCompletionStatus {
   isProfileComplete: boolean;
@@ -29,35 +36,22 @@ interface UserCompletionStatus {
 }
 
 function determineRedirectUrl(user: UserCompletionStatus): string {
-  console.log("[determineRedirectUrl] Checking user status:", {
-    isProfileComplete: user.isProfileComplete,
-    isPhoneVerified: user.isPhoneVerified,
-    termsAndPrivacyAcceptedAt: user.termsAndPrivacyAcceptedAt,
-    hasTerms: !!user.termsAndPrivacyAcceptedAt,
-    role: user.role,
-  });
-
   if (user.role === UserRole.ADMIN || user.role === UserRole.MATCHMAKER) {
-    console.log("[determineRedirectUrl] -> Admin/Matchmaker -> /admin/engagement");
     return '/admin/engagement';
   }
 
   if (!user.termsAndPrivacyAcceptedAt) {
-    console.log("[determineRedirectUrl] -> Missing terms -> /auth/register?reason=accept_terms");
     return '/auth/register?reason=accept_terms';
   }
-  
+
   if (!user.isProfileComplete) {
-    console.log("[determineRedirectUrl] -> Profile incomplete -> /auth/register?reason=complete_profile");
     return '/auth/register?reason=complete_profile';
   }
-  
+
   if (!user.isPhoneVerified) {
-    console.log("[determineRedirectUrl] -> Phone not verified -> /auth/verify-phone");
     return '/auth/verify-phone';
   }
-  
-  console.log("[determineRedirectUrl] -> All complete -> /profile");
+
   return '/profile';
 }
 
@@ -70,26 +64,12 @@ function checkRequiresCompletion(user: UserCompletionStatus): boolean {
 
 // ============================================================================
 // 🍎 Apple Client Secret Generator
-// Apple requires a JWT signed with your private key as the client secret
 // ============================================================================
 function generateAppleClientSecret(): string {
-  console.log('[Apple Auth] 🔑 Generating Apple client secret...');
-  
   const privateKey = (process.env.APPLE_PRIVATE_KEY || '').replace(/\\n/g, '\n');
   const teamId = process.env.APPLE_TEAM_ID;
   const keyId = process.env.APPLE_KEY_ID;
   const clientId = process.env.APPLE_CLIENT_ID;
-
-  console.log('[Apple Auth] Environment check:', {
-    hasPrivateKey: !!privateKey,
-    privateKeyLength: privateKey?.length || 0,
-    privateKeyStartsWith: privateKey?.substring(0, 30) || 'EMPTY',
-    privateKeyEndsWith: privateKey?.substring(privateKey.length - 30) || 'EMPTY',
-    teamId: teamId || 'MISSING',
-    keyId: keyId || 'MISSING',
-    clientId: clientId || 'MISSING',
-    NEXTAUTH_URL: process.env.NEXTAUTH_URL || 'MISSING',
-  });
 
   if (!privateKey || !teamId || !keyId || !clientId) {
     console.error('[Apple Auth] ❌ Missing required environment variables:', {
@@ -124,7 +104,6 @@ function generateAppleClientSecret(): string {
     );
 
     console.log('[Apple Auth] ✅ Client secret generated successfully');
-    console.log('[Apple Auth] Token preview (first 50 chars):', token.substring(0, 50) + '...');
     return token;
   } catch (error) {
     console.error('[Apple Auth] ❌ Failed to generate client secret:', error);
@@ -136,9 +115,9 @@ function generateAppleClientSecret(): string {
 
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
-  debug: process.env.NODE_ENV === "development",
+  debug: false, // ✅ Disabled debug mode — was generating excessive logs
 
-  // 🔴 DEBUG: Enable debug logging for Apple issues
+  // ✅ OPTIMIZED: Only log errors and warnings, not debug
   logger: {
     error(code, metadata) {
       console.error('[NextAuth Error]', code, JSON.stringify(metadata, null, 2));
@@ -147,7 +126,10 @@ export const authOptions: NextAuthOptions = {
       console.warn('[NextAuth Warning]', code);
     },
     debug(code, metadata) {
-      console.log('[NextAuth Debug]', code, JSON.stringify(metadata, null, 2));
+      // ✅ Only log debug in development and only for specific events
+      if (isDev && (code === 'authorize' || code === 'signIn')) {
+        console.log('[NextAuth Debug]', code, JSON.stringify(metadata, null, 2));
+      }
     },
   },
 
@@ -165,17 +147,11 @@ export const authOptions: NextAuthOptions = {
         },
       },
       profile(profile) {
-        console.log("[AppleProvider Profile Fn] 🍎 ========== APPLE PROFILE RECEIVED ==========");
-        console.log("[AppleProvider Profile Fn] Raw profile:", JSON.stringify(profile, null, 2));
+        console.log("[AppleProvider Profile Fn] 🍎 Apple profile received for:", profile.email);
         const now = new Date();
 
         const firstName = (profile as any).name?.firstName || "";
         const lastName = (profile as any).name?.lastName || "";
-
-        console.log("[AppleProvider Profile Fn] Extracted name:", { firstName, lastName });
-        console.log("[AppleProvider Profile Fn] Email:", profile.email);
-        console.log("[AppleProvider Profile Fn] Sub:", profile.sub);
-        console.log("[AppleProvider Profile Fn] Email Verified:", profile.email_verified);
 
         const userForAdapter: ExtendedUser = {
           id: profile.sub,
@@ -206,8 +182,6 @@ export const authOptions: NextAuthOptions = {
           requiresCompletion: true,
         };
 
-        console.log("[AppleProvider Profile Fn] User object for adapter:", JSON.stringify(userForAdapter, null, 2));
-        console.log("[AppleProvider Profile Fn] 🍎 ========================================");
         return userForAdapter;
       },
     }),
@@ -227,8 +201,6 @@ export const authOptions: NextAuthOptions = {
       },
       profile(profile: OAuthProfile & { sub?: string; given_name?: string; family_name?: string; picture?: string; email_verified?: boolean }, tokens) {
         const now = new Date();
-        console.log("[GoogleProvider Profile Fn] Raw profile from Google:", profile);
-        console.log("[GoogleProvider Profile Fn] Tokens from Google:", tokens);
 
         if (!profile.email) {
           throw new Error("Email not found in Google profile");
@@ -269,7 +241,6 @@ export const authOptions: NextAuthOptions = {
           requiresCompletion: true,
         };
 
-        console.log("[GoogleProvider Profile Fn] User object for adapter:", userForAdapter);
         return userForAdapter;
       }
     }),
@@ -284,9 +255,7 @@ export const authOptions: NextAuthOptions = {
         password: { label: "Password", type: "password" }
       },
       async authorize(credentials) {
-        console.log("[CredentialsProvider Authorize] Attempting login for:", credentials?.email);
         if (!credentials?.email || !credentials?.password) {
-          console.error("[CredentialsProvider Authorize] Missing email or password");
           return null;
         }
 
@@ -298,21 +267,20 @@ export const authOptions: NextAuthOptions = {
         });
 
         if (!userFromDb || !userFromDb.password) {
-          console.log(`[CredentialsProvider Authorize] User ${credentials.email} not found or password not set.`);
           return null;
         }
 
         const isPasswordValid = await compare(credentials.password, userFromDb.password);
         if (!isPasswordValid) {
-          console.log(`[CredentialsProvider Authorize] Invalid password for ${credentials.email}.`);
           return null;
         }
 
-        console.log(`[CredentialsProvider Authorize] Authentication successful for ${credentials.email}`);
+        if (isDev) console.log(`[CredentialsProvider] Auth successful for ${credentials.email}`);
+
         await prisma.user.update({
           where: { id: userFromDb.id },
           data: { lastLogin: new Date() }
-        }).catch(err => console.error("[CredentialsProvider Authorize] Failed to update lastLogin:", err));
+        }).catch(err => console.error("[CredentialsProvider] Failed to update lastLogin:", err));
 
         const { images, ...restOfUser } = userFromDb;
         return {
@@ -340,9 +308,7 @@ export const authOptions: NextAuthOptions = {
         authToken: { label: "Auth Token", type: "text" },
       },
       async authorize(credentials) {
-        console.log("[AutoLoginProvider Authorize] Attempting auto-login with token:", credentials?.authToken ? "Token Present" : "No Token");
         if (!credentials?.authToken) {
-          console.error("[AutoLoginProvider Authorize] No authToken provided.");
           return null;
         }
 
@@ -351,18 +317,15 @@ export const authOptions: NextAuthOptions = {
         });
 
         if (!tokenRecord) {
-          console.log("[AutoLoginProvider Authorize] AuthToken not found in DB.");
           return null;
         }
 
         if (new Date() > tokenRecord.expiresAt) {
-          console.log("[AutoLoginProvider Authorize] AuthToken expired. Deleting token.");
-          await prisma.oneTimeAuthToken.delete({ where: { id: tokenRecord.id } }).catch(err => console.error("[AutoLoginProvider Authorize] Error deleting expired token:", err));
+          await prisma.oneTimeAuthToken.delete({ where: { id: tokenRecord.id } }).catch(console.error);
           return null;
         }
 
-        console.log("[AutoLoginProvider Authorize] AuthToken valid. Deleting token.");
-        await prisma.oneTimeAuthToken.delete({ where: { id: tokenRecord.id } }).catch(err => console.error("[AutoLoginProvider Authorize] Error deleting used token:", err));
+        await prisma.oneTimeAuthToken.delete({ where: { id: tokenRecord.id } }).catch(console.error);
 
         const userFromDb = await prisma.user.findUnique({
           where: { id: tokenRecord.userId },
@@ -372,10 +335,10 @@ export const authOptions: NextAuthOptions = {
         });
 
         if (!userFromDb) {
-          console.log("[AutoLoginProvider Authorize] User not found for the given authToken.");
           return null;
         }
-        console.log(`[AutoLoginProvider Authorize] Auto-login successful for user ${userFromDb.email}`);
+
+        if (isDev) console.log(`[AutoLoginProvider] Auto-login successful for ${userFromDb.email}`);
 
         const { images, ...restOfUser } = userFromDb;
         return {
@@ -399,29 +362,13 @@ export const authOptions: NextAuthOptions = {
     async signIn({ user, account, profile }) {
       const typedUser = user as ExtendedUser;
       const oauthProfile = profile as OAuthProfile & { email_verified?: boolean };
-      
-      console.log("[signIn Callback] 🔔 ========== SIGN-IN TRIGGERED ==========");
-      console.log("[signIn Callback] Provider:", account?.provider);
-      console.log("[signIn Callback] User ID:", typedUser.id);
-      console.log("[signIn Callback] User Email:", typedUser.email);
-      console.log("[signIn Callback] Account Provider:", account?.provider);
-      console.log("[signIn Callback] Account Type:", account?.type);
-      console.log("[signIn Callback] Provider Account ID:", account?.providerAccountId);
-      console.log("[signIn Callback] Has id_token:", !!account?.id_token);
-      console.log("[signIn Callback] Has access_token:", !!account?.access_token);
-      console.log("[signIn Callback] Profile email_verified:", oauthProfile?.email_verified);
-      
-      if (account?.provider === 'apple') {
-        console.log("[signIn Callback] 🍎 ===== APPLE SPECIFIC DEBUG =====");
-        console.log("[signIn Callback] 🍎 Full account object:", JSON.stringify(account, null, 2));
-        console.log("[signIn Callback] 🍎 Full profile object:", JSON.stringify(profile, null, 2));
-        console.log("[signIn Callback] 🍎 Full user object:", JSON.stringify(typedUser, null, 2));
-        console.log("[signIn Callback] 🍎 ================================");
-      }
+
+      // ✅ Concise logging — only essential info
+      console.log("[signIn] Provider:", account?.provider, "| Email:", typedUser.email);
 
       const userEmail = typedUser.email?.toLowerCase();
       if (!userEmail) {
-        console.error("[signIn Callback] ❌ Critical: No user email available.", { user, account });
+        console.error("[signIn] ❌ No user email available.");
         return false;
       }
 
@@ -429,26 +376,11 @@ export const authOptions: NextAuthOptions = {
         where: { email: userEmail },
       });
 
-      console.log("[signIn Callback] ========== DB USER DATA ==========");
-      console.log("[signIn Callback] dbUser found:", !!dbUser);
-      if (dbUser) {
-        console.log("[signIn Callback] dbUser.id:", dbUser.id);
-        console.log("[signIn Callback] dbUser.isProfileComplete:", dbUser.isProfileComplete);
-        console.log("[signIn Callback] dbUser.isPhoneVerified:", dbUser.isPhoneVerified);
-        console.log("[signIn Callback] dbUser.termsAndPrivacyAcceptedAt:", dbUser.termsAndPrivacyAcceptedAt);
-        console.log("[signIn Callback] dbUser.role:", dbUser.role);
-        console.log("[signIn Callback] dbUser.appleId:", dbUser.appleId);
-      }
-      console.log("[signIn Callback] ==================================");
-
       // ====================================================================
       // 🍎 Apple Sign-In: Create new user or link Apple ID
       // ====================================================================
       if (!dbUser && account?.provider === 'apple') {
-        console.log(`[signIn Callback] 🍎 Apple sign-in for new user: ${userEmail}.`);
-
         try {
-          console.log(`[signIn Callback] 🍎 Creating new user ${userEmail} via Apple Sign-In.`);
           const createdDbUser = await prisma.user.create({
             data: {
               email: userEmail,
@@ -477,7 +409,7 @@ export const authOptions: NextAuthOptions = {
             },
           });
           dbUser = createdDbUser;
-          console.log(`[signIn Callback] 🍎 ✅ Created new user ${dbUser.email} via Apple Sign-In, ID: ${dbUser.id}`);
+          console.log(`[signIn] 🍎 Created Apple user ${dbUser.email}, ID: ${dbUser.id}`);
 
           if (account.providerAccountId) {
             const existingAccount = await prisma.account.findUnique({
@@ -504,13 +436,10 @@ export const authOptions: NextAuthOptions = {
                   session_state: account.session_state,
                 },
               });
-              console.log(`[signIn Callback] 🍎 ✅ Linked Apple account for ${dbUser.email}`);
-            } else {
-              console.log(`[signIn Callback] 🍎 Account already exists for this Apple ID`);
             }
           }
         } catch (error: unknown) {
-          console.error("[signIn Callback] 🍎 ❌ Failed to create Apple user:", error);
+          console.error("[signIn] 🍎 ❌ Failed to create Apple user:", error);
           if (
             typeof error === 'object' &&
             error !== null &&
@@ -519,37 +448,27 @@ export const authOptions: NextAuthOptions = {
           ) {
             const prismaError = error as { code?: string; meta?: { target?: string[] } };
             if (prismaError.code === 'P2002' && prismaError.meta?.target?.includes('email')) {
-              console.log("[signIn Callback] 🍎 User likely created by adapter in parallel. Re-fetching.");
               dbUser = await prisma.user.findUnique({ where: { email: userEmail } });
-              if (!dbUser) {
-                console.error("[signIn Callback] 🍎 ❌ Failed to re-fetch user after P2002 error.");
-                return false;
-              }
-              console.log("[signIn Callback] 🍎 ✅ Re-fetched user after P2002:", dbUser.id);
+              if (!dbUser) return false;
             } else {
-              console.error("[signIn Callback] 🍎 ❌ Prisma error (not P2002/email):", prismaError.code, prismaError.meta);
               return false;
             }
           } else {
-            console.error("[signIn Callback] 🍎 ❌ Non-Prisma error:", error);
             return false;
           }
         }
       }
 
       // ====================================================================
-      // Google Sign-In: Create new user (existing logic)
+      // Google Sign-In: Create new user
       // ====================================================================
       if (!dbUser && account?.provider === 'google') {
-        console.log(`[signIn Callback] Google sign-in for potentially new user: ${userEmail}.`);
-
         dbUser = await prisma.user.findUnique({
           where: { email: userEmail }
         });
 
         if (!dbUser) {
           try {
-            console.log(`[signIn Callback] User ${userEmail} not found. Attempting to create.`);
             const createdDbUser = await prisma.user.create({
               data: {
                 email: userEmail,
@@ -565,7 +484,7 @@ export const authOptions: NextAuthOptions = {
               },
             });
             dbUser = createdDbUser;
-            console.log(`[signIn Callback] Created new user ${dbUser.email} during signIn.`);
+            console.log(`[signIn] Created Google user ${dbUser.email}`);
 
             if (account && account.providerAccountId) {
               const existingAccount = await prisma.account.findUnique({
@@ -587,26 +506,20 @@ export const authOptions: NextAuthOptions = {
                     session_state: account.session_state,
                   },
                 });
-                console.log(`[signIn Callback] Linked Google account for ${dbUser.email}`);
               }
             }
           } catch (error: unknown) {
-            console.error("[signIn Callback] Failed to create user or link account:", error);
+            console.error("[signIn] Failed to create Google user:", error);
 
             if (typeof error === 'object' && error !== null && 'code' in error && 'meta' in error) {
               const prismaError = error as { code?: string; meta?: { target?: string[] } };
               if (prismaError.code === 'P2002' && prismaError.meta?.target?.includes('email')) {
-                console.log("[signIn Callback] User likely created by adapter in parallel. Re-fetching.");
                 dbUser = await prisma.user.findUnique({ where: { email: userEmail } });
-                if (!dbUser) {
-                  console.error("[signIn Callback] Failed to re-fetch user after P2002 error.");
-                  return false;
-                }
+                if (!dbUser) return false;
               } else {
                 return false;
               }
             } else {
-              console.error("[signIn Callback] An unexpected error type occurred:", error);
               return false;
             }
           }
@@ -614,8 +527,7 @@ export const authOptions: NextAuthOptions = {
       }
 
       if (!dbUser) {
-        console.error(`[signIn Callback] ❌ User with email ${userEmail} not found and could not be created.`);
-        console.error(`[signIn Callback] Provider was: ${account?.provider}`);
+        console.error(`[signIn] ❌ User ${userEmail} not found and could not be created. Provider: ${account?.provider}`);
         return false;
       }
 
@@ -623,11 +535,10 @@ export const authOptions: NextAuthOptions = {
       // 🍎 Link Apple ID to existing user (if user exists but has no appleId)
       // ====================================================================
       if (account?.provider === 'apple' && !dbUser.appleId) {
-        console.log(`[signIn Callback] 🍎 Linking Apple ID to existing user ${dbUser.email}`);
         await prisma.user.update({
           where: { id: dbUser.id },
           data: { appleId: account.providerAccountId },
-        }).catch(err => console.error("[signIn Callback] 🍎 Failed to link Apple ID:", err));
+        }).catch(err => console.error("[signIn] 🍎 Failed to link Apple ID:", err));
 
         const existingAccount = await prisma.account.findUnique({
           where: {
@@ -652,7 +563,7 @@ export const authOptions: NextAuthOptions = {
               id_token: account.id_token,
               session_state: account.session_state,
             },
-          }).catch(err => console.error("[signIn Callback] 🍎 Failed to create Apple account record:", err));
+          }).catch(err => console.error("[signIn] 🍎 Failed to create Apple account record:", err));
         }
       }
 
@@ -676,12 +587,9 @@ export const authOptions: NextAuthOptions = {
       typedUser.updatedAt = dbUser.updatedAt;
       typedUser.lastLogin = dbUser.lastLogin;
 
-      // ====================================================================
-      // Verify email status for OAuth providers (Google & Apple)
-      // ====================================================================
+      // Verify email status for OAuth providers
       if (account?.provider === "google" || account?.provider === "apple") {
         if (dbUser.isVerified === false && oauthProfile?.email_verified === true) {
-          console.log(`[signIn Callback] OAuth User ${dbUser.email} was not email-verified, but provider says it is. Updating DB.`);
           const updatedUser = await prisma.user.update({
             where: { id: dbUser.id },
             data: { isVerified: true, status: UserStatus.PENDING_PHONE_VERIFICATION }
@@ -694,7 +602,7 @@ export const authOptions: NextAuthOptions = {
       await prisma.user.update({
         where: { id: dbUser.id },
         data: { lastLogin: new Date() }
-      }).catch(err => console.error(`[signIn Callback] Failed to update lastLogin for user ${dbUser.id}:`, err));
+      }).catch(err => console.error(`[signIn] Failed to update lastLogin for ${dbUser.id}:`, err));
 
       typedUser.requiresCompletion = checkRequiresCompletion({
         isProfileComplete: dbUser.isProfileComplete,
@@ -710,13 +618,8 @@ export const authOptions: NextAuthOptions = {
         role: dbUser.role,
       });
 
-      console.log("[signIn Callback] ========== FINAL DECISION ==========");
-      console.log("[signIn Callback] requiresCompletion:", typedUser.requiresCompletion);
-      console.log("[signIn Callback] redirectUrl:", typedUser.redirectUrl);
-      console.log("[signIn Callback] Provider:", account?.provider);
-      console.log("[signIn Callback] ✅ Returning true (sign-in allowed)");
-      console.log("[signIn Callback] ====================================");
-      
+      console.log("[signIn] ✅ Allowed |", account?.provider, "| redirect:", typedUser.redirectUrl);
+
       return true;
     },
 
@@ -724,14 +627,12 @@ export const authOptions: NextAuthOptions = {
       const typedToken = token as ExtendedUserJWT;
       const typedUserFromCallback = user as ExtendedUser | undefined;
 
-      console.log(`[JWT Callback] Triggered with trigger: ${trigger}`, {
-        hasUser: !!typedUserFromCallback,
-        tokenId: typedToken.id,
-        sessionData: session ? 'present' : 'absent'
-      });
+      // ✅ OPTIMIZED: Only log when there's an actual trigger, not on every session validation
+      if (isDev && trigger) {
+        console.log(`[JWT] trigger: ${trigger} | tokenId: ${typedToken.id}`);
+      }
 
       if (typedUserFromCallback) {
-        console.log('[JWT Callback] Populating token from user object (initial sign-in)');
         typedToken.id = typedUserFromCallback.id;
         typedToken.email = typedUserFromCallback.email.toLowerCase();
         typedToken.firstName = typedUserFromCallback.firstName;
@@ -767,12 +668,10 @@ export const authOptions: NextAuthOptions = {
           termsAndPrivacyAcceptedAt: typedUserFromCallback.termsAndPrivacyAcceptedAt,
           role: typedUserFromCallback.role,
         });
-
-        console.log('[JWT Callback] Token populated. Calculated redirectUrl:', typedToken.redirectUrl);
       }
 
       if (typedToken.id && trigger === "update") {
-        console.log('[JWT Callback] Update trigger detected - refreshing user data from DB');
+        if (isDev) console.log('[JWT] Update trigger — refreshing from DB');
 
         const dbUserForJwt = await prisma.user.findUnique({
           where: { id: typedToken.id },
@@ -782,13 +681,6 @@ export const authOptions: NextAuthOptions = {
         });
 
         if (dbUserForJwt) {
-          console.log('[JWT Callback] Found user in DB, updating token');
-          console.log('[JWT Callback] DB values:', {
-            isProfileComplete: dbUserForJwt.isProfileComplete,
-            isPhoneVerified: dbUserForJwt.isPhoneVerified,
-            termsAndPrivacyAcceptedAt: dbUserForJwt.termsAndPrivacyAcceptedAt,
-          });
-
           typedToken.firstName = dbUserForJwt.firstName;
           typedToken.lastName = dbUserForJwt.lastName;
           typedToken.picture = dbUserForJwt.images?.[0]?.url || typedToken.picture;
@@ -829,15 +721,11 @@ export const authOptions: NextAuthOptions = {
             termsAndPrivacyAcceptedAt: dbUserForJwt.termsAndPrivacyAcceptedAt,
             role: dbUserForJwt.role,
           });
-
-          console.log('[JWT Callback] Updated redirectUrl:', typedToken.redirectUrl);
-        } else {
-          console.log('[JWT Callback] User not found in DB');
         }
       }
 
       if (typedToken.id && trigger === "signIn" && !typedUserFromCallback) {
-        console.log('[JWT Callback] SignIn trigger without user object - refreshing from DB');
+        if (isDev) console.log('[JWT] SignIn trigger without user — refreshing from DB');
 
         const dbUserForJwt = await prisma.user.findUnique({
           where: { id: typedToken.id },
@@ -919,7 +807,7 @@ export const authOptions: NextAuthOptions = {
         typedSession.user.engagementEmailsConsent = typedToken.engagementEmailsConsent;
         typedSession.user.promotionalEmailsConsent = typedToken.promotionalEmailsConsent;
         typedSession.user.language = typedToken.language;
-        
+
         if (typedToken.profile) {
           typedSession.user.profile = typedToken.profile;
         }
@@ -944,25 +832,24 @@ export const authOptions: NextAuthOptions = {
     },
 
     async redirect({ url, baseUrl }) {
-      console.log(`[Redirect Callback] 🔀 Triggered with url: ${url}, baseUrl: ${baseUrl}`);
+      // ✅ OPTIMIZED: Only log in development
+      if (isDev) {
+        console.log(`[Redirect] url: ${url}, baseUrl: ${baseUrl}`);
+      }
 
       if (url.startsWith('/')) {
-        const finalUrl = `${baseUrl}${url}`;
-        console.log(`[Redirect Callback] Relative URL detected. Returning: ${finalUrl}`);
-        return finalUrl;
+        return `${baseUrl}${url}`;
       }
 
       try {
         const parsedUrl = new URL(url);
         if (parsedUrl.origin === baseUrl) {
-          console.log(`[Redirect Callback] Same origin URL detected. Returning: ${url}`);
           return url;
         }
       } catch (e) {
-        console.error(`[Redirect Callback] ❌ Failed to parse URL: ${url}`, e);
+        console.error(`[Redirect] ❌ Failed to parse URL: ${url}`, e);
       }
 
-      console.log(`[Redirect Callback] External URL detected. Redirecting to baseUrl: ${baseUrl}`);
       return baseUrl;
     }
   },

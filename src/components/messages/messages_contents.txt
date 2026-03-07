@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\messages
-# Generated on: 2026-02-20 07:17:46
+# Generated on: 2026-03-05 22:39:59
 # Filter: Only content of code files (.bat, .c, .cfg, .conf, .cpp, .cs, .css, .go, .h, .html, .ini, .java, .js, .json, .jsx, .kt, .less, .md, .php, .py, .rb, .rs, .scss, .sh, .sql, .swift, .ts, .tsx, .txt, .xml, .yaml, .yml) is included.
 ################################################################################
 
@@ -189,6 +189,8 @@ import React, {
   useCallback,
   useRef,
   useMemo,
+  useImperativeHandle,
+  forwardRef,
 } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -202,7 +204,6 @@ import {
   ChevronRight,
   ChevronDown,
   ChevronUp,
-  Users,
   Inbox,
   Clock,
   Send,
@@ -263,12 +264,18 @@ interface SelectedChat {
   directUserId?: string;
 }
 
-interface MatchmakerChatPanelProps {
+export interface MatchmakerChatPanelHandle {
+  refresh: () => void;
+}
+
+// שינוי 1: הוספת onUnreadUpdate prop
+export interface MatchmakerChatPanelProps {
   locale: Locale;
+  onUnreadUpdate?: (total: number) => void;
 }
 
 // ==========================================
-// Helpers
+// Helpers (module-level) — שינוי 4: STATUS_LABELS מחוץ לקומפוננטה
 // ==========================================
 
 function formatTime(dateStr: string | undefined, locale: Locale) {
@@ -285,8 +292,52 @@ function truncate(text: string, maxLen: number) {
   return text.slice(0, maxLen) + '…';
 }
 
-/** Highlight matching text segments */
-function HighlightText({
+// שינוי 4: STATUS_LABELS static מחוץ לקומפוננטה
+const STATUS_LABELS: Record<string, { he: string; en: string; color: string }> =
+  {
+    PENDING_FIRST_PARTY: {
+      he: "ממתין לצד א'",
+      en: 'Pending Party A',
+      color: 'bg-amber-50 text-amber-700 border-amber-200',
+    },
+    PENDING_SECOND_PARTY: {
+      he: "ממתין לצד ב'",
+      en: 'Pending Party B',
+      color: 'bg-teal-50 text-teal-700 border-teal-200',
+    },
+    FIRST_PARTY_APPROVED: {
+      he: "צד א' אישר/ה",
+      en: 'Party A Approved',
+      color: 'bg-green-50 text-green-700 border-green-200',
+    },
+    SECOND_PARTY_APPROVED: {
+      he: "צד ב' אישר/ה",
+      en: 'Party B Approved',
+      color: 'bg-green-50 text-green-700 border-green-200',
+    },
+    CONTACT_DETAILS_SHARED: {
+      he: 'פרטי קשר נשלחו',
+      en: 'Details Shared',
+      color: 'bg-teal-50 text-teal-700 border-teal-200',
+    },
+    DATING: {
+      he: 'בדייט',
+      en: 'Dating',
+      color: 'bg-amber-50 text-amber-700 border-amber-200',
+    },
+  };
+
+function getStatusLabel(status: string, isHe: boolean) {
+  const info = STATUS_LABELS[status] || {
+    he: status,
+    en: status,
+    color: 'bg-gray-100 text-gray-700',
+  };
+  return { label: isHe ? info.he : info.en, color: info.color };
+}
+
+// שינוי 5: Memoize HighlightText
+const HighlightText = React.memo(function HighlightText({
   text,
   highlight,
 }: {
@@ -315,7 +366,7 @@ function HighlightText({
       )}
     </>
   );
-}
+});
 
 // ==========================================
 // DirectChatView Sub-Component
@@ -513,12 +564,13 @@ function DirectChatView({
 }
 
 // ==========================================
-// Main Component
+// Main Component (forwardRef) — שינוי 1: onUnreadUpdate prop
 // ==========================================
 
-export default function MatchmakerChatPanel({
-  locale,
-}: MatchmakerChatPanelProps) {
+const MatchmakerChatPanel = forwardRef<
+  MatchmakerChatPanelHandle,
+  MatchmakerChatPanelProps
+>(function MatchmakerChatPanel({ locale, onUnreadUpdate }, ref) {
   const [chatSummaries, setChatSummaries] = useState<SuggestionChatSummary[]>(
     []
   );
@@ -537,167 +589,93 @@ export default function MatchmakerChatPanel({
   const isHe = locale === 'he';
 
   // ==========================================
-  // Load data
+  // שינוי 2: loadChatSummaries החדש — קריאה אחת ל-/api/matchmaker/chat/summaries
   // ==========================================
 
   const loadChatSummaries = useCallback(async () => {
     try {
-      const [suggestionsRes, unreadRes, directRes] = await Promise.all([
-        fetch('/api/matchmaker/suggestions'),
-        fetch('/api/matchmaker/chat/unread'),
-        fetch('/api/matchmaker/direct-chats'),
-      ]);
+      const res = await fetch('/api/matchmaker/chat/summaries');
+      if (!res.ok) throw new Error('Failed to fetch chat summaries');
+      const data = await res.json();
 
-      if (!suggestionsRes.ok) throw new Error('Failed to fetch suggestions');
+      if (data.success) {
+        setChatSummaries(data.suggestions || []);
+        setDirectChats(data.directChats || []);
 
-      const suggestions = await suggestionsRes.json();
-      let unreadData: { bySuggestion?: Record<string, number> } = {};
-      if (unreadRes.ok) {
-        unreadData = await unreadRes.json();
-      }
-      const unreadMap = unreadData.bySuggestion || {};
-
-      if (directRes.ok) {
-        const directData = await directRes.json();
-        if (directData.success) {
-          setDirectChats(directData.chats || []);
+        // Auto-expand unread (only when not searching)
+        if (!searchQuery.trim()) {
+          const withUnread = (data.suggestions || [])
+            .filter((s: SuggestionChatSummary) => s.totalUnread > 0)
+            .map((s: SuggestionChatSummary) => s.suggestionId);
+          setExpandedSuggestions(new Set(withUnread));
         }
-      }
 
-      const summaries: SuggestionChatSummary[] = suggestions
-        .filter((s: { category: string }) => s.category !== 'HISTORY')
-        .map(
-          (s: {
-            id: string;
-            status: string;
-            firstParty: { id: string; firstName: string; lastName: string };
-            secondParty: { id: string; firstName: string; lastName: string };
-          }) => ({
-            suggestionId: s.id,
-            firstParty: {
-              id: s.firstParty.id,
-              name: `${s.firstParty.firstName} ${s.firstParty.lastName}`,
-              unreadCount: 0,
-            },
-            secondParty: {
-              id: s.secondParty.id,
-              name: `${s.secondParty.firstName} ${s.secondParty.lastName}`,
-              unreadCount: 0,
-            },
-            status: s.status,
-            totalUnread: unreadMap[s.id] || 0,
-          })
-        )
-        .sort(
-          (a: SuggestionChatSummary, b: SuggestionChatSummary) =>
-            b.totalUnread - a.totalUnread
-        );
-
-      setChatSummaries(summaries);
-
-      // Only auto-expand unread when NOT searching
-      if (!searchQuery.trim()) {
-        const withUnread = summaries
-          .filter((s: SuggestionChatSummary) => s.totalUnread > 0)
-          .map((s: SuggestionChatSummary) => s.suggestionId);
-        setExpandedSuggestions(new Set(withUnread));
-      }
-
-      for (const summary of summaries) {
-        fetchLastMessagesForSummary(summary, suggestions);
+        // דווח ל-parent על total unread
+        onUnreadUpdate?.(data.totalUnread || 0);
       }
     } catch (error) {
       console.error('Error loading chat summaries:', error);
     } finally {
       setIsLoading(false);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [searchQuery, onUnreadUpdate]);
 
-  const fetchLastMessagesForSummary = async (
-    summary: SuggestionChatSummary,
-    allSuggestions: Array<{
-      id: string;
-      firstParty: { id: string };
-      secondParty: { id: string };
-    }>
-  ) => {
-    try {
-      const res = await fetch(
-        `/api/matchmaker/suggestions/${summary.suggestionId}/chat`
-      );
-      if (!res.ok) return;
-      const data = await res.json();
-      if (!data.success || !data.messages?.length) return;
+  // Expose refresh via imperative handle
+  useImperativeHandle(
+    ref,
+    () => ({
+      refresh: loadChatSummaries,
+    }),
+    [loadChatSummaries]
+  );
 
-      const msgs = data.messages as Array<{
-        content: string;
-        createdAt: string;
-        senderType: 'user' | 'matchmaker' | 'system';
-        senderId: string;
-        targetUserId?: string | null;
-      }>;
-      const suggestion = allSuggestions.find(
-        (s) => s.id === summary.suggestionId
-      );
-      if (!suggestion) return;
-
-      const firstId = suggestion.firstParty.id;
-      const secondId = suggestion.secondParty.id;
-
-      const firstMsgs = msgs.filter(
-        (m) =>
-          (m.senderType === 'user' && m.senderId === firstId) ||
-          (m.senderType === 'matchmaker' &&
-            (m.targetUserId === firstId || !m.targetUserId))
-      );
-      const secondMsgs = msgs.filter(
-        (m) =>
-          (m.senderType === 'user' && m.senderId === secondId) ||
-          (m.senderType === 'matchmaker' &&
-            (m.targetUserId === secondId || !m.targetUserId))
-      );
-
-      const lastFirst = firstMsgs[firstMsgs.length - 1];
-      const lastSecond = secondMsgs[secondMsgs.length - 1];
-
-      setChatSummaries((prev) =>
-        prev.map((s) =>
-          s.suggestionId === summary.suggestionId
-            ? {
-                ...s,
-                firstParty: {
-                  ...s.firstParty,
-                  lastMessage: lastFirst?.content,
-                  lastMessageTime: lastFirst?.createdAt,
-                  lastMessageSenderType: lastFirst?.senderType,
-                },
-                secondParty: {
-                  ...s.secondParty,
-                  lastMessage: lastSecond?.content,
-                  lastMessageTime: lastSecond?.createdAt,
-                  lastMessageSenderType: lastSecond?.senderType,
-                },
-              }
-            : s
-        )
-      );
-    } catch {
-      /* silent */
-    }
-  };
+  // ==========================================
+  // שינוי 3: Visibility-aware polling
+  // ==========================================
 
   useEffect(() => {
     loadChatSummaries();
-    const interval = setInterval(loadChatSummaries, 30000);
-    return () => clearInterval(interval);
+
+    let interval: NodeJS.Timeout | null = null;
+
+    const startPolling = () => {
+      if (interval) clearInterval(interval);
+      interval = setInterval(loadChatSummaries, 30000);
+    };
+
+    const stopPolling = () => {
+      if (interval) {
+        clearInterval(interval);
+        interval = null;
+      }
+    };
+
+    const handleVisibility = () => {
+      if (document.hidden) {
+        stopPolling();
+      } else {
+        loadChatSummaries(); // רענן מיד כשחוזרים
+        startPolling();
+      }
+    };
+
+    startPolling();
+    document.addEventListener('visibilitychange', handleVisibility);
+
+    return () => {
+      stopPolling();
+      document.removeEventListener('visibilitychange', handleVisibility);
+    };
   }, [loadChatSummaries]);
 
   // ==========================================
   // Filtered data (search)
   // ==========================================
 
-  const normalizedQuery = searchQuery.trim().toLowerCase();
+  const normalizedQuery = useMemo(
+    () => searchQuery.trim().toLowerCase(),
+    [searchQuery]
+  );
 
   const filteredSummaries = useMemo(() => {
     if (!normalizedQuery) return chatSummaries;
@@ -721,7 +699,6 @@ export default function MatchmakerChatPanel({
       const matchingIds = filteredSummaries.map((s) => s.suggestionId);
       setExpandedSuggestions(new Set(matchingIds));
     }
-    // When clearing search, revert to showing only unread expanded
     if (!normalizedQuery && chatSummaries.length > 0) {
       const withUnread = chatSummaries
         .filter((s) => s.totalUnread > 0)
@@ -734,7 +711,7 @@ export default function MatchmakerChatPanel({
   // Handlers
   // ==========================================
 
-  const toggleExpand = (suggestionId: string) => {
+  const toggleExpand = useCallback((suggestionId: string) => {
     setExpandedSuggestions((prev) => {
       const next = new Set(prev);
       if (next.has(suggestionId)) {
@@ -744,7 +721,7 @@ export default function MatchmakerChatPanel({
       }
       return next;
     });
-  };
+  }, []);
 
   const openChat = (
     suggestionId: string,
@@ -766,53 +743,12 @@ export default function MatchmakerChatPanel({
   };
 
   // ==========================================
-  // Helpers
+  // Computed values
   // ==========================================
 
   const totalUnread =
     chatSummaries.reduce((sum, s) => sum + s.totalUnread, 0) +
     directChats.reduce((sum, dc) => sum + dc.unreadCount, 0);
-
-  const getStatusLabel = (status: string) => {
-    const labels: Record<string, { he: string; en: string; color: string }> = {
-      PENDING_FIRST_PARTY: {
-        he: "ממתין לצד א'",
-        en: 'Pending Party A',
-        color: 'bg-amber-50 text-amber-700 border-amber-200',
-      },
-      PENDING_SECOND_PARTY: {
-        he: "ממתין לצד ב'",
-        en: 'Pending Party B',
-        color: 'bg-teal-50 text-teal-700 border-teal-200',
-      },
-      FIRST_PARTY_APPROVED: {
-        he: "צד א' אישר/ה",
-        en: 'Party A Approved',
-        color: 'bg-green-50 text-green-700 border-green-200',
-      },
-      SECOND_PARTY_APPROVED: {
-        he: "צד ב' אישר/ה",
-        en: 'Party B Approved',
-        color: 'bg-green-50 text-green-700 border-green-200',
-      },
-      CONTACT_DETAILS_SHARED: {
-        he: 'פרטי קשר נשלחו',
-        en: 'Details Shared',
-        color: 'bg-teal-50 text-teal-700 border-teal-200',
-      },
-      DATING: {
-        he: 'בדייט',
-        en: 'Dating',
-        color: 'bg-amber-50 text-amber-700 border-amber-200',
-      },
-    };
-    const info = labels[status] || {
-      he: status,
-      en: status,
-      color: 'bg-gray-100 text-gray-700',
-    };
-    return { label: isHe ? info.he : info.en, color: info.color };
-  };
 
   // ==========================================
   // Render - Chat View
@@ -959,7 +895,6 @@ export default function MatchmakerChatPanel({
               )}
               dir={isHe ? 'rtl' : 'ltr'}
             />
-            {/* Clear button */}
             {searchQuery && (
               <button
                 onClick={clearSearch}
@@ -973,7 +908,6 @@ export default function MatchmakerChatPanel({
             )}
           </div>
 
-          {/* Search result count */}
           {isSearching && (
             <div className="flex items-center gap-2 mt-2 px-1">
               <Badge
@@ -1113,7 +1047,6 @@ export default function MatchmakerChatPanel({
                 </>
               )}
 
-              {/* Show section header even when no direct chats but searching */}
               {filteredDirectChats.length === 0 &&
                 filteredSummaries.length > 0 &&
                 isSearching && (
@@ -1132,9 +1065,9 @@ export default function MatchmakerChatPanel({
                 const isExpanded = expandedSuggestions.has(
                   summary.suggestionId
                 );
-                const statusInfo = getStatusLabel(summary.status);
+                // שינוי 4: שימוש בפונקציה שמחוץ לקומפוננטה
+                const statusInfo = getStatusLabel(summary.status, isHe);
 
-                // Determine which party matches the search (for visual hint)
                 const firstMatches =
                   isSearching &&
                   summary.firstParty.name
@@ -1370,7 +1303,9 @@ export default function MatchmakerChatPanel({
       </CardContent>
     </Card>
   );
-}
+});
+
+export default MatchmakerChatPanel;
 --- End of Content for MatchmakerChatPanel.tsx ---
 
 --------------------------------------------------------------------------------
@@ -2578,13 +2513,6 @@ Content:
 // 26. UserChatPanel — Chat sidebar + active chat view
 // File: src/components/messages/UserChatPanel.tsx
 // =============================================================================
-//
-// Two-pane layout:
-//   Left: list of chats (direct + per-suggestion)
-//   Right: active chat view
-//
-// Mobile: shows one pane at a time with back button
-// =============================================================================
 
 'use client';
 
@@ -2645,6 +2573,7 @@ interface ChatMessage {
 
 interface UserChatPanelProps {
   locale: Locale;
+  onUnreadUpdate?: (count: number) => void;
 }
 
 // ==========================================
@@ -2669,7 +2598,10 @@ function truncate(text: string, maxLen: number) {
 // Component
 // ==========================================
 
-export default function UserChatPanel({ locale }: UserChatPanelProps) {
+export default function UserChatPanel({
+  locale,
+  onUnreadUpdate,
+}: UserChatPanelProps) {
   const [chats, setChats] = useState<ChatSummary[]>([]);
   const [selectedChatId, setSelectedChatId] = useState<string | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -2681,7 +2613,23 @@ export default function UserChatPanel({ locale }: UserChatPanelProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const isHe = locale === 'he';
 
+  // ==========================================
+  // Smart auto-scroll refs
+  // ==========================================
+  const prevMessageCountRef = useRef(0);
+  const userScrolledUpRef = useRef(false);
+
   const selectedChat = chats.find((c) => c.id === selectedChatId);
+
+  // ==========================================
+  // Track if user scrolled up
+  // ==========================================
+  const handleScroll = useCallback(() => {
+    if (!scrollRef.current) return;
+    const { scrollTop, scrollHeight, clientHeight } = scrollRef.current;
+    const isAtBottom = scrollHeight - scrollTop - clientHeight < 50;
+    userScrolledUpRef.current = !isAtBottom;
+  }, []);
 
   // ==========================================
   // Load chat list
@@ -2694,18 +2642,46 @@ export default function UserChatPanel({ locale }: UserChatPanelProps) {
       const data = await res.json();
       if (data.success) {
         setChats(data.chats);
+        // Report unread count to parent
+        if (onUnreadUpdate) {
+          onUnreadUpdate(data.totalUnread || 0);
+        }
       }
     } catch (error) {
       console.error('Error loading chats:', error);
     } finally {
       setIsLoadingList(false);
     }
-  }, []);
+  }, [onUnreadUpdate]);
 
+  // Visibility-aware polling for chat list
   useEffect(() => {
     loadChats();
-    const interval = setInterval(loadChats, 30000);
-    return () => clearInterval(interval);
+    let interval: NodeJS.Timeout | null = null;
+
+    const start = () => {
+      interval = setInterval(loadChats, 30000);
+    };
+    const stop = () => {
+      if (interval) clearInterval(interval);
+      interval = null;
+    };
+
+    const onVisibility = () => {
+      if (document.hidden) {
+        stop();
+      } else {
+        loadChats();
+        start();
+      }
+    };
+
+    start();
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => {
+      stop();
+      document.removeEventListener('visibilitychange', onVisibility);
+    };
   }, [loadChats]);
 
   // ==========================================
@@ -2747,28 +2723,76 @@ export default function UserChatPanel({ locale }: UserChatPanelProps) {
     }
   }, [selectedChatId, loadMessages]);
 
-  // Poll messages when chat is open
+  // Visibility-aware polling for messages
   useEffect(() => {
     if (!selectedChatId) return;
-    const interval = setInterval(loadMessages, 12000);
-    return () => clearInterval(interval);
+
+    let interval: NodeJS.Timeout | null = null;
+    const start = () => {
+      interval = setInterval(loadMessages, 12000);
+    };
+    const stop = () => {
+      if (interval) clearInterval(interval);
+      interval = null;
+    };
+
+    const onVisibility = () => {
+      if (document.hidden) {
+        stop();
+      } else {
+        loadMessages();
+        start();
+      }
+    };
+
+    start();
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => {
+      stop();
+      document.removeEventListener('visibilitychange', onVisibility);
+    };
   }, [selectedChatId, loadMessages]);
 
-  // Auto-scroll
+  // Smart auto-scroll
   useEffect(() => {
-    if (scrollRef.current) {
+    if (!scrollRef.current) return;
+
+    const isNewMessage = messages.length > prevMessageCountRef.current;
+    prevMessageCountRef.current = messages.length;
+
+    // Scroll only if:
+    // 1. New messages arrived AND user is at bottom
+    // 2. OR it's the initial load (prevCount was 0)
+    if (isNewMessage && !userScrolledUpRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [messages]);
 
   // ==========================================
-  // Send message
+  // Send message (optimistic)
   // ==========================================
 
   const handleSend = async () => {
     if (!newMessage.trim() || isSending || !selectedChatId) return;
-    setIsSending(true);
 
+    const tempId = `temp-${Date.now()}`;
+    const optimisticMsg: ChatMessage = {
+      id: tempId,
+      content: newMessage.trim(),
+      senderId: '',
+      senderType: 'user',
+      senderName: '',
+      isRead: false,
+      createdAt: new Date().toISOString(),
+      isMine: true,
+    };
+
+    // Add to UI immediately
+    setMessages((prev) => [...prev, optimisticMsg]);
+    setNewMessage('');
+    userScrolledUpRef.current = false; // force scroll to bottom
+
+    setIsSending(true);
     try {
       const endpoint =
         selectedChatId === 'direct'
@@ -2778,22 +2802,26 @@ export default function UserChatPanel({ locale }: UserChatPanelProps) {
       const res = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ content: newMessage.trim() }),
+        body: JSON.stringify({ content: optimisticMsg.content }),
       });
 
       if (!res.ok) throw new Error('Failed to send');
       const data = await res.json();
 
       if (data.success && data.message) {
-        setMessages((prev) => [...prev, data.message]);
-        setNewMessage('');
-        textareaRef.current?.focus();
+        // Replace temp message with real one
+        setMessages((prev) =>
+          prev.map((m) => (m.id === tempId ? data.message : m))
+        );
       }
     } catch (error) {
+      // Remove temp message on error
+      setMessages((prev) => prev.filter((m) => m.id !== tempId));
       console.error('Send error:', error);
       toast.error(isHe ? 'שגיאה בשליחת ההודעה' : 'Error sending message');
     } finally {
       setIsSending(false);
+      textareaRef.current?.focus();
     }
   };
 
@@ -2807,11 +2835,15 @@ export default function UserChatPanel({ locale }: UserChatPanelProps) {
   const openChat = (chatId: string) => {
     setSelectedChatId(chatId);
     setMessages([]);
+    prevMessageCountRef.current = 0;
+    userScrolledUpRef.current = false;
   };
 
   const closeChat = () => {
     setSelectedChatId(null);
     setMessages([]);
+    prevMessageCountRef.current = 0;
+    userScrolledUpRef.current = false;
     loadChats(); // Refresh unread counts
   };
 
@@ -2877,7 +2909,11 @@ export default function UserChatPanel({ locale }: UserChatPanelProps) {
         {/* Messages */}
         <CardContent className="p-0">
           <div className="flex flex-col h-[500px]">
-            <ScrollArea className="flex-1 px-4" ref={scrollRef}>
+            <ScrollArea
+              className="flex-1 px-4"
+              ref={scrollRef}
+              onScroll={handleScroll}
+            >
               {isLoadingMessages ? (
                 <div className="flex items-center justify-center h-full py-12">
                   <Loader2 className="w-6 h-6 animate-spin text-teal-500" />
@@ -2918,7 +2954,9 @@ export default function UserChatPanel({ locale }: UserChatPanelProps) {
                             'max-w-[75%] rounded-2xl px-4 py-2.5 shadow-sm',
                             msg.isMine
                               ? 'bg-gradient-to-br from-teal-500 to-cyan-500 text-white rounded-br-md'
-                              : 'bg-white border border-gray-200 text-gray-800 rounded-bl-md'
+                              : 'bg-white border border-gray-200 text-gray-800 rounded-bl-md',
+                            // Dim temp messages slightly
+                            msg.id.startsWith('temp-') && 'opacity-70'
                           )}
                         >
                           {!msg.isMine && (
@@ -3014,7 +3052,9 @@ export default function UserChatPanel({ locale }: UserChatPanelProps) {
                 {isHe ? 'השיחות שלי' : 'My Conversations'}
               </CardTitle>
               <p className="text-sm text-gray-500">
-                {isHe ? 'שיחות עם השדכן/ית שלך' : 'Conversations with your matchmaker'}
+                {isHe
+                  ? 'שיחות עם השדכן/ית שלך'
+                  : 'Conversations with your matchmaker'}
               </p>
             </div>
           </div>
@@ -3036,7 +3076,7 @@ export default function UserChatPanel({ locale }: UserChatPanelProps) {
               <Inbox className="w-8 h-8 text-gray-300" />
             </div>
             <p className="text-sm text-gray-500 mb-1 font-medium">
-              {isHe ? "אין שיחות עדיין" : 'No conversations yet'}
+              {isHe ? 'אין שיחות עדיין' : 'No conversations yet'}
             </p>
             <p className="text-xs text-gray-400">
               {isHe

@@ -1,4 +1,11 @@
 // src/components/messages/MatchmakerChatPanel.tsx
+//
+// ✅ OPTIMIZED:
+//   - loadChatSummaries no longer depends on searchQuery (תיקון 2)
+//   - Auto-expand logic moved to a separate useEffect
+//   - onUnreadUpdate wrapped in ref for stable callback identity
+//   - Visibility-aware polling won't reset on search input
+
 'use client';
 
 import React, {
@@ -86,14 +93,13 @@ export interface MatchmakerChatPanelHandle {
   refresh: () => void;
 }
 
-// שינוי 1: הוספת onUnreadUpdate prop
 export interface MatchmakerChatPanelProps {
   locale: Locale;
   onUnreadUpdate?: (total: number) => void;
 }
 
 // ==========================================
-// Helpers (module-level) — שינוי 4: STATUS_LABELS מחוץ לקומפוננטה
+// Helpers (module-level)
 // ==========================================
 
 function formatTime(dateStr: string | undefined, locale: Locale) {
@@ -110,7 +116,6 @@ function truncate(text: string, maxLen: number) {
   return text.slice(0, maxLen) + '…';
 }
 
-// שינוי 4: STATUS_LABELS static מחוץ לקומפוננטה
 const STATUS_LABELS: Record<string, { he: string; en: string; color: string }> =
   {
     PENDING_FIRST_PARTY: {
@@ -154,7 +159,6 @@ function getStatusLabel(status: string, isHe: boolean) {
   return { label: isHe ? info.he : info.en, color: info.color };
 }
 
-// שינוי 5: Memoize HighlightText
 const HighlightText = React.memo(function HighlightText({
   text,
   highlight,
@@ -382,7 +386,7 @@ function DirectChatView({
 }
 
 // ==========================================
-// Main Component (forwardRef) — שינוי 1: onUnreadUpdate prop
+// Main Component (forwardRef)
 // ==========================================
 
 const MatchmakerChatPanel = forwardRef<
@@ -407,7 +411,16 @@ const MatchmakerChatPanel = forwardRef<
   const isHe = locale === 'he';
 
   // ==========================================
-  // שינוי 2: loadChatSummaries החדש — קריאה אחת ל-/api/matchmaker/chat/summaries
+  // ✅ Stable ref for onUnreadUpdate to avoid re-creating loadChatSummaries
+  // ==========================================
+  const onUnreadUpdateRef = useRef(onUnreadUpdate);
+  useEffect(() => {
+    onUnreadUpdateRef.current = onUnreadUpdate;
+  }, [onUnreadUpdate]);
+
+  // ==========================================
+  // ✅ FIXED: loadChatSummaries has NO dependency on searchQuery
+  //    Auto-expand logic is handled in a separate useEffect below.
   // ==========================================
 
   const loadChatSummaries = useCallback(async () => {
@@ -419,24 +432,14 @@ const MatchmakerChatPanel = forwardRef<
       if (data.success) {
         setChatSummaries(data.suggestions || []);
         setDirectChats(data.directChats || []);
-
-        // Auto-expand unread (only when not searching)
-        if (!searchQuery.trim()) {
-          const withUnread = (data.suggestions || [])
-            .filter((s: SuggestionChatSummary) => s.totalUnread > 0)
-            .map((s: SuggestionChatSummary) => s.suggestionId);
-          setExpandedSuggestions(new Set(withUnread));
-        }
-
-        // דווח ל-parent על total unread
-        onUnreadUpdate?.(data.totalUnread || 0);
+        onUnreadUpdateRef.current?.(data.totalUnread || 0);
       }
     } catch (error) {
       console.error('Error loading chat summaries:', error);
     } finally {
       setIsLoading(false);
     }
-  }, [searchQuery, onUnreadUpdate]);
+  }, []); // ✅ No dependencies — stable callback identity
 
   // Expose refresh via imperative handle
   useImperativeHandle(
@@ -448,7 +451,34 @@ const MatchmakerChatPanel = forwardRef<
   );
 
   // ==========================================
-  // שינוי 3: Visibility-aware polling
+  // ✅ SEPARATE: Auto-expand logic based on search/unread
+  //    This runs when chatSummaries or searchQuery changes,
+  //    but does NOT affect the polling interval.
+  // ==========================================
+
+  useEffect(() => {
+    if (searchQuery.trim()) {
+      // When searching: expand all matching suggestions
+      const normalizedQuery = searchQuery.trim().toLowerCase();
+      const matchingIds = chatSummaries
+        .filter(
+          (s) =>
+            s.firstParty.name.toLowerCase().includes(normalizedQuery) ||
+            s.secondParty.name.toLowerCase().includes(normalizedQuery)
+        )
+        .map((s) => s.suggestionId);
+      setExpandedSuggestions(new Set(matchingIds));
+    } else {
+      // When not searching: expand suggestions with unread messages
+      const withUnread = chatSummaries
+        .filter((s) => s.totalUnread > 0)
+        .map((s) => s.suggestionId);
+      setExpandedSuggestions(new Set(withUnread));
+    }
+  }, [searchQuery, chatSummaries]);
+
+  // ==========================================
+  // ✅ Visibility-aware polling — stable, won't reset on search
   // ==========================================
 
   useEffect(() => {
@@ -472,7 +502,7 @@ const MatchmakerChatPanel = forwardRef<
       if (document.hidden) {
         stopPolling();
       } else {
-        loadChatSummaries(); // רענן מיד כשחוזרים
+        loadChatSummaries();
         startPolling();
       }
     };
@@ -510,20 +540,6 @@ const MatchmakerChatPanel = forwardRef<
       dc.name.toLowerCase().includes(normalizedQuery)
     );
   }, [directChats, normalizedQuery]);
-
-  // Auto-expand all matching suggestions when searching
-  useEffect(() => {
-    if (normalizedQuery) {
-      const matchingIds = filteredSummaries.map((s) => s.suggestionId);
-      setExpandedSuggestions(new Set(matchingIds));
-    }
-    if (!normalizedQuery && chatSummaries.length > 0) {
-      const withUnread = chatSummaries
-        .filter((s) => s.totalUnread > 0)
-        .map((s) => s.suggestionId);
-      setExpandedSuggestions(new Set(withUnread));
-    }
-  }, [normalizedQuery, filteredSummaries, chatSummaries]);
 
   // ==========================================
   // Handlers
@@ -883,7 +899,6 @@ const MatchmakerChatPanel = forwardRef<
                 const isExpanded = expandedSuggestions.has(
                   summary.suggestionId
                 );
-                // שינוי 4: שימוש בפונקציה שמחוץ לקומפוננטה
                 const statusInfo = getStatusLabel(summary.status, isHe);
 
                 const firstMatches =

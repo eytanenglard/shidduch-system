@@ -1,7 +1,9 @@
-// =============================================================================
-// 26. UserChatPanel — Chat sidebar + active chat view
-// File: src/components/messages/UserChatPanel.tsx
-// =============================================================================
+// src/components/messages/UserChatPanel.tsx
+//
+// ✅ OPTIMIZED:
+//   - Chat list polling pauses when a chat is open (תיקון 4)
+//   - loadChats dependency is stable (no re-render loops)
+//   - onUnreadUpdate wrapped in ref to avoid callback identity changes
 
 'use client';
 
@@ -30,6 +32,7 @@ import { cn, getInitials } from '@/lib/utils';
 import { format, isToday, isYesterday } from 'date-fns';
 import { he, enUS } from 'date-fns/locale';
 import type { Locale } from '../../../i18n-config';
+import SuggestionChat from '@/components/messages/SuggestionChat';
 
 // ==========================================
 // Types
@@ -103,7 +106,15 @@ export default function UserChatPanel({
   const isHe = locale === 'he';
 
   // ==========================================
-  // Smart auto-scroll refs
+  // ✅ Stable ref for onUnreadUpdate to avoid re-creating loadChats
+  // ==========================================
+  const onUnreadUpdateRef = useRef(onUnreadUpdate);
+  useEffect(() => {
+    onUnreadUpdateRef.current = onUnreadUpdate;
+  }, [onUnreadUpdate]);
+
+  // ==========================================
+  // Smart auto-scroll refs (for direct chat only)
   // ==========================================
   const prevMessageCountRef = useRef(0);
   const userScrolledUpRef = useRef(false);
@@ -111,7 +122,7 @@ export default function UserChatPanel({
   const selectedChat = chats.find((c) => c.id === selectedChatId);
 
   // ==========================================
-  // Track if user scrolled up
+  // Track if user scrolled up (for direct chat)
   // ==========================================
   const handleScroll = useCallback(() => {
     if (!scrollRef.current) return;
@@ -122,6 +133,7 @@ export default function UserChatPanel({
 
   // ==========================================
   // Load chat list
+  // ✅ No dependency on onUnreadUpdate (uses ref instead)
   // ==========================================
 
   const loadChats = useCallback(async () => {
@@ -131,24 +143,26 @@ export default function UserChatPanel({
       const data = await res.json();
       if (data.success) {
         setChats(data.chats);
-        // Report unread count to parent
-        if (onUnreadUpdate) {
-          onUnreadUpdate(data.totalUnread || 0);
-        }
+        onUnreadUpdateRef.current?.(data.totalUnread || 0);
       }
     } catch (error) {
       console.error('Error loading chats:', error);
     } finally {
       setIsLoadingList(false);
     }
-  }, [onUnreadUpdate]);
+  }, []);
 
-  // Visibility-aware polling for chat list
+  // ==========================================
+  // ✅ Visibility-aware polling for chat list
+  //    Pauses when a chat is open (selectedChatId !== null)
+  // ==========================================
   useEffect(() => {
     loadChats();
     let interval: NodeJS.Timeout | null = null;
 
     const start = () => {
+      // ✅ Don't poll the list when user is inside a specific chat
+      if (selectedChatId) return;
       interval = setInterval(loadChats, 30000);
     };
     const stop = () => {
@@ -171,54 +185,45 @@ export default function UserChatPanel({
       stop();
       document.removeEventListener('visibilitychange', onVisibility);
     };
-  }, [loadChats]);
+  }, [loadChats, selectedChatId]);
 
   // ==========================================
-  // Load messages for selected chat
+  // Load messages for direct chat only
   // ==========================================
 
-  const loadMessages = useCallback(async () => {
-    if (!selectedChatId) return;
+  const loadDirectMessages = useCallback(async () => {
+    if (!selectedChatId || selectedChatId !== 'direct') return;
 
     try {
-      const endpoint =
-        selectedChatId === 'direct'
-          ? '/api/messages/direct'
-          : `/api/suggestions/${selectedChatId}/chat`;
-
-      const res = await fetch(endpoint);
+      const res = await fetch('/api/messages/direct');
       if (!res.ok) throw new Error('Failed');
       const data = await res.json();
       if (data.success) {
         setMessages(data.messages || []);
       }
     } catch (error) {
-      console.error('Error loading messages:', error);
+      console.error('Error loading direct messages:', error);
     } finally {
       setIsLoadingMessages(false);
     }
   }, [selectedChatId]);
 
   useEffect(() => {
-    if (selectedChatId) {
+    if (selectedChatId === 'direct') {
       setIsLoadingMessages(true);
-      loadMessages();
+      loadDirectMessages();
       // Mark as read
-      const endpoint =
-        selectedChatId === 'direct'
-          ? '/api/messages/direct'
-          : `/api/suggestions/${selectedChatId}/chat`;
-      fetch(endpoint, { method: 'PATCH' }).catch(console.error);
+      fetch('/api/messages/direct', { method: 'PATCH' }).catch(console.error);
     }
-  }, [selectedChatId, loadMessages]);
+  }, [selectedChatId, loadDirectMessages]);
 
-  // Visibility-aware polling for messages
+  // Visibility-aware polling for direct messages
   useEffect(() => {
-    if (!selectedChatId) return;
+    if (!selectedChatId || selectedChatId !== 'direct') return;
 
     let interval: NodeJS.Timeout | null = null;
     const start = () => {
-      interval = setInterval(loadMessages, 12000);
+      interval = setInterval(loadDirectMessages, 12000);
     };
     const stop = () => {
       if (interval) clearInterval(interval);
@@ -229,7 +234,7 @@ export default function UserChatPanel({
       if (document.hidden) {
         stop();
       } else {
-        loadMessages();
+        loadDirectMessages();
         start();
       }
     };
@@ -240,29 +245,26 @@ export default function UserChatPanel({
       stop();
       document.removeEventListener('visibilitychange', onVisibility);
     };
-  }, [selectedChatId, loadMessages]);
+  }, [selectedChatId, loadDirectMessages]);
 
-  // Smart auto-scroll
+  // Smart auto-scroll for direct chat
   useEffect(() => {
-    if (!scrollRef.current) return;
+    if (!scrollRef.current || selectedChatId !== 'direct') return;
 
     const isNewMessage = messages.length > prevMessageCountRef.current;
     prevMessageCountRef.current = messages.length;
 
-    // Scroll only if:
-    // 1. New messages arrived AND user is at bottom
-    // 2. OR it's the initial load (prevCount was 0)
     if (isNewMessage && !userScrolledUpRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
-  }, [messages]);
+  }, [messages, selectedChatId]);
 
   // ==========================================
-  // Send message (optimistic)
+  // Send direct message (optimistic)
   // ==========================================
 
-  const handleSend = async () => {
-    if (!newMessage.trim() || isSending || !selectedChatId) return;
+  const handleSendDirect = async () => {
+    if (!newMessage.trim() || isSending || selectedChatId !== 'direct') return;
 
     const tempId = `temp-${Date.now()}`;
     const optimisticMsg: ChatMessage = {
@@ -276,19 +278,13 @@ export default function UserChatPanel({
       isMine: true,
     };
 
-    // Add to UI immediately
     setMessages((prev) => [...prev, optimisticMsg]);
     setNewMessage('');
-    userScrolledUpRef.current = false; // force scroll to bottom
+    userScrolledUpRef.current = false;
 
     setIsSending(true);
     try {
-      const endpoint =
-        selectedChatId === 'direct'
-          ? '/api/messages/direct'
-          : `/api/suggestions/${selectedChatId}/chat`;
-
-      const res = await fetch(endpoint, {
+      const res = await fetch('/api/messages/direct', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ content: optimisticMsg.content }),
@@ -298,13 +294,11 @@ export default function UserChatPanel({
       const data = await res.json();
 
       if (data.success && data.message) {
-        // Replace temp message with real one
         setMessages((prev) =>
           prev.map((m) => (m.id === tempId ? data.message : m))
         );
       }
     } catch (error) {
-      // Remove temp message on error
       setMessages((prev) => prev.filter((m) => m.id !== tempId));
       console.error('Send error:', error);
       toast.error(isHe ? 'שגיאה בשליחת ההודעה' : 'Error sending message');
@@ -317,7 +311,7 @@ export default function UserChatPanel({
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      handleSend();
+      handleSendDirect();
     }
   };
 
@@ -341,6 +335,62 @@ export default function UserChatPanel({
   // ==========================================
 
   if (selectedChat) {
+    // ========================================
+    // Suggestion chats — use shared SuggestionChat component
+    // ========================================
+    if (selectedChat.type === 'suggestion' && selectedChat.id !== 'direct') {
+      return (
+        <Card className="shadow-lg border-0 overflow-hidden bg-white">
+          {/* Chat Header with back button */}
+          <CardHeader className="bg-gradient-to-r from-teal-50 to-cyan-50/40 border-b py-3">
+            <div className="flex items-center gap-3">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={closeChat}
+                className="gap-1 text-gray-600 hover:text-gray-900 hover:bg-teal-50"
+              >
+                {isHe ? (
+                  <ChevronRight className="w-4 h-4" />
+                ) : (
+                  <ChevronLeft className="w-4 h-4" />
+                )}
+                {isHe ? 'חזרה' : 'Back'}
+              </Button>
+              <div className="h-6 w-px bg-gray-200" />
+              <div className="flex items-center gap-2.5">
+                <Avatar className="w-9 h-9 shadow-sm ring-2 ring-white">
+                  <AvatarFallback className="text-white text-xs font-bold bg-gradient-to-br from-teal-400 to-cyan-500">
+                    {getInitials(selectedChat.title)}
+                  </AvatarFallback>
+                </Avatar>
+                <div>
+                  <p className="font-semibold text-gray-800 text-sm">
+                    {selectedChat.title}
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    {isHe ? 'שדכן/ית:' : 'Matchmaker:'}{' '}
+                    {selectedChat.matchmakerName}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </CardHeader>
+
+          {/* Shared SuggestionChat component — same data source as the modal */}
+          <SuggestionChat
+            suggestionId={selectedChat.id}
+            locale={locale}
+            compact
+            heightClass="h-[450px]"
+          />
+        </Card>
+      );
+    }
+
+    // ========================================
+    // Direct chat — keep inline implementation
+    // ========================================
     return (
       <Card className="shadow-lg border-0 overflow-hidden bg-white">
         {/* Chat Header */}
@@ -362,40 +412,25 @@ export default function UserChatPanel({
             <div className="h-6 w-px bg-gray-200" />
             <div className="flex items-center gap-2.5">
               <Avatar className="w-9 h-9 shadow-sm ring-2 ring-white">
-                <AvatarFallback
-                  className={cn(
-                    'text-white text-xs font-bold bg-gradient-to-br',
-                    selectedChat.type === 'direct'
-                      ? 'from-purple-400 to-pink-500'
-                      : 'from-teal-400 to-cyan-500'
-                  )}
-                >
-                  {selectedChat.type === 'direct' ? (
-                    <User className="w-4 h-4" />
-                  ) : (
-                    getInitials(selectedChat.title)
-                  )}
+                <AvatarFallback className="text-white text-xs font-bold bg-gradient-to-br from-purple-400 to-pink-500">
+                  <User className="w-4 h-4" />
                 </AvatarFallback>
               </Avatar>
               <div>
                 <p className="font-semibold text-gray-800 text-sm">
-                  {selectedChat.type === 'direct'
-                    ? selectedChat.matchmakerName
-                    : selectedChat.title}
+                  {selectedChat.matchmakerName}
                 </p>
                 <p className="text-xs text-gray-500">
-                  {selectedChat.type === 'direct'
-                    ? isHe
-                      ? 'שיחה כללית עם השדכן/ית'
-                      : 'General chat with matchmaker'
-                    : `${isHe ? 'שדכן/ית:' : 'Matchmaker:'} ${selectedChat.matchmakerName}`}
+                  {isHe
+                    ? 'שיחה כללית עם השדכן/ית'
+                    : 'General chat with matchmaker'}
                 </p>
               </div>
             </div>
           </div>
         </CardHeader>
 
-        {/* Messages */}
+        {/* Direct Messages */}
         <CardContent className="p-0">
           <div className="flex flex-col h-[500px]">
             <ScrollArea
@@ -444,7 +479,6 @@ export default function UserChatPanel({
                             msg.isMine
                               ? 'bg-gradient-to-br from-teal-500 to-cyan-500 text-white rounded-br-md'
                               : 'bg-white border border-gray-200 text-gray-800 rounded-bl-md',
-                            // Dim temp messages slightly
                             msg.id.startsWith('temp-') && 'opacity-70'
                           )}
                         >
@@ -495,7 +529,7 @@ export default function UserChatPanel({
                   dir={isHe ? 'rtl' : 'ltr'}
                 />
                 <Button
-                  onClick={handleSend}
+                  onClick={handleSendDirect}
                   disabled={!newMessage.trim() || isSending}
                   size="icon"
                   className="h-11 w-11 rounded-xl bg-gradient-to-br from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 shadow-md flex-shrink-0"
@@ -515,7 +549,7 @@ export default function UserChatPanel({
   }
 
   // ==========================================
-  // Render — Chat List
+  // Render — Chat List (no chat selected)
   // ==========================================
 
   if (isLoadingList) {
