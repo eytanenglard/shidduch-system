@@ -6,6 +6,8 @@ import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { MatchSuggestionStatus, UserRole } from "@prisma/client";
 import { z } from "zod";
+import { getDictionary } from "@/lib/dictionaries";
+import { statusTransitionService } from "@/components/matchmaker/suggestions/services/suggestions/StatusTransitionService";
 
 const updateStatusSchema = z.object({
   status: z.nativeEnum(MatchSuggestionStatus),
@@ -51,13 +53,15 @@ export async function PATCH(
     const { status, notes } = validationResult.data;
     const params = await props.params;
     const suggestionId = params.id;
+
+    // ─── שליפת ההצעה עם כל הצדדים (נדרש ל-StatusTransitionService) ───
     const suggestion = await prisma.matchSuggestion.findUnique({
       where: { id: suggestionId },
       include: {
-        matchmaker: {
-          select: { id: true }
-        }
-      }
+        firstParty: { include: { profile: true } },
+        secondParty: { include: { profile: true } },
+        matchmaker: true,
+      },
     });
 
     if (!suggestion) {
@@ -74,66 +78,49 @@ export async function PATCH(
       );
     }
 
-    const getCategory = (status: MatchSuggestionStatus) => {
-      switch (status) {
-        case "DRAFT":
-        case "AWAITING_MATCHMAKER_APPROVAL":
-        case "PENDING_FIRST_PARTY":
-        case "PENDING_SECOND_PARTY":
-          return "PENDING";
-        
-        case "FIRST_PARTY_DECLINED":
-        case "SECOND_PARTY_DECLINED":
-        case "MATCH_DECLINED":
-        case "ENDED_AFTER_FIRST_DATE":
-        case "ENGAGED":
-        case "MARRIED":
-        case "EXPIRED":
-        case "CLOSED":
-        case "CANCELLED":
-          return "HISTORY";
-        
-        default:
-          return "ACTIVE";
+    // ─── טעינת מילונים לשליחת מיילים ───
+    const [heFullDict, enFullDict] = await Promise.all([
+      getDictionary('he'),
+      getDictionary('en'),
+    ]);
+    const heDict = heFullDict.email;
+    const enDict = enFullDict.email;
+
+    // ─── זיהוי שפות הצדדים ───
+    const firstPartyLang = ((suggestion.firstParty as any).language || 'he') as 'he' | 'en';
+    const secondPartyLang = ((suggestion.secondParty as any).language || 'he') as 'he' | 'en';
+    const matchmakerLang = ((suggestion.matchmaker as any).language || 'he') as 'he' | 'en';
+
+    // ─── שימוש ב-StatusTransitionService שמטפל ב:
+    //     1. עדכון DB + היסטוריה
+    //     2. שליחת מייל + WhatsApp
+    //     3. שליחת Push Notification
+    // ───
+    const updatedSuggestion = await statusTransitionService.transitionStatus(
+      suggestion,
+      status,
+      { he: heDict, en: enDict },
+      notes || `סטטוס שונה ל-${status} על ידי ${session.user.firstName} ${session.user.lastName}`,
+      {
+        sendNotifications: true,
+        notifyParties: ['first', 'second', 'matchmaker'],
+      },
+      {
+        firstParty: firstPartyLang,
+        secondParty: secondPartyLang,
+        matchmaker: matchmakerLang,
       }
-    };
-
-    const result = await prisma.$transaction(async (tx) => {
-      const previousStatus = suggestion.status;
-      const updatedSuggestion = await tx.matchSuggestion.update({
-        where: { id: suggestionId },
-        data: {
-          status: status,
-          previousStatus: previousStatus,
-          lastStatusChange: new Date(),
-          lastActivity: new Date(),
-          category: getCategory(status),
-          ...(status === MatchSuggestionStatus.CLOSED ? { closedAt: new Date() } : {}),
-          ...(status === MatchSuggestionStatus.PENDING_FIRST_PARTY ? { firstPartySent: new Date() } : {}),
-          ...(status === MatchSuggestionStatus.PENDING_SECOND_PARTY ? { secondPartySent: new Date() } : {}),
-        },
-      });
-
-      await tx.suggestionStatusHistory.create({
-        data: {
-          suggestionId,
-          status,
-          notes: notes || `סטטוס שונה ל-${status} על ידי ${session.user.firstName} ${session.user.lastName}`,
-        },
-      });
-
-      return updatedSuggestion;
-    });
+    );
 
     return NextResponse.json({
       success: true,
       message: "Status updated successfully",
       suggestion: {
-        id: result.id,
-        status: result.status,
-        previousStatus: result.previousStatus,
-        lastStatusChange: result.lastStatusChange,
-        category: result.category,
+        id: updatedSuggestion.id,
+        status: updatedSuggestion.status,
+        previousStatus: updatedSuggestion.previousStatus,
+        lastStatusChange: updatedSuggestion.lastStatusChange,
+        category: (updatedSuggestion as any).category,
       },
     });
 

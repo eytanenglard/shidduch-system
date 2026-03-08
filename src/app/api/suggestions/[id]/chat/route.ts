@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
+ import { pushSuggestionMessage, pushUserMessageToMatchmaker } from '@/lib/sendPushNotification';
 
 // ==========================================
 // GET — Fetch messages for a suggestion chat
@@ -201,6 +202,39 @@ export async function POST(
       return msg;
     });
 
+      if (isMatchmaker) {
+     // Matchmaker sent message → push to target user(s)
+     if (targetUserId) {
+       pushSuggestionMessage(
+         targetUserId,
+         session.user.name || 'השדכן/ית',
+         content.trim(),
+         suggestionId
+       ).catch(console.error);
+     } else {
+       // Broadcast - push to both parties
+       pushSuggestionMessage(
+         suggestion.firstPartyId,
+         session.user.name || 'השדכן/ית',
+         content.trim(),
+         suggestionId
+       ).catch(console.error);
+       pushSuggestionMessage(
+         suggestion.secondPartyId,
+         session.user.name || 'השדכן/ית',
+         content.trim(),
+         suggestionId
+      ).catch(console.error);
+     }
+   } else {
+    // User sent message → push to matchmaker
+    pushUserMessageToMatchmaker(
+      suggestion.matchmakerId,
+      session.user.name || 'יוזר',
+      content.trim(),
+      { suggestionId }
+     ).catch(console.error);
+   }
     return NextResponse.json({
       success: true,
       message: {

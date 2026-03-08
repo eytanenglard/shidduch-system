@@ -7,6 +7,7 @@
 // POST  — Send a direct message to assigned matchmaker
 // PATCH — Mark direct messages as read
 // =============================================================================
+import { pushUserMessageToMatchmaker } from '@/lib/sendPushNotification';
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
@@ -134,7 +135,13 @@ export async function POST(req: NextRequest) {
         content: content.trim(),
       },
     });
-
+   // User sent direct message → push to matchmaker
+   pushUserMessageToMatchmaker(
+     user.assignedMatchmakerId!,
+     session.user.name || 'יוזר',
+     content.trim(),
+     { isDirect: true }
+   ).catch(console.error);
     return NextResponse.json({
       success: true,
       message: {

@@ -1,0 +1,992 @@
+################################################################################
+# Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\messages
+# Generated on: 2026-03-08 14:47:35
+# Filter: Only content of code files (.bat, .c, .cfg, .conf, .cpp, .cs, .css, .go, .h, .html, .ini, .java, .js, .json, .jsx, .kt, .less, .md, .php, .py, .rb, .rs, .scss, .sh, .sql, .swift, .ts, .tsx, .txt, .xml, .yaml, .yml) is included.
+################################################################################
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\messages
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\messages\messages_contents.txt
+--------------------------------------------------------------------------------
+[This is the output log file itself. Content not included.]
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\messages\chat
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\messages\chat\route.ts
+--------------------------------------------------------------------------------
+Content:
+// =============================================================================
+// 23. API Route — User Chat List (All Chats Summary)
+// File: src/app/api/messages/chats/route.ts
+// =============================================================================
+//
+// Returns a list of all chat threads for the current user:
+// 1. Direct chat with assigned matchmaker (if exists)
+// 2. Per-suggestion chats (for each active suggestion)
+//
+// GET — list all chat summaries with last message + unread count
+// =============================================================================
+
+import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
+import prisma from '@/lib/prisma';
+
+interface ChatSummary {
+  id: string;
+  type: 'direct' | 'suggestion';
+  title: string;
+  subtitle?: string;
+  matchmakerName: string;
+  lastMessage?: string;
+  lastMessageTime?: string;
+  lastMessageIsMine?: boolean;
+  unreadCount: number;
+  suggestionId?: string;
+  status?: string;
+}
+
+export async function GET(req: NextRequest) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const userId = session.user.id;
+    const chats: ChatSummary[] = [];
+
+    // ==========================================
+    // 1. Direct chat with assigned matchmaker
+    // ==========================================
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        assignedMatchmakerId: true,
+        assignedMatchmaker: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+          },
+        },
+      },
+    });
+
+    if (user?.assignedMatchmaker && user.assignedMatchmakerId) {
+      const matchmakerName = `${user.assignedMatchmaker.firstName} ${user.assignedMatchmaker.lastName}`;
+      const matchmakerId = user.assignedMatchmakerId;
+
+      // Get last direct message
+      const lastDirectMsg = await prisma.directMessage.findFirst({
+        where: {
+          OR: [
+            { senderId: userId, receiverId: matchmakerId },
+            { senderId: matchmakerId, receiverId: userId },
+          ],
+        },
+        orderBy: { createdAt: 'desc' },
+        select: {
+          content: true,
+          createdAt: true,
+          senderId: true,
+        },
+      });
+
+      // Count unread direct messages
+      const directUnread = await prisma.directMessage.count({
+        where: {
+          receiverId: userId,
+          senderId: matchmakerId,
+          isRead: false,
+        },
+      });
+
+      chats.push({
+        id: 'direct',
+        type: 'direct',
+        title: matchmakerName,
+        subtitle: 'שיחה כללית',
+        matchmakerName,
+        lastMessage: lastDirectMsg?.content,
+        lastMessageTime: lastDirectMsg?.createdAt.toISOString(),
+        lastMessageIsMine: lastDirectMsg?.senderId === userId,
+        unreadCount: directUnread,
+      });
+    }
+
+    // ==========================================
+    // 2. Suggestion-based chats
+    // ==========================================
+    // Filter out terminal statuses that should not appear in chat list.
+    // 'REJECTED' does not exist in the MatchSuggestionStatus enum.
+    // The valid terminal/inactive statuses are:
+    //   FIRST_PARTY_DECLINED, SECOND_PARTY_DECLINED, MATCH_DECLINED,
+    //   CANCELLED, EXPIRED, CLOSED
+    const suggestions = await prisma.matchSuggestion.findMany({
+      where: {
+        OR: [
+          { firstPartyId: userId },
+          { secondPartyId: userId },
+        ],
+        status: {
+          notIn: [
+            'FIRST_PARTY_DECLINED',
+            'SECOND_PARTY_DECLINED',
+            'MATCH_DECLINED',
+            'CANCELLED',
+            'EXPIRED',
+            'CLOSED',
+          ],
+        },
+      },
+      select: {
+        id: true,
+        status: true,
+        firstPartyId: true,
+        secondPartyId: true,
+        firstParty: {
+          select: {
+            firstName: true,
+            lastName: true,
+          },
+        },
+        secondParty: {
+          select: {
+            firstName: true,
+            lastName: true,
+          },
+        },
+        matchmaker: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+          },
+        },
+      },
+    });
+
+    for (const suggestion of suggestions) {
+      const isFirstParty = suggestion.firstPartyId === userId;
+      const otherParty = isFirstParty
+        ? suggestion.secondParty
+        : suggestion.firstParty;
+      const matchmakerName = `${suggestion.matchmaker.firstName} ${suggestion.matchmaker.lastName}`;
+
+      // Get last message in this suggestion for this user
+      const lastMsg = await prisma.suggestionMessage.findFirst({
+        where: {
+          suggestionId: suggestion.id,
+          OR: [
+            // Messages sent by this user
+            {
+              senderId: userId,
+              senderType: 'USER',
+            },
+            // Messages from matchmaker targeted to this user or broadcast
+            {
+              senderType: 'MATCHMAKER',
+              OR: [
+                { targetUserId: userId },
+                { targetUserId: null },
+              ],
+            },
+            // System messages
+            {
+              senderType: 'SYSTEM',
+            },
+          ],
+        },
+        orderBy: { createdAt: 'desc' },
+        select: {
+          content: true,
+          createdAt: true,
+          senderId: true,
+        },
+      });
+
+      // Count unread messages for this user in this suggestion
+      const unreadCount = await prisma.suggestionMessage.count({
+        where: {
+          suggestionId: suggestion.id,
+          isRead: false,
+          NOT: {
+            senderId: userId,
+          },
+          OR: [
+            { targetUserId: userId },
+            { targetUserId: null },
+            { senderType: 'SYSTEM' },
+          ],
+        },
+      });
+
+      chats.push({
+        id: suggestion.id,
+        type: 'suggestion',
+        title: `${otherParty.firstName} ${otherParty.lastName}`,
+        subtitle: matchmakerName,
+        matchmakerName,
+        lastMessage: lastMsg?.content,
+        lastMessageTime: lastMsg?.createdAt.toISOString(),
+        lastMessageIsMine: lastMsg?.senderId === userId,
+        unreadCount,
+        suggestionId: suggestion.id,
+        status: suggestion.status,
+      });
+    }
+
+    // Sort: direct chat first, then by last message time (newest first)
+    chats.sort((a, b) => {
+      // Direct chat always on top
+      if (a.type === 'direct' && b.type !== 'direct') return -1;
+      if (a.type !== 'direct' && b.type === 'direct') return 1;
+
+      // Then sort by last message time descending
+      const timeA = a.lastMessageTime
+        ? new Date(a.lastMessageTime).getTime()
+        : 0;
+      const timeB = b.lastMessageTime
+        ? new Date(b.lastMessageTime).getTime()
+        : 0;
+      return timeB - timeA;
+    });
+
+    const totalUnread = chats.reduce(
+      (sum, chat) => sum + chat.unreadCount,
+      0
+    );
+
+    return NextResponse.json({
+      success: true,
+      chats,
+      totalUnread,
+    });
+  } catch (error) {
+    console.error('[messages/chats] GET error:', error);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}
+--- End of Content for route.ts ---
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\messages\chats
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\messages\chats\route.ts
+--------------------------------------------------------------------------------
+Content:
+// =============================================================================
+// API Route — User Chat List (All Chats Summary)
+// File: src/app/api/messages/chats/route.ts
+//
+// ✅ OPTIMIZED: Replaced N+1 loop queries with 2 batch raw SQL queries
+// =============================================================================
+
+import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
+import prisma from '@/lib/prisma';
+
+interface ChatSummary {
+  id: string;
+  type: 'direct' | 'suggestion';
+  title: string;
+  subtitle?: string;
+  matchmakerName: string;
+  lastMessage?: string;
+  lastMessageTime?: string;
+  lastMessageIsMine?: boolean;
+  unreadCount: number;
+  suggestionId?: string;
+  status?: string;
+}
+
+export async function GET(req: NextRequest) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const userId = session.user.id;
+    const chats: ChatSummary[] = [];
+
+    // ==========================================
+    // 1. Direct chat with assigned matchmaker
+    // ==========================================
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        assignedMatchmakerId: true,
+        assignedMatchmaker: {
+          select: { id: true, firstName: true, lastName: true },
+        },
+      },
+    });
+
+    if (user?.assignedMatchmaker) {
+      const matchmakerName = `${user.assignedMatchmaker.firstName} ${user.assignedMatchmaker.lastName}`;
+
+      // Get last direct message
+      const lastDirectMsg = await prisma.directMessage.findFirst({
+        where: {
+          OR: [
+            { senderId: userId, receiverId: user.assignedMatchmakerId! },
+            { senderId: user.assignedMatchmakerId!, receiverId: userId },
+          ],
+        },
+        orderBy: { createdAt: 'desc' },
+        select: {
+          content: true,
+          createdAt: true,
+          senderId: true,
+        },
+      });
+
+      // Count unread direct messages
+      const directUnread = await prisma.directMessage.count({
+        where: {
+          receiverId: userId,
+          senderId: user.assignedMatchmakerId!,
+          isRead: false,
+        },
+      });
+
+      chats.push({
+        id: 'direct',
+        type: 'direct',
+        title: matchmakerName,
+        subtitle: 'שיחה כללית',
+        matchmakerName,
+        lastMessage: lastDirectMsg?.content,
+        lastMessageTime: lastDirectMsg?.createdAt.toISOString(),
+        lastMessageIsMine: lastDirectMsg?.senderId === userId,
+        unreadCount: directUnread,
+      });
+    }
+
+    // ==========================================
+    // 2. Suggestion-based chats — BATCHED QUERIES
+    // ==========================================
+    const suggestions = await prisma.matchSuggestion.findMany({
+      where: {
+        OR: [{ firstPartyId: userId }, { secondPartyId: userId }],
+        status: {
+          notIn: [
+            'FIRST_PARTY_DECLINED',
+            'SECOND_PARTY_DECLINED',
+            'MATCH_DECLINED',
+            'CANCELLED',
+            'CLOSED',
+            'EXPIRED',
+            'ENDED_AFTER_FIRST_DATE',
+          ],
+        },
+      },
+      include: {
+        firstParty: { select: { firstName: true, lastName: true } },
+        secondParty: { select: { firstName: true, lastName: true } },
+        matchmaker: { select: { id: true, firstName: true, lastName: true } },
+      },
+    });
+
+    if (suggestions.length > 0) {
+      const suggestionIds = suggestions.map((s) => s.id);
+
+      // ✅ BATCH QUERY 1: Last message per suggestion (single query for all)
+      const lastMessages = await prisma.$queryRaw<
+        Array<{
+          suggestionId: string;
+          content: string;
+          createdAt: Date;
+          senderId: string;
+        }>
+      >`
+        SELECT DISTINCT ON ("suggestionId")
+          "suggestionId", "content", "createdAt", "senderId"
+        FROM "SuggestionMessage"
+        WHERE "suggestionId" = ANY(${suggestionIds})
+          AND (
+            ("senderId" = ${userId} AND "senderType" = 'USER')
+            OR ("senderType" = 'MATCHMAKER' AND ("targetUserId" = ${userId} OR "targetUserId" IS NULL))
+            OR "senderType" = 'SYSTEM'
+          )
+        ORDER BY "suggestionId", "createdAt" DESC
+      `;
+
+      // ✅ BATCH QUERY 2: Unread count per suggestion (single query for all)
+      const unreadCounts = await prisma.$queryRaw<
+        Array<{ suggestionId: string; count: bigint }>
+      >`
+        SELECT "suggestionId", COUNT(*) as count
+        FROM "SuggestionMessage"
+        WHERE "suggestionId" = ANY(${suggestionIds})
+          AND "isRead" = false
+          AND "senderId" != ${userId}
+          AND (
+            "targetUserId" = ${userId}
+            OR "targetUserId" IS NULL
+            OR "senderType" = 'SYSTEM'
+          )
+        GROUP BY "suggestionId"
+      `;
+
+      // Build lookup maps for O(1) access
+      const lastMsgMap = new Map(
+        lastMessages.map((m) => [m.suggestionId, m])
+      );
+      const unreadMap = new Map(
+        unreadCounts.map((u) => [u.suggestionId, Number(u.count)])
+      );
+
+      // Build chat summaries — NO additional queries inside the loop
+      for (const suggestion of suggestions) {
+        const isFirstParty = suggestion.firstPartyId === userId;
+        const otherParty = isFirstParty
+          ? suggestion.secondParty
+          : suggestion.firstParty;
+        const matchmakerName = `${suggestion.matchmaker.firstName} ${suggestion.matchmaker.lastName}`;
+        const lastMsg = lastMsgMap.get(suggestion.id);
+        const unreadCount = unreadMap.get(suggestion.id) || 0;
+
+        chats.push({
+          id: suggestion.id,
+          type: 'suggestion',
+          title: `${otherParty.firstName} ${otherParty.lastName}`,
+          subtitle: matchmakerName,
+          matchmakerName,
+          lastMessage: lastMsg?.content,
+          lastMessageTime: lastMsg?.createdAt.toISOString(),
+          lastMessageIsMine: lastMsg?.senderId === userId,
+          unreadCount,
+          suggestionId: suggestion.id,
+          status: suggestion.status,
+        });
+      }
+    }
+
+    // Sort: direct first, then by last message time (newest first)
+    chats.sort((a, b) => {
+      if (a.type === 'direct' && b.type !== 'direct') return -1;
+      if (a.type !== 'direct' && b.type === 'direct') return 1;
+      const timeA = a.lastMessageTime
+        ? new Date(a.lastMessageTime).getTime()
+        : 0;
+      const timeB = b.lastMessageTime
+        ? new Date(b.lastMessageTime).getTime()
+        : 0;
+      return timeB - timeA;
+    });
+
+    const totalUnread = chats.reduce((sum, c) => sum + c.unreadCount, 0);
+
+    return NextResponse.json({
+      success: true,
+      chats,
+      totalUnread,
+    });
+  } catch (error) {
+    console.error('[messages/chats] GET error:', error);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}
+--- End of Content for route.ts ---
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\messages\direct
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\messages\direct\route.ts
+--------------------------------------------------------------------------------
+Content:
+// =============================================================================
+// File 22: User Direct Messages API
+// Path: src/app/api/messages/direct/route.ts
+// =============================================================================
+//
+// GET   — Fetch direct messages with assigned matchmaker
+// POST  — Send a direct message to assigned matchmaker
+// PATCH — Mark direct messages as read
+// =============================================================================
+
+import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
+import prisma from '@/lib/prisma';
+
+// ==========================================
+// GET — Fetch messages with assigned matchmaker
+// ==========================================
+export async function GET(req: NextRequest) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const userId = session.user.id;
+
+    // Get assigned matchmaker
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        assignedMatchmakerId: true,
+        assignedMatchmaker: {
+          select: { id: true, firstName: true, lastName: true },
+        },
+      },
+    });
+
+    if (!user?.assignedMatchmaker) {
+      return NextResponse.json({
+        success: true,
+        messages: [],
+        matchmaker: null,
+      });
+    }
+
+    const matchmakerId = user.assignedMatchmakerId!;
+    const matchmakerName = `${user.assignedMatchmaker.firstName} ${user.assignedMatchmaker.lastName}`;
+
+    const messages = await prisma.directMessage.findMany({
+      where: {
+        OR: [
+          { senderId: userId, receiverId: matchmakerId },
+          { senderId: matchmakerId, receiverId: userId },
+        ],
+      },
+      orderBy: { createdAt: 'asc' },
+      select: {
+        id: true,
+        content: true,
+        senderId: true,
+        isRead: true,
+        createdAt: true,
+      },
+    });
+
+    const formattedMessages = messages.map((msg) => ({
+      id: msg.id,
+      content: msg.content,
+      senderId: msg.senderId,
+      senderType: msg.senderId === userId ? 'user' : 'matchmaker',
+      senderName: msg.senderId === userId
+        ? session.user.name || 'אני'
+        : matchmakerName,
+      isRead: msg.isRead,
+      createdAt: msg.createdAt.toISOString(),
+      isMine: msg.senderId === userId,
+    }));
+
+    return NextResponse.json({
+      success: true,
+      messages: formattedMessages,
+      matchmaker: {
+        id: matchmakerId,
+        name: matchmakerName,
+      },
+    });
+  } catch (error) {
+    console.error('[messages/direct] GET error:', error);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}
+
+// ==========================================
+// POST — Send message to assigned matchmaker
+// ==========================================
+export async function POST(req: NextRequest) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const userId = session.user.id;
+    const { content } = await req.json();
+
+    if (!content?.trim()) {
+      return NextResponse.json(
+        { error: 'Message content required' },
+        { status: 400 }
+      );
+    }
+
+    // Get assigned matchmaker
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { assignedMatchmakerId: true },
+    });
+
+    if (!user?.assignedMatchmakerId) {
+      return NextResponse.json(
+        { error: 'No assigned matchmaker' },
+        { status: 400 }
+      );
+    }
+
+    const message = await prisma.directMessage.create({
+      data: {
+        senderId: userId,
+        receiverId: user.assignedMatchmakerId,
+        content: content.trim(),
+      },
+    });
+
+    return NextResponse.json({
+      success: true,
+      message: {
+        id: message.id,
+        content: message.content,
+        senderId: message.senderId,
+        senderType: 'user',
+        senderName: session.user.name || 'אני',
+        isRead: false,
+        createdAt: message.createdAt.toISOString(),
+        isMine: true,
+      },
+    });
+  } catch (error) {
+    console.error('[messages/direct] POST error:', error);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}
+
+// ==========================================
+// PATCH — Mark messages as read
+// ==========================================
+export async function PATCH(req: NextRequest) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const userId = session.user.id;
+
+    // Mark all messages FROM matchmaker TO user as read
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { assignedMatchmakerId: true },
+    });
+
+    if (!user?.assignedMatchmakerId) {
+      return NextResponse.json({ success: true });
+    }
+
+    await prisma.directMessage.updateMany({
+      where: {
+        senderId: user.assignedMatchmakerId,
+        receiverId: userId,
+        isRead: false,
+      },
+      data: { isRead: true },
+    });
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error('[messages/direct] PATCH error:', error);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}
+--- End of Content for route.ts ---
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\messages\feed
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\messages\feed\route.ts
+--------------------------------------------------------------------------------
+Content:
+// src/app/api/messages/feed/route.ts
+
+import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/auth";
+import prisma from "@/lib/prisma";
+import type { FeedItem, FeedItemType, ExtendedSuggestionInquiry } from "@/types/messages";
+import type { ExtendedMatchSuggestion } from '@/types/suggestions';
+import { MatchSuggestionStatus, UserRole } from "@prisma/client";
+
+export const dynamic = 'force-dynamic';
+
+// הגדרה אחידה לשליפת פרטי משתמשים מלאים
+const partySelect = {
+  id: true,
+  email: true,
+  firstName: true,
+  lastName: true,
+  isProfileComplete: true,
+  phone: true,
+  profile: true,
+  images: {
+    select: {
+      id: true,
+      url: true,
+      isMain: true,
+      createdAt: true,
+      updatedAt: true,
+      cloudinaryPublicId: true,
+      userId: true
+    },
+    orderBy: { isMain: "desc" as const },
+  },
+};
+
+export async function GET() {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+  const userId = session.user.id;
+  const userRole = session.user.role as UserRole;
+
+  try {
+    // 1. שלוף הצעות שידוך רלוונטיות
+    // Prisma שולף אוטומטית את השדות הסקלריים החדשים (firstPartyLastViewedAt, secondPartyLastViewedAt)
+    const suggestionsFromDb = await prisma.matchSuggestion.findMany({
+      where: {
+        OR: [{ firstPartyId: userId }, { secondPartyId: userId }],
+        status: { notIn: [MatchSuggestionStatus.DRAFT, MatchSuggestionStatus.CANCELLED] },
+      },
+      include: {
+        matchmaker: { select: { firstName: true, lastName: true } },
+        firstParty: { select: partySelect },
+        secondParty: { select: partySelect },
+        statusHistory: { orderBy: { createdAt: "desc" } },
+      },
+      orderBy: { lastActivity: "desc" },
+    });
+
+    const suggestions: ExtendedMatchSuggestion[] = suggestionsFromDb.filter(
+      (s) => s.firstParty?.profile && s.secondParty?.profile
+    ) as ExtendedMatchSuggestion[];
+
+    // 2. שלוף הודעות צ'אט רלוונטיות
+    // Prisma שולף אוטומטית את השדה החדש (recipientReadAt)
+    const inquiriesFromDb = await prisma.suggestionInquiry.findMany({
+      where: {
+        OR: [{ fromUserId: userId }, { toUserId: userId }]
+      },
+      include: {
+        fromUser: { select: { id: true, firstName: true, lastName: true } },
+        toUser: { select: { id: true, firstName: true, lastName: true } },
+        suggestion: {
+          include: {
+            firstParty: { select: partySelect },
+            secondParty: { select: partySelect },
+            matchmaker: { select: { firstName: true, lastName: true } },
+          }
+        }
+      },
+      orderBy: { createdAt: 'desc' },
+      take: 30
+    });
+
+    // 3. המרת הצעות למבנה FeedItem עם חישוב isRead מעודכן
+    const suggestionFeedItems: FeedItem[] = suggestions.map((s) => {
+      const isFirstParty = s.firstPartyId === userId;
+      const otherParty = isFirstParty ? s.secondParty : s.firstParty;
+      
+      let type: FeedItemType = 'STATUS_UPDATE';
+      let title = `עדכון בהצעה עם ${otherParty.firstName}`;
+      let description = "הסטטוס התעדכן. לחץ/י לפרטים.";
+
+      // === לוגיקה לחישוב האם נקרא ===
+      // שליפת זמן הצפייה האחרון לפי הצד הרלוונטי (שדות אלו חייבים להיות קיימים ב-Schema המעודכן)
+      const lastViewedAt = isFirstParty ? s.firstPartyLastViewedAt : s.secondPartyLastViewedAt;
+      
+      // ההודעה נחשבת כנקראה רק אם קיים זמן צפייה והוא מאוחר או שווה לזמן הפעילות האחרונה
+      const isRead = lastViewedAt 
+        ? new Date(lastViewedAt).getTime() >= new Date(s.lastActivity).getTime()
+        : false;
+      // ==============================
+
+      const link = userRole === 'CANDIDATE'
+        ? `/matches?suggestionId=${s.id}`
+        : `/matchmaker/suggestions?suggestionId=${s.id}`;
+
+      if ((s.status === "PENDING_FIRST_PARTY" && isFirstParty) || (s.status === "PENDING_SECOND_PARTY" && !isFirstParty)) {
+        type = 'ACTION_REQUIRED';
+        title = `הצעה חדשה ממתינה לך!`;
+        description = `${s.matchmaker?.firstName} חושב/ת שיש כאן פוטנציאל גדול.`;
+      } else if (s.status === "CONTACT_DETAILS_SHARED") {
+        title = "מזל טוב, יש התאמה!";
+        description = `פרטי הקשר הועברו. זה הזמן ליצור קשר.`;
+      } else if (s.status === "AWAITING_FIRST_DATE_FEEDBACK") {
+        type = 'ACTION_REQUIRED';
+        title = "איך הייתה הפגישה הראשונה?";
+        description = "נשמח לשמוע את דעתך כדי להמשיך ולסייע.";
+      }
+
+      return {
+        id: `${s.id}-${s.status}`,
+        type,
+        title,
+        description,
+        timestamp: s.lastActivity,
+        isRead: isRead, // שימוש בערך המחושב
+        link: link,
+        payload: { suggestion: s },
+      };
+    });
+
+    // 4. המרת הודעות צ'אט למבנה FeedItem עם חישוב isRead מעודכן
+    const inquiryFeedItems: FeedItem[] = inquiriesFromDb.map((inquiry): FeedItem => {
+      const isMyMessage = inquiry.fromUserId === userId;
+      const otherUser = isMyMessage ? inquiry.toUser : inquiry.fromUser;
+      const suggestionParticipant = inquiry.suggestion.firstPartyId === userId 
+        ? inquiry.suggestion.secondParty 
+        : inquiry.suggestion.firstParty;
+
+      let title: string;
+      let description: string;
+      let type: FeedItemType;
+
+      const link = userRole === 'CANDIDATE'
+        ? `/matches?suggestionId=${inquiry.suggestionId}&view=chat`
+        : `/matchmaker/suggestions?suggestionId=${inquiry.suggestionId}&view=chat`;
+
+      // === לוגיקה לחישוב האם נקרא ===
+      // 1. אם אני שלחתי את ההודעה, היא תמיד "קרואה" מבחינתי.
+      // 2. אם קיבלתי אותה, בודקים אם קיים recipientReadAt.
+      const isRead = isMyMessage || !!inquiry.recipientReadAt;
+      // ==============================
+
+      if (isMyMessage) {
+        title = `שלחת שאלה ל${otherUser.firstName}`;
+        description = `"${inquiry.question.substring(0, 50)}..."`;
+        type = inquiry.answer ? 'INQUIRY_RESPONSE' : 'MATCHMAKER_MESSAGE';
+      } else {
+        if (inquiry.answer) {
+          title = `התקבלה תשובה מ${otherUser.firstName}`;
+          description = `לגבי שאלתך על ${suggestionParticipant.firstName}: "${inquiry.answer.substring(0, 40)}..."`;
+          type = 'INQUIRY_RESPONSE';
+        } else {
+          title = `הודעה חדשה מ${otherUser.firstName}`;
+          description = `לגבי ההצעה עם ${suggestionParticipant.firstName}`;
+          type = userRole === 'MATCHMAKER' && inquiry.status === 'PENDING' ? 'ACTION_REQUIRED' : 'MATCHMAKER_MESSAGE';
+        }
+      }
+
+      return {
+        id: inquiry.id,
+        type: type,
+        title,
+        description,
+        timestamp: inquiry.answeredAt ? inquiry.answeredAt : inquiry.createdAt,
+        isRead: isRead, // שימוש בערך המחושב
+        link: link,
+        payload: {
+          suggestion: inquiry.suggestion as unknown as ExtendedMatchSuggestion,
+          suggestionInquiry: inquiry as unknown as ExtendedSuggestionInquiry
+        }
+      };
+    });
+
+    // 5. איחוד, מיון והחזרה
+    const allFeedItems = [...suggestionFeedItems, ...inquiryFeedItems];
+    allFeedItems.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+
+    return NextResponse.json({ success: true, feed: allFeedItems });
+
+  } catch (error) {
+    console.error("Error fetching activity feed:", error);
+    return NextResponse.json({ success: false, error: "Failed to fetch activity feed" }, { status: 500 });
+  }
+}
+--- End of Content for route.ts ---
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\messages\mark-as-read
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\messages\mark-as-read\route.ts
+--------------------------------------------------------------------------------
+Content:
+// src/app/api/messages/mark-as-read/route.ts
+
+import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/auth";
+import prisma from "@/lib/prisma";
+
+export async function POST(req: Request) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { id, type } = await req.json();
+    const userId = session.user.id;
+
+    // טיפול בהצעה (MatchSuggestion)
+    // ה-ID שמגיע מהפיד הוא בפורמט "suggestionId-status", אנחנו צריכים רק את ה-UUID
+    if (type === 'NEW_SUGGESTION' || type === 'STATUS_UPDATE' || type === 'ACTION_REQUIRED') {
+      // חילוץ ה-ID הנקי (למקרה שהגיע ID מורכב מהפיד)
+      const cleanId = id.includes('-') ? id.split('-')[0] : id;
+
+      const suggestion = await prisma.matchSuggestion.findUnique({
+        where: { id: cleanId },
+        select: { firstPartyId: true, secondPartyId: true }
+      });
+
+      if (suggestion) {
+        if (suggestion.firstPartyId === userId) {
+          await prisma.matchSuggestion.update({
+            where: { id: cleanId },
+            data: { firstPartyLastViewedAt: new Date() }
+          });
+        } else if (suggestion.secondPartyId === userId) {
+          await prisma.matchSuggestion.update({
+            where: { id: cleanId },
+            data: { secondPartyLastViewedAt: new Date() }
+          });
+        }
+      }
+    } 
+    
+    // טיפול בהודעת צ'אט (SuggestionInquiry)
+    else if (type === 'MATCHMAKER_MESSAGE' || type === 'INQUIRY_RESPONSE') {
+      await prisma.suggestionInquiry.update({
+        where: { id: id }, // כאן ה-ID הוא ישיר
+        data: { recipientReadAt: new Date() }
+      });
+    }
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error("Error marking as read:", error);
+    return NextResponse.json({ error: "Failed to mark as read" }, { status: 500 });
+  }
+}
+--- End of Content for route.ts ---
+

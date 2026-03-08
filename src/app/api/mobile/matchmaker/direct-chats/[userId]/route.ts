@@ -1,17 +1,26 @@
 // =============================================================================
-// src/app/api/matchmaker/direct-chats/[userId]/route.ts
+// src/app/api/mobile/matchmaker/direct-chats/[userId]/route.ts
 // =============================================================================
 //
-// GET  — fetch direct messages with specific user
-// POST — send a direct message to user
+// GET   — fetch direct messages with specific user
+// POST  — send a direct message to user (+ push notification)
 // PATCH — mark messages as read
 // =============================================================================
+
+import { NextRequest } from 'next/server';
+import prisma from '@/lib/prisma';
+import { UserRole } from '@prisma/client';
+import {
+  verifyMobileToken,
+  corsJson,
+  corsError,
+  corsOptions,
+} from '@/lib/mobile-auth';
 import { pushDirectMessage } from '@/lib/sendPushNotification';
 
-import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
-import prisma from '@/lib/prisma';
+export async function OPTIONS(req: NextRequest) {
+  return corsOptions(req);
+}
 
 // ==========================================
 // GET — fetch messages with specific user
@@ -21,12 +30,14 @@ export async function GET(
   { params }: { params: Promise<{ userId: string }> }
 ) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const auth = await verifyMobileToken(req);
+    if (!auth) return corsError(req, 'Unauthorized', 401);
+
+    if (auth.role !== UserRole.MATCHMAKER && auth.role !== UserRole.ADMIN) {
+      return corsError(req, 'Insufficient permissions', 403);
     }
 
-    const matchmakerId = session.user.id;
+    const matchmakerId = auth.userId;
     const { userId } = await params;
 
     const messages = await prisma.directMessage.findMany({
@@ -46,7 +57,6 @@ export async function GET(
       },
     });
 
-    // Get user info
     const targetUser = await prisma.user.findUnique({
       where: { id: userId },
       select: { firstName: true, lastName: true },
@@ -57,16 +67,11 @@ export async function GET(
       content: msg.content,
       senderId: msg.senderId,
       senderType: msg.senderId === matchmakerId ? 'matchmaker' : 'user',
-      senderName:
-        msg.senderId === matchmakerId
-          ? session.user.name || 'שדכן/ית'
-          : `${targetUser?.firstName || ''} ${targetUser?.lastName || ''}`.trim(),
       isRead: msg.isRead,
       createdAt: msg.createdAt.toISOString(),
-      isMine: msg.senderId === matchmakerId,
     }));
 
-    return NextResponse.json({
+    return corsJson(req, {
       success: true,
       messages: formattedMessages,
       user: targetUser
@@ -77,36 +82,32 @@ export async function GET(
         : null,
     });
   } catch (error) {
-    console.error('[matchmaker/direct-chats/userId] GET error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    console.error('[mobile/matchmaker/direct-chats/userId] GET error:', error);
+    return corsError(req, 'Internal server error', 500);
   }
 }
 
 // ==========================================
-// POST — send message to user
+// POST — send message to user + push notification
 // ==========================================
 export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ userId: string }> }
 ) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const auth = await verifyMobileToken(req);
+    if (!auth) return corsError(req, 'Unauthorized', 401);
+
+    if (auth.role !== UserRole.MATCHMAKER && auth.role !== UserRole.ADMIN) {
+      return corsError(req, 'Insufficient permissions', 403);
     }
 
-    const matchmakerId = session.user.id;
+    const matchmakerId = auth.userId;
     const { userId } = await params;
     const { content } = await req.json();
 
     if (!content?.trim()) {
-      return NextResponse.json(
-        { error: 'Message content required' },
-        { status: 400 }
-      );
+      return corsError(req, 'Message content required', 400);
     }
 
     const message = await prisma.directMessage.create({
@@ -116,28 +117,35 @@ export async function POST(
         content: content.trim(),
       },
     });
-  // Send push notification (non-blocking)
-  pushDirectMessage(userId, session.user.name || 'השדכן/ית שלך', content.trim())
-    .catch(console.error);
-    return NextResponse.json({
+
+    // Get matchmaker name for push notification
+    const matchmaker = await prisma.user.findUnique({
+      where: { id: matchmakerId },
+      select: { firstName: true, lastName: true },
+    });
+    const matchmakerName = matchmaker
+      ? `${matchmaker.firstName} ${matchmaker.lastName}`
+      : 'השדכן/ית שלך';
+
+    // Send push notification (non-blocking)
+    pushDirectMessage(userId, matchmakerName, content.trim()).catch(
+      console.error
+    );
+
+    return corsJson(req, {
       success: true,
       message: {
         id: message.id,
         content: message.content,
         senderId: message.senderId,
         senderType: 'matchmaker',
-        senderName: session.user.name || 'שדכן/ית',
         isRead: false,
         createdAt: message.createdAt.toISOString(),
-        isMine: true,
       },
     });
   } catch (error) {
-    console.error('[matchmaker/direct-chats/userId] POST error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    console.error('[mobile/matchmaker/direct-chats/userId] POST error:', error);
+    return corsError(req, 'Internal server error', 500);
   }
 }
 
@@ -149,12 +157,10 @@ export async function PATCH(
   { params }: { params: Promise<{ userId: string }> }
 ) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const auth = await verifyMobileToken(req);
+    if (!auth) return corsError(req, 'Unauthorized', 401);
 
-    const matchmakerId = session.user.id;
+    const matchmakerId = auth.userId;
     const { userId } = await params;
 
     await prisma.directMessage.updateMany({
@@ -166,12 +172,12 @@ export async function PATCH(
       data: { isRead: true },
     });
 
-    return NextResponse.json({ success: true });
+    return corsJson(req, { success: true });
   } catch (error) {
-    console.error('[matchmaker/direct-chats/userId] PATCH error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
+    console.error(
+      '[mobile/matchmaker/direct-chats/userId] PATCH error:',
+      error
     );
+    return corsError(req, 'Internal server error', 500);
   }
 }
