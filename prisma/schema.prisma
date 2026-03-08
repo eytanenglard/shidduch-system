@@ -1378,6 +1378,7 @@ model DirectMessage {
   receiverId String
   content    String   @db.Text
   isRead     Boolean  @default(false)
+  isBroadcast Boolean  @default(false) 
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
@@ -1656,6 +1657,7 @@ enum AlertType {
   STALE_MATCHES
   HIGH_REJECTION_RATE
   NEW_HIGH_QUALITY_MATCH
+  BROADCAST_MESSAGE
 }
 
 enum AlertSeverity {
