@@ -1,0 +1,19 @@
+Directory Map for: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\mobile\matchmaker
+====================================================================================================
+
+matchmaker/
+└── broadcast/
+        └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\mobile\matchmaker\broadcast\route.ts)
+└── candidates/
+    └── search/
+            └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\mobile\matchmaker\candidates\search\route.ts)
+└── chat/
+    └── summaries/
+            └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\mobile\matchmaker\chat\summaries\route.ts)
+└── direct-chats/
+    └── [userId]/
+            └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\mobile\matchmaker\direct-chats\[userId]\route.ts)
+└── suggestions/
+    └── [id]/
+        └── chat/
+                └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\mobile\matchmaker\suggestions\[id]\chat\route.ts)
