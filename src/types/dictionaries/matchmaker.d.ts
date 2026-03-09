@@ -1173,8 +1173,7 @@ type SuggestionCardDict = {
       declined: string;
       interested: string;
     };
-    // ✅ חדש - תוויות לצדדים בתצוגה המורחבת
-    partyLabels: {
+    partyLabels: {              // ✅ חדש
       firstParty: string;
       secondParty: string;
     };
@@ -1191,8 +1190,7 @@ type SuggestionCardDict = {
     religiousView: string;
     location: string;
   };
-  // ✅ חדש - טקסטים לתצוגה המכווצת/מורחבת
-  expandable: {
+  expandable: {                 // ✅ חדש
     showMore: string;
     showLess: string;
   };

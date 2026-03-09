@@ -1218,25 +1218,25 @@
       },
       "newSuggestionButton": "הצעה חדשה"
     },
-      "desktop": {
-    "connectionPoints": "נקודות חיבור מרכזיות",
-    "matchReasonTitle": "סיבת ההתאמה:",
-    "timeline": {
-      "created": "נוצר",
-      "deadline": "מועד יעד",
-      "progress": "התקדמות",
-      "progressCompleted": "{{percent}}% הושלמו"
-    },
-    "partyStatus": {
-      "approved": "אישר את ההצעה",
-      "declined": "דחה את ההצעה",
-      "interested": "מעוניין"
-    },
-    "partyLabels": {
-      "firstParty": "צד א׳",
-      "secondParty": "צד ב׳"
-    }
+"desktop": {
+  "connectionPoints": "נקודות חיבור מרכזיות",
+  "matchReasonTitle": "סיבת ההתאמה:",
+  "timeline": {
+    "created": "נוצר",
+    "deadline": "מועד יעד",
+    "progress": "התקדמות",
+    "progressCompleted": "{{percent}}% הושלמו"
   },
+  "partyStatus": {
+    "approved": "אישר את ההצעה",
+    "declined": "דחה את ההצעה",
+    "interested": "מעוניין"
+  },
+  "partyLabels": {
+    "firstParty": "צד א׳",
+    "secondParty": "צד ב׳"
+  }
+},
 
     "mainContent": {
       "monthlyTrendButton": "מגמה חודשית",
@@ -1448,21 +1448,7 @@
         "viewDetailsButton": "לפרטים המלאים ולסיפור המלא",
         "sentTime": "נשלח {{timeAgo}}"
       },
-      "desktop": {
-        "connectionPoints": "נקודות חיבור מרכזיות",
-        "matchReasonTitle": "סיבת ההתאמה:",
-        "timeline": {
-          "created": "נוצר",
-          "deadline": "מועד יעד",
-          "progress": "התקדמות",
-          "progressCompleted": "{{percent}}% הושלמו"
-        },
-        "partyStatus": {
-          "approved": "אישר את ההצעה",
-          "declined": "דחה את ההצעה",
-          "interested": "מעוניין"
-        }
-      },
+
       "actions": {
         "edit": "ערוך הצעה",
         "sendMessage": "הודעה",
@@ -1470,11 +1456,15 @@
         "resend": "שלח מחדש",
         "viewDetails": "פרטים"
       },
-      "highlights": {
-        "familyValues": "ערכים משפחתיים דומים",
-        "religiousView": "השקפה דתית תואמת",
-        "location": "קרבה גיאוגרפית"
-      }
+   "highlights": {
+  "familyValues": "ערכים משפחתיים דומים",
+  "religiousView": "השקפה דתית תואמת",
+  "location": "קרבה גיאוגרפית"
+},
+"expandable": {
+  "showMore": "הצג פרטים",
+  "showLess": "הסתר פרטים"
+}
     },
     "editSuggestionForm": {
       "header": {

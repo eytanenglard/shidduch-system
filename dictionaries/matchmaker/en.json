@@ -1426,20 +1426,24 @@
         "sentTime": "Sent {{timeAgo}}"
       },
       "desktop": {
-        "connectionPoints": "Key Connection Points",
-        "matchReasonTitle": "Reason for match:",
-        "timeline": {
-          "created": "Created",
-          "deadline": "Deadline",
-          "progress": "Progress",
-          "progressCompleted": "{{percent}}% completed"
-        },
-        "partyStatus": {
-          "approved": "Approved the suggestion",
-          "declined": "Declined the suggestion",
-          "interested": "Interested"
-        }
-      },
+  "connectionPoints": "Key Connection Points",
+  "matchReasonTitle": "Reason for match:",
+  "timeline": {
+    "created": "Created",
+    "deadline": "Deadline",
+    "progress": "Progress",
+    "progressCompleted": "{{percent}}% completed"
+  },
+  "partyStatus": {
+    "approved": "Approved the suggestion",
+    "declined": "Declined the suggestion",
+    "interested": "Interested"
+  },
+  "partyLabels": {
+    "firstParty": "Party A",
+    "secondParty": "Party B"
+  }
+},
       "actions": {
         "edit": "Edit Suggestion",
         "sendMessage": "Message",
@@ -1447,11 +1451,15 @@
         "resend": "Resend",
         "viewDetails": "Details"
       },
-      "highlights": {
-        "familyValues": "Similar family values",
-        "religiousView": "Compatible religious outlook",
-        "location": "Geographical proximity"
-      }
+     "highlights": {
+  "familyValues": "Similar family values",
+  "religiousView": "Compatible religious outlook",
+  "location": "Geographical proximity"
+},
+"expandable": {
+  "showMore": "Show details",
+  "showLess": "Hide details"
+}
     },
     "editSuggestionForm": {
       "header": {
