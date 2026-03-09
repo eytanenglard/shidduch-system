@@ -404,7 +404,12 @@ export async function GET(request: NextRequest) {
 
     // ── Aggregated filter options (for UI chips) ──
     // Only compute on first page or when explicitly requested
-    let filterOptions = undefined;
+    let filterOptions: {
+      cities: { value: string; count: number }[];
+      religiousLevels: { value: string; count: number }[];
+      genders: { value: string; count: number }[];
+      availabilityStatuses: { value: string; count: number }[];
+    } | undefined = undefined;
     if (page === 1 || params.get('includeFilterOptions') === 'true') {
       const [cityCounts, religiousLevelCounts, genderCounts, availabilityCounts] = await Promise.all([
         prisma.profile.groupBy({
