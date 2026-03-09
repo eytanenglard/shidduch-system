@@ -1218,26 +1218,6 @@
       },
       "newSuggestionButton": "הצעה חדשה"
     },
-"desktop": {
-  "connectionPoints": "נקודות חיבור מרכזיות",
-  "matchReasonTitle": "סיבת ההתאמה:",
-  "timeline": {
-    "created": "נוצר",
-    "deadline": "מועד יעד",
-    "progress": "התקדמות",
-    "progressCompleted": "{{percent}}% הושלמו"
-  },
-  "partyStatus": {
-    "approved": "אישר את ההצעה",
-    "declined": "דחה את ההצעה",
-    "interested": "מעוניין"
-  },
-  "partyLabels": {
-    "firstParty": "צד א׳",
-    "secondParty": "צד ב׳"
-  }
-},
-
     "mainContent": {
       "monthlyTrendButton": "מגמה חודשית",
       "tabs": {
@@ -1440,15 +1420,33 @@
         "noInfo": "אין מידע על השדכן",
         "label": "השדכן/ית"
       },
-      "mobile": {
-        "title": "הצעה חדשה עבורך",
-        "urgentTitle": "דחוף - דורש טיפול מיידי!",
-        "connectionPoints": "נקודות חיבור מרכזיות",
-        "matchReasonTitle": "למה זה מתאים דווקא לכם:",
-        "viewDetailsButton": "לפרטים המלאים ולסיפור המלא",
-        "sentTime": "נשלח {{timeAgo}}"
-      },
-
+    "mobile": {
+  "title": "הצעה חדשה עבורך",
+  "urgentTitle": "דחוף - דורש טיפול מיידי!",
+  "connectionPoints": "נקודות חיבור מרכזיות",
+  "matchReasonTitle": "למה זה מתאים דווקא לכם:",
+  "viewDetailsButton": "לפרטים המלאים ולסיפור המלא",
+  "sentTime": "נשלח {{timeAgo}}"
+},
+"desktop": {
+  "connectionPoints": "נקודות חיבור מרכזיות",
+  "matchReasonTitle": "סיבת ההתאמה:",
+  "timeline": {
+    "created": "נוצר",
+    "deadline": "מועד יעד",
+    "progress": "התקדמות",
+    "progressCompleted": "{{percent}}% הושלמו"
+  },
+  "partyStatus": {
+    "approved": "אישר את ההצעה",
+    "declined": "דחה את ההצעה",
+    "interested": "מעוניין"
+  },
+  "partyLabels": {
+    "firstParty": "צד א׳",
+    "secondParty": "צד ב׳"
+  }
+},
       "actions": {
         "edit": "ערוך הצעה",
         "sendMessage": "הודעה",
