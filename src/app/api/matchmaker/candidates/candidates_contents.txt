@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\candidates
-# Generated on: 2026-02-08 09:58:25
+# Generated on: 2026-03-09 16:49:20
 # Filter: Only content of code files (.bat, .c, .cfg, .conf, .cpp, .cs, .css, .go, .h, .html, .ini, .java, .js, .json, .jsx, .kt, .less, .md, .php, .py, .rb, .rs, .scss, .sh, .sql, .swift, .ts, .tsx, .txt, .xml, .yaml, .yml) is included.
 ################################################################################
 
@@ -511,7 +511,7 @@ export async function PATCH(
     const dataForUpdate: Prisma.ProfileUpdateInput = {};
 
     const numericFields = ['height', 'siblings', 'position', 'preferredAgeMin', 'preferredAgeMax', 'preferredHeightMin', 'preferredHeightMax', 'aliyaYear'];
-    const stringAndEnumFields = ['gender', 'preferredMatchmakerGender', 'maritalStatus', 'serviceType', 'headCovering', 'kippahType', 'contactPreference', 'preferredShomerNegiah', 'preferredPartnerHasChildren', 'preferredAliyaStatus', 'availabilityStatus' , 'religiousJourney', 'medicalInfoDetails', 'medicalInfoDisclosureTiming', 'fatherOccupation', 'motherOccupation', 'manualEntryText', 'about', 'profileHeadline'];
+    const stringAndEnumFields = ['gender', 'preferredMatchmakerGender', 'maritalStatus', 'serviceType', 'headCovering', 'kippahType', 'contactPreference', 'preferredShomerNegiah', 'preferredPartnerHasChildren', 'preferredAliyaStatus', 'availabilityStatus', 'religiousJourney', 'medicalInfoDetails', 'medicalInfoDisclosureTiming', 'fatherOccupation', 'motherOccupation', 'manualEntryText', 'about', 'profileHeadline', 'city', 'occupation', 'education', 'educationLevel', 'origin', 'religiousLevel', 'referredBy', 'availabilityNote', 'nativeLanguage', 'serviceDetails', 'aliyaCountry', 'parentStatus', 'matchingNotes', 'internalMatchmakerNotes'];
     const booleanFields = ['shomerNegiah', 'hasChildrenFromPrevious',  'isProfileVisible', 'hasMedicalInfo', 'isMedicalInfoVisible', 'birthDateIsApproximate'];
     const arrayFields = ['additionalLanguages', 'profileCharacterTraits', 'profileHobbies', 'preferredReligiousLevels', 'preferredLocations', 'preferredEducation', 'preferredOccupations', 'preferredMaritalStatuses', 'preferredOrigins', 'preferredServiceTypes', 'preferredHeadCoverings', 'preferredKippahTypes', 'preferredCharacterTraits', 'preferredHobbies', 'preferredReligiousJourneys'];
     const dateFields = ['birthDate'];
@@ -1284,6 +1284,1332 @@ export async function POST(req: NextRequest, props: { params: Promise<{ id: stri
 --- End of Content for route.ts ---
 
 ================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\candidates\bulk-import
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\candidates\bulk-import\route.ts
+--------------------------------------------------------------------------------
+Content:
+// =============================================================================
+// File: src/app/api/matchmaker/candidates/bulk-import/route.ts
+// Description: API route for bulk importing candidates
+//   - Flow A: POST multipart with images → AI extracts → returns for review
+//   - Flow B: POST multipart with chat .txt + optional images → parse + AI → review
+//   - Confirm: POST JSON with reviewed candidates → create in DB
+// =============================================================================
+
+import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '@/lib/auth';
+import prisma from '@/lib/prisma';
+import { UserRole, UserStatus, UserSource, Gender, Prisma } from '@prisma/client';
+import { createId } from '@paralleldrive/cuid2';
+import { v2 as cloudinary } from 'cloudinary';
+import { updateUserAiProfile } from '@/lib/services/profileAiService';
+import {
+  extractCandidatesFromImages,
+  extractCandidatesFromChat,
+  extractCandidatesFromChatImages,
+  parseWhatsAppExport,
+  groupIntoCandidateBlocks,
+  buildManualEntryText,
+  type ExtractedCandidate,
+} from '@/lib/services/bulkImportService';
+
+export const dynamic = 'force-dynamic';
+// Allow longer execution for AI processing
+export const maxDuration = 120; // 2 minutes
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+
+// ---------------------------------------------------------------------------
+// Helper: Upload buffer to Cloudinary
+// ---------------------------------------------------------------------------
+async function uploadBufferToCloudinary(
+  buffer: Buffer,
+  userId: string
+): Promise<{ url: string; publicId: string }> {
+  return new Promise((resolve, reject) => {
+    const uploadStream = cloudinary.uploader.upload_stream(
+      {
+        folder: `shidduch-system/candidates/${userId}`,
+        resource_type: 'image',
+        transformation: [
+          { width: 800, height: 800, crop: 'limit' },
+          { quality: 'auto' },
+          { fetch_format: 'auto' },
+        ],
+      },
+      (error, result) => {
+        if (error || !result) return reject(error || new Error('Upload failed'));
+        resolve({ url: result.secure_url, publicId: result.public_id });
+      }
+    );
+    uploadStream.end(buffer);
+  });
+}
+
+// ---------------------------------------------------------------------------
+// POST handler
+// ---------------------------------------------------------------------------
+export async function POST(req: NextRequest) {
+  try {
+    // Auth
+    const session = await getServerSession(authOptions);
+    if (
+      !session?.user?.id ||
+      (session.user.role !== UserRole.MATCHMAKER && session.user.role !== UserRole.ADMIN)
+    ) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+    }
+    const matchmakerId = session.user.id;
+    const contentType = req.headers.get('content-type') || '';
+
+    // =====================================================================
+    // ANALYZE MODE (multipart/form-data)
+    // =====================================================================
+    if (contentType.includes('multipart/form-data')) {
+      const formData = await req.formData();
+      const mode = (formData.get('mode') as string) || 'images'; // 'images' | 'chat'
+      const limitStr = formData.get('limit') as string | null;
+      const limit = limitStr ? parseInt(limitStr, 10) : null; // null = no limit
+
+      // =================================================================
+      // FLOW A: Images only
+      // =================================================================
+      if (mode === 'images') {
+        const imageFiles = formData.getAll('images') as File[];
+        if (!imageFiles?.length) {
+          return NextResponse.json({ success: false, error: 'No images' }, { status: 400 });
+        }
+        if (imageFiles.length > 30) {
+          return NextResponse.json({ success: false, error: 'Max 30 images per batch' }, { status: 400 });
+        }
+
+        console.log(`[BulkImport] Flow A: ${imageFiles.length} images from ${matchmakerId}`);
+
+        const imageBuffers = await Promise.all(
+          imageFiles.map(async (file, index) => ({
+            buffer: Buffer.from(await file.arrayBuffer()),
+            mimeType: file.type || 'image/jpeg',
+            originalName: file.name,
+            index,
+          }))
+        );
+
+        const result = await extractCandidatesFromImages(imageBuffers);
+
+        // Apply limit if set (test mode)
+        if (limit && limit > 0) {
+          result.candidates = result.candidates.slice(0, limit);
+          console.log(`[BulkImport] Limit applied: showing ${result.candidates.length} candidates (limit=${limit})`);
+        }
+
+        return NextResponse.json({ success: true, mode: 'analyze', flow: 'A', data: result });
+      }
+
+      // =================================================================
+      // FLOW B: WhatsApp chat export
+      // =================================================================
+      if (mode === 'chat') {
+        const chatFile = formData.get('chatFile') as File | null;
+        const imageFiles = formData.getAll('images') as File[];
+
+        if (!chatFile && imageFiles.length === 0) {
+          return NextResponse.json(
+            { success: false, error: 'Provide a chat file (.txt) and/or images' },
+            { status: 400 }
+          );
+        }
+
+        console.log(
+          `[BulkImport] Flow B: chat=${!!chatFile}, images=${imageFiles.length}, from ${matchmakerId}`
+        );
+
+        // --- B.1: Parse chat text if provided ---
+        let chatCandidatesResult: any = null;
+        if (chatFile) {
+          const chatText = await chatFile.text();
+          const messages = parseWhatsAppExport(chatText);
+          console.log(`[BulkImport] Parsed ${messages.length} WhatsApp messages`);
+
+          if (messages.length === 0) {
+            return NextResponse.json(
+              { success: false, error: 'Could not parse WhatsApp chat. Make sure it is a valid export.' },
+              { status: 400 }
+            );
+          }
+
+          const blocks = groupIntoCandidateBlocks(messages);
+          console.log(`[BulkImport] Grouped into ${blocks.length} candidate blocks`);
+
+          // Build image map from uploaded images (keyed by filename)
+          const imagesByName = new Map<string, { buffer: Buffer; mimeType: string }>();
+          for (const file of imageFiles) {
+            imagesByName.set(file.name, {
+              buffer: Buffer.from(await file.arrayBuffer()),
+              mimeType: file.type || 'image/jpeg',
+            });
+          }
+
+          chatCandidatesResult = await extractCandidatesFromChat(blocks, imagesByName);
+        }
+
+        // --- B.2: Process images that have text inside them ---
+        let imageCandidatesResult: any = null;
+        if (imageFiles.length > 0 && !chatFile) {
+          // If no chat file, treat images as forms (like Flow A but through Flow B UI)
+          const imageBuffers = await Promise.all(
+            imageFiles.map(async (file) => ({
+              buffer: Buffer.from(await file.arrayBuffer()),
+              mimeType: file.type || 'image/jpeg',
+              originalName: file.name,
+            }))
+          );
+          imageCandidatesResult = await extractCandidatesFromChatImages(imageBuffers);
+        }
+
+        // --- B.3: Merge results ---
+        const allCandidates = [
+          ...(chatCandidatesResult?.candidates || []),
+          ...(imageCandidatesResult?.candidates || []),
+        ];
+        const allWarnings = [
+          ...(chatCandidatesResult?.warnings || []),
+          ...(imageCandidatesResult?.warnings || []),
+        ];
+
+        // Deduplicate by name similarity
+        let deduped = deduplicateCandidates(allCandidates);
+
+        // Apply limit if set (test mode)
+        if (limit && limit > 0) {
+          deduped = deduped.slice(0, limit);
+          console.log(`[BulkImport] Limit applied: showing ${deduped.length} candidates (limit=${limit})`);
+        }
+
+        return NextResponse.json({
+          success: true,
+          mode: 'analyze',
+          flow: 'B',
+          data: {
+            candidates: deduped,
+            warnings: allWarnings,
+            totalProcessed:
+              (chatCandidatesResult?.totalProcessed || 0) +
+              (imageCandidatesResult?.totalProcessed || 0),
+            unmatchedImages: imageCandidatesResult?.unmatchedImages || [],
+            unmatchedFileNames: chatCandidatesResult?.unmatchedFileNames || [],
+            stats: {
+              chatMessages: chatCandidatesResult ? 'parsed' : 'none',
+              chatBlocks: chatCandidatesResult?.totalProcessed || 0,
+              imagesProcessed: imageCandidatesResult?.totalProcessed || 0,
+              candidatesFromChat: chatCandidatesResult?.candidates?.length || 0,
+              candidatesFromImages: imageCandidatesResult?.candidates?.length || 0,
+              afterDedup: deduped.length,
+            },
+          },
+        });
+      }
+
+      return NextResponse.json({ success: false, error: 'Invalid mode' }, { status: 400 });
+    }
+
+    // =====================================================================
+    // CONFIRM MODE (application/json) — shared by both flows
+    // =====================================================================
+    if (contentType.includes('application/json')) {
+      const body = await req.json();
+      const { candidates, imageDataMap } = body as {
+        candidates: ExtractedCandidate[];
+        imageDataMap?: Record<string, string>; // tempId → base64 image
+      };
+
+      if (!candidates?.length) {
+        return NextResponse.json({ success: false, error: 'No candidates' }, { status: 400 });
+      }
+
+      console.log(`[BulkImport] Confirm: creating ${candidates.length} candidates...`);
+
+      const results: { tempId: string; userId: string; success: boolean; error?: string }[] = [];
+
+      for (const candidate of candidates) {
+        try {
+          const email = `manual_${createId()}@shidduch.placeholder.com`;
+
+          // Birth date
+          let birthDate: Date;
+          if (candidate.birthDate) {
+            birthDate = new Date(candidate.birthDate);
+          } else if (candidate.age) {
+            birthDate = new Date(new Date().getFullYear() - candidate.age, 0, 1);
+          } else {
+            birthDate = new Date(new Date().getFullYear() - 30, 0, 1);
+          }
+
+          const manualEntryText = buildManualEntryText(candidate);
+
+          const profileData: Prisma.ProfileCreateWithoutUserInput = {
+            gender: candidate.gender as Gender,
+            birthDate,
+            birthDateIsApproximate: candidate.birthDateIsApproximate,
+            manualEntryText,
+            availabilityStatus: 'AVAILABLE',
+            isProfileVisible: true,
+            height: candidate.height,
+            maritalStatus: candidate.maritalStatus,
+            religiousLevel: candidate.religiousLevel,
+            origin: candidate.origin,
+            city: candidate.city,
+            occupation: candidate.occupation,
+            education: candidate.education,
+            educationLevel: candidate.educationLevel,
+            nativeLanguage: candidate.languages?.[0] || null,
+            additionalLanguages: candidate.languages?.slice(1) || [],
+            serviceDetails: candidate.militaryService,
+            about: candidate.personality,
+            matchingNotes: candidate.lookingFor,
+            contentUpdatedAt: new Date(),
+          };
+
+          if (candidate.referredBy) profileData.referredBy = candidate.referredBy;
+          if (candidate.contactPhone) {
+            profileData.internalMatchmakerNotes = `טלפון ליצירת קשר: ${candidate.contactPhone}`;
+          }
+
+          // Create user + profile
+          const newUser = await prisma.user.create({
+            data: {
+              firstName: candidate.firstName || 'לא ידוע',
+              lastName: candidate.lastName || '',
+              email,
+              password: null,
+              role: UserRole.CANDIDATE,
+              status: UserStatus.PENDING_EMAIL_VERIFICATION,
+              isVerified: false,
+              isProfileComplete: false,
+              source: UserSource.MANUAL_ENTRY,
+              addedByMatchmakerId: matchmakerId,
+              profile: { create: profileData },
+            },
+            include: { profile: true },
+          });
+
+          // Upload photo
+          const imgBase64 = imageDataMap?.[candidate.tempId];
+          if (imgBase64) {
+            try {
+              const buf = Buffer.from(imgBase64, 'base64');
+              const { url, publicId } = await uploadBufferToCloudinary(buf, newUser.id);
+              await prisma.userImage.create({
+                data: { userId: newUser.id, url, cloudinaryPublicId: publicId, isMain: true },
+              });
+            } catch (imgErr) {
+              console.error(`[BulkImport] Image upload failed for ${candidate.firstName}:`, imgErr);
+            }
+          }
+
+          // AI profile (fire & forget)
+          updateUserAiProfile(newUser.id).catch((e) =>
+            console.error(`[BulkImport] AI profile err ${newUser.id}:`, e)
+          );
+
+          results.push({ tempId: candidate.tempId, userId: newUser.id, success: true });
+          console.log(`[BulkImport] ✅ ${candidate.firstName} ${candidate.lastName} → ${newUser.id}`);
+        } catch (err) {
+          console.error(`[BulkImport] ❌ ${candidate.firstName}:`, err);
+          results.push({ tempId: candidate.tempId, userId: '', success: false, error: (err as Error).message });
+        }
+      }
+
+      const created = results.filter((r) => r.success).length;
+      return NextResponse.json({
+        success: true,
+        mode: 'confirm',
+        results,
+        summary: { total: candidates.length, created, failed: candidates.length - created },
+      });
+    }
+
+    return NextResponse.json({ success: false, error: 'Invalid content type' }, { status: 400 });
+  } catch (error) {
+    console.error('[BulkImport] Error:', error);
+    return NextResponse.json(
+      { success: false, error: (error as Error).message || 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Dedup helper: merge candidates with same/similar name
+// ---------------------------------------------------------------------------
+function deduplicateCandidates(candidates: ExtractedCandidate[]): ExtractedCandidate[] {
+  const seen = new Map<string, ExtractedCandidate>();
+
+  for (const c of candidates) {
+    const key = `${c.firstName}_${c.lastName}`.trim().toLowerCase();
+    if (!key || key === '_') {
+      seen.set(`unknown_${Math.random()}`, c);
+      continue;
+    }
+
+    const existing = seen.get(key);
+    if (existing) {
+      // Merge: keep richer data
+      if (!existing.age && c.age) existing.age = c.age;
+      if (!existing.height && c.height) existing.height = c.height;
+      if (!existing.city && c.city) existing.city = c.city;
+      if (!existing.occupation && c.occupation) existing.occupation = c.occupation;
+      if (!existing.religiousLevel && c.religiousLevel) existing.religiousLevel = c.religiousLevel;
+      if (!existing.maritalStatus && c.maritalStatus) existing.maritalStatus = c.maritalStatus;
+      if (!existing.origin && c.origin) existing.origin = c.origin;
+      if (!existing.contactPhone && c.contactPhone) existing.contactPhone = c.contactPhone;
+      if (!existing.personality && c.personality) existing.personality = c.personality;
+      if (!existing.lookingFor && c.lookingFor) existing.lookingFor = c.lookingFor;
+      if (c.photoFileNames?.length) existing.photoFileNames.push(...c.photoFileNames);
+      if (c.photoImageIndices?.length) existing.photoImageIndices.push(...c.photoImageIndices);
+      if (c.rawFormText && c.rawFormText.length > existing.rawFormText.length) {
+        existing.rawFormText = c.rawFormText;
+      }
+      existing.notes = [existing.notes, c.notes, '(merged duplicate)'].filter(Boolean).join(' | ');
+    } else {
+      seen.set(key, { ...c });
+    }
+  }
+
+  return Array.from(seen.values());
+}
+--- End of Content for route.ts ---
+
+================================================================================
+Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\candidates\card-import
+================================================================================
+
+--------------------------------------------------------------------------------
+File: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\candidates\card-import\route.ts
+--------------------------------------------------------------------------------
+Content:
+// =============================================================================
+// File: src/app/api/matchmaker/candidates/card-import/route.ts
+// Description: API route for card-based single candidate AI analysis
+// =============================================================================
+
+import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '@/lib/auth';
+import { UserRole } from '@prisma/client';
+import { GoogleGenerativeAI } from '@google/generative-ai';
+
+export const dynamic = 'force-dynamic';
+export const maxDuration = 60;
+
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY!;
+
+if (!GEMINI_API_KEY) {
+  console.error('[CardImport] GEMINI_API_KEY is not configured!');
+}
+
+const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
+
+const model = genAI.getGenerativeModel({
+  model: 'gemini-2.5-flash',
+  generationConfig: {
+    responseMimeType: 'application/json',
+    temperature: 0.1,
+  },
+});
+
+// ---------------------------------------------------------------------------
+// Valid options - EXACTLY as in the system
+// ---------------------------------------------------------------------------
+
+const VALID_RELIGIOUS_LEVELS = [
+  'dati_leumi_standard',
+  'dati_leumi_liberal',
+  'dati_leumi_torani',
+  'masorti_strong',
+  'masorti_light',
+  'secular_traditional_connection',
+  'secular',
+  'spiritual_not_religious',
+  'charedi_modern',
+  'charedi_litvak',
+  'charedi_sephardic',
+  'charedi_hasidic',
+  'chabad',
+  'breslov',
+  'other',
+] as const;
+
+const VALID_MARITAL_STATUSES = ['single', 'divorced', 'widowed'] as const;
+
+const VALID_ORIGINS = [
+  'אשכנזי',
+  'ספרדי',
+  'מזרחי',
+  'תימני',
+  'מרוקאי',
+  'עיראקי',
+  'פרסי',
+  'כורדי',
+  'תוניסאי',
+  'לובי',
+  'אתיופי',
+  'גרוזיני',
+  'בוכרי',
+  'הודי',
+  'תורכי',
+  'מעורב',
+  'אחר',
+] as const;
+
+// ---------------------------------------------------------------------------
+// Enhanced Mapping helpers
+// ---------------------------------------------------------------------------
+
+const MARITAL_STATUS_MAP: Record<string, string> = {
+  // עברית - זכר
+  'רווק': 'single',
+  'גרוש': 'divorced',
+  'אלמן': 'widowed',
+  // עברית - נקבה
+  'רווקה': 'single',
+  'גרושה': 'divorced',
+  'אלמנה': 'widowed',
+  // אנגלית
+  'single': 'single',
+  'divorced': 'divorced',
+  'widowed': 'widowed',
+  // וריאציות
+  'לא נשוי': 'single',
+  'לא נשואה': 'single',
+  'לא היה נשוי': 'single',
+  'לא היתה נשואה': 'single',
+  'פנוי': 'single',
+  'פנויה': 'single',
+  'נשוי בעבר': 'divorced',
+  'נשואה בעבר': 'divorced',
+  'התגרש': 'divorced',
+  'התגרשה': 'divorced',
+  'after divorce': 'divorced',
+  'widow': 'widowed',
+  'widower': 'widowed',
+  'פרוד': 'divorced',
+  'פרודה': 'divorced',
+  'separated': 'divorced',
+};
+
+const RELIGIOUS_LEVEL_MAP: Record<string, string> = {
+  // דתי לאומי סטנדרטי
+  'דתי לאומי': 'dati_leumi_standard',
+  'דתית לאומית': 'dati_leumi_standard',
+  'דתיה לאומית': 'dati_leumi_standard',
+  'דל"ת': 'dati_leumi_standard',
+  'דלת': 'dati_leumi_standard',
+  'דתי לאומי סטנדרטי': 'dati_leumi_standard',
+  'דתית לאומית סטנדרטית': 'dati_leumi_standard',
+  'דתי': 'dati_leumi_standard',
+  'דתית': 'dati_leumi_standard',
+  'דתי/ה': 'dati_leumi_standard',
+  'דתי לאומי רגיל': 'dati_leumi_standard',
+  'dati': 'dati_leumi_standard',
+  'dati leumi': 'dati_leumi_standard',
+  'dati_leumi_standard': 'dati_leumi_standard',
+  
+  // דתי לאומי ליברלי
+  'דתי לאומי ליברלי': 'dati_leumi_liberal',
+  'דתית לאומית ליברלית': 'dati_leumi_liberal',
+  'דתי ליברלי': 'dati_leumi_liberal',
+  'דתית ליברלית': 'dati_leumi_liberal',
+  'דתי לייט': 'dati_leumi_liberal',
+  'דתית לייט': 'dati_leumi_liberal',
+  'דתי קל': 'dati_leumi_liberal',
+  'דתית קלה': 'dati_leumi_liberal',
+  'דתי פתוח': 'dati_leumi_liberal',
+  'דתית פתוחה': 'dati_leumi_liberal',
+  'dati_leumi_liberal': 'dati_leumi_liberal',
+  
+  // דתי לאומי תורני / חרד"ל
+  'דתי לאומי תורני': 'dati_leumi_torani',
+  'דתית לאומית תורנית': 'dati_leumi_torani',
+  'חרד"ל': 'dati_leumi_torani',
+  'חרדל': 'dati_leumi_torani',
+  "חרד''ל": 'dati_leumi_torani',
+  'תורני': 'dati_leumi_torani',
+  'תורנית': 'dati_leumi_torani',
+  'דתי תורני': 'dati_leumi_torani',
+  'דתית תורנית': 'dati_leumi_torani',
+  'torani': 'dati_leumi_torani',
+  'dati_leumi_torani': 'dati_leumi_torani',
+  
+  // מסורתי חזק
+  'מסורתי': 'masorti_strong',
+  'מסורתית': 'masorti_strong',
+  'מסורתי קרוב לדת': 'masorti_strong',
+  'מסורתית קרובה לדת': 'masorti_strong',
+  'מסורתי חזק': 'masorti_strong',
+  'מסורתית חזקה': 'masorti_strong',
+  'מסורתי שומר מסורת': 'masorti_strong',
+  'שומר מסורת': 'masorti_strong',
+  'masorti': 'masorti_strong',
+  'traditional': 'masorti_strong',
+  'masorti_strong': 'masorti_strong',
+  
+  // מסורתי לייט
+  'מסורתי לייט': 'masorti_light',
+  'מסורתי קל': 'masorti_light',
+  'מסורתית קלה': 'masorti_light',
+  'קצת מסורתי': 'masorti_light',
+  'קצת מסורתית': 'masorti_light',
+  'מסורתי רחוק מדת': 'masorti_light',
+  'masorti_light': 'masorti_light',
+  
+  // חילוני עם זיקה למסורת
+  'חילוני עם זיקה למסורת': 'secular_traditional_connection',
+  'חילונית עם זיקה למסורת': 'secular_traditional_connection',
+  'חילוני מסורתי': 'secular_traditional_connection',
+  'חילונית מסורתית': 'secular_traditional_connection',
+  'חילוני עם מסורת': 'secular_traditional_connection',
+  'secular_traditional_connection': 'secular_traditional_connection',
+  
+  // חילוני
+  'חילוני': 'secular',
+  'חילונית': 'secular',
+  'חילוני לגמרי': 'secular',
+  'לא דתי': 'secular',
+  'לא דתית': 'secular',
+  'secular': 'secular',
+  
+  // רוחני
+  'רוחני': 'spiritual_not_religious',
+  'רוחנית': 'spiritual_not_religious',
+  'רוחני לא דתי': 'spiritual_not_religious',
+  'רוחנית לא דתית': 'spiritual_not_religious',
+  'spiritual': 'spiritual_not_religious',
+  'spiritual_not_religious': 'spiritual_not_religious',
+  
+  // חרדי מודרני
+  'חרדי מודרני': 'charedi_modern',
+  'חרדית מודרנית': 'charedi_modern',
+  'חרדי לייט': 'charedi_modern',
+  'חרדית לייט': 'charedi_modern',
+  'חרדי פתוח': 'charedi_modern',
+  'charedi_modern': 'charedi_modern',
+  
+  // חרדי ליטאי
+  'חרדי ליטאי': 'charedi_litvak',
+  'חרדית ליטאית': 'charedi_litvak',
+  'ליטאי': 'charedi_litvak',
+  'ליטאית': 'charedi_litvak',
+  'חרדי': 'charedi_litvak',
+  'חרדית': 'charedi_litvak',
+  'litvak': 'charedi_litvak',
+  'charedi': 'charedi_litvak',
+  'charedi_litvak': 'charedi_litvak',
+  
+  // חרדי ספרדי
+  'חרדי ספרדי': 'charedi_sephardic',
+  'חרדית ספרדית': 'charedi_sephardic',
+  'ש"ס': 'charedi_sephardic',
+  'שס': 'charedi_sephardic',
+  'ספרדי חרדי': 'charedi_sephardic',
+  'charedi_sephardic': 'charedi_sephardic',
+  
+  // חרדי חסידי
+  'חרדי חסידי': 'charedi_hasidic',
+  'חרדית חסידית': 'charedi_hasidic',
+  'חסידי': 'charedi_hasidic',
+  'חסידית': 'charedi_hasidic',
+  'חסיד': 'charedi_hasidic',
+  'hasidic': 'charedi_hasidic',
+  'charedi_hasidic': 'charedi_hasidic',
+  
+  // חב"ד
+  'חב"ד': 'chabad',
+  'חבד': 'chabad',
+  "חב''ד": 'chabad',
+  'חב״ד': 'chabad',
+  'lubavitch': 'chabad',
+  'chabad': 'chabad',
+  
+  // ברסלב
+  'ברסלב': 'breslov',
+  'ברסלבר': 'breslov',
+  'נ נח': 'breslov',
+  'breslov': 'breslov',
+  
+  // אחר
+  'בעל תשובה': 'other',
+  'בעלת תשובה': 'other',
+  'חוזר בתשובה': 'other',
+  'חוזרת בתשובה': 'other',
+  'גר': 'other',
+  'גיורת': 'other',
+  'אחר': 'other',
+  'other': 'other',
+};
+
+const SINGLE_ORIGIN_MAP: Record<string, string> = {
+  'אשכנזי': 'אשכנזי',
+  'אשכנזית': 'אשכנזי',
+  'אשכנזיה': 'אשכנזי',
+  'ashkenazi': 'אשכנזי',
+  'אירופאי': 'אשכנזי',
+  'פולני': 'אשכנזי',
+  'רוסי': 'אשכנזי',
+  'הונגרי': 'אשכנזי',
+  'רומני': 'אשכנזי',
+  'גרמני': 'אשכנזי',
+  
+  'ספרדי': 'ספרדי',
+  'ספרדית': 'ספרדי',
+  'ספרדיה': 'ספרדי',
+  'sephardi': 'ספרדי',
+  'ספרדי טהור': 'ספרדי',
+  'בולגרי': 'ספרדי',
+  'יווני': 'ספרדי',
+  
+  'מזרחי': 'מזרחי',
+  'מזרחית': 'מזרחי',
+  'מזרחיה': 'מזרחי',
+  'mizrachi': 'מזרחי',
+  
+  'תימני': 'תימני',
+  'תימנית': 'תימני',
+  'תימניה': 'תימני',
+  'תימן': 'תימני',
+  'yemenite': 'תימני',
+  
+  'מרוקאי': 'מרוקאי',
+  'מרוקאית': 'מרוקאי',
+  'מרוקו': 'מרוקאי',
+  'moroccan': 'מרוקאי',
+  
+  'עיראקי': 'עיראקי',
+  'עיראקית': 'עיראקי',
+  'עירק': 'עיראקי',
+  'בבלי': 'עיראקי',
+  'iraqi': 'עיראקי',
+  
+  'פרסי': 'פרסי',
+  'פרסית': 'פרסי',
+  'פרסיה': 'פרסי',
+  'איראני': 'פרסי',
+  'איראנית': 'פרסי',
+  'איראן': 'פרסי',
+  'פרס': 'פרסי',
+  'persian': 'פרסי',
+  'iranian': 'פרסי',
+  
+  'כורדי': 'כורדי',
+  'כורדית': 'כורדי',
+  'כורדיסטן': 'כורדי',
+  'kurdish': 'כורדי',
+  
+  'תוניסאי': 'תוניסאי',
+  'תוניסאית': 'תוניסאי',
+  'תוניסיה': 'תוניסאי',
+  'תוניס': 'תוניסאי',
+  'tunisian': 'תוניסאי',
+  
+  'לובי': 'לובי',
+  'לובית': 'לובי',
+  'טריפוליטאי': 'לובי',
+  'טריפוליטאית': 'לובי',
+  'לוב': 'לובי',
+  'libyan': 'לובי',
+  
+  'אתיופי': 'אתיופי',
+  'אתיופית': 'אתיופי',
+  'אתיופיה': 'אתיופי',
+  'ethiopian': 'אתיופי',
+  
+  'גרוזיני': 'גרוזיני',
+  'גרוזינית': 'גרוזיני',
+  'גאורגי': 'גרוזיני',
+  'גאורגיה': 'גרוזיני',
+  'georgian': 'גרוזיני',
+  
+  'בוכרי': 'בוכרי',
+  'בוכרית': 'בוכרי',
+  'בוכרה': 'בוכרי',
+  'אוזבקי': 'בוכרי',
+  'bukharian': 'בוכרי',
+  
+  'הודי': 'הודי',
+  'הודית': 'הודי',
+  'קוצ\'יני': 'הודי',
+  'בני ישראל': 'הודי',
+  'indian': 'הודי',
+  
+  'תורכי': 'תורכי',
+  'תורכית': 'תורכי',
+  'תורכיה': 'תורכי',
+  'turkish': 'תורכי',
+  
+  'מעורב': 'מעורב',
+  'מעורבת': 'מעורב',
+  'mixed': 'מעורב',
+  
+  'אחר': 'אחר',
+  'other': 'אחר',
+  'לא ידוע': 'אחר',
+};
+
+function normalizeString(val: string): string {
+  return val
+    .trim()
+    .toLowerCase()
+    .replace(/[״"'`]/g, '"')
+    .replace(/\s+/g, ' ');
+}
+
+function mapValue(val: string | null | undefined, map: Record<string, string>): string {
+  if (!val) return '';
+  
+  const normalized = normalizeString(val);
+  
+  if (map[val]) return map[val];
+  if (map[normalized]) return map[normalized];
+  
+  for (const [key, value] of Object.entries(map)) {
+    if (normalizeString(key) === normalized) return value;
+  }
+  
+  for (const [key, value] of Object.entries(map)) {
+    const normalizedKey = normalizeString(key);
+    if (normalized.includes(normalizedKey) || normalizedKey.includes(normalized)) {
+      return value;
+    }
+  }
+  
+  return val;
+}
+
+function validateReligiousLevel(value: string | null | undefined): string {
+  if (!value) return '';
+  
+  if (VALID_RELIGIOUS_LEVELS.includes(value as any)) return value;
+  
+  const mapped = mapValue(value, RELIGIOUS_LEVEL_MAP);
+  if (VALID_RELIGIOUS_LEVELS.includes(mapped as any)) return mapped;
+  
+  console.log(`[CardImport] Unknown religiousLevel: "${value}" -> defaulting to empty`);
+  return '';
+}
+
+function validateMaritalStatus(value: string | null | undefined): string {
+  if (!value) return 'single';
+  
+  if (VALID_MARITAL_STATUSES.includes(value as any)) return value;
+  
+  const mapped = mapValue(value, MARITAL_STATUS_MAP);
+  if (VALID_MARITAL_STATUSES.includes(mapped as any)) return mapped;
+  
+  console.log(`[CardImport] Unknown maritalStatus: "${value}" -> defaulting to "single"`);
+  return 'single';
+}
+
+function mapSingleOrigin(origin: string): string | null {
+  const trimmed = origin.trim();
+  if (!trimmed) return null;
+  
+  if (VALID_ORIGINS.includes(trimmed as any)) return trimmed;
+  
+  const mapped = SINGLE_ORIGIN_MAP[trimmed] || SINGLE_ORIGIN_MAP[trimmed.toLowerCase()];
+  if (mapped && VALID_ORIGINS.includes(mapped as any)) return mapped;
+  
+  for (const [key, value] of Object.entries(SINGLE_ORIGIN_MAP)) {
+    if (key.toLowerCase() === trimmed.toLowerCase()) return value;
+  }
+  
+  return null;
+}
+
+function validateOrigin(value: string | null | undefined): string {
+  if (!value) return '';
+  
+  const trimmed = value.trim();
+  
+  if (trimmed === 'מעורב' || trimmed === 'מעורבת' || trimmed.toLowerCase() === 'mixed') {
+    return 'מעורב';
+  }
+  
+  const separators = /[,،/-]|\s+ו\s*|\s+and\s+/gi;
+  const parts = trimmed.split(separators).map(p => p.trim()).filter(p => p.length > 0);
+  
+  if (parts.length === 0) return '';
+  
+  const mappedOrigins: string[] = [];
+  const seenOrigins = new Set<string>();
+  
+  for (const part of parts) {
+    const mapped = mapSingleOrigin(part);
+    if (mapped && mapped !== 'מעורב' && mapped !== 'אחר' && !seenOrigins.has(mapped)) {
+      mappedOrigins.push(mapped);
+      seenOrigins.add(mapped);
+    }
+  }
+  
+  if (mappedOrigins.length === 0) {
+    for (const origin of VALID_ORIGINS) {
+      if (origin !== 'מעורב' && origin !== 'אחר' && trimmed.includes(origin)) {
+        if (!seenOrigins.has(origin)) {
+          mappedOrigins.push(origin);
+          seenOrigins.add(origin);
+        }
+      }
+    }
+  }
+  
+  if (mappedOrigins.length === 0) {
+    console.log(`[CardImport] Unknown origin: "${value}" -> defaulting to "אחר"`);
+    return 'אחר';
+  }
+  
+  if (mappedOrigins.length === 1) {
+    return mappedOrigins[0];
+  }
+  
+  console.log(`[CardImport] Multiple origins detected: "${value}" -> "${mappedOrigins.join(', ')}"`);
+  return mappedOrigins.join(', ');
+}
+
+function detectLanguageFromText(text: string): string {
+  if (!text || text.trim() === '') return 'עברית';
+  
+  const hebrewChars = (text.match(/[\u0590-\u05FF]/g) || []).length;
+  const englishChars = (text.match(/[a-zA-Z]/g) || []).length;
+  
+  if (hebrewChars > englishChars) {
+    return 'עברית';
+  } else if (englishChars > hebrewChars) {
+    return 'אנגלית';
+  }
+  
+  return 'עברית';
+}
+
+// ---------------------------------------------------------------------------
+// UPDATED PROMPT - NO INVENTION, NO DUPLICATION
+// ---------------------------------------------------------------------------
+
+const SINGLE_CARD_PROMPT = `You are an expert data extraction system for a Jewish matchmaking (shidduch) platform in Israel.
+
+=== CRITICAL EXTRACTION RULE - DO NOT INVENT ANYTHING ===
+You must ONLY extract information that is EXPLICITLY written in the source.
+- If a field is not mentioned → return ""
+- DO NOT infer, guess, or generate content
+- Copy EXACT wording from source when available
+- DO NOT duplicate content in multiple fields
+
+=== FIELD-SPECIFIC RULES ===
+
+PERSONALITY (אופי ותכונות):
+- ONLY copy text that EXPLICITLY describes character/personality traits
+- Look for keywords: "אופי", "תכונות", "אני", descriptions like "רגוע", "שמח", "חברותי"
+- If source says "אופי: רגוע ושמח" → copy exactly "רגוע ושמח"
+- If NO explicit personality description → return ""
+- DO NOT infer personality from job, hobbies, or other fields
+- DO NOT generate generic descriptions
+
+Examples:
+✅ Source: "אופי: חברותי ואחראי" → personality: "חברותי ואחראי"
+✅ Source: "תכונות: רגוע, אוהב לעזור" → personality: "רגוע, אוהב לעזור"
+❌ Source: "עובד בהייטק" → personality: "" (NOT "טכנולוגי" - that's invention!)
+❌ Source: no personality mentioned → personality: "" (NOT "נחמד" - that's invention!)
+
+LOOKING FOR (מחפש/ת):
+- ONLY copy text that EXPLICITLY describes what they seek in a partner
+- Look for keywords: "מחפש", "מחפשת", "רוצה", "חשוב לי ש", "מעוניין ב"
+- Copy the EXACT wording from source
+- If NO explicit "looking for" section → return ""
+- DO NOT infer or generate preferences
+
+Examples:
+✅ Source: "מחפשת: בחור דתי לאומי רציני" → lookingFor: "בחור דתי לאומי רציני"
+✅ Source: "רוצה מישהי חברותית ואחראית" → lookingFor: "מישהי חברותית ואחראית"
+❌ Source: no "looking for" mentioned → lookingFor: "" (NOT "מישהו דומה" - that's invention!)
+
+CITY (עיר מגורים):
+- ONLY extract if city name is EXPLICITLY mentioned
+- Look for: "גר/ה ב", "מ", "תושב/ת", specific city names
+- If source says "גר בירושלים" → "ירושלים"
+- If source says "מתל אביב" → "תל אביב"
+- If source says only "מרכז" or "השרון" without specific city → return ""
+- If NO city mentioned → return ""
+- DO NOT guess city from phone area codes, institutions, or other clues
+
+Examples:
+✅ Source: "גר בחיפה" → city: "חיפה"
+✅ Source: "מירושלים" → city: "ירושלים"
+❌ Source: "לומד בישיבה בירושלים" → city: "" (studying there ≠ living there)
+❌ Source: "מרכז הארץ" → city: "" (region, not city)
+❌ Source: "052-xxx" → city: "" (phone area code is NOT city!)
+
+=== MARITAL STATUS (ONLY 3 OPTIONS) ===
+You MUST choose one of these EXACT values:
+1. "single" - רווק/ה (never married)
+2. "divorced" - גרוש/ה (was married, OR separated/פרוד)
+3. "widowed" - אלמן/ה (spouse passed away)
+
+Detection logic:
+- רווק, רווקה, פנוי, פנויה, לא נשוי, לא נשואה → "single"
+- גרוש, גרושה, פרוד, פרודה, התגרש, התגרשה, נשוי בעבר → "divorced"
+- אלמן, אלמנה → "widowed"
+- No marital status mentioned + no children mentioned → "single" (default for dating profiles)
+- Children mentioned but no marital status → "divorced" (likely was married before)
+
+=== RELIGIOUS LEVEL ===
+Choose the BEST matching value from this EXACT list:
+- "dati_leumi_standard" - דתי/ה לאומי/ת רגיל/ה
+- "dati_leumi_liberal" - דתי/ה לאומי/ת ליברלי/ת, דתי לייט, פתוח
+- "dati_leumi_torani" - דתי/ה תורני/ת, חרד"ל
+- "masorti_strong" - מסורתי/ת שומר/ת מסורת
+- "masorti_light" - מסורתי/ת קל/ה
+- "secular_traditional_connection" - חילוני/ת עם זיקה למסורת
+- "secular" - חילוני/ת לגמרי
+- "spiritual_not_religious" - רוחני/ת
+- "charedi_modern" - חרדי/ת מודרני/ת
+- "charedi_litvak" - חרדי/ת ליטאי/ת
+- "charedi_sephardic" - חרדי/ת ספרדי/ת (ש"ס)
+- "charedi_hasidic" - חסידי/ת
+- "chabad" - חב"ד
+- "breslov" - ברסלב
+- "other" - אחר
+
+If not explicitly mentioned → return ""
+
+=== ORIGIN (מוצא) ===
+Valid single origins: "אשכנזי", "ספרדי", "מזרחי", "תימני", "מרוקאי", "עיראקי", "פרסי", "כורדי", "תוניסאי", "לובי", "אתיופי", "גרוזיני", "בוכרי", "הודי", "תורכי", "אחר"
+
+MULTIPLE ORIGINS handling:
+- If TWO or more origins mentioned (e.g., "אשכנזי וספרדי", "חצי מרוקאי חצי עיראקי") → return BOTH separated by comma: "אשכנזי, ספרדי" or "מרוקאי, עיראקי"
+- ONLY return "מעורב" if person explicitly wrote "מעורב" or "מעורבת"
+- If no origin mentioned → return ""
+
+Examples:
+✅ "אבא אשכנזי אמא ספרדיה" → "אשכנזי, ספרדי"
+✅ "חצי תימני חצי מרוקאי" → "תימני, מרוקאי"
+✅ "מוצא מעורב" → "מעורב"
+✅ "אשכנזי" → "אשכנזי"
+❌ Not mentioned → ""
+
+=== ABOUT FIELD (טקסט מקור) ===
+CRITICAL: Copy the COMPLETE original source text EXACTLY ONCE
+- DO NOT duplicate any content
+- DO NOT add interpretations or summaries
+- DO NOT reorganize or reformat
+- Just the raw original text as-is, ONE TIME ONLY
+- This field should contain the ENTIRE source text for reference
+
+=== MANUAL ENTRY TEXT ===
+Leave this field EMPTY (""). It will be constructed server-side to avoid duplication.
+
+=== OTHER FIELDS (only if explicitly mentioned) ===
+- firstName, lastName: Extract from text
+- gender: "MALE" or "FEMALE" (infer from Hebrew grammar: מחפש=MALE, מחפשת=FEMALE, רווק=MALE, רווקה=FEMALE)
+- age: Number only (if mentioned)
+- height: In cm, e.g., 175 (convert 1.75 → 175)
+- occupation: Job/profession - ONLY if explicitly mentioned, otherwise ""
+- education: Institution or field - ONLY if explicitly mentioned, otherwise ""
+- educationLevel: ONLY if explicitly mentioned, otherwise ""
+- phone: Phone number if mentioned
+- referredBy: Default "קבוצת שידוכים שוובל" if not specified
+- hobbies: ONLY if explicitly mentioned, otherwise ""
+- familyDescription: ONLY if explicitly mentioned, otherwise ""
+- militaryService: ONLY if explicitly mentioned, otherwise ""
+- nativeLanguage: Detect from text language (mostly Hebrew → "עברית", mostly English → "אנגלית")
+- additionalLanguages: ONLY if other languages explicitly mentioned, otherwise ""
+- hasChildrenFromPrevious: "true" only if explicitly stated, "false" if explicitly stated no children, "" if not mentioned
+
+=== OUTPUT FORMAT ===
+Return ONLY valid JSON (avoid all duplication):
+
+{
+  "fields": {
+    "firstName": "",
+    "lastName": "",
+    "gender": "MALE" | "FEMALE" | "",
+    "age": "",
+    "height": "",
+    "maritalStatus": "single" | "divorced" | "widowed",
+    "religiousLevel": "",
+    "origin": "",
+    "city": "",
+    "occupation": "",
+    "education": "",
+    "educationLevel": "",
+    "phone": "",
+    "referredBy": "קבוצת שידוכים שוובל",
+    "personality": "",
+    "lookingFor": "",
+    "hobbies": "",
+    "familyDescription": "",
+    "militaryService": "",
+    "nativeLanguage": "",
+    "additionalLanguages": "",
+    "hasChildrenFromPrevious": "",
+    "about": "<complete original text ONCE - no duplication>",
+    "manualEntryText": ""
+  },
+  "imageClassifications": [
+    { "index": 0, "type": "photo" | "form" | "combined", "extractedText": "" }
+  ],
+  "confidence": "high" | "medium" | "low",
+  "notes": ""
+}`;
+
+// ---------------------------------------------------------------------------
+// POST handler
+// ---------------------------------------------------------------------------
+
+export async function POST(req: NextRequest) {
+  try {
+    if (!process.env.GEMINI_API_KEY) {
+      console.error('[CardImport] GEMINI_API_KEY is not configured!');
+      return NextResponse.json(
+        { success: false, error: 'AI service not configured. Please contact admin.' },
+        { status: 500 }
+      );
+    }
+
+    const session = await getServerSession(authOptions);
+    if (
+      !session?.user?.id ||
+      (session.user.role !== UserRole.MATCHMAKER && session.user.role !== UserRole.ADMIN)
+    ) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const contentType = req.headers.get('content-type') || '';
+    if (!contentType.includes('multipart/form-data')) {
+      return NextResponse.json(
+        { success: false, error: 'Expected multipart/form-data' },
+        { status: 400 }
+      );
+    }
+
+    const formData = await req.formData();
+    const mode = formData.get('mode') as string;
+
+    if (mode !== 'single-card') {
+      return NextResponse.json(
+        { success: false, error: 'Invalid mode. Expected "single-card"' },
+        { status: 400 }
+      );
+    }
+
+    const rawText = (formData.get('rawText') as string) || '';
+    const imageFiles = formData.getAll('images') as File[];
+
+    if (!rawText.trim() && imageFiles.length === 0) {
+      return NextResponse.json(
+        { success: false, error: 'No input provided. Add text or images.' },
+        { status: 400 }
+      );
+    }
+
+    console.log(
+      `[CardImport] Processing: ${imageFiles.length} images, ${rawText.length} chars text`
+    );
+
+    // Build Gemini content parts
+    const parts: any[] = [];
+
+    let promptText = SINGLE_CARD_PROMPT + '\n\n';
+
+    if (rawText.trim()) {
+      promptText += `=== PASTED TEXT ===\n${rawText}\n=== END TEXT ===\n\n`;
+    }
+
+    if (imageFiles.length > 0) {
+      promptText += `${imageFiles.length} image(s) attached. Analyze each one.\n\n`;
+    }
+
+    promptText += 'Return JSON:';
+    parts.push({ text: promptText });
+
+    // Add images
+    for (const file of imageFiles) {
+      const buffer = Buffer.from(await file.arrayBuffer());
+      parts.push({
+        inlineData: {
+          mimeType: file.type || 'image/jpeg',
+          data: buffer.toString('base64'),
+        },
+      });
+    }
+
+    // Call Gemini
+    const result = await model.generateContent({
+      contents: [{ role: 'user', parts }],
+    });
+
+    const responseText = result.response.text();
+    console.log(`[CardImport] Got response (${responseText.length} chars)`);
+
+    // Parse response
+    let parsed: any;
+    try {
+      parsed = JSON.parse(responseText);
+    } catch {
+      const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) {
+        throw new Error('AI returned invalid response');
+      }
+      parsed = JSON.parse(jsonMatch[0]);
+    }
+
+    const fields = parsed.fields || {};
+
+    // Log raw values before validation
+    console.log(`[CardImport] Raw maritalStatus from AI: "${fields.maritalStatus}"`);
+    console.log(`[CardImport] Raw religiousLevel from AI: "${fields.religiousLevel}"`);
+    console.log(`[CardImport] Raw origin from AI: "${fields.origin}"`);
+    console.log(`[CardImport] Raw city from AI: "${fields.city}"`);
+
+    // Validate and normalize values
+    fields.maritalStatus = validateMaritalStatus(fields.maritalStatus);
+    fields.religiousLevel = validateReligiousLevel(fields.religiousLevel);
+    fields.origin = validateOrigin(fields.origin);
+
+    // Validate city - only keep if it's an actual city name
+    if (fields.city) {
+      const cityLower = fields.city.toLowerCase().trim();
+      // רשימה של ביטויים שאינם שמות ערים
+      const invalidCityTerms = ['מרכז', 'דרום', 'צפון', 'השרון', 'שפלה', 'הגליל', 'הנגב', 'יהודה', 'שומרון'];
+      if (invalidCityTerms.some(term => cityLower.includes(term))) {
+        console.log(`[CardImport] "${fields.city}" is a region, not a city - clearing`);
+        fields.city = '';
+      }
+    }
+
+    // Log validated values
+    console.log(`[CardImport] Validated maritalStatus: "${fields.maritalStatus}"`);
+    console.log(`[CardImport] Validated religiousLevel: "${fields.religiousLevel}"`);
+    console.log(`[CardImport] Validated origin: "${fields.origin}"`);
+    console.log(`[CardImport] Validated city: "${fields.city}"`);
+
+    // Normalize height
+    if (fields.height) {
+      let h = parseFloat(fields.height);
+      if (h < 3) h = Math.round(h * 100);
+      if (h < 100 || h > 250) fields.height = '';
+      else fields.height = String(Math.round(h));
+    }
+
+    // Default referredBy if empty
+    if (!fields.referredBy || fields.referredBy.trim() === '') {
+      fields.referredBy = 'קבוצת שידוכים שוובל';
+    }
+
+    // =========================================================================
+    // CRITICAL: Handle "about" field - ensure it contains the source text ONCE
+    // =========================================================================
+    if (!fields.about || fields.about.trim() === '') {
+      // If AI didn't populate about, use the raw text
+      if (rawText.trim()) {
+        fields.about = rawText.trim();
+      }
+    } else {
+      // AI did provide about - remove any duplication within it
+      const aboutLines = fields.about.split('\n');
+      const uniqueLines: string[] = [];
+      const seenLines = new Set<string>();
+      
+      for (const line of aboutLines) {
+        const trimmed = line.trim();
+        if (trimmed && !seenLines.has(trimmed)) {
+          seenLines.add(trimmed);
+          uniqueLines.push(line);
+        } else if (!trimmed) {
+          // Keep empty lines for formatting
+          uniqueLines.push(line);
+        }
+      }
+      
+      fields.about = uniqueLines.join('\n').trim();
+    }
+
+    // manualEntryText should be empty - we'll build it at save time to avoid duplication
+    fields.manualEntryText = '';
+
+    // Handle language detection
+    if (!fields.nativeLanguage || fields.nativeLanguage.trim() === '') {
+      const sourceText = fields.about || rawText || '';
+      fields.nativeLanguage = detectLanguageFromText(sourceText);
+      console.log(`[CardImport] Detected nativeLanguage: "${fields.nativeLanguage}"`);
+    }
+
+    if (!fields.additionalLanguages) {
+      fields.additionalLanguages = '';
+    }
+
+    // Add any OCR text from images to about (if not already there)
+    const imageClassifications = parsed.imageClassifications || [];
+    const ocrTexts = imageClassifications
+      .filter((ic: any) => ic.extractedText && ic.type !== 'photo')
+      .map((ic: any) => ic.extractedText.trim())
+      .filter((text: string) => text.length > 0);
+
+    if (ocrTexts.length > 0) {
+      const ocrBlock = '\n\n--- טקסט שחולץ מתמונות ---\n' + ocrTexts.join('\n');
+      
+      // Only add if not already present
+      if (fields.about && !fields.about.includes('טקסט שחולץ מתמונות')) {
+        fields.about = fields.about + ocrBlock;
+      } else if (!fields.about) {
+        fields.about = '--- טקסט שחולץ מתמונות ---\n' + ocrTexts.join('\n');
+      }
+    }
+
+    // Mark form images
+    const formImageIndices = imageClassifications
+      .filter((ic: any) => ic.type === 'form' || ic.type === 'combined')
+      .map((ic: any) => ic.index);
+
+    // Add notes about missing critical fields
+    let notes = parsed.notes || '';
+    if (!fields.religiousLevel) {
+      notes += notes ? ' | ' : '';
+      notes += '⚠️ לא זוהתה רמה דתית - נא לבחור ידנית';
+    }
+    if (!fields.city) {
+      notes += notes ? ' | ' : '';
+      notes += '⚠️ לא זוהה מיקום מגורים - נא להזין ידנית';
+    }
+
+    return NextResponse.json({
+      success: true,
+      data: {
+        fields,
+        imageClassifications,
+        formImageIndices,
+        confidence: parsed.confidence || 'medium',
+        notes: notes || null,
+      },
+    });
+  } catch (error) {
+    console.error('[CardImport] Error:', error);
+    return NextResponse.json(
+      {
+        success: false,
+        error: (error as Error).message || 'Internal server error',
+      },
+      { status: 500 }
+    );
+  }
+}
+--- End of Content for route.ts ---
+
+================================================================================
 Directory: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\candidates\manual
 ================================================================================
 
@@ -1318,6 +2644,8 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
+const DEFAULT_REFERRED_BY = "קבוצת שידוכים שוובל";
+
 async function uploadImageToCloudinary(file: File, userId: string): Promise<{ url: string; publicId: string }> {
   const bytes = await file.arrayBuffer();
   const buffer = Buffer.from(bytes);
@@ -1337,7 +2665,6 @@ async function uploadImageToCloudinary(file: File, userId: string): Promise<{ ur
 }
 
 export async function POST(req: NextRequest) {
-  // Apply rate limiting: 15 manual creations per matchmaker per hour (resource intensive)
   const rateLimitResponse = await applyRateLimitWithRoleCheck(req, { requests: 15, window: '1 h' });
   if (rateLimitResponse) {
     return rateLimitResponse;
@@ -1350,8 +2677,12 @@ export async function POST(req: NextRequest) {
     const matchmakerId = session.user.id;
 
     const formData = await req.formData();
+
+    // --- שדות בסיסיים ---
     const firstName = formData.get('firstName') as string;
     const lastName = formData.get('lastName') as string;
+    const phoneValue = formData.get('phone') as string | null;
+    const origin = formData.get('origin') as string | null;
     const emailValue = formData.get('email') as string | null;
     const gender = formData.get('gender') as Gender;
     const birthDateStr = formData.get('birthDate') as string;
@@ -1361,29 +2692,47 @@ export async function POST(req: NextRequest) {
     const manualEntryText = formData.get('manualEntryText') as string;
     const images = formData.getAll('images') as File[];
     const birthDateIsApproximate = formData.get('birthDateIsApproximate') === 'true';
-    
-    // --- START: שדה מקור הפניה ---
+
+    // --- מקור הפניה ---
     const referredBy = formData.get('referredBy') as string | null;
-    // --- END: שדה מקור הפניה ---
-    
-    // --- START: שדות מקצוע הורים ---
+
+    // --- מקצוע הורים ---
     const fatherOccupation = formData.get('fatherOccupation') as string | null;
     const motherOccupation = formData.get('motherOccupation') as string | null;
-    // --- END: שדות מקצוע הורים ---
 
+    // --- שדות מובנים ---
+    const city = formData.get('city') as string | null;
+    const occupation = formData.get('occupation') as string | null;
+    const education = formData.get('education') as string | null;
+    const educationLevel = formData.get('educationLevel') as string | null;
+    const about = formData.get('about') as string | null;
+    const hasChildrenFromPreviousStr = formData.get('hasChildrenFromPrevious') as string | null;
+
+    // --- שירות צבאי / לאומי ---
+    // תומך בשני שמות: 'militaryService' (מ-CardBasedImportDialog ישן) ו-'serviceDetails' (מ-CardBasedImportDialog חדש)
+    const militaryService = (formData.get('militaryService') as string | null)
+      || (formData.get('serviceDetails') as string | null);
+
+    // --- שפות ---
+    const nativeLanguage = formData.get('nativeLanguage') as string | null;
+    const additionalLanguagesStr = formData.get('additionalLanguages') as string | null;
+
+    // --- גובה ---
     let height: number | null = null;
     if (heightStr && heightStr.trim() !== '') {
-        const parsedHeight = parseInt(heightStr, 10);
-        if (!isNaN(parsedHeight)) {
-            height = parsedHeight;
-        }
+      const parsedHeight = parseInt(heightStr, 10);
+      if (!isNaN(parsedHeight)) {
+        height = parsedHeight;
+      }
     }
 
+    // --- מידע רפואי ---
     const hasMedicalInfo = formData.get('hasMedicalInfo');
     const medicalInfoDetails = formData.get('medicalInfoDetails') as string | null;
     const medicalInfoDisclosureTiming = formData.get('medicalInfoDisclosureTiming') as string | null;
     const isMedicalInfoVisible = formData.get('isMedicalInfoVisible');
 
+    // --- ולידציה ---
     if (!firstName || !lastName || !gender || !birthDateStr || !manualEntryText) {
       return NextResponse.json({ success: false, error: "Missing required fields" }, { status: 400 });
     }
@@ -1393,46 +2742,100 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, error: "Invalid birth date" }, { status: 400 });
     }
 
-    let email: string;
-    if (emailValue && emailValue.trim() !== '') {
-        email = emailValue.trim().toLowerCase();
-        const existingUser = await prisma.user.findUnique({ where: { email } });
-        if (existingUser) {
-            return NextResponse.json({ success: false, error: "משתמש עם כתובת אימייל זו כבר קיים במערכת." }, { status: 409 });
-        }
-    } else {
-        email = `manual_${createId()}@shidduch.placeholder.com`;
+    if (!maritalStatus) {
+      return NextResponse.json({ error: 'Marital status is required' }, { status: 400 });
     }
 
+    // --- אימייל ---
+    let email: string;
+    if (emailValue && emailValue.trim() !== '') {
+      email = emailValue.trim().toLowerCase();
+      const existingUser = await prisma.user.findUnique({ where: { email } });
+      if (existingUser) {
+        return NextResponse.json({ success: false, error: "משתמש עם כתובת אימייל זו כבר קיים במערכת." }, { status: 409 });
+      }
+    } else {
+      email = `manual_${createId()}@shidduch.placeholder.com`;
+    }
+
+    // --- בניית אובייקט פרופיל ---
     const profileCreateData: Prisma.ProfileCreateWithoutUserInput = {
       gender,
       birthDate,
       birthDateIsApproximate,
       manualEntryText,
       availabilityStatus: 'AVAILABLE',
-      isProfileVisible: true, 
+      isProfileVisible: true,
       height: height,
       religiousLevel: religiousLevel,
       maritalStatus,
-            contentUpdatedAt: new Date(),
-
+      origin: origin || null,
+      contentUpdatedAt: new Date(),
     };
 
-    // --- START: הוספת שדה מקור הפניה ---
+    // --- מקור הפניה: ברירת מחדל ---
     if (referredBy && referredBy.trim() !== '') {
       profileCreateData.referredBy = referredBy.trim();
+    } else {
+      profileCreateData.referredBy = DEFAULT_REFERRED_BY;
     }
-    // --- END: הוספת שדה מקור הפניה ---
 
-    if (!maritalStatus) {
-      return NextResponse.json({ error: 'Marital status is required' }, { status: 400 });
-    }
+    // --- מקצוע הורים ---
     if (fatherOccupation) {
-        profileCreateData.fatherOccupation = fatherOccupation;
+      profileCreateData.fatherOccupation = fatherOccupation;
     }
     if (motherOccupation) {
-        profileCreateData.motherOccupation = motherOccupation;
+      profileCreateData.motherOccupation = motherOccupation;
     }
+
+    // --- עיר ---
+    if (city && city.trim() !== '') {
+      profileCreateData.city = city.trim();
+    }
+
+    // --- עיסוק ---
+    if (occupation && occupation.trim() !== '') {
+      profileCreateData.occupation = occupation.trim();
+    }
+
+    // --- לימודים / השכלה ---
+    if (education && education.trim() !== '') {
+      profileCreateData.education = education.trim();
+    }
+    if (educationLevel && educationLevel.trim() !== '') {
+      profileCreateData.educationLevel = educationLevel.trim();
+    }
+
+    // --- about: הטקסט המקורי כמות שהוא ---
+    if (about && about.trim() !== '') {
+      profileCreateData.about = about.trim();
+    }
+
+    // --- ילדים מקשר קודם ---
+    if (hasChildrenFromPreviousStr !== null && hasChildrenFromPreviousStr !== '') {
+      profileCreateData.hasChildrenFromPrevious = hasChildrenFromPreviousStr === 'true';
+    }
+
+    // --- שירות צבאי / לאומי ---
+    if (militaryService && militaryService.trim() !== '') {
+      profileCreateData.serviceDetails = militaryService.trim();
+    }
+
+    // --- שפות: שפת אם + שפות נוספות ---
+    if (nativeLanguage && nativeLanguage.trim() !== '') {
+      profileCreateData.nativeLanguage = nativeLanguage.trim();
+    }
+    if (additionalLanguagesStr && additionalLanguagesStr.trim() !== '') {
+      const additionalLangs = additionalLanguagesStr
+        .split(/[,;،|]/)
+        .map((lang) => lang.trim())
+        .filter((lang) => lang.length > 0);
+      if (additionalLangs.length > 0) {
+        profileCreateData.additionalLanguages = additionalLangs;
+      }
+    }
+
+    // --- מידע רפואי ---
     if (hasMedicalInfo !== null) {
       profileCreateData.hasMedicalInfo = hasMedicalInfo === 'true';
     }
@@ -1446,11 +2849,13 @@ export async function POST(req: NextRequest) {
       profileCreateData.isMedicalInfoVisible = isMedicalInfoVisible === 'true';
     }
 
+    // --- יצירת המשתמש + פרופיל ---
     const newManualCandidate = await prisma.user.create({
       data: {
         firstName,
         lastName,
         email,
+        phone: phoneValue?.trim() || null,
         password: null,
         role: UserRole.CANDIDATE,
         status: UserStatus.PENDING_EMAIL_VERIFICATION,
@@ -1467,6 +2872,7 @@ export async function POST(req: NextRequest) {
       },
     });
 
+    // --- העלאת תמונות ---
     type UserImageCreateInput = {
       userId: string;
       url: string;
@@ -1479,13 +2885,13 @@ export async function POST(req: NextRequest) {
     if (images && images.length > 0) {
       for (const file of images) {
         if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
-            return NextResponse.json({ success: false, error: `Invalid file type: ${file.name}. Only JPG, PNG, WEBP allowed.` }, { status: 400 });
+          return NextResponse.json({ success: false, error: `Invalid file type: ${file.name}. Only JPG, PNG, WEBP allowed.` }, { status: 400 });
         }
         if (file.size > 5 * 1024 * 1024) {
-            return NextResponse.json({ success: false, error: `File too large: ${file.name}. Max 5MB.` }, { status: 400 });
+          return NextResponse.json({ success: false, error: `File too large: ${file.name}. Max 5MB.` }, { status: 400 });
         }
       }
-      
+
       for (let i = 0; i < images.length; i++) {
         try {
           const { url, publicId } = await uploadImageToCloudinary(images[i], newManualCandidate.id);
@@ -1496,11 +2902,11 @@ export async function POST(req: NextRequest) {
             isMain: i === 0,
           });
         } catch (uploadError) {
-            console.error("Failed to upload an image during manual candidate creation:", uploadError);
-            return NextResponse.json({
-                success: false,
-                error: `Failed to upload image ${images[i].name}. ${(uploadError as Error).message}`
-            }, { status: 500 });
+          console.error("Failed to upload an image during manual candidate creation:", uploadError);
+          return NextResponse.json({
+            success: false,
+            error: `Failed to upload image ${images[i].name}. ${(uploadError as Error).message}`
+          }, { status: 500 });
         }
       }
 
@@ -1510,14 +2916,16 @@ export async function POST(req: NextRequest) {
         });
       }
     }
-   
+
+    // --- עדכון פרופיל AI ברקע ---
     updateUserAiProfile(newManualCandidate.id).catch(err => {
-        console.error(`[AI Profile Trigger] Failed to create AI profile for manual candidate ${newManualCandidate.id}:`, err);
+      console.error(`[AI Profile Trigger] Failed to create AI profile for manual candidate ${newManualCandidate.id}:`, err);
     });
 
+    // --- החזרת התוצאה ---
     const candidateToReturn = await prisma.user.findUnique({
-        where: { id: newManualCandidate.id },
-        include: { profile: true, images: true }
+      where: { id: newManualCandidate.id },
+      include: { profile: true, images: true }
     });
 
     return NextResponse.json({ success: true, candidate: candidateToReturn });
@@ -1526,12 +2934,12 @@ export async function POST(req: NextRequest) {
     console.error("Error in POST /api/matchmaker/candidates/manual:", error);
     let errorMessage = "Internal server error.";
     if (error instanceof Error) {
-        errorMessage = error.message;
+      errorMessage = error.message;
     }
     if (error instanceof SyntaxError && error.message.includes("Unexpected token") && error.message.includes("in JSON at position")) {
-        errorMessage = "Invalid request body or FormData. Ensure all fields are correctly formatted.";
+      errorMessage = "Invalid request body or FormData. Ensure all fields are correctly formatted.";
     } else if (error instanceof TypeError && error.message.includes("Could not parse content as FormData")) {
-        errorMessage = "Invalid request format. Expected FormData.";
+      errorMessage = "Invalid request format. Expected FormData.";
     }
 
     return NextResponse.json({ success: false, error: errorMessage }, { status: 500 });

@@ -1,4 +1,4 @@
-// src/middleware.ts - גרסה מתוקנת עם תמיכה ב-App Router + CORS
+// src/middleware.ts - גרסה מתוקנת עם תמיכה ב-App Router
 
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
@@ -7,35 +7,7 @@ import { i18n, type Locale } from '../i18n-config';
 import { match as matchLocale } from '@formatjs/intl-localematcher';
 import Negotiator from 'negotiator';
 
-// =============================================================================
-// CORS Configuration
-// =============================================================================
-
-const ALLOWED_ORIGINS = [
-  'https://www.neshamatech.com',
-  'https://neshamatech.com',
-  'http://localhost:8081',   // Expo Web dev
-  'http://localhost:3000',   // Next.js dev
-  'http://localhost:19006',  // Expo Web alternative port
-  'http://localhost:19000',  // Expo dev server
-];
-
-function getCorsHeaders(origin: string | null): Record<string, string> {
-  const isAllowed = origin && ALLOWED_ORIGINS.includes(origin);
-  
-  return {
-    'Access-Control-Allow-Origin': isAllowed ? origin : ALLOWED_ORIGINS[0],
-    'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With',
-    'Access-Control-Allow-Credentials': 'true',
-    'Access-Control-Max-Age': '86400',
-  };
-}
-
-// =============================================================================
-// Path Definitions
-// =============================================================================
-
+// --- Path Definitions ---
 const PUBLIC_PATHS = [
   '/',
   '/auth/signin',
@@ -45,8 +17,8 @@ const PUBLIC_PATHS = [
   '/auth/error',
   '/legal/privacy-policy',
   '/legal/terms-of-service',
-  '/legal/accessibility-statement',
-  '/legal/child-safety',
+  '/legal/accessibility-statement',  // ← הוסף גם את זה אם חסר
+  '/legal/child-safety',             // ← הוסף שורה זו!
   '/questionnaire',
   '/contact',
   '/feedback',
@@ -75,12 +47,10 @@ const SETUP_PATHS = [
 
 const POST_SETUP_PATHS: string[] = [];
 
+
 const PUBLIC_API_PATHS = ['/api/feedback'];
 
-// =============================================================================
-// I18N Locale Detection Function
-// =============================================================================
-
+// --- I18N Locale Detection Function ---
 function getLocale(request: NextRequest): Locale {
   const negotiatorHeaders: Record<string, string> = {};
   request.headers.forEach((value, key) => (negotiatorHeaders[key] = value));
@@ -89,57 +59,16 @@ function getLocale(request: NextRequest): Locale {
   return matchLocale(languages, locales, i18n.defaultLocale) as Locale;
 }
 
-// =============================================================================
-// Main Middleware Logic
-// =============================================================================
-
+// --- Main Middleware Logic ---
 export async function middleware(req: NextRequest) {
   console.log(`\n\n=========================================================`);
   console.log(`--- [Middleware] New Request Received ---`);
   console.log(`Timestamp: ${new Date().toISOString()}`);
   console.log(`➡️  Incoming Full URL: ${req.url}`);
-  console.log(`➡️  Method: ${req.method}`);
 
   const { pathname, search } = req.nextUrl;
-  const origin = req.headers.get('origin');
 
-  // ==========================================================================
-  // 1. CORS Handling for API Routes (MUST BE FIRST!)
-  // ==========================================================================
-  
-  if (pathname.startsWith('/api/')) {
-    console.log(`[Middleware] API route detected: ${pathname}`);
-    console.log(`   Origin: ${origin}`);
-    console.log(`   Method: ${req.method}`);
-
-    const corsHeaders = getCorsHeaders(origin);
-
-    // Handle preflight OPTIONS request
-    if (req.method === 'OPTIONS') {
-      console.log(`[Middleware] CORS preflight request. Returning 204.`);
-      console.log(`=========================================================\n`);
-      return new NextResponse(null, {
-        status: 204,
-        headers: corsHeaders,
-      });
-    }
-
-    // For actual API requests, add CORS headers and continue
-    const response = NextResponse.next();
-    
-    Object.entries(corsHeaders).forEach(([key, value]) => {
-      response.headers.set(key, value);
-    });
-
-    console.log(`[Middleware] API request. Adding CORS headers and continuing.`);
-    console.log(`=========================================================\n`);
-    return response;
-  }
-
-  // ==========================================================================
-  // 2. Static Files - Skip middleware
-  // ==========================================================================
-
+  // 🔴 תיקון: בדיקה לקבצים סטטיים קודם כל
   const isStaticFile = /\.(png|jpg|jpeg|gif|svg|webp|ico|css|js|woff|woff2|ttf|eot)$/i.test(pathname);
 
   if (
@@ -148,17 +77,16 @@ export async function middleware(req: NextRequest) {
     pathname.startsWith('/images/') ||
     pathname.includes('/favicon.ico') ||
     pathname.includes('/logo.png') ||
-    isStaticFile
+    isStaticFile ||
+    PUBLIC_API_PATHS.some(path => pathname.startsWith(path)) ||
+    pathname.startsWith('/api/')
   ) {
-    console.log(`[Middleware] Static asset. Skipping.`);
+    console.log(`[Middleware] Static asset or API route. Skipping.`);
     console.log(`=========================================================\n`);
     return NextResponse.next();
   }
 
-  // ==========================================================================
-  // 3. Referral Short Links
-  // ==========================================================================
-
+  // 🔴 תיקון: טיפול ב-referral short links
   if (pathname.startsWith('/r/')) {
     const locale = getLocale(req);
     const code = pathname.split('/r/')[1];
@@ -172,10 +100,7 @@ export async function middleware(req: NextRequest) {
     return NextResponse.redirect(newUrl);
   }
 
-  // ==========================================================================
-  // 4. Locale Detection and Redirect
-  // ==========================================================================
-
+  // 🔴 תיקון מרכזי: בדיקת locale עם לוגיקה משופרת
   const pathnameIsMissingLocale = i18n.locales.every(
     (locale) => !pathname.startsWith(`/${locale}/`) && pathname !== `/${locale}`
   );
@@ -186,11 +111,14 @@ export async function middleware(req: NextRequest) {
   if (pathnameIsMissingLocale) {
     const locale = getLocale(req);
     
+    // 🔴 חשוב: טיפול נכון ב-root path
     let newPathname: string;
     
     if (pathname === '/') {
+      // Root path - פשוט הוסף את ה-locale
       newPathname = `/${locale}`;
     } else {
+      // כל נתיב אחר - הוסף את ה-locale לפני הנתיב
       newPathname = `/${locale}${pathname}`;
     }
     
@@ -206,22 +134,18 @@ export async function middleware(req: NextRequest) {
     return NextResponse.redirect(newUrl);
   }
 
-  // ==========================================================================
-  // 5. Extract Locale and Clean Path
-  // ==========================================================================
-
+  // 🔴 חילוץ locale ונתיב נקי
   const segments = pathname.split('/').filter(Boolean);
   const currentLocale = (segments[0] as Locale) || i18n.defaultLocale;
+  
+  // 🔴 תיקון: הסרת locale בצורה נכונה
   const pathWithoutLocale = '/' + segments.slice(1).join('/') || '/';
 
   console.log(`   Segments: ${JSON.stringify(segments)}`);
   console.log(`   Current Locale: ${currentLocale}`);
   console.log(`   Path without Locale: ${pathWithoutLocale}`);
 
-  // ==========================================================================
-  // 6. Authentication Check
-  // ==========================================================================
-
+  // 🔴 טוען את ה-token
   const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
   const isUserLoggedIn = !!token;
   const isProfileConsideredComplete = !!token?.isProfileComplete && !!token?.isPhoneVerified;
@@ -237,10 +161,7 @@ export async function middleware(req: NextRequest) {
   }
   console.log(`   Profile Complete?: ${isProfileConsideredComplete}`);
 
-  // ==========================================================================
-  // 7. Path Type Detection
-  // ==========================================================================
-
+  // 🔴 בדיקות נתיב
   const isPublicPath = 
     PUBLIC_PATHS.includes(pathWithoutLocale) || 
     pathWithoutLocale.startsWith('/testimonial');
@@ -255,24 +176,18 @@ export async function middleware(req: NextRequest) {
   console.log(`   Is Referral Public Path?: ${isReferralPublicPath}`);
   console.log(`   Is Post Setup Path?: ${isPostSetupPath}`);
 
-  // ==========================================================================
-  // 8. Referral Public Paths - Allow Access
-  // ==========================================================================
-
+  // 🔴 נתיבי רפרל ציבוריים
   if (isReferralPublicPath) {
     console.log(`[Middleware] Referral public path. Allowing access.`);
     console.log(`=========================================================\n`);
     return NextResponse.next();
   }
 
-  // ==========================================================================
-  // 9. Authorization Logic
-  // ==========================================================================
-
+  // --- לוגיקת הרשאות ---
   if (isUserLoggedIn) {
     console.log(`[Middleware] Evaluating LOGGED-IN user...`);
 
-    // Admin path check
+    // 🔴 בדיקת גישה לאדמין
     if (isAdminPath) {
       if (!isAdmin) {
         const redirectUrl = new URL(`/${currentLocale}/`, req.url);
@@ -287,7 +202,7 @@ export async function middleware(req: NextRequest) {
       return NextResponse.next();
     }
 
-    // Logged-in user with complete profile on auth page
+    // 🔴 משתמש מחובר עם פרופיל שלם על דף התחברות
     if (isProfileConsideredComplete && (pathWithoutLocale === '/auth/signin' || pathWithoutLocale === '/auth/register')) {
       const redirectUrl = new URL(`/${currentLocale}/profile`, req.url);
       console.warn(`[Middleware] Logged-in user with complete profile on auth page.`);
@@ -296,7 +211,7 @@ export async function middleware(req: NextRequest) {
       return NextResponse.redirect(redirectUrl);
     }
 
-    // Logged-in user with incomplete profile
+    // 🔴 משתמש מחובר עם פרופיל לא שלם
     if (
       !isProfileConsideredComplete && 
       !isPublicPath && 
@@ -314,7 +229,7 @@ export async function middleware(req: NextRequest) {
 
     console.log(`[Middleware] Logged-in user access granted.`);
   } else {
-    // Guest user
+    // משתמש לא מחובר
     console.log(`[Middleware] Evaluating GUEST user...`);
     
     if (!isPublicPath) {
@@ -334,12 +249,8 @@ export async function middleware(req: NextRequest) {
   return NextResponse.next();
 }
 
-// =============================================================================
-// Middleware Config
-// =============================================================================
-
 export const config = {
   matcher: [
-    '/((?!_next/static|_next/image|assets|images|favicon.ico|logo.png|sw.js|site.webmanifest).*)',
+    '/((?!api|_next/static|_next/image|assets|images|favicon.ico|logo.png|sw.js|site.webmanifest).*)',
   ],
 };
