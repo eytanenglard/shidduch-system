@@ -6,6 +6,9 @@
 // Called from chat routes when a new message is created.
 //
 // Uses Expo's push notification service (no Firebase needed for delivery).
+//
+// UPDATED: Added pushSuggestionStatusChange, pushContactsShared,
+//          pushSuggestionStatusToMatchmaker
 // =============================================================================
 
 import prisma from '@/lib/prisma';
@@ -187,6 +190,170 @@ export async function pushUserMessageToMatchmaker(
         ? { suggestionId: context.suggestionId }
         : {}),
       screen: 'matchmaker-inbox',
+    },
+  });
+}
+
+// =============================================================================
+// NEW: Status change & contact sharing notifications
+// =============================================================================
+
+/**
+ * Hebrew-friendly status labels for push notification body text
+ */
+const STATUS_LABELS_HE: Record<string, string> = {
+  DRAFT: 'טיוטה',
+  PENDING_FIRST_PARTY: 'ממתין לצד א׳',
+  FIRST_PARTY_APPROVED: 'צד א׳ אישר/ה',
+  FIRST_PARTY_INTERESTED: 'צד א׳ מעוניין/ת',
+  FIRST_PARTY_DECLINED: 'צד א׳ דחה/תה',
+  PENDING_SECOND_PARTY: 'ממתין לצד ב׳',
+  SECOND_PARTY_APPROVED: 'צד ב׳ אישר/ה',
+  SECOND_PARTY_DECLINED: 'צד ב׳ דחה/תה',
+  AWAITING_MATCHMAKER_APPROVAL: 'ממתין לאישור השדכן',
+  CONTACT_DETAILS_SHARED: 'פרטי הקשר שותפו',
+  AWAITING_FIRST_DATE_FEEDBACK: 'ממתין לפידבק מהפגישה',
+  THINKING_AFTER_DATE: 'חושב/ת אחרי פגישה',
+  PROCEEDING_TO_SECOND_DATE: 'ממשיכים לפגישה שנייה',
+  ENDED_AFTER_FIRST_DATE: 'הסתיים לאחר פגישה ראשונה',
+  MEETING_PENDING: 'ממתין לפגישה',
+  MEETING_SCHEDULED: 'פגישה נקבעה',
+  MATCH_APPROVED: 'ההתאמה אושרה',
+  MATCH_DECLINED: 'ההתאמה נדחתה',
+  DATING: 'בתהליך היכרות',
+  ENGAGED: 'מאורסים! 🎉',
+  MARRIED: 'נישואים! 💍',
+  EXPIRED: 'פג תוקף',
+  CLOSED: 'נסגר',
+  CANCELLED: 'בוטל',
+};
+
+/**
+ * Send push notification to a user when the matchmaker changes a suggestion's status.
+ * For example: matchmaker sends suggestion to party B → party B gets notified.
+ */
+export async function pushSuggestionStatusChange(
+  userId: string,
+  matchmakerName: string,
+  newStatus: string,
+  suggestionId: string
+): Promise<void> {
+  const statusLabel = STATUS_LABELS_HE[newStatus] || newStatus;
+
+  // Choose title and body based on status
+  let title = '📋 עדכון הצעת שידוך';
+  let body = `${matchmakerName} עדכן/ה את סטטוס ההצעה: ${statusLabel}`;
+
+  // Special cases for more user-friendly messages
+  switch (newStatus) {
+    case 'PENDING_FIRST_PARTY':
+    case 'PENDING_SECOND_PARTY':
+      title = '💌 הצעת שידוך חדשה!';
+      body = `${matchmakerName} שלח/ה לך הצעת שידוך חדשה. היכנס/י לצפייה`;
+      break;
+    case 'CONTACT_DETAILS_SHARED':
+      title = '📱 פרטי קשר שותפו!';
+      body = `${matchmakerName} שיתף/ה את פרטי הקשר. בהצלחה!`;
+      break;
+    case 'MATCH_APPROVED':
+      title = '🎉 ההתאמה אושרה!';
+      body = `מזל טוב! ${matchmakerName} אישר/ה את ההתאמה`;
+      break;
+    case 'ENGAGED':
+      title = '💍 מזל טוב על האירוסין!';
+      body = 'שמחים איתכם! מאחלים המון אושר';
+      break;
+    case 'MARRIED':
+      title = '🎊 מזל טוב על הנישואין!';
+      body = 'שמחים שהיינו חלק מהסיפור שלכם!';
+      break;
+  }
+
+  await sendPushToUser(userId, {
+    title,
+    body,
+    data: {
+      type: 'SUGGESTION_STATUS_CHANGE',
+      suggestionId,
+      newStatus,
+      screen: 'suggestions',
+    },
+  });
+}
+
+/**
+ * Send push notification to both parties when contact details are shared.
+ * Includes the other party's name and phone in the notification data
+ * so the app can deep-link or display inline.
+ */
+export async function pushContactsShared(
+  userId: string,
+  matchmakerName: string,
+  otherPartyName: string,
+  phone: string,
+  suggestionId: string
+): Promise<void> {
+  await sendPushToUser(userId, {
+    title: '📱 פרטי קשר שותפו!',
+    body: `${matchmakerName} שיתף/ה את פרטי הקשר של ${otherPartyName}. בהצלחה!`,
+    data: {
+      type: 'CONTACTS_SHARED',
+      suggestionId,
+      otherPartyName,
+      phone,
+      screen: 'suggestions',
+    },
+  });
+}
+
+/**
+ * Send push to the matchmaker when a user changes their suggestion status
+ * (e.g., user approves, declines, or marks as interested).
+ * This notifies the matchmaker's mobile device so they can act quickly.
+ */
+export async function pushSuggestionStatusToMatchmaker(
+  matchmakerId: string,
+  userName: string,
+  newStatus: string,
+  suggestionId: string
+): Promise<void> {
+  const statusLabel = STATUS_LABELS_HE[newStatus] || newStatus;
+
+  let title = `📋 ${userName}`;
+  let body = `עדכון סטטוס: ${statusLabel}`;
+
+  // Special cases for matchmaker-facing messages
+  switch (newStatus) {
+    case 'FIRST_PARTY_APPROVED':
+      title = `✅ ${userName} אישר/ה!`;
+      body = 'צד א׳ אישר את ההצעה — שלח לצד ב׳';
+      break;
+    case 'FIRST_PARTY_INTERESTED':
+      title = `⭐ ${userName} מעוניין/ת`;
+      body = 'צד א׳ שמר/ה את ההצעה לגיבוי';
+      break;
+    case 'FIRST_PARTY_DECLINED':
+      title = `❌ ${userName} דחה/תה`;
+      body = 'צד א׳ דחה את ההצעה';
+      break;
+    case 'SECOND_PARTY_APPROVED':
+      title = `✅ ${userName} אישר/ה!`;
+      body = 'צד ב׳ אישר — שתף פרטי קשר!';
+      break;
+    case 'SECOND_PARTY_DECLINED':
+      title = `❌ ${userName} דחה/תה`;
+      body = 'צד ב׳ דחה את ההצעה';
+      break;
+  }
+
+  await sendPushToUser(matchmakerId, {
+    title,
+    body,
+    data: {
+      type: 'SUGGESTION_STATUS_CHANGE',
+      suggestionId,
+      newStatus,
+      screen: 'matchmaker-dashboard',
     },
   });
 }
