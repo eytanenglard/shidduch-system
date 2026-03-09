@@ -5,8 +5,9 @@
 // GET — Matchmaker Dashboard: single endpoint that returns:
 //   1. All active suggestions with party names, status, phones, last activity
 //   2. "Action required" suggestions (status changed, needs matchmaker attention)
-//   3. Quick stats (total, pending, active, success)
-//   4. Unread message counts per suggestion
+//   3. "Interested" suggestions (first party saved for later)
+//   4. Quick stats (total, pending, active, interested, success)
+//   5. Unread message counts per suggestion
 //
 // This replaces multiple calls and gives the mobile app everything in one shot.
 // =============================================================================
@@ -56,16 +57,22 @@ const getSuggestionCategory = (status: MatchSuggestionStatus) => {
 };
 
 /**
- * Statuses that require matchmaker action (the suggestion moved to a state
- * where the matchmaker needs to do something).
+ * Statuses that require IMMEDIATE matchmaker action.
+ * These are suggestions where someone approved and the matchmaker
+ * needs to take the next step.
  */
 const ACTION_REQUIRED_STATUSES: MatchSuggestionStatus[] = [
-  'FIRST_PARTY_APPROVED',       // צד א' אישר → שלח לצד ב'
-  'FIRST_PARTY_INTERESTED',     // צד א' מעוניין → שדכן צריך לטפל
-  'FIRST_PARTY_DECLINED',       // צד א' דחה → שדכן צריך לעדכן
-  'SECOND_PARTY_APPROVED',      // צד ב' אישר → שדכן צריך לשתף פרטים
-  'SECOND_PARTY_DECLINED',      // צד ב' דחה → שדכן צריך לעדכן
-  'AWAITING_MATCHMAKER_APPROVAL', // ממתין לשדכן
+  'FIRST_PARTY_APPROVED',         // צד א' אישר → שלח לצד ב'
+  'SECOND_PARTY_APPROVED',        // צד ב' אישר → שתף פרטי קשר
+  'AWAITING_MATCHMAKER_APPROVAL', // ממתין לאישור שדכן
+];
+
+/**
+ * "Interested" / "Saved for later" - first party wants to keep this
+ * as a backup option. Separate from action required.
+ */
+const INTERESTED_STATUSES: MatchSuggestionStatus[] = [
+  'FIRST_PARTY_INTERESTED',
 ];
 
 // =============================================================================
@@ -170,7 +177,7 @@ export async function GET(req: NextRequest) {
             },
           },
         },
-        // Last 2 status history entries for timeline context
+        // Last 3 status history entries for timeline context
         statusHistory: {
           orderBy: { createdAt: 'desc' },
           take: 3,
@@ -222,7 +229,13 @@ export async function GET(req: NextRequest) {
 
     const formattedSuggestions = suggestions.map((s) => {
       const unread = unreadMap.get(s.id) || 0;
+      
+      // Determine if action is required (immediate attention needed)
       const isActionRequired = ACTION_REQUIRED_STATUSES.includes(s.status);
+      
+      // Determine if this is an "interested" suggestion
+      const isInterested = INTERESTED_STATUSES.includes(s.status);
+      
       const cat = s.category || getSuggestionCategory(s.status);
 
       // Calculate age from birthDate
@@ -252,6 +265,7 @@ export async function GET(req: NextRequest) {
         closedAt: s.closedAt?.toISOString(),
         unreadCount: unread,
         isActionRequired,
+        isInterested,
 
         // Timing info
         firstPartySent: s.firstPartySent?.toISOString(),
@@ -303,13 +317,24 @@ export async function GET(req: NextRequest) {
     // =========================================================================
     // Separate into sections
     // =========================================================================
+    
+    // Action required: needs immediate matchmaker attention
     const actionRequired = formattedSuggestions.filter((s) => s.isActionRequired);
+    
+    // Interested: first party saved for later (backup)
+    const interestedSuggestions = formattedSuggestions.filter((s) => s.isInterested);
+    
+    // Active: in progress but not requiring immediate action
     const activeSuggestions = formattedSuggestions.filter(
-      (s) => s.category === 'ACTIVE' && !s.isActionRequired
+      (s) => s.category === 'ACTIVE' && !s.isActionRequired && !s.isInterested
     );
+    
+    // Pending: waiting for response
     const pendingSuggestions = formattedSuggestions.filter(
-      (s) => s.category === 'PENDING' && !s.isActionRequired
+      (s) => s.category === 'PENDING' && !s.isActionRequired && !s.isInterested
     );
+    
+    // History: closed/cancelled/etc
     const historySuggestions = formattedSuggestions.filter(
       (s) => s.category === 'HISTORY'
     );
@@ -321,6 +346,7 @@ export async function GET(req: NextRequest) {
     const stats = {
       total: allSuggestions.length,
       actionRequired: actionRequired.length,
+      interested: interestedSuggestions.length,
       pending: allSuggestions.filter((s) => s.category === 'PENDING').length,
       active: allSuggestions.filter((s) => s.category === 'ACTIVE').length,
       dating: allSuggestions.filter((s) => s.status === 'DATING').length,
@@ -337,6 +363,7 @@ export async function GET(req: NextRequest) {
       success: true,
       stats,
       actionRequired,
+      interested: interestedSuggestions,
       active: activeSuggestions,
       pending: pendingSuggestions,
       history: historySuggestions,
