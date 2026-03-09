@@ -7,13 +7,21 @@
 // Used by: Mobile CandidatesManager (React Native)
 // =============================================================================
 
-import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { NextRequest } from 'next/server';
 import prisma from '@/lib/prisma';
 import { UserRole, Gender, AvailabilityStatus, Prisma, MatchSuggestionStatus } from '@prisma/client';
+import {
+  verifyMobileToken,
+  corsJson,
+  corsError,
+  corsOptions,
+} from '@/lib/mobile-auth';
 
 export const dynamic = 'force-dynamic';
+
+export async function OPTIONS(req: NextRequest) {
+  return corsOptions(req);
+}
 
 // =============================================================================
 // Constants
@@ -48,19 +56,12 @@ const PENDING_SUGGESTION_STATUSES: MatchSuggestionStatus[] = [
 
 export async function GET(request: NextRequest) {
   try {
-    // ── Auth ──
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    // ── Auth (JWT Bearer Token) ──
+    const auth = await verifyMobileToken(request);
+    if (!auth) return corsError(request, 'Unauthorized', 401);
 
-    const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
-      select: { role: true },
-    });
-
-    if (!user || (user.role !== UserRole.MATCHMAKER && user.role !== UserRole.ADMIN)) {
-      return NextResponse.json({ error: 'Access denied' }, { status: 403 });
+    if (auth.role !== UserRole.MATCHMAKER && auth.role !== UserRole.ADMIN) {
+      return corsError(request, 'Insufficient permissions', 403);
     }
 
     // ── Parse Query Params ──
@@ -451,7 +452,7 @@ export async function GET(request: NextRequest) {
       };
     }
 
-    return NextResponse.json({
+    return corsJson(request, {
       success: true,
       candidates,
       pagination: {
@@ -465,9 +466,6 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     console.error('[Mobile Candidates API] Error:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch candidates', details: error instanceof Error ? error.message : 'Unknown' },
-      { status: 500 }
-    );
+    return corsError(request, 'Failed to fetch candidates', 500);
   }
 }
