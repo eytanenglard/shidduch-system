@@ -1138,16 +1138,14 @@ type PriorityTranslation = {
 };
 
 type SuggestionCardDict = {
-  // תרגומים לכל הסטטוסים האפשריים
-  statuses: Record<string, StatusTranslation>; // Using string key for flexibility with prisma enum
-  // תרגומים לכל רמות הדחיפות
+  statuses: Record<string, StatusTranslation>;
   priorities: Record<"URGENT" | "HIGH" | "MEDIUM" | "LOW", PriorityTranslation>;
   deadline: {
-    daysLeft: string; // "{{count}} ימים נותרו"
-    lastDay: string;  // "היום אחרון!"
-    noDeadline: string; // "אין מועד אחרון"
-    decisionInDays: string; // "{{count}} ימים להחלטה"
-    today: string; // "היום!"
+    daysLeft: string;
+    lastDay: string;
+    noDeadline: string;
+    decisionInDays: string;
+    today: string;
   };
   matchmakerInfo: {
     noInfo: string;
@@ -1159,7 +1157,7 @@ type SuggestionCardDict = {
     connectionPoints: string;
     matchReasonTitle: string;
     viewDetailsButton: string;
-    sentTime: string; // "נשלח {{timeAgo}}"
+    sentTime: string;
   };
   desktop: {
     connectionPoints: string;
@@ -1168,12 +1166,17 @@ type SuggestionCardDict = {
       created: string;
       deadline: string;
       progress: string;
-      progressCompleted: string; // "{{percent}}% הושלמו"
+      progressCompleted: string;
     };
     partyStatus: {
       approved: string;
       declined: string;
       interested: string;
+    };
+    // ✅ חדש - תוויות לצדדים בתצוגה המורחבת
+    partyLabels: {
+      firstParty: string;
+      secondParty: string;
     };
   };
   actions: {
@@ -1183,11 +1186,15 @@ type SuggestionCardDict = {
     resend: string;
     viewDetails: string;
   };
-  // טקסטים סטטיים לדוגמה, יכולים לעבור ל-DB בעתיד
   highlights: {
     familyValues: string;
     religiousView: string;
     location: string;
+  };
+  // ✅ חדש - טקסטים לתצוגה המכווצת/מורחבת
+  expandable: {
+    showMore: string;
+    showLess: string;
   };
 };
 type EditSuggestionFormDict = {

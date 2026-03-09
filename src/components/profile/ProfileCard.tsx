@@ -3260,11 +3260,9 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
     activeTabRef.current = activeTab;
   }, [activeTab]);
 
-  // גלילה אוטומטית לראש כשמשנים טאב
   useEffect(() => {
-    // השהיה קטנה כדי לתת לטאב להירנדר
     const timer = setTimeout(() => {
-      // מחשב - גלילה בתוך ה-ScrollArea של התוכן
+      // גלילה רק בתוך ה-ScrollArea של ProfileCard - לא בחלון הראשי!
       const scrollViewport = contentScrollAreaRef.current?.querySelector(
         '[data-radix-scroll-area-viewport]'
       );
@@ -3272,7 +3270,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
         scrollViewport.scrollTo({ top: 0, behavior: 'smooth' });
       }
 
-      // מובייל - גלילה גם בחלון הראשי
+      // גלילה בתוך הטאבים במובייל
       const mainContainer = document.querySelector(
         '#profile-card-tabs-content [data-radix-scroll-area-viewport]'
       );
@@ -3280,12 +3278,11 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
         mainContainer.scrollTo({ top: 0, behavior: 'smooth' });
       }
 
-      // fallback - אם יש scroll ברמת המסמך
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }, 50); // 50ms השהיה
+      // ❌ אין window.scrollTo כאן! זה מה שגרם לבעיה
+    }, 50);
 
     return () => clearTimeout(timer);
-  }, [activeTab]); // רץ כל פעם שמשנים טאב
+  }, [activeTab]);
 
   // פונקציה פשוטה לשינוי טאב
   const handleTabChange = (newTab: string) => {
@@ -3566,11 +3563,19 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
     setSelectedImageForDialog(orderedImages[newIndex]);
   };
 
-  const handleClose = () => {
+  const handleClose = useCallback(() => {
     if (onClose) {
+      // שומר את מיקום הגלילה לפני הסגירה
+      const scrollY = window.scrollY;
+
       onClose();
+
+      // מחזיר את הגלילה למיקום המקורי אחרי שה-Dialog נסגר
+      requestAnimationFrame(() => {
+        window.scrollTo(0, scrollY);
+      });
     }
-  };
+  }, [onClose]);
 
   const tabItems = useMemo(
     () =>

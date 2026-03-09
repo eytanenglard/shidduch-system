@@ -1,6 +1,6 @@
 // src/app/components/matchmaker/suggestions/cards/SuggestionCard.tsx
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -8,11 +8,11 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import Image from 'next/image';
 import {
-  Bookmark,
   Clock,
   MessageCircle,
   Eye,
@@ -22,15 +22,18 @@ import {
   Edit,
   CheckCircle,
   XCircle,
-  CalendarClock,
   Heart,
   MapPin,
   Sparkles,
   Quote,
   Briefcase,
-  GraduationCap,
-  ArrowRight,
+  ChevronDown,
+  ChevronUp,
   Flame,
+  ArrowRight,
+  Bookmark,
+  CalendarClock,
+  GraduationCap,
   TrendingUp,
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
@@ -44,10 +47,14 @@ import type {
 import { Progress } from '@/components/ui/progress';
 import { cn, getRelativeCloudinaryPath, getInitials } from '@/lib/utils';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { TooltipProvider } from '@/components/ui/tooltip';
+import {
+  TooltipProvider,
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import type { MatchmakerPageDictionary } from '@/types/dictionary';
 
-// ✅ import משותף במקום הגדרה מקומית מכופלת
 import {
   getEnhancedStatusInfo,
   getEnhancedPriorityInfo,
@@ -55,7 +62,9 @@ import {
   getDaysLeft,
 } from '@/lib/suggestion-status-utils';
 
-// ✅ useMediaQuery הוסר לגמרי! isMobile מגיע כ-prop מה-parent
+// ═══════════════════════════════════════════════════════════════
+// TYPES
+// ═══════════════════════════════════════════════════════════════
 
 interface SuggestionCardProps {
   suggestion: Suggestion;
@@ -76,114 +85,359 @@ interface SuggestionCardProps {
   className?: string;
   variant?: 'full' | 'compact';
   unreadChatCount?: number;
-  isMobile?: boolean; // ✅ חדש - מגיע מ-parent במקום useMediaQuery פנימי
+  isMobile?: boolean;
 }
 
-const HighlightPill: React.FC<{
-  icon: React.ElementType;
-  text: string;
-  color?: string;
-}> = ({ icon: Icon, text, color = 'from-blue-500 to-cyan-500' }) => (
-  <div
-    className={cn(
-      'flex items-center gap-2 rounded-full bg-white/80 backdrop-blur-sm border-2 px-3 py-1.5 text-xs font-medium shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105',
-      'border-transparent bg-gradient-to-r text-white',
-      color
-    )}
-  >
-    <Icon className="w-3 h-3" />
-    <span>{text}</span>
-  </div>
-);
+// ═══════════════════════════════════════════════════════════════
+// SUB-COMPONENTS – מינימליסטיים וחדים
+// ═══════════════════════════════════════════════════════════════
 
-const MatchmakerInfo: React.FC<{
-  dict: MatchmakerPageDictionary['suggestionsDashboard']['suggestionCard']['matchmakerInfo'];
-  matchmaker: { firstName: string; lastName: string } | undefined;
-  className?: string;
-}> = ({ dict, matchmaker, className }) => {
-  if (!matchmaker) {
-    return (
-      <div
-        className={cn(
-          'flex items-center gap-3 p-3 bg-gradient-to-r from-gray-50 to-slate-50 rounded-xl border border-gray-100 shadow-sm',
-          className
-        )}
-      >
-        <div className="text-center text-gray-500">
-          <p className="text-sm">{dict.noInfo}</p>
-        </div>
-      </div>
-    );
-  }
+/**
+ * תצוגת אווטאר קטנה וקומפקטית לצד שם ועיסוק
+ */
+const PartyMini: React.FC<{
+  party: SuggestionParty;
+  age: number;
+  side?: 'right' | 'left';
+}> = ({ party, age, side = 'right' }) => {
+  const imageUrl =
+    party.images.find((img: UserImage) => img.isMain)?.url ||
+    '/placeholders/user.png';
+
   return (
     <div
       className={cn(
-        'flex items-center gap-3 p-3 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl border border-purple-100 shadow-sm',
-        className
+        'flex items-center gap-3',
+        side === 'left' && 'flex-row-reverse'
       )}
     >
-      <Avatar className="w-10 h-10 border-2 border-white shadow-lg">
-        <AvatarFallback className="bg-gradient-to-br from-purple-500 to-pink-500 text-white font-bold text-sm">
-          {getInitials(`${matchmaker.firstName} ${matchmaker.lastName}`)}
-        </AvatarFallback>
-      </Avatar>
-      <div>
-        <p className="text-xs font-medium text-purple-600">{dict.label}</p>
-        <p className="text-sm font-bold text-gray-800">
-          {matchmaker.firstName} {matchmaker.lastName}
+      <div className="relative h-11 w-11 rounded-full overflow-hidden ring-2 ring-white shadow-md flex-shrink-0">
+        <Image
+          src={getRelativeCloudinaryPath(imageUrl)}
+          alt={party.firstName}
+          fill
+          className="object-cover"
+          sizes="2.75rem"
+        />
+      </div>
+      <div className={cn('min-w-0', side === 'left' && 'text-left')}>
+        <p className="font-semibold text-gray-900 text-sm truncate leading-tight">
+          {party.firstName} {party.lastName}
+        </p>
+        <p className="text-xs text-gray-500 truncate leading-tight">
+          {party.profile?.occupation || '—'} · {age}
         </p>
       </div>
     </div>
   );
 };
 
-const PartyDisplay: React.FC<{
+/**
+ * פס סטטוס דק עם אייקון ולייבל – עיצוב מינימלי
+ */
+const StatusStrip: React.FC<{
+  statusInfo: ReturnType<typeof getEnhancedStatusInfo>;
+  statusText: { label: string; shortLabel: string; description: string };
+  progress: number;
+}> = ({ statusInfo, statusText, progress }) => {
+  const StatusIcon = statusInfo.icon;
+  return (
+    <div className="flex items-center gap-2">
+      <div
+        className={cn(
+          'flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold',
+          statusInfo.bgColor,
+          statusInfo.color
+        )}
+      >
+        <StatusIcon className="w-3.5 h-3.5" />
+        <span>{statusText.shortLabel}</span>
+      </div>
+      <div className="flex-1 max-w-[80px]">
+        <Progress value={progress} className="h-1.5 bg-gray-100" />
+      </div>
+    </div>
+  );
+};
+
+/**
+ * Badge עדיפות קטן
+ */
+const PriorityDot: React.FC<{
+  priority: string;
+  priorityInfo: ReturnType<typeof getEnhancedPriorityInfo>;
+  label: string;
+}> = ({ priority, priorityInfo, label }) => {
+  if (priority === 'MEDIUM' || priority === 'LOW') return null;
+  const PriorityIcon = priorityInfo.icon;
+  return (
+    <Badge
+      className={cn(
+        'text-[10px] px-2 py-0.5 font-bold border-0 shadow-sm',
+        priorityInfo.badgeClass
+      )}
+    >
+      <PriorityIcon className="w-3 h-3 ml-1" />
+      {label}
+    </Badge>
+  );
+};
+
+/**
+ * אינדיקטור deadline דחוף
+ */
+const DeadlineWarning: React.FC<{
+  daysLeft: number | null;
+  status: string;
+  dict: SuggestionCardProps['dict']['deadline'];
+}> = ({ daysLeft, status, dict }) => {
+  if (daysLeft === null || daysLeft > 3 || status === 'EXPIRED') return null;
+  return (
+    <div className="flex items-center gap-1 text-[10px] font-bold text-red-600 animate-pulse">
+      <Clock className="w-3 h-3" />
+      <span>
+        {daysLeft === 0
+          ? dict.lastDay
+          : dict.daysLeft.replace('{{count}}', daysLeft.toString())}
+      </span>
+    </div>
+  );
+};
+
+// ═══════════════════════════════════════════════════════════════
+// EXPANDED SECTION – נחשף בלחיצה
+// ═══════════════════════════════════════════════════════════════
+
+const ExpandedDetails: React.FC<{
+  suggestion: Suggestion;
+  firstParty: SuggestionParty;
+  secondParty: SuggestionParty;
+  firstPartyAge: number;
+  secondPartyAge: number;
+  statusInfo: ReturnType<typeof getEnhancedStatusInfo>;
+  statusText: { label: string; shortLabel: string; description: string };
+  daysLeft: number | null;
+  dict: SuggestionCardProps['dict'];
+  matchmaker: { firstName: string; lastName: string } | undefined;
+}> = ({
+  suggestion,
+  firstParty,
+  secondParty,
+  firstPartyAge,
+  secondPartyAge,
+  statusInfo,
+  statusText,
+  daysLeft,
+  dict,
+  matchmaker,
+}) => {
+  return (
+    <div className="space-y-4 animate-in slide-in-from-top-2 duration-300">
+      {/* ── שני הצדדים בפירוט ── */}
+      <div className="grid grid-cols-2 gap-3">
+        {/* צד ראשון */}
+        <div className="p-3 bg-blue-50/60 rounded-xl border border-blue-100 space-y-2">
+          <p className="text-[10px] font-bold text-blue-500 uppercase tracking-wider">
+            {dict.desktop?.partyLabels?.firstParty || 'צד א׳'}
+          </p>
+          <PartyDetailBlock party={firstParty} age={firstPartyAge} />
+          <PartyStatusBadge suggestion={suggestion} side="first" dict={dict} />
+        </div>
+        {/* צד שני */}
+        <div className="p-3 bg-purple-50/60 rounded-xl border border-purple-100 space-y-2">
+          <p className="text-[10px] font-bold text-purple-500 uppercase tracking-wider">
+            {dict.desktop?.partyLabels?.secondParty || 'צד ב׳'}
+          </p>
+          <PartyDetailBlock party={secondParty} age={secondPartyAge} />
+          <PartyStatusBadge suggestion={suggestion} side="second" dict={dict} />
+        </div>
+      </div>
+
+      {/* ── סיבת ההתאמה ── */}
+      {suggestion.matchingReason && (
+        <div className="p-3 bg-emerald-50/60 rounded-xl border border-emerald-100">
+          <div className="flex items-start gap-2">
+            <Quote className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" />
+            <div>
+              <p className="text-[10px] font-bold text-emerald-600 uppercase tracking-wider mb-1">
+                {dict.desktop?.matchReasonTitle || 'סיבת ההתאמה'}
+              </p>
+              <p className="text-sm text-emerald-800 leading-relaxed italic">
+                &ldquo;{suggestion.matchingReason}&rdquo;
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── מטא-דאטה: תאריכים + שדכן + סטטוס מפורט ── */}
+      <div className="flex flex-wrap gap-2 text-[11px] text-gray-500">
+        {/* שדכן */}
+        {matchmaker && (
+          <div className="flex items-center gap-1 bg-gray-50 rounded-full px-2.5 py-1 border">
+            <Avatar className="w-4 h-4">
+              <AvatarFallback className="bg-purple-100 text-purple-700 text-[8px] font-bold">
+                {getInitials(`${matchmaker.firstName} ${matchmaker.lastName}`)}
+              </AvatarFallback>
+            </Avatar>
+            <span>
+              {matchmaker.firstName} {matchmaker.lastName}
+            </span>
+          </div>
+        )}
+        {/* תאריך יצירה */}
+        <div className="flex items-center gap-1 bg-gray-50 rounded-full px-2.5 py-1 border">
+          <Clock className="w-3 h-3" />
+          <span>
+            {formatDistanceToNow(new Date(suggestion.createdAt), {
+              addSuffix: true,
+              locale: he,
+            })}
+          </span>
+        </div>
+        {/* דדליין */}
+        {suggestion.decisionDeadline && (
+          <div className="flex items-center gap-1 bg-orange-50 rounded-full px-2.5 py-1 border border-orange-200 text-orange-700">
+            <CalendarClock className="w-3 h-3" />
+            <span>
+              {daysLeft !== null
+                ? daysLeft === 0
+                  ? dict.deadline.today
+                  : dict.deadline.decisionInDays?.replace(
+                      '{{count}}',
+                      daysLeft.toString()
+                    )
+                : dict.deadline.noDeadline}
+            </span>
+          </div>
+        )}
+        {/* התקדמות */}
+        <div className="flex items-center gap-1 bg-gray-50 rounded-full px-2.5 py-1 border">
+          <TrendingUp className="w-3 h-3" />
+          <span>{statusInfo.progress}%</span>
+        </div>
+      </div>
+
+      {/* ── סטטוס מפורט ── */}
+      <div className="flex items-center gap-2 text-xs text-gray-600">
+        <statusInfo.icon className={cn('w-4 h-4', statusInfo.color)} />
+        <span className="font-medium">{statusText.label}</span>
+        <span className="text-gray-400">—</span>
+        <span>{statusText.description}</span>
+      </div>
+
+      {/* ── Progress bar מלא ── */}
+      <Progress value={statusInfo.progress} className="h-2 bg-gray-100" />
+    </div>
+  );
+};
+
+/**
+ * בלוק פרטים מפורט של צד אחד
+ */
+const PartyDetailBlock: React.FC<{
   party: SuggestionParty;
-  isCompact?: boolean;
-}> = ({ party, isCompact = false }) => {
+  age: number;
+}> = ({ party, age }) => {
   const imageUrl =
     party.images.find((img: UserImage) => img.isMain)?.url ||
     '/placeholders/user.png';
+
   return (
-    <div className="flex flex-col items-center gap-3">
-      <div
-        className={cn(
-          'relative rounded-full overflow-hidden shadow-xl border-3 border-white',
-          isCompact ? 'h-12 w-12' : 'h-16 w-16'
-        )}
-      >
-        <Image
-          src={getRelativeCloudinaryPath(imageUrl)}
-          alt={party.firstName}
-          fill
-          className="object-cover"
-          sizes={isCompact ? '3rem' : '4rem'}
-        />
+    <div className="space-y-2">
+      <div className="flex items-center gap-2">
+        <div className="relative h-10 w-10 rounded-full overflow-hidden ring-2 ring-white shadow-md flex-shrink-0">
+          <Image
+            src={getRelativeCloudinaryPath(imageUrl)}
+            alt={party.firstName}
+            fill
+            className="object-cover"
+            sizes="2.5rem"
+          />
+        </div>
+        <div className="min-w-0">
+          <p className="font-bold text-sm text-gray-900 truncate">
+            {party.firstName} {party.lastName}
+          </p>
+          <p className="text-[11px] text-gray-500">{age}</p>
+        </div>
       </div>
-      <div className="text-center">
-        <h4
-          className={cn(
-            'font-bold text-gray-800',
-            isCompact ? 'text-sm' : 'text-base'
-          )}
-        >
-          {party.firstName} {party.lastName}
-        </h4>
+      <div className="space-y-1">
+        {party.profile?.occupation && (
+          <div className="flex items-center gap-1.5 text-xs text-gray-600">
+            <Briefcase className="w-3 h-3 text-blue-400 flex-shrink-0" />
+            <span className="truncate">{party.profile.occupation}</span>
+          </div>
+        )}
+        {party.profile?.education && (
+          <div className="flex items-center gap-1.5 text-xs text-gray-600">
+            <GraduationCap className="w-3 h-3 text-purple-400 flex-shrink-0" />
+            <span className="truncate">{party.profile.education}</span>
+          </div>
+        )}
         {party.profile?.city && (
-          <div
-            className={cn(
-              'flex items-center justify-center gap-1 text-gray-600',
-              isCompact ? 'text-xs' : 'text-sm'
-            )}
-          >
-            <MapPin className="w-3 h-3 text-green-500" />
-            <span>{party.profile.city}</span>
+          <div className="flex items-center gap-1.5 text-xs text-gray-600">
+            <MapPin className="w-3 h-3 text-green-400 flex-shrink-0" />
+            <span className="truncate">{party.profile.city}</span>
           </div>
         )}
       </div>
     </div>
   );
 };
+
+/**
+ * Badge סטטוס תגובה של צד מסוים
+ */
+const PartyStatusBadge: React.FC<{
+  suggestion: Suggestion;
+  side: 'first' | 'second';
+  dict: SuggestionCardProps['dict'];
+}> = ({ suggestion, side, dict }) => {
+  const isFirst = side === 'first';
+  const relevantStatuses = isFirst
+    ? ['FIRST_PARTY_APPROVED', 'FIRST_PARTY_DECLINED', 'FIRST_PARTY_INTERESTED']
+    : ['SECOND_PARTY_APPROVED', 'SECOND_PARTY_DECLINED'];
+
+  if (!relevantStatuses.includes(suggestion.status)) return null;
+
+  const isApproved = suggestion.status.includes('APPROVED');
+  const isInterested = suggestion.status.includes('INTERESTED');
+
+  return (
+    <Badge
+      className={cn(
+        'text-[10px] border-0 shadow-sm',
+        isApproved
+          ? 'bg-green-100 text-green-700'
+          : isInterested
+            ? 'bg-amber-100 text-amber-700'
+            : 'bg-red-100 text-red-700'
+      )}
+    >
+      {isApproved ? (
+        <>
+          <CheckCircle className="w-3 h-3 ml-1" />
+          {dict.desktop?.partyStatus?.approved || 'אישר/ה'}
+        </>
+      ) : isInterested ? (
+        <>
+          <Bookmark className="w-3 h-3 ml-1" />
+          {dict.desktop?.partyStatus?.interested || 'מתעניין/ת'}
+        </>
+      ) : (
+        <>
+          <XCircle className="w-3 h-3 ml-1" />
+          {dict.desktop?.partyStatus?.declined || 'דחה/תה'}
+        </>
+      )}
+    </Badge>
+  );
+};
+
+// ═══════════════════════════════════════════════════════════════
+// MAIN COMPONENT
+// ═══════════════════════════════════════════════════════════════
 
 const SuggestionCard: React.FC<SuggestionCardProps> = ({
   suggestion,
@@ -192,11 +446,11 @@ const SuggestionCard: React.FC<SuggestionCardProps> = ({
   className,
   variant = 'full',
   unreadChatCount = 0,
-  isMobile = false, // ✅ prop במקום useMediaQuery
+  isMobile = false,
 }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
   const { firstParty, secondParty, matchmaker } = suggestion;
 
-  // ✅ Memoize חישובים כבדים - לא מחושבים מחדש אם ה-props לא השתנו
   const statusInfo = useMemo(
     () => getEnhancedStatusInfo(suggestion.status),
     [suggestion.status]
@@ -222,570 +476,318 @@ const SuggestionCard: React.FC<SuggestionCardProps> = ({
   const priorityText =
     dict.priorities[suggestion.priority] || dict.priorities.MEDIUM;
 
-  const highlights = [
-    {
-      text: dict.highlights.familyValues,
-      icon: Heart,
-      color: 'from-pink-500 to-rose-500',
-    },
-    {
-      text: dict.highlights.religiousView,
-      icon: Sparkles,
-      color: 'from-purple-500 to-indigo-500',
-    },
-    {
-      text: dict.highlights.location,
-      icon: MapPin,
-      color: 'from-green-500 to-emerald-500',
-    },
-  ].slice(0, 3);
-
-  // ─────────────────────────────────────────────────────────────────────────
-  // Mobile Compact View
-  // ─────────────────────────────────────────────────────────────────────────
-  if (isMobile && variant === 'compact') {
-    const StatusIcon = statusInfo.icon;
-    return (
-      <Card
-        className={cn(
-          'w-full cursor-pointer hover:shadow-xl transition-all duration-300 group overflow-hidden',
-          'border-l-4 bg-gradient-to-br from-white to-gray-50/50',
-          priorityInfo.borderColor,
-          className
-        )}
-        onClick={() => onAction('view', suggestion)}
-      >
-        <CardContent className="p-4">
-          <div className="flex justify-between items-start mb-3">
-            <div className="flex-1">
-              <h4 className="font-bold text-gray-800 mb-2 text-sm leading-tight">
-                {firstParty.firstName} ו{secondParty.firstName}
-              </h4>
-              <div className="flex items-center gap-2 mb-2">
-                <div className="flex -space-x-2">
-                  <Image
-                    src={getRelativeCloudinaryPath(
-                      firstParty.images.find((img) => img.isMain)?.url ||
-                        '/placeholders/user.png'
-                    )}
-                    alt={firstParty.firstName}
-                    width={24}
-                    height={24}
-                    className="rounded-full border-2 border-white shadow-md"
-                  />
-                  <Image
-                    src={getRelativeCloudinaryPath(
-                      secondParty.images.find((img) => img.isMain)?.url ||
-                        '/placeholders/user.png'
-                    )}
-                    alt={secondParty.firstName}
-                    width={24}
-                    height={24}
-                    className="rounded-full border-2 border-white shadow-md"
-                  />
-                </div>
-                <span className="text-xs text-gray-500 font-medium">
-                  {firstPartyAge}, {secondPartyAge}
-                </span>
-              </div>
-            </div>
-            <div
-              className={cn(
-                'p-2 rounded-full shadow-lg group-hover:scale-110 transition-transform bg-gradient-to-r',
-                statusInfo.bgColor
-              )}
-            >
-              <StatusIcon className={cn('w-4 h-4', statusInfo.color)} />
-            </div>
-          </div>
-          <Badge
-            className={cn(
-              'text-xs font-bold bg-opacity-20 border',
-              priorityInfo.borderColor,
-              statusInfo.color
-            )}
-          >
-            {statusText.shortLabel}
-          </Badge>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  // ─────────────────────────────────────────────────────────────────────────
-  // Mobile Full View
-  // ─────────────────────────────────────────────────────────────────────────
-  if (isMobile && variant === 'full') {
-    return (
-      <Card
-        className={cn(
-          'overflow-hidden shadow-xl border-0 bg-gradient-to-br from-white via-purple-50/20 to-pink-50/20 hover:shadow-2xl transition-all duration-500 group',
-          className
-        )}
-      >
-        <CardContent className="p-6 space-y-6">
-          <div className="relative">
-            <div className="relative z-10 flex justify-between items-center">
-              <h3 className="text-2xl font-bold bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 bg-clip-text text-transparent">
-                {dict.mobile.title}
-              </h3>
-              <Badge
-                className={cn(
-                  'text-sm font-bold shadow-xl',
-                  priorityInfo.badgeClass
-                )}
-              >
-                <statusInfo.icon className="w-4 h-4 ml-2" />
-                {statusText.label}
-              </Badge>
-            </div>
-          </div>
-          {suggestion.priority === 'URGENT' && (
-            <div className="flex items-center gap-2 p-3 bg-gradient-to-r from-red-100 to-pink-100 border border-red-200 rounded-xl shadow-lg">
-              <Flame className="w-5 h-5 text-red-500 animate-pulse" />
-              <span className="text-red-700 font-bold text-sm">
-                {dict.mobile.urgentTitle}
-              </span>
-            </div>
-          )}
-          <MatchmakerInfo dict={dict.matchmakerInfo} matchmaker={matchmaker} />
-          <div>
-            <h4 className="font-bold text-lg mb-3 text-center text-gray-700 flex items-center justify-center gap-2">
-              <Sparkles className="w-5 h-5 text-purple-500" />
-              {dict.mobile.connectionPoints}
-            </h4>
-            <div className="flex flex-wrap justify-center gap-2">
-              {highlights.map((highlight, index) => (
-                <HighlightPill
-                  key={index}
-                  icon={highlight.icon}
-                  text={highlight.text}
-                  color={highlight.color}
-                />
-              ))}
-            </div>
-          </div>
-          <div className="space-y-6">
-            <PartyDisplay party={firstParty} />
-            <div className="flex justify-center">
-              <div className="p-3 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-xl">
-                <Heart className="w-6 h-6" />
-              </div>
-            </div>
-            <PartyDisplay party={secondParty} />
-          </div>
-          {suggestion.matchingReason && (
-            <div className="p-4 bg-gradient-to-r from-cyan-50 to-blue-50 border border-cyan-200 rounded-xl shadow-inner">
-              <div className="flex items-start gap-3">
-                <Quote className="w-5 h-5 text-cyan-500 mt-1 flex-shrink-0" />
-                <div>
-                  <h4 className="font-bold text-cyan-800 mb-2">
-                    {dict.mobile.matchReasonTitle}
-                  </h4>
-                  <p className="text-cyan-900 leading-relaxed italic font-medium text-sm">
-                    &quot;{suggestion.matchingReason}&quot;
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
-          <div className="space-y-2">
-            <div className="flex justify-between text-sm text-gray-600">
-              <span>{statusText.description}</span>
-              <span>{statusInfo.progress}%</span>
-            </div>
-            <Progress
-              value={statusInfo.progress}
-              className="h-2 bg-gray-100 shadow-inner"
-            />
-          </div>
-          <div className="pt-4 border-t border-purple-100 space-y-4">
-            <Button
-              size="lg"
-              className="w-full bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 hover:from-purple-700 hover:via-pink-700 hover:to-blue-700 shadow-xl hover:shadow-2xl transition-all duration-300 rounded-2xl h-14 font-bold text-lg transform hover:scale-105"
-              onClick={() => onAction('view', suggestion)}
-            >
-              <Eye className="w-6 h-6 ml-3" />
-              {dict.mobile.viewDetailsButton}
-              <ArrowRight className="w-5 h-5 mr-2" />
-            </Button>
-            <div className="flex justify-between items-center">
-              <span className="text-xs text-gray-500 font-medium">
-                {dict.mobile.sentTime.replace(
-                  '{{timeAgo}}',
-                  formatDistanceToNow(new Date(suggestion.createdAt), {
-                    addSuffix: true,
-                    locale: he,
-                  })
-                )}
-              </span>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    className="text-gray-500 hover:bg-purple-50 rounded-full"
-                  >
-                    <MoreHorizontal className="w-5 h-5" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-48">
-                  <DropdownMenuItem
-                    onClick={() => onAction('edit', suggestion)}
-                  >
-                    <Edit className="w-4 h-4 ml-2" />
-                    <span>{dict.actions.edit}</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onClick={() => onAction('message', suggestion)}
-                    className="relative"
-                  >
-                    <MessageCircle className="w-4 h-4 ml-2" />
-                    <span>{dict.actions.sendMessage}</span>
-                    {unreadChatCount > 0 && (
-                      <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] bg-gradient-to-r from-red-500 to-pink-500 text-white text-[10px] rounded-full flex items-center justify-center shadow-md animate-pulse">
-                        {unreadChatCount}
-                      </span>
-                    )}
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onClick={() => onAction('delete', suggestion)}
-                    className="text-red-600 focus:text-red-600"
-                  >
-                    <Trash2 className="w-4 h-4 ml-2" />
-                    <span>{dict.actions.delete}</span>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  // ─────────────────────────────────────────────────────────────────────────
-  // Desktop View (default)
-  // ─────────────────────────────────────────────────────────────────────────
-  const StatusIcon = statusInfo.icon;
-  const PriorityIcon = priorityInfo.icon;
   const canBeResent = [
     'EXPIRED',
     'FIRST_PARTY_DECLINED',
     'SECOND_PARTY_DECLINED',
   ].includes(suggestion.status);
 
+  // ─────────────────────────────────────────────────────────
+  // Mobile Compact – לקנבן
+  // ─────────────────────────────────────────────────────────
+  if (isMobile && variant === 'compact') {
+    return (
+      <Card
+        className={cn(
+          'cursor-pointer hover:shadow-lg transition-all duration-200 group overflow-hidden',
+          'border-r-[3px] bg-white',
+          priorityInfo.borderColor,
+          className
+        )}
+        onClick={() => onAction('view', suggestion)}
+      >
+        <CardContent className="p-3">
+          <div className="flex items-center justify-between gap-2">
+            {/* אווטארים + שמות */}
+            <div className="flex items-center gap-2 min-w-0 flex-1">
+              <div className="flex -space-x-2 flex-shrink-0">
+                <Image
+                  src={getRelativeCloudinaryPath(
+                    firstParty.images.find((img) => img.isMain)?.url ||
+                      '/placeholders/user.png'
+                  )}
+                  alt={firstParty.firstName}
+                  width={28}
+                  height={28}
+                  className="rounded-full border-2 border-white shadow-sm"
+                />
+                <Image
+                  src={getRelativeCloudinaryPath(
+                    secondParty.images.find((img) => img.isMain)?.url ||
+                      '/placeholders/user.png'
+                  )}
+                  alt={secondParty.firstName}
+                  width={28}
+                  height={28}
+                  className="rounded-full border-2 border-white shadow-sm"
+                />
+              </div>
+              <div className="min-w-0">
+                <p className="text-sm font-semibold text-gray-800 truncate">
+                  {firstParty.firstName} ↔ {secondParty.firstName}
+                </p>
+                <p className="text-[10px] text-gray-400">
+                  {firstPartyAge} · {secondPartyAge}
+                </p>
+              </div>
+            </div>
+            {/* סטטוס */}
+            <StatusStrip
+              statusInfo={statusInfo}
+              statusText={statusText}
+              progress={statusInfo.progress}
+            />
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // ─────────────────────────────────────────────────────────
+  // UNIFIED VIEW (Mobile Full + Desktop) – Collapsed/Expanded
+  // ─────────────────────────────────────────────────────────
   return (
     <TooltipProvider>
       <Card
         className={cn(
-          'overflow-hidden hover:shadow-2xl transition-all duration-500 group border-0 bg-gradient-to-br from-white via-gray-50/30 to-purple-50/20',
+          'overflow-hidden transition-all duration-300 group',
+          'border bg-white hover:shadow-xl',
+          isExpanded && 'shadow-xl ring-1 ring-purple-100',
+          suggestion.priority === 'URGENT' && 'border-r-[3px] border-r-red-400',
+          suggestion.priority === 'HIGH' &&
+            'border-r-[3px] border-r-orange-400',
           className
         )}
       >
-        <div
-          className={cn(
-            'p-6 border-b relative overflow-hidden bg-gradient-to-r shadow-lg',
-            statusInfo.bgColor
-          )}
-        >
-          <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-white/20 to-transparent rounded-full blur-2xl"></div>
-          <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-br from-white/10 to-transparent rounded-full blur-xl"></div>
-          <div className="relative z-10">
-            <div className="flex justify-between items-center mb-4">
-              <div className="flex items-center gap-3">
-                <div className="p-3 rounded-full shadow-lg group-hover:scale-110 transition-transform bg-white/20 backdrop-blur-sm">
-                  <StatusIcon className={cn('w-6 h-6', statusInfo.color)} />
-                </div>
-                <div>
-                  <span className="font-bold text-gray-900 text-lg">
-                    {statusText.label}
-                  </span>
-                  <p className="text-sm text-gray-600 mt-1">
-                    {statusText.description}
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-center gap-3">
-                <Badge className={priorityInfo.badgeClass}>
-                  <PriorityIcon className="w-4 h-4 ml-2" />
-                  {priorityText.label}
-                </Badge>
-                {daysLeft !== null &&
-                  daysLeft <= 3 &&
-                  suggestion.status !== 'EXPIRED' && (
-                    <Badge className="bg-gradient-to-r from-red-500 to-pink-500 text-white border-0 shadow-xl animate-pulse">
-                      <Clock className="w-3 h-3 ml-1" />
-                      {daysLeft === 0
-                        ? dict.deadline.lastDay
-                        : dict.deadline.daysLeft.replace(
-                            '{{count}}',
-                            daysLeft.toString()
-                          )}
-                    </Badge>
-                  )}
-              </div>
-            </div>
-            <Progress
-              value={statusInfo.progress}
-              className="h-3 bg-white/30 shadow-inner"
-            />
-          </div>
-        </div>
-        <div className="p-6 space-y-6">
-          <MatchmakerInfo dict={dict.matchmakerInfo} matchmaker={matchmaker} />
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-4 p-5 bg-gradient-to-br from-blue-50 to-cyan-50 rounded-2xl border border-blue-100 shadow-lg hover:shadow-xl transition-all duration-300">
-              <PartyDisplay party={firstParty} />
-              <div className="flex flex-wrap items-stretch gap-3 text-sm">
-                {firstParty.profile?.occupation && (
-                  <div className="flex-1 min-w-[120px] flex items-start gap-2 p-2 bg-white/70 rounded-lg shadow-sm">
-                    <Briefcase className="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" />
-                    <span className="font-medium text-gray-700">
-                      {firstParty.profile.occupation}
-                    </span>
-                  </div>
-                )}
-                {firstParty.profile?.education && (
-                  <div className="flex-1 min-w-[120px] flex items-start gap-2 p-2 bg-white/70 rounded-lg shadow-sm">
-                    <GraduationCap className="w-4 h-4 text-purple-500 mt-0.5 flex-shrink-0" />
-                    <span className="font-medium text-gray-700">
-                      {firstParty.profile.education}
-                    </span>
-                  </div>
-                )}
-              </div>
-              {(suggestion.status === 'FIRST_PARTY_APPROVED' ||
-                suggestion.status === 'FIRST_PARTY_DECLINED' ||
-                suggestion.status === 'FIRST_PARTY_INTERESTED') && (
-                <Badge
-                  className={
-                    suggestion.status === 'FIRST_PARTY_APPROVED'
-                      ? 'bg-gradient-to-r from-green-500 to-emerald-500 text-white border-0 shadow-lg'
-                      : suggestion.status === 'FIRST_PARTY_INTERESTED'
-                        ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white border-0 shadow-lg'
-                        : 'bg-gradient-to-r from-red-500 to-pink-500 text-white border-0 shadow-lg'
-                  }
-                >
-                  {suggestion.status === 'FIRST_PARTY_APPROVED' ? (
-                    <>
-                      <CheckCircle className="w-4 h-4 ml-2" />
-                      {dict.desktop.partyStatus.approved}
-                    </>
-                  ) : suggestion.status === 'FIRST_PARTY_INTERESTED' ? (
-                    <>
-                      <Bookmark className="w-4 h-4 ml-2" />
-                      {dict.desktop.partyStatus.interested || 'שמר/ה לגיבוי'}
-                    </>
-                  ) : (
-                    <>
-                      <XCircle className="w-4 h-4 ml-2" />
-                      {dict.desktop.partyStatus.declined}
-                    </>
-                  )}
-                </Badge>
-              )}
-            </div>
-            <div className="space-y-4 p-5 bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl border border-purple-100 shadow-lg hover:shadow-xl transition-all duration-300">
-              <PartyDisplay party={secondParty} />
-              <div className="flex flex-wrap items-stretch gap-3 text-sm">
-                {secondParty.profile?.occupation && (
-                  <div className="flex-1 min-w-[120px] flex items-start gap-2 p-2 bg-white/70 rounded-lg shadow-sm">
-                    <Briefcase className="w-4 h-4 text-purple-500 mt-0.5 flex-shrink-0" />
-                    <span className="font-medium text-gray-700">
-                      {secondParty.profile.occupation}
-                    </span>
-                  </div>
-                )}
-                {secondParty.profile?.education && (
-                  <div className="flex-1 min-w-[120px] flex items-start gap-2 p-2 bg-white/70 rounded-lg shadow-sm">
-                    <GraduationCap className="w-4 h-4 text-pink-500 mt-0.5 flex-shrink-0" />
-                    <span className="font-medium text-gray-700">
-                      {secondParty.profile.education}
-                    </span>
-                  </div>
-                )}
-              </div>
-              {(suggestion.status === 'SECOND_PARTY_APPROVED' ||
-                suggestion.status === 'SECOND_PARTY_DECLINED') && (
-                <Badge
-                  className={
-                    suggestion.status === 'SECOND_PARTY_APPROVED'
-                      ? 'bg-gradient-to-r from-green-500 to-emerald-500 text-white border-0 shadow-lg'
-                      : 'bg-gradient-to-r from-red-500 to-pink-500 text-white border-0 shadow-lg'
-                  }
-                >
-                  {suggestion.status === 'SECOND_PARTY_APPROVED' ? (
-                    <>
-                      <CheckCircle className="w-4 h-4 ml-2" />
-                      {dict.desktop.partyStatus.approved}
-                    </>
-                  ) : (
-                    <>
-                      <XCircle className="w-4 h-4 ml-2" />
-                      {dict.desktop.partyStatus.declined}
-                    </>
-                  )}
-                </Badge>
-              )}
-            </div>
-          </div>
-          <div className="p-5 bg-gradient-to-r from-cyan-50 to-blue-50 rounded-2xl border border-cyan-100 shadow-lg">
-            <h4 className="font-bold text-lg mb-3 text-cyan-800 flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-cyan-500" />
-              {dict.desktop.connectionPoints}
-            </h4>
-            <div className="flex flex-wrap gap-2">
-              {highlights.map((highlight, index) => (
-                <HighlightPill
-                  key={index}
-                  icon={highlight.icon}
-                  text={highlight.text}
-                  color={highlight.color}
+        <CardContent className="p-0">
+          {/* ════════════════════════════════════════════════════
+              COLLAPSED VIEW – תמיד נראה
+              ════════════════════════════════════════════════════ */}
+          <div className="p-4">
+            {/* שורה עליונה: שני הצדדים + סטטוס + פעולות */}
+            <div className="flex items-center gap-3">
+              {/* צד ראשון */}
+              <div className="flex-1 min-w-0">
+                <PartyMini
+                  party={firstParty}
+                  age={firstPartyAge}
+                  side="right"
                 />
-              ))}
-            </div>
-          </div>
-          {suggestion.matchingReason && (
-            <div className="p-5 bg-gradient-to-r from-emerald-50 to-green-50 rounded-2xl border border-emerald-100 shadow-lg">
-              <h5 className="text-sm font-bold text-emerald-700 mb-2 flex items-center gap-2">
-                <Quote className="w-4 h-4" />
-                {dict.desktop.matchReasonTitle}
-              </h5>
-              <p className="text-emerald-800 leading-relaxed font-medium">
-                {suggestion.matchingReason}
-              </p>
-            </div>
-          )}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-            <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-xl shadow-sm">
-              <Clock className="w-4 h-4 text-gray-500" />
-              <div>
-                <p className="font-medium text-gray-600">
-                  {dict.desktop.timeline.created}
-                </p>
-                <p className="text-gray-800">
-                  {formatDistanceToNow(new Date(suggestion.createdAt), {
-                    addSuffix: true,
-                    locale: he,
-                  })}
-                </p>
               </div>
-            </div>
-            {suggestion.decisionDeadline && (
-              <div className="flex items-center gap-2 p-3 bg-orange-50 rounded-xl shadow-sm">
-                <CalendarClock className="w-4 h-4 text-orange-500" />
-                <div>
-                  <p className="font-medium text-orange-600">
-                    {dict.desktop.timeline.deadline}
-                  </p>
-                  <p className="text-orange-800">
-                    {daysLeft !== null
-                      ? daysLeft === 0
-                        ? dict.deadline.today
-                        : dict.deadline.decisionInDays.replace(
-                            '{{count}}',
-                            daysLeft.toString()
-                          )
-                      : dict.deadline.noDeadline}
-                  </p>
+
+              {/* אייקון לב מרכזי */}
+              <div className="flex-shrink-0">
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-pink-100 to-purple-100 flex items-center justify-center">
+                  <Heart className="w-4 h-4 text-pink-500" />
                 </div>
               </div>
-            )}
-            <div className="flex items-center gap-2 p-3 bg-blue-50 rounded-xl shadow-sm">
-              <TrendingUp className="w-4 h-4 text-blue-500" />
-              <div>
-                <p className="font-medium text-blue-600">
-                  {dict.desktop.timeline.progress}
-                </p>
-                <p className="text-blue-800">
-                  {dict.desktop.timeline.progressCompleted.replace(
-                    '{{percent}}',
-                    statusInfo.progress.toString()
-                  )}
-                </p>
+
+              {/* צד שני */}
+              <div className="flex-1 min-w-0">
+                <PartyMini
+                  party={secondParty}
+                  age={secondPartyAge}
+                  side="left"
+                />
               </div>
             </div>
-          </div>
-          <div className="flex items-center justify-between pt-4 border-t border-gray-100">
-            <div className="flex items-center gap-2">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => onAction('message', suggestion)}
-                className="relative text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-xl font-medium"
-              >
-                <MessageCircle className="w-4 h-4 ml-2" />
-                {dict.actions.sendMessage}
-                {unreadChatCount > 0 && (
-                  <span className="absolute -top-2 -right-2 min-w-[18px] h-[18px] bg-gradient-to-r from-red-500 to-pink-500 text-white text-[10px] rounded-full flex items-center justify-center shadow-md animate-pulse">
-                    {unreadChatCount}
-                  </span>
+
+            {/* שורה תחתונה: סטטוס + עדיפות + deadline + פעולות */}
+            <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-50">
+              <div className="flex items-center gap-2 flex-wrap">
+                <StatusStrip
+                  statusInfo={statusInfo}
+                  statusText={statusText}
+                  progress={statusInfo.progress}
+                />
+                <PriorityDot
+                  priority={suggestion.priority}
+                  priorityInfo={priorityInfo}
+                  label={priorityText.label}
+                />
+                <DeadlineWarning
+                  daysLeft={daysLeft}
+                  status={suggestion.status}
+                  dict={dict.deadline}
+                />
+                {suggestion.priority === 'URGENT' && (
+                  <Flame className="w-3.5 h-3.5 text-red-500 animate-pulse" />
                 )}
-              </Button>
-              {canBeResent && (
+              </div>
+
+              {/* פעולות מהירות */}
+              <div className="flex items-center gap-1">
+                {/* הודעה */}
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 w-8 p-0 rounded-full hover:bg-blue-50 relative"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onAction('message', suggestion);
+                      }}
+                    >
+                      <MessageCircle className="w-4 h-4 text-blue-500" />
+                      {unreadChatCount > 0 && (
+                        <span className="absolute -top-1 -right-1 min-w-[16px] h-4 bg-red-500 text-white text-[9px] rounded-full flex items-center justify-center font-bold animate-pulse">
+                          {unreadChatCount}
+                        </span>
+                      )}
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>{dict.actions.sendMessage}</TooltipContent>
+                </Tooltip>
+
+                {/* צפייה */}
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 w-8 p-0 rounded-full hover:bg-purple-50"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onAction('view', suggestion);
+                      }}
+                    >
+                      <Eye className="w-4 h-4 text-purple-500" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>{dict.actions.viewDetails}</TooltipContent>
+                </Tooltip>
+
+                {/* Expand/Collapse */}
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => onAction('resend', suggestion)}
-                  className="text-green-600 hover:text-green-700 hover:bg-green-50 rounded-xl font-medium"
+                  className="h-8 w-8 p-0 rounded-full hover:bg-gray-100"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsExpanded(!isExpanded);
+                  }}
                 >
-                  <RefreshCw className="w-4 h-4 ml-2" />
-                  {dict.actions.resend}
-                </Button>
-              )}
-            </div>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="default"
-                size="sm"
-                onClick={() => onAction('view', suggestion)}
-                className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl font-medium"
-              >
-                <Eye className="w-4 h-4 ml-2" />
-                {dict.actions.viewDetails}
-              </Button>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    className="px-2 hover:bg-gray-100 rounded-xl"
-                  >
-                    <MoreHorizontal className="w-4 h-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-48">
-                  <DropdownMenuItem
-                    onClick={() => onAction('edit', suggestion)}
-                  >
-                    <Edit className="w-4 h-4 ml-2" />
-                    <span>{dict.actions.edit}</span>
-                  </DropdownMenuItem>
-                  {canBeResent && (
-                    <DropdownMenuItem
-                      onClick={() => onAction('resend', suggestion)}
-                    >
-                      <RefreshCw className="w-4 h-4 ml-2" />
-                      <span>{dict.actions.resend}</span>
-                    </DropdownMenuItem>
+                  {isExpanded ? (
+                    <ChevronUp className="w-4 h-4 text-gray-400" />
+                  ) : (
+                    <ChevronDown className="w-4 h-4 text-gray-400" />
                   )}
-                  <DropdownMenuItem
-                    onClick={() => onAction('delete', suggestion)}
-                    className="text-red-600 focus:text-red-600 focus:bg-red-50"
+                </Button>
+
+                {/* תפריט נוסף */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 w-8 p-0 rounded-full hover:bg-gray-100"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <MoreHorizontal className="w-4 h-4 text-gray-400" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent
+                    align="end"
+                    className="w-44 rounded-xl shadow-xl border-0"
                   >
-                    <Trash2 className="w-4 h-4 ml-2" />
-                    <span>{dict.actions.delete}</span>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+                    <DropdownMenuItem
+                      onClick={() => onAction('view', suggestion)}
+                    >
+                      <Eye className="w-4 h-4 ml-2 text-purple-500" />
+                      <span>{dict.actions.viewDetails}</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => onAction('edit', suggestion)}
+                    >
+                      <Edit className="w-4 h-4 ml-2 text-blue-500" />
+                      <span>{dict.actions.edit}</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => onAction('message', suggestion)}
+                    >
+                      <MessageCircle className="w-4 h-4 ml-2 text-cyan-500" />
+                      <span>{dict.actions.sendMessage}</span>
+                    </DropdownMenuItem>
+                    {canBeResent && (
+                      <DropdownMenuItem
+                        onClick={() => onAction('resend', suggestion)}
+                      >
+                        <RefreshCw className="w-4 h-4 ml-2 text-green-500" />
+                        <span>{dict.actions.resend}</span>
+                      </DropdownMenuItem>
+                    )}
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      onClick={() => onAction('delete', suggestion)}
+                      className="text-red-600 focus:text-red-600 focus:bg-red-50"
+                    >
+                      <Trash2 className="w-4 h-4 ml-2" />
+                      <span>{dict.actions.delete}</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
             </div>
           </div>
-        </div>
+
+          {/* ════════════════════════════════════════════════════
+              EXPANDED VIEW – נחשף בלחיצה על החץ
+              ════════════════════════════════════════════════════ */}
+          {isExpanded && (
+            <div className="px-4 pb-4 border-t border-gray-50">
+              <div className="pt-3">
+                <ExpandedDetails
+                  suggestion={suggestion}
+                  firstParty={firstParty}
+                  secondParty={secondParty}
+                  firstPartyAge={firstPartyAge}
+                  secondPartyAge={secondPartyAge}
+                  statusInfo={statusInfo}
+                  statusText={statusText}
+                  daysLeft={daysLeft}
+                  dict={dict}
+                  matchmaker={matchmaker}
+                />
+
+                {/* כפתורי פעולה מורחבים */}
+                <div className="flex items-center justify-between mt-4 pt-3 border-t border-gray-100">
+                  <div className="flex items-center gap-2">
+                    <Button
+                      size="sm"
+                      onClick={() => onAction('view', suggestion)}
+                      className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white shadow-md rounded-xl text-xs h-9 px-4"
+                    >
+                      <Eye className="w-3.5 h-3.5 ml-1.5" />
+                      {dict.actions.viewDetails}
+                      <ArrowRight className="w-3 h-3 mr-1" />
+                    </Button>
+                    {canBeResent && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => onAction('resend', suggestion)}
+                        className="rounded-xl text-xs h-9 border-green-200 text-green-600 hover:bg-green-50"
+                      >
+                        <RefreshCw className="w-3.5 h-3.5 ml-1.5" />
+                        {dict.actions.resend}
+                      </Button>
+                    )}
+                  </div>
+                  <span className="text-[10px] text-gray-400">
+                    {formatDistanceToNow(new Date(suggestion.createdAt), {
+                      addSuffix: true,
+                      locale: he,
+                    })}
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
+        </CardContent>
       </Card>
     </TooltipProvider>
   );
 };
 
-// ✅ React.memo - מונע re-render אם ה-props לא השתנו
 export default React.memo(SuggestionCard);
