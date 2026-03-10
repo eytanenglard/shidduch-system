@@ -119,12 +119,20 @@ export async function GET(request: NextRequest) {
       };
     }
 
-    // Religious level filter
+    // Religious level filter (supports comma-separated for multi-select)
     if (religiousLevel) {
-      where.profile = {
-        ...((where.profile as Prisma.ProfileWhereInput) || {}),
-        religiousLevel,
-      };
+      const levels = religiousLevel.split(',').filter(Boolean);
+      if (levels.length === 1) {
+        where.profile = {
+          ...((where.profile as Prisma.ProfileWhereInput) || {}),
+          religiousLevel: levels[0],
+        };
+      } else if (levels.length > 1) {
+        where.profile = {
+          ...((where.profile as Prisma.ProfileWhereInput) || {}),
+          religiousLevel: { in: levels },
+        };
+      }
     }
 
     // City filter
