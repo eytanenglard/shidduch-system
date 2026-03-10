@@ -103,6 +103,7 @@ interface CandidatesListProps {
   onSetAiTarget: (candidate: Candidate, e: React.MouseEvent) => void;
   comparisonSelection: Record<string, Candidate>;
   onToggleComparison: (candidate: Candidate, e: React.MouseEvent) => void;
+  existingSuggestions: Record<string, { status: string; createdAt: string }>;
   quickViewSide?: 'left' | 'right' | 'center';
   isQuickViewEnabled: boolean;
   locale: string;
@@ -139,6 +140,7 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
   onSetAiTarget,
   comparisonSelection,
   onToggleComparison,
+  existingSuggestions,
   quickViewSide = 'center',
   dict,
   profileDict,
@@ -602,6 +604,7 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
               }
               isSelectedForComparison={!!comparisonSelection[candidate.id]}
               onToggleComparison={onToggleComparison}
+              existingSuggestion={existingSuggestions[candidate.id] ?? null}
               dict={dict.candidatesManager.list.minimalCard}
             />
             <button

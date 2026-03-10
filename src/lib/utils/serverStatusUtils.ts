@@ -1,217 +1,398 @@
-// src/lib/utils/serverStatusUtils.ts
+// src/lib/utils/suggestionUtils.ts
 
 import type { MatchSuggestionStatus } from "@prisma/client";
+import type { SuggestionsCardDict } from "@/types/dictionary";
+import {
+  FileText,
+  Clock,
+  CheckCircle,
+  XCircle,
+  UserPlus,
+  Heart,
+  Handshake,
+  Phone,
+  Calendar,
+  Brain,
+  ArrowRight,
+  Star,
+  Gift,
+  AlertTriangle,
+  FileX,
+  Ban,
+  Bookmark,
+  Pause,
+  RefreshCw
+} from "lucide-react";
 
-export interface ServerStatusInfo {
-  requiresUserAction: boolean;
+export interface StatusWithPartyInfo {
+  label: string;
+  shortLabel: string;
+  description: string;
   currentParty: "first" | "second" | "matchmaker" | "both" | "none";
-  isUrgent: boolean;
-  priority: "low" | "medium" | "high" | "critical";
-  category: "draft" | "pending" | "approved" | "declined" | "progress" | "completed";
+  icon: React.ElementType;
+  className: string;
+  pulse: boolean;
+  category: "pending" | "approved" | "declined" | "progress" | "completed" | "interested";
 }
 
-/**
- * מחזיר מידע על סטטוס ההצעה מצד השרת
- */
-export function getServerStatusInfo(
+export function getEnhancedStatusInfo(
   status: MatchSuggestionStatus,
-  firstPartyId: string,
-  secondPartyId: string,
-  currentUserId?: string
-): ServerStatusInfo {
-  const isFirstParty = currentUserId === firstPartyId;
-  const isSecondParty = currentUserId === secondPartyId;
-  
-  const statusMap: Record<MatchSuggestionStatus, ServerStatusInfo> = {
+  isFirstParty: boolean = false,
+  dict: SuggestionsCardDict
+): StatusWithPartyInfo {
+  const statusMap: Record<MatchSuggestionStatus, StatusWithPartyInfo> = {
+    // --- Draft: Gray/Slate (Neutral) ---
     DRAFT: {
-      requiresUserAction: false,
+      label: "טיוטה בהכנה",
+      shortLabel: "טיוטה",
+      description: dict.statusDescriptions.draft,
       currentParty: "matchmaker",
-      isUrgent: false,
-      priority: "medium",
-      category: "draft"
+      icon: FileText,
+      className: "bg-gradient-to-r from-gray-100 to-slate-100 text-gray-700 border-gray-200",
+      pulse: false,
+      category: "pending"
     },
-    
+
+    // --- Pending First Party: Orange/Amber (Action Required) ---
     PENDING_FIRST_PARTY: {
-      requiresUserAction: isFirstParty,
+      label: isFirstParty ? "ממתין לתשובתך" : "נשלח לצד הראשון",
+      shortLabel: isFirstParty ? dict.statusIndicator.waitingForYou : dict.statusIndicator.firstParty,
+      description: isFirstParty
+        ? dict.statusDescriptions.pendingFirstPartyUser
+        : dict.statusDescriptions.pendingFirstPartyOther,
       currentParty: "first",
-      isUrgent: true,
-      priority: isFirstParty ? "critical" : "medium",
+      icon: Clock,
+      className: "bg-gradient-to-r from-orange-50 to-amber-50 text-orange-700 border-orange-200",
+      pulse: true,
       category: "pending"
     },
-    
-    FIRST_PARTY_APPROVED: {
-      requiresUserAction: false,
-      currentParty: "matchmaker",
-      isUrgent: false,
-      priority: "medium",
-      category: "approved"
-    },
-    
-    FIRST_PARTY_DECLINED: {
-      requiresUserAction: false,
-      currentParty: "none",
-      isUrgent: false,
-      priority: "low",
-      category: "declined"
-    },
-       
+
+    // --- First Party Interested: Amber (Saved/Queued) ---
     FIRST_PARTY_INTERESTED: {
-      requiresUserAction: false,
+      label: isFirstParty
+        ? (dict.statusLabels?.interested || "ממתין בתור")
+        : (dict.statusLabels?.pending || "ממתין"),
+      shortLabel: isFirstParty
+        ? (dict.statusLabels?.interested || "ממתין בתור")
+        : (dict.statusLabels?.pending || "ממתין"),
+      description: isFirstParty
+        ? (dict.statusDescriptions?.interestedFirstParty ||
+          "ההצעה שמורה ברשימת ההמתנה שלך. תוכל/י לאשר אותה כשתהיה/י פנוי/ה.")
+        : "",
+      currentParty: isFirstParty ? "first" : "none",
+      icon: isFirstParty ? Bookmark : Clock,
+      className: isFirstParty
+        ? "bg-gradient-to-r from-amber-50 to-yellow-50 text-amber-700 border-amber-200"
+        : "bg-gradient-to-r from-gray-50 to-slate-50 text-gray-600 border-gray-200",
+      pulse: false,
+      category: "interested"
+    },
+
+    // --- First Party Approved: Teal/Emerald (Success) ---
+    FIRST_PARTY_APPROVED: {
+      label: isFirstParty ? "אישרת את ההצעה" : "הצד הראשון אישר",
+      shortLabel: isFirstParty ? "אישרת" : `${dict.statusIndicator.firstParty} אישר`,
+      description: isFirstParty
+        ? dict.statusDescriptions.firstPartyApprovedUser
+        : dict.statusDescriptions.firstPartyApprovedOther,
       currentParty: "matchmaker",
-      isUrgent: false,
-      priority: "medium",
+      icon: CheckCircle,
+      className: "bg-gradient-to-r from-teal-50 to-emerald-50 text-teal-700 border-teal-200",
+      pulse: false,
       category: "approved"
     },
-    
+
+    // --- First Party Declined: Rose/Red (Declined) ---
+    FIRST_PARTY_DECLINED: {
+      label: isFirstParty ? "דחית את ההצעה" : "הצד הראשון דחה",
+      shortLabel: isFirstParty ? "דחית" : `${dict.statusIndicator.firstParty} דחה`,
+      description: isFirstParty
+        ? dict.statusDescriptions.firstPartyDeclinedUser
+        : dict.statusDescriptions.firstPartyDeclinedOther,
+      currentParty: "none",
+      icon: XCircle,
+      className: "bg-gradient-to-r from-rose-50 to-red-50 text-rose-700 border-rose-200",
+      pulse: false,
+      category: "declined"
+    },
+
+    // --- Pending Second Party: Orange/Amber (Action Required) ---
     PENDING_SECOND_PARTY: {
-      requiresUserAction: isSecondParty,
+      label: isFirstParty ? "ההצעה נשלחה לצד השני" : "ממתין לתשובתך",
+      shortLabel: isFirstParty ? dict.statusIndicator.secondParty : dict.statusIndicator.waitingForYou,
+      description: isFirstParty
+        ? dict.statusDescriptions.pendingSecondPartyUser
+        : dict.statusDescriptions.pendingSecondPartyOther,
       currentParty: "second",
-      isUrgent: true,
-      priority: isSecondParty ? "critical" : "medium",
+      icon: UserPlus,
+      className: "bg-gradient-to-r from-amber-50 to-orange-50 text-amber-700 border-amber-200",
+      pulse: true,
       category: "pending"
     },
-    
+
+    // ═══════════════════════════════════════════════════════════════
+    // ✅ NEW: Second Party Not Available — Amber/Orange (On Hold)
+    // ═══════════════════════════════════════════════════════════════
+    SECOND_PARTY_NOT_AVAILABLE: {
+      label: isFirstParty
+        ? "ההצעה בהמתנה - לא רלוונטי כרגע"
+        : "סימנת כלא זמין/ה",
+      shortLabel: isFirstParty
+        ? (dict.statusLabels?.onHold || "בהמתנה")
+        : (dict.statusLabels?.youNotAvailable || "לא זמין/ה"),
+      description: isFirstParty
+        ? (dict.statusDescriptions?.secondPartyNotAvailableUser ||
+          "הצד השני לא זמין כרגע. ההצעה תחזור כשיהיה זמין. בינתיים, תוכל/י לאשר הצעות אחרות.")
+        : (dict.statusDescriptions?.secondPartyNotAvailableOther ||
+          "סימנת שאת/ה לא זמין/ה כרגע. כשתחזור/י — ההצעה תחכה לך."),
+      currentParty: isFirstParty ? "none" : "second",
+      icon: Pause,
+      className: "bg-gradient-to-r from-amber-50 to-orange-50 text-amber-700 border-amber-200",
+      pulse: false,
+      category: "pending"
+    },
+
+    // --- Second Party Approved: Teal/Emerald (Success) ---
     SECOND_PARTY_APPROVED: {
-      requiresUserAction: false,
+      label: isFirstParty ? "הצד השני אישר!" : "אישרת את ההצעה!",
+      shortLabel: isFirstParty ? `${dict.statusIndicator.secondParty} אישר` : "אישרת",
+      description: isFirstParty
+        ? dict.statusDescriptions.secondPartyApprovedUser
+        : dict.statusDescriptions.secondPartyApprovedOther,
       currentParty: "matchmaker",
-      isUrgent: true,
-      priority: "high",
+      icon: Heart,
+      className: "bg-gradient-to-r from-teal-50 to-emerald-50 text-teal-700 border-teal-200",
+      pulse: true,
       category: "approved"
     },
-    
+
+    // --- Second Party Declined: Rose/Red (Declined) ---
     SECOND_PARTY_DECLINED: {
-      requiresUserAction: false,
+      label: isFirstParty ? "הצד השני דחה" : "דחית את ההצעה",
+      shortLabel: isFirstParty ? `${dict.statusIndicator.secondParty} דחה` : "דחית",
+      description: isFirstParty
+        ? dict.statusDescriptions.secondPartyDeclinedUser
+        : dict.statusDescriptions.secondPartyDeclinedOther,
       currentParty: "none",
-      isUrgent: false,
-      priority: "low",
+      icon: XCircle,
+      className: "bg-gradient-to-r from-rose-50 to-red-50 text-rose-700 border-rose-200",
+      pulse: false,
       category: "declined"
     },
-    
+
+    // ═══════════════════════════════════════════════════════════════
+    // ✅ NEW: Re-Offered to First Party — Blue (Re-ask)
+    // ═══════════════════════════════════════════════════════════════
+    RE_OFFERED_TO_FIRST_PARTY: {
+      label: isFirstParty
+        ? "ההצעה חזרה אליך!"
+        : "ממתין לאישור מחדש מצד ראשון",
+      shortLabel: isFirstParty
+        ? (dict.statusLabels?.reOffered || "ההצעה חזרה!")
+        : (dict.statusLabels?.waitingFirstPartyAgain || "אישור מחדש"),
+      description: isFirstParty
+        ? (dict.statusDescriptions?.reOfferedToFirstPartyUser ||
+          "הצד השני חזר להיות זמין ואישר! האם ההצעה עדיין מתאימה לך?")
+        : (dict.statusDescriptions?.reOfferedToFirstPartyOther ||
+          "ההצעה נשלחה מחדש לצד הראשון לאישור."),
+      currentParty: "first",
+      icon: RefreshCw,
+      className: isFirstParty
+        ? "bg-gradient-to-r from-blue-50 to-indigo-50 text-blue-700 border-blue-200"
+        : "bg-gradient-to-r from-gray-50 to-slate-50 text-gray-600 border-gray-200",
+      pulse: isFirstParty,
+      category: "pending"
+    },
+
+    // --- Awaiting Matchmaker: Teal (Matchmaker Action) ---
     AWAITING_MATCHMAKER_APPROVAL: {
-      requiresUserAction: false,
+      label: "ממתין לאישור השדכן",
+      shortLabel: `אישור ${dict.statusIndicator.matchmaker}`,
+      description: dict.statusDescriptions.awaitingMatchmakerApproval,
       currentParty: "matchmaker",
-      isUrgent: true,
-      priority: "high",
+      icon: Handshake,
+      className: "bg-gradient-to-r from-teal-50 to-emerald-50 text-teal-700 border-teal-200",
+      pulse: true,
       category: "pending"
     },
-    
+
+    // --- Contact Shared: Teal/Emerald (Progress) ---
     CONTACT_DETAILS_SHARED: {
-      requiresUserAction: true,
+      label: "פרטי קשר שותפו",
+      shortLabel: "פרטים שותפו",
+      description: dict.statusDescriptions.contactDetailsShared,
       currentParty: "both",
-      isUrgent: true,
-      priority: "high",
+      icon: Phone,
+      className: "bg-gradient-to-r from-teal-50 to-emerald-50 text-teal-700 border-teal-200",
+      pulse: false,
       category: "progress"
     },
-    
+
+    // --- Awaiting Feedback: Orange/Amber (Action) ---
     AWAITING_FIRST_DATE_FEEDBACK: {
-      requiresUserAction: true,
+      label: "ממתין למשוב פגישה",
+      shortLabel: "משוב פגישה",
+      description: dict.statusDescriptions.awaitingFirstDateFeedback,
       currentParty: "both",
-      isUrgent: false,
-      priority: "medium",
+      icon: Calendar,
+      className: "bg-gradient-to-r from-orange-50 to-amber-50 text-orange-700 border-orange-200",
+      pulse: true,
       category: "pending"
     },
-    
+
+    // --- Thinking: Orange/Amber (Pending Decision) ---
     THINKING_AFTER_DATE: {
-      requiresUserAction: false,
+      label: "בחשיבה לאחר הפגישה",
+      shortLabel: "בחשיבה",
+      description: dict.statusDescriptions.thinkingAfterDate,
       currentParty: "both",
-      isUrgent: false,
-      priority: "medium",
+      icon: Brain,
+      className: "bg-gradient-to-r from-amber-50 to-orange-50 text-amber-700 border-amber-200",
+      pulse: false,
       category: "pending"
     },
-    
+
+    // --- Second Date: Emerald/Teal (Progress) ---
     PROCEEDING_TO_SECOND_DATE: {
-      requiresUserAction: true,
+      label: "ממשיכים לפגישה שנייה",
+      shortLabel: "פגישה שנייה",
+      description: dict.statusDescriptions.proceedingToSecondDate,
       currentParty: "both",
-      isUrgent: false,
-      priority: "medium",
+      icon: ArrowRight,
+      className: "bg-gradient-to-r from-emerald-50 to-teal-50 text-emerald-700 border-emerald-200",
+      pulse: false,
       category: "progress"
     },
-    
+
+    // --- Ended After First Date: Gray/Slate (Completed) ---
     ENDED_AFTER_FIRST_DATE: {
-      requiresUserAction: false,
+      label: "הסתיים לאחר פגישה ראשונה",
+      shortLabel: "הסתיים",
+      description: dict.statusDescriptions.endedAfterFirstDate,
       currentParty: "none",
-      isUrgent: false,
-      priority: "low",
+      icon: XCircle,
+      className: "bg-gradient-to-r from-gray-50 to-slate-50 text-gray-700 border-gray-200",
+      pulse: false,
       category: "completed"
     },
-    
+
+    // --- Meeting Pending: Orange/Amber (Action) ---
     MEETING_PENDING: {
-      requiresUserAction: false,
+      label: "פגישה בהמתנה",
+      shortLabel: "פגישה ממתינה",
+      description: dict.statusDescriptions.meetingPending,
       currentParty: "matchmaker",
-      isUrgent: true,
-      priority: "high",
+      icon: Clock,
+      className: "bg-gradient-to-r from-orange-50 to-amber-50 text-orange-700 border-orange-200",
+      pulse: true,
       category: "pending"
     },
-    
+
+    // --- Meeting Scheduled: Teal/Emerald (Progress) ---
     MEETING_SCHEDULED: {
-      requiresUserAction: true,
+      label: "פגישה קבועה",
+      shortLabel: "פגישה קבועה",
+      description: dict.statusDescriptions.meetingScheduled,
       currentParty: "both",
-      isUrgent: true,
-      priority: "high",
+      icon: Calendar,
+      className: "bg-gradient-to-r from-teal-50 to-emerald-50 text-teal-700 border-teal-200",
+      pulse: false,
       category: "progress"
     },
-    
+
+    // --- Match Approved: Teal/Emerald (Success) ---
     MATCH_APPROVED: {
-      requiresUserAction: false,
+      label: "השידוך אושר",
+      shortLabel: "אושר",
+      description: dict.statusDescriptions.matchApproved,
       currentParty: "both",
-      isUrgent: false,
-      priority: "high",
+      icon: CheckCircle,
+      className: "bg-gradient-to-r from-teal-50 to-emerald-50 text-teal-700 border-teal-200",
+      pulse: false,
       category: "approved"
     },
-    
+
+    // --- Match Declined: Rose/Red (Declined) ---
     MATCH_DECLINED: {
-      requiresUserAction: false,
+      label: "השידוך נדחה",
+      shortLabel: "נדחה",
+      description: dict.statusDescriptions.matchDeclined,
       currentParty: "none",
-      isUrgent: false,
-      priority: "low",
+      icon: XCircle,
+      className: "bg-gradient-to-r from-rose-50 to-red-50 text-rose-700 border-rose-200",
+      pulse: false,
       category: "declined"
     },
-    
+
+    // --- Dating: Rose/Pink (Romance/Personal) ---
     DATING: {
-      requiresUserAction: false,
+      label: "בתהליך היכרות",
+      shortLabel: "בהיכרות",
+      description: dict.statusDescriptions.dating,
       currentParty: "both",
-      isUrgent: false,
-      priority: "medium",
+      icon: Heart,
+      className: "bg-gradient-to-r from-rose-50 to-pink-50 text-rose-700 border-rose-200",
+      pulse: false,
       category: "progress"
     },
-    
+
+    // --- Engaged: Orange/Amber (Celebration) ---
     ENGAGED: {
-      requiresUserAction: false,
+      label: "אירוסין! 💍",
+      shortLabel: "מאורסים",
+      description: dict.statusDescriptions.engaged,
       currentParty: "both",
-      isUrgent: false,
-      priority: "low",
+      icon: Star,
+      className: "bg-gradient-to-r from-orange-50 to-amber-50 text-orange-700 border-orange-200",
+      pulse: true,
       category: "completed"
     },
-    
+
+    // --- Married: Teal/Orange Gradient (Ultimate Success) ---
     MARRIED: {
-      requiresUserAction: false,
+      label: "נישואין! 🎉",
+      shortLabel: "נשואים",
+      description: dict.statusDescriptions.married,
       currentParty: "both",
-      isUrgent: false,
-      priority: "low",
+      icon: Gift,
+      className: "bg-gradient-to-r from-teal-50 to-orange-50 text-teal-700 border-teal-200",
+      pulse: true,
       category: "completed"
     },
-    
+
+    // --- Expired: Gray/Slate (Inactive) ---
     EXPIRED: {
-      requiresUserAction: false,
+      label: "פג תוקף",
+      shortLabel: "פג תוקף",
+      description: dict.statusDescriptions.expired,
       currentParty: "none",
-      isUrgent: false,
-      priority: "low",
+      icon: AlertTriangle,
+      className: "bg-gradient-to-r from-gray-50 to-slate-50 text-gray-700 border-gray-200",
+      pulse: false,
       category: "completed"
     },
-    
+
+    // --- Closed: Gray/Slate (Inactive) ---
     CLOSED: {
-      requiresUserAction: false,
+      label: "ההצעה נסגרה",
+      shortLabel: "נסגרה",
+      description: dict.statusDescriptions.closed,
       currentParty: "none",
-      isUrgent: false,
-      priority: "low",
+      icon: FileX,
+      className: "bg-gradient-to-r from-slate-50 to-gray-50 text-slate-700 border-slate-200",
+      pulse: false,
       category: "completed"
     },
-    
+
+    // --- Cancelled: Gray/Slate (Inactive) ---
     CANCELLED: {
-      requiresUserAction: false,
+      label: "ההצעה בוטלה",
+      shortLabel: "בוטלה",
+      description: dict.statusDescriptions.cancelled,
       currentParty: "none",
-      isUrgent: false,
-      priority: "low",
+      icon: Ban,
+      className: "bg-gradient-to-r from-gray-50 to-slate-50 text-gray-700 border-gray-200",
+      pulse: false,
       category: "completed"
     }
   };
@@ -219,260 +400,96 @@ export function getServerStatusInfo(
   return statusMap[status];
 }
 
-/**
- * מחזיר רשימת הצעות שדורשות תשומת לב של המשתמש
- */
-export function getUrgentSuggestions<T extends { 
-  status: MatchSuggestionStatus; 
-  firstPartyId: string; 
-  secondPartyId: string;
-  decisionDeadline?: Date | null;
-}>(
-  suggestions: T[],
-  userId: string
-): T[] {
-  return suggestions.filter(suggestion => {
-    const statusInfo = getServerStatusInfo(
-      suggestion.status,
-      suggestion.firstPartyId,
-      suggestion.secondPartyId,
-      userId
-    );
-    
-    // בדיקה אם המשתמש צריך לפעול
-    if (!statusInfo.requiresUserAction) return false;
-    
-    // בדיקה אם יש דדליין קרוב
-    if (suggestion.decisionDeadline) {
-      const deadline = new Date(suggestion.decisionDeadline);
-      const now = new Date();
-      const daysUntilDeadline = (deadline.getTime() - now.getTime()) / (1000 * 60 * 60 * 24);
-      
-      // אם יש פחות מ-3 ימים, זה דחוף
-      if (daysUntilDeadline <= 3) return true;
-    }
-    
-    return statusInfo.isUrgent;
-  });
-}
-
-/**
- * מחזיר רשימת הצעות לפי קטגוריה
- */
-export function getSuggestionsByCategory<T extends { 
-  status: MatchSuggestionStatus; 
-  firstPartyId: string; 
-  secondPartyId: string;
-}>(
-  suggestions: T[],
-  category: ServerStatusInfo['category'],
-  userId?: string
-): T[] {
-  return suggestions.filter(suggestion => {
-    const statusInfo = getServerStatusInfo(
-      suggestion.status,
-      suggestion.firstPartyId,
-      suggestion.secondPartyId,
-      userId
-    );
-    return statusInfo.category === category;
-  });
-}
-
-/**
- * מחשב נתונים סטטיסטיים על הצעות המשתמש
- */
-export function calculateUserStats<T extends { 
-  status: MatchSuggestionStatus; 
-  firstPartyId: string; 
-  secondPartyId: string;
-  decisionDeadline?: Date | null;
-}>(
-  suggestions: T[],
-  userId: string
-) {
-  const urgent = getUrgentSuggestions(suggestions, userId);
-  const pending = getSuggestionsByCategory(suggestions, 'pending', userId);
-  const approved = getSuggestionsByCategory(suggestions, 'approved', userId);
-  const progress = getSuggestionsByCategory(suggestions, 'progress', userId);
-  const completed = getSuggestionsByCategory(suggestions, 'completed', userId);
-  
-  // ספירת הצעות שדורשות תשובה מהמשתמש ספציפית
-  const requiresMyAction = suggestions.filter(suggestion => {
-    const statusInfo = getServerStatusInfo(
-      suggestion.status,
-      suggestion.firstPartyId,
-      suggestion.secondPartyId,
-      userId
-    );
-    return statusInfo.requiresUserAction;
-  });
-
-  return {
-    total: suggestions.length,
-    urgent: urgent.length,
-    pending: pending.length,
-    approved: approved.length,
-    progress: progress.length,
-    completed: completed.length,
-    requiresMyAction: requiresMyAction.length,
-    categories: {
-      urgent,
-      pending,
-      approved,
-      progress,
-      completed,
-      requiresMyAction
-    }
-  };
-}
-
-/**
- * בודק אם משתמש נמצא בתהליך פעיל (מונע יצירת הצעות חדשות)
- */
-export function isUserInActiveProcess<T extends { 
-  status: MatchSuggestionStatus; 
-  firstPartyId: string; 
-  secondPartyId: string;
-}>(
-  suggestions: T[],
-  userId: string
-): boolean {
-  const activeStatuses: MatchSuggestionStatus[] = [
-    'FIRST_PARTY_APPROVED',
-    'SECOND_PARTY_APPROVED',
-    'AWAITING_MATCHMAKER_APPROVAL',
-    'CONTACT_DETAILS_SHARED',
-    'AWAITING_FIRST_DATE_FEEDBACK',
-    'THINKING_AFTER_DATE',
-    'PROCEEDING_TO_SECOND_DATE',
-    'MEETING_PENDING',
-    'MEETING_SCHEDULED',
-    'MATCH_APPROVED',
-    'DATING',
-    'ENGAGED',
-  ];
-
-  return suggestions.some(suggestion => 
-    (suggestion.firstPartyId === userId || suggestion.secondPartyId === userId) &&
-    activeStatuses.includes(suggestion.status)
-  );
-}
-
-/**
- * מחזיר הודעת סטטוס מותאמת למשתמש
- */
-export function getPersonalizedStatusMessage(
+// Helper function to get party indicator
+// Updated to Teal/Orange/Rose palette
+export function getPartyIndicator(
   status: MatchSuggestionStatus,
   isFirstParty: boolean,
-  targetPartyName?: string
-): string {
-  const messages: Record<MatchSuggestionStatus, { first: string; second: string }> = {
-    PENDING_FIRST_PARTY: {
-      first: "ההצעה מחכה להחלטתך - בדוק ותחליט",
-      second: `ההצעה נשלחה לצד הראשון${targetPartyName ? ` (${targetPartyName})` : ''} - נעדכן אותך כשיגיע המשוב`
-    },
-    FIRST_PARTY_APPROVED: {
-      first: "אישרת את ההצעה - עכשיו ההצעה תשלח לצד השני",
-      second: `הצד הראשון${targetPartyName ? ` (${targetPartyName})` : ''} אישר את ההצעה! עכשיו התור שלך`
-    },
-    PENDING_SECOND_PARTY: {
-      first: `ההצעה נשלחה לצד השני${targetPartyName ? ` (${targetPartyName})` : ''} - נעדכן אותך כשיגיע המשוב`,
-      second: "ההצעה מחכה להחלטתך - בדוק ותחליט"
-    },
-    SECOND_PARTY_APPROVED: {
-      first: `הצד השני${targetPartyName ? ` (${targetPartyName})` : ''} גם אישר! בקרוב תקבלו פרטי קשר`,
-      second: "אישרת את ההצעה - בקרוב תקבלו פרטי קשר"
-    },
-    CONTACT_DETAILS_SHARED: {
-      first: "פרטי הקשר שותפו - זמן ליצור קשר ולתאם פגישה!",
-      second: "פרטי הקשר שותפו - זמן ליצור קשר ולתאם פגישה!"
-    },
-    DATING: {
-      first: "אתם בתהליך היכרות - בהצלחה!",
-      second: "אתם בתהליך היכרות - בהצלחה!"
-    },
-    ENGAGED: {
-      first: "מזל טוב על האירוסין! 💍",
-      second: "מזל טוב על האירוסין! 💍"
-    },
-    MARRIED: {
-      first: "מזל טוב על החתונה! 🎉",
-      second: "מזל טוב על החתונה! 🎉"
-    },
-    // Default cases for other statuses
-    DRAFT: {
-      first: "ההצעה בהכנה",
-      second: "ההצעה בהכנה"
-    },
-    FIRST_PARTY_DECLINED: {
-      first: "דחית את ההצעה",
-      second: "הצד הראשון דחה את ההצעה"
-    },
-        FIRST_PARTY_INTERESTED: {
-      first: "שמרת את ההצעה לגיבוי - נחזור אליך בהמשך",
-      second: "הצד הראשון מתעניין - השדכן יעדכן בהמשך"
-    },
+  dict: SuggestionsCardDict
+): {
+  show: boolean;
+  text: string;
+  className: string;
+} {
+  const statusInfo = getEnhancedStatusInfo(status, isFirstParty, dict);
 
-    SECOND_PARTY_DECLINED: {
-      first: "הצד השני דחה את ההצעה",
-      second: "דחית את ההצעה"
-    },
-    AWAITING_MATCHMAKER_APPROVAL: {
-      first: "ממתין לאישור השדכן",
-      second: "ממתין לאישור השדכן"
-    },
-    AWAITING_FIRST_DATE_FEEDBACK: {
-      first: "ממתין למשוב פגישה",
-      second: "ממתין למשוב פגישה"
-    },
-    THINKING_AFTER_DATE: {
-      first: "בחשיבה לאחר הפגישה",
-      second: "בחשיבה לאחר הפגישה"
-    },
-    PROCEEDING_TO_SECOND_DATE: {
-      first: "ממשיכים לפגישה שנייה",
-      second: "ממשיכים לפגישה שנייה"
-    },
-    ENDED_AFTER_FIRST_DATE: {
-      first: "הסתיים לאחר פגישה ראשונה",
-      second: "הסתיים לאחר פגישה ראשונה"
-    },
-    MEETING_PENDING: {
-      first: "פגישה בהמתנה",
-      second: "פגישה בהמתנה"
-    },
-    MEETING_SCHEDULED: {
-      first: "פגישה קבועה",
-      second: "פגישה קבועה"
-    },
-    MATCH_APPROVED: {
-      first: "השידוך אושר",
-      second: "השידוך אושר"
-    },
-    MATCH_DECLINED: {
-      first: "השידוך נדחה",
-      second: "השידוך נדחה"
-    },
-    EXPIRED: {
-      first: "פג תוקף",
-      second: "פג תוקף"
-    },
-    CLOSED: {
-      first: "ההצעה נסגרה",
-      second: "ההצעה נסגרה"
-    },
-    CANCELLED: {
-      first: "ההצעה בוטלה",
-      second: "ההצעה בוטלה"
+  // Special handling for FIRST_PARTY_INTERESTED
+  if (status === "FIRST_PARTY_INTERESTED") {
+    if (isFirstParty) {
+      return {
+        show: true,
+        text: dict.partyIndicators?.interestedSaved || "שמרת לגיבוי",
+        className: "bg-amber-500 text-white"
+      };
     }
-  };
+    return {
+      show: false,
+      text: "",
+      className: ""
+    };
+  }
 
-  const defaultMessage = {
-    first: "עקוב אחר התקדמות ההצעה בטיימליין",
-    second: "עקוב אחר התקדמות ההצעה בטיימליין"
-  };
+  // ✅ NEW: Special handling for SECOND_PARTY_NOT_AVAILABLE
+  if (status === "SECOND_PARTY_NOT_AVAILABLE") {
+    return {
+      show: true,
+      text: isFirstParty
+        ? (dict.partyIndicators?.onHold || "בהמתנה")
+        : (dict.partyIndicators?.youNotAvailable || "לא זמין/ה"),
+      className: "bg-amber-500 text-white"
+    };
+  }
 
-  const statusMessages = messages[status] || defaultMessage;
-  return isFirstParty ? statusMessages.first : statusMessages.second;
+  // ✅ NEW: Special handling for RE_OFFERED_TO_FIRST_PARTY
+  if (status === "RE_OFFERED_TO_FIRST_PARTY") {
+    if (isFirstParty) {
+      return {
+        show: true,
+        text: dict.partyIndicators?.reOffered || "ההצעה חזרה!",
+        className: "bg-blue-500 text-white"
+      };
+    }
+    return {
+      show: true,
+      text: dict.partyIndicators?.waitingFirstPartyAgain || "ממתין לצד ראשון",
+      className: "bg-gray-400 text-white"
+    };
+  }
+
+  switch (statusInfo.currentParty) {
+    // First Party: Orange (Action Required)
+    case "first":
+      return {
+        show: true,
+        text: isFirstParty ? dict.statusIndicator.yourTurn : dict.statusIndicator.firstParty,
+        className: "bg-orange-500 text-white"
+      };
+    // Second Party: Amber (Action Required)
+    case "second":
+      return {
+        show: true,
+        text: isFirstParty ? dict.statusIndicator.secondParty : dict.statusIndicator.yourTurn,
+        className: "bg-amber-500 text-white"
+      };
+    // Matchmaker: Teal (Processing)
+    case "matchmaker":
+      return {
+        show: true,
+        text: dict.statusIndicator.matchmaker,
+        className: "bg-teal-500 text-white"
+      };
+    // Both Parties: Teal to Orange Gradient (Shared)
+    case "both":
+      return {
+        show: true,
+        text: dict.statusIndicator.bothParties,
+        className: "bg-gradient-to-r from-teal-500 to-orange-500 text-white"
+      };
+    default:
+      return {
+        show: false,
+        text: "",
+        className: ""
+      };
+  }
 }

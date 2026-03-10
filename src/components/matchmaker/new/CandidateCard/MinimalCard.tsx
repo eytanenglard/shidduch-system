@@ -104,6 +104,7 @@ interface MinimalCandidateCardProps {
   isSelectableForComparison?: boolean;
   isSelectedForComparison?: boolean;
   onToggleComparison?: (candidate: Candidate, e: React.MouseEvent) => void;
+  existingSuggestion?: { status: string; createdAt: string } | null;
   aiTargetName?: string;
   dict: MatchmakerPageDictionary['candidatesManager']['list']['minimalCard'] & {
     heightUnit?: string;
@@ -183,6 +184,7 @@ const MinimalCandidateCard: React.FC<MinimalCandidateCardProps> = React.memo(
     isSelectableForComparison = false,
     isSelectedForComparison = false,
     onToggleComparison,
+    existingSuggestion = null,
     aiTargetName,
     dict,
   }) => {
@@ -192,6 +194,10 @@ const MinimalCandidateCard: React.FC<MinimalCandidateCardProps> = React.memo(
     const [imageError, setImageError] = useState(false);
     const [isHovered, setIsHovered] = useState(false);
     const [showReasoning, setShowReasoning] = useState(false);
+    const [suggestionOverride, setSuggestionOverride] = useState(false);
+
+    const hasExistingSuggestion = !!existingSuggestion;
+    const isSuggestionBlocked = hasExistingSuggestion && !suggestionOverride;
 
     const effectiveAiScore = candidate.aiScore ?? aiScore;
     const hasAiData = typeof effectiveAiScore === 'number';
@@ -308,19 +314,20 @@ const MinimalCandidateCard: React.FC<MinimalCandidateCardProps> = React.memo(
       dict.heightLabel,
     ]);
 
-    // 🔥 שינוי 4: תיקון כפתור ההשוואה
+    // 🔥 שינוי 4: תיקון כפתור ההשוואה + חסימה אם כבר הייתה הצעה
     const ComparisonCheckbox = isSelectableForComparison &&
       onToggleComparison && (
         <div
           className={cn(
             'absolute top-14 right-3 z-30 transition-all duration-300',
-            isSelectedForComparison
+            isSelectedForComparison || hasExistingSuggestion
               ? 'opacity-100'
               : 'opacity-100 lg:opacity-0 group-hover:opacity-100'
           )}
           onPointerDown={(e) => {
             e.stopPropagation();
             e.preventDefault();
+            if (isSuggestionBlocked) return; // חסום אם יש הצעה קיימת ולא שוחרר
             onToggleComparison(candidate, e as unknown as React.MouseEvent);
           }}
           onClick={(e) => {
@@ -328,29 +335,54 @@ const MinimalCandidateCard: React.FC<MinimalCandidateCardProps> = React.memo(
             e.preventDefault();
           }}
         >
-          <div
-            className={cn(
-              'flex items-center space-x-2 backdrop-blur-sm p-2 rounded-xl shadow-xl cursor-pointer transition-all duration-300 border-0',
-              isSelectedForComparison
-                ? 'bg-blue-100 scale-105 ring-2 ring-blue-400'
-                : 'bg-white/90 hover:bg-white hover:scale-105'
-            )}
-          >
-            <Checkbox
-              id={`compare-${candidate.id}`}
-              checked={isSelectedForComparison}
-              onCheckedChange={() => {
-                // handled by parent onPointerDown
-              }}
-              className="border-2 border-blue-400 data-[state=checked]:bg-gradient-to-r data-[state=checked]:from-blue-500 data-[state=checked]:to-cyan-500 data-[state=checked]:border-blue-500"
-            />
-            <label
-              htmlFor={`compare-${candidate.id}`}
-              className="text-xs font-bold leading-none text-gray-700 cursor-pointer select-none"
+          {isSuggestionBlocked ? (
+            // 🔴 מצב חסום - הצעה קיימת
+            <div className="flex flex-col items-end gap-1">
+              <div className="flex items-center gap-1.5 backdrop-blur-sm p-2 rounded-xl shadow-xl bg-red-50 border border-red-300 cursor-not-allowed">
+                <AlertTriangle className="w-3.5 h-3.5 text-red-500" />
+                <span className="text-xs font-bold text-red-600 select-none">
+                  כבר הוצעו
+                </span>
+              </div>
+              <button
+                className="text-[10px] text-gray-400 hover:text-gray-600 underline transition-colors px-1"
+                onPointerDown={(e) => {
+                  e.stopPropagation();
+                  e.preventDefault();
+                  setSuggestionOverride(true);
+                }}
+              >
+                בחר בכל זאת
+              </button>
+            </div>
+          ) : (
+            // ✅ מצב רגיל - ניתן לבחור
+            <div
+              className={cn(
+                'flex items-center space-x-2 backdrop-blur-sm p-2 rounded-xl shadow-xl cursor-pointer transition-all duration-300 border-0',
+                isSelectedForComparison
+                  ? 'bg-blue-100 scale-105 ring-2 ring-blue-400'
+                  : hasExistingSuggestion && suggestionOverride
+                    ? 'bg-orange-50 hover:bg-orange-100 ring-1 ring-orange-300'
+                    : 'bg-white/90 hover:bg-white hover:scale-105'
+              )}
             >
-              {dict.compare}
-            </label>
-          </div>
+              <Checkbox
+                id={`compare-${candidate.id}`}
+                checked={isSelectedForComparison}
+                onCheckedChange={() => {
+                  // handled by parent onPointerDown
+                }}
+                className="border-2 border-blue-400 data-[state=checked]:bg-gradient-to-r data-[state=checked]:from-blue-500 data-[state=checked]:to-cyan-500 data-[state=checked]:border-blue-500"
+              />
+              <label
+                htmlFor={`compare-${candidate.id}`}
+                className="text-xs font-bold leading-none text-gray-700 cursor-pointer select-none"
+              >
+                {dict.compare}
+              </label>
+            </div>
+          )}
         </div>
       );
 
@@ -367,21 +399,40 @@ const MinimalCandidateCard: React.FC<MinimalCandidateCardProps> = React.memo(
             'relative overflow-hidden cursor-pointer transition-all hover:shadow-2xl duration-500 group border-0 shadow-xl',
             isAiTarget
               ? 'ring-4 ring-green-400 ring-opacity-60 shadow-green-200'
-              : isSelectedForComparison
-                ? 'ring-4 ring-blue-400 ring-opacity-60 shadow-blue-200'
-                : hasAiData
-                  ? isVectorResult
-                    ? 'ring-2 ring-blue-300 ring-opacity-50 shadow-blue-100'
-                    : 'ring-2 ring-teal-300 ring-opacity-50 shadow-teal-100'
-                  : isHighlighted
-                    ? 'ring-2 ring-yellow-400 ring-opacity-60 shadow-yellow-100'
-                    : 'shadow-gray-200',
+              : isSuggestionBlocked
+                ? 'ring-4 ring-red-400 ring-opacity-70 shadow-red-200'
+                : isSelectedForComparison
+                  ? 'ring-4 ring-blue-400 ring-opacity-60 shadow-blue-200'
+                  : hasExistingSuggestion && suggestionOverride
+                    ? 'ring-3 ring-orange-400 ring-opacity-50 shadow-orange-200'
+                    : hasAiData
+                      ? isVectorResult
+                        ? 'ring-2 ring-blue-300 ring-opacity-50 shadow-blue-100'
+                        : 'ring-2 ring-teal-300 ring-opacity-50 shadow-teal-100'
+                      : isHighlighted
+                        ? 'ring-2 ring-yellow-400 ring-opacity-60 shadow-yellow-100'
+                        : 'shadow-gray-200',
             'bg-gradient-to-br from-white via-gray-50/30 to-white',
             className || ''
           )}
           onClick={() => onClick(candidate)}
         >
           <div className="absolute inset-0 bg-gradient-to-br from-transparent via-white/50 to-transparent opacity-60"></div>
+
+          {/* 🔴 Badge הצעה קיימת */}
+          {hasExistingSuggestion && isSelectableForComparison && (
+            <div
+              className={cn(
+                'absolute top-3 right-3 z-30 transition-all duration-300',
+                isSuggestionBlocked ? 'opacity-100' : 'opacity-70'
+              )}
+            >
+              <Badge className="bg-red-500 text-white border-0 shadow-lg px-2.5 py-1 text-xs font-bold flex items-center gap-1.5">
+                <AlertTriangle className="w-3 h-3" />
+                הצעה קיימת
+              </Badge>
+            </div>
+          )}
 
           {hasAiData && (
             <div className="absolute top-3 left-3 z-30 flex flex-col gap-1">

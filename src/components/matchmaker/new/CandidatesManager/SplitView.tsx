@@ -132,6 +132,7 @@ interface SplitViewProps {
   setIsAiLoading: React.Dispatch<React.SetStateAction<boolean>>;
   comparisonSelection: Record<string, Candidate>;
   onToggleComparison: (candidate: Candidate, e: React.MouseEvent) => void;
+  existingSuggestions: Record<string, { status: string; createdAt: string }>;
   separateFiltering: boolean;
   maleFilters?: Partial<FilterState>;
   femaleFilters?: Partial<FilterState>;
@@ -1002,6 +1003,7 @@ const SplitView: React.FC<SplitViewProps> = ({
     setIsAiLoading,
     comparisonSelection,
     onToggleComparison,
+    existingSuggestions,
     separateFiltering,
   } = props;
 
@@ -1459,6 +1461,7 @@ const SplitView: React.FC<SplitViewProps> = ({
         aiTargetCandidate={aiTargetCandidate}
         onSetAiTarget={onSetAiTarget}
         comparisonSelection={comparisonSelection}
+                existingSuggestions={existingSuggestions}
         onToggleComparison={onToggleComparison}
         quickViewSide={gender === 'male' ? 'right' : 'left'}
         isQuickViewEnabled={isQuickViewEnabled}
@@ -1610,6 +1613,7 @@ const SplitView: React.FC<SplitViewProps> = ({
                 aiTargetCandidate={aiTargetCandidate}
                 onSetAiTarget={onSetAiTarget}
                 comparisonSelection={comparisonSelection}
+                existingSuggestions={existingSuggestions}
                 onToggleComparison={onToggleComparison}
                 quickViewSide="right"
                 isQuickViewEnabled={isQuickViewEnabled}
@@ -1658,6 +1662,7 @@ const SplitView: React.FC<SplitViewProps> = ({
                 aiTargetCandidate={aiTargetCandidate}
                 onSetAiTarget={onSetAiTarget}
                 comparisonSelection={comparisonSelection}
+                existingSuggestions={existingSuggestions}
                 onToggleComparison={onToggleComparison}
                 quickViewSide="left"
                 isQuickViewEnabled={isQuickViewEnabled}

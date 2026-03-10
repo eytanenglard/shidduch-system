@@ -511,6 +511,11 @@ const CandidatesManager: React.FC<CandidatesManagerProps> = ({
   >({});
   const [aiMatches, setAiMatches] = useState<AiMatch[]>([]);
   const [isAiLoading, setIsAiLoading] = useState(false);
+
+  // --- Existing Suggestions State (הצעות קיימות למועמד המטרה) ---
+  const [existingSuggestions, setExistingSuggestions] = useState<
+    Record<string, { status: string; createdAt: string }>
+  >({});
   const [isAnalysisDialogOpen, setIsAnalysisDialogOpen] = useState(false);
   const [isBulkUpdating, setIsBulkUpdating] = useState(false);
   const [feedbackCandidate, setFeedbackCandidate] = useState<Candidate | null>(
@@ -678,6 +683,7 @@ const CandidatesManager: React.FC<CandidatesManagerProps> = ({
       setAiTargetCandidate(candidate);
       setAiMatches([]);
       setComparisonSelection({});
+      setExistingSuggestions({});
       toast.info(`מועמד מטרה נבחר: ${candidate.firstName}.`, {
         position: 'bottom-center',
       });
@@ -690,8 +696,35 @@ const CandidatesManager: React.FC<CandidatesManagerProps> = ({
     setAiTargetCandidate(null);
     setAiMatches([]);
     setComparisonSelection({});
+    setExistingSuggestions({});
     toast.info('בחירת מועמד מטרה בוטלה.', { position: 'bottom-center' });
   };
+
+  // --- Fetch existing suggestions when target changes ---
+  useEffect(() => {
+    if (!aiTargetCandidate) {
+      setExistingSuggestions({});
+      return;
+    }
+
+    const fetchExistingSuggestions = async () => {
+      try {
+        const res = await fetch(
+          `/api/matchmaker/existing-suggestions?userId=${aiTargetCandidate.id}`
+        );
+        if (res.ok) {
+          const data = await res.json();
+          if (data.success) {
+            setExistingSuggestions(data.existingSuggestions);
+          }
+        }
+      } catch (err) {
+        console.error('Error fetching existing suggestions:', err);
+      }
+    };
+
+    fetchExistingSuggestions();
+  }, [aiTargetCandidate?.id]);
 
   const handleToggleComparison = useCallback(
     (candidate: Candidate, e: React.MouseEvent) => {
@@ -1166,6 +1199,7 @@ const CandidatesManager: React.FC<CandidatesManagerProps> = ({
                     setIsAiLoading={setIsAiLoading}
                     comparisonSelection={comparisonSelection}
                     onToggleComparison={handleToggleComparison}
+                    existingSuggestions={existingSuggestions}
                     separateFiltering={filters.separateFiltering ?? false}
                     maleFilters={filters.maleFilters}
                     femaleFilters={filters.femaleFilters}
@@ -1326,6 +1360,7 @@ const CandidatesManager: React.FC<CandidatesManagerProps> = ({
             onClose={() => setShowBulkSuggestionsDialog(false)}
             firstPartyCandidate={aiTargetCandidate}
             secondPartyCandidates={Object.values(comparisonSelection)}
+            existingSuggestions={existingSuggestions}
             dict={matchmakerDict}
             locale={locale}
           />
