@@ -78,6 +78,7 @@ export interface BulkSuggestionsDialogProps {
   onClose: () => void;
   firstPartyCandidate: Candidate;
   secondPartyCandidates: Candidate[];
+  existingSuggestions: Record<string, { status: string; createdAt: string }>;
   dict: MatchmakerPageDictionary;
   locale: string;
 }
@@ -113,10 +114,11 @@ const PRIORITY_COLORS: Record<string, string> = {
 
 const ItemRow = React.memo<{
   item: BulkItem;
+  hasExistingSuggestion: boolean;
   onExclude: (id: string) => void;
   onReInclude: (id: string) => void;
   onEdit: (id: string) => void;
-}>(({ item, onExclude, onReInclude, onEdit }) => {
+}>(({ item, hasExistingSuggestion, onExclude, onReInclude, onEdit }) => {
   const age = calculateAge(new Date(item.secondParty.profile.birthDate));
   const mainImg = item.secondParty.images?.find((img) => img.isMain)?.url;
 
@@ -126,7 +128,9 @@ const ItemRow = React.memo<{
         'flex items-center gap-3 p-3 rounded-xl border transition-all duration-200',
         item.isExcluded
           ? 'opacity-40 bg-gray-50 border-gray-200'
-          : 'bg-white border-gray-200 hover:border-pink-200 hover:shadow-sm'
+          : hasExistingSuggestion
+            ? 'bg-red-50/50 border-red-200 hover:border-red-300 hover:shadow-sm'
+            : 'bg-white border-gray-200 hover:border-pink-200 hover:shadow-sm'
       )}
     >
       {/* Avatar */}
@@ -155,6 +159,12 @@ const ItemRow = React.memo<{
           <span className="text-xs text-gray-400">
             {age}, {item.secondParty.profile.city ?? ''}
           </span>
+          {hasExistingSuggestion && !item.isExcluded && (
+            <Badge className="bg-red-100 text-red-600 border-red-200 text-xs px-1.5 py-0 flex items-center gap-1">
+              <AlertTriangle className="w-3 h-3" />
+              כבר הוצעו
+            </Badge>
+          )}
           {item.isEdited && !item.isExcluded && (
             <Badge className="bg-purple-100 text-purple-700 border-purple-200 text-xs px-1.5 py-0">
               ✏️ נערכה
@@ -237,6 +247,7 @@ const BulkSuggestionsDialog: React.FC<BulkSuggestionsDialogProps> = ({
   onClose,
   firstPartyCandidate,
   secondPartyCandidates,
+  existingSuggestions,
   dict,
   locale,
 }) => {
@@ -287,6 +298,11 @@ const BulkSuggestionsDialog: React.FC<BulkSuggestionsDialogProps> = ({
   const editedCount = useMemo(
     () => items.filter((i) => i.isEdited && !i.isExcluded).length,
     [items]
+  );
+
+  const existingSuggestionCount = useMemo(
+    () => activeItems.filter((i) => !!existingSuggestions[i.secondParty.id]).length,
+    [activeItems, existingSuggestions]
   );
 
   // ── Handlers ───────────────────────────────────────────────
@@ -409,6 +425,17 @@ const BulkSuggestionsDialog: React.FC<BulkSuggestionsDialogProps> = ({
                 <span>יש שליחה פעילה ברקע. המתן לסיומה.</span>
               </div>
             )}
+
+            {/* ⚠️ Existing suggestions warning */}
+            {existingSuggestionCount > 0 && (
+              <div className="mt-3 flex items-center gap-2 text-sm text-red-600 bg-red-50 p-2 rounded-lg border border-red-200">
+                <AlertTriangle className="w-4 h-4 flex-shrink-0" />
+                <span>
+                  <strong>{existingSuggestionCount}</strong> מועמדות כבר הוצעו בעבר.
+                  הן מסומנות באדום ברשימה.
+                </span>
+              </div>
+            )}
           </DialogHeader>
 
           {/* Items list */}
@@ -423,6 +450,7 @@ const BulkSuggestionsDialog: React.FC<BulkSuggestionsDialogProps> = ({
                 <ItemRow
                   key={item.secondParty.id}
                   item={item}
+                  hasExistingSuggestion={!!existingSuggestions[item.secondParty.id]}
                   onExclude={handleExclude}
                   onReInclude={handleReInclude}
                   onEdit={handleEdit}
@@ -437,6 +465,7 @@ const BulkSuggestionsDialog: React.FC<BulkSuggestionsDialogProps> = ({
               <span>✅ {activeItems.length} פעילות</span>
               {excludedCount > 0 && <span>⛔ {excludedCount} הוצאו</span>}
               {editedCount > 0 && <span>✏️ {editedCount} נערכו</span>}
+              {existingSuggestionCount > 0 && <span>⚠️ {existingSuggestionCount} כבר הוצעו</span>}
             </div>
           )}
 
