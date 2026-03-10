@@ -76,6 +76,9 @@ const statusOptions: {
     icon: CheckCircle,
     color: 'text-emerald-600',
   },
+
+{ value: 'SECOND_PARTY_NOT_AVAILABLE', icon: Clock, color: 'text-amber-600' },
+{ value: 'RE_OFFERED_TO_FIRST_PARTY', icon: RefreshCw, color: 'text-blue-600' },
   { value: 'DATING', icon: AlertCircle, color: 'text-pink-600' },
 ];
 

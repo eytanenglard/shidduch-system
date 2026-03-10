@@ -98,7 +98,9 @@ export async function PATCH(
         case "PENDING_FIRST_PARTY":
         case "PENDING_SECOND_PARTY":
         case "FIRST_PARTY_INTERESTED": // INTERESTED stays in PENDING
-          return "PENDING";
+          case "SECOND_PARTY_NOT_AVAILABLE":    // ← NEW
+    case "RE_OFFERED_TO_FIRST_PARTY":     // ← NEW  
+        return "PENDING";
         
         case "FIRST_PARTY_DECLINED":
         case "SECOND_PARTY_DECLINED":

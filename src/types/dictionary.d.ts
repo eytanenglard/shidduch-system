@@ -322,7 +322,7 @@ export type CookieBannerDict = {
 // ======================================================================== //
 
 export type SuggestionsCardDict = {
-      activeProcessExplanation: string;
+  activeProcessExplanation: string;
 
   toasts: {
     approveDisabledTitle: string;
@@ -346,6 +346,7 @@ export type SuggestionsCardDict = {
     removeFromList: string;
     askMatchmaker: string;
     viewDetails: string;
+    imAvailableNow: string;              // ✅ NEW
   };
   statusIndicator: {
     yourTurn: string;
@@ -358,14 +359,33 @@ export type SuggestionsCardDict = {
   statusLabels: {
     interested: string;
     pending: string;
+    onHold: string;                      // ✅ NEW
+    youNotAvailable: string;             // ✅ NEW
+    reOffered: string;                   // ✅ NEW
+    waitingFirstPartyAgain: string;      // ✅ NEW
   };
   statusDescriptions: {
     [key: string]: string;
   };
   partyIndicators: {
     interestedSaved: string;
+    onHold: string;                      // ✅ NEW
+    youNotAvailable: string;             // ✅ NEW
+    reOffered: string;                   // ✅ NEW
+    waitingFirstPartyAgain: string;      // ✅ NEW
+  };
+  // ✅ NEW: fallback status display objects for MinimalSuggestionCard
+  status?: {
+    secondPartyNotAvailable?: {
+      title: string;
+      description: string;
+    };
+    reOffered?: {
+      description: string;
+    };
   };
 };
+
 
 export type SuggestionsModalDict = {
   header: {
@@ -545,7 +565,7 @@ export type SuggestionsContainerDict = {
     confirmApproval: string;
     confirmDecline: string;
   };
-  toasts: {
+ toasts: {
     errorTitle: string;
     errorDescription: string;
     newSuggestionsTitle: string;
@@ -565,8 +585,13 @@ export type SuggestionsContainerDict = {
     activateSuccess: string;
     activateSuccessDesc: string;
     removeFromListSuccess: string;
+    // ✅ NEW
+    reApprovedSuccess?: string;
+    reApprovedDesc?: string;
+    availableAgainSuccess?: string;
+    availableAgainDesc?: string;
   };
-  dailySuggestion: {
+    dailySuggestion: {
     badge: string;
     badgeTooltip: string;
     systemMatchmaker: string;
@@ -636,7 +661,7 @@ export type MatchmakerMessagesPageDict = {
       partyA: string;
       partyB: string;
     };
-    statusLabels: {
+statusLabels: {
       PENDING_FIRST_PARTY: string;
       PENDING_SECOND_PARTY: string;
       FIRST_PARTY_APPROVED: string;
@@ -644,8 +669,9 @@ export type MatchmakerMessagesPageDict = {
       CONTACT_DETAILS_SHARED: string;
       DATING: string;
       AWAITING_FIRST_DATE_FEEDBACK: string;
-    };
-  };
+      SECOND_PARTY_NOT_AVAILABLE: string;    // ✅ NEW
+      RE_OFFERED_TO_FIRST_PARTY: string;     // ✅ NEW
+    };  };
 };
 
 export type SuggestionsPresentationDict = {
@@ -856,6 +882,9 @@ export type MatchSuggestionStatus =
   | 'PENDING_SECOND_PARTY'
   | 'SECOND_PARTY_APPROVED'
   | 'SECOND_PARTY_DECLINED'
+ | 'SECOND_PARTY_NOT_AVAILABLE'
+  | 'RE_OFFERED_TO_FIRST_PARTY'
+  | 'AWAITING_MATCHMAKER_APPROVAL'
   | 'AWAITING_MATCHMAKER_APPROVAL'
   | 'CONTACT_DETAILS_SHARED'
   | 'AWAITING_FIRST_DATE_FEEDBACK'
@@ -3328,6 +3357,7 @@ export type MessagesPageDict = {
     matchmakerPrefix: string;
     suggestionWith: string;
     viewDetails: string;
+    imAvailableNow: string;            // ← NEW
   };
   badges: {
     match: string;

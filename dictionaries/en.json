@@ -628,7 +628,9 @@
     "notificationCard": {
       "matchmakerPrefix": "Suggestion from matchmaker",
       "suggestionWith": "with {{name}}",
-      "viewDetails": "View Details"
+      "viewDetails": "View Details",
+        "imAvailableNow": "I'm available now"
+
     },
     "badges": {
       "match": "It's a Match!"

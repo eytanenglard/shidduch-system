@@ -30,7 +30,6 @@
       "approveTitle": "אישור הצעת השידוך",
       "declineTitle": "דחיית הצעת השידוך",
       "interestedTitle": "שמירה לגיבוי",
-      
       "interestedDescription": "ההצעה תישמר ברשימת ההמתנה שלך. תוכל/י לאשר אותה מאוחר יותר כשתהיה/י פנוי/ה.",
       "confirmInterested": "שמור/י לגיבוי",
       "approveDescription": "אישור הצעה הוא צעד מרגש. האם אתה בטוח שברצונך להתקדם? לאחר האישור, השדכן יקבל הודעה וימשיך בתהליך עבורכם.",
@@ -48,7 +47,7 @@
       "statusUpdateError": "אירעה שגיאה בעדכון הסטטוס: {error}",
       "approvedSuccess": "אישרת את ההצעה בהצלחה",
       "approvedFirstPartyDesc": "באישורך, ההצעה נשלחה לצד השני. אם גם הצד השני יאשר, פרטי הקשר המלאים שלכם יוחלפו.",
-      "approvedSecondPartyDesc": "מעולה! כעת, מאחר ושניכם אישרתם, פרטי הקשר שלך יישלחו לצד הראשון ופרטיו יישלחו אליך.",
+      "approvedSecondPartyDesc": "מעולה! כעת, מאחר ששניכם אישרתם, פרטי הקשר שלך יישלחו לצד הראשון ופרטיו יישלחו אליך.",
       "declinedSuccess": "דחית את ההצעה בהצלחה",
       "declinedDesc": "תודה על המשוב - זה עוזר לנו להציע התאמות טובות יותר",
       "matchmakerNotified": "השדכן יקבל הודעה ויתקדם עם התהליך",
@@ -58,7 +57,11 @@
       "interestedSuccessDesc": "ההצעה נוספה לרשימת ההמתנה שלך. תוכל/י לאשר אותה בכל שלב.",
       "activateSuccess": "ההצעה אושרה!",
       "activateSuccessDesc": "ההצעה תועבר כעת לטיפול השדכן.",
-      "removeFromListSuccess": "ההצעה הוסרה מרשימת ההמתנה"
+      "removeFromListSuccess": "ההצעה הוסרה מרשימת ההמתנה",
+      "reApprovedSuccess": "אישרת את ההצעה מחדש!",
+      "reApprovedDesc": "ההצעה הועברה לאישור השדכן.",
+      "availableAgainSuccess": "עודכן בהצלחה!",
+      "availableAgainDesc": "ההצעה חזרה להמתנה לתשובתך."
     },
     "dailySuggestion": {
       "badge": "✨ הצעה יומית",
@@ -85,8 +88,7 @@
     }
   },
   "card": {
-      "activeProcessExplanation": "יש לך כבר הצעה בתהליך פעיל. ההצעה הזו תישמר ברשימת ההמתנה שלך ותוכל/י לאשר אותה כשהתהליך הנוכחי יסתיים."
-,
+    "activeProcessExplanation": "יש לך כבר הצעה בתהליך פעיל. ההצעה הזו תישמר ברשימת ההמתנה שלך ותוכל/י לאשר אותה כשהתהליך הנוכחי יסתיים.",
     "toasts": {
       "approveDisabledTitle": "לא ניתן לאשר הצעה חדשה",
       "approveDisabledDescription": "יש לך כבר הצעה אחרת בתהליך פעיל.",
@@ -105,12 +107,11 @@
       "approve": "מעוניין/ת להכיר!",
       "approveDisabledTooltip": "לא ניתן לאשר הצעה חדשה כשיש הצעה בתהליך פעיל.",
       "interested": "שומר/ת לגיבוי",
-                
-
       "activateNow": "אשר/י עכשיו",
       "removeFromList": "הסר/י מהרשימה",
       "askMatchmaker": "שאלה לשדכן/ית",
-      "viewDetails": "צפה בפרטים"
+      "viewDetails": "צפה בפרטים",
+      "imAvailableNow": "חזרתי להיות זמין/ה"
     },
     "statusIndicator": {
       "yourTurn": "תורך!",
@@ -122,7 +123,11 @@
     },
     "statusLabels": {
       "interested": "שמור/ה בתור",
-      "pending": "ממתין"
+      "pending": "ממתין",
+      "onHold": "בהמתנה",
+      "youNotAvailable": "לא זמין/ה",
+      "reOffered": "ההצעה חזרה!",
+      "waitingFirstPartyAgain": "אישור מחדש"
     },
     "statusDescriptions": {
       "draft": "השדכן/ית מכין/ה את ההצעה",
@@ -138,6 +143,10 @@
       "secondPartyApprovedOther": "אישרת את ההצעה - בקרוב תקבלו פרטי קשר",
       "secondPartyDeclinedUser": "הצד השני החליט שההצעה לא מתאימה",
       "secondPartyDeclinedOther": "דחית את ההצעה - תודה על המשוב הכן",
+      "secondPartyNotAvailableUser": "הצד השני לא זמין כרגע. ההצעה תחזור כשיהיה זמין. בינתיים, תוכל/י לאשר הצעות אחרות.",
+      "secondPartyNotAvailableOther": "סימנת שאת/ה לא זמין/ה כרגע. כשתחזור/י — ההצעה תחכה לך.",
+      "reOfferedToFirstPartyUser": "הצד השני חזר להיות זמין ואישר! האם ההצעה עדיין מתאימה לך?",
+      "reOfferedToFirstPartyOther": "ההצעה נשלחה מחדש לצד הראשון לאישור.",
       "awaitingMatchmakerApproval": "שני הצדדים אישרו - השדכן/ית יאשר שיתוף פרטים",
       "contactDetailsShared": "פרטי הקשר של שניכם נשלחו - זמן ליצור קשר!",
       "awaitingFirstDateFeedback": "כיף שנפגשתם! נשמח לשמוע איך עבר",
@@ -158,7 +167,20 @@
       "firstPartyInterestedUser": "ההצעה שמורה ברשימת ההמתנה שלך. תוכל/י לאשר אותה כשתסיים/י את התהליך הנוכחי."
     },
     "partyIndicators": {
-      "interestedSaved": "שמור/ה לגיבוי"
+      "interestedSaved": "שמור/ה לגיבוי",
+      "onHold": "בהמתנה",
+      "youNotAvailable": "לא זמין/ה",
+      "reOffered": "ההצעה חזרה!",
+      "waitingFirstPartyAgain": "ממתין לצד ראשון"
+    },
+    "status": {
+      "secondPartyNotAvailable": {
+        "title": "ההצעה בהמתנה",
+        "description": "הצד השני לא זמין כרגע. ההצעה תחזור כשיהיה זמין. בינתיים, תוכל/י לאשר הצעות אחרות."
+      },
+      "reOffered": {
+        "description": "הצד השני חזר להיות זמין ואישר! האם ההצעה עדיין רלוונטית עבורך?"
+      }
     }
   },
   "modal": {
@@ -530,7 +552,6 @@
       "currentStatus": "סטטוס נוכחי"
     },
     "statuses": {
-      
       "DRAFT": {
         "label": "טיוטה",
         "description": "ההצעה בהכנה על ידי השדכן."
@@ -548,9 +569,9 @@
         "description": "הצד הראשון בחר לדחות את ההצעה."
       },
       "FIRST_PARTY_INTERESTED": {
-  "label": "נשמר לגיבוי",
-  "description": "שמרת את ההצעה הזו ברשימת ההמתנה שלך לשיקול מאוחר יותר."
-},
+        "label": "נשמר לגיבוי",
+        "description": "שמרת את ההצעה הזו ברשימת ההמתנה שלך לשיקול מאוחר יותר."
+      },
       "PENDING_SECOND_PARTY": {
         "label": "ממתין לצד ב'",
         "description": "ההצעה נשלחה וממתינה לאישור מהצד השני."
@@ -562,6 +583,14 @@
       "SECOND_PARTY_DECLINED": {
         "label": "צד ב' דחה",
         "description": "הצד השני בחר לדחות את ההצעה."
+      },
+      "SECOND_PARTY_NOT_AVAILABLE": {
+        "label": "צד ב' לא זמין",
+        "description": "הצד השני לא זמין כרגע. ההצעה בהמתנה ותחזור כשיהיה זמין."
+      },
+      "RE_OFFERED_TO_FIRST_PARTY": {
+        "label": "הוצעה מחדש לצד א'",
+        "description": "הצד השני חזר להיות זמין ואישר. ההצעה נשלחה מחדש לצד הראשון לאישור."
       },
       "AWAITING_MATCHMAKER_APPROVAL": {
         "label": "ממתין לשדכן",

@@ -110,11 +110,16 @@
         "educationLevel": "Education: {{level}}",
         "city": "City: {{city}}",
         "occupation": "Occupation: {{occupation}}",
-        "availability": {
-          "AVAILABLE": "Available",
-          "DATING": "Dating",
-          "UNAVAILABLE": "Unavailable"
-        },
+       "availability": {
+  "AVAILABLE": "Available",
+  "DATING": "Dating",
+  "UNAVAILABLE": "Unavailable",
+  "PAUSED": "Paused",
+  "ENGAGED": "Engaged",
+  "MARRIED": "Married",
+  "SECOND_PARTY_NOT_AVAILABLE": "Second Party Unavailable",
+  "RE_OFFERED_TO_FIRST_PARTY": "Re-offered to First Party"
+},
         "status": "Status: {{status}}",
         "maritalStatus": "Marital Status: {{status}}",
         "verifiedOnly": "Verified Only",
@@ -893,6 +898,8 @@
       "PENDING_SECOND_PARTY": "Pending Second Party",
       "SECOND_PARTY_APPROVED": "Second Party Approved",
       "SECOND_PARTY_DECLINED": "Second Party Declined",
+      "SECOND_PARTY_NOT_AVAILABLE": "Second Party Unavailable",
+      "RE_OFFERED_TO_FIRST_PARTY": "Awaiting Re-approval",
       "AWAITING_MATCHMAKER_APPROVAL": "Awaiting Matchmaker Approval",
       "CONTACT_DETAILS_SHARED": "Contact Details Shared",
       "AWAITING_FIRST_DATE_FEEDBACK": "Awaiting First Date Feedback",
@@ -960,6 +967,8 @@
           "FIRST_PARTY_INTERESTED": "Saved for Later",
 
           "SECOND_PARTY_APPROVED": "Party B Approved",
+          "SECOND_PARTY_NOT_AVAILABLE": "Party B Unavailable",
+          "RE_OFFERED_TO_FIRST_PARTY": "Re-approval from Party A",
           "CONTACT_DETAILS_SHARED": "Contacts Shared",
           "DATING": "Dating"
         },
@@ -1291,8 +1300,9 @@
           "PENDING_SECOND_PARTY": "Pending Party B",
           "FIRST_PARTY_APPROVED": "Party A Approved",
           "FIRST_PARTY_INTERESTED": "Saved for Later",
-
-          "SECOND_PARTY_APPROVED": "Party B Approved",
+"SECOND_PARTY_APPROVED": "Party B Approved",
+          "SECOND_PARTY_NOT_AVAILABLE": "Party B Not Available",
+          "RE_OFFERED_TO_FIRST_PARTY": "Re-approval from Party A",
           "DATING": "Dating"
         },
         "participantOptions": {
@@ -1355,6 +1365,16 @@
           "label": "Party B Declined",
           "shortLabel": "B Declined",
           "description": "The second party has declined the suggestion."
+        },
+        "SECOND_PARTY_NOT_AVAILABLE": {
+          "label": "Party B Unavailable",
+          "shortLabel": "Unavailable",
+          "description": "The second party is not available right now. Suggestion is on hold."
+        },
+        "RE_OFFERED_TO_FIRST_PARTY": {
+          "label": "Awaiting Re-approval",
+          "shortLabel": "Re-approval",
+          "description": "Party B is available again and approved. Awaiting Party A's re-confirmation."
         },
         "CONTACT_DETAILS_SHARED": {
           "label": "Contact Details Shared",
@@ -1529,6 +1549,8 @@
         "PENDING_SECOND_PARTY": "Pending Party B",
         "SECOND_PARTY_APPROVED": "Party B Approved",
         "SECOND_PARTY_DECLINED": "Party B Declined",
+        "SECOND_PARTY_NOT_AVAILABLE": "Party B Not Available",
+        "RE_OFFERED_TO_FIRST_PARTY": "Awaiting Re-approval from Party A",
         "AWAITING_MATCHMAKER_APPROVAL": "Awaiting Matchmaker Approval",
         "CONTACT_DETAILS_SHARED": "Contact Details Shared",
         "AWAITING_FIRST_DATE_FEEDBACK": "Awaiting First Date Feedback",
@@ -1927,6 +1949,8 @@
       "PENDING_SECOND_PARTY": "Pending Party B",
       "SECOND_PARTY_APPROVED": "Party B Approved",
       "SECOND_PARTY_DECLINED": "Party B Declined",
+      "SECOND_PARTY_NOT_AVAILABLE": "Party B Not Available",
+      "RE_OFFERED_TO_FIRST_PARTY": "Awaiting Re-approval from Party A",
       "AWAITING_MATCHMAKER_APPROVAL": "Awaiting Matchmaker Approval",
       "CONTACT_DETAILS_SHARED": "Contact Details Shared",
       "AWAITING_FIRST_DATE_FEEDBACK": "Awaiting Date Feedback",
@@ -1982,6 +2006,8 @@
       "statusLabels": {
         "PENDING_FIRST_PARTY": "Pending Party A",
         "PENDING_SECOND_PARTY": "Pending Party B",
+        "SECOND_PARTY_NOT_AVAILABLE": "Party B Unavailable",
+        "RE_OFFERED_TO_FIRST_PARTY": "Awaiting Re-approval",
         "FIRST_PARTY_APPROVED": "Party A Approved",
         "SECOND_PARTY_APPROVED": "Party B Approved",
         "CONTACT_DETAILS_SHARED": "Contact Details Shared",

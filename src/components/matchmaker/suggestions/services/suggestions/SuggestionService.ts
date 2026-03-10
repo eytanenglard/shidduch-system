@@ -337,6 +337,17 @@ if (suggestion.matchmakerId !== matchmakerId) {
             throw new Error("Only second party (or matchmaker) can approve/decline at this stage");
         }
         break;
+
+      case MatchSuggestionStatus.SECOND_PARTY_NOT_AVAILABLE:
+        if (!isSecondParty && !isMatchmaker) {
+          throw new Error("Only second party or matchmaker can set not available");
+        }
+        break;
+
+      case MatchSuggestionStatus.RE_OFFERED_TO_FIRST_PARTY:
+        // המעבר לסטטוס RE_OFFERED_TO_FIRST_PARTY עצמו — רק שדכן
+        // צד א' יכול לאשר/לדחות אחרי שכבר נמצא בסטטוס הזה
+        break; // falls to default matchmaker check
       
       default:
         if (!isMatchmaker) {

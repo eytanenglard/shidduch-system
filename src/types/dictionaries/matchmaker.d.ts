@@ -87,11 +87,16 @@ type ActiveFiltersDict = {
     educationLevel: string;
     city: string;
     occupation: string;
-    availability: { // הוספנו אובייקט לתרגום סטטוסים
-      AVAILABLE: string;
-      DATING: string;
-      UNAVAILABLE: string;
-    };
+   availability: {
+  AVAILABLE: string;
+  DATING: string;
+  UNAVAILABLE: string;
+  PAUSED: string;
+  ENGAGED: string;
+  MARRIED: string;
+  SECOND_PARTY_NOT_AVAILABLE: string;
+  RE_OFFERED_TO_FIRST_PARTY: string;
+};
     status: string; // e.g. "Status: {{status}}"
     maritalStatus: string;
     verifiedOnly: string;
@@ -476,6 +481,8 @@ export type MatchmakerPageDictionary = {
         CONTACT_DETAILS_SHARED: string;
         DATING: string;
         AWAITING_FIRST_DATE_FEEDBACK: string;
+        SECOND_PARTY_NOT_AVAILABLE: string;    // ← NEW
+        RE_OFFERED_TO_FIRST_PARTY: string;     // ← NEW
       };
     };
   };

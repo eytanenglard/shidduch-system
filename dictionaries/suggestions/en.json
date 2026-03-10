@@ -57,7 +57,11 @@
       "interestedSuccessDesc": "The introduction has been added to your waitlist. You can approve it at any time.",
       "activateSuccess": "Introduction Approved!",
       "activateSuccessDesc": "The introduction will now be forwarded to the matchmaker.",
-      "removeFromListSuccess": "Introduction removed from waitlist"
+      "removeFromListSuccess": "Introduction removed from waitlist",
+      "reApprovedSuccess": "You've re-approved the introduction!",
+      "reApprovedDesc": "The introduction has been sent to the matchmaker for approval.",
+      "availableAgainSuccess": "Updated successfully!",
+      "availableAgainDesc": "The introduction is back and waiting for your response."
     },
     "dailySuggestion": {
       "badge": "✨ Daily Match",
@@ -84,8 +88,7 @@
     }
   },
   "card": {
-       "activeProcessExplanation":"You already have an active suggestion. This one will be saved to your waitlist and you can approve it when the current process ends."
-,
+    "activeProcessExplanation": "You already have an active suggestion. This one will be saved to your waitlist and you can approve it when the current process ends.",
     "toasts": {
       "approveDisabledTitle": "Cannot Approve New Match",
       "approveDisabledDescription": "You already have an active process with another suggestion.",
@@ -104,11 +107,11 @@
       "approve": "I'd like to learn more",
       "approveDisabledTooltip": "You cannot approve a new introduction while another is in an active process.",
       "interested": "Save for Later",
-         
       "activateNow": "Approve Now",
       "removeFromList": "Remove from List",
       "askMatchmaker": "Ask Your Matchmaker",
-      "viewDetails": "View Details"
+      "viewDetails": "View Details",
+      "imAvailableNow": "I'm available now"
     },
     "statusIndicator": {
       "yourTurn": "Your Turn!",
@@ -120,7 +123,11 @@
     },
     "statusLabels": {
       "interested": "Saved for Later",
-     "pending": "Pending"
+      "pending": "Pending",
+      "onHold": "On hold",
+      "youNotAvailable": "Not available",
+      "reOffered": "Back for you!",
+      "waitingFirstPartyAgain": "Re-approval"
     },
     "statusDescriptions": {
       "draft": "The matchmaker is preparing the suggestion.",
@@ -136,6 +143,10 @@
       "secondPartyApprovedOther": "You approved the suggestion! You will both receive contact details soon.",
       "secondPartyDeclinedUser": "The other party decided the suggestion was not a good fit.",
       "secondPartyDeclinedOther": "You declined the suggestion - thank you for the honest feedback.",
+      "secondPartyNotAvailableUser": "The other side is not available right now. The suggestion will resume when they are. In the meantime, you can approve other suggestions.",
+      "secondPartyNotAvailableOther": "You marked yourself as not available. When you're ready, the suggestion will be waiting.",
+      "reOfferedToFirstPartyUser": "The other side is now available and approved! Is this still relevant for you?",
+      "reOfferedToFirstPartyOther": "The suggestion has been re-sent to the first party for approval.",
       "awaitingMatchmakerApproval": "Both parties have approved - the matchmaker will confirm the sharing of details.",
       "contactDetailsShared": "Your contact details have been shared - it's time to get in touch!",
       "awaitingFirstDateFeedback": "Great that you met! We'd love to hear how it went.",
@@ -155,7 +166,20 @@
       "interestedFirstParty": "This introduction is saved on your waitlist. You can approve it once your current process concludes."
     },
     "partyIndicators": {
-      "interestedSaved": "Saved for Later"
+      "interestedSaved": "Saved for Later",
+      "onHold": "On hold",
+      "youNotAvailable": "Not available",
+      "reOffered": "Suggestion is back!",
+      "waitingFirstPartyAgain": "Waiting for first party"
+    },
+    "status": {
+      "secondPartyNotAvailable": {
+        "title": "Suggestion on hold",
+        "description": "The other side isn't available right now. The suggestion will resume when they are. You can approve other suggestions in the meantime."
+      },
+      "reOffered": {
+        "description": "The other side is now available and approved! Is this still relevant for you?"
+      }
     }
   },
   "modal": {
@@ -544,9 +568,9 @@
         "description": "You declined this introduction."
       },
       "FIRST_PARTY_INTERESTED": {
-  "label": "Saved for Later",
-  "description": "You saved this introduction to your waitlist for later consideration."
-},
+        "label": "Saved for Later",
+        "description": "You saved this introduction to your waitlist for later consideration."
+      },
       "PENDING_SECOND_PARTY": {
         "label": "Pending Other Party",
         "description": "The introduction is awaiting review from the other party."
@@ -558,6 +582,14 @@
       "SECOND_PARTY_DECLINED": {
         "label": "They Declined",
         "description": "The other party declined this introduction."
+      },
+      "SECOND_PARTY_NOT_AVAILABLE": {
+        "label": "Other Party Unavailable",
+        "description": "The other party is not available right now. The introduction is on hold and will resume when they are."
+      },
+      "RE_OFFERED_TO_FIRST_PARTY": {
+        "label": "Re-offered to You",
+        "description": "The other party is available again and approved. The introduction has been re-sent for your confirmation."
       },
       "AWAITING_MATCHMAKER_APPROVAL": {
         "label": "Awaiting Matchmaker",

@@ -19,7 +19,9 @@ import {
   AlertTriangle,
   FileX,
   Ban,
-  Bookmark
+  Bookmark,
+  Pause,
+  RefreshCw
 } from "lucide-react";
 
 export interface StatusWithPartyInfo {
@@ -128,6 +130,28 @@ export function getEnhancedStatusInfo(
       category: "pending"
     },
 
+    // ═══════════════════════════════════════════════════════════════
+    // ✅ NEW: Second Party Not Available — Amber/Orange (On Hold)
+    // ═══════════════════════════════════════════════════════════════
+    SECOND_PARTY_NOT_AVAILABLE: {
+      label: isFirstParty
+        ? "ההצעה בהמתנה - לא רלוונטי כרגע"
+        : "סימנת כלא זמין/ה",
+      shortLabel: isFirstParty
+        ? (dict.statusLabels?.onHold || "בהמתנה")
+        : (dict.statusLabels?.youNotAvailable || "לא זמין/ה"),
+      description: isFirstParty
+        ? (dict.statusDescriptions?.secondPartyNotAvailableUser ||
+          "הצד השני לא זמין כרגע. ההצעה תחזור כשיהיה זמין. בינתיים, תוכל/י לאשר הצעות אחרות.")
+        : (dict.statusDescriptions?.secondPartyNotAvailableOther ||
+          "סימנת שאת/ה לא זמין/ה כרגע. כשתחזור/י — ההצעה תחכה לך."),
+      currentParty: isFirstParty ? "none" : "second",
+      icon: Pause,
+      className: "bg-gradient-to-r from-amber-50 to-orange-50 text-amber-700 border-amber-200",
+      pulse: false,
+      category: "pending"
+    },
+
     // --- Second Party Approved: Teal/Emerald (Success) ---
     SECOND_PARTY_APPROVED: {
       label: isFirstParty ? "הצד השני אישר!" : "אישרת את ההצעה!",
@@ -154,6 +178,30 @@ export function getEnhancedStatusInfo(
       className: "bg-gradient-to-r from-rose-50 to-red-50 text-rose-700 border-rose-200",
       pulse: false,
       category: "declined"
+    },
+
+    // ═══════════════════════════════════════════════════════════════
+    // ✅ NEW: Re-Offered to First Party — Blue (Re-ask)
+    // ═══════════════════════════════════════════════════════════════
+    RE_OFFERED_TO_FIRST_PARTY: {
+      label: isFirstParty
+        ? "ההצעה חזרה אליך!"
+        : "ממתין לאישור מחדש מצד ראשון",
+      shortLabel: isFirstParty
+        ? (dict.statusLabels?.reOffered || "ההצעה חזרה!")
+        : (dict.statusLabels?.waitingFirstPartyAgain || "אישור מחדש"),
+      description: isFirstParty
+        ? (dict.statusDescriptions?.reOfferedToFirstPartyUser ||
+          "הצד השני חזר להיות זמין ואישר! האם ההצעה עדיין מתאימה לך?")
+        : (dict.statusDescriptions?.reOfferedToFirstPartyOther ||
+          "ההצעה נשלחה מחדש לצד הראשון לאישור."),
+      currentParty: "first",
+      icon: RefreshCw,
+      className: isFirstParty
+        ? "bg-gradient-to-r from-blue-50 to-indigo-50 text-blue-700 border-blue-200"
+        : "bg-gradient-to-r from-gray-50 to-slate-50 text-gray-600 border-gray-200",
+      pulse: isFirstParty,
+      category: "pending"
     },
 
     // --- Awaiting Matchmaker: Teal (Matchmaker Action) ---
@@ -378,6 +426,33 @@ export function getPartyIndicator(
       show: false,
       text: "",
       className: ""
+    };
+  }
+
+  // ✅ NEW: Special handling for SECOND_PARTY_NOT_AVAILABLE
+  if (status === "SECOND_PARTY_NOT_AVAILABLE") {
+    return {
+      show: true,
+      text: isFirstParty
+        ? (dict.partyIndicators?.onHold || "בהמתנה")
+        : (dict.partyIndicators?.youNotAvailable || "לא זמין/ה"),
+      className: "bg-amber-500 text-white"
+    };
+  }
+
+  // ✅ NEW: Special handling for RE_OFFERED_TO_FIRST_PARTY
+  if (status === "RE_OFFERED_TO_FIRST_PARTY") {
+    if (isFirstParty) {
+      return {
+        show: true,
+        text: dict.partyIndicators?.reOffered || "ההצעה חזרה!",
+        className: "bg-blue-500 text-white"
+      };
+    }
+    return {
+      show: true,
+      text: dict.partyIndicators?.waitingFirstPartyAgain || "ממתין לצד ראשון",
+      className: "bg-gray-400 text-white"
     };
   }
 

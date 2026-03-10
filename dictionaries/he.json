@@ -610,7 +610,9 @@
     "notificationCard": {
       "matchmakerPrefix": "הצעה מהשדכן/ית",
       "suggestionWith": "עם {{name}}",
-      "viewDetails": "צפה בפרטים"
+      "viewDetails": "צפה בפרטים",
+        "imAvailableNow": "חזרתי להיות זמין/ה"
+
     },
     "badges": {
       "match": "התאמה!"
