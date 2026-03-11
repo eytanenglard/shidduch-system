@@ -19,7 +19,9 @@ type SuggestionActionType =
   | 'delete'
   | 'resend'
   | 'changeStatus'
-  | 'reminder';
+  | 'reminder'
+  | 'hideFirstParty'  // ← הוסף את הסוג החסר
+  | 'hideSecondParty';  // ← הוסף גם את זה
 
 interface ManagerSuggestionsListProps {
   suggestions: Suggestion[];
@@ -124,14 +126,14 @@ const ManagerSuggestionsList: React.FC<ManagerSuggestionsListProps> = ({
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         {filteredSuggestions.map((suggestion) => {
           if (!suggestion.firstParty || !suggestion.secondParty) {
-            return null; // Safety check for corrupted data
+            return null;
           }
           return (
             <SuggestionCard
               key={suggestion.id}
               suggestion={suggestion}
-              onAction={(type, suggestionData, additionalData) =>
-                onAction(type, {
+              onAction={(actionType, suggestionData, additionalData) =>
+                onAction(actionType, {
                   suggestion: suggestionData,
                   ...additionalData,
                 })
