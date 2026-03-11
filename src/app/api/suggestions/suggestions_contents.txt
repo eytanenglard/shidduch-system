@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\suggestions
-# Generated on: 2026-03-10 08:46:41
+# Generated on: 2026-03-11 21:53:40
 # Filter: Only content of code files (.bat, .c, .cfg, .conf, .cpp, .cs, .css, .go, .h, .html, .ini, .java, .js, .json, .jsx, .kt, .less, .md, .php, .py, .rb, .rs, .scss, .sh, .sql, .swift, .ts, .tsx, .txt, .xml, .yaml, .yml) is included.
 ################################################################################
 
@@ -983,7 +983,9 @@ export async function PATCH(
         case "PENDING_FIRST_PARTY":
         case "PENDING_SECOND_PARTY":
         case "FIRST_PARTY_INTERESTED": // INTERESTED stays in PENDING
-          return "PENDING";
+          case "SECOND_PARTY_NOT_AVAILABLE":    // ← NEW
+    case "RE_OFFERED_TO_FIRST_PARTY":     // ← NEW  
+        return "PENDING";
         
         case "FIRST_PARTY_DECLINED":
         case "SECOND_PARTY_DECLINED":

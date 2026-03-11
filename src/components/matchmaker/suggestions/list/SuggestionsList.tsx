@@ -114,13 +114,16 @@ interface SuggestionsListProps {
       | 'delete'
       | 'resend'
       | 'changeStatus'
-      | 'reminder',
+      | 'reminder'
+      | 'hideFirstParty'
+      | 'hideSecondParty',
     suggestion: Suggestion,
     additionalData?: ActionAdditionalData
   ) => void;
   className?: string;
   dict: MatchmakerPageDictionary['suggestionsDashboard'];
   isMobile?: boolean;
+  hiddenCandidateIds?: Set<string>;
 }
 
 const EnhancedListStats: React.FC<{
@@ -399,6 +402,7 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
   className,
   dict: dashboardDict,
   isMobile = false,
+  hiddenCandidateIds = new Set(),
 }) => {
   const dict = dashboardDict.suggestionsList;
   const [searchQuery, setSearchQuery] = useState('');
@@ -424,6 +428,15 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
 
   const filteredSuggestions = useMemo(() => {
     let result = [...suggestions];
+
+    // סינון לפי מועמדים מוסתרים
+    if (hiddenCandidateIds.size > 0) {
+      result = result.filter(
+        (s) =>
+          !hiddenCandidateIds.has(s.firstParty.id) &&
+          !hiddenCandidateIds.has(s.secondParty.id)
+      );
+    }
 
     if (statusFilter.length > 0) {
       result = result.filter((s) => statusFilter.includes(s.status));
@@ -473,7 +486,7 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
     }
 
     return result;
-  }, [suggestions, searchQuery, sortBy, statusFilter]);
+  }, [suggestions, searchQuery, sortBy, statusFilter, hiddenCandidateIds]);
 
   const isFiltered = searchQuery !== '' || statusFilter.length > 0;
   const clearAllFilters = () => {
@@ -560,6 +573,7 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
                 (suggestion as ExtendedMatchSuggestion).unreadChatCount || 0
               }
               isMobile={isMobile}
+              hiddenCandidateIds={hiddenCandidateIds}
             />
           ))}
         </div>

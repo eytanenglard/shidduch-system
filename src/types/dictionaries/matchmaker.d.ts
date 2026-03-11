@@ -1186,15 +1186,19 @@ type SuggestionCardDict = {
       secondParty: string;
     };
   };
-  actions: {
-    changeStatus: string;
-    selectNewStatus: string;
-    edit: string;
-    sendMessage: string;
-    delete: string;
-    resend: string;
-    viewDetails: string;
-  };
+// בקובץ הטיפוסים שלך (למשל types/dictionary.ts או types/matchmaker.ts)
+
+actions: {
+  changeStatus: string;
+  selectNewStatus: string;
+  edit: string;
+  sendMessage: string;
+  delete: string;
+  resend: string;
+  viewDetails: string;
+  hideCandidate: string;      // 🆕 הוסף
+  hideParty: string;          // 🆕 הוסף
+};
   highlights: {
     familyValues: string;
     religiousView: string;

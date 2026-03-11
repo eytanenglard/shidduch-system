@@ -69,7 +69,6 @@ export class StatusTransitionService {
           ...(newStatus === MatchSuggestionStatus.SECOND_PARTY_APPROVED && { secondPartyResponded: new Date() }),
           ...(newStatus === MatchSuggestionStatus.CONTACT_DETAILS_SHARED && { closedAt: new Date() }),
           ...(newStatus === MatchSuggestionStatus.MEETING_SCHEDULED && { firstMeetingScheduled: new Date() }),
-          // ← NEW timestamps
           ...(newStatus === MatchSuggestionStatus.SECOND_PARTY_NOT_AVAILABLE && { secondPartyResponded: new Date() }),
           ...(newStatus === MatchSuggestionStatus.RE_OFFERED_TO_FIRST_PARTY && { firstPartySent: new Date() }),
         },
@@ -91,7 +90,6 @@ export class StatusTransitionService {
       return updated;
     });
 
-    // Email + WhatsApp notifications (existing)
     if (mergedOptions.sendNotifications) {
       try {
         await notificationService.handleSuggestionStatusChange(
@@ -110,13 +108,9 @@ export class StatusTransitionService {
         console.error('Error sending status transition notifications:', error);
       }
 
-      // =====================================================
-      // ✅ Push Notifications לפלאפון
-      // =====================================================
       try {
         await this.sendPushForStatusChange(updatedSuggestion, newStatus);
       } catch (pushError) {
-        // Don't fail the transition if push fails
         console.error('[push] Error in status change push (non-fatal):', pushError);
       }
     }
@@ -161,6 +155,15 @@ export class StatusTransitionService {
         });
         break;
 
+      // ── צד ראשון שמר לגיבוי → עדכון לשדכן ──
+      case MatchSuggestionStatus.FIRST_PARTY_INTERESTED:
+        await notifyStatusChange({
+          userId: suggestion.matchmakerId,
+          suggestionId: suggestion.id,
+          statusMessage: `${suggestion.firstParty.firstName} ${suggestion.firstParty.lastName} שמר/ה את ההצעה לגיבוי ⭐`,
+        });
+        break;
+
       // ── צד שני אישר → עדכון לשדכן ──
       case MatchSuggestionStatus.SECOND_PARTY_APPROVED:
         await notifyStatusChange({
@@ -179,7 +182,7 @@ export class StatusTransitionService {
         });
         break;
 
-      // ── צד שני לא זמין → עדכון לשדכן ── ← NEW
+      // ── צד שני לא זמין → עדכון לשדכן ──
       case MatchSuggestionStatus.SECOND_PARTY_NOT_AVAILABLE:
         await notifyStatusChange({
           userId: suggestion.matchmakerId,
@@ -188,7 +191,7 @@ export class StatusTransitionService {
         });
         break;
 
-      // ── הצעה חזרה לצד א' מחדש → push לצד א' ── ← NEW
+      // ── הצעה חזרה לצד א' מחדש → push לצד א' ──
       case MatchSuggestionStatus.RE_OFFERED_TO_FIRST_PARTY:
         await notifyNewSuggestion({
           userId: suggestion.firstPartyId,
@@ -273,23 +276,23 @@ export class StatusTransitionService {
       PENDING_SECOND_PARTY: [
         MatchSuggestionStatus.SECOND_PARTY_APPROVED,
         MatchSuggestionStatus.SECOND_PARTY_DECLINED,
-        MatchSuggestionStatus.SECOND_PARTY_NOT_AVAILABLE,  // ← NEW
+        MatchSuggestionStatus.SECOND_PARTY_NOT_AVAILABLE,
         MatchSuggestionStatus.CANCELLED
       ],
-      SECOND_PARTY_NOT_AVAILABLE: [                        // ← NEW ENTRY
-        MatchSuggestionStatus.PENDING_SECOND_PARTY,        // צד ב' חזר להיות זמין
+      SECOND_PARTY_NOT_AVAILABLE: [
+        MatchSuggestionStatus.PENDING_SECOND_PARTY,
         MatchSuggestionStatus.CANCELLED,
         MatchSuggestionStatus.CLOSED
       ],
       SECOND_PARTY_APPROVED: [
         MatchSuggestionStatus.CONTACT_DETAILS_SHARED,
-        MatchSuggestionStatus.RE_OFFERED_TO_FIRST_PARTY,   // ← NEW: כשצד ב' אישר אחרי שלא היה זמין
+        MatchSuggestionStatus.RE_OFFERED_TO_FIRST_PARTY,
         MatchSuggestionStatus.CANCELLED
       ],
-      RE_OFFERED_TO_FIRST_PARTY: [                         // ← NEW ENTRY
-        MatchSuggestionStatus.FIRST_PARTY_APPROVED,        // צד א' מאשר מחדש
-        MatchSuggestionStatus.AWAITING_MATCHMAKER_APPROVAL, // צד א' מאשר (אפשר גם ישירות)
-        MatchSuggestionStatus.FIRST_PARTY_DECLINED,        // צד א' דוחה
+      RE_OFFERED_TO_FIRST_PARTY: [
+        MatchSuggestionStatus.FIRST_PARTY_APPROVED,
+        MatchSuggestionStatus.AWAITING_MATCHMAKER_APPROVAL,
+        MatchSuggestionStatus.FIRST_PARTY_DECLINED,
         MatchSuggestionStatus.CANCELLED
       ],
       SECOND_PARTY_DECLINED: [
@@ -370,8 +373,8 @@ export class StatusTransitionService {
       FIRST_PARTY_INTERESTED: "הצד הראשון שמר לגיבוי",
       PENDING_SECOND_PARTY: "ממתין לתשובת הצד השני",
       SECOND_PARTY_APPROVED: "הצד השני אישר",
-      SECOND_PARTY_NOT_AVAILABLE: "הצד השני לא זמין כרגע",           // ← NEW
-      RE_OFFERED_TO_FIRST_PARTY: "ממתין לאישור מחדש מצד ראשון",     // ← NEW
+      SECOND_PARTY_NOT_AVAILABLE: "הצד השני לא זמין כרגע",
+      RE_OFFERED_TO_FIRST_PARTY: "ממתין לאישור מחדש מצד ראשון",
       SECOND_PARTY_DECLINED: "הצד השני דחה",
       AWAITING_MATCHMAKER_APPROVAL: "ממתין לאישור השדכן",
       CONTACT_DETAILS_SHARED: "פרטי קשר שותפו",
@@ -441,7 +444,6 @@ export class StatusTransitionService {
         ],
         matchmaker: [{ id: "cancel", label: "ביטול ההצעה", nextStatus: MatchSuggestionStatus.CANCELLED }]
       },
-      // ← NEW: SECOND_PARTY_NOT_AVAILABLE actions
       SECOND_PARTY_NOT_AVAILABLE: {
         secondParty: [
           { id: "now-available", label: "חזרתי להיות זמין/ה", nextStatus: MatchSuggestionStatus.PENDING_SECOND_PARTY }
@@ -452,15 +454,13 @@ export class StatusTransitionService {
           { id: "cancel", label: "ביטול ההצעה", nextStatus: MatchSuggestionStatus.CANCELLED }
         ]
       },
-      // ← UPDATED: SECOND_PARTY_APPROVED with re-offer option
       SECOND_PARTY_APPROVED: {
         matchmaker: [
           { id: "share-contacts", label: "שיתוף פרטי קשר", nextStatus: MatchSuggestionStatus.CONTACT_DETAILS_SHARED },
-          { id: "re-offer-first", label: "שליחה מחדש לצד ראשון", nextStatus: MatchSuggestionStatus.RE_OFFERED_TO_FIRST_PARTY },  // ← NEW
+          { id: "re-offer-first", label: "שליחה מחדש לצד ראשון", nextStatus: MatchSuggestionStatus.RE_OFFERED_TO_FIRST_PARTY },
           { id: "cancel", label: "ביטול ההצעה", nextStatus: MatchSuggestionStatus.CANCELLED }
         ]
       },
-      // ← NEW: RE_OFFERED_TO_FIRST_PARTY actions
       RE_OFFERED_TO_FIRST_PARTY: {
         firstParty: [
           { id: "approve", label: "אישור ההצעה", nextStatus: MatchSuggestionStatus.AWAITING_MATCHMAKER_APPROVAL },

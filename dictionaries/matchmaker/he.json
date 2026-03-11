@@ -1466,15 +1466,17 @@
     "secondParty": "צד ב׳"
   }
 },
-      "actions": {
-           "changeStatus": "שנה סטטוס",
-    "selectNewStatus": "בחר סטטוס חדש",
-        "edit": "ערוך הצעה",
-        "sendMessage": "הודעה",
-        "delete": "מחק הצעה",
-        "resend": "שלח מחדש",
-        "viewDetails": "פרטים"
-      },
+     "actions": {
+  "changeStatus": "שנה סטטוס",
+  "selectNewStatus": "בחר סטטוס חדש",
+  "edit": "ערוך הצעה",
+  "sendMessage": "הודעה",
+  "delete": "מחק הצעה",
+  "resend": "שלח מחדש",
+  "viewDetails": "פרטים",
+  "hideCandidate": "הסתר מועמד/ת",
+  "hideParty": "הסתר את {{name}}"
+},
    "highlights": {
   "familyValues": "ערכים משפחתיים דומים",
   "religiousView": "השקפה דתית תואמת",

@@ -1,6 +1,7 @@
 // src/app/api/mobile/suggestions/[id]/respond/route.ts
 // תגובה להצעת שידוך - למובייל
 // UPDATED: Added 'interested' response type for "save for later"
+// UPDATED: Added push notification to matchmaker on response
 
 import { NextRequest } from "next/server";
 import prisma from "@/lib/prisma";
@@ -11,6 +12,8 @@ import {
   corsOptions,
 } from "@/lib/mobile-auth";
 import type { MatchSuggestionStatus } from "@prisma/client";
+// ✅ NEW: Import push notification for matchmaker
+import { pushSuggestionStatusToMatchmaker } from '@/lib/sendPushNotification';
 
 export async function OPTIONS(req: NextRequest) {
   return corsOptions(req);
@@ -326,6 +329,76 @@ if (response === "interested") {
     console.log(
       `[mobile/suggestions/${suggestionId}/respond] User ${userId} responded: ${response}, new status: ${newStatus}`
     );
+
+    // =====================================================
+    // ✅ NEW: Push notification to matchmaker
+    // =====================================================
+    try {
+      const respondingUser = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { firstName: true, lastName: true },
+      });
+      const userName = respondingUser
+        ? `${respondingUser.firstName} ${respondingUser.lastName}`
+        : 'מועמד/ת';
+
+      // Send push to matchmaker about the user's response
+      pushSuggestionStatusToMatchmaker(
+        suggestion.matchmakerId,
+        userName,
+        newStatus,
+        suggestionId
+      ).catch((err) =>
+        console.error('[mobile/respond] Push to matchmaker error (non-fatal):', err)
+      );
+
+      // If contacts were auto-shared (SECOND_PARTY_APPROVED → CONTACT_DETAILS_SHARED),
+      // also notify both parties
+      if (
+        updatedSuggestion.status === 'CONTACT_DETAILS_SHARED' ||
+        (newStatus === 'SECOND_PARTY_APPROVED' && updatedSuggestion.status !== newStatus)
+      ) {
+        const { pushContactsShared } = await import('@/lib/sendPushNotification');
+        const matchmaker = await prisma.user.findUnique({
+          where: { id: suggestion.matchmakerId },
+          select: { firstName: true, lastName: true },
+        });
+        const matchmakerName = matchmaker
+          ? `${matchmaker.firstName} ${matchmaker.lastName}`
+          : 'השדכן/ית';
+
+        // Notify first party
+        const secondPartyUser = await prisma.user.findUnique({
+          where: { id: suggestion.secondPartyId },
+          select: { firstName: true, phone: true },
+        });
+        const firstPartyUser = await prisma.user.findUnique({
+          where: { id: suggestion.firstPartyId },
+          select: { firstName: true, phone: true },
+        });
+
+        if (secondPartyUser && firstPartyUser) {
+          pushContactsShared(
+            suggestion.firstPartyId,
+            matchmakerName,
+            secondPartyUser.firstName,
+            secondPartyUser.phone || '',
+            suggestionId
+          ).catch(console.error);
+
+          pushContactsShared(
+            suggestion.secondPartyId,
+            matchmakerName,
+            firstPartyUser.firstName,
+            firstPartyUser.phone || '',
+            suggestionId
+          ).catch(console.error);
+        }
+      }
+    } catch (pushError) {
+      // Push notifications should never break the main flow
+      console.error('[mobile/respond] Push error (non-fatal):', pushError);
+    }
 
     const messageMap = {
       approve: "ההצעה אושרה בהצלחה",

@@ -131,15 +131,15 @@
     },
     "statusDescriptions": {
       "draft": "The matchmaker is preparing the suggestion.",
-      "pendingFirstPartyUser": "The suggestion awaits your decision - please approve or decline.",
+"pendingFirstPartyUser": "The suggestion awaits your decision - approve, decline, or save to backup.",
       "pendingFirstPartyOther": "The matchmaker has sent the suggestion to the first party and is awaiting a response.",
       "firstPartyApprovedUser": "You approved the suggestion - it will now be sent to the other party.",
       "firstPartyApprovedOther": "The first party enthusiastically approved the suggestion.",
       "firstPartyDeclinedUser": "You declined the suggestion - thank you for the honest feedback.",
       "firstPartyDeclinedOther": "The first party decided the suggestion was not a good fit.",
       "pendingSecondPartyUser": "The other party is reviewing the suggestion - we'll update you when we have feedback.",
-      "pendingSecondPartyOther": "The suggestion awaits your decision - please approve or decline.",
-      "secondPartyApprovedUser": "The other party is also interested! You will receive contact details soon.",
+"pendingSecondPartyOther": "The suggestion awaits your decision - approve, decline, or save to backup."
+,      "secondPartyApprovedUser": "The other party is also interested! You will receive contact details soon.",
       "secondPartyApprovedOther": "You approved the suggestion! You will both receive contact details soon.",
       "secondPartyDeclinedUser": "The other party decided the suggestion was not a good fit.",
       "secondPartyDeclinedOther": "You declined the suggestion - thank you for the honest feedback.",

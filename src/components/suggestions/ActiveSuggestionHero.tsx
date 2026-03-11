@@ -37,9 +37,9 @@ interface StatusConfig {
   descriptionHe: string;
   descriptionEn: string;
   icon: React.ElementType;
-  accentColor: string; // for border, badge bg
-  iconBg: string; // icon container bg
-  badgeClass: string; // badge styling
+  accentColor: string;
+  iconBg: string;
+  badgeClass: string;
   progress: number;
 }
 
@@ -184,6 +184,19 @@ const calculateAge = (dateOfBirth?: Date | string | null): number | null => {
   return age;
 };
 
+/**
+ * Format display name: show full firstName + last initial with dot.
+ * E.g. "בת-חן מ." or "Sarah L."
+ */
+const formatDisplayName = (
+  firstName?: string | null,
+  lastName?: string | null
+): string => {
+  if (!firstName) return '';
+  const lastInitial = lastName ? ` ${lastName.charAt(0)}.` : '';
+  return `${firstName}${lastInitial}`;
+};
+
 // ============================================================
 // Component
 // ============================================================
@@ -223,6 +236,12 @@ const ActiveSuggestionHero: React.FC<ActiveSuggestionHeroProps> = ({
   const age = calculateAge(otherParty?.profile?.birthDate);
   const ChevronIcon = locale === 'he' ? ChevronLeft : ChevronRight;
 
+  // *** FIX: Use formatted display name instead of raw truncated name ***
+  const displayName = formatDisplayName(
+    otherParty?.firstName,
+    otherParty?.lastName
+  );
+
   return (
     <Card
       className={cn(
@@ -258,7 +277,7 @@ const ActiveSuggestionHero: React.FC<ActiveSuggestionHeroProps> = ({
         </div>
 
         {/* Main Row: Avatar + Info + CTA */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3 sm:gap-4">
           {/* Avatar */}
           <div className="relative flex-shrink-0">
             <div className="w-14 h-14 rounded-full overflow-hidden ring-2 ring-gray-100 shadow-sm group-hover:ring-teal-200 transition-all">
@@ -287,11 +306,11 @@ const ActiveSuggestionHero: React.FC<ActiveSuggestionHeroProps> = ({
             </div>
           </div>
 
-          {/* Info */}
+          {/* Info - FIXED: removed truncate, name now wraps properly */}
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2">
-              <h3 className="font-bold text-gray-900 text-base truncate">
-                {otherParty?.firstName} {otherParty?.lastName}
+            <div className="flex items-baseline gap-2 flex-wrap">
+              <h3 className="font-bold text-gray-900 text-base leading-tight">
+                {displayName}
               </h3>
               {age && (
                 <span className="text-sm text-gray-500 flex-shrink-0">
@@ -309,7 +328,7 @@ const ActiveSuggestionHero: React.FC<ActiveSuggestionHeroProps> = ({
                 <span className="text-gray-300">•</span>
               )}
               {otherParty?.profile?.occupation && (
-                <span className="text-xs text-gray-500 truncate max-w-[120px]">
+                <span className="text-xs text-gray-500 truncate max-w-[140px]">
                   💼 {otherParty.profile.occupation}
                 </span>
               )}

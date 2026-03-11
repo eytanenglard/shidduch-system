@@ -1466,15 +1466,17 @@
     "secondParty": "Party B"
   }
 },
-      "actions": {
-         "changeStatus": "Change Status",
-    "selectNewStatus": "Select new status",
-        "edit": "Edit Suggestion",
-        "sendMessage": "Message",
-        "delete": "Delete Suggestion",
-        "resend": "Resend",
-        "viewDetails": "Details"
-      },
+     "actions": {
+  "changeStatus": "Change Status",
+  "selectNewStatus": "Select new status",
+  "edit": "Edit Suggestion",
+  "sendMessage": "Message",
+  "delete": "Delete Suggestion",
+  "resend": "Resend",
+  "viewDetails": "Details",
+  "hideCandidate": "Hide Candidate",
+  "hideParty": "Hide {{name}}"
+},
      "highlights": {
   "familyValues": "Similar family values",
   "religiousView": "Compatible religious outlook",

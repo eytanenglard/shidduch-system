@@ -1,3 +1,5 @@
+// src/app/components/matchmaker/suggestions/MatchmakerDashboard.tsx
+
 'use client';
 
 import React, { useState, useCallback, useEffect, useMemo } from 'react';
@@ -63,6 +65,7 @@ import type { NewSuggestionFormData } from '../../suggestions/NewSuggestionForm/
 
 // Hooks
 import { useCandidates } from '../../new/hooks/useCandidates';
+import { useHiddenCandidates } from '../../new/PotentialMatches/hooks/useHiddenCandidates';
 
 // Components
 import NewSuggestionForm from '../../suggestions/NewSuggestionForm';
@@ -73,6 +76,12 @@ import EditSuggestionForm from '../EditSuggestionForm';
 import MessageForm from '../MessageForm';
 import MonthlyTrendModal from './MonthlyTrendModal';
 import { ScrollArea } from '@/components/ui/scroll-area';
+
+// Hidden Candidates Components
+import HiddenCandidatesDrawer from '../../new/PotentialMatches/HiddenCandidatesDrawer';
+import HideCandidateDialog, {
+  CandidateToHide,
+} from '../../new/PotentialMatches/HideCandidateDialog';
 
 // Media query hook
 const useMediaQuery = (query: string) => {
@@ -107,7 +116,15 @@ const MatchmakerHeroSection: React.FC<{
     thisMonth: number;
     successRate: number;
   };
-}> = ({ dict, onNewSuggestion, onRefresh, isRefreshing, stats }) => {
+  hiddenCandidatesDrawer: React.ReactNode;
+}> = ({
+  dict,
+  onNewSuggestion,
+  onRefresh,
+  isRefreshing,
+  stats,
+  hiddenCandidatesDrawer,
+}) => {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
@@ -141,6 +158,9 @@ const MatchmakerHeroSection: React.FC<{
           </div>
 
           <div className="flex items-center gap-2 flex-wrap">
+            {/* Hidden Candidates Drawer */}
+            {hiddenCandidatesDrawer}
+
             {/* Toggle stats button */}
             <Button
               variant="outline"
@@ -306,7 +326,9 @@ type SuggestionCardActionType =
   | 'delete'
   | 'resend'
   | 'changeStatus'
-  | 'reminder';
+  | 'reminder'
+  | 'hideFirstParty'
+  | 'hideSecondParty';
 
 type SuggestionDetailsActionType =
   | SuggestionCardActionType
@@ -363,7 +385,22 @@ export default function MatchmakerDashboard({
   const [showMessageForm, setShowMessageForm] = useState(false);
   const [showMonthlyTrendDialog, setShowMonthlyTrendDialog] = useState(false);
 
+  // Hidden Candidates State
+  const [candidateToHide, setCandidateToHide] =
+    useState<CandidateToHide | null>(null);
+  const [showHideDialog, setShowHideDialog] = useState(false);
+
   const { candidates: allCandidates } = useCandidates();
+
+  // Hidden Candidates Hook
+  const {
+    hiddenCandidates,
+    hiddenCandidateIds,
+    isLoading: isLoadingHidden,
+    hideCandidate,
+    unhideCandidate,
+    updateReason,
+  } = useHiddenCandidates();
 
   const fetchSuggestions = useCallback(async () => {
     setIsLoading(true);
@@ -384,10 +421,23 @@ export default function MatchmakerDashboard({
     fetchSuggestions();
   }, [fetchSuggestions]);
 
+  // סינון הצעות - כולל מועמדים מוסתרים
   const filteredSuggestions = useMemo(() => {
-    return suggestions.filter((s) => {
-      if (searchQuery) {
-        const query = searchQuery.toLowerCase();
+    let result = suggestions;
+
+    // סינון לפי מועמדים מוסתרים
+    if (hiddenCandidateIds.size > 0) {
+      result = result.filter(
+        (s) =>
+          !hiddenCandidateIds.has(s.firstParty.id) &&
+          !hiddenCandidateIds.has(s.secondParty.id)
+      );
+    }
+
+    // סינון לפי חיפוש
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      result = result.filter((s) => {
         const match =
           (s.firstParty.firstName + ' ' + s.firstParty.lastName)
             .toLowerCase()
@@ -399,23 +449,33 @@ export default function MatchmakerDashboard({
             s.firstParty.profile.city.toLowerCase().includes(query)) ||
           (s.secondParty.profile?.city &&
             s.secondParty.profile.city.toLowerCase().includes(query));
-        if (!match) return false;
-      }
-      if (filters.priority?.length && !filters.priority.includes(s.priority))
-        return false;
-      if (filters.status?.length && !filters.status.includes(s.status))
-        return false;
-      if (filters.dateRange) {
+        return match;
+      });
+    }
+
+    // סינון לפי עדיפות
+    if (filters.priority?.length) {
+      result = result.filter((s) => filters.priority!.includes(s.priority));
+    }
+
+    // סינון לפי סטטוס
+    if (filters.status?.length) {
+      result = result.filter((s) => filters.status!.includes(s.status));
+    }
+
+    // סינון לפי טווח תאריכים
+    if (filters.dateRange) {
+      result = result.filter((s) => {
         const createdAt = new Date(s.createdAt);
-        if (
-          createdAt < filters.dateRange.start ||
-          (filters.dateRange.end && createdAt > filters.dateRange.end)
-        )
-          return false;
-      }
-      return true;
-    });
-  }, [suggestions, searchQuery, filters]);
+        return (
+          createdAt >= filters.dateRange!.start &&
+          (!filters.dateRange!.end || createdAt <= filters.dateRange!.end)
+        );
+      });
+    }
+
+    return result;
+  }, [suggestions, searchQuery, filters, hiddenCandidateIds]);
 
   const pendingSuggestions = useMemo(
     () => filteredSuggestions.filter((s) => s.category === 'PENDING'),
@@ -616,6 +676,17 @@ export default function MatchmakerDashboard({
     }
   };
 
+  // Handler להסתרת מועמד
+  const handleHideCandidate = useCallback((candidate: CandidateToHide) => {
+    setCandidateToHide(candidate);
+    setShowHideDialog(true);
+  }, []);
+
+  // Handler לאישור הסתרה
+  const handleConfirmHide = async (candidateId: string, reason?: string) => {
+    return await hideCandidate(candidateId, reason);
+  };
+
   const handleDialogAction = (
     action: SuggestionDetailsActionType,
     data?: DialogActionData
@@ -647,6 +718,31 @@ export default function MatchmakerDashboard({
     suggestion: Suggestion,
     additionalData?: ActionAdditionalData
   ) => {
+    // טיפול בפעולות הסתרה
+    if (type === 'hideFirstParty') {
+      const party = suggestion.firstParty;
+      handleHideCandidate({
+        id: party.id,
+        firstName: party.firstName,
+        lastName: party.lastName,
+        mainImage: party.images.find((img) => img.isMain)?.url || null,
+        gender: party.profile?.gender || null,
+      });
+      return;
+    }
+
+    if (type === 'hideSecondParty') {
+      const party = suggestion.secondParty;
+      handleHideCandidate({
+        id: party.id,
+        firstName: party.firstName,
+        lastName: party.lastName,
+        mainImage: party.images.find((img) => img.isMain)?.url || null,
+        gender: party.profile?.gender || null,
+      });
+      return;
+    }
+
     handleDialogAction(type, {
       ...additionalData,
       suggestionId: suggestion.id,
@@ -696,6 +792,7 @@ export default function MatchmakerDashboard({
             className="shadow-lg hover:shadow-xl transition-all duration-300"
             dict={dashboardDict.suggestionCard}
             isMobile={isMobile}
+            hiddenCandidateIds={hiddenCandidateIds}
           />
         </div>
       ))}
@@ -742,6 +839,14 @@ export default function MatchmakerDashboard({
           onRefresh={handleRefresh}
           isRefreshing={isRefreshing}
           stats={heroStats}
+          hiddenCandidatesDrawer={
+            <HiddenCandidatesDrawer
+              hiddenCandidates={hiddenCandidates}
+              onUnhide={unhideCandidate}
+              onUpdateReason={updateReason}
+              isLoading={isLoadingHidden}
+            />
+          }
         />
 
         {/* Main Content Card */}
@@ -821,7 +926,7 @@ export default function MatchmakerDashboard({
                 onSearchChange={setSearchQuery}
                 filters={filters}
                 onFiltersChange={setFilters}
-                totalCount={suggestions.length}
+                totalCount={filteredSuggestions.length}
                 activeCount={activeCount}
                 pendingCount={pendingCount}
                 historyCount={historyCount}
@@ -953,6 +1058,14 @@ export default function MatchmakerDashboard({
         suggestion={selectedSuggestion}
         onSend={handleSendMessage}
         dict={dashboardDict.messageForm}
+      />
+
+      {/* Hide Candidate Dialog */}
+      <HideCandidateDialog
+        open={showHideDialog}
+        onOpenChange={setShowHideDialog}
+        candidate={candidateToHide}
+        onConfirm={handleConfirmHide}
       />
 
       {confirmAction && (

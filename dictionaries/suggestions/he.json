@@ -131,14 +131,14 @@
     },
     "statusDescriptions": {
       "draft": "השדכן/ית מכין/ה את ההצעה",
-      "pendingFirstPartyUser": "ההצעה מחכה להחלטתך - אשר או דחה",
-      "pendingFirstPartyOther": "השדכן שלח את ההצעה לצד הראשון וממתין לתשובה",
+"pendingFirstPartyUser": "ההצעה מחכה להחלטתך - אשר, דחה או שמור לגיבוי"
+,      "pendingFirstPartyOther": "השדכן שלח את ההצעה לצד הראשון וממתין לתשובה",
       "firstPartyApprovedUser": "אישרת את ההצעה - עכשיו ההצעה תישלח לצד השני",
       "firstPartyApprovedOther": "הצד הראשון אישר את ההצעה בהתלהבות",
       "firstPartyDeclinedUser": "דחית את ההצעה - תודה על המשוב הכן",
       "firstPartyDeclinedOther": "הצד הראשון החליט שההצעה לא מתאימה",
       "pendingSecondPartyUser": "הצד השני בודק את ההצעה - נעדכן אותך כשיגיע המשוב",
-      "pendingSecondPartyOther": "ההצעה מחכה להחלטתך - אשר או דחה",
+      "pendingSecondPartyOther": "ההצעה מחכה להחלטתך - אשר, דחה או שמור לגיבוי",
       "secondPartyApprovedUser": "הצד השני גם מעוניין - בקרוב תקבלו פרטי קשר",
       "secondPartyApprovedOther": "אישרת את ההצעה - בקרוב תקבלו פרטי קשר",
       "secondPartyDeclinedUser": "הצד השני החליט שההצעה לא מתאימה",

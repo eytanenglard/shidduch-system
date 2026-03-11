@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\suggestions
-# Generated on: 2026-03-08 15:38:45
+# Generated on: 2026-03-11 21:30:06
 # Filter: Only content of code files (.bat, .c, .cfg, .conf, .cpp, .cs, .css, .go, .h, .html, .ini, .java, .js, .json, .jsx, .kt, .less, .md, .php, .py, .rb, .rs, .scss, .sh, .sql, .swift, .ts, .tsx, .txt, .xml, .yaml, .yml) is included.
 ################################################################################
 
@@ -1477,6 +1477,7 @@ import {
   Bookmark,
   Info,
   Trash2,
+  Clock,
 } from 'lucide-react';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -2071,6 +2072,101 @@ const MinimalSuggestionCard: React.FC<MinimalSuggestionCardProps> = ({
                   </p>
                 </div>
               )}
+            </div>
+          ) : suggestion.status === 'SECOND_PARTY_NOT_AVAILABLE' &&
+            isFirstParty ? (
+            /* ═══════════════════════════════════════════════
+               CASE: Second party not available - info only for first party
+               ═══════════════════════════════════════════════ */
+            <div className="w-full">
+              <div className="flex items-start gap-2 px-3 py-3 bg-amber-50 rounded-xl border border-amber-200">
+                <Clock className="w-4 h-4 text-amber-500 mt-0.5 flex-shrink-0" />
+                <div>
+                  <p className="text-sm font-medium text-amber-800">
+                    {(dict.status as any)?.secondPartyNotAvailable?.title ||
+                      (locale === 'he' ? 'ההצעה בהמתנה' : 'Suggestion on hold')}
+                  </p>
+                  <p className="text-xs text-amber-600 mt-0.5">
+                    {(dict.status as any)?.secondPartyNotAvailable
+                      ?.description ||
+                      (locale === 'he'
+                        ? 'הצד השני לא זמין כרגע. ההצעה תחזור כשיהיה זמין. בינתיים, תוכל/י לאשר הצעות אחרות.'
+                        : 'The other side is not available right now. The suggestion will resume when they are. In the meantime, you can approve other suggestions.')}
+                  </p>
+                </div>
+              </div>
+            </div>
+          ) : suggestion.status === 'SECOND_PARTY_NOT_AVAILABLE' &&
+            !isFirstParty ? (
+            /* ═══════════════════════════════════════════════
+               CASE: Second party not available - action for second party
+               ═══════════════════════════════════════════════ */
+            <div className="w-full space-y-2">
+              <div className="flex items-start gap-2 px-3 py-2 bg-amber-50 rounded-lg">
+                <Clock className="w-3.5 h-3.5 text-amber-500 mt-0.5 flex-shrink-0" />
+                <p className="text-xs text-amber-700">
+                  {locale === 'he'
+                    ? 'סימנת שאת/ה לא זמין/ה כרגע. כשתהיה מוכן/ה, לחצ/י כאן.'
+                    : "You marked yourself as not available. When you're ready, click below."}
+                </p>
+              </div>
+              <Button
+                size="sm"
+                variant="default"
+                className="w-full bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 text-white shadow-lg rounded-xl font-medium h-10"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  // This calls the status change to PENDING_SECOND_PARTY
+                  onApprove?.(suggestion);
+                }}
+              >
+                {locale === 'he' ? 'חזרתי להיות זמין/ה' : "I'm available now"}
+              </Button>
+            </div>
+          ) : suggestion.status === 'RE_OFFERED_TO_FIRST_PARTY' &&
+            isFirstParty ? (
+            /* ═══════════════════════════════════════════════
+               CASE: Re-offered to first party - full approve/decline
+               ═══════════════════════════════════════════════ */
+            <div className="w-full space-y-2">
+              <div className="flex items-start gap-2 px-3 py-2 bg-blue-50 rounded-lg">
+                <Info className="w-3.5 h-3.5 text-blue-500 mt-0.5 flex-shrink-0" />
+                <p className="text-xs text-blue-700">
+                  {locale === 'he'
+                    ? 'הצד השני חזר להיות זמין ואישר! האם ההצעה עדיין רלוונטית עבורך?'
+                    : 'The other side is now available and approved! Is this still relevant for you?'}
+                </p>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="w-full text-rose-600 hover:text-rose-700 hover:bg-rose-50 border-rose-200 rounded-xl font-medium"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDecline?.(suggestion);
+                  }}
+                >
+                  <XCircle
+                    className={cn('w-4 h-4', locale === 'he' ? 'ml-2' : 'mr-2')}
+                  />
+                  {dict.buttons.decline}
+                </Button>
+                <Button
+                  size="sm"
+                  variant="default"
+                  className="w-full bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 text-white shadow-lg rounded-xl font-medium"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onApprove?.(suggestion);
+                  }}
+                >
+                  <Heart
+                    className={cn('w-4 h-4', locale === 'he' ? 'ml-2' : 'mr-2')}
+                  />
+                  {dict.buttons.approve}
+                </Button>
+              </div>
             </div>
           ) : (
             /* ═══════════════════════════════════════════════

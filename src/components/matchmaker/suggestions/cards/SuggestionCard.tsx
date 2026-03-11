@@ -49,6 +49,7 @@ import {
   UserCheck,
   UserX,
   ArrowLeftRight,
+  EyeOff,
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { he } from 'date-fns/locale';
@@ -80,18 +81,22 @@ import {
 // TYPES
 // ═══════════════════════════════════════════════════════════════
 
+type SuggestionCardActionType =
+  | 'view'
+  | 'contact'
+  | 'message'
+  | 'edit'
+  | 'delete'
+  | 'resend'
+  | 'changeStatus'
+  | 'reminder'
+  | 'hideFirstParty'
+  | 'hideSecondParty';
+
 interface SuggestionCardProps {
   suggestion: Suggestion;
   onAction: (
-    type:
-      | 'view'
-      | 'contact'
-      | 'message'
-      | 'edit'
-      | 'delete'
-      | 'resend'
-      | 'changeStatus'
-      | 'reminder',
+    type: SuggestionCardActionType,
     suggestion: Suggestion,
     additionalData?: ActionAdditionalData
   ) => void;
@@ -100,6 +105,7 @@ interface SuggestionCardProps {
   variant?: 'full' | 'compact';
   unreadChatCount?: number;
   isMobile?: boolean;
+  hiddenCandidateIds?: Set<string>;
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -643,6 +649,7 @@ const SuggestionCard: React.FC<SuggestionCardProps> = ({
   variant = 'full',
   unreadChatCount = 0,
   isMobile = false,
+  hiddenCandidateIds = new Set(),
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const { firstParty, secondParty, matchmaker } = suggestion;
@@ -910,7 +917,7 @@ const SuggestionCard: React.FC<SuggestionCardProps> = ({
                   </DropdownMenuTrigger>
                   <DropdownMenuContent
                     align="end"
-                    className="w-48 rounded-xl shadow-xl border-0"
+                    className="w-56 rounded-xl shadow-xl border-0"
                   >
                     <DropdownMenuItem
                       onClick={() => onAction('view', suggestion)}
@@ -938,7 +945,49 @@ const SuggestionCard: React.FC<SuggestionCardProps> = ({
                         <span>{dict.actions.resend}</span>
                       </DropdownMenuItem>
                     )}
+
                     <DropdownMenuSeparator />
+
+                    {/* תפריט משנה להסתרת מועמדים */}
+                    <DropdownMenuSub>
+                      <DropdownMenuSubTrigger className="cursor-pointer">
+                        <EyeOff className="w-4 h-4 ml-2 text-amber-500" />
+                        <span>
+                          {dict.actions?.hideCandidate || 'הסתר מועמד/ת'}
+                        </span>
+                      </DropdownMenuSubTrigger>
+                      <DropdownMenuSubContent className="w-52 rounded-xl shadow-xl border-0">
+                        <DropdownMenuItem
+                          onClick={() => onAction('hideFirstParty', suggestion)}
+                          className="cursor-pointer"
+                        >
+                          <EyeOff className="w-4 h-4 ml-2 text-amber-500" />
+                          <span>
+                            {dict.actions?.hideParty?.replace(
+                              '{{name}}',
+                              firstParty.firstName
+                            ) || `הסתר את ${firstParty.firstName}`}
+                          </span>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() =>
+                            onAction('hideSecondParty', suggestion)
+                          }
+                          className="cursor-pointer"
+                        >
+                          <EyeOff className="w-4 h-4 ml-2 text-amber-500" />
+                          <span>
+                            {dict.actions?.hideParty?.replace(
+                              '{{name}}',
+                              secondParty.firstName
+                            ) || `הסתר את ${secondParty.firstName}`}
+                          </span>
+                        </DropdownMenuItem>
+                      </DropdownMenuSubContent>
+                    </DropdownMenuSub>
+
+                    <DropdownMenuSeparator />
+
                     <DropdownMenuItem
                       onClick={() => onAction('delete', suggestion)}
                       className="text-red-600 focus:text-red-600 focus:bg-red-50"

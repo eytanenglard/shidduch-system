@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\messages
-# Generated on: 2026-03-08 14:47:35
+# Generated on: 2026-03-11 21:53:23
 # Filter: Only content of code files (.bat, .c, .cfg, .conf, .cpp, .cs, .css, .go, .h, .html, .ini, .java, .js, .json, .jsx, .kt, .less, .md, .php, .py, .rb, .rs, .scss, .sh, .sql, .swift, .ts, .tsx, .txt, .xml, .yaml, .yml) is included.
 ################################################################################
 
@@ -524,6 +524,7 @@ Content:
 // POST  — Send a direct message to assigned matchmaker
 // PATCH — Mark direct messages as read
 // =============================================================================
+import { pushUserMessageToMatchmaker } from '@/lib/sendPushNotification';
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
@@ -651,7 +652,13 @@ export async function POST(req: NextRequest) {
         content: content.trim(),
       },
     });
-
+   // User sent direct message → push to matchmaker
+   pushUserMessageToMatchmaker(
+     user.assignedMatchmakerId!,
+     session.user.name || 'יוזר',
+     content.trim(),
+     { isDirect: true }
+   ).catch(console.error);
     return NextResponse.json({
       success: true,
       message: {

@@ -227,14 +227,15 @@ const SortableItem: React.FC<SortableItemProps> = ({
         </div>
       </button>
 
+   
       {/* Info Section */}
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
           <button
             onClick={() => onViewDetails(suggestion)}
-            className="font-semibold text-gray-900 text-sm hover:text-amber-700 transition-colors truncate"
+            className="font-semibold text-gray-900 text-sm hover:text-amber-700 transition-colors leading-tight"
           >
-            {targetParty.firstName}
+            {targetParty.firstName} {targetParty.lastName?.charAt(0)}.
           </button>
           {age && (
             <span className="text-xs text-gray-500 flex-shrink-0">({age})</span>

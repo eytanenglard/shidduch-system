@@ -18,6 +18,11 @@ import {
   Loader2,
   Sparkles,
   Bookmark,
+  ChevronDown,
+  ChevronUp,
+  Star,
+  Clock,
+  Zap,
 } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -68,6 +73,9 @@ const ACTIVE_PROCESS_STATUSES = [
   'DATING',
   'ENGAGED',
 ] as const;
+
+// --- Filter Type for the new chip-buttons ---
+type ActiveFilter = 'all' | 'active_process' | 'backup' | 'pending';
 
 // --- Action Type ---
 type ActionType = 'approve' | 'decline' | 'interested';
@@ -141,6 +149,186 @@ const enhanceQuestionnaireData = (
   return rawQuestionnaire;
 };
 
+// ============================================================
+// Filter Chip Button Component
+// ============================================================
+interface FilterChipProps {
+  label: string;
+  count: number;
+  isActive: boolean;
+  onClick: () => void;
+  icon: React.ElementType;
+  activeColors: string;
+  locale: 'he' | 'en';
+}
+
+const FilterChip: React.FC<FilterChipProps> = ({
+  label,
+  count,
+  isActive,
+  onClick,
+  icon: Icon,
+  activeColors,
+  locale,
+}) => (
+  <button
+    onClick={onClick}
+    className={cn(
+      'inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium transition-all duration-200 border whitespace-nowrap',
+      isActive
+        ? `${activeColors} shadow-sm scale-[1.02]`
+        : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50 hover:border-gray-300'
+    )}
+  >
+    <Icon className="w-3.5 h-3.5" />
+    <span>{label}</span>
+    {count > 0 && (
+      <span
+        className={cn(
+          'inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full text-xs font-bold',
+          isActive ? 'bg-white/30 text-current' : 'bg-gray-100 text-gray-600'
+        )}
+      >
+        {count}
+      </span>
+    )}
+  </button>
+);
+
+// ============================================================
+// Collapsible Daily Suggestion Row
+// ============================================================
+interface CollapsibleDailySuggestionProps {
+  suggestion: ExtendedMatchSuggestion;
+  userId: string;
+  locale: 'he' | 'en';
+  onViewDetails: (suggestion: ExtendedMatchSuggestion) => void;
+  dailyDict?: {
+    cardTitle?: string;
+    cardSubtitle?: string;
+    matchingNote?: string;
+    aiPowered?: string;
+    basedOnLearning?: string;
+  };
+}
+
+const calculateAge = (dateOfBirth?: Date | string | null): number | null => {
+  if (!dateOfBirth) return null;
+  const today = new Date();
+  const birth = new Date(dateOfBirth);
+  let age = today.getFullYear() - birth.getFullYear();
+  const monthDiff = today.getMonth() - birth.getMonth();
+  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+    age--;
+  }
+  return age;
+};
+
+const CollapsibleDailySuggestion: React.FC<CollapsibleDailySuggestionProps> = ({
+  suggestion,
+  userId,
+  locale,
+  onViewDetails,
+  dailyDict,
+}) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const isRtl = locale === 'he';
+
+  const isFirstParty = suggestion.firstPartyId === userId;
+  const otherParty = isFirstParty
+    ? suggestion.secondParty
+    : suggestion.firstParty;
+  const age = calculateAge(otherParty?.profile?.birthDate);
+
+  return (
+    <div className="mb-4">
+      {/* Collapsed Row */}
+      <button
+        onClick={() => setIsExpanded(!isExpanded)}
+        className={cn(
+          'w-full flex items-center gap-3 px-4 py-3 rounded-xl border transition-all duration-200',
+          isExpanded
+            ? 'bg-gradient-to-r from-violet-50 via-purple-50/50 to-indigo-50 border-violet-200/50 shadow-sm rounded-b-none'
+            : 'bg-gradient-to-r from-violet-50/60 via-white to-purple-50/40 border-violet-100/50 hover:border-violet-200/70 hover:shadow-sm'
+        )}
+        dir={isRtl ? 'rtl' : 'ltr'}
+      >
+        {/* AI Icon */}
+        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-violet-500 via-purple-500 to-indigo-600 flex items-center justify-center shadow-sm flex-shrink-0">
+          <Sparkles className="w-4 h-4 text-white" />
+        </div>
+
+        {/* Title + Name */}
+        <div className="flex-1 min-w-0 text-start">
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-bold bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent">
+              {dailyDict?.cardTitle ||
+                (isRtl ? '✨ ההצעה היומית שלך' : '✨ Your Daily Match')}
+            </span>
+          </div>
+          <p className="text-xs text-gray-500 truncate">
+            {otherParty?.firstName}
+            {age ? ` (${age})` : ''}
+            {otherParty?.profile?.city ? ` • ${otherParty.profile.city}` : ''}
+          </p>
+        </div>
+
+        {/* Badges */}
+        <Badge className="bg-gradient-to-r from-violet-500 to-purple-500 text-white border-0 text-[10px] px-2 py-0.5 flex-shrink-0">
+          {dailyDict?.aiPowered || (isRtl ? 'AI' : 'AI')}
+        </Badge>
+
+        {/* Chevron */}
+        <div className="flex-shrink-0 text-violet-400">
+          {isExpanded ? (
+            <ChevronUp className="w-4 h-4" />
+          ) : (
+            <ChevronDown className="w-4 h-4" />
+          )}
+        </div>
+      </button>
+
+      {/* Expanded Content */}
+      {isExpanded && (
+        <div
+          className="px-4 pb-4 pt-2 border border-t-0 border-violet-200/50 rounded-b-xl bg-gradient-to-r from-violet-50 via-purple-50/50 to-indigo-50"
+          dir={isRtl ? 'rtl' : 'ltr'}
+        >
+          <p className="text-sm text-gray-600 leading-relaxed mb-3">
+            {dailyDict?.matchingNote ||
+              (isRtl
+                ? 'הצעה זו נבחרה על סמך ניתוח מעמיק של הפרופיל שלך, תשובותיך לשאלון, והעדפותיך. המערכת שלנו לומדת ומשתפרת כל הזמן.'
+                : 'This match was selected based on deep analysis of your profile, questionnaire answers, and preferences. Our system learns and improves continuously.')}
+          </p>
+          <div className="flex items-center gap-2 mb-3">
+            <Badge className="bg-gradient-to-r from-violet-500 to-purple-500 text-white border-0 text-xs">
+              {dailyDict?.aiPowered ||
+                (isRtl ? 'מותאם אישית ע"י AI' : 'AI-Personalized')}
+            </Badge>
+            <Badge
+              variant="outline"
+              className="border-violet-300 text-violet-700 text-xs"
+            >
+              {dailyDict?.basedOnLearning ||
+                (isRtl ? 'מבוסס על למידת המערכת' : 'Based on system learning')}
+            </Badge>
+          </div>
+          <Button
+            size="sm"
+            className="w-full bg-gradient-to-r from-violet-500 to-purple-600 hover:from-violet-600 hover:to-purple-700 text-white rounded-lg text-sm font-medium shadow-md hover:shadow-lg transition-all"
+            onClick={(e) => {
+              e.stopPropagation();
+              onViewDetails(suggestion);
+            }}
+          >
+            {isRtl ? 'צפה בהצעה' : 'View Suggestion'}
+          </Button>
+        </div>
+      )}
+    </div>
+  );
+};
+
 // --- Props Interface ---
 interface MatchSuggestionsContainerProps {
   userId: string;
@@ -181,13 +369,16 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
   const [hasNewSuggestions, setHasNewSuggestions] = useState(false);
   const [isUserInActiveProcess, setIsUserInActiveProcess] = useState(false);
 
+  // --- NEW: Active filter state ---
+  const [activeFilter, setActiveFilter] = useState<ActiveFilter>('all');
+
   // --- Confirmation Dialog State ---
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [suggestionForAction, setSuggestionForAction] =
     useState<ExtendedMatchSuggestion | null>(null);
   const [actionType, setActionType] = useState<ActionType | null>(null);
 
-  // --- Details Modal State (NEW) ---
+  // --- Details Modal State ---
   const [selectedSuggestion, setSelectedSuggestion] =
     useState<ExtendedMatchSuggestion | null>(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
@@ -555,6 +746,11 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
     });
   }, [fetchSuggestions, suggestionsDict]);
 
+  // --- Filter chip toggle handler ---
+  const handleFilterToggle = useCallback((filter: ActiveFilter) => {
+    setActiveFilter((prev) => (prev === filter ? 'all' : filter));
+  }, []);
+
   // --- Loading State ---
   if (isLoading) {
     return <LoadingSkeleton dict={suggestionsDict.container.loading} />;
@@ -570,6 +766,20 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
         basedOnLearning?: string;
       }
     | undefined;
+
+  // --- Filter chip labels ---
+  const filterLabels = {
+    active_process: isRtl ? 'הצעה פעילה' : 'Active',
+    backup: isRtl ? 'רשימת גיבוי' : 'Backup',
+    pending: isRtl ? 'ממתינות לתגובה' : 'Pending',
+  };
+
+  // --- Determine what to show based on filter ---
+  const showHero = activeFilter === 'all' || activeFilter === 'active_process';
+  const showInterestedQueue =
+    activeFilter === 'all' || activeFilter === 'backup';
+  const showPendingSuggestions =
+    activeFilter === 'all' || activeFilter === 'pending';
 
   // --- Render ---
   return (
@@ -619,48 +829,15 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
           </CardHeader>
 
           <CardContent className="p-6">
-            {/* ===== Daily Suggestion Highlight Section ===== */}
+            {/* ===== Daily Suggestion - Collapsible Row ===== */}
             {dailySuggestion && (
-              <div className="mb-6 p-5 bg-gradient-to-r from-violet-50 via-purple-50/50 to-indigo-50 border border-violet-200/50 rounded-2xl shadow-sm">
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-violet-500 via-purple-500 to-indigo-600 flex items-center justify-center shadow-md">
-                    <Sparkles className="w-5 h-5 text-white" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-bold bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent">
-                      {dailyDict?.cardTitle ||
-                        (isRtl ? '✨ ההצעה היומית שלך' : '✨ Your Daily Match')}
-                    </h3>
-                    <p className="text-sm text-violet-600/80">
-                      {dailyDict?.cardSubtitle ||
-                        (isRtl
-                          ? 'כל יום אנחנו מחפשים עבורך את ההתאמה הכי טובה'
-                          : 'Every day we search for your best possible match')}
-                    </p>
-                  </div>
-                </div>
-                <p className="text-sm text-gray-600 leading-relaxed mb-3">
-                  {dailyDict?.matchingNote ||
-                    (isRtl
-                      ? 'הצעה זו נבחרה על סמך ניתוח מעמיק של הפרופיל שלך, תשובותיך לשאלון, והעדפותיך. המערכת שלנו לומדת ומשתפרת כל הזמן.'
-                      : 'This match was selected based on deep analysis of your profile, questionnaire answers, and preferences. Our system learns and improves continuously.')}
-                </p>
-                <div className="flex items-center gap-2">
-                  <Badge className="bg-gradient-to-r from-violet-500 to-purple-500 text-white border-0 text-xs">
-                    {dailyDict?.aiPowered ||
-                      (isRtl ? 'מותאם אישית ע"י AI' : 'AI-Personalized')}
-                  </Badge>
-                  <Badge
-                    variant="outline"
-                    className="border-violet-300 text-violet-700 text-xs"
-                  >
-                    {dailyDict?.basedOnLearning ||
-                      (isRtl
-                        ? 'מבוסס על למידת המערכת'
-                        : 'Based on system learning')}
-                  </Badge>
-                </div>
-              </div>
+              <CollapsibleDailySuggestion
+                suggestion={dailySuggestion}
+                userId={userId}
+                locale={locale}
+                onViewDetails={handleViewDetails}
+                dailyDict={dailyDict}
+              />
             )}
 
             {/* ===== Preference Toggle ===== */}
@@ -673,7 +850,10 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
             {/* ===== Tabs ===== */}
             <Tabs
               value={activeTab}
-              onValueChange={setActiveTab}
+              onValueChange={(val) => {
+                setActiveTab(val);
+                setActiveFilter('all'); // Reset filter when switching tabs
+              }}
               dir={isRtl ? 'rtl' : 'ltr'}
               className="space-y-6"
             >
@@ -734,8 +914,52 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
 
               {/* Active Tab Content */}
               <TabsContent value="active" className="space-y-6">
+                {/* ===== NEW: Filter Chip Buttons ===== */}
+                {(activeProcessSuggestion ||
+                  interestedSuggestions.length > 0 ||
+                  sortedActiveSuggestions.length > 0) && (
+                  <div className="flex flex-wrap gap-2">
+                    <FilterChip
+                      label={filterLabels.active_process}
+                      count={activeProcessSuggestion ? 1 : 0}
+                      isActive={activeFilter === 'active_process'}
+                      onClick={() => handleFilterToggle('active_process')}
+                      icon={Star}
+                      activeColors="bg-gradient-to-r from-teal-500 to-emerald-500 text-white border-teal-500"
+                      locale={locale}
+                    />
+                    <FilterChip
+                      label={filterLabels.backup}
+                      count={interestedSuggestions.length}
+                      isActive={activeFilter === 'backup'}
+                      onClick={() => handleFilterToggle('backup')}
+                      icon={Bookmark}
+                      activeColors="bg-gradient-to-r from-amber-500 to-orange-500 text-white border-amber-500"
+                      locale={locale}
+                    />
+                    <FilterChip
+                      label={filterLabels.pending}
+                      count={sortedActiveSuggestions.length}
+                      isActive={activeFilter === 'pending'}
+                      onClick={() => handleFilterToggle('pending')}
+                      icon={Zap}
+                      activeColors="bg-gradient-to-r from-blue-500 to-indigo-500 text-white border-blue-500"
+                      locale={locale}
+                    />
+                    {activeFilter !== 'all' && (
+                      <button
+                        onClick={() => setActiveFilter('all')}
+                        className="inline-flex items-center gap-1 px-2.5 py-2 rounded-xl text-xs font-medium text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-colors"
+                      >
+                        <XCircle className="w-3.5 h-3.5" />
+                        {isRtl ? 'הצג הכל' : 'Show all'}
+                      </button>
+                    )}
+                  </div>
+                )}
+
                 {/* ===== Hero Card for Active Process ===== */}
-                {activeProcessSuggestion && (
+                {showHero && activeProcessSuggestion && (
                   <ActiveSuggestionHero
                     suggestion={activeProcessSuggestion}
                     userId={userId}
@@ -747,7 +971,7 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
                 )}
 
                 {/* ===== Interested Queue ===== */}
-                {interestedSuggestions.length > 0 && (
+                {showInterestedQueue && interestedSuggestions.length > 0 && (
                   <InterestedQueue
                     suggestions={interestedSuggestions}
                     userId={userId}
@@ -762,19 +986,64 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
                 )}
 
                 {/* ===== Regular Suggestion Cards ===== */}
-                <SuggestionsList
-                  locale={locale}
-                  suggestions={sortedActiveSuggestions}
-                  userId={userId}
-                  viewMode={viewMode}
-                  isLoading={isRefreshing}
-                  onStatusChange={handleStatusChange}
-                  onActionRequest={handleRequestAction}
-                  onRefresh={handleRefresh}
-                  isUserInActiveProcess={isUserInActiveProcess}
-                  suggestionsDict={suggestionsDict}
-                  profileCardDict={profileCardDict}
-                />
+                {showPendingSuggestions && (
+                  <SuggestionsList
+                    locale={locale}
+                    suggestions={sortedActiveSuggestions}
+                    userId={userId}
+                    viewMode={viewMode}
+                    isLoading={isRefreshing}
+                    onStatusChange={handleStatusChange}
+                    onActionRequest={handleRequestAction}
+                    onRefresh={handleRefresh}
+                    isUserInActiveProcess={isUserInActiveProcess}
+                    suggestionsDict={suggestionsDict}
+                    profileCardDict={profileCardDict}
+                  />
+                )}
+
+                {/* Empty state when filter shows nothing */}
+                {activeFilter !== 'all' &&
+                  ((activeFilter === 'active_process' &&
+                    !activeProcessSuggestion) ||
+                    (activeFilter === 'backup' &&
+                      interestedSuggestions.length === 0) ||
+                    (activeFilter === 'pending' &&
+                      sortedActiveSuggestions.length === 0)) && (
+                    <div className="flex flex-col items-center justify-center py-16 text-center">
+                      <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mb-4">
+                        {activeFilter === 'active_process' && (
+                          <Star className="w-8 h-8 text-gray-300" />
+                        )}
+                        {activeFilter === 'backup' && (
+                          <Bookmark className="w-8 h-8 text-gray-300" />
+                        )}
+                        {activeFilter === 'pending' && (
+                          <Clock className="w-8 h-8 text-gray-300" />
+                        )}
+                      </div>
+                      <h3 className="text-lg font-semibold text-gray-600 mb-2">
+                        {activeFilter === 'active_process' &&
+                          (isRtl
+                            ? 'אין הצעה פעילה כרגע'
+                            : 'No active suggestion')}
+                        {activeFilter === 'backup' &&
+                          (isRtl
+                            ? 'אין הצעות ברשימת הגיבוי'
+                            : 'No backup suggestions')}
+                        {activeFilter === 'pending' &&
+                          (isRtl
+                            ? 'אין הצעות ממתינות לתגובה'
+                            : 'No pending suggestions')}
+                      </h3>
+                      <button
+                        onClick={() => setActiveFilter('all')}
+                        className="text-sm text-teal-600 hover:text-teal-700 font-medium underline underline-offset-2"
+                      >
+                        {isRtl ? 'חזור לתצוגה מלאה' : 'Back to full view'}
+                      </button>
+                    </div>
+                  )}
               </TabsContent>
 
               {/* History Tab Content */}

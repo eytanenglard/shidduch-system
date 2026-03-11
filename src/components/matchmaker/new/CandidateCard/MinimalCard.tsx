@@ -944,7 +944,17 @@ const MinimalCandidateCard: React.FC<MinimalCandidateCardProps> = React.memo(
                       }
 
                       if (cleanPhone) {
-                        const message = `היי ${candidate.firstName} זה איתן מנשמהטק. אני מאוד שמח שנרשמת למערכת שלנו ואני מקווה מאוד לעזור לך למצוא את הזוגיות שתמיד חלמת עליה`;
+                        const message = `היי ${candidate.firstName} 👋
+
+זה איתן מנשמהטק.
+
+עברתי על הפרופיל שלך ויש לי רעיון שאולי יתאים לך.
+
+בלי שום לחץ - רוצה לשמוע? 🙂
+
+🌐 https://neshamatech.com
+📘 https://www.facebook.com/profile.php?id=61584869664974`;
+
                         const encodedMessage = encodeURIComponent(message);
                         window.open(
                           `https://wa.me/${cleanPhone}?text=${encodedMessage}`,
