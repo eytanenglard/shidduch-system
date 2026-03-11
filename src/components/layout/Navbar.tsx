@@ -2,12 +2,18 @@
 
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, {
+  useState,
+  useEffect,
+  useMemo,
+  useCallback,
+  useRef,
+} from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useSession, signOut } from 'next-auth/react';
 import { usePathname, useRouter } from 'next/navigation';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import AvailabilityStatus from './AvailabilityStatus';
 import { useNotifications } from '@/app/[locale]/contexts/NotificationContext';
@@ -19,7 +25,6 @@ import {
   MessageCircle,
   Settings,
   Heart,
-  Menu,
   X,
   Globe,
   Lightbulb,
@@ -35,7 +40,9 @@ import UserDropdown from './UserDropdown';
 import type { Dictionary } from '@/types/dictionary';
 import { useQuestionnaireState } from '@/app/[locale]/contexts/QuestionnaireStateContext';
 
-// --- רכיב לוגו (מעודכן: Teal -> Orange -> Amber) ---
+// =============================================================================
+// #20 — לוגו מפושט: gradient סטטי בלי אנימציה, שני צבעים בלבד
+// =============================================================================
 const Logo = ({ locale }: { locale: string }) => (
   <Link
     href={`/${locale}`}
@@ -53,13 +60,39 @@ const Logo = ({ locale }: { locale: string }) => (
         unoptimized
       />
     </div>
-    <span className="text-xl font-bold bg-gradient-to-r from-teal-600 via-orange-500 to-amber-500 text-transparent bg-clip-text bg-size-200 bg-pos-0 group-hover:bg-pos-100 transition-all duration-700 ease-in-out">
+    {/* #20: gradient סטטי פשוט — teal בלבד, hover עדין */}
+    <span className="text-xl font-bold text-teal-700 transition-colors duration-300 group-hover:text-teal-800">
       NeshamaTech
     </span>
   </Link>
 );
 
-// --- רכיבי ניווט ---
+// =============================================================================
+// #18 — אייקון המבורגר מתנפש ל-X
+// =============================================================================
+const AnimatedMenuIcon = ({ isOpen }: { isOpen: boolean }) => (
+  <div className="relative w-5 h-5 flex flex-col items-center justify-center">
+    <motion.span
+      className="absolute h-0.5 w-5 bg-current rounded-full"
+      animate={isOpen ? { rotate: 45, y: 0 } : { rotate: 0, y: -4 }}
+      transition={{ duration: 0.25, ease: 'easeInOut' }}
+    />
+    <motion.span
+      className="absolute h-0.5 w-5 bg-current rounded-full"
+      animate={isOpen ? { opacity: 0, scaleX: 0 } : { opacity: 1, scaleX: 1 }}
+      transition={{ duration: 0.15 }}
+    />
+    <motion.span
+      className="absolute h-0.5 w-5 bg-current rounded-full"
+      animate={isOpen ? { rotate: -45, y: 0 } : { rotate: 0, y: 4 }}
+      transition={{ duration: 0.25, ease: 'easeInOut' }}
+    />
+  </div>
+);
+
+// =============================================================================
+// NavItem — desktop (#23: badge אדום לנוטיפיקציות, #7: אנימציה חד-פעמית)
+// =============================================================================
 const NavItem = ({
   href,
   text,
@@ -89,21 +122,26 @@ const NavItem = ({
       )}
     >
       {text}
+      {/* #23: badge אדום (לא כתום כמו CTA), #7: אנימציה חד-פעמית בלבד */}
       {badge !== undefined && badge > 0 && (
         <motion.span
-          className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-gradient-to-r from-orange-500 to-amber-500 text-white text-[10px] font-bold shadow-sm border-2 border-white"
+          key={badge}
+          className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-white text-[10px] font-bold shadow-sm border-2 border-white"
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
           transition={{ type: 'spring', stiffness: 500, damping: 30 }}
         >
-          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-orange-400 opacity-75"></span>
-          <span className="relative">{badge}</span>
+          {badge}
         </motion.span>
       )}
     </Link>
   );
 };
 
+// =============================================================================
+// MobileNavItem — (#25: active:scale, #22: תמיכה בגודל שונה לפריטים ראשיים,
+//                  #23: badge אדום, #7: אנימציה חד-פעמית)
+// =============================================================================
 const MobileNavItem = ({
   href,
   text,
@@ -112,6 +150,7 @@ const MobileNavItem = ({
   onClick,
   id,
   isRtl,
+  isPrimary = false,
 }: {
   href: string;
   text: string;
@@ -120,6 +159,7 @@ const MobileNavItem = ({
   onClick: () => void;
   id?: string;
   isRtl: boolean;
+  isPrimary?: boolean;
 }) => {
   const pathname = usePathname();
   const locale = pathname.split('/')[1] || 'he';
@@ -133,7 +173,10 @@ const MobileNavItem = ({
       aria-current={isActive ? 'page' : undefined}
       onClick={onClick}
       className={cn(
-        'flex items-center px-4 py-3 rounded-xl text-base font-medium transition-colors duration-150 group gap-4 mb-1 touch-manipulation active:bg-gray-100',
+        // #25: active:scale-[0.98] לפידבק מגע
+        'flex items-center px-4 py-3 rounded-xl font-medium transition-all duration-150 group gap-4 mb-1 touch-manipulation active:scale-[0.98]',
+        // #22: פריטים ראשיים בולטים יותר
+        isPrimary ? 'text-base' : 'text-sm',
         isActive
           ? 'bg-teal-50 text-teal-700 shadow-sm border border-teal-100/50'
           : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
@@ -142,25 +185,33 @@ const MobileNavItem = ({
       {icon && (
         <span
           className={cn(
-            'transition-colors',
+            'transition-colors flex-shrink-0',
+            // #22: אייקונים צבעוניים לפריטים ראשיים
             isActive
               ? 'text-teal-600'
-              : 'text-gray-400 group-hover:text-gray-600'
+              : isPrimary
+                ? 'text-teal-500 group-hover:text-teal-600'
+                : 'text-gray-400 group-hover:text-gray-600'
           )}
         >
           {icon}
         </span>
       )}
       <span className="flex-grow">{text}</span>
+      {/* #23: badge אדום, #7: אנימציה חד-פעמית */}
       {badge !== undefined && badge > 0 && (
-        <span
+        <motion.span
+          key={badge}
           className={cn(
-            'bg-gradient-to-r from-orange-500 to-amber-500 text-white text-xs px-2 py-0.5 rounded-full flex items-center justify-center font-bold shadow-sm',
+            'bg-red-500 text-white text-xs px-2 py-0.5 rounded-full flex items-center justify-center font-bold shadow-sm',
             isRtl ? 'mr-auto' : 'ml-auto'
           )}
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          transition={{ type: 'spring', stiffness: 500, damping: 30 }}
         >
           {badge}
-        </span>
+        </motion.span>
       )}
     </Link>
   );
@@ -181,7 +232,8 @@ const MobileHomePageLink = ({
     e.preventDefault();
     const element = document.querySelector(href);
     if (element) {
-      const navHeight = 80;
+      // #9: גובה navbar מעודכן ל-64px
+      const navHeight = 64;
       const elementPosition = element.getBoundingClientRect().top;
       const offsetPosition = elementPosition + window.pageYOffset - navHeight;
       window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
@@ -192,13 +244,126 @@ const MobileHomePageLink = ({
     <a
       href={href}
       onClick={handleScroll}
-      className="flex items-center px-4 py-3 rounded-xl text-base font-medium transition-colors duration-150 group text-gray-600 hover:bg-gray-50 hover:text-gray-900 gap-4 touch-manipulation active:bg-gray-100"
+      // #25: active:scale
+      className="flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-all duration-150 group text-gray-600 hover:bg-gray-50 hover:text-gray-900 gap-4 touch-manipulation active:scale-[0.98]"
     >
-      <span className="text-gray-400 group-hover:text-gray-600">{icon}</span>
+      <span className="text-gray-400 group-hover:text-gray-600 flex-shrink-0">
+        {icon}
+      </span>
       <span className="flex-grow">{text}</span>
     </a>
   );
 };
+
+// =============================================================================
+// #17 — useScrollLock hook (תומך גם ב-iOS)
+// =============================================================================
+function useScrollLock(locked: boolean) {
+  useEffect(() => {
+    if (!locked) return;
+
+    const scrollY = window.scrollY;
+    const originalStyle = {
+      overflow: document.body.style.overflow,
+      position: document.body.style.position,
+      top: document.body.style.top,
+      width: document.body.style.width,
+    };
+
+    document.body.style.overflow = 'hidden';
+    document.body.style.position = 'fixed';
+    document.body.style.top = `-${scrollY}px`;
+    document.body.style.width = '100%';
+
+    return () => {
+      document.body.style.overflow = originalStyle.overflow;
+      document.body.style.position = originalStyle.position;
+      document.body.style.top = originalStyle.top;
+      document.body.style.width = originalStyle.width;
+      window.scrollTo(0, scrollY);
+    };
+  }, [locked]);
+}
+
+// =============================================================================
+// #11 — useFocusTrap hook
+// =============================================================================
+function useFocusTrap(
+  containerRef: React.RefObject<HTMLElement | null>,
+  active: boolean
+) {
+  useEffect(() => {
+    if (!active || !containerRef.current) return;
+
+    const container = containerRef.current;
+    const focusableSelector =
+      'a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])';
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key !== 'Tab') return;
+
+      const focusableElements = container.querySelectorAll(focusableSelector);
+      if (focusableElements.length === 0) return;
+
+      const firstEl = focusableElements[0] as HTMLElement;
+      const lastEl = focusableElements[
+        focusableElements.length - 1
+      ] as HTMLElement;
+
+      if (e.shiftKey) {
+        if (document.activeElement === firstEl) {
+          e.preventDefault();
+          lastEl.focus();
+        }
+      } else {
+        if (document.activeElement === lastEl) {
+          e.preventDefault();
+          firstEl.focus();
+        }
+      }
+    };
+
+    container.addEventListener('keydown', handleKeyDown);
+
+    // Focus first focusable element on open
+    const firstFocusable = container.querySelector(
+      focusableSelector
+    ) as HTMLElement | null;
+    firstFocusable?.focus();
+
+    return () => {
+      container.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [active, containerRef]);
+}
+
+// =============================================================================
+// Stagger animation variants for mobile menu items (#19)
+// =============================================================================
+const menuContainerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.04,
+      delayChildren: 0.1,
+    },
+  },
+  exit: { opacity: 0 },
+};
+
+const menuItemVariants = {
+  hidden: { opacity: 0, x: 20 },
+  visible: {
+    opacity: 1,
+    x: 0,
+    transition: { duration: 0.2, ease: 'easeOut' },
+  },
+};
+
+// =============================================================================
+// Navbar
+// =============================================================================
 
 interface NavbarProps {
   dict: Dictionary;
@@ -208,6 +373,7 @@ const Navbar = ({ dict }: NavbarProps) => {
   const { data: session } = useSession();
   const pathname = usePathname();
   const router = useRouter();
+  const mobileMenuRef = useRef<HTMLDivElement>(null);
 
   const { isDirty, promptNavigation } = useQuestionnaireState();
 
@@ -253,11 +419,11 @@ const Navbar = ({ dict }: NavbarProps) => {
       ]
     : [];
 
-  const handleLanguageChange = () => {
+  // #3: כפתור שפה — פשוט, בלי אנימציות מיותרות
+  const handleLanguageChange = useCallback(() => {
     const changeAction = () => {
       const newLocale = locale === 'he' ? 'en' : 'he';
       const newPathname = pathname.replace(`/${locale}`, `/${newLocale}`);
-
       if (mobileMenuOpen) {
         setMobileMenuOpen(false);
       }
@@ -269,8 +435,9 @@ const Navbar = ({ dict }: NavbarProps) => {
     } else {
       changeAction();
     }
-  };
+  }, [locale, pathname, mobileMenuOpen, isDirty, promptNavigation, router]);
 
+  // Scroll listener
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 10);
     window.addEventListener('scroll', handleScroll, { passive: true });
@@ -278,30 +445,44 @@ const Navbar = ({ dict }: NavbarProps) => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // #10: סגירת תפריט צד אוטומטית בשינוי pathname
   useEffect(() => {
-    return () => {
-      if (mobileMenuOpen) {
-        document.body.style.overflow = '';
+    setMobileMenuOpen(false);
+  }, [pathname]);
+
+  // #17: scroll lock
+  useScrollLock(mobileMenuOpen);
+
+  // #11: focus trap
+  useFocusTrap(mobileMenuRef, mobileMenuOpen);
+
+  // #12: Escape key סוגר את התפריט
+  useEffect(() => {
+    if (!mobileMenuOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setMobileMenuOpen(false);
       }
     };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
   }, [mobileMenuOpen]);
 
-  const toggleMobileMenu = () => {
-    setMobileMenuOpen((prev) => {
-      const newState = !prev;
-      if (newState) {
-        document.body.style.overflow = 'hidden';
-      } else {
-        document.body.style.overflow = '';
-      }
-      return newState;
-    });
-  };
-  const handleSignOut = () => {
+  const toggleMobileMenu = useCallback(() => {
+    setMobileMenuOpen((prev) => !prev);
+  }, []);
+
+  const closeMobileMenu = useCallback(() => {
+    setMobileMenuOpen(false);
+  }, []);
+
+  const handleSignOut = useCallback(() => {
     setMobileMenuOpen(false);
     signOut({ callbackUrl: `/${locale}` });
-  };
-  const getInitials = () => {
+  }, [locale]);
+
+  // #16: getInitials עם useMemo
+  const initials = useMemo(() => {
     const fullName = session?.user?.name;
     if (!fullName) return 'P';
     const names = fullName.split(' ');
@@ -309,37 +490,49 @@ const Navbar = ({ dict }: NavbarProps) => {
       (names[0]?.[0] || '') +
       (names.length > 1 ? names[names.length - 1]?.[0] || '' : '')
     ).toUpperCase();
-  };
+  }, [session?.user?.name]);
 
-  const mainProfileImage = session?.user?.image
-    ? {
-        id: 'session-image',
-        url: session.user.image,
-        isMain: true,
-        userId: session.user.id || '',
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        cloudinaryPublicId: null,
-      }
-    : null;
+  const mainProfileImage = useMemo(() => {
+    if (!session?.user?.image) return null;
+    return {
+      id: 'session-image',
+      url: session.user.image,
+      isMain: true,
+      userId: session.user.id || '',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      cloudinaryPublicId: null,
+    };
+  }, [session?.user?.image, session?.user?.id]);
 
+  // #8: רקע מוצק תמיד, shadow משתנה בגלילה בלבד
   const navbarClasses = scrolled
-    ? 'bg-white/90 backdrop-blur-xl shadow-sm border-b border-gray-100'
-    : 'bg-transparent border-b border-transparent';
+    ? 'bg-white/95 backdrop-blur-xl shadow-sm border-b border-gray-100'
+    : 'bg-white border-b border-gray-50';
+
   const profileIconSize = 'w-10 h-10';
 
-  // ✅ קביעת נתיב ההודעות לפי תפקיד
+  // נתיב הודעות לפי תפקיד
   const messagesHref = isMatchmaker ? '/matchmaker/messages' : '/messages';
 
   return (
     <>
+      {/* ================================================================= */}
+      {/* #9: גובה navbar מופחת ל-h-16 (64px) במקום h-20 (80px)           */}
+      {/* #8: רקע מוצק תמיד                                                */}
+      {/* ================================================================= */}
       <nav
         className={`sticky top-0 z-50 w-full transition-all duration-300 ${navbarClasses}`}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-20">
+          <div className="flex justify-between items-center h-16">
             <div className="flex items-center gap-4 md:gap-8">
               <Logo locale={locale} />
+
+              {/* =========================================================== */}
+              {/* Desktop nav — #2: dropdown לשדכנית, #13: פרופיל רק ב-dropdown */}
+              {/* #14: שאלון לא מוצג פעמיים לאורח                             */}
+              {/* =========================================================== */}
               <div
                 aria-label="ניווט ראשי"
                 className="hidden md:flex items-center gap-1 md:gap-2"
@@ -348,6 +541,7 @@ const Navbar = ({ dict }: NavbarProps) => {
                   <>
                     {isMatchmaker ? (
                       <>
+                        {/* #2: ניווט שדכנית — פריטים עיקריים בלבד ב-navbar */}
                         <NavItem
                           href="/matchmaker/suggestions"
                           text={dict.navbar.matchmakerSuggestions}
@@ -362,6 +556,8 @@ const Navbar = ({ dict }: NavbarProps) => {
                             dict.navbar.potentialMatches || 'התאמות פוטנציאליות'
                           }
                         />
+                        {/* #2: פריטים ניהוליים — dropdown בתוך UserDropdown עדיף,
+                             אבל כרגע נשאיר כי צריך שינוי ב-UserDropdown */}
                         <NavItem
                           href="/admin/engagement"
                           text={
@@ -384,16 +580,12 @@ const Navbar = ({ dict }: NavbarProps) => {
                       />
                     )}
 
-                    <NavItem
-                      href="/profile"
-                      text={dict.userDropdown.myProfile}
-                    />
+                    {/* #13: הסרנו NavItem לפרופיל מכאן — הוא קיים ב-UserDropdown */}
 
                     <NavItem
                       href="/questionnaire"
                       text={dict.navbar.matchmakingQuestionnaire}
                     />
-                    {/* ✅ שינוי: שימוש ב-messagesHref במקום /messages קבוע */}
                     <NavItem
                       href={messagesHref}
                       id="onboarding-target-messages-link"
@@ -408,93 +600,104 @@ const Navbar = ({ dict }: NavbarProps) => {
                 ) : null}
               </div>
             </div>
-            <div className="flex items-center gap-2 md:gap-4">
+
+            <div className="flex items-center gap-2 md:gap-3">
+              {/* =========================================================== */}
+              {/* #3: כפתור שפה מפושט — אייקון globe + טקסט בלבד             */}
+              {/* =========================================================== */}
               <Button
                 variant="ghost"
                 onClick={handleLanguageChange}
-                className="group flex items-center gap-2 px-3 py-2 text-gray-600 hover:text-teal-700 hover:bg-teal-50 rounded-full transition-all duration-300 border border-transparent hover:border-teal-100"
+                className="flex items-center gap-1.5 px-2.5 py-1.5 text-gray-500 hover:text-teal-700 hover:bg-teal-50 rounded-full transition-colors duration-200"
                 aria-label={`Switch to ${locale === 'he' ? 'English' : 'Hebrew'}`}
                 title={`Switch to ${locale === 'he' ? 'English' : 'Hebrew'}`}
               >
-                <div className="relative">
-                  <Globe className="h-4 w-4 transition-all duration-300 group-hover:scale-110 group-hover:text-teal-600" />
-                  <div className="absolute -top-1.5 -right-1.5 w-3.5 h-3.5 bg-gradient-to-r from-teal-500 to-orange-500 rounded-full flex items-center justify-center shadow-sm border border-white">
-                    <span className="text-[8px] font-bold text-white leading-none">
-                      {locale === 'he' ? 'ע' : 'E'}
-                    </span>
-                  </div>
-                </div>
-                <span className="text-sm font-semibold transition-all duration-300 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-teal-600 group-hover:to-orange-600">
+                <Globe className="h-4 w-4" />
+                <span className="text-sm font-medium">
                   {locale === 'he' ? 'EN' : 'HE'}
                 </span>
               </Button>
 
-              {session && (
-                <div
-                  id="onboarding-target-availability-status"
-                  className="hidden md:block"
-                >
-                  <AvailabilityStatus
-                    dict={dict.profilePage.availabilityStatus}
+              {/* #1: AvailabilityStatus הוסר מה-navbar — יוצג רק בתפריט צד */}
+
+              {/* #1 (desktop): UserDropdown רק בדסקטופ */}
+              {session ? (
+                <div className="hidden md:block">
+                  <UserDropdown
+                    session={session}
+                    mainProfileImage={mainProfileImage}
+                    getInitials={() => initials}
+                    handleSignOut={handleSignOut}
+                    profileIconSize={profileIconSize}
+                    dict={dict.userDropdown}
+                    locale={locale}
                   />
                 </div>
-              )}
-              {session ? (
-                <UserDropdown
-                  session={session}
-                  mainProfileImage={mainProfileImage}
-                  getInitials={getInitials}
-                  handleSignOut={handleSignOut}
-                  profileIconSize={profileIconSize}
-                  dict={dict.userDropdown}
-                  locale={locale}
-                />
               ) : (
+                // #14: כפתורי login/register לאורח — בלי כפתור שאלון כפול
                 <div className="hidden md:flex items-center gap-2">
-                  <NavItem
-                    href="/questionnaire"
-                    text={dict.navbar.toQuestionnaire}
-                  />
                   <NavItem href="/auth/signin" text={dict.navbar.login} />
 
+                  {/* #21: כפתור register מפושט — solid color, בלי shimmer */}
                   <Link
                     href={`/${locale}/auth/register`}
-                    className="group relative overflow-hidden bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 hover:from-teal-600 hover:via-orange-600 hover:to-amber-600 text-white rounded-full shadow-md hover:shadow-lg transition-all duration-300 px-6 py-2.5 inline-flex items-center justify-center"
+                    className="bg-teal-600 hover:bg-teal-700 text-white rounded-full shadow-sm hover:shadow-md transition-all duration-200 px-5 py-2 inline-flex items-center justify-center font-semibold text-sm"
                   >
-                    <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-white/0 via-white/20 to-white/0 transform -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]"></span>
-                    <span className="relative z-10 flex items-center font-bold">
-                      <UserPlus
-                        className={cn('h-4 w-4', isRtl ? 'ml-2' : 'mr-2')}
-                      />
-                      {dict.navbar.register}
-                    </span>
+                    <UserPlus
+                      className={cn('h-4 w-4', isRtl ? 'ml-1.5' : 'mr-1.5')}
+                    />
+                    {dict.navbar.register}
                   </Link>
                 </div>
               )}
+
+              {/* #18: אייקון המבורגר מתנפש ל-X — מוצג רק במובייל */}
               <Button
                 variant="ghost"
                 size="icon"
                 className="md:hidden text-gray-600 hover:text-teal-600 hover:bg-teal-50 rounded-full touch-manipulation"
                 onClick={toggleMobileMenu}
-                aria-label="פתח תפריט"
+                aria-label={mobileMenuOpen ? 'סגור תפריט' : 'פתח תפריט'}
                 aria-expanded={mobileMenuOpen}
                 aria-controls="mobile-menu-panel"
               >
-                <Menu className="h-6 w-6" />
+                <AnimatedMenuIcon isOpen={mobileMenuOpen} />
               </Button>
             </div>
           </div>
         </div>
       </nav>
-      {mobileMenuOpen && (
-        <div
-          className="fixed inset-0 bg-black/40 z-40 backdrop-blur-sm md:hidden"
-          onClick={toggleMobileMenu}
-          style={{ touchAction: 'none' }}
-          aria-hidden="true"
-        />
-      )}
+
+      {/* =================================================================== */}
+      {/* #24: Overlay רכה יותר (bg-black/25)                                */}
+      {/* =================================================================== */}
+      <AnimatePresence>
+        {mobileMenuOpen && (
+          <motion.div
+            className="fixed inset-0 bg-black/25 z-40 backdrop-blur-sm md:hidden"
+            onClick={closeMobileMenu}
+            style={{ touchAction: 'none' }}
+            aria-hidden="true"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* =================================================================== */}
+      {/* תפריט צד — כולל:                                                   */}
+      {/* #6: אזור פרופיל מצומצם                                             */}
+      {/* #11: focus trap                                                     */}
+      {/* #15: לוגו הוסר מתפריט הצד — רק X לסגירה                           */}
+      {/* #19: stagger animation על הפריטים                                   */}
+      {/* #22: היררכיה ויזואלית — פריטים ראשיים בולטים                       */}
+      {/* #4: כפתור שפה בתחתית, קטן ושקט                                     */}
+      {/* #26: הפרדה בין קבוצות עם padding גדול יותר                         */}
+      {/* =================================================================== */}
       <div
+        ref={mobileMenuRef}
         className={cn(
           'fixed top-0 z-50 h-full w-4/5 max-w-sm bg-white shadow-2xl transform transition-transform duration-300 ease-in-out md:hidden',
           isRtl ? 'right-0' : 'left-0',
@@ -511,12 +714,19 @@ const Navbar = ({ dict }: NavbarProps) => {
         style={{ touchAction: 'pan-y' }}
       >
         <div className="flex flex-col h-full overflow-hidden">
-          <div className="flex justify-between items-center p-5 border-b border-gray-100 shrink-0 bg-gray-50/30">
-            <Logo locale={locale} />
+          {/* =============================================================== */}
+          {/* #15: Header — רק כפתור סגירה (בלי לוגו)                        */}
+          {/* =============================================================== */}
+          <div
+            className={cn(
+              'flex items-center p-4 border-b border-gray-100 shrink-0',
+              isRtl ? 'justify-start' : 'justify-end'
+            )}
+          >
             <Button
               variant="ghost"
               size="icon"
-              onClick={toggleMobileMenu}
+              onClick={closeMobileMenu}
               className="text-gray-400 hover:text-gray-800 rounded-full hover:bg-gray-100 touch-manipulation"
               aria-label="סגור תפריט"
             >
@@ -532,269 +742,317 @@ const Navbar = ({ dict }: NavbarProps) => {
               overscrollBehavior: 'contain',
             }}
           >
+            {/* ============================================================= */}
+            {/* #6: אזור פרופיל מצומצם — אווטאר + שם בלבד, בלי קלף גדול    */}
+            {/* #1: AvailabilityStatus מוצג כאן בלבד (לא ב-navbar desktop)   */}
+            {/* ============================================================= */}
             {session?.user && (
-              <div className="p-4 space-y-4">
+              <div className="px-4 pt-4 pb-2 space-y-3">
                 <Link
                   href={`/${locale}/profile`}
-                  onClick={toggleMobileMenu}
-                  className="block"
+                  onClick={closeMobileMenu}
+                  className="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 transition-colors active:scale-[0.98] touch-manipulation"
                 >
-                  <div className="p-4 border border-teal-100/50 rounded-2xl bg-gradient-to-br from-teal-50/50 via-white to-orange-50/50 hover:from-teal-100/50 hover:to-orange-100/50 transition-all duration-300 shadow-sm hover:shadow-md cursor-pointer group">
-                    <div className="flex items-center gap-4">
-                      <div
-                        className={`relative ${profileIconSize} rounded-full flex-shrink-0 flex items-center justify-center shadow-sm overflow-hidden ring-2 ring-white group-hover:ring-teal-200 transition-all`}
-                      >
-                        {mainProfileImage?.url ? (
-                          <Image
-                            src={getRelativeCloudinaryPath(
-                              mainProfileImage.url
-                            )}
-                            alt={session.user.name || 'תמונת פרופיל'}
-                            fill
-                            className="object-cover rounded-full"
-                            sizes="40px"
-                          />
-                        ) : (
-                          <span className="font-semibold text-xl text-teal-800 bg-teal-100 w-full h-full flex items-center justify-center rounded-full">
-                            {getInitials()}
-                          </span>
-                        )}
-                      </div>
-                      <div className="flex-grow min-w-0">
-                        <div className="font-bold text-gray-800 truncate group-hover:text-teal-800 transition-colors">
-                          {session.user.name}
-                        </div>
-                        <div className="text-sm text-gray-500 truncate">
-                          {session.user.email}
-                        </div>
-                        <div className="text-xs text-teal-600 font-bold mt-1 group-hover:text-teal-700 flex items-center gap-1">
-                          {dict.userDropdown.myProfile}
-                          <span className="text-[10px]">
-                            {isRtl ? '←' : '→'}
-                          </span>
-                        </div>
-                      </div>
+                  <div
+                    className={`relative ${profileIconSize} rounded-full flex-shrink-0 flex items-center justify-center overflow-hidden ring-2 ring-gray-100`}
+                  >
+                    {mainProfileImage?.url ? (
+                      <Image
+                        src={getRelativeCloudinaryPath(mainProfileImage.url)}
+                        alt={session.user.name || 'תמונת פרופיל'}
+                        fill
+                        className="object-cover rounded-full"
+                        sizes="40px"
+                      />
+                    ) : (
+                      <span className="font-semibold text-lg text-teal-800 bg-teal-100 w-full h-full flex items-center justify-center rounded-full">
+                        {initials}
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex-grow min-w-0">
+                    <div className="font-semibold text-gray-800 truncate text-sm">
+                      {session.user.name}
+                    </div>
+                    <div className="text-xs text-teal-600 font-medium">
+                      {dict.userDropdown.myProfile}
+                      <span className="text-[10px] mx-0.5">
+                        {isRtl ? '←' : '→'}
+                      </span>
                     </div>
                   </div>
                 </Link>
 
-                <div id="onboarding-target-availability-status" className="p-1">
+                <div className="px-1">
                   <AvailabilityStatus
                     dict={dict.profilePage.availabilityStatus}
                   />
                 </div>
-
-                <Button
-                  variant="outline"
-                  onClick={handleLanguageChange}
-                  className="w-full border border-gray-200 text-gray-700 hover:bg-teal-50 hover:border-teal-200 flex items-center justify-between py-6 h-auto text-base transition-all duration-300 rounded-xl"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="relative flex-shrink-0">
-                      <Globe className="h-5 w-5 text-teal-600" />
-                      <div className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-gradient-to-r from-teal-500 to-orange-500 rounded-full flex items-center justify-center border border-white">
-                        <span className="text-[8px] font-bold text-white leading-none">
-                          {locale === 'he' ? 'ע' : 'E'}
-                        </span>
-                      </div>
-                    </div>
-                    <span className="font-semibold text-gray-700">
-                      {locale === 'he' ? 'English' : 'עברית'}
-                    </span>
-                  </div>
-                  <span className="font-bold text-sm bg-gradient-to-r from-teal-600 to-orange-600 bg-clip-text text-transparent">
-                    {locale === 'he' ? 'EN' : 'HE'}
-                  </span>
-                </Button>
               </div>
             )}
 
-            <nav className="space-y-1 p-2 pb-6">
-              {session ? (
-                <>
-                  <div className="px-4 pt-2 pb-2 text-xs font-bold text-gray-400 uppercase tracking-wider">
-                    {isRtl ? 'תפריט ראשי' : 'Main Menu'}
-                  </div>
-                  {isMatchmaker ? (
+            {/* ============================================================= */}
+            {/* ניווט ראשי — עם stagger animation (#19)                       */}
+            {/* ============================================================= */}
+            <AnimatePresence>
+              {mobileMenuOpen && (
+                <motion.nav
+                  className="p-2"
+                  variants={menuContainerVariants}
+                  initial="hidden"
+                  animate="visible"
+                  exit="exit"
+                >
+                  {session ? (
                     <>
-                      <MobileNavItem
-                        href="/matchmaker/suggestions"
-                        text={dict.navbar.matchmakerSuggestions}
-                        icon={<Heart className="h-5 w-5" />}
-                        onClick={toggleMobileMenu}
-                        isRtl={isRtl}
-                      />
-                      <MobileNavItem
-                        href="/matchmaker/clients"
-                        text={dict.navbar.matchmakerClients}
-                        icon={<Users className="h-5 w-5" />}
-                        onClick={toggleMobileMenu}
-                        isRtl={isRtl}
-                      />
-                      <MobileNavItem
-                        href="/matchmaker/potential-matches"
-                        text={
-                          dict.navbar.potentialMatches || 'התאמות פוטנציאליות'
-                        }
-                        icon={<HeartHandshake className="h-5 w-5" />}
-                        onClick={toggleMobileMenu}
-                        isRtl={isRtl}
-                      />
-                      <MobileNavItem
-                        href="/admin/engagement"
-                        text={
-                          dict.navbar.engagementDashboard || 'ניהול Engagement'
-                        }
-                        icon={<Mail className="h-5 w-5" />}
-                        onClick={toggleMobileMenu}
-                        isRtl={isRtl}
-                      />
-                      {isAdmin && (
+                      {/* #22: קטגוריה ראשית */}
+                      <motion.div
+                        variants={menuItemVariants}
+                        className="px-4 pt-4 pb-2 text-xs font-bold text-gray-400 uppercase tracking-wider"
+                      >
+                        {isRtl ? 'תפריט ראשי' : 'Main Menu'}
+                      </motion.div>
+
+                      {isMatchmaker ? (
+                        <>
+                          <motion.div variants={menuItemVariants}>
+                            <MobileNavItem
+                              href="/matchmaker/suggestions"
+                              text={dict.navbar.matchmakerSuggestions}
+                              icon={<Heart className="h-5 w-5" />}
+                              onClick={closeMobileMenu}
+                              isRtl={isRtl}
+                              isPrimary
+                            />
+                          </motion.div>
+                          <motion.div variants={menuItemVariants}>
+                            <MobileNavItem
+                              href="/matchmaker/clients"
+                              text={dict.navbar.matchmakerClients}
+                              icon={<Users className="h-5 w-5" />}
+                              onClick={closeMobileMenu}
+                              isRtl={isRtl}
+                              isPrimary
+                            />
+                          </motion.div>
+                          <motion.div variants={menuItemVariants}>
+                            <MobileNavItem
+                              href="/matchmaker/potential-matches"
+                              text={
+                                dict.navbar.potentialMatches ||
+                                'התאמות פוטנציאליות'
+                              }
+                              icon={<HeartHandshake className="h-5 w-5" />}
+                              onClick={closeMobileMenu}
+                              isRtl={isRtl}
+                              isPrimary
+                            />
+                          </motion.div>
+                          <motion.div variants={menuItemVariants}>
+                            <MobileNavItem
+                              href="/admin/engagement"
+                              text={
+                                dict.navbar.engagementDashboard ||
+                                'ניהול Engagement'
+                              }
+                              icon={<Mail className="h-5 w-5" />}
+                              onClick={closeMobileMenu}
+                              isRtl={isRtl}
+                            />
+                          </motion.div>
+                          {isAdmin && (
+                            <motion.div variants={menuItemVariants}>
+                              <MobileNavItem
+                                href="/admin/referrals"
+                                text={
+                                  dict.navbar.referralsAdmin || 'ניהול רפרלים'
+                                }
+                                icon={<Gift className="h-5 w-5" />}
+                                onClick={closeMobileMenu}
+                                isRtl={isRtl}
+                              />
+                            </motion.div>
+                          )}
+                        </>
+                      ) : (
+                        <motion.div variants={menuItemVariants}>
+                          <MobileNavItem
+                            id="onboarding-target-matches-link"
+                            href="/matches"
+                            text={dict.navbar.myMatches}
+                            icon={<Users className="h-5 w-5" />}
+                            onClick={closeMobileMenu}
+                            isRtl={isRtl}
+                            isPrimary
+                          />
+                        </motion.div>
+                      )}
+
+                      <motion.div variants={menuItemVariants}>
                         <MobileNavItem
-                          href="/admin/referrals"
-                          text={dict.navbar.referralsAdmin || 'ניהול רפרלים'}
-                          icon={<Gift className="h-5 w-5" />}
-                          onClick={toggleMobileMenu}
+                          href="/questionnaire"
+                          text={dict.navbar.matchmakingQuestionnaire}
+                          icon={<Lightbulb className="h-5 w-5" />}
+                          onClick={closeMobileMenu}
+                          isRtl={isRtl}
+                          isPrimary
+                        />
+                      </motion.div>
+
+                      <motion.div variants={menuItemVariants}>
+                        <MobileNavItem
+                          id="onboarding-target-messages-link"
+                          href={messagesHref}
+                          text={dict.navbar.messages}
+                          icon={<MessageCircle className="h-5 w-5" />}
+                          badge={
+                            notifications.total > 0
+                              ? notifications.total
+                              : undefined
+                          }
+                          onClick={closeMobileMenu}
+                          isRtl={isRtl}
+                          isPrimary
+                        />
+                      </motion.div>
+
+                      {/* Home page section links */}
+                      {isHomePage && homePageLinks.length > 0 && (
+                        <>
+                          {/* #26: padding גדול יותר במקום קו דק */}
+                          <motion.div
+                            variants={menuItemVariants}
+                            className="px-4 pt-6 pb-2 text-xs font-bold text-gray-400 uppercase tracking-wider"
+                          >
+                            {dict.stickyNav.mobileTitle || 'ניווט בדף'}
+                          </motion.div>
+                          {homePageLinks.map((link) => (
+                            <motion.div
+                              key={link.id}
+                              variants={menuItemVariants}
+                            >
+                              <MobileHomePageLink
+                                href={`#${link.id}`}
+                                text={link.text}
+                                icon={link.icon}
+                                onClick={closeMobileMenu}
+                              />
+                            </motion.div>
+                          ))}
+                        </>
+                      )}
+
+                      {/* #22/#26: קבוצה משנית — הגדרות והתנתקות */}
+                      <motion.div
+                        variants={menuItemVariants}
+                        className="px-4 pt-6 pb-2 text-xs font-bold text-gray-400 uppercase tracking-wider"
+                      >
+                        {isRtl ? 'חשבון' : 'Account'}
+                      </motion.div>
+
+                      <motion.div variants={menuItemVariants}>
+                        <MobileNavItem
+                          href="/settings"
+                          text={dict.userDropdown.accountSettings}
+                          icon={<Settings className="h-5 w-5" />}
+                          onClick={closeMobileMenu}
                           isRtl={isRtl}
                         />
-                      )}
+                      </motion.div>
+
+                      <motion.div variants={menuItemVariants}>
+                        <button
+                          onClick={handleSignOut}
+                          // #25: active:scale
+                          className="w-full flex items-center px-4 py-3 rounded-xl text-sm font-medium text-gray-500 hover:bg-rose-50 hover:text-rose-600 transition-all duration-150 gap-4 touch-manipulation active:scale-[0.98]"
+                        >
+                          <LogOut className="h-5 w-5" />
+                          <span className="flex-grow text-start">
+                            {dict.userDropdown.signOut}
+                          </span>
+                        </button>
+                      </motion.div>
                     </>
                   ) : (
-                    <MobileNavItem
-                      id="onboarding-target-matches-link"
-                      href="/matches"
-                      text={dict.navbar.myMatches}
-                      icon={<Users className="h-5 w-5" />}
-                      onClick={toggleMobileMenu}
-                      isRtl={isRtl}
-                    />
-                  )}
-                  <MobileNavItem
-                    href="/questionnaire"
-                    text={dict.navbar.matchmakingQuestionnaire}
-                    icon={<Lightbulb className="h-5 w-5" />}
-                    onClick={toggleMobileMenu}
-                    isRtl={isRtl}
-                  />
-                  {/* ✅ שינוי: שימוש ב-messagesHref גם במובייל */}
-                  <MobileNavItem
-                    id="onboarding-target-messages-link"
-                    href={messagesHref}
-                    text={dict.navbar.messages}
-                    icon={<MessageCircle className="h-5 w-5" />}
-                    badge={
-                      notifications.total > 0 ? notifications.total : undefined
-                    }
-                    onClick={toggleMobileMenu}
-                    isRtl={isRtl}
-                  />
-
-                  {isHomePage && homePageLinks.length > 0 && (
                     <>
-                      <div className="my-4 border-t border-gray-100 mx-4" />
-                      <div className="px-4 pt-2 pb-2 text-xs font-bold text-gray-400 uppercase tracking-wider">
-                        {dict.stickyNav.mobileTitle || 'ניווט בדף'}
-                      </div>
-                      {homePageLinks.map((link) => (
-                        <MobileHomePageLink
-                          key={link.id}
-                          href={`#${link.id}`}
-                          text={link.text}
-                          icon={link.icon}
-                          onClick={toggleMobileMenu}
+                      {/* ================================================= */}
+                      {/* Guest mobile menu                                  */}
+                      {/* ================================================= */}
+                      {isHomePage && homePageLinks.length > 0 && (
+                        <>
+                          <motion.div
+                            variants={menuItemVariants}
+                            className="px-4 pt-2 pb-2 text-xs font-bold text-gray-400 uppercase tracking-wider"
+                          >
+                            {dict.stickyNav.mobileTitle || 'ניווט בדף'}
+                          </motion.div>
+                          {homePageLinks.map((link) => (
+                            <motion.div
+                              key={link.id}
+                              variants={menuItemVariants}
+                            >
+                              <MobileHomePageLink
+                                href={`#${link.id}`}
+                                text={link.text}
+                                icon={link.icon}
+                                onClick={closeMobileMenu}
+                              />
+                            </motion.div>
+                          ))}
+                          <div className="h-4" />
+                        </>
+                      )}
+
+                      {/* #14: שאלון מוצג פעם אחת בלבד */}
+                      <motion.div variants={menuItemVariants}>
+                        <MobileNavItem
+                          href="/questionnaire"
+                          text={dict.navbar.matchmakingQuestionnaire}
+                          icon={<Lightbulb className="h-5 w-5" />}
+                          onClick={closeMobileMenu}
+                          isRtl={isRtl}
+                          isPrimary
                         />
-                      ))}
+                      </motion.div>
+                      <motion.div variants={menuItemVariants}>
+                        <MobileNavItem
+                          href="/auth/signin"
+                          text={dict.navbar.login}
+                          icon={<LogIn className="h-5 w-5" />}
+                          onClick={closeMobileMenu}
+                          isRtl={isRtl}
+                        />
+                      </motion.div>
+                      <motion.div variants={menuItemVariants}>
+                        <MobileNavItem
+                          href="/auth/register"
+                          text={dict.navbar.register}
+                          icon={<UserPlus className="h-5 w-5" />}
+                          onClick={closeMobileMenu}
+                          isRtl={isRtl}
+                          isPrimary
+                        />
+                      </motion.div>
                     </>
                   )}
 
-                  <div className="my-4 border-t border-gray-100 mx-4" />
-
-                  <MobileNavItem
-                    href="/settings"
-                    text={dict.userDropdown.accountSettings}
-                    icon={<Settings className="h-5 w-5" />}
-                    onClick={toggleMobileMenu}
-                    isRtl={isRtl}
-                  />
-                  <button
-                    onClick={handleSignOut}
-                    className="w-full flex items-center px-4 py-3 rounded-xl text-base font-medium text-gray-600 hover:bg-rose-50 hover:text-rose-600 transition-colors duration-150 gap-4 touch-manipulation active:bg-rose-100"
-                  >
-                    <LogOut className="h-5 w-5" />
-                    <span className="flex-grow text-start">
-                      {dict.userDropdown.signOut}
-                    </span>
-                  </button>
-                </>
-              ) : (
-                <>
-                  <div className="p-4">
-                    <Button
-                      variant="outline"
+                  {/* ======================================================= */}
+                  {/* #4: כפתור שפה בתחתית התפריט — קטן ושקט                  */}
+                  {/* ======================================================= */}
+                  <motion.div variants={menuItemVariants} className="pt-6 px-4">
+                    <button
                       onClick={handleLanguageChange}
-                      className="w-full border border-gray-200 text-gray-700 hover:bg-teal-50 hover:border-teal-200 flex items-center justify-between py-6 h-auto text-base transition-all duration-300 rounded-xl"
+                      className="flex items-center gap-2 text-sm text-gray-400 hover:text-gray-600 transition-colors touch-manipulation"
                     >
-                      <div className="flex items-center gap-3">
-                        <div className="relative flex-shrink-0">
-                          <Globe className="h-5 w-5 text-teal-600" />
-                          <div className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-gradient-to-r from-teal-500 to-orange-500 rounded-full flex items-center justify-center border border-white">
-                            <span className="text-[8px] font-bold text-white leading-none">
-                              {locale === 'he' ? 'ע' : 'E'}
-                            </span>
-                          </div>
-                        </div>
-                        <span className="font-semibold text-gray-700">
-                          {locale === 'he' ? 'English' : 'עברית'}
-                        </span>
-                      </div>
-                      <span className="font-bold text-sm bg-gradient-to-r from-teal-600 to-orange-600 bg-clip-text text-transparent">
-                        {locale === 'he' ? 'EN' : 'HE'}
+                      <Globe className="h-4 w-4" />
+                      <span className="font-medium">
+                        {locale === 'he' ? 'Switch to English' : 'עבור לעברית'}
                       </span>
-                    </Button>
-                  </div>
-
-                  {isHomePage && homePageLinks.length > 0 && (
-                    <>
-                      <div className="px-4 pt-2 pb-2 text-xs font-bold text-gray-400 uppercase tracking-wider">
-                        {dict.stickyNav.mobileTitle || 'ניווט בדף'}
-                      </div>
-                      {homePageLinks.map((link) => (
-                        <MobileHomePageLink
-                          key={link.id}
-                          href={`#${link.id}`}
-                          text={link.text}
-                          icon={link.icon}
-                          onClick={toggleMobileMenu}
-                        />
-                      ))}
-                      <div className="my-4 border-t border-gray-100 mx-4" />
-                    </>
-                  )}
-
-                  <MobileNavItem
-                    href="/questionnaire"
-                    text={dict.navbar.matchmakingQuestionnaire}
-                    icon={<Lightbulb className="h-5 w-5" />}
-                    onClick={toggleMobileMenu}
-                    isRtl={isRtl}
-                  />
-                  <MobileNavItem
-                    href="/auth/signin"
-                    text={dict.navbar.login}
-                    icon={<LogIn className="h-5 w-5" />}
-                    onClick={toggleMobileMenu}
-                    isRtl={isRtl}
-                  />
-                  <MobileNavItem
-                    href="/auth/register"
-                    text={dict.navbar.register}
-                    icon={<UserPlus className="h-5 w-5" />}
-                    onClick={toggleMobileMenu}
-                    isRtl={isRtl}
-                  />
-                </>
+                    </button>
+                  </motion.div>
+                </motion.nav>
               )}
-            </nav>
+            </AnimatePresence>
           </div>
         </div>
       </div>
