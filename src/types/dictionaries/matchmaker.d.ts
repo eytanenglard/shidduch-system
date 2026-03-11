@@ -966,6 +966,7 @@ type MatchmakerHeroSectionDict = {
   subtitle: string;
   totalSuggestions: string;
   pendingResponse: string;
+statsButton: string;
   successfulMatches: string;
   successRate: string;
   newSuggestionButton: string;
@@ -1186,6 +1187,8 @@ type SuggestionCardDict = {
     };
   };
   actions: {
+    changeStatus: string;
+    selectNewStatus: string;
     edit: string;
     sendMessage: string;
     delete: string;

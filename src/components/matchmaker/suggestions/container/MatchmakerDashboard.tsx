@@ -30,6 +30,8 @@ import {
   Target,
   Crown,
   MessageCircle,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react';
 import {
   AlertDialog,
@@ -47,14 +49,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from '@/components/ui/sheet';
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { toast } from 'sonner';
 import { MatchSuggestionStatus, Priority } from '@prisma/client';
 import { cn } from '@/lib/utils';
@@ -79,7 +73,6 @@ import EditSuggestionForm from '../EditSuggestionForm';
 import MessageForm from '../MessageForm';
 import MonthlyTrendModal from './MonthlyTrendModal';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Input } from '@/components/ui/input';
 
 // Media query hook
 const useMediaQuery = (query: string) => {
@@ -97,7 +90,10 @@ const useMediaQuery = (query: string) => {
   return matches;
 };
 
-// Enhanced Hero Section Component
+// ═══════════════════════════════════════════════════════════════
+// COLLAPSIBLE HERO SECTION
+// ═══════════════════════════════════════════════════════════════
+
 const MatchmakerHeroSection: React.FC<{
   dict: MatchmakerPageDictionary['suggestionsDashboard']['heroSection'];
   onNewSuggestion: () => void;
@@ -112,125 +108,160 @@ const MatchmakerHeroSection: React.FC<{
     successRate: number;
   };
 }> = ({ dict, onNewSuggestion, onRefresh, isRefreshing, stats }) => {
-  return (
-    <div className="relative min-h-[400px] bg-gradient-to-br from-purple-50 via-cyan-50/30 to-emerald-50/20 overflow-hidden rounded-3xl shadow-2xl mb-8">
-      <div className="absolute inset-0">
-        <div className="absolute top-10 right-10 w-64 h-64 bg-gradient-to-br from-purple-200/30 to-pink-200/30 rounded-full blur-3xl animate-float"></div>
-        <div
-          className="absolute bottom-10 left-10 w-48 h-48 bg-gradient-to-br from-cyan-200/30 to-blue-200/30 rounded-full blur-2xl animate-float"
-          style={{ animationDelay: '2s' }}
-        ></div>
-        <div
-          className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-gradient-to-br from-emerald-200/20 to-green-200/20 rounded-full blur-3xl animate-float"
-          style={{ animationDelay: '4s' }}
-        ></div>
-      </div>
+  const [isOpen, setIsOpen] = useState(false);
 
-      <div className="relative z-10 p-8 lg:p-12">
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center gap-3 mb-6">
-            <div className="p-4 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg">
-              <Crown className="w-10 h-10" />
+  return (
+    <div className="relative bg-gradient-to-br from-purple-50 via-cyan-50/30 to-emerald-50/20 overflow-hidden rounded-2xl sm:rounded-3xl shadow-xl mb-6 sm:mb-8">
+      {/* ── Background decorations (only when open) ── */}
+      {isOpen && (
+        <div className="absolute inset-0">
+          <div className="absolute top-10 right-10 w-64 h-64 bg-gradient-to-br from-purple-200/30 to-pink-200/30 rounded-full blur-3xl animate-float" />
+          <div
+            className="absolute bottom-10 left-10 w-48 h-48 bg-gradient-to-br from-cyan-200/30 to-blue-200/30 rounded-full blur-2xl animate-float"
+            style={{ animationDelay: '2s' }}
+          />
+        </div>
+      )}
+
+      <div className="relative z-10">
+        {/* ── Collapsed Bar – תמיד נראה ── */}
+        <div className="flex items-center justify-between p-4 sm:p-6 gap-3 flex-wrap">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 sm:p-3 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg">
+              <Crown className="w-5 h-5 sm:w-6 sm:h-6" />
+            </div>
+            <div>
+              <h1 className="text-lg sm:text-xl font-bold bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 bg-clip-text text-transparent">
+                {dict.title}
+              </h1>
+              <p className="text-xs sm:text-sm text-gray-500 hidden sm:block">
+                {dict.subtitle}
+              </p>
             </div>
           </div>
-          <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 bg-clip-text text-transparent mb-4">
-            {dict.title}
-          </h1>
-          <p className="text-xl text-gray-700 max-w-2xl mx-auto leading-relaxed">
-            {dict.subtitle}
-          </p>
+
+          <div className="flex items-center gap-2 flex-wrap">
+            {/* Toggle stats button */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setIsOpen(!isOpen)}
+              className="border-purple-200 text-purple-600 hover:bg-purple-50 rounded-xl text-xs sm:text-sm"
+            >
+              <BarChart className="w-4 h-4 ml-1.5" />
+              <span className="hidden sm:inline">
+                {dict.statsButton || 'סטטיסטיקות'}
+              </span>
+              {isOpen ? (
+                <ChevronUp className="w-3.5 h-3.5 mr-1" />
+              ) : (
+                <ChevronDown className="w-3.5 h-3.5 mr-1" />
+              )}
+            </Button>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onRefresh}
+              disabled={isRefreshing}
+              className="border-purple-200 text-purple-600 hover:bg-purple-50 rounded-xl text-xs sm:text-sm"
+            >
+              <RefreshCw
+                className={cn('w-4 h-4 ml-1', isRefreshing && 'animate-spin')}
+              />
+              <span className="hidden sm:inline">
+                {isRefreshing ? dict.refreshingButton : dict.refreshButton}
+              </span>
+            </Button>
+
+            <Button
+              onClick={onNewSuggestion}
+              size="sm"
+              className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white shadow-lg rounded-xl text-xs sm:text-sm font-bold"
+            >
+              <Plus className="w-4 h-4 ml-1" />
+              {dict.newSuggestionButton}
+              <Sparkles className="w-3.5 h-3.5 mr-1 hidden sm:block" />
+            </Button>
+          </div>
         </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm hover:shadow-xl transition-all duration-300 group">
-            <CardContent className="p-4 text-center">
-              <div className="flex items-center justify-center gap-2 mb-2">
-                <div className="p-2 rounded-full bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-lg group-hover:scale-110 transition-transform">
-                  <Users className="w-5 h-5" />
-                </div>
-                <span className="text-2xl font-bold text-blue-600">
-                  {stats.total}
-                </span>
-              </div>
-              <p className="text-sm text-gray-600 font-medium">
-                {dict.totalSuggestions}
-              </p>
-            </CardContent>
-          </Card>
-          <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm hover:shadow-xl transition-all duration-300 group">
-            <CardContent className="p-4 text-center">
-              <div className="flex items-center justify-center gap-2 mb-2">
-                <div className="p-2 rounded-full bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-lg group-hover:scale-110 transition-transform">
-                  <Clock className="w-5 h-5" />
-                </div>
-                <span className="text-2xl font-bold text-orange-600">
-                  {stats.pending}
-                </span>
-              </div>
-              <p className="text-sm text-gray-600 font-medium">
-                {dict.pendingResponse}
-              </p>
-            </CardContent>
-          </Card>
-          <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm hover:shadow-xl transition-all duration-300 group">
-            <CardContent className="p-4 text-center">
-              <div className="flex items-center justify-center gap-2 mb-2">
-                <div className="p-2 rounded-full bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-lg group-hover:scale-110 transition-transform">
-                  <Heart className="w-5 h-5" />
-                </div>
-                <span className="text-2xl font-bold text-green-600">
-                  {stats.success}
-                </span>
-              </div>
-              <p className="text-sm text-gray-600 font-medium">
-                {dict.successfulMatches}
-              </p>
-            </CardContent>
-          </Card>
-          <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm hover:shadow-xl transition-all duration-300 group">
-            <CardContent className="p-4 text-center">
-              <div className="flex items-center justify-center gap-2 mb-2">
-                <div className="p-2 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg group-hover:scale-110 transition-transform">
-                  <TrendingUp className="w-5 h-5" />
-                </div>
-                <span className="text-2xl font-bold text-purple-600">
-                  {stats.successRate}%
-                </span>
-              </div>
-              <p className="text-sm text-gray-600 font-medium">
-                {dict.successRate}
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-        <div className="flex flex-col md:flex-row items-center justify-center gap-4">
-          <Button
-            onClick={onNewSuggestion}
-            size="lg"
-            className="bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 hover:from-purple-700 hover:via-pink-700 hover:to-blue-700 text-white shadow-xl hover:shadow-2xl transition-all duration-300 rounded-2xl px-8 py-4 font-bold text-lg transform hover:scale-105"
-          >
-            <Plus className="w-6 h-6 ml-3" />
-            {dict.newSuggestionButton}
-            <Sparkles className="w-5 h-5 mr-2" />
-          </Button>
-          <Button
-            variant="outline"
-            size="lg"
-            onClick={onRefresh}
-            disabled={isRefreshing}
-            className="border-2 border-purple-300 text-purple-600 hover:bg-purple-50 shadow-lg hover:shadow-xl transition-all duration-300 rounded-2xl px-6 py-4 font-bold text-lg transform hover:scale-105"
-          >
-            <RefreshCw
-              className={cn('w-5 h-5 ml-2', isRefreshing && 'animate-spin')}
-            />
-            {isRefreshing ? dict.refreshingButton : dict.refreshButton}
-          </Button>
-        </div>
+
+        {/* ── Expanded Stats – נפתח בלחיצה ── */}
+        {isOpen && (
+          <div className="px-4 sm:px-6 pb-6 animate-in slide-in-from-top-2 duration-300">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+              <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm hover:shadow-xl transition-all duration-300 group">
+                <CardContent className="p-3 sm:p-4 text-center">
+                  <div className="flex items-center justify-center gap-2 mb-2">
+                    <div className="p-1.5 sm:p-2 rounded-full bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-lg group-hover:scale-110 transition-transform">
+                      <Users className="w-4 h-4 sm:w-5 sm:h-5" />
+                    </div>
+                    <span className="text-xl sm:text-2xl font-bold text-blue-600">
+                      {stats.total}
+                    </span>
+                  </div>
+                  <p className="text-xs sm:text-sm text-gray-600 font-medium">
+                    {dict.totalSuggestions}
+                  </p>
+                </CardContent>
+              </Card>
+              <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm hover:shadow-xl transition-all duration-300 group">
+                <CardContent className="p-3 sm:p-4 text-center">
+                  <div className="flex items-center justify-center gap-2 mb-2">
+                    <div className="p-1.5 sm:p-2 rounded-full bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-lg group-hover:scale-110 transition-transform">
+                      <Clock className="w-4 h-4 sm:w-5 sm:h-5" />
+                    </div>
+                    <span className="text-xl sm:text-2xl font-bold text-orange-600">
+                      {stats.pending}
+                    </span>
+                  </div>
+                  <p className="text-xs sm:text-sm text-gray-600 font-medium">
+                    {dict.pendingResponse}
+                  </p>
+                </CardContent>
+              </Card>
+              <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm hover:shadow-xl transition-all duration-300 group">
+                <CardContent className="p-3 sm:p-4 text-center">
+                  <div className="flex items-center justify-center gap-2 mb-2">
+                    <div className="p-1.5 sm:p-2 rounded-full bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-lg group-hover:scale-110 transition-transform">
+                      <Heart className="w-4 h-4 sm:w-5 sm:h-5" />
+                    </div>
+                    <span className="text-xl sm:text-2xl font-bold text-green-600">
+                      {stats.success}
+                    </span>
+                  </div>
+                  <p className="text-xs sm:text-sm text-gray-600 font-medium">
+                    {dict.successfulMatches}
+                  </p>
+                </CardContent>
+              </Card>
+              <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm hover:shadow-xl transition-all duration-300 group">
+                <CardContent className="p-3 sm:p-4 text-center">
+                  <div className="flex items-center justify-center gap-2 mb-2">
+                    <div className="p-1.5 sm:p-2 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg group-hover:scale-110 transition-transform">
+                      <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5" />
+                    </div>
+                    <span className="text-xl sm:text-2xl font-bold text-purple-600">
+                      {stats.successRate}%
+                    </span>
+                  </div>
+                  <p className="text-xs sm:text-sm text-gray-600 font-medium">
+                    {dict.successRate}
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
 };
 
-// Payload types
+// ═══════════════════════════════════════════════════════════════
+// PAYLOAD TYPES
+// ═══════════════════════════════════════════════════════════════
+
 interface SuggestionUpdatePayload {
   suggestionId: string;
   updates: {
@@ -293,6 +324,10 @@ interface MatchmakerDashboardProps {
   profileDict: ProfilePageDictionary;
 }
 
+// ═══════════════════════════════════════════════════════════════
+// MAIN DASHBOARD – unified responsive view
+// ═══════════════════════════════════════════════════════════════
+
 export default function MatchmakerDashboard({
   suggestionsDict,
   matchmakerDict,
@@ -307,8 +342,6 @@ export default function MatchmakerDashboard({
   const toastsDict = dashboardDict.toasts;
 
   const isMobile = useMediaQuery('(max-width: 768px)');
-  const [mobileView, setMobileView] = useState<'list' | 'kanban'>('list');
-  const [showMobileFilters, setShowMobileFilters] = useState(false);
   const { data: session } = useSession();
 
   const [activeTab, setActiveTab] = useState('pending');
@@ -466,8 +499,6 @@ export default function MatchmakerDashboard({
     }
   };
 
-  // בתוך MatchmakerDashboard.tsx
-
   const handleStatusChange = async (
     suggestionId: string,
     newStatus: MatchSuggestionStatus,
@@ -492,22 +523,16 @@ export default function MatchmakerDashboard({
         throw new Error(errorData.error || 'Failed to update status');
       }
 
-      const data = await response.json(); // ה-API מחזיר את ההצעה המעודכנת (חלקית או מלאה)
-
       toast.success(toastsDict.statusUpdateSuccess);
-
-      // 1. עדכון הרשימה הראשית ברקע
       fetchSuggestions();
 
-      // 2. עדכון הדיאלוג הפתוח בזמן אמת (כדי שהסטטוס יתחלף מול העיניים)
       if (selectedSuggestion && selectedSuggestion.id === suggestionId) {
         setSelectedSuggestion((prev) => {
           if (!prev) return null;
           return {
             ...prev,
             status: newStatus,
-            lastActivity: new Date(), // עדכון זמן פעילות אחרון
-            // אם ה-API מחזיר היסטוריה מעודכנת, אפשר להוסיף אותה כאן, אבל לרוב הסטטוס מספיק ל-UI
+            lastActivity: new Date(),
           };
         });
       }
@@ -629,63 +654,6 @@ export default function MatchmakerDashboard({
     });
   };
 
-  const kanbanColumns = useMemo(() => {
-    const columns: {
-      [key: string]: {
-        title: string;
-        suggestions: Suggestion[];
-        color: string;
-        icon: React.ElementType;
-      };
-    } = {
-      requiresAction: {
-        title: dashboardDict.kanban.requiresAction,
-        suggestions: [],
-        color: 'from-red-500 to-orange-500',
-        icon: Clock,
-      },
-      pendingResponse: {
-        title: dashboardDict.kanban.pendingResponse,
-        suggestions: [],
-        color: 'from-yellow-500 to-amber-500',
-        icon: MessageCircle,
-      },
-      inProgress: {
-        title: dashboardDict.kanban.inProgress,
-        suggestions: [],
-        color: 'from-green-500 to-emerald-500',
-        icon: Target,
-      },
-      history: {
-        title: dashboardDict.kanban.history,
-        suggestions: [],
-        color: 'from-gray-500 to-slate-500',
-        icon: Archive,
-      },
-    };
-
-    for (const suggestion of filteredSuggestions) {
-      if (suggestion.category === 'HISTORY') {
-        columns.history.suggestions.push(suggestion);
-      } else if (
-        ['PENDING_FIRST_PARTY', 'PENDING_SECOND_PARTY'].includes(
-          suggestion.status
-        )
-      ) {
-        columns.requiresAction.suggestions.push(suggestion);
-      } else if (
-        suggestion.status.includes('APPROVED') ||
-        suggestion.status === 'FIRST_PARTY_INTERESTED'
-      ) {
-        columns.pendingResponse.suggestions.push(suggestion);
-      } else if (suggestion.category === 'ACTIVE') {
-        columns.inProgress.suggestions.push(suggestion);
-      }
-    }
-
-    return Object.values(columns);
-  }, [filteredSuggestions, dashboardDict.kanban]);
-
   const heroStats = useMemo(() => {
     const total = suggestions.length;
     const pending = suggestions.filter(
@@ -714,194 +682,60 @@ export default function MatchmakerDashboard({
     return { total, pending, active, success, thisMonth, successRate };
   }, [suggestions]);
 
-  const renderMobileFilters = () => (
-    <Sheet open={showMobileFilters} onOpenChange={setShowMobileFilters}>
-      <SheetTrigger asChild>
-        <Button
-          variant="outline"
-          size="sm"
-          className="bg-white/80 backdrop-blur-sm shadow-lg"
-        >
-          <Filter className="w-4 h-4 mr-2" />
-          {dashboardDict.mobile.filter}
-        </Button>
-      </SheetTrigger>
-      <SheetContent className="w-full">
-        <SheetHeader>
-          <SheetTitle>{dashboardDict.mobile.filter}</SheetTitle>
-        </SheetHeader>
-        <div className="py-4">
-          <SuggestionActionBar
-            searchQuery={searchQuery}
-            onSearchChange={setSearchQuery}
-            filters={filters}
-            onFiltersChange={setFilters}
-            totalCount={suggestions.length}
-            activeCount={activeCount}
-            pendingCount={pendingCount}
-            historyCount={historyCount}
-            dict={dashboardDict.actionBar}
-          />
-        </div>
-      </SheetContent>
-    </Sheet>
-  );
+  // ═══════════════════════════════════════════════════════════
+  // Render helper for suggestion grid
+  // ═══════════════════════════════════════════════════════════
 
-  const renderMobileView = () => (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-cyan-50/20 to-emerald-50/20 flex flex-col">
-      <div className="p-4">
-        <MatchmakerHeroSection
-          dict={dashboardDict.heroSection}
-          onNewSuggestion={() => setShowNewSuggestion(true)}
-          onRefresh={handleRefresh}
-          isRefreshing={isRefreshing}
-          stats={heroStats}
-        />
-      </div>
-      <div className="flex items-center justify-between p-4 bg-white/80 backdrop-blur-sm border-b sticky top-0 z-10 shadow-lg">
-        <div className="relative flex-1">
-          <Search className="absolute right-3 top-2.5 h-4 w-4 text-gray-400" />
-          <Input
-            placeholder={dashboardDict.mobile.searchPlaceholder}
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10 text-right pr-10 bg-white/90 shadow-sm border-purple-200 focus:border-purple-400"
+  const renderSuggestionGrid = (items: Suggestion[]) => (
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+      {items.map((suggestion) => (
+        <div key={suggestion.id} className="animate-fade-in-up">
+          <SuggestionCard
+            suggestion={suggestion}
+            onAction={handleSuggestionAction}
+            className="shadow-lg hover:shadow-xl transition-all duration-300"
+            dict={dashboardDict.suggestionCard}
+            isMobile={isMobile}
           />
         </div>
-        <div className="mr-2">{renderMobileFilters()}</div>
-        <ToggleGroup
-          type="single"
-          value={mobileView}
-          onValueChange={(value: 'list' | 'kanban') =>
-            value && setMobileView(value)
-          }
-          className="mr-2"
-        >
-          <ToggleGroupItem
-            value="list"
-            aria-label={dashboardDict.mobile.list}
-            className="data-[state=on]:bg-purple-100 data-[state=on]:text-purple-700"
-          >
-            <List className="h-4 w-4" />
-          </ToggleGroupItem>
-          <ToggleGroupItem
-            value="kanban"
-            aria-label={dashboardDict.mobile.kanban}
-            className="data-[state=on]:bg-purple-100 data-[state=on]:text-purple-700"
-          >
-            <LayoutGrid className="h-4 w-4" />
-          </ToggleGroupItem>
-        </ToggleGroup>
-      </div>
-      {isLoading ? (
-        <div className="flex-1 flex items-center justify-center p-8">
-          <div className="text-center">
-            <Loader2 className="w-12 h-12 animate-spin text-purple-600 mx-auto mb-4" />
-            <p className="text-lg font-semibold text-gray-700">
-              {dashboardDict.mainContent.loadingText}
-            </p>
-          </div>
-        </div>
-      ) : mobileView === 'kanban' ? (
-        <ScrollArea className="w-full whitespace-nowrap flex-1">
-          <div className="flex gap-4 p-4 h-full">
-            {kanbanColumns.map((col, idx) => {
-              const IconComponent = col.icon;
-              return (
-                <div
-                  key={idx}
-                  className="w-72 flex-shrink-0 bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl flex flex-col border border-gray-200"
-                >
-                  <div
-                    className={cn(
-                      'p-4 font-semibold text-sm border-b sticky top-0 bg-gradient-to-r text-white rounded-t-2xl z-10 shadow-lg',
-                      col.color
-                    )}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <IconComponent className="w-5 h-5" />
-                        <span>{col.title}</span>
-                      </div>
-                      <Badge
-                        variant="secondary"
-                        className="bg-white/20 text-white border-white/30"
-                      >
-                        {col.suggestions.length}
-                      </Badge>
-                    </div>
-                  </div>
-                  <ScrollArea className="flex-1 p-3">
-                    <div className="space-y-3">
-                      {col.suggestions.length > 0 ? (
-                        col.suggestions.map((s) => (
-                          <SuggestionCard
-                            key={s.id}
-                            suggestion={s}
-                            onAction={handleSuggestionAction}
-                            variant="compact"
-                            className="shadow-lg hover:shadow-xl transition-all duration-300"
-                            dict={dashboardDict.suggestionCard}
-                          />
-                        ))
-                      ) : (
-                        <div className="p-6 text-center text-sm text-gray-500 bg-gray-50 rounded-xl">
-                          <IconComponent className="w-8 h-8 mx-auto mb-2 text-gray-400" />
-                          <p>{dashboardDict.kanban.noSuggestions}</p>
-                        </div>
-                      )}
-                    </div>
-                  </ScrollArea>
-                </div>
-              );
-            })}
-          </div>
-        </ScrollArea>
-      ) : (
-        <ScrollArea className="flex-1">
-          <div className="p-4 space-y-4">
-            {filteredSuggestions.map((s) => (
-              <SuggestionCard
-                key={s.id}
-                suggestion={s}
-                onAction={handleSuggestionAction}
-                variant="full"
-                className="shadow-lg hover:shadow-xl transition-all duration-300"
-                dict={dashboardDict.suggestionCard}
-              />
-            ))}
-            {filteredSuggestions.length === 0 && (
-              <div className="text-center p-12">
-                <div className="w-24 h-24 rounded-full bg-gradient-to-br from-purple-100 to-pink-100 flex items-center justify-center mx-auto mb-6">
-                  <Users className="w-12 h-12 text-purple-400" />
-                </div>
-                <h3 className="text-xl font-bold text-gray-800 mb-2">
-                  {dashboardDict.mobile.noMatches.title}
-                </h3>
-                <p className="text-gray-600">
-                  {dashboardDict.mobile.noMatches.description}
-                </p>
-              </div>
-            )}
-          </div>
-        </ScrollArea>
-      )}
-      <div className="p-4 bg-white/80 backdrop-blur-sm border-t sticky bottom-0">
-        <Button
-          onClick={() => setShowNewSuggestion(true)}
-          className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 shadow-xl text-lg py-6 rounded-2xl"
-        >
-          <Plus className="w-6 h-6 mr-3" />
-          {dashboardDict.mobile.newSuggestionButton}
-          <Sparkles className="w-5 h-5 ml-2" />
-        </Button>
-      </div>
+      ))}
     </div>
   );
 
-  const renderDesktopView = () => (
+  const renderEmptyState = (
+    icon: React.ElementType,
+    gradientFrom: string,
+    gradientTo: string,
+    title: string,
+    description: string
+  ) => {
+    const IconComponent = icon;
+    return (
+      <div className="text-center p-8 sm:p-12">
+        <div
+          className={cn(
+            'w-20 h-20 sm:w-24 sm:h-24 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6',
+            `bg-gradient-to-br ${gradientFrom} ${gradientTo}`
+          )}
+        >
+          <IconComponent className="w-10 h-10 sm:w-12 sm:h-12 text-gray-400" />
+        </div>
+        <h3 className="text-lg sm:text-xl font-bold text-gray-800 mb-2">
+          {title}
+        </h3>
+        <p className="text-sm sm:text-base text-gray-600">{description}</p>
+      </div>
+    );
+  };
+
+  // ═══════════════════════════════════════════════════════════
+  // UNIFIED RESPONSIVE VIEW
+  // ═══════════════════════════════════════════════════════════
+
+  return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-cyan-50/20 to-emerald-50/20">
-      <div className="container mx-auto p-6 space-y-8">
+      <div className="container mx-auto p-4 sm:p-6 space-y-6 sm:space-y-8">
+        {/* Hero Section – סגור בדיפולט */}
         <MatchmakerHeroSection
           dict={dashboardDict.heroSection}
           onNewSuggestion={() => setShowNewSuggestion(true)}
@@ -909,60 +743,79 @@ export default function MatchmakerDashboard({
           isRefreshing={isRefreshing}
           stats={heroStats}
         />
-        <Card className="shadow-2xl border-0 bg-white/95 backdrop-blur-sm overflow-hidden rounded-3xl">
-          <div className="bg-gradient-to-r from-white via-purple-50/30 to-pink-50/30 border-b border-purple-100 p-6">
+
+        {/* Main Content Card */}
+        <Card className="shadow-xl sm:shadow-2xl border-0 bg-white/95 backdrop-blur-sm overflow-hidden rounded-2xl sm:rounded-3xl">
+          <div className="bg-gradient-to-r from-white via-purple-50/30 to-pink-50/30 border-b border-purple-100 p-4 sm:p-6">
             <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-3">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setShowMonthlyTrendDialog(true)}
-                    className="border-purple-200 hover:bg-purple-50 text-purple-600"
-                  >
-                    <BarChart className="w-4 h-4 mr-2" />
+              {/* Header row */}
+              <div className="flex items-center justify-between mb-4 sm:mb-6 flex-wrap gap-3">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowMonthlyTrendDialog(true)}
+                  className="border-purple-200 hover:bg-purple-50 text-purple-600 text-xs sm:text-sm"
+                >
+                  <BarChart className="w-4 h-4 ml-1 sm:ml-2" />
+                  <span className="hidden sm:inline">
                     {dashboardDict.mainContent.monthlyTrendButton}
-                  </Button>
-                </div>
-                <TabsList className="bg-purple-50/50 rounded-2xl p-1 h-14">
+                  </span>
+                  <span className="sm:hidden">
+                    {dashboardDict.mainContent.monthlyTrendButton
+                      ?.split(' ')
+                      .slice(0, 2)
+                      .join(' ') || 'מגמות'}
+                  </span>
+                </Button>
+
+                {/* Tabs */}
+                <TabsList className="bg-purple-50/50 rounded-xl sm:rounded-2xl p-1 h-auto flex-wrap">
                   <TabsTrigger
                     value="pending"
-                    className="flex items-center gap-3 px-6 py-3 rounded-xl transition-all data-[state=active]:bg-white data-[state=active]:shadow-lg font-semibold text-base"
+                    className="flex items-center gap-1.5 sm:gap-3 px-3 sm:px-6 py-2 sm:py-3 rounded-lg sm:rounded-xl transition-all data-[state=active]:bg-white data-[state=active]:shadow-lg font-semibold text-xs sm:text-base"
                   >
-                    <Clock className="w-5 h-5 text-orange-500" />
-                    <span>{dashboardDict.mainContent.tabs.pending}</span>
+                    <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-orange-500" />
+                    <span className="hidden sm:inline">
+                      {dashboardDict.mainContent.tabs.pending}
+                    </span>
                     {pendingCount > 0 && (
-                      <Badge className="bg-orange-500 text-white border-0 px-2 py-1 text-xs font-bold rounded-full min-w-[24px] h-6">
+                      <Badge className="bg-orange-500 text-white border-0 px-1.5 sm:px-2 py-0.5 sm:py-1 text-[10px] sm:text-xs font-bold rounded-full min-w-[20px] sm:min-w-[24px] h-5 sm:h-6">
                         {pendingCount}
                       </Badge>
                     )}
                   </TabsTrigger>
                   <TabsTrigger
                     value="active"
-                    className="flex items-center gap-3 px-6 py-3 rounded-xl transition-all data-[state=active]:bg-white data-[state=active]:shadow-lg font-semibold text-base"
+                    className="flex items-center gap-1.5 sm:gap-3 px-3 sm:px-6 py-2 sm:py-3 rounded-lg sm:rounded-xl transition-all data-[state=active]:bg-white data-[state=active]:shadow-lg font-semibold text-xs sm:text-base"
                   >
-                    <Target className="w-5 h-5 text-green-500" />
-                    <span>{dashboardDict.mainContent.tabs.active}</span>
+                    <Target className="w-4 h-4 sm:w-5 sm:h-5 text-green-500" />
+                    <span className="hidden sm:inline">
+                      {dashboardDict.mainContent.tabs.active}
+                    </span>
                     {activeCount > 0 && (
-                      <Badge className="bg-green-500 text-white border-0 px-2 py-1 text-xs font-bold rounded-full min-w-[24px] h-6">
+                      <Badge className="bg-green-500 text-white border-0 px-1.5 sm:px-2 py-0.5 sm:py-1 text-[10px] sm:text-xs font-bold rounded-full min-w-[20px] sm:min-w-[24px] h-5 sm:h-6">
                         {activeCount}
                       </Badge>
                     )}
                   </TabsTrigger>
                   <TabsTrigger
                     value="history"
-                    className="flex items-center gap-3 px-6 py-3 rounded-xl transition-all data-[state=active]:bg-white data-[state=active]:shadow-lg font-semibold text-base"
+                    className="flex items-center gap-1.5 sm:gap-3 px-3 sm:px-6 py-2 sm:py-3 rounded-lg sm:rounded-xl transition-all data-[state=active]:bg-white data-[state=active]:shadow-lg font-semibold text-xs sm:text-base"
                   >
-                    <Archive className="w-5 h-5 text-gray-500" />
-                    <span>{dashboardDict.mainContent.tabs.history}</span>
+                    <Archive className="w-4 h-4 sm:w-5 sm:h-5 text-gray-500" />
+                    <span className="hidden sm:inline">
+                      {dashboardDict.mainContent.tabs.history}
+                    </span>
                     {historyCount > 0 && (
-                      <Badge className="bg-gray-500 text-white border-0 px-2 py-1 text-xs font-bold rounded-full min-w-[24px] h-6">
+                      <Badge className="bg-gray-500 text-white border-0 px-1.5 sm:px-2 py-0.5 sm:py-1 text-[10px] sm:text-xs font-bold rounded-full min-w-[20px] sm:min-w-[24px] h-5 sm:h-6">
                         {historyCount}
                       </Badge>
                     )}
                   </TabsTrigger>
                 </TabsList>
               </div>
+
+              {/* Action bar */}
               <SuggestionActionBar
                 searchQuery={searchQuery}
                 onSearchChange={setSearchQuery}
@@ -974,119 +827,79 @@ export default function MatchmakerDashboard({
                 historyCount={historyCount}
                 dict={dashboardDict.actionBar}
               />
+
+              {/* Content */}
               {isLoading ? (
-                <div className="flex items-center justify-center h-64">
+                <div className="flex items-center justify-center h-48 sm:h-64">
                   <div className="text-center">
-                    <Loader2 className="w-12 h-12 animate-spin text-purple-600 mx-auto mb-4" />
-                    <p className="text-lg font-semibold text-gray-700">
+                    <Loader2 className="w-10 h-10 sm:w-12 sm:h-12 animate-spin text-purple-600 mx-auto mb-3 sm:mb-4" />
+                    <p className="text-sm sm:text-lg font-semibold text-gray-700">
                       {dashboardDict.mainContent.loadingText}
                     </p>
                   </div>
                 </div>
               ) : (
                 <>
-                  <TabsContent value="pending" className="mt-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                      {pendingSuggestions.map((suggestion) => (
-                        <div key={suggestion.id} className="animate-fade-in-up">
-                          <SuggestionCard
-                            suggestion={suggestion}
-                            onAction={handleSuggestionAction}
-                            className="shadow-lg hover:shadow-xl transition-all duration-300"
-                            dict={dashboardDict.suggestionCard}
-                          />
-                        </div>
-                      ))}
-                    </div>
-                    {pendingSuggestions.length === 0 && (
-                      <div className="text-center p-12">
-                        <div className="w-24 h-24 rounded-full bg-gradient-to-br from-orange-100 to-amber-100 flex items-center justify-center mx-auto mb-6">
-                          <Clock className="w-12 h-12 text-orange-400" />
-                        </div>
-                        <h3 className="text-xl font-bold text-gray-800 mb-2">
-                          {dashboardDict.mainContent.emptyStates.pending.title}
-                        </h3>
-                        <p className="text-gray-600">
-                          {
-                            dashboardDict.mainContent.emptyStates.pending
-                              .description
-                          }
-                        </p>
-                      </div>
-                    )}
+                  <TabsContent value="pending" className="mt-4 sm:mt-6">
+                    {pendingSuggestions.length > 0
+                      ? renderSuggestionGrid(pendingSuggestions)
+                      : renderEmptyState(
+                          Clock,
+                          'from-orange-100',
+                          'to-amber-100',
+                          dashboardDict.mainContent.emptyStates.pending.title,
+                          dashboardDict.mainContent.emptyStates.pending
+                            .description
+                        )}
                   </TabsContent>
-                  <TabsContent value="active" className="mt-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                      {activeSuggestions.map((suggestion) => (
-                        <div key={suggestion.id} className="animate-fade-in-up">
-                          <SuggestionCard
-                            suggestion={suggestion}
-                            onAction={handleSuggestionAction}
-                            className="shadow-lg hover:shadow-xl transition-all duration-300"
-                            dict={dashboardDict.suggestionCard}
-                          />
-                        </div>
-                      ))}
-                    </div>
-                    {activeSuggestions.length === 0 && (
-                      <div className="text-center p-12">
-                        <div className="w-24 h-24 rounded-full bg-gradient-to-br from-green-100 to-emerald-100 flex items-center justify-center mx-auto mb-6">
-                          <Target className="w-12 h-12 text-green-400" />
-                        </div>
-                        <h3 className="text-xl font-bold text-gray-800 mb-2">
-                          {dashboardDict.mainContent.emptyStates.active.title}
-                        </h3>
-                        <p className="text-gray-600">
-                          {
-                            dashboardDict.mainContent.emptyStates.active
-                              .description
-                          }
-                        </p>
-                      </div>
-                    )}
+                  <TabsContent value="active" className="mt-4 sm:mt-6">
+                    {activeSuggestions.length > 0
+                      ? renderSuggestionGrid(activeSuggestions)
+                      : renderEmptyState(
+                          Target,
+                          'from-green-100',
+                          'to-emerald-100',
+                          dashboardDict.mainContent.emptyStates.active.title,
+                          dashboardDict.mainContent.emptyStates.active
+                            .description
+                        )}
                   </TabsContent>
-                  <TabsContent value="history" className="mt-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                      {historySuggestions.map((suggestion) => (
-                        <div key={suggestion.id} className="animate-fade-in-up">
-                          <SuggestionCard
-                            suggestion={suggestion}
-                            onAction={handleSuggestionAction}
-                            className="shadow-lg hover:shadow-xl transition-all duration-300"
-                            dict={dashboardDict.suggestionCard}
-                          />
-                        </div>
-                      ))}
-                    </div>
-                    {historySuggestions.length === 0 && (
-                      <div className="text-center p-12">
-                        <div className="w-24 h-24 rounded-full bg-gradient-to-br from-gray-100 to-slate-100 flex items-center justify-center mx-auto mb-6">
-                          <Archive className="w-12 h-12 text-gray-400" />
-                        </div>
-                        <h3 className="text-xl font-bold text-gray-800 mb-2">
-                          {dashboardDict.mainContent.emptyStates.history.title}
-                        </h3>
-                        <p className="text-gray-600">
-                          {
-                            dashboardDict.mainContent.emptyStates.history
-                              .description
-                          }
-                        </p>
-                      </div>
-                    )}
+                  <TabsContent value="history" className="mt-4 sm:mt-6">
+                    {historySuggestions.length > 0
+                      ? renderSuggestionGrid(historySuggestions)
+                      : renderEmptyState(
+                          Archive,
+                          'from-gray-100',
+                          'to-slate-100',
+                          dashboardDict.mainContent.emptyStates.history.title,
+                          dashboardDict.mainContent.emptyStates.history
+                            .description
+                        )}
                   </TabsContent>
                 </>
               )}
             </Tabs>
           </div>
         </Card>
-      </div>
-    </div>
-  );
 
-  return (
-    <div className={cn('min-h-screen', isMobile ? 'p-0' : 'p-0')}>
-      {isMobile ? renderMobileView() : renderDesktopView()}
+        {/* Mobile sticky new suggestion button */}
+        {isMobile && (
+          <div className="fixed bottom-4 left-4 right-4 z-50">
+            <Button
+              onClick={() => setShowNewSuggestion(true)}
+              className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 shadow-2xl text-base py-5 rounded-2xl"
+            >
+              <Plus className="w-5 h-5 ml-2" />
+              {dashboardDict.heroSection.newSuggestionButton}
+              <Sparkles className="w-4 h-4 mr-2" />
+            </Button>
+          </div>
+        )}
+      </div>
+
+      {/* ═══════════════════════════════════════════════════════
+          DIALOGS & FORMS
+          ═══════════════════════════════════════════════════════ */}
 
       <NewSuggestionForm
         isOpen={showNewSuggestion}
@@ -1113,7 +926,7 @@ export default function MatchmakerDashboard({
         open={showMonthlyTrendDialog}
         onOpenChange={setShowMonthlyTrendDialog}
       >
-        <DialogContent className="max-w-4xl">
+        <DialogContent className="max-w-[95vw] sm:max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
               {dashboardDict.dialogs.monthlyTrend.title}
@@ -1147,12 +960,12 @@ export default function MatchmakerDashboard({
           open={showConfirmDialog}
           onOpenChange={setShowConfirmDialog}
         >
-          <AlertDialogContent className="border-0 shadow-2xl rounded-2xl">
+          <AlertDialogContent className="border-0 shadow-2xl rounded-2xl max-w-[90vw] sm:max-w-lg">
             <AlertDialogHeader>
-              <AlertDialogTitle className="text-xl font-bold text-center">
+              <AlertDialogTitle className="text-lg sm:text-xl font-bold text-center">
                 {dashboardDict.dialogs.deleteConfirm.title}
               </AlertDialogTitle>
-              <AlertDialogDescription className="text-center text-gray-600 leading-relaxed">
+              <AlertDialogDescription className="text-center text-gray-600 leading-relaxed text-sm sm:text-base">
                 {dashboardDict.dialogs.deleteConfirm.description}
               </AlertDialogDescription>
             </AlertDialogHeader>
@@ -1170,6 +983,9 @@ export default function MatchmakerDashboard({
           </AlertDialogContent>
         </AlertDialog>
       )}
+
+      {/* Bottom padding for mobile sticky button */}
+      {isMobile && <div className="h-20" />}
     </div>
   );
 }

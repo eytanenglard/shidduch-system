@@ -98,14 +98,27 @@ export async function POST(
       suggestion.status === "FIRST_PARTY_INTERESTED";
 
     // Standard canRespond check (for approve/decline from PENDING)
+// ✅ NEW: RE_OFFERED_TO_FIRST_PARTY — first party can approve/decline
+    const isRespondingToReOffer =
+      (response === "approve" || response === "decline") &&
+      isFirstParty &&
+      suggestion.status === "RE_OFFERED_TO_FIRST_PARTY";
+
+    // ✅ NEW: SECOND_PARTY_NOT_AVAILABLE — second party can "approve" (meaning "I'm available now")
+    const isReturningFromNotAvailable =
+      response === "approve" &&
+      isSecondParty &&
+      suggestion.status === "SECOND_PARTY_NOT_AVAILABLE";
+
     const canRespondStandard =
       (isFirstParty && suggestion.status === "PENDING_FIRST_PARTY") ||
       (isSecondParty && suggestion.status === "PENDING_SECOND_PARTY");
-
-    if (
+if (
       response !== "interested" &&
       !canRespondStandard &&
-      !isActivatingFromInterested
+      !isActivatingFromInterested &&
+      !isRespondingToReOffer &&         // ✅ NEW
+      !isReturningFromNotAvailable      // ✅ NEW
     ) {
       return corsError(req, "Cannot respond at this stage", 400);
     }
@@ -116,10 +129,11 @@ export async function POST(
       isFirstParty &&
       suggestion.status === "FIRST_PARTY_INTERESTED";
 
-    if (
+if (
       response === "decline" &&
       !canRespondStandard &&
-      !isRemovingFromInterested
+      !isRemovingFromInterested &&
+      !isRespondingToReOffer            // ✅ NEW: can decline from RE_OFFERED
     ) {
       return corsError(req, "Cannot decline at this stage", 400);
     }
@@ -130,17 +144,32 @@ export async function POST(
 
     let newStatus: MatchSuggestionStatus;
 
-    if (response === "interested") {
+if (response === "interested") {
       newStatus = "FIRST_PARTY_INTERESTED";
     } else if (response === "approve") {
-      newStatus = isFirstParty
-        ? "FIRST_PARTY_APPROVED"
-        : "SECOND_PARTY_APPROVED";
+      // ✅ NEW: RE_OFFERED approve → AWAITING_MATCHMAKER_APPROVAL
+      if (isRespondingToReOffer) {
+        newStatus = "AWAITING_MATCHMAKER_APPROVAL";
+      }
+      // ✅ NEW: Returning from NOT_AVAILABLE → PENDING_SECOND_PARTY
+      else if (isReturningFromNotAvailable) {
+        newStatus = "PENDING_SECOND_PARTY";
+      }
+      else {
+        newStatus = isFirstParty
+          ? "FIRST_PARTY_APPROVED"
+          : "SECOND_PARTY_APPROVED";
+      }
     } else {
       // decline
-      newStatus = isFirstParty
-        ? "FIRST_PARTY_DECLINED"
-        : "SECOND_PARTY_DECLINED";
+      // ✅ NEW: decline from RE_OFFERED → FIRST_PARTY_DECLINED
+      if (isRespondingToReOffer) {
+        newStatus = "FIRST_PARTY_DECLINED";
+      } else {
+        newStatus = isFirstParty
+          ? "FIRST_PARTY_DECLINED"
+          : "SECOND_PARTY_DECLINED";
+      }
     }
 
     // ======================================================================

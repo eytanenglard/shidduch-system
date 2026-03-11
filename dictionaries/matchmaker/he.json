@@ -1174,7 +1174,9 @@
         }
       }
     },
-    "heroSection": {
+    "heroSection": { 
+         "statsButton": "סטטיסטיקות"
+,
       "title": "ברוכים הבאים למערכת השדכן",
       "subtitle": "נהל את כל הצעות השידוך, עקוב אחר התקדמות הזוגות ויצור התאמות מושלמות",
       "totalSuggestions": "סך הכל הצעות",
@@ -1465,6 +1467,8 @@
   }
 },
       "actions": {
+           "changeStatus": "שנה סטטוס",
+    "selectNewStatus": "בחר סטטוס חדש",
         "edit": "ערוך הצעה",
         "sendMessage": "הודעה",
         "delete": "מחק הצעה",

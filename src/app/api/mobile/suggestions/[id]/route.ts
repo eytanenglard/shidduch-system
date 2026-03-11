@@ -221,10 +221,11 @@ export async function GET(
       otherParty.email = otherPartyRaw.email;
     }
 
-    const canRespond = 
+const canRespond = 
       (isFirstParty && suggestion.status === 'PENDING_FIRST_PARTY') ||
-      (isSecondParty && suggestion.status === 'PENDING_SECOND_PARTY');
-
+      (isSecondParty && suggestion.status === 'PENDING_SECOND_PARTY') ||
+      (isFirstParty && suggestion.status === 'RE_OFFERED_TO_FIRST_PARTY') ||      // ✅ NEW
+      (isSecondParty && suggestion.status === 'SECOND_PARTY_NOT_AVAILABLE');       // ✅ NEW
     const responseData = {
       id: suggestion.id,
       status: suggestion.status,

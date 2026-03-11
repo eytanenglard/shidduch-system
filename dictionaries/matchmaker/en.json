@@ -1175,6 +1175,8 @@
       }
     },
     "heroSection": {
+          "statsButton": "Statistics"
+,
       "title": "Welcome to the Matchmaker System",
       "subtitle": "Manage all matchmaking suggestions, track couples' progress, and create perfect matches.",
       "totalSuggestions": "Total Suggestions",
@@ -1465,6 +1467,8 @@
   }
 },
       "actions": {
+         "changeStatus": "Change Status",
+    "selectNewStatus": "Select new status",
         "edit": "Edit Suggestion",
         "sendMessage": "Message",
         "delete": "Delete Suggestion",

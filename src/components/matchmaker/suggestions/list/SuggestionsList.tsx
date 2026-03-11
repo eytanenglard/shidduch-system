@@ -2,9 +2,6 @@
 
 import React, { useState, useMemo } from 'react';
 import { Input } from '@/components/ui/input';
-// ✅ הוסר: import { useUnreadChatCounts } from '@/hooks/useUnreadChatCounts';
-// unreadChatCount מגיע עכשיו מתוך ה-suggestion object דרך ה-API החדש
-
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -102,7 +99,7 @@ interface ExtendedMatchSuggestion extends MatchSuggestion {
   firstParty: PartyInfo;
   secondParty: PartyInfo;
   statusHistory: SuggestionStatusHistory[];
-  unreadChatCount?: number; // ✅ חדש - מגיע מה-API
+  unreadChatCount?: number;
 }
 
 interface SuggestionsListProps {
@@ -123,7 +120,7 @@ interface SuggestionsListProps {
   ) => void;
   className?: string;
   dict: MatchmakerPageDictionary['suggestionsDashboard'];
-  isMobile?: boolean; // ✅ חדש - מועבר ל-SuggestionCard
+  isMobile?: boolean;
 }
 
 const EnhancedListStats: React.FC<{
@@ -135,56 +132,72 @@ const EnhancedListStats: React.FC<{
   urgent: number;
 }> = ({ dict, total, pending, approved, declined, urgent }) => (
   <Card className="border-0 shadow-xl bg-gradient-to-r from-white via-purple-50/30 to-pink-50/30 mb-6">
-    <CardContent className="p-4">
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+    <CardContent className="p-3 sm:p-4">
+      <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 sm:gap-4">
         <div className="text-center group">
-          <div className="flex items-center justify-center gap-2 mb-1">
-            <div className="p-2 rounded-full bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-lg group-hover:scale-110 transition-transform">
-              <Users className="w-4 h-4" />
+          <div className="flex items-center justify-center gap-1.5 sm:gap-2 mb-1">
+            <div className="p-1.5 sm:p-2 rounded-full bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-lg group-hover:scale-110 transition-transform">
+              <Users className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </div>
-            <span className="text-2xl font-bold text-blue-600">{total}</span>
+            <span className="text-lg sm:text-2xl font-bold text-blue-600">
+              {total}
+            </span>
           </div>
-          <p className="text-xs text-gray-600 font-medium">{dict.total}</p>
+          <p className="text-[10px] sm:text-xs text-gray-600 font-medium">
+            {dict.total}
+          </p>
         </div>
         <div className="text-center group">
-          <div className="flex items-center justify-center gap-2 mb-1">
-            <div className="p-2 rounded-full bg-gradient-to-r from-yellow-500 to-amber-500 text-white shadow-lg group-hover:scale-110 transition-transform">
-              <Clock className="w-4 h-4" />
+          <div className="flex items-center justify-center gap-1.5 sm:gap-2 mb-1">
+            <div className="p-1.5 sm:p-2 rounded-full bg-gradient-to-r from-yellow-500 to-amber-500 text-white shadow-lg group-hover:scale-110 transition-transform">
+              <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </div>
-            <span className="text-2xl font-bold text-yellow-600">
+            <span className="text-lg sm:text-2xl font-bold text-yellow-600">
               {pending}
             </span>
           </div>
-          <p className="text-xs text-gray-600 font-medium">{dict.pending}</p>
+          <p className="text-[10px] sm:text-xs text-gray-600 font-medium">
+            {dict.pending}
+          </p>
         </div>
         <div className="text-center group">
-          <div className="flex items-center justify-center gap-2 mb-1">
-            <div className="p-2 rounded-full bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-lg group-hover:scale-110 transition-transform">
-              <CheckCircle className="w-4 h-4" />
+          <div className="flex items-center justify-center gap-1.5 sm:gap-2 mb-1">
+            <div className="p-1.5 sm:p-2 rounded-full bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-lg group-hover:scale-110 transition-transform">
+              <CheckCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </div>
-            <span className="text-2xl font-bold text-green-600">
+            <span className="text-lg sm:text-2xl font-bold text-green-600">
               {approved}
             </span>
           </div>
-          <p className="text-xs text-gray-600 font-medium">{dict.approved}</p>
+          <p className="text-[10px] sm:text-xs text-gray-600 font-medium">
+            {dict.approved}
+          </p>
         </div>
-        <div className="text-center group">
-          <div className="flex items-center justify-center gap-2 mb-1">
-            <div className="p-2 rounded-full bg-gradient-to-r from-red-500 to-pink-500 text-white shadow-lg group-hover:scale-110 transition-transform">
-              <XCircle className="w-4 h-4" />
+        <div className="text-center group hidden sm:block">
+          <div className="flex items-center justify-center gap-1.5 sm:gap-2 mb-1">
+            <div className="p-1.5 sm:p-2 rounded-full bg-gradient-to-r from-red-500 to-pink-500 text-white shadow-lg group-hover:scale-110 transition-transform">
+              <XCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </div>
-            <span className="text-2xl font-bold text-red-600">{declined}</span>
+            <span className="text-lg sm:text-2xl font-bold text-red-600">
+              {declined}
+            </span>
           </div>
-          <p className="text-xs text-gray-600 font-medium">{dict.declined}</p>
+          <p className="text-[10px] sm:text-xs text-gray-600 font-medium">
+            {dict.declined}
+          </p>
         </div>
-        <div className="text-center group">
-          <div className="flex items-center justify-center gap-2 mb-1">
-            <div className="p-2 rounded-full bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg group-hover:scale-110 transition-transform animate-pulse">
-              <Flame className="w-4 h-4" />
+        <div className="text-center group hidden sm:block">
+          <div className="flex items-center justify-center gap-1.5 sm:gap-2 mb-1">
+            <div className="p-1.5 sm:p-2 rounded-full bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg group-hover:scale-110 transition-transform animate-pulse">
+              <Flame className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </div>
-            <span className="text-2xl font-bold text-orange-600">{urgent}</span>
+            <span className="text-lg sm:text-2xl font-bold text-orange-600">
+              {urgent}
+            </span>
           </div>
-          <p className="text-xs text-gray-600 font-medium">{dict.urgent}</p>
+          <p className="text-[10px] sm:text-xs text-gray-600 font-medium">
+            {dict.urgent}
+          </p>
         </div>
       </div>
     </CardContent>
@@ -217,74 +230,76 @@ const EnhancedFilterSection: React.FC<{
   onViewModeChange,
 }) => (
   <Card className="border-0 shadow-xl bg-gradient-to-r from-white via-cyan-50/30 to-blue-50/30 mb-6">
-    <CardContent className="p-6 space-y-4">
-      <div className="flex flex-col md:flex-row gap-4">
+    <CardContent className="p-4 sm:p-6 space-y-4">
+      <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
           <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
           <Input
             placeholder={dict.searchPlaceholder}
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
-            className="pr-12 text-right bg-white/80 backdrop-blur-sm border-cyan-200 focus:border-cyan-400 focus:ring-cyan-200 rounded-xl h-12 shadow-sm"
+            className="pr-12 text-right bg-white/80 backdrop-blur-sm border-cyan-200 focus:border-cyan-400 focus:ring-cyan-200 rounded-xl h-10 sm:h-12 shadow-sm"
           />
         </div>
-        <Select value={sortBy} onValueChange={onSortChange}>
-          <SelectTrigger className="w-48 h-12 bg-white/80 backdrop-blur-sm border-cyan-200 focus:border-cyan-400 rounded-xl shadow-sm">
-            <SortDesc className="w-4 h-4 ml-2" />
-            <SelectValue placeholder={dict.sortPlaceholder} />
-          </SelectTrigger>
-          <SelectContent>
-            {STATIC_SORT_OPTIONS.map((option) => {
-              const IconComponent = option.icon;
-              return (
-                <SelectItem key={option.value} value={option.value}>
-                  <div className="flex items-center gap-2">
-                    <IconComponent className="w-4 h-4" />
-                    {
-                      dict.sortOptions[
-                        option.value as keyof typeof dict.sortOptions
-                      ]
-                    }
-                  </div>
-                </SelectItem>
-              );
-            })}
-          </SelectContent>
-        </Select>
-        <Button
-          variant="outline"
-          onClick={onToggleFilters}
-          className={cn(
-            'h-12 border-cyan-200 hover:bg-cyan-50 text-cyan-600 rounded-xl bg-white/80 backdrop-blur-sm shadow-sm',
-            showFilters && 'bg-cyan-100 border-cyan-300'
-          )}
-        >
-          <Filter className="w-4 h-4 ml-2" />
-          {dict.filterButton}
-        </Button>
-        <ToggleGroup
-          type="single"
-          value={viewMode}
-          onValueChange={(value: 'grid' | 'list') =>
-            value && onViewModeChange(value)
-          }
-          className="bg-white/80 backdrop-blur-sm shadow-sm rounded-xl border border-cyan-200"
-        >
-          <ToggleGroupItem
-            value="grid"
-            aria-label={dict.viewModes.grid}
-            className="data-[state=on]:bg-cyan-500 data-[state=on]:text-white"
+        <div className="flex gap-2">
+          <Select value={sortBy} onValueChange={onSortChange}>
+            <SelectTrigger className="h-10 sm:h-12 w-full sm:w-48 bg-white/80 backdrop-blur-sm border-cyan-200 focus:border-cyan-400 rounded-xl shadow-sm">
+              <SortDesc className="w-4 h-4 ml-2" />
+              <SelectValue placeholder={dict.sortPlaceholder} />
+            </SelectTrigger>
+            <SelectContent>
+              {STATIC_SORT_OPTIONS.map((option) => {
+                const IconComponent = option.icon;
+                return (
+                  <SelectItem key={option.value} value={option.value}>
+                    <div className="flex items-center gap-2">
+                      <IconComponent className="w-4 h-4" />
+                      {
+                        dict.sortOptions[
+                          option.value as keyof typeof dict.sortOptions
+                        ]
+                      }
+                    </div>
+                  </SelectItem>
+                );
+              })}
+            </SelectContent>
+          </Select>
+          <Button
+            variant="outline"
+            onClick={onToggleFilters}
+            className={cn(
+              'h-10 sm:h-12 border-cyan-200 hover:bg-cyan-50 text-cyan-600 rounded-xl bg-white/80 backdrop-blur-sm shadow-sm',
+              showFilters && 'bg-cyan-100 border-cyan-300'
+            )}
           >
-            <LayoutGrid className="h-4 w-4" />
-          </ToggleGroupItem>
-          <ToggleGroupItem
-            value="list"
-            aria-label={dict.viewModes.list}
-            className="data-[state=on]:bg-cyan-500 data-[state=on]:text-white"
+            <Filter className="w-4 h-4 sm:ml-2" />
+            <span className="hidden sm:inline">{dict.filterButton}</span>
+          </Button>
+          <ToggleGroup
+            type="single"
+            value={viewMode}
+            onValueChange={(value: 'grid' | 'list') =>
+              value && onViewModeChange(value)
+            }
+            className="bg-white/80 backdrop-blur-sm shadow-sm rounded-xl border border-cyan-200 hidden sm:flex"
           >
-            <List className="h-4 w-4" />
-          </ToggleGroupItem>
-        </ToggleGroup>
+            <ToggleGroupItem
+              value="grid"
+              aria-label={dict.viewModes.grid}
+              className="data-[state=on]:bg-cyan-500 data-[state=on]:text-white"
+            >
+              <LayoutGrid className="h-4 w-4" />
+            </ToggleGroupItem>
+            <ToggleGroupItem
+              value="list"
+              aria-label={dict.viewModes.list}
+              className="data-[state=on]:bg-cyan-500 data-[state=on]:text-white"
+            >
+              <List className="h-4 w-4" />
+            </ToggleGroupItem>
+          </ToggleGroup>
+        </div>
       </div>
       {showFilters && (
         <div className="pt-4 border-t border-cyan-100 space-y-4">
@@ -351,18 +366,18 @@ const EnhancedEmptyState: React.FC<{
   isFiltered: boolean;
   onClearFilters: () => void;
 }> = ({ dict, isFiltered, onClearFilters }) => (
-  <div className="flex flex-col items-center justify-center min-h-[500px] text-center p-12">
-    <div className="w-32 h-32 rounded-full bg-gradient-to-br from-purple-100 via-pink-100 to-blue-100 flex items-center justify-center shadow-xl mb-8">
+  <div className="flex flex-col items-center justify-center min-h-[300px] sm:min-h-[500px] text-center p-8 sm:p-12">
+    <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-full bg-gradient-to-br from-purple-100 via-pink-100 to-blue-100 flex items-center justify-center shadow-xl mb-6 sm:mb-8">
       {isFiltered ? (
-        <Search className="w-16 h-16 text-purple-400" />
+        <Search className="w-12 h-12 sm:w-16 sm:h-16 text-purple-400" />
       ) : (
-        <Users className="w-16 h-16 text-purple-400" />
+        <Users className="w-12 h-12 sm:w-16 sm:h-16 text-purple-400" />
       )}
     </div>
-    <h3 className="text-2xl font-bold text-gray-800 mb-4">
+    <h3 className="text-xl sm:text-2xl font-bold text-gray-800 mb-3 sm:mb-4">
       {isFiltered ? dict.filtered.title : dict.default.title}
     </h3>
-    <p className="text-gray-600 max-w-md mx-auto mb-6 leading-relaxed">
+    <p className="text-sm sm:text-base text-gray-600 max-w-md mx-auto mb-6 leading-relaxed">
       {isFiltered ? dict.filtered.description : dict.default.description}
     </p>
     {isFiltered && (
@@ -383,7 +398,7 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
   onAction,
   className,
   dict: dashboardDict,
-  isMobile = false, // ✅ חדש
+  isMobile = false,
 }) => {
   const dict = dashboardDict.suggestionsList;
   const [searchQuery, setSearchQuery] = useState('');
@@ -391,9 +406,6 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
   const [statusFilter, setStatusFilter] = useState<string[]>([]);
   const [showFilters, setShowFilters] = useState(false);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-
-  // ✅ הוסר: const { bySuggestion: unreadCounts } = useUnreadChatCounts();
-  // unreadChatCount מגיע עכשיו מתוך כל suggestion object
 
   const stats = useMemo(() => {
     const total = suggestions.length;
@@ -475,7 +487,7 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
       : dict.results.itemLabel_other;
 
   return (
-    <div className={cn('space-y-6', className)}>
+    <div className={cn('space-y-4 sm:space-y-6', className)}>
       <EnhancedListStats dict={dict.stats} {...stats} />
       <EnhancedFilterSection
         dict={dict.filters}
@@ -490,7 +502,7 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
         viewMode={viewMode}
         onViewModeChange={setViewMode}
       />
-      <div className="flex justify-between items-center text-sm text-gray-600 px-2">
+      <div className="flex justify-between items-center text-xs sm:text-sm text-gray-600 px-2">
         <span className="font-medium">
           {dict.results.summary
             .replace('{{count}}', filteredSuggestions.length.toString())
@@ -500,7 +512,7 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
         {filteredSuggestions.length > 0 && (
           <div className="flex items-center gap-2">
             <Sparkles className="w-4 h-4 text-purple-500" />
-            <span className="font-medium text-purple-600">
+            <span className="font-medium text-purple-600 hidden sm:inline">
               {dict.results.qualityMatches}
             </span>
           </div>
@@ -511,14 +523,14 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
           <div
             className={cn(
               viewMode === 'grid'
-                ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'
+                ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6'
                 : 'space-y-4'
             )}
           >
             {Array.from({ length: 6 }).map((_, i) => (
               <div
                 key={i}
-                className="h-80 bg-gradient-to-br from-gray-100 to-gray-200 rounded-2xl animate-pulse shadow-lg"
+                className="h-60 sm:h-80 bg-gradient-to-br from-gray-100 to-gray-200 rounded-2xl animate-pulse shadow-lg"
               />
             ))}
           </div>
@@ -533,14 +545,10 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
         <div
           className={cn(
             viewMode === 'grid'
-              ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'
-              : 'space-y-6'
+              ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6'
+              : 'space-y-4 sm:space-y-6'
           )}
         >
-          {/* ✅ הוסר: stagger animation (animationDelay: index * 100ms)
-              היה גורם ל-5 שניות המתנה עם 50 פריטים!
-              ✅ הוסר: wrapper div מיותר
-              ✅ unreadChatCount מגיע מתוך ה-suggestion object */}
           {filteredSuggestions.map((suggestion) => (
             <SuggestionCard
               key={suggestion.id}
@@ -558,15 +566,15 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
       )}
       {isFiltered && (
         <Card className="border-0 shadow-lg bg-gradient-to-r from-purple-50 to-pink-50">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 text-sm flex-wrap">
+          <CardContent className="p-3 sm:p-4">
+            <div className="flex items-center justify-between flex-wrap gap-2">
+              <div className="flex items-center gap-2 text-xs sm:text-sm flex-wrap">
                 <Filter className="w-4 h-4 text-purple-500" />
                 <span className="font-medium text-purple-700">
                   {dict.activeFilters.title}
                 </span>
                 {searchQuery && (
-                  <Badge className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white border-0 shadow-sm">
+                  <Badge className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white border-0 shadow-sm text-[10px] sm:text-xs">
                     {dict.activeFilters.searchLabel.replace(
                       '{{query}}',
                       searchQuery
@@ -583,7 +591,7 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
                     <Badge
                       key={status}
                       className={cn(
-                        `bg-gradient-to-r ${statusOption.color} text-white border-0 shadow-sm`
+                        `bg-gradient-to-r ${statusOption.color} text-white border-0 shadow-sm text-[10px] sm:text-xs`
                       )}
                     >
                       <IconComponent className="w-3 h-3 ml-1" />
@@ -600,7 +608,7 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
                 variant="ghost"
                 size="sm"
                 onClick={clearAllFilters}
-                className="text-purple-600 hover:text-purple-700 hover:bg-purple-100 rounded-xl"
+                className="text-purple-600 hover:text-purple-700 hover:bg-purple-100 rounded-xl text-xs"
               >
                 <RefreshCw className="w-3 h-3 ml-1" />
                 {dict.activeFilters.clearAllButton}
@@ -611,17 +619,17 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
       )}
       {filteredSuggestions.length > 0 && (
         <Card className="border-0 shadow-lg bg-gradient-to-r from-emerald-50 to-green-50">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
+          <CardContent className="p-3 sm:p-4">
+            <div className="flex items-center justify-between flex-wrap gap-3">
               <div className="flex items-center gap-3">
-                <div className="p-2 rounded-full bg-gradient-to-r from-emerald-500 to-green-500 text-white shadow-lg">
-                  <BarChart3 className="w-4 h-4" />
+                <div className="p-1.5 sm:p-2 rounded-full bg-gradient-to-r from-emerald-500 to-green-500 text-white shadow-lg">
+                  <BarChart3 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 </div>
                 <div>
-                  <h4 className="font-bold text-emerald-800">
+                  <h4 className="font-bold text-emerald-800 text-sm sm:text-base">
                     {dict.performance.title}
                   </h4>
-                  <p className="text-sm text-emerald-600">
+                  <p className="text-xs sm:text-sm text-emerald-600">
                     {dict.performance.description
                       .replace(
                         '{{rate}}',
@@ -642,9 +650,11 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
                     )}
                     %
                   </div>
-                  <div>{dict.performance.successLabel}</div>
+                  <div className="hidden sm:block">
+                    {dict.performance.successLabel}
+                  </div>
                 </div>
-                <div className="w-16 h-2 bg-emerald-200 rounded-full overflow-hidden">
+                <div className="w-12 sm:w-16 h-2 bg-emerald-200 rounded-full overflow-hidden">
                   <div
                     className="h-full bg-gradient-to-r from-emerald-500 to-green-500 transition-all duration-500"
                     style={{
