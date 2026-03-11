@@ -1455,13 +1455,12 @@ type SuggestionDetailsDialogDict = {
   };
   tabs: {
     overview: string;
-    party1: string;
-    party2: string;
+    firstParty: string;  // ← Changed from party1
+    secondParty: string; // ← Changed from party2
     timeline: string;
-    chat: string;       // ← שונה מ-communication
+    chat: string;
     actions: string;
   };
-  // ===== NEW: chatTab =====
   chatTab: {
     title: string;
     header: string;
@@ -1480,6 +1479,7 @@ type SuggestionDetailsDialogDict = {
     };
   };
   overview: {
+    quickActionsTitle: string;
     statusSummaryTitle: string;
     progressCompleted: string;
     matchmakerLabel: string;
@@ -1505,6 +1505,18 @@ type SuggestionDetailsDialogDict = {
       today: string;
       daysLeft: string;
     };
+    // ═══════════════════════════════════════════
+    // NEW FIELDS
+    // ═══════════════════════════════════════════
+    deadline: string;
+    priority: string;
+    matchReason: string;
+    nextSteps: string;
+    sendMessage: string;
+    notes: string;
+    internalNotes: string;
+    firstPartyNotes: string;
+    secondPartyNotes: string;
   };
   timeline: {
     title: string;
@@ -1534,6 +1546,13 @@ type SuggestionDetailsDialogDict = {
   statusChangeModal: {
     title: string;
     currentStatusLabel: string;
+    // ═══════════════════════════════════════════
+    // NEW FIELDS
+    // ═══════════════════════════════════════════
+    recommendedLabel: string;
+    noRecommendations: string;
+    manualLabel: string;
+    // ═══════════════════════════════════════════
     newStatusLabel: string;
     newStatusPlaceholder: string;
     notesLabel: string;

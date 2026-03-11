@@ -1845,138 +1845,152 @@
       }
     }
   },
-  "suggestionDetailsDialog": {
-    "header": {
-      "title": "הצעה #{{id}}",
-      "subtitle": "{{party1}} ו{{party2}}",
-      "fullscreenTooltip": "הגדל למסך מלא",
-      "minimizeTooltip": "צמצם חלון"
+"suggestionDetailsDialog": {
+  "header": {
+    "title": "הצעה #{{id}}",
+    "subtitle": "{{party1}} ו{{party2}}",
+    "fullscreenTooltip": "הגדל למסך מלא",
+    "minimizeTooltip": "צמצם חלון"
+  },
+  "tabs": {
+    "overview": "סקירה כללית",
+    "firstParty": "צד ראשון",
+    "secondParty": "צד שני",
+    "timeline": "ציר זמן",
+    "chat": "צ'אט",
+    "actions": "פעולות"
+  },
+  "chatTab": {
+    "title": "הודעות",
+    "header": "הודעות",
+    "noMessages": "אין הודעות עדיין",
+    "noMessagesDescription": "שלח/י הודעה למועמדים בהקשר של ההצעה הזו",
+    "placeholder": "כתוב/י הודעה...",
+    "sendError": "שגיאה בשליחת ההודעה",
+    "sendingTo": "שולח/ת אל",
+    "senderLabels": {
+      "matchmaker": "את/ה (שדכן)",
+      "system": "מערכת"
     },
-    "tabs": {
-      "overview": "סקירה כללית",
-      "party1": "צד ראשון",
-      "party2": "צד שני",
-      "timeline": "ציר זמן",
-      "chat": "צ'אט",
-      "actions": "פעולות"
-    },
-    "chatTab": {
-      "title": "הודעות",
-      "header": "הודעות",
-      "noMessages": "אין הודעות עדיין",
-      "noMessagesDescription": "שלח/י הודעה למועמדים בהקשר של ההצעה הזו",
-      "placeholder": "כתוב/י הודעה...",
-      "sendError": "שגיאה בשליחת ההודעה",
-      "sendingTo": "שולח/ת אל",
-      "senderLabels": {
-        "matchmaker": "את/ה (שדכן)",
-        "system": "מערכת"
-      },
-      "partyLabels": {
-        "partyA": "צד א'",
-        "partyB": "צד ב'"
-      }
-    },
-    "overview": {
-      "statusSummaryTitle": "סיכום סטטוס",
-      "progressCompleted": "{{percent}}% הושלמו",
-      "matchmakerLabel": "השדכן/ית:",
-      "detailsTitle": "פרטי ההצעה",
-      "details": {
-        "createdAt": "תאריך יצירה:",
-        "lastActivity": "עדכון אחרון:",
-        "priority": "דחיפות:",
-        "responseDeadline": "מועד תגובה:",
-        "decisionDeadline": "מועד להחלטה:",
-        "notSet": "לא נקבע"
-      },
-      "editButton": "ערוך פרטי הצעה",
-      "partyALabel": "צד א׳",
-      "partyBLabel": "צד ב׳",
-      "contactButton": "צור קשר",
-      "reminderButton": "שלח תזכורת",
-      "reasons": {
-        "matchTitle": "סיבת ההתאמה",
-        "internalTitle": "הערות פנימיות"
-      },
-      "deadlineAlert": {
-        "today": "היום!",
-        "daysLeft": "{{count}} ימים"
-      }
-    },
-    "timeline": {
-      "title": "התקדמות ההצעה",
-      "noNotes": "אין הערות"
-    },
-    "communication": {
-      "title": "תקשורת"
-    },
-    "actions": {
-      "title": "פעולות נוספות",
-      "statusChange": {
-        "title": "שינוי סטטוס",
-        "description": "עדכון סטטוס ההצעה בהתאם להתקדמות.",
-        "button": "שנה סטטוס"
-      },
-      "edit": {
-        "title": "עריכת הצעה",
-        "description": "עריכת פרטי ההצעה, סיבת ההתאמה והערות.",
-        "button": "ערוך פרטי הצעה"
-      },
-      "delete": {
-        "title": "מחיקת הצעה",
-        "description": "מחיקת ההצעה לצמיתות מהמערכת.",
-        "button": "מחק הצעה"
-      }
-    },
-    "statusChangeModal": {
-      "title": "שינוי סטטוס הצעה",
-      "currentStatusLabel": "סטטוס נוכחי",
-      "newStatusLabel": "סטטוס חדש",
-      "newStatusPlaceholder": "בחר/י סטטוס חדש",
-      "notesLabel": "הערות לשינוי סטטוס (אופציונלי)",
-      "notesPlaceholder": "הוסף הערה...",
-      "cancelButton": "ביטול",
-      "saveButton": "שמור שינוי",
-      "savingButton": "מעדכן..."
-    },
-    "toasts": {
-      "statusUpdateError": "שגיאה בעדכון הסטטוס"
-    },
-    "statusLabels": {
-      "DRAFT": "טיוטה",
-      "PENDING_FIRST_PARTY": "ממתין לתשובת צד א׳",
-      "FIRST_PARTY_APPROVED": "צד א׳ אישר",
-      "FIRST_PARTY_DECLINED": "צד א׳ דחה",
-      "PENDING_SECOND_PARTY": "ממתין לתשובת צד ב׳",
-      "SECOND_PARTY_APPROVED": "צד ב׳ אישר",
-      "SECOND_PARTY_DECLINED": "צד ב׳ דחה",
-      "SECOND_PARTY_NOT_AVAILABLE": "צד ב׳ לא זמין כרגע",
-      "RE_OFFERED_TO_FIRST_PARTY": "ממתין לאישור מחדש מצד א׳",
-      "AWAITING_MATCHMAKER_APPROVAL": "ממתין לאישור שדכן",
-      "CONTACT_DETAILS_SHARED": "פרטי קשר שותפו",
-      "AWAITING_FIRST_DATE_FEEDBACK": "ממתין למשוב פגישה",
-      "DATING": "בתהליך היכרות",
-      "ENGAGED": "מאורסים",
-      "MARRIED": "נישאו",
-      "EXPIRED": "פג תוקף",
-      "CLOSED": "סגור",
-      "CANCELLED": "בוטל",
-      "THINKING_AFTER_DATE": "בשלב מחשבה",
-      "PROCEEDING_TO_SECOND_DATE": "לפגישה שניה",
-      "ENDED_AFTER_FIRST_DATE": "הסתיים אחרי פגישה",
-      "MEETING_PENDING": "ממתין לקביעת פגישה",
-      "MEETING_SCHEDULED": "פגישה נקבעה",
-      "MATCH_APPROVED": "הצעה אושרה",
-      "MATCH_DECLINED": "הצעה נדחתה"
-    },
-    "priorityLabels": {
-      "URGENT": "דחוף",
-      "HIGH": "גבוה",
-      "MEDIUM": "רגיל",
-      "LOW": "נמוך"
+    "partyLabels": {
+      "partyA": "צד א'",
+      "partyB": "צד ב'"
     }
   },
+  "overview": {
+    "quickActionsTitle": "פעולות מהירות",
+    "statusSummaryTitle": "סיכום סטטוס",
+    "progressCompleted": "{{percent}}% הושלמו",
+    "matchmakerLabel": "השדכן/ית:",
+    "detailsTitle": "פרטי ההצעה",
+    "details": {
+      "createdAt": "תאריך יצירה:",
+      "lastActivity": "עדכון אחרון:",
+      "priority": "דחיפות:",
+      "responseDeadline": "מועד תגובה:",
+      "decisionDeadline": "מועד להחלטה:",
+      "notSet": "לא נקבע"
+    },
+    "editButton": "ערוך פרטי הצעה",
+    "partyALabel": "צד א׳",
+    "partyBLabel": "צד ב׳",
+    "contactButton": "צור קשר",
+    "reminderButton": "שלח תזכורת",
+    "reasons": {
+      "matchTitle": "סיבת ההתאמה",
+      "internalTitle": "הערות פנימיות"
+    },
+    "deadlineAlert": {
+      "today": "היום!",
+      "daysLeft": "{{count}} ימים"
+    },
+    "deadline": "דדליין",
+    "priority": "עדיפות",
+    "matchReason": "סיבת ההתאמה",
+    "nextSteps": "פעולות הבאות",
+    "sendMessage": "שלח הודעה",
+    "notes": "הערות",
+    "internalNotes": "הערות פנימיות",
+    "firstPartyNotes": "הערות צד א׳",
+    "secondPartyNotes": "הערות צד ב׳"
+  },
+  "timeline": {
+    "title": "התקדמות ההצעה",
+    "noNotes": "אין הערות"
+  },
+  "communication": {
+    "title": "תקשורת"
+  },
+  "actions": {
+    "title": "פעולות נוספות",
+    "statusChange": {
+      "title": "שינוי סטטוס",
+      "description": "עדכון סטטוס ההצעה בהתאם להתקדמות.",
+      "button": "שנה סטטוס"
+    },
+    "edit": {
+      "title": "עריכת הצעה",
+      "description": "עריכת פרטי ההצעה, סיבת ההתאמה והערות.",
+      "button": "ערוך פרטי הצעה"
+    },
+    "delete": {
+      "title": "מחיקת הצעה",
+      "description": "מחיקת ההצעה לצמיתות מהמערכת.",
+      "button": "מחק הצעה"
+    }
+  },
+  "statusChangeModal": {
+    "title": "שינוי סטטוס הצעה",
+    "currentStatusLabel": "סטטוס נוכחי",
+    "recommendedLabel": "פעולות מומלצות",
+    "noRecommendations": "אין פעולות מומלצות לסטטוס זה",
+    "manualLabel": "בחירה ידנית",
+    "newStatusLabel": "סטטוס חדש",
+    "newStatusPlaceholder": "בחר/י סטטוס חדש",
+    "notesLabel": "הערות לשינוי סטטוס (אופציונלי)",
+    "notesPlaceholder": "הוסף הערה...",
+    "cancelButton": "ביטול",
+    "saveButton": "שמור שינוי",
+    "savingButton": "מעדכן..."
+  },
+  "toasts": {
+    "statusUpdateError": "שגיאה בעדכון הסטטוס"
+  },
+  "statusLabels": {
+    "DRAFT": "טיוטה",
+    "PENDING_FIRST_PARTY": "ממתין לתשובת צד א׳",
+    "FIRST_PARTY_APPROVED": "צד א׳ אישר",
+    "FIRST_PARTY_DECLINED": "צד א׳ דחה",
+    "FIRST_PARTY_INTERESTED": "מתעניין/ת",
+    "PENDING_SECOND_PARTY": "ממתין לתשובת צד ב׳",
+    "SECOND_PARTY_APPROVED": "צד ב׳ אישר",
+    "SECOND_PARTY_DECLINED": "צד ב׳ דחה",
+    "SECOND_PARTY_NOT_AVAILABLE": "צד ב׳ לא זמין כרגע",
+    "RE_OFFERED_TO_FIRST_PARTY": "ממתין לאישור מחדש מצד א׳",
+    "AWAITING_MATCHMAKER_APPROVAL": "ממתין לאישור שדכן",
+    "CONTACT_DETAILS_SHARED": "פרטי קשר שותפו",
+    "AWAITING_FIRST_DATE_FEEDBACK": "ממתין למשוב פגישה",
+    "DATING": "בתהליך היכרות",
+    "ENGAGED": "מאורסים",
+    "MARRIED": "נישאו",
+    "EXPIRED": "פג תוקף",
+    "CLOSED": "סגור",
+    "CANCELLED": "בוטל",
+    "THINKING_AFTER_DATE": "בשלב מחשבה",
+    "PROCEEDING_TO_SECOND_DATE": "לפגישה שניה",
+    "ENDED_AFTER_FIRST_DATE": "הסתיים אחרי פגישה",
+    "MEETING_PENDING": "ממתין לקביעת פגישה",
+    "MEETING_SCHEDULED": "פגישה נקבעה",
+    "MATCH_APPROVED": "הצעה אושרה",
+    "MATCH_DECLINED": "הצעה נדחתה"
+  },
+  "priorityLabels": {
+    "URGENT": "דחוף",
+    "HIGH": "גבוה",
+    "MEDIUM": "רגיל",
+    "LOW": "נמוך"
+  }
+},
   "matchmakerMessagesPage": {
     "header": {
       "title": "מרכז הודעות",

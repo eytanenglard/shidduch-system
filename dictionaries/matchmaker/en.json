@@ -1845,140 +1845,152 @@
       }
     }
   },
-  "suggestionDetailsDialog": {
-    "header": {
-      "title": "Suggestion #{{id}}",
-      "subtitle": "{{party1}} & {{party2}}",
-      "fullscreenTooltip": "Fullscreen",
-      "minimizeTooltip": "Minimize"
+ "suggestionDetailsDialog": {
+  "header": {
+    "title": "Suggestion #{{id}}",
+    "subtitle": "{{party1}} & {{party2}}",
+    "fullscreenTooltip": "Fullscreen",
+    "minimizeTooltip": "Minimize"
+  },
+  "tabs": {
+    "overview": "Overview",
+    "firstParty": "First Party",
+    "secondParty": "Second Party",
+    "timeline": "Timeline",
+    "chat": "Chat",
+    "actions": "Actions"
+  },
+  "chatTab": {
+    "title": "Messages",
+    "header": "Messages",
+    "noMessages": "No messages yet",
+    "noMessagesDescription": "Send a message to the candidates in the context of this suggestion",
+    "placeholder": "Type a message...",
+    "sendError": "Error sending message",
+    "sendingTo": "Sending to",
+    "senderLabels": {
+      "matchmaker": "You (Matchmaker)",
+      "system": "System"
     },
-    "tabs": {
-      "overview": "Overview",
-      "party1": "Party A",
-      "party2": "Party B",
-      "timeline": "Timeline",
-      "chat": "Chat",
-      "actions": "Actions"
-    },
-    "chatTab": {
-      "title": "Messages",
-      "header": "Messages",
-      "noMessages": "No messages yet",
-      "noMessagesDescription": "Send a message to the candidates in the context of this suggestion",
-      "placeholder": "Type a message...",
-      "sendError": "Error sending message",
-      "sendingTo": "Sending to",
-      "senderLabels": {
-        "matchmaker": "You (Matchmaker)",
-        "system": "System"
-      },
-      "partyLabels": {
-        "partyA": "Party A",
-        "partyB": "Party B"
-      }
-    },
-    "overview": {
-      "statusSummaryTitle": "Status Summary",
-      "progressCompleted": "{{percent}}% Completed",
-      "matchmakerLabel": "Matchmaker:",
-      "detailsTitle": "Suggestion Details",
-      "details": {
-        "createdAt": "Creation Date:",
-        "lastActivity": "Last Update:",
-        "priority": "Priority:",
-        "responseDeadline": "Response Deadline:",
-        "decisionDeadline": "Decision Deadline:",
-        "notSet": "Not Set"
-      },
-      "editButton": "Edit Suggestion Details",
-      "partyALabel": "Party A",
-      "partyBLabel": "Party B",
-      "contactButton": "Contact",
-      "reminderButton": "Send Reminder",
-      "reasons": {
-        "matchTitle": "Reason for Match",
-        "internalTitle": "Internal Notes"
-      },
-      "deadlineAlert": {
-        "today": "Today!",
-        "daysLeft": "{{count}} days"
-      }
-    },
-    "timeline": {
-      "title": "Suggestion Progress",
-      "noNotes": "No notes"
-    },
-    "communication": {
-      "title": "Communication"
-    },
-    "actions": {
-      "title": "Additional Actions",
-      "statusChange": {
-        "title": "Change Status",
-        "description": "Update suggestion status based on progress.",
-        "button": "Change Status"
-      },
-      "edit": {
-        "title": "Edit Suggestion",
-        "description": "Edit details, match reason, and notes.",
-        "button": "Edit Suggestion Details"
-      },
-      "delete": {
-        "title": "Delete Suggestion",
-        "description": "Permanently delete the suggestion from the system.",
-        "button": "Delete Suggestion"
-      }
-    },
-    "statusChangeModal": {
-      "title": "Change Suggestion Status",
-      "currentStatusLabel": "Current Status",
-      "newStatusLabel": "New Status",
-      "newStatusPlaceholder": "Select new status",
-      "notesLabel": "Notes for Change (Optional)",
-      "notesPlaceholder": "Add a note...",
-      "cancelButton": "Cancel",
-      "saveButton": "Save Change",
-      "savingButton": "Updating..."
-    },
-    "toasts": {
-      "statusUpdateError": "Error updating status"
-    },
-    "statusLabels": {
-      "DRAFT": "Draft",
-      "PENDING_FIRST_PARTY": "Pending Party A",
-      "FIRST_PARTY_APPROVED": "Party A Approved",
-      "FIRST_PARTY_DECLINED": "Party A Declined",
-      "FIRST_PARTY_INTERESTED": "Saved for Later",
-
-      "PENDING_SECOND_PARTY": "Pending Party B",
-      "SECOND_PARTY_APPROVED": "Party B Approved",
-      "SECOND_PARTY_DECLINED": "Party B Declined",
-      "SECOND_PARTY_NOT_AVAILABLE": "Party B Not Available",
-      "RE_OFFERED_TO_FIRST_PARTY": "Awaiting Re-approval from Party A",
-      "AWAITING_MATCHMAKER_APPROVAL": "Awaiting Matchmaker Approval",
-      "CONTACT_DETAILS_SHARED": "Contact Details Shared",
-      "AWAITING_FIRST_DATE_FEEDBACK": "Awaiting Date Feedback",
-      "DATING": "Dating",
-      "ENGAGED": "Engaged",
-      "MARRIED": "Married",
-      "EXPIRED": "Expired",
-      "CLOSED": "Closed",
-      "CANCELLED": "Cancelled",
-      "THINKING_AFTER_DATE": "Thinking After Date",
-      "PROCEEDING_TO_SECOND_DATE": "Proceeding to 2nd Date",
-      "ENDED_AFTER_FIRST_DATE": "Ended After 1st Date",
-      "MEETING_PENDING": "Meeting Pending",
-      "MEETING_SCHEDULED": "Meeting Scheduled",
-      "MATCH_APPROVED": "Match Approved",
-      "MATCH_DECLINED": "Match Declined"
-    },
-    "priorityLabels": {
-      "URGENT": "Urgent",
-      "HIGH": "High",
-      "MEDIUM": "Medium",
-      "LOW": "Low"
+    "partyLabels": {
+      "partyA": "Party A",
+      "partyB": "Party B"
     }
   },
+  "overview": {
+    "quickActionsTitle": "Quick Actions",
+    "statusSummaryTitle": "Status Summary",
+    "progressCompleted": "{{percent}}% Completed",
+    "matchmakerLabel": "Matchmaker:",
+    "detailsTitle": "Suggestion Details",
+    "details": {
+      "createdAt": "Creation Date:",
+      "lastActivity": "Last Update:",
+      "priority": "Priority:",
+      "responseDeadline": "Response Deadline:",
+      "decisionDeadline": "Decision Deadline:",
+      "notSet": "Not Set"
+    },
+    "editButton": "Edit Suggestion Details",
+    "partyALabel": "Party A",
+    "partyBLabel": "Party B",
+    "contactButton": "Contact",
+    "reminderButton": "Send Reminder",
+    "reasons": {
+      "matchTitle": "Reason for Match",
+      "internalTitle": "Internal Notes"
+    },
+    "deadlineAlert": {
+      "today": "Today!",
+      "daysLeft": "{{count}} days"
+    },
+    "deadline": "Deadline",
+    "priority": "Priority",
+    "matchReason": "Reason for Match",
+    "nextSteps": "Next Steps",
+    "sendMessage": "Send Message",
+    "notes": "Notes",
+    "internalNotes": "Internal Notes",
+    "firstPartyNotes": "First Party Notes",
+    "secondPartyNotes": "Second Party Notes"
+  },
+  "timeline": {
+    "title": "Suggestion Progress",
+    "noNotes": "No notes"
+  },
+  "communication": {
+    "title": "Communication"
+  },
+  "actions": {
+    "title": "Additional Actions",
+    "statusChange": {
+      "title": "Change Status",
+      "description": "Update suggestion status based on progress.",
+      "button": "Change Status"
+    },
+    "edit": {
+      "title": "Edit Suggestion",
+      "description": "Edit details, match reason, and notes.",
+      "button": "Edit Suggestion Details"
+    },
+    "delete": {
+      "title": "Delete Suggestion",
+      "description": "Permanently delete the suggestion from the system.",
+      "button": "Delete Suggestion"
+    }
+  },
+  "statusChangeModal": {
+    "title": "Change Suggestion Status",
+    "currentStatusLabel": "Current Status",
+    "recommendedLabel": "Recommended Actions",
+    "noRecommendations": "No recommended actions for this status",
+    "manualLabel": "Manual Selection",
+    "newStatusLabel": "New Status",
+    "newStatusPlaceholder": "Select new status",
+    "notesLabel": "Notes for Change (Optional)",
+    "notesPlaceholder": "Add a note...",
+    "cancelButton": "Cancel",
+    "saveButton": "Save Change",
+    "savingButton": "Updating..."
+  },
+  "toasts": {
+    "statusUpdateError": "Error updating status"
+  },
+  "statusLabels": {
+    "DRAFT": "Draft",
+    "PENDING_FIRST_PARTY": "Pending Party A",
+    "FIRST_PARTY_APPROVED": "Party A Approved",
+    "FIRST_PARTY_DECLINED": "Party A Declined",
+    "FIRST_PARTY_INTERESTED": "Interested",
+    "PENDING_SECOND_PARTY": "Pending Party B",
+    "SECOND_PARTY_APPROVED": "Party B Approved",
+    "SECOND_PARTY_DECLINED": "Party B Declined",
+    "SECOND_PARTY_NOT_AVAILABLE": "Party B Not Available",
+    "RE_OFFERED_TO_FIRST_PARTY": "Awaiting Re-approval from Party A",
+    "AWAITING_MATCHMAKER_APPROVAL": "Awaiting Matchmaker Approval",
+    "CONTACT_DETAILS_SHARED": "Contact Details Shared",
+    "AWAITING_FIRST_DATE_FEEDBACK": "Awaiting Date Feedback",
+    "DATING": "Dating",
+    "ENGAGED": "Engaged",
+    "MARRIED": "Married",
+    "EXPIRED": "Expired",
+    "CLOSED": "Closed",
+    "CANCELLED": "Cancelled",
+    "THINKING_AFTER_DATE": "Thinking After Date",
+    "PROCEEDING_TO_SECOND_DATE": "Proceeding to 2nd Date",
+    "ENDED_AFTER_FIRST_DATE": "Ended After 1st Date",
+    "MEETING_PENDING": "Meeting Pending",
+    "MEETING_SCHEDULED": "Meeting Scheduled",
+    "MATCH_APPROVED": "Match Approved",
+    "MATCH_DECLINED": "Match Declined"
+  },
+  "priorityLabels": {
+    "URGENT": "Urgent",
+    "HIGH": "High",
+    "MEDIUM": "Medium",
+    "LOW": "Low"
+  }
+},
   "matchmakerMessagesPage": {
     "header": {
       "title": "Message Center",
