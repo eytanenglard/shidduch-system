@@ -626,6 +626,23 @@ export type PrivacyPolicyDict = {
       item7: string;
     };
   };
+  aiServices: {
+    title: string;
+    p1: string;
+    p2: string;
+    list: {
+      item1: string;
+      item2: string;
+      item3: string;
+      item4: string;
+      item5: string;
+    };
+    p3: string;
+    p4: string;
+    p5: string;
+    p6: string;
+    p7: string;
+  };
   sharingInfo: {
     title: string;
     p1: string;

@@ -132,7 +132,21 @@ const PrivacyPolicyClient: React.FC<PrivacyPolicyClientProps> = ({
                 <li key={index}>{item}</li>
               ))}
             </ul>
-
+            <h2 id="ai-services">{dict.aiServices.title}</h2>
+            <p>{dict.aiServices.p1}</p>
+            <p>{dict.aiServices.p2}</p>
+            <ul>
+              {Object.values(dict.aiServices.list).map((item, index) => (
+                <li key={index}>{item}</li>
+              ))}
+            </ul>
+            <p>{dict.aiServices.p3}</p>
+            <p dangerouslySetInnerHTML={{ __html: dict.aiServices.p4 }} />
+            <p>{dict.aiServices.p5}</p>
+            <p>{dict.aiServices.p6}</p>
+            <p>
+              <strong>{dict.aiServices.p7}</strong>
+            </p>
             <h2 id="sharing-info">{dict.sharingInfo.title}</h2>
             <p>{dict.sharingInfo.p1}</p>
             <ul>

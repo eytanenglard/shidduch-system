@@ -597,6 +597,23 @@
           "item7": "Research and Statistics: To conduct statistical analyses and research based on aggregated and anonymous information."
         }
       },
+            "aiServices": {
+        "title": "3A. Use of Third-Party AI Services",
+        "p1": "Our Service uses third-party Artificial Intelligence (AI) services to enhance the matchmaking experience. We currently use Google Gemini (provided by Google LLC) to power features including: profile analysis and improvement tips, compatibility analysis between profiles, and generating match suggestion rationale.",
+        "p2": "When you use AI-powered features, or when our matchmakers use AI tools on your behalf, the following personal data may be sent to Google's Gemini API for processing:",
+        "list": {
+          "item1": "Profile information: age, gender, city, marital status, religious level, occupation, and education.",
+          "item2": "Your 'About Me' text and profile headline.",
+          "item3": "Your detailed questionnaire answers covering values, personality, relationship preferences, partner preferences, and religious views.",
+          "item4": "Your matchmaking preferences (age range, location, religious level, etc.).",
+          "item5": "Matchmaker notes associated with your profile (if any)."
+        },
+        "p3": "This data is sent to Google's servers, which may be located outside of Israel, for the sole purpose of generating AI-powered analysis and insights to improve our matchmaking service. Your name and other directly identifying details are removed before data is sent to the AI service.",
+        "p4": "Google's use of data sent via the Gemini API is governed by Google's API Terms of Service. According to Google's API data usage policy, data sent through the paid Gemini API is not used by Google to train their AI models. Learn more at: https://ai.google.dev/gemini-api/terms",
+        "p5": "We may in the future use additional or alternative AI providers (such as Anthropic Claude). We will update this policy accordingly.",
+        "p6": "You can opt out of AI-powered features by contacting us at contact@neshamatech.com. Opting out may limit certain features such as personalized profile tips and AI-generated compatibility insights.",
+        "p7": "By accepting these terms and using the Service, you provide your explicit consent to the processing of your personal data by third-party AI services as described above. You may withdraw this consent at any time by contacting us."
+      },
       "sharingInfo": {
         "title": "4. With Whom We Share Your Information",
         "p1": "We do not sell or rent your personal information. We may share your information with third parties only in the following cases:",

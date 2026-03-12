@@ -14,6 +14,14 @@ if (!apiKey) {
 const genAI = new GoogleGenerativeAI(apiKey);
 
 /**
+ * מסיר מידע מזהה (שם מלא) מנרטיב לפני שליחה ל-AI.
+ * הנרטיב המקורי נשמר כמו שהוא בשרת - רק ה-AI מקבל גרסה אנונימית.
+ */
+function sanitizeForAi(narrative: string): string {
+  return narrative.replace(/^\s*Name:.*$/gm, '');
+}
+
+/**
  * יוצר וקטור הטמעה (embedding) עבור טקסט נתון.
  * @param text הטקסט להטמעה.
  * @returns Promise שמחזיר מערך של מספרים (הווקטור), או null במקרה של כישלון.
@@ -25,16 +33,12 @@ interface GenerateTextOptions {
   maxTokens?: number;
 }
 
-// src/lib/services/aiService.ts
-
 async function generateText(
   prompt: string,
   options: GenerateTextOptions = {}
 ): Promise<string> {
-  // תיקון: שימוש במודל יציב יותר אם 2.0 עושה בעיות, אבל נשאיר את הבחירה שלך כברירת מחדל
   const { model = 'gemini-2.0-flash', temperature = 0.3, maxTokens = 4000 } = options;
   
-  // תיקון: שימוש במפתח הנכון (fallback למה שמוגדר)
   const apiKey = process.env.GOOGLE_API_KEY || process.env.GOOGLE_GEMINI_API_KEY;
 
   if (!apiKey) {
@@ -55,7 +59,6 @@ async function generateText(
     );
 
     if (!response.ok) {
-      // תיקון: קריאת תוכן השגיאה מגוגל כדי להבין למה זה נכשל
       const errorBody = await response.text();
       console.error(`[Gemini Error] Status: ${response.status}`, errorBody);
       throw new Error(`Gemini API error: ${response.status} - ${errorBody}`);
@@ -214,6 +217,8 @@ export async function analyzePairCompatibility(
   console.log(
     `--- Attempting to analyze compatibility for matchmaker in ${language} ---`
   );
+  profileAText = sanitizeForAi(profileAText);
+  profileBText = sanitizeForAi(profileBText);
   if (!profileAText || !profileBText) {
     console.error(
       'analyzePairCompatibility called with one or more empty profiles.'
@@ -290,6 +295,7 @@ export async function getProfileAnalysis(
   console.log(
     '--- [AI Profile Advisor] Starting profile analysis with Gemini API ---'
   );
+  userNarrativeProfile = sanitizeForAi(userNarrativeProfile);
  
   if (!userNarrativeProfile) {
     console.error(
@@ -383,6 +389,8 @@ export async function analyzeSuggestionForUser(
   console.log(
     '--- [AI Suggestion Advisor] Starting suggestion analysis for user ---'
   );
+  currentUserProfileText = sanitizeForAi(currentUserProfileText);
+  suggestedUserProfileText = sanitizeForAi(suggestedUserProfileText);
 
   if (!currentUserProfileText || !suggestedUserProfileText) {
     console.error(
@@ -444,6 +452,8 @@ export async function generateSuggestionRationale(
   console.log(
     '--- [AI Rationale Writer] Starting suggestion rationale generation ---'
   );
+  profile1Text = sanitizeForAi(profile1Text);
+  profile2Text = sanitizeForAi(profile2Text);
   if (!profile1Text || !profile2Text) {
     console.error(
       '[AI Rationale Writer] Called with one or more empty profiles.'
@@ -506,6 +516,8 @@ export async function generateFullSuggestionRationale(
   console.log(
     '--- [AI Rationale Writer] Starting full rationale package generation ---'
   );
+  profile1Text = sanitizeForAi(profile1Text);
+  profile2Text = sanitizeForAi(profile2Text);
   if (!profile1Text || !profile2Text) {
     console.error(
       '[AI Rationale Writer] Called with one or more empty profiles.'
@@ -576,6 +588,7 @@ export async function generateNeshamaTechSummary(
   console.log(
     `--- [AI Matchmaker Intelligence Report] Starting DYNAMIC report generation for locale: ${locale} ---`
   );
+  userNarrativeProfile = sanitizeForAi(userNarrativeProfile);
 
   if (!userNarrativeProfile) {
     console.error(
@@ -588,7 +601,7 @@ export async function generateNeshamaTechSummary(
     model: 'gemini-2.5-flash',
     generationConfig: {
       responseMimeType: 'application/json',
-      temperature: 0.5, // Balanced for analytical tasks
+      temperature: 0.5,
     },
   });
 
@@ -656,8 +669,6 @@ export async function generateNeshamaTechSummary(
     Use \n for line breaks between paragraphs.
   `;
 
-  // אנחנו משתמשים בפרומפט האנגלית (שמחזיר עברית) עבור שתי השפות,
-  // כדי לשמור על אחידות במבנה הדוח המקצועי לשדכן.
   const prompt = `
     ${englishPromptInstructions}
 
@@ -707,6 +718,7 @@ export async function generateProfileSummary(
   language: 'he' | 'en' = 'he'
 ): Promise<AiProfileSummaryResult | null> {
   console.log('--- [AI Profile Summary (Detailed)] Starting detailed summary generation ---');
+  userNarrativeProfile = sanitizeForAi(userNarrativeProfile);
 
   if (!userNarrativeProfile) return null;
 
@@ -714,7 +726,7 @@ export async function generateProfileSummary(
     model: 'gemini-2.5-flash',
     generationConfig: {
       responseMimeType: 'application/json',
-      temperature: 0.4, // שמרני יותר כדי להישמד לעובדות
+      temperature: 0.4,
     },
   });
 
@@ -777,49 +789,31 @@ export async function generateProfileSummary(
     return null;
   }
 }
-// ===========================================
-// הוסף את הקוד הבא לקובץ src/lib/services/aiService.ts
-// מיקום: לפני ה-export הסופי (לפני const aiService = { ... })
-// ===========================================
 
 /**
  * מבנה הפרופיל הוירטואלי שה-AI מייצר
  */
 export interface GeneratedVirtualProfile {
-  // מידע בסיסי שנוסח מהטקסט
   inferredAge: number;
   inferredCity: string | null;
   inferredOccupation: string | null;
   inferredMaritalStatus: string | null;
   inferredEducation: string | null;
-  
-  // סיכומים (פורמט זהה ל-aiProfileSummary)
   personalitySummary: string;
   lookingForSummary: string;
-  
-  // העדפות לחיפוש (מה המועמד הוירטואלי מחפש)
   preferredAgeMin: number;
   preferredAgeMax: number;
   preferredReligiousLevels: string[];
   preferredLocations: string[];
-  
-  // נקודות מפתח לאלגוריתם
   keyTraits: string[];
   idealPartnerTraits: string[];
   dealBreakers: string[];
-  
-  // טקסט סיכום מאוחד להצגה לשדכן
   displaySummary: string;
 }
 
 /**
  * יוצר פרופיל וירטואלי מטקסט חופשי שהשדכן מזין.
  * הפרופיל משמש לחיפוש התאמות כאילו היה יוזר אמיתי.
- * 
- * @param sourceText - הטקסט החופשי שהשדכן כתב
- * @param gender - מגדר המועמד הוירטואלי
- * @param religiousLevel - רמה דתית (נבחרת ע"י השדכן)
- * @returns פרופיל וירטואלי מובנה, או null במקרה של כשלון
  */
 export async function generateVirtualProfile(
   sourceText: string,
@@ -925,17 +919,15 @@ export async function generateVirtualProfile(
 const aiService = {
   generateTextEmbedding,
   analyzePairCompatibility,
-  getProfileAnalysis, // פונקציה מקורית (יועץ למשתמש) - נשמרה!
+  getProfileAnalysis,
   analyzeSuggestionForUser,
   generateSuggestionRationale,
   generateFullSuggestionRationale,
-  generateNeshamaTechSummary, // פונקציה מעודכנת (דוח מודיעין)
+  generateNeshamaTechSummary,
   analyzeCvInDepth,
-  generateProfileSummary, // פונקציה חדשה (סיכום ממוקד לשדכן ב-DB)
+  generateProfileSummary,
   generateVirtualProfile, 
-    generateText,
+  generateText,
 };
 
 export default aiService;
-
-
