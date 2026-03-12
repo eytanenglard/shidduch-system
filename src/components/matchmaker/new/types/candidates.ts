@@ -55,6 +55,7 @@ export interface Candidate {
 }
 export interface CandidatesFilter {
    source?: UserSource;
+   
   gender?: Gender;
   ageRange?: {
     min: number;

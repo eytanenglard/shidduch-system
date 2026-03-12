@@ -418,155 +418,160 @@
       }
     },
     "filterPanel": {
-      "header": {
-        "title": "סינון מועמדים מתקדם",
-        "subtitle": "מערכת סינון חכמה עם AI",
-        "resetTooltip": "איפוס כל הפילטרים",
-        "saveTooltip": "שמירת הפילטר הנוכחי"
-      },
-      "verifiedOnlyLabel": "מאומתים בלבד",
-      "withRecommendationsLabel": "עם המלצות",
-      "fullProfileLabel": "פרופיל מלא",
-      "religiousLevelLabel": "רמת דתיות",
-      "cityLabel": "עיר מגורים",
-      "placeholders": {
-        "selectCity": "בחר עיר"
-      },
-      "options": {
-        "all": "הכל"
-      },
-      "popularFilters": {
-        "activeRecently": "פעילים לאחרונה",
-        "verifiedOnly": "מאומתים בלבד",
-        "withRecommendations": "עם המלצות",
-        "availableOnly": "פנויים בלבד",
-        "completeProfiles": "פרופילים מלאים"
-      },
-      "savePreset": {
-        "title": "שם לשמירת הפילטר",
-        "placeholder": "פילטר מותאם אישית",
-        "button": "שמור"
-      },
-      "separateFiltering": {
-        "title": "סינון וחיפוש נפרד לפי מגדר",
-        "description": "סנן מועמדים ומועמדות עם קריטריונים שונים"
-      },
-      "genderFilterPanel": {
-        "maleTitle": "סינון מועמדים",
-        "femaleTitle": "סינון מועמדות",
-        "copyToMale": "העתק למועמדים",
-        "copyToFemale": "העתק למועמדות",
-        "copyTooltip": "העתק הגדרות ל{{gender}}",
-        "ageLabel": "גיל",
-        "heightLabel": "גובה (ס\"מ)",
-        "minLabel": "מינימום",
-        "maxLabel": "מקסימום",
-        "religiousLevelLabel": "רמת דתיות",
-        "cityLabel": "עיר מגורים",
-        "verifiedOnlyLabel": "מאומתים בלבד",
-        "withRecommendationsLabel": "עם המלצות",
-        "fullProfileLabel": "פרופיל מלא",
-        "placeholders": {
-          "selectReligious": "בחר רמת דתיות",
-          "selectCity": "בחר עיר"
-        },
-        "options": {
-          "all": "הכל"
-        }
-      },
-      "tabs": {
+  "header": {
+    "title": "סינון מועמדים מתקדם",
+    "subtitle": "מערכת סינון חכמה עם AI",
+    "resetTooltip": "איפוס כל הפילטרים",
+    "saveTooltip": "שמירת הפילטר הנוכחי"
+  },
+  "verifiedOnlyLabel": "מאומתים בלבד",
+  "withRecommendationsLabel": "עם המלצות",
+  "fullProfileLabel": "פרופיל מלא",
+  "religiousLevelLabel": "רמת דתיות",
+  "cityLabel": "עיר מגורים",
+  "maritalStatusLabel": "מצב משפחתי",
+  "selectReligious": "בחר רמה דתית",
+  "placeholders": {
+    "selectCity": "בחר עיר",
+    "selectMaritalStatus": "בחר מצב משפחתי"
+  },
+  "options": {
+    "all": "הכל"
+  },
+  "popularFilters": {
+    "activeRecently": "פעילים לאחרונה",
+    "verifiedOnly": "מאומתים בלבד",
+    "withRecommendations": "עם המלצות",
+    "availableOnly": "פנויים בלבד",
+    "completeProfiles": "פרופילים מלאים"
+  },
+  "savePreset": {
+    "title": "שם לשמירת הפילטר",
+    "placeholder": "פילטר מותאם אישית",
+    "button": "שמור"
+  },
+  "separateFiltering": {
+    "title": "סינון וחיפוש נפרד לפי מגדר",
+    "description": "סנן מועמדים ומועמדות עם קריטריונים שונים"
+  },
+  "genderFilterPanel": {
+    "maleTitle": "סינון מועמדים",
+    "femaleTitle": "סינון מועמדות",
+    "copyToMale": "העתק למועמדים",
+    "copyToFemale": "העתק למועמדות",
+    "copyTooltip": "העתק הגדרות ל{{gender}}",
+    "ageLabel": "גיל",
+    "heightLabel": "גובה (ס\"מ)",
+    "minLabel": "מינימום",
+    "maxLabel": "מקסימום",
+    "religiousLevelLabel": "רמת דתיות",
+    "cityLabel": "עיר מגורים",
+    "maritalStatusLabel": "מצב משפחתי",
+    "verifiedOnlyLabel": "מאומתים בלבד",
+    "withRecommendationsLabel": "עם המלצות",
+    "fullProfileLabel": "פרופיל מלא",
+    "placeholders": {
+      "selectReligious": "בחר רמת דתיות",
+      "selectCity": "בחר עיר",
+      "selectMaritalStatus": "בחר מצב משפחתי"
+    },
+    "options": {
+      "all": "הכל"
+    }
+  },
+  "tabs": {
+    "basic": "בסיסי",
+    "advanced": "מתקדם",
+    "status": "סטטוס",
+    "saved": "שמורים"
+  },
+  "sections": {
+    "gender": "מגדר",
+    "age": "גיל",
+    "height": "גובה (ס\"מ)",
+    "location": "מיקום מגורים",
+    "religious": "רקע דתי",
+    "status": "סטטוס ואימות"
+  },
+  "buttons": {
+    "male": "גברים",
+    "female": "נשים",
+    "removeSelection": "הסר בחירה",
+    "reset": "איפוס",
+    "save": "שמירת פילטר"
+  },
+  "savedFilters": {
+    "header": {
+      "title": "פילטרים שמורים",
+      "subtitle": "{{count}} {{label}}",
+      "singleFilter": "פילטר שמור",
+      "multipleFilters": "פילטרים שמורים"
+    },
+    "filterCard": {
+      "defaultBadge": "ברירת מחדל",
+      "complexity": {
         "basic": "בסיסי",
         "advanced": "מתקדם",
-        "status": "סטטוס",
-        "saved": "שמורים"
+        "complex": "מורכב",
+        "expert": "מקצועי"
       },
-      "sections": {
-        "gender": "מגדר",
+      "criteria": "{{count}} קריטריונים",
+      "actions": {
+        "edit": "עריכה",
+        "setDefault": "הגדר כברירת מחדל",
+        "isDefault": "ברירת מחדל",
+        "delete": "מחיקה"
+      },
+      "summary": {
+        "search": "חיפוש: \"{{query}}\"",
+        "gender": "מגדר: {{gender}}",
         "age": "גיל",
-        "height": "גובה (ס\"מ)",
-        "location": "מיקום מגורים",
-        "religious": "רקע דתי",
-        "status": "סטטוס ואימות"
-      },
-      "buttons": {
-        "male": "גברים",
-        "female": "נשים",
-        "removeSelection": "הסר בחירה",
-        "reset": "איפוס",
-        "save": "שמירת פילטר"
-      },
-      "savedFilters": {
-        "header": {
-          "title": "פילטרים שמורים",
-          "subtitle": "{{count}} {{label}}",
-          "singleFilter": "פילטר שמור",
-          "multipleFilters": "פילטרים שמורים"
+        "ageValue": "{{min}}-{{max}}",
+        "height": "גובה",
+        "heightValue": "{{min}}-{{max}}ס״מ",
+        "city": "עיר: {{city}}",
+        "cities": "{{count}} ערים",
+        "religiousLevel": "רמה דתית: {{level}}",
+        "educationLevel": "השכלה: {{level}}",
+        "maritalStatus": "מצב משפחתי: {{status}}",
+        "occupation": "תחום: {{occupation}}",
+        "occupations": "{{count}} תחומי עיסוק",
+        "status": "סטטוס: {{status}}",
+        "statuses": {
+          "AVAILABLE": "פנוי/ה",
+          "DATING": "בהכרות",
+          "UNAVAILABLE": "לא פנוי/ה",
+          "PAUSED": "בהפסקה",
+          "ENGAGED": "מאורס/ת",
+          "MARRIED": "נשוי/אה"
         },
-        "filterCard": {
-          "defaultBadge": "ברירת מחדל",
-          "complexity": {
-            "basic": "בסיסי",
-            "advanced": "מתקדם",
-            "complex": "מורכב",
-            "expert": "מקצועי"
-          },
-          "criteria": "{{count}} קריטריונים",
-          "actions": {
-            "edit": "עריכה",
-            "setDefault": "הגדר כברירת מחדל",
-            "isDefault": "ברירת מחדל",
-            "delete": "מחיקה"
-          },
-          "summary": {
-            "search": "חיפוש: \"{{query}}\"",
-            "gender": "מגדר: {{gender}}",
-            "age": "גיל",
-            "ageValue": "{{min}}-{{max}}",
-            "height": "גובה",
-            "heightValue": "{{min}}-{{max}}ס״מ",
-            "city": "עיר: {{city}}",
-            "cities": "{{count}} ערים",
-            "religiousLevel": "רמה דתית: {{level}}",
-            "educationLevel": "השכלה: {{level}}",
-            "maritalStatus": "מצב משפחתי: {{status}}",
-            "occupation": "תחום: {{occupation}}",
-            "occupations": "{{count}} תחומי עיסוק",
-            "status": "סטטוס: {{status}}",
-            "statuses": {
-              "AVAILABLE": "פנוי/ה",
-              "DATING": "בהכרות",
-              "UNAVAILABLE": "לא פנוי/ה",
-              "PAUSED": "בהפסקה",
-              "ENGAGED": "מאורס/ת",
-              "MARRIED": "נשוי/אה"
-            },
-            "verifiedOnly": "מאומתים בלבד",
-            "withRecommendations": "עם המלצות",
-            "fullProfile": "פרופיל מלא",
-            "activeToday": "פעילים היום",
-            "activeLastWeek": "פעילים השבוע",
-            "activeLastMonth": "פעילים החודש",
-            "activeInDays": "פעילים ב-{{days}} ימים",
-            "separateFiltering": "סינון נפרד לפי מגדר",
-            "andMore": "ועוד {{count}} קריטריונים",
-            "noCriteria": "פילטר בסיסי ללא קריטריונים"
-          }
-        },
-        "emptyState": {
-          "title": "אין פילטרים שמורים",
-          "description": "שמור את הפילטרים הנוכחיים כדי לגשת אליהם בקלות בעתיד",
-          "fastSearches": "חיפושים מהירים",
-          "advancedFiltering": "סינון מתקדם",
-          "quickAccess": "גישה מהירה",
-          "saveCurrentButton": "שמור פילטר נוכחי"
-        },
-        "stats": {
-          "default": "ברירת מחדל",
-          "advanced": "מתקדמים",
-          "avgCriteria": "ממוצע קריטריונים"
-        }
+        "verifiedOnly": "מאומתים בלבד",
+        "withRecommendations": "עם המלצות",
+        "fullProfile": "פרופיל מלא",
+        "activeToday": "פעילים היום",
+        "activeLastWeek": "פעילים השבוע",
+        "activeLastMonth": "פעילים החודש",
+        "activeInDays": "פעילים ב-{{days}} ימים",
+        "separateFiltering": "סינון נפרד לפי מגדר",
+        "andMore": "ועוד {{count}} קריטריונים",
+        "noCriteria": "פילטר בסיסי ללא קריטריונים"
       }
     },
+    "emptyState": {
+      "title": "אין פילטרים שמורים",
+      "description": "שמור את הפילטרים הנוכחיים כדי לגשת אליהם בקלות בעתיד",
+      "fastSearches": "חיפושים מהירים",
+      "advancedFiltering": "סינון מתקדם",
+      "quickAccess": "גישה מהירה",
+      "saveCurrentButton": "שמור פילטר נוכחי"
+    },
+    "stats": {
+      "default": "ברירת מחדל",
+      "advanced": "מתקדמים",
+      "avgCriteria": "ממוצע קריטריונים"
+    }
+  }
+},
     "list": {
       "quickViewTooltip": "תצוגה מהירה",
       "editProfileTooltip": "ערוך פרופיל",

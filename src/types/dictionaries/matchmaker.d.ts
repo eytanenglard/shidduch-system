@@ -138,13 +138,15 @@ type FilterPanelDict = {
     title: string;
     description: string;
   };
-    verifiedOnlyLabel: string;
+  verifiedOnlyLabel: string;
   withRecommendationsLabel: string;
   fullProfileLabel: string;
   religiousLevelLabel: string;
   cityLabel: string;
+  maritalStatusLabel: string;  // ← חדש
   placeholders: {
     selectCity: string;
+    selectMaritalStatus: string;  // ← חדש
   };
   options: {
     all: string;
@@ -158,17 +160,18 @@ type FilterPanelDict = {
     copyTooltip: string;
     ageLabel: string;
     heightLabel: string;
-   
     minLabel: string;
     maxLabel: string;
     religiousLevelLabel: string;
     cityLabel: string;
+    maritalStatusLabel: string;  // ← חדש
     verifiedOnlyLabel: string;
     withRecommendationsLabel: string;
     fullProfileLabel: string;
     placeholders: {
       selectReligious: string;
       selectCity: string;
+      selectMaritalStatus: string;  // ← חדש
     };
     options: {
       all: string;
@@ -184,7 +187,7 @@ type FilterPanelDict = {
     gender: string;
     age: string;
     height: string;
-     location: string;
+    location: string;
     religious: string;
     status: string;
   };
@@ -196,7 +199,6 @@ type FilterPanelDict = {
     save: string;
   };
   savedFilters: SavedFiltersDict;
-
 };
 
 type QuickViewDict = {

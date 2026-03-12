@@ -74,6 +74,7 @@ export async function GET(request: NextRequest) {
     const availabilityStatus = params.get('availabilityStatus') as AvailabilityStatus | null;
     const religiousLevel = params.get('religiousLevel') || null;
     const city = params.get('city') || null;
+    const maritalStatus = params.get('maritalStatus') || null;
     const ageMin = params.get('ageMin') ? parseInt(params.get('ageMin')!) : null;
     const ageMax = params.get('ageMax') ? parseInt(params.get('ageMax')!) : null;
     const sortBy = params.get('sortBy') || 'createdAt';
@@ -140,6 +141,14 @@ export async function GET(request: NextRequest) {
       where.profile = {
         ...((where.profile as Prisma.ProfileWhereInput) || {}),
         city: { contains: city, mode: 'insensitive' },
+      };
+    }
+
+    // Marital status filter
+    if (maritalStatus) {
+      where.profile = {
+        ...((where.profile as Prisma.ProfileWhereInput) || {}),
+        maritalStatus,
       };
     }
 
@@ -418,9 +427,10 @@ export async function GET(request: NextRequest) {
       religiousLevels: { value: string; count: number }[];
       genders: { value: string; count: number }[];
       availabilityStatuses: { value: string; count: number }[];
+      maritalStatuses: { value: string; count: number }[];
     } | undefined = undefined;
     if (page === 1 || params.get('includeFilterOptions') === 'true') {
-      const [cityCounts, religiousLevelCounts, genderCounts, availabilityCounts] = await Promise.all([
+      const [cityCounts, religiousLevelCounts, genderCounts, availabilityCounts, maritalStatusCounts] = await Promise.all([
         prisma.profile.groupBy({
           by: ['city'],
           where: { user: { status: { notIn: ['BLOCKED', 'INACTIVE'] }, role: 'CANDIDATE' }, city: { not: null } },
@@ -444,6 +454,12 @@ export async function GET(request: NextRequest) {
           where: { user: { status: { notIn: ['BLOCKED', 'INACTIVE'] }, role: 'CANDIDATE' } },
           _count: { availabilityStatus: true },
         }),
+        prisma.profile.groupBy({
+          by: ['maritalStatus'],
+          where: { user: { status: { notIn: ['BLOCKED', 'INACTIVE'] }, role: 'CANDIDATE' }, maritalStatus: { not: null } },
+          _count: { maritalStatus: true },
+          orderBy: { _count: { maritalStatus: 'desc' } },
+        }),
       ]);
 
       filterOptions = {
@@ -456,6 +472,10 @@ export async function GET(request: NextRequest) {
         availabilityStatuses: availabilityCounts.map((a) => ({
           value: a.availabilityStatus,
           count: a._count.availabilityStatus,
+        })),
+        maritalStatuses: maritalStatusCounts.map((m) => ({
+          value: m.maritalStatus!,
+          count: m._count.maritalStatus,
         })),
       };
     }

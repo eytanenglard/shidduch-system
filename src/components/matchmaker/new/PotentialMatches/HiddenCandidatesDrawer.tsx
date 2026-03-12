@@ -57,6 +57,7 @@ import type { HiddenCandidateInfo } from './hooks/useHiddenCandidates';
 interface HiddenCandidatesDrawerProps {
   hiddenCandidates: HiddenCandidateInfo[];
   onUnhide: (hiddenRecordId: string) => Promise<boolean>;
+  onBatchUnhide?: (hiddenRecordIds: string[]) => Promise<boolean>;
   onUpdateReason: (hiddenRecordId: string, reason: string) => Promise<boolean>;
   isLoading?: boolean;
   className?: string;
@@ -72,7 +73,18 @@ const HiddenCandidateCard: React.FC<{
   onUnhide: () => void;
   onUpdateReason: (reason: string) => void;
   isUnhiding: boolean;
-}> = ({ candidate, onUnhide, onUpdateReason, isUnhiding }) => {
+  isSelectMode: boolean;
+  isSelected: boolean;
+  onToggleSelect: () => void;
+}> = ({
+  candidate,
+  onUnhide,
+  onUpdateReason,
+  isUnhiding,
+  isSelectMode,
+  isSelected,
+  onToggleSelect,
+}) => {
   const [isEditingReason, setIsEditingReason] = useState(false);
   const [editedReason, setEditedReason] = useState(candidate.reason || '');
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
@@ -97,10 +109,29 @@ const HiddenCandidateCard: React.FC<{
         exit={{ opacity: 0, x: -20 }}
         className={cn(
           'relative p-3 rounded-xl border-2 bg-white/80 backdrop-blur-sm transition-all duration-200',
-          borderColor
+          borderColor,
+          isSelectMode && 'cursor-pointer',
+          isSelected && 'border-green-400 bg-green-50/80 ring-2 ring-green-200'
         )}
+        onClick={isSelectMode ? onToggleSelect : undefined}
       >
         <div className="flex items-start gap-3">
+          {/* Checkbox במצב בחירה */}
+          {isSelectMode && (
+            <div className="flex items-center justify-center flex-shrink-0 pt-1">
+              <div
+                className={cn(
+                  'w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all',
+                  isSelected
+                    ? 'bg-green-500 border-green-500 text-white'
+                    : 'border-gray-300 bg-white'
+                )}
+              >
+                {isSelected && <Check className="w-3.5 h-3.5" />}
+              </div>
+            </div>
+          )}
+
           {/* תמונה */}
           <div className="relative w-12 h-12 rounded-full overflow-hidden border-2 border-white shadow-sm flex-shrink-0">
             {candidate.candidate.mainImage ? (
@@ -209,29 +240,31 @@ const HiddenCandidateCard: React.FC<{
             </div>
           </div>
 
-          {/* כפתור החזרה */}
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  className="h-9 w-9 rounded-full border-2 border-green-200 text-green-600 hover:bg-green-50 hover:border-green-300 transition-all flex-shrink-0"
-                  onClick={() => setShowConfirmDialog(true)}
-                  disabled={isUnhiding}
-                >
-                  {isUnhiding ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <Undo2 className="w-4 h-4" />
-                  )}
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>החזר לרשימת ההצעות</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+          {/* כפתור החזרה - מוסתר במצב בחירה */}
+          {!isSelectMode && (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="h-9 w-9 rounded-full border-2 border-green-200 text-green-600 hover:bg-green-50 hover:border-green-300 transition-all flex-shrink-0"
+                    onClick={() => setShowConfirmDialog(true)}
+                    disabled={isUnhiding}
+                  >
+                    {isUnhiding ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Undo2 className="w-4 h-4" />
+                    )}
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>החזר לרשימת ההצעות</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
         </div>
       </motion.div>
 
@@ -269,12 +302,17 @@ const HiddenCandidateCard: React.FC<{
 const HiddenCandidatesDrawer: React.FC<HiddenCandidatesDrawerProps> = ({
   hiddenCandidates,
   onUnhide,
+  onBatchUnhide,
   onUpdateReason,
   isLoading = false,
   className,
 }) => {
   const [unhidingId, setUnhidingId] = useState<string | null>(null);
   const [isOpen, setIsOpen] = useState(false);
+  const [isSelectMode, setIsSelectMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [isBatchUnhiding, setIsBatchUnhiding] = useState(false);
+  const [showBatchConfirmDialog, setShowBatchConfirmDialog] = useState(false);
 
   const handleUnhide = async (hiddenRecordId: string) => {
     setUnhidingId(hiddenRecordId);
@@ -287,7 +325,61 @@ const HiddenCandidatesDrawer: React.FC<HiddenCandidatesDrawerProps> = ({
     }
   };
 
+  const toggleSelect = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedIds.size === hiddenCandidates.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(hiddenCandidates.map((c) => c.id)));
+    }
+  };
+
+  const exitSelectMode = () => {
+    setIsSelectMode(false);
+    setSelectedIds(new Set());
+  };
+
+  const handleBatchUnhide = async () => {
+    if (selectedIds.size === 0) return;
+    setIsBatchUnhiding(true);
+
+    const idsArray = Array.from(selectedIds);
+    let success = false;
+
+    if (onBatchUnhide) {
+      success = await onBatchUnhide(idsArray);
+    } else {
+      // Fallback: unhide one by one
+      const results = await Promise.all(idsArray.map((id) => onUnhide(id)));
+      success = results.every(Boolean);
+    }
+
+    setIsBatchUnhiding(false);
+    setShowBatchConfirmDialog(false);
+
+    if (success) {
+      exitSelectMode();
+      // אם כולם הוחזרו, סגור drawer
+      if (idsArray.length === hiddenCandidates.length) {
+        setIsOpen(false);
+      }
+    }
+  };
+
   const count = hiddenCandidates.length;
+  const selectedCount = selectedIds.size;
+  const allSelected = count > 0 && selectedCount === count;
 
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
@@ -343,6 +435,47 @@ const HiddenCandidatesDrawer: React.FC<HiddenCandidatesDrawerProps> = ({
           <SheetDescription className="text-amber-700/70 text-sm">
             מועמדים שהסתרת לא יופיעו בהצעות הפוטנציאליות
           </SheetDescription>
+
+          {/* כפתורי מצב בחירה */}
+          {count > 1 && (
+            <div className="flex items-center gap-2 pt-1">
+              {isSelectMode ? (
+                <>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-xs h-7 text-amber-700 hover:bg-amber-100"
+                    onClick={toggleSelectAll}
+                  >
+                    {allSelected ? 'בטל הכל' : 'בחר הכל'}
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-xs h-7 text-gray-500 hover:bg-gray-100"
+                    onClick={exitSelectMode}
+                  >
+                    ביטול
+                  </Button>
+                  {selectedCount > 0 && (
+                    <Badge className="bg-green-100 text-green-700 border border-green-200 text-[10px]">
+                      {selectedCount} נבחרו
+                    </Badge>
+                  )}
+                </>
+              ) : (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-xs h-7 text-amber-700 hover:bg-amber-100 gap-1"
+                  onClick={() => setIsSelectMode(true)}
+                >
+                  <Check className="w-3.5 h-3.5" />
+                  בחירה מרובה
+                </Button>
+              )}
+            </div>
+          )}
         </SheetHeader>
 
         <ScrollArea className="flex-1 p-4">
@@ -372,6 +505,9 @@ const HiddenCandidatesDrawer: React.FC<HiddenCandidatesDrawerProps> = ({
                       onUpdateReason(candidate.id, reason)
                     }
                     isUnhiding={unhidingId === candidate.id}
+                    isSelectMode={isSelectMode}
+                    isSelected={selectedIds.has(candidate.id)}
+                    onToggleSelect={() => toggleSelect(candidate.id)}
                   />
                 ))}
               </AnimatePresence>
@@ -379,22 +515,80 @@ const HiddenCandidatesDrawer: React.FC<HiddenCandidatesDrawerProps> = ({
           )}
         </ScrollArea>
 
-        {/* Footer עם כפתור סגירה וטיפ */}
+        {/* Footer */}
         <div className="p-3 border-t bg-gray-50 flex flex-col gap-3">
-          {count > 0 && (
-            <p className="text-[10px] text-gray-500 text-center">
-              💡 לחץ על כפתור ההחזרה כדי להציג שוב את ההצעות עם המועמד
-            </p>
+          {isSelectMode && selectedCount > 0 ? (
+            <Button
+              className="w-full bg-green-600 hover:bg-green-700 text-white gap-2"
+              onClick={() => setShowBatchConfirmDialog(true)}
+              disabled={isBatchUnhiding}
+            >
+              {isBatchUnhiding ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  מחזיר...
+                </>
+              ) : (
+                <>
+                  <Undo2 className="w-4 h-4" />
+                  החזר {selectedCount} מועמדים לרשימה
+                </>
+              )}
+            </Button>
+          ) : (
+            <>
+              {count > 0 && !isSelectMode && (
+                <p className="text-[10px] text-gray-500 text-center">
+                  💡 לחץ על כפתור ההחזרה כדי להציג שוב את ההצעות עם המועמד
+                </p>
+              )}
+              <Button
+                variant="outline"
+                className="w-full border-gray-300"
+                onClick={() => setIsOpen(false)}
+              >
+                סגור
+              </Button>
+            </>
           )}
-
-          <Button
-            variant="outline"
-            className="w-full border-gray-300"
-            onClick={() => setIsOpen(false)}
-          >
-            סגור
-          </Button>
         </div>
+
+        {/* דיאלוג אישור החזרה קבוצתית */}
+        <AlertDialog
+          open={showBatchConfirmDialog}
+          onOpenChange={setShowBatchConfirmDialog}
+        >
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>
+                להחזיר {selectedCount} מועמדים לרשימה?
+              </AlertDialogTitle>
+              <AlertDialogDescription>
+                ההצעות הפוטנציאליות עם {selectedCount} המועמדים שנבחרו יחזרו
+                להופיע ברשימה.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={isBatchUnhiding}>
+                ביטול
+              </AlertDialogCancel>
+              <AlertDialogAction
+                onClick={handleBatchUnhide}
+                className="bg-green-600 hover:bg-green-700"
+                disabled={isBatchUnhiding}
+              >
+                {isBatchUnhiding ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin ml-2" />
+                    מחזיר...
+                  </>
+                ) : (
+                  'החזר לרשימה'
+                )}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </SheetContent>
     </Sheet>
   );

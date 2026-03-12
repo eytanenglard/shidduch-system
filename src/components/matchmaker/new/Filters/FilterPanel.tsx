@@ -92,8 +92,16 @@ const RELIGIOUS_OPTIONS = [
   { value: 'secular', label: 'חילוני/ת' },
   { value: 'spiritual_not_religious', label: 'רוחני/ת (לאו דווקא דתי/ה)' },
   { value: 'other', label: 'אחר' },
-    { value: 'not_defined', label: 'לא מוגדר / ללא רמה דתית' }, 
+  { value: 'not_defined', label: 'לא מוגדר / ללא רמה דתית' },
+];
 
+// שינוי 1: הוספת MARITAL_STATUS_OPTIONS
+const MARITAL_STATUS_OPTIONS = [
+  { value: 'single', label: 'רווק/ה' },
+  { value: 'divorced', label: 'גרוש/ה' },
+  { value: 'widowed', label: 'אלמן/ה' },
+  { value: 'divorced_with_children', label: 'גרוש/ה עם ילדים' },
+  { value: 'widowed_with_children', label: 'אלמן/ה עם ילדים' },
 ];
 
 // Interfaces
@@ -629,6 +637,49 @@ const GenderFilterPanel = ({
           </div>
         </div>
 
+        {/* שינוי 2: סקשן Marital Status ב-GenderFilterPanel */}
+        {/* Marital Status */}
+        <div className="space-y-3">
+          <Label className="text-base font-bold text-gray-800 flex items-center gap-2">
+            <User className="w-5 h-5 text-violet-600" />
+            {dict.maritalStatusLabel || 'מצב משפחתי'}
+          </Label>
+          <div className="bg-white/80 backdrop-blur-sm rounded-xl p-3 shadow-lg border border-gray-100/50">
+            <Select
+              value={filters.maritalStatus || ''}
+              onValueChange={(value) => {
+                const newValue = value === 'all' ? undefined : value;
+                onFiltersChange({
+                  ...filters,
+                  maritalStatus: newValue,
+                });
+              }}
+            >
+              <SelectTrigger className="w-full border-0 bg-transparent focus:ring-2 focus:ring-violet-200 rounded-xl">
+                <SelectValue
+                  placeholder={
+                    dict.placeholders?.selectMaritalStatus || 'בחר מצב משפחתי'
+                  }
+                />
+              </SelectTrigger>
+              <SelectContent className="bg-white/95 backdrop-blur-sm border-0 shadow-2xl rounded-xl">
+                <SelectItem value="all" className="hover:bg-violet-50">
+                  {dict.options?.all || 'הכל'}
+                </SelectItem>
+                {MARITAL_STATUS_OPTIONS.map((ms) => (
+                  <SelectItem
+                    key={ms.value}
+                    value={ms.value}
+                    className="hover:bg-violet-50"
+                  >
+                    {ms.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
         {/* Consolidated Status Toggles */}
         <div className="space-y-4 pt-4 border-t border-gray-200/50">
           {[
@@ -791,6 +842,8 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
         if (filters.hasReferences) count++;
         if (filters.lastActiveDays) count++;
         if (filters.isProfileComplete) count++;
+        // שינוי 4: הוספת ספירת maritalStatus
+        if (filters.maritalStatus) count++;
 
         break;
     }
@@ -1339,6 +1392,64 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
                           ))}
                         </SelectContent>
                       </Select>
+                    </div>
+                  </FilterSection>
+
+                  {/* שינוי 3: סקשן Marital Status ב-Main Panel (טאב basic) */}
+                  {/* Marital Status */}
+                  <FilterSection
+                    title={dict.maritalStatusLabel || 'מצב משפחתי'}
+                    icon={<User className="w-5 h-5" />}
+                    gradient="from-violet-500 to-purple-500"
+                    badge={filters.maritalStatus ? 1 : undefined}
+                  >
+                    <div className="bg-white/80 backdrop-blur-sm rounded-xl p-3 shadow-lg border border-gray-100/50">
+                      <div className="grid grid-cols-2 gap-2">
+                        {MARITAL_STATUS_OPTIONS.map((option) => (
+                          <Button
+                            key={option.value}
+                            type="button"
+                            variant={
+                              filters.maritalStatus === option.value
+                                ? 'default'
+                                : 'outline'
+                            }
+                            onClick={() =>
+                              onFiltersChange({
+                                ...filters,
+                                maritalStatus:
+                                  filters.maritalStatus === option.value
+                                    ? undefined
+                                    : option.value,
+                              })
+                            }
+                            className={cn(
+                              'h-10 rounded-xl font-medium text-sm transition-all duration-300 hover:scale-105',
+                              filters.maritalStatus === option.value
+                                ? 'bg-gradient-to-r from-violet-500 to-purple-500 text-white shadow-lg'
+                                : 'bg-white/80 backdrop-blur-sm border-2 border-gray-200 hover:border-violet-300'
+                            )}
+                          >
+                            {option.label}
+                          </Button>
+                        ))}
+                      </div>
+                      {filters.maritalStatus && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() =>
+                            onFiltersChange({
+                              ...filters,
+                              maritalStatus: undefined,
+                            })
+                          }
+                          className="w-full mt-2 text-gray-500 hover:text-gray-700 hover:bg-gray-50 rounded-xl text-xs"
+                        >
+                          {dict.buttons?.removeSelection || 'הסר בחירה'}
+                        </Button>
+                      )}
                     </div>
                   </FilterSection>
 

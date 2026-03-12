@@ -491,13 +491,17 @@
         "saveTooltip": "Save current filter"
       },
       "verifiedOnlyLabel": "Verified Only",
+
       "withRecommendationsLabel": "With Recommendations",
       "fullProfileLabel": "Full Profile",
       "religiousLevelLabel": "Religious Level",
       "cityLabel": "City",
-      "placeholders": {
-        "selectCity": "Select city"
-      },
+      "maritalStatusLabel": "Marital Status",
+
+     "placeholders": {
+    "selectCity": "Select city",
+    "selectMaritalStatus": "Select marital status"
+  },
       "options": {
         "all": "All"
       },
@@ -529,13 +533,16 @@
         "maxLabel": "Maximum",
         "religiousLevelLabel": "Religious Level",
         "cityLabel": "City",
+        "maritalStatusLabel": "Marital Status",
+
         "verifiedOnlyLabel": "Verified Only",
         "withRecommendationsLabel": "With Recommendations",
         "fullProfileLabel": "Full Profile",
-        "placeholders": {
-          "selectReligious": "Select religious level",
-          "selectCity": "Select city"
-        },
+       "placeholders": {
+  "selectReligious": "Select religious level",
+  "selectCity": "Select city",
+  "selectMaritalStatus": "Select marital status"
+},
         "options": {
           "all": "All"
         }
