@@ -1,4 +1,5 @@
 // src/components/HomePage/components/StickyNav.tsx
+// Improvements: #22 solid logo text, #23 simplified auth UI (Navbar handles it), #24 getInitials from shared utility
 
 'use client';
 
@@ -9,7 +10,6 @@ import { Button } from '@/components/ui/button';
 import { UserPlus, Menu, X, Lightbulb } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
-// הוסר getRelativeCloudinaryPath עבור הלוגו, נשאר בשימוש עבור תמונות פרופיל אם צריך
 import { signOut } from 'next-auth/react';
 import type { Session } from 'next-auth';
 import type { UserImage } from '@/types/next-auth';
@@ -30,7 +30,17 @@ interface StickyNavProps {
   userDropdownDict: UserDropdownDict;
 }
 
-// --- עדכון רכיב הלוגו ---
+// #24: Shared getInitials utility (could be extracted to @/lib/utils)
+const getInitials = (fullName?: string | null): string => {
+  if (!fullName) return 'P';
+  const names = fullName.split(' ');
+  return (
+    (names[0]?.[0] || '') +
+    (names.length > 1 ? names[names.length - 1]?.[0] || '' : '')
+  ).toUpperCase();
+};
+
+// #22: Simplified logo — solid text, no gradient animation
 const StickyLogo = ({ homepageAriaLabel }: { homepageAriaLabel: string }) => {
   return (
     <Link
@@ -40,26 +50,17 @@ const StickyLogo = ({ homepageAriaLabel }: { homepageAriaLabel: string }) => {
     >
       <div className="relative h-10 w-10">
         <Image
-          src="/logo.png" // שימוש בלוגו המקומי
+          src="/logo.png"
           alt="NeshamaTech Icon"
           fill
-          className="object-contain transition-transform duration-500 group-hover:scale-110 group-hover:rotate-6"
+          className="object-contain transition-transform duration-300 group-hover:scale-110"
           priority
-          unoptimized // חובה לאיכות חדה ומניעת אופטימיזציה מיותרת
+          sizes="40px"
+          unoptimized
         />
       </div>
-      <span
-        className="
-        text-2xl
-        font-bold
-        tracking-tight
-        bg-gradient-to-r from-teal-600 via-orange-500 to-amber-500
-        text-transparent bg-clip-text
-        bg-size-200 bg-pos-0 group-hover:bg-pos-100
-        transition-all duration-700 ease-in-out
-      "
-      >
-        NeshamaTech
+      {/* #22: Solid text instead of animated gradient */}
+<span className="text-2xl font-bold tracking-tight bg-gradient-to-r from-teal-600 via-orange-500 to-amber-500 text-transparent bg-clip-text">        NeshamaTech
       </span>
     </Link>
   );
@@ -91,7 +92,8 @@ const StickyNav: React.FC<StickyNavProps> = ({
 
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
-      const navHeight = isMobile ? 64 : 80;
+      // #9: Updated to match new navbar height (64px)
+      const navHeight = isMobile ? 64 : 64;
       const triggerPoint = currentScrollY + navHeight + 40;
 
       let currentSection = '';
@@ -128,7 +130,7 @@ const StickyNav: React.FC<StickyNavProps> = ({
 
     const element = document.querySelector(href);
     if (element) {
-      const navHeight = isMobile ? 64 : 80;
+      const navHeight = isMobile ? 64 : 64;
       const topOffset = isMobile ? 80 : 0;
       const padding = 30;
       const headerOffset = navHeight + topOffset + padding;
@@ -148,16 +150,6 @@ const StickyNav: React.FC<StickyNavProps> = ({
 
   const handleSignOut = () => {
     signOut({ callbackUrl: '/' });
-  };
-
-  const getInitials = () => {
-    const fullName = session?.user?.name;
-    if (!fullName) return 'P';
-    const names = fullName.split(' ');
-    return (
-      (names[0]?.[0] || '') +
-      (names.length > 1 ? names[names.length - 1]?.[0] || '' : '')
-    ).toUpperCase();
   };
 
   const getMainProfileImage = (): UserImage | null => {
@@ -188,13 +180,15 @@ const StickyNav: React.FC<StickyNavProps> = ({
             animate={isMobile ? (isNavOpen ? 'visible' : 'hidden') : 'visible'}
             exit="hidden"
             transition={{ duration: 0.3, ease: 'easeOut' }}
-            className="fixed top-0 left-0 right-0 z-40 w-full h-16 md:h-20"
+            // #9: Updated height to h-16 (64px)
+            className="fixed top-0 left-0 right-0 z-40 w-full h-16"
           >
-            <div className="absolute inset-0 bg-white/90 backdrop-blur-xl shadow-sm border-b border-teal-50/50 supports-[backdrop-filter]:bg-white/80"></div>
+            <div className="absolute inset-0 bg-white/90 backdrop-blur-xl shadow-sm border-b border-teal-50/50 supports-[backdrop-filter]:bg-white/80" />
 
             <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center justify-between">
               <StickyLogo homepageAriaLabel={dict.homepageAriaLabel} />
 
+              {/* Desktop section navigation */}
               <nav className="hidden md:flex items-center gap-1 relative">
                 {navLinks.map((link) => (
                   <a
@@ -224,6 +218,7 @@ const StickyNav: React.FC<StickyNavProps> = ({
                 ))}
               </nav>
 
+              {/* Mobile horizontal scroll nav */}
               <div className="flex md:hidden items-center justify-between w-full">
                 <nav className="flex-grow overflow-x-auto scrollbar-hide">
                   <div className="flex items-center gap-2 px-1">
@@ -257,13 +252,13 @@ const StickyNav: React.FC<StickyNavProps> = ({
                 </div>
               </div>
 
-              {/* כפתורי פעולה - דסקטופ */}
+              {/* #23: Desktop action buttons — simplified, Navbar handles full auth */}
               <div className="hidden md:flex items-center gap-3">
                 {session ? (
                   <UserDropdown
                     session={session}
                     mainProfileImage={mainProfileImage}
-                    getInitials={getInitials}
+                    getInitials={() => getInitials(session?.user?.name)}
                     handleSignOut={handleSignOut}
                     profileIconSize={profileIconSize}
                     locale={locale}
@@ -271,7 +266,6 @@ const StickyNav: React.FC<StickyNavProps> = ({
                   />
                 ) : (
                   <>
-                    {/* לינק התחברות - טקסט פשוט */}
                     <Link
                       href={`/${locale}/auth/signin`}
                       className="text-sm font-medium text-gray-600 hover:text-teal-600 transition-colors duration-200 px-3 py-2"
@@ -279,11 +273,10 @@ const StickyNav: React.FC<StickyNavProps> = ({
                       {dict.signInLink}
                     </Link>
 
-                    {/* כפתור לשאלון - Secondary */}
                     <Link href={`/${locale}/questionnaire`}>
                       <Button
                         variant="outline"
-                        className="group relative overflow-hidden border-2 border-teal-200 hover:border-teal-400 text-teal-700 hover:text-teal-800 bg-white hover:bg-teal-50/50 rounded-full shadow-sm hover:shadow-md transition-all duration-300 px-5 py-5"
+                        className="group border-2 border-teal-200 hover:border-teal-400 text-teal-700 hover:text-teal-800 bg-white hover:bg-teal-50/50 rounded-full shadow-sm hover:shadow-md transition-all duration-300 px-5 py-5"
                       >
                         <span className="relative z-10 flex items-center font-semibold text-sm">
                           <Lightbulb className="h-4 w-4 ltr:mr-2 rtl:ml-2 transition-transform group-hover:scale-110" />
@@ -292,11 +285,9 @@ const StickyNav: React.FC<StickyNavProps> = ({
                       </Button>
                     </Link>
 
-                    {/* כפתור הרשמה - Primary */}
+                    {/* #23: Solid register button matching Navbar style */}
                     <Link href={`/${locale}/auth/register`}>
-                      <Button className="group relative overflow-hidden bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 hover:from-teal-600 hover:via-orange-600 hover:to-amber-600 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 px-6 py-5">
-                        <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-white/0 via-white/20 to-white/0 transform -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]"></span>
-                        <span className="relative z-10 flex items-center font-bold text-sm">
+<Button className="bg-gradient-to-r from-teal-500 to-orange-500 hover:from-teal-600 hover:to-orange-600 text-white rounded-full shadow-md hover:shadow-lg transition-all duration-300 px-6 py-5">                        <span className="flex items-center font-semibold text-sm">
                           <UserPlus className="h-4 w-4 ltr:mr-2 rtl:ml-2" />
                           {dict.signUpButton}
                         </span>
@@ -310,6 +301,7 @@ const StickyNav: React.FC<StickyNavProps> = ({
         )}
       </AnimatePresence>
 
+      {/* Mobile floating nav toggle */}
       <AnimatePresence>
         {isMobile && isVisible && !isNavOpen && (
           <motion.div
@@ -321,7 +313,7 @@ const StickyNav: React.FC<StickyNavProps> = ({
           >
             <Button
               size="icon"
-              className="rounded-full h-14 w-14 bg-gradient-to-br from-teal-500 to-teal-600 text-white shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 border-2 border-white/20"
+              className="rounded-full h-14 w-14 bg-teal-600 hover:bg-teal-700 text-white shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 border-2 border-white/20"
               onClick={() => setMobileNavState('open')}
               aria-label={dict.openNavAriaLabel}
             >

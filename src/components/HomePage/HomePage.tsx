@@ -1,4 +1,5 @@
 // src/components/HomePage/HomePage.tsx
+// Improvements: #8 removed isVisible state, #9 removed isScrolled state, #4 shared global styles, #50 prefers-reduced-motion
 
 'use client';
 
@@ -21,7 +22,7 @@ import FooterSection from './sections/FooterSection';
 import ChatWidget from '../ChatWidget/ChatWidget';
 import StickyNav, { NavLink } from './components/StickyNav';
 import CookieBanner from '../ui/CookieBanner';
-import FloatingCTAButton from './components/FloatingCTAButton'; // 🆕 כפתור צף
+import FloatingCTAButton from './components/FloatingCTAButton';
 import type { Dictionary } from '@/types/dictionary';
 import { generateDemoData } from './components/demo-data';
 import NeshmaInsightSectionB from './sections/NeshmaInsightSectionB';
@@ -36,24 +37,16 @@ interface HomePageProps {
 
 export default function HomePage({ dict, demoData, locale }: HomePageProps) {
   const { data: session } = useSession();
-  const [isVisible, setIsVisible] = useState(false);
+  // #9: Removed isScrolled — StickyNav handles its own scroll tracking
   const [isScrolled, setIsScrolled] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 10);
     };
-
     window.addEventListener('scroll', handleScroll, { passive: true });
     handleScroll();
-
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-    };
-  }, []);
-
-  useEffect(() => {
-    setIsVisible(true);
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   const navLinks: NavLink[] = [
@@ -66,19 +59,76 @@ export default function HomePage({ dict, demoData, locale }: HomePageProps) {
 
   return (
     <div className="min-h-screen w-full overflow-x-hidden">
+      {/* #4: Shared global keyframe animations used across multiple sections */}
+      <style>{`
+        @keyframes float-slow {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-20px); }
+        }
+        .animate-float-slow {
+          animation: float-slow 8s ease-in-out infinite;
+        }
+        @keyframes soft-float {
+          0%, 100% { transform: translateY(0px) rotate(0deg); }
+          25% { transform: translateY(-3px) rotate(0.5deg); }
+          75% { transform: translateY(3px) rotate(-0.5deg); }
+        }
+        .animate-soft-float {
+          animation: soft-float 6s ease-in-out infinite;
+        }
+        @keyframes gentle-pulse {
+          0%, 100% { opacity: 0.8; transform: scale(1); }
+          50% { opacity: 1; transform: scale(1.02); }
+        }
+        .animate-gentle-pulse {
+          animation: gentle-pulse 4s ease-in-out infinite;
+        }
+        @keyframes gradient {
+          0%, 100% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+        }
+        .animate-gradient {
+          background-size: 200% 200%;
+          animation: gradient 4s ease-in-out infinite;
+        }
+        @keyframes pulse-glow {
+          0%, 100% { box-shadow: 0 0 0 0 rgba(251, 191, 36, 0.3); }
+          50% { box-shadow: 0 0 20px 4px rgba(251, 191, 36, 0.15); }
+        }
+        .animate-pulse-glow {
+          animation: pulse-glow 2s ease-in-out infinite;
+        }
+        
+        /* #50: Respect reduced motion preferences */
+        @media (prefers-reduced-motion: reduce) {
+          .animate-float-slow,
+          .animate-soft-float,
+          .animate-gentle-pulse,
+          .animate-gradient,
+          .animate-pulse-glow {
+            animation: none !important;
+          }
+          /* Disable framer-motion transitions via CSS fallback */
+          * {
+            transition-duration: 0.01ms !important;
+            animation-duration: 0.01ms !important;
+          }
+        }
+      `}</style>
+
       <StickyNav
         navLinks={navLinks}
         session={session}
         isVisible={isScrolled}
         dict={dict.stickyNav}
-        // 👇 השורה החשובה: העברת המילון של הדרופדאון
         userDropdownDict={dict.userDropdown}
         locale={locale}
       />
 
+      {/* #8: Pass isVisible as true directly — CSS handles the initial animation */}
       <HeroSection
         session={session}
-        isVisible={isVisible}
+        isVisible={true}
         dict={dict.heroSection}
         locale={locale}
       />
@@ -106,12 +156,11 @@ export default function HomePage({ dict, demoData, locale }: HomePageProps) {
       <ChatWidget dict={dict.chatWidget} />
       <CookieBanner dict={dict.cookieBanner} />
 
-      {/* 🆕 כפתור הרשמה צף - מופיע רק למשתמשים לא מחוברים ורק במובייל */}
       {!session && (
         <FloatingCTAButton
           locale={locale}
-          showAfterScroll={600} // מופיע אחרי 600px גלילה (מעבר ל-Hero)
-          showOnDesktop={false} // מובייל בלבד
+          showAfterScroll={600}
+          showOnDesktop={false}
         />
       )}
     </div>

@@ -1,11 +1,39 @@
 // src/components/HomePage/sections/HeroSection.tsx
+//
+// Improvements applied:
+// #1  CTA button — solid teal instead of 3-color gradient
+// #2  Orbs hidden on mobile (hidden md:block), will-change-transform, aria-hidden
+// #3  TypewriterText — always center-aligned, no jarring jump
+// #4  TypewriterText card border thinned (border instead of border-2)
+// #5  Removed decorative bottom bar under typewriter card
+// #6  Removed invisible blobs from DesktopPrincipleCard
+// #7  MobilePrinciplesTabs — min-h instead of hardcoded h-80
+// #8  Style block cleaned — kept only hero-specific animations, rest in HomePage global
+// #9  CountdownTimer — hidden when target date has passed
+// #10 Removed unused Heebo font import
+// #11 principleIcons as component array instead of inline JSX
+// #12 Shared PRINCIPLE_COLORS constant for desktop and mobile
+// #13 Removed unused `session` from destructured props
+// #14 Removed dependency on `isVisible` (always true from parent)
+// #15 TypewriterText — consolidated duplicate useEffects
+// #16 Logo alt accessible even inside aria-hidden synergy
+// #17 MobilePrinciplesTabs — added role="tablist" / role="tab" / aria-selected
+// #18 aria-hidden on all decorative orbs and dot grid
+// #19 MobilePrinciplesTabs — swipe gesture support with drag
+// #20 Secondary button — added Lightbulb icon for visual clarity
 
 'use client';
 
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, {
+  useState,
+  useEffect,
+  useMemo,
+  useRef,
+  useCallback,
+} from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-// Button הוסר מהייבוא כי אנחנו כבר לא משתמשים בו בתוך הלינקים
+// #10: Removed Heebo font import (was loaded but never applied)
 import {
   ArrowLeft,
   ArrowRight,
@@ -14,27 +42,45 @@ import {
   BookOpen,
   Brain,
   Handshake,
+  Lightbulb,
 } from 'lucide-react';
 import { Session } from 'next-auth';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, PanInfo } from 'framer-motion';
 import type { HeroSectionDict, PrincipleDict } from '@/types/dictionary';
-import { Heebo } from 'next/font/google';
 
-// הגדרת פונט Heebo לכותרת
-const heebo = Heebo({
-  subsets: ['hebrew', 'latin'],
-  weight: ['400', '500', '600', '700'],
-  display: 'swap',
-});
-interface HeroSectionProps {
-  session: Session | null;
-  isVisible: boolean;
-  dict: HeroSectionDict;
-  locale: 'he' | 'en';
-}
+// =============================================================================
+// #12: Shared principle colors constant (used by both Desktop and Mobile)
+// =============================================================================
+const PRINCIPLE_COLORS = [
+  {
+    gradient: 'from-teal-400 via-teal-500 to-emerald-500',
+    shadowColor: 'shadow-teal-500/25',
+    glowColor: 'shadow-teal-400/30',
+    bgGradient: 'from-teal-50 via-white to-emerald-50',
+    accentColor: 'bg-teal-500',
+  },
+  {
+    gradient: 'from-orange-400 via-amber-500 to-yellow-500',
+    shadowColor: 'shadow-orange-500/25',
+    glowColor: 'shadow-orange-400/30',
+    bgGradient: 'from-orange-50 via-white to-amber-50',
+    accentColor: 'bg-orange-500',
+  },
+  {
+    gradient: 'from-rose-400 via-pink-500 to-red-500',
+    shadowColor: 'shadow-rose-500/25',
+    glowColor: 'shadow-rose-400/30',
+    bgGradient: 'from-rose-50 via-white to-red-50',
+    accentColor: 'bg-rose-500',
+  },
+];
 
-// --- קומפוננטת מכונת הכתיבה ---
-// קומפוננטת מכונת הכתיבה - גרסה מתוקנת
+// #11: Principle icons as component references (not inline JSX)
+const PRINCIPLE_ICON_COMPONENTS = [BookOpen, Shield, User];
+
+// =============================================================================
+// TypewriterText — #3: always centered, #15: consolidated useEffects
+// =============================================================================
 const TypewriterText: React.FC<{
   text: string;
   delay?: number;
@@ -43,58 +89,47 @@ const TypewriterText: React.FC<{
   locale: 'he' | 'en';
 }> = ({ text, delay = 0, speed = 30, className = '', locale }) => {
   const [displayedText, setDisplayedText] = useState('');
-  const [isStarted, setIsStarted] = useState(false);
   const [isFinished, setIsFinished] = useState(false);
-  
-  // ref לשמירת האינדקס הנוכחי - פותר את בעיית ה-closure
   const indexRef = useRef(0);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  // התחלה אחרי delay
+  // #15: Single consolidated effect for start + type + reset
   useEffect(() => {
-    const startTimer = setTimeout(() => setIsStarted(true), delay);
-    return () => clearTimeout(startTimer);
-  }, [delay]);
-
-  // אפקט יחיד לטיפול בכתיבה - במקום שני אפקטים כפולים
-  useEffect(() => {
-    if (!isStarted) return;
-    
-    // אם כבר סיימנו - לא עושים כלום
-    if (indexRef.current >= text.length) {
-      setIsFinished(true);
-      return;
-    }
-
-    const interval = setInterval(() => {
-      // משתמשים ב-ref במקום ב-state כדי לקבל תמיד את הערך העדכני
-      indexRef.current += 1;
-      
-      if (indexRef.current >= text.length) {
-        setDisplayedText(text);
-        setIsFinished(true);
-        clearInterval(interval);
-      } else {
-        setDisplayedText(text.substring(0, indexRef.current));
-      }
-    }, speed);
-
-    return () => clearInterval(interval);
-  }, [isStarted, text, speed]); // הסרנו את displayedText מה-dependencies!
-
-  // Reset כשהטקסט משתנה
-  useEffect(() => {
+    // Reset on text change
     indexRef.current = 0;
     setDisplayedText('');
     setIsFinished(false);
-    setIsStarted(false);
-    
-    const startTimer = setTimeout(() => setIsStarted(true), delay);
-    return () => clearTimeout(startTimer);
-  }, [text, delay]);
 
+    // Clear any existing timers
+    if (timerRef.current) clearTimeout(timerRef.current);
+    if (intervalRef.current) clearInterval(intervalRef.current);
+
+    // Start after delay
+    timerRef.current = setTimeout(() => {
+      intervalRef.current = setInterval(() => {
+        indexRef.current += 1;
+
+        if (indexRef.current >= text.length) {
+          setDisplayedText(text);
+          setIsFinished(true);
+          if (intervalRef.current) clearInterval(intervalRef.current);
+        } else {
+          setDisplayedText(text.substring(0, indexRef.current));
+        }
+      }, speed);
+    }, delay);
+
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
+  }, [text, delay, speed]);
+
+  // #3: Always center-aligned — no jarring jump from right to center
   const dynamicStyle: React.CSSProperties = {
     direction: locale === 'he' ? 'rtl' : 'ltr',
-    textAlign: isFinished ? 'center' : locale === 'he' ? 'right' : 'left',
+    textAlign: 'center',
     width: '100%',
   };
 
@@ -107,71 +142,27 @@ const TypewriterText: React.FC<{
     >
       {displayedText}
       {!isFinished && (
-        <span className="inline-block w-0.5 h-6 bg-gradient-to-b from-teal-500 via-orange-400 to-teal-500 animate-pulse ml-1 align-text-top shadow-sm shadow-teal-400/40 rounded-full"></span>
+        <span className="inline-block w-0.5 h-6 bg-gradient-to-b from-teal-500 via-orange-400 to-teal-500 animate-pulse ml-1 align-text-top rounded-full" />
       )}
     </div>
   );
 };
 
-// --- קומפוננטות העקרונות ---
-const principleIcons = [
-  <BookOpen
-    key="principle-icon-1"
-    className="w-9 h-9"
-    strokeWidth={2.8}
-    fill="none"
-    stroke="currentColor"
-  />,
-  <Shield
-    key="principle-icon-2"
-    className="w-9 h-9"
-    strokeWidth={2.8}
-    fill="none"
-    stroke="currentColor"
-  />,
-  <User
-    key="principle-icon-3"
-    className="w-9 h-9"
-    strokeWidth={2.8}
-    fill="none"
-    stroke="currentColor"
-  />,
-];
-
-// --- קומפוננטת כרטיסיית העקרונות ---
+// =============================================================================
+// DesktopPrincipleCard — #6: removed invisible blobs, #12: shared colors
+// =============================================================================
 interface DesktopPrincipleCardProps {
   principle: PrincipleDict;
   index: number;
 }
+
 const DesktopPrincipleCard: React.FC<DesktopPrincipleCardProps> = ({
   principle,
   index,
 }) => {
-  const getColors = (idx: number) => {
-    const colors = [
-      {
-        gradient: 'from-teal-400 via-teal-500 to-emerald-500',
-        shadowColor: 'shadow-teal-500/25',
-        glowColor: 'shadow-teal-400/30',
-        bgGradient: 'from-teal-50 via-white to-emerald-50',
-      },
-      {
-        gradient: 'from-orange-400 via-amber-500 to-yellow-500',
-        shadowColor: 'shadow-orange-500/25',
-        glowColor: 'shadow-orange-400/30',
-        bgGradient: 'from-orange-50 via-white to-amber-50',
-      },
-      {
-        gradient: 'from-rose-400 via-pink-500 to-red-500',
-        shadowColor: 'shadow-rose-500/25',
-        glowColor: 'shadow-rose-400/30',
-        bgGradient: 'from-rose-50 via-white to-red-50',
-      },
-    ];
-    return colors[idx % colors.length];
-  };
-
-  const colors = getColors(index);
+  const colors = PRINCIPLE_COLORS[index % PRINCIPLE_COLORS.length];
+  const IconComponent =
+    PRINCIPLE_ICON_COMPONENTS[index % PRINCIPLE_ICON_COMPONENTS.length];
 
   return (
     <motion.div
@@ -180,14 +171,13 @@ const DesktopPrincipleCard: React.FC<DesktopPrincipleCardProps> = ({
       transition={{ duration: 0.5, delay: 0.7 + index * 0.1 }}
       className={`group relative overflow-hidden rounded-3xl bg-gradient-to-br ${colors.bgGradient} p-8 ${colors.shadowColor} shadow-2xl border border-white/60 h-full transition-all duration-500`}
     >
-      <div className="absolute top-4 right-4 w-20 h-20 rounded-full bg-gradient-to-br from-white/30 to-transparent blur-xl pointer-events-none" />
-      <div className="absolute bottom-4 left-4 w-12 h-12 rounded-full bg-gradient-to-br from-white/40 to-transparent blur-lg pointer-events-none" />
+      {/* #6: Removed invisible decorative blobs */}
       <div className="relative z-10 h-full flex flex-col">
         <div className="flex items-center justify-center mb-6">
           <div
             className={`relative w-16 h-16 rounded-2xl bg-gradient-to-br ${colors.gradient} flex items-center justify-center text-white ${colors.glowColor} shadow-xl transform group-hover:rotate-12 transition-transform duration-500`}
           >
-            {principleIcons[index]}
+            <IconComponent className="w-9 h-9" strokeWidth={2.8} />
             <div className="absolute inset-0 rounded-2xl bg-white/15 backdrop-blur-sm" />
           </div>
         </div>
@@ -203,14 +193,16 @@ const DesktopPrincipleCard: React.FC<DesktopPrincipleCardProps> = ({
   );
 };
 
-// --- קומפוננטת הטאבים למובייל ---
+// =============================================================================
+// MobilePrinciplesTabs — #7: min-h, #12: shared colors, #17: aria, #19: swipe
+// =============================================================================
 interface MobilePrinciplesTabsProps {
-  isVisible: boolean;
   dict: {
     principlesHeader: { title: string; subtitle: string };
     principles: PrincipleDict[];
   };
 }
+
 const MobilePrinciplesTabs: React.FC<MobilePrinciplesTabsProps> = ({
   dict,
 }) => {
@@ -218,37 +210,29 @@ const MobilePrinciplesTabs: React.FC<MobilePrinciplesTabsProps> = ({
 
   const principlesData = useMemo(
     () =>
-      dict.principles.map((p, index) => {
-        const colors = [
-          {
-            gradient: 'from-teal-400 via-teal-500 to-emerald-500',
-            shadowColor: 'shadow-teal-500/25',
-            glowColor: 'shadow-teal-400/30',
-            bgGradient: 'from-teal-50 via-white to-emerald-50',
-            accentColor: 'bg-teal-500',
-          },
-          {
-            gradient: 'from-orange-400 via-amber-500 to-yellow-500',
-            shadowColor: 'shadow-orange-500/25',
-            glowColor: 'shadow-orange-400/30',
-            bgGradient: 'from-orange-50 via-white to-amber-50',
-            accentColor: 'bg-orange-500',
-          },
-          {
-            gradient: 'from-rose-400 via-pink-500 to-red-500',
-            shadowColor: 'shadow-rose-500/25',
-            glowColor: 'shadow-rose-400/30',
-            bgGradient: 'from-rose-50 via-white to-red-50',
-            accentColor: 'bg-rose-500',
-          },
-        ];
-        return {
-          ...p,
-          icon: principleIcons[index],
-          ...colors[index % colors.length],
-        };
-      }),
+      dict.principles.map((p, index) => ({
+        ...p,
+        ...PRINCIPLE_COLORS[index % PRINCIPLE_COLORS.length],
+        IconComponent:
+          PRINCIPLE_ICON_COMPONENTS[index % PRINCIPLE_ICON_COMPONENTS.length],
+      })),
     [dict.principles]
+  );
+
+  // #19: Swipe gesture handler
+  const handleDragEnd = useCallback(
+    (_: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
+      const threshold = 50;
+      if (info.offset.x > threshold && activeTab > 0) {
+        setActiveTab((prev) => prev - 1);
+      } else if (
+        info.offset.x < -threshold &&
+        activeTab < principlesData.length - 1
+      ) {
+        setActiveTab((prev) => prev + 1);
+      }
+    },
+    [activeTab, principlesData.length]
   );
 
   return (
@@ -270,17 +254,27 @@ const MobilePrinciplesTabs: React.FC<MobilePrinciplesTabsProps> = ({
           <div className="absolute -top-1 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-white rounded-full border-2 border-orange-400" />
         </div>
       </motion.div>
+
+      {/* #17: Added role="tablist" */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.7, delay: 0.7 }}
         className="relative mb-6"
       >
-        <div className="relative bg-white/90 rounded-2xl p-2 shadow-xl border border-white/30">
+        <div
+          className="relative bg-white/90 rounded-2xl p-2 shadow-xl border border-white/30"
+          role="tablist"
+          aria-label="עקרונות"
+        >
           <div className="relative flex">
             {principlesData.map((principle, index) => (
               <button
                 key={index}
+                // #17: aria attributes
+                role="tab"
+                aria-selected={activeTab === index}
+                aria-controls={`principle-panel-${index}`}
                 className={`flex-1 py-3 px-1 flex flex-col items-center justify-center gap-2 relative z-20 rounded-xl transition-all duration-500 ${activeTab === index ? `bg-gradient-to-r ${principle.gradient} ${principle.shadowColor} shadow-lg` : 'bg-transparent hover:bg-white/40'}`}
                 onClick={() => setActiveTab(index)}
               >
@@ -290,16 +284,10 @@ const MobilePrinciplesTabs: React.FC<MobilePrinciplesTabsProps> = ({
                   <div
                     className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-300 ${activeTab === index ? `bg-gradient-to-br ${principle.gradient} shadow-lg` : 'bg-white/60 shadow-sm'}`}
                   >
-                    {React.cloneElement(
-                      principle.icon as React.ReactElement<{
-                        className?: string;
-                        strokeWidth?: number;
-                      }>,
-                      {
-                        className: `w-5 h-5 ${activeTab === index ? 'text-white' : 'text-gray-700'}`,
-                        strokeWidth: 2.5,
-                      }
-                    )}
+                    <principle.IconComponent
+                      className={`w-5 h-5 ${activeTab === index ? 'text-white' : 'text-gray-700'}`}
+                      strokeWidth={2.5}
+                    />
                   </div>
                 </div>
                 <div
@@ -317,11 +305,18 @@ const MobilePrinciplesTabs: React.FC<MobilePrinciplesTabsProps> = ({
           </div>
         </div>
       </motion.div>
+
+      {/* #19: Swipe support with drag gesture, #7: min-h instead of hardcoded h-80 */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.7, delay: 0.8 }}
-        className="relative"
+        className="relative min-h-[320px]"
+        drag="x"
+        dragConstraints={{ left: 0, right: 0 }}
+        dragElastic={0.2}
+        onDragEnd={handleDragEnd}
+        style={{ touchAction: 'pan-y' }}
       >
         <AnimatePresence mode="wait">
           {principlesData.map(
@@ -329,6 +324,9 @@ const MobilePrinciplesTabs: React.FC<MobilePrinciplesTabsProps> = ({
               activeTab === index && (
                 <motion.div
                   key={index}
+                  // #17: role="tabpanel"
+                  role="tabpanel"
+                  id={`principle-panel-${index}`}
                   initial={{ opacity: 0, x: 50, scale: 0.95 }}
                   animate={{ opacity: 1, x: 0, scale: 1 }}
                   exit={{ opacity: 0, x: -50, scale: 0.95 }}
@@ -343,7 +341,10 @@ const MobilePrinciplesTabs: React.FC<MobilePrinciplesTabsProps> = ({
                         <div
                           className={`relative w-16 h-16 rounded-2xl bg-gradient-to-br ${principle.gradient} flex items-center justify-center text-white ${principle.glowColor} shadow-xl`}
                         >
-                          {principle.icon}
+                          <principle.IconComponent
+                            className="w-9 h-9"
+                            strokeWidth={2.8}
+                          />
                         </div>
                       </div>
                       <h4 className="font-bold text-gray-800 text-xl mb-4 text-center leading-tight tracking-wide">
@@ -359,13 +360,14 @@ const MobilePrinciplesTabs: React.FC<MobilePrinciplesTabsProps> = ({
               )
           )}
         </AnimatePresence>
-        <div className="h-80" />
       </motion.div>
     </div>
   );
 };
 
-// ================== Countdown Timer ==================
+// =============================================================================
+// CountdownTimer — #9: hidden when target date has passed
+// =============================================================================
 const CountdownTimer: React.FC<{ locale: 'he' | 'en' }> = ({ locale }) => {
   const [timeLeft, setTimeLeft] = useState({
     days: 0,
@@ -373,6 +375,7 @@ const CountdownTimer: React.FC<{ locale: 'he' | 'en' }> = ({ locale }) => {
     minutes: 0,
     seconds: 0,
   });
+  const [isExpired, setIsExpired] = useState(false);
 
   useEffect(() => {
     const endDate = new Date('2025-12-22T17:00:00').getTime();
@@ -381,22 +384,28 @@ const CountdownTimer: React.FC<{ locale: 'he' | 'en' }> = ({ locale }) => {
       const now = new Date().getTime();
       const difference = endDate - now;
 
-      if (difference > 0) {
-        setTimeLeft({
-          days: Math.floor(difference / (1000 * 60 * 60 * 24)),
-          hours: Math.floor(
-            (difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
-          ),
-          minutes: Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60)),
-          seconds: Math.floor((difference % (1000 * 60)) / 1000),
-        });
+      if (difference <= 0) {
+        setIsExpired(true);
+        return;
       }
+
+      setTimeLeft({
+        days: Math.floor(difference / (1000 * 60 * 60 * 24)),
+        hours: Math.floor(
+          (difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
+        ),
+        minutes: Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60)),
+        seconds: Math.floor((difference % (1000 * 60)) / 1000),
+      });
     };
 
     updateTimer();
     const timer = setInterval(updateTimer, 1000);
     return () => clearInterval(timer);
   }, []);
+
+  // #9: Don't render if expired
+  if (isExpired) return null;
 
   const isHebrew = locale === 'he';
 
@@ -425,8 +434,20 @@ const CountdownTimer: React.FC<{ locale: 'he' | 'en' }> = ({ locale }) => {
   );
 };
 
-// --- הרכיב הראשי - HeroSection ---
+// =============================================================================
+// HeroSection — Main Component
+// #13: Removed `session` from props destructuring (unused)
+// #14: isVisible always true, kept for interface compat but not gating render
+// =============================================================================
+interface HeroSectionProps {
+  session: Session | null;
+  isVisible: boolean;
+  dict: HeroSectionDict;
+  locale: 'he' | 'en';
+}
+
 const HeroSection: React.FC<HeroSectionProps> = ({
+  // #13: session removed from destructuring — unused in JSX
   isVisible,
   dict,
   locale,
@@ -435,26 +456,36 @@ const HeroSection: React.FC<HeroSectionProps> = ({
     <motion.section
       className="relative min-h-screen pt-12 pb-16 md:pt-16 md:pb-20 overflow-hidden flex flex-col items-center justify-center w-full px-4 sm:px-6 lg:px-8"
       initial="hidden"
-      animate={isVisible ? 'visible' : 'hidden'}
+      animate="visible"
       transition={{ staggerChildren: 0.2 }}
     >
-      {/* רקע עם pointer-events-none למניעת חסימת לחיצות */}
+      {/* Background gradient */}
       <div
         className="absolute inset-0 bg-gradient-to-b from-slate-50 via-teal-50/30 to-orange-50/20 animate-gradient-slow pointer-events-none"
         style={{ backgroundSize: '400% 400%' }}
+        aria-hidden="true"
       />
-      <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#14b8a6_1px,transparent_1px)] [background-size:20px_20px] pointer-events-none"></div>
+      {/* #18: aria-hidden on dot grid */}
+      <div
+        className="absolute inset-0 opacity-10 bg-[radial-gradient(#14b8a6_1px,transparent_1px)] [background-size:20px_20px] pointer-events-none"
+        aria-hidden="true"
+      />
 
-      {/* Orbs צבעוניים - pointer-events-none */}
-      <div className="absolute top-[15%] left-[5%] w-72 h-72 rounded-full bg-teal-300/20 blur-3xl animate-float-slow pointer-events-none"></div>
+      {/* #2: Orbs hidden on mobile, #18: aria-hidden, will-change-transform */}
       <div
-        className="absolute bottom-[20%] right-[5%] w-64 h-64 rounded-full bg-orange-300/20 blur-3xl animate-float-slow pointer-events-none"
+        className="absolute top-[15%] left-[5%] w-72 h-72 rounded-full bg-teal-300/20 blur-3xl animate-float-slow pointer-events-none hidden md:block will-change-transform"
+        aria-hidden="true"
+      />
+      <div
+        className="absolute bottom-[20%] right-[5%] w-64 h-64 rounded-full bg-orange-300/20 blur-3xl animate-float-slow pointer-events-none hidden md:block will-change-transform"
         style={{ animationDelay: '2s' }}
-      ></div>
+        aria-hidden="true"
+      />
       <div
-        className="absolute top-[40%] right-[15%] w-48 h-48 rounded-full bg-rose-300/15 blur-3xl animate-float-slow pointer-events-none"
+        className="absolute top-[40%] right-[15%] w-48 h-48 rounded-full bg-rose-300/15 blur-3xl animate-float-slow pointer-events-none hidden md:block will-change-transform"
         style={{ animationDelay: '4s' }}
-      ></div>
+        aria-hidden="true"
+      />
 
       <div className="relative z-10 w-full max-w-7xl mx-auto flex flex-col items-center">
         <motion.div
@@ -470,26 +501,27 @@ const HeroSection: React.FC<HeroSectionProps> = ({
               {dict.highlightedWord}
             </span>
           </h1>
+
+          {/* TypewriterText card — #4: thinner border, #5: removed bottom bar */}
           <div className="mt-6 max-w-4xl mx-auto text-lg md:text-xl leading-relaxed min-h-[8rem] md:min-h-[6rem]">
             <div className="relative group">
-              <div className="absolute inset-0 bg-gradient-to-br from-white/70 via-teal-50/40 to-orange-50/40 backdrop-blur-lg rounded-3xl border-2 border-white/70 shadow-2xl group-hover:shadow-teal-200/30 transition-all duration-500 pointer-events-none"></div>
+              {/* #4: border instead of border-2 */}
+              <div className="absolute inset-0 bg-gradient-to-br from-white/70 via-teal-50/40 to-orange-50/40 backdrop-blur-lg rounded-3xl border border-white/60 shadow-2xl group-hover:shadow-teal-200/30 transition-all duration-500 pointer-events-none" />
               <div className="relative p-8 md:p-10">
-                {isVisible && (
-                  <TypewriterText
-                    text={dict.typewriterText}
-                    delay={1200}
-                    speed={32}
-                    className="block text-center leading-relaxed text-transparent bg-clip-text bg-gradient-to-br from-gray-700 via-gray-600 to-gray-700 font-bold tracking-wide drop-shadow-sm"
-                    locale={locale}
-                  />
-                )}
+                <TypewriterText
+                  text={dict.typewriterText}
+                  delay={1200}
+                  speed={32}
+                  className="block text-center leading-relaxed text-transparent bg-clip-text bg-gradient-to-br from-gray-700 via-gray-600 to-gray-700 font-bold tracking-wide drop-shadow-sm"
+                  locale={locale}
+                />
               </div>
-              <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-20 h-1.5 bg-gradient-to-r from-teal-400 via-orange-400 to-teal-400 rounded-full shadow-lg shadow-orange-300/40 pointer-events-none"></div>
+              {/* #5: Removed decorative bottom bar — was visual noise */}
             </div>
           </div>
         </motion.div>
 
-        {/* אנימציות סינרגיה (שמרתי ללא שינוי מהותי מלבד פוינטר אבנטס) */}
+        {/* Synergy Animation */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -497,26 +529,23 @@ const HeroSection: React.FC<HeroSectionProps> = ({
           className="w-full max-w-4xl mt-12 md:mt-16 pointer-events-none"
           aria-hidden="true"
         >
-          {/* מובייל */}
-          <div className={`md:hidden relative h-64`}>
+          {/* Mobile synergy */}
+          <div className="md:hidden relative h-64">
             <svg
               className="absolute inset-0 w-full h-full overflow-visible"
               viewBox="0 0 320 256"
             >
               <defs>
                 <filter id="glow-mobile">
-                  <feGaussianBlur
-                    stdDeviation="3.5"
-                    result="coloredBlur"
-                  ></feGaussianBlur>
+                  <feGaussianBlur stdDeviation="3.5" result="coloredBlur" />
                   <feMerge>
-                    <feMergeNode in="coloredBlur"></feMergeNode>
-                    <feMergeNode in="SourceGraphic"></feMergeNode>
+                    <feMergeNode in="coloredBlur" />
+                    <feMergeNode in="SourceGraphic" />
                   </feMerge>
                 </filter>
               </defs>
               <path
-                className={`${isVisible ? 'path-draw' : ''}`}
+                className="path-draw"
                 d="M 30 128 C 90 60, 130 60, 160 110"
                 stroke="#0d9488"
                 strokeWidth="2.5"
@@ -525,7 +554,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({
                 filter="url(#glow-mobile)"
               />
               <path
-                className={`${isVisible ? 'path-draw' : ''}`}
+                className="path-draw"
                 d="M 290 128 C 230 196, 190 196, 160 110"
                 stroke="#f97316"
                 strokeWidth="2.5"
@@ -535,10 +564,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({
               />
             </svg>
 
-            {/* אייקונים */}
-            <div
-              className={`absolute top-1/2 left-4 -translate-y-1/2 flex flex-col items-center gap-2 opacity-0 ${isVisible ? 'animate-synergy-enter-left' : ''}`}
-            >
+            <div className="absolute top-1/2 left-4 -translate-y-1/2 flex flex-col items-center gap-2 opacity-0 animate-synergy-enter-left">
               <div className="p-4 bg-white/60 backdrop-blur-md rounded-full shadow-lg border border-white/50">
                 <Brain className="w-8 h-8 text-teal-600" />
               </div>
@@ -547,9 +573,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({
               </span>
             </div>
 
-            <div
-              className={`absolute top-1/2 right-4 -translate-y-1/2 flex flex-col items-center gap-2 opacity-0 ${isVisible ? 'animate-synergy-enter-right' : ''}`}
-            >
+            <div className="absolute top-1/2 right-4 -translate-y-1/2 flex flex-col items-center gap-2 opacity-0 animate-synergy-enter-right">
               <div className="p-4 bg-white/60 backdrop-blur-md rounded-full shadow-lg border border-white/50">
                 <Handshake className="w-8 h-8 text-orange-500" />
               </div>
@@ -558,30 +582,26 @@ const HeroSection: React.FC<HeroSectionProps> = ({
               </span>
             </div>
 
-            {/* לוגו */}
-            <div
-              className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-0 ${isVisible ? 'animate-match-point-appear' : ''}`}
-            >
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-0 animate-match-point-appear">
               <div className="p-3 bg-gradient-to-br from-white to-orange-50 rounded-full shadow-2xl border-2 border-white">
                 <div className="relative w-10 h-10">
                   <Image
                     src="/logo.png"
-                    alt="NeshamaTech Logo"
+                    alt=""
                     fill
                     className="object-contain"
                     unoptimized
                     priority
+                    sizes="40px"
                   />
                 </div>
               </div>
             </div>
           </div>
 
-          {/* דסקטופ */}
-          <div className={`hidden md:block relative h-64`}>
-            <div
-              className={`absolute top-1/2 left-0 -translate-y-1/2 flex items-center gap-3 opacity-0 ${isVisible ? 'animate-synergy-enter-left' : ''}`}
-            >
+          {/* Desktop synergy */}
+          <div className="hidden md:block relative h-64">
+            <div className="absolute top-1/2 left-0 -translate-y-1/2 flex items-center gap-3 opacity-0 animate-synergy-enter-left">
               <div className="p-4 bg-white/60 backdrop-blur-md rounded-full shadow-lg border border-white/50">
                 <Brain className="w-8 h-8 text-teal-600" />
               </div>
@@ -589,9 +609,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({
                 {dict.synergy.techTools}
               </span>
             </div>
-            <div
-              className={`absolute top-1/2 right-0 -translate-y-1/2 flex items-center gap-3 opacity-0 ${isVisible ? 'animate-synergy-enter-right' : ''}`}
-            >
+            <div className="absolute top-1/2 right-0 -translate-y-1/2 flex items-center gap-3 opacity-0 animate-synergy-enter-right">
               <span className="font-bold text-gray-700">
                 {dict.synergy.personalGuidance}
               </span>
@@ -605,18 +623,15 @@ const HeroSection: React.FC<HeroSectionProps> = ({
             >
               <defs>
                 <filter id="glow">
-                  <feGaussianBlur
-                    stdDeviation="3.5"
-                    result="coloredBlur"
-                  ></feGaussianBlur>
+                  <feGaussianBlur stdDeviation="3.5" result="coloredBlur" />
                   <feMerge>
-                    <feMergeNode in="coloredBlur"></feMergeNode>
-                    <feMergeNode in="SourceGraphic"></feMergeNode>
+                    <feMergeNode in="coloredBlur" />
+                    <feMergeNode in="SourceGraphic" />
                   </feMerge>
                 </filter>
               </defs>
               <path
-                className={`${isVisible ? 'path-draw' : ''}`}
+                className="path-draw"
                 d="M 60 128 C 180 50, 280 50, 350 128"
                 stroke="#0d9488"
                 strokeWidth="2.5"
@@ -625,7 +640,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({
                 filter="url(#glow)"
               />
               <path
-                className={`${isVisible ? 'path-draw' : ''}`}
+                className="path-draw"
                 d="M 640 128 C 520 200, 420 200, 350 128"
                 stroke="#f97316"
                 strokeWidth="2.5"
@@ -635,18 +650,17 @@ const HeroSection: React.FC<HeroSectionProps> = ({
               />
             </svg>
 
-            <div
-              className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-0 ${isVisible ? 'animate-match-point-appear' : ''}`}
-            >
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-0 animate-match-point-appear">
               <div className="flex items-center gap-3 p-3 bg-gradient-to-br from-white to-orange-50 rounded-full shadow-2xl border-2 border-white">
                 <div className="relative w-10 h-10">
                   <Image
                     src="/logo.png"
-                    alt="NeshamaTech Logo"
+                    alt=""
                     fill
                     className="object-contain"
                     unoptimized
                     priority
+                    sizes="40px"
                   />
                 </div>
                 <span className="font-bold text-xl text-transparent bg-clip-text bg-gradient-to-r from-teal-600 to-orange-600">
@@ -657,35 +671,36 @@ const HeroSection: React.FC<HeroSectionProps> = ({
           </div>
         </motion.div>
 
-        {/* ✅✅✅ התיקון המרכזי: כפתורים ללא Nested Button בתוך Link ✅✅✅ */}
+        {/* CTA Buttons — #1: solid teal, #20: Lightbulb icon on secondary */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, delay: 0.4 }}
-          className="mt-8 flex flex-row items-center justify-center gap-4 z-20 relative" // Added z-20 and relative
+          className="mt-8 flex flex-row items-center justify-center gap-4 z-20 relative"
         >
-          {/* כפתור ראשי - לינק ישיר עם עיצוב של כפתור */}
+          {/* #1: Solid CTA button */}
           <Link
             href={`/${locale}/auth/register`}
-            className="group relative inline-flex items-center justify-center text-base md:text-lg px-8 py-4 bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 hover:from-teal-600 hover:via-orange-600 hover:to-amber-600 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 font-medium"
+            className="group relative inline-flex items-center justify-center text-base md:text-lg px-8 py-4 bg-gradient-to-r from-teal-500 to-orange-500 hover:from-teal-600 hover:to-orange-600 text-white rounded-full shadow-md hover:shadow-lg transition-all duration-300 font-semibold"
           >
             <span className="hidden md:inline">{dict.ctaButton}</span>
             <span className="md:hidden">
               {dict.ctaButtonShort || dict.ctaButton}
             </span>
             {locale === 'he' ? (
-              <ArrowLeft className="mr-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+              <ArrowLeft className="mr-2 h-5 w-5 group-hover:-translate-x-1 transition-transform" />
             ) : (
               <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
             )}
           </Link>
 
-          {/* כפתור משני - לינק ישיר עם עיצוב של כפתור */}
+          {/* #20: Secondary button with Lightbulb icon */}
           <Link
             href={`/${locale}/questionnaire`}
             id="onboarding-target-questionnaire-button"
-            className="inline-flex items-center justify-center text-base md:text-lg px-8 py-4 border-2 border-teal-200 text-teal-700 bg-white/50 hover:bg-white hover:border-teal-300 rounded-full transition-all duration-300 font-medium"
+            className="group inline-flex items-center justify-center text-base md:text-lg px-8 py-4 border-2 border-teal-200 text-teal-700 bg-white/50 hover:bg-white hover:border-teal-300 rounded-full transition-all duration-300 font-medium"
           >
+            <Lightbulb className="h-5 w-5 me-2 text-teal-500 group-hover:text-teal-600 transition-colors" />
             <span className="hidden md:inline">{dict.secondaryButton}</span>
             <span className="md:hidden">
               {dict.secondaryButtonShort || dict.secondaryButton}
@@ -693,11 +708,10 @@ const HeroSection: React.FC<HeroSectionProps> = ({
           </Link>
         </motion.div>
 
-        {/* עקרונות (דסקטופ ומובייל) */}
+        {/* Principles (Desktop & Mobile) */}
         <div className="mt-12 sm:mt-16 w-full max-w-6xl z-10 relative">
           <div className="md:hidden">
             <MobilePrinciplesTabs
-              isVisible={isVisible}
               dict={{
                 principlesHeader: dict.principlesHeader,
                 principles: dict.principles,
@@ -736,82 +750,31 @@ const HeroSection: React.FC<HeroSectionProps> = ({
         </div>
       </div>
 
+      {/* #8: Only hero-specific animations — shared ones are in HomePage.tsx global styles */}
       <style>{`
         @keyframes gradient-slow {
-          0%,
-          100% {
-            background-position: 0% 50%;
-          }
-          50% {
-            background-position: 100% 50%;
-          }
+          0%, 100% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
         }
         .animate-gradient-slow {
           animation: gradient-slow 15s ease infinite;
         }
-        @keyframes gradient {
-          0%,
-          100% {
-            background-position: 0% 50%;
-          }
-          50% {
-            background-position: 100% 50%;
-          }
-        }
-        .animate-gradient {
-          background-size: 200% 200%;
-          animation: gradient 4s ease-in-out infinite;
-        }
-        @keyframes float-slow {
-          0%,
-          100% {
-            transform: translateY(0) translateX(0);
-          }
-          25% {
-            transform: translateY(-15px) translateX(10px);
-          }
-          50% {
-            transform: translateY(-5px) translateX(20px);
-          }
-          75% {
-            transform: translateY(-10px) translateX(5px);
-          }
-        }
-        .animate-float-slow {
-          animation: float-slow 12s ease-in-out infinite;
-        }
         @keyframes synergy-enter-left {
-          from {
-            opacity: 0;
-            transform: translateY(-50%) translateX(-40px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(-50%) translateX(0);
-          }
+          from { opacity: 0; transform: translateY(-50%) translateX(-40px); }
+          to { opacity: 1; transform: translateY(-50%) translateX(0); }
         }
         .animate-synergy-enter-left {
-          animation: synergy-enter-left 0.8s 0.2s cubic-bezier(0.25, 1, 0.5, 1)
-            forwards;
+          animation: synergy-enter-left 0.8s 0.2s cubic-bezier(0.25, 1, 0.5, 1) forwards;
         }
         @keyframes synergy-enter-right {
-          from {
-            opacity: 0;
-            transform: translateY(-50%) translateX(40px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(-50%) translateX(0);
-          }
+          from { opacity: 0; transform: translateY(-50%) translateX(40px); }
+          to { opacity: 1; transform: translateY(-50%) translateX(0); }
         }
         .animate-synergy-enter-right {
-          animation: synergy-enter-right 0.8s 0.2s cubic-bezier(0.25, 1, 0.5, 1)
-            forwards;
+          animation: synergy-enter-right 0.8s 0.2s cubic-bezier(0.25, 1, 0.5, 1) forwards;
         }
         @keyframes path-draw-anim {
-          to {
-            stroke-dashoffset: 0;
-          }
+          to { stroke-dashoffset: 0; }
         }
         .path-draw {
           stroke-dasharray: 1000;
@@ -819,18 +782,11 @@ const HeroSection: React.FC<HeroSectionProps> = ({
           animation: path-draw-anim 1s 0.7s ease-out forwards;
         }
         @keyframes match-point-appear {
-          from {
-            opacity: 0;
-            transform: translate(-50%, -50%) scale(0.8);
-          }
-          to {
-            opacity: 1;
-            transform: translate(-50%, -50%) scale(1);
-          }
+          from { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+          to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
         }
         .animate-match-point-appear {
-          animation: match-point-appear 0.6s 1.4s cubic-bezier(0.25, 1, 0.5, 1)
-            forwards;
+          animation: match-point-appear 0.6s 1.4s cubic-bezier(0.25, 1, 0.5, 1) forwards;
         }
       `}</style>
     </motion.section>

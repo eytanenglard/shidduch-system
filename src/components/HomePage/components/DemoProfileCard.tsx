@@ -1,4 +1,5 @@
 // src/components/HomePage/components/DemoProfileCard.tsx
+// Improvements: #13 solid CTA button, #14 onClick instead of onPointerDown, #15 image loading skeleton
 
 'use client';
 
@@ -23,7 +24,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 
-// --- Demo Data (ללא שינוי) ---
+// --- Demo Data (unchanged) ---
 const DEMO_PROFILE = {
   firstName: 'נועה',
   age: 29,
@@ -82,10 +83,9 @@ const TABS = [
 ];
 
 const QandAItem: React.FC<{ q: string; a: string }> = ({ q, a }) => (
-  // Updated colors to Teal/Orange theme
   <div className="bg-white/60 p-4 rounded-xl shadow-sm border border-orange-100">
     <h4 className="font-bold text-teal-800 mb-2">{q}</h4>
-    <p className="text-gray-700 leading-relaxed italic">“{a}”</p>
+    <p className="text-gray-700 leading-relaxed italic">&quot;{a}&quot;</p>
   </div>
 );
 
@@ -110,12 +110,16 @@ export const DemoProfileCard = ({ locale }: { locale: 'he' | 'en' }) => {
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, amount: 0.3 }}
       transition={{ duration: 0.8, ease: 'easeOut' }}
-      // Updated container background
       className="w-full max-w-4xl mx-auto bg-white/80 backdrop-blur-xl rounded-[2rem] shadow-2xl p-4 sm:p-6 border border-white/60 relative overflow-hidden"
     >
-      {/* Background Gradient Blob */}
-      <div className="absolute top-0 right-0 w-64 h-64 bg-teal-100/50 rounded-full blur-3xl -z-10" />
-      <div className="absolute bottom-0 left-0 w-64 h-64 bg-orange-100/50 rounded-full blur-3xl -z-10" />
+      <div
+        className="absolute top-0 right-0 w-64 h-64 bg-teal-100/50 rounded-full blur-3xl -z-10"
+        aria-hidden="true"
+      />
+      <div
+        className="absolute bottom-0 left-0 w-64 h-64 bg-orange-100/50 rounded-full blur-3xl -z-10"
+        aria-hidden="true"
+      />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 relative z-10">
         {/* Left Side: Image Gallery */}
@@ -130,30 +134,32 @@ export const DemoProfileCard = ({ locale }: { locale: 'he' | 'en' }) => {
                 exit={{ opacity: 0, scale: 0.95 }}
                 transition={{ duration: 0.4, ease: 'easeInOut' }}
               >
+                {/* #15: Added loading skeleton via bg color */}
+                <div className="absolute inset-0 bg-gray-200 animate-pulse" />
                 <Image
                   src={DEMO_IMAGES[mainImageIndex].url}
                   alt={`תמונה של ${DEMO_PROFILE.firstName}`}
                   fill
-                  className="object-cover"
+                  className="object-cover relative z-10"
                   sizes="(max-width: 1024px) 100vw, 50vw"
                 />
               </motion.div>
             </AnimatePresence>
-            <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent z-20" />
+            {/* #14: onClick instead of onPointerDown */}
             <Button
               variant="ghost"
               size="icon"
-              className="absolute top-1/2 -translate-y-1/2 left-2 sm:left-4 bg-black/20 text-white backdrop-blur-sm rounded-full hover:bg-black/40"
-              onPointerDown={() => handleImageNav('prev')}
+              className="absolute top-1/2 -translate-y-1/2 left-2 sm:left-4 z-30 bg-black/20 text-white backdrop-blur-sm rounded-full hover:bg-black/40"
+              onClick={() => handleImageNav('prev')}
               aria-label="התמונה הקודמת"
             >
               <ChevronLeft />
             </Button>
-            {/* Note: Previous code had duplicate Next button with left arrow, fixing to just one Next button */}
             <Button
               variant="ghost"
               size="icon"
-              className="absolute top-1/2 -translate-y-1/2 right-2 sm:right-4 bg-black/20 text-white backdrop-blur-sm rounded-full hover:bg-black/40"
+              className="absolute top-1/2 -translate-y-1/2 right-2 sm:right-4 z-30 bg-black/20 text-white backdrop-blur-sm rounded-full hover:bg-black/40"
               onClick={() => handleImageNav('next')}
               aria-label="התמונה הבאה"
             >
@@ -167,10 +173,10 @@ export const DemoProfileCard = ({ locale }: { locale: 'he' | 'en' }) => {
                 className={cn(
                   'aspect-square rounded-lg overflow-hidden relative transition-all duration-300 transform hover:scale-105',
                   mainImageIndex === index
-                    ? 'ring-2 ring-offset-2 ring-orange-500 shadow-md' // Highlight color: Orange
+                    ? 'ring-2 ring-offset-2 ring-orange-500 shadow-md'
                     : 'opacity-60 hover:opacity-100'
                 )}
-                onPointerDown={() => setMainImageIndex(index)}
+                onClick={() => setMainImageIndex(index)}
                 aria-label={`הצג תמונה מספר ${index + 1}`}
               >
                 <Image
@@ -178,6 +184,7 @@ export const DemoProfileCard = ({ locale }: { locale: 'he' | 'en' }) => {
                   alt={`תמונה קטנה ${index + 1}`}
                   fill
                   className="object-cover"
+                  sizes="80px"
                 />
               </button>
             ))}
@@ -186,12 +193,11 @@ export const DemoProfileCard = ({ locale }: { locale: 'he' | 'en' }) => {
 
         {/* Right Side: Profile Info */}
         <div className="bg-white/50 backdrop-blur-sm p-4 sm:p-6 rounded-2xl border border-white/80 flex flex-col">
-          {/* Header */}
-          <div className="text-center mb-4">
-            <h3 className="text-3xl sm:text-4xl font-extrabold text-gray-800">
+          <div className="mb-4">
+            <h3 className="text-2xl font-bold text-gray-800">
               {DEMO_PROFILE.firstName}, {DEMO_PROFILE.age}
             </h3>
-            <div className="flex items-center justify-center gap-4 mt-2 text-gray-600">
+            <div className="flex items-center gap-4 text-gray-600 text-sm mt-1">
               <div className="flex items-center gap-1.5">
                 <MapPin className="w-4 h-4 text-teal-600" />
                 <span>{DEMO_PROFILE.city}</span>
@@ -203,7 +209,7 @@ export const DemoProfileCard = ({ locale }: { locale: 'he' | 'en' }) => {
             </div>
           </div>
 
-          {/* Navigation Tabs - Updated Colors */}
+          {/* Navigation Tabs */}
           <div
             className="mb-4 bg-slate-100 p-1 rounded-full grid grid-cols-3 gap-1"
             role="tablist"
@@ -216,7 +222,7 @@ export const DemoProfileCard = ({ locale }: { locale: 'he' | 'en' }) => {
                 role="tab"
                 aria-selected={activeTab === tab.id}
                 aria-controls={`panel-${tab.id}`}
-                onPointerDown={() => setActiveTab(tab.id)}
+                onClick={() => setActiveTab(tab.id)}
                 className={cn(
                   'relative w-full rounded-full py-2 text-sm font-semibold transition-colors duration-300',
                   activeTab === tab.id
@@ -227,7 +233,6 @@ export const DemoProfileCard = ({ locale }: { locale: 'he' | 'en' }) => {
                 {activeTab === tab.id && (
                   <motion.div
                     layoutId="demo-profile-active-tab"
-                    // Active Tab Gradient: Teal to Orange
                     className="absolute inset-0 bg-gradient-to-r from-teal-500 to-orange-500 rounded-full shadow-md"
                     transition={{ type: 'spring', stiffness: 300, damping: 30 }}
                   />
@@ -256,7 +261,10 @@ export const DemoProfileCard = ({ locale }: { locale: 'he' | 'en' }) => {
                   className="space-y-4"
                 >
                   <div className="relative bg-white/60 p-4 rounded-xl shadow-sm border border-teal-100">
-                    <Quote className="absolute top-2 right-2 w-8 h-8 text-teal-200/50 transform scale-x-[-1]" />
+                    <Quote
+                      className="absolute top-2 right-2 w-8 h-8 text-teal-200/50 transform scale-x-[-1]"
+                      aria-hidden="true"
+                    />
                     <p className="text-lg text-gray-800 italic font-medium leading-relaxed">
                       {DEMO_PROFILE.about}
                     </p>
@@ -309,12 +317,12 @@ export const DemoProfileCard = ({ locale }: { locale: 'he' | 'en' }) => {
             </AnimatePresence>
           </div>
 
-          {/* CTA - Updated Gradient Button */}
+          {/* #13: Solid CTA button instead of 3-color gradient */}
           <div className="mt-auto pt-4 text-center">
             <Link href={`/${locale}/auth/register`}>
               <Button
                 size="lg"
-                className="w-full bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 hover:from-teal-600 hover:via-orange-600 hover:to-amber-600 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 group font-bold text-lg h-12"
+                className="w-full bg-teal-600 hover:bg-teal-700 text-white rounded-full shadow-md hover:shadow-lg transition-all duration-300 group font-bold text-lg h-12"
               >
                 <span className="relative z-10 flex items-center justify-center">
                   רוצים לקבל הצעות כאלה?
@@ -322,7 +330,7 @@ export const DemoProfileCard = ({ locale }: { locale: 'he' | 'en' }) => {
                     <ArrowLeft className="mr-2 h-5 w-5 group-hover:-translate-x-1 transition-transform" />
                   ) : (
                     <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
-                  )}{' '}
+                  )}
                 </span>
               </Button>
             </Link>

@@ -1,10 +1,11 @@
 // src/components/HomePage/sections/ValuePropositionSection.tsx
+// Improvements: #38 bg-teal-50, #39 teal gradient, #40 teal/orange divider, #42 teal decorative circles
 
 import React, { useRef } from 'react';
 import { motion, useInView } from 'framer-motion';
 import ComparisonItem from '../components/ComparisonItem';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation'; // ✨ 1. ייבוא hook נדרש
+import { usePathname } from 'next/navigation';
 import type { ValuePropositionDict } from '@/types/dictionary';
 
 interface ValuePropositionProps {
@@ -15,11 +16,9 @@ const ValuePropositionSection: React.FC<ValuePropositionProps> = ({ dict }) => {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, amount: 0.1 });
 
-  // ✨ 3. קבלת השפה הנוכחית מה-URL
   const pathname = usePathname();
   const locale = pathname.split('/')[1] || 'he';
 
-  // Animation variants (ללא שינוי)
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -67,40 +66,42 @@ const ValuePropositionSection: React.FC<ValuePropositionProps> = ({ dict }) => {
   return (
     <motion.section
       ref={ref}
-      className="py-16 md:py-20 pb-0 px-4 bg-cyan-50 relative overflow-hidden"
+      // #38: Updated from bg-cyan-50 to bg-teal-50
+      className="py-16 md:py-24 pb-0 px-4 bg-teal-50 relative overflow-hidden"
       variants={containerVariants}
       initial="hidden"
       animate={isInView ? 'visible' : 'hidden'}
     >
-      <div className="absolute inset-0 bg-gradient-to-br from-cyan-50 to-white opacity-70"></div>
+      <div className="absolute inset-0 bg-gradient-to-br from-teal-50 to-white opacity-70" />
 
       <div className="max-w-6xl mx-auto relative">
-        {/* ✨ 4. שימוש בתרגומים לכותרות */}
         <motion.div className="text-center mb-12" variants={fadeInUp}>
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-800 mb-4">
             {dict.title_part1}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-cyan-700">
+            {/* #39: Updated from cyan to teal */}
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-600 to-teal-700">
               {' '}
               {dict.title_brand}{' '}
             </span>
             {dict.title_part2}
           </h2>
-          <div className="w-24 h-1 bg-gradient-to-r from-cyan-600 to-cyan-700 mx-auto rounded-full mb-6" />
+          {/* #40: Updated divider to teal/orange */}
+          <div className="w-24 h-1 bg-gradient-to-r from-teal-500 to-orange-400 mx-auto rounded-full mb-6" />
           <p className="text-lg text-gray-600 max-w-3xl mx-auto">
             {dict.subtitle}
           </p>
         </motion.div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
-          {' '}
-          {/* items-start במקום items-center */}
           {/* Left card - Challenge */}
           <motion.div
             className="bg-white rounded-2xl shadow-xl p-8 transform md:translate-x-4 relative overflow-hidden"
             variants={fadeInLeft}
           >
-            <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-cyan-100 to-cyan-50 opacity-50 rounded-full transform translate-x-20 -translate-y-20"></div>
-            <h3 className="text-xl font-bold mb-4 text-gray-800 relative">
+            {/* #42: Updated decorative circle from cyan to teal */}
+            <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-teal-100 to-teal-50 opacity-50 rounded-full transform translate-x-20 -translate-y-20" />
+            <h3 className="text-xl font-bold mb-4 text-rose-800 relative">
+              {' '}
               {dict.challengeCard.title}
             </h3>
             <motion.ul
@@ -109,7 +110,6 @@ const ValuePropositionSection: React.FC<ValuePropositionProps> = ({ dict }) => {
               initial="hidden"
               animate={isInView ? 'visible' : 'hidden'}
             >
-              {/* ✨ 5. רינדור דינמי של רשימת האתגרים */}
               {dict.challengeCard.items.map((item, index) => (
                 <motion.div key={index} variants={listItemVariants}>
                   <ComparisonItem isNegative>{item}</ComparisonItem>
@@ -122,7 +122,8 @@ const ValuePropositionSection: React.FC<ValuePropositionProps> = ({ dict }) => {
             className="bg-white rounded-2xl shadow-xl p-8 transform md:-translate-x-4 relative overflow-hidden"
             variants={fadeInRight}
           >
-            <div className="absolute bottom-0 left-0 w-40 h-40 bg-gradient-to-br from-cyan-100 to-cyan-50 opacity-50 rounded-full transform -translate-x-20 translate-y-20"></div>
+            {/* #42: Updated decorative circle */}
+            <div className="absolute bottom-0 left-0 w-40 h-40 bg-gradient-to-br from-teal-100 to-teal-50 opacity-50 rounded-full transform -translate-x-20 translate-y-20" />
             <h3 className="text-xl font-bold mb-4 text-gray-800 relative">
               {dict.solutionCard.title}
             </h3>
@@ -132,7 +133,6 @@ const ValuePropositionSection: React.FC<ValuePropositionProps> = ({ dict }) => {
               initial="hidden"
               animate={isInView ? 'visible' : 'hidden'}
             >
-              {/* ✨ 6. רינדור דינמי של רשימת הפתרונות, כולל טיפול בקישור */}
               {dict.solutionCard.items.map((item, index) => (
                 <motion.div key={index} variants={listItemVariants}>
                   <ComparisonItem>
@@ -143,7 +143,7 @@ const ValuePropositionSection: React.FC<ValuePropositionProps> = ({ dict }) => {
                         {item.textWithLink.part1}
                         <Link
                           href={`/${locale}/questionnaire`}
-                          className="text-cyan-600 hover:underline font-semibold mx-1"
+                          className="text-teal-600 hover:underline font-semibold mx-1"
                         >
                           {item.textWithLink.linkText}
                         </Link>

@@ -61,7 +61,7 @@ const Logo = ({ locale }: { locale: string }) => (
       />
     </div>
     {/* #20: gradient סטטי פשוט — teal בלבד, hover עדין */}
-    <span className="text-xl font-bold text-teal-700 transition-colors duration-300 group-hover:text-teal-800">
+    <span className="text-xl font-bold bg-gradient-to-r from-teal-600 via-orange-500 to-amber-500 text-transparent bg-clip-text">
       NeshamaTech
     </span>
   </Link>
@@ -641,8 +641,7 @@ const Navbar = ({ dict }: NavbarProps) => {
                   {/* #21: כפתור register מפושט — solid color, בלי shimmer */}
                   <Link
                     href={`/${locale}/auth/register`}
-                    className="bg-teal-600 hover:bg-teal-700 text-white rounded-full shadow-sm hover:shadow-md transition-all duration-200 px-5 py-2 inline-flex items-center justify-center font-semibold text-sm"
-                  >
+className="bg-gradient-to-r from-teal-500 to-orange-500 hover:from-teal-600 hover:to-orange-600 text-white rounded-full shadow-md hover:shadow-lg transition-all duration-300 px-5 py-2 inline-flex items-center justify-center font-semibold text-sm"                  >
                     <UserPlus
                       className={cn('h-4 w-4', isRtl ? 'ml-1.5' : 'mr-1.5')}
                     />
