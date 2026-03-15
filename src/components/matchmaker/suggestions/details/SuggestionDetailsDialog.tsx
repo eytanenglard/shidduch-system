@@ -1,4 +1,4 @@
-// src/app/components/matchmaker/suggestions/details/SuggestionDetailsDialog.tsx
+// src/components/matchmaker/suggestions/details/SuggestionDetailsDialog.tsx
 'use client';
 
 import React, { useState, useEffect, useMemo } from 'react';
@@ -57,10 +57,14 @@ import {
 } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
+
+// ✅ CHANGED: Import from pure logic file instead of StatusTransitionService
 import {
-  statusTransitionService,
+  getAvailableActions,
+  getStatusLabel,
   type SuggestionWithParties,
-} from '../services/suggestions/StatusTransitionService';
+} from '../services/suggestions/StatusTransitionLogic';
+
 import { formatDistanceToNow } from 'date-fns';
 import { he } from 'date-fns/locale';
 import Image from 'next/image';
@@ -569,9 +573,10 @@ const OverviewTab: React.FC<{
   const firstStatus = getPartyResponseStatus(suggestion, 'first');
   const secondStatus = getPartyResponseStatus(suggestion, 'second');
 
+  // ✅ CHANGED: Use imported function directly
   const availableActions = useMemo(
     () =>
-      statusTransitionService.getAvailableActions(
+      getAvailableActions(
         suggestion as unknown as SuggestionWithParties,
         userId
       ),
@@ -892,6 +897,12 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
   const statusLabel = dict.statusLabels[suggestion.status] || suggestion.status;
   const StatusIcon = statusInfo.icon;
   const tabEntries: [string, string][] = Object.entries(dict.tabs);
+
+  // ✅ CHANGED: Use imported function directly
+  const currentAvailableActions = getAvailableActions(
+    suggestion as unknown as SuggestionWithParties,
+    userId
+  );
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -1234,12 +1245,8 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
                       'פעולות מומלצות'}
                   </p>
                   <div className="space-y-1.5">
-                    {statusTransitionService
-                      .getAvailableActions(
-                        suggestion as unknown as SuggestionWithParties,
-                        userId
-                      )
-                      .map((action) => (
+                    {/* ✅ CHANGED: Use imported function directly */}
+                    {currentAvailableActions.map((action) => (
                         <button
                           key={action.id}
                           className={cn(
@@ -1256,10 +1263,7 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
                           )}
                         </button>
                       ))}
-                    {statusTransitionService.getAvailableActions(
-                      suggestion as unknown as SuggestionWithParties,
-                      userId
-                    ).length === 0 && (
+                    {currentAvailableActions.length === 0 && (
                       <p className="text-sm text-gray-400 italic py-2">
                         {dict.statusChangeModal.noRecommendations ||
                           'אין פעולות מומלצות לסטטוס זה'}

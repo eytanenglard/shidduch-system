@@ -1,6 +1,7 @@
 // =============================================================================
 // File: src/app/api/matchmaker/candidates/card-import/route.ts
 // Description: API route for card-based single candidate AI analysis
+// UPDATED: Accepts 'source' field from client to set referredBy
 // =============================================================================
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -604,6 +605,10 @@ Examples:
 ✅ "אשכנזי" → "אשכנזי"
 ❌ Not mentioned → ""
 
+=== REFERRED BY (מקור הפניה) ===
+IMPORTANT: The referredBy field will be set by the server based on the user's selection.
+DO NOT set this field. Leave it as empty string "".
+
 === ABOUT FIELD (טקסט מקור) ===
 CRITICAL: Copy the COMPLETE original source text EXACTLY ONCE
 - DO NOT duplicate any content
@@ -624,7 +629,7 @@ Leave this field EMPTY (""). It will be constructed server-side to avoid duplica
 - education: Institution or field - ONLY if explicitly mentioned, otherwise ""
 - educationLevel: ONLY if explicitly mentioned, otherwise ""
 - phone: Phone number if mentioned
-- referredBy: Default "קבוצת שידוכים שוובל" if not specified
+- referredBy: "" (will be set server-side)
 - hobbies: ONLY if explicitly mentioned, otherwise ""
 - familyDescription: ONLY if explicitly mentioned, otherwise ""
 - militaryService: ONLY if explicitly mentioned, otherwise ""
@@ -650,7 +655,7 @@ Return ONLY valid JSON (avoid all duplication):
     "education": "",
     "educationLevel": "",
     "phone": "",
-    "referredBy": "קבוצת שידוכים שוובל",
+    "referredBy": "",
     "personality": "",
     "lookingFor": "",
     "hobbies": "",
@@ -711,6 +716,9 @@ export async function POST(req: NextRequest) {
 
     const rawText = (formData.get('rawText') as string) || '';
     const imageFiles = formData.getAll('images') as File[];
+    
+    // NEW: Read the source/referredBy from the client
+    const sourceFromClient = (formData.get('source') as string) || '';
 
     if (!rawText.trim() && imageFiles.length === 0) {
       return NextResponse.json(
@@ -720,7 +728,7 @@ export async function POST(req: NextRequest) {
     }
 
     console.log(
-      `[CardImport] Processing: ${imageFiles.length} images, ${rawText.length} chars text`
+      `[CardImport] Processing: ${imageFiles.length} images, ${rawText.length} chars text, source: "${sourceFromClient}"`
     );
 
     // Build Gemini content parts
@@ -786,7 +794,6 @@ export async function POST(req: NextRequest) {
     // Validate city - only keep if it's an actual city name
     if (fields.city) {
       const cityLower = fields.city.toLowerCase().trim();
-      // רשימה של ביטויים שאינם שמות ערים
       const invalidCityTerms = ['מרכז', 'דרום', 'צפון', 'השרון', 'שפלה', 'הגליל', 'הנגב', 'יהודה', 'שומרון'];
       if (invalidCityTerms.some(term => cityLower.includes(term))) {
         console.log(`[CardImport] "${fields.city}" is a region, not a city - clearing`);
@@ -808,21 +815,26 @@ export async function POST(req: NextRequest) {
       else fields.height = String(Math.round(h));
     }
 
-    // Default referredBy if empty
-    if (!fields.referredBy || fields.referredBy.trim() === '') {
+    // =========================================================================
+    // UPDATED: Set referredBy from client source instead of hardcoded default
+    // =========================================================================
+    if (sourceFromClient && sourceFromClient.trim() !== '') {
+      fields.referredBy = sourceFromClient.trim();
+      console.log(`[CardImport] Using client-provided source: "${fields.referredBy}"`);
+    } else if (!fields.referredBy || fields.referredBy.trim() === '') {
       fields.referredBy = 'קבוצת שידוכים שוובל';
+      console.log(`[CardImport] No source provided, using default: "${fields.referredBy}"`);
     }
 
     // =========================================================================
-    // CRITICAL: Handle "about" field - ensure it contains the source text ONCE
+    // Handle "about" field
     // =========================================================================
     if (!fields.about || fields.about.trim() === '') {
-      // If AI didn't populate about, use the raw text
       if (rawText.trim()) {
         fields.about = rawText.trim();
       }
     } else {
-      // AI did provide about - remove any duplication within it
+      // Remove duplication within about
       const aboutLines = fields.about.split('\n');
       const uniqueLines: string[] = [];
       const seenLines = new Set<string>();
@@ -833,7 +845,6 @@ export async function POST(req: NextRequest) {
           seenLines.add(trimmed);
           uniqueLines.push(line);
         } else if (!trimmed) {
-          // Keep empty lines for formatting
           uniqueLines.push(line);
         }
       }
@@ -841,7 +852,7 @@ export async function POST(req: NextRequest) {
       fields.about = uniqueLines.join('\n').trim();
     }
 
-    // manualEntryText should be empty - we'll build it at save time to avoid duplication
+    // manualEntryText should be empty
     fields.manualEntryText = '';
 
     // Handle language detection
@@ -855,7 +866,7 @@ export async function POST(req: NextRequest) {
       fields.additionalLanguages = '';
     }
 
-    // Add any OCR text from images to about (if not already there)
+    // Add OCR text from images to about
     const imageClassifications = parsed.imageClassifications || [];
     const ocrTexts = imageClassifications
       .filter((ic: any) => ic.extractedText && ic.type !== 'photo')
@@ -865,7 +876,6 @@ export async function POST(req: NextRequest) {
     if (ocrTexts.length > 0) {
       const ocrBlock = '\n\n--- טקסט שחולץ מתמונות ---\n' + ocrTexts.join('\n');
       
-      // Only add if not already present
       if (fields.about && !fields.about.includes('טקסט שחולץ מתמונות')) {
         fields.about = fields.about + ocrBlock;
       } else if (!fields.about) {
