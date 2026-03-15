@@ -386,6 +386,7 @@ model MatchSuggestion {
   firstPartyNotes  String?
   secondPartyNotes String?
   matchingReason   String?
+  structuredRationale   Json? 
   followUpNotes    String?
   responseDeadline DateTime?
   decisionDeadline DateTime?
