@@ -38,6 +38,7 @@
 },
 
   "navbar": {
+    "analyticsDashboard": "Analytics",
     "myMatches": "My Matches",
      "referralsAdmin": "Referrals Admin",
     "matchmakingQuestionnaire": "Questionnaire",

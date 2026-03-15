@@ -4,13 +4,13 @@ Directory Map for: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src
 src/
     ├── middleware.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\middleware.ts)
 └── app/
-        └── globals.css  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\globals.css)
+        ├── globals.css  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\globals.css)
     └── api/
-            └── api_contents.txt  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\api_contents.txt)
+            ├── directory_map_of_api.txt  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\directory_map_of_api.txt)
         └── admin/
-                └── admin_contents.txt  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\admin\admin_contents.txt)
+                ├── admin_contents.txt  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\admin\admin_contents.txt)
             └── engagement/
-                    └── engagement_contents.txt  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\admin\engagement\engagement_contents.txt)
+                    ├── engagement_contents.txt  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\admin\engagement\engagement_contents.txt)
                 └── eligible-users/
                         └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\admin\engagement\eligible-users\route.ts)
                 └── run-evening/
@@ -23,34 +23,68 @@ src/
                         └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\admin\engagement\send-manual\route.ts)
                 └── stats/
                         └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\admin\engagement\stats\route.ts)
+            └── fill-missing-summaries/
+                    └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\admin\fill-missing-summaries\route.ts)
+            └── profiles/
+                └── profiles/
+                        ├── profiles_contents.txt  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\admin\profiles\profiles\profiles_contents.txt)
+                    └── batch-update-metrics/
+                            └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\admin\profiles\profiles\batch-update-metrics\route.ts)
+                    └── scan/
+                        └── [userId]/
+                                └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\admin\profiles\profiles\scan\[userId]\route.ts)
+                    └── [profileId]/
+                        └── update-metrics/
+                                └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\admin\profiles\profiles\[profileId]\update-metrics\route.ts)
+            └── update-all-metrics/
+                    └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\admin\update-all-metrics\route.ts)
+            └── update-vectors/
+                    └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\admin\update-vectors\route.ts)
         └── ai/
-                └── ai_contents.txt  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\ai_contents.txt)
             └── analyze-my-profile/
                     └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\analyze-my-profile\route.ts)
             └── analyze-suggestion/
                     └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\analyze-suggestion\route.ts)
+            └── batch-scan-all/
+                    └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\batch-scan-all\route.ts)
+            └── batch-scan-symmetric/
+                    └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\batch-scan-symmetric\route.ts)
             └── find-matches/
                     └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\find-matches\route.ts)
+            └── find-matches-v2/
+                    └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\find-matches-v2\route.ts)
             └── generate-rationale/
                     └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\generate-rationale\route.ts)
             └── generate-suggestion-rationale/
                     └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\generate-suggestion-rationale\route.ts)
+            └── hybrid-scan/
+                    └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\hybrid-scan\route.ts)
             └── matchmaker/
-                    └── matchmaker_contents.txt  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\matchmaker\matchmaker_contents.txt)
+                    ├── matchmaker_contents.txt  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\matchmaker\matchmaker_contents.txt)
                 └── analyze-profile/
                         └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\matchmaker\analyze-profile\route.ts)
+                └── batch-process/
+                        └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\matchmaker\batch-process\route.ts)
                 └── generate-summary/
                         └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\matchmaker\generate-summary\route.ts)
                 └── prepare-feedback-email/
                         └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\matchmaker\prepare-feedback-email\route.ts)
                 └── send-feedback-email/
                         └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\matchmaker\send-feedback-email\route.ts)
+            └── process-hybrid-job/
+                    └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\process-hybrid-job\route.ts)
+            └── process-matching-job/
+                    └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\process-matching-job\route.ts)
+            └── scan-user/
+                    └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\scan-user\route.ts)
             └── test-connection/
                     └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\test-connection\route.ts)
             └── update-all-profiles/
                     └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\update-all-profiles\route.ts)
+            └── virtual-profile/
+                    └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\ai\virtual-profile\route.ts)
         └── auth/
-                └── auth_contents.txt  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\auth\auth_contents.txt)
+                ├── auth_contents.txt  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\auth\auth_contents.txt)
             └── complete-password-change/
                     └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\auth\complete-password-change\route.ts)
             └── complete-profile/
@@ -63,6 +97,8 @@ src/
                     └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\auth\initiate-password-change\route.ts)
             └── register/
                     └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\auth\register\route.ts)
+            └── registration-info/
+                    └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\auth\registration-info\route.ts)
             └── request-password-reset/
                     └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\auth\request-password-reset\route.ts)
             └── resend-phone-code/
@@ -92,34 +128,77 @@ src/
                 └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\chat\route.ts)
         └── contact/
                 └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\contact\route.ts)
+        └── cron/
+                ├── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\cron\route.ts)
+            └── daily-suggestions/
+                    └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\cron\daily-suggestions\route.ts)
         └── feedback/
                 └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\feedback\route.ts)
         └── matchmaker/
-                └── matchmaker_contents.txt  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\matchmaker_contents.txt)
+            └── alerts/
+                    └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\alerts\route.ts)
             └── candidates/
                     ├── candidates_contents.txt  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\candidates\candidates_contents.txt)
-                    └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\candidates\route.ts)
+                    ├── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\candidates\route.ts)
+                └── bulk-import/
+                        └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\candidates\bulk-import\route.ts)
+                └── card-import/
+                        └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\candidates\card-import\route.ts)
                 └── manual/
                         └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\candidates\manual\route.ts)
                 └── [id]/
-                        └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\candidates\[id]\route.ts)
+                        ├── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\candidates\[id]\route.ts)
                     └── images/
-                            └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\candidates\[id]\images\route.ts)
+                            ├── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\candidates\[id]\images\route.ts)
                         └── [imageId]/
-                                └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\candidates\[id]\images\[imageId]\route.ts)
+                                ├── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\candidates\[id]\images\[imageId]\route.ts)
                             └── main/
                                     └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\candidates\[id]\images\[imageId]\main\route.ts)
                     └── invite-setup/
                             └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\candidates\[id]\invite-setup\route.ts)
-            └── inquiries/
+            └── chat/
+                    ├── chat_contents.txt  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\chat\chat_contents.txt)
+                └── summaries/
+                        └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\chat\summaries\route.ts)
+                └── unread/
+                        └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\chat\unread\route.ts)
+            └── daily-suggestions/
+                    ├── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\daily-suggestions\route.ts)
+                └── preview/
+                        └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\daily-suggestions\preview\route.ts)
+            └── dashboard/
+                    └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\dashboard\route.ts)
+            └── direct-chats/
+                    ├── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\direct-chats\route.ts)
+                └── broadcast/
+                        └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\direct-chats\broadcast\route.ts)
+                └── [userId]/
+                        └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\direct-chats\[userId]\route.ts)
+            └── existing-suggestions/
+                    └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\existing-suggestions\route.ts)
+            └── hidden-candidates/
+                    ├── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\hidden-candidates\route.ts)
                 └── [id]/
-                        └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\inquiries\[id]\route.ts)
+                        └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\hidden-candidates\[id]\route.ts)
+            └── inquiries/
+                    ├── inquiries_contents.txt  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\inquiries\inquiries_contents.txt)
+                └── [id]/
+                        ├── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\inquiries\[id]\route.ts)
                     └── respond/
                             └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\inquiries\[id]\respond\route.ts)
+            └── potential-matches/
+                    └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\potential-matches\route.ts)
+            └── rejection-feedback/
+                    └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\rejection-feedback\route.ts)
             └── suggestions/
-                    └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\suggestions\route.ts)
+                    ├── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\suggestions\route.ts)
+                    ├── suggestions_contents.txt  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\suggestions\suggestions_contents.txt)
+                └── list/
+                        └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\suggestions\list\route.ts)
                 └── [id]/
-                        └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\suggestions\[id]\route.ts)
+                        ├── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\suggestions\[id]\route.ts)
+                    └── chat/
+                            └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\suggestions\[id]\chat\route.ts)
                     └── delete/
                             └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\suggestions\[id]\delete\route.ts)
                     └── message/
@@ -132,20 +211,143 @@ src/
                             └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\suggestions\[id]\share-contact\route.ts)
                     └── status/
                             └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\suggestions\[id]\status\route.ts)
+            └── users/
+                    ├── users_contents.txt  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\users\users_contents.txt)
+                └── search/
+                        └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\users\search\route.ts)
+                └── searchable/
+                        └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\matchmaker\users\searchable\route.ts)
         └── messages/
+                ├── messages_contents.txt  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\messages\messages_contents.txt)
+            └── chat/
+                    └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\messages\chat\route.ts)
+            └── chats/
+                    └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\messages\chats\route.ts)
+            └── direct/
+                    └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\messages\direct\route.ts)
             └── feed/
                     └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\messages\feed\route.ts)
+            └── mark-as-read/
+                    └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\messages\mark-as-read\route.ts)
+        └── mobile/
+                ├── mobile_contents.txt  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\mobile\mobile_contents.txt)
+            └── analytics/
+                └── events/
+                        └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\mobile\analytics\events\route.ts)
+            └── apple/
+                    └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\mobile\apple\route.ts)
+            └── complete-profile/
+                    └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\mobile\complete-profile\route.ts)
+            └── delete-account/
+                    └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\mobile\delete-account\route.ts)
+            └── feedback/
+                    └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\mobile\feedback\route.ts)
+            └── google/
+                    └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\mobile\google\route.ts)
+            └── images/
+                    ├── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\mobile\images\route.ts)
+                └── [imageId]/
+                        └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\mobile\images\[imageId]\route.ts)
+            └── login/
+                    └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\mobile\login\route.ts)
+            └── matchmaker/
+                    ├── directory_map_of_matchmaker.txt  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\mobile\matchmaker\directory_map_of_matchmaker.txt)
+                └── broadcast/
+                        └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\mobile\matchmaker\broadcast\route.ts)
+                └── candidates/
+                        ├── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\mobile\matchmaker\candidates\route.ts)
+                    └── search/
+                            └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\mobile\matchmaker\candidates\search\route.ts)
+                └── chat/
+                    └── summaries/
+                            └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\mobile\matchmaker\chat\summaries\route.ts)
+                └── dashboard/
+                        └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\mobile\matchmaker\dashboard\route.ts)
+                └── direct-chats/
+                    └── [userId]/
+                            └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\mobile\matchmaker\direct-chats\[userId]\route.ts)
+                └── suggestions/
+                    └── [id]/
+                            ├── [id]_contents.txt  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\mobile\matchmaker\suggestions\[id]\[id]_contents.txt)
+                        └── chat/
+                                └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\mobile\matchmaker\suggestions\[id]\chat\route.ts)
+                        └── share-contacts/
+                                └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\mobile\matchmaker\suggestions\[id]\share-contacts\route.ts)
+                        └── status/
+                                └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\mobile\matchmaker\suggestions\[id]\status\route.ts)
+            └── me/
+                    └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\mobile\me\route.ts)
+            └── notifications/
+                    ├── notifications_contents.txt  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\mobile\notifications\notifications_contents.txt)
+                └── register-device/
+                        └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\mobile\notifications\register-device\route.ts)
+                └── unregister-device/
+                        └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\mobile\notifications\unregister-device\route.ts)
+            └── profile/
+                    ├── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\mobile\profile\route.ts)
+                └── cv/
+                        └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\mobile\profile\cv\route.ts)
+                └── first-party-preference/
+                        └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\mobile\profile\first-party-preference\route.ts)
+                └── testimonials/
+                    └── request-link/
+                            └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\mobile\profile\testimonials\request-link\route.ts)
+            └── questionnaire/
+                    └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\mobile\questionnaire\route.ts)
+            └── refresh-token/
+                    └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\mobile\refresh-token\route.ts)
+            └── register/
+                    └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\mobile\register\route.ts)
+            └── send-phone-code/
+                    └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\mobile\send-phone-code\route.ts)
+            └── settings/
+                    └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\mobile\settings\route.ts)
+            └── suggestions/
+                    ├── suggestions_contents.txt  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\mobile\suggestions\suggestions_contents.txt)
+                └── active/
+                        └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\mobile\suggestions\active\route.ts)
+                └── history/
+                        └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\mobile\suggestions\history\route.ts)
+                └── interested/
+                    └── rank/
+                            └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\mobile\suggestions\interested\rank\route.ts)
+                └── [id]/
+                        ├── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\mobile\suggestions\[id]\route.ts)
+                    └── block/
+                            └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\mobile\suggestions\[id]\block\route.ts)
+                    └── chat/
+                            ├── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\mobile\suggestions\[id]\chat\route.ts)
+                        └── read/
+                                └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\mobile\suggestions\[id]\chat\read\route.ts)
+                    └── report/
+                            └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\mobile\suggestions\[id]\report\route.ts)
+                    └── respond/
+                            └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\mobile\suggestions\[id]\respond\route.ts)
+            └── user/
+                    ├── user_contents.txt  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\mobile\user\user_contents.txt)
+                └── chats/
+                        └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\mobile\user\chats\route.ts)
+                └── direct/
+                        └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\mobile\user\direct\route.ts)
+            └── verify-email/
+                    └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\mobile\verify-email\route.ts)
+            └── verify-phone/
+                    └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\mobile\verify-phone\route.ts)
         └── notifications/
                 └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\notifications\route.ts)
+        └── og/
+                └── route.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\og\route.tsx)
         └── profile/
-                ├── profile_contents.txt  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\profile\profile_contents.txt)
-                └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\profile\route.ts)
+                ├── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\profile\route.ts)
             └── availability/
                     └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\profile\availability\route.ts)
             └── cv/
                     └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\profile\cv\route.ts)
+            └── first-party-preference/
+                    └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\profile\first-party-preference\route.ts)
             └── images/
-                    └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\profile\images\route.ts)
+                    ├── images_contents.txt  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\profile\images\images_contents.txt)
+                    ├── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\profile\images\route.ts)
                 └── [imageId]/
                         └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\profile\images\[imageId]\route.ts)
             └── neshama-insight/
@@ -154,7 +356,7 @@ src/
                     └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\profile\questionnaire\route.ts)
             └── testimonials/
                     ├── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\profile\testimonials\route.ts)
-                    └── testimonials_contents.txt  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\profile\testimonials\testimonials_contents.txt)
+                    ├── testimonials_contents.txt  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\profile\testimonials\testimonials_contents.txt)
                 └── request-link/
                         └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\profile\testimonials\request-link\route.ts)
                 └── [testimonialId]/
@@ -165,16 +367,19 @@ src/
                     └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\profile\viewed-preview\route.ts)
         └── questionnaire/
                 ├── questionnaire_contents.txt  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\questionnaire\questionnaire_contents.txt)
-                └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\questionnaire\route.ts)
+                ├── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\questionnaire\route.ts)
             └── complete/
                     └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\questionnaire\complete\route.ts)
             └── world/
                     └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\questionnaire\world\route.ts)
         └── referral/
+                ├── referral_contents.txt  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\referral\referral_contents.txt)
             └── campaign/
                     └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\referral\campaign\route.ts)
             └── leaderboard/
                     └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\referral\leaderboard\route.ts)
+            └── lookup/
+                    └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\referral\lookup\route.ts)
             └── register/
                     └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\referral\register\route.ts)
             └── stats/
@@ -183,17 +388,22 @@ src/
                 └── [code]/
                         └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\referral\track\[code]\route.ts)
         └── suggestions/
-                └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\suggestions\route.ts)
+                ├── suggestions_contents.txt  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\suggestions\suggestions_contents.txt)
             └── active/
                     └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\suggestions\active\route.ts)
             └── history/
                     └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\suggestions\history\route.ts)
+            └── interested/
+                └── rank/
+                        └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\suggestions\interested\rank\route.ts)
             └── [id]/
-                    └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\suggestions\[id]\route.ts)
+                    ├── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\suggestions\[id]\route.ts)
+                └── chat/
+                        └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\suggestions\[id]\chat\route.ts)
                 └── delete/
                         └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\suggestions\[id]\delete\route.ts)
                 └── inquiries/
-                        └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\suggestions\[id]\inquiries\route.ts)
+                        ├── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\suggestions\[id]\inquiries\route.ts)
                     └── mark-as-read/
                             └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\suggestions\[id]\inquiries\mark-as-read\route.ts)
                 └── status/
@@ -203,11 +413,11 @@ src/
                     └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\test\check-update-detection\route.ts)
         └── testimonials/
                 ├── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\testimonials\route.ts)
-                └── testimonials_contents.txt  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\testimonials\testimonials_contents.txt)
+                ├── testimonials_contents.txt  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\testimonials\testimonials_contents.txt)
             └── [testimonialId]/
                     └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\testimonials\[testimonialId]\route.ts)
         └── user/
-                └── user_contents.txt  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\user\user_contents.txt)
+                ├── user_contents.txt  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\user\user_contents.txt)
             └── accept-terms/
                     └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\user\accept-terms\route.ts)
             └── complete-onboarding/
@@ -219,10 +429,12 @@ src/
             └── unsubscribe/
                     └── route.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\user\unsubscribe\route.ts)
     └── r/
+            ├── layout.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\r\layout.tsx)
         └── [code]/
                 └── page.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\r\[code]\page.tsx)
     └── [locale]/
             ├── AppContent.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\AppContent.tsx)
+            ├── [locale]_contents.txt  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\[locale]_contents.txt)
             ├── apple-touch-icon.png  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\apple-touch-icon.png)
             ├── favicon-96x96.png  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\favicon-96x96.png)
             ├── favicon.ico  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\favicon.ico)
@@ -231,8 +443,9 @@ src/
             ├── page.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\page.tsx)
             ├── site.webmanifest  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\site.webmanifest)
             ├── web-app-manifest-192x192.png  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\web-app-manifest-192x192.png)
-            └── web-app-manifest-512x512.png  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\web-app-manifest-512x512.png)
+            ├── web-app-manifest-512x512.png  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\web-app-manifest-512x512.png)
         └── (authenticated)/
+                ├── (authenticated)_contents.txt  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\(authenticated)\(authenticated)_contents.txt)
             └── admin/
                 └── engagement/
                         └── page.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\(authenticated)\admin\engagement\page.tsx)
@@ -243,6 +456,12 @@ src/
                 └── clients/
                         ├── CandidatesManagerClient.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\(authenticated)\matchmaker\clients\CandidatesManagerClient.tsx)
                         └── page.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\(authenticated)\matchmaker\clients\page.tsx)
+                └── messages/
+                        ├── MatchmakerMessagesClientPage.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\(authenticated)\matchmaker\messages\MatchmakerMessagesClientPage.tsx)
+                        └── page.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\(authenticated)\matchmaker\messages\page.tsx)
+                └── potential-matches/
+                        ├── PotentialMatchesClient.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\(authenticated)\matchmaker\potential-matches\PotentialMatchesClient.tsx)
+                        └── page.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\(authenticated)\matchmaker\potential-matches\page.tsx)
                 └── suggestions/
                         ├── MatchmakerDashboardPageClient.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\(authenticated)\matchmaker\suggestions\MatchmakerDashboardPageClient.tsx)
                         └── page.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\(authenticated)\matchmaker\suggestions\page.tsx)
@@ -257,9 +476,10 @@ src/
                     └── page.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\(authenticated)\settings\page.tsx)
         └── admin/
             └── referrals/
-                    └── page.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\admin\referrals\page.tsx)
+                    ├── page.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\admin\referrals\page.tsx)
+                    └── referrals_contents.txt  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\admin\referrals\referrals_contents.txt)
         └── auth/
-                └── auth_contents.txt  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\auth\auth_contents.txt)
+                ├── auth_contents.txt  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\auth\auth_contents.txt)
             └── error/
                     ├── AuthErrorClient.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\auth\error\AuthErrorClient.tsx)
                     └── page.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\auth\error\page.tsx)
@@ -292,15 +512,20 @@ src/
                 ├── contact_contents.txt  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\contact\contact_contents.txt)
                 └── page.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\contact\page.tsx)
         └── contexts/
+                ├── BulkSuggestionsContext.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\contexts\BulkSuggestionsContext.tsx)
+                ├── MatchingJobContext.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\contexts\MatchingJobContext.tsx)
                 ├── NotificationContext.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\contexts\NotificationContext.tsx)
                 └── QuestionnaireStateContext.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\contexts\QuestionnaireStateContext.tsx)
         └── friends/
                 └── page.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\friends\page.tsx)
         └── legal/
-                └── legal_contents.txt  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\legal\legal_contents.txt)
+                ├── legal_contents.txt  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\legal\legal_contents.txt)
             └── accessibility-statement/
                     ├── AccessibilityStatementClient.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\legal\accessibility-statement\AccessibilityStatementClient.tsx)
                     └── page.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\legal\accessibility-statement\page.tsx)
+            └── child-safety/
+                    ├── ChildSafetyClient.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\legal\child-safety\ChildSafetyClient.tsx)
+                    └── page.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\legal\child-safety\page.tsx)
             └── privacy-policy/
                     ├── PrivacyPolicyClient.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\legal\privacy-policy\PrivacyPolicyClient.tsx)
                     └── page.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\legal\privacy-policy\page.tsx)
@@ -309,13 +534,14 @@ src/
                     └── page.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\legal\terms-of-service\page.tsx)
         └── questionnaire/
                 ├── page.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\questionnaire\page.tsx)
-                └── questionnaire_contents.txt  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\questionnaire\questionnaire_contents.txt)
+                ├── questionnaire_contents.txt  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\questionnaire\questionnaire_contents.txt)
             └── complete/
                     └── page.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\questionnaire\complete\page.tsx)
             └── restore/
                     └── page.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\questionnaire\restore\page.tsx)
         └── referral/
             └── dashboard/
+                    ├── dashboard_contents.txt  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\referral\dashboard\dashboard_contents.txt)
                     └── page.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\referral\dashboard\page.tsx)
         └── test-spinner/
                 └── page.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\test-spinner\page.tsx)
@@ -329,7 +555,7 @@ src/
                 ├── page.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\unsubscribe\page.tsx)
                 └── unsubscribe_contents.txt  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\unsubscribe\unsubscribe_contents.txt)
 └── components/
-        └── Providers.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\Providers.tsx)
+        ├── Providers.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\Providers.tsx)
     └── admin/
             └── EngagementDashboard.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\admin\EngagementDashboard.tsx)
     └── analytics/
@@ -338,13 +564,14 @@ src/
             ├── AuthError.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\auth\AuthError.tsx)
             ├── ConsentCheckbox.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\auth\ConsentCheckbox.tsx)
             ├── ForgotPasswordForm.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\auth\ForgotPasswordForm.tsx)
+            ├── FullScreenLoadingOverlay.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\auth\FullScreenLoadingOverlay.tsx)
             ├── PhoneNumberInput.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\auth\PhoneNumberInput.tsx)
             ├── ProgressBar.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\auth\ProgressBar.tsx)
             ├── RegisterSteps.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\auth\RegisterSteps.tsx)
             ├── RegistrationContext.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\auth\RegistrationContext.tsx)
             ├── ResetPasswordForm.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\auth\ResetPasswordForm.tsx)
             ├── VerifyEmailClient.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\auth\VerifyEmailClient.tsx)
-            └── auth_contents.txt  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\auth\auth_contents.txt)
+            ├── auth_contents.txt  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\auth\auth_contents.txt)
         └── steps/
                 ├── BasicInfoStep.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\auth\steps\BasicInfoStep.tsx)
                 ├── CompleteStep.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\auth\steps\CompleteStep.tsx)
@@ -357,19 +584,20 @@ src/
             └── ChatWidget.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\ChatWidget\ChatWidget.tsx)
     └── HomePage/
             ├── HomePage.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\HomePage\HomePage.tsx)
-            └── directory_map_of_homepage.txt  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\HomePage\directory_map_of_homepage.txt)
+            ├── HomePage_contents.txt  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\HomePage\HomePage_contents.txt)
         └── components/
                 ├── ComparisonItem.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\HomePage\components\ComparisonItem.tsx)
                 ├── DemoProfileCard.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\HomePage\components\DemoProfileCard.tsx)
                 ├── FAQItem.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\HomePage\components\FAQItem.tsx)
                 ├── FeatureCard.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\HomePage\components\FeatureCard.tsx)
+                ├── FloatingCTAButton.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\HomePage\components\FloatingCTAButton.tsx)
                 ├── FooterComponents.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\HomePage\components\FooterComponents.tsx)
                 ├── LiveSuggestionDemo.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\HomePage\components\LiveSuggestionDemo.tsx)
                 ├── MatchmakerCard.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\HomePage\components\MatchmakerCard.tsx)
                 ├── Step.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\HomePage\components\Step.tsx)
                 ├── StickyNav.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\HomePage\components\StickyNav.tsx)
                 ├── TestimonialCard.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\HomePage\components\TestimonialCard.tsx)
-                └── demo-data.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\HomePage\components\demo-data.ts)
+                ├── demo-data.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\HomePage\components\demo-data.ts)
             └── demo-content/
                     ├── en.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\HomePage\components\demo-content\en.ts)
                     └── he.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\HomePage\components\demo-content\he.ts)
@@ -393,7 +621,10 @@ src/
             └── UserDropdown.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\layout\UserDropdown.tsx)
     └── matchmaker/
         └── new/
-                └── MatchmakerEditProfile.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmaker\new\MatchmakerEditProfile.tsx)
+                ├── MatchingJobFloatingStatus.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmaker\new\MatchingJobFloatingStatus.tsx)
+                ├── MatchingJobStatus.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmaker\new\MatchingJobStatus.tsx)
+                ├── MatchmakerEditProfile.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmaker\new\MatchmakerEditProfile.tsx)
+                ├── ProfileSummaryDisplay.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmaker\new\ProfileSummaryDisplay.tsx)
             └── CandidateCard/
                     ├── Actions.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmaker\new\CandidateCard\Actions.tsx)
                     ├── MinimalCard.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmaker\new\CandidateCard\MinimalCard.tsx)
@@ -412,6 +643,9 @@ src/
                     ├── AddManualCandidateDialog.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmaker\new\dialogs\AddManualCandidateDialog.tsx)
                     ├── AiMatchAnalysisDialog.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmaker\new\dialogs\AiMatchAnalysisDialog.tsx)
                     ├── AiMatchmakerProfileAdvisorDialog.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmaker\new\dialogs\AiMatchmakerProfileAdvisorDialog.tsx)
+                    ├── BulkImportDialog.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmaker\new\dialogs\BulkImportDialog.tsx)
+                    ├── BulkSuggestionsDialog.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmaker\new\dialogs\BulkSuggestionsDialog.tsx)
+                    ├── CardBasedImportDialog.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmaker\new\dialogs\CardBasedImportDialog.tsx)
                     └── ProfileFeedbackDialog.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmaker\new\dialogs\ProfileFeedbackDialog.tsx)
             └── Filters/
                     ├── ActiveFilters.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmaker\new\Filters\ActiveFilters.tsx)
@@ -422,7 +656,27 @@ src/
                     ├── filterUtils  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmaker\new\hooks\filterUtils)
                     ├── useCandidates.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmaker\new\hooks\useCandidates.ts)
                     ├── useFilterLogic.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmaker\new\hooks\useFilterLogic.ts)
+                    ├── useMatchingJob.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmaker\new\hooks\useMatchingJob.ts)
                     └── useStatistics.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmaker\new\hooks\useStatistics.ts)
+            └── PotentialMatches/
+                    ├── AllReasoningsDisplay.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmaker\new\PotentialMatches\AllReasoningsDisplay.tsx)
+                    ├── BatchScanButtons.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmaker\new\PotentialMatches\BatchScanButtons.tsx)
+                    ├── DailySuggestionsDashboard.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmaker\new\PotentialMatches\DailySuggestionsDashboard.tsx)
+                    ├── HiddenCandidatesDrawer.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmaker\new\PotentialMatches\HiddenCandidatesDrawer.tsx)
+                    ├── HideCandidateDialog.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmaker\new\PotentialMatches\HideCandidateDialog.tsx)
+                    ├── MatchmakerDashboard.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmaker\new\PotentialMatches\MatchmakerDashboard.tsx)
+                    ├── PotentialMatchCard.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmaker\new\PotentialMatches\PotentialMatchCard.tsx)
+                    ├── PotentialMatchesDashboard.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmaker\new\PotentialMatches\PotentialMatchesDashboard.tsx)
+                    ├── PotentialMatchesFilters.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmaker\new\PotentialMatches\PotentialMatchesFilters.tsx)
+                    ├── PotentialMatchesStats.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmaker\new\PotentialMatches\PotentialMatchesStats.tsx)
+                    ├── PreviewSuggestionsPanel.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmaker\new\PotentialMatches\PreviewSuggestionsPanel.tsx)
+                    ├── RejectionFeedbackModal.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmaker\new\PotentialMatches\RejectionFeedbackModal.tsx)
+                    ├── index.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmaker\new\PotentialMatches\index.ts)
+                └── hooks/
+                        ├── useHiddenCandidates.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmaker\new\PotentialMatches\hooks\useHiddenCandidates.ts)
+                        └── usePotentialMatches.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmaker\new\PotentialMatches\hooks\usePotentialMatches.ts)
+                └── types/
+                        └── potentialMatches.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmaker\new\PotentialMatches\types\potentialMatches.ts)
             └── shared/
                     ├── LoadingStates.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmaker\new\shared\LoadingStates.tsx)
                     ├── Pagination.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmaker\new\shared\Pagination.tsx)
@@ -430,9 +684,14 @@ src/
             └── types/
                     ├── candidates.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmaker\new\types\candidates.ts)
                     └── filters.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmaker\new\types\filters.ts)
+            └── VirtualSearch/
+                    ├── SavedVirtualProfiles.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmaker\new\VirtualSearch\SavedVirtualProfiles.tsx)
+                    ├── VirtualUserDialog.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmaker\new\VirtualSearch\VirtualUserDialog.tsx)
+                    └── index.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmaker\new\VirtualSearch\index.tsx)
         └── suggestions/
                 ├── EditSuggestionForm.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmaker\suggestions\EditSuggestionForm.tsx)
-                └── MessageForm.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmaker\suggestions\MessageForm.tsx)
+                ├── MessageForm.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmaker\suggestions\MessageForm.tsx)
+                ├── suggestions_contents.txt  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmaker\suggestions\suggestions_contents.txt)
             └── cards/
                     └── SuggestionCard.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmaker\suggestions\cards\SuggestionCard.tsx)
             └── container/
@@ -440,6 +699,7 @@ src/
                     ├── MonthlyTrendModal.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmaker\suggestions\container\MonthlyTrendModal.tsx)
                     └── SuggestionActionBar.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmaker\suggestions\container\SuggestionActionBar.tsx)
             └── details/
+                    ├── SuggestionChatTab.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmaker\suggestions\details\SuggestionChatTab.tsx)
                     └── SuggestionDetailsDialog.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmaker\suggestions\details\SuggestionDetailsDialog.tsx)
             └── hooks/
                     └── useMatchmaking.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmaker\suggestions\hooks\useMatchmaking.ts)
@@ -457,7 +717,7 @@ src/
                 └── notification/
                         ├── NotificationService.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmaker\suggestions\services\notification\NotificationService.ts)
                         ├── initNotifications.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmaker\suggestions\services\notification\initNotifications.ts)
-                        └── notification_contents.txt  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmaker\suggestions\services\notification\notification_contents.txt)
+                        ├── notification_contents.txt  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmaker\suggestions\services\notification\notification_contents.txt)
                     └── adapters/
                             ├── EmailAdapter.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmaker\suggestions\services\notification\adapters\EmailAdapter.ts)
                             └── WhatsAppAdapter.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmaker\suggestions\services\notification\adapters\WhatsAppAdapter.ts)
@@ -469,17 +729,21 @@ src/
                     └── statisticsCalculator.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\matchmaker\suggestions\utils\statisticsCalculator.ts)
     └── messages/
             ├── AvailabilityRequestCard.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\messages\AvailabilityRequestCard.tsx)
+            ├── MatchmakerChatPanel.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\messages\MatchmakerChatPanel.tsx)
+            ├── MatchmakerUserSearchDialog.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\messages\MatchmakerUserSearchDialog.tsx)
             ├── MessageList.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\messages\MessageList.tsx)
             ├── MessageListItem.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\messages\MessageListItem.tsx)
             ├── MessagesPage.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\messages\MessagesPage.tsx)
             ├── NotificationCard.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\messages\NotificationCard.tsx)
+            ├── SuggestionChat.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\messages\SuggestionChat.tsx)
+            ├── UserChatPanel.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\messages\UserChatPanel.tsx)
             └── messages_contents.txt  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\messages\messages_contents.txt)
     └── profile/
             ├── ProfileCard.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\profile\ProfileCard.tsx)
             ├── account-settings.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\profile\account-settings.tsx)
             ├── constants.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\profile\constants.ts)
             ├── index.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\profile\index.ts)
-            └── utils.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\profile\utils.ts)
+            ├── utils.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\profile\utils.ts)
         └── elements/
                 ├── MinimalCard.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\profile\elements\MinimalCard.tsx)
                 ├── StatsCard.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\profile\elements\StatsCard.tsx)
@@ -504,12 +768,13 @@ src/
             ├── QuestionnaireComplete.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\questionnaire\QuestionnaireComplete.tsx)
             ├── QuestionnairePageClient.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\questionnaire\QuestionnairePageClient.tsx)
             ├── QuestionnaireRestore.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\questionnaire\QuestionnaireRestore.tsx)
-            └── questionnaire_contents.txt  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\questionnaire\questionnaire_contents.txt)
+            ├── questionnaire_contents.txt  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\questionnaire\questionnaire_contents.txt)
         └── common/
                 ├── AnswerInput.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\questionnaire\common\AnswerInput.tsx)
                 ├── InteractiveScale.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\questionnaire\common\InteractiveScale.tsx)
                 ├── QuestionCard.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\questionnaire\common\QuestionCard.tsx)
                 ├── QuestionnaireCompletion.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\questionnaire\common\QuestionnaireCompletion.tsx)
+                ├── QuestionnaireSyncer.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\questionnaire\common\QuestionnaireSyncer.tsx)
                 ├── QuestionsList.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\questionnaire\common\QuestionsList.tsx)
                 └── StandardizedLoadingSpinner.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\questionnaire\common\StandardizedLoadingSpinner.tsx)
         └── components/
@@ -541,10 +806,13 @@ src/
                 └── types.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\questionnaire\types\types.ts)
         └── worlds/
                 └── WorldComponent.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\questionnaire\worlds\WorldComponent.tsx)
+    └── referral/
+            └── HanukkahCountdown.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\referral\HanukkahCountdown.tsx)
     └── suggestions/
+            ├── ActiveSuggestionHero.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\suggestions\ActiveSuggestionHero.tsx)
+            ├── FirstPartyPreferenceToggle.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\suggestions\FirstPartyPreferenceToggle.tsx)
             ├── MatchSuggestionsContainer.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\suggestions\MatchSuggestionsContainer.tsx)
             ├── suggestions_contents.txt  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\suggestions\suggestions_contents.txt)
-            └── types.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\suggestions\types.ts)
         └── cards/
                 └── MinimalSuggestionCard.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\suggestions\cards\MinimalSuggestionCard.tsx)
         └── compatibility/
@@ -555,6 +823,8 @@ src/
                 └── UserAiAnalysisDialog.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\suggestions\dialogs\UserAiAnalysisDialog.tsx)
         └── inquiries/
                 └── InquiryThreadView.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\suggestions\inquiries\InquiryThreadView.tsx)
+        └── interested/
+                └── InterestedQueue.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\suggestions\interested\InterestedQueue.tsx)
         └── list/
                 └── SuggestionsList.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\suggestions\list\SuggestionsList.tsx)
         └── modals/
@@ -564,6 +834,7 @@ src/
                 ├── MatchPresentationView.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\suggestions\presentation\MatchPresentationView.tsx)
                 └── MatchmakerRationale.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\suggestions\presentation\MatchmakerRationale.tsx)
         └── timeline/
+                ├── MiniTimeline.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\suggestions\timeline\MiniTimeline.tsx)
                 └── SuggestionTimeline.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\suggestions\timeline\SuggestionTimeline.tsx)
     └── ui/
             ├── CookieBanner.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\ui\CookieBanner.tsx)
@@ -610,28 +881,43 @@ src/
             ├── timeline.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\ui\timeline.tsx)
             ├── toggle-group.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\ui\toggle-group.tsx)
             ├── tooltip.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\ui\tooltip.tsx)
+            ├── ui_contents.txt  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\ui\ui_contents.txt)
             ├── virtual-grid.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\ui\virtual-grid.tsx)
-            └── visually-hidden.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\ui\visually-hidden.tsx)
+            ├── visually-hidden.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\ui\visually-hidden.tsx)
         └── form/
                 └── form.tsx  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\ui\form\form.tsx)
         └── toast/
                 ├── toast.d.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\ui\toast\toast.d.ts)
                 └── use-toast.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\ui\toast\use-toast.ts)
+└── fonts/
+        ├── FbGezer-Regular.eot  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\fonts\FbGezer-Regular.eot)
+        ├── FbGezer-Regular.woff  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\fonts\FbGezer-Regular.woff)
+        ├── SourceSansPro-Black.woff2  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\fonts\SourceSansPro-Black.woff2)
+        ├── SourceSansPro-Bold.woff2  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\fonts\SourceSansPro-Bold.woff2)
+        ├── SourceSansPro-Light.woff2  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\fonts\SourceSansPro-Light.woff2)
+        ├── SourceSansPro-Regular.woff2  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\fonts\SourceSansPro-Regular.woff2)
+        └── ankaclm-bold-webfont.woff  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\fonts\ankaclm-bold-webfont.woff)
+└── hooks/
+        └── useUnreadChatCounts.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\hooks\useUnreadChatCounts.ts)
 └── lib/
         ├── auth.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\lib\auth.ts)
         ├── db.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\lib\db.ts)
         ├── dictionaries.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\lib\dictionaries.ts)
         ├── languageOptions.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\lib\languageOptions.ts)
         ├── lib_contents.txt  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\lib\lib_contents.txt)
+        ├── mobile-auth.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\lib\mobile-auth.ts)
         ├── phoneVerificationService.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\lib\phoneVerificationService.ts)
         ├── prisma.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\lib\prisma.ts)
+        ├── pushNotifications.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\lib\pushNotifications.ts)
         ├── questionnaireFormatter.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\lib\questionnaireFormatter.ts)
         ├── rate-limiter.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\lib\rate-limiter.ts)
+        ├── sendPushNotification.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\lib\sendPushNotification.ts)
+        ├── suggestion-status-utils.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\lib\suggestion-status-utils.ts)
         ├── tokens.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\lib\tokens.ts)
-        └── utils.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\lib\utils.ts)
+        ├── utils.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\lib\utils.ts)
     └── email/
             ├── emailService.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\lib\email\emailService.ts)
-            └── email_contents.txt  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\lib\email\email_contents.txt)
+            ├── email_contents.txt  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\lib\email\email_contents.txt)
         └── templates/
                 ├── account-setup.hbs  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\lib\email\templates\account-setup.hbs)
                 ├── availability-check.hbs  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\lib\email\templates\availability-check.hbs)
@@ -642,18 +928,17 @@ src/
                 ├── password-changed-confirmation.html  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\lib\email\templates\password-changed-confirmation.html)
                 ├── password-reset-otp.html  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\lib\email\templates\password-reset-otp.html)
                 ├── password-reset.hbs  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\lib\email\templates\password-reset.hbs)
-                ├── profile-feedback.hbs  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\lib\email\templates\profile-feedback.hbs)
                 ├── profile-summary-update.hbs  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\lib\email\templates\profile-summary-update.hbs)
                 ├── share-contact-details.hbs  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\lib\email\templates\share-contact-details.hbs)
                 ├── suggestion.hbs  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\lib\email\templates\suggestion.hbs)
                 ├── templates_contents.txt  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\lib\email\templates\templates_contents.txt)
-                └── welcome.hbs  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\lib\email\templates\welcome.hbs)
+                ├── welcome.hbs  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\lib\email\templates\welcome.hbs)
             └── shared/
-                    └── footer.hbs  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\lib\email\templates\shared\footer.hbs)
     └── engagement/
+            ├── DailySuggestionOrchestrator.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\lib\engagement\DailySuggestionOrchestrator.ts)
             ├── SmartEngagementOrchestrator.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\lib\engagement\SmartEngagementOrchestrator.ts)
             ├── emailService.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\lib\engagement\emailService.ts)
-            └── engagement_contents.txt  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\lib\engagement\engagement_contents.txt)
+            ├── engagement_contents.txt  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\lib\engagement\engagement_contents.txt)
         └── adapters/
                 ├── email.adapter.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\lib\engagement\adapters\email.adapter.ts)
                 └── whatsapp.adapter.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\lib\engagement\adapters\whatsapp.adapter.ts)
@@ -670,21 +955,37 @@ src/
                     ├── reengagement.hbs  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\lib\engagement\templates\email\reengagement.hbs)
                     └── welcome.hbs  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\lib\engagement\templates\email\welcome.hbs)
             └── whatsapp/
+    └── pdf/
     └── services/
             ├── aiService.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\lib\services\aiService.ts)
+            ├── alertsService.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\lib\services\alertsService.ts)
             ├── availabilityService.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\lib\services\availabilityService.ts)
+            ├── bulkImportService.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\lib\services\bulkImportService.ts)
+            ├── compatibilityServiceV2.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\lib\services\compatibilityServiceV2.ts)
+            ├── dashboardService.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\lib\services\dashboardService.ts)
+            ├── dualVectorService.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\lib\services\dualVectorService.ts)
+            ├── hybridMatchingService.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\lib\services\hybridMatchingService.ts)
+            ├── matchingAlgorithmService.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\lib\services\matchingAlgorithmService.ts)
+            ├── metricsExtractionService.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\lib\services\metricsExtractionService.ts)
+            ├── priorityService.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\lib\services\priorityService.ts)
             ├── profileAiService.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\lib\services\profileAiService.ts)
             ├── profileFeedbackService.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\lib\services\profileFeedbackService.ts)
             ├── questionnaireService.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\lib\services\questionnaireService.ts)
             ├── referralIntegration.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\lib\services\referralIntegration.ts)
             ├── referralService.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\lib\services\referralService.ts)
-            ├── services_contents.txt  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\lib\services\services_contents.txt)
+            ├── rejectionFeedbackService.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\lib\services\rejectionFeedbackService.ts)
+            ├── scanSingleUserV2.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\lib\services\scanSingleUserV2.ts)
+            ├── symmetricScanService.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\lib\services\symmetricScanService.ts)
+            ├── vectorMatchingService.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\lib\services\vectorMatchingService.ts)
             └── verificationService.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\lib\services\verificationService.ts)
     └── utils/
             ├── serverStatusUtils.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\lib\utils\serverStatusUtils.ts)
             └── suggestionUtils.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\lib\utils\suggestionUtils.ts)
 └── scripts/
+        ├── activate-pending-users.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\scripts\activate-pending-users.ts)
         ├── create-first-campaign.sql  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\scripts\create-first-campaign.sql)
+        ├── create-missing-profiles.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\scripts\create-missing-profiles.ts)
+        ├── nightly-scan.sh  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\scripts\nightly-scan.sh)
         ├── runEveningEngagement.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\scripts\runEveningEngagement.ts)
         ├── runSmartEngagement.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\scripts\runSmartEngagement.ts)
         └── scripts_contents.txt  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\scripts\scripts_contents.txt)
@@ -693,10 +994,11 @@ src/
         ├── messages.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\types\messages.ts)
         ├── next-auth.d.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\types\next-auth.d.ts)
         ├── profile.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\types\profile.ts)
+        ├── profileMetrics.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\types\profileMetrics.ts)
         ├── referral.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\types\referral.ts)
         ├── suggestions.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\types\suggestions.ts)
         ├── tika.d.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\types\tika.d.ts)
-        └── types_contents.txt  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\types\types_contents.txt)
+        ├── types_contents.txt  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\types\types_contents.txt)
     └── dictionaries/
             ├── admin.d.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\types\dictionaries\admin.d.ts)
             ├── auth.d.ts  (Full Path: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\types\dictionaries\auth.d.ts)

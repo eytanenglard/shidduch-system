@@ -10,6 +10,7 @@ import type { AdminDictionary } from './dictionaries/admin';
 // --- Navbar ---
 export type NavbarDict = {
   myMatches: string;
+  analyticsDashboard: string;
   matchmakingQuestionnaire: string;
   messages: string;
   login: string;

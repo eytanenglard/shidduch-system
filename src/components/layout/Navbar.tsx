@@ -22,6 +22,7 @@ import {
   LogOut,
   LogIn,
   UserPlus,
+  BarChart3,
   MessageCircle,
   Settings,
   Heart,
@@ -565,6 +566,10 @@ const Navbar = ({ dict }: NavbarProps) => {
                             'ניהול Engagement'
                           }
                         />
+                        <NavItem
+  href="/admin/analytics"
+  text={dict.navbar.analyticsDashboard || 'אנליטיקס'}
+/>
                         {isAdmin && (
                           <NavItem
                             href="/admin/referrals"
@@ -858,6 +863,15 @@ className="bg-gradient-to-r from-teal-500 to-orange-500 hover:from-teal-600 hove
                               onClick={closeMobileMenu}
                               isRtl={isRtl}
                             />
+                            <motion.div variants={menuItemVariants}>
+  <MobileNavItem
+    href="/admin/analytics"
+    text={dict.navbar.analyticsDashboard || 'אנליטיקס'}
+    icon={<BarChart3 className="h-5 w-5" />}
+    onClick={closeMobileMenu}
+    isRtl={isRtl}
+  />
+</motion.div>
                           </motion.div>
                           {isAdmin && (
                             <motion.div variants={menuItemVariants}>
