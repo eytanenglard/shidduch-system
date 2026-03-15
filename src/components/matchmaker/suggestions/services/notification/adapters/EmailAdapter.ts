@@ -1,37 +1,22 @@
-// src/app/components/matchmaker/suggestions/services/notification/adapters/EmailAdapter.ts
+// src/components/matchmaker/suggestions/services/notification/adapters/EmailAdapter.ts
 
+import { Resend } from 'resend';
 import { NotificationAdapter, NotificationChannel, RecipientInfo, NotificationContent } from '../NotificationService';
-import nodemailer from 'nodemailer';
 
 export class EmailAdapter implements NotificationAdapter {
   private static instance: EmailAdapter;
-  private transporter: nodemailer.Transporter;
+  private resend: Resend;
+  private fromEmail: string;
+  private fromName: string;
 
   private constructor() {
-    // Configure the transporter exactly like in EmailService
-    this.transporter = nodemailer.createTransport({
-      service: 'gmail',
-      auth: {
-        user: process.env.GMAIL_USER || '',
-        pass: process.env.GMAIL_APP_PASSWORD || '',
-      },
-      tls: {
-        rejectUnauthorized: false
-      }
-    });
-
-    // Verify email configuration on initialization
-    this.verifyEmailConfig();
-  }
-
-  private async verifyEmailConfig(): Promise<void> {
-    try {
-      await this.transporter.verify();
-      console.log('Email configuration verified successfully');
-    } catch (error) {
-      console.error('Email configuration verification failed:', error);
-      // Don't throw, to allow the system to continue even if verification fails
+    if (!process.env.RESEND_API_KEY) {
+      console.error('⚠️ RESEND_API_KEY is not defined in environment variables');
     }
+
+    this.resend = new Resend(process.env.RESEND_API_KEY);
+    this.fromEmail = process.env.EMAIL_FROM || 'noreply@neshamatech.com';
+    this.fromName = process.env.EMAIL_FROM_NAME || 'NeshamaTech';
   }
 
   public static getInstance(): EmailAdapter {
@@ -51,19 +36,27 @@ export class EmailAdapter implements NotificationAdapter {
 
   public async send(recipient: RecipientInfo, content: NotificationContent): Promise<boolean> {
     try {
-      const result = await this.transporter.sendMail({
-        from: `${process.env.EMAIL_FROM_NAME || 'מערכת השידוכים'} <${process.env.GMAIL_USER || ''}>`,
-        to: recipient.email,
+      const { data, error } = await this.resend.emails.send({
+        from: `${this.fromName} <${this.fromEmail}>`,
+        to: [recipient.email],
         subject: content.subject,
         text: content.body,
         html: content.htmlBody || content.body.replace(/\n/g, '<br>'),
       });
 
-      console.log('Email sent successfully:', {
-        messageId: result.messageId,
-        response: result.response,
+      if (error) {
+        console.error('Resend error sending email:', {
+          error,
+          to: recipient.email,
+          subject: content.subject,
+        });
+        return false;
+      }
+
+      console.log('Email sent successfully via Resend:', {
+        messageId: data?.id,
         to: recipient.email,
-        subject: content.subject
+        subject: content.subject,
       });
 
       return true;
@@ -72,10 +65,10 @@ export class EmailAdapter implements NotificationAdapter {
         error: error instanceof Error ? {
           name: error.name,
           message: error.message,
-          stack: error.stack
+          stack: error.stack,
         } : error,
         recipient: recipient.email,
-        subject: content.subject
+        subject: content.subject,
       });
       return false;
     }
