@@ -293,7 +293,9 @@ export const generateDemoData = async (locale: Locale) => {
     firstPartyLastViewedAt: null,
     secondPartyLastViewedAt: null,
      firstPartyRank: null,           // ← הוסף
-    firstPartyInterestedAt: null,   // ← הוסף
+    firstPartyInterestedAt: null,
+        structuredRationale: null,       // ← הוסף שורה זו
+// ← הוסף
   } as ExtendedMatchSuggestion;
 
   // ההצעה עבור הצופה (דניאל) לראות את נועה
@@ -319,7 +321,9 @@ export const generateDemoData = async (locale: Locale) => {
     firstPartyLastViewedAt: null,
     secondPartyLastViewedAt: null,
      firstPartyRank: null,           // ← הוסף
-    firstPartyInterestedAt: null,   // ← הוסף
+    firstPartyInterestedAt: null,
+        structuredRationale: null,       // ← הוסף שורה זו
+   // ← הוסף
   } as ExtendedMatchSuggestion;
   
   const demoAiAnalysisForDaniel: AiSuggestionAnalysisResult = {
