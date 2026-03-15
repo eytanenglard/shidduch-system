@@ -2,7 +2,8 @@
 
 import { MatchSuggestionStatus, User, MatchSuggestion, Profile } from "@prisma/client";
 import prisma from "@/lib/prisma";
-import { notificationService } from "../notification/NotificationService";
+import { initNotificationService } from "../notification/initNotifications";
+const notificationService = initNotificationService();
 import { notifyNewSuggestion, notifyStatusChange, sendPushToUser } from "@/lib/pushNotifications";
 import type { EmailDictionary } from "@/types/dictionary";
 
