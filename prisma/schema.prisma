@@ -1815,3 +1815,18 @@ enum ReportStatus {
   ACTION_TAKEN
   DISMISSED
 }
+
+model AnalyticsEvent {
+  id        String   @id @default(cuid())
+  userId    String?
+  event     String
+  properties Json?
+  platform  String?
+  timestamp DateTime @default(now())
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([event])
+  @@index([timestamp])
+  @@index([userId, event])
+}

@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\api\mobile
-# Generated on: 2026-03-11 22:08:25
+# Generated on: 2026-03-15 09:36:11
 # Filter: Only content of code files (.bat, .c, .cfg, .conf, .cpp, .cs, .css, .go, .h, .html, .ini, .java, .js, .json, .jsx, .kt, .less, .md, .php, .py, .rb, .rs, .scss, .sh, .sql, .swift, .ts, .tsx, .txt, .xml, .yaml, .yml) is included.
 ################################################################################
 
@@ -1838,6 +1838,7 @@ export async function GET(request: NextRequest) {
     const availabilityStatus = params.get('availabilityStatus') as AvailabilityStatus | null;
     const religiousLevel = params.get('religiousLevel') || null;
     const city = params.get('city') || null;
+    const maritalStatus = params.get('maritalStatus') || null;
     const ageMin = params.get('ageMin') ? parseInt(params.get('ageMin')!) : null;
     const ageMax = params.get('ageMax') ? parseInt(params.get('ageMax')!) : null;
     const sortBy = params.get('sortBy') || 'createdAt';
@@ -1904,6 +1905,14 @@ export async function GET(request: NextRequest) {
       where.profile = {
         ...((where.profile as Prisma.ProfileWhereInput) || {}),
         city: { contains: city, mode: 'insensitive' },
+      };
+    }
+
+    // Marital status filter
+    if (maritalStatus) {
+      where.profile = {
+        ...((where.profile as Prisma.ProfileWhereInput) || {}),
+        maritalStatus,
       };
     }
 
@@ -2182,9 +2191,10 @@ export async function GET(request: NextRequest) {
       religiousLevels: { value: string; count: number }[];
       genders: { value: string; count: number }[];
       availabilityStatuses: { value: string; count: number }[];
+      maritalStatuses: { value: string; count: number }[];
     } | undefined = undefined;
     if (page === 1 || params.get('includeFilterOptions') === 'true') {
-      const [cityCounts, religiousLevelCounts, genderCounts, availabilityCounts] = await Promise.all([
+      const [cityCounts, religiousLevelCounts, genderCounts, availabilityCounts, maritalStatusCounts] = await Promise.all([
         prisma.profile.groupBy({
           by: ['city'],
           where: { user: { status: { notIn: ['BLOCKED', 'INACTIVE'] }, role: 'CANDIDATE' }, city: { not: null } },
@@ -2208,6 +2218,12 @@ export async function GET(request: NextRequest) {
           where: { user: { status: { notIn: ['BLOCKED', 'INACTIVE'] }, role: 'CANDIDATE' } },
           _count: { availabilityStatus: true },
         }),
+        prisma.profile.groupBy({
+          by: ['maritalStatus'],
+          where: { user: { status: { notIn: ['BLOCKED', 'INACTIVE'] }, role: 'CANDIDATE' }, maritalStatus: { not: null } },
+          _count: { maritalStatus: true },
+          orderBy: { _count: { maritalStatus: 'desc' } },
+        }),
       ]);
 
       filterOptions = {
@@ -2220,6 +2236,10 @@ export async function GET(request: NextRequest) {
         availabilityStatuses: availabilityCounts.map((a) => ({
           value: a.availabilityStatus,
           count: a._count.availabilityStatus,
+        })),
+        maritalStatuses: maritalStatusCounts.map((m) => ({
+          value: m.maritalStatus!,
+          count: m._count.maritalStatus,
         })),
       };
     }
@@ -9508,6 +9528,7 @@ Content:
 // src/app/api/mobile/suggestions/[id]/respond/route.ts
 // תגובה להצעת שידוך - למובייל
 // UPDATED: Added 'interested' response type for "save for later"
+// UPDATED: Added push notification to matchmaker on response
 
 import { NextRequest } from "next/server";
 import prisma from "@/lib/prisma";
@@ -9518,6 +9539,8 @@ import {
   corsOptions,
 } from "@/lib/mobile-auth";
 import type { MatchSuggestionStatus } from "@prisma/client";
+// ✅ NEW: Import push notification for matchmaker
+import { pushSuggestionStatusToMatchmaker } from '@/lib/sendPushNotification';
 
 export async function OPTIONS(req: NextRequest) {
   return corsOptions(req);
@@ -9833,6 +9856,76 @@ if (response === "interested") {
     console.log(
       `[mobile/suggestions/${suggestionId}/respond] User ${userId} responded: ${response}, new status: ${newStatus}`
     );
+
+    // =====================================================
+    // ✅ NEW: Push notification to matchmaker
+    // =====================================================
+    try {
+      const respondingUser = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { firstName: true, lastName: true },
+      });
+      const userName = respondingUser
+        ? `${respondingUser.firstName} ${respondingUser.lastName}`
+        : 'מועמד/ת';
+
+      // Send push to matchmaker about the user's response
+      pushSuggestionStatusToMatchmaker(
+        suggestion.matchmakerId,
+        userName,
+        newStatus,
+        suggestionId
+      ).catch((err) =>
+        console.error('[mobile/respond] Push to matchmaker error (non-fatal):', err)
+      );
+
+      // If contacts were auto-shared (SECOND_PARTY_APPROVED → CONTACT_DETAILS_SHARED),
+      // also notify both parties
+      if (
+        updatedSuggestion.status === 'CONTACT_DETAILS_SHARED' ||
+        (newStatus === 'SECOND_PARTY_APPROVED' && updatedSuggestion.status !== newStatus)
+      ) {
+        const { pushContactsShared } = await import('@/lib/sendPushNotification');
+        const matchmaker = await prisma.user.findUnique({
+          where: { id: suggestion.matchmakerId },
+          select: { firstName: true, lastName: true },
+        });
+        const matchmakerName = matchmaker
+          ? `${matchmaker.firstName} ${matchmaker.lastName}`
+          : 'השדכן/ית';
+
+        // Notify first party
+        const secondPartyUser = await prisma.user.findUnique({
+          where: { id: suggestion.secondPartyId },
+          select: { firstName: true, phone: true },
+        });
+        const firstPartyUser = await prisma.user.findUnique({
+          where: { id: suggestion.firstPartyId },
+          select: { firstName: true, phone: true },
+        });
+
+        if (secondPartyUser && firstPartyUser) {
+          pushContactsShared(
+            suggestion.firstPartyId,
+            matchmakerName,
+            secondPartyUser.firstName,
+            secondPartyUser.phone || '',
+            suggestionId
+          ).catch(console.error);
+
+          pushContactsShared(
+            suggestion.secondPartyId,
+            matchmakerName,
+            firstPartyUser.firstName,
+            firstPartyUser.phone || '',
+            suggestionId
+          ).catch(console.error);
+        }
+      }
+    } catch (pushError) {
+      // Push notifications should never break the main flow
+      console.error('[mobile/respond] Push error (non-fatal):', pushError);
+    }
 
     const messageMap = {
       approve: "ההצעה אושרה בהצלחה",

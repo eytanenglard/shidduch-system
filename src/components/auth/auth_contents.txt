@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\components\auth
-# Generated on: 2026-02-13 14:19:03
+# Generated on: 2026-03-12 23:36:31
 # Filter: Only content of code files (.bat, .c, .cfg, .conf, .cpp, .cs, .css, .go, .h, .html, .ini, .java, .js, .json, .jsx, .kt, .less, .md, .php, .py, .rb, .rs, .scss, .sh, .sql, .swift, .ts, .tsx, .txt, .xml, .yaml, .yml) is included.
 ################################################################################
 
@@ -3606,7 +3606,6 @@ interface BasicInfoStepProps {
   locale: 'he' | 'en';
 }
 
-// פונקציות עזר לולידציה
 const isValidEmail = (email: string): boolean => {
   const emailRegex = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i;
   return email.trim() !== '' && emailRegex.test(email);
@@ -3617,7 +3616,6 @@ const isValidPassword = (password: string): boolean => {
   return passwordRegex.test(password);
 };
 
-// קודי שגיאה שמצדיקים הצעה להירשם עם Google
 const GOOGLE_SIGNUP_SUGGESTED_ERRORS = [
   'DB_CONNECTION_ERROR',
   'DB_INIT_ERROR',
@@ -3638,31 +3636,19 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
     useRegistration();
   const router = useRouter();
 
-  // ניהול מצבי שגיאה מקומיים
   const [passwordError, setPasswordError] = useState('');
   const [emailError, setEmailError] = useState('');
-
-  // ניהול מצבי טעינה ושגיאות כלליות
   const [isLoading, setIsLoading] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
-
-  // מצב להצגת הצעת Google
   const [showGoogleSuggestion, setShowGoogleSuggestion] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
-
-  // ========== 🔴 הוספה: מצבים חדשים לטיפול במייל קיים ==========
+  const [isAppleLoading, setIsAppleLoading] = useState(false);
   const [isAttemptingLogin, setIsAttemptingLogin] = useState(false);
   const [showExistingUserOptions, setShowExistingUserOptions] = useState(false);
   const [existingUserEmail, setExistingUserEmail] = useState('');
-  // =============================================================
-
-  // ניהול נראות סיסמה
   const [passwordVisible, setPasswordVisible] = useState(false);
-
-  // רשימת השדות החסרים לתצוגה בראש הטופס
   const [missingFields, setMissingFields] = useState<string[]>([]);
 
-  // פונקציה להרשמה עם Google
   const handleGoogleSignup = async () => {
     setIsGoogleLoading(true);
     try {
@@ -3676,7 +3662,19 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
     }
   };
 
-  // ========== 🔴 הוספה: פונקציה לניסיון התחברות עם מייל קיים ==========
+  const handleAppleSignup = async () => {
+    setIsAppleLoading(true);
+    try {
+      await signIn('apple', {
+        callbackUrl: `/${locale}/auth/register`,
+        redirect: true,
+      });
+    } catch (error) {
+      console.error('Apple signup error:', error);
+      setIsAppleLoading(false);
+    }
+  };
+
   const handleAttemptLoginWithExistingEmail = async () => {
     setIsAttemptingLogin(true);
     setApiError(null);
@@ -3690,13 +3688,12 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
       const result = await signIn('credentials', {
         email: data.email.toLowerCase(),
         password: data.password,
-        redirect: false, // חשוב! לא לעשות redirect אוטומטי כדי שנוכל לטפל בתוצאה
+        redirect: false,
       });
 
       console.log('[BasicInfoStep] SignIn result:', result);
 
       if (result?.error) {
-        // הסיסמה שגויה - הפנה לדף שחזור סיסמה
         console.log(
           '[BasicInfoStep] Login failed - redirecting to forgot password'
         );
@@ -3707,15 +3704,12 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
       }
 
       if (result?.ok) {
-        // ההתחברות הצליחה! נקבל את הסשן ונפנה לפי redirectUrl
         console.log(
           '[BasicInfoStep] Login successful - fetching session for redirect'
         );
 
-        // מחכים רגע לסשן להתעדכן
         await new Promise((resolve) => setTimeout(resolve, 500));
 
-        // מביאים את הסשן המעודכן כדי לדעת לאן להפנות
         const sessionResponse = await fetch('/api/auth/session');
         const session = await sessionResponse.json();
 
@@ -3725,18 +3719,15 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
           console.log('[BasicInfoStep] Redirecting to:', session.redirectUrl);
           router.push(session.redirectUrl);
         } else if (session?.user) {
-          // אם אין redirectUrl ספציפי, נפנה לפרופיל
           console.log('[BasicInfoStep] No redirectUrl, going to profile');
           router.push('/profile');
         } else {
-          // משהו לא עבד - ננסה להפנות לדף הראשי
           console.log('[BasicInfoStep] No session found, going to home');
           router.push('/');
         }
       }
     } catch (error) {
       console.error('[BasicInfoStep] Error during login attempt:', error);
-      // במקרה של שגיאה כללית - הפנה לשחזור סיסמה
       router.push(
         `/${locale}/auth/forgot-password?email=${encodeURIComponent(data.email)}`
       );
@@ -3745,62 +3736,51 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
     }
   };
 
-  // פונקציה להפניה ישירה לשחזור סיסמה
   const handleGoToForgotPassword = () => {
     router.push(
       `/${locale}/auth/forgot-password?email=${encodeURIComponent(existingUserEmail || data.email)}`
     );
   };
-  // ====================================================================
 
   const handleRegisterSubmit = async () => {
-    // 1. איפוס שגיאות קודמות
     setApiError(null);
     setMissingFields([]);
     setEmailError('');
     setPasswordError('');
     setShowGoogleSuggestion(false);
-    setShowExistingUserOptions(false); // 🔴 הוספה
+    setShowExistingUserOptions(false);
 
     let hasError = false;
     const currentMissing: string[] = [];
 
-    // 2. ולידציה של השדות
-
-    // בדיקת אימייל
     if (!isValidEmail(data.email)) {
       setEmailError(dict.errors.invalidEmail);
       currentMissing.push(validationDict.fields.email);
       hasError = true;
     }
 
-    // בדיקת סיסמה
     if (!isValidPassword(data.password)) {
       setPasswordError(dict.errors.invalidPassword);
       currentMissing.push(validationDict.fields.password);
       hasError = true;
     }
 
-    // בדיקת שם פרטי
     if (!data.firstName.trim()) {
       currentMissing.push(validationDict.fields.firstName);
       hasError = true;
     }
 
-    // בדיקת שם משפחה
     if (!data.lastName.trim()) {
       currentMissing.push(validationDict.fields.lastName);
       hasError = true;
     }
 
-    // 3. אם יש שגיאות - עצור והצג אותן
     if (hasError) {
       setMissingFields(currentMissing);
       window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
 
-    // 4. אם הכל תקין - שלח לשרת
     setIsLoading(true);
 
     try {
@@ -3821,7 +3801,6 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
       if (!response.ok) {
         const errorCode = result.errorCode || '';
 
-        // ========== 🔴 תיקון: טיפול מיוחד בשגיאת EMAIL_EXISTS ==========
         if (errorCode === 'EMAIL_EXISTS') {
           console.log(
             '[BasicInfoStep] Email exists - attempting automatic login'
@@ -3829,13 +3808,10 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
           setExistingUserEmail(data.email);
           setIsLoading(false);
 
-          // ננסה להתחבר אוטומטית עם הסיסמה שהוזנה
           await handleAttemptLoginWithExistingEmail();
           return;
         }
-        // ================================================================
 
-        // בדיקה אם להציע הרשמה עם Google (שגיאות DB)
         if (
           GOOGLE_SIGNUP_SUGGESTED_ERRORS.includes(errorCode) ||
           result.error?.includes('שגיאת חיבור') ||
@@ -3847,7 +3823,6 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
         throw new Error(result.error || dict.errors.default);
       }
 
-      // מעבר לשלב אימות מייל עם האימייל שהתקבל מהשרת
       proceedToEmailVerification(result.email);
     } catch (error) {
       setApiError(error instanceof Error ? error.message : dict.errors.default);
@@ -3856,7 +3831,6 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
     }
   };
 
-  // הגדרות אנימציה
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: { opacity: 1, transition: { staggerChildren: 0.1 } },
@@ -3867,6 +3841,8 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
   };
 
   const isRTL = locale === 'he';
+  const isAnyLoading =
+    isLoading || isAttemptingLogin || isGoogleLoading || isAppleLoading;
 
   return (
     <motion.div
@@ -3875,7 +3851,7 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
       initial="hidden"
       animate="visible"
     >
-      {/* ========== 🔴 הוספה: הודעה בזמן ניסיון התחברות אוטומטי ========== */}
+      {/* Auto-login overlay */}
       <AnimatePresence>
         {isAttemptingLogin && (
           <motion.div
@@ -3900,9 +3876,8 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
           </motion.div>
         )}
       </AnimatePresence>
-      {/* ================================================================= */}
 
-      {/* התראת שגיאה כללית (מהשרת) */}
+      {/* API Error */}
       {apiError && (
         <motion.div variants={itemVariants}>
           <Alert variant="destructive" role="alert">
@@ -3913,7 +3888,7 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
         </motion.div>
       )}
 
-      {/* הצעה להירשם עם Google (שגיאות DB) */}
+      {/* Google/Apple suggestion on DB errors */}
       <AnimatePresence>
         {showGoogleSuggestion && (
           <motion.div
@@ -3936,10 +3911,43 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
                   </div>
                 </div>
 
+                {/* Apple Button */}
+                <Button
+                  type="button"
+                  onClick={handleAppleSignup}
+                  disabled={isAppleLoading || isGoogleLoading}
+                  className="w-full flex items-center justify-center gap-2 bg-black hover:bg-gray-900 text-white border-0 shadow-sm"
+                >
+                  {isAppleLoading ? (
+                    <>
+                      <Loader2 className="h-5 w-5 animate-spin" />
+                      <span>
+                        {locale === 'he' ? 'מתחבר...' : 'Connecting...'}
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      <svg
+                        className="h-5 w-5"
+                        viewBox="0 0 24 24"
+                        fill="currentColor"
+                      >
+                        <path d="M17.05 20.28c-.98.95-2.05.88-3.08.4-1.09-.5-2.08-.48-3.24 0-1.44.62-2.2.44-3.06-.4C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z" />
+                      </svg>
+                      <span>
+                        {locale === 'he'
+                          ? 'הרשמה עם Apple'
+                          : 'Sign up with Apple'}
+                      </span>
+                    </>
+                  )}
+                </Button>
+
+                {/* Google Button */}
                 <Button
                   type="button"
                   onClick={handleGoogleSignup}
-                  disabled={isGoogleLoading}
+                  disabled={isGoogleLoading || isAppleLoading}
                   className="w-full flex items-center justify-center gap-2 bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 shadow-sm"
                 >
                   {isGoogleLoading ? (
@@ -3977,7 +3985,7 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
         )}
       </AnimatePresence>
 
-      {/* התראת ולידציה (שדות חסרים) */}
+      {/* Validation errors */}
       <AnimatePresence>
         {missingFields.length > 0 && (
           <motion.div
@@ -4023,7 +4031,7 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
       </motion.h2>
 
       <motion.div variants={itemVariants} className="space-y-4">
-        {/* שדה אימייל */}
+        {/* Email */}
         <div className="space-y-1">
           <label
             htmlFor="emailBasic"
@@ -4047,9 +4055,9 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
                 )
               }
               placeholder={dict.emailPlaceholder}
-              disabled={isLoading || isAttemptingLogin}
+              disabled={isAnyLoading}
               className={`w-full pr-10 pl-3 py-3 border rounded-lg focus:ring-2 focus:outline-none transition-colors 
-                ${isLoading || isAttemptingLogin ? 'bg-gray-100' : ''} 
+                ${isAnyLoading ? 'bg-gray-100' : ''} 
                 ${
                   emailError ||
                   missingFields.includes(validationDict.fields.email)
@@ -4065,7 +4073,7 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
           )}
         </div>
 
-        {/* שדה סיסמה */}
+        {/* Password */}
         <div className="space-y-1">
           <label
             htmlFor="passwordBasic"
@@ -4091,9 +4099,9 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
                 )
               }
               placeholder={dict.passwordPlaceholder}
-              disabled={isLoading || isAttemptingLogin}
+              disabled={isAnyLoading}
               className={`w-full pr-10 pl-10 py-3 border rounded-lg focus:ring-2 focus:outline-none transition-colors 
-                ${isLoading || isAttemptingLogin ? 'bg-gray-100' : ''} 
+                ${isAnyLoading ? 'bg-gray-100' : ''} 
                 ${
                   passwordError ||
                   missingFields.includes(validationDict.fields.password)
@@ -4122,9 +4130,8 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
           <p className="text-xs text-gray-500 mt-1">{dict.passwordHint}</p>
         </div>
 
-        {/* שדות שם */}
+        {/* Names */}
         <div className="grid grid-cols-2 gap-4">
-          {/* שם פרטי */}
           <div className="space-y-1">
             <label
               htmlFor="firstNameBasic"
@@ -4140,9 +4147,9 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
                 value={data.firstName}
                 onChange={(e) => updateField('firstName', e.target.value)}
                 placeholder={dict.firstNamePlaceholder}
-                disabled={isLoading || isAttemptingLogin}
+                disabled={isAnyLoading}
                 className={`w-full pr-10 pl-3 py-3 border rounded-lg focus:ring-2 focus:outline-none transition-colors
-                  ${isLoading || isAttemptingLogin ? 'bg-gray-100' : ''}
+                  ${isAnyLoading ? 'bg-gray-100' : ''}
                   ${
                     missingFields.includes(validationDict.fields.firstName)
                       ? 'border-red-500 focus:ring-red-200'
@@ -4152,7 +4159,6 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
             </div>
           </div>
 
-          {/* שם משפחה */}
           <div className="space-y-1">
             <label
               htmlFor="lastNameBasic"
@@ -4168,9 +4174,9 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
                 value={data.lastName}
                 onChange={(e) => updateField('lastName', e.target.value)}
                 placeholder={dict.lastNamePlaceholder}
-                disabled={isLoading || isAttemptingLogin}
+                disabled={isAnyLoading}
                 className={`w-full pr-10 pl-3 py-3 border rounded-lg focus:ring-2 focus:outline-none transition-colors
-                  ${isLoading || isAttemptingLogin ? 'bg-gray-100' : ''}
+                  ${isAnyLoading ? 'bg-gray-100' : ''}
                   ${
                     missingFields.includes(validationDict.fields.lastName)
                       ? 'border-red-500 focus:ring-red-200'
@@ -4182,7 +4188,7 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
         </div>
       </motion.div>
 
-      {/* כפתורי ניווט */}
+      {/* Navigation buttons */}
       <motion.div
         variants={itemVariants}
         className="flex justify-between gap-4 pt-4"
@@ -4191,7 +4197,7 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
           type="button"
           onClick={prevStep}
           variant="outline"
-          disabled={isLoading || isAttemptingLogin}
+          disabled={isAnyLoading}
           className="flex items-center gap-2"
         >
           {isRTL ? (
@@ -4205,7 +4211,7 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
         <Button
           type="button"
           onClick={handleRegisterSubmit}
-          disabled={isLoading || isAttemptingLogin}
+          disabled={isAnyLoading}
           className="flex-1 bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-white flex items-center justify-center gap-2"
         >
           {isLoading ? (
@@ -6409,14 +6415,103 @@ export default function PersonalDetailsStep({
       <div className="space-y-6">
         <SectionHeader
           icon={<FileText className="w-5 h-5" />}
-          title={personalDetailsDict.aboutMe?.title || 'הסיפור שלי במילים שלי'}
+          title={personalDetailsDict.aboutMe?.title || 'כרטיס ההיכרות שלי'}
           subtitle={
             personalDetailsDict.aboutMe?.subtitle ||
-            'ספרו על עצמכם - זה החלק שהכי עוזר לשדכנים להכיר אתכם'
+            'הכרטיס הזה הוא מה שהשדכנים שלנו רואים, ומה שנשלח לצד השני כשמציעים שידוך. כתבו אותו כאילו אתם מציגים את עצמכם למישהו שרוצה להכיר אתכם באמת.'
           }
           gradient="from-purple-500 to-indigo-500"
           required={true}
         />
+
+        {/* Structured Format Guide */}
+        <motion.div variants={itemVariants}>
+          <div className="bg-gradient-to-br from-purple-50/70 via-indigo-50/50 to-violet-50/40 rounded-2xl p-4 md:p-5 border border-purple-100/80">
+            <p className="text-sm font-semibold text-purple-800 mb-3 flex items-center gap-2">
+              <ListChecks className="w-4 h-4 text-purple-500" />
+              {personalDetailsDict.aboutMe?.guidanceTitle ||
+                'מה לכלול בכרטיס? (לפי הסדר)'}
+            </p>
+            <div className="space-y-1.5">
+              {[
+                {
+                  emoji: '😊',
+                  text: personalDetailsDict.aboutMe?.guide1 || 'שם, גיל וגובה',
+                },
+                {
+                  emoji: '🌍',
+                  text: personalDetailsDict.aboutMe?.guide2 || 'עדה / מוצא',
+                },
+                {
+                  emoji: '📍',
+                  text: personalDetailsDict.aboutMe?.guide3 || 'אזור מגורים',
+                },
+                {
+                  emoji: '💍',
+                  text:
+                    personalDetailsDict.aboutMe?.guide4 ||
+                    'סטטוס (רווק/ה, גרוש/ה, אלמן/ה + ילדים)',
+                },
+                {
+                  emoji: '🙏',
+                  text: personalDetailsDict.aboutMe?.guide5 || 'רמה דתית ומגזר',
+                },
+                {
+                  emoji: '🎓',
+                  text:
+                    personalDetailsDict.aboutMe?.guide6 ||
+                    'לימודים ורקע (ישיבה/מדרשה, תואר, קורסים)',
+                },
+                {
+                  emoji: '🇮🇱',
+                  text:
+                    personalDetailsDict.aboutMe?.guide7 || 'שירות צבאי / לאומי',
+                },
+                {
+                  emoji: '💼',
+                  text: personalDetailsDict.aboutMe?.guide8 || 'עיסוק ותעסוקה',
+                },
+                {
+                  emoji: '🎭',
+                  text:
+                    personalDetailsDict.aboutMe?.guide9 ||
+                    'תכונות אופי – מי אני?',
+                },
+                {
+                  emoji: '👨‍👩‍👧‍👦',
+                  text:
+                    personalDetailsDict.aboutMe?.guide10 || 'קצת על המשפחה שלי',
+                },
+                {
+                  emoji: '🎨',
+                  text:
+                    personalDetailsDict.aboutMe?.guide11 ||
+                    'תחביבים ומה שאני אוהב/ת',
+                },
+                {
+                  emoji: '🎯',
+                  text:
+                    personalDetailsDict.aboutMe?.guide12 ||
+                    'מה אני מחפש/ת בבן/בת זוג',
+                },
+              ].map((item, index) => (
+                <div
+                  key={index}
+                  className="flex items-center gap-2.5 text-sm text-gray-700 leading-snug"
+                >
+                  <span className="text-base shrink-0 w-6 text-center">
+                    {item.emoji}
+                  </span>
+                  <span>{item.text}</span>
+                </div>
+              ))}
+            </div>
+            <p className="text-xs text-purple-600/80 mt-3.5 leading-relaxed border-t border-purple-100/60 pt-3">
+              {personalDetailsDict.aboutMe?.guidanceNote ||
+                "💡 לא חובה לכתוב את כל הסעיפים, אבל ככל שתכתבו יותר – כך נוכל למצוא לכם התאמות מדויקות יותר. אפשר להשתמש באימוג'ים כמו בדוגמה, או לכתוב בצורה חופשית."}
+            </p>
+          </div>
+        </motion.div>
 
         <motion.div variants={itemVariants} className="space-y-2">
           <div className="flex items-center justify-between">
@@ -6424,7 +6519,7 @@ export default function PersonalDetailsStep({
               htmlFor="aboutMe"
               className="text-sm font-semibold text-gray-700 flex items-center gap-1"
             >
-              {personalDetailsDict.aboutMe?.label || 'ספרו על עצמכם'}
+              {personalDetailsDict.aboutMe?.label || 'כרטיס ההיכרות שלכם'}
               <span className="text-red-500 mr-1">*</span>
               <TooltipProvider>
                 <Tooltip>
@@ -6443,7 +6538,7 @@ export default function PersonalDetailsStep({
                   >
                     <p>
                       {personalDetailsDict.aboutMe?.tooltip ||
-                        'שתפו על התחביבים, הערכים, מה חשוב לכם בחיים ובמערכת יחסים'}
+                        'הכרטיס הזה נשלח לצד השני כשמציעים שידוך – ככה הוא/היא מקבל/ת תמונה אמיתית של מי אתם. שווה להשקיע!'}
                     </p>
                   </TooltipContent>
                 </Tooltip>
@@ -6456,27 +6551,28 @@ export default function PersonalDetailsStep({
             value={aboutMe}
             onChange={(e) => setAboutMe(e.target.value)}
             placeholder={
-              personalDetailsDict.aboutMe?.placeholder || 'ספרו על עצמכם...'
+              personalDetailsDict.aboutMe?.placeholder ||
+              '😊 שם: ישראל ישראלי, בן 28, גובה 1.75\n🌍 עדה: חצי מרוקאי חצי פולני\n📍 מגורים: רעננה\n💍 סטטוס: רווק\n🙏 דתי לאומי\n🎓 בוגר ישיבת הסדר, תואר ראשון במנהל עסקים\n🇮🇱 שירות צבאי מלא - קצין ביחידה קרבית\n💼 עובד בהייטק כמנהל מוצר\n🎭 אופי: חברותי, אופטימי, אוהב אנשים ושיחות עומק\n👨‍👩‍👧‍👦 משפחה חמה ומשפחתית, שני מתוך ארבעה\n🎨 אוהב ספורט, טיולים, בישול ומוזיקה\n🎯 מחפש בחורה עם לב טוב, שמחת חיים, ערכים דומים וחוש הומור'
             }
             disabled={isLoading}
-            className={`min-h-[150px] py-3 border-2 rounded-xl transition-colors duration-200 bg-white/95 resize-none text-base md:text-sm ${
+            className={`min-h-[220px] py-3 border-2 rounded-xl transition-colors duration-200 bg-white/95 resize-none text-base md:text-sm ${
               aboutMe.trim().length < MIN_ABOUT_LENGTH &&
               missingFields.includes(
-                personalDetailsDict.aboutMe?.fieldName || 'הסיפור שלי'
+                personalDetailsDict.aboutMe?.fieldName || 'כרטיס ההיכרות'
               )
                 ? 'border-red-300 focus:ring-red-200 focus:border-red-400'
                 : aboutMe.length > 0 && aboutMe.trim().length < MIN_ABOUT_LENGTH
                   ? 'border-amber-300 focus:ring-amber-200 focus:border-amber-400'
                   : 'border-gray-200 hover:border-gray-300 focus:border-purple-400 focus:ring-2 focus:ring-purple-200'
             }`}
-            rows={6}
+            rows={10}
           />
 
           <div className="flex justify-between items-center">
             <div>
               {aboutMe.trim().length < MIN_ABOUT_LENGTH &&
               missingFields.includes(
-                personalDetailsDict.aboutMe?.fieldName || 'הסיפור שלי'
+                personalDetailsDict.aboutMe?.fieldName || 'כרטיס ההיכרות'
               ) ? (
                 <p className="text-xs text-red-600 flex items-center gap-1">
                   <AlertCircle className="w-3 h-3" />
@@ -6759,6 +6855,7 @@ interface WelcomeStepProps {
 const WelcomeStep: React.FC<WelcomeStepProps> = ({ dict, locale }) => {
   const { nextStep } = useRegistration();
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const [isAppleLoading, setIsAppleLoading] = useState(false);
   const isRTL = locale === 'he';
 
   const handleGoogleSignIn = async () => {
@@ -6772,28 +6869,48 @@ const WelcomeStep: React.FC<WelcomeStepProps> = ({ dict, locale }) => {
     }
   };
 
+  const handleAppleSignIn = async () => {
+    try {
+      setIsAppleLoading(true);
+      localStorage.setItem('registration_started', 'true');
+      await signIn('apple', {
+        callbackUrl: `/${locale}/auth/register`,
+        redirect: true,
+      });
+    } catch (error) {
+      console.error('Apple sign-in error:', error);
+      setIsAppleLoading(false);
+    }
+  };
+
   const handleEmailSignUp = () => {
     nextStep();
   };
 
   const containerVariants = {
     hidden: { opacity: 0 },
-    visible: { 
-      opacity: 1, 
-      transition: { 
+    visible: {
+      opacity: 1,
+      transition: {
         staggerChildren: 0.1,
-        delayChildren: 0.2 
-      } 
-    }
+        delayChildren: 0.2,
+      },
+    },
   };
 
   const itemVariants = {
     hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" } }
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.5, ease: 'easeOut' },
+    },
   };
 
+  const isAnyLoading = isGoogleLoading || isAppleLoading;
+
   return (
-    <motion.div 
+    <motion.div
       className="space-y-8 text-center"
       variants={containerVariants}
       initial="hidden"
@@ -6802,20 +6919,14 @@ const WelcomeStep: React.FC<WelcomeStepProps> = ({ dict, locale }) => {
       {/* --- Icon Header --- */}
       <motion.div variants={itemVariants} className="flex justify-center mb-6">
         <div className="relative">
-          {/* UPDATED: Glow Effect (Rose/Orange) */}
           <div className="absolute inset-0 bg-rose-200/60 rounded-full blur-xl animate-pulse"></div>
-          
-          {/* UPDATED: Card Background (White/Rose/Orange) */}
           <div className="relative w-24 h-24 rounded-3xl bg-gradient-to-br from-white to-rose-50 border border-rose-100 flex items-center justify-center shadow-xl transform rotate-3 transition-transform hover:rotate-6 duration-500">
-            {/* UPDATED: Icon Color (Rose to match the "Personal" principle) */}
             <Heart className="h-10 w-10 text-rose-500 fill-rose-500 drop-shadow-sm" />
           </div>
-          
-          {/* UPDATED: Decorative Element (Teal - for contrast) */}
-          <motion.div 
+          <motion.div
             className="absolute -top-3 -right-3 w-10 h-10 rounded-full bg-gradient-to-br from-teal-400 to-emerald-500 flex items-center justify-center text-white text-lg font-bold shadow-lg border-2 border-white"
             animate={{ y: [0, -5, 0] }}
-            transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+            transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
           >
             👋
           </motion.div>
@@ -6834,10 +6945,38 @@ const WelcomeStep: React.FC<WelcomeStepProps> = ({ dict, locale }) => {
 
       {/* --- Action Buttons --- */}
       <motion.div variants={itemVariants} className="space-y-4 mt-8">
+        {/* 🍎 Apple Button */}
+        <Button
+          onClick={handleAppleSignIn}
+          disabled={isAnyLoading}
+          size="lg"
+          className="w-full relative z-20 py-7 rounded-2xl bg-black hover:bg-gray-900 text-white shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-3 group border-0"
+        >
+          {isAppleLoading ? (
+            <Loader2 className="animate-spin h-5 w-5 text-white" />
+          ) : (
+            <>
+              {/* Apple Logo SVG */}
+              <svg
+                className="h-5 w-5 flex-shrink-0"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+                aria-hidden="true"
+              >
+                <path d="M17.05 20.28c-.98.95-2.05.88-3.08.4-1.09-.5-2.08-.48-3.24 0-1.44.62-2.2.44-3.06-.4C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z" />
+              </svg>
+              <span className="font-semibold text-base">
+                {dict.appleButton ||
+                  (locale === 'he' ? 'המשך עם Apple' : 'Continue with Apple')}
+              </span>
+            </>
+          )}
+        </Button>
+
         {/* Google Button */}
         <Button
           onClick={handleGoogleSignIn}
-          disabled={isGoogleLoading}
+          disabled={isAnyLoading}
           variant="outline"
           size="lg"
           className="w-full relative z-20 bg-white hover:bg-gray-50 border-2 border-gray-200 hover:border-gray-300 py-7 rounded-2xl flex items-center justify-center gap-3 group transition-all duration-300 shadow-sm hover:shadow-md"
@@ -6846,8 +6985,11 @@ const WelcomeStep: React.FC<WelcomeStepProps> = ({ dict, locale }) => {
             <Loader2 className="animate-spin h-5 w-5 text-gray-500" />
           ) : (
             <>
-              {/* Google SVG remains standard colors */}
-              <svg className="h-6 w-6 flex-shrink-0 transition-transform group-hover:scale-110 duration-300" viewBox="0 0 24 24" aria-hidden="true">
+              <svg
+                className="h-6 w-6 flex-shrink-0 transition-transform group-hover:scale-110 duration-300"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+              >
                 <path
                   d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
                   fill="#4285F4"
@@ -6872,18 +7014,28 @@ const WelcomeStep: React.FC<WelcomeStepProps> = ({ dict, locale }) => {
           )}
         </Button>
 
+        {/* Divider */}
+        <div className="flex items-center gap-3 my-2">
+          <div className="flex-1 h-px bg-gray-200" />
+          <span className="text-sm text-gray-400 font-medium">
+            {locale === 'he' ? 'או' : 'or'}
+          </span>
+          <div className="flex-1 h-px bg-gray-200" />
+        </div>
+
         {/* Email Button */}
         <Button
           onClick={handleEmailSignUp}
+          disabled={isAnyLoading}
           size="lg"
-          // UPDATED: Gradient (Teal -> Orange -> Amber)
           className="w-full relative z-20 py-7 rounded-2xl bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 hover:from-teal-600 hover:via-orange-600 hover:to-amber-600 text-white shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-3 group overflow-hidden"
         >
-          {/* Shine Effect */}
           <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite] pointer-events-none"></span>
-          
+
           <Mail className="h-5 w-5 text-white" />
-          <span className="font-semibold text-base tracking-wide">{dict.emailButton}</span>
+          <span className="font-semibold text-base tracking-wide">
+            {dict.emailButton}
+          </span>
           {isRTL ? (
             <ArrowLeft className="h-5 w-5 text-white opacity-70 group-hover:opacity-100 group-hover:-translate-x-1 transition-all duration-300" />
           ) : (
@@ -6893,13 +7045,12 @@ const WelcomeStep: React.FC<WelcomeStepProps> = ({ dict, locale }) => {
       </motion.div>
 
       {/* --- Footer Links --- */}
-      <motion.div 
-        variants={itemVariants} 
+      <motion.div
+        variants={itemVariants}
         className="pt-6 border-t border-gray-100 relative z-20"
       >
         <p className="text-gray-500 text-sm">
           {dict.signInPrompt}{' '}
-          {/* UPDATED: Link Gradient (Teal -> Orange) */}
           <Link
             href="/auth/signin"
             className="font-bold text-transparent bg-clip-text bg-gradient-to-r from-teal-600 to-orange-600 hover:from-teal-700 hover:to-orange-700 hover:underline transition-all"
