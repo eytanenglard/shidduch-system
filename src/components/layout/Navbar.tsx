@@ -35,6 +35,7 @@ import {
   Mail,
   Gift,
   HeartHandshake,
+  FolderOpen,
 } from 'lucide-react';
 import { cn, getRelativeCloudinaryPath } from '@/lib/utils';
 import UserDropdown from './UserDropdown';
@@ -557,6 +558,10 @@ const Navbar = ({ dict }: NavbarProps) => {
                             dict.navbar.potentialMatches || 'התאמות פוטנציאליות'
                           }
                         />
+                        <NavItem
+                          href="/matchmaker/candidate-file"
+                          text={dict.navbar.candidateFile || 'תיק מועמד'}
+                        />
                         {/* #2: פריטים ניהוליים — dropdown בתוך UserDropdown עדיף,
                              אבל כרגע נשאיר כי צריך שינוי ב-UserDropdown */}
                         <NavItem
@@ -847,6 +852,16 @@ className="bg-gradient-to-r from-teal-500 to-orange-500 hover:from-teal-600 hove
                                 'התאמות פוטנציאליות'
                               }
                               icon={<HeartHandshake className="h-5 w-5" />}
+                              onClick={closeMobileMenu}
+                              isRtl={isRtl}
+                              isPrimary
+                            />
+                          </motion.div>
+                          <motion.div variants={menuItemVariants}>
+                            <MobileNavItem
+                              href="/matchmaker/candidate-file"
+                              text={dict.navbar.candidateFile || 'תיק מועמד'}
+                              icon={<FolderOpen className="h-5 w-5" />}
                               onClick={closeMobileMenu}
                               isRtl={isRtl}
                               isPrimary
