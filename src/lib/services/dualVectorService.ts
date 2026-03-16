@@ -18,6 +18,7 @@ interface ProfileDataForVectors {
     age: number;
     city?: string;
     religiousLevel?: string;
+    religiousJourney?: string;
     occupation?: string;
     education?: string;
     about?: string;
@@ -25,6 +26,7 @@ interface ProfileDataForVectors {
     nativeLanguage?: string;
     additionalLanguages?: string[];
     shomerNegiah?: boolean;
+    smokingStatus?: string;
     headCovering?: string;
     kippahType?: string;
     hobbies?: string[];
@@ -34,6 +36,7 @@ interface ProfileDataForVectors {
     preferredHeightMin?: number;
     preferredHeightMax?: number;
     preferredReligiousLevels?: string[];
+    preferredReligiousJourneys?: string[];
     preferredLocations?: string[];
   };
   questionnaire?: {
@@ -147,6 +150,7 @@ async function fetchProfileData(profileId: string): Promise<ProfileDataForVector
       age,
       city: profile.city || undefined,
       religiousLevel: profile.religiousLevel || undefined,
+      religiousJourney: profile.religiousJourney || undefined,
       occupation: profile.occupation || undefined,
       education: profile.education || undefined,
       about: profile.about || undefined,
@@ -154,6 +158,7 @@ async function fetchProfileData(profileId: string): Promise<ProfileDataForVector
       nativeLanguage: profile.nativeLanguage || undefined,
       additionalLanguages: profile.additionalLanguages || undefined,
       shomerNegiah: profile.shomerNegiah || undefined,
+      smokingStatus: profile.smokingStatus || undefined,
       headCovering: profile.headCovering || undefined,
       kippahType: profile.kippahType || undefined,
 /*       hobbies: profile.hobbies || undefined,
@@ -163,6 +168,7 @@ async function fetchProfileData(profileId: string): Promise<ProfileDataForVector
       preferredHeightMin: profile.preferredHeightMin || undefined,
       preferredHeightMax: profile.preferredHeightMax || undefined,
       preferredReligiousLevels: profile.preferredReligiousLevels || undefined,
+      preferredReligiousJourneys: profile.preferredReligiousJourneys?.length ? profile.preferredReligiousJourneys : undefined,
       preferredLocations: profile.preferredLocations || undefined,
     },
     questionnaire: questionnaire
@@ -204,8 +210,14 @@ function buildSelfText(data: ProfileDataForVectors): string {
   if (p.religiousLevel) {
     parts.push(`Religious Identity: ${formatReligiousLevel(p.religiousLevel)}`);
   }
+  if (p.religiousJourney) {
+    parts.push(`Religious Background: ${p.religiousJourney}`);
+  }
   if (p.shomerNegiah !== undefined) {
     parts.push(`Shomer Negiah: ${p.shomerNegiah ? 'Yes' : 'No'}`);
+  }
+  if (p.smokingStatus) {
+    parts.push(`Smoking: ${p.smokingStatus}`);
   }
   if (p.headCovering) {
     parts.push(`Head Covering: ${p.headCovering}`);
@@ -315,6 +327,9 @@ function buildSeekingText(data: ProfileDataForVectors): string {
   }
   if (p.preferredReligiousLevels?.length) {
     parts.push(`Preferred Religious Levels: ${p.preferredReligiousLevels.map(formatReligiousLevel).join(', ')}`);
+  }
+  if (p.preferredReligiousJourneys?.length) {
+    parts.push(`Preferred Religious Background: ${p.preferredReligiousJourneys.join(', ')}`);
   }
   if (p.preferredLocations?.length) {
     parts.push(`Preferred Locations: ${p.preferredLocations.join(', ')}`);

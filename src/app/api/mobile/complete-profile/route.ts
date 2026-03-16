@@ -127,6 +127,7 @@ export async function POST(req: NextRequest) {
           occupation: occupation || undefined,
           education: education || undefined,
           religiousLevel: religiousLevel || undefined,
+          religiousJourney: religiousJourney || undefined,
           about: about || undefined,
           updatedAt: new Date(),
         },

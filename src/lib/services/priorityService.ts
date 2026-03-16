@@ -453,6 +453,7 @@ function calculateProfileCompleteness(profile: any): number {
     'preferredAgeMin',
     'preferredAgeMax',
     'preferredReligiousLevels',
+    'preferredReligiousJourneys',
     'matchingNotes',
   ];
 

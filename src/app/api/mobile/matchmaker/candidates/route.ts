@@ -251,6 +251,7 @@ export async function GET(request: NextRequest) {
               city: true,
               origin: true,
               religiousLevel: true,
+              religiousJourney: true,
               about: true,
               availabilityStatus: true,
               availabilityNote: true,
@@ -279,6 +280,7 @@ export async function GET(request: NextRequest) {
               preferredAgeMin: true,
               preferredAgeMax: true,
               preferredReligiousLevels: true,
+              preferredReligiousJourneys: true,
               preferredLocations: true,
               contactPreference: true,
               // Testimonials count
@@ -384,6 +386,7 @@ export async function GET(request: NextRequest) {
         educationLevel: profile.educationLevel,
         maritalStatus: profile.maritalStatus,
         religiousLevel: profile.religiousLevel,
+        religiousJourney: profile.religiousJourney,
         about: profile.about,
         availabilityStatus: profile.availabilityStatus,
         availabilityNote: profile.availabilityNote,
@@ -413,6 +416,7 @@ export async function GET(request: NextRequest) {
           ? { min: profile.preferredAgeMin, max: profile.preferredAgeMax }
           : null,
         preferredReligiousLevels: profile.preferredReligiousLevels,
+        preferredReligiousJourneys: profile.preferredReligiousJourneys,
         preferredLocations: profile.preferredLocations,
         contactPreference: profile.contactPreference,
         // Suggestion status

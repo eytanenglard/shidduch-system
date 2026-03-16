@@ -381,6 +381,17 @@ const QuickView: React.FC<QuickViewProps> = ({
               </p>
             </div>
           )}
+          {(profile as any).religiousJourney && (
+            <div className="p-3 bg-gradient-to-r from-indigo-50 to-violet-50 rounded-xl border border-indigo-100 hover:shadow-md transition-all duration-300">
+              <div className="flex items-center justify-end gap-2 text-indigo-700">
+                <span className="font-medium text-sm">
+                  {(profile as any).religiousJourney}
+                </span>
+                <Scroll className="w-5 h-5" />
+              </div>
+              <p className="text-xs text-indigo-600 mt-1">מסלול דתי</p>
+            </div>
+          )}
         </div>
         <Separator className="my-6 bg-gradient-to-r from-transparent via-gray-300 to-transparent" />
         {isManualEntry && profile.manualEntryText ? (

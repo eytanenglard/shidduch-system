@@ -95,6 +95,7 @@ export const AddManualCandidateDialog: React.FC<
   const [gender, setGender] = useState<Gender | undefined>(undefined);
   const [maritalStatus, setMaritalStatus] = useState<string>('');
   const [religiousLevel, setReligiousLevel] = useState<string>('');
+  const [religiousJourney, setReligiousJourney] = useState<string>('');
   const [origin, setOrigin] = useState<string>('');
   const [height, setHeight] = useState('');
   const [hasChildrenFromPrevious, setHasChildrenFromPrevious] =
@@ -261,6 +262,7 @@ export const AddManualCandidateDialog: React.FC<
     formData.append('gender', gender);
     formData.append('maritalStatus', maritalStatus);
     formData.append('religiousLevel', religiousLevel);
+    if (religiousJourney) formData.append('religiousJourney', religiousJourney);
     formData.append('birthDate', finalBirthDate.toISOString());
     formData.append('birthDateIsApproximate', String(isBirthDateApproximate));
     formData.append('manualEntryText', manualEntryText);
@@ -582,6 +584,32 @@ export const AddManualCandidateDialog: React.FC<
                         </SelectItem>
                       )
                     )}
+                  </SelectContent>
+                </Select>
+              </FormField>
+
+              {/* Religious Journey */}
+              <FormField>
+                <Label htmlFor="religiousJourney" className="text-sm font-medium">
+                  רקע דתי (מסלול)
+                </Label>
+                <Select
+                  value={religiousJourney}
+                  onValueChange={(value: string) => setReligiousJourney(value)}
+                >
+                  <SelectTrigger id="religiousJourney" dir="rtl" className="bg-white">
+                    <SelectValue placeholder="בחר/י רקע דתי (אופציונלי)" />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-[200px]">
+                    <SelectItem value="BORN_INTO_CURRENT_LIFESTYLE">גדלתי בסביבה דומה להגדרתי כיום</SelectItem>
+                    <SelectItem value="CHOZER_BTESHUVA">חזרתי בתשובה</SelectItem>
+                    <SelectItem value="CHOZER_BSHEELA">יצאתי בשאלה (דתל&quot;ש)</SelectItem>
+                    <SelectItem value="ALWAYS_RELIGIOUS_LEUMI">גדלתי בבית דתי לאומי</SelectItem>
+                    <SelectItem value="ALWAYS_RELIGIOUS_HAREDI">גדלתי בבית חרדי</SelectItem>
+                    <SelectItem value="BORN_SECULAR">גדלתי בסביבה חילונית</SelectItem>
+                    <SelectItem value="CONVERT">גר/ה / גיורת</SelectItem>
+                    <SelectItem value="IN_PROCESS">בתהליך של שינוי / התלבטות</SelectItem>
+                    <SelectItem value="OTHER">אחר (נא לפרט בהערות)</SelectItem>
                   </SelectContent>
                 </Select>
               </FormField>

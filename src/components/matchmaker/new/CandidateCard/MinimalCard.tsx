@@ -621,6 +621,14 @@ const MinimalCandidateCard: React.FC<MinimalCandidateCardProps> = React.memo(
                       <Scroll className="w-4 h-4 text-purple-600" />
                     </div>
                   )}
+                  {(candidate.profile as any).religiousJourney && (
+                    <div className="flex items-center justify-end gap-2 p-2 bg-indigo-50 rounded-lg hover:bg-indigo-100 transition-colors duration-200">
+                      <span className="text-indigo-800 text-sm font-medium">
+                        {highlightText((candidate.profile as any).religiousJourney)}
+                      </span>
+                      <Scroll className="w-4 h-4 text-indigo-600" />
+                    </div>
+                  )}
 
                   {candidate.profile.maritalStatus && (() => {
                     const ms = candidate.profile.maritalStatus as string;

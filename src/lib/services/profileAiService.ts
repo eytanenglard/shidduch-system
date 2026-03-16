@@ -201,6 +201,7 @@ export async function generateNarrativeProfile(userId: string): Promise<string> 
   - Level: ${p.religiousLevel || 'Not specified'}
   - Journey: ${p.religiousJourney || 'Not specified'}
   - Shomer Negiah: ${p.shomerNegiah ? 'Yes' : 'No/Unknown'}
+  ${p.smokingStatus ? `- Smoking: ${p.smokingStatus}` : '- Smoking: Not specified'}
   ${p.kippahType ? `- Kippah: ${p.kippahType}` : ''}
   ${p.headCovering ? `- Head Covering: ${p.headCovering}` : ''}
   

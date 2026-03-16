@@ -1309,6 +1309,7 @@ async function getTargetUserData(userId: string): Promise<TargetUserData | null>
           gender: true,
           birthDate: true,
           religiousLevel: true,
+          religiousJourney: true,
           aiProfileSummary: true,
           nativeLanguage: true,
           additionalLanguages: true,
@@ -1353,6 +1354,7 @@ async function getTargetUserData(userId: string): Promise<TargetUserData | null>
     birthDate: user.profile.birthDate,
     age,
     religiousLevel: user.profile.religiousLevel,
+    religiousJourney: user.profile.religiousJourney,
     aiProfileSummary: user.profile.aiProfileSummary as AiProfileSummary | null,
     backgroundProfile,
   };
@@ -1414,6 +1416,7 @@ async function fetchAllRelevantCandidates(
         select: {
           birthDate: true,
           religiousLevel: true,
+          religiousJourney: true,
           city: true,
           occupation: true,
           aiProfileSummary: true,
@@ -1507,6 +1510,7 @@ async function fetchAllRelevantCandidates(
       lastName: c.lastName,
       age,
       religiousLevel: c.profile!.religiousLevel,
+      religiousJourney: c.profile!.religiousJourney,
       city: c.profile!.city,
       occupation: c.profile!.occupation,
       summaryText: summaryText.substring(0, 1500),
