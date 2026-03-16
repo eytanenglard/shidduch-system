@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(grep -r \"getDictionary\\\\|SuggestionsDictionary\\\\|ProfileCardDict\" c:UserseytanDesktopNeshamaTechshidduch-systemsrcapp[locale] --include=*.ts --include=*.tsx -l)"
+    ]
+  }
+}

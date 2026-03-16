@@ -1,0 +1,35 @@
+{
+  "hooks": {
+    "postEditFile": [
+      {
+        "name": "TypeScript Check",
+        "description": "Run TypeScript type check after editing .ts/.tsx files",
+        "pattern": "**/*.{ts,tsx}",
+        "command": "npx tsc --noEmit --pretty 2>&1 | head -30",
+        "timeout": 30000
+      }
+    ],
+    "preCommit": [
+      {
+        "name": "Lint Check",
+        "description": "Run ESLint before committing",
+        "command": "npx next lint --quiet 2>&1 | head -20",
+        "timeout": 30000
+      }
+    ]
+  },
+  "permissions": {
+    "allow": [
+      "npx tsc --noEmit",
+      "npx next lint",
+      "npx prisma format",
+      "npx prisma validate",
+      "git status",
+      "git diff",
+      "git log --oneline -10",
+      "git branch",
+      "git add",
+      "git commit"
+    ]
+  }
+}

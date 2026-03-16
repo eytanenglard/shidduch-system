@@ -1471,7 +1471,7 @@
     "secondParty": "צד ב׳"
   }
 },
-     "actions": {
+  "actions": {
   "changeStatus": "שנה סטטוס",
   "selectNewStatus": "בחר סטטוס חדש",
   "edit": "ערוך הצעה",
@@ -1480,7 +1480,14 @@
   "resend": "שלח מחדש",
   "viewDetails": "פרטים",
   "hideCandidate": "הסתר מועמד/ת",
-  "hideParty": "הסתר את {{name}}"
+  "hideParty": "הסתר את {{name}}",
+  "confirmTitle": "האם אתה בטוח?",
+  "confirmDescription": "פעולה זו תשלח התראות לצדדים הרלוונטיים ולא ניתנת לביטול.",
+  "cancel": "ביטול",
+  "confirm": "אישור",
+  "advanceCategory": "קידום",
+  "updateCategory": "עדכון",
+  "closeCategory": "סגירה"
 },
    "highlights": {
   "familyValues": "ערכים משפחתיים דומים",

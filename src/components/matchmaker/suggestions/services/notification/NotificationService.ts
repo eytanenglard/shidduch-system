@@ -482,6 +482,11 @@ export class NotificationService {
   // החלף את הפונקציה הקיימת ב-NotificationService.ts
   // ════════════════════════════════════════════════════════════════
 
+ // ════════════════════════════════════════════════════════════════
+  // 🔧 FIX: getRecipientsForSuggestion — כיסוי כל הסטטוסים
+  // החלף את הפונקציה הקיימת ב-NotificationService.ts
+  // ════════════════════════════════════════════════════════════════
+
   private getRecipientsForSuggestion(suggestion: SuggestionWithParties): Array<{
     recipient: RecipientInfo;
     preferredChannels: NotificationChannel[];

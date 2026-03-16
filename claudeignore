@@ -1,0 +1,60 @@
+# Dependencies
+node_modules/
+.npm/
+
+# Build output
+.next/
+.dist/
+dist/
+
+# Database & backups
+*.sql
+*.csv
+
+# Git internals
+.git/
+
+# Environment
+.env
+.env.*
+
+# Large/binary files
+*.pdf
+*.zip
+*.tar.gz
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.svg
+*.ico
+*.woff
+*.woff2
+*.ttf
+*.eot
+
+# Lock files (huge, not useful for context)
+package-lock.json
+yarn.lock
+
+# Prisma generated client (auto-generated, very large)
+node_modules/.prisma/
+
+# Cache
+.next/cache/
+*.nft.json
+*.map
+
+# Test/debug scripts (read only when needed)
+src/scripts/test*.ts
+src/scripts/debug*.ts
+src/scripts/check*.ts
+
+# Heroku-specific
+Procfile
+.slugignore
+
+# Misc
+*.log
+.DS_Store
+Thumbs.db

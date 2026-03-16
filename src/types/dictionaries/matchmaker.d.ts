@@ -1189,7 +1189,6 @@ type SuggestionCardDict = {
     };
   };
 // בקובץ הטיפוסים שלך (למשל types/dictionary.ts או types/matchmaker.ts)
-
 actions: {
   changeStatus: string;
   selectNewStatus: string;
@@ -1198,8 +1197,16 @@ actions: {
   delete: string;
   resend: string;
   viewDetails: string;
-  hideCandidate: string;      // 🆕 הוסף
-  hideParty: string;          // 🆕 הוסף
+  hideCandidate: string;
+  hideParty: string;
+  // 🆕 Smart Action Hub keys
+  confirmTitle: string;
+  confirmDescription: string;
+  cancel: string;
+  confirm: string;
+  advanceCategory: string;
+  updateCategory: string;
+  closeCategory: string;
 };
   highlights: {
     familyValues: string;

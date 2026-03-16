@@ -1,6 +1,6 @@
 // src/app/api/matchmaker/suggestions/[id]/route.ts
 // ════════════════════════════════════════════════════════════════
-// 🔧 FIX: הסרנו את עדכון הסטטוס מה-PATCH הכללי.
+// 🔧 FIX: הסרת עדכון סטטוס ישיר מ-PATCH הכללי.
 //    כל שינוי סטטוס חייב לעבור דרך /status endpoint
 //    כדי שמיילים והתראות יישלחו כראוי.
 // ════════════════════════════════════════════════════════════════
@@ -8,34 +8,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { MatchSuggestionStatus, UserRole } from "@prisma/client";
+import { UserRole } from "@prisma/client";
 import { SuggestionService } from "@/components/matchmaker/suggestions/services/suggestions/SuggestionService";
-import prisma from "@/lib/prisma";
-
-// פונקציית עזר לחישוב קטגוריה
-const getSuggestionCategory = (status: MatchSuggestionStatus) => {
-  switch (status) {
-    case "DRAFT":
-    case "AWAITING_MATCHMAKER_APPROVAL":
-    case "PENDING_FIRST_PARTY":
-    case "PENDING_SECOND_PARTY":
-      return "PENDING";
-    
-    case "FIRST_PARTY_DECLINED":
-    case "SECOND_PARTY_DECLINED":
-    case "MATCH_DECLINED":
-    case "ENDED_AFTER_FIRST_DATE":
-    case "ENGAGED":
-    case "MARRIED":
-    case "EXPIRED":
-    case "CLOSED":
-    case "CANCELLED":
-      return "HISTORY";
-    
-    default:
-      return "ACTIVE";
-  }
-};
 
 export async function PATCH(
   req: NextRequest,
@@ -62,20 +36,19 @@ export async function PATCH(
     const suggestionId = params.id;
     const data = await req.json();
     
-    // ═════════════════════════════════════════════════════════════
-    // 🔧 FIX: אם הבקשה כוללת שדה status, נחזיר שגיאה ברורה.
-    //    כל שינוי סטטוס חייב לעבור דרך PATCH /status endpoint
-    //    כדי שהמיילים וההתראות יישלחו כראוי.
-    // ═════════════════════════════════════════════════════════════
+    // ═══════════════════════════════════════════════════════════
+    // 🔧 FIX: מסיר status מהבקשה — שינוי סטטוס חייב לעבור
+    //    דרך PATCH /[id]/status שמפעיל StatusTransitionService
+    //    ושולח מיילים + push + WhatsApp
+    // ═══════════════════════════════════════════════════════════
     if (data.status) {
       console.warn(
         `[PATCH /suggestions/${suggestionId}] ⚠️ Received 'status' field in general PATCH. ` +
-        `Status changes must go through /status endpoint. Ignoring status field.`
+        `Status changes must go through /status endpoint for notifications to work. Ignoring status field.`
       );
-      // מסירים את שדה הסטטוס — שאר השדות (notes, priority וכו') ימשיכו להתעדכן
       delete data.status;
     }
-    // ═════════════════════════════════════════════════════════════
+    // ═══════════════════════════════════════════════════════════
 
     const suggestionService = SuggestionService.getInstance();
     
@@ -104,20 +77,20 @@ export async function PATCH(
       });
       
     } catch (serviceError: unknown) {
-        console.error("Error from suggestion service:", serviceError);
-        
-        if (serviceError instanceof Error) {
-          return NextResponse.json(
-            { success: false, error: serviceError.message || "Failed to update suggestion" },
-            { status: serviceError.message.includes("Unauthorized") ? 403 : 400 }
-          );
-        }
-        
+      console.error("Error from suggestion service:", serviceError);
+      
+      if (serviceError instanceof Error) {
         return NextResponse.json(
-          { success: false, error: "Failed to update suggestion" },
-          { status: 400 }
+          { success: false, error: serviceError.message || "Failed to update suggestion" },
+          { status: serviceError.message.includes("Unauthorized") ? 403 : 400 }
         );
       }
+      
+      return NextResponse.json(
+        { success: false, error: "Failed to update suggestion" },
+        { status: 400 }
+      );
+    }
   } catch (error) {
     console.error("Error updating suggestion:", error);
     return NextResponse.json(

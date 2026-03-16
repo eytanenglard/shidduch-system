@@ -1,4 +1,11 @@
 // src/components/matchmaker/suggestions/services/suggestions/StatusTransitionService.ts
+// ════════════════════════════════════════════════════════════════
+// 🔧 FIX:
+//   1. validTransitions מסונכרן עם STATUS_TRANSITIONS ב-SuggestionCard
+//   2. לוג מפורט כשמייל נכשל/מצליח
+//   3. עדכון category בכל שינוי סטטוס
+//   4. תיקון validateStatusTransition — כולל logging
+// ════════════════════════════════════════════════════════════════
 
 import { MatchSuggestionStatus, User, MatchSuggestion, Profile } from "@prisma/client";
 import prisma from "@/lib/prisma";
@@ -7,7 +14,6 @@ import { notifyNewSuggestion, notifyStatusChange, sendPushToUser } from "@/lib/p
 import { emailService } from "@/lib/email/emailService";
 import type { EmailDictionary } from "@/types/dictionary";
 
-// הפעלת שירות ההתראות עם רישום adapters (email + whatsapp)
 const notificationService = initNotificationService();
 
 type UserWithProfile = User & {
@@ -30,6 +36,31 @@ type LanguagePrefs = {
   firstParty: 'he' | 'en';
   secondParty: 'he' | 'en';
   matchmaker: 'he' | 'en';
+};
+
+// ════════════════════════════════════════════════════════════════
+// Helper: חישוב קטגוריה
+// ════════════════════════════════════════════════════════════════
+const getSuggestionCategory = (status: MatchSuggestionStatus) => {
+  switch (status) {
+    case 'DRAFT':
+    case 'AWAITING_MATCHMAKER_APPROVAL':
+    case 'PENDING_FIRST_PARTY':
+    case 'PENDING_SECOND_PARTY':
+      return 'PENDING';
+    case 'FIRST_PARTY_DECLINED':
+    case 'SECOND_PARTY_DECLINED':
+    case 'MATCH_DECLINED':
+    case 'ENDED_AFTER_FIRST_DATE':
+    case 'ENGAGED':
+    case 'MARRIED':
+    case 'EXPIRED':
+    case 'CLOSED':
+    case 'CANCELLED':
+      return 'HISTORY';
+    default:
+      return 'ACTIVE';
+  }
 };
 
 export class StatusTransitionService {
@@ -58,8 +89,10 @@ export class StatusTransitionService {
       ...options
     };
 
+    // ═══ Validate ═══
     this.validateStatusTransition(previousStatus, newStatus);
 
+    // ═══ DB Update ═══
     const updatedSuggestion = await prisma.$transaction(async (tx) => {
       const updated = await tx.matchSuggestion.update({
         where: { id: suggestion.id },
@@ -68,6 +101,7 @@ export class StatusTransitionService {
           previousStatus,
           lastStatusChange: new Date(),
           lastActivity: new Date(),
+          category: getSuggestionCategory(newStatus),
           ...(newStatus === MatchSuggestionStatus.FIRST_PARTY_APPROVED && { firstPartyResponded: new Date() }),
           ...(newStatus === MatchSuggestionStatus.PENDING_SECOND_PARTY && { secondPartySent: new Date() }),
           ...(newStatus === MatchSuggestionStatus.SECOND_PARTY_APPROVED && { secondPartyResponded: new Date() }),
@@ -75,6 +109,8 @@ export class StatusTransitionService {
           ...(newStatus === MatchSuggestionStatus.MEETING_SCHEDULED && { firstMeetingScheduled: new Date() }),
           ...(newStatus === MatchSuggestionStatus.SECOND_PARTY_NOT_AVAILABLE && { secondPartyResponded: new Date() }),
           ...(newStatus === MatchSuggestionStatus.RE_OFFERED_TO_FIRST_PARTY && { firstPartySent: new Date() }),
+          ...(newStatus === MatchSuggestionStatus.CLOSED && { closedAt: new Date() }),
+          ...(newStatus === MatchSuggestionStatus.CANCELLED && { closedAt: new Date() }),
         },
         include: {
           firstParty: { include: { profile: true } },
@@ -94,12 +130,22 @@ export class StatusTransitionService {
       return updated;
     });
 
+    // ═══ Notifications ═══
     if (mergedOptions.sendNotifications) {
+      // 1. Email + WhatsApp via NotificationService
       try {
+        console.log(`\n═══════════════════════════════════════════════`);
+        console.log(`📨 [StatusTransition] Sending notifications for ${previousStatus} → ${newStatus}`);
+        console.log(`   Suggestion: ${updatedSuggestion.id}`);
+        console.log(`   First party: ${updatedSuggestion.firstParty.firstName} (${languagePrefs.firstParty})`);
+        console.log(`   Second party: ${updatedSuggestion.secondParty.firstName} (${languagePrefs.secondParty})`);
+        console.log(`   notifyParties: ${mergedOptions.notifyParties?.join(', ')}`);
+        console.log(`═══════════════════════════════════════════════\n`);
+
         await notificationService.handleSuggestionStatusChange(
-          updatedSuggestion, 
+          updatedSuggestion,
           dictionaries,
-          {           
+          {
             channels: ['email', 'whatsapp'],
             notifyParties: mergedOptions.notifyParties as ('first' | 'second' | 'matchmaker')[],
             customMessage: mergedOptions.customMessage
@@ -107,21 +153,19 @@ export class StatusTransitionService {
           languagePrefs
         );
         
-        console.log(`Notifications sent for suggestion ${updatedSuggestion.id} status change to ${newStatus}`);
+        console.log(`✅ [StatusTransition] Notifications sent successfully for ${newStatus}`);
       } catch (error) {
-        console.error('Error sending status transition notifications:', error);
+        console.error(`❌ [StatusTransition] Error sending notifications for ${newStatus}:`, error);
       }
 
+      // 2. Push notifications
       try {
         await this.sendPushForStatusChange(updatedSuggestion, newStatus);
       } catch (pushError) {
         console.error('[push] Error in status change push (non-fatal):', pushError);
       }
 
-      // ═══════════════════════════════════════════════════════
-      // ✅ CONTACT_DETAILS_SHARED → שליחת מייל עם פרטי הקשר בפועל
-      //    (דרך emailService / Resend – עם template shareContactDetails)
-      // ═══════════════════════════════════════════════════════
+      // 3. CONTACT_DETAILS_SHARED — מייל נפרד עם פרטי קשר בפועל
       if (newStatus === MatchSuggestionStatus.CONTACT_DETAILS_SHARED) {
         try {
           const { firstParty, secondParty, matchmaker } = updatedSuggestion;
@@ -129,12 +173,10 @@ export class StatusTransitionService {
 
           console.log('═══════════════════════════════════════════════');
           console.log('📨 Sending CONTACT DETAILS emails via Resend');
-          console.log(`   Suggestion ID: ${updatedSuggestion.id}`);
-          console.log(`   First party: ${firstParty.firstName} ${firstParty.lastName} → receives ${secondParty.firstName}'s details`);
-          console.log(`   Second party: ${secondParty.firstName} ${secondParty.lastName} → receives ${firstParty.firstName}'s details`);
+          console.log(`   First party: ${firstParty.firstName} → receives ${secondParty.firstName}'s details`);
+          console.log(`   Second party: ${secondParty.firstName} → receives ${firstParty.firstName}'s details`);
           console.log('═══════════════════════════════════════════════');
 
-          // מייל לצד ראשון — עם פרטי הצד השני
           await emailService.sendContactDetailsEmail({
             locale: languagePrefs.firstParty,
             email: firstParty.email,
@@ -147,7 +189,6 @@ export class StatusTransitionService {
             matchmakerName: matchmakerFullName,
           });
 
-          // מייל לצד שני — עם פרטי הצד הראשון
           await emailService.sendContactDetailsEmail({
             locale: languagePrefs.secondParty,
             email: secondParty.email,
@@ -170,9 +211,9 @@ export class StatusTransitionService {
     return updatedSuggestion;
   }
 
-  // =====================================================
-  // ✅ Push notification logic for status changes
-  // =====================================================
+  // ═══════════════════════════════════════════════════════════════
+  // Push notification logic
+  // ═══════════════════════════════════════════════════════════════
   private async sendPushForStatusChange(
     suggestion: SuggestionWithParties,
     newStatus: MatchSuggestionStatus
@@ -180,129 +221,58 @@ export class StatusTransitionService {
     const matchmakerName = `${suggestion.matchmaker.firstName} ${suggestion.matchmaker.lastName}`;
 
     switch (newStatus) {
-      // ── הצעה נשלחה לצד שני ──
       case MatchSuggestionStatus.PENDING_SECOND_PARTY:
-        await notifyNewSuggestion({
-          userId: suggestion.secondPartyId,
-          matchmakerName,
-          suggestionId: suggestion.id,
-        });
+        await notifyNewSuggestion({ userId: suggestion.secondPartyId, matchmakerName, suggestionId: suggestion.id });
         break;
-
-      // ── צד ראשון אישר → עדכון לשדכן ──
       case MatchSuggestionStatus.FIRST_PARTY_APPROVED:
-        await notifyStatusChange({
-          userId: suggestion.matchmakerId,
-          suggestionId: suggestion.id,
-          statusMessage: `${suggestion.firstParty.firstName} ${suggestion.firstParty.lastName} אישר/ה את ההצעה! ✅`,
-        });
+        await notifyStatusChange({ userId: suggestion.matchmakerId, suggestionId: suggestion.id, statusMessage: `${suggestion.firstParty.firstName} ${suggestion.firstParty.lastName} אישר/ה את ההצעה! ✅` });
         break;
-
-      // ── צד ראשון דחה → עדכון לשדכן ──
       case MatchSuggestionStatus.FIRST_PARTY_DECLINED:
-        await notifyStatusChange({
-          userId: suggestion.matchmakerId,
-          suggestionId: suggestion.id,
-          statusMessage: `${suggestion.firstParty.firstName} ${suggestion.firstParty.lastName} דחה/תה את ההצעה`,
-        });
+        await notifyStatusChange({ userId: suggestion.matchmakerId, suggestionId: suggestion.id, statusMessage: `${suggestion.firstParty.firstName} ${suggestion.firstParty.lastName} דחה/תה את ההצעה` });
         break;
-
-      // ── צד ראשון שמר לגיבוי → עדכון לשדכן ──
       case MatchSuggestionStatus.FIRST_PARTY_INTERESTED:
-        await notifyStatusChange({
-          userId: suggestion.matchmakerId,
-          suggestionId: suggestion.id,
-          statusMessage: `${suggestion.firstParty.firstName} ${suggestion.firstParty.lastName} שמר/ה את ההצעה לגיבוי ⭐`,
-        });
+        await notifyStatusChange({ userId: suggestion.matchmakerId, suggestionId: suggestion.id, statusMessage: `${suggestion.firstParty.firstName} ${suggestion.firstParty.lastName} שמר/ה את ההצעה לגיבוי ⭐` });
         break;
-
-      // ── צד שני אישר → עדכון לשדכן ──
       case MatchSuggestionStatus.SECOND_PARTY_APPROVED:
-        await notifyStatusChange({
-          userId: suggestion.matchmakerId,
-          suggestionId: suggestion.id,
-          statusMessage: `${suggestion.secondParty.firstName} ${suggestion.secondParty.lastName} אישר/ה את ההצעה! ✅ שני הצדדים אישרו!`,
-        });
+        await notifyStatusChange({ userId: suggestion.matchmakerId, suggestionId: suggestion.id, statusMessage: `${suggestion.secondParty.firstName} ${suggestion.secondParty.lastName} אישר/ה את ההצעה! ✅ שני הצדדים אישרו!` });
         break;
-
-      // ── צד שני דחה → עדכון לשדכן ──
       case MatchSuggestionStatus.SECOND_PARTY_DECLINED:
-        await notifyStatusChange({
-          userId: suggestion.matchmakerId,
-          suggestionId: suggestion.id,
-          statusMessage: `${suggestion.secondParty.firstName} ${suggestion.secondParty.lastName} דחה/תה את ההצעה`,
-        });
+        await notifyStatusChange({ userId: suggestion.matchmakerId, suggestionId: suggestion.id, statusMessage: `${suggestion.secondParty.firstName} ${suggestion.secondParty.lastName} דחה/תה את ההצעה` });
         break;
-
-      // ── צד שני לא זמין → עדכון לשדכן ──
       case MatchSuggestionStatus.SECOND_PARTY_NOT_AVAILABLE:
-        await notifyStatusChange({
-          userId: suggestion.matchmakerId,
-          suggestionId: suggestion.id,
-          statusMessage: `${suggestion.secondParty.firstName} ${suggestion.secondParty.lastName} לא זמין/ה כרגע`,
-        });
+        await notifyStatusChange({ userId: suggestion.matchmakerId, suggestionId: suggestion.id, statusMessage: `${suggestion.secondParty.firstName} ${suggestion.secondParty.lastName} לא זמין/ה כרגע` });
         break;
-
-      // ── הצעה חזרה לצד א' מחדש → push לצד א' ──
       case MatchSuggestionStatus.RE_OFFERED_TO_FIRST_PARTY:
-        await notifyNewSuggestion({
-          userId: suggestion.firstPartyId,
-          matchmakerName: matchmakerName,
-          suggestionId: suggestion.id,
-        });
+        await notifyNewSuggestion({ userId: suggestion.firstPartyId, matchmakerName, suggestionId: suggestion.id });
         break;
-
-      // ── פרטי קשר שותפו → עדכון לשני הצדדים ──
       case MatchSuggestionStatus.CONTACT_DETAILS_SHARED:
         await Promise.all([
-          sendPushToUser(suggestion.firstPartyId, {
-            title: '🎉 פרטי קשר שותפו!',
-            body: 'שני הצדדים אישרו! לחץ/י לראות את פרטי הקשר',
-            data: { type: 'STATUS_CHANGE', suggestionId: suggestion.id },
-            sound: 'default',
-          }),
-          sendPushToUser(suggestion.secondPartyId, {
-            title: '🎉 פרטי קשר שותפו!',
-            body: 'שני הצדדים אישרו! לחץ/י לראות את פרטי הקשר',
-            data: { type: 'STATUS_CHANGE', suggestionId: suggestion.id },
-            sound: 'default',
-          }),
+          sendPushToUser(suggestion.firstPartyId, { title: '🎉 פרטי קשר שותפו!', body: 'שני הצדדים אישרו! לחץ/י לראות את פרטי הקשר', data: { type: 'STATUS_CHANGE', suggestionId: suggestion.id }, sound: 'default' }),
+          sendPushToUser(suggestion.secondPartyId, { title: '🎉 פרטי קשר שותפו!', body: 'שני הצדדים אישרו! לחץ/י לראות את פרטי הקשר', data: { type: 'STATUS_CHANGE', suggestionId: suggestion.id }, sound: 'default' }),
         ]);
         break;
-
-      // ── אירוסין / נישואין → כולם ──
       case MatchSuggestionStatus.ENGAGED:
       case MatchSuggestionStatus.MARRIED: {
         const emoji = newStatus === 'ENGAGED' ? '💍' : '💒';
         const label = newStatus === 'ENGAGED' ? 'מזל טוב! אירוסין!' : 'מזל טוב! נישואין!';
         await Promise.all([
-          sendPushToUser(suggestion.firstPartyId, {
-            title: `${emoji} ${label}`,
-            body: 'מזל טוב! שמחים לבשר על ההתקדמות!',
-            data: { type: 'STATUS_CHANGE', suggestionId: suggestion.id },
-            sound: 'default',
-          }),
-          sendPushToUser(suggestion.secondPartyId, {
-            title: `${emoji} ${label}`,
-            body: 'מזל טוב! שמחים לבשר על ההתקדמות!',
-            data: { type: 'STATUS_CHANGE', suggestionId: suggestion.id },
-            sound: 'default',
-          }),
+          sendPushToUser(suggestion.firstPartyId, { title: `${emoji} ${label}`, body: 'מזל טוב! שמחים לבשר על ההתקדמות!', data: { type: 'STATUS_CHANGE', suggestionId: suggestion.id }, sound: 'default' }),
+          sendPushToUser(suggestion.secondPartyId, { title: `${emoji} ${label}`, body: 'מזל טוב! שמחים לבשר על ההתקדמות!', data: { type: 'STATUS_CHANGE', suggestionId: suggestion.id }, sound: 'default' }),
         ]);
         break;
       }
-
       default:
         console.log(`[push] No push notification defined for status: ${newStatus}`);
         break;
     }
   }
 
-  // ============================================================
+  // ═══════════════════════════════════════════════════════════════
   // validateStatusTransition
-  // ============================================================
+  // ⚠️ מסונכרן עם STATUS_TRANSITIONS ב-SuggestionCard.tsx!
+  // ═══════════════════════════════════════════════════════════════
   private validateStatusTransition(
-    currentStatus: MatchSuggestionStatus, 
+    currentStatus: MatchSuggestionStatus,
     newStatus: MatchSuggestionStatus
   ): void {
     const validTransitions: Record<MatchSuggestionStatus, MatchSuggestionStatus[]> = {
@@ -311,111 +281,114 @@ export class StatusTransitionService {
         MatchSuggestionStatus.FIRST_PARTY_APPROVED,
         MatchSuggestionStatus.FIRST_PARTY_DECLINED,
         MatchSuggestionStatus.FIRST_PARTY_INTERESTED,
-        MatchSuggestionStatus.CANCELLED
+        MatchSuggestionStatus.CANCELLED,
       ],
       FIRST_PARTY_INTERESTED: [
         MatchSuggestionStatus.FIRST_PARTY_APPROVED,
         MatchSuggestionStatus.FIRST_PARTY_DECLINED,
-        MatchSuggestionStatus.CANCELLED
+        MatchSuggestionStatus.CANCELLED,
       ],
       FIRST_PARTY_APPROVED: [
         MatchSuggestionStatus.PENDING_SECOND_PARTY,
-        MatchSuggestionStatus.CANCELLED
+        MatchSuggestionStatus.CANCELLED,
       ],
       FIRST_PARTY_DECLINED: [
-        MatchSuggestionStatus.CLOSED
+        MatchSuggestionStatus.CLOSED,
       ],
       PENDING_SECOND_PARTY: [
         MatchSuggestionStatus.SECOND_PARTY_APPROVED,
         MatchSuggestionStatus.SECOND_PARTY_DECLINED,
         MatchSuggestionStatus.SECOND_PARTY_NOT_AVAILABLE,
-        MatchSuggestionStatus.CANCELLED
+        MatchSuggestionStatus.CANCELLED,
       ],
       SECOND_PARTY_NOT_AVAILABLE: [
         MatchSuggestionStatus.PENDING_SECOND_PARTY,
         MatchSuggestionStatus.CANCELLED,
-        MatchSuggestionStatus.CLOSED
+        MatchSuggestionStatus.CLOSED,
       ],
       SECOND_PARTY_APPROVED: [
         MatchSuggestionStatus.CONTACT_DETAILS_SHARED,
         MatchSuggestionStatus.RE_OFFERED_TO_FIRST_PARTY,
-        MatchSuggestionStatus.CANCELLED
+        MatchSuggestionStatus.CANCELLED,
       ],
       RE_OFFERED_TO_FIRST_PARTY: [
         MatchSuggestionStatus.FIRST_PARTY_APPROVED,
         MatchSuggestionStatus.AWAITING_MATCHMAKER_APPROVAL,
         MatchSuggestionStatus.FIRST_PARTY_DECLINED,
-        MatchSuggestionStatus.CANCELLED
+        MatchSuggestionStatus.CANCELLED,
       ],
       SECOND_PARTY_DECLINED: [
-        MatchSuggestionStatus.CLOSED
+        MatchSuggestionStatus.CLOSED,
       ],
       AWAITING_MATCHMAKER_APPROVAL: [
         MatchSuggestionStatus.CONTACT_DETAILS_SHARED,
-        MatchSuggestionStatus.CANCELLED
+        MatchSuggestionStatus.CANCELLED,
       ],
       CONTACT_DETAILS_SHARED: [
         MatchSuggestionStatus.AWAITING_FIRST_DATE_FEEDBACK,
-        MatchSuggestionStatus.CANCELLED
+        MatchSuggestionStatus.CANCELLED,
       ],
       AWAITING_FIRST_DATE_FEEDBACK: [
         MatchSuggestionStatus.THINKING_AFTER_DATE,
         MatchSuggestionStatus.ENDED_AFTER_FIRST_DATE,
-        MatchSuggestionStatus.CANCELLED
+        MatchSuggestionStatus.CANCELLED,
       ],
       THINKING_AFTER_DATE: [
         MatchSuggestionStatus.PROCEEDING_TO_SECOND_DATE,
         MatchSuggestionStatus.ENDED_AFTER_FIRST_DATE,
-        MatchSuggestionStatus.CANCELLED
+        MatchSuggestionStatus.CANCELLED,
       ],
       PROCEEDING_TO_SECOND_DATE: [
         MatchSuggestionStatus.DATING,
-        MatchSuggestionStatus.CANCELLED
+        MatchSuggestionStatus.CANCELLED,
       ],
       ENDED_AFTER_FIRST_DATE: [
-        MatchSuggestionStatus.CLOSED
+        MatchSuggestionStatus.CLOSED,
       ],
       MEETING_PENDING: [
         MatchSuggestionStatus.MEETING_SCHEDULED,
-        MatchSuggestionStatus.CANCELLED
+        MatchSuggestionStatus.CANCELLED,
       ],
       MEETING_SCHEDULED: [
         MatchSuggestionStatus.DATING,
-        MatchSuggestionStatus.CANCELLED
+        MatchSuggestionStatus.CANCELLED,
       ],
       MATCH_APPROVED: [
         MatchSuggestionStatus.DATING,
-        MatchSuggestionStatus.CANCELLED
+        MatchSuggestionStatus.CANCELLED,
       ],
       MATCH_DECLINED: [
-        MatchSuggestionStatus.CLOSED
+        MatchSuggestionStatus.CLOSED,
       ],
       DATING: [
         MatchSuggestionStatus.ENGAGED,
         MatchSuggestionStatus.CLOSED,
-        MatchSuggestionStatus.CANCELLED
+        MatchSuggestionStatus.CANCELLED,
       ],
       ENGAGED: [
         MatchSuggestionStatus.MARRIED,
-        MatchSuggestionStatus.CANCELLED
+        MatchSuggestionStatus.CANCELLED,
       ],
       MARRIED: [],
       EXPIRED: [],
       CLOSED: [],
-      CANCELLED: []
+      CANCELLED: [],
     };
 
     if (!validTransitions[currentStatus]?.includes(newStatus)) {
+      console.error(
+        `❌ [StatusTransition] Invalid transition: ${currentStatus} → ${newStatus}. ` +
+        `Allowed: ${validTransitions[currentStatus]?.join(', ') || 'none'}`
+      );
       throw new Error(
         `Invalid status transition from ${currentStatus} to ${newStatus}. ` +
         `Valid transitions are: ${validTransitions[currentStatus]?.join(', ') || 'none'}`
       );
     }
+
+    console.log(`✓ [StatusTransition] Valid transition: ${currentStatus} → ${newStatus}`);
   }
-  
-  // ============================================================
-  // getStatusLabel
-  // ============================================================
+
   getStatusLabel(status: MatchSuggestionStatus): string {
     const statusLabels: Record<MatchSuggestionStatus, string> = {
       DRAFT: "טיוטה",
@@ -443,24 +416,20 @@ export class StatusTransitionService {
       MARRIED: "נישואין",
       CANCELLED: "בוטל",
       CLOSED: "נסגר",
-      EXPIRED: "פג תוקף"
+      EXPIRED: "פג תוקף",
     };
-    
     return statusLabels[status] || status;
   }
-  
-  // ============================================================
-  // getAvailableActions
-  // ============================================================
+
   getAvailableActions(
-    suggestion: SuggestionWithParties, 
+    suggestion: SuggestionWithParties,
     userId: string
   ): { id: string; label: string; nextStatus: MatchSuggestionStatus }[] {
     const isFirstParty = suggestion.firstPartyId === userId;
     const isSecondParty = suggestion.secondPartyId === userId;
     const isMatchmaker = suggestion.matchmakerId === userId;
-    
-    const actions: Record<MatchSuggestionStatus, { 
+
+    const actions: Record<MatchSuggestionStatus, {
       firstParty?: { id: string; label: string; nextStatus: MatchSuggestionStatus }[];
       secondParty?: { id: string; label: string; nextStatus: MatchSuggestionStatus }[];
       matchmaker?: { id: string; label: string; nextStatus: MatchSuggestionStatus }[];
@@ -469,133 +438,125 @@ export class StatusTransitionService {
       PENDING_FIRST_PARTY: {
         firstParty: [
           { id: "approve", label: "אישור ההצעה", nextStatus: MatchSuggestionStatus.FIRST_PARTY_APPROVED },
-          { id: "decline", label: "דחיית ההצעה", nextStatus: MatchSuggestionStatus.FIRST_PARTY_DECLINED }
+          { id: "decline", label: "דחיית ההצעה", nextStatus: MatchSuggestionStatus.FIRST_PARTY_DECLINED },
         ],
-        matchmaker: [{ id: "cancel", label: "ביטול ההצעה", nextStatus: MatchSuggestionStatus.CANCELLED }]
+        matchmaker: [{ id: "cancel", label: "ביטול ההצעה", nextStatus: MatchSuggestionStatus.CANCELLED }],
       },
       FIRST_PARTY_APPROVED: {
         matchmaker: [
           { id: "send-to-second", label: "שליחה לצד השני", nextStatus: MatchSuggestionStatus.PENDING_SECOND_PARTY },
-          { id: "cancel", label: "ביטול ההצעה", nextStatus: MatchSuggestionStatus.CANCELLED }
-        ]
+          { id: "cancel", label: "ביטול ההצעה", nextStatus: MatchSuggestionStatus.CANCELLED },
+        ],
       },
       FIRST_PARTY_DECLINED: { matchmaker: [{ id: "close", label: "סגירת הצעה", nextStatus: MatchSuggestionStatus.CLOSED }] },
       FIRST_PARTY_INTERESTED: {
         firstParty: [
           { id: "approve", label: "אישור ההצעה", nextStatus: MatchSuggestionStatus.FIRST_PARTY_APPROVED },
-          { id: "decline", label: "הסרה מרשימת ההמתנה", nextStatus: MatchSuggestionStatus.FIRST_PARTY_DECLINED }
+          { id: "decline", label: "הסרה מרשימת ההמתנה", nextStatus: MatchSuggestionStatus.FIRST_PARTY_DECLINED },
         ],
-        matchmaker: [
-          { id: "cancel", label: "ביטול ההצעה", nextStatus: MatchSuggestionStatus.CANCELLED }
-        ]
+        matchmaker: [{ id: "cancel", label: "ביטול ההצעה", nextStatus: MatchSuggestionStatus.CANCELLED }],
       },
       PENDING_SECOND_PARTY: {
         secondParty: [
           { id: "approve", label: "אישור ההצעה", nextStatus: MatchSuggestionStatus.SECOND_PARTY_APPROVED },
-          { id: "decline", label: "דחיית ההצעה", nextStatus: MatchSuggestionStatus.SECOND_PARTY_DECLINED }
+          { id: "decline", label: "דחיית ההצעה", nextStatus: MatchSuggestionStatus.SECOND_PARTY_DECLINED },
         ],
-        matchmaker: [{ id: "cancel", label: "ביטול ההצעה", nextStatus: MatchSuggestionStatus.CANCELLED }]
+        matchmaker: [{ id: "cancel", label: "ביטול ההצעה", nextStatus: MatchSuggestionStatus.CANCELLED }],
       },
       SECOND_PARTY_NOT_AVAILABLE: {
-        secondParty: [
-          { id: "now-available", label: "חזרתי להיות זמין/ה", nextStatus: MatchSuggestionStatus.PENDING_SECOND_PARTY }
-        ],
+        secondParty: [{ id: "now-available", label: "חזרתי להיות זמין/ה", nextStatus: MatchSuggestionStatus.PENDING_SECOND_PARTY }],
         matchmaker: [
           { id: "mark-available", label: "צד שני חזר להיות זמין", nextStatus: MatchSuggestionStatus.PENDING_SECOND_PARTY },
           { id: "close", label: "סגירת הצעה", nextStatus: MatchSuggestionStatus.CLOSED },
-          { id: "cancel", label: "ביטול ההצעה", nextStatus: MatchSuggestionStatus.CANCELLED }
-        ]
+          { id: "cancel", label: "ביטול ההצעה", nextStatus: MatchSuggestionStatus.CANCELLED },
+        ],
       },
       SECOND_PARTY_APPROVED: {
         matchmaker: [
           { id: "share-contacts", label: "שיתוף פרטי קשר", nextStatus: MatchSuggestionStatus.CONTACT_DETAILS_SHARED },
           { id: "re-offer-first", label: "שליחה מחדש לצד ראשון", nextStatus: MatchSuggestionStatus.RE_OFFERED_TO_FIRST_PARTY },
-          { id: "cancel", label: "ביטול ההצעה", nextStatus: MatchSuggestionStatus.CANCELLED }
-        ]
+          { id: "cancel", label: "ביטול ההצעה", nextStatus: MatchSuggestionStatus.CANCELLED },
+        ],
       },
       RE_OFFERED_TO_FIRST_PARTY: {
         firstParty: [
           { id: "approve", label: "אישור ההצעה", nextStatus: MatchSuggestionStatus.AWAITING_MATCHMAKER_APPROVAL },
-          { id: "decline", label: "דחיית ההצעה", nextStatus: MatchSuggestionStatus.FIRST_PARTY_DECLINED }
+          { id: "decline", label: "דחיית ההצעה", nextStatus: MatchSuggestionStatus.FIRST_PARTY_DECLINED },
         ],
-        matchmaker: [
-          { id: "cancel", label: "ביטול ההצעה", nextStatus: MatchSuggestionStatus.CANCELLED }
-        ]
+        matchmaker: [{ id: "cancel", label: "ביטול ההצעה", nextStatus: MatchSuggestionStatus.CANCELLED }],
       },
       SECOND_PARTY_DECLINED: { matchmaker: [{ id: "close", label: "סגירת הצעה", nextStatus: MatchSuggestionStatus.CLOSED }] },
       AWAITING_MATCHMAKER_APPROVAL: {
         matchmaker: [
           { id: "approve-share", label: "אישור שיתוף פרטים", nextStatus: MatchSuggestionStatus.CONTACT_DETAILS_SHARED },
-          { id: "cancel", label: "ביטול ההצעה", nextStatus: MatchSuggestionStatus.CANCELLED }
-        ]
+          { id: "cancel", label: "ביטול ההצעה", nextStatus: MatchSuggestionStatus.CANCELLED },
+        ],
       },
       CONTACT_DETAILS_SHARED: {
-        firstParty: [{ id: "provide-feedback", label: "דיווח משוב לאחר פגישה", nextStatus: MatchSuggestionStatus.AWAITING_FIRST_DATE_FEEDBACK }],
-        secondParty: [{ id: "provide-feedback", label: "דיווח משוב לאחר פגישה", nextStatus: MatchSuggestionStatus.AWAITING_FIRST_DATE_FEEDBACK }],
         matchmaker: [
           { id: "request-feedback", label: "בקש משוב", nextStatus: MatchSuggestionStatus.AWAITING_FIRST_DATE_FEEDBACK },
-          { id: "cancel", label: "ביטול ההצעה", nextStatus: MatchSuggestionStatus.CANCELLED }
-        ]
+          { id: "cancel", label: "ביטול ההצעה", nextStatus: MatchSuggestionStatus.CANCELLED },
+        ],
       },
       AWAITING_FIRST_DATE_FEEDBACK: {
         matchmaker: [
           { id: "mark-thinking", label: "סמן כ'בחשיבה'", nextStatus: MatchSuggestionStatus.THINKING_AFTER_DATE },
           { id: "mark-ended-first", label: "סמן כ'הסתיים לאחר פגישה'", nextStatus: MatchSuggestionStatus.ENDED_AFTER_FIRST_DATE },
-          { id: "cancel", label: "ביטול ההצעה", nextStatus: MatchSuggestionStatus.CANCELLED }
-        ]
+          { id: "cancel", label: "ביטול ההצעה", nextStatus: MatchSuggestionStatus.CANCELLED },
+        ],
       },
       THINKING_AFTER_DATE: {
         matchmaker: [
           { id: "proceed-second", label: "המשך לפגישה שניה", nextStatus: MatchSuggestionStatus.PROCEEDING_TO_SECOND_DATE },
           { id: "mark-ended-first", label: "סמן כ'הסתיים לאחר פגישה'", nextStatus: MatchSuggestionStatus.ENDED_AFTER_FIRST_DATE },
-          { id: "cancel", label: "ביטול ההצעה", nextStatus: MatchSuggestionStatus.CANCELLED }
-        ]
+          { id: "cancel", label: "ביטול ההצעה", nextStatus: MatchSuggestionStatus.CANCELLED },
+        ],
       },
       PROCEEDING_TO_SECOND_DATE: {
         matchmaker: [
           { id: "mark-dating", label: "סמן כ'בתהליך היכרות'", nextStatus: MatchSuggestionStatus.DATING },
-          { id: "cancel", label: "ביטול ההצעה", nextStatus: MatchSuggestionStatus.CANCELLED }
-        ]
+          { id: "cancel", label: "ביטול ההצעה", nextStatus: MatchSuggestionStatus.CANCELLED },
+        ],
       },
       ENDED_AFTER_FIRST_DATE: { matchmaker: [{ id: "close", label: "סגירת הצעה", nextStatus: MatchSuggestionStatus.CLOSED }] },
       MEETING_PENDING: {
         matchmaker: [
           { id: "schedule-meeting", label: "קביעת פגישה", nextStatus: MatchSuggestionStatus.MEETING_SCHEDULED },
-          { id: "cancel", label: "ביטול ההצעה", nextStatus: MatchSuggestionStatus.CANCELLED }
-        ]
+          { id: "cancel", label: "ביטול ההצעה", nextStatus: MatchSuggestionStatus.CANCELLED },
+        ],
       },
       MEETING_SCHEDULED: {
         matchmaker: [
           { id: "mark-dating", label: "סמן כ'בתהליך היכרות'", nextStatus: MatchSuggestionStatus.DATING },
-          { id: "cancel", label: "ביטול ההצעה", nextStatus: MatchSuggestionStatus.CANCELLED }
-        ]
+          { id: "cancel", label: "ביטול ההצעה", nextStatus: MatchSuggestionStatus.CANCELLED },
+        ],
       },
       MATCH_APPROVED: {
         matchmaker: [
           { id: "mark-dating", label: "סמן כ'בתהליך היכרות'", nextStatus: MatchSuggestionStatus.DATING },
-          { id: "cancel", label: "ביטול ההצעה", nextStatus: MatchSuggestionStatus.CANCELLED }
-        ]
+          { id: "cancel", label: "ביטול ההצעה", nextStatus: MatchSuggestionStatus.CANCELLED },
+        ],
       },
       MATCH_DECLINED: { matchmaker: [{ id: "close", label: "סגירת הצעה", nextStatus: MatchSuggestionStatus.CLOSED }] },
       DATING: {
         matchmaker: [
           { id: "mark-engaged", label: "עדכון אירוסין", nextStatus: MatchSuggestionStatus.ENGAGED },
           { id: "close", label: "סגירת תהליך", nextStatus: MatchSuggestionStatus.CLOSED },
-          { id: "cancel", label: "ביטול השידוך", nextStatus: MatchSuggestionStatus.CANCELLED }
-        ]
+          { id: "cancel", label: "ביטול השידוך", nextStatus: MatchSuggestionStatus.CANCELLED },
+        ],
       },
       ENGAGED: {
         matchmaker: [
           { id: "mark-married", label: "עדכון נישואין", nextStatus: MatchSuggestionStatus.MARRIED },
-          { id: "cancel", label: "ביטול אירוסין", nextStatus: MatchSuggestionStatus.CANCELLED }
-        ]
+          { id: "cancel", label: "ביטול אירוסין", nextStatus: MatchSuggestionStatus.CANCELLED },
+        ],
       },
       MARRIED: {},
       EXPIRED: {},
       CLOSED: {},
-      CANCELLED: {}
+      CANCELLED: {},
     };
-    
+
     if (isFirstParty && actions[suggestion.status]?.firstParty) return actions[suggestion.status].firstParty || [];
     if (isSecondParty && actions[suggestion.status]?.secondParty) return actions[suggestion.status].secondParty || [];
     if (isMatchmaker && actions[suggestion.status]?.matchmaker) return actions[suggestion.status].matchmaker || [];

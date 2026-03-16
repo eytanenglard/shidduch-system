@@ -1473,7 +1473,7 @@
     "secondParty": "Party B"
   }
 },
-     "actions": {
+ "actions": {
   "changeStatus": "Change Status",
   "selectNewStatus": "Select new status",
   "edit": "Edit Suggestion",
@@ -1482,7 +1482,14 @@
   "resend": "Resend",
   "viewDetails": "Details",
   "hideCandidate": "Hide Candidate",
-  "hideParty": "Hide {{name}}"
+  "hideParty": "Hide {{name}}",
+  "confirmTitle": "Are you sure?",
+  "confirmDescription": "This action will send notifications to the relevant parties and cannot be undone.",
+  "cancel": "Cancel",
+  "confirm": "Confirm",
+  "advanceCategory": "Advance",
+  "updateCategory": "Update",
+  "closeCategory": "Close"
 },
      "highlights": {
   "familyValues": "Similar family values",
