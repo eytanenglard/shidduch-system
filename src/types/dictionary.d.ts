@@ -2767,6 +2767,13 @@ export type MinimalCardDict = {
   profileImageAlt: string;
   available: string;
   inProcess: string;
+  maritalStatus: {
+    single: string;
+    divorced: string;
+    widowed: string;
+    divorced_with_children: string;
+  };
+  hasChildren: string;
 };
 
 export type StatsCardDict = {

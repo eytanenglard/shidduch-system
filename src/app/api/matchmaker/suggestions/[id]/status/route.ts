@@ -102,9 +102,10 @@
         { he: heDict, en: enDict },
         notes || `סטטוס שונה ל-${status} על ידי ${session.user.firstName} ${session.user.lastName}`,
         {
-          sendNotifications: true,
-          notifyParties: ['first', 'second', 'matchmaker'],
-        },
+        sendNotifications: true,
+        notifyParties: ['first', 'second', 'matchmaker'],
+        skipValidation: true,
+      },
         {
           firstParty: firstPartyLang,
           secondParty: secondPartyLang,

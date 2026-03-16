@@ -30,6 +30,7 @@ type TransitionOptions = {
   sendNotifications?: boolean;
   customMessage?: string;
   notifyParties?: ('first' | 'second' | 'matchmaker')[];
+  skipValidation?: boolean; // Allow matchmaker/admin to skip status transition validation
 };
 
 type LanguagePrefs = {
@@ -43,10 +44,13 @@ type LanguagePrefs = {
 // ════════════════════════════════════════════════════════════════
 const getSuggestionCategory = (status: MatchSuggestionStatus) => {
   switch (status) {
-    case 'DRAFT':
+case 'DRAFT':
     case 'AWAITING_MATCHMAKER_APPROVAL':
     case 'PENDING_FIRST_PARTY':
     case 'PENDING_SECOND_PARTY':
+    case 'FIRST_PARTY_INTERESTED':
+    case 'SECOND_PARTY_NOT_AVAILABLE':
+    case 'RE_OFFERED_TO_FIRST_PARTY':
       return 'PENDING';
     case 'FIRST_PARTY_DECLINED':
     case 'SECOND_PARTY_DECLINED':
@@ -89,9 +93,12 @@ export class StatusTransitionService {
       ...options
     };
 
-    // ═══ Validate ═══
-    this.validateStatusTransition(previousStatus, newStatus);
-
+// ═══ Validate ═══
+    if (!mergedOptions.skipValidation) {
+      this.validateStatusTransition(previousStatus, newStatus);
+    } else {
+      console.log(`⚡ [StatusTransition] Skipping validation for ${previousStatus} → ${newStatus} (matchmaker/admin override)`);
+    }
     // ═══ DB Update ═══
     const updatedSuggestion = await prisma.$transaction(async (tx) => {
       const updated = await tx.matchSuggestion.update({

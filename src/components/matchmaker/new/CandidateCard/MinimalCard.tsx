@@ -622,6 +622,23 @@ const MinimalCandidateCard: React.FC<MinimalCandidateCardProps> = React.memo(
                     </div>
                   )}
 
+                  {candidate.profile.maritalStatus && (() => {
+                    const ms = candidate.profile.maritalStatus as string;
+                    const hasKids = candidate.profile.hasChildrenFromPrevious;
+                    const label =
+                      ms !== 'single' && hasKids
+                        ? dict.maritalStatus.divorced_with_children
+                        : (dict.maritalStatus[ms as keyof typeof dict.maritalStatus] ?? ms);
+                    return (
+                      <div className="flex items-center justify-end gap-2 p-2 bg-rose-50 rounded-lg hover:bg-rose-100 transition-colors duration-200">
+                        <span className="text-rose-800 text-sm font-medium">
+                          {highlightText(label)}
+                        </span>
+                        <Users className="w-4 h-4 text-rose-600" />
+                      </div>
+                    );
+                  })()}
+
                   {candidate.profile.occupation && (
                     <div className="flex items-center justify-end gap-2 p-2 bg-green-50 rounded-lg hover:bg-green-100 transition-colors duration-200">
                       <span className="text-green-800 text-sm">

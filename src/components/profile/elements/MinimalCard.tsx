@@ -2,7 +2,7 @@
 import React from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { User, MapPin, Scroll, Heart } from "lucide-react";
+import { User, MapPin, Scroll, Heart, Users } from "lucide-react";
 import Image from "next/image";
 import { calculateAge } from "../utils";
 import type { UserProfile, UserImage } from "@/types/next-auth";
@@ -27,6 +27,15 @@ const MinimalCard: React.FC<MinimalCardProps> = ({
   const userName = profile.user
     ? `${profile.user.firstName} ${profile.user.lastName}`
     : dict.nameNotAvailable;
+
+  const getMaritalStatusLabel = () => {
+    if (!profile.maritalStatus) return null;
+    if (profile.maritalStatus !== 'single' && profile.hasChildrenFromPrevious) {
+      return dict.maritalStatus.divorced_with_children;
+    }
+    return dict.maritalStatus[profile.maritalStatus as keyof typeof dict.maritalStatus] ?? null;
+  };
+  const maritalLabel = getMaritalStatusLabel();
 
   return (
     <Card
@@ -71,6 +80,12 @@ const MinimalCard: React.FC<MinimalCardProps> = ({
               <Badge variant="secondary" className="flex items-center gap-1">
                 <Scroll className="w-3 h-3" />
                 {profile.religiousLevel}
+              </Badge>
+            )}
+            {maritalLabel && (
+              <Badge variant="secondary" className="flex items-center gap-1">
+                <Users className="w-3 h-3" />
+                {maritalLabel}
               </Badge>
             )}
           </div>

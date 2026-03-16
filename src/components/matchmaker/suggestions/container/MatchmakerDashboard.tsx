@@ -612,18 +612,42 @@ export default function MatchmakerDashboard({
   }: SuggestionUpdatePayload) => {
     setIsSubmitting(true);
     try {
-      const response = await fetch(
-        `/api/matchmaker/suggestions/${suggestionId}`,
-        {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(updates),
-        }
-      );
+      const { status, statusNotes, ...otherUpdates } = updates;
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to update suggestion');
+      // If status changed, route through the /status endpoint (which triggers notifications & emails)
+      if (status) {
+        const statusResponse = await fetch(
+          `/api/matchmaker/suggestions/${suggestionId}/status`,
+          {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              status,
+              notes: statusNotes || `סטטוס שונה מממשק עריכה`,
+            }),
+          }
+        );
+        if (!statusResponse.ok) {
+          const errorData = await statusResponse.json();
+          throw new Error(errorData.error || 'Failed to update status');
+        }
+      }
+
+      // Update other fields (notes, priority, deadline) if any exist
+      const hasOtherUpdates = Object.values(otherUpdates).some(v => v !== undefined);
+      if (hasOtherUpdates) {
+        const response = await fetch(
+          `/api/matchmaker/suggestions/${suggestionId}`,
+          {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(otherUpdates),
+          }
+        );
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Failed to update suggestion');
+        }
       }
 
       toast.success(toastsDict.updateSuccess);

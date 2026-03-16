@@ -1534,7 +1534,14 @@
     "yearsOld": "{{age}} years old",
     "profileImageAlt": "Profile picture",
     "available": "Available for matches",
-    "inProcess": "Getting to know someone"
+    "inProcess": "Getting to know someone",
+    "maritalStatus": {
+      "single": "Single",
+      "divorced": "Divorced",
+      "widowed": "Widowed",
+      "divorced_with_children": "Divorced with children"
+    },
+    "hasChildren": "Has children"
   },
   "statsCard": {
     "availabilityStatusTitle": "Availability Status",

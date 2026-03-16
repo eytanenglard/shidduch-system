@@ -631,7 +631,14 @@
           "aiAnalysis": "הצג ניתוח פרופיל AI"
         },
         "hasTestimonials": "{{count}} המלצות",
-        "testimonialsTooltip": "למועמד/ת זה/זו יש המלצות מאושרות"
+        "testimonialsTooltip": "למועמד/ת זה/זו יש המלצות מאושרות",
+        "maritalStatus": {
+          "single": "רווק/ה",
+          "divorced": "גרוש/ה",
+          "widowed": "אלמן/ה",
+          "divorced_with_children": "גרוש/ה עם ילדים"
+        },
+        "hasChildren": "עם ילדים"
       },
       "quickView": {
         "availability": {

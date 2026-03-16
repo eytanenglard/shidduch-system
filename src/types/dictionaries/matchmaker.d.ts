@@ -300,7 +300,7 @@ type CandidatesListDict = {
     aiMatch: string;
     manualEntry: string;
     languagesLabel: string;
-    heightLabel: string; 
+    heightLabel: string;
     noImage: string;
     yearsSuffix: string;
     lastActivePrefix: string;
@@ -310,11 +310,17 @@ type CandidatesListDict = {
       editProfile: string;
       setAsAiTarget: string;
       clearAiTarget: string;
-            aiAnalysis: string; // <-- הוסף את השורה הזו
-
+      aiAnalysis: string;
     };
-      hasTestimonials: string; 
-  testimonialsTooltip: string;
+    hasTestimonials: string;
+    testimonialsTooltip: string;
+    maritalStatus: {
+      single: string;
+      divorced: string;
+      widowed: string;
+      divorced_with_children: string;
+    };
+    hasChildren: string;
   };
   quickView: QuickViewDict;
 };

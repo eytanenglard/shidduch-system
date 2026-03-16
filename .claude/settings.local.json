@@ -11,7 +11,11 @@
       "Bash(find /c/Users/eytan/Desktop/NeshamaTech/shidduch-system/src/app/[locale]/\\\\\\(authenticated\\\\\\) -maxdepth 1 -type d)",
       "Bash(find /c/Users/eytan/Desktop/NeshamaTech/shidduch-system/src/components/chat -type f -name *.tsx)",
       "Bash(find /c/Users/eytan/Desktop/NeshamaTech/shidduch-system/src/app/[locale]/\\\\\\(authenticated\\\\\\) -type f -name \"page.tsx\" -o -name \"layout.tsx\")",
-      "Bash(find /c/Users/eytan/Desktop/NeshamaTech/shidduch-system/src/app/[locale]/\\\\\\(authenticated\\\\\\) -name \"layout.tsx\")"
+      "Bash(find /c/Users/eytan/Desktop/NeshamaTech/shidduch-system/src/app/[locale]/\\\\\\(authenticated\\\\\\) -name \"layout.tsx\")",
+      "Bash(find c:/Users/eytan/Desktop/NeshamaTech/shidduch-system/src/app/[locale] -type f -name page.tsx)",
+      "Bash(find \"c:/Users/eytan/Desktop/NeshamaTech/shidduch-system/src/app/[locale]/\\(authenticated\\)\" -name \"layout.tsx\")",
+      "Bash(find \"c:/Users/eytan/Desktop/NeshamaTech/shidduch-system/src/app/[locale]/\\(authenticated\\)\" -maxdepth 1 -name \"layout.tsx\")",
+      "Bash(ls -la c:/Users/eytan/Desktop/NeshamaTech/shidduch-system/src/app/[locale]/questionnaire/)"
     ]
   }
 }

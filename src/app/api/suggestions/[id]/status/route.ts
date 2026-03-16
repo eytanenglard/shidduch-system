@@ -1,4 +1,8 @@
 // src/app/api/suggestions/[id]/status/route.ts
+// ════════════════════════════════════════════════════════════════
+// FIXED: Now uses StatusTransitionService for proper email/notification handling
+// FIXED: Matchmaker/Admin can skip validation (any status transition allowed)
+// ════════════════════════════════════════════════════════════════
 
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
@@ -6,6 +10,9 @@ import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { MatchSuggestionStatus, UserRole } from "@prisma/client";
 import { z } from "zod";
+import { statusTransitionService } from "@/components/matchmaker/suggestions/services/suggestions/StatusTransitionService";
+import { getDictionary } from "@/lib/dictionaries";
+import type { EmailDictionary } from "@/types/dictionary";
 
 const updateStatusSchema = z.object({
   status: z.nativeEnum(MatchSuggestionStatus),
@@ -14,6 +21,7 @@ const updateStatusSchema = z.object({
 
 /**
  * PATCH endpoint for updating suggestion status
+ * Now routes through StatusTransitionService for proper notifications
  */
 export async function PATCH(
   req: NextRequest,
@@ -57,18 +65,16 @@ export async function PATCH(
     
     const { status, notes } = validationResult.data;
 
-    // 4. Verify suggestion exists
+    // 4. Verify suggestion exists (with full relations for StatusTransitionService)
     const params = await props.params;
     const suggestionId = params.id;
     const suggestion = await prisma.matchSuggestion.findUnique({
       where: { id: suggestionId },
-      select: {
-        id: true,
-        status: true,
-        matchmakerId: true,
-        firstPartyId: true,
-        secondPartyId: true,
-      }
+      include: {
+        firstParty: { include: { profile: true } },
+        secondParty: { include: { profile: true } },
+        matchmaker: true,
+      },
     });
 
     if (!suggestion) {
@@ -90,131 +96,106 @@ export async function PATCH(
       );
     }
 
-    // 6. Calculate category based on new status
-    const getCategory = (status: MatchSuggestionStatus) => {
-      switch (status) {
-        case "DRAFT":
-        case "AWAITING_MATCHMAKER_APPROVAL":
-        case "PENDING_FIRST_PARTY":
-        case "PENDING_SECOND_PARTY":
-        case "FIRST_PARTY_INTERESTED": // INTERESTED stays in PENDING
-          case "SECOND_PARTY_NOT_AVAILABLE":    // ← NEW
-    case "RE_OFFERED_TO_FIRST_PARTY":     // ← NEW  
-        return "PENDING";
-        
-        case "FIRST_PARTY_DECLINED":
-        case "SECOND_PARTY_DECLINED":
-        case "MATCH_DECLINED":
-        case "ENDED_AFTER_FIRST_DATE":
-        case "ENGAGED":
-        case "MARRIED":
-        case "EXPIRED":
-        case "CLOSED":
-        case "CANCELLED":
-          return "HISTORY";
-        
-        default:
-          return "ACTIVE";
-      }
+    // 6. Determine if we should skip validation (matchmaker/admin can do any transition)
+    const canSkipValidation = isUserAdmin || isUserMatchmakerOwner;
+
+    // 7. Load dictionaries for email notifications
+    const [heDict, enDict] = await Promise.all([
+      getDictionary('he'),
+      getDictionary('en'),
+    ]);
+
+    const dictionaries = {
+      he: heDict.email as EmailDictionary,
+      en: enDict.email as EmailDictionary,
     };
 
-    // 7. Update status in a transaction
-    const result = await prisma.$transaction(async (tx) => {
-      // Update the suggestion
-      const updatedSuggestion = await tx.matchSuggestion.update({
+    // 8. Determine language preferences
+    const firstPartyLang = (suggestion.firstParty as any).language || 'he';
+    const secondPartyLang = (suggestion.secondParty as any).language || 'he';
+    const matchmakerLang = (suggestion.matchmaker as any).language || 'he';
+
+    // 9. Use StatusTransitionService for proper DB update + notifications + emails
+    const updatedSuggestion = await statusTransitionService.transitionStatus(
+      suggestion,
+      status,
+      dictionaries,
+      notes || `סטטוס שונה מ-${suggestion.status} ל-${status} על ידי משתמש ${session.user.id}`,
+      {
+        sendNotifications: true,
+        notifyParties: ['first', 'second', 'matchmaker'],
+        skipValidation: canSkipValidation,
+      },
+      {
+        firstParty: firstPartyLang,
+        secondParty: secondPartyLang,
+        matchmaker: matchmakerLang,
+      }
+    );
+
+    // 10. Handle FIRST_PARTY_INTERESTED rank logic (kept from original)
+    if (status === 'FIRST_PARTY_INTERESTED') {
+      const highestRank = await prisma.matchSuggestion.findFirst({
+        where: {
+          firstPartyId: suggestion.firstPartyId,
+          status: 'FIRST_PARTY_INTERESTED',
+          id: { not: suggestionId },
+        },
+        orderBy: { firstPartyRank: 'desc' },
+        select: { firstPartyRank: true },
+      });
+
+      const nextRank = (highestRank?.firstPartyRank ?? 0) + 1;
+
+      await prisma.matchSuggestion.update({
         where: { id: suggestionId },
         data: {
-          status: status,
-          previousStatus: suggestion.status,
-          lastStatusChange: new Date(),
-          lastActivity: new Date(),
-          category: getCategory(status),
-          
-          // Update additional fields based on new status
-          ...(status === MatchSuggestionStatus.CLOSED ? { closedAt: new Date() } : {}),
-          ...(status === MatchSuggestionStatus.FIRST_PARTY_APPROVED || status === MatchSuggestionStatus.FIRST_PARTY_DECLINED ? { firstPartyResponded: new Date() } : {}),
-          ...(status === MatchSuggestionStatus.SECOND_PARTY_APPROVED || status === MatchSuggestionStatus.SECOND_PARTY_DECLINED ? { secondPartyResponded: new Date() } : {}),
+          firstPartyRank: nextRank,
+          firstPartyInterestedAt: new Date(),
         },
       });
+    }
 
-      // Handle FIRST_PARTY_INTERESTED status - auto-assign rank and timestamp
-      if (status === 'FIRST_PARTY_INTERESTED') {
-        // Find the highest existing rank for this user
-        const highestRank = await tx.matchSuggestion.findFirst({
-          where: {
-            firstPartyId: suggestion.firstPartyId,
-            status: 'FIRST_PARTY_INTERESTED',
-            id: { not: suggestionId }, // exclude current suggestion
-          },
-          orderBy: { firstPartyRank: 'desc' },
-          select: { firstPartyRank: true },
-        });
-
-        const nextRank = (highestRank?.firstPartyRank ?? 0) + 1;
-
-        await tx.matchSuggestion.update({
-          where: { id: suggestionId },
-          data: {
-            firstPartyRank: nextRank,
-            firstPartyInterestedAt: new Date(),
-          },
-        });
-      }
-
-      // Handle transition from INTERESTED to APPROVED - clean up rank
-      if (
-        status === 'FIRST_PARTY_APPROVED' &&
-        suggestion.status === 'FIRST_PARTY_INTERESTED'
-      ) {
-        await tx.matchSuggestion.update({
-          where: { id: suggestionId },
-          data: {
-            firstPartyRank: null,
-            firstPartyResponded: new Date(),
-          },
-        });
-
-        // Re-rank remaining INTERESTED suggestions to close gaps
-        const remainingInterested = await tx.matchSuggestion.findMany({
-          where: {
-            firstPartyId: suggestion.firstPartyId,
-            status: 'FIRST_PARTY_INTERESTED',
-          },
-          orderBy: { firstPartyRank: 'asc' },
-          select: { id: true },
-        });
-
-        // Re-rank: 1, 2, 3, ...
-        for (let i = 0; i < remainingInterested.length; i++) {
-          await tx.matchSuggestion.update({
-            where: { id: remainingInterested[i].id },
-            data: { firstPartyRank: i + 1 },
-          });
-        }
-      }
-
-      // Add status history record
-      await tx.suggestionStatusHistory.create({
+    // Handle transition from INTERESTED to APPROVED - clean up rank
+    if (
+      status === 'FIRST_PARTY_APPROVED' &&
+      suggestion.status === 'FIRST_PARTY_INTERESTED'
+    ) {
+      await prisma.matchSuggestion.update({
+        where: { id: suggestionId },
         data: {
-          suggestionId,
-          status,
-          notes: notes || `סטטוס שונה ל-${status} על ידי משתמש ${session.user.id}`,
+          firstPartyRank: null,
+          firstPartyResponded: new Date(),
         },
       });
 
-      return updatedSuggestion;
-    });
+      const remainingInterested = await prisma.matchSuggestion.findMany({
+        where: {
+          firstPartyId: suggestion.firstPartyId,
+          status: 'FIRST_PARTY_INTERESTED',
+        },
+        orderBy: { firstPartyRank: 'asc' },
+        select: { id: true },
+      });
 
-    // 8. Return success response
+      for (let i = 0; i < remainingInterested.length; i++) {
+        await prisma.matchSuggestion.update({
+          where: { id: remainingInterested[i].id },
+          data: { firstPartyRank: i + 1 },
+        });
+      }
+    }
+
+    // 11. Return success response
     return NextResponse.json({
       success: true,
       message: "Status updated successfully",
       suggestion: {
-        id: result.id,
-        status: result.status,
-        previousStatus: result.previousStatus,
-        lastStatusChange: result.lastStatusChange,
-        category: result.category,
+        id: updatedSuggestion.id,
+        status: updatedSuggestion.status,
+        previousStatus: updatedSuggestion.previousStatus,
+        lastStatusChange: updatedSuggestion.lastStatusChange,
+        category: updatedSuggestion.category,
       },
     });
 

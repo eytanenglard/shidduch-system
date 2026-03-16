@@ -632,7 +632,14 @@
           "aiAnalysis": "Show AI Profile Analysis"
         },
         "hasTestimonials": "{{count}} Testimonials",
-        "testimonialsTooltip": "This candidate has approved testimonials"
+        "testimonialsTooltip": "This candidate has approved testimonials",
+        "maritalStatus": {
+          "single": "Single",
+          "divorced": "Divorced",
+          "widowed": "Widowed",
+          "divorced_with_children": "Divorced with children"
+        },
+        "hasChildren": "Has children"
       },
       "quickView": {
         "availability": {

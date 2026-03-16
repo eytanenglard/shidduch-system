@@ -1576,7 +1576,14 @@
     "yearsOld": "{{age}} שנים",
     "profileImageAlt": "תמונת פרופיל",
     "available": "פנוי/ה להצעות",
-    "inProcess": "בתהליך הכרות"
+    "inProcess": "בתהליך הכרות",
+    "maritalStatus": {
+      "single": "רווק/ה",
+      "divorced": "גרוש/ה",
+      "widowed": "אלמן/ה",
+      "divorced_with_children": "גרוש/ה עם ילדים"
+    },
+    "hasChildren": "עם ילדים"
   },
   "statsCard": {
     "availabilityStatusTitle": "סטטוס פניות",
