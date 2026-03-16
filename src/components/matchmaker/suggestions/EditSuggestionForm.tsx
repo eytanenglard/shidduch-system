@@ -1,15 +1,8 @@
-// EditSuggestionForm.tsx - גרסה מתורגמת ומלאה
+// EditSuggestionForm.tsx — Enterprise-grade Redesign
+// ═══════════════════════════════════════════════════
 
-import React, { useState } from 'react';
-import {useEffect } from 'react';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from '@/components/ui/dialog';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
@@ -26,7 +19,6 @@ import { DatePicker } from '@/components/ui/date-picker';
 import type { Suggestion } from '@/types/suggestions';
 import {
   RefreshCw,
-  AlertTriangle,
   Calendar,
   Clock,
   User,
@@ -41,11 +33,131 @@ import {
   Target,
   Shield,
   Crown,
+  Info,
+  Lock,
 } from 'lucide-react';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import type { MatchmakerPageDictionary } from '@/types/dictionary';
+import type { LucideIcon } from 'lucide-react';
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// Constants — extracted to module scope for performance
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+const PRIORITY_CONFIG: Record<
+  Priority,
+  { icon: LucideIcon; color: string; bg: string; border: string; dot: string }
+> = {
+  URGENT: {
+    icon: Flame,
+    color: 'text-red-600',
+    bg: 'bg-red-50',
+    border: 'border-red-200',
+    dot: 'bg-red-500',
+  },
+  HIGH: {
+    icon: Star,
+    color: 'text-orange-600',
+    bg: 'bg-orange-50',
+    border: 'border-orange-200',
+    dot: 'bg-orange-500',
+  },
+  MEDIUM: {
+    icon: Target,
+    color: 'text-blue-600',
+    bg: 'bg-blue-50',
+    border: 'border-blue-200',
+    dot: 'bg-blue-500',
+  },
+  LOW: {
+    icon: Shield,
+    color: 'text-gray-500',
+    bg: 'bg-gray-50',
+    border: 'border-gray-200',
+    dot: 'bg-gray-400',
+  },
+};
+
+const STATUS_ICON_MAP: Partial<
+  Record<MatchSuggestionStatus, { icon: LucideIcon; color: string }>
+> = {
+  PENDING_FIRST_PARTY: { icon: Clock, color: 'text-amber-500' },
+  PENDING_SECOND_PARTY: { icon: Clock, color: 'text-amber-500' },
+  FIRST_PARTY_APPROVED: { icon: CheckCircle, color: 'text-emerald-500' },
+  SECOND_PARTY_APPROVED: { icon: CheckCircle, color: 'text-emerald-500' },
+  DATING: { icon: Heart, color: 'text-pink-500' },
+  ENGAGED: { icon: Crown, color: 'text-yellow-500' },
+  MARRIED: { icon: Sparkles, color: 'text-purple-500' },
+};
+
+const DEFAULT_STATUS_STYLE = { icon: RefreshCw, color: 'text-gray-400' };
+
+const PRIORITY_KEYS = Object.keys(PRIORITY_CONFIG) as Priority[];
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// Sub-components — reusable building blocks
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+interface FormSectionProps {
+  icon: LucideIcon;
+  iconClassName?: string;
+  title: string;
+  subtitle?: string;
+  headerAction?: React.ReactNode;
+  children: React.ReactNode;
+  className?: string;
+}
+
+const FormSection: React.FC<FormSectionProps> = ({
+  icon: Icon,
+  iconClassName,
+  title,
+  subtitle,
+  headerAction,
+  children,
+  className,
+}) => (
+  <div
+    className={cn(
+      'rounded-xl border border-gray-200 bg-white transition-shadow duration-200 hover:shadow-sm',
+      className
+    )}
+  >
+    {/* Section Header */}
+    <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 bg-gray-50/60">
+      <div className="flex items-center gap-2.5 min-w-0">
+        <div
+          className={cn(
+            'flex items-center justify-center w-7 h-7 rounded-lg bg-white border border-gray-100 shrink-0'
+          )}
+        >
+          <Icon
+            className={cn('w-3.5 h-3.5', iconClassName || 'text-gray-500')}
+          />
+        </div>
+        <div className="min-w-0">
+          <h3 className="text-sm font-semibold text-gray-800 leading-tight truncate">
+            {title}
+          </h3>
+          {subtitle && (
+            <p className="text-[11px] text-gray-400 mt-0.5 leading-tight truncate">
+              {subtitle}
+            </p>
+          )}
+        </div>
+      </div>
+      {headerAction && <div className="shrink-0 mr-2">{headerAction}</div>}
+    </div>
+
+    {/* Section Body */}
+    <div className="p-4">{children}</div>
+  </div>
+);
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// Types
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 interface EditSuggestionFormProps {
   dict: MatchmakerPageDictionary['suggestionsDashboard']['editSuggestionForm'];
@@ -67,6 +179,10 @@ interface EditSuggestionFormProps {
   }) => Promise<void>;
 }
 
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// Main Component
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
 const EditSuggestionForm: React.FC<EditSuggestionFormProps> = ({
   dict,
   isOpen,
@@ -74,6 +190,7 @@ const EditSuggestionForm: React.FC<EditSuggestionFormProps> = ({
   suggestion,
   onSave,
 }) => {
+  // ── State ──────────────────────────────────────────
   const [priority, setPriority] = useState<Priority>(Priority.MEDIUM);
   const [selectedStatus, setSelectedStatus] =
     useState<MatchSuggestionStatus | null>(null);
@@ -88,39 +205,56 @@ const EditSuggestionForm: React.FC<EditSuggestionFormProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showStatusChange, setShowStatusChange] = useState(false);
 
+  // ── Effects ────────────────────────────────────────
   useEffect(() => {
-    if (suggestion) {
-      setPriority(suggestion.priority as Priority);
-      setMatchingReason(suggestion.matchingReason || '');
-      setFirstPartyNotes(suggestion.firstPartyNotes || '');
-      setSecondPartyNotes(suggestion.secondPartyNotes || '');
-      setInternalNotes(suggestion.internalNotes || '');
+    if (!suggestion) return;
 
-      setSelectedStatus(null);
-      setStatusNotes('');
-      setShowStatusChange(false);
+    setPriority(suggestion.priority as Priority);
+    setMatchingReason(suggestion.matchingReason || '');
+    setFirstPartyNotes(suggestion.firstPartyNotes || '');
+    setSecondPartyNotes(suggestion.secondPartyNotes || '');
+    setInternalNotes(suggestion.internalNotes || '');
+    setSelectedStatus(null);
+    setStatusNotes('');
+    setShowStatusChange(false);
 
-      if (suggestion.decisionDeadline) {
-        const deadlineDate = new Date(suggestion.decisionDeadline);
-        if (!isNaN(deadlineDate.getTime())) {
-          setDecisionDeadline(deadlineDate);
-        }
-      } else {
-        setDecisionDeadline(undefined);
-      }
+    if (suggestion.decisionDeadline) {
+      const d = new Date(suggestion.decisionDeadline);
+      setDecisionDeadline(!isNaN(d.getTime()) ? d : undefined);
+    } else {
+      setDecisionDeadline(undefined);
     }
   }, [suggestion]);
 
-  const getStatusLabel = (statusValue: MatchSuggestionStatus): string => {
-    return dict.statusLabels[statusValue] || statusValue;
-  };
+  // ── Helpers ────────────────────────────────────────
+  const getStatusLabel = useCallback(
+    (s: MatchSuggestionStatus): string => dict.statusLabels[s] || s,
+    [dict.statusLabels]
+  );
 
-  const getAvailableStatuses = (): MatchSuggestionStatus[] => {
-    if (!suggestion) return [];
-    return Object.keys(dict.statusLabels) as MatchSuggestionStatus[];
-  };
+  const getAvailableStatuses = useCallback(
+    (): MatchSuggestionStatus[] =>
+      suggestion
+        ? (Object.keys(dict.statusLabels) as MatchSuggestionStatus[])
+        : [],
+    [suggestion, dict.statusLabels]
+  );
 
-  const handleSubmit = async () => {
+  const getPriorityInfo = useCallback(
+    (p: Priority) => ({
+      label: dict.priorityLabels[p],
+      ...PRIORITY_CONFIG[p],
+    }),
+    [dict.priorityLabels]
+  );
+
+  const getStatusStyle = useCallback(
+    (s: MatchSuggestionStatus) => STATUS_ICON_MAP[s] || DEFAULT_STATUS_STYLE,
+    []
+  );
+
+  // ── Submit Handler ─────────────────────────────────
+  const handleSubmit = useCallback(async () => {
     if (!suggestion) {
       toast.error(dict.toasts.noSuggestionData);
       return;
@@ -129,7 +263,7 @@ const EditSuggestionForm: React.FC<EditSuggestionFormProps> = ({
     setIsSubmitting(true);
 
     try {
-      const updateData: {
+      const updates: {
         priority: Priority;
         status?: MatchSuggestionStatus;
         statusNotes?: string;
@@ -148,17 +282,13 @@ const EditSuggestionForm: React.FC<EditSuggestionFormProps> = ({
       };
 
       if (selectedStatus && selectedStatus !== suggestion.status) {
-        updateData.status = selectedStatus;
-        updateData.statusNotes =
+        updates.status = selectedStatus;
+        updates.statusNotes =
           statusNotes ||
-          `סטטוס שונה מ-${getStatusLabel(suggestion.status)} ל-${getStatusLabel(selectedStatus)}`; // Note: This internal-facing string may not need translation
+          `סטטוס שונה מ-${getStatusLabel(suggestion.status)} ל-${getStatusLabel(selectedStatus)}`;
       }
 
-      await onSave({
-        suggestionId: suggestion.id,
-        updates: updateData,
-      });
-
+      await onSave({ suggestionId: suggestion.id, updates });
       toast.success(dict.toasts.updateSuccess);
       onClose();
     } catch (error) {
@@ -167,198 +297,389 @@ const EditSuggestionForm: React.FC<EditSuggestionFormProps> = ({
     } finally {
       setIsSubmitting(false);
     }
-  };
+  }, [
+    suggestion,
+    priority,
+    selectedStatus,
+    statusNotes,
+    matchingReason,
+    firstPartyNotes,
+    secondPartyNotes,
+    internalNotes,
+    decisionDeadline,
+    dict,
+    onSave,
+    onClose,
+    getStatusLabel,
+  ]);
 
-  const getPriorityInfo = (p: Priority) => {
-    const infoMap = {
-      URGENT: { color: 'from-red-500 to-pink-500', icon: Flame, textColor: 'text-red-600' },
-      HIGH: { color: 'from-orange-500 to-amber-500', icon: Star, textColor: 'text-orange-600' },
-      MEDIUM: { color: 'from-blue-500 to-cyan-500', icon: Target, textColor: 'text-blue-600' },
-      LOW: { color: 'from-gray-500 to-slate-500', icon: Shield, textColor: 'text-gray-600' },
-    };
-    return {
-      label: dict.priorityLabels[p],
-      ...infoMap[p],
-    };
-  };
-
-  const getStatusInfo = (status: MatchSuggestionStatus) => {
-    switch (status) {
-      case 'PENDING_FIRST_PARTY':
-      case 'PENDING_SECOND_PARTY':
-        return { icon: Clock, color: 'text-yellow-600', bg: 'from-yellow-50 to-amber-50' };
-      case 'FIRST_PARTY_APPROVED':
-      case 'SECOND_PARTY_APPROVED':
-        return { icon: CheckCircle, color: 'text-green-600', bg: 'from-green-50 to-emerald-50' };
-      case 'DATING':
-        return { icon: Heart, color: 'text-pink-600', bg: 'from-pink-50 to-rose-50' };
-      case 'ENGAGED':
-        return { icon: Crown, color: 'text-yellow-600', bg: 'from-yellow-50 to-orange-50' };
-      case 'MARRIED':
-        return { icon: Sparkles, color: 'text-purple-600', bg: 'from-purple-50 to-pink-50' };
-      default:
-        return { icon: RefreshCw, color: 'text-gray-600', bg: 'from-gray-50 to-slate-50' };
-    }
-  };
-
+  // ── Early Return ───────────────────────────────────
   if (!suggestion) return null;
 
-  const currentPriorityInfo = getPriorityInfo(priority);
-  const currentStatusInfo = getStatusInfo(suggestion.status);
-  const CurrentStatusIcon = currentStatusInfo.icon;
-  const CurrentPriorityIcon = currentPriorityInfo.icon;
-  const fullParty1Name = `${suggestion.firstParty.firstName} ${suggestion.firstParty.lastName}`;
-  const fullParty2Name = `${suggestion.secondParty.firstName} ${suggestion.secondParty.lastName}`;
+  // ── Derived Values ─────────────────────────────────
+  const currentPriority = getPriorityInfo(priority);
+  const currentStatusStyle = getStatusStyle(suggestion.status);
+  const StatusIcon = currentStatusStyle.icon;
+  const party1Name = `${suggestion.firstParty.firstName} ${suggestion.firstParty.lastName}`;
+  const party2Name = `${suggestion.secondParty.firstName} ${suggestion.secondParty.lastName}`;
 
+  // ── Render ─────────────────────────────────────────
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-6xl max-h-[95vh] overflow-y-auto border-0 shadow-2xl rounded-3xl p-0" dir="rtl">
-        <div className={cn('relative overflow-hidden bg-gradient-to-br', currentStatusInfo.bg, 'border-b border-gray-100')}>
-          <div className="absolute inset-0">
-            <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-white/30 to-transparent rounded-full blur-3xl"></div>
-            <div className="absolute bottom-0 left-0 w-48 h-48 bg-gradient-to-br from-white/20 to-transparent rounded-full blur-2xl"></div>
-          </div>
-          <div className="relative z-10 p-8">
-            <DialogHeader>
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-4">
-                  <div className="p-3 rounded-full bg-white/20 backdrop-blur-sm shadow-lg">
-                    <CurrentStatusIcon className={cn('w-8 h-8', currentStatusInfo.color)} />
-                  </div>
-                  <div>
-                    <DialogTitle className="text-3xl font-bold text-gray-800">{dict.header.title.replace('{{id}}', suggestion.id.slice(-8))}</DialogTitle>
-                    <DialogDescription className="text-lg text-gray-600 mt-1">
-                      {dict.header.description.replace('{{party1}}', fullParty1Name).replace('{{party2}}', fullParty2Name)}
-                    </DialogDescription>
-                  </div>
+      <DialogContent
+        className="max-w-5xl max-h-[90vh] overflow-hidden flex flex-col border border-gray-200 shadow-xl rounded-2xl p-0 gap-0"
+        dir="rtl"
+      >
+        {/* ═══════════════════════════════════════════════
+            HEADER — Fixed, always visible
+            ═══════════════════════════════════════════════ */}
+        <header className="shrink-0 px-6 pt-6 pb-5 border-b border-gray-100 bg-white rounded-t-2xl">
+          <div className="flex items-start justify-between gap-4">
+            {/* Title Block */}
+            <div className="flex items-start gap-3.5 min-w-0">
+              <div
+                className={cn(
+                  'mt-0.5 flex items-center justify-center w-10 h-10 rounded-xl border shrink-0',
+                  currentPriority.bg,
+                  currentPriority.border
+                )}
+              >
+                <StatusIcon
+                  className={cn('w-5 h-5', currentStatusStyle.color)}
+                />
+              </div>
+
+              <div className="min-w-0">
+                <h2 className="text-lg font-bold text-gray-900 tracking-tight leading-tight">
+                  {dict.header.title.replace('{{id}}', suggestion.id.slice(-8))}
+                </h2>
+                <p className="text-sm text-gray-500 mt-1 leading-snug">
+                  {dict.header.description
+                    .replace('{{party1}}', party1Name)
+                    .replace('{{party2}}', party2Name)}
+                </p>
+
+                {/* Badges */}
+                <div className="flex items-center gap-2 mt-3 flex-wrap">
+                  <Badge
+                    variant="secondary"
+                    className={cn(
+                      'text-xs font-medium px-2.5 py-0.5',
+                      currentPriority.bg,
+                      currentPriority.color,
+                      `border ${currentPriority.border}`
+                    )}
+                  >
+                    <span
+                      className={cn(
+                        'w-1.5 h-1.5 rounded-full ml-1.5',
+                        currentPriority.dot
+                      )}
+                    />
+                    {dict.header.priorityLabel.replace(
+                      '{{priority}}',
+                      currentPriority.label
+                    )}
+                  </Badge>
+
+                  <Badge
+                    variant="outline"
+                    className="text-xs font-medium text-gray-600 px-2.5 py-0.5"
+                  >
+                    <StatusIcon
+                      className={cn('w-3 h-3 ml-1.5', currentStatusStyle.color)}
+                    />
+                    {dict.header.currentStatusLabel.replace(
+                      '{{status}}',
+                      getStatusLabel(suggestion.status)
+                    )}
+                  </Badge>
                 </div>
-                <Button variant="ghost" size="icon" onClick={onClose} className="rounded-full h-12 w-12 text-gray-500 hover:text-gray-700 hover:bg-white/50 backdrop-blur-sm">
-                  <X className="w-6 h-6" />
-                </Button>
               </div>
-              <div className="flex items-center gap-4">
-                <Badge className={cn('px-4 py-2 font-bold shadow-lg bg-gradient-to-r text-white', currentPriorityInfo.color)}>
-                  <CurrentPriorityIcon className="w-4 h-4 ml-2" />
-                  {dict.header.priorityLabel.replace('{{priority}}', currentPriorityInfo.label)}
-                </Badge>
-                <Badge className="px-4 py-2 bg-white/20 backdrop-blur-sm text-gray-700 border border-white/30">
-                  {dict.header.currentStatusLabel.replace('{{status}}', getStatusLabel(suggestion.status))}
-                </Badge>
-              </div>
-            </DialogHeader>
-          </div>
-        </div>
-        <div className="p-8 space-y-8">
-          <Alert className="border-0 bg-gradient-to-r from-blue-50 to-cyan-50 shadow-lg rounded-2xl">
-            <AlertTriangle className="h-5 w-5 text-blue-500" />
-            <AlertDescription className="text-blue-800 font-medium">
-              <strong>{dict.infoAlert.title}</strong> {dict.infoAlert.createdFor.replace('{{party1}}', fullParty1Name).replace('{{party2}}', fullParty2Name)}
-              <br />
-              <strong>{dict.infoAlert.status.replace('{{status}}', getStatusLabel(suggestion.status))}</strong> •{' '}
-              <strong>{dict.infoAlert.priority.replace('{{priority}}', currentPriorityInfo.label)}</strong>
-            </AlertDescription>
-          </Alert>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div className="space-y-4 p-6 bg-white rounded-2xl shadow-xl border-0 hover:shadow-2xl transition-all duration-300">
-              <div className="flex items-center gap-3 mb-4">
-                <div className={cn('p-2 rounded-full bg-gradient-to-r text-white shadow-lg', currentPriorityInfo.color)}><Star className="w-5 h-5" /></div>
-                <Label className="text-lg font-bold text-gray-800">{dict.sections.priority.title}</Label>
-              </div>
-              <Select value={priority} onValueChange={(value) => setPriority(value as Priority)}>
-                <SelectTrigger className="h-12 border-2 border-gray-200 hover:border-purple-300 focus:border-purple-500 rounded-xl transition-all">
-                  <SelectValue placeholder={dict.sections.priority.placeholder} />
-                </SelectTrigger>
-                <SelectContent>
-                  {Object.keys(dict.priorityLabels).map((p) => {
-                    const info = getPriorityInfo(p as Priority);
-                    const Icon = info.icon;
-                    return (
-                      <SelectItem key={p} value={p}>
-                        <div className="flex items-center gap-2"><Icon className={cn('w-4 h-4', info.textColor)} />{info.label}</div>
-                      </SelectItem>
-                    );
-                  })}
-                </SelectContent>
-              </Select>
             </div>
-            <div className="space-y-4 p-6 bg-white rounded-2xl shadow-xl border-0 hover:shadow-2xl transition-all duration-300">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg"><RefreshCw className="w-5 h-5" /></div>
-                  <Label className="text-lg font-bold text-gray-800">{dict.sections.statusChange.title}</Label>
-                </div>
-                <Button type="button" variant={showStatusChange ? 'default' : 'outline'} size="sm" onClick={() => setShowStatusChange(!showStatusChange)} className={cn('rounded-xl transition-all duration-300', showStatusChange ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg' : 'border-2 border-purple-200 text-purple-600 hover:bg-purple-50')}>
-                  <RefreshCw className="w-4 h-4 ml-2" />{showStatusChange ? dict.sections.statusChange.cancelChangeButton : dict.sections.statusChange.changeButton}
-                </Button>
-              </div>
-              {showStatusChange && (
-                <div className="space-y-4 p-4 border-2 border-purple-100 rounded-xl bg-gradient-to-r from-purple-50 to-pink-50">
-                  <Select value={selectedStatus || ''} onValueChange={(value) => setSelectedStatus(value && value !== 'NO_CHANGE' ? value as MatchSuggestionStatus : null)}>
-                    <SelectTrigger className="h-12 border-2 border-purple-200 bg-white"><SelectValue placeholder={dict.sections.statusChange.placeholder} /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="NO_CHANGE">{dict.sections.statusChange.noChangeOption}</SelectItem>
-                      {getAvailableStatuses().map((status) => (<SelectItem key={status} value={status}>{getStatusLabel(status)}</SelectItem>))}
-                    </SelectContent>
-                  </Select>
-                  {selectedStatus && (
-                    <div>
-                      <Label className="text-sm font-medium text-purple-800">{dict.sections.statusChange.notesLabel}</Label>
-                      <Textarea value={statusNotes} onChange={(e) => setStatusNotes(e.target.value)} placeholder={dict.sections.statusChange.notesPlaceholder} className="mt-2 h-20 border-2 border-purple-200 focus:border-purple-400 rounded-xl" />
-                    </div>
+
+            {/* Close Button */}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={onClose}
+              className="rounded-lg h-8 w-8 text-gray-400 hover:text-gray-600 hover:bg-gray-100 shrink-0"
+            >
+              <X className="w-4 h-4" />
+            </Button>
+          </div>
+        </header>
+
+        {/* ═══════════════════════════════════════════════
+            CONTENT — Scrollable area
+            ═══════════════════════════════════════════════ */}
+        <div className="flex-1 overflow-y-auto bg-gray-50/40">
+          <div className="px-6 py-5 space-y-5">
+            {/* ── Info Banner ─────────────────────────── */}
+            <div className="flex items-start gap-3 px-4 py-3 rounded-lg bg-blue-50/70 border border-blue-100">
+              <Info className="w-4 h-4 text-blue-500 mt-0.5 shrink-0" />
+              <p className="text-sm text-blue-700 leading-relaxed">
+                <span className="font-semibold">{dict.infoAlert.title}</span>{' '}
+                {dict.infoAlert.createdFor
+                  .replace('{{party1}}', party1Name)
+                  .replace('{{party2}}', party2Name)}
+                {' · '}
+                <span className="font-medium">
+                  {dict.infoAlert.status.replace(
+                    '{{status}}',
+                    getStatusLabel(suggestion.status)
                   )}
-                </div>
-              )}
+                </span>
+                {' · '}
+                <span className="font-medium">
+                  {dict.infoAlert.priority.replace(
+                    '{{priority}}',
+                    currentPriority.label
+                  )}
+                </span>
+              </p>
             </div>
-          </div>
-          <div className="p-6 bg-white rounded-2xl shadow-xl border-0 hover:shadow-2xl transition-all duration-300">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 rounded-full bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-lg"><Calendar className="w-5 h-5" /></div>
-              <Label className="text-lg font-bold text-gray-800">{dict.sections.decisionDeadline.title}</Label>
+
+            {/* ── Settings Row ────────────────────────── */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Priority */}
+              <FormSection
+                icon={Star}
+                iconClassName="text-amber-500"
+                title={dict.sections.priority.title}
+              >
+                <Select
+                  value={priority}
+                  onValueChange={(v) => setPriority(v as Priority)}
+                >
+                  <SelectTrigger className="h-10 border-gray-200 rounded-lg text-sm">
+                    <SelectValue
+                      placeholder={dict.sections.priority.placeholder}
+                    />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {PRIORITY_KEYS.map((p) => {
+                      const info = getPriorityInfo(p);
+                      const PIcon = info.icon;
+                      return (
+                        <SelectItem key={p} value={p}>
+                          <div className="flex items-center gap-2">
+                            <PIcon className={cn('w-3.5 h-3.5', info.color)} />
+                            <span>{info.label}</span>
+                          </div>
+                        </SelectItem>
+                      );
+                    })}
+                  </SelectContent>
+                </Select>
+              </FormSection>
+
+              {/* Status Change */}
+              <FormSection
+                icon={RefreshCw}
+                iconClassName="text-indigo-500"
+                title={dict.sections.statusChange.title}
+                headerAction={
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowStatusChange(!showStatusChange)}
+                    className={cn(
+                      'text-xs h-7 rounded-md px-2.5 font-medium transition-colors',
+                      showStatusChange
+                        ? 'text-indigo-700 bg-indigo-100 hover:bg-indigo-150'
+                        : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
+                    )}
+                  >
+                    <RefreshCw className="w-3 h-3 ml-1.5" />
+                    {showStatusChange
+                      ? dict.sections.statusChange.cancelChangeButton
+                      : dict.sections.statusChange.changeButton}
+                  </Button>
+                }
+              >
+                {showStatusChange ? (
+                  <div className="space-y-3">
+                    <Select
+                      value={selectedStatus || ''}
+                      onValueChange={(v) =>
+                        setSelectedStatus(
+                          v && v !== 'NO_CHANGE'
+                            ? (v as MatchSuggestionStatus)
+                            : null
+                        )
+                      }
+                    >
+                      <SelectTrigger className="h-10 border-gray-200 rounded-lg text-sm">
+                        <SelectValue
+                          placeholder={dict.sections.statusChange.placeholder}
+                        />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="NO_CHANGE">
+                          {dict.sections.statusChange.noChangeOption}
+                        </SelectItem>
+                        {getAvailableStatuses().map((s) => (
+                          <SelectItem key={s} value={s}>
+                            {getStatusLabel(s)}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+
+                    {selectedStatus && (
+                      <div className="space-y-1.5">
+                        <Label className="text-xs font-medium text-gray-600">
+                          {dict.sections.statusChange.notesLabel}
+                        </Label>
+                        <Textarea
+                          value={statusNotes}
+                          onChange={(e) => setStatusNotes(e.target.value)}
+                          placeholder={
+                            dict.sections.statusChange.notesPlaceholder
+                          }
+                          className="min-h-[64px] text-sm border-gray-200 rounded-lg resize-none"
+                        />
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2 text-sm text-gray-500 py-0.5">
+                    <StatusIcon
+                      className={cn('w-4 h-4', currentStatusStyle.color)}
+                    />
+                    <span>{getStatusLabel(suggestion.status)}</span>
+                  </div>
+                )}
+              </FormSection>
             </div>
-            <DatePicker value={{ from: decisionDeadline, to: undefined }} onChange={({ from }) => setDecisionDeadline(from)} />
-          </div>
-          <div className="p-6 bg-white rounded-2xl shadow-xl border-0 hover:shadow-2xl transition-all duration-300">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 rounded-full bg-gradient-to-r from-emerald-500 to-green-500 text-white shadow-lg"><Heart className="w-5 h-5" /></div>
-              <Label className="text-lg font-bold text-gray-800">{dict.sections.matchingReason.title}</Label>
-            </div>
-            <Textarea value={matchingReason} onChange={(e) => setMatchingReason(e.target.value)} placeholder={dict.sections.matchingReason.placeholder} className="h-32 border-2 border-gray-200 focus:border-emerald-400 rounded-xl transition-all resize-none" />
-          </div>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <div className="p-6 bg-white rounded-2xl shadow-xl border-0 hover:shadow-2xl transition-all duration-300">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="p-2 rounded-full bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-lg"><User className="w-5 h-5" /></div>
-                <Label className="text-lg font-bold text-gray-800">{dict.sections.firstPartyNotes.title.replace('{{name}}', suggestion.firstParty.firstName)}</Label>
+
+            {/* ── Decision Deadline ───────────────────── */}
+            <FormSection
+              icon={Calendar}
+              iconClassName="text-orange-500"
+              title={dict.sections.decisionDeadline.title}
+            >
+              <DatePicker
+                value={{ from: decisionDeadline, to: undefined }}
+                onChange={({ from }) => setDecisionDeadline(from)}
+              />
+            </FormSection>
+
+            {/* ── Visual Separator ────────────────────── */}
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center px-2">
+                <div className="w-full border-t border-gray-200/80" />
               </div>
-              <Textarea value={firstPartyNotes} onChange={(e) => setFirstPartyNotes(e.target.value)} placeholder={dict.sections.firstPartyNotes.placeholder} className="h-32 border-2 border-gray-200 focus:border-blue-400 rounded-xl transition-all resize-none" />
-            </div>
-            <div className="p-6 bg-white rounded-2xl shadow-xl border-0 hover:shadow-2xl transition-all duration-300">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="p-2 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg"><User className="w-5 h-5" /></div>
-                <Label className="text-lg font-bold text-gray-800">{dict.sections.secondPartyNotes.title.replace('{{name}}', suggestion.secondParty.firstName)}</Label>
+              <div className="relative flex justify-center">
+                <span className="bg-gray-50/40 px-3 text-[11px] font-medium text-gray-400 uppercase tracking-wider">
+                  {dict.sections.matchingReason.title}
+                </span>
               </div>
-              <Textarea value={secondPartyNotes} onChange={(e) => setSecondPartyNotes(e.target.value)} placeholder={dict.sections.secondPartyNotes.placeholder} className="h-32 border-2 border-gray-200 focus:border-purple-400 rounded-xl transition-all resize-none" />
             </div>
-          </div>
-          <div className="p-6 bg-white rounded-2xl shadow-xl border-0 hover:shadow-2xl transition-all duration-300">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 rounded-full bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-lg"><MessageCircle className="w-5 h-5" /></div>
-              <Label className="text-lg font-bold text-gray-800">{dict.sections.internalNotes.title}</Label>
+
+            {/* ── Matching Reason ─────────────────────── */}
+            <FormSection
+              icon={Heart}
+              iconClassName="text-rose-500"
+              title={dict.sections.matchingReason.title}
+            >
+              <Textarea
+                value={matchingReason}
+                onChange={(e) => setMatchingReason(e.target.value)}
+                placeholder={dict.sections.matchingReason.placeholder}
+                className="min-h-[120px] border-gray-200 rounded-lg resize-none text-sm leading-relaxed"
+              />
+            </FormSection>
+
+            {/* ── Party Notes ─────────────────────────── */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <FormSection
+                icon={User}
+                iconClassName="text-blue-500"
+                title={dict.sections.firstPartyNotes.title.replace(
+                  '{{name}}',
+                  suggestion.firstParty.firstName
+                )}
+              >
+                <Textarea
+                  value={firstPartyNotes}
+                  onChange={(e) => setFirstPartyNotes(e.target.value)}
+                  placeholder={dict.sections.firstPartyNotes.placeholder}
+                  className="min-h-[100px] border-gray-200 rounded-lg resize-none text-sm leading-relaxed"
+                />
+              </FormSection>
+
+              <FormSection
+                icon={User}
+                iconClassName="text-purple-500"
+                title={dict.sections.secondPartyNotes.title.replace(
+                  '{{name}}',
+                  suggestion.secondParty.firstName
+                )}
+              >
+                <Textarea
+                  value={secondPartyNotes}
+                  onChange={(e) => setSecondPartyNotes(e.target.value)}
+                  placeholder={dict.sections.secondPartyNotes.placeholder}
+                  className="min-h-[100px] border-gray-200 rounded-lg resize-none text-sm leading-relaxed"
+                />
+              </FormSection>
             </div>
-            <Textarea value={internalNotes} onChange={(e) => setInternalNotes(e.target.value)} placeholder={dict.sections.internalNotes.placeholder} className="h-32 border-2 border-gray-200 focus:border-amber-400 rounded-xl transition-all resize-none" />
+
+            {/* ── Internal Notes ──────────────────────── */}
+            <FormSection
+              icon={Lock}
+              iconClassName="text-gray-400"
+              title={dict.sections.internalNotes.title}
+              className="border-dashed"
+            >
+              <Textarea
+                value={internalNotes}
+                onChange={(e) => setInternalNotes(e.target.value)}
+                placeholder={dict.sections.internalNotes.placeholder}
+                className="min-h-[100px] border-gray-200 rounded-lg resize-none text-sm leading-relaxed bg-gray-50/50"
+              />
+            </FormSection>
           </div>
         </div>
-        <DialogFooter className="p-8 border-t border-gray-100 bg-gradient-to-r from-gray-50 to-slate-50">
-          <div className="flex justify-between w-full items-center">
-            <span className="text-sm text-gray-500 font-medium">{dict.footer.info}</span>
-            <div className="flex gap-4">
-              <Button variant="outline" onClick={onClose} disabled={isSubmitting} className="px-8 py-3 border-2 border-gray-300 hover:bg-gray-50 rounded-xl transition-all">{dict.footer.cancelButton}</Button>
-              <Button onClick={handleSubmit} disabled={isSubmitting} className="px-8 py-3 bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 hover:from-purple-700 hover:via-pink-700 hover:to-blue-700 text-white shadow-xl hover:shadow-2xl transition-all duration-300 rounded-xl transform hover:scale-105">
-                {isSubmitting ? (<><RefreshCw className="w-5 h-5 ml-2 animate-spin" />{dict.footer.savingButton}</>) : (<><Save className="w-5 h-5 ml-2" />{dict.footer.saveButton}</>)}
+
+        {/* ═══════════════════════════════════════════════
+            FOOTER — Fixed, always visible
+            ═══════════════════════════════════════════════ */}
+        <footer className="shrink-0 px-6 py-4 border-t border-gray-200 bg-white rounded-b-2xl">
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-gray-400">{dict.footer.info}</span>
+            <div className="flex items-center gap-3">
+              <Button
+                variant="outline"
+                onClick={onClose}
+                disabled={isSubmitting}
+                className="px-5 h-9 text-sm border-gray-200 rounded-lg hover:bg-gray-50"
+              >
+                {dict.footer.cancelButton}
+              </Button>
+              <Button
+                onClick={handleSubmit}
+                disabled={isSubmitting}
+                className="px-6 h-9 text-sm bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg shadow-sm transition-colors"
+              >
+                {isSubmitting ? (
+                  <>
+                    <RefreshCw className="w-3.5 h-3.5 ml-2 animate-spin" />
+                    {dict.footer.savingButton}
+                  </>
+                ) : (
+                  <>
+                    <Save className="w-3.5 h-3.5 ml-2" />
+                    {dict.footer.saveButton}
+                  </>
+                )}
               </Button>
             </div>
           </div>
-        </DialogFooter>
+        </footer>
       </DialogContent>
     </Dialog>
   );
