@@ -477,6 +477,11 @@ export class NotificationService {
     });
   }
 
+// ════════════════════════════════════════════════════════════════
+  // 🔧 FIX: getRecipientsForSuggestion — כיסוי כל הסטטוסים
+  // החלף את הפונקציה הקיימת ב-NotificationService.ts
+  // ════════════════════════════════════════════════════════════════
+
   private getRecipientsForSuggestion(suggestion: SuggestionWithParties): Array<{
     recipient: RecipientInfo;
     preferredChannels: NotificationChannel[];
@@ -502,30 +507,59 @@ export class NotificationService {
     };
     
     switch (suggestion.status) {
+      // ── הצעה חדשה לצד ראשון ──
       case MatchSuggestionStatus.PENDING_FIRST_PARTY:
         recipients.push(party1);
         break;
-      case MatchSuggestionStatus.FIRST_PARTY_APPROVED:
-      case MatchSuggestionStatus.FIRST_PARTY_DECLINED:
-      case MatchSuggestionStatus.FIRST_PARTY_INTERESTED:  // ← הוסף את זה  
-      case MatchSuggestionStatus.SECOND_PARTY_APPROVED:
-      case MatchSuggestionStatus.SECOND_PARTY_DECLINED:
-      case MatchSuggestionStatus.THINKING_AFTER_DATE:
-      case MatchSuggestionStatus.DATING:
-      case MatchSuggestionStatus.EXPIRED:
-        recipients.push(mk);
+
+      // ── הצעה חוזרת לצד ראשון ──
+      case MatchSuggestionStatus.RE_OFFERED_TO_FIRST_PARTY:
+        recipients.push(party1);
         break;
+
+      // ── הצעה חדשה לצד שני ──
       case MatchSuggestionStatus.PENDING_SECOND_PARTY:
         recipients.push(party2);
         break;
+
+      // ── תגובות צדדים → עדכון לשדכן ──
+      case MatchSuggestionStatus.FIRST_PARTY_APPROVED:
+      case MatchSuggestionStatus.FIRST_PARTY_DECLINED:
+      case MatchSuggestionStatus.FIRST_PARTY_INTERESTED:
+      case MatchSuggestionStatus.SECOND_PARTY_APPROVED:
+      case MatchSuggestionStatus.SECOND_PARTY_DECLINED:
+      case MatchSuggestionStatus.SECOND_PARTY_NOT_AVAILABLE:
+      case MatchSuggestionStatus.AWAITING_MATCHMAKER_APPROVAL:
+        recipients.push(mk);
+        break;
+
+      // ── שלבים שנשלחים לשני הצדדים ──
       case MatchSuggestionStatus.CONTACT_DETAILS_SHARED:
       case MatchSuggestionStatus.AWAITING_FIRST_DATE_FEEDBACK:
+      case MatchSuggestionStatus.THINKING_AFTER_DATE:
+      case MatchSuggestionStatus.PROCEEDING_TO_SECOND_DATE:
         recipients.push(party1, party2);
         break;
+
+      // ── סיום אחרי פגישה / סטטוסים פנימיים → שדכן ──
+      case MatchSuggestionStatus.ENDED_AFTER_FIRST_DATE:
+      case MatchSuggestionStatus.MEETING_PENDING:
+      case MatchSuggestionStatus.MEETING_SCHEDULED:
+      case MatchSuggestionStatus.MATCH_APPROVED:
+      case MatchSuggestionStatus.MATCH_DECLINED:
+      case MatchSuggestionStatus.DATING:
+      case MatchSuggestionStatus.CLOSED:
+      case MatchSuggestionStatus.CANCELLED:
+      case MatchSuggestionStatus.EXPIRED:
+        recipients.push(mk);
+        break;
+
+      // ── אירוסין / נישואין → כולם ──
       case MatchSuggestionStatus.ENGAGED:
       case MatchSuggestionStatus.MARRIED:
         recipients.push(party1, party2, mk);
         break;
+
       default:
         console.log(`No specific recipient rule for status ${suggestion.status}, defaulting to matchmaker.`);
         recipients.push(mk);

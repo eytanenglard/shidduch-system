@@ -774,15 +774,24 @@ export default function PersonalDetailsStep({
         await uploadPhotosToServer();
       }
 
-      // 4. FIX: Use return value from updateSession to get FRESH data
-      const updatedSession = await updateSession();
-      const freshUser = updatedSession?.user as SessionUserType | undefined;
+      // 4. Refresh session — double-verify to ensure JWT cookie is written
+      //    First call triggers the JWT callback with trigger="update" → writes new cookie
+      await updateSession();
+
+      //    Brief wait for cookie propagation (prevents race condition with middleware)
+      await new Promise((resolve) => setTimeout(resolve, 300));
+
+      //    Second call reads the now-updated cookie → gives us truly fresh data
+      const verifiedSession = await updateSession();
+      const freshUser = verifiedSession?.user as SessionUserType | undefined;
       const isAlreadyPhoneVerified = freshUser?.isPhoneVerified ?? false;
 
       debugLog(
         'handleSubmit',
-        'Fresh user isPhoneVerified:',
-        isAlreadyPhoneVerified
+        'Verified session — isPhoneVerified:',
+        isAlreadyPhoneVerified,
+        'isProfileComplete:',
+        freshUser?.isProfileComplete
       );
 
       // 5. Clear auto-save draft

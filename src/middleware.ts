@@ -1,4 +1,4 @@
-// src/middleware.ts - גרסה מתוקנת עם תמיכה ב-App Router
+// src/middleware.ts - גרסה מתוקנת עם הפניה חכמה לפי מצב הרשמה
 
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
@@ -17,8 +17,8 @@ const PUBLIC_PATHS = [
   '/auth/error',
   '/legal/privacy-policy',
   '/legal/terms-of-service',
-  '/legal/accessibility-statement',  // ← הוסף גם את זה אם חסר
-  '/legal/child-safety',             // ← הוסף שורה זו!
+  '/legal/accessibility-statement',
+  '/legal/child-safety',
   '/questionnaire',
   '/contact',
   '/feedback',
@@ -45,8 +45,15 @@ const SETUP_PATHS = [
   '/settings',
 ];
 
-const POST_SETUP_PATHS: string[] = [];
-
+// ============================================================================
+// 🔴 תיקון 2: הוספת /profile ו-/questionnaire ל-POST_SETUP_PATHS
+// מאפשר למשתמש שזה עתה סיים הרשמה להגיע לפרופיל
+// גם אם ה-JWT cookie לא הספיק להתעדכן (race condition fix)
+// ============================================================================
+const POST_SETUP_PATHS: string[] = [
+  '/profile',
+  '/questionnaire',
+];
 
 const PUBLIC_API_PATHS = ['/api/feedback'];
 
@@ -59,6 +66,46 @@ function getLocale(request: NextRequest): Locale {
   return matchLocale(languages, locales, i18n.defaultLocale) as Locale;
 }
 
+// ============================================================================
+// 🔴 תיקון 1: פונקציה חדשה — קביעת יעד ההפניה לפי מצב המשתמש
+// מחליפה את הבדיקה הבינארית הישנה בלוגיקה מדורגת
+// ============================================================================
+interface TokenUserState {
+  isProfileComplete: boolean;
+  isPhoneVerified: boolean;
+  role?: string;
+  status?: string;
+}
+
+function getIncompleteUserRedirect(
+  user: TokenUserState,
+  currentLocale: string
+): { url: string; reason: string } | null {
+  // אדמין/שדכן — אף פעם לא חוסמים
+  if (user.role === 'ADMIN' || user.role === 'MATCHMAKER') {
+    return null;
+  }
+
+  // מצב 5: פרופיל שלם, חסר רק אימות טלפון → ישירות ל-verify-phone
+  if (user.isProfileComplete && !user.isPhoneVerified) {
+    return {
+      url: `/${currentLocale}/auth/verify-phone`,
+      reason: 'phone_verification_required',
+    };
+  }
+
+  // מצב 2/3/4: פרופיל לא שלם → register עם reason מתאים
+  if (!user.isProfileComplete) {
+    return {
+      url: `/${currentLocale}/auth/register?reason=complete_profile`,
+      reason: 'profile_incomplete',
+    };
+  }
+
+  // הכל שלם — אין צורך בהפניה
+  return null;
+}
+
 // --- Main Middleware Logic ---
 export async function middleware(req: NextRequest) {
   console.log(`\n\n=========================================================`);
@@ -68,7 +115,7 @@ export async function middleware(req: NextRequest) {
 
   const { pathname, search } = req.nextUrl;
 
-  // 🔴 תיקון: בדיקה לקבצים סטטיים קודם כל
+  // 🔴 בדיקה לקבצים סטטיים קודם כל
   const isStaticFile = /\.(png|jpg|jpeg|gif|svg|webp|ico|css|js|woff|woff2|ttf|eot)$/i.test(pathname);
 
   if (
@@ -86,7 +133,7 @@ export async function middleware(req: NextRequest) {
     return NextResponse.next();
   }
 
-  // 🔴 תיקון: טיפול ב-referral short links
+  // 🔴 טיפול ב-referral short links
   if (pathname.startsWith('/r/')) {
     const locale = getLocale(req);
     const code = pathname.split('/r/')[1];
@@ -100,7 +147,7 @@ export async function middleware(req: NextRequest) {
     return NextResponse.redirect(newUrl);
   }
 
-  // 🔴 תיקון מרכזי: בדיקת locale עם לוגיקה משופרת
+  // 🔴 בדיקת locale
   const pathnameIsMissingLocale = i18n.locales.every(
     (locale) => !pathname.startsWith(`/${locale}/`) && pathname !== `/${locale}`
   );
@@ -111,14 +158,11 @@ export async function middleware(req: NextRequest) {
   if (pathnameIsMissingLocale) {
     const locale = getLocale(req);
     
-    // 🔴 חשוב: טיפול נכון ב-root path
     let newPathname: string;
     
     if (pathname === '/') {
-      // Root path - פשוט הוסף את ה-locale
       newPathname = `/${locale}`;
     } else {
-      // כל נתיב אחר - הוסף את ה-locale לפני הנתיב
       newPathname = `/${locale}${pathname}`;
     }
     
@@ -137,8 +181,6 @@ export async function middleware(req: NextRequest) {
   // 🔴 חילוץ locale ונתיב נקי
   const segments = pathname.split('/').filter(Boolean);
   const currentLocale = (segments[0] as Locale) || i18n.defaultLocale;
-  
-  // 🔴 תיקון: הסרת locale בצורה נכונה
   const pathWithoutLocale = '/' + segments.slice(1).join('/') || '/';
 
   console.log(`   Segments: ${JSON.stringify(segments)}`);
@@ -148,8 +190,11 @@ export async function middleware(req: NextRequest) {
   // 🔴 טוען את ה-token
   const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
   const isUserLoggedIn = !!token;
-  const isProfileConsideredComplete = !!token?.isProfileComplete && !!token?.isPhoneVerified;
+  const isProfileComplete = !!token?.isProfileComplete;
+  const isPhoneVerified = !!token?.isPhoneVerified;
+  const isProfileConsideredComplete = isProfileComplete && isPhoneVerified;
   const userRole = token?.role as string | undefined;
+  const userStatus = token?.status as string | undefined;
   const isAdmin = userRole === 'ADMIN';
   const isMatchmaker = userRole === 'MATCHMAKER' || isAdmin;
 
@@ -157,9 +202,11 @@ export async function middleware(req: NextRequest) {
   if (token) {
     console.log(`   User ID: ${token.id}`);
     console.log(`   User Role: ${userRole}`);
+    console.log(`   User Status: ${userStatus}`);
     console.log(`   Is Admin?: ${isAdmin}`);
+    console.log(`   Profile Complete?: ${isProfileComplete}`);
+    console.log(`   Phone Verified?: ${isPhoneVerified}`);
   }
-  console.log(`   Profile Complete?: ${isProfileConsideredComplete}`);
 
   // 🔴 בדיקות נתיב
   const isPublicPath = 
@@ -168,12 +215,11 @@ export async function middleware(req: NextRequest) {
   const isSetupPath = SETUP_PATHS.includes(pathWithoutLocale);
   const isAdminPath = ADMIN_PATHS.some(path => pathWithoutLocale.startsWith(path));
   const isReferralPublicPath = REFERRAL_PUBLIC_PATHS.some(path => pathWithoutLocale.startsWith(path));
-  const isPostSetupPath = POST_SETUP_PATHS.includes(pathWithoutLocale);
+  const isPostSetupPath = POST_SETUP_PATHS.some(path => pathWithoutLocale.startsWith(path));
 
   console.log(`   Is Public Path?: ${isPublicPath}`);
   console.log(`   Is Setup Path?: ${isSetupPath}`);
   console.log(`   Is Admin Path?: ${isAdminPath}`);
-  console.log(`   Is Referral Public Path?: ${isReferralPublicPath}`);
   console.log(`   Is Post Setup Path?: ${isPostSetupPath}`);
 
   // 🔴 נתיבי רפרל ציבוריים
@@ -202,16 +248,20 @@ export async function middleware(req: NextRequest) {
       return NextResponse.next();
     }
 
-    // 🔴 משתמש מחובר עם פרופיל שלם על דף התחברות
+    // ========================================================================
+    // 🔴 תיקון 1: לוגיקה חכמה — משתמש מחובר עם פרופיל שלם על דף auth
+    // ========================================================================
     if (isProfileConsideredComplete && (pathWithoutLocale === '/auth/signin' || pathWithoutLocale === '/auth/register')) {
       const redirectUrl = new URL(`/${currentLocale}/profile`, req.url);
-      console.warn(`[Middleware] Logged-in user with complete profile on auth page.`);
+      console.warn(`[Middleware] Complete user on auth page → redirecting to profile.`);
       console.warn(`   Redirecting to: ${redirectUrl.toString()}`);
       console.log(`=========================================================\n`);
       return NextResponse.redirect(redirectUrl);
     }
 
-    // 🔴 משתמש מחובר עם פרופיל לא שלם
+    // ========================================================================
+    // 🔴 תיקון 1: הפניה חכמה לפי מצב מדויק (במקום הפניה גנרית)
+    // ========================================================================
     if (
       !isProfileConsideredComplete && 
       !isPublicPath && 
@@ -219,12 +269,25 @@ export async function middleware(req: NextRequest) {
       !isMatchmaker && 
       !isPostSetupPath
     ) {
-      const setupUrl = new URL(`/${currentLocale}/auth/register`, req.url);
-      setupUrl.searchParams.set('reason', 'complete_profile');
-      console.warn(`[Middleware] Incomplete profile. Redirecting to setup.`);
-      console.warn(`   Redirecting to: ${setupUrl.toString()}`);
-      console.log(`=========================================================\n`);
-      return NextResponse.redirect(setupUrl);
+      const redirect = getIncompleteUserRedirect(
+        {
+          isProfileComplete,
+          isPhoneVerified,
+          role: userRole,
+          status: userStatus,
+        },
+        currentLocale
+      );
+
+      if (redirect) {
+        const redirectUrl = new URL(redirect.url, req.url);
+        console.warn(`[Middleware] Incomplete user — smart redirect.`);
+        console.warn(`   Reason: ${redirect.reason}`);
+        console.warn(`   isProfileComplete: ${isProfileComplete}, isPhoneVerified: ${isPhoneVerified}`);
+        console.warn(`   Redirecting to: ${redirectUrl.toString()}`);
+        console.log(`=========================================================\n`);
+        return NextResponse.redirect(redirectUrl);
+      }
     }
 
     console.log(`[Middleware] Logged-in user access granted.`);

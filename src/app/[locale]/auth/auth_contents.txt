@@ -1,6 +1,6 @@
 ################################################################################
 # Directory Content Map For: C:\Users\eytan\Desktop\NeshamaTech\shidduch-system\src\app\[locale]\auth
-# Generated on: 2026-03-12 23:37:07
+# Generated on: 2026-03-16 02:47:54
 # Filter: Only content of code files (.bat, .c, .cfg, .conf, .cpp, .cs, .css, .go, .h, .html, .ini, .java, .js, .json, .jsx, .kt, .less, .md, .php, .py, .rb, .rs, .scss, .sh, .sql, .swift, .ts, .tsx, .txt, .xml, .yaml, .yml) is included.
 ################################################################################
 
@@ -1053,7 +1053,7 @@ const RegisterStepsContent: React.FC<{
             />
           );
         case 4:
-          return <CompleteStep dict={dict.steps.complete} />;
+          return <CompleteStep dict={dict.steps.complete} locale={locale}/>;
         default:
           resetForm();
           return <WelcomeStep dict={dict.steps.welcome} locale={locale} />;
@@ -1891,7 +1891,7 @@ Content:
 // src/app/[locale]/auth/signin/SignInClient.tsx
 'use client';
 
-import { useState, useEffect, FormEvent } from 'react';
+import { useState, useEffect, FormEvent, useRef } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useSession, signIn } from 'next-auth/react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -1916,13 +1916,20 @@ import type { SignInDict } from '@/types/dictionaries/auth';
 import StandardizedLoadingSpinner from '@/components/questionnaire/common/StandardizedLoadingSpinner';
 
 // ============================================================================
-// TYPE DEFINITIONS
+// TYPES
 // ============================================================================
 
 interface SignInClientProps {
   dict: SignInDict;
   locale: 'he' | 'en';
 }
+
+// ============================================================================
+// CONSTANTS
+// ============================================================================
+
+const MAX_FAILED_ATTEMPTS_BEFORE_COOLDOWN = 3;
+const COOLDOWN_SECONDS = 15;
 
 // ============================================================================
 // ANIMATION VARIANTS
@@ -1932,10 +1939,7 @@ const containerVariants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
-    transition: {
-      staggerChildren: 0.1,
-      delayChildren: 0.2,
-    },
+    transition: { staggerChildren: 0.1, delayChildren: 0.2 },
   },
 };
 
@@ -1949,41 +1953,36 @@ const itemVariants = {
 };
 
 // ============================================================================
-// APPLE LOGO SVG COMPONENT
+// APPLE LOGO SVG
 // ============================================================================
 
-const AppleLogo: React.FC<{ className?: string }> = ({ className = 'h-5 w-5' }) => (
-  <svg className={className} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+const AppleLogo: React.FC<{ className?: string }> = ({
+  className = 'h-5 w-5',
+}) => (
+  <svg
+    className={className}
+    viewBox="0 0 24 24"
+    fill="currentColor"
+    aria-hidden="true"
+  >
     <path d="M17.05 20.28c-.98.95-2.05.88-3.08.4-1.09-.5-2.08-.48-3.24 0-1.44.62-2.2.44-3.06-.4C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z" />
   </svg>
 );
 
 // ============================================================================
-// BACKGROUND COMPONENT
+// LIGHTWEIGHT BACKGROUND — reduced from 4 blobs to 2 + simplified SVG
 // ============================================================================
 
 const DynamicBackground: React.FC = () => (
   <div className="fixed inset-0 overflow-hidden pointer-events-none -z-10">
     <motion.div
-      className="absolute top-10 left-10 w-96 h-96 bg-gradient-to-br from-teal-400/20 to-emerald-500/20 rounded-full blur-3xl"
-      animate={{
-        y: [0, -30, 0],
-        x: [0, 20, 0],
-        scale: [1, 1.1, 1],
-      }}
-      transition={{
-        duration: 15,
-        repeat: Infinity,
-        ease: 'easeInOut',
-      }}
+      className="absolute top-10 left-10 w-96 h-96 bg-gradient-to-br from-teal-400/15 to-emerald-500/15 rounded-full blur-3xl"
+      animate={{ y: [0, -30, 0], scale: [1, 1.1, 1] }}
+      transition={{ duration: 15, repeat: Infinity, ease: 'easeInOut' }}
     />
     <motion.div
-      className="absolute top-40 right-20 w-80 h-80 bg-gradient-to-br from-orange-400/20 to-amber-500/20 rounded-full blur-3xl"
-      animate={{
-        y: [0, 40, 0],
-        x: [0, -30, 0],
-        scale: [1, 1.15, 1],
-      }}
+      className="absolute bottom-20 right-10 w-80 h-80 bg-gradient-to-br from-orange-400/15 to-amber-500/15 rounded-full blur-3xl"
+      animate={{ y: [0, 40, 0], scale: [1, 1.15, 1] }}
       transition={{
         duration: 18,
         repeat: Infinity,
@@ -1991,61 +1990,12 @@ const DynamicBackground: React.FC = () => (
         delay: 1,
       }}
     />
-    <motion.div
-      className="absolute bottom-32 left-1/4 w-72 h-72 bg-gradient-to-br from-rose-400/15 to-orange-500/15 rounded-full blur-3xl"
-      animate={{
-        y: [0, -25, 0],
-        x: [0, 15, 0],
-        scale: [1, 1.08, 1],
-      }}
-      transition={{
-        duration: 20,
-        repeat: Infinity,
-        ease: 'easeInOut',
-        delay: 2,
-      }}
-    />
-    <motion.div
-      className="absolute bottom-20 right-10 w-64 h-64 bg-gradient-to-br from-teal-400/20 to-cyan-500/20 rounded-full blur-3xl"
-      animate={{
-        y: [0, 35, 0],
-        scale: [1, 1.12, 1],
-      }}
-      transition={{
-        duration: 16,
-        repeat: Infinity,
-        ease: 'easeInOut',
-        delay: 0.5,
-      }}
-    />
-
     <div className="absolute inset-0 opacity-[0.03] bg-[radial-gradient(#0d9488_1px,transparent_1px)] [background-size:24px_24px]" />
-
-    <svg
-      className="absolute inset-0 w-full h-full"
-      viewBox="0 0 1000 1000"
-      xmlns="http://www.w3.org/2000/svg"
-      preserveAspectRatio="none"
-    >
-      <defs>
-        <linearGradient id="waveGrad1" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#0d9488" stopOpacity="0.08" />
-          <stop offset="100%" stopColor="#f97316" stopOpacity="0.04" />
-        </linearGradient>
-      </defs>
-      <motion.path
-        d="M0,200 C300,100 700,300 1000,200 L1000,0 L0,0 Z"
-        fill="url(#waveGrad1)"
-        initial={{ opacity: 0.6 }}
-        animate={{ opacity: [0.6, 0.9, 0.6] }}
-        transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
-      />
-    </svg>
   </div>
 );
 
 // ============================================================================
-// MAIN SIGNIN COMPONENT
+// MAIN COMPONENT
 // ============================================================================
 
 export default function SignInClient({ dict, locale }: SignInClientProps) {
@@ -2053,6 +2003,7 @@ export default function SignInClient({ dict, locale }: SignInClientProps) {
   const searchParams = useSearchParams();
   const { data: session, status } = useSession();
 
+  // Form state
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -2062,13 +2013,23 @@ export default function SignInClient({ dict, locale }: SignInClientProps) {
   const [isAppleLoading, setIsAppleLoading] = useState(false);
   const [shouldShake, setShouldShake] = useState(false);
 
+  // Rate limiting state
+  const [failedAttempts, setFailedAttempts] = useState(0);
+  const [cooldownRemaining, setCooldownRemaining] = useState(0);
+  const cooldownRef = useRef<NodeJS.Timeout | null>(null);
+
   const isRTL = locale === 'he';
   const isAnyLoading = isLoading || isGoogleLoading || isAppleLoading;
+  const isCoolingDown = cooldownRemaining > 0;
+
+  // ============================================================================
+  // EFFECTS
+  // ============================================================================
 
   // Handle authenticated redirect
   useEffect(() => {
-    if (status === 'authenticated') {
-      const redirectUrl = session?.redirectUrl || `/${locale}/profile`;
+    if (status === 'authenticated' && session) {
+      const redirectUrl = (session as any)?.redirectUrl || `/${locale}/profile`;
       router.push(redirectUrl);
     }
   }, [status, session, router, locale]);
@@ -2087,23 +2048,58 @@ export default function SignInClient({ dict, locale }: SignInClientProps) {
         default:
           setError(dict.errors.default.replace('{errorMessage}', errorMessage));
       }
-      setShouldShake(true);
-      setTimeout(() => setShouldShake(false), 500);
+      triggerShake();
     }
   }, [searchParams, dict.errors]);
+
+  // Cooldown timer
+  useEffect(() => {
+    if (cooldownRemaining <= 0) {
+      if (cooldownRef.current) clearInterval(cooldownRef.current);
+      return;
+    }
+    cooldownRef.current = setInterval(() => {
+      setCooldownRemaining((prev) => {
+        if (prev <= 1) {
+          if (cooldownRef.current) clearInterval(cooldownRef.current);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => {
+      if (cooldownRef.current) clearInterval(cooldownRef.current);
+    };
+  }, [cooldownRemaining > 0]);
+
+  // ============================================================================
+  // HELPERS
+  // ============================================================================
+
+  const triggerShake = () => {
+    setShouldShake(true);
+    setTimeout(() => setShouldShake(false), 500);
+  };
+
+  const callbackUrl = `/${locale}/auth/register`;
+
+  // ============================================================================
+  // FORM SUBMISSION
+  // ============================================================================
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError('');
-    setIsLoading(true);
+
+    if (isCoolingDown) return;
 
     if (!email || !password) {
       setError(dict.errors.missingFields);
-      setShouldShake(true);
-      setTimeout(() => setShouldShake(false), 500);
-      setIsLoading(false);
+      triggerShake();
       return;
     }
+
+    setIsLoading(true);
 
     const result = await signIn('credentials', {
       email: email.toLowerCase(),
@@ -2112,38 +2108,45 @@ export default function SignInClient({ dict, locale }: SignInClientProps) {
     });
 
     if (result?.error) {
+      const newFailedCount = failedAttempts + 1;
+      setFailedAttempts(newFailedCount);
       setError(dict.errors.credentialsSignin);
-      setShouldShake(true);
-      setTimeout(() => setShouldShake(false), 500);
-    }
+      triggerShake();
+      setIsLoading(false);
 
-    setIsLoading(false);
+      // Activate cooldown after MAX_FAILED_ATTEMPTS
+      if (newFailedCount >= MAX_FAILED_ATTEMPTS_BEFORE_COOLDOWN) {
+        setCooldownRemaining(COOLDOWN_SECONDS);
+        setFailedAttempts(0);
+      }
+    } else {
+      // Success — loading state will persist until the session effect triggers redirect
+      // No need to setIsLoading(false) here — the page will navigate away
+      setFailedAttempts(0);
+    }
   };
+
+  // ============================================================================
+  // OAUTH HANDLERS
+  // ============================================================================
 
   const handleGoogleSignIn = async () => {
     setIsGoogleLoading(true);
     setError('');
-    await signIn(
-      'google',
-      {
-        callbackUrl: `/${locale}/auth/register`,
-      },
-      {
-        hl: locale,
-      }
-    );
+    await signIn('google', { callbackUrl }, { hl: locale });
+    // Don't reset loading — page will redirect
   };
 
   const handleAppleSignIn = async () => {
     setIsAppleLoading(true);
     setError('');
-    await signIn('apple', {
-      callbackUrl: `/${locale}/auth/register`,
-      redirect: true,
-    });
+    await signIn('apple', { callbackUrl, redirect: true });
   };
 
-  // Show loading state
+  // ============================================================================
+  // LOADING / AUTHENTICATED STATE
+  // ============================================================================
+
   if (status === 'loading' || status === 'authenticated') {
     const loadingText =
       status === 'authenticated' ? dict.loader.success : dict.loader.loading;
@@ -2160,7 +2163,10 @@ export default function SignInClient({ dict, locale }: SignInClientProps) {
     );
   }
 
-  // Main sign-in form
+  // ============================================================================
+  // MAIN RENDER
+  // ============================================================================
+
   return (
     <>
       <DynamicBackground />
@@ -2175,18 +2181,9 @@ export default function SignInClient({ dict, locale }: SignInClientProps) {
         >
           <motion.div variants={itemVariants} className="mb-4">
             <div className="inline-flex items-center gap-3 bg-white/80 backdrop-blur-sm rounded-full px-6 py-3 shadow-lg border border-white/60 mb-6">
-              <motion.div
-                animate={{ rotate: [0, 10, -10, 0] }}
-                transition={{
-                  duration: 2,
-                  repeat: Infinity,
-                  ease: 'easeInOut',
-                }}
-              >
-                <Heart className="w-5 h-5 text-orange-500" />
-              </motion.div>
+              <Heart className="w-5 h-5 text-orange-500" />
               <span className="text-sm font-medium text-gray-700">
-                {locale === 'he' ? 'ברוכים השבים' : 'Welcome Back'}
+                {dict.welcomeBack || (isRTL ? 'ברוכים השבים' : 'Welcome Back')}
               </span>
               <Sparkles className="w-5 h-5 text-teal-500" />
             </div>
@@ -2196,7 +2193,7 @@ export default function SignInClient({ dict, locale }: SignInClientProps) {
             variants={itemVariants}
             className="text-3xl md:text-4xl font-bold mb-3"
           >
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 animate-gradient-slow">
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500">
               {dict.title}
             </span>
           </motion.h1>
@@ -2218,19 +2215,16 @@ export default function SignInClient({ dict, locale }: SignInClientProps) {
           initial={{ opacity: 0, y: 20 }}
           animate={
             shouldShake
-              ? { opacity: 1, y: 0, x: [-10, 10, -10, 10, 0] }
+              ? { opacity: 1, y: 0, x: [-6, 6, -6, 6, 0] }
               : { opacity: 1, y: 0 }
           }
           transition={
-            shouldShake ? { duration: 0.5 } : { duration: 0.5, delay: 0.3 }
+            shouldShake ? { duration: 0.4 } : { duration: 0.5, delay: 0.3 }
           }
           className="w-full max-w-md"
         >
-          <div className="bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/60 overflow-hidden relative">
+          <div className="bg-white/80 backdrop-blur-sm rounded-3xl shadow-2xl border border-white/60 overflow-hidden relative">
             <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-teal-400 via-orange-400 to-amber-400 pointer-events-none" />
-
-            <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-teal-400/10 to-transparent rounded-full transform translate-x-20 -translate-y-20 pointer-events-none" />
-            <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-br from-orange-400/10 to-transparent rounded-full transform -translate-x-16 translate-y-16 pointer-events-none" />
 
             <div className="relative z-10 p-6 sm:p-8">
               {/* Error Alert */}
@@ -2259,9 +2253,29 @@ export default function SignInClient({ dict, locale }: SignInClientProps) {
                 )}
               </AnimatePresence>
 
+              {/* Cooldown warning */}
+              <AnimatePresence>
+                {isCoolingDown && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="mb-6"
+                  >
+                    <div className="p-4 bg-amber-50 border-2 border-amber-200 rounded-2xl text-center">
+                      <p className="text-amber-800 text-sm font-medium">
+                        {isRTL
+                          ? `יותר מדי ניסיונות. נסה שוב בעוד ${cooldownRemaining} שניות.`
+                          : `Too many attempts. Try again in ${cooldownRemaining} seconds.`}
+                      </p>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
               {/* Sign In Form */}
               <form onSubmit={handleSubmit} className="space-y-5 mb-6">
-                {/* Email Field */}
+                {/* Email */}
                 <div className="space-y-2">
                   <Label
                     htmlFor="email"
@@ -2271,9 +2285,7 @@ export default function SignInClient({ dict, locale }: SignInClientProps) {
                   </Label>
                   <div className="relative group">
                     <div
-                      className={`absolute ${isRTL ? 'right-3' : 'left-3'} top-1/2 transform -translate-y-1/2 transition-colors ${
-                        email ? 'text-teal-500' : 'text-gray-400'
-                      }`}
+                      className={`absolute ${isRTL ? 'right-3' : 'left-3'} top-1/2 transform -translate-y-1/2 transition-colors ${email ? 'text-teal-500' : 'text-gray-400'}`}
                     >
                       <Mail className="h-5 w-5" />
                     </div>
@@ -2284,16 +2296,16 @@ export default function SignInClient({ dict, locale }: SignInClientProps) {
                       autoComplete="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className={`w-full ${isRTL ? 'pr-11 pl-4' : 'pl-11 pr-4'} py-3.5 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-teal-200 focus:border-teal-400 focus:outline-none transition-colors bg-white/50 backdrop-blur-sm hover:border-gray-300 text-gray-800 placeholder:text-gray-400 relative z-10 touch-manipulation`}
+                      className={`w-full ${isRTL ? 'pr-11 pl-4' : 'pl-11 pr-4'} py-3.5 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-teal-200 focus:border-teal-400 focus:outline-none transition-colors bg-white/50 hover:border-gray-300 text-gray-800 placeholder:text-gray-400 touch-manipulation`}
                       placeholder={dict.emailPlaceholder}
                       required
-                      disabled={isAnyLoading}
+                      disabled={isAnyLoading || isCoolingDown}
                       dir={isRTL ? 'rtl' : 'ltr'}
                     />
                   </div>
                 </div>
 
-                {/* Password Field */}
+                {/* Password */}
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <Label
@@ -2305,9 +2317,7 @@ export default function SignInClient({ dict, locale }: SignInClientProps) {
                   </div>
                   <div className="relative group">
                     <div
-                      className={`absolute ${isRTL ? 'right-3' : 'left-3'} top-1/2 transform -translate-y-1/2 transition-colors ${
-                        password ? 'text-teal-500' : 'text-gray-400'
-                      }`}
+                      className={`absolute ${isRTL ? 'right-3' : 'left-3'} top-1/2 transform -translate-y-1/2 transition-colors ${password ? 'text-teal-500' : 'text-gray-400'}`}
                     >
                       <Lock className="h-5 w-5" />
                     </div>
@@ -2318,10 +2328,10 @@ export default function SignInClient({ dict, locale }: SignInClientProps) {
                       autoComplete="current-password"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      className={`w-full ${isRTL ? 'pr-11 pl-12' : 'pl-11 pr-12'} py-3.5 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-teal-200 focus:border-teal-400 focus:outline-none transition-colors bg-white/50 backdrop-blur-sm hover:border-gray-300 text-gray-800 placeholder:text-gray-400 relative z-10 touch-manipulation`}
+                      className={`w-full ${isRTL ? 'pr-11 pl-12' : 'pl-11 pr-12'} py-3.5 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-teal-200 focus:border-teal-400 focus:outline-none transition-colors bg-white/50 hover:border-gray-300 text-gray-800 placeholder:text-gray-400 touch-manipulation`}
                       placeholder={dict.passwordPlaceholder}
                       required
-                      disabled={isAnyLoading}
+                      disabled={isAnyLoading || isCoolingDown}
                       dir={isRTL ? 'rtl' : 'ltr'}
                     />
                     <button
@@ -2329,6 +2339,9 @@ export default function SignInClient({ dict, locale }: SignInClientProps) {
                       onClick={() => setShowPassword(!showPassword)}
                       className={`absolute ${isRTL ? 'left-3' : 'right-3'} top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors z-20 touch-manipulation p-1`}
                       tabIndex={-1}
+                      aria-label={
+                        showPassword ? 'Hide password' : 'Show password'
+                      }
                     >
                       {showPassword ? (
                         <EyeOff className="h-5 w-5" />
@@ -2342,7 +2355,7 @@ export default function SignInClient({ dict, locale }: SignInClientProps) {
                   >
                     <Link
                       href={`/${locale}/auth/forgot-password`}
-                      className="text-sm text-teal-600 hover:text-teal-700 hover:underline font-medium transition-colors relative z-20 touch-manipulation"
+                      className="text-sm text-teal-600 hover:text-teal-700 hover:underline font-medium transition-colors touch-manipulation"
                     >
                       {dict.forgotPasswordLink}
                     </Link>
@@ -2352,8 +2365,8 @@ export default function SignInClient({ dict, locale }: SignInClientProps) {
                 {/* Submit Button */}
                 <Button
                   type="submit"
-                  disabled={isAnyLoading}
-                  className="w-full relative z-20 py-4 bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 hover:from-teal-600 hover:via-orange-600 hover:to-amber-600 shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center gap-2 rounded-xl text-base font-semibold group overflow-hidden touch-manipulation active:scale-[0.98]"
+                  disabled={isAnyLoading || isCoolingDown}
+                  className="w-full py-4 bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 hover:from-teal-600 hover:via-orange-600 hover:to-amber-600 shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center gap-2 rounded-xl text-base font-semibold group overflow-hidden touch-manipulation active:scale-[0.98]"
                 >
                   <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000 pointer-events-none" />
 
@@ -2387,39 +2400,43 @@ export default function SignInClient({ dict, locale }: SignInClientProps) {
                 </div>
               </div>
 
-              {/* Social Sign In Buttons */}
+              {/* Social Sign In */}
               <div className="space-y-3">
-                {/* 🍎 Apple Sign In Button */}
+                {/* Apple */}
                 <Button
                   type="button"
                   onClick={handleAppleSignIn}
-                  disabled={isAnyLoading}
-                  className="w-full relative z-20 py-4 rounded-xl flex items-center justify-center gap-3 group transition-all duration-200 bg-black hover:bg-gray-900 text-white shadow-lg hover:shadow-xl touch-manipulation active:scale-[0.98] border-0"
+                  disabled={isAnyLoading || isCoolingDown}
+                  className="w-full py-4 rounded-xl flex items-center justify-center gap-3 transition-all duration-200 bg-black hover:bg-gray-900 text-white shadow-lg hover:shadow-xl touch-manipulation active:scale-[0.98] border-0"
                 >
                   {isAppleLoading ? (
                     <>
                       <Loader2 className="animate-spin h-5 w-5" />
                       <span className="font-medium">
-                        {dict.appleButtonLoading || (locale === 'he' ? 'מתחבר עם Apple...' : 'Signing in with Apple...')}
+                        {dict.appleButtonLoading ||
+                          (isRTL
+                            ? 'מתחבר עם Apple...'
+                            : 'Signing in with Apple...')}
                       </span>
                     </>
                   ) : (
                     <>
                       <AppleLogo className="h-5 w-5" />
                       <span className="font-medium">
-                        {dict.appleButton || (locale === 'he' ? 'התחברות עם Apple' : 'Sign in with Apple')}
+                        {dict.appleButton ||
+                          (isRTL ? 'התחברות עם Apple' : 'Sign in with Apple')}
                       </span>
                     </>
                   )}
                 </Button>
 
-                {/* Google Sign In Button */}
+                {/* Google */}
                 <Button
                   type="button"
                   onClick={handleGoogleSignIn}
-                  disabled={isAnyLoading}
+                  disabled={isAnyLoading || isCoolingDown}
                   variant="outline"
-                  className="w-full relative z-20 border-2 border-gray-200 hover:border-gray-300 hover:bg-gray-50 py-4 rounded-xl flex items-center justify-center gap-3 group transition-all duration-200 bg-white/50 backdrop-blur-sm touch-manipulation active:scale-[0.98]"
+                  className="w-full border-2 border-gray-200 hover:border-gray-300 hover:bg-gray-50 py-4 rounded-xl flex items-center justify-center gap-3 transition-all duration-200 bg-white/50 touch-manipulation active:scale-[0.98]"
                 >
                   {isGoogleLoading ? (
                     <>
@@ -2466,7 +2483,7 @@ export default function SignInClient({ dict, locale }: SignInClientProps) {
                   {dict.noAccountPrompt}{' '}
                   <Link
                     href={`/${locale}/auth/register`}
-                    className="text-teal-600 font-semibold hover:text-teal-700 hover:underline transition-colors inline-flex items-center gap-1 relative z-20 touch-manipulation"
+                    className="text-teal-600 font-semibold hover:text-teal-700 hover:underline transition-colors inline-flex items-center gap-1 touch-manipulation"
                   >
                     {dict.signUpLink}
                     {isRTL ? (
@@ -2492,28 +2509,13 @@ export default function SignInClient({ dict, locale }: SignInClientProps) {
         >
           <Shield className="w-4 h-4 text-teal-500" />
           <span>
-            {locale === 'he'
-              ? 'המידע שלך מוגן ומאובטח'
-              : 'Your data is protected and secure'}
+            {dict.securityBadge ||
+              (isRTL
+                ? 'המידע שלך מוגן ומאובטח'
+                : 'Your data is protected and secure')}
           </span>
         </motion.div>
       </div>
-
-      <style>{`
-        @keyframes gradient-slow {
-          0%,
-          100% {
-            background-position: 0% 50%;
-          }
-          50% {
-            background-position: 100% 50%;
-          }
-        }
-        .animate-gradient-slow {
-          background-size: 200% 200%;
-          animation: gradient-slow 6s ease infinite;
-        }
-      `}</style>
     </>
   );
 }

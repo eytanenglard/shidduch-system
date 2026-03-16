@@ -1,13 +1,18 @@
 // src/app/api/matchmaker/suggestions/[id]/route.ts
+// ════════════════════════════════════════════════════════════════
+// 🔧 FIX: הסרנו את עדכון הסטטוס מה-PATCH הכללי.
+//    כל שינוי סטטוס חייב לעבור דרך /status endpoint
+//    כדי שמיילים והתראות יישלחו כראוי.
+// ════════════════════════════════════════════════════════════════
 
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { MatchSuggestionStatus, UserRole } from "@prisma/client";
 import { SuggestionService } from "@/components/matchmaker/suggestions/services/suggestions/SuggestionService";
-import prisma from "@/lib/prisma"; // הוספת ייבוא Prisma
+import prisma from "@/lib/prisma";
 
-// פונקציית עזר לחישוב קטגוריה (הועתקה מהלוגיקה של הסטטוס)
+// פונקציית עזר לחישוב קטגוריה
 const getSuggestionCategory = (status: MatchSuggestionStatus) => {
   switch (status) {
     case "DRAFT":
@@ -57,52 +62,24 @@ export async function PATCH(
     const suggestionId = params.id;
     const data = await req.json();
     
-    // =========================================================================
-    // תיקון: טיפול בעדכון סטטוס אם נשלח בבקשה זו
-    // =========================================================================
+    // ═════════════════════════════════════════════════════════════
+    // 🔧 FIX: אם הבקשה כוללת שדה status, נחזיר שגיאה ברורה.
+    //    כל שינוי סטטוס חייב לעבור דרך PATCH /status endpoint
+    //    כדי שהמיילים וההתראות יישלחו כראוי.
+    // ═════════════════════════════════════════════════════════════
     if (data.status) {
-      const currentSuggestion = await prisma.matchSuggestion.findUnique({
-        where: { id: suggestionId },
-        select: { status: true }
-      });
-
-      // מעדכנים סטטוס רק אם הוא שונה מהנוכחי
-      if (currentSuggestion && currentSuggestion.status !== data.status) {
-        await prisma.$transaction(async (tx) => {
-          const newStatus = data.status as MatchSuggestionStatus;
-          
-          await tx.matchSuggestion.update({
-            where: { id: suggestionId },
-            data: {
-              status: newStatus,
-              previousStatus: currentSuggestion.status,
-              lastStatusChange: new Date(),
-              lastActivity: new Date(),
-              category: getSuggestionCategory(newStatus),
-              // עדכון שדות רלוונטיים לפי הסטטוס החדש
-              ...(newStatus === MatchSuggestionStatus.CLOSED ? { closedAt: new Date() } : {}),
-              ...(newStatus === MatchSuggestionStatus.PENDING_FIRST_PARTY ? { firstPartySent: new Date() } : {}),
-              ...(newStatus === MatchSuggestionStatus.PENDING_SECOND_PARTY ? { secondPartySent: new Date() } : {}),
-            },
-          });
-
-          // יצירת רשומת היסטוריה
-          await tx.suggestionStatusHistory.create({
-            data: {
-              suggestionId,
-              status: newStatus,
-              notes: data.internalNotes || `סטטוס עודכן כחלק מעריכת הצעה על ידי ${session.user.firstName} ${session.user.lastName}`,
-            },
-          });
-        });
-      }
+      console.warn(
+        `[PATCH /suggestions/${suggestionId}] ⚠️ Received 'status' field in general PATCH. ` +
+        `Status changes must go through /status endpoint. Ignoring status field.`
+      );
+      // מסירים את שדה הסטטוס — שאר השדות (notes, priority וכו') ימשיכו להתעדכן
+      delete data.status;
     }
-    // =========================================================================
+    // ═════════════════════════════════════════════════════════════
 
     const suggestionService = SuggestionService.getInstance();
     
     try {
-      // המשך עדכון שאר הפרטים (הערות, עדיפות וכו') דרך השירות הקיים
       const updatedSuggestion = await suggestionService.updateSuggestion(
         suggestionId,
         session.user.id,

@@ -108,55 +108,9 @@ class RegistrationErrorBoundary extends React.Component<
 }
 
 // ============================================================================
-// HELPER: Determine redirect path for authenticated user
+// REDIRECT LOGIC: Uses session.redirectUrl from auth.ts (single source of truth)
+// No duplicate logic here — auth.ts determineRedirectUrl() handles all cases.
 // ============================================================================
-
-interface UserRedirectState {
-  isProfileComplete: boolean;
-  isPhoneVerified: boolean;
-  termsAndPrivacyAcceptedAt?: Date | string | null;
-  role?: string;
-  isVerified?: boolean;
-  status?: string;
-}
-
-function getRedirectPathForUser(
-  user: UserRedirectState,
-  locale: string
-): string | null {
-  debugLog('getRedirectPathForUser', {
-    isProfileComplete: user.isProfileComplete,
-    isPhoneVerified: user.isPhoneVerified,
-    hasTerms: !!user.termsAndPrivacyAcceptedAt,
-    role: user.role,
-  });
-
-  // Admin/Matchmaker — no need to complete profile
-  if (user.role === 'ADMIN' || user.role === 'MATCHMAKER') {
-    return `/${locale}/admin/engagement`;
-  }
-
-  // Everything complete — go to profile
-  if (
-    user.isProfileComplete &&
-    user.isPhoneVerified &&
-    user.termsAndPrivacyAcceptedAt
-  ) {
-    return `/${locale}/profile`;
-  }
-
-  // Profile complete + terms accepted, but phone not verified
-  if (
-    user.isProfileComplete &&
-    user.termsAndPrivacyAcceptedAt &&
-    !user.isPhoneVerified
-  ) {
-    return `/${locale}/auth/verify-phone`;
-  }
-
-  // Needs to complete profile or accept terms — stay on register
-  return null;
-}
 
 // ============================================================================
 // MAIN CONTENT COMPONENT
@@ -216,26 +170,34 @@ const RegisterStepsContent: React.FC<{
   }, [searchParams, registrationContextData.isCompletingProfile]);
 
   // ============================================================================
-  // Effect 2: Redirect logic (depends only on session)
+  // Effect 2: Redirect logic — uses session.redirectUrl from auth.ts
+  // (single source of truth — no duplicate redirect logic in client)
   // ============================================================================
   useEffect(() => {
     if (sessionStatus !== 'authenticated' || !session?.user) return;
     if (redirectInProgressRef.current) return;
 
-    const user = session.user as SessionUserType;
-    const redirectPath = getRedirectPathForUser(user, locale);
+    // session.redirectUrl is computed by determineRedirectUrl() in auth.ts
+    // It already accounts for role, profile completion, phone verification, terms
+    const redirectUrl = (session as { redirectUrl?: string }).redirectUrl;
 
-    if (!redirectPath) return;
+    // If redirectUrl points to register — user needs to stay here, don't redirect
+    if (!redirectUrl || redirectUrl.includes('/auth/register')) return;
+
+    // Build full path with locale
+    const fullRedirectPath = redirectUrl.startsWith(`/${locale}`)
+      ? redirectUrl
+      : `/${locale}${redirectUrl}`;
 
     // Prevent redirect to current path
     const currentPath =
       typeof window !== 'undefined' ? window.location.pathname : '';
-    if (currentPath === redirectPath) return;
+    if (currentPath === fullRedirectPath) return;
 
-    debugLog('Redirect', `Navigating to: ${redirectPath}`);
+    debugLog('Redirect', `Using session.redirectUrl: ${fullRedirectPath}`);
     redirectInProgressRef.current = true;
     setIsRedirecting(true);
-    router.push(redirectPath);
+    router.push(fullRedirectPath);
   }, [sessionStatus, session, router, locale]);
 
   // ============================================================================
@@ -247,10 +209,10 @@ const RegisterStepsContent: React.FC<{
     if (redirectInProgressRef.current) return;
 
     const user = session.user as SessionUserType;
-    const redirectPath = getRedirectPathForUser(user, locale);
 
-    // Only initialize if user needs to stay on register page
-    if (redirectPath) return;
+    // If session.redirectUrl says user should leave register, skip initialization
+    const redirectUrl = (session as { redirectUrl?: string }).redirectUrl;
+    if (redirectUrl && !redirectUrl.includes('/auth/register')) return;
 
     const needsSetup =
       !user.termsAndPrivacyAcceptedAt || !user.isProfileComplete;
