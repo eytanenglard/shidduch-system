@@ -511,7 +511,7 @@ export default function CandidateHub({
   const [mountedTabs, setMountedTabs] = useState<Set<string>>(new Set());
   const searchRef = useRef<HTMLDivElement>(null);
 
-  const { candidates, isLoading: candidatesLoading } = useCandidates();
+  const { candidates, loading: candidatesLoading } = useCandidates();
 
   // --- Search filter ---
   const filteredCandidates = useMemo(() => {
