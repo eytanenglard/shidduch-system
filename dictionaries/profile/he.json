@@ -1374,7 +1374,10 @@
         "matchmakerGenderDefault": "ללא העדפה",
         "influentialRabbiLabel": "דמות רבנית/רוחנית משפיעה",
         "influentialRabbiPlaceholder": "שם הדמות, וכיצד היא השפיעה עליך...",
-        "influentialRabbiEmpty": "לא צוינה דמות משפיעה."
+        "influentialRabbiEmpty": "לא צוינה דמות משפיעה.",
+        "smokingStatusLabel": "עישון",
+        "smokingStatusPlaceholder": "בחר/י...",
+        "smokingStatusEmpty": "לא צוין סטטוס עישון."
       },
       "about": {
         "title": "קצת עלי ומידע נוסף",
@@ -1561,6 +1564,12 @@
         "MALE": "שדכן",
         "FEMALE": "שדכנית",
         "NONE": "ללא העדפה"
+      },
+      "smokingStatus": {
+        "never": "לא מעשן/ת כלל",
+        "occasionally": "מעשן/ת לפעמים",
+        "regularly": "מעשן/ת באופן קבוע",
+        "trying_to_quit": "בתהליך הפסקת עישון"
       },
       "medicalTiming": {
         "FROM_THE_START": "מההתחלה (מומלץ לנושאים מהותיים)",

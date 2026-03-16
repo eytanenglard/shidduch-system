@@ -1334,7 +1334,10 @@
         "matchmakerGenderDefault": "No preference",
         "influentialRabbiLabel": "Influential Rabbinic/Spiritual Figure",
         "influentialRabbiPlaceholder": "Share a figure who has influenced you and how...",
-        "influentialRabbiEmpty": "No influential figure specified."
+        "influentialRabbiEmpty": "No influential figure specified.",
+        "smokingStatusLabel": "Smoking",
+        "smokingStatusPlaceholder": "Select...",
+        "smokingStatusEmpty": "No smoking status specified."
       },
       "about": {
         "title": "About Me & More",
@@ -1519,6 +1522,12 @@
         "MALE": "Male Matchmaker",
         "FEMALE": "Female Matchmaker",
         "NONE": "No Preference"
+      },
+      "smokingStatus": {
+        "never": "Non-smoker",
+        "occasionally": "Occasional smoker",
+        "regularly": "Regular smoker",
+        "trying_to_quit": "Trying to quit"
       },
       "medicalTiming": {
         "FROM_THE_START": "From the beginning (recommended for significant topics)",
