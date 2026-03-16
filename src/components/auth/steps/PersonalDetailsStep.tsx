@@ -370,6 +370,7 @@ export default function PersonalDetailsStep({
 
   const [uploadedPhotos, setUploadedPhotos] = useState<UploadedPhoto[]>([]);
   const [aboutMe, setAboutMe] = useState('');
+  const [matchingNotes, setMatchingNotes] = useState('');
   const [isGuideOpen, setIsGuideOpen] = useState(false);
 
   // Consents
@@ -750,6 +751,7 @@ export default function PersonalDetailsStep({
         occupation: registrationState.occupation,
         education: registrationState.education,
         about: aboutMe,
+        matchingNotes: matchingNotes,
         engagementEmailsConsent: engagementConsent,
         promotionalEmailsConsent: promotionalConsent,
       };
@@ -1823,6 +1825,66 @@ export default function PersonalDetailsStep({
             >
               {aboutMe.trim().length} / {MIN_ABOUT_LENGTH}+
             </span>
+          </div>
+        </motion.div>
+      </div>
+
+      {/* ====== SECTION 4b: Looking For ====== */}
+      <div className="space-y-5 md:space-y-6">
+        <SectionHeader
+          icon={<Heart className="w-5 h-5" />}
+          title={personalDetailsDict.lookingFor?.title || 'מה את/ה מחפש/ת?'}
+          subtitle={
+            personalDetailsDict.lookingFor?.subtitle ||
+            'תאר/י בקצרה את האדם שאת/ה מחפש/ת — זה עוזר לנו לחבר בין האנשים הנכונים'
+          }
+          gradient="from-rose-500 to-pink-500"
+        />
+
+        <motion.div variants={itemVariants}>
+          <div className="space-y-2">
+            <div className="flex items-center gap-1">
+              <Label
+                htmlFor="lookingFor"
+                className="text-sm font-semibold text-gray-700"
+              >
+                {personalDetailsDict.lookingFor?.label || 'תיאור בן/בת הזוג המבוקש/ת'}
+              </Label>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button type="button" className="cursor-help">
+                      <Info className="h-4 w-4 text-gray-400 hover:text-gray-600" />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent side="top" className="max-w-xs">
+                    <p>
+                      {personalDetailsDict.lookingFor?.tooltip ||
+                        'תאר/י בקצרה את האדם שאת/ה מחפש/ת'}
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
+            <div className="relative group">
+              <div
+                className={`absolute right-3 top-4 transition-colors duration-200 z-10 pointer-events-none ${matchingNotes.length > 0 ? 'text-rose-500' : 'text-gray-400 group-hover:text-gray-500'}`}
+              >
+                <Heart className="h-5 w-5" />
+              </div>
+              <Textarea
+                id="lookingFor"
+                value={matchingNotes}
+                onChange={(e) => setMatchingNotes(e.target.value)}
+                placeholder={
+                  personalDetailsDict.lookingFor?.placeholder ||
+                  'לדוגמה: מחפש/ת מישהו שמח וחיובי, אמין, עם ערכים של משפחה ואמונה...'
+                }
+                disabled={isLoading}
+                className="min-h-[120px] py-3 pr-10 md:pr-11 border-2 rounded-xl transition-colors duration-200 bg-white/95 resize-none text-base md:text-sm border-gray-200 hover:border-gray-300 focus:border-rose-400 focus:ring-2 focus:ring-rose-200"
+                rows={4}
+              />
+            </div>
           </div>
         </motion.div>
       </div>

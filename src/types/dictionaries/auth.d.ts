@@ -218,6 +218,15 @@ export type PhotosDict = {
   required: string;
 };
 
+// Looking For section
+export type LookingForDict = {
+  title: string;
+  subtitle: string;
+  label: string;
+  placeholder: string;
+  tooltip: string;
+};
+
 // About Me section — added shortPlaceholder
 export type AboutMeDict = {
   title: string;
@@ -390,6 +399,7 @@ export type RegisterStepsDict = {
       nextButtonLoading: string;
       photos?: PhotosDict;
       aboutMe?: AboutMeDict;
+      lookingFor?: LookingForDict;
       errors: {
         firstNameRequired: string;
         lastNameRequired: string;

@@ -394,6 +394,13 @@
           "prompt4": "What are you looking for in a partner?",
           "fieldName": "Introduction card",
           "required": "Please write at least 100 characters"
+        },
+        "lookingFor": {
+          "title": "What Are You Looking For?",
+          "subtitle": "Briefly describe the person you're looking for — it helps us connect the right people",
+          "label": "Description of Desired Partner",
+          "placeholder": "e.g.: Looking for someone positive and happy, trustworthy, with family values and faith, open to deep conversations and building a life together...",
+          "tooltip": "Briefly describe the person you're looking for — important traits, lifestyle, and expectations from the relationship"
         }
       },
       "optionalInfo": {

@@ -53,6 +53,9 @@ const completeProfileSchema = z.object({
 
   // ========== הוספה: שדה הסיפור שלי ==========
   about: z.string().max(2000, "About text is too long").optional(),
+
+  // ========== הוספה: מה אני מחפש/ת ==========
+  matchingNotes: z.string().max(1000, "Matching notes text is too long").optional(),
 });
 
 export async function POST(req: Request) {
@@ -114,6 +117,7 @@ export async function POST(req: Request) {
         engagementEmailsConsent,
         promotionalEmailsConsent,
         about,  // ========== הוספה ==========
+        matchingNotes,  // ========== הוספה ==========
     } = validation.data;
 
     console.log(`[API /api/auth/complete-profile] Consents received -> Engagement: ${engagementEmailsConsent}, Promotional: ${promotionalEmailsConsent}`);
@@ -140,6 +144,7 @@ export async function POST(req: Request) {
           education: education,
           religiousLevel: religiousLevel,
           about: about,  // ========== הוספה ==========
+          matchingNotes: matchingNotes,  // ========== הוספה ==========
 
           // הגדרות ברירת מחדל
           isProfileVisible: true,
@@ -156,6 +161,7 @@ export async function POST(req: Request) {
           education: education,
           religiousLevel: religiousLevel,
           about: about,  // ========== הוספה ==========
+          matchingNotes: matchingNotes,  // ========== הוספה ==========
 
           updatedAt: new Date(),
         },

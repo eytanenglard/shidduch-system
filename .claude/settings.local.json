@@ -1,7 +1,8 @@
 {
   "permissions": {
     "allow": [
-      "Bash(grep -r \"getDictionary\\\\|SuggestionsDictionary\\\\|ProfileCardDict\" c:UserseytanDesktopNeshamaTechshidduch-systemsrcapp[locale] --include=*.ts --include=*.tsx -l)"
+      "Bash(grep -r \"getDictionary\\\\|SuggestionsDictionary\\\\|ProfileCardDict\" c:UserseytanDesktopNeshamaTechshidduch-systemsrcapp[locale] --include=*.ts --include=*.tsx -l)",
+      "Bash(find /c/Users/eytan/Desktop/NeshamaTech/shidduch-system/src/app/[locale]/\\\\\\(authenticated\\\\\\)/profile -type f)"
     ]
   }
 }
