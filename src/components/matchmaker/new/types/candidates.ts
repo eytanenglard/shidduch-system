@@ -67,6 +67,7 @@ export interface CandidatesFilter {
   };
   cities?: string[];
   religiousLevel?: string[];
+  languages?: string[];
   occupations?: string[];
   educationLevel?: string;
   maritalStatus?: string;

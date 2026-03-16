@@ -262,6 +262,17 @@ export const useCandidates = (initialFilters: CandidatesFilter = {}): UseCandida
         }
       }
 
+      // בדיקת שפות
+      if (filters.languages?.length) {
+        const native = (candidate.profile.nativeLanguage || '').toLowerCase();
+        const additional = (candidate.profile.additionalLanguages || []).map(l => l.toLowerCase());
+        const allLangs = [native, ...additional].filter(Boolean);
+        const hasMatch = filters.languages.some(lang =>
+          allLangs.some(l => l.includes(lang.toLowerCase()) || lang.toLowerCase().includes(l))
+        );
+        if (!hasMatch) return false;
+      }
+
       // בדיקת תחומי עיסוק
       if (filters.occupations?.length && candidate.profile.occupation) {
         if (!filters.occupations.includes(candidate.profile.occupation)) {
@@ -365,6 +376,17 @@ export const useCandidates = (initialFilters: CandidatesFilter = {}): UseCandida
               }
             }
 
+            // בדיקת שפות
+            if (filters.maleFilters.languages?.length) {
+              const native = (candidate.profile.nativeLanguage || '').toLowerCase();
+              const additional = (candidate.profile.additionalLanguages || []).map(l => l.toLowerCase());
+              const allLangs = [native, ...additional].filter(Boolean);
+              const hasMatch = filters.maleFilters.languages.some(lang =>
+                allLangs.some(l => l.includes(lang.toLowerCase()) || lang.toLowerCase().includes(l))
+              );
+              if (!hasMatch) return false;
+            }
+
             // בדיקת תחומי עיסוק
             if (filters.maleFilters.occupations?.length && candidate.profile.occupation) {
               if (!filters.maleFilters.occupations.includes(candidate.profile.occupation)) {
@@ -465,6 +487,17 @@ export const useCandidates = (initialFilters: CandidatesFilter = {}): UseCandida
               if (!filters.femaleFilters.cities.includes(candidate.profile.city)) {
                 return false;
               }
+            }
+
+            // בדיקת שפות
+            if (filters.femaleFilters.languages?.length) {
+              const native = (candidate.profile.nativeLanguage || '').toLowerCase();
+              const additional = (candidate.profile.additionalLanguages || []).map(l => l.toLowerCase());
+              const allLangs = [native, ...additional].filter(Boolean);
+              const hasMatch = filters.femaleFilters.languages.some(lang =>
+                allLangs.some(l => l.includes(lang.toLowerCase()) || lang.toLowerCase().includes(l))
+              );
+              if (!hasMatch) return false;
             }
 
             // בדיקת תחומי עיסוק

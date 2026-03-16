@@ -430,10 +430,12 @@
   "religiousLevelLabel": "רמת דתיות",
   "cityLabel": "עיר מגורים",
   "maritalStatusLabel": "מצב משפחתי",
+  "languageLabel": "שפות",
   "selectReligious": "בחר רמה דתית",
   "placeholders": {
     "selectCity": "בחר עיר",
-    "selectMaritalStatus": "בחר מצב משפחתי"
+    "selectMaritalStatus": "בחר מצב משפחתי",
+    "searchLanguage": "חפש שפה..."
   },
   "options": {
     "all": "הכל"
@@ -467,13 +469,15 @@
     "religiousLevelLabel": "רמת דתיות",
     "cityLabel": "עיר מגורים",
     "maritalStatusLabel": "מצב משפחתי",
+    "languageLabel": "שפות",
     "verifiedOnlyLabel": "מאומתים בלבד",
     "withRecommendationsLabel": "עם המלצות",
     "fullProfileLabel": "פרופיל מלא",
     "placeholders": {
       "selectReligious": "בחר רמת דתיות",
       "selectCity": "בחר עיר",
-      "selectMaritalStatus": "בחר מצב משפחתי"
+      "selectMaritalStatus": "בחר מצב משפחתי",
+      "searchLanguage": "חפש שפה..."
     },
     "options": {
       "all": "הכל"
@@ -491,6 +495,7 @@
     "height": "גובה (ס\"מ)",
     "location": "מיקום מגורים",
     "religious": "רקע דתי",
+    "languages": "שפות",
     "status": "סטטוס ואימות"
   },
   "buttons": {

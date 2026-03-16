@@ -49,7 +49,8 @@
     "toQuestionnaire": "To the Smart Questionnaire",
     "matchmakerSuggestions": "Match Suggestions",
     "matchmakerClients": "Candidates",
-    "potentialMatches": "PotentialMatches"
+    "potentialMatches": "PotentialMatches",
+    "candidateFile": "Candidate File"
   },
     "unsavedChangesModal": {
     "title": "Unsaved Changes",

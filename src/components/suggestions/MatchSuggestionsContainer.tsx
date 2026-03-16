@@ -1079,6 +1079,7 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
         questionnaire={selectedQuestionnaireData}
         isDemo={false}
         initialTab={detailsModalInitialTab}
+        isUserInActiveProcess={isUserInActiveProcess}
         dict={{
           suggestions: suggestionsDict,
           profileCard: profileCardDict,

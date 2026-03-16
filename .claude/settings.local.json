@@ -3,7 +3,15 @@
     "allow": [
       "Bash(grep -r \"getDictionary\\\\|SuggestionsDictionary\\\\|ProfileCardDict\" c:UserseytanDesktopNeshamaTechshidduch-systemsrcapp[locale] --include=*.ts --include=*.tsx -l)",
       "Bash(find /c/Users/eytan/Desktop/NeshamaTech/shidduch-system/src/app/[locale]/\\\\\\(authenticated\\\\\\)/profile -type f)",
-      "Bash(node -e \"const pkg = require\\(''./package.json''\\); console.log\\(''next:'', pkg.dependencies.next\\)\")"
+      "Bash(node -e \"const pkg = require\\(''./package.json''\\); console.log\\(''next:'', pkg.dependencies.next\\)\")",
+      "Bash(find /c/Users/eytan/Desktop/NeshamaTech/shidduch-system/src/app/[locale] -maxdepth 2 -type f -name \"page.tsx\" -o -name \"layout.tsx\")",
+      "Bash(find /c/Users/eytan/Desktop/NeshamaTech/shidduch-system/src/app/[locale] -type f \\\\\\( -name \"page.tsx\" -o -name \"layout.tsx\" \\\\\\))",
+      "Bash(find /c/Users/eytan/Desktop/NeshamaTech/shidduch-system/src/app/[locale]/\\\\\\(authenticated\\\\\\) -maxdepth 1 -type f)",
+      "Bash(find /c/Users/eytan/Desktop/NeshamaTech/shidduch-system/src/app/[locale] -type f -name \"*.tsx\" -path \"*authenticated*\")",
+      "Bash(find /c/Users/eytan/Desktop/NeshamaTech/shidduch-system/src/app/[locale]/\\\\\\(authenticated\\\\\\) -maxdepth 1 -type d)",
+      "Bash(find /c/Users/eytan/Desktop/NeshamaTech/shidduch-system/src/components/chat -type f -name *.tsx)",
+      "Bash(find /c/Users/eytan/Desktop/NeshamaTech/shidduch-system/src/app/[locale]/\\\\\\(authenticated\\\\\\) -type f -name \"page.tsx\" -o -name \"layout.tsx\")",
+      "Bash(find /c/Users/eytan/Desktop/NeshamaTech/shidduch-system/src/app/[locale]/\\\\\\(authenticated\\\\\\) -name \"layout.tsx\")"
     ]
   }
 }

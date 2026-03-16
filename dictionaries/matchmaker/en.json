@@ -497,10 +497,12 @@
       "religiousLevelLabel": "Religious Level",
       "cityLabel": "City",
       "maritalStatusLabel": "Marital Status",
+      "languageLabel": "Languages",
 
      "placeholders": {
     "selectCity": "Select city",
-    "selectMaritalStatus": "Select marital status"
+    "selectMaritalStatus": "Select marital status",
+    "searchLanguage": "Search language..."
   },
       "options": {
         "all": "All"
@@ -534,14 +536,15 @@
         "religiousLevelLabel": "Religious Level",
         "cityLabel": "City",
         "maritalStatusLabel": "Marital Status",
-
+        "languageLabel": "Languages",
         "verifiedOnlyLabel": "Verified Only",
         "withRecommendationsLabel": "With Recommendations",
         "fullProfileLabel": "Full Profile",
        "placeholders": {
   "selectReligious": "Select religious level",
   "selectCity": "Select city",
-  "selectMaritalStatus": "Select marital status"
+  "selectMaritalStatus": "Select marital status",
+  "searchLanguage": "Search language..."
 },
         "options": {
           "all": "All"
@@ -559,6 +562,7 @@
         "height": "Height (cm)",
         "location": "Location",
         "religious": "Religious Background",
+        "languages": "Languages",
         "status": "Status & Verification"
       },
       "buttons": {

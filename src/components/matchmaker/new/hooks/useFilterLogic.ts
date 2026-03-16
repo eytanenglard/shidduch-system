@@ -414,6 +414,7 @@ export const useFilterLogic = ({
       filters.gender !== undefined ||
       (filters.cities?.length ?? 0) > 0 ||  // בדיקה בטוחה למערך
       (filters.occupations?.length ?? 0) > 0 ||  // בדיקה בטוחה למערך
+      (filters.languages?.length ?? 0) > 0 ||
       filters.religiousLevel ||
       filters.educationLevel ||
       filters.maritalStatus ||
@@ -531,6 +532,25 @@ export const useFilterLogic = ({
       }
     }
 
+    // שפות
+    if (filters.languages?.length) {
+      if (filters.languages.length === 1) {
+        active.push({
+          key: 'languages',
+          value: filters.languages[0],
+          label: `שפה: ${filters.languages[0]}`,
+          category: 'שפות'
+        });
+      } else {
+        active.push({
+          key: 'languages',
+          value: filters.languages,
+          label: `שפות: ${filters.languages.length} נבחרו`,
+          category: 'שפות'
+        });
+      }
+    }
+
     // רמת דתיות
     if (filters.religiousLevel) {
       active.push({
@@ -638,7 +658,7 @@ export const useFilterLogic = ({
       if (key === 'separateFiltering') {
         updated.separateFiltering = false;
       } else if (Array.isArray(updated[key]) && value !== undefined) {
-        if (key === 'cities' || key === 'occupations') {
+        if (key === 'cities' || key === 'occupations' || key === 'languages') {
           updated[key] = (updated[key] as string[]).filter(v => v !== value);
         }
       } else {

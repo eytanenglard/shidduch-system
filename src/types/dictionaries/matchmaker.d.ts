@@ -144,9 +144,11 @@ type FilterPanelDict = {
   religiousLevelLabel: string;
   cityLabel: string;
   maritalStatusLabel: string;  // ← חדש
+  languageLabel: string;
   placeholders: {
     selectCity: string;
     selectMaritalStatus: string;  // ← חדש
+    searchLanguage?: string;
   };
   options: {
     all: string;
@@ -165,6 +167,7 @@ type FilterPanelDict = {
     religiousLevelLabel: string;
     cityLabel: string;
     maritalStatusLabel: string;  // ← חדש
+    languageLabel: string;
     verifiedOnlyLabel: string;
     withRecommendationsLabel: string;
     fullProfileLabel: string;
@@ -172,6 +175,7 @@ type FilterPanelDict = {
       selectReligious: string;
       selectCity: string;
       selectMaritalStatus: string;  // ← חדש
+      searchLanguage?: string;
     };
     options: {
       all: string;
@@ -189,6 +193,7 @@ type FilterPanelDict = {
     height: string;
     location: string;
     religious: string;
+    languages: string;
     status: string;
   };
   buttons: {

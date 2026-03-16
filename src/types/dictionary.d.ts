@@ -21,6 +21,7 @@ export type NavbarDict = {
   matchmakerSuggestions: string;
   matchmakerClients: string;
   potentialMatches: string;
+  candidateFile: string;
 };
 
 // --- User Dropdown ---
@@ -427,6 +428,10 @@ export type SuggestionsModalDict = {
     titleCollapsed: string;
     subtitle: string;
     approve: string;
+    interested: string;
+    activateNow: string;
+    removeFromList: string;
+    activeProcessExplanation: string;
     sending: string;
     updating: string;
     ask: string;
