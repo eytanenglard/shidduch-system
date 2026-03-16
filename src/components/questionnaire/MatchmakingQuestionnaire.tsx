@@ -369,6 +369,19 @@ export default function MatchmakingQuestionnaire({
   useEffect(() => {
     setSaveHandler(() => handleQuestionnaireSave(false));
   }, [handleQuestionnaireSave, setSaveHandler]);
+
+  // Debounced auto-save on every answer change (fixes answer loss on page refresh)
+  const autoSaveTimerRef = useRef<NodeJS.Timeout | null>(null);
+  useEffect(() => {
+    if (!isDirty || answers.length === 0) return;
+    if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
+    autoSaveTimerRef.current = setTimeout(() => {
+      handleQuestionnaireSave(true);
+    }, 2000);
+    return () => {
+      if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
+    };
+  }, [answers]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
     // 1. אם המשתמש מחובר - לא עושים כלום
     if (userId) return;

@@ -77,11 +77,20 @@ export async function GET(
                 maritalStatus: true,
                 profileCharacterTraits: true,
                 profileHobbies: true,
+                isFriendsSectionVisible: true,
+                testimonials: {
+                  where: { status: 'APPROVED' },
+                  select: {
+                    authorName: true,
+                    relationship: true,
+                    content: true,
+                  }
+                },
               }
             },
             images: {
               orderBy: { isMain: 'desc' },
-              select: { 
+              select: {
                 url: true,
                 isMain: true,
               }
@@ -122,11 +131,20 @@ export async function GET(
                 maritalStatus: true,
                 profileCharacterTraits: true,
                 profileHobbies: true,
+                isFriendsSectionVisible: true,
+                testimonials: {
+                  where: { status: 'APPROVED' },
+                  select: {
+                    authorName: true,
+                    relationship: true,
+                    content: true,
+                  }
+                },
               }
             },
             images: {
               orderBy: { isMain: 'desc' },
-              select: { 
+              select: {
                 url: true,
                 isMain: true,
               }
@@ -210,8 +228,10 @@ export async function GET(
       hobbies: otherPartyRaw.profile?.profileHobbies || [],
       images: otherPartyRaw.images?.map(img => img.url) || [],
       mainImage: otherPartyRaw.images?.find(img => img.isMain)?.url || otherPartyRaw.images?.[0]?.url || null,
-      // NEW: Add questionnaire answers
       questionnaireAnswers,
+      testimonials: (otherPartyRaw.profile?.isFriendsSectionVisible !== false)
+        ? (otherPartyRaw.profile?.testimonials || [])
+        : [],
     };
 
     const showContactDetails = suggestion.status === 'CONTACT_DETAILS_SHARED';

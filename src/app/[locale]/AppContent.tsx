@@ -4,6 +4,7 @@
 
 import { usePathname } from 'next/navigation';
 import Navbar from '@/components/layout/Navbar';
+import BottomNavBar from '@/components/layout/BottomNavBar';
 import { Toaster } from 'sonner';
 import { ReactNode, useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
@@ -81,9 +82,12 @@ export default function AppContent({ children, dict }: AppContentProps) {
         אנו מוסיפים ריפוד עליון (padding-top) בגובה ה-Navbar (h-20 = 80px = 5rem)
         רק כאשר ה-Navbar מוצג, כדי למנוע הסתרה של התוכן העליון.
       */}
-      <main className={cn('flex-grow', shouldApplyNavbarPadding && 'pt-20')}>
+      <main className={cn('flex-grow', shouldApplyNavbarPadding && 'pt-20', 'pb-16 md:pb-0')}>
         {children}
       </main>
+
+      {/* Bottom navigation bar — mobile only, candidates only */}
+      <BottomNavBar dict={dict} />
     </div>
   );
 }

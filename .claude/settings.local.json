@@ -16,7 +16,15 @@
       "Bash(find \"c:/Users/eytan/Desktop/NeshamaTech/shidduch-system/src/app/[locale]/\\(authenticated\\)\" -name \"layout.tsx\")",
       "Bash(find \"c:/Users/eytan/Desktop/NeshamaTech/shidduch-system/src/app/[locale]/\\(authenticated\\)\" -maxdepth 1 -name \"layout.tsx\")",
       "Bash(ls -la c:/Users/eytan/Desktop/NeshamaTech/shidduch-system/src/app/[locale]/questionnaire/)",
-      "Bash(find /c/Users/eytan/Desktop/NeshamaTech/shidduch-system -name *.prisma -o -name prisma.schema -o -name *.prismarc)"
+      "Bash(find /c/Users/eytan/Desktop/NeshamaTech/shidduch-system -name *.prisma -o -name prisma.schema -o -name *.prismarc)",
+      "Bash(find c:/Users/eytan/Desktop/NeshamaTech/shidduch-system/src -name NotificationContext*)",
+      "Bash(python3 -c \"import json; d=json.load\\(open\\(''''c:/Users/eytan/Desktop/NeshamaTech/shidduch-system/dictionaries/he.json''''\\)\\); print\\(json.dumps\\(d.get\\(''''navbar'''', {}\\), ensure_ascii=False, indent=2\\)\\)\")",
+      "Bash(node -e \"const d=require\\(''''./dictionaries/he.json''''\\); console.log\\(JSON.stringify\\(d.navbar, null, 2\\)\\)\")",
+      "Bash(find /c/Users/eytan/Desktop/NeshamaTech/shidduch-system/src/types -type f -name *.ts)",
+      "Bash(wc -l /c/Users/eytan/Desktop/NeshamaTech/shidduch-system/src/dictionaries/*.json)",
+      "Bash(find c:UserseytanDesktopNeshamaTechshidduch-systemsrctypes -name *metric* -o -name *profile*)",
+      "Bash(grep -l \"metricsExtractionService\\\\|MetricsExtraction\" \"c:\\\\Users\\\\eytan\\\\Desktop\\\\NeshamaTech\\\\shidduch-system\\\\src\\\\lib\\\\services\"/*.ts)",
+      "Bash(xargs grep:*)"
     ]
   }
 }

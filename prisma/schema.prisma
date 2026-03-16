@@ -255,6 +255,7 @@ model Profile {
   medicalInfoDetails          String?
   medicalInfoDisclosureTiming String?
   isMedicalInfoVisible        Boolean @default(false)
+  smokingStatus               String? // 'never' | 'occasionally' | 'regularly' | 'trying_to_quit'
 
   // --- Existing Preference Fields ---
   preferredAgeMin              Int?
@@ -1549,6 +1550,10 @@ enum ReligiousJourney {
   CONVERT
   IN_PROCESS
   OTHER
+  FROM_CHAREDI_HOME
+  FROM_CHAREDI_HASIDIC_HOME
+  FROM_DATI_LEUMI_HOME
+  FROM_MASORTI_HOME
 }
 
 enum InvitationStatus {

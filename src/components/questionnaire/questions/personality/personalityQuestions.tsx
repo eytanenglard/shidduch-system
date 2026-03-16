@@ -34,6 +34,7 @@ import {
   HelpCircle,
   Anchor,
   Feather,
+  Wind,
 } from 'lucide-react';
 
 export const personalityQuestions: Question[] = [
@@ -396,6 +397,22 @@ export const personalityQuestions: Question[] = [
       { value: 'enrichment', icon: <BookOpen /> },
     ],
     metadata: { estimatedTime: 3 },
+  },
+  {
+    worldId: 'PERSONALITY',
+    id: 'personality_smoking_status',
+    category: 'lifestyle',
+    subcategory: 'personal_habits',
+    type: 'singleChoice',
+    depth: 'BASIC',
+    isRequired: true,
+    options: [
+      { value: 'never', icon: <Wind /> },
+      { value: 'occasionally' },
+      { value: 'regularly' },
+      { value: 'trying_to_quit' },
+    ],
+    metadata: { estimatedTime: 1 },
   },
   {
     worldId: 'PERSONALITY',

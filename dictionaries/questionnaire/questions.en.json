@@ -254,6 +254,16 @@
       "question": "Share two qualities you genuinely appreciate about yourself, and one area where you are actively working to grow.",
       "placeholder": "Qualities you appreciate: (e.g., 'my loyalty to friends,' 'my ability to find humor in tough situations'). Area for growth: (e.g., 'I'm working on being less critical of myself').",
       "helpText": "Self-awareness is a cornerstone of a successful partnership. Your candor here is deeply valued."
+    },
+    "personality_smoking_status": {
+      "question": "Do you smoke?",
+      "helpText": "Smoking habits can be an important factor in compatibility. Being honest here helps us find a better match for you.",
+      "options": {
+        "never": "I don't smoke at all",
+        "occasionally": "I smoke occasionally (socially, at events)",
+        "regularly": "I smoke regularly",
+        "trying_to_quit": "I smoke but I'm trying to quit"
+      }
     }
   },
   "VALUES": {
@@ -778,6 +788,16 @@
       "question": "If you had to choose just one 'keystone' quality—the single trait upon which the entire structure of your relationship would rest—what would it be?",
       "placeholder": "Try to think of the single most fundamental trait for you...",
       "helpText": "This is a powerful focusing question. It helps us understand the absolute core of your search."
+    },
+    "partner_smoking_preference": {
+      "question": "Does smoking bother you in a partner?",
+      "helpText": "There is no right or wrong answer — what matters is finding someone who is truly compatible with you.",
+      "options": {
+        "no_preference": "It doesn't bother me at all",
+        "slightly_bothers": "It bothers me a little, but it's not a dealbreaker",
+        "no_smokers": "I prefer a non-smoker",
+        "deal_breaker": "It's a dealbreaker for me"
+      }
     },
     "partner_romantic_past_comfort": {
   "question": "What is your comfort level with a partner's romantic past?",

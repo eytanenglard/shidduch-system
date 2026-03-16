@@ -35,6 +35,7 @@ import {
   MapPin,
   DollarSign,
   HelpCircle,
+  Wind,
 } from 'lucide-react';
 
 export const partnerQuestions: Question[] = [
@@ -284,6 +285,22 @@ export const partnerQuestions: Question[] = [
     isRequired: false,
     minLength: 10,
     maxLength: 150,
+    metadata: { estimatedTime: 1 },
+  },
+  {
+    worldId: 'PARTNER',
+    id: 'partner_smoking_preference',
+    category: 'partner',
+    subcategory: 'non_negotiables',
+    type: 'singleChoice',
+    depth: 'BASIC',
+    isRequired: true,
+    options: [
+      { value: 'no_preference', icon: <Wind /> },
+      { value: 'slightly_bothers' },
+      { value: 'no_smokers' },
+      { value: 'deal_breaker' },
+    ],
     metadata: { estimatedTime: 1 },
   },
   {
