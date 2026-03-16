@@ -6,7 +6,6 @@ export type SignInDict = {
   emailLabel: string;
   emailPlaceholder: string;
   passwordLabel: string;
-  
   passwordPlaceholder: string;
   forgotPasswordLink: string;
   submitButton: string;
@@ -14,11 +13,12 @@ export type SignInDict = {
   orDivider: string;
   googleButton: string;
   googleButtonLoading: string;
-    appleButton: string;          // 🍎 חדש
-  appleButtonLoading: string;   // 🍎 חדש
-
+  appleButton: string;
+  appleButtonLoading: string;
   noAccountPrompt: string;
   signUpLink: string;
+  welcomeBack?: string;
+  securityBadge?: string;
   loader: {
     authenticated: string;
     success: string;
@@ -93,7 +93,6 @@ export type VerifyEmailDict = {
   emailAddressNotSpecified: string;
   checkYourInbox: string;
   spamNotice: string;
-
   errors: {
     title: string;
     noEmail: string;
@@ -192,7 +191,7 @@ export type AuthErrorDict = {
   };
 };
 
-// טיפוס להצעת Google
+// Google suggestion when DB errors occur
 export type GoogleSuggestionDict = {
   title: string;
   description: string;
@@ -200,7 +199,7 @@ export type GoogleSuggestionDict = {
   buttonLoading: string;
 };
 
-// טיפוס לתמונות - מעודכן עם fieldName ו-required
+// Photos section
 export type PhotosDict = {
   title: string;
   subtitle: string;
@@ -215,16 +214,17 @@ export type PhotosDict = {
   uploadingPhotos: string;
   tip: string;
   tipText: string;
-  fieldName: string; // שם השדה לוולידציה
-  required: string; // הודעת שגיאה כשחסר
+  fieldName: string;
+  required: string;
 };
 
-// טיפוס לסיפור שלי - מעודכן עם fieldName ו-required
+// About Me section — added shortPlaceholder
 export type AboutMeDict = {
   title: string;
   subtitle: string;
   label: string;
   placeholder: string;
+  shortPlaceholder?: string;
   tooltip: string;
   minChars: string;
   guidanceTitle: string;
@@ -250,6 +250,13 @@ export type AboutMeDict = {
   required: string;
 };
 
+// Error Boundary — NEW
+export type ErrorBoundaryDict = {
+  title: string;
+  description: string;
+  refreshButton: string;
+};
+
 export type RegisterStepsDict = {
   progressBar: {
     stepLabel: string;
@@ -268,7 +275,6 @@ export type RegisterStepsDict = {
     completionReadyDescription: string;
     loadingProfileDescription: string;
   };
-
   incompleteProfileAlert: {
     title: string;
     description: string;
@@ -276,13 +282,14 @@ export type RegisterStepsDict = {
   };
   contactSupport: string;
   contactSupportLink: string;
+  errorBoundary?: ErrorBoundaryDict;
 
   steps: {
     welcome: {
       title: string;
       subtitle: string;
       googleButton: string;
-          appleButton: string;  // 🍎 חדש
+      appleButton: string;
       emailButton: string;
       signInPrompt: string;
       signInLink: string;
@@ -312,6 +319,7 @@ export type RegisterStepsDict = {
         title: string;
         invalidEmail: string;
         invalidPassword: string;
+        invalidName?: string;
         requiredEmail: string;
         requiredPassword: string;
         fillFields: string;
@@ -355,17 +363,16 @@ export type RegisterStepsDict = {
       lastNamePlaceholder: string;
       languageLabel: string;
       languagePlaceholder: string;
-
       phoneLabel: string;
       phonePlaceholder: string;
       genderLabel: string;
       male: string;
       female: string;
       birthDateLabel: string;
-       originLabel: string;
+      originLabel: string;
       originPlaceholder: string;
-        cityLabel: string;
-  cityPlaceholder: string;
+      cityLabel: string;
+      cityPlaceholder: string;
       maritalStatusLabel: string;
       maritalStatusPlaceholder: string;
       maritalStatuses: {
@@ -376,17 +383,13 @@ export type RegisterStepsDict = {
       religiousLevelLabel: string;
       religiousLevelPlaceholder: string;
       religiousLevels: { [key: string]: string };
-
       engagementConsentLabel: string;
       promotionalConsentLabel: string;
       backButton: string;
       nextButton: string;
       nextButtonLoading: string;
-
-      // תמונות וסיפור - שדות חדשים
       photos?: PhotosDict;
       aboutMe?: AboutMeDict;
-
       errors: {
         firstNameRequired: string;
         lastNameRequired: string;
@@ -400,9 +403,8 @@ export type RegisterStepsDict = {
         consentRequired: string;
         engagementConsentRequired: string;
         religiousLevelRequired: string;
-            originRequired: string;
-            cityRequired: string;
-
+        originRequired: string;
+        cityRequired: string;
         consentApiError: string;
       };
     };
@@ -469,12 +471,11 @@ export type RegisterStepsDict = {
       birthDate: string;
       maritalStatus: string;
       religiousLevel: string;
-          city: string;
+      city: string;
       origin: string;
-
       terms: string;
       engagement: string;
-       photos: string;
+      photos: string;
       aboutMe: string;
     };
   };
@@ -516,30 +517,12 @@ export type AccessibilityStatementDict = {
     p1: string;
     dedicatedToolbarTitle: string;
     p2: string;
-    fontAdjustment: {
-      title: string;
-      description: string;
-    };
-    contrastModes: {
-      title: string;
-      description: string;
-    };
-    readableFont: {
-      title: string;
-      description: string;
-    };
-    largeCursor: {
-      title: string;
-      description: string;
-    };
-    textToSpeech: {
-      title: string;
-      description: string;
-    };
-    reduceMotion: {
-      title: string;
-      description: string;
-    };
+    fontAdjustment: { title: string; description: string };
+    contrastModes: { title: string; description: string };
+    readableFont: { title: string; description: string };
+    largeCursor: { title: string; description: string };
+    textToSpeech: { title: string; description: string };
+    reduceMotion: { title: string; description: string };
     additionalAdjustmentsTitle: string;
     keyboardNav: string;
     screenReader: string;
@@ -547,19 +530,8 @@ export type AccessibilityStatementDict = {
     accessibleForms: string;
     noFlashing: string;
   };
-  limitations: {
-    title: string;
-    p1: string;
-    p2: string;
-  };
-  contact: {
-    title: string;
-    p1: string;
-    name: string;
-    email: string;
-    p2: string;
-    p3: string;
-  };
+  limitations: { title: string; p1: string; p2: string };
+  contact: { title: string; p1: string; name: string; email: string; p2: string; p3: string };
 };
 
 export type PrivacyPolicyDict = {
@@ -567,31 +539,15 @@ export type PrivacyPolicyDict = {
   pageDescription: string;
   mainTitle: string;
   lastUpdated: string;
-  introduction: {
-    title: string;
-    p1: string;
-    p2: string;
-    p3: string;
-  };
-  consent: {
-    title: string;
-    p1: string;
-    p2: string;
-    p3: string;
-    p4: string;
-  };
+  introduction: { title: string; p1: string; p2: string; p3: string };
+  consent: { title: string; p1: string; p2: string; p3: string; p4: string };
   collectedInfo: {
     title: string;
     p1: string;
     subTitle1: string;
     list1: {
       item1: string;
-      item2: {
-        title: string;
-        subItem1: string;
-        subItem2: string;
-        subItem3: string;
-      };
+      item2: { title: string; subItem1: string; subItem2: string; subItem3: string };
       item3: string;
       item4: string;
       item5: string;
@@ -608,35 +564,18 @@ export type PrivacyPolicyDict = {
     p3_6: string;
     p3_7: string;
     subTitle4: string;
-    list2: {
-      item1: string;
-      item2: string;
-    };
+    list2: { item1: string; item2: string };
   };
   howWeUse: {
     title: string;
     p1: string;
-    list: {
-      item1: string;
-      item2: string;
-      item3: string;
-      item4: string;
-      item5: string;
-      item6: string;
-      item7: string;
-    };
+    list: { item1: string; item2: string; item3: string; item4: string; item5: string; item6: string; item7: string };
   };
   aiServices: {
     title: string;
     p1: string;
     p2: string;
-    list: {
-      item1: string;
-      item2: string;
-      item3: string;
-      item4: string;
-      item5: string;
-    };
+    list: { item1: string; item2: string; item3: string; item4: string; item5: string };
     p3: string;
     p4: string;
     p5: string;
@@ -646,45 +585,15 @@ export type PrivacyPolicyDict = {
   sharingInfo: {
     title: string;
     p1: string;
-    list: {
-      item1: string;
-      item2: string;
-      item3: string;
-      item4: string;
-      item5: string;
-    };
+    list: { item1: string; item2: string; item3: string; item4: string; item5: string };
   };
-  security: {
-    title: string;
-    p1: string;
-  };
-  retention: {
-    title: string;
-    p1: string;
-  };
-  yourRights: {
-    title: string;
-    p1: string;
-  };
-  crossBorder: {
-    title: string;
-    p1: string;
-  };
-  minors: {
-    title: string;
-    p1: string;
-  };
-  changes: {
-    title: string;
-    p1: string;
-  };
-  contact: {
-    title: string;
-    p1: string;
-    companyName: string;
-    email: string;
-    address: string;
-  };
+  security: { title: string; p1: string };
+  retention: { title: string; p1: string };
+  yourRights: { title: string; p1: string };
+  crossBorder: { title: string; p1: string };
+  minors: { title: string; p1: string };
+  changes: { title: string; p1: string };
+  contact: { title: string; p1: string; companyName: string; email: string; address: string };
 };
 
 export type TermsOfServiceDict = {
@@ -699,74 +608,31 @@ export type TermsOfServiceDict = {
     p1_2: string;
     p1_3: string;
     p1_4: string;
-    list: {
-      itemA: string;
-      itemB: string;
-      itemC: string;
-    };
+    list: { itemA: string; itemB: string; itemC: string };
     p1_5: string;
   };
   userAccount: {
     title: string;
     p2_1: string;
     p2_2: string;
-    list: {
-      itemA: string;
-      itemB: string;
-      itemC: string;
-      itemD: string;
-      itemE: string;
-      itemF: string;
-      itemG: string;
-      itemH: string;
-      itemI: string;
-    };
+    list: { itemA: string; itemB: string; itemC: string; itemD: string; itemE: string; itemF: string; itemG: string; itemH: string; itemI: string };
     p2_3: string;
   };
   serviceFees: {
     title: string;
     p3_1: string;
-    list: {
-      itemA: string;
-      itemB: string;
-      itemC: string;
-    };
+    list: { itemA: string; itemB: string; itemC: string };
     p3_2: string;
     p3_3: string;
     p3_4: string;
     p3_5: string;
   };
-  intellectualProperty: {
-    title: string;
-    p4_1: string;
-    p4_2: string;
-  };
-  thirdPartyLinks: {
-    title: string;
-    p1: string;
-  };
-  limitationOfLiability: {
-    title: string;
-    p6_1: string;
-    p6_2: string;
-    p6_3: string;
-    p6_4: string;
-  };
-  indemnification: {
-    title: string;
-    p1: string;
-  };
-  terminationLaw: {
-    title: string;
-    p8_1: string;
-    p8_2: string;
-    p8_3: string;
-  };
-  contact: {
-    title: string;
-    p9_1: string;
-    p9_2: string;
-  };
+  intellectualProperty: { title: string; p4_1: string; p4_2: string };
+  thirdPartyLinks: { title: string; p1: string };
+  limitationOfLiability: { title: string; p6_1: string; p6_2: string; p6_3: string; p6_4: string };
+  indemnification: { title: string; p1: string };
+  terminationLaw: { title: string; p8_1: string; p8_2: string; p8_3: string };
+  contact: { title: string; p9_1: string; p9_2: string };
 };
 
 export type ChildSafetyDict = {
@@ -776,81 +642,25 @@ export type ChildSafetyDict = {
   siteName: string;
   lastUpdated: string;
   emergencyBanner: string;
-  commitment: {
-    title: string;
-    p1: string;
-    p2: string;
-    definitionsTitle: string;
-    csaeDefinition: string;
-    csamDefinition: string;
-  };
-  zeroTolerance: {
-    title: string;
-    p1: string;
-    prohibitedList: Record<string, string>;
-    consequence: string;
-  };
-  ageRestrictions: {
-    title: string;
-    p1: string;
-    measures: Record<string, string>;
-    p2: string;
-  };
-  detection: {
-    title: string;
-    p1: string;
-    methods: Record<string, string>;
-  };
-  reporting: {
-    title: string;
-    p1: string;
-    howToReportTitle: string;
-    methods: Record<string, string>;
-    anonymity: string;
-    noRetaliation: string;
-  };
-  response: {
-    title: string;
-    p1: string;
-    steps: Record<string, string>;
-  };
-  authorities: {
-    title: string;
-    p1: string;
-    organizations: Record<string, string>;
-    p2: string;
-  };
-  dataProtection: {
-    title: string;
-    p1: string;
-    measures: Record<string, string>;
-  };
-  training: {
-    title: string;
-    p1: string;
-    topics: Record<string, string>;
-  };
-  contact: {
-    title: string;
-    p1: string;
-    emailLabel: string;      // ← שונה - רק שדה אחד
-    responseTime: string;
-  };
-  updates: {
-    title: string;
-    p1: string;
-    p2: string;
-  };
+  commitment: { title: string; p1: string; p2: string; definitionsTitle: string; csaeDefinition: string; csamDefinition: string };
+  zeroTolerance: { title: string; p1: string; prohibitedList: Record<string, string>; consequence: string };
+  ageRestrictions: { title: string; p1: string; measures: Record<string, string>; p2: string };
+  detection: { title: string; p1: string; methods: Record<string, string> };
+  reporting: { title: string; p1: string; howToReportTitle: string; methods: Record<string, string>; anonymity: string; noRetaliation: string };
+  response: { title: string; p1: string; steps: Record<string, string> };
+  authorities: { title: string; p1: string; organizations: Record<string, string>; p2: string };
+  dataProtection: { title: string; p1: string; measures: Record<string, string> };
+  training: { title: string; p1: string; topics: Record<string, string> };
+  contact: { title: string; p1: string; emailLabel: string; responseTime: string };
+  updates: { title: string; p1: string; p2: string };
   footerCommitment: string;
 };
-
 
 export type LegalDictionary = {
   accessibilityStatement: AccessibilityStatementDict;
   privacyPolicy: PrivacyPolicyDict;
   termsOfService: TermsOfServiceDict;
-    childSafety: ChildSafetyDict;  // ← הוסף שורה זו
-
+  childSafety: ChildSafetyDict;
 };
 
 export type UnsubscribePageDict = {

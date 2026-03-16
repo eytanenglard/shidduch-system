@@ -1,7 +1,7 @@
 // src/components/auth/steps/BasicInfoStep.tsx
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useRegistration } from '../RegistrationContext';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -25,6 +25,10 @@ import { Input } from '@/components/ui/input';
 import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 
+// ============================================================================
+// TYPES
+// ============================================================================
+
 interface BasicInfoStepProps {
   dict: RegisterStepsDict['steps']['basicInfo'];
   consentDict: RegisterStepsDict['consentCheckbox'];
@@ -32,14 +36,28 @@ interface BasicInfoStepProps {
   locale: 'he' | 'en';
 }
 
+// ============================================================================
+// VALIDATION UTILITIES
+// ============================================================================
+
 const isValidEmail = (email: string): boolean => {
   const emailRegex = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i;
   return email.trim() !== '' && emailRegex.test(email);
 };
 
+// Fixed: Now allows special characters (!@#$%^&* etc.)
 const isValidPassword = (password: string): boolean => {
-  const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$/;
+  const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
   return passwordRegex.test(password);
+};
+
+// New: Name validation — allows Hebrew, English, spaces, hyphens, apostrophes
+const isValidName = (name: string): boolean => {
+  if (name.trim().length < 2) return false;
+  if (name.trim().length > 50) return false;
+  // Allow Hebrew, English, spaces, hyphens, apostrophes
+  const nameRegex = /^[\u0590-\u05FFa-zA-Z\s\-']+$/;
+  return nameRegex.test(name.trim());
 };
 
 const GOOGLE_SIGNUP_SUGGESTED_ERRORS = [
@@ -52,6 +70,24 @@ const GOOGLE_SIGNUP_SUGGESTED_ERRORS = [
   'P1017',
 ];
 
+// ============================================================================
+// ANIMATION VARIANTS
+// ============================================================================
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: { opacity: 1, transition: { staggerChildren: 0.1 } },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
+};
+
+// ============================================================================
+// COMPONENT
+// ============================================================================
+
 const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
   dict,
   consentDict,
@@ -62,18 +98,30 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
     useRegistration();
   const router = useRouter();
 
+  // Form state
   const [passwordError, setPasswordError] = useState('');
   const [emailError, setEmailError] = useState('');
+  const [firstNameError, setFirstNameError] = useState('');
+  const [lastNameError, setLastNameError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
   const [showGoogleSuggestion, setShowGoogleSuggestion] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [isAppleLoading, setIsAppleLoading] = useState(false);
   const [isAttemptingLogin, setIsAttemptingLogin] = useState(false);
-  const [showExistingUserOptions, setShowExistingUserOptions] = useState(false);
-  const [existingUserEmail, setExistingUserEmail] = useState('');
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [missingFields, setMissingFields] = useState<string[]>([]);
+
+  // Existing user state — shown when EMAIL_EXISTS
+  const [showExistingUserDialog, setShowExistingUserDialog] = useState(false);
+
+  const isRTL = locale === 'he';
+  const isAnyLoading =
+    isLoading || isAttemptingLogin || isGoogleLoading || isAppleLoading;
+
+  // ============================================================================
+  // OAUTH HANDLERS
+  // ============================================================================
 
   const handleGoogleSignup = async () => {
     setIsGoogleLoading(true);
@@ -101,102 +149,110 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
     }
   };
 
-  const handleAttemptLoginWithExistingEmail = async () => {
+  // ============================================================================
+  // EXISTING USER: Attempt login with provided credentials
+  // ============================================================================
+
+  const handleAttemptLoginWithExistingEmail = useCallback(async () => {
     setIsAttemptingLogin(true);
     setApiError(null);
 
     try {
-      console.log(
-        '[BasicInfoStep] Attempting login for existing email:',
-        data.email
-      );
-
       const result = await signIn('credentials', {
         email: data.email.toLowerCase(),
         password: data.password,
         redirect: false,
       });
 
-      console.log('[BasicInfoStep] SignIn result:', result);
-
       if (result?.error) {
-        console.log(
-          '[BasicInfoStep] Login failed - redirecting to forgot password'
-        );
-        router.push(
-          `/${locale}/auth/forgot-password?email=${encodeURIComponent(data.email)}`
-        );
+        // Login failed — show options dialog instead of auto-redirecting
+        setShowExistingUserDialog(true);
+        setIsAttemptingLogin(false);
         return;
       }
 
       if (result?.ok) {
-        console.log(
-          '[BasicInfoStep] Login successful - fetching session for redirect'
-        );
-
-        await new Promise((resolve) => setTimeout(resolve, 500));
-
-        const sessionResponse = await fetch('/api/auth/session');
-        const session = await sessionResponse.json();
-
-        console.log('[BasicInfoStep] Session after login:', session);
-
-        if (session?.redirectUrl) {
-          console.log('[BasicInfoStep] Redirecting to:', session.redirectUrl);
-          router.push(session.redirectUrl);
-        } else if (session?.user) {
-          console.log('[BasicInfoStep] No redirectUrl, going to profile');
-          router.push('/profile');
-        } else {
-          console.log('[BasicInfoStep] No session found, going to home');
-          router.push('/');
-        }
+        // Login succeeded — redirect based on session
+        router.push(`/${locale}/auth/register`);
       }
     } catch (error) {
-      console.error('[BasicInfoStep] Error during login attempt:', error);
-      router.push(
-        `/${locale}/auth/forgot-password?email=${encodeURIComponent(data.email)}`
-      );
+      console.error('Login attempt error:', error);
+      setShowExistingUserDialog(true);
     } finally {
       setIsAttemptingLogin(false);
     }
-  };
+  }, [data.email, data.password, locale, router]);
 
   const handleGoToForgotPassword = () => {
     router.push(
-      `/${locale}/auth/forgot-password?email=${encodeURIComponent(existingUserEmail || data.email)}`
+      `/${locale}/auth/forgot-password?email=${encodeURIComponent(data.email)}`
     );
   };
+
+  const handleDismissExistingUser = () => {
+    setShowExistingUserDialog(false);
+    setApiError(null);
+  };
+
+  // ============================================================================
+  // FORM SUBMISSION
+  // ============================================================================
 
   const handleRegisterSubmit = async () => {
     setApiError(null);
     setMissingFields([]);
     setEmailError('');
     setPasswordError('');
+    setFirstNameError('');
+    setLastNameError('');
     setShowGoogleSuggestion(false);
-    setShowExistingUserOptions(false);
+    setShowExistingUserDialog(false);
 
     let hasError = false;
     const currentMissing: string[] = [];
 
+    // Email validation
     if (!isValidEmail(data.email)) {
       setEmailError(dict.errors.invalidEmail);
       currentMissing.push(validationDict.fields.email);
       hasError = true;
     }
 
+    // Password validation (now accepts special characters)
     if (!isValidPassword(data.password)) {
       setPasswordError(dict.errors.invalidPassword);
       currentMissing.push(validationDict.fields.password);
       hasError = true;
     }
 
+    // First name validation — min 2 chars, valid characters
     if (!data.firstName.trim()) {
+      setFirstNameError(validationDict.fields.firstName);
+      currentMissing.push(validationDict.fields.firstName);
+      hasError = true;
+    } else if (!isValidName(data.firstName)) {
+      setFirstNameError(
+        dict.errors.invalidName ||
+          (locale === 'he'
+            ? 'שם פרטי חייב להכיל לפחות 2 אותיות'
+            : 'First name must be at least 2 letters')
+      );
       currentMissing.push(validationDict.fields.firstName);
       hasError = true;
     }
 
+    // Last name validation
     if (!data.lastName.trim()) {
+      setLastNameError(validationDict.fields.lastName);
+      currentMissing.push(validationDict.fields.lastName);
+      hasError = true;
+    } else if (!isValidName(data.lastName)) {
+      setLastNameError(
+        dict.errors.invalidName ||
+          (locale === 'he'
+            ? 'שם משפחה חייב להכיל לפחות 2 אותיות'
+            : 'Last name must be at least 2 letters')
+      );
       currentMissing.push(validationDict.fields.lastName);
       hasError = true;
     }
@@ -228,12 +284,8 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
         const errorCode = result.errorCode || '';
 
         if (errorCode === 'EMAIL_EXISTS') {
-          console.log(
-            '[BasicInfoStep] Email exists - attempting automatic login'
-          );
-          setExistingUserEmail(data.email);
+          // Instead of auto-login, attempt login silently
           setIsLoading(false);
-
           await handleAttemptLoginWithExistingEmail();
           return;
         }
@@ -257,18 +309,9 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
     }
   };
 
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: { opacity: 1, transition: { staggerChildren: 0.1 } },
-  };
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
-  };
-
-  const isRTL = locale === 'he';
-  const isAnyLoading =
-    isLoading || isAttemptingLogin || isGoogleLoading || isAppleLoading;
+  // ============================================================================
+  // RENDER
+  // ============================================================================
 
   return (
     <motion.div
@@ -303,16 +346,77 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
         )}
       </AnimatePresence>
 
+      {/* Existing user dialog — clear options instead of auto-redirect */}
+      <AnimatePresence>
+        {showExistingUserDialog && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="overflow-hidden"
+          >
+            <Alert className="bg-blue-50 border-blue-200 text-blue-800">
+              <div className="flex flex-col gap-3">
+                <div className="flex items-start gap-2">
+                  <LogIn className="h-5 w-5 text-blue-600 mt-0.5 shrink-0" />
+                  <div>
+                    <AlertTitle className="text-blue-900 font-bold mb-1">
+                      {locale === 'he'
+                        ? 'כתובת מייל זו כבר רשומה'
+                        : 'This email is already registered'}
+                    </AlertTitle>
+                    <AlertDescription className="text-sm text-blue-700">
+                      {locale === 'he'
+                        ? 'נראה שכבר יש לך חשבון. הסיסמה שהזנת לא התאימה. מה תרצה לעשות?'
+                        : "It looks like you already have an account. The password didn't match. What would you like to do?"}
+                    </AlertDescription>
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-2">
+                  <Button
+                    type="button"
+                    onClick={handleGoToForgotPassword}
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                  >
+                    <KeyRound className="h-4 w-4 ml-2" />
+                    {locale === 'he' ? 'איפוס סיסמה' : 'Reset password'}
+                  </Button>
+                  <Button
+                    type="button"
+                    onClick={handleDismissExistingUser}
+                    variant="outline"
+                    className="w-full border-blue-300 text-blue-700 hover:bg-blue-50"
+                  >
+                    <Mail className="h-4 w-4 ml-2" />
+                    {locale === 'he'
+                      ? 'להשתמש באימייל אחר'
+                      : 'Use a different email'}
+                  </Button>
+                </div>
+              </div>
+            </Alert>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* API Error */}
-      {apiError && (
-        <motion.div variants={itemVariants}>
-          <Alert variant="destructive" role="alert">
-            <AlertCircle className="h-4 w-4" />
-            <AlertTitle>{dict.errors.title}</AlertTitle>
-            <AlertDescription>{apiError}</AlertDescription>
-          </Alert>
-        </motion.div>
-      )}
+      <AnimatePresence>
+        {apiError && !showExistingUserDialog && (
+          <motion.div
+            variants={itemVariants}
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+          >
+            <Alert variant="destructive" role="alert">
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>{dict.errors.title}</AlertTitle>
+              <AlertDescription>{apiError}</AlertDescription>
+            </Alert>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Google/Apple suggestion on DB errors */}
       <AnimatePresence>
@@ -337,7 +441,6 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
                   </div>
                 </div>
 
-                {/* Apple Button */}
                 <Button
                   type="button"
                   onClick={handleAppleSignup}
@@ -369,7 +472,6 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
                   )}
                 </Button>
 
-                {/* Google Button */}
                 <Button
                   type="button"
                   onClick={handleGoogleSignup}
@@ -411,7 +513,7 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
         )}
       </AnimatePresence>
 
-      {/* Validation errors */}
+      {/* Validation errors summary */}
       <AnimatePresence>
         {missingFields.length > 0 && (
           <motion.div
@@ -449,6 +551,7 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
         )}
       </AnimatePresence>
 
+      {/* Title */}
       <motion.h2
         className="text-xl font-bold text-gray-800 mb-4"
         variants={itemVariants}
@@ -456,6 +559,7 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
         {dict.title}
       </motion.h2>
 
+      {/* Form fields */}
       <motion.div variants={itemVariants} className="space-y-4">
         {/* Email */}
         <div className="space-y-1">
@@ -477,11 +581,15 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
               }}
               onBlur={() =>
                 setEmailError(
-                  isValidEmail(data.email) ? '' : dict.errors.invalidEmail
+                  data.email && !isValidEmail(data.email)
+                    ? dict.errors.invalidEmail
+                    : ''
                 )
               }
               placeholder={dict.emailPlaceholder}
               disabled={isAnyLoading}
+              aria-required="true"
+              aria-invalid={!!emailError}
               className={`w-full pr-10 pl-3 py-3 border rounded-lg focus:ring-2 focus:outline-none transition-colors 
                 ${isAnyLoading ? 'bg-gray-100' : ''} 
                 ${
@@ -519,13 +627,15 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
               }}
               onBlur={() =>
                 setPasswordError(
-                  isValidPassword(data.password)
-                    ? ''
-                    : dict.errors.invalidPassword
+                  data.password && !isValidPassword(data.password)
+                    ? dict.errors.invalidPassword
+                    : ''
                 )
               }
               placeholder={dict.passwordPlaceholder}
               disabled={isAnyLoading}
+              aria-required="true"
+              aria-invalid={!!passwordError}
               className={`w-full pr-10 pl-10 py-3 border rounded-lg focus:ring-2 focus:outline-none transition-colors 
                 ${isAnyLoading ? 'bg-gray-100' : ''} 
                 ${
@@ -540,6 +650,7 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
               onClick={() => setPasswordVisible(!passwordVisible)}
               className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
               tabIndex={-1}
+              aria-label={passwordVisible ? 'הסתר סיסמה' : 'הצג סיסמה'}
             >
               {passwordVisible ? (
                 <EyeOff className="h-5 w-5" />
@@ -571,18 +682,30 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
                 type="text"
                 id="firstNameBasic"
                 value={data.firstName}
-                onChange={(e) => updateField('firstName', e.target.value)}
+                onChange={(e) => {
+                  updateField('firstName', e.target.value);
+                  if (firstNameError) setFirstNameError('');
+                }}
                 placeholder={dict.firstNamePlaceholder}
                 disabled={isAnyLoading}
+                aria-required="true"
+                aria-invalid={!!firstNameError}
+                maxLength={50}
                 className={`w-full pr-10 pl-3 py-3 border rounded-lg focus:ring-2 focus:outline-none transition-colors
                   ${isAnyLoading ? 'bg-gray-100' : ''}
                   ${
+                    firstNameError ||
                     missingFields.includes(validationDict.fields.firstName)
                       ? 'border-red-500 focus:ring-red-200'
                       : 'border-gray-300 focus:ring-teal-200 focus:border-teal-500'
                   }`}
               />
             </div>
+            {firstNameError && (
+              <p role="alert" className="text-red-500 text-xs mt-1">
+                {firstNameError}
+              </p>
+            )}
           </div>
 
           <div className="space-y-1">
@@ -598,18 +721,30 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
                 type="text"
                 id="lastNameBasic"
                 value={data.lastName}
-                onChange={(e) => updateField('lastName', e.target.value)}
+                onChange={(e) => {
+                  updateField('lastName', e.target.value);
+                  if (lastNameError) setLastNameError('');
+                }}
                 placeholder={dict.lastNamePlaceholder}
                 disabled={isAnyLoading}
+                aria-required="true"
+                aria-invalid={!!lastNameError}
+                maxLength={50}
                 className={`w-full pr-10 pl-3 py-3 border rounded-lg focus:ring-2 focus:outline-none transition-colors
                   ${isAnyLoading ? 'bg-gray-100' : ''}
                   ${
+                    lastNameError ||
                     missingFields.includes(validationDict.fields.lastName)
                       ? 'border-red-500 focus:ring-red-200'
                       : 'border-gray-300 focus:ring-teal-200 focus:border-teal-500'
                   }`}
               />
             </div>
+            {lastNameError && (
+              <p role="alert" className="text-red-500 text-xs mt-1">
+                {lastNameError}
+              </p>
+            )}
           </div>
         </div>
       </motion.div>
@@ -638,7 +773,7 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
           type="button"
           onClick={handleRegisterSubmit}
           disabled={isAnyLoading}
-          className="flex-1 bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-white flex items-center justify-center gap-2"
+          className="flex-1 bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 hover:from-teal-600 hover:via-orange-600 hover:to-amber-600 text-white flex items-center justify-center gap-2"
         >
           {isLoading ? (
             <>

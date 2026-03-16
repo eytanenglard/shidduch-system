@@ -1,10 +1,14 @@
 // src/components/auth/RegisterSteps.tsx
 'use client';
 
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
-import { RegistrationProvider, useRegistration } from './RegistrationContext';
+import {
+  RegistrationProvider,
+  useRegistration,
+  STEPS,
+} from './RegistrationContext';
 import Link from 'next/link';
 import WelcomeStep from './steps/WelcomeStep';
 import BasicInfoStep from './steps/BasicInfoStep';
@@ -13,10 +17,20 @@ import PersonalDetailsStep from './steps/PersonalDetailsStep';
 import CompleteStep from './steps/CompleteStep';
 import ProgressBar from './ProgressBar';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Info } from 'lucide-react';
+import { Info, AlertTriangle, RefreshCw } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import StandardizedLoadingSpinner from '@/components/questionnaire/common/StandardizedLoadingSpinner';
 import type { User as SessionUserType } from '@/types/next-auth';
 import type { RegisterStepsDict } from '@/types/dictionaries/auth';
+
+// ============================================================================
+// DEBUG UTILITY
+// ============================================================================
+
+const isDev = process.env.NODE_ENV === 'development';
+const debugLog = (label: string, ...args: unknown[]) => {
+  if (isDev) console.log(`[RegisterSteps][${label}]`, ...args);
+};
 
 // ============================================================================
 // TYPES
@@ -28,7 +42,73 @@ interface RegisterStepsProps {
 }
 
 // ============================================================================
-// HELPER: קביעת לאן להפנות את המשתמש
+// ERROR BOUNDARY
+// ============================================================================
+
+interface ErrorBoundaryState {
+  hasError: boolean;
+  error: Error | null;
+}
+
+class RegistrationErrorBoundary extends React.Component<
+  { children: React.ReactNode; dict: RegisterStepsDict; onReset: () => void },
+  ErrorBoundaryState
+> {
+  constructor(props: {
+    children: React.ReactNode;
+    dict: RegisterStepsDict;
+    onReset: () => void;
+  }) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    console.error(
+      '[RegistrationErrorBoundary] Caught error:',
+      error,
+      errorInfo
+    );
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-slate-50 via-teal-50/40 to-orange-50/40 p-4">
+          <div className="w-full max-w-md bg-white rounded-xl shadow-xl p-8 text-center">
+            <AlertTriangle className="mx-auto h-16 w-16 text-amber-500 mb-4" />
+            <h2 className="text-xl font-bold text-gray-800 mb-2">
+              {this.props.dict.errorBoundary?.title || 'אופס! משהו השתבש'}
+            </h2>
+            <p className="text-gray-600 mb-6 text-sm">
+              {this.props.dict.errorBoundary?.description ||
+                'אירעה שגיאה לא צפויה. אנא נסה לרענן את הדף.'}
+            </p>
+            <Button
+              onClick={() => {
+                this.setState({ hasError: false, error: null });
+                this.props.onReset();
+              }}
+              className="w-full bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 text-white"
+            >
+              <RefreshCw className="h-4 w-4 ml-2" />
+              {this.props.dict.errorBoundary?.refreshButton || 'התחל מחדש'}
+            </Button>
+          </div>
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
+}
+
+// ============================================================================
+// HELPER: Determine redirect path for authenticated user
 // ============================================================================
 
 interface UserRedirectState {
@@ -40,66 +120,46 @@ interface UserRedirectState {
   status?: string;
 }
 
-/**
- * מחזיר את הנתיב שאליו צריך להפנות את המשתמש,
- * או null אם המשתמש צריך להישאר בדף הנוכחי (register).
- */
 function getRedirectPathForUser(
   user: UserRedirectState,
   locale: string
 ): string | null {
-  // 🔴 לוג מפורט
-  console.log('[getRedirectPathForUser] Input:', {
+  debugLog('getRedirectPathForUser', {
     isProfileComplete: user.isProfileComplete,
     isPhoneVerified: user.isPhoneVerified,
-    termsAndPrivacyAcceptedAt: user.termsAndPrivacyAcceptedAt,
     hasTerms: !!user.termsAndPrivacyAcceptedAt,
     role: user.role,
-    locale,
   });
 
-  // תרחיש 1: אדמין/שדכן - לא צריכים להשלים פרופיל
+  // Admin/Matchmaker — no need to complete profile
   if (user.role === 'ADMIN' || user.role === 'MATCHMAKER') {
-    console.log(
-      '[getRedirectPathForUser] -> Admin/Matchmaker, redirecting to admin'
-    );
     return `/${locale}/admin/engagement`;
   }
 
-  // תרחיש 2: הכל שלם - הפנה לפרופיל
+  // Everything complete — go to profile
   if (
     user.isProfileComplete &&
     user.isPhoneVerified &&
     user.termsAndPrivacyAcceptedAt
   ) {
-    console.log(
-      '[getRedirectPathForUser] -> All complete, redirecting to profile'
-    );
     return `/${locale}/profile`;
   }
 
-  // תרחיש 3: פרופיל שלם + terms מאושרים, אבל פלאפון לא מאומת
-  // 🔴 זה התיקון העיקרי!
+  // Profile complete + terms accepted, but phone not verified
   if (
     user.isProfileComplete &&
     user.termsAndPrivacyAcceptedAt &&
     !user.isPhoneVerified
   ) {
-    console.log(
-      '[getRedirectPathForUser] -> Profile complete but phone not verified, redirecting to verify-phone'
-    );
     return `/${locale}/auth/verify-phone`;
   }
 
-  // תרחיש 4: צריך להשלים פרופיל או לאשר terms - נשאר בדף register
-  console.log(
-    '[getRedirectPathForUser] -> Needs to complete profile/terms, staying on register'
-  );
+  // Needs to complete profile or accept terms — stay on register
   return null;
 }
 
 // ============================================================================
-// MAIN COMPONENT
+// MAIN CONTENT COMPONENT
 // ============================================================================
 
 const RegisterStepsContent: React.FC<{
@@ -125,23 +185,23 @@ const RegisterStepsContent: React.FC<{
   // State
   const [showIncompleteProfileMessage, setShowIncompleteProfileMessage] =
     useState(false);
-  const [initializationAttempted, setInitializationAttempted] = useState(false);
   const [isRedirecting, setIsRedirecting] = useState(false);
 
-  // Ref למניעת הפניות כפולות
+  // Refs for preventing duplicate operations
   const redirectInProgressRef = useRef(false);
-
-  // 🔴 לוג טעינת הקומפוננטה
-  console.log('[RegisterSteps] Component rendered', {
-    sessionStatus,
-    hasSession: !!session,
-    hasUser: !!session?.user,
-    isRedirecting,
-    initializationAttempted,
-  });
+  const hasInitializedRef = useRef(false);
 
   // ============================================================================
-  // Effect 1: הצגת הודעה על פרופיל לא שלם
+  // Prefetch likely redirect targets
+  // ============================================================================
+  useEffect(() => {
+    router.prefetch(`/${locale}/profile`);
+    router.prefetch(`/${locale}/auth/verify-phone`);
+    router.prefetch(`/${locale}/admin/engagement`);
+  }, [router, locale]);
+
+  // ============================================================================
+  // Effect 1: Show incomplete profile message from URL params
   // ============================================================================
   useEffect(() => {
     const reasonParam = searchParams.get('reason');
@@ -156,136 +216,80 @@ const RegisterStepsContent: React.FC<{
   }, [searchParams, registrationContextData.isCompletingProfile]);
 
   // ============================================================================
-  // Effect 2: לוגיקת ניתוב ואתחול הטופס
+  // Effect 2: Redirect logic (depends only on session)
   // ============================================================================
   useEffect(() => {
-    console.log('[RegisterSteps] Effect triggered', {
-      sessionStatus,
-      redirectInProgress: redirectInProgressRef.current,
-    });
+    if (sessionStatus !== 'authenticated' || !session?.user) return;
+    if (redirectInProgressRef.current) return;
 
-    // אל תעשה כלום אם הסשן בטעינה או אם כבר בתהליך הפניה
-    if (sessionStatus === 'loading') {
-      console.log('[RegisterSteps] Session loading, waiting...');
-      return;
+    const user = session.user as SessionUserType;
+    const redirectPath = getRedirectPathForUser(user, locale);
+
+    if (!redirectPath) return;
+
+    // Prevent redirect to current path
+    const currentPath =
+      typeof window !== 'undefined' ? window.location.pathname : '';
+    if (currentPath === redirectPath) return;
+
+    debugLog('Redirect', `Navigating to: ${redirectPath}`);
+    redirectInProgressRef.current = true;
+    setIsRedirecting(true);
+    router.push(redirectPath);
+  }, [sessionStatus, session, router, locale]);
+
+  // ============================================================================
+  // Effect 3: Initialize form from session (runs once)
+  // ============================================================================
+  useEffect(() => {
+    if (sessionStatus !== 'authenticated' || !session?.user) return;
+    if (hasInitializedRef.current) return;
+    if (redirectInProgressRef.current) return;
+
+    const user = session.user as SessionUserType;
+    const redirectPath = getRedirectPathForUser(user, locale);
+
+    // Only initialize if user needs to stay on register page
+    if (redirectPath) return;
+
+    const needsSetup =
+      !user.termsAndPrivacyAcceptedAt || !user.isProfileComplete;
+
+    if (needsSetup) {
+      debugLog('Initialize', 'Initializing form from session');
+      hasInitializedRef.current = true;
+      initializeFromSession(user);
     }
+  }, [sessionStatus, session, initializeFromSession, locale]);
 
-    if (redirectInProgressRef.current) {
-      console.log('[RegisterSteps] Redirect already in progress, skipping');
-      return;
-    }
-
-    // ============================================================================
-    // משתמש מחובר
-    // ============================================================================
-    if (sessionStatus === 'authenticated' && session?.user) {
-      const user = session.user as SessionUserType;
-
-      // 🔴 לוג מפורט של מצב המשתמש
-      console.log('[RegisterSteps] ========== USER STATE ==========');
-      console.log('[RegisterSteps] isProfileComplete:', user.isProfileComplete);
-      console.log('[RegisterSteps] isPhoneVerified:', user.isPhoneVerified);
-      console.log(
-        '[RegisterSteps] termsAndPrivacyAcceptedAt:',
-        user.termsAndPrivacyAcceptedAt
-      );
-      console.log('[RegisterSteps] role:', user.role);
-      console.log('[RegisterSteps] ================================');
-
-      // בדוק אם צריך להפנות
-      const redirectPath = getRedirectPathForUser(user, locale);
-
-      console.log(
-        '[RegisterSteps] Redirect decision:',
-        redirectPath || 'STAY ON REGISTER'
-      );
-
-      if (redirectPath) {
-        // בדוק שאנחנו לא כבר בנתיב היעד
-        const currentPath =
-          typeof window !== 'undefined' ? window.location.pathname : '';
-        console.log('[RegisterSteps] Current path:', currentPath);
-        console.log('[RegisterSteps] Target path:', redirectPath);
-
-        if (currentPath === redirectPath) {
-          console.log(
-            '[RegisterSteps] Already at target path, skipping redirect'
-          );
-          return;
-        }
-
-        console.log(`[RegisterSteps] 🚀 REDIRECTING to: ${redirectPath}`);
-        redirectInProgressRef.current = true;
-        setIsRedirecting(true);
-        router.push(redirectPath);
-        return;
-      }
-
-      // ============================================================================
-      // המשתמש צריך להישאר בדף - אתחל את הטופס
-      // ============================================================================
-      const needsSetup =
-        !user.termsAndPrivacyAcceptedAt || !user.isProfileComplete;
-
-      console.log('[RegisterSteps] Needs setup:', needsSetup);
-      console.log(
-        '[RegisterSteps] initializationAttempted:',
-        initializationAttempted
-      );
-      console.log(
-        '[RegisterSteps] registrationContextData.step:',
-        registrationContextData.step
-      );
-      console.log(
-        '[RegisterSteps] registrationContextData.isVerifyingEmailCode:',
-        registrationContextData.isVerifyingEmailCode
-      );
-
-      if (
-        needsSetup &&
-        (!initializationAttempted ||
-          (registrationContextData.step === 0 &&
-            !registrationContextData.isVerifyingEmailCode))
-      ) {
-        console.log('[RegisterSteps] Initializing form from session');
-        initializeFromSession(user);
-        setInitializationAttempted(true);
-      }
-    }
-
-    // ============================================================================
-    // משתמש לא מחובר
-    // ============================================================================
-    else if (sessionStatus === 'unauthenticated') {
-      console.log('[RegisterSteps] User is unauthenticated');
+  // ============================================================================
+  // Effect 4: Handle unauthenticated state
+  // ============================================================================
+  useEffect(() => {
+    if (sessionStatus === 'unauthenticated') {
       const registrationInProgress =
         registrationContextData.step > 0 ||
         registrationContextData.isVerifyingEmailCode;
 
       if (registrationInProgress) {
-        console.log('[RegisterSteps] User logged out, resetting form');
+        debugLog('Unauthenticated', 'User logged out, resetting form');
         resetForm();
       }
 
-      // אפס את דגל ההפניה
+      // Reset redirect flags
       redirectInProgressRef.current = false;
+      hasInitializedRef.current = false;
       setIsRedirecting(false);
     }
   }, [
     sessionStatus,
-    session,
-    router,
     registrationContextData.step,
     registrationContextData.isVerifyingEmailCode,
-    registrationContextData.isCompletingProfile,
-    initializeFromSession,
     resetForm,
-    initializationAttempted,
-    locale,
   ]);
 
   // ============================================================================
-  // Effect 3: רענון הסשן כשחוזרים לדף (למקרה שמשהו השתנה בטאב אחר)
+  // Effect 5: Refresh session when tab becomes visible
   // ============================================================================
   useEffect(() => {
     const handleVisibilityChange = () => {
@@ -293,7 +297,7 @@ const RegisterStepsContent: React.FC<{
         document.visibilityState === 'visible' &&
         sessionStatus === 'authenticated'
       ) {
-        console.log('[RegisterSteps] Tab became visible, refreshing session');
+        debugLog('Visibility', 'Tab became visible, refreshing session');
         updateSession();
       }
     };
@@ -305,10 +309,18 @@ const RegisterStepsContent: React.FC<{
   }, [sessionStatus, updateSession]);
 
   // ============================================================================
+  // Cleanup on unmount
+  // ============================================================================
+  useEffect(() => {
+    return () => {
+      redirectInProgressRef.current = false;
+    };
+  }, []);
+
+  // ============================================================================
   // EARLY RETURNS
   // ============================================================================
 
-  // מצב טעינה של submission
   if (submission.isSubmitting) {
     return (
       <StandardizedLoadingSpinner
@@ -318,7 +330,6 @@ const RegisterStepsContent: React.FC<{
     );
   }
 
-  // מצב הפניה - הצג loading עד שההפניה תושלם
   if (isRedirecting) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-slate-50 via-teal-50/40 to-orange-50/40">
@@ -334,7 +345,6 @@ const RegisterStepsContent: React.FC<{
   // ============================================================================
 
   const renderStep = (): React.ReactNode => {
-    // סשן בטעינה
     if (sessionStatus === 'loading') {
       return (
         <div className="flex justify-center p-10">
@@ -343,7 +353,7 @@ const RegisterStepsContent: React.FC<{
       );
     }
 
-    // אימות מייל
+    // Email verification flow
     if (
       registrationContextData.isVerifyingEmailCode &&
       !registrationContextData.isCompletingProfile
@@ -356,10 +366,10 @@ const RegisterStepsContent: React.FC<{
       );
     }
 
-    // השלמת פרופיל
+    // Profile completion flow
     if (registrationContextData.isCompletingProfile) {
       switch (registrationContextData.step) {
-        case 2:
+        case STEPS.PERSONAL_DETAILS:
           return (
             <PersonalDetailsStep
               personalDetailsDict={dict.steps.personalDetails}
@@ -369,24 +379,37 @@ const RegisterStepsContent: React.FC<{
               locale={locale}
             />
           );
-        case 4:
-          return <CompleteStep dict={dict.steps.complete} />;
+        case STEPS.COMPLETE:
+          return <CompleteStep dict={dict.steps.complete} locale={locale} />;
         default:
-          // מצב לא צפוי - אפס ותתחיל מחדש
-          console.warn(
-            '[RegisterSteps] Unexpected step in isCompletingProfile mode:',
+          // Instead of auto-reset (which could loop), show a recovery message
+          debugLog(
+            'renderStep',
+            'Unexpected step in completing profile:',
             registrationContextData.step
           );
-          resetForm();
-          return <WelcomeStep dict={dict.steps.welcome} locale={locale} />;
+          return (
+            <div className="text-center p-6 space-y-4">
+              <AlertTriangle className="mx-auto h-12 w-12 text-amber-500" />
+              <p className="text-gray-600">
+                {locale === 'he'
+                  ? 'אירעה שגיאה בטעינת הדף. אנא נסה שוב.'
+                  : 'An error occurred loading the page. Please try again.'}
+              </p>
+              <Button onClick={resetForm} variant="outline" className="mx-auto">
+                <RefreshCw className="h-4 w-4 ml-2" />
+                {locale === 'he' ? 'התחל מחדש' : 'Start over'}
+              </Button>
+            </div>
+          );
       }
     }
 
-    // זרימת הרשמה רגילה
+    // Normal registration flow
     switch (registrationContextData.step) {
-      case 0:
+      case STEPS.WELCOME:
         return <WelcomeStep dict={dict.steps.welcome} locale={locale} />;
-      case 1:
+      case STEPS.BASIC_INFO:
         return (
           <BasicInfoStep
             dict={dict.steps.basicInfo}
@@ -396,17 +419,17 @@ const RegisterStepsContent: React.FC<{
           />
         );
       default:
-        console.warn(
-          '[RegisterSteps] Unexpected step in regular flow:',
+        debugLog(
+          'renderStep',
+          'Unexpected step in regular flow:',
           registrationContextData.step
         );
-        resetForm();
         return <WelcomeStep dict={dict.steps.welcome} locale={locale} />;
     }
   };
 
   // ============================================================================
-  // PAGE TITLE & DESCRIPTION
+  // PAGE TITLE & DESCRIPTION LOGIC
   // ============================================================================
 
   let pageTitle = dict.headers.registerTitle;
@@ -428,13 +451,16 @@ const RegisterStepsContent: React.FC<{
     currentProgressBarStep = 1;
   } else if (registrationContextData.isCompletingProfile) {
     pageTitle = dict.headers.completeProfileTitle;
-    showProgressBar = false;
+    // Show progress bar in completing profile mode too
+    showProgressBar = true;
+    currentProgressBarStep = 2;
 
-    if (registrationContextData.step === 2) {
+    if (registrationContextData.step === STEPS.PERSONAL_DETAILS) {
       stepDescription = session?.user?.termsAndPrivacyAcceptedAt
         ? dict.headers.personalDetailsConsentedDescription
         : dict.headers.personalDetailsDescription;
-    } else if (registrationContextData.step === 4) {
+    } else if (registrationContextData.step === STEPS.COMPLETE) {
+      currentProgressBarStep = 3;
       stepDescription = session?.user?.isPhoneVerified
         ? dict.headers.completionReadyDescription
         : dict.headers.completionPhoneVerificationDescription;
@@ -442,7 +468,7 @@ const RegisterStepsContent: React.FC<{
       stepDescription = dict.headers.loadingProfileDescription;
     }
   } else {
-    if (registrationContextData.step === 1) {
+    if (registrationContextData.step === STEPS.BASIC_INFO) {
       pageTitle = dict.headers.registerTitle;
       stepDescription = dict.headers.accountCreationDescription;
       currentProgressBarStep = 1;
@@ -497,7 +523,7 @@ const RegisterStepsContent: React.FC<{
       <div className="mt-8 text-center text-sm text-gray-500">
         {dict.contactSupport}{' '}
         <Link
-          href="/contact"
+          href={`/${locale}/contact`}
           className="text-teal-600 hover:underline hover:text-teal-700"
         >
           {dict.contactSupportLink}
@@ -508,13 +534,22 @@ const RegisterStepsContent: React.FC<{
 };
 
 // ============================================================================
-// WRAPPER WITH PROVIDER
+// WRAPPER WITH PROVIDER + ERROR BOUNDARY
 // ============================================================================
 
 export default function RegisterSteps({ dict, locale }: RegisterStepsProps) {
+  const handleErrorReset = useCallback(() => {
+    // Force a full page reload as a last resort
+    if (typeof window !== 'undefined') {
+      window.location.reload();
+    }
+  }, []);
+
   return (
     <RegistrationProvider>
-      <RegisterStepsContent dict={dict} locale={locale} />
+      <RegistrationErrorBoundary dict={dict} onReset={handleErrorReset}>
+        <RegisterStepsContent dict={dict} locale={locale} />
+      </RegistrationErrorBoundary>
     </RegistrationProvider>
   );
 }

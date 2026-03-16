@@ -12,10 +12,12 @@
     "orDivider": "OR",
     "googleButton": "Sign in with Google",
     "googleButtonLoading": "Signing in with Google...",
-      "appleButton": "Sign in with Apple",
+    "appleButton": "Sign in with Apple",
     "appleButtonLoading": "Signing in with Apple...",
     "noAccountPrompt": "Don't have an account yet?",
     "signUpLink": "Sign up now",
+    "welcomeBack": "Welcome Back",
+    "securityBadge": "Your data is protected and secure",
     "loader": {
       "authenticated": "Successfully signed in!",
       "success": "Success!",
@@ -85,8 +87,9 @@
     "backToSignInButton": "Back to Sign In",
     "emailSentTo": "We've sent a verification email to the address:",
     "emailAddressNotSpecified": "Address not specified",
-"checkYourInbox": "Please check your inbox and click the link to verify your account.",
-"spamNotice": "Can't find the email? Check your spam or junk folder",    "errors": {
+    "checkYourInbox": "Please check your inbox and click the link to verify your account.",
+    "spamNotice": "Can't find the email? Check your spam or junk folder",
+    "errors": {
       "title": "Error",
       "noEmail": "Cannot resend without an email address.",
       "linkInvalid": "The verification link is invalid (missing required information).",
@@ -204,6 +207,11 @@
     },
     "contactSupport": "Have questions?",
     "contactSupportLink": "Contact us",
+    "errorBoundary": {
+      "title": "Oops! Something went wrong",
+      "description": "An unexpected error occurred. Please try refreshing the page.",
+      "refreshButton": "Start Over"
+    },
     "steps": {
       "welcome": {
         "title": "Welcome!",
@@ -232,13 +240,14 @@
         "nextButtonLoading": "Creating account...",
         "termsDisclaimer": "By clicking 'Create Account', I agree to the Terms of Use and Privacy Policy.",
         "existingUser": {
-  "loggingIn": "Recognizing you...",
-  "loggingInDescription": "Looks like you already registered! Trying to log in with your password..."
-},
+          "loggingIn": "Recognizing you...",
+          "loggingInDescription": "Looks like you already registered! Trying to log in with your password..."
+        },
         "errors": {
           "title": "Registration Error",
           "invalidEmail": "Invalid email address",
           "invalidPassword": "Password must be at least 8 characters long, including an uppercase letter, a lowercase letter, and a number",
+          "invalidName": "Name must be at least 2 letters and can only contain letters, spaces, and hyphens",
           "requiredEmail": "Email field is required",
           "requiredPassword": "Password field is required",
           "fillFields": "Please fill in all required fields correctly.",
@@ -277,8 +286,8 @@
         "subtitle": "We need these details to continue with your registration process.",
         "firstNameLabel": "First Name",
         "firstNamePlaceholder": "e.g., John",
-          "originLabel": "Origin/Ethnicity",
-  "originPlaceholder": "e.g., Ashkenazi, Sephardic, Yemenite...",
+        "originLabel": "Origin/Ethnicity",
+        "originPlaceholder": "e.g., Ashkenazi, Sephardic, Yemenite...",
         "lastNameLabel": "Last Name",
         "lastNamePlaceholder": "e.g., Doe",
         "languageLabel": "Preferred Communication Language",
@@ -289,7 +298,7 @@
         "male": "Male",
         "female": "Female",
         "birthDateLabel": "Date of Birth",
-         "cityLabel": "City of Residence",
+        "cityLabel": "City of Residence",
         "cityPlaceholder": "Start typing a city name...",
         "maritalStatusLabel": "Marital Status",
         "maritalStatusPlaceholder": "Select your marital status...",
@@ -323,8 +332,7 @@
         "nextButton": "Continue to Next Step",
         "nextButtonLoading": "Accepting terms...",
         "errors": {
-              "originRequired": "Origin/Ethnicity is required"
-,
+          "originRequired": "Origin/Ethnicity is required",
           "firstNameRequired": "First name is a required field",
           "lastNameRequired": "Last name is a required field",
           "phoneRequired": "Phone number is a required field",
@@ -335,8 +343,7 @@
           "genderRequired": "Gender selection is required",
           "maritalStatusRequired": "Marital status selection is required",
           "religiousLevelRequired": "Religious level selection is required",
-                    "cityRequired": "City of residence is required"
-,
+          "cityRequired": "City of residence is required",
           "consentRequired": "You must accept the terms of use and privacy policy.",
           "engagementConsentRequired": "To ensure we can guide you through the process, you must agree to receive updates and suggestions from the system.",
           "consentApiError": "An error occurred while accepting the terms."
@@ -363,6 +370,7 @@
           "subtitle": "This card is what our matchmakers see, and what gets sent to the other side when suggesting a match. Write it as if you're introducing yourself to someone who truly wants to get to know you.",
           "label": "Your introduction card",
           "placeholder": "😊 Name: John Smith, 28, height 5'9\"\n🌍 Background: Ashkenazi/Sephardi\n📍 Location: New York\n💍 Status: Single\n🙏 Modern Orthodox\n🎓 Yeshiva University, BA in Business\n🇺🇸 Volunteered with NCSY for 2 years\n💼 Working in tech as a product manager\n🎭 Personality: Friendly, optimistic, love deep conversations\n👨‍👩‍👧‍👦 Warm close-knit family, second of four siblings\n🎨 Love sports, hiking, cooking and music\n🎯 Looking for someone with a good heart, joy for life, shared values and a sense of humor",
+          "shortPlaceholder": "😊 Name, age, height\n🌍 Background\n📍 Location\n💍 Status\n🙏 Religious level\n...\nWrite freely!",
           "tooltip": "This card gets sent to the other side when a match is suggested – that's how they get a real picture of who you are. Worth the investment!",
           "minChars": "{{remaining}} more characters minimum",
           "guidanceTitle": "What to include in your card? (in order)",
@@ -432,8 +440,7 @@
       "title": "Missing Information",
       "pleaseFill": "To proceed, please complete the following fields:",
       "fields": {
-            "origin": "Origin/Ethnicity"
-,
+        "origin": "Origin/Ethnicity",
         "email": "Valid Email Address",
         "password": "Valid Password",
         "firstName": "First Name",
@@ -443,8 +450,7 @@
         "birthDate": "Date of Birth (18+)",
         "maritalStatus": "Marital Status",
         "religiousLevel": "Religious Level",
-                "city": "City of Residence"
-,
+        "city": "City of Residence",
         "terms": "Terms of Service Agreement",
         "engagement": "Engagement Updates Consent",
         "photos": "Profile Photos",
@@ -469,13 +475,13 @@
   "legal": {
     "accessibilityStatement": {
       "pageTitle": "Accessibility Statement | {brandName}",
-      "pageDescription": "The accessibility statement for the {brandName} website. We are committed to providing an equal and accessible experience for all users, including advanced customization tools.",
+      "pageDescription": "The accessibility statement for the {brandName} website.",
       "mainTitle": "Accessibility Statement",
       "siteName": "The {brandName} Matchmaking Website",
       "lastUpdated": "Last Updated: {lastUpdatedDate}",
       "commitment": {
         "title": "Our Commitment to Accessibility",
-        "p1": "{companyNameLegal}, operating the {brandName} website, considers it of utmost importance to make its services accessible to people with disabilities, to enable a comfortable, efficient, and equal browsing experience for all users. We invest significant effort and resources to ensure the website meets the requirements of the Equal Rights for People with Disabilities Regulations (Service Accessibility Adjustments), 2013.",
+        "p1": "{companyNameLegal}, operating the {brandName} website, considers it of utmost importance to make its services accessible to people with disabilities.",
         "p2": "Accessibility adjustments were made in accordance with the recommendations of the Israeli Standard (IS 5568) for web content accessibility at the AA level, based on the international WCAG 2.1 guidelines."
       },
       "level": {
@@ -485,20 +491,20 @@
       },
       "features": {
         "title": "Accessibility Measures on the Site",
-        "p1": "A wide range of technological measures have been implemented on the site to ensure an optimal user experience for all visitors.",
+        "p1": "A wide range of technological measures have been implemented on the site.",
         "dedicatedToolbarTitle": "Dedicated Accessibility Toolbar",
-        "p2": "The site features a dedicated accessibility tool that allows users to customize the site's display to their personal needs. The accessibility menu can be opened by clicking the floating accessibility button in the corner of the screen. The tool offers the following options:",
+        "p2": "The site features a dedicated accessibility tool that allows users to customize the site's display to their personal needs.",
         "fontAdjustment": {
           "title": "Font Size Adjustment",
           "description": "Allows increasing and decreasing the text on the site to the user's comfortable reading level."
         },
         "contrastModes": {
           "title": "Display and Contrast Modes",
-          "description": "Includes a high-contrast mode and a dark display mode (inverted contrast) to improve readability for users with visual impairments."
+          "description": "Includes a high-contrast mode and a dark display mode (inverted contrast)."
         },
         "readableFont": {
           "title": "Readable Font",
-          "description": "Switches the site's font to a basic, readable, sans-serif font to improve the reading experience."
+          "description": "Switches the site's font to a basic, readable, sans-serif font."
         },
         "largeCursor": {
           "title": "Large Cursor",
@@ -506,30 +512,30 @@
         },
         "textToSpeech": {
           "title": "Text-to-Speech",
-          "description": "Enables a text reader that reads selected content with a mouse click, assisting those with reading difficulties."
+          "description": "Enables a text reader that reads selected content with a mouse click."
         },
         "reduceMotion": {
           "title": "Reduce Motion",
-          "description": "Disables or reduces animations and movements on the site for users sensitive to motion."
+          "description": "Disables or reduces animations and movements on the site."
         },
         "additionalAdjustmentsTitle": "Additional Adjustments on the Site",
-        "keyboardNav": "Keyboard Navigation: The site is fully adapted for keyboard-only navigation (using Tab, Shift+Tab, Enter, and arrow keys). We have ensured a clear visual indication of the focus location.",
-        "screenReader": "Screen Reader Compatibility: The site was built using correct semantic structure (headings, paragraphs, lists) and ARIA (Accessible Rich Internet Applications) attributes to ensure full compatibility with screen reader software such as NVDA and JAWS.",
-        "altText": "Alternative Text for Images: All significant images on the site have alternative text (Alt Text) detailing their content. Decorative images are hidden from screen readers.",
-        "accessibleForms": "Accessible Forms: All forms on the site, including registration forms and questionnaires, include clear labels, group definitions (Fieldset), and filling instructions.",
-        "noFlashing": "Avoidance of Flashing Content: The site does not contain flashing or rapidly moving content that could endanger users."
+        "keyboardNav": "Keyboard Navigation: The site is fully adapted for keyboard-only navigation.",
+        "screenReader": "Screen Reader Compatibility: The site was built using correct semantic structure and ARIA attributes.",
+        "altText": "Alternative Text for Images: All significant images on the site have alternative text.",
+        "accessibleForms": "Accessible Forms: All forms on the site include clear labels, group definitions, and filling instructions.",
+        "noFlashing": "Avoidance of Flashing Content: The site does not contain flashing or rapidly moving content."
       },
       "limitations": {
         "title": "Non-Accessible Areas and Contact",
-        "p1": "We do our best to ensure that all parts of the site are fully accessible. However, some parts or capabilities may be discovered that have not yet been fully made accessible. We are continuing our efforts to improve the site's accessibility as part of our commitment to enabling its use for the entire population.",
-        "p2": "If you encounter an accessibility issue or have a suggestion for improvement, we would appreciate it if you contact us. We see your inquiries as an opportunity for improvement."
+        "p1": "We do our best to ensure that all parts of the site are fully accessible.",
+        "p2": "If you encounter an accessibility issue or have a suggestion for improvement, we would appreciate it if you contact us."
       },
       "contact": {
         "title": "Accessibility Coordinator Details",
         "p1": "For any accessibility-related inquiries, you can contact the company's accessibility coordinator:",
         "name": "Name: {accessibilityCoordinatorName}",
         "email": "Email:",
-        "p2": "In your inquiry, please include as many details as possible: a description of the problem, a link to the page where you encountered the problem, and details of your operating system and browser.",
+        "p2": "In your inquiry, please include as many details as possible.",
         "p3": "This statement was last updated on: {lastUpdatedDate}."
       }
     },
@@ -540,114 +546,114 @@
       "lastUpdated": "Last Updated: {lastUpdatedDate}",
       "introduction": {
         "title": "Introduction",
-        "p1": "We at {companyNameLegal} (Co. No. {companyNumber}), operating under the brand name \"Neshama Tech\" (hereinafter: \"the Company\", \"the System\", \"the Service\", \"Neshama Tech\", \"we\", or \"our\"), respect your privacy and are committed to protecting the personal information you share with us. This Privacy Policy (hereinafter: \"the Policy\") describes how we collect, use, process, disclose, transfer, and store your personal information in connection with your use of the Company's website (hereinafter: \"the Website\") and the services offered through it.",
-        "p2": "\"Personal Information\" or \"Information\" is defined as information as defined in the Privacy Protection Law, 1981 (hereinafter: \"the Law\"), including data about an identified or identifiable person, such as name, identification number, location data, an online identifier, or information concerning their physical, mental, economic, or social status.",
-        "p3": "This policy is an integral part of the System's Terms of Use. We recommend that you read it carefully to understand our practices regarding your personal information and your rights."
+        "p1": "We at {companyNameLegal} (Co. No. {companyNumber}), operating under the brand name \"Neshama Tech\", respect your privacy and are committed to protecting the personal information you share with us.",
+        "p2": "\"Personal Information\" is defined as information as defined in the Privacy Protection Law, 1981.",
+        "p3": "This policy is an integral part of the System's Terms of Use."
       },
       "consent": {
         "title": "1. Consent, Database, and Legal Clarification",
-        "p1": "By registering for the system, using it, and particularly by providing your personal details (whether directly or through an authorized matchmaker of the Company acting with your consent), you express your free, explicit, and informed consent to the terms set out in this Policy. This consent includes the collection, processing, storage, use, and sharing of your personal information, including sensitive information, as detailed below.",
-        "p2": "You are under no legal obligation to provide us with information, and the provision of information is done of your own free will and with your consent. However, if you choose not to provide certain information required for the provision of the service, we may not be able to provide you with the services, in whole or in part. For example, without filling out a personal profile, we cannot offer you matches.",
-        "p3": "You acknowledge that the information you provide will be stored in the Company's database (hereinafter: \"the Database\"), which is legally registered. The owner of the database is {companyNameLegal}, Co. No. {companyNumber}, and its registered address is {companyRegisteredAddress}.",
-        "p4": "If you do not agree to the terms of this Policy, in whole or in part, you must refrain from any use of the system and from providing your personal details."
+        "p1": "By registering for the system, you express your free, explicit, and informed consent to the terms set out in this Policy.",
+        "p2": "You are under no legal obligation to provide us with information.",
+        "p3": "You acknowledge that the information you provide will be stored in the Company's database.",
+        "p4": "If you do not agree to the terms of this Policy, you must refrain from any use of the system."
       },
       "collectedInfo": {
         "title": "2. What information do we collect?",
-        "p1": "We collect various types of personal information, whether provided directly by you, collected automatically, or provided to us by Company matchmakers acting with your consent:",
+        "p1": "We collect various types of personal information:",
         "subTitle1": "2.1. Information provided directly by you:",
         "list1": {
-          "item1": "Identification, registration, and contact details: Full name, email address, phone number (used for verification and contact), password (encrypted).",
+          "item1": "Identification, registration, and contact details.",
           "item2": {
             "title": "Detailed profile information (which may include sensitive information):",
-            "subItem1": "Demographics and personality: Gender, date of birth, languages, height, marital status, occupation, education, city of residence, ethnicity, religious background (self-definition, type of kippah/head covering, observance of 'negi'a'), military/national service, existence of children from a previous relationship, character traits, hobbies, immigration details, free text \"about myself\", parental status, and number of siblings.",
-            "subItem2": "Matchmaking preferences: Age and height ranges, religious levels, geographical locations, preferred education and occupations, preference regarding children from a previous relationship, ethnic origins, and more.",
-            "subItem3": "Medical information (subject to your separate consent): If you choose to do so, the system allows you to provide information regarding a specific medical condition. Providing this information is completely voluntary and is intended to assist in finding a match with understanding and transparency. You have full control over the visibility of medical information, and it will only be disclosed to other parties if you explicitly indicate that you want the information to be visible."
+            "subItem1": "Demographics and personality.",
+            "subItem2": "Matchmaking preferences.",
+            "subItem3": "Medical information (subject to your separate consent)."
           },
-          "item3": "Photos and videos: Photos you have uploaded to your profile and videos you have uploaded to the system.",
-          "item4": "Questionnaire answers (highly sensitive information): Detailed answers to the system's questionnaires on values, personality, relationships, preferences, religion, and faith.",
-          "item5": "<strong>Proactive Communications (subject to your separate consent):</strong> We offer two types of proactive communications you can opt-in to receive: <strong>a) Engagement and Value Emails:</strong> Sending tips to improve your profile, personalized insights, and feedback on your progress to assist you in the matching process. <strong>b) Promotional Emails:</strong> Sending updates on events, special offers, new services, and company news. You can manage your preferences for each communication type separately in your account settings.",
-          "item6": "Payment details (if and when relevant): When purchasing paid services, you may be asked to provide payment details. We clarify that these payment details are processed through an external PCI-compliant payment provider and are not stored in the Company's databases."
+          "item3": "Photos and videos.",
+          "item4": "Questionnaire answers (highly sensitive information).",
+          "item5": "<strong>Proactive Communications (subject to your separate consent).</strong>",
+          "item6": "Payment details (if and when relevant)."
         },
         "subTitle2": "2.2. Information entered into the system by an authorized Company matchmaker:",
-        "p2": "An authorized matchmaker may enter details about you into the system, which were provided to them by you directly. In these cases, the matchmaker will act to obtain your explicit consent, we will act to inform you of the inclusion of your details in the database, and you will be given the option to create an account and manage your information.",
+        "p2": "An authorized matchmaker may enter details about you into the system.",
         "subTitle3": "2.3. Information collected or generated automatically:",
         "p3_1": "Cookies, Google Analytics, and tracking technologies:",
-        "p3_2": "A \"Cookie\" is a small text file stored on your device used to collect information about your activity, save your preferences, and improve the user experience. We use cookies essential for the proper functioning of the site (e.g., for managing your account connection), as well as analytical and statistical cookies.",
-        "p3_3": "The use of non-essential cookies, particularly those of the Google Analytics service, is subject to your explicit consent, which can be expressed and managed through the \"cookie banner\" that appears on your first visit to the site.",
-        "p3_4": "We use the Google Analytics service to collect and analyze anonymous statistical information about the use of the site. This service helps us understand visitor behavior (such as which pages are popular, how long users stay on the site, and from which traffic sources they come), in order to continuously improve the service and user experience. Google Analytics uses \"cookies\" and other anonymous identifiers to collect this information. It is important to emphasize that we do not combine the information collected through Google Analytics with personally identifiable information.",
-        "p3_5": "In accordance with Google's terms of service, we inform you that our use of Google Analytics is subject to how Google collects and processes data. You can read more about this at the link: <a href='https://policies.google.com/technologies/partner-sites' target='_blank' rel='noopener noreferrer' class='text-cyan-600 hover:text-cyan-700'>\"How Google uses information from sites or apps that use our services\"</a>.",
-        "p3_6": "You can control and manage your cookie preferences. If you wish to prevent Google Analytics from collecting data about your browsing, you can install the <a href='https://tools.google.com/dlpage/gaoptout' target='_blank' rel='noopener noreferrer' class='text-cyan-600 hover:text-cyan-700'>Google Analytics Opt-out Browser Add-on</a>. Additionally, most modern browsers allow you to block or delete existing cookies through the browser settings.",
-        "p3_7": "Log Files and Device Data: Like most internet services, our servers automatically collect basic technical information that your browser or device sends, such as IP address, browser type, operating system, and timestamps. We use this information to analyze trends, properly manage the site, for security, and to troubleshoot issues.",
+        "p3_2": "A \"Cookie\" is a small text file stored on your device.",
+        "p3_3": "The use of non-essential cookies is subject to your explicit consent.",
+        "p3_4": "We use the Google Analytics service to collect and analyze anonymous statistical information.",
+        "p3_5": "In accordance with Google's terms of service, we inform you that our use of Google Analytics is subject to how Google collects and processes data.",
+        "p3_6": "You can control and manage your cookie preferences.",
+        "p3_7": "Log Files and Device Data: Our servers automatically collect basic technical information.",
         "subTitle4": "2.4. Information from additional interactions:",
         "list2": {
-          "item1": "Call recordings: Phone calls with Company representatives may be recorded for quality control, service improvement, documentation, and legal defense purposes.",
-          "item2": "Social networks: When you contact us through channels like WhatsApp or other platforms, the information you provide will also be subject to the privacy policy of that platform."
+          "item1": "Call recordings.",
+          "item2": "Social networks."
         }
       },
       "howWeUse": {
         "title": "3. How We Use Your Information",
         "p1": "We use the information we collect for the following purposes:",
         "list": {
-          "item1": "To Provide and Operate the Service: To grant you access to the system, create and manage your profile, and provide you with relevant match suggestions.",
-          "item2": "Communication: To contact you regarding your account, update you on new suggestions, and provide technical support and customer service.",
-          "item3": "Service Improvement and Development: To analyze usage patterns, collect feedback, and improve our algorithms, features, and user experience.",
-          "item4": "Security and Safety: To verify identities, prevent fraud and prohibited activities, and enforce our Terms of Service.",
-          "item5": "Marketing (subject to your consent): To send you updates, promotions, and marketing materials that may be of interest to you.",
-          "item6": "Legal Obligations: To comply with legal requirements, regulations, and judicial orders.",
-          "item7": "Research and Statistics: To conduct statistical analyses and research based on aggregated and anonymous information."
+          "item1": "To Provide and Operate the Service.",
+          "item2": "Communication.",
+          "item3": "Service Improvement and Development.",
+          "item4": "Security and Safety.",
+          "item5": "Marketing (subject to your consent).",
+          "item6": "Legal Obligations.",
+          "item7": "Research and Statistics."
         }
       },
-            "aiServices": {
+      "aiServices": {
         "title": "3A. Use of Third-Party AI Services",
-        "p1": "Our Service uses third-party Artificial Intelligence (AI) services to enhance the matchmaking experience. We currently use Google Gemini (provided by Google LLC) to power features including: profile analysis and improvement tips, compatibility analysis between profiles, and generating match suggestion rationale.",
-        "p2": "When you use AI-powered features, or when our matchmakers use AI tools on your behalf, the following personal data may be sent to Google's Gemini API for processing:",
+        "p1": "Our Service uses third-party AI services to enhance the matchmaking experience.",
+        "p2": "When you use AI-powered features, the following personal data may be sent to Google's Gemini API:",
         "list": {
-          "item1": "Profile information: age, gender, city, marital status, religious level, occupation, and education.",
-          "item2": "Your 'About Me' text and profile headline.",
-          "item3": "Your detailed questionnaire answers covering values, personality, relationship preferences, partner preferences, and religious views.",
-          "item4": "Your matchmaking preferences (age range, location, religious level, etc.).",
-          "item5": "Matchmaker notes associated with your profile (if any)."
+          "item1": "Profile information.",
+          "item2": "Your 'About Me' text.",
+          "item3": "Your detailed questionnaire answers.",
+          "item4": "Your matchmaking preferences.",
+          "item5": "Matchmaker notes associated with your profile."
         },
-        "p3": "This data is sent to Google's servers, which may be located outside of Israel, for the sole purpose of generating AI-powered analysis and insights to improve our matchmaking service. Your name and other directly identifying details are removed before data is sent to the AI service.",
-        "p4": "Google's use of data sent via the Gemini API is governed by Google's API Terms of Service. According to Google's API data usage policy, data sent through the paid Gemini API is not used by Google to train their AI models. Learn more at: https://ai.google.dev/gemini-api/terms",
-        "p5": "We may in the future use additional or alternative AI providers (such as Anthropic Claude). We will update this policy accordingly.",
-        "p6": "You can opt out of AI-powered features by contacting us at contact@neshamatech.com. Opting out may limit certain features such as personalized profile tips and AI-generated compatibility insights.",
-        "p7": "By accepting these terms and using the Service, you provide your explicit consent to the processing of your personal data by third-party AI services as described above. You may withdraw this consent at any time by contacting us."
+        "p3": "This data is sent to Google's servers, which may be located outside of Israel.",
+        "p4": "Google's use of data sent via the Gemini API is governed by Google's API Terms of Service.",
+        "p5": "We may in the future use additional or alternative AI providers.",
+        "p6": "You can opt out of AI-powered features by contacting us.",
+        "p7": "By accepting these terms, you provide your explicit consent to the processing of your personal data by third-party AI services."
       },
       "sharingInfo": {
         "title": "4. With Whom We Share Your Information",
-        "p1": "We do not sell or rent your personal information. We may share your information with third parties only in the following cases:",
+        "p1": "We do not sell or rent your personal information.",
         "list": {
-          "item1": "Other Users and Matchmakers: The core of the service is sharing your profile with other users and authorized matchmakers in the system for the purpose of finding a match.",
-          "item2": "Service Providers: We use external providers who assist us in operating the service (such as cloud hosting providers, mailing services, payment processors). We share only the necessary information with them to provide their services, and they are obligated to maintain confidentiality.",
-          "item3": "Legal Requirement: If we are required to do so by law, court order, or in the context of a legal proceeding.",
-          "item4": "Protection of Rights: To enforce our terms, protect the security of the system, or protect the rights, property, and safety of the Company, its employees, its users, or the public.",
-          "item5": "Merger or Acquisition: In the event of a merger, acquisition, or sale of company assets, the information may be transferred to the acquiring entity."
+          "item1": "Other Users and Matchmakers.",
+          "item2": "Service Providers.",
+          "item3": "Legal Requirement.",
+          "item4": "Protection of Rights.",
+          "item5": "Merger or Acquisition."
         }
       },
       "security": {
         "title": "5. Data Security",
-        "p1": "We take reasonable technological and organizational security measures to protect your personal information from unauthorized access, use, or disclosure. These include using encryption (such as SSL), access controls, firewalls, and internal security procedures. However, no system is 100% secure, and we cannot absolutely guarantee the security of the information."
+        "p1": "We take reasonable technological and organizational security measures."
       },
       "retention": {
         "title": "6. Data Retention",
-        "p1": "We will retain your personal information as long as your account is active or as needed to provide you with services, as well as to comply with our legal obligations, resolve disputes, and enforce our agreements. After account closure, we may retain certain information in an anonymous or aggregated form for analytical purposes."
+        "p1": "We will retain your personal information as long as your account is active."
       },
       "yourRights": {
         "title": "7. Your Rights",
-        "p1": "According to the Privacy Protection Law, you are entitled to review the information about you held in our database. Additionally, if you find that the information is incorrect, incomplete, unclear, or not up-to-date, you may contact us with a request to correct or delete the information. These rights can be exercised by contacting us via the contact details provided at the end of this policy."
+        "p1": "According to the Privacy Protection Law, you are entitled to review the information about you."
       },
       "crossBorder": {
         "title": "8. International Data Transfer",
-        "p1": "The Company may use cloud services whose servers are located outside the borders of Israel. By using the service, you consent to the transfer of your information outside of Israel, with the understanding that the Company will take reasonable steps to ensure that your information continues to be protected in accordance with this policy."
+        "p1": "The Company may use cloud services whose servers are located outside the borders of Israel."
       },
       "minors": {
         "title": "9. Minors",
-        "p1": "The service is intended for users over the age of 18 only. We do not knowingly collect personal information from minors. If we become aware that we have collected such information, we will take steps to delete it immediately."
+        "p1": "The service is intended for users over the age of 18 only."
       },
       "changes": {
         "title": "10. Changes to the Privacy Policy",
-        "p1": "We reserve the right to update this policy from time to time. In the event of a material change, we will notify you through a prominent notice on the site or by sending an email. We recommend reviewing this policy periodically."
+        "p1": "We reserve the right to update this policy from time to time."
       },
       "contact": {
         "title": "11. Contact Us",
@@ -659,202 +665,202 @@
     },
     "termsOfService": {
       "pageTitle": "Terms of Service | {brandName}",
-      "pageDescription": "The terms of use for the {brandName} matchmaking system. Please read carefully before using the system.",
+      "pageDescription": "The terms of use for the {brandName} matchmaking system.",
       "mainTitle": "Terms of Service – NeshamaTech",
       "subTitle": "of {brandName} (operated by {companyNameLegal})",
       "lastUpdated": "Last Updated: {lastUpdatedDate}",
       "introduction": {
         "title": "1. Introduction, Definitions, and Agreement to Terms",
-        "p1_1": "<strong>1.1. Welcome.</strong> Welcome to NeshamaTech (\"the Brand\" or \"the Site\"), a platform operated by {companyNameLegal}, Co. No. {companyNumber} (\"the Company\"). The Site offers a technological matchmaking system (\"the System\" or \"the Service\").",
-        "p1_2": "<strong>1.2. Binding Agreement.</strong> These Terms of Use (\"the Agreement\") govern the legal relationship between you (\"the User\") and the Company. By clicking the \"I agree\" button, registering for the system, or using it in any way, you confirm your full and unconditional agreement to the terms of this Agreement and to our <a href='{privacyPolicyUrl}' target='_blank' rel='noopener noreferrer' class='text-cyan-600 hover:text-cyan-700'>Privacy Policy</a>, which is an integral part of it.",
+        "p1_1": "<strong>1.1. Welcome.</strong>",
+        "p1_2": "<strong>1.2. Binding Agreement.</strong>",
         "p1_3": "<strong>If you do not agree to these terms, you are not permitted to make any use of the System.</strong>",
         "p1_4": "<strong>1.3. Definitions.</strong>",
         "list": {
-          "itemA": "<strong>a. \"Candidate\":</strong> A user registered in the system for the purpose of finding a romantic relationship.",
-          "itemB": "<strong>b. \"User Content\":</strong> Any information, text, image, or other material uploaded by you to the System.",
-          "itemC": "<strong>c. \"System Content\":</strong> All content in the System that is not User Content, including code, algorithms, design, and the structure of the questionnaires."
+          "itemA": "<strong>a. \"Candidate\":</strong> A user registered in the system.",
+          "itemB": "<strong>b. \"User Content\":</strong> Any information, text, image, or other material uploaded by you.",
+          "itemC": "<strong>c. \"System Content\":</strong> All content in the System that is not User Content."
         },
-        "p1_5": "<strong>1.4. Eligibility and Language.</strong> Use of the System is permitted for adults (over 18) who are available for a romantic relationship. These terms are phrased in the masculine for convenience only but refer to both genders."
+        "p1_5": "<strong>1.4. Eligibility and Language.</strong> Use of the System is permitted for adults (over 18)."
       },
       "userAccount": {
         "title": "2. User Account, Obligations, and Prohibited Use",
-        "p2_1": "<strong>2.1. Creating an Account.</strong> To use the Service, you will be required to create a personal account. You undertake to provide true, accurate, and complete information. Providing false information constitutes a fundamental breach of this Agreement.",
-        "p2_2": "<strong>2.2. Prohibited Use.</strong> You absolutely undertake to refrain from the following actions:",
+        "p2_1": "<strong>2.1. Creating an Account.</strong>",
+        "p2_2": "<strong>2.2. Prohibited Use.</strong>",
         "list": {
-          "itemA": "<strong>a. Impersonation and False Information:</strong> Impersonating another person, including a professional, or providing false and misleading details.",
-          "itemB": "<strong>b. Offensive Content:</strong> Uploading threatening, harassing, racist, defamatory, pornographic, or illegal content.",
-          "itemC": "<strong>c. Sexual Exploitation and Sex Services:</strong> Publishing, offering, soliciting, or demanding paid sex services or any content of a commercial sexual nature.",
-          "itemD": "<strong>d. Harming Minors:</strong> Uploading any content related to minors, including their images, or that allows for their identification.",
-          "itemE": "<strong>e. Invasion of Privacy:</strong> Harassing, tracking, \"stalking\", or collecting personal information about other users for any purpose not directly related to the intended use of the Service.",
-          "itemF": "<strong>f. Violation of Rights:</strong> Uploading content that infringes on intellectual property rights (copyrights, trademarks), privacy rights, or any other right of a third party.",
-          "itemG": "<strong>g. Commercial Use:</strong> Using the system for advertising, marketing, sales promotion, or any other commercial activity without explicit written permission from the Company.",
-          "itemH": "<strong>h. Harmful Technical Activity:</strong> Disrupting the system's operation; using automated software such as Robots, Crawlers, etc., to search, scan, extract information, copy, or create a collection, compilation, or database; modifying, disassembling, or reverse engineering system components; placing the site in a frame or as a mirror on another site; or linking to the site from sites containing offensive or illegal content.",
-          "itemI": "<strong>i. Inappropriate Behavior:</strong> Offensive, demeaning, or threatening behavior towards Company employees, representatives, or other users."
+          "itemA": "<strong>a. Impersonation and False Information.</strong>",
+          "itemB": "<strong>b. Offensive Content.</strong>",
+          "itemC": "<strong>c. Sexual Exploitation and Sex Services.</strong>",
+          "itemD": "<strong>d. Harming Minors.</strong>",
+          "itemE": "<strong>e. Invasion of Privacy.</strong>",
+          "itemF": "<strong>f. Violation of Rights.</strong>",
+          "itemG": "<strong>g. Commercial Use.</strong>",
+          "itemH": "<strong>h. Harmful Technical Activity.</strong>",
+          "itemI": "<strong>i. Inappropriate Behavior.</strong>"
         },
-        "p2_3": "<strong>2.3. Company's Right to Act.</strong> The Company reserves the right, but not the obligation, to monitor content, and to remove any content or to block, suspend, or terminate the account of any user who violates this agreement, at its sole discretion and without prior notice."
+        "p2_3": "<strong>2.3. Company's Right to Act.</strong>"
       },
       "serviceFees": {
         "title": "3. Costs and Payments (Beta Stage)",
         "p3_1": "<strong>3.1. Current Business Model.</strong>",
         "list": {
-          "itemA": "<strong>a. Free Introductory Period:</strong> The Company may offer the service free of charge for a limited period.",
-          "itemB": "<strong>b. Symbolic Service Fee:</strong> The Company may charge a symbolic monthly service fee of 10 NIS, plus VAT.",
-          "itemC": "<strong>c. No Success Fee (at this stage):</strong> It is clarified that as long as this agreement is in effect, the Company will not charge a success fee, even in the event of marriage."
+          "itemA": "<strong>a. Free Introductory Period.</strong>",
+          "itemB": "<strong>b. Symbolic Service Fee.</strong>",
+          "itemC": "<strong>c. No Success Fee (at this stage).</strong>"
         },
         "p3_2": "<strong>3.2. Notice of Future Change in Pricing Model.</strong>",
-        "p3_3": "You acknowledge that the current pricing model is for a market penetration period only. The Company plans to introduce a pricing model in the future that will include a \"success fee\". The transition to the future model will be subject to an update of the terms of use and will only take effect after receiving your renewed and explicit consent to the updated terms.",
-        "p3_4": "<strong>3.3. Transaction Cancellation.</strong> You can cancel the monthly subscription at any time, in accordance with the provisions of the Consumer Protection Law, 1981, by sending a written request to the Company's email.",
-        "p3_5": "<strong>3.4. No Refund in Case of Breach.</strong> In the event that your account is suspended or terminated due to a breach of the terms of this agreement, you will not be entitled to any refund for payments made."
+        "p3_3": "You acknowledge that the current pricing model is for a market penetration period only.",
+        "p3_4": "<strong>3.3. Transaction Cancellation.</strong>",
+        "p3_5": "<strong>3.4. No Refund in Case of Breach.</strong>"
       },
       "intellectualProperty": {
         "title": "4. Intellectual Property",
-        "p4_1": "<strong>4.1. Company's Ownership.</strong> All rights and interests in any trade secret, patent, copyright, trademark, and any other intellectual property right related to the system and the system content, including the brand name, code, algorithms, structure and content of the questionnaires, and working methods, are the exclusive property of the Company. If you download or print a copy of any content, you must retain all copyright notices.",
-        "p4_2": "<strong>4.2. License for User Content.</strong> By submitting user content to the system, you grant the Company a worldwide, non-exclusive, transferable, royalty-free license to use, reproduce, distribute, process, and create derivative works of this content, solely for the purpose of operating, providing, and improving the matchmaking services, and in accordance with the Privacy Policy."
+        "p4_1": "<strong>4.1. Company's Ownership.</strong>",
+        "p4_2": "<strong>4.2. License for User Content.</strong>"
       },
       "thirdPartyLinks": {
         "title": "5. Links to Third-Party Sites and Services",
-        "p1": "The system may contain links to websites operated by third parties. The Company has no control over these sites and is not responsible for their content or for any consequences resulting from their use. The use of these sites is at your sole risk."
+        "p1": "The system may contain links to websites operated by third parties."
       },
       "limitationOfLiability": {
         "title": "6. Limitation of Liability and Disclaimer of Warranties",
-        "p6_1": "<strong>6.1. Service Provided \"As Is\".</strong> The use of the system is at your sole risk. The Company does not warrant that the service will be available, continuous, error-free, completely secure, immune from unauthorized access, or will meet your expectations.",
-        "p6_2": "<strong>6.2. No Background Checks.</strong> You acknowledge and understand that the Company does not conduct criminal background checks or in-depth verification of users' identities and the information they provide. The Company is not responsible for the conduct of users, whether within the system or outside of it (in meetings). The full responsibility for taking precautions to protect your personal safety, both online and offline, rests solely with you.",
-        "p6_3": "<strong>6.3. Limitation of Liability for Damages.</strong> To the maximum extent permitted by law, the Company and its affiliates (including its employees, directors, and shareholders) will not be liable for any direct, indirect, consequential, special, or punitive damages, including loss of profits, data, or goodwill, arising from your use (or inability to use) the system.",
-        "p6_4": "<strong>6.4. Limitation of Liability Amount.</strong> Insofar as any liability is determined for the Company despite the foregoing, its total cumulative liability to you shall not exceed the total payments you actually paid to the Company (if any) in the six (6) months preceding the event that gave rise to the claim."
+        "p6_1": "<strong>6.1. Service Provided \"As Is\".</strong>",
+        "p6_2": "<strong>6.2. No Background Checks.</strong>",
+        "p6_3": "<strong>6.3. Limitation of Liability for Damages.</strong>",
+        "p6_4": "<strong>6.4. Limitation of Liability Amount.</strong>"
       },
       "indemnification": {
         "title": "7. Indemnification",
-        "p1": "You agree to indemnify the Company and its affiliates for any claim, damage, loss, liability, or expense (including attorney's fees) incurred by them due to or in connection with your breach of this agreement, or any activity you perform in or in connection with the system."
+        "p1": "You agree to indemnify the Company and its affiliates."
       },
       "terminationLaw": {
         "title": "8. Termination of Agreement, Law, and Jurisdiction",
-        "p8_1": "<strong>8.1. Termination of Agreement.</strong> You may terminate the agreement at any time by deleting your account. The Company may terminate or suspend your account immediately and without prior notice in the event of a breach of this agreement.",
-        "p8_2": "<strong>8.2. Law and Jurisdiction.</strong> This agreement shall be governed solely by the laws of the State of Israel. The exclusive jurisdiction for any dispute arising from this agreement or the use of the system shall be vested in the competent courts in the {jurisdictionDistrict} district.",
-        "p8_3": "<strong>8.3. Survival of Clauses.</strong> Clauses that by their nature are intended to survive the termination of the agreement (such as intellectual property, limitation of liability, indemnification, law, and jurisdiction) shall continue to apply even after the termination of the engagement for any reason."
+        "p8_1": "<strong>8.1. Termination of Agreement.</strong>",
+        "p8_2": "<strong>8.2. Law and Jurisdiction.</strong>",
+        "p8_3": "<strong>8.3. Survival of Clauses.</strong>"
       },
       "contact": {
         "title": "9. Contact and Reporting Offensive Content",
-        "p9_1": "<strong>9.1. Contact.</strong> For any questions, you can contact us at the email address:",
-        "p9_2": "<strong>9.2. Notice and Takedown Procedure.</strong> The Company respects the rights of users. If you have encountered content that violates this agreement or is offensive to you in any way, please contact us immediately at the above email address, detailing the nature of the offense and including a relevant link or identifying details. We will endeavor to review and address your inquiry as soon as possible."
+        "p9_1": "<strong>9.1. Contact.</strong>",
+        "p9_2": "<strong>9.2. Notice and Takedown Procedure.</strong>"
       }
     },
     "childSafety": {
-  "pageTitle": "Child Safety Standards | {brandName}",
-  "pageDescription": "{brandName}'s safety standards for preventing child sexual abuse and exploitation (CSAE/CSAM)",
-  "mainTitle": "Child Safety Standards",
-  "siteName": "{brandName}",
-  "lastUpdated": "Last Updated: {lastUpdatedDate}",
-  "emergencyBanner": "If you witness an emergency or immediate danger to a child, please contact local authorities or police immediately.",
-  "commitment": {
-    "title": "Our Commitment",
-    "p1": "<strong>{companyNameLegal}</strong>, operating the <strong>{brandName}</strong> platform, is absolutely committed to protecting children and preventing any form of child sexual abuse or exploitation.",
-    "p2": "We implement a zero-tolerance policy towards any content or behavior related to child sexual abuse.",
-    "definitionsTitle": "Definitions:",
-    "csaeDefinition": "Child Sexual Abuse and Exploitation",
-    "csamDefinition": "Child Sexual Abuse Material"
-  },
-  "zeroTolerance": {
-    "title": "Zero Tolerance Policy",
-    "p1": "The following actions are strictly prohibited on our platform:",
-    "prohibitedList": {
-      "item1": "Uploading, sharing, or distributing any CSAM material",
-      "item2": "Contacting or attempting to contact minor users",
-      "item3": "Grooming - establishing contact with minors for exploitation purposes",
-      "item4": "Sharing any sexual content involving minors, in any form",
-      "item5": "Any other behavior that endangers child safety"
-    },
-    "consequence": "Violation of this policy will result in immediate account suspension, reporting to law enforcement, and legal action."
-  },
-  "ageRestrictions": {
-    "title": "Age Restrictions and Verification",
-    "p1": "NeshamaTech is intended for users aged 18 and over only. We implement the following measures:",
-    "measures": {
-      "item1": "Age declaration during registration",
-      "item2": "Age verification mechanisms",
-      "item3": "Active monitoring to identify minor users",
-      "item4": "Immediate removal of identified minor accounts"
-    },
-    "p2": "Users found to have misrepresented their age will be permanently removed from the platform."
-  },
-  "detection": {
-    "title": "Detection and Prevention",
-    "p1": "We use advanced technologies and methods to detect and prevent harmful content:",
-    "methods": {
-      "item1": "Automatic visual content scanning using hash matching technologies",
-      "item2": "AI systems for detecting suspicious content",
-      "item3": "Human team for reviewing reports",
-      "item4": "Monitoring suspicious behavior patterns",
-      "item5": "Collaboration with child safety organizations"
+      "pageTitle": "Child Safety Standards | {brandName}",
+      "pageDescription": "{brandName}'s safety standards for preventing child sexual abuse and exploitation (CSAE/CSAM)",
+      "mainTitle": "Child Safety Standards",
+      "siteName": "{brandName}",
+      "lastUpdated": "Last Updated: {lastUpdatedDate}",
+      "emergencyBanner": "If you witness an emergency or immediate danger to a child, please contact local authorities or police immediately.",
+      "commitment": {
+        "title": "Our Commitment",
+        "p1": "<strong>{companyNameLegal}</strong>, operating the <strong>{brandName}</strong> platform, is absolutely committed to protecting children.",
+        "p2": "We implement a zero-tolerance policy towards any content or behavior related to child sexual abuse.",
+        "definitionsTitle": "Definitions:",
+        "csaeDefinition": "Child Sexual Abuse and Exploitation",
+        "csamDefinition": "Child Sexual Abuse Material"
+      },
+      "zeroTolerance": {
+        "title": "Zero Tolerance Policy",
+        "p1": "The following actions are strictly prohibited:",
+        "prohibitedList": {
+          "item1": "Uploading, sharing, or distributing any CSAM material",
+          "item2": "Contacting or attempting to contact minor users",
+          "item3": "Grooming - establishing contact with minors for exploitation purposes",
+          "item4": "Sharing any sexual content involving minors, in any form",
+          "item5": "Any other behavior that endangers child safety"
+        },
+        "consequence": "Violation of this policy will result in immediate account suspension, reporting to law enforcement, and legal action."
+      },
+      "ageRestrictions": {
+        "title": "Age Restrictions and Verification",
+        "p1": "NeshamaTech is intended for users aged 18 and over only.",
+        "measures": {
+          "item1": "Age declaration during registration",
+          "item2": "Age verification mechanisms",
+          "item3": "Active monitoring to identify minor users",
+          "item4": "Immediate removal of identified minor accounts"
+        },
+        "p2": "Users found to have misrepresented their age will be permanently removed."
+      },
+      "detection": {
+        "title": "Detection and Prevention",
+        "p1": "We use advanced technologies and methods:",
+        "methods": {
+          "item1": "Automatic visual content scanning using hash matching technologies",
+          "item2": "AI systems for detecting suspicious content",
+          "item3": "Human team for reviewing reports",
+          "item4": "Monitoring suspicious behavior patterns",
+          "item5": "Collaboration with child safety organizations"
+        }
+      },
+      "reporting": {
+        "title": "Reporting Mechanisms",
+        "p1": "We encourage all users to report any suspicious content or behavior.",
+        "howToReportTitle": "How to Report:",
+        "methods": {
+          "item1": "'Report' button on every profile or message",
+          "item2": "Email directly to our safety team",
+          "item3": "Dedicated reporting form on the website"
+        },
+        "anonymity": "All reports are kept strictly confidential. Anonymous reporting is available.",
+        "noRetaliation": "We guarantee protection against retaliation for anyone who reports in good faith."
+      },
+      "response": {
+        "title": "Response Procedures",
+        "p1": "Upon receiving a report:",
+        "steps": {
+          "step1": "Immediate review by our safety team",
+          "step2": "Temporary removal of suspicious content",
+          "step3": "Suspension of the suspicious account",
+          "step4": "Evidence preservation for transfer to authorities",
+          "step5": "Reporting to law enforcement",
+          "step6": "Updating the reporter on actions taken"
+        }
+      },
+      "authorities": {
+        "title": "Cooperation with Authorities",
+        "p1": "We fully cooperate with law enforcement:",
+        "organizations": {
+          "item1": "Israel Police - Cyber Unit",
+          "item2": "NCMEC (National Center for Missing & Exploited Children)",
+          "item3": "Local authorities in every country where we operate",
+          "item4": "International child safety organizations"
+        },
+        "p2": "Every case of CSAM content is immediately reported to the appropriate authorities."
+      },
+      "dataProtection": {
+        "title": "Data Protection and Privacy",
+        "p1": "When handling child safety reports, we ensure:",
+        "measures": {
+          "item1": "Maintaining reporter confidentiality",
+          "item2": "Securing sensitive information according to strict standards",
+          "item3": "Secure evidence preservation for investigations",
+          "item4": "Deletion of harmful content from all systems after transfer to authorities"
+        }
+      },
+      "training": {
+        "title": "Training and Education",
+        "p1": "NeshamaTech staff undergo regular training:",
+        "topics": {
+          "item1": "Recognizing warning signs of child abuse",
+          "item2": "Reporting and escalation procedures",
+          "item3": "Working with law enforcement authorities",
+          "item4": "Using safety and prevention tools",
+          "item5": "Updates on relevant legislation and regulations"
+        }
+      },
+      "contact": {
+        "title": "Contact Us",
+        "p1": "For any questions or concerns regarding child safety:",
+        "emailLabel": "Email:",
+        "responseTime": "We commit to responding to every child safety inquiry within 24 hours."
+      },
+      "updates": {
+        "title": "Policy Updates",
+        "p1": "This policy is regularly reviewed and updated.",
+        "p2": "Last Updated: <strong>{lastUpdatedDate}</strong>"
+      },
+      "footerCommitment": "{brandName} is committed to protecting children and maintaining a safe environment for all our users."
     }
-  },
-  "reporting": {
-    "title": "Reporting Mechanisms",
-    "p1": "We encourage all users to report any suspicious content or behavior. Your reports help us maintain a safe community.",
-    "howToReportTitle": "How to Report:",
-    "methods": {
-      "item1": "'Report' button on every profile or message in the app",
-      "item2": "Email directly to our safety team",
-      "item3": "Dedicated reporting form on the website"
-    },
-    "anonymity": "All reports are kept strictly confidential. Anonymous reporting is available.",
-    "noRetaliation": "We guarantee protection against retaliation for anyone who reports in good faith."
-  },
-  "response": {
-    "title": "Response Procedures",
-    "p1": "Upon receiving a report of harmful content or behavior, we take the following actions:",
-    "steps": {
-      "step1": "Immediate review of the report by our safety team",
-      "step2": "Temporary removal of suspicious content during review",
-      "step3": "Suspension of the suspicious account until investigation is complete",
-      "step4": "Evidence preservation for transfer to authorities",
-      "step5": "Reporting to law enforcement and relevant organizations",
-      "step6": "Updating the reporter on actions taken (when possible)"
-    }
-  },
-  "authorities": {
-    "title": "Cooperation with Authorities",
-    "p1": "We fully cooperate with law enforcement authorities and child protection organizations, including:",
-    "organizations": {
-      "item1": "Israel Police - Cyber Unit",
-      "item2": "NCMEC (National Center for Missing & Exploited Children)",
-      "item3": "Local authorities in every country where we operate",
-      "item4": "International child safety organizations"
-    },
-    "p2": "Every case of CSAM content is immediately reported to the appropriate authorities as required by law."
-  },
-  "dataProtection": {
-    "title": "Data Protection and Privacy",
-    "p1": "When handling child safety reports, we ensure:",
-    "measures": {
-      "item1": "Maintaining reporter confidentiality",
-      "item2": "Securing sensitive information according to strict standards",
-      "item3": "Secure evidence preservation for investigations",
-      "item4": "Deletion of harmful content from all systems after transfer to authorities"
-    }
-  },
-  "training": {
-    "title": "Training and Education",
-    "p1": "NeshamaTech staff undergo regular training on child safety topics, including:",
-    "topics": {
-      "item1": "Recognizing warning signs of child abuse",
-      "item2": "Reporting and escalation procedures",
-      "item3": "Working with law enforcement authorities",
-      "item4": "Using safety and prevention tools",
-      "item5": "Updates on relevant legislation and regulations"
-    }
-  },
- "contact": {
-  "title": "Contact Us",
-  "p1": "For any questions or concerns regarding child safety, please contact us:",
-  "emailLabel": "Email:",
-  "responseTime": "We commit to responding to every child safety inquiry within 24 hours."
-},
-  "updates": {
-    "title": "Policy Updates",
-    "p1": "This policy is regularly reviewed and updated to ensure it meets the latest standards.",
-    "p2": "Last Updated: <strong>{lastUpdatedDate}</strong>"
-  },
-  "footerCommitment": "{brandName} is committed to protecting children and maintaining a safe environment for all our users."
-}
   }
 }

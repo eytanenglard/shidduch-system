@@ -1,13 +1,45 @@
 // src/components/auth/PhoneNumberInput.tsx
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, {
+  useState,
+  useRef,
+  useEffect,
+  useMemo,
+  useCallback,
+} from 'react';
 import { Phone, ChevronDown, Search, X, Edit } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-// רשימת מדינות מורחבת עם קהילות יהודיות
-const COUNTRIES = [
-  // מדינות פופולאריות
+// ============================================================================
+// TYPES
+// ============================================================================
+
+interface Country {
+  code: string;
+  name: string;
+  nameHe: string;
+  flag: string;
+  prefix: string;
+  popular: boolean;
+  placeholder: string;
+}
+
+interface PhoneNumberInputProps {
+  value: string | undefined;
+  onChange: (value: string | undefined) => void;
+  disabled?: boolean;
+  locale: 'he' | 'en';
+  error?: string;
+  placeholder?: string;
+}
+
+// ============================================================================
+// COUNTRY LIST
+// ============================================================================
+
+const COUNTRIES: Country[] = [
+  // Popular countries
   {
     code: 'IL',
     name: 'Israel',
@@ -53,8 +85,7 @@ const COUNTRIES = [
     popular: true,
     placeholder: '06 12 34 56 78',
   },
-  // ... שאר המדינות נשארות אותו דבר
-  // (קיצרתי כאן כדי לחסוך מקום, הרשימה המלאה קיימת בקוד המקורי שלך)
+  // Rest of countries
   {
     code: 'AR',
     name: 'Argentina',
@@ -489,14 +520,19 @@ const COUNTRIES = [
   },
 ];
 
-interface PhoneNumberInputProps {
-  value: string | undefined;
-  onChange: (value: string | undefined) => void;
-  disabled?: boolean;
-  locale: 'he' | 'en';
-  error?: string;
-   placeholder?: string;
-}
+// ============================================================================
+// ANIMATION
+// ============================================================================
+
+const errorVariants = {
+  hidden: { opacity: 0, y: -4, height: 0 },
+  visible: { opacity: 1, y: 0, height: 'auto', transition: { duration: 0.2 } },
+  exit: { opacity: 0, y: -4, height: 0, transition: { duration: 0.15 } },
+};
+
+// ============================================================================
+// COMPONENT
+// ============================================================================
 
 const PhoneNumberInput: React.FC<PhoneNumberInputProps> = ({
   value,
@@ -504,8 +540,9 @@ const PhoneNumberInput: React.FC<PhoneNumberInputProps> = ({
   disabled = false,
   locale,
   error,
+  placeholder: externalPlaceholder,
 }) => {
-  const [selectedCountry, setSelectedCountry] = useState(COUNTRIES[0]);
+  const [selectedCountry, setSelectedCountry] = useState<Country>(COUNTRIES[0]);
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
@@ -515,86 +552,126 @@ const PhoneNumberInput: React.FC<PhoneNumberInputProps> = ({
   const dropdownRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const isInternalUpdateRef = useRef(false); // Guard against infinite loop
 
-  // סינון מדינות לפי חיפוש
-  const filteredCountries = COUNTRIES.filter((country) => {
+  // ============================================================================
+  // FILTERED & SORTED COUNTRIES (memoized — no mutation)
+  // ============================================================================
+
+  const sortedCountries = useMemo(() => {
     const searchLower = searchTerm.toLowerCase();
-    const name = locale === 'he' ? country.nameHe : country.name;
-    return (
-      name.toLowerCase().includes(searchLower) ||
-      country.prefix.includes(searchTerm) ||
-      country.code.toLowerCase().includes(searchLower)
-    );
-  });
+    const filtered = COUNTRIES.filter((country) => {
+      const name = locale === 'he' ? country.nameHe : country.name;
+      return (
+        name.toLowerCase().includes(searchLower) ||
+        country.prefix.includes(searchTerm) ||
+        country.code.toLowerCase().includes(searchLower)
+      );
+    });
 
-  // מיון: פופולאריות קודם, אחר כך א"ב
-  const sortedCountries = filteredCountries.sort((a, b) => {
-    if (a.popular && !b.popular) return -1;
-    if (!a.popular && b.popular) return 1;
-    const nameA = locale === 'he' ? a.nameHe : a.name;
-    const nameB = locale === 'he' ? b.nameHe : b.name;
-    return nameA.localeCompare(nameB);
-  });
+    // Sort: popular first, then alphabetical — using spread to avoid mutating
+    return [...filtered].sort((a, b) => {
+      if (a.popular && !b.popular) return -1;
+      if (!a.popular && b.popular) return 1;
+      const nameA = locale === 'he' ? a.nameHe : a.name;
+      const nameB = locale === 'he' ? b.nameHe : b.name;
+      return nameA.localeCompare(nameB);
+    });
+  }, [searchTerm, locale]);
 
-  // עדכון הערך המלא
-  const updateFullValue = (prefix: string, number: string) => {
-    const fullNumber = number ? `${prefix}${number.replace(/\D/g, '')}` : '';
-    onChange(fullNumber);
-  };
+  // ============================================================================
+  // UPDATE FULL VALUE
+  // ============================================================================
 
-  // טיפול בשינוי מספר טלפון
-  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newValue = e.target.value;
-    setPhoneNumber(newValue);
+  const updateFullValue = useCallback(
+    (prefix: string, number: string) => {
+      isInternalUpdateRef.current = true;
+      const fullNumber = number ? `${prefix}${number.replace(/\D/g, '')}` : '';
+      onChange(fullNumber);
+      // Reset guard after microtask
+      Promise.resolve().then(() => {
+        isInternalUpdateRef.current = false;
+      });
+    },
+    [onChange]
+  );
 
-    const currentPrefix = isManualPrefix
-      ? manualPrefix
-      : selectedCountry.prefix;
-    updateFullValue(currentPrefix, newValue);
-  };
+  // ============================================================================
+  // PHONE NUMBER CHANGE
+  // ============================================================================
 
-  // טיפול בשינוי קידומת ידנית
-  const handleManualPrefixChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    let newPrefix = e.target.value;
+  const handlePhoneChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const newValue = e.target.value;
+      setPhoneNumber(newValue);
+      const currentPrefix = isManualPrefix
+        ? manualPrefix
+        : selectedCountry.prefix;
+      updateFullValue(currentPrefix, newValue);
+    },
+    [isManualPrefix, manualPrefix, selectedCountry.prefix, updateFullValue]
+  );
 
-    // וידוא שהקידומת מתחילה ב-+
-    if (newPrefix && !newPrefix.startsWith('+')) {
-      newPrefix = '+' + newPrefix;
-    }
+  // ============================================================================
+  // MANUAL PREFIX CHANGE
+  // ============================================================================
 
-    setManualPrefix(newPrefix);
-    updateFullValue(newPrefix, phoneNumber);
-  };
+  const handleManualPrefixChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      let newPrefix = e.target.value.slice(0, 6); // Limit prefix length
+      if (newPrefix && !newPrefix.startsWith('+')) {
+        newPrefix = '+' + newPrefix;
+      }
+      // Only allow + and digits
+      newPrefix = newPrefix.replace(/[^+\d]/g, '');
+      setManualPrefix(newPrefix);
+      updateFullValue(newPrefix, phoneNumber);
+    },
+    [phoneNumber, updateFullValue]
+  );
 
-  // בחירת מדינה
-  const handleCountrySelect = (country: (typeof COUNTRIES)[0]) => {
-    setSelectedCountry(country);
-    setIsOpen(false);
-    setSearchTerm('');
-    setIsManualPrefix(false);
-    setManualPrefix('');
-    updateFullValue(country.prefix, phoneNumber);
-  };
+  // ============================================================================
+  // COUNTRY SELECT
+  // ============================================================================
 
-  // מעבר למצב קידומת ידנית
-  const enableManualPrefix = () => {
+  const handleCountrySelect = useCallback(
+    (country: Country) => {
+      setSelectedCountry(country);
+      setIsOpen(false);
+      setSearchTerm('');
+      setIsManualPrefix(false);
+      setManualPrefix('');
+      updateFullValue(country.prefix, phoneNumber);
+    },
+    [phoneNumber, updateFullValue]
+  );
+
+  const enableManualPrefix = useCallback(() => {
     setIsManualPrefix(true);
     setManualPrefix(selectedCountry.prefix);
     setIsOpen(false);
-  };
+  }, [selectedCountry.prefix]);
 
-  // חזרה למצב בחירת מדינה
-  const disableManualPrefix = () => {
+  const disableManualPrefix = useCallback(() => {
     setIsManualPrefix(false);
     setManualPrefix('');
     updateFullValue(selectedCountry.prefix, phoneNumber);
-  };
+  }, [selectedCountry.prefix, phoneNumber, updateFullValue]);
 
-  // פירוק הערך הנכנס לקידומת ומספר
+  // ============================================================================
+  // PARSE INCOMING VALUE (with infinite loop guard)
+  // ============================================================================
+
   useEffect(() => {
+    // Skip if this update was triggered by us
+    if (isInternalUpdateRef.current) return;
+
     if (value && value.startsWith('+')) {
-      // נסה למצוא מדינה מתאימה
-      const matchingCountry = COUNTRIES.find((country) =>
+      // Try to find matching country (longest prefix match first)
+      const sortedByPrefixLength = [...COUNTRIES].sort(
+        (a, b) => b.prefix.length - a.prefix.length
+      );
+      const matchingCountry = sortedByPrefixLength.find((country) =>
         value.startsWith(country.prefix)
       );
 
@@ -605,7 +682,7 @@ const PhoneNumberInput: React.FC<PhoneNumberInputProps> = ({
         const numberPart = value.substring(matchingCountry.prefix.length);
         setPhoneNumber(numberPart);
       } else {
-        // אם לא נמצאה מדינה מתאימה, השתמש בקידומת ידנית
+        // No matching country — use manual prefix
         const prefixMatch = value.match(/^\+\d+/);
         if (prefixMatch) {
           setIsManualPrefix(true);
@@ -621,8 +698,13 @@ const PhoneNumberInput: React.FC<PhoneNumberInputProps> = ({
     }
   }, [value]);
 
-  // סגירת dropdown בלחיצה מחוץ
+  // ============================================================================
+  // CLOSE DROPDOWN ON OUTSIDE CLICK
+  // ============================================================================
+
   useEffect(() => {
+    if (!isOpen) return;
+
     const handleClickOutside = (event: MouseEvent) => {
       if (
         containerRef.current &&
@@ -633,26 +715,50 @@ const PhoneNumberInput: React.FC<PhoneNumberInputProps> = ({
       }
     };
 
-    if (isOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-      return () =>
-        document.removeEventListener('mousedown', handleClickOutside);
-    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isOpen]);
 
-  // פוקוס על חיפוש כשהרשימה נפתחת
+  // Focus search when dropdown opens
   useEffect(() => {
     if (isOpen && searchInputRef.current) {
       setTimeout(() => searchInputRef.current?.focus(), 100);
     }
   }, [isOpen]);
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
+  // ============================================================================
+  // KEYBOARD HANDLING
+  // ============================================================================
+
+  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (e.key === 'Escape') {
       setIsOpen(false);
       setSearchTerm('');
     }
-  };
+  }, []);
+
+  // ============================================================================
+  // COMPUTED PLACEHOLDER
+  // ============================================================================
+
+  const computedPlaceholder = useMemo(() => {
+    if (externalPlaceholder) return externalPlaceholder;
+    if (isManualPrefix) {
+      return locale === 'he' ? 'מספר טלפון' : 'Phone number';
+    }
+    return locale === 'he'
+      ? `לדוגמה: ${selectedCountry.placeholder}`
+      : `Example: ${selectedCountry.placeholder}`;
+  }, [
+    externalPlaceholder,
+    isManualPrefix,
+    locale,
+    selectedCountry.placeholder,
+  ]);
+
+  // ============================================================================
+  // RENDER
+  // ============================================================================
 
   return (
     <div
@@ -660,15 +766,11 @@ const PhoneNumberInput: React.FC<PhoneNumberInputProps> = ({
       className="relative w-full"
       onKeyDown={handleKeyDown}
     >
-      {/* 
-          שינוי קריטי: הוספנו dir="ltr" כדי לכפות סדר אלמנטים משמאל לימין 
-          (קידומת משמאל, שדה קלט מימין) גם כאשר שפת הדף היא עברית.
-      */}
+      {/* LTR container for phone number layout */}
       <div className="flex gap-2" dir="ltr">
-        {/* בוחר מדינה או קידומת ידנית */}
+        {/* Country selector / manual prefix */}
         <div className="relative">
           {isManualPrefix ? (
-            // מצב קידומת ידנית
             <div className="flex items-center gap-1">
               <input
                 type="text"
@@ -676,18 +778,20 @@ const PhoneNumberInput: React.FC<PhoneNumberInputProps> = ({
                 onChange={handleManualPrefixChange}
                 placeholder="+1"
                 disabled={disabled}
+                maxLength={6}
+                aria-label={locale === 'he' ? 'קידומת טלפון' : 'Phone prefix'}
                 className={`
-                  w-20 px-2 py-3 text-sm border rounded-lg text-center font-mono
+                  w-20 px-2 py-3 text-sm border-2 rounded-xl text-center font-mono
                   transition-all duration-200
                   ${
                     disabled
                       ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                      : 'bg-white hover:border-blue-300 focus:ring-2 focus:ring-blue-200 focus:border-blue-500'
+                      : 'bg-white hover:border-teal-300 focus:ring-2 focus:ring-teal-200 focus:border-teal-500'
                   }
                   ${
                     error
                       ? 'border-red-400 focus:ring-red-200 focus:border-red-500'
-                      : 'border-gray-300'
+                      : 'border-gray-200'
                   }
                 `}
               />
@@ -695,7 +799,7 @@ const PhoneNumberInput: React.FC<PhoneNumberInputProps> = ({
                 type="button"
                 onClick={disableManualPrefix}
                 disabled={disabled}
-                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-md transition-colors"
+                className="p-2 text-gray-400 hover:text-teal-600 hover:bg-teal-50 rounded-lg transition-colors"
                 title={
                   locale === 'he'
                     ? 'חזור לבחירת מדינה'
@@ -706,28 +810,32 @@ const PhoneNumberInput: React.FC<PhoneNumberInputProps> = ({
               </button>
             </div>
           ) : (
-            // מצב בחירת מדינה
             <button
               type="button"
               onClick={() => !disabled && setIsOpen(!isOpen)}
               disabled={disabled}
               className={`
-                flex items-center gap-2 px-3 py-3 border rounded-lg bg-white
+                flex items-center gap-2 px-3 py-3 border-2 rounded-xl bg-white
                 transition-all duration-200 min-w-[140px]
                 ${
                   disabled
                     ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                    : 'hover:border-blue-300 focus:ring-2 focus:ring-blue-200 focus:border-blue-500'
+                    : 'hover:border-teal-300 focus:ring-2 focus:ring-teal-200 focus:border-teal-500'
                 }
                 ${
                   error
                     ? 'border-red-400 focus:ring-red-200 focus:border-red-500'
-                    : 'border-gray-300'
+                    : 'border-gray-200'
                 }
-                ${isOpen ? 'border-blue-500 ring-2 ring-blue-200' : ''}
+                ${isOpen ? 'border-teal-500 ring-2 ring-teal-200' : ''}
               `}
               aria-expanded={isOpen}
               aria-haspopup="listbox"
+              aria-label={
+                locale === 'he'
+                  ? 'בחר מדינה לקידומת'
+                  : 'Select country for prefix'
+              }
             >
               <span className="text-lg">{selectedCountry.flag}</span>
               <span className="text-sm font-medium truncate">
@@ -739,9 +847,7 @@ const PhoneNumberInput: React.FC<PhoneNumberInputProps> = ({
                 ({selectedCountry.prefix})
               </span>
               <ChevronDown
-                className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${
-                  isOpen ? 'rotate-180' : ''
-                }`}
+                className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
               />
             </button>
           )}
@@ -755,9 +861,11 @@ const PhoneNumberInput: React.FC<PhoneNumberInputProps> = ({
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: -10, scale: 0.95 }}
                 transition={{ duration: 0.2 }}
-                className="absolute top-full mt-1 left-0 w-80 bg-white border border-gray-200 rounded-lg shadow-lg z-50 max-h-96"
+                className="absolute top-full mt-1 left-0 w-80 bg-white border border-gray-200 rounded-xl shadow-lg z-50 max-h-96 overflow-hidden"
+                role="listbox"
+                aria-label={locale === 'he' ? 'רשימת מדינות' : 'Country list'}
               >
-                {/* חיפוש - כאן אנחנו מכבדים את כיוון השפה עבור טקסט החיפוש */}
+                {/* Search */}
                 <div
                   className="p-3 border-b border-gray-100"
                   dir={locale === 'he' ? 'rtl' : 'ltr'}
@@ -774,21 +882,32 @@ const PhoneNumberInput: React.FC<PhoneNumberInputProps> = ({
                       }
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      className={`w-full py-2 text-sm border border-gray-200 rounded-md focus:ring-2 focus:ring-blue-200 focus:border-blue-500 ${locale === 'he' ? 'pr-10 pl-3' : 'pl-10 pr-3'}`}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Escape') {
+                          setIsOpen(false);
+                          setSearchTerm('');
+                        }
+                      }}
+                      className={`w-full py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-teal-200 focus:border-teal-500 ${locale === 'he' ? 'pr-10 pl-8' : 'pl-10 pr-8'}`}
                     />
-                    {searchTerm && (
-                      <button
-                        type="button"
-                        onClick={() => setSearchTerm('')}
-                        className={`absolute top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 ${locale === 'he' ? 'left-3' : 'right-3'}`}
-                      >
-                        <X className="w-4 h-4" />
-                      </button>
-                    )}
+                    <AnimatePresence>
+                      {searchTerm && (
+                        <motion.button
+                          initial={{ opacity: 0, scale: 0.8 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          exit={{ opacity: 0, scale: 0.8 }}
+                          type="button"
+                          onClick={() => setSearchTerm('')}
+                          className={`absolute top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 ${locale === 'he' ? 'left-3' : 'right-3'}`}
+                        >
+                          <X className="w-4 h-4" />
+                        </motion.button>
+                      )}
+                    </AnimatePresence>
                   </div>
                 </div>
 
-                {/* אפשרות לקידומת ידנית */}
+                {/* Manual prefix option */}
                 <div
                   className="p-2 border-b border-gray-100"
                   dir={locale === 'he' ? 'rtl' : 'ltr'}
@@ -796,7 +915,7 @@ const PhoneNumberInput: React.FC<PhoneNumberInputProps> = ({
                   <button
                     type="button"
                     onClick={enableManualPrefix}
-                    className="w-full flex items-center gap-3 px-3 py-2 text-sm text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
+                    className="w-full flex items-center gap-3 px-3 py-2 text-sm text-teal-600 hover:bg-teal-50 rounded-lg transition-colors"
                   >
                     <Edit className="w-4 h-4" />
                     <span>
@@ -807,7 +926,7 @@ const PhoneNumberInput: React.FC<PhoneNumberInputProps> = ({
                   </button>
                 </div>
 
-                {/* רשימת מדינות */}
+                {/* Country list */}
                 <div className="max-h-60 overflow-y-auto">
                   {sortedCountries.length === 0 ? (
                     <div className="p-4 text-sm text-gray-500 text-center">
@@ -821,13 +940,17 @@ const PhoneNumberInput: React.FC<PhoneNumberInputProps> = ({
                         key={country.code}
                         type="button"
                         onClick={() => handleCountrySelect(country)}
+                        role="option"
+                        aria-selected={selectedCountry.code === country.code}
                         className={`
                           w-full flex items-center gap-3 px-4 py-3 text-sm
-                          hover:bg-blue-50 transition-colors duration-150
-                          ${selectedCountry.code === country.code ? 'bg-blue-100 text-blue-700' : 'text-gray-700'}
+                          hover:bg-teal-50 transition-colors duration-150
+                          ${
+                            selectedCountry.code === country.code
+                              ? 'bg-teal-100 text-teal-700'
+                              : 'text-gray-700'
+                          }
                         `}
-                        // כאן אנחנו שומרים על כיוון LTR כדי שהדגלים והמספרים יהיו בצד שמאל והטקסט מימין,
-                        // גם בעברית זה נראה טוב ברשימות טלפונים
                         dir="ltr"
                       >
                         <span className="text-lg">{country.flag}</span>
@@ -838,7 +961,7 @@ const PhoneNumberInput: React.FC<PhoneNumberInputProps> = ({
                           {country.prefix}
                         </span>
                         {country.popular && (
-                          <span className="w-2 h-2 bg-green-400 rounded-full"></span>
+                          <span className="w-2 h-2 bg-teal-400 rounded-full" />
                         )}
                       </button>
                     ))
@@ -849,55 +972,51 @@ const PhoneNumberInput: React.FC<PhoneNumberInputProps> = ({
           </AnimatePresence>
         </div>
 
-        {/* שדה מספר טלפון */}
+        {/* Phone number input */}
         <div className="flex-1 relative">
           <input
             type="tel"
             value={phoneNumber}
             onChange={handlePhoneChange}
             disabled={disabled}
-            placeholder={
-              isManualPrefix
-                ? locale === 'he'
-                  ? 'מספר טלפון'
-                  : 'Phone number'
-                : locale === 'he'
-                  ? `לדוגמה: ${selectedCountry.placeholder}`
-                  : `Example: ${selectedCountry.placeholder}`
-            }
-            // כיוון שהקונטיינר כולו LTR עכשיו, אנחנו רוצים יישור לשמאל תמיד כדי שזה יהיה צמוד לקידומת
+            placeholder={computedPlaceholder}
+            aria-label={locale === 'he' ? 'מספר טלפון' : 'Phone number'}
+            aria-invalid={!!error}
             className={`
-              w-full pl-3 pr-10 py-3 border rounded-lg
+              w-full pl-3 pr-10 py-3 border-2 rounded-xl
               transition-all duration-200 text-left
               ${
                 disabled
                   ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                  : 'bg-white hover:border-blue-300 focus:ring-2 focus:ring-blue-200 focus:border-blue-500'
+                  : 'bg-white hover:border-teal-300 focus:ring-2 focus:ring-teal-200 focus:border-teal-500'
               }
               ${
                 error
                   ? 'border-red-400 focus:ring-red-200 focus:border-red-500'
-                  : 'border-gray-300'
+                  : 'border-gray-200'
               }
             `}
             dir="ltr"
           />
-          {/* האייקון ממוקם תמיד בימין כי הכל LTR */}
-          <Phone className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+          <Phone className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
         </div>
       </div>
 
-      {/* הודעת שגיאה */}
-      {error && (
-        <motion.p
-          initial={{ opacity: 0, y: -5 }}
-          animate={{ opacity: 1, y: 0 }}
-          // הודעת השגיאה תמיד מיושרת לפי שפת הממשק
-          className={`text-red-500 text-xs mt-2 ${locale === 'he' ? 'text-right' : 'text-left'}`}
-        >
-          {error}
-        </motion.p>
-      )}
+      {/* Error message with animation */}
+      <AnimatePresence>
+        {error && error.trim() && (
+          <motion.p
+            variants={errorVariants}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+            className={`text-red-500 text-xs mt-2 ${locale === 'he' ? 'text-right' : 'text-left'}`}
+            role="alert"
+          >
+            {error}
+          </motion.p>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

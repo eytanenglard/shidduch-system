@@ -1,10 +1,14 @@
 // src/components/auth/FullScreenLoadingOverlay.tsx
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { CheckCircle2, Sparkles, Loader2 } from 'lucide-react';
-import StandardizedLoadingSpinner from '@/components/questionnaire/common/StandardizedLoadingSpinner';
+import { CheckCircle2, Sparkles, Loader2, AlertTriangle } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+
+// ============================================================================
+// TYPES
+// ============================================================================
 
 export type LoadingStep = {
   id: string;
@@ -21,7 +25,19 @@ interface FullScreenLoadingOverlayProps {
     subtitle: string;
   };
   locale?: 'he' | 'en';
+  timeoutMs?: number; // Escape hatch after this many ms (default: 30s)
+  onTimeout?: () => void; // Called when timeout fires
 }
+
+// ============================================================================
+// CONSTANTS
+// ============================================================================
+
+const DEFAULT_TIMEOUT_MS = 30_000;
+
+// ============================================================================
+// COMPONENT
+// ============================================================================
 
 const FullScreenLoadingOverlay: React.FC<FullScreenLoadingOverlayProps> = ({
   isVisible,
@@ -29,13 +45,21 @@ const FullScreenLoadingOverlay: React.FC<FullScreenLoadingOverlayProps> = ({
   steps,
   dict,
   locale = 'he',
+  timeoutMs = DEFAULT_TIMEOUT_MS,
+  onTimeout,
 }) => {
   const [completedSteps, setCompletedSteps] = useState<string[]>([]);
+  const [isTimedOut, setIsTimedOut] = useState(false);
 
-  // מעקב אחרי שלבים שהושלמו
+  // ============================================================================
+  // Track completed steps
+  // ============================================================================
+
   useEffect(() => {
     if (!isVisible) {
+      // Reset when overlay closes
       setCompletedSteps([]);
+      setIsTimedOut(false);
       return;
     }
 
@@ -46,7 +70,37 @@ const FullScreenLoadingOverlay: React.FC<FullScreenLoadingOverlayProps> = ({
     }
   }, [currentStepId, steps, isVisible]);
 
+  // ============================================================================
+  // Timeout fallback — escape hatch if something gets stuck
+  // ============================================================================
+
+  useEffect(() => {
+    if (!isVisible) return;
+
+    setIsTimedOut(false);
+    const timer = setTimeout(() => {
+      setIsTimedOut(true);
+      onTimeout?.();
+    }, timeoutMs);
+
+    return () => clearTimeout(timer);
+  }, [isVisible, timeoutMs, onTimeout]);
+
+  // ============================================================================
+  // Handle manual escape
+  // ============================================================================
+
+  const handleForceRefresh = useCallback(() => {
+    if (typeof window !== 'undefined') {
+      window.location.reload();
+    }
+  }, []);
+
   const currentStep = steps.find((s) => s.id === currentStepId);
+
+  // ============================================================================
+  // RENDER
+  // ============================================================================
 
   return (
     <AnimatePresence>
@@ -62,10 +116,12 @@ const FullScreenLoadingOverlay: React.FC<FullScreenLoadingOverlayProps> = ({
               'linear-gradient(135deg, rgba(248, 250, 252, 0.97) 0%, rgba(240, 253, 250, 0.97) 50%, rgba(255, 247, 237, 0.97) 100%)',
             backdropFilter: 'blur(12px)',
           }}
+          role="dialog"
+          aria-modal="true"
+          aria-label={dict.title}
         >
-          {/* רקע אנימטיבי עדין */}
+          {/* Animated background — only render when visible */}
           <div className="absolute inset-0 overflow-hidden pointer-events-none">
-            {/* גרדיאנט עליון */}
             <motion.div
               className="absolute -top-1/4 -right-1/4 w-1/2 h-1/2 rounded-full"
               style={{
@@ -82,7 +138,6 @@ const FullScreenLoadingOverlay: React.FC<FullScreenLoadingOverlayProps> = ({
                 ease: 'easeInOut',
               }}
             />
-            {/* גרדיאנט תחתון */}
             <motion.div
               className="absolute -bottom-1/4 -left-1/4 w-1/2 h-1/2 rounded-full"
               style={{
@@ -102,14 +157,18 @@ const FullScreenLoadingOverlay: React.FC<FullScreenLoadingOverlayProps> = ({
             />
           </div>
 
-          {/* תוכן מרכזי */}
+          {/* Central content */}
           <div className="relative z-10 flex flex-col items-center max-w-md px-6 text-center">
-            {/* לוגו מונפש - משתמש ב-StandardizedLoadingSpinner בלי טקסט כי נוסיף משלנו */}
-            <div className="mb-0">
-              <StandardizedLoadingSpinner className="!min-h-0 !p-0" />
+            {/* Spinner */}
+            <div className="mb-6">
+              <motion.div
+                animate={{ rotate: 360 }}
+                transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
+                className="w-16 h-16 rounded-full border-4 border-gray-200 border-t-teal-500 border-r-orange-500"
+              />
             </div>
 
-            {/* כותרת */}
+            {/* Title */}
             <motion.h2
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
@@ -119,7 +178,7 @@ const FullScreenLoadingOverlay: React.FC<FullScreenLoadingOverlayProps> = ({
               {dict.title}
             </motion.h2>
 
-            {/* תת-כותרת */}
+            {/* Subtitle */}
             <motion.p
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -129,12 +188,14 @@ const FullScreenLoadingOverlay: React.FC<FullScreenLoadingOverlayProps> = ({
               {dict.subtitle}
             </motion.p>
 
-            {/* שלבי התקדמות */}
+            {/* Step progress */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.6 }}
               className="w-full space-y-3"
+              aria-live="polite"
+              aria-atomic="false"
             >
               {steps.map((step, index) => {
                 const isCompleted = completedSteps.includes(step.id);
@@ -154,7 +215,7 @@ const FullScreenLoadingOverlay: React.FC<FullScreenLoadingOverlayProps> = ({
                           : 'bg-gray-50/50'
                     }`}
                   >
-                    {/* אייקון סטטוס */}
+                    {/* Status icon */}
                     <div
                       className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 ${
                         isCompleted
@@ -183,7 +244,7 @@ const FullScreenLoadingOverlay: React.FC<FullScreenLoadingOverlayProps> = ({
                       )}
                     </div>
 
-                    {/* טקסט השלב */}
+                    {/* Step text */}
                     <div className="flex-1 text-right rtl:text-right ltr:text-left">
                       <p
                         className={`text-sm font-medium transition-colors ${
@@ -193,6 +254,8 @@ const FullScreenLoadingOverlay: React.FC<FullScreenLoadingOverlayProps> = ({
                               ? 'text-green-600'
                               : 'text-gray-400'
                         }`}
+                        // Announce current step to screen readers
+                        aria-current={isCurrent ? 'step' : undefined}
                       >
                         {step.text}
                       </p>
@@ -211,7 +274,36 @@ const FullScreenLoadingOverlay: React.FC<FullScreenLoadingOverlayProps> = ({
               })}
             </motion.div>
 
-            {/* הודעת טיפ */}
+            {/* Timeout warning */}
+            <AnimatePresence>
+              {isTimedOut && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 10 }}
+                  className="mt-6 w-full p-4 bg-amber-50 border border-amber-200 rounded-xl text-center"
+                >
+                  <div className="flex items-center justify-center gap-2 mb-2">
+                    <AlertTriangle className="w-4 h-4 text-amber-600" />
+                    <p className="text-sm font-medium text-amber-800">
+                      {locale === 'he'
+                        ? 'התהליך לוקח יותר זמן מהצפוי'
+                        : 'This is taking longer than expected'}
+                    </p>
+                  </div>
+                  <Button
+                    onClick={handleForceRefresh}
+                    variant="outline"
+                    size="sm"
+                    className="border-amber-300 text-amber-700 hover:bg-amber-100"
+                  >
+                    {locale === 'he' ? 'רענן את הדף' : 'Refresh page'}
+                  </Button>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Don't close tip */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}

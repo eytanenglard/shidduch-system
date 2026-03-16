@@ -17,6 +17,7 @@ import {
   AlertCircle,
   Loader2,
   ArrowLeft,
+  ArrowRight,
   RefreshCw,
   Sparkles,
   Shield,
@@ -25,185 +26,49 @@ import {
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 
+// ============================================================================
+// TYPES
+// ============================================================================
+
+interface VerifyEmailDict {
+  title: string;
+  subtitle: string;
+  emailSentTo: string;
+  enterCode: string;
+  verifying: string;
+  success: string;
+  successMessage: string;
+  errorTitle: string;
+  resendCode: string;
+  resendIn: string;
+  seconds: string;
+  didntReceive: string;
+  checkSpam: string;
+  backToRegister: string;
+  securityNote: string;
+  digitAriaLabel: string;
+}
+
 interface VerifyEmailClientProps {
   locale: 'he' | 'en';
+  dict?: VerifyEmailDict; // Accept dict as prop; fallback to internal defaults
 }
 
 type VerificationStatus = 'idle' | 'verifying' | 'success' | 'error';
 
+// ============================================================================
+// CONSTANTS
+// ============================================================================
+
 const OTP_LENGTH = 6;
+const RESEND_COOLDOWN = 60;
 
-export default function VerifyEmailClient({ locale }: VerifyEmailClientProps) {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const email = searchParams.get('email') || '';
-  const isHebrew = locale === 'he';
+// ============================================================================
+// DEFAULT DICTIONARY (fallback)
+// ============================================================================
 
-  // State Management
-  const [code, setCode] = useState<string[]>(Array(OTP_LENGTH).fill(''));
-  const [status, setStatus] = useState<VerificationStatus>('idle');
-  const [errorMessage, setErrorMessage] = useState<string>('');
-  const [canResend, setCanResend] = useState(false);
-  const [resendCountdown, setResendCountdown] = useState(60);
-  const [isResending, setIsResending] = useState(false);
-  const [focusedIndex, setFocusedIndex] = useState<number | null>(null);
-
-  // Refs for input boxes
-  const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
-
-  // Countdown timer for resend
-  useEffect(() => {
-    if (resendCountdown > 0) {
-      const timer = setTimeout(
-        () => setResendCountdown(resendCountdown - 1),
-        1000
-      );
-      return () => clearTimeout(timer);
-    } else {
-      setCanResend(true);
-    }
-  }, [resendCountdown]);
-
-  // Auto-submit when all 6 digits are filled
-  useEffect(() => {
-    const fullCode = code.join('');
-    if (fullCode.length === OTP_LENGTH && status === 'idle') {
-      handleVerifyCode(fullCode);
-    }
-  }, [code, status]);
-
-  const handleInputChange = useCallback(
-    (index: number, value: string) => {
-      if (!/^\d*$/.test(value)) return;
-      const newCode = [...code];
-      newCode[index] = value.slice(-1);
-      setCode(newCode);
-      setErrorMessage('');
-
-      if (value && index < OTP_LENGTH - 1) {
-        inputRefs.current[index + 1]?.focus();
-      }
-    },
-    [code]
-  );
-
-  const handleKeyDown = useCallback(
-    (index: number, e: KeyboardEvent<HTMLInputElement>) => {
-      if (e.key === 'Backspace' && !code[index] && index > 0) {
-        inputRefs.current[index - 1]?.focus();
-      }
-      if (e.key === 'ArrowLeft' && index > 0) {
-        inputRefs.current[index - 1]?.focus();
-      }
-      if (e.key === 'ArrowRight' && index < OTP_LENGTH - 1) {
-        inputRefs.current[index + 1]?.focus();
-      }
-    },
-    [code]
-  );
-
-  // --------------------------------------------------------
-  // Handle Paste Event - Works from any input position
-  // --------------------------------------------------------
-  const handlePaste = useCallback(
-    (e: ClipboardEvent<HTMLInputElement>, index: number) => {
-      e.preventDefault();
-      // קבלת הטקסט מהלוח
-      const pastedData = e.clipboardData.getData('text');
-      // ניקוי תווים שאינם מספרים
-      const pastedNumbers = pastedData.replace(/\D/g, '').split('');
-
-      if (pastedNumbers.length === 0) return;
-
-      const newCode = [...code];
-      let nextIndex = index;
-
-      // מילוי המערך החל מהאינדקס הנוכחי
-      for (let i = 0; i < pastedNumbers.length; i++) {
-        if (nextIndex >= OTP_LENGTH) break;
-        newCode[nextIndex] = pastedNumbers[i];
-        nextIndex++;
-      }
-
-      setCode(newCode);
-      setErrorMessage('');
-
-      // העברת הפוקוס לשדה האחרון שמולא או לשדה הבא
-      const focusIndex = Math.min(nextIndex, OTP_LENGTH - 1);
-      if (inputRefs.current[focusIndex]) {
-        inputRefs.current[focusIndex]?.focus();
-      }
-    },
-    [code]
-  );
-  // --------------------------------------------------------
-
-  const handleVerifyCode = async (verificationCode: string) => {
-    setStatus('verifying');
-    setErrorMessage('');
-
-    try {
-      const response = await fetch('/api/auth/verify-email', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, code: verificationCode }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok || !data.success) {
-        throw new Error(data.error || 'אירעה שגיאה באימות הקוד');
-      }
-
-      setStatus('success');
-
-      setTimeout(() => {
-        router.push(
-          `/${locale}/auth/register?step=personal-details&email=${encodeURIComponent(email)}`
-        );
-      }, 2000);
-    } catch (error) {
-      setStatus('error');
-      setErrorMessage(
-        error instanceof Error ? error.message : 'אירעה שגיאה לא צפויה'
-      );
-      setCode(Array(OTP_LENGTH).fill(''));
-      inputRefs.current[0]?.focus();
-    }
-  };
-
-  const handleResendCode = async () => {
-    setIsResending(true);
-    setErrorMessage('');
-
-    try {
-      const response = await fetch('/api/auth/resend-verification', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok || !data.success) {
-        throw new Error(data.error || 'אירעה שגיאה בשליחת הקוד');
-      }
-
-      setCanResend(false);
-      setResendCountdown(60);
-      setCode(Array(OTP_LENGTH).fill(''));
-      inputRefs.current[0]?.focus();
-    } catch (error) {
-      setErrorMessage(
-        error instanceof Error ? error.message : 'אירעה שגיאה בשליחת הקוד'
-      );
-    } finally {
-      setIsResending(false);
-    }
-  };
-
-  // Dictionary
-  const dict = {
+function getDefaultDict(isHebrew: boolean): VerifyEmailDict {
+  return {
     title: isHebrew ? 'אמת את כתובת המייל שלך' : 'Verify Your Email',
     subtitle: isHebrew
       ? 'שלחנו קוד אימות בן 6 ספרות למייל שלך'
@@ -229,18 +94,295 @@ export default function VerifyEmailClient({ locale }: VerifyEmailClientProps) {
       : 'Code is valid for 15 minutes from sending',
     digitAriaLabel: isHebrew ? 'ספרה {{index}}' : 'Digit {{index}}',
   };
+}
+
+// ============================================================================
+// CIRCULAR TIMER COMPONENT
+// ============================================================================
+
+const CircularTimer: React.FC<{ seconds: number; maxSeconds: number }> = ({
+  seconds,
+  maxSeconds,
+}) => {
+  const progress = (seconds / maxSeconds) * 100;
+  const circumference = 2 * Math.PI * 18;
+  const strokeDashoffset = circumference - (progress / 100) * circumference;
+
+  return (
+    <div className="relative inline-flex items-center justify-center w-8 h-8">
+      <svg className="w-8 h-8 transform -rotate-90">
+        <circle
+          cx="16"
+          cy="16"
+          r="14"
+          stroke="currentColor"
+          strokeWidth="2"
+          fill="none"
+          className="text-gray-200"
+        />
+        <circle
+          cx="16"
+          cy="16"
+          r="14"
+          stroke="currentColor"
+          strokeWidth="2"
+          fill="none"
+          strokeDasharray={circumference}
+          strokeDashoffset={strokeDashoffset}
+          strokeLinecap="round"
+          className="text-teal-500 transition-all duration-300"
+        />
+      </svg>
+      <span className="absolute text-[10px] font-semibold text-gray-600">
+        {seconds}
+      </span>
+    </div>
+  );
+};
+
+// ============================================================================
+// COMPONENT
+// ============================================================================
+
+export default function VerifyEmailClient({
+  locale,
+  dict: dictProp,
+}: VerifyEmailClientProps) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const email = searchParams.get('email') || '';
+  const isHebrew = locale === 'he';
+
+  // Use provided dict or fallback to defaults
+  const dict = dictProp || getDefaultDict(isHebrew);
+
+  // State
+  const [code, setCode] = useState<string[]>(Array(OTP_LENGTH).fill(''));
+  const [status, setStatus] = useState<VerificationStatus>('idle');
+  const [errorMessage, setErrorMessage] = useState<string>('');
+  const [canResend, setCanResend] = useState(false);
+  const [resendCountdown, setResendCountdown] = useState(RESEND_COOLDOWN);
+  const [isResending, setIsResending] = useState(false);
+  const [focusedIndex, setFocusedIndex] = useState<number | null>(null);
+
+  const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
+
+  // ============================================================================
+  // EFFECTS
+  // ============================================================================
+
+  // Countdown timer for resend
+  useEffect(() => {
+    if (resendCountdown > 0) {
+      const timer = setTimeout(() => setResendCountdown((p) => p - 1), 1000);
+      return () => clearTimeout(timer);
+    } else {
+      setCanResend(true);
+    }
+  }, [resendCountdown]);
+
+  // Auto-submit when all 6 digits are filled
+  useEffect(() => {
+    const fullCode = code.join('');
+    if (fullCode.length === OTP_LENGTH && status === 'idle') {
+      handleVerifyCode(fullCode);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [code, status]);
+
+  // Show "no email" state
+  const [showNoEmail, setShowNoEmail] = useState(false);
+  useEffect(() => {
+    if (!email) {
+      setShowNoEmail(true);
+    }
+  }, [email]);
+
+  // ============================================================================
+  // INPUT HANDLERS
+  // ============================================================================
+
+  const handleInputChange = useCallback((index: number, value: string) => {
+    if (!/^\d*$/.test(value)) return;
+    setCode((prev) => {
+      const newCode = [...prev];
+      newCode[index] = value.slice(-1);
+      return newCode;
+    });
+    setErrorMessage('');
+    // Reset error status so user can try again
+    setStatus((prev) => (prev === 'error' ? 'idle' : prev));
+
+    if (value && index < OTP_LENGTH - 1) {
+      inputRefs.current[index + 1]?.focus();
+    }
+  }, []);
+
+  const handleKeyDown = useCallback(
+    (index: number, e: KeyboardEvent<HTMLInputElement>) => {
+      if (e.key === 'Backspace' && !code[index] && index > 0) {
+        inputRefs.current[index - 1]?.focus();
+      }
+      if (e.key === 'ArrowLeft' && index > 0)
+        inputRefs.current[index - 1]?.focus();
+      if (e.key === 'ArrowRight' && index < OTP_LENGTH - 1)
+        inputRefs.current[index + 1]?.focus();
+    },
+    [code]
+  );
+
+  const handlePaste = useCallback(
+    (e: ClipboardEvent<HTMLInputElement>, index: number) => {
+      e.preventDefault();
+      const pastedNumbers = e.clipboardData
+        .getData('text')
+        .replace(/\D/g, '')
+        .split('');
+      if (pastedNumbers.length === 0) return;
+
+      setCode((prev) => {
+        const newCode = [...prev];
+        let nextIndex = index;
+        for (const digit of pastedNumbers) {
+          if (nextIndex >= OTP_LENGTH) break;
+          newCode[nextIndex] = digit;
+          nextIndex++;
+        }
+        return newCode;
+      });
+      setErrorMessage('');
+      setStatus((prev) => (prev === 'error' ? 'idle' : prev));
+
+      const focusIndex = Math.min(index + pastedNumbers.length, OTP_LENGTH - 1);
+      inputRefs.current[focusIndex]?.focus();
+    },
+    []
+  );
+
+  // ============================================================================
+  // VERIFY CODE
+  // ============================================================================
+
+  const handleVerifyCode = async (verificationCode: string) => {
+    setStatus('verifying');
+    setErrorMessage('');
+
+    try {
+      const response = await fetch('/api/auth/verify-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, code: verificationCode }),
+      });
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        throw new Error(
+          data.error ||
+            (isHebrew ? 'אירעה שגיאה באימות הקוד' : 'Error verifying code')
+        );
+      }
+
+      setStatus('success');
+      setTimeout(() => {
+        router.push(
+          `/${locale}/auth/register?step=personal-details&email=${encodeURIComponent(email)}`
+        );
+      }, 2000);
+    } catch (error) {
+      setStatus('error');
+      setErrorMessage(
+        error instanceof Error
+          ? error.message
+          : isHebrew
+            ? 'אירעה שגיאה לא צפויה'
+            : 'Unexpected error'
+      );
+      setCode(Array(OTP_LENGTH).fill(''));
+      inputRefs.current[0]?.focus();
+    }
+  };
+
+  // ============================================================================
+  // RESEND CODE
+  // ============================================================================
+
+  const handleResendCode = async () => {
+    setIsResending(true);
+    setErrorMessage('');
+
+    try {
+      const response = await fetch('/api/auth/resend-verification', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        throw new Error(
+          data.error ||
+            (isHebrew ? 'אירעה שגיאה בשליחת הקוד' : 'Error sending code')
+        );
+      }
+
+      setCanResend(false);
+      setResendCountdown(RESEND_COOLDOWN);
+      setCode(Array(OTP_LENGTH).fill(''));
+      setStatus('idle');
+      inputRefs.current[0]?.focus();
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error
+          ? error.message
+          : isHebrew
+            ? 'אירעה שגיאה בשליחת הקוד'
+            : 'Error sending code'
+      );
+    } finally {
+      setIsResending(false);
+    }
+  };
 
   const disableForm = status === 'verifying' || status === 'success';
 
+  // ============================================================================
+  // RENDER — No email state
+  // ============================================================================
+
+  if (showNoEmail) {
+    return (
+      <div className="min-h-screen w-full bg-gradient-to-br from-slate-50 via-teal-50/40 to-orange-50/40 flex items-center justify-center p-4">
+        <div className="bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/50 p-8 max-w-md text-center">
+          <AlertCircle className="w-12 h-12 text-amber-500 mx-auto mb-4" />
+          <h2 className="text-xl font-bold text-gray-800 mb-2">
+            {isHebrew ? 'חסרה כתובת מייל' : 'Missing email address'}
+          </h2>
+          <p className="text-gray-600 text-sm mb-6">
+            {isHebrew
+              ? 'לא ניתן לאמת ללא כתובת מייל. אנא חזור להרשמה.'
+              : 'Cannot verify without an email address. Please go back to registration.'}
+          </p>
+          <Link href={`/${locale}/auth/register`}>
+            <Button className="bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500">
+              {dict.backToRegister}
+            </Button>
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  // ============================================================================
+  // RENDER — Main
+  // ============================================================================
+
   return (
-    // UPDATED: Main Background (Slate/Teal/Orange)
     <div className="min-h-screen w-full bg-gradient-to-br from-slate-50 via-teal-50/40 to-orange-50/40 flex items-center justify-center p-4 relative overflow-hidden">
-      {/* UPDATED: Decorative Orbs (Teal/Orange/Rose) */}
+      {/* Simplified decorative background — 2 orbs instead of 3 */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <motion.div
           animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.5, 0.3] }}
           transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
-          // Teal Orb
           className="absolute top-20 left-10 w-64 h-64 bg-teal-200/40 rounded-full blur-3xl"
         />
         <motion.div
@@ -251,19 +393,7 @@ export default function VerifyEmailClient({ locale }: VerifyEmailClientProps) {
             ease: 'easeInOut',
             delay: 2,
           }}
-          // Orange Orb
           className="absolute bottom-20 right-10 w-72 h-72 bg-orange-200/40 rounded-full blur-3xl"
-        />
-        <motion.div
-          animate={{ scale: [1, 1.15, 1], opacity: [0.2, 0.4, 0.2] }}
-          transition={{
-            duration: 12,
-            repeat: Infinity,
-            ease: 'easeInOut',
-            delay: 4,
-          }}
-          // Rose Orb
-          className="absolute top-1/2 left-1/3 w-56 h-56 bg-rose-200/30 rounded-full blur-3xl"
         />
       </div>
 
@@ -274,8 +404,7 @@ export default function VerifyEmailClient({ locale }: VerifyEmailClientProps) {
         transition={{ duration: 0.6, ease: 'easeOut' }}
         className="relative w-full max-w-md"
       >
-        <div className="bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/50 p-8 relative overflow-hidden">
-          {/* Decorative shimmer */}
+        <div className="bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/50 p-6 sm:p-8 relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-br from-teal-100/20 via-transparent to-orange-100/20 pointer-events-none" />
 
           <div className="relative z-10">
@@ -285,7 +414,6 @@ export default function VerifyEmailClient({ locale }: VerifyEmailClientProps) {
                 initial={{ scale: 0.8, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 transition={{ delay: 0.2, duration: 0.5 }}
-                // Teal Icon Container
                 className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-teal-400 to-emerald-500 shadow-lg mb-4"
               >
                 <Mail className="w-8 h-8 text-white" />
@@ -306,7 +434,7 @@ export default function VerifyEmailClient({ locale }: VerifyEmailClientProps) {
               )}
             </div>
 
-            {/* Code Input Section */}
+            {/* OTP Input */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -317,7 +445,6 @@ export default function VerifyEmailClient({ locale }: VerifyEmailClientProps) {
                 {dict.enterCode}
               </p>
 
-              {/* OTP Input Boxes */}
               <div
                 className="flex justify-center gap-2 sm:gap-3 mb-6"
                 dir="ltr"
@@ -340,22 +467,20 @@ export default function VerifyEmailClient({ locale }: VerifyEmailClientProps) {
                       value={digit}
                       onChange={(e) => handleInputChange(index, e.target.value)}
                       onKeyDown={(e) => handleKeyDown(index, e)}
-                      // ▼▼▼ Paste Handler Connected to ALL inputs ▼▼▼
                       onPaste={(e) => handlePaste(e, index)}
-                      // ▲▲▲
                       onFocus={() => setFocusedIndex(index)}
                       onBlur={() => setFocusedIndex(null)}
                       disabled={disableForm}
+                      autoComplete={index === 0 ? 'one-time-code' : 'off'}
                       aria-label={dict.digitAriaLabel.replace(
                         '{{index}}',
                         (index + 1).toString()
                       )}
-                      // UPDATED: Input Colors (Teal Focus/Fill)
                       className={`
                         w-12 h-14 sm:w-14 sm:h-16 
                         text-center text-2xl font-bold rounded-xl
                         border-2 transition-all duration-300
-                        shadow-md
+                        shadow-md focus:outline-none
                         ${
                           status === 'error'
                             ? 'border-red-400 bg-red-50 text-red-600'
@@ -367,7 +492,6 @@ export default function VerifyEmailClient({ locale }: VerifyEmailClientProps) {
                                   ? 'border-teal-400 bg-teal-50 text-gray-800'
                                   : 'border-gray-200 bg-white text-gray-800 hover:border-teal-200'
                         }
-                        focus:outline-none
                         disabled:opacity-60 disabled:cursor-not-allowed
                       `}
                     />
@@ -375,7 +499,7 @@ export default function VerifyEmailClient({ locale }: VerifyEmailClientProps) {
                 ))}
               </div>
 
-              {/* Progress Indicator (like phone verification) */}
+              {/* Progress dots */}
               <div className="flex justify-center items-center gap-2 mb-4">
                 {code.map((digit, index) => (
                   <motion.div
@@ -385,9 +509,7 @@ export default function VerifyEmailClient({ locale }: VerifyEmailClientProps) {
                         ? 'bg-gradient-to-r from-teal-500 to-orange-500 w-8'
                         : 'bg-gray-200 w-4'
                     }`}
-                    animate={{
-                      scale: digit ? [1, 1.2, 1] : 1,
-                    }}
+                    animate={{ scale: digit ? [1, 1.2, 1] : 1 }}
                     transition={{ duration: 0.3 }}
                   />
                 ))}
@@ -397,7 +519,6 @@ export default function VerifyEmailClient({ locale }: VerifyEmailClientProps) {
             {/* Status Messages */}
             <AnimatePresence mode="wait">
               {status === 'verifying' && (
-                // UPDATED: Text Color (Teal)
                 <motion.div
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -405,9 +526,7 @@ export default function VerifyEmailClient({ locale }: VerifyEmailClientProps) {
                   className="flex items-center justify-center gap-2 text-teal-600 mb-4"
                 >
                   <Loader2 className="w-5 h-5 animate-spin" />
-                  <span className="text-sm font-medium">
-                    {dict.verifying}
-                  </span>
+                  <span className="text-sm font-medium">{dict.verifying}</span>
                 </motion.div>
               )}
 
@@ -420,11 +539,7 @@ export default function VerifyEmailClient({ locale }: VerifyEmailClientProps) {
                   <motion.div
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
-                    transition={{
-                      type: 'spring',
-                      stiffness: 200,
-                      damping: 15,
-                    }}
+                    transition={{ type: 'spring', stiffness: 200, damping: 15 }}
                     className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-green-50 to-emerald-50 rounded-full border-2 border-green-400 mb-2"
                   >
                     <CheckCircle className="w-6 h-6 text-green-600" />
@@ -432,9 +547,7 @@ export default function VerifyEmailClient({ locale }: VerifyEmailClientProps) {
                       {dict.success}
                     </span>
                   </motion.div>
-                  <p className="text-sm text-gray-600">
-                    {dict.successMessage}
-                  </p>
+                  <p className="text-sm text-gray-600">{dict.successMessage}</p>
                 </motion.div>
               )}
 
@@ -466,10 +579,9 @@ export default function VerifyEmailClient({ locale }: VerifyEmailClientProps) {
                 {canResend ? (
                   <Button
                     onClick={handleResendCode}
-                    disabled={isResending}
+                    disabled={isResending || disableForm}
                     variant="outline"
                     size="sm"
-                    // UPDATED: Resend Button (Teal Border/Text)
                     className="border-2 border-teal-200 text-teal-700 hover:bg-teal-50 hover:border-teal-300 rounded-full px-6 py-2 transition-all"
                   >
                     {isResending ? (
@@ -486,7 +598,10 @@ export default function VerifyEmailClient({ locale }: VerifyEmailClientProps) {
                   </Button>
                 ) : (
                   <div className="inline-flex items-center gap-2 px-4 py-2 bg-gray-50 rounded-full border border-gray-200">
-                    <Clock className="w-4 h-4 text-gray-500" />
+                    <CircularTimer
+                      seconds={resendCountdown}
+                      maxSeconds={RESEND_COOLDOWN}
+                    />
                     <span className="text-sm text-gray-600">
                       {dict.resendIn}{' '}
                       <span className="font-bold text-gray-800">
@@ -497,15 +612,13 @@ export default function VerifyEmailClient({ locale }: VerifyEmailClientProps) {
                   </div>
                 )}
 
-                <p className="text-xs text-gray-500 italic">
-                  {dict.checkSpam}
-                </p>
+                <p className="text-xs text-gray-500 italic">{dict.checkSpam}</p>
               </div>
             )}
           </div>
         </div>
 
-        {/* UPDATED: Security Note (Warm/Amber background) */}
+        {/* Security Note */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -522,46 +635,21 @@ export default function VerifyEmailClient({ locale }: VerifyEmailClientProps) {
         <div className="text-center mt-4">
           <Link
             href={`/${locale}/auth/register`}
-            // UPDATED: Link Hover (Teal)
-            className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-teal-600 transition-colors group"
+            className={`inline-flex items-center gap-2 text-sm transition-colors group ${
+              disableForm
+                ? 'text-gray-400 pointer-events-none'
+                : 'text-gray-600 hover:text-teal-600'
+            }`}
           >
-            <ArrowLeft
-              className={`w-4 h-4 group-hover:-translate-x-1 transition-transform ${isHebrew ? '' : 'rotate-180'}`}
-            />
+            {isHebrew ? (
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            ) : (
+              <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+            )}
             <span>{dict.backToRegister}</span>
           </Link>
         </div>
-
-        {/* Floating Decorative Elements */}
-        <motion.div
-          animate={{ y: [0, -10, 0], rotate: [0, 5, 0] }}
-          transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
-          // Teal Blob
-          className="absolute -top-6 -right-6 w-16 h-16 bg-gradient-to-br from-teal-400 to-emerald-500 rounded-2xl opacity-20 blur-xl"
-        />
-        <motion.div
-          animate={{ y: [0, 10, 0], rotate: [0, -5, 0] }}
-          transition={{
-            duration: 7,
-            repeat: Infinity,
-            ease: 'easeInOut',
-            delay: 1,
-          }}
-          // Orange Blob
-          className="absolute -bottom-6 -left-6 w-20 h-20 bg-gradient-to-br from-orange-400 to-amber-500 rounded-2xl opacity-20 blur-xl"
-        />
       </motion.div>
-
-      <style>{`
-        input[type='number']::-webkit-inner-spin-button,
-        input[type='number']::-webkit-outer-spin-button {
-          -webkit-appearance: none;
-          margin: 0;
-        }
-        input[type='number'] {
-          -moz-appearance: textfield;
-        }
-      `}</style>
     </div>
   );
 }

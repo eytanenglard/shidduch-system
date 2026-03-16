@@ -35,6 +35,8 @@ import {
   Trash2,
   Star,
   MapPin,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react';
 
 // UI Components
@@ -66,9 +68,87 @@ import ConsentCheckbox from '../ConsentCheckbox';
 
 // Types
 import type { RegisterStepsDict } from '@/types/dictionaries/auth';
-import type { User as SessionUserType } from '@/types/next-auth'; // ייבוא טיפוס משתמש
+import type { User as SessionUserType } from '@/types/next-auth';
 
-// ... (SimpleConsentBox, inputBaseClasses, FieldWrapper, SectionHeader, containerVariants, itemVariants remain unchanged) ...
+// ============================================================================
+// DEBUG UTILITY — prints only in development
+// ============================================================================
+
+const isDev = process.env.NODE_ENV === 'development';
+const debugLog = (label: string, ...args: unknown[]) => {
+  if (isDev) console.log(`[PersonalDetailsStep][${label}]`, ...args);
+};
+
+// ============================================================================
+// CONSTANTS
+// ============================================================================
+
+const MAX_PHOTOS = 5;
+const MIN_PHOTOS = 1;
+const MIN_ABOUT_LENGTH = 100;
+const MAX_SIZE_BYTES = 10 * 1024 * 1024; // 10MB
+const VALID_IMAGE_TYPES = [
+  'image/jpeg',
+  'image/png',
+  'image/jpg',
+  'image/webp',
+];
+const AUTO_SAVE_KEY = 'neshamatech_registration_draft';
+
+// ============================================================================
+// HELPER: Calculate date boundaries for birth date input
+// ============================================================================
+
+function getDateBoundaries(): { minDate: string; maxDate: string } {
+  const today = new Date();
+  const maxDate = new Date(
+    today.getFullYear() - 18,
+    today.getMonth(),
+    today.getDate()
+  );
+  const minDate = new Date(
+    today.getFullYear() - 120,
+    today.getMonth(),
+    today.getDate()
+  );
+  return {
+    minDate: minDate.toISOString().split('T')[0],
+    maxDate: maxDate.toISOString().split('T')[0],
+  };
+}
+
+// ============================================================================
+// ANIMATION HELPERS
+// ============================================================================
+
+const fieldErrorVariants = {
+  hidden: { opacity: 0, y: -4, height: 0 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    height: 'auto',
+    transition: { duration: 0.2, ease: 'easeOut' },
+  },
+  exit: { opacity: 0, y: -4, height: 0, transition: { duration: 0.15 } },
+};
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { staggerChildren: 0.08, delayChildren: 0.1 },
+  },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 15 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.4, ease: 'easeOut' },
+  },
+};
+
 // ============================================================================
 // COMPONENT: SimpleConsentBox
 // ============================================================================
@@ -79,6 +159,7 @@ interface SimpleConsentBoxProps {
   label: string;
   required?: boolean;
   error?: string | null;
+  disabled?: boolean;
 }
 
 const SimpleConsentBox: React.FC<SimpleConsentBoxProps> = ({
@@ -87,12 +168,16 @@ const SimpleConsentBox: React.FC<SimpleConsentBoxProps> = ({
   label,
   required,
   error,
+  disabled = false,
 }) => {
   return (
     <div
-      onClick={onToggle}
+      onClick={() => {
+        if (!disabled) onToggle();
+      }}
       className={`
-        relative flex items-start gap-4 p-4 rounded-2xl border-2 cursor-pointer transition-all duration-200
+        relative flex items-start gap-4 p-4 rounded-2xl border-2 transition-all duration-200
+        ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
         ${
           checked
             ? 'bg-teal-50/60 border-teal-200 shadow-sm'
@@ -104,10 +189,10 @@ const SimpleConsentBox: React.FC<SimpleConsentBoxProps> = ({
       <div className="mt-1 shrink-0">
         <Checkbox
           checked={checked}
+          disabled={disabled}
           className="pointer-events-none data-[state=checked]:bg-teal-600 data-[state=checked]:border-teal-600"
         />
       </div>
-
       <div className="flex-1">
         <p
           className={`text-sm font-medium leading-relaxed ${checked ? 'text-teal-900' : 'text-gray-700'}`}
@@ -115,11 +200,19 @@ const SimpleConsentBox: React.FC<SimpleConsentBoxProps> = ({
           {label}
           {required && <span className="text-red-500 mr-1">*</span>}
         </p>
-        {error && (
-          <p className="text-xs text-red-500 mt-1 font-medium animate-in slide-in-from-top-1">
-            {error}
-          </p>
-        )}
+        <AnimatePresence>
+          {error && (
+            <motion.p
+              variants={fieldErrorVariants}
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+              className="text-xs text-red-500 mt-1 font-medium"
+            >
+              {error}
+            </motion.p>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );
@@ -130,7 +223,7 @@ const SimpleConsentBox: React.FC<SimpleConsentBoxProps> = ({
 // ============================================================================
 
 const inputBaseClasses = (hasError: boolean) => `
-  w-full pr-11 py-3 border-2 rounded-xl 
+  w-full pr-10 md:pr-11 py-3 border-2 rounded-xl 
   bg-white/95 backdrop-blur-none
   text-base md:text-sm 
   transition-colors duration-200
@@ -147,6 +240,7 @@ interface FieldWrapperProps {
   icon: React.ReactNode;
   hasValue?: boolean;
   className?: string;
+  hideIconOnMobile?: boolean;
 }
 
 const FieldWrapper: React.FC<FieldWrapperProps> = ({
@@ -154,12 +248,13 @@ const FieldWrapper: React.FC<FieldWrapperProps> = ({
   icon,
   hasValue = false,
   className = '',
+  hideIconOnMobile = false,
 }) => (
   <div className={`relative group ${className}`}>
     <div
       className={`absolute right-3 top-1/2 transform -translate-y-1/2 transition-colors duration-200 z-10 pointer-events-none ${
         hasValue ? 'text-teal-500' : 'text-gray-400 group-hover:text-gray-500'
-      }`}
+      } ${hideIconOnMobile ? 'hidden md:block' : ''}`}
     >
       {icon}
     </div>
@@ -182,12 +277,12 @@ const SectionHeader: React.FC<SectionHeaderProps> = ({
   gradient,
   required = false,
 }) => (
-  <motion.div variants={itemVariants} className="mb-6">
+  <motion.div variants={itemVariants} className="mb-4 md:mb-6">
     <div className="flex items-center gap-3 mb-2">
-      <div className={`p-2 rounded-xl bg-gradient-to-br ${gradient} shadow-lg`}>
+      <div className={`p-2 rounded-xl bg-gradient-to-br ${gradient} shadow-sm`}>
         <div className="text-white">{icon}</div>
       </div>
-      <h3 className="text-xl font-bold text-gray-800">
+      <h3 className="text-lg md:text-xl font-bold text-gray-800">
         {title}
         {required && <span className="text-red-500 mr-1">*</span>}
       </h3>
@@ -198,21 +293,16 @@ const SectionHeader: React.FC<SectionHeaderProps> = ({
   </motion.div>
 );
 
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: { staggerChildren: 0.08, delayChildren: 0.1 },
-  },
-};
+// ============================================================================
+// PHONE VALIDATION
+// ============================================================================
 
-const itemVariants = {
-  hidden: { opacity: 0, y: 15 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.4, ease: 'easeOut' },
-  },
+const validatePhoneNumber = (phone: string): boolean => {
+  if (!phone) return false;
+  const cleanPhone = phone.replace(/\D/g, '');
+  return (
+    cleanPhone.length >= 10 && cleanPhone.length <= 15 && phone.startsWith('+')
+  );
 };
 
 // ============================================================================
@@ -226,14 +316,6 @@ interface PersonalDetailsStepProps {
   validationDict: RegisterStepsDict['validationErrors'];
   locale: 'he' | 'en';
 }
-
-const validatePhoneNumber = (phone: string): boolean => {
-  if (!phone) return false;
-  const cleanPhone = phone.replace(/\D/g, '');
-  return (
-    cleanPhone.length >= 10 && cleanPhone.length <= 15 && phone.startsWith('+')
-  );
-};
 
 export default function PersonalDetailsStep({
   personalDetailsDict,
@@ -250,11 +332,17 @@ export default function PersonalDetailsStep({
     updateSubmission,
     endSubmission,
   } = useRegistration();
-  const { data: session, update: updateSession } = useSession(); // Added updateSession
+  const { data: session, update: updateSession } = useSession();
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // States
+  const isRTL = locale === 'he';
+  const dateBounds = useMemo(() => getDateBoundaries(), []);
+
+  // ============================================================================
+  // ERROR STATES
+  // ============================================================================
+
   const [firstNameError, setFirstNameError] = useState('');
   const [lastNameError, setLastNameError] = useState('');
   const [phoneError, setPhoneError] = useState('');
@@ -262,15 +350,17 @@ export default function PersonalDetailsStep({
   const [religiousLevelError, setReligiousLevelError] = useState('');
   const [cityError, setCityError] = useState('');
   const [originError, setOriginError] = useState('');
-
-  // Local state for city input value to handle typing before selection
-  const [cityInputValue, setCityInputValue] = useState(
-    registrationState.city || ''
-  );
-
   const [isLoading, setIsLoading] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
   const [missingFields, setMissingFields] = useState<string[]>([]);
+
+  // ============================================================================
+  // LOCAL FORM STATES
+  // ============================================================================
+
+  const [cityInputValue, setCityInputValue] = useState(
+    registrationState.city || ''
+  );
 
   interface UploadedPhoto {
     file: File;
@@ -279,16 +369,13 @@ export default function PersonalDetailsStep({
   }
 
   const [uploadedPhotos, setUploadedPhotos] = useState<UploadedPhoto[]>([]);
-  const MAX_PHOTOS = 5;
-  const MIN_PHOTOS = 1;
   const [aboutMe, setAboutMe] = useState('');
-  const MIN_ABOUT_LENGTH = 100;
+  const [isGuideOpen, setIsGuideOpen] = useState(false);
 
   // Consents
   const userHasAlreadyConsented = !!session?.user?.termsAndPrivacyAcceptedAt;
   const [consentChecked, setConsentChecked] = useState(userHasAlreadyConsented);
   const [consentError, setConsentError] = useState<string | null>(null);
-
   const [engagementConsent, setEngagementConsent] = useState(
     session?.user?.engagementEmailsConsent || false
   );
@@ -299,17 +386,21 @@ export default function PersonalDetailsStep({
     string | null
   >(null);
 
-  const isRTL = locale === 'he';
+  // ============================================================================
+  // RELIGIOUS LEVEL OPTIONS
+  // ============================================================================
 
   const religiousLevelOptions = useMemo(() => {
     return Object.entries(personalDetailsDict.religiousLevels).map(
-      ([value, label]) => ({
-        value,
-        label,
-      })
+      ([value, label]) => ({ value, label })
     );
   }, [personalDetailsDict.religiousLevels]);
 
+  // ============================================================================
+  // EFFECTS
+  // ============================================================================
+
+  // Cleanup photo previews
   const previewsRef = useRef<string[]>([]);
   useEffect(() => {
     previewsRef.current = uploadedPhotos.map((p) => p.preview);
@@ -321,19 +412,63 @@ export default function PersonalDetailsStep({
     };
   }, []);
 
+  // Sync city input
   useEffect(() => {
-    // Sync local city input with registration state if it changes externally
     if (registrationState.city) {
       setCityInputValue(registrationState.city);
     }
   }, [registrationState.city]);
 
+  // Prefetch next pages
   useEffect(() => {
     router.prefetch(`/${locale}/auth/verify-phone`);
-    router.prefetch(`/${locale}/profile`); // Prefetch profile as well
+    router.prefetch(`/${locale}/profile`);
   }, [router, locale]);
 
-  // Handlers (Photos, Age validation, etc. - keep as is)
+  // Guide: open on desktop, closed on mobile
+  useEffect(() => {
+    const isMobile = window.innerWidth < 768;
+    setIsGuideOpen(!isMobile);
+  }, []);
+
+  // Auto-save aboutMe to sessionStorage
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      try {
+        sessionStorage.setItem(
+          AUTO_SAVE_KEY,
+          JSON.stringify({
+            aboutMe,
+            savedAt: new Date().toISOString(),
+          })
+        );
+      } catch {
+        /* sessionStorage unavailable */
+      }
+    }, 10000);
+    return () => clearTimeout(timer);
+  }, [aboutMe]);
+
+  // Restore draft on mount
+  useEffect(() => {
+    try {
+      const draft = sessionStorage.getItem(AUTO_SAVE_KEY);
+      if (draft) {
+        const parsed = JSON.parse(draft);
+        if (parsed.aboutMe && !aboutMe) {
+          setAboutMe(parsed.aboutMe);
+        }
+      }
+    } catch {
+      /* Ignore */
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // ============================================================================
+  // PHOTO HANDLERS
+  // ============================================================================
+
   const handlePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
@@ -347,18 +482,15 @@ export default function PersonalDetailsStep({
       return;
     }
 
-    const validTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp'];
-    const maxSize = 10 * 1024 * 1024; // 5MB
     const newPhotos: UploadedPhoto[] = [];
-
     Array.from(files)
       .slice(0, remainingSlots)
       .forEach((file) => {
-        if (!validTypes.includes(file.type)) {
+        if (!VALID_IMAGE_TYPES.includes(file.type)) {
           toast.error(`${file.name}: סוג קובץ לא נתמך`);
           return;
         }
-        if (file.size > maxSize) {
+        if (file.size > MAX_SIZE_BYTES) {
           toast.error(`${file.name}: הקובץ גדול מדי (מקסימום 10MB)`);
           return;
         }
@@ -383,6 +515,7 @@ export default function PersonalDetailsStep({
     setUploadedPhotos((prev) => {
       const newPhotos = [...prev];
       const wasMain = newPhotos[index].isMain;
+      URL.revokeObjectURL(newPhotos[index].preview); // FIX: revoke on remove
       newPhotos.splice(index, 1);
       if (wasMain && newPhotos.length > 0) {
         newPhotos[0].isMain = true;
@@ -396,6 +529,10 @@ export default function PersonalDetailsStep({
       prev.map((photo, i) => ({ ...photo, isMain: i === index }))
     );
   };
+
+  // ============================================================================
+  // AGE VALIDATION
+  // ============================================================================
 
   const validateAge = (birthDate: string) => {
     if (!birthDate) {
@@ -423,6 +560,10 @@ export default function PersonalDetailsStep({
     setAgeError('');
     return true;
   };
+
+  // ============================================================================
+  // PHOTO UPLOAD TO SERVER
+  // ============================================================================
 
   const uploadPhotosToServer = async (): Promise<boolean> => {
     if (uploadedPhotos.length === 0) return true;
@@ -453,12 +594,15 @@ export default function PersonalDetailsStep({
       }
       return true;
     } catch (error) {
-      console.error('Photo upload error:', error);
+      debugLog('uploadPhotosToServer', 'Error:', error);
       throw error;
     }
   };
 
-  // ==================== UPDATED SUBMIT LOGIC ====================
+  // ============================================================================
+  // SUBMIT HANDLER
+  // ============================================================================
+
   const handleSubmit = async () => {
     setApiError(null);
     setConsentError(null);
@@ -475,7 +619,7 @@ export default function PersonalDetailsStep({
     const currentMissing: string[] = [];
     let hasError = false;
 
-    // Validation
+    // --- Validation ---
     if (!registrationState.firstName.trim()) {
       setFirstNameError(personalDetailsDict.errors.firstNameRequired);
       currentMissing.push(validationDict.fields.firstName);
@@ -520,7 +664,6 @@ export default function PersonalDetailsStep({
       currentMissing.push(validationDict.fields.origin);
       hasError = true;
     }
-
     if (!registrationState.maritalStatus) {
       currentMissing.push(validationDict.fields.maritalStatus);
       hasError = true;
@@ -567,6 +710,7 @@ export default function PersonalDetailsStep({
       // 1. Consent
       if (!userHasAlreadyConsented) {
         startSubmission(
+          'acceptingTerms',
           optionalInfoDict.loadingOverlay?.acceptingTerms ||
             'מאשר תנאי שימוש...',
           optionalInfoDict.loadingOverlay?.subtitle
@@ -578,6 +722,7 @@ export default function PersonalDetailsStep({
           throw new Error(personalDetailsDict.errors.consentApiError);
       } else {
         startSubmission(
+          'savingProfile',
           optionalInfoDict.loadingOverlay?.savingProfile ||
             optionalInfoDict.status.saving,
           optionalInfoDict.loadingOverlay?.subtitle
@@ -600,8 +745,7 @@ export default function PersonalDetailsStep({
         maritalStatus: registrationState.maritalStatus,
         religiousLevel: registrationState.religiousLevel,
         city: registrationState.city,
-        origin: registrationState.origin, // <--- הוסף את זה כאן!
-
+        origin: registrationState.origin,
         height: registrationState.height,
         occupation: registrationState.occupation,
         education: registrationState.education,
@@ -630,27 +774,37 @@ export default function PersonalDetailsStep({
         await uploadPhotosToServer();
       }
 
-      // 4. Update session to get latest User status
-      await updateSession();
-      const currentUser = session?.user as SessionUserType | undefined;
-      const isAlreadyPhoneVerified = currentUser?.isPhoneVerified;
+      // 4. FIX: Use return value from updateSession to get FRESH data
+      const updatedSession = await updateSession();
+      const freshUser = updatedSession?.user as SessionUserType | undefined;
+      const isAlreadyPhoneVerified = freshUser?.isPhoneVerified ?? false;
 
-      // 5. Logic Branch: Verify Phone OR Go to Profile
+      debugLog(
+        'handleSubmit',
+        'Fresh user isPhoneVerified:',
+        isAlreadyPhoneVerified
+      );
+
+      // 5. Clear auto-save draft
+      try {
+        sessionStorage.removeItem(AUTO_SAVE_KEY);
+      } catch {
+        /* ignore */
+      }
+
+      // 6. Navigate
       if (isAlreadyPhoneVerified) {
-        // If user is ALREADY verified, skip sending code and go to profile
         updateSubmission(
           'redirecting',
           optionalInfoDict.loadingOverlay?.redirecting || 'מעביר לפרופיל...'
         );
         router.push(`/${locale}/profile`);
       } else {
-        // Normal flow: Send code and go to verify-phone
         updateSubmission(
           'sendingCode',
           optionalInfoDict.loadingOverlay?.sendingCode ||
             optionalInfoDict.status.sendingCode
         );
-
         const sendCodeResponse = await fetch('/api/auth/send-phone-code', {
           method: 'POST',
         });
@@ -658,7 +812,6 @@ export default function PersonalDetailsStep({
           const errorData = await sendCodeResponse.json();
           throw new Error(errorData.error || optionalInfoDict.errors.default);
         }
-
         updateSubmission(
           'redirecting',
           optionalInfoDict.loadingOverlay?.redirecting ||
@@ -675,18 +828,21 @@ export default function PersonalDetailsStep({
     }
   };
 
+  // ============================================================================
+  // RENDER
+  // ============================================================================
+
   return (
     <motion.div
       variants={containerVariants}
       initial="hidden"
       animate="visible"
-      className="space-y-8"
+      className="space-y-6 md:space-y-8"
     >
-      {/* ... (Rest of the JSX remains exactly the same as provided in the question) ... */}
-
+      {/* --- TITLE BANNER --- */}
       <motion.div
         variants={itemVariants}
-        className="text-center p-4 bg-gradient-to-r from-teal-50 via-orange-50 to-rose-50 rounded-2xl border border-teal-100"
+        className="text-center p-4 md:p-5 bg-gradient-to-r from-teal-100/80 via-orange-100/60 to-rose-100/80 rounded-2xl border border-teal-200/60"
       >
         <div className="flex items-center justify-center gap-2 mb-2">
           <Sparkles className="w-5 h-5 text-teal-500" />
@@ -700,13 +856,28 @@ export default function PersonalDetailsStep({
         </p>
       </motion.div>
 
+      {/* OAuth welcome banner */}
+      {registrationState.isGoogleSignup && (
+        <motion.div
+          variants={itemVariants}
+          className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-center"
+        >
+          <p className="text-sm text-emerald-700">
+            {isRTL
+              ? '✅ נרשמת בהצלחה! כעת נשלים כמה פרטים אישיים.'
+              : "✅ Registered successfully! Now let's complete some personal details."}
+          </p>
+        </motion.div>
+      )}
+
+      {/* --- VALIDATION ALERT --- */}
       <AnimatePresence>
         {(apiError || missingFields.length > 0) && (
           <motion.div
             initial={{ opacity: 0, y: -10, height: 0 }}
             animate={{ opacity: 1, y: 0, height: 'auto' }}
             exit={{ opacity: 0, y: -10, height: 0 }}
-            className="mb-6"
+            className="mb-4 md:mb-6"
           >
             <Alert
               variant="destructive"
@@ -749,17 +920,16 @@ export default function PersonalDetailsStep({
         )}
       </AnimatePresence>
 
-      {/* ... (The rest of the form UI remains unchanged) ... */}
-
-      {/* SECTION: Personal Details Fields */}
-      <div className="space-y-6">
+      {/* ====== SECTION 1: Personal Details ====== */}
+      <div className="space-y-5 md:space-y-6">
         <SectionHeader
           icon={<User className="w-5 h-5" />}
           title={isRTL ? 'פרטים אישיים' : 'Personal Information'}
           gradient="from-teal-500 to-cyan-500"
         />
 
-        <div className="grid grid-cols-2 gap-4">
+        {/* Names: 1 col on mobile, 2 on sm+ */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <motion.div variants={itemVariants} className="space-y-2">
             <Label
               htmlFor="firstName"
@@ -782,17 +952,26 @@ export default function PersonalDetailsStep({
                 }}
                 placeholder={personalDetailsDict.firstNamePlaceholder}
                 disabled={isLoading}
+                maxLength={50}
                 className={inputBaseClasses(
                   !!firstNameError ||
                     missingFields.includes(validationDict.fields.firstName)
                 )}
               />
             </FieldWrapper>
-            {firstNameError && (
-              <p className="text-xs text-red-600 flex items-center gap-1">
-                <AlertCircle className="w-3 h-3" /> {firstNameError}
-              </p>
-            )}
+            <AnimatePresence>
+              {firstNameError && (
+                <motion.p
+                  variants={fieldErrorVariants}
+                  initial="hidden"
+                  animate="visible"
+                  exit="exit"
+                  className="text-xs text-red-600 flex items-center gap-1"
+                >
+                  <AlertCircle className="w-3 h-3" /> {firstNameError}
+                </motion.p>
+              )}
+            </AnimatePresence>
           </motion.div>
 
           <motion.div variants={itemVariants} className="space-y-2">
@@ -817,20 +996,30 @@ export default function PersonalDetailsStep({
                 }}
                 placeholder={personalDetailsDict.lastNamePlaceholder}
                 disabled={isLoading}
+                maxLength={50}
                 className={inputBaseClasses(
                   !!lastNameError ||
                     missingFields.includes(validationDict.fields.lastName)
                 )}
               />
             </FieldWrapper>
-            {lastNameError && (
-              <p className="text-xs text-red-600 flex items-center gap-1">
-                <AlertCircle className="w-3 h-3" /> {lastNameError}
-              </p>
-            )}
+            <AnimatePresence>
+              {lastNameError && (
+                <motion.p
+                  variants={fieldErrorVariants}
+                  initial="hidden"
+                  animate="visible"
+                  exit="exit"
+                  className="text-xs text-red-600 flex items-center gap-1"
+                >
+                  <AlertCircle className="w-3 h-3" /> {lastNameError}
+                </motion.p>
+              )}
+            </AnimatePresence>
           </motion.div>
         </div>
 
+        {/* Phone */}
         <motion.div variants={itemVariants} className="space-y-2">
           <Label className="text-sm font-semibold text-gray-700 flex items-center">
             {personalDetailsDict.phoneLabel}{' '}
@@ -840,14 +1029,9 @@ export default function PersonalDetailsStep({
             value={registrationState.phone}
             onChange={(value) => {
               let cleanValue = value || '';
-
-              // === תיקון: הסרת 0 מוביל בקידומת ישראלית ===
-              // אם המספר מתחיל ב-+9720, נחליף אותו ב-+972
               if (cleanValue.startsWith('+9720')) {
                 cleanValue = cleanValue.replace('+9720', '+972');
               }
-              // ==========================================
-
               updateField('phone', cleanValue);
               if (cleanValue && validatePhoneNumber(cleanValue))
                 setPhoneError('');
@@ -860,16 +1044,24 @@ export default function PersonalDetailsStep({
                 : undefined)
             }
             locale={locale}
-            // מומלץ: הוסף placeholder שמראה דוגמה ללא 0
             placeholder="50 123 4567"
           />
-          {phoneError && (
-            <p className="text-xs text-red-600 flex items-center gap-1">
-              <AlertCircle className="w-3 h-3" /> {phoneError}
-            </p>
-          )}
+          <AnimatePresence>
+            {phoneError && (
+              <motion.p
+                variants={fieldErrorVariants}
+                initial="hidden"
+                animate="visible"
+                exit="exit"
+                className="text-xs text-red-600 flex items-center gap-1"
+              >
+                <AlertCircle className="w-3 h-3" /> {phoneError}
+              </motion.p>
+            )}
+          </AnimatePresence>
         </motion.div>
 
+        {/* Gender with emoji icons */}
         <motion.div variants={itemVariants} className="space-y-2">
           <Label className="text-sm font-semibold text-gray-700 flex items-center">
             {personalDetailsDict.genderLabel}{' '}
@@ -877,29 +1069,38 @@ export default function PersonalDetailsStep({
           </Label>
           <div className="grid grid-cols-2 gap-3">
             {[
-              { value: Gender.MALE, label: personalDetailsDict.male },
-              { value: Gender.FEMALE, label: personalDetailsDict.female },
-            ].map(({ value, label }) => (
+              {
+                value: Gender.MALE,
+                label: personalDetailsDict.male,
+                icon: '👨',
+              },
+              {
+                value: Gender.FEMALE,
+                label: personalDetailsDict.female,
+                icon: '👩',
+              },
+            ].map(({ value, label, icon }) => (
               <button
                 key={value}
                 type="button"
                 onClick={() => updateField('gender', value)}
                 disabled={isLoading}
-                className={`py-3 px-4 rounded-xl border-2 font-medium transition-colors duration-200 ${
+                className={`py-3.5 px-4 rounded-xl border-2 font-medium transition-all duration-200 flex items-center justify-center gap-2 ${
                   registrationState.gender === value
-                    ? 'bg-teal-50 border-teal-500 text-teal-700'
+                    ? 'bg-teal-50 border-teal-500 text-teal-700 shadow-sm'
                     : missingFields.includes(validationDict.fields.gender)
                       ? 'border-red-300 text-gray-600 hover:bg-gray-50'
                       : 'border-gray-200 text-gray-600 hover:border-gray-300 hover:bg-gray-50'
                 }`}
               >
-                {label}
+                <span className="text-lg">{icon}</span>
+                <span>{label}</span>
               </button>
             ))}
           </div>
         </motion.div>
 
-        {/* === CITY FIELD === */}
+        {/* City with Autocomplete + inline styles */}
         <motion.div variants={itemVariants} className="space-y-2">
           <Label
             htmlFor="city-autocomplete"
@@ -923,11 +1124,9 @@ export default function PersonalDetailsStep({
               }}
               onPlaceSelected={(place) => {
                 if (!place || !place.address_components) {
-                  const fallback = cityInputValue || '';
-                  updateField('city', fallback);
+                  updateField('city', cityInputValue || '');
                   return;
                 }
-
                 const cityComponent = place.address_components.find(
                   (component) => component.types.includes('locality')
                 );
@@ -935,7 +1134,6 @@ export default function PersonalDetailsStep({
                   cityComponent?.long_name ||
                   place.formatted_address ||
                   cityInputValue;
-
                 updateField('city', selectedCity);
                 setCityInputValue(selectedCity);
                 setCityError('');
@@ -947,20 +1145,45 @@ export default function PersonalDetailsStep({
               }}
               disabled={isLoading}
               placeholder={personalDetailsDict.cityPlaceholder || 'חפש עיר...'}
-              className={inputBaseClasses(
-                !!cityError ||
+              style={{
+                width: '100%',
+                paddingRight: '2.75rem',
+                paddingLeft: '0.75rem',
+                paddingTop: '0.75rem',
+                paddingBottom: '0.75rem',
+                fontSize: '1rem',
+                lineHeight: '1.5rem',
+                borderRadius: '0.75rem',
+                borderWidth: '2px',
+                borderStyle: 'solid',
+                borderColor:
+                  cityError ||
                   missingFields.includes(personalDetailsDict.cityLabel || 'עיר')
-              )}
+                    ? '#fca5a5'
+                    : '#e5e7eb',
+                backgroundColor: 'rgba(255,255,255,0.95)',
+                outline: 'none',
+                transition: 'border-color 0.2s, box-shadow 0.2s',
+              }}
+              className="focus:border-teal-400 focus:ring-2 focus:ring-teal-200 hover:border-gray-300 disabled:opacity-50 md:text-sm"
             />
           </FieldWrapper>
-          {cityError && (
-            <p className="text-xs text-red-600 flex items-center gap-1">
-              <AlertCircle className="w-3 h-3" /> {cityError}
-            </p>
-          )}
+          <AnimatePresence>
+            {cityError && (
+              <motion.p
+                variants={fieldErrorVariants}
+                initial="hidden"
+                animate="visible"
+                exit="exit"
+                className="text-xs text-red-600 flex items-center gap-1"
+              >
+                <AlertCircle className="w-3 h-3" /> {cityError}
+              </motion.p>
+            )}
+          </AnimatePresence>
         </motion.div>
 
-        {/* --- התחלת שדה מוצא --- */}
+        {/* Origin */}
         <motion.div variants={itemVariants} className="space-y-2">
           <Label
             htmlFor="origin"
@@ -970,7 +1193,7 @@ export default function PersonalDetailsStep({
             <span className="text-red-500 mr-1">*</span>
           </Label>
           <FieldWrapper
-            icon={<Globe className="h-5 w-5" />} // וודא שייבאת את Globe מ-lucide-react
+            icon={<Globe className="h-5 w-5" />}
             hasValue={!!registrationState.origin}
           >
             <Input
@@ -989,14 +1212,22 @@ export default function PersonalDetailsStep({
               )}
             />
           </FieldWrapper>
-          {originError && (
-            <p className="text-xs text-red-600 flex items-center gap-1">
-              <AlertCircle className="w-3 h-3" /> {originError}
-            </p>
-          )}
+          <AnimatePresence>
+            {originError && (
+              <motion.p
+                variants={fieldErrorVariants}
+                initial="hidden"
+                animate="visible"
+                exit="exit"
+                className="text-xs text-red-600 flex items-center gap-1"
+              >
+                <AlertCircle className="w-3 h-3" /> {originError}
+              </motion.p>
+            )}
+          </AnimatePresence>
         </motion.div>
-        {/* --- סיום שדה מוצא --- */}
 
+        {/* Birth Date with min/max + hidden icon on mobile */}
         <motion.div variants={itemVariants} className="space-y-2">
           <Label
             htmlFor="birthDate"
@@ -1008,6 +1239,7 @@ export default function PersonalDetailsStep({
           <FieldWrapper
             icon={<Calendar className="h-5 w-5" />}
             hasValue={!!registrationState.birthDate}
+            hideIconOnMobile={true}
           >
             <Input
               id="birthDate"
@@ -1018,19 +1250,27 @@ export default function PersonalDetailsStep({
                 if (e.target.value) validateAge(e.target.value);
               }}
               disabled={isLoading}
-              className={inputBaseClasses(
-                !!ageError ||
-                  missingFields.includes(validationDict.fields.birthDate)
-              )}
+              min={dateBounds.minDate}
+              max={dateBounds.maxDate}
+              className={`${inputBaseClasses(!!ageError || missingFields.includes(validationDict.fields.birthDate))} pr-3 md:pr-11`}
             />
           </FieldWrapper>
-          {ageError && (
-            <p className="text-xs text-red-600 flex items-center gap-1">
-              <AlertCircle className="w-3 h-3" /> {ageError}
-            </p>
-          )}
+          <AnimatePresence>
+            {ageError && (
+              <motion.p
+                variants={fieldErrorVariants}
+                initial="hidden"
+                animate="visible"
+                exit="exit"
+                className="text-xs text-red-600 flex items-center gap-1"
+              >
+                <AlertCircle className="w-3 h-3" /> {ageError}
+              </motion.p>
+            )}
+          </AnimatePresence>
         </motion.div>
 
+        {/* Marital Status */}
         <motion.div variants={itemVariants} className="space-y-2">
           <Label className="text-sm font-semibold text-gray-700 flex items-center">
             {personalDetailsDict.maritalStatusLabel}{' '}
@@ -1071,7 +1311,8 @@ export default function PersonalDetailsStep({
         </motion.div>
       </div>
 
-      <div className="space-y-6">
+      {/* ====== SECTION 2: Optional Info ====== */}
+      <div className="space-y-5 md:space-y-6">
         <SectionHeader
           icon={<Sparkles className="w-5 h-5" />}
           title={optionalInfoDict.title}
@@ -1079,7 +1320,7 @@ export default function PersonalDetailsStep({
           gradient="from-orange-500 to-amber-500"
         />
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <motion.div variants={itemVariants} className="space-y-2">
             <Label
               htmlFor="heightOptional"
@@ -1157,6 +1398,7 @@ export default function PersonalDetailsStep({
           </FieldWrapper>
         </motion.div>
 
+        {/* Religious Level */}
         <motion.div variants={itemVariants} className="space-y-2">
           <Label className="text-sm font-semibold text-gray-700 flex items-center">
             {personalDetailsDict.religiousLevelLabel}{' '}
@@ -1194,15 +1436,24 @@ export default function PersonalDetailsStep({
               </SelectContent>
             </Select>
           </FieldWrapper>
-          {religiousLevelError && (
-            <p className="text-xs text-red-600 flex items-center gap-1">
-              <AlertCircle className="w-3 h-3" /> {religiousLevelError}
-            </p>
-          )}
+          <AnimatePresence>
+            {religiousLevelError && (
+              <motion.p
+                variants={fieldErrorVariants}
+                initial="hidden"
+                animate="visible"
+                exit="exit"
+                className="text-xs text-red-600 flex items-center gap-1"
+              >
+                <AlertCircle className="w-3 h-3" /> {religiousLevelError}
+              </motion.p>
+            )}
+          </AnimatePresence>
         </motion.div>
       </div>
 
-      <div className="space-y-6">
+      {/* ====== SECTION 3: Photos ====== */}
+      <div className="space-y-5 md:space-y-6">
         <SectionHeader
           icon={<Camera className="w-5 h-5" />}
           title={personalDetailsDict.photos?.title || 'תמונות שלכם'}
@@ -1215,7 +1466,7 @@ export default function PersonalDetailsStep({
         />
 
         <motion.div variants={itemVariants}>
-          <div className="grid grid-cols-3 gap-3 mb-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-4">
             {uploadedPhotos.map((photo, index) => (
               <div
                 key={photo.preview}
@@ -1231,34 +1482,34 @@ export default function PersonalDetailsStep({
                   className="absolute inset-0 w-full h-full object-cover"
                 />
                 {photo.isMain && (
-                  <Badge className="absolute top-2 right-2 z-10 bg-gradient-to-r from-teal-500 to-orange-500 text-white text-[10px] px-2 py-0.5 rounded-full flex items-center gap-1 border-none shadow-md">
-                    <Star className="w-3 h-3 fill-current" />
-                    <span>
+                  <Badge className="absolute top-1.5 right-1.5 z-10 bg-gradient-to-r from-teal-500 to-orange-500 text-white text-[10px] px-1.5 py-0.5 rounded-full flex items-center gap-0.5 border-none shadow-md max-w-[calc(100%-12px)] truncate">
+                    <Star className="w-3 h-3 fill-current shrink-0" />
+                    <span className="truncate">
                       {personalDetailsDict.photos?.mainPhoto || 'ראשית'}
                     </span>
                   </Badge>
                 )}
-                <div className="absolute inset-0 z-20 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                <div className="absolute inset-0 z-20 bg-black/40 opacity-0 group-hover:opacity-100 active:opacity-100 transition-opacity flex items-center justify-center gap-3">
                   {!photo.isMain && (
                     <button
                       type="button"
                       onClick={() => handleSetMainPhoto(index)}
-                      className="p-2 bg-white/90 rounded-full text-gray-700 hover:bg-white transition-colors"
+                      className="p-3 bg-white/90 rounded-full text-gray-700 hover:bg-white transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
                       title={
                         personalDetailsDict.photos?.setAsMain ||
                         'הגדר כתמונה ראשית'
                       }
                     >
-                      <Star className="w-4 h-4" />
+                      <Star className="w-5 h-5" />
                     </button>
                   )}
                   <button
                     type="button"
                     onClick={() => handleRemovePhoto(index)}
-                    className="p-2 bg-red-500/90 rounded-full text-white hover:bg-red-600 transition-colors"
+                    className="p-3 bg-red-500/90 rounded-full text-white hover:bg-red-600 transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
                     title={personalDetailsDict.photos?.remove || 'הסר'}
                   >
-                    <Trash2 className="w-4 h-4" />
+                    <Trash2 className="w-5 h-5" />
                   </button>
                 </div>
               </div>
@@ -1299,16 +1550,24 @@ export default function PersonalDetailsStep({
             className="hidden"
           />
 
-          {uploadedPhotos.length < MIN_PHOTOS &&
-            missingFields.includes(
-              personalDetailsDict.photos?.fieldName || 'תמונת פרופיל'
-            ) && (
-              <p className="text-xs text-red-600 flex items-center gap-1 mb-3">
-                <AlertCircle className="w-3 h-3" />
-                {personalDetailsDict.photos?.required ||
-                  'יש להעלות לפחות תמונה אחת'}
-              </p>
-            )}
+          <AnimatePresence>
+            {uploadedPhotos.length < MIN_PHOTOS &&
+              missingFields.includes(
+                personalDetailsDict.photos?.fieldName || 'תמונת פרופיל'
+              ) && (
+                <motion.p
+                  variants={fieldErrorVariants}
+                  initial="hidden"
+                  animate="visible"
+                  exit="exit"
+                  className="text-xs text-red-600 flex items-center gap-1 mb-3"
+                >
+                  <AlertCircle className="w-3 h-3" />
+                  {personalDetailsDict.photos?.required ||
+                    'יש להעלות לפחות תמונה אחת'}
+                </motion.p>
+              )}
+          </AnimatePresence>
 
           <div className="bg-gradient-to-r from-rose-50/50 to-pink-50/50 rounded-xl p-3 border border-rose-100">
             <p className="text-xs text-gray-600 leading-relaxed">
@@ -1322,107 +1581,136 @@ export default function PersonalDetailsStep({
         </motion.div>
       </div>
 
-      <div className="space-y-6">
+      {/* ====== SECTION 4: About Me ====== */}
+      <div className="space-y-5 md:space-y-6">
         <SectionHeader
           icon={<FileText className="w-5 h-5" />}
           title={personalDetailsDict.aboutMe?.title || 'כרטיס ההיכרות שלי'}
           subtitle={
             personalDetailsDict.aboutMe?.subtitle ||
-            'הכרטיס הזה הוא מה שהשדכנים שלנו רואים, ומה שנשלח לצד השני כשמציעים שידוך. כתבו אותו כאילו אתם מציגים את עצמכם למישהו שרוצה להכיר אתכם באמת.'
+            'הכרטיס הזה הוא מה שהשדכנים שלנו רואים, ומה שנשלח לצד השני כשמציעים שידוך.'
           }
           gradient="from-purple-500 to-indigo-500"
           required={true}
         />
 
-        {/* Structured Format Guide */}
+        {/* Collapsible guidance */}
         <motion.div variants={itemVariants}>
-          <div className="bg-gradient-to-br from-purple-50/70 via-indigo-50/50 to-violet-50/40 rounded-2xl p-4 md:p-5 border border-purple-100/80">
-            <p className="text-sm font-semibold text-purple-800 mb-3 flex items-center gap-2">
-              <ListChecks className="w-4 h-4 text-purple-500" />
-              {personalDetailsDict.aboutMe?.guidanceTitle ||
-                'מה לכלול בכרטיס? (לפי הסדר)'}
-            </p>
-            <div className="space-y-1.5">
-              {[
-                {
-                  emoji: '😊',
-                  text: personalDetailsDict.aboutMe?.guide1 || 'שם, גיל וגובה',
-                },
-                {
-                  emoji: '🌍',
-                  text: personalDetailsDict.aboutMe?.guide2 || 'עדה / מוצא',
-                },
-                {
-                  emoji: '📍',
-                  text: personalDetailsDict.aboutMe?.guide3 || 'אזור מגורים',
-                },
-                {
-                  emoji: '💍',
-                  text:
-                    personalDetailsDict.aboutMe?.guide4 ||
-                    'סטטוס (רווק/ה, גרוש/ה, אלמן/ה + ילדים)',
-                },
-                {
-                  emoji: '🙏',
-                  text: personalDetailsDict.aboutMe?.guide5 || 'רמה דתית ומגזר',
-                },
-                {
-                  emoji: '🎓',
-                  text:
-                    personalDetailsDict.aboutMe?.guide6 ||
-                    'לימודים ורקע (ישיבה/מדרשה, תואר, קורסים)',
-                },
-                {
-                  emoji: '🇮🇱',
-                  text:
-                    personalDetailsDict.aboutMe?.guide7 || 'שירות צבאי / לאומי',
-                },
-                {
-                  emoji: '💼',
-                  text: personalDetailsDict.aboutMe?.guide8 || 'עיסוק ותעסוקה',
-                },
-                {
-                  emoji: '🎭',
-                  text:
-                    personalDetailsDict.aboutMe?.guide9 ||
-                    'תכונות אופי – מי אני?',
-                },
-                {
-                  emoji: '👨‍👩‍👧‍👦',
-                  text:
-                    personalDetailsDict.aboutMe?.guide10 || 'קצת על המשפחה שלי',
-                },
-                {
-                  emoji: '🎨',
-                  text:
-                    personalDetailsDict.aboutMe?.guide11 ||
-                    'תחביבים ומה שאני אוהב/ת',
-                },
-                {
-                  emoji: '🎯',
-                  text:
-                    personalDetailsDict.aboutMe?.guide12 ||
-                    'מה אני מחפש/ת בבן/בת זוג',
-                },
-              ].map((item, index) => (
-                <div
-                  key={index}
-                  className="flex items-center gap-2.5 text-sm text-gray-700 leading-snug"
+          <div className="bg-gradient-to-br from-purple-50/70 via-indigo-50/50 to-violet-50/40 rounded-2xl border border-purple-100/80 overflow-hidden">
+            <button
+              type="button"
+              onClick={() => setIsGuideOpen(!isGuideOpen)}
+              className="w-full flex items-center justify-between p-4 md:p-5 text-right"
+            >
+              <span className="text-sm font-semibold text-purple-800 flex items-center gap-2">
+                <ListChecks className="w-4 h-4 text-purple-500" />
+                {personalDetailsDict.aboutMe?.guidanceTitle ||
+                  'מה לכלול בכרטיס? (לפי הסדר)'}
+              </span>
+              {isGuideOpen ? (
+                <ChevronUp className="w-4 h-4 text-purple-500 shrink-0" />
+              ) : (
+                <ChevronDown className="w-4 h-4 text-purple-500 shrink-0" />
+              )}
+            </button>
+            <AnimatePresence initial={false}>
+              {isGuideOpen && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: 'auto', opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.25, ease: 'easeInOut' }}
+                  className="overflow-hidden"
                 >
-                  <span className="text-base shrink-0 w-6 text-center">
-                    {item.emoji}
-                  </span>
-                  <span>{item.text}</span>
-                </div>
-              ))}
-            </div>
-            <p className="text-xs text-purple-600/80 mt-3.5 leading-relaxed border-t border-purple-100/60 pt-3">
-              {personalDetailsDict.aboutMe?.guidanceNote ||
-                "💡 לא חובה לכתוב את כל הסעיפים, אבל ככל שתכתבו יותר – כך נוכל למצוא לכם התאמות מדויקות יותר. אפשר להשתמש באימוג'ים כמו בדוגמה, או לכתוב בצורה חופשית."}
-            </p>
+                  <div className="px-4 md:px-5 pb-4 md:pb-5 space-y-1.5">
+                    {[
+                      {
+                        emoji: '😊',
+                        text:
+                          personalDetailsDict.aboutMe?.guide1 ||
+                          'שם, גיל וגובה',
+                      },
+                      {
+                        emoji: '🌍',
+                        text:
+                          personalDetailsDict.aboutMe?.guide2 || 'עדה / מוצא',
+                      },
+                      {
+                        emoji: '📍',
+                        text:
+                          personalDetailsDict.aboutMe?.guide3 || 'אזור מגורים',
+                      },
+                      {
+                        emoji: '💍',
+                        text: personalDetailsDict.aboutMe?.guide4 || 'סטטוס',
+                      },
+                      {
+                        emoji: '🙏',
+                        text:
+                          personalDetailsDict.aboutMe?.guide5 ||
+                          'רמה דתית ומגזר',
+                      },
+                      {
+                        emoji: '🎓',
+                        text:
+                          personalDetailsDict.aboutMe?.guide6 || 'לימודים ורקע',
+                      },
+                      {
+                        emoji: '🇮🇱',
+                        text:
+                          personalDetailsDict.aboutMe?.guide7 ||
+                          'שירות צבאי / לאומי',
+                      },
+                      {
+                        emoji: '💼',
+                        text:
+                          personalDetailsDict.aboutMe?.guide8 ||
+                          'עיסוק ותעסוקה',
+                      },
+                      {
+                        emoji: '🎭',
+                        text:
+                          personalDetailsDict.aboutMe?.guide9 || 'תכונות אופי',
+                      },
+                      {
+                        emoji: '👨‍👩‍👧‍👦',
+                        text:
+                          personalDetailsDict.aboutMe?.guide10 ||
+                          'קצת על המשפחה',
+                      },
+                      {
+                        emoji: '🎨',
+                        text: personalDetailsDict.aboutMe?.guide11 || 'תחביבים',
+                      },
+                      {
+                        emoji: '🎯',
+                        text:
+                          personalDetailsDict.aboutMe?.guide12 ||
+                          'מה אני מחפש/ת',
+                      },
+                    ].map((item, index) => (
+                      <div
+                        key={index}
+                        className="flex items-center gap-2.5 text-sm text-gray-700 leading-snug"
+                      >
+                        <span className="text-base shrink-0 w-6 text-center">
+                          {item.emoji}
+                        </span>
+                        <span>{item.text}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <p className="text-xs text-purple-600/80 mx-4 md:mx-5 mb-4 md:mb-5 leading-relaxed border-t border-purple-100/60 pt-3">
+                    {personalDetailsDict.aboutMe?.guidanceNote ||
+                      '💡 לא חובה לכתוב את כל הסעיפים, אבל ככל שתכתבו יותר – כך נוכל למצוא לכם התאמות מדויקות יותר.'}
+                  </p>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         </motion.div>
 
+        {/* Textarea */}
         <motion.div variants={itemVariants} className="space-y-2">
           <div className="flex items-center justify-between">
             <Label
@@ -1448,7 +1736,7 @@ export default function PersonalDetailsStep({
                   >
                     <p>
                       {personalDetailsDict.aboutMe?.tooltip ||
-                        'הכרטיס הזה נשלח לצד השני כשמציעים שידוך – ככה הוא/היא מקבל/ת תמונה אמיתית של מי אתם. שווה להשקיע!'}
+                        'הכרטיס הזה נשלח לצד השני כשמציעים שידוך – שווה להשקיע!'}
                     </p>
                   </TooltipContent>
                 </Tooltip>
@@ -1456,27 +1744,35 @@ export default function PersonalDetailsStep({
             </Label>
           </div>
 
-          <Textarea
-            id="aboutMe"
-            value={aboutMe}
-            onChange={(e) => setAboutMe(e.target.value)}
-            placeholder={
-              personalDetailsDict.aboutMe?.placeholder ||
-              '😊 שם: ישראל ישראלי, בן 28, גובה 1.75\n🌍 עדה: חצי מרוקאי חצי פולני\n📍 מגורים: רעננה\n💍 סטטוס: רווק\n🙏 דתי לאומי\n🎓 בוגר ישיבת הסדר, תואר ראשון במנהל עסקים\n🇮🇱 שירות צבאי מלא - קצין ביחידה קרבית\n💼 עובד בהייטק כמנהל מוצר\n🎭 אופי: חברותי, אופטימי, אוהב אנשים ושיחות עומק\n👨‍👩‍👧‍👦 משפחה חמה ומשפחתית, שני מתוך ארבעה\n🎨 אוהב ספורט, טיולים, בישול ומוזיקה\n🎯 מחפש בחורה עם לב טוב, שמחת חיים, ערכים דומים וחוש הומור'
-            }
-            disabled={isLoading}
-            className={`min-h-[220px] py-3 border-2 rounded-xl transition-colors duration-200 bg-white/95 resize-none text-base md:text-sm ${
-              aboutMe.trim().length < MIN_ABOUT_LENGTH &&
-              missingFields.includes(
-                personalDetailsDict.aboutMe?.fieldName || 'כרטיס ההיכרות'
-              )
-                ? 'border-red-300 focus:ring-red-200 focus:border-red-400'
-                : aboutMe.length > 0 && aboutMe.trim().length < MIN_ABOUT_LENGTH
-                  ? 'border-amber-300 focus:ring-amber-200 focus:border-amber-400'
-                  : 'border-gray-200 hover:border-gray-300 focus:border-purple-400 focus:ring-2 focus:ring-purple-200'
-            }`}
-            rows={10}
-          />
+          <div className="relative group">
+            <div
+              className={`absolute right-3 top-4 transition-colors duration-200 z-10 pointer-events-none ${aboutMe.length > 0 ? 'text-purple-500' : 'text-gray-400 group-hover:text-gray-500'}`}
+            >
+              <FileText className="h-5 w-5" />
+            </div>
+            <Textarea
+              id="aboutMe"
+              value={aboutMe}
+              onChange={(e) => setAboutMe(e.target.value)}
+              placeholder={
+                personalDetailsDict.aboutMe?.shortPlaceholder ||
+                '😊 שם, גיל, גובה\n🌍 עדה / מוצא\n📍 מגורים\n💍 סטטוס\n🙏 רמה דתית\n...\nכתבו בחופשיות!'
+              }
+              disabled={isLoading}
+              className={`min-h-[200px] md:min-h-[220px] py-3 pr-10 md:pr-11 border-2 rounded-xl transition-colors duration-200 bg-white/95 resize-none text-base md:text-sm ${
+                aboutMe.trim().length < MIN_ABOUT_LENGTH &&
+                missingFields.includes(
+                  personalDetailsDict.aboutMe?.fieldName || 'כרטיס ההיכרות'
+                )
+                  ? 'border-red-300 focus:ring-red-200 focus:border-red-400'
+                  : aboutMe.length > 0 &&
+                      aboutMe.trim().length < MIN_ABOUT_LENGTH
+                    ? 'border-amber-300 focus:ring-amber-200 focus:border-amber-400'
+                    : 'border-gray-200 hover:border-gray-300 focus:border-purple-400 focus:ring-2 focus:ring-purple-200'
+              }`}
+              rows={10}
+            />
+          </div>
 
           <div className="flex justify-between items-center">
             <div>
@@ -1484,15 +1780,20 @@ export default function PersonalDetailsStep({
               missingFields.includes(
                 personalDetailsDict.aboutMe?.fieldName || 'כרטיס ההיכרות'
               ) ? (
-                <p className="text-xs text-red-600 flex items-center gap-1">
+                <motion.p
+                  variants={fieldErrorVariants}
+                  initial="hidden"
+                  animate="visible"
+                  className="text-xs text-red-600 flex items-center gap-1"
+                >
                   <AlertCircle className="w-3 h-3" />
                   {personalDetailsDict.aboutMe?.required ||
                     `יש לכתוב לפחות ${MIN_ABOUT_LENGTH} תווים`}
-                </p>
+                </motion.p>
               ) : (
                 aboutMe.length > 0 &&
                 aboutMe.trim().length < MIN_ABOUT_LENGTH && (
-                  <span className="text-xs text-amber-600">
+                  <span className="text-xs text-amber-600 font-medium">
                     {personalDetailsDict.aboutMe?.minChars?.replace(
                       '{{remaining}}',
                       String(MIN_ABOUT_LENGTH - aboutMe.trim().length)
@@ -1503,7 +1804,13 @@ export default function PersonalDetailsStep({
               )}
             </div>
             <span
-              className={`text-xs ${aboutMe.trim().length >= MIN_ABOUT_LENGTH ? 'text-green-600' : 'text-gray-400'}`}
+              className={`text-sm font-semibold tabular-nums transition-colors duration-200 ${
+                aboutMe.trim().length >= MIN_ABOUT_LENGTH
+                  ? 'text-green-600'
+                  : aboutMe.trim().length > 0
+                    ? 'text-amber-500'
+                    : 'text-gray-400'
+              }`}
             >
               {aboutMe.trim().length} / {MIN_ABOUT_LENGTH}+
             </span>
@@ -1511,7 +1818,7 @@ export default function PersonalDetailsStep({
         </motion.div>
       </div>
 
-      {/* --- SECTION 5: CONSENTS --- */}
+      {/* ====== SECTION 5: Consents ====== */}
       <motion.div variants={itemVariants} className="space-y-4">
         <div
           className={
@@ -1541,6 +1848,7 @@ export default function PersonalDetailsStep({
             }}
             label={personalDetailsDict.engagementConsentLabel}
             required={true}
+            disabled={isLoading}
             error={
               engagementConsentError ||
               (missingFields.includes(validationDict.fields.engagement)
@@ -1554,6 +1862,7 @@ export default function PersonalDetailsStep({
             onToggle={() => setPromotionalConsent(!promotionalConsent)}
             label={personalDetailsDict.promotionalConsentLabel}
             required={false}
+            disabled={isLoading}
           />
         </div>
 
@@ -1567,23 +1876,32 @@ export default function PersonalDetailsStep({
         </div>
       </motion.div>
 
-      <motion.div variants={itemVariants} className="flex gap-4 pt-4">
+      {/* ====== SUBMIT BUTTONS ====== */}
+      <motion.div variants={itemVariants} className="flex gap-3 md:gap-4 pt-4">
         <Button
           type="button"
-          onClick={prevStep}
+          onClick={() => {
+            if (registrationState.isCompletingProfile) {
+              router.push(`/${locale}/profile`);
+            } else {
+              prevStep();
+            }
+          }}
           variant="outline"
           disabled={isLoading}
-          className="px-6 py-6 rounded-xl border-2 hover:bg-gray-50"
+          className="px-5 py-6 rounded-xl border-2 hover:bg-gray-50 shrink-0"
         >
           <ArrowRight className={`h-5 w-5 ${isRTL ? '' : 'rotate-180'}`} />
-          <span className="sr-only">{personalDetailsDict.backButton}</span>
+          <span className="hidden sm:inline mr-1">
+            {personalDetailsDict.backButton}
+          </span>
         </Button>
 
         <Button
           type="button"
           onClick={handleSubmit}
           disabled={isLoading}
-          className="flex-1 py-6 bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 hover:from-teal-600 hover:via-orange-600 hover:to-amber-600 shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-2 rounded-xl text-base font-semibold group relative overflow-hidden disabled:opacity-50 disabled:cursor-not-allowed"
+          className="flex-1 py-6 bg-gradient-to-r from-teal-500 to-orange-500 hover:from-teal-600 hover:to-orange-600 shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-2 rounded-xl text-base font-semibold group relative overflow-hidden disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {!isLoading && (
             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
@@ -1599,9 +1917,7 @@ export default function PersonalDetailsStep({
               <CheckCircle2 className="w-5 h-5" />
               <span>{personalDetailsDict.nextButton}</span>
               <ArrowLeft
-                className={`w-5 h-5 group-hover:-translate-x-1 transition-transform ${
-                  !isRTL ? 'rotate-180 group-hover:translate-x-1' : ''
-                }`}
+                className={`w-5 h-5 group-hover:-translate-x-1 transition-transform ${!isRTL ? 'rotate-180 group-hover:translate-x-1' : ''}`}
               />
             </>
           )}

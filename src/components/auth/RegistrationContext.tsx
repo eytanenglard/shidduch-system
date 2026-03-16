@@ -13,6 +13,29 @@ import { Gender, UserStatus, UserSource } from '@prisma/client';
 import type { User as SessionUserType } from '@/types/next-auth';
 
 // ============================================================================
+// DEBUG UTILITY — prints only in development
+// ============================================================================
+
+const isDev = process.env.NODE_ENV === 'development';
+const debugLog = (label: string, ...args: unknown[]) => {
+  if (isDev) console.log(`[RegistrationContext][${label}]`, ...args);
+};
+
+// ============================================================================
+// STEP CONSTANTS — replaces magic numbers throughout the codebase
+// ============================================================================
+
+export const STEPS = {
+  WELCOME: 0,
+  BASIC_INFO: 1,
+  PERSONAL_DETAILS: 2,
+  OPTIONAL_INFO: 3,
+  COMPLETE: 4,
+} as const;
+
+export type StepNumber = (typeof STEPS)[keyof typeof STEPS];
+
+// ============================================================================
 // TYPES
 // ============================================================================
 
@@ -33,6 +56,7 @@ export interface SubmissionState {
 }
 
 export interface RegistrationData {
+  // Core user fields
   email: string;
   password: string;
   firstName: string;
@@ -45,18 +69,14 @@ export interface RegistrationData {
   occupation?: string;
   education?: string;
   religiousLevel?: string;
-
-  // שדות UI
-    origin: string; // ✨ הוסף שורה זו
-
+  origin: string;
   city: string;
   hasChildren: boolean;
-  numberOfChildren: string;
-  profession: string; // שים לב: ב-DB זה occupation, נמפה את זה כאן
+  numberOfChildren?: number;
   termsAccepted: boolean;
 
-  // שדות ניהול מצב
-  step: number;
+  // State management fields
+  step: StepNumber;
   isGoogleSignup: boolean;
   language: 'he' | 'en';
   isCompletingProfile: boolean;
@@ -81,17 +101,13 @@ const initialRegistrationData: RegistrationData = {
   occupation: '',
   education: '',
   religiousLevel: '',
-
-  // אתחול שדות חדשים
-    origin: '', // ✨ הוסף שורה זו
-
+  origin: '',
   city: '',
   hasChildren: false,
-  numberOfChildren: '',
-  profession: '',
+  numberOfChildren: undefined,
   termsAccepted: false,
 
-  step: 0,
+  step: STEPS.WELCOME,
   isGoogleSignup: false,
   language: 'he',
   isCompletingProfile: false,
@@ -119,27 +135,166 @@ interface RegistrationContextType {
   ) => void;
   nextStep: () => void;
   prevStep: () => void;
-  goToStep: (step: number) => void;
+  goToStep: (step: StepNumber) => void;
   resetForm: () => void;
   setGoogleSignup: (googleUserData: {
     email: string;
     firstName?: string;
     lastName?: string;
   }) => void;
-  initializeFromSession: (sessionUser: SessionUserType) => Promise<void>; // שונה ל-Promise
+  initializeFromSession: (sessionUser: SessionUserType) => Promise<void>;
   proceedToEmailVerification: (email: string) => void;
   completeEmailVerification: () => void;
   exitEmailVerification: () => void;
 
   // Submission state management
   submission: SubmissionState;
-  startSubmission: (text: string, subtext?: string) => void;
+  startSubmission: (
+    status: SubmissionStatus,
+    text: string,
+    subtext?: string
+  ) => void;
   updateSubmission: (
     status: SubmissionStatus,
     text: string,
     subtext?: string
   ) => void;
   endSubmission: (error?: boolean) => void;
+}
+
+// ============================================================================
+// HELPER: Fetch full registration info from API
+// ============================================================================
+
+interface FullRegistrationInfo {
+  email?: string;
+  firstName?: string;
+  lastName?: string;
+  phone?: string;
+  termsAndPrivacyAcceptedAt?: string | null;
+  profile?: {
+    gender?: Gender;
+    birthDate?: string;
+    maritalStatus?: string;
+    height?: number;
+    occupation?: string;
+    education?: string;
+    religiousLevel?: string;
+    city?: string;
+    origin?: string;
+    hasChildrenFromPrevious?: boolean;
+  };
+}
+
+async function fetchFullRegistrationInfo(): Promise<FullRegistrationInfo | null> {
+  try {
+    const response = await fetch('/api/auth/registration-info');
+    if (!response.ok) {
+      debugLog(
+        'fetchFullRegistrationInfo',
+        'API returned non-OK:',
+        response.status
+      );
+      return null;
+    }
+    const data = await response.json();
+    debugLog('fetchFullRegistrationInfo', 'Fetched:', data);
+    return data;
+  } catch (error) {
+    debugLog('fetchFullRegistrationInfo', 'Error:', error);
+    return null;
+  }
+}
+
+// ============================================================================
+// HELPER: Build base registration data from session + API
+// ============================================================================
+
+function buildBaseData(
+  sessionUser: SessionUserType,
+  fullInfo: FullRegistrationInfo | null,
+  isGoogleAcc: boolean
+): Partial<RegistrationData> {
+  const baseFromSession: Partial<RegistrationData> = {
+    email: sessionUser.email || '',
+    firstName: sessionUser.firstName || '',
+    lastName: sessionUser.lastName || '',
+    phone: sessionUser.phone || '',
+    isGoogleSignup: isGoogleAcc,
+    gender: '',
+    termsAccepted: false,
+  };
+
+  if (!fullInfo) return baseFromSession;
+
+  const profile = fullInfo.profile || {};
+
+  return {
+    ...baseFromSession,
+    email: fullInfo.email || baseFromSession.email,
+    firstName: fullInfo.firstName || baseFromSession.firstName,
+    lastName: fullInfo.lastName || baseFromSession.lastName,
+    phone: fullInfo.phone || baseFromSession.phone,
+    termsAccepted: !!fullInfo.termsAndPrivacyAcceptedAt,
+    gender: profile.gender || '',
+    birthDate: profile.birthDate
+      ? new Date(profile.birthDate).toISOString().split('T')[0]
+      : '',
+    maritalStatus: profile.maritalStatus || '',
+    height: profile.height ?? undefined,
+    occupation: profile.occupation || '',
+    education: profile.education || '',
+    religiousLevel: profile.religiousLevel || '',
+    city: profile.city || '',
+    origin: profile.origin || '',
+    hasChildren: profile.hasChildrenFromPrevious || false,
+  };
+}
+
+// ============================================================================
+// HELPER: Determine initial state based on user status
+// ============================================================================
+
+function determineInitialState(
+  mergedData: RegistrationData,
+  sessionUser: SessionUserType,
+  isGoogleAcc: boolean
+): RegistrationData {
+  // Scenario 1: Email verification required
+  if (
+    sessionUser.status === UserStatus.PENDING_EMAIL_VERIFICATION &&
+    !isGoogleAcc &&
+    !sessionUser.isVerified
+  ) {
+    debugLog('determineInitialState', 'Scenario 1: Email verification needed');
+    return {
+      ...mergedData,
+      isVerifyingEmailCode: true,
+      emailForVerification: mergedData.email,
+      step: STEPS.BASIC_INFO,
+      isCompletingProfile: false,
+      isGoogleSignup: false,
+    };
+  }
+
+  // Scenario 2: Profile completion required
+  if (!sessionUser.isProfileComplete) {
+    debugLog('determineInitialState', 'Scenario 2: Profile completion needed');
+    return {
+      ...mergedData,
+      isCompletingProfile: true,
+      isGoogleSignup: isGoogleAcc,
+      step: STEPS.PERSONAL_DETAILS,
+      isVerifyingEmailCode: false,
+    };
+  }
+
+  // Scenario 3: User is fully set up
+  debugLog('determineInitialState', 'Scenario 3: User fully set up');
+  return {
+    ...mergedData,
+    isGoogleSignup: isGoogleAcc,
+  };
 }
 
 // ============================================================================
@@ -173,18 +328,22 @@ export const RegistrationProvider: React.FC<{ children: ReactNode }> = ({
   );
 
   const nextStep = useCallback(() => {
-    setData((prev) => ({ ...prev, step: prev.step + 1 }));
+    setData((prev) => ({ ...prev, step: (prev.step + 1) as StepNumber }));
   }, []);
 
   const prevStep = useCallback(() => {
-    setData((prev) => ({ ...prev, step: prev.step > 0 ? prev.step - 1 : 0 }));
+    setData((prev) => ({
+      ...prev,
+      step: (prev.step > 0 ? prev.step - 1 : 0) as StepNumber,
+    }));
   }, []);
 
-  const goToStep = useCallback((stepNum: number) => {
+  const goToStep = useCallback((stepNum: StepNumber) => {
     setData((prev) => ({ ...prev, step: stepNum }));
   }, []);
 
   const resetForm = useCallback(() => {
+    debugLog('resetForm', 'Resetting form and submission state');
     setData(initialRegistrationData);
     setSubmission(initialSubmissionState);
   }, []);
@@ -195,125 +354,50 @@ export const RegistrationProvider: React.FC<{ children: ReactNode }> = ({
       firstName?: string;
       lastName?: string;
     }) => {
-      setData({
-        ...initialRegistrationData,
-        email: googleUserData.email,
+      // Merge with existing data instead of replacing everything
+      setData((prev) => ({
+        ...prev,
+        email: googleUserData.email || prev.email,
+        firstName: googleUserData.firstName || prev.firstName,
+        lastName: googleUserData.lastName || prev.lastName,
         isGoogleSignup: true,
-      });
+      }));
     },
     []
   );
 
   // ============================================================================
-  // SESSION INITIALIZATION (UPDATED & ASYNC)
+  // SESSION INITIALIZATION — clean async flow
   // ============================================================================
 
   const initializeFromSession = useCallback(
     async (sessionUser: SessionUserType) => {
-      // 1. אתחול בסיסי עם מה שיש בסשן המצומצם (כדי שהUI יגיב מיד)
+      debugLog('initializeFromSession', 'Starting with user:', {
+        email: sessionUser.email,
+        isProfileComplete: sessionUser.isProfileComplete,
+        status: sessionUser.status,
+      });
+
       const isGoogleAcc = !!(
         sessionUser.source === UserSource.REGISTRATION &&
         sessionUser.accounts?.some((acc) => acc.provider === 'google')
       );
 
-      let baseData: Partial<RegistrationData> = {
-        email: sessionUser.email || '',
-        firstName: sessionUser.firstName || '',
-        lastName: sessionUser.lastName || '',
-        phone: sessionUser.phone || '',
-        isGoogleSignup: isGoogleAcc,
-        // ברירות מחדל למקרה שה-API ייכשל
-        gender: '',
-        termsAccepted: false,
-      };
+      // 1. Fetch full data from API
+      const fullInfo = await fetchFullRegistrationInfo();
 
-      try {
-        // 2. קריאה ל-API החדש כדי לקבל את נתוני הפרופיל המלאים
-        // זה פותר את בעיית ה-Cookie הגדול מדי
-        const response = await fetch('/api/auth/registration-info');
+      // 2. Build base data from session + API response
+      const baseData = buildBaseData(sessionUser, fullInfo, isGoogleAcc);
 
-        if (response.ok) {
-          const fullUser = await response.json();
-          const profile = fullUser.profile || {};
-
-          console.log('Fetched full registration info:', fullUser);
-
-          baseData = {
-            ...baseData,
-            // נתונים מהיוזר הראשי
-            email: fullUser.email || baseData.email,
-            firstName: fullUser.firstName || baseData.firstName,
-            lastName: fullUser.lastName || baseData.lastName,
-            phone: fullUser.phone || baseData.phone,
-            termsAccepted: !!fullUser.termsAndPrivacyAcceptedAt,
-
-            // נתונים מהפרופיל
-            gender: profile.gender || '',
-            birthDate: profile.birthDate
-              ? new Date(profile.birthDate).toISOString().split('T')[0]
-              : '',
-            maritalStatus: profile.maritalStatus || '',
-            height: profile.height ?? undefined,
-            occupation: profile.occupation || '',
-            education: profile.education || '',
-            religiousLevel: profile.religiousLevel || '',
-            city: profile.city || '',
-            origin: profile.origin || '', // ✨ הוסף שורה זו
-
-            // מיפוי שדות מותאם אישית
-            profession: profile.occupation || '', // שימוש ב-occupation כשדה profession
-            hasChildren: profile.hasChildrenFromPrevious || false,
-            numberOfChildren: '', // אין שדה כזה ב-DB, מאתחלים לריק
-          };
-        } else {
-          console.warn(
-            'Failed to fetch registration info from API, falling back to basic session data'
-          );
-        }
-      } catch (error) {
-        console.error('Error fetching registration info:', error);
-      }
-
-      // 3. עדכון ה-State עם הנתונים הממוזגים והלוגיקה העסקית
+      // 3. Update state with merged data + business logic
       setData((prevData) => {
-        const mergedData = {
+        const mergedData: RegistrationData = {
           ...initialRegistrationData,
           ...prevData,
           ...baseData,
         };
 
-        // תרחיש 1: אימות אימייל נדרש
-        if (
-          sessionUser.status === UserStatus.PENDING_EMAIL_VERIFICATION &&
-          !isGoogleAcc &&
-          !sessionUser.isVerified
-        ) {
-          return {
-            ...mergedData,
-            isVerifyingEmailCode: true,
-            emailForVerification: mergedData.email,
-            step: 1,
-            isCompletingProfile: false,
-            isGoogleSignup: false,
-          };
-        }
-
-        // תרחיש 2: השלמת פרופיל נדרשת
-        if (!sessionUser.isProfileComplete) {
-          return {
-            ...mergedData,
-            isCompletingProfile: true,
-            isGoogleSignup: isGoogleAcc,
-            step: 2,
-            isVerifyingEmailCode: false,
-          };
-        }
-
-        // משתמש קיים ותקין
-        return {
-          ...mergedData,
-          isGoogleSignup: isGoogleAcc,
-        };
+        return determineInitialState(mergedData, sessionUser, isGoogleAcc);
       });
     },
     []
@@ -324,6 +408,7 @@ export const RegistrationProvider: React.FC<{ children: ReactNode }> = ({
   // ============================================================================
 
   const proceedToEmailVerification = useCallback((emailToVerify: string) => {
+    debugLog('proceedToEmailVerification', emailToVerify);
     setData((prev) => ({
       ...prev,
       isVerifyingEmailCode: true,
@@ -332,21 +417,23 @@ export const RegistrationProvider: React.FC<{ children: ReactNode }> = ({
   }, []);
 
   const completeEmailVerification = useCallback(() => {
+    debugLog('completeEmailVerification', 'Email verified, moving to profile');
     setData((prev) => ({
       ...prev,
       isVerifyingEmailCode: false,
       emailForVerification: null,
       isCompletingProfile: true,
-      step: 2,
+      step: STEPS.PERSONAL_DETAILS,
     }));
   }, []);
 
   const exitEmailVerification = useCallback(() => {
+    debugLog('exitEmailVerification', 'Going back to basic info');
     setData((prev) => ({
       ...prev,
       isVerifyingEmailCode: false,
       emailForVerification: null,
-      step: 1,
+      step: STEPS.BASIC_INFO,
     }));
   }, []);
 
@@ -354,14 +441,17 @@ export const RegistrationProvider: React.FC<{ children: ReactNode }> = ({
   // SUBMISSION STATE HANDLERS
   // ============================================================================
 
-  const startSubmission = useCallback((text: string, subtext?: string) => {
-    setSubmission({
-      isSubmitting: true,
-      status: 'savingProfile',
-      loadingText: text,
-      loadingSubtext: subtext,
-    });
-  }, []);
+  const startSubmission = useCallback(
+    (status: SubmissionStatus, text: string, subtext?: string) => {
+      setSubmission({
+        isSubmitting: true,
+        status,
+        loadingText: text,
+        loadingSubtext: subtext,
+      });
+    },
+    []
+  );
 
   const updateSubmission = useCallback(
     (status: SubmissionStatus, text: string, subtext?: string) => {
@@ -401,7 +491,6 @@ export const RegistrationProvider: React.FC<{ children: ReactNode }> = ({
     proceedToEmailVerification,
     completeEmailVerification,
     exitEmailVerification,
-    // Submission
     submission,
     startSubmission,
     updateSubmission,
