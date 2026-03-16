@@ -4,8 +4,9 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
-import { formatAnswers, KEY_MAPPING, FormattedAnswersType } from '@/lib/questionnaireFormatter';
-import type { ExtendedMatchSuggestion, PartyInfo, QuestionnaireResponse, WorldId } from "@/types/suggestions";
+import { FormattedAnswersType } from '@/lib/questionnaireFormatter';
+import { formatQuestionnaireForDisplay } from '@/lib/services/questionnaireService';
+import type { ExtendedMatchSuggestion, PartyInfo, QuestionnaireResponse } from "@/types/suggestions";
 export const dynamic = 'force-dynamic';
 // --- טיפוסים חזקים ומדויקים לתהליך העיבוד ---
 type ProcessedQuestionnaireResponse = Omit<QuestionnaireResponse, 'valuesAnswers' | 'personalityAnswers' | 'relationshipAnswers' | 'partnerAnswers' | 'religionAnswers'> & {
@@ -53,26 +54,20 @@ export async function GET() {
       orderBy: { updatedAt: "desc" },
     });
 
-    const suggestionsWithFormattedQuestionnaires: SuggestionWithFormattedData[] = historySuggestions.map(suggestion => {
-        const formatPartyQuestionnaire = (party: PartyInfoFromPrisma): ProcessedPartyInfo => {
+    const suggestionsWithFormattedQuestionnaires = await Promise.all(historySuggestions.map(async suggestion => {
+        const formatPartyQuestionnaire = async (party: PartyInfoFromPrisma): Promise<ProcessedPartyInfo> => {
             const { questionnaireResponses, ...restOfParty } = party;
 
             if (questionnaireResponses && questionnaireResponses.length > 0) {
                 const qr = questionnaireResponses[0];
-                const formattedAnswers: Partial<FormattedAnswersType> = {};
+                const formatted = await formatQuestionnaireForDisplay(qr as any, 'he', false);
 
-                (Object.keys(KEY_MAPPING) as WorldId[]).forEach(worldKey => {
-                    const dbKey = KEY_MAPPING[worldKey];
-                    const answersJson = qr[dbKey];
-                    formattedAnswers[worldKey] = formatAnswers(answersJson);
-                });
-                
-                const { valuesAnswers, personalityAnswers, relationshipAnswers, partnerAnswers, religionAnswers, ...restOfQr } = qr;
+                const { valuesAnswers, personalityAnswers, relationshipAnswers, partnerAnswers, religionAnswers, ...restOfFormatted } = formatted;
                 const processedQr: ProcessedQuestionnaireResponse = {
-                    ...restOfQr,
-                    formattedAnswers: formattedAnswers as FormattedAnswersType,
+                    ...restOfFormatted,
+                    formattedAnswers: formatted.formattedAnswers as FormattedAnswersType,
                 };
-                
+
                 return { ...restOfParty, questionnaireResponses: [processedQr] };
             }
             return restOfParty;
@@ -80,10 +75,10 @@ export async function GET() {
 
         return {
             ...suggestion,
-            firstParty: formatPartyQuestionnaire(suggestion.firstParty),
-            secondParty: formatPartyQuestionnaire(suggestion.secondParty),
+            firstParty: await formatPartyQuestionnaire(suggestion.firstParty),
+            secondParty: await formatPartyQuestionnaire(suggestion.secondParty),
         };
-    });
+    }));
 
     return NextResponse.json({
       success: true,

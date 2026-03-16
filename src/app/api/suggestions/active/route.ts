@@ -5,9 +5,9 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { MatchSuggestionStatus } from "@prisma/client";
-import { formatAnswers, KEY_MAPPING, FormattedAnswersType } from '@/lib/questionnaireFormatter';
+import { FormattedAnswersType } from '@/lib/questionnaireFormatter';
+import { formatQuestionnaireForDisplay } from '@/lib/services/questionnaireService';
 import type { QuestionnaireResponse } from "@/types/suggestions";
-import type { WorldId } from "@/types/next-auth";
 export const dynamic = 'force-dynamic';
 
 // =====================================================================
@@ -92,21 +92,15 @@ export async function GET() {
       orderBy: { createdAt: "desc" },
     });
 
-    // --- עיבוד: פורמט שאלונים בלבד, ללא casting מיותר ---
-    const processedSuggestions = activeSuggestions.map((suggestion) => {
+    // --- עיבוד: פורמט שאלונים עם מילון עברי מלא ---
+    const processedSuggestions = await Promise.all(activeSuggestions.map(async (suggestion) => {
 
-      const formatPartyQuestionnaire = (party: typeof suggestion.firstParty) => {
+      const formatPartyQuestionnaire = async (party: typeof suggestion.firstParty) => {
         const { questionnaireResponses, ...restOfParty } = party;
 
         if (questionnaireResponses && questionnaireResponses.length > 0) {
           const qr = questionnaireResponses[0];
-          const formattedAnswers: Partial<FormattedAnswersType> = {};
-
-          (Object.keys(KEY_MAPPING) as WorldId[]).forEach(worldKey => {
-            const dbKey = KEY_MAPPING[worldKey];
-            const answersJson = (qr as any)[dbKey];
-            formattedAnswers[worldKey] = formatAnswers(answersJson);
-          });
+          const formatted = await formatQuestionnaireForDisplay(qr as any, 'he', false);
 
           const {
             valuesAnswers,
@@ -114,15 +108,12 @@ export async function GET() {
             relationshipAnswers,
             partnerAnswers,
             religionAnswers,
-            ...restOfQr
-          } = qr;
+            ...restOfFormatted
+          } = formatted;
 
           return {
             ...restOfParty,
-            questionnaireResponses: [{
-              ...restOfQr,
-              formattedAnswers: formattedAnswers as FormattedAnswersType,
-            }],
+            questionnaireResponses: [restOfFormatted],
           };
         }
 
@@ -131,10 +122,10 @@ export async function GET() {
 
       return {
         ...suggestion,
-        firstParty: formatPartyQuestionnaire(suggestion.firstParty),
-        secondParty: formatPartyQuestionnaire(suggestion.secondParty),
+        firstParty: await formatPartyQuestionnaire(suggestion.firstParty),
+        secondParty: await formatPartyQuestionnaire(suggestion.secondParty),
       };
-    });
+    }));
 
     return NextResponse.json({
       success: true,
