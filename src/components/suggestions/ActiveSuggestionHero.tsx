@@ -253,23 +253,23 @@ const ActiveSuggestionHero: React.FC<ActiveSuggestionHeroProps> = ({
     >
       <div className="p-4">
         {/* Top Row: Label */}
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 mb-3 flex-wrap">
+          <div className="flex items-center gap-2 flex-1 min-w-0">
             <div
               className={cn(
-                'w-8 h-8 rounded-full flex items-center justify-center',
+                'w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0',
                 config.iconBg
               )}
             >
-              <Star className="w-4 h-4" />
+              <Star className="w-3.5 h-3.5" />
             </div>
-            <span className="text-sm font-semibold text-gray-700">
+            <span className="text-sm font-semibold text-gray-700 truncate">
               {locale === 'he' ? 'ההצעה הפעילה שלי' : 'My Active Suggestion'}
             </span>
           </div>
           <Badge
             variant="outline"
-            className={cn('text-xs font-medium', config.badgeClass)}
+            className={cn('text-xs font-medium flex-shrink-0', config.badgeClass)}
           >
             <StatusIcon className={cn('w-3 h-3', isRtl ? 'ml-1' : 'mr-1')} />
             {statusLabel}
@@ -306,10 +306,10 @@ const ActiveSuggestionHero: React.FC<ActiveSuggestionHeroProps> = ({
             </div>
           </div>
 
-          {/* Info - FIXED: removed truncate, name now wraps properly */}
+          {/* Info */}
           <div className="flex-1 min-w-0">
-            <div className="flex items-baseline gap-2 flex-wrap">
-              <h3 className="font-bold text-gray-900 text-base leading-tight">
+            <div className="flex items-baseline gap-1.5 flex-wrap">
+              <h3 className="font-bold text-gray-900 text-base leading-tight truncate">
                 {displayName}
               </h3>
               {age && (
@@ -318,23 +318,23 @@ const ActiveSuggestionHero: React.FC<ActiveSuggestionHeroProps> = ({
                 </span>
               )}
             </div>
-            <div className="flex items-center gap-2 mt-0.5">
+            <div className="flex items-center gap-1.5 mt-0.5 min-w-0">
               {otherParty?.profile?.city && (
-                <span className="text-xs text-gray-500">
+                <span className="text-xs text-gray-500 truncate max-w-[90px] flex-shrink-0">
                   📍 {otherParty.profile.city}
                 </span>
               )}
               {otherParty?.profile?.city && otherParty?.profile?.occupation && (
-                <span className="text-gray-300">•</span>
+                <span className="text-gray-300 flex-shrink-0">•</span>
               )}
               {otherParty?.profile?.occupation && (
-                <span className="text-xs text-gray-500 truncate max-w-[140px]">
+                <span className="text-xs text-gray-500 truncate">
                   💼 {otherParty.profile.occupation}
                 </span>
               )}
             </div>
             {statusDescription && (
-              <p className="text-xs text-gray-400 mt-1 line-clamp-1">
+              <p className="text-xs text-gray-400 mt-1 line-clamp-2 leading-snug">
                 {statusDescription}
               </p>
             )}

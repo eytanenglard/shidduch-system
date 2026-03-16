@@ -1,5 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  serverExternalPackages: ['handlebars'],
   experimental: {
     serverActions: {
       allowedOrigins: ["localhost:3000"],

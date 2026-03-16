@@ -321,7 +321,7 @@ const MinimalSuggestionCard: React.FC<MinimalSuggestionCardProps> = ({
             <div className="flex items-end justify-between">
               <div>
                 <h3 className="text-2xl font-bold tracking-tight [text-shadow:0_2px_8px_rgba(0,0,0,0.8)]">
-                  {targetParty.firstName}
+                  {targetParty.firstName}{targetParty.lastName ? ` ${targetParty.lastName.charAt(0)}.` : ''}
                 </h3>
                 {age && (
                   <p className="text-lg font-medium text-white/90 [text-shadow:0_1px_4px_rgba(0,0,0,0.8)]">

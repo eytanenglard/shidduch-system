@@ -157,37 +157,41 @@ export async function GET(req: NextRequest) {
         directUnread.map((u) => [u.senderId, u._count.id])
       );
 
-      // Query: הודעה אחרונה per user
-      // עושים את זה ב-Promise.all אבל עם query פשוט (findFirst בלבד)
-      const lastMessages = await Promise.all(
-        directUserIds.map(async (uid) => {
-          const msg = await prisma.directMessage.findFirst({
-            where: {
-              OR: [
-                { senderId: uid, receiverId: matchmakerId },
-                { senderId: matchmakerId, receiverId: uid },
-              ],
-            },
-            orderBy: { createdAt: 'desc' },
-            select: { content: true, createdAt: true, senderId: true },
-          });
-          return { userId: uid, msg };
-        })
-      );
+      // Query: הודעה אחרונה per user — שאילתה אחת לכל המשתמשים
+      const allDirectMessages = await prisma.directMessage.findMany({
+        where: {
+          OR: [
+            { senderId: matchmakerId, receiverId: { in: directUserIds } },
+            { senderId: { in: directUserIds }, receiverId: matchmakerId },
+          ],
+        },
+        orderBy: { createdAt: 'desc' },
+        select: { content: true, createdAt: true, senderId: true, receiverId: true },
+      });
 
-      directChatSummaries = lastMessages
-        .filter((lm) => lm.msg !== null) // רק משתמשים עם הודעות
-        .map((lm) => {
-          const user = userMap.get(lm.userId);
+      // Group by user — לוקח את ההודעה הראשונה (האחרונה) לכל משתמש
+      const lastMsgMap = new Map<string, { content: string; createdAt: Date; senderId: string }>();
+      for (const msg of allDirectMessages) {
+        const uid = msg.senderId === matchmakerId ? msg.receiverId : msg.senderId;
+        if (!lastMsgMap.has(uid)) {
+          lastMsgMap.set(uid, msg);
+        }
+      }
+
+      directChatSummaries = directUserIds
+        .filter((uid) => lastMsgMap.has(uid))
+        .map((uid) => {
+          const user = userMap.get(uid);
+          const lm = lastMsgMap.get(uid)!;
           return {
-            userId: lm.userId,
+            userId: uid,
             name: user
               ? `${user.firstName} ${user.lastName}`
               : 'Unknown',
-            lastMessage: lm.msg!.content,
-            lastMessageTime: lm.msg!.createdAt.toISOString(),
-            lastMessageIsMine: lm.msg!.senderId === matchmakerId,
-            unreadCount: directUnreadMap.get(lm.userId) || 0,
+            lastMessage: lm.content,
+            lastMessageTime: lm.createdAt.toISOString(),
+            lastMessageIsMine: lm.senderId === matchmakerId,
+            unreadCount: directUnreadMap.get(uid) || 0,
           };
         })
         .sort((a, b) => {

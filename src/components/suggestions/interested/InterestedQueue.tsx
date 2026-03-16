@@ -159,7 +159,7 @@ const SortableItem: React.FC<SortableItemProps> = ({
       ref={setNodeRef}
       style={style}
       className={cn(
-        'group relative flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200',
+        'group relative flex items-center gap-2 px-3 py-2.5 rounded-xl transition-all duration-200',
         isFirst
           ? 'bg-gradient-to-r from-amber-50 via-white to-orange-50 border border-amber-200/50 shadow-sm'
           : 'bg-white border border-gray-100',
@@ -174,13 +174,13 @@ const SortableItem: React.FC<SortableItemProps> = ({
         <Tooltip delayDuration={300}>
           <TooltipTrigger asChild>
             <button
-              className="cursor-grab active:cursor-grabbing p-1 rounded-md hover:bg-amber-100 transition-colors touch-none"
+              className="cursor-grab active:cursor-grabbing p-0.5 rounded-md hover:bg-amber-100 transition-colors touch-none flex-shrink-0"
               {...attributes}
               {...listeners}
             >
               <GripVertical
                 className={cn(
-                  'w-4 h-4 transition-colors',
+                  'w-3.5 h-3.5 transition-colors',
                   isDragging
                     ? 'text-amber-600'
                     : 'text-gray-300 group-hover:text-amber-400'
@@ -196,12 +196,12 @@ const SortableItem: React.FC<SortableItemProps> = ({
 
       {/* Rank Badge */}
       {isFirst ? (
-        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-md flex-shrink-0">
-          <Crown className="w-4 h-4 text-white" />
+        <div className="w-6 h-6 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-md flex-shrink-0">
+          <Crown className="w-3 h-3 text-white" />
         </div>
       ) : (
-        <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0">
-          <span className="text-gray-600 text-xs font-bold">{index + 1}</span>
+        <div className="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0">
+          <span className="text-gray-600 text-[10px] font-bold">{index + 1}</span>
         </div>
       )}
 
@@ -210,58 +210,57 @@ const SortableItem: React.FC<SortableItemProps> = ({
         onClick={() => onViewDetails(suggestion)}
         className="flex-shrink-0"
       >
-        <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-white shadow-sm hover:shadow-md transition-shadow">
+        <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-white shadow-sm hover:shadow-md transition-shadow">
           {mainImage ? (
             <Image
               src={getRelativeCloudinaryPath(mainImage.url)}
               alt={targetParty.firstName}
-              width={48}
-              height={48}
+              width={40}
+              height={40}
               className="w-full h-full object-cover"
             />
           ) : (
             <div className="w-full h-full bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center">
-              <User className="w-6 h-6 text-slate-400" />
+              <User className="w-5 h-5 text-slate-400" />
             </div>
           )}
         </div>
       </button>
 
-   
       {/* Info Section */}
       <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 min-w-0">
           <button
             onClick={() => onViewDetails(suggestion)}
-            className="font-semibold text-gray-900 text-sm hover:text-amber-700 transition-colors leading-tight"
+            className="font-semibold text-gray-900 text-sm hover:text-amber-700 transition-colors leading-tight truncate"
           >
             {targetParty.firstName} {targetParty.lastName?.charAt(0)}.
           </button>
           {age && (
             <span className="text-xs text-gray-500 flex-shrink-0">({age})</span>
           )}
-          {isFirst && !isUserInActiveProcess && (
-            <Badge className="bg-gradient-to-r from-amber-400 to-orange-400 text-white border-0 text-[10px] px-1.5 py-0 flex-shrink-0">
-              <ArrowUpCircle className="w-3 h-3 mr-0.5" />
-              {texts.nextInLine}
-            </Badge>
-          )}
         </div>
-        <div className="flex items-center gap-2 text-xs text-gray-500 mt-0.5">
+        <div className="flex items-center gap-1.5 text-xs text-gray-500 mt-0.5 min-w-0">
           {targetParty.profile.city && (
-            <span className="truncate">{targetParty.profile.city}</span>
+            <span className="truncate max-w-[80px]">{targetParty.profile.city}</span>
           )}
           {targetParty.profile.city && targetParty.profile.occupation && (
-            <span>•</span>
+            <span className="flex-shrink-0">•</span>
           )}
           {targetParty.profile.occupation && (
             <span className="truncate">{targetParty.profile.occupation}</span>
           )}
         </div>
+        {isFirst && !isUserInActiveProcess && (
+          <Badge className="bg-gradient-to-r from-amber-400 to-orange-400 text-white border-0 text-[9px] px-1.5 py-0 mt-0.5 inline-flex">
+            <ArrowUpCircle className="w-2.5 h-2.5 mr-0.5" />
+            {texts.nextInLine}
+          </Badge>
+        )}
       </div>
 
       {/* Action Buttons */}
-      <div className="flex items-center gap-1 flex-shrink-0">
+      <div className="flex items-center gap-0.5 flex-shrink-0">
         {/* View Profile */}
         <TooltipProvider>
           <Tooltip delayDuration={100}>
@@ -269,10 +268,10 @@ const SortableItem: React.FC<SortableItemProps> = ({
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-8 w-8 hover:bg-amber-100 text-gray-400 hover:text-gray-600"
+                className="h-7 w-7 hover:bg-amber-100 text-gray-400 hover:text-gray-600"
                 onClick={() => onViewDetails(suggestion)}
               >
-                <Eye className="w-4 h-4" />
+                <Eye className="w-3.5 h-3.5" />
               </Button>
             </TooltipTrigger>
             <TooltipContent>
@@ -288,7 +287,7 @@ const SortableItem: React.FC<SortableItemProps> = ({
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-8 w-8 hover:bg-rose-100 text-gray-400 hover:text-rose-500"
+                className="h-7 w-7 hover:bg-rose-100 text-gray-400 hover:text-rose-500"
                 onClick={() => {
                   onRemove(suggestion);
                   toast.success(texts.removeConfirm);
