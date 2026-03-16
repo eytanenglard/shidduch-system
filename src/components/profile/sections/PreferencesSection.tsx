@@ -153,6 +153,9 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
   const preferredShomerNegiahOptions = useGenerateOptions(
     t.options.shomerNegiah
   );
+  const preferredSmokingStatusOptions = useGenerateOptions(
+    t.options.preferredSmokingStatus
+  );
   const preferredPartnerHasChildrenOptions = useGenerateOptions(
     t.options.partnerHasChildren
   );
@@ -178,6 +181,7 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
         preferredHeightMax: nullToUndefined(profile.preferredHeightMax),
         matchingNotes: profile.matchingNotes ?? '',
         preferredShomerNegiah: nullToUndefined(profile.preferredShomerNegiah),
+        preferredSmokingStatus: nullToUndefined(profile.preferredSmokingStatus),
         preferredPartnerHasChildren: nullToUndefined(
           profile.preferredPartnerHasChildren
         ),
@@ -843,6 +847,52 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
                     </p>
                   )}
                 </div>
+
+                {/* העדפת עישון */}
+                <div>
+                  <Label
+                    htmlFor="preferredSmokingStatus"
+                    className="block mb-1.5 text-xs font-medium text-gray-600"
+                  >
+                    {t.cards.locationAndReligion.smokingPreferenceLabel}
+                  </Label>
+                  {isEditing ? (
+                    <Select
+                      name="preferredSmokingStatus"
+                      value={formData.preferredSmokingStatus || ''}
+                      onValueChange={(value) =>
+                        handleSelectChange('preferredSmokingStatus', value)
+                      }
+                    >
+                      <SelectTrigger
+                        id="preferredSmokingStatus"
+                        className="h-9 text-sm focus:ring-teal-500"
+                      >
+                        <SelectValue
+                          placeholder={
+                            t.cards.locationAndReligion.smokingPreferencePlaceholder
+                          }
+                        />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {preferredSmokingStatusOptions.map((opt) => (
+                          <SelectItem key={opt.value} value={opt.value}>
+                            {opt.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <p className="text-sm text-gray-800 font-medium mt-1">
+                      {getSelectDisplayValue(
+                        formData.preferredSmokingStatus,
+                        preferredSmokingStatusOptions,
+                        t.cards.locationAndReligion.smokingPreferenceEmpty
+                      )}
+                    </p>
+                  )}
+                </div>
+
                 {profile?.gender === Gender.MALE && (
                   <fieldset>
                     <legend className="block mb-2 text-xs font-medium text-gray-600">

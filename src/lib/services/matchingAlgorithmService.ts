@@ -64,6 +64,7 @@ interface TargetUserData {
   birthDate: Date;
   age: number;
   religiousLevel: string | null;
+  religiousJourney: string | null;
   aiProfileSummary: AiProfileSummary | null;
   narrativeProfile?: string | null;
   backgroundProfile?: BackgroundProfile;
@@ -75,6 +76,7 @@ interface CandidateData {
   lastName: string;
   age: number | null;  // 🆕 יכול להיות null אם אין birthDate
   religiousLevel: string | null;
+  religiousJourney: string | null;
   city: string | null;
   occupation: string | null;
   summaryText: string;

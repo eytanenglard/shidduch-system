@@ -351,4 +351,68 @@ export const valuesQuestions: Question[] = [
     maxLength: 300,
     metadata: { estimatedTime: 2 },
   },
+
+  // ─── שאלות מותנות: פרק ב' ────────────────────────────────────────────────
+  {
+    worldId: 'VALUES',
+    id: 'values_priority_shift_after_divorce',
+    category: 'values',
+    subcategory: 'core_values',
+    type: 'openText',
+    depth: 'BASIC',
+    isRequired: false,
+    minLength: 50,
+    maxLength: 400,
+    conditions: { maritalStatus: ['DIVORCED', 'WIDOWED'] },
+    metadata: { estimatedTime: 3 },
+  },
+
+  // ─── שאלות מותנות: יש ילדים מנישואים קודמים ──────────────────────────────
+  {
+    worldId: 'VALUES',
+    id: 'values_children_role_blended_family',
+    category: 'values',
+    subcategory: 'community_social',
+    type: 'openText',
+    depth: 'BASIC',
+    isRequired: false,
+    minLength: 40,
+    maxLength: 400,
+    conditions: { hasChildren: true },
+    metadata: { estimatedTime: 3 },
+  },
+
+  // ─── שאלות מותנות: גיל 55+ ───────────────────────────────────────────────
+  {
+    worldId: 'VALUES',
+    id: 'values_legacy_and_wealth_senior',
+    category: 'values',
+    subcategory: 'material_intellectual',
+    type: 'openText',
+    depth: 'ADVANCED',
+    isRequired: false,
+    minLength: 40,
+    maxLength: 400,
+    conditions: { ageRange: [55, 120] },
+    metadata: { estimatedTime: 3 },
+  },
+
+  // ─── שאלות מותנות: חילונים / מסורתיים ────────────────────────────────────
+  {
+    worldId: 'VALUES',
+    id: 'values_spirituality_secular',
+    category: 'values',
+    subcategory: 'core_values',
+    type: 'iconChoice',
+    depth: 'BASIC',
+    isRequired: false,
+    options: [
+      { value: 'universal_ethics', icon: <Scale /> },
+      { value: 'cultural_jewish_identity', icon: <Scroll /> },
+      { value: 'occasional_connection', icon: <Sparkles /> },
+      { value: 'actively_exploring', icon: <TrendingUp /> },
+    ],
+    conditions: { religiousLevel: ['hiloni', 'masorti'] },
+    metadata: { estimatedTime: 1 },
+  },
 ];

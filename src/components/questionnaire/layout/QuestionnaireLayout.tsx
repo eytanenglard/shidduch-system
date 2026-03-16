@@ -3,6 +3,7 @@
 
 import React, { useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
+import { Progress } from '@/components/ui/progress';
 import {
   Loader2,
   Menu,
@@ -55,6 +56,9 @@ export interface QuestionnaireLayoutProps {
   // Props חדשים שיועברו מ-WorldComponent
   mobileHeaderContent?: React.ReactNode;
   onMenuOpen?: () => void;
+  // Global progress bar
+  totalAnswered?: number;
+  totalQuestions?: number;
 }
 
 // Note: Specific world colors (Sky, Rose, etc.) are kept for the specific world content,
@@ -71,6 +75,8 @@ export default function QuestionnaireLayout({
   dict,
   mobileHeaderContent,
   onMenuOpen,
+  totalAnswered = 0,
+  totalQuestions = 0,
 }: QuestionnaireLayoutProps) {
   const { status } = useSession();
   const router = useRouter();
@@ -83,6 +89,11 @@ export default function QuestionnaireLayout({
 
   const isDesktop = useMediaQuery('(min-width: 1024px)');
   const isRTL = locale === 'he';
+
+  const progressPercent =
+    totalQuestions > 0
+      ? Math.round((totalAnswered / totalQuestions) * 100)
+      : 0;
 
   const handleSave = useCallback(async () => {
     if (!onSaveProgress) return;
@@ -106,6 +117,25 @@ export default function QuestionnaireLayout({
     }
   };
 
+  // Global progress bar component
+  const GlobalProgressBar = totalQuestions > 0 ? (
+    <div className="sticky top-0 z-50 bg-white/80 backdrop-blur-sm border-b border-slate-100 px-4 py-2">
+      <div className="flex items-center gap-3 max-w-4xl mx-auto">
+        <span className="text-xs font-medium text-slate-500 whitespace-nowrap">
+          {isRTL
+            ? `${totalAnswered} / ${totalQuestions} שאלות`
+            : `${totalAnswered} / ${totalQuestions} questions`}
+        </span>
+        <div className="flex-1">
+          <Progress value={progressPercent} className="h-2" />
+        </div>
+        <span className="text-xs font-semibold text-teal-600 whitespace-nowrap w-10 text-end">
+          {progressPercent}%
+        </span>
+      </div>
+    </div>
+  ) : null;
+
   return (
     <div
       className={cn(
@@ -115,7 +145,9 @@ export default function QuestionnaireLayout({
       )}
     >
       {isDesktop ? (
-        <div className="flex flex-row">
+        <div className="flex flex-col">
+          {GlobalProgressBar}
+          <div className="flex flex-row">
           <QuestionnaireSidebar
             currentWorld={currentWorld}
             completedWorlds={completedWorlds}
@@ -137,9 +169,11 @@ export default function QuestionnaireLayout({
           <main className="flex-1 overflow-y-auto p-4 md:p-8 lg:p-10">
             {children}
           </main>
+          </div>
         </div>
       ) : (
         <div className="flex flex-col">
+          {GlobalProgressBar}
           {/* Mobile Sidebar Sheet - Hidden by default */}
           <Sheet
             open={isMobileSidebarOpen}

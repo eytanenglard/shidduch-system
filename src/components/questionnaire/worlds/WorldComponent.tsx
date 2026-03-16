@@ -36,8 +36,10 @@ import type {
   AnswerValue,
   Question,
   QuestionnaireAnswer,
+  QuestionConditions,
   WorldId,
 } from '../types/types';
+import type { UserProfile } from '../MatchmakingQuestionnaire';
 import { cn } from '@/lib/utils';
 import { useMediaQuery } from '../hooks/useMediaQuery';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -64,6 +66,7 @@ const worldConfig: Record<
     themeColor: 'sky' | 'rose' | 'purple' | 'teal' | 'amber';
     icon: React.ReactNode;
     gradient: string;
+    intro: { he: string; en: string };
   }
 > = {
   PERSONALITY: {
@@ -71,32 +74,83 @@ const worldConfig: Record<
     themeColor: 'sky',
     icon: <Sparkles className="w-5 h-5" />,
     gradient: 'from-cyan-400 via-sky-500 to-blue-500',
+    intro: {
+      he: 'בעולם זה נחקור את מי שאת/ה — אופי, הרגלים, אנרגיה ודרך ההתמודדות עם חיי היומיום. התשובות כאן עוזרות לנו להבין את מי שנסתתר מאחורי הפרופיל.',
+      en: 'In this world we explore who you are — your character, habits, energy, and how you handle daily life. Your answers here help us understand the real you behind the profile.',
+    },
   },
   VALUES: {
     questions: valuesQuestions,
     themeColor: 'rose',
     icon: <Heart className="w-5 h-5" />,
     gradient: 'from-rose-400 via-pink-500 to-red-500',
+    intro: {
+      he: 'מה מניע אותך? מה חשוב לך בחיים? בעולם הערכים נחקור את העקרונות, המוסר וסדרי העדיפויות שמעצבים את חיי היומיום שלך.',
+      en: 'What drives you? What matters most to you in life? In the values world we explore the principles, ethics, and priorities that shape who you are.',
+    },
   },
   RELATIONSHIP: {
     questions: relationshipQuestions,
     themeColor: 'purple',
     icon: <Target className="w-5 h-5" />,
     gradient: 'from-purple-400 via-violet-500 to-indigo-500',
+    intro: {
+      he: 'איך אהבה נראית עבורך ביומיום? בעולם הזוגיות נחקור את הציפיות, צורת התקשורת ותפיסת הקשר הזוגי שלך — מה אתה/את מביא/ה לזוגיות.',
+      en: 'What does love look like in everyday life? In this world we explore your expectations, communication style, and vision of a relationship.',
+    },
   },
   PARTNER: {
     questions: partnerQuestions,
     themeColor: 'teal',
     icon: <Star className="w-5 h-5" />,
     gradient: 'from-teal-400 via-emerald-500 to-green-500',
+    intro: {
+      he: 'מי הוא/היא האדם שאתה/את מחפש/ת? בעולם השותפ/ה נחקור את ה"מה", ה"למה" וה"גבולות" — מה חשוב לך, מה לא מתאים לך, ומה אתה/את מביא/ה לקשר.',
+      en: 'Who is the person you\'re looking for? In this world we explore what you want, what matters, and what doesn\'t work for you in a partner.',
+    },
   },
   RELIGION: {
     questions: religionQuestions,
     themeColor: 'amber',
     icon: <Award className="w-5 h-5" />,
     gradient: 'from-amber-400 via-orange-500 to-yellow-500',
+    intro: {
+      he: 'אמונה, מסורת, וזהות יהודית — בעולם הדת נחקור את הקשר שלך לדת, לאמונה ולפרקטיקה יומיומית. אין תשובות נכונות, רק כנות.',
+      en: 'Faith, tradition, and Jewish identity — in this world we explore your relationship with religion, belief, and daily practice. There are no right answers, only honesty.',
+    },
   },
 };
+
+// Returns true if question should be shown based on user profile
+export function shouldShowQuestion(q: Question, profile: UserProfile): boolean {
+  const { conditions } = q;
+  if (!conditions) return true;
+
+  const age = profile.birthDate
+    ? new Date().getFullYear() - new Date(profile.birthDate).getFullYear()
+    : null;
+
+  if (conditions.maritalStatus && conditions.maritalStatus.length > 0) {
+    if (!profile.maritalStatus) return true; // unknown — show by default
+    if (!(conditions.maritalStatus as string[]).includes(profile.maritalStatus)) return false;
+  }
+  if (conditions.ageRange && age !== null) {
+    if (age < conditions.ageRange[0] || age > conditions.ageRange[1]) return false;
+  }
+  if (conditions.religiousLevel && conditions.religiousLevel.length > 0) {
+    if (!profile.religiousLevel) return true; // unknown — show by default
+    if (!conditions.religiousLevel.includes(profile.religiousLevel)) return false;
+  }
+  if (conditions.gender && conditions.gender.length > 0) {
+    if (!profile.gender) return true; // unknown — show by default
+    if (!(conditions.gender as string[]).includes(profile.gender)) return false;
+  }
+  if (conditions.hasChildren !== undefined) {
+    if (profile.hasChildrenFromPrevious === undefined) return true; // unknown — show by default
+    if (conditions.hasChildren !== profile.hasChildrenFromPrevious) return false;
+  }
+  return true;
+}
 
 const getQuestionWithText = (
   questionStructure: Question,
@@ -189,6 +243,7 @@ interface WorldComponentDynamicProps {
   };
   locale: 'he' | 'en';
   onMobileMenuOpen?: () => void;
+  userProfile?: UserProfile;
 }
 
 export default function WorldComponent({
@@ -207,6 +262,7 @@ export default function WorldComponent({
   dict,
   locale,
   onMobileMenuOpen,
+  userProfile = {},
 }: WorldComponentDynamicProps) {
   const worldDict = dict.world;
   const validationDict = worldDict.errors.validation;
@@ -220,6 +276,18 @@ export default function WorldComponent({
   const [animateError, setAnimateError] = useState(false);
   const [showCelebration, setShowCelebration] = useState(false);
   const [isCompleting, setIsCompleting] = useState(false);
+  // Show intro modal only when entering a world at question 0 (not via direct navigation)
+  const [showIntroModal, setShowIntroModal] = useState(
+    !isDirectNavigation && currentQuestionIndex === 0
+  );
+  // Reset intro when worldId changes
+  const prevWorldIdRef = React.useRef(worldId);
+  useEffect(() => {
+    if (prevWorldIdRef.current !== worldId) {
+      prevWorldIdRef.current = worldId;
+      setShowIntroModal(!isDirectNavigation && currentQuestionIndex === 0);
+    }
+  }, [worldId, isDirectNavigation, currentQuestionIndex]);
 
   const {
     questions: allQuestionsStructure,
@@ -230,10 +298,10 @@ export default function WorldComponent({
 
   const allQuestions = useMemo(
     () =>
-      allQuestionsStructure.map((qStruct) =>
-        getQuestionWithText(qStruct, dict)
-      ),
-    [allQuestionsStructure, dict]
+      allQuestionsStructure
+        .filter((qStruct) => shouldShowQuestion(qStruct, userProfile))
+        .map((qStruct) => getQuestionWithText(qStruct, dict)),
+    [allQuestionsStructure, dict, userProfile]
   );
 
   const title = dict.worldLabels[worldId];
@@ -358,6 +426,85 @@ export default function WorldComponent({
     (a) => a.questionId === currentQuestion?.id
   );
 
+  const totalEstimatedMinutes = useMemo(
+    () => allQuestions.reduce((sum, q) => sum + (q.metadata?.estimatedTime || 1), 0),
+    [allQuestions]
+  );
+
+  const renderWorldIntroModal = () => {
+    if (!showIntroModal) return null;
+    const introText = worldConfig[worldId].intro[locale];
+    const NextIcon = isRTL ? ArrowLeft : ArrowRight;
+
+    return (
+      <AnimatePresence>
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
+          onClick={() => setShowIntroModal(false)}
+        >
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+            transition={{ type: 'spring', stiffness: 260, damping: 22 }}
+            className="bg-white rounded-3xl shadow-2xl max-w-md w-full overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header with gradient */}
+            <div className={cn('bg-gradient-to-r p-6 text-white', gradient)}>
+              <div className="flex items-center gap-3 mb-2">
+                <div className="p-2.5 bg-white/20 rounded-xl">
+                  {worldConfig[worldId].icon}
+                </div>
+                <h2 className="text-xl font-bold">{title}</h2>
+              </div>
+              <div className="flex items-center gap-2 text-white/80 text-sm">
+                <span>⏱</span>
+                <span>
+                  {isRTL
+                    ? `~${totalEstimatedMinutes} דקות | ${allQuestions.length} שאלות`
+                    : `~${totalEstimatedMinutes} min | ${allQuestions.length} questions`}
+                </span>
+              </div>
+            </div>
+
+            {/* Body */}
+            <div className="p-6">
+              <p className="text-gray-700 leading-relaxed text-sm">
+                {introText}
+              </p>
+            </div>
+
+            {/* Actions */}
+            <div className="px-6 pb-6 flex gap-3">
+              <Button
+                onClick={() => setShowIntroModal(false)}
+                className={cn(
+                  'flex-1 flex items-center justify-center gap-2 rounded-2xl py-6 font-bold text-white',
+                  'bg-gradient-to-r hover:opacity-90 transition-opacity',
+                  gradient
+                )}
+              >
+                <span>{isRTL ? 'בואו נתחיל' : 'Let\'s start'}</span>
+                <NextIcon className="h-5 w-5" />
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => setShowIntroModal(false)}
+                className="rounded-2xl px-4 border-2 text-gray-500 hover:bg-gray-50"
+              >
+                {isRTL ? 'דלג' : 'Skip'}
+              </Button>
+            </div>
+          </motion.div>
+        </motion.div>
+      </AnimatePresence>
+    );
+  };
+
   const renderQuestionCard = () => {
     if (!currentQuestion) {
       return (
@@ -428,6 +575,12 @@ export default function WorldComponent({
     );
   };
 
+  const haptic = () => {
+    if (typeof navigator !== 'undefined' && navigator.vibrate) {
+      navigator.vibrate(10);
+    }
+  };
+
   const renderNavigationButtons = () => {
     const PrevIcon = isRTL ? ArrowRight : ArrowLeft;
     const NextIcon = isRTL ? ArrowLeft : ArrowRight;
@@ -492,7 +645,8 @@ export default function WorldComponent({
     // Mobile buttons
     return (
       <motion.div
-        className="fixed bottom-4 left-0 right-0 z-40 px-4"
+        className="fixed bottom-0 left-0 right-0 z-40 px-4 pb-4"
+        style={{ paddingBottom: 'max(1rem, env(safe-area-inset-bottom))' }}
         initial={{ opacity: 0, y: 100 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3, type: 'spring', stiffness: 100 }}
@@ -500,8 +654,8 @@ export default function WorldComponent({
         <div className="max-w-2xl mx-auto flex items-center justify-between gap-3">
           <Button
             variant="outline"
-            onClick={handlePrevious}
-            className="flex items-center gap-2 rounded-full px-5 py-6 bg-white/95 backdrop-blur-sm border-2 shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300"
+            onClick={() => { haptic(); handlePrevious(); }}
+            className="flex items-center gap-2 rounded-full px-5 h-14 bg-white/95 backdrop-blur-sm border-2 shadow-lg hover:shadow-xl active:scale-95 transition-all duration-200"
           >
             <PrevIcon className="h-5 w-5" />
             <span className="font-semibold text-sm">
@@ -511,7 +665,7 @@ export default function WorldComponent({
             </span>
           </Button>
 
-          <div className="flex items-center gap-2 px-4 py-3 bg-white/95 backdrop-blur-sm rounded-full border-2 border-gray-200 shadow-lg">
+          <div className="flex items-center gap-2 px-4 h-14 bg-white/95 backdrop-blur-sm rounded-full border-2 border-gray-200 shadow-lg">
             <span className="text-xs font-bold text-gray-600">
               {currentQuestionIndex + 1}/{allQuestions.length}
             </span>
@@ -519,9 +673,9 @@ export default function WorldComponent({
 
           {currentQuestionIndex < allQuestions.length - 1 ? (
             <Button
-              onClick={handleNext}
+              onClick={() => { haptic(); handleNext(); }}
               className={cn(
-                'flex items-center gap-2 rounded-full px-5 py-6 font-bold shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300',
+                'flex items-center gap-2 rounded-full px-5 h-14 font-bold shadow-lg hover:shadow-xl active:scale-95 transition-all duration-200',
                 'bg-gradient-to-r text-white',
                 gradient
               )}
@@ -531,9 +685,9 @@ export default function WorldComponent({
             </Button>
           ) : (
             <Button
-              onClick={handleNext}
+              onClick={() => { haptic(); handleNext(); }}
               disabled={isCompleting}
-              className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white flex items-center gap-2 rounded-full px-5 py-6 font-bold shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 disabled:opacity-70 disabled:scale-100"
+              className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white flex items-center gap-2 rounded-full px-5 h-14 font-bold shadow-lg hover:shadow-xl active:scale-95 transition-all duration-200 disabled:opacity-70 disabled:scale-100"
             >
               {isCompleting ? (
                 <>
@@ -836,19 +990,22 @@ export default function WorldComponent({
           </AnimatePresence>
         </div>
         {renderCelebration()}
+        {renderWorldIntroModal()}
       </div>
     );
   } else {
     // Mobile view
     return (
       <div
-        className="max-w-2xl mx-auto p-2 sm:p-4 space-y-6 pb-32 min-h-screen"
+        className="max-w-2xl mx-auto p-2 sm:p-4 space-y-6 min-h-screen"
+        style={{ paddingBottom: 'max(7rem, calc(env(safe-area-inset-bottom) + 7rem))' }}
         dir={isRTL ? 'rtl' : 'ltr'}
       >
         <MobileWorldHeader />
         {renderQuestionCard()}
         {renderNavigationButtons()}
         {renderCelebration()}
+        {renderWorldIntroModal()}
       </div>
     );
   }

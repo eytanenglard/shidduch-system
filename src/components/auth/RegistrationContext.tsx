@@ -9,7 +9,7 @@ import React, {
   ReactNode,
   useCallback,
 } from 'react';
-import { Gender, UserStatus, UserSource } from '@prisma/client';
+import { Gender, UserStatus, UserSource, ReligiousJourney } from '@prisma/client';
 import type { User as SessionUserType } from '@/types/next-auth';
 
 // ============================================================================
@@ -69,6 +69,7 @@ export interface RegistrationData {
   occupation?: string;
   education?: string;
   religiousLevel?: string;
+  religiousJourney?: ReligiousJourney;
   origin: string;
   city: string;
   hasChildren: boolean;
@@ -101,6 +102,7 @@ const initialRegistrationData: RegistrationData = {
   occupation: '',
   education: '',
   religiousLevel: '',
+  religiousJourney: undefined,
   origin: '',
   city: '',
   hasChildren: false,
@@ -180,6 +182,7 @@ interface FullRegistrationInfo {
     occupation?: string;
     education?: string;
     religiousLevel?: string;
+    religiousJourney?: ReligiousJourney;
     city?: string;
     origin?: string;
     hasChildrenFromPrevious?: boolean;
@@ -245,6 +248,7 @@ function buildBaseData(
     occupation: profile.occupation || '',
     education: profile.education || '',
     religiousLevel: profile.religiousLevel || '',
+    religiousJourney: profile.religiousJourney || undefined,
     city: profile.city || '',
     origin: profile.origin || '',
     hasChildren: profile.hasChildrenFromPrevious || false,

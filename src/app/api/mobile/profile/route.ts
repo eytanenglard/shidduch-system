@@ -79,6 +79,7 @@ function buildProfileResponse(p: Profile, testimonials?: any[]) {
     religiousLevel: p.religiousLevel,
     religiousJourney: p.religiousJourney,
     shomerNegiah: p.shomerNegiah,
+    smokingStatus: p.smokingStatus,
     serviceType: p.serviceType,
     serviceDetails: p.serviceDetails,
     headCovering: p.headCovering,
@@ -123,6 +124,7 @@ function buildProfileResponse(p: Profile, testimonials?: any[]) {
 
     // Preferences - Single Select
     preferredShomerNegiah: p.preferredShomerNegiah,
+    preferredSmokingStatus: p.preferredSmokingStatus,
     preferredPartnerHasChildren: p.preferredPartnerHasChildren,
     preferredAliyaStatus: p.preferredAliyaStatus,
 
@@ -417,6 +419,8 @@ if (body.birthDate !== undefined) {
 
     // ---- Preferences - Single Select ----
     if (body.preferredShomerNegiah !== undefined) dataToUpdate.preferredShomerNegiah = emptyStringToNull(body.preferredShomerNegiah);
+    if (body.smokingStatus !== undefined) dataToUpdate.smokingStatus = emptyStringToNull(body.smokingStatus);
+    if (body.preferredSmokingStatus !== undefined) dataToUpdate.preferredSmokingStatus = emptyStringToNull(body.preferredSmokingStatus);
     if (body.preferredPartnerHasChildren !== undefined) dataToUpdate.preferredPartnerHasChildren = emptyStringToNull(body.preferredPartnerHasChildren);
     if (body.preferredAliyaStatus !== undefined) dataToUpdate.preferredAliyaStatus = emptyStringToNull(body.preferredAliyaStatus);
 

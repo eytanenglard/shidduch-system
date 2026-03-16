@@ -234,9 +234,33 @@ export async function GET(req: Request) {
       }
     }
 
+    const profileSelect = {
+      id: true,
+      gender: true,
+      birthDate: true,
+      city: true,
+      occupation: true,
+      education: true,
+    };
+
     const suggestions = await prisma.matchSuggestion.findMany({
       where,
-      include: {
+      select: {
+        id: true,
+        status: true,
+        priority: true,
+        createdAt: true,
+        updatedAt: true,
+        lastActivity: true,
+        decisionDeadline: true,
+        matchingReason: true,
+        firstPartyNotes: true,
+        secondPartyNotes: true,
+        internalNotes: true,
+        matchmakerId: true,
+        firstPartyId: true,
+        secondPartyId: true,
+        category: true,
         firstParty: {
           select: {
             id: true,
@@ -245,11 +269,13 @@ export async function GET(req: Request) {
             lastName: true,
             status: true,
             isVerified: true,
+            isProfileComplete: true,
             images: {
+              where: { isMain: true },
               select: { id: true, url: true, isMain: true },
-              orderBy: [{ isMain: 'desc' }, { createdAt: 'asc' }],
+              take: 1,
             },
-            profile: true,
+            profile: { select: profileSelect },
           },
         },
         secondParty: {
@@ -260,24 +286,21 @@ export async function GET(req: Request) {
             lastName: true,
             status: true,
             isVerified: true,
+            isProfileComplete: true,
             images: {
+              where: { isMain: true },
               select: { id: true, url: true, isMain: true },
-              orderBy: [{ isMain: 'desc' }, { createdAt: 'asc' }],
+              take: 1,
             },
-            profile: true,
+            profile: { select: profileSelect },
           },
         },
         matchmaker: {
           select: { id: true, firstName: true, lastName: true, role: true },
         },
-        statusHistory: { orderBy: { createdAt: 'desc' } },
-        meetings: { orderBy: { createdAt: 'desc' } },
-        inquiries: {
-          include: {
-            fromUser: { select: { id: true, firstName: true, lastName: true } },
-            toUser: { select: { id: true, firstName: true, lastName: true } },
-          },
-          orderBy: { createdAt: 'asc' },
+        statusHistory: {
+          orderBy: { createdAt: 'desc' },
+          take: 5,
         },
       },
       orderBy: { lastActivity: 'desc' },

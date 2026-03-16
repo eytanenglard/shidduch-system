@@ -264,6 +264,39 @@
         "regularly": "I smoke regularly",
         "trying_to_quit": "I smoke but I'm trying to quit"
       }
+    },
+    "personality_growth_after_previous_marriage": {
+      "question": "Your previous marriage taught you something profound about yourself. What did you discover about your personality, needs, and patterns — things you may not have known before?",
+      "placeholder": "e.g., 'I discovered I need more personal space than I thought', 'I realized I struggle to ask for help', 'I learned how important humor is to me in a relationship...'",
+      "helpText": "There are no right or wrong answers here — just real life experience that helps us understand who you are today."
+    },
+    "personality_life_stage_senior": {
+      "question": "At this stage of life, which description feels most accurate to you?",
+      "helpText": "Knowing where you are in life helps us find someone who matches your energy and pace.",
+      "options": {
+        "peak_activity": "Peak activity — I'm busy, active, and full of energy.",
+        "selective_slowdown": "Selective slowdown — pausing to breathe and choosing what matters.",
+        "reinvention": "Reinvention — a new chapter, exciting new possibilities.",
+        "peace_contentment": "Peace and contentment — a calmer life focused on what truly brings joy."
+      }
+    },
+    "personality_emotional_expression_men": {
+      "question": "On a scale of 1 (very hard for me to express emotions) to 10 (very comfortable sharing everything), how comfortable are you with emotional expression?",
+      "helpText": "There's no right answer — this helps us find a match with complementary emotional communication styles.",
+      "labels": {
+        "min": "Keep it inside",
+        "max": "Open and expressive"
+      }
+    },
+    "personality_daily_learning_charedi": {
+      "question": "How much time per day do you dedicate to Torah study?",
+      "helpText": "The level of Torah commitment is a central part of lifestyle, helping us match you with someone who has similar expectations.",
+      "options": {
+        "full_day_kollel": "All day — I learn in kollel full time",
+        "half_day_learning": "Half day — learning combined with work",
+        "morning_learning": "Morning learning — a shiur before the workday",
+        "evening_learning": "Evening learning — a regular shiur after work"
+      }
     }
   },
   "VALUES": {
@@ -477,6 +510,31 @@
       "question": "(Optional question for deeper sharing) Sometimes, the greatest challenges we've faced become our greatest sources of strength. If you're comfortable sharing, how did one of the experiences you marked shape you and make you the sensitive, strong, or wise person you are today?",
       "placeholder": "For example: 'The social difficulties I experienced taught me to be very sensitive to others and to be a loyal friend,' or 'The fact my parents worked hard taught me independence and responsibility from a young age,' or 'The struggles at home taught me how important open communication is in a relationship.'",
       "helpText": "Your honesty here is a gift. It allows us to see not just your background, but the depth and maturity that grew from it. This information will remain strictly confidential and will only be used by the matchmaking team to find a match with understanding and sensitivity."
+    },
+    "values_priority_shift_after_divorce": {
+      "question": "Looking back on your previous marriage — what changed in terms of values? What was important to you then that matters less now, and what did you discover matters more than you realized?",
+      "placeholder": "e.g., 'I used to focus on career, now peaceful home life matters infinitely more to me', 'I discovered how important it is to have a partner who can have difficult conversations'...",
+      "helpText": "Your experience is an asset. Your insights help us match you with someone who truly understands what you're looking for at a deeper level."
+    },
+    "values_children_role_blended_family": {
+      "question": "Your children are an inseparable part of who you are. How do you see their role in a new shared life with a partner?",
+      "placeholder": "e.g., 'My children will always be the priority and a partner needs to understand that', 'I'm looking for someone who will love them like their own', 'I separate my time with them from my couple time'...",
+      "helpText": "There's no 'right' answer. Your honesty helps us find a match that genuinely respects your family."
+    },
+    "values_legacy_and_wealth_senior": {
+      "question": "Decades of life have built within you a treasure of experience, wisdom, and perspective. What do you see as the true 'wealth' you've accumulated — and what do you want to share with a life partner?",
+      "placeholder": "e.g., 'A wealth of relationships and family', 'Professional knowledge I want to keep contributing', 'Inner peace I'd love to share', 'Life stories and experiences...'",
+      "helpText": "We believe your experience is a gift. This question helps us connect you with someone who truly appreciates and wants to listen."
+    },
+    "values_spirituality_secular": {
+      "question": "Judaism — an ancient tradition that has accompanied the Jewish people for thousands of years. What does it mean to you personally?",
+      "helpText": "Everyone defines their Jewish identity differently. There's no right answer here — only your authentic makeup.",
+      "options": {
+        "universal_ethics": "Primarily universal human values — justice, kindness, ethics",
+        "cultural_jewish_identity": "Cultural-national identity — being part of a people and history",
+        "occasional_connection": "Holidays and traditions — moments of connection to roots",
+        "actively_exploring": "In process — finding my own path between tradition and modernity"
+      }
     }
   },
   "RELATIONSHIP": {
@@ -672,6 +730,48 @@
       "question": "What is the most significant insight you've learned about yourself or about relationships from your dating experiences to date?",
       "placeholder": "For example: 'I learned that I need more time to open up,' 'I realized how important a shared sense of humor is to me,' or 'I discovered I used to give too much weight to superficial things.'",
       "helpText": "This question isn't meant to pry, but to understand your starting point today. Your honesty here will help us find more suitable matches for you."
+    },
+    "relationship_approach_second_time": {
+      "question": "Unlike the first time, you now approach a relationship with real life experience. What's different in your approach this time — where are you less flexible, and where are you more?",
+      "placeholder": "e.g., 'This time I know my 'red lines' and I won't compromise them', 'I'm less romantic and more pragmatic', 'This time I'm more patient and less hasty'...",
+      "helpText": "Your approach tells us what you've learned and how you'll enter a new relationship. There's no hidden answer — honesty is better."
+    },
+    "relationship_pacing_second_marriage": {
+      "question": "In your view, how much time is needed before moving to the 'serious' stage (engagement/marriage)?",
+      "helpText": "Everyone has a pace that feels right. It's important we know yours to match you with a partner with similar expectations.",
+      "options": {
+        "slow_careful": "Slow and careful — I need time to really get to know someone (1+ year)",
+        "moderate_pace": "Balanced pace — several months of deep getting-to-know",
+        "follow_the_heart": "Follow the heart — if they're right, it'll feel right quickly too",
+        "depends_on_connection": "Depends on the connection — I don't have a rigid position, it'll develop"
+      }
+    },
+    "relationship_blended_family_vision": {
+      "question": "When both sides have children, a complex and special family is created. How do you envision this developing — what feels right and what feels challenging?",
+      "placeholder": "e.g., 'It's important to me that the children are introduced gradually', 'I expect the other side's children to become part of the family', 'It's important to me to keep clear boundaries between my side and their side'...",
+      "helpText": "Blended families require communication, agreements, and lots of love. There's no 'right' answer here — what matters is knowing what feels right to you."
+    },
+    "relationship_companionship_senior": {
+      "question": "At this stage of life, what's most important to share with a partner? (Choose up to 3)",
+      "helpText": "Your expectations from the partnership now are different from when you were 25 — we want to understand exactly what matters to you today.",
+      "options": {
+        "daily_companionship": "Day-to-day companionship — side by side in everyday life",
+        "travel_adventures": "Shared travels and adventures",
+        "shared_grandchildren": "The joy of grandchildren together",
+        "mutual_health_support": "Mutual support in health matters",
+        "intellectual_partnership": "Deep conversations, perspectives, shared growth",
+        "spiritual_growth_together": "Shared spiritual and faith-based growth"
+      }
+    },
+    "relationship_children_vision_senior": {
+      "question": "Regarding additional children — what feels right to you at this stage?",
+      "helpText": "This question helps us align expectations between both sides on an important topic.",
+      "options": {
+        "not_relevant_at_this_stage": "No longer relevant for me at this stage",
+        "open_if_possible": "Open to the possibility if circumstances allow",
+        "grandchildren_are_enough": "Grandchildren are enough — I want to be a good grandparent",
+        "would_still_consider": "I still have this aspiration — depends on circumstances"
+      }
     }
   },
   "PARTNER": {
@@ -834,6 +934,70 @@
       "question": "Beyond a checklist, think about a type of energy or character trait that you know you just couldn't live with day-to-day. What is the interpersonal dynamic that is the complete 'antithesis' of who you are?",
       "placeholder": "For example: 'I can't be with someone who is constantly cynical and critical,' 'a passive person who always needs to be motivated,' 'someone overly dramatic,' 'a very controlling person'...",
       "helpText": "Your answer helps us understand the relational environment in which you thrive, and the one in which you wither. This is just as important as matching values."
+    },
+
+    "partner_second_marriage_preference": {
+      "question": "Does it matter to you whether your partner has also been previously married?",
+      "helpText": "Shared life experience can create deeper mutual understanding. What works best for you?",
+      "options": {
+        "prefer_same_background": "I prefer someone who has also been through a divorce or loss — they'll understand me better.",
+        "open_to_first_marriage": "I'm open to someone on their first marriage — it doesn't matter much to me.",
+        "doesnt_matter": "It doesn't matter at all — what matters is the person themselves."
+      }
+    },
+    "partner_accepting_stepchildren": {
+      "question": "If your partner has children from a previous marriage, how do you approach that?",
+      "helpText": "A practical and important question for building a blended family.",
+      "options": {
+        "fully_open": {
+          "text": "Fully open",
+          "description": "I'm happy to embrace them as part of our shared life."
+        },
+        "open_with_boundaries": {
+          "text": "Open with clear boundaries",
+          "description": "I have room for this, but it's important we define my role together."
+        },
+        "depends_on_ages": {
+          "text": "Depends on their ages",
+          "description": "Young children require a different level of commitment than older ones."
+        },
+        "prefer_no_children": {
+          "text": "I'd prefer no children from a previous marriage",
+          "description": "This is too complex for me at this stage."
+        }
+      }
+    },
+    "partner_priorities_senior": {
+      "question": "At this stage of life, what matters most to you in a partner? Distribute 100 points among the following:",
+      "helpText": "Priorities shift with age — this question helps us find a match truly suited to where you are in life.",
+      "categories": {
+        "health_vitality": "Health & Vitality",
+        "financial_stability": "Financial Stability",
+        "emotional_availability": "Emotional Availability & Presence",
+        "family_integration": "Integration with Family (children, grandchildren)",
+        "shared_interests": "Shared Interests & Activities",
+        "spiritual_alignment": "Shared Spiritual & Religious Connection"
+      }
+    },
+    "partner_torah_learning_expectation_charedi": {
+      "question": "What are your expectations of your partner regarding Torah learning as a way of life?",
+      "helpText": "A core question for building a Charedi home — aligning expectations here prevents future misunderstandings.",
+      "options": {
+        "kollel_full_time": "Full-time kollel — this is the model I aspire to.",
+        "kollel_partial": "Part-time kollel — learning part of the day, working the rest.",
+        "working_and_learning": "Working and learning — fixed times for Torah study alongside a career.",
+        "flexible": "Flexible — what matters most is the commitment, not the specific framework."
+      }
+    },
+    "partner_head_covering_women": {
+      "question": "Head covering after marriage — what is your approach?",
+      "helpText": "This question helps us understand the level of modesty observance you envision in your home.",
+      "options": {
+        "full_covering": "Full head covering — wig, tichel, or hat.",
+        "partial_covering": "Partial covering — tichel in various styles depending on the occasion.",
+        "not_yet_decided": "I haven't yet formed a clear opinion on this.",
+        "not_planning_to_cover": "I don't plan to cover my hair."
+      }
     }
   },
   "RELIGION": {
@@ -1009,6 +1173,61 @@
       "question": "What is your vision for the spiritual atmosphere and religious education of the children in the home you hope to build?",
       "placeholder": "For example: type of school system (e.g., Modern Orthodox, Centrist, Yeshivish), the atmosphere at home (e.g., open, more insular), emphasis on specific values.",
       "helpText": "This is one of the most important areas for long-term compatibility."
+    },
+
+    "religion_kollel_financial_model": {
+      "question": "What Torah-learning and financial model do you envision for your shared life?",
+      "helpText": "A foundational question for Charedi couples — aligning on this before marriage is essential.",
+      "options": {
+        "wife_supports_full_kollel": {
+          "text": "Wife works, husband learns full-time in kollel",
+          "description": "A model fully dedicated to Torah study."
+        },
+        "partial_support_partial_work": {
+          "text": "Part-time kollel + part-time work",
+          "description": "A blend — part of the day learning, part working."
+        },
+        "work_and_learn": {
+          "text": "Working and learning",
+          "description": "Fixed times for Torah study alongside full-time work."
+        },
+        "flexible_by_stage": {
+          "text": "Flexible by life stage",
+          "description": "May change — kollel early on, transitioning to work later."
+        }
+      }
+    },
+    "religion_shomer_negiah_approach": {
+      "question": "What is your personal approach to shmirat negiah (refraining from physical contact) before marriage?",
+      "helpText": "This is a very personal question — honesty here allows for better compatibility.",
+      "options": {
+        "strictly_shomer": "I observe shmirat negiah strictly.",
+        "personal_decision": "It's a personal decision — I have my own approach.",
+        "not_my_practice": "I do not practice shmirat negiah.",
+        "prefer_not_to_answer": "I prefer not to answer this question."
+      }
+    },
+    "religion_jewish_identity_secular": {
+      "question": "What does Judaism mean to you? Distribute 100 points among the following dimensions:",
+      "helpText": "This question helps us understand your relationship with Judaism — cultural, ethical, or spiritual.",
+      "categories": {
+        "cultural_heritage": "Cultural & historical heritage",
+        "ethical_values": "Universal ethics and values",
+        "holiday_tradition": "Holidays, traditions & family atmosphere",
+        "community_belonging": "Belonging to the Jewish people and community",
+        "personal_spiritual": "Personal spiritual exploration",
+        "minimal_connection": "Jewish identity is less central for me"
+      }
+    },
+    "religion_faith_after_hardship": {
+      "question": "Did your divorce or loss change your relationship with faith and spirituality?",
+      "helpText": "Difficult experiences often shift our spiritual connection. This question helps us understand where you are today.",
+      "options": {
+        "strengthened_faith": "It strengthened my faith — I found strength and support in religion.",
+        "unchanged": "It didn't change it — my relationship with faith stayed the same.",
+        "created_questions": "It raised questions — I'm still working through my doubts.",
+        "weakened_connection": "It distanced me — I feel less connected to faith than before."
+      }
     }
   }
 }

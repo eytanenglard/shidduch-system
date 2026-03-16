@@ -338,6 +338,8 @@ export const ProfileChecklist: React.FC<ProfileChecklistProps> = ({
       !p.religiousJourney && getLabel('religiousJourney'),
       (p.shomerNegiah === null || p.shomerNegiah === undefined) &&
         getLabel('shomerNegiah'),
+      (p.smokingStatus === null || p.smokingStatus === undefined) &&
+        getLabel('smokingStatus'),
 
       // Education & Work
       !p.educationLevel && getLabel('educationLevel'),
@@ -371,6 +373,9 @@ export const ProfileChecklist: React.FC<ProfileChecklistProps> = ({
       (p.preferredShomerNegiah === null ||
         p.preferredShomerNegiah === undefined) &&
         getLabel('preferredShomerNegiah'),
+      (p.preferredSmokingStatus === null ||
+        p.preferredSmokingStatus === undefined) &&
+        getLabel('preferredSmokingStatus'),
       (!p.preferredEducation || p.preferredEducation.length === 0) &&
         getLabel('preferredEducation'),
       (!p.preferredOccupations || p.preferredOccupations.length === 0) &&
@@ -580,6 +585,9 @@ export const ProfileChecklist: React.FC<ProfileChecklistProps> = ({
       otherTasksStatus.push(
         p.shomerNegiah !== null && p.shomerNegiah !== undefined
       );
+      otherTasksStatus.push(
+        p.smokingStatus !== null && p.smokingStatus !== undefined
+      );
 
       // Education & Work (הוסר serviceDetails)
       otherTasksStatus.push(!!p.educationLevel);
@@ -616,6 +624,10 @@ export const ProfileChecklist: React.FC<ProfileChecklistProps> = ({
       otherTasksStatus.push(
         p.preferredShomerNegiah !== null &&
           p.preferredShomerNegiah !== undefined
+      );
+      otherTasksStatus.push(
+        p.preferredSmokingStatus !== null &&
+          p.preferredSmokingStatus !== undefined
       );
       otherTasksStatus.push(
         !!(p.preferredEducation && p.preferredEducation.length > 0)

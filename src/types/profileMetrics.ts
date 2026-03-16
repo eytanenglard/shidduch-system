@@ -316,6 +316,8 @@ export interface MetricsExtractionInput {
     shomerNegiah?: boolean;
     headCovering?: string;
     kippahType?: string;
+    smokingStatus?: string;
+    preferredSmokingStatus?: string;
   };
   
   questionnaireAnswers?: {

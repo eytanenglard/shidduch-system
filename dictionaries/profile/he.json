@@ -99,6 +99,7 @@
         "religiousLevel": "רמה דתית",
         "religiousJourney": "מסלול דתי",
         "shomerNegiah": "שמירת נגיעה",
+        "smokingStatus": "סטטוס עישון",
         "influentialRabbi": "דמות משפיעה",
         "headCovering": "כיסוי ראש",
         "kippahType": "סוג כיפה",
@@ -122,6 +123,7 @@
         "preferredReligiousLevels": "רמות דתיות מועדפות",
         "preferredReligiousJourneys": "מסלולים דתיים מועדפים",
         "preferredShomerNegiah": "העדפת שמירת נגיעה",
+        "preferredSmokingStatus": "העדפת עישון",
         "preferredKippahTypes": "סוגי כיפות מועדפים",
         "preferredHeadCoverings": "סוגי כיסוי ראש מועדפים",
         "preferredEducation": "רמות השכלה מועדפות",
@@ -429,7 +431,10 @@
         "headCoveringLegend": "העדפת כיסוי ראש לבת הזוג",
         "headCoveringEmpty": "לא נבחרו העדפות כיסוי ראש.",
         "kippahTypeLegend": "העדפת סוג כיפה לבן הזוג",
-        "kippahTypeEmpty": "לא נבחרו העדפות סוג כיפה."
+        "kippahTypeEmpty": "לא נבחרו העדפות סוג כיפה.",
+        "smokingPreferenceLabel": "האם עישון מפריע לך אצל בן/בת הזוג?",
+        "smokingPreferencePlaceholder": "בחר/י העדפה...",
+        "smokingPreferenceEmpty": "לא צוינה העדפה לגבי עישון."
       },
       "educationAndCareer": {
         "title": "השכלה, תעסוקה ושירות",
@@ -492,12 +497,23 @@
         "DATLASH": "יצא/ה בשאלה (דתל\"ש)",
         "CONVERT": "גר/ה / גיורת",
         "IN_PROCESS": "בתהליך שינוי",
+        "FROM_CHAREDI_HOME": "גדל/ה בבית חרדי (ליטאי / ספרדי)",
+        "FROM_CHAREDI_HASIDIC_HOME": "גדל/ה בבית חסידי",
+        "FROM_DATI_LEUMI_HOME": "גדל/ה בבית דתי לאומי",
+        "FROM_MASORTI_HOME": "גדל/ה בבית מסורתי",
+        "OTHER": "אחר",
         "no_preference": "ללא העדפה / גמיש"
       },
       "shomerNegiah": {
         "yes": "כן, חשוב לי",
         "no": "לא, אין העדפה",
         "flexible": "גמיש/תלוי באדם"
+      },
+      "preferredSmokingStatus": {
+        "no_preference": "לא מפריע לי כלל",
+        "slightly_bothers": "קצת מפריע, אבל לא קריטי",
+        "no_smokers": "מעדיף/ה שלא יעשן/ת",
+        "deal_breaker": "זה קו אדום עבורי"
       },
       "education": {
         "high_school": "תיכונית",
@@ -751,7 +767,10 @@
         "matchmakerGenderDefault": "ללא העדפה",
         "influentialRabbiLabel": "דמות רבנית/רוחנית משפיעה",
         "influentialRabbiPlaceholder": "שם הדמות, וכיצד היא השפיעה עליך...",
-        "influentialRabbiEmpty": "לא צוינה דמות משפיעה."
+        "influentialRabbiEmpty": "לא צוינה דמות משפיעה.",
+        "smokingStatusLabel": "עישון",
+        "smokingStatusPlaceholder": "בחר/י...",
+        "smokingStatusEmpty": "לא צוין סטטוס עישון."
       },
       "about": {
         "title": "קצת עלי ומידע נוסף",
@@ -897,6 +916,10 @@
         "DATLASH": "יצאתי בשאלה (דתל\"ש)",
         "CONVERT": "גר/ה / גיורת",
         "IN_PROCESS": "בתהליך של שינוי / התלבטות",
+        "FROM_CHAREDI_HOME": "גדלתי בבית חרדי (ליטאי / ספרדי)",
+        "FROM_CHAREDI_HASIDIC_HOME": "גדלתי בבית חסידי",
+        "FROM_DATI_LEUMI_HOME": "גדלתי בבית דתי לאומי",
+        "FROM_MASORTI_HOME": "גדלתי בבית מסורתי",
         "OTHER": "אחר (נא לפרט בהערות)"
       },
       "educationLevel": {
@@ -961,6 +984,12 @@
         "MALE": "שדכן",
         "FEMALE": "שדכנית",
         "NONE": "ללא העדפה"
+      },
+      "smokingStatus": {
+        "never": "לא מעשן/ת כלל",
+        "occasionally": "מעשן/ת לפעמים",
+        "regularly": "מעשן/ת באופן קבוע",
+        "trying_to_quit": "בתהליך הפסקת עישון"
       },
       "medicalTiming": {
         "FROM_THE_START": "מההתחלה (מומלץ לנושאים מהותיים)",
@@ -1464,6 +1493,10 @@
         "DATLASH": "יצאתי בשאלה (דתל\"ש)",
         "CONVERT": "גר/ה / גיורת",
         "IN_PROCESS": "בתהליך של שינוי / התלבטות",
+        "FROM_CHAREDI_HOME": "גדלתי בבית חרדי (ליטאי / ספרדי)",
+        "FROM_CHAREDI_HASIDIC_HOME": "גדלתי בבית חסידי",
+        "FROM_DATI_LEUMI_HOME": "גדלתי בבית דתי לאומי",
+        "FROM_MASORTI_HOME": "גדלתי בבית מסורתי",
         "OTHER": "אחר (נא לפרט בהערות)"
       },
       "educationLevel": {

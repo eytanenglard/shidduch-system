@@ -35,6 +35,7 @@ interface ProfileWithMetrics {
   height?: number;
   city?: string;
   religiousLevel?: string;
+  religiousJourney?: string;
   nativeLanguage?: string;
   additionalLanguages?: string[];
   hasChildrenFromPrevious?: boolean;
@@ -47,6 +48,7 @@ interface ProfileWithMetrics {
   preferredHeightMin?: number;
   preferredHeightMax?: number;
   preferredReligiousLevels?: string[];
+  preferredReligiousJourneys?: string[];
   metrics?: ProfileMetrics;
 }
 
@@ -191,9 +193,11 @@ async function fetchProfileWithMetrics(profileId: string): Promise<ProfileWithMe
     height: profile.height || undefined,
     city: profile.city || metrics?.inferredCity || undefined,
     religiousLevel: profile.religiousLevel || metrics?.inferredReligiousLevel || undefined,
+    religiousJourney: profile.religiousJourney || undefined,
     nativeLanguage: profile.nativeLanguage || undefined,
     additionalLanguages: profile.additionalLanguages || undefined,
     hasChildrenFromPrevious: profile.hasChildrenFromPrevious || undefined,
+    smoking: profile.smokingStatus || undefined,
     shomerNegiah: profile.shomerNegiah || undefined,
     headCovering: profile.headCovering || undefined,
     kippahType: profile.kippahType || undefined,
@@ -202,6 +206,7 @@ async function fetchProfileWithMetrics(profileId: string): Promise<ProfileWithMe
     preferredHeightMin: profile.preferredHeightMin || undefined,
     preferredHeightMax: profile.preferredHeightMax || undefined,
     preferredReligiousLevels: profile.preferredReligiousLevels || undefined,
+    preferredReligiousJourneys: profile.preferredReligiousJourneys?.length ? profile.preferredReligiousJourneys : undefined,
     metrics: metrics ? {
       ...metrics,
       dealBreakersHard: parseJson(metrics.dealBreakersHard),
@@ -397,6 +402,13 @@ function calculateSoftPenalties(
   if (isEnglishOnly(seeker) && !speaksEnglish(candidate)) {
     // קנס קטן - לא חוסם, רק מוריד קצת
     applied.push({ type: 'LANGUAGE_BARRIER', penalty: 8 });
+  }
+
+  // מסלול דתי - בונוס/קנס עדין
+  if (seeker.preferredReligiousJourneys?.length && candidate.religiousJourney) {
+    if (!seeker.preferredReligiousJourneys.includes(candidate.religiousJourney)) {
+      applied.push({ type: 'RELIGIOUS_JOURNEY_MISMATCH', penalty: 5 });
+    }
   }
 
   // Deal Breakers רכים מותאמים אישית

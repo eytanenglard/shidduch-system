@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSession } from 'next-auth/react';
 import { useRegistration } from '../RegistrationContext';
-import { Gender } from '@prisma/client';
+import { Gender, ReligiousJourney } from '@prisma/client';
 import Autocomplete from 'react-google-autocomplete';
 
 // Icons
@@ -388,7 +388,7 @@ export default function PersonalDetailsStep({
   >(null);
 
   // ============================================================================
-  // RELIGIOUS LEVEL OPTIONS
+  // RELIGIOUS LEVEL + JOURNEY OPTIONS
   // ============================================================================
 
   const religiousLevelOptions = useMemo(() => {
@@ -396,6 +396,23 @@ export default function PersonalDetailsStep({
       ([value, label]) => ({ value, label })
     );
   }, [personalDetailsDict.religiousLevels]);
+
+  const religiousJourneyOptions = useMemo(() => {
+    return Object.entries(personalDetailsDict.religiousJourneys).map(
+      ([value, label]) => ({ value, label })
+    );
+  }, [personalDetailsDict.religiousJourneys]);
+
+  // Controls the conditional 2-step religious journey question
+  const [journeyQuestionAnswer, setJourneyQuestionAnswer] = useState<
+    'yes' | 'no' | null
+  >(
+    registrationState.religiousJourney === ReligiousJourney.BORN_INTO_CURRENT_LIFESTYLE
+      ? 'yes'
+      : registrationState.religiousJourney
+      ? 'no'
+      : null
+  );
 
   // ============================================================================
   // EFFECTS
@@ -745,6 +762,7 @@ export default function PersonalDetailsStep({
         birthDate: registrationState.birthDate,
         maritalStatus: registrationState.maritalStatus,
         religiousLevel: registrationState.religiousLevel,
+        religiousJourney: registrationState.religiousJourney,
         city: registrationState.city,
         origin: registrationState.origin,
         height: registrationState.height,
@@ -1425,6 +1443,9 @@ export default function PersonalDetailsStep({
               onValueChange={(value) => {
                 updateField('religiousLevel', value);
                 if (value) setReligiousLevelError('');
+                // Reset journey answer when level changes
+                setJourneyQuestionAnswer(null);
+                updateField('religiousJourney', undefined);
               }}
               disabled={isLoading}
             >
@@ -1461,6 +1482,103 @@ export default function PersonalDetailsStep({
             )}
           </AnimatePresence>
         </motion.div>
+
+        {/* Religious Journey — conditional 2-step question */}
+        <AnimatePresence>
+          {registrationState.religiousLevel && (
+            <motion.div
+              key="journey-question"
+              initial={{ opacity: 0, y: -8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.25 }}
+              className="space-y-3"
+            >
+              <Label className="text-sm font-semibold text-gray-700 block">
+                {personalDetailsDict.religiousJourneyQuestion}
+              </Label>
+              <div className="flex gap-3">
+                <Button
+                  type="button"
+                  variant={journeyQuestionAnswer === 'yes' ? 'default' : 'outline'}
+                  size="sm"
+                  className={`flex-1 transition-all ${
+                    journeyQuestionAnswer === 'yes'
+                      ? 'bg-teal-600 hover:bg-teal-700 text-white border-teal-600'
+                      : 'border-gray-300 text-gray-700 hover:border-teal-400'
+                  }`}
+                  onClick={() => {
+                    setJourneyQuestionAnswer('yes');
+                    updateField('religiousJourney', ReligiousJourney.BORN_INTO_CURRENT_LIFESTYLE);
+                  }}
+                  disabled={isLoading}
+                >
+                  {personalDetailsDict.religiousJourneyYes}
+                </Button>
+                <Button
+                  type="button"
+                  variant={journeyQuestionAnswer === 'no' ? 'default' : 'outline'}
+                  size="sm"
+                  className={`flex-1 transition-all ${
+                    journeyQuestionAnswer === 'no'
+                      ? 'bg-teal-600 hover:bg-teal-700 text-white border-teal-600'
+                      : 'border-gray-300 text-gray-700 hover:border-teal-400'
+                  }`}
+                  onClick={() => {
+                    setJourneyQuestionAnswer('no');
+                    updateField('religiousJourney', undefined);
+                  }}
+                  disabled={isLoading}
+                >
+                  {personalDetailsDict.religiousJourneyNo}
+                </Button>
+              </div>
+
+              <AnimatePresence>
+                {journeyQuestionAnswer === 'no' && (
+                  <motion.div
+                    key="journey-dropdown"
+                    initial={{ opacity: 0, y: -6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -6 }}
+                    transition={{ duration: 0.2 }}
+                    className="space-y-1"
+                  >
+                    <Label className="text-xs text-gray-600">
+                      {personalDetailsDict.religiousJourneyLabel}
+                    </Label>
+                    <FieldWrapper
+                      icon={<BookOpen className="h-5 w-5" />}
+                      hasValue={!!registrationState.religiousJourney}
+                    >
+                      <Select
+                        dir={isRTL ? 'rtl' : 'ltr'}
+                        value={registrationState.religiousJourney || ''}
+                        onValueChange={(value) =>
+                          updateField('religiousJourney', value as ReligiousJourney)
+                        }
+                        disabled={isLoading}
+                      >
+                        <SelectTrigger className={inputBaseClasses(false)}>
+                          <SelectValue
+                            placeholder={personalDetailsDict.religiousJourneyPlaceholder}
+                          />
+                        </SelectTrigger>
+                        <SelectContent className="max-h-[220px]">
+                          {religiousJourneyOptions.map((opt) => (
+                            <SelectItem key={opt.value} value={opt.value}>
+                              {opt.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </FieldWrapper>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       {/* ====== SECTION 3: Photos ====== */}

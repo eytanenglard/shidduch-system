@@ -1961,6 +1961,9 @@ export type PreferencesSectionDict = {
       headCoveringEmpty: string;
       kippahTypeLegend: string;
       kippahTypeEmpty: string;
+      smokingPreferenceLabel: string;
+      smokingPreferencePlaceholder: string;
+      smokingPreferenceEmpty: string;
     };
     educationAndCareer: {
       title: string;
@@ -1997,6 +2000,7 @@ export type PreferencesSectionDict = {
     religiousLevels: { [key: string]: string };
     religiousJourneys: { [key: string]: string };
     shomerNegiah: { yes: string; no: string; flexible: string };
+    preferredSmokingStatus: { no_preference: string; slightly_bothers: string; no_smokers: string; deal_breaker: string };
     education: { [key: string]: string };
     occupation: { [key: string]: string };
     serviceTypes: { [key: string]: string };
@@ -2138,6 +2142,9 @@ export type ProfileSectionDict = {
       influentialRabbiLabel: string;
       influentialRabbiPlaceholder: string;
       influentialRabbiEmpty: string;
+      smokingStatusLabel: string;
+      smokingStatusPlaceholder: string;
+      smokingStatusEmpty: string;
     };
     about: {
       title: string;
@@ -2285,6 +2292,12 @@ export type ProfileSectionDict = {
       MALE: string;
       FEMALE: string;
       NONE: string;
+    };
+    smokingStatus: {
+      never: string;
+      occasionally: string;
+      regularly: string;
+      trying_to_quit: string;
     };
     medicalTiming: {
       FROM_THE_START: string;
@@ -2611,6 +2624,9 @@ export type ProfileCardDict = {
       influentialRabbiLabel: string;
       influentialRabbiPlaceholder: string;
       influentialRabbiEmpty: string;
+      smokingStatusLabel: string;
+      smokingStatusPlaceholder: string;
+      smokingStatusEmpty: string;
     };
     about: {
       title: string;
@@ -2714,6 +2730,12 @@ export type ProfileCardDict = {
       MALE: string;
       FEMALE: string;
       NONE: string;
+    };
+    smokingStatus: {
+      never: string;
+      occasionally: string;
+      regularly: string;
+      trying_to_quit: string;
     };
     medicalTiming: {
       FROM_THE_START: string;

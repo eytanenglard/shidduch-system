@@ -1122,6 +1122,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
       internalMatchmakerNotes: profileData?.internalMatchmakerNotes || '', // <--- הוסף שורה זו
 
       shomerNegiah: profileData?.shomerNegiah ?? undefined,
+      smokingStatus: profileData?.smokingStatus || undefined,
       serviceType: profileData?.serviceType || undefined,
       serviceDetails: profileData?.serviceDetails || '',
       headCovering: profileData?.headCovering || undefined,
@@ -2418,6 +2419,45 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
                         dict,
                         dict.cards.religion.influentialRabbiEmpty
                       )}
+                    </p>
+                  )}
+                </div>
+
+                {/* עישון */}
+                <div className="mt-6 pt-6 border-t border-gray-200/70">
+                  <Label
+                    htmlFor="smokingStatus"
+                    className="text-sm font-medium text-gray-700 block mb-1"
+                  >
+                    {dict.cards.religion.smokingStatusLabel}
+                  </Label>
+                  {isEditing && !viewOnly ? (
+                    <Select
+                      dir={direction}
+                      value={formData.smokingStatus || 'NONE'}
+                      onValueChange={(value) => {
+                        handleChange('smokingStatus', value === 'NONE' ? null : value);
+                      }}
+                    >
+                      <SelectTrigger
+                        id="smokingStatus"
+                        className="h-9 text-sm focus:ring-cyan-500 text-start"
+                      >
+                        <SelectValue placeholder={dict.cards.religion.smokingStatusPlaceholder} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="NONE">{dict.cards.religion.smokingStatusPlaceholder}</SelectItem>
+                        <SelectItem value="never">{dict.options.smokingStatus.never}</SelectItem>
+                        <SelectItem value="occasionally">{dict.options.smokingStatus.occasionally}</SelectItem>
+                        <SelectItem value="regularly">{dict.options.smokingStatus.regularly}</SelectItem>
+                        <SelectItem value="trying_to_quit">{dict.options.smokingStatus.trying_to_quit}</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <p className="text-sm text-gray-800 font-medium mt-1">
+                      {formData.smokingStatus
+                        ? (dict.options.smokingStatus as Record<string, string>)[formData.smokingStatus] || formData.smokingStatus
+                        : dict.cards.religion.smokingStatusEmpty}
                     </p>
                   )}
                 </div>

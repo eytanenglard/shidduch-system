@@ -195,6 +195,7 @@ export const religionQuestions: Question[] = [
       { value: 'torah_is_protection' },
       { value: 'flexible_personal_choice' },
     ],
+    conditions: { religiousLevel: ['dati', 'dati_lite', 'masorti', 'hiloni'] },
     metadata: { estimatedTime: 1 },
   },
   {
@@ -303,6 +304,85 @@ export const religionQuestions: Question[] = [
       { value: 'accept_openly' },
       { value: 'depends_on_context' },
     ],
+    metadata: { estimatedTime: 1 },
+  },
+
+  // ─── שאלות מותנות: חרדים ────────────────────────────────────────────────
+  {
+    worldId: 'RELIGION',
+    id: 'religion_kollel_financial_model',
+    category: 'religion',
+    subcategory: 'relationship_family',
+    type: 'iconChoice',
+    depth: 'BASIC',
+    isRequired: false,
+    options: [
+      { value: 'wife_supports_full_kollel', icon: <BookOpen /> },
+      { value: 'partial_support_partial_work', icon: <Scale /> },
+      { value: 'work_and_learn', icon: <Brain /> },
+      { value: 'flexible_by_stage', icon: <Sparkles /> },
+    ],
+    conditions: { religiousLevel: ['charedi', 'charedi_lite'] },
+    metadata: { estimatedTime: 1 },
+  },
+
+  // ─── שאלות מותנות: דתיים / חרדים ─────────────────────────────────────────
+  {
+    worldId: 'RELIGION',
+    id: 'religion_shomer_negiah_approach',
+    category: 'religion',
+    subcategory: 'practical_observance',
+    type: 'singleChoice',
+    depth: 'BASIC',
+    isRequired: false,
+    options: [
+      { value: 'strictly_shomer' },
+      { value: 'personal_decision' },
+      { value: 'not_my_practice' },
+      { value: 'prefer_not_to_answer' },
+    ],
+    conditions: { religiousLevel: ['dati', 'dati_lite', 'charedi', 'charedi_lite'] },
+    metadata: { estimatedTime: 1 },
+  },
+
+  // ─── שאלות מותנות: חילונים / מסורתיים ────────────────────────────────────
+  {
+    worldId: 'RELIGION',
+    id: 'religion_jewish_identity_secular',
+    category: 'religion',
+    subcategory: 'identity_belief',
+    type: 'budgetAllocation',
+    depth: 'BASIC',
+    isRequired: false,
+    totalPoints: 100,
+    categories: [
+      { value: 'cultural_heritage', icon: <Flag /> },
+      { value: 'ethical_values', icon: <Scale /> },
+      { value: 'holiday_tradition', icon: <Home /> },
+      { value: 'community_belonging', icon: <Users /> },
+      { value: 'personal_spiritual', icon: <Sparkles /> },
+      { value: 'minimal_connection', icon: <Smile /> },
+    ],
+    conditions: { religiousLevel: ['hiloni', 'masorti'] },
+    metadata: { estimatedTime: 3 },
+  },
+
+  // ─── שאלות מותנות: פרק ב' ────────────────────────────────────────────────
+  {
+    worldId: 'RELIGION',
+    id: 'religion_faith_after_hardship',
+    category: 'religion',
+    subcategory: 'identity_belief',
+    type: 'singleChoice',
+    depth: 'ADVANCED',
+    isRequired: false,
+    options: [
+      { value: 'strengthened_faith' },
+      { value: 'unchanged' },
+      { value: 'created_questions' },
+      { value: 'weakened_connection' },
+    ],
+    conditions: { maritalStatus: ['DIVORCED', 'WIDOWED'] },
     metadata: { estimatedTime: 1 },
   },
 ];

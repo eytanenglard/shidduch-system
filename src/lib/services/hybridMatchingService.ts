@@ -249,6 +249,7 @@ interface RawCandidate {
   age: number | null;
   city: string | null;
   religiousLevel: string | null;
+  religiousJourney: string | null;
   occupation: string | null;
   education: string | null;
   educationLevel: string | null;
@@ -1298,6 +1299,7 @@ async function tier1SqlFilter(
       p."birthDate",
       p.city,
       p."religiousLevel",
+      p."religiousJourney",
       p.occupation,
       p.education,
       p."educationLevel",
@@ -1436,6 +1438,7 @@ async function tier1SqlFilter(
     age: c.age,
     city: c.city,
     religiousLevel: c.religiousLevel,
+    religiousJourney: c.religiousJourney || null,
     occupation: c.occupation,
     education: c.education,
     educationLevel: c.educationLevel,
@@ -1451,7 +1454,7 @@ async function tier1SqlFilter(
     preferredAgeMin: c.preferredAgeMin,
     preferredAgeMax: c.preferredAgeMax,
     profileUpdatedAt: c.profileUpdatedAt,
-    
+
     // 🆕 V2.2: Map new fields
     existingScannedPairId: c.existingScannedPairId,
     existingAiScore: c.existingAiScore,
@@ -1504,6 +1507,7 @@ async function tier2MetricsScoring(
     age: number;
     gender: Gender;
     religiousLevel: string | null;
+    preferredReligiousJourneys: string[];
     backgroundProfile: BackgroundProfile;
     metrics: ExtendedMetrics;
     profileUpdatedAt: Date; // 🆕 V2.2
@@ -1554,6 +1558,16 @@ async function tier2MetricsScoring(
     
     const candidateReligious = candidate.religiousLevel || candidate.metrics.inferredReligiousLevel;
     const religiousScore = getReligiousCompatibilityScore(targetProfile.religiousLevel, candidateReligious);
+
+    // Soft journey bonus: +5 if candidate matches preferred journey, -3 if preferences set but no match
+    let journeyBonus = 0;
+    if (targetProfile.preferredReligiousJourneys?.length && candidate.religiousJourney) {
+      if (targetProfile.preferredReligiousJourneys.includes(candidate.religiousJourney)) {
+        journeyBonus = 5;
+      } else {
+        journeyBonus = -3;
+      }
+    }
     
     let backgroundProfile: BackgroundProfile | null = null;
     let backgroundMatch: BackgroundMatchResult | null = null;
@@ -1645,6 +1659,8 @@ async function tier2MetricsScoring(
       (100 - Math.abs((targetProfile.metrics.urbanScore || 50) - (candidate.metrics.urbanScore || 50))) * weights.urban
     );
     
+    metricsScore = Math.min(100, Math.max(0, metricsScore + journeyBonus));
+
     if (dealBreakersCheck.violated) {
       metricsScore *= 0.4;
     }
@@ -2452,6 +2468,7 @@ export async function hybridScanForVirtualUser(
       p."birthDate",
       p.city,
       p."religiousLevel",
+      p."religiousJourney",
       p.occupation,
       p.education,
       p."educationLevel",
@@ -2523,6 +2540,7 @@ export async function hybridScanForVirtualUser(
     age: c.age,
     city: c.city,
     religiousLevel: c.religiousLevel,
+    religiousJourney: c.religiousJourney || null,
     occupation: c.occupation,
     education: c.education,
     educationLevel: c.educationLevel,
@@ -2579,6 +2597,7 @@ export async function hybridScanForVirtualUser(
       age: virtualProfile.inferredAge,
       gender: gender,
       religiousLevel: religiousLevel,
+      preferredReligiousJourneys: [],
       backgroundProfile: virtualBackgroundProfile,
       metrics: virtualMetrics,
       profileUpdatedAt: new Date(), // Virtual profiles are always fresh
@@ -2875,6 +2894,7 @@ export async function hybridScan(
       age: userAge,
       gender: profile.gender,
       religiousLevel: profile.religiousLevel,
+      preferredReligiousJourneys: profile.preferredReligiousJourneys as string[],
       backgroundProfile: userBackgroundProfile,
       metrics: metrics,
       profileUpdatedAt: profile.updatedAt, // 🆕 V2.2

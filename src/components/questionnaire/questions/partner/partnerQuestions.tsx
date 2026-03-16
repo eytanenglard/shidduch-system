@@ -317,6 +317,7 @@ export const partnerQuestions: Question[] = [
         { value: 'long_term_ok' },
         { value: 'past_is_past' },
     ],
+    conditions: { maritalStatus: ['SINGLE'] },
     metadata: { estimatedTime: 1 },
 },
 {
@@ -332,4 +333,98 @@ export const partnerQuestions: Question[] = [
     metadata: { estimatedTime: 2 },
 },
 
+  // ─── שאלות מותנות: פרק ב' ────────────────────────────────────────────────
+  {
+    worldId: 'PARTNER',
+    id: 'partner_second_marriage_preference',
+    category: 'partner',
+    subcategory: 'non_negotiables',
+    type: 'singleChoice',
+    depth: 'BASIC',
+    isRequired: false,
+    options: [
+      { value: 'prefer_same_background' },
+      { value: 'open_to_first_marriage' },
+      { value: 'doesnt_matter' },
+    ],
+    conditions: { maritalStatus: ['DIVORCED', 'WIDOWED'] },
+    metadata: { estimatedTime: 1 },
+  },
+  {
+    worldId: 'PARTNER',
+    id: 'partner_accepting_stepchildren',
+    category: 'partner',
+    subcategory: 'family_background',
+    type: 'iconChoice',
+    depth: 'BASIC',
+    isRequired: false,
+    options: [
+      { value: 'fully_open', icon: <Heart /> },
+      { value: 'open_with_boundaries', icon: <ShieldCheck /> },
+      { value: 'depends_on_ages', icon: <Scale /> },
+      { value: 'prefer_no_children', icon: <HelpCircle /> },
+    ],
+    conditions: { maritalStatus: ['DIVORCED', 'WIDOWED'] },
+    metadata: { estimatedTime: 1 },
+  },
+
+  // ─── שאלות מותנות: גיל 55+ ───────────────────────────────────────────────
+  {
+    worldId: 'PARTNER',
+    id: 'partner_priorities_senior',
+    category: 'partner',
+    subcategory: 'first_impression_basics',
+    type: 'budgetAllocation',
+    depth: 'BASIC',
+    isRequired: false,
+    totalPoints: 100,
+    categories: [
+      { value: 'health_vitality', icon: <Activity /> },
+      { value: 'financial_stability', icon: <PiggyBank /> },
+      { value: 'emotional_availability', icon: <Heart /> },
+      { value: 'family_integration', icon: <Home /> },
+      { value: 'shared_interests', icon: <Coffee /> },
+      { value: 'spiritual_alignment', icon: <Globe /> },
+    ],
+    conditions: { ageRange: [55, 120] },
+    metadata: { estimatedTime: 3 },
+  },
+
+  // ─── שאלות מותנות: חרדים ────────────────────────────────────────────────
+  {
+    worldId: 'PARTNER',
+    id: 'partner_torah_learning_expectation_charedi',
+    category: 'partner',
+    subcategory: 'career_finance_education',
+    type: 'singleChoice',
+    depth: 'BASIC',
+    isRequired: false,
+    options: [
+      { value: 'kollel_full_time' },
+      { value: 'kollel_partial' },
+      { value: 'working_and_learning' },
+      { value: 'flexible' },
+    ],
+    conditions: { religiousLevel: ['charedi', 'charedi_lite'] },
+    metadata: { estimatedTime: 1 },
+  },
+
+  // ─── שאלות מותנות: נשים דתיות/חרדיות בלבד ───────────────────────────────
+  {
+    worldId: 'PARTNER',
+    id: 'partner_head_covering_women',
+    category: 'partner',
+    subcategory: 'lifestyle_social',
+    type: 'singleChoice',
+    depth: 'BASIC',
+    isRequired: false,
+    options: [
+      { value: 'full_covering' },
+      { value: 'partial_covering' },
+      { value: 'not_yet_decided' },
+      { value: 'not_planning_to_cover' },
+    ],
+    conditions: { gender: ['FEMALE'], religiousLevel: ['dati', 'dati_lite', 'charedi', 'charedi_lite'] },
+    metadata: { estimatedTime: 1 },
+  },
 ];

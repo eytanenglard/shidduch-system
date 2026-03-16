@@ -362,7 +362,10 @@
         "matchmakerGenderDefault": "No preference",
         "influentialRabbiLabel": "Influential Rabbinic/Spiritual Figure",
         "influentialRabbiPlaceholder": "Share a figure who has influenced you and how...",
-        "influentialRabbiEmpty": "No influential figure specified."
+        "influentialRabbiEmpty": "No influential figure specified.",
+        "smokingStatusLabel": "Smoking",
+        "smokingStatusPlaceholder": "Select...",
+        "smokingStatusEmpty": "No smoking status specified."
       },
       "about": {
         "title": "About Me & More",
@@ -508,6 +511,10 @@
         "DATLASH": "Formerly religious",
         "CONVERT": "Convert to Judaism",
         "IN_PROCESS": "In a process of spiritual exploration",
+        "FROM_CHAREDI_HOME": "Grew up in a Haredi home (Litvak / Sephardic)",
+        "FROM_CHAREDI_HASIDIC_HOME": "Grew up in a Hasidic home",
+        "FROM_DATI_LEUMI_HOME": "Grew up in a Religious Zionist home",
+        "FROM_MASORTI_HOME": "Grew up in a traditional (Masorti) home",
         "OTHER": "Other (please specify in notes)"
       },
       "educationLevel": {
@@ -573,6 +580,12 @@
         "MALE": "Male Matchmaker",
         "FEMALE": "Female Matchmaker",
         "NONE": "No Preference"
+      },
+      "smokingStatus": {
+        "never": "Non-smoker",
+        "occasionally": "Occasional smoker",
+        "regularly": "Regular smoker",
+        "trying_to_quit": "Trying to quit"
       },
       "medicalTiming": {
         "FROM_THE_START": "From the beginning (recommended for significant topics)",
@@ -767,7 +780,10 @@
         "headCoveringLegend": "Preferred Head Covering (for women)",
         "headCoveringEmpty": "No head covering preferences selected.",
         "kippahTypeLegend": "Preferred Kippah Type (for men)",
-        "kippahTypeEmpty": "No kippah preferences selected."
+        "kippahTypeEmpty": "No kippah preferences selected.",
+        "smokingPreferenceLabel": "Does smoking bother you in a partner?",
+        "smokingPreferencePlaceholder": "Select preference...",
+        "smokingPreferenceEmpty": "No smoking preference specified."
       },
       "educationAndCareer": {
         "title": "Education, Career & Service",
@@ -830,12 +846,23 @@
         "DATLASH": "Formerly religious (Datlash)",
         "CONVERT": "Convert",
         "IN_PROCESS": "In process of change",
+        "FROM_CHAREDI_HOME": "Grew up in a Haredi home (Litvak / Sephardic)",
+        "FROM_CHAREDI_HASIDIC_HOME": "Grew up in a Hasidic home",
+        "FROM_DATI_LEUMI_HOME": "Grew up in a Religious Zionist home",
+        "FROM_MASORTI_HOME": "Grew up in a traditional (Masorti) home",
+        "OTHER": "Other",
         "no_preference": "No Preference / Flexible"
       },
       "shomerNegiah": {
         "yes": "Yes, important to me",
         "no": "No, no preference",
         "flexible": "Flexible/Depends on person"
+      },
+      "preferredSmokingStatus": {
+        "no_preference": "Doesn't bother me at all",
+        "slightly_bothers": "Bothers me a little, but not a dealbreaker",
+        "no_smokers": "I prefer a non-smoker",
+        "deal_breaker": "It's a dealbreaker for me"
       },
       "education": {
         "high_school": "High School",
@@ -1428,6 +1455,10 @@
         "DATLASH": "Formerly religious",
         "CONVERT": "Convert to Judaism",
         "IN_PROCESS": "In a process of spiritual exploration",
+        "FROM_CHAREDI_HOME": "Grew up in a Haredi home (Litvak / Sephardic)",
+        "FROM_CHAREDI_HASIDIC_HOME": "Grew up in a Hasidic home",
+        "FROM_DATI_LEUMI_HOME": "Grew up in a Religious Zionist home",
+        "FROM_MASORTI_HOME": "Grew up in a traditional (Masorti) home",
         "OTHER": "Other (please specify in notes)"
       },
       "educationLevel": {

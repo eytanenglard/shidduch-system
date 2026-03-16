@@ -4,7 +4,7 @@ import { applyRateLimitWithRoleCheck } from '@/lib/rate-limiter';
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
-import { Gender, UserSource, UserStatus, UserRole, Prisma } from '@prisma/client';
+import { Gender, UserSource, UserStatus, UserRole, Prisma, ReligiousJourney } from '@prisma/client';
 import { v2 as cloudinary } from "cloudinary";
 import { updateUserAiProfile } from '@/lib/services/profileAiService';
 import { createId } from '@paralleldrive/cuid2';
@@ -70,6 +70,7 @@ export async function POST(req: NextRequest) {
     const heightStr = formData.get('height') as string | null;
     const maritalStatus = formData.get('maritalStatus') as string | null;
     const religiousLevel = formData.get('religiousLevel') as string | null;
+    const religiousJourney = formData.get('religiousJourney') as string | null;
     const manualEntryText = formData.get('manualEntryText') as string;
     const images = formData.getAll('images') as File[];
     const birthDateIsApproximate = formData.get('birthDateIsApproximate') === 'true';
@@ -149,6 +150,9 @@ export async function POST(req: NextRequest) {
       isProfileVisible: true,
       height: height,
       religiousLevel: religiousLevel,
+      religiousJourney: (religiousJourney && Object.values(ReligiousJourney).includes(religiousJourney as ReligiousJourney))
+        ? religiousJourney as ReligiousJourney
+        : null,
       maritalStatus,
       origin: origin || null,
       contentUpdatedAt: new Date(),

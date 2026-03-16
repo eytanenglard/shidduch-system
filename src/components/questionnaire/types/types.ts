@@ -65,6 +65,15 @@ export interface ScaleDescriptions {
   [key: number]: string;
 }
 
+// Conditions for showing a question based on user profile
+export interface QuestionConditions {
+  maritalStatus?: ('SINGLE' | 'DIVORCED' | 'WIDOWED')[];
+  ageRange?: [number, number]; // [minAge, maxAge]
+  religiousLevel?: string[];   // e.g. ['charedi', 'dati', 'masorti', 'hiloni']
+  gender?: ('MALE' | 'FEMALE')[];
+  hasChildren?: boolean;       // hasChildrenFromPrevious
+}
+
 export interface Question {
   worldId: string;
   id: string;
@@ -91,6 +100,7 @@ export interface Question {
   metadata?: QuestionMetadata;
   items?: Option[];
   icon?: React.ReactNode;
+  conditions?: QuestionConditions; // If set, question only shows when profile matches
 }
 
 // --- Answer-related interfaces ---

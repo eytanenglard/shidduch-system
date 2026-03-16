@@ -87,6 +87,8 @@ export async function extractMetricsFromProfile(
       shomerNegiah: profile.shomerNegiah || undefined,
       headCovering: profile.headCovering || undefined,
       kippahType: profile.kippahType || undefined,
+      smokingStatus: profile.smokingStatus || undefined,
+      preferredSmokingStatus: profile.preferredSmokingStatus || undefined,
     },
     questionnaireAnswers: questionnaire
       ? {
@@ -114,6 +116,30 @@ export async function extractMetricsFromProfile(
 
   // 8. חילוץ Deal Breakers
   const dealBreakers = extractDealBreakers(input);
+
+  // 8.5 סנכרון smokingStatus ו-preferredSmokingStatus מתשובות השאלון לפרופיל
+  const personalityAnswers = input.questionnaireAnswers?.personality;
+  const partnerAnswersForSync = input.questionnaireAnswers?.partner;
+  const profileUpdateData: Record<string, string> = {};
+
+  if (personalityAnswers) {
+    const smokingAnswer = findAnswer(personalityAnswers, 'personality_smoking_status');
+    if (smokingAnswer && typeof smokingAnswer === 'string') {
+      profileUpdateData.smokingStatus = smokingAnswer;
+    }
+  }
+  if (partnerAnswersForSync) {
+    const smokingPrefAnswer = findAnswer(partnerAnswersForSync, 'partner_smoking_preference');
+    if (smokingPrefAnswer && typeof smokingPrefAnswer === 'string') {
+      profileUpdateData.preferredSmokingStatus = smokingPrefAnswer;
+    }
+  }
+  if (Object.keys(profileUpdateData).length > 0) {
+    await prisma.profile.update({
+      where: { id: profileId },
+      data: profileUpdateData,
+    });
+  }
 
   // 9. חישוב שלמות הנתונים
   const dataCompleteness = calculateDataCompleteness(mergedMetrics);
@@ -475,13 +501,25 @@ function extractDealBreakers(input: MetricsExtractionInput): DealBreakersResult 
     });
   }
 
-  // --- Deal Breakers מהשאלון ---
-  if (input.questionnaireAnswers?.partner) {
-    // חיפוש תשובות על Deal Breakers בשאלון
-    const partnerAnswers = input.questionnaireAnswers.partner;
-    
-    // דוגמה: אם ענה שלא מוכן לצאת עם מי שיש לו ילדים
-    // (צריך להתאים ל-ID של השאלה בשאלון האמיתי)
+  // --- Deal Breakers מהשאלון / מהפרופיל ---
+  const smokingPrefFromQuestionnaire = input.questionnaireAnswers?.partner
+    ? findAnswer(input.questionnaireAnswers.partner, 'partner_smoking_preference')
+    : null;
+  const smokingPref = smokingPrefFromQuestionnaire || input.profile.preferredSmokingStatus;
+
+  if (smokingPref === 'no_smokers' || smokingPref === 'deal_breaker') {
+    hard.push({
+      type: 'SMOKING',
+      operator: 'EQUALS',
+      value: false,
+      description: 'לא מוכן/ה לצאת עם מעשן/ת',
+    });
+  } else if (smokingPref === 'slightly_bothers') {
+    soft.push({
+      type: 'SMOKING',
+      penalty: 10,
+      description: 'עישון מפריע מעט',
+    });
   }
 
   // --- Deal Breakers רכים ---

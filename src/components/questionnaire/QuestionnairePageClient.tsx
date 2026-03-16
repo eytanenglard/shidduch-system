@@ -9,6 +9,8 @@ import { ArrowLeft, AlertCircle, Loader2 } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import QuestionnaireLandingPage from './pages/QuestionnaireLandingPage';
 import MatchmakingQuestionnaire from './MatchmakingQuestionnaire';
+import QuickProfileStep from './pages/QuickProfileStep';
+import type { UserProfile } from './MatchmakingQuestionnaire';
 import StandardizedLoadingSpinner from './common/StandardizedLoadingSpinner'; // <-- שלב 1: הוספת הייבוא
 import type { WorldId } from './types/types';
 import type { QuestionnaireDictionary } from '@/types/dictionary';
@@ -16,6 +18,7 @@ import type { QuestionnaireDictionary } from '@/types/dictionary';
 // Enum to track questionnaire flow stages
 enum QuestionnaireStage {
   LANDING = 'LANDING',
+  QUICK_PROFILE = 'QUICK_PROFILE',
   QUESTIONNAIRE = 'QUESTIONNAIRE',
   COMPLETE = 'COMPLETE',
 }
@@ -48,6 +51,7 @@ export default function QuestionnairePageClient({
   const [initialQuestionId, setInitialQuestionId] = useState<
     string | undefined
   >(undefined);
+  const [userProfile, setUserProfile] = useState<UserProfile | undefined>(undefined);
 
   // Check for existing progress when component mounts
   useEffect(() => {
@@ -56,10 +60,26 @@ export default function QuestionnairePageClient({
       setIsLoading(true);
       try {
         if (session?.user?.id) {
-          const response = await fetch('/api/questionnaire');
-          const data = await response.json();
-          if (data.success && data.data) {
+          const [progressRes, profileRes] = await Promise.all([
+            fetch('/api/questionnaire'),
+            fetch('/api/profile'),
+          ]);
+          const progressData = await progressRes.json();
+          if (progressData.success && progressData.data) {
             setHasSavedProgress(true);
+          }
+          if (profileRes.ok) {
+            const profileData = await profileRes.json();
+            const p = profileData?.profile;
+            if (p) {
+              setUserProfile({
+                maritalStatus: p.maritalStatus ?? undefined,
+                religiousLevel: p.religiousLevel ?? undefined,
+                gender: p.gender ?? undefined,
+                birthDate: p.birthDate ?? undefined,
+                hasChildrenFromPrevious: p.hasChildrenFromPrevious ?? undefined,
+              });
+            }
           }
         }
       } catch (err) {
@@ -103,8 +123,19 @@ export default function QuestionnairePageClient({
   }, [searchParams, status]);
 
   const handleStartQuestionnaire = () => {
-    setCurrentStage(QuestionnaireStage.QUESTIONNAIRE);
+    // If authenticated and missing key profile fields → show quick profile step first
+    if (session?.user?.id && missingProfileFields.length > 0) {
+      setCurrentStage(QuestionnaireStage.QUICK_PROFILE);
+    } else {
+      setCurrentStage(QuestionnaireStage.QUESTIONNAIRE);
+    }
   };
+
+  const missingProfileFields: ('religiousLevel' | 'maritalStatus' | 'birthDate')[] = session?.user?.id
+    ? (['religiousLevel', 'maritalStatus', 'birthDate'] as const).filter(
+        (f) => !userProfile?.[f]
+      )
+    : [];
 
   const handleQuestionnaireComplete = async () => {
     try {
@@ -139,6 +170,19 @@ export default function QuestionnairePageClient({
             locale={locale}
           />
         );
+      case QuestionnaireStage.QUICK_PROFILE:
+        return (
+          <QuickProfileStep
+            locale={locale}
+            missingFields={missingProfileFields}
+            onComplete={(collected) => {
+              if (Object.keys(collected).length > 0) {
+                setUserProfile((prev) => ({ ...prev, ...collected }));
+              }
+              setCurrentStage(QuestionnaireStage.QUESTIONNAIRE);
+            }}
+          />
+        );
       case QuestionnaireStage.QUESTIONNAIRE:
         return (
           <MatchmakingQuestionnaire
@@ -148,6 +192,7 @@ export default function QuestionnairePageClient({
             initialQuestionId={initialQuestionId}
             dict={dict}
             locale={locale}
+            userProfile={userProfile}
           />
         );
       case QuestionnaireStage.COMPLETE:

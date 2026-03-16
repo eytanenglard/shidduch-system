@@ -49,6 +49,7 @@ import { valuesQuestions } from './questions/values/valuesQuestions';
 import { relationshipQuestions } from './questions/relationship/relationshipQuestions';
 import { partnerQuestions } from './questions/partner/partnerQuestions';
 import { religionQuestions } from './questions/religion/religionQuestions';
+import { shouldShowQuestion } from './worlds/WorldComponent';
 
 const worldConfig: Record<WorldId, { questions: Question[] }> = {
   PERSONALITY: { questions: personalityQuestions },
@@ -73,6 +74,14 @@ const WORLD_ORDER: WorldId[] = [
   'RELIGION',
 ];
 
+export interface UserProfile {
+  maritalStatus?: string;
+  religiousLevel?: string;
+  gender?: string;
+  birthDate?: string;
+  hasChildrenFromPrevious?: boolean;
+}
+
 export interface MatchmakingQuestionnaireProps {
   userId?: string;
   onComplete?: () => void;
@@ -80,6 +89,7 @@ export interface MatchmakingQuestionnaireProps {
   initialQuestionId?: string;
   dict: QuestionnaireDictionary;
   locale: 'he' | 'en';
+  userProfile?: UserProfile;
 }
 
 export default function MatchmakingQuestionnaire({
@@ -89,6 +99,7 @@ export default function MatchmakingQuestionnaire({
   initialQuestionId,
   dict,
   locale,
+  userProfile,
 }: MatchmakingQuestionnaireProps) {
   console.log(
     `%c[MatchmakingQuestionnaire] 🚀 Initializing | User: ${userId ? 'Authenticated' : 'Guest'} | World: ${initialWorld || 'None'} | Question: ${initialQuestionId || 'None'}`,
@@ -774,7 +785,7 @@ export default function MatchmakingQuestionnaire({
     };
 
     return (
-      <WorldComponent {...worldProps} worldId={currentWorld} locale={locale} />
+      <WorldComponent {...worldProps} worldId={currentWorld} locale={locale} userProfile={userProfile} />
     );
   }, [
     currentWorld,
@@ -802,6 +813,25 @@ export default function MatchmakingQuestionnaire({
     }),
     []
   );
+
+  // Global progress: total filtered questions and answered count across all worlds
+  const globalProgress = useMemo(() => {
+    const profile = userProfile ?? {};
+    const allWorldQuestions = [
+      ...personalityQuestions,
+      ...valuesQuestions,
+      ...relationshipQuestions,
+      ...partnerQuestions,
+      ...religionQuestions,
+    ];
+    const totalQuestions = allWorldQuestions.filter((q) =>
+      shouldShowQuestion(q, profile)
+    ).length;
+    const totalAnswered = answers.filter(
+      (a) => a.value !== undefined && a.value !== null && a.value !== ''
+    ).length;
+    return { totalQuestions, totalAnswered };
+  }, [userProfile, answers]);
 
   const renderCurrentStep = () => {
     if (isLoading) {
@@ -870,6 +900,8 @@ export default function MatchmakingQuestionnaire({
             onExit={handleExit}
             onSaveProgress={() => handleQuestionnaireSave(false)}
             locale={locale}
+            totalAnswered={globalProgress.totalAnswered}
+            totalQuestions={globalProgress.totalQuestions}
             dict={{
               layout: dict.layout,
               worldLabels: dict.matchmaking.worldLabels,

@@ -329,6 +329,23 @@
           "breslov": "ברסלב",
           "other": "אחר"
         },
+        "religiousJourneyQuestion": "האם גדלת בדרכך הדתית הנוכחית כל חייך?",
+        "religiousJourneyYes": "כן, זה הרקע שלי מאז ומתמיד",
+        "religiousJourneyNo": "לא, הגעתי ממקום אחר",
+        "religiousJourneyLabel": "ספר/י קצת על המסלול שלך",
+        "religiousJourneyPlaceholder": "בחר/י...",
+        "religiousJourneys": {
+          "BAAL_TESHUVA": "חזרתי בתשובה",
+          "DATLASH": "יצאתי בשאלה (דתל\"ש)",
+          "BORN_SECULAR": "גדלתי בסביבה חילונית",
+          "FROM_CHAREDI_HOME": "גדלתי בבית חרדי (ליטאי / ספרדי)",
+          "FROM_CHAREDI_HASIDIC_HOME": "גדלתי בבית חסידי",
+          "FROM_DATI_LEUMI_HOME": "גדלתי בבית דתי לאומי",
+          "FROM_MASORTI_HOME": "גדלתי בבית מסורתי",
+          "CONVERT": "גר/ה / גיורת",
+          "IN_PROCESS": "בתהליך של שינוי / התלבטות",
+          "OTHER": "אחר"
+        },
         "errors": {
           "originRequired": "יש לציין מוצא/עדה",
           "cityRequired": "עיר מגורים היא שדה חובה",

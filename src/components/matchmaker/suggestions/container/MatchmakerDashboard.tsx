@@ -18,12 +18,7 @@ import {
   Plus,
   RefreshCw,
   BarChart,
-  Loader2,
-  List,
   Archive,
-  LayoutGrid,
-  Filter,
-  Search,
   TrendingUp,
   Users,
   Clock,
@@ -31,7 +26,6 @@ import {
   Sparkles,
   Target,
   Crown,
-  MessageCircle,
   ChevronDown,
   ChevronUp,
 } from 'lucide-react';
@@ -75,7 +69,7 @@ import SuggestionCard from '../cards/SuggestionCard';
 import EditSuggestionForm from '../EditSuggestionForm';
 import MessageForm from '../MessageForm';
 import MonthlyTrendModal from './MonthlyTrendModal';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { LoadingCard } from '@/components/matchmaker/new/shared/LoadingStates';
 
 // Hidden Candidates Components
 import HiddenCandidatesDrawer from '../../new/PotentialMatches/HiddenCandidatesDrawer';
@@ -390,7 +384,7 @@ export default function MatchmakerDashboard({
     useState<CandidateToHide | null>(null);
   const [showHideDialog, setShowHideDialog] = useState(false);
 
-  const { candidates: allCandidates } = useCandidates();
+  const { candidates: allCandidates } = useCandidates({}, { skip: !showNewSuggestion });
 
   // Hidden Candidates Hook
   const {
@@ -959,14 +953,7 @@ export default function MatchmakerDashboard({
 
               {/* Content */}
               {isLoading ? (
-                <div className="flex items-center justify-center h-48 sm:h-64">
-                  <div className="text-center">
-                    <Loader2 className="w-10 h-10 sm:w-12 sm:h-12 animate-spin text-purple-600 mx-auto mb-3 sm:mb-4" />
-                    <p className="text-sm sm:text-lg font-semibold text-gray-700">
-                      {dashboardDict.mainContent.loadingText}
-                    </p>
-                  </div>
-                </div>
+                <LoadingCard count={6} layout="grid" className="mt-4 sm:mt-6" />
               ) : (
                 <>
                   <TabsContent value="pending" className="mt-4 sm:mt-6">

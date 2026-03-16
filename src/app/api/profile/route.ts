@@ -95,11 +95,13 @@ export async function GET(req: Request) {
       religiousLevel: dbProfile.religiousLevel || undefined,
       religiousJourney: dbProfile.religiousJourney,
       shomerNegiah: dbProfile.shomerNegiah ?? undefined,
+      smokingStatus: dbProfile.smokingStatus ?? null,
+      preferredSmokingStatus: dbProfile.preferredSmokingStatus ?? null,
       headCovering: dbProfile.headCovering,
       kippahType: dbProfile.kippahType,
       profileCharacterTraits: dbProfile.profileCharacterTraits || [],
       profileHobbies: dbProfile.profileHobbies || [],
-      
+
       about: dbProfile.about || "",
       isAboutVisible: dbProfile.isAboutVisible ?? true,
       profileHeadline: dbProfile.profileHeadline || undefined,
@@ -301,11 +303,13 @@ export async function PUT(req: Request) {
       religiousLevel: dbProfile.religiousLevel || undefined,
       religiousJourney: dbProfile.religiousJourney,
       shomerNegiah: dbProfile.shomerNegiah ?? undefined,
+      smokingStatus: dbProfile.smokingStatus ?? null,
+      preferredSmokingStatus: dbProfile.preferredSmokingStatus ?? null,
       headCovering: dbProfile.headCovering,
       kippahType: dbProfile.kippahType,
       profileCharacterTraits: dbProfile.profileCharacterTraits || [],
       profileHobbies: dbProfile.profileHobbies || [],
-      
+
       about: dbProfile.about || "",
       isAboutVisible: dbProfile.isAboutVisible ?? true,
       profileHeadline: dbProfile.profileHeadline || undefined,

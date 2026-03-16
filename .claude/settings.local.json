@@ -24,7 +24,14 @@
       "Bash(wc -l /c/Users/eytan/Desktop/NeshamaTech/shidduch-system/src/dictionaries/*.json)",
       "Bash(find c:UserseytanDesktopNeshamaTechshidduch-systemsrctypes -name *metric* -o -name *profile*)",
       "Bash(grep -l \"metricsExtractionService\\\\|MetricsExtraction\" \"c:\\\\Users\\\\eytan\\\\Desktop\\\\NeshamaTech\\\\shidduch-system\\\\src\\\\lib\\\\services\"/*.ts)",
-      "Bash(xargs grep:*)"
+      "Bash(xargs grep:*)",
+      "Bash(DATABASE_URL=\"postgresql://postgres:oBuktZCJpD6C2zkf@db.pwkwidqfbojftjumlzra.supabase.co:5432/postgres\" npx prisma migrate dev --name add_religious_journey_options)",
+      "Bash(npx prisma:*)",
+      "Bash(python3 -c \":*)",
+      "Bash(grep -n '\"\"VALUES\"\"\\\\|\"\"RELATIONSHIP\"\"\\\\|\"\"PARTNER\"\"\\\\|\"\"RELIGION\"\"' \"c:/Users/eytan/Desktop/NeshamaTech/shidduch-system/dictionaries/questionnaire/questions.en.json\")"
+    ],
+    "additionalDirectories": [
+      "C:\\Users\\eytan\\.claude\\plans"
     ]
   }
 }

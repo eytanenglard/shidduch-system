@@ -6,7 +6,7 @@ import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 import { Prisma } from '@prisma/client';
 import { z } from 'zod';
-import { Gender, UserStatus, Language } from '@prisma/client';
+import { Gender, UserStatus, Language, ReligiousJourney } from '@prisma/client';
 
 const normalizePhone = (val: unknown) => {
   if (typeof val !== 'string') return val;
@@ -45,6 +45,7 @@ const completeProfileSchema = z.object({
   occupation: z.string().optional(),
   education: z.string().optional(),
   religiousLevel: z.string().optional(),
+  religiousJourney: z.nativeEnum(ReligiousJourney).optional(),
   language: z.nativeEnum(Language).optional().default(Language.he),
 
   // שדות דיוור
@@ -113,6 +114,7 @@ export async function POST(req: Request) {
         occupation,
         education,
         religiousLevel,
+        religiousJourney,
         language,
         engagementEmailsConsent,
         promotionalEmailsConsent,
@@ -143,6 +145,7 @@ export async function POST(req: Request) {
           occupation: occupation,
           education: education,
           religiousLevel: religiousLevel,
+          religiousJourney: religiousJourney,
           about: about,  // ========== הוספה ==========
           matchingNotes: matchingNotes,  // ========== הוספה ==========
 
@@ -160,6 +163,7 @@ export async function POST(req: Request) {
           occupation: occupation,
           education: education,
           religiousLevel: religiousLevel,
+          religiousJourney: religiousJourney,
           about: about,  // ========== הוספה ==========
           matchingNotes: matchingNotes,  // ========== הוספה ==========
 

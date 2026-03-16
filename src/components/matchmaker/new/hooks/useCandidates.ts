@@ -34,7 +34,7 @@ export interface UseCandidatesReturn {
   searchSuggestions: (term: string) => Promise<Candidate[]>;
 }
 
-export const useCandidates = (initialFilters: CandidatesFilter = {}): UseCandidatesReturn => {
+export const useCandidates = (initialFilters: CandidatesFilter = {}, options: { skip?: boolean } = {}): UseCandidatesReturn => {
   // Base states
   const [candidates, setCandidates] = useState<Candidate[]>([]);
   const [loading, setLoading] = useState(true);
@@ -657,10 +657,12 @@ export const useCandidates = (initialFilters: CandidatesFilter = {}): UseCandida
     }
   };
 
-  // Load candidates on mount
+  // Load candidates on mount (unless skipped)
   useEffect(() => {
-    fetchCandidates();
-  }, []);
+    if (!options.skip) {
+      fetchCandidates();
+    }
+  }, [options.skip]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Return interface
   return {

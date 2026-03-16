@@ -37,6 +37,7 @@ export async function GET() {
             occupation: true, // ✅ זה השדה הנכון (במקום profession)
             education: true,
             religiousLevel: true,
+            religiousJourney: true,
             city: true,
             hasChildrenFromPrevious: true, // ✅ זה השדה הנכון לילדים
             // numberOfChildren: true, <--- מחקנו כי לא קיים בסכמה

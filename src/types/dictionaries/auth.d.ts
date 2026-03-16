@@ -392,6 +392,12 @@ export type RegisterStepsDict = {
       religiousLevelLabel: string;
       religiousLevelPlaceholder: string;
       religiousLevels: { [key: string]: string };
+      religiousJourneyQuestion: string;
+      religiousJourneyYes: string;
+      religiousJourneyNo: string;
+      religiousJourneyLabel: string;
+      religiousJourneyPlaceholder: string;
+      religiousJourneys: { [key: string]: string };
       engagementConsentLabel: string;
       promotionalConsentLabel: string;
       backButton: string;

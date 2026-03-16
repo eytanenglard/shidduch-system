@@ -35,6 +35,7 @@ import {
   Anchor,
   Feather,
   Wind,
+  Scroll,
 } from 'lucide-react';
 
 export const personalityQuestions: Question[] = [
@@ -443,5 +444,73 @@ export const personalityQuestions: Question[] = [
     minLength: 70,
     maxLength: 600,
     metadata: { estimatedTime: 3 },
+  },
+
+  // ─── שאלות מותנות: פרק ב' ────────────────────────────────────────────────
+  {
+    worldId: 'PERSONALITY',
+    id: 'personality_growth_after_previous_marriage',
+    category: 'personality',
+    subcategory: 'growth_aspirations',
+    type: 'openText',
+    depth: 'BASIC',
+    isRequired: false,
+    minLength: 50,
+    maxLength: 500,
+    conditions: { maritalStatus: ['DIVORCED', 'WIDOWED'] },
+    metadata: { estimatedTime: 3 },
+  },
+
+  // ─── שאלות מותנות: גיל 55+ ───────────────────────────────────────────────
+  {
+    worldId: 'PERSONALITY',
+    id: 'personality_life_stage_senior',
+    category: 'personality',
+    subcategory: 'lifestyle',
+    type: 'iconChoice',
+    depth: 'BASIC',
+    isRequired: false,
+    options: [
+      { value: 'peak_activity', icon: <Activity /> },
+      { value: 'selective_slowdown', icon: <Scale /> },
+      { value: 'reinvention', icon: <Sparkles /> },
+      { value: 'peace_contentment', icon: <Leaf /> },
+    ],
+    conditions: { ageRange: [55, 120] },
+    metadata: { estimatedTime: 1 },
+  },
+
+  // ─── שאלות מותנות: גברים בלבד ───────────────────────────────────────────
+  {
+    worldId: 'PERSONALITY',
+    id: 'personality_emotional_expression_men',
+    category: 'personality',
+    subcategory: 'emotional_coping',
+    type: 'scale',
+    depth: 'ADVANCED',
+    isRequired: false,
+    min: 1,
+    max: 10,
+    conditions: { gender: ['MALE'] },
+    metadata: { estimatedTime: 1 },
+  },
+
+  // ─── שאלות מותנות: חרדים ────────────────────────────────────────────────
+  {
+    worldId: 'PERSONALITY',
+    id: 'personality_daily_learning_charedi',
+    category: 'personality',
+    subcategory: 'lifestyle',
+    type: 'iconChoice',
+    depth: 'BASIC',
+    isRequired: false,
+    options: [
+      { value: 'full_day_kollel', icon: <BookOpen /> },
+      { value: 'half_day_learning', icon: <Scroll /> },
+      { value: 'morning_learning', icon: <Sun /> },
+      { value: 'evening_learning', icon: <Moon /> },
+    ],
+    conditions: { religiousLevel: ['charedi', 'charedi_lite'] },
+    metadata: { estimatedTime: 1 },
   },
 ];

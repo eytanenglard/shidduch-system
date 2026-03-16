@@ -168,6 +168,8 @@ export async function PUT(req: NextRequest) {
       isMedicalInfoVisible,
       cvUrl,
       cvSummary,
+      smokingStatus,
+      preferredSmokingStatus,
     } = body as Partial<UserProfile>;
 
     const dataToUpdate: Prisma.ProfileUpdateInput = {};
@@ -223,6 +225,7 @@ export async function PUT(req: NextRequest) {
     }
     // בוליאן/null - עובר כמו שהוא
     if (shomerNegiah !== undefined) dataToUpdate.shomerNegiah = shomerNegiah;
+    if (smokingStatus !== undefined) dataToUpdate.smokingStatus = emptyStringToNull(smokingStatus);
 
     // Gender Logic for HeadCovering/Kippah
     const existingProfileMinimal = await prisma.profile.findUnique({ where: { userId }, select: { gender: true }});
@@ -292,6 +295,7 @@ export async function PUT(req: NextRequest) {
     }
 
     if (preferredShomerNegiah !== undefined) dataToUpdate.preferredShomerNegiah = emptyStringToNull(preferredShomerNegiah);
+    if (preferredSmokingStatus !== undefined) dataToUpdate.preferredSmokingStatus = emptyStringToNull(preferredSmokingStatus);
     if (preferredPartnerHasChildren !== undefined) dataToUpdate.preferredPartnerHasChildren = emptyStringToNull(preferredPartnerHasChildren);
     if (preferredAliyaStatus !== undefined) dataToUpdate.preferredAliyaStatus = emptyStringToNull(preferredAliyaStatus);
 
@@ -422,6 +426,8 @@ export async function PUT(req: NextRequest) {
       internalMatchmakerNotes: dbProfile.internalMatchmakerNotes || "", 
 
       shomerNegiah: dbProfile.shomerNegiah ?? undefined,
+      smokingStatus: dbProfile.smokingStatus ?? null,
+      preferredSmokingStatus: dbProfile.preferredSmokingStatus ?? null,
       serviceType: dbProfile.serviceType || undefined,
       serviceDetails: dbProfile.serviceDetails || "",
       headCovering: dbProfile.headCovering || undefined,

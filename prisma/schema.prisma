@@ -256,6 +256,7 @@ model Profile {
   medicalInfoDisclosureTiming String?
   isMedicalInfoVisible        Boolean @default(false)
   smokingStatus               String? // 'never' | 'occasionally' | 'regularly' | 'trying_to_quit'
+  preferredSmokingStatus      String? // 'no_preference' | 'slightly_bothers' | 'no_smokers' | 'deal_breaker'
 
   // --- Existing Preference Fields ---
   preferredAgeMin              Int?
