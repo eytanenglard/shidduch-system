@@ -373,7 +373,7 @@ const RegisterStepsContent: React.FC<{
             />
           );
         case 4:
-          return <CompleteStep dict={dict.steps.complete} />;
+          return <CompleteStep dict={dict.steps.complete} locale={locale}/>;
         default:
           resetForm();
           return <WelcomeStep dict={dict.steps.welcome} locale={locale} />;
