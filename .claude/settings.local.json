@@ -15,7 +15,8 @@
       "Bash(find c:/Users/eytan/Desktop/NeshamaTech/shidduch-system/src/app/[locale] -type f -name page.tsx)",
       "Bash(find \"c:/Users/eytan/Desktop/NeshamaTech/shidduch-system/src/app/[locale]/\\(authenticated\\)\" -name \"layout.tsx\")",
       "Bash(find \"c:/Users/eytan/Desktop/NeshamaTech/shidduch-system/src/app/[locale]/\\(authenticated\\)\" -maxdepth 1 -name \"layout.tsx\")",
-      "Bash(ls -la c:/Users/eytan/Desktop/NeshamaTech/shidduch-system/src/app/[locale]/questionnaire/)"
+      "Bash(ls -la c:/Users/eytan/Desktop/NeshamaTech/shidduch-system/src/app/[locale]/questionnaire/)",
+      "Bash(find /c/Users/eytan/Desktop/NeshamaTech/shidduch-system -name *.prisma -o -name prisma.schema -o -name *.prismarc)"
     ]
   }
 }
