@@ -296,6 +296,7 @@ type CandidatesListDict = {
       DATING: string;
       UNAVAILABLE: string;
       UNKNOWN: string;
+      PAUSED?: string;
     };
     aiMatch: string;
     manualEntry: string;
@@ -311,6 +312,7 @@ type CandidatesListDict = {
       setAsAiTarget: string;
       clearAiTarget: string;
       aiAnalysis: string;
+      whatsapp?: string;
     };
     hasTestimonials: string;
     testimonialsTooltip: string;
@@ -321,6 +323,39 @@ type CandidatesListDict = {
       divorced_with_children: string;
     };
     hasChildren: string;
+    origin?: string;
+    readinessLevel?: {
+      NOT_READY: string;
+      UNCERTAIN: string;
+      SOMEWHAT_READY: string;
+      READY: string;
+      VERY_READY: string;
+    };
+    priority?: {
+      CRITICAL: string;
+      HIGH: string;
+      MEDIUM: string;
+      LOW: string;
+    };
+    stats?: {
+      received: string;
+      accepted: string;
+      declined: string;
+    };
+    wantsToBeFirst?: string;
+    profileComplete?: string;
+    profileIncomplete?: string;
+    existingSuggestion?: {
+      blocked: string;
+      pending: string;
+      with: string;
+      override: string;
+    };
+    aiReasoning?: string;
+    vectorReasoning?: string;
+    scoreBreakdown?: string;
+    similarityScore?: string;
+    backgroundMultiplier?: string;
   };
   quickView: QuickViewDict;
 };

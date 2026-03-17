@@ -613,7 +613,8 @@
           "AVAILABLE": "פנוי/ה",
           "DATING": "בתהליך היכרות",
           "UNAVAILABLE": "לא פנוי/ה",
-          "UNKNOWN": "לא ידוע"
+          "UNKNOWN": "לא ידוע",
+          "PAUSED": "מושהה"
         },
         "aiMatch": "{{score}}% התאמה",
         "manualEntry": "מועמד ידני",
@@ -628,7 +629,8 @@
           "editProfile": "עריכת פרופיל",
           "setAsAiTarget": "בחר כמטרה לחיפוש AI",
           "clearAiTarget": "בטל בחירת מטרה",
-          "aiAnalysis": "הצג ניתוח פרופיל AI"
+          "aiAnalysis": "הצג ניתוח פרופיל AI",
+          "whatsapp": "שלח וואטסאפ"
         },
         "hasTestimonials": "{{count}} המלצות",
         "testimonialsTooltip": "למועמד/ת זה/זו יש המלצות מאושרות",
@@ -636,9 +638,42 @@
           "single": "רווק/ה",
           "divorced": "גרוש/ה",
           "widowed": "אלמן/ה",
-          "divorced_with_children": "גרוש/ה עם ילדים"
+          "divorced_with_children": "גרוש/ה + ילדים"
         },
-        "hasChildren": "עם ילדים"
+        "hasChildren": "עם ילדים",
+        "origin": "מוצא",
+        "readinessLevel": {
+          "NOT_READY": "לא מוכן/ת",
+          "UNCERTAIN": "לא בטוח/ה",
+          "SOMEWHAT_READY": "מתחיל/ה",
+          "READY": "מוכן/ת",
+          "VERY_READY": "מאוד מוכן/ת"
+        },
+        "priority": {
+          "CRITICAL": "דחוף",
+          "HIGH": "עדיפות גבוהה",
+          "MEDIUM": "עדיפות בינונית",
+          "LOW": "עדיפות נמוכה"
+        },
+        "stats": {
+          "received": "הצעות",
+          "accepted": "אושרו",
+          "declined": "נדחו"
+        },
+        "wantsToBeFirst": "מעוניין/ת להיות צד ראשון",
+        "profileComplete": "פרופיל מלא",
+        "profileIncomplete": "פרופיל חסר",
+        "existingSuggestion": {
+          "blocked": "בתהליך פעיל",
+          "pending": "ממתין לתגובה",
+          "with": "עם",
+          "override": "בחר בכל זאת"
+        },
+        "aiReasoning": "נימוק AI",
+        "vectorReasoning": "נימוק דמיון",
+        "scoreBreakdown": "פירוט ציון",
+        "similarityScore": "ציון דמיון סמנטי",
+        "backgroundMultiplier": "מכפיל רקע"
       },
       "quickView": {
         "availability": {

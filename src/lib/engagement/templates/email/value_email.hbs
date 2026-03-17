@@ -1,0 +1,270 @@
+<html dir='{{getDir locale}}' lang='{{locale}}'>
+  <head>
+    <meta charset='UTF-8' />
+    <meta name='viewport' content='width=device-width, initial-scale=1.0' />
+    <title>{{subject}}</title>
+    <style>
+      * { box-sizing: border-box; }
+      body {
+        margin: 0; padding: 0;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #e0f2fe 0%, #f0fdfa 50%, #fce7f3 100%);
+      }
+      .email-wrapper {
+        width: 100%;
+        background: linear-gradient(135deg, #e0f2fe 0%, #f0fdfa 50%, #fce7f3 100%);
+        padding: 40px 20px;
+      }
+      .email-container {
+        max-width: 600px; margin: 0 auto; background: white;
+        border-radius: 24px;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.12), 0 0 0 1px rgba(255,255,255,0.5);
+        overflow: hidden;
+      }
+      /* ─── HEADER ─── */
+      .email-header {
+        background: linear-gradient(135deg, #0d9488 0%, #0f766e 100%);
+        padding: 50px 30px; text-align: center; position: relative;
+      }
+      .header-badge {
+        display: inline-block;
+        background: rgba(255,255,255,0.15);
+        border: 1px solid rgba(255,255,255,0.3);
+        color: rgba(255,255,255,0.9);
+        font-size: 12px; font-weight: 700; letter-spacing: 1.5px;
+        text-transform: uppercase;
+        padding: 6px 16px; border-radius: 50px; margin-bottom: 18px;
+      }
+      .header-icon { font-size: 64px; margin-bottom: 16px; display: block; }
+      .email-header h1 {
+        color: white; margin: 0; font-size: 28px; font-weight: 800;
+        line-height: 1.4; text-shadow: 0 2px 15px rgba(0,0,0,0.15);
+      }
+      .email-header .subtitle {
+        color: rgba(255,255,255,0.9); margin: 12px 0 0; font-size: 16px; font-weight: 500;
+      }
+      /* ─── BODY ─── */
+      .email-body { padding: 40px 32px; }
+      .greeting { font-size: 17px; color: #2d3748; margin: 0 0 24px; line-height: 1.6; font-weight: 600; }
+      .intro-text { font-size: 16px; color: #4a5568; line-height: 1.9; margin: 0 0 28px; }
+      /* ─── DIVIDER ─── */
+      .divider { height: 3px; background: linear-gradient(90deg, #0d9488, #14b8a6, #f97316); border-radius: 2px; margin: 28px 0; }
+      /* ─── TIP CARD ─── */
+      .tips-section { margin: 28px 0; }
+      .tips-section h3 {
+        color: #0f766e; font-size: 18px; font-weight: 800; margin: 0 0 20px;
+        display: flex; align-items: center; gap: 10px;
+      }
+      .tip-card {
+        background: linear-gradient(135deg, #f0fdfa 0%, #ecfdf5 100%);
+        border-{{#if (eq locale 'he')}}right{{else}}left{{/if}}: 4px solid #0d9488;
+        border-radius: 0 12px 12px 0;
+        {{#if (eq locale 'he')}}border-radius: 12px 0 0 12px;{{/if}}
+        padding: 20px 24px; margin-bottom: 16px;
+      }
+      .tip-card:last-child { margin-bottom: 0; }
+      .tip-number {
+        display: inline-flex; align-items: center; justify-content: center;
+        width: 28px; height: 28px;
+        background: linear-gradient(135deg, #0d9488, #0f766e);
+        color: white; border-radius: 50%; font-size: 13px; font-weight: 800;
+        {{#if (eq locale 'he')}}margin-left{{else}}margin-right{{/if}}: 12px;
+        flex-shrink: 0;
+      }
+      .tip-header { display: flex; align-items: flex-start; margin-bottom: 10px; }
+      .tip-title { font-size: 16px; font-weight: 700; color: #0f766e; line-height: 1.4; }
+      .tip-body { font-size: 15px; color: #4a5568; line-height: 1.8; padding-{{#if (eq locale 'he')}}right{{else}}left{{/if}}: 40px; }
+      /* ─── QUOTE BOX ─── */
+      .quote-box {
+        background: linear-gradient(135deg, #fff7ed 0%, #fce7f3 100%);
+        border-radius: 20px; padding: 28px 32px; margin: 28px 0;
+        border: 2px solid rgba(249, 115, 22, 0.2);
+        text-align: center;
+      }
+      .quote-icon { font-size: 36px; margin-bottom: 12px; display: block; }
+      .quote-text {
+        font-size: 17px; color: #92400e; line-height: 1.8; font-weight: 600;
+        font-style: italic; margin: 0 0 8px;
+      }
+      .quote-source { font-size: 13px; color: #b45309; font-weight: 700; }
+      /* ─── CTA ─── */
+      .cta-section { margin: 36px 0; text-align: center; }
+      .cta-button {
+        display: inline-block;
+        background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+        color: white; text-decoration: none;
+        padding: 18px 52px; border-radius: 50px;
+        font-weight: 700; font-size: 17px;
+        box-shadow: 0 10px 30px rgba(249, 115, 22, 0.35);
+        letter-spacing: 0.3px;
+      }
+      .cta-note { font-size: 13px; color: #94a3b8; margin: 12px 0 0; }
+      /* ─── HELP ─── */
+      .help-text {
+        font-size: 14px; color: #718096; margin: 28px 0 0;
+        line-height: 1.6; border-top: 1px solid #e2e8f0; padding-top: 20px;
+        text-align: center;
+      }
+      /* ─── FOOTER ─── */
+      .email-footer {
+        background: linear-gradient(to bottom, #f8fafc 0%, #f1f5f9 100%);
+        padding: 40px 30px; text-align: center; border-top: 1px solid #e2e8f0;
+      }
+      .footer-logo img {
+        width: 60px; height: 60px; border-radius: 50%; object-fit: cover;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-bottom: 16px;
+      }
+      .footer-company-name {
+        font-size: 22px; font-weight: 800;
+        background: linear-gradient(135deg, #0d9488, #0f766e);
+        -webkit-background-clip: text; background-clip: text; color: transparent;
+        margin-bottom: 6px;
+      }
+      .footer-tagline { color: #64748b; font-size: 14px; margin: 0 0 24px; }
+      .footer-contact p { color: #64748b; font-size: 13px; margin: 6px 0; }
+      .footer-contact a { color: #0d9488; text-decoration: none; font-weight: 600; }
+      .footer-links { margin: 20px 0; }
+      .footer-links a {
+        color: #0d9488; text-decoration: none; margin: 0 10px;
+        font-size: 13px; font-weight: 600;
+      }
+      .footer-copyright { color: #94a3b8; font-size: 12px; margin: 16px 0 5px; }
+      .footer-legal { font-size: 11px; }
+      .footer-legal a { color: #0d9488; text-decoration: none; margin: 0 5px; }
+      .series-badge {
+        display: inline-block; background: rgba(255,255,255,0.1);
+        border: 1px solid rgba(255,255,255,0.25);
+        color: rgba(255,255,255,0.85); font-size: 11px;
+        padding: 4px 12px; border-radius: 50px; margin-bottom: 14px; letter-spacing: 1px;
+      }
+      @media only screen and (max-width: 600px) {
+        .email-wrapper { padding: 20px 10px; }
+        .email-header { padding: 36px 20px; }
+        .email-header h1 { font-size: 24px; }
+        .email-body { padding: 28px 20px; }
+        .cta-button { padding: 15px 36px; font-size: 15px; }
+        .tip-body { padding-{{#if (eq locale 'he')}}right{{else}}left{{/if}}: 0; }
+      }
+    </style>
+  </head>
+  <body>
+    <table role='presentation' style='width:100%;border-collapse:collapse;'>
+      <tr>
+        <td class='email-wrapper'>
+          <table role='presentation' class='email-container' style='width:100%;max-width:600px;margin:0 auto;'>
+
+            <!-- HEADER -->
+            <tr>
+              <td class='email-header'>
+                <span class='series-badge'>
+                  {{#if (eq locale 'he')}}סדרת ערך · {{emailNumber}}/10{{else}}Value Series · {{emailNumber}}/10{{/if}}
+                </span>
+                <span class='header-icon'>{{headerEmoji}}</span>
+                <h1>{{headerTitle}}</h1>
+                <p class='subtitle'>{{headerSubtitle}}</p>
+              </td>
+            </tr>
+
+            <!-- BODY -->
+            <tr>
+              <td class='email-body'>
+                <p class='greeting'>
+                  {{#if (eq locale 'he')}}שלום {{firstName}} 👋{{else}}Hello {{firstName}} 👋{{/if}}
+                </p>
+
+                <p class='intro-text'>{{{introText}}}</p>
+
+                <div class='divider'></div>
+
+                <!-- TIPS -->
+                <div class='tips-section'>
+                  <h3>
+                    {{#if (eq locale 'he')}}📌 הנקודות המרכזיות{{else}}📌 Key Points{{/if}}
+                  </h3>
+                  {{#each tips}}
+                  <div class='tip-card'>
+                    <div class='tip-header'>
+                      <span class='tip-number'>{{number}}</span>
+                      <span class='tip-title'>{{title}}</span>
+                    </div>
+                    <div class='tip-body'>{{{body}}}</div>
+                  </div>
+                  {{/each}}
+                </div>
+
+                <!-- QUOTE -->
+                {{#if quoteText}}
+                <div class='quote-box'>
+                  <span class='quote-icon'>✨</span>
+                  <p class='quote-text'>"{{quoteText}}"</p>
+                  {{#if quoteSource}}<p class='quote-source'>— {{quoteSource}}</p>{{/if}}
+                </div>
+                {{/if}}
+
+                <!-- CLOSING -->
+                <p class='intro-text' style='margin-top:24px;'>{{{closingText}}}</p>
+
+                <!-- CTA -->
+                <div class='cta-section'>
+                  <a href='{{ctaLink}}' class='cta-button'>{{ctaText}}</a>
+                  {{#if ctaNote}}<p class='cta-note'>{{ctaNote}}</p>{{/if}}
+                </div>
+
+                <p class='help-text'>
+                  {{#if (eq locale 'he')}}
+                    יש שאלות? תמיד כאן בשבילך 💙<br/>
+                    פשוט תשיב למייל הזה ונחזור אליך בהקדם.
+                  {{else}}
+                    Questions? We're always here for you 💙<br/>
+                    Just reply to this email and we'll get back to you soon.
+                  {{/if}}
+                </p>
+              </td>
+            </tr>
+
+            <!-- FOOTER -->
+            <tr>
+              <td class='email-footer'>
+                <div class='footer-logo'>
+                  <img
+                    src='https://res.cloudinary.com/dmfxoi6g0/image/upload/v1764757309/ChatGPT_Image_Dec_3_2025_12_21_36_PM_qk8mjz.png'
+                    alt='NeshamaTech Logo'
+                  />
+                </div>
+                <div class='footer-company-name'>NeshamaTech</div>
+                <p class='footer-tagline'>
+                  {{#if (eq locale 'he')}}מחברים לבבות, בונים עתיד משותף{{else}}Connecting Hearts, Building Shared Futures{{/if}}
+                </p>
+                <div class='footer-contact'>
+                  <p>📧 <a href='mailto:{{supportEmail}}'>{{supportEmail}}</a></p>
+                  <p>🌐 <a href='{{baseUrl}}'>{{baseUrl}}</a></p>
+                </div>
+                <div class='footer-links'>
+                  {{#if (eq locale 'he')}}
+                    <a href='{{baseUrl}}/profile'>הפרופיל שלי</a> |
+                    <a href='{{baseUrl}}/settings'>הגדרות</a> |
+                    <a href='{{baseUrl}}/support'>תמיכה</a>
+                  {{else}}
+                    <a href='{{baseUrl}}/profile'>My Profile</a> |
+                    <a href='{{baseUrl}}/settings'>Settings</a> |
+                    <a href='{{baseUrl}}/support'>Support</a>
+                  {{/if}}
+                </div>
+                <p class='footer-copyright'>
+                  © {{currentYear}} NeshamaTech.
+                  {{#if (eq locale 'he')}}כל הזכויות שמורות{{else}}All rights reserved{{/if}}
+                </p>
+                <p class='footer-legal'>
+                  <a href='{{baseUrl}}/privacy'>{{#if (eq locale 'he')}}מדיניות פרטיות{{else}}Privacy Policy{{/if}}</a> |
+                  <a href='{{baseUrl}}/terms'>{{#if (eq locale 'he')}}תנאי שימוש{{else}}Terms of Service{{/if}}</a> |
+                  <a href='{{unsubscribeUrl}}'>{{#if (eq locale 'he')}}הסרה מהרשימה{{else}}Unsubscribe{{/if}}</a>
+                </p>
+              </td>
+            </tr>
+
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>

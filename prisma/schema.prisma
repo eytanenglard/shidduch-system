@@ -722,11 +722,17 @@ model UserDripCampaign {
   lastAiSummarySent      DateTime?
   aiSummaryCount         Int        @default(0)
 
+  lastValueEmailSent     DateTime?
+  nextValueEmailDate     DateTime?
+  sentValueEmailTypes    String[]   @default([])
+  valueEmailsCount       Int        @default(0)
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([nextSendDate, status])
   @@index([lastEveningEmailSent])
+  @@index([nextValueEmailDate])
 }
 
 model ReferralCampaign {

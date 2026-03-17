@@ -213,177 +213,117 @@ export default function AnswerInput({
     }
   }, [internalValue]);
 
+  // Letter shortcuts: Hebrew for RTL, English for LTR
+  const HE_LETTERS = ['א','ב','ג','ד','ה','ו','ז','ח','ט','י','כ','ל','מ','נ'];
+  const EN_LETTERS = ['A','B','C','D','E','F','G','H','I','J','K','L','M','N'];
+  const getLetterLabel = (index: number) =>
+    isRTL ? (HE_LETTERS[index] ?? String(index + 1)) : (EN_LETTERS[index] ?? String(index + 1));
+
   const optionVariants = {
-    initial: { opacity: 0, y: 20, scale: 0.95 },
-    animate: {
-      opacity: 1,
-      y: 0,
-      scale: 1,
-      transition: {
-        duration: 0.3,
-        ease: [0.25, 1, 0.5, 1],
-      },
-    },
-    exit: {
-      opacity: 0,
-      scale: 0.95,
-      y: -10,
-      transition: { duration: 0.2 },
-    },
-    hover: {
-      scale: 1.02,
-      y: -2,
-      transition: { duration: 0.2, ease: 'easeOut' },
-    },
-    tap: { scale: 0.98 },
+    initial: { opacity: 0, y: 12 },
+    animate: { opacity: 1, y: 0, transition: { duration: 0.22, ease: [0.25, 1, 0.5, 1] } },
+    exit:    { opacity: 0, y: -8, transition: { duration: 0.15 } },
   };
 
-  const rippleVariants = {
-    initial: { scale: 0, opacity: 0.5 },
-    animate: {
-      scale: 2,
-      opacity: 0,
-      transition: { duration: 0.6, ease: 'easeOut' },
-    },
-  };
+  // Keyboard shortcut handler for singleChoice
+  useEffect(() => {
+    if (question.type !== 'singleChoice' && question.type !== 'iconChoice') return;
+    const options = question.options ?? [];
+    const handler = (e: KeyboardEvent) => {
+      const key = e.key.toUpperCase();
+      const heIdx = HE_LETTERS.indexOf(e.key);
+      const enIdx = EN_LETTERS.indexOf(key);
+      const idx = heIdx !== -1 ? heIdx : enIdx !== -1 ? enIdx : -1;
+      if (idx >= 0 && idx < options.length) {
+        e.preventDefault();
+        handleValueChange(options[idx].value);
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [question.type, question.options, isRTL]);
 
   const renderSingleChoiceOption = (
     choiceOption: Option,
-    isSelected: boolean
-  ) => (
-    <motion.div
-      key={choiceOption.value}
-      variants={optionVariants}
-      initial="initial"
-      animate="animate"
-      exit="exit"
-      layout
-      className="relative"
-    >
-      <div
-        className={cn(
-          'group relative p-4 rounded-2xl cursor-pointer transition-all duration-300',
-          'border-2 overflow-hidden',
-          isSelected
-            ? cn(
-                'bg-gradient-to-br',
-                theme.lightBg,
-                theme.borderColor,
-                'shadow-lg',
-                theme.shadowColor
-              )
-            : cn(
-                'bg-white hover:bg-gradient-to-br border-gray-200 hover:shadow-md',
-                theme.lightBg
-                  .replace('from-', 'hover:from-')
-                  .replace('to-', 'hover:to-'),
-                theme.hoverBorder
-              )
-        )}
-        onMouseDown={(e) => {
-          e.preventDefault();
-          handleValueChange(choiceOption.value);
-        }}
+    isSelected: boolean,
+    index: number
+  ) => {
+    const letter = getLetterLabel(index);
+    return (
+      <motion.div
+        key={choiceOption.value}
+        variants={optionVariants}
+        initial="initial"
+        animate="animate"
+        exit="exit"
+        layout
       >
-        {!isSelected && (
-          <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 bg-gradient-to-r from-transparent via-white/40 to-transparent" />
-        )}
-
-        <AnimatePresence>
-          {isSelected && (
-            <motion.div
-              variants={rippleVariants}
-              initial="initial"
-              animate="animate"
-              className={cn(
-                'absolute inset-0 rounded-2xl bg-gradient-to-r opacity-20',
-                theme.gradient
-              )}
-            />
-          )}
-        </AnimatePresence>
-
         <div
           className={cn(
-            'flex items-center justify-between gap-3 relative z-10',
-            isRTL && 'flex-row-reverse'
+            'flex items-center gap-3 w-full px-4 py-3.5 rounded-xl border-2 cursor-pointer',
+            'transition-all duration-200 select-none',
+            isRTL && 'flex-row-reverse',
+            isSelected
+              ? cn('border-current shadow-sm', theme.borderColor, theme.bgSoft)
+              : 'border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50'
           )}
+          onMouseDown={(e) => {
+            e.preventDefault();
+            handleValueChange(choiceOption.value);
+          }}
         >
-          <div className={cn('flex items-center gap-3 flex-1')}>
-            {choiceOption.icon && (
-              <motion.div
-                animate={{
-                  scale: isSelected ? [1, 1.2, 1] : 1,
-                  rotate: isSelected ? [0, 5, -5, 0] : 0,
-                }}
-                transition={{ duration: 0.5 }}
-                className={cn(
-                  'p-2 rounded-xl transition-colors',
-                  isSelected
-                    ? cn(
-                        'bg-gradient-to-br text-white shadow-md',
-                        theme.gradient
-                      )
-                    : `bg-gray-100 text-gray-600 group-hover:${theme.bgSoft} group-hover:${theme.iconColor}`
-                )}
-              >
-                {choiceOption.icon}
-              </motion.div>
-            )}
-            <span
-              className={cn(
-                'font-medium transition-colors',
-                isSelected
-                  ? theme.textColor
-                  : cn(
-                      'text-gray-700',
-                      theme.textColor.replace('text-', 'group-hover:text-')
-                    )
-              )}
-            >
-              {choiceOption.text}
-            </span>
-          </div>
+          {/* Letter key */}
+          <span className={cn(
+            'shrink-0 w-7 h-7 rounded-md border-2 text-xs font-bold flex items-center justify-center transition-all',
+            isSelected
+              ? cn('text-white border-transparent bg-gradient-to-br', theme.gradient)
+              : 'text-gray-400 border-gray-200 bg-white'
+          )}>
+            {letter}
+          </span>
 
+          {/* Icon (optional) */}
+          {choiceOption.icon && (
+            <span className={cn('text-lg shrink-0', isSelected ? theme.iconColor : 'text-gray-500')}>
+              {choiceOption.icon}
+            </span>
+          )}
+
+          {/* Text */}
+          <span className={cn(
+            'flex-1 text-sm font-medium leading-snug transition-colors',
+            isSelected ? theme.textColor : 'text-gray-700'
+          )}>
+            {choiceOption.text}
+          </span>
+
+          {/* Check indicator */}
           <motion.div
-            initial={{ scale: 0 }}
-            animate={{ scale: isSelected ? 1 : 0 }}
-            className="relative"
+            initial={{ scale: 0, opacity: 0 }}
+            animate={{ scale: isSelected ? 1 : 0, opacity: isSelected ? 1 : 0 }}
+            transition={{ duration: 0.18 }}
+            className="shrink-0"
           >
-            <div
-              className={cn(
-                'w-7 h-7 rounded-full bg-gradient-to-br flex items-center justify-center shadow-lg',
-                theme.gradient
-              )}
-            >
-              <CheckCircle className="w-4 h-4 text-white" fill="white" />
-            </div>
+            <CheckCircle className={cn('w-4 h-4', theme.iconColor)} fill="none" strokeWidth={2.5} />
           </motion.div>
         </div>
-
-        {isSelected && (
-          <motion.div
-            initial={{ scale: 0, rotate: -45 }}
-            animate={{ scale: 1, rotate: 0 }}
-            className={cn(
-              'absolute top-0 right-0 w-16 h-16 bg-gradient-to-br from-white/20 to-transparent rounded-bl-full opacity-50',
-              theme.gradient
-            )}
-          />
-        )}
-      </div>
-    </motion.div>
-  );
+      </motion.div>
+    );
+  };
 
   const renderInput = () => {
     switch (question.type) {
       case 'singleChoice':
         return (
-          <div className="space-y-3">
+          <div className="space-y-2">
+            {isRTL
+              ? <p className="text-xs text-gray-400 mb-2">בחר/י אחד מהבאים</p>
+              : <p className="text-xs text-gray-400 mb-2">Choose one</p>}
             <AnimatePresence mode="popLayout">
-              {question.options?.map((optionItem) => {
+              {question.options?.map((optionItem, idx) => {
                 const isSelected = internalValue === optionItem.value;
-                return renderSingleChoiceOption(optionItem, isSelected);
+                return renderSingleChoiceOption(optionItem, isSelected, idx);
               })}
             </AnimatePresence>
           </div>
@@ -391,32 +331,21 @@ export default function AnswerInput({
 
       case 'scale':
         return (
-          <div className="relative">
-            <div
-              className={cn(
-                'absolute inset-0 rounded-2xl blur-xl -z-10 bg-gradient-to-r opacity-50',
-                theme.lightBg
-              )}
+          <div className="rounded-xl border border-gray-100 bg-white p-5">
+            <InteractiveScale
+              min={question.min ?? 1}
+              max={question.max ?? 10}
+              step={question.step ?? 1}
+              value={typeof internalValue === 'number' ? internalValue : undefined}
+              onChange={(newValue) => handleValueChange(newValue)}
+              showLabels={true}
+              showValue={true}
+              name={question.id}
+              required={question.isRequired}
+              ariaLabelledby={question.id}
+              dict={dict.interactiveScale}
+              themeColor={themeColor}
             />
-
-            <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 border-2 border-gray-100 shadow-lg">
-              <InteractiveScale
-                min={question.min ?? 1}
-                max={question.max ?? 10}
-                step={question.step ?? 1}
-                value={
-                  typeof internalValue === 'number' ? internalValue : undefined
-                }
-                onChange={(newValue) => handleValueChange(newValue)}
-                showLabels={true}
-                showValue={true}
-                name={question.id}
-                required={question.isRequired}
-                ariaLabelledby={question.id}
-                dict={dict.interactiveScale}
-                themeColor={themeColor}
-              />
-            </div>
           </div>
         );
 
@@ -425,215 +354,147 @@ export default function AnswerInput({
         const selectedValues = Array.isArray(internalValue)
           ? (internalValue as string[])
           : [];
-        const progress = question.maxSelections
-          ? (selectedValues.length / question.maxSelections) * 100
-          : 0;
 
         return (
-          <div className="space-y-4">
-            {question.maxSelections && (
-              <motion.div
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className={cn(
-                  'bg-gradient-to-r rounded-xl p-4 border',
-                  theme.lightBg,
-                  theme.borderColor
-                )}
-              >
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-2">
-                    <Target className={cn('w-4 h-4', theme.iconColor)} />
-                    <span
-                      className={cn('text-sm font-medium', theme.textColor)}
-                    >
-                      {dict.answerInput.multiSelect.selectedInfo.replace(
-                        '{{count}}',
-                        selectedValues.length.toString()
-                      )}
-                    </span>
-                  </div>
-                  <Badge
-                    className={cn(
-                      'text-white bg-gradient-to-r',
-                      theme.gradient
-                    )}
-                  >
-                    {selectedValues.length}/{question.maxSelections}
-                  </Badge>
-                </div>
-                <Progress value={progress} className="h-2" />
-              </motion.div>
+          <div className="space-y-2.5">
+            {/* Subtitle / counter */}
+            <div className={cn('flex items-center justify-between', isRTL && 'flex-row-reverse')}>
+              <p className="text-xs text-gray-400">
+                {isRTL
+                  ? question.maxSelections
+                    ? `בחר/י עד ${question.maxSelections} אפשרויות`
+                    : 'בחר/י אחד או יותר'
+                  : question.maxSelections
+                    ? `Choose up to ${question.maxSelections}`
+                    : 'Choose all that apply'}
+              </p>
+              {question.maxSelections && (
+                <span className={cn('text-xs font-semibold tabular-nums', theme.iconColor)}>
+                  {selectedValues.length} / {question.maxSelections}
+                </span>
+              )}
+            </div>
+
+            {/* Progress bar (only if maxSelections) */}
+            {question.maxSelections && selectedValues.length > 0 && (
+              <div className="h-1 bg-gray-100 rounded-full overflow-hidden">
+                <motion.div
+                  className={cn('h-full rounded-full bg-gradient-to-r', theme.gradient)}
+                  initial={{ width: 0 }}
+                  animate={{ width: `${(selectedValues.length / question.maxSelections) * 100}%` }}
+                  transition={{ duration: 0.3 }}
+                />
+              </div>
             )}
 
-            <div className="space-y-2">
-              <AnimatePresence mode="popLayout">
-                {question.options?.map((option, index) => {
-                  const isSelected = selectedValues.includes(option.value);
-                  const isMaxReached =
-                    question.maxSelections &&
-                    selectedValues.length >= question.maxSelections &&
-                    !isSelected;
+            {/* Options */}
+            <AnimatePresence mode="popLayout">
+              {question.options?.map((option, index) => {
+                const isSelected = selectedValues.includes(option.value);
+                const isMaxReached =
+                  !!question.maxSelections &&
+                  selectedValues.length >= question.maxSelections &&
+                  !isSelected;
+                const letter = getLetterLabel(index);
 
-                  return (
-                    <motion.div
-                      key={option.value}
-                      variants={optionVariants}
-                      initial="initial"
-                      animate="animate"
-                      exit="exit"
-                      layout
-                      style={{ zIndex: isSelected ? 10 : 1 }}
+                return (
+                  <motion.div
+                    key={option.value}
+                    variants={optionVariants}
+                    initial="initial"
+                    animate="animate"
+                    exit="exit"
+                    layout
+                  >
+                    <div
+                      className={cn(
+                        'flex items-center gap-3 w-full px-4 py-3.5 rounded-xl border-2 cursor-pointer',
+                        'transition-all duration-200 select-none',
+                        isRTL && 'flex-row-reverse',
+                        isSelected
+                          ? cn('shadow-sm', theme.borderColor, theme.bgSoft)
+                          : isMaxReached
+                            ? 'border-gray-200 bg-gray-50 opacity-40 cursor-not-allowed'
+                            : 'border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50'
+                      )}
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        if (isMaxReached) {
+                          setError(
+                            dict.answerInput.multiSelect.maxSelectionError.replace(
+                              '{{count}}',
+                              String(question.maxSelections)
+                            )
+                          );
+                          setTimeout(() => setError(null), 2500);
+                          return;
+                        }
+                        const newValues = isSelected
+                          ? selectedValues.filter((v) => v !== option.value)
+                          : [...selectedValues, option.value];
+                        handleValueChange(newValues);
+                      }}
                     >
-                      <div
-                        className={cn(
-                          'group relative p-4 rounded-2xl cursor-pointer transition-all duration-300',
-                          'border-2 overflow-hidden',
-                          isSelected
-                            ? cn(
-                                'bg-gradient-to-r',
-                                theme.lightBg,
-                                theme.borderColor,
-                                'shadow-lg',
-                                theme.shadowColor
-                              )
-                            : isMaxReached
-                              ? 'bg-gray-50 border-gray-200 opacity-50 cursor-not-allowed'
-                              : cn(
-                                  'bg-white border-gray-200 hover:shadow-md',
-                                  theme.bgSoft.replace('bg-', 'hover:bg-') +
-                                    '/30',
-                                  theme.hoverBorder
-                                )
-                        )}
-                        onMouseDown={(e) => {
-                          e.preventDefault();
-                          if (isMaxReached) {
-                            setError(
-                              dict.answerInput.multiSelect.maxSelectionError.replace(
-                                '{{count}}',
-                                String(question.maxSelections)
-                              )
-                            );
-                            setTimeout(() => setError(null), 2500);
-                            return;
-                          }
+                      {/* Letter key */}
+                      <span className={cn(
+                        'shrink-0 w-7 h-7 rounded-md border-2 text-xs font-bold flex items-center justify-center transition-all',
+                        isSelected
+                          ? cn('text-white border-transparent bg-gradient-to-br', theme.gradient)
+                          : 'text-gray-400 border-gray-200 bg-white'
+                      )}>
+                        {letter}
+                      </span>
 
-                          let newValues: string[];
-                          if (isSelected) {
-                            newValues = selectedValues.filter(
-                              (v) => v !== option.value
-                            );
-                          } else {
-                            newValues = [...selectedValues, option.value];
-                          }
-                          handleValueChange(newValues);
-                        }}
-                      >
+                      {option.icon && (
+                        <span className={cn('text-base shrink-0', isSelected ? theme.iconColor : 'text-gray-500')}>
+                          {option.icon}
+                        </span>
+                      )}
+
+                      <span className={cn(
+                        'flex-1 text-sm font-medium leading-snug transition-colors',
+                        isRTL && 'text-right',
+                        isSelected ? theme.textColor : 'text-gray-700'
+                      )}>
+                        {option.text}
+                      </span>
+
+                      {/* Checkbox */}
+                      <div className={cn(
+                        'shrink-0 w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all',
+                        isSelected
+                          ? cn('border-transparent bg-gradient-to-br', theme.gradient)
+                          : 'border-gray-300 bg-white'
+                      )}>
                         <AnimatePresence>
                           {isSelected && (
                             <motion.div
-                              initial={{ scale: 0, opacity: 0 }}
-                              animate={{ scale: 1.5, opacity: 0 }}
-                              exit={{ scale: 0, opacity: 0 }}
-                              transition={{ duration: 0.6 }}
-                              className={cn(
-                                'absolute inset-0 rounded-2xl bg-gradient-to-r opacity-20',
-                                theme.gradient
-                              )}
-                            />
+                              initial={{ scale: 0 }}
+                              animate={{ scale: 1 }}
+                              exit={{ scale: 0 }}
+                              transition={{ duration: 0.15 }}
+                            >
+                              <CheckCheck className="w-3 h-3 text-white" strokeWidth={3} />
+                            </motion.div>
                           )}
                         </AnimatePresence>
-
-                        <div
-                          className={cn(
-                            'flex items-center justify-between gap-3 relative z-10',
-                            isRTL && 'flex-row-reverse'
-                          )}
-                        >
-                          <div
-                            className={cn(
-                              'flex items-center gap-3 flex-1',
-                              isRTL && 'flex-row-reverse text-right'
-                            )}
-                          >
-                            {option.icon && (
-                              <motion.div
-                                animate={{ scale: isSelected ? 1.1 : 1 }}
-                                className={cn(
-                                  'p-2 rounded-xl transition-all',
-                                  isSelected
-                                    ? cn(
-                                        'bg-gradient-to-br text-white',
-                                        theme.gradient
-                                      )
-                                    : cn(
-                                        'bg-gray-100 text-gray-600',
-                                        theme.bgSoft.replace(
-                                          'bg-',
-                                          'group-hover:bg-'
-                                        )
-                                      )
-                                )}
-                              >
-                                {option.icon}
-                              </motion.div>
-                            )}
-                            <span
-                              className={cn(
-                                'font-medium',
-                                isSelected ? theme.textColor : 'text-gray-700'
-                              )}
-                            >
-                              {option.text}
-                            </span>
-                          </div>
-
-                          <motion.div
-                            className={cn(
-                              'w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all',
-                              isSelected
-                                ? cn(
-                                    'bg-gradient-to-br',
-                                    theme.gradient,
-                                    theme.borderColor
-                                  )
-                                : 'border-gray-300 bg-white'
-                            )}
-                          >
-                            <AnimatePresence>
-                              {isSelected && (
-                                <motion.div
-                                  initial={{ scale: 0, rotate: -180 }}
-                                  animate={{ scale: 1, rotate: 0 }}
-                                  exit={{ scale: 0, rotate: 180 }}
-                                >
-                                  <CheckCheck
-                                    className="w-4 h-4 text-white"
-                                    strokeWidth={3}
-                                  />
-                                </motion.div>
-                              )}
-                            </AnimatePresence>
-                          </motion.div>
-                        </div>
                       </div>
-                    </motion.div>
-                  );
-                })}
-              </AnimatePresence>
-            </div>
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </AnimatePresence>
 
             <AnimatePresence>
               {error && (
                 <motion.div
-                  initial={{ opacity: 0, y: -10, scale: 0.95 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.95 }}
-                  className="flex items-center gap-2 p-3 bg-red-50 border-2 border-red-200 rounded-xl"
+                  initial={{ opacity: 0, y: -8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0 }}
+                  className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-xl"
                 >
-                  <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0" />
-                  <p className="text-sm font-medium text-red-700">{error}</p>
+                  <AlertCircle className="w-4 h-4 text-red-500 shrink-0" />
+                  <p className="text-sm text-red-700">{error}</p>
                 </motion.div>
               )}
             </AnimatePresence>
@@ -1155,86 +1016,36 @@ export default function AnswerInput({
         const estimatedReadTime = Math.max(1, Math.ceil(wordCount / 200));
 
         return (
-          <div className="space-y-4">
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="flex items-center justify-between gap-4 flex-wrap"
-            >
-              <div className="flex items-center gap-3">
-                <Badge
-                  variant="outline"
-                  className={cn(
-                    'text-xs',
-                    theme.bgSoft,
-                    theme.textColor.replace('900', '700'),
-                    theme.borderColor
-                  )}
-                >
-                  <Edit className="w-3 h-3 mr-1" />
-                  {dict.answerInput.openText.wordCount.replace(
-                    '{{count}}',
-                    wordCount.toString()
-                  )}
-                </Badge>
-                {wordCount > 0 && (
-                  <Badge
-                    variant="outline"
-                    className="bg-purple-50 text-purple-700 border-purple-200"
-                  >
-                    <Clock className="w-3 h-3 mr-1" />
-                    {dict.answerInput.openText.readingTime.replace(
-                      '{{count}}',
-                      estimatedReadTime.toString()
-                    )}
-                  </Badge>
-                )}
-              </div>
-
-              {hasMinLength && (
-                <Badge
-                  className={cn(
-                    'transition-all',
-                    isMinLengthMet
-                      ? 'bg-gradient-to-r from-green-500 to-emerald-600 text-white'
-                      : completionPercentage > 50
-                        ? 'bg-gradient-to-r from-amber-500 to-orange-600 text-white'
-                        : 'bg-gradient-to-r from-gray-400 to-gray-500 text-white'
-                  )}
-                >
-                  {dict.answerInput.openText.completionPercentage.replace(
-                    '{{count}}',
-                    completionPercentage.toString()
-                  )}
-                </Badge>
-              )}
-            </motion.div>
+          <div className="space-y-2">
+            {/* Minimal counter row */}
+            <div className={cn('flex items-center justify-between text-xs text-gray-400', isRTL && 'flex-row-reverse')}>
+              <span>
+                {wordCount > 0
+                  ? dict.answerInput.openText.wordCount.replace('{{count}}', wordCount.toString())
+                  : isRTL ? 'כתוב/י כאן...' : 'Write here...'}
+              </span>
+              <span className={cn(
+                'font-medium tabular-nums transition-colors',
+                lengthExceeded ? 'text-red-500' : isCloseToMax ? 'text-amber-500' : 'text-gray-300'
+              )}>
+                {hasMaxLength ? `${textValue.length} / ${question.maxLength}` : null}
+                {hasMinLength && !hasMaxLength && !isMinLengthMet
+                  ? `${textValue.length} / ${question.minLength}`
+                  : null}
+              </span>
+            </div>
 
             <div className="relative">
               <div
                 className={cn(
-                  'absolute inset-0 rounded-2xl blur-2xl -z-10 bg-gradient-to-br opacity-50',
-                  theme.lightBg
-                )}
-              />
-
-              <div
-                className={cn(
-                  'relative rounded-2xl transition-all duration-300 overflow-hidden',
-                  'border-2',
+                  'rounded-xl border-2 transition-all duration-200 overflow-hidden bg-white',
                   isFocused
-                    ? cn(
-                        theme.borderColor,
-                        'shadow-xl',
-                        theme.shadowColor,
-                        'ring-4',
-                        theme.ringColor
-                      )
+                    ? cn(theme.borderColor, 'ring-2', theme.ringColor)
                     : lengthExceeded
-                      ? 'border-red-400 shadow-lg shadow-red-200/50'
+                      ? 'border-red-300'
                       : isCloseToMax
-                        ? 'border-amber-400 shadow-lg shadow-amber-200/50'
-                        : cn('border-gray-200 shadow-md', theme.hoverBorder)
+                        ? 'border-amber-300'
+                        : 'border-gray-200 hover:border-gray-300'
                 )}
               >
                 <Textarea
@@ -1242,21 +1053,15 @@ export default function AnswerInput({
                   onChange={(e) => handleValueChange(e.target.value)}
                   onFocus={() => setIsFocused(true)}
                   onBlur={() => setIsFocused(false)}
-                  placeholder={
-                    question.placeholder ||
-                    dict.answerInput.openText.placeholder
-                  }
+                  placeholder={question.placeholder || dict.answerInput.openText.placeholder}
                   className={cn(
-                    'resize-y border-0 focus-visible:ring-0 w-full min-h-[180px] text-base leading-relaxed',
-                    'bg-white/80 backdrop-blur-sm relative z-10',
-                    textValue.length > 0 ? (isRTL ? 'pl-14' : 'pr-14') : '',
+                    'resize-y border-0 focus-visible:ring-0 w-full min-h-[160px] text-base leading-relaxed bg-white',
+                    textValue.length > 0 ? (isRTL ? 'pl-12' : 'pr-12') : '',
                     isRTL ? 'py-4 pr-4' : 'py-4 pl-4'
                   )}
                   style={{ height: `${textAreaHeight}px` }}
                   aria-label={question.question}
-                  aria-invalid={
-                    (!isMinLengthMet && question.isRequired) || lengthExceeded
-                  }
+                  aria-invalid={(!isMinLengthMet && question.isRequired) || lengthExceeded}
                 />
 
                 {textValue.length > 0 && (

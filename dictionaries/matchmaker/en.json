@@ -614,14 +614,15 @@
           "AVAILABLE": "Available",
           "DATING": "Dating",
           "UNAVAILABLE": "Unavailable",
-          "UNKNOWN": "Unknown"
+          "UNKNOWN": "Unknown",
+          "PAUSED": "Paused"
         },
         "aiMatch": "{{score}}% Match",
         "manualEntry": "Manual Candidate",
         "heightLabel": "{{height}} cm",
-        "languagesLabel": "Languages: {{languages}}",
+        "languagesLabel": "{{languages}}",
         "noImage": "No Image",
-        "yearsSuffix": "years",
+        "yearsSuffix": "yrs",
         "lastActivePrefix": "Active",
         "qualityScore": "Quality: {{score}}%",
         "compare": "Compare",
@@ -629,7 +630,8 @@
           "editProfile": "Edit Profile",
           "setAsAiTarget": "Set as AI Search Target",
           "clearAiTarget": "Clear AI Target",
-          "aiAnalysis": "Show AI Profile Analysis"
+          "aiAnalysis": "Show AI Profile Analysis",
+          "whatsapp": "Send WhatsApp"
         },
         "hasTestimonials": "{{count}} Testimonials",
         "testimonialsTooltip": "This candidate has approved testimonials",
@@ -637,9 +639,42 @@
           "single": "Single",
           "divorced": "Divorced",
           "widowed": "Widowed",
-          "divorced_with_children": "Divorced with children"
+          "divorced_with_children": "Divorced + kids"
         },
-        "hasChildren": "Has children"
+        "hasChildren": "Has children",
+        "origin": "Origin",
+        "readinessLevel": {
+          "NOT_READY": "Not Ready",
+          "UNCERTAIN": "Uncertain",
+          "SOMEWHAT_READY": "Starting",
+          "READY": "Ready",
+          "VERY_READY": "Very Ready"
+        },
+        "priority": {
+          "CRITICAL": "Urgent",
+          "HIGH": "High Priority",
+          "MEDIUM": "Medium",
+          "LOW": "Low"
+        },
+        "stats": {
+          "received": "Suggestions",
+          "accepted": "Accepted",
+          "declined": "Declined"
+        },
+        "wantsToBeFirst": "Wants to be first party",
+        "profileComplete": "Complete Profile",
+        "profileIncomplete": "Incomplete",
+        "existingSuggestion": {
+          "blocked": "Active Process",
+          "pending": "Pending Response",
+          "with": "with",
+          "override": "Select Anyway"
+        },
+        "aiReasoning": "AI Reasoning",
+        "vectorReasoning": "Similarity Reasoning",
+        "scoreBreakdown": "Score Breakdown",
+        "similarityScore": "Semantic Similarity Score",
+        "backgroundMultiplier": "Background Multiplier"
       },
       "quickView": {
         "availability": {
