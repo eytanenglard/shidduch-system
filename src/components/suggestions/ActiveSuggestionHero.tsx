@@ -41,7 +41,10 @@ interface StatusConfig {
   iconBg: string;
   badgeClass: string;
   progress: number;
+  step: number;
 }
+
+const TOTAL_STEPS = 6;
 
 const STATUS_CONFIG: Record<string, StatusConfig> = {
   FIRST_PARTY_APPROVED: {
@@ -55,6 +58,7 @@ const STATUS_CONFIG: Record<string, StatusConfig> = {
     iconBg: 'bg-emerald-50 text-emerald-600',
     badgeClass: 'bg-emerald-50 text-emerald-700 border-emerald-200',
     progress: 30,
+    step: 1,
   },
   PENDING_SECOND_PARTY: {
     labelHe: 'ממתין לצד השני',
@@ -66,6 +70,7 @@ const STATUS_CONFIG: Record<string, StatusConfig> = {
     iconBg: 'bg-blue-50 text-blue-600',
     badgeClass: 'bg-blue-50 text-blue-700 border-blue-200',
     progress: 45,
+    step: 2,
   },
   SECOND_PARTY_APPROVED: {
     labelHe: 'שני הצדדים אישרו!',
@@ -77,6 +82,7 @@ const STATUS_CONFIG: Record<string, StatusConfig> = {
     iconBg: 'bg-violet-50 text-violet-600',
     badgeClass: 'bg-violet-50 text-violet-700 border-violet-200',
     progress: 60,
+    step: 3,
   },
   CONTACT_DETAILS_SHARED: {
     labelHe: 'פרטי קשר שותפו! 🎉',
@@ -88,6 +94,7 @@ const STATUS_CONFIG: Record<string, StatusConfig> = {
     iconBg: 'bg-pink-50 text-pink-600',
     badgeClass: 'bg-pink-50 text-pink-700 border-pink-200',
     progress: 70,
+    step: 4,
   },
   AWAITING_FIRST_DATE_FEEDBACK: {
     labelHe: 'ממתין למשוב פגישה',
@@ -99,6 +106,7 @@ const STATUS_CONFIG: Record<string, StatusConfig> = {
     iconBg: 'bg-amber-50 text-amber-600',
     badgeClass: 'bg-amber-50 text-amber-700 border-amber-200',
     progress: 75,
+    step: 5,
   },
   THINKING_AFTER_DATE: {
     labelHe: 'בחשיבה לאחר פגישה',
@@ -110,6 +118,7 @@ const STATUS_CONFIG: Record<string, StatusConfig> = {
     iconBg: 'bg-indigo-50 text-indigo-600',
     badgeClass: 'bg-indigo-50 text-indigo-700 border-indigo-200',
     progress: 78,
+    step: 5,
   },
   PROCEEDING_TO_SECOND_DATE: {
     labelHe: 'בדרך לפגישה שנייה ✨',
@@ -121,6 +130,7 @@ const STATUS_CONFIG: Record<string, StatusConfig> = {
     iconBg: 'bg-teal-50 text-teal-600',
     badgeClass: 'bg-teal-50 text-teal-700 border-teal-200',
     progress: 82,
+    step: 5,
   },
   MEETING_SCHEDULED: {
     labelHe: 'פגישה קבועה! 📅',
@@ -132,6 +142,7 @@ const STATUS_CONFIG: Record<string, StatusConfig> = {
     iconBg: 'bg-emerald-50 text-emerald-600',
     badgeClass: 'bg-emerald-50 text-emerald-700 border-emerald-200',
     progress: 74,
+    step: 5,
   },
   DATING: {
     labelHe: 'בתהליך היכרות 💕',
@@ -143,6 +154,7 @@ const STATUS_CONFIG: Record<string, StatusConfig> = {
     iconBg: 'bg-rose-50 text-rose-600',
     badgeClass: 'bg-rose-50 text-rose-700 border-rose-200',
     progress: 85,
+    step: 5,
   },
   ENGAGED: {
     labelHe: 'מאורסים! 💍',
@@ -154,6 +166,7 @@ const STATUS_CONFIG: Record<string, StatusConfig> = {
     iconBg: 'bg-amber-50 text-amber-600',
     badgeClass: 'bg-amber-50 text-amber-700 border-amber-200',
     progress: 95,
+    step: 6,
   },
 };
 
@@ -167,6 +180,7 @@ const DEFAULT_CONFIG: StatusConfig = {
   iconBg: 'bg-indigo-50 text-indigo-600',
   badgeClass: 'bg-indigo-50 text-indigo-700 border-indigo-200',
   progress: 50,
+  step: 1,
 };
 
 // ============================================================
@@ -368,16 +382,23 @@ const ActiveSuggestionHero: React.FC<ActiveSuggestionHeroProps> = ({
         </div>
 
         {/* Progress Bar */}
-        <div className="flex items-center gap-3 mt-3">
-          <div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+        <div className="mt-3 space-y-1">
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] text-gray-400 font-medium">
+              {locale === 'he'
+                ? `שלב ${config.step} מתוך ${TOTAL_STEPS}`
+                : `Step ${config.step} of ${TOTAL_STEPS}`}
+            </span>
+            <span className="text-[10px] text-gray-400 font-medium">
+              {config.progress}%
+            </span>
+          </div>
+          <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
             <div
               className="h-full rounded-full bg-gradient-to-r from-teal-400 to-emerald-400 transition-all duration-500"
               style={{ width: `${config.progress}%` }}
             />
           </div>
-          <span className="text-[10px] text-gray-400 font-medium w-7 text-center">
-            {config.progress}%
-          </span>
         </div>
       </div>
     </Card>

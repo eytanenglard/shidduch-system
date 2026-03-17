@@ -667,6 +667,10 @@ const EnhancedTabsSection: React.FC<{
   isMobile: boolean;
   isTransitioning?: boolean;
   dict: SuggestionsDictionary['modal']['tabs'];
+  personName?: string;
+  personAge?: number | null;
+  statusLabel?: string;
+  statusBadgeClass?: string;
 }> = ({
   activeTab,
   onTabChange,
@@ -676,8 +680,33 @@ const EnhancedTabsSection: React.FC<{
   isMobile,
   isTransitioning = false,
   dict,
+  personName,
+  personAge,
+  statusLabel,
+  statusBadgeClass,
 }) => (
-  <div className="border-b border-teal-100 px-2 sm:px-6 pt-4 bg-gradient-to-r from-teal-50/80 via-white to-orange-50/80 backdrop-blur-sm sticky top-0 z-20">
+  <div className="border-b border-teal-100 px-2 sm:px-6 pt-3 bg-gradient-to-r from-teal-50/80 via-white to-orange-50/80 backdrop-blur-sm sticky top-0 z-20">
+    {/* Person identity row */}
+    {personName && (
+      <div className="flex items-center justify-between mb-3 px-1">
+        <div className="flex items-center gap-2 min-w-0">
+          <div className="w-7 h-7 rounded-full bg-gradient-to-br from-teal-400 to-emerald-500 flex items-center justify-center flex-shrink-0 shadow-sm">
+            <Heart className="w-3.5 h-3.5 text-white" />
+          </div>
+          <div className="min-w-0">
+            <span className="text-sm font-bold text-gray-800 truncate">
+              {personName}
+              {personAge ? ` (${personAge})` : ''}
+            </span>
+          </div>
+        </div>
+        {statusLabel && (
+          <span className={cn('text-xs font-semibold px-2 py-0.5 rounded-full border', statusBadgeClass || 'bg-gray-100 text-gray-600 border-gray-200')}>
+            {statusLabel}
+          </span>
+        )}
+      </div>
+    )}
     <div className="flex items-center justify-between mb-4">
       <TabsList className="grid w-full grid-cols-4 bg-white/90 backdrop-blur-sm rounded-3xl p-2 h-20 shadow-xl border-2 border-teal-100 overflow-hidden">
         <TabsTrigger
@@ -897,6 +926,13 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
                 onTabChange={setActiveTab}
                 onClose={onClose}
                 isFullscreen={isFullscreen}
+                personName={targetParty?.firstName ?? undefined}
+                personAge={
+                  targetParty?.profile?.birthDate
+                    ? new Date().getFullYear() -
+                      new Date(targetParty.profile.birthDate).getFullYear()
+                    : null
+                }
                 onToggleFullscreen={toggleFullscreen}
                 isMobile={isMobile}
                 isTransitioning={isTransitioning}
@@ -904,7 +940,7 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
               />
 
               {/* TAB: Presentation */}
-              <TabsContent value="presentation" className="mt-0">
+              <TabsContent value="presentation" className="mt-0 data-[state=active]:animate-in data-[state=active]:fade-in-0 data-[state=active]:slide-in-from-bottom-2 data-[state=active]:duration-200">
                 <EnhancedHeroSection
                   matchmaker={suggestion.matchmaker}
                   targetParty={targetParty}
@@ -924,7 +960,7 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
               {/* TAB: Profile */}
               <TabsContent
                 value="profile"
-                className="mt-0 p-4 md:p-6 bg-gradient-to-br from-slate-50 via-white to-teal-50 text-start"
+                className="mt-0 p-4 md:p-6 bg-gradient-to-br from-slate-50 via-white to-teal-50 text-start data-[state=active]:animate-in data-[state=active]:fade-in-0 data-[state=active]:slide-in-from-bottom-2 data-[state=active]:duration-200"
                 dir={locale === 'he' ? 'rtl' : 'ltr'}
               >
                 {isQuestionnaireLoading ? (
@@ -974,7 +1010,7 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
               {/* TAB: Compatibility / AI Analysis */}
               <TabsContent
                 value="compatibility"
-                className="mt-0 p-4 md:p-6 bg-gradient-to-br from-slate-50 via-white to-rose-50"
+                className="mt-0 p-4 md:p-6 bg-gradient-to-br from-slate-50 via-white to-rose-50 data-[state=active]:animate-in data-[state=active]:fade-in-0 data-[state=active]:slide-in-from-bottom-2 data-[state=active]:duration-200"
               >
                 <div className="flex flex-col items-center justify-center h-full min-h-[600px] text-center space-y-8 p-6">
                   <div className="relative">
@@ -1032,7 +1068,7 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
               {/* TAB: Details — Chat + Mini Timeline */}
               <TabsContent
                 value="details"
-                className="mt-0 p-4 md:p-6 bg-[#f0f2f5] min-h-[600px]"
+                className="mt-0 p-4 md:p-6 bg-[#f0f2f5] min-h-[600px] data-[state=active]:animate-in data-[state=active]:fade-in-0 data-[state=active]:slide-in-from-bottom-2 data-[state=active]:duration-200"
               >
                 <div className="max-w-3xl mx-auto space-y-4">
                   {/* Mini Timeline — collapsible */}

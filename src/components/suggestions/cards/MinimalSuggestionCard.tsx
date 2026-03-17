@@ -221,6 +221,34 @@ const MinimalSuggestionCard: React.FC<MinimalSuggestionCardProps> = ({
               </>
             )}
           </div>
+
+          {/* Candidate thumbnail — quick visual preview */}
+          <div className="flex flex-col items-center gap-0.5 mx-1 flex-shrink-0">
+            <div
+              className={cn(
+                'w-9 h-9 rounded-full overflow-hidden ring-2 ring-white shadow-md',
+                isDaily ? 'ring-violet-200' : 'ring-teal-100'
+              )}
+            >
+              {mainImage?.url ? (
+                <Image
+                  src={getRelativeCloudinaryPath(mainImage.url)}
+                  alt={targetParty.firstName}
+                  width={36}
+                  height={36}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center">
+                  <User className="w-4 h-4 text-slate-400" />
+                </div>
+              )}
+            </div>
+            <span className="text-[10px] text-gray-400 font-medium truncate max-w-[38px] leading-tight">
+              {targetParty.firstName}
+            </span>
+          </div>
+
           <div className="flex flex-col items-end gap-1">
             <Badge
               className={cn(
