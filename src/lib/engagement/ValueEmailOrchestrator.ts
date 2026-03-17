@@ -4,7 +4,6 @@
 //    10 מיילים בסדרה, כל אחד עם תוכן ייחודי ועמוק בנושאי זוגיות ושידוכים
 
 import prisma from '@/lib/prisma';
-import { Language } from '@prisma/client';
 import { SignJWT } from 'jose';
 import emailService from './emailService';
 
@@ -415,8 +414,18 @@ export class ValueEmailOrchestrator {
   static async runValueCampaign(): Promise<{ processed: number; sent: number }> {
     console.log('🌟 [Value Campaign] Starting value email campaign...');
 
-    const users = await this.getEligibleUsers();
-    console.log(`📊 [Value Campaign] Found ${users.length} eligible users`);
+    const rawUsers = await this.getEligibleUsers();
+    console.log(`📊 [Value Campaign] Found ${rawUsers.length} eligible users`);
+
+    const users = rawUsers.map(u => ({
+      id: u.id,
+      email: u.email,
+      firstName: u.firstName,
+      language: u.language,
+      dripCampaign: u.dripCampaign
+        ? { sentValueEmailTypes: u.dripCampaign.sentValueEmailTypes, valueEmailsCount: u.dripCampaign.valueEmailsCount }
+        : null,
+    }));
 
     let emailsSent = 0;
 
@@ -444,7 +453,15 @@ export class ValueEmailOrchestrator {
       include: { dripCampaign: true },
     });
     if (!user) throw new Error(`User not found: ${userId}`);
-    return this.processUser(user as any);
+    return this.processUser({
+      id: user.id,
+      email: user.email,
+      firstName: user.firstName,
+      language: user.language,
+      dripCampaign: user.dripCampaign
+        ? { sentValueEmailTypes: user.dripCampaign.sentValueEmailTypes, valueEmailsCount: user.dripCampaign.valueEmailsCount }
+        : null,
+    });
   }
 
   // ─── Internals ───────────────────────────────────────────────────────────────
@@ -456,7 +473,6 @@ export class ValueEmailOrchestrator {
     return prisma.user.findMany({
       where: {
         engagementEmailsConsent: true,
-        email: { not: null },
         OR: [
           { dripCampaign: null },
           {
@@ -478,12 +494,12 @@ export class ValueEmailOrchestrator {
     id: string;
     email: string | null;
     firstName: string | null;
-    language: Language;
+    language: string;
     dripCampaign: { sentValueEmailTypes: string[]; valueEmailsCount: number } | null;
   }): Promise<boolean> {
     if (!user.email) return false;
 
-    const locale = user.language === Language.EN ? 'en' : 'he';
+    const locale = user.language === 'en' ? 'en' : 'he';
     const firstName = user.firstName || (locale === 'he' ? 'חבר/ה' : 'Friend');
 
     const nextEmail = this.pickNextEmail(user.dripCampaign?.sentValueEmailTypes ?? []);

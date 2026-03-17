@@ -16,6 +16,7 @@
     "heroku:run-evening": "heroku run \"npm run engagement:evening\" -a matchpoint",
     "engagement:daily": "node dist/src/scripts/runSmartEngagement.js",
     "engagement:evening": "node dist/src/scripts/runEveningEngagement.js",
+    "engagement:value": "node dist/src/scripts/runValueEmails.js",
     "test:user": "tsx src/scripts/testSingleUser.ts",
     "test:check-logs": "tsx src/scripts/checkEmailLogs.ts",
     "test:debug": "tsx src/scripts/debugCampaignRun.ts",
