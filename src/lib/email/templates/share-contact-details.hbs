@@ -2,95 +2,70 @@
 <!DOCTYPE html>
 <html dir="rtl" lang="he">
 <head>
-    <meta charset="UTF-8">
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            line-height: 1.6;
-            color: #333;
-            margin: 0;
-            padding: 0;
-            background-color: #f4f4f4;
-        }
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 20px;
-            background-color: #ffffff;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        .header {
-            text-align: center;
-            padding: 20px;
-            background-color: #4F46E5;
-            color: white;
-            border-radius: 8px 8px 0 0;
-            margin-bottom: 20px;
-        }
-        .content {
-            padding: 20px;
-        }
-        .contact-details {
-            background-color: #f8fafc;
-            padding: 15px;
-            border-radius: 5px;
-            margin: 20px 0;
-        }
-        .footer {
-            margin-top: 30px;
-            padding-top: 20px;
-            border-top: 1px solid #eee;
-            text-align: center;
-            color: #666;
-            font-size: 14px;
-        }
-        .important-note {
-            background-color: #fef3c7;
-            border-right: 4px solid #f59e0b;
-            padding: 15px;
-            margin: 20px 0;
-            border-radius: 5px;
-        }
-    </style>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>פרטי קשר לפגישה ראשונה</title>
+  <style>
+    *{box-sizing:border-box}
+    body{margin:0;padding:0;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background:linear-gradient(135deg,#e0f2fe 0%,#f0fdfa 50%,#fce7f3 100%);direction:rtl}
+    .wrapper{width:100%;background:linear-gradient(135deg,#e0f2fe 0%,#f0fdfa 50%,#fce7f3 100%);padding:40px 20px}
+    .card{max-width:600px;margin:0 auto;background:#fff;border-radius:24px;box-shadow:0 20px 60px rgba(0,0,0,.12);overflow:hidden}
+    /* Unique: rose/warm gradient — celebratory moment of contact sharing */
+    .header{background:linear-gradient(135deg,#0d9488 0%,#f43f5e 100%);padding:50px 30px;text-align:center}
+    .header-icon{font-size:60px;display:block;margin-bottom:16px}
+    .header h1{color:#fff;margin:0;font-size:28px;font-weight:800;text-shadow:0 2px 12px rgba(0,0,0,.2)}
+    .header p{color:rgba(255,255,255,.9);margin:10px 0 0;font-size:16px}
+    .body{padding:40px 32px}
+    .body p{font-size:15px;color:#4a5568;line-height:1.8;margin:0 0 14px}
+    .contact-box{background:linear-gradient(135deg,#f0fdfa,#fce7f3);border-radius:16px;padding:24px;margin:24px 0;border:1.5px solid rgba(244,63,94,.15)}
+    .contact-box h3{color:#0f766e;font-size:17px;font-weight:800;margin:0 0 16px;display:flex;align-items:center;gap:8px}
+    .contact-box p{margin:0 0 10px;font-size:15px;color:#374151}
+    .contact-box p:last-child{margin:0}
+    .note-box{background:#fff1f2;border-right:4px solid #f43f5e;padding:18px 20px;margin:24px 0;border-radius:0 12px 12px 0}
+    .note-box h4{color:#be123c;font-size:15px;font-weight:800;margin:0 0 10px}
+    .note-box ul{margin:0;padding-right:20px;color:#9f1239;font-size:14px;line-height:1.9}
+    .footer{background:linear-gradient(to bottom,#f8fafc,#f1f5f9);padding:36px 30px;text-align:center;border-top:1px solid #e2e8f0}
+    .footer-logo img{width:56px;height:56px;border-radius:50%;object-fit:cover;margin-bottom:12px}
+    .footer-name{font-size:20px;font-weight:800;background:linear-gradient(135deg,#0d9488,#0f766e);-webkit-background-clip:text;background-clip:text;color:transparent;margin-bottom:6px}
+    .footer p{color:#64748b;font-size:13px;margin:5px 0}
+    .footer a{color:#0d9488;text-decoration:none;font-weight:600}
+  </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>פרטי קשר לפגישה ראשונה</h1>
+  <div class="wrapper">
+    <div class="card">
+      <div class="header">
+        <span class="header-icon">🎊</span>
+        <h1>פרטי קשר לפגישה ראשונה</h1>
+        <p>השדכן/ית אישר/ה — אתם יכולים ליצור קשר!</p>
+      </div>
+      <div class="body">
+        <p>שלום <strong>{{recipientName}}</strong>!</p>
+        <p>כל הכבוד! השדכן/ית <strong>{{matchmakerName}}</strong> אישר/ה את ההצעה. להלן פרטי הקשר של {{otherPartyName}}:</p>
+        <div class="contact-box">
+          <h3>📋 פרטי {{otherPartyName}}</h3>
+          {{#if otherPartyContact.email}}
+          <p>📧 אימייל: <strong>{{otherPartyContact.email}}</strong></p>
+          {{/if}}
+          {{#if otherPartyContact.whatsapp}}
+          <p>💬 וואטסאפ: <strong>{{otherPartyContact.whatsapp}}</strong></p>
+          {{/if}}
         </div>
-        
-        <div class="content">
-            <h2>שלום {{recipientName}}!</h2>
-            
-            <p>השדכן/ית {{matchmakerName}} אישר/ה את ההצעה ואתם יכולים ליצור קשר ראשוני!</p>
-
-        <div class="contact-details">
-  <h3>פרטי הקשר של {{otherPartyName}}:</h3>
-  {{#if otherPartyContact.email}}
-    <p>📧 אימייל: {{otherPartyContact.email}}</p>
-  {{/if}}
-  {{#if otherPartyContact.whatsapp}}
-    <p>💬 וואטסאפ: {{otherPartyContact.whatsapp}}</p>
-  {{/if}}
-</div>
-
-            <div class="important-note">
-                <h4>🔔 שימו לב:</h4>
-                <ul>
-                    <li>מומלץ ליצור קשר תוך 24 שעות</li>
-                    <li>אנא עדכנו את השדכן/ית על קביעת הפגישה</li>
-                    <li>לאחר הפגישה, תתבקשו למלא משוב קצר במערכת</li>
-                </ul>
-            </div>
-
-            <p>בהצלחה רבה! אנו מאחלים לכם פגישה טובה ומוצלחת.</p>
+        <div class="note-box">
+          <h4>🔔 שימו לב:</h4>
+          <ul>
+            <li>מומלץ ליצור קשר תוך 24 שעות</li>
+            <li>אנא עדכנו את השדכן/ית על קביעת הפגישה</li>
+            <li>לאחר הפגישה, תתבקשו למלא משוב קצר במערכת</li>
+          </ul>
         </div>
-
-        <div class="footer">
-            <p>בברכה,<br>צוות מערכת השידוכים</p>
-            <p>{{supportEmail}}</p>
-        </div>
+        <p>בהצלחה רבה! אנו מאחלים לכם פגישה טובה ומוצלחת 🌟</p>
+      </div>
+      <div class="footer">
+        <div><img src="https://res.cloudinary.com/dmfxoi6g0/image/upload/v1764757309/ChatGPT_Image_Dec_3_2025_12_21_36_PM_qk8mjz.png" alt="NeshamaTech" /></div>
+        <div class="footer-name">NeshamaTech</div>
+        <p>📧 <a href="mailto:{{supportEmail}}">{{supportEmail}}</a></p>
+      </div>
     </div>
+  </div>
 </body>
 </html>

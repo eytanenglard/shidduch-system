@@ -105,7 +105,7 @@ async function main() {
     try {
       await db.$disconnect();
       console.log('🔌 Database disconnected');
-    } catch {}
+    } catch (_e) {}
   }
 }
 

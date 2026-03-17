@@ -2,44 +2,57 @@
 <!DOCTYPE html>
 <html dir="rtl" lang="he">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>הזמנה להגדרת חשבונך ב-{{companyName}}</title>
-    <style>
-        body { font-family: 'Arial', sans-serif; direction: rtl; text-align: right; line-height: 1.6; margin: 0; padding: 0; background-color: #f8f9fa; color: #343a40; }
-        .email-container { max-width: 600px; margin: 20px auto; background-color: #ffffff; border: 1px solid #dee2e6; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.05); overflow: hidden; }
-        .email-header { background-color: #06b6d4; color: #ffffff; padding: 25px; text-align: center; }
-        .email-header h1 { margin: 0; font-size: 26px; font-weight: 600; }
-        .email-body { padding: 25px 30px; font-size: 16px; }
-        .email-body p { margin-bottom: 1em; }
-        .button { display: inline-block; padding: 12px 25px; background-color: #06b6d4; color: white !important; text-decoration: none; border-radius: 5px; margin: 15px 0; font-weight: 500; text-align: center; }
-        .button:hover { background-color: #0891b2; }
-        .footer { background-color: #f1f3f5; padding: 20px; text-align: center; font-size: 0.9em; color: #6c757d; border-top: 1px solid #e9ecef; }
-        .highlight-box { background-color: #f0f9ff; border-right: 4px solid #38bdf8; padding: 15px; margin: 20px 0; border-radius: 5px; }
-    </style>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>הגדרת חשבון ב-{{companyName}}</title>
+  <style>
+    *{box-sizing:border-box}
+    body{margin:0;padding:0;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background:linear-gradient(135deg,#e0f2fe 0%,#f0fdfa 50%,#fce7f3 100%);direction:rtl}
+    .wrapper{width:100%;background:linear-gradient(135deg,#e0f2fe 0%,#f0fdfa 50%,#fce7f3 100%);padding:40px 20px}
+    .card{max-width:600px;margin:0 auto;background:#fff;border-radius:24px;box-shadow:0 20px 60px rgba(0,0,0,.12);overflow:hidden}
+    .header{background:linear-gradient(135deg,#0d9488 0%,#14b8a6 100%);padding:50px 30px;text-align:center}
+    .header-icon{font-size:56px;display:block;margin-bottom:16px}
+    .header h1{color:#fff;margin:0;font-size:28px;font-weight:800;text-shadow:0 2px 12px rgba(0,0,0,.15)}
+    .header p{color:rgba(255,255,255,.9);margin:10px 0 0;font-size:16px}
+    .body{padding:40px 32px}
+    .body p{font-size:15px;color:#4a5568;line-height:1.8;margin:0 0 14px}
+    .notice-box{background:#f0fdfa;border-right:4px solid #14b8a6;padding:18px 20px;margin:24px 0;border-radius:0 12px 12px 0}
+    .notice-box p{margin:0;font-size:15px;color:#0f766e}
+    .cta{text-align:center;margin:32px 0}
+    .cta a{display:inline-block;background:linear-gradient(135deg,#f97316,#ea580c);color:#fff;text-decoration:none;padding:16px 48px;border-radius:50px;font-weight:700;font-size:16px;box-shadow:0 10px 28px rgba(249,115,22,.3)}
+    .footer{background:linear-gradient(to bottom,#f8fafc,#f1f5f9);padding:36px 30px;text-align:center;border-top:1px solid #e2e8f0}
+    .footer-logo img{width:56px;height:56px;border-radius:50%;object-fit:cover;margin-bottom:12px}
+    .footer-name{font-size:20px;font-weight:800;background:linear-gradient(135deg,#0d9488,#0f766e);-webkit-background-clip:text;background-clip:text;color:transparent;margin-bottom:6px}
+    .footer p{color:#64748b;font-size:13px;margin:5px 0}
+    .footer a{color:#0d9488;text-decoration:none;font-weight:600}
+  </style>
 </head>
 <body>
-    <div class="email-container">
-        <div class="email-header">
-            <h1>הזמנה להגדרת חשבונך</h1>
+  <div class="wrapper">
+    <div class="card">
+      <div class="header">
+        <span class="header-icon">🔐</span>
+        <h1>הגדרת החשבון שלך</h1>
+        <p>{{companyName}}</p>
+      </div>
+      <div class="body">
+        <p>שלום <strong>{{firstName}}</strong>,</p>
+        <p>השדכן/ית <strong>{{matchmakerName}}</strong> יצר/ה עבורך פרופיל ב-{{companyName}}. כדי להפעיל את החשבון ולהתחיל לקבל הצעות, יש להגדיר סיסמה אישית.</p>
+        <div class="cta">
+          <a href="{{setupLink}}">הגדרת סיסמה והפעלת החשבון</a>
         </div>
-        <div class="email-body">
-            <p>שלום <strong>{{firstName}}</strong>,</p>
-            <p>אנו שמחים לבשר לך שהשדכן/ית, <strong>{{matchmakerName}}</strong>, יצר/ה עבורך פרופיל במערכת השידוכים המתקדמת שלנו, {{companyName}}.</p>
-            <p>כדי שתוכל/י לקחת שליטה על הפרופיל, לעדכן פרטים, ולצפות בהצעות, יש להגדיר סיסמה אישית לחשבונך.</p>
-            <p style="text-align: center;">
-                <a href="{{setupLink}}" class="button">הגדרת סיסמה והפעלת החשבון</a>
-            </p>
-            <div class="highlight-box">
-                <p><strong>שימ/י לב:</strong> קישור זה הינו חד-פעמי ותקף למשך <strong>{{expiresIn}}</strong>.</p>
-            </div>
-            <p>לאחר הגדרת הסיסמה, תוכל/י להתחבר למערכת בכל עת באמצעות כתובת המייל שלך והסיסמה החדשה.</p>
-            <p>אנו מאחלים לך הצלחה רבה!</p>
+        <div class="notice-box">
+          <p>⚠️ <strong>שימ/י לב:</strong> קישור זה הינו חד-פעמי ותקף למשך <strong>{{expiresIn}}</strong>.</p>
         </div>
-        <div class="footer">
-            <p>לתמיכה ושאלות, ניתן לפנות אלינו בכתובת: <a href="mailto:{{supportEmail}}">{{supportEmail}}</a></p>
-            <p>© {{currentYear}} כל הזכויות שמורות ל{{companyName}}.</p>
-        </div>
+        <p>לאחר ההגדרה תוכל/י להתחבר בכל עת עם כתובת המייל שלך.</p>
+        <p>בהצלחה! 🌟</p>
+      </div>
+      <div class="footer">
+        <div><img src="https://res.cloudinary.com/dmfxoi6g0/image/upload/v1764757309/ChatGPT_Image_Dec_3_2025_12_21_36_PM_qk8mjz.png" alt="NeshamaTech" /></div>
+        <div class="footer-name">{{companyName}}</div>
+        <p>📧 <a href="mailto:{{supportEmail}}">{{supportEmail}}</a></p>
+        <p>© {{currentYear}} כל הזכויות שמורות ל-{{companyName}}</p>
+      </div>
     </div>
+  </div>
 </body>
 </html>

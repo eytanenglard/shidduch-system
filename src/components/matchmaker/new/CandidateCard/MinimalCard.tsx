@@ -782,7 +782,7 @@ const MinimalCandidateCard: React.FC<MinimalCandidateCardProps> = React.memo(
                       <TooltipTrigger asChild>
                         <span className="text-xs px-2 py-0.5 rounded-full border border-blue-200 bg-blue-50 text-blue-700 font-medium flex items-center gap-1">
                           <ArrowRightCircle className="w-3 h-3" />
-                          <span>צד א'</span>
+                          <span>{'צד א\''}</span>
                         </span>
                       </TooltipTrigger>
                       <TooltipContent><p>{dict.wantsToBeFirst ?? 'מעוניין/ת להיות צד ראשון'}</p></TooltipContent>

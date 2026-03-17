@@ -1,85 +1,72 @@
 <!DOCTYPE html>
 <html dir="rtl" lang="he">
 <head>
-    <meta charset="UTF-8">
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            line-height: 1.6;
-            color: #333;
-            margin: 0;
-            padding: 0;
-            background-color: #f4f4f4;
-        }
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 20px;
-            background-color: #ffffff;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        .header {
-            text-align: center;
-            padding: 20px;
-            background-color: #4F46E5;
-            color: white;
-            border-radius: 8px 8px 0 0;
-        }
-        .button {
-            display: inline-block;
-            padding: 12px 24px;
-            background-color: #4F46E5;
-            color: white;
-            text-decoration: none;
-            border-radius: 5px;
-            margin: 20px 0;
-        }
-        .deadline {
-            background-color: #FEF3C7;
-            border-radius: 4px;
-            padding: 10px;
-            margin: 15px 0;
-            color: #92400E;
-        }
-    </style>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>בדיקת זמינות</title>
+  <style>
+    *{box-sizing:border-box}
+    body{margin:0;padding:0;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background:linear-gradient(135deg,#e0f2fe 0%,#f0fdfa 50%,#fce7f3 100%);direction:rtl}
+    .wrapper{width:100%;background:linear-gradient(135deg,#e0f2fe 0%,#f0fdfa 50%,#fce7f3 100%);padding:40px 20px}
+    .card{max-width:600px;margin:0 auto;background:#fff;border-radius:24px;box-shadow:0 20px 60px rgba(0,0,0,.12);overflow:hidden}
+    .header{background:linear-gradient(135deg,#0d9488 0%,#0f766e 100%);padding:50px 30px;text-align:center}
+    .header-icon{font-size:56px;display:block;margin-bottom:16px}
+    .header h1{color:#fff;margin:0;font-size:28px;font-weight:800;text-shadow:0 2px 12px rgba(0,0,0,.15)}
+    .header p{color:rgba(255,255,255,.9);margin:10px 0 0;font-size:16px}
+    .body{padding:40px 32px}
+    .body p{font-size:15px;color:#4a5568;line-height:1.8;margin:0 0 14px}
+    .steps-box{background:#f8fafc;border-radius:12px;padding:20px 24px;margin:20px 0;border:1px solid #e2e8f0}
+    .steps-box ol{margin:0;padding-right:20px;color:#374151;font-size:15px;line-height:1.9}
+    /* Unique: amber urgency box for deadline */
+    .deadline-box{background:#fff7ed;border-right:4px solid #f97316;padding:18px 20px;margin:24px 0;border-radius:0 12px 12px 0}
+    .deadline-box p{margin:0 0 8px;color:#92400e;font-size:15px}
+    .deadline-box p:last-child{margin:0}
+    .deadline-box ul{margin:8px 0 0;padding-right:20px;color:#92400e;font-size:14px;line-height:1.8}
+    .cta{text-align:center;margin:32px 0}
+    .cta a{display:inline-block;background:linear-gradient(135deg,#f97316,#ea580c);color:#fff;text-decoration:none;padding:16px 48px;border-radius:50px;font-weight:700;font-size:16px;box-shadow:0 10px 28px rgba(249,115,22,.3)}
+    .footer{background:linear-gradient(to bottom,#f8fafc,#f1f5f9);padding:36px 30px;text-align:center;border-top:1px solid #e2e8f0}
+    .footer-logo img{width:56px;height:56px;border-radius:50%;object-fit:cover;margin-bottom:12px}
+    .footer-name{font-size:20px;font-weight:800;background:linear-gradient(135deg,#0d9488,#0f766e);-webkit-background-clip:text;background-clip:text;color:transparent;margin-bottom:6px}
+    .footer p{color:#64748b;font-size:13px;margin:5px 0}
+    .footer a{color:#0d9488;text-decoration:none;font-weight:600}
+  </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>בקשת בדיקת זמינות</h1>
+  <div class="wrapper">
+    <div class="card">
+      <div class="header">
+        <span class="header-icon">🔍</span>
+        <h1>בקשת בדיקת זמינות</h1>
+        <p>השדכן/ית שלך ממתין/ה לתשובתך</p>
+      </div>
+      <div class="body">
+        <p>שלום <strong>{{recipientName}}</strong>,</p>
+        <p>השדכן/ית <strong>{{matchmakerName}}</strong> חושב/ת על הצעת שידוך עבורך ומבקש/ת לוודא את זמינותך לפני שהולך קדימה.</p>
+        <div class="cta">
+          <a href="{{baseUrl}}/messages">מענה על בקשת הזמינות</a>
         </div>
-        
-        <div style="padding: 20px;">
-            <h2>שלום {{recipientName}},</h2>
-            
-            <p>השדכן/ית {{matchmakerName}} חושב/ת על הצעת שידוך עבורך ומבקש/ת לוודא את זמינותך.</p>
-            
-            <p>נשמח אם תוכל/י לאשר את זמינותך דרך המערכת באחת משתי הדרכים:</p>
-            
-            <div style="text-align: center;">
-             <a href="{{baseUrl}}/messages" class="button">
-    כניסה למערכת למענה על הבקשה
-</a>
-            </div>
-
-            <p>או דרך:</p>
-            <ol>
-                <li>כניסה למערכת</li>
-                <li>לחיצה על "הודעות" בתפריט העליון</li>
-                <li>מענה על בקשת הזמינות</li>
-            </ol>
-
-            <div class="deadline">
-                <p>⏰ חשוב לדעת:</p>
-                <ul>
-                    <li>התשובה תקפה ל-24 שעות</li>
-                    <li>תשובתך תעדכן את סטטוס הזמינות הכללי שלך במערכת</li>
-                </ul>
-            </div>
-            
-            <p>בברכה,<br>צוות מערכת השידוכים</p>
+        <p>או דרך:</p>
+        <div class="steps-box">
+          <ol>
+            <li>כניסה למערכת</li>
+            <li>לחיצה על "הודעות" בתפריט</li>
+            <li>מענה על בקשת הזמינות</li>
+          </ol>
         </div>
+        <div class="deadline-box">
+          <p>⏰ <strong>חשוב לדעת:</strong></p>
+          <ul>
+            <li>התשובה תקפה ל-24 שעות</li>
+            <li>תשובתך תעדכן את סטטוס הזמינות הכללי שלך</li>
+          </ul>
+        </div>
+        <p>בברכה, צוות NeshamaTech</p>
+      </div>
+      <div class="footer">
+        <div><img src="https://res.cloudinary.com/dmfxoi6g0/image/upload/v1764757309/ChatGPT_Image_Dec_3_2025_12_21_36_PM_qk8mjz.png" alt="NeshamaTech" /></div>
+        <div class="footer-name">NeshamaTech</div>
+        <p>מחברים לבבות, בונים עתיד משותף</p>
+      </div>
     </div>
+  </div>
 </body>
 </html>
