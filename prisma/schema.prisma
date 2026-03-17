@@ -281,6 +281,15 @@ model Profile {
   preferredHobbies            String[]           @default([])
   preferredAliyaStatus        String?
   preferredReligiousJourneys  ReligiousJourney[] @default([])
+
+  // --- Appearance Fields ---
+  bodyType                    BodyType?
+  appearanceTone              AppearanceTone?
+  groomingStyle               GroomingStyle?
+  preferredBodyTypes          BodyType[]         @default([])
+  preferredAppearanceTones    AppearanceTone[]   @default([])
+  preferredGroomingStyles     GroomingStyle[]    @default([])
+
   metrics                     ProfileMetrics?
   isProfileVisible            Boolean            @default(true)
   preferredMatchmakerGender   Gender?
@@ -1814,6 +1823,33 @@ enum ReportReason {
   OFFENSIVE_PHOTOS
   MISLEADING_INFO
   OTHER
+}
+
+enum BodyType {
+  VERY_SLIM
+  SLIM
+  SLIM_MEDIUM
+  MEDIUM
+  MEDIUM_FULL
+  FULL
+  ATHLETIC
+}
+
+enum AppearanceTone {
+  VERY_FAIR
+  FAIR
+  MEDIUM
+  MEDITERRANEAN
+  DARK
+  VERY_DARK
+}
+
+enum GroomingStyle {
+  VERY_POLISHED
+  CLASSIC_NEAT
+  NATURAL
+  SPORTY_CASUAL
+  TRENDY
 }
 
 enum ReportStatus {

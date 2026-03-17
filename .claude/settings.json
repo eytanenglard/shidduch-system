@@ -1,30 +1,7 @@
 {
   "permissions": {
     "allow": [
-      "Bash(find:*)",
-      "Bash(ls:*)",
-      "Bash(cat:*)",
-      "Bash(head:*)",
-      "Bash(tail:*)",
-      "Bash(wc:*)",
-      "Bash(grep:*)",
-      "Bash(echo:*)",
-      "Bash(pwd:*)",
-      "Bash(tree:*)",
-      "Bash(python3:*)",
-      "Bash(node:*)",
-      "Bash(npx:*)",
-      "Bash(npm:*)",
-      "Bash(git:*)",
-      "Bash(mkdir:*)",
-      "Bash(cp:*)",
-      "Bash(mv:*)",
-      "Bash(touch:*)",
-      "Bash(sed:*)",
-      "Bash(awk:*)",
-      "Bash(sort:*)",
-      "Bash(xargs:*)",
-      "Bash(cd:*)",
+      "Bash(*)",
       "Read(*)",
       "Write(*)"
     ]

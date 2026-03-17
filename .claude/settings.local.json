@@ -28,10 +28,13 @@
       "Bash(DATABASE_URL=\"postgresql://postgres:oBuktZCJpD6C2zkf@db.pwkwidqfbojftjumlzra.supabase.co:5432/postgres\" npx prisma migrate dev --name add_religious_journey_options)",
       "Bash(npx prisma:*)",
       "Bash(python3 -c \":*)",
-      "Bash(grep -n '\"\"VALUES\"\"\\\\|\"\"RELATIONSHIP\"\"\\\\|\"\"PARTNER\"\"\\\\|\"\"RELIGION\"\"' \"c:/Users/eytan/Desktop/NeshamaTech/shidduch-system/dictionaries/questionnaire/questions.en.json\")"
+      "Bash(grep -n '\"\"VALUES\"\"\\\\|\"\"RELATIONSHIP\"\"\\\\|\"\"PARTNER\"\"\\\\|\"\"RELIGION\"\"' \"c:/Users/eytan/Desktop/NeshamaTech/shidduch-system/dictionaries/questionnaire/questions.en.json\")",
+      "Read(//c/Users/eytan/Desktop/NeshamaTech/neshamatech-mobile/**)"
     ],
     "additionalDirectories": [
-      "C:\\Users\\eytan\\.claude\\plans"
+      "C:\\Users\\eytan\\.claude\\plans",
+      "c:\\Users\\eytan\\Desktop\\NeshamaTech\\neshamatech-mobile\\src\\types",
+      "c:\\Users\\eytan\\Desktop\\NeshamaTech\\neshamatech-mobile\\src\\services"
     ]
   }
 }

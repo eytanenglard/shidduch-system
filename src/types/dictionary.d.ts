@@ -1994,6 +1994,15 @@ export type PreferencesSectionDict = {
       hobbiesLegend: string;
       hobbiesEmpty: string;
     };
+    appearancePreferences: {
+      title: string;
+      bodyTypeLegend: string;
+      bodyTypeEmpty: string;
+      appearanceToneLegend: string;
+      appearanceToneEmpty: string;
+      groomingStyleLegend: string;
+      groomingStyleEmpty: string;
+    };
   };
   options: {
     contactPreference: { direct: string; matchmaker: string; both: string };
@@ -2012,6 +2021,9 @@ export type PreferencesSectionDict = {
     origins: { [key: string]: string };
     traits: { [key: string]: string };
     hobbies: { [key: string]: string };
+    bodyType: { [key: string]: string };
+    appearanceTone: { [key: string]: string };
+    groomingStyle: { [key: string]: string };
   };
 };
 
@@ -2217,6 +2229,18 @@ export type ProfileSectionDict = {
       hobbiesLabel: string;
       hobbiesEmpty: string;
     };
+    appearance: {
+      title: string;
+      bodyTypeLabel: string;
+      bodyTypePlaceholder: string;
+      bodyTypeEmpty: string;
+      appearanceToneLabel: string;
+      appearanceTonePlaceholder: string;
+      appearanceToneEmpty: string;
+      groomingStyleLabel: string;
+      groomingStylePlaceholder: string;
+      groomingStyleEmpty: string;
+    };
   };
   placeholders: {
     notSpecified: string;
@@ -2307,6 +2331,9 @@ export type ProfileSectionDict = {
     };
     traits: { [key: string]: string };
     hobbies: { [key: string]: string };
+    bodyType: { [key: string]: string };
+    appearanceTone: { [key: string]: string };
+    groomingStyle: { [key: string]: string };
   };
   charCount: string;
 };
@@ -2697,6 +2724,18 @@ export type ProfileCardDict = {
       hobbiesLabel: string;
       hobbiesEmpty: string;
     };
+    appearance: {
+      title: string;
+      bodyTypeLabel: string;
+      bodyTypePlaceholder: string;
+      bodyTypeEmpty: string;
+      appearanceToneLabel: string;
+      appearanceTonePlaceholder: string;
+      appearanceToneEmpty: string;
+      groomingStyleLabel: string;
+      groomingStylePlaceholder: string;
+      groomingStyleEmpty: string;
+    };
   };
   placeholders: {
     notSpecified: string;
@@ -2745,6 +2784,9 @@ export type ProfileCardDict = {
     };
     traits: { [key: string]: string };
     hobbies: { [key: string]: string };
+    bodyType: { [key: string]: string };
+    appearanceTone: { [key: string]: string };
+    groomingStyle: { [key: string]: string };
   };
   charCount: string;
 };

@@ -132,7 +132,13 @@
         "preferredMaritalStatuses": "מצבים משפחתיים מקובלים",
         "preferredPartnerHasChildren": "העדפה לגבי ילדים מקשר קודם",
         "preferredCharacterTraits": "תכונות אופי מועדפות",
-        "preferredHobbies": "תחביבים משותפים מועדפים"
+        "preferredHobbies": "תחביבים משותפים מועדפים",
+        "bodyType": "גזרה",
+        "appearanceTone": "טון מראה",
+        "groomingStyle": "סגנון טיפוח",
+        "preferredBodyTypes": "גזרות מועדפות",
+        "preferredAppearanceTones": "טונים מועדפים",
+        "preferredGroomingStyles": "סגנון טיפוח מועדף"
       }
     },
     "aiAdvisor": {
@@ -464,6 +470,15 @@
         "traitsEmpty": "לא נבחרו תכונות אופי מועדפות.",
         "hobbiesLegend": "תחביבים מועדפים (עד 3)",
         "hobbiesEmpty": "לא נבחרו תחביבים מועדפים."
+      },
+      "appearancePreferences": {
+        "title": "העדפות מראה",
+        "bodyTypeLegend": "גזרה מועדפת",
+        "bodyTypeEmpty": "לא נבחרו העדפות גזרה.",
+        "appearanceToneLegend": "טון מראה מועדף",
+        "appearanceToneEmpty": "לא נבחרו העדפות טון מראה.",
+        "groomingStyleLegend": "סגנון טיפוח מועדף",
+        "groomingStyleEmpty": "לא נבחרו העדפות סגנון."
       }
     },
     "options": {
@@ -536,33 +551,33 @@
         "student": "סטודנט/ית",
         "no_preference": "ללא העדפה"
       },
-     "serviceTypes": {
-  "MILITARY_COMBATANT": "צבאי - לוחם/ת",
-  "MILITARY_SUPPORT": "צבאי - תומכ/ת לחימה",
-  "MILITARY_OFFICER": "צבאי - קצונה",
-  "MILITARY_INTELLIGENCE_CYBER_TECH": "צבאי - מודיעין/סייבר/טכנולוגי",
-  "NATIONAL_SERVICE_ONE_YEAR": "שירות לאומי - שנה",
-  "NATIONAL_SERVICE_TWO_YEARS": "שירות לאומי - שנתיים",
-  "HESDER_YESHIVA": "ישיבת הסדר",
-  "YESHIVA_ONLY_POST_HS": "ישיבה/מדרשה (ללא שירות)",
-  "PRE_MILITARY_ACADEMY_AND_SERVICE": "מכינה ושירות",
-  "EXEMPTED": "פטור משירות",
-  "CIVILIAN_SERVICE": "שירות אזרחי",
-  "OTHER": "אחר / לא רלוונטי",
-  "no_preference": "ללא העדפה / לא משנה",
-  "NONE": "ללא שירות",
-  "YESHIVA_HESDER": "ישיבת הסדר",
-  "YESHIVA_FULL_TIME": "ישיבה גבוהה",
-  "SEMINARY": "סמינר",
-  "MIDRASHA": "מדרשה"
-},
+      "serviceTypes": {
+        "MILITARY_COMBATANT": "צבאי - לוחם/ת",
+        "MILITARY_SUPPORT": "צבאי - תומכ/ת לחימה",
+        "MILITARY_OFFICER": "צבאי - קצונה",
+        "MILITARY_INTELLIGENCE_CYBER_TECH": "צבאי - מודיעין/סייבר/טכנולוגי",
+        "NATIONAL_SERVICE_ONE_YEAR": "שירות לאומי - שנה",
+        "NATIONAL_SERVICE_TWO_YEARS": "שירות לאומי - שנתיים",
+        "HESDER_YESHIVA": "ישיבת הסדר",
+        "YESHIVA_ONLY_POST_HS": "ישיבה/מדרשה (ללא שירות)",
+        "PRE_MILITARY_ACADEMY_AND_SERVICE": "מכינה ושירות",
+        "EXEMPTED": "פטור משירות",
+        "CIVILIAN_SERVICE": "שירות אזרחי",
+        "OTHER": "אחר / לא רלוונטי",
+        "no_preference": "ללא העדפה / לא משנה",
+        "NONE": "ללא שירות",
+        "YESHIVA_HESDER": "ישיבת הסדר",
+        "YESHIVA_FULL_TIME": "ישיבה גבוהה",
+        "SEMINARY": "סמינר",
+        "MIDRASHA": "מדרשה"
+      },
       "headCovering": {
         "FULL_COVERAGE": "כיסוי ראש מלא",
         "PARTIAL_COVERAGE": "כיסוי ראש חלקי",
         "HAT_BERET": "כובע / ברט",
         "SCARF_ONLY_SOMETIMES": "מטפחת (לאירועים)",
         "NONE": "ללא כיסוי ראש",
-         "UNDECIDED": "עוד לא החלטתי",
+        "UNDECIDED": "עוד לא החלטתי",
         "any": "כל האפשרויות פתוחות"
       },
       "kippahType": {
@@ -636,6 +651,30 @@
         "nature_hiking": "טבע/טיולים רגליים",
         "photography": "צילום",
         "no_strong_preference": "ללא העדפה חזקה"
+      },
+      "bodyType": {
+        "VERY_SLIM": "רזה מאוד",
+        "SLIM": "רזה",
+        "SLIM_MEDIUM": "רזה-בינוני/ת",
+        "MEDIUM": "בינוני/ת",
+        "MEDIUM_FULL": "בינוני/ת-מלא/ה",
+        "FULL": "מלא/ה",
+        "ATHLETIC": "ספורטיבי/ת-שרירי/ת"
+      },
+      "appearanceTone": {
+        "VERY_FAIR": "בהיר/ה מאוד",
+        "FAIR": "בהיר/ה",
+        "MEDIUM": "בינוני/ת",
+        "MEDITERRANEAN": "שחום/ה מדיטרני/ת",
+        "DARK": "שחום/ה",
+        "VERY_DARK": "כהה מאוד"
+      },
+      "groomingStyle": {
+        "VERY_POLISHED": "מאוד מטופח/ת",
+        "CLASSIC_NEAT": "קלאסי/ת ומסודר/ת",
+        "NATURAL": "נטורל / יופי טבעי",
+        "SPORTY_CASUAL": "ספורטיבי/ת וקז'ואל",
+        "TRENDY": "אופנתי/ת וטרנדי/ת"
       }
     }
   },
@@ -859,6 +898,18 @@
         "traitsEmpty": "לא נבחרו תכונות אופי.",
         "hobbiesLabel": "תחביבים עיקריים (עד 3)",
         "hobbiesEmpty": "לא נבחרו תחביבים."
+      },
+      "appearance": {
+        "title": "מראה חיצוני וסגנון",
+        "bodyTypeLabel": "גזרה",
+        "bodyTypePlaceholder": "בחר/י גזרה",
+        "bodyTypeEmpty": "לא צוינה גזרה.",
+        "appearanceToneLabel": "טון מראה",
+        "appearanceTonePlaceholder": "בחר/י טון מראה",
+        "appearanceToneEmpty": "לא צוין טון מראה.",
+        "groomingStyleLabel": "סגנון טיפוח",
+        "groomingStylePlaceholder": "בחר/י סגנון",
+        "groomingStyleEmpty": "לא צוין סגנון טיפוח."
       }
     },
     "placeholders": {
@@ -932,54 +983,53 @@
         "yeshiva_seminary": "לימודים תורניים (ישיבה/מדרשה/כולל)",
         "other": "אחר"
       },
-    "serviceType": {
-  "MILITARY_COMBATANT": "צבאי - לוחם/ת",
-  "MILITARY_SUPPORT": "צבאי - תומכ/ת לחימה",
-  "MILITARY_OFFICER": "צבאי - קצונה",
-  "MILITARY_INTELLIGENCE_CYBER_TECH": "צבאי - מודיעין/סייבר/טכנולוגי",
-  "NATIONAL_SERVICE_ONE_YEAR": "שירות לאומי - שנה",
-  "NATIONAL_SERVICE_TWO_YEARS": "שירות לאומי - שנתיים",
-  "HESDER_YESHIVA": "ישיבת הסדר",
-  "YESHIVA_ONLY_POST_HS": "ישיבה גבוהה / מדרשה (ללא שירות צבאי/לאומי)",
-  "PRE_MILITARY_ACADEMY_AND_SERVICE": "מכינה קדם-צבאית ושירות",
-  "EXEMPTED": "פטור משירות",
-  "CIVILIAN_SERVICE": "שירות אזרחי",
-  "OTHER": "אחר / לא רלוונטי",
-  "NONE": "ללא שירות",
-  "YESHIVA_HESDER": "ישיבת הסדר",
-  "YESHIVA_FULL_TIME": "ישיבה גבוהה",
-  "SEMINARY": "מדרשה/סמינר",
-  "MIDRASHA": "Midrasha"
-
-},
-"headCovering": {
-  "FULL_COVERAGE": "כיסוי ראש מלא",
-  "PARTIAL_COVERAGE": "כיסוי ראש חלקי",
-  "HAT_BERET": "כובע / ברט",
-  "SCARF_ONLY_SOMETIMES": "מטפחת (רק באירועים/בית כנסת)",
-  "UNDECIDED": "עוד לא החלטתי",
-  "NONE": "ללא כיסוי ראש",
-  "OTHER": "אחר",
-  "WIG": "פאה",
-  "SOMETIMES": "לפעמים",
-  "MITPACHAT": "מטפחת",
-  "BOTH": "פאה ומטפחת"
-},
-"kippahType": {
-  "BLACK_VELVET": "קטיפה שחורה",
-  "KNITTED_SMALL": "סרוגה קטנה",
-  "KNITTED_LARGE": "סרוגה גדולה",
-  "CLOTH": "בד",
-  "BRESLEV": "ברסלב (לבנה גדולה)",
-  "NONE_AT_WORK_OR_CASUAL": "לא בעבודה / ביומיום",
-  "NONE_USUALLY": "לרוב לא חובש",
-  "OTHER": "אחר",
-  "NONE": "ללא כיפה",
-  "SOMETIMES": "לפעמים",
-  "SRUGA": "כיפה סרוגה",
-  "BLACK": "כיפה שחורה",
-  "LARGE": "כיפה גדולה"
-},
+      "serviceType": {
+        "MILITARY_COMBATANT": "צבאי - לוחם/ת",
+        "MILITARY_SUPPORT": "צבאי - תומכ/ת לחימה",
+        "MILITARY_OFFICER": "צבאי - קצונה",
+        "MILITARY_INTELLIGENCE_CYBER_TECH": "צבאי - מודיעין/סייבר/טכנולוגי",
+        "NATIONAL_SERVICE_ONE_YEAR": "שירות לאומי - שנה",
+        "NATIONAL_SERVICE_TWO_YEARS": "שירות לאומי - שנתיים",
+        "HESDER_YESHIVA": "ישיבת הסדר",
+        "YESHIVA_ONLY_POST_HS": "ישיבה גבוהה / מדרשה (ללא שירות צבאי/לאומי)",
+        "PRE_MILITARY_ACADEMY_AND_SERVICE": "מכינה קדם-צבאית ושירות",
+        "EXEMPTED": "פטור משירות",
+        "CIVILIAN_SERVICE": "שירות אזרחי",
+        "OTHER": "אחר / לא רלוונטי",
+        "NONE": "ללא שירות",
+        "YESHIVA_HESDER": "ישיבת הסדר",
+        "YESHIVA_FULL_TIME": "ישיבה גבוהה",
+        "SEMINARY": "מדרשה/סמינר",
+        "MIDRASHA": "Midrasha"
+      },
+      "headCovering": {
+        "FULL_COVERAGE": "כיסוי ראש מלא",
+        "PARTIAL_COVERAGE": "כיסוי ראש חלקי",
+        "HAT_BERET": "כובע / ברט",
+        "SCARF_ONLY_SOMETIMES": "מטפחת (רק באירועים/בית כנסת)",
+        "UNDECIDED": "עוד לא החלטתי",
+        "NONE": "ללא כיסוי ראש",
+        "OTHER": "אחר",
+        "WIG": "פאה",
+        "SOMETIMES": "לפעמים",
+        "MITPACHAT": "מטפחת",
+        "BOTH": "פאה ומטפחת"
+      },
+      "kippahType": {
+        "BLACK_VELVET": "קטיפה שחורה",
+        "KNITTED_SMALL": "סרוגה קטנה",
+        "KNITTED_LARGE": "סרוגה גדולה",
+        "CLOTH": "בד",
+        "BRESLEV": "ברסלב (לבנה גדולה)",
+        "NONE_AT_WORK_OR_CASUAL": "לא בעבודה / ביומיום",
+        "NONE_USUALLY": "לרוב לא חובש",
+        "OTHER": "אחר",
+        "NONE": "ללא כיפה",
+        "SOMETIMES": "לפעמים",
+        "SRUGA": "כיפה סרוגה",
+        "BLACK": "כיפה שחורה",
+        "LARGE": "כיפה גדולה"
+      },
       "matchmakerGender": {
         "MALE": "שדכן",
         "FEMALE": "שדכנית",
@@ -1029,6 +1079,30 @@
         "writing": "כתיבה",
         "nature_hiking": "טבע/טיולים רגליים",
         "photography": "צילום"
+      },
+      "bodyType": {
+        "VERY_SLIM": "רזה מאוד",
+        "SLIM": "רזה",
+        "SLIM_MEDIUM": "רזה-בינוני/ת",
+        "MEDIUM": "בינוני/ת",
+        "MEDIUM_FULL": "בינוני/ת-מלא/ה",
+        "FULL": "מלא/ה",
+        "ATHLETIC": "ספורטיבי/ת-שרירי/ת"
+      },
+      "appearanceTone": {
+        "VERY_FAIR": "בהיר/ה מאוד",
+        "FAIR": "בהיר/ה",
+        "MEDIUM": "בינוני/ת",
+        "MEDITERRANEAN": "שחום/ה מדיטרני/ת",
+        "DARK": "שחום/ה",
+        "VERY_DARK": "כהה מאוד"
+      },
+      "groomingStyle": {
+        "VERY_POLISHED": "מאוד מטופח/ת",
+        "CLASSIC_NEAT": "קלאסי/ת ומסודר/ת",
+        "NATURAL": "נטורל / יופי טבעי",
+        "SPORTY_CASUAL": "ספורטיבי/ת וקז'ואל",
+        "TRENDY": "אופנתי/ת וטרנדי/ת"
       }
     },
     "charCount": "/ {{count}}+ תווים"
@@ -1078,8 +1152,8 @@
         "profileImageAlt": "תמונת הפרופיל של {{name}}",
         "storyOf": "הסיפור של {{name}}",
         "ageLabel": "גיל: {{age}}",
-         "heightLabel": "{{height}} ס״מ",
-          "languagesLabel": "שפות: {{languages}}", 
+        "heightLabel": "{{height}} ס״מ",
+        "languagesLabel": "שפות: {{languages}}",
         "availabilityBadge": {
           "available_short": "זמין",
           "unavailable_short": "לא זמין",
@@ -1281,8 +1355,8 @@
           "worldview": "השקפת העולם שמנחה אותי",
           "religiousJourney": "המסע הדתי שלי",
           "shomerNegiah": "שמירת נגיעה",
-           "shomerNegiahNo": "לא שומר/ת נגיעה", 
-  "shomerNegiahPlaceholder": "סטטוס שמירת נגיעה", 
+          "shomerNegiahNo": "לא שומר/ת נגיעה",
+          "shomerNegiahPlaceholder": "סטטוס שמירת נגיעה",
           "headCovering": "כיסוי ראש",
           "kippahType": "סוג כיפה",
           "educationLevel": "רמת ההשכלה",
@@ -1447,6 +1521,18 @@
         "traitsEmpty": "לא נבחרו תכונות אופי.",
         "hobbiesLabel": "תחביבים עיקריים (עד 3)",
         "hobbiesEmpty": "לא נבחרו תחביבים."
+      },
+      "appearance": {
+        "title": "מראה חיצוני וסגנון",
+        "bodyTypeLabel": "גזרה",
+        "bodyTypePlaceholder": "בחר/י גזרה",
+        "bodyTypeEmpty": "לא צוינה גזרה.",
+        "appearanceToneLabel": "טון מראה",
+        "appearanceTonePlaceholder": "בחר/י טון מראה",
+        "appearanceToneEmpty": "לא צוין טון מראה.",
+        "groomingStyleLabel": "סגנון טיפוח",
+        "groomingStylePlaceholder": "בחר/י סגנון",
+        "groomingStyleEmpty": "לא צוין סגנון טיפוח."
       }
     },
     "placeholders": {
@@ -1512,54 +1598,54 @@
         "yeshiva_seminary": "לימודים תורניים (ישיבה/מדרשה/כולל)",
         "other": "אחר"
       },
-"serviceType": {
-  "MILITARY_COMBATANT": "צבאי - לוחם/ת",
-  "MILITARY_SUPPORT": "צבאי - תומכ/ת לחימה",
-  "MILITARY_OFFICER": "צבאי - קצונה",
-  "MILITARY_INTELLIGENCE_CYBER_TECH": "צבאי - מודיעין/סייבר/טכנולוגי",
-  "NATIONAL_SERVICE_ONE_YEAR": "שירות לאומי - שנה",
-  "NATIONAL_SERVICE_TWO_YEARS": "שירות לאומי - שנתיים",
-  "HESDER_YESHIVA": "ישיבת הסדר",
-  "YESHIVA_ONLY_POST_HS": "ישיבה גבוהה / מדרשה (ללא שירות צבאי/לאומי)",
-  "PRE_MILITARY_ACADEMY_AND_SERVICE": "מכינה קדם-צבאית ושירות",
-  "EXEMPTED": "פטור משירות",
-  "CIVILIAN_SERVICE": "שירות אזרחי",
-  "OTHER": "אחר / לא רלוונטי",
-  "NONE": "ללא שירות",
-  "YESHIVA_HESDER": "ישיבת הסדר",
-  "YESHIVA_FULL_TIME": "ישיבה גבוהה",
-  "SEMINARY": "סמינר",
-"MIDRASHA": "מדרשה"
-},
-"headCovering": {
-  "FULL_COVERAGE": "כיסוי ראש מלא",
-  "PARTIAL_COVERAGE": "כיסוי ראש חלקי",
-  "HAT_BERET": "כובע / ברט",
-  "SCARF_ONLY_SOMETIMES": "מטפחת (רק באירועים/בית כנסת)",
-  "UNDECIDED": "עוד לא החלטתי",
-  "NONE": "ללא כיסוי ראש",
-  "OTHER": "אחר",
-  "WIG": "פאה",
-  "SOMETIMES": "לפעמים",
-  "MITPACHAT": "מטפחת",
-  "BOTH": "פאה ומטפחת"
-},
+      "serviceType": {
+        "MILITARY_COMBATANT": "צבאי - לוחם/ת",
+        "MILITARY_SUPPORT": "צבאי - תומכ/ת לחימה",
+        "MILITARY_OFFICER": "צבאי - קצונה",
+        "MILITARY_INTELLIGENCE_CYBER_TECH": "צבאי - מודיעין/סייבר/טכנולוגי",
+        "NATIONAL_SERVICE_ONE_YEAR": "שירות לאומי - שנה",
+        "NATIONAL_SERVICE_TWO_YEARS": "שירות לאומי - שנתיים",
+        "HESDER_YESHIVA": "ישיבת הסדר",
+        "YESHIVA_ONLY_POST_HS": "ישיבה גבוהה / מדרשה (ללא שירות צבאי/לאומי)",
+        "PRE_MILITARY_ACADEMY_AND_SERVICE": "מכינה קדם-צבאית ושירות",
+        "EXEMPTED": "פטור משירות",
+        "CIVILIAN_SERVICE": "שירות אזרחי",
+        "OTHER": "אחר / לא רלוונטי",
+        "NONE": "ללא שירות",
+        "YESHIVA_HESDER": "ישיבת הסדר",
+        "YESHIVA_FULL_TIME": "ישיבה גבוהה",
+        "SEMINARY": "סמינר",
+        "MIDRASHA": "מדרשה"
+      },
+      "headCovering": {
+        "FULL_COVERAGE": "כיסוי ראש מלא",
+        "PARTIAL_COVERAGE": "כיסוי ראש חלקי",
+        "HAT_BERET": "כובע / ברט",
+        "SCARF_ONLY_SOMETIMES": "מטפחת (רק באירועים/בית כנסת)",
+        "UNDECIDED": "עוד לא החלטתי",
+        "NONE": "ללא כיסוי ראש",
+        "OTHER": "אחר",
+        "WIG": "פאה",
+        "SOMETIMES": "לפעמים",
+        "MITPACHAT": "מטפחת",
+        "BOTH": "פאה ומטפחת"
+      },
       "kippahType": {
-  "BLACK_VELVET": "קטיפה שחורה",
-  "KNITTED_SMALL": "סרוגה קטנה",
-  "KNITTED_LARGE": "סרוגה גדולה",
-  "CLOTH": "בד",
-  "BRESLEV": "ברסלב",
-  "NONE_AT_WORK_OR_CASUAL": "לא בעבודה/ביומיום",
-  "NONE_USUALLY": "לרוב לא חובש",
-  "OTHER": "אחר",
-  "NONE": "ללא כיפה",
-  "SOMETIMES": "לפעמים",
-  "SRUGA": "כיפה סרוגה",
-  "BLACK": "כיפה שחורה",
-  "LARGE": "כיפה גדולה",
-  "any": "כל האפשרויות פתוחות"
-},
+        "BLACK_VELVET": "קטיפה שחורה",
+        "KNITTED_SMALL": "סרוגה קטנה",
+        "KNITTED_LARGE": "סרוגה גדולה",
+        "CLOTH": "בד",
+        "BRESLEV": "ברסלב",
+        "NONE_AT_WORK_OR_CASUAL": "לא בעבודה/ביומיום",
+        "NONE_USUALLY": "לרוב לא חובש",
+        "OTHER": "אחר",
+        "NONE": "ללא כיפה",
+        "SOMETIMES": "לפעמים",
+        "SRUGA": "כיפה סרוגה",
+        "BLACK": "כיפה שחורה",
+        "LARGE": "כיפה גדולה",
+        "any": "כל האפשרויות פתוחות"
+      },
       "matchmakerGender": {
         "MALE": "שדכן",
         "FEMALE": "שדכנית",
@@ -1609,6 +1695,30 @@
         "writing": "כתיבה",
         "nature_hiking": "טבע/טיולים רגליים",
         "photography": "צילום"
+      },
+      "bodyType": {
+        "VERY_SLIM": "רזה מאוד",
+        "SLIM": "רזה",
+        "SLIM_MEDIUM": "רזה-בינוני/ת",
+        "MEDIUM": "בינוני/ת",
+        "MEDIUM_FULL": "בינוני/ת-מלא/ה",
+        "FULL": "מלא/ה",
+        "ATHLETIC": "ספורטיבי/ת-שרירי/ת"
+      },
+      "appearanceTone": {
+        "VERY_FAIR": "בהיר/ה מאוד",
+        "FAIR": "בהיר/ה",
+        "MEDIUM": "בינוני/ת",
+        "MEDITERRANEAN": "שחום/ה מדיטרני/ת",
+        "DARK": "שחום/ה",
+        "VERY_DARK": "כהה מאוד"
+      },
+      "groomingStyle": {
+        "VERY_POLISHED": "מאוד מטופח/ת",
+        "CLASSIC_NEAT": "קלאסי/ת ומסודר/ת",
+        "NATURAL": "נטורל / יופי טבעי",
+        "SPORTY_CASUAL": "ספורטיבי/ת וקז'ואל",
+        "TRENDY": "אופנתי/ת וטרנדי/ת"
       }
     },
     "charCount": "/ {{count}}+ תווים"

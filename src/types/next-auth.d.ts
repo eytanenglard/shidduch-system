@@ -18,7 +18,10 @@ import type {
     Prisma,
      TestimonialStatus, // <-- הוספה חדשה
   SubmissionSource, // <-- הוספה חדשה
-  Language, 
+  Language,
+  BodyType,
+  AppearanceTone,
+  GroomingStyle,
 } from '@prisma/client';
 import { DefaultSession, DefaultUser } from 'next-auth';
 import { DefaultJWT } from 'next-auth/jwt';
@@ -126,7 +129,13 @@ internalMatchmakerNotes?: string | null;
   preferredCharacterTraits: string[]; // UserProfile was missing this
   preferredHobbies: string[]; // UserProfile was missing this
   preferredAliyaStatus?: string | null;
-preferredReligiousJourneys: ReligiousJourney[]; 
+  preferredReligiousJourneys: ReligiousJourney[];
+  bodyType?: BodyType | null;
+  appearanceTone?: AppearanceTone | null;
+  groomingStyle?: GroomingStyle | null;
+  preferredBodyTypes?: BodyType[];
+  preferredAppearanceTones?: AppearanceTone[];
+  preferredGroomingStyles?: GroomingStyle[];
   // Management fields
   isProfileVisible: boolean; // from PrismaProfile
   isProfileComplete: boolean; // FIXED: Added missing property

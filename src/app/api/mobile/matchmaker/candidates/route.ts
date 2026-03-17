@@ -385,6 +385,7 @@ export async function GET(request: NextRequest) {
         education: profile.education,
         educationLevel: profile.educationLevel,
         maritalStatus: profile.maritalStatus,
+        hasChildrenFromPrevious: profile.hasChildrenFromPrevious,
         religiousLevel: profile.religiousLevel,
         religiousJourney: profile.religiousJourney,
         about: profile.about,

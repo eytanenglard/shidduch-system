@@ -19,6 +19,9 @@ import {
   HeadCoveringType,
   KippahType,
   ReligiousJourney,
+  BodyType,
+  AppearanceTone,
+  GroomingStyle,
 } from '@prisma/client';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -1074,6 +1077,33 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
       })),
     [dict.options.kippahType]
   );
+  const bodyTypeOptions = useMemo(
+    () =>
+      Object.entries(dict.options.bodyType).map(([value, label]) => ({
+        value,
+        label,
+      })),
+    [dict.options.bodyType]
+  );
+
+  const appearanceToneOptions = useMemo(
+    () =>
+      Object.entries(dict.options.appearanceTone).map(([value, label]) => ({
+        value,
+        label,
+      })),
+    [dict.options.appearanceTone]
+  );
+
+  const groomingStyleOptions = useMemo(
+    () =>
+      Object.entries(dict.options.groomingStyle).map(([value, label]) => ({
+        value,
+        label,
+      })),
+    [dict.options.groomingStyle]
+  );
+
   const preferredMatchmakerGenderOptions = useMemo(
     () =>
       Object.entries(dict.options.matchmakerGender).map(([value, label]) => ({
@@ -1138,6 +1168,9 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
       createdAt: ensureDateObject(profileData?.createdAt),
       updatedAt: ensureDateObject(profileData?.updatedAt),
       lastActive: ensureDateObject(profileData?.lastActive),
+      bodyType: profileData?.bodyType || undefined,
+      appearanceTone: profileData?.appearanceTone || undefined,
+      groomingStyle: profileData?.groomingStyle || undefined,
       hasMedicalInfo: profileData?.hasMedicalInfo ?? false,
       medicalInfoDetails: profileData?.medicalInfoDetails || '',
       medicalInfoDisclosureTiming:
@@ -2464,6 +2497,111 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
               </CardContent>
             </Card>
 
+            {/* ===== כרטיס מראה חיצוני ===== */}
+            <Card className="bg-white/80 backdrop-blur-md rounded-2xl shadow-lg border border-gray-200/40 overflow-hidden">
+              <CardHeader className="bg-gradient-to-r from-purple-50/40 to-pink-50/40 border-b border-gray-200/50 p-4">
+                <div className="flex items-center space-x-2 rtl:space-x-reverse">
+                  <Palette className="w-5 h-5 text-purple-600" />
+                  <CardTitle className="text-base font-semibold text-gray-700">
+                    {dict.cards.appearance.title}
+                  </CardTitle>
+                </div>
+              </CardHeader>
+              <CardContent className="p-4 md:p-6 space-y-6">
+
+                {/* גזרה */}
+                <div>
+                  <Label htmlFor="bodyType" className="text-sm font-medium text-gray-700 block mb-1">
+                    {dict.cards.appearance.bodyTypeLabel}
+                  </Label>
+                  {isEditing && !viewOnly ? (
+                    <Select
+                      dir={direction}
+                      value={formData.bodyType || 'NONE'}
+                      onValueChange={(value) => handleChange('bodyType', value === 'NONE' ? undefined : value as BodyType)}
+                    >
+                      <SelectTrigger id="bodyType" className="text-sm rounded-lg">
+                        <SelectValue placeholder={dict.cards.appearance.bodyTypePlaceholder} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="NONE">{dict.cards.appearance.bodyTypePlaceholder}</SelectItem>
+                        {bodyTypeOptions.map((opt) => (
+                          <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <p className="mt-1 text-sm text-gray-700">
+                      {formData.bodyType
+                        ? dict.options.bodyType[formData.bodyType]
+                        : dict.cards.appearance.bodyTypeEmpty}
+                    </p>
+                  )}
+                </div>
+
+                {/* טון מראה */}
+                <div>
+                  <Label htmlFor="appearanceTone" className="text-sm font-medium text-gray-700 block mb-1">
+                    {dict.cards.appearance.appearanceToneLabel}
+                  </Label>
+                  {isEditing && !viewOnly ? (
+                    <Select
+                      dir={direction}
+                      value={formData.appearanceTone || 'NONE'}
+                      onValueChange={(value) => handleChange('appearanceTone', value === 'NONE' ? undefined : value as AppearanceTone)}
+                    >
+                      <SelectTrigger id="appearanceTone" className="text-sm rounded-lg">
+                        <SelectValue placeholder={dict.cards.appearance.appearanceTonePlaceholder} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="NONE">{dict.cards.appearance.appearanceTonePlaceholder}</SelectItem>
+                        {appearanceToneOptions.map((opt) => (
+                          <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <p className="mt-1 text-sm text-gray-700">
+                      {formData.appearanceTone
+                        ? dict.options.appearanceTone[formData.appearanceTone]
+                        : dict.cards.appearance.appearanceToneEmpty}
+                    </p>
+                  )}
+                </div>
+
+                {/* סגנון טיפוח */}
+                <div>
+                  <Label htmlFor="groomingStyle" className="text-sm font-medium text-gray-700 block mb-1">
+                    {dict.cards.appearance.groomingStyleLabel}
+                  </Label>
+                  {isEditing && !viewOnly ? (
+                    <Select
+                      dir={direction}
+                      value={formData.groomingStyle || 'NONE'}
+                      onValueChange={(value) => handleChange('groomingStyle', value === 'NONE' ? undefined : value as GroomingStyle)}
+                    >
+                      <SelectTrigger id="groomingStyle" className="text-sm rounded-lg">
+                        <SelectValue placeholder={dict.cards.appearance.groomingStylePlaceholder} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="NONE">{dict.cards.appearance.groomingStylePlaceholder}</SelectItem>
+                        {groomingStyleOptions.map((opt) => (
+                          <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <p className="mt-1 text-sm text-gray-700">
+                      {formData.groomingStyle
+                        ? dict.options.groomingStyle[formData.groomingStyle]
+                        : dict.cards.appearance.groomingStyleEmpty}
+                    </p>
+                  )}
+                </div>
+
+              </CardContent>
+            </Card>
+
             <Card className="bg-white/80 backdrop-blur-md rounded-2xl shadow-lg border border-gray-200/40 overflow-hidden">
               <CardHeader className="bg-gradient-to-r from-rose-50/40 to-pink-50/40 border-b border-gray-200/50 p-4 flex items-center justify-between">
                 <div className="flex items-center space-x-2 rtl:space-x-reverse">
@@ -3080,7 +3218,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
       {/* ======================= END: FLOATING ACTION BUTTON ======================= */}{' '}
       {/* ======================= START: ALWAYS VISIBLE STICKY FOOTER ======================= */}
       {!viewOnly && (
-        <div className="fixed bottom-0 left-0 right-0 z-20 border-t border-gray-200/80 bg-white/95 backdrop-blur-md shadow-[0_-4px_20px_-5px_rgba(0,0,0,0.12)]">
+        <div className="fixed bottom-16 md:bottom-0 left-0 right-0 z-20 border-t border-gray-200/80 bg-white/95 backdrop-blur-md shadow-[0_-4px_20px_-5px_rgba(0,0,0,0.12)]">
           <div className="container mx-auto max-w-screen-xl px-4 py-3 sm:py-4">
             <div className="flex items-center justify-between gap-3">
               {isEditing ? (

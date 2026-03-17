@@ -26,6 +26,7 @@ export default async function CandidateFilePage({ params }: CandidateFilePagePro
       <CandidateFileClient
         matchmakerDict={dictionary.matchmakerPage}
         profileDict={dictionary.profilePage}
+        suggestionsDict={dictionary.suggestions}
         locale={locale}
       />
     </Suspense>

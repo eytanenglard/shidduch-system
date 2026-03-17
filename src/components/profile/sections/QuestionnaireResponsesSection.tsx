@@ -719,7 +719,7 @@ const QuestionnaireResponsesSection: React.FC<
 
       {/* ======================= START: ALWAYS VISIBLE STICKY FOOTER ======================= */}
       {isEditable && hasAnyAnswers && onUpdate && (
-        <div className="fixed bottom-0 left-0 right-0 z-20 border-t border-gray-200/80 bg-white/95 backdrop-blur-md shadow-[0_-4px_20px_-5px_rgba(0,0,0,0.12)]">
+        <div className="fixed bottom-16 md:bottom-0 left-0 right-0 z-20 border-t border-gray-200/80 bg-white/95 backdrop-blur-md shadow-[0_-4px_20px_-5px_rgba(0,0,0,0.12)]">
           <div className="container mx-auto max-w-screen-xl px-4 py-3 sm:py-4">
             <div className="flex items-center justify-between gap-3">
               {isEditingGlobally ? (

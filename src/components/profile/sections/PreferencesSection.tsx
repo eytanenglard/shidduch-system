@@ -48,6 +48,9 @@ import {
   HeadCoveringType,
   KippahType,
   ReligiousJourney,
+  BodyType,
+  AppearanceTone,
+  GroomingStyle,
 } from '@prisma/client';
 import Autocomplete from 'react-google-autocomplete';
 import { PreferencesSectionDict } from '@/types/dictionary';
@@ -198,6 +201,9 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
         preferredCharacterTraits: profile.preferredCharacterTraits ?? [],
         preferredHobbies: profile.preferredHobbies ?? [],
         preferredReligiousJourneys: profile.preferredReligiousJourneys ?? [],
+        preferredBodyTypes: profile.preferredBodyTypes ?? [],
+        preferredAppearanceTones: profile.preferredAppearanceTones ?? [],
+        preferredGroomingStyles: profile.preferredGroomingStyles ?? [],
       };
       setFormData(newFormData);
       setInitialData(newFormData);
@@ -1563,6 +1569,125 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
                 </fieldset>
               </CardContent>
             </Card>
+
+            {/* ===== כרטיס העדפות מראה ===== */}
+            <Card className="bg-white/80 backdrop-blur-md rounded-2xl shadow-lg border border-gray-200/40 overflow-hidden">
+              <CardHeader className="bg-gradient-to-r from-purple-50/40 to-pink-50/40 border-b border-gray-200/50 p-4 flex items-center space-x-2 rtl:space-x-reverse">
+                <Palette className="w-5 h-5 text-purple-600" />
+                <CardTitle className="text-base font-semibold text-gray-700">
+                  {t.cards.appearancePreferences.title}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-4 md:p-6 space-y-6">
+
+                {/* גזרה מועדפת */}
+                <fieldset>
+                  <legend className="block mb-2 text-xs font-medium text-gray-600">
+                    {t.cards.appearancePreferences.bodyTypeLegend}
+                  </legend>
+                  {isEditing ? (
+                    <div className="flex flex-wrap gap-2">
+                      {Object.entries(t.options.bodyType).map(([value, label]) => (
+                        <Button
+                          key={value}
+                          type="button"
+                          variant={(formData.preferredBodyTypes || []).includes(value as BodyType) ? 'default' : 'outline'}
+                          size="sm"
+                          onClick={() => handleMultiSelectChange('preferredBodyTypes', value)}
+                          className="text-xs rounded-full"
+                        >
+                          {label as string}
+                        </Button>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="flex flex-wrap gap-1.5 mt-1">
+                      {(formData.preferredBodyTypes || []).length > 0 ? (
+                        (formData.preferredBodyTypes || []).map((v) => (
+                          <Badge key={v} variant="secondary" className="text-xs">
+                            {(t.options.bodyType as Record<string, string>)[v] || v}
+                          </Badge>
+                        ))
+                      ) : (
+                        <p className="text-sm text-gray-500">{t.cards.appearancePreferences.bodyTypeEmpty}</p>
+                      )}
+                    </div>
+                  )}
+                </fieldset>
+
+                {/* טון מראה מועדף */}
+                <fieldset>
+                  <legend className="block mb-2 text-xs font-medium text-gray-600">
+                    {t.cards.appearancePreferences.appearanceToneLegend}
+                  </legend>
+                  {isEditing ? (
+                    <div className="flex flex-wrap gap-2">
+                      {Object.entries(t.options.appearanceTone).map(([value, label]) => (
+                        <Button
+                          key={value}
+                          type="button"
+                          variant={(formData.preferredAppearanceTones || []).includes(value as AppearanceTone) ? 'default' : 'outline'}
+                          size="sm"
+                          onClick={() => handleMultiSelectChange('preferredAppearanceTones', value)}
+                          className="text-xs rounded-full"
+                        >
+                          {label as string}
+                        </Button>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="flex flex-wrap gap-1.5 mt-1">
+                      {(formData.preferredAppearanceTones || []).length > 0 ? (
+                        (formData.preferredAppearanceTones || []).map((v) => (
+                          <Badge key={v} variant="secondary" className="text-xs">
+                            {(t.options.appearanceTone as Record<string, string>)[v] || v}
+                          </Badge>
+                        ))
+                      ) : (
+                        <p className="text-sm text-gray-500">{t.cards.appearancePreferences.appearanceToneEmpty}</p>
+                      )}
+                    </div>
+                  )}
+                </fieldset>
+
+                {/* סגנון טיפוח מועדף */}
+                <fieldset>
+                  <legend className="block mb-2 text-xs font-medium text-gray-600">
+                    {t.cards.appearancePreferences.groomingStyleLegend}
+                  </legend>
+                  {isEditing ? (
+                    <div className="flex flex-wrap gap-2">
+                      {Object.entries(t.options.groomingStyle).map(([value, label]) => (
+                        <Button
+                          key={value}
+                          type="button"
+                          variant={(formData.preferredGroomingStyles || []).includes(value as GroomingStyle) ? 'default' : 'outline'}
+                          size="sm"
+                          onClick={() => handleMultiSelectChange('preferredGroomingStyles', value)}
+                          className="text-xs rounded-full"
+                        >
+                          {label as string}
+                        </Button>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="flex flex-wrap gap-1.5 mt-1">
+                      {(formData.preferredGroomingStyles || []).length > 0 ? (
+                        (formData.preferredGroomingStyles || []).map((v) => (
+                          <Badge key={v} variant="secondary" className="text-xs">
+                            {(t.options.groomingStyle as Record<string, string>)[v] || v}
+                          </Badge>
+                        ))
+                      ) : (
+                        <p className="text-sm text-gray-500">{t.cards.appearancePreferences.groomingStyleEmpty}</p>
+                      )}
+                    </div>
+                  )}
+                </fieldset>
+
+              </CardContent>
+            </Card>
+
           </div>
         </div>
       </div>
@@ -1622,7 +1747,7 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
       {/* ======================= END: FLOATING ACTION BUTTON ======================= */}
       {/* ======================= START: ALWAYS VISIBLE STICKY FOOTER ======================= */}
       {!viewOnly && (
-        <div className="fixed bottom-0 left-0 right-0 z-20 border-t border-gray-200/80 bg-white/95 backdrop-blur-md shadow-[0_-4px_20px_-5px_rgba(0,0,0,0.12)]">
+        <div className="fixed bottom-16 md:bottom-0 left-0 right-0 z-20 border-t border-gray-200/80 bg-white/95 backdrop-blur-md shadow-[0_-4px_20px_-5px_rgba(0,0,0,0.12)]">
           <div className="container mx-auto max-w-screen-xl px-4 py-3 sm:py-4">
             <div className="flex items-center justify-between gap-3">
               {isEditing ? (

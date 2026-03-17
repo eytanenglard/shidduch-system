@@ -33,6 +33,9 @@ export default function BottomNavBar({ dict }: BottomNavBarProps) {
     (session.user as { role?: string }).role === 'ADMIN';
   if (isMatchmaker) return null;
 
+  // Hide on questionnaire pages — the questionnaire has its own bottom navigation
+  if (pathname.includes('/questionnaire')) return null;
+
   const items = [
     {
       href: `/${locale}/profile`,

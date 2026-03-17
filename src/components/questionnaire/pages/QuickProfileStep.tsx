@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, ArrowRight, Loader2, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useSession } from 'next-auth/react';
 import type { UserProfile } from '../MatchmakingQuestionnaire';
 
 interface QuickProfileStepProps {
@@ -53,6 +54,7 @@ export default function QuickProfileStep({
   onComplete,
 }: QuickProfileStepProps) {
   const isRTL = locale === 'he';
+  const { data: session } = useSession();
   const [step, setStep] = useState(0);
   const [collected, setCollected] = useState<Partial<UserProfile>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -78,7 +80,7 @@ export default function QuickProfileStep({
         if (collected.maritalStatus) payload.maritalStatus = collected.maritalStatus;
         if (collected.birthDate) payload.birthDate = new Date(`${collected.birthDate}-01-01`).toISOString();
 
-        if (Object.keys(payload).length > 0) {
+        if (session?.user?.id && Object.keys(payload).length > 0) {
           await fetch('/api/profile', {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },

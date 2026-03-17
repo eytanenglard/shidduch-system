@@ -122,20 +122,21 @@ export default function QuestionnairePageClient({
     }
   }, [searchParams, status]);
 
+  // Missing fields applies to ALL users — guests included
+  // (guests have no userProfile so all fields are missing)
+  const missingProfileFields: ('religiousLevel' | 'maritalStatus' | 'birthDate')[] =
+    (['religiousLevel', 'maritalStatus', 'birthDate'] as const).filter(
+      (f) => !userProfile?.[f]
+    );
+
   const handleStartQuestionnaire = () => {
-    // If authenticated and missing key profile fields → show quick profile step first
-    if (session?.user?.id && missingProfileFields.length > 0) {
+    // Show quick profile step for anyone missing key fields (guests + incomplete profiles)
+    if (missingProfileFields.length > 0) {
       setCurrentStage(QuestionnaireStage.QUICK_PROFILE);
     } else {
       setCurrentStage(QuestionnaireStage.QUESTIONNAIRE);
     }
   };
-
-  const missingProfileFields: ('religiousLevel' | 'maritalStatus' | 'birthDate')[] = session?.user?.id
-    ? (['religiousLevel', 'maritalStatus', 'birthDate'] as const).filter(
-        (f) => !userProfile?.[f]
-      )
-    : [];
 
   const handleQuestionnaireComplete = async () => {
     try {

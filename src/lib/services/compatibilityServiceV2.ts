@@ -43,6 +43,12 @@ interface ProfileWithMetrics {
   shomerNegiah?: boolean;
   headCovering?: string;
   kippahType?: string;
+  bodyType?: string;
+  appearanceTone?: string;
+  groomingStyle?: string;
+  preferredBodyTypes?: string[];
+  preferredAppearanceTones?: string[];
+  preferredGroomingStyles?: string[];
   preferredAgeMin?: number;
   preferredAgeMax?: number;
   preferredHeightMin?: number;
@@ -201,6 +207,12 @@ async function fetchProfileWithMetrics(profileId: string): Promise<ProfileWithMe
     shomerNegiah: profile.shomerNegiah || undefined,
     headCovering: profile.headCovering || undefined,
     kippahType: profile.kippahType || undefined,
+    bodyType: profile.bodyType || undefined,
+    appearanceTone: profile.appearanceTone || undefined,
+    groomingStyle: profile.groomingStyle || undefined,
+    preferredBodyTypes: profile.preferredBodyTypes?.length ? profile.preferredBodyTypes : undefined,
+    preferredAppearanceTones: profile.preferredAppearanceTones?.length ? profile.preferredAppearanceTones : undefined,
+    preferredGroomingStyles: profile.preferredGroomingStyles?.length ? profile.preferredGroomingStyles : undefined,
     preferredAgeMin: profile.preferredAgeMin || metrics?.inferredPreferredAgeMin || undefined,
     preferredAgeMax: profile.preferredAgeMax || metrics?.inferredPreferredAgeMax || undefined,
     preferredHeightMin: profile.preferredHeightMin || undefined,
@@ -408,6 +420,31 @@ function calculateSoftPenalties(
   if (seeker.preferredReligiousJourneys?.length && candidate.religiousJourney) {
     if (!seeker.preferredReligiousJourneys.includes(candidate.religiousJourney)) {
       applied.push({ type: 'RELIGIOUS_JOURNEY_MISMATCH', penalty: 5 });
+    }
+  }
+
+  // אי התאמת גזרה
+  if (seeker.preferredBodyTypes?.length && candidate.bodyType) {
+    if (!seeker.preferredBodyTypes.includes(candidate.bodyType)) {
+      const pickiness = seeker.metrics?.appearancePickiness || 50;
+      const penalty = Math.round(5 + (pickiness / 100) * 10); // 5-15 נקודות בהתאם לרגישות
+      applied.push({ type: 'BODY_TYPE_MISMATCH', penalty });
+    }
+  }
+
+  // אי התאמת טון מראה
+  if (seeker.preferredAppearanceTones?.length && candidate.appearanceTone) {
+    if (!seeker.preferredAppearanceTones.includes(candidate.appearanceTone)) {
+      const pickiness = seeker.metrics?.appearancePickiness || 50;
+      const penalty = Math.round(5 + (pickiness / 100) * 10);
+      applied.push({ type: 'APPEARANCE_TONE_MISMATCH', penalty });
+    }
+  }
+
+  // אי התאמת סגנון טיפוח
+  if (seeker.preferredGroomingStyles?.length && candidate.groomingStyle) {
+    if (!seeker.preferredGroomingStyles.includes(candidate.groomingStyle)) {
+      applied.push({ type: 'GROOMING_STYLE_MISMATCH', penalty: 5 });
     }
   }
 
