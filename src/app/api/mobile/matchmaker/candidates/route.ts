@@ -245,6 +245,7 @@ export async function GET(request: NextRequest) {
               birthDate: true,
               height: true,
               maritalStatus: true,
+              hasChildrenFromPrevious: true,
               occupation: true,
               education: true,
               educationLevel: true,
