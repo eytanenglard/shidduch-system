@@ -1,94 +1,64 @@
 <!DOCTYPE html>
 <html dir="rtl" lang="he">
 <head>
-    <meta charset="UTF-8">
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            line-height: 1.6;
-            color: #333;
-            margin: 0;
-            padding: 0;
-            background-color: #f4f4f4;
-        }
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 20px;
-            background-color: #ffffff;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        .header {
-            text-align: center;
-            padding: 20px 0;
-            border-bottom: 2px solid #f0f0f0;
-        }
-        .content {
-            padding: 30px 20px;
-        }
-        .button {
-            display: inline-block;
-            padding: 12px 24px;
-            background-color: #4F46E5;
-            color: white;
-            text-decoration: none;
-            border-radius: 5px;
-            margin: 20px 0;
-            font-weight: bold;
-            text-align: center;
-        }
-        .footer {
-            margin-top: 30px;
-            padding-top: 20px;
-            border-top: 1px solid #f0f0f0;
-            text-align: center;
-            font-size: 14px;
-            color: #666;
-        }
-        .info {
-            background-color: #f8fafc;
-            padding: 15px;
-            border-radius: 5px;
-            margin: 20px 0;
-        }
-    </style>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>אימות כתובת אימייל</title>
+  <style>
+    *{box-sizing:border-box}
+    body{margin:0;padding:0;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background:linear-gradient(135deg,#e0f2fe 0%,#f0fdfa 50%,#fce7f3 100%);direction:rtl}
+    .wrapper{width:100%;background:linear-gradient(135deg,#e0f2fe 0%,#f0fdfa 50%,#fce7f3 100%);padding:40px 20px}
+    .card{max-width:600px;margin:0 auto;background:#fff;border-radius:24px;box-shadow:0 20px 60px rgba(0,0,0,.12);overflow:hidden}
+    /* Clean minimal teal — identity: verification/security */
+    .header{background:linear-gradient(135deg,#0d9488 0%,#0f766e 100%);padding:50px 30px;text-align:center}
+    .header-icon{font-size:56px;display:block;margin-bottom:16px}
+    .header h1{color:#fff;margin:0;font-size:28px;font-weight:800;text-shadow:0 2px 12px rgba(0,0,0,.15)}
+    .header p{color:rgba(255,255,255,.9);margin:10px 0 0;font-size:16px}
+    .body{padding:40px 32px}
+    .body p{font-size:15px;color:#4a5568;line-height:1.8;margin:0 0 14px}
+    .notice-box{background:#f8fafc;border-radius:12px;padding:20px 24px;margin:24px 0;border:1px solid #e2e8f0}
+    .notice-box p{margin:0 0 8px;font-size:14px;color:#64748b}
+    .notice-box p:last-child{margin:0}
+    .cta{text-align:center;margin:32px 0}
+    .cta a{display:inline-block;background:linear-gradient(135deg,#f97316,#ea580c);color:#fff;text-decoration:none;padding:16px 48px;border-radius:50px;font-weight:700;font-size:16px;box-shadow:0 10px 28px rgba(249,115,22,.3)}
+    .footer{background:linear-gradient(to bottom,#f8fafc,#f1f5f9);padding:36px 30px;text-align:center;border-top:1px solid #e2e8f0}
+    .footer-logo img{width:56px;height:56px;border-radius:50%;object-fit:cover;margin-bottom:12px}
+    .footer-name{font-size:20px;font-weight:800;background:linear-gradient(135deg,#0d9488,#0f766e);-webkit-background-clip:text;background-clip:text;color:transparent;margin-bottom:6px}
+    .footer p{color:#64748b;font-size:13px;margin:5px 0}
+    .footer a{color:#0d9488;text-decoration:none;font-weight:600}
+  </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>אימות כתובת אימייל</h1>
+  <div class="wrapper">
+    <div class="card">
+      <div class="header">
+        <span class="header-icon">✅</span>
+        <h1>אימות כתובת אימייל</h1>
+        <p>צעד אחד לפני שמתחילים</p>
+      </div>
+      <div class="body">
+        {{#if firstName}}
+        <p>שלום <strong>{{firstName}}</strong>!</p>
+        {{else}}
+        <p>שלום!</p>
+        {{/if}}
+        <p>תודה שנרשמת ל-NeshamaTech. לחץ/י על הכפתור להשלמת האימות ולהפעלת החשבון:</p>
+        <div class="cta">
+          <a href="{{verificationLink}}">אימות כתובת האימייל</a>
         </div>
-        
-        <div class="content">
-            {{#if firstName}}
-            <h2>שלום {{firstName}}!</h2>
-            {{else}}
-            <h2>שלום!</h2>
-            {{/if}}
-            
-            <p>תודה שנרשמת למערכת השידוכים שלנו. כדי להשלים את תהליך ההרשמה, אנא לחץ/י על הכפתור הבא:</p>
-            
-            <div style="text-align: center;">
-                <a href="{{verificationLink}}" class="button">
-                    אימות כתובת אימייל
-                </a>
-            </div>
-
-            <div class="info">
-                <p>⏰ שים/י לב: קישור זה תקף ל-{{expiresIn}}</p>
-                <p>אם לא ביקשת לאמת את כתובת האימייל שלך, אנא התעלם/י מהודעה זו.</p>
-            </div>
-
-            <p>לאחר האימות, תוכל/י להשלים את פרטי הפרופיל שלך ולהתחיל להשתמש במערכת.</p>
+        <div class="notice-box">
+          <p>⏰ קישור זה תקף ל-{{expiresIn}}</p>
+          <p>אם לא ביקשת לאמת, ניתן להתעלם מהודעה זו.</p>
         </div>
-
-        <div class="footer">
-            <p>בברכה,<br>צוות מערכת השידוכים</p>
-            {{#if supportEmail}}
-            <p>לתמיכה: {{supportEmail}}</p>
-            {{/if}}
-        </div>
+        <p>לאחר האימות תוכל/י להשלים את הפרופיל ולהתחיל לקבל הצעות שידוך.</p>
+      </div>
+      <div class="footer">
+        <div><img src="https://res.cloudinary.com/dmfxoi6g0/image/upload/v1764757309/ChatGPT_Image_Dec_3_2025_12_21_36_PM_qk8mjz.png" alt="NeshamaTech" /></div>
+        <div class="footer-name">NeshamaTech</div>
+        {{#if supportEmail}}
+        <p>📧 <a href="mailto:{{supportEmail}}">{{supportEmail}}</a></p>
+        {{/if}}
+      </div>
     </div>
+  </div>
 </body>
 </html>
