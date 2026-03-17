@@ -102,7 +102,7 @@ export async function POST(
           success: false,
           error: "Grace period expired",
           gracePeriodExpired: true,
-        }, 400);
+        }, { status: 400 });
       }
 
       const updatedSuggestion = await statusTransitionService.transitionStatus(
