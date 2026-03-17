@@ -566,6 +566,7 @@ export type SuggestionsContainerDict = {
     interestedDescription: string;
     confirmInterested: string;
     approveDescription: string;
+    approveAutoNote: string;
     declineDescription: string;
     cancel: string;
     confirmApproval: string;
@@ -619,6 +620,28 @@ export type SuggestionsContainerDict = {
     emptyDescription: string;
     howItWorks: string;
     howItWorksText: string;
+    expectations: {
+      title: string;
+      intro: string;
+      notExclusive: string;
+      notExclusiveDesc: string;
+      availabilityNote: string;
+      availabilityNoteDesc: string;
+      firstToRespond: string;
+      firstToRespondDesc: string;
+      matchmakerInvolved: string;
+      matchmakerInvolvedDesc: string;
+      noObligation: string;
+      noObligationDesc: string;
+      processExplanation: string;
+      processStep1: string;
+      processStep2: string;
+      processStep3: string;
+      processStep4: string;
+      parallelNote: string;
+      responseTimeNote: string;
+      emailDisclaimer: string;
+    };
   };
 };
 
