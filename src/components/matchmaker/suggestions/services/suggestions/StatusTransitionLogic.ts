@@ -45,6 +45,8 @@ const VALID_TRANSITIONS: Record<MatchSuggestionStatus, MatchSuggestionStatus[]> 
   ],
   FIRST_PARTY_APPROVED: [
     MatchSuggestionStatus.PENDING_SECOND_PARTY,
+    MatchSuggestionStatus.PENDING_FIRST_PARTY,  // grace period withdrawal
+    MatchSuggestionStatus.FIRST_PARTY_DECLINED,  // withdrawal before second party
     MatchSuggestionStatus.CANCELLED
   ],
   FIRST_PARTY_DECLINED: [
@@ -200,6 +202,9 @@ export function getAvailableActions(
       matchmaker: [{ id: "cancel", label: "ביטול ההצעה", nextStatus: MatchSuggestionStatus.CANCELLED }]
     },
     FIRST_PARTY_APPROVED: {
+      firstParty: [
+        { id: "withdraw", label: "ביטול אישור", nextStatus: MatchSuggestionStatus.FIRST_PARTY_DECLINED }
+      ],
       matchmaker: [
         { id: "send-to-second", label: "שליחה לצד השני", nextStatus: MatchSuggestionStatus.PENDING_SECOND_PARTY },
         { id: "cancel", label: "ביטול ההצעה", nextStatus: MatchSuggestionStatus.CANCELLED }

@@ -297,6 +297,8 @@ export class StatusTransitionService {
       ],
       FIRST_PARTY_APPROVED: [
         MatchSuggestionStatus.PENDING_SECOND_PARTY,
+        MatchSuggestionStatus.PENDING_FIRST_PARTY,  // grace period withdrawal
+        MatchSuggestionStatus.FIRST_PARTY_DECLINED,  // withdrawal before second party
         MatchSuggestionStatus.CANCELLED,
       ],
       FIRST_PARTY_DECLINED: [

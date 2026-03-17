@@ -437,6 +437,17 @@ export type SuggestionsModalDict = {
     ask: string;
     decline: string;
     reminder: string;
+    withdraw: {
+      gracePeriodTitle: string;
+      gracePeriodTimer: string;
+      undoApproval: string;
+      approvedInfo: string;
+      confirmTitle: string;
+      confirmMessage: string;
+      confirmButton: string;
+      goBack: string;
+      cancelApproval: string;
+    };
   };
   profile: {
     loading: string;
