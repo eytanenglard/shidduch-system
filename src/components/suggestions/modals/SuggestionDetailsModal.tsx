@@ -74,6 +74,7 @@ interface SuggestionDetailsModalProps {
     suggestion: ExtendedMatchSuggestion,
     action: 'approve' | 'decline' | 'interested'
   ) => void;
+  onRefresh?: () => void;
   locale: 'he' | 'en';
   questionnaire: QuestionnaireResponse | null;
   isDemo?: boolean;
@@ -373,6 +374,9 @@ const EnhancedQuickActions: React.FC<{
   onDecline: () => void;
   onInterested: () => void;
   onAskQuestion: () => void;
+  onWithdraw?: (type: 'grace_period' | 'before_second_party') => void;
+  approvedAt?: Date | string | null;
+  secondPartySent?: Date | string | null;
   locale: 'he' | 'en';
   dict: SuggestionsDictionary['modal']['actions'];
 }> = ({
@@ -386,10 +390,39 @@ const EnhancedQuickActions: React.FC<{
   onDecline,
   onInterested,
   onAskQuestion,
+  onWithdraw,
+  approvedAt,
+  secondPartySent,
   dict,
   locale,
 }) => {
   const isHe = locale === 'he';
+  const [withdrawCountdown, setWithdrawCountdown] = useState<number | null>(null);
+  const [showWithdrawConfirm, setShowWithdrawConfirm] = useState(false);
+
+  // Grace period countdown timer
+  useEffect(() => {
+    if (status !== 'FIRST_PARTY_APPROVED' || !isFirstParty || !approvedAt || secondPartySent) {
+      setWithdrawCountdown(null);
+      return;
+    }
+
+    const GRACE_PERIOD_MS = 5 * 60 * 1000;
+    const approvedTime = new Date(approvedAt).getTime();
+
+    const updateCountdown = () => {
+      const remaining = GRACE_PERIOD_MS - (Date.now() - approvedTime);
+      if (remaining <= 0) {
+        setWithdrawCountdown(0);
+      } else {
+        setWithdrawCountdown(Math.ceil(remaining / 1000));
+      }
+    };
+
+    updateCountdown();
+    const interval = setInterval(updateCountdown, 1000);
+    return () => clearInterval(interval);
+  }, [status, isFirstParty, approvedAt, secondPartySent]);
 
   // Determine which button layout to render — mirrors MinimalSuggestionCard logic
   const renderButtons = () => {
@@ -578,6 +611,102 @@ const EnhancedQuickActions: React.FC<{
       );
     }
 
+    // CASE: First party approved — show withdraw option
+    if (status === 'FIRST_PARTY_APPROVED' && isFirstParty && !secondPartySent && onWithdraw) {
+      const isInGracePeriod = withdrawCountdown !== null && withdrawCountdown > 0;
+      const graceMinutes = Math.floor((withdrawCountdown || 0) / 60);
+      const graceSeconds = (withdrawCountdown || 0) % 60;
+      const wd = dict.withdraw;
+
+      return (
+        <div className="space-y-3">
+          {/* Grace period banner with countdown */}
+          {isInGracePeriod && (
+            <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center flex-shrink-0">
+                  <AlertTriangle className="w-5 h-5 text-amber-600" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-semibold text-amber-800">
+                    {wd.gracePeriodTitle}
+                  </p>
+                  <p className="text-xs text-amber-600">
+                    {wd.gracePeriodTimer
+                      .replace('{minutes}', String(graceMinutes))
+                      .replace('{seconds}', graceSeconds.toString().padStart(2, '0'))}
+                  </p>
+                </div>
+              </div>
+              <Button
+                variant="outline"
+                className="w-full text-amber-700 hover:text-amber-800 hover:bg-amber-100 border-amber-300 rounded-2xl h-12 font-bold"
+                disabled={isSubmitting}
+                onClick={() => onWithdraw('grace_period')}
+              >
+                <XCircle className={cn('w-5 h-5', isHe ? 'ml-2' : 'mr-2')} />
+                {wd.undoApproval}
+              </Button>
+            </div>
+          )}
+
+          {/* After grace period — regular withdraw button */}
+          {!isInGracePeriod && (
+            <>
+              <div className="flex items-start gap-2 px-3 py-2.5 bg-teal-50 rounded-xl border border-teal-200">
+                <Info className="w-4 h-4 text-teal-500 mt-0.5 flex-shrink-0" />
+                <p className="text-xs text-teal-700 leading-relaxed">
+                  {wd.approvedInfo}
+                </p>
+              </div>
+
+              {/* Withdraw confirm dialog */}
+              {showWithdrawConfirm ? (
+                <div className="bg-rose-50 border border-rose-200 rounded-2xl p-4 space-y-3">
+                  <p className="text-sm font-semibold text-rose-800 text-center">
+                    {wd.confirmTitle}
+                  </p>
+                  <p className="text-xs text-rose-600 text-center leading-relaxed">
+                    {wd.confirmMessage}
+                  </p>
+                  <div className="grid grid-cols-2 gap-3">
+                    <Button
+                      variant="outline"
+                      className="w-full rounded-2xl h-10 text-sm"
+                      onClick={() => setShowWithdrawConfirm(false)}
+                      disabled={isSubmitting}
+                    >
+                      {wd.goBack}
+                    </Button>
+                    <Button
+                      className="w-full bg-rose-500 hover:bg-rose-600 text-white rounded-2xl h-10 text-sm font-bold"
+                      disabled={isSubmitting}
+                      onClick={() => {
+                        setShowWithdrawConfirm(false);
+                        onWithdraw('before_second_party');
+                      }}
+                    >
+                      {wd.confirmButton}
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <Button
+                  variant="outline"
+                  className="w-full text-rose-500 hover:text-rose-600 hover:bg-rose-50 border-rose-200 rounded-2xl h-11 font-medium text-sm"
+                  disabled={isSubmitting}
+                  onClick={() => setShowWithdrawConfirm(true)}
+                >
+                  <XCircle className={cn('w-4 h-4', isHe ? 'ml-2' : 'mr-2')} />
+                  {wd.cancelApproval}
+                </Button>
+              )}
+            </>
+          )}
+        </div>
+      );
+    }
+
     // CASE: All other statuses — only ask matchmaker
     return (
       <Button
@@ -759,6 +888,7 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
   isOpen,
   onClose,
   onActionRequest,
+  onRefresh,
   questionnaire,
   isDemo = false,
   demoAnalysisData = null,
@@ -862,6 +992,33 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
   const handleInterested = () => {
     onActionRequest(suggestion, 'interested');
     onClose();
+  };
+
+  const handleWithdraw = async (type: 'grace_period' | 'before_second_party') => {
+    try {
+      const response = await fetch(`/api/suggestions/${suggestion.id}/withdraw`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        if (errorData.gracePeriodExpired) {
+          toast.error(locale === 'he' ? 'חלון הביטול נסגר' : 'Grace period expired');
+          return;
+        }
+        throw new Error(errorData.error || 'Failed to withdraw');
+      }
+
+      const data = await response.json();
+      toast.success(data.message);
+      onRefresh?.();
+      onClose();
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : locale === 'he' ? 'שגיאה בביטול' : 'Error withdrawing';
+      toast.error(errorMessage);
+    }
   };
 
   const getModalClasses = () => {
@@ -1074,6 +1231,9 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
             onDecline={handleDecline}
             onInterested={handleInterested}
             onAskQuestion={() => setActiveTab('details')}
+            onWithdraw={handleWithdraw}
+            approvedAt={suggestion.firstPartyResponded}
+            secondPartySent={suggestion.secondPartySent}
             dict={dict.suggestions.modal.actions}
             locale={locale}
           />

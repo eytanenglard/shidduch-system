@@ -115,14 +115,21 @@ export async function PATCH(
     const secondPartyLang = (suggestion.secondParty as any).language || 'he';
     const matchmakerLang = (suggestion.matchmaker as any).language || 'he';
 
-    // 9. Use StatusTransitionService for proper DB update + notifications + emails
+    // 9. Determine notification strategy
+    // When a CANDIDATE approves as first party, delay matchmaker notification
+    // to allow a grace period for withdrawal.
+    const isFirstPartyApproving =
+      isUserParty &&
+      session.user.id === suggestion.firstPartyId &&
+      status === MatchSuggestionStatus.FIRST_PARTY_APPROVED;
+
     const updatedSuggestion = await statusTransitionService.transitionStatus(
       suggestion,
       status,
       dictionaries,
       notes || `סטטוס שונה מ-${suggestion.status} ל-${status} על ידי משתמש ${session.user.id}`,
       {
-        sendNotifications: true,
+        sendNotifications: !isFirstPartyApproving,
         notifyParties: ['first', 'second', 'matchmaker'],
         skipValidation: canSkipValidation,
       },
@@ -132,6 +139,14 @@ export async function PATCH(
         matchmaker: matchmakerLang,
       }
     );
+
+    // 9b. If first party approved, mark notification as pending (will be sent by cron after grace period)
+    if (isFirstPartyApproving) {
+      await prisma.matchSuggestion.update({
+        where: { id: suggestionId },
+        data: { matchmakerNotifiedAt: null },
+      });
+    }
 
     // 10. Handle FIRST_PARTY_INTERESTED rank logic (kept from original)
     if (status === 'FIRST_PARTY_INTERESTED') {

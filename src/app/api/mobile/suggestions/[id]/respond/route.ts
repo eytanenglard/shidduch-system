@@ -331,8 +331,20 @@ if (response === "interested") {
     );
 
     // =====================================================
-    // ✅ NEW: Push notification to matchmaker
+    // Push notification to matchmaker
+    // Skip for FIRST_PARTY_APPROVED — delayed by grace period (sent via cron)
     // =====================================================
+    const isFirstPartyApproving =
+      isFirstParty && newStatus === 'FIRST_PARTY_APPROVED';
+
+    if (isFirstPartyApproving) {
+      // Mark notification as pending — will be sent after grace period by cron
+      await prisma.matchSuggestion.update({
+        where: { id: suggestionId },
+        data: { matchmakerNotifiedAt: null },
+      });
+    }
+
     try {
       const respondingUser = await prisma.user.findUnique({
         where: { id: userId },
@@ -342,15 +354,17 @@ if (response === "interested") {
         ? `${respondingUser.firstName} ${respondingUser.lastName}`
         : 'מועמד/ת';
 
-      // Send push to matchmaker about the user's response
-      pushSuggestionStatusToMatchmaker(
-        suggestion.matchmakerId,
-        userName,
-        newStatus,
-        suggestionId
-      ).catch((err) =>
-        console.error('[mobile/respond] Push to matchmaker error (non-fatal):', err)
-      );
+      // Send push to matchmaker — unless first party just approved (grace period)
+      if (!isFirstPartyApproving) {
+        pushSuggestionStatusToMatchmaker(
+          suggestion.matchmakerId,
+          userName,
+          newStatus,
+          suggestionId
+        ).catch((err) =>
+          console.error('[mobile/respond] Push to matchmaker error (non-fatal):', err)
+        );
+      }
 
       // If contacts were auto-shared (SECOND_PARTY_APPROVED → CONTACT_DETAILS_SHARED),
       // also notify both parties

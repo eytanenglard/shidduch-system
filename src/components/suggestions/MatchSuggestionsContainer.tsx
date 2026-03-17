@@ -1076,6 +1076,7 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
         isOpen={showDetailsModal}
         onClose={handleCloseDetailsModal}
         onActionRequest={handleRequestAction}
+        onRefresh={() => fetchSuggestions(false)}
         questionnaire={selectedQuestionnaireData}
         isDemo={false}
         initialTab={detailsModalInitialTab}

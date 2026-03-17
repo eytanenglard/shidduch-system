@@ -229,7 +229,18 @@
       "updating": "Updating...",
       "ask": "🤔 Ask the Matchmaker",
       "decline": "😔 Not for me right now",
-      "reminder": "Remember: Your decision helps us move one step closer to finding your perfect match."
+      "reminder": "Remember: Your decision helps us move one step closer to finding your perfect match.",
+      "withdraw": {
+        "gracePeriodTitle": "You can cancel your approval",
+        "gracePeriodTimer": "{minutes}:{seconds} remaining",
+        "undoApproval": "Undo approval",
+        "approvedInfo": "You approved this suggestion. The matchmaker hasn't sent it to the other side yet.",
+        "confirmTitle": "Are you sure?",
+        "confirmMessage": "Cancelling will be treated as declining the suggestion. The matchmaker will be notified.",
+        "confirmButton": "Yes, cancel approval",
+        "goBack": "Go back",
+        "cancelApproval": "Cancel approval"
+      }
     },
     "profile": {
       "loading": "Loading detailed profile...",

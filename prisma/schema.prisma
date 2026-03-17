@@ -428,6 +428,7 @@ model MatchSuggestion {
   messages                SuggestionMessage[]
   firstPartyRank          Int?
   firstPartyInterestedAt  DateTime?
+  matchmakerNotifiedAt    DateTime?         // When the matchmaker was notified of first party approval (delayed by grace period)
 
   // === Reports ===
   reports UserReport[]
