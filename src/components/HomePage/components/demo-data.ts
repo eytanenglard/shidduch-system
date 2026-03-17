@@ -297,7 +297,7 @@ export const generateDemoData = async (locale: Locale) => {
      firstPartyRank: null,           // ← הוסף
     firstPartyInterestedAt: null,
         structuredRationale: null,       // ← הוסף שורה זו
-// ← הוסף
+  matchmakerNotifiedAt: null,
   } as ExtendedMatchSuggestion;
 
   // ההצעה עבור הצופה (דניאל) לראות את נועה
@@ -325,7 +325,7 @@ export const generateDemoData = async (locale: Locale) => {
      firstPartyRank: null,           // ← הוסף
     firstPartyInterestedAt: null,
         structuredRationale: null,       // ← הוסף שורה זו
-   // ← הוסף
+  matchmakerNotifiedAt: null,
   } as ExtendedMatchSuggestion;
   
   const demoAiAnalysisForDaniel: AiSuggestionAnalysisResult = {

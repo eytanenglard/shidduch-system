@@ -644,7 +644,7 @@ const MinimalCandidateCard: React.FC<MinimalCandidateCardProps> = React.memo(
           </div>
 
           {/* ── INFO SECTION ──────────────────────────────────────────────── */}
-          <div className="p-4 space-y-2 relative z-10" dir="rtl">
+          <div className="p-4 space-y-2 relative z-10">
             {isManualEntry && candidate.profile.manualEntryText ? (
               // Manual entry text
               <div className="bg-purple-50 border border-purple-100 rounded-xl p-3">
@@ -653,7 +653,7 @@ const MinimalCandidateCard: React.FC<MinimalCandidateCardProps> = React.memo(
                 </p>
               </div>
             ) : (
-              <div className="space-y-2.5">
+              <div className="space-y-1.5">
                 {/* City + Origin */}
                 {(candidate.profile.city || (candidate.profile as any).origin) && (
                   <div className="flex items-center justify-end gap-2 text-sm">
@@ -834,9 +834,33 @@ const MinimalCandidateCard: React.FC<MinimalCandidateCardProps> = React.memo(
                 </div>
               )}
 
-              {/* Profile completeness */}
+              {/* Profile completeness dot */}
               {!hasEngagementStats && profileCompleteness < 100 && (
-                <span className="text-xs text-gray-400">{profileCompleteness}%</span>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger>
+                      <div className="flex items-center gap-1">
+                        <div className="w-16 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                          <div
+                            className={cn(
+                              'h-full rounded-full transition-all',
+                              profileCompleteness === 100 ? 'bg-emerald-500' :
+                              profileCompleteness >= 75 ? 'bg-blue-500' :
+                              profileCompleteness >= 50 ? 'bg-amber-500' : 'bg-red-400'
+                            )}
+                            style={{ width: `${profileCompleteness}%` }}
+                          />
+                        </div>
+                        <span className="text-xs text-gray-400">{profileCompleteness}%</span>
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>{profileCompleteness === 100
+                        ? (dict.profileComplete ?? 'פרופיל מלא')
+                        : (dict.profileIncomplete ?? `פרופיל: ${profileCompleteness}%`)}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               )}
             </div>
 
