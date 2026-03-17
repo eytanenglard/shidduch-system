@@ -33,6 +33,7 @@
       "interestedDescription": "This introduction will be saved to your waitlist. You can approve it later when you're available.",
       "confirmInterested": "Save for Later",
       "approveDescription": "Expressing interest is an exciting step forward. This lets your matchmaker know you're open to learning more. Are you ready to proceed?",
+      "approveAutoNote": "Please note: This suggestion is not exclusive, and the other party may be receiving other suggestions as well. Priority is given to those who respond first.",
       "declineDescription": "Every decision helps us refine your search. Are you sure you'd like to pass on this introduction? Your feedback is a valuable part of the journey.",
       "cancel": "Cancel",
       "confirmApproval": "Yes, I'm Interested",
@@ -46,7 +47,7 @@
       "statusUpdateSuccess": "Status updated successfully.",
       "statusUpdateError": "Error updating status: {error}",
       "approvedSuccess": "You've approved the introduction!",
-      "approvedFirstPartyDesc": "Wonderful! We've discreetly shared this suggestion with the other person. Once they approve, we'll guide you both on the next steps.",
+      "approvedFirstPartyDesc": "Wonderful! Your matchmaker has been notified and will forward the suggestion to the other party. Please note that the other party may be considering another suggestion, so a response may take some time.",
       "approvedSecondPartyDesc": "Great news! Now that you've both approved, we will facilitate the exchange of contact details.",
       "declinedSuccess": "Introduction Declined",
       "declinedDesc": "Thank you for your feedback. This helps us find even better matches for you.",
@@ -84,7 +85,29 @@
       "emptyTitle": "Your Daily Match is Coming",
       "emptyDescription": "Our system is working around the clock to find your perfect match. We'll update you the moment we find one!",
       "howItWorks": "How does it work?",
-      "howItWorksText": "Every day, our smart system scans hundreds of profiles and selects the best match for you, based on your profile, questionnaire responses, and stated preferences."
+      "howItWorksText": "Every day, our smart system scans hundreds of profiles and selects the best match for you, based on your profile, questionnaire responses, and stated preferences.",
+      "expectations": {
+        "title": "What to Know About Automatic Suggestions",
+        "intro": "To make your experience as smooth as possible, here are a few important things to know:",
+        "notExclusive": "Suggestions Are Not Exclusive",
+        "notExclusiveDesc": "This suggestion may also be sent to other candidates at the same time. The other party may not have seen the suggestion yet and is not reserved for you exclusively.",
+        "availabilityNote": "Other Party's Availability",
+        "availabilityNoteDesc": "There is no guarantee that the other party is currently available. They may be in the process of considering another suggestion or temporarily unavailable.",
+        "firstToRespond": "First to Respond Gets Priority",
+        "firstToRespondDesc": "When multiple candidates receive a similar suggestion, priority is given to the first to respond. We recommend not waiting too long.",
+        "matchmakerInvolved": "Your Matchmaker is Always Involved",
+        "matchmakerInvolvedDesc": "Although this suggestion was sent automatically, your matchmaker is overseeing the process and has approved this match. Feel free to reach out to them with any questions.",
+        "noObligation": "No Pressure, No Obligation",
+        "noObligationDesc": "If this suggestion isn't right for you, that's perfectly fine. A respectful decline helps us refine future suggestions for you.",
+        "processExplanation": "How Does the Process Work?",
+        "processStep1": "Our system identifies a potential match and sends it to your matchmaker for approval",
+        "processStep2": "After your matchmaker approves, the suggestion is sent to you for review",
+        "processStep3": "If you approve, your matchmaker will forward the suggestion to the other party",
+        "processStep4": "If both sides approve, contact details will be exchanged with your matchmaker's guidance",
+        "parallelNote": "Please note: You may receive multiple suggestions throughout the week. Each suggestion stands on its own and there's no need to choose between them immediately.",
+        "responseTimeNote": "We recommend responding within 3 days to keep the suggestion relevant.",
+        "emailDisclaimer": "This suggestion was selected by our system and approved by your matchmaker. Remember: suggestions are not exclusive, the other party may be receiving other suggestions as well, and priority is given to those who respond first."
+      }
     }
   },
   "card": {

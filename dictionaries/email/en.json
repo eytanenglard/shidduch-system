@@ -47,6 +47,8 @@
     "actionPrompt": "To view the full profile and make a decision, we invite you to visit your personal dashboard:",
     "actionButton": "View Full Suggestion",
     "closing": "We look forward to hearing from you,",
+    "autoDisclaimer": "Please note: This suggestion is not exclusive. The other party may be receiving other suggestions as well, and priority is given to those who respond first. We recommend responding within 3 days.",
+    "matchmakerNote": "Your matchmaker, {{matchmakerName}}, is overseeing the process and has approved this match. Feel free to reach out to them with any questions.",
     "details": {
       "age": "Age",
       "city": "City",

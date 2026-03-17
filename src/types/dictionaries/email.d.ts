@@ -177,12 +177,14 @@ suggestionInvitation: SuggestionInvitationDictionary;
   accountSetup: EmailTemplateContent & { intro: string; actionPrompt: string; actionButton: string; notice: string; nextStep: string; };
   emailOtpVerification: EmailTemplateContent & { intro: string; codeInstruction: string; expiryNotice: string; securityNote: string; };
   invitation: EmailTemplateContent & { intro: string; actionPrompt: string; actionButton: string; expiryNotice: string; };
-  suggestion: EmailTemplateContent & { 
-    intro: string; 
-    previewTitle: string; 
-    actionPrompt: string; 
-    actionButton: string; 
-    closing: string; 
+  suggestion: EmailTemplateContent & {
+    intro: string;
+    previewTitle: string;
+    actionPrompt: string;
+    actionButton: string;
+    closing: string;
+    autoDisclaimer: string;
+    matchmakerNote: string;
     details: { age: string; city: string; occupation: string; additionalInfo: string; };
   };
   shareContactDetails: EmailTemplateContent & { intro: string; detailsOf: string; tipTitle: string; tipContent: string; goodLuck: string; };
