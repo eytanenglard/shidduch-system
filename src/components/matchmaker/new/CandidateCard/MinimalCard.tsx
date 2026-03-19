@@ -37,15 +37,9 @@ import {
   Brain,
   MessageSquare,
   X,
-  TrendingUp,
-  Flame,
-  CheckSquare,
   XSquare,
   GraduationCap,
-  ThumbsUp,
   ArrowRightCircle,
-  ShieldCheck,
-  Medal,
   Eye,
 } from 'lucide-react';
 import {
@@ -56,7 +50,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import type { Candidate } from '../types/candidates';
 import { UserSource } from '@prisma/client';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn, getRelativeCloudinaryPath } from '@/lib/utils';
 import {
@@ -241,9 +235,10 @@ const MinimalCandidateCard: React.FC<MinimalCandidateCardProps> = React.memo(
       [candidate.profile.priorityCategory]
     );
 
+    const readinessLevel = (candidate.profile as any).readinessLevel as string | null | undefined;
     const readinessConfig = useMemo(
-      () => getReadinessConfig((candidate.profile as any).readinessLevel),
-      [(candidate.profile as any).readinessLevel]
+      () => getReadinessConfig(readinessLevel),
+      [readinessLevel]
     );
 
     const greenFlags = useMemo(
@@ -273,9 +268,10 @@ const MinimalCandidateCard: React.FC<MinimalCandidateCardProps> = React.memo(
       candidate.profile.occupation,
     ]);
 
+    const profileCompletenessScore = (candidate.profile as any).profileCompletenessScore as number | null | undefined;
     const profileCompleteness = useMemo(
-      () => (candidate.profile as any).profileCompletenessScore ?? qualityScore,
-      [(candidate.profile as any).profileCompletenessScore, qualityScore]
+      () => profileCompletenessScore ?? qualityScore,
+      [profileCompletenessScore, qualityScore]
     );
 
     const spokenLanguages = useMemo(() => {
@@ -324,7 +320,7 @@ const MinimalCandidateCard: React.FC<MinimalCandidateCardProps> = React.memo(
       );
     };
 
-    const getAvailabilityConfig = () => {
+    const availabilityConfig = useMemo(() => {
       switch (candidate.profile.availabilityStatus) {
         case 'AVAILABLE':
           return {
@@ -362,9 +358,7 @@ const MinimalCandidateCard: React.FC<MinimalCandidateCardProps> = React.memo(
             icon: <User className="w-3 h-3" />,
           };
       }
-    };
-
-    const availabilityConfig = getAvailabilityConfig();
+    }, [candidate.profile.availabilityStatus, dict]);
 
     const suggestionsReceived = (candidate.profile as any).suggestionsReceived ?? 0;
     const suggestionsAccepted = (candidate.profile as any).suggestionsAccepted ?? 0;
@@ -601,7 +595,7 @@ const MinimalCandidateCard: React.FC<MinimalCandidateCardProps> = React.memo(
             {hasExistingSuggestion && isSelectableForComparison && (
               <div className={cn(
                 'absolute top-3 z-20 transition-all duration-200',
-                isSelectableForComparison ? 'left-3' : 'left-3',
+                'left-3',
                 hasAiData ? 'top-16' : 'top-3'
               )}>
                 <div className={cn(
@@ -657,13 +651,18 @@ const MinimalCandidateCard: React.FC<MinimalCandidateCardProps> = React.memo(
                 {/* City + Origin */}
                 {(candidate.profile.city || (candidate.profile as any).origin) && (
                   <div className="flex items-center justify-end gap-2 text-sm">
-                    <span className="text-gray-700 font-medium">
-                      {[candidate.profile.city, (candidate.profile as any).origin]
-                        .filter(Boolean)
-                        .map((v) => highlightText(v))
-                        .reduce((acc: any, curr, i) => i === 0 ? curr : <>{acc} · {curr}</>, null)}
+                    <span>
+                      {candidate.profile.city && (
+                        <span className="font-semibold text-gray-800">{highlightText(candidate.profile.city)}</span>
+                      )}
+                      {candidate.profile.city && (candidate.profile as any).origin && (
+                        <span className="text-gray-300 mx-1.5">·</span>
+                      )}
+                      {(candidate.profile as any).origin && (
+                        <span className="text-gray-500 text-xs">{highlightText((candidate.profile as any).origin)}</span>
+                      )}
                     </span>
-                    <MapPin className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
+                    <MapPin className="w-3.5 h-3.5 text-blue-400 flex-shrink-0" />
                   </div>
                 )}
 
@@ -671,12 +670,17 @@ const MinimalCandidateCard: React.FC<MinimalCandidateCardProps> = React.memo(
                 {(candidate.profile.religiousLevel || (candidate.profile as any).religiousJourney) && (
                   <div className="flex items-center justify-end gap-2 text-sm">
                     <span className="text-gray-700">
-                      {[
-                        getReligiousLabel(candidate.profile.religiousLevel),
-                        (candidate.profile as any).religiousJourney
-                      ].filter(Boolean).map((v) => highlightText(v)).reduce((acc: any, curr, i) => i === 0 ? curr : <>{acc} · {curr}</>, null)}
+                      {getReligiousLabel(candidate.profile.religiousLevel) && (
+                        <>{highlightText(getReligiousLabel(candidate.profile.religiousLevel))}</>
+                      )}
+                      {getReligiousLabel(candidate.profile.religiousLevel) && (candidate.profile as any).religiousJourney && (
+                        <span className="text-gray-300 mx-1.5">·</span>
+                      )}
+                      {(candidate.profile as any).religiousJourney && (
+                        <span className="text-gray-500 text-xs">{highlightText((candidate.profile as any).religiousJourney)}</span>
+                      )}
                     </span>
-                    <Scroll className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
+                    <Scroll className="w-3.5 h-3.5 text-violet-400 flex-shrink-0" />
                   </div>
                 )}
 
@@ -684,39 +688,39 @@ const MinimalCandidateCard: React.FC<MinimalCandidateCardProps> = React.memo(
                 {maritalLabel && (
                   <div className="flex items-center justify-end gap-2 text-sm">
                     <span className="text-gray-700">{highlightText(maritalLabel)}</span>
-                    <Users className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
+                    <Users className="w-3.5 h-3.5 text-rose-400 flex-shrink-0" />
                   </div>
                 )}
 
                 {/* Occupation */}
                 {candidate.profile.occupation && (
                   <div className="flex items-center justify-end gap-2 text-sm">
-                    <span className="text-gray-700">{highlightText(candidate.profile.occupation)}</span>
-                    <Briefcase className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
+                    <span className="text-gray-700 truncate max-w-[190px]">{highlightText(candidate.profile.occupation)}</span>
+                    <Briefcase className="w-3.5 h-3.5 text-amber-500 flex-shrink-0" />
                   </div>
                 )}
 
                 {/* Education (if no occupation) */}
                 {!candidate.profile.occupation && candidate.profile.education && (
                   <div className="flex items-center justify-end gap-2 text-sm">
-                    <span className="text-gray-700">{highlightText(candidate.profile.education)}</span>
-                    <GraduationCap className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
+                    <span className="text-gray-700 truncate max-w-[190px]">{highlightText(candidate.profile.education)}</span>
+                    <GraduationCap className="w-3.5 h-3.5 text-teal-500 flex-shrink-0" />
                   </div>
                 )}
 
-                {/* Height + Languages (compact row) */}
+                {/* Height + Languages — subtle chip row */}
                 {(candidate.profile.height || spokenLanguages) && (
-                  <div className="flex items-center justify-end gap-3 text-xs text-gray-500">
+                  <div className="flex items-center justify-end gap-1.5 flex-wrap pt-0.5">
                     {candidate.profile.height && (
-                      <span className="flex items-center gap-1">
-                        <Ruler className="w-3 h-3" />
+                      <span className="inline-flex items-center gap-1 text-xs text-gray-500 bg-gray-50 px-2 py-0.5 rounded-md border border-gray-100">
+                        <Ruler className="w-3 h-3 text-gray-400" />
                         {dict.heightLabel.replace('{{height}}', candidate.profile.height.toString())}
                       </span>
                     )}
                     {spokenLanguages && (
-                      <span className="flex items-center gap-1">
-                        <Languages className="w-3 h-3" />
-                        <span className="truncate max-w-[100px]">{spokenLanguages}</span>
+                      <span className="inline-flex items-center gap-1 text-xs text-gray-500 bg-gray-50 px-2 py-0.5 rounded-md border border-gray-100">
+                        <Languages className="w-3 h-3 text-gray-400" />
+                        <span className="truncate max-w-[90px]">{spokenLanguages}</span>
                       </span>
                     )}
                   </div>
@@ -782,7 +786,7 @@ const MinimalCandidateCard: React.FC<MinimalCandidateCardProps> = React.memo(
                       <TooltipTrigger asChild>
                         <span className="text-xs px-2 py-0.5 rounded-full border border-blue-200 bg-blue-50 text-blue-700 font-medium flex items-center gap-1">
                           <ArrowRightCircle className="w-3 h-3" />
-                          <span>{'צד א\''}</span>
+                          <span>צד ראשון</span>
                         </span>
                       </TooltipTrigger>
                       <TooltipContent><p>{dict.wantsToBeFirst ?? 'מעוניין/ת להיות צד ראשון'}</p></TooltipContent>
