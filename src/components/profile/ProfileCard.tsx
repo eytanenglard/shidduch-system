@@ -6,36 +6,21 @@ import React from 'react';
 import Image from 'next/image';
 
 import { cn, getRelativeCloudinaryPath } from '@/lib/utils';
-import {
-  ResizableHandle,
-  ResizablePanel,
-  ResizablePanelGroup,
-} from '@/components/ui/resizable';
 
 // UI Components
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
 import { Skeleton } from '@/components/ui/skeleton';
 
 // Icons
 import {
   Heart,
   Eye,
-  Briefcase,
-  GraduationCap,
   Sparkles,
   X,
-  BookMarked,
   Camera,
-  Zap,
   ArrowLeft,
   MessageSquareQuote,
 } from 'lucide-react';
@@ -48,14 +33,10 @@ import ProfileHeader from './components/header/ProfileHeader';
 import MobileImageGallery from './components/gallery/MobileImageGallery';
 import ImageDialog from './components/gallery/ImageDialog';
 import MobileHeader from './components/navigation/MobileHeader';
-import NeshamaTechSummary from './components/content/NeshamaTechSummary';
-import SectionCard from './components/shared/SectionCard';
-import DetailItem from './components/shared/DetailItem';
-import EmptyState from './components/shared/EmptyState';
 import MainContentTabs from './components/tabs/MainContentTabs';
 
 // Utilities & types
-import { formatEnumValue, formatBooleanPreference } from './utils/formatters';
+import { formatEnumValue } from './utils/formatters';
 import type { ProfileCardProps } from './types/profileCard';
 
 const ProfileCard: React.FC<ProfileCardProps> = ({
@@ -92,9 +73,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
     selectedImageForDialog,
     activeTab,
     mobileViewLayout,
-    selectedPalette,
     setMobileViewLayout,
-    setSelectedPalette,
     setIsSuggestDialogOpen,
     setActiveTab,
     setSelectedImageForDialog,
@@ -176,11 +155,8 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
     availability,
     viewMode: effectiveViewMode,
     onSuggestClick: () => setIsSuggestDialogOpen(true),
-    selectedPalette,
     THEME,
     dict: displayDict,
-    characterTraitMap,
-    hobbiesMap,
     religiousLevelMap,
     educationLevelMap,
     locale,
@@ -195,401 +171,262 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
       <Card
         dir={direction}
         className={cn(
-          'w-full bg-white shadow-2xl rounded-2xl overflow-hidden border-0 flex flex-col h-full',
+          'w-full bg-white rounded-2xl overflow-hidden border border-gray-100 flex flex-col h-full',
           className
         )}
       >
-        <div
-          className={cn(
-            'p-4 sm:p-6 border-b border-gray-200/80',
-            `bg-gradient-to-r ${THEME.colors.neutral.warm}`
-          )}
-        >
-          <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-6">
-            <Skeleton className="h-24 w-24 sm:h-36 sm:w-36 rounded-full flex-shrink-0" />
-            <div className="flex-grow w-full space-y-4">
-              <Skeleton className="h-8 sm:h-12 w-3/4 mx-auto sm:mx-0" />
-              <Skeleton className="h-4 sm:h-6 w-1/2 mx-auto sm:mx-0" />
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4 mt-4">
-                <Skeleton className="h-10 sm:h-12 w-full rounded-xl" />
-                <Skeleton className="h-10 sm:h-12 w-full rounded-xl" />
-                <Skeleton className="h-10 sm:h-12 w-full rounded-xl" />
-              </div>
+        <div className="p-6 border-b border-gray-100">
+          <div className="space-y-4">
+            <Skeleton className="h-8 w-3/4" />
+            <Skeleton className="h-5 w-1/2" />
+            <div className="grid grid-cols-3 gap-3 mt-4">
+              <Skeleton className="h-10 w-full rounded-xl" />
+              <Skeleton className="h-10 w-full rounded-xl" />
+              <Skeleton className="h-10 w-full rounded-xl" />
             </div>
           </div>
         </div>
-        <div className="p-4 sm:p-6 flex-grow">
+        <div className="p-6 flex-grow">
           <div className="space-y-4" dir={direction}>
-            <Skeleton className="h-6 sm:h-8 w-full rounded-xl" />
-            <Skeleton className="h-24 sm:h-32 w-full rounded-xl" />
-            <Skeleton className="h-16 sm:h-24 w-full rounded-xl" />
+            <Skeleton className="h-6 w-full rounded-xl" />
+            <Skeleton className="h-24 w-full rounded-xl" />
+            <Skeleton className="h-16 w-full rounded-xl" />
           </div>
         </div>
       </Card>
     );
   }
 
-  // --- Desktop Layout ---
+  // --- Desktop Layout: Photo Left (38%), Content Right (62%) ---
   const DesktopLayout = () => (
-    <ResizablePanelGroup
-      direction="horizontal"
-      dir={direction}
-      className="flex-grow min-h-0 max-w-full"
-    >
-      <ResizablePanel
-        defaultSize={60}
-        minSize={40}
-        className="min-w-0 flex flex-col max-w-full overflow-hidden"
-      >
-        <ScrollArea className="flex-1 min-h-0 max-w-full">
-          <ProfileHeader
-            {...profileHeaderProps}
-            onPaletteChange={setSelectedPalette}
+    <div className="flex flex-grow min-h-0 max-w-full" dir="ltr">
+      {/* Left: Photo panel */}
+      <div className="w-[38%] flex-shrink-0 relative bg-gray-100 overflow-hidden">
+        {mainImageToDisplay?.url ? (
+          <Image
+            src={getRelativeCloudinaryPath(mainImageToDisplay.url)}
+            alt={profile.user?.firstName || ''}
+            fill
+            className="object-cover cursor-pointer"
+            sizes="38vw"
+            priority
+            onClick={() =>
+              orderedImages.length > 0 &&
+              handleOpenImageDialog(orderedImages[0])
+            }
           />
-          <div className="p-4 sm:p-6 overflow-hidden flex max-w-full">
+        ) : (
+          <div className="w-full h-full flex items-center justify-center">
+            <Camera className="w-16 h-16 text-gray-300" />
+          </div>
+        )}
+
+        {/* Thumbnail strip at bottom */}
+        {orderedImages.length > 1 && (
+          <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/60 to-transparent p-3 pt-10">
+            <div className="flex gap-2 justify-center">
+              {orderedImages.slice(0, 5).map((img, idx) => (
+                <div
+                  key={img.id}
+                  className={cn(
+                    'relative w-12 h-12 rounded-lg overflow-hidden cursor-pointer flex-shrink-0 transition-opacity',
+                    'border-2',
+                    idx === 0
+                      ? cn(THEME.accentBorderStrong, 'opacity-100')
+                      : 'border-white/40 opacity-70 hover:opacity-100'
+                  )}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleOpenImageDialog(img);
+                  }}
+                >
+                  <Image
+                    src={getRelativeCloudinaryPath(img.url)}
+                    alt=""
+                    fill
+                    className="object-cover"
+                    sizes="48px"
+                  />
+                </div>
+              ))}
+              {orderedImages.length > 5 && (
+                <div
+                  className="relative w-12 h-12 rounded-lg overflow-hidden cursor-pointer flex-shrink-0 bg-black/50 flex items-center justify-center border-2 border-white/40"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleOpenImageDialog(orderedImages[5]);
+                  }}
+                >
+                  <span className="text-white text-sm font-medium">
+                    +{orderedImages.length - 5}
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Image count badge */}
+        {orderedImages.length > 1 && (
+          <div className="absolute top-3 right-3 z-10">
+            <Badge className="bg-black/60 text-white border-0 text-xs px-2 py-1 gap-1">
+              <Camera className="w-3 h-3" />
+              <span>{orderedImages.length}</span>
+            </Badge>
+          </div>
+        )}
+      </div>
+
+      {/* Right: Content panel */}
+      <div className="flex-1 min-w-0 flex flex-col" dir={direction}>
+        <ScrollArea className="flex-1 min-h-0">
+          <ProfileHeader mode="desktop" {...profileHeaderProps} />
+          <div className="px-6 pb-6">
             <MainContentTabs isDesktop={true} {...mainContentTabsProps} />
           </div>
         </ScrollArea>
-      </ResizablePanel>
-      <ResizableHandle
-        withHandle
-        className={cn(
-          'bg-gradient-to-b from-rose-200 to-pink-200 hover:from-rose-300 hover:to-pink-300',
-          'transition-all duration-300'
-        )}
-      />
-      <ResizablePanel
-        defaultSize={40}
-        minSize={25}
-        className="min-w-0 flex flex-col max-w-full overflow-hidden"
-      >
-        <ScrollArea className="flex-grow min-h-0 max-w-full">
-          <div className="p-4 sm:p-6 space-y-4 sm:space-y-6 min-w-0 max-w-full">
-            <NeshamaTechSummary
-              profile={profile}
-              dict={displayDict}
-              THEME={THEME}
-              direction={direction}
-            />
-            <SectionCard
-              title={displayDict.gallery.title.replace(
-                '{{name}}',
-                profile.user?.firstName || 'המועמד'
-              )}
-              subtitle={displayDict.gallery.subtitle}
-              icon={Camera}
-              variant="elegant"
-              gradient={THEME.colors.primary.main}
-              className="min-w-0 max-w-full"
-            >
-              {orderedImages.length > 0 ? (
-                <div className="space-y-4 min-w-0 max-w-full">
-                  <div
-                    className="relative aspect-video rounded-2xl overflow-hidden cursor-pointer group border-2 sm:border-3 border-white shadow-lg hover:shadow-xl transition-all duration-300 max-w-full"
-                    onClick={() => handleOpenImageDialog(orderedImages[0])}
-                  >
-                    <Image
-                      src={getRelativeCloudinaryPath(orderedImages[0].url)}
-                      alt={displayDict.gallery.imageAlt.replace(
-                        '{{index}}',
-                        '1'
-                      )}
-                      fill
-                      className="object-cover transition-transform duration-500 group-hover:scale-105"
-                      sizes="35vw"
-                      priority
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                      <div className="text-center text-white">
-                        <Eye className="w-6 h-6 sm:w-8 sm:h-8 mx-auto mb-2" />
-                        <p className="font-bold text-sm sm:text-base">
-                          {displayDict.gallery.subtitle}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                  {orderedImages.length > 1 && (
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3 min-w-0 max-w-full">
-                      {orderedImages.slice(1, 7).map((img, idx) => (
-                        <div
-                          key={img.id}
-                          className="relative aspect-square rounded-xl overflow-hidden cursor-pointer border-2 border-transparent hover:border-rose-400 transition-all duration-300 shadow-md hover:shadow-lg max-w-full"
-                          onClick={() => handleOpenImageDialog(img)}
-                        >
-                          <Image
-                            src={getRelativeCloudinaryPath(img.url)}
-                            alt={displayDict.gallery.imageAlt.replace(
-                              '{{index}}',
-                              (idx + 2).toString()
-                            )}
-                            fill
-                            className="object-cover hover:scale-110 transition-transform duration-300"
-                            sizes="15vw"
-                          />
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <EmptyState
-                  icon={Camera}
-                  title={displayDict.content.emptyStateTitle}
-                  description={displayDict.content.emptyStateDescription}
-                  variant="romantic"
-                  THEME={THEME}
-                />
-              )}
-            </SectionCard>
-          </div>
-        </ScrollArea>
-      </ResizablePanel>
-    </ResizablePanelGroup>
+      </div>
+    </div>
   );
 
   // --- Detailed Mobile Layout ---
   const DetailedMobileLayout = () => (
     <ScrollArea className="flex-1 min-h-0 max-w-full overflow-hidden">
       <div className="flex flex-col min-w-0 max-w-full">
-        <ProfileHeader
-          {...profileHeaderProps}
-          isMobile={true}
-          compact={false}
-        />
+        <ProfileHeader mode="mobile" {...profileHeaderProps} />
         <MobileImageGallery
           orderedImages={orderedImages}
           profile={profile}
           onImageClick={handleOpenImageDialog}
           THEME={THEME}
           dict={displayDict.gallery}
-          compact={false}
           direction={direction}
         />
-        <div
-          className={cn(
-            'p-3 sm:p-4 min-w-0 max-w-full overflow-hidden',
-            `bg-gradient-to-br ${THEME.colors.neutral.cool}`
-          )}
-        >
+        <div className="p-3 sm:p-4 min-w-0 max-w-full bg-gray-50">
           <MainContentTabs isDesktop={false} {...mainContentTabsProps} />
         </div>
       </div>
     </ScrollArea>
   );
 
-  // --- Focus Mobile Layout ---
-  const FocusMobileLayout = () => (
-    <div className="flex-1 min-h-0 flex flex-col max-w-full overflow-hidden">
-      <ScrollArea className="flex-1 min-h-0 max-w-full">
-        <div className="pb-4 px-2 sm:px-3 min-w-0 max-w-full overflow-hidden">
-          <ProfileHeader
-            {...profileHeaderProps}
-            isMobile={true}
-            onPaletteChange={setSelectedPalette}
-            compact={true}
-          />
-          <MobileImageGallery
-            orderedImages={orderedImages}
-            profile={profile}
-            onImageClick={handleOpenImageDialog}
-            THEME={THEME}
-            dict={displayDict.gallery}
-            compact={true}
-            direction={direction}
-          />
-          <div
-            className={cn(
-              'px-2 sm:px-3 py-2 space-y-3 sm:space-y-4 min-w-0 max-w-full overflow-hidden',
-              `bg-gradient-to-br ${THEME.colors.neutral.warm}`
-            )}
-          >
-            <NeshamaTechSummary
-              profile={profile}
-              dict={displayDict}
-              THEME={THEME}
-              direction={direction}
-            />
+  // --- Focus Mobile Layout (teaser/discovery) ---
+  const FocusMobileLayout = () => {
+    const approvedTestimonials = (profile.testimonials || []).filter(
+      (t) => t.status === 'APPROVED'
+    );
+    const firstTestimonial = approvedTestimonials[0];
 
-            {profile.isAboutVisible && profile.about && (
-              <SectionCard
-                title={displayDict.content.focus.aboutMe}
-                subtitle={displayDict.content.focus.myStory}
-                icon={Heart}
-                variant="romantic"
-                gradient={THEME.colors.primary.main}
-                compact={true}
-              >
-                <div className="p-3 text-start">
-                  <p className="text-gray-800 leading-relaxed italic font-medium break-words line-clamp-4">
-                    {profile.about}
-                  </p>
-                  <div className="text-center mt-3">
-                    <Button
-                      variant="link"
+    return (
+      <div className="flex-1 min-h-0 flex flex-col max-w-full overflow-hidden">
+        <ScrollArea className="flex-1 min-h-0 max-w-full">
+          <div className="min-w-0 max-w-full">
+            {/* Hero photo */}
+            <ProfileHeader mode="mobile" {...profileHeaderProps} />
+
+            <div className="px-4 py-4 space-y-4">
+              {/* Headline */}
+              {profile.profileHeadline && (
+                <p className="text-center text-base italic font-medium text-gray-700">
+                  &quot;{profile.profileHeadline}&quot;
+                </p>
+              )}
+
+              {/* About with gradient fade */}
+              {profile.isAboutVisible && profile.about && (
+                <div>
+                  <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2">
+                    {displayDict.content.focus.aboutMe}
+                  </h3>
+                  <div className="relative">
+                    <p
+                      className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap break-words"
+                      style={{
+                        maxHeight: '7.5em',
+                        overflow: 'hidden',
+                        WebkitMaskImage:
+                          'linear-gradient(to bottom, black 60%, transparent 100%)',
+                        maskImage:
+                          'linear-gradient(to bottom, black 60%, transparent 100%)',
+                      }}
+                    >
+                      {profile.about}
+                    </p>
+                    <button
                       className={cn(
-                        'font-bold',
-                        THEME.colors.primary.main.includes('rose')
-                          ? 'text-rose-600'
-                          : THEME.colors.primary.main.includes('blue')
-                            ? 'text-blue-600'
-                            : THEME.colors.primary.main.includes('amber')
-                              ? 'text-amber-600'
-                              : 'text-gray-600'
+                        'text-sm font-semibold mt-1',
+                        THEME.accentText
                       )}
                       onClick={() => setMobileViewLayout('detailed')}
                     >
-                      {dict.display.content.focus.readFullStory}{' '}
-                      <ArrowLeft className="w-4 h-4 mr-1" />
-                    </Button>
+                      {dict.display.content.focus.readFullStory}
+                    </button>
                   </div>
                 </div>
-              </SectionCard>
-            )}
-
-            {profile.isFriendsSectionVisible &&
-              (profile.testimonials || []).filter(
-                (t) => t.status === 'APPROVED'
-              ).length > 0 && (
-                <SectionCard
-                  title={dict.display.content.friendTestimonials.title.replace(
-                    '{{name}}',
-                    profile.user?.firstName || ''
-                  )}
-                  subtitle={dict.display.content.friendTestimonials.focusSubtitle.replace(
-                    '{{count}}',
-                    (profile.testimonials || [])
-                      .filter((t) => t.status === 'APPROVED')
-                      .length.toString()
-                  )}
-                  icon={MessageSquareQuote}
-                  variant="default"
-                  compact={true}
-                >
-                  <div className="text-center p-2">
-                    <Button
-                      variant="outline"
-                      className="w-full"
-                      onClick={() => {
-                        setMobileViewLayout('detailed');
-                        setActiveTab('essence');
-                      }}
-                    >
-                      {dict.display.content.friendTestimonials.viewButton}
-                    </Button>
-                  </div>
-                </SectionCard>
               )}
 
-            <SectionCard
-              title={displayDict.content.focus.quickSummary}
-              subtitle={displayDict.content.focus.importantDetails}
-              icon={Zap}
-              variant="elegant"
-              gradient={THEME.colors.primary.gold}
-              compact={true}
-              className="min-w-0 max-w-full"
-            >
-              <div className="grid grid-cols-1 gap-2 sm:gap-3 min-w-0 max-w-full">
-                {(() => {
-                  const religiousLevelData = profile.religiousLevel
-                    ? formatEnumValue(
-                        profile.religiousLevel,
-                        religiousLevelMap,
-                        displayDict.placeholders.willDiscover
-                      )
-                    : null;
-                  if (
-                    religiousLevelData &&
-                    religiousLevelData.label?.trim() &&
-                    religiousLevelData.label !==
-                      displayDict.placeholders.willDiscover
-                  ) {
-                    return (
-                      <DetailItem
-                        icon={BookMarked}
-                        label={dict.display.keyFacts.outlook}
-                        value={religiousLevelData.label}
-                        variant="highlight"
-                        size="sm"
-                        useMobileLayout={true}
-                        textAlign="center"
-                        placeholder={displayDict.placeholders.willDiscover}
-                      />
-                    );
-                  }
-                  return null;
-                })()}
-                {profile.shomerNegiah !== null &&
-                  profile.shomerNegiah !== undefined && (
-                    <DetailItem
-                      icon={Heart}
-                      label={displayDict.content.detailLabels.shomerNegiah}
-                      value={
-                        formatBooleanPreference(profile.shomerNegiah, {
-                          ...displayDict.booleanPrefs,
-                          willDiscover: displayDict.placeholders.willDiscover,
-                        }).label
-                      }
-                      variant="elegant"
-                      size="sm"
-                      useMobileLayout={true}
-                      placeholder={displayDict.placeholders.willDiscover}
-                    />
-                  )}
-                {profile.occupation && (
-                  <DetailItem
-                    icon={Briefcase}
-                    label={dict.display.keyFacts.occupation}
-                    value={
-                      profile.occupation ||
-                      displayDict.placeholders.willDiscover
-                    }
-                    variant="elegant"
-                    size="sm"
-                    useMobileLayout={true}
-                    placeholder={displayDict.placeholders.willDiscover}
-                  />
+              {/* Testimonial preview */}
+              {profile.isFriendsSectionVisible &&
+                approvedTestimonials.length > 0 && (
+                  <div>
+                    <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-2">
+                      <MessageSquareQuote className="w-4 h-4 text-gray-400" />
+                      {dict.display.content.friendTestimonials.title.replace(
+                        '{{name}}',
+                        profile.user?.firstName || ''
+                      )}
+                    </h3>
+                    {firstTestimonial && (
+                      <div
+                        className={cn(
+                          'bg-gray-50 rounded-lg p-4',
+                          direction === 'rtl'
+                            ? cn('border-r-2', THEME.accentBorder)
+                            : cn('border-l-2', THEME.accentBorder)
+                        )}
+                      >
+                        <p className="text-sm text-gray-700 italic leading-relaxed">
+                          &quot;{firstTestimonial.content}&quot;
+                        </p>
+                        <p className="text-xs text-gray-500 mt-2">
+                          — {firstTestimonial.authorName}
+                          {firstTestimonial.relationship &&
+                            `, ${firstTestimonial.relationship}`}
+                        </p>
+                      </div>
+                    )}
+                    {approvedTestimonials.length > 1 && (
+                      <button
+                        className={cn(
+                          'text-xs font-medium mt-2',
+                          THEME.accentText
+                        )}
+                        onClick={() => {
+                          setMobileViewLayout('detailed');
+                          setActiveTab('essence');
+                        }}
+                      >
+                        {dict.display.content.friendTestimonials.focusSubtitle.replace(
+                          '{{count}}',
+                          approvedTestimonials.length.toString()
+                        )}
+                      </button>
+                    )}
+                  </div>
                 )}
-                {profile.educationLevel && (
-                  <DetailItem
-                    icon={GraduationCap}
-                    label={displayDict.content.detailLabels.educationLevel}
-                    value={
-                      formatEnumValue(
-                        profile.educationLevel,
-                        educationLevelMap,
-                        displayDict.placeholders.willDiscover
-                      ).label
-                    }
-                    variant="elegant"
-                    size="sm"
-                    useMobileLayout={true}
-                    placeholder={displayDict.placeholders.willDiscover}
-                  />
-                )}
-              </div>
-            </SectionCard>
-            {hasUniqueTraitsOrHobbies && (
-              <SectionCard
-                title={displayDict.content.focus.whatMakesMeUnique}
-                subtitle={displayDict.content.focus.traitsAndHobbies}
-                icon={Sparkles}
-                variant="romantic"
-                gradient={THEME.colors.primary.romantic}
-                compact={true}
-                className="min-w-0 max-w-full"
-              >
-                <div className="space-y-4 sm:space-y-5 min-w-0 max-w-full">
+
+              {/* Traits & hobbies chips */}
+              {hasUniqueTraitsOrHobbies && (
+                <div className="space-y-3">
                   {profile.profileCharacterTraits &&
                     profile.profileCharacterTraits.length > 0 && (
-                      <div className="min-w-0 max-w-full">
-                        <h4 className="text-sm font-bold text-purple-700 mb-2 sm:mb-3 flex items-center justify-center gap-2">
-                          <span className="break-words">
+                      <div>
+                        <div className="flex items-center gap-2 mb-2">
+                          <Sparkles className="w-3.5 h-3.5 text-gray-400" />
+                          <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
                             {displayDict.content.focus.myTraits}
                           </span>
-                          <Sparkles className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
-                        </h4>
-                        <div className="flex flex-wrap gap-2 min-w-0 max-w-full justify-center">
+                        </div>
+                        <div className="flex flex-wrap gap-1.5">
                           {profile.profileCharacterTraits
                             .slice(0, 4)
                             .map((trait) => {
@@ -602,17 +439,10 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                               return (
                                 <Badge
                                   key={trait}
-                                  className={cn(
-                                    'flex items-center gap-1 px-2 py-1 text-xs font-semibold min-w-0 max-w-full',
-                                    `bg-gradient-to-r ${THEME.colors.secondary.lavender} text-purple-800`,
-                                    'border border-purple-200 rounded-full',
-                                    'break-words'
-                                  )}
+                                  variant="outline"
+                                  className="text-xs px-2.5 py-1 bg-white border-gray-200 text-gray-700 rounded-full"
                                 >
-                                  <traitData.icon className="w-2.5 h-2.5 sm:w-3 sm:h-3 flex-shrink-0" />
-                                  <span className="break-words min-w-0 overflow-hidden">
-                                    {traitData.shortLabel || traitData.label}
-                                  </span>
+                                  {traitData.shortLabel || traitData.label}
                                 </Badge>
                               );
                             })}
@@ -621,170 +451,132 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                     )}
                   {profile.profileHobbies &&
                     profile.profileHobbies.length > 0 && (
-                      <div className="min-w-0 max-w-full">
-                        <h4 className="text-sm font-bold text-emerald-700 mb-2 sm:mb-3 flex items-center justify-center gap-2">
-                          <span className="break-words">
+                      <div>
+                        <div className="flex items-center gap-2 mb-2">
+                          <Heart className="w-3.5 h-3.5 text-gray-400" />
+                          <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
                             {displayDict.content.focus.whatILove}
                           </span>
-                          <Heart className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
-                        </h4>
-                        <div className="flex flex-wrap gap-2 min-w-0 max-w-full justify-center">
-                          {profile.profileHobbies.slice(0, 4).map((hobby) => {
-                            const hobbyData = formatEnumValue(
-                              hobby,
-                              hobbiesMap,
-                              hobby,
-                              true
-                            );
-                            return (
-                              <Badge
-                                key={hobby}
-                                className={cn(
-                                  'flex items-center gap-1 px-2 py-1 text-xs font-semibold min-w-0 max-w-full',
-                                  `bg-gradient-to-r ${THEME.colors.secondary.sage} text-emerald-800`,
-                                  'border border-emerald-200 rounded-full',
-                                  'break-words'
-                                )}
-                              >
-                                <hobbyData.icon className="w-2.5 h-2.5 sm:w-3 sm:h-3 flex-shrink-0" />
-                                <span className="break-words min-w-0 overflow-hidden">
+                        </div>
+                        <div className="flex flex-wrap gap-1.5">
+                          {profile.profileHobbies
+                            .slice(0, 4)
+                            .map((hobby) => {
+                              const hobbyData = formatEnumValue(
+                                hobby,
+                                hobbiesMap,
+                                hobby,
+                                true
+                              );
+                              return (
+                                <Badge
+                                  key={hobby}
+                                  variant="outline"
+                                  className="text-xs px-2.5 py-1 bg-white border-gray-200 text-gray-700 rounded-full"
+                                >
                                   {hobbyData.shortLabel || hobbyData.label}
-                                </span>
-                              </Badge>
-                            );
-                          })}
+                                </Badge>
+                              );
+                            })}
                         </div>
                       </div>
                     )}
                 </div>
-              </SectionCard>
-            )}
-            <div
-              className={cn(
-                'bg-white hover:bg-gray-50 font-bold rounded-full min-h-[44px]',
-                'px-4 py-2 sm:px-6 sm:py-3 text-sm sm:text-base',
-                THEME.colors.primary.main.includes('rose')
-                  ? 'text-rose-700'
-                  : THEME.colors.primary.main.includes('blue')
-                    ? 'text-blue-700'
-                    : THEME.colors.primary.main.includes('amber')
-                      ? 'text-amber-700'
-                      : 'text-gray-700',
-                THEME.shadows.warm
               )}
-            >
-              <h3 className="text-base sm:text-lg font-bold mb-2 break-words">
-                {displayDict.content.focus.wantToKnowMore}
-              </h3>
-              <p className="mb-3 sm:mb-4 opacity-90 text-sm break-words">
-                {displayDict.content.focus.moreToDiscover}
-              </p>
-              <Button
-                onClick={() => setMobileViewLayout('detailed')}
-                className={cn(
-                  'bg-white text-gray-600 hover:bg-gray-50 font-bold rounded-full min-h-[44px]',
-                  'px-4 py-2 sm:px-6 sm:py-3 text-sm sm:text-base',
-                  THEME.shadows.warm
-                )}
-              >
-                <Eye
+
+              {/* CTA button */}
+              <div className="pt-2 pb-4">
+                <Button
+                  onClick={() => setMobileViewLayout('detailed')}
                   className={cn(
-                    'w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0',
-                    direction === 'rtl' ? 'ml-2' : 'mr-2'
+                    'w-full text-white rounded-full py-3 text-sm font-semibold',
+                    THEME.accentBg,
+                    THEME.accentBgHover
                   )}
-                />
-                <span className="break-words">
+                >
+                  <Eye
+                    className={cn(
+                      'w-4 h-4 flex-shrink-0',
+                      direction === 'rtl' ? 'ml-2' : 'mr-2'
+                    )}
+                  />
                   {displayDict.content.focus.letsGetToKnow}
-                </span>
-              </Button>
+                </Button>
+              </div>
             </div>
           </div>
-        </div>
-      </ScrollArea>
-    </div>
-  );
+        </ScrollArea>
+      </div>
+    );
+  };
 
   // --- Main render ---
   return (
-    <TooltipProvider>
-      <Card
-        dir={direction}
-        id="profile-card-container"
-        className={cn(
-          'w-full h-full overflow-hidden flex flex-col max-w-full min-w-0',
-          `bg-gradient-to-br ${THEME.colors.neutral.elegant}`,
-          THEME.shadows.elegant,
-          '[&_*]:box-border [&_*]:max-w-full',
-          className
-        )}
-        style={{
-          textAlign: direction === 'rtl' ? 'right' : 'left',
-          overflow: 'hidden',
-        }}
-      >
-        {isDesktop && onClose && (
-          <div
+    <Card
+      dir={direction}
+      id="profile-card-container"
+      className={cn(
+        'w-full h-full overflow-hidden flex flex-col max-w-full min-w-0',
+        'bg-white border border-gray-100 rounded-2xl',
+        className
+      )}
+      style={{
+        textAlign: direction === 'rtl' ? 'right' : 'left',
+        overflow: 'hidden',
+      }}
+    >
+      {isDesktop && onClose && (
+        <div
+          className={cn(
+            'absolute top-4 z-40',
+            direction === 'rtl' ? 'left-4' : 'right-4'
+          )}
+        >
+          <Button
+            variant="ghost"
+            size="icon"
             className={cn(
-              'absolute top-4 z-40',
-              direction === 'rtl' ? 'left-4' : 'right-4'
+              'text-gray-500 hover:text-gray-700 bg-white/80 hover:bg-white rounded-full shadow-sm',
+              'w-10 h-10 min-h-[44px] min-w-[44px]'
             )}
+            onClick={handleClose}
           >
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className={cn(
-                    'text-gray-600 hover:text-gray-800 bg-white/80 hover:bg-white/90 rounded-full shadow-lg hover:shadow-xl transition-all duration-300',
-                    'w-10 h-10 sm:w-12 sm:h-12 min-h-[44px] min-w-[44px]'
-                  )}
-                  onClick={handleClose}
-                >
-                  <X className="w-4 h-4 sm:w-5 sm:h-5" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>{displayDict.mobileNav.closePreview}</p>
-              </TooltipContent>
-            </Tooltip>
-          </div>
-        )}
+            <X className="w-5 h-5" />
+          </Button>
+        </div>
+      )}
 
-        {isDesktop ? (
-          <DesktopLayout />
-        ) : (
-          <div className="flex flex-col h-full w-full max-w-full min-w-0 overflow-hidden">
-            <MobileHeader
-              direction={direction}
-              THEME={THEME}
-              displayDict={displayDict}
-              mobileViewLayout={mobileViewLayout}
-              setMobileViewLayout={setMobileViewLayout}
-              selectedPalette={selectedPalette}
-              setSelectedPalette={setSelectedPalette}
-              handleClose={handleClose}
-            />
-            {mobileViewLayout === 'detailed' ? (
-              <DetailedMobileLayout />
-            ) : (
-              <FocusMobileLayout />
-            )}
-          </div>
-        )}
+      {isDesktop ? (
+        <DesktopLayout />
+      ) : (
+        <div className="flex flex-col h-full w-full max-w-full min-w-0 overflow-hidden">
+          <MobileHeader
+            direction={direction}
+            displayDict={displayDict}
+            mobileViewLayout={mobileViewLayout}
+            setMobileViewLayout={setMobileViewLayout}
+            handleClose={handleClose}
+          />
+          {mobileViewLayout === 'detailed' ? (
+            <DetailedMobileLayout />
+          ) : (
+            <FocusMobileLayout />
+          )}
+        </div>
+      )}
 
-        <ImageDialog
-          selectedImage={selectedImageForDialog}
-          currentIndex={currentDialogImageIndex}
-          orderedImages={orderedImages}
-          onClose={handleCloseImageDialog}
-          onNavigate={handleDialogNav}
-          onImageSelect={setSelectedImageForDialog}
-          dict={displayDict.imageDialog}
-          direction={direction}
-          THEME={THEME}
-        />
-      </Card>
-    </TooltipProvider>
+      <ImageDialog
+        selectedImage={selectedImageForDialog}
+        currentIndex={currentDialogImageIndex}
+        orderedImages={orderedImages}
+        onClose={handleCloseImageDialog}
+        onNavigate={handleDialogNav}
+        onImageSelect={setSelectedImageForDialog}
+        dict={displayDict.imageDialog}
+        direction={direction}
+        THEME={THEME}
+      />
+    </Card>
   );
 };
 

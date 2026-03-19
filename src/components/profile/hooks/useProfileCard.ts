@@ -29,10 +29,9 @@ import type {
   KippahType,
   WorldId,
 } from '@/types/next-auth';
-import type { ProfileCardDict, ProfileCardDisplayDict } from '@/types/dictionary';
+import type { ProfileCardDict } from '@/types/dictionary';
 
-import { COLOR_PALETTES } from '../constants/theme';
-import type { ColorPaletteName, ThemeType } from '../constants/theme';
+import { getProfileTheme } from '../constants/theme';
 import { calculateProfileAge, formatAvailabilityStatus } from '../utils/formatters';
 import {
   createMaritalStatusMap,
@@ -91,9 +90,6 @@ export function useProfileCard({
   const [activeTab, setActiveTab] = useState('essence');
   const [, setIsSuggestDialogOpen] = useState(false);
   const [mobileViewLayout, setMobileViewLayout] = useState<'focus' | 'detailed'>('focus');
-  const [selectedPalette, setSelectedPalette] = useState<ColorPaletteName>(
-    () => (profile.gender === 'MALE' ? 'masculine' : 'feminine')
-  );
 
   // --- Maps ---
   const maritalStatusMap = useMemo(
@@ -163,56 +159,44 @@ export function useProfileCard({
     setActiveTab(newTab);
   };
 
-  // --- Theme ---
-  const THEME = useMemo(() => COLOR_PALETTES[selectedPalette], [selectedPalette]);
+  // --- Theme (gender-based, no palette selector) ---
+  const THEME = useMemo(() => getProfileTheme(profile.gender), [profile.gender]);
 
   // --- WORLDS ---
   const WORLDS = useMemo(
     () => ({
       values: {
-        ...displayDict.content.worlds.values,
-        shortLabel: displayDict.tabs.journey.shortLabel,
+        label: displayDict.content.worlds.values.label,
         icon: BookMarked,
-        gradient: THEME.colors.primary.accent,
-        accentColor: 'blue',
+        color: 'blue',
       },
       personality: {
-        ...displayDict.content.worlds.personality,
-        shortLabel: displayDict.tabs.essence.shortLabel,
+        label: displayDict.content.worlds.personality.label,
         icon: Sparkles,
-        gradient: THEME.colors.primary.light,
-        accentColor: 'purple',
+        color: 'purple',
       },
       relationship: {
-        ...displayDict.content.worlds.relationship,
-        shortLabel: displayDict.tabs.vision.shortLabel,
+        label: displayDict.content.worlds.relationship.label,
         icon: Heart,
-        gradient: THEME.colors.primary.main,
-        accentColor: 'rose',
+        color: 'rose',
       },
       partner: {
-        ...displayDict.content.worlds.partner,
-        shortLabel: displayDict.tabs.connection.shortLabel,
+        label: displayDict.content.worlds.partner.label,
         icon: Users,
-        gradient: THEME.colors.secondary.sky,
-        accentColor: 'blue',
+        color: 'blue',
       },
       religion: {
-        ...displayDict.content.worlds.religion,
-        shortLabel: displayDict.tabs.spirit.shortLabel,
+        label: displayDict.content.worlds.religion.label,
         icon: Star,
-        gradient: THEME.colors.secondary.peach,
-        accentColor: 'amber',
+        color: 'amber',
       },
       general: {
-        ...displayDict.content.worlds.general,
-        shortLabel: 'עוד',
+        label: displayDict.content.worlds.general.label,
         icon: FileText,
-        gradient: THEME.colors.secondary.lavender,
-        accentColor: 'purple',
+        color: 'gray',
       },
     }),
-    [THEME, displayDict]
+    [displayDict]
   );
 
   // --- Feature flags ---
@@ -272,11 +256,10 @@ export function useProfileCard({
   const availability = useMemo(
     () => formatAvailabilityStatus(
       profile.availabilityStatus,
-      THEME,
       { ...displayDict.availability, mysterious: displayDict.placeholders.mysterious },
       displayDict.header.availabilityBadge
     ),
-    [profile.availabilityStatus, THEME, displayDict]
+    [profile.availabilityStatus, displayDict]
   );
 
   // --- Questionnaire ---
@@ -307,11 +290,6 @@ export function useProfileCard({
   const partnerAnswers = useMemo(() => getVisibleAnswers('PARTNER'), [getVisibleAnswers]);
   const religionAnswers = useMemo(() => getVisibleAnswers('RELIGION'), [getVisibleAnswers]);
 
-  const hasDisplayableQuestionnaireAnswers = useMemo(
-    () => [...personalityAnswers, ...valuesAnswers, ...relationshipAnswers, ...partnerAnswers, ...religionAnswers].length > 0,
-    [personalityAnswers, valuesAnswers, relationshipAnswers, partnerAnswers, religionAnswers]
-  );
-
   // --- Image dialog ---
   const currentDialogImageIndex = useMemo(
     () => selectedImageForDialog ? orderedImages.findIndex((img) => img.id === selectedImageForDialog.id) : -1,
@@ -338,7 +316,7 @@ export function useProfileCard({
     }
   }, [onClose]);
 
-  // --- Tab items ---
+  // --- Tab items (spirit merged into journey, empty tabs hidden) ---
   const tabItems = useMemo(
     () =>
       [
@@ -347,7 +325,6 @@ export function useProfileCard({
           label: displayDict.tabs.essence.label,
           shortLabel: displayDict.tabs.essence.shortLabel,
           icon: Sparkles,
-          gradient: THEME.colors.primary.light,
           hasContent:
             !!profile.profileHeadline || !!profile.about ||
             (profile.isFriendsSectionVisible && (profile.testimonials || []).filter((t) => t.status === 'APPROVED').length > 0) ||
@@ -360,23 +337,18 @@ export function useProfileCard({
           label: displayDict.tabs.journey.label,
           shortLabel: displayDict.tabs.journey.shortLabel,
           icon: Compass,
-          gradient: THEME.colors.primary.accent,
-          hasContent: valuesAnswers.length > 0 || !!profile.educationLevel || !!profile.occupation || !!profile.serviceType || !!profile.parentStatus,
-        },
-        {
-          value: 'spirit',
-          label: displayDict.tabs.spirit.label,
-          shortLabel: displayDict.tabs.spirit.shortLabel,
-          icon: Star,
-          gradient: THEME.colors.secondary.peach,
-          hasContent: religionAnswers.length > 0 || !!profile.religiousLevel || !!profile.religiousJourney || !!profile.influentialRabbi,
+          hasContent:
+            valuesAnswers.length > 0 || !!profile.educationLevel || !!profile.occupation ||
+            !!profile.serviceType || !!profile.parentStatus ||
+            // Spirit content (merged)
+            religionAnswers.length > 0 || !!profile.religiousLevel ||
+            !!profile.religiousJourney || !!profile.influentialRabbi,
         },
         {
           value: 'vision',
           label: displayDict.tabs.vision.label,
           shortLabel: displayDict.tabs.vision.shortLabel,
           icon: Heart,
-          gradient: THEME.colors.primary.main,
           hasContent: relationshipAnswers.length > 0 || !!profile.matchingNotes?.trim() || !!profile.inspiringCoupleStory?.trim(),
         },
         {
@@ -384,7 +356,6 @@ export function useProfileCard({
           label: displayDict.tabs.connection.label,
           shortLabel: displayDict.tabs.connection.shortLabel,
           icon: Target,
-          gradient: THEME.colors.secondary.sky,
           hasContent: hasAnyPreferences || partnerAnswers.length > 0,
         },
         effectiveViewMode === 'matchmaker' && {
@@ -392,18 +363,18 @@ export function useProfileCard({
           label: displayDict.tabs.professional.label,
           shortLabel: displayDict.tabs.professional.shortLabel,
           icon: Lock,
-          gradient: THEME.colors.secondary.lavender,
           hasContent: true,
         },
-      ].filter(Boolean) as {
+      ]
+        .filter(Boolean)
+        .filter((tab) => (tab as { hasContent: boolean }).hasContent) as {
         value: string;
         label: string;
         shortLabel?: string;
         icon: React.ElementType;
-        gradient: string;
         hasContent: boolean;
       }[],
-    [THEME, profile, hasAnyPreferences, effectiveViewMode, personalityAnswers, valuesAnswers, relationshipAnswers, partnerAnswers, religionAnswers, displayDict]
+    [profile, hasAnyPreferences, effectiveViewMode, personalityAnswers, valuesAnswers, relationshipAnswers, partnerAnswers, religionAnswers, displayDict]
   );
 
   // --- Screen size ---
@@ -429,9 +400,7 @@ export function useProfileCard({
     selectedImageForDialog,
     activeTab,
     mobileViewLayout,
-    selectedPalette,
     setMobileViewLayout,
-    setSelectedPalette,
     setIsSuggestDialogOpen,
     setActiveTab,
     setSelectedImageForDialog,
@@ -457,7 +426,6 @@ export function useProfileCard({
     hasFamilyBackgroundDetails,
     hasUniqueTraitsOrHobbies,
     hasJudaismConnectionDetails,
-    hasDisplayableQuestionnaireAnswers,
     personalityAnswers,
     valuesAnswers,
     relationshipAnswers,

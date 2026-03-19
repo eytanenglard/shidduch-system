@@ -14,7 +14,6 @@ import {
 } from 'lucide-react';
 import type { UserProfile } from '@/types/next-auth';
 import type { ProfileCardDisplayDict } from '@/types/dictionary';
-import type { ThemeType } from '../constants/theme';
 import type { EnumMap } from '../types/profileCard';
 
 export const formatEnumValue = (
@@ -72,7 +71,9 @@ export const getInitials = (
   return initials.toUpperCase() || '♥';
 };
 
-export const calculateProfileAge = (birthDate: Date | string | null | undefined): number => {
+export const calculateProfileAge = (
+  birthDate: Date | string | null | undefined
+): number => {
   if (!birthDate) return 0;
   try {
     const today = new Date();
@@ -87,14 +88,13 @@ export const calculateProfileAge = (birthDate: Date | string | null | undefined)
       age--;
     }
     return age > 0 ? age : 0;
-  } catch (e) {
+  } catch {
     return 0;
   }
 };
 
 export const formatAvailabilityStatus = (
   status: UserProfile['availabilityStatus'] | undefined,
-  THEME: ThemeType,
   dict: ProfileCardDisplayDict['availability'] & { mysterious: string },
   badgeDict: ProfileCardDisplayDict['header']['availabilityBadge']
 ) => {
@@ -102,68 +102,44 @@ export const formatAvailabilityStatus = (
     AVAILABLE: {
       text: dict.AVAILABLE,
       shortText: badgeDict.available_short,
-      gradient: THEME.colors.primary.main,
-      gradientSm: THEME.colors.primary.mainSm,
       icon: Heart,
-      pulse: false,
-      bgColor: `bg-gradient-to-r ${THEME.colors.primary.main}`,
-      bgColorSm: `bg-gradient-to-r ${THEME.colors.primary.mainSm}`,
-      mobileClasses: 'text-xs sm:text-sm px-2 py-1 sm:px-3 sm:py-2',
+      dotColor: 'bg-green-500',
+      textColor: 'text-green-600',
     },
     UNAVAILABLE: {
       text: dict.UNAVAILABLE,
       shortText: badgeDict.unavailable_short,
-      gradient: 'from-gray-400 to-gray-500',
-      gradientSm: 'from-gray-300 to-gray-400',
       icon: Clock,
-      pulse: false,
-      bgColor: 'bg-gradient-to-r from-gray-400 to-gray-500',
-      bgColorSm: 'bg-gradient-to-r from-gray-300 to-gray-400',
-      mobileClasses: 'text-xs sm:text-sm px-2 py-1 sm:px-3 sm:py-2',
+      dotColor: 'bg-gray-400',
+      textColor: 'text-gray-500',
     },
     DATING: {
       text: dict.DATING,
       shortText: badgeDict.dating_short,
-      gradient: THEME.colors.primary.accent,
-      gradientSm: THEME.colors.primary.accentSm,
       icon: Coffee,
-      pulse: false,
-      bgColor: 'bg-gradient-to-r from-amber-500 to-orange-500',
-      bgColorSm: 'bg-gradient-to-r from-amber-400 to-orange-400',
-      mobileClasses: 'text-xs sm:text-sm px-2 py-1 sm:px-3 sm:py-2',
+      dotColor: 'bg-amber-500',
+      textColor: 'text-amber-600',
     },
     PAUSED: {
       text: dict.PAUSED,
       shortText: badgeDict.paused_short,
-      gradient: THEME.colors.secondary.sky,
-      gradientSm: THEME.colors.secondary.skySm,
       icon: Moon,
-      pulse: false,
-      bgColor: 'bg-gradient-to-r from-blue-500 to-cyan-500',
-      bgColorSm: 'bg-gradient-to-r from-blue-400 to-cyan-400',
-      mobileClasses: 'text-xs sm:text-sm px-2 py-1 sm:px-3 sm:py-2',
+      dotColor: 'bg-amber-400',
+      textColor: 'text-amber-500',
     },
     ENGAGED: {
       text: dict.ENGAGED,
       shortText: badgeDict.engaged_short,
-      gradient: THEME.colors.primary.light,
-      gradientSm: THEME.colors.primary.lightSm,
       icon: Star,
-      pulse: false,
-      bgColor: 'bg-gradient-to-r from-pink-500 to-rose-500',
-      bgColorSm: 'bg-gradient-to-r from-pink-400 to-rose-400',
-      mobileClasses: 'text-xs sm:text-sm px-2 py-1 sm:px-3 sm:py-2',
+      dotColor: 'bg-pink-500',
+      textColor: 'text-pink-600',
     },
     MARRIED: {
       text: dict.MARRIED,
       shortText: badgeDict.married_short,
-      gradient: THEME.colors.primary.main,
-      gradientSm: THEME.colors.primary.mainSm,
       icon: Heart,
-      pulse: false,
-      bgColor: 'bg-gradient-to-r from-rose-500 to-pink-500',
-      bgColorSm: 'bg-gradient-to-r from-rose-400 to-pink-400',
-      mobileClasses: 'text-xs sm:text-sm px-2 py-1 sm:px-3 sm:py-2',
+      dotColor: 'bg-rose-500',
+      textColor: 'text-rose-600',
     },
   };
 
@@ -171,13 +147,9 @@ export const formatAvailabilityStatus = (
     statusMap[status as keyof typeof statusMap] || {
       text: dict.mysterious,
       shortText: badgeDict.mysterious_short,
-      gradient: THEME.colors.secondary.lavender,
-      gradientSm: THEME.colors.secondary.lavenderSm,
       icon: Sparkles,
-      pulse: true,
-      bgColor: 'bg-gradient-to-r from-purple-500 to-indigo-500',
-      bgColorSm: 'bg-gradient-to-r from-purple-400 to-indigo-400',
-      mobileClasses: 'text-xs sm:text-sm px-2 py-1 sm:px-3 sm:py-2',
+      dotColor: 'bg-gray-400',
+      textColor: 'text-gray-500',
     }
   );
 };
@@ -197,10 +169,7 @@ export const formatBooleanPreference = (
   const yesLabel = useYesShomer ? dict.shomerYes : dict.yes;
   const noLabel = dict.no;
   const notSpecifiedLabel = dict.willDiscover;
-
-  const baseResponse = {
-    mobileClasses: 'text-xs sm:text-sm',
-  };
+  const baseResponse = { mobileClasses: 'text-xs sm:text-sm' };
 
   if (value === true) {
     return {

@@ -32,8 +32,6 @@ const FriendTestimonials: React.FC<FriendTestimonialsProps> = ({
         icon={MessageSquareQuote}
         title={dict.content.friendTestimonials.emptyState.title}
         description={dict.content.friendTestimonials.emptyState.description}
-        variant="discovery"
-        THEME={THEME}
       />
     );
   }
@@ -43,57 +41,28 @@ const FriendTestimonials: React.FC<FriendTestimonialsProps> = ({
       {approvedTestimonials.map((testimonial) => (
         <div
           key={testimonial.id}
-          className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm"
+          className={cn(
+            'bg-gray-50 rounded-lg p-4',
+            direction === 'rtl' ? 'border-r-2' : 'border-l-2',
+            THEME.accentBorder
+          )}
         >
-          <blockquote
-            className={cn(
-              'italic',
-              // --- התיקון מתחיל כאן ---
-              'whitespace-pre-wrap break-words break-all overflow-wrap-anywhere max-w-full',
-              // --- התיקון מסתיים כאן ---
-              direction === 'rtl' ? 'pr-4 border-r-4' : 'pl-4 border-l-4',
-              THEME.colors.primary.main.includes('cyan')
-                ? direction === 'rtl'
-                  ? 'border-cyan-500'
-                  : 'border-cyan-500'
-                : THEME.colors.primary.main.includes('blue')
-                  ? direction === 'rtl'
-                    ? 'border-blue-500'
-                    : 'border-blue-500'
-                  : direction === 'rtl'
-                    ? 'border-gray-500'
-                    : 'border-gray-500',
-              THEME.colors.primary.main.includes('cyan')
-                ? 'text-cyan-800'
-                : THEME.colors.primary.main.includes('blue')
-                  ? 'text-blue-800'
-                  : 'text-gray-800'
-            )}
-          >
+          <p className="text-sm text-gray-700 italic leading-relaxed whitespace-pre-wrap break-words overflow-wrap-anywhere">
             &quot;{testimonial.content}&quot;
-          </blockquote>
-          <div className="flex items-center justify-between mt-3 pt-3 border-t">
-            <p className="text-sm font-semibold text-gray-800 text-start">
-              {' '}
-              - {testimonial.authorName},{' '}
-              <span className="font-normal text-gray-600">
-                {testimonial.relationship}
-              </span>
+          </p>
+          <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
+            <p className="text-xs text-gray-500">
+              — {testimonial.authorName}, {testimonial.relationship}
             </p>
             {testimonial.isPhoneVisibleToMatch && testimonial.authorPhone && (
               <Button
                 asChild
-                variant="outline"
+                variant="ghost"
                 size="sm"
-                className={cn(
-                  'rounded-full',
-                  `text-${THEME.colors.primary.main.includes('cyan') ? 'cyan' : 'blue'}-700`,
-                  `border-${THEME.colors.primary.main.includes('cyan') ? 'cyan' : 'blue'}-300`,
-                  `hover:bg-${THEME.colors.primary.main.includes('cyan') ? 'cyan' : 'blue'}-50`
-                )}
+                className="text-xs text-gray-500 hover:text-gray-700"
               >
                 <a href={`tel:${testimonial.authorPhone}`}>
-                  <Phone className="w-3 h-3 me-2" />
+                  <Phone className="w-3 h-3 me-1" />
                   {dict.content.friendTestimonials.callButton.replace(
                     '{{name}}',
                     testimonial.authorName.split(' ')[0]
@@ -105,7 +74,7 @@ const FriendTestimonials: React.FC<FriendTestimonialsProps> = ({
         </div>
       ))}
       {approvedTestimonials.some((t) => t.isPhoneVisibleToMatch) && (
-        <p className="text-xs text-center text-gray-500 mt-4 px-4">
+        <p className="text-xs text-center text-gray-400 mt-2 px-4">
           {dict.content.friendTestimonials.callDisclaimer}
         </p>
       )}

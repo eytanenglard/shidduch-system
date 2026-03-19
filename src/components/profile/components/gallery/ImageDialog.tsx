@@ -75,10 +75,7 @@ const ImageDialog: React.FC<ImageDialogProps> = ({
             <Camera className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
             <span className="break-words">
               {dict.title
-                .replace(
-                  '{{current}}',
-                  (currentIndex + 1).toString()
-                )
+                .replace('{{current}}', (currentIndex + 1).toString())
                 .replace('{{total}}', orderedImages.length.toString())}
             </span>
           </DialogTitle>
@@ -116,8 +113,9 @@ const ImageDialog: React.FC<ImageDialogProps> = ({
                 className={cn(
                   'absolute top-1/2 -translate-y-1/2 rounded-full',
                   direction === 'rtl' ? 'right-4' : 'left-4',
-                  `bg-gradient-to-r ${THEME.colors.primary.accent} hover:opacity-90 text-white border-0`,
-                  'backdrop-blur-sm transition-all hover:scale-110 active:scale-95',
+                  THEME.accentBg,
+                  'text-white border-0',
+                  'backdrop-blur-sm transition-opacity hover:opacity-90',
                   'w-12 h-12 sm:w-14 sm:h-14 min-h-[44px] min-w-[44px]'
                 )}
                 onClick={() => onNavigate('prev')}
@@ -130,8 +128,9 @@ const ImageDialog: React.FC<ImageDialogProps> = ({
                 className={cn(
                   'absolute top-1/2 -translate-y-1/2 rounded-full',
                   direction === 'rtl' ? 'left-4' : 'right-4',
-                  `bg-gradient-to-r ${THEME.colors.primary.accent} hover:opacity-90 text-white border-0`,
-                  'backdrop-blur-sm transition-all hover:scale-110 active:scale-95',
+                  THEME.accentBg,
+                  'text-white border-0',
+                  'backdrop-blur-sm transition-opacity hover:opacity-90',
                   'w-12 h-12 sm:w-14 sm:h-14 min-h-[44px] min-w-[44px]'
                 )}
                 onClick={() => onNavigate('next')}
@@ -150,10 +149,10 @@ const ImageDialog: React.FC<ImageDialogProps> = ({
                   <div
                     key={img.id}
                     className={cn(
-                      'relative flex-shrink-0 w-12 h-12 sm:w-16 sm:h-16 rounded-lg overflow-hidden cursor-pointer transition-all hover:scale-105',
+                      'relative flex-shrink-0 w-12 h-12 sm:w-16 sm:h-16 rounded-lg overflow-hidden cursor-pointer transition-opacity',
                       'border-2',
                       img.id === selectedImage.id
-                        ? 'border-rose-400 ring-2 ring-rose-400/50'
+                        ? cn(THEME.accentBorderStrong, 'opacity-100')
                         : 'border-white/20 opacity-60 hover:opacity-100 hover:border-white/40'
                     )}
                     onClick={() => onImageSelect(img)}

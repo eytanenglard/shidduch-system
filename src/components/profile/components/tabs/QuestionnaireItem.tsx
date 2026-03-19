@@ -10,6 +10,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import BudgetDisplay from '../../sections/BudgetDisplay';
+import { WORLD_COLORS } from '../../constants/theme';
 import type { FormattedAnswer } from '@/types/next-auth';
 import type {
   ProfileCardDisplayDict,
@@ -20,7 +21,7 @@ interface QuestionnaireItemProps {
   answer: FormattedAnswer;
   worldName: string;
   worldColor?: string;
-  worldGradient?: string;
+  worldGradient?: string; // Legacy, ignored
   compact?: boolean;
   direction: 'ltr' | 'rtl';
   displayDict: ProfileCardDisplayDict;
@@ -31,49 +32,26 @@ interface QuestionnaireItemProps {
 const QuestionnaireItem: React.FC<QuestionnaireItemProps> = ({
   answer,
   worldName,
-  worldColor = 'rose',
-  worldGradient,
-  compact = false,
+  worldColor = 'gray',
   direction,
   displayDict,
   budgetDisplayDict,
   locale,
 }) => {
+  const colors = WORLD_COLORS[worldColor] || WORLD_COLORS.gray;
+
   return (
-    <div
-      className={cn(
-        'rounded-xl border transition-all duration-300 hover:shadow-lg overflow-hidden',
-        compact ? 'p-3 sm:p-4' : 'p-4 sm:p-5',
-        'bg-gradient-to-br from-white to-gray-50/30 max-w-full min-w-0',
-        `border-${worldColor}-200 hover:border-${worldColor}-300`
-      )}
-    >
-      <div className="flex items-start gap-3 sm:gap-4 min-w-0">
-        <div
-          className={cn(
-            'flex-shrink-0 rounded-lg text-white shadow-md',
-            compact ? 'p-2' : 'p-2 sm:p-3',
-            worldGradient
-              ? `bg-gradient-to-r ${worldGradient}`
-              : `bg-gradient-to-r from-${worldColor}-400 to-${worldColor}-500`
-          )}
-        >
-          <Quote
-            className={cn(compact ? 'w-4 h-4' : 'w-4 h-4 sm:w-5 sm:h-5')}
-          />
+    <div className="rounded-xl border border-gray-100 bg-white overflow-hidden">
+      <div className="flex items-start gap-3 p-4 sm:p-5">
+        <div className={cn('flex-shrink-0 rounded-lg p-2', colors.bg)}>
+          <Quote className={cn('w-4 h-4', colors.text)} />
         </div>
-        <div className="flex-1 min-w-0 overflow-hidden">
+        <div className="flex-1 min-w-0">
           <h4
             dir="auto"
-            className={cn(
-              'font-bold mb-2 sm:mb-3 text-gray-800 leading-relaxed',
-              'flex items-center justify-between gap-2 text-start',
-              compact ? 'text-sm' : 'text-sm sm:text-base'
-            )}
+            className="font-semibold text-sm text-gray-800 mb-2 flex items-center justify-between gap-2 text-start"
           >
-            <span className="flex-1 break-words hyphens-auto word-break-break-word min-w-0">
-              {' '}
-              {/* <-- min-w-0 הוא קריטי לפלקס */}
+            <span className="flex-1 break-words hyphens-auto overflow-wrap-anywhere min-w-0">
               <span className="sr-only">
                 {displayDict.content.questionnaire.questionFromCategory.replace(
                   '{{worldName}}',
@@ -86,7 +64,7 @@ const QuestionnaireItem: React.FC<QuestionnaireItemProps> = ({
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <div className="flex-shrink-0 flex items-center gap-1 bg-amber-100 text-amber-800 px-2 py-1 rounded-full text-xs cursor-default">
+                    <div className="flex-shrink-0 flex items-center gap-1 bg-amber-50 text-amber-700 px-2 py-1 rounded-full text-xs cursor-default">
                       <Lock className="w-3 h-3" />
                       <span>
                         {displayDict.content.questionnaire.confidential}
@@ -104,38 +82,36 @@ const QuestionnaireItem: React.FC<QuestionnaireItemProps> = ({
           </h4>
           <div
             className={cn(
-              'rounded-lg bg-white/60 overflow-hidden',
-              compact ? 'p-3' : 'p-3 sm:p-4',
+              'rounded-lg bg-gray-50 p-3 sm:p-4',
               direction === 'rtl'
-                ? `border-r-4 border-${worldColor}-400`
-                : `border-l-4 border-${worldColor}-400`
+                ? `border-r-2 ${colors.borderSide}`
+                : `border-l-2 ${colors.borderSide}`
             )}
           >
             {answer.questionType === 'budgetAllocation' &&
             typeof answer.rawValue === 'object' &&
             answer.rawValue &&
             !Array.isArray(answer.rawValue) ? (
-              // --- START: התיקון ---
               (() => {
-                // השרת מספק מחרוזת מתורגמת מראש ב-displayText.
-                // אנו מפרקים אותה בחזרה לאובייקט שהמפתחות שלו כבר מתורגמים.
-                const translatedData = answer.displayText.split(' | ').reduce(
-                  (acc, item) => {
-                    const parts = item.split(': ');
-                    if (parts.length === 2) {
-                      const label = parts[0].trim();
-                      const value = parseInt(
-                        parts[1].replace(/[^0-9]/g, ''),
-                        10
-                      );
-                      if (label && !isNaN(value)) {
-                        acc[label] = value;
+                const translatedData = answer.displayText
+                  .split(' | ')
+                  .reduce(
+                    (acc, item) => {
+                      const parts = item.split(': ');
+                      if (parts.length === 2) {
+                        const label = parts[0].trim();
+                        const value = parseInt(
+                          parts[1].replace(/[^0-9]/g, ''),
+                          10
+                        );
+                        if (label && !isNaN(value)) {
+                          acc[label] = value;
+                        }
                       }
-                    }
-                    return acc;
-                  },
-                  {} as Record<string, number>
-                );
+                      return acc;
+                    },
+                    {} as Record<string, number>
+                  );
 
                 return (
                   <BudgetDisplay
@@ -146,26 +122,8 @@ const QuestionnaireItem: React.FC<QuestionnaireItemProps> = ({
                 );
               })()
             ) : (
-              // --- END: התיקון ---
-              <p
-                className={cn(
-                  'text-gray-700 leading-relaxed italic break-words hyphens-auto word-break-break-word overflow-wrap-anywhere',
-                  compact ? 'text-sm' : 'text-sm sm:text-base'
-                )}
-              >
-                <Quote
-                  className={cn(
-                    'w-3 h-3 sm:w-4 sm:h-4 inline text-gray-400 flex-shrink-0',
-                    direction === 'rtl' ? 'ml-1' : 'mr-1'
-                  )}
-                />
+              <p className="text-sm text-gray-700 leading-relaxed italic break-words overflow-wrap-anywhere">
                 {answer.displayText}
-                <Quote
-                  className={cn(
-                    'w-3 h-3 sm:w-4 sm:h-4 inline text-gray-400 transform rotate-180 flex-shrink-0',
-                    direction === 'rtl' ? 'mr-1' : 'ml-1'
-                  )}
-                />
               </p>
             )}
           </div>
