@@ -1,4 +1,6 @@
-// src/components/profile/constants.ts
+// src/components/profile/constants/profileConstants.ts
+// (Moved from constants.ts)
+
 import { Heart, User, Users, Scroll, GraduationCap, MapPin } from "lucide-react";
 
 // Keys for WORLDS, titles are now in the dictionary
@@ -43,7 +45,6 @@ export const WORLDS_CONFIG = {
   },
 } as const;
 
-
 // Keys for PROFILE_SECTIONS, titles are in the dictionary
 export const PROFILE_SECTION_KEYS = {
   BASIC_INFO: "BASIC_INFO",
@@ -60,7 +61,6 @@ export const PROFILE_SECTIONS_CONFIG = {
   [PROFILE_SECTION_KEYS.FAMILY]: { icon: Users },
   [PROFILE_SECTION_KEYS.PREFERENCES]: { icon: Heart },
 } as const;
-
 
 // Technical constants (keys or values that don't change with language)
 export const CONTACT_PREFERENCE_KEYS = {

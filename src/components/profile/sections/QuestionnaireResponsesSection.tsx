@@ -43,7 +43,7 @@ import type {
   UpdateValue,
 } from '@/types/next-auth';
 import type { ProfilePageDictionary } from '@/types/dictionary';
-import { WORLDS_CONFIG } from '../constants';
+import { WORLDS_CONFIG } from '../constants/profileConstants';
 
 const QUESTIONNAIRE_URL = '/questionnaire';
 
