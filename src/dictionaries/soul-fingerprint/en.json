@@ -1,0 +1,999 @@
+{
+  "welcome": {
+    "badge": "New",
+    "title": "Your Soul Fingerprint",
+    "subtitle": "10 minutes that change everything",
+    "description": "The better we know you — the more accurate and personal your matches will be.\nYour Soul Fingerprint is your real profile — not a list of data, but who you actually are.",
+    "whyMatters": {
+      "title": "Why does this matter?",
+      "point1": "The system builds a unique profile from hundreds of parameters",
+      "point2": "Matches you receive will be tailored to you personally — not just data points",
+      "point3": "Our matchmakers will know you on a much deeper level"
+    },
+    "time": "About 8-10 minutes",
+    "privacy": "Your answers are stored securely and used only for matching purposes",
+    "cta": "Let's start",
+    "skip": "Skip for now"
+  },
+  "landingPage": {
+    "badge": "New",
+    "title": "Your Soul Fingerprint",
+    "subtitle": "Get to know you — really",
+    "description": "Our technology analyzes hundreds of unique parameters to understand who you truly are — not just data, but personality, values, dreams and lifestyle. That's how we find a real match.",
+    "features": {
+      "feature1": {
+        "title": "Who I really am",
+        "description": "8 deep sections that paint your personality"
+      },
+      "feature2": {
+        "title": "What I'm looking for",
+        "description": "Not just data — values, energy and worldview"
+      },
+      "feature3": {
+        "title": "Precise matching",
+        "description": "The system uses your Soul Fingerprint to find the best match"
+      }
+    }
+  },
+  "sections": {
+    "anchor": { "title": "Opening Questions", "subtitle": "Our starting point" },
+    "identity": { "title": "Identity & Background", "subtitle": "Who you are and where you come from" },
+    "background": { "title": "Family & Roots", "subtitle": "The environment that shaped you" },
+    "personality": { "title": "Personality & Energy", "subtitle": "What drives you" },
+    "career": { "title": "Career & Finances", "subtitle": "Your professional path" },
+    "lifestyle": { "title": "Lifestyle & Hobbies", "subtitle": "What fills your life" },
+    "family": { "title": "Family & Home Vision", "subtitle": "The home you want to build" },
+    "relationship": { "title": "Relationship & Connection", "subtitle": "What relationship means to you" }
+  },
+  "progress": {
+    "anchor": "Opening",
+    "identity": "Identity",
+    "background": "Roots",
+    "personality": "Personality",
+    "career": "Career",
+    "lifestyle": "Lifestyle",
+    "family": "Family",
+    "relationship": "Relationship",
+    "sectionOf": "Section {{current}} of {{total}}"
+  },
+  "labels": {
+    "selfLabel": "About me",
+    "partnerLabel": "My partner",
+    "skip": "Skip",
+    "next": "Next",
+    "back": "Back",
+    "addCustom": "+ Add",
+    "customPlaceholder": "Add your own answer...",
+    "optional": "Optional",
+    "selectUpTo": "Select up to {{count}}",
+    "partnerSectionIntro": "Now — what are you looking for?",
+    "partnerSectionSubtitle": "Same question, but about your partner",
+    "saving": "Saving...",
+    "saved": "Saved",
+    "characters": "characters"
+  },
+  "completion": {
+    "title": "Your Soul Fingerprint is ready!",
+    "subtitle": "A unique profile that represents who you are",
+    "description": "Based on your answers, the system can offer you more accurate and personal matches.\nOur matchmakers will know you on a deep level.",
+    "tagsTitle": "Here's what we discovered about you:",
+    "cta": "Continue to full profile",
+    "edit": "Edit answers",
+    "categories": {
+      "sector": "Identity",
+      "background": "Roots",
+      "personality": "Personality",
+      "career": "Career",
+      "lifestyle": "Lifestyle",
+      "family": "Family",
+      "relationship": "Relationship"
+    }
+  },
+  "questions": {
+    "anchor_sector": {
+      "text": "Where would you place yourself?",
+      "subtitle": "Choose what describes you best — there's no right or wrong answer"
+    },
+    "anchor_sector_hasidic": {
+      "text": "Which Hasidic stream?",
+      "subtitle": "Choose the stream you identify with"
+    },
+    "anchor_sector_diaspora": {
+      "text": "What is your background?",
+      "subtitle": "We want to understand your community background"
+    },
+    "anchor_life_stage": {
+      "text": "What is your current situation?",
+      "subtitle": "This will help us tailor the questions for you"
+    },
+    "s1_charedi_study_work": {
+      "text": "What best describes your current occupation?",
+      "subtitle": "No judgment — every path is worthy and beautiful"
+    },
+    "s1_charedi_study_work_f": {
+      "text": "What best describes you?",
+      "subtitle": ""
+    },
+    "s1_charedi_military": {
+      "text": "Did you serve in the military?",
+      "subtitle": "Some Haredi individuals choose to serve — all choices are respected"
+    },
+    "s1_dl_army_type": {
+      "text": "What type of service did you complete?",
+      "subtitle": ""
+    },
+    "s1_dl_service_f": {
+      "text": "What did you do after studies?",
+      "subtitle": ""
+    },
+    "s1_dl_yeshiva_type": {
+      "text": "What type of yeshiva did you study at?",
+      "subtitle": "This gives us insight into your background"
+    },
+    "s1_dl_yeshiva_specific": {
+      "text": "Which specific yeshiva? (Optional)",
+      "subtitle": "Help us understand even better",
+      "placeholder": "Yeshiva name"
+    },
+    "s1_dl_zionism": {
+      "text": "What does Zionism represent to you?",
+      "subtitle": ""
+    },
+    "s1_shomer_negiah": {
+      "text": "What is your approach to shomer negiah?",
+      "subtitle": "An important question for matching — all approaches are respected"
+    },
+    "s1_masorti_practices": {
+      "text": "What traditions are important to you to keep?",
+      "subtitle": "Choose as many as fit"
+    },
+    "s1_hiloni_jewish_identity": {
+      "text": "What represents your Jewish identity?",
+      "subtitle": "Choose up to 3"
+    },
+    "s1_bt_path": {
+      "text": "What led you to become observant?",
+      "subtitle": "Share comfortably — every path is unique and meaningful"
+    },
+    "s1_bt_time": {
+      "text": "How long have you been on this journey?",
+      "subtitle": ""
+    },
+    "s1_diaspora_community": {
+      "text": "Which community are you from?",
+      "subtitle": ""
+    },
+    "s1_diaspora_education": {
+      "text": "Where did you study?",
+      "subtitle": ""
+    },
+    "s1_diaspora_aliyah": {
+      "text": "What are your aliyah plans?",
+      "subtitle": ""
+    },
+    "s1_diaspora_aliyah_timeline": {
+      "text": "When are you planning to make aliyah?",
+      "subtitle": ""
+    },
+    "s2_ethnic": {
+      "text": "What is your ethnic background?",
+      "subtitle": ""
+    },
+    "s2_origin": {
+      "text": "What is your geographic background?",
+      "subtitle": ""
+    },
+    "s2_oleh_origin": {
+      "text": "Which country did you make aliyah from?",
+      "subtitle": ""
+    },
+    "s2_oleh_years": {
+      "text": "When did you make aliyah?",
+      "subtitle": ""
+    },
+    "s2_family_extended": {
+      "text": "What is your relationship with extended family?",
+      "subtitle": ""
+    },
+    "s2_family_atmosphere": {
+      "text": "How would you describe the home you grew up in?",
+      "subtitle": ""
+    },
+    "s2_parents_status": {
+      "text": "What is your parents' situation?",
+      "subtitle": ""
+    },
+    "s2_relationship_parents": {
+      "text": "How would you define your relationship with your parents?",
+      "subtitle": ""
+    },
+    "s3_energy_type": {
+      "text": "Where are you on the scale?",
+      "subtitle": "Very introverted ← ——— → Very extroverted"
+    },
+    "s3_energy_source": {
+      "text": "What gives you energy?",
+      "subtitle": "Choose up to 3"
+    },
+    "s3_character_primary": {
+      "text": "What best describes your character?",
+      "subtitle": ""
+    },
+    "s3_life_tempo": {
+      "text": "What is your life pace?",
+      "subtitle": ""
+    },
+    "s3_spontaneity": {
+      "text": "Spontaneous or a planner?",
+      "subtitle": ""
+    },
+    "s3_humor": {
+      "text": "What type of humor are you?",
+      "subtitle": "Choose up to 3"
+    },
+    "s3_conflict": {
+      "text": "How do you handle conflict?",
+      "subtitle": ""
+    },
+    "s3_social_role": {
+      "text": "What is your role in social settings?",
+      "subtitle": ""
+    },
+    "s3_open_character": {
+      "text": "Is there something else that characterizes you?",
+      "subtitle": "Optional — up to 150 characters",
+      "placeholder": "Tell us something that's hard to express in options..."
+    },
+    "s4_education_level": {
+      "text": "What is your level of education?",
+      "subtitle": ""
+    },
+    "s4_field": {
+      "text": "What do you do or study?",
+      "subtitle": "Choose up to 3 — you can add your own field"
+    },
+    "s4_work_status": {
+      "text": "What is your current employment status?",
+      "subtitle": ""
+    },
+    "s4_ambition": {
+      "text": "How do you see your career?",
+      "subtitle": ""
+    },
+    "s4_financial_style": {
+      "text": "What is your approach to money?",
+      "subtitle": ""
+    },
+    "s4_economic_status": {
+      "text": "How would you define your financial situation?",
+      "subtitle": ""
+    },
+    "s4_housing": {
+      "text": "What is your housing situation?",
+      "subtitle": ""
+    },
+    "s4_partner_career": {
+      "text": "And what about your partner — what matters to you about their career?",
+      "subtitle": "What are you looking for in terms of career and ambition"
+    },
+    "s5_location": {
+      "text": "Where would you like to live?",
+      "subtitle": "Choose up to 3"
+    },
+    "s5_rhythm": {
+      "text": "What is your daily routine?",
+      "subtitle": ""
+    },
+    "s5_kashrut": {
+      "text": "What is your level of kashrut observance?",
+      "subtitle": ""
+    },
+    "s5_hobbies": {
+      "text": "What fills your free time?",
+      "subtitle": "Choose up to 6 — you can add your own"
+    },
+    "s5_travel_frequency": {
+      "text": "What is your relationship with travel?",
+      "subtitle": ""
+    },
+    "s5_travel_style": {
+      "text": "What type of travel do you enjoy?",
+      "subtitle": "Choose up to 3"
+    },
+    "s5_pets": {
+      "text": "What is your attitude toward pets?",
+      "subtitle": ""
+    },
+    "s5_politics": {
+      "text": "Where do you stand politically?",
+      "subtitle": "Optional — can be skipped"
+    },
+    "s5_diet": {
+      "text": "Any special dietary restrictions?",
+      "subtitle": "Optional"
+    },
+    "s6_children_count": {
+      "text": "How many children would you like?",
+      "subtitle": ""
+    },
+    "s6_home_roles": {
+      "text": "How do you see the division of roles at home?",
+      "subtitle": ""
+    },
+    "s6_parenting_style": {
+      "text": "What is your parenting style?",
+      "subtitle": ""
+    },
+    "s6_education_system": {
+      "text": "What school system would you send your children to?",
+      "subtitle": ""
+    },
+    "s6_home_atmosphere": {
+      "text": "What kind of home do you want to build?",
+      "subtitle": "Choose up to 3"
+    },
+    "s6_partner_children": {
+      "text": "Are you open to a partner who has children?",
+      "subtitle": ""
+    },
+    "s6_blended_family": {
+      "text": "You have children — what do you expect from your partner regarding them?",
+      "subtitle": ""
+    },
+    "s7_relationship_meaning": {
+      "text": "What does a good relationship mean to you?",
+      "subtitle": "Choose up to 3"
+    },
+    "s7_love_language": {
+      "text": "What is your love language?",
+      "subtitle": ""
+    },
+    "s7_closeness": {
+      "text": "How much closeness are you looking for?",
+      "subtitle": ""
+    },
+    "s7_meeting_pace": {
+      "text": "What is your preferred pace of getting to know someone?",
+      "subtitle": ""
+    },
+    "s7_relationship_model": {
+      "text": "What relationship model describes you?",
+      "subtitle": ""
+    },
+    "s7_open_partner": {
+      "text": "What's the most important thing to you in a partner that's hard to describe in options?",
+      "subtitle": "Optional — up to 200 characters",
+      "placeholder": "Tell us what matters to you — freely..."
+    }
+  },
+  "options": {
+    "anchor_sector": {
+      "charedi_litvish": "Litvish (Lithuanian) Haredi",
+      "charedi_litvish_sub": "Lithuanian yeshiva, Bnei Brak / Jerusalem",
+      "charedi_hasidic": "Hasidic Haredi",
+      "charedi_hasidic_sub": "Specific Hasidic court",
+      "charedi_sephardi": "Sephardi Haredi",
+      "charedi_sephardi_sub": "Shas, Moroccan, Iraqi and more",
+      "charedi_modern": "Modern Haredi",
+      "charedi_modern_sub": "Working, learning — Haredi but engaged with society",
+      "hardal": "Hardal (Haredi-Leumi)",
+      "hardal_sub": "National Haredi — Torah and strong Zionism",
+      "dati_leumi_torani": "Torah-oriented Dati Leumi",
+      "dati_leumi_torani_sub": "Yeshiva / Midrasha, serious Torah study",
+      "dati_leumi_classic": "Classic Dati Leumi",
+      "dati_leumi_classic_sub": "Bnei Akiva, Zionist, shomer mitzvot",
+      "dati_leumi_modern": "Modern Dati Leumi",
+      "dati_leumi_modern_sub": "Modern Orthodox, more flexible",
+      "dati_lite": "Dati Lite",
+      "dati_lite_sub": "Traditional observer, less strict",
+      "datlash": "Former Dati",
+      "datlash_sub": "Grew up religious, less observant today",
+      "chozer_bteshuva": "Baal Teshuva (newly observant)",
+      "chozer_bteshuva_sub": "In the process of returning to faith and mitzvot",
+      "masorti_strong": "Strongly Traditional",
+      "masorti_strong_sub": "Shabbat, kashrut, holidays — it matters",
+      "masorti_medium": "Traditional",
+      "masorti_medium_sub": "Holidays, brit, bar mitzvah — tradition at home",
+      "masorti_light": "Lightly Traditional",
+      "masorti_light_sub": "Jewish identity, not necessarily observant",
+      "hiloni_jewish": "Secular with Jewish identity",
+      "hiloni_jewish_sub": "Jewish at heart and soul",
+      "hiloni_cultural": "Cultural Secular",
+      "hiloni_cultural_sub": "Culture, history, tradition — without observance",
+      "hiloni": "Secular",
+      "hiloni_sub": "Free, no religious commitment",
+      "in_process": "In process / searching",
+      "in_process_sub": "Still defining myself",
+      "diaspora": "Diaspora Jew",
+      "diaspora_sub": "Living abroad, considering aliyah",
+      "other": "Other",
+      "other_placeholder": "Tell us..."
+    },
+    "anchor_sector_hasidic": {
+      "ger": "Ger",
+      "belz": "Belz",
+      "vizhnitz": "Vizhnitz",
+      "chabad": "Chabad",
+      "chabad_sub": "Shlichus and love of all Jews",
+      "breslov": "Breslov",
+      "breslov_sub": "Joy, personal prayer, Rosh Hashana in Uman",
+      "satmar": "Satmar",
+      "skvere": "Skvere",
+      "boyan": "Boyan",
+      "karlin": "Karlin",
+      "slonim": "Slonim",
+      "toldos_aharon": "Toldos Aharon",
+      "spinka": "Spinka",
+      "nadvorna": "Nadvorna",
+      "other_hasidic": "Other Hasidic court",
+      "other_hasidic_placeholder": "Court name"
+    },
+    "anchor_sector_diaspora": {
+      "mo_yeshivish": "Modern Orthodox (US/UK)",
+      "yu_graduate": "Yeshiva University / Stern graduate",
+      "ivy_league_jewish": "Ivy League with strong Jewish background",
+      "conservative": "Conservative",
+      "reform": "Reform",
+      "chabad_diaspora": "Chabad",
+      "french_jewish": "French Jewish",
+      "sephardi_diaspora": "Sephardi/Mizrachi (Morocco, Tunisia, Egypt...)",
+      "uk_jewish": "British Jewish",
+      "aus_jewish": "Australian Jewish",
+      "arg_jewish": "Argentine Jewish",
+      "russian_jewish": "Russian Jewish",
+      "other_diaspora": "Other country",
+      "other_diaspora_placeholder": "Country of origin"
+    },
+    "anchor_life_stage": {
+      "first_marriage": "Single — first marriage",
+      "divorced_no_children": "Divorced — no children",
+      "divorced_with_children": "Divorced — with children",
+      "widowed": "Widowed",
+      "returning": "Returning to dating after a long break"
+    },
+    "s1_charedi_study_work": {
+      "full_kollel": "Learning in kollel full-time — Torah is my life",
+      "kollel_part": "Learning in kollel and working part-time",
+      "works_learns": "Working and attending regular shiurim",
+      "works_only": "Working — learning in my free time",
+      "studying_yeshiva": "Studying in yeshiva gedola"
+    },
+    "s1_charedi_study_work_f": {
+      "homemaker": "Homemaker — the home is my world",
+      "homemaker_part": "Homemaker and working part-time",
+      "working_full": "Working full-time",
+      "studying": "Studying (seminary / midrasha)",
+      "working_studying": "Working and studying"
+    },
+    "s1_charedi_military": {
+      "nachal_charedi": "Served in Netzach Yehuda (Nachal Haredi)",
+      "other_unit": "Served in another unit",
+      "did_not_serve": "Did not serve",
+      "exempt": "Exempt for other reasons"
+    },
+    "s1_dl_army_type": {
+      "combat_full": "Combat soldier — full service",
+      "non_combat": "Non-combat — full service",
+      "hesder": "Hesder — yeshiva combined with army",
+      "yeshiva_only": "Yeshiva gedola — no military service",
+      "kav": "Kav yeshiva — one year yeshiva after army",
+      "exempt_medical": "Medical exemption",
+      "exempt_other": "Other exemption",
+      "currently_serving": "Currently serving"
+    },
+    "s1_dl_service_f": {
+      "national_service": "National service (sherut leumi)",
+      "midrasha": "Midrasha / women's beit midrash",
+      "seminary": "Seminary",
+      "army": "Military service",
+      "directly_academic": "Went straight to academia",
+      "gap_year_abroad": "Gap year abroad (yeshiva/midrasha)",
+      "other_service": "Other"
+    },
+    "s1_dl_yeshiva_type": {
+      "hesder_yeshiva": "Hesder yeshiva — combining Torah and army",
+      "hesder_sub": "e.g.: Har Etzion, Shaalvim, Kerem B'Yavneh",
+      "kav_yeshiva": "Kav yeshiva — one year after the army",
+      "kav_sub": "e.g.: Eli, Siach Yitzchak, Merkaz HaRav, Ramot",
+      "big_yeshiva": "Dati Leumi yeshiva gedola",
+      "big_sub": "Many years of learning",
+      "yeshiva_high": "Yeshiva high school only",
+      "no_yeshiva": "Did not study in yeshiva"
+    },
+    "s1_dl_yeshiva_specific": {
+      "har_etzion": "Har Etzion (Gush Etzion)",
+      "shaalvim": "Shaalvim",
+      "kerem_byavne": "Kerem B'Yavneh",
+      "har_amiel": "Har Amiel",
+      "eli": "Eli",
+      "siach": "Siach Yitzchak",
+      "merkaz_harav": "Merkaz HaRav",
+      "otniel": "Otniel",
+      "maale_gilboa": "Maale Gilboa",
+      "beit_el": "Beit El",
+      "netivot_moshe": "Netivot Moshe",
+      "other_yeshiva": "Other yeshiva",
+      "other_yeshiva_placeholder": "Yeshiva name"
+    },
+    "s1_dl_zionism": {
+      "strong_zionist": "Ideological Zionist — Eretz Yisrael is central",
+      "classic_zionist": "Classic Zionist — state, society, army",
+      "pragmatic_zionist": "Pragmatic Zionist — here because this is home",
+      "indifferent": "Indifferent to Zionism",
+      "post_zionist": "Post-Zionist",
+      "eretz_israel_focus": "Eretz Yisrael focus — not necessarily the state as is"
+    },
+    "s1_shomer_negiah": {
+      "fully_shomer": "Shomer negiah — until the chuppah",
+      "mostly_shomer": "Trying to keep it — not strict about everything",
+      "not_shomer_open": "Not shomer — open to a shomer partner",
+      "not_shomer_prefer": "Not shomer — prefer partner who is also not",
+      "not_relevant": "Not relevant to me"
+    },
+    "s1_masorti_practices": {
+      "shabbat": "Shabbat (at some level)",
+      "kashrut": "Kashrut (at some level)",
+      "holidays": "Jewish holidays",
+      "yom_kippur": "Yom Kippur",
+      "brit_bar": "Brit / Bar/Bat Mitzvah",
+      "prayer": "Prayer (occasionally)",
+      "jewish_education": "Jewish education for children",
+      "nothing_formal": "No formal observance — Jewish identity"
+    },
+    "s1_hiloni_jewish_identity": {
+      "national_pride": "National pride — Am Yisrael",
+      "israeli": "Israeliness — this is my home",
+      "culture_literature": "Jewish literature and culture",
+      "history_holocaust": "History and Holocaust",
+      "tikkun_olam": "Universal values (Tikkun Olam)",
+      "family_tradition": "Family and tradition only",
+      "not_defined": "Don't define myself this way"
+    },
+    "s1_bt_path": {
+      "gradual": "Gradual process — years of searching",
+      "encounter": "An encounter with Judaism that moved me",
+      "study": "Study — books, classes, rabbis",
+      "life_event": "A life event that made me search for meaning",
+      "community": "A community I loved",
+      "army": "Army — I found it there",
+      "family": "Family influence",
+      "other_path": "Another path"
+    },
+    "s1_bt_time": {
+      "less_1": "Less than a year",
+      "1_3": "1-3 years",
+      "3_7": "3-7 years",
+      "more_7": "More than 7 years"
+    },
+    "s1_diaspora_community": {
+      "orthodox_mo": "Modern Orthodox",
+      "yu_graduate": "Yeshiva University graduate",
+      "ivy_league": "Ivy League / Top university",
+      "conservative_member": "Conservative",
+      "reform_member": "Reform",
+      "chabad_member": "Chabad community",
+      "french_community": "French community",
+      "sephardi_diaspora_comm": "Sephardi / Mizrachi community",
+      "other_community": "Other community"
+    },
+    "s1_diaspora_education": {
+      "ivy_league_edu": "Ivy League (Harvard, Yale, Princeton, Columbia...)",
+      "top_university": "Other top university (MIT, NYU, LSE...)",
+      "state_university": "State / public university",
+      "jewish_university": "Yeshiva University / Stern College",
+      "seminary_abroad": "Seminary / Midrasha abroad",
+      "vocational": "Vocational studies",
+      "high_school_only": "High school only",
+      "other_education": "Other"
+    },
+    "s1_diaspora_aliyah": {
+      "planning_soon": "Yes — planning to make aliyah soon",
+      "considering": "Considering — haven't decided yet",
+      "open_if_right": "Open if it's with the right person",
+      "not_planning": "Not planning to make aliyah",
+      "already_made_aliyah": "Already made aliyah"
+    },
+    "s1_diaspora_aliyah_timeline": {
+      "within_year": "Within a year",
+      "1_3_years": "1-3 years",
+      "3_5_years": "3-5 years",
+      "undecided": "Don't know yet"
+    },
+    "s2_ethnic": {
+      "ashkenazi": "Ashkenazi",
+      "sephardi_moroccan": "Sephardi — Moroccan",
+      "sephardi_iraqi": "Sephardi — Iraqi",
+      "sephardi_tunisian": "Sephardi — Tunisian",
+      "sephardi_libyan": "Sephardi — Libyan",
+      "sephardi_yemenite": "Yemenite",
+      "sephardi_persian": "Persian — Iranian",
+      "sephardi_turkish": "Sephardi — Turkish",
+      "ethiopian": "Ethiopian",
+      "russian_ukrainian": "Russian / Ukrainian",
+      "american": "American",
+      "french": "French",
+      "argentinian": "Argentine",
+      "mixed": "Mixed",
+      "other_ethnic": "Other",
+      "other_ethnic_placeholder": "Background"
+    },
+    "s2_origin": {
+      "sabra": "Israeli — born here, parents too",
+      "sabra_parents_olim": "Israeli — parents made aliyah",
+      "oleh_veteran": "Made aliyah — veteran (10+ years)",
+      "oleh_mid": "Made aliyah — mid (3-10 years)",
+      "oleh_new": "Made aliyah — recent (up to 3 years)",
+      "abroad_planning": "Abroad — considering aliyah"
+    },
+    "s2_oleh_origin": {
+      "usa": "USA",
+      "uk": "UK",
+      "france": "France",
+      "russia_ukraine": "Russia / Ukraine",
+      "ethiopia": "Ethiopia",
+      "argentina": "Argentina",
+      "australia": "Australia",
+      "south_africa": "South Africa",
+      "canada": "Canada",
+      "other_country": "Other country",
+      "other_country_placeholder": "Country"
+    },
+    "s2_oleh_years": {
+      "less_3": "Less than 3 years",
+      "3_7": "3-7 years",
+      "7_15": "7-15 years",
+      "more_15": "15+ years"
+    },
+    "s2_family_extended": {
+      "very_close": "Very close — Shabbat together, always in touch",
+      "close": "Close — holidays and events",
+      "medium": "Medium — occasionally",
+      "distant": "Distant — geographic or other distance",
+      "disconnected": "Disconnected"
+    },
+    "s2_family_atmosphere": {
+      "warm_vibrant": "Warm and vibrant — always people, food, life",
+      "quiet_intimate": "Quiet and intimate — quality over quantity",
+      "liberal_open": "Liberal and open",
+      "conservative_traditional": "Conservative and traditional",
+      "disciplined_values": "Values-driven and disciplined",
+      "chaotic_free": "Free — no rigid structure"
+    },
+    "s2_parents_status": {
+      "married_happy": "Married — good relationship",
+      "married_complex": "Married — complex",
+      "divorced": "Divorced",
+      "one_passed": "One parent passed away",
+      "both_passed": "Both passed away",
+      "dont_know": "Don't know one of them"
+    },
+    "s2_relationship_parents": {
+      "very_close": "Very close — daily conversations",
+      "close": "Close — good relationship",
+      "medium": "Medium — we manage",
+      "complex": "Complex — there are tensions",
+      "distant": "Distant"
+    },
+    "s3_energy_type": {
+      "very_introverted": "Very introverted",
+      "introverted": "Introverted",
+      "balanced": "Balanced",
+      "extroverted": "Extroverted",
+      "very_extroverted": "Very extroverted"
+    },
+    "s3_energy_source": {
+      "deep_conversations": "Deep one-on-one conversations",
+      "big_groups": "Large groups and noise",
+      "quiet_solitude": "Quiet and solitude",
+      "physical_movement": "Physical movement",
+      "art_creation": "Art and creation",
+      "learning_reading": "Learning and reading",
+      "projects_doing": "Doing and projects",
+      "helping_others": "Helping others",
+      "music": "Music",
+      "nature": "Nature and fresh air"
+    },
+    "s3_character_primary": {
+      "humorous": "Humorous — brings joy to surroundings",
+      "serious_deep": "Serious and deep — loves thinking",
+      "practical": "Practical — results-oriented",
+      "dreamer": "Dreamer — idealist",
+      "leader": "Leader — loves to lead",
+      "supporter": "Supporter — loves to help",
+      "creative": "Creative — thinks outside the box",
+      "analytical": "Analytical — thinks in order and numbers",
+      "empathetic": "Empathetic — picks up on others' emotions",
+      "adventurous": "Adventurous — loves the unexpected"
+    },
+    "s3_life_tempo": {
+      "fast_full": "Fast and full — many things in parallel",
+      "medium": "Medium — good routine with flexibility",
+      "slow_intentional": "Slow and intentional — less but quality"
+    },
+    "s3_spontaneity": {
+      "very_planned": "Plans everything — hates surprises",
+      "planned_flexible": "Likes planning but flexible",
+      "spontaneous": "Spontaneous — lives in the moment"
+    },
+    "s3_humor": {
+      "ironic_cynical": "Ironic / cynical",
+      "light_playful": "Light and playful",
+      "absurd": "Absurdist",
+      "wordplay": "Wordplay",
+      "self_deprecating": "Self-deprecating",
+      "dry": "Dry and subtle",
+      "storytelling": "Storytelling — laughing about situations",
+      "not_humorous": "Not really humorous"
+    },
+    "s3_conflict": {
+      "direct": "Direct — talks immediately",
+      "time_then_talk": "Needs time then talks",
+      "avoidant": "Hates confrontation — prefers to compromise",
+      "consensus": "Consensus-builder — looks for solution for all"
+    },
+    "s3_social_role": {
+      "center": "Center of the group — initiator and alive",
+      "active_member": "Active member — one of the crowd",
+      "side_supporter": "Supporting from the side — there but not leading",
+      "one_on_one": "Prefer one-on-one — depth over breadth"
+    },
+    "s4_education_level": {
+      "high_school": "High school only",
+      "vocational_cert": "Vocational certificate / technician",
+      "bachelor": "Bachelor's degree",
+      "master": "Master's degree",
+      "phd": "PhD",
+      "yeshiva_only": "Yeshiva/Midrasha (no academic degree)",
+      "yeshiva_plus": "Yeshiva/Midrasha + degree",
+      "studying_now": "Currently studying",
+      "other_edu": "Other"
+    },
+    "s4_field": {
+      "tech_hi_tech": "Technology / Hi-tech",
+      "medicine_health": "Medicine / Health",
+      "law": "Law",
+      "education_teaching": "Education and teaching",
+      "business_finance": "Business / Finance",
+      "art_design": "Art and design",
+      "construction_real_estate": "Construction / Real estate",
+      "science_research": "Science and research",
+      "media_communication": "Media and communication",
+      "culinary": "Culinary",
+      "security_military": "Security / Military",
+      "agriculture_environment": "Agriculture / Environment",
+      "religious_career": "Religious career (rabbi, educator, shadchan...)",
+      "therapy_wellness": "Therapy and wellness",
+      "commerce_retail": "Commerce and retail",
+      "social_welfare": "Social work",
+      "entrepreneurship": "Entrepreneurship",
+      "academia": "Academia / Research",
+      "other_field": "Other",
+      "other_field_placeholder": "Field"
+    },
+    "s4_work_status": {
+      "employed_full": "Employed — full-time",
+      "employed_part": "Employed — part-time",
+      "self_employed": "Self-employed",
+      "entrepreneur": "Entrepreneur",
+      "student_only": "Student only",
+      "student_working": "Student and working",
+      "kollel": "Learning in kollel",
+      "seeking": "Looking for work",
+      "other_work": "Other"
+    },
+    "s4_ambition": {
+      "career_center": "Career is central — building something big",
+      "professional_good": "Good professional — not aiming for greatness",
+      "balance": "Balance — work matters but isn't everything",
+      "livelihood_only": "Just livelihood — home is what matters",
+      "not_defined": "Haven't defined this yet"
+    },
+    "s4_financial_style": {
+      "saver": "Saver — stability is everything",
+      "investor": "Investor — money works for me",
+      "entrepreneur_risk": "Entrepreneurial — willing to take risks",
+      "experiential": "Spender on experiences — experience over savings",
+      "simple": "Simplicity — basic needs are enough",
+      "generous": "Generous — happy to give to others"
+    },
+    "s4_economic_status": {
+      "very_stable": "Excellent — strong stable base",
+      "stable": "Good — working, managing well",
+      "building": "Developing — building myself",
+      "family_support": "Relying on family support",
+      "challenging": "Challenging period"
+    },
+    "s4_housing": {
+      "owns": "Property owner",
+      "renting": "Renting",
+      "with_parents": "Living with parents",
+      "dorm_shared": "Dorm / shared apartment"
+    },
+    "s4_partner_career": {
+      "ambitious_career": "Important that they are ambitious",
+      "stable_income": "Important — stability and reasonable income",
+      "not_important": "Career doesn't matter to me",
+      "balance_family": "Important they can balance with family",
+      "whatever_happy": "Most important that they're happy in what they do"
+    },
+    "s5_location": {
+      "tel_aviv_gush_dan": "Tel Aviv / Gush Dan",
+      "jerusalem": "Jerusalem",
+      "bnei_brak": "Bnei Brak / Petah Tikva",
+      "haifa_north": "Haifa / North",
+      "beer_sheva_south": "Beer Sheva / South",
+      "modiin_shfela": "Modi'in / Shfela",
+      "settlements_wb": "Settlements / Yehuda and Shomron",
+      "community_yishuv": "Community yishuv",
+      "moshav_village": "Moshav / Village",
+      "abroad": "Abroad",
+      "flexible": "Flexible — doesn't matter to me"
+    },
+    "s5_rhythm": {
+      "very_early": "Up before 6 — very early morning",
+      "early": "6-8 — regular morning",
+      "late_morning": "8-10 — takes time to start",
+      "night_owl": "Night owl — lives at night"
+    },
+    "s5_kashrut": {
+      "mehadrin": "Mehadrin — Glatt, Chalav Yisrael",
+      "regular_kosher": "Regular kosher",
+      "kosher_home_not_out": "Kosher at home, less strict outside",
+      "not_kosher_jewish": "Not kosher — but Jewish",
+      "vegetarian": "Vegetarian",
+      "vegan": "Vegan",
+      "not_relevant": "Not relevant to me"
+    },
+    "s5_hobbies": {
+      "reading": "Reading",
+      "music_listening": "Music (listening)",
+      "music_playing": "Music (playing)",
+      "running_fitness": "Running / fitness",
+      "yoga_meditation": "Yoga / meditation",
+      "team_sports": "Team sports",
+      "cooking_baking": "Cooking and baking",
+      "art_drawing": "Art / design",
+      "creative_writing": "Creative writing",
+      "gardening_nature": "Gardening / nature",
+      "gaming": "Gaming",
+      "tech_programming": "Coding / technology",
+      "theater_movies": "Theater / movies",
+      "travel": "Travel",
+      "animals": "Animals / pets",
+      "photography": "Photography",
+      "torah_study": "Torah study",
+      "volunteering": "Volunteering",
+      "crafts_diy": "Crafts / DIY",
+      "dance": "Dance",
+      "wine_food": "Good food / wine",
+      "hiking": "Hiking / outdoor trails",
+      "other_hobby": "Other",
+      "other_hobby_placeholder": "Hobby"
+    },
+    "s5_travel_frequency": {
+      "loves_frequent": "Love it — several times a year",
+      "occasionally": "Occasionally — when there's an opportunity",
+      "not_interested": "Not really my thing",
+      "not_travel_reasons": "Don't travel (religious / financial / other)"
+    },
+    "s5_travel_style": {
+      "backpacking_asia": "Backpacking — Asia (India, Thailand, Japan...)",
+      "backpacking_south_america": "Backpacking — South America",
+      "europe_culture": "Europe — culture and cities",
+      "north_america": "North America",
+      "israel_nature": "Israel — hiking and nature",
+      "luxury_hotels": "Luxury travel — hotels and restaurants",
+      "family_trips": "Family trips",
+      "jewish_heritage": "Jewish heritage sites",
+      "adventure_extreme": "Adventure and extreme experiences"
+    },
+    "s5_pets": {
+      "loves_has": "Love them — have one / want one",
+      "likes_ok": "Fine — not against it",
+      "prefer_without": "Prefer without",
+      "allergic": "Allergic"
+    },
+    "s5_politics": {
+      "left": "Left",
+      "center_left": "Center-left",
+      "center": "Center",
+      "center_right": "Center-right",
+      "right": "Right",
+      "far_right": "Far right",
+      "religious_right": "Religious Zionist / Religious right",
+      "charedi_parties": "Haredi / Shas / UTJ",
+      "not_engaged": "Not engaged in politics"
+    },
+    "s5_diet": {
+      "vegetarian_diet": "Vegetarian",
+      "vegan_diet": "Vegan",
+      "gluten_free": "Gluten-free",
+      "dairy_free": "Dairy-free",
+      "nut_allergy": "Nut allergy",
+      "no_restrictions": "No restrictions"
+    },
+    "s6_children_count": {
+      "one_two": "1-2 children",
+      "three_four": "3-4 children",
+      "five_six": "5-6 children",
+      "as_many_as": "As many as come",
+      "not_sure": "Not sure yet",
+      "dont_want": "Don't want children",
+      "have_enough": "Have children and don't want more"
+    },
+    "s6_home_roles": {
+      "full_sharing": "Full sharing — everyone does everything",
+      "traditional": "Traditional division — he earns, she manages",
+      "flexible": "Flexible — whatever fits",
+      "both_work_help": "Both work and hire help",
+      "she_works_too": "He's primary earner, she works too"
+    },
+    "s6_parenting_style": {
+      "very_involved": "Very involved parent — every moment",
+      "supportive": "Supportive and protective — there when needed",
+      "educating": "Educator and guide — tradition and discipline",
+      "free_developing": "Free — child will develop on their own"
+    },
+    "s6_education_system": {
+      "state": "State school",
+      "state_religious": "State religious school",
+      "charedi": "Haredi / Independent",
+      "alternative": "Alternative (democratic, Montessori...)",
+      "international": "International / English-language",
+      "not_yet": "Haven't thought about it yet"
+    },
+    "s6_home_atmosphere": {
+      "open_guests": "Open home — people always welcome",
+      "private_family": "Private home — ours and the children's",
+      "religious_structure": "Home with clear religious structure",
+      "liberal": "Free and liberal home",
+      "quiet_order": "Quiet and orderly home",
+      "lively_noisy": "Lively and noisy home, full of energy"
+    },
+    "s6_partner_children": {
+      "open_yes": "Yes — open to a partner with children",
+      "open_depends": "Depends — need to know more",
+      "prefer_without": "Prefer no children from previous marriage",
+      "not_ok": "This doesn't work for me"
+    },
+    "s6_blended_family": {
+      "full_parent": "Expecting them to be a full parent to my children",
+      "supportive_role": "Supportive role — not a full parent",
+      "respectful_distance": "Respect and distance — they are my children",
+      "figure_out_together": "We'll figure it out — no fixed expectation"
+    },
+    "s7_relationship_meaning": {
+      "partnership_build": "Partnership — together we'll build something great",
+      "love_emotion": "Love and emotion — open and feeling heart",
+      "best_friendship": "Friendship — my best friend",
+      "home_stability": "Home and stability — a safe place",
+      "growth_together": "Growth — growing together",
+      "mutual_respect": "Mutual respect — preserving each other's self",
+      "support_each_other": "Support — being there for each other"
+    },
+    "s7_love_language": {
+      "quality_time": "Quality time — being together",
+      "words_affirmation": "Words of affirmation — hearing and saying",
+      "acts_of_service": "Acts of service — doing for each other",
+      "physical_touch": "Physical touch — hugs, closeness",
+      "gifts": "Gifts and gestures — the little surprises"
+    },
+    "s7_closeness": {
+      "very_close": "Very close — want to do everything together",
+      "balanced": "Balanced — together and also each their own",
+      "independent": "Independent — need personal space"
+    },
+    "s7_meeting_pace": {
+      "fast": "Fast — know after a few meetings",
+      "medium": "Medium — a few weeks",
+      "slow": "Slow — need time and patience"
+    },
+    "s7_relationship_model": {
+      "equal_partnership": "Equal partnership — we're a team",
+      "traditional_roles": "Traditional roles — he leads, she supports",
+      "she_leads": "She leads — she's the strong one",
+      "romantic_expressive": "Romantic and expressive",
+      "pragmatic_stable": "Pragmatic and stable — love through action"
+    }
+  }
+}

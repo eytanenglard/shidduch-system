@@ -72,6 +72,7 @@ model User {
   profile                Profile?
   verifiedUsers          Profile[]               @relation("VerifiedByMatchmaker")
   questionnaireResponses QuestionnaireResponse[]
+  profileTags            ProfileTags?
 
   // === Suggestion Inquiries ===
   sentSuggestionInquiries     SuggestionInquiry[] @relation("SentSuggestionInquiries")
@@ -367,6 +368,7 @@ model Profile {
   // Relations
   rejectionFeedbacks      RejectionFeedback[] @relation("RejectedUser")
   givenRejectionFeedbacks RejectionFeedback[] @relation("RejectingUser")
+  tags                    ProfileTags?
 }
 
 model Meeting {
@@ -1879,4 +1881,40 @@ model AnalyticsEvent {
   @@index([event])
   @@index([timestamp])
   @@index([userId, event])
+}
+
+model ProfileTags {
+  id               String   @id @default(cuid())
+  profileId        String   @unique
+  userId           String   @unique
+
+  // Raw answers stored per section
+  sectionAnswers   Json?
+
+  // Processed tag arrays per category
+  sectorTags       String[]
+  backgroundTags   String[]
+  personalityTags  String[]
+  careerTags       String[]
+  lifestyleTags    String[]
+  familyVisionTags String[]
+  relationshipTags String[]
+  diasporaTags     String[]
+  partnerTags      Json?    // What user is looking for in a partner
+
+  // AI-enriched tags and dynamic categories
+  aiDerivedTags    String[]
+  customCategories Json?    // For AI-generated new categories not in the predefined list
+
+  completedAt      DateTime?
+  source           String   @default("SELF_REPORTED") // SELF_REPORTED | AI_INFERRED | HYBRID
+  version          Int      @default(1)
+
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  profile          Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("profile_tags")
 }

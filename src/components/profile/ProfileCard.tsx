@@ -21,7 +21,6 @@ import {
   Sparkles,
   X,
   Camera,
-  ArrowLeft,
   MessageSquareQuote,
 } from 'lucide-react';
 
@@ -37,6 +36,7 @@ import MainContentTabs from './components/tabs/MainContentTabs';
 
 // Utilities & types
 import { formatEnumValue } from './utils/formatters';
+import { BRAND } from './constants/theme';
 import type { ProfileCardProps } from './types/profileCard';
 
 const ProfileCard: React.FC<ProfileCardProps> = ({
@@ -171,7 +171,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
       <Card
         dir={direction}
         className={cn(
-          'w-full bg-white rounded-2xl overflow-hidden border border-gray-100 flex flex-col h-full',
+          'w-full bg-white rounded-2xl overflow-hidden border border-gray-100 flex flex-col h-full min-h-[600px]',
           className
         )}
       >
@@ -179,15 +179,13 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
           <div className="space-y-4">
             <Skeleton className="h-8 w-3/4" />
             <Skeleton className="h-5 w-1/2" />
-            <div className="grid grid-cols-3 gap-3 mt-4">
-              <Skeleton className="h-10 w-full rounded-xl" />
-              <Skeleton className="h-10 w-full rounded-xl" />
-              <Skeleton className="h-10 w-full rounded-xl" />
-            </div>
           </div>
         </div>
-        <div className="p-6 flex-grow">
-          <div className="space-y-4" dir={direction}>
+        <div className="flex flex-1">
+          <div className="w-[38%] bg-gray-100">
+            <Skeleton className="w-full h-full" />
+          </div>
+          <div className="flex-1 p-6 space-y-4">
             <Skeleton className="h-6 w-full rounded-xl" />
             <Skeleton className="h-24 w-full rounded-xl" />
             <Skeleton className="h-16 w-full rounded-xl" />
@@ -199,41 +197,63 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
 
   // --- Desktop Layout: Photo Left (38%), Content Right (62%) ---
   const DesktopLayout = () => (
-    <div className="flex flex-grow min-h-0 max-w-full" dir="ltr">
-      {/* Left: Photo panel */}
-      <div className="w-[38%] flex-shrink-0 relative bg-gray-100 overflow-hidden">
+    <div
+      className={cn(
+        'flex flex-grow min-h-0 max-w-full',
+        direction === 'rtl' ? 'flex-row-reverse' : 'flex-row'
+      )}
+    >
+      {/* Photo panel */}
+      <div className="w-[38%] flex-shrink-0 relative bg-gray-100 overflow-hidden group">
         {mainImageToDisplay?.url ? (
-          <Image
-            src={getRelativeCloudinaryPath(mainImageToDisplay.url)}
-            alt={profile.user?.firstName || ''}
-            fill
-            className="object-cover cursor-pointer"
-            sizes="38vw"
-            priority
-            onClick={() =>
-              orderedImages.length > 0 &&
-              handleOpenImageDialog(orderedImages[0])
-            }
-          />
+          <>
+            <Image
+              src={getRelativeCloudinaryPath(mainImageToDisplay.url)}
+              alt={profile.user?.firstName || ''}
+              fill
+              className="object-cover cursor-pointer transition-transform duration-500 group-hover:scale-[1.03]"
+              sizes="38vw"
+              priority
+              onClick={() =>
+                orderedImages.length > 0 &&
+                handleOpenImageDialog(orderedImages[0])
+              }
+            />
+            {/* Hover overlay */}
+            <div
+              className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300 cursor-pointer flex items-center justify-center"
+              onClick={() =>
+                orderedImages.length > 0 &&
+                handleOpenImageDialog(orderedImages[0])
+              }
+            >
+              <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-white/90 backdrop-blur-sm rounded-full px-4 py-2 flex items-center gap-2 shadow-lg">
+                <Eye className="w-4 h-4 text-gray-700" />
+                <span className="text-sm font-medium text-gray-700">
+                  {displayDict.gallery.subtitle}
+                </span>
+              </div>
+            </div>
+          </>
         ) : (
-          <div className="w-full h-full flex items-center justify-center">
+          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
             <Camera className="w-16 h-16 text-gray-300" />
           </div>
         )}
 
         {/* Thumbnail strip at bottom */}
         {orderedImages.length > 1 && (
-          <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/60 to-transparent p-3 pt-10">
+          <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent p-3 pt-12">
             <div className="flex gap-2 justify-center">
               {orderedImages.slice(0, 5).map((img, idx) => (
                 <div
                   key={img.id}
                   className={cn(
-                    'relative w-12 h-12 rounded-lg overflow-hidden cursor-pointer flex-shrink-0 transition-opacity',
-                    'border-2',
+                    'relative w-12 h-12 rounded-lg overflow-hidden cursor-pointer flex-shrink-0 transition-all duration-200',
+                    'border-2 hover:scale-110',
                     idx === 0
-                      ? cn(THEME.accentBorderStrong, 'opacity-100')
-                      : 'border-white/40 opacity-70 hover:opacity-100'
+                      ? cn(THEME.accentBorderStrong, 'opacity-100 ring-1', THEME.accentRing)
+                      : 'border-white/40 opacity-75 hover:opacity-100 hover:border-white/80'
                   )}
                   onClick={(e) => {
                     e.stopPropagation();
@@ -251,13 +271,13 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
               ))}
               {orderedImages.length > 5 && (
                 <div
-                  className="relative w-12 h-12 rounded-lg overflow-hidden cursor-pointer flex-shrink-0 bg-black/50 flex items-center justify-center border-2 border-white/40"
+                  className="relative w-12 h-12 rounded-lg overflow-hidden cursor-pointer flex-shrink-0 bg-black/50 backdrop-blur-sm flex items-center justify-center border-2 border-white/30 hover:border-white/60 transition-all duration-200 hover:scale-110"
                   onClick={(e) => {
                     e.stopPropagation();
                     handleOpenImageDialog(orderedImages[5]);
                   }}
                 >
-                  <span className="text-white text-sm font-medium">
+                  <span className="text-white text-sm font-semibold">
                     +{orderedImages.length - 5}
                   </span>
                 </div>
@@ -268,8 +288,13 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
 
         {/* Image count badge */}
         {orderedImages.length > 1 && (
-          <div className="absolute top-3 right-3 z-10">
-            <Badge className="bg-black/60 text-white border-0 text-xs px-2 py-1 gap-1">
+          <div
+            className={cn(
+              'absolute top-3 z-10',
+              direction === 'rtl' ? 'left-3' : 'right-3'
+            )}
+          >
+            <Badge className="bg-black/50 backdrop-blur-sm text-white border-0 text-xs px-2.5 py-1 gap-1.5 shadow-sm">
               <Camera className="w-3 h-3" />
               <span>{orderedImages.length}</span>
             </Badge>
@@ -277,8 +302,8 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
         )}
       </div>
 
-      {/* Right: Content panel */}
-      <div className="flex-1 min-w-0 flex flex-col" dir={direction}>
+      {/* Content panel */}
+      <div className="flex-1 min-w-0 flex flex-col bg-white" dir={direction}>
         <ScrollArea className="flex-1 min-h-0">
           <ProfileHeader mode="desktop" {...profileHeaderProps} />
           <div className="px-6 pb-6">
@@ -302,7 +327,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
           dict={displayDict.gallery}
           direction={direction}
         />
-        <div className="p-3 sm:p-4 min-w-0 max-w-full bg-gray-50">
+        <div className="p-3 sm:p-4 min-w-0 max-w-full bg-gray-50/50">
           <MainContentTabs isDesktop={false} {...mainContentTabsProps} />
         </div>
       </div>
@@ -323,12 +348,17 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
             {/* Hero photo */}
             <ProfileHeader mode="mobile" {...profileHeaderProps} />
 
-            <div className="px-4 py-4 space-y-4">
+            <div className="px-4 py-4 space-y-5" dir={direction}>
               {/* Headline */}
               {profile.profileHeadline && (
-                <p className="text-center text-base italic font-medium text-gray-700">
-                  &quot;{profile.profileHeadline}&quot;
-                </p>
+                <div className={cn('py-3 px-4 rounded-xl', THEME.accentBgLight)}>
+                  <p className={cn(
+                    'text-center text-base italic font-medium',
+                    THEME.accentTextDark
+                  )}>
+                    &quot;{profile.profileHeadline}&quot;
+                  </p>
+                </div>
               )}
 
               {/* About with gradient fade */}
@@ -353,8 +383,9 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                     </p>
                     <button
                       className={cn(
-                        'text-sm font-semibold mt-1',
-                        THEME.accentText
+                        'text-sm font-semibold mt-2',
+                        BRAND.primaryText,
+                        BRAND.primaryTextHover
                       )}
                       onClick={() => setMobileViewLayout('detailed')}
                     >
@@ -378,7 +409,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                     {firstTestimonial && (
                       <div
                         className={cn(
-                          'bg-gray-50 rounded-lg p-4',
+                          'bg-gray-50 rounded-xl p-4',
                           direction === 'rtl'
                             ? cn('border-r-2', THEME.accentBorder)
                             : cn('border-l-2', THEME.accentBorder)
@@ -398,7 +429,8 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                       <button
                         className={cn(
                           'text-xs font-medium mt-2',
-                          THEME.accentText
+                          BRAND.primaryText,
+                          BRAND.primaryTextHover
                         )}
                         onClick={() => {
                           setMobileViewLayout('detailed');
@@ -440,7 +472,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                                 <Badge
                                   key={trait}
                                   variant="outline"
-                                  className="text-xs px-2.5 py-1 bg-white border-gray-200 text-gray-700 rounded-full"
+                                  className="text-xs px-2.5 py-1 bg-purple-50/60 border-purple-200/80 text-purple-700 rounded-full"
                                 >
                                   {traitData.shortLabel || traitData.label}
                                 </Badge>
@@ -472,7 +504,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                                 <Badge
                                   key={hobby}
                                   variant="outline"
-                                  className="text-xs px-2.5 py-1 bg-white border-gray-200 text-gray-700 rounded-full"
+                                  className="text-xs px-2.5 py-1 bg-emerald-50/60 border-emerald-200/80 text-emerald-700 rounded-full"
                                 >
                                   {hobbyData.shortLabel || hobbyData.label}
                                 </Badge>
@@ -485,13 +517,13 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
               )}
 
               {/* CTA button */}
-              <div className="pt-2 pb-4">
+              <div className="pt-3 pb-6">
                 <Button
                   onClick={() => setMobileViewLayout('detailed')}
                   className={cn(
-                    'w-full text-white rounded-full py-3 text-sm font-semibold',
-                    THEME.accentBg,
-                    THEME.accentBgHover
+                    'w-full text-white rounded-full py-3 text-sm font-semibold shadow-md hover:shadow-lg transition-all',
+                    BRAND.ctaGradient,
+                    BRAND.ctaGradientHover
                   )}
                 >
                   <Eye
@@ -517,7 +549,12 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
       id="profile-card-container"
       className={cn(
         'w-full h-full overflow-hidden flex flex-col max-w-full min-w-0',
-        'bg-white border border-gray-100 rounded-2xl',
+        'bg-white border border-gray-200/60 rounded-2xl',
+        'shadow-[0_1px_3px_rgba(0,0,0,0.04),0_4px_12px_rgba(0,0,0,0.06),0_8px_32px_rgba(0,0,0,0.04)]',
+        // Immersive: ensure minimum height
+        'min-h-[500px] lg:min-h-[600px]',
+        // Entrance animation
+        'animate-in fade-in-0 zoom-in-[0.98] duration-300',
         className
       )}
       style={{
@@ -536,7 +573,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
             variant="ghost"
             size="icon"
             className={cn(
-              'text-gray-500 hover:text-gray-700 bg-white/80 hover:bg-white rounded-full shadow-sm',
+              'text-gray-500 hover:text-gray-700 bg-white/90 hover:bg-white rounded-full shadow-sm hover:shadow-md transition-all duration-200',
               'w-10 h-10 min-h-[44px] min-w-[44px]'
             )}
             onClick={handleClose}

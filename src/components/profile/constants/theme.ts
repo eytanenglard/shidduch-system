@@ -42,6 +42,24 @@ export function getProfileTheme(
   return gender === 'MALE' ? BLUE_THEME : ROSE_THEME;
 }
 
+/**
+ * Brand colors — used for interactive UI elements (buttons, tabs, links).
+ * Matches the site-wide teal primary palette.
+ */
+export const BRAND = {
+  primaryBg: 'bg-teal-600',
+  primaryBgHover: 'hover:bg-teal-700',
+  primaryBgLight: 'bg-teal-50',
+  primaryText: 'text-teal-600',
+  primaryTextHover: 'hover:text-teal-700',
+  primaryBorder: 'border-teal-200',
+  primaryBorderStrong: 'border-teal-500',
+  primaryRing: 'ring-teal-200/50',
+  // Gradient CTA
+  ctaGradient: 'bg-gradient-to-r from-teal-600 to-teal-500',
+  ctaGradientHover: 'hover:from-teal-700 hover:to-teal-600',
+} as const;
+
 export const WORLD_COLORS: Record<
   string,
   { bg: string; text: string; border: string; borderSide: string }

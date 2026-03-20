@@ -12,6 +12,7 @@ import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import type { ThemeType } from '../../constants/theme';
+import { BRAND } from '../../constants/theme';
 import type { ProfileCardDisplayDict } from '@/types/dictionary';
 import type { UserProfile, UserImage as UserImageType } from '@/types/next-auth';
 import type { EnumMap } from '../../types/profileCard';
@@ -150,9 +151,9 @@ const ProfileHeader: React.FC<{
           <Button
             onClick={onSuggestClick}
             className={cn(
-              'mt-4 text-white rounded-full px-6 py-2 transition-colors',
-              THEME.accentBg,
-              THEME.accentBgHover
+              'mt-4 text-white rounded-full px-6 py-2.5 transition-all shadow-sm hover:shadow-md',
+              BRAND.primaryBg,
+              BRAND.primaryBgHover
             )}
           >
             <Heart

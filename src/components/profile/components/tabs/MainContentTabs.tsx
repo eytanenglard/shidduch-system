@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useRef, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { Tabs, TabsContent } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -40,6 +40,7 @@ import type {
   BudgetDisplayDict,
 } from '@/types/dictionary';
 import type { ThemeType } from '../../constants/theme';
+import { BRAND } from '../../constants/theme';
 import type { EnumMap } from '../../types/profileCard';
 import { formatEnumValue, formatBooleanPreference } from '../../utils/formatters';
 import SectionCard from '../shared/SectionCard';
@@ -135,6 +136,16 @@ const MainContentTabs: React.FC<MainContentTabsProps> = ({
   contactPreferenceMap,
   maritalStatusMap,
 }) => {
+  // Auto-scroll active tab into view
+  const tabBarRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!tabBarRef.current) return;
+    const activeBtn = tabBarRef.current.querySelector('[data-active="true"]');
+    if (activeBtn) {
+      activeBtn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+    }
+  }, [activeTab]);
+
   const getTabContent = (
     answers: FormattedAnswer[]
   ): {
@@ -170,24 +181,40 @@ const MainContentTabs: React.FC<MainContentTabsProps> = ({
     );
   };
 
+  // Divider between major sections
+  const SectionDivider = () => (
+    <div className="border-t border-gray-100 my-2" />
+  );
+
   return (
     <Tabs
       value={activeTab}
       onValueChange={onTabChange}
+      dir={direction}
       className="w-full flex flex-col flex-1 min-h-0 max-w-full overflow-hidden"
     >
-      {/* Underline-style tab bar */}
-      <div className="border-b border-gray-200 sticky top-0 z-20 bg-white">
-        <div className="flex overflow-x-auto scrollbar-none" dir={direction}>
+      {/* Underline-style tab bar with scroll shadow */}
+      <div
+        className={cn(
+          'border-b border-gray-200 sticky top-0 z-20 bg-white',
+          'relative'
+        )}
+      >
+        <div
+          ref={tabBarRef}
+          className="flex overflow-x-auto scrollbar-none"
+          dir={direction}
+        >
           {tabItems.map((tab) => (
             <button
               key={tab.value}
+              data-active={activeTab === tab.value}
               onClick={() => onTabChange(tab.value)}
               className={cn(
-                'px-4 py-3 text-sm font-medium transition-colors relative flex-shrink-0',
+                'px-4 py-3 text-sm font-medium transition-colors duration-200 relative flex-shrink-0',
                 'min-h-[44px] touch-manipulation whitespace-nowrap',
                 activeTab === tab.value
-                  ? 'text-gray-900'
+                  ? 'text-teal-700 font-semibold'
                   : 'text-gray-500 hover:text-gray-700'
               )}
             >
@@ -196,7 +223,7 @@ const MainContentTabs: React.FC<MainContentTabsProps> = ({
                 <div
                   className={cn(
                     'absolute bottom-0 inset-x-0 h-0.5 rounded-full',
-                    THEME.accentBg
+                    BRAND.primaryBg
                   )}
                 />
               )}
@@ -210,13 +237,22 @@ const MainContentTabs: React.FC<MainContentTabsProps> = ({
         className="flex-1 overflow-auto h-full max-w-full"
         ref={contentScrollAreaRef}
       >
-        <div className="space-y-4 sm:space-y-6 p-4 sm:p-6 min-w-0 max-w-full">
+        <div
+          dir={direction}
+          className="space-y-4 sm:space-y-6 p-4 sm:p-6 min-w-0 max-w-full"
+        >
           {/* Essence Tab */}
-          <TabsContent value="essence" className="mt-0 max-w-full min-w-0">
-            <div className="space-y-6 max-w-full min-w-0">
+          <TabsContent value="essence" className="mt-0 max-w-full min-w-0 animate-in fade-in-0 duration-200">
+            <div className="space-y-6 max-w-full min-w-0" dir={direction}>
               {profile.profileHeadline && (
-                <div className="text-center py-4">
-                  <p className="text-lg italic font-semibold text-gray-700 break-words">
+                <div className={cn(
+                  'py-4 px-6 rounded-xl',
+                  THEME.accentBgLight
+                )}>
+                  <p className={cn(
+                    'text-center text-lg italic font-medium break-words',
+                    THEME.accentTextDark
+                  )}>
                     &quot;{profile.profileHeadline}&quot;
                   </p>
                 </div>
@@ -240,33 +276,39 @@ const MainContentTabs: React.FC<MainContentTabsProps> = ({
                 (profile.testimonials || []).filter(
                   (t) => t.status === 'APPROVED'
                 ).length > 0 && (
-                  <SectionCard
-                    title={displayDict.content.recommendationsTitle.replace(
-                      '{{name}}',
-                      profile.user?.firstName || ''
-                    )}
-                    subtitle={displayDict.content.recommendationsSubtitle}
-                    icon={MessageSquareQuote}
-                  >
-                    <FriendTestimonials
-                      profile={profile}
-                      dict={displayDict}
-                      THEME={THEME}
-                      direction={direction}
-                    />
-                  </SectionCard>
+                  <>
+                    <SectionDivider />
+                    <SectionCard
+                      title={displayDict.content.recommendationsTitle.replace(
+                        '{{name}}',
+                        profile.user?.firstName || ''
+                      )}
+                      subtitle={displayDict.content.recommendationsSubtitle}
+                      icon={MessageSquareQuote}
+                    >
+                      <FriendTestimonials
+                        profile={profile}
+                        dict={displayDict}
+                        THEME={THEME}
+                        direction={direction}
+                      />
+                    </SectionCard>
+                  </>
                 )}
 
               {personalityContent.hookAnswer && (
-                <QuestionnaireItem
-                  answer={personalityContent.hookAnswer}
-                  worldName={WORLDS.personality.label}
-                  worldColor={WORLDS.personality.color}
-                  direction={direction}
-                  displayDict={displayDict}
-                  budgetDisplayDict={dict.budgetDisplay}
-                  locale={locale}
-                />
+                <>
+                  <SectionDivider />
+                  <QuestionnaireItem
+                    answer={personalityContent.hookAnswer}
+                    worldName={WORLDS.personality.label}
+                    worldColor={WORLDS.personality.color}
+                    direction={direction}
+                    displayDict={displayDict}
+                    budgetDisplayDict={dict.budgetDisplay}
+                    locale={locale}
+                  />
+                </>
               )}
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-full min-w-0">
@@ -288,7 +330,7 @@ const MainContentTabs: React.FC<MainContentTabsProps> = ({
                             <Badge
                               key={trait}
                               variant="outline"
-                              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-white border-gray-200 text-gray-700 rounded-full"
+                              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-purple-50/60 border-purple-200/80 text-purple-700 rounded-full"
                             >
                               <traitData.icon
                                 className={cn(
@@ -323,7 +365,7 @@ const MainContentTabs: React.FC<MainContentTabsProps> = ({
                             <Badge
                               key={hobby}
                               variant="outline"
-                              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-white border-gray-200 text-gray-700 rounded-full"
+                              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-emerald-50/60 border-emerald-200/80 text-emerald-700 rounded-full"
                             >
                               <hobbyData.icon
                                 className={cn(
@@ -343,26 +385,29 @@ const MainContentTabs: React.FC<MainContentTabsProps> = ({
               </div>
 
               {personalityContent.deeperAnswers.length > 0 && (
-                <SectionCard
-                  title={displayDict.content.deepDivePersonality}
-                  subtitle={displayDict.content.moreAnswersPersonality}
-                  icon={Telescope}
-                >
-                  <div className="grid grid-cols-1 gap-4">
-                    {personalityContent.deeperAnswers.map((answer) => (
-                      <QuestionnaireItem
-                        key={answer.questionId}
-                        answer={answer}
-                        worldName={WORLDS.personality.label}
-                        worldColor={WORLDS.personality.color}
-                        direction={direction}
-                        displayDict={displayDict}
-                        budgetDisplayDict={dict.budgetDisplay}
-                        locale={locale}
-                      />
-                    ))}
-                  </div>
-                </SectionCard>
+                <>
+                  <SectionDivider />
+                  <SectionCard
+                    title={displayDict.content.deepDivePersonality}
+                    subtitle={displayDict.content.moreAnswersPersonality}
+                    icon={Telescope}
+                  >
+                    <div className="grid grid-cols-1 gap-4">
+                      {personalityContent.deeperAnswers.map((answer) => (
+                        <QuestionnaireItem
+                          key={answer.questionId}
+                          answer={answer}
+                          worldName={WORLDS.personality.label}
+                          worldColor={WORLDS.personality.color}
+                          direction={direction}
+                          displayDict={displayDict}
+                          budgetDisplayDict={dict.budgetDisplay}
+                          locale={locale}
+                        />
+                      ))}
+                    </div>
+                  </SectionCard>
+                </>
               )}
               {renderMobileNav()}
             </div>
@@ -371,9 +416,9 @@ const MainContentTabs: React.FC<MainContentTabsProps> = ({
           {/* Journey Tab (includes spirit content) */}
           <TabsContent
             value="journey"
-            className="mt-0 max-w-full min-w-0"
+            className="mt-0 max-w-full min-w-0 animate-in fade-in-0 duration-200"
           >
-            <div className="space-y-6 max-w-full min-w-0">
+            <div className="space-y-6 max-w-full min-w-0" dir={direction}>
               {valuesContent.hookAnswer && (
                 <QuestionnaireItem
                   answer={valuesContent.hookAnswer}
@@ -507,29 +552,36 @@ const MainContentTabs: React.FC<MainContentTabsProps> = ({
               </div>
 
               {valuesContent.deeperAnswers.length > 0 && (
-                <SectionCard
-                  title={displayDict.content.valuesAndPrinciples}
-                  subtitle={displayDict.content.answersOnWhatMatters}
-                  icon={BookMarked}
-                >
-                  <div className="grid grid-cols-1 gap-4">
-                    {valuesContent.deeperAnswers.map((answer) => (
-                      <QuestionnaireItem
-                        key={answer.questionId}
-                        answer={answer}
-                        worldName={WORLDS.values.label}
-                        worldColor={WORLDS.values.color}
-                        direction={direction}
-                        displayDict={displayDict}
-                        budgetDisplayDict={dict.budgetDisplay}
-                        locale={locale}
-                      />
-                    ))}
-                  </div>
-                </SectionCard>
+                <>
+                  <SectionDivider />
+                  <SectionCard
+                    title={displayDict.content.valuesAndPrinciples}
+                    subtitle={displayDict.content.answersOnWhatMatters}
+                    icon={BookMarked}
+                  >
+                    <div className="grid grid-cols-1 gap-4">
+                      {valuesContent.deeperAnswers.map((answer) => (
+                        <QuestionnaireItem
+                          key={answer.questionId}
+                          answer={answer}
+                          worldName={WORLDS.values.label}
+                          worldColor={WORLDS.values.color}
+                          direction={direction}
+                          displayDict={displayDict}
+                          budgetDisplayDict={dict.budgetDisplay}
+                          locale={locale}
+                        />
+                      ))}
+                    </div>
+                  </SectionCard>
+                </>
               )}
 
               {/* Spirit content (merged into journey) */}
+              {(religionContent.hookAnswer || hasJudaismConnectionDetails || profile.influentialRabbi || religionContent.deeperAnswers.length > 0) && (
+                <SectionDivider />
+              )}
+
               {religionContent.hookAnswer && (
                 <QuestionnaireItem
                   answer={religionContent.hookAnswer}
@@ -671,9 +723,9 @@ const MainContentTabs: React.FC<MainContentTabsProps> = ({
           {/* Vision Tab */}
           <TabsContent
             value="vision"
-            className="mt-0 max-w-full min-w-0"
+            className="mt-0 max-w-full min-w-0 animate-in fade-in-0 duration-200"
           >
-            <div className="space-y-6 max-w-full min-w-0">
+            <div className="space-y-6 max-w-full min-w-0" dir={direction}>
               {relationshipContent.hookAnswer && (
                 <QuestionnaireItem
                   answer={relationshipContent.hookAnswer}
@@ -698,38 +750,44 @@ const MainContentTabs: React.FC<MainContentTabsProps> = ({
               )}
 
               {profile.inspiringCoupleStory && (
-                <SectionCard
-                  title={displayDict.content.myRoleModelForRelationship}
-                  subtitle={displayDict.content.theCoupleThatInspiresMe}
-                  icon={Stars}
-                >
-                  <p className="text-gray-700 leading-relaxed italic">
-                    &quot;{profile.inspiringCoupleStory}&quot;
-                  </p>
-                </SectionCard>
+                <>
+                  <SectionDivider />
+                  <SectionCard
+                    title={displayDict.content.myRoleModelForRelationship}
+                    subtitle={displayDict.content.theCoupleThatInspiresMe}
+                    icon={Stars}
+                  >
+                    <p className="text-gray-700 leading-relaxed italic">
+                      &quot;{profile.inspiringCoupleStory}&quot;
+                    </p>
+                  </SectionCard>
+                </>
               )}
 
               {relationshipContent.deeperAnswers.length > 0 && (
-                <SectionCard
-                  title={displayDict.content.moreOnMyVision}
-                  subtitle={displayDict.content.answersOnLoveAndFamily}
-                  icon={Heart}
-                >
-                  <div className="grid grid-cols-1 gap-4">
-                    {relationshipContent.deeperAnswers.map((answer) => (
-                      <QuestionnaireItem
-                        key={answer.questionId}
-                        answer={answer}
-                        worldName={WORLDS.relationship.label}
-                        worldColor={WORLDS.relationship.color}
-                        direction={direction}
-                        displayDict={displayDict}
-                        budgetDisplayDict={dict.budgetDisplay}
-                        locale={locale}
-                      />
-                    ))}
-                  </div>
-                </SectionCard>
+                <>
+                  <SectionDivider />
+                  <SectionCard
+                    title={displayDict.content.moreOnMyVision}
+                    subtitle={displayDict.content.answersOnLoveAndFamily}
+                    icon={Heart}
+                  >
+                    <div className="grid grid-cols-1 gap-4">
+                      {relationshipContent.deeperAnswers.map((answer) => (
+                        <QuestionnaireItem
+                          key={answer.questionId}
+                          answer={answer}
+                          worldName={WORLDS.relationship.label}
+                          worldColor={WORLDS.relationship.color}
+                          direction={direction}
+                          displayDict={displayDict}
+                          budgetDisplayDict={dict.budgetDisplay}
+                          locale={locale}
+                        />
+                      ))}
+                    </div>
+                  </SectionCard>
+                </>
               )}
               {renderMobileNav()}
             </div>
@@ -738,9 +796,9 @@ const MainContentTabs: React.FC<MainContentTabsProps> = ({
           {/* Connection Tab */}
           <TabsContent
             value="connection"
-            className="mt-0 max-w-full min-w-0"
+            className="mt-0 max-w-full min-w-0 animate-in fade-in-0 duration-200"
           >
-            <div className="space-y-6 max-w-full min-w-0">
+            <div className="space-y-6 max-w-full min-w-0" dir={direction}>
               {partnerContent.hookAnswer && (
                 <QuestionnaireItem
                   answer={partnerContent.hookAnswer}
@@ -798,26 +856,29 @@ const MainContentTabs: React.FC<MainContentTabsProps> = ({
               )}
 
               {partnerContent.deeperAnswers.length > 0 && (
-                <SectionCard
-                  title={displayDict.content.howIVisionMyPartner}
-                  subtitle={displayDict.content.moreAnswersAboutPartner}
-                  icon={Target}
-                >
-                  <div className="grid grid-cols-1 gap-4">
-                    {partnerContent.deeperAnswers.map((answer) => (
-                      <QuestionnaireItem
-                        key={answer.questionId}
-                        answer={answer}
-                        worldName={WORLDS.partner.label}
-                        worldColor={WORLDS.partner.color}
-                        direction={direction}
-                        displayDict={displayDict}
-                        budgetDisplayDict={dict.budgetDisplay}
-                        locale={locale}
-                      />
-                    ))}
-                  </div>
-                </SectionCard>
+                <>
+                  <SectionDivider />
+                  <SectionCard
+                    title={displayDict.content.howIVisionMyPartner}
+                    subtitle={displayDict.content.moreAnswersAboutPartner}
+                    icon={Target}
+                  >
+                    <div className="grid grid-cols-1 gap-4">
+                      {partnerContent.deeperAnswers.map((answer) => (
+                        <QuestionnaireItem
+                          key={answer.questionId}
+                          answer={answer}
+                          worldName={WORLDS.partner.label}
+                          worldColor={WORLDS.partner.color}
+                          direction={direction}
+                          displayDict={displayDict}
+                          budgetDisplayDict={dict.budgetDisplay}
+                          locale={locale}
+                        />
+                      ))}
+                    </div>
+                  </SectionCard>
+                </>
               )}
               {renderMobileNav()}
             </div>
@@ -827,75 +888,77 @@ const MainContentTabs: React.FC<MainContentTabsProps> = ({
           {effectiveViewMode === 'matchmaker' && (
             <TabsContent
               value="professional"
-              className="mt-0 max-w-full min-w-0"
+              className="mt-0 max-w-full min-w-0 animate-in fade-in-0 duration-200"
             >
-              <SectionCard
-                title={displayDict.content.confidentialInfo}
-                subtitle={displayDict.content.professionalDetails}
-                icon={Lock}
-              >
-                <div className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-1">
-                    {profile.contactPreference && (
-                      <DetailItem
-                        icon={Phone}
-                        label={displayDict.content.professionalInfo.contactPreference}
-                        value={
-                          formatEnumValue(
-                            profile.contactPreference,
-                            contactPreferenceMap,
-                            ''
-                          ).label
-                        }
-                      />
-                    )}
-                    {profile.preferredMatchmakerGender && (
-                      <DetailItem
-                        icon={Users}
-                        label={displayDict.content.professionalInfo.matchmakerGenderPref}
-                        value={
-                          profile.preferredMatchmakerGender === 'MALE'
-                            ? displayDict.content.professionalInfo.matchmakerMale
-                            : displayDict.content.professionalInfo.matchmakerFemale
-                        }
-                      />
-                    )}
-                  </div>
-                  {profile.hasMedicalInfo && (
-                    <DetailItem
-                      icon={Heart}
-                      label={displayDict.content.professionalInfo.medicalInfo}
-                      value={
-                        profile.isMedicalInfoVisible
-                          ? displayDict.content.professionalInfo.medicalInfoVisible
-                          : displayDict.content.professionalInfo.medicalInfoDiscreet
-                      }
-                      tooltip={profile.medicalInfoDetails || undefined}
-                    />
-                  )}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm text-gray-600">
-                    <div className="flex items-center gap-2">
-                      <Calendar className="w-4 h-4 text-gray-400" />
-                      <span>
-                        {displayDict.content.professionalInfo.profileCreated}{' '}
-                        {profile.createdAt
-                          ? new Date(profile.createdAt).toLocaleDateString(locale)
-                          : displayDict.content.professionalInfo.unknown}
-                      </span>
+              <div dir={direction}>
+                <SectionCard
+                  title={displayDict.content.confidentialInfo}
+                  subtitle={displayDict.content.professionalDetails}
+                  icon={Lock}
+                >
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-1">
+                      {profile.contactPreference && (
+                        <DetailItem
+                          icon={Phone}
+                          label={displayDict.content.professionalInfo.contactPreference}
+                          value={
+                            formatEnumValue(
+                              profile.contactPreference,
+                              contactPreferenceMap,
+                              ''
+                            ).label
+                          }
+                        />
+                      )}
+                      {profile.preferredMatchmakerGender && (
+                        <DetailItem
+                          icon={Users}
+                          label={displayDict.content.professionalInfo.matchmakerGenderPref}
+                          value={
+                            profile.preferredMatchmakerGender === 'MALE'
+                              ? displayDict.content.professionalInfo.matchmakerMale
+                              : displayDict.content.professionalInfo.matchmakerFemale
+                          }
+                        />
+                      )}
                     </div>
-                    {profile.lastActive && (
+                    {profile.hasMedicalInfo && (
+                      <DetailItem
+                        icon={Heart}
+                        label={displayDict.content.professionalInfo.medicalInfo}
+                        value={
+                          profile.isMedicalInfoVisible
+                            ? displayDict.content.professionalInfo.medicalInfoVisible
+                            : displayDict.content.professionalInfo.medicalInfoDiscreet
+                        }
+                        tooltip={profile.medicalInfoDetails || undefined}
+                      />
+                    )}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm text-gray-600 pt-2 border-t border-gray-100">
                       <div className="flex items-center gap-2">
-                        <Clock className="w-4 h-4 text-gray-400" />
+                        <Calendar className="w-4 h-4 text-gray-400" />
                         <span>
-                          {displayDict.content.professionalInfo.lastActive}{' '}
-                          {new Date(profile.lastActive).toLocaleDateString(locale)}
+                          {displayDict.content.professionalInfo.profileCreated}{' '}
+                          {profile.createdAt
+                            ? new Date(profile.createdAt).toLocaleDateString(locale)
+                            : displayDict.content.professionalInfo.unknown}
                         </span>
                       </div>
-                    )}
+                      {profile.lastActive && (
+                        <div className="flex items-center gap-2">
+                          <Clock className="w-4 h-4 text-gray-400" />
+                          <span>
+                            {displayDict.content.professionalInfo.lastActive}{' '}
+                            {new Date(profile.lastActive).toLocaleDateString(locale)}
+                          </span>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
-              </SectionCard>
-              {renderMobileNav()}
+                </SectionCard>
+                {renderMobileNav()}
+              </div>
             </TabsContent>
           )}
 

@@ -9,5 +9,5 @@ export {
   VALIDATION_RULES,
 } from './profileConstants';
 
-export { getProfileTheme, WORLD_COLORS } from './theme';
+export { getProfileTheme, WORLD_COLORS, BRAND } from './theme';
 export type { ThemeType } from './theme';

@@ -1,0 +1,999 @@
+{
+  "welcome": {
+    "badge": "חדש",
+    "title": "טביעת הנשמה שלך",
+    "subtitle": "10 דקות שישנו הכל",
+    "description": "ככל שנכיר אותך טוב יותר — כך ההצעות שתקבל/י יהיו מדויקות ואישיות יותר.\nטביעת הנשמה היא הפרופיל האמיתי שלך — לא רשימת נתונים, אלא מי שאתה/את בפועל.",
+    "whyMatters": {
+      "title": "למה זה חשוב?",
+      "point1": "המערכת תבנה לך פרופיל ייחודי מתוך מאות פרמטרים",
+      "point2": "הצעות שתקבל/י יהיו מותאמות לך אישית — לא רק לנתונים",
+      "point3": "השדכנים שלנו יוכלו להכיר אותך ברמה עמוקה יותר"
+    },
+    "time": "כ-8-10 דקות",
+    "privacy": "התשובות שלך נשמרות בצורה מאובטחת ומשמשות רק לצורכי התאמה",
+    "cta": "בואו נתחיל",
+    "skip": "אדלג לעכשיו"
+  },
+  "landingPage": {
+    "badge": "חדש",
+    "title": "טביעת הנשמה שלך",
+    "subtitle": "הכירו אתכם — ממש",
+    "description": "הטכנולוגיה שלנו מנתחת מאות פרמטרים ייחודיים כדי להבין מי אתם באמת — לא רק נתונים, אלא אישיות, ערכים, חלומות ואורח חיים. ככה מוצאים שידוך אמיתי.",
+    "features": {
+      "feature1": {
+        "title": "מי אני באמת",
+        "description": "8 מקטעים מעמיקים שמצייר את האישיות שלך"
+      },
+      "feature2": {
+        "title": "מה אני מחפש/ת",
+        "description": "לא רק נתונים — ערכים, אנרגיה והשקפת עולם"
+      },
+      "feature3": {
+        "title": "התאמה מדויקת",
+        "description": "המערכת משתמשת בטביעת הנשמה כדי למצוא את ההתאמה הטובה ביותר"
+      }
+    }
+  },
+  "sections": {
+    "anchor": { "title": "שאלות פתיחה", "subtitle": "נקודת ההתחלה שלנו" },
+    "identity": { "title": "זהות ורקע", "subtitle": "מי אתה/את ומאיפה באת/ה" },
+    "background": { "title": "משפחה ושורשים", "subtitle": "הסביבה שעיצבה אותך" },
+    "personality": { "title": "אישיות ואנרגיה", "subtitle": "מה מניע אותך" },
+    "career": { "title": "קריירה וכלכלה", "subtitle": "הדרך המקצועית שלך" },
+    "lifestyle": { "title": "אורח חיים ותחביבים", "subtitle": "מה ממלא את החיים שלך" },
+    "family": { "title": "חזון משפחה ובית", "subtitle": "הבית שאתה/את רוצה לבנות" },
+    "relationship": { "title": "זוגיות וקשר", "subtitle": "מה מהות הזוגיות עבורך" }
+  },
+  "progress": {
+    "anchor": "שאלות פתיחה",
+    "identity": "זהות",
+    "background": "שורשים",
+    "personality": "אישיות",
+    "career": "קריירה",
+    "lifestyle": "אורח חיים",
+    "family": "משפחה",
+    "relationship": "זוגיות",
+    "sectionOf": "מקטע {{current}} מתוך {{total}}"
+  },
+  "labels": {
+    "selfLabel": "עליי",
+    "partnerLabel": "בן/בת הזוג שלי",
+    "skip": "דלג/י",
+    "next": "הבא",
+    "back": "חזור",
+    "addCustom": "+ הוסף/י",
+    "customPlaceholder": "הוסף/י תשובה משלך...",
+    "optional": "אופציונלי",
+    "selectUpTo": "בחר/י עד {{count}}",
+    "partnerSectionIntro": "ועכשיו — מה אתה/את מחפש/ת?",
+    "partnerSectionSubtitle": "אותה שאלה, אבל לגבי בן/בת הזוג שלך",
+    "saving": "שומר...",
+    "saved": "נשמר",
+    "characters": "תווים"
+  },
+  "completion": {
+    "title": "טביעת הנשמה שלך מוכנה!",
+    "subtitle": "פרופיל ייחודי שמייצג מי שאתה/את",
+    "description": "על בסיס התשובות שלך, המערכת תוכל להציע לך שידוכים מדויקים ואישיים יותר.\nהשדכנים שלנו יכירו אותך ברמה עמוקה.",
+    "tagsTitle": "הנה מה שגילינו עלייך:",
+    "cta": "קדימה לפרופיל המלא",
+    "edit": "ערוך/י תשובות",
+    "categories": {
+      "sector": "זהות",
+      "background": "שורשים",
+      "personality": "אישיות",
+      "career": "קריירה",
+      "lifestyle": "אורח חיים",
+      "family": "משפחה",
+      "relationship": "זוגיות"
+    }
+  },
+  "questions": {
+    "anchor_sector": {
+      "text": "איפה תמקם/י את עצמך?",
+      "subtitle": "בחר/י את מה שהכי מתאר אותך — אין תשובה נכונה או לא נכונה"
+    },
+    "anchor_sector_hasidic": {
+      "text": "באיזה זרם חסידי?",
+      "subtitle": "בחר/י את הזרם שאיתו אתה/את מזדהה/ת"
+    },
+    "anchor_sector_diaspora": {
+      "text": "מאיזה רקע?",
+      "subtitle": "אנחנו רוצים להבין את הרקע הקהילתי שלך"
+    },
+    "anchor_life_stage": {
+      "text": "מה המצב הנוכחי שלך?",
+      "subtitle": "זה יעזור לנו להתאים את השאלות עבורך"
+    },
+    "s1_charedi_study_work": {
+      "text": "מה מתאר את עיסוקך כרגע?",
+      "subtitle": "אין שיפוטיות — כל דרך ראויה ויפה"
+    },
+    "s1_charedi_study_work_f": {
+      "text": "מה מתאר אותך בצורה הטובה ביותר?",
+      "subtitle": ""
+    },
+    "s1_charedi_military": {
+      "text": "האם שירת/ת בצבא?",
+      "subtitle": "חלק מהחרדים בוחרים לשרת — כל בחירה מכובדת"
+    },
+    "s1_dl_army_type": {
+      "text": "איזה שירות ביצעת/ת?",
+      "subtitle": ""
+    },
+    "s1_dl_service_f": {
+      "text": "מה עשית/ה לאחר הלימודים?",
+      "subtitle": ""
+    },
+    "s1_dl_yeshiva_type": {
+      "text": "באיזה סוג ישיבה למדת?",
+      "subtitle": "זה נותן לנו הבנה על הרקע שלך"
+    },
+    "s1_dl_yeshiva_specific": {
+      "text": "באיזו ישיבה ספציפית? (אופציונלי)",
+      "subtitle": "עזור/י לנו להבין עוד טוב יותר",
+      "placeholder": "שם הישיבה"
+    },
+    "s1_dl_zionism": {
+      "text": "מה מייצגת לך הציונות?",
+      "subtitle": ""
+    },
+    "s1_shomer_negiah": {
+      "text": "מה הגישה שלך לשמירת נגיעה?",
+      "subtitle": "שאלה חשובה להתאמה — כל גישה מכובדת"
+    },
+    "s1_masorti_practices": {
+      "text": "מה חשוב לך לשמור מהמסורת?",
+      "subtitle": "בחר/י כמה שמתאים"
+    },
+    "s1_hiloni_jewish_identity": {
+      "text": "מה מייצג לך את הזהות היהודית שלך?",
+      "subtitle": "בחר/י עד 3 תשובות"
+    },
+    "s1_bt_path": {
+      "text": "מה הוביל אותך לחזרה בתשובה?",
+      "subtitle": "שתף/י בנוחות — כל דרך ייחודית ומשמעותית"
+    },
+    "s1_bt_time": {
+      "text": "כמה זמן אתה/את בתהליך?",
+      "subtitle": ""
+    },
+    "s1_diaspora_community": {
+      "text": "מאיזה קהילה אתה/את?",
+      "subtitle": ""
+    },
+    "s1_diaspora_education": {
+      "text": "איפה למדת?",
+      "subtitle": ""
+    },
+    "s1_diaspora_aliyah": {
+      "text": "מה תוכניות העלייה שלך?",
+      "subtitle": ""
+    },
+    "s1_diaspora_aliyah_timeline": {
+      "text": "מתי אתה/את מתכנן/ת לעלות?",
+      "subtitle": ""
+    },
+    "s2_ethnic": {
+      "text": "מה המוצא שלך?",
+      "subtitle": ""
+    },
+    "s2_origin": {
+      "text": "מה הרקע הגיאוגרפי שלך?",
+      "subtitle": ""
+    },
+    "s2_oleh_origin": {
+      "text": "מאיזה ארץ עלית/ה?",
+      "subtitle": ""
+    },
+    "s2_oleh_years": {
+      "text": "מתי עלית/ה לישראל?",
+      "subtitle": ""
+    },
+    "s2_family_extended": {
+      "text": "מה הקשר שלך למשפחה המורחבת?",
+      "subtitle": ""
+    },
+    "s2_family_atmosphere": {
+      "text": "איך תתאר/י את הבית שגדלת/ת בו?",
+      "subtitle": ""
+    },
+    "s2_parents_status": {
+      "text": "מה מצב הוריך?",
+      "subtitle": ""
+    },
+    "s2_relationship_parents": {
+      "text": "איך תגדיר/י את הקשר שלך להוריך?",
+      "subtitle": ""
+    },
+    "s3_energy_type": {
+      "text": "איפה אתה/את על הסקאלה?",
+      "subtitle": "מופנם/ת מאוד ← ——— → מוחצן/ת מאוד"
+    },
+    "s3_energy_source": {
+      "text": "מה נותן לך אנרגיה?",
+      "subtitle": "בחר/י עד 3"
+    },
+    "s3_character_primary": {
+      "text": "מה הכי מתאר את האופי שלך?",
+      "subtitle": ""
+    },
+    "s3_life_tempo": {
+      "text": "מה קצב החיים שלך?",
+      "subtitle": ""
+    },
+    "s3_spontaneity": {
+      "text": "ספונטני/ת או מתכנן/ת?",
+      "subtitle": ""
+    },
+    "s3_humor": {
+      "text": "איזה סוג הומור אתה/את?",
+      "subtitle": "בחר/י עד 3"
+    },
+    "s3_conflict": {
+      "text": "איך אתה/את מתמודד/ת עם קונפליקט?",
+      "subtitle": ""
+    },
+    "s3_social_role": {
+      "text": "מה תפקידך בחברה?",
+      "subtitle": ""
+    },
+    "s3_open_character": {
+      "text": "יש משהו נוסף שמאפיין אותך?",
+      "subtitle": "אופציונלי — עד 150 תווים",
+      "placeholder": "ספר/י לנו משהו שקשה לבטא באופציות..."
+    },
+    "s4_education_level": {
+      "text": "מה רמת ההשכלה שלך?",
+      "subtitle": ""
+    },
+    "s4_field": {
+      "text": "במה אתה/את עוסק/ת או לומד/ת?",
+      "subtitle": "בחר/י עד 3 — אפשר להוסיף תחום משלך"
+    },
+    "s4_work_status": {
+      "text": "מה מצבך התעסוקתי כרגע?",
+      "subtitle": ""
+    },
+    "s4_ambition": {
+      "text": "איך אתה/את רואה את הקריירה שלך?",
+      "subtitle": ""
+    },
+    "s4_financial_style": {
+      "text": "מה הגישה שלך לכסף?",
+      "subtitle": ""
+    },
+    "s4_economic_status": {
+      "text": "איך תגדיר/י את המצב הכלכלי שלך?",
+      "subtitle": ""
+    },
+    "s4_housing": {
+      "text": "מה מצב המגורים שלך?",
+      "subtitle": ""
+    },
+    "s4_partner_career": {
+      "text": "ומה לגבי בן/בת הזוג — מה חשוב לך לגבי הקריירה שלו/ה?",
+      "subtitle": "מה אתה/את מחפש/ת מבחינת קריירה ושאפתנות"
+    },
+    "s5_location": {
+      "text": "איפה היית רוצה לגור?",
+      "subtitle": "בחר/י עד 3"
+    },
+    "s5_rhythm": {
+      "text": "מה השגרה שלך?",
+      "subtitle": ""
+    },
+    "s5_kashrut": {
+      "text": "מה רמת הכשרות שלך?",
+      "subtitle": ""
+    },
+    "s5_hobbies": {
+      "text": "מה ממלא את הזמן הפנוי שלך?",
+      "subtitle": "בחר/י עד 6 — אפשר להוסיף משלך"
+    },
+    "s5_travel_frequency": {
+      "text": "מה היחס שלך לטיולים?",
+      "subtitle": ""
+    },
+    "s5_travel_style": {
+      "text": "איזה סוג טיולים אתה/את אוהב/ת?",
+      "subtitle": "בחר/י עד 3"
+    },
+    "s5_pets": {
+      "text": "מה היחס שלך לבעלי חיים?",
+      "subtitle": ""
+    },
+    "s5_politics": {
+      "text": "איפה אתה/את פוליטית?",
+      "subtitle": "אופציונלי — ניתן לדלג"
+    },
+    "s5_diet": {
+      "text": "יש הגבלות תזונתיות מיוחדות?",
+      "subtitle": "אופציונלי"
+    },
+    "s6_children_count": {
+      "text": "כמה ילדים היית רוצה?",
+      "subtitle": ""
+    },
+    "s6_home_roles": {
+      "text": "איך אתה/את רואה את חלוקת התפקידים בבית?",
+      "subtitle": ""
+    },
+    "s6_parenting_style": {
+      "text": "מה סגנון ההורות שלך?",
+      "subtitle": ""
+    },
+    "s6_education_system": {
+      "text": "באיזה מערכת חינוך היית שולח/ת את הילדים?",
+      "subtitle": ""
+    },
+    "s6_home_atmosphere": {
+      "text": "איזה בית אתה/את רוצה לבנות?",
+      "subtitle": "בחר/י עד 3"
+    },
+    "s6_partner_children": {
+      "text": "האם אתה/את פתוח/ה לבן/בת זוג עם ילדים?",
+      "subtitle": ""
+    },
+    "s6_blended_family": {
+      "text": "יש לך ילדים — מה הציפייה שלך מבן/בת הזוג לגביהם?",
+      "subtitle": ""
+    },
+    "s7_relationship_meaning": {
+      "text": "מה זוגיות טובה עבורך?",
+      "subtitle": "בחר/י עד 3"
+    },
+    "s7_love_language": {
+      "text": "מה שפת האהבה שלך?",
+      "subtitle": ""
+    },
+    "s7_closeness": {
+      "text": "כמה קרבה אתה/את מחפש/ת?",
+      "subtitle": ""
+    },
+    "s7_meeting_pace": {
+      "text": "מה קצב ההיכרות המועדף עליך?",
+      "subtitle": ""
+    },
+    "s7_relationship_model": {
+      "text": "איזה מודל זוגי מתאר אותך?",
+      "subtitle": ""
+    },
+    "s7_open_partner": {
+      "text": "מה הדבר הכי חשוב לך בבן/בת הזוג שקשה לתאר באופציות?",
+      "subtitle": "אופציונלי — עד 200 תווים",
+      "placeholder": "ספר/י לנו מה חשוב לך — בחופשיות..."
+    }
+  },
+  "options": {
+    "anchor_sector": {
+      "charedi_litvish": "חרדי/ת ליטאי/ת",
+      "charedi_litvish_sub": "ישיבה ליטאית, בני ברק / ירושלים",
+      "charedi_hasidic": "חרדי/ת חסידי/ת",
+      "charedi_hasidic_sub": "חסידות ספציפית",
+      "charedi_sephardi": "חרדי/ת ספרדי/ת",
+      "charedi_sephardi_sub": "ש\"ס, מרוקאי, עיראקי ועוד",
+      "charedi_modern": "חרדי/ת מודרני/ת",
+      "charedi_modern_sub": "עובד/ת, לומד/ת — חרדי עם פנים לחברה",
+      "hardal": "הרדל\"י",
+      "hardal_sub": "חרדי לאומי — תורה וציונות חזקה",
+      "dati_leumi_torani": "דתי/ה לאומי/ת תורני/ת",
+      "dati_leumi_torani_sub": "ישיבה / מדרשה, לימוד תורה רציני",
+      "dati_leumi_classic": "דתי/ה לאומי/ת קלאסי/ת",
+      "dati_leumi_classic_sub": "בני עקיבא, ציוני, שומר מצוות",
+      "dati_leumi_modern": "דתי/ה לאומי/ת מודרני/ת",
+      "dati_leumi_modern_sub": "אורתודוקסי מודרני, גמיש יותר",
+      "dati_lite": "דתי/ה לייט",
+      "dati_lite_sub": "שומר/ת מסורת, פחות קפדני/ת",
+      "datlash": "דתי/ה לשעבר",
+      "datlash_sub": "גדלתי דתי/ה, כיום פחות שומר/ת",
+      "chozer_bteshuva": "חוזר/ת בתשובה",
+      "chozer_bteshuva_sub": "בתהליך חזרה לאמונה ושמירת מצוות",
+      "masorti_strong": "מסורתי/ת חזק/ה",
+      "masorti_strong_sub": "שבת, כשרות, חגים — זה חשוב",
+      "masorti_medium": "מסורתי/ת",
+      "masorti_medium_sub": "חגים, ברית, בר מצווה — מסורת בבית",
+      "masorti_light": "מסורתי/ת קל/ה",
+      "masorti_light_sub": "זהות יהודית, לאו דווקא שמירה",
+      "hiloni_jewish": "חילוני/ת עם זהות יהודית",
+      "hiloni_jewish_sub": "יהודי/ת בלב ובנשמה",
+      "hiloni_cultural": "חילוני/ת תרבותי/ת",
+      "hiloni_cultural_sub": "תרבות, היסטוריה, מסורת — ללא שמירה",
+      "hiloni": "חילוני/ת",
+      "hiloni_sub": "חופשי/ת, ללא מחויבות דתית",
+      "in_process": "בתהליך / מחפש/ת",
+      "in_process_sub": "עדיין מגדיר/ה את עצמי",
+      "diaspora": "יהודי/ה מהתפוצות",
+      "diaspora_sub": "גר/ה בחו\"ל, שוקל/ת עלייה",
+      "other": "אחר/ת",
+      "other_placeholder": "ספר/י לנו..."
+    },
+    "anchor_sector_hasidic": {
+      "ger": "גור",
+      "belz": "בעלז",
+      "vizhnitz": "ויז'ניץ",
+      "chabad": "חב\"ד",
+      "chabad_sub": "שליחות ואהבת ישראל",
+      "breslov": "ברסלב",
+      "breslov_sub": "שמחה, תפילה אישית, ראש השנה באומן",
+      "satmar": "סאטמר",
+      "skvere": "סקווירא",
+      "boyan": "בויאן",
+      "karlin": "קארלין",
+      "slonim": "סלונים",
+      "toldos_aharon": "תולדות אהרון",
+      "spinka": "שפינקא",
+      "nadvorna": "נדבורנה",
+      "other_hasidic": "חסידות אחרת",
+      "other_hasidic_placeholder": "שם החסידות"
+    },
+    "anchor_sector_diaspora": {
+      "mo_yeshivish": "אורתודוקסי מודרני (MO) — ארה\"ב/UK",
+      "yu_graduate": "בוגר/ת Yeshiva University / Stern",
+      "ivy_league_jewish": "Ivy League עם רקע יהודי חזק",
+      "conservative": "קונסרבטיבי",
+      "reform": "רפורמי",
+      "chabad_diaspora": "חב\"ד",
+      "french_jewish": "יהודי/ה צרפתי/ת",
+      "sephardi_diaspora": "ספרדי/ת מזרחי/ת (מרוקו, תוניס, מצרים...)",
+      "uk_jewish": "יהודי/ה בריטי/ת",
+      "aus_jewish": "יהודי/ה אוסטרלי/ת",
+      "arg_jewish": "יהודי/ה ארגנטינאי/ת",
+      "russian_jewish": "יהודי/ה רוסי/ת",
+      "other_diaspora": "ארץ אחרת",
+      "other_diaspora_placeholder": "ארץ מוצא"
+    },
+    "anchor_life_stage": {
+      "first_marriage": "רווק/ה — נישואים ראשונים",
+      "divorced_no_children": "גרוש/ה — ללא ילדים",
+      "divorced_with_children": "גרוש/ה — עם ילדים",
+      "widowed": "אלמן/ה",
+      "returning": "חוזר/ת לשוק אחרי הפסקה ארוכה"
+    },
+    "s1_charedi_study_work": {
+      "full_kollel": "לומד בכולל מלא — תורה עיקר חיי",
+      "kollel_part": "לומד בכולל וגם עובד חלקי",
+      "works_learns": "עובד ולומד בשיעורים קבועים",
+      "works_only": "עובד — לימוד בעת הפנאי",
+      "studying_yeshiva": "לומד בישיבה גדולה"
+    },
+    "s1_charedi_study_work_f": {
+      "homemaker": "עקרת בית — הבית הוא עולמי",
+      "homemaker_part": "עקרת בית ועובדת חלקי",
+      "working_full": "עובדת במשרה מלאה",
+      "studying": "לומדת (סמינר / מדרשה)",
+      "working_studying": "עובדת ולומדת"
+    },
+    "s1_charedi_military": {
+      "nachal_charedi": "שרתי בנח\"ל חרדי / נצח יהודה",
+      "other_unit": "שרתי ביחידה אחרת",
+      "did_not_serve": "לא שרתי",
+      "exempt": "פטור מסיבות אחרות"
+    },
+    "s1_dl_army_type": {
+      "combat_full": "לוחם — שירות מלא קרבי",
+      "non_combat": "שירות מלא לא קרבי",
+      "hesder": "הסדר — ישיבה + צבא",
+      "yeshiva_only": "ישיבה גדולה — ללא שירות",
+      "kav": "ישיבת קו — שנה ישיבה לאחר הצבא",
+      "exempt_medical": "פטור רפואי",
+      "exempt_other": "פטור אחר",
+      "currently_serving": "משרת/ת כרגע"
+    },
+    "s1_dl_service_f": {
+      "national_service": "שנת שירות",
+      "midrasha": "מדרשה / בית מדרש לנשים",
+      "seminary": "סמינר",
+      "army": "שירות צבאי",
+      "directly_academic": "ישר לאקדמיה",
+      "gap_year_abroad": "שנת הכנה בחו\"ל (ישיבה/מדרשה)",
+      "other_service": "אחר"
+    },
+    "s1_dl_yeshiva_type": {
+      "hesder_yeshiva": "ישיבת הסדר — שילוב תורה וצבא",
+      "hesder_sub": "כגון: הר עציון, שעלבים, כרם ביבנה",
+      "kav_yeshiva": "ישיבת קו — שנה ישיבה לאחר הצבא",
+      "kav_sub": "כגון: עלי, שיח יצחק, ישיבת הר, מרכז הרב",
+      "big_yeshiva": "ישיבה גדולה דתי לאומי",
+      "big_sub": "שנים רבות של לימוד",
+      "yeshiva_high": "ישיבה תיכונית בלבד",
+      "no_yeshiva": "לא למדתי בישיבה"
+    },
+    "s1_dl_yeshiva_specific": {
+      "har_etzion": "הר עציון (גוש עציון)",
+      "shaalvim": "שעלבים",
+      "kerem_byavne": "כרם ביבנה",
+      "har_amiel": "הר עמיאל",
+      "eli": "עלי",
+      "siach": "שיח יצחק",
+      "merkaz_harav": "מרכז הרב",
+      "otniel": "עתניאל",
+      "maale_gilboa": "מעלה גלבוע",
+      "beit_el": "בית אל",
+      "netivot_moshe": "נתיבות משה",
+      "other_yeshiva": "ישיבה אחרת",
+      "other_yeshiva_placeholder": "שם הישיבה"
+    },
+    "s1_dl_zionism": {
+      "strong_zionist": "ציוני/ת אידיאולוגי/ת — ארץ ישראל במרכז",
+      "classic_zionist": "ציוני/ת קלאסי/ת — מדינה, חברה, צבא",
+      "pragmatic_zionist": "ציוני/ת מעשי/ת — כאן כי כאן הבית",
+      "indifferent": "אדיש/ה לציונות",
+      "post_zionist": "פוסט-ציוני/ת",
+      "eretz_israel_focus": "ארץ ישראל לעמה — לאו דווקא המדינה"
+    },
+    "s1_shomer_negiah": {
+      "fully_shomer": "שומר/ת נגיעה — עד חופה",
+      "mostly_shomer": "מנסה לשמור — לא מחמיר/ה על הכל",
+      "not_shomer_open": "לא שומר/ת — פתוח/ה לשותף/ה שומר/ת",
+      "not_shomer_prefer": "לא שומר/ת — מעדיף/ה שגם בן/בת הזוג לא",
+      "not_relevant": "לא רלוונטי עבורי"
+    },
+    "s1_masorti_practices": {
+      "shabbat": "שבת (ברמה כלשהי)",
+      "kashrut": "כשרות (ברמה כלשהי)",
+      "holidays": "חגים יהודיים",
+      "yom_kippur": "יום כיפור",
+      "brit_bar": "ברית / בר בת מצווה",
+      "prayer": "תפילה (מדי פעם)",
+      "jewish_education": "חינוך יהודי לילדים",
+      "nothing_formal": "אין שמירה פורמלית — זהות יהודית"
+    },
+    "s1_hiloni_jewish_identity": {
+      "national_pride": "גאווה לאומית — עם ישראל",
+      "israeli": "ישראליות — כאן הבית שלי",
+      "culture_literature": "ספרות ותרבות יהודית",
+      "history_holocaust": "היסטוריה ושואה",
+      "tikkun_olam": "ערכים אוניברסליים (תיקון עולם)",
+      "family_tradition": "משפחה ומסורת בלבד",
+      "not_defined": "לא מגדיר/ה את עצמי כך"
+    },
+    "s1_bt_path": {
+      "gradual": "תהליך הדרגתי — שנים של חיפוש",
+      "encounter": "פגישה עם יהדות שנגעה בי",
+      "study": "לימוד — ספרים, שיעורים, רבנים",
+      "life_event": "אירוע חיים שגרם לי לחפש משמעות",
+      "community": "קהילה שאהבתי",
+      "army": "צבא — שם פגשתי את זה",
+      "family": "השפעת משפחה",
+      "other_path": "דרך אחרת"
+    },
+    "s1_bt_time": {
+      "less_1": "פחות משנה",
+      "1_3": "1-3 שנים",
+      "3_7": "3-7 שנים",
+      "more_7": "יותר מ-7 שנים"
+    },
+    "s1_diaspora_community": {
+      "orthodox_mo": "אורתודוקסי מודרני",
+      "yu_graduate": "בוגר/ת Yeshiva University",
+      "ivy_league": "Ivy League / אוניברסיטה מובחרת",
+      "conservative_member": "קונסרבטיבי",
+      "reform_member": "רפורמי",
+      "chabad_member": "קהילת חב\"ד",
+      "french_community": "קהילה צרפתית",
+      "sephardi_diaspora_comm": "קהילה ספרדית / מזרחית",
+      "other_community": "קהילה אחרת"
+    },
+    "s1_diaspora_education": {
+      "ivy_league_edu": "Ivy League (הרווארד, ייל, פרינסטון, קולומביה...)",
+      "top_university": "אוניברסיטה מובחרת אחרת (MIT, NYU, LSE...)",
+      "state_university": "אוניברסיטת מדינה",
+      "jewish_university": "Yeshiva University / Stern College",
+      "seminary_abroad": "Sem / Midrasha בחו\"ל",
+      "vocational": "לימודים מקצועיים",
+      "high_school_only": "עד תיכון",
+      "other_education": "אחר"
+    },
+    "s1_diaspora_aliyah": {
+      "planning_soon": "כן — מתכנן/ת לעלות בקרוב",
+      "considering": "שוקל/ת — עוד לא החלטתי",
+      "open_if_right": "פתוח/ה אם זה יהיה עם האדם הנכון",
+      "not_planning": "לא מתכנן/ת לעלות",
+      "already_made_aliyah": "כבר עליתי לישראל"
+    },
+    "s1_diaspora_aliyah_timeline": {
+      "within_year": "תוך שנה",
+      "1_3_years": "1-3 שנים",
+      "3_5_years": "3-5 שנים",
+      "undecided": "לא יודע/ת עדיין"
+    },
+    "s2_ethnic": {
+      "ashkenazi": "אשכנזי/ת",
+      "sephardi_moroccan": "ספרדי/ת — מרוקאי/ת",
+      "sephardi_iraqi": "ספרדי/ת — עיראקי/ת",
+      "sephardi_tunisian": "ספרדי/ת — תוניסאי/ת",
+      "sephardi_libyan": "ספרדי/ת — לובי/ת",
+      "sephardi_yemenite": "תימני/ת",
+      "sephardi_persian": "פרסי/ת — איראני/ת",
+      "sephardi_turkish": "ספרדי/ת — טורקי/ת",
+      "ethiopian": "אתיופי/ת",
+      "russian_ukrainian": "רוסי/ת / אוקראיני/ת",
+      "american": "אמריקאי/ת",
+      "french": "צרפתי/ת",
+      "argentinian": "ארגנטינאי/ת",
+      "mixed": "מעורב/ת",
+      "other_ethnic": "אחר/ת",
+      "other_ethnic_placeholder": "מוצא"
+    },
+    "s2_origin": {
+      "sabra": "ישראלי/ת — נולדתי כאן, ההורים גם",
+      "sabra_parents_olim": "ישראלי/ת — ההורים עלו",
+      "oleh_veteran": "עלה/תה — ותיק/ה (10+ שנים)",
+      "oleh_mid": "עלה/תה — בינוני (3-10 שנים)",
+      "oleh_new": "עלה/תה — חדש/ה (עד 3 שנים)",
+      "abroad_planning": "בחו\"ל — שוקל/ת עלייה"
+    },
+    "s2_oleh_origin": {
+      "usa": "ארה\"ב",
+      "uk": "בריטניה",
+      "france": "צרפת",
+      "russia_ukraine": "רוסיה / אוקראינה",
+      "ethiopia": "אתיופיה",
+      "argentina": "ארגנטינה",
+      "australia": "אוסטרליה",
+      "south_africa": "דרום אפריקה",
+      "canada": "קנדה",
+      "other_country": "ארץ אחרת",
+      "other_country_placeholder": "ארץ"
+    },
+    "s2_oleh_years": {
+      "less_3": "פחות מ-3 שנים",
+      "3_7": "3-7 שנים",
+      "7_15": "7-15 שנים",
+      "more_15": "15+ שנים"
+    },
+    "s2_family_extended": {
+      "very_close": "קרוב/ה מאוד — שבת ביחד, תמיד בקשר",
+      "close": "קרוב/ה — חגים ואירועים",
+      "medium": "בינוני — מדי פעם",
+      "distant": "רחוק/ה — ריחוק גיאוגרפי",
+      "disconnected": "מנותק/ת"
+    },
+    "s2_family_atmosphere": {
+      "warm_vibrant": "חמה ותוססת — תמיד אנשים, אוכל, חיים",
+      "quiet_intimate": "שקטה ומסוגרת — איכות על כמות",
+      "liberal_open": "ליברלית ופתוחה",
+      "conservative_traditional": "שמרנית ומסורתית",
+      "disciplined_values": "בעלת ערכים ומשמעת",
+      "chaotic_free": "חופשית — לא מסגרת קשיחה"
+    },
+    "s2_parents_status": {
+      "married_happy": "נשואים — זוגיות טובה",
+      "married_complex": "נשואים — מורכב",
+      "divorced": "גרושים",
+      "one_passed": "אחד ההורים נפטר",
+      "both_passed": "שניהם נפטרו",
+      "dont_know": "לא מכיר/ה את אחד מהם"
+    },
+    "s2_relationship_parents": {
+      "very_close": "קרוב/ה מאוד — שיחות יומיות",
+      "close": "קרוב/ה — בקשר טוב",
+      "medium": "בינוני — מסתדרים",
+      "complex": "מורכב — יש חיכוכים",
+      "distant": "רחוק/ה"
+    },
+    "s3_energy_type": {
+      "very_introverted": "מופנם/ת מאוד",
+      "introverted": "מופנם/ת",
+      "balanced": "מאוזן/ת",
+      "extroverted": "מוחצן/ת",
+      "very_extroverted": "מוחצן/ת מאוד"
+    },
+    "s3_energy_source": {
+      "deep_conversations": "שיחות עמוקות אחד על אחד",
+      "big_groups": "חברה גדולה ורעש",
+      "quiet_solitude": "שקט ובדידות",
+      "physical_movement": "תנועה פיזית",
+      "art_creation": "יצירה ואמנות",
+      "learning_reading": "למידה וקריאה",
+      "projects_doing": "עשייה ופרויקטים",
+      "helping_others": "עזרה לאחרים",
+      "music": "מוזיקה",
+      "nature": "טבע ואוויר פתוח"
+    },
+    "s3_character_primary": {
+      "humorous": "הומוריסטי/ת — מביא/ה שמחה לסביבה",
+      "serious_deep": "רציני/ת ועמוק/ה — אוהב/ת מחשבה",
+      "practical": "פרקטי/ת — מכוון/ת לתוצאות",
+      "dreamer": "חולמני/ת — אידיאליסט/ית",
+      "leader": "מנהיג/ה — אוהב/ת להוביל",
+      "supporter": "תומך/ת — אוהב/ת לעזור",
+      "creative": "יצירתי/ת — חושב/ת מחוץ לקופסה",
+      "analytical": "אנליטי/ת — חושב/ת בסדר ובמספרים",
+      "empathetic": "אמפתי/ת — קולט/ת רגשות של אחרים",
+      "adventurous": "הרפתקן/ית — אוהב/ת את הבלתי צפוי"
+    },
+    "s3_life_tempo": {
+      "fast_full": "מהיר ומלא — הרבה דברים במקביל",
+      "medium": "ממוצע — שגרה טובה עם גמישות",
+      "slow_intentional": "רגוע ומכוון/ת — מועט ומוקפד"
+    },
+    "s3_spontaneity": {
+      "very_planned": "מתכנן/ת הכל — שונא/ת הפתעות",
+      "planned_flexible": "אוהב/ת תכנון אך גמיש/ה",
+      "spontaneous": "ספונטני/ת — חי/ה ברגע"
+    },
+    "s3_humor": {
+      "ironic_cynical": "אירוני/ציני",
+      "light_playful": "קליל ומשעשע",
+      "absurd": "אבסורד",
+      "wordplay": "משחקי מילים",
+      "self_deprecating": "עצמי — צוחק/ת על עצמי",
+      "dry": "יבש ועדין",
+      "storytelling": "סיפורי — צוחקים על מצבים",
+      "not_humorous": "לא ממש הומוריסטי/ת"
+    },
+    "s3_conflict": {
+      "direct": "ישיר/ה — מדבר/ת מיד",
+      "time_then_talk": "צריך/ה זמן ואז מדבר/ת",
+      "avoidant": "שונא/ת עימות — מעדיף/ה להתפשר",
+      "consensus": "בונה קונסנזוס — מחפש/ת פתרון לכולם"
+    },
+    "s3_social_role": {
+      "center": "מרכז/ת החברה — יוזם/ת וחי/ה",
+      "active_member": "חלק פעיל — אחד/ת מהחבורה",
+      "side_supporter": "תומך/ת מהצד — שם אבל לא מוביל/ה",
+      "one_on_one": "עדיף עם אחד-שניים — פינת זוגות"
+    },
+    "s4_education_level": {
+      "high_school": "תיכון בלבד",
+      "vocational_cert": "תעודה מקצועית / הנדסאי",
+      "bachelor": "תואר ראשון",
+      "master": "תואר שני",
+      "phd": "דוקטורט",
+      "yeshiva_only": "ישיבה/מדרשה (ללא תואר אקדמי)",
+      "yeshiva_plus": "ישיבה/מדרשה + תואר",
+      "studying_now": "לומד/ת כרגע",
+      "other_edu": "אחר"
+    },
+    "s4_field": {
+      "tech_hi_tech": "טכנולוגיה / הייטק",
+      "medicine_health": "רפואה / בריאות",
+      "law": "משפט",
+      "education_teaching": "חינוך והוראה",
+      "business_finance": "עסקים / פיננסים",
+      "art_design": "אמנות ועיצוב",
+      "construction_real_estate": "בנייה / נדל\"ן",
+      "science_research": "מדע ומחקר",
+      "media_communication": "תקשורת ומדיה",
+      "culinary": "קולינריה",
+      "security_military": "ביטחון / צבא",
+      "agriculture_environment": "חקלאות / סביבה",
+      "religious_career": "קריירה דתית (רב, מחנך, שדכן...)",
+      "therapy_wellness": "טיפול ורפואה משלימה",
+      "commerce_retail": "מסחר וקמעונאות",
+      "social_welfare": "עבודה סוציאלית",
+      "entrepreneurship": "יזמות",
+      "academia": "אקדמיה / מחקר",
+      "other_field": "אחר",
+      "other_field_placeholder": "תחום"
+    },
+    "s4_work_status": {
+      "employed_full": "שכיר/ה — משרה מלאה",
+      "employed_part": "שכיר/ה — חלקי",
+      "self_employed": "עצמאי/ת",
+      "entrepreneur": "יזמ/ית",
+      "student_only": "לומד/ת בלבד",
+      "student_working": "לומד/ת ועובד/ת",
+      "kollel": "לומד בכולל",
+      "seeking": "מחפש/ת עבודה",
+      "other_work": "אחר"
+    },
+    "s4_ambition": {
+      "career_center": "קריירה במרכז — בונה/ה משהו גדול",
+      "professional_good": "מקצועי/ת וטוב/ה — לא שואף/ת לגדולות",
+      "balance": "איזון — עבודה חשובה, לא עיקר",
+      "livelihood_only": "פרנסה בלבד — העיקר הבית",
+      "not_defined": "עדיין לא הגדרתי"
+    },
+    "s4_financial_style": {
+      "saver": "חוסך/ת — יציבות זה הכל",
+      "investor": "משקיע/ה — כסף עובד עבורי",
+      "entrepreneur_risk": "יזמי/ת — מוכן/ה לסיכון",
+      "experiential": "מוציא/ה לחוויות — עדיף חוויה",
+      "simple": "פשטות — צרכים בסיסיים מספיקים",
+      "generous": "נדיב/ה — שמחה לתת לאחרים"
+    },
+    "s4_economic_status": {
+      "very_stable": "מצוין — בסיס יציב חזק",
+      "stable": "טוב — עובד/ת, מסתדר/ת",
+      "building": "בהתפתחות — בונה את עצמי",
+      "family_support": "נשען/ת על תמיכת הורים",
+      "challenging": "תקופה מאתגרת"
+    },
+    "s4_housing": {
+      "owns": "בעל/ת דירה",
+      "renting": "שוכר/ת",
+      "with_parents": "גר/ה עם הורים",
+      "dorm_shared": "פנימייה / שיתוף דירה"
+    },
+    "s4_partner_career": {
+      "ambitious_career": "חשוב לי שיהיה/תהיה אמביציוזי/ת",
+      "stable_income": "חשוב לי יציבות וכנסה סבירה",
+      "not_important": "הקריירה לא חשובה לי",
+      "balance_family": "חשוב שיוכל/תוכל לאזן עם המשפחה",
+      "whatever_happy": "העיקר שיהיה/תהיה מאושר/ת במה שעושה/ה"
+    },
+    "s5_location": {
+      "tel_aviv_gush_dan": "תל אביב / גוש דן",
+      "jerusalem": "ירושלים",
+      "bnei_brak": "בני ברק / פתח תקווה",
+      "haifa_north": "חיפה / הצפון",
+      "beer_sheva_south": "באר שבע / הדרום",
+      "modiin_shfela": "מודיעין / השפלה",
+      "settlements_wb": "יישובים / יהודה ושומרון",
+      "community_yishuv": "ישוב קהילתי",
+      "moshav_village": "מושב / כפר",
+      "abroad": "חו\"ל",
+      "flexible": "גמיש/ה — לא עושה לי כלום"
+    },
+    "s5_rhythm": {
+      "very_early": "קם/ה לפני 6 — בוקר מוקדם מאוד",
+      "early": "6-8 — בוקר רגיל",
+      "late_morning": "8-10 — לוקח/ת זמן להתחיל",
+      "night_owl": "ינשוף/ת — חי/ה בלילה"
+    },
+    "s5_kashrut": {
+      "mehadrin": "מהדרין — גלאט, חלב ישראל",
+      "regular_kosher": "כשר רגיל",
+      "kosher_home_not_out": "כשר בבית, פחות קפדן/ית בחוץ",
+      "not_kosher_jewish": "לא כשר — אבל יהודי/ת",
+      "vegetarian": "צמחוני/ת",
+      "vegan": "טבעוני/ת",
+      "not_relevant": "לא עניין אצלי"
+    },
+    "s5_hobbies": {
+      "reading": "קריאה",
+      "music_listening": "מוזיקה (האזנה)",
+      "music_playing": "מוזיקה (נגינה)",
+      "running_fitness": "ריצה / כושר",
+      "yoga_meditation": "יוגה / מדיטציה",
+      "team_sports": "ספורט קבוצתי",
+      "cooking_baking": "בישול ואפייה",
+      "art_drawing": "ציור / עיצוב",
+      "creative_writing": "כתיבה יצירתית",
+      "gardening_nature": "גינון / טבע",
+      "gaming": "גיימינג",
+      "tech_programming": "תכנות / טכנולוגיה",
+      "theater_movies": "תיאטרון / סרטים",
+      "travel": "טיולים",
+      "animals": "בעלי חיים",
+      "photography": "צילום",
+      "torah_study": "לימוד תורה",
+      "volunteering": "התנדבות",
+      "crafts_diy": "עבודות יד / DIY",
+      "dance": "ריקוד",
+      "wine_food": "אוכל טוב / יין",
+      "hiking": "הייקינג / טיולי שטח",
+      "other_hobby": "אחר",
+      "other_hobby_placeholder": "תחביב"
+    },
+    "s5_travel_frequency": {
+      "loves_frequent": "אוהב/ת — כמה פעמים בשנה",
+      "occasionally": "מדי פעם — כשיש הזדמנות",
+      "not_interested": "לא ממש עניין אותי",
+      "not_travel_reasons": "לא נוסע/ת (דתי / כלכלי / אחר)"
+    },
+    "s5_travel_style": {
+      "backpacking_asia": "בקפאקינג — אסיה (הודו, תאילנד, יפן...)",
+      "backpacking_south_america": "בקפאקינג — דרום אמריקה",
+      "europe_culture": "אירופה — תרבות וערים",
+      "north_america": "צפון אמריקה",
+      "israel_nature": "ישראל — טיולי שטח",
+      "luxury_hotels": "נסיעות מפנקות — מלונות ומסעדות",
+      "family_trips": "טיולי משפחה",
+      "jewish_heritage": "ביקור מורשת יהודית",
+      "adventure_extreme": "הרפתקות ואתגרים"
+    },
+    "s5_pets": {
+      "loves_has": "אוהב/ת — יש לי / רוצה",
+      "likes_ok": "בסדר — לא מתנגד/ת",
+      "prefer_without": "מעדיף/ה בלי",
+      "allergic": "אלרגי/ה"
+    },
+    "s5_politics": {
+      "left": "שמאל",
+      "center_left": "מרכז-שמאל",
+      "center": "מרכז",
+      "center_right": "מרכז-ימין",
+      "right": "ימין",
+      "far_right": "ימין קיצוני",
+      "religious_right": "דתי לאומי / ימין דתי",
+      "charedi_parties": "חרדי / ש\"ס / יהדות התורה",
+      "not_engaged": "לא עוסק/ת בפוליטיקה"
+    },
+    "s5_diet": {
+      "vegetarian_diet": "צמחוני/ת",
+      "vegan_diet": "טבעוני/ת",
+      "gluten_free": "ללא גלוטן",
+      "dairy_free": "ללא מוצרי חלב",
+      "nut_allergy": "אלרגיה לאגוזים",
+      "no_restrictions": "ללא הגבלות"
+    },
+    "s6_children_count": {
+      "one_two": "1-2 ילדים",
+      "three_four": "3-4 ילדים",
+      "five_six": "5-6 ילדים",
+      "as_many_as": "כמה שיבוא מהשמיים",
+      "not_sure": "לא בטוח/ה עדיין",
+      "dont_want": "לא רוצה ילדים",
+      "have_enough": "יש לי ולא רוצה עוד"
+    },
+    "s6_home_roles": {
+      "full_sharing": "שיתוף מלא — כל אחד עושה הכל",
+      "traditional": "חלוקה מסורתית — הוא מפרנס, היא מנהלת",
+      "flexible": "גמיש — לפי מה שמתאים",
+      "both_work_help": "שניהם עובדים ושוכרים עזרה",
+      "she_works_too": "הוא מפרנס עיקרי, היא עובדת גם"
+    },
+    "s6_parenting_style": {
+      "very_involved": "הורה קרוב מאוד — בכל רגע",
+      "supportive": "תומך/ת ומגן/ה — שם כשצריך",
+      "educating": "מחנך/ת ומכוון/ת — מסורת ומשמעת",
+      "free_developing": "חופשי/ה — ילד/ה יתפתח/תתפתח בעצמו/ה"
+    },
+    "s6_education_system": {
+      "state": "ממלכתי רגיל",
+      "state_religious": "ממלכתי דתי",
+      "charedi": "חרדי / עצמאי",
+      "alternative": "אלטרנטיבי (דמוקרטי, מונטסורי...)",
+      "international": "בינלאומי / אנגלית",
+      "not_yet": "עדיין לא חשבתי על זה"
+    },
+    "s6_home_atmosphere": {
+      "open_guests": "בית פתוח — אנשים תמיד מוזמנים",
+      "private_family": "בית פנימי — שלנו ולילדים",
+      "religious_structure": "בית עם מסגרת דתית ברורה",
+      "liberal": "בית חופשי וליברלי",
+      "quiet_order": "בית שקט ומסודר",
+      "lively_noisy": "בית חי ורועש ומלא אנרגיה"
+    },
+    "s6_partner_children": {
+      "open_yes": "כן — פתוח/ה לבן/בת זוג עם ילדים",
+      "open_depends": "תלוי — צריך/ה לדעת יותר",
+      "prefer_without": "מעדיף/ה ללא ילדים מנישואים קודמים",
+      "not_ok": "זה לא מתאים לי"
+    },
+    "s6_blended_family": {
+      "full_parent": "מצפה שיהיה/תהיה הורה מלא לילדיי",
+      "supportive_role": "תפקיד תומך — לא הורה מלא",
+      "respectful_distance": "כבוד ומרחק — הם הילדים שלי",
+      "figure_out_together": "נסתדר ביחד — אין ציפייה קבועה"
+    },
+    "s7_relationship_meaning": {
+      "partnership_build": "שותפות — יחד נבנה משהו גדול",
+      "love_emotion": "אהבה ורגש — לב פתוח ומרגיש",
+      "best_friendship": "ידידות — הכי טוב שלי",
+      "home_stability": "בית ויציבות — מקום בטוח",
+      "growth_together": "צמיחה — לגדול יחד",
+      "mutual_respect": "כבוד הדדי — שמירה על העצמי",
+      "support_each_other": "תמיכה — שם בשביל זה לאחד השני"
+    },
+    "s7_love_language": {
+      "quality_time": "זמן איכות — להיות ביחד",
+      "words_affirmation": "מילים ומחמאות — לשמוע ולהגיד",
+      "acts_of_service": "עשייה — לעשות בשביל",
+      "physical_touch": "מגע פיזי — חיבוקים, קרבה",
+      "gifts": "מתנות ומחוות — ההפתעות הקטנות"
+    },
+    "s7_closeness": {
+      "very_close": "קרוב/ה מאוד — רוצה לעשות הכל ביחד",
+      "balanced": "איזון — ביחד וגם כל אחד לעצמו",
+      "independent": "עצמאי/ת — צריך/ה מרחב אישי"
+    },
+    "s7_meeting_pace": {
+      "fast": "מהיר — אחרי כמה פגישות יודע/ת",
+      "medium": "ממוצע — כמה שבועות",
+      "slow": "איטי — צריך/ה זמן וסבלנות"
+    },
+    "s7_relationship_model": {
+      "equal_partnership": "שותפות שווה — אנחנו צוות",
+      "traditional_roles": "תפקידים מסורתיים — הוא מוביל, היא תומכת",
+      "she_leads": "היא מובילה — היא החזקה",
+      "romantic_expressive": "רומנטי/ת ומפנק/ת",
+      "pragmatic_stable": "פרקטי/ת ויציב/ה — אהבה בעשייה"
+    }
+  }
+}

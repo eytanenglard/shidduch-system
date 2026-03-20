@@ -31,7 +31,7 @@ const SectionCard: React.FC<SectionCardProps> = ({
   <div className={cn('mb-6', className)}>
     <div className="flex items-center gap-2 mb-3">
       {Icon && <Icon className="w-4 h-4 text-gray-400 flex-shrink-0" />}
-      <div>
+      <div className="min-w-0">
         <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide">
           {title}
         </h3>
@@ -43,6 +43,7 @@ const SectionCard: React.FC<SectionCardProps> = ({
     <div
       className={cn(
         'bg-white rounded-xl border border-gray-100 p-5',
+        'shadow-[0_1px_2px_rgba(0,0,0,0.03),0_2px_8px_rgba(0,0,0,0.03)]',
         contentClassName
       )}
     >

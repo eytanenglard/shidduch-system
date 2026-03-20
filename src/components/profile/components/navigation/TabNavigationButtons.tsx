@@ -4,6 +4,7 @@ import React, { useMemo } from 'react';
 import { cn } from '@/lib/utils';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import type { ThemeType } from '../../constants/theme';
+import { BRAND } from '../../constants/theme';
 import type { ProfileCardDisplayDict } from '@/types/dictionary';
 
 interface TabNavigationButtonsProps {
@@ -66,9 +67,9 @@ const TabNavigationButtons: React.FC<TabNavigationButtonsProps> = ({
         <button
           onClick={() => onTabChange(nextTab.value)}
           className={cn(
-            'flex-1 flex items-center justify-end gap-2 p-3 rounded-lg text-white transition-colors text-end min-h-[44px]',
-            THEME.accentBg,
-            THEME.accentBgHover
+            'flex-1 flex items-center justify-end gap-2 p-3 rounded-lg text-white transition-all text-end min-h-[44px] shadow-sm hover:shadow-md',
+            BRAND.primaryBg,
+            BRAND.primaryBgHover
           )}
         >
           <div>

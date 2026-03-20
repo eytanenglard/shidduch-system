@@ -18,6 +18,7 @@ import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { ChevronLeft, ChevronRight, X, Camera } from 'lucide-react';
 
 import type { ThemeType } from '../../constants/theme';
+import { BRAND } from '../../constants/theme';
 import type { UserImage } from '@/types/next-auth';
 import type { ProfileCardDisplayDict } from '@/types/dictionary';
 
@@ -113,9 +114,9 @@ const ImageDialog: React.FC<ImageDialogProps> = ({
                 className={cn(
                   'absolute top-1/2 -translate-y-1/2 rounded-full',
                   direction === 'rtl' ? 'right-4' : 'left-4',
-                  THEME.accentBg,
+                  BRAND.primaryBg,
                   'text-white border-0',
-                  'backdrop-blur-sm transition-opacity hover:opacity-90',
+                  'backdrop-blur-sm transition-all hover:opacity-90 hover:scale-105',
                   'w-12 h-12 sm:w-14 sm:h-14 min-h-[44px] min-w-[44px]'
                 )}
                 onClick={() => onNavigate('prev')}
@@ -128,9 +129,9 @@ const ImageDialog: React.FC<ImageDialogProps> = ({
                 className={cn(
                   'absolute top-1/2 -translate-y-1/2 rounded-full',
                   direction === 'rtl' ? 'left-4' : 'right-4',
-                  THEME.accentBg,
+                  BRAND.primaryBg,
                   'text-white border-0',
-                  'backdrop-blur-sm transition-opacity hover:opacity-90',
+                  'backdrop-blur-sm transition-all hover:opacity-90 hover:scale-105',
                   'w-12 h-12 sm:w-14 sm:h-14 min-h-[44px] min-w-[44px]'
                 )}
                 onClick={() => onNavigate('next')}
