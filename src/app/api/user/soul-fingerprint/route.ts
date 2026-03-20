@@ -90,6 +90,13 @@ export async function POST(req: NextRequest) {
       },
     });
 
+    // Fire-and-forget AI enrichment when questionnaire is completed
+    if (isComplete) {
+      import('@/lib/services/soulFingerprintAIService')
+        .then(({ enrichSoulFingerprintWithAI }) => enrichSoulFingerprintWithAI(session.user.id))
+        .catch((err) => console.error('[SoulFingerprint] AI enrichment failed:', err));
+    }
+
     return NextResponse.json({ profileTags, success: true });
   } catch (error) {
     console.error('POST /api/user/soul-fingerprint error:', error);

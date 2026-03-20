@@ -425,6 +425,91 @@ export const IDENTITY_QUESTIONS: SFQuestion[] = [
   },
 ];
 
+// ========== IDENTITY PARTNER QUESTIONS ==========
+export const IDENTITY_PARTNER_QUESTIONS: SFQuestion[] = [
+  {
+    id: 'p_sector_preference',
+    type: 'multiSelect',
+    textKey: 'questions.p_sector_preference.text',
+    subtitleKey: 'questions.p_sector_preference.subtitle',
+    category: 'sector',
+    forSelf: false,
+    forPartner: true,
+    maxSelections: 5,
+    options: [
+      { value: 'charedi_litvish', labelKey: 'options.anchor_sector.charedi_litvish', icon: '🕍' },
+      { value: 'charedi_hasidic', labelKey: 'options.anchor_sector.charedi_hasidic', icon: '🕍' },
+      { value: 'charedi_sephardi', labelKey: 'options.anchor_sector.charedi_sephardi', icon: '🕍' },
+      { value: 'charedi_modern', labelKey: 'options.anchor_sector.charedi_modern', icon: '🕍' },
+      { value: 'hardal', labelKey: 'options.anchor_sector.hardal', icon: '🏔️' },
+      { value: 'dati_leumi_torani', labelKey: 'options.anchor_sector.dati_leumi_torani', icon: '🏔️' },
+      { value: 'dati_leumi_classic', labelKey: 'options.anchor_sector.dati_leumi_classic', icon: '🏔️' },
+      { value: 'dati_leumi_modern', labelKey: 'options.anchor_sector.dati_leumi_modern', icon: '🏔️' },
+      { value: 'dati_lite', labelKey: 'options.anchor_sector.dati_lite', icon: '🕯️' },
+      { value: 'chozer_bteshuva', labelKey: 'options.anchor_sector.chozer_bteshuva', icon: '🔍' },
+      { value: 'masorti_strong', labelKey: 'options.anchor_sector.masorti_strong', icon: '🕯️' },
+      { value: 'masorti_medium', labelKey: 'options.anchor_sector.masorti_medium', icon: '🕯️' },
+      { value: 'masorti_light', labelKey: 'options.anchor_sector.masorti_light', icon: '🕯️' },
+      { value: 'hiloni_jewish', labelKey: 'options.anchor_sector.hiloni_jewish', icon: '✡️' },
+      { value: 'hiloni_cultural', labelKey: 'options.anchor_sector.hiloni_cultural', icon: '✡️' },
+      { value: 'hiloni', labelKey: 'options.anchor_sector.hiloni', icon: '✡️' },
+      { value: 'doesnt_matter', labelKey: 'options.common.doesnt_matter', icon: '🤷' },
+    ],
+  },
+  {
+    id: 'p_zionism_preference',
+    type: 'singleChoice',
+    textKey: 'questions.p_zionism_preference.text',
+    category: 'sector',
+    forSelf: false,
+    forPartner: true,
+    conditions: { sectorGroups: ['dati_leumi'] },
+    options: [
+      { value: 'strong_zionist', labelKey: 'options.s1_dl_zionism.strong_zionist' },
+      { value: 'classic_zionist', labelKey: 'options.s1_dl_zionism.classic_zionist' },
+      { value: 'pragmatic_zionist', labelKey: 'options.s1_dl_zionism.pragmatic_zionist' },
+      { value: 'doesnt_matter', labelKey: 'options.common.doesnt_matter', icon: '🤷' },
+    ],
+  },
+  {
+    id: 'p_masorti_practices',
+    type: 'multiSelect',
+    textKey: 'questions.p_masorti_practices.text',
+    category: 'sector',
+    forSelf: false,
+    forPartner: true,
+    maxSelections: 8,
+    conditions: { sectorGroups: ['masorti'] },
+    options: [
+      { value: 'shabbat', labelKey: 'options.s1_masorti_practices.shabbat' },
+      { value: 'kashrut', labelKey: 'options.s1_masorti_practices.kashrut' },
+      { value: 'holidays', labelKey: 'options.s1_masorti_practices.holidays' },
+      { value: 'yom_kippur', labelKey: 'options.s1_masorti_practices.yom_kippur' },
+      { value: 'prayer', labelKey: 'options.s1_masorti_practices.prayer' },
+      { value: 'jewish_education', labelKey: 'options.s1_masorti_practices.jewish_education' },
+      { value: 'doesnt_matter', labelKey: 'options.common.doesnt_matter', icon: '🤷' },
+    ],
+  },
+  {
+    id: 'p_hiloni_identity',
+    type: 'multiSelect',
+    textKey: 'questions.p_hiloni_identity.text',
+    category: 'sector',
+    forSelf: false,
+    forPartner: true,
+    maxSelections: 3,
+    conditions: { sectorGroups: ['hiloni'] },
+    options: [
+      { value: 'national_pride', labelKey: 'options.s1_hiloni_jewish_identity.national_pride' },
+      { value: 'israeli', labelKey: 'options.s1_hiloni_jewish_identity.israeli' },
+      { value: 'culture_literature', labelKey: 'options.s1_hiloni_jewish_identity.culture_literature' },
+      { value: 'tikkun_olam', labelKey: 'options.s1_hiloni_jewish_identity.tikkun_olam' },
+      { value: 'family_tradition', labelKey: 'options.s1_hiloni_jewish_identity.family_tradition' },
+      { value: 'doesnt_matter', labelKey: 'options.common.doesnt_matter', icon: '🤷' },
+    ],
+  },
+];
+
 // ========== BACKGROUND QUESTIONS (Section 2) ==========
 export const BACKGROUND_QUESTIONS: SFQuestion[] = [
   {
@@ -574,6 +659,46 @@ export const BACKGROUND_QUESTIONS: SFQuestion[] = [
   },
 ];
 
+// ========== BACKGROUND PARTNER + NEW SELF QUESTIONS ==========
+export const BACKGROUND_EXTRA_QUESTIONS: SFQuestion[] = [
+  // New self: family size
+  {
+    id: 's2_family_size',
+    type: 'singleChoice',
+    textKey: 'questions.s2_family_size.text',
+    category: 'background',
+    forSelf: true,
+    forPartner: false,
+    options: [
+      { value: 'only_child', labelKey: 'options.s2_family_size.only_child' },
+      { value: 'small_family', labelKey: 'options.s2_family_size.small_family' },
+      { value: 'medium_family', labelKey: 'options.s2_family_size.medium_family' },
+      { value: 'big_family_origin', labelKey: 'options.s2_family_size.big_family_origin' },
+    ],
+  },
+  // Partner: ethnic preference
+  {
+    id: 'p_ethnic_preference',
+    type: 'multiSelect',
+    textKey: 'questions.p_ethnic_preference.text',
+    subtitleKey: 'questions.p_ethnic_preference.subtitle',
+    category: 'background',
+    forSelf: false,
+    forPartner: true,
+    maxSelections: 5,
+    options: [
+      { value: 'ashkenazi', labelKey: 'options.s2_ethnic.ashkenazi' },
+      { value: 'sephardi_moroccan', labelKey: 'options.s2_ethnic.sephardi_moroccan' },
+      { value: 'sephardi_iraqi', labelKey: 'options.s2_ethnic.sephardi_iraqi' },
+      { value: 'sephardi_yemenite', labelKey: 'options.s2_ethnic.sephardi_yemenite' },
+      { value: 'ethiopian', labelKey: 'options.s2_ethnic.ethiopian' },
+      { value: 'russian_ukrainian', labelKey: 'options.s2_ethnic.russian_ukrainian' },
+      { value: 'mixed', labelKey: 'options.s2_ethnic.mixed' },
+      { value: 'doesnt_matter', labelKey: 'options.common.doesnt_matter', icon: '🤷' },
+    ],
+  },
+];
+
 // ========== PERSONALITY QUESTIONS (Section 3) ==========
 export const PERSONALITY_QUESTIONS: SFQuestion[] = [
   {
@@ -716,6 +841,174 @@ export const PERSONALITY_QUESTIONS: SFQuestion[] = [
     forPartner: false,
     isOptional: true,
     maxCustomLength: 150,
+  },
+];
+
+// ========== PERSONALITY NEW SELF + PARTNER QUESTIONS ==========
+export const PERSONALITY_EXTRA_QUESTIONS: SFQuestion[] = [
+  // New self: emotional sensitivity
+  {
+    id: 's3_sensitivity',
+    type: 'singleChoice',
+    textKey: 'questions.s3_sensitivity.text',
+    category: 'personality',
+    forSelf: true,
+    forPartner: false,
+    options: [
+      { value: 'very_sensitive', labelKey: 'options.s3_sensitivity.very_sensitive' },
+      { value: 'balanced_sensitivity', labelKey: 'options.s3_sensitivity.balanced_sensitivity' },
+      { value: 'thick_skinned', labelKey: 'options.s3_sensitivity.thick_skinned' },
+    ],
+  },
+  // New self: approach to change
+  {
+    id: 's3_change_approach',
+    type: 'singleChoice',
+    textKey: 'questions.s3_change_approach.text',
+    category: 'personality',
+    forSelf: true,
+    forPartner: false,
+    options: [
+      { value: 'embraces_change', labelKey: 'options.s3_change_approach.embraces_change' },
+      { value: 'cautious_change', labelKey: 'options.s3_change_approach.cautious_change' },
+      { value: 'stability_seeker', labelKey: 'options.s3_change_approach.stability_seeker' },
+    ],
+  },
+  // Partner: energy type
+  {
+    id: 'p_energy_type',
+    type: 'slider',
+    textKey: 'questions.p_energy_type.text',
+    subtitleKey: 'questions.p_energy_type.subtitle',
+    category: 'personality',
+    forSelf: false,
+    forPartner: true,
+    sliderMin: 0,
+    sliderMax: 100,
+    sliderLeftKey: 'options.s3_energy_type.very_introverted',
+    sliderRightKey: 'options.s3_energy_type.very_extroverted',
+  },
+  // Partner: energy source
+  {
+    id: 'p_energy_source',
+    type: 'multiSelect',
+    textKey: 'questions.p_energy_source.text',
+    category: 'personality',
+    forSelf: false,
+    forPartner: true,
+    maxSelections: 3,
+    options: [
+      { value: 'deep_conversations', labelKey: 'options.s3_energy_source.deep_conversations' },
+      { value: 'big_groups', labelKey: 'options.s3_energy_source.big_groups' },
+      { value: 'quiet_solitude', labelKey: 'options.s3_energy_source.quiet_solitude' },
+      { value: 'physical_movement', labelKey: 'options.s3_energy_source.physical_movement' },
+      { value: 'art_creation', labelKey: 'options.s3_energy_source.art_creation' },
+      { value: 'learning_reading', labelKey: 'options.s3_energy_source.learning_reading' },
+      { value: 'doesnt_matter', labelKey: 'options.common.doesnt_matter', icon: '🤷' },
+    ],
+  },
+  // Partner: character preferred
+  {
+    id: 'p_character_preferred',
+    type: 'multiSelect',
+    textKey: 'questions.p_character_preferred.text',
+    subtitleKey: 'questions.p_character_preferred.subtitle',
+    category: 'personality',
+    forSelf: false,
+    forPartner: true,
+    maxSelections: 3,
+    options: [
+      { value: 'humorous', labelKey: 'options.s3_character_primary.humorous', icon: '😄' },
+      { value: 'serious_deep', labelKey: 'options.s3_character_primary.serious_deep', icon: '🤔' },
+      { value: 'practical', labelKey: 'options.s3_character_primary.practical', icon: '⚡' },
+      { value: 'dreamer', labelKey: 'options.s3_character_primary.dreamer', icon: '🌟' },
+      { value: 'leader', labelKey: 'options.s3_character_primary.leader', icon: '🎯' },
+      { value: 'supporter', labelKey: 'options.s3_character_primary.supporter', icon: '🤝' },
+      { value: 'creative', labelKey: 'options.s3_character_primary.creative', icon: '🎨' },
+      { value: 'analytical', labelKey: 'options.s3_character_primary.analytical', icon: '📊' },
+      { value: 'empathetic', labelKey: 'options.s3_character_primary.empathetic', icon: '❤️' },
+      { value: 'adventurous', labelKey: 'options.s3_character_primary.adventurous', icon: '🏔️' },
+      { value: 'doesnt_matter', labelKey: 'options.common.doesnt_matter', icon: '🤷' },
+    ],
+  },
+  // Partner: life tempo
+  {
+    id: 'p_life_tempo',
+    type: 'singleChoice',
+    textKey: 'questions.p_life_tempo.text',
+    category: 'personality',
+    forSelf: false,
+    forPartner: true,
+    options: [
+      { value: 'fast_full', labelKey: 'options.s3_life_tempo.fast_full' },
+      { value: 'medium', labelKey: 'options.s3_life_tempo.medium' },
+      { value: 'slow_intentional', labelKey: 'options.s3_life_tempo.slow_intentional' },
+      { value: 'doesnt_matter', labelKey: 'options.common.doesnt_matter', icon: '🤷' },
+    ],
+  },
+  // Partner: spontaneity
+  {
+    id: 'p_spontaneity',
+    type: 'singleChoice',
+    textKey: 'questions.p_spontaneity.text',
+    category: 'personality',
+    forSelf: false,
+    forPartner: true,
+    options: [
+      { value: 'very_planned', labelKey: 'options.s3_spontaneity.very_planned' },
+      { value: 'planned_flexible', labelKey: 'options.s3_spontaneity.planned_flexible' },
+      { value: 'spontaneous', labelKey: 'options.s3_spontaneity.spontaneous' },
+      { value: 'doesnt_matter', labelKey: 'options.common.doesnt_matter', icon: '🤷' },
+    ],
+  },
+  // Partner: humor
+  {
+    id: 'p_humor',
+    type: 'multiSelect',
+    textKey: 'questions.p_humor.text',
+    category: 'personality',
+    forSelf: false,
+    forPartner: true,
+    maxSelections: 3,
+    options: [
+      { value: 'ironic_cynical', labelKey: 'options.s3_humor.ironic_cynical' },
+      { value: 'light_playful', labelKey: 'options.s3_humor.light_playful' },
+      { value: 'absurd', labelKey: 'options.s3_humor.absurd' },
+      { value: 'dry', labelKey: 'options.s3_humor.dry' },
+      { value: 'storytelling', labelKey: 'options.s3_humor.storytelling' },
+      { value: 'doesnt_matter', labelKey: 'options.common.doesnt_matter', icon: '🤷' },
+    ],
+  },
+  // Partner: conflict style
+  {
+    id: 'p_conflict',
+    type: 'singleChoice',
+    textKey: 'questions.p_conflict.text',
+    category: 'personality',
+    forSelf: false,
+    forPartner: true,
+    options: [
+      { value: 'direct', labelKey: 'options.s3_conflict.direct' },
+      { value: 'time_then_talk', labelKey: 'options.s3_conflict.time_then_talk' },
+      { value: 'consensus', labelKey: 'options.s3_conflict.consensus' },
+      { value: 'doesnt_matter', labelKey: 'options.common.doesnt_matter', icon: '🤷' },
+    ],
+  },
+  // Partner: social role
+  {
+    id: 'p_social_role',
+    type: 'singleChoice',
+    textKey: 'questions.p_social_role.text',
+    category: 'personality',
+    forSelf: false,
+    forPartner: true,
+    options: [
+      { value: 'center', labelKey: 'options.s3_social_role.center' },
+      { value: 'active_member', labelKey: 'options.s3_social_role.active_member' },
+      { value: 'side_supporter', labelKey: 'options.s3_social_role.side_supporter' },
+      { value: 'one_on_one', labelKey: 'options.s3_social_role.one_on_one' },
+      { value: 'doesnt_matter', labelKey: 'options.common.doesnt_matter', icon: '🤷' },
+    ],
   },
 ];
 
@@ -863,6 +1156,113 @@ export const CAREER_QUESTIONS: SFQuestion[] = [
       { value: 'not_important', labelKey: 'options.s4_partner_career.not_important' },
       { value: 'balance_family', labelKey: 'options.s4_partner_career.balance_family' },
       { value: 'whatever_happy', labelKey: 'options.s4_partner_career.whatever_happy' },
+    ],
+  },
+];
+
+// ========== CAREER NEW SELF + PARTNER QUESTIONS ==========
+export const CAREER_EXTRA_QUESTIONS: SFQuestion[] = [
+  // New self: life priority
+  {
+    id: 's4_life_priority',
+    type: 'singleChoice',
+    textKey: 'questions.s4_life_priority.text',
+    category: 'career',
+    forSelf: true,
+    forPartner: false,
+    options: [
+      { value: 'priority_career', labelKey: 'options.s4_life_priority.priority_career', icon: '💼' },
+      { value: 'priority_family', labelKey: 'options.s4_life_priority.priority_family', icon: '👨‍👩‍👧‍👦' },
+      { value: 'priority_growth', labelKey: 'options.s4_life_priority.priority_growth', icon: '🌱' },
+      { value: 'priority_faith', labelKey: 'options.s4_life_priority.priority_faith', icon: '🕊️' },
+      { value: 'priority_adventure', labelKey: 'options.s4_life_priority.priority_adventure', icon: '🌍' },
+    ],
+  },
+  // New self: money attitude
+  {
+    id: 's4_money_attitude',
+    type: 'singleChoice',
+    textKey: 'questions.s4_money_attitude.text',
+    category: 'career',
+    forSelf: true,
+    forPartner: false,
+    options: [
+      { value: 'money_important', labelKey: 'options.s4_money_attitude.money_important' },
+      { value: 'money_tool', labelKey: 'options.s4_money_attitude.money_tool' },
+      { value: 'money_secondary', labelKey: 'options.s4_money_attitude.money_secondary' },
+      { value: 'money_spiritual', labelKey: 'options.s4_money_attitude.money_spiritual' },
+    ],
+  },
+  // Partner: education level
+  {
+    id: 'p_education_level',
+    type: 'multiSelect',
+    textKey: 'questions.p_education_level.text',
+    category: 'career',
+    forSelf: false,
+    forPartner: true,
+    maxSelections: 3,
+    options: [
+      { value: 'high_school', labelKey: 'options.s4_education_level.high_school' },
+      { value: 'vocational_cert', labelKey: 'options.s4_education_level.vocational_cert' },
+      { value: 'bachelor', labelKey: 'options.s4_education_level.bachelor' },
+      { value: 'master', labelKey: 'options.s4_education_level.master' },
+      { value: 'phd', labelKey: 'options.s4_education_level.phd' },
+      { value: 'yeshiva_only', labelKey: 'options.s4_education_level.yeshiva_only' },
+      { value: 'doesnt_matter', labelKey: 'options.common.doesnt_matter', icon: '🤷' },
+    ],
+  },
+  // Partner: field
+  {
+    id: 'p_field',
+    type: 'multiSelect',
+    textKey: 'questions.p_field.text',
+    category: 'career',
+    forSelf: false,
+    forPartner: true,
+    maxSelections: 5,
+    options: [
+      { value: 'tech_hi_tech', labelKey: 'options.s4_field.tech_hi_tech', icon: '💻' },
+      { value: 'medicine_health', labelKey: 'options.s4_field.medicine_health', icon: '🏥' },
+      { value: 'law', labelKey: 'options.s4_field.law', icon: '⚖️' },
+      { value: 'education_teaching', labelKey: 'options.s4_field.education_teaching', icon: '🏫' },
+      { value: 'business_finance', labelKey: 'options.s4_field.business_finance', icon: '📊' },
+      { value: 'art_design', labelKey: 'options.s4_field.art_design', icon: '🎨' },
+      { value: 'entrepreneurship', labelKey: 'options.s4_field.entrepreneurship', icon: '🚀' },
+      { value: 'therapy_wellness', labelKey: 'options.s4_field.therapy_wellness', icon: '💆' },
+      { value: 'doesnt_matter', labelKey: 'options.common.doesnt_matter', icon: '🤷' },
+    ],
+  },
+  // Partner: ambition
+  {
+    id: 'p_ambition',
+    type: 'singleChoice',
+    textKey: 'questions.p_ambition.text',
+    category: 'career',
+    forSelf: false,
+    forPartner: true,
+    options: [
+      { value: 'career_center', labelKey: 'options.s4_ambition.career_center' },
+      { value: 'professional_good', labelKey: 'options.s4_ambition.professional_good' },
+      { value: 'balance', labelKey: 'options.s4_ambition.balance' },
+      { value: 'livelihood_only', labelKey: 'options.s4_ambition.livelihood_only' },
+      { value: 'doesnt_matter', labelKey: 'options.common.doesnt_matter', icon: '🤷' },
+    ],
+  },
+  // Partner: financial style
+  {
+    id: 'p_financial_style',
+    type: 'singleChoice',
+    textKey: 'questions.p_financial_style.text',
+    category: 'career',
+    forSelf: false,
+    forPartner: true,
+    options: [
+      { value: 'saver', labelKey: 'options.s4_financial_style.saver' },
+      { value: 'investor', labelKey: 'options.s4_financial_style.investor' },
+      { value: 'experiential', labelKey: 'options.s4_financial_style.experiential' },
+      { value: 'simple', labelKey: 'options.s4_financial_style.simple' },
+      { value: 'doesnt_matter', labelKey: 'options.common.doesnt_matter', icon: '🤷' },
     ],
   },
 ];
@@ -1053,6 +1453,218 @@ export const LIFESTYLE_QUESTIONS: SFQuestion[] = [
   },
 ];
 
+// ========== LIFESTYLE NEW SELF + PARTNER QUESTIONS ==========
+export const LIFESTYLE_EXTRA_QUESTIONS: SFQuestion[] = [
+  // New self: fitness/health
+  {
+    id: 's5_fitness',
+    type: 'singleChoice',
+    textKey: 'questions.s5_fitness.text',
+    category: 'lifestyle',
+    forSelf: true,
+    forPartner: false,
+    options: [
+      { value: 'very_active', labelKey: 'options.s5_fitness.very_active' },
+      { value: 'moderately_active', labelKey: 'options.s5_fitness.moderately_active' },
+      { value: 'not_active', labelKey: 'options.s5_fitness.not_active' },
+      { value: 'health_focused', labelKey: 'options.s5_fitness.health_focused' },
+    ],
+  },
+  // New self: smoking
+  {
+    id: 's5_smoking',
+    type: 'singleChoice',
+    textKey: 'questions.s5_smoking.text',
+    category: 'lifestyle',
+    forSelf: true,
+    forPartner: false,
+    options: [
+      { value: 'non_smoker', labelKey: 'options.s5_smoking.non_smoker' },
+      { value: 'social_smoker', labelKey: 'options.s5_smoking.social_smoker' },
+      { value: 'regular_smoker', labelKey: 'options.s5_smoking.regular_smoker' },
+      { value: 'quit_smoking', labelKey: 'options.s5_smoking.quit_smoking' },
+    ],
+  },
+  // New self: dress style
+  {
+    id: 's5_dress_style',
+    type: 'singleChoice',
+    textKey: 'questions.s5_dress_style.text',
+    category: 'lifestyle',
+    forSelf: true,
+    forPartner: false,
+    options: [
+      { value: 'formal_dress', labelKey: 'options.s5_dress_style.formal_dress' },
+      { value: 'casual_dress', labelKey: 'options.s5_dress_style.casual_dress' },
+      { value: 'sporty_dress', labelKey: 'options.s5_dress_style.sporty_dress' },
+      { value: 'creative_dress', labelKey: 'options.s5_dress_style.creative_dress' },
+      { value: 'modest_dress', labelKey: 'options.s5_dress_style.modest_dress' },
+    ],
+  },
+  // New self: open to abroad
+  {
+    id: 's5_open_abroad',
+    type: 'singleChoice',
+    textKey: 'questions.s5_open_abroad.text',
+    category: 'lifestyle',
+    forSelf: true,
+    forPartner: false,
+    options: [
+      { value: 'open_abroad', labelKey: 'options.s5_open_abroad.open_abroad' },
+      { value: 'israel_only', labelKey: 'options.s5_open_abroad.israel_only' },
+      { value: 'considering_abroad', labelKey: 'options.s5_open_abroad.considering_abroad' },
+    ],
+  },
+  // Partner: location
+  {
+    id: 'p_location',
+    type: 'multiSelect',
+    textKey: 'questions.p_location.text',
+    category: 'lifestyle',
+    forSelf: false,
+    forPartner: true,
+    maxSelections: 4,
+    options: [
+      { value: 'tel_aviv_gush_dan', labelKey: 'options.s5_location.tel_aviv_gush_dan' },
+      { value: 'jerusalem', labelKey: 'options.s5_location.jerusalem' },
+      { value: 'bnei_brak', labelKey: 'options.s5_location.bnei_brak' },
+      { value: 'haifa_north', labelKey: 'options.s5_location.haifa_north' },
+      { value: 'beer_sheva_south', labelKey: 'options.s5_location.beer_sheva_south' },
+      { value: 'modiin_shfela', labelKey: 'options.s5_location.modiin_shfela' },
+      { value: 'settlements_wb', labelKey: 'options.s5_location.settlements_wb' },
+      { value: 'flexible', labelKey: 'options.s5_location.flexible' },
+      { value: 'doesnt_matter', labelKey: 'options.common.doesnt_matter', icon: '🤷' },
+    ],
+  },
+  // Partner: rhythm
+  {
+    id: 'p_rhythm',
+    type: 'singleChoice',
+    textKey: 'questions.p_rhythm.text',
+    category: 'lifestyle',
+    forSelf: false,
+    forPartner: true,
+    options: [
+      { value: 'very_early', labelKey: 'options.s5_rhythm.very_early' },
+      { value: 'early', labelKey: 'options.s5_rhythm.early' },
+      { value: 'night_owl', labelKey: 'options.s5_rhythm.night_owl' },
+      { value: 'doesnt_matter', labelKey: 'options.common.doesnt_matter', icon: '🤷' },
+    ],
+  },
+  // Partner: kashrut
+  {
+    id: 'p_kashrut',
+    type: 'singleChoice',
+    textKey: 'questions.p_kashrut.text',
+    category: 'lifestyle',
+    forSelf: false,
+    forPartner: true,
+    options: [
+      { value: 'mehadrin', labelKey: 'options.s5_kashrut.mehadrin' },
+      { value: 'regular_kosher', labelKey: 'options.s5_kashrut.regular_kosher' },
+      { value: 'kosher_home_not_out', labelKey: 'options.s5_kashrut.kosher_home_not_out' },
+      { value: 'not_kosher_jewish', labelKey: 'options.s5_kashrut.not_kosher_jewish' },
+      { value: 'doesnt_matter', labelKey: 'options.common.doesnt_matter', icon: '🤷' },
+    ],
+  },
+  // Partner: shared hobbies
+  {
+    id: 'p_shared_hobbies',
+    type: 'multiSelect',
+    textKey: 'questions.p_shared_hobbies.text',
+    subtitleKey: 'questions.p_shared_hobbies.subtitle',
+    category: 'lifestyle',
+    forSelf: false,
+    forPartner: true,
+    maxSelections: 5,
+    options: [
+      { value: 'reading', labelKey: 'options.s5_hobbies.reading', icon: '📚' },
+      { value: 'music_listening', labelKey: 'options.s5_hobbies.music_listening', icon: '🎵' },
+      { value: 'running_fitness', labelKey: 'options.s5_hobbies.running_fitness', icon: '🏃' },
+      { value: 'yoga_meditation', labelKey: 'options.s5_hobbies.yoga_meditation', icon: '🧘' },
+      { value: 'cooking_baking', labelKey: 'options.s5_hobbies.cooking_baking', icon: '🍳' },
+      { value: 'travel', labelKey: 'options.s5_hobbies.travel', icon: '🌍' },
+      { value: 'hiking', labelKey: 'options.s5_hobbies.hiking', icon: '🥾' },
+      { value: 'torah_study', labelKey: 'options.s5_hobbies.torah_study', icon: '📜' },
+      { value: 'doesnt_matter', labelKey: 'options.common.doesnt_matter', icon: '🤷' },
+    ],
+  },
+  // Partner: travel frequency
+  {
+    id: 'p_travel_frequency',
+    type: 'singleChoice',
+    textKey: 'questions.p_travel_frequency.text',
+    category: 'lifestyle',
+    forSelf: false,
+    forPartner: true,
+    options: [
+      { value: 'loves_frequent', labelKey: 'options.s5_travel_frequency.loves_frequent' },
+      { value: 'occasionally', labelKey: 'options.s5_travel_frequency.occasionally' },
+      { value: 'not_interested', labelKey: 'options.s5_travel_frequency.not_interested' },
+      { value: 'doesnt_matter', labelKey: 'options.common.doesnt_matter', icon: '🤷' },
+    ],
+  },
+  // Partner: pets
+  {
+    id: 'p_pets',
+    type: 'singleChoice',
+    textKey: 'questions.p_pets.text',
+    category: 'lifestyle',
+    forSelf: false,
+    forPartner: true,
+    options: [
+      { value: 'loves_has', labelKey: 'options.s5_pets.loves_has' },
+      { value: 'likes_ok', labelKey: 'options.s5_pets.likes_ok' },
+      { value: 'prefer_without', labelKey: 'options.s5_pets.prefer_without' },
+      { value: 'doesnt_matter', labelKey: 'options.common.doesnt_matter', icon: '🤷' },
+    ],
+  },
+  // Partner: politics
+  {
+    id: 'p_politics',
+    type: 'singleChoice',
+    textKey: 'questions.p_politics.text',
+    category: 'lifestyle',
+    forSelf: false,
+    forPartner: true,
+    isOptional: true,
+    options: [
+      { value: 'same_as_me', labelKey: 'options.p_politics.same_as_me' },
+      { value: 'similar_range', labelKey: 'options.p_politics.similar_range' },
+      { value: 'doesnt_matter', labelKey: 'options.common.doesnt_matter', icon: '🤷' },
+    ],
+  },
+  // Partner: diet
+  {
+    id: 'p_diet',
+    type: 'singleChoice',
+    textKey: 'questions.p_diet.text',
+    category: 'lifestyle',
+    forSelf: false,
+    forPartner: true,
+    isOptional: true,
+    options: [
+      { value: 'same_as_me', labelKey: 'options.p_diet_pref.same_as_me' },
+      { value: 'flexible', labelKey: 'options.p_diet_pref.flexible' },
+      { value: 'doesnt_matter', labelKey: 'options.common.doesnt_matter', icon: '🤷' },
+    ],
+  },
+  // Partner: smoking
+  {
+    id: 'p_smoking',
+    type: 'singleChoice',
+    textKey: 'questions.p_smoking.text',
+    category: 'lifestyle',
+    forSelf: false,
+    forPartner: true,
+    options: [
+      { value: 'non_smoker_only', labelKey: 'options.p_smoking.non_smoker_only' },
+      { value: 'social_ok', labelKey: 'options.p_smoking.social_ok' },
+      { value: 'doesnt_matter', labelKey: 'options.common.doesnt_matter', icon: '🤷' },
+    ],
+  },
+];
+
 // ========== FAMILY QUESTIONS (Section 6) ==========
 export const FAMILY_QUESTIONS: SFQuestion[] = [
   {
@@ -1167,6 +1779,92 @@ export const FAMILY_QUESTIONS: SFQuestion[] = [
   },
 ];
 
+// ========== FAMILY PARTNER QUESTIONS ==========
+export const FAMILY_EXTRA_QUESTIONS: SFQuestion[] = [
+  // Partner: children count
+  {
+    id: 'p_children_count',
+    type: 'singleChoice',
+    textKey: 'questions.p_children_count.text',
+    category: 'family',
+    forSelf: false,
+    forPartner: true,
+    options: [
+      { value: 'one_two', labelKey: 'options.s6_children_count.one_two' },
+      { value: 'three_four', labelKey: 'options.s6_children_count.three_four' },
+      { value: 'five_six', labelKey: 'options.s6_children_count.five_six' },
+      { value: 'as_many_as', labelKey: 'options.s6_children_count.as_many_as' },
+      { value: 'doesnt_matter', labelKey: 'options.common.doesnt_matter', icon: '🤷' },
+    ],
+  },
+  // Partner: home roles
+  {
+    id: 'p_home_roles',
+    type: 'singleChoice',
+    textKey: 'questions.p_home_roles.text',
+    category: 'family',
+    forSelf: false,
+    forPartner: true,
+    options: [
+      { value: 'full_sharing', labelKey: 'options.s6_home_roles.full_sharing' },
+      { value: 'traditional', labelKey: 'options.s6_home_roles.traditional' },
+      { value: 'flexible', labelKey: 'options.s6_home_roles.flexible' },
+      { value: 'doesnt_matter', labelKey: 'options.common.doesnt_matter', icon: '🤷' },
+    ],
+  },
+  // Partner: parenting style
+  {
+    id: 'p_parenting_style',
+    type: 'singleChoice',
+    textKey: 'questions.p_parenting_style.text',
+    category: 'family',
+    forSelf: false,
+    forPartner: true,
+    options: [
+      { value: 'very_involved', labelKey: 'options.s6_parenting_style.very_involved' },
+      { value: 'supportive', labelKey: 'options.s6_parenting_style.supportive' },
+      { value: 'free_developing', labelKey: 'options.s6_parenting_style.free_developing' },
+      { value: 'doesnt_matter', labelKey: 'options.common.doesnt_matter', icon: '🤷' },
+    ],
+  },
+  // Partner: education system
+  {
+    id: 'p_education_system',
+    type: 'singleChoice',
+    textKey: 'questions.p_education_system.text',
+    category: 'family',
+    forSelf: false,
+    forPartner: true,
+    options: [
+      { value: 'state', labelKey: 'options.s6_education_system.state' },
+      { value: 'state_religious', labelKey: 'options.s6_education_system.state_religious' },
+      { value: 'charedi', labelKey: 'options.s6_education_system.charedi' },
+      { value: 'alternative', labelKey: 'options.s6_education_system.alternative' },
+      { value: 'doesnt_matter', labelKey: 'options.common.doesnt_matter', icon: '🤷' },
+    ],
+  },
+  // Partner: home atmosphere
+  {
+    id: 'p_home_atmosphere',
+    type: 'multiSelect',
+    textKey: 'questions.p_home_atmosphere.text',
+    subtitleKey: 'questions.p_home_atmosphere.subtitle',
+    category: 'family',
+    forSelf: false,
+    forPartner: true,
+    maxSelections: 3,
+    options: [
+      { value: 'open_guests', labelKey: 'options.s6_home_atmosphere.open_guests' },
+      { value: 'private_family', labelKey: 'options.s6_home_atmosphere.private_family' },
+      { value: 'religious_structure', labelKey: 'options.s6_home_atmosphere.religious_structure' },
+      { value: 'liberal', labelKey: 'options.s6_home_atmosphere.liberal' },
+      { value: 'quiet_order', labelKey: 'options.s6_home_atmosphere.quiet_order' },
+      { value: 'lively_noisy', labelKey: 'options.s6_home_atmosphere.lively_noisy' },
+      { value: 'doesnt_matter', labelKey: 'options.common.doesnt_matter', icon: '🤷' },
+    ],
+  },
+];
+
 // ========== RELATIONSHIP QUESTIONS (Section 7) ==========
 export const RELATIONSHIP_QUESTIONS: SFQuestion[] = [
   {
@@ -1258,6 +1956,77 @@ export const RELATIONSHIP_QUESTIONS: SFQuestion[] = [
   },
 ];
 
+// ========== RELATIONSHIP PARTNER QUESTIONS ==========
+export const RELATIONSHIP_EXTRA_QUESTIONS: SFQuestion[] = [
+  // Partner: relationship meaning
+  {
+    id: 'p_relationship_meaning',
+    type: 'multiSelect',
+    textKey: 'questions.p_relationship_meaning.text',
+    subtitleKey: 'questions.p_relationship_meaning.subtitle',
+    category: 'relationship',
+    forSelf: false,
+    forPartner: true,
+    maxSelections: 3,
+    options: [
+      { value: 'partnership_build', labelKey: 'options.s7_relationship_meaning.partnership_build' },
+      { value: 'love_emotion', labelKey: 'options.s7_relationship_meaning.love_emotion' },
+      { value: 'best_friendship', labelKey: 'options.s7_relationship_meaning.best_friendship' },
+      { value: 'home_stability', labelKey: 'options.s7_relationship_meaning.home_stability' },
+      { value: 'growth_together', labelKey: 'options.s7_relationship_meaning.growth_together' },
+      { value: 'doesnt_matter', labelKey: 'options.common.doesnt_matter', icon: '🤷' },
+    ],
+  },
+  // Partner: love language
+  {
+    id: 'p_love_language',
+    type: 'singleChoice',
+    textKey: 'questions.p_love_language.text',
+    category: 'relationship',
+    forSelf: false,
+    forPartner: true,
+    options: [
+      { value: 'quality_time', labelKey: 'options.s7_love_language.quality_time', icon: '⏰' },
+      { value: 'words_affirmation', labelKey: 'options.s7_love_language.words_affirmation', icon: '💬' },
+      { value: 'acts_of_service', labelKey: 'options.s7_love_language.acts_of_service', icon: '🛠️' },
+      { value: 'physical_touch', labelKey: 'options.s7_love_language.physical_touch', icon: '🤗' },
+      { value: 'gifts', labelKey: 'options.s7_love_language.gifts', icon: '🎁' },
+      { value: 'doesnt_matter', labelKey: 'options.common.doesnt_matter', icon: '🤷' },
+    ],
+  },
+  // Partner: closeness
+  {
+    id: 'p_closeness',
+    type: 'singleChoice',
+    textKey: 'questions.p_closeness.text',
+    category: 'relationship',
+    forSelf: false,
+    forPartner: true,
+    options: [
+      { value: 'very_close', labelKey: 'options.s7_closeness.very_close' },
+      { value: 'balanced', labelKey: 'options.s7_closeness.balanced' },
+      { value: 'independent', labelKey: 'options.s7_closeness.independent' },
+      { value: 'doesnt_matter', labelKey: 'options.common.doesnt_matter', icon: '🤷' },
+    ],
+  },
+  // Partner: relationship model
+  {
+    id: 'p_relationship_model',
+    type: 'singleChoice',
+    textKey: 'questions.p_relationship_model.text',
+    category: 'relationship',
+    forSelf: false,
+    forPartner: true,
+    options: [
+      { value: 'equal_partnership', labelKey: 'options.s7_relationship_model.equal_partnership' },
+      { value: 'traditional_roles', labelKey: 'options.s7_relationship_model.traditional_roles' },
+      { value: 'romantic_expressive', labelKey: 'options.s7_relationship_model.romantic_expressive' },
+      { value: 'pragmatic_stable', labelKey: 'options.s7_relationship_model.pragmatic_stable' },
+      { value: 'doesnt_matter', labelKey: 'options.common.doesnt_matter', icon: '🤷' },
+    ],
+  },
+];
+
 // ========== SECTIONS CONFIG ==========
 export const SF_SECTIONS: SFSection[] = [
   {
@@ -1274,7 +2043,7 @@ export const SF_SECTIONS: SFSection[] = [
     subtitleKey: 'sections.identity.subtitle',
     icon: '🪞',
     color: 'blue',
-    questions: IDENTITY_QUESTIONS,
+    questions: [...IDENTITY_QUESTIONS, ...IDENTITY_PARTNER_QUESTIONS],
   },
   {
     id: 'background',
@@ -1282,7 +2051,7 @@ export const SF_SECTIONS: SFSection[] = [
     subtitleKey: 'sections.background.subtitle',
     icon: '🌳',
     color: 'green',
-    questions: BACKGROUND_QUESTIONS,
+    questions: [...BACKGROUND_QUESTIONS, ...BACKGROUND_EXTRA_QUESTIONS],
   },
   {
     id: 'personality',
@@ -1290,7 +2059,7 @@ export const SF_SECTIONS: SFSection[] = [
     subtitleKey: 'sections.personality.subtitle',
     icon: '✨',
     color: 'purple',
-    questions: PERSONALITY_QUESTIONS,
+    questions: [...PERSONALITY_QUESTIONS, ...PERSONALITY_EXTRA_QUESTIONS],
   },
   {
     id: 'career',
@@ -1298,7 +2067,7 @@ export const SF_SECTIONS: SFSection[] = [
     subtitleKey: 'sections.career.subtitle',
     icon: '💼',
     color: 'orange',
-    questions: CAREER_QUESTIONS,
+    questions: [...CAREER_QUESTIONS, ...CAREER_EXTRA_QUESTIONS],
   },
   {
     id: 'lifestyle',
@@ -1306,7 +2075,7 @@ export const SF_SECTIONS: SFSection[] = [
     subtitleKey: 'sections.lifestyle.subtitle',
     icon: '🎯',
     color: 'pink',
-    questions: LIFESTYLE_QUESTIONS,
+    questions: [...LIFESTYLE_QUESTIONS, ...LIFESTYLE_EXTRA_QUESTIONS],
   },
   {
     id: 'family',
@@ -1314,7 +2083,7 @@ export const SF_SECTIONS: SFSection[] = [
     subtitleKey: 'sections.family.subtitle',
     icon: '🏡',
     color: 'amber',
-    questions: FAMILY_QUESTIONS,
+    questions: [...FAMILY_QUESTIONS, ...FAMILY_EXTRA_QUESTIONS],
   },
   {
     id: 'relationship',
@@ -1322,6 +2091,6 @@ export const SF_SECTIONS: SFSection[] = [
     subtitleKey: 'sections.relationship.subtitle',
     icon: '💞',
     color: 'rose',
-    questions: RELATIONSHIP_QUESTIONS,
+    questions: [...RELATIONSHIP_QUESTIONS, ...RELATIONSHIP_EXTRA_QUESTIONS],
   },
 ];

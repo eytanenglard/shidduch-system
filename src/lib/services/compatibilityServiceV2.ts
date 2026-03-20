@@ -112,11 +112,36 @@ export async function calculatePairCompatibility(
 
   const vectorSimilarity = await calculateVectorSimilarity(profileAId, profileBId);
 
+  // Tag compatibility (Soul Fingerprint)
+  let tagScoreAtoB: number | undefined;
+  let tagScoreBtoA: number | undefined;
+  try {
+    const { calculateTagCompatibility, loadProfileTags } = await import('./tagMatchingService');
+    const [tagsA, tagsB] = await Promise.all([
+      loadProfileTags(profileAId),
+      loadProfileTags(profileBId),
+    ]);
+    if (tagsA && tagsB) {
+      const partnerPrefsA = tagsA.partnerTags as import('@/components/soul-fingerprint/types').PartnerTagPreferences | null;
+      const partnerPrefsB = tagsB.partnerTags as import('@/components/soul-fingerprint/types').PartnerTagPreferences | null;
+
+      if (partnerPrefsA) {
+        tagScoreAtoB = calculateTagCompatibility(partnerPrefsA, tagsB).score;
+      }
+      if (partnerPrefsB && !oneDirectional) {
+        tagScoreBtoA = calculateTagCompatibility(partnerPrefsB, tagsA).score;
+      }
+    }
+  } catch {
+    // Tags not available, continue without
+  }
+
   const scoreAtoB = calculateFinalScore(
     metricsAtoB.score,
     vectorSimilarity?.seekingToSelf || 0,
     softPenaltiesAtoB.totalPenalty,
-    dealBreakersAtoB.passed
+    dealBreakersAtoB.passed,
+    tagScoreAtoB
   );
 
   // 🆕 בחישוב חד-כיווני - הציון ההפוך שווה לציון הישיר
@@ -124,7 +149,8 @@ export async function calculatePairCompatibility(
     metricsBtoA.score,
     vectorSimilarity?.selfToSeeking || 0,
     softPenaltiesBtoA.totalPenalty,
-    dealBreakersBtoA.passed
+    dealBreakersBtoA.passed,
+    tagScoreBtoA
   );
 
   // 🆕 בחישוב חד-כיווני - הציון הסימטרי הוא פשוט הציון A→B
@@ -596,13 +622,29 @@ function calculateFinalScore(
   metricsScore: number,
   vectorScore: number,
   softPenalty: number,
-  dealBreakersPassed: boolean
+  dealBreakersPassed: boolean,
+  tagScore?: number // 0-50, from tagMatchingService
 ): number {
   if (!dealBreakersPassed) return 0;
 
-  const baseScore = vectorScore > 0
-    ? metricsScore * 0.7 + (vectorScore * 100) * 0.3
-    : metricsScore;
+  let baseScore: number;
+
+  if (tagScore !== undefined && tagScore > 0) {
+    // With tags: metrics 50% + vectors 20% + tags 30%
+    // tagScore is 0-50, normalize to 0-100
+    const normalizedTagScore = tagScore * 2;
+    if (vectorScore > 0) {
+      baseScore = metricsScore * 0.5 + (vectorScore * 100) * 0.2 + normalizedTagScore * 0.3;
+    } else {
+      // No vectors: metrics 65% + tags 35%
+      baseScore = metricsScore * 0.65 + normalizedTagScore * 0.35;
+    }
+  } else {
+    // No tags: original formula
+    baseScore = vectorScore > 0
+      ? metricsScore * 0.7 + (vectorScore * 100) * 0.3
+      : metricsScore;
+  }
 
   return Math.round(Math.max(0, baseScore - softPenalty));
 }

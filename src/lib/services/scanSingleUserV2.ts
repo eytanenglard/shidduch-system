@@ -430,6 +430,34 @@ export async function scanSingleUserV2(
   }
 
   // ═══════════════════════════════════════════════════════════
+  // TIER 1.5: Tag Hard Filter (Soul Fingerprint)
+  // ═══════════════════════════════════════════════════════════
+  let tier1_5Candidates = tier1Candidates;
+  try {
+    const { passesTagHardFilter, batchLoadProfileTags, loadProfileTags } = await import('./tagMatchingService');
+    const userTags = await loadProfileTags(profile.id);
+
+    if (userTags?.partnerTags) {
+      const partnerPrefs = userTags.partnerTags as unknown as import('@/components/soul-fingerprint/types').PartnerTagPreferences;
+      const candidateProfileIds = tier1Candidates.map((c: { profileId: string }) => c.profileId);
+      const candidateTagsMap = await batchLoadProfileTags(candidateProfileIds);
+
+      tier1_5Candidates = tier1Candidates.filter((candidate: { profileId: string }) => {
+        const cTags = candidateTagsMap.get(candidate.profileId);
+        if (!cTags) return true; // No tags = don't filter
+        return passesTagHardFilter(partnerPrefs, cTags.sectorTags);
+      });
+
+      const filtered = tier1Candidates.length - tier1_5Candidates.length;
+      if (filtered > 0) {
+        console.log(`[ScanV2] Tier 1.5 Tag Filter: filtered ${filtered} candidates (sector mismatch)`);
+      }
+    }
+  } catch (err) {
+    console.warn('[ScanV2] Tier 1.5 tag filter skipped (no tags):', err);
+  }
+
+  // ═══════════════════════════════════════════════════════════
   // TIER 2 + 3: Compatibility Calculation
   // ═══════════════════════════════════════════════════════════
   console.log(`\n[ScanV2] ═══ TIER 2-3: Compatibility Calculation ═══`);
@@ -442,7 +470,7 @@ export async function scanSingleUserV2(
   let passedCount = 0;
   let failedCount = 0;
 
-  for (const candidate of tier1Candidates) {
+  for (const candidate of tier1_5Candidates) {
     try {
       const compatibility = await calculatePairCompatibility(profile.id, candidate.profileId);
       

@@ -364,6 +364,145 @@
       "text": "What's the most important thing to you in a partner that's hard to describe in options?",
       "subtitle": "Optional — up to 200 characters",
       "placeholder": "Tell us what matters to you — freely..."
+    },
+    "p_sector_preference": {
+      "text": "What sectors are you open to?",
+      "subtitle": "Select up to 5"
+    },
+    "p_zionism_preference": {
+      "text": "What Zionist approach matters to you in a partner?"
+    },
+    "p_masorti_practices": {
+      "text": "What practices are important for your partner to keep?"
+    },
+    "p_hiloni_identity": {
+      "text": "What aspects of Jewish identity matter to you in a partner?"
+    },
+    "p_ethnic_preference": {
+      "text": "Do you have an ethnic background preference?",
+      "subtitle": "You can select multiple"
+    },
+    "p_energy_type": {
+      "text": "What energy level attracts you in a partner?",
+      "subtitle": "Where would you like your partner to be on the scale"
+    },
+    "p_energy_source": {
+      "text": "What would you like your partner to draw energy from?"
+    },
+    "p_character_preferred": {
+      "text": "What character traits attract you?",
+      "subtitle": "Select up to 3"
+    },
+    "p_life_tempo": {
+      "text": "What pace of life suits you in a partner?"
+    },
+    "p_spontaneity": {
+      "text": "What level of planning suits you in a partner?"
+    },
+    "p_humor": {
+      "text": "What humor style attracts you?"
+    },
+    "p_conflict": {
+      "text": "How would you like your partner to handle conflicts?"
+    },
+    "p_social_role": {
+      "text": "What social role attracts you in a partner?"
+    },
+    "p_education_level": {
+      "text": "What education level matters to you?"
+    },
+    "p_field": {
+      "text": "What fields would you prefer your partner to work in?"
+    },
+    "p_ambition": {
+      "text": "What ambition level suits you?"
+    },
+    "p_financial_style": {
+      "text": "What financial attitude suits you in a partner?"
+    },
+    "p_location": {
+      "text": "Where would you like to live with your partner?"
+    },
+    "p_rhythm": {
+      "text": "What daily rhythm suits you in a partner?"
+    },
+    "p_kashrut": {
+      "text": "What kashrut level matters to you?"
+    },
+    "p_shared_hobbies": {
+      "text": "What hobbies are important to share with your partner?",
+      "subtitle": "Select up to 5"
+    },
+    "p_travel_frequency": {
+      "text": "What travel frequency suits you as a couple?"
+    },
+    "p_pets": {
+      "text": "What's your preferred approach to pets?"
+    },
+    "p_politics": {
+      "text": "How important is it that your partner shares your political views?"
+    },
+    "p_diet": {
+      "text": "How important is it that your partner eats like you?"
+    },
+    "p_smoking": {
+      "text": "What's your approach to smoking in a partner?"
+    },
+    "p_children_count": {
+      "text": "How many children would you like your partner to want?"
+    },
+    "p_home_roles": {
+      "text": "What division of roles at home suits you?"
+    },
+    "p_parenting_style": {
+      "text": "What parenting style suits you in a partner?"
+    },
+    "p_education_system": {
+      "text": "What educational framework would you want for the children?"
+    },
+    "p_home_atmosphere": {
+      "text": "What atmosphere would you like at home?",
+      "subtitle": "Select up to 3"
+    },
+    "p_relationship_meaning": {
+      "text": "What's important for your partner to think about relationships?",
+      "subtitle": "Select up to 3"
+    },
+    "p_love_language": {
+      "text": "In what love language would you like to receive?"
+    },
+    "p_closeness": {
+      "text": "What level of closeness suits you?"
+    },
+    "p_relationship_model": {
+      "text": "What relationship model suits you?"
+    },
+    "s2_family_size": {
+      "text": "Your family of origin size?"
+    },
+    "s3_sensitivity": {
+      "text": "How would you describe your emotional sensitivity?"
+    },
+    "s3_change_approach": {
+      "text": "What's your approach to life changes?"
+    },
+    "s4_life_priority": {
+      "text": "What's most important to you in life right now?"
+    },
+    "s4_money_attitude": {
+      "text": "How do you relate to money?"
+    },
+    "s5_fitness": {
+      "text": "What's your fitness level?"
+    },
+    "s5_smoking": {
+      "text": "Smoking?"
+    },
+    "s5_dress_style": {
+      "text": "What's your dress style?"
+    },
+    "s5_open_abroad": {
+      "text": "Are you open to living abroad?"
     }
   },
   "options": {
@@ -994,6 +1133,74 @@
       "she_leads": "She leads — she's the strong one",
       "romantic_expressive": "Romantic and expressive",
       "pragmatic_stable": "Pragmatic and stable — love through action"
+    },
+    "common": {
+      "doesnt_matter": "Doesn't matter to me 🤷"
+    },
+    "s2_family_size": {
+      "only_child": "Only child",
+      "small_family": "Small family (2-3 children)",
+      "medium_family": "Medium family (4-5 children)",
+      "big_family_origin": "Large family (6+)"
+    },
+    "s3_sensitivity": {
+      "very_sensitive": "Very sensitive — feel everything deeply",
+      "balanced_sensitivity": "Balanced — room for both emotion and logic",
+      "thick_skinned": "Thick-skinned — not easily hurt"
+    },
+    "s3_change_approach": {
+      "embraces_change": "Embraces change — flexibility is strength",
+      "cautious_change": "Cautious — needs time to adjust",
+      "stability_seeker": "Prefers stability — change is stressful"
+    },
+    "s4_life_priority": {
+      "priority_career": "Career and professional development",
+      "priority_family": "Family and children",
+      "priority_growth": "Personal growth and learning",
+      "priority_faith": "Faith and spirituality",
+      "priority_adventure": "Adventures and experiences"
+    },
+    "s4_money_attitude": {
+      "money_important": "Money is important — financial security is paramount",
+      "money_tool": "Money is a tool — used for creating a good life",
+      "money_secondary": "Money is secondary — there are more important things",
+      "money_spiritual": "Money is a test — how you relate to it reveals character"
+    },
+    "s5_fitness": {
+      "very_active": "Very active — regular sports are part of life",
+      "moderately_active": "Moderately active — exercise occasionally",
+      "not_active": "Not very active — but open",
+      "health_focused": "Health-focused — diet and lifestyle"
+    },
+    "s5_smoking": {
+      "non_smoker": "Non-smoker",
+      "social_smoker": "Social smoker",
+      "regular_smoker": "Regular smoker",
+      "quit_smoking": "Quit smoking"
+    },
+    "s5_dress_style": {
+      "formal_dress": "Formal and neat",
+      "casual_dress": "Casual and comfortable",
+      "sporty_dress": "Sporty",
+      "creative_dress": "Creative and unique",
+      "modest_dress": "Modest and dignified"
+    },
+    "s5_open_abroad": {
+      "open_abroad": "Yes, open to living abroad",
+      "israel_only": "Israel only",
+      "considering_abroad": "Considering — depends on circumstances"
+    },
+    "p_politics": {
+      "same_as_me": "Important — should think like me",
+      "similar_range": "Important to be in the same general direction"
+    },
+    "p_diet_pref": {
+      "same_as_me": "Yes, important they eat like me",
+      "flexible": "Flexible — not necessarily like me"
+    },
+    "p_smoking": {
+      "non_smoker_only": "Non-smoker only",
+      "social_ok": "Social smoker is OK"
     }
   }
 }
