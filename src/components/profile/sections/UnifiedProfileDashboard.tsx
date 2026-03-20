@@ -11,6 +11,7 @@ import type { User as SessionUserType } from '@/types/next-auth';
 import { ProfileChecklist } from './ProfileChecklist';
 import { AIProfileAdvisorDialog } from './AIProfileAdvisorDialog';
 import { NeshmaInsightButton } from './NeshmaInsightButton';
+import SoulFingerprintCTA from '@/components/soul-fingerprint/SoulFingerprintCTA';
 import { Lock, Eye } from 'lucide-react';
 
 // UI Components
@@ -82,6 +83,7 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
     session?.user?.profile?.hasViewedProfilePreview || false
   );
   const [completionPercentage, setCompletionPercentage] = useState(0);
+  const [sfCompleted, setSfCompleted] = useState(false);
 
   // --- START OF ADDITION ---
   const [isMobile, setIsMobile] = useState(false); // הוספה: סטייט לזיהוי מובייל
@@ -103,6 +105,16 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
   useEffect(() => {
     setActiveTab(initialTab);
   }, [initialTab]);
+
+  // Check soul fingerprint status
+  useEffect(() => {
+    fetch('/api/user/soul-fingerprint')
+      .then(r => r.ok ? r.json() : null)
+      .then(data => {
+        if (data?.profileTags?.completedAt) setSfCompleted(true);
+      })
+      .catch(() => {});
+  }, []);
 
   const handleTabChange = (newTab: string) => {
     setActiveTab(newTab);
@@ -549,6 +561,21 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
                 dict={dict.dashboard.neshmaInsightButton}
                 userRole={user.role} // <--- הוספנו את השורה הזו
               />
+
+              {/* Soul Fingerprint CTA */}
+              <div className="my-6 md:my-8">
+                <SoulFingerprintCTA
+                  isCompleted={sfCompleted}
+                  locale={locale}
+                  t={(key: string) => {
+                    const labels: Record<string, string> = locale === 'he'
+                      ? { 'welcome.badge': 'חדש', 'welcome.title': 'טביעת הנשמה שלך', 'welcome.subtitle': '10 דקות שישנו הכל', 'welcome.time': 'כ-8-10 דקות', 'completion.edit': 'ערוך/י את מפת הנשמה', 'completion.subtitle': 'הפרופיל הייחודי שלך מוכן' }
+                      : { 'welcome.badge': 'New', 'welcome.title': 'Your Soul Fingerprint', 'welcome.subtitle': '10 minutes that change everything', 'welcome.time': 'About 8-10 minutes', 'completion.edit': 'Edit your Soul Map', 'completion.subtitle': 'Your unique profile is ready' };
+                    return labels[key] || key;
+                  }}
+                  isRTL={locale === 'he'}
+                />
+              </div>
             </>
           )}
 
