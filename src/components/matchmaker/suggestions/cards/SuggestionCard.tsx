@@ -1401,6 +1401,17 @@ const SuggestionCard: React.FC<SuggestionCardProps> = ({
     suggestion.status
   );
 
+  // ── WhatsApp helper ──
+  const openWhatsApp = useCallback((e: React.MouseEvent, party: SuggestionParty) => {
+    e.stopPropagation();
+    const phone = party.phone;
+    if (!phone) return;
+    let cleanPhone = phone.replace(/\D/g, '');
+    if (cleanPhone.startsWith('0')) cleanPhone = '972' + cleanPhone.substring(1);
+    const message = `היי ${party.firstName} 👋\n\nזה איתן מנשמהטק.\n\nרציתי לדבר איתך לגבי הצעת שידוך.\n\n🌐 https://neshamatech.com`;
+    window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`, '_blank');
+  }, []);
+
   // ── Compact variant ──
   if (variant === 'compact') {
     return (
@@ -1460,17 +1471,6 @@ const SuggestionCard: React.FC<SuggestionCardProps> = ({
       </Card>
     );
   }
-
-  // ── WhatsApp helper ──
-  const openWhatsApp = useCallback((e: React.MouseEvent, party: SuggestionParty) => {
-    e.stopPropagation();
-    const phone = party.phone;
-    if (!phone) return;
-    let cleanPhone = phone.replace(/\D/g, '');
-    if (cleanPhone.startsWith('0')) cleanPhone = '972' + cleanPhone.substring(1);
-    const message = `היי ${party.firstName} 👋\n\nזה איתן מנשמהטק.\n\nרציתי לדבר איתך לגבי הצעת שידוך.\n\n🌐 https://neshamatech.com`;
-    window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`, '_blank');
-  }, []);
 
   // ── Full variant ──
   return (
