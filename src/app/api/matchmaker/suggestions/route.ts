@@ -265,6 +265,7 @@ export async function GET(req: Request) {
           select: {
             id: true,
             email: true,
+            phone: true,
             firstName: true,
             lastName: true,
             status: true,
@@ -282,6 +283,7 @@ export async function GET(req: Request) {
           select: {
             id: true,
             email: true,
+            phone: true,
             firstName: true,
             lastName: true,
             status: true,

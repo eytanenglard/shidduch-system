@@ -1461,74 +1461,77 @@ const SuggestionCard: React.FC<SuggestionCardProps> = ({
     );
   }
 
+  // ── WhatsApp helper ──
+  const openWhatsApp = useCallback((e: React.MouseEvent, party: SuggestionParty) => {
+    e.stopPropagation();
+    const phone = party.phone;
+    if (!phone) return;
+    let cleanPhone = phone.replace(/\D/g, '');
+    if (cleanPhone.startsWith('0')) cleanPhone = '972' + cleanPhone.substring(1);
+    const message = `היי ${party.firstName} 👋\n\nזה איתן מנשמהטק.\n\nרציתי לדבר איתך לגבי הצעת שידוך.\n\n🌐 https://neshamatech.com`;
+    window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`, '_blank');
+  }, []);
+
   // ── Full variant ──
   return (
     <TooltipProvider>
       <Card
         className={cn(
-          'overflow-hidden transition-all duration-300 group border bg-white hover:shadow-xl',
-          isExpanded && 'shadow-xl ring-1 ring-purple-100',
-          suggestion.priority === 'URGENT' && 'border-r-[3px] border-r-red-400',
-          suggestion.priority === 'HIGH' &&
-            'border-r-[3px] border-r-orange-400',
-          isTerminal && 'opacity-60',
+          'overflow-hidden transition-all duration-200 group bg-white hover:shadow-lg border border-gray-200/80',
+          isExpanded && 'shadow-lg ring-1 ring-gray-200',
+          suggestion.priority === 'URGENT' && 'border-s-[3px] border-s-red-500',
+          suggestion.priority === 'HIGH' && 'border-s-[3px] border-s-amber-500',
+          isTerminal && 'opacity-50',
           className
         )}
       >
         <CardContent className="p-0">
           {/* ══ COLLAPSED VIEW ══ */}
           <div className="p-4">
-            {/* שני הצדדים */}
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-              <div className="flex-1 min-w-0">
-                <PartyMini
-                  party={firstParty}
-                  age={firstPartyAge}
-                  side="right"
-                />
-              </div>
-              <div className="flex-shrink-0 flex justify-center">
-                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-pink-100 to-purple-100 flex items-center justify-center">
-                  <Heart className="w-4 h-4 text-pink-500" />
+            {/* Top row: parties + status */}
+            <div className="flex items-center gap-3">
+              {/* Both parties */}
+              <div className="flex-1 min-w-0 flex items-center gap-2">
+                <PartyMini party={firstParty} age={firstPartyAge} side="right" />
+                <div className="flex-shrink-0 px-1">
+                  <ArrowLeftRight className="w-3.5 h-3.5 text-gray-300" />
                 </div>
+                <PartyMini party={secondParty} age={secondPartyAge} side="left" />
               </div>
-              <div className="flex-1 min-w-0">
-                <PartyMini
-                  party={secondParty}
-                  age={secondPartyAge}
-                  side="left"
-                />
+
+              {/* Status + priority */}
+              <div className="flex flex-col items-end gap-1 shrink-0">
+                <Badge
+                  className={cn(
+                    'text-[10px] px-2.5 py-0.5 rounded-md font-semibold border-0',
+                    statusInfo.bgColor,
+                    statusInfo.color
+                  )}
+                >
+                  <statusInfo.icon className="w-3 h-3 ml-1" />
+                  {statusText.shortLabel}
+                </Badge>
+                {suggestion.priority === 'URGENT' && (
+                  <Badge className="text-[9px] px-2 py-0.5 bg-red-50 text-red-600 border border-red-200 font-bold">
+                    <Flame className="w-2.5 h-2.5 ml-1" />
+                    {priorityText.label}
+                  </Badge>
+                )}
+                {suggestion.priority === 'HIGH' && (
+                  <Badge className="text-[9px] px-2 py-0.5 bg-amber-50 text-amber-600 border border-amber-200 font-medium">
+                    {priorityText.label}
+                  </Badge>
+                )}
               </div>
             </div>
 
             {/* Timeline */}
-            <div className="mt-3 pt-3 border-t border-gray-50">
+            <div className="mt-3 pt-3 border-t border-gray-100">
               <StatusTimeline currentStatus={suggestion.status} />
             </div>
 
-            {/* Status label + badges */}
-            <div className="flex items-center flex-wrap gap-2 mt-2">
-              <Badge
-                className={cn(
-                  'text-[10px] px-2.5 py-0.5 rounded-full font-semibold border-0',
-                  statusInfo.bgColor,
-                  statusInfo.color
-                )}
-              >
-                <statusInfo.icon className="w-3 h-3 ml-1" />
-                {statusText.shortLabel}
-              </Badge>
-              {suggestion.priority === 'URGENT' && (
-                <Badge className="text-[10px] px-2 py-0.5 bg-red-100 text-red-700 border-0 font-bold">
-                  <Flame className="w-3 h-3 ml-1 animate-pulse" />
-                  {priorityText.label}
-                </Badge>
-              )}
-              {suggestion.priority === 'HIGH' && (
-                <Badge className="text-[10px] px-2 py-0.5 bg-orange-100 text-orange-700 border-0 font-bold">
-                  {priorityText.label}
-                </Badge>
-              )}
+            {/* Deadline warning */}
+            <div className="mt-1.5">
               <DeadlineWarning
                 daysLeft={daysLeft}
                 status={suggestion.status}
@@ -1540,7 +1543,7 @@ const SuggestionCard: React.FC<SuggestionCardProps> = ({
             {hint && (
               <div
                 className={cn(
-                  'flex items-center gap-2 mt-2.5 px-3 py-2 rounded-xl border text-xs font-medium transition-all',
+                  'flex items-center gap-2 mt-2.5 px-3 py-2 rounded-lg border text-xs font-medium',
                   hint.color
                 )}
               >
@@ -1549,9 +1552,9 @@ const SuggestionCard: React.FC<SuggestionCardProps> = ({
               </div>
             )}
 
-            {/* ═══ ACTION BAR — הלב של הכרטיס ═══ */}
-            <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-50 gap-2">
-              {/* שמאל: Primary Action + More Actions */}
+            {/* ═══ ACTION BAR ═══ */}
+            <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100 gap-2">
+              {/* Primary + More Actions */}
               <div className="flex items-center gap-2">
                 <PrimaryActionButton
                   suggestion={suggestion}
@@ -1565,23 +1568,59 @@ const SuggestionCard: React.FC<SuggestionCardProps> = ({
                 />
               </div>
 
-              {/* ימין: Quick Actions */}
-              <div className="flex items-center gap-1">
+              {/* Quick Actions */}
+              <div className="flex items-center gap-0.5">
+                {/* WhatsApp first party */}
+                {firstParty.phone && (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 w-8 p-0 rounded-lg hover:bg-green-50"
+                        onClick={(e) => openWhatsApp(e, firstParty)}
+                      >
+                        <MessageCircle className="w-3.5 h-3.5 text-green-600" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>וואטסאפ ל{firstParty.firstName}</TooltipContent>
+                  </Tooltip>
+                )}
+
+                {/* WhatsApp second party */}
+                {secondParty.phone && (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 w-8 p-0 rounded-lg hover:bg-green-50"
+                        onClick={(e) => openWhatsApp(e, secondParty)}
+                      >
+                        <MessageCircle className="w-3.5 h-3.5 text-green-600" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>וואטסאפ ל{secondParty.firstName}</TooltipContent>
+                  </Tooltip>
+                )}
+
+                <div className="w-px h-5 bg-gray-200 mx-0.5" />
+
                 {/* Chat */}
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="h-9 w-9 p-0 rounded-xl hover:bg-cyan-50 relative"
+                      className="h-8 w-8 p-0 rounded-lg hover:bg-blue-50 relative"
                       onClick={(e) => {
                         e.stopPropagation();
                         onAction('message', suggestion);
                       }}
                     >
-                      <MessageCircle className="w-4 h-4 text-cyan-500" />
+                      <MessageSquare className="w-3.5 h-3.5 text-blue-500" />
                       {unreadChatCount > 0 && (
-                        <span className="absolute -top-1 -right-1 min-w-[16px] h-4 bg-red-500 text-white text-[9px] rounded-full flex items-center justify-center font-bold animate-pulse">
+                        <span className="absolute -top-0.5 -right-0.5 min-w-[14px] h-3.5 bg-red-500 text-white text-[8px] rounded-full flex items-center justify-center font-bold">
                           {unreadChatCount}
                         </span>
                       )}
@@ -1596,13 +1635,13 @@ const SuggestionCard: React.FC<SuggestionCardProps> = ({
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="h-9 w-9 p-0 rounded-xl hover:bg-purple-50"
+                      className="h-8 w-8 p-0 rounded-lg hover:bg-gray-100"
                       onClick={(e) => {
                         e.stopPropagation();
                         onAction('view', suggestion);
                       }}
                     >
-                      <Eye className="w-4 h-4 text-purple-500" />
+                      <Eye className="w-3.5 h-3.5 text-gray-500" />
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>{dict.actions.viewDetails}</TooltipContent>
@@ -1612,16 +1651,16 @@ const SuggestionCard: React.FC<SuggestionCardProps> = ({
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-9 w-9 p-0 rounded-xl hover:bg-gray-100"
+                  className="h-8 w-8 p-0 rounded-lg hover:bg-gray-100"
                   onClick={(e) => {
                     e.stopPropagation();
                     setIsExpanded(!isExpanded);
                   }}
                 >
                   {isExpanded ? (
-                    <ChevronUp className="w-4 h-4 text-gray-400" />
+                    <ChevronUp className="w-3.5 h-3.5 text-gray-400" />
                   ) : (
-                    <ChevronDown className="w-4 h-4 text-gray-400" />
+                    <ChevronDown className="w-3.5 h-3.5 text-gray-400" />
                   )}
                 </Button>
 
@@ -1631,10 +1670,10 @@ const SuggestionCard: React.FC<SuggestionCardProps> = ({
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="h-9 w-9 p-0 rounded-xl hover:bg-gray-100"
+                      className="h-8 w-8 p-0 rounded-lg hover:bg-gray-100"
                       onClick={(e) => e.stopPropagation()}
                     >
-                      <MoreHorizontal className="w-4 h-4 text-gray-400" />
+                      <MoreHorizontal className="w-3.5 h-3.5 text-gray-400" />
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent

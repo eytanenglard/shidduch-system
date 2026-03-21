@@ -140,9 +140,12 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
 
   const isOwnProfile = !userId || session?.user?.id === userId;
 
-  const loadData = useCallback(async () => {
+  const loadData = useCallback(async (retryCount = 0) => {
     setIsLoading(true);
-    setError('');
+    if (retryCount === 0) setError('');
+
+    const MAX_RETRIES = 3;
+    const RETRY_DELAY_MS = 1500;
 
     // --- הוספת שורה 1: יצירת הבטחה (Promise) שמסתיימת אחרי 2 שניות ---
     const minDelayPromise = new Promise((resolve) => setTimeout(resolve, 2000));
@@ -153,6 +156,14 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
         ? `/api/profile?userId=${userId}`
         : '/api/profile';
       const profileResponse = await fetch(profileUrl);
+
+      // Auto-retry on 401 (session not yet ready after login)
+      if (profileResponse.status === 401 && retryCount < MAX_RETRIES) {
+        console.log(`Profile load: session not ready, retrying (${retryCount + 1}/${MAX_RETRIES})...`);
+        await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY_MS));
+        return loadData(retryCount + 1);
+      }
+
       const profileJson = await profileResponse.json();
 
       if (!profileResponse.ok || !profileJson.success) {
@@ -187,6 +198,14 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
       }
     } catch (err: unknown) {
       console.error('Failed to load profile data:', err);
+
+      // Auto-retry on network/fetch errors too
+      if (retryCount < MAX_RETRIES) {
+        console.log(`Profile load: error, retrying (${retryCount + 1}/${MAX_RETRIES})...`);
+        await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY_MS));
+        return loadData(retryCount + 1);
+      }
+
       let errorMessage = 'An unexpected error occurred.';
       if (err instanceof Error) {
         errorMessage = err.message || errorMessage;

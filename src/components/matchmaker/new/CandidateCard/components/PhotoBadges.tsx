@@ -93,11 +93,17 @@ const PhotoBadges: React.FC<PhotoBadgesProps> = ({
         <span>{availabilityConfig.label}</span>
       </div>
 
-      {/* Manual entry */}
+      {/* Manual entry + source */}
       {isManualEntry && (
         <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-purple-600/90 text-white text-[11px] font-semibold shadow-md backdrop-blur-sm">
           <Edit2 className="w-2.5 h-2.5" />
-          <span>{dict.manualEntry}</span>
+          <span>{dict.manualEntry}{candidate.profile.referredBy ? ` · ${candidate.profile.referredBy}` : ''}</span>
+        </div>
+      )}
+      {/* Source for non-manual users */}
+      {!isManualEntry && candidate.profile.referredBy && (
+        <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-indigo-500/90 text-white text-[11px] font-semibold shadow-md backdrop-blur-sm">
+          <span>{candidate.profile.referredBy}</span>
         </div>
       )}
 

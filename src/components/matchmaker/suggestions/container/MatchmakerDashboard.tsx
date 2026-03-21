@@ -122,45 +122,32 @@ const MatchmakerHeroSection: React.FC<{
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <div className="relative bg-gradient-to-br from-purple-50 via-cyan-50/30 to-emerald-50/20 overflow-hidden rounded-2xl sm:rounded-3xl shadow-xl mb-6 sm:mb-8">
-      {/* ── Background decorations (only when open) ── */}
-      {isOpen && (
-        <div className="absolute inset-0">
-          <div className="absolute top-10 right-10 w-64 h-64 bg-gradient-to-br from-purple-200/30 to-pink-200/30 rounded-full blur-3xl animate-float" />
-          <div
-            className="absolute bottom-10 left-10 w-48 h-48 bg-gradient-to-br from-cyan-200/30 to-blue-200/30 rounded-full blur-2xl animate-float"
-            style={{ animationDelay: '2s' }}
-          />
-        </div>
-      )}
-
+    <div className="relative bg-white border border-gray-200 overflow-hidden rounded-xl mb-6">
       <div className="relative z-10">
-        {/* ── Collapsed Bar – תמיד נראה ── */}
-        <div className="flex items-center justify-between p-4 sm:p-6 gap-3 flex-wrap">
+        {/* ── Header Bar ── */}
+        <div className="flex items-center justify-between px-5 py-4 gap-3 flex-wrap border-b border-gray-100">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 sm:p-3 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg">
-              <Crown className="w-5 h-5 sm:w-6 sm:h-6" />
+            <div className="p-2 rounded-lg bg-teal-600 text-white">
+              <Crown className="w-5 h-5" />
             </div>
             <div>
-              <h1 className="text-lg sm:text-xl font-bold bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 bg-clip-text text-transparent">
+              <h1 className="text-lg font-bold text-gray-900">
                 {dict.title}
               </h1>
-              <p className="text-xs sm:text-sm text-gray-500 hidden sm:block">
+              <p className="text-xs text-gray-500 hidden sm:block">
                 {dict.subtitle}
               </p>
             </div>
           </div>
 
           <div className="flex items-center gap-2 flex-wrap">
-            {/* Hidden Candidates Drawer */}
             {hiddenCandidatesDrawer}
 
-            {/* Toggle stats button */}
             <Button
               variant="outline"
               size="sm"
               onClick={() => setIsOpen(!isOpen)}
-              className="border-purple-200 text-purple-600 hover:bg-purple-50 rounded-xl text-xs sm:text-sm"
+              className="border-gray-200 text-gray-600 hover:bg-gray-50 rounded-lg text-xs sm:text-sm"
             >
               <BarChart className="w-4 h-4 ml-1.5" />
               <span className="hidden sm:inline">
@@ -178,7 +165,7 @@ const MatchmakerHeroSection: React.FC<{
               size="sm"
               onClick={onRefresh}
               disabled={isRefreshing}
-              className="border-purple-200 text-purple-600 hover:bg-purple-50 rounded-xl text-xs sm:text-sm"
+              className="border-gray-200 text-gray-600 hover:bg-gray-50 rounded-lg text-xs sm:text-sm"
             >
               <RefreshCw
                 className={cn('w-4 h-4 ml-1', isRefreshing && 'animate-spin')}
@@ -191,79 +178,70 @@ const MatchmakerHeroSection: React.FC<{
             <Button
               onClick={onNewSuggestion}
               size="sm"
-              className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white shadow-lg rounded-xl text-xs sm:text-sm font-bold"
+              className="bg-teal-600 hover:bg-teal-700 text-white shadow-sm rounded-lg text-xs sm:text-sm font-semibold"
             >
               <Plus className="w-4 h-4 ml-1" />
               {dict.newSuggestionButton}
-              <Sparkles className="w-3.5 h-3.5 mr-1 hidden sm:block" />
             </Button>
           </div>
         </div>
 
-        {/* ── Expanded Stats – נפתח בלחיצה ── */}
+        {/* ── Expanded Stats ── */}
         {isOpen && (
-          <div className="px-4 sm:px-6 pb-6 animate-in slide-in-from-top-2 duration-300">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
-              <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm hover:shadow-xl transition-all duration-300 group">
-                <CardContent className="p-3 sm:p-4 text-center">
-                  <div className="flex items-center justify-center gap-2 mb-2">
-                    <div className="p-1.5 sm:p-2 rounded-full bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-lg group-hover:scale-110 transition-transform">
-                      <Users className="w-4 h-4 sm:w-5 sm:h-5" />
-                    </div>
-                    <span className="text-xl sm:text-2xl font-bold text-blue-600">
-                      {stats.total}
-                    </span>
+          <div className="px-5 py-4 animate-in slide-in-from-top-2 duration-200 bg-gray-50/50">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <div className="bg-white rounded-lg border border-gray-100 p-4 hover:border-gray-200 transition-colors">
+                <div className="flex items-center gap-2.5 mb-1">
+                  <div className="p-1.5 rounded-md bg-blue-50 text-blue-600">
+                    <Users className="w-4 h-4" />
                   </div>
-                  <p className="text-xs sm:text-sm text-gray-600 font-medium">
-                    {dict.totalSuggestions}
-                  </p>
-                </CardContent>
-              </Card>
-              <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm hover:shadow-xl transition-all duration-300 group">
-                <CardContent className="p-3 sm:p-4 text-center">
-                  <div className="flex items-center justify-center gap-2 mb-2">
-                    <div className="p-1.5 sm:p-2 rounded-full bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-lg group-hover:scale-110 transition-transform">
-                      <Clock className="w-4 h-4 sm:w-5 sm:h-5" />
-                    </div>
-                    <span className="text-xl sm:text-2xl font-bold text-orange-600">
-                      {stats.pending}
-                    </span>
+                  <span className="text-2xl font-bold text-gray-900">
+                    {stats.total}
+                  </span>
+                </div>
+                <p className="text-xs text-gray-500 font-medium">
+                  {dict.totalSuggestions}
+                </p>
+              </div>
+              <div className="bg-white rounded-lg border border-gray-100 p-4 hover:border-gray-200 transition-colors">
+                <div className="flex items-center gap-2.5 mb-1">
+                  <div className="p-1.5 rounded-md bg-amber-50 text-amber-600">
+                    <Clock className="w-4 h-4" />
                   </div>
-                  <p className="text-xs sm:text-sm text-gray-600 font-medium">
-                    {dict.pendingResponse}
-                  </p>
-                </CardContent>
-              </Card>
-              <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm hover:shadow-xl transition-all duration-300 group">
-                <CardContent className="p-3 sm:p-4 text-center">
-                  <div className="flex items-center justify-center gap-2 mb-2">
-                    <div className="p-1.5 sm:p-2 rounded-full bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-lg group-hover:scale-110 transition-transform">
-                      <Heart className="w-4 h-4 sm:w-5 sm:h-5" />
+                  <span className="text-2xl font-bold text-gray-900">
+                    {stats.pending}
+                  </span>
+                </div>
+                <p className="text-xs text-gray-500 font-medium">
+                  {dict.pendingResponse}
+                </p>
+              </div>
+              <div className="bg-white rounded-lg border border-gray-100 p-4 hover:border-gray-200 transition-colors">
+                <div className="flex items-center gap-2.5 mb-1">
+                  <div className="p-1.5 rounded-md bg-emerald-50 text-emerald-600">
+                    <Heart className="w-4 h-4" />
                     </div>
-                    <span className="text-xl sm:text-2xl font-bold text-green-600">
+                    <span className="text-2xl font-bold text-gray-900">
                       {stats.success}
                     </span>
                   </div>
-                  <p className="text-xs sm:text-sm text-gray-600 font-medium">
-                    {dict.successfulMatches}
-                  </p>
-                </CardContent>
-              </Card>
-              <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm hover:shadow-xl transition-all duration-300 group">
-                <CardContent className="p-3 sm:p-4 text-center">
-                  <div className="flex items-center justify-center gap-2 mb-2">
-                    <div className="p-1.5 sm:p-2 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg group-hover:scale-110 transition-transform">
-                      <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5" />
-                    </div>
-                    <span className="text-xl sm:text-2xl font-bold text-purple-600">
-                      {stats.successRate}%
-                    </span>
+                <p className="text-xs text-gray-500 font-medium">
+                  {dict.successfulMatches}
+                </p>
+              </div>
+              <div className="bg-white rounded-lg border border-gray-100 p-4 hover:border-gray-200 transition-colors">
+                <div className="flex items-center gap-2.5 mb-1">
+                  <div className="p-1.5 rounded-md bg-violet-50 text-violet-600">
+                    <TrendingUp className="w-4 h-4" />
                   </div>
-                  <p className="text-xs sm:text-sm text-gray-600 font-medium">
-                    {dict.successRate}
-                  </p>
-                </CardContent>
-              </Card>
+                  <span className="text-2xl font-bold text-gray-900">
+                    {stats.successRate}%
+                  </span>
+                </div>
+                <p className="text-xs text-gray-500 font-medium">
+                  {dict.successRate}
+                </p>
+              </div>
             </div>
           </div>
         )}

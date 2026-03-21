@@ -66,6 +66,7 @@ export interface PartyInfo {
   // Fields from User model
   id: string;
   email: string;
+  phone?: string | null;
   firstName: string;
   lastName: string;
   isProfileComplete: boolean;

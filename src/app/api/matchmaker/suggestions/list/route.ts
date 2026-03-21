@@ -77,6 +77,7 @@ export async function GET(req: Request) {
             id: true,
             firstName: true,
             lastName: true,
+            phone: true,
             profile: {
               select: {
                 gender: true,
@@ -103,6 +104,7 @@ export async function GET(req: Request) {
             id: true,
             firstName: true,
             lastName: true,
+            phone: true,
             profile: {
               select: {
                 gender: true,

@@ -1,16 +1,28 @@
 'use client';
 
-import type { SFQuestion, SFAnswers } from '../types';
+import { useState, useEffect } from 'react';
+import type { SFQuestion } from '../types';
 
 interface Props {
   question: SFQuestion;
   value: string | null;
   onChange: (value: string) => void;
+  customValue?: string;
+  onCustomChange?: (value: string) => void;
   t: (key: string) => string;
   isRTL: boolean;
 }
 
-export default function SingleChoiceQuestion({ question, value, onChange, t, isRTL }: Props) {
+export default function SingleChoiceQuestion({ question, value, onChange, customValue, onCustomChange, t, isRTL }: Props) {
+  const [localCustom, setLocalCustom] = useState(customValue || '');
+
+  useEffect(() => {
+    setLocalCustom(customValue || '');
+  }, [customValue]);
+
+  const selectedOption = question.options?.find(opt => opt.value === value);
+  const showCustomInput = selectedOption?.isCustomInput;
+
   return (
     <div className="space-y-2">
       {question.options?.map((opt) => {
@@ -53,6 +65,23 @@ export default function SingleChoiceQuestion({ question, value, onChange, t, isR
           </button>
         );
       })}
+
+      {/* Custom text input for "other" options */}
+      {showCustomInput && (
+        <div className="animate-in fade-in slide-in-from-top-2 duration-200 mt-2">
+          <input
+            type="text"
+            value={localCustom}
+            onChange={(e) => {
+              setLocalCustom(e.target.value);
+              onCustomChange?.(e.target.value);
+            }}
+            placeholder={t(`options.${question.id}.${selectedOption.value}_placeholder`) || '...'}
+            dir={isRTL ? 'rtl' : 'ltr'}
+            className="w-full p-3 rounded-xl border-2 border-teal-200 bg-teal-50/30 text-sm placeholder:text-gray-400 focus:outline-none focus:border-teal-400 focus:ring-2 focus:ring-teal-100 transition-all"
+          />
+        </div>
+      )}
     </div>
   );
 }

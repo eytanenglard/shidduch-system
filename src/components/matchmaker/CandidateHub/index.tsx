@@ -37,6 +37,11 @@ import {
   ChevronUp,
   Briefcase,
   ExternalLink,
+  Send,
+  Ban,
+  RotateCcw,
+  Bookmark,
+  Pause,
 } from 'lucide-react';
 import { useCandidates } from '@/components/matchmaker/new/hooks/useCandidates';
 import type { Candidate } from '@/components/matchmaker/new/types/candidates';
@@ -44,6 +49,20 @@ import type { MatchmakerPageDictionary, SuggestionsDictionary, ProfilePageDictio
 import type { Locale } from '../../../../i18n-config';
 import type { ExtendedMatchSuggestion } from '@/types/suggestions';
 import { cn, getInitials } from '@/lib/utils';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from '@/components/ui/dropdown-menu';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+import { toast } from 'sonner';
 
 // =============================================================================
 // DYNAMIC IMPORTS — טעינה עצלה של קומפוננטות כבדות
@@ -98,6 +117,7 @@ interface SuggestionListItem {
     id: string;
     firstName: string;
     lastName: string;
+    phone?: string | null;
     profile?: {
       city?: string;
       birthDate?: string;
@@ -111,6 +131,7 @@ interface SuggestionListItem {
     id: string;
     firstName: string;
     lastName: string;
+    phone?: string | null;
     profile?: {
       city?: string;
       birthDate?: string;
@@ -247,6 +268,62 @@ const TabLoadingSkeleton = () => (
 );
 
 // =============================================================================
+// STATUS TRANSITIONS (for quick status update)
+// =============================================================================
+
+interface QuickStatusTransition {
+  value: string;
+  label: string;
+  icon: React.ElementType;
+  color: string;
+  category: 'advance' | 'update' | 'close';
+}
+
+const QUICK_STATUS_TRANSITIONS: Record<string, QuickStatusTransition[]> = {
+  DRAFT: [
+    { value: 'PENDING_FIRST_PARTY', label: 'שלח לצד א׳', icon: Send, color: 'text-blue-600', category: 'advance' },
+  ],
+  PENDING_FIRST_PARTY: [
+    { value: 'FIRST_PARTY_APPROVED', label: 'צד א׳ אישר', icon: CheckCircle, color: 'text-green-600', category: 'advance' },
+    { value: 'FIRST_PARTY_INTERESTED', label: 'צד א׳ מעוניין', icon: Bookmark, color: 'text-amber-600', category: 'update' },
+    { value: 'FIRST_PARTY_DECLINED', label: 'צד א׳ דחה', icon: XCircle, color: 'text-red-600', category: 'close' },
+    { value: 'CANCELLED', label: 'בטל', icon: Ban, color: 'text-gray-500', category: 'close' },
+  ],
+  FIRST_PARTY_INTERESTED: [
+    { value: 'FIRST_PARTY_APPROVED', label: 'צד א׳ אישר', icon: CheckCircle, color: 'text-green-600', category: 'advance' },
+    { value: 'FIRST_PARTY_DECLINED', label: 'צד א׳ דחה', icon: XCircle, color: 'text-red-600', category: 'close' },
+    { value: 'CANCELLED', label: 'בטל', icon: Ban, color: 'text-gray-500', category: 'close' },
+  ],
+  FIRST_PARTY_APPROVED: [
+    { value: 'PENDING_SECOND_PARTY', label: 'שלח לצד ב׳', icon: Send, color: 'text-blue-600', category: 'advance' },
+    { value: 'CANCELLED', label: 'בטל', icon: Ban, color: 'text-gray-500', category: 'close' },
+  ],
+  PENDING_SECOND_PARTY: [
+    { value: 'SECOND_PARTY_APPROVED', label: 'צד ב׳ אישר', icon: CheckCircle, color: 'text-green-600', category: 'advance' },
+    { value: 'SECOND_PARTY_DECLINED', label: 'צד ב׳ דחה', icon: XCircle, color: 'text-red-600', category: 'close' },
+    { value: 'SECOND_PARTY_NOT_AVAILABLE', label: 'צד ב׳ לא זמין', icon: Pause, color: 'text-amber-600', category: 'update' },
+    { value: 'CANCELLED', label: 'בטל', icon: Ban, color: 'text-gray-500', category: 'close' },
+  ],
+  SECOND_PARTY_APPROVED: [
+    { value: 'CONTACT_DETAILS_SHARED', label: 'שתף פרטים', icon: Phone, color: 'text-emerald-600', category: 'advance' },
+    { value: 'RE_OFFERED_TO_FIRST_PARTY', label: 'הצע מחדש לצד א׳', icon: RotateCcw, color: 'text-blue-600', category: 'update' },
+    { value: 'CANCELLED', label: 'בטל', icon: Ban, color: 'text-gray-500', category: 'close' },
+  ],
+  SECOND_PARTY_NOT_AVAILABLE: [
+    { value: 'PENDING_SECOND_PARTY', label: 'שלח שוב לצד ב׳', icon: Send, color: 'text-blue-600', category: 'advance' },
+    { value: 'CLOSED', label: 'סגור', icon: Ban, color: 'text-gray-500', category: 'close' },
+  ],
+  CONTACT_DETAILS_SHARED: [
+    { value: 'DATING', label: 'בדייטים', icon: Heart, color: 'text-rose-600', category: 'advance' },
+    { value: 'CLOSED', label: 'סגור', icon: Ban, color: 'text-gray-500', category: 'close' },
+  ],
+  DATING: [
+    { value: 'ENGAGED', label: 'מאורסים', icon: Heart, color: 'text-pink-600', category: 'advance' },
+    { value: 'CLOSED', label: 'סגור', icon: Ban, color: 'text-gray-500', category: 'close' },
+  ],
+};
+
+// =============================================================================
 // SUGGESTION CARD
 // =============================================================================
 
@@ -255,12 +332,15 @@ const SuggestionCard = ({
   candidateId,
   isRtl,
   onClick,
+  onStatusChange,
 }: {
   suggestion: SuggestionListItem;
   candidateId: string;
   isRtl: boolean;
   onClick: () => void;
+  onStatusChange: (suggestionId: string, newStatus: string) => Promise<void>;
 }) => {
+  const [updatingStatus, setUpdatingStatus] = useState(false);
   const isFirst = suggestion.firstParty?.id === candidateId;
   const partner = isFirst ? suggestion.secondParty : suggestion.firstParty;
   const partnerImg = partner?.images?.[0];
@@ -268,6 +348,27 @@ const SuggestionCard = ({
   const statusLabel = isRtl
     ? (STATUS_LABELS_HE[suggestion.status] ?? suggestion.status.replace(/_/g, ' '))
     : suggestion.status.replace(/_/g, ' ');
+
+  const transitions = QUICK_STATUS_TRANSITIONS[suggestion.status] ?? [];
+
+  const openWhatsApp = (e: React.MouseEvent, party: SuggestionListItem['firstParty'] | SuggestionListItem['secondParty']) => {
+    e.stopPropagation();
+    if (!party?.phone) return;
+    let cleanPhone = party.phone.replace(/\D/g, '');
+    if (cleanPhone.startsWith('0')) cleanPhone = '972' + cleanPhone.substring(1);
+    const message = `היי ${party.firstName} 👋\n\nזה איתן מנשמהטק.\n\nרציתי לדבר איתך לגבי הצעת שידוך.\n\n🌐 https://neshamatech.com`;
+    window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`, '_blank');
+  };
+
+  const handleStatusChange = async (e: React.MouseEvent, newStatus: string) => {
+    e.stopPropagation();
+    setUpdatingStatus(true);
+    try {
+      await onStatusChange(suggestion.id, newStatus);
+    } finally {
+      setUpdatingStatus(false);
+    }
+  };
 
   return (
     <Card
@@ -315,6 +416,120 @@ const SuggestionCard = ({
                 </span>
               )}
             </div>
+
+            {/* Quick action buttons */}
+            <div className="flex items-center gap-1.5 mt-2">
+              {/* WhatsApp for first party */}
+              {suggestion.firstParty?.phone && (
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 rounded-full bg-green-50 hover:bg-green-100 text-green-600"
+                        onClick={(e) => openWhatsApp(e, suggestion.firstParty)}
+                      >
+                        <MessageCircle className="h-3.5 w-3.5" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>וואטסאפ ל{suggestion.firstParty.firstName} (צד א׳)</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              )}
+
+              {/* WhatsApp for second party */}
+              {suggestion.secondParty?.phone && (
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 rounded-full bg-green-50 hover:bg-green-100 text-green-600"
+                        onClick={(e) => openWhatsApp(e, suggestion.secondParty)}
+                      >
+                        <MessageCircle className="h-3.5 w-3.5" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>וואטסאפ ל{suggestion.secondParty.firstName} (צד ב׳)</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              )}
+
+              {/* Quick status update */}
+              {transitions.length > 0 && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-7 px-2 rounded-full bg-blue-50 hover:bg-blue-100 text-blue-600 text-xs font-medium gap-1"
+                      onClick={(e) => e.stopPropagation()}
+                      disabled={updatingStatus}
+                    >
+                      {updatingStatus ? (
+                        <Loader2 className="h-3 w-3 animate-spin" />
+                      ) : (
+                        <Edit className="h-3 w-3" />
+                      )}
+                      עדכן סטטוס
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start" className="min-w-[180px]" onClick={(e) => e.stopPropagation()}>
+                    {transitions.filter(t => t.category === 'advance').map((t) => {
+                      const Icon = t.icon;
+                      return (
+                        <DropdownMenuItem
+                          key={t.value}
+                          className={cn('gap-2 font-medium', t.color)}
+                          onClick={(e) => handleStatusChange(e, t.value)}
+                        >
+                          <Icon className="h-4 w-4" />
+                          {t.label}
+                        </DropdownMenuItem>
+                      );
+                    })}
+                    {transitions.some(t => t.category === 'advance') && transitions.some(t => t.category !== 'advance') && (
+                      <DropdownMenuSeparator />
+                    )}
+                    {transitions.filter(t => t.category === 'update').map((t) => {
+                      const Icon = t.icon;
+                      return (
+                        <DropdownMenuItem
+                          key={t.value}
+                          className={cn('gap-2', t.color)}
+                          onClick={(e) => handleStatusChange(e, t.value)}
+                        >
+                          <Icon className="h-4 w-4" />
+                          {t.label}
+                        </DropdownMenuItem>
+                      );
+                    })}
+                    {transitions.some(t => t.category === 'close') && (
+                      <DropdownMenuSeparator />
+                    )}
+                    {transitions.filter(t => t.category === 'close').map((t) => {
+                      const Icon = t.icon;
+                      return (
+                        <DropdownMenuItem
+                          key={t.value}
+                          className={cn('gap-2', t.color)}
+                          onClick={(e) => handleStatusChange(e, t.value)}
+                        >
+                          <Icon className="h-4 w-4" />
+                          {t.label}
+                        </DropdownMenuItem>
+                      );
+                    })}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
+            </div>
           </div>
 
           {/* Status + meta */}
@@ -357,6 +572,7 @@ const CategorySection = ({
   candidateId,
   isRtl,
   onSuggestionClick,
+  onStatusChange,
   defaultOpen = true,
 }: {
   title: string;
@@ -366,6 +582,7 @@ const CategorySection = ({
   candidateId: string;
   isRtl: boolean;
   onSuggestionClick: (id: string) => void;
+  onStatusChange: (suggestionId: string, newStatus: string) => Promise<void>;
   defaultOpen?: boolean;
 }) => {
   const [open, setOpen] = useState(defaultOpen);
@@ -398,6 +615,7 @@ const CategorySection = ({
               candidateId={candidateId}
               isRtl={isRtl}
               onClick={() => onSuggestionClick(s.id)}
+              onStatusChange={onStatusChange}
             />
           ))}
         </div>
@@ -415,11 +633,13 @@ const SuggestionsTab = ({
   isRtl,
   onSuggestionClick,
   refreshKey,
+  onRefresh,
 }: {
   candidateId: string;
   isRtl: boolean;
   onSuggestionClick: (id: string) => void;
   refreshKey: number;
+  onRefresh: () => void;
 }) => {
   const [suggestions, setSuggestions] = useState<SuggestionListItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -446,6 +666,25 @@ const SuggestionsTab = ({
       .catch(() => setError(true))
       .finally(() => setLoading(false));
   }, [candidateId, refreshKey]);
+
+  const handleStatusChange = useCallback(async (suggestionId: string, newStatus: string) => {
+    try {
+      const res = await fetch(`/api/matchmaker/suggestions/${suggestionId}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || 'Failed to update status');
+      }
+      toast.success(`הסטטוס עודכן ל-${STATUS_LABELS_HE[newStatus] ?? newStatus}`);
+      onRefresh();
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'שגיאה בעדכון הסטטוס';
+      toast.error(message);
+    }
+  }, [onRefresh]);
 
   if (loading) return <TabLoadingSkeleton />;
 
@@ -492,6 +731,7 @@ const SuggestionsTab = ({
         candidateId={candidateId}
         isRtl={isRtl}
         onSuggestionClick={onSuggestionClick}
+        onStatusChange={handleStatusChange}
         defaultOpen={true}
       />
 
@@ -503,6 +743,7 @@ const SuggestionsTab = ({
         candidateId={candidateId}
         isRtl={isRtl}
         onSuggestionClick={onSuggestionClick}
+        onStatusChange={handleStatusChange}
         defaultOpen={true}
       />
 
@@ -514,6 +755,7 @@ const SuggestionsTab = ({
         candidateId={candidateId}
         isRtl={isRtl}
         onSuggestionClick={onSuggestionClick}
+        onStatusChange={handleStatusChange}
         defaultOpen={true}
       />
 
@@ -525,6 +767,7 @@ const SuggestionsTab = ({
         candidateId={candidateId}
         isRtl={isRtl}
         onSuggestionClick={onSuggestionClick}
+        onStatusChange={handleStatusChange}
         defaultOpen={false}
       />
 
@@ -536,6 +779,7 @@ const SuggestionsTab = ({
         candidateId={candidateId}
         isRtl={isRtl}
         onSuggestionClick={onSuggestionClick}
+        onStatusChange={handleStatusChange}
         defaultOpen={false}
       />
     </div>
@@ -1091,6 +1335,7 @@ export default function CandidateHub({
                       isRtl={isRtl}
                       onSuggestionClick={handleSuggestionClick}
                       refreshKey={suggestionsRefreshKey}
+                      onRefresh={() => setSuggestionsRefreshKey((k) => k + 1)}
                     />
                   )}
                 </TabsContent>

@@ -53,6 +53,7 @@ import {
   Ban,
   CalendarClock,
   TrendingUp,
+  AlertTriangle,
   type LucideIcon,
 } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
@@ -361,6 +362,47 @@ const getStatusInfo = (status: string): StatusInfo =>
     accentColor: 'bg-gray-400',
     progress: 10,
   };
+
+// ═══════════════════════════════════════════════════════════════
+// TRANSITION METADATA — מטא-דאטה ויזואלי למעברי סטטוס
+// ═══════════════════════════════════════════════════════════════
+
+interface TransitionMeta {
+  icon: LucideIcon;
+  color: string;
+  bgColor: string;
+  borderColor: string;
+  category: 'advance' | 'update' | 'close';
+  description: string;
+}
+
+const TRANSITION_META: Record<string, TransitionMeta> = {
+  PENDING_FIRST_PARTY: { icon: Send, color: 'text-blue-600', bgColor: 'bg-blue-50', borderColor: 'border-blue-300', category: 'advance', description: 'ההצעה תישלח לאישור צד א׳' },
+  FIRST_PARTY_APPROVED: { icon: CheckCircle, color: 'text-green-600', bgColor: 'bg-green-50', borderColor: 'border-green-300', category: 'advance', description: 'צד א׳ אישר/ה את ההצעה' },
+  FIRST_PARTY_INTERESTED: { icon: Bookmark, color: 'text-amber-600', bgColor: 'bg-amber-50', borderColor: 'border-amber-300', category: 'update', description: 'שמירה ברשימת גיבוי' },
+  FIRST_PARTY_DECLINED: { icon: XCircle, color: 'text-red-600', bgColor: 'bg-red-50', borderColor: 'border-red-300', category: 'close', description: 'צד א׳ דחה/תה את ההצעה' },
+  PENDING_SECOND_PARTY: { icon: Send, color: 'text-blue-600', bgColor: 'bg-blue-50', borderColor: 'border-blue-300', category: 'advance', description: 'ההצעה תישלח לאישור צד ב׳' },
+  SECOND_PARTY_APPROVED: { icon: CheckCircle, color: 'text-emerald-600', bgColor: 'bg-emerald-50', borderColor: 'border-emerald-300', category: 'advance', description: 'צד ב׳ אישר/ה את ההצעה' },
+  SECOND_PARTY_DECLINED: { icon: XCircle, color: 'text-red-600', bgColor: 'bg-red-50', borderColor: 'border-red-300', category: 'close', description: 'צד ב׳ דחה/תה את ההצעה' },
+  SECOND_PARTY_NOT_AVAILABLE: { icon: Clock, color: 'text-amber-600', bgColor: 'bg-amber-50', borderColor: 'border-amber-300', category: 'update', description: 'סימון שצד ב׳ לא זמין כרגע' },
+  RE_OFFERED_TO_FIRST_PARTY: { icon: RefreshCw, color: 'text-blue-600', bgColor: 'bg-blue-50', borderColor: 'border-blue-300', category: 'update', description: 'שליחה מחדש לאישור צד א׳' },
+  AWAITING_MATCHMAKER_APPROVAL: { icon: Clock, color: 'text-orange-600', bgColor: 'bg-orange-50', borderColor: 'border-orange-300', category: 'advance', description: 'ממתין לאישור סופי מהשדכן' },
+  CONTACT_DETAILS_SHARED: { icon: Phone, color: 'text-purple-600', bgColor: 'bg-purple-50', borderColor: 'border-purple-300', category: 'advance', description: 'שיתוף פרטי קשר בין הצדדים' },
+  AWAITING_FIRST_DATE_FEEDBACK: { icon: MessageCircle, color: 'text-violet-600', bgColor: 'bg-violet-50', borderColor: 'border-violet-300', category: 'advance', description: 'בקשת משוב לאחר הפגישה' },
+  THINKING_AFTER_DATE: { icon: Clock, color: 'text-amber-600', bgColor: 'bg-amber-50', borderColor: 'border-amber-300', category: 'update', description: 'הצדדים בחשיבה לאחר הפגישה' },
+  PROCEEDING_TO_SECOND_DATE: { icon: Heart, color: 'text-pink-600', bgColor: 'bg-pink-50', borderColor: 'border-pink-300', category: 'advance', description: 'המשך לפגישה שנייה' },
+  ENDED_AFTER_FIRST_DATE: { icon: XCircle, color: 'text-red-600', bgColor: 'bg-red-50', borderColor: 'border-red-300', category: 'close', description: 'התהליך הסתיים לאחר הפגישה' },
+  DATING: { icon: Heart, color: 'text-pink-600', bgColor: 'bg-pink-50', borderColor: 'border-pink-300', category: 'advance', description: 'הצדדים בתהליך היכרות פעיל' },
+  ENGAGED: { icon: Gem, color: 'text-purple-600', bgColor: 'bg-purple-50', borderColor: 'border-purple-300', category: 'advance', description: 'עדכון אירוסין' },
+  MARRIED: { icon: Crown, color: 'text-emerald-600', bgColor: 'bg-emerald-50', borderColor: 'border-emerald-300', category: 'advance', description: 'עדכון נישואין' },
+  CANCELLED: { icon: Ban, color: 'text-gray-500', bgColor: 'bg-gray-50', borderColor: 'border-gray-300', category: 'close', description: 'ביטול ההצעה וסגירת התהליך' },
+  CLOSED: { icon: Archive, color: 'text-gray-500', bgColor: 'bg-gray-50', borderColor: 'border-gray-300', category: 'close', description: 'סגירת ההצעה' },
+};
+
+const DEFAULT_TRANSITION_META: TransitionMeta = {
+  icon: RefreshCw, color: 'text-gray-600', bgColor: 'bg-gray-50',
+  borderColor: 'border-gray-300', category: 'update', description: '',
+};
 
 // ═══════════════════════════════════════════════════════════════
 // HELPERS
@@ -1194,7 +1236,7 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
         </Tabs>
 
         {/* ════════════════════════════════════════════
-            STATUS CHANGE MODAL
+            STATUS CHANGE MODAL — World-class redesign
             ════════════════════════════════════════════ */}
         {showStatusChange && (
           <div
@@ -1204,143 +1246,263 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
               if (e.target === e.currentTarget) setShowStatusChange(false);
             }}
           >
-            <div className="bg-white rounded-2xl max-w-lg w-full shadow-2xl animate-in fade-in zoom-in-95 duration-200 max-h-[85vh] overflow-y-auto">
-              {/* Modal header */}
-              <div className="flex justify-between items-center p-5 border-b border-gray-100 sticky top-0 bg-white rounded-t-2xl z-10">
-                <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2">
-                  <RefreshCw className="w-5 h-5 text-blue-600" />
-                  {dict.statusChangeModal.title}
-                </h3>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 rounded-lg"
-                  onClick={() => setShowStatusChange(false)}
-                >
-                  <CloseIcon className="w-4 h-4" />
-                </Button>
+            <div className="bg-white rounded-2xl max-w-lg w-full shadow-2xl animate-in fade-in zoom-in-95 duration-200 overflow-hidden flex flex-col max-h-[85vh]">
+
+              {/* ── Header ── */}
+              <div className="px-6 py-4 border-b border-gray-100 bg-white sticky top-0 z-10">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <h3 className="text-lg font-bold text-gray-900">
+                      {dict.statusChangeModal.title}
+                    </h3>
+                    <p className="text-xs text-gray-400 mt-0.5">
+                      {suggestion.firstParty.firstName} {suggestion.firstParty.lastName}
+                      {' '}↔{' '}
+                      {suggestion.secondParty.firstName} {suggestion.secondParty.lastName}
+                    </p>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 rounded-lg hover:bg-gray-100 -mt-1"
+                    onClick={() => setShowStatusChange(false)}
+                  >
+                    <CloseIcon className="w-4 h-4" />
+                  </Button>
+                </div>
               </div>
 
-              <div className="p-5 space-y-5">
-                {/* Current status */}
-                <div className="flex items-center gap-3 bg-gray-50 rounded-xl p-3">
-                  <Badge
-                    className={cn(
-                      'text-xs font-semibold border px-2.5 py-1 rounded-lg',
-                      statusInfo.badgeColor
-                    )}
-                  >
-                    <StatusIcon className="w-3.5 h-3.5 ml-1" />
-                    {statusLabel}
-                  </Badge>
-                  <span className="text-xs text-gray-400">
-                    {dict.statusChangeModal.currentStatusLabel}
-                  </span>
-                </div>
+              {/* ── Body ── */}
+              <div className="overflow-y-auto flex-1 px-6 py-5 space-y-5">
 
-                {/* Recommended actions */}
-                <div>
-                  <p className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-2">
-                    {dict.statusChangeModal.recommendedLabel ||
-                      'פעולות מומלצות'}
-                  </p>
-                  <div className="space-y-1.5">
-                    {/* ✅ CHANGED: Use imported function directly */}
-                    {currentAvailableActions.map((action) => (
-                        <button
-                          key={action.id}
-                          className={cn(
-                            'w-full flex items-center justify-between p-3 rounded-xl border text-sm font-medium transition-all text-right',
-                            newStatus === action.nextStatus
-                              ? 'border-purple-300 bg-purple-50 text-purple-700'
-                              : 'border-gray-100 hover:border-gray-200 hover:bg-gray-50 text-gray-700'
-                          )}
-                          onClick={() => setNewStatus(action.nextStatus)}
-                        >
-                          <span>{action.label}</span>
-                          {newStatus === action.nextStatus && (
-                            <CheckCircle className="w-4 h-4 text-purple-600 flex-shrink-0" />
-                          )}
-                        </button>
-                      ))}
-                    {currentAvailableActions.length === 0 && (
-                      <p className="text-sm text-gray-400 italic py-2">
-                        {dict.statusChangeModal.noRecommendations ||
-                          'אין פעולות מומלצות לסטטוס זה'}
-                      </p>
+                {/* ── Current → New Status Preview ── */}
+                <div className="bg-gradient-to-br from-gray-50 to-slate-50/60 rounded-xl p-4 border border-gray-100">
+                  <div className="flex items-center gap-3 flex-wrap">
+                    {/* Current status */}
+                    <div className={cn(
+                      'flex items-center gap-2 px-3 py-2 rounded-lg border text-sm font-semibold',
+                      statusInfo.badgeColor
+                    )}>
+                      <StatusIcon className="w-4 h-4" />
+                      <span>{statusLabel}</span>
+                    </div>
+
+                    {newStatus && (
+                      <>
+                        <div className="flex items-center">
+                          <ArrowLeft className="w-5 h-5 text-gray-300" />
+                        </div>
+                        {/* New status */}
+                        {(() => {
+                          const newMeta = TRANSITION_META[newStatus] || DEFAULT_TRANSITION_META;
+                          const newInfo = STATUS_INFO_MAP[newStatus];
+                          const NewIcon = newMeta.icon;
+                          return (
+                            <div className={cn(
+                              'flex items-center gap-2 px-3 py-2 rounded-lg border text-sm font-semibold animate-in fade-in slide-in-from-right-2 duration-300',
+                              newInfo?.badgeColor || 'bg-gray-100 text-gray-700 border-gray-200'
+                            )}>
+                              <NewIcon className="w-4 h-4" />
+                              <span>{dict.statusLabels[newStatus] || newStatus}</span>
+                            </div>
+                          );
+                        })()}
+                      </>
                     )}
+                  </div>
+
+                  {/* Progress bar */}
+                  <div className="mt-3">
+                    <div className="flex items-center justify-between mb-1.5">
+                      <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+                        {dict.statusChangeModal.currentStatusLabel}
+                      </span>
+                      <span className="text-xs font-bold text-gray-400">
+                        {newStatus ? (STATUS_INFO_MAP[newStatus]?.progress ?? statusInfo.progress) : statusInfo.progress}%
+                      </span>
+                    </div>
+                    <Progress
+                      value={newStatus ? (STATUS_INFO_MAP[newStatus]?.progress ?? statusInfo.progress) : statusInfo.progress}
+                      className="h-1.5 bg-gray-200/60 transition-all duration-500"
+                    />
                   </div>
                 </div>
 
-                <div className="border-t border-gray-100" />
+                {/* ── Action Cards by Category ── */}
+                {(() => {
+                  const enrichedActions = currentAvailableActions.map(action => ({
+                    ...action,
+                    meta: TRANSITION_META[action.nextStatus] || DEFAULT_TRANSITION_META,
+                  }));
+                  const advanceActions = enrichedActions.filter(a => a.meta.category === 'advance');
+                  const updateActions = enrichedActions.filter(a => a.meta.category === 'update');
+                  const closeActions = enrichedActions.filter(a => a.meta.category === 'close');
 
-                {/* Manual select */}
-                <div>
-                  <p className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-2">
-                    {dict.statusChangeModal.manualLabel || 'בחירה ידנית'}
-                  </p>
-                  <Select
-                    value={newStatus || undefined}
-                    onValueChange={(v) =>
-                      setNewStatus(v as MatchSuggestionStatus)
-                    }
-                  >
-                    <SelectTrigger className="w-full h-10 rounded-xl">
-                      <SelectValue
-                        placeholder={
-                          dict.statusChangeModal.newStatusPlaceholder
-                        }
-                      />
-                    </SelectTrigger>
-                    <SelectContent className="max-h-60">
-                      {Object.entries(dict.statusLabels).map(
-                        ([status, label]) => (
-                          <SelectItem key={status} value={status}>
-                            {label}
-                          </SelectItem>
-                        )
+                  const renderActionCard = (action: typeof enrichedActions[0]) => {
+                    const ActionIcon = action.meta.icon;
+                    const isSelected = newStatus === action.nextStatus;
+                    return (
+                      <button
+                        key={action.id}
+                        className={cn(
+                          'w-full flex items-center gap-3 p-3.5 rounded-xl border-2 transition-all duration-200 text-right group',
+                          isSelected
+                            ? `${action.meta.borderColor} ${action.meta.bgColor} shadow-sm scale-[1.01]`
+                            : 'border-transparent hover:bg-gray-50/80 hover:border-gray-100'
+                        )}
+                        onClick={() => setNewStatus(action.nextStatus)}
+                      >
+                        <div className={cn(
+                          'w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-200',
+                          isSelected ? action.meta.bgColor : 'bg-gray-100 group-hover:bg-gray-200/60'
+                        )}>
+                          <ActionIcon className={cn(
+                            'w-[18px] h-[18px] transition-colors duration-200',
+                            isSelected ? action.meta.color : 'text-gray-400 group-hover:text-gray-600'
+                          )} />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className={cn(
+                            'font-semibold text-sm transition-colors duration-200',
+                            isSelected ? 'text-gray-900' : 'text-gray-700'
+                          )}>
+                            {action.label}
+                          </p>
+                          {action.meta.description && (
+                            <p className="text-[11px] text-gray-400 mt-0.5 leading-snug">
+                              {action.meta.description}
+                            </p>
+                          )}
+                        </div>
+                        <div className={cn(
+                          'w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all duration-200',
+                          isSelected
+                            ? `${action.meta.borderColor} ${action.meta.bgColor}`
+                            : 'border-gray-200'
+                        )}>
+                          {isSelected && <CheckCircle className={cn('w-4 h-4', action.meta.color)} />}
+                        </div>
+                      </button>
+                    );
+                  };
+
+                  return (
+                    <div className="space-y-4">
+                      {advanceActions.length > 0 && (
+                        <div>
+                          <div className="flex items-center gap-1.5 mb-2 px-1">
+                            <TrendingUp className="w-3.5 h-3.5 text-emerald-500" />
+                            <span className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest">
+                              {dict.statusChangeModal.recommendedLabel || 'קידום'}
+                            </span>
+                          </div>
+                          <div className="space-y-1">
+                            {advanceActions.map(renderActionCard)}
+                          </div>
+                        </div>
                       )}
-                    </SelectContent>
-                  </Select>
-                </div>
+                      {updateActions.length > 0 && (
+                        <div>
+                          <div className="flex items-center gap-1.5 mb-2 px-1">
+                            <RefreshCw className="w-3.5 h-3.5 text-blue-500" />
+                            <span className="text-[10px] font-bold text-blue-600 uppercase tracking-widest">
+                              עדכון
+                            </span>
+                          </div>
+                          <div className="space-y-1">
+                            {updateActions.map(renderActionCard)}
+                          </div>
+                        </div>
+                      )}
+                      {closeActions.length > 0 && (
+                        <div>
+                          <div className="flex items-center gap-1.5 mb-2 px-1">
+                            <Ban className="w-3.5 h-3.5 text-red-400" />
+                            <span className="text-[10px] font-bold text-red-500 uppercase tracking-widest">
+                              סגירה
+                            </span>
+                          </div>
+                          <div className="space-y-1">
+                            {closeActions.map(renderActionCard)}
+                          </div>
+                        </div>
+                      )}
+                      {currentAvailableActions.length === 0 && (
+                        <div className="text-center py-8">
+                          <div className="w-14 h-14 rounded-2xl bg-gray-100 flex items-center justify-center mx-auto mb-3">
+                            <Ban className="w-7 h-7 text-gray-300" />
+                          </div>
+                          <p className="text-sm font-medium text-gray-400">
+                            {dict.statusChangeModal.noRecommendations || 'אין פעולות זמינות לסטטוס זה'}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
 
-                {/* Notes */}
-                <div>
-                  <p className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-2">
+                {/* ── Notes ── */}
+                <div className="pt-1">
+                  <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2 px-1">
                     {dict.statusChangeModal.notesLabel}
                   </p>
                   <Textarea
                     value={statusChangeNote}
                     onChange={(e) => setStatusChangeNote(e.target.value)}
                     placeholder={dict.statusChangeModal.notesPlaceholder}
-                    className="min-h-[80px] resize-none rounded-xl"
+                    className="min-h-[72px] resize-none rounded-xl border-gray-200 focus:border-purple-300 focus:ring-purple-200/30 text-sm"
                   />
                 </div>
 
-                {/* Buttons */}
-                <div className="flex justify-end gap-2 pt-2">
-                  <Button
-                    variant="ghost"
-                    onClick={() => setShowStatusChange(false)}
-                    className="rounded-xl"
-                  >
-                    {dict.statusChangeModal.cancelButton}
-                  </Button>
-                  <Button
-                    onClick={handleStatusChange}
-                    disabled={!newStatus || isLoading}
-                    className="bg-purple-600 hover:bg-purple-700 text-white rounded-xl px-6"
-                  >
-                    {isLoading ? (
-                      <>
-                        <RefreshCw className="w-4 h-4 ml-2 animate-spin" />
-                        {dict.statusChangeModal.savingButton}
-                      </>
-                    ) : (
-                      dict.statusChangeModal.saveButton
-                    )}
-                  </Button>
-                </div>
+                {/* ── Destructive Warning ── */}
+                {newStatus && TRANSITION_META[newStatus]?.category === 'close' && (
+                  <div className="flex items-start gap-3 p-3.5 bg-red-50 border border-red-200 rounded-xl animate-in fade-in slide-in-from-bottom-2 duration-200">
+                    <AlertTriangle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-sm font-semibold text-red-700">שים/י לב</p>
+                      <p className="text-xs text-red-600 mt-0.5">
+                        פעולה זו תשלח התראות לצדדים הרלוונטיים ועלולה לסגור את ההצעה.
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* ── Footer ── */}
+              <div className="flex justify-end gap-2.5 px-6 py-4 border-t border-gray-100 bg-white sticky bottom-0">
+                <Button
+                  variant="ghost"
+                  onClick={() => setShowStatusChange(false)}
+                  className="rounded-xl px-5 text-gray-600 hover:text-gray-800"
+                >
+                  {dict.statusChangeModal.cancelButton}
+                </Button>
+                <Button
+                  onClick={handleStatusChange}
+                  disabled={!newStatus || isLoading}
+                  className={cn(
+                    'rounded-xl px-6 text-white shadow-md transition-all duration-200 min-w-[120px]',
+                    !newStatus
+                      ? 'bg-gray-300 cursor-not-allowed shadow-none'
+                      : newStatus && TRANSITION_META[newStatus]?.category === 'close'
+                        ? 'bg-red-600 hover:bg-red-700 hover:shadow-lg'
+                        : 'bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 hover:shadow-lg'
+                  )}
+                >
+                  {isLoading ? (
+                    <>
+                      <RefreshCw className="w-4 h-4 ml-2 animate-spin" />
+                      {dict.statusChangeModal.savingButton}
+                    </>
+                  ) : newStatus && TRANSITION_META[newStatus]?.category === 'close' ? (
+                    <>
+                      <AlertTriangle className="w-4 h-4 ml-2" />
+                      {dict.statusChangeModal.saveButton}
+                    </>
+                  ) : (
+                    dict.statusChangeModal.saveButton
+                  )}
+                </Button>
               </div>
             </div>
           </div>

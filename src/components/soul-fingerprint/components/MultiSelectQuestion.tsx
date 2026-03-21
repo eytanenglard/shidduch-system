@@ -1,18 +1,25 @@
 'use client';
 
-import { useCallback } from 'react';
+import { useCallback, useState, useEffect } from 'react';
 import type { SFQuestion } from '../types';
 
 interface Props {
   question: SFQuestion;
   value: string[];
   onChange: (value: string[]) => void;
+  customValue?: string;
+  onCustomChange?: (value: string) => void;
   t: (key: string) => string;
   isRTL: boolean;
 }
 
-export default function MultiSelectQuestion({ question, value, onChange, t, isRTL }: Props) {
+export default function MultiSelectQuestion({ question, value, onChange, customValue, onCustomChange, t, isRTL }: Props) {
   const maxSelections = question.maxSelections || 99;
+  const [localCustom, setLocalCustom] = useState(customValue || '');
+
+  useEffect(() => {
+    setLocalCustom(customValue || '');
+  }, [customValue]);
 
   const handleToggle = useCallback(
     (optValue: string) => {
@@ -31,6 +38,12 @@ export default function MultiSelectQuestion({ question, value, onChange, t, isRT
     },
     [value, onChange, maxSelections]
   );
+
+  // Check if any selected option has isCustomInput
+  const hasCustomSelected = question.options?.some(
+    opt => opt.isCustomInput && value.includes(opt.value)
+  );
+  const customOption = question.options?.find(opt => opt.isCustomInput && value.includes(opt.value));
 
   return (
     <div className="space-y-2">
@@ -78,6 +91,23 @@ export default function MultiSelectQuestion({ question, value, onChange, t, isRT
           );
         })}
       </div>
+
+      {/* Custom text input for "other" options */}
+      {hasCustomSelected && customOption && (
+        <div className="animate-in fade-in slide-in-from-top-2 duration-200 mt-2">
+          <input
+            type="text"
+            value={localCustom}
+            onChange={(e) => {
+              setLocalCustom(e.target.value);
+              onCustomChange?.(e.target.value);
+            }}
+            placeholder={t(`options.${question.id}.${customOption.value}_placeholder`) || '...'}
+            dir={isRTL ? 'rtl' : 'ltr'}
+            className="w-full p-3 rounded-xl border-2 border-teal-200 bg-teal-50/30 text-sm placeholder:text-gray-400 focus:outline-none focus:border-teal-400 focus:ring-2 focus:ring-teal-100 transition-all"
+          />
+        </div>
+      )}
     </div>
   );
 }

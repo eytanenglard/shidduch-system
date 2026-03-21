@@ -585,6 +585,7 @@ const PanelHeaderComponent: React.FC<{
   onDismissBanner,
   onViewResults,
 }) => {
+  const [showRefreshConfirm, setShowRefreshConfirm] = useState(false);
   const genderConfig = {
     male: {
       title: dict.male.title,
@@ -791,23 +792,62 @@ const PanelHeaderComponent: React.FC<{
                     </span>
                   </Button>
                 </motion.div>
-                {/* כפתור רענון - קיים */}
+                {/* כפתור רענון - עם אישור */}
                 {hasAnyResults && (
-                  <Button
-                    size="icon"
-                    variant="outline"
-                    onClick={onRefreshAllMethods}
-                    disabled={isRefreshingAll}
-                    title="רענן את כל הסריקות"
-                    className="h-11 w-11 flex-shrink-0 bg-white shadow-sm border-gray-200 hover:bg-gray-50"
-                  >
-                    <RefreshCw
-                      className={cn(
-                        'w-5 h-5 text-gray-600',
-                        isRefreshingAll && 'animate-spin'
-                      )}
-                    />
-                  </Button>
+                  <div className="relative flex-shrink-0">
+                    <Button
+                      size="icon"
+                      variant="outline"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setShowRefreshConfirm(true);
+                      }}
+                      disabled={isRefreshingAll}
+                      title="רענן את כל הסריקות"
+                      className="h-11 w-11 bg-white shadow-sm border-gray-200 hover:bg-gray-50"
+                    >
+                      <RefreshCw
+                        className={cn(
+                          'w-5 h-5 text-gray-600',
+                          isRefreshingAll && 'animate-spin'
+                        )}
+                      />
+                    </Button>
+                    {/* Confirm popover */}
+                    {showRefreshConfirm && (
+                      <>
+                      <div className="fixed inset-0 z-40" onClick={() => setShowRefreshConfirm(false)} />
+                      <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 z-50 bg-white rounded-xl shadow-2xl border border-gray-200 p-4 w-64 animate-in fade-in zoom-in-95 duration-150">
+                        <p className="text-sm font-semibold text-gray-800 text-center mb-1">
+                          רענון סריקות
+                        </p>
+                        <p className="text-xs text-gray-500 text-center mb-3">
+                          האם לרענן את כל תוצאות הסריקה?
+                        </p>
+                        <div className="flex gap-2 justify-center">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="rounded-lg px-4 text-xs"
+                            onClick={() => setShowRefreshConfirm(false)}
+                          >
+                            ביטול
+                          </Button>
+                          <Button
+                            size="sm"
+                            className="rounded-lg px-4 text-xs bg-blue-600 hover:bg-blue-700 text-white"
+                            onClick={(e) => {
+                              setShowRefreshConfirm(false);
+                              onRefreshAllMethods(e);
+                            }}
+                          >
+                            רענן
+                          </Button>
+                        </div>
+                      </div>
+                      </>
+                    )}
+                  </div>
                 )}
               </div>
 

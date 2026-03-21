@@ -287,6 +287,12 @@ const QuickView: React.FC<QuickViewProps> = ({
                 {dict.manualEntry}
               </Badge>
             )}
+            {profile.referredBy && (
+              <Badge className="bg-indigo-500/30 text-white border-indigo-300/50 backdrop-blur-sm">
+                <User className="w-3 h-3 mr-1" />
+                {profile.referredBy}
+              </Badge>
+            )}
 
             {/* --- הצגת תגית AI אם קיימת --- */}
             {hasAiData && (
@@ -393,6 +399,17 @@ const QuickView: React.FC<QuickViewProps> = ({
             </div>
           )}
         </div>
+        {/* Source / referredBy info for matchmaker */}
+        {profile.referredBy && (
+          <div className="p-4 rounded-xl border bg-indigo-50 border-indigo-100">
+            <div className="flex items-center gap-2 mb-1 font-bold text-indigo-700 text-sm">
+              <Info className="w-4 h-4 text-indigo-500" />
+              <span>מקור הגעה</span>
+            </div>
+            <p className="text-indigo-800 text-sm font-medium">{profile.referredBy}</p>
+          </div>
+        )}
+
         <Separator className="my-6 bg-gradient-to-r from-transparent via-gray-300 to-transparent" />
         {isManualEntry && profile.manualEntryText ? (
           <div className="space-y-4">

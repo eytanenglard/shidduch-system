@@ -16,6 +16,8 @@ interface Props {
 
 export default function QuestionRenderer({ question, answers, onAnswer, t, isRTL }: Props) {
   const currentValue = answers[question.id];
+  const customKey = `${question.id}_custom`;
+  const customValue = (answers[customKey] as string) || '';
   const isUnanswered = !question.isOptional && (currentValue === null || currentValue === undefined || currentValue === '' || (Array.isArray(currentValue) && currentValue.length === 0));
 
   return (
@@ -42,6 +44,8 @@ export default function QuestionRenderer({ question, answers, onAnswer, t, isRTL
           question={question}
           value={(currentValue as string) || null}
           onChange={(val) => onAnswer(question.id, val)}
+          customValue={customValue}
+          onCustomChange={(val) => onAnswer(customKey, val)}
           t={t}
           isRTL={isRTL}
         />
@@ -51,6 +55,8 @@ export default function QuestionRenderer({ question, answers, onAnswer, t, isRTL
           question={question}
           value={(currentValue as string[]) || []}
           onChange={(val) => onAnswer(question.id, val)}
+          customValue={customValue}
+          onCustomChange={(val) => onAnswer(customKey, val)}
           t={t}
           isRTL={isRTL}
         />

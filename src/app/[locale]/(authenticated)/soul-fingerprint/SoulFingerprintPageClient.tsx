@@ -41,14 +41,20 @@ export default function SoulFingerprintPageClient({ locale }: Props) {
 
   const gender = (session?.user as { gender?: string })?.gender as 'MALE' | 'FEMALE' | null ?? null;
 
-  // Load existing data
+  // Load existing data including previous answers
   useEffect(() => {
     async function loadData() {
       try {
         const res = await fetch('/api/user/soul-fingerprint');
         if (res.ok) {
           const data = await res.json();
-          setInitialData(data.profileTags || null);
+          if (data.profileTags) {
+            // Map completedAt to isComplete for the flow component
+            setInitialData({
+              ...data.profileTags,
+              isComplete: !!data.profileTags.completedAt,
+            });
+          }
         }
       } catch (err) {
         console.error('Failed to load soul fingerprint data:', err);
