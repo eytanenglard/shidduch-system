@@ -70,7 +70,12 @@
     "partnerSectionSubtitle": "אותה שאלה, אבל לגבי בן/בת הזוג שלך",
     "saving": "שומר...",
     "saved": "נשמר",
-    "characters": "תווים"
+    "characters": "תווים",
+    "partnerTransitionTitle": "ועכשיו — מה את/ה מחפש/ת?",
+    "partnerTransitionSubtitle": "ספר/י לנו על מה שחשוב לך בבן/בת הזוג",
+    "noPartnerQuestions": "אין שאלות נוספות על העדפות בן/בת זוג בחלק הזה",
+    "noSelfQuestions": "השאלות בחלק הזה לא רלוונטיות לפרופיל שלך",
+    "saveError": "שגיאה בשמירה, ננסה שוב"
   },
   "completion": {
     "title": "טביעת הנשמה שלך מוכנה!",
@@ -86,7 +91,8 @@
       "career": "קריירה",
       "lifestyle": "אורח חיים",
       "family": "משפחה",
-      "relationship": "זוגיות"
+      "relationship": "זוגיות",
+      "diaspora": "תפוצות"
     }
   },
   "questions": {
@@ -408,6 +414,21 @@
     "p_social_role": {
       "text": "מה התפקיד החברתי שמושך אותך בבן/בת הזוג?"
     },
+    "p_sensitivity": {
+      "text": "איזו רמת רגישות רגשית היית רוצה לראות בבן/בת הזוג?"
+    },
+    "p_change_approach": {
+      "text": "איך תרצה/י שבן/בת הזוג יתייחס/תתייחס לשינויים בחיים?"
+    },
+    "p_fitness": {
+      "text": "כמה חשוב לך שבן/בת הזוג יהיה/תהיה פעיל/ה פיזית?"
+    },
+    "p_dress_style": {
+      "text": "מה סגנון הלבוש שמושך אותך בבן/בת הזוג?"
+    },
+    "p_open_abroad": {
+      "text": "מה הגישה שלך לגבי מגורים בחו\"ל עם בן/בת הזוג?"
+    },
     "p_education_level": {
       "text": "מה רמת ההשכלה שחשובה לך?"
     },
@@ -515,8 +536,8 @@
       "charedi_sephardi_sub": "ש\"ס, מרוקאי, עיראקי ועוד",
       "charedi_modern": "חרדי/ת מודרני/ת",
       "charedi_modern_sub": "עובד/ת, לומד/ת — חרדי עם פנים לחברה",
-      "hardal": "הרדל\"י",
-      "hardal_sub": "חרדי לאומי — תורה וציונות חזקה",
+      "hardal": "חרד\"ל",
+      "hardal_sub": "חרדי-לאומי — תורה וציונות חזקה",
       "dati_leumi_torani": "דתי/ה לאומי/ת תורני/ת",
       "dati_leumi_torani_sub": "ישיבה / מדרשה, לימוד תורה רציני",
       "dati_leumi_classic": "דתי/ה לאומי/ת קלאסי/ת",
@@ -557,13 +578,13 @@
       "breslov": "ברסלב",
       "breslov_sub": "שמחה, תפילה אישית, ראש השנה באומן",
       "satmar": "סאטמר",
-      "skvere": "סקווירא",
+      "skvere": "סקוויר",
       "boyan": "בויאן",
-      "karlin": "קארלין",
+      "karlin": "קרלין-סטולין",
       "slonim": "סלונים",
-      "toldos_aharon": "תולדות אהרון",
-      "spinka": "שפינקא",
-      "nadvorna": "נדבורנה",
+      "toldos_aharon": "תולדות אהרן",
+      "spinka": "ספינקא",
+      "nadvorna": "נדבורנא",
       "other_hasidic": "חסידות אחרת",
       "other_hasidic_placeholder": "שם החסידות"
     },
@@ -643,14 +664,15 @@
       "har_etzion": "הר עציון (גוש עציון)",
       "shaalvim": "שעלבים",
       "kerem_byavne": "כרם ביבנה",
-      "har_amiel": "הר עמיאל",
-      "eli": "עלי",
+      "har_amiel": "הר המור",
+      "eli": "עלי (בני דוד)",
       "siach": "שיח יצחק",
       "merkaz_harav": "מרכז הרב",
       "otniel": "עתניאל",
       "maale_gilboa": "מעלה גלבוע",
       "beit_el": "בית אל",
-      "netivot_moshe": "נתיבות משה",
+      "hakotel": "ישיבת הכותל",
+      "petach_tikva": "ישיבת פתח תקוה",
       "other_yeshiva": "ישיבה אחרת",
       "other_yeshiva_placeholder": "שם הישיבה"
     },
@@ -1135,7 +1157,7 @@
       "pragmatic_stable": "פרקטי/ת ויציב/ה — אהבה בעשייה"
     },
     "common": {
-      "doesnt_matter": "לא משנה לי 🤷"
+      "doesnt_matter": "לא משנה לי"
     },
     "s2_family_size": {
       "only_child": "ילד/ה יחיד/ה",

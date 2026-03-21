@@ -16,6 +16,7 @@ interface Props {
 
 export default function QuestionRenderer({ question, answers, onAnswer, t, isRTL }: Props) {
   const currentValue = answers[question.id];
+  const isUnanswered = !question.isOptional && (currentValue === null || currentValue === undefined || currentValue === '' || (Array.isArray(currentValue) && currentValue.length === 0));
 
   return (
     <div className="space-y-4">
@@ -24,7 +25,10 @@ export default function QuestionRenderer({ question, answers, onAnswer, t, isRTL
         <h3 className="text-lg font-semibold text-gray-800">
           {t(question.textKey)}
           {question.isOptional && (
-            <span className="text-xs font-normal text-gray-400 mr-2 ml-2">({t('labels.optional')})</span>
+            <span className="text-xs font-normal text-gray-400 mx-2">({t('labels.optional')})</span>
+          )}
+          {isUnanswered && !question.isOptional && (
+            <span className="text-red-400 mx-1">*</span>
           )}
         </h3>
         {question.subtitleKey && (

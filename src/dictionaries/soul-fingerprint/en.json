@@ -70,7 +70,12 @@
     "partnerSectionSubtitle": "Same question, but about your partner",
     "saving": "Saving...",
     "saved": "Saved",
-    "characters": "characters"
+    "characters": "characters",
+    "partnerTransitionTitle": "Now — what are you looking for?",
+    "partnerTransitionSubtitle": "Tell us what matters to you in a partner",
+    "noPartnerQuestions": "No partner preference questions for this section",
+    "noSelfQuestions": "These questions aren't relevant for your profile",
+    "saveError": "Save failed, will retry"
   },
   "completion": {
     "title": "Your Soul Fingerprint is ready!",
@@ -86,7 +91,8 @@
       "career": "Career",
       "lifestyle": "Lifestyle",
       "family": "Family",
-      "relationship": "Relationship"
+      "relationship": "Relationship",
+      "diaspora": "Diaspora"
     }
   },
   "questions": {
@@ -408,6 +414,21 @@
     "p_social_role": {
       "text": "What social role attracts you in a partner?"
     },
+    "p_sensitivity": {
+      "text": "What level of emotional sensitivity would you like in a partner?"
+    },
+    "p_change_approach": {
+      "text": "How would you like your partner to approach changes in life?"
+    },
+    "p_fitness": {
+      "text": "How important is it that your partner is physically active?"
+    },
+    "p_dress_style": {
+      "text": "What dress style attracts you in a partner?"
+    },
+    "p_open_abroad": {
+      "text": "What's your approach to living abroad with a partner?"
+    },
     "p_education_level": {
       "text": "What education level matters to you?"
     },
@@ -643,14 +664,15 @@
       "har_etzion": "Har Etzion (Gush Etzion)",
       "shaalvim": "Shaalvim",
       "kerem_byavne": "Kerem B'Yavneh",
-      "har_amiel": "Har Amiel",
-      "eli": "Eli",
+      "har_amiel": "Har HaMor",
+      "eli": "Eli (Bnei David)",
       "siach": "Siach Yitzchak",
       "merkaz_harav": "Merkaz HaRav",
       "otniel": "Otniel",
       "maale_gilboa": "Maale Gilboa",
       "beit_el": "Beit El",
-      "netivot_moshe": "Netivot Moshe",
+      "hakotel": "Yeshivat HaKotel",
+      "petach_tikva": "Yeshivat Petach Tikva",
       "other_yeshiva": "Other yeshiva",
       "other_yeshiva_placeholder": "Yeshiva name"
     },
@@ -1135,7 +1157,7 @@
       "pragmatic_stable": "Pragmatic and stable — love through action"
     },
     "common": {
-      "doesnt_matter": "Doesn't matter to me 🤷"
+      "doesnt_matter": "Doesn't matter to me"
     },
     "s2_family_size": {
       "only_child": "Only child",

@@ -19,7 +19,7 @@ export default function SoulFingerprintCTA({ isCompleted, locale, t, isRTL }: Pr
           ${
             isCompleted
               ? 'bg-gradient-to-r from-teal-50 to-teal-100 border border-teal-200'
-              : 'bg-gradient-to-r from-teal-500 to-teal-600 text-white'
+              : 'bg-gradient-to-r from-teal-500 to-teal-600 text-white shadow-md shadow-teal-200'
           }
         `}
         dir={isRTL ? 'rtl' : 'ltr'}

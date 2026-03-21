@@ -7,7 +7,8 @@ interface Props {
   isLastSection: boolean;
   isPartnerTab: boolean;
   hasPartnerQuestions: boolean;
-  saveStatus: 'idle' | 'saving' | 'saved';
+  saveStatus: 'idle' | 'saving' | 'saved' | 'error';
+  hasUnansweredRequired: boolean;
   t: (key: string) => string;
   isRTL: boolean;
 }
@@ -20,6 +21,7 @@ export default function NavigationButtons({
   isPartnerTab,
   hasPartnerQuestions,
   saveStatus,
+  hasUnansweredRequired,
   t,
   isRTL,
 }: Props) {
@@ -58,9 +60,20 @@ export default function NavigationButtons({
         {saveStatus === 'saved' && (
           <span className="text-xs text-green-500">{t('labels.saved')}</span>
         )}
+        {saveStatus === 'error' && (
+          <span className="text-xs text-red-500">{t('labels.saveError')}</span>
+        )}
         <button
           onClick={onNext}
-          className="px-6 py-2.5 bg-teal-500 text-white rounded-xl text-sm font-medium hover:bg-teal-600 transition-colors shadow-sm hover:shadow-md"
+          disabled={hasUnansweredRequired}
+          className={`
+            px-6 py-2.5 rounded-xl text-sm font-medium transition-colors shadow-sm
+            ${
+              hasUnansweredRequired
+                ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                : 'bg-teal-500 text-white hover:bg-teal-600 hover:shadow-md'
+            }
+          `}
         >
           {nextLabel}
           <svg

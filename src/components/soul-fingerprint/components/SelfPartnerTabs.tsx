@@ -37,7 +37,7 @@ export default function SelfPartnerTabs({
         `}
       >
         {t('labels.selfLabel')}
-        <span className="text-xs text-gray-400 mr-1 ml-1">({selfCount})</span>
+        <span className="text-xs text-gray-400 mx-1">({selfCount})</span>
       </button>
       <button
         onClick={() => onTabChange('partner')}
@@ -51,7 +51,7 @@ export default function SelfPartnerTabs({
         `}
       >
         {t('labels.partnerLabel')}
-        <span className="text-xs text-gray-400 mr-1 ml-1">({partnerCount})</span>
+        <span className="text-xs text-gray-400 mx-1">({partnerCount})</span>
       </button>
     </div>
   );

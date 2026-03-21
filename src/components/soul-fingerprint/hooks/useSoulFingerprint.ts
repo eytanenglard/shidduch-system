@@ -21,20 +21,43 @@ export function useSoulFingerprint(
   const [state, setState] = useState<SFState>(() => {
     const savedAnswers = (initialData?.sectionAnswers as SFAnswers) || {};
     const sector = (savedAnswers['anchor_sector'] as SectorValue) || null;
+    const sectorGroup = getSectorGroup(sector);
+    const lifeStage = (savedAnswers['anchor_life_stage'] as LifeStageValue) || null;
+
+    // Resume from last incomplete section when returning with saved data
+    let startSection = 0;
+    if (Object.keys(savedAnswers).length > 0 && !initialData?.isComplete) {
+      for (let i = 0; i < SF_SECTIONS.length; i++) {
+        const visibleQ = SF_SECTIONS[i].questions.filter((q) =>
+          isQuestionVisible(q, savedAnswers, sectorGroup, sector, lifeStage, gender)
+        );
+        const requiredQ = visibleQ.filter((q) => !q.isOptional);
+        const answered = requiredQ.filter((q) => {
+          const ans = savedAnswers[q.id];
+          return ans !== null && ans !== undefined && ans !== '';
+        });
+        if (answered.length < requiredQ.length) {
+          startSection = i;
+          break;
+        }
+        if (i === SF_SECTIONS.length - 1) startSection = i;
+      }
+    }
+
     return {
-      currentSectionIndex: 0,
+      currentSectionIndex: startSection,
       currentQuestionIndex: 0,
       answers: savedAnswers,
-      sectorGroup: getSectorGroup(sector),
+      sectorGroup,
       sector,
-      lifeStage: (savedAnswers['anchor_life_stage'] as LifeStageValue) || null,
+      lifeStage,
       isComplete: initialData?.isComplete || false,
       showingPartnerQuestions: false,
     };
   });
 
   const [isSaving, setIsSaving] = useState(false);
-  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
 
   const currentSection = SF_SECTIONS[state.currentSectionIndex];
 
@@ -130,6 +153,12 @@ export function useSoulFingerprint(
     [findDependentQuestions, gender]
   );
 
+  const scrollToTop = useCallback(() => {
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, []);
+
   const goToSection = useCallback((index: number) => {
     setState((prev) => ({
       ...prev,
@@ -137,7 +166,8 @@ export function useSoulFingerprint(
       currentQuestionIndex: 0,
       showingPartnerQuestions: false,
     }));
-  }, []);
+    scrollToTop();
+  }, [scrollToTop]);
 
   const nextSection = useCallback(() => {
     setState((prev) => {
@@ -151,7 +181,8 @@ export function useSoulFingerprint(
       }
       return { ...prev, isComplete: true };
     });
-  }, []);
+    scrollToTop();
+  }, [scrollToTop]);
 
   const prevSection = useCallback(() => {
     setState((prev) => {
@@ -168,15 +199,18 @@ export function useSoulFingerprint(
       }
       return prev;
     });
-  }, []);
+    scrollToTop();
+  }, [scrollToTop]);
 
   const switchToPartner = useCallback(() => {
     setState((prev) => ({ ...prev, showingPartnerQuestions: true, currentQuestionIndex: 0 }));
-  }, []);
+    scrollToTop();
+  }, [scrollToTop]);
 
   const switchToSelf = useCallback(() => {
     setState((prev) => ({ ...prev, showingPartnerQuestions: false, currentQuestionIndex: 0 }));
-  }, []);
+    scrollToTop();
+  }, [scrollToTop]);
 
   // Compute progress per section
   const sectionProgress = useMemo(() => {
@@ -219,7 +253,8 @@ export function useSoulFingerprint(
       setTimeout(() => setSaveStatus('idle'), 2000);
     } catch (err) {
       console.error('[SoulFingerprint] Save failed:', err);
-      setSaveStatus('idle');
+      setSaveStatus('error');
+      setTimeout(() => setSaveStatus('idle'), 4000);
     } finally {
       setIsSaving(false);
     }

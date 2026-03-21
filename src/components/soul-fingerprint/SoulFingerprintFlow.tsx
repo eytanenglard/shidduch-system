@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { useSoulFingerprint } from './hooks/useSoulFingerprint';
 import { deriveTagsFromAnswers } from './types';
 import SoulFingerprintWelcome from './SoulFingerprintWelcome';
@@ -39,6 +39,8 @@ export default function SoulFingerprintFlow({
     return 'welcome';
   });
 
+  const [partnerTransition, setPartnerTransition] = useState(false);
+
   const {
     state,
     currentSection,
@@ -58,14 +60,30 @@ export default function SoulFingerprintFlow({
     totalSections,
   } = useSoulFingerprint(gender, initialData as { sectionAnswers?: Record<string, string | string[] | number | null>; isComplete?: boolean } | null);
 
+  // Check if all required questions in the current view are answered
+  const hasUnansweredRequired = useMemo(() => {
+    const questions = currentQuestions;
+    return questions.some((q) => {
+      if (q.isOptional) return false;
+      const ans = state.answers[q.id];
+      if (ans === null || ans === undefined || ans === '') return true;
+      if (Array.isArray(ans) && ans.length === 0) return true;
+      return false;
+    });
+  }, [currentQuestions, state.answers]);
+
   const handleStart = useCallback(() => {
     setScreen('questionnaire');
   }, []);
 
   const handleNext = useCallback(() => {
-    // If on self tab and there are partner questions, switch to partner
+    // If on self tab and there are partner questions, switch to partner with animation
     if (!state.showingPartnerQuestions && hasPartnerQuestions) {
-      switchToPartner();
+      setPartnerTransition(true);
+      setTimeout(() => {
+        switchToPartner();
+        setPartnerTransition(false);
+      }, 600);
       return;
     }
     // If on last section, go to complete
@@ -136,6 +154,25 @@ export default function SoulFingerprintFlow({
     );
   }
 
+  // Partner transition overlay
+  if (partnerTransition) {
+    return (
+      <div className="max-w-xl mx-auto py-6 px-4" dir={isRTL ? 'rtl' : 'ltr'}>
+        <div className="flex flex-col items-center justify-center py-20 animate-fade-in">
+          <div className="w-16 h-16 bg-gradient-to-br from-teal-400 to-teal-600 rounded-full flex items-center justify-center mb-6 shadow-lg animate-bounce">
+            <span className="text-2xl">💞</span>
+          </div>
+          <h2 className="text-xl font-bold text-gray-800 mb-2 text-center">
+            {t('labels.partnerTransitionTitle')}
+          </h2>
+          <p className="text-sm text-gray-500 text-center max-w-sm">
+            {t('labels.partnerTransitionSubtitle')}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   // Questionnaire screen
   return (
     <div className="max-w-xl mx-auto py-6 px-4" dir={isRTL ? 'rtl' : 'ltr'}>
@@ -199,8 +236,8 @@ export default function SoulFingerprintFlow({
         <div className="text-center py-12 text-gray-400">
           <p className="text-sm">
             {state.showingPartnerQuestions
-              ? 'No partner questions for this section'
-              : 'No questions match your profile for this section'}
+              ? t('labels.noPartnerQuestions')
+              : t('labels.noSelfQuestions')}
           </p>
         </div>
       )}
@@ -214,6 +251,7 @@ export default function SoulFingerprintFlow({
         isPartnerTab={state.showingPartnerQuestions}
         hasPartnerQuestions={hasPartnerQuestions}
         saveStatus={saveStatus}
+        hasUnansweredRequired={hasUnansweredRequired}
         t={t}
         isRTL={isRTL}
       />

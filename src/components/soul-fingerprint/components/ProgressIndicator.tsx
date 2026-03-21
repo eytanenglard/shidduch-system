@@ -26,6 +26,16 @@ export default function ProgressIndicator({
   t,
   isRTL,
 }: Props) {
+  // Determine which sections are navigable: current, completed, or the first incomplete after the last completed
+  const getIsNavigable = (index: number): boolean => {
+    if (index === currentIndex) return true;
+    if (sections[index].isComplete) return true;
+    // Allow navigating to the next section after the last completed one
+    if (index === 0) return true;
+    if (index > 0 && sections[index - 1].isComplete) return true;
+    return false;
+  };
+
   return (
     <div className="w-full mb-6">
       {/* Section dots */}
@@ -33,18 +43,22 @@ export default function ProgressIndicator({
         {sections.map((section, i) => {
           const isCurrent = i === currentIndex;
           const isCompleted = section.isComplete;
+          const isNavigable = getIsNavigable(i);
           return (
             <button
               key={section.sectionId}
-              onClick={() => onSectionClick(i)}
+              onClick={() => isNavigable && onSectionClick(i)}
+              disabled={!isNavigable}
               className={`
                 relative w-9 h-9 rounded-full flex items-center justify-center text-sm transition-all duration-300
                 ${
                   isCurrent
                     ? 'bg-teal-100 ring-2 ring-teal-500 ring-offset-2 scale-110'
                     : isCompleted
-                    ? 'bg-teal-500 text-white'
-                    : 'bg-gray-100 hover:bg-gray-200'
+                    ? 'bg-teal-500 text-white cursor-pointer'
+                    : isNavigable
+                    ? 'bg-gray-100 hover:bg-gray-200 cursor-pointer'
+                    : 'bg-gray-100 opacity-40 cursor-not-allowed'
                 }
               `}
               title={t(`progress.${section.sectionId}`)}

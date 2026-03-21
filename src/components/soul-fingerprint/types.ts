@@ -417,6 +417,12 @@ export function derivePartnerTagsFromAnswers(answers: SFAnswers): PartnerTagPref
   const enSrcPref = collectPartnerTags(answers, 'p_energy_source');
   if (!enSrcPref.isDoesntMatter) result.personalityTags.push(...enSrcPref.tags.map(e => `energy_${e}`));
 
+  const sensPref = collectPartnerTags(answers, 'p_sensitivity');
+  if (!sensPref.isDoesntMatter) result.personalityTags.push(...sensPref.tags);
+
+  const changePref = collectPartnerTags(answers, 'p_change_approach');
+  if (!changePref.isDoesntMatter) result.personalityTags.push(...changePref.tags);
+
   // Career partner tags
   const eduPref = collectPartnerTags(answers, 'p_education_level');
   if (eduPref.isDoesntMatter) result.doesntMatterCategories.push('career');
@@ -456,6 +462,15 @@ export function derivePartnerTagsFromAnswers(answers: SFAnswers): PartnerTagPref
 
   const smokPref = collectPartnerTags(answers, 'p_smoking');
   if (!smokPref.isDoesntMatter) result.lifestyleTags.push(...smokPref.tags);
+
+  const fitPref = collectPartnerTags(answers, 'p_fitness');
+  if (!fitPref.isDoesntMatter) result.lifestyleTags.push(...fitPref.tags);
+
+  const dressPref = collectPartnerTags(answers, 'p_dress_style');
+  if (!dressPref.isDoesntMatter) result.lifestyleTags.push(...dressPref.tags);
+
+  const abroadPref = collectPartnerTags(answers, 'p_open_abroad');
+  if (!abroadPref.isDoesntMatter) result.lifestyleTags.push(...abroadPref.tags);
 
   // Family partner tags
   const childPref = collectPartnerTags(answers, 'p_children_count');

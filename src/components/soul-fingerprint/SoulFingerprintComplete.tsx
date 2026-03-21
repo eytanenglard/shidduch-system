@@ -29,7 +29,7 @@ const CATEGORY_I18N: Record<string, string> = {
   lifestyleTags: 'lifestyle',
   familyVisionTags: 'family',
   relationshipTags: 'relationship',
-  diasporaTags: 'sector',
+  diasporaTags: 'diaspora',
 };
 
 export default function SoulFingerprintComplete({ tags, onEdit, onContinue, t, isRTL }: Props) {
@@ -47,6 +47,18 @@ export default function SoulFingerprintComplete({ tags, onEdit, onContinue, t, i
       <h1 className="text-2xl font-bold text-gray-800 mb-2">{t('completion.title')}</h1>
       <p className="text-sm text-gray-500 mb-2">{t('completion.subtitle')}</p>
       <p className="text-sm text-gray-600 whitespace-pre-line mb-8">{t('completion.description')}</p>
+
+      {/* Stats summary */}
+      <div className="flex justify-center gap-4 mb-6">
+        {TAG_CATEGORIES.filter(({ key }) => (tags[key]?.length || 0) > 0).slice(0, 4).map(({ key, colorClass }) => (
+          <div key={key} className="text-center">
+            <div className={`w-10 h-10 rounded-full ${colorClass} flex items-center justify-center text-sm font-bold mx-auto mb-1`}>
+              {tags[key].length}
+            </div>
+            <p className="text-xs text-gray-500">{t(`completion.categories.${CATEGORY_I18N[key]}`)}</p>
+          </div>
+        ))}
+      </div>
 
       {/* Tag cloud */}
       <div className="bg-gray-50 rounded-2xl p-6 mb-8 text-start">
