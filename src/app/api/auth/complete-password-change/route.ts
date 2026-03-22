@@ -1,6 +1,7 @@
 // src/app/api/auth/complete-password-change/route.ts
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { hashOtp } from '@/lib/services/verificationService';
 import { VerificationType, Prisma } from "@prisma/client";
 
 // פונקציה שבודקת אם ה-metadata מכיל את הסיסמה המוצפנת
@@ -28,7 +29,7 @@ export async function POST(req: Request) {
     // מציאת הטוקן
     const verification = await db.verification.findFirst({
       where: {
-        token,
+        token: hashOtp(token),
         userId,
         type: VerificationType.PASSWORD_RESET,
         status: "PENDING",

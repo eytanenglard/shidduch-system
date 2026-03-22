@@ -1,7 +1,11 @@
 // src/lib/services/verificationService.ts
 import { VerificationType, VerificationStatus, UserStatus, Prisma } from '@prisma/client';
-import { randomInt } from 'crypto'; // For OTP generation
-import prisma from '@/lib/prisma'; // Assuming global prisma instance
+import { randomInt, createHash } from 'crypto';
+import prisma from '@/lib/prisma';
+
+export function hashOtp(otp: string): string {
+  return createHash('sha256').update(otp).digest('hex');
+}
 
 const OTP_LENGTH = 6;
 const MAX_VERIFICATION_ATTEMPTS = 5; // Example value
@@ -46,17 +50,19 @@ export class VerificationService {
     }
 
 
+    const hashedToken = hashOtp(otp);
+
     const verification = await effectivePrisma.verification.create({
       data: {
         userId,
         type,
-        token: otp,
-        target: target.toLowerCase(), // Normalize target (e.g. email)
+        token: hashedToken,
+        target: target.toLowerCase(),
         expiresAt,
         status: VerificationStatus.PENDING,
         attempts: 0,
       },
-      select: { id: true, token: true, expiresAt: true } // Return only necessary fields
+      select: { id: true, token: true, expiresAt: true }
     });
 
     return { otp, verification };
@@ -68,16 +74,17 @@ export class VerificationService {
     target?: string // Target (e.g., email for password reset, phone for phone verify)
   ): Promise<VerificationResult & { userId: string | null }> { // Ensure userId is part of the promise
     const normalizedTarget = target?.toLowerCase();
+    const hashedCode = hashOtp(code);
 
     const verification = await prisma.verification.findFirst({
       where: {
-        token: code,
+        token: hashedCode,
         type,
-        ...(normalizedTarget && { target: normalizedTarget }), // Use target if provided
+        ...(normalizedTarget && { target: normalizedTarget }),
         status: VerificationStatus.PENDING,
       },
       orderBy: {
-        createdAt: 'desc', // Get the most recent one if multiple match (should be rare)
+        createdAt: 'desc',
       },
     });
 

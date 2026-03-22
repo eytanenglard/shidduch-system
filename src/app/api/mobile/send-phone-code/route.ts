@@ -10,6 +10,7 @@ import { applyRateLimit } from '@/lib/rate-limiter';
 import prisma from '@/lib/prisma';
 import { VerificationType } from '@prisma/client';
 import { generateOtp, sendOtpViaWhatsApp } from '@/lib/phoneVerificationService';
+import { hashOtp } from '@/lib/services/verificationService';
 import {
   verifyMobileToken,
   corsJson,
@@ -63,7 +64,7 @@ export async function POST(req: NextRequest) {
         userId,
         type: VerificationType.PHONE_WHATSAPP,
         target: user.phone,
-        token: otpCode,
+        token: hashOtp(otpCode),
         expiresAt: otpExpiresAt,
         status: 'PENDING',
       },

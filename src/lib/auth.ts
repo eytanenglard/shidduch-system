@@ -282,7 +282,7 @@ export const authOptions: NextAuthOptions = {
           data: { lastLogin: new Date() }
         }).catch(err => console.error("[CredentialsProvider] Failed to update lastLogin:", err));
 
-        const { images, ...restOfUser } = userFromDb;
+        const { images, password: _password, ...restOfUser } = userFromDb;
         return {
           ...restOfUser,
           name: `${userFromDb.firstName} ${userFromDb.lastName}`,
@@ -340,7 +340,7 @@ export const authOptions: NextAuthOptions = {
 
         if (isDev) console.log(`[AutoLoginProvider] Auto-login successful for ${userFromDb.email}`);
 
-        const { images, ...restOfUser } = userFromDb;
+        const { images, password: _password, ...restOfUser } = userFromDb;
         return {
           ...restOfUser,
           name: `${userFromDb.firstName} ${userFromDb.lastName}`,

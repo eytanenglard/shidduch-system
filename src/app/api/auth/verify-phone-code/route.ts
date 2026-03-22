@@ -7,6 +7,7 @@ import { Prisma, VerificationType, UserStatus } from '@prisma/client';
 
 import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
+import { hashOtp } from '@/lib/services/verificationService';
 import { emailService } from '@/lib/email/emailService';
 // ========== 🔴 הוספה חדשה: ייבוא פונקציית עדכון רפרל ==========
 import { updateReferralStatus } from '@/lib/services/referralService';
@@ -85,7 +86,7 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: 'חרגת ממספר ניסיונות האימות המותר. אנא בקש קוד חדש.' }, { status: 429 });
     }
 
-    if (verification.token !== code) {
+    if (verification.token !== hashOtp(code)) {
         const updatedVerification = await prisma.verification.update({
             where: { id: verification.id },
             data: { attempts: { increment: 1 } }

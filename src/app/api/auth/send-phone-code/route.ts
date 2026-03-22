@@ -5,6 +5,7 @@ import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 import { generateOtp, sendOtpViaWhatsApp } from '@/lib/phoneVerificationService';
+import { hashOtp } from '@/lib/services/verificationService';
 import { VerificationType } from '@prisma/client';
 
 export async function POST(req: NextRequest) {
@@ -53,7 +54,7 @@ export async function POST(req: NextRequest) {
                 userId: userId,
                 type: VerificationType.PHONE_WHATSAPP,
                 target: user.phone,
-                token: otpCode,
+                token: hashOtp(otpCode),
                 expiresAt: otpExpiresAt,
                 status: 'PENDING',
             }

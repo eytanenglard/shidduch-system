@@ -7,6 +7,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
+import { Prisma } from '@prisma/client';
 import { updateProfileVectorsAndMetrics } from '@/lib/services/dualVectorService';
 
 // ═══════════════════════════════════════════════════════════════
@@ -27,38 +28,46 @@ export async function POST(request: NextRequest) {
     // פרמטרים אופציונליים
     const body = await request.json().catch(() => ({}));
     const {
-      limit = 50,           // כמה פרופילים לעדכן
-      onlyMissing = true,   // רק כאלה שחסר להם מדדים
-      gender = null,        // סינון לפי מגדר
-      forceUpdate = false,  // לעדכן גם את מי שכבר יש לו
+      limit: rawLimit = 50,
+      onlyMissing = true,
+      gender: rawGender = null,
+      forceUpdate = false,
     } = body;
+
+    // Validate inputs
+    const limit = Math.min(Math.max(Number(rawLimit) || 50, 1), 500);
+    const validGenders = ['MALE', 'FEMALE'];
+    const gender = rawGender && validGenders.includes(String(rawGender).toUpperCase())
+      ? String(rawGender).toUpperCase()
+      : null;
 
     console.log(`[BatchUpdate] Starting batch update. Limit: ${limit}, OnlyMissing: ${onlyMissing}`);
 
-    // שליפת פרופילים לעדכון
-// בקובץ batch-update-metrics/route.ts
-    let query = `
+    // שליפת פרופילים לעדכון - using parameterized queries to prevent SQL injection
+    const conditions: Prisma.Sql[] = [Prisma.sql`p.status = 'AVAILABLE'`];
+
+    if (onlyMissing && !forceUpdate) {
+      conditions.push(Prisma.sql`(pm.id IS NULL OR pv."selfVector" IS NULL OR pv."seekingVector" IS NULL)`);
+    }
+
+    if (gender) {
+      conditions.push(Prisma.sql`p.gender = ${gender}`);
+    }
+
+    const whereClause = Prisma.sql`WHERE ${Prisma.join(conditions, ' AND ')}`;
+
+    const profilesToUpdate = await prisma.$queryRaw<any[]>`
       SELECT p.id, p.gender, p."userId",
              pm.id IS NOT NULL as "hasMetrics",
              pv."selfVector" IS NOT NULL as "hasSelfVector",
              pv."seekingVector" IS NOT NULL as "hasSeekingVector"
-      FROM "Profile" p  -- שונה מ-profiles
+      FROM "Profile" p
       LEFT JOIN "profile_metrics" pm ON pm."profileId" = p.id
       LEFT JOIN "profile_vectors" pv ON pv."profileId" = p.id
-      WHERE p.status = 'AVAILABLE'
+      ${whereClause}
+      ORDER BY p."createdAt" DESC
+      LIMIT ${limit}
     `;
-
-    if (onlyMissing && !forceUpdate) {
-      query += ` AND (pm.id IS NULL OR pv."selfVector" IS NULL OR pv."seekingVector" IS NULL)`;
-    }
-
-    if (gender) {
-      query += ` AND p.gender = '${gender}'`;
-    }
-
-    query += ` ORDER BY p."createdAt" DESC LIMIT ${limit}`;
-
-    const profilesToUpdate = await prisma.$queryRawUnsafe<any[]>(query);
 
     console.log(`[BatchUpdate] Found ${profilesToUpdate.length} profiles to update`);
 

@@ -9,6 +9,7 @@
 import { NextRequest } from "next/server";
 import { applyRateLimit } from '@/lib/rate-limiter';
 import prisma from '@/lib/prisma';
+import { hashOtp } from '@/lib/services/verificationService';
 import { UserStatus, VerificationType } from '@prisma/client';
 import {
   verifyMobileToken,
@@ -58,7 +59,7 @@ export async function POST(req: NextRequest) {
     }
 
     // --- Verify code ---
-    if (verification.token !== code) {
+    if (verification.token !== hashOtp(code)) {
       return corsError(req, 'קוד אימות שגוי.', 400);
     }
 

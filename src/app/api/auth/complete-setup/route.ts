@@ -2,7 +2,7 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { hash } from "bcryptjs";
-// --- הוספה ---
+import { hashOtp } from '@/lib/services/verificationService';
 import { VerificationType, VerificationStatus, UserStatus } from "@prisma/client";
 // --- סוף הוספה ---
 import { z } from "zod";
@@ -25,7 +25,7 @@ export async function POST(req: Request) {
 
     const verification = await prisma.verification.findFirst({
       where: {
-        token,
+        token: hashOtp(token),
         type: VerificationType.ACCOUNT_SETUP,
         status: VerificationStatus.PENDING,
         expiresAt: {
