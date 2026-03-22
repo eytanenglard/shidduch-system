@@ -52,9 +52,12 @@ export interface ScanResult {
     aiAnalyzed: number;
     candidatesUpdated: number;
     savedToDb: number;
+    freshSkipped?: number;
   };
-  
+
   matches: ScoredMatch[];
+  // FRESH above-threshold candidates whose ScannedPair lastScannedAt should be bumped
+  freshPassedCandidates?: Array<{ userId: string; profileId: string }>;
   errors: string[];
   warnings: string[];
 }
@@ -93,18 +96,23 @@ export interface ScoredMatch {
     reasoning: string;
     strengths: string[];
     concerns: string[];
-  breakdown?: {  // 🆕 הוסף
-    religious?: number;
-    ageCompatibility?: number;
-    careerFamily?: number;
-    lifestyle?: number;
-    socioEconomic?: number;
-    education?: number;
-    background?: number;
-    values?: number;
-  };
+    breakdown?: {
+      religious?: number;
+      ageCompatibility?: number;
+      careerFamily?: number;
+      lifestyle?: number;
+      socioEconomic?: number;
+      education?: number;
+      background?: number;
+      values?: number;
+    };
   };
 
+  // true when at least one profile changed since last scan → stored score must be replaced
+  profileChanged?: boolean;
+  // contentUpdatedAt snapshots for ScannedPair upsert
+  userContentUpdatedAt?: Date;
+  candidateContentUpdatedAt?: Date;
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -293,8 +301,11 @@ export async function scanSingleUserV2(
   console.log(`\n[ScanV2] ═══ TIER 1: Deal Breaker Filter ═══`);
 
   const preferredPartnerHasChildren = profile.preferredPartnerHasChildren ?? 'does_not_matter';
+  const isMaleUser = profile.gender === Gender.MALE;
+  // contentUpdatedAt of the user doing the scan (significant changes only)
+  const userContentUpdatedAt: Date = (profile as any).contentUpdatedAt ?? profile.updatedAt;
 
-  // 🆕 שאילתה מורחבת עם השדות החדשים
+  // 🆕 שאילתה מורחבת עם ScannedPair + contentUpdatedAt
   const tier1Candidates = await prisma.$queryRaw<any[]>`
     SELECT 
       p.id as "profileId",
@@ -361,12 +372,26 @@ export async function scanSingleUserV2(
       COALESCE(
         EXTRACT(YEAR FROM AGE(p."birthDate"))::int,
         pm."inferredAge"
-      ) as "candidateAge"
-      
-    FROM "Profile" p 
+      ) as "candidateAge",
+
+      -- שינויים משמעותיים בפרופיל המועמד
+      COALESCE(p."contentUpdatedAt", p."updatedAt") as "contentUpdatedAt",
+
+      -- ScannedPair info (if exists)
+      sp."lastScannedAt"           as "spLastScannedAt",
+      sp."passedThreshold"         as "spPassedThreshold",
+      sp."maleProfileUpdatedAt"    as "spMaleContentAt",
+      sp."femaleProfileUpdatedAt"  as "spFemaleContentAt"
+
+    FROM "Profile" p
     JOIN "User" u ON u.id = p."userId"
     LEFT JOIN "profile_metrics" pm ON pm."profileId" = p.id
-    WHERE 
+    LEFT JOIN "ScannedPair" sp ON (
+      (${isMaleUser}::boolean = true  AND sp."maleUserId"   = ${userId} AND sp."femaleUserId" = p."userId")
+      OR
+      (${isMaleUser}::boolean = false AND sp."femaleUserId" = ${userId} AND sp."maleUserId"   = p."userId")
+    )
+    WHERE
       -- ═══ מגדר הפוך ═══
       p.gender = ${oppositeGender}::"Gender"
       
@@ -434,10 +459,57 @@ export async function scanSingleUserV2(
     LIMIT ${maxCandidates}
   `;
 
+  // ═══════════════════════════════════════════════════════════
+  // TIER 1 POST-PROCESSING: ScannedPair Categorization
+  // NEW    = no ScannedPair → must score
+  // STALE  = ScannedPair exists but profile changed → force rescore
+  // FRESH  = ScannedPair exists, no change → skip scoring
+  // ═══════════════════════════════════════════════════════════
+  const RESCAN_COOLDOWN_DAYS = 7; // failed pairs: don't rescan within this period
+  const now = Date.now();
+
+  type ScanCategory = 'NEW' | 'STALE' | 'FRESH';
+  const categorized = tier1Candidates.map((c: any) => {
+    let category: ScanCategory;
+    if (!c.spLastScannedAt) {
+      category = 'NEW';
+    } else {
+      const lastScanned = new Date(c.spLastScannedAt).getTime();
+      // Compare contentUpdatedAt snapshots stored in ScannedPair
+      const snapshotForUser = isMaleUser ? c.spMaleContentAt : c.spFemaleContentAt;
+      const snapshotForCandidate = isMaleUser ? c.spFemaleContentAt : c.spMaleContentAt;
+      const userChanged = snapshotForUser
+        ? userContentUpdatedAt.getTime() > new Date(snapshotForUser).getTime()
+        : true;
+      const candidateChanged = snapshotForCandidate
+        ? new Date(c.contentUpdatedAt).getTime() > new Date(snapshotForCandidate).getTime()
+        : true;
+
+      if (!userChanged && !candidateChanged) {
+        category = 'FRESH';
+      } else {
+        // STALE: profile changed — but apply cooldown for previously-failed pairs
+        const failedPair = c.spPassedThreshold === false;
+        const cooldownExpired = now - lastScanned > RESCAN_COOLDOWN_DAYS * 24 * 60 * 60 * 1000;
+        if (failedPair && !cooldownExpired) {
+          category = 'FRESH'; // treat as FRESH to skip (cooldown active)
+        } else {
+          category = 'STALE';
+        }
+      }
+    }
+    return { ...c, scanCategory: category };
+  });
+
+  const newCount   = categorized.filter((c: any) => c.scanCategory === 'NEW').length;
+  const staleCount = categorized.filter((c: any) => c.scanCategory === 'STALE').length;
+  const freshCount = categorized.filter((c: any) => c.scanCategory === 'FRESH').length;
+
   console.log(`[ScanV2] Tier 1 Results:`);
   console.log(`  - Total candidates after all filters: ${tier1Candidates.length}`);
   console.log(`  - Age range filter: ${preferredAgeMin}-${preferredAgeMax}`);
   console.log(`  - User age for reverse filter: ${userAge}`);
+  console.log(`  - NEW: ${newCount} | STALE: ${staleCount} | FRESH (skip): ${freshCount}`);
 
   if (tier1Candidates.length === 0) {
     console.log(`[ScanV2] No candidates found, ending scan.`);
@@ -463,24 +535,25 @@ export async function scanSingleUserV2(
 
   // ═══════════════════════════════════════════════════════════
   // TIER 1.5: Tag Hard Filter (Soul Fingerprint)
+  // Run on ALL candidates (including FRESH) — tag filter is cheap
   // ═══════════════════════════════════════════════════════════
-  let tier1_5Candidates = tier1Candidates;
+  let tier1_5Candidates = categorized;
   try {
     const { passesTagHardFilter, batchLoadProfileTags, loadProfileTags } = await import('./tagMatchingService');
     const userTags = await loadProfileTags(profile.id);
 
     if (userTags?.partnerTags) {
       const partnerPrefs = userTags.partnerTags as unknown as import('@/components/soul-fingerprint/types').PartnerTagPreferences;
-      const candidateProfileIds = tier1Candidates.map((c: { profileId: string }) => c.profileId);
+      const candidateProfileIds = categorized.map((c: { profileId: string }) => c.profileId);
       const candidateTagsMap = await batchLoadProfileTags(candidateProfileIds);
 
-      tier1_5Candidates = tier1Candidates.filter((candidate: { profileId: string }) => {
+      tier1_5Candidates = categorized.filter((candidate: { profileId: string }) => {
         const cTags = candidateTagsMap.get(candidate.profileId);
         if (!cTags) return true; // No tags = don't filter
         return passesTagHardFilter(partnerPrefs, cTags.sectorTags);
       });
 
-      const filtered = tier1Candidates.length - tier1_5Candidates.length;
+      const filtered = categorized.length - tier1_5Candidates.length;
       if (filtered > 0) {
         console.log(`[ScanV2] Tier 1.5 Tag Filter: filtered ${filtered} candidates (sector mismatch)`);
       }
@@ -491,23 +564,43 @@ export async function scanSingleUserV2(
 
   // ═══════════════════════════════════════════════════════════
   // TIER 2 + 3: Compatibility Calculation
+  // FRESH candidates are skipped — their existing score is reused
+  // STALE candidates are force-rescored (override existing score)
   // ═══════════════════════════════════════════════════════════
   console.log(`\n[ScanV2] ═══ TIER 2-3: Compatibility Calculation ═══`);
 
   const scoredCandidates: {
     candidate: any;
     compatibility: PairCompatibilityResult;
+    profileChanged: boolean; // true → force-update stored score
   }[] = [];
 
   let passedCount = 0;
   let failedCount = 0;
+  let freshSkipped = 0;
+
+  // Collect FRESH above-threshold candidates to include directly (no re-scoring)
+  const freshPassed = tier1_5Candidates.filter(
+    (c: any) => c.scanCategory === 'FRESH' && c.spPassedThreshold === true
+  );
+  if (freshPassed.length > 0) {
+    console.log(`[ScanV2] ⚡ ${freshPassed.length} FRESH passed-threshold candidates reused from cache`);
+  }
+  freshSkipped = tier1_5Candidates.filter((c: any) => c.scanCategory === 'FRESH').length;
 
   for (const candidate of tier1_5Candidates) {
+    // Skip FRESH candidates entirely — no recalculation needed
+    if (candidate.scanCategory === 'FRESH') continue;
+
     try {
       const compatibility = await calculatePairCompatibility(profile.id, candidate.profileId);
-      
+
       if (compatibility.breakdownAtoB.dealBreakersPassed && compatibility.breakdownBtoA.dealBreakersPassed) {
-        scoredCandidates.push({ candidate, compatibility });
+        scoredCandidates.push({
+          candidate,
+          compatibility,
+          profileChanged: candidate.scanCategory === 'STALE',
+        });
         passedCount++;
       } else {
         failedCount++;
@@ -519,8 +612,8 @@ export async function scanSingleUserV2(
   }
 
   console.log(`[ScanV2] Tier 2-3 Results:`);
-  console.log(`  - Passed deal breakers: ${passedCount}`);
-  console.log(`  - Failed deal breakers: ${failedCount}`);
+  console.log(`  - Scored (NEW+STALE): ${passedCount + failedCount} | Passed: ${passedCount} | Failed: ${failedCount}`);
+  console.log(`  - Skipped FRESH: ${freshSkipped}`);
 
   // מיון לפי ציון
   scoredCandidates.sort((a, b) => b.compatibility.symmetricScore - a.compatibility.symmetricScore);
@@ -554,7 +647,7 @@ export async function scanSingleUserV2(
   // ═══════════════════════════════════════════════════════════
   console.log(`\n[ScanV2] ═══ Building Final Results ═══`);
 
-  const matches: ScoredMatch[] = scoredCandidates.map(({ candidate, compatibility }) => {
+  const matches: ScoredMatch[] = scoredCandidates.map(({ candidate, compatibility, profileChanged }) => {
     // 🆕 שימוש בגיל עם fallback
     const age = candidate.candidateAge || candidate.inferredAge || 0;
 
@@ -607,6 +700,13 @@ export async function scanSingleUserV2(
         strengths: aiAnalysis.strengths || [],
         concerns: aiAnalysis.concerns || [],
       } : undefined,
+
+      // ScannedPair bookkeeping
+      profileChanged,
+      userContentUpdatedAt,
+      candidateContentUpdatedAt: candidate.contentUpdatedAt
+        ? new Date(candidate.contentUpdatedAt)
+        : new Date(candidate.profileUpdatedAt || Date.now()),
     };
   });
 
@@ -639,8 +739,10 @@ export async function scanSingleUserV2(
       aiAnalyzed: aiResults.size,
       candidatesUpdated,
       savedToDb: above65Count,
+      freshSkipped,
     },
     matches,
+    freshPassedCandidates: freshPassed.map((c: any) => ({ userId: c.userId, profileId: c.profileId })),
     errors,
     warnings,
   };
@@ -1038,15 +1140,15 @@ export async function saveScanResults(result: ScanResult): Promise<number> {
     return 0;
   }
 
+  const isMale = userProfile.gender === Gender.MALE;
   const matchesToSave = result.matches.filter(m => m.symmetricScore >= MIN_SCORE_TO_SAVE);
-  
+
   console.log(`[ScanV2] Saving to DB: ${matchesToSave.length} matches`);
 
   let savedCount = 0;
   let updatedCount = 0;
 
   for (const match of matchesToSave) {
-    const isMale = userProfile.gender === Gender.MALE;
     const maleUserId = isMale ? result.userId : match.candidateUserId;
     const femaleUserId = isMale ? match.candidateUserId : result.userId;
 
@@ -1068,25 +1170,23 @@ export async function saveScanResults(result: ScanResult): Promise<number> {
       });
 
       if (existing) {
+        // If profile changed (STALE), replace score regardless of value (old score is stale).
+        // Otherwise only update if new score is better.
+        const forceUpdate = match.profileChanged === true;
         await prisma.potentialMatch.update({
           where: { id: existing.id },
           data: {
-            // 🆕 עדכון ציון כללי רק אם גבוה יותר
-            ...(match.symmetricScore > existing.aiScore ? {
+            ...(forceUpdate || match.symmetricScore > existing.aiScore ? {
               aiScore: match.symmetricScore,
               shortReasoning: match.aiAnalysis?.reasoning || null,
               lastScanMethod: 'metrics_v2',
             } : {}),
-            
-            // 🆕 עדכון Metrics V2 רק אם ציון חדש גבוה יותר (עקביות עם aiScore)
-            ...(match.symmetricScore > (existing.metricsV2Score || 0) ? {
+            ...(forceUpdate || match.symmetricScore > (existing.metricsV2Score || 0) ? {
               metricsV2Score: match.symmetricScore,
               metricsV2Reasoning: match.aiAnalysis?.reasoning || null,
               metricsV2ScoreBreakdown: generatedBreakdown,
             } : {}),
-            metricsV2ScannedAt: new Date(), // תמיד לעדכן timestamp
-            
-            // שדות נוספים
+            metricsV2ScannedAt: new Date(),
             firstPassScore: match.metricsScore,
             scannedAt: new Date(),
             scoreForMale: isMale ? match.scoreForUser : match.scoreForCandidate,
@@ -1120,6 +1220,54 @@ export async function saveScanResults(result: ScanResult): Promise<number> {
       }
     } catch (error) {
       console.error(`[ScanV2] Failed to save match for ${match.candidateName}:`, error);
+    }
+
+    // Always upsert ScannedPair — records that this pair was evaluated and what the profiles looked like
+    try {
+      const maleContentAt = isMale
+        ? (match.userContentUpdatedAt ?? new Date())
+        : (match.candidateContentUpdatedAt ?? new Date());
+      const femaleContentAt = isMale
+        ? (match.candidateContentUpdatedAt ?? new Date())
+        : (match.userContentUpdatedAt ?? new Date());
+      await prisma.scannedPair.upsert({
+        where: { maleUserId_femaleUserId: { maleUserId, femaleUserId } },
+        create: {
+          maleUserId,
+          femaleUserId,
+          aiScore: match.symmetricScore,
+          passedThreshold: match.symmetricScore >= MIN_SCORE_TO_SAVE,
+          firstScannedAt: new Date(),
+          lastScannedAt: new Date(),
+          maleProfileUpdatedAt: maleContentAt,
+          femaleProfileUpdatedAt: femaleContentAt,
+        },
+        update: {
+          aiScore: match.symmetricScore,
+          passedThreshold: match.symmetricScore >= MIN_SCORE_TO_SAVE,
+          lastScannedAt: new Date(),
+          maleProfileUpdatedAt: maleContentAt,
+          femaleProfileUpdatedAt: femaleContentAt,
+        },
+      });
+    } catch (spError) {
+      // Non-critical — don't fail the whole save if ScannedPair upsert fails
+      console.warn(`[ScanV2] ScannedPair upsert failed for ${match.candidateName}:`, spError);
+    }
+  }
+
+  // Also upsert ScannedPair for FRESH pairs that passed threshold (so lastScannedAt stays current)
+  // This prevents them from being treated as "never scanned" by other services
+  if (result.freshPassedCandidates?.length) {
+    for (const fc of result.freshPassedCandidates) {
+      try {
+        const maleUserId2 = isMale ? result.userId : fc.userId;
+        const femaleUserId2 = isMale ? fc.userId : result.userId;
+        await prisma.scannedPair.update({
+          where: { maleUserId_femaleUserId: { maleUserId: maleUserId2, femaleUserId: femaleUserId2 } },
+          data: { lastScannedAt: new Date() },
+        });
+      } catch { /* ignore */ }
     }
   }
 

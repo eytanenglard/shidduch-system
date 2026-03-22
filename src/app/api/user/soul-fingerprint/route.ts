@@ -90,6 +90,12 @@ export async function POST(req: NextRequest) {
       },
     });
 
+    // Mark profile as having significant content change (triggers rescan logic)
+    await prisma.profile.update({
+      where: { id: profile.id },
+      data: { contentUpdatedAt: new Date(), needsAiProfileUpdate: true },
+    });
+
     // Fire-and-forget AI enrichment when questionnaire is completed
     if (isComplete) {
       import('@/lib/services/soulFingerprintAIService')
@@ -122,6 +128,12 @@ export async function PATCH(req: NextRequest) {
         customCategories,
         updatedAt: new Date(),
       },
+    });
+
+    // AI-derived tags are also a significant change — update profile signal
+    await prisma.profile.update({
+      where: { userId: session.user.id },
+      data: { contentUpdatedAt: new Date() },
     });
 
     return NextResponse.json({ profileTags, success: true });

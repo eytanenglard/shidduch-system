@@ -281,6 +281,7 @@ interface RawCandidate {
   
   // Profile dates
   profileUpdatedAt: Date;
+  contentUpdatedAt: Date; // significant content changes only
 
   // 🆕 V2.2: ScannedPair info (if exists)
   existingScannedPairId?: string | null;
@@ -754,24 +755,27 @@ function calculateBackgroundMatch(
  */
 function canSkipPairScan(
   candidate: RawCandidate,
-  targetProfileUpdatedAt: Date
+  targetContentUpdatedAt: Date
 ): boolean {
   // No existing scan data - must scan
   if (!candidate.existingScannedPairId || !candidate.scannedPairLastScannedAt) {
     return false;
   }
-  
-  // Check if target profile was updated after last scan
-  if (targetProfileUpdatedAt > candidate.scannedPairLastScannedAt) {
+
+  // Compare significant content changes only (not every minor DB write)
+  const candidateContentUpdatedAt = candidate.contentUpdatedAt;
+
+  // Check if target profile had significant content change after last scan
+  if (targetContentUpdatedAt > candidate.scannedPairLastScannedAt) {
     return false;
   }
-  
-  // Check if candidate profile was updated after last scan
-  if (candidate.profileUpdatedAt > candidate.scannedPairLastScannedAt) {
+
+  // Check if candidate profile had significant content change after last scan
+  if (candidateContentUpdatedAt > candidate.scannedPairLastScannedAt) {
     return false;
   }
-  
-  // Both profiles haven't changed - can skip!
+
+  // Neither profile had significant changes — can skip!
   return true;
 }
 
@@ -781,17 +785,18 @@ function canSkipPairScan(
 async function saveScannedPairs(
   targetUserId: string,
   targetGender: Gender,
-  targetProfileUpdatedAt: Date,
+  targetContentUpdatedAt: Date,
   candidates: FinalCandidate[]
 ): Promise<number> {
   let savedCount = 0;
-  
+
   for (const candidate of candidates) {
     try {
       const maleUserId = targetGender === Gender.MALE ? targetUserId : candidate.userId;
       const femaleUserId = targetGender === Gender.MALE ? candidate.userId : targetUserId;
-      const maleProfileUpdatedAt = targetGender === Gender.MALE ? targetProfileUpdatedAt : candidate.profileUpdatedAt;
-      const femaleProfileUpdatedAt = targetGender === Gender.MALE ? candidate.profileUpdatedAt : targetProfileUpdatedAt;
+      // Store contentUpdatedAt snapshots so future scans compare significant changes only
+      const maleProfileUpdatedAt = targetGender === Gender.MALE ? targetContentUpdatedAt : (candidate.contentUpdatedAt ?? candidate.profileUpdatedAt);
+      const femaleProfileUpdatedAt = targetGender === Gender.MALE ? (candidate.contentUpdatedAt ?? candidate.profileUpdatedAt) : targetContentUpdatedAt;
       
       const passedThreshold = candidate.finalScore >= MIN_SCORE_TO_SAVE;
       const rejectionReason = !passedThreshold 
@@ -963,7 +968,8 @@ async function tier1SqlFilter(
       p."preferredAgeMin",
       p."preferredAgeMax",
       p."updatedAt" as "profileUpdatedAt",
-      
+      COALESCE(p."contentUpdatedAt", p."updatedAt") as "contentUpdatedAt",
+
       -- Basic Metrics
       pm."confidenceScore",
       pm."religiousStrictness",
@@ -1103,6 +1109,7 @@ async function tier1SqlFilter(
     preferredAgeMax: c.preferredAgeMax,
     smokingStatus: c.smokingStatus || null,
     profileUpdatedAt: c.profileUpdatedAt,
+    contentUpdatedAt: c.contentUpdatedAt ?? c.profileUpdatedAt,
 
     // 🆕 V2.2: Map new fields
     existingScannedPairId: c.existingScannedPairId,
@@ -1159,20 +1166,21 @@ async function tier2MetricsScoring(
     preferredReligiousJourneys: string[];
     backgroundProfile: BackgroundProfile;
     metrics: ExtendedMetrics;
-    profileUpdatedAt: Date; // 🆕 V2.2
+    profileUpdatedAt: Date;
+    contentUpdatedAt: Date; // significant changes only
   },
   useVectors: boolean,
   useBackgroundAnalysis: boolean,
   maxOutput: number,
-  skipAlreadyScannedPairs: boolean = true // 🆕 V2.2
+  skipAlreadyScannedPairs: boolean = true
 ): Promise<ScoredCandidate[]> {
   
   const scoredCandidates: ScoredCandidate[] = [];
   let skippedCount = 0;
   
   for (const candidate of candidates) {
-    // 🆕 V2.2: Check if we can skip this pair
-    const canSkip = skipAlreadyScannedPairs && canSkipPairScan(candidate, targetProfile.profileUpdatedAt);
+    // Check if we can skip this pair (compare significant content changes only)
+    const canSkip = skipAlreadyScannedPairs && canSkipPairScan(candidate, targetProfile.contentUpdatedAt);
     
     if (canSkip && candidate.existingAiScore !== null) {
       // Use cached score - much faster!
@@ -2271,6 +2279,7 @@ export async function hybridScanForVirtualUser(
     preferredAgeMax: c.preferredAgeMax,
     smokingStatus: c.smokingStatus || null,
     profileUpdatedAt: c.profileUpdatedAt,
+    contentUpdatedAt: c.contentUpdatedAt ?? c.profileUpdatedAt,
     metrics: {
       // Map all metrics similarly to standard scan
       confidenceScore: c.confidenceScore,
@@ -2315,7 +2324,8 @@ export async function hybridScanForVirtualUser(
       preferredReligiousJourneys: [],
       backgroundProfile: virtualBackgroundProfile,
       metrics: virtualMetrics,
-      profileUpdatedAt: new Date(), // Virtual profiles are always fresh
+      profileUpdatedAt: new Date(),
+      contentUpdatedAt: new Date(), // Virtual profiles are always fresh
     },
     false,
     true,
@@ -2693,7 +2703,8 @@ export async function hybridScan(
       preferredReligiousJourneys: profile.preferredReligiousJourneys as string[],
       backgroundProfile: userBackgroundProfile,
       metrics: metrics,
-      profileUpdatedAt: profile.updatedAt, // 🆕 V2.2
+      profileUpdatedAt: profile.updatedAt,
+      contentUpdatedAt: (profile as any).contentUpdatedAt ?? profile.updatedAt, // significant changes only
     },
     useVectors,
     useBackgroundAnalysis,
@@ -2881,7 +2892,7 @@ export async function hybridScan(
     scannedPairsSaved = await saveScannedPairs(
       userId,
       profile.gender,
-      profile.updatedAt,
+      (profile as any).contentUpdatedAt ?? profile.updatedAt,
       finalCandidates
     );
   }
