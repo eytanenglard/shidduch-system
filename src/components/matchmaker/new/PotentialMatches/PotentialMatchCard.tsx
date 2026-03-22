@@ -90,7 +90,8 @@ interface PotentialMatchCardProps {
   className?: string;
   onHideCandidate: (candidate: CandidateToHide) => void;
   hiddenCandidateIds?: Set<string>;
-  onFilterByUser: (fullName: string) => void; // הוספתי את הפונקציה הזו
+  onFilterByUser: (fullName: string) => void;
+  isCompact?: boolean;
 }
 
 // =============================================================================
@@ -253,7 +254,7 @@ const AllScoresDisplay: React.FC<{
   }
 
   return (
-    <div className="flex flex-wrap gap-1.5">
+    <div className="flex flex-wrap gap-1 sm:gap-1.5">
       {scores.map(
         ({
           key,
@@ -275,15 +276,18 @@ const AllScoresDisplay: React.FC<{
                 <TooltipTrigger asChild>
                   <div
                     className={cn(
-                      'flex items-center gap-1 px-2 py-1 rounded-lg border text-xs cursor-help transition-all hover:scale-105',
+                      'flex items-center gap-0.5 sm:gap-1 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-lg border text-[10px] sm:text-xs cursor-help transition-all hover:scale-105',
                       bgColor,
                       borderColor,
                       isCurrentMethod && 'ring-2 ring-offset-1 ring-emerald-400'
                     )}
                   >
-                    <span>{icon}</span>
+                    <span className="text-xs sm:text-sm">{icon}</span>
                     <span className={cn('font-bold', textColor)}>
                       {Math.round(score!)}
+                    </span>
+                    <span className={cn('hidden sm:inline text-[10px] font-medium', textColor)}>
+                      {label}
                     </span>
                   </div>
                 </TooltipTrigger>
@@ -317,7 +321,8 @@ const CandidatePreview: React.FC<{
   onAnalyze: () => void;
   onFeedback: () => void;
   onHide: (candidate: CandidateToHide) => void;
-  onFilterByName: () => void; // הוספתי את הפונקציה הזו
+  onFilterByName: () => void;
+  isCompact?: boolean;
 }> = ({
   candidate,
   gender,
@@ -327,6 +332,7 @@ const CandidatePreview: React.FC<{
   onFeedback,
   onHide,
   onFilterByName,
+  isCompact = false,
 }) => {
   const genderIcon = gender === 'male' ? '👨' : '👩';
   const borderColor = gender === 'male' ? 'border-blue-200' : 'border-pink-200';
@@ -377,10 +383,64 @@ const CandidatePreview: React.FC<{
     );
   };
 
+  // Compact mode: horizontal layout with minimal info
+  if (isCompact) {
+    return (
+      <div
+        className={cn(
+          'relative flex-1 min-w-0 overflow-hidden p-2 rounded-lg border-2 transition-all duration-300 hover:shadow-md cursor-pointer',
+          borderColor,
+          `bg-gradient-to-br ${bgGradient}`
+        )}
+        onClick={onViewProfile}
+      >
+        <div className="flex items-center gap-2 min-w-0">
+          {/* תמונה */}
+          <div className="relative w-10 h-10 shrink-0 rounded-full overflow-hidden border-2 border-white shadow-sm">
+            {candidate.mainImage ? (
+              <Image
+                src={getRelativeCloudinaryPath(candidate.mainImage)}
+                alt={`${candidate.firstName} ${candidate.lastName}`}
+                fill
+                className="object-cover"
+              />
+            ) : (
+              <div className="w-full h-full bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center text-sm">
+                {genderIcon}
+              </div>
+            )}
+          </div>
+          {/* מידע בסיסי */}
+          <div className="flex-1 min-w-0">
+            <h4 className="font-bold text-gray-800 text-xs truncate">
+              {candidate.firstName} {candidate.lastName}
+            </h4>
+            <p className="text-[10px] text-gray-600 truncate">
+              {candidate.age} {candidate.city && `· ${candidate.city}`}
+            </p>
+          </div>
+        </div>
+
+        {activeSuggestion && (
+          <div className="mt-1">
+            <Badge
+              variant="outline"
+              className="text-[9px] bg-amber-50 text-amber-700 border-amber-200 px-1 py-0 h-4"
+            >
+              <AlertTriangle className="w-2 h-2 mr-0.5" />
+              פעילה
+            </Badge>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // Full mode
   return (
     <div
       className={cn(
-        'relative flex-1 min-w-0 overflow-hidden p-3 rounded-xl border-2 transition-all duration-300 hover:shadow-md flex flex-col',
+        'relative flex-1 min-w-0 overflow-hidden p-2.5 sm:p-3 rounded-xl border-2 transition-all duration-300 hover:shadow-md flex flex-col',
         borderColor,
         `bg-gradient-to-br ${bgGradient}`
       )}
@@ -388,7 +448,7 @@ const CandidatePreview: React.FC<{
     >
       <div className="flex-1 cursor-pointer min-w-0 w-full">
         {/* תמונה וסטטוס */}
-        <div className="relative w-16 h-16 mx-auto mb-2 rounded-full overflow-hidden border-2 border-white shadow-md">
+        <div className="relative w-14 h-14 sm:w-16 sm:h-16 mx-auto mb-2 rounded-full overflow-hidden border-2 border-white shadow-md">
           {candidate.mainImage ? (
             <Image
               src={getRelativeCloudinaryPath(candidate.mainImage)}
@@ -411,23 +471,23 @@ const CandidatePreview: React.FC<{
 
         {/* שם */}
         <h4
-          className="text-center font-bold text-gray-800 text-sm mb-1 truncate px-1"
+          className="text-center font-bold text-gray-800 text-xs sm:text-sm mb-1 truncate px-1"
           title={`${candidate.firstName} ${candidate.lastName}`}
         >
           {candidate.firstName} {candidate.lastName}
         </h4>
 
         {/* אזור המידע */}
-        <div className="flex flex-col gap-1.5 mb-2 w-full overflow-hidden">
+        <div className="flex flex-col gap-1 sm:gap-1.5 mb-2 w-full overflow-hidden">
           {/* שורה 1: גיל | סטטוס | גובה */}
-          <div className="flex items-center justify-center gap-2 text-xs text-gray-700 flex-wrap">
+          <div className="flex items-center justify-center gap-1.5 sm:gap-2 text-[11px] sm:text-xs text-gray-700 flex-wrap">
             <span className="font-medium">{candidate.age}</span>
 
             {candidate.maritalStatus && (
               <>
                 <span className="text-gray-300">|</span>
                 <span
-                  className="truncate max-w-[80px]"
+                  className="truncate max-w-[70px] sm:max-w-[80px]"
                   title={getMaritalStatusLabel(candidate.maritalStatus)}
                 >
                   {getMaritalStatusLabel(candidate.maritalStatus)}
@@ -450,7 +510,7 @@ const CandidatePreview: React.FC<{
 
           {/* שורה 2: עיר */}
           {candidate.city && (
-            <div className="flex items-center justify-center gap-1 text-xs text-gray-600 w-full min-w-0 px-2">
+            <div className="flex items-center justify-center gap-1 text-[11px] sm:text-xs text-gray-600 w-full min-w-0 px-1 sm:px-2">
               <MapPin className="w-3 h-3 text-gray-400 shrink-0" />
               <span className="truncate" title={candidate.city}>
                 {candidate.city}
@@ -460,7 +520,7 @@ const CandidatePreview: React.FC<{
 
           {/* שורה 3: עיסוק */}
           {candidate.occupation && (
-            <div className="flex items-center justify-center gap-1 text-xs text-gray-600 w-full min-w-0 px-2">
+            <div className="flex items-center justify-center gap-1 text-[11px] sm:text-xs text-gray-600 w-full min-w-0 px-1 sm:px-2">
               <Briefcase className="w-3 h-3 text-gray-400 shrink-0" />
               <span className="truncate" title={candidate.occupation}>
                 {candidate.occupation}
@@ -468,9 +528,9 @@ const CandidatePreview: React.FC<{
             </div>
           )}
 
-          {/* שורה 4: שפות */}
+          {/* שורה 4: שפות - hidden on very small screens */}
           {languagesStr && (
-            <div className="flex items-center justify-center gap-1 text-[10px] text-gray-500 w-full min-w-0 px-2">
+            <div className="hidden sm:flex items-center justify-center gap-1 text-[10px] text-gray-500 w-full min-w-0 px-2">
               <Languages className="w-3 h-3 text-gray-400 shrink-0" />
               <span className="truncate" title={languagesStr}>
                 {languagesStr}
@@ -480,7 +540,7 @@ const CandidatePreview: React.FC<{
         </div>
 
         {/* רמה דתית */}
-        <div className="flex justify-center w-full px-2">
+        <div className="flex justify-center w-full px-1 sm:px-2">
           <div
             className="text-center text-[10px] text-purple-600 font-medium bg-purple-50 rounded-full py-0.5 px-2 max-w-full truncate"
             title={getReligiousLevelLabel(candidate.religiousLevel)}
@@ -490,16 +550,16 @@ const CandidatePreview: React.FC<{
         </div>
       </div>
 
-      {/* Actions */}
-      <div className="mt-2 pt-2 border-t border-gray-200/50 flex items-center justify-center gap-2">
-        {/* כפתור סינון לפי שם (חדש) */}
+      {/* Actions - larger touch targets on mobile */}
+      <div className="mt-2 pt-2 border-t border-gray-200/50 flex items-center justify-center gap-1 sm:gap-2 flex-wrap">
+        {/* כפתור סינון לפי שם */}
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-7 w-7 rounded-full bg-white/60 hover:bg-indigo-100 hover:text-indigo-600 shadow-sm border border-transparent hover:border-indigo-200 transition-all"
+                className="h-8 w-8 sm:h-7 sm:w-7 rounded-full bg-white/60 hover:bg-indigo-100 hover:text-indigo-600 shadow-sm border border-transparent hover:border-indigo-200 transition-all"
                 onClick={(e) => {
                   e.stopPropagation();
                   onFilterByName();
@@ -521,7 +581,7 @@ const CandidatePreview: React.FC<{
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-7 w-7 rounded-full bg-white/60 hover:bg-green-100 hover:text-green-600 shadow-sm border border-transparent hover:border-green-200 transition-all"
+                  className="h-8 w-8 sm:h-7 sm:w-7 rounded-full bg-white/60 hover:bg-green-100 hover:text-green-600 shadow-sm border border-transparent hover:border-green-200 transition-all"
                   onClick={handleWhatsApp}
                 >
                   <MessageCircle className="w-3.5 h-3.5" />
@@ -540,7 +600,7 @@ const CandidatePreview: React.FC<{
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-7 w-7 rounded-full bg-white/60 hover:bg-purple-100 hover:text-purple-600 shadow-sm border border-transparent hover:border-purple-200 transition-all"
+                className="h-8 w-8 sm:h-7 sm:w-7 rounded-full bg-white/60 hover:bg-purple-100 hover:text-purple-600 shadow-sm border border-transparent hover:border-purple-200 transition-all"
                 onClick={(e) => {
                   e.stopPropagation();
                   onAnalyze();
@@ -561,7 +621,7 @@ const CandidatePreview: React.FC<{
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-7 w-7 rounded-full bg-white/60 hover:bg-blue-100 hover:text-blue-600 shadow-sm border border-transparent hover:border-blue-200 transition-all"
+                className="h-8 w-8 sm:h-7 sm:w-7 rounded-full bg-white/60 hover:bg-blue-100 hover:text-blue-600 shadow-sm border border-transparent hover:border-blue-200 transition-all"
                 onClick={handleEmail}
               >
                 <Mail className="w-3.5 h-3.5" />
@@ -580,7 +640,7 @@ const CandidatePreview: React.FC<{
             <Button
               variant="ghost"
               size="icon"
-              className="h-7 w-7 rounded-full bg-white/60 hover:bg-amber-100 hover:text-amber-600 shadow-sm border border-transparent hover:border-amber-200 transition-all absolute top-2 right-2"
+              className="h-8 w-8 sm:h-7 sm:w-7 rounded-full bg-white/60 hover:bg-amber-100 hover:text-amber-600 shadow-sm border border-transparent hover:border-amber-200 transition-all absolute top-1.5 right-1.5 sm:top-2 sm:right-2"
               onClick={(e) => {
                 e.stopPropagation();
                 onHide({
@@ -648,17 +708,17 @@ const ScoreBreakdownDisplay: React.FC<{
   ];
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-1.5 sm:space-y-2">
       {categories.map((cat) => {
         const value = breakdown[cat.key as keyof ScoreBreakdown] || 0;
         const percentage = (value / cat.max) * 100;
 
         return (
-          <div key={cat.key} className="flex items-center gap-2">
-            <span className="text-xs text-gray-600 w-24 truncate">
+          <div key={cat.key} className="flex items-center gap-1.5 sm:gap-2">
+            <span className="text-[10px] sm:text-xs text-gray-600 w-16 sm:w-24 truncate">
               {cat.label}
             </span>
-            <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
+            <div className="flex-1 h-1.5 sm:h-2 bg-gray-200 rounded-full overflow-hidden">
               <motion.div
                 initial={{ width: 0 }}
                 animate={{ width: `${percentage}%` }}
@@ -666,7 +726,7 @@ const ScoreBreakdownDisplay: React.FC<{
                 className={cn('h-full rounded-full', cat.color)}
               />
             </div>
-            <span className="text-xs text-gray-500 w-12 text-left">
+            <span className="text-[10px] sm:text-xs text-gray-500 w-10 sm:w-12 text-left">
               {value}/{cat.max}
             </span>
           </div>
@@ -758,7 +818,8 @@ const PotentialMatchCard: React.FC<PotentialMatchCardProps> = ({
   showSelection = false,
   className,
   onHideCandidate,
-  onFilterByUser, // Destructuring
+  onFilterByUser,
+  isCompact = false,
 }) => {
   const [showDetails, setShowDetails] = useState(false);
   const [showReasoningDialog, setShowReasoningDialog] = useState(false);
@@ -835,12 +896,12 @@ const PotentialMatchCard: React.FC<PotentialMatchCardProps> = ({
           />
 
           {/* Content */}
-          <div className="relative p-4">
+          <div className="relative p-3 sm:p-4">
             {/* Header */}
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex flex-wrap items-center gap-2 mb-3 sm:mb-4">
               {/* Selection Checkbox */}
               {showSelection && onToggleSelect && (
-                <div className="flex items-center gap-2">
+                <div className="flex items-center">
                   <Checkbox
                     checked={isSelected}
                     onCheckedChange={() => onToggleSelect(match.id)}
@@ -850,12 +911,15 @@ const PotentialMatchCard: React.FC<PotentialMatchCardProps> = ({
               )}
 
               {/* Score Badges - All Methods */}
-              <AllScoresDisplay match={match} />
+              <div className="flex-1 min-w-0">
+                <AllScoresDisplay match={match} />
+              </div>
 
               {/* Status Badge */}
-              <Badge className={cn('gap-1', statusBadge.color)}>
+              <Badge className={cn('gap-1 text-[10px] sm:text-xs shrink-0', statusBadge.color)}>
                 <StatusIcon className="w-3 h-3" />
-                {statusBadge.label}
+                <span className="hidden sm:inline">{statusBadge.label}</span>
+                <span className="sm:hidden">{statusBadge.label}</span>
               </Badge>
 
               {/* Actions Menu */}
@@ -907,7 +971,10 @@ const PotentialMatchCard: React.FC<PotentialMatchCardProps> = ({
             </div>
 
             {/* Candidates Preview Row */}
-            <div className="flex gap-3 mb-4">
+            <div className={cn(
+              'flex gap-2 sm:gap-3 mb-3 sm:mb-4',
+              isCompact ? 'flex-row' : 'flex-col sm:flex-row'
+            )}>
               <CandidatePreview
                 candidate={match.male}
                 gender="male"
@@ -921,17 +988,25 @@ const PotentialMatchCard: React.FC<PotentialMatchCardProps> = ({
                     `${match.male.firstName} ${match.male.lastName}`
                   )
                 }
+                isCompact={isCompact}
               />
 
               {/* Heart Connector */}
-              <div className="flex flex-col justify-center items-center gap-1 z-10">
+              <div className={cn(
+                'flex justify-center items-center gap-1 z-10',
+                isCompact ? 'flex-col' : 'flex-row sm:flex-col'
+              )}>
                 <div
                   className={cn(
-                    'w-8 h-8 rounded-full flex items-center justify-center',
-                    'bg-gradient-to-br from-pink-500 to-red-500 shadow-lg'
+                    'rounded-full flex items-center justify-center',
+                    'bg-gradient-to-br from-pink-500 to-red-500 shadow-lg',
+                    isCompact ? 'w-6 h-6' : 'w-7 h-7 sm:w-8 sm:h-8'
                   )}
                 >
-                  <Heart className="w-4 h-4 text-white fill-white" />
+                  <Heart className={cn(
+                    'text-white fill-white',
+                    isCompact ? 'w-3 h-3' : 'w-3.5 h-3.5 sm:w-4 sm:h-4'
+                  )} />
                 </div>
               </div>
 
@@ -948,11 +1023,12 @@ const PotentialMatchCard: React.FC<PotentialMatchCardProps> = ({
                     `${match.female.firstName} ${match.female.lastName}`
                   )
                 }
+                isCompact={isCompact}
               />
             </div>
 
-            {/* Reasoning Preview */}
-            {match.shortReasoning && (
+            {/* Reasoning Preview - hidden in compact mode */}
+            {match.shortReasoning && !isCompact && (
               <div
                 className="p-3 rounded-lg bg-gradient-to-br from-purple-50/80 to-indigo-50/80 backdrop-blur-sm cursor-pointer hover:from-purple-100/90 hover:to-indigo-100/90 transition-all duration-200 border border-purple-100 shadow-sm"
                 onClick={() => setShowAllReasonings(true)} // 🆕 שינוי כאן
@@ -1002,7 +1078,7 @@ const PotentialMatchCard: React.FC<PotentialMatchCardProps> = ({
             />
 
             {/* Footer: Date & Details Toggle */}
-            <div className="flex items-center justify-between mt-3 pt-2">
+            <div className="flex items-center justify-between mt-2 sm:mt-3 pt-2">
               <span className="text-[10px] text-gray-400 flex items-center gap-1">
                 <Calendar className="w-3 h-3" />
                 {formatDistanceToNow(new Date(match.scannedAt), {
@@ -1011,22 +1087,24 @@ const PotentialMatchCard: React.FC<PotentialMatchCardProps> = ({
                 })}
               </span>
 
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-6 text-xs text-gray-500 hover:text-gray-800"
-                onClick={() => setShowDetails(!showDetails)}
-              >
-                {showDetails ? (
-                  <>
-                    הסתר פרטים <ChevronUp className="w-3 h-3 ml-1" />
-                  </>
-                ) : (
-                  <>
-                    הצג ניקוד מלא <ChevronDown className="w-3 h-3 ml-1" />
-                  </>
-                )}
-              </Button>
+              {!isCompact && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-6 text-xs text-gray-500 hover:text-gray-800"
+                  onClick={() => setShowDetails(!showDetails)}
+                >
+                  {showDetails ? (
+                    <>
+                      הסתר פרטים <ChevronUp className="w-3 h-3 ml-1" />
+                    </>
+                  ) : (
+                    <>
+                      הצג ניקוד מלא <ChevronDown className="w-3 h-3 ml-1" />
+                    </>
+                  )}
+                </Button>
+              )}
             </div>
 
             {/* Score Breakdown */}
@@ -1043,22 +1121,35 @@ const PotentialMatchCard: React.FC<PotentialMatchCardProps> = ({
 
             {/* Main Action Buttons (Bottom) */}
             {!isDismissed && !isSent && (
-              <div className="flex gap-2 mt-4 pt-2 border-t border-gray-100">
+              <div className={cn(
+                'mt-3 sm:mt-4 pt-2 border-t border-gray-100',
+                isCompact
+                  ? 'flex gap-1.5'
+                  : 'flex flex-wrap gap-1.5 sm:gap-2'
+              )}>
                 <Button
-                  className="flex-1 h-9 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white shadow-sm text-sm"
+                  className={cn(
+                    'bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white shadow-sm',
+                    isCompact
+                      ? 'flex-1 h-8 text-xs'
+                      : 'flex-1 h-8 sm:h-9 text-xs sm:text-sm min-w-[100px]'
+                  )}
                   onClick={() => onCreateSuggestion(match.id)}
                 >
-                  <HeartHandshake className="w-4 h-4 ml-2" />
+                  <HeartHandshake className="w-3.5 h-3.5 sm:w-4 sm:h-4 ml-1 sm:ml-2" />
                   צור הצעה
                 </Button>
                 {match.status !== 'SHORTLISTED' && (
                   <Button
                     variant="outline"
-                    className="h-9 px-3 text-purple-600 border-purple-200 hover:bg-purple-50"
+                    className={cn(
+                      'text-purple-600 border-purple-200 hover:bg-purple-50',
+                      isCompact ? 'h-8 w-8 px-0' : 'h-8 sm:h-9 px-2 sm:px-3'
+                    )}
                     onClick={() => onSave(match.id)}
                     title="שמור בצד"
                   >
-                    <Bookmark className="w-4 h-4" />
+                    <Bookmark className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                   </Button>
                 )}
 
@@ -1068,10 +1159,13 @@ const PotentialMatchCard: React.FC<PotentialMatchCardProps> = ({
                     <TooltipTrigger asChild>
                       <Button
                         variant="outline"
-                        className="h-9 w-9 px-0 text-red-500 border-red-200 hover:bg-red-50 hover:text-red-600 hover:border-red-300"
+                        className={cn(
+                          'text-red-500 border-red-200 hover:bg-red-50 hover:text-red-600 hover:border-red-300',
+                          isCompact ? 'h-8 w-8 px-0' : 'h-8 sm:h-9 w-8 sm:w-9 px-0'
+                        )}
                         onClick={handleQuickDismiss}
                       >
-                        <ThumbsDown className="w-4 h-4" />
+                        <ThumbsDown className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent>
@@ -1081,14 +1175,17 @@ const PotentialMatchCard: React.FC<PotentialMatchCardProps> = ({
                 </TooltipProvider>
 
                 {/* Detailed Reject Button */}
-                <Button
-                  variant="outline"
-                  className="flex-1 h-9 text-sm"
-                  onClick={handleDismissWithFeedback}
-                >
-                  <MessageSquareX className="w-4 h-4 ml-2" />
-                  דחה + פירוט
-                </Button>
+                {!isCompact && (
+                  <Button
+                    variant="outline"
+                    className="flex-1 h-8 sm:h-9 text-xs sm:text-sm min-w-[100px]"
+                    onClick={handleDismissWithFeedback}
+                  >
+                    <MessageSquareX className="w-3.5 h-3.5 sm:w-4 sm:h-4 ml-1 sm:ml-2" />
+                    <span className="hidden sm:inline">דחה + פירוט</span>
+                    <span className="sm:hidden">דחה</span>
+                  </Button>
+                )}
               </div>
             )}
 

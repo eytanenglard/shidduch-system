@@ -67,6 +67,8 @@ import {
   Bookmark,
   LayoutGrid,
   List,
+  Minimize2,
+  Maximize2,
   CheckCircle,
   Heart,
   Sparkles,
@@ -166,6 +168,7 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
   >('EMAIL');
   // State for Matches List
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [cardStyle, setCardStyle] = useState<'expanded' | 'compact'>('expanded');
 
   // ניהול חיפוש מקומי עבור Debounce
   const [localSearchTerm, setLocalSearchTerm] = useState('');
@@ -680,6 +683,7 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
                     variant={viewMode === 'grid' ? 'default' : 'ghost'}
                     size="sm"
                     onClick={() => setViewMode('grid')}
+                    title="תצוגת רשת"
                   >
                     <LayoutGrid className="w-4 h-4" />
                   </Button>
@@ -687,8 +691,29 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
                     variant={viewMode === 'list' ? 'default' : 'ghost'}
                     size="sm"
                     onClick={() => setViewMode('list')}
+                    title="תצוגת רשימה"
                   >
                     <List className="w-4 h-4" />
+                  </Button>
+                </div>
+
+                {/* Card Style Toggle */}
+                <div className="flex items-center gap-1 border rounded-lg p-1">
+                  <Button
+                    variant={cardStyle === 'expanded' ? 'default' : 'ghost'}
+                    size="sm"
+                    onClick={() => setCardStyle('expanded')}
+                    title="כרטיסים מורחבים"
+                  >
+                    <Maximize2 className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    variant={cardStyle === 'compact' ? 'default' : 'ghost'}
+                    size="sm"
+                    onClick={() => setCardStyle('compact')}
+                    title="כרטיסים מצומצמים"
+                  >
+                    <Minimize2 className="w-4 h-4" />
                   </Button>
                 </div>
 
@@ -832,9 +857,12 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
               <>
                 <div
                   className={cn(
-                    'grid gap-6',
+                    'grid',
+                    cardStyle === 'compact' ? 'gap-3' : 'gap-4 sm:gap-6',
                     viewMode === 'grid'
-                      ? 'grid-cols-1 md:grid-cols-2 xl:grid-cols-3'
+                      ? cardStyle === 'compact'
+                        ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
+                        : 'grid-cols-1 md:grid-cols-2 xl:grid-cols-3'
                       : 'grid-cols-1'
                   )}
                 >
@@ -864,8 +892,8 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
                         showSelection={showBulkActions}
                         onHideCandidate={handleHideCandidate}
                         hiddenCandidateIds={hiddenCandidateIds}
-                        // ---> התיקון כאן: הוספתי את הפונקציה החסרה
                         onFilterByUser={handleFilterByUser}
+                        isCompact={cardStyle === 'compact'}
                       />
                     ))}
                   </AnimatePresence>
