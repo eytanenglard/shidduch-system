@@ -21,11 +21,11 @@ const NameOverlay: React.FC<NameOverlayProps> = ({
   dict,
 }) => (
   <div className="absolute bottom-0 right-0 left-0 p-4 z-10">
-    <div className="text-right">
+    <div className="text-start">
       <h3 className="font-bold text-white text-lg leading-tight drop-shadow-lg tracking-wide">
         {name}
       </h3>
-      <div className="flex items-center justify-end gap-2 mt-1">
+      <div className="flex items-center gap-2 mt-1">
         <span className="text-white/90 text-xs font-medium bg-black/25 px-2 py-0.5 rounded-full backdrop-blur-sm">
           {age} {dict.yearsSuffix}
         </span>

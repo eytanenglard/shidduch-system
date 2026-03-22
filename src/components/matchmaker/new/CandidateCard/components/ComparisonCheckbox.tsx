@@ -35,7 +35,7 @@ const ComparisonCheckboxComponent: React.FC<ComparisonCheckboxProps> = ({
   return (
     <div
       className={cn(
-        'absolute top-12 right-3 z-30 transition-all duration-200',
+        'absolute top-12 end-3 z-30 transition-all duration-200',
         isSelectedForComparison || hasExistingSuggestion
           ? 'opacity-100'
           : 'opacity-100 lg:opacity-0 group-hover:opacity-100'

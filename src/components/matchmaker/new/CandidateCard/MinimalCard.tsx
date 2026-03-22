@@ -57,7 +57,7 @@ const MinimalCandidateCard: React.FC<MinimalCandidateCardProps> = React.memo(
         <Card
           className={cn(
             'relative overflow-hidden cursor-pointer transition-all duration-200 group',
-            'border-l-[3px]',
+            'border-s-[3px]',
             state.priorityConfig.borderColor,
             isAiTarget
               ? 'ring-2 ring-emerald-400/60 shadow-emerald-100 shadow-xl'

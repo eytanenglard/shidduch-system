@@ -55,7 +55,7 @@ const FloatingActions: React.FC<FloatingActionsProps> = ({
 }) => (
   <div
     className={cn(
-      'absolute bottom-2.5 left-2.5 z-20 flex items-center gap-1.5 transition-all duration-200',
+      'absolute bottom-2.5 start-2.5 z-20 flex items-center gap-1.5 transition-all duration-200',
       hasAiData
         ? 'opacity-100'
         : 'opacity-100 lg:opacity-0 group-hover:opacity-100 translate-y-1 group-hover:translate-y-0'
@@ -142,25 +142,25 @@ const FloatingActions: React.FC<FloatingActionsProps> = ({
             }}
             className="text-green-700 hover:text-green-800 hover:bg-green-50"
           >
-            <MessageCircle className="h-4 w-4 ml-2" />
+            <MessageCircle className="h-4 w-4 ms-2" />
             <span>{dict.tooltips.whatsapp ?? 'שלח וואטסאפ'}</span>
           </DropdownMenuItem>
         )}
         {onEdit && (
           <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onEdit(candidate, e); }}>
-            <Edit2 className="h-4 w-4 ml-2" />
+            <Edit2 className="h-4 w-4 ms-2" />
             <span>{dict.tooltips.editProfile}</span>
           </DropdownMenuItem>
         )}
         {onAnalyze && (
           <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onAnalyze(candidate, e); }}>
-            <Sparkles className="h-4 w-4 ml-2" />
+            <Sparkles className="h-4 w-4 ms-2" />
             <span>{dict.tooltips.aiAnalysis}</span>
           </DropdownMenuItem>
         )}
         {onSendProfileFeedback && (
           <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onSendProfileFeedback(candidate, e); }}>
-            <Mail className="h-4 w-4 ml-2" />
+            <Mail className="h-4 w-4 ms-2" />
             <span>שלח דוח פרופיל</span>
           </DropdownMenuItem>
         )}

@@ -49,7 +49,7 @@ const PhotoBadges: React.FC<PhotoBadgesProps> = ({
   <>
     {/* AI Score badge — top left */}
     {hasAiData && (
-      <div className="absolute top-3 left-3 z-20 flex flex-col gap-1.5">
+      <div className="absolute top-3 start-3 z-20 flex flex-col gap-1.5">
         <Badge
           className={cn(
             'text-white border-0 shadow-xl px-2.5 py-1 text-xs font-semibold flex items-center gap-1.5 backdrop-blur-sm',
@@ -86,7 +86,7 @@ const PhotoBadges: React.FC<PhotoBadgesProps> = ({
     )}
 
     {/* Status badge + badges — top right */}
-    <div className="absolute top-3 right-3 z-20 flex flex-col gap-1.5 items-end">
+    <div className="absolute top-3 end-3 z-20 flex flex-col gap-1.5 items-end">
       {/* Availability */}
       <div className={cn('flex items-center gap-1.5 px-2.5 py-1 rounded-full shadow-lg text-[11px] font-bold backdrop-blur-sm', availabilityConfig.className)}>
         {availabilityConfig.icon}
@@ -141,7 +141,7 @@ const PhotoBadges: React.FC<PhotoBadgesProps> = ({
     {hasExistingSuggestion && isSelectableForComparison && (
       <div className={cn(
         'absolute top-3 z-20 transition-all duration-200',
-        'left-3',
+        'start-3',
         hasAiData ? 'top-16' : 'top-3'
       )}>
         <div className={cn(

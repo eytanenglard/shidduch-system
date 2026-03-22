@@ -112,9 +112,9 @@ const BottomStats: React.FC<BottomStatsProps> = ({
 
     {/* Last active (when no AI data) */}
     {lastActive && !hasAiData && (
-      <div className="flex items-center justify-end gap-1.5 text-[11px] text-gray-400">
-        <span>{dict.lastActivePrefix} {format(new Date(lastActive), 'dd/MM/yy')}</span>
+      <div className="flex items-center gap-1.5 text-[11px] text-gray-400">
         <Clock className="w-2.5 h-2.5" />
+        <span>{dict.lastActivePrefix} {format(new Date(lastActive), 'dd/MM/yy')}</span>
       </div>
     )}
   </>

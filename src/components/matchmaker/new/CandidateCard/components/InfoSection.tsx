@@ -33,11 +33,11 @@ const Row: React.FC<{
   icon: React.ReactNode;
   children: React.ReactNode;
 }> = ({ icon, children }) => (
-  <div className="flex items-center justify-end gap-2 text-[13px]">
-    <span className="text-gray-700 truncate">{children}</span>
+  <div className="flex items-center gap-2 text-[13px]">
     <span className="flex-shrink-0 w-3.5 h-3.5 flex items-center justify-center">
       {icon}
     </span>
+    <span className="text-gray-700 truncate">{children}</span>
   </div>
 );
 
@@ -169,7 +169,7 @@ const InfoSection: React.FC<InfoSectionProps> = ({
 
       {/* In compact mode: show height as a subtle chip if available */}
       {isCompact && (profile.height || spokenLanguages) && (
-        <div className="flex items-center justify-end gap-1.5 flex-wrap pt-0.5">
+        <div className="flex items-center gap-1.5 flex-wrap pt-0.5">
           {profile.height && (
             <span className="inline-flex items-center gap-1 text-[11px] text-gray-400 bg-gray-50 px-2 py-0.5 rounded-md border border-gray-100">
               <Ruler className="w-2.5 h-2.5 text-gray-300" />
