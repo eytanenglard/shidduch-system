@@ -100,7 +100,7 @@ export async function GET() {
 
         if (questionnaireResponses && questionnaireResponses.length > 0) {
           const qr = questionnaireResponses[0];
-          const formatted = await formatQuestionnaireForDisplay(qr as any, 'he', false);
+          const formatted = await formatQuestionnaireForDisplay(qr as any, 'he', false, party.profile?.gender);
 
           const {
             valuesAnswers,

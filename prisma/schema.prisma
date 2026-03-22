@@ -981,6 +981,9 @@ model PotentialMatch {
   hybridScannedAt      DateTime?
   hybridScoreBreakdown Json?
 
+  // 🆕 V3: Tag matching breakdown
+  tagMatchBreakdown Json?
+
   algorithmicScore          Float?
   algorithmicReasoning      String?
   algorithmicScannedAt      DateTime?

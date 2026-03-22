@@ -13,7 +13,7 @@ interface Props {
   locale: string;
 }
 
-function getNestedValue(obj: Record<string, unknown>, path: string): string {
+function getNestedValue(obj: Record<string, unknown>, path: string, gender?: 'MALE' | 'FEMALE' | null): string {
   const keys = path.split('.');
   let current: unknown = obj;
   for (const key of keys) {
@@ -23,7 +23,13 @@ function getNestedValue(obj: Record<string, unknown>, path: string): string {
       return path; // Return key if not found
     }
   }
-  return typeof current === 'string' ? current : path;
+  if (typeof current === 'string') return current;
+  // Support gendered text: { male: string, female: string }
+  if (current && typeof current === 'object' && 'male' in (current as Record<string, unknown>) && 'female' in (current as Record<string, unknown>)) {
+    const gendered = current as { male: string; female: string };
+    return gender === 'FEMALE' ? gendered.female : gendered.male;
+  }
+  return path;
 }
 
 export default function SoulFingerprintPageClient({ locale }: Props) {
@@ -33,13 +39,12 @@ export default function SoulFingerprintPageClient({ locale }: Props) {
   const [isLoading, setIsLoading] = useState(true);
 
   const dict = useMemo(() => (locale === 'he' ? heDict : enDict) as Record<string, unknown>, [locale]);
+  const gender = (session?.user as { gender?: string })?.gender as 'MALE' | 'FEMALE' | null ?? null;
 
   const t = useCallback(
-    (key: string) => getNestedValue(dict, key),
-    [dict]
+    (key: string) => getNestedValue(dict, key, gender),
+    [dict, gender]
   );
-
-  const gender = (session?.user as { gender?: string })?.gender as 'MALE' | 'FEMALE' | null ?? null;
 
   // Load existing data including previous answers
   useEffect(() => {

@@ -257,7 +257,8 @@ interface RawCandidate {
   matchingNotes: string | null;
   parentStatus: string | null;
   hasChildrenFromPrevious: boolean | null;
-  
+  smokingStatus: string | null;
+
   // Background info
   nativeLanguage: string | null;
   additionalLanguages: string[];
@@ -291,24 +292,28 @@ interface ScoredCandidate extends RawCandidate {
   backgroundProfile: BackgroundProfile | null;
   backgroundMatch: BackgroundMatchResult | null;
   ageScore: AgeScoreResult | null;
-    tier2Breakdown?: ScoreBreakdown;  // 🆕
+  tier2Breakdown?: ScoreBreakdown;  // 🆕
 
   // Extended scores
   socioEconomicScore: number;
   educationScore: number;
   jobSeniorityScore: number;
-  
+
   // Compatibility flags
   meetsUserMustHaves: boolean;
   violatesUserDealBreakers: boolean;
   meetsCandidateMustHaves: boolean;
   violatesCandidateDealBreakers: boolean;
-  
+
   // Combined Tier 2 score
   tier2Score: number;
 
   // 🆕 V2.2: Was this score from cache?
   fromScannedPairCache?: boolean;
+
+  // 🆕 V3: Tag matching results
+  tagScore?: number;
+  tagMatchDetails?: string; // Serialized tag match summary for AI prompt context
 }
 
 interface AIFirstPassCandidate extends ScoredCandidate {
@@ -326,6 +331,12 @@ interface FinalCandidate extends AIFirstPassCandidate {
   suggestedApproach?: string;
   strengths: string[];
   concerns: string[];
+
+  // 🆕 V3: Two-directional scores
+  scoreAtoB?: number;   // How well candidate matches what target wants
+  scoreBtoA?: number;   // How well target matches what candidate wants
+  reasoningAtoB?: string;
+  reasoningBtoA?: string;
 }
 
 // --- Scan Result ---
@@ -353,10 +364,14 @@ export interface HybridScanResult {
     fromCache: boolean;
     candidatesWithDifficultyFlags: number;
     scannedPairsSaved: number;
-    
+
     // 🆕 V2.2: ScannedPair stats
     skippedFromScannedPair: number;
     newPairsScanned: number;
+
+    // 🆕 V3: Tag stats
+    tagFilteredOut?: number;
+    tagsGenerated?: boolean;
   };
 
   // 🆕 V2.3: AI Call Statistics
@@ -1307,6 +1322,7 @@ async function tier1SqlFilter(
       p."matchingNotes",
       p."parentStatus",
       p."hasChildrenFromPrevious",
+      p."smokingStatus",
       p."nativeLanguage",
       p."additionalLanguages",
       p."aliyaCountry",
@@ -1453,6 +1469,7 @@ async function tier1SqlFilter(
     origin: c.origin,
     preferredAgeMin: c.preferredAgeMin,
     preferredAgeMax: c.preferredAgeMax,
+    smokingStatus: c.smokingStatus || null,
     profileUpdatedAt: c.profileUpdatedAt,
 
     // 🆕 V2.2: Map new fields
@@ -1953,6 +1970,7 @@ ${c.metrics.aiInferredDealBreakers?.join(', ') || 'לא צוין'}
 כלכלי: ${c.metrics.socioEconomicLevel || 'N/A'} | השכלה: ${c.metrics.educationLevelScore || 'N/A'} | ותק: ${c.metrics.jobSeniorityLevel || 'N/A'}
 חברתי: ${c.metrics.socialEnergy || 'N/A'} | קריירה: ${c.metrics.careerOrientation || 'N/A'}
 
+${c.tagMatchDetails ? `\n=== התאמת תגים (Soul Fingerprint) ===\n${c.tagMatchDetails}\nציון תגים: ${c.tagScore ?? 'N/A'}` : ''}
 ${c.violatesUserDealBreakers ? '⚠️ מפר/ה Deal Breaker של המחפש/ת!' : ''}
 ${!c.meetsUserMustHaves ? '⚠️ חסר Must Have' : ''}
 ---`;
@@ -2126,18 +2144,26 @@ async function tier4AIDeepAnalysis(
       for (const aiResult of parsed.deepAnalysis || []) {
         const candidate = candidatesForAI[aiResult.index - 1];
         if (!candidate) continue;
-        
+
         stats.candidatesAnalyzed++;
-        
+
+        // 🆕 V3: Extract bidirectional scores
+        const scoreAtoB = aiResult.scoreAtoB !== undefined
+          ? Math.min(100, Math.max(0, aiResult.scoreAtoB))
+          : undefined;
+        const scoreBtoA = aiResult.scoreBtoA !== undefined
+          ? Math.min(100, Math.max(0, aiResult.scoreBtoA))
+          : undefined;
+
         const finalScore = Math.min(100, Math.max(0, aiResult.finalScore || candidate.tier3Score));
         const rank = aiResult.rank || 999;
-        
+
         let recommendation: FinalCandidate['recommendation'];
         if (finalScore >= 85) recommendation = 'EXCELLENT';
         else if (finalScore >= 70) recommendation = 'GOOD';
         else if (finalScore >= 55) recommendation = 'FAIR';
         else recommendation = 'POOR';
-        
+
         finalCandidates.push({
           ...candidate,
           finalScore,
@@ -2148,6 +2174,10 @@ async function tier4AIDeepAnalysis(
           suggestedApproach: aiResult.suggestedApproach || undefined,
           strengths: aiResult.strengths || [],
           concerns: aiResult.concerns || [],
+          scoreAtoB,
+          scoreBtoA,
+          reasoningAtoB: aiResult.reasoningAtoB || undefined,
+          reasoningBtoA: aiResult.reasoningBtoA || undefined,
         });
       }
     } catch (error) {
@@ -2216,6 +2246,7 @@ ${c.metrics.aiPersonalitySummary || c.about || 'אין מידע טקסטואלי
 === מה מחפש/ת ===
 ${c.metrics.aiSeekingSummary || 'לא זמין'}
 
+${c.tagMatchDetails ? `=== התאמת תגים (Soul Fingerprint) ===\n${c.tagMatchDetails}\nציון תגים: ${c.tagScore ?? 'N/A'}` : ''}
 Deal Breakers של המועמד/ת: ${c.metrics.aiInferredDealBreakers?.join(', ') || 'אין'}
 ---`;
   }).join('\n');
@@ -2245,20 +2276,23 @@ ${candidatesText}
 ═══════════════════════════════════════
 הוראות כתיבה קריטיות (חשוב מאוד!):
 ═══════════════════════════════════════
-1. **הנימוק (detailedReasoning) חייב להיות אנושי וסיפורי (Narrative):**
+1. **ניתוח דו-כיווני — זהו הלב של הניתוח:**
+   - **scoreAtoB** = כמה המועמד/ת מתאים/ה למה ש-${targetProfile.name} מחפש/ת. (מבוסס על הנתונים של ${targetProfile.name} כצד מחפש)
+   - **scoreBtoA** = כמה ${targetProfile.name} מתאים/ה למה שהמועמד/ת מחפש/ת. (מבוסס על הנתונים של המועמד/ת כצד מחפש)
+   - **reasoningAtoB** = פסקה קצרה: למה ${targetProfile.name} יתאהב/תתאהב במועמד/ת?
+   - **reasoningBtoA** = פסקה קצרה: למה המועמד/ת יתאהב/תתאהב ב-${targetProfile.name}?
+
+2. **הנימוקים חייבים להיות אנושיים וסיפוריים (Narrative):**
    - אל תכתוב רשימת מכולת ("יש התאמה בדת, יש התאמה בגיל").
-   - כתוב פסקה של 3-4 שורות שמסבירה למה החיבור הזה יכול לעבוד ברמה הרגשית והאישיותית.
+   - כתוב פסקה של 2-3 שורות שמסבירה למה החיבור הזה יכול לעבוד ברמה הרגשית והאישיותית.
    - התייחס לדינמיקה פוטנציאלית, לאנרגיה, ולערכים משותפים.
    - השתמש בשפה חמה ומקצועית של שדכן, לא של רובוט.
 
-2. **בדיקות טכניות (מאחורי הקלעים):**
+3. **בדיקות טכניות (מאחורי הקלעים):**
    - וודא שאין הפרת Deal Breakers (אם יש - הציון צונח, ציין זאת ב"concerns").
-   - התחשב ברקע ושפה.
+   - התחשב ברקע, שפה ותגיות Soul Fingerprint אם נתונות.
 
-3. **מבנה התשובה:**
-   - detailedReasoning: הפסקה הסיפורית והאיכותית.
-   - strengths: נקודות קצרות (בולטים).
-   - concerns: חששות טכניים (בולטים).
+4. **finalScore** = ממוצע משוקלל של שני הכיוונים (scoreAtoB * 0.5 + scoreBtoA * 0.5).
 
 ═══════════════════════════════════════
 פורמט JSON בלבד:
@@ -2267,7 +2301,9 @@ ${candidatesText}
   "deepAnalysis": [
     {
       "index": 1,
-      "finalScore": 92,
+      "finalScore": 82,
+      "scoreAtoB": 90,
+      "scoreBtoA": 74,
       "rank": 1,
       "breakdown": {
         "religious": 22,
@@ -2279,7 +2315,9 @@ ${candidatesText}
         "background": 8,
         "values": 8
       },
-      "detailedReasoning": "כאן תכתוב את הפסקה הסיפורית המושקעת...",
+      "detailedReasoning": "סיכום כללי של ההתאמה...",
+      "reasoningAtoB": "למה ${targetProfile.name} ימצא/תמצא עניין במועמד/ת...",
+      "reasoningBtoA": "למה המועמד/ת ימצא/תמצא עניין ב-${targetProfile.name}...",
       "strengths": ["רקע משותף", "שאיפות דומות"],
       "concerns": ["פער גילאים קטן"],
       "suggestedApproach": "להדגיש את המכנה המשותף התרבותי"
@@ -2339,6 +2377,29 @@ async function saveResults(
         where: { maleUserId, femaleUserId },
       });
       
+      // 🆕 V3: Build full tag match breakdown with bidirectional data
+      const tagBreakdown = (match.tagScore !== undefined || match.scoreAtoB !== undefined) ? {
+        tagScore: match.tagScore,
+        tagMatchDetails: match.tagMatchDetails,
+        aToB: match.scoreAtoB !== undefined ? {
+          score: match.scoreAtoB,
+          reasoning: match.reasoningAtoB,
+        } : undefined,
+        bToA: match.scoreBtoA !== undefined ? {
+          score: match.scoreBtoA,
+          reasoning: match.reasoningBtoA,
+        } : undefined,
+      } : undefined;
+
+      // 🆕 V3: Use bidirectional scores when available, fallback to old logic
+      const scoreForMaleVal = isMale
+        ? (match.scoreAtoB ?? match.finalScore)
+        : (match.scoreBtoA ?? match.tier3Score);
+      const scoreForFemaleVal = isMale
+        ? (match.scoreBtoA ?? match.tier3Score)
+        : (match.scoreAtoB ?? match.finalScore);
+      const asymmetry = Math.abs(scoreForMaleVal - scoreForFemaleVal);
+
       if (existing) {
         await prisma.potentialMatch.update({
           where: { id: existing.id },
@@ -2347,14 +2408,15 @@ async function saveResults(
             firstPassScore: match.tier2Score,
             shortReasoning: match.detailedReasoning,
             scannedAt: new Date(),
-            scoreBreakdown: match.scoreBreakdown as any, 
-            scoreForMale: isMale ? match.finalScore : match.tier3Score,
-            scoreForFemale: isMale ? match.tier3Score : match.finalScore,
-            asymmetryGap: Math.abs(match.finalScore - match.tier3Score),
+            scoreBreakdown: match.scoreBreakdown as any,
+            scoreForMale: scoreForMaleVal,
+            scoreForFemale: scoreForFemaleVal,
+            asymmetryGap: asymmetry,
             hybridScore: match.finalScore,
             hybridReasoning: match.detailedReasoning,
             hybridScannedAt: new Date(),
             hybridScoreBreakdown: match.scoreBreakdown as any,
+            ...(tagBreakdown ? { tagMatchBreakdown: tagBreakdown as any } : {}),
           },
         });
         updated++;
@@ -2368,13 +2430,14 @@ async function saveResults(
             scoreBreakdown: match.scoreBreakdown as any,
             status: 'PENDING',
             shortReasoning: match.detailedReasoning,
-            scoreForMale: isMale ? match.finalScore : match.tier3Score,
-            scoreForFemale: isMale ? match.tier3Score : match.finalScore,
-            asymmetryGap: Math.abs(match.finalScore - match.tier3Score),
+            scoreForMale: scoreForMaleVal,
+            scoreForFemale: scoreForFemaleVal,
+            asymmetryGap: asymmetry,
             hybridScore: match.finalScore,
             hybridReasoning: match.detailedReasoning,
             hybridScannedAt: new Date(),
             hybridScoreBreakdown: match.scoreBreakdown as any,
+            ...(tagBreakdown ? { tagMatchBreakdown: tagBreakdown as any } : {}),
           },
         });
         saved++;
@@ -2476,6 +2539,7 @@ export async function hybridScanForVirtualUser(
       p."matchingNotes",
       p."parentStatus",
       p."hasChildrenFromPrevious",
+      p."smokingStatus",
       p."nativeLanguage",
       p."additionalLanguages",
       p."aliyaCountry",
@@ -2555,6 +2619,7 @@ export async function hybridScanForVirtualUser(
     origin: c.origin,
     preferredAgeMin: c.preferredAgeMin,
     preferredAgeMax: c.preferredAgeMax,
+    smokingStatus: c.smokingStatus || null,
     profileUpdatedAt: c.profileUpdatedAt,
     metrics: {
       // Map all metrics similarly to standard scan
@@ -2831,13 +2896,46 @@ export async function hybridScan(
   
   await ensureUserReady(profile.id, forceUpdateMetrics);
   const oppositeGender = profile.gender === Gender.MALE ? Gender.FEMALE : Gender.MALE;
-  
+
   if (!skipCandidateMetricsUpdate) {
     const updateResult = await ensureCandidatesReady(oppositeGender, maxCandidatesToUpdate);
     tiersStats.tier0.candidatesUpdated = updateResult.updated;
     if (updateResult.failed > 0) warnings.push(`Failed to update ${updateResult.failed} candidate profiles`);
   }
-  
+
+  // 🆕 V3: Load user tags + generate if missing
+  let userTagsGenerated = false;
+  let userTags: Awaited<ReturnType<typeof import('./tagMatchingService').loadProfileTags>> = null;
+  let userPartnerTags: import('@/components/soul-fingerprint/types').PartnerTagPreferences | null = null;
+  let userSectorGroup: string | undefined;
+  let userSectionAnswers: Record<string, unknown> | null = null;
+
+  try {
+    const { loadProfileTags, getSectorGroupFromTags } = await import('./tagMatchingService');
+    userTags = await loadProfileTags(profile.id);
+
+    if (!userTags) {
+      // Generate tags from profile data using AI
+      try {
+        const { generateTagsFromProfileData } = await import('./aiTagGenerationService');
+        await generateTagsFromProfileData(profile.userId, profile.id);
+        userTags = await loadProfileTags(profile.id);
+        userTagsGenerated = true;
+        console.log(`[HybridScan] 🏷️ Generated AI tags for user ${profile.user.firstName}`);
+      } catch (tagErr) {
+        console.warn(`[HybridScan] Failed to generate tags for user:`, tagErr);
+      }
+    }
+
+    if (userTags) {
+      userPartnerTags = userTags.partnerTags as import('@/components/soul-fingerprint/types').PartnerTagPreferences | null;
+      userSectorGroup = getSectorGroupFromTags(userTags.sectorTags);
+      userSectionAnswers = userTags.sectionAnswers as Record<string, unknown> | null;
+    }
+  } catch (err) {
+    console.warn(`[HybridScan] Tag loading failed:`, err);
+  }
+
   tiersStats.tier0.durationMs = Date.now() - tier0Start;
   console.log(`[HybridScan] Tier 0: Updated ${tiersStats.tier0.candidatesUpdated} candidates in ${tiersStats.tier0.durationMs}ms`);
 
@@ -2871,11 +2969,59 @@ export async function hybridScan(
     output: tier1Candidates.length,
     durationMs: Date.now() - tier1Start,
   };
-  
+
   console.log(`[HybridScan] Tier 1: ${tier1Candidates.length} candidates in ${tiersStats.tier1.durationMs}ms`);
 
   if (tier1Candidates.length === 0) {
     return createEmptyResultWithAIStats(userId, profile.id, startTime, tiersStats, aiCallStats, warnings, errors);
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // TIER 1.5: Tag Hard Filter + Batch Load Tags (V3)
+  // ═══════════════════════════════════════════════════════════
+  let candidateTagsMap: Map<string, any> = new Map();
+  let tagFilteredOut = 0;
+  let tier1_5Candidates = tier1Candidates;
+
+  if (userPartnerTags) {
+    try {
+      const { batchLoadProfileTags, passesExpandedHardFilters } = await import('./tagMatchingService');
+      const candidateProfileIds = tier1Candidates.map(c => c.profileId);
+      candidateTagsMap = await batchLoadProfileTags(candidateProfileIds);
+
+      console.log(`[HybridScan] 🏷️ Loaded tags for ${candidateTagsMap.size}/${candidateProfileIds.length} candidates`);
+
+      // Apply expanded hard filters
+      tier1_5Candidates = tier1Candidates.filter(candidate => {
+        const candidateTags = candidateTagsMap.get(candidate.profileId);
+        if (!candidateTags) return true; // No tags = no filter
+
+        const candidateAnswers = candidateTags.sectionAnswers as Record<string, unknown> | null;
+        const filterResult = passesExpandedHardFilters(
+          userPartnerTags,
+          { preferredReligiousLevels: profile.preferredReligiousLevels as string[] || undefined },
+          candidateTags,
+          {
+            religiousLevel: candidate.religiousLevel || undefined,
+            hasChildren: candidate.hasChildrenFromPrevious || false,
+            smoking: candidate.smokingStatus || undefined,
+          },
+          userSectionAnswers,
+          candidateAnswers,
+        );
+
+        if (!filterResult.passes) {
+          tagFilteredOut++;
+          console.log(`[Tier1.5] ❌ ${candidate.firstName}: Failed tag hard filter: ${filterResult.failedFilters.join(', ')}`);
+        }
+        return filterResult.passes;
+      });
+
+      console.log(`[HybridScan] Tier 1.5: ${tier1_5Candidates.length} passed (${tagFilteredOut} filtered out)`);
+    } catch (err) {
+      console.warn(`[HybridScan] Tier 1.5 tag filter failed, proceeding without:`, err);
+      tier1_5Candidates = tier1Candidates;
+    }
   }
 
   if (checkCancelled && await checkCancelled()) {
@@ -2883,13 +3029,13 @@ export async function hybridScan(
   }
 
   // ═══════════════════════════════════════════════════════════
-  // TIER 2: Extended Metrics + Background Scoring
+  // TIER 2: Extended Metrics + Background Scoring + Tags (V3)
   // ═══════════════════════════════════════════════════════════
-  console.log(`\n[HybridScan] ═══ TIER 2: Extended Metrics + Background ═══`);
+  console.log(`\n[HybridScan] ═══ TIER 2: Extended Metrics + Background + Tags ═══`);
   const tier2Start = Date.now();
-  
+
   const tier2Candidates = await tier2MetricsScoring(
-    tier1Candidates,
+    tier1_5Candidates,
     {
       age: userAge,
       gender: profile.gender,
@@ -2904,9 +3050,46 @@ export async function hybridScan(
     maxTier2Candidates,
     skipAlreadyScannedPairs // 🆕 V2.2
   );
-  
+
+  // 🆕 V3: Inject tag scores into Tier 2 candidates
+  if (userPartnerTags && candidateTagsMap.size > 0) {
+    try {
+      const { calculateTagCompatibility } = await import('./tagMatchingService');
+      for (const candidate of tier2Candidates) {
+        if (candidate.fromScannedPairCache) continue;
+        const candidateTags = candidateTagsMap.get(candidate.profileId);
+        if (!candidateTags) continue;
+        const candidateAnswers = candidateTags.sectionAnswers as Record<string, unknown> | null;
+        const tagResult = calculateTagCompatibility(
+          userPartnerTags,
+          candidateTags,
+          userSectorGroup,
+          userSectionAnswers,
+          candidateAnswers,
+        );
+        candidate.tagScore = tagResult.score;
+
+        // Build tag match summary for AI prompt context
+        const tagDetails = Object.entries(tagResult.details)
+          .filter(([, d]) => d.maxScore > 0)
+          .map(([cat, d]) => `${cat}: ${d.score}/${d.maxScore}${d.note ? ` (${d.note})` : ''} [${d.matchedTags.join(', ')}]`)
+          .join('\n');
+        candidate.tagMatchDetails = tagDetails;
+
+        // Blend tag score into tier2Score: 35% tags + 65% original
+        const normalizedTagScore = (tagResult.score / tagResult.maxPossibleScore) * 100;
+        candidate.tier2Score = Math.round(candidate.tier2Score * 0.65 + normalizedTagScore * 0.35);
+      }
+    } catch (err) {
+      console.warn(`[HybridScan] Tag scoring in Tier 2 failed:`, err);
+    }
+
+    // Re-sort by new tier2Score
+    tier2Candidates.sort((a, b) => b.tier2Score - a.tier2Score);
+  }
+
   tiersStats.tier2 = {
-    input: tier1Candidates.length,
+    input: tier1_5Candidates.length,
     output: tier2Candidates.length,
     durationMs: Date.now() - tier2Start,
   };
@@ -3083,6 +3266,9 @@ export async function hybridScan(
       // 🆕 V2.2: ScannedPair stats
       skippedFromScannedPair: skippedFromScannedPair,
       newPairsScanned: finalCandidates.filter(c => !c.fromScannedPairCache).length,
+      // 🆕 V3: Tag stats
+      tagFilteredOut,
+      tagsGenerated: userTagsGenerated,
     },
     aiCallStats, // 🆕 V2.3
     matches: finalCandidates,

@@ -9,6 +9,7 @@ import {
   QuestionnaireResponse,
 } from '@/types/next-auth';
 import { Question, WorldId } from '@/components/questionnaire/types/types';
+import { resolveGenderedText } from '@/lib/utils';
 
 // Importowanie oryginalnych struktur pytań
 import { personalityQuestions } from '@/components/questionnaire/questions/personality/personalityQuestions';
@@ -36,10 +37,14 @@ const allQuestionStructures: Record<WorldId, Question[]> = {
 export async function formatQuestionnaireForDisplay(
   questionnaireResponse: QuestionnaireResponse,
   viewerLocale: Locale,
-   canViewAll: boolean // <-- הוספת הפרמטר החדש
+   canViewAll: boolean, // <-- הוספת הפרמטר החדש
+   gender?: string // מגדר המשתמש לטקסט מותאם מגדר
 
 ): Promise<QuestionnaireResponse> {
   console.log('---[ SERVER LOG | questionnaireService ]--- מתחיל עיבוד תשובות עבור שפה:', viewerLocale);
+
+  const g = (text: Parameters<typeof resolveGenderedText>[0]) =>
+    resolveGenderedText(text, gender);
 
   // טעינת מילון התרגומים המתאים לשפת הצפייה
   const questionsDict = await getQuestionnaireQuestionsDictionary(viewerLocale);
@@ -88,15 +93,24 @@ export async function formatQuestionnaireForDisplay(
         } else if (typeof rawAns.value === 'string' && questionContent.options?.[rawAns.value]) {
           // שאלת בחירה יחידה
           const optionContent = questionContent.options[rawAns.value];
-          displayText = typeof optionContent === 'string' ? optionContent : optionContent.text;
-        
+          if (typeof optionContent === 'string' || (typeof optionContent === 'object' && 'male' in optionContent && 'female' in optionContent && !('text' in optionContent))) {
+            displayText = g(optionContent);
+          } else if (typeof optionContent === 'object' && 'text' in optionContent) {
+            displayText = g(optionContent.text);
+          }
+
         } else if (Array.isArray(rawAns.value)) {
           // שאלת בחירה מרובה
           displayText = rawAns.value
             .map(val => {
                 const optionContent = questionContent.options?.[val];
                 if (optionContent) {
-                    return typeof optionContent === 'string' ? optionContent : optionContent.text;
+                    if (typeof optionContent === 'string' || (typeof optionContent === 'object' && 'male' in optionContent && 'female' in optionContent && !('text' in optionContent))) {
+                      return g(optionContent);
+                    }
+                    if (typeof optionContent === 'object' && 'text' in optionContent) {
+                      return g(optionContent.text);
+                    }
                 }
                 if (typeof val === 'string' && val.startsWith('custom:')) {
                     return val.replace('custom:', '');
@@ -119,7 +133,7 @@ export async function formatQuestionnaireForDisplay(
                   const translatedLabel = questionContent.categories?.[key];
 
                   // 2. השתמש בתרגום אם נמצא, אחרת חזור למפתח המקורי באנגלית (כגיבוי)
-                  const finalLabel = translatedLabel || key;
+                  const finalLabel = translatedLabel ? g(translatedLabel) : key;
 
                   // 3. קבע את יחידת המידה: אם מוגדר `totalPoints`, אלו נקודות ולא אחוזים
                   const unit = questionStructure.totalPoints ? '' : '%';
@@ -139,7 +153,7 @@ export async function formatQuestionnaireForDisplay(
         
         return {
           questionId: rawAns.questionId,
-          question: questionContent.question,
+          question: g(questionContent.question),
           questionType: questionStructure.type,
           rawValue: rawAns.value,
           displayText,

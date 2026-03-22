@@ -12,12 +12,13 @@ import type { User, Language } from '@prisma/client';
 import type { AiProfileAnalysisResult } from './aiService';
 
 // טיפוס מפושט רק לשאלות
+type GenderedTextOrString = string | { male: string; female: string };
 type QuestionnaireQuestionsDict = {
   [worldKey: string]: {
     [questionId: string]: {
-      question: string;
-      placeholder?: string;
-      helpText?: string;
+      question: GenderedTextOrString;
+      placeholder?: GenderedTextOrString;
+      helpText?: GenderedTextOrString;
       [key: string]: any;
     };
   };

@@ -40,10 +40,16 @@ console.log(`---[ SERVER LOG | API questionnaire GET ]--- שליפת שאלון 
 console.log(`---[ SERVER LOG | API questionnaire GET ]--- שליפת שאלון עבור משתמש: ${targetUserId}, שפת צפייה: ${viewerLocale}, האם בעל הפרופיל: ${isOwnProfile}`);
 
 
-    const rawQuestionnaire = await prisma.questionnaireResponse.findFirst({
-      where: { userId: targetUserId },
-      orderBy: { createdAt: 'desc' },
-    });
+    const [rawQuestionnaire, targetProfile] = await Promise.all([
+      prisma.questionnaireResponse.findFirst({
+        where: { userId: targetUserId },
+        orderBy: { createdAt: 'desc' },
+      }),
+      prisma.profile.findUnique({
+        where: { userId: targetUserId },
+        select: { gender: true },
+      }),
+    ]);
 
     if (!rawQuestionnaire) {
               console.warn('---[ SERVER LOG | API questionnaire GET ]--- לא נמצא שאלון עבור המשתמש.');
@@ -56,7 +62,8 @@ console.log(`---[ SERVER LOG | API questionnaire GET ]--- שליפת שאלון 
 const formattedQuestionnaire = await formatQuestionnaireForDisplay(
   rawQuestionnaire,
   viewerLocale,
-  canViewAllAnswers  // <-- הוספת הפרמטר החדש
+  canViewAllAnswers,
+  targetProfile?.gender ?? undefined
 );    console.log('---[ DEBUG 4: FINAL API RESPONSE ]--- Data being sent to client:', JSON.stringify(formattedQuestionnaire.formattedAnswers, null, 2));
     console.log('---[ SERVER LOG | API questionnaire GET ]--- נתונים מעובדים שמוחזרים לקליינט:', JSON.stringify(formattedQuestionnaire, null, 2));
 

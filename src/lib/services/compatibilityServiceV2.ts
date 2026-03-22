@@ -112,11 +112,13 @@ export async function calculatePairCompatibility(
 
   const vectorSimilarity = await calculateVectorSimilarity(profileAId, profileBId);
 
-  // Tag compatibility (Soul Fingerprint)
+  // Tag compatibility (Soul Fingerprint) — V3: sector-adaptive weights + slider distance
   let tagScoreAtoB: number | undefined;
   let tagScoreBtoA: number | undefined;
+  let tagBreakdownAtoB: import('./tagMatchingService').TagCompatibilityResult | undefined;
+  let tagBreakdownBtoA: import('./tagMatchingService').TagCompatibilityResult | undefined;
   try {
-    const { calculateTagCompatibility, loadProfileTags } = await import('./tagMatchingService');
+    const { calculateTagCompatibility, loadProfileTags, getSectorGroupFromTags } = await import('./tagMatchingService');
     const [tagsA, tagsB] = await Promise.all([
       loadProfileTags(profileAId),
       loadProfileTags(profileBId),
@@ -124,12 +126,18 @@ export async function calculatePairCompatibility(
     if (tagsA && tagsB) {
       const partnerPrefsA = tagsA.partnerTags as import('@/components/soul-fingerprint/types').PartnerTagPreferences | null;
       const partnerPrefsB = tagsB.partnerTags as import('@/components/soul-fingerprint/types').PartnerTagPreferences | null;
+      const sectorGroupA = getSectorGroupFromTags(tagsA.sectorTags);
+      const sectorGroupB = getSectorGroupFromTags(tagsB.sectorTags);
+      const answersA = tagsA.sectionAnswers as Record<string, unknown> | null;
+      const answersB = tagsB.sectionAnswers as Record<string, unknown> | null;
 
       if (partnerPrefsA) {
-        tagScoreAtoB = calculateTagCompatibility(partnerPrefsA, tagsB).score;
+        tagBreakdownAtoB = calculateTagCompatibility(partnerPrefsA, tagsB, sectorGroupA, answersA, answersB);
+        tagScoreAtoB = tagBreakdownAtoB.score;
       }
       if (partnerPrefsB && !oneDirectional) {
-        tagScoreBtoA = calculateTagCompatibility(partnerPrefsB, tagsA).score;
+        tagBreakdownBtoA = calculateTagCompatibility(partnerPrefsB, tagsA, sectorGroupB, answersB, answersA);
+        tagScoreBtoA = tagBreakdownBtoA.score;
       }
     }
   } catch {
@@ -141,7 +149,8 @@ export async function calculatePairCompatibility(
     vectorSimilarity?.seekingToSelf || 0,
     softPenaltiesAtoB.totalPenalty,
     dealBreakersAtoB.passed,
-    tagScoreAtoB
+    tagScoreAtoB,
+    tagBreakdownAtoB?.maxPossibleScore
   );
 
   // 🆕 בחישוב חד-כיווני - הציון ההפוך שווה לציון הישיר
@@ -150,7 +159,8 @@ export async function calculatePairCompatibility(
     vectorSimilarity?.selfToSeeking || 0,
     softPenaltiesBtoA.totalPenalty,
     dealBreakersBtoA.passed,
-    tagScoreBtoA
+    tagScoreBtoA,
+    tagBreakdownBtoA?.maxPossibleScore
   );
 
   // 🆕 בחישוב חד-כיווני - הציון הסימטרי הוא פשוט הציון A→B
@@ -623,24 +633,28 @@ function calculateFinalScore(
   vectorScore: number,
   softPenalty: number,
   dealBreakersPassed: boolean,
-  tagScore?: number // 0-50, from tagMatchingService
+  tagScore?: number, // 0-50, from tagMatchingService
+  maxPossibleTagScore?: number // dynamic max based on sector weights
 ): number {
   if (!dealBreakersPassed) return 0;
 
   let baseScore: number;
 
   if (tagScore !== undefined && tagScore > 0) {
-    // With tags: metrics 50% + vectors 20% + tags 30%
-    // tagScore is 0-50, normalize to 0-100
-    const normalizedTagScore = tagScore * 2;
+    // V3: Tags are the backbone — 40% of final score
+    // Normalize tag score to 0-100 based on actual max possible score
+    const maxTag = maxPossibleTagScore || 50;
+    const normalizedTagScore = (tagScore / maxTag) * 100;
+
     if (vectorScore > 0) {
-      baseScore = metricsScore * 0.5 + (vectorScore * 100) * 0.2 + normalizedTagScore * 0.3;
+      // Tags 40% + Metrics 35% + Vectors 25%
+      baseScore = normalizedTagScore * 0.40 + metricsScore * 0.35 + (vectorScore * 100) * 0.25;
     } else {
-      // No vectors: metrics 65% + tags 35%
-      baseScore = metricsScore * 0.65 + normalizedTagScore * 0.35;
+      // Tags 50% + Metrics 50%
+      baseScore = normalizedTagScore * 0.50 + metricsScore * 0.50;
     }
   } else {
-    // No tags: original formula
+    // No tags — fallback (same as before)
     baseScore = vectorScore > 0
       ? metricsScore * 0.7 + (vectorScore * 100) * 0.3
       : metricsScore;

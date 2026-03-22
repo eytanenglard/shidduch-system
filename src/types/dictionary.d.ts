@@ -1699,13 +1699,16 @@ export type QuestionnaireFaqDict = {
   };
 };
 
+// Text that can be either a plain string or gender-specific variants
+export type GenderedText = string | { male: string; female: string };
+
 type QuestionContent = {
-  question: string;
-  placeholder?: string;
-  helpText?: string;
-  labels?: { min: string; max: string; middle?: string };
-  options?: Record<string, string | { text: string; description: string }>;
-  categories?: Record<string, string | { label: string; description?: string }>;
+  question: GenderedText;
+  placeholder?: GenderedText;
+  helpText?: GenderedText;
+  labels?: { min: GenderedText; max: GenderedText; middle?: GenderedText };
+  options?: Record<string, GenderedText | { text: GenderedText; description?: GenderedText }>;
+  categories?: Record<string, GenderedText | { label: GenderedText; description?: GenderedText }>;
 };
 
 type WorldQuestionsContent = Record<string, QuestionContent>;

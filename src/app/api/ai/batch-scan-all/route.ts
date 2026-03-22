@@ -643,6 +643,23 @@ async function updateSingleUserData(
       }
     }
 
+    // 🆕 V3: Step 4 — Generate ProfileTags if missing (Soul Fingerprint AI)
+    try {
+      const existingTags = await prisma.profileTags.findUnique({
+        where: { profileId },
+        select: { id: true, completedAt: true },
+      });
+
+      if (!existingTags) {
+        const { generateTagsFromProfileData } = await import('@/lib/services/aiTagGenerationService');
+        await generateTagsFromProfileData(userId, profileId);
+        stats.aiCallsMade++;
+        console.log(`[BatchScan] 🏷️ Generated AI tags for ${firstName} ${lastName}`);
+      }
+    } catch (tagErr) {
+      console.warn(`[BatchScan] Tag generation failed for ${firstName}:`, tagErr);
+    }
+
     return { success: true, stats };
   } catch (error) {
     return { success: false, error: error instanceof Error ? error.message : 'Unknown error', stats };

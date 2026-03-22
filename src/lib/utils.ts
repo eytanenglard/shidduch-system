@@ -1,9 +1,22 @@
 // src/lib/utils.ts
 import { type ClassValue, clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+import type { GenderedText } from '@/types/dictionary';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
+}
+
+/**
+ * Resolves a GenderedText value based on the user's gender.
+ * If the text is a plain string, returns it as-is.
+ * If it's a { male, female } object, returns the appropriate variant.
+ * Defaults to male if gender is unknown.
+ */
+export function resolveGenderedText(text: GenderedText | undefined, gender?: string): string {
+  if (text === undefined) return '';
+  if (typeof text === 'string') return text;
+  return gender === 'FEMALE' ? text.female : text.male;
 }
 
 export function calculateAge(birthDate: Date | string | null): number {

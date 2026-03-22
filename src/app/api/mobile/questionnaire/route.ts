@@ -44,10 +44,16 @@ export async function GET(req: NextRequest) {
     const url = new URL(req.url);
     const locale = (url.searchParams.get('locale') as Locale) || 'he';
 
-    const rawQuestionnaire = await prisma.questionnaireResponse.findFirst({
-      where: { userId: auth.userId },
-      orderBy: { createdAt: 'desc' },
-    });
+    const [rawQuestionnaire, userProfile] = await Promise.all([
+      prisma.questionnaireResponse.findFirst({
+        where: { userId: auth.userId },
+        orderBy: { createdAt: 'desc' },
+      }),
+      prisma.profile.findUnique({
+        where: { userId: auth.userId },
+        select: { gender: true },
+      }),
+    ]);
 
     if (!rawQuestionnaire) {
       return corsJson(req, {
@@ -60,7 +66,8 @@ export async function GET(req: NextRequest) {
     const formattedQuestionnaire = await formatQuestionnaireForDisplay(
       rawQuestionnaire,
       locale,
-      true // own profile → can view all answers
+      true, // own profile → can view all answers
+      userProfile?.gender ?? undefined
     );
 
     return corsJson(req, {

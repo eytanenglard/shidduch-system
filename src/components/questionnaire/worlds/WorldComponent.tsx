@@ -40,7 +40,8 @@ import type {
   WorldId,
 } from '../types/types';
 import type { UserProfile } from '../MatchmakingQuestionnaire';
-import { cn } from '@/lib/utils';
+import { cn, resolveGenderedText } from '@/lib/utils';
+import type { GenderedText } from '@/types/dictionary';
 import { useMediaQuery } from '../hooks/useMediaQuery';
 import { motion, AnimatePresence } from 'framer-motion';
 import type {
@@ -154,8 +155,12 @@ export function shouldShowQuestion(q: Question, profile: UserProfile): boolean {
 
 const getQuestionWithText = (
   questionStructure: Question,
-  dict: WorldComponentDynamicProps['dict']
+  dict: WorldComponentDynamicProps['dict'],
+  gender?: string
 ): Question => {
+  const g = (text: Parameters<typeof resolveGenderedText>[0]) =>
+    resolveGenderedText(text, gender);
+
   const qContent =
     dict.questions[questionStructure.worldId as WorldId]?.[
       questionStructure.id
@@ -173,14 +178,20 @@ const getQuestionWithText = (
 
   const optionsWithText = questionStructure.options?.map((opt) => {
     const optionContent = qContent.options?.[opt.value];
-    if (typeof optionContent === 'string') {
-      return { ...opt, text: optionContent };
+    if (!optionContent) {
+      return { ...opt, text: opt.value };
     }
-    if (typeof optionContent === 'object' && optionContent !== null) {
+    // Simple gendered text (string or { male, female })
+    if (typeof optionContent === 'string' || ('male' in optionContent && 'female' in optionContent && !('text' in optionContent))) {
+      return { ...opt, text: g(optionContent) };
+    }
+    // Object with text/description (which may themselves be gendered)
+    if (typeof optionContent === 'object' && 'text' in optionContent) {
+      const oc = optionContent as { text: GenderedText; description?: GenderedText };
       return {
         ...opt,
-        text: optionContent.text,
-        description: optionContent.description,
+        text: g(oc.text),
+        description: oc.description ? g(oc.description) : undefined,
       };
     }
     return { ...opt, text: opt.value };
@@ -188,30 +199,44 @@ const getQuestionWithText = (
 
   const categoriesWithText = questionStructure.categories?.map((cat) => {
     const categoryContent = qContent.categories?.[cat.value];
-    if (typeof categoryContent === 'string') {
-      return { ...cat, label: categoryContent };
+    if (!categoryContent) {
+      return { ...cat, label: cat.value };
     }
-    if (typeof categoryContent === 'object' && categoryContent !== null) {
+    // Simple gendered text
+    if (typeof categoryContent === 'string' || ('male' in categoryContent && 'female' in categoryContent && !('label' in categoryContent))) {
+      return { ...cat, label: g(categoryContent) };
+    }
+    // Object with label/description
+    if (typeof categoryContent === 'object' && 'label' in categoryContent) {
+      const cc = categoryContent as { label: GenderedText; description?: GenderedText };
       return {
         ...cat,
-        label: categoryContent.label,
-        description: categoryContent.description,
+        label: g(cc.label),
+        description: cc.description ? g(cc.description) : undefined,
       };
     }
     return { ...cat, label: cat.value };
   });
 
+  const resolvedLabels = qContent.labels
+    ? {
+        min: g(qContent.labels.min),
+        max: g(qContent.labels.max),
+        ...(qContent.labels.middle ? { middle: g(qContent.labels.middle) } : {}),
+      }
+    : questionStructure.labels;
+
   return {
     ...questionStructure,
-    question: qContent.question,
-    placeholder: qContent.placeholder,
+    question: g(qContent.question),
+    placeholder: qContent.placeholder ? g(qContent.placeholder) : undefined,
     metadata: {
       ...questionStructure.metadata,
-      helpText: qContent.helpText,
+      helpText: qContent.helpText ? g(qContent.helpText) : undefined,
     },
     options: optionsWithText,
     categories: categoriesWithText,
-    labels: qContent.labels || questionStructure.labels,
+    labels: resolvedLabels,
   };
 };
 
@@ -300,7 +325,7 @@ export default function WorldComponent({
     () =>
       allQuestionsStructure
         .filter((qStruct) => shouldShowQuestion(qStruct, userProfile))
-        .map((qStruct) => getQuestionWithText(qStruct, dict)),
+        .map((qStruct) => getQuestionWithText(qStruct, dict, userProfile.gender)),
     [allQuestionsStructure, dict, userProfile]
   );
 
