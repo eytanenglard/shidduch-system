@@ -1806,10 +1806,10 @@ async function tier3AIFirstPass(
     try {
       stats.callsMade++;
       stats.batchesSent++;
-      
-      const result = await model.generateContent(prompt);
+
+      const result = await generateContentWithTimeout(model, prompt, 90_000);
       const jsonString = result.response.text();
-      
+
       // 🆕 V2.3: Add response tokens
       stats.totalTokensEstimated += Math.ceil(jsonString.length / 4);
       
@@ -2132,10 +2132,10 @@ async function tier4AIDeepAnalysis(
     
     try {
       stats.callsMade++;
-      
-      const result = await model.generateContent(prompt);
+
+      const result = await generateContentWithTimeout(model, prompt, 90_000);
       const jsonString = result.response.text();
-      
+
       // 🆕 V2.3: Add response tokens
       stats.totalTokensEstimated += Math.ceil(jsonString.length / 4);
       
@@ -2333,7 +2333,7 @@ ${candidatesText}
 async function getGeminiModel() {
   const apiKey = process.env.GOOGLE_API_KEY || process.env.GOOGLE_GEMINI_API_KEY;
   if (!apiKey) throw new Error('GOOGLE_API_KEY not configured');
-  
+
   const genAI = new GoogleGenerativeAI(apiKey);
   return genAI.getGenerativeModel({
     model: 'gemini-2.0-flash',
@@ -2341,6 +2341,24 @@ async function getGeminiModel() {
       responseMimeType: 'application/json',
       temperature: 0.3,
     },
+  });
+}
+
+// Wraps generateContent with a timeout — prevents indefinite hangs on Gemini
+async function generateContentWithTimeout(
+  model: Awaited<ReturnType<typeof getGeminiModel>>,
+  prompt: string,
+  timeoutMs = 90_000 // 90 seconds
+): Promise<ReturnType<typeof model.generateContent> extends Promise<infer T> ? T : never> {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => {
+      reject(new Error(`Gemini API timeout after ${timeoutMs / 1000}s`));
+    }, timeoutMs);
+
+    model.generateContent(prompt).then(
+      (result) => { clearTimeout(timer); resolve(result as any); },
+      (err)    => { clearTimeout(timer); reject(err); }
+    );
   });
 }
 

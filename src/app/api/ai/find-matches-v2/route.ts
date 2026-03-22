@@ -413,6 +413,31 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       }, { status: 404 });
     }
 
+    // Auto-detect stuck jobs: processing for >30 min → mark as failed
+    const STUCK_TIMEOUT_MS = 30 * 60 * 1000;
+    if (job.status === 'processing' && job.updatedAt) {
+      const elapsed = Date.now() - new Date(job.updatedAt).getTime();
+      if (elapsed > STUCK_TIMEOUT_MS) {
+        await prisma.matchingJob.update({
+          where: { id: jobId },
+          data: {
+            status: 'failed',
+            error: `Job timed out after ${Math.round(elapsed / 60000)} minutes. Please try again.`,
+            progressMessage: 'הסריקה נגמר לה הזמן — נא לנסות שוב',
+            completedAt: new Date(),
+          },
+        });
+        return NextResponse.json({
+          success: true,
+          jobId: job.id,
+          status: 'failed',
+          progress: job.progress,
+          progressMessage: 'הסריקה נגמר לה הזמן — נא לנסות שוב',
+          error: `Job timed out after ${Math.round(elapsed / 60000)} minutes`,
+        });
+      }
+    }
+
     // מחזיר את הסטטוס
     return NextResponse.json({
       success: true,
