@@ -12,7 +12,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { UserRole, Gender, ScanSessionStatus } from "@prisma/client";
+import { UserRole, Gender, ScanSessionStatus, Prisma } from "@prisma/client";
 import prisma from "@/lib/prisma";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
@@ -21,6 +21,16 @@ import { hybridScan } from "@/lib/services/hybridMatchingService";
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 300;
+
+// סינון שדות AI לפי מה שקיים בסכמת ProfileMetrics - מונע שגיאות Prisma
+const VALID_METRICS_FIELDS = new Set<string>(Object.values(Prisma.ProfileMetricsScalarFieldEnum));
+const SYSTEM_FIELDS = new Set(['id', 'profileId', 'createdAt', 'updatedAt']);
+
+function sanitizeMetricsForDb(data: Record<string, any>): Record<string, any> {
+  return Object.fromEntries(
+    Object.entries(data).filter(([key]) => VALID_METRICS_FIELDS.has(key) && !SYSTEM_FIELDS.has(key))
+  );
+}
 
 // ═══════════════════════════════════════════════════════════════
 // GEMINI SETUP
@@ -490,8 +500,10 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
 // ═══════════════════════════════════════════════════════════════
 
 async function findUsersNeedingUpdate(): Promise<UserNeedingUpdate[]> {
-  console.log('[Preparation] Finding users truly needing update...');
-  
+  console.log(`\n${'═'.repeat(60)}`);
+  console.log(`[Preparation] 🔍 Finding users needing update...`);
+  console.log(`${'═'.repeat(60)}`);
+
   const usersNeedingUpdate = await prisma.$queryRaw<any[]>`
     SELECT 
       u.id as "userId", p.id as "profileId",
@@ -525,14 +537,34 @@ async function findUsersNeedingUpdate(): Promise<UserNeedingUpdate[]> {
       p."contentUpdatedAt" DESC NULLS LAST
   `;
 
-  console.log(`[Preparation] Found ${usersNeedingUpdate.length} users truly needing update`);
+  console.log(`[Preparation] Found ${usersNeedingUpdate.length} users needing update`);
 
-  return usersNeedingUpdate.map(u => ({
+  const mapped = usersNeedingUpdate.map(u => ({
     userId: u.userId, profileId: u.profileId,
     firstName: u.firstName, lastName: u.lastName,
     needsMetrics: u.needsMetrics, needsVectors: u.needsVectors,
     needsAiSummary: u.needsAiSummary,
   }));
+
+  // סיכום מה חסר
+  const needsMetricsCount = mapped.filter(u => u.needsMetrics).length;
+  const needsVectorsCount = mapped.filter(u => u.needsVectors).length;
+  const needsAiSummaryCount = mapped.filter(u => u.needsAiSummary).length;
+  console.log(`[Preparation]   📊 חסרים מטריקות: ${needsMetricsCount}`);
+  console.log(`[Preparation]   🧬 חסרים וקטורים: ${needsVectorsCount}`);
+  console.log(`[Preparation]   🤖 חסר סיכום AI: ${needsAiSummaryCount}`);
+
+  // הדפסת פירוט לכל יוזר
+  mapped.forEach((u, i) => {
+    const flags = [
+      u.needsMetrics ? 'מטריקות' : null,
+      u.needsVectors ? 'וקטורים' : null,
+      u.needsAiSummary ? 'סיכום AI' : null,
+    ].filter(Boolean).join(', ');
+    console.log(`[Preparation]   ${i + 1}. ${u.firstName} ${u.lastName} → חסר: ${flags}`);
+  });
+
+  return mapped;
 }
 
 async function updateSingleUserData(
@@ -555,18 +587,34 @@ async function updateSingleUserData(
       },
     });
 
-    if (!user || !user.profile) return { success: false, error: 'User or profile not found', stats };
+    if (!user || !user.profile) {
+      console.log(`[User:${firstName}] ❌ יוזר או פרופיל לא נמצא`);
+      return { success: false, error: 'User or profile not found', stats };
+    }
 
     const profile = user.profile;
     const questionnaire = user.questionnaireResponses?.[0];
     let aiProfileSummary = profile.aiProfileSummary as any;
 
+    console.log(`\n[User:${firstName}] ${'─'.repeat(50)}`);
+    console.log(`[User:${firstName}] 📋 נתוני פרופיל:`);
+    console.log(`[User:${firstName}]   מגדר: ${profile.gender || '❓חסר'} | גיל: ${profile.birthDate ? calculateAge(profile.birthDate) : '❓חסר'} | גובה: ${profile.height || '❓חסר'}`);
+    console.log(`[User:${firstName}]   עיר: ${profile.city || '❓חסר'} | רמה דתית: ${profile.religiousLevel || '❓חסר'} | מצב משפחתי: ${profile.maritalStatus || '❓חסר'}`);
+    console.log(`[User:${firstName}]   מקצוע: ${profile.occupation || '❓חסר'} | השכלה: ${profile.education || '❓חסר'}`);
+    console.log(`[User:${firstName}]   אודות: ${profile.about ? `${profile.about.length} תווים` : '❓חסר'} | הערות שדכן: ${profile.matchingNotes ? `${profile.matchingNotes.length} תווים` : '❓חסר'}`);
+    console.log(`[User:${firstName}]   שאלון: ${questionnaire ? '✅ קיים' : '❌ חסר'} | סיכום AI קיים: ${aiProfileSummary?.personalitySummary ? `${aiProfileSummary.personalitySummary.length} תווים` : '❌ חסר'}`);
+    console.log(`[User:${firstName}]   צריך: ${[needsMetrics ? 'מטריקות' : null, needsVectors ? 'וקטורים' : null, needsAiSummary ? 'סיכום AI' : null].filter(Boolean).join(', ') || 'כלום'}`);
+
     // Step 1: AI Profile Summary
     if (needsAiSummary && deepAnalysisModel) {
+      console.log(`[User:${firstName}] 🤖 שלב 1: יצירת סיכום AI...`);
       const narrative = generateNarrativeForDeepAnalysis(user, profile, questionnaire);
+      console.log(`[User:${firstName}]   נרטיב לניתוח: ${narrative ? `${narrative.length} תווים` : '❌ ריק'}`);
       if (narrative && narrative.length >= 100) {
         const newSummary = await generateAiProfileSummary(narrative);
         if (newSummary) {
+          console.log(`[User:${firstName}]   ✅ סיכום אישיות: ${newSummary.personalitySummary?.length || 0} תווים`);
+          console.log(`[User:${firstName}]   ✅ סיכום מחפש/ת: ${newSummary.lookingForSummary?.length || 0} תווים`);
           aiProfileSummary = {
             ...(aiProfileSummary || {}),
             personalitySummary: newSummary.personalitySummary,
@@ -576,55 +624,97 @@ async function updateSingleUserData(
           await prisma.profile.update({ where: { id: profileId }, data: { aiProfileSummary } });
           stats.aiSummaryCreated = true;
           stats.aiCallsMade++;
+        } else {
+          console.log(`[User:${firstName}]   ⚠️ AI לא החזיר סיכום (null)`);
         }
+      } else {
+        console.log(`[User:${firstName}]   ⚠️ נרטיב קצר מדי (${narrative?.length || 0} < 100), מדלג`);
       }
     } else if (!needsAiSummary) {
       stats.skippedSteps.push('ai_summary');
+      console.log(`[User:${firstName}] ⏭️ שלב 1: סיכום AI - כבר קיים, מדלג`);
+    } else {
+      console.log(`[User:${firstName}] ⚠️ שלב 1: אין Gemini model - מדלג`);
     }
 
     // Step 2: Metrics
     if (needsMetrics && metricsModel) {
+      console.log(`[User:${firstName}] 📊 שלב 2: חישוב מטריקות...`);
       const narrativeResult = buildFullNarrativeWithHardData(user, profile, questionnaire, aiProfileSummary);
+      console.log(`[User:${firstName}]   נרטיב למטריקות: ${narrativeResult ? `${narrativeResult.narrative.length} תווים` : '❌ null'}`);
+      if (narrativeResult) {
+        console.log(`[User:${firstName}]   שדות חסרים להסקה: ${narrativeResult.missingFields.length > 0 ? narrativeResult.missingFields.join(', ') : 'אין'}`);
+      }
       if (narrativeResult && narrativeResult.narrative.length >= 200) {
         const metrics = await calculateMetricsWithAI(
-          narrativeResult.narrative, 
-          profile.gender, 
+          narrativeResult.narrative,
+          profile.gender,
           narrativeResult.missingFields
         );
-        
+
         if (metrics) {
+          // לוג שדות שה-AI הסיק
+          const inferredFields = ['inferredAge', 'inferredHeight', 'inferredCity', 'inferredReligiousLevel', 'inferredMaritalStatus', 'inferredPreferredAgeMin', 'inferredPreferredAgeMax'];
+          const inferred = inferredFields.filter(f => metrics[f] != null).map(f => `${f.replace('inferred', '')}=${metrics[f]}`);
+          console.log(`[User:${firstName}]   ✅ מטריקות חושבו | ביטחון: ${metrics.confidenceScore}/100 | שלמות: ${metrics.dataCompleteness}/100`);
+          console.log(`[User:${firstName}]   📈 ציוני מטריקה: חברתי=${metrics.socialEnergy} רגשי=${metrics.emotionalExpression} דתי=${metrics.religiousStrictness} קריירה=${metrics.careerOrientation} עירוני=${metrics.urbanScore}`);
+          console.log(`[User:${firstName}]   🔮 שדות שהוסקו: ${inferred.length > 0 ? inferred.join(', ') : 'אף אחד'}`);
+          console.log(`[User:${firstName}]   🔮 רמת ביטחון הסקה: ${metrics.inferredConfidence || 'לא צוין'}`);
+          if (metrics.aiPersonalitySummary) console.log(`[User:${firstName}]   📝 סיכום אישיות: ${metrics.aiPersonalitySummary.substring(0, 80)}...`);
+          if (metrics.aiSeekingSummary) console.log(`[User:${firstName}]   📝 סיכום מחפש: ${metrics.aiSeekingSummary.substring(0, 80)}...`);
+
+          const metricsForDb = sanitizeMetricsForDb(metrics);
+          const removedFields = Object.keys(metrics).filter(k => !(k in metricsForDb));
+          if (removedFields.length > 0) {
+            console.log(`[User:${firstName}]   🧹 שדות סוננו (לא בסכמה): ${removedFields.join(', ')}`);
+          }
+
           // שמירת המטריקות
           await prisma.profileMetrics.upsert({
             where: { profileId },
-            create: { profileId, calculatedBy: 'AI_AUTO', ...metrics },
-            update: { calculatedBy: 'AI_AUTO', updatedAt: new Date(), ...metrics },
+            create: { profileId, calculatedBy: 'AI_AUTO', ...metricsForDb },
+            update: { calculatedBy: 'AI_AUTO', updatedAt: new Date(), ...metricsForDb },
           });
           stats.metricsCalculated = true;
           stats.aiCallsMade++;
+          console.log(`[User:${firstName}]   ✅ מטריקות נשמרו בהצלחה`);
 
           // 🆕 V2.6: עדכון שדות חסרים בפרופיל
           const autoFilledFields = await autoFillMissingProfileFields(
-            profileId, 
-            profile, 
+            profileId,
+            profile,
             metrics
           );
           stats.fieldsAutoFilled = autoFilledFields;
+          if (autoFilledFields.length > 0) {
+            console.log(`[User:${firstName}]   🔧 שדות מולאו אוטומטית: ${autoFilledFields.join(', ')}`);
+          }
 
           // Step 3a: Vectors after new metrics
+          console.log(`[User:${firstName}] 🧬 שלב 3: יצירת וקטורים...`);
           const selfVector = await generateTextEmbedding(metrics.aiPersonalitySummary);
           const seekingVector = await generateTextEmbedding(metrics.aiSeekingSummary);
           if (selfVector && seekingVector) {
+            console.log(`[User:${firstName}]   ✅ וקטורים נוצרו: self=${selfVector.length} dims, seeking=${seekingVector.length} dims`);
             await saveVectors(profileId, selfVector, seekingVector);
             stats.vectorsCreated = true;
             stats.embeddingCallsMade += 2;
+          } else {
+            console.log(`[User:${firstName}]   ⚠️ וקטורים נכשלו: self=${selfVector ? 'OK' : 'FAIL'}, seeking=${seekingVector ? 'OK' : 'FAIL'}`);
           }
+        } else {
+          console.log(`[User:${firstName}]   ❌ AI לא החזיר מטריקות (null)`);
         }
+      } else {
+        console.log(`[User:${firstName}]   ⚠️ נרטיב קצר מדי (${narrativeResult?.narrative?.length || 0} < 200), מדלג על מטריקות`);
       }
     } else if (!needsMetrics) {
       stats.skippedSteps.push('metrics');
-      
+      console.log(`[User:${firstName}] ⏭️ שלב 2: מטריקות - כבר קיימות, מדלג`);
+
       // Step 3b: Vectors from existing metrics
       if (needsVectors) {
+        console.log(`[User:${firstName}] 🧬 שלב 3: וקטורים ממטריקות קיימות...`);
         const existingMetrics = await prisma.profileMetrics.findUnique({
           where: { profileId },
           select: { aiPersonalitySummary: true, aiSeekingSummary: true }
@@ -633,14 +723,22 @@ async function updateSingleUserData(
           const selfVector = await generateTextEmbedding(existingMetrics.aiPersonalitySummary);
           const seekingVector = await generateTextEmbedding(existingMetrics.aiSeekingSummary);
           if (selfVector && seekingVector) {
+            console.log(`[User:${firstName}]   ✅ וקטורים נוצרו: self=${selfVector.length} dims, seeking=${seekingVector.length} dims`);
             await saveVectors(profileId, selfVector, seekingVector);
             stats.vectorsCreated = true;
             stats.embeddingCallsMade += 2;
+          } else {
+            console.log(`[User:${firstName}]   ⚠️ וקטורים נכשלו`);
           }
+        } else {
+          console.log(`[User:${firstName}]   ⚠️ אין סיכומי AI במטריקות, לא ניתן ליצור וקטורים`);
         }
       } else {
         stats.skippedSteps.push('vectors');
+        console.log(`[User:${firstName}] ⏭️ שלב 3: וקטורים - כבר קיימים, מדלג`);
       }
+    } else {
+      console.log(`[User:${firstName}] ⚠️ שלב 2: אין Gemini model - מדלג`);
     }
 
     // 🆕 V3: Step 4 — Generate ProfileTags if missing (Soul Fingerprint AI)
@@ -651,17 +749,30 @@ async function updateSingleUserData(
       });
 
       if (!existingTags) {
+        console.log(`[User:${firstName}] 🏷️ שלב 4: יצירת תגיות AI...`);
         const { generateTagsFromProfileData } = await import('@/lib/services/aiTagGenerationService');
         await generateTagsFromProfileData(userId, profileId);
         stats.aiCallsMade++;
-        console.log(`[BatchScan] 🏷️ Generated AI tags for ${firstName} ${lastName}`);
+        console.log(`[User:${firstName}]   ✅ תגיות AI נוצרו`);
+      } else {
+        console.log(`[User:${firstName}] ⏭️ שלב 4: תגיות - כבר קיימות, מדלג`);
       }
     } catch (tagErr) {
-      console.warn(`[BatchScan] Tag generation failed for ${firstName}:`, tagErr);
+      console.warn(`[User:${firstName}] ⚠️ שלב 4: יצירת תגיות נכשלה:`, tagErr);
     }
+
+    // סיכום ליוזר
+    const completedSteps = [
+      stats.aiSummaryCreated ? '✅סיכום AI' : null,
+      stats.metricsCalculated ? '✅מטריקות' : null,
+      stats.vectorsCreated ? '✅וקטורים' : null,
+    ].filter(Boolean).join(', ');
+    const skippedStr = stats.skippedSteps.length > 0 ? ` | דילוגים: ${stats.skippedSteps.join(', ')}` : '';
+    console.log(`[User:${firstName}] 🏁 סיכום: ${completedSteps || 'ללא עדכונים'} | AI calls: ${stats.aiCallsMade} | Embeddings: ${stats.embeddingCallsMade}${skippedStr}`);
 
     return { success: true, stats };
   } catch (error) {
+    console.error(`[User:${firstName}] ❌ שגיאה קריטית:`, error instanceof Error ? error.message : error);
     return { success: false, error: error instanceof Error ? error.message : 'Unknown error', stats };
   }
 }
@@ -940,7 +1051,12 @@ async function runBatchScan(
           }
         }
         
-        console.log(`[BatchScan] 🔧 Total fields auto-filled: ${totalFieldsAutoFilled}`);
+        console.log(`\n${'═'.repeat(60)}`);
+        console.log(`[Preparation] 🏁 סיכום הכנה:`);
+        console.log(`[Preparation]   ✅ עודכנו: ${updated} | ⏭️ דולגו: ${skipped} | ❌ נכשלו: ${failed}`);
+        console.log(`[Preparation]   🤖 קריאות AI: ${totalAiCalls} | 🧬 קריאות Embedding: ${totalEmbeddingCalls}`);
+        console.log(`[Preparation]   🔧 שדות שהושלמו אוטומטית: ${totalFieldsAutoFilled}`);
+        console.log(`${'═'.repeat(60)}\n`);
       }
     }
 
@@ -950,6 +1066,9 @@ async function runBatchScan(
     }
 
     // PHASE 2: SCANNING
+    console.log(`\n${'═'.repeat(60)}`);
+    console.log(`[Scanning] 🔎 שלב 2: סריקת התאמות`);
+    console.log(`${'═'.repeat(60)}`);
     await updateScanProgress(sessionId, { phase: 'scanning', message: 'טוען משתמשים לסריקה...' });
 
     const currentState = await getScanSessionState(sessionId);
@@ -970,7 +1089,10 @@ async function runBatchScan(
         : `נמצאו ${totalUsers} משתמשים לסריקה`,
     });
 
+    console.log(`[Scanning] סה"כ משתמשים: ${totalUsers} | כבר נסרקו: ${alreadyScannedCount} | נותרו: ${usersToScan.length}`);
+
     if (usersToScan.length === 0) {
+      console.log(`[Scanning] ℹ️ אין משתמשים לסריקה`);
       await updateScanProgress(sessionId, {
         phase: 'completed', progressPercent: 100,
         message: options.isResuming ? 'הסריקה כבר הושלמה קודם' : 'אין משתמשים לסריקה',
@@ -980,6 +1102,7 @@ async function runBatchScan(
 
     let totalMatches = currentState?.matchesFoundSoFar || 0;
     let newMatches = currentState?.newMatchesFoundSoFar || 0;
+    let scanErrors = 0;
 
     for (let i = 0; i < usersToScan.length; i++) {
       if (await isScanCancelled(sessionId)) break;
@@ -1021,10 +1144,11 @@ async function runBatchScan(
           usersScanned: overallIndex,
         });
 
-        console.log(`[BatchScan] ✓ ${user.firstName}: ${result.matches.length} new matches (${saved.new} saved)`);
+        console.log(`[Scan:${user.firstName}] ✅ ${result.matches.length} התאמות | ${saved.new} חדשות | ${saved.updated} עודכנו`);
 
       } catch (userError) {
-        console.error(`[BatchScan] Error scanning ${user.firstName}:`, userError);
+        scanErrors++;
+        console.error(`[Scan:${user.firstName}] ❌ שגיאה:`, userError instanceof Error ? userError.message : userError);
         await markUserAsScanned(sessionId, user.id);
       }
 
@@ -1042,11 +1166,15 @@ async function runBatchScan(
       message: `הסריקה הושלמה! נמצאו ${totalMatches} התאמות חדשות (${newMatches} נשמרו), ${totalFieldsAutoFilled} שדות הושלמו אוטומטית`,
     });
 
-    console.log(`\n${'='.repeat(60)}`);
-    console.log(`[BatchScan V2.6] ✅ Completed in ${(duration / 1000 / 60).toFixed(1)} minutes`);
-    console.log(`[BatchScan V2.6] New Matches: ${totalMatches} (${newMatches} saved)`);
-    console.log(`[BatchScan V2.6] Fields Auto-Filled: ${totalFieldsAutoFilled}`);
-    console.log(`${'='.repeat(60)}\n`);
+    console.log(`\n${'═'.repeat(60)}`);
+    console.log(`[BatchScan] 🏁 סיכום סריקה סופי`);
+    console.log(`${'═'.repeat(60)}`);
+    console.log(`[BatchScan]   ⏱️  זמן: ${(duration / 1000 / 60).toFixed(1)} דקות`);
+    console.log(`[BatchScan]   👥 נסרקו: ${usersToScan.length} משתמשים`);
+    console.log(`[BatchScan]   💑 התאמות שנמצאו: ${totalMatches} (${newMatches} חדשות נשמרו)`);
+    console.log(`[BatchScan]   🔧 שדות שהושלמו אוטומטית: ${totalFieldsAutoFilled}`);
+    console.log(`[BatchScan]   ❌ שגיאות בסריקה: ${scanErrors}`);
+    console.log(`${'═'.repeat(60)}\n`);
 
   } catch (error) {
     const errorMsg = error instanceof Error ? error.message : 'Unknown error';
