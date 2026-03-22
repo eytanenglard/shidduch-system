@@ -1,0 +1,1205 @@
+
+
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NeshamaTech — דמו תהליך סריקה והכנת יוזרים</title>
+<style>
+  :root {
+    --bg: #0f0f1a;
+    --card: #1a1a2e;
+    --card2: #16213e;
+    --accent: #e94560;
+    --accent2: #0f3460;
+    --green: #00c853;
+    --yellow: #ffd600;
+    --orange: #ff6d00;
+    --blue: #448aff;
+    --purple: #7c4dff;
+    --cyan: #00e5ff;
+    --text: #e0e0e0;
+    --text2: #9e9e9e;
+    --border: #2a2a4a;
+    --success: #00e676;
+    --fail: #ff1744;
+    --fresh: #00bcd4;
+    --stale: #ff9800;
+    --new-c: #76ff03;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  .header {
+    background: linear-gradient(135deg, var(--card) 0%, var(--accent2) 100%);
+    padding: 30px 40px;
+    border-bottom: 2px solid var(--accent);
+    text-align: center;
+  }
+  .header h1 { font-size: 2.2em; margin-bottom: 8px; }
+  .header h1 span { color: var(--accent); }
+  .header p { color: var(--text2); font-size: 1.1em; }
+
+  .controls {
+    display: flex; justify-content: center; gap: 12px;
+    padding: 20px; flex-wrap: wrap;
+  }
+  .btn {
+    padding: 12px 28px; border: none; border-radius: 8px;
+    font-size: 1em; cursor: pointer; font-weight: 600;
+    transition: all 0.3s; color: #fff;
+  }
+  .btn-primary { background: var(--accent); }
+  .btn-primary:hover { background: #d63050; transform: translateY(-2px); }
+  .btn-secondary { background: var(--accent2); border: 1px solid var(--blue); }
+  .btn-secondary:hover { background: #1a4a7a; }
+  .btn-reset { background: #333; border: 1px solid #555; }
+  .btn-reset:hover { background: #444; }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+  .speed-control {
+    display: flex; align-items: center; gap: 8px;
+    background: var(--card); padding: 8px 16px; border-radius: 8px;
+  }
+  .speed-control label { font-size: 0.85em; color: var(--text2); }
+  .speed-control select {
+    background: var(--card2); color: var(--text); border: 1px solid var(--border);
+    padding: 4px 8px; border-radius: 4px;
+  }
+
+  .main { padding: 0 20px 40px; max-width: 1400px; margin: 0 auto; }
+
+  /* Pipeline overview */
+  .pipeline-overview {
+    display: flex; gap: 4px; margin: 20px 0;
+    padding: 16px; background: var(--card); border-radius: 12px;
+    overflow-x: auto;
+  }
+  .pipeline-step {
+    flex: 1; min-width: 100px; text-align: center;
+    padding: 10px 6px; border-radius: 8px;
+    background: var(--card2); border: 2px solid transparent;
+    transition: all 0.5s; position: relative; font-size: 0.78em;
+  }
+  .pipeline-step.active {
+    border-color: var(--cyan); background: rgba(0,229,255,0.1);
+    box-shadow: 0 0 20px rgba(0,229,255,0.2);
+  }
+  .pipeline-step.done {
+    border-color: var(--green); background: rgba(0,200,83,0.08);
+  }
+  .pipeline-step .step-num {
+    display: inline-block; width: 24px; height: 24px;
+    line-height: 24px; border-radius: 50%;
+    background: var(--accent2); font-weight: 700;
+    margin-bottom: 4px; font-size: 0.9em;
+  }
+  .pipeline-step.active .step-num { background: var(--cyan); color: #000; }
+  .pipeline-step.done .step-num { background: var(--green); color: #000; }
+  .pipeline-step .step-label { display: block; margin-top: 2px; }
+  .pipeline-step .step-detail { color: var(--text2); font-size: 0.85em; margin-top: 2px; }
+  .pipeline-arrow {
+    display: flex; align-items: center; color: var(--text2);
+    font-size: 1.2em; min-width: 20px; justify-content: center;
+  }
+
+  /* Two-column layout */
+  .content-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px;
+  }
+  @media (max-width: 900px) { .content-grid { grid-template-columns: 1fr; } }
+
+  .panel {
+    background: var(--card); border-radius: 12px;
+    border: 1px solid var(--border); overflow: hidden;
+  }
+  .panel-header {
+    padding: 14px 20px; border-bottom: 1px solid var(--border);
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .panel-header h3 { font-size: 1.05em; }
+  .panel-badge {
+    padding: 3px 10px; border-radius: 12px; font-size: 0.8em; font-weight: 600;
+  }
+  .panel-body { padding: 16px 20px; max-height: 500px; overflow-y: auto; }
+
+  .panel-full { grid-column: 1 / -1; }
+
+  /* Log entry */
+  .log-entry {
+    padding: 8px 12px; margin-bottom: 6px; border-radius: 6px;
+    font-size: 0.88em; border-right: 3px solid var(--border);
+    background: rgba(255,255,255,0.02); animation: fadeSlideIn 0.3s;
+    line-height: 1.5;
+  }
+  .log-entry.info { border-right-color: var(--blue); }
+  .log-entry.success { border-right-color: var(--green); }
+  .log-entry.warning { border-right-color: var(--yellow); }
+  .log-entry.error { border-right-color: var(--fail); }
+  .log-entry.ai { border-right-color: var(--purple); }
+  .log-entry.filter { border-right-color: var(--orange); }
+  .log-entry .log-time { color: var(--text2); font-size: 0.8em; margin-left: 8px; }
+  .log-entry .log-icon { margin-left: 6px; }
+
+  @keyframes fadeSlideIn {
+    from { opacity: 0; transform: translateX(20px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+
+  /* User card */
+  .user-card {
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 14px; margin-bottom: 8px; border-radius: 8px;
+    background: var(--card2); border: 1px solid var(--border);
+    transition: all 0.3s; font-size: 0.9em;
+  }
+  .user-card.highlight {
+    border-color: var(--cyan);
+    box-shadow: 0 0 12px rgba(0,229,255,0.15);
+  }
+  .user-avatar {
+    width: 40px; height: 40px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.1em; font-weight: 700; flex-shrink: 0;
+  }
+  .user-avatar.male { background: var(--blue); }
+  .user-avatar.female { background: var(--accent); }
+  .user-info { flex: 1; }
+  .user-info .name { font-weight: 600; }
+  .user-info .details { color: var(--text2); font-size: 0.85em; }
+  .user-status {
+    padding: 3px 10px; border-radius: 12px; font-size: 0.75em;
+    font-weight: 600; white-space: nowrap;
+  }
+  .status-new { background: rgba(118,255,3,0.15); color: var(--new-c); }
+  .status-stale { background: rgba(255,152,0,0.15); color: var(--stale); }
+  .status-fresh { background: rgba(0,188,212,0.15); color: var(--fresh); }
+  .status-passed { background: rgba(0,230,118,0.15); color: var(--success); }
+  .status-failed { background: rgba(255,23,68,0.15); color: var(--fail); }
+  .status-skipped { background: rgba(158,158,158,0.15); color: var(--text2); }
+
+  /* Score bar */
+  .score-bar-wrap { margin: 4px 0; }
+  .score-bar {
+    height: 6px; border-radius: 3px; background: rgba(255,255,255,0.08);
+    overflow: hidden;
+  }
+  .score-bar-fill {
+    height: 100%; border-radius: 3px; transition: width 0.6s ease;
+  }
+  .score-label { font-size: 0.75em; color: var(--text2); display: flex; justify-content: space-between; }
+
+  /* Match result card */
+  .match-card {
+    padding: 12px 16px; margin-bottom: 10px; border-radius: 8px;
+    background: var(--card2); border: 1px solid var(--border);
+    animation: fadeSlideIn 0.4s;
+  }
+  .match-card .match-header {
+    display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;
+  }
+  .match-card .match-names { font-weight: 600; font-size: 0.95em; }
+  .match-card .match-score {
+    font-size: 1.3em; font-weight: 700; padding: 2px 12px;
+    border-radius: 8px;
+  }
+  .match-card .match-score.excellent { background: rgba(0,200,83,0.2); color: var(--green); }
+  .match-card .match-score.good { background: rgba(68,138,255,0.2); color: var(--blue); }
+  .match-card .match-score.fair { background: rgba(255,214,0,0.2); color: var(--yellow); }
+  .match-breakdown {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 6px; font-size: 0.8em; margin-top: 8px;
+  }
+  .breakdown-item {
+    padding: 4px 8px; border-radius: 4px;
+    background: rgba(255,255,255,0.04);
+  }
+  .breakdown-item .label { color: var(--text2); }
+  .breakdown-item .value { font-weight: 600; }
+
+  /* Stats counters */
+  .stats-row {
+    display: flex; gap: 12px; flex-wrap: wrap; margin: 12px 0;
+  }
+  .stat-box {
+    flex: 1; min-width: 120px; padding: 14px;
+    background: var(--card2); border-radius: 10px;
+    text-align: center; border: 1px solid var(--border);
+  }
+  .stat-box .stat-value {
+    font-size: 2em; font-weight: 700; line-height: 1.2;
+  }
+  .stat-box .stat-label {
+    font-size: 0.78em; color: var(--text2); margin-top: 4px;
+  }
+
+  /* Progress bar */
+  .progress-container {
+    padding: 16px 20px;
+    background: var(--card); border-radius: 12px;
+    margin-top: 20px;
+  }
+  .progress-info {
+    display: flex; justify-content: space-between; margin-bottom: 8px;
+    font-size: 0.9em;
+  }
+  .progress-bar {
+    height: 12px; border-radius: 6px;
+    background: rgba(255,255,255,0.06); overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%; border-radius: 6px;
+    background: linear-gradient(90deg, var(--blue), var(--cyan));
+    transition: width 0.4s ease;
+  }
+
+  /* Tier section header */
+  .tier-header {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 0; margin-top: 12px;
+  }
+  .tier-badge {
+    padding: 4px 12px; border-radius: 6px;
+    font-weight: 700; font-size: 0.85em;
+  }
+  .tier-0 { background: rgba(124,77,255,0.2); color: var(--purple); }
+  .tier-05 { background: rgba(124,77,255,0.15); color: #b388ff; }
+  .tier-1 { background: rgba(68,138,255,0.2); color: var(--blue); }
+  .tier-15 { background: rgba(255,109,0,0.2); color: var(--orange); }
+  .tier-23 { background: rgba(0,229,255,0.2); color: var(--cyan); }
+  .tier-4 { background: rgba(233,69,96,0.2); color: var(--accent); }
+
+  .tier-header .tier-title { font-weight: 600; }
+  .tier-header .tier-desc { color: var(--text2); font-size: 0.85em; }
+
+  /* Category chips */
+  .category-chips { display: flex; gap: 8px; flex-wrap: wrap; margin: 8px 0; }
+  .chip {
+    padding: 4px 12px; border-radius: 12px; font-size: 0.78em;
+    font-weight: 600;
+  }
+  .chip-new { background: rgba(118,255,3,0.12); color: var(--new-c); border: 1px solid rgba(118,255,3,0.3); }
+  .chip-stale { background: rgba(255,152,0,0.12); color: var(--stale); border: 1px solid rgba(255,152,0,0.3); }
+  .chip-fresh { background: rgba(0,188,212,0.12); color: var(--fresh); border: 1px solid rgba(0,188,212,0.3); }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+  .hidden { display: none !important; }
+
+  /* Matrix mini */
+  .matrix-mini {
+    display: inline-grid; grid-template-columns: repeat(3,1fr);
+    gap: 2px; margin: 4px 0;
+  }
+  .matrix-cell {
+    width: 20px; height: 20px; border-radius: 3px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.55em; font-weight: 700;
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>🔍 <span>NeshamaTech</span> — דמו תהליך סריקה</h1>
+  <p>הדמיה אינטראקטיבית של תהליך הסריקה המלא: מטריגר → הכנת יוזרים → סינון → חישוב תאימות → AI → שמירה</p>
+</div>
+
+<div class="controls">
+  <button class="btn btn-primary" id="btnStart" onclick="startFullDemo()">▶ הפעל סריקה מלאה</button>
+  <button class="btn btn-secondary" id="btnStep" onclick="stepDemo()">⏭ שלב הבא</button>
+  <button class="btn btn-reset" onclick="resetDemo()">🔄 אפס</button>
+  <div class="speed-control">
+    <label>מהירות:</label>
+    <select id="speedSelect">
+      <option value="2000">איטי</option>
+      <option value="1000" selected>רגיל</option>
+      <option value="400">מהיר</option>
+      <option value="100">טורבו</option>
+    </select>
+  </div>
+</div>
+
+<!-- Pipeline Overview -->
+<div class="main">
+  <div class="pipeline-overview" id="pipelineOverview">
+    <div class="pipeline-step" id="ps-trigger">
+      <span class="step-num">0</span>
+      <span class="step-label">טריגר</span>
+      <span class="step-detail">cron / ידני</span>
+    </div>
+    <div class="pipeline-arrow">←</div>
+    <div class="pipeline-step" id="ps-tier0">
+      <span class="step-num">1</span>
+      <span class="step-label">הכנת יוזר</span>
+      <span class="step-detail">Metrics + Vectors</span>
+    </div>
+    <div class="pipeline-arrow">←</div>
+    <div class="pipeline-step" id="ps-tier05">
+      <span class="step-num">2</span>
+      <span class="step-label">הכנת מועמדים</span>
+      <span class="step-detail">עד 30 עדכונים</span>
+    </div>
+    <div class="pipeline-arrow">←</div>
+    <div class="pipeline-step" id="ps-tier1">
+      <span class="step-num">3</span>
+      <span class="step-label">Tier 1 SQL</span>
+      <span class="step-detail">סינון חשיך</span>
+    </div>
+    <div class="pipeline-arrow">←</div>
+    <div class="pipeline-step" id="ps-categorize">
+      <span class="step-num">4</span>
+      <span class="step-label">קטגוריזציה</span>
+      <span class="step-detail">NEW/STALE/FRESH</span>
+    </div>
+    <div class="pipeline-arrow">←</div>
+    <div class="pipeline-step" id="ps-tier15">
+      <span class="step-num">5</span>
+      <span class="step-label">Tier 1.5</span>
+      <span class="step-detail">פילטר תגים</span>
+    </div>
+    <div class="pipeline-arrow">←</div>
+    <div class="pipeline-step" id="ps-tier23">
+      <span class="step-num">6</span>
+      <span class="step-label">Tier 2-3</span>
+      <span class="step-detail">חישוב תאימות</span>
+    </div>
+    <div class="pipeline-arrow">←</div>
+    <div class="pipeline-step" id="ps-tier4">
+      <span class="step-num">7</span>
+      <span class="step-label">Tier 4 AI</span>
+      <span class="step-detail">ניתוח עמוק</span>
+    </div>
+    <div class="pipeline-arrow">←</div>
+    <div class="pipeline-step" id="ps-save">
+      <span class="step-num">8</span>
+      <span class="step-label">שמירה</span>
+      <span class="step-detail">DB</span>
+    </div>
+  </div>
+
+  <!-- Progress -->
+  <div class="progress-container" id="progressContainer">
+    <div class="progress-info">
+      <span id="progressLabel">ממתין להפעלה...</span>
+      <span id="progressPercent">0%</span>
+    </div>
+    <div class="progress-bar">
+      <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-row" id="statsRow">
+    <div class="stat-box">
+      <div class="stat-value" id="statCandidates" style="color:var(--blue)">0</div>
+      <div class="stat-label">מועמדים (Tier 1)</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-value" id="statNew" style="color:var(--new-c)">0</div>
+      <div class="stat-label">NEW</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-value" id="statStale" style="color:var(--stale)">0</div>
+      <div class="stat-label">STALE</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-value" id="statFresh" style="color:var(--fresh)">0</div>
+      <div class="stat-label">FRESH (דילוג)</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-value" id="statScored" style="color:var(--cyan)">0</div>
+      <div class="stat-label">חושבו</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-value" id="statAI" style="color:var(--purple)">0</div>
+      <div class="stat-label">AI עמוק</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-value" id="statMatches" style="color:var(--green)">0</div>
+      <div class="stat-label">התאמות (65+)</div>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="content-grid">
+    <!-- Log Panel -->
+    <div class="panel">
+      <div class="panel-header">
+        <h3>📋 לוג תהליך</h3>
+        <span class="panel-badge" style="background:var(--accent2);color:var(--cyan)" id="logCount">0 רשומות</span>
+      </div>
+      <div class="panel-body" id="logPanel"></div>
+    </div>
+
+    <!-- Current User / Candidates -->
+    <div class="panel">
+      <div class="panel-header">
+        <h3>👤 יוזר נסרק + מועמדים</h3>
+        <span class="panel-badge" style="background:var(--accent2);color:var(--text2)" id="candidateCount"></span>
+      </div>
+      <div class="panel-body" id="candidatesPanel">
+        <div style="color:var(--text2);text-align:center;padding:40px;">
+          לחץ "הפעל סריקה" כדי להתחיל
+        </div>
+      </div>
+    </div>
+
+    <!-- Matches Found -->
+    <div class="panel panel-full">
+      <div class="panel-header">
+        <h3>💕 התאמות שנמצאו</h3>
+        <span class="panel-badge" style="background:rgba(0,200,83,0.15);color:var(--green)" id="matchCount">0</span>
+      </div>
+      <div class="panel-body" id="matchesPanel">
+        <div style="color:var(--text2);text-align:center;padding:30px;">
+          התאמות יופיעו כאן לאחר חישוב הציונים
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+// MOCK DATA
+// ═══════════════════════════════════════════════════════════════
+
+const MOCK_USERS = {
+  scanned: {
+    id: 'u_001', firstName: 'דוד', lastName: 'כהן', gender: 'MALE',
+    age: 28, city: 'ירושלים', religiousLevel: 'dati_leumi_standard',
+    occupation: 'מהנדס תוכנה', education: 'תואר ראשון',
+    preferredAgeMin: 23, preferredAgeMax: 30,
+    hasMetrics: false, hasVectors: false,
+    contentUpdatedAt: new Date('2025-01-28T10:00:00'),
+    metrics: {
+      socialEnergy: 65, careerOrientation: 72, religiousStrictness: 60,
+      spiritualDepth: 55, urbanScore: 85, emotionalExpression: 58,
+      socioEconomicLevel: 7, educationLevelScore: 3, jobSeniorityLevel: 2,
+      inferredPersonalityType: 'ANALYTICAL', inferredAttachmentStyle: 'SECURE',
+    }
+  },
+  candidates: [
+    {
+      id: 'u_101', firstName: 'שרה', lastName: 'לוי', gender: 'FEMALE',
+      age: 25, city: 'תל אביב', religiousLevel: 'dati_leumi_liberal',
+      occupation: 'עורכת דין', scannedPair: null, /* NEW */
+      sectorTags: ['dati_leumi_classic'],
+      contentUpdatedAt: new Date('2025-01-27T08:00:00'),
+      metrics: { socialEnergy: 70, careerOrientation: 80, religiousStrictness: 45, spiritualDepth: 40, urbanScore: 100 },
+    },
+    {
+      id: 'u_102', firstName: 'רחל', lastName: 'מזרחי', gender: 'FEMALE',
+      age: 26, city: 'ירושלים', religiousLevel: 'dati_leumi_standard',
+      occupation: 'מורה', scannedPair: { lastScannedAt: new Date('2025-01-20'), passedThreshold: true, femaleContentAt: new Date('2025-01-19') },
+      sectorTags: ['dati_leumi_classic'],
+      contentUpdatedAt: new Date('2025-01-19T12:00:00'), /* FRESH — no change */
+      metrics: { socialEnergy: 55, careerOrientation: 40, religiousStrictness: 65, spiritualDepth: 70, urbanScore: 85 },
+    },
+    {
+      id: 'u_103', firstName: 'נועה', lastName: 'ברק', gender: 'FEMALE',
+      age: 27, city: 'מודיעין', religiousLevel: 'dati_leumi_torani',
+      occupation: 'פסיכולוגית', scannedPair: { lastScannedAt: new Date('2025-01-15'), passedThreshold: false, femaleContentAt: new Date('2025-01-14') },
+      sectorTags: ['dati_leumi_torani'],
+      contentUpdatedAt: new Date('2025-01-25T16:00:00'), /* STALE — profile changed */
+      metrics: { socialEnergy: 45, careerOrientation: 55, religiousStrictness: 75, spiritualDepth: 80, urbanScore: 60 },
+    },
+    {
+      id: 'u_104', firstName: 'מיכל', lastName: 'אברהם', gender: 'FEMALE',
+      age: 24, city: 'רעננה', religiousLevel: 'masorti_strong',
+      occupation: 'סטודנטית', scannedPair: null, /* NEW */
+      sectorTags: ['masorti_strong'],
+      contentUpdatedAt: new Date('2025-01-26T09:00:00'),
+      metrics: { socialEnergy: 80, careerOrientation: 60, religiousStrictness: 30, spiritualDepth: 35, urbanScore: 70 },
+    },
+    {
+      id: 'u_105', firstName: 'הדר', lastName: 'שפירא', gender: 'FEMALE',
+      age: 29, city: 'חיפה', religiousLevel: 'dati_leumi_standard',
+      occupation: 'רופאה', scannedPair: null, /* NEW */
+      sectorTags: ['dati_leumi_classic'],
+      contentUpdatedAt: new Date('2025-01-27T14:00:00'),
+      metrics: { socialEnergy: 50, careerOrientation: 85, religiousStrictness: 58, spiritualDepth: 50, urbanScore: 80 },
+    },
+    {
+      id: 'u_106', firstName: 'תמר', lastName: 'גולדברג', gender: 'FEMALE',
+      age: 31, city: 'ירושלים', religiousLevel: 'secular',
+      occupation: 'אמנית', scannedPair: null, /* NEW — will fail religious */
+      sectorTags: ['hiloni'],
+      contentUpdatedAt: new Date('2025-01-26T11:00:00'),
+      metrics: { socialEnergy: 90, careerOrientation: 30, religiousStrictness: 5, spiritualDepth: 60, urbanScore: 85 },
+    },
+    {
+      id: 'u_107', firstName: 'יעל', lastName: 'פרידמן', gender: 'FEMALE',
+      age: 26, city: 'ירושלים', religiousLevel: 'dati_leumi_standard',
+      occupation: 'יועצת חינוכית', scannedPair: { lastScannedAt: new Date('2025-01-22'), passedThreshold: true, femaleContentAt: new Date('2025-01-21') },
+      sectorTags: ['dati_leumi_classic'],
+      contentUpdatedAt: new Date('2025-01-21T09:00:00'), /* FRESH */
+      metrics: { socialEnergy: 60, careerOrientation: 50, religiousStrictness: 62, spiritualDepth: 65, urbanScore: 85 },
+    },
+    {
+      id: 'u_108', firstName: 'אביגיל', lastName: 'דהן', gender: 'FEMALE',
+      age: 25, city: 'באר שבע', religiousLevel: 'dati_leumi_liberal',
+      occupation: 'מתכנתת', scannedPair: null, /* NEW */
+      sectorTags: ['dati_leumi_modern'],
+      contentUpdatedAt: new Date('2025-01-28T07:00:00'),
+      metrics: { socialEnergy: 40, careerOrientation: 75, religiousStrictness: 48, spiritualDepth: 42, urbanScore: 60 },
+    },
+  ]
+};
+
+// ═══════════════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════════════
+
+let demoState = {
+  running: false,
+  step: 0,
+  totalSteps: 22,
+  logEntries: [],
+  stats: { candidates: 0, newC: 0, stale: 0, fresh: 0, scored: 0, ai: 0, matches: 0 },
+  foundMatches: [],
+  categorizedCandidates: [],
+  autoMode: false,
+  cancelled: false,
+};
+
+function getSpeed() { return parseInt(document.getElementById('speedSelect').value); }
+
+// ═══════════════════════════════════════════════════════════════
+// UI HELPERS
+// ═══════════════════════════════════════════════════════════════
+
+function addLog(text, type = 'info', icon = '') {
+  const time = new Date().toLocaleTimeString('he-IL');
+  const el = document.createElement('div');
+  el.className = `log-entry ${type}`;
+  el.innerHTML = `${icon ? `<span class="log-icon">${icon}</span>` : ''}${text}<span class="log-time">${time}</span>`;
+  const panel = document.getElementById('logPanel');
+  panel.prepend(el);
+  demoState.logEntries.push({ text, type });
+  document.getElementById('logCount').textContent = `${demoState.logEntries.length} רשומות`;
+}
+
+function updateStats() {
+  const s = demoState.stats;
+  document.getElementById('statCandidates').textContent = s.candidates;
+  document.getElementById('statNew').textContent = s.newC;
+  document.getElementById('statStale').textContent = s.stale;
+  document.getElementById('statFresh').textContent = s.fresh;
+  document.getElementById('statScored').textContent = s.scored;
+  document.getElementById('statAI').textContent = s.ai;
+  document.getElementById('statMatches').textContent = s.matches;
+}
+
+function setProgress(pct, label) {
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('progressPercent').textContent = pct + '%';
+  if (label) document.getElementById('progressLabel').textContent = label;
+}
+
+function setPipelineStep(stepId) {
+  document.querySelectorAll('.pipeline-step').forEach(el => {
+    el.classList.remove('active');
+  });
+  const activeEl = document.getElementById(stepId);
+  if (activeEl) {
+    activeEl.classList.add('active');
+    // Mark all previous as done
+    let found = false;
+    document.querySelectorAll('.pipeline-step').forEach(el => {
+      if (el === activeEl) { found = true; return; }
+      if (!found) el.classList.add('done');
+    });
+  }
+}
+
+function renderUserCard(user, status = '', extra = '') {
+  const avatarClass = user.gender === 'MALE' ? 'male' : 'female';
+  const initial = user.firstName[0];
+  const statusHtml = status ? `<span class="user-status ${status}">${statusText(status)}</span>` : '';
+  return `
+    <div class="user-card ${status === 'status-new' || status === 'status-stale' ? 'highlight' : ''}">
+      <div class="user-avatar ${avatarClass}">${initial}</div>
+      <div class="user-info">
+        <div class="name">${user.firstName} ${user.lastName}</div>
+        <div class="details">${user.age} | ${user.city || '—'} | ${formatReligious(user.religiousLevel)} | ${user.occupation || '—'}</div>
+        ${extra}
+      </div>
+      ${statusHtml}
+    </div>`;
+}
+
+function statusText(cls) {
+  const map = {
+    'status-new': 'NEW', 'status-stale': 'STALE', 'status-fresh': 'FRESH',
+    'status-passed': '✓ עבר', 'status-failed': '✗ נפסל', 'status-skipped': 'דולג',
+  };
+  return map[cls] || '';
+}
+
+function formatReligious(level) {
+  const map = {
+    dati_leumi_standard: 'דתי לאומי',
+    dati_leumi_liberal: 'דתי ליברלי',
+    dati_leumi_torani: 'דתי תורני',
+    masorti_strong: 'מסורתי חזק',
+    secular: 'חילוני',
+  };
+  return map[level] || level || '—';
+}
+
+function renderMatchCard(match) {
+  const scoreClass = match.score >= 85 ? 'excellent' : match.score >= 70 ? 'good' : 'fair';
+  return `
+    <div class="match-card">
+      <div class="match-header">
+        <span class="match-names">💑 ${match.maleName} ↔ ${match.femaleName}</span>
+        <span class="match-score ${scoreClass}">${match.score}</span>
+      </div>
+      <div class="breakdown">
+        <div class="score-bar-wrap">
+          <div class="score-label"><span>ציון A→B: ${match.scoreAtoB}</span><span>ציון B→A: ${match.scoreBtoA}</span></div>
+          <div class="score-bar"><div class="score-bar-fill" style="width:${match.score}%;background:${match.score >= 85 ? 'var(--green)' : match.score >= 70 ? 'var(--blue)' : 'var(--yellow)'}"></div></div>
+        </div>
+      </div>
+      <div class="match-breakdown">
+        <div class="breakdown-item"><span class="label">מדדים: </span><span class="value">${match.metricsScore}</span></div>
+        <div class="breakdown-item"><span class="label">וקטורים: </span><span class="value">${match.vectorScore || '—'}</span></div>
+        <div class="breakdown-item"><span class="label">קנסות: </span><span class="value" style="color:var(--orange)">${match.penalties > 0 ? '-' + match.penalties : '0'}</span></div>
+        ${match.aiScore ? `<div class="breakdown-item"><span class="label">AI: </span><span class="value" style="color:var(--purple)">${match.aiScore}</span></div>` : ''}
+        <div class="breakdown-item"><span class="label">סימטרי: </span><span class="value" style="color:var(--cyan)">${match.symmetricScore}</span></div>
+        <div class="breakdown-item"><span class="label">סופי: </span><span class="value" style="font-size:1.1em">${match.score}</span></div>
+      </div>
+      ${match.reasoning ? `<div style="margin-top:8px;font-size:0.82em;color:var(--text2);border-top:1px solid var(--border);padding-top:6px;">${match.reasoning}</div>` : ''}
+    </div>`;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// SCORING SIMULATION
+// ═══════════════════════════════════════════════════════════════
+
+function simulateMetricsScore(userMetrics, candidateMetrics) {
+  const keys = ['socialEnergy','careerOrientation','religiousStrictness','spiritualDepth','urbanScore'];
+  let total = 0, count = 0;
+  for (const k of keys) {
+    if (userMetrics[k] !== undefined && candidateMetrics[k] !== undefined) {
+      const diff = Math.abs(userMetrics[k] - candidateMetrics[k]);
+      const compat = Math.max(0, 100 - diff * 1.5);
+      total += compat; count++;
+    }
+  }
+  return count > 0 ? Math.round(total / count) : 50;
+}
+
+function simulateVectorScore() {
+  return Math.round(50 + Math.random() * 40); // 50-90
+}
+
+function simulateSoftPenalties(user, candidate) {
+  let penalty = 0;
+  // Religious gap penalty
+  const relUser = user.metrics?.religiousStrictness || 50;
+  const relCand = candidate.metrics?.religiousStrictness || 50;
+  const relGap = Math.abs(relUser - relCand);
+  if (relGap > 30) penalty += Math.round((relGap - 30) * 0.3);
+  // Urban gap
+  const urbGap = Math.abs((user.metrics?.urbanScore || 50) - (candidate.metrics?.urbanScore || 50));
+  if (urbGap > 40) penalty += Math.round((urbGap - 40) * 0.2);
+  return penalty;
+}
+
+function simulateAIScore(metricsScore) {
+  return Math.min(100, Math.max(40, metricsScore + Math.round((Math.random() - 0.3) * 20)));
+}
+
+function getReligiousCompatibility(l1, l2) {
+  const matrix = {
+    dati_leumi_standard: { dati_leumi_standard: 100, dati_leumi_liberal: 70, dati_leumi_torani: 75, masorti_strong: 50, secular: 10 },
+  };
+  return matrix[l1]?.[l2] ?? 50;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// DEMO STEPS
+// ═══════════════════════════════════════════════════════════════
+
+const STEPS = [
+  // Step 0: Trigger
+  async function triggerStep() {
+    setPipelineStep('ps-trigger');
+    setProgress(2, 'שלב 0: טריגר');
+    addLog('שדכן לחץ "סרוק יוזר" בדשבורד', 'info', '🖱️');
+    await wait(300);
+    addLog(`יוזר נבחר לסריקה: <b>דוד כהן</b> (${MOCK_USERS.scanned.age}, ${MOCK_USERS.scanned.city})`, 'info', '👤');
+  },
+
+  // Step 1: Tier 0 — Check user readiness
+  async function tier0Check() {
+    setPipelineStep('ps-tier0');
+    setProgress(8, 'שלב 1: בדיקת מוכנות יוזר');
+    addLog('<b>═══ TIER 0: בדיקת מוכנות היוזר ═══</b>', 'info', '🔎');
+    await wait(200);
+    const u = MOCK_USERS.scanned;
+    addLog(`בודק האם קיימים metrics ל-${u.firstName}...`, 'info', '📊');
+    await wait(400);
+    addLog(`⚠️ אין metrics — צריך חילוץ!`, 'warning', '');
+    addLog(`בודק האם קיימים vectors...`, 'info', '🧮');
+    await wait(300);
+    addLog(`⚠️ אין vectors — צריך בנייה!`, 'warning', '');
+  },
+
+  // Step 2: Tier 0 — Extract Metrics
+  async function tier0Metrics() {
+    setProgress(12, 'שלב 1.1: חילוץ ProfileMetrics');
+    addLog('<b>שלב 1.1: חילוץ ProfileMetrics (metricsExtractionService)</b>', 'ai', '🤖');
+    await wait(300);
+    addLog('בונה narrative מפרופיל + שאלון + טביעת נשמה...', 'info', '📝');
+    await wait(500);
+    addLog('שולח ל-Gemini AI לניתוח (gemini-2.0-flash)...', 'ai', '🧠');
+    await wait(700);
+    const u = MOCK_USERS.scanned;
+    addLog(`AI חילץ ~30 מדדים: socialEnergy=${u.metrics.socialEnergy}, careerOrientation=${u.metrics.careerOrientation}, religiousStrictness=${u.metrics.religiousStrictness}...`, 'success', '✅');
+    await wait(200);
+    addLog(`AI הסיק: aiInferredDealBreakers=["חייבת להיות דתייה"], aiInferredMustHaves=["אקדמאית"]`, 'ai', '🏷️');
+    addLog(`AI סיכום: aiBackgroundSummary="מהנדס תוכנה דתי-לאומי מירושלים, אמביציוזי עם ערכים חזקים"`, 'ai', '📋');
+    addLog('נשמר ב-profile_metrics (DB) ✓', 'success', '💾');
+  },
+
+  // Step 3: Tier 0 — Build Vectors
+  async function tier0Vectors() {
+    setProgress(18, 'שלב 1.2: בניית Dual Vectors');
+    addLog('<b>שלב 1.2: בניית Dual Vectors (dualVectorService)</b>', 'ai', '🤖');
+    await wait(200);
+    addLog('בונה selfText: "מי אני" — פרטים בסיסיים + תיאור + ערכים + טביעת נשמה (8 קטגוריות)...', 'info', '📝');
+    await wait(300);
+    addLog('בונה seekingText: "מה אני מחפש" — deal-breakers + must-haves + partner tags...', 'info', '📝');
+    await wait(300);
+    addLog('שולח לGemini Embeddings (gemini-embedding-001)...', 'ai', '🧮');
+    await wait(600);
+    addLog('selfVector: 3072 ממדים ✓ | seekingVector: 3072 ממדים ✓', 'success', '✅');
+    addLog('נשמר ב-profile_vectors (DB) ✓', 'success', '💾');
+
+    // Show user card
+    const panel = document.getElementById('candidatesPanel');
+    panel.innerHTML = `
+      <div class="tier-header"><span class="tier-badge tier-0">TIER 0</span><span class="tier-title">היוזר הנסרק (מוכן!)</span></div>
+      ${renderUserCard(MOCK_USERS.scanned, 'status-passed', '<div style="font-size:0.78em;color:var(--green);margin-top:2px;">✅ Metrics + Vectors מוכנים</div>')}
+    `;
+  },
+
+  // Step 4: Tier 0.5 — Ensure candidates ready
+  async function tier05() {
+    setPipelineStep('ps-tier05');
+    setProgress(24, 'שלב 2: הכנת מועמדים');
+    addLog('<b>═══ TIER 0.5: הכנת מועמדים ═══</b>', 'info', '🔄');
+    await wait(200);
+    addLog('מחפש מועמדות (נקבות) שחסרים להן metrics/vectors או שעודכנו מאז...', 'info', '🔍');
+    await wait(400);
+
+    const needUpdate = MOCK_USERS.candidates.filter((_, i) => i % 3 === 0);
+    addLog(`נמצאו ${needUpdate.length} מועמדות שצריכות עדכון (מתוך ${MOCK_USERS.candidates.length})`, 'warning', '⚠️');
+
+    for (let i = 0; i < needUpdate.length; i++) {
+      const c = needUpdate[i];
+      await wait(300);
+      addLog(`מעדכן metrics+vectors ל-${c.firstName} ${c.lastName}...`, 'info', '🔧');
+      await wait(200);
+      addLog(`✓ ${c.firstName}: metrics + vectors עודכנו`, 'success', '');
+    }
+    addLog(`הכנת מועמדים הושלמה: ${needUpdate.length} עודכנו`, 'success', '✅');
+  },
+
+  // Step 5: Tier 1 — SQL Filter
+  async function tier1() {
+    setPipelineStep('ps-tier1');
+    setProgress(32, 'שלב 3: Tier 1 — סינון SQL');
+    addLog('<b>═══ TIER 1: סינון SQL חשיך ═══</b>', 'filter', '🔧');
+    await wait(200);
+
+    addLog('מסננים: מגדר הפוך ✓ | גיל בטווח ✓ | גיל הפוך ✓ | זמינות ✓ | נראות ✓', 'info', '📋');
+    addLog('מסננים: לא נדחה ב-PotentialMatch ✓ | לא נדחה ב-MatchSuggestion ✓', 'info', '📋');
+    addLog('LEFT JOIN ScannedPair — לשליפת היסטוריית סריקה...', 'info', '🔗');
+    await wait(400);
+
+    const total = MOCK_USERS.candidates.length;
+    // Simulate one being filtered by age
+    const passed = MOCK_USERS.candidates.filter(c => {
+      const u = MOCK_USERS.scanned;
+      if (c.age < u.preferredAgeMin || c.age > u.preferredAgeMax) return false;
+      // Religious compatibility check
+      const relScore = getReligiousCompatibility(u.religiousLevel, c.religiousLevel);
+      if (relScore <= 20) return false;
+      return true;
+    });
+
+    const filtered = total - passed.length;
+    demoState.stats.candidates = passed.length;
+    updateStats();
+
+    addLog(`שאילתת SQL: מתוך כל האוכלוסייה → <b>${passed.length}</b> מועמדות עברו (${filtered} נפסלו)`, 'success', '✅');
+    if (filtered > 0) {
+      const failedUsers = MOCK_USERS.candidates.filter(c => !passed.includes(c));
+      for (const f of failedUsers) {
+        const reason = f.age > MOCK_USERS.scanned.preferredAgeMax ? 'גיל מחוץ לטווח' :
+                       getReligiousCompatibility(MOCK_USERS.scanned.religiousLevel, f.religiousLevel) <= 20 ? 'חוסר תאימות דתית' : 'סינון אחר';
+        addLog(`✗ ${f.firstName} ${f.lastName} — נפסלה: ${reason}`, 'error', '');
+      }
+    }
+
+    demoState.categorizedCandidates = passed;
+  },
+
+  // Step 6: Categorize — NEW/STALE/FRESH
+  async function categorize() {
+    setPipelineStep('ps-categorize');
+    setProgress(40, 'שלב 4: קטגוריזציה');
+    addLog('<b>═══ שלב 4: קטגוריזציה — NEW / STALE / FRESH ═══</b>', 'info', '🏷️');
+    await wait(300);
+
+    const cats = demoState.categorizedCandidates.map(c => {
+      let category;
+      if (!c.scannedPair) {
+        category = 'NEW';
+        demoState.stats.newC++;
+      } else {
+        const candidateChanged = c.contentUpdatedAt > c.scannedPair.femaleContentAt;
+        if (!candidateChanged) {
+          category = 'FRESH';
+          demoState.stats.fresh++;
+        } else {
+          category = 'STALE';
+          demoState.stats.stale++;
+        }
+      }
+      return { ...c, category };
+    });
+
+    demoState.categorizedCandidates = cats;
+    updateStats();
+
+    // Render candidates
+    const panel = document.getElementById('candidatesPanel');
+    let html = `<div class="tier-header"><span class="tier-badge tier-0">TIER 0</span><span class="tier-title">היוזר הנסרק</span></div>`;
+    html += renderUserCard(MOCK_USERS.scanned, 'status-passed');
+    html += `<hr style="border-color:var(--border);margin:10px 0">`;
+    html += `<div class="category-chips">
+      <span class="chip chip-new">NEW: ${demoState.stats.newC}</span>
+      <span class="chip chip-stale">STALE: ${demoState.stats.stale}</span>
+      <span class="chip chip-fresh">FRESH: ${demoState.stats.fresh}</span>
+    </div>`;
+
+    for (const c of cats) {
+      const statusCls = c.category === 'NEW' ? 'status-new' : c.category === 'STALE' ? 'status-stale' : 'status-fresh';
+      const note = c.category === 'FRESH' ? (c.scannedPair.passedThreshold ? '(ציון קודם: עבר סף — נכלל מ-cache)' : '(ציון קודם: לא עבר — מושמט)') :
+                   c.category === 'STALE' ? '(פרופיל השתנה — חישוב מחדש)' :
+                   '(מעולם לא נסרק — חייב חישוב)';
+      html += renderUserCard(c, statusCls, `<div style="font-size:0.75em;color:var(--text2);margin-top:2px;">${note}</div>`);
+    }
+
+    panel.innerHTML = html;
+    document.getElementById('candidateCount').textContent = `${cats.length} מועמדות`;
+
+    for (const c of cats) {
+      await wait(150);
+      addLog(`${c.firstName}: <b>${c.category}</b> ${c.category === 'FRESH' ? '→ דילוג מחישוב' : '→ חייב חישוב'}`, c.category === 'FRESH' ? 'info' : 'warning', c.category === 'NEW' ? '🆕' : c.category === 'STALE' ? '🔄' : '⚡');
+    }
+  },
+
+  // Step 7: Tier 1.5 — Tag filter
+  async function tier15() {
+    setPipelineStep('ps-tier15');
+    setProgress(48, 'שלב 5: Tier 1.5 — פילטר תגים');
+    addLog('<b>═══ TIER 1.5: פילטר תגי טביעת נשמה ═══</b>', 'filter', '🏷️');
+    await wait(200);
+    addLog('בודק תאימות sector tags — בדיקה זולה (ללא AI)...', 'info', '⚡');
+    await wait(300);
+
+    const beforeCount = demoState.categorizedCandidates.length;
+    // Filter by sector — simulate filtering out mismatched sectors
+    demoState.categorizedCandidates = demoState.categorizedCandidates.filter(c => {
+      // dati_leumi user won't match hiloni sector
+      if (c.sectorTags.includes('hiloni')) {
+        addLog(`✗ ${c.firstName} — sector mismatch (${c.sectorTags[0]} ≠ dati_leumi)`, 'error', '🚫');
+        return false;
+      }
+      return true;
+    });
+    const afterCount = demoState.categorizedCandidates.length;
+    const removed = beforeCount - afterCount;
+
+    if (removed > 0) {
+      addLog(`Tier 1.5: סוננו ${removed} מועמדות (חוסר תאימות סקטוריאלית)`, 'filter', '');
+    }
+    addLog(`${afterCount} מועמדות ממשיכות לשלב הבא`, 'success', '✅');
+  },
+
+  // Steps 8-12: Tier 2-3 — Compatibility for each NEW/STALE candidate
+  async function tier23Start() {
+    setPipelineStep('ps-tier23');
+    setProgress(52, 'שלב 6: Tier 2-3 — חישוב תאימות');
+    addLog('<b>═══ TIER 2-3: חישוב תאימות (compatibilityServiceV2) ═══</b>', 'info', '🧮');
+    addLog('FRESH מועמדות — דילוג מלא (ציון קיים ב-cache)', 'info', '⚡');
+    addLog('מחשב עבור NEW + STALE בלבד...', 'info', '🔄');
+    await wait(300);
+  },
+
+  async function tier23Candidate1() {
+    const toScore = demoState.categorizedCandidates.filter(c => c.category !== 'FRESH');
+    if (toScore.length === 0) { addLog('אין מועמדים לחישוב', 'info', ''); return; }
+    const c = toScore[0];
+    await processCandidate(c, 55);
+  },
+  async function tier23Candidate2() {
+    const toScore = demoState.categorizedCandidates.filter(c => c.category !== 'FRESH');
+    if (toScore.length < 2) return;
+    await processCandidate(toScore[1], 60);
+  },
+  async function tier23Candidate3() {
+    const toScore = demoState.categorizedCandidates.filter(c => c.category !== 'FRESH');
+    if (toScore.length < 3) return;
+    await processCandidate(toScore[2], 65);
+  },
+  async function tier23Candidate4() {
+    const toScore = demoState.categorizedCandidates.filter(c => c.category !== 'FRESH');
+    if (toScore.length < 4) return;
+    await processCandidate(toScore[3], 70);
+  },
+  async function tier23Candidate5() {
+    const toScore = demoState.categorizedCandidates.filter(c => c.category !== 'FRESH');
+    if (toScore.length < 5) return;
+    await processCandidate(toScore[4], 75);
+  },
+
+  // Summary of Tier 2-3
+  async function tier23Summary() {
+    setProgress(72, 'Tier 2-3 סיכום');
+    const scored = demoState.stats.scored;
+    const passed = demoState.foundMatches.filter(m => m.symmetricScore >= 60).length;
+    addLog(`<b>Tier 2-3 סיכום:</b> ${scored} חושבו | ${passed} עברו סף 60+ → ממשיכים ל-AI`, 'success', '📊');
+  },
+
+  // Step: Tier 4 — AI Deep Analysis
+  async function tier4Start() {
+    setPipelineStep('ps-tier4');
+    setProgress(76, 'שלב 7: Tier 4 — AI Deep Analysis');
+    addLog('<b>═══ TIER 4: ניתוח AI עמוק ═══</b>', 'ai', '🧠');
+    addLog('שולח TOP 30 עם ציון ≥60 ל-Gemini לניתוח זוגי מעמיק...', 'ai', '🔬');
+    await wait(300);
+
+    const forAI = demoState.foundMatches.filter(m => m.symmetricScore >= 60);
+    for (const match of forAI) {
+      await wait(500);
+      const aiScore = simulateAIScore(match.symmetricScore);
+      match.aiScore = aiScore;
+      match.score = Math.round(match.symmetricScore * 0.6 + aiScore * 0.4);
+      match.reasoning = generateReasoning(match);
+      demoState.stats.ai++;
+      updateStats();
+
+      addLog(`🤖 AI ניתח ${match.femaleName} ↔ ${match.maleName}: aiScore=${aiScore} → finalScore=<b>${match.score}</b>`, 'ai', '');
+      addLog(`   💡 "${match.reasoning}"`, 'info', '');
+    }
+
+    // Non-AI matches keep their symmetric score
+    demoState.foundMatches.forEach(m => { if (!m.aiScore) m.score = m.symmetricScore; });
+  },
+
+  // Step: Save to DB
+  async function saveStep() {
+    setPipelineStep('ps-save');
+    setProgress(88, 'שלב 8: שמירה ל-DB');
+    addLog('<b>═══ שלב 8: שמירה ═══</b>', 'info', '💾');
+    await wait(200);
+
+    const toSave = demoState.foundMatches.filter(m => m.score >= 65);
+    demoState.stats.matches = toSave.length;
+    updateStats();
+
+    for (const m of toSave) {
+      await wait(200);
+      const action = m.isStale ? 'force-update (STALE)' : 'create (NEW)';
+      addLog(`PotentialMatch: ${m.maleName} ↔ ${m.femaleName} — score=${m.score} → ${action}`, 'success', '💾');
+    }
+
+    // ScannedPair upserts
+    addLog('ScannedPair: upsert לכל הזוגות שנסרקו (כולל נכשלים)...', 'info', '📝');
+    for (const c of demoState.categorizedCandidates) {
+      if (c.category === 'FRESH') continue;
+      await wait(100);
+      const m = demoState.foundMatches.find(mm => mm.candidateId === c.id);
+      const passed = m ? m.score >= 65 : false;
+      addLog(`  ScannedPair: דוד ↔ ${c.firstName} — passedThreshold=${passed}, snapshot contentUpdatedAt`, 'info', '');
+    }
+
+    // FRESH pairs — bump lastScannedAt
+    const freshPassed = demoState.categorizedCandidates.filter(c => c.category === 'FRESH' && c.scannedPair?.passedThreshold);
+    if (freshPassed.length > 0) {
+      addLog(`FRESH passed: ${freshPassed.length} זוגות — עדכון lastScannedAt בלבד`, 'info', '⚡');
+    }
+
+    addLog(`Profile.lastScannedAt = now ✓`, 'success', '');
+  },
+
+  // Step: Complete
+  async function completeStep() {
+    setProgress(100, '✅ הסריקה הושלמה!');
+    document.querySelectorAll('.pipeline-step').forEach(el => el.classList.add('done'));
+
+    addLog('<b>═══════════════════════════════</b>', 'success', '');
+    addLog(`<b>✅ סריקה הושלמה!</b>`, 'success', '🎉');
+    addLog(`מועמדים Tier 1: ${demoState.stats.candidates}`, 'info', '');
+    addLog(`NEW: ${demoState.stats.newC} | STALE: ${demoState.stats.stale} | FRESH: ${demoState.stats.fresh}`, 'info', '');
+    addLog(`חושבו: ${demoState.stats.scored} | AI עמוק: ${demoState.stats.ai}`, 'info', '');
+    addLog(`<b>התאמות שנשמרו (65+): ${demoState.stats.matches}</b>`, 'success', '💕');
+    addLog(`הסריקה הבאה תדלג על זוגות שלא השתנו (FRESH)`, 'info', '💡');
+
+    // Render final matches
+    const panel = document.getElementById('matchesPanel');
+    const sorted = [...demoState.foundMatches].sort((a, b) => b.score - a.score);
+    panel.innerHTML = sorted.map(renderMatchCard).join('');
+    document.getElementById('matchCount').textContent = demoState.stats.matches;
+
+    demoState.running = false;
+    document.getElementById('btnStart').disabled = false;
+    document.getElementById('btnStep').disabled = true;
+  },
+];
+
+async function processCandidate(c, baseScore) {
+  const u = MOCK_USERS.scanned;
+  addLog(`── חישוב: דוד ↔ <b>${c.firstName}</b> (${c.category}) ──`, 'info', '🔄');
+  await wait(200);
+
+  // 1. Hard deal-breakers
+  addLog(`  1. Deal Breakers: תאימות דתית (מטריצה 15×15)...`, 'info', '');
+  const relScore = getReligiousCompatibility(u.religiousLevel, c.religiousLevel);
+  await wait(150);
+  if (relScore <= 20) {
+    addLog(`  ✗ נפסל — חוסר תאימות דתית (${relScore}/100)`, 'error', '🚫');
+    return;
+  }
+  addLog(`  ✓ Deal Breakers עברו (דת: ${relScore}/100)`, 'success', '');
+
+  // 2. Metrics
+  const metricsScore = simulateMetricsScore(u.metrics, c.metrics);
+  await wait(150);
+  addLog(`  2. MetricsCompatibility: ${metricsScore}/100 (weight×confidence×score)`, 'info', '📊');
+
+  // 3. Vectors
+  const vectorScore = simulateVectorScore();
+  await wait(150);
+  addLog(`  3. Vector Similarity (cosine): seekingVector⟷selfVector = ${vectorScore}/100`, 'info', '🧮');
+
+  // 4. Soft Penalties
+  const penalties = simulateSoftPenalties(u, c);
+  await wait(100);
+  if (penalties > 0) {
+    addLog(`  4. Soft Penalties: -${penalties} (פער דתי/עירוני/שפה)`, 'warning', '⚠️');
+  } else {
+    addLog(`  4. Soft Penalties: 0`, 'info', '');
+  }
+
+  // 5. Symmetric
+  const scoreAtoB = Math.round(metricsScore * 0.7 + vectorScore * 0.3 - penalties);
+  const scoreBtoA = Math.round(scoreAtoB + (Math.random() - 0.5) * 10);
+  const symmetricScore = Math.min(scoreAtoB, scoreBtoA);
+
+  addLog(`  5. ציונים: A→B=${scoreAtoB} | B→A=${scoreBtoA} | <b>סימטרי=${symmetricScore}</b>`, symmetricScore >= 65 ? 'success' : 'info', symmetricScore >= 65 ? '✅' : '');
+
+  demoState.stats.scored++;
+  updateStats();
+
+  demoState.foundMatches.push({
+    candidateId: c.id,
+    maleName: 'דוד כהן',
+    femaleName: `${c.firstName} ${c.lastName}`,
+    metricsScore,
+    vectorScore,
+    penalties,
+    scoreAtoB, scoreBtoA, symmetricScore,
+    score: symmetricScore,
+    aiScore: null,
+    reasoning: '',
+    isStale: c.category === 'STALE',
+  });
+}
+
+function generateReasoning(match) {
+  const templates = [
+    `שניהם שאפתניים עם ערכים דתיים-לאומיים משותפים. פוטנציאל גבוה.`,
+    `התאמה טובה ברמת הערכים, פער קל בגישה לקריירה. מומלץ להציע.`,
+    `חפיפה רבה באורח חיים ותפיסת עולם. כימיה אפשרית.`,
+    `רקע דומה ומטרות חיים תואמות. כדאי לבדוק את הדינמיקה האישית.`,
+    `שניהם עם ביסוס אקדמי ורוחני. התאמה אפשרית עם הבנה הדדית.`,
+  ];
+  return templates[Math.floor(Math.random() * templates.length)];
+}
+
+// ═══════════════════════════════════════════════════════════════
+// DEMO CONTROL
+// ═══════════════════════════════════════════════════════════════
+
+function wait(ms) {
+  return new Promise(r => setTimeout(r, ms * getSpeed() / 1000));
+}
+
+async function startFullDemo() {
+  if (demoState.running) return;
+  resetDemo();
+  demoState.running = true;
+  demoState.autoMode = true;
+  document.getElementById('btnStart').disabled = true;
+  document.getElementById('btnStep').disabled = true;
+
+  for (let i = 0; i < STEPS.length; i++) {
+    if (demoState.cancelled) break;
+    demoState.step = i;
+    await STEPS[i]();
+    if (i < STEPS.length - 1) await wait(400);
+  }
+}
+
+async function stepDemo() {
+  if (demoState.step >= STEPS.length) return;
+  document.getElementById('btnStep').disabled = true;
+  await STEPS[demoState.step]();
+  demoState.step++;
+  if (demoState.step < STEPS.length) {
+    document.getElementById('btnStep').disabled = false;
+  }
+}
+
+function resetDemo() {
+  demoState = {
+    running: false, step: 0, totalSteps: STEPS.length,
+    logEntries: [], stats: { candidates: 0, newC: 0, stale: 0, fresh: 0, scored: 0, ai: 0, matches: 0 },
+    foundMatches: [], categorizedCandidates: [], autoMode: false, cancelled: false,
+  };
+  document.getElementById('logPanel').innerHTML = '';
+  document.getElementById('candidatesPanel').innerHTML = '<div style="color:var(--text2);text-align:center;padding:40px;">לחץ "הפעל סריקה" או "שלב הבא" כדי להתחיל</div>';
+  document.getElementById('matchesPanel').innerHTML = '<div style="color:var(--text2);text-align:center;padding:30px;">התאמות יופיעו כאן</div>';
+  document.querySelectorAll('.pipeline-step').forEach(el => { el.classList.remove('active', 'done'); });
+  setProgress(0, 'ממתין להפעלה...');
+  updateStats();
+  document.getElementById('logCount').textContent = '0 רשומות';
+  document.getElementById('matchCount').textContent = '0';
+  document.getElementById('candidateCount').textContent = '';
+  document.getElementById('btnStart').disabled = false;
+  document.getElementById('btnStep').disabled = false;
+}
+</script>
+</body>
+</html>

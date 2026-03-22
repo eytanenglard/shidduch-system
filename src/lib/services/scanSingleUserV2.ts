@@ -228,31 +228,41 @@ export async function scanSingleUserV2(
   const metricsExist = await checkMetricsExist(profile.id);
   const vectorsExist = await checkVectorsExist(profile.id);
 
-  // 🆕 בדיקת Staleness: האם הפרופיל/שאלון עודכנו מאז שהוקטורים חושבו?
+  // בדיקת Staleness: האם הפרופיל/שאלון/טביעת נשמה עודכנו מאז שהוקטורים חושבו?
   let isStale = false;
   if (metricsExist && vectorsExist && !forceUpdateMetrics) {
-    const stalenessData = await prisma.$queryRaw<{ vectorsUpdatedAt: Date | null; questionnaireUpdatedAt: Date | null; profileUpdatedAt: Date }[]>`
+    const stalenessData = await prisma.$queryRaw<{
+      vectorsUpdatedAt: Date | null;
+      questionnaireUpdatedAt: Date | null;
+      profileUpdatedAt: Date;
+      tagsUpdatedAt: Date | null;
+    }[]>`
       SELECT
-        pv."updatedAt" as "vectorsUpdatedAt",
-        qr."updatedAt" as "questionnaireUpdatedAt",
-        p."updatedAt" as "profileUpdatedAt"
+        pv."updatedAt"  as "vectorsUpdatedAt",
+        qr."updatedAt"  as "questionnaireUpdatedAt",
+        p."updatedAt"   as "profileUpdatedAt",
+        pt."updatedAt"  as "tagsUpdatedAt"
       FROM "Profile" p
-      LEFT JOIN "profile_vectors" pv ON pv."profileId" = p.id
+      LEFT JOIN "profile_vectors"       pv ON pv."profileId" = p.id
       LEFT JOIN "QuestionnaireResponse" qr ON qr."profileId" = p.id
+      LEFT JOIN "ProfileTags"           pt ON pt."profileId" = p.id
       WHERE p.id = ${profile.id}
       LIMIT 1
     `;
     if (stalenessData.length > 0) {
-      const { vectorsUpdatedAt, questionnaireUpdatedAt, profileUpdatedAt } = stalenessData[0];
+      const { vectorsUpdatedAt, questionnaireUpdatedAt, profileUpdatedAt, tagsUpdatedAt } = stalenessData[0];
       if (vectorsUpdatedAt) {
         const vectorsTime = new Date(vectorsUpdatedAt).getTime();
         const profileTime = new Date(profileUpdatedAt).getTime();
         const questionnaireTime = questionnaireUpdatedAt ? new Date(questionnaireUpdatedAt).getTime() : 0;
-        const latestDataTime = Math.max(profileTime, questionnaireTime);
-        // Stale if profile or questionnaire was updated more than 1 hour after vectors were built
+        const tagsTime = tagsUpdatedAt ? new Date(tagsUpdatedAt).getTime() : 0;
+        const latestDataTime = Math.max(profileTime, questionnaireTime, tagsTime);
+        // Stale if any data source was updated more than 1 hour after vectors were built
         if (latestDataTime > vectorsTime + 60 * 60 * 1000) {
           isStale = true;
-          const staleSource = questionnaireTime > profileTime ? 'questionnaire' : 'profile';
+          const staleSource = tagsTime >= profileTime && tagsTime >= questionnaireTime
+            ? 'soul fingerprint tags'
+            : questionnaireTime > profileTime ? 'questionnaire' : 'profile';
           console.log(`[ScanV2] ⚠️ Vectors are stale (${staleSource} updated ${Math.round((latestDataTime - vectorsTime) / 60000)}m after vectors) — will refresh`);
         }
       }
@@ -790,9 +800,9 @@ async function ensureCandidatesReady(
   oppositeGender: Gender,
   maxToUpdate: number = 30
 ): Promise<{ updated: number; failed: number }> {
-  
-  // 🆕 גם מועמדים חסרים גם מועמדים עם נתונים ישנים (פרופיל/שאלון עודכנו מאז הוקטורים)
+
   const STALE_THRESHOLD_HOURS = 2;
+  // כולל בדיקת ProfileTags (טביעת נשמה) — אם עודכן מאז הוקטורים → stale
   const candidatesNeedingUpdate = await prisma.$queryRaw<{ profileId: string; firstName: string; reason: string }[]>`
     SELECT
       p.id as "profileId",
@@ -800,16 +810,20 @@ async function ensureCandidatesReady(
       CASE
         WHEN pm.id IS NULL OR pv.id IS NULL OR pv."selfVector" IS NULL OR pv."seekingVector" IS NULL
           THEN 'missing'
-        WHEN GREATEST(p."updatedAt", COALESCE(qr."updatedAt", p."updatedAt"))
-             > pv."updatedAt" + INTERVAL '${STALE_THRESHOLD_HOURS} hours'
+        WHEN GREATEST(
+               p."updatedAt",
+               COALESCE(qr."updatedAt", p."updatedAt"),
+               COALESCE(pt."updatedAt", p."updatedAt")
+             ) > pv."updatedAt" + INTERVAL '${STALE_THRESHOLD_HOURS} hours'
           THEN 'stale'
         ELSE 'ok'
       END as reason
     FROM "Profile" p
     JOIN "User" u ON u.id = p."userId"
-    LEFT JOIN "profile_metrics" pm ON pm."profileId" = p.id
-    LEFT JOIN "profile_vectors" pv ON pv."profileId" = p.id
+    LEFT JOIN "profile_metrics"       pm ON pm."profileId" = p.id
+    LEFT JOIN "profile_vectors"       pv ON pv."profileId" = p.id
     LEFT JOIN "QuestionnaireResponse" qr ON qr."profileId" = p.id
+    LEFT JOIN "ProfileTags"           pt ON pt."profileId" = p.id
     WHERE
       p.gender = ${oppositeGender}::"Gender"
       AND p."availabilityStatus" = 'AVAILABLE'::"AvailabilityStatus"
@@ -819,8 +833,11 @@ async function ensureCandidatesReady(
         OR pv.id IS NULL
         OR pv."selfVector" IS NULL
         OR pv."seekingVector" IS NULL
-        OR GREATEST(p."updatedAt", COALESCE(qr."updatedAt", p."updatedAt"))
-           > pv."updatedAt" + INTERVAL '${STALE_THRESHOLD_HOURS} hours'
+        OR GREATEST(
+             p."updatedAt",
+             COALESCE(qr."updatedAt", p."updatedAt"),
+             COALESCE(pt."updatedAt", p."updatedAt")
+           ) > pv."updatedAt" + INTERVAL '${STALE_THRESHOLD_HOURS} hours'
       )
     ORDER BY p."updatedAt" DESC
     LIMIT ${maxToUpdate}
