@@ -15,6 +15,7 @@ import {
   ReligiousJourney,
   Profile,
 } from "@prisma/client";
+import { updateProfileVectorsAndMetrics } from '@/lib/services/dualVectorService';
 import type { UserProfile } from "@/types/next-auth";
 
 // --- Helpers ---
@@ -351,7 +352,12 @@ export async function PUT(req: NextRequest) {
           data: dataToUpdate,
         });
         console.log("✅ [Update Profile] Database update successful.");
-    
+
+        // Fire-and-forget: rebuild vectors + metrics after profile change
+        updateProfileVectorsAndMetrics(updatedProfileRecord.id).catch(err => {
+          console.error('[Update Profile] Background AI update failed:', err);
+        });
+
       } catch (dbError) {
         console.error('❌ [Update Profile] Prisma update error:', dbError);
         if (dbError instanceof Prisma.PrismaClientKnownRequestError && dbError.code === 'P2025') {

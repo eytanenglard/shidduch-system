@@ -78,6 +78,7 @@ export async function POST(
       stats: result.stats,
       summary,
       matches: result.matches,
+      freshPassedCandidates: result.freshPassedCandidates ?? [],
       errors: result.errors,
       warnings: result.warnings,
     });

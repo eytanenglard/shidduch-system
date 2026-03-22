@@ -765,6 +765,20 @@ export async function updateProfileVectorsAndMetrics(profileId: string): Promise
     await saveProfileMetrics(profileId, metricsOutput);
     metricsUpdated = true;
     console.log(`[UpdateProfile] Metrics saved. Confidence: ${metricsOutput.overallConfidence}%`);
+
+    // Sync AI summaries → profile.aiProfileSummary so vector generation picks them up immediately
+    const { aiPersonalitySummary, aiSeekingSummary } = metricsOutput.metrics as any;
+    if (aiPersonalitySummary || aiSeekingSummary) {
+      await prisma.profile.update({
+        where: { id: profileId },
+        data: {
+          aiProfileSummary: {
+            personalitySummary: aiPersonalitySummary ?? null,
+            lookingForSummary: aiSeekingSummary ?? null,
+          },
+        },
+      });
+    }
   } catch (error) {
     console.error(`[UpdateProfile] Metrics extraction failed:`, error);
     errors.push(`Metrics extraction failed: ${error}`);

@@ -1,84 +1,11 @@
 import { NextResponse, NextRequest } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import prisma from '@/lib/prisma';
 import { UserRole } from '@prisma/client';
-import { updateProfileVectorsAndMetrics } from '@/lib/services/dualVectorService';
+import { findAllStaleProfiles, runRebuild } from '@/lib/services/vectorRebuildService';
 
 export const maxDuration = 300;
 export const dynamic = 'force-dynamic';
-
-/**
- * מוצא את כל הפרופילים שהוקטורים שלהם ישנים לפי אחד מהתנאים:
- *  1. אין metrics / vectors כלל
- *  2. פרופיל / שאלון / טביעת נשמה (ProfileTags) עודכנו אחרי בניית הוקטורים
- *
- * ללא הגבלת מספר — מיועד להרצה חד-פעמית אחרי שינויים גדולים במערכת.
- */
-async function findAllStaleProfiles(): Promise<{ profileId: string; userId: string; email: string; reason: string }[]> {
-  return prisma.$queryRaw<{ profileId: string; userId: string; email: string; reason: string }[]>`
-    SELECT
-      p.id           as "profileId",
-      u.id           as "userId",
-      u.email        as "email",
-      CASE
-        WHEN pm.id IS NULL OR pv.id IS NULL OR pv."selfVector" IS NULL OR pv."seekingVector" IS NULL
-          THEN 'missing'
-        WHEN GREATEST(
-               p."updatedAt",
-               COALESCE(qr."updatedAt", p."updatedAt"),
-               COALESCE(pt."updatedAt", p."updatedAt")
-             ) > pv."updatedAt" + INTERVAL '2 hours'
-          THEN 'stale'
-        ELSE 'ok'
-      END as reason
-    FROM "Profile" p
-    JOIN "User" u ON u.id = p."userId"
-    LEFT JOIN "profile_metrics"       pm ON pm."profileId" = p.id
-    LEFT JOIN "profile_vectors"       pv ON pv."profileId" = p.id
-    LEFT JOIN "QuestionnaireResponse" qr ON qr."profileId" = p.id
-    LEFT JOIN "ProfileTags"           pt ON pt."profileId" = p.id
-    WHERE
-      u.role = 'CANDIDATE'
-      AND p."availabilityStatus" = 'AVAILABLE'
-      AND (p."isProfileVisible" = true OR p."isProfileVisible" IS NULL)
-      AND (
-        pm.id IS NULL
-        OR pv.id IS NULL
-        OR pv."selfVector" IS NULL
-        OR pv."seekingVector" IS NULL
-        OR GREATEST(
-             p."updatedAt",
-             COALESCE(qr."updatedAt", p."updatedAt"),
-             COALESCE(pt."updatedAt", p."updatedAt")
-           ) > pv."updatedAt" + INTERVAL '2 hours'
-      )
-    ORDER BY p."updatedAt" DESC
-  `;
-}
-
-async function runRebuild(profiles: { profileId: string; userId: string; email: string; reason: string }[]) {
-  console.log(`\n🚀 [RebuildVectors] Starting rebuild for ${profiles.length} profiles...`);
-
-  let success = 0;
-  let failed = 0;
-
-  for (const p of profiles) {
-    try {
-      await updateProfileVectorsAndMetrics(p.profileId);
-      success++;
-      console.log(`✅ [RebuildVectors] ${p.email} (${p.reason}) — ${success}/${profiles.length}`);
-      // קצת השהייה כדי לא להציף את Gemini API
-      await new Promise(resolve => setTimeout(resolve, 300));
-    } catch (err) {
-      failed++;
-      console.error(`❌ [RebuildVectors] Failed for ${p.email}:`, err);
-    }
-  }
-
-  console.log(`\n🏁 [RebuildVectors] Done. ✅ ${success} updated, ❌ ${failed} failed`);
-  return { success, failed };
-}
 
 export async function POST(req: NextRequest) {
   try {

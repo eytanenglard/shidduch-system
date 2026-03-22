@@ -23,6 +23,7 @@ import {
   corsError,
   corsOptions,
 } from "@/lib/mobile-auth";
+import { updateProfileVectorsAndMetrics } from '@/lib/services/dualVectorService';
 
 // --- Helpers (same as web route) ---
 
@@ -473,6 +474,11 @@ if (body.birthDate !== undefined) {
     }
 
     console.log(`[mobile/profile] Profile updated successfully for user ${userId}`);
+
+    // Fire-and-forget: rebuild vectors + metrics after profile change
+    updateProfileVectorsAndMetrics(updatedProfile.id).catch(err => {
+      console.error('[mobile/profile] Background AI update failed:', err);
+    });
 
     return corsJson(req, {
       success: true,

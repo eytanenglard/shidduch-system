@@ -30,13 +30,13 @@ if [ -z "$CRON_SECRET" ]; then
 fi
 
 # הפעלת הסריקה
-echo "🚀 Starting batch scan..."
+echo "🚀 Starting hybrid batch scan..."
 
 RESPONSE=$(curl -s -w "\n%{http_code}" \
     -X POST "${APP_URL}/api/ai/batch-scan-all" \
     -H "Content-Type: application/json" \
     -H "x-cron-secret: ${CRON_SECRET}" \
-    -d '{"method": "algorithmic", "minScoreThreshold": 70}')
+    -d '{"method": "hybrid", "minScoreThreshold": 65}')
 
 # פיצול התגובה לגוף וקוד סטטוס
 HTTP_BODY=$(echo "$RESPONSE" | head -n -1)
