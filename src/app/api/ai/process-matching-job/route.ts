@@ -15,6 +15,7 @@ import { findMatchesForUser } from "@/lib/services/matchingAlgorithmService";
 import { findMatchesWithVector } from "@/lib/services/vectorMatchingService";
 // 🆕 ייבוא השירות החדש
 import { scanSingleUserV2, saveScanResults } from '@/lib/services/scanSingleUserV2';
+import { hybridScan } from '@/lib/services/hybridMatchingService';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 300; // 5 דקות
@@ -250,6 +251,102 @@ const matches = scanResult.matches.map((m, index) => {
           data: {
             status: 'failed',
             error: String(error),
+            completedAt: new Date(),
+          },
+        });
+        return;
+      }
+    }
+
+    // ==========================================================
+    // 🆕 V3: Hybrid Scan (Soul Fingerprint-Driven)
+    // ==========================================================
+    if (method === 'hybrid') {
+      console.log('[ProcessJob] 🔥 Running Hybrid V3 scan');
+
+      await onProgress(10, 'מפעיל סריקה היברידית V3...');
+
+      try {
+        const scanResult = await hybridScan(targetUserId, {
+          maxTier1Candidates: 300,
+          maxTier2Candidates: 50,
+          maxTier3Candidates: 20,
+          topForDeepAnalysis: 15,
+          useVectors: true,
+          useBackgroundAnalysis: true,
+          useAIFirstPass: true,
+          useAIDeepAnalysis: true,
+          minScoreToSave: 65,
+        });
+
+        await onProgress(90, `נמצאו ${scanResult.matches.length} התאמות, מעבד...`);
+
+        // Map to frontend AiMatch format
+        const matches = scanResult.matches.map((m, index) => ({
+          userId: m.userId,
+          firstName: m.firstName,
+          lastName: m.lastName,
+          score: m.finalScore,
+          finalScore: m.finalScore,
+          firstPassScore: m.tier3Score || m.tier2Score,
+          rank: m.rank || index + 1,
+          reasoning: m.detailedReasoning || '',
+          shortReasoning: m.detailedReasoning?.slice(0, 200) || '',
+          detailedReasoning: m.detailedReasoning || '',
+          strengths: m.strengths || [],
+          concerns: m.concerns || [],
+          scoreAtoB: m.scoreAtoB,
+          scoreBtoA: m.scoreBtoA,
+          reasoningAtoB: m.reasoningAtoB,
+          reasoningBtoA: m.reasoningBtoA,
+          scoreBreakdown: {
+            religious: Math.round((m.tier2Score || 70) * 0.25),
+            ageCompatibility: 8,
+            careerFamily: Math.round((m.tier2Score || 70) * 0.15),
+            lifestyle: Math.round((m.tier2Score || 70) * 0.10),
+            socioEconomic: 5,
+            education: 5,
+            background: 5,
+            values: Math.round((m.tier2Score || 70) * 0.10),
+          },
+        }));
+
+        await prisma.matchingJob.update({
+          where: { id: jobId },
+          data: {
+            status: 'completed',
+            progress: 100,
+            progressMessage: `הושלם! נמצאו ${matches.length} התאמות (היברידי V3)`,
+            result: {
+              matches,
+              meta: {
+                algorithmVersion: 'hybrid-v3',
+                totalCandidatesScanned: scanResult.stats.totalCandidatesScanned,
+                passedFilters: scanResult.stats.passedFilters,
+                aiAnalyzed: scanResult.stats.aiAnalyzed,
+                deepAnalyzed: scanResult.stats.deepAnalyzed,
+                savedToDb: scanResult.stats.savedToDb,
+                durationMs: scanResult.durationMs,
+                tagFilteredOut: scanResult.stats.tagFilteredOut,
+              },
+            },
+            matchesFound: matches.length,
+            totalCandidates: scanResult.stats.totalCandidatesScanned,
+            completedAt: new Date(),
+          },
+        });
+
+        console.log(`[ProcessJob] ✅ Hybrid V3 completed: ${matches.length} matches in ${(scanResult.durationMs / 1000).toFixed(1)}s`);
+        return;
+
+      } catch (error) {
+        console.error('[ProcessJob] ❌ Hybrid V3 failed:', error);
+        await prisma.matchingJob.update({
+          where: { id: jobId },
+          data: {
+            status: 'failed',
+            error: String(error),
+            progressMessage: 'שגיאה בסריקה היברידית',
             completedAt: new Date(),
           },
         });

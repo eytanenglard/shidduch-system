@@ -11,6 +11,40 @@ import { authOptions } from "@/lib/auth";
 import { UserRole } from "@prisma/client";
 import { SuggestionService } from "@/components/matchmaker/suggestions/services/suggestions/SuggestionService";
 
+export async function GET(
+  req: NextRequest,
+  props: { params: Promise<{ id: string }> }
+) {
+  try {
+    const session = await getServerSession(authOptions);
+
+    if (!session?.user) {
+      return NextResponse.json(
+        { success: false, error: "Unauthorized" },
+        { status: 401 }
+      );
+    }
+
+    if (session.user.role !== UserRole.MATCHMAKER && session.user.role !== UserRole.ADMIN) {
+      return NextResponse.json(
+        { success: false, error: "Insufficient permissions" },
+        { status: 403 }
+      );
+    }
+
+    const params = await props.params;
+    const suggestionService = SuggestionService.getInstance();
+    const suggestion = await suggestionService.getSuggestionDetails(params.id, session.user.id);
+
+    return NextResponse.json(suggestion);
+  } catch (error: unknown) {
+    console.error("Error fetching suggestion:", error);
+    const message = error instanceof Error ? error.message : "Failed to fetch suggestion";
+    const status = message.includes("not found") ? 404 : message.includes("Unauthorized") ? 403 : 500;
+    return NextResponse.json({ success: false, error: message }, { status });
+  }
+}
+
 export async function PATCH(
   req: NextRequest,
   props: { params: Promise<{ id: string }> }
