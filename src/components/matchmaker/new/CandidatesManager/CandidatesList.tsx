@@ -7,7 +7,7 @@ import React, {
   useRef,
   useMemo,
 } from 'react';
-import { UserX, Edit, X } from 'lucide-react';
+import { UserX, Edit, X, ChevronsDownUp, ChevronsUpDown } from 'lucide-react';
 import MinimalCard from '../CandidateCard/MinimalCard';
 import QuickView from '../CandidateCard/QuickView';
 import { ProfileCard } from '@/components/profile';
@@ -172,6 +172,7 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
   );
 
   const [isMobile, setIsMobile] = useState(false);
+  const [isCompact, setIsCompact] = useState(true);
 
   // ============================================================================
   // שינוי 1: הוסף visibleCount state + logic
@@ -554,6 +555,22 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
 
   return (
     <>
+      {/* Compact / Expanded toggle — only on desktop grid */}
+      {!isMobile && viewMode === 'grid' && (
+        <div className="flex justify-end mb-2">
+          <button
+            onClick={() => setIsCompact((v) => !v)}
+            className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-gray-700 bg-white border border-gray-200 hover:border-gray-300 px-2.5 py-1 rounded-lg transition-all"
+            title={isCompact ? 'הצג פרטים נוספים' : 'הצג פחות פרטים'}
+          >
+            {isCompact
+              ? <><ChevronsUpDown className="w-3.5 h-3.5" /> תצוגה מורחבת</>
+              : <><ChevronsDownUp className="w-3.5 h-3.5" /> תצוגה מצומצמת</>
+            }
+          </button>
+        </div>
+      )}
+
       <div ref={containerRef} className={cn(gridLayoutClass, className || '')}>
         {/* ============================================================================ */}
         {/* שינוי 2: שנה candidates.map → visibleCandidates.map */}
@@ -605,6 +622,7 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
               isSelectedForComparison={!!comparisonSelection[candidate.id]}
               onToggleComparison={onToggleComparison}
               existingSuggestion={existingSuggestions[candidate.id] ?? null}
+              isCompact={isCompact}
               dict={dict.candidatesManager.list.minimalCard}
             />
             <button

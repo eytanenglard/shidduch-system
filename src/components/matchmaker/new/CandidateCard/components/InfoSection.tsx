@@ -1,4 +1,4 @@
-// InfoSection.tsx — Structured data rows (city, religion, marital, occupation, height, languages)
+// InfoSection.tsx — Structured data rows (city, religion, marital, occupation, + extended fields)
 
 import React from 'react';
 import {
@@ -8,7 +8,9 @@ import {
   Briefcase,
   GraduationCap,
   Ruler,
-  Languages,
+  Shield,
+  Wind,
+  UserCheck,
 } from 'lucide-react';
 import { getReligiousLabel, highlightText } from '../MinimalCard.utils';
 import type { CandidateWithAiData, MinimalCardDict } from '../MinimalCard.types';
@@ -18,15 +20,37 @@ interface InfoSectionProps {
   isManualEntry: boolean;
   maritalLabel: string | null;
   spokenLanguages: string;
+  serviceTypeLabel: string | null;
+  headCoveringLabel: string | null;
+  smokingLabel: string | null;
+  bodyTypeLabel: string | null;
+  isCompact: boolean;
   term: string;
   dict: MinimalCardDict;
 }
+
+const Row: React.FC<{
+  icon: React.ReactNode;
+  children: React.ReactNode;
+}> = ({ icon, children }) => (
+  <div className="flex items-center justify-end gap-2 text-[13px]">
+    <span className="text-gray-700 truncate">{children}</span>
+    <span className="flex-shrink-0 w-3.5 h-3.5 flex items-center justify-center">
+      {icon}
+    </span>
+  </div>
+);
 
 const InfoSection: React.FC<InfoSectionProps> = ({
   candidate,
   isManualEntry,
   maritalLabel,
   spokenLanguages,
+  serviceTypeLabel,
+  headCoveringLabel,
+  smokingLabel,
+  bodyTypeLabel,
+  isCompact,
   term,
   dict,
 }) => {
@@ -43,81 +67,118 @@ const InfoSection: React.FC<InfoSectionProps> = ({
     );
   }
 
+  const religiousLabel = getReligiousLabel(profile.religiousLevel);
+  const religiousJourney = (profile as any).religiousJourney as string | null | undefined;
+
+  // Height + body type combined
+  const heightBodyParts: string[] = [];
+  if (profile.height) heightBodyParts.push(dict.heightLabel.replace('{{height}}', profile.height.toString()));
+  if (bodyTypeLabel) heightBodyParts.push(bodyTypeLabel);
+  const heightBodyText = heightBodyParts.join(' · ');
+
+  // Occupation or education
+  const occupationText = profile.occupation || profile.education || null;
+  const OccupationIcon = profile.occupation ? Briefcase : GraduationCap;
+  const occupationIconColor = profile.occupation ? 'text-amber-500' : 'text-teal-500';
+
   return (
-    <div className="space-y-1">
+    <div className="space-y-1.5">
+      {/* ── CORE FIELDS (always shown) ────────────────────────────── */}
+
       {/* City + Origin */}
       {(profile.city || (profile as any).origin) && (
-        <div className="flex items-center justify-end gap-2 text-[13px]">
-          <span>
-            {profile.city && (
-              <span className="font-semibold text-gray-800">{hl(profile.city)}</span>
-            )}
-            {profile.city && (profile as any).origin && (
-              <span className="text-gray-300 mx-1.5">·</span>
-            )}
-            {(profile as any).origin && (
-              <span className="text-gray-500 text-xs">{hl((profile as any).origin)}</span>
-            )}
-          </span>
-          <MapPin className="w-3.5 h-3.5 text-blue-400 flex-shrink-0" />
-        </div>
+        <Row icon={<MapPin className="w-3.5 h-3.5 text-blue-400" />}>
+          {profile.city && (
+            <span className="font-semibold text-gray-800">{hl(profile.city)}</span>
+          )}
+          {profile.city && (profile as any).origin && (
+            <span className="text-gray-300 mx-1.5">·</span>
+          )}
+          {(profile as any).origin && (
+            <span className="text-gray-500 text-xs">{hl((profile as any).origin)}</span>
+          )}
+        </Row>
       )}
 
       {/* Religious level + journey */}
-      {(profile.religiousLevel || (profile as any).religiousJourney) && (
-        <div className="flex items-center justify-end gap-2 text-[13px]">
-          <span className="text-gray-700">
-            {getReligiousLabel(profile.religiousLevel) && (
-              <>{hl(getReligiousLabel(profile.religiousLevel))}</>
-            )}
-            {getReligiousLabel(profile.religiousLevel) && (profile as any).religiousJourney && (
-              <span className="text-gray-300 mx-1.5">·</span>
-            )}
-            {(profile as any).religiousJourney && (
-              <span className="text-gray-500 text-xs">{hl((profile as any).religiousJourney)}</span>
-            )}
-          </span>
-          <Scroll className="w-3.5 h-3.5 text-violet-400 flex-shrink-0" />
-        </div>
+      {(religiousLabel || religiousJourney) && (
+        <Row icon={<Scroll className="w-3.5 h-3.5 text-violet-400" />}>
+          {religiousLabel && <span>{hl(religiousLabel)}</span>}
+          {religiousLabel && religiousJourney && (
+            <span className="text-gray-300 mx-1.5">·</span>
+          )}
+          {religiousJourney && (
+            <span className="text-gray-500 text-xs">{hl(religiousJourney)}</span>
+          )}
+        </Row>
       )}
 
       {/* Marital status */}
       {maritalLabel && (
-        <div className="flex items-center justify-end gap-2 text-[13px]">
-          <span className="text-gray-700">{hl(maritalLabel)}</span>
-          <Users className="w-3.5 h-3.5 text-rose-400 flex-shrink-0" />
-        </div>
+        <Row icon={<Users className="w-3.5 h-3.5 text-rose-400" />}>
+          {hl(maritalLabel)}
+        </Row>
       )}
 
-      {/* Occupation */}
-      {profile.occupation && (
-        <div className="flex items-center justify-end gap-2 text-[13px]">
-          <span className="text-gray-700 truncate max-w-[190px]">{hl(profile.occupation)}</span>
-          <Briefcase className="w-3.5 h-3.5 text-amber-500 flex-shrink-0" />
-        </div>
+      {/* Occupation / Education */}
+      {occupationText && (
+        <Row icon={<OccupationIcon className={`w-3.5 h-3.5 ${occupationIconColor}`} />}>
+          <span className="truncate max-w-[190px]">{hl(occupationText)}</span>
+        </Row>
       )}
 
-      {/* Education (if no occupation) */}
-      {!profile.occupation && profile.education && (
-        <div className="flex items-center justify-end gap-2 text-[13px]">
-          <span className="text-gray-700 truncate max-w-[190px]">{hl(profile.education)}</span>
-          <GraduationCap className="w-3.5 h-3.5 text-teal-500 flex-shrink-0" />
-        </div>
+      {/* ── EXTENDED FIELDS (hidden in compact mode) ──────────────── */}
+      {!isCompact && (
+        <>
+          {/* Head covering / Kippah */}
+          {headCoveringLabel && (
+            <Row icon={<Shield className="w-3.5 h-3.5 text-teal-500" />}>
+              {hl(headCoveringLabel)}
+            </Row>
+          )}
+
+          {/* Service type */}
+          {serviceTypeLabel && (
+            <Row icon={<UserCheck className="w-3.5 h-3.5 text-indigo-400" />}>
+              {hl(serviceTypeLabel)}
+            </Row>
+          )}
+
+          {/* Smoking */}
+          {smokingLabel && (
+            <Row icon={<Wind className="w-3.5 h-3.5 text-slate-400" />}>
+              {hl(smokingLabel)}
+            </Row>
+          )}
+
+          {/* Height + Body type */}
+          {heightBodyText && (
+            <Row icon={<Ruler className="w-3.5 h-3.5 text-gray-400" />}>
+              {heightBodyText}
+            </Row>
+          )}
+
+          {/* Languages */}
+          {spokenLanguages && (
+            <Row icon={<span className="text-[10px] font-bold text-gray-400">אב</span>}>
+              <span className="text-gray-500 text-xs">{spokenLanguages}</span>
+            </Row>
+          )}
+        </>
       )}
 
-      {/* Height + Languages — subtle chip row */}
-      {(profile.height || spokenLanguages) && (
+      {/* In compact mode: show height as a subtle chip if available */}
+      {isCompact && (profile.height || spokenLanguages) && (
         <div className="flex items-center justify-end gap-1.5 flex-wrap pt-0.5">
           {profile.height && (
-            <span className="inline-flex items-center gap-1 text-[11px] text-gray-500 bg-gray-50 px-2 py-0.5 rounded-md border border-gray-100">
-              <Ruler className="w-2.5 h-2.5 text-gray-400" />
+            <span className="inline-flex items-center gap-1 text-[11px] text-gray-400 bg-gray-50 px-2 py-0.5 rounded-md border border-gray-100">
+              <Ruler className="w-2.5 h-2.5 text-gray-300" />
               {dict.heightLabel.replace('{{height}}', profile.height.toString())}
             </span>
           )}
           {spokenLanguages && (
-            <span className="inline-flex items-center gap-1 text-[11px] text-gray-500 bg-gray-50 px-2 py-0.5 rounded-md border border-gray-100">
-              <Languages className="w-2.5 h-2.5 text-gray-400" />
-              <span className="truncate max-w-[90px]">{spokenLanguages}</span>
+            <span className="text-[11px] text-gray-400 bg-gray-50 px-2 py-0.5 rounded-md border border-gray-100 truncate max-w-[100px]">
+              {spokenLanguages}
             </span>
           )}
         </div>

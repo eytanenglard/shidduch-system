@@ -25,7 +25,6 @@ interface BottomStatsProps {
   suggestionsReceived: number;
   suggestionsAccepted: number;
   suggestionsDeclined: number;
-  profileCompleteness: number;
   hasAiData: boolean;
   lastActive: Date | string | null | undefined;
   dict: MinimalCardDict;
@@ -38,7 +37,6 @@ const BottomStats: React.FC<BottomStatsProps> = ({
   suggestionsReceived,
   suggestionsAccepted,
   suggestionsDeclined,
-  profileCompleteness,
   hasAiData,
   lastActive,
   dict,
@@ -110,34 +108,6 @@ const BottomStats: React.FC<BottomStatsProps> = ({
         </div>
       )}
 
-      {/* Profile completeness bar */}
-      {!hasEngagementStats && profileCompleteness < 100 && (
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger>
-              <div className="flex items-center gap-1">
-                <div className="w-14 h-1 bg-gray-100 rounded-full overflow-hidden">
-                  <div
-                    className={cn(
-                      'h-full rounded-full transition-all',
-                      profileCompleteness === 100 ? 'bg-emerald-500' :
-                      profileCompleteness >= 75 ? 'bg-blue-500' :
-                      profileCompleteness >= 50 ? 'bg-amber-500' : 'bg-red-400'
-                    )}
-                    style={{ width: `${profileCompleteness}%` }}
-                  />
-                </div>
-                <span className="text-[11px] text-gray-400">{profileCompleteness}%</span>
-              </div>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>{profileCompleteness === 100
-                ? (dict.profileComplete ?? 'פרופיל מלא')
-                : (dict.profileIncomplete ?? `פרופיל: ${profileCompleteness}%`)}</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-      )}
     </div>
 
     {/* Last active (when no AI data) */}

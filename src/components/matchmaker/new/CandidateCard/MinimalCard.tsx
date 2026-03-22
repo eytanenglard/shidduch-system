@@ -17,7 +17,6 @@ import PhotoSection from './components/PhotoSection';
 import PhotoBadges from './components/PhotoBadges';
 import NameOverlay from './components/NameOverlay';
 import InfoSection from './components/InfoSection';
-import FlagsSection from './components/FlagsSection';
 import BottomStats from './components/BottomStats';
 import FloatingActions from './components/FloatingActions';
 import ComparisonCheckbox from './components/ComparisonCheckbox';
@@ -41,6 +40,7 @@ const MinimalCandidateCard: React.FC<MinimalCandidateCardProps> = React.memo(
       onToggleComparison,
       existingSuggestion = null,
       aiTargetName,
+      isCompact = true,
       dict,
     } = props;
 
@@ -119,18 +119,14 @@ const MinimalCandidateCard: React.FC<MinimalCandidateCardProps> = React.memo(
               isManualEntry={state.isManualEntry}
               maritalLabel={state.maritalLabel}
               spokenLanguages={state.spokenLanguages}
+              serviceTypeLabel={state.serviceTypeLabel}
+              headCoveringLabel={state.headCoveringLabel}
+              smokingLabel={state.smokingLabel}
+              bodyTypeLabel={state.bodyTypeLabel}
+              isCompact={isCompact}
               term={highlightTerm}
               dict={dict}
             />
-
-            {state.hasFlags && (
-              <FlagsSection
-                greenFlags={state.greenFlags}
-                redFlags={state.redFlags}
-                showAllFlags={state.showAllFlags}
-                onToggleShowAll={() => state.setShowAllFlags(!state.showAllFlags)}
-              />
-            )}
 
             <BottomStats
               readinessConfig={state.readinessConfig}
@@ -139,7 +135,6 @@ const MinimalCandidateCard: React.FC<MinimalCandidateCardProps> = React.memo(
               suggestionsReceived={state.suggestionsReceived}
               suggestionsAccepted={state.suggestionsAccepted}
               suggestionsDeclined={state.suggestionsDeclined}
-              profileCompleteness={state.profileCompleteness}
               hasAiData={state.hasAiData}
               lastActive={candidate.profile.lastActive}
               dict={dict}

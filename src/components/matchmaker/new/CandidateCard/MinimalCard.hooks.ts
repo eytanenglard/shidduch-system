@@ -3,7 +3,15 @@
 import { useState, useMemo } from 'react';
 import { UserSource } from '@prisma/client';
 import type { MinimalCandidateCardProps, AvailabilityConfig } from './MinimalCard.types';
-import { getPriorityConfig, getReadinessConfig } from './MinimalCard.constants';
+import {
+  getPriorityConfig,
+  getReadinessConfig,
+  SERVICE_TYPE_LABELS,
+  KIPPAH_LABELS,
+  HEAD_COVERING_LABELS,
+  BODY_TYPE_LABELS,
+  SMOKING_LABELS,
+} from './MinimalCard.constants';
 import { calculateAge, formatLanguages } from './MinimalCard.utils';
 import {
   Sparkles,
@@ -141,6 +149,13 @@ export function useMinimalCard(props: MinimalCandidateCardProps) {
 
   const wantsToBeFirst = (candidate.profile as any).wantsToBeFirstParty;
 
+  const serviceTypeLabel = SERVICE_TYPE_LABELS[(candidate.profile as any).serviceType] ?? null;
+  const headCoveringLabel = isMale
+    ? (KIPPAH_LABELS[(candidate.profile as any).kippahType] ?? null)
+    : (HEAD_COVERING_LABELS[(candidate.profile as any).headCovering] ?? null);
+  const smokingLabel = SMOKING_LABELS[(candidate.profile as any).smokingStatus] ?? null;
+  const bodyTypeLabel = BODY_TYPE_LABELS[(candidate.profile as any).bodyType] ?? null;
+
   const maritalLabel = useMemo(() => {
     const ms = candidate.profile.maritalStatus as string | null;
     const hasKids = candidate.profile.hasChildrenFromPrevious;
@@ -184,5 +199,9 @@ export function useMinimalCard(props: MinimalCandidateCardProps) {
     hasEngagementStats,
     wantsToBeFirst,
     maritalLabel,
+    serviceTypeLabel,
+    headCoveringLabel,
+    smokingLabel,
+    bodyTypeLabel,
   };
 }

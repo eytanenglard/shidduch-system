@@ -58,6 +58,61 @@ export const getReadinessConfig = (level: string | null | undefined): ReadinessC
   }
 };
 
+// ── Service type labels ──────────────────────────────────────────────────────
+
+export const SERVICE_TYPE_LABELS: Record<string, string> = {
+  MILITARY_COMBATANT: 'צבאי קרבי',
+  MILITARY_SUPPORT: 'צבאי תומך',
+  HESDER_YESHIVA: 'הסדר',
+  YESHIVA_FULL_TIME: 'ישיבה',
+  SEMINARY: 'סמינר',
+  MIDRASHA: 'מדרשה',
+  NATIONAL_SERVICE: 'שירות לאומי',
+  EXEMPTED: 'פטור',
+  ATUDA: 'עתודה',
+  OFFICER: 'קצונה',
+  NOT_DRAFTED: 'לא גויס',
+};
+
+// ── Kippah labels (males) ────────────────────────────────────────────────────
+
+export const KIPPAH_LABELS: Record<string, string> = {
+  NONE: 'ללא כיפה',
+  SOMETIMES: 'כיפה לפעמים',
+  SRUGA: 'כיפה סרוגה',
+  BLACK: 'כיפה שחורה',
+  LARGE: 'כיפה גדולה',
+};
+
+// ── Head covering labels (females) ───────────────────────────────────────────
+
+export const HEAD_COVERING_LABELS: Record<string, string> = {
+  NONE: 'ללא כיסוי ראש',
+  SOMETIMES: 'כיסוי לפעמים',
+  MITPACHAT: 'מטפחת',
+  WIG: 'פאה',
+  BOTH: 'פאה ומטפחת',
+};
+
+// ── Body type labels ─────────────────────────────────────────────────────────
+
+export const BODY_TYPE_LABELS: Record<string, string> = {
+  SLIM: 'גוף רזה',
+  ATHLETIC: 'גוף ספורטיבי',
+  AVERAGE: 'גוף ממוצע',
+  HEAVIER: 'גוף מלא',
+  CURVY: 'גוף עקומות',
+};
+
+// ── Smoking labels ───────────────────────────────────────────────────────────
+
+export const SMOKING_LABELS: Record<string, string> = {
+  never: 'לא מעשן/ת',
+  occasionally: 'מעשן/ת מדי פעם',
+  regularly: 'מעשן/ת',
+  trying_to_quit: 'מנסה להפסיק לעשן',
+};
+
 // ── Language map ────────────────────────────────────────────────────────────
 
 export const LANGUAGE_MAP: Record<string, string> = {

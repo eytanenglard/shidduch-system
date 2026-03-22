@@ -54,6 +54,7 @@ export interface MinimalCandidateCardProps {
   onToggleComparison?: (candidate: Candidate, e: React.MouseEvent) => void;
   existingSuggestion?: { status: string; createdAt: string } | null;
   aiTargetName?: string;
+  isCompact?: boolean;
   dict: MinimalCardDict;
 }
 
