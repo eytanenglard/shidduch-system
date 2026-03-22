@@ -25,11 +25,16 @@ interface ProfileDataForVectors {
     origin?: string;
     nativeLanguage?: string;
     additionalLanguages?: string[];
+    aliyaYear?: number;
+    aliyaCountry?: string;
     shomerNegiah?: boolean;
     smokingStatus?: string;
     headCovering?: string;
     kippahType?: string;
     hobbies?: string[];
+    height?: number;
+    maritalStatus?: string;
+    hasChildrenFromPrevious?: boolean;
     matchingNotes?: string;
     preferredAgeMin?: number;
     preferredAgeMax?: number;
@@ -53,6 +58,22 @@ interface ProfileDataForVectors {
   metrics?: {
     aiPersonalitySummary?: string;
     aiSeekingSummary?: string;
+    aiBackgroundSummary?: string;
+    aiInferredDealBreakers?: string[];
+    aiInferredMustHaves?: string[];
+  };
+  // 🆕 Soul Fingerprint tags
+  profileTags?: {
+    sectorTags: string[];
+    backgroundTags: string[];
+    personalityTags: string[];
+    careerTags: string[];
+    lifestyleTags: string[];
+    familyVisionTags: string[];
+    relationshipTags: string[];
+    aiDerivedTags: string[];
+    partnerTags?: Record<string, any>;
+    source: string;
   };
   matchmakerNotes?: string;
 }
@@ -129,13 +150,19 @@ async function fetchProfileData(profileId: string): Promise<ProfileDataForVector
     orderBy: { createdAt: 'desc' },
   });
 
-  // שליפת מדדים (אם קיימים)
+  // שליפת מדדים (אם קיימים) — כולל שדות AI חדשים
   const metrics = await prisma.$queryRaw<any[]>`
-    SELECT "aiPersonalitySummary", "aiSeekingSummary"
+    SELECT "aiPersonalitySummary", "aiSeekingSummary", "aiBackgroundSummary",
+           "aiInferredDealBreakers", "aiInferredMustHaves"
     FROM profile_metrics
     WHERE "profileId" = ${profileId}
     LIMIT 1
   `;
+
+  // 🆕 שליפת Soul Fingerprint tags
+  const profileTags = await prisma.profileTags.findUnique({
+    where: { profileId },
+  });
 
   // חישוב גיל
   const age = profile.birthDate
@@ -161,8 +188,13 @@ async function fetchProfileData(profileId: string): Promise<ProfileDataForVector
       smokingStatus: profile.smokingStatus || undefined,
       headCovering: profile.headCovering || undefined,
       kippahType: profile.kippahType || undefined,
-/*       hobbies: profile.hobbies || undefined,
- */      matchingNotes: profile.matchingNotes || undefined,
+      hobbies: (profile as any).hobbies || undefined,
+      height: profile.height || undefined,
+      maritalStatus: (profile as any).maritalStatus || undefined,
+      hasChildrenFromPrevious: profile.hasChildrenFromPrevious || undefined,
+      aliyaYear: (profile as any).aliyaYear || undefined,
+      aliyaCountry: (profile as any).aliyaCountry || undefined,
+      matchingNotes: profile.matchingNotes || undefined,
       preferredAgeMin: profile.preferredAgeMin || undefined,
       preferredAgeMax: profile.preferredAgeMax || undefined,
       preferredHeightMin: profile.preferredHeightMin || undefined,
@@ -183,7 +215,34 @@ async function fetchProfileData(profileId: string): Promise<ProfileDataForVector
     aiProfileSummary: profile.aiProfileSummary
       ? parseJson(profile.aiProfileSummary)
       : undefined,
-    metrics: metrics[0] || undefined,
+    metrics: metrics[0] ? {
+      aiPersonalitySummary: metrics[0].aiPersonalitySummary,
+      aiSeekingSummary: metrics[0].aiSeekingSummary,
+      aiBackgroundSummary: metrics[0].aiBackgroundSummary,
+      aiInferredDealBreakers: metrics[0].aiInferredDealBreakers
+        ? (typeof metrics[0].aiInferredDealBreakers === 'string'
+            ? JSON.parse(metrics[0].aiInferredDealBreakers)
+            : metrics[0].aiInferredDealBreakers)
+        : undefined,
+      aiInferredMustHaves: metrics[0].aiInferredMustHaves
+        ? (typeof metrics[0].aiInferredMustHaves === 'string'
+            ? JSON.parse(metrics[0].aiInferredMustHaves)
+            : metrics[0].aiInferredMustHaves)
+        : undefined,
+    } : undefined,
+    // 🆕 Soul Fingerprint tags
+    profileTags: profileTags ? {
+      sectorTags: profileTags.sectorTags || [],
+      backgroundTags: profileTags.backgroundTags || [],
+      personalityTags: profileTags.personalityTags || [],
+      careerTags: profileTags.careerTags || [],
+      lifestyleTags: profileTags.lifestyleTags || [],
+      familyVisionTags: profileTags.familyVisionTags || [],
+      relationshipTags: profileTags.relationshipTags || [],
+      aiDerivedTags: profileTags.aiDerivedTags || [],
+      partnerTags: profileTags.partnerTags as Record<string, any> | undefined,
+      source: profileTags.source,
+    } : undefined,
     matchmakerNotes: profile.internalMatchmakerNotes || undefined,
   };
 }
@@ -244,6 +303,20 @@ function buildSelfText(data: ProfileDataForVectors): string {
   if (p.additionalLanguages?.length) {
     parts.push(`Additional Languages: ${p.additionalLanguages.join(', ')}`);
   }
+  if (p.aliyaCountry) {
+    parts.push(`Aliya from: ${p.aliyaCountry}${p.aliyaYear ? ` (${p.aliyaYear})` : ''}`);
+  }
+
+  // --- מידע אישי נוסף ---
+  if (p.height) {
+    parts.push(`Height: ${p.height}cm`);
+  }
+  if (p.maritalStatus) {
+    parts.push(`Marital Status: ${p.maritalStatus}`);
+  }
+  if (p.hasChildrenFromPrevious) {
+    parts.push(`Has children from previous relationship: Yes`);
+  }
 
   // --- תיאור עצמי (הכי חשוב!) ---
   if (p.about) {
@@ -293,6 +366,28 @@ function buildSelfText(data: ProfileDataForVectors): string {
     if (religionText) {
       parts.push(`\nReligious Practice (from questionnaire):\n${religionText}`);
     }
+  }
+
+  // 🆕 --- Soul Fingerprint Tags (טביעת נשמה) ---
+  if (data.profileTags) {
+    const tags = data.profileTags;
+    const tagParts: string[] = [];
+    if (tags.sectorTags?.length) tagParts.push(`Sector: ${tags.sectorTags.join(', ')}`);
+    if (tags.personalityTags?.length) tagParts.push(`Personality: ${tags.personalityTags.join(', ')}`);
+    if (tags.lifestyleTags?.length) tagParts.push(`Lifestyle: ${tags.lifestyleTags.join(', ')}`);
+    if (tags.careerTags?.length) tagParts.push(`Career: ${tags.careerTags.join(', ')}`);
+    if (tags.familyVisionTags?.length) tagParts.push(`Family Vision: ${tags.familyVisionTags.join(', ')}`);
+    if (tags.relationshipTags?.length) tagParts.push(`Relationship Style: ${tags.relationshipTags.join(', ')}`);
+    if (tags.backgroundTags?.length) tagParts.push(`Background: ${tags.backgroundTags.join(', ')}`);
+    if (tags.aiDerivedTags?.length) tagParts.push(`Additional Traits: ${tags.aiDerivedTags.join(', ')}`);
+    if (tagParts.length > 0) {
+      parts.push(`\nSoul Fingerprint${tags.source === 'AI_INFERRED' ? ' (AI-inferred)' : ''}:\n${tagParts.join('\n')}`);
+    }
+  }
+
+  // 🆕 --- רקע AI summary ---
+  if (data.metrics?.aiBackgroundSummary) {
+    parts.push(`\nBackground Summary:\n${data.metrics.aiBackgroundSummary}`);
   }
 
   // --- הערות שדכן (אם יש) ---
@@ -372,8 +467,29 @@ function buildSeekingText(data: ProfileDataForVectors): string {
     }
   }
 
-  // --- Deal Breakers (אם זמינים) ---
-  // נוסיף פה Deal Breakers מהמדדים אם יש
+  // 🆕 --- Deal Breakers מ-AI ---
+  if (data.metrics?.aiInferredDealBreakers?.length) {
+    parts.push(`\nDeal Breakers (must NOT have):\n${data.metrics.aiInferredDealBreakers.join('\n')}`);
+  }
+
+  // 🆕 --- Must Haves מ-AI ---
+  if (data.metrics?.aiInferredMustHaves?.length) {
+    parts.push(`\nMust Haves (required):\n${data.metrics.aiInferredMustHaves.join('\n')}`);
+  }
+
+  // 🆕 --- Soul Fingerprint Partner Tags ---
+  if (data.profileTags?.partnerTags) {
+    const pt = data.profileTags.partnerTags;
+    const partnerTagParts: string[] = [];
+    if (pt.sectorTags?.length) partnerTagParts.push(`Partner Sector: ${pt.sectorTags.join(', ')}`);
+    if (pt.personalityTags?.length) partnerTagParts.push(`Partner Personality: ${pt.personalityTags.join(', ')}`);
+    if (pt.lifestyleTags?.length) partnerTagParts.push(`Partner Lifestyle: ${pt.lifestyleTags.join(', ')}`);
+    if (pt.familyVisionTags?.length) partnerTagParts.push(`Partner Family Vision: ${pt.familyVisionTags.join(', ')}`);
+    if (pt.relationshipTags?.length) partnerTagParts.push(`Partner Relationship Style: ${pt.relationshipTags.join(', ')}`);
+    if (partnerTagParts.length > 0) {
+      parts.push(`\nPartner Soul Fingerprint Preferences:\n${partnerTagParts.join('\n')}`);
+    }
+  }
 
   // --- שפה נדרשת ---
   if (p.nativeLanguage?.toLowerCase() === 'english') {

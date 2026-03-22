@@ -211,7 +211,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
               src={getRelativeCloudinaryPath(mainImageToDisplay.url)}
               alt={profile.user?.firstName || ''}
               fill
-              className="object-cover cursor-pointer transition-transform duration-500 group-hover:scale-[1.03]"
+              className="object-cover object-top cursor-pointer transition-transform duration-500 group-hover:scale-[1.03]"
               sizes="38vw"
               priority
               onClick={() =>

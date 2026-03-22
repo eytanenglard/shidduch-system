@@ -429,6 +429,14 @@ export const DEFAULT_METRIC_WEIGHTS: Record<string, number> = {
   ambitionLevel: 3,
   independenceLevel: 2,
   optimismLevel: 2,
+  // 🆕 מדדים חדשים שמחולצים אבל לא היו בשקלול
+  socioEconomicLevel: 8,
+  educationLevelScore: 6,
+  jobSeniorityLevel: 5,
+  personalityType: 6,
+  attachmentStyle: 5,
+  loveLanguages: 3,
+  ageCompatibility: 7,
 };
 
 // ═══════════════════════════════════════════════════════════════
@@ -485,6 +493,284 @@ export const ETHNIC_COMPATIBILITY_PENALTY: Record<string, number> = {
   'SEPHARDI_ASHKENAZI': 5,
   'MIXED_ANY': 0,  // מעורב מתאים לכולם
 };
+
+// ═══════════════════════════════════════════════════════════════
+// RELIGIOUS COMPATIBILITY MATRIX (15×15) — מקור אמת יחיד
+// ═══════════════════════════════════════════════════════════════
+
+export const RELIGIOUS_COMPATIBILITY_MATRIX: Record<string, Record<string, number>> = {
+  charedi_hasidic: {
+    charedi_hasidic: 100, charedi_litvak: 50, charedi_sephardic: 40, chabad: 60, breslov: 65,
+    charedi_modern: 30, dati_leumi_torani: 20, dati_leumi_standard: 10, dati_leumi_liberal: 5,
+    masorti_strong: 5, masorti_light: 5, secular_traditional_connection: 5, secular: 5,
+    spiritual_not_religious: 5, other: 30,
+  },
+  charedi_litvak: {
+    charedi_hasidic: 50, charedi_litvak: 100, charedi_sephardic: 55, chabad: 40, breslov: 35,
+    charedi_modern: 70, dati_leumi_torani: 40, dati_leumi_standard: 20, dati_leumi_liberal: 10,
+    masorti_strong: 10, masorti_light: 5, secular_traditional_connection: 5, secular: 5,
+    spiritual_not_religious: 5, other: 30,
+  },
+  charedi_sephardic: {
+    charedi_hasidic: 40, charedi_litvak: 55, charedi_sephardic: 100, chabad: 50, breslov: 50,
+    charedi_modern: 60, dati_leumi_torani: 45, dati_leumi_standard: 30, dati_leumi_liberal: 15,
+    masorti_strong: 25, masorti_light: 15, secular_traditional_connection: 10, secular: 5,
+    spiritual_not_religious: 5, other: 30,
+  },
+  chabad: {
+    charedi_hasidic: 60, charedi_litvak: 40, charedi_sephardic: 50, chabad: 100, breslov: 50,
+    charedi_modern: 55, dati_leumi_torani: 50, dati_leumi_standard: 40, dati_leumi_liberal: 25,
+    masorti_strong: 30, masorti_light: 20, secular_traditional_connection: 15, secular: 10,
+    spiritual_not_religious: 15, other: 35,
+  },
+  breslov: {
+    charedi_hasidic: 65, charedi_litvak: 35, charedi_sephardic: 50, chabad: 50, breslov: 100,
+    charedi_modern: 40, dati_leumi_torani: 35, dati_leumi_standard: 25, dati_leumi_liberal: 15,
+    masorti_strong: 15, masorti_light: 10, secular_traditional_connection: 10, secular: 5,
+    spiritual_not_religious: 15, other: 30,
+  },
+  charedi_modern: {
+    charedi_hasidic: 30, charedi_litvak: 70, charedi_sephardic: 60, chabad: 55, breslov: 40,
+    charedi_modern: 100, dati_leumi_torani: 80, dati_leumi_standard: 55, dati_leumi_liberal: 30,
+    masorti_strong: 20, masorti_light: 10, secular_traditional_connection: 10, secular: 5,
+    spiritual_not_religious: 5, other: 30,
+  },
+  dati_leumi_torani: {
+    charedi_hasidic: 20, charedi_litvak: 40, charedi_sephardic: 45, chabad: 50, breslov: 35,
+    charedi_modern: 80, dati_leumi_torani: 100, dati_leumi_standard: 75, dati_leumi_liberal: 40,
+    masorti_strong: 25, masorti_light: 15, secular_traditional_connection: 10, secular: 5,
+    spiritual_not_religious: 10, other: 30,
+  },
+  dati_leumi_standard: {
+    charedi_hasidic: 10, charedi_litvak: 20, charedi_sephardic: 30, chabad: 40, breslov: 25,
+    charedi_modern: 55, dati_leumi_torani: 75, dati_leumi_standard: 100, dati_leumi_liberal: 70,
+    masorti_strong: 50, masorti_light: 30, secular_traditional_connection: 20, secular: 10,
+    spiritual_not_religious: 15, other: 35,
+  },
+  dati_leumi_liberal: {
+    charedi_hasidic: 5, charedi_litvak: 10, charedi_sephardic: 15, chabad: 25, breslov: 15,
+    charedi_modern: 30, dati_leumi_torani: 40, dati_leumi_standard: 70, dati_leumi_liberal: 100,
+    masorti_strong: 70, masorti_light: 50, secular_traditional_connection: 40, secular: 20,
+    spiritual_not_religious: 30, other: 35,
+  },
+  masorti_strong: {
+    charedi_hasidic: 5, charedi_litvak: 10, charedi_sephardic: 25, chabad: 30, breslov: 15,
+    charedi_modern: 20, dati_leumi_torani: 25, dati_leumi_standard: 50, dati_leumi_liberal: 70,
+    masorti_strong: 100, masorti_light: 80, secular_traditional_connection: 65, secular: 30,
+    spiritual_not_religious: 40, other: 40,
+  },
+  masorti_light: {
+    charedi_hasidic: 5, charedi_litvak: 5, charedi_sephardic: 15, chabad: 20, breslov: 10,
+    charedi_modern: 10, dati_leumi_torani: 15, dati_leumi_standard: 30, dati_leumi_liberal: 50,
+    masorti_strong: 80, masorti_light: 100, secular_traditional_connection: 80, secular: 50,
+    spiritual_not_religious: 50, other: 40,
+  },
+  secular_traditional_connection: {
+    charedi_hasidic: 5, charedi_litvak: 5, charedi_sephardic: 10, chabad: 15, breslov: 10,
+    charedi_modern: 10, dati_leumi_torani: 10, dati_leumi_standard: 20, dati_leumi_liberal: 40,
+    masorti_strong: 65, masorti_light: 80, secular_traditional_connection: 100, secular: 75,
+    spiritual_not_religious: 60, other: 45,
+  },
+  secular: {
+    charedi_hasidic: 5, charedi_litvak: 5, charedi_sephardic: 5, chabad: 10, breslov: 5,
+    charedi_modern: 5, dati_leumi_torani: 5, dati_leumi_standard: 10, dati_leumi_liberal: 20,
+    masorti_strong: 30, masorti_light: 50, secular_traditional_connection: 75, secular: 100,
+    spiritual_not_religious: 70, other: 45,
+  },
+  spiritual_not_religious: {
+    charedi_hasidic: 5, charedi_litvak: 5, charedi_sephardic: 5, chabad: 15, breslov: 15,
+    charedi_modern: 5, dati_leumi_torani: 10, dati_leumi_standard: 15, dati_leumi_liberal: 30,
+    masorti_strong: 40, masorti_light: 50, secular_traditional_connection: 60, secular: 70,
+    spiritual_not_religious: 100, other: 50,
+  },
+  other: {
+    charedi_hasidic: 30, charedi_litvak: 30, charedi_sephardic: 30, chabad: 35, breslov: 30,
+    charedi_modern: 30, dati_leumi_torani: 30, dati_leumi_standard: 35, dati_leumi_liberal: 35,
+    masorti_strong: 40, masorti_light: 40, secular_traditional_connection: 45, secular: 45,
+    spiritual_not_religious: 50, other: 70,
+  },
+};
+
+/**
+ * מחזיר ציון תאימות דתית (0-100) מהמטריצה
+ */
+export function getReligiousCompatibilityScore(level1: string | null, level2: string | null): number {
+  if (!level1 || !level2) return 50; // ברירת מחדל שמרנית
+
+  const row = RELIGIOUS_COMPATIBILITY_MATRIX[level1];
+  if (row && row[level2] !== undefined) {
+    return row[level2];
+  }
+
+  // Fallback: מרחק לינארי
+  const ORDER = [
+    'charedi_hasidic', 'charedi_litvak', 'charedi_sephardic', 'chabad', 'breslov',
+    'charedi_modern', 'dati_leumi_torani', 'dati_leumi_standard', 'dati_leumi_liberal',
+    'masorti_strong', 'masorti_light', 'secular_traditional_connection', 'secular',
+    'spiritual_not_religious', 'other',
+  ];
+
+  const idx1 = ORDER.indexOf(level1);
+  const idx2 = ORDER.indexOf(level2);
+  if (idx1 === -1 || idx2 === -1) return 50;
+
+  const distance = Math.abs(idx1 - idx2);
+  if (distance === 0) return 100;
+  if (distance === 1) return 80;
+  if (distance === 2) return 60;
+  if (distance === 3) return 40;
+  return 20;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// PERSONALITY TYPE COMPATIBILITY MATRIX (7×7)
+// ═══════════════════════════════════════════════════════════════
+
+export const PERSONALITY_COMPATIBILITY_MATRIX: Record<string, Record<string, number>> = {
+  LEADER: {
+    LEADER: 55, SUPPORTER: 95, ANALYTICAL: 65, CREATIVE: 60,
+    CAREGIVER: 75, ADVENTURER: 70, HARMONIZER: 85,
+  },
+  SUPPORTER: {
+    LEADER: 95, SUPPORTER: 70, ANALYTICAL: 65, CREATIVE: 75,
+    CAREGIVER: 80, ADVENTURER: 60, HARMONIZER: 85,
+  },
+  ANALYTICAL: {
+    LEADER: 65, SUPPORTER: 65, ANALYTICAL: 70, CREATIVE: 85,
+    CAREGIVER: 60, ADVENTURER: 55, HARMONIZER: 70,
+  },
+  CREATIVE: {
+    LEADER: 60, SUPPORTER: 75, ANALYTICAL: 85, CREATIVE: 65,
+    CAREGIVER: 70, ADVENTURER: 90, HARMONIZER: 80,
+  },
+  CAREGIVER: {
+    LEADER: 75, SUPPORTER: 80, ANALYTICAL: 60, CREATIVE: 70,
+    CAREGIVER: 65, ADVENTURER: 55, HARMONIZER: 90,
+  },
+  ADVENTURER: {
+    LEADER: 70, SUPPORTER: 60, ANALYTICAL: 55, CREATIVE: 90,
+    CAREGIVER: 55, ADVENTURER: 75, HARMONIZER: 65,
+  },
+  HARMONIZER: {
+    LEADER: 85, SUPPORTER: 85, ANALYTICAL: 70, CREATIVE: 80,
+    CAREGIVER: 90, ADVENTURER: 65, HARMONIZER: 80,
+  },
+};
+
+// ═══════════════════════════════════════════════════════════════
+// ATTACHMENT STYLE COMPATIBILITY MATRIX (4×4)
+// ═══════════════════════════════════════════════════════════════
+
+export const ATTACHMENT_COMPATIBILITY_MATRIX: Record<string, Record<string, number>> = {
+  SECURE: {
+    SECURE: 100, ANXIOUS: 70, AVOIDANT: 65, DISORGANIZED: 45,
+  },
+  ANXIOUS: {
+    SECURE: 70, ANXIOUS: 40, AVOIDANT: 25, DISORGANIZED: 20,
+  },
+  AVOIDANT: {
+    SECURE: 65, ANXIOUS: 25, AVOIDANT: 45, DISORGANIZED: 20,
+  },
+  DISORGANIZED: {
+    SECURE: 45, ANXIOUS: 20, AVOIDANT: 20, DISORGANIZED: 15,
+  },
+};
+
+// ═══════════════════════════════════════════════════════════════
+// LOVE LANGUAGE OVERLAP SCORING
+// ═══════════════════════════════════════════════════════════════
+
+/**
+ * מחשב חפיפה בין שפות אהבה — Jaccard-like
+ * 0 = אין חפיפה, 100 = חפיפה מלאה
+ */
+export function calculateLoveLanguageOverlap(
+  languagesA: string[] | null | undefined,
+  languagesB: string[] | null | undefined
+): number {
+  if (!languagesA?.length || !languagesB?.length) return 50; // neutral if missing
+
+  const setA = new Set(languagesA);
+  const setB = new Set(languagesB);
+
+  let intersection = 0;
+  for (const lang of setA) {
+    if (setB.has(lang)) intersection++;
+  }
+
+  const union = new Set([...setA, ...setB]).size;
+  if (union === 0) return 50;
+
+  // Jaccard: 0-1 → scale to 30-100 (no overlap = 30, full = 100)
+  const jaccard = intersection / union;
+  return Math.round(30 + jaccard * 70);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// SCORING UTILITY FUNCTIONS (extracted from hybridMatchingService)
+// ═══════════════════════════════════════════════════════════════
+
+export function calculateSocioEconomicScore(
+  userLevel: number | null,
+  candidateLevel: number | null,
+  userPrefMin: number | null,
+  userPrefMax: number | null,
+  candidatePrefMin: number | null,
+  candidatePrefMax: number | null
+): number {
+  if (userLevel === null || candidateLevel === null) return 70;
+
+  let userHappy = true;
+  let candidateHappy = true;
+
+  if (userPrefMin !== null && candidateLevel < userPrefMin) userHappy = false;
+  if (userPrefMax !== null && candidateLevel > userPrefMax) userHappy = false;
+  if (candidatePrefMin !== null && userLevel < candidatePrefMin) candidateHappy = false;
+  if (candidatePrefMax !== null && userLevel > candidatePrefMax) candidateHappy = false;
+
+  if (!userHappy || !candidateHappy) return 30;
+
+  const diff = Math.abs(userLevel - candidateLevel);
+  if (diff === 0) return 100;
+  if (diff === 1) return 90;
+  if (diff === 2) return 75;
+  if (diff === 3) return 55;
+  return 35;
+}
+
+export function calculateEducationScore(
+  userLevel: number | null,
+  candidateLevel: number | null,
+  userPrefMin: number | null,
+  candidatePrefMin: number | null
+): number {
+  if (userLevel === null || candidateLevel === null) return 70;
+  if (userPrefMin !== null && candidateLevel < userPrefMin) return 30;
+  if (candidatePrefMin !== null && userLevel < candidatePrefMin) return 30;
+
+  const diff = Math.abs(userLevel - candidateLevel);
+  if (diff === 0) return 100;
+  if (diff === 1) return 85;
+  if (diff === 2) return 70;
+  return 55;
+}
+
+export function calculateJobSeniorityScore(
+  userLevel: number | null,
+  candidateLevel: number | null,
+  userPrefMin: number | null,
+  candidatePrefMin: number | null
+): number {
+  if (userLevel === null || candidateLevel === null) return 70;
+  if (userPrefMin !== null && candidateLevel < userPrefMin) return 40;
+  if (candidatePrefMin !== null && userLevel < candidatePrefMin) return 40;
+
+  const diff = Math.abs(userLevel - candidateLevel);
+  if (diff <= 1) return 100;
+  if (diff === 2) return 80;
+  if (diff === 3) return 60;
+  return 45;
+}
 
 // ═══════════════════════════════════════════════════════════════
 // UTILITY FUNCTIONS

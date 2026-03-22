@@ -301,15 +301,57 @@ async function extractMetricsWithAI(input: MetricsExtractionInput): Promise<AIMe
 }
 
 function buildAIExtractionPrompt(input: MetricsExtractionInput): string {
-  return `אתה מנתח פרופילים עבור מערכת שידוכים. נתח את הפרופיל הבא והחזר מדדים מספריים.
+  // 🆕 קידום שאלון: חלץ את החלקים החשובים ביותר קודם (לא truncate עיוור)
+  let questionnaireSection = 'לא זמין';
+  if (input.questionnaireAnswers) {
+    const prioritized: Record<string, any> = {};
+    // קודם קודם: ערכים, אישיות, דת — הכי קריטיים
+    if (input.questionnaireAnswers.values) prioritized.values = input.questionnaireAnswers.values;
+    if (input.questionnaireAnswers.personality) prioritized.personality = input.questionnaireAnswers.personality;
+    if (input.questionnaireAnswers.religion) prioritized.religion = input.questionnaireAnswers.religion;
+    if (input.questionnaireAnswers.relationship) prioritized.relationship = input.questionnaireAnswers.relationship;
+    if (input.questionnaireAnswers.partner) prioritized.partner = input.questionnaireAnswers.partner;
+    questionnaireSection = JSON.stringify(prioritized, null, 2).slice(0, 5000); // הגדלה מ-3000 ל-5000
+  }
+
+  // 🆕 חילוץ תשובות Deal Breakers מפורשות מהשאלון — מוצגות בנפרד לבולטות
+  const partnerA = input.questionnaireAnswers?.partner;
+  const relationshipA = input.questionnaireAnswers?.relationship;
+  const explicitDealBreakers: string[] = [];
+  const explicitMustHaves: string[] = [];
+
+  const dbText = findAnswer(partnerA, 'partner_deal_breakers_open_text_revised');
+  if (dbText && typeof dbText === 'string' && dbText.length > 3) explicitDealBreakers.push(dbText);
+  const disqText = findAnswer(partnerA, 'partner_common_disqualifiers');
+  if (disqText && typeof disqText === 'string' && disqText.length > 3) explicitDealBreakers.push(disqText);
+  const clashText = findAnswer(partnerA, 'partner_personality_clash');
+  if (clashText && typeof clashText === 'string' && clashText.length > 3) explicitDealBreakers.push(clashText);
+  const dbSummaryText = findAnswer(relationshipA, 'relationship_deal_breaker_summary_final_revised');
+  if (dbSummaryText && typeof dbSummaryText === 'string' && dbSummaryText.length > 3) explicitDealBreakers.push(dbSummaryText);
+
+  const mustHaveText = findAnswer(partnerA, 'partner_must_have_quality_final_revised');
+  if (mustHaveText && typeof mustHaveText === 'string' && mustHaveText.length > 3) explicitMustHaves.push(mustHaveText);
+
+  const explicitDBSection = explicitDealBreakers.length > 0
+    ? `\n## פסילות מפורשות מהשאלון (חובה לשלב ב-aiInferredDealBreakers!):\n${explicitDealBreakers.map((t, i) => `${i + 1}. ${t}`).join('\n')}`
+    : '';
+  const explicitMHSection = explicitMustHaves.length > 0
+    ? `\n## דרישות חובה מהשאלון (חובה לשלב ב-aiInferredMustHaves!):\n${explicitMustHaves.map((t, i) => `${i + 1}. ${t}`).join('\n')}`
+    : '';
+
+  return `אתה מנתח פרופילים עבור מערכת שידוכים יהודית. נתח את הפרופיל הבא והחזר מדדים מספריים ומידע נוסף.
 
 ## פרטי הפרופיל:
 - מגדר: ${input.profile.gender}
-- גיל: ${input.profile.age}
+- גיל: ${input.profile.age || 'לא ידוע'}
 - עיר: ${input.profile.city || 'לא צוין'}
 - רמה דתית: ${input.profile.religiousLevel || 'לא צוין'}
+- מסלול דתי: ${input.profile.religiousJourney || 'לא צוין'}
 - מקצוע: ${input.profile.occupation || 'לא צוין'}
 - השכלה: ${input.profile.education || 'לא צוין'}
+- שפת אם: ${input.profile.nativeLanguage || 'לא צוין'}
+- שנת עלייה: ${input.profile.aliyaYear || 'ילידת הארץ / לא צוין'}
+- ארץ מוצא לעלייה: ${input.profile.aliyaCountry || 'לא צוין'}
 
 ## תיאור עצמי:
 ${input.profile.about || 'לא זמין'}
@@ -323,8 +365,9 @@ ${input.aiProfileSummary?.lookingForSummary || 'לא זמין'}
 ## הערות שדכן:
 ${input.matchmakerNotes || 'אין'}
 
-## תשובות שאלון (אם קיימות):
-${input.questionnaireAnswers ? JSON.stringify(input.questionnaireAnswers, null, 2).slice(0, 3000) : 'לא זמין'}
+## תשובות שאלון (ממוין לפי חשיבות):
+${questionnaireSection}
+${explicitDBSection}${explicitMHSection}
 
 ---
 
@@ -332,24 +375,27 @@ ${input.questionnaireAnswers ? JSON.stringify(input.questionnaireAnswers, null, 
 
 {
   "metrics": {
-    "socialEnergy": <0-100 | null>,
-    "emotionalExpression": <0-100 | null>,
-    "stabilityVsSpontaneity": <0-100 | null>,
-    "independenceLevel": <0-100 | null>,
-    "optimismLevel": <0-100 | null>,
-    "careerOrientation": <0-100 | null>,
-    "intellectualOrientation": <0-100 | null>,
-    "financialApproach": <0-100 | null>,
-    "ambitionLevel": <0-100 | null>,
-    "spiritualDepth": <0-100 | null>,
-    "cultureConsumption": <0-100 | null>,
-    "togetherVsAutonomy": <0-100 | null>,
-    "familyInvolvement": <0-100 | null>,
-    "parenthoodPriority": <0-100 | null>,
-    "growthVsAcceptance": <0-100 | null>,
-    "nightOwlScore": <0-100 | null>,
-    "adventureScore": <0-100 | null>,
-    "appearancePickiness": <0-100 | null>,
+    "socialEnergy": <0-100: 0=אינטרוברט קיצוני, 100=אקסטרוברט קיצוני | null>,
+    "emotionalExpression": <0-100: 0=סגור/שמור, 100=פתוח מאוד רגשית | null>,
+    "stabilityVsSpontaneity": <0-100: 0=שגרתי מאוד, 100=ספונטני לחלוטין | null>,
+    "independenceLevel": <0-100: 0=תלותי מאוד, 100=עצמאי לחלוטין | null>,
+    "optimismLevel": <0-100: 0=פסימי, 100=אופטימי | null>,
+    "careerOrientation": <0-100: 0=משפחה מעל הכל, 100=קריירה מעל הכל | null>,
+    "intellectualOrientation": <0-100: 0=מעשי/קונקרטי, 100=אינטלקטואל/עיוני | null>,
+    "financialApproach": <0-100: 0=חוסך קיצוני, 100=בזבזן/נדיב קיצוני | null>,
+    "ambitionLevel": <0-100: 0=מסתפק במועט, 100=שאפתן מאוד | null>,
+    "spiritualDepth": <0-100: 0=ללא חיפוש רוחני, 100=רוחניות מרכזית בחיים | null>,
+    "cultureConsumption": <0-100: 0=לא מתעניין בתרבות, 100=צורך תרבות בכמויות גדולות | null>,
+    "togetherVsAutonomy": <0-100: 0=מעדיף/ת להיות תמיד יחד, 100=מעדיף/ת אוטונומיה רבה | null>,
+    "familyInvolvement": <0-100: 0=משפחה רחוקה, 100=משפחה מאוד מעורבת בחיים | null>,
+    "parenthoodPriority": <0-100: 0=ילדים לא עיקר, 100=ילדים עדיפות עליונה | null>,
+    "growthVsAcceptance": <0-100: 0=קבל את עצמך כפי שאתה, 100=שאיפה לשיפור מתמיד | null>,
+    "nightOwlScore": <0-100: 0=ציפור בוקר קיצונית, 100=ינשוף לילה קיצוני | null>,
+    "adventureScore": <0-100: 0=אוהב שגרה ובית, 100=אוהב הרפתקאות ושינויים | null>,
+    "appearancePickiness": <0-100: 0=לא מקפיד כלל על מראה חיצוני, 100=מאוד מקפיד/ה על מראה (חשוב!) | null>,
+    "socioEconomicLevel": <0-10: 0=רמה נמוכה מאוד, 5=בינוני, 10=גבוה מאוד — הסק מהמקצוע/השכלה/עיר | null>,
+    "jobSeniorityLevel": <0-5: 0=סטודנט/מובטל, 1=זוטר, 2=מנוסה, 3=בכיר, 4=מנהל, 5=C-Level/עצמאי מצליח | null>,
+    "educationLevelScore": <0-5: 0=ללא, 1=תיכון, 2=סמינר/ישיבה, 3=תואר ראשון, 4=תואר שני, 5=דוקטורט | null>,
     "humorStyle": <"CYNICAL"|"LIGHT"|"WORDPLAY"|"SELF_DEPRECATING"|"DRY" | null>,
     "communicationStyle": <"DIRECT"|"EMPATHETIC"|"ANALYTICAL"|"HUMOROUS"|"EMOTIONAL" | null>,
     "conflictStyle": <"CONFRONTING"|"AVOIDING"|"COMPROMISING"|"NEEDS_TIME"|"COLLABORATIVE" | null>,
@@ -357,28 +403,36 @@ ${input.questionnaireAnswers ? JSON.stringify(input.questionnaireAnswers, null, 
     "petsAttitude": <"LOVE"|"NEUTRAL"|"DISLIKE"|"ALLERGIC" | null>,
     "inferredPersonalityType": <"LEADER"|"SUPPORTER"|"ANALYTICAL"|"CREATIVE"|"CAREGIVER"|"ADVENTURER"|"HARMONIZER" | null>,
     "inferredAttachmentStyle": <"SECURE"|"ANXIOUS"|"AVOIDANT"|"DISORGANIZED" | null>,
-    "inferredLoveLanguages": [<array of "QUALITY_TIME"|"WORDS_OF_AFFIRMATION"|"PHYSICAL_TOUCH"|"ACTS_OF_SERVICE"|"GIFTS">],
-    "difficultyFlags": [<array of strings describing potential matching challenges>]
+    "inferredLoveLanguages": [<"QUALITY_TIME"|"WORDS_OF_AFFIRMATION"|"PHYSICAL_TOUCH"|"ACTS_OF_SERVICE"|"GIFTS">],
+    "difficultyFlags": ["<אתגרי שידוך פוטנציאליים בעברית>"],
+    "inferredAge": <מספר גיל מוסק אם לא ידוע, null אם ידוע>,
+    "inferredCity": "<עיר מוסקת אם לא ידועה, null אם ידועה>",
+    "inferredReligiousLevel": "<רמה דתית מוסקת אם לא מפורשת, null אם ידועה>"
   },
   "explanations": {
     "<metric_name>": {
       "value": <number>,
       "confidence": <0-100>,
-      "reasoning": "<short explanation in Hebrew>"
+      "reasoning": "<הסבר קצר בעברית>"
     }
   },
-  "aiPersonalitySummary": "<2-3 sentences summarizing personality in Hebrew>",
-  "aiSeekingSummary": "<2-3 sentences summarizing what they're looking for in Hebrew>",
-  "warnings": [<array of concerns or missing data notes>]
+  "aiPersonalitySummary": "<2-3 משפטים המסכמים את האישיות בעברית>",
+  "aiSeekingSummary": "<2-3 משפטים המסכמים מה מחפש/ת בבן/בת זוג בעברית>",
+  "aiBackgroundSummary": "<1-2 משפטים על הרקע התרבותי/משפחתי בעברית>",
+  "aiMatchmakerGuidelines": "<הנחיות מפתח לשדכן: מה חשוב לדעת, מה לשים לב, מה לא להציג>",
+  "aiInferredDealBreakers": ["<דברים שאסור שיהיו בבן/בת הזוג — הסק מהשאלון ומהתיאורים>"],
+  "aiInferredMustHaves": ["<דברים שחייבים להיות בבן/בת הזוג — הסק מהשאלון ומהתיאורים>"],
+  "warnings": ["<בעיות, חוסר נתונים, סתירות>"]
 }
 
-## הנחיות חשובות:
-1. אם אין מספיק מידע למדד, החזר null
-2. confidence צריך לשקף כמה בטוח אתה בערך (0=ניחוש, 100=ברור מהנתונים)
-3. השתמש ב-null רק אם באמת אין רמז - נסה להסיק מהטקסט החופשי
-4. עבור appearancePickiness: 0=לא מקפיד בכלל, 100=מאוד מקפיד על מראה (חשוב לזיהוי!)
-5. עבור difficultyFlags: רשום אתגרים פוטנציאליים בשידוך (מקפיד על מראה, טווח צר, וכו')
-6. הסברים צריכים להיות קצרים וברורים בעברית`;
+## הנחיות:
+1. אם אין מספיק מידע למדד — החזר null
+2. confidence: 0=ניחוש בלבד, 50=הסקה סבירה, 100=ברור מהנתונים
+3. socioEconomicLevel: הסק ממקצוע + השכלה + עיר מגורים
+4. aiInferredDealBreakers ו-aiInferredMustHaves: הסק מתשובות השאלון ומהתיאור
+5. דוגמאות ל-dealBreakers: "לא רוצה ילדים מקודם", "חייב/ת להיות חרדי/ת", "לא מוכן לגור מחוץ לירושלים"
+6. דוגמאות ל-mustHaves: "חייב/ת להיות אקדמאי/ת", "חייב/ת להיות עם אמביציה", "חייב/ת להיות קרוב/ה למשפחה"
+7. הסברים ו-summaries בעברית בלבד`;
 }
 
 function parseAIResponse(response: string): AIMetricsResult {
@@ -415,13 +469,17 @@ function parseAIResponse(response: string): AIMetricsResult {
       });
     }
 
-    // הוספת סיכומים
-    if (parsed.aiPersonalitySummary) {
-      metrics.aiPersonalitySummary = parsed.aiPersonalitySummary;
-    }
-    if (parsed.aiSeekingSummary) {
-      metrics.aiSeekingSummary = parsed.aiSeekingSummary;
-    }
+    // 🆕 הוספת כל שדות ה-AI
+    if (parsed.aiPersonalitySummary) metrics.aiPersonalitySummary = parsed.aiPersonalitySummary;
+    if (parsed.aiSeekingSummary) metrics.aiSeekingSummary = parsed.aiSeekingSummary;
+    if (parsed.aiBackgroundSummary) (metrics as any).aiBackgroundSummary = parsed.aiBackgroundSummary;
+    if (parsed.aiMatchmakerGuidelines) (metrics as any).aiMatchmakerGuidelines = parsed.aiMatchmakerGuidelines;
+    if (parsed.aiInferredDealBreakers?.length) (metrics as any).aiInferredDealBreakers = parsed.aiInferredDealBreakers;
+    if (parsed.aiInferredMustHaves?.length) (metrics as any).aiInferredMustHaves = parsed.aiInferredMustHaves;
+    // 🆕 שדות מוסקים — רק אם לא ידועים מהפרופיל ישירות
+    if (parsed.metrics?.inferredAge) (metrics as any).inferredAge = parsed.metrics.inferredAge;
+    if (parsed.metrics?.inferredCity) (metrics as any).inferredCity = parsed.metrics.inferredCity;
+    if (parsed.metrics?.inferredReligiousLevel) (metrics as any).inferredReligiousLevel = parsed.metrics.inferredReligiousLevel;
 
     // חישוב confidence ממוצע
     const confidenceValues = Object.values(explanations)
@@ -522,8 +580,57 @@ function extractDealBreakers(input: MetricsExtractionInput): DealBreakersResult 
     });
   }
 
+  // --- 🆕 Deal Breakers טקסטואליים מהשאלון ---
+  // שאלות פתוחות בהן המשתמש כתב במפורש את הדרישות/פסילות שלו
+  const partnerAnswers = input.questionnaireAnswers?.partner;
+  const relationshipAnswers = input.questionnaireAnswers?.relationship;
+
+  const dealBreakerText = findAnswer(partnerAnswers, 'partner_deal_breakers_open_text_revised');
+  const disqualifiersText = findAnswer(partnerAnswers, 'partner_common_disqualifiers');
+  const personalityClashText = findAnswer(partnerAnswers, 'partner_personality_clash');
+  const mustHaveText = findAnswer(partnerAnswers, 'partner_must_have_quality_final_revised');
+  const dealBreakerSummaryText = findAnswer(relationshipAnswers, 'relationship_deal_breaker_summary_final_revised');
+
+  // פסילות מפורשות → deal breaker רך (AI ישתמש בטקסט)
+  if (dealBreakerText && typeof dealBreakerText === 'string' && dealBreakerText.length > 5) {
+    soft.push({
+      type: 'EXPLICIT_QUESTIONNAIRE',
+      penalty: 15,
+      description: `פסילות מהשאלון: ${dealBreakerText.slice(0, 150)}`,
+    });
+  }
+  if (disqualifiersText && typeof disqualifiersText === 'string' && disqualifiersText.length > 5) {
+    soft.push({
+      type: 'EXPLICIT_QUESTIONNAIRE',
+      penalty: 12,
+      description: `פסלנים נפוצים: ${disqualifiersText.slice(0, 150)}`,
+    });
+  }
+  if (dealBreakerSummaryText && typeof dealBreakerSummaryText === 'string' && dealBreakerSummaryText.length > 5) {
+    soft.push({
+      type: 'EXPLICIT_QUESTIONNAIRE',
+      penalty: 10,
+      description: `סיכום deal breakers: ${dealBreakerSummaryText.slice(0, 150)}`,
+    });
+  }
+  // Must haves → soft as well (AI will enforce more precisely via aiInferredMustHaves)
+  if (mustHaveText && typeof mustHaveText === 'string' && mustHaveText.length > 3) {
+    soft.push({
+      type: 'EXPLICIT_MUST_HAVE',
+      penalty: 0,
+      description: `חייב להיות: ${mustHaveText.slice(0, 150)}`,
+    });
+  }
+  if (personalityClashText && typeof personalityClashText === 'string' && personalityClashText.length > 5) {
+    soft.push({
+      type: 'EXPLICIT_QUESTIONNAIRE',
+      penalty: 8,
+      description: `התנגשות אישיות: ${personalityClashText.slice(0, 150)}`,
+    });
+  }
+
   // --- Deal Breakers רכים ---
-  
+
   // פער עדתי
   soft.push({
     type: 'ETHNIC_MISMATCH',

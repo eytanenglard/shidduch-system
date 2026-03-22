@@ -21,6 +21,13 @@ import {
   BackgroundCategory,
   EthnicBackground,
   calculateRangeCompatibility,
+  PERSONALITY_COMPATIBILITY_MATRIX,
+  ATTACHMENT_COMPATIBILITY_MATRIX,
+  calculateLoveLanguageOverlap,
+  calculateSocioEconomicScore,
+  calculateEducationScore,
+  calculateJobSeniorityScore,
+  getReligiousCompatibilityScore,
 } from "@/types/profileMetrics";
 
 // ═══════════════════════════════════════════════════════════════
@@ -34,6 +41,7 @@ interface ProfileWithMetrics {
   age: number;
   height?: number;
   city?: string;
+  occupation?: string;
   religiousLevel?: string;
   religiousJourney?: string;
   nativeLanguage?: string;
@@ -234,6 +242,7 @@ async function fetchProfileWithMetrics(profileId: string): Promise<ProfileWithMe
     age,
     height: profile.height || undefined,
     city: profile.city || metrics?.inferredCity || undefined,
+    occupation: profile.occupation || undefined,
     religiousLevel: profile.religiousLevel || metrics?.inferredReligiousLevel || undefined,
     religiousJourney: profile.religiousJourney || undefined,
     nativeLanguage: profile.nativeLanguage || undefined,
@@ -262,6 +271,9 @@ async function fetchProfileWithMetrics(profileId: string): Promise<ProfileWithMe
       difficultyFlags: parseJson(metrics.difficultyFlags),
       inferredLoveLanguages: parseJson(metrics.inferredLoveLanguages),
       inferredRelationshipGoals: parseJson(metrics.inferredRelationshipGoals),
+      aiInferredDealBreakers: parseJson(metrics.aiInferredDealBreakers),
+      aiInferredMustHaves: parseJson(metrics.aiInferredMustHaves),
+      metricsExplanations: parseJson(metrics.metricsExplanations),
     } : undefined,
   };
 }
@@ -329,24 +341,10 @@ function checkHardDealBreakers(
   return { passed: failed.length === 0, failed };
 }
 
+// 🆕 מבוסס על מטריצת תאימות דתית 15×15 — מקור אמת יחיד
 function areReligiousLevelsCompatible(levelA: string, levelB: string): boolean {
-  const charediLevels = ['charedi_hasidic', 'charedi_litvish', 'charedi_sephardi'];
-  const masortiLevels = ['masorti_dati', 'masorti', 'masorti_hiloni'];
-  const hiloniLevels = ['hiloni_traditional', 'hiloni', 'secular'];
-
-  // חרדי לא מתאים למסורתי/חילוני
-  if (charediLevels.includes(levelA) && [...masortiLevels, ...hiloniLevels].includes(levelB)) return false;
-  if (charediLevels.includes(levelB) && [...masortiLevels, ...hiloniLevels].includes(levelA)) return false;
-  
-  // דתי לאומי תורני לא מתאים לחילוני
-  if (levelA === 'dati_leumi_torani' && hiloniLevels.includes(levelB)) return false;
-  if (levelB === 'dati_leumi_torani' && hiloniLevels.includes(levelA)) return false;
-  
-  // מסורתי לא מתאים לחרדי
-  if (masortiLevels.includes(levelA) && charediLevels.includes(levelB)) return false;
-  if (masortiLevels.includes(levelB) && charediLevels.includes(levelA)) return false;
-
-  return true;
+  const score = getReligiousCompatibilityScore(levelA, levelB);
+  return score > 20; // ציון 20 ומטה = לא מומלץ בכלל
 }
 
 function evaluateHardDealBreaker(
@@ -445,11 +443,29 @@ function calculateSoftPenalties(
   }
 
   // ═══════════════════════════════════════════════════════════
-  // 🆕 שפה - Soft Penalty קל (לא Deal Breaker!)
+  // 🆕 שפה - Soft Penalty משמעותי (לא Deal Breaker אבל גבוה יותר)
   // ═══════════════════════════════════════════════════════════
+  const seekerFluency = seeker.metrics?.englishFluency ?? 50;
+  const candidateFluency = candidate.metrics?.englishFluency ?? 50;
+  const fluencyGap = Math.abs(seekerFluency - candidateFluency);
+
   if (isEnglishOnly(seeker) && !speaksEnglish(candidate)) {
-    // קנס קטן - לא חוסם, רק מוריד קצת
-    applied.push({ type: 'LANGUAGE_BARRIER', penalty: 8 });
+    if (fluencyGap > 60) {
+      // פער חמור — אחד דובר אנגלית בלבד והשני בקושי
+      applied.push({ type: 'SEVERE_LANGUAGE_BARRIER', penalty: 25 });
+    } else {
+      applied.push({ type: 'LANGUAGE_BARRIER', penalty: 20 });
+    }
+  } else if (isEnglishOnly(candidate) && !speaksEnglish(seeker)) {
+    // בדיקה דו-כיוונית: גם אם המועמד דובר אנגלית בלבד
+    if (fluencyGap > 60) {
+      applied.push({ type: 'SEVERE_LANGUAGE_BARRIER', penalty: 25 });
+    } else {
+      applied.push({ type: 'LANGUAGE_BARRIER', penalty: 20 });
+    }
+  } else if (fluencyGap > 60) {
+    // פער שפה גדול גם בלי להיות "English only"
+    applied.push({ type: 'LANGUAGE_GAP', penalty: 12 });
   }
 
   // מסלול דתי - בונוס/קנס עדין
@@ -489,6 +505,83 @@ function calculateSoftPenalties(
     for (const db of seeker.metrics.dealBreakersSoft as SoftDealBreaker[]) {
       if (db.penalty > 0) {
         applied.push({ type: db.type, penalty: db.penalty });
+      }
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // 🆕 AI Deal Breakers — קווי אדום שזוהו ע"י AI מהשאלון
+  // ═══════════════════════════════════════════════════════════
+  const aiDealBreakers = (seeker.metrics as any)?.aiInferredDealBreakers as string[] | null;
+  if (aiDealBreakers?.length) {
+    let aiDealBreakerTotal = 0;
+    for (const dealBreaker of aiDealBreakers) {
+      if (aiDealBreakerTotal >= 40) break; // cap at 40
+      const lower = dealBreaker.toLowerCase();
+
+      if ((lower.includes('ילדים') || lower.includes('children')) && candidate.hasChildrenFromPrevious) {
+        applied.push({ type: `AI_DEAL_BREAKER: ${dealBreaker}`, penalty: 20 });
+        aiDealBreakerTotal += 20;
+      }
+
+      if ((lower.includes('חרדי') || lower.includes('charedi')) && candidate.religiousLevel?.startsWith('charedi')) {
+        applied.push({ type: `AI_DEAL_BREAKER: ${dealBreaker}`, penalty: 20 });
+        aiDealBreakerTotal += 20;
+      }
+
+      if ((lower.includes('חילוני') || lower.includes('secular')) && candidate.religiousLevel === 'secular') {
+        applied.push({ type: `AI_DEAL_BREAKER: ${dealBreaker}`, penalty: 20 });
+        aiDealBreakerTotal += 20;
+      }
+
+      const ageMatch = lower.match(/גיל\s*(\d+)/);
+      if (ageMatch) {
+        const maxAge = parseInt(ageMatch[1]);
+        if (candidate.age > 0 && candidate.age > maxAge) {
+          applied.push({ type: `AI_DEAL_BREAKER: ${dealBreaker}`, penalty: 20 });
+          aiDealBreakerTotal += 20;
+        }
+      }
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // 🆕 AI Must Haves — דרישות שזוהו ע"י AI מהשאלון
+  // ═══════════════════════════════════════════════════════════
+  const aiMustHaves = (seeker.metrics as any)?.aiInferredMustHaves as string[] | null;
+  if (aiMustHaves?.length) {
+    let aiMustHaveTotal = 0;
+    for (const mustHave of aiMustHaves) {
+      if (aiMustHaveTotal >= 30) break; // cap at 30
+      const lower = mustHave.toLowerCase();
+
+      if ((lower.includes('תואר') || lower.includes('degree') || lower.includes('השכלה'))
+          && (candidate.metrics as any)?.educationLevelScore !== null
+          && (candidate.metrics as any)?.educationLevelScore < 3) {
+        applied.push({ type: `AI_MUST_HAVE_MISSING: ${mustHave}`, penalty: 12 });
+        aiMustHaveTotal += 12;
+      }
+
+      if ((lower.includes('עובד') || lower.includes('employed') || lower.includes('עבודה'))
+          && !candidate.occupation) {
+        applied.push({ type: `AI_MUST_HAVE_MISSING: ${mustHave}`, penalty: 12 });
+        aiMustHaveTotal += 12;
+      }
+
+      if (lower.includes('ירושלים') || lower.includes('jerusalem')) {
+        const city = candidate.city || (candidate.metrics as any)?.inferredCity;
+        if (city && !city.includes('ירושלים') && !city.toLowerCase().includes('jerusalem')) {
+          applied.push({ type: `AI_MUST_HAVE_MISSING: ${mustHave}`, penalty: 12 });
+          aiMustHaveTotal += 12;
+        }
+      }
+
+      if (lower.includes('תל אביב') || lower.includes('tel aviv')) {
+        const city = candidate.city || (candidate.metrics as any)?.inferredCity;
+        if (city && !city.includes('תל אביב') && !city.toLowerCase().includes('tel aviv')) {
+          applied.push({ type: `AI_MUST_HAVE_MISSING: ${mustHave}`, penalty: 12 });
+          aiMustHaveTotal += 12;
+        }
       }
     }
   }
@@ -560,15 +653,22 @@ function calculateMetricsCompatibility(
   let totalWeightedScore = 0;
   let totalWeight = 0;
 
+  // 🆕 שליפת confidence מתוך metricsExplanations לשקלול משקל
+  const explanations = (seeker.metrics as any)?.metricsExplanations || {};
+
   for (const metric of metricsToCheck) {
     const candidateValue = (candidate.metrics as any)[metric.selfKey];
     const seekerPrefMin = (seeker.metrics as any)[metric.prefMinKey];
     const seekerPrefMax = (seeker.metrics as any)[metric.prefMaxKey];
-    const seekerWeight = (seeker.metrics as any)[metric.prefWeightKey] ?? DEFAULT_METRIC_WEIGHTS[metric.name] ?? 5;
+    const baseWeight = (seeker.metrics as any)[metric.prefWeightKey] ?? DEFAULT_METRIC_WEIGHTS[metric.name] ?? 5;
 
     if (candidateValue === undefined || candidateValue === null) continue;
 
-    const compatibility = calculateRangeCompatibility(candidateValue, seekerPrefMin, seekerPrefMax, seekerWeight);
+    // 🆕 Confidence weighting: confidence 0% → 50% weight, 100% → full weight
+    const metricConfidence = explanations[metric.name]?.confidence ?? 70;
+    const seekerWeight = baseWeight * (0.5 + metricConfidence / 200);
+
+    const compatibility = calculateRangeCompatibility(candidateValue, seekerPrefMin, seekerPrefMax, baseWeight);
     const penalty = compatibility < 100 ? Math.round((100 - compatibility) * seekerWeight / 100) : 0;
 
     details.push({
@@ -576,13 +676,105 @@ function calculateMetricsCompatibility(
       valueA: candidateValue,
       preferenceMinB: seekerPrefMin ?? 0,
       preferenceMaxB: seekerPrefMax ?? 100,
-      weightB: seekerWeight,
+      weightB: Math.round(seekerWeight * 10) / 10,
       compatibilityScore: compatibility,
       penalty,
     });
 
     totalWeightedScore += compatibility * seekerWeight;
     totalWeight += seekerWeight;
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // 🆕 מדדים נוספים: סוציו-אקונומי, השכלה, בכירות תעסוקתית
+  // ═══════════════════════════════════════════════════════════
+  const sm = seeker.metrics as any;
+  const cm = candidate.metrics as any;
+
+  const socioScore = calculateSocioEconomicScore(
+    sm.socioEconomicLevel, cm.socioEconomicLevel,
+    sm.prefSocioEconomicMin ?? null, sm.prefSocioEconomicMax ?? null,
+    cm.prefSocioEconomicMin ?? null, cm.prefSocioEconomicMax ?? null
+  );
+  if (socioScore !== 70) { // 70 = neutral/missing, skip if no data
+    const w = DEFAULT_METRIC_WEIGHTS.socioEconomicLevel;
+    totalWeightedScore += socioScore * w;
+    totalWeight += w;
+    details.push({ metric: 'socioEconomicLevel', valueA: cm.socioEconomicLevel, preferenceMinB: sm.prefSocioEconomicMin ?? 0, preferenceMaxB: sm.prefSocioEconomicMax ?? 10, weightB: w, compatibilityScore: socioScore, penalty: socioScore < 50 ? Math.round((100 - socioScore) * w / 100) : 0 });
+  }
+
+  const eduScore = calculateEducationScore(
+    sm.educationLevelScore, cm.educationLevelScore,
+    sm.prefEducationMin ?? null, cm.prefEducationMin ?? null
+  );
+  if (eduScore !== 70) {
+    const w = DEFAULT_METRIC_WEIGHTS.educationLevelScore;
+    totalWeightedScore += eduScore * w;
+    totalWeight += w;
+    details.push({ metric: 'educationLevelScore', valueA: cm.educationLevelScore, preferenceMinB: sm.prefEducationMin ?? 0, preferenceMaxB: 5, weightB: w, compatibilityScore: eduScore, penalty: eduScore < 50 ? Math.round((100 - eduScore) * w / 100) : 0 });
+  }
+
+  const jobScore = calculateJobSeniorityScore(
+    sm.jobSeniorityLevel, cm.jobSeniorityLevel,
+    sm.prefJobSeniorityMin ?? null, cm.prefJobSeniorityMin ?? null
+  );
+  if (jobScore !== 70) {
+    const w = DEFAULT_METRIC_WEIGHTS.jobSeniorityLevel;
+    totalWeightedScore += jobScore * w;
+    totalWeight += w;
+    details.push({ metric: 'jobSeniorityLevel', valueA: cm.jobSeniorityLevel, preferenceMinB: sm.prefJobSeniorityMin ?? 0, preferenceMaxB: 5, weightB: w, compatibilityScore: jobScore, penalty: jobScore < 50 ? Math.round((100 - jobScore) * w / 100) : 0 });
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // 🆕 תאימות אישיות, סגנון התקשרות, שפות אהבה
+  // ═══════════════════════════════════════════════════════════
+  if (sm.inferredPersonalityType && cm.inferredPersonalityType) {
+    const personalityScore = PERSONALITY_COMPATIBILITY_MATRIX[sm.inferredPersonalityType]?.[cm.inferredPersonalityType];
+    if (personalityScore !== undefined) {
+      const w = DEFAULT_METRIC_WEIGHTS.personalityType;
+      totalWeightedScore += personalityScore * w;
+      totalWeight += w;
+      details.push({ metric: 'personalityType', valueA: cm.inferredPersonalityType, preferenceMinB: 0, preferenceMaxB: 100, weightB: w, compatibilityScore: personalityScore, penalty: 0 });
+    }
+  }
+
+  if (sm.inferredAttachmentStyle && cm.inferredAttachmentStyle) {
+    const attachScore = ATTACHMENT_COMPATIBILITY_MATRIX[sm.inferredAttachmentStyle]?.[cm.inferredAttachmentStyle];
+    if (attachScore !== undefined) {
+      const w = DEFAULT_METRIC_WEIGHTS.attachmentStyle;
+      totalWeightedScore += attachScore * w;
+      totalWeight += w;
+      details.push({ metric: 'attachmentStyle', valueA: cm.inferredAttachmentStyle, preferenceMinB: 0, preferenceMaxB: 100, weightB: w, compatibilityScore: attachScore, penalty: 0 });
+    }
+  }
+
+  const loveOverlap = calculateLoveLanguageOverlap(sm.inferredLoveLanguages, cm.inferredLoveLanguages);
+  if (loveOverlap !== 50) { // 50 = neutral/missing
+    const w = DEFAULT_METRIC_WEIGHTS.loveLanguages;
+    totalWeightedScore += loveOverlap * w;
+    totalWeight += w;
+    details.push({ metric: 'loveLanguages', valueA: cm.inferredLoveLanguages, preferenceMinB: 0, preferenceMaxB: 100, weightB: w, compatibilityScore: loveOverlap, penalty: 0 });
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // 🆕 תאימות גיל רציפה (לא רק pass/fail)
+  // ═══════════════════════════════════════════════════════════
+  if (seeker.preferredAgeMin && seeker.preferredAgeMax && candidate.age > 0) {
+    const idealAge = (seeker.preferredAgeMin + seeker.preferredAgeMax) / 2;
+    const ageDist = Math.abs(candidate.age - idealAge);
+    let ageScore: number;
+    if (ageDist <= 0.5) ageScore = 100;
+    else if (ageDist <= 1.5) ageScore = 95;
+    else if (ageDist <= 2.5) ageScore = 90;
+    else if (ageDist <= 3.5) ageScore = 80;
+    else if (ageDist <= 4.5) ageScore = 70;
+    else if (ageDist <= 5.5) ageScore = 60;
+    else ageScore = 50;
+
+    const w = DEFAULT_METRIC_WEIGHTS.ageCompatibility;
+    totalWeightedScore += ageScore * w;
+    totalWeight += w;
+    details.push({ metric: 'ageCompatibility', valueA: candidate.age, preferenceMinB: seeker.preferredAgeMin, preferenceMaxB: seeker.preferredAgeMax, weightB: w, compatibilityScore: ageScore, penalty: 0 });
   }
 
   return { score: totalWeight > 0 ? Math.round(totalWeightedScore / totalWeight) : 50, details };

@@ -216,12 +216,44 @@ export async function scanSingleUserV2(
   console.log(`[ScanV2] City: ${userCity || 'Not specified'}`);
   console.log(`[ScanV2] Looking for age range: ${preferredAgeMin} - ${preferredAgeMax}`);
 
-  // בדיקה ועדכון מדדים/וקטורים של היוזר
+  // בדיקה ועדכון מדדים/וקטורים של היוזר (כולל בדיקת עדכניות)
   const metricsExist = await checkMetricsExist(profile.id);
   const vectorsExist = await checkVectorsExist(profile.id);
 
-  if (!metricsExist || !vectorsExist || forceUpdateMetrics) {
-    console.log(`[ScanV2] Updating metrics/vectors for user profile...`);
+  // 🆕 בדיקת Staleness: האם הפרופיל/שאלון עודכנו מאז שהוקטורים חושבו?
+  let isStale = false;
+  if (metricsExist && vectorsExist && !forceUpdateMetrics) {
+    const stalenessData = await prisma.$queryRaw<{ vectorsUpdatedAt: Date | null; questionnaireUpdatedAt: Date | null; profileUpdatedAt: Date }[]>`
+      SELECT
+        pv."updatedAt" as "vectorsUpdatedAt",
+        qr."updatedAt" as "questionnaireUpdatedAt",
+        p."updatedAt" as "profileUpdatedAt"
+      FROM "Profile" p
+      LEFT JOIN "profile_vectors" pv ON pv."profileId" = p.id
+      LEFT JOIN "QuestionnaireResponse" qr ON qr."profileId" = p.id
+      WHERE p.id = ${profile.id}
+      LIMIT 1
+    `;
+    if (stalenessData.length > 0) {
+      const { vectorsUpdatedAt, questionnaireUpdatedAt, profileUpdatedAt } = stalenessData[0];
+      if (vectorsUpdatedAt) {
+        const vectorsTime = new Date(vectorsUpdatedAt).getTime();
+        const profileTime = new Date(profileUpdatedAt).getTime();
+        const questionnaireTime = questionnaireUpdatedAt ? new Date(questionnaireUpdatedAt).getTime() : 0;
+        const latestDataTime = Math.max(profileTime, questionnaireTime);
+        // Stale if profile or questionnaire was updated more than 1 hour after vectors were built
+        if (latestDataTime > vectorsTime + 60 * 60 * 1000) {
+          isStale = true;
+          const staleSource = questionnaireTime > profileTime ? 'questionnaire' : 'profile';
+          console.log(`[ScanV2] ⚠️ Vectors are stale (${staleSource} updated ${Math.round((latestDataTime - vectorsTime) / 60000)}m after vectors) — will refresh`);
+        }
+      }
+    }
+  }
+
+  if (!metricsExist || !vectorsExist || forceUpdateMetrics || isStale) {
+    const reason = !metricsExist ? 'missing metrics' : !vectorsExist ? 'missing vectors' : isStale ? 'stale data' : 'forced';
+    console.log(`[ScanV2] Updating metrics/vectors for user profile (reason: ${reason})...`);
     try {
       await updateProfileVectorsAndMetrics(profile.id);
       console.log(`[ScanV2] User metrics updated ✓`);
@@ -230,7 +262,7 @@ export async function scanSingleUserV2(
       console.error(`[ScanV2] Failed to update user metrics:`, error);
     }
   } else {
-    console.log(`[ScanV2] User metrics exist ✓`);
+    console.log(`[ScanV2] User metrics/vectors up to date ✓`);
   }
 
   // ═══════════════════════════════════════════════════════════
@@ -657,15 +689,26 @@ async function ensureCandidatesReady(
   maxToUpdate: number = 30
 ): Promise<{ updated: number; failed: number }> {
   
-  const candidatesNeedingUpdate = await prisma.$queryRaw<{ profileId: string; firstName: string }[]>`
-    SELECT 
+  // 🆕 גם מועמדים חסרים גם מועמדים עם נתונים ישנים (פרופיל/שאלון עודכנו מאז הוקטורים)
+  const STALE_THRESHOLD_HOURS = 2;
+  const candidatesNeedingUpdate = await prisma.$queryRaw<{ profileId: string; firstName: string; reason: string }[]>`
+    SELECT
       p.id as "profileId",
-      u."firstName"
+      u."firstName",
+      CASE
+        WHEN pm.id IS NULL OR pv.id IS NULL OR pv."selfVector" IS NULL OR pv."seekingVector" IS NULL
+          THEN 'missing'
+        WHEN GREATEST(p."updatedAt", COALESCE(qr."updatedAt", p."updatedAt"))
+             > pv."updatedAt" + INTERVAL '${STALE_THRESHOLD_HOURS} hours'
+          THEN 'stale'
+        ELSE 'ok'
+      END as reason
     FROM "Profile" p
     JOIN "User" u ON u.id = p."userId"
     LEFT JOIN "profile_metrics" pm ON pm."profileId" = p.id
     LEFT JOIN "profile_vectors" pv ON pv."profileId" = p.id
-    WHERE 
+    LEFT JOIN "QuestionnaireResponse" qr ON qr."profileId" = p.id
+    WHERE
       p.gender = ${oppositeGender}::"Gender"
       AND p."availabilityStatus" = 'AVAILABLE'::"AvailabilityStatus"
       AND (p."isProfileVisible" = true OR p."isProfileVisible" IS NULL)
@@ -674,17 +717,21 @@ async function ensureCandidatesReady(
         OR pv.id IS NULL
         OR pv."selfVector" IS NULL
         OR pv."seekingVector" IS NULL
+        OR GREATEST(p."updatedAt", COALESCE(qr."updatedAt", p."updatedAt"))
+           > pv."updatedAt" + INTERVAL '${STALE_THRESHOLD_HOURS} hours'
       )
     ORDER BY p."updatedAt" DESC
     LIMIT ${maxToUpdate}
   `;
 
   if (candidatesNeedingUpdate.length === 0) {
-    console.log(`[ScanV2] All candidates have metrics/vectors ✓`);
+    console.log(`[ScanV2] All candidates have up-to-date metrics/vectors ✓`);
     return { updated: 0, failed: 0 };
   }
 
-  console.log(`[ScanV2] Found ${candidatesNeedingUpdate.length} candidates needing metrics update`);
+  const missingCount = candidatesNeedingUpdate.filter(c => c.reason === 'missing').length;
+  const staleCount = candidatesNeedingUpdate.filter(c => c.reason === 'stale').length;
+  console.log(`[ScanV2] Found ${candidatesNeedingUpdate.length} candidates needing update (${missingCount} missing, ${staleCount} stale)`);
 
   let updated = 0;
   let failed = 0;
@@ -836,13 +883,32 @@ async function fetchProfileDetailsForAI(profileId: string): Promise<any> {
   };
 }
 
-// 🆕 פרומפט מעודכן עם סיכומים חדשים
+// 🆕 הנחיות מותאמות סקטור
+function getSectorGuidance(religiousLevel: string | undefined): string {
+  if (!religiousLevel) return '';
+  const level = religiousLevel.toLowerCase();
+  if (level.startsWith('charedi') || level === 'chabad' || level === 'breslov') {
+    return `\n## הנחיות סקטוריאליות:\nשים דגש על התאמת משפחות (יחוס), מחויבות ללימוד תורה, תאימות קהילתית. מראה חיצוני וקריירה משניים יחסית. חשוב לבדוק רמת צניעות ושמירת מצוות.\n`;
+  }
+  if (level.startsWith('dati_leumi')) {
+    return `\n## הנחיות סקטוריאליות:\nאזן בין צמיחה דתית, שאיפות מקצועיות, ותאימות אישית. התאמת השקפת עולם (תורנית/ליברלית) היא מפתח. שילוב שירות צבאי/לאומי ותפיסת חיים רלוונטיים.\n`;
+  }
+  if (level.startsWith('masorti')) {
+    return `\n## הנחיות סקטוריאליות:\nבדוק תאימות ברמת שמירת מסורת (שבת, כשרות, חגים). התמקד בערכים משותפים, תאימות אורח חיים, וגמישות דתית הדדית.\n`;
+  }
+  // hiloni / secular / spiritual
+  return `\n## הנחיות סקטוריאליות:\nהתמקד בתאימות אורח חיים, ערכים משותפים, כימיה אישית, ומטרות חיים. פחות רלוונטי לבדוק התאמה דתית-הלכתית.\n`;
+}
+
+// 🆕 פרומפט מעודכן עם סיכומים חדשים + הנחיות סקטוריאליות
 async function analyzeMatchWithAI(
   userDetails: any,
   candidateDetails: any,
   compatibility: PairCompatibilityResult
 ): Promise<any> {
+  const sectorGuidance = getSectorGuidance(userDetails.religiousLevel);
   const prompt = `אתה שדכן מומחה. נתח את ההתאמה בין שני הפרופילים הבאים.
+${sectorGuidance}
 
 ## פרופיל A (מחפש/ת):
 שם: ${userDetails.name}
@@ -1012,11 +1078,13 @@ export async function saveScanResults(result: ScanResult): Promise<number> {
               lastScanMethod: 'metrics_v2',
             } : {}),
             
-            // 🆕 תמיד לעדכן את השדות הספציפיים ל-Metrics V2
-            metricsV2Score: match.symmetricScore,
-            metricsV2Reasoning: match.aiAnalysis?.reasoning || null,
-            metricsV2ScannedAt: new Date(),
-            metricsV2ScoreBreakdown: generatedBreakdown,
+            // 🆕 עדכון Metrics V2 רק אם ציון חדש גבוה יותר (עקביות עם aiScore)
+            ...(match.symmetricScore > (existing.metricsV2Score || 0) ? {
+              metricsV2Score: match.symmetricScore,
+              metricsV2Reasoning: match.aiAnalysis?.reasoning || null,
+              metricsV2ScoreBreakdown: generatedBreakdown,
+            } : {}),
+            metricsV2ScannedAt: new Date(), // תמיד לעדכן timestamp
             
             // שדות נוספים
             firstPassScore: match.metricsScore,
