@@ -806,6 +806,336 @@ const VALUE_EMAILS: ValueEmailContent[] = [
     ctaText: { he: 'לעדכן את הפרופיל שלי', en: 'Update My Profile' },
     ctaNote: { he: 'פרופיל עדכני = התאמה מדויקת יותר', en: 'Updated profile = more accurate matching' },
   },
+
+  // ─── Season 3: Advanced Research Series (Emails 21–28) ────────────────────
+
+  {
+    id: 'VALUE_21_HARVARD_STUDY',
+    emailNumber: '21',
+    subject: {
+      he: 'מחקר הרווארד בן 80 השנה — מה באמת גורם לאושר? 🎓',
+      en: 'Harvard\'s 80-Year Study — What Actually Causes Happiness? 🎓',
+    },
+    headerEmoji: '🎓',
+    headerTitle: { he: 'מה שמחקר הרווארד גילה על אהבה ובריאות', en: 'What Harvard\'s Research Revealed About Love and Health' },
+    headerSubtitle: { he: '80 שנות מחקר, אלפי משתתפים, מסקנה אחת מפתיעה', en: '80 years of research, thousands of participants, one surprising conclusion' },
+    introText: {
+      he: 'מחקר פיתוח המבוגרים של הרווארד (Harvard Study of Adult Development) הוא אחד המחקרים הארוכים ביותר בהיסטוריה: 84 שנות מעקב אחרי 268 גברים שהחל ב-1938, והורחב לאחר מכן לאלפי נבדקים נוספים. המסקנה שגרמה לעולם המדע לעצור ולהכיר: לא כסף, לא פרסום, לא קריירה, ולא IQ — אלא איכות הזוגיות שלנו היא המנבא החזק ביותר לאושר וְלבריאות לאורך החיים.',
+      en: 'The Harvard Study of Adult Development is one of the longest studies in history: 84 years of follow-up on 268 men starting in 1938, later expanded to thousands more participants. The conclusion that made the scientific world stop and take notice: not money, not fame, not career, not IQ — but the quality of our relationships is the strongest predictor of happiness and health across a lifetime.',
+    },
+    tips: {
+      he: [
+        { number: '1', title: 'זוגיות בגיל 50 מנבאת בריאות בגיל 80 — טוב יותר מכולסטרול', body: 'זה לא מטפורה — זה מדע. ד"ר רוברט וולדינגר, מנהל המחקר, גילה שרמת שביעות הרצון מהזוגיות בגיל 50 ניבאה את הבריאות הפיזית בגיל 80 טוב יותר מאשר רמת הכולסטרול. אנשים שהיו מאושרים בזוגיות שלהם בגיל 50 — חיו יותר, חלו פחות, ואף שמרו טוב יותר על הזיכרון.' },
+        { number: '2', title: 'בדידות הורגת — ממש', body: 'וולדינגר אמר משהו שהדהים את העולם: "בדידות הורגת. היא עוצמתית כמו עישון או אלכוהוליזם." אנשים בודדים ממירים כאב פיזי בצורה אינטנסיבית יותר, המוח שלהם מתדרדר מוקדם יותר, ורמת הבריאות שלהם נמוכה יותר בכל פרמטר. זוגיות טובה היא ממש "תרופה" ביולוגית.' },
+        { number: '3', title: 'לא כמות הקשרים — איכות הקשרים', body: 'המחקר לא גילה שאנשים עם הרבה חברים מאושרים יותר. הוא גילה שאנשים עם קשרים מעמיקים, אמינים, ואינטימיים — מאושרים יותר. אדם אחד שמרגיש שהוא יכול לסמוך עליך לחלוטין שווה יותר מעשרים היכרויות שטחיות. אותו עיקרון תקף לגמרי לשידוך.' },
+        { number: '4', title: 'מה שנלמד מ-84 שנים: "הדאגות שלנו לגבי הבריאות ועתידנו הכלכלי מסיחות את תשומת ליבנו מהדבר האחד שחשוב באמת"', body: 'וולדינגר סיכם: "המסר הפשוט שחוזר שוב ושוב בנתונים שלנו הוא זה: קשרים טובים שומרים עלינו מאושרים ובריאים. נקודה." כל שאר "ההצלחות" — קריירה, כסף, הישגים — חשובות פחות ממה שרובנו מאמינים.' },
+      ],
+      en: [
+        { number: '1', title: 'Relationship Satisfaction at 50 Predicts Health at 80 — Better Than Cholesterol', body: 'This isn\'t metaphor — it\'s science. Dr. Robert Waldinger, the study\'s director, found that relationship satisfaction at 50 predicted physical health at 80 better than cholesterol levels. People who were happy in their relationships at 50 — lived longer, got sick less, and even maintained memory better.' },
+        { number: '2', title: 'Loneliness Kills — Literally', body: 'Waldinger said something that stunned the world: "Loneliness kills. It\'s as powerful as smoking or alcoholism." Lonely people experience physical pain more intensely, their brains deteriorate earlier, and their health is lower on every parameter. A good relationship is literally a biological "medicine."' },
+        { number: '3', title: 'Not the Quantity of Connections — the Quality', body: 'The study didn\'t find that people with many friends are happier. It found that people with deep, reliable, intimate connections are happier. One person you feel you can completely rely on is worth more than twenty superficial acquaintances. The same principle applies fully to matching.' },
+        { number: '4', title: 'What 84 Years Teaches: "Our worries about health and financial future distract us from the one thing that truly matters"', body: 'Waldinger summarized: "The simple message that comes through again and again in our data is this: good relationships keep us happier and healthier. Period." All other "successes" — career, money, achievements — matter less than most of us believe.' },
+      ],
+    },
+    quoteText: {
+      he: 'האנשים שהיו הכי מרוצים מהקשרים שלהם בגיל 50 — היו הכי בריאים בגיל 80',
+      en: 'The people who were most satisfied in their relationships at age 50 were the healthiest at age 80',
+    },
+    quoteSource: 'ד"ר רוברט וולדינגר, Harvard Study of Adult Development',
+    closingText: {
+      he: 'מחקר הרווארד מוכיח: ההשקעה הטובה ביותר שאפשר לעשות היא ביחסים אנושיים. ב-NeshamaTech אנחנו עוזרים לך להשקיע בצורה החכמה ביותר — ולמצוא קשר שישמור עליך מאושר ובריא לשנים ארוכות. 🎯',
+      en: 'Harvard\'s research proves: the best investment you can make is in human relationships. At NeshamaTech we help you invest in the smartest way — and find a connection that will keep you happy and healthy for many years. 🎯',
+    },
+    ctaText: { he: 'לראות את ההתאמות שלי', en: 'See My Matches' },
+    ctaNote: { he: 'ההשקעה הטובה ביותר שלך מחכה כאן', en: 'Your best investment is waiting here' },
+  },
+
+  {
+    id: 'VALUE_22_PERPETUAL_PROBLEMS',
+    emailNumber: '22',
+    subject: {
+      he: '69% מהמריבות בזוגיות הן נצחיות — וזה בסדר גמור 🕊️',
+      en: '69% of Relationship Conflicts Are Perpetual — And That\'s Completely Fine 🕊️',
+    },
+    headerEmoji: '🕊️',
+    headerTitle: { he: 'הסוד על קונפליקטים שמעטים יודעים', en: 'The Secret About Conflicts That Few Know' },
+    headerSubtitle: { he: 'מחקר גוטמן מגלה: הבעיה היא לא הבעיות', en: 'Gottman\'s research reveals: the problem isn\'t the problems' },
+    introText: {
+      he: 'רוב האנשים מאמינים שזוגיות מוצלחת היא זוגיות ללא קונפליקטים — או לפחות עם מינימום מחלוקות. גוטמן ניפץ את המיתוס הזה לחלוטין. לאחר לשחקרו אלפי זוגות גילה: **69% מהקונפליקטים בזוגיות הם "נצחיים"** — כלומר, הם לא נפתרים לעולם. זוגות מאושרים לא פתרו יותר קונפליקטים — הם למדו לחיות איתם בכבוד ובהומור.',
+      en: 'Most people believe that a successful relationship is one without conflicts — or at least with minimal disagreements. Gottman completely shattered this myth. After studying thousands of couples he discovered: **69% of conflicts in relationships are "perpetual"** — meaning they never fully resolve. Happy couples didn\'t solve more conflicts — they learned to live with them with respect and humor.',
+    },
+    tips: {
+      he: [
+        { number: '1', title: 'קונפליקטים "נצחיים" vs. "ניתנים לפתרון" — ההבדל חיוני', body: 'קונפליקט ניתן לפתרון הוא על מצב ספציפי: "איפה אנחנו מבלים את החגים?" — ניתן לפתרון. קונפליקט נצחי הוא על הבדל בסיסי באישיות: אחד מסודר, השני ספונטני. אחד חסכן, השני נדיב. אלה לא בעיות לתקן — אלה הבדלים לנהל. המפתח: לא להפוך הבדל בסיסי לקרב קיום.' },
+        { number: '2', title: 'זוגות מאושרים מדברים על בעיות נצחיות — אחרת', body: 'גוטמן גילה שזוגות מאושרים ואומללים מדברים על אותן בעיות בדיוק — אבל בצורה שונה לגמרי. זוגות מאושרים: מוסיפים הומור, מביעים הבנה לנקודת המבט של הצד השני, שומרים על כבוד גם כשנחושים. זוגות אומללים: תוקפים, מבזים, מתגוננים — ה"ארבעה פרשים".' },
+        { number: '3', title: 'תרגיל: "מפת הבעיות שלנו"', body: 'לפני שמתחתנים — כדאי לשאול: "מה ההבדלים הבסיסיים ביני לבין הצד השני? האם אני יכול לחיות עם ההבדלים האלה בכבוד ובהומור?" לא "האם ההבדלים האלה יעלמו?" — כי הם לא. אלא "האם אני מוכן להחזיק את ההבדלים האלה בידיים טובות?" זו שאלת הבגרות הזוגית.' },
+        { number: '4', title: 'המשמעות לשידוכים: "תאימות" לא אומרת "זהות"', body: 'הטעות הנפוצה ביותר בחיפוש שידוך: לחפש מישהו שהכל בו זהה. גוטמן מלמד שזה לא רק בלתי-אפשרי — זה גם לא רצוי. ההבדלים בין בני הזוג יוצרים עניין, צמיחה, ועושר. השאלה היא לא "האם אנחנו זהים?" אלא "האם אנחנו מכבדים את ההבדלים שבינינו?"' },
+      ],
+      en: [
+        { number: '1', title: '"Perpetual" vs. "Solvable" Conflicts — A Crucial Distinction', body: 'A solvable conflict is about a specific situation: "Where do we spend the holidays?" — solvable. A perpetual conflict is about a fundamental personality difference: one is tidy, the other spontaneous. One is frugal, the other generous. These aren\'t problems to fix — they\'re differences to manage. The key: don\'t turn a fundamental difference into an existential battle.' },
+        { number: '2', title: 'Happy Couples Talk About Perpetual Problems — Differently', body: 'Gottman found that happy and unhappy couples discuss the exact same problems — but in completely different ways. Happy couples: add humor, express understanding for the other\'s perspective, maintain respect even when determined. Unhappy couples: attack, demean, become defensive — the "Four Horsemen."' },
+        { number: '3', title: 'Exercise: "Our Problem Map"', body: 'Before marriage — it\'s worth asking: "What are the fundamental differences between me and the other person? Can I live with these differences with respect and humor?" Not "Will these differences disappear?" — because they won\'t. But "Am I willing to hold these differences with good hands?" That\'s the question of relationship maturity.' },
+        { number: '4', title: 'The Implication for Dating: "Compatibility" Doesn\'t Mean "Identical"', body: 'The most common mistake in searching for a match: looking for someone identical in everything. Gottman teaches that this is not only impossible — it\'s not even desirable. The differences between partners create interest, growth, and richness. The question isn\'t "Are we identical?" but "Do we respect the differences between us?"' },
+      ],
+    },
+    quoteText: {
+      he: 'כשני אנשים מסכימים על הכל — אחד מהם מיותר',
+      en: 'When two people agree on everything — one of them is unnecessary',
+    },
+    quoteSource: 'וינסטון צ\'רצ\'יל',
+    closingText: {
+      he: 'ב-NeshamaTech, ה-AI שלנו מחפש לך מישהו שהערכים הגרעיניים שלו דומים לשלך — לא מישהו שהכל בו זהה. ההבדלים הם חלק מהקסם. 🎯',
+      en: 'At NeshamaTech, our AI looks for someone whose core values are similar to yours — not someone identical in everything. The differences are part of the magic. 🎯',
+    },
+    ctaText: { he: 'להשלים את השאלון', en: 'Complete the Questionnaire' },
+    ctaNote: { he: 'נגלה מהם הערכים הגרעיניים שלך', en: 'Let\'s discover your core values' },
+  },
+
+  {
+    id: 'VALUE_23_ATTRACTION_VS_COMPATIBILITY',
+    emailNumber: '23',
+    subject: {
+      he: 'מדעי המוח של אהבה — למה רושם ראשון לא מספיק 🧠',
+      en: 'The Neuroscience of Love — Why First Impressions Aren\'t Enough 🧠',
+    },
+    headerEmoji: '🧠',
+    headerTitle: { he: 'משיכה vs. התאמה — שני מערכות שונות לחלוטין', en: 'Attraction vs. Compatibility — Two Completely Different Systems' },
+    headerSubtitle: { he: 'מה קורה במוח שלך כשאתה מתאהב — ולמה זה לא מספיק', en: 'What happens in your brain when you fall in love — and why it\'s not enough' },
+    introText: {
+      he: 'הנוירולוגיה של אהבה גילתה משהו מפתיע: משיכה והתאמה הן שתי מערכות עצביות שונות לחלוטין — עם מנגנונים שונים, תפקידים שונים, ולוחות זמנים שונים. הבלבול ביניהן גרם לאין ספור כישלונות זוגיים. להבין אותן — זה אחד הדברים החשובים ביותר שיכולים לשנות את ההצלחה שלך בשידוכים.',
+      en: 'The neurology of love revealed something surprising: attraction and compatibility are two completely different neural systems — with different mechanisms, different functions, and different timelines. Confusing them has caused countless relationship failures. Understanding them — is one of the most important things that can change your success in dating.',
+    },
+    tips: {
+      he: [
+        { number: '1', title: 'מערכת הדופמין — "הריגוש" שמתעתע', body: 'כשאתה חווה "ניצוצות" בפגישה ראשונה — זו מערכת הדופמין. היא אחראית על מוטיבציה, ציפייה, ורצון. הבעיה: מערכת הדופמין מופעלת על ידי חדשנות ואי-ודאות — לא על ידי התאמה. לכן לעיתים קרובות אנחנו נמשכים לאנשים שהם "מסתוריים", "מאתגרים", או "לא בטוחים" — ולא בהכרח לאנשים שמתאימים לנו.' },
+        { number: '2', title: 'מערכת האוקסיטוצין — "הביטחון" שבונה', body: 'אוקסיטוצין — "הורמון הקשר" — מופרש דרך זמן, מגע, שיחות עמוקות, ואמון שנבנה בהדרגה. זו המערכת שבונה זוגיות ארוכת טווח. הבעיה? היא עובדת לאט. לכן פגישה ראשונה שבה "לא קפץ עליך" עדיין יכולה להוביל לאהבה עמוקה — אם נותנים לה זמן. גוטמן מצא שרוב הזוגות המאושרים ביותר לא חוו "אהבה ממבט ראשון".' },
+        { number: '3', title: 'הטעות הגדולה: "לא הרגשתי כימיה"', body: '"לא הרגשתי כימיה בדייט הראשון" — הסיבה הנפוצה ביותר לסיום הצעות שידוך. אבל המחקר מראה שכימיה היא לעיתים קרובות דבר שמתפתח — לא משהו שנוצר בבת אחת. ד"ר הלן פישר (אחת מחוקרות הרומנטיקה הבכירות) מצאה שאנשים רבים מדווחים שהאהבה הגדולה שלהם "לא הייתה אהבה ממבט ראשון".' },
+        { number: '4', title: 'מה כן לבדוק בפגישה ראשונה', body: 'אם לא "כימיה", מה כן? (1) האם השיחה זרמה בקלות — אפילו אם לא "לוהטת"? (2) האם הצד השני הקשיב לך באמת? (3) האם הרגשת שהוא/היא אדם טוב ואמין? (4) האם הייתה כבוד הדדי? אלה המדדים שמנבאים הצלחה — לא "ניצוצות" שיכולים להיות אשליה של הדופמין.' },
+      ],
+      en: [
+        { number: '1', title: 'The Dopamine System — The "Excitement" That Deceives', body: 'When you experience "sparks" on a first date — that\'s your dopamine system. It\'s responsible for motivation, anticipation, and desire. The problem: the dopamine system is activated by novelty and uncertainty — not by compatibility. That\'s why we\'re often attracted to people who are "mysterious," "challenging," or "unpredictable" — not necessarily to people who suit us.' },
+        { number: '2', title: 'The Oxytocin System — The "Security" That Builds', body: 'Oxytocin — the "bonding hormone" — is released through time, touch, deep conversations, and gradually built trust. This is the system that builds long-term relationships. The problem? It works slowly. So a first date where you didn\'t "feel it" can still lead to deep love — if you give it time. Gottman found that most of the happiest couples didn\'t experience "love at first sight."' },
+        { number: '3', title: 'The Big Mistake: "I Didn\'t Feel Chemistry"', body: '"I didn\'t feel chemistry on the first date" — the most common reason for ending match proposals. But research shows that chemistry is often something that develops — not something that appears all at once. Dr. Helen Fisher (one of the leading romance researchers) found that many people report their greatest love "was not love at first sight."' },
+        { number: '4', title: 'What to Actually Check on a First Date', body: 'If not "chemistry," then what? (1) Did conversation flow easily — even if not "fiery"? (2) Did the other person actually listen to you? (3) Did you feel they were a good and trustworthy person? (4) Was there mutual respect? These are the indicators that predict success — not "sparks" that can be a dopamine illusion.' },
+      ],
+    },
+    quoteText: {
+      he: 'אהבה שמתחילה בעיניים — לא תמיד מגיעה ללב. אהבה שמתחילה בלב — תמיד מגיעה לעיניים',
+      en: 'Love that begins in the eyes doesn\'t always reach the heart. Love that begins in the heart always reaches the eyes',
+    },
+    quoteSource: 'ר\' נחמן מברסלב (עפ"י)',
+    closingText: {
+      he: 'ב-NeshamaTech, השדכנים שלנו וה-AI מבינים שהתאמה עמוקה חשובה יותר מ"ניצוצות" ראשוניים. לכן אנחנו ממליצים תמיד לתת לפחות 2-3 פגישות לפני הכרעה — הכימיה האמיתית צריכה זמן להתפתח. 🎯',
+      en: 'At NeshamaTech, our matchmakers and AI understand that deep compatibility matters more than initial "sparks." That\'s why we always recommend giving at least 2-3 meetings before deciding — real chemistry needs time to develop. 🎯',
+    },
+    ctaText: { he: 'לראות את ההתאמות שלי', en: 'See My Matches' },
+    ctaNote: { he: 'תן לכימיה האמיתית זמן להתפתח', en: 'Give real chemistry time to develop' },
+  },
+
+  {
+    id: 'VALUE_24_EMOTIONAL_BANK',
+    emailNumber: '24',
+    subject: {
+      he: 'חשבון הבנק הרגשי — האם שלך ביתרה או במינוס? 🏦',
+      en: 'The Emotional Bank Account — Are Yours in Credit or Deficit? 🏦',
+    },
+    headerEmoji: '🏦',
+    headerTitle: { he: 'חשבון הבנק הרגשי של הזוגיות שלך', en: 'Your Relationship\'s Emotional Bank Account' },
+    headerSubtitle: { he: 'הדרך שגוטמן מסביר איך נבנה — ואיך נהרס — אמון', en: 'The way Gottman explains how trust is built — and how it\'s destroyed' },
+    introText: {
+      he: 'גוטמן פיתח מטפורה שהפכה לאחת הכלים החינוכיים החשובים ביותר בפסיכולוגיית הזוגיות: "חשבון הבנק הרגשי". כמו חשבון בנק רגיל — יש בו הפקדות ומשיכות. ביחסים בריאים, ישנה יתרת הפקדות קבועה. ביחסים שנכנסים למשבר — החשבון נכנס למינוס, ואז הכל מרגיש כבד ומייסר.',
+      en: 'Gottman developed a metaphor that became one of the most important educational tools in relationship psychology: the "Emotional Bank Account." Like a regular bank account — it has deposits and withdrawals. In healthy relationships, there\'s a consistent positive balance. In relationships entering crisis — the account goes into deficit, and then everything feels heavy and painful.',
+    },
+    tips: {
+      he: [
+        { number: '1', title: 'הפקדות — מה בונה יתרה', body: 'הפקדות רגשיות הן: להגיד "אני גאה בך" בלי שביקשו, לזכור פרטים קטנים שהצד השני סיפר, לשאול "איך עבר לך הישיבה הקשה?" בסוף היום, להודות על משהו ספציפי, לתת מגע חם ולא רק "תפקודי", לצחוק יחד. ההפקדות לא חייבות להיות גדולות — הן חייבות להיות עקביות.' },
+        { number: '2', title: 'משיכות — מה מרוקן את החשבון', body: 'משיכות גדולות: ביקורת, בוז, הסתגרות, ועוינות גלויה. משיכות קטנות אך מצטברות: להתעלם מבקשות קטנות, לבדוק את הטלפון בזמן שיחה, לשכוח דברים חשובים שסופרו, לענות "מה?" בטון קצר. עשר משיכות קטנות יכולות לנקז יתרה שנבנתה על ידי חמישים הפקדות.' },
+        { number: '3', title: 'האסימטריה שחייבים להבין', body: 'כלכלה בסיסית של הלב: הפקדות קטנות ומשיכות גדולות. זה אומר שנדרשות הרבה יותר "הפקדות" כדי לבנות יתרה מהר ממה שמשיכה אחת מנקזת. לא צדק — אבל זו המציאות הנוירולוגית. לכן גוטמן מדגיש: "עשה דברים קטנים לעתים קרובות" — לא אירועים גדולים לעתים רחוקות.' },
+        { number: '4', title: 'תרגול: "הפקדה ביום" — כבר מהיום', body: 'תרגיל שגוטמן ממליץ: בחר הפקדה קטנה אחת ביום — וטמפלט אותה. "כל בוקר אני שואל את _____ שאלה אמיתית אחת על חייהם." "כל ערב אני מוסר מחמאה אחת ספציפית." "פעם בשבוע אני עושה משהו שהוא/היא אוהב/ת בלי שביקש/ה." תרגל עכשיו — עם הורים, חברים — ותכנס לזוגיות עם הרגל שישנה הכל.' },
+      ],
+      en: [
+        { number: '1', title: 'Deposits — What Builds the Balance', body: 'Emotional deposits are: saying "I\'m proud of you" without being asked, remembering small details the other person shared, asking "How was that difficult meeting?" at the end of the day, thanking for something specific, giving warm (not just functional) touch, laughing together. Deposits don\'t have to be big — they have to be consistent.' },
+        { number: '2', title: 'Withdrawals — What Drains the Account', body: 'Large withdrawals: criticism, contempt, stonewalling, and open hostility. Small but cumulative withdrawals: ignoring small requests, checking your phone during conversation, forgetting important things that were shared, answering "what?" in a short tone. Ten small withdrawals can drain a balance built by fifty deposits.' },
+        { number: '3', title: 'The Asymmetry You Must Understand', body: 'The basic economics of the heart: small deposits and large withdrawals. This means many more "deposits" are needed to build a balance quickly than one withdrawal drains. Not fair — but this is neurological reality. That\'s why Gottman emphasizes: "Do small things often" — not big events rarely.' },
+        { number: '4', title: 'Practice: "One Deposit a Day" — Starting Today', body: 'An exercise Gottman recommends: choose one small deposit per day — and template it. "Every morning I ask _____ one real question about their life." "Every evening I give one specific compliment." "Once a week I do something they love without being asked." Practice now — with parents, friends — and you\'ll enter your relationship with a habit that changes everything.' },
+      ],
+    },
+    quoteText: {
+      he: 'עשה דברים קטנים לעתים קרובות — זה הסוד של זוגיות מאושרת',
+      en: 'Do small things often — that\'s the secret of a happy relationship',
+    },
+    quoteSource: 'ד"ר ג\'ון גוטמן',
+    closingText: {
+      he: 'חשבון הבנק הרגשי שלך עם כל אדם — כולל השדכנית שלך, חברים, ומשפחה — בנוי עכשיו, ברגעים הקטנים. ב-NeshamaTech מאמינים שהכנה לזוגיות מתחילה עוד לפני שמצאנו את ההתאמה. 🎯',
+      en: 'Your emotional bank account with every person — including your matchmaker, friends, and family — is being built now, in the small moments. NeshamaTech believes that relationship preparation begins before we find the match. 🎯',
+    },
+    ctaText: { he: 'לעדכן את הפרופיל שלי', en: 'Update My Profile' },
+    ctaNote: { he: 'פרופיל מעמיק = התאמה מעמיקה', en: 'A deep profile = a deep match' },
+  },
+
+  {
+    id: 'VALUE_25_HUMAN_VS_ALGORITHM',
+    emailNumber: '25',
+    subject: {
+      he: 'למה אלגוריתם לא יכול למצוא לך אהבה — ומה כן 🤝',
+      en: 'Why an Algorithm Can\'t Find You Love — And What Can 🤝',
+    },
+    headerEmoji: '🤝',
+    headerTitle: { he: 'גבולות האלגוריתם — כוח האדם', en: 'The Limits of the Algorithm — The Power of the Human' },
+    headerSubtitle: { he: 'מה מחקר ML על 11,000 זוגות גילה על שידוכים', en: 'What an ML study on 11,000 couples revealed about matchmaking' },
+    introText: {
+      he: 'ב-2020 פרסמה ד"ר סמנתה ג\'ואל מחקר שהדהים את עולם הפסיכולוגיה. היא ושותפיה השתמשו ב-Machine Learning — הטכנולוגיה החכמה ביותר הקיימת — כדי לנסות לחזות אם שני אנשים ייצרו כימיה, ואם הזוגיות שלהם תצליח. הם ניתחו 43 מחקרים ו-11,000 זוגות. התוצאה: האלגוריתם כמעט לא הצליח. אפילו עם כל הנתונים בעולם — הוא לא יכול לחזות מי יאהב את מי.',
+      en: 'In 2020, Dr. Samantha Joel published a study that stunned the psychology world. She and her colleagues used Machine Learning — the most sophisticated technology available — to try to predict whether two people would have chemistry, and whether their relationship would succeed. They analyzed 43 studies and 11,000 couples. The result: the algorithm barely succeeded. Even with all the data in the world — it couldn\'t predict who would love whom.',
+    },
+    tips: {
+      he: [
+        { number: '1', title: 'מה המחקר גילה בדיוק', body: 'ג\'ואל גילתה שמאפייני הפרט — אישיות, תחביבים, עמדות, דמוגרפיה — מסבירים אחוז זעיר בלבד מהשונות בתוצאות הזוגיות. במילים אחרות: ידיעה מלאה של "מי אתה" כמעט לא מנבאת "מי יתאים לך". מה כן מנבא? הדינמיקה הספציפית בין שני אנשים ספציפיים — וזה לא ניתן לחיזוי מ"פרופיל".' },
+        { number: '2', title: 'מה שאלגוריתם לא יכול לתפוס', body: 'אלגוריתם לא יכול לתפוס: כיצד שני אנשים "מווסתים" זה את העצבים של זה (co-regulation). לא יכול לדעת אם ההומור שלהם "לוקח". לא יכול לחוש את ה"ריח הכימי" שמדענים גילו שהוא גורם משיכה אמיתי. לא יכול להבין הקשר חיים, עיתוי, ובשלות — שכולם חיוניים.' },
+        { number: '3', title: 'מה שדכנית כן יכולה', body: 'שדכנית מנוסה רואה דברים שאלגוריתם עיוור להם: "הוא מתאים לה כי שניהם צריכים מישהו שנותן להם מרחב." "היא מתאימה לו כי הם שניהם עמוקים אבל שניהם נוטים להסתיר את זה." "הם שניהם חוו אבדן ויבינו אחד את השני." זו חוכמה אנושית שאין עדיין מחשב שיכול לשכפל אותה.' },
+        { number: '4', title: 'ב-NeshamaTech: הטוב מכל העולמות', body: 'זו הסיבה שב-NeshamaTech בחרנו במודל ההיברידי: ה-AI שלנו מנתח 5 עולמות של כל פרופיל ומצמצם את הריבוי לרשימה קצרה של התאמות מעמיקות. לאחר מכן, שדכנים אנושיים — עם שנות ניסיון — מוסיפים את השכבה שהאלגוריתם לא יכול לתת. טכנולוגיה + אנושיות = ההגדרה של NeshamaTech.' },
+      ],
+      en: [
+        { number: '1', title: 'What the Study Precisely Found', body: 'Joel found that individual characteristics — personality, hobbies, attitudes, demographics — explain only a tiny percentage of variance in relationship outcomes. In other words: complete knowledge of "who you are" barely predicts "who will suit you." What does predict? The specific dynamic between two specific people — and that can\'t be predicted from a "profile."' },
+        { number: '2', title: 'What an Algorithm Can\'t Capture', body: 'An algorithm can\'t capture: how two people "co-regulate" each other\'s nervous systems. Can\'t know if their humor "lands." Can\'t sense the "chemical scent" that scientists found is a real attraction factor. Can\'t understand life context, timing, and readiness — all of which are essential.' },
+        { number: '3', title: 'What a Matchmaker Can', body: 'An experienced matchmaker sees things an algorithm is blind to: "He suits her because they both need someone who gives them space." "She suits him because they\'re both deep but both tend to hide it." "They\'ve both experienced loss and will understand each other." This is human wisdom that no computer can yet replicate.' },
+        { number: '4', title: 'At NeshamaTech: The Best of Both Worlds', body: 'This is why at NeshamaTech we chose the hybrid model: our AI analyzes 5 worlds of every profile and narrows the multitude to a short list of deep matches. Then, human matchmakers — with years of experience — add the layer the algorithm can\'t give. Technology + humanity = the NeshamaTech definition.' },
+      ],
+    },
+    quoteText: {
+      he: 'אהבה אינה משוואה — היא פגישה',
+      en: 'Love is not an equation — it is an encounter',
+    },
+    quoteSource: 'מרטין בובר, "אני ואתה"',
+    closingText: {
+      he: 'שום אלגוריתם לא יחליף את המגע האנושי של שדכנית שמכירה אותך. ושום שדכנית לא תיתן לך את הדיוק שה-AI יכול לספק. ב-NeshamaTech — שניהם יחד. 🎯',
+      en: 'No algorithm will replace the human touch of a matchmaker who knows you. And no matchmaker will give you the precision that AI can provide. At NeshamaTech — both together. 🎯',
+    },
+    ctaText: { he: 'לעדכן את הפרופיל שלי', en: 'Update My Profile' },
+    ctaNote: { he: 'פרופיל מלא = AI מדויק + שדכנית מדויקת', en: 'Full profile = precise AI + precise matchmaker' },
+  },
+
+  {
+    id: 'VALUE_26_REPAIR_ATTEMPTS',
+    emailNumber: '26',
+    subject: {
+      he: 'ניסיונות תיקון — הכישרון שמציל כל זוגיות 🛠️',
+      en: 'Repair Attempts — The Skill That Saves Every Relationship 🛠️',
+    },
+    headerEmoji: '🛠️',
+    headerTitle: { he: 'ניסיונות תיקון — Repair Attempts', en: 'Repair Attempts — The Art of Coming Back' },
+    headerSubtitle: { he: 'מה שזוגות מאושרים עושים אחרי מריבה שזוגות אחרים לא עושים', en: 'What happy couples do after a fight that others don\'t' },
+    introText: {
+      he: 'גוטמן גילה משהו מפתיע: זוגות מאושרים לא נלחמים פחות — הם מתקנים טוב יותר. הוא הגדיר "ניסיון תיקון" כ"כל אמירה או פעולה — מצחיקה או אחרת — שמונעת מהשליליות להסלים." גוטמן אמר שכישלון ניסיונות התיקון הוא "אחד המנבאים האמינים ביותר לפירוק הזוגיות." המסקנה: הצלחת הזוגיות לא תלויה בהיעדר קונפליקטים — אלא ביכולת לחזור אחרי כל מריבה.',
+      en: 'Gottman discovered something surprising: happy couples don\'t fight less — they repair better. He defined a "repair attempt" as "any statement or action — silly or otherwise — that prevents negativity from escalating." Gottman said that the failure of repair attempts is "one of the most reliable predictors of relationship dissolution." The conclusion: relationship success doesn\'t depend on absent conflicts — but on the ability to return after every fight.',
+    },
+    tips: {
+      he: [
+        { number: '1', title: 'מה נחשב "ניסיון תיקון"?', body: 'ניסיון תיקון יכול להיות: הומור ("אנחנו שניינו ממש מוצלחים כשאנחנו עצבניים, לא?"), קריאת תיגר עדינה ("רגע, בואו נעצור ונסביר מחדש"), מחווה ("אני הולך להכין לך קפה"), הכרה ("את צודקת, לא שמעתי אותך טוב"), או פשוט הפסקה ("אני צריך 20 דקות, ואז אחזור ונמשיך"). כל אלה ניסיונות תיקון.' },
+        { number: '2', title: 'למה הם לא תמיד עובדים', body: 'ניסיון תיקון עובד רק אם "חשבון הבנק הרגשי" ביתרה מספקת. אם החשבון כבר בעומק מינוס — אפילו ניסיון תיקון כנה מתקבל בחשד: "אתה רק מנסה לברוח מהנושא." לכן הקשר בין הפקדות יומיות לבין ניסיונות תיקון הוא ישיר: כדי שהתיקון יעבוד — צריך יתרה שתסמוך עליו.' },
+        { number: '3', title: 'ניסיון תיקון ראשוני — לפני שמגיעים לקרב', body: 'הנוסחה הכי חכמה: לנסות תיקון כבר ב"סימני האזהרה הראשונים" — לא לחכות לפיצוץ. "רגע, אני מרגיש שהשיחה שלנו הולכת לכיוון קשה. יש לך כוח שנעצור ונחזיר אותה לאיזשהי גישה שעובדת?" אדם שמזהה מוקדם ומתקן מוקדם — חוסך שניהם ייסורים רבים.' },
+        { number: '4', title: 'כיצד תרגל ניסיונות תיקון — עכשיו', body: 'תרגיל: חשוב על שלוש מריבות אחרונות שהיו לך — עם מישהו קרוב. מה עשית? ברחת? נסגרת? האשמת? עכשיו תכתוב: מה יכולת להגיד שהיה "ניסיון תיקון"? אנשים שמתרגלים ניסיונות תיקון בחייהם הרגילים — מגיעים לזוגיות עם כישרון שרוב האנשים לומדים רק אחרי שנים של נישואים.' },
+      ],
+      en: [
+        { number: '1', title: 'What Counts as a "Repair Attempt"?', body: 'A repair attempt can be: humor ("We\'re both so excellent at being angry, aren\'t we?"), a gentle challenge ("Wait, let\'s stop and restate"), a gesture ("I\'m going to make you coffee"), acknowledgment ("You\'re right, I didn\'t listen well"), or simply a pause ("I need 20 minutes, then I\'ll come back and we\'ll continue"). All of these are repair attempts.' },
+        { number: '2', title: 'Why They Don\'t Always Work', body: 'A repair attempt only works if the "emotional bank account" has a sufficient positive balance. If the account is already deeply in deficit — even a sincere repair attempt is received with suspicion: "You\'re just trying to escape the topic." That\'s why the connection between daily deposits and repair attempts is direct: for repair to work — there needs to be a balance that trusts it.' },
+        { number: '3', title: 'Early Repair Attempt — Before Reaching Combat', body: 'The smartest formula: try repair at the "first warning signs" — don\'t wait for the explosion. "Wait, I feel our conversation is heading in a hard direction. Do you have the energy to pause and bring it back to some approach that works?" A person who identifies early and repairs early — saves both of them much suffering.' },
+        { number: '4', title: 'How to Practice Repair Attempts — Now', body: 'Exercise: think of three recent fights you had — with someone close. What did you do? Did you flee? Shut down? Blame? Now write: what could you have said that would have been a "repair attempt"? People who practice repair attempts in their regular lives — arrive at relationships with a skill that most people only learn after years of marriage.' },
+      ],
+    },
+    quoteText: {
+      he: 'לא בקרב אנחנו נמדדים — אלא ביכולת לחזור בכבוד אחריו',
+      en: 'We are not measured in the fight — but in the ability to return with dignity after it',
+    },
+    quoteSource: 'עפ"י פרקי אבות',
+    closingText: {
+      he: 'כישרון התיקון הוא לא כישרון מולד — הוא מיומנות שאפשר ללמוד ולתרגל. ב-NeshamaTech השדכנים שלנו יכולים לעזור גם בשלב הדייטים — לא רק למצוא התאמה, אלא להכין אותך להצלחה בה. 🎯',
+      en: 'The repair skill is not an innate talent — it\'s a skill that can be learned and practiced. At NeshamaTech our matchmakers can help even during the dating stage — not just find a match, but prepare you to succeed in it. 🎯',
+    },
+    ctaText: { he: 'לדבר עם השדכנית שלי', en: 'Talk to My Matchmaker' },
+    ctaNote: { he: 'השדכנית שלך כאן — לא רק לשידוכים', en: 'Your matchmaker is here — not just for matching' },
+  },
+
+  {
+    id: 'VALUE_27_LOVE_MAPS',
+    emailNumber: '27',
+    subject: {
+      he: 'מפות אהבה — כמה אתה באמת מכיר את בן/בת הזוג שלך? 🗺️',
+      en: 'Love Maps — How Well Do You Really Know Your Partner? 🗺️',
+    },
+    headerEmoji: '🗺️',
+    headerTitle: { he: 'מפות אהבה — Love Maps', en: 'Love Maps — The First Floor of a Lasting Home' },
+    headerSubtitle: { he: 'הבסיס שכל בית יהודי חזק עומד עליו — גם לפי המדע', en: 'The foundation every strong home stands on — according to science too' },
+    introText: {
+      he: 'הקומה הראשונה ב"בית הזוגיות" של גוטמן — הבסיס של כל השאר — נקראת "מפות אהבה". לא מפות גאוגרפיות. מפות של העולם הפנימי של בן/בת הזוג: החלומות שלו, הפחדים שלה, הזיכרונות שעיצבו אותו, האנשים שחשובים לה, הדברים שמחוללים בו שמחה, מה שמעיק עליה בלילה. ככל שה"מפה" שלך מפורטת יותר — כך הזוגיות שלך יציבה יותר.',
+      en: 'The first floor of Gottman\'s "Relationship House" — the foundation of everything else — is called "Love Maps." Not geographical maps. Maps of your partner\'s inner world: his dreams, her fears, the memories that shaped him, the people important to her, what brings him joy, what weighs on her at night. The more detailed your "map" — the more stable your relationship.',
+    },
+    tips: {
+      he: [
+        { number: '1', title: 'מה גוטמן גילה על מפות אהבה', body: 'גוטמן גילה שזוגות שחוו משברים חיצוניים — מחלה, פיטורים, אבדן — שרדו הרבה יותר טוב כשהיו להם "מפות אהבה" מפורטות. הסיבה: כשאתה מכיר טוב את העולם הפנימי של בן/בת הזוג — אתה מבין את ההתנהגות שלו/ה בזמן לחץ, לא מפרש אותה כהתקפה. "הוא נסגר כי הוא פוחד" — לא "הוא נסגר כי לא אכפת לו ממני".' },
+        { number: '2', title: '36 שאלות שמייצרות קרבה', body: 'פרופ\' ארתור ארון מאוניברסיטת סטוני ברוק פיתח מחקר מפורסם: 36 שאלות שנשאלות בהדרגה — מה שמצחיק אותך, לאיזה זיכרון ילדות אתה חוזר, מה הייתה חלום נסתר שמעולם לא סיפרת — יוצרות קרבה רגשית עמוקה תוך שעות. הוא הוכיח שקרבה אמיתית היא לא פרי של זמן בלבד — אלא פרי של שאלות נכונות.' },
+        { number: '3', title: 'שאלות לבניית "מפת אהבה" בדייטים', body: 'במקום: "מה אתה עושה?" ו"מאיפה אתה?" — נסו: "מה היה הרגע שהכי שינה אותך בחמש השנים האחרונות?", "מי האדם שהכי השפיע עליך, ואיך?", "אם יכולת לשנות דבר אחד בחייך — מה היה?", "מה אתה הכי גאה בו שאנשים לא יודעים עליו?". שאלות כאלה בונות מפת אהבה — ויוצרות זיכרון של פגישה.' },
+        { number: '4', title: 'הקשר למסורת היהודית: "שמע ישראל"', body: 'הציווי המרכזי ביותר ביהדות הוא שמיעה — "שמע". לדעת את האחר פירושו קודם כל להקשיב לו. המסורת היהודית מלמדת שידיעת אדם — כבוד הבריות — היא ערך עמוק. זוגיות שבה שני הצדדים מחויבים לדעת ולהבין את העולם הפנימי של השני — מגלמת את הרעיון היהודי של "מי שמציל נפש אחת" — נפשות שרואות זו את זו.' },
+      ],
+      en: [
+        { number: '1', title: 'What Gottman Discovered About Love Maps', body: 'Gottman found that couples who experienced external crises — illness, job loss, bereavement — survived much better when they had detailed "love maps." The reason: when you truly know your partner\'s inner world — you understand their behavior under stress, instead of interpreting it as an attack. "He shut down because he\'s scared" — not "He shut down because he doesn\'t care about me."' },
+        { number: '2', title: '36 Questions That Create Closeness', body: 'Prof. Arthur Aron of Stony Brook University developed a famous study: 36 questions asked gradually — what makes you laugh, what childhood memory do you return to, what hidden dream have you never shared — create deep emotional closeness within hours. He proved that real closeness isn\'t just the fruit of time — but the fruit of the right questions.' },
+        { number: '3', title: 'Questions to Build "Love Maps" on Dates', body: 'Instead of "What do you do?" and "Where are you from?" — try: "What was the moment that most changed you in the last five years?", "Who most influenced you, and how?", "If you could change one thing in your life — what would it be?", "What are you most proud of that people don\'t know about?" Such questions build a love map — and create a memorable meeting.' },
+        { number: '4', title: 'The Jewish Connection: "Shema Yisrael"', body: 'The most central commandment in Judaism is hearing — "Shema." To know another person means first to listen to them. Jewish tradition teaches that knowing a person — kavod habriyot — is a deep value. A relationship where both sides are committed to knowing and understanding each other\'s inner world — embodies the Jewish idea of "one who saves a single soul" — souls that truly see each other.' },
+      ],
+    },
+    quoteText: {
+      he: 'לדעת אדם — לא שמו ומקצועו — אלא עולמו הפנימי, פחדיו, ותקוותיו — זו האהבה האמיתית',
+      en: 'To know a person — not their name and profession — but their inner world, fears, and hopes — that is true love',
+    },
+    quoteSource: 'עפ"י ד"ר ג\'ון גוטמן',
+    closingText: {
+      he: 'השאלון של NeshamaTech הוא תחילת "מפת האהבה" שלך — הוא עוזר לנו להבין את העולם הפנימי שלך ולהתאים לך מישהו שיראה אותו. ממלא את השאלון בכנות ובפירוט — ועוזר לנו לעזור לך. 🎯',
+      en: 'The NeshamaTech questionnaire is the beginning of your "Love Map" — it helps us understand your inner world and match you with someone who will see it. Fill the questionnaire honestly and in detail — and help us help you. 🎯',
+    },
+    ctaText: { he: 'למלא את השאלון', en: 'Take the Questionnaire' },
+    ctaNote: { he: 'כל תשובה מפרטת = מפה מדויקת יותר', en: 'Every detailed answer = a more accurate map' },
+  },
+
+  {
+    id: 'VALUE_28_PARADOX_CHOICE_DATING',
+    emailNumber: '28',
+    subject: {
+      he: 'פחות בחירות = יותר אושר — המדע שישנה איך אתה מחפש 🎯',
+      en: 'Fewer Choices = More Happiness — The Science That Will Change How You Search 🎯',
+    },
+    headerEmoji: '🎯',
+    headerTitle: { he: 'פרדוקס הבחירה בשידוכים', en: 'The Paradox of Choice in Dating' },
+    headerSubtitle: { he: 'למה אפליקציות הכרויות עם מיליוני פרופילים מייצרות פחות זוגות', en: 'Why dating apps with millions of profiles produce fewer couples' },
+    introText: {
+      he: 'פרופ\' בארי שוורץ מאוניברסיטת סווארתמור הוכיח בספרו "פרדוקס הבחירה" (2004) דבר שמנוגד לאינטואיציה של רובנו: **יותר אפשרויות = פחות שביעות רצון**. לא רק בסופרמרקט — גם בדייטים, בחירת קריירה, ואפילו בבחירת בן/בת זוג. ככל שיש לנו יותר פרופילים לדפדף — כך אנחנו מחליטים פחות טוב ומרגישים פחות מרוצים ממה שבחרנו.',
+      en: 'Prof. Barry Schwartz of Swarthmore College proved in his book "The Paradox of Choice" (2004) something that contradicts most people\'s intuition: **more options = less satisfaction**. Not just in supermarkets — in dating, career choice, and even in choosing a life partner. The more profiles we have to swipe — the worse we decide and the less satisfied we feel with what we chose.',
+    },
+    tips: {
+      he: [
+        { number: '1', title: 'מחקר הריבה שהסביר הכל', body: 'הפסיכולוגים שנה אייינגר ומארק לפר ביצעו ניסוי בסופרמרקט: שולחן עם 24 סוגי ריבה לעומת שולחן עם 6 סוגים. יותר אנשים עצרו ליד 24 הסוגים — אבל 10 פעמים יותר אנשים קנו מהשולחן עם 6 הסוגים! ריבוי אפשרויות מוביל לשיתוק, לא להחלטה. בדייטינג? אפליקציה עם 10,000 פרופילים "מקפיאה" את המשתמש.' },
+        { number: '2', title: 'ה"מקסימייזר" — הפסיכולוגיה שמקלקלת חיי אהבה', body: 'שוורץ הבחין בין "מקסימייזרים" (אנשים שתמיד מחפשים "הטוב ביותר האפשרי") לבין "סטיספייסרים" (אנשים שמחפשים "טוב מספיק"). המפתיע: מקסימייזרים מקבלים לעיתים קרובות תוצאות אובייקטיביות טובות יותר — אבל מרגישים הרבה פחות מאושרים ממה שבחרו. בדייטינג, "מקסימייזר" תמיד חושב "אולי יש מישהו טוב יותר שם בחוץ".' },
+        { number: '3', title: 'מה שידוך מסורתי מבין שאפליקציות לא', body: 'שיטת השידוך המסורתית — עם שדכנית שמביאה הצעה אחת מעמיקה בכל פעם — מגלמת בדיוק את "ארכיטקטורת הבחירה" שמדעני ההחלטות ממליצים עליה: מספר קטן של אפשרויות איכותיות, ממוקדות, עם מידע רלוונטי. זה לא עתיק — זה מדעי.' },
+        { number: '4', title: 'הפתרון: "מספיק טוב" הוא לא ויתור — הוא חוכמה', body: 'שוורץ ממליץ לאמץ "גישת הסטיספייסר": הגדר מה "מספיק טוב" עבורך, ובחר את האפשרות הראשונה שעומדת בתנאים — במקום לחפש אינסוף. בשידוכים: כשנמצאת הצעה שעומדת בקריטריונים הגרעיניים שלך — תן לה הזדמנות אמיתית, במקום לתהות "אולי יש טוב יותר". הזדמנות אמיתית שינה יותר זוגיויות מ"אפשרות מושלמת".' },
+      ],
+      en: [
+        { number: '1', title: 'The Jam Study That Explained Everything', body: 'Psychologists Sheena Iyengar and Mark Lepper ran an experiment in a supermarket: a table with 24 jam varieties vs. a table with 6. More people stopped at the 24 varieties — but 10 times more people bought from the table with 6! An abundance of options leads to paralysis, not decision. In dating? An app with 10,000 profiles "freezes" the user.' },
+        { number: '2', title: 'The "Maximizer" — The Psychology That Ruins Love Lives', body: 'Schwartz distinguished between "maximizers" (always seeking "the absolute best") and "satisficers" (seeking "good enough"). The surprise: maximizers often get objectively better outcomes — but feel much less happy with what they chose. In dating, a "maximizer" always wonders "maybe there\'s someone better out there."' },
+        { number: '3', title: 'What Traditional Matchmaking Understands That Apps Don\'t', body: 'The traditional matchmaking method — with a matchmaker bringing one deep proposal at a time — perfectly embodies the "choice architecture" that decision scientists recommend: a small number of quality, focused options, with relevant information. This isn\'t ancient — it\'s scientific.' },
+        { number: '4', title: 'The Solution: "Good Enough" Is Not Settling — It\'s Wisdom', body: 'Schwartz recommends adopting a "satisficer approach": define what "good enough" is for you, and choose the first option that meets the criteria — instead of endlessly searching. In matchmaking: when a proposal meets your core criteria — give it a real chance, instead of wondering "maybe there\'s better." A real chance has transformed more relationships than a "perfect option."' },
+      ],
+    },
+    quoteText: {
+      he: 'הסוד לאושר הוא ציפיות נמוכות — ולא כי אין לנו יעדים, אלא כי אנחנו מכירים בגבולות המציאות',
+      en: 'The secret to happiness is low expectations — not because we have no goals, but because we recognize the limits of reality',
+    },
+    quoteSource: 'פרופ\' בארי שוורץ, The Paradox of Choice',
+    closingText: {
+      he: 'ב-NeshamaTech, ה-AI שלנו מגיש לשדכנים רשימה קצרה וממוקדת של ההתאמות הכי מדויקות — לא מאות פרופילים. זה לא מגבלה — זו המתנה. פחות בחירות, יותר עמוקות = יותר סיכויים להצלחה אמיתית. 🎯',
+      en: 'At NeshamaTech, our AI presents matchmakers with a short, focused list of the most precise matches — not hundreds of profiles. This isn\'t a limitation — it\'s the gift. Fewer choices, more depth = greater chances of real success. 🎯',
+    },
+    ctaText: { he: 'לראות את ההתאמות שלי', en: 'See My Matches' },
+    ctaNote: { he: 'איכות על פני כמות — תמיד', en: 'Quality over quantity — always' },
+  },
 ];
 
 // ─── Orchestrator ─────────────────────────────────────────────────────────────
