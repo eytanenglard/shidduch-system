@@ -247,7 +247,7 @@ export default function QuestionCard({
                     <Button
                       variant="ghost"
                       size="icon"
-                      onClick={() => { onBookmark ? onBookmark() : setIsBookmarkedLocal(!isBookmarkedLocal); }}
+                      onClick={() => { if (onBookmark) { onBookmark(); } else { setIsBookmarkedLocal(!isBookmarkedLocal); } }}
                       className={cn(
                         'h-8 w-8 rounded-lg transition-all',
                         isBookmarked ? 'text-orange-500 bg-orange-50' : 'text-gray-300 hover:text-gray-500 hover:bg-gray-100'
