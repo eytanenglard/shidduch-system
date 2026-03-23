@@ -23,6 +23,7 @@ import {
   Award,
   Heart,
   Compass,
+  Bookmark,
 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import {
@@ -249,6 +250,7 @@ interface WorldComponentDynamicProps {
     questionId: string,
     isVisible: boolean
   ) => void;
+  onBookmarkToggle?: (worldId: WorldId, questionId: string) => void;
   onComplete: () => void;
   onBack: () => void;
   answers: QuestionnaireAnswer[];
@@ -277,6 +279,7 @@ export default function WorldComponent({
   worldId,
   onAnswer,
   onVisibilityChange,
+  onBookmarkToggle,
   onComplete,
   onBack,
   answers,
@@ -304,12 +307,14 @@ export default function WorldComponent({
   const [animateError, setAnimateError] = useState(false);
   const [showCelebration, setShowCelebration] = useState(false);
   const [isCompleting, setIsCompleting] = useState(false);
+  const [showWorldSummary, setShowWorldSummary] = useState(false);
   // Show intro modal only when entering a world at question 0 (not via direct navigation)
   const [showIntroModal, setShowIntroModal] = useState(
     !isDirectNavigation && currentQuestionIndex === 0
   );
   // Reset intro when worldId changes
   const prevWorldIdRef = React.useRef(worldId);
+  const touchStartRef = React.useRef<{ x: number; y: number; time: number } | null>(null);
   useEffect(() => {
     if (prevWorldIdRef.current !== worldId) {
       prevWorldIdRef.current = worldId;
@@ -426,6 +431,11 @@ export default function WorldComponent({
         return;
       }
 
+      // Show summary for review before completing
+      if (!showWorldSummary) {
+        setShowWorldSummary(true);
+        return;
+      }
       setIsCompleting(true);
       setShowCelebration(true);
       await new Promise((resolve) => setTimeout(resolve, 2000));
@@ -441,9 +451,11 @@ export default function WorldComponent({
     validationDict,
     requiredAnswered,
     totalRequired,
+    showWorldSummary,
   ]);
 
   const handlePrevious = useCallback(() => {
+    setShowWorldSummary(false);
     if (currentQuestionIndex > 0) {
       setCurrentQuestionIndex(currentQuestionIndex - 1);
     } else {
@@ -451,16 +463,256 @@ export default function WorldComponent({
     }
   }, [currentQuestionIndex, setCurrentQuestionIndex, onBack]);
 
+  // Mobile swipe navigation
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    const target = e.target as HTMLElement;
+    if (target.closest('input, textarea, [role="slider"], [data-no-swipe]')) return;
+    touchStartRef.current = {
+      x: e.touches[0].clientX,
+      y: e.touches[0].clientY,
+      time: Date.now(),
+    };
+  }, []);
+
+  const handleTouchEnd = useCallback((e: React.TouchEvent) => {
+    if (!touchStartRef.current) return;
+    const deltaX = e.changedTouches[0].clientX - touchStartRef.current.x;
+    const deltaY = e.changedTouches[0].clientY - touchStartRef.current.y;
+    const deltaTime = Date.now() - touchStartRef.current.time;
+    touchStartRef.current = null;
+
+    // Must be primarily horizontal, fast, and far enough
+    if (Math.abs(deltaX) < 60 || Math.abs(deltaX) < Math.abs(deltaY) * 1.5 || deltaTime > 400) return;
+
+    // RTL: swipe right = next (content flows right-to-left), LTR: swipe left = next
+    const isNextSwipe = isRTL ? deltaX > 0 : deltaX < 0;
+    haptic();
+    if (isNextSwipe) handleNext();
+    else handlePrevious();
+  }, [isRTL, handleNext, handlePrevious]);
+
   const overallProgress = (answeredQuestions / allQuestions.length) * 100;
   const currentQuestion = allQuestions[currentQuestionIndex];
   const currentAnswer = answers.find(
     (a) => a.questionId === currentQuestion?.id
   );
 
+  // Enter key advances to next question (only for single-answer types with a value)
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key !== 'Enter') return;
+      // Don't trigger if user is typing in a text field
+      const target = e.target as HTMLElement;
+      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') return;
+
+      if (!currentQuestion) return;
+      const skipTypes = ['openText', 'multiChoice', 'multiSelect', 'multiSelectWithOther', 'budgetAllocation'];
+      if (skipTypes.includes(currentQuestion.type)) return;
+
+      // Only advance if there's an answer
+      const hasAnswer = currentAnswer?.value != null && currentAnswer.value !== '';
+      if (!hasAnswer) return;
+
+      e.preventDefault();
+      handleNext();
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [currentQuestion, currentAnswer, handleNext]);
+
   const totalEstimatedMinutes = useMemo(
     () => allQuestions.reduce((sum, q) => sum + (q.metadata?.estimatedTime || 1), 0),
     [allQuestions]
   );
+
+  // Bookmarked questions in this world
+  const bookmarkedQuestions = useMemo(() => {
+    return answers
+      .filter((a) => a.isBookmarked && allQuestions.some((q) => q.id === a.questionId))
+      .map((a) => {
+        const qIndex = allQuestions.findIndex((q) => q.id === a.questionId);
+        return { questionId: a.questionId, index: qIndex };
+      })
+      .filter((b) => b.index >= 0);
+  }, [answers, allQuestions]);
+
+  const renderBookmarkReminder = () => {
+    // Show only on last 2 questions and if there are bookmarks
+    if (bookmarkedQuestions.length === 0 || currentQuestionIndex < allQuestions.length - 2) return null;
+
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="p-3 bg-orange-50 border border-orange-200 rounded-xl flex items-center justify-between gap-3"
+      >
+        <div className={cn('flex items-center gap-2', isRTL && 'flex-row-reverse')}>
+          <Bookmark className="w-4 h-4 text-orange-500" fill="currentColor" />
+          <span className="text-sm text-orange-800 font-medium">
+            {isRTL
+              ? `יש לך ${bookmarkedQuestions.length} שאלות מסומנות`
+              : `You have ${bookmarkedQuestions.length} bookmarked questions`}
+          </span>
+        </div>
+        <div className="flex gap-1.5">
+          {bookmarkedQuestions.map((b) => (
+            <button
+              key={b.questionId}
+              className="w-7 h-7 rounded-lg bg-orange-200 text-orange-800 text-xs font-bold hover:bg-orange-300 transition-colors"
+              onClick={() => setCurrentQuestionIndex(b.index)}
+            >
+              {b.index + 1}
+            </button>
+          ))}
+        </div>
+      </motion.div>
+    );
+  };
+
+  const renderWorldSummary = () => {
+    if (!showWorldSummary) return null;
+
+    const getAnswerPreview = (q: Question, answer: QuestionnaireAnswer | undefined): string => {
+      if (!answer?.value) return isRTL ? 'לא נענתה' : 'Not answered';
+      const val = answer.value;
+      if (typeof val === 'string') {
+        // For singleChoice/scenario, try to find option text
+        const opt = q.options?.find((o) => o.value === val);
+        if (opt?.text) return opt.text.length > 40 ? opt.text.slice(0, 40) + '...' : opt.text;
+        return val.length > 50 ? val.slice(0, 50) + '...' : val;
+      }
+      if (typeof val === 'number') return String(val);
+      if (Array.isArray(val)) {
+        const texts = val.map((v: string) => {
+          const opt = q.options?.find((o) => o.value === v);
+          return opt?.text || v.replace('custom:', '');
+        });
+        return texts.join(', ').slice(0, 60) + (texts.join(', ').length > 60 ? '...' : '');
+      }
+      if (typeof val === 'object') {
+        const entries = Object.entries(val as Record<string, number>).filter(([, v]) => v > 0);
+        return entries.map(([k, v]) => `${k}: ${v}`).slice(0, 3).join(', ');
+      }
+      return '✓';
+    };
+
+    return (
+      <AnimatePresence>
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
+          onClick={() => setShowWorldSummary(false)}
+        >
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+            transition={{ type: 'spring', stiffness: 260, damping: 22 }}
+            className="bg-white rounded-3xl shadow-2xl max-w-lg w-full overflow-hidden max-h-[85vh] flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className={cn('bg-gradient-to-r p-5 text-white shrink-0', gradient)}>
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-white/20 rounded-xl">
+                  <ListChecks className="w-5 h-5" />
+                </div>
+                <div>
+                  <h2 className="text-lg font-bold">
+                    {isRTL ? 'סיכום תשובות' : 'Answer Summary'}
+                  </h2>
+                  <p className="text-sm text-white/80">
+                    {isRTL
+                      ? `${answeredQuestions}/${allQuestions.length} שאלות נענו`
+                      : `${answeredQuestions}/${allQuestions.length} questions answered`}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Scrollable answer list */}
+            <div className="overflow-y-auto flex-1 p-4 space-y-2">
+              {allQuestions.map((q, idx) => {
+                const answer = answers.find((a) => a.questionId === q.id);
+                const hasAnswer = answer?.value != null && answer.value !== '' &&
+                  !(Array.isArray(answer.value) && answer.value.length === 0);
+                const questionWithText = getQuestionWithText(q, dict.questions, locale, userProfile);
+                const preview = getAnswerPreview(questionWithText, answer);
+
+                return (
+                  <button
+                    key={q.id}
+                    className={cn(
+                      'w-full text-start p-3 rounded-xl border transition-all hover:shadow-sm',
+                      isRTL && 'text-right',
+                      hasAnswer
+                        ? 'border-gray-200 hover:border-gray-300 bg-white'
+                        : 'border-orange-200 bg-orange-50/50'
+                    )}
+                    onClick={() => {
+                      setCurrentQuestionIndex(idx);
+                      setShowWorldSummary(false);
+                    }}
+                  >
+                    <div className={cn('flex items-start gap-2.5', isRTL && 'flex-row-reverse')}>
+                      <div className={cn(
+                        'w-6 h-6 rounded-full flex items-center justify-center shrink-0 mt-0.5 text-xs font-bold',
+                        hasAnswer ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-400'
+                      )}>
+                        {hasAnswer ? '✓' : idx + 1}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-gray-800 truncate">
+                          {questionWithText.question || `${isRTL ? 'שאלה' : 'Question'} ${idx + 1}`}
+                        </p>
+                        <p className={cn(
+                          'text-xs mt-0.5 truncate',
+                          hasAnswer ? 'text-gray-500' : 'text-orange-600'
+                        )}>
+                          {preview}
+                        </p>
+                      </div>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Footer actions */}
+            <div className="p-4 border-t border-gray-100 flex gap-3 shrink-0">
+              <Button
+                variant="outline"
+                onClick={() => setShowWorldSummary(false)}
+                className="flex-1 rounded-xl py-5"
+              >
+                {isRTL ? 'חזרה לעריכה' : 'Back to editing'}
+              </Button>
+              <Button
+                onClick={handleNext}
+                disabled={isCompleting}
+                className={cn(
+                  'flex-1 rounded-xl py-5 text-white font-bold',
+                  'bg-gradient-to-r hover:opacity-90',
+                  gradient
+                )}
+              >
+                {isCompleting ? (
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                ) : (
+                  <span className="flex items-center gap-2">
+                    <CheckCircle className="w-4 h-4" />
+                    {isRTL ? 'סיום עולם' : 'Complete world'}
+                  </span>
+                )}
+              </Button>
+            </div>
+          </motion.div>
+        </motion.div>
+      </AnimatePresence>
+    );
+  };
 
   const renderWorldIntroModal = () => {
     if (!showIntroModal) return null;
@@ -548,17 +800,20 @@ export default function WorldComponent({
       );
     }
 
+    // Faster animation after the first question for snappier feel
+    const animDuration = currentQuestionIndex === 0 ? 0.35 : 0.2;
+
     return (
       <motion.div
         key={currentQuestion.id}
-        initial={{ opacity: 0, x: isRTL ? -50 : 50 }}
+        initial={{ opacity: 0, x: isRTL ? -30 : 30 }}
         animate={{
           opacity: 1,
           x: 0,
           scale: animateError ? [1, 1.02, 1] : 1,
         }}
-        exit={{ opacity: 0, x: isRTL ? 50 : -50 }}
-        transition={{ duration: 0.3 }}
+        exit={{ opacity: 0, x: isRTL ? 30 : -30 }}
+        transition={{ duration: animDuration }}
       >
         <QuestionCard
           question={currentQuestion}
@@ -575,6 +830,11 @@ export default function WorldComponent({
           currentQuestionNumber={currentQuestionIndex + 1}
           totalQuestions={allQuestions.length}
           estimatedTimeMinutes={remainingTimeMinutes}
+          isSaving={isSaving}
+          lastSaved={lastSaved}
+          onSave={() => onSave && onSave(false)}
+          isBookmarked={currentAnswer?.isBookmarked ?? false}
+          onBookmark={() => onBookmarkToggle && onBookmarkToggle(worldId, currentQuestion.id)}
         >
           <AnswerInput
             question={currentQuestion}
@@ -964,6 +1224,7 @@ export default function WorldComponent({
             )}
           >
             {renderQuestionCard()}
+            {renderBookmarkReminder()}
             {renderNavigationButtons()}
           </div>
 
@@ -1022,6 +1283,7 @@ export default function WorldComponent({
         </div>
         {renderCelebration()}
         {renderWorldIntroModal()}
+        {renderWorldSummary()}
       </div>
     );
   } else {
@@ -1033,10 +1295,14 @@ export default function WorldComponent({
         dir={isRTL ? 'rtl' : 'ltr'}
       >
         <MobileWorldHeader />
-        {renderQuestionCard()}
+        <div onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
+          {renderQuestionCard()}
+        </div>
+        {renderBookmarkReminder()}
         {renderNavigationButtons()}
         {renderCelebration()}
         {renderWorldIntroModal()}
+        {renderWorldSummary()}
       </div>
     );
   }

@@ -356,6 +356,9 @@ if (tier) {
       case 'date_asc':
         orderBy = { scannedAt: 'asc' };
         break;
+      case 'asymmetry_desc':
+        orderBy = { asymmetryGap: 'desc' };
+        break;
       default:
         orderBy = { aiScore: 'desc' };
     }
@@ -606,9 +609,9 @@ const processedMatches = matches.map(match => {
     firstPassScore: match.firstPassScore,
     scoreBreakdown: match.scoreBreakdown,
     
-    // נימוקים
+    // נימוקים (shortReasoning only - detailed loaded on demand)
     shortReasoning: match.shortReasoning,
-    detailedReasoning: match.detailedReasoning,
+    detailedReasoning: null, // lazy loaded via /api/matchmaker/potential-matches/[id]/reasoning
     
     // רקע
     backgroundCompatibility: match.backgroundCompatibility,
@@ -618,28 +621,28 @@ const processedMatches = matches.map(match => {
     // 🔧 תיקון: הוספת כל השדות החסרים!
     // ═══════════════════════════════════════════════════════════
     
-    // Hybrid Method
+    // Hybrid Method (reasoning lazy loaded)
     hybridScore: match.hybridScore,
-    hybridReasoning: match.hybridReasoning,
-    hybridScannedAt: match.hybridScannedAt,           // 🆕 חסר!
-    hybridScoreBreakdown: match.hybridScoreBreakdown, // 🆕 חסר!
-    
-    // Algorithmic Method
+    hybridReasoning: null,
+    hybridScannedAt: match.hybridScannedAt,
+    hybridScoreBreakdown: match.hybridScoreBreakdown,
+
+    // Algorithmic Method (reasoning lazy loaded)
     algorithmicScore: match.algorithmicScore,
-    algorithmicReasoning: match.algorithmicReasoning,
-    algorithmicScannedAt: match.algorithmicScannedAt,           // 🆕 חסר!
-    algorithmicScoreBreakdown: match.algorithmicScoreBreakdown, // 🆕 חסר!
-    
-    // Vector Method
+    algorithmicReasoning: null,
+    algorithmicScannedAt: match.algorithmicScannedAt,
+    algorithmicScoreBreakdown: match.algorithmicScoreBreakdown,
+
+    // Vector Method (reasoning lazy loaded)
     vectorScore: match.vectorScore,
-    vectorReasoning: match.vectorReasoning,
-    vectorScannedAt: match.vectorScannedAt, // 🆕 חסר!
-    
-    // Metrics V2 Method
+    vectorReasoning: null,
+    vectorScannedAt: match.vectorScannedAt,
+
+    // Metrics V2 Method (reasoning lazy loaded)
     metricsV2Score: match.metricsV2Score,
-    metricsV2Reasoning: match.metricsV2Reasoning,
-    metricsV2ScannedAt: match.metricsV2ScannedAt,           // 🆕 חסר!
-    metricsV2ScoreBreakdown: match.metricsV2ScoreBreakdown, // 🆕 חסר!
+    metricsV2Reasoning: null,
+    metricsV2ScannedAt: match.metricsV2ScannedAt,
+    metricsV2ScoreBreakdown: match.metricsV2ScoreBreakdown,
     
     // השיטה האחרונה שרצה
     lastScanMethod: match.lastScanMethod,

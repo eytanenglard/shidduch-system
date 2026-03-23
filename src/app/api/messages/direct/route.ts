@@ -8,6 +8,7 @@
 // PATCH — Mark direct messages as read
 // =============================================================================
 import { pushUserMessageToMatchmaker } from '@/lib/sendPushNotification';
+import { publishNewMessage } from '@/lib/chatPubSub';
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
@@ -154,6 +155,17 @@ export async function POST(req: NextRequest) {
      content.trim(),
      { isDirect: true }
    ).catch(console.error);
+
+   // SSE: Publish real-time event to matchmaker
+   publishNewMessage(user.assignedMatchmakerId!, {
+     id: message.id,
+     content: message.content,
+     senderType: 'user',
+     senderId: userId,
+     senderName: session.user.name || '',
+     conversationId: userId,
+     conversationType: 'direct',
+   }).catch(console.error);
     return NextResponse.json({
       success: true,
       message: {

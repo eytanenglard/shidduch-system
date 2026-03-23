@@ -74,7 +74,21 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       triggeredBy = `matchmaker:${user.id}`;
     }
 
-    // 2. Check if already running
+    // 2. Day-of-week check: auto-suggestions only on Sunday (0) and Wednesday (3)
+    const dayOfWeek = new Date().getUTCDay();
+    const isAutoSuggestionDay = dayOfWeek === 0 || dayOfWeek === 3;
+
+    if (!isAutoSuggestionDay && triggeredBy === 'heroku-scheduler') {
+      console.log(`[Daily Suggestions] Skipped: not an auto-suggestion day (day=${dayOfWeek}, Sunday=0/Wednesday=3 only)`);
+      return NextResponse.json({
+        success: true,
+        mode: 'skipped',
+        message: 'Not an auto-suggestion day (Sunday/Wednesday only)',
+        dayOfWeek,
+      });
+    }
+
+    // 3. Check if already running
     if (currentRun?.status === 'running') {
       return NextResponse.json({
         success: false,

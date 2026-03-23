@@ -13,6 +13,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import QuestionnaireLayout from './layout/QuestionnaireLayout';
 import WorldComponent from './worlds/WorldComponent';
 import QuestionnaireCompletion from './common/QuestionnaireCompletion';
+import StandardizedLoadingSpinner from './common/StandardizedLoadingSpinner';
 import QuestionnaireLandingPage from './pages/QuestionnaireLandingPage';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { cn } from '@/lib/utils';
@@ -24,7 +25,6 @@ import { Button } from '@/components/ui/button';
 import { useQuestionnaireState } from '@/app/[locale]/contexts/QuestionnaireStateContext';
 
 import {
-  Loader2,
   CheckCircle,
   AlertTriangle,
   XCircle,
@@ -669,6 +669,39 @@ export default function MatchmakingQuestionnaire({
     []
   );
 
+  // Bookmark toggle handler
+  const handleBookmarkToggle = useCallback(
+    (worldId: WorldId, questionId: string) => {
+      setAnswers((prev) => {
+        const existingIndex = prev.findIndex(
+          (a) => a.worldId === worldId && a.questionId === questionId
+        );
+
+        if (existingIndex >= 0) {
+          const updated = [...prev];
+          updated[existingIndex] = {
+            ...updated[existingIndex],
+            isBookmarked: !updated[existingIndex].isBookmarked,
+          };
+          return updated;
+        }
+
+        return [
+          ...prev,
+          {
+            worldId,
+            questionId,
+            value: undefined,
+            answeredAt: new Date().toISOString(),
+            isBookmarked: true,
+          },
+        ];
+      });
+      setIsDirty(true);
+    },
+    []
+  );
+
   // World change handler
   const handleWorldChange = useCallback((worldId: WorldId) => {
     console.log(
@@ -762,6 +795,7 @@ export default function MatchmakingQuestionnaire({
     const worldProps = {
       onAnswer: handleAnswer,
       onVisibilityChange: handleVisibilityChange,
+      onBookmarkToggle: handleBookmarkToggle,
       onComplete: () => handleWorldComplete(currentWorld),
       onBack: handleExit,
       answers: answers.filter((a) => a.worldId === currentWorld),
@@ -775,6 +809,7 @@ export default function MatchmakingQuestionnaire({
       },
       onSave: (isAutoSave = false) => handleQuestionnaireSave(isAutoSave),
       isSaving: isSaving,
+      lastSaved: lastSavedTime,
       isDirectNavigation: isDirectNavigation,
       dict: {
         world: dict.world,
@@ -794,6 +829,7 @@ export default function MatchmakingQuestionnaire({
     currentWorld,
     handleAnswer,
     handleVisibilityChange,
+    handleBookmarkToggle,
     handleWorldComplete,
     handleExit,
     answers,
@@ -840,29 +876,11 @@ export default function MatchmakingQuestionnaire({
   const renderCurrentStep = () => {
     if (isLoading) {
       return (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="flex flex-col items-center justify-center min-h-screen bg-slate-50"
-        >
-          <Loader2 className="h-12 w-12 animate-spin text-teal-600" />
-          <motion.p
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="mt-6 text-lg font-semibold text-gray-700"
-          >
-            {dict.matchmaking.loading}
-          </motion.p>
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.4 }}
-            className="mt-3 flex items-center gap-2 text-sm text-gray-500"
-          >
-            <span>{dict.matchmaking.loadingSubtext}</span>
-          </motion.div>
-        </motion.div>
+        <StandardizedLoadingSpinner
+          text={dict.matchmaking.loading}
+          subtext={dict.matchmaking.loadingSubtext}
+          rotatingMessages={dict.matchmaking.loadingRotatingMessages}
+        />
       );
     }
 

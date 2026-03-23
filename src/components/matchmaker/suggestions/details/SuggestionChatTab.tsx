@@ -21,7 +21,9 @@ import {
   Bot,
   RefreshCw,
   CheckCheck,
+  Zap,
 } from 'lucide-react';
+import QuickReplyPicker from '@/components/matchmaker/inbox/QuickReplyPicker';
 import { cn, getInitials } from '@/lib/utils';
 import { format } from 'date-fns';
 import { he, enUS } from 'date-fns/locale';
@@ -546,6 +548,10 @@ export default function SuggestionChatTab({
         )}
 
         <div className="flex items-end gap-2">
+          <QuickReplyPicker
+            onSelect={(content) => setNewMessage(content)}
+            isHe={isHe}
+          />
           <Textarea
             ref={textareaRef}
             value={newMessage}

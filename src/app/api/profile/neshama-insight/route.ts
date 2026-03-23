@@ -1,6 +1,6 @@
 // src/app/api/profile/neshama-insight/route.ts
 // =====================================================
-// API Route - גרסה 8.0 (ללא בדיקת השלמה כפולה)
+// API Route - v9.0 — Structured JSON output
 // =====================================================
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -10,55 +10,93 @@ import prisma from '@/lib/prisma';
 import { generateNarrativeProfile } from '@/lib/services/profileAiService';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { Language, UserRole } from '@prisma/client';
+import { isValidInsightReport, type NeshamaInsightReport } from '@/types/neshamaInsight';
 
 // =====================================================
-// POST Handler
+// GET Handler — Load saved report
+// =====================================================
+
+export async function GET(req: NextRequest) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+    }
+
+    const { searchParams } = new URL(req.url);
+    const userId = searchParams.get('userId') || session.user.id;
+
+    const requester = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { role: true },
+    });
+
+    const isPrivileged =
+      requester?.role === UserRole.MATCHMAKER || requester?.role === UserRole.ADMIN;
+    const isSelf = userId === session.user.id;
+
+    if (!isSelf && !isPrivileged) {
+      return NextResponse.json({ success: false, message: 'Forbidden' }, { status: 403 });
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        neshamaInsightData: true,
+        neshamaInsightLastGeneratedAt: true,
+        neshamaInsightGeneratedCount: true,
+      },
+    });
+
+    if (!user?.neshamaInsightData) {
+      return NextResponse.json({ success: true, report: null });
+    }
+
+    return NextResponse.json({
+      success: true,
+      report: user.neshamaInsightData,
+      lastGeneratedAt: user.neshamaInsightLastGeneratedAt,
+    });
+  } catch (error) {
+    console.error('Error loading Neshama Insight:', error);
+    return NextResponse.json(
+      { success: false, message: 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}
+
+// =====================================================
+// POST Handler — Generate new report
 // =====================================================
 
 export async function POST(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
-
     if (!session?.user?.id) {
-      return NextResponse.json(
-        { success: false, message: 'Unauthorized' },
-        { status: 401 }
-      );
+      return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
     }
 
     const body = await req.json();
     const userId = body.userId;
     const locale = body.locale || 'he';
 
-    // בדיקת הרשאות
     const requester = await prisma.user.findUnique({
       where: { id: session.user.id },
       select: { role: true, id: true },
     });
 
-    const isMatchmakerOrAdmin =
-      requester?.role === UserRole.MATCHMAKER ||
-      requester?.role === UserRole.ADMIN;
+    const isPrivileged =
+      requester?.role === UserRole.MATCHMAKER || requester?.role === UserRole.ADMIN;
     const isSelf = userId === session.user.id;
 
-    if (!isSelf && !isMatchmakerOrAdmin) {
-      return NextResponse.json(
-        { success: false, message: 'Forbidden' },
-        { status: 403 }
-      );
+    if (!isSelf && !isPrivileged) {
+      return NextResponse.json({ success: false, message: 'Forbidden' }, { status: 403 });
     }
 
-    // שליפת נתוני המשתמש
     const user = await prisma.user.findUnique({
       where: { id: userId },
-      include: {
-        profile: true,
-        images: true,
-        questionnaireResponses: {
-          take: 1,
-          orderBy: { lastSaved: 'desc' },
-        },
-      },
+      include: { profile: true },
     });
 
     if (!user || !user.profile) {
@@ -68,11 +106,9 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Rate Limiting - רק למשתמשים רגילים
-    if (isSelf && !isMatchmakerOrAdmin && user.neshamaInsightLastGeneratedAt) {
-      const lastGenerated = new Date(user.neshamaInsightLastGeneratedAt);
-      const now = new Date();
-      const diffMs = now.getTime() - lastGenerated.getTime();
+    // Rate Limiting — regular users only
+    if (isSelf && !isPrivileged && user.neshamaInsightLastGeneratedAt) {
+      const diffMs = Date.now() - new Date(user.neshamaInsightLastGeneratedAt).getTime();
       const diffHours = diffMs / (1000 * 60 * 60);
 
       if (diffHours < 24) {
@@ -81,47 +117,35 @@ export async function POST(req: NextRequest) {
           locale === 'he'
             ? `ניתן ליצור דוח חדש בעוד ${hoursLeft} שעות`
             : `You can generate a new report in ${hoursLeft} hours`;
-        return NextResponse.json(
-          { success: false, message },
-          { status: 429 }
-        );
+        return NextResponse.json({ success: false, message }, { status: 429 });
       }
     }
 
-    // ========================================================
-    // הערה: בדיקת השלמת פרופיל הוסרה מכאן!
-    // הבדיקה מתבצעת בצד הקליינט (NeshmaInsightButton)
-    // שמקבל את אחוז ההשלמה מ-ProfileChecklist.
-    // זה מונע פערים בין שני חישובים שונים.
-    // ========================================================
-
-    // 1. יצירת פרופיל נרטיבי
+    // 1. Generate narrative profile (includes all data: profile, questionnaire, soul fingerprint)
     const narrativeProfile = await generateNarrativeProfile(userId);
     if (!narrativeProfile) {
       throw new Error('Failed to generate narrative profile');
     }
 
-    // 2. יצירת הדוח ב-AI עם הפרומפט המשופר
-    const insightText = await generateNeshmaInsightText(
+    // 2. Generate structured report via AI
+    const report = await generateStructuredInsight(
       narrativeProfile,
       user,
       locale as Language
     );
 
-    // 3. עדכון מסד הנתונים
+    // 3. Save to DB
     await prisma.user.update({
       where: { id: userId },
       data: {
         neshamaInsightLastGeneratedAt: new Date(),
         neshamaInsightGeneratedCount: { increment: 1 },
+        neshamaInsightData: report as any,
         updatedAt: new Date(),
       },
     });
 
-    return NextResponse.json({
-      success: true,
-      insight: insightText,
-    });
+    return NextResponse.json({ success: true, report });
   } catch (error) {
     console.error('Error generating Neshama Insight:', error);
     return NextResponse.json(
@@ -132,25 +156,16 @@ export async function POST(req: NextRequest) {
 }
 
 // =====================================================
-// AI Insight Generator
+// AI Structured Report Generator
 // =====================================================
 
-async function generateNeshmaInsightText(
+async function generateStructuredInsight(
   narrativeProfile: string,
   user: any,
   locale: Language
-) {
-  const questionnaire = user.questionnaireResponses[0];
+): Promise<NeshamaInsightReport> {
   const isHebrew = locale === 'he';
-
-  const prompt = buildCleanMatchmakerPrompt(
-    narrativeProfile,
-    questionnaire,
-    user,
-    isHebrew
-  );
-
-  console.log('=== CLEAN MATCHMAKER PROMPT GENERATED ===');
+  const prompt = buildStructuredPrompt(narrativeProfile, user, isHebrew);
 
   const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY!);
 
@@ -160,146 +175,153 @@ async function generateNeshmaInsightText(
       temperature: 0.7,
       topP: 0.95,
       maxOutputTokens: 8192,
+      responseMimeType: 'application/json',
     },
   });
 
   const result = await model.generateContent(prompt);
-  let text = result.response.text();
+  const text = result.response.text();
 
-  // ניקוי נוסף ליתר ביטחון (למקרה שה-AI בכל זאת הוסיף Markdown)
-  text = text.replace(/[*#]/g, '').trim();
+  // Parse JSON response
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(text);
+  } catch {
+    // Fallback: try to extract JSON from the response
+    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      parsed = JSON.parse(jsonMatch[0]);
+    } else {
+      throw new Error('AI returned invalid JSON');
+    }
+  }
 
-  return text;
+  // Validate structure
+  if (!isValidInsightReport(parsed)) {
+    console.error('AI returned invalid report structure:', JSON.stringify(parsed).slice(0, 500));
+    // Build a fallback from whatever we got
+    const fallback = parsed as Record<string, any>;
+    return {
+      tldr: fallback.tldr || '',
+      opening: fallback.opening || '',
+      soulMap: fallback.soulMap || '',
+      strengths: fallback.strengths || '',
+      growthChallenges: fallback.growthChallenges || '',
+      classicFit: fallback.classicFit || '',
+      trap: fallback.trap || '',
+      dealbreakers: fallback.dealbreakers || '',
+      whereToRelax: fallback.whereToRelax || '',
+      datingDynamics: fallback.datingDynamics || '',
+      goldenQuestions: Array.isArray(fallback.goldenQuestions) ? fallback.goldenQuestions : [],
+      recommendedDate: fallback.recommendedDate || '',
+      actionSteps: Array.isArray(fallback.actionSteps) ? fallback.actionSteps : [],
+      closingWords: fallback.closingWords || '',
+    };
+  }
+
+  return parsed;
 }
 
 // =====================================================
-// The "Clean" Matchmaker Prompt Builder
+// Structured Prompt Builder
 // =====================================================
 
-function buildCleanMatchmakerPrompt(
+function buildStructuredPrompt(
   narrativeProfile: string,
-  questionnaire: any,
   user: any,
   isHebrew: boolean
 ): string {
   const firstName = user.firstName || '';
-  const isMale = user.profile && user.profile.gender === 'MALE';
-
-  const questionnaireData = questionnaire
-    ? {
-        values: questionnaire.valuesAnswers || {},
-        personality: questionnaire.personalityAnswers || {},
-        relationship: questionnaire.relationshipAnswers || {},
-        partner: questionnaire.partnerAnswers || {},
-      }
-    : {};
-  const questionnaireJson = JSON.stringify(questionnaireData, null, 2);
+  const isMale = user.profile?.gender === 'MALE';
+  const genderPronoun = isMale ? 'אתה' : 'את';
+  const genderSuffix = isMale ? '' : 'ה';
 
   if (isHebrew) {
-    return `
-אתה ה-AI של נשמהטק, המשמש כשדכן מומחה, רגיש וחכם.
+    return `אתה ה-AI של נשמהטק — שדכן מומחה, רגיש, חכם ומדויק.
 
-המשימה:
-לכתוב דוח ניתוח אישי עבור ${firstName}.
-המטרה: לתת ${isMale ? 'לו' : 'לה'} פידבק מעצים, נעים לקריאה, אך פרקטי ומדויק למציאת זוגיות.
+המשימה: לכתוב דוח ניתוח אישי מובנה עבור ${firstName}.
+המטרה: פידבק מעצים, פרקטי ומדויק למציאת זוגיות. לא שטחי, לא כללי — ספציפי ל${firstName}.
 
----
-מידע על המשתמש:
+═══════════════════════════════════════
+מידע מלא על ${firstName}:
+═══════════════════════════════════════
 ${narrativeProfile}
+═══════════════════════════════════════
 
-תשובות לשאלון:
-${questionnaireJson}
----
+הנחיות סגנון קריטיות:
 
-הנחיות קריטיות לעיצוב וסגנון:
+1. פנה בגוף ${isMale ? 'שני זכר ("אתה")' : 'שני נקבה ("את")'} לאורך כל הדוח.
+2. כתוב בעברית עשירה, חיה ורגישה. כל פסקה צריכה להיות משמעותית — לא מילות מילוי.
+3. מטאפורות חיוביות בלבד: עוגן, בית, מגדלור, שורשים, גן, אור.
+   אסור בהחלט: תהום, סערה, מלחמה, גשר רעוע, חושך.
+4. השתמש בציטוטים ישירים ממה ש${firstName} כתב${isMale ? '' : 'ה'} — זה יוצר חיבור.
+5. "אפקט המראה": כשאתה מנתח חולשות, אל תפנה אצבע. דבר על הטיפוס: "אנשים עם עוצמה כזו נוטים לפעמים..." ולא "${genderPronoun} עוש${isMale ? 'ה' : 'ה'} ככה".
+6. שלב תובנות מטביעת הנשמה (Soul Fingerprint) — התגיות, הערכים, סגנון הזוגיות.
+7. כל שדה טקסטואלי חייב להיות פסקה עשירה ומפורטת (5-10 משפטים לפחות). אל תקצר!
+8. goldenQuestions — 3 שאלות ספציפיות שמתאימות לאישיות של ${firstName}, לא שאלות גנריות.
+9. actionSteps — 3 צעדים קונקרטיים ומעשיים שאפשר ליישם החודש.
 
-1. **טקסט נקי בלבד:** אל תשתמש בשום סימן עיצוב מיוחד. אסור להשתמש ב-# (סולמיות), אסור להשתמש ב-* (כוכביות) להדגשה או לבולטים. כתוב רק טקסט רגיל, נקי ופשוט.
-2. **מבנה:** הפרד בין הפסקאות והחלקים השונים באמצעות שורות רווח כפולות. הכותרות של הסעיפים צריכות להיות טקסט רגיל בשורה נפרדת.
-3. **מטאפורות חיוביות בלבד:** בפתיחה, השתמש בדימוי חיובי, יציב ומעצים (כמו "עוגן", "בית", "מגדלור", "שורשים"). **אסור בתכלית האיסור** להשתמש בדימויים מפחידים, שליליים או מלחיצים (כמו "תהום", "גשר רעוע", "סערה", "מלחמה"). המטרה היא לתת למשתמש ביטחון.
-4. **אמפתיה ורגישות:** פנה למשתמש בגוף ${isMale ? 'שני זכר ("אתה")' : 'שני נקבה ("את")'}.
-5. **ציטוטים:** השתמש בציטוטים מדויקים ממה שהמשתמש כתב כדי להראות שהבנת אותו.
-6. **"אפקט המראה" (ריכוך):** כשאתה מנתח דינמיקה בדייטים או חולשות, אל תפנה אצבע מאשימה ("אתה משתלט"). במקום זאת, דבר על הטיפוס הכללי: "אנשים עם כריזמה טבעית כמו שלך, לעיתים נוטים בלי לשים לב לקחת הרבה מקום בשיחה...". זה קריטי לקבלה של הדברים.
+החזר JSON בדיוק במבנה הזה (כל הערכים בעברית):
 
-מבנה הדוח הרצוי (טקסט נקי, ללא Markdown):
-
-שלום ${firstName}, כאן ה-AI של נשמהטק.
-
-[פסקה פותחת: מטאפורה חיובית ומחבקת שמזקקת את המהות של המשתמש. משהו שנותן תחושת יציבות וכוח.]
-
-1. מי ${isMale ? 'אתה' : 'את'} באמת? (מבט לעומק)
-[ניתוח אישיותי עמוק. התייחס לערכים ולרוחניות. השתמש בציטוטים מהטקסט שלו.]
-
-2. מה ${isMale ? 'אתה מביא' : 'את מביאה'} לקשר?
-[תיאור החוזקות הרגשיות. לאחר מכן, תיאור "אתגרי צמיחה" בצורה עדינה ומכילה, כחלק מהטיפוס האישיותי ולא כפגם אישי.]
-
-3. הפרופיל המדויק עבורך
-כאן אני רוצה לדייק אותך. הרבה פעמים הלב רוצה משהו אחד, אבל הנפש צריכה משהו אחר.
-ההתאמה הקלאסית: [תיאור האישיות שמשלימה ומאזנת]
-המוקש: [תיאור טיפוס שנראה מתאים בהתחלה אך לא יחזיק מעמד - הסבר למה]
-על מה לא להתפשר: [ערכי ליבה]
-איפה אפשר לשחרר: [מקומות בהם המשתמש אולי מחמיר מדי]
-
-4. המראה: איך זה נראה בדייטים?
-[ניתוח הדינמיקה בדייט. השתמש בשפה מכלילה ("טיפוסים כמוך...") כדי לא לפגוע. הצע שאלת זהב אחת שכדאי לשאול בדייט, והמלצה לסוג דייט שמתאים לאופי.]
-
-5. סיכום ומילה לדרך
-[סיום אופטימי, מחזק ומניע לפעולה.]
-
----
-זכור: שפה עשירה, רגישה, וללא שום סימני עיצוב מיוחדים.
-`;
-  } else {
-    return `
-You are NeshamaTech AI, acting as an expert, sensitive, and wise matchmaker.
-
-Mission:
-Write a personal analysis report for ${firstName}.
-Goal: Give ${firstName} empowering feedback that is pleasant to read, yet practical and accurate for finding a partner.
-
----
-User Narrative:
-${narrativeProfile}
-
-Questionnaire Data:
-${questionnaireJson}
----
-
-Critical Style & Formatting Instructions:
-
-1. **Clean Text Only:** Do NOT use any special formatting characters. NO hashtags (#), NO asterisks (*) for bolding or bullets. Write only plain, clean text.
-2. **Structure:** Separate paragraphs and sections using double line breaks. Section titles should be plain text on a separate line.
-3. **Positive Metaphors Only:** In the opening, use a positive, stable, and empowering image (like "anchor", "home", "lighthouse", "roots"). You are **STRICTLY FORBIDDEN** from using scary, negative, or stressful imagery (like "abyss", "shaky bridge", "storm", "battle"). The goal is to give the user confidence.
-4. **Empathy:** Address the user as "You".
-5. **Quotes:** Use direct quotes from what the user wrote.
-6. **The "Mirror Effect" (Softening):** When analyzing dating dynamics or weaknesses, do NOT point an accusing finger ("You dominate"). Instead, talk about the general type: "People with natural charisma like yours, sometimes tend without realizing it to take up a lot of space in conversation...". This is crucial.
-
-Desired Report Structure (Clean text, NO Markdown):
-
-Hello ${firstName}, this is NeshamaTech AI.
-
-[Opening paragraph: A positive, embracing metaphor distilling the user's essence. Something that gives a sense of stability and strength.]
-
-1. Who are you, really? (Deep Dive)
-[Deep personality analysis. Address values and spirituality. Use quotes from their text.]
-
-2. What do you bring to the table?
-[Describe emotional strengths. Then, describe "growth challenges" gently and inclusively, as part of the personality type rather than a personal flaw.]
-
-3. Your Precise Match
-I want to refine your search. Often the heart wants one thing, but the soul needs another.
-The Classic Fit: [Description of the personality that complements/balances you]
-The Trap: [Description of a type that looks good initially but won't last - explain why]
-Dealbreakers: [Core values]
-Where to Relax: [Areas where the user might be too rigid]
-
-4. The Mirror: Dating Dynamics
-[Dating dynamic analysis. Use inclusive language ("Types like you...") to avoid offense. Suggest one Golden Question to ask on a date, and a recommended date setting.]
-
-5. Summary & Words of Encouragement
-[Optimistic, empowering closing.]
-
----
-Remember: Rich, sensitive language, and NO special formatting characters.
-`;
+{
+  "tldr": "תמצית ב-2-3 משפטים בלבד: מי ${genderPronoun}, מה ${genderPronoun} מחפש${genderSuffix}, ומה ייחודי ב${isMale ? 'ך' : 'ך'}. קצר, חד ומדויק.",
+  "opening": "פסקה פותחת עם מטאפורה חיובית שמזקקת את המהות של ${firstName}. תחושת חיבוק, יציבות וכוח. פתח ב: שלום ${firstName}, כאן ה-AI של נשמהטק.",
+  "soulMap": "ניתוח אישיותי עמוק: מי ${genderPronoun} באמת מתחת לשכבות. התייחס לערכים, לרוחניות, לתכונות מטביעת הנשמה, לסגנון ההתקשרות. שלב ציטוטים ישירים. הראה ש${genderPronoun} מובן${genderSuffix}.",
+  "strengths": "מה ${genderPronoun} מביא${genderSuffix} לקשר — החוזקות הרגשיות, מה שמישהו לצד${isMale ? 'ך' : 'ך'} ירגיש. תאר איך זה מתבטא ביומיום.",
+  "growthChallenges": "אתגרי צמיחה — בצורה עדינה ומכילה. כחלק מהטיפוס האישיותי, לא כפגם. השתמש באפקט המראה: 'טיפוסים עם האנרגיה הזו נוטים...'",
+  "classicFit": "דיוקן בן/בת הזוג שמשלימ${isMale ? 'ה' : ''} — לא רשימת תכונות יבשה אלא תיאור חי: איך ${isMale ? 'היא' : 'הוא'} נראית, מרגיש${isMale ? 'ה' : ''}, פועל${isMale ? 'ת' : ''}. מבוסס על תגיות טביעת הנשמה, סגנון זוגיות וחזון משפחתי.",
+  "trap": "הטיפוס שנראה מתאים בהתחלה אך לא יחזיק מעמד — הסבר למה. מה מושך בהתחלה ומה נשבר אחרי שלושה חודשים.",
+  "dealbreakers": "ערכי ליבה שאסור להתפשר עליהם — מגזר, רוחניות, ערכים שמגדירים את הזהות. הסבר למה אלה קריטיים עבור ${firstName} ספציפית.",
+  "whereToRelax": "מקומות שבהם ${firstName} אולי מחמיר${genderSuffix} מדי ואפשר לשחרר — השווה בין מה שביקש${genderSuffix} לבין מה שעולה מהפרופיל. תן דוגמאות.",
+  "datingDynamics": "איך הדייטים של ${firstName} כנראה נראים — הדינמיקה, מה קורה, מה עובד ומה פחות. השתמש בשפה מכלילה. הצע סוג דייט ראשון שמתאים.",
+  "goldenQuestions": ["שאלה ספציפית 1 לדייט שחושפת תאימות עמוקה", "שאלה ספציפית 2 שבודקת ערכים", "שאלה ספציפית 3 שפותחת שיחה אמיתית"],
+  "recommendedDate": "סוג הדייט שהכי מתאים לאופי של ${firstName} — איפה, מה לעשות, ולמה דווקא זה יביא את הצד הטוב ${isMale ? 'שלו' : 'שלה'} החוצה.",
+  "actionSteps": ["צעד קונקרטי 1 ליישום החודש", "צעד קונקרטי 2", "צעד קונקרטי 3"],
+  "closingWords": "סיום אופטימי ומעצים — משפט שנשאר בראש, מחזק ומניע לפעולה. אישי ל${firstName}."
+}`;
   }
+
+  // English prompt
+  return `You are NeshamaTech AI — an expert, sensitive, wise, and precise matchmaker.
+
+Mission: Write a structured personal analysis report for ${firstName}.
+Goal: Empowering, practical, and precise feedback for finding a partner. Not generic — specific to ${firstName}.
+
+═══════════════════════════════════════
+Full data on ${firstName}:
+═══════════════════════════════════════
+${narrativeProfile}
+═══════════════════════════════════════
+
+Critical style guidelines:
+
+1. Address ${firstName} as "you" throughout.
+2. Write in rich, vivid, sensitive language. Every paragraph must be meaningful — no filler.
+3. Positive metaphors only: anchor, home, lighthouse, roots, garden, light.
+   Strictly forbidden: abyss, storm, battle, shaky bridge, darkness.
+4. Use direct quotes from what ${firstName} wrote — this creates connection.
+5. "Mirror Effect": When analyzing weaknesses, don't point fingers. Speak about the type: "People with this kind of energy tend to..." not "You do this."
+6. Weave in Soul Fingerprint insights — tags, values, relationship style.
+7. Every text field must be a rich, detailed paragraph (5-10 sentences minimum). Do not shorten!
+8. goldenQuestions — 3 specific questions tailored to ${firstName}'s personality, not generic ones.
+9. actionSteps — 3 concrete, actionable steps that can be implemented this month.
+
+Return JSON in exactly this structure (all values in English):
+
+{
+  "tldr": "2-3 sentence summary: who you are, what you seek, and what's unique about you. Short, sharp, precise.",
+  "opening": "Opening paragraph with a positive metaphor distilling ${firstName}'s essence. Warmth, stability, strength. Start with: Hello ${firstName}, this is NeshamaTech AI.",
+  "soulMap": "Deep personality analysis: who you really are beneath the layers. Address values, spirituality, Soul Fingerprint traits, attachment style. Include direct quotes. Show you understand.",
+  "strengths": "What you bring to a relationship — emotional strengths, what someone beside you will feel. Describe how it shows up day-to-day.",
+  "growthChallenges": "Growth challenges — gently and inclusively. As part of the personality type, not a flaw. Use the Mirror Effect: 'Types with this energy tend to...'",
+  "classicFit": "Portrait of the complementing partner — not a dry trait list but a vivid description: how they look, feel, act. Based on Soul Fingerprint tags, relationship style, family vision.",
+  "trap": "The type that looks good initially but won't last — explain why. What attracts at first and what breaks after three months.",
+  "dealbreakers": "Core values that must not be compromised — sector, spirituality, identity-defining values. Explain why these are critical for ${firstName} specifically.",
+  "whereToRelax": "Areas where ${firstName} might be too rigid and could loosen up — compare stated preferences vs. what the profile reveals. Give examples.",
+  "datingDynamics": "How ${firstName}'s dates probably look — the dynamics, what works and what doesn't. Use inclusive language. Suggest an ideal first date type.",
+  "goldenQuestions": ["Specific question 1 for a date that reveals deep compatibility", "Specific question 2 testing values", "Specific question 3 opening real conversation"],
+  "recommendedDate": "The date type that best suits ${firstName}'s personality — where, what to do, and why this brings out the best side.",
+  "actionSteps": ["Concrete step 1 to implement this month", "Concrete step 2", "Concrete step 3"],
+  "closingWords": "Optimistic, empowering closing — a memorable sentence that strengthens and motivates. Personal to ${firstName}."
+}`;
 }

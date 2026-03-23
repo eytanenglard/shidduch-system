@@ -285,13 +285,14 @@ export interface BatchScanProgress {
 // FILTER & SORT OPTIONS
 // =============================================================================
 
-export type PotentialMatchSortBy = 
-  | 'score_desc' 
-  | 'score_asc' 
-  | 'date_desc' 
+export type PotentialMatchSortBy =
+  | 'score_desc'
+  | 'score_asc'
+  | 'date_desc'
   | 'date_asc'
   | 'male_waiting_time'
-  | 'female_waiting_time';
+  | 'female_waiting_time'
+  | 'asymmetry_desc';
 
 export type PotentialMatchFilterStatus = 
   | 'all' 

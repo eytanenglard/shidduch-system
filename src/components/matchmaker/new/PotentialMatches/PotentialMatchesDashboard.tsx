@@ -24,6 +24,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from '@/components/ui/sheet';
 import { useHiddenCandidates } from './hooks/useHiddenCandidates';
 import HiddenCandidatesDrawer from './HiddenCandidatesDrawer';
 import MatchmakerEditProfile from '../MatchmakerEditProfile';
@@ -73,6 +79,8 @@ import {
   Heart,
   Sparkles,
   BarChart2,
+  Keyboard,
+  SlidersHorizontal,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
@@ -82,6 +90,7 @@ import { CardErrorBoundary } from '@/components/ui/error-boundary';
 import PotentialMatchCard from './PotentialMatchCard';
 import PotentialMatchesStats from './PotentialMatchesStats';
 import { ProfileCard } from '@/components/profile';
+import { Virtuoso } from 'react-virtuoso';
 
 // Import New V2 Dashboard
 import MatchmakerDashboardV2 from './MatchmakerDashboard';
@@ -144,6 +153,7 @@ const SORT_OPTIONS: { value: PotentialMatchSortBy; label: string }[] = [
   { value: 'date_asc', label: 'תאריך (ישן לחדש)' },
   { value: 'male_waiting_time', label: 'זמן המתנה (גבר)' },
   { value: 'female_waiting_time', label: 'זמן המתנה (אישה)' },
+  { value: 'asymmetry_desc', label: 'פער א-סימטריה (גדול לקטן)' },
 ];
 
 // =============================================================================
@@ -181,6 +191,7 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
   const scrollPositionRef = useRef(0);
 
   const [showBulkActions, setShowBulkActions] = useState(false);
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
 
   // Dialogs
   const [confirmScanDialog, setConfirmScanDialog] = useState(false);
@@ -302,6 +313,9 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
     return () => clearTimeout(timer);
   }, [localSearchTerm, setFilters]);
 
+  // Keyboard focus state (shortcuts defined after filteredMatches)
+  const [focusedMatchIndex, setFocusedMatchIndex] = useState(-1);
+
   // ==========================================================================
   // PROFILE LOADING EFFECT
   // ==========================================================================
@@ -373,7 +387,79 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
     // כדי שהפרונטנד לא יסנן שוב את התוצאות שמגיעות מהשרת.
 
     return result;
-  }, [matches, hiddenCandidateIds]); // ❌ מחקנו גם את localSearchTerm מהסוגריים
+  }, [matches, hiddenCandidateIds]);
+
+  // ==========================================================================
+  // KEYBOARD SHORTCUTS
+  // ==========================================================================
+  useEffect(() => {
+    if (activeTab !== 'matches') return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement;
+      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) return;
+
+      switch (e.key.toLowerCase()) {
+        case 'j': {
+          e.preventDefault();
+          setFocusedMatchIndex(prev => {
+            const next = Math.min(prev + 1, filteredMatches.length - 1);
+            const cards = document.querySelectorAll('[data-match-card]');
+            cards[next]?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            return next;
+          });
+          break;
+        }
+        case 'k': {
+          e.preventDefault();
+          setFocusedMatchIndex(prev => {
+            const next = Math.max(prev - 1, 0);
+            const cards = document.querySelectorAll('[data-match-card]');
+            cards[next]?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            return next;
+          });
+          break;
+        }
+        case 's': {
+          if (focusedMatchIndex >= 0 && focusedMatchIndex < filteredMatches.length) {
+            e.preventDefault();
+            const match = filteredMatches[focusedMatchIndex];
+            if ((match.status as string) !== 'DISMISSED' && (match.status as string) !== 'SENT') {
+              saveMatch(match.id);
+            }
+          }
+          break;
+        }
+        case 'd': {
+          if (focusedMatchIndex >= 0 && focusedMatchIndex < filteredMatches.length) {
+            e.preventDefault();
+            const match = filteredMatches[focusedMatchIndex];
+            if ((match.status as string) !== 'DISMISSED' && (match.status as string) !== 'SENT') {
+              dismissMatch(match.id);
+            }
+          }
+          break;
+        }
+        case 'enter': {
+          if (focusedMatchIndex >= 0 && focusedMatchIndex < filteredMatches.length) {
+            e.preventDefault();
+            const match = filteredMatches[focusedMatchIndex];
+            if ((match.status as string) !== 'DISMISSED' && (match.status as string) !== 'SENT') {
+              setCreateSuggestionDialog(match.id);
+            }
+          }
+          break;
+        }
+        case 'escape': {
+          setFocusedMatchIndex(-1);
+          break;
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [activeTab, filteredMatches, focusedMatchIndex, saveMatch, dismissMatch]);
 
   const handleStartScan = (
     method: 'hybrid' | 'algorithmic' | 'vector' | 'metrics_v2',
@@ -462,6 +548,34 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
     setLocalSearchTerm('');
     resetFilters();
   }, [resetFilters]);
+
+  // Count active filters for mobile badge
+  const activeFilterCount = useMemo(() => {
+    let count = 0;
+    if (filters.status !== 'pending') count++;
+    if (filters.sortBy !== 'score_desc') count++;
+    if (filters.minScore !== 70 || filters.maxScore !== 100) count++;
+    if (filters.scanMethod) count++;
+    if (filters.gender) count++;
+    if (filters.religiousLevel) count++;
+    if (filters.city) count++;
+    if (filters.hasWarning !== null) count++;
+    if (filters.scannedAfter) count++;
+    if (filters.scannedBefore) count++;
+    if (filters.scanSessionId) count++;
+    if (filters.availabilityFilter !== 'all') count++;
+    if (filters.backgroundCompatibility?.length > 0) count++;
+    if (filters.maxAsymmetryGap !== null) count++;
+    if (filters.minConfidence !== null) count++;
+    if (filters.dataQuality) count++;
+    if (filters.isExploratoryMatch !== null) count++;
+    if (filters.tier) count++;
+    if (filters.maleAgeRange) count++;
+    if (filters.femaleAgeRange) count++;
+    if ((filters.maleReligiousLevel?.length ?? 0) > 0) count++;
+    if ((filters.femaleReligiousLevel?.length ?? 0) > 0) count++;
+    return count;
+  }, [filters]);
 
   const handlePageInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setPageInput(e.target.value);
@@ -600,9 +714,212 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
               }}
             />
 
-            {/* Filters & Controls */}
-            <Card className="p-4 border-0 shadow-lg">
-              <div className="flex flex-wrap items-center gap-4">
+            {/* Filters & Controls - Sticky */}
+            <Card className="p-3 md:p-4 border-0 shadow-lg sticky top-[73px] z-30 bg-white/95 backdrop-blur-sm">
+              {/* ===== Mobile Filters Bar (below md) ===== */}
+              <div className="flex md:hidden items-center gap-2">
+                {/* Search */}
+                <div className="flex-1 relative">
+                  <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <Input
+                    placeholder="חיפוש לפי שם..."
+                    value={localSearchTerm}
+                    onChange={(e) => setLocalSearchTerm(e.target.value)}
+                    className="pr-10 h-9 text-sm"
+                  />
+                </div>
+
+                {/* Mobile Filters Button */}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setMobileFiltersOpen(true)}
+                  className="relative shrink-0"
+                >
+                  <SlidersHorizontal className="w-4 h-4 ml-1" />
+                  פילטרים
+                  {activeFilterCount > 0 && (
+                    <span className="absolute -top-1.5 -left-1.5 bg-purple-600 text-white text-[10px] font-bold rounded-full w-4.5 h-4.5 flex items-center justify-center min-w-[18px] min-h-[18px] leading-none">
+                      {activeFilterCount}
+                    </span>
+                  )}
+                </Button>
+
+                {/* View Mode (compact on mobile) */}
+                <div className="flex items-center gap-0.5 border rounded-lg p-0.5 shrink-0">
+                  <Button
+                    variant={viewMode === 'grid' ? 'default' : 'ghost'}
+                    size="sm"
+                    className="h-7 w-7 p-0"
+                    onClick={() => setViewMode('grid')}
+                  >
+                    <LayoutGrid className="w-3.5 h-3.5" />
+                  </Button>
+                  <Button
+                    variant={viewMode === 'list' ? 'default' : 'ghost'}
+                    size="sm"
+                    className="h-7 w-7 p-0"
+                    onClick={() => setViewMode('list')}
+                  >
+                    <List className="w-3.5 h-3.5" />
+                  </Button>
+                </div>
+
+                {/* Card Style Toggle (compact on mobile) */}
+                <div className="flex items-center gap-0.5 border rounded-lg p-0.5 shrink-0">
+                  <Button
+                    variant={cardStyle === 'expanded' ? 'default' : 'ghost'}
+                    size="sm"
+                    className="h-7 w-7 p-0"
+                    onClick={() => setCardStyle('expanded')}
+                  >
+                    <Maximize2 className="w-3.5 h-3.5" />
+                  </Button>
+                  <Button
+                    variant={cardStyle === 'compact' ? 'default' : 'ghost'}
+                    size="sm"
+                    className="h-7 w-7 p-0"
+                    onClick={() => setCardStyle('compact')}
+                  >
+                    <Minimize2 className="w-3.5 h-3.5" />
+                  </Button>
+                </div>
+              </div>
+
+              {/* ===== Mobile Filters Sheet ===== */}
+              <Sheet open={mobileFiltersOpen} onOpenChange={setMobileFiltersOpen}>
+                <SheetContent side="right" className="w-[85vw] sm:max-w-md overflow-y-auto">
+                  <SheetHeader>
+                    <SheetTitle className="text-right">פילטרים</SheetTitle>
+                  </SheetHeader>
+                  <div className="flex flex-col gap-5 mt-4 text-right">
+                    {/* Status Filter */}
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-gray-700">סטטוס</label>
+                      <Select
+                        value={filters.status}
+                        onValueChange={(value) =>
+                          setFilters({ status: value as PotentialMatchFilterStatus })
+                        }
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="סטטוס" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {STATUS_OPTIONS.map((option) => (
+                            <SelectItem key={option.value} value={option.value}>
+                              <div className="flex items-center gap-2">
+                                <option.icon className="w-4 h-4" />
+                                {option.label}
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {/* Sort */}
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-gray-700">מיון</label>
+                      <Select
+                        value={filters.sortBy}
+                        onValueChange={(value) =>
+                          setFilters({ sortBy: value as any })
+                        }
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="מיון" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {SORT_OPTIONS.map((option) => (
+                            <SelectItem key={option.value} value={option.value}>
+                              {option.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {/* Score Range */}
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-gray-700">טווח ציונים</label>
+                      <div className="flex items-center gap-2">
+                        <Input
+                          type="number"
+                          min={0}
+                          max={100}
+                          value={filters.minScore}
+                          onChange={(e) =>
+                            setFilters({ minScore: parseInt(e.target.value) || 0 })
+                          }
+                          className="flex-1 text-center"
+                        />
+                        <span className="text-gray-400">—</span>
+                        <Input
+                          type="number"
+                          min={0}
+                          max={100}
+                          value={filters.maxScore}
+                          onChange={(e) =>
+                            setFilters({ maxScore: parseInt(e.target.value) || 100 })
+                          }
+                          className="flex-1 text-center"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Advanced Filters (embedded in sheet) */}
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-gray-700">פילטרים מתקדמים</label>
+                      <PotentialMatchesFilters
+                        filters={filters}
+                        onFiltersChange={setFilters}
+                        onReset={resetFilters}
+                      />
+                    </div>
+
+                    {/* Bulk Selection Toggle */}
+                    <Button
+                      variant={showBulkActions ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => {
+                        setShowBulkActions(!showBulkActions);
+                        if (showBulkActions) clearSelection();
+                      }}
+                      className="w-full"
+                    >
+                      <Check className="w-4 h-4 ml-1" />
+                      בחירה מרובה
+                    </Button>
+
+                    {/* Actions */}
+                    <div className="flex gap-2 pt-3 border-t">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          handleResetFilters();
+                          setMobileFiltersOpen(false);
+                        }}
+                        className="flex-1"
+                      >
+                        <X className="w-4 h-4 ml-1" />
+                        נקה הכל
+                      </Button>
+                      <Button
+                        size="sm"
+                        onClick={() => setMobileFiltersOpen(false)}
+                        className="flex-1"
+                      >
+                        הצג תוצאות
+                      </Button>
+                    </div>
+                  </div>
+                </SheetContent>
+              </Sheet>
+
+              {/* ===== Desktop Filters Bar (md and above) ===== */}
+              <div className="hidden md:flex flex-wrap items-center gap-4">
                 {/* Search */}
                 <div className="flex-1 min-w-[200px] max-w-md relative">
                   <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -744,6 +1061,18 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
                   <X className="w-4 h-4 ml-1" />
                   נקה פילטרים
                 </Button>
+
+                {/* Keyboard Shortcuts Hint */}
+                <div className="hidden lg:flex items-center gap-1.5 text-[10px] text-gray-400 border-r pr-3 mr-1">
+                  <Keyboard className="w-3.5 h-3.5" />
+                  <span>J/K ניווט</span>
+                  <span>·</span>
+                  <span>S שמור</span>
+                  <span>·</span>
+                  <span>D דחה</span>
+                  <span>·</span>
+                  <span>Enter הצעה</span>
+                </div>
               </div>
 
               {/* Bulk Actions Bar */}
@@ -943,53 +1272,116 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
               </Card>
             )}
 
-            {/* Matches Grid */}
+            {/* Matches Grid / List */}
             {!isLoading && matches.length > 0 && (
               <>
-                <div
-                  className={cn(
-                    'grid',
-                    cardStyle === 'compact' ? 'gap-3' : 'gap-4 sm:gap-6',
-                    viewMode === 'grid'
-                      ? cardStyle === 'compact'
-                        ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
-                        : 'grid-cols-1 md:grid-cols-2 xl:grid-cols-3'
-                      : 'grid-cols-1'
-                  )}
-                >
-                  <AnimatePresence mode="popLayout">
-                    {filteredMatches.map((match) => (
-                      <CardErrorBoundary key={match.id}>
-                        <PotentialMatchCard
-                          match={match as any}
-                          onCreateSuggestion={(id) =>
-                            setCreateSuggestionDialog(id)
-                          }
-                          onDismiss={(id) => dismissMatch(id)}
-                          onReview={reviewMatch}
-                          onRestore={restoreMatch}
-                          onSave={saveMatch}
-                          onViewProfile={handleViewProfile}
-                          onAnalyzeCandidate={(candidate) =>
-                            setAnalyzedCandidate(candidate)
-                          }
-                          onProfileFeedback={(candidate) =>
-                            setFeedbackCandidate(candidate)
-                          }
-                          isSelected={isSelected(match.id)}
-                          onToggleSelect={
-                            showBulkActions ? toggleSelection : undefined
-                          }
-                          showSelection={showBulkActions}
-                          onHideCandidate={handleHideCandidate}
-                          hiddenCandidateIds={hiddenCandidateIds}
-                          onFilterByUser={handleFilterByUser}
-                          isCompact={cardStyle === 'compact'}
-                        />
-                      </CardErrorBoundary>
-                    ))}
-                  </AnimatePresence>
-                </div>
+                {/* Virtualized list for list/compact mode with many items */}
+                {viewMode === 'list' && filteredMatches.length > 20 ? (
+                  <Virtuoso
+                    useWindowScroll
+                    totalCount={filteredMatches.length}
+                    overscan={5}
+                    itemContent={(index) => {
+                      const match = filteredMatches[index];
+                      return (
+                        <div className={cn('pb-3', cardStyle === 'compact' ? 'pb-2' : 'pb-4')}>
+                          <CardErrorBoundary>
+                            <div
+                              data-match-card
+                              className={cn(
+                                'transition-all duration-150',
+                                focusedMatchIndex === index && 'ring-2 ring-blue-400 ring-offset-2 rounded-xl'
+                              )}
+                              onClick={() => setFocusedMatchIndex(index)}
+                            >
+                              <PotentialMatchCard
+                                match={match as any}
+                                onCreateSuggestion={(id) =>
+                                  setCreateSuggestionDialog(id)
+                                }
+                                onDismiss={(id) => dismissMatch(id)}
+                                onReview={reviewMatch}
+                                onRestore={restoreMatch}
+                                onSave={saveMatch}
+                                onViewProfile={handleViewProfile}
+                                onAnalyzeCandidate={(candidate) =>
+                                  setAnalyzedCandidate(candidate)
+                                }
+                                onProfileFeedback={(candidate) =>
+                                  setFeedbackCandidate(candidate)
+                                }
+                                isSelected={isSelected(match.id)}
+                                onToggleSelect={
+                                  showBulkActions ? toggleSelection : undefined
+                                }
+                                showSelection={showBulkActions}
+                                onHideCandidate={handleHideCandidate}
+                                hiddenCandidateIds={hiddenCandidateIds}
+                                onFilterByUser={handleFilterByUser}
+                                isCompact={cardStyle === 'compact'}
+                              />
+                            </div>
+                          </CardErrorBoundary>
+                        </div>
+                      );
+                    }}
+                  />
+                ) : (
+                  /* Standard grid rendering */
+                  <div
+                    className={cn(
+                      'grid',
+                      cardStyle === 'compact' ? 'gap-3' : 'gap-4 sm:gap-6',
+                      viewMode === 'grid'
+                        ? cardStyle === 'compact'
+                          ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
+                          : 'grid-cols-1 md:grid-cols-2 xl:grid-cols-3'
+                        : 'grid-cols-1'
+                    )}
+                  >
+                    <AnimatePresence mode="popLayout">
+                      {filteredMatches.map((match, index) => (
+                        <CardErrorBoundary key={match.id}>
+                          <div
+                            data-match-card
+                            className={cn(
+                              'transition-all duration-150',
+                              focusedMatchIndex === index && 'ring-2 ring-blue-400 ring-offset-2 rounded-xl'
+                            )}
+                            onClick={() => setFocusedMatchIndex(index)}
+                          >
+                            <PotentialMatchCard
+                              match={match as any}
+                              onCreateSuggestion={(id) =>
+                                setCreateSuggestionDialog(id)
+                              }
+                              onDismiss={(id) => dismissMatch(id)}
+                              onReview={reviewMatch}
+                              onRestore={restoreMatch}
+                              onSave={saveMatch}
+                              onViewProfile={handleViewProfile}
+                              onAnalyzeCandidate={(candidate) =>
+                                setAnalyzedCandidate(candidate)
+                              }
+                              onProfileFeedback={(candidate) =>
+                                setFeedbackCandidate(candidate)
+                              }
+                              isSelected={isSelected(match.id)}
+                              onToggleSelect={
+                                showBulkActions ? toggleSelection : undefined
+                              }
+                              showSelection={showBulkActions}
+                              onHideCandidate={handleHideCandidate}
+                              hiddenCandidateIds={hiddenCandidateIds}
+                              onFilterByUser={handleFilterByUser}
+                              isCompact={cardStyle === 'compact'}
+                            />
+                          </div>
+                        </CardErrorBoundary>
+                      ))}
+                    </AnimatePresence>
+                  </div>
+                )}
 
                 {/* Pagination */}
                 <Card className="p-4 border-0 shadow-lg">

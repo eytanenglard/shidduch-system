@@ -18,6 +18,8 @@ import {
   BookUser,
   Clock,
   Sparkles,
+  Cloud,
+  CheckCircle,
 } from 'lucide-react';
 import {
   Tooltip,
@@ -37,6 +39,7 @@ interface QuestionCardProps {
   isRequired?: boolean;
   onSkip?: () => void;
   onBookmark?: () => void;
+  isBookmarked?: boolean;
   onHelp?: () => void;
   className?: string;
   validationError?: string;
@@ -48,6 +51,7 @@ interface QuestionCardProps {
   onVisibilityChange: (isVisible: boolean) => void;
   onSave?: () => void;
   isSaving?: boolean;
+  lastSaved?: Date | null;
   dict: QuestionCardDict;
   currentQuestionNumber?: number;
   totalQuestions?: number;
@@ -79,6 +83,7 @@ export default function QuestionCard({
   isRequired = false,
   onSkip,
   onBookmark,
+  isBookmarked: isBookmarkedProp,
   className = '',
   validationError,
   isDisabled = false,
@@ -89,14 +94,28 @@ export default function QuestionCard({
   onVisibilityChange,
   onSave,
   isSaving,
+  lastSaved,
   dict,
   currentQuestionNumber,
   totalQuestions,
   estimatedTimeMinutes,
 }: QuestionCardProps) {
-  const [isBookmarked, setIsBookmarked] = useState(false);
+  const [isBookmarkedLocal, setIsBookmarkedLocal] = useState(false);
+  const isBookmarked = isBookmarkedProp ?? isBookmarkedLocal;
   const [showHelp, setShowHelp] = useState(false);
   const [showBenefit, setShowBenefit] = useState(false);
+
+  // Show "saved" indicator for 4 seconds after a save completes
+  const isRecentlySaved = lastSaved && (Date.now() - lastSaved.getTime()) < 4000;
+  const [showSavedIndicator, setShowSavedIndicator] = useState(false);
+  useEffect(() => {
+    if (isSaving) {
+      setShowSavedIndicator(true);
+    } else if (showSavedIndicator && lastSaved) {
+      const timer = setTimeout(() => setShowSavedIndicator(false), 4000);
+      return () => clearTimeout(timer);
+    }
+  }, [isSaving, lastSaved]);
 
   const isRTL = locale === 'he';
   const theme = getThemeConfig(themeColor);
@@ -121,10 +140,12 @@ export default function QuestionCard({
       ? Math.round((currentQuestionNumber / totalQuestions) * 100)
       : 0;
 
+  // Faster animation after the first question
+  const isFirstQuestion = currentQuestionNumber === 1;
   const cardVariants = {
-    initial: { opacity: 0, y: 24, scale: 0.98 },
-    animate: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.45, ease: [0.25, 1, 0.5, 1] } },
-    exit:    { opacity: 0, y: -16, transition: { duration: 0.25 } },
+    initial: { opacity: 0, y: isFirstQuestion ? 24 : 12, scale: isFirstQuestion ? 0.98 : 1 },
+    animate: { opacity: 1, y: 0, scale: 1, transition: { duration: isFirstQuestion ? 0.45 : 0.22, ease: [0.25, 1, 0.5, 1] } },
+    exit:    { opacity: 0, y: -8, transition: { duration: isFirstQuestion ? 0.25 : 0.15 } },
   };
 
   return (
@@ -193,30 +214,53 @@ export default function QuestionCard({
               )}
             </div>
 
-            {/* Right side: help + bookmark */}
+            {/* Right side: save status + help + bookmark */}
             <div className="flex items-center gap-0.5">
-              {onBookmark && (
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => setIsBookmarked(!isBookmarked)}
-                        className={cn(
-                          'h-8 w-8 rounded-lg transition-all',
-                          isBookmarked ? 'text-orange-500 bg-orange-50' : 'text-gray-300 hover:text-gray-500 hover:bg-gray-100'
-                        )}
+              {/* Auto-save status indicator */}
+              <AnimatePresence>
+                {(isSaving || showSavedIndicator) && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.8 }}
+                    transition={{ duration: 0.2 }}
+                    className="flex items-center gap-1 px-2 py-1 rounded-lg"
+                  >
+                    {isSaving ? (
+                      <Cloud className="w-3.5 h-3.5 text-blue-400 animate-pulse" />
+                    ) : (
+                      <motion.div
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        transition={{ type: 'spring', stiffness: 300, damping: 15 }}
                       >
-                        <Bookmark className="w-4 h-4" fill={isBookmarked ? 'currentColor' : 'none'} />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>{isBookmarked ? dict.tooltips.removeBookmark : dict.tooltips.addBookmark}</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              )}
+                        <CheckCircle className="w-3.5 h-3.5 text-green-500" />
+                      </motion.div>
+                    )}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => { onBookmark ? onBookmark() : setIsBookmarkedLocal(!isBookmarkedLocal); }}
+                      className={cn(
+                        'h-8 w-8 rounded-lg transition-all',
+                        isBookmarked ? 'text-orange-500 bg-orange-50' : 'text-gray-300 hover:text-gray-500 hover:bg-gray-100'
+                      )}
+                    >
+                      <Bookmark className="w-4 h-4" fill={isBookmarked ? 'currentColor' : 'none'} />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>{isBookmarked ? dict.tooltips.removeBookmark : dict.tooltips.addBookmark}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
 
               {question.metadata?.helpText && (
                 <TooltipProvider>

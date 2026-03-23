@@ -108,6 +108,67 @@
         "responseTimeNote": "מומלץ להגיב תוך 3 ימים כדי לשמור על רלוונטיות ההצעה.",
         "emailDisclaimer": "הצעה זו נבחרה על ידי המערכת ואושרה על ידי השדכן/ית שלך. זכור/י: ההצעה אינה בלעדית, ייתכן שהצד השני מקבל הצעות נוספות, ועדיפות ניתנת למגיבים ראשונים."
       }
+    },
+    "autoSuggestions": {
+      "title": "הצעות חכמות",
+      "subtitle": "המערכת לומדת מהתגובות שלך ומדייקת את ההצעות",
+      "scheduleInfo": "הצעות שידוך נשלחות ביום ראשון ורביעי",
+      "nextSuggestionIn": "ההצעה הבאה תגיע בעוד {days}",
+      "nextSuggestionTomorrow": "ההצעה הבאה תגיע מחר",
+      "nextSuggestionToday": "ההצעה הבאה תגיע היום",
+      "noActiveSuggestion": "אין הצעה חכמה פעילה כרגע",
+      "waitingForSuggestion": "המערכת שלנו עובדת על מציאת ההתאמה הטובה ביותר עבורך",
+      "viewSuggestion": "צפה בהצעה",
+      "approve": "מעוניין/ת",
+      "decline": "לא מתאים",
+      "saveForLater": "שמור להמתנה",
+      "history": {
+        "title": "היסטוריית הצעות חכמות",
+        "empty": "עדיין אין היסטוריית הצעות חכמות",
+        "approved": "אושר",
+        "declined": "נדחה",
+        "interested": "נשמר להמתנה",
+        "expired": "פג תוקף"
+      },
+      "feedbackDialog": {
+        "titleApprove": "מה משך אותך בהצעה?",
+        "titleDeclineStep1": "מה כן דיבר אליך בהצעה?",
+        "titleDeclineStep2": "מה חסר לך?",
+        "titleInterested": "מה דיבר אליך בהצעה?",
+        "subtitleApprove": "התשובה שלך עוזרת לנו לדייק את ההצעות הבאות",
+        "subtitleDeclineStep1": "גם בהצעה שלא מתאימה, יש דברים שאפשר ללמוד מהם",
+        "subtitleDeclineStep2": "מה היה חסר כדי שההצעה תתאים? זה עוזר לנו להשתפר",
+        "likedTraits": {
+          "religious_match": "התאמה דתית",
+          "personality_match": "אישיות מתאימה",
+          "age_appropriate": "גיל מתאים",
+          "shared_values": "ערכים משותפים",
+          "similar_background": "רקע דומה",
+          "attractive_profile": "פרופיל מושך",
+          "good_career": "קריירה/השכלה",
+          "interesting_person": "בנאדם מעניין"
+        },
+        "missingTraits": {
+          "age_gap": "פער גילאים",
+          "religious_gap": "פער דתי",
+          "geographic_gap": "מרחק גאוגרפי",
+          "not_attracted": "לא מרגיש/ה חיבור חיצוני",
+          "no_connection": "לא מרגיש/ה חיבור",
+          "background_gap": "פער ברקע",
+          "education_gap": "פער השכלתי",
+          "gut_feeling": "תחושת בטן"
+        },
+        "freeTextPlaceholder": "רוצה לפרט? (אופציונלי)",
+        "missingFreeTextPlaceholder": "מה בדיוק חסר? (אופציונלי)",
+        "selectAtLeastOne": "בחר/י לפחות אפשרות אחת",
+        "next": "המשך",
+        "back": "חזרה",
+        "submitApprove": "אישור ושליחה",
+        "submitDecline": "שליחה ודחייה",
+        "submitInterested": "שמירה ושליחה",
+        "thankYou": "תודה על הפידבק! 🙏",
+        "thankYouDesc": "התגובה שלך עוזרת לנו לדייק את ההצעות הבאות עבורך"
+      }
     }
   },
   "card": {

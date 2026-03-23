@@ -7,6 +7,7 @@
 // PATCH — mark messages as read
 // =============================================================================
 import { pushDirectMessage } from '@/lib/sendPushNotification';
+import { publishNewMessage } from '@/lib/chatPubSub';
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
@@ -123,6 +124,17 @@ export async function POST(
   // Send push notification (non-blocking)
   pushDirectMessage(userId, session.user.name || 'השדכן/ית שלך', content)
     .catch(console.error);
+
+  // SSE: Publish real-time event to user
+  publishNewMessage(userId, {
+    id: message.id,
+    content: message.content,
+    senderType: 'matchmaker',
+    senderId: matchmakerId,
+    senderName: session.user.name || '',
+    conversationId: matchmakerId,
+    conversationType: 'direct',
+  }).catch(console.error);
     return NextResponse.json({
       success: true,
       message: {

@@ -42,7 +42,7 @@
     "myMatches": "My Matches",
      "referralsAdmin": "Referrals Admin",
     "matchmakingQuestionnaire": "Questionnaire",
-    "soulFingerprint": "Soul Fingerprint",
+    "soulFingerprint": "Heart Map",
       "engagementDashboard": "Engagement Managment",
     "messages": "Messages",
     "login": "Sign In",
@@ -388,6 +388,19 @@
       "Every conversation and detail you share with us is kept confidential, using advanced security technologies.",
       "Your information is sacred. It will never be sold or shared with any party outside the system. That's a promise.",
 "Your matchmakers act on your behalf. As part of the matchmaking process, they present your profile in a controlled manner to the other party, only when they identify a high potential for a match."    ]
+  },
+  "heartMapCTA": {
+    "badge": "New — Try for free",
+    "title": "Discover Your Heart Map",
+    "subtitle": "Fill out a short questionnaire and discover how many potential matches are waiting for you",
+    "description": "No signup, no cost. 10 minutes of self-discovery — and at the end, you'll see how many people in our system could be your match.",
+    "features": {
+      "free": "Completely free",
+      "time": "Only 10 minutes",
+      "noSignup": "No registration"
+    },
+    "cta": "Start now",
+    "mobileNote": "Discover who's waiting for you →"
   },
   "cta": {
     "title_part1": "Your Journey to a Relationship",

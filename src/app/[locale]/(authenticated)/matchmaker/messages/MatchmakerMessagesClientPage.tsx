@@ -8,8 +8,8 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { MessageSquare, ClipboardCheck, Megaphone } from 'lucide-react';
 import MessagesPage from '@/components/messages/MessagesPage';
-import MatchmakerChatPanel from '@/components/messages/MatchmakerChatPanel';
-import type { MatchmakerChatPanelHandle } from '@/components/messages/MatchmakerChatPanel';
+import MatchmakerInbox from '@/components/matchmaker/inbox/MatchmakerInbox';
+import type { MatchmakerInboxHandle } from '@/components/matchmaker/inbox/MatchmakerInbox';
 import MatchmakerUserSearchDialog from '@/components/messages/MatchmakerUserSearchDialog';
 import StandardizedLoadingSpinner from '@/components/questionnaire/common/StandardizedLoadingSpinner';
 import type { Locale } from '../../../../../../i18n-config';
@@ -51,8 +51,8 @@ export default function MatchmakerMessagesClientPage({ locale, dict }: Props) {
   // שינוי 1: Unread count — מתעדכן דרך callback מ-MatchmakerChatPanel
   const [totalUnread, setTotalUnread] = useState(0);
 
-  // Ref to call refresh on MatchmakerChatPanel without remounting
-  const chatPanelRef = useRef<MatchmakerChatPanelHandle>(null);
+  // Ref to call refresh on MatchmakerInbox without remounting
+  const chatPanelRef = useRef<MatchmakerInboxHandle>(null);
 
   const handleUnreadUpdate = useCallback((total: number) => {
     setTotalUnread(total);
@@ -114,8 +114,7 @@ export default function MatchmakerMessagesClientPage({ locale, dict }: Props) {
           </div>
 
           <TabsContent value="chat" className="mt-0">
-            {/* שינוי 3: העברת onUnreadUpdate ל-MatchmakerChatPanel */}
-            <MatchmakerChatPanel
+            <MatchmakerInbox
               ref={chatPanelRef}
               locale={locale}
               onUnreadUpdate={handleUnreadUpdate}

@@ -14,9 +14,17 @@ import { getSectorGroup, isQuestionVisible, deriveTagsFromAnswers, derivePartner
 import { SF_SECTIONS } from '../questions';
 import { useAutoSave } from './useAutoSave';
 
+export interface SoulFingerprintOptions {
+  /** Override the default API save with a custom function (e.g., localStorage for guest mode) */
+  customSaveFn?: (answers: SFAnswers, isComplete: boolean) => Promise<void>;
+  /** Disable auto-save entirely (useful when save is handled externally) */
+  disableAutoSave?: boolean;
+}
+
 export function useSoulFingerprint(
   gender: 'MALE' | 'FEMALE' | null,
-  initialData?: { sectionAnswers?: SFAnswers; isComplete?: boolean } | null
+  initialData?: { sectionAnswers?: SFAnswers; isComplete?: boolean } | null,
+  options?: SoulFingerprintOptions
 ) {
   const [state, setState] = useState<SFState>(() => {
     const savedAnswers = (initialData?.sectionAnswers as SFAnswers) || {};
@@ -231,24 +239,28 @@ export function useSoulFingerprint(
     });
   }, [state.answers, state.sectorGroup, state.sector, state.lifeStage, gender]);
 
-  // Save function
+  // Save function — uses customSaveFn if provided, otherwise default API save
   const saveFn = useCallback(async () => {
     setIsSaving(true);
     setSaveStatus('saving');
     try {
-      const selfTags = deriveTagsFromAnswers(state.answers);
-      const partnerTags = derivePartnerTagsFromAnswers(state.answers);
+      if (options?.customSaveFn) {
+        await options.customSaveFn(state.answers, state.isComplete);
+      } else {
+        const selfTags = deriveTagsFromAnswers(state.answers);
+        const partnerTags = derivePartnerTagsFromAnswers(state.answers);
 
-      await fetch('/api/user/soul-fingerprint', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          sectionAnswers: state.answers,
-          ...selfTags,
-          partnerTags,
-          isComplete: state.isComplete,
-        }),
-      });
+        await fetch('/api/user/soul-fingerprint', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            sectionAnswers: state.answers,
+            ...selfTags,
+            partnerTags,
+            isComplete: state.isComplete,
+          }),
+        });
+      }
       setSaveStatus('saved');
       setTimeout(() => setSaveStatus('idle'), 2000);
     } catch (err) {
@@ -258,9 +270,9 @@ export function useSoulFingerprint(
     } finally {
       setIsSaving(false);
     }
-  }, [state.answers, state.isComplete]);
+  }, [state.answers, state.isComplete, options?.customSaveFn]);
 
-  useAutoSave(state.answers, saveFn, 3000);
+  useAutoSave(state.answers, saveFn, options?.disableAutoSave ? 0 : 3000);
 
   return {
     state,

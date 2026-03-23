@@ -589,8 +589,8 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
                   locale={locale}
                   t={(key: string) => {
                     const labels: Record<string, string> = locale === 'he'
-                      ? { 'welcome.badge': 'חדש', 'welcome.title': 'טביעת הנשמה שלך', 'welcome.subtitle': '10 דקות שישנו הכל', 'welcome.time': 'כ-8-10 דקות', 'completion.edit': 'ערוך/י את מפת הנשמה', 'completion.subtitle': 'הפרופיל הייחודי שלך מוכן' }
-                      : { 'welcome.badge': 'New', 'welcome.title': 'Your Soul Fingerprint', 'welcome.subtitle': '10 minutes that change everything', 'welcome.time': 'About 8-10 minutes', 'completion.edit': 'Edit your Soul Map', 'completion.subtitle': 'Your unique profile is ready' };
+                      ? { 'welcome.badge': 'חדש', 'welcome.title': 'מפת הלב שלך', 'welcome.subtitle': '10 דקות שישנו הכל', 'welcome.time': 'כ-8-10 דקות', 'completion.edit': 'ערוך/י את מפת הלב', 'completion.subtitle': 'הפרופיל הייחודי שלך מוכן' }
+                      : { 'welcome.badge': 'New', 'welcome.title': 'Your Heart Map', 'welcome.subtitle': '10 minutes that change everything', 'welcome.time': 'About 8-10 minutes', 'completion.edit': 'Edit your Heart Map', 'completion.subtitle': 'Your unique profile is ready' };
                     return labels[key] || key;
                   }}
                   isRTL={locale === 'he'}

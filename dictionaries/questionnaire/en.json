@@ -166,6 +166,18 @@
   "lastSaved": "Last saved: {{time}}",
   "loading": "Loading your journey...",
   "loadingSubtext": "Preparing your questionnaire...",
+  "loadingRotatingMessages": [
+    "\"It is not good for man to be alone\" — we're here to help",
+    "Every answer brings you one step closer to your perfect match",
+    "The right relationship is worth the wait",
+    "We believe there's someone special out there for you",
+    "Behind every happy couple is a story that started with a first step",
+    "Like two puzzle pieces — your perfect match exists",
+    "The journey to love starts with knowing yourself",
+    "We check every detail so you don't have to",
+    "Sometimes the soul knows before the heart",
+    "Thousands of couples already found their match — now it's your turn"
+  ],
   "lastSavedIndicatorLabel": "Saved"
 }
 ,
@@ -564,6 +576,10 @@
     "statusComplete": "Budget complete!",
     "statusRemaining": "Remaining to allocate: {{count}}",
     "statusExceeded": "Exceeded by {{count}}"
+  },
+  "collapse": {
+    "showMore": "Show {{count}} more options",
+    "changeSelection": "Change selection"
   },
   "unsupportedType": "Oops! Question type '{{type}}' is not supported yet.",
   "supportContactMessage": "Please contact technical support."

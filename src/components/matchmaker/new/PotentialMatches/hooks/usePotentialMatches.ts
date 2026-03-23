@@ -50,7 +50,7 @@ export interface LastScanInfo {
   durationMs: number;
 }
 
-export type PotentialMatchSortBy = 'score_desc' | 'score_asc' | 'date_desc' | 'date_asc';
+export type PotentialMatchSortBy = 'score_desc' | 'score_asc' | 'date_desc' | 'date_asc' | 'asymmetry_desc';
 
 export interface PotentialMatchFilters {
   searchTerm?: string;

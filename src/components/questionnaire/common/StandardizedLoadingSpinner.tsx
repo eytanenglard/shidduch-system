@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Sparkles } from 'lucide-react';
+import { Sparkles, Heart } from 'lucide-react';
+import { AnimatePresence } from 'framer-motion';
 
 // ==================== INTERFACES ====================
 
@@ -10,6 +11,10 @@ interface StandardizedLoadingSpinnerProps {
   text?: string;
   subtext?: string;
   className?: string;
+  /** Rotating inspirational messages shown below the main text */
+  rotatingMessages?: string[];
+  /** Interval in ms between message rotations (default: 4000) */
+  rotationInterval?: number;
 }
 
 // ==================== CINEMATIC TIMING ====================
@@ -880,8 +885,19 @@ export default function StandardizedLoadingSpinner({
   text = 'טוען...',
   subtext,
   className,
+  rotatingMessages,
+  rotationInterval = 4000,
 }: StandardizedLoadingSpinnerProps) {
   const [key] = useState(0);
+  const [messageIndex, setMessageIndex] = useState(0);
+
+  useEffect(() => {
+    if (!rotatingMessages || rotatingMessages.length <= 1) return;
+    const interval = setInterval(() => {
+      setMessageIndex((prev) => (prev + 1) % rotatingMessages.length);
+    }, rotationInterval);
+    return () => clearInterval(interval);
+  }, [rotatingMessages, rotationInterval]);
 
   return (
     <div
@@ -917,6 +933,29 @@ export default function StandardizedLoadingSpinner({
         >
           <Sparkles className="w-4 h-4" />
           <span>{subtext}</span>
+        </motion.div>
+      )}
+
+      {rotatingMessages && rotatingMessages.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: TIMING.assemblyStart + 0.9 }}
+          className="mt-6 h-12 flex items-center justify-center"
+        >
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={messageIndex}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.5, ease: 'easeInOut' }}
+              className="flex items-center gap-2 text-sm text-gray-500 italic text-center"
+            >
+              <Heart className="w-3.5 h-3.5 text-rose-400 flex-shrink-0" />
+              <span>{rotatingMessages[messageIndex]}</span>
+            </motion.div>
+          </AnimatePresence>
         </motion.div>
       )}
     </div>

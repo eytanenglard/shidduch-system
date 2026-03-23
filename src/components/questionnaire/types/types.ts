@@ -111,7 +111,8 @@ export interface QuestionnaireAnswer {
   value: AnswerValue;
   answeredAt: string;
   isVisible?: boolean;
-  language?: 'en' | 'he'; 
+  isBookmarked?: boolean;
+  language?: 'en' | 'he';
 }
 
 export interface Answer extends QuestionnaireAnswer {

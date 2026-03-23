@@ -387,6 +387,158 @@ export function deriveTagsFromAnswers(answers: SFAnswers): SFTagResult {
   const aliyah = answers['s1_diaspora_aliyah'] as string;
   if (aliyah) result.diasporaTags.push(`aliyah_${aliyah}`);
 
+  // New: Miluim tags (identity)
+  const miluimStatus = answers['s1_miluim_status'] as string;
+  if (miluimStatus) result.sectorTags.push(`miluim_${miluimStatus}`);
+  const miluimAttitude = answers['s1_miluim_attitude_f'] as string;
+  if (miluimAttitude) result.sectorTags.push(`miluim_attitude_${miluimAttitude}`);
+
+  // New: Meaning source (personality)
+  const meaningSource = answers['s3_meaning_source'] as string[];
+  if (meaningSource) result.personalityTags.push(...meaningSource.map(m => `meaning_${m}`));
+
+  // New: Dress code tags (lifestyle)
+  const dressCodeF = answers['s5_dress_code_f'] as string;
+  if (dressCodeF) result.lifestyleTags.push(`dress_${dressCodeF}`);
+  const dressCodeM = answers['s5_dress_code_m'] as string;
+  if (dressCodeM) result.lifestyleTags.push(`dress_${dressCodeM}`);
+
+  // New: Tech relationship (lifestyle)
+  const techRel = answers['s5_tech_relationship'] as string;
+  if (techRel) result.lifestyleTags.push(`tech_${techRel}`);
+
+  // New: Urban identity (lifestyle)
+  const urbanId = answers['s5_urban_identity'] as string;
+  if (urbanId) result.lifestyleTags.push(`urban_${urbanId}`);
+
+  // New: Vacation style (lifestyle)
+  const vacationStyle = answers['s5_vacation_style'] as string;
+  if (vacationStyle) result.lifestyleTags.push(`vacation_${vacationStyle}`);
+
+  // New: English comfort (lifestyle/diaspora)
+  const englishComfort = answers['s5_english_comfort'] as string;
+  if (englishComfort) result.lifestyleTags.push(`english_${englishComfort}`);
+
+  // New: Political identity (lifestyle)
+  const politicalId = answers['s5_political_identity'] as string;
+  if (politicalId) result.lifestyleTags.push(`political_${politicalId}`);
+
+  // New: Parents involvement in dating (family)
+  const parentsInvolvement = answers['s6_parents_involvement_dating'] as string;
+  if (parentsInvolvement) result.familyVisionTags.push(`parents_dating_${parentsInvolvement}`);
+
+  // New: Emotional needs (relationship)
+  const emotionalNeeds = answers['s7_emotional_needs'] as string[];
+  if (emotionalNeeds) result.relationshipTags.push(...emotionalNeeds.map(n => `need_${n}`));
+
+  // New: Couple dynamic (relationship)
+  const coupleDynamic = answers['s7_couple_dynamic'] as string;
+  if (coupleDynamic) result.relationshipTags.push(`dynamic_${coupleDynamic}`);
+
+  // New: Flexibility scale (relationship)
+  const flexScale = answers['s7_flexibility_scale'] as number;
+  if (flexScale !== null && flexScale !== undefined) {
+    if (flexScale <= 30) result.relationshipTags.push('flexibility_rigid');
+    else if (flexScale >= 70) result.relationshipTags.push('flexibility_high');
+    else result.relationshipTags.push('flexibility_moderate');
+  }
+
+  // New batch 2: Religious direction (sector)
+  const relDirection = answers['s1_religious_direction'] as string;
+  if (relDirection) result.sectorTags.push(`direction_${relDirection}`);
+
+  // New batch 2: Davening practice (sector)
+  const davening = answers['s1_davening_practice'] as string;
+  if (davening) result.sectorTags.push(`davening_${davening}`);
+
+  // Datlash tags
+  const datlashOrigin = answers['s1_datlash_origin'] as string;
+  if (datlashOrigin) result.sectorTags.push(`datlash_from_${datlashOrigin}`);
+  const datlashCurrent = answers['s1_datlash_current'] as string;
+  if (datlashCurrent) result.sectorTags.push(`datlash_now_${datlashCurrent}`);
+  const datlashRel = answers['s1_datlash_relationship_religion'] as string;
+  if (datlashRel) result.sectorTags.push(`datlash_rel_${datlashRel}`);
+
+  // Divorce tags
+  const divorceContext = answers['s6_divorce_context'] as string;
+  if (divorceContext && divorceContext !== 'prefer_not_say') result.familyVisionTags.push(`divorce_${divorceContext}`);
+  const divorceCustody = answers['s6_divorce_custody'] as string;
+  if (divorceCustody && divorceCustody !== 'prefer_not_say') result.familyVisionTags.push(`custody_${divorceCustody}`);
+  const divorceReadiness = answers['s6_divorce_readiness'] as string;
+  if (divorceReadiness) result.familyVisionTags.push(`readiness_${divorceReadiness}`);
+
+  // Widowed time tag
+  const widowedTime = answers['s6_widowed_time'] as string;
+  if (widowedTime && widowedTime !== 'prefer_not_say') result.familyVisionTags.push(`widowed_${widowedTime}`);
+
+  // New batch 2: Attachment style (personality)
+  const attachment = answers['s3_attachment_style'] as string;
+  if (attachment) result.personalityTags.push(`attachment_${attachment}`);
+
+  // New batch 2: Patience level (personality)
+  const patience = answers['s3_patience_level'] as number;
+  if (patience !== null && patience !== undefined) {
+    if (patience <= 30) result.personalityTags.push('patience_low');
+    else if (patience >= 70) result.personalityTags.push('patience_high');
+    else result.personalityTags.push('patience_moderate');
+  }
+
+  // New batch 2: Ideal evening (lifestyle)
+  const idealEvening = answers['s3_ideal_evening'] as string;
+  if (idealEvening) result.lifestyleTags.push(`evening_${idealEvening}`);
+
+  // New batch 2: Self awareness (personality)
+  const selfAware = answers['s3_self_awareness'] as string;
+  if (selfAware) result.personalityTags.push(`selfaware_${selfAware}`);
+
+  // New batch 2: Curiosity level (personality)
+  const curiosity = answers['s3_curiosity_level'] as string;
+  if (curiosity) result.personalityTags.push(`curiosity_${curiosity}`);
+
+  // New batch 2: Friends describe (personality)
+  const friendsDescribe = answers['s3_friends_describe'] as string;
+  if (friendsDescribe) result.personalityTags.push('has_friends_description');
+
+  // New batch 2: Shabbat experience (lifestyle)
+  const shabbat = answers['s5_shabbat_experience'] as string;
+  if (shabbat) result.lifestyleTags.push(`shabbat_${shabbat}`);
+
+  // New batch 2: Social media usage (lifestyle)
+  const socialMedia = answers['s5_social_media_usage'] as string;
+  if (socialMedia) result.lifestyleTags.push(`social_media_${socialMedia}`);
+
+  // New batch 2: Alcohol attitude (lifestyle)
+  const alcohol = answers['s5_alcohol_attitude'] as string;
+  if (alcohol) result.lifestyleTags.push(`alcohol_${alcohol}`);
+
+  // New batch 2: Marriage timeline (family)
+  const timeline = answers['s6_marriage_timeline'] as string;
+  if (timeline) result.familyVisionTags.push(`timeline_${timeline}`);
+
+  // New batch 2: Financial planning (family)
+  const finPlan = answers['s6_financial_planning'] as string;
+  if (finPlan) result.familyVisionTags.push(`fin_plan_${finPlan}`);
+
+  // New batch 2: Relationship readiness (relationship)
+  const readiness = answers['s7_relationship_readiness'] as string;
+  if (readiness) result.relationshipTags.push(`readiness_${readiness}`);
+
+  // New batch 2: Growth attitude (relationship)
+  const growth = answers['s7_growth_attitude'] as string;
+  if (growth) result.relationshipTags.push(`growth_${growth}`);
+
+  // New batch 2: Jealousy comfort (relationship)
+  const jealousy = answers['s7_jealousy_comfort'] as string;
+  if (jealousy) result.relationshipTags.push(`jealousy_${jealousy}`);
+
+  // New batch 2: What scares you (relationship)
+  const scares = answers['s7_what_scares_you'] as string;
+  if (scares) result.relationshipTags.push('has_fear_description');
+
+  // New batch 2: Past learning (relationship)
+  const pastLearn = answers['s7_past_learning'] as string;
+  if (pastLearn) result.relationshipTags.push('has_past_reflection');
+
   return result;
 }
 
@@ -565,6 +717,111 @@ export function derivePartnerTagsFromAnswers(answers: SFAnswers): PartnerTagPref
 
   const openPartText = answers['s7_open_partner'] as string;
   if (openPartText) result.relationshipTags.push('has_open_description');
+
+  // New: Financial expectation from partner (career)
+  const finExpPref = collectPartnerTags(answers, 's4_financial_expectation');
+  if (!finExpPref.isDoesntMatter) result.careerTags.push(...finExpPref.tags.map(t => `fin_expect_${t}`));
+
+  // New: Urban identity partner preference (lifestyle)
+  const urbanPref = collectPartnerTags(answers, 'p_urban_identity');
+  if (!urbanPref.isDoesntMatter) result.lifestyleTags.push(...urbanPref.tags.map(t => `urban_${t}`));
+
+  // New: Deal breakers (relationship)
+  const dealBreakers = answers['s7_deal_breakers'] as string[];
+  if (dealBreakers) result.relationshipTags.push(...dealBreakers.map(d => `dealbreaker_${d}`));
+
+  // New batch 2: Partner religious direction preference (sector)
+  const relDirPref = collectPartnerTags(answers, 'p_religious_direction');
+  if (relDirPref.isDoesntMatter) result.doesntMatterCategories.push('sector');
+  else result.sectorTags.push(...relDirPref.tags.map(t => `direction_${t}`));
+
+  // New batch 2: Partner attachment style preference (personality)
+  const attachPref = collectPartnerTags(answers, 'p_attachment_style');
+  if (!attachPref.isDoesntMatter) result.personalityTags.push(...attachPref.tags.map(t => `attachment_${t}`));
+
+  // New batch 2: Partner curiosity preference (personality)
+  const curPref = collectPartnerTags(answers, 'p_curiosity_level');
+  if (!curPref.isDoesntMatter) result.personalityTags.push(...curPref.tags.map(t => `curiosity_${t}`));
+
+  // New batch 2: Partner shabbat preference (lifestyle)
+  const shabPref = collectPartnerTags(answers, 'p_shabbat_experience');
+  if (!shabPref.isDoesntMatter) result.lifestyleTags.push(...shabPref.tags.map(t => `shabbat_${t}`));
+
+  // New batch 2: Partner social media preference (lifestyle)
+  const smPref = collectPartnerTags(answers, 'p_social_media');
+  if (!smPref.isDoesntMatter) result.lifestyleTags.push(...smPref.tags.map(t => `social_media_${t}`));
+
+  // New batch 2: Partner alcohol preference (lifestyle)
+  const alcPref = collectPartnerTags(answers, 'p_alcohol');
+  if (!alcPref.isDoesntMatter) result.lifestyleTags.push(...alcPref.tags.map(t => `alcohol_${t}`));
+
+  // New batch 2: Partner financial planning preference (family)
+  const finPlanPref = collectPartnerTags(answers, 'p_financial_planning');
+  if (!finPlanPref.isDoesntMatter) result.familyVisionTags.push(...finPlanPref.tags.map(t => `fin_plan_${t}`));
+
+  // New batch 2: Partner growth attitude preference (relationship)
+  const growthPref = collectPartnerTags(answers, 'p_growth_attitude');
+  if (!growthPref.isDoesntMatter) result.relationshipTags.push(...growthPref.tags.map(t => `growth_${t}`));
+
+  // Partner: davening practice preference (sector)
+  const davPref = collectPartnerTags(answers, 'p_davening_practice');
+  if (!davPref.isDoesntMatter) result.sectorTags.push(...davPref.tags.map(t => `davening_${t}`));
+
+  // Partner: datlash partner preference (sector)
+  const datlashPartnerPref = collectPartnerTags(answers, 'p_datlash_partner');
+  if (!datlashPartnerPref.isDoesntMatter) result.sectorTags.push(...datlashPartnerPref.tags.map(t => `datlash_partner_${t}`));
+
+  // Partner: meaning source preference (personality)
+  const meanPref = collectPartnerTags(answers, 'p_meaning_source');
+  if (!meanPref.isDoesntMatter) result.personalityTags.push(...meanPref.tags.map(t => `meaning_${t}`));
+
+  // Partner: ideal evening preference (lifestyle — matches self tag category)
+  const evePref = collectPartnerTags(answers, 'p_ideal_evening');
+  if (!evePref.isDoesntMatter) result.lifestyleTags.push(...evePref.tags.map(t => `evening_${t}`));
+
+  // Partner: dress code preference - female partner (lifestyle)
+  const dressFPref = collectPartnerTags(answers, 'p_dress_code_f');
+  if (!dressFPref.isDoesntMatter) result.lifestyleTags.push(...dressFPref.tags.map(t => `dress_${t}`));
+
+  // Partner: dress code preference - male partner (lifestyle)
+  const dressMPref = collectPartnerTags(answers, 'p_dress_code_m');
+  if (!dressMPref.isDoesntMatter) result.lifestyleTags.push(...dressMPref.tags.map(t => `dress_${t}`));
+
+  // Partner: tech relationship preference (lifestyle)
+  const techPref = collectPartnerTags(answers, 'p_tech_relationship');
+  if (!techPref.isDoesntMatter) result.lifestyleTags.push(...techPref.tags.map(t => `tech_${t}`));
+
+  // Partner: vacation style preference (lifestyle)
+  const vacPref = collectPartnerTags(answers, 'p_vacation_style');
+  if (!vacPref.isDoesntMatter) result.lifestyleTags.push(...vacPref.tags.map(t => `vacation_${t}`));
+
+  // Partner: English comfort preference (lifestyle)
+  const engPref = collectPartnerTags(answers, 'p_english_comfort');
+  if (!engPref.isDoesntMatter) result.lifestyleTags.push(...engPref.tags.map(t => `english_${t}`));
+
+  // Partner: political identity preference (lifestyle)
+  const polPref = collectPartnerTags(answers, 'p_political_identity');
+  if (!polPref.isDoesntMatter) result.lifestyleTags.push(...polPref.tags.map(t => `political_${t}`));
+
+  // Partner: marriage timeline preference (family)
+  const timePref = collectPartnerTags(answers, 'p_marriage_timeline');
+  if (!timePref.isDoesntMatter) result.familyVisionTags.push(...timePref.tags.map(t => `timeline_${t}`));
+
+  // Partner: parents involvement preference (family)
+  const parInvPref = collectPartnerTags(answers, 'p_parents_involvement');
+  if (!parInvPref.isDoesntMatter) result.familyVisionTags.push(...parInvPref.tags.map(t => `parents_dating_${t}`));
+
+  // Partner: couple dynamic preference (relationship)
+  const dynPref = collectPartnerTags(answers, 'p_couple_dynamic');
+  if (!dynPref.isDoesntMatter) result.relationshipTags.push(...dynPref.tags.map(t => `dynamic_${t}`));
+
+  // Partner: emotional needs preference (relationship)
+  const emotPref = collectPartnerTags(answers, 'p_emotional_needs');
+  if (!emotPref.isDoesntMatter) result.relationshipTags.push(...emotPref.tags.map(t => `need_${t}`));
+
+  // Partner: jealousy comfort preference (relationship)
+  const jealPref = collectPartnerTags(answers, 'p_jealousy_comfort');
+  if (!jealPref.isDoesntMatter) result.relationshipTags.push(...jealPref.tags.map(t => `jealousy_${t}`));
 
   return result;
 }

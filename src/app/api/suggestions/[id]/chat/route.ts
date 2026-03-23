@@ -5,7 +5,8 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 import { sanitizeText } from '@/lib/sanitize';
- import { pushSuggestionMessage, pushUserMessageToMatchmaker } from '@/lib/sendPushNotification';
+import { pushSuggestionMessage, pushUserMessageToMatchmaker } from '@/lib/sendPushNotification';
+import { publishNewMessage } from '@/lib/chatPubSub';
 
 // ==========================================
 // GET — Fetch messages for a suggestion chat
@@ -239,6 +240,29 @@ export async function POST(
       { suggestionId }
      ).catch(console.error);
    }
+
+    // SSE: Publish real-time events
+    const ssePayload = {
+      id: message.id,
+      content: message.content,
+      senderType: message.senderType.toLowerCase(),
+      senderId: userId,
+      senderName: session.user.name || '',
+      conversationId: suggestionId,
+      conversationType: 'suggestion' as const,
+    };
+
+    if (isMatchmaker) {
+      if (targetUserId) {
+        publishNewMessage(targetUserId, ssePayload).catch(console.error);
+      } else {
+        publishNewMessage(suggestion.firstPartyId, ssePayload).catch(console.error);
+        publishNewMessage(suggestion.secondPartyId, ssePayload).catch(console.error);
+      }
+    } else {
+      publishNewMessage(suggestion.matchmakerId, ssePayload).catch(console.error);
+    }
+
     return NextResponse.json({
       success: true,
       message: {

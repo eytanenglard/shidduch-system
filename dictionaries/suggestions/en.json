@@ -108,6 +108,67 @@
         "responseTimeNote": "We recommend responding within 3 days to keep the suggestion relevant.",
         "emailDisclaimer": "This suggestion was selected by our system and approved by your matchmaker. Remember: suggestions are not exclusive, the other party may be receiving other suggestions as well, and priority is given to those who respond first."
       }
+    },
+    "autoSuggestions": {
+      "title": "Smart Suggestions",
+      "subtitle": "Our system learns from your responses and improves suggestions",
+      "scheduleInfo": "Match suggestions are sent on Sundays and Wednesdays",
+      "nextSuggestionIn": "Next suggestion in {days}",
+      "nextSuggestionTomorrow": "Next suggestion arrives tomorrow",
+      "nextSuggestionToday": "Next suggestion arrives today",
+      "noActiveSuggestion": "No active smart suggestion right now",
+      "waitingForSuggestion": "Our system is working to find the best match for you",
+      "viewSuggestion": "View Suggestion",
+      "approve": "Interested",
+      "decline": "Not a Match",
+      "saveForLater": "Save for Later",
+      "history": {
+        "title": "Smart Suggestions History",
+        "empty": "No smart suggestion history yet",
+        "approved": "Approved",
+        "declined": "Declined",
+        "interested": "Saved for later",
+        "expired": "Expired"
+      },
+      "feedbackDialog": {
+        "titleApprove": "What attracted you to this suggestion?",
+        "titleDeclineStep1": "What did you like about this suggestion?",
+        "titleDeclineStep2": "What was missing?",
+        "titleInterested": "What interested you in this suggestion?",
+        "subtitleApprove": "Your answer helps us improve future suggestions",
+        "subtitleDeclineStep1": "Even in a suggestion that doesn't fit, there's something to learn",
+        "subtitleDeclineStep2": "What was missing for this to be a good match? This helps us improve",
+        "likedTraits": {
+          "religious_match": "Religious compatibility",
+          "personality_match": "Personality match",
+          "age_appropriate": "Appropriate age",
+          "shared_values": "Shared values",
+          "similar_background": "Similar background",
+          "attractive_profile": "Attractive profile",
+          "good_career": "Career/Education",
+          "interesting_person": "Interesting person"
+        },
+        "missingTraits": {
+          "age_gap": "Age gap",
+          "religious_gap": "Religious gap",
+          "geographic_gap": "Geographic distance",
+          "not_attracted": "Not physically attracted",
+          "no_connection": "No connection felt",
+          "background_gap": "Background gap",
+          "education_gap": "Education gap",
+          "gut_feeling": "Gut feeling"
+        },
+        "freeTextPlaceholder": "Want to elaborate? (optional)",
+        "missingFreeTextPlaceholder": "What exactly was missing? (optional)",
+        "selectAtLeastOne": "Select at least one option",
+        "next": "Next",
+        "back": "Back",
+        "submitApprove": "Approve & Submit",
+        "submitDecline": "Submit & Decline",
+        "submitInterested": "Save & Submit",
+        "thankYou": "Thank you for your feedback! 🙏",
+        "thankYouDesc": "Your response helps us fine-tune future suggestions for you"
+      }
     }
   },
   "card": {

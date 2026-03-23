@@ -175,7 +175,8 @@ export async function generateNarrativeProfile(userId: string): Promise<string> 
       questionnaireResponses: {
         orderBy: { createdAt: 'desc' },
         take: 1
-      }
+      },
+      profileTags: true
     }
   });
 
@@ -242,6 +243,66 @@ export async function generateNarrativeProfile(userId: string): Promise<string> 
     if (q.personalityAnswers) parts.push(`Personality Traits:\n${formatQ(q.personalityAnswers)}`);
     if (q.relationshipAnswers) parts.push(`Relationship View:\n${formatQ(q.relationshipAnswers)}`);
     if (q.partnerAnswers) parts.push(`Partner Expectations:\n${formatQ(q.partnerAnswers)}`);
+    if (q.religionAnswers) parts.push(`Religion & Spirituality:\n${formatQ(q.religionAnswers)}`);
+  }
+
+  // --- חלק 4.5: טביעת הנשמה (Soul Fingerprint Tags) ---
+  const sf = user.profileTags;
+  if (sf) {
+    const tagCategories: { label: string; tags: string[] }[] = [
+      { label: 'Sector / Community', tags: sf.sectorTags },
+      { label: 'Background & Origin', tags: sf.backgroundTags },
+      { label: 'Personality Traits', tags: sf.personalityTags },
+      { label: 'Career & Ambition', tags: sf.careerTags },
+      { label: 'Lifestyle & Hobbies', tags: sf.lifestyleTags },
+      { label: 'Family Vision', tags: sf.familyVisionTags },
+      { label: 'Relationship Style', tags: sf.relationshipTags },
+      { label: 'Diaspora / Geographic', tags: sf.diasporaTags },
+      { label: 'AI-Derived Personality Insights', tags: sf.aiDerivedTags },
+    ];
+
+    const sfLines: string[] = ['Soul Fingerprint (טביעת הנשמה) — Core Identity Tags:'];
+    for (const cat of tagCategories) {
+      if (cat.tags && cat.tags.length > 0) {
+        sfLines.push(`- ${cat.label}: ${cat.tags.join(', ')}`);
+      }
+    }
+
+    // Partner preference tags
+    if (sf.partnerTags && typeof sf.partnerTags === 'object') {
+      const pt = sf.partnerTags as Record<string, any>;
+      const partnerLines: string[] = [];
+      for (const [key, val] of Object.entries(pt)) {
+        if (Array.isArray(val) && val.length > 0) {
+          partnerLines.push(`  - ${key}: ${val.join(', ')}`);
+        }
+      }
+      if (partnerLines.length > 0) {
+        sfLines.push('- Partner Preferences (Soul Fingerprint):');
+        sfLines.push(...partnerLines);
+      }
+    }
+
+    // Open-text answers from soul fingerprint sections
+    if (sf.sectionAnswers && typeof sf.sectionAnswers === 'object') {
+      const answers = sf.sectionAnswers as Record<string, any>;
+      const openTextKeys = Object.keys(answers).filter(k =>
+        k.includes('open') || k.includes('free') || k.includes('text')
+      );
+      if (openTextKeys.length > 0) {
+        sfLines.push('Soul Fingerprint — Open Text Responses:');
+        for (const key of openTextKeys) {
+          const val = answers[key];
+          if (val && typeof val === 'string' && val.trim()) {
+            sfLines.push(`- ${key}: ${val}`);
+          }
+        }
+      }
+    }
+
+    if (sfLines.length > 1) {
+      parts.push(sfLines.join('\n'));
+    }
   }
 
   // --- חלק 5: מידע מקצועי ---

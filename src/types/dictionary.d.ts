@@ -247,6 +247,20 @@ export type PrivacyAssuranceDict = {
 };
 
 // --- CTA Section ---
+export type HeartMapCTADict = {
+  badge: string;
+  title: string;
+  subtitle: string;
+  description: string;
+  features: {
+    free: string;
+    time: string;
+    noSignup: string;
+  };
+  cta: string;
+  mobileNote: string;
+};
+
 export type CtaDict = {
   title_part1: string;
   title_highlight: string;
@@ -653,6 +667,49 @@ export type SuggestionsContainerDict = {
       parallelNote: string;
       responseTimeNote: string;
       emailDisclaimer: string;
+    };
+  };
+    autoSuggestions: {
+    title: string;
+    subtitle: string;
+    scheduleInfo: string;
+    nextSuggestionIn: string;
+    nextSuggestionTomorrow: string;
+    nextSuggestionToday: string;
+    noActiveSuggestion: string;
+    waitingForSuggestion: string;
+    viewSuggestion: string;
+    approve: string;
+    decline: string;
+    saveForLater: string;
+    history: {
+      title: string;
+      empty: string;
+      approved: string;
+      declined: string;
+      interested: string;
+      expired: string;
+    };
+    feedbackDialog: {
+      titleApprove: string;
+      titleDeclineStep1: string;
+      titleDeclineStep2: string;
+      titleInterested: string;
+      subtitleApprove: string;
+      subtitleDeclineStep1: string;
+      subtitleDeclineStep2: string;
+      likedTraits: Record<string, string>;
+      missingTraits: Record<string, string>;
+      freeTextPlaceholder: string;
+      missingFreeTextPlaceholder: string;
+      selectAtLeastOne: string;
+      next: string;
+      back: string;
+      submitApprove: string;
+      submitDecline: string;
+      submitInterested: string;
+      thankYou: string;
+      thankYouDesc: string;
     };
   };
 };
@@ -1096,6 +1153,7 @@ export type MatchmakingQuestionnaireDict = {
   lastSaved: string;
   loading: string;
   loadingSubtext: string;
+  loadingRotatingMessages: string[];
   lastSavedIndicatorLabel: string;
 };
 
@@ -1595,6 +1653,10 @@ export type AnswerInputDict = {
     statusComplete: string;
     statusRemaining: string;
     statusExceeded: string;
+  };
+  collapse: {
+    showMore: string;
+    changeSelection: string;
   };
   unsupportedType: string;
   supportContactMessage: string;
@@ -2111,6 +2173,16 @@ export type FriendTestimonialsDict = {
   };
   visibilityTooltip: string;
   emptyState: string;
+  emptyStateHint: string;
+  shareViaWhatsApp: string;
+  testimonialAdded: string;
+  testimonialAddError: string;
+  statusUpdated: string;
+  statusUpdateError: string;
+  deleteSuccess: string;
+  deleteError: string;
+  linkGenerateError: string;
+  fetchError: string;
 };
 
 export type ProfileSectionDict = {
@@ -2256,6 +2328,7 @@ export type ProfileSectionDict = {
         hiddenBadge: string;
       };
       privacyNote?: string;
+      protectedBadge?: string;
     };
     education: {
       title: string;
@@ -3514,6 +3587,7 @@ export type Dictionary = {
   successStories: SuccessStoriesDict;
   faq: FaqDict;
   privacyAssurance: PrivacyAssuranceDict;
+  heartMapCTA: HeartMapCTADict;
   cta: CtaDict;
   footer: FooterDict;
   chatWidget: ChatWidgetDict;

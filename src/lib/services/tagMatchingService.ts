@@ -258,31 +258,49 @@ export function calculateTagCompatibility(
 
   // ─── Slider distance scoring (bonus adjustment within personality) ──────
   if (seekerAnswers && candidateAnswers) {
+    result.sliderDistances = {};
+    let sliderScoreSum = 0;
+    let sliderCount = 0;
+
+    // Energy type slider
     const seekerEnergyPref = seekerAnswers['p_energy_type'] as number | undefined;
     const candidateEnergy = candidateAnswers['s3_energy_type'] as number | undefined;
-
-    if (
-      seekerEnergyPref !== undefined && seekerEnergyPref !== null &&
-      candidateEnergy !== undefined && candidateEnergy !== null
-    ) {
-      const sliderScore = calculateSliderDistance(seekerEnergyPref, candidateEnergy);
-      result.sliderDistances = {
-        energy_type: {
-          seekerValue: seekerEnergyPref,
-          candidateValue: candidateEnergy,
-          distance: Math.abs(seekerEnergyPref - candidateEnergy),
-          score: sliderScore,
-        },
+    if (seekerEnergyPref != null && candidateEnergy != null) {
+      const score = calculateSliderDistance(seekerEnergyPref, candidateEnergy);
+      result.sliderDistances['energy_type'] = {
+        seekerValue: seekerEnergyPref,
+        candidateValue: candidateEnergy,
+        distance: Math.abs(seekerEnergyPref - candidateEnergy),
+        score,
       };
+      sliderScoreSum += score;
+      sliderCount++;
+    }
 
-      // Adjust personality score: blend tag overlap (70%) with slider distance (30%)
+    // Patience level slider
+    const seekerPatiencePref = seekerAnswers['p_patience_level'] as number | undefined;
+    const candidatePatience = candidateAnswers['s3_patience_level'] as number | undefined;
+    if (seekerPatiencePref != null && candidatePatience != null) {
+      const score = calculateSliderDistance(seekerPatiencePref, candidatePatience);
+      result.sliderDistances['patience_level'] = {
+        seekerValue: seekerPatiencePref,
+        candidateValue: candidatePatience,
+        distance: Math.abs(seekerPatiencePref - candidatePatience),
+        score,
+      };
+      sliderScoreSum += score;
+      sliderCount++;
+    }
+
+    // Adjust personality score: blend tag overlap (70%) with average slider distance (30%)
+    if (sliderCount > 0) {
+      const avgSliderScore = sliderScoreSum / sliderCount;
       const personalityDetail = result.details['personality'];
       if (personalityDetail) {
         const tagPart = personalityDetail.score * 0.7;
-        const sliderPart = sliderScore * personalityDetail.maxScore * 0.3;
+        const sliderPart = avgSliderScore * personalityDetail.maxScore * 0.3;
         const adjustedScore = Math.round(tagPart + sliderPart);
 
-        // Only adjust if it changes the score
         if (adjustedScore !== personalityDetail.score) {
           totalScore = totalScore - personalityDetail.score + adjustedScore;
           personalityDetail.score = adjustedScore;

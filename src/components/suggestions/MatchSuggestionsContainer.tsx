@@ -55,6 +55,8 @@ import type {
 } from '@/types/dictionary';
 
 import FirstPartyPreferenceToggle from '@/components/suggestions/FirstPartyPreferenceToggle';
+import AutoSuggestionsZone from '@/components/suggestions/auto/AutoSuggestionsZone';
+import AiChatPanel from '@/components/suggestions/chat/AiChatPanel';
 
 const SYSTEM_MATCHMAKER_ID = 'system-matchmaker-neshamatech';
 
@@ -464,6 +466,26 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
     });
   }, [activeSuggestions, userId]);
 
+  // --- Derived: auto-suggestion history (for AutoSuggestionsZone) ---
+  const autoSuggestionHistory = useMemo(() => {
+    return historySuggestions.filter(
+      (s) => s.matchmakerId === SYSTEM_MATCHMAKER_ID || (s as any).isAutoSuggestion === true
+    );
+  }, [historySuggestions]);
+
+  // --- Derived: matchmaker-only suggestions (exclude auto-suggestions from tabs) ---
+  const matchmakerActiveSuggestions = useMemo(() => {
+    return activeSuggestions.filter(
+      (s) => s.matchmakerId !== SYSTEM_MATCHMAKER_ID && (s as any).isAutoSuggestion !== true
+    );
+  }, [activeSuggestions]);
+
+  const matchmakerHistorySuggestions = useMemo(() => {
+    return historySuggestions.filter(
+      (s) => s.matchmakerId !== SYSTEM_MATCHMAKER_ID && (s as any).isAutoSuggestion !== true
+    );
+  }, [historySuggestions]);
+
   // --- Derived: questionnaire for selected suggestion ---
   const selectedQuestionnaireData = useMemo(() => {
     return enhanceQuestionnaireData(selectedSuggestion, userId);
@@ -830,16 +852,41 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
           </CardHeader>
 
           <CardContent className="p-6">
-            {/* ===== Daily Suggestion - Collapsible Row ===== */}
-            {dailySuggestion && (
-              <CollapsibleDailySuggestion
-                suggestion={dailySuggestion}
-                userId={userId}
-                locale={locale}
-                onViewDetails={handleViewDetails}
-                dailyDict={dailyDict}
-              />
-            )}
+            {/* ===== Auto-Suggestions Zone ===== */}
+            <AutoSuggestionsZone
+              activeSuggestion={dailySuggestion || null}
+              historySuggestions={autoSuggestionHistory}
+              userId={userId}
+              locale={locale}
+              dict={(suggestionsDict.container as any).autoSuggestions || {
+                title: locale === 'he' ? 'הצעות חכמות' : 'Smart Suggestions',
+                subtitle: locale === 'he' ? 'המערכת לומדת מהתגובות שלך' : 'System learns from your responses',
+                scheduleInfo: locale === 'he' ? 'הצעות נשלחות ביום ראשון ורביעי' : 'Suggestions sent Sunday & Wednesday',
+                nextSuggestionIn: locale === 'he' ? 'ההצעה הבאה בעוד {days} ימים' : 'Next suggestion in {days} days',
+                nextSuggestionTomorrow: locale === 'he' ? 'ההצעה הבאה מחר' : 'Next suggestion tomorrow',
+                nextSuggestionToday: locale === 'he' ? 'ההצעה הבאה היום' : 'Next suggestion today',
+                noActiveSuggestion: locale === 'he' ? 'אין הצעה חכמה פעילה' : 'No active smart suggestion',
+                waitingForSuggestion: locale === 'he' ? 'המערכת מחפשת עבורך' : 'System is searching for you',
+                viewSuggestion: locale === 'he' ? 'צפה בהצעה' : 'View Suggestion',
+                approve: locale === 'he' ? 'מעוניין/ת' : 'Interested',
+                decline: locale === 'he' ? 'לא מתאים' : 'Not a Match',
+                saveForLater: locale === 'he' ? 'שמור' : 'Save',
+                history: { title: '', empty: '', approved: '', declined: '', interested: '', expired: '' },
+                feedbackDialog: {
+                  titleApprove: '', titleDeclineStep1: '', titleDeclineStep2: '', titleInterested: '',
+                  subtitleApprove: '', subtitleDeclineStep1: '', subtitleDeclineStep2: '',
+                  likedTraits: {}, missingTraits: {},
+                  freeTextPlaceholder: '', missingFreeTextPlaceholder: '', selectAtLeastOne: '',
+                  next: '', back: '', submitApprove: '', submitDecline: '', submitInterested: '',
+                  thankYou: '', thankYouDesc: '',
+                },
+              }}
+              onViewDetails={handleViewDetails}
+              onStatusChange={handleStatusChange}
+            />
+
+            {/* ===== AI Chat Assistant ===== */}
+            <AiChatPanel locale={locale} />
 
             {/* ===== Preference Toggle ===== */}
             <FirstPartyPreferenceToggle
@@ -868,7 +915,7 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
                     <span className="group-data-[state=active]:text-teal-700">
                       {suggestionsDict.container.main.tabs.active}
                     </span>
-                    {activeSuggestions.length > 0 && (
+                    {matchmakerActiveSuggestions.length > 0 && (
                       <Badge
                         className={cn(
                           'text-white border-0 px-2 py-1 text-xs font-bold rounded-full min-w-[24px] h-6',
@@ -877,7 +924,7 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
                             : 'bg-teal-500'
                         )}
                       >
-                        {activeSuggestions.length}
+                        {matchmakerActiveSuggestions.length}
                       </Badge>
                     )}
                   </TabsTrigger>
@@ -888,9 +935,9 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
                   >
                     <History className="w-5 h-5 text-gray-500" />
                     <span>{suggestionsDict.container.main.tabs.history}</span>
-                    {historySuggestions.length > 0 && (
+                    {matchmakerHistorySuggestions.length > 0 && (
                       <Badge className="bg-gray-500 text-white border-0 px-2 py-1 text-xs font-bold rounded-full min-w-[24px] h-6">
-                        {historySuggestions.length}
+                        {matchmakerHistorySuggestions.length}
                       </Badge>
                     )}
                   </TabsTrigger>
@@ -1054,7 +1101,7 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
                 <ErrorBoundary>
                 <SuggestionsList
                   locale={locale}
-                  suggestions={historySuggestions}
+                  suggestions={matchmakerHistorySuggestions}
                   userId={userId}
                   viewMode={viewMode}
                   isLoading={isRefreshing}

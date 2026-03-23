@@ -4,60 +4,9 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
-import { Prisma } from '@prisma/client';
+import { Prisma, UserStatus } from '@prisma/client';
 import { z } from 'zod';
-import { Gender, UserStatus, Language, ReligiousJourney } from '@prisma/client';
-
-const normalizePhone = (val: unknown) => {
-  if (typeof val !== 'string') return val;
-  // אם מתחיל ב +9720, מחליפים ב +972
-  if (val.startsWith('+9720')) {
-    return val.replace('+9720', '+972');
-  }
-  return val;
-};
-// Zod Schema - כולל phone, שדות דיוור, ו-about
-const completeProfileSchema = z.object({
-  firstName: z.string().min(1, "First name is required").max(100, "First name too long"),
-  lastName: z.string().min(1, "Last name is required").max(100, "Last name too long"),
-
- phone: z.preprocess(
-    normalizePhone,
-    z.string().refine(
-      (phone) => /^\+[1-9]\d{1,14}$/.test(phone), 
-      { message: "Invalid international phone number format (E.164 required)." }
-    )
-  ),
-  gender: z.nativeEnum(Gender),
-  birthDate: z.string().refine((date) => !isNaN(Date.parse(date)), {
-     message: "Invalid birth date format",
-  }).refine((date) => {
-      const age = Math.floor((new Date().getTime() - new Date(date).getTime()) / 31557600000);
-      return age >= 18;
-  }, { message: "Must be at least 18 years old" }),
-  maritalStatus: z.string().min(1, "Marital status is required"),
-  
-  // הוספת שדה עיר כחובה
-  city: z.string().min(1, "City is required"),
-  origin: z.string().optional(), 
-
-  height: z.coerce.number().int().min(120).max(220).optional(),
-  occupation: z.string().optional(),
-  education: z.string().optional(),
-  religiousLevel: z.string().optional(),
-  religiousJourney: z.nativeEnum(ReligiousJourney).optional(),
-  language: z.nativeEnum(Language).optional().default(Language.he),
-
-  // שדות דיוור
-  engagementEmailsConsent: z.boolean().optional().default(false),
-  promotionalEmailsConsent: z.boolean().optional().default(false),
-
-  // ========== הוספה: שדה הסיפור שלי ==========
-  about: z.string().max(2000, "About text is too long").optional(),
-
-  // ========== הוספה: מה אני מחפש/ת ==========
-  matchingNotes: z.string().max(1000, "Matching notes text is too long").optional(),
-});
+import { completeProfileSchema } from '@/lib/validations/profileSchemas';
 
 export async function POST(req: Request) {
   console.log("--- [API /api/auth/complete-profile] POST Request Received ---");

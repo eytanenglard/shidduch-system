@@ -10,6 +10,7 @@
 
 import prisma from '@/lib/prisma';
 import type { MatchSuggestionStatus, PotentialMatchStatus } from '@prisma/client';
+import { AutoSuggestionFeedbackService } from '@/lib/services/autoSuggestionFeedbackService';
 import { initNotificationService } from '@/components/matchmaker/suggestions/services/notification/initNotifications';
 import { getDictionary } from '@/lib/dictionaries';
 import type { EmailDictionary } from '@/types/dictionary';
@@ -379,6 +380,16 @@ export class DailySuggestionOrchestrator {
     });
 
     // סינון בקוד: availabilityStatus + בדיקות נוספות
+    // Collect all valid matches first, then apply feedback re-ranking
+    const validMatches: {
+      id: string;
+      maleUserId: string;
+      femaleUserId: string;
+      aiScore: number;
+      shortReasoning: string | null;
+      detailedReasoning: string | null;
+    }[] = [];
+
     for (const match of matches) {
       // בדיקת availabilityStatus של הצד השני
       const otherPartyProfile = isMale ? match.female?.profile : match.male?.profile;
@@ -419,18 +430,27 @@ export class DailySuggestionOrchestrator {
         continue;
       }
 
-      // נמצאה התאמה! מחזירים רק את השדות הנדרשים
-      return {
+      validMatches.push({
         id: match.id,
         maleUserId: match.maleUserId,
         femaleUserId: match.femaleUserId,
         aiScore: match.aiScore,
         shortReasoning: match.shortReasoning,
         detailedReasoning: match.detailedReasoning,
-      };
+      });
     }
 
-    return null;
+    if (validMatches.length === 0) return null;
+
+    // 🆕 Apply feedback-based re-ranking if user has enough feedback
+    try {
+      const reranked = await AutoSuggestionFeedbackService.applyFeedbackReranking(validMatches, user.id);
+      console.log(`  📊 Feedback re-ranking applied for ${user.id}: ${reranked.length} valid matches`);
+      return reranked[0]; // Return top-ranked match
+    } catch (err) {
+      console.error(`  ⚠️ Feedback re-ranking failed, using original order:`, err);
+      return validMatches[0]; // Fallback to original order
+    }
   }
 
   // ========== Create Auto Suggestion ==========

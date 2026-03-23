@@ -1,9 +1,9 @@
 {
   "welcome": {
     "badge": "New",
-    "title": "Your Soul Fingerprint",
+    "title": "Your Heart Map",
     "subtitle": "10 minutes that change everything",
-    "description": "The better we know you — the more accurate and personal your matches will be.\nYour Soul Fingerprint is your real profile — not a list of data, but who you actually are.",
+    "description": "The better we know you — the more accurate and personal your matches will be.\nYour Heart Map is your real profile — not a list of data, but who you actually are.",
     "whyMatters": {
       "title": "Why does this matter?",
       "point1": "The system builds a unique profile from hundreds of parameters",
@@ -17,7 +17,7 @@
   },
   "landingPage": {
     "badge": "New",
-    "title": "Your Soul Fingerprint",
+    "title": "Your Heart Map",
     "subtitle": "Get to know you — really",
     "description": "Our technology analyzes hundreds of unique parameters to understand who you truly are — not just data, but personality, values, dreams and lifestyle. That's how we find a real match.",
     "features": {
@@ -31,7 +31,7 @@
       },
       "feature3": {
         "title": "Precise matching",
-        "description": "The system uses your Soul Fingerprint to find the best match"
+        "description": "The system uses your Heart Map to find the best match"
       }
     }
   },
@@ -78,7 +78,7 @@
     "saveError": "Save failed, will retry"
   },
   "completion": {
-    "title": "Your Soul Fingerprint is ready!",
+    "title": "Your Heart Map is ready!",
     "subtitle": "A unique profile that represents who you are",
     "description": "Based on your answers, the system can offer you more accurate and personal matches.\nOur matchmakers will know you on a deep level.",
     "tagsTitle": "Here's what we discovered about you:",
@@ -119,22 +119,26 @@
     },
     "s1_charedi_study_work_f": {
       "text": "What best describes you?",
-      "subtitle": ""
+      "subtitle": "No judgment — every path is worthy and beautiful"
     },
     "s1_charedi_military": {
-      "text": "Did you serve in the military?",
+      "text": "Did you serve or are you serving in the military?",
       "subtitle": "Some Haredi individuals choose to serve — all choices are respected"
     },
     "s1_dl_army_type": {
-      "text": "What type of service did you complete?",
+      "text": "What is your service path?",
       "subtitle": ""
     },
     "s1_dl_service_f": {
-      "text": "What did you do after studies?",
-      "subtitle": ""
+      "text": "What is your path after high school?",
+      "subtitle": "Every path is respected"
+    },
+    "s1_dl_midrasha_specific": {
+      "text": "Which midrasha/seminary? (Optional)",
+      "subtitle": "Helps us understand your background"
     },
     "s1_dl_yeshiva_type": {
-      "text": "What type of yeshiva did you study at?",
+      "text": "What type of yeshiva did / do you study at?",
       "subtitle": "This gives us insight into your background"
     },
     "s1_dl_yeshiva_specific": {
@@ -165,6 +169,17 @@
     "s1_bt_time": {
       "text": "How long have you been on this journey?",
       "subtitle": ""
+    },
+    "s1_datlash_origin": {
+      "text": "What was your religious background?",
+      "subtitle": "This helps us understand your journey"
+    },
+    "s1_datlash_current": {
+      "text": "Where are you religiously today?",
+      "subtitle": "No right or wrong answers"
+    },
+    "s1_datlash_relationship_religion": {
+      "text": "What is your relationship with the religious world today?"
     },
     "s1_diaspora_community": {
       "text": "Which community are you from?",
@@ -581,6 +596,229 @@
     },
     "s5_open_abroad": {
       "text": "Are you open to living abroad?"
+    },
+    "s1_religious_direction": {
+      "text": "What direction do you feel you're heading religiously?",
+      "subtitle": "Not judgmental — we're interested in where, not where from"
+    },
+    "s1_davening_practice": {
+      "text": "What is your prayer practice?",
+      "subtitle": "Every approach is respected — no right or wrong answer"
+    },
+    "p_religious_direction": {
+      "text": "What religious direction is important to you in a partner?",
+      "subtitle": "Select up to 3"
+    },
+    "s3_attachment_style": {
+      "text": "What is your attachment style?",
+      "subtitle": "No right or wrong — we're all built differently"
+    },
+    "p_attachment_style": {
+      "text": "What attachment style suits you in a partner?"
+    },
+    "s3_patience_level": {
+      "text": "How patient are you?",
+      "subtitle": "Move the slider to what feels right"
+    },
+    "s3_ideal_evening": {
+      "text": "What does your perfect ordinary evening look like?",
+      "subtitle": "Not a special night — just a good regular Tuesday"
+    },
+    "s3_self_awareness": {
+      "text": "What place does self-awareness have in your life?",
+      "subtitle": ""
+    },
+    "s3_curiosity_level": {
+      "text": "What is your relationship with learning and curiosity?"
+    },
+    "p_curiosity_level": {
+      "text": "What level of curiosity attracts you in a partner?"
+    },
+    "s3_friends_describe": {
+      "text": "How would your closest friends describe you?",
+      "subtitle": "Optional — up to 150 characters",
+      "placeholder": "Describe in their words..."
+    },
+    "s5_shabbat_experience": {
+      "text": "What does your Shabbat look like?",
+      "subtitle": "Not just observance — but the experience"
+    },
+    "p_shabbat_experience": {
+      "text": "What Shabbat experience is important to you in a partner?"
+    },
+    "s5_social_media_usage": {
+      "text": "What role do social media play in your life?"
+    },
+    "p_social_media": {
+      "text": "What's important to you about social media usage in a partner?"
+    },
+    "s5_alcohol_attitude": {
+      "text": "What is your attitude toward alcohol?"
+    },
+    "p_alcohol": {
+      "text": "What's your approach to drinking in a partner?"
+    },
+    "s6_marriage_timeline": {
+      "text": "What is your timeline?",
+      "subtitle": "Every pace is legitimate"
+    },
+    "s6_financial_planning": {
+      "text": "What is your financial plan for starting a life together?",
+      "subtitle": "Every approach is respected"
+    },
+    "p_financial_planning": {
+      "text": "What's important to you about financial planning in a partner?"
+    },
+    "s7_relationship_readiness": {
+      "text": "Where are you in terms of readiness for a relationship?",
+      "subtitle": "Every place is fine"
+    },
+    "s7_growth_attitude": {
+      "text": "What is your attitude toward personal growth in a relationship?"
+    },
+    "p_growth_attitude": {
+      "text": "What's important to you about growth in a partner?"
+    },
+    "p_davening_practice": {
+      "text": "What prayer practice would you prefer in a partner?"
+    },
+    "p_datlash_partner": {
+      "text": "What religious background is important to you in a partner?",
+      "subtitle": "You can select multiple"
+    },
+    "p_meaning_source": {
+      "text": "What sources of meaning are important to you in a partner?"
+    },
+    "p_patience_level": {
+      "text": "What patience level would you prefer in a partner?",
+      "subtitle": "Where on the scale would you like your partner to be?"
+    },
+    "p_ideal_evening": {
+      "text": "How would you like your partner to prefer spending a free evening?"
+    },
+    "p_dress_code_f": {
+      "text": "What dress style would you prefer in a female partner?"
+    },
+    "p_dress_code_m": {
+      "text": "What dress style would you prefer in a male partner?"
+    },
+    "p_tech_relationship": {
+      "text": "What relationship with technology would you prefer in a partner?"
+    },
+    "p_vacation_style": {
+      "text": "What vacation style would you like to share with a partner?"
+    },
+    "p_english_comfort": {
+      "text": "What minimum English level is important to you in a partner?"
+    },
+    "p_political_identity": {
+      "text": "What political views could you accept in a partner?"
+    },
+    "p_marriage_timeline": {
+      "text": "What marriage timeline would you like your partner to have?"
+    },
+    "p_parents_involvement": {
+      "text": "What level of parental involvement is acceptable from your partner's family?"
+    },
+    "p_couple_dynamic": {
+      "text": "What couple dynamic and role distribution would you prefer?"
+    },
+    "p_emotional_needs": {
+      "text": "What emotional needs is it important for your partner to fulfill?"
+    },
+    "p_jealousy_comfort": {
+      "text": "What level of jealousy is acceptable to you in a partner?"
+    },
+    "s7_jealousy_comfort": {
+      "text": "How do you relate to jealousy in a relationship?",
+      "subtitle": "A natural emotion — the question is what you do with it"
+    },
+    "s7_what_scares_you": {
+      "text": "What scares you the most about relationships?",
+      "subtitle": "Optional — vulnerability is strength",
+      "placeholder": "If there's something that concerns you..."
+    },
+    "s7_past_learning": {
+      "text": "What is the most important thing you learned about yourself from past relationships?",
+      "subtitle": "Optional — up to 200 characters",
+      "placeholder": "Share — what did you discover about yourself..."
+    },
+    "s1_miluim_status": {
+      "text": "What is your military reserve (miluim) status?",
+      "subtitle": "An important question for matching — reserve duty affects lifestyle"
+    },
+    "s1_miluim_attitude_f": {
+      "text": "What is your attitude toward your partner's reserve duty?"
+    },
+    "s3_meaning_source": {
+      "text": "Where do you draw meaning from in life?",
+      "subtitle": "Select up to 3"
+    },
+    "s4_financial_expectation": {
+      "text": "What are your financial expectations from a partner?",
+      "subtitle": "Not judgmental — important to align expectations"
+    },
+    "s5_dress_code_f": {
+      "text": "What is your dress style?",
+      "subtitle": "Describe your everyday style"
+    },
+    "s5_dress_code_m": {
+      "text": "What is your dress style?",
+      "subtitle": "Describe your everyday style"
+    },
+    "s5_tech_relationship": {
+      "text": "What is your relationship with technology and screens?"
+    },
+    "s5_urban_identity": {
+      "text": "Where do you feel most comfortable living?",
+      "subtitle": "The type of community that suits you"
+    },
+    "s5_vacation_style": {
+      "text": "What is your vacation style?"
+    },
+    "s5_english_comfort": {
+      "text": "What is your English comfort level?"
+    },
+    "s5_political_identity": {
+      "text": "Where would you place yourself politically?",
+      "subtitle": "Optional — no right or wrong answer"
+    },
+    "s6_divorce_context": {
+      "text": "What was the main reason for the divorce?",
+      "subtitle": "Sensitive question — you can skip. Helps matchmakers understand your journey"
+    },
+    "s6_divorce_custody": {
+      "text": "What are the custody arrangements?"
+    },
+    "s6_widowed_time": {
+      "text": "How long has it been?",
+      "subtitle": "Personal question — you can skip"
+    },
+    "s6_divorce_readiness": {
+      "text": "How ready are you for a new relationship?",
+      "subtitle": "Being honest here helps us find the right match"
+    },
+    "s6_parents_involvement_dating": {
+      "text": "How involved are your parents in the dating process?",
+      "subtitle": "Every approach is respected"
+    },
+    "s7_deal_breakers": {
+      "text": "What are your deal breakers?",
+      "subtitle": "Select up to 5 things that are absolute deal breakers for you"
+    },
+    "s7_emotional_needs": {
+      "text": "What is your most important emotional need in a relationship?",
+      "subtitle": "Select up to 3"
+    },
+    "s7_couple_dynamic": {
+      "text": "What couple dynamic suits you?",
+      "subtitle": "How would you like the relationship to function"
+    },
+    "s7_flexibility_scale": {
+      "text": "How important is flexibility in a relationship?",
+      "subtitle": "Move the slider to what feels right",
+      "left": "Want everything agreed upon in advance",
+      "right": "Full flexibility — go with the flow"
     }
   },
   "options": {
@@ -685,6 +923,7 @@
     "s1_charedi_military": {
       "nachal_charedi": "Served in Netzach Yehuda (Nachal Haredi)",
       "other_unit": "Served in another unit",
+      "currently_serving": "Currently serving",
       "did_not_serve": "Did not serve",
       "exempt": "Exempt for other reasons"
     },
@@ -692,6 +931,7 @@
       "combat_full": "Combat soldier — full service",
       "non_combat": "Non-combat — full service",
       "hesder": "Hesder — yeshiva combined with army",
+      "mechina": "Pre-army mechina + full service",
       "yeshiva_only": "Yeshiva gedola — no military service",
       "kav": "Kav yeshiva — one year yeshiva after army",
       "exempt_medical": "Medical exemption",
@@ -703,15 +943,31 @@
       "midrasha": "Midrasha / women's beit midrash",
       "seminary": "Seminary",
       "army": "Military service",
+      "currently_serving": "Currently serving",
       "directly_academic": "Went straight to academia",
       "gap_year_abroad": "Gap year abroad (yeshiva/midrasha)",
+      "did_not_serve": "Did not serve",
       "other_service": "Other"
+    },
+    "s1_dl_midrasha_specific": {
+      "migdal_oz": "Migdal Oz",
+      "lindenbaum": "Lindenbaum (Bruriah/Drisha)",
+      "nishmat": "Nishmat",
+      "ein_hanatziv": "Ein HaNatziv",
+      "maalot": "Maalot",
+      "tzvia": "Tzvia",
+      "midreshet_lindenbaum_abroad": "Midreshet Lindenbaum (abroad)",
+      "midreshet_torah_vaavodah": "Torah V'Avodah",
+      "bruria": "Bruria",
+      "herzog": "Herzog / College",
+      "other_midrasha": "Other midrasha",
+      "other_midrasha_placeholder": "Midrasha name"
     },
     "s1_dl_yeshiva_type": {
       "hesder_yeshiva": "Hesder yeshiva — combining Torah and army",
-      "hesder_sub": "e.g.: Har Etzion, Shaalvim, Kerem B'Yavneh",
+      "hesder_sub": "e.g.: Har Etzion, Shaalvim, Kerem B'Yavneh, Siach Yitzchak",
       "kav_yeshiva": "Kav yeshiva — one year after the army",
-      "kav_sub": "e.g.: Eli, Siach Yitzchak, Merkaz HaRav, Ramot",
+      "kav_sub": "e.g.: Eli, Merkaz HaRav, Ramot",
       "big_yeshiva": "Dati Leumi yeshiva gedola",
       "big_sub": "Many years of learning",
       "yeshiva_high": "Yeshiva high school only",
@@ -730,6 +986,10 @@
       "beit_el": "Beit El",
       "hakotel": "Yeshivat HaKotel",
       "petach_tikva": "Yeshivat Petach Tikva",
+      "maale_adumim": "Maale Adumim",
+      "har_bracha": "Har Bracha",
+      "ramat_gan": "Yeshivat Ramat Gan",
+      "machon_meir": "Machon Meir",
       "other_yeshiva": "Other yeshiva",
       "other_yeshiva_placeholder": "Yeshiva name"
     },
@@ -782,6 +1042,33 @@
       "1_3": "1-3 years",
       "3_7": "3-7 years",
       "more_7": "More than 7 years"
+    },
+    "s1_datlash_origin": {
+      "charedi": "Charedi",
+      "dati_leumi": "Dati Leumi (National Religious)",
+      "masorti": "Masorti (Traditional)",
+      "mixed": "Mixed / Undefined"
+    },
+    "s1_datlash_current": {
+      "traditional_lite": "Somewhat observant — Shabbat, holidays, basic kashrut",
+      "secular_connected": "Secular but connected to Judaism",
+      "fully_secular": "Fully secular",
+      "searching": "Searching — not in one place",
+      "complex": "Complex — hard to define"
+    },
+    "s1_datlash_relationship_religion": {
+      "peace": "Peace — I've made my peace with it",
+      "anger": "Anger — still have wounds",
+      "nostalgia": "Nostalgia — I miss some things",
+      "indifference": "Indifference — just not relevant anymore",
+      "still_processing": "Still processing — haven't decided"
+    },
+    "p_datlash_partner": {
+      "datlash_like_me": "Datlash like me",
+      "secular": "Secular",
+      "masorti": "Traditional (Masorti)",
+      "dati_lite": "Dati lite",
+      "bt": "Baal/at Teshuva"
     },
     "s1_diaspora_community": {
       "orthodox_mo": "Modern Orthodox",
@@ -1163,7 +1450,10 @@
       "traditional": "Traditional division — he earns, she manages",
       "flexible": "Flexible — whatever fits",
       "both_work_help": "Both work and hire help",
-      "she_works_too": "He's primary earner, she works too"
+      "she_works_too": {
+        "male": "I'm the primary earner, she works too",
+        "female": "He's the primary earner, I work too"
+      }
     },
     "s6_parenting_style": {
       "very_involved": "Very involved parent — every moment",
@@ -1277,7 +1567,8 @@
       "not_seeking": "Not seeking — manage alone"
     },
     "common": {
-      "doesnt_matter": "Doesn't matter to me"
+      "doesnt_matter": "Doesn't matter to me",
+      "prefer_not_say": "Prefer not to say"
     },
     "s2_family_size": {
       "only_child": "Only child",
@@ -1343,6 +1634,264 @@
     "p_smoking": {
       "non_smoker_only": "Non-smoker only",
       "social_ok": "Social smoker is OK"
+    },
+    "s1_miluim_status": {
+      "active_combat": "Active reserve — combat",
+      "active_support": "Active reserve — combat support",
+      "occasional": "Occasional reserve duty",
+      "released": "Released from reserves",
+      "none": "No reserve duty"
+    },
+    "s1_miluim_attitude_f": {
+      "proud_supportive": "Proud and supportive — reserve duty is important",
+      "supportive_concerned": "Supportive but concerned — it's not easy",
+      "prefer_less": "Prefer less — home is important",
+      "no_preference": "No particular preference"
+    },
+    "s3_meaning_source": {
+      "torah_learning": "Torah learning",
+      "helping_others": "Helping others / chesed",
+      "family": "Family",
+      "career_impact": "Career and impact",
+      "art_creativity": "Art and creativity",
+      "nature": "Nature",
+      "relationships": "Human connections",
+      "self_growth": "Personal growth",
+      "community": "Community and social involvement",
+      "zionism": "Zionism and contributing to the state"
+    },
+    "s4_financial_expectation": {
+      "no_importance": "Not important — as long as we're together",
+      "basic_stability": "Basic stability — enough to live on",
+      "comfortable": "Comfortable — without worrying",
+      "ambitious": "Ambitious — want to go far",
+      "high_standard": "High standard of living — important to me"
+    },
+    "s5_dress_code_f": {
+      "modest_full": "Fully modest — long skirt, sleeves",
+      "modest_flexible": "Flexible modest — modest but modern",
+      "casual_modest": "Casual modest — jeans with a covered top",
+      "pants_sometimes_skirts": "Usually pants, sometimes skirts",
+      "casual_modern": "Casual modern — comfortable and stylish",
+      "sporty_casual": "Sporty and casual"
+    },
+    "s5_dress_code_m": {
+      "formal_yeshivish": "Formal / yeshivish — button-down shirt",
+      "smart_casual": "Smart casual — neat but relaxed",
+      "casual_sporty": "Casual sporty",
+      "trendy": "Trendy — follows fashion trends",
+      "simple_practical": "Simple and practical — comfort first"
+    },
+    "s5_tech_relationship": {
+      "minimal_screen": "Minimal — try to avoid screens",
+      "conscious_use": "Conscious use — clear boundaries",
+      "moderate": "Moderate — like most people",
+      "heavy_user": "Heavy use — always on my phone",
+      "tech_enthusiast": "Tech enthusiast — geek and excited about it"
+    },
+    "s5_urban_identity": {
+      "big_city_only": "Big city only — Tel Aviv, Jerusalem",
+      "city_prefer": "Prefer city — but not necessarily metropolitan",
+      "suburb": "Suburb / quiet town",
+      "settlement": "Settlement / small community",
+      "kibbutz_moshav": "Kibbutz / moshav",
+      "flexible": "Flexible — open to anywhere"
+    },
+    "s5_vacation_style": {
+      "backpacking": "Backpacking and adventures",
+      "resort": "Luxury resort — hotel and pool",
+      "cultural": "Cultural trips — museums and cities",
+      "nature_camping": "Nature and camping",
+      "staycation": "Staycation — vacation at home",
+      "social": "Social vacation — with friends or family",
+      "mixed": "Mixed — depends on the mood"
+    },
+    "s5_english_comfort": {
+      "native": "Native / native level",
+      "fluent": "Fluent — fully comfortable",
+      "good": "Good — can manage conversations",
+      "basic": "Basic — understand but limited",
+      "minimal": "Minimal — almost none"
+    },
+    "s5_political_identity": {
+      "very_right": "Far right",
+      "right": "Right",
+      "center_right": "Center-right",
+      "center": "Center",
+      "center_left": "Center-left",
+      "left": "Left",
+      "not_interested": "Not interested in politics",
+      "complex": "Complex — hard to define"
+    },
+    "s6_divorce_context": {
+      "grew_apart": "Grew apart — we just went in different directions",
+      "values_mismatch": "Values mismatch",
+      "communication": "Communication issues",
+      "married_too_young": "Married too young",
+      "life_circumstances": "Life circumstances — beyond our control"
+    },
+    "s6_divorce_custody": {
+      "full_custody": "Full custody with me",
+      "shared_equal": "Shared custody — equal time",
+      "shared_mostly_me": "Shared custody — mostly with me",
+      "shared_mostly_ex": "Shared custody — mostly with the other parent",
+      "other_arrangement": "Other arrangement"
+    },
+    "s6_widowed_time": {
+      "less_1_year": "Less than a year",
+      "1_3_years": "1-3 years",
+      "3_5_years": "3-5 years",
+      "more_5_years": "More than 5 years"
+    },
+    "s6_divorce_readiness": {
+      "fully_ready": "Fully ready — closed a chapter, open to a new one",
+      "mostly_ready": "Mostly ready — a few loose ends",
+      "getting_there": "Getting there — making progress",
+      "just_starting": "Just starting — need more time"
+    },
+    "s6_parents_involvement_dating": {
+      "very_involved": "Very involved — they accompany every step",
+      "consulted": "I consult them — hear their opinion before decisions",
+      "informed": "I keep them informed — but decide on my own",
+      "independent": "Completely independent — it's my business",
+      "complex": "Complex — the relationship with parents isn't simple"
+    },
+    "s7_deal_breakers": {
+      "smoking": "Smoking",
+      "no_army_service": "No army service",
+      "different_religious_level": "Different religious level",
+      "no_education": "Lack of education",
+      "financial_instability": "Financial instability",
+      "dishonesty": "Dishonesty / lying",
+      "disrespectful": "Disrespectfulness",
+      "no_humor": "Lack of humor",
+      "pessimistic": "Pessimism / negativity",
+      "controlling": "Controlling behavior",
+      "has_children": "Has children from previous marriage",
+      "age_gap_big": "Large age gap",
+      "geographic": "Geographic distance",
+      "appearance_mismatch": "Lack of physical attraction",
+      "cynical": "Cynicism / lack of faith",
+      "passive": "Passivity / lack of initiative",
+      "immodest_dress": "Immodest dress"
+    },
+    "s7_emotional_needs": {
+      "feel_seen": "Feeling seen — understood and acknowledged",
+      "admired": "Feeling admired and appreciated",
+      "safe": "Feeling safe — a protected space",
+      "desired": "Feeling desired — wanted",
+      "supported": "Feeling supported — someone by my side",
+      "challenged": "Feeling challenged — pushed to grow",
+      "included": "Feeling included — part of a team",
+      "freedom": "Freedom — personal space within the relationship"
+    },
+    "s7_couple_dynamic": {
+      "equal_everything": "Completely equal — everything 50/50",
+      "lead_areas": "Each leads in their own areas",
+      "man_leads": "Man leads — woman supports",
+      "woman_leads_home": "Woman leads at home — man outside",
+      "organic": "Organic — develops naturally without definitions"
+    },
+    "s7_flexibility_scale": {
+      "left": "Want everything agreed upon in advance",
+      "right": "Full flexibility — go with the flow"
+    },
+    "s1_religious_direction": {
+      "becoming_more": "Becoming more religious — in a strengthening process",
+      "stable": "Stable — happy where I am",
+      "becoming_less": "Becoming less religious — but still connected",
+      "searching": "Searching — don't know where I'm headed",
+      "not_relevant": "Not relevant — religion isn't part of my life"
+    },
+    "s1_davening_practice": {
+      "three_daily": "Three daily prayers regularly",
+      "morning_evening": "Shacharit and Arvit — not always Mincha",
+      "shabbat_holidays": "On Shabbat and holidays",
+      "personal_prayer": "Personal prayer — not necessarily a fixed format",
+      "occasional": "Occasionally — when I feel the need"
+    },
+    "s3_attachment_style": {
+      "secure": "Comfortable with both closeness and independence",
+      "anxious": "Need a lot of closeness — worry when there's distance",
+      "avoidant": "Value independence — need personal space",
+      "growing": "Aware of my pattern and working on it"
+    },
+    "s3_patience_level": {
+      "impatient": "Impatient — want results now",
+      "very_patient": "Very patient — everything in its time"
+    },
+    "s3_ideal_evening": {
+      "home_quiet": "Quiet evening at home — book, show, rest",
+      "social_friends": "Meeting with friends — food, conversation, laughs",
+      "active_outdoor": "Activity outside — sports, hike, show",
+      "learning_growth": "Learning and classes — Torah, courses, podcasts",
+      "creative": "Creating — music, art, cooking, writing",
+      "family_time": "Family time — with parents, siblings, family"
+    },
+    "s3_self_awareness": {
+      "therapy_active": "In therapy / coaching — working on myself regularly",
+      "reflective": "Know myself well — do self-reflection on my own",
+      "developing": "In process — starting to notice",
+      "intuitive": "Go by feeling — less analytical"
+    },
+    "s3_curiosity_level": {
+      "very_curious": "Always learning something new — books, courses, podcasts",
+      "selective_curious": "Curious in specific areas",
+      "practical": "Prefer to know what I need to know",
+      "experiential": "Learn from experiences, not books"
+    },
+    "s5_shabbat_experience": {
+      "full_traditional": "Full Shabbat — preparations, prayers, meals, no screens",
+      "mostly_keep": "Keep most of Shabbat — kiddush, meals, maybe some phone",
+      "friday_night": "Family Friday night — candles, kiddush, eating together",
+      "flexible": "Flexible — sometimes Shabbat-like, sometimes not",
+      "free_day": "Free day — no religious significance"
+    },
+    "s5_social_media_usage": {
+      "no_smartphone": "No smartphone / kosher phone only",
+      "minimal": "Have a smartphone but barely on social media",
+      "passive": "Browse but don't post",
+      "active": "Active on social media — Instagram, TikTok",
+      "influencer": "Content creator / strong digital presence"
+    },
+    "s5_alcohol_attitude": {
+      "never": "Don't drink at all",
+      "kiddush_only": "Only kiddush and l'chaims at events",
+      "social": "Social — wine with food, beer with friends",
+      "regular": "Drink fairly often"
+    },
+    "s6_marriage_timeline": {
+      "asap": "ASAP — ready now",
+      "within_year": "Within a year — there's time but serious",
+      "one_two_years": "One to two years — no rush",
+      "no_rush": "No pressure — when it comes, it comes",
+      "figuring_out": "Still figuring out what I want"
+    },
+    "s6_financial_planning": {
+      "parents_help": "Parents will help — apartment, wedding, getting started",
+      "self_funded": "Self-funded — saving and building on my own",
+      "modest_start": "Modest start — don't need everything right away",
+      "partner_together": "Together we'll build — no one-sided expectations",
+      "not_thinking": "Not thinking about it right now"
+    },
+    "s7_relationship_readiness": {
+      "fully_ready": "Fully ready — want to get married soon",
+      "ready_patient": "Ready — but not rushing, want the right one",
+      "mostly_ready": "Almost — still sorting some things in life",
+      "exploring": "Exploring — want to see what's out there",
+      "healing": "In a healing process — after a breakup or difficult period"
+    },
+    "s7_growth_attitude": {
+      "constant_growth": "Constant growth — we'll develop together all the time",
+      "support_growth": "Supportive of growth — but also accepting what is",
+      "accept_as_is": "Accept as is — don't try to change me",
+      "balance": "Balance — some things to improve, some to accept"
+    },
+    "s7_jealousy_comfort": {
+      "not_jealous": "Not jealous — fully trusting",
+      "mild": "A little — but in control",
+      "normal": "Normal — a natural feeling that shows I care",
+      "tend_jealous": "Tend to be jealous — working on it"
     }
   }
 }

@@ -291,6 +291,7 @@ export interface User extends DefaultUser {
   language: Language; // <-- 2. הוסף את השדה לממשק הראשי
      neshamaInsightLastGeneratedAt?: string | null;
     neshamaInsightGeneratedCount?: number;
+    neshamaInsightData?: Record<string, unknown> | null;
 }
 
 export interface Verification {
@@ -372,6 +373,7 @@ declare module 'next-auth' {
     hasSoulFingerprint?: boolean;
         neshamaInsightLastGeneratedAt?: Date | string | null;
     neshamaInsightGeneratedCount?: number;
+    neshamaInsightData?: Record<string, unknown> | null;
 
   }
 }

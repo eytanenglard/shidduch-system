@@ -71,7 +71,7 @@
           "description": "Who are you looking for?"
         },
         "soulFingerprint": {
-          "title": "Soul Fingerprint",
+          "title": "Heart Map",
           "description": "10 minutes to help us find your match."
         },
         "questionnaire": {
@@ -302,7 +302,17 @@
         "closeButton": "Close"
       },
       "visibilityTooltip": "Show the testimonials section on the profile card sent in suggestions?",
-      "emptyState": "Testimonials from people who know you well are a powerful way to build trust and give others an authentic glimpse into your personality."
+      "emptyState": "Testimonials from people who know you well are a powerful way to build trust and give others an authentic glimpse into your personality.",
+      "emptyStateHint": "Add a testimonial manually or send a link to a friend",
+      "shareViaWhatsApp": "Share via WhatsApp",
+      "testimonialAdded": "Testimonial added successfully!",
+      "testimonialAddError": "Error adding testimonial.",
+      "statusUpdated": "Testimonial status updated!",
+      "statusUpdateError": "Error updating testimonial status.",
+      "deleteSuccess": "Testimonial deleted.",
+      "deleteError": "Error deleting testimonial.",
+      "linkGenerateError": "Error generating testimonial request link.",
+      "fetchError": "Failed to load testimonials."
     },
     "loading": "Loading profile data...",
     "budgetDisplay": {
@@ -434,7 +444,8 @@
           "visibleBadge": "Visible on profile",
           "hiddenBadge": "Discreet (team only)"
         },
-        "privacyNote": "This info is encrypted. Only the matchmaker sees it, and you choose when to share"
+        "privacyNote": "This info is encrypted. Only the matchmaker sees it, and you choose when to share",
+        "protectedBadge": "Protected"
       },
       "education": {
         "title": "Education, Career & Service",

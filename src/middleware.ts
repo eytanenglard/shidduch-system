@@ -23,6 +23,7 @@ const PUBLIC_PATHS = [
   '/contact',
   '/feedback',
   '/friends',
+  '/heart-map',
 ];
 
 const REFERRAL_PUBLIC_PATHS = [

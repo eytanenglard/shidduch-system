@@ -26,6 +26,7 @@ import FloatingCTAButton from './components/FloatingCTAButton';
 import type { Dictionary } from '@/types/dictionary';
 import { generateDemoData } from './components/demo-data';
 import NeshmaInsightSectionB from './sections/NeshmaInsightSectionB';
+import HeartMapCTASection from './sections/HeartMapCTASection';
 
 type DemoData = Awaited<ReturnType<typeof generateDemoData>>;
 
@@ -137,6 +138,8 @@ export default function HomePage({ dict, demoData, locale }: HomePageProps) {
       <NeshmaInsightSectionB locale={locale} dict={dict.neshmaInsight} />
 
       <OurMethodSection dict={dict.ourMethod} />
+
+      <HeartMapCTASection dict={dict.heartMapCTA} locale={locale} />
 
       <HowItWorksSection
         dict={dict.howItWorks}

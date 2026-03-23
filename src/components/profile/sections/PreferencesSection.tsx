@@ -1,59 +1,25 @@
 // src/app/components/profile/sections/PreferencesSection.tsx
 'use client';
 
-import { createPortal } from 'react-dom'; // ✨ הוספה
-import { motion, AnimatePresence } from 'framer-motion'; // ✨ הוספה
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
-import { Info, XCircle } from 'lucide-react';
-import React, { useState, useEffect, useMemo } from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import React, { useCallback } from 'react';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import {
-  Pencil,
-  Save,
-  X,
-  FileText,
-  SlidersHorizontal,
-  MapPin,
-  GraduationCap,
-  Users,
-  Sparkles,
-  Heart,
-  Briefcase,
-  Shield,
-  Palette,
-  Smile,
-} from 'lucide-react';
+import { Pencil, Save, X } from 'lucide-react';
 import { UserProfile } from '@/types/next-auth';
-import { cn } from '@/lib/utils';
-import {
-  Gender,
-  ServiceType,
-  HeadCoveringType,
-  KippahType,
-  ReligiousJourney,
-  BodyType,
-  AppearanceTone,
-  GroomingStyle,
-} from '@prisma/client';
-import Autocomplete from 'react-google-autocomplete';
 import { PreferencesSectionDict } from '@/types/dictionary';
+import { useProfileForm } from '../hooks/useProfileForm';
+import DraftBanner from '../DraftBanner';
+import FloatingActionButton from '../FloatingActionButton';
+import StickyActionFooter from '../StickyActionFooter';
+
+import {
+  GeneralCard,
+  AgeHeightCard,
+  LocationReligionCard,
+  EducationCareerCard,
+  PersonalBackgroundCard,
+  CharacterInterestsCard,
+  AppearancePreferencesCard,
+} from './preference-cards';
 
 interface PreferencesSectionProps {
   profile: UserProfile | null;
@@ -65,6 +31,37 @@ interface PreferencesSectionProps {
   locale: string;
 }
 
+const nullToUndefined = <T,>(value: T | null): T | undefined =>
+  value === null ? undefined : value;
+
+const initializePreferencesData = (profile: UserProfile): Partial<UserProfile> => ({
+  ...profile,
+  preferredAgeMin: nullToUndefined(profile.preferredAgeMin),
+  preferredAgeMax: nullToUndefined(profile.preferredAgeMax),
+  preferredHeightMin: nullToUndefined(profile.preferredHeightMin),
+  preferredHeightMax: nullToUndefined(profile.preferredHeightMax),
+  matchingNotes: profile.matchingNotes ?? '',
+  preferredShomerNegiah: nullToUndefined(profile.preferredShomerNegiah),
+  preferredSmokingStatus: nullToUndefined(profile.preferredSmokingStatus),
+  preferredPartnerHasChildren: nullToUndefined(profile.preferredPartnerHasChildren),
+  preferredAliyaStatus: nullToUndefined(profile.preferredAliyaStatus),
+  preferredLocations: profile.preferredLocations ?? [],
+  preferredReligiousLevels: profile.preferredReligiousLevels ?? [],
+  preferredEducation: profile.preferredEducation ?? [],
+  preferredOccupations: profile.preferredOccupations ?? [],
+  preferredMaritalStatuses: profile.preferredMaritalStatuses ?? [],
+  preferredOrigins: profile.preferredOrigins ?? [],
+  preferredServiceTypes: profile.preferredServiceTypes ?? [],
+  preferredHeadCoverings: profile.preferredHeadCoverings ?? [],
+  preferredKippahTypes: profile.preferredKippahTypes ?? [],
+  preferredCharacterTraits: profile.preferredCharacterTraits ?? [],
+  preferredHobbies: profile.preferredHobbies ?? [],
+  preferredReligiousJourneys: profile.preferredReligiousJourneys ?? [],
+  preferredBodyTypes: profile.preferredBodyTypes ?? [],
+  preferredAppearanceTones: profile.preferredAppearanceTones ?? [],
+  preferredGroomingStyles: profile.preferredGroomingStyles ?? [],
+});
+
 const PreferencesSection: React.FC<PreferencesSectionProps> = ({
   profile,
   isEditing,
@@ -74,149 +71,29 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
   dictionary: t,
   locale,
 }) => {
-  const [formData, setFormData] = useState<Partial<UserProfile>>({});
-  const [initialData, setInitialData] = useState<Partial<UserProfile>>({});
-  const [locationInputValue, setLocationInputValue] = useState('');
-  const [originInputValue, setOriginInputValue] = useState('');
+  const {
+    formData,
+    setFormData,
+    direction,
+    showFloatingBtn,
+    mounted,
+    handleSave,
+    handleCancel,
+    hasDraft,
+    restoreDraft,
+    dismissDraft,
+  } = useProfileForm({
+    profile,
+    initializeData: initializePreferencesData,
+    onSave: onChange,
+    isEditing,
+    setIsEditing,
+    locale,
+    draftKey: 'preferences',
+  });
 
-  // ✨ לוגיקה לכפתור הצף (כמו ב-ProfileSection)
-  const [showFloatingBtn, setShowFloatingBtn] = useState(false);
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true); // מוודא שאנחנו בצד לקוח לצורך ה-Portal
-
-    const handleScroll = () => {
-      // מציג את הכפתור אחרי גלילה של 100 פיקסלים
-      setShowFloatingBtn(window.scrollY > 100);
-    };
-
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  const direction = locale === 'he' ? 'rtl' : 'ltr';
-
-  // --- Map icons to values for dynamic options ---
-  const iconMap: { [key: string]: React.ElementType } = {
-    empathetic: Heart,
-    driven: Briefcase,
-    optimistic: Smile,
-    family_oriented: Users,
-    intellectual: GraduationCap,
-    organized: Palette,
-    calm: Heart,
-    humorous: Smile,
-    sociable: Users,
-    sensitive: Heart,
-    independent: MapPin,
-    creative: Palette,
-    honest: Shield,
-    responsible: Shield,
-    easy_going: Smile,
-    no_strong_preference: Sparkles,
-    travel: MapPin,
-    sports: Briefcase,
-    reading: GraduationCap,
-    cooking_baking: Palette,
-    music_playing_instrument: Palette,
-    art_crafts: Palette,
-    volunteering: Heart,
-    learning_courses: GraduationCap,
-    board_games_puzzles: Smile,
-    movies_theater: Smile,
-    dancing: Users,
-    writing: GraduationCap,
-    nature_hiking: MapPin,
-    photography: Palette,
-  };
-
-  // --- Generate options from dictionary ---
-  const useGenerateOptions = (
-    optionsDict: { [key: string]: string },
-    withIcon?: boolean
-  ) => {
-    return useMemo(
-      () =>
-        Object.entries(optionsDict).map(([value, label]) => ({
-          value,
-          label,
-          ...(withIcon && { icon: iconMap[value] }),
-        })),
-      [optionsDict, withIcon]
-    );
-  };
-
-  const religiousLevelOptions = useGenerateOptions(t.options.religiousLevels);
-  const preferredReligiousJourneyOptions = useGenerateOptions(
-    t.options.religiousJourneys
-  );
-  const educationPreferenceOptions = useGenerateOptions(t.options.education);
-  const occupationPreferenceOptions = useGenerateOptions(t.options.occupation);
-  const preferredShomerNegiahOptions = useGenerateOptions(
-    t.options.shomerNegiah
-  );
-  const preferredSmokingStatusOptions = useGenerateOptions(
-    t.options.preferredSmokingStatus
-  );
-  const preferredPartnerHasChildrenOptions = useGenerateOptions(
-    t.options.partnerHasChildren
-  );
-  const preferredOriginOptions = useGenerateOptions(t.options.origins);
-  const preferredAliyaStatusOptions = useGenerateOptions(t.options.aliyaStatus);
-  const maritalStatusOptions = useGenerateOptions(t.options.maritalStatus);
-  const serviceTypeOptions = useGenerateOptions(t.options.serviceTypes);
-  const headCoveringOptions = useGenerateOptions(t.options.headCovering);
-  const kippahTypeOptions = useGenerateOptions(t.options.kippahType);
-  const characterTraitsOptions = useGenerateOptions(t.options.traits, true);
-  const hobbiesOptions = useGenerateOptions(t.options.hobbies, true);
-
-  useEffect(() => {
-    if (profile) {
-      const nullToUndefined = <T,>(value: T | null): T | undefined =>
-        value === null ? undefined : value;
-
-      const newFormData: Partial<UserProfile> = {
-        ...profile,
-        preferredAgeMin: nullToUndefined(profile.preferredAgeMin),
-        preferredAgeMax: nullToUndefined(profile.preferredAgeMax),
-        preferredHeightMin: nullToUndefined(profile.preferredHeightMin),
-        preferredHeightMax: nullToUndefined(profile.preferredHeightMax),
-        matchingNotes: profile.matchingNotes ?? '',
-        preferredShomerNegiah: nullToUndefined(profile.preferredShomerNegiah),
-        preferredSmokingStatus: nullToUndefined(profile.preferredSmokingStatus),
-        preferredPartnerHasChildren: nullToUndefined(
-          profile.preferredPartnerHasChildren
-        ),
-        preferredAliyaStatus: nullToUndefined(profile.preferredAliyaStatus),
-        preferredLocations: profile.preferredLocations ?? [],
-        preferredReligiousLevels: profile.preferredReligiousLevels ?? [],
-        preferredEducation: profile.preferredEducation ?? [],
-        preferredOccupations: profile.preferredOccupations ?? [],
-        preferredMaritalStatuses: profile.preferredMaritalStatuses ?? [],
-        preferredOrigins: profile.preferredOrigins ?? [],
-        preferredServiceTypes: profile.preferredServiceTypes ?? [],
-        preferredHeadCoverings: profile.preferredHeadCoverings ?? [],
-        preferredKippahTypes: profile.preferredKippahTypes ?? [],
-        preferredCharacterTraits: profile.preferredCharacterTraits ?? [],
-        preferredHobbies: profile.preferredHobbies ?? [],
-        preferredReligiousJourneys: profile.preferredReligiousJourneys ?? [],
-        preferredBodyTypes: profile.preferredBodyTypes ?? [],
-        preferredAppearanceTones: profile.preferredAppearanceTones ?? [],
-        preferredGroomingStyles: profile.preferredGroomingStyles ?? [],
-      };
-      setFormData(newFormData);
-      setInitialData(newFormData);
-    }
-  }, [profile]);
-
-  useEffect(() => {
-    if (!isEditing && initialData) {
-      setFormData(initialData);
-    }
-  }, [isEditing, initialData]);
-
-  const handleInputChange = (
+  // --- Handlers ---
+  const handleInputChange = useCallback((
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { name, value, type } = e.target;
@@ -232,22 +109,19 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
       }
       return { ...prev, [field]: processedValue };
     });
-  };
+  }, [setFormData]);
 
-  const handleSelectChange = (field: keyof UserProfile, value: string) => {
-    const resetValues = [
-      '', // Only strictly empty string should reset to null
-    ];
-
+  const handleSelectChange = useCallback((field: keyof UserProfile, value: string) => {
+    const resetValues = [''];
     setFormData((prev) => ({
       ...prev,
       [field]: resetValues.includes(value)
         ? null
         : (value as UserProfile[typeof field]),
     }));
-  };
+  }, [setFormData]);
 
-  const handleMultiSelectChange = (field: keyof UserProfile, value: string) => {
+  const handleMultiSelectChange = useCallback((field: keyof UserProfile, value: string) => {
     setFormData((prev) => {
       const currentValues =
         (Array.isArray(prev[field]) ? (prev[field] as string[]) : []) ?? [];
@@ -271,9 +145,9 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
       }
       return { ...prev, [field]: newValues };
     });
-  };
+  }, [setFormData]);
 
-  const handleAddItemToArray = (field: keyof UserProfile, value: string) => {
+  const handleAddItemToArray = useCallback((field: keyof UserProfile, value: string) => {
     if (!value) return;
     setFormData((prev) => {
       const currentValues =
@@ -283,9 +157,9 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
       }
       return { ...prev, [field]: [...currentValues, value] };
     });
-  };
+  }, [setFormData]);
 
-  const handleRemoveItemFromArray = (
+  const handleRemoveItemFromArray = useCallback((
     field: keyof UserProfile,
     value: string
   ) => {
@@ -297,67 +171,27 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
         [field]: currentValues.filter((item) => item !== value),
       };
     });
-  };
+  }, [setFormData]);
 
-  const handleSave = () => {
-    const dataToSave = { ...formData };
-    onChange(dataToSave);
-    setIsEditing(false);
-    setInitialData(dataToSave);
-  };
-
-  const handleCancel = () => {
-    setFormData(initialData);
-    setIsEditing(false);
-  };
-
-  const renderMultiSelectBadges = (
-    fieldValues: string[] | undefined | null,
-    options: { value: string; label: string; icon?: React.ElementType }[],
-    badgeClass: string = 'bg-teal-100 text-teal-700',
-    emptyPlaceholder: string
-  ) => {
-    if (!fieldValues || fieldValues.length === 0) {
-      return <p className="text-sm text-gray-500 italic">{emptyPlaceholder}</p>;
-    }
-    return fieldValues.map((value) => {
-      const option = options.find((opt) => opt.value === value);
-      const label = option ? option.label : value;
-      const Icon = option?.icon;
-
-      return (
-        <Badge
-          key={value}
-          variant="secondary"
-          className={cn(
-            'ltr:mr-1 rtl:ml-1 mb-1 text-xs px-2 py-0.5 rounded-full flex items-center',
-            badgeClass
-          )}
-        >
-          {Icon && <Icon className="w-3 h-3 ltr:mr-1 rtl:ml-1" />}
-          {label}
-        </Badge>
-      );
-    });
-  };
-
-  const getSelectDisplayValue = (
-    value: string | undefined | null,
-    options: { value: string; label: string }[],
-    placeholder: string
-  ) => {
-    if (!value)
-      return <span className="text-gray-500 italic">{placeholder}</span>;
-    const option = options.find((opt) => opt.value === value);
-    return option ? (
-      option.label
-    ) : (
-      <span className="text-gray-500">{value}</span>
-    );
+  // --- Shared props for all card components ---
+  const cardProps = {
+    profile,
+    isEditing,
+    viewOnly,
+    formData,
+    handleInputChange,
+    handleSelectChange,
+    handleMultiSelectChange,
+    handleAddItemToArray,
+    handleRemoveItemFromArray,
+    t,
+    locale,
+    direction,
   };
 
   return (
     <div className="relative" dir={direction}>
+      {/* ======================= STICKY HEADER ======================= */}
       <div className="sticky top-4 z-10 bg-gradient-to-b from-white via-white/95 to-white/0 pt-4 pb-3 backdrop-blur-sm">
         <div className="container mx-auto max-w-screen-xl px-4">
           <div className="flex items-center justify-between">
@@ -385,7 +219,7 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
                   </Button>
                 ) : (
                   <>
-                    {/* ======================= START: DESKTOP BUTTONS ======================= */}
+                    {/* ======================= DESKTOP BUTTONS ======================= */}
                     <div className="hidden sm:flex gap-2">
                       <Button
                         variant="outline"
@@ -406,7 +240,6 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
                         {t.buttons.save}
                       </Button>
                     </div>
-                    {/* ======================= END: DESKTOP BUTTONS ======================= */}
                   </>
                 )}
               </div>
@@ -415,1400 +248,64 @@ const PreferencesSection: React.FC<PreferencesSectionProps> = ({
         </div>
       </div>
 
-      <div className="container mx-auto max-w-screen-xl py-6 px-4">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* --- Column 1 --- */}
-          <div className="space-y-6">
-            <Card className="bg-white/80 backdrop-blur-md rounded-2xl shadow-lg border border-gray-200/40 overflow-hidden">
-              <CardHeader className="bg-gradient-to-r from-slate-50/40 to-gray-100/40 border-b border-gray-200/50 p-4 flex items-center space-x-2 rtl:space-x-reverse">
-                <FileText className="w-5 h-5 text-slate-600" />
-                <CardTitle className="text-base font-semibold text-gray-700">
-                  {t.cards.general.title}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-4 md:p-6 space-y-5">
-                <div>
-                  <div className="flex items-center gap-1.5 mb-1.5">
-                    <Label
-                      htmlFor="matchingNotes"
-                      className="text-sm font-medium text-gray-700"
-                    >
-                      {t.cards.general.notesLabel}
-                    </Label>
-                    <TooltipProvider delayDuration={100}>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <button
-                            type="button"
-                            aria-describedby="matchingNotes-tooltip"
-                          >
-                            <Info className="w-4 h-4 text-gray-400 hover:text-gray-600" />
-                          </button>
-                        </TooltipTrigger>
-                        <TooltipContent
-                          id="matchingNotes-tooltip"
-                          side="top"
-                          className="max-w-xs text-center"
-                        >
-                          <p>{t.cards.general.notesTooltip}</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  </div>
-                  {isEditing ? (
-                    <Textarea
-                      id="matchingNotes"
-                      name="matchingNotes"
-                      value={formData.matchingNotes || ''}
-                      onChange={handleInputChange}
-                      placeholder={t.cards.general.notesPlaceholder}
-                      className="text-sm focus:ring-teal-500 min-h-[100px] rounded-lg"
-                      rows={4}
-                    />
-                  ) : (
-                    <p className="mt-1 text-sm text-gray-700 whitespace-pre-wrap min-h-[60px] bg-slate-50/70 p-3 rounded-lg border border-slate-200/50">
-                      {formData.matchingNotes || (
-                        <span className="text-gray-500 italic">
-                          {t.cards.general.notesEmpty}
-                        </span>
-                      )}
-                    </p>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
+      {/* Draft Restoration Banner */}
+      <DraftBanner
+        visible={hasDraft && !isEditing}
+        onRestore={restoreDraft}
+        onDismiss={dismissDraft}
+      />
 
-            <Card className="bg-white/80 backdrop-blur-md rounded-2xl shadow-lg border border-gray-200/40 overflow-hidden">
-              <CardHeader className="bg-gradient-to-r from-indigo-50/40 to-purple-50/40 border-b border-gray-200/50 p-4 flex items-center space-x-2 rtl:space-x-reverse">
-                <SlidersHorizontal className="w-5 h-5 text-indigo-700" />
-                <CardTitle className="text-base font-semibold text-gray-700">
-                  {t.cards.ageAndHeight.title}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-4 md:p-6">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-5">
-                  <fieldset>
-                    <legend className="flex items-center gap-1.5 text-xs font-medium text-gray-600 mb-1.5">
-                      {t.cards.ageAndHeight.ageLegend}
-                      <TooltipProvider delayDuration={100}>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <button
-                              type="button"
-                              aria-describedby="age-range-tooltip"
-                            >
-                              <Info className="w-4 h-4 text-gray-400 hover:text-gray-600" />
-                            </button>
-                          </TooltipTrigger>
-                          <TooltipContent id="age-range-tooltip" side="top">
-                            <p>{t.cards.ageAndHeight.ageTooltip}</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    </legend>
-                    <div className="flex items-center gap-2">
-                      <Label htmlFor="preferredAgeMin" className="sr-only">
-                        {t.cards.ageAndHeight.ageMinPlaceholder}
-                      </Label>
-                      <Input
-                        id="preferredAgeMin"
-                        type="number"
-                        name="preferredAgeMin"
-                        placeholder={t.cards.ageAndHeight.ageMinPlaceholder}
-                        value={formData.preferredAgeMin ?? ''}
-                        onChange={handleInputChange}
-                        disabled={!isEditing}
-                        className="h-9 text-sm focus:ring-teal-500 disabled:bg-gray-100/70"
-                      />
-                      <span aria-hidden="true" className="text-gray-500">
-                        -
-                      </span>
-                      <Label htmlFor="preferredAgeMax" className="sr-only">
-                        {t.cards.ageAndHeight.ageMaxPlaceholder}
-                      </Label>
-                      <Input
-                        id="preferredAgeMax"
-                        type="number"
-                        name="preferredAgeMax"
-                        placeholder={t.cards.ageAndHeight.ageMaxPlaceholder}
-                        value={formData.preferredAgeMax ?? ''}
-                        onChange={handleInputChange}
-                        disabled={!isEditing}
-                        className="h-9 text-sm focus:ring-teal-500 disabled:bg-gray-100/70"
-                      />
-                    </div>
-                    {!isEditing &&
-                      !formData.preferredAgeMin &&
-                      !formData.preferredAgeMax && (
-                        <p className="text-xs text-gray-500 italic mt-1">
-                          {t.cards.ageAndHeight.ageEmpty}
-                        </p>
-                      )}
-                  </fieldset>
-                  <fieldset>
-                    <legend className="block mb-1.5 text-xs font-medium text-gray-600">
-                      {t.cards.ageAndHeight.heightLegend}
-                    </legend>
-                    <div className="flex items-center gap-2">
-                      <Label htmlFor="preferredHeightMin" className="sr-only">
-                        {t.cards.ageAndHeight.heightMinPlaceholder}
-                      </Label>
-                      <Input
-                        id="preferredHeightMin"
-                        type="number"
-                        name="preferredHeightMin"
-                        placeholder={t.cards.ageAndHeight.heightMinPlaceholder}
-                        value={formData.preferredHeightMin ?? ''}
-                        onChange={handleInputChange}
-                        disabled={!isEditing}
-                        className="h-9 text-sm focus:ring-teal-500 disabled:bg-gray-100/70"
-                      />
-                      <span aria-hidden="true" className="text-gray-500">
-                        -
-                      </span>
-                      <Label htmlFor="preferredHeightMax" className="sr-only">
-                        {t.cards.ageAndHeight.heightMaxPlaceholder}
-                      </Label>
-                      <Input
-                        id="preferredHeightMax"
-                        type="number"
-                        name="preferredHeightMax"
-                        placeholder={t.cards.ageAndHeight.heightMaxPlaceholder}
-                        value={formData.preferredHeightMax ?? ''}
-                        onChange={handleInputChange}
-                        disabled={!isEditing}
-                        className="h-9 text-sm focus:ring-teal-500 disabled:bg-gray-100/70"
-                      />
-                    </div>
-                    {!isEditing &&
-                      !formData.preferredHeightMin &&
-                      !formData.preferredHeightMax && (
-                        <p className="text-xs text-gray-500 italic mt-1">
-                          {t.cards.ageAndHeight.heightEmpty}
-                        </p>
-                      )}
-                  </fieldset>
-                </div>
-              </CardContent>
-            </Card>
+      {/* ======================= CARD GRID ======================= */}
+      <div className="container mx-auto max-w-screen-xl py-4 px-4 relative">
+        <div className="absolute top-0 end-0 w-72 h-72 bg-teal-200/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute bottom-0 start-0 w-64 h-64 bg-orange-200/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          {/* --- Column 1 --- */}
+          <div className="space-y-4">
+            <GeneralCard {...cardProps} />
+            <AgeHeightCard {...cardProps} />
           </div>
 
           {/* --- Column 2 --- */}
-          <div className="space-y-6">
-            <Card className="bg-white/80 backdrop-blur-md rounded-2xl shadow-lg border border-gray-200/40 overflow-hidden">
-              <CardHeader className="bg-gradient-to-r from-teal-50/40 to-orange-50/40 border-b border-gray-200/50 p-4 flex items-center space-x-2 rtl:space-x-reverse">
-                <MapPin className="w-5 h-5 text-teal-700" />
-                <CardTitle className="text-base font-semibold text-gray-700">
-                  {t.cards.locationAndReligion.title}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-4 md:p-6 space-y-6">
-                <div>
-                  <Label
-                    htmlFor="preferred-locations-input"
-                    className="block mb-2 text-xs font-medium text-gray-600"
-                  >
-                    {t.cards.locationAndReligion.locationsLabel}
-                  </Label>
-                  {isEditing ? (
-                    <div className="space-y-2">
-                      <div className="flex flex-wrap gap-1.5">
-                        {(formData.preferredLocations || []).map((loc) => (
-                          <Badge
-                            key={loc}
-                            variant="secondary"
-                            className="bg-teal-100 text-teal-800 rounded-full px-2 py-1 text-sm font-normal"
-                          >
-                            <span>{loc}</span>
-                            <button
-                              type="button"
-                              className="ltr:mr-1.5 rtl:ml-1.5 text-teal-600 hover:text-teal-900"
-                              onClick={() =>
-                                handleRemoveItemFromArray(
-                                  'preferredLocations',
-                                  loc
-                                )
-                              }
-                              aria-label={t.cards.locationAndReligion.locationsRemoveLabel.replace(
-                                '{{loc}}',
-                                loc
-                              )}
-                            >
-                              <XCircle className="w-3.5 h-3.5" />
-                            </button>
-                          </Badge>
-                        ))}
-                      </div>
-                      <Autocomplete
-                        id="preferred-locations-input"
-                        apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}
-                        value={locationInputValue}
-                        onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                          setLocationInputValue(e.target.value)
-                        }
-                        onPlaceSelected={(place) => {
-                          const cityComponent = place.address_components?.find(
-                            (component) => component.types.includes('locality')
-                          );
-                          const selectedCity =
-                            cityComponent?.long_name ||
-                            place.formatted_address ||
-                            '';
-                          handleAddItemToArray(
-                            'preferredLocations',
-                            selectedCity
-                          );
-                          setLocationInputValue('');
-                        }}
-                        options={{
-                          types: ['(cities)'],
-                          componentRestrictions: { country: 'il' },
-                        }}
-                        className="w-full h-9 text-sm p-2 border border-gray-300 rounded-md focus:ring-teal-500 focus:border-teal-500"
-                        placeholder={
-                          t.cards.locationAndReligion.locationsPlaceholder
-                        }
-                      />
-                    </div>
-                  ) : (
-                    <div className="mt-1 flex flex-wrap gap-1.5">
-                      {!formData.preferredLocations ||
-                      formData.preferredLocations.length === 0 ? (
-                        <p className="text-sm text-gray-500 italic">
-                          {t.cards.locationAndReligion.locationsEmpty}
-                        </p>
-                      ) : (
-                        formData.preferredLocations.map((loc) => (
-                          <Badge
-                            key={loc}
-                            variant="secondary"
-                            className="ltr:mr-1 rtl:ml-1 mb-1 bg-teal-100 text-teal-700 text-xs px-2 py-0.5 rounded-full"
-                          >
-                            {loc}
-                          </Badge>
-                        ))
-                      )}
-                    </div>
-                  )}
-                </div>
-                <fieldset>
-                  <legend className="flex items-center gap-1.5 text-xs font-medium text-gray-600 mb-2">
-                    {t.cards.locationAndReligion.religiousLevelsLegend}
-                    <TooltipProvider delayDuration={100}>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <button
-                            type="button"
-                            aria-describedby="religious-level-tooltip"
-                          >
-                            <Info className="w-4 h-4 text-gray-400 hover:text-gray-600" />
-                          </button>
-                        </TooltipTrigger>
-                        <TooltipContent
-                          id="religious-level-tooltip"
-                          side="top"
-                          className="max-w-xs text-center"
-                        >
-                          <p>
-                            {t.cards.locationAndReligion.religiousLevelsTooltip}
-                          </p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  </legend>
-                  {isEditing ? (
-                    <div className="flex flex-wrap gap-2">
-                      {religiousLevelOptions.map((level) => (
-                        <Button
-                          key={level.value}
-                          type="button"
-                          variant={
-                            (formData.preferredReligiousLevels || []).includes(
-                              level.value
-                            )
-                              ? 'default'
-                              : 'outline'
-                          }
-                          size="sm"
-                          onClick={() =>
-                            handleMultiSelectChange(
-                              'preferredReligiousLevels',
-                              level.value
-                            )
-                          }
-                          className={cn(
-                            'rounded-full text-xs px-3 py-1.5 transition-all',
-                            (formData.preferredReligiousLevels || []).includes(
-                              level.value
-                            )
-                              ? 'bg-pink-500 hover:bg-pink-600 text-white border-pink-500'
-                              : 'border-gray-300 text-gray-600 hover:bg-gray-50 hover:border-gray-400'
-                          )}
-                        >
-                          {level.label}
-                        </Button>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="mt-1 flex flex-wrap gap-1.5">
-                      {renderMultiSelectBadges(
-                        formData.preferredReligiousLevels,
-                        religiousLevelOptions,
-                        'bg-pink-100 text-pink-700',
-                        t.cards.locationAndReligion.religiousLevelsEmpty
-                      )}
-                    </div>
-                  )}
-                </fieldset>
-
-                <fieldset>
-                  <legend className="block mb-2 text-xs font-medium text-gray-600">
-                    {t.cards.locationAndReligion.religiousJourneysLegend}
-                  </legend>
-                  {isEditing ? (
-                    <div className="flex flex-wrap gap-2">
-                      {preferredReligiousJourneyOptions.map((opt) => (
-                        <Button
-                          key={opt.value}
-                          type="button"
-                          variant={
-                            (
-                              formData.preferredReligiousJourneys || []
-                            ).includes(opt.value as ReligiousJourney)
-                              ? 'default'
-                              : 'outline'
-                          }
-                          size="sm"
-                          onClick={() =>
-                            handleMultiSelectChange(
-                              'preferredReligiousJourneys',
-                              opt.value
-                            )
-                          }
-                          className={cn(
-                            'rounded-full text-xs px-3 py-1.5 transition-all',
-                            (
-                              formData.preferredReligiousJourneys || []
-                            ).includes(opt.value as ReligiousJourney)
-                              ? 'bg-teal-500 hover:bg-teal-600 text-white border-teal-500'
-                              : 'border-gray-300 text-gray-600 hover:bg-gray-50 hover:border-gray-400'
-                          )}
-                        >
-                          {opt.label}
-                        </Button>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="mt-1 flex flex-wrap gap-1.5">
-                      {renderMultiSelectBadges(
-                        formData.preferredReligiousJourneys as string[],
-                        preferredReligiousJourneyOptions,
-                        'bg-teal-100 text-teal-700',
-                        t.cards.locationAndReligion.religiousJourneysEmpty
-                      )}
-                    </div>
-                  )}
-                </fieldset>
-
-                <div>
-                  <Label
-                    htmlFor="preferredShomerNegiah"
-                    className="block mb-1.5 text-xs font-medium text-gray-600"
-                  >
-                    {t.cards.locationAndReligion.shomerNegiahLabel}
-                  </Label>
-                  {isEditing ? (
-                    <Select
-                      name="preferredShomerNegiah"
-                      value={formData.preferredShomerNegiah || ''}
-                      onValueChange={(value) =>
-                        handleSelectChange('preferredShomerNegiah', value)
-                      }
-                    >
-                      <SelectTrigger
-                        id="preferredShomerNegiah"
-                        className="h-9 text-sm focus:ring-teal-500"
-                      >
-                        <SelectValue
-                          placeholder={
-                            t.cards.locationAndReligion.shomerNegiahPlaceholder
-                          }
-                        />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {preferredShomerNegiahOptions.map((opt) => (
-                          <SelectItem key={opt.value} value={opt.value}>
-                            {opt.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  ) : (
-                    <p className="text-sm text-gray-800 font-medium mt-1">
-                      {getSelectDisplayValue(
-                        formData.preferredShomerNegiah,
-                        preferredShomerNegiahOptions,
-                        ''
-                      )}
-                    </p>
-                  )}
-                </div>
-
-                {/* העדפת עישון */}
-                <div>
-                  <Label
-                    htmlFor="preferredSmokingStatus"
-                    className="block mb-1.5 text-xs font-medium text-gray-600"
-                  >
-                    {t.cards.locationAndReligion.smokingPreferenceLabel}
-                  </Label>
-                  {isEditing ? (
-                    <Select
-                      name="preferredSmokingStatus"
-                      value={formData.preferredSmokingStatus || ''}
-                      onValueChange={(value) =>
-                        handleSelectChange('preferredSmokingStatus', value)
-                      }
-                    >
-                      <SelectTrigger
-                        id="preferredSmokingStatus"
-                        className="h-9 text-sm focus:ring-teal-500"
-                      >
-                        <SelectValue
-                          placeholder={
-                            t.cards.locationAndReligion.smokingPreferencePlaceholder
-                          }
-                        />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {preferredSmokingStatusOptions.map((opt) => (
-                          <SelectItem key={opt.value} value={opt.value}>
-                            {opt.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  ) : (
-                    <p className="text-sm text-gray-800 font-medium mt-1">
-                      {getSelectDisplayValue(
-                        formData.preferredSmokingStatus,
-                        preferredSmokingStatusOptions,
-                        t.cards.locationAndReligion.smokingPreferenceEmpty
-                      )}
-                    </p>
-                  )}
-                </div>
-
-                {profile?.gender === Gender.MALE && (
-                  <fieldset>
-                    <legend className="block mb-2 text-xs font-medium text-gray-600">
-                      {t.cards.locationAndReligion.headCoveringLegend}
-                    </legend>
-                    {isEditing ? (
-                      <div className="flex flex-wrap gap-2">
-                        {headCoveringOptions.map((opt) => (
-                          <Button
-                            key={opt.value}
-                            type="button"
-                            variant={
-                              (formData.preferredHeadCoverings || []).includes(
-                                opt.value as HeadCoveringType
-                              )
-                                ? 'default'
-                                : 'outline'
-                            }
-                            size="sm"
-                            onClick={() =>
-                              handleMultiSelectChange(
-                                'preferredHeadCoverings',
-                                opt.value as HeadCoveringType
-                              )
-                            }
-                            className={cn(
-                              'rounded-full text-xs px-3 py-1.5 transition-all',
-                              (formData.preferredHeadCoverings || []).includes(
-                                opt.value as HeadCoveringType
-                              )
-                                ? 'bg-purple-500 hover:bg-purple-600 text-white border-purple-500'
-                                : 'border-gray-300 text-gray-600 hover:bg-gray-50 hover:border-gray-400'
-                            )}
-                          >
-                            {opt.label}
-                          </Button>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="mt-1 flex flex-wrap gap-1.5">
-                        {renderMultiSelectBadges(
-                          formData.preferredHeadCoverings as string[],
-                          headCoveringOptions,
-                          'bg-purple-100 text-purple-700',
-                          t.cards.locationAndReligion.headCoveringEmpty
-                        )}
-                      </div>
-                    )}
-                  </fieldset>
-                )}
-                {profile?.gender === Gender.FEMALE && (
-                  <fieldset>
-                    <legend className="block mb-2 text-xs font-medium text-gray-600">
-                      {t.cards.locationAndReligion.kippahTypeLegend}
-                    </legend>
-                    {isEditing ? (
-                      <div className="flex flex-wrap gap-2">
-                        {kippahTypeOptions.map((opt) => (
-                          <Button
-                            key={opt.value}
-                            type="button"
-                            variant={
-                              (formData.preferredKippahTypes || []).includes(
-                                opt.value as KippahType
-                              )
-                                ? 'default'
-                                : 'outline'
-                            }
-                            size="sm"
-                            onClick={() =>
-                              handleMultiSelectChange(
-                                'preferredKippahTypes',
-                                opt.value as KippahType
-                              )
-                            }
-                            className={cn(
-                              'rounded-full text-xs px-3 py-1.5 transition-all',
-                              (formData.preferredKippahTypes || []).includes(
-                                opt.value as KippahType
-                              )
-                                ? 'bg-orange-500 hover:bg-orange-600 text-white border-orange-500'
-                                : 'border-gray-300 text-gray-600 hover:bg-gray-50 hover:border-gray-400'
-                            )}
-                          >
-                            {opt.label}
-                          </Button>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="mt-1 flex flex-wrap gap-1.5">
-                        {renderMultiSelectBadges(
-                          formData.preferredKippahTypes as string[],
-                          kippahTypeOptions,
-                          'bg-orange-100 text-orange-700',
-                          t.cards.locationAndReligion.kippahTypeEmpty
-                        )}
-                      </div>
-                    )}
-                  </fieldset>
-                )}
-              </CardContent>
-            </Card>
-            <Card className="bg-white/80 backdrop-blur-md rounded-2xl shadow-lg border border-gray-200/40 overflow-hidden">
-              <CardHeader className="bg-gradient-to-r from-teal-50/40 to-green-50/40 border-b border-gray-200/50 p-4 flex items-center space-x-2 rtl:space-x-reverse">
-                <GraduationCap className="w-5 h-5 text-teal-700" />
-                <CardTitle className="text-base font-semibold text-gray-700">
-                  {t.cards.educationAndCareer.title}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-4 md:p-6 space-y-6">
-                <fieldset>
-                  <legend className="block mb-2 text-xs font-medium text-gray-600">
-                    {t.cards.educationAndCareer.educationLegend}
-                  </legend>
-                  {isEditing ? (
-                    <div className="flex flex-wrap gap-2">
-                      {educationPreferenceOptions.map((edu) => (
-                        <Button
-                          key={edu.value}
-                          type="button"
-                          variant={
-                            (formData.preferredEducation || []).includes(
-                              edu.value
-                            )
-                              ? 'default'
-                              : 'outline'
-                          }
-                          size="sm"
-                          onClick={() =>
-                            handleMultiSelectChange(
-                              'preferredEducation',
-                              edu.value
-                            )
-                          }
-                          className={cn(
-                            'rounded-full text-xs px-3 py-1.5 transition-all',
-                            (formData.preferredEducation || []).includes(
-                              edu.value
-                            )
-                              ? 'bg-teal-500 hover:bg-teal-600 text-white border-teal-500'
-                              : 'border-gray-300 text-gray-600 hover:bg-gray-50 hover:border-gray-400'
-                          )}
-                        >
-                          {edu.label}
-                        </Button>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="mt-1 flex flex-wrap gap-1.5">
-                      {renderMultiSelectBadges(
-                        formData.preferredEducation,
-                        educationPreferenceOptions,
-                        'bg-teal-100 text-teal-700',
-                        t.cards.educationAndCareer.educationEmpty
-                      )}
-                    </div>
-                  )}
-                </fieldset>
-                <fieldset>
-                  <legend className="block mb-2 text-xs font-medium text-gray-600">
-                    {t.cards.educationAndCareer.occupationLegend}
-                  </legend>
-                  {isEditing ? (
-                    <div className="flex flex-wrap gap-2">
-                      {occupationPreferenceOptions.map((occ) => (
-                        <Button
-                          key={occ.value}
-                          type="button"
-                          variant={
-                            (formData.preferredOccupations || []).includes(
-                              occ.value
-                            )
-                              ? 'default'
-                              : 'outline'
-                          }
-                          size="sm"
-                          onClick={() =>
-                            handleMultiSelectChange(
-                              'preferredOccupations',
-                              occ.value
-                            )
-                          }
-                          className={cn(
-                            'rounded-full text-xs px-3 py-1.5 transition-all',
-                            (formData.preferredOccupations || []).includes(
-                              occ.value
-                            )
-                              ? 'bg-green-500 hover:bg-green-600 text-white border-green-500'
-                              : 'border-gray-300 text-gray-600 hover:bg-gray-50 hover:border-gray-400'
-                          )}
-                        >
-                          {occ.label}
-                        </Button>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="mt-1 flex flex-wrap gap-1.5">
-                      {renderMultiSelectBadges(
-                        formData.preferredOccupations,
-                        occupationPreferenceOptions,
-                        'bg-green-100 text-green-700',
-                        t.cards.educationAndCareer.occupationEmpty
-                      )}
-                    </div>
-                  )}
-                </fieldset>
-                <fieldset>
-                  <legend className="block mb-2 text-xs font-medium text-gray-600">
-                    {t.cards.educationAndCareer.serviceTypeLegend}
-                  </legend>
-                  {isEditing ? (
-                    <div className="flex flex-wrap gap-2">
-                      {serviceTypeOptions.map((opt) => (
-                        <Button
-                          key={opt.value}
-                          type="button"
-                          variant={
-                            (formData.preferredServiceTypes || []).includes(
-                              opt.value as ServiceType
-                            )
-                              ? 'default'
-                              : 'outline'
-                          }
-                          size="sm"
-                          onClick={() =>
-                            handleMultiSelectChange(
-                              'preferredServiceTypes',
-                              opt.value as ServiceType
-                            )
-                          }
-                          className={cn(
-                            'rounded-full text-xs px-3 py-1.5 transition-all',
-                            (formData.preferredServiceTypes || []).includes(
-                              opt.value as ServiceType
-                            )
-                              ? 'bg-lime-500 hover:bg-lime-600 text-white border-lime-500'
-                              : 'border-gray-300 text-gray-600 hover:bg-gray-50 hover:border-gray-400'
-                          )}
-                        >
-                          {opt.label}
-                        </Button>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="mt-1 flex flex-wrap gap-1.5">
-                      {renderMultiSelectBadges(
-                        formData.preferredServiceTypes as string[],
-                        serviceTypeOptions,
-                        'bg-lime-100 text-lime-700',
-                        t.cards.educationAndCareer.serviceTypeEmpty
-                      )}
-                    </div>
-                  )}
-                </fieldset>
-              </CardContent>
-            </Card>
+          <div className="space-y-4">
+            <LocationReligionCard {...cardProps} />
+            <EducationCareerCard {...cardProps} />
           </div>
 
           {/* --- Column 3 --- */}
-          <div className="space-y-6">
-            <Card className="bg-white/80 backdrop-blur-md rounded-2xl shadow-lg border border-gray-200/40 overflow-hidden">
-              <CardHeader className="bg-gradient-to-r from-rose-50/40 to-fuchsia-50/40 border-b border-gray-200/50 p-4 flex items-center space-x-2 rtl:space-x-reverse">
-                <Users className="w-5 h-5 text-rose-700" />
-                <CardTitle className="text-base font-semibold text-gray-700">
-                  {t.cards.personalBackground.title}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-4 md:p-6 space-y-6">
-                <fieldset>
-                  <legend className="block mb-2 text-xs font-medium text-gray-600">
-                    {t.cards.personalBackground.maritalStatusLegend}
-                  </legend>
-                  {isEditing ? (
-                    <div className="flex flex-wrap gap-2">
-                      {maritalStatusOptions.map((opt) => (
-                        <Button
-                          key={opt.value}
-                          type="button"
-                          variant={
-                            (formData.preferredMaritalStatuses || []).includes(
-                              opt.value
-                            )
-                              ? 'default'
-                              : 'outline'
-                          }
-                          size="sm"
-                          onClick={() =>
-                            handleMultiSelectChange(
-                              'preferredMaritalStatuses',
-                              opt.value
-                            )
-                          }
-                          className={cn(
-                            'rounded-full text-xs px-3 py-1.5 transition-all',
-                            (formData.preferredMaritalStatuses || []).includes(
-                              opt.value
-                            )
-                              ? 'bg-rose-500 hover:bg-rose-600 text-white border-rose-500'
-                              : 'border-gray-300 text-gray-600 hover:bg-gray-50 hover:border-gray-400'
-                          )}
-                        >
-                          {opt.label}
-                        </Button>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="mt-1 flex flex-wrap gap-1.5">
-                      {renderMultiSelectBadges(
-                        formData.preferredMaritalStatuses,
-                        maritalStatusOptions,
-                        'bg-rose-100 text-rose-700',
-                        t.cards.personalBackground.maritalStatusEmpty
-                      )}
-                    </div>
-                  )}
-                </fieldset>
-                <div>
-                  <Label
-                    htmlFor="preferredPartnerHasChildren"
-                    className="block mb-1.5 text-xs font-medium text-gray-600"
-                  >
-                    {t.cards.personalBackground.partnerHasChildrenLabel}
-                  </Label>
-                  {isEditing ? (
-                    <Select
-                      name="preferredPartnerHasChildren"
-                      value={formData.preferredPartnerHasChildren || ''}
-                      onValueChange={(value) =>
-                        handleSelectChange('preferredPartnerHasChildren', value)
-                      }
-                    >
-                      <SelectTrigger
-                        id="preferredPartnerHasChildren"
-                        className="h-9 text-sm focus:ring-teal-500"
-                      >
-                        <SelectValue
-                          placeholder={
-                            t.cards.personalBackground
-                              .partnerHasChildrenPlaceholder
-                          }
-                        />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {preferredPartnerHasChildrenOptions.map((opt) => (
-                          <SelectItem key={opt.value} value={opt.value}>
-                            {opt.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  ) : (
-                    <p className="text-sm text-gray-800 font-medium mt-1">
-                      {getSelectDisplayValue(
-                        formData.preferredPartnerHasChildren,
-                        preferredPartnerHasChildrenOptions,
-                        ''
-                      )}
-                    </p>
-                  )}
-                </div>
-                <fieldset>
-                  <legend className="block mb-2 text-xs font-medium text-gray-600">
-                    {t.cards.personalBackground.originLegend}
-                  </legend>
-                  {isEditing ? (
-                    <div className="space-y-3">
-                      <div className="flex flex-wrap gap-2">
-                        {preferredOriginOptions.map((opt) => (
-                          <Button
-                            key={opt.value}
-                            type="button"
-                            variant={
-                              (formData.preferredOrigins || []).includes(
-                                opt.value
-                              )
-                                ? 'default'
-                                : 'outline'
-                            }
-                            size="sm"
-                            onClick={() =>
-                              handleMultiSelectChange(
-                                'preferredOrigins',
-                                opt.value
-                              )
-                            }
-                            className={cn(
-                              'rounded-full text-xs px-3 py-1.5 transition-all',
-                              (formData.preferredOrigins || []).includes(
-                                opt.value
-                              )
-                                ? 'bg-fuchsia-500 hover:bg-fuchsia-600 text-white border-fuchsia-500'
-                                : 'border-gray-300 text-gray-600 hover:bg-gray-50 hover:border-gray-400'
-                            )}
-                          >
-                            {opt.label}
-                          </Button>
-                        ))}
-                      </div>
-                      <div className="space-y-2">
-                        <div className="flex flex-wrap gap-1.5">
-                          {(formData.preferredOrigins || [])
-                            .filter(
-                              (origin) =>
-                                !preferredOriginOptions.some(
-                                  (opt) => opt.value === origin
-                                )
-                            )
-                            .map((origin) => (
-                              <Badge
-                                key={origin}
-                                variant="secondary"
-                                className="bg-fuchsia-100 text-fuchsia-800 rounded-full px-2 py-1 text-sm font-normal"
-                              >
-                                <span>{origin}</span>
-                                <button
-                                  type="button"
-                                  className="ltr:mr-1.5 rtl:ml-1.5 text-fuchsia-600 hover:text-fuchsia-900"
-                                  onClick={() =>
-                                    handleRemoveItemFromArray(
-                                      'preferredOrigins',
-                                      origin
-                                    )
-                                  }
-                                  aria-label={t.cards.personalBackground.originRemoveLabel.replace(
-                                    '{{origin}}',
-                                    origin
-                                  )}
-                                >
-                                  <XCircle className="w-3.5 h-3.5" />
-                                </button>
-                              </Badge>
-                            ))}
-                        </div>
-                        <Label
-                          htmlFor="preferred-origins-input"
-                          className="sr-only"
-                        >
-                          {t.cards.personalBackground.originPlaceholder}
-                        </Label>
-                        <Autocomplete
-                          id="preferred-origins-input"
-                          apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}
-                          value={originInputValue}
-                          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                            setOriginInputValue(e.target.value)
-                          }
-                          onPlaceSelected={(place) => {
-                            const countryComponent =
-                              place.address_components?.find((component) =>
-                                component.types.includes('country')
-                              );
-                            const selectedCountry =
-                              countryComponent?.long_name ||
-                              place.formatted_address ||
-                              '';
-                            handleAddItemToArray(
-                              'preferredOrigins',
-                              selectedCountry
-                            );
-                            setOriginInputValue('');
-                          }}
-                          options={{ types: ['country'] }}
-                          className="w-full h-9 text-sm p-2 border border-gray-300 rounded-md focus:ring-teal-500 focus:border-teal-500"
-                          placeholder={
-                            t.cards.personalBackground.originPlaceholder
-                          }
-                        />
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="mt-1 flex flex-wrap gap-1.5">
-                      {!formData.preferredOrigins ||
-                      formData.preferredOrigins.length === 0 ? (
-                        <p className="text-sm text-gray-500 italic">
-                          {t.cards.personalBackground.originEmpty}
-                        </p>
-                      ) : (
-                        formData.preferredOrigins.map((originValue) => {
-                          const option = preferredOriginOptions.find(
-                            (opt) => opt.value === originValue
-                          );
-                          const label = option ? option.label : originValue;
-                          return (
-                            <Badge
-                              key={originValue}
-                              variant="secondary"
-                              className="ltr:mr-1 rtl:ml-1 mb-1 bg-fuchsia-100 text-fuchsia-700 text-xs px-2 py-0.5 rounded-full"
-                            >
-                              {label}
-                            </Badge>
-                          );
-                        })
-                      )}
-                    </div>
-                  )}
-                </fieldset>
-                <div>
-                  <Label
-                    htmlFor="preferredAliyaStatus"
-                    className="block mb-1.5 text-xs font-medium text-gray-600"
-                  >
-                    {t.cards.personalBackground.aliyaStatusLabel}
-                  </Label>
-                  {isEditing ? (
-                    <Select
-                      name="preferredAliyaStatus"
-                      value={formData.preferredAliyaStatus || ''}
-                      onValueChange={(value) =>
-                        handleSelectChange('preferredAliyaStatus', value)
-                      }
-                    >
-                      <SelectTrigger
-                        id="preferredAliyaStatus"
-                        className="h-9 text-sm focus:ring-teal-500"
-                      >
-                        <SelectValue
-                          placeholder={
-                            t.cards.personalBackground.aliyaStatusPlaceholder
-                          }
-                        />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {preferredAliyaStatusOptions.map((opt) => (
-                          <SelectItem key={opt.value} value={opt.value}>
-                            {opt.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  ) : (
-                    <p className="text-sm text-gray-800 font-medium mt-1">
-                      {getSelectDisplayValue(
-                        formData.preferredAliyaStatus,
-                        preferredAliyaStatusOptions,
-                        ''
-                      )}
-                    </p>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-            <Card className="bg-white/80 backdrop-blur-md rounded-2xl shadow-lg border border-gray-200/40 overflow-hidden">
-              <CardHeader className="bg-gradient-to-r from-amber-50/40 to-yellow-50/40 border-b border-gray-200/50 p-4 flex items-center space-x-2 rtl:space-x-reverse">
-                <Sparkles className="w-5 h-5 text-amber-700" />
-                <CardTitle className="text-base font-semibold text-gray-700">
-                  {t.cards.characterAndInterests.title}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-4 md:p-6 space-y-6">
-                <fieldset>
-                  <legend className="block mb-2 text-xs font-medium text-gray-600">
-                    {t.cards.characterAndInterests.traitsLegend}
-                  </legend>
-                  {isEditing ? (
-                    <div className="flex flex-wrap gap-2">
-                      {characterTraitsOptions.map((opt) => (
-                        <Button
-                          key={opt.value}
-                          type="button"
-                          variant={
-                            (formData.preferredCharacterTraits || []).includes(
-                              opt.value
-                            )
-                              ? 'default'
-                              : 'outline'
-                          }
-                          size="sm"
-                          onClick={() =>
-                            handleMultiSelectChange(
-                              'preferredCharacterTraits',
-                              opt.value
-                            )
-                          }
-                          disabled={
-                            !viewOnly &&
-                            (formData.preferredCharacterTraits || []).length >=
-                              3 &&
-                            !(formData.preferredCharacterTraits || []).includes(
-                              opt.value
-                            ) &&
-                            opt.value !== 'no_strong_preference'
-                          }
-                          className={cn(
-                            'rounded-full text-xs px-3 py-1.5 transition-all flex items-center',
-                            (formData.preferredCharacterTraits || []).includes(
-                              opt.value
-                            )
-                              ? 'bg-yellow-500 hover:bg-yellow-600 text-white border-yellow-500'
-                              : 'border-gray-300 text-gray-600 hover:bg-gray-50 hover:border-gray-400'
-                          )}
-                        >
-                          {opt.icon && (
-                            <opt.icon className="w-3.5 h-3.5 ltr:mr-1.5 rtl:ml-1.5" />
-                          )}
-                          {opt.label}
-                        </Button>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="mt-1 flex flex-wrap gap-1.5">
-                      {renderMultiSelectBadges(
-                        formData.preferredCharacterTraits,
-                        characterTraitsOptions,
-                        'bg-yellow-100 text-yellow-700',
-                        t.cards.characterAndInterests.traitsEmpty
-                      )}
-                    </div>
-                  )}
-                </fieldset>
-                <fieldset>
-                  <legend className="block mb-2 text-xs font-medium text-gray-600">
-                    {t.cards.characterAndInterests.hobbiesLegend}
-                  </legend>
-                  {isEditing ? (
-                    <div className="flex flex-wrap gap-2">
-                      {hobbiesOptions.map((opt) => (
-                        <Button
-                          key={opt.value}
-                          type="button"
-                          variant={
-                            (formData.preferredHobbies || []).includes(
-                              opt.value
-                            )
-                              ? 'default'
-                              : 'outline'
-                          }
-                          size="sm"
-                          onClick={() =>
-                            handleMultiSelectChange(
-                              'preferredHobbies',
-                              opt.value
-                            )
-                          }
-                          disabled={
-                            !viewOnly &&
-                            (formData.preferredHobbies || []).length >= 3 &&
-                            !(formData.preferredHobbies || []).includes(
-                              opt.value
-                            ) &&
-                            opt.value !== 'no_strong_preference'
-                          }
-                          className={cn(
-                            'rounded-full text-xs px-3 py-1.5 transition-all flex items-center',
-                            (formData.preferredHobbies || []).includes(
-                              opt.value
-                            )
-                              ? 'bg-amber-500 hover:bg-amber-600 text-white border-amber-500'
-                              : 'border-gray-300 text-gray-600 hover:bg-gray-50 hover:border-gray-400'
-                          )}
-                        >
-                          {opt.icon && (
-                            <opt.icon className="w-3.5 h-3.5 ltr:mr-1.5 rtl:ml-1.5" />
-                          )}
-                          {opt.label}
-                        </Button>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="mt-1 flex flex-wrap gap-1.5">
-                      {renderMultiSelectBadges(
-                        formData.preferredHobbies,
-                        hobbiesOptions,
-                        'bg-amber-100 text-amber-700',
-                        t.cards.characterAndInterests.hobbiesEmpty
-                      )}
-                    </div>
-                  )}
-                </fieldset>
-              </CardContent>
-            </Card>
-
-            {/* ===== כרטיס העדפות מראה ===== */}
-            <Card className="bg-white/80 backdrop-blur-md rounded-2xl shadow-lg border border-gray-200/40 overflow-hidden">
-              <CardHeader className="bg-gradient-to-r from-purple-50/40 to-pink-50/40 border-b border-gray-200/50 p-4 flex items-center space-x-2 rtl:space-x-reverse">
-                <Palette className="w-5 h-5 text-purple-600" />
-                <CardTitle className="text-base font-semibold text-gray-700">
-                  {t.cards.appearancePreferences.title}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-4 md:p-6 space-y-6">
-
-                {/* גזרה מועדפת */}
-                <fieldset>
-                  <legend className="block mb-2 text-xs font-medium text-gray-600">
-                    {t.cards.appearancePreferences.bodyTypeLegend}
-                  </legend>
-                  {isEditing ? (
-                    <div className="flex flex-wrap gap-2">
-                      {Object.entries(t.options.bodyType).map(([value, label]) => (
-                        <Button
-                          key={value}
-                          type="button"
-                          variant={(formData.preferredBodyTypes || []).includes(value as BodyType) ? 'default' : 'outline'}
-                          size="sm"
-                          onClick={() => handleMultiSelectChange('preferredBodyTypes', value)}
-                          className="text-xs rounded-full"
-                        >
-                          {label as string}
-                        </Button>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="flex flex-wrap gap-1.5 mt-1">
-                      {(formData.preferredBodyTypes || []).length > 0 ? (
-                        (formData.preferredBodyTypes || []).map((v) => (
-                          <Badge key={v} variant="secondary" className="text-xs">
-                            {(t.options.bodyType as Record<string, string>)[v] || v}
-                          </Badge>
-                        ))
-                      ) : (
-                        <p className="text-sm text-gray-500">{t.cards.appearancePreferences.bodyTypeEmpty}</p>
-                      )}
-                    </div>
-                  )}
-                </fieldset>
-
-                {/* טון מראה מועדף */}
-                <fieldset>
-                  <legend className="block mb-2 text-xs font-medium text-gray-600">
-                    {t.cards.appearancePreferences.appearanceToneLegend}
-                  </legend>
-                  {isEditing ? (
-                    <div className="flex flex-wrap gap-2">
-                      {Object.entries(t.options.appearanceTone).map(([value, label]) => (
-                        <Button
-                          key={value}
-                          type="button"
-                          variant={(formData.preferredAppearanceTones || []).includes(value as AppearanceTone) ? 'default' : 'outline'}
-                          size="sm"
-                          onClick={() => handleMultiSelectChange('preferredAppearanceTones', value)}
-                          className="text-xs rounded-full"
-                        >
-                          {label as string}
-                        </Button>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="flex flex-wrap gap-1.5 mt-1">
-                      {(formData.preferredAppearanceTones || []).length > 0 ? (
-                        (formData.preferredAppearanceTones || []).map((v) => (
-                          <Badge key={v} variant="secondary" className="text-xs">
-                            {(t.options.appearanceTone as Record<string, string>)[v] || v}
-                          </Badge>
-                        ))
-                      ) : (
-                        <p className="text-sm text-gray-500">{t.cards.appearancePreferences.appearanceToneEmpty}</p>
-                      )}
-                    </div>
-                  )}
-                </fieldset>
-
-                {/* סגנון טיפוח מועדף */}
-                <fieldset>
-                  <legend className="block mb-2 text-xs font-medium text-gray-600">
-                    {t.cards.appearancePreferences.groomingStyleLegend}
-                  </legend>
-                  {isEditing ? (
-                    <div className="flex flex-wrap gap-2">
-                      {Object.entries(t.options.groomingStyle).map(([value, label]) => (
-                        <Button
-                          key={value}
-                          type="button"
-                          variant={(formData.preferredGroomingStyles || []).includes(value as GroomingStyle) ? 'default' : 'outline'}
-                          size="sm"
-                          onClick={() => handleMultiSelectChange('preferredGroomingStyles', value)}
-                          className="text-xs rounded-full"
-                        >
-                          {label as string}
-                        </Button>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="flex flex-wrap gap-1.5 mt-1">
-                      {(formData.preferredGroomingStyles || []).length > 0 ? (
-                        (formData.preferredGroomingStyles || []).map((v) => (
-                          <Badge key={v} variant="secondary" className="text-xs">
-                            {(t.options.groomingStyle as Record<string, string>)[v] || v}
-                          </Badge>
-                        ))
-                      ) : (
-                        <p className="text-sm text-gray-500">{t.cards.appearancePreferences.groomingStyleEmpty}</p>
-                      )}
-                    </div>
-                  )}
-                </fieldset>
-
-              </CardContent>
-            </Card>
-
+          <div className="space-y-4">
+            <PersonalBackgroundCard {...cardProps} />
+            <CharacterInterestsCard {...cardProps} />
+            <AppearancePreferencesCard {...cardProps} />
           </div>
         </div>
       </div>
 
-      {/* ======================= START: FLOATING ACTION BUTTON (PORTAL) ======================= */}
-      {!viewOnly &&
-        mounted &&
-        createPortal(
-          // 1. מעטפת ראשית שממוקמת בתחתית המסך לרוחב מלא
-          // pointer-events-none: מאפשר ללחוץ דרך האזורים הריקים
-          <div className="fixed bottom-0 left-0 right-0 z-[9999] flex justify-center pointer-events-none">
-            {/* 2. קונטיינר פנימי שמגביל את הרוחב לרוחב התוכן באתר */}
-            <div className="w-full max-w-screen-xl px-4 relative h-0">
-              <AnimatePresence>
-                {showFloatingBtn && (
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0 }}
-                    transition={{
-                      type: 'spring',
-                      stiffness: 260,
-                      damping: 20,
-                    }}
-                    // 3. מיקום אבסולוטי בתוך הקונטיינר, ללא md:hidden
-                    // pointer-events-auto: מאפשר לחיצה על הכפתור עצמו
-                    className="absolute bottom-24 left-4 pointer-events-auto"
-                  >
-                    <Button
-                      onClick={
-                        isEditing ? handleSave : () => setIsEditing(true)
-                      }
-                      className={cn(
-                        'h-14 w-14 rounded-full shadow-lg hover:shadow-xl',
-                        // שומר על צבעי ה-Cyan כפי שביקשת לקונסיסטנטיות עם הפרופיל
-                        'bg-gradient-to-br from-cyan-500 to-cyan-600 hover:from-cyan-600 hover:to-cyan-700',
-                        'transition-all duration-300 ease-out',
-                        'hover:scale-110 active:scale-95',
-                        'flex items-center justify-center',
-                        'ring-4 ring-cyan-200/50'
-                      )}
-                      aria-label={isEditing ? t.buttons.save : t.buttons.edit}
-                    >
-                      {isEditing ? (
-                        <Save className="w-6 h-6 text-white" />
-                      ) : (
-                        <Pencil className="w-6 h-6 text-white" />
-                      )}
-                    </Button>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-          </div>,
-          document.body
-        )}
-      {/* ======================= END: FLOATING ACTION BUTTON ======================= */}
-      {/* ======================= START: ALWAYS VISIBLE STICKY FOOTER ======================= */}
+      {/* Floating Action Button */}
       {!viewOnly && (
-        <div className="fixed bottom-16 md:bottom-0 left-0 right-0 z-20 border-t border-gray-200/80 bg-white/95 backdrop-blur-md shadow-[0_-4px_20px_-5px_rgba(0,0,0,0.12)]">
-          <div className="container mx-auto max-w-screen-xl px-4 py-3 sm:py-4">
-            <div className="flex items-center justify-between gap-3">
-              {isEditing ? (
-                <>
-                  <div className="hidden sm:flex items-center gap-2 text-sm text-amber-600">
-                    <div className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
-                    <span>
-                      {t.buttons.unsavedChanges || 'יש שינויים שלא נשמרו'}
-                    </span>
-                  </div>
-
-                  <div className="sm:hidden flex-1" />
-
-                  <div className="flex items-center gap-3">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={handleCancel}
-                      className="rounded-full shadow-sm hover:shadow-md transition-all duration-300 border-gray-300 text-gray-700 hover:bg-gray-50 px-5 sm:px-6 py-2"
-                    >
-                      <X className="w-4 h-4 ms-1.5" />
-                      {t.buttons.cancel}
-                    </Button>
-                    {/* ✨ עדכון צבע הכפתור התחתון ל-Cyan כדי להתאים לקונסיסטנטיות, או להשאיר Teal לפי העיצוב הכללי. כאן שמרתי על Teal כי זה העיצוב של הדף, אבל אפשר לשנות ל-Cyan אם רוצים זהות מוחלטת */}
-                    <Button
-                      variant="default"
-                      size="sm"
-                      onClick={handleSave}
-                      className="rounded-full shadow-sm hover:shadow-md transition-all duration-300 bg-gradient-to-r from-teal-500 to-orange-500 hover:from-teal-600 hover:to-orange-600 text-white px-5 sm:px-6 py-2"
-                    >
-                      <Save className="w-4 h-4 ms-1.5" />
-                      {t.buttons.saveChanges || 'שמירת שינויים'}
-                    </Button>
-                  </div>
-                </>
-              ) : (
-                <>
-                  <div className="hidden sm:flex items-center gap-2 text-sm text-slate-500">
-                    <span>{t.buttons.editHint || 'רוצה לעדכן העדפות?'}</span>
-                  </div>
-
-                  <div className="sm:hidden flex-1" />
-
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setIsEditing(true)}
-                    className="rounded-full shadow-sm hover:shadow-md transition-all duration-300 border-teal-400 text-teal-700 hover:bg-teal-50 px-6 py-2"
-                  >
-                    <Pencil className="w-4 h-4 ms-1.5" />
-                    {t.buttons.edit}
-                  </Button>
-                </>
-              )}
-            </div>
-          </div>
-        </div>
+        <FloatingActionButton
+          isEditing={isEditing}
+          onSave={handleSave}
+          onEdit={() => setIsEditing(true)}
+          mounted={mounted}
+          visible={showFloatingBtn}
+          saveLabel={t.buttons.save}
+          editLabel={t.buttons.edit}
+        />
       )}
-      {/* ======================= END: ALWAYS VISIBLE STICKY FOOTER ======================= */}
 
-      {!viewOnly && <div className="h-16 sm:h-20" />}
+      {/* Sticky Footer */}
+      {!viewOnly && (
+        <StickyActionFooter
+          isEditing={isEditing}
+          onSave={handleSave}
+          onCancel={handleCancel}
+          onEdit={() => setIsEditing(true)}
+          buttons={t.buttons}
+          saveClassName="bg-gradient-to-r from-teal-500 to-orange-500 hover:from-teal-600 hover:to-orange-600 text-white"
+          editClassName="border-teal-400 text-teal-700 hover:bg-teal-50"
+        />
+      )}
     </div>
   );
 };

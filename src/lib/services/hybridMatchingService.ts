@@ -1391,7 +1391,8 @@ async function tier3AIFirstPass(
     backgroundProfile: BackgroundProfile;
     metrics: ExtendedMetrics;
   },
-  maxOutput: number
+  maxOutput: number,
+  preferenceSummary?: string | null
 ): Promise<{ candidates: AIFirstPassCandidate[]; stats: AICallStats['tier3FirstPass'] }> {
   
   const model = await getGeminiModel();
@@ -1435,7 +1436,7 @@ async function tier3AIFirstPass(
     const batchEnd = Math.min(batchStart + AI_BATCH_SIZE, candidatesForAI.length);
     const batch = candidatesForAI.slice(batchStart, batchEnd);
     
-    const prompt = generateEnhancedFirstPassPrompt(targetProfile, batch, batchIdx + 1, totalBatches);
+    const prompt = generateEnhancedFirstPassPrompt(targetProfile, batch, batchIdx + 1, totalBatches, preferenceSummary);
     
     // 🆕 V2.3: Estimate tokens (rough: ~4 chars per token)
     stats.totalTokensEstimated += Math.ceil(prompt.length / 4);
@@ -1521,7 +1522,8 @@ function generateEnhancedFirstPassPrompt(
   },
   candidates: ScoredCandidate[],
   batchNum: number,
-  totalBatches: number
+  totalBatches: number,
+  preferenceSummary?: string | null
 ): string {
   
   const dealBreakersSection = targetProfile.metrics.aiInferredDealBreakers?.length
@@ -1653,7 +1655,13 @@ ${candidatesText}
 ⚠️ בדוק התאמת רקע - עולה חדש עם צבר זה אתגר משמעותי
 ⚠️ התייחס להנחיות השדכן אם קיימות
 ⚠️ נמק בקצרה (משפט אחד)
-
+${preferenceSummary ? `
+═══════════════════════════════════════
+📊 למידה מהיסטוריית תגובות המשתמש:
+═══════════════════════════════════════
+${preferenceSummary}
+⚠️ שקול מידע זה בניתוח - התאם ציון בהתאם להעדפות שנלמדו
+` : ''}
 ═══════════════════════════════════════
 פורמט JSON בלבד:
 ═══════════════════════════════════════
@@ -1726,7 +1734,8 @@ async function tier4AIDeepAnalysis(
     about: string | null;
     backgroundProfile: BackgroundProfile;
     metrics: ExtendedMetrics;
-  }
+  },
+  preferenceSummary?: string | null
 ): Promise<{ candidates: FinalCandidate[]; stats: AICallStats['tier4DeepAnalysis'] }> {
   
   const model = await getGeminiModel();
@@ -1762,7 +1771,7 @@ async function tier4AIDeepAnalysis(
   });
 
   if (candidatesForAI.length > 0) {
-    const prompt = generateEnhancedDeepAnalysisPrompt(targetProfile, candidatesForAI);
+    const prompt = generateEnhancedDeepAnalysisPrompt(targetProfile, candidatesForAI, preferenceSummary);
     
     // 🆕 V2.3: Estimate tokens
     stats.totalTokensEstimated += Math.ceil(prompt.length / 4);
@@ -1858,7 +1867,8 @@ function generateEnhancedDeepAnalysisPrompt(
     backgroundProfile: BackgroundProfile;
     metrics: ExtendedMetrics;
   },
-  candidates: AIFirstPassCandidate[]
+  candidates: AIFirstPassCandidate[],
+  preferenceSummary?: string | null
 ): string {
   
   const dealBreakersWarning = targetProfile.metrics.aiInferredDealBreakers?.length
@@ -1930,7 +1940,13 @@ ${candidatesText}
    - התחשב ברקע, שפה ותגיות Soul Fingerprint אם נתונות.
 
 4. **finalScore** = ממוצע משוקלל של שני הכיוונים (scoreAtoB * 0.5 + scoreBtoA * 0.5).
-
+${preferenceSummary ? `
+═══════════════════════════════════════
+📊 למידה מהיסטוריית תגובות המשתמש:
+═══════════════════════════════════════
+${preferenceSummary}
+⚠️ שקול מידע זה בניתוח - התאם ציון בהתאם להעדפות שנלמדו מתגובות קודמות
+` : ''}
 ═══════════════════════════════════════
 פורמט JSON בלבד:
 ═══════════════════════════════════════
@@ -2764,10 +2780,37 @@ export async function hybridScan(
   }
 
   // ═══════════════════════════════════════════════════════════
+  // Load user feedback preferences for AI prompt injection
+  // ═══════════════════════════════════════════════════════════
+  let userPreferenceSummary: string | null = null;
+  try {
+    const { AutoSuggestionFeedbackService } = await import('@/lib/services/autoSuggestionFeedbackService');
+    userPreferenceSummary = await AutoSuggestionFeedbackService.getPreferenceSummaryForPrompt(userId);
+    if (userPreferenceSummary) {
+      console.log(`[HybridScan] 📊 User feedback preferences loaded for AI injection`);
+    }
+
+    // Append chat-derived insights if available
+    const chatPrefs = await prisma.userMatchingPreferences.findUnique({
+      where: { userId },
+      select: { chatDerivedInsights: true },
+    });
+    if (chatPrefs?.chatDerivedInsights) {
+      const chatInsight = `\nתובנות משיחת AI עם המשתמש/ת: ${chatPrefs.chatDerivedInsights}`;
+      userPreferenceSummary = userPreferenceSummary
+        ? userPreferenceSummary + chatInsight
+        : chatInsight;
+      console.log(`[HybridScan] 💬 Chat-derived insights appended to AI prompt`);
+    }
+  } catch (err) {
+    console.warn(`[HybridScan] ⚠️ Failed to load user preferences:`, err);
+  }
+
+  // ═══════════════════════════════════════════════════════════
   // TIER 3: AI First Pass (Updated to capture stats)
   // ═══════════════════════════════════════════════════════════
   let tier3Candidates: AIFirstPassCandidate[];
-  
+
   if (useAIFirstPass) {
     console.log(`\n[HybridScan] ═══ TIER 3: AI First Pass ═══`);
     const tier3Start = Date.now();
@@ -2789,7 +2832,8 @@ export async function hybridScan(
         backgroundProfile: userBackgroundProfile,
         metrics: metrics,
       },
-      maxTier3Candidates
+      maxTier3Candidates,
+      userPreferenceSummary
     );
     
     tier3Candidates = tier3Result.candidates;
@@ -2840,7 +2884,8 @@ export async function hybridScan(
         about: profile.about,
         backgroundProfile: userBackgroundProfile,
         metrics: metrics,
-      }
+      },
+      userPreferenceSummary
     );
     
     finalCandidates = tier4Result.candidates;

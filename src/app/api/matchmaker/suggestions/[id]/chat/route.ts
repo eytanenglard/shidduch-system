@@ -5,6 +5,7 @@ import prisma from '@/lib/prisma';
 import { sanitizeText } from '@/lib/sanitize';
 import { UserRole } from '@prisma/client';
 import { notifyChatMessage } from '@/lib/pushNotifications';
+import { publishNewMessage } from '@/lib/chatPubSub';
 
 export async function GET(
   req: NextRequest,
@@ -218,6 +219,17 @@ export async function POST(
       messagePreview: content,
       suggestionId,
     }).catch((err) => console.error('[chat] Push notification error:', err));
+
+    // SSE: Publish real-time event to target user
+    publishNewMessage(targetUserId, {
+      id: message.id,
+      content: message.content,
+      senderType: 'matchmaker',
+      senderId: session.user.id,
+      senderName: matchmakerName || '',
+      conversationId: suggestionId,
+      conversationType: 'suggestion',
+    }).catch(console.error);
 
     return NextResponse.json({
       success: true,

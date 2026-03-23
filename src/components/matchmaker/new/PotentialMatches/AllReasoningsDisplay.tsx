@@ -2,7 +2,7 @@
 
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { formatDistanceToNow } from 'date-fns';
 import { he } from 'date-fns/locale';
@@ -28,6 +28,7 @@ import {
   CheckCircle2,
   ChevronDown,
   BarChart3,
+  Loader2,
 } from 'lucide-react';
 import type { PotentialMatch, ScoreBreakdown } from './types/potentialMatches';
 import { SCORE_BREAKDOWN_CATEGORIES, normalizeScanMethod } from '@/lib/constants/matching';
@@ -347,30 +348,63 @@ const AllReasoningsDisplay: React.FC<AllReasoningsDisplayProps> = ({
   isOpen,
   onClose,
 }) => {
-  const methods = getScanMethods(match);
-  
+  const [loadedReasoning, setLoadedReasoning] = useState<Record<string, any> | null>(null);
+  const [isLoadingReasoning, setIsLoadingReasoning] = useState(false);
+
+  // Lazy load reasoning data when dialog opens
+  useEffect(() => {
+    if (!isOpen || loadedReasoning) return;
+
+    const fetchReasoning = async () => {
+      setIsLoadingReasoning(true);
+      try {
+        const res = await fetch(`/api/matchmaker/potential-matches/${match.id}/reasoning`);
+        const data = await res.json();
+        if (data.success) {
+          setLoadedReasoning(data.reasoning);
+        }
+      } catch (err) {
+        console.error('Failed to load reasoning:', err);
+      } finally {
+        setIsLoadingReasoning(false);
+      }
+    };
+
+    fetchReasoning();
+  }, [isOpen, match.id, loadedReasoning]);
+
+  // Reset when match changes
+  useEffect(() => {
+    setLoadedReasoning(null);
+  }, [match.id]);
+
+  // Use loaded reasoning or fall back to match data
+  const matchWithReasoning: PotentialMatch = loadedReasoning
+    ? {
+        ...match,
+        detailedReasoning: loadedReasoning.detailedReasoning ?? match.detailedReasoning,
+        hybridReasoning: loadedReasoning.hybridReasoning ?? match.hybridReasoning,
+        algorithmicReasoning: loadedReasoning.algorithmicReasoning ?? match.algorithmicReasoning,
+        vectorReasoning: loadedReasoning.vectorReasoning ?? match.vectorReasoning,
+        metricsV2Reasoning: loadedReasoning.metricsV2Reasoning ?? match.metricsV2Reasoning,
+      }
+    : match;
+
+  const methods = getScanMethods(matchWithReasoning);
+
   // קובע את הטאב הפעיל לפי השיטה האחרונה או הראשונה בזמינות
   const getInitialTab = () => {
     if (match.lastScanMethod) {
       const normalizedMethod = normalizeScanMethod(match.lastScanMethod);
-      
+
       if (methods.some(m => m.key === normalizedMethod)) {
         return normalizedMethod;
       }
     }
-return methods[0]?.key ?? 'hybrid';
+    return methods[0]?.key ?? 'hybrid';
   };
-  
-const [activeTab, setActiveTab] = useState(getInitialTab() ?? 'hybrid');
 
-  // Debug log
-  console.log('[AllReasoningsDisplay] Match data:', {
-    id: match.id,
-    lastScanMethod: match.lastScanMethod,
-    metricsV2Score: match.metricsV2Score,
-    metricsV2ScoreBreakdown: match.metricsV2ScoreBreakdown,
-    methods: methods.map(m => ({ key: m.key, hasBreakdown: !!m.scoreBreakdown }))
-  });
+  const [activeTab, setActiveTab] = useState(getInitialTab() ?? 'hybrid');
 
   if (methods.length === 0) {
     return null;
@@ -391,6 +425,13 @@ const [activeTab, setActiveTab] = useState(getInitialTab() ?? 'hybrid');
           </p>
         </DialogHeader>
 
+        {isLoadingReasoning ? (
+          <div className="flex flex-col items-center justify-center py-12">
+            <Loader2 className="w-8 h-8 animate-spin text-purple-500 mb-3" />
+            <p className="text-sm text-gray-500">טוען ניתוחים...</p>
+          </div>
+        ) : (
+        <>
         <div className="py-4">
           <Tabs value={activeTab} onValueChange={setActiveTab} dir="rtl">
             {/* Tab List */}
@@ -461,6 +502,9 @@ const [activeTab, setActiveTab] = useState(getInitialTab() ?? 'hybrid');
             סגור
           </Button>
         </div>
+        {/* End of content (non-loading) branch */}
+        </>
+        )}
       </DialogContent>
     </Dialog>
   );

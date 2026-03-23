@@ -19,51 +19,7 @@ import {
   corsError,
   corsOptions
 } from "@/lib/mobile-auth";
-import { z } from 'zod';
-
-// --- Validation helpers ---
-const normalizePhone = (val: string): string => {
-  if (val.startsWith('+9720')) return val.replace('+9720', '+972');
-  return val;
-};
-
-const isValidPhone = (phone: string): boolean => /^\+[1-9]\d{1,14}$/.test(phone);
-
-const isAdult = (birthDate: string): boolean => {
-  const age = Math.floor((Date.now() - new Date(birthDate).getTime()) / 31557600000);
-  return age >= 18;
-};
-
-const completeProfileSchema = z.object({
-  // Required fields
-  firstName: z.string().min(1, 'שם פרטי הוא שדה חובה.').max(100),
-  lastName: z.string().min(1, 'שם משפחה הוא שדה חובה.').max(100),
-  phone: z.string().min(1, 'מספר טלפון הוא שדה חובה.').max(20),
-  gender: z.enum(['MALE', 'FEMALE'], { errorMap: () => ({ message: 'מגדר הוא שדה חובה.' }) }),
-  birthDate: z.string().min(1, 'תאריך לידה הוא שדה חובה.').refine(
-    (val) => !isNaN(Date.parse(val)),
-    { message: 'תאריך לידה לא תקין.' }
-  ).refine(
-    (val) => isAdult(val),
-    { message: 'גיל מינימלי להרשמה הוא 18.' }
-  ),
-  maritalStatus: z.string().min(1, 'מצב משפחתי הוא שדה חובה.').max(50),
-  city: z.string().min(1, 'עיר היא שדה חובה.').max(100),
-
-  // Optional fields
-  origin: z.string().max(100).optional().nullable(),
-  height: z.union([z.string(), z.number()]).optional().nullable(),
-  occupation: z.string().max(200).optional().nullable(),
-  education: z.string().max(500).optional().nullable(),
-  religiousLevel: z.string().max(50).optional().nullable(),
-  religiousJourney: z.string().max(50).optional().nullable(),
-  about: z.string().max(5000).optional().nullable(),
-  hasChildrenFromPrevious: z.boolean().optional(),
-  language: z.enum(['he', 'en']).optional().default('he'),
-  engagementEmailsConsent: z.boolean().optional().default(false),
-  promotionalEmailsConsent: z.boolean().optional().default(false),
-  acceptTerms: z.boolean().optional().default(false),
-});
+import { mobileCompleteProfileSchema as completeProfileSchema, normalizePhone, isValidPhone } from '@/lib/validations/profileSchemas';
 
 export async function OPTIONS(req: NextRequest) {
   return corsOptions(req);

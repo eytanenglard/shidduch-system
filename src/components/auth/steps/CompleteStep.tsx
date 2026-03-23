@@ -21,6 +21,7 @@ import type { User as SessionUserType } from '@/types/next-auth';
 import type { RegisterStepsDict } from '@/types/dictionaries/auth';
 import StandardizedLoadingSpinner from '@/components/questionnaire/common/StandardizedLoadingSpinner';
 import { useRegistration, STEPS } from '../RegistrationContext';
+import { getGuestHeartMapData, clearGuestHeartMapData } from '@/components/heart-map/hooks/useGuestAnswers';
 
 // ============================================================================
 // TYPES
@@ -68,6 +69,25 @@ const CompleteStep: React.FC<CompleteStepProps> = ({ dict, locale }) => {
   const { data: session, status: sessionStatus } = useSession();
   const { goToStep } = useRegistration();
   const [isNavigating, setIsNavigating] = useState(false);
+
+  // Import Heart Map answers from localStorage if user came from heart-map
+  useEffect(() => {
+    if (sessionStatus !== 'authenticated') return;
+    const heartMapData = getGuestHeartMapData();
+    if (!heartMapData || Object.keys(heartMapData.answers).length === 0) return;
+
+    // Import answers to the user's soul fingerprint profile
+    fetch('/api/user/soul-fingerprint', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        sectionAnswers: heartMapData.answers,
+        isComplete: !!heartMapData.completedAt,
+      }),
+    })
+      .then(() => clearGuestHeartMapData())
+      .catch((err) => console.error('[HeartMap] Failed to import answers:', err));
+  }, [sessionStatus]);
 
   // Auto-redirect when everything is complete
   useEffect(() => {

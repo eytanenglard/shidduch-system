@@ -14,6 +14,7 @@ export function useAutoSave(
   }, [data]);
 
   const triggerSave = useCallback(() => {
+    if (debounceMs <= 0) return; // Auto-save disabled
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
     timeoutRef.current = setTimeout(async () => {
       if (isSavingRef.current) return;

@@ -162,6 +162,7 @@ export default function QuestionnairePageClient({
         subtext={
           dict.matchmaking.loadingSubtext || 'רק רגע, מכינים לך את המסע...'
         }
+        rotatingMessages={dict.matchmaking.loadingRotatingMessages}
       />
     );
   }

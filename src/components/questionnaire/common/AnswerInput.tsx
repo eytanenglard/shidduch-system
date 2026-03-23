@@ -1,6 +1,6 @@
 // src/components/questionnaire/common/AnswerInput.tsx
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { Slider } from '@/components/ui/slider';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
@@ -145,6 +145,86 @@ export default function AnswerInput({
   const [textAreaHeight, setTextAreaHeight] = useState<number>(150);
   const [isCollapsibleOpen, setIsCollapsibleOpen] = useState<boolean>(false);
   const [textCopied, setTextCopied] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(false);
+  const collapseTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const wasManuallyExpanded = useRef(false);
+
+  // Determine if the answer is "complete enough" to auto-collapse
+  const shouldAutoCollapse = useMemo(() => {
+    const options = question.options || [];
+    switch (question.type) {
+      case 'singleChoice':
+      case 'scenario': {
+        if (internalValue == null || internalValue === '') return false;
+        return options.length - 1 >= 3; // At least 3 hidden options
+      }
+      case 'multiChoice':
+      case 'multiSelect': {
+        if (!question.maxSelections) return false;
+        const selected = Array.isArray(internalValue) ? internalValue.length : 0;
+        if (selected < question.maxSelections) return false;
+        return options.length - selected >= 3;
+      }
+      default:
+        return false;
+    }
+  }, [question.type, question.options, question.maxSelections, internalValue]);
+
+  // Reset collapse state on question change
+  useEffect(() => {
+    setIsCollapsed(false);
+    wasManuallyExpanded.current = false;
+    if (collapseTimerRef.current) clearTimeout(collapseTimerRef.current);
+  }, [question.id]);
+
+  // Auto-collapse after answering sufficiently
+  useEffect(() => {
+    if (collapseTimerRef.current) clearTimeout(collapseTimerRef.current);
+
+    if (shouldAutoCollapse && !wasManuallyExpanded.current) {
+      collapseTimerRef.current = setTimeout(() => setIsCollapsed(true), 700);
+    } else if (!shouldAutoCollapse) {
+      setIsCollapsed(false);
+    }
+
+    return () => {
+      if (collapseTimerRef.current) clearTimeout(collapseTimerRef.current);
+    };
+  }, [shouldAutoCollapse]);
+
+  const handleExpand = useCallback(() => {
+    setIsCollapsed(false);
+    wasManuallyExpanded.current = true;
+  }, []);
+
+  // Render the "show more options" expand button
+  const renderCollapseToggle = (hiddenCount: number) => {
+    if (!isCollapsed || hiddenCount < 1) return null;
+    return (
+      <motion.button
+        initial={{ opacity: 0, y: -4 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -4 }}
+        transition={{ duration: 0.2, delay: 0.15 }}
+        type="button"
+        className={cn(
+          'w-full flex items-center justify-center gap-2 py-2.5 rounded-xl',
+          'text-xs font-medium text-gray-400 transition-all cursor-pointer',
+          'border border-dashed border-gray-200',
+          'hover:border-gray-300 hover:text-gray-500 hover:bg-gray-50/50'
+        )}
+        onClick={handleExpand}
+      >
+        <span>
+          {dict.answerInput.collapse.showMore.replace(
+            '{{count}}',
+            String(hiddenCount)
+          )}
+        </span>
+        <ChevronDown className="w-3.5 h-3.5" />
+      </motion.button>
+    );
+  };
 
   useEffect(() => {
     setInternalValue(value);
@@ -314,20 +394,29 @@ export default function AnswerInput({
 
   const renderInput = () => {
     switch (question.type) {
-      case 'singleChoice':
+      case 'singleChoice': {
+        const allSingleOptions = question.options || [];
+        const visibleSingleOptions = isCollapsed
+          ? allSingleOptions.filter(opt => opt.value === internalValue)
+          : allSingleOptions;
+        const singleHiddenCount = allSingleOptions.length - visibleSingleOptions.length;
+
         return (
           <div className="space-y-2">
             {isRTL
               ? <p className="text-xs text-gray-400 mb-2">בחר/י אחד מהבאים</p>
               : <p className="text-xs text-gray-400 mb-2">Choose one</p>}
             <AnimatePresence mode="popLayout">
-              {question.options?.map((optionItem, idx) => {
+              {visibleSingleOptions.map((optionItem) => {
                 const isSelected = internalValue === optionItem.value;
-                return renderSingleChoiceOption(optionItem, isSelected, idx);
+                const originalIdx = allSingleOptions.indexOf(optionItem);
+                return renderSingleChoiceOption(optionItem, isSelected, originalIdx);
               })}
             </AnimatePresence>
+            {renderCollapseToggle(singleHiddenCount)}
           </div>
         );
+      }
 
       case 'scale':
         return (
@@ -354,6 +443,11 @@ export default function AnswerInput({
         const selectedValues = Array.isArray(internalValue)
           ? (internalValue as string[])
           : [];
+        const allMultiOptions = question.options || [];
+        const visibleMultiOptions = isCollapsed
+          ? allMultiOptions.filter(opt => selectedValues.includes(opt.value))
+          : allMultiOptions;
+        const multiHiddenCount = allMultiOptions.length - visibleMultiOptions.length;
 
         return (
           <div className="space-y-2.5">
@@ -389,13 +483,13 @@ export default function AnswerInput({
 
             {/* Options */}
             <AnimatePresence mode="popLayout">
-              {question.options?.map((option, index) => {
+              {visibleMultiOptions.map((option) => {
                 const isSelected = selectedValues.includes(option.value);
                 const isMaxReached =
                   !!question.maxSelections &&
                   selectedValues.length >= question.maxSelections &&
                   !isSelected;
-                const letter = getLetterLabel(index);
+                const letter = getLetterLabel(allMultiOptions.indexOf(option));
 
                 return (
                   <motion.div
@@ -484,6 +578,8 @@ export default function AnswerInput({
                 );
               })}
             </AnimatePresence>
+
+            {renderCollapseToggle(multiHiddenCount)}
 
             <AnimatePresence>
               {error && (
@@ -761,109 +857,121 @@ export default function AnswerInput({
         );
       }
 
-      case 'scenario':
+      case 'scenario': {
+        const allScenarioOptions = question.options || [];
+        const visibleScenarioOptions = isCollapsed
+          ? allScenarioOptions.filter(opt => (opt.value || opt.text) === internalValue)
+          : allScenarioOptions;
+        const scenarioHiddenCount = allScenarioOptions.length - visibleScenarioOptions.length;
+
         return (
           <div className="space-y-3">
-            {question.options?.map((option, index) => {
-              const optionValue = option.value || option.text;
-              const isSelected = internalValue === optionValue;
+            <AnimatePresence mode="popLayout">
+              {visibleScenarioOptions.map((option) => {
+                const optionValue = option.value || option.text;
+                const isSelected = internalValue === optionValue;
+                const originalIndex = allScenarioOptions.indexOf(option);
 
-              return (
-                <motion.div
-                  key={index}
-                  variants={optionVariants}
-                  initial="initial"
-                  animate="animate"
-                  layout
-                >
-                  <div
-                    className={cn(
-                      'relative p-5 rounded-2xl cursor-pointer border-2 transition-all overflow-hidden',
-                      isSelected
-                        ? cn(
-                            'bg-gradient-to-br shadow-xl',
-                            theme.lightBg,
-                            theme.borderColor,
-                            theme.shadowColor
-                          )
-                        : cn(
-                            'bg-white hover:bg-gradient-to-br border-gray-200 hover:shadow-lg',
-                            theme.lightBg
-                              .replace('from-', 'hover:from-')
-                              .replace('to-', 'hover:to-'),
-                            theme.hoverBorder
-                          )
-                    )}
-                    onMouseDown={(e) => {
-                      e.preventDefault();
-                      handleValueChange(optionValue);
-                    }}
+                return (
+                  <motion.div
+                    key={originalIndex}
+                    variants={optionVariants}
+                    initial="initial"
+                    animate="animate"
+                    exit="exit"
+                    layout
                   >
                     <div
                       className={cn(
-                        'absolute top-0 right-0 w-32 h-32 bg-gradient-to-br to-transparent rounded-bl-full opacity-20',
-                        theme.gradient
+                        'relative p-5 rounded-2xl cursor-pointer border-2 transition-all overflow-hidden',
+                        isSelected
+                          ? cn(
+                              'bg-gradient-to-br shadow-xl',
+                              theme.lightBg,
+                              theme.borderColor,
+                              theme.shadowColor
+                            )
+                          : cn(
+                              'bg-white hover:bg-gradient-to-br border-gray-200 hover:shadow-lg',
+                              theme.lightBg
+                                .replace('from-', 'hover:from-')
+                                .replace('to-', 'hover:to-'),
+                              theme.hoverBorder
+                            )
                       )}
-                    />
-
-                    <div className="relative z-10">
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="flex-1">
-                          <div
-                            className={cn(
-                              'font-semibold text-lg mb-2 transition-colors',
-                              isSelected ? theme.textColor : 'text-gray-800'
-                            )}
-                          >
-                            {option.text}
-                          </div>
-                          {option.description && (
-                            <p
-                              className={cn(
-                                'text-sm leading-relaxed transition-colors',
-                                isSelected ? 'text-gray-700' : 'text-gray-600'
-                              )}
-                            >
-                              {option.description}
-                            </p>
-                          )}
-                        </div>
-
-                        <motion.div
-                          initial={{ scale: 0 }}
-                          animate={{ scale: isSelected ? 1 : 0 }}
-                        >
-                          <div
-                            className={cn(
-                              'w-8 h-8 rounded-full bg-gradient-to-br flex items-center justify-center shadow-lg',
-                              theme.gradient
-                            )}
-                          >
-                            <CheckCircle
-                              className="w-5 h-5 text-white"
-                              fill="white"
-                            />
-                          </div>
-                        </motion.div>
-                      </div>
-                    </div>
-
-                    {isSelected && (
-                      <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        handleValueChange(optionValue);
+                      }}
+                    >
+                      <div
                         className={cn(
-                          'absolute inset-0 rounded-2xl bg-gradient-to-r opacity-10',
+                          'absolute top-0 right-0 w-32 h-32 bg-gradient-to-br to-transparent rounded-bl-full opacity-20',
                           theme.gradient
                         )}
                       />
-                    )}
-                  </div>
-                </motion.div>
-              );
-            })}
+
+                      <div className="relative z-10">
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="flex-1">
+                            <div
+                              className={cn(
+                                'font-semibold text-lg mb-2 transition-colors',
+                                isSelected ? theme.textColor : 'text-gray-800'
+                              )}
+                            >
+                              {option.text}
+                            </div>
+                            {option.description && (
+                              <p
+                                className={cn(
+                                  'text-sm leading-relaxed transition-colors',
+                                  isSelected ? 'text-gray-700' : 'text-gray-600'
+                                )}
+                              >
+                                {option.description}
+                              </p>
+                            )}
+                          </div>
+
+                          <motion.div
+                            initial={{ scale: 0 }}
+                            animate={{ scale: isSelected ? 1 : 0 }}
+                          >
+                            <div
+                              className={cn(
+                                'w-8 h-8 rounded-full bg-gradient-to-br flex items-center justify-center shadow-lg',
+                                theme.gradient
+                              )}
+                            >
+                              <CheckCircle
+                                className="w-5 h-5 text-white"
+                                fill="white"
+                              />
+                            </div>
+                          </motion.div>
+                        </div>
+                      </div>
+
+                      {isSelected && (
+                        <motion.div
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          className={cn(
+                            'absolute inset-0 rounded-2xl bg-gradient-to-r opacity-10',
+                            theme.gradient
+                          )}
+                        />
+                      )}
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </AnimatePresence>
+            {renderCollapseToggle(scenarioHiddenCount)}
           </div>
         );
+      }
 
       case 'iconChoice':
         return (
@@ -1351,7 +1459,55 @@ export default function AnswerInput({
               </div>
             </div>
 
-            {/* 2. Simplified Category List */}
+            {/* 2. Visual Distribution Bar */}
+            {totalAllocated > 0 && (
+              <div className="space-y-2">
+                <div className="h-6 rounded-full overflow-hidden flex bg-gray-100 border border-gray-200">
+                  {question.categories?.map((category, index) => {
+                    const val = budgetValues[category.value] || 0;
+                    if (val === 0) return null;
+                    const pct = (val / totalPointsRequired) * 100;
+                    const colors = [
+                      'bg-blue-500', 'bg-emerald-500', 'bg-amber-500', 'bg-purple-500',
+                      'bg-rose-500', 'bg-cyan-500', 'bg-orange-500', 'bg-indigo-500',
+                      'bg-teal-500', 'bg-pink-500',
+                    ];
+                    return (
+                      <motion.div
+                        key={category.value}
+                        className={cn('h-full flex items-center justify-center text-white text-[10px] font-bold', colors[index % colors.length])}
+                        initial={{ width: 0 }}
+                        animate={{ width: `${pct}%` }}
+                        transition={{ duration: 0.4, ease: 'easeOut' }}
+                        title={`${category.label}: ${val}`}
+                      >
+                        {pct >= 8 ? val : ''}
+                      </motion.div>
+                    );
+                  })}
+                </div>
+                <div className="flex flex-wrap gap-x-3 gap-y-1">
+                  {question.categories?.map((category, index) => {
+                    const val = budgetValues[category.value] || 0;
+                    if (val === 0) return null;
+                    const colors = [
+                      'bg-blue-500', 'bg-emerald-500', 'bg-amber-500', 'bg-purple-500',
+                      'bg-rose-500', 'bg-cyan-500', 'bg-orange-500', 'bg-indigo-500',
+                      'bg-teal-500', 'bg-pink-500',
+                    ];
+                    return (
+                      <div key={category.value} className="flex items-center gap-1.5 text-xs text-gray-600">
+                        <span className={cn('w-2.5 h-2.5 rounded-sm shrink-0', colors[index % colors.length])} />
+                        <span className="truncate max-w-[120px]">{category.label}</span>
+                        <span className="font-bold text-gray-800">{val}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* 3. Category Sliders */}
             <div className="grid gap-3">
               {question.categories?.map((category, index) => {
                 const currentValue = budgetValues[category.value] || 0;

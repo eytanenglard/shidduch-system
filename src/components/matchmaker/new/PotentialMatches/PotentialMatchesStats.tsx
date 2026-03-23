@@ -5,9 +5,10 @@
 
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import {
   Clock,
@@ -22,8 +23,11 @@ import {
   Calendar,
   Timer,
   Sparkles,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { motion, AnimatePresence } from 'framer-motion';
 import { formatDistanceToNow } from 'date-fns';
 import { he } from 'date-fns/locale';
 import type { PotentialMatchesStats as StatsType, LastScanInfo } from './types/potentialMatches';
@@ -109,6 +113,8 @@ const PotentialMatchesStats: React.FC<PotentialMatchesStatsProps> = ({
   className,
   onFilterChange,
 }) => {
+  const [isCollapsed, setIsCollapsed] = useState(false);
+
   if (!stats) {
     return (
       <div className={cn('grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4', className)}>
@@ -123,7 +129,52 @@ const PotentialMatchesStats: React.FC<PotentialMatchesStatsProps> = ({
   }
 
   return (
-    <div className={cn('space-y-6', className)}>
+    <div className={cn('space-y-4', className)}>
+      {/* Collapsible Header */}
+      <div className="flex items-center justify-between">
+        <Button
+          variant="ghost"
+          size="sm"
+          className="flex items-center gap-2 text-gray-600 hover:text-gray-800"
+          onClick={() => setIsCollapsed(!isCollapsed)}
+        >
+          {isCollapsed ? <ChevronDown className="w-4 h-4" /> : <ChevronUp className="w-4 h-4" />}
+          <span className="text-sm font-medium">
+            {isCollapsed ? 'הצג סטטיסטיקות' : 'הסתר סטטיסטיקות'}
+          </span>
+        </Button>
+
+        {/* Collapsed summary - show key numbers inline */}
+        {isCollapsed && (
+          <div className="flex items-center gap-3 text-sm">
+            <span className="flex items-center gap-1 text-pink-600 font-medium">
+              <Heart className="w-3.5 h-3.5" /> {stats.total}
+            </span>
+            <span className="flex items-center gap-1 text-amber-600">
+              <Clock className="w-3.5 h-3.5" /> {stats.pending}
+            </span>
+            <span className="flex items-center gap-1 text-emerald-600">
+              <Sparkles className="w-3.5 h-3.5" /> {stats.highScore}
+            </span>
+            {isScanRunning && (
+              <span className="flex items-center gap-1 text-blue-600 animate-pulse">
+                <Timer className="w-3.5 h-3.5" /> {scanProgress}%
+              </span>
+            )}
+          </div>
+        )}
+      </div>
+
+      <AnimatePresence initial={false}>
+        {!isCollapsed && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.2 }}
+            className="overflow-hidden"
+          >
+            <div className="space-y-6">
       {/* Main Stats Grid */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
         <StatCard
@@ -267,17 +318,28 @@ const PotentialMatchesStats: React.FC<PotentialMatchesStatsProps> = ({
             </div>
           </div>
 
-          {/* Scan Running Progress */}
+          {/* Scan Running Progress - Enhanced */}
           {isScanRunning && (
-            <div className="mb-4 p-4 rounded-lg bg-blue-50 border border-blue-200">
+            <div className="mb-4 p-4 rounded-lg bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm font-medium text-blue-700 flex items-center gap-2">
                   <Timer className="w-4 h-4 animate-spin" />
                   סריקה בתהליך...
                 </span>
-                <span className="text-sm text-blue-600">{scanProgress}%</span>
+                <span className="text-lg font-bold text-blue-600">{scanProgress}%</span>
               </div>
-              <Progress value={scanProgress} className="h-2" />
+              <div className="relative">
+                <Progress value={scanProgress} className="h-3" />
+                {/* Animated pulse overlay */}
+                <div
+                  className="absolute top-0 h-3 bg-blue-400/30 rounded-full animate-pulse"
+                  style={{ width: `${Math.min(scanProgress + 5, 100)}%`, transition: 'width 1s ease' }}
+                />
+              </div>
+              <div className="flex justify-between mt-2 text-xs text-blue-500">
+                <span>{scanProgress < 30 ? 'מתחיל סריקה...' : scanProgress < 70 ? 'מעבד התאמות...' : scanProgress < 95 ? 'כמעט סיימנו...' : 'מסיים...'}</span>
+                <span>{scanProgress > 0 && scanProgress < 100 ? `~${Math.max(1, Math.round((100 - scanProgress) / 10))} דק נשארו` : ''}</span>
+              </div>
             </div>
           )}
 
@@ -345,6 +407,10 @@ const PotentialMatchesStats: React.FC<PotentialMatchesStatsProps> = ({
           )}
         </Card>
       </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

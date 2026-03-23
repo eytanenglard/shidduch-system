@@ -99,6 +99,7 @@ model User {
   // === Neshama Insight ===
   neshamaInsightLastGeneratedAt DateTime?
   neshamaInsightGeneratedCount  Int       @default(0)
+  neshamaInsightData            Json?
 
   // === Referral ===
   referral Referral? @relation("ReferredUser")
@@ -140,6 +141,24 @@ model User {
   // === Blocks ===
   blocksGiven    UserBlock[] @relation("BlocksGiven")
   blocksReceived UserBlock[] @relation("BlocksReceived")
+
+  // === Auto-Suggestion Feedback ===
+  autoFeedbackGiven    AutoSuggestionFeedback[] @relation("AutoFeedbackGiver")
+  autoFeedbackReceived AutoSuggestionFeedback[] @relation("AutoFeedbackTarget")
+  matchingPreferences  UserMatchingPreferences?
+
+  // === AI Chat ===
+  aiChatConversations AiChatConversation[]
+
+  // === Quick Reply Templates ===
+  quickReplyTemplates QuickReplyTemplate[] @relation("MatchmakerTemplates")
+
+  // === Matchmaker Notes ===
+  matchmakerNotes      MatchmakerNote[] @relation("MatchmakerNotes")
+  notesAboutUser       MatchmakerNote[] @relation("NotesAboutUser")
+
+  // === Matchmaker Alerts (Phase 8) ===
+  matchmakerAlerts MatchmakerAlert[] @relation("MatchmakerAlerts")
 
   @@index([email])
   @@index([role])
@@ -441,6 +460,12 @@ model MatchSuggestion {
 
   // === Reports ===
   reports UserReport[]
+
+  // === Auto-Suggestion Feedback ===
+  autoFeedback AutoSuggestionFeedback[]
+
+  // === Matchmaker Notes ===
+  matchmakerNotes MatchmakerNote[]
 
   @@index([firstPartyId, status, firstPartyRank])
   @@index([category])
@@ -1403,7 +1428,15 @@ model SuggestionMessage {
   targetUserId String?
   content      String            @db.Text
   isRead       Boolean           @default(false)
+  todoStatus   MessageTodoStatus @default(NONE)
+  archivedAt   DateTime?
   createdAt    DateTime          @default(now())
+
+  // Phase 7: Reactions, Media & Enhancements
+  messageType  MessageContentType @default(TEXT)
+  mediaUrl     String?
+  reactions    Json?              // [{ emoji, userId, createdAt }]
+  isPinned     Boolean            @default(false)
 
   suggestion MatchSuggestion @relation(fields: [suggestionId], references: [id], onDelete: Cascade)
   sender     User            @relation("UserSuggestionMessages", fields: [senderId], references: [id], onDelete: Cascade)
@@ -1420,9 +1453,17 @@ model DirectMessage {
   receiverId String
   content    String   @db.Text
   isRead     Boolean  @default(false)
-  isBroadcast Boolean  @default(false) 
+  isBroadcast Boolean  @default(false)
+  todoStatus  MessageTodoStatus @default(NONE)
+  archivedAt  DateTime?
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
+
+  // Phase 7: Reactions, Media & Enhancements
+  messageType  MessageContentType @default(TEXT)
+  mediaUrl     String?
+  reactions    Json?              // [{ emoji, userId, createdAt }]
+  isPinned     Boolean            @default(false)
 
   sender   User @relation("SentDirectMessages", fields: [senderId], references: [id], onDelete: Cascade)
   receiver User @relation("ReceivedDirectMessages", fields: [receiverId], references: [id], onDelete: Cascade)
@@ -1431,6 +1472,42 @@ model DirectMessage {
   @@index([receiverId])
   @@index([senderId, receiverId, createdAt])
   @@index([receiverId, isRead])
+}
+
+model QuickReplyTemplate {
+  id           String   @id @default(cuid())
+  matchmakerId String?
+  title        String
+  content      String   @db.Text
+  category     String?
+  sortOrder    Int      @default(0)
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  matchmaker User? @relation("MatchmakerTemplates", fields: [matchmakerId], references: [id], onDelete: Cascade)
+
+  @@index([matchmakerId])
+  @@index([category])
+}
+
+model MatchmakerNote {
+  id           String   @id @default(cuid())
+  matchmakerId String
+  userId       String
+  suggestionId String?
+  content      String   @db.Text
+  isPinned     Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  matchmaker User              @relation("MatchmakerNotes", fields: [matchmakerId], references: [id], onDelete: Cascade)
+  user       User              @relation("NotesAboutUser", fields: [userId], references: [id], onDelete: Cascade)
+  suggestion MatchSuggestion?  @relation(fields: [suggestionId], references: [id], onDelete: SetNull)
+
+  @@index([matchmakerId, userId])
+  @@index([suggestionId])
+  @@index([matchmakerId, createdAt])
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -1842,6 +1919,18 @@ enum MessageSenderType {
   SYSTEM
 }
 
+enum MessageContentType {
+  TEXT
+  IMAGE
+  VOICE
+}
+
+enum MessageTodoStatus {
+  NONE
+  TODO
+  DONE
+}
+
 // ═══════════════════════════════════════════════════════════════
 // NEW ENUMS: Report & Block
 // ═══════════════════════════════════════════════════════════════
@@ -1938,4 +2027,117 @@ model ProfileTags {
   user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("profile_tags")
+}
+
+// =============================================================================
+// Auto-Suggestion Feedback & Learning
+// =============================================================================
+
+enum AutoSuggestionDecision {
+  APPROVED
+  DECLINED
+  INTERESTED
+}
+
+model AutoSuggestionFeedback {
+  id           String                  @id @default(cuid())
+  suggestionId String
+  userId       String
+  targetUserId String
+
+  decision AutoSuggestionDecision
+
+  // What the user liked (always collected - both approve and decline)
+  likedTraits   Json?   // string[] - e.g. ["religious_match", "personality_match"]
+  likedFreeText String? @db.Text
+
+  // What was missing (collected on decline - mandatory)
+  missingTraits     Json?              // string[] - e.g. ["age_gap", "religious_gap"]
+  rejectionCategory RejectionCategory?
+  missingFreeText   String?            @db.Text
+
+  createdAt DateTime @default(now())
+
+  suggestion MatchSuggestion @relation(fields: [suggestionId], references: [id], onDelete: Cascade)
+  user       User            @relation("AutoFeedbackGiver", fields: [userId], references: [id])
+  targetUser User            @relation("AutoFeedbackTarget", fields: [targetUserId], references: [id])
+
+  @@unique([suggestionId, userId])
+  @@index([userId, createdAt])
+  @@index([targetUserId])
+}
+
+model UserMatchingPreferences {
+  id     String @id @default(cuid())
+  userId String @unique
+
+  likedTraitScores  Json // { "religious_match": 0.8, "personality_match": 0.6, ... }
+  avoidTraitScores  Json // { "age_gap": 0.9, "geographic_gap": 0.3, ... }
+  preferenceSummary String? @db.Text // AI-generated summary for prompt injection
+
+  // Chat-derived insights
+  chatDerivedInsights String?   @db.Text // Free-text insights from AI chat conversations
+  lastChatExtraction  DateTime?
+
+  totalFeedbacks Int      @default(0)
+  lastUpdated    DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// === AI Chat Bot ===
+model AiChatConversation {
+  id        String   @id @default(cuid())
+  userId    String
+  status    String   @default("ACTIVE") // ACTIVE, ARCHIVED
+  title     String? // AI-generated conversation summary
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  extractedPreferences Json? // { wants: [], avoids: [], freeformInsights: "" }
+
+  user     User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages AiChatMessage[]
+
+  @@index([userId, status])
+  @@index([userId, createdAt])
+}
+
+model AiChatMessage {
+  id             String   @id @default(cuid())
+  conversationId String
+  role           String // "user" | "assistant"
+  content        String   @db.Text
+  metadata       Json? // { matchSearchResults: [...ids], toolUsed: "search" }
+  createdAt      DateTime @default(now())
+
+  conversation AiChatConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId, createdAt])
+}
+
+// =============================================================================
+// Phase 8: Smart Alerts for Matchmakers
+// =============================================================================
+
+enum MatchmakerAlertType {
+  NO_RESPONSE
+  STALE_SUGGESTION
+  NEW_REGISTRATION
+}
+
+model MatchmakerAlert {
+  id           String             @id @default(cuid())
+  matchmakerId String
+  alertType    MatchmakerAlertType
+  userId       String?
+  suggestionId String?
+  message      String
+  isDismissed  Boolean            @default(false)
+  createdAt    DateTime           @default(now())
+
+  matchmaker User @relation("MatchmakerAlerts", fields: [matchmakerId], references: [id], onDelete: Cascade)
+
+  @@index([matchmakerId, isDismissed])
+  @@index([createdAt])
 }

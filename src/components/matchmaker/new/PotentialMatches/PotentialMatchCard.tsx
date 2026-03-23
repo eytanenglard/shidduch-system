@@ -226,17 +226,17 @@ const getMaritalStatusLabel = (status: string | null | undefined): string => {
 // =============================================================================
 
 const AsymmetryIndicator: React.FC<{ match: PotentialMatch }> = ({ match }) => {
-  const scores = [
-    match.hybridScore,
-    match.algorithmicScore,
-    match.vectorScore,
-    match.metricsV2Score,
-  ].filter((s): s is number => s !== null && s !== undefined);
+  const methodScores = [
+    { key: 'hybrid', label: 'היב׳', score: match.hybridScore, color: 'bg-emerald-500' },
+    { key: 'algorithmic', label: 'AI', score: match.algorithmicScore, color: 'bg-purple-500' },
+    { key: 'vector', label: 'מהיר', score: match.vectorScore, color: 'bg-blue-500' },
+    { key: 'metricsV2', label: 'V2', score: match.metricsV2Score, color: 'bg-indigo-500' },
+  ].filter((s): s is typeof s & { score: number } => s.score !== null && s.score !== undefined);
 
-  if (scores.length < 2) return null;
+  if (methodScores.length < 2) return null;
 
-  const maxScore = Math.max(...scores);
-  const minScore = Math.min(...scores);
+  const maxScore = Math.max(...methodScores.map(s => s.score));
+  const minScore = Math.min(...methodScores.map(s => s.score));
   const gap = maxScore - minScore;
 
   if (gap < 10) return null;
@@ -249,25 +249,50 @@ const AsymmetryIndicator: React.FC<{ match: PotentialMatch }> = ({ match }) => {
         <TooltipTrigger asChild>
           <div
             className={cn(
-              'flex items-center gap-0.5 px-1.5 py-0.5 rounded-lg border text-[10px] font-medium',
+              'flex items-center gap-1 px-1.5 py-0.5 rounded-lg border text-[10px] font-medium cursor-help',
               isHigh
                 ? 'bg-red-50 border-red-200 text-red-600'
                 : 'bg-amber-50 border-amber-200 text-amber-600'
             )}
           >
-            <AlertTriangle className="w-3 h-3" />
+            <AlertTriangle className="w-3 h-3 shrink-0" />
+            {/* Visual mini bars */}
+            <div className="flex items-end gap-px h-3.5">
+              {methodScores.map((s) => (
+                <div
+                  key={s.key}
+                  className={cn('w-1.5 rounded-t-sm', s.color)}
+                  style={{ height: `${Math.max(20, (s.score / 100) * 100)}%`, opacity: s.score === maxScore ? 1 : 0.5 }}
+                />
+              ))}
+            </div>
             <span>±{Math.round(gap)}</span>
           </div>
         </TooltipTrigger>
-        <TooltipContent side="top" className="text-center max-w-[200px]">
-          <p className="font-bold text-xs">
+        <TooltipContent side="top" className="max-w-[220px] p-3">
+          <p className="font-bold text-xs mb-2 text-center">
             {isHigh ? 'פער גבוה בין שיטות' : 'פער בינוני בין שיטות'}
           </p>
-          <p className="text-[10px] text-gray-400">
-            טווח ציונים: {Math.round(minScore)} – {Math.round(maxScore)}
+          {/* Visual score bars in tooltip */}
+          <div className="space-y-1.5">
+            {methodScores.map((s) => (
+              <div key={s.key} className="flex items-center gap-1.5">
+                <span className="text-[10px] text-gray-500 w-6 text-left shrink-0">{s.label}</span>
+                <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
+                  <div
+                    className={cn('h-full rounded-full transition-all', s.color)}
+                    style={{ width: `${s.score}%` }}
+                  />
+                </div>
+                <span className="text-[10px] font-bold w-6 text-right shrink-0">{Math.round(s.score)}</span>
+              </div>
+            ))}
+          </div>
+          <p className="text-[10px] text-gray-400 mt-2 text-center">
+            טווח: {Math.round(minScore)} – {Math.round(maxScore)}
           </p>
           {isHigh && (
-            <p className="text-[10px] text-red-400 mt-0.5">
+            <p className="text-[10px] text-red-400 mt-1 text-center font-medium">
               מומלץ לבדוק ידנית
             </p>
           )}
@@ -288,6 +313,7 @@ const AllScoresDisplay: React.FC<{
     {
       key: 'hybrid',
       label: 'היברידי',
+      shortLabel: 'היב׳',
       description: 'סריקה היברידית (4 שלבים)',
       score: match.hybridScore,
       icon: '🔥',
@@ -297,7 +323,8 @@ const AllScoresDisplay: React.FC<{
     },
     {
       key: 'algorithmic',
-      label: 'AI',
+      label: 'AI מתקדם',
+      shortLabel: 'AI',
       description: 'ניתוח AI מעמיק',
       score: match.algorithmicScore,
       icon: '🧠',
@@ -307,7 +334,8 @@ const AllScoresDisplay: React.FC<{
     },
     {
       key: 'vector',
-      label: 'מהיר',
+      label: 'סריקה מהירה',
+      shortLabel: 'מהיר',
       description: 'סריקה וקטורית מהירה',
       score: match.vectorScore,
       icon: '⚡',
@@ -317,7 +345,8 @@ const AllScoresDisplay: React.FC<{
     },
     {
       key: 'metricsV2',
-      label: 'V2',
+      label: 'מדדים V2',
+      shortLabel: 'V2',
       description: 'מטריקות גרסה 2',
       score: match.metricsV2Score,
       icon: '🎯',
@@ -344,6 +373,7 @@ const AllScoresDisplay: React.FC<{
         ({
           key,
           label,
+          shortLabel,
           description,
           score,
           icon,
@@ -370,6 +400,10 @@ const AllScoresDisplay: React.FC<{
                     <span className="text-xs sm:text-sm">{icon}</span>
                     <span className={cn('font-bold', textColor)}>
                       {Math.round(score!)}
+                    </span>
+                    {/* Show short label on mobile, full label on desktop */}
+                    <span className={cn('sm:hidden text-[9px] font-medium', textColor)}>
+                      {shortLabel}
                     </span>
                     <span className={cn('hidden sm:inline text-[10px] font-medium', textColor)}>
                       {label}
@@ -929,6 +963,176 @@ const PotentialMatchCard: React.FC<PotentialMatchCardProps> = ({
     onDismiss(match.id);
   };
 
+  // =========================================================================
+  // COMPACT CARD RENDER
+  // =========================================================================
+  if (isCompact) {
+    return (
+      <>
+        <motion.div
+          layout
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -10 }}
+          className={className}
+        >
+          <Card
+            className={cn(
+              'group relative overflow-hidden transition-all duration-200',
+              'hover:shadow-lg border-0',
+              isDismissed && 'opacity-60',
+              isSelected && 'ring-2 ring-blue-500',
+              match.hasActiveWarning && !isDismissed && 'ring-1 ring-amber-400'
+            )}
+          >
+            <div
+              className={cn(
+                'absolute inset-0 opacity-20',
+                `bg-gradient-to-br ${getScoreBgColor(match.aiScore)}`
+              )}
+            />
+            <div className="relative p-2.5 sm:p-3">
+              {/* Compact: Single row layout */}
+              <div className="flex items-center gap-2">
+                {/* Selection */}
+                {showSelection && onToggleSelect && (
+                  <Checkbox
+                    checked={isSelected}
+                    onCheckedChange={() => onToggleSelect(match.id)}
+                    className="border-2 shrink-0"
+                  />
+                )}
+
+                {/* Male mini card */}
+                <div
+                  className="flex items-center gap-1.5 flex-1 min-w-0 cursor-pointer hover:bg-blue-50/50 rounded-lg p-1 transition-colors"
+                  onClick={() => onViewProfile(match.male.id)}
+                >
+                  <div className="relative w-8 h-8 shrink-0 rounded-full overflow-hidden border border-blue-200 bg-blue-50">
+                    {match.male.mainImage ? (
+                      <Image
+                        src={getRelativeCloudinaryPath(match.male.mainImage)}
+                        alt={match.male.firstName}
+                        fill
+                        className="object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-xs">👨</div>
+                    )}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-xs font-bold text-gray-800 truncate">{match.male.firstName} {match.male.lastName}</p>
+                    <p className="text-[10px] text-gray-500 truncate">{match.male.age} {match.male.city && `· ${match.male.city}`}</p>
+                  </div>
+                </div>
+
+                {/* Score circle */}
+                <div className={cn(
+                  'shrink-0 w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold text-white shadow-sm bg-gradient-to-br',
+                  getScoreBgColor(match.aiScore)
+                )}>
+                  {Math.round(match.aiScore)}
+                </div>
+
+                {/* Female mini card */}
+                <div
+                  className="flex items-center gap-1.5 flex-1 min-w-0 cursor-pointer hover:bg-pink-50/50 rounded-lg p-1 transition-colors"
+                  onClick={() => onViewProfile(match.female.id)}
+                >
+                  <div className="relative w-8 h-8 shrink-0 rounded-full overflow-hidden border border-pink-200 bg-pink-50">
+                    {match.female.mainImage ? (
+                      <Image
+                        src={getRelativeCloudinaryPath(match.female.mainImage)}
+                        alt={match.female.firstName}
+                        fill
+                        className="object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-xs">👩</div>
+                    )}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-xs font-bold text-gray-800 truncate">{match.female.firstName} {match.female.lastName}</p>
+                    <p className="text-[10px] text-gray-500 truncate">{match.female.age} {match.female.city && `· ${match.female.city}`}</p>
+                  </div>
+                </div>
+
+                {/* Compact method scores */}
+                <div className="hidden sm:flex items-center gap-1 shrink-0">
+                  <AllScoresDisplay match={match} />
+                </div>
+
+                {/* Status */}
+                <Badge className={cn('gap-0.5 text-[9px] shrink-0 h-5', statusBadge.color)}>
+                  <StatusIcon className="w-2.5 h-2.5" />
+                  {statusBadge.label}
+                </Badge>
+
+                {/* Quick actions */}
+                {!isDismissed && !isSent && (
+                  <div className="flex items-center gap-1 shrink-0">
+                    <Button
+                      size="icon"
+                      className="h-7 w-7 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white"
+                      onClick={() => onCreateSuggestion(match.id)}
+                      title="צור הצעה"
+                    >
+                      <HeartHandshake className="w-3.5 h-3.5" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="h-7 w-7 text-purple-600 border-purple-200 hover:bg-purple-50"
+                      onClick={() => onSave(match.id)}
+                      title="שמור בצד"
+                    >
+                      <Bookmark className="w-3.5 h-3.5" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="h-7 w-7 text-red-500 border-red-200 hover:bg-red-50"
+                      onClick={handleQuickDismiss}
+                      title="דחה"
+                    >
+                      <ThumbsDown className="w-3.5 h-3.5" />
+                    </Button>
+                  </div>
+                )}
+                {isDismissed && (
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="h-7 w-7 text-blue-600 shrink-0"
+                    onClick={() => onRestore(match.id)}
+                    title="שחזר"
+                  >
+                    <Undo className="w-3.5 h-3.5" />
+                  </Button>
+                )}
+              </div>
+            </div>
+          </Card>
+        </motion.div>
+
+        {rejectionFeedback.context && (
+          <RejectionFeedbackModal
+            isOpen={rejectionFeedback.isOpen}
+            onClose={rejectionFeedback.close}
+            onSubmit={handleFeedbackSubmit}
+            partyA={rejectionFeedback.context.partyA}
+            partyB={rejectionFeedback.context.partyB}
+            defaultRejectingParty={rejectionFeedback.context.defaultRejectingParty}
+            potentialMatchId={rejectionFeedback.context.potentialMatchId}
+          />
+        )}
+      </>
+    );
+  }
+
+  // =========================================================================
+  // EXPANDED CARD RENDER
+  // =========================================================================
   return (
     <>
       <motion.div
@@ -1054,10 +1258,7 @@ const PotentialMatchCard: React.FC<PotentialMatchCardProps> = ({
             </div>
 
             {/* Candidates Preview Row */}
-            <div className={cn(
-              'flex gap-2 sm:gap-3 mb-3 sm:mb-4',
-              isCompact ? 'flex-row' : 'flex-col sm:flex-row'
-            )}>
+            <div className="flex gap-2 sm:gap-3 mb-3 sm:mb-4 flex-col sm:flex-row">
               <CandidatePreview
                 candidate={match.male}
                 gender="male"
@@ -1071,25 +1272,12 @@ const PotentialMatchCard: React.FC<PotentialMatchCardProps> = ({
                     `${match.male.firstName} ${match.male.lastName}`
                   )
                 }
-                isCompact={isCompact}
               />
 
               {/* Heart Connector */}
-              <div className={cn(
-                'flex justify-center items-center gap-1 z-10',
-                isCompact ? 'flex-col' : 'flex-row sm:flex-col'
-              )}>
-                <div
-                  className={cn(
-                    'rounded-full flex items-center justify-center',
-                    'bg-gradient-to-br from-pink-500 to-red-500 shadow-lg',
-                    isCompact ? 'w-6 h-6' : 'w-7 h-7 sm:w-8 sm:h-8'
-                  )}
-                >
-                  <Heart className={cn(
-                    'text-white fill-white',
-                    isCompact ? 'w-3 h-3' : 'w-3.5 h-3.5 sm:w-4 sm:h-4'
-                  )} />
+              <div className="flex justify-center items-center gap-1 z-10 flex-row sm:flex-col">
+                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center bg-gradient-to-br from-pink-500 to-red-500 shadow-lg">
+                  <Heart className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white fill-white" />
                 </div>
               </div>
 
@@ -1106,12 +1294,11 @@ const PotentialMatchCard: React.FC<PotentialMatchCardProps> = ({
                     `${match.female.firstName} ${match.female.lastName}`
                   )
                 }
-                isCompact={isCompact}
               />
             </div>
 
-            {/* Reasoning Preview - hidden in compact mode */}
-            {match.shortReasoning && !isCompact && (
+            {/* Reasoning Preview */}
+            {match.shortReasoning && (
               <div
                 className="p-3 rounded-lg bg-gradient-to-br from-purple-50/80 to-indigo-50/80 backdrop-blur-sm cursor-pointer hover:from-purple-100/90 hover:to-indigo-100/90 transition-all duration-200 border border-purple-100 shadow-sm"
                 onClick={() => setShowAllReasonings(true)} // 🆕 שינוי כאן
@@ -1161,7 +1348,7 @@ const PotentialMatchCard: React.FC<PotentialMatchCardProps> = ({
             />
 
             {/* Action History Timeline */}
-            {!isCompact && (match.reviewedAt || match.status === 'SENT' || match.status === 'DISMISSED') && (
+            {(match.reviewedAt || match.status === 'SENT' || match.status === 'DISMISSED') && (
               <div className="flex items-center gap-1.5 mt-2 pt-2 border-t border-gray-100/50 overflow-x-auto">
                 {/* Created */}
                 <div className="flex items-center gap-0.5 text-[9px] text-gray-400 shrink-0">
@@ -1217,24 +1404,22 @@ const PotentialMatchCard: React.FC<PotentialMatchCardProps> = ({
                 })}
               </span>
 
-              {!isCompact && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-6 text-xs text-gray-500 hover:text-gray-800"
-                  onClick={() => setShowDetails(!showDetails)}
-                >
-                  {showDetails ? (
-                    <>
-                      הסתר פרטים <ChevronUp className="w-3 h-3 ml-1" />
-                    </>
-                  ) : (
-                    <>
-                      הצג ניקוד מלא <ChevronDown className="w-3 h-3 ml-1" />
-                    </>
-                  )}
-                </Button>
-              )}
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-6 text-xs text-gray-500 hover:text-gray-800"
+                onClick={() => setShowDetails(!showDetails)}
+              >
+                {showDetails ? (
+                  <>
+                    הסתר פרטים <ChevronUp className="w-3 h-3 ml-1" />
+                  </>
+                ) : (
+                  <>
+                    הצג ניקוד מלא <ChevronDown className="w-3 h-3 ml-1" />
+                  </>
+                )}
+              </Button>
             </div>
 
             {/* Score Breakdown */}
@@ -1251,19 +1436,9 @@ const PotentialMatchCard: React.FC<PotentialMatchCardProps> = ({
 
             {/* Main Action Buttons (Bottom) */}
             {!isDismissed && !isSent && (
-              <div className={cn(
-                'mt-3 sm:mt-4 pt-2 border-t border-gray-100',
-                isCompact
-                  ? 'flex gap-1.5'
-                  : 'flex flex-wrap gap-1.5 sm:gap-2'
-              )}>
+              <div className="mt-3 sm:mt-4 pt-2 border-t border-gray-100 flex flex-wrap gap-1.5 sm:gap-2">
                 <Button
-                  className={cn(
-                    'bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white shadow-sm',
-                    isCompact
-                      ? 'flex-1 h-8 text-xs'
-                      : 'flex-1 h-8 sm:h-9 text-xs sm:text-sm min-w-[100px]'
-                  )}
+                  className="flex-1 h-8 sm:h-9 text-xs sm:text-sm min-w-[100px] bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white shadow-sm"
                   onClick={() => onCreateSuggestion(match.id)}
                 >
                   <HeartHandshake className="w-3.5 h-3.5 sm:w-4 sm:h-4 ml-1 sm:ml-2" />
@@ -1272,10 +1447,7 @@ const PotentialMatchCard: React.FC<PotentialMatchCardProps> = ({
                 {match.status !== 'SHORTLISTED' && (
                   <Button
                     variant="outline"
-                    className={cn(
-                      'text-purple-600 border-purple-200 hover:bg-purple-50',
-                      isCompact ? 'h-8 w-8 px-0' : 'h-8 sm:h-9 px-2 sm:px-3'
-                    )}
+                    className="h-8 sm:h-9 px-2 sm:px-3 text-purple-600 border-purple-200 hover:bg-purple-50"
                     onClick={() => onSave(match.id)}
                     title="שמור בצד"
                   >
@@ -1289,10 +1461,7 @@ const PotentialMatchCard: React.FC<PotentialMatchCardProps> = ({
                     <TooltipTrigger asChild>
                       <Button
                         variant="outline"
-                        className={cn(
-                          'text-red-500 border-red-200 hover:bg-red-50 hover:text-red-600 hover:border-red-300',
-                          isCompact ? 'h-8 w-8 px-0' : 'h-8 sm:h-9 w-8 sm:w-9 px-0'
-                        )}
+                        className="h-8 sm:h-9 w-8 sm:w-9 px-0 text-red-500 border-red-200 hover:bg-red-50 hover:text-red-600 hover:border-red-300"
                         onClick={handleQuickDismiss}
                       >
                         <ThumbsDown className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
@@ -1305,17 +1474,15 @@ const PotentialMatchCard: React.FC<PotentialMatchCardProps> = ({
                 </TooltipProvider>
 
                 {/* Detailed Reject Button */}
-                {!isCompact && (
-                  <Button
-                    variant="outline"
-                    className="flex-1 h-8 sm:h-9 text-xs sm:text-sm min-w-[100px]"
-                    onClick={handleDismissWithFeedback}
-                  >
-                    <MessageSquareX className="w-3.5 h-3.5 sm:w-4 sm:h-4 ml-1 sm:ml-2" />
-                    <span className="hidden sm:inline">דחה + פירוט</span>
-                    <span className="sm:hidden">דחה</span>
-                  </Button>
-                )}
+                <Button
+                  variant="outline"
+                  className="flex-1 h-8 sm:h-9 text-xs sm:text-sm min-w-[100px]"
+                  onClick={handleDismissWithFeedback}
+                >
+                  <MessageSquareX className="w-3.5 h-3.5 sm:w-4 sm:h-4 ml-1 sm:ml-2" />
+                  <span className="hidden sm:inline">דחה + פירוט</span>
+                  <span className="sm:hidden">דחה</span>
+                </Button>
               </div>
             )}
 
