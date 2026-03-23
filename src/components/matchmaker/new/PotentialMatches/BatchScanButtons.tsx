@@ -76,8 +76,11 @@ interface BatchScanButtonsProps {
   onStartScan: (method: ScanMethod, skipPreparation: boolean) => void;
   onCancelScan: () => void;
   lastScanInfo?: {
-    date: Date;
-    matchCount: number;
+    date?: Date;
+    matchCount?: number;
+    startedAt?: Date;
+    completedAt?: Date | null;
+    matchesFound?: number;
   } | null;
   className?: string;
 }
@@ -502,8 +505,8 @@ const BatchScanButtons: React.FC<BatchScanButtonsProps> = ({
           <div className="flex items-center gap-2 text-xs text-gray-400 pt-3 border-t">
             <Clock className="w-3.5 h-3.5" />
             <span>
-              סריקה אחרונה: {formatDate(lastScanInfo.date)}(
-              {lastScanInfo.matchCount} התאמות)
+              סריקה אחרונה: {formatDate(lastScanInfo.completedAt || lastScanInfo.startedAt || lastScanInfo.date)}(
+              {lastScanInfo.matchesFound ?? lastScanInfo.matchCount ?? 0} התאמות)
             </span>
           </div>
         )}

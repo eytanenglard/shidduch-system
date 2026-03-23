@@ -325,6 +325,7 @@ declare module 'next-auth' {
        questionnaireResponses: QuestionnaireResponse[];
            questionnaireCompleted?: boolean;
     hasCompletedOnboarding?: boolean; // <-- הוספה כאן
+    hasSoulFingerprint?: boolean;
 
        accounts?: PrismaAccount[];
         source: UserSource; // Add new field
@@ -368,6 +369,7 @@ declare module 'next-auth' {
      termsAndPrivacyAcceptedAt?: Date | null;
      questionnaireCompleted?: boolean;
     hasCompletedOnboarding?: boolean; // <-- הוספה כאן
+    hasSoulFingerprint?: boolean;
         neshamaInsightLastGeneratedAt?: Date | string | null;
     neshamaInsightGeneratedCount?: number;
 
@@ -394,6 +396,7 @@ declare module 'next-auth/jwt' {
     images: UserImage[];
     questionnaireResponses: QuestionnaireResponse[];
         questionnaireCompleted?: boolean;
+    hasSoulFingerprint?: boolean;
 
     accounts?: PrismaAccount[];
     redirectUrl?: string;

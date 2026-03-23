@@ -83,6 +83,7 @@
     "description": "Based on your answers, the system can offer you more accurate and personal matches.\nOur matchmakers will know you on a deep level.",
     "tagsTitle": "Here's what we discovered about you:",
     "cta": "Continue to full profile",
+    "bridgeCta": "Want to go deeper? Continue to the full questionnaire",
     "edit": "Edit answers",
     "categories": {
       "sector": "Identity",
@@ -250,6 +251,14 @@
       "subtitle": "Optional — up to 150 characters",
       "placeholder": "Tell us something that's hard to express in options..."
     },
+    "s3_sleep_flexibility": {
+      "text": "How flexible are you with sleep?",
+      "subtitle": ""
+    },
+    "s3_plan_change_reaction": {
+      "text": "How do you react when plans change?",
+      "subtitle": "Move the slider to what feels right"
+    },
     "s4_education_level": {
       "text": "What is your level of education?",
       "subtitle": ""
@@ -318,6 +327,14 @@
       "text": "Any special dietary restrictions?",
       "subtitle": "Optional"
     },
+    "s5_screen_time": {
+      "text": "What's your approach to screen time?",
+      "subtitle": ""
+    },
+    "s5_risk_attitude": {
+      "text": "What's your attitude towards risk?",
+      "subtitle": ""
+    },
     "s6_children_count": {
       "text": "How many children would you like?",
       "subtitle": ""
@@ -337,6 +354,14 @@
     "s6_home_atmosphere": {
       "text": "What kind of home do you want to build?",
       "subtitle": "Choose up to 3"
+    },
+    "s6_extended_family": {
+      "text": "How involved is your extended family in your life?",
+      "subtitle": ""
+    },
+    "s6_in_laws_conflict": {
+      "text": "When there's friction with in-laws — what's your approach?",
+      "subtitle": ""
     },
     "s6_partner_children": {
       "text": "Are you open to a partner who has children?",
@@ -364,6 +389,38 @@
     },
     "s7_relationship_model": {
       "text": "What relationship model describes you?",
+      "subtitle": ""
+    },
+    "s7_expressing_needs": {
+      "text": "How do you express needs in a relationship?",
+      "subtitle": ""
+    },
+    "s7_argument_style": {
+      "text": "What's your style during an argument?",
+      "subtitle": ""
+    },
+    "s7_silent_treatment": {
+      "text": "What's your view on the silent treatment during conflict?",
+      "subtitle": "Move the slider to what feels right"
+    },
+    "s7_physical_intimacy": {
+      "text": "How important is physical intimacy in a relationship?",
+      "subtitle": "Move the slider to what feels right"
+    },
+    "s7_romantic_past_comfort": {
+      "text": "How comfortable are you with your partner's romantic past?",
+      "subtitle": ""
+    },
+    "s7_community_role": {
+      "text": "What role does community play in your life?",
+      "subtitle": ""
+    },
+    "p_expressing_needs": {
+      "text": "How would you like your partner to express their needs?",
+      "subtitle": ""
+    },
+    "p_argument_style": {
+      "text": "What argument style do you prefer in a partner?",
       "subtitle": ""
     },
     "s7_open_partner": {
@@ -898,6 +955,15 @@
       "side_supporter": "Supporting from the side — there but not leading",
       "one_on_one": "Prefer one-on-one — depth over breadth"
     },
+    "s3_sleep_flexibility": {
+      "very_flexible": "Very flexible — can sleep anywhere",
+      "somewhat_flexible": "Somewhat flexible — need basic conditions",
+      "not_flexible": "Not flexible — need a fixed routine"
+    },
+    "s3_plan_change_reaction": {
+      "very_rigid": "Really bothers me — I need planning",
+      "very_flexible": "Doesn't bother me — I go with the flow"
+    },
     "s4_education_level": {
       "high_school": "High school only",
       "vocational_cert": "Vocational certificate / technician",
@@ -1073,6 +1139,16 @@
       "nut_allergy": "Nut allergy",
       "no_restrictions": "No restrictions"
     },
+    "s5_screen_time": {
+      "very_limited": "Very limited — prefer no screens",
+      "balanced": "Balanced — use with boundaries",
+      "flexible": "Flexible — doesn't bother me"
+    },
+    "s5_risk_attitude": {
+      "stability": "Stability — prefer safe and known",
+      "calculated_balance": "Calculated balance — measured risks",
+      "growth_opportunity": "Opportunities — willing to take risks for growth"
+    },
     "s6_children_count": {
       "one_two": "1-2 children",
       "three_four": "3-4 children",
@@ -1110,6 +1186,18 @@
       "liberal": "Free and liberal home",
       "quiet_order": "Quiet and orderly home",
       "lively_noisy": "Lively and noisy home, full of energy"
+    },
+    "s6_extended_family": {
+      "very_involved": "Very involved — family is central",
+      "clear_boundaries": "Clear boundaries — warm but independent",
+      "minimal": "Minimal — our lives are separate",
+      "depends_on_situation": "Depends — changes by situation"
+    },
+    "s6_in_laws_conflict": {
+      "couple_first": "Couple first — loyalty to us",
+      "mediation": "Mediation — try to bridge everyone",
+      "diplomacy": "Diplomacy — keep the peace",
+      "family_loyalty": "Family loyalty — my side first"
     },
     "s6_partner_children": {
       "open_yes": "Yes — open to a partner with children",
@@ -1155,6 +1243,38 @@
       "she_leads": "She leads — she's the strong one",
       "romantic_expressive": "Romantic and expressive",
       "pragmatic_stable": "Pragmatic and stable — love through action"
+    },
+    "s7_expressing_needs": {
+      "keep_inside": "Keep inside — don't like to burden",
+      "wait_for_right_moment": "Wait for the right moment — need time",
+      "direct_immediate": "Direct — say what I need right away",
+      "hint_indirectly": "Hint indirectly — hope they'll understand"
+    },
+    "s7_argument_style": {
+      "expressive_heated": "Heated — say it all, then cool down",
+      "need_time": "Need time — step back and process",
+      "resolve_immediately": "Resolve now — don't go to bed angry",
+      "avoid_confrontation": "Avoid — don't like confrontation"
+    },
+    "s7_silent_treatment": {
+      "never_healthy": "Never healthy — silence is destructive",
+      "sometimes_ok": "Sometimes OK — need a break"
+    },
+    "s7_physical_intimacy": {
+      "less_important": "Less important — emotional connection first",
+      "very_important": "Very important — central part of a relationship"
+    },
+    "s7_romantic_past_comfort": {
+      "no_past": "Prefer no romantic past",
+      "short_term_ok": "Short-term relationships are fine",
+      "long_term_ok": "Long-term relationships are fine too",
+      "past_is_past": "The past is past — doesn't matter"
+    },
+    "s7_community_role": {
+      "central": "Central — need active community",
+      "important": "Important — but not the center of life",
+      "secondary": "Secondary — more focused on home",
+      "not_seeking": "Not seeking — manage alone"
     },
     "common": {
       "doesnt_matter": "Doesn't matter to me"

@@ -468,9 +468,26 @@ export const ProfileChecklist: React.FC<ProfileChecklistProps> = ({
     (questionnaireResponse?.completed ?? false) || isQuestionnaireFullyAnswered;
 
   // ============================================
-  // tasks - רק 4 משימות (הוסר review/hasSeenPreview)
+  // tasks - מחולק ל-2 שלבים (בסיס + העשרה)
   // ============================================
-  const tasks = [
+  const foundationTasks = [
+    {
+      id: 'soul_fingerprint',
+      isCompleted: sfCompleted,
+      title: dict.tasks.soulFingerprint.title,
+      description: dict.tasks.soulFingerprint.description,
+      link: `/${locale}/soul-fingerprint`,
+      icon: Fingerprint,
+    },
+    {
+      id: 'personal_details',
+      isCompleted: getMissingItems.personalDetails.length === 0,
+      title: dict.tasks.personalDetails.title,
+      description: dict.tasks.personalDetails.description,
+      onClick: () => onNavigateToTab('overview'),
+      icon: User,
+      missingItems: getMissingItems.personalDetails,
+    },
     {
       id: 'photo',
       isCompleted: (user.images?.length ?? 0) >= 3,
@@ -488,15 +505,9 @@ export const ProfileChecklist: React.FC<ProfileChecklistProps> = ({
             ]
           : [],
     },
-    {
-      id: 'personal_details',
-      isCompleted: getMissingItems.personalDetails.length === 0,
-      title: dict.tasks.personalDetails.title,
-      description: dict.tasks.personalDetails.description,
-      onClick: () => onNavigateToTab('overview'),
-      icon: User,
-      missingItems: getMissingItems.personalDetails,
-    },
+  ];
+
+  const enrichmentTasks = [
     {
       id: 'partner_preferences',
       isCompleted: getMissingItems.partnerPreferences.length === 0,
@@ -505,14 +516,6 @@ export const ProfileChecklist: React.FC<ProfileChecklistProps> = ({
       onClick: () => onNavigateToTab('preferences'),
       icon: Target,
       missingItems: getMissingItems.partnerPreferences,
-    },
-    {
-      id: 'soul_fingerprint',
-      isCompleted: sfCompleted,
-      title: dict.tasks.soulFingerprint.title,
-      description: dict.tasks.soulFingerprint.description,
-      link: `/${locale}/soul-fingerprint`,
-      icon: Fingerprint,
     },
     {
       id: 'questionnaire',
@@ -524,6 +527,9 @@ export const ProfileChecklist: React.FC<ProfileChecklistProps> = ({
       worldProgress: questionnaireProgress ?? undefined,
     },
   ];
+
+  const tasks = [...foundationTasks, ...enrichmentTasks];
+  const isFoundationComplete = foundationTasks.every((t) => t.isCompleted);
 
   // ============================================
   // completionPercentage - חישוב אחוזי השלמה
@@ -826,19 +832,75 @@ export const ProfileChecklist: React.FC<ProfileChecklistProps> = ({
                 exit={{ height: 0, opacity: 0, transition: { duration: 0.3 } }}
                 className="overflow-hidden"
               >
-                <ul className="mt-6 grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
-                  {tasks.map((task) => (
-                    <li key={task.id}>
-                      <ChecklistItem
-                        key={task.id}
-                        {...task}
-                        isActive={activeItemId === task.id}
-                        setActiveItemId={setActiveItemId}
-                        dict={dict}
-                      />
-                    </li>
-                  ))}
-                </ul>
+                {/* === Stage 1: Foundation === */}
+                <div className="mt-6">
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className={cn(
+                      'flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold',
+                      isFoundationComplete
+                        ? 'bg-emerald-100 text-emerald-600'
+                        : 'bg-teal-100 text-teal-700'
+                    )}>
+                      {isFoundationComplete ? <CheckCircle className="w-4 h-4" /> : '1'}
+                    </div>
+                    <h3 className="font-bold text-sm text-slate-700">
+                      {dict.tiers?.foundationTitle || 'הבסיס'}
+                    </h3>
+                    {isFoundationComplete && (
+                      <span className="text-xs text-emerald-600 font-medium">
+                        {dict.tiers?.foundationComplete || 'הבסיס מושלם!'}
+                      </span>
+                    )}
+                  </div>
+                  {!isFoundationComplete && (
+                    <p className="text-xs text-gray-500 mb-3 ps-8">
+                      {dict.tiers?.foundationSubtitle || 'השלימו את השלבים הבסיסיים כדי שנוכל להתחיל לחפש עבורכם'}
+                    </p>
+                  )}
+                  <ul className="grid grid-cols-3 gap-3">
+                    {foundationTasks.map((task) => (
+                      <li key={task.id}>
+                        <ChecklistItem
+                          {...task}
+                          isActive={activeItemId === task.id}
+                          setActiveItemId={setActiveItemId}
+                          dict={dict}
+                        />
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                {/* === Divider === */}
+                <div className="my-5 border-t border-dashed border-gray-200" />
+
+                {/* === Stage 2: Enrichment === */}
+                <div>
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="flex items-center justify-center w-6 h-6 rounded-full bg-orange-100 text-orange-600 text-xs font-bold">
+                      2
+                    </div>
+                    <h3 className="font-bold text-sm text-slate-700">
+                      {dict.tiers?.enrichmentTitle || 'העשרת הפרופיל'}
+                    </h3>
+                    <Sparkles className="w-4 h-4 text-amber-500" />
+                  </div>
+                  <p className="text-xs text-gray-500 mb-3 ps-8">
+                    {dict.tiers?.enrichmentSubtitle || 'ככל שתמלאו יותר, ההצעות יהיו מדויקות יותר'}
+                  </p>
+                  <ul className="grid grid-cols-2 gap-3 sm:gap-4">
+                    {enrichmentTasks.map((task) => (
+                      <li key={task.id}>
+                        <ChecklistItem
+                          {...task}
+                          isActive={activeItemId === task.id}
+                          setActiveItemId={setActiveItemId}
+                          dict={dict}
+                        />
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               </motion.div>
             )}
           </AnimatePresence>

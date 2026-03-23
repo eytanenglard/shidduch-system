@@ -155,6 +155,7 @@
     "description": "על בסיס התשובות שלך, המערכת תוכל להציע לך שידוכים מדויקים ואישיים יותר.\nהשדכנים שלנו יכירו אותך ברמה עמוקה.",
     "tagsTitle": "הנה מה שגילינו עלייך:",
     "cta": "קדימה לפרופיל המלא",
+    "bridgeCta": "רוצה להעמיק? המשיכו לשאלון ההתאמה המלא",
     "edit": {
       "male": "ערוך תשובות",
       "female": "ערוכי תשובות"
@@ -385,6 +386,14 @@
         "female": "ספרי לנו משהו שקשה לבטא באופציות..."
       }
     },
+    "s3_sleep_flexibility": {
+      "text": "כמה גמיש/ה את/ה בנושא שינה?",
+      "subtitle": ""
+    },
+    "s3_plan_change_reaction": {
+      "text": "איך את/ה מגיב/ה כשתוכניות משתנות?",
+      "subtitle": "הזז את הסמן לפי מה שמרגיש לך נכון"
+    },
     "s4_education_level": {
       "text": "מה רמת ההשכלה שלך?",
       "subtitle": ""
@@ -486,6 +495,14 @@
       "text": "יש הגבלות תזונתיות מיוחדות?",
       "subtitle": "אופציונלי"
     },
+    "s5_screen_time": {
+      "text": "מה הגישה שלך לזמן מסך?",
+      "subtitle": ""
+    },
+    "s5_risk_attitude": {
+      "text": "מה היחס שלך לקחת סיכונים?",
+      "subtitle": ""
+    },
     "s6_children_count": {
       "text": "כמה ילדים היית רוצה?",
       "subtitle": ""
@@ -532,6 +549,14 @@
       },
       "subtitle": ""
     },
+    "s6_extended_family": {
+      "text": "מה רמת המעורבות של המשפחה המורחבת בחייך?",
+      "subtitle": ""
+    },
+    "s6_in_laws_conflict": {
+      "text": "כשיש חיכוך עם ההורים של בן/בת הזוג — מה הגישה שלך?",
+      "subtitle": ""
+    },
     "s7_relationship_meaning": {
       "text": "מה זוגיות טובה עבורך?",
       "subtitle": {
@@ -556,6 +581,47 @@
     },
     "s7_relationship_model": {
       "text": "איזה מודל זוגי מתאר אותך?",
+      "subtitle": ""
+    },
+    "s7_expressing_needs": {
+      "text": "איך את/ה מביע/ה צרכים בזוגיות?",
+      "subtitle": ""
+    },
+    "s7_argument_style": {
+      "text": "מה הסגנון שלך כשיש ויכוח?",
+      "subtitle": ""
+    },
+    "s7_silent_treatment": {
+      "text": "מה דעתך על שתיקה כתגובה לקונפליקט?",
+      "subtitle": "הזז את הסמן לפי מה שמרגיש לך נכון"
+    },
+    "s7_physical_intimacy": {
+      "text": "כמה חשובה לך אינטימיות פיזית בזוגיות?",
+      "subtitle": "הזז את הסמן לפי מה שמרגיש לך נכון"
+    },
+    "s7_romantic_past_comfort": {
+      "text": {
+        "male": "כמה נוח לך עם עבר רומנטי של בת הזוג?",
+        "female": "כמה נוח לך עם עבר רומנטי של בן הזוג?"
+      },
+      "subtitle": ""
+    },
+    "s7_community_role": {
+      "text": "מה התפקיד של קהילה בחיים שלך?",
+      "subtitle": ""
+    },
+    "p_expressing_needs": {
+      "text": {
+        "male": "איך היית רוצה שבת הזוג תביע צרכים?",
+        "female": "איך היית רוצה שבן הזוג יביע צרכים?"
+      },
+      "subtitle": ""
+    },
+    "p_argument_style": {
+      "text": {
+        "male": "איזה סגנון ויכוח מתאים לך אצל בת הזוג?",
+        "female": "איזה סגנון ויכוח מתאים לך אצל בן הזוג?"
+      },
       "subtitle": ""
     },
     "s7_open_partner": {
@@ -1549,6 +1615,15 @@
       },
       "one_on_one": "עדיף עם אחד-שניים — פינת זוגות"
     },
+    "s3_sleep_flexibility": {
+      "very_flexible": "מאוד גמיש/ה — ישן/ה בכל מצב",
+      "somewhat_flexible": "קצת גמיש/ה — צריך/ה תנאים בסיסיים",
+      "not_flexible": "לא גמיש/ה — חייב/ת שגרה קבועה"
+    },
+    "s3_plan_change_reaction": {
+      "very_rigid": "מאוד מפריע לי — צריך/ה תכנון",
+      "very_flexible": "לא מפריע — זורם/ת עם השינויים"
+    },
     "s4_education_level": {
       "high_school": "תיכון בלבד",
       "vocational_cert": "תעודה מקצועית / הנדסאי",
@@ -1841,6 +1916,16 @@
       "nut_allergy": "אלרגיה לאגוזים",
       "no_restrictions": "ללא הגבלות"
     },
+    "s5_screen_time": {
+      "very_limited": "מאוד מוגבל — מעדיף/ה ללא מסכים",
+      "balanced": "מאוזן — שימוש אבל עם גבולות",
+      "flexible": "גמיש/ה — לא מטריד אותי"
+    },
+    "s5_risk_attitude": {
+      "stability": "יציבות — מעדיף/ה בטוח וידוע",
+      "calculated_balance": "איזון מחושב — סיכונים שקולים",
+      "growth_opportunity": "הזדמנויות — מוכן/ה לקחת סיכונים לצמיחה"
+    },
     "s6_children_count": {
       "one_two": "1-2 ילדים",
       "three_four": "3-4 ילדים",
@@ -1890,6 +1975,18 @@
       "liberal": "בית חופשי וליברלי",
       "quiet_order": "בית שקט ומסודר",
       "lively_noisy": "בית חי ורועש ומלא אנרגיה"
+    },
+    "s6_extended_family": {
+      "very_involved": "מעורבות גבוהה — המשפחה חלק מרכזי",
+      "clear_boundaries": "גבולות ברורים — קשר חם אבל עצמאי",
+      "minimal": "מינימלי — החיים שלנו בנפרד",
+      "depends_on_situation": "תלוי מצב — משתנה"
+    },
+    "s6_in_laws_conflict": {
+      "couple_first": "הזוג קודם — נאמנות לשנינו",
+      "mediation": "גישור — מנסה לגשר בין כולם",
+      "diplomacy": "דיפלומטיה — שומר/ת על הכל",
+      "family_loyalty": "נאמנות למשפחה — עדיפות לצד שלי"
     },
     "s6_partner_children": {
       "open_yes": {
@@ -1964,6 +2061,47 @@
       "pragmatic_stable": {
         "male": "פרקטי ויציב — אהבה בעשייה",
         "female": "פרקטית ויציבה — אהבה בעשייה"
+      }
+    },
+    "s7_expressing_needs": {
+      "keep_inside": "שומר/ת בפנים — לא אוהב/ת להעמיס",
+      "wait_for_right_moment": "מחכה לרגע הנכון — צריך/ה זמן",
+      "direct_immediate": "ישיר/ה — אומר/ת מה שצריך מיד",
+      "hint_indirectly": "רומז/ת — מקווה שיבינו לבד"
+    },
+    "s7_argument_style": {
+      "expressive_heated": "סוער/ת — אומר/ת הכל ואז נרגע/ת",
+      "need_time": "צריך/ה זמן — להתרחק ולעבד",
+      "resolve_immediately": "לפתור מיד — לא ללכת לישון עם כעסים",
+      "avoid_confrontation": {
+        "male": "נמנע — לא אוהב עימותים",
+        "female": "נמנעת — לא אוהבת עימותים"
+      }
+    },
+    "s7_silent_treatment": {
+      "never_healthy": "לעולם לא בריא — שתיקה היא הרס",
+      "sometimes_ok": "לפעמים בסדר — צריך/ה הפסקה"
+    },
+    "s7_physical_intimacy": {
+      "less_important": "פחות חשוב — הקשר הרגשי קודם",
+      "very_important": "מאוד חשוב — חלק מרכזי בזוגיות"
+    },
+    "s7_romantic_past_comfort": {
+      "no_past": {
+        "male": "מעדיף שלא יהיה לה עבר רומנטי",
+        "female": "מעדיפה שלא יהיה לו עבר רומנטי"
+      },
+      "short_term_ok": "קשרים קצרים בסדר",
+      "long_term_ok": "גם קשרים ארוכים בסדר",
+      "past_is_past": "העבר הוא עבר — לא משנה"
+    },
+    "s7_community_role": {
+      "central": "מרכזי — חייב/ת קהילה פעילה",
+      "important": "חשוב — אבל לא מרכז החיים",
+      "secondary": "משני — יותר מתמקד/ת בבית",
+      "not_seeking": {
+        "male": "לא מחפש — מסתדר לבד",
+        "female": "לא מחפשת — מסתדרת לבד"
       }
     },
     "common": {

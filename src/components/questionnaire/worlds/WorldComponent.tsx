@@ -44,6 +44,7 @@ import { cn, resolveGenderedText } from '@/lib/utils';
 import type { GenderedText } from '@/types/dictionary';
 import { useMediaQuery } from '../hooks/useMediaQuery';
 import { motion, AnimatePresence } from 'framer-motion';
+import { OVERLAPPING_QUESTION_IDS } from '../soulFingerprintOverlap';
 import type {
   WorldComponentDict,
   QuestionCardDict,
@@ -269,6 +270,7 @@ interface WorldComponentDynamicProps {
   locale: 'he' | 'en';
   onMobileMenuOpen?: () => void;
   userProfile?: UserProfile;
+  hasSoulFingerprint?: boolean;
 }
 
 export default function WorldComponent({
@@ -288,6 +290,7 @@ export default function WorldComponent({
   locale,
   onMobileMenuOpen,
   userProfile = {},
+  hasSoulFingerprint = false,
 }: WorldComponentDynamicProps) {
   const worldDict = dict.world;
   const validationDict = worldDict.errors.validation;
@@ -324,9 +327,12 @@ export default function WorldComponent({
   const allQuestions = useMemo(
     () =>
       allQuestionsStructure
-        .filter((qStruct) => shouldShowQuestion(qStruct, userProfile))
+        .filter((qStruct) =>
+          shouldShowQuestion(qStruct, userProfile) &&
+          !(hasSoulFingerprint && OVERLAPPING_QUESTION_IDS.has(qStruct.id))
+        )
         .map((qStruct) => getQuestionWithText(qStruct, dict, userProfile.gender)),
-    [allQuestionsStructure, dict, userProfile]
+    [allQuestionsStructure, dict, userProfile, hasSoulFingerprint]
   );
 
   const title = dict.worldLabels[worldId];

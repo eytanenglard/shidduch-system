@@ -333,6 +333,48 @@ export function deriveTagsFromAnswers(answers: SFAnswers): SFTagResult {
   const eduSystem = answers['s6_education_system'] as string;
   if (eduSystem) result.familyVisionTags.push(`edu_${eduSystem}`);
 
+  // Additional personality tags - new
+  const sleepFlex = answers['s3_sleep_flexibility'] as string;
+  if (sleepFlex) result.personalityTags.push(`sleep_${sleepFlex}`);
+  const planChange = answers['s3_plan_change_reaction'] as number;
+  if (planChange !== null && planChange !== undefined) {
+    if (planChange <= 30) result.personalityTags.push('plan_rigid');
+    else if (planChange >= 70) result.personalityTags.push('plan_flexible');
+    else result.personalityTags.push('plan_moderate');
+  }
+
+  // Additional lifestyle tags - new
+  const screenTime = answers['s5_screen_time'] as string;
+  if (screenTime) result.lifestyleTags.push(`screen_${screenTime}`);
+  const riskAttitude = answers['s5_risk_attitude'] as string;
+  if (riskAttitude) result.lifestyleTags.push(`risk_${riskAttitude}`);
+
+  // Additional family tags - new
+  const extFamily = answers['s6_extended_family'] as string;
+  if (extFamily) result.familyVisionTags.push(`ext_family_${extFamily}`);
+  const inLaws = answers['s6_in_laws_conflict'] as string;
+  if (inLaws) result.familyVisionTags.push(`in_laws_${inLaws}`);
+
+  // Additional relationship tags - new
+  const expressingNeeds = answers['s7_expressing_needs'] as string;
+  if (expressingNeeds) result.relationshipTags.push(`needs_${expressingNeeds}`);
+  const argumentStyle = answers['s7_argument_style'] as string;
+  if (argumentStyle) result.relationshipTags.push(`argument_${argumentStyle}`);
+  const silentTreatment = answers['s7_silent_treatment'] as number;
+  if (silentTreatment !== null && silentTreatment !== undefined) {
+    if (silentTreatment <= 30) result.relationshipTags.push('silence_never_ok');
+    else if (silentTreatment >= 70) result.relationshipTags.push('silence_sometimes_ok');
+    else result.relationshipTags.push('silence_moderate');
+  }
+  const physIntimacy = answers['s7_physical_intimacy'] as number;
+  if (physIntimacy !== null && physIntimacy !== undefined) {
+    if (physIntimacy <= 30) result.relationshipTags.push('intimacy_less_important');
+    else if (physIntimacy >= 70) result.relationshipTags.push('intimacy_very_important');
+    else result.relationshipTags.push('intimacy_moderate');
+  }
+  const communityRole = answers['s7_community_role'] as string;
+  if (communityRole) result.relationshipTags.push(`community_${communityRole}`);
+
   // Additional relationship tags
   const meetingPace = answers['s7_meeting_pace'] as string;
   if (meetingPace) result.relationshipTags.push(`pace_${meetingPace}`);
@@ -508,6 +550,18 @@ export function derivePartnerTagsFromAnswers(answers: SFAnswers): PartnerTagPref
 
   const relModPref = collectPartnerTags(answers, 'p_relationship_model');
   if (!relModPref.isDoesntMatter) result.relationshipTags.push(...relModPref.tags);
+
+  // Partner: expressing needs preference
+  const exprNeedsPref = collectPartnerTags(answers, 'p_expressing_needs');
+  if (!exprNeedsPref.isDoesntMatter) result.relationshipTags.push(...exprNeedsPref.tags.map(t => `needs_${t}`));
+
+  // Partner: argument style preference
+  const argStylePref = collectPartnerTags(answers, 'p_argument_style');
+  if (!argStylePref.isDoesntMatter) result.relationshipTags.push(...argStylePref.tags.map(t => `argument_${t}`));
+
+  // Partner: romantic past comfort
+  const pastComfortPref = collectPartnerTags(answers, 's7_romantic_past_comfort');
+  if (!pastComfortPref.isDoesntMatter) result.relationshipTags.push(...pastComfortPref.tags.map(t => `past_${t}`));
 
   const openPartText = answers['s7_open_partner'] as string;
   if (openPartText) result.relationshipTags.push('has_open_description');

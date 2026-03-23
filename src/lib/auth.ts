@@ -33,6 +33,7 @@ interface UserCompletionStatus {
   isPhoneVerified: boolean;
   termsAndPrivacyAcceptedAt?: Date | null;
   role?: UserRole;
+  hasSoulFingerprint?: boolean;
 }
 
 function determineRedirectUrl(user: UserCompletionStatus): string {
@@ -50,6 +51,11 @@ function determineRedirectUrl(user: UserCompletionStatus): string {
 
   if (!user.isPhoneVerified) {
     return '/auth/verify-phone';
+  }
+
+  // After phone verification — redirect to Soul Fingerprint if not completed
+  if (!user.hasSoulFingerprint) {
+    return '/soul-fingerprint';
   }
 
   return '/profile';
@@ -611,11 +617,18 @@ export const authOptions: NextAuthOptions = {
         role: dbUser.role,
       });
 
+      // Check Soul Fingerprint status for redirect decision
+      const sfCheck = await prisma.profileTags.findFirst({
+        where: { userId: dbUser.id },
+        select: { completedAt: true },
+      });
+
       typedUser.redirectUrl = determineRedirectUrl({
         isProfileComplete: dbUser.isProfileComplete,
         isPhoneVerified: dbUser.isPhoneVerified,
         termsAndPrivacyAcceptedAt: dbUser.termsAndPrivacyAcceptedAt,
         role: dbUser.role,
+        hasSoulFingerprint: !!sfCheck?.completedAt,
       });
 
       console.log("[signIn] ✅ Allowed |", account?.provider, "| redirect:", typedUser.redirectUrl);
@@ -655,6 +668,13 @@ export const authOptions: NextAuthOptions = {
         typedToken.updatedAt = typedUserFromCallback.updatedAt;
         typedToken.lastLogin = typedUserFromCallback.lastLogin;
 
+        // Check if user has completed Soul Fingerprint
+        const soulFingerprintStatus = await prisma.profileTags.findFirst({
+          where: { userId: typedUserFromCallback.id },
+          select: { completedAt: true },
+        });
+        typedToken.hasSoulFingerprint = !!soulFingerprintStatus?.completedAt;
+
         typedToken.requiresCompletion = checkRequiresCompletion({
           isProfileComplete: typedUserFromCallback.isProfileComplete || false,
           isPhoneVerified: typedUserFromCallback.isPhoneVerified || false,
@@ -667,6 +687,7 @@ export const authOptions: NextAuthOptions = {
           isPhoneVerified: typedUserFromCallback.isPhoneVerified || false,
           termsAndPrivacyAcceptedAt: typedUserFromCallback.termsAndPrivacyAcceptedAt,
           role: typedUserFromCallback.role,
+          hasSoulFingerprint: typedToken.hasSoulFingerprint,
         });
       }
 
@@ -708,6 +729,13 @@ export const authOptions: NextAuthOptions = {
           });
           typedToken.questionnaireCompleted = questionnaireStatus?.completed ?? false;
 
+          // Check if user has completed Soul Fingerprint
+          const sfStatus = await prisma.profileTags.findFirst({
+            where: { userId: typedToken.id },
+            select: { completedAt: true },
+          });
+          typedToken.hasSoulFingerprint = !!sfStatus?.completedAt;
+
           typedToken.requiresCompletion = checkRequiresCompletion({
             isProfileComplete: dbUserForJwt.isProfileComplete,
             isPhoneVerified: dbUserForJwt.isPhoneVerified,
@@ -720,6 +748,7 @@ export const authOptions: NextAuthOptions = {
             isPhoneVerified: dbUserForJwt.isPhoneVerified,
             termsAndPrivacyAcceptedAt: dbUserForJwt.termsAndPrivacyAcceptedAt,
             role: dbUserForJwt.role,
+            hasSoulFingerprint: typedToken.hasSoulFingerprint,
           });
         }
       }
@@ -765,6 +794,13 @@ export const authOptions: NextAuthOptions = {
           });
           typedToken.questionnaireCompleted = questionnaireStatus?.completed ?? false;
 
+          // Check Soul Fingerprint status
+          const sfSignInStatus = await prisma.profileTags.findFirst({
+            where: { userId: typedToken.id },
+            select: { completedAt: true },
+          });
+          typedToken.hasSoulFingerprint = !!sfSignInStatus?.completedAt;
+
           typedToken.requiresCompletion = checkRequiresCompletion({
             isProfileComplete: dbUserForJwt.isProfileComplete,
             isPhoneVerified: dbUserForJwt.isPhoneVerified,
@@ -777,6 +813,7 @@ export const authOptions: NextAuthOptions = {
             isPhoneVerified: dbUserForJwt.isPhoneVerified,
             termsAndPrivacyAcceptedAt: dbUserForJwt.termsAndPrivacyAcceptedAt,
             role: dbUserForJwt.role,
+            hasSoulFingerprint: typedToken.hasSoulFingerprint,
           });
         }
       }
@@ -801,6 +838,7 @@ export const authOptions: NextAuthOptions = {
         typedSession.user.isProfileComplete = typedToken.isProfileComplete;
         typedSession.user.isPhoneVerified = typedToken.isPhoneVerified;
         typedSession.user.questionnaireCompleted = typedToken.questionnaireCompleted;
+        typedSession.user.hasSoulFingerprint = typedToken.hasSoulFingerprint;
         typedSession.user.hasCompletedOnboarding = typedToken.hasCompletedOnboarding as boolean;
         typedSession.user.source = typedToken.source;
         typedSession.user.addedByMatchmakerId = typedToken.addedByMatchmakerId;

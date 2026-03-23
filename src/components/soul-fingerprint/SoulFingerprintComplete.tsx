@@ -1,5 +1,7 @@
 'use client';
 
+import Link from 'next/link';
+import { BookOpen } from 'lucide-react';
 import type { SFTagResult } from './types';
 
 interface Props {
@@ -8,6 +10,7 @@ interface Props {
   onContinue: () => void;
   t: (key: string) => string;
   isRTL: boolean;
+  locale?: string;
 }
 
 const TAG_CATEGORIES: { key: keyof SFTagResult; colorClass: string }[] = [
@@ -32,7 +35,7 @@ const CATEGORY_I18N: Record<string, string> = {
   diasporaTags: 'diaspora',
 };
 
-export default function SoulFingerprintComplete({ tags, onEdit, onContinue, t, isRTL }: Props) {
+export default function SoulFingerprintComplete({ tags, onEdit, onContinue, t, isRTL, locale }: Props) {
   const totalTags = Object.values(tags).reduce((sum, arr) => sum + arr.length, 0);
 
   return (
@@ -97,6 +100,16 @@ export default function SoulFingerprintComplete({ tags, onEdit, onContinue, t, i
       >
         {t('completion.cta')}
       </button>
+
+      {/* Bridge CTA to 5-Worlds questionnaire */}
+      <Link
+        href="/questionnaire"
+        className="flex items-center justify-center gap-2 w-full py-3 border-2 border-orange-200 text-orange-600 rounded-xl text-sm font-medium hover:bg-orange-50 transition-all mb-3"
+      >
+        <BookOpen className="w-4 h-4" />
+        {t('completion.bridgeCta') || (isRTL ? 'רוצה להעמיק? המשיכו לשאלון המלא' : 'Want to go deeper? Continue to the full questionnaire')}
+      </Link>
+
       <button
         onClick={onEdit}
         className="text-sm text-gray-400 hover:text-gray-600 transition-colors"

@@ -50,6 +50,7 @@ import { relationshipQuestions } from './questions/relationship/relationshipQues
 import { partnerQuestions } from './questions/partner/partnerQuestions';
 import { religionQuestions } from './questions/religion/religionQuestions';
 import { shouldShowQuestion } from './worlds/WorldComponent';
+import { OVERLAPPING_QUESTION_IDS } from './soulFingerprintOverlap';
 
 const worldConfig: Record<WorldId, { questions: Question[] }> = {
   PERSONALITY: { questions: personalityQuestions },
@@ -90,6 +91,7 @@ export interface MatchmakingQuestionnaireProps {
   dict: QuestionnaireDictionary;
   locale: 'he' | 'en';
   userProfile?: UserProfile;
+  hasSoulFingerprint?: boolean;
 }
 
 export default function MatchmakingQuestionnaire({
@@ -100,6 +102,7 @@ export default function MatchmakingQuestionnaire({
   dict,
   locale,
   userProfile,
+  hasSoulFingerprint = false,
 }: MatchmakingQuestionnaireProps) {
   console.log(
     `%c[MatchmakingQuestionnaire] 🚀 Initializing | User: ${userId ? 'Authenticated' : 'Guest'} | World: ${initialWorld || 'None'} | Question: ${initialQuestionId || 'None'}`,
@@ -785,7 +788,7 @@ export default function MatchmakingQuestionnaire({
     };
 
     return (
-      <WorldComponent {...worldProps} worldId={currentWorld} locale={locale} userProfile={userProfile} />
+      <WorldComponent {...worldProps} worldId={currentWorld} locale={locale} userProfile={userProfile} hasSoulFingerprint={hasSoulFingerprint} />
     );
   }, [
     currentWorld,
@@ -825,7 +828,8 @@ export default function MatchmakingQuestionnaire({
       ...religionQuestions,
     ];
     const totalQuestions = allWorldQuestions.filter((q) =>
-      shouldShowQuestion(q, profile)
+      shouldShowQuestion(q, profile) &&
+      !(hasSoulFingerprint && OVERLAPPING_QUESTION_IDS.has(q.id))
     ).length;
     const totalAnswered = answers.filter(
       (a) => a.value !== undefined && a.value !== null && a.value !== ''
@@ -839,17 +843,14 @@ export default function MatchmakingQuestionnaire({
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-slate-50 via-teal-50/30 to-orange-50/20"
+          className="flex flex-col items-center justify-center min-h-screen bg-slate-50"
         >
-          <div className="relative">
-            <div className="absolute inset-0 bg-gradient-to-r from-teal-400 to-orange-500 rounded-full blur-xl opacity-50 animate-pulse" />
-            <Loader2 className="relative h-16 w-16 animate-spin text-teal-600" />
-          </div>
+          <Loader2 className="h-12 w-12 animate-spin text-teal-600" />
           <motion.p
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="mt-6 text-xl font-semibold text-gray-700"
+            className="mt-6 text-lg font-semibold text-gray-700"
           >
             {dict.matchmaking.loading}
           </motion.p>
@@ -857,9 +858,8 @@ export default function MatchmakingQuestionnaire({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.4 }}
-            className="mt-4 flex items-center gap-2 text-sm text-gray-500"
+            className="mt-3 flex items-center gap-2 text-sm text-gray-500"
           >
-            <Sparkles className="w-4 h-4" />
             <span>{dict.matchmaking.loadingSubtext}</span>
           </motion.div>
         </motion.div>
@@ -875,6 +875,7 @@ export default function MatchmakingQuestionnaire({
             isLoading={isSaving}
             dict={dict.landingPage}
             locale={locale}
+            hasSoulFingerprint={hasSoulFingerprint}
           />
         );
 

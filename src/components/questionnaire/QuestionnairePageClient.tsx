@@ -52,6 +52,7 @@ export default function QuestionnairePageClient({
     string | undefined
   >(undefined);
   const [userProfile, setUserProfile] = useState<UserProfile | undefined>(undefined);
+  const [hasSoulFingerprint, setHasSoulFingerprint] = useState(false);
 
   // Check for existing progress when component mounts
   useEffect(() => {
@@ -60,9 +61,10 @@ export default function QuestionnairePageClient({
       setIsLoading(true);
       try {
         if (session?.user?.id) {
-          const [progressRes, profileRes] = await Promise.all([
+          const [progressRes, profileRes, sfRes] = await Promise.all([
             fetch('/api/questionnaire'),
             fetch('/api/profile'),
+            fetch('/api/user/soul-fingerprint'),
           ]);
           const progressData = await progressRes.json();
           if (progressData.success && progressData.data) {
@@ -80,6 +82,10 @@ export default function QuestionnairePageClient({
                 hasChildrenFromPrevious: p.hasChildrenFromPrevious ?? undefined,
               });
             }
+          }
+          if (sfRes.ok) {
+            const sfData = await sfRes.json();
+            setHasSoulFingerprint(!!sfData?.completedAt);
           }
         }
       } catch (err) {
@@ -169,6 +175,7 @@ export default function QuestionnairePageClient({
             hasSavedProgress={hasSavedProgress}
             dict={dict.landingPage}
             locale={locale}
+            hasSoulFingerprint={hasSoulFingerprint}
           />
         );
       case QuestionnaireStage.QUICK_PROFILE:
@@ -194,6 +201,7 @@ export default function QuestionnairePageClient({
             dict={dict}
             locale={locale}
             userProfile={userProfile}
+            hasSoulFingerprint={hasSoulFingerprint}
           />
         );
       case QuestionnaireStage.COMPLETE:

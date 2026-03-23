@@ -41,6 +41,7 @@ interface QuestionnaireLandingPageProps {
   isLoading?: boolean;
   dict: QuestionnaireLandingPageDict;
   locale: string;
+  hasSoulFingerprint?: boolean;
 }
 
 // --- Animation Variants ---
@@ -213,6 +214,7 @@ export default function QuestionnaireLandingPage({
   isLoading = false,
   dict,
   locale,
+  hasSoulFingerprint = false,
 }: QuestionnaireLandingPageProps) {
   const { status, data: session } = useSession();
   const isMobile = useIsMobile();
@@ -271,7 +273,7 @@ export default function QuestionnaireLandingPage({
         isMobile && 'pb-28'
       )}
     >
-      <DynamicBackground />
+      {!hasSoulFingerprint && <DynamicBackground />}
 
       {/* SECTION 1: HERO */}
       <motion.section
@@ -366,8 +368,8 @@ export default function QuestionnaireLandingPage({
         </div>
       </motion.section>
 
-      {/* SECTION 2: THE PROBLEM */}
-      <motion.section
+      {/* SECTION 2: THE PROBLEM (hidden for post-SF users) */}
+      {!hasSoulFingerprint && <motion.section
         className="py-20 px-4 relative"
         initial="hidden"
         whileInView="visible"
@@ -432,10 +434,10 @@ export default function QuestionnaireLandingPage({
             </div>
           </motion.div>
         </div>
-      </motion.section>
+      </motion.section>}
 
-      {/* SECTION 3: THE SOLUTION */}
-      <motion.section
+      {/* SECTION 3: THE SOLUTION (hidden for post-SF users) */}
+      {!hasSoulFingerprint && <motion.section
         className="py-20 px-4 relative bg-white/40 backdrop-blur-sm"
         initial="hidden"
         whileInView="visible"
@@ -514,7 +516,7 @@ export default function QuestionnaireLandingPage({
             </div>
           </motion.div>
         </div>
-      </motion.section>
+      </motion.section>}
 
       {/* SECTION 4: THE WORLDS */}
       <motion.section
@@ -585,8 +587,8 @@ export default function QuestionnaireLandingPage({
         </div>
       </motion.section>
 
-      {/* SECTION 5: FEATURES */}
-      <motion.section
+      {/* SECTION 5: FEATURES (hidden for post-SF users) */}
+      {!hasSoulFingerprint && <motion.section
         className="py-20 px-4 bg-gradient-to-b from-white/80 to-teal-50/40"
         initial="hidden"
         whileInView="visible"
@@ -651,7 +653,7 @@ export default function QuestionnaireLandingPage({
             </motion.div>
           </motion.div>
         </div>
-      </motion.section>
+      </motion.section>}
 
       {/* SECTION 6: FINAL CTA */}
       <motion.section

@@ -852,6 +852,34 @@ export const PERSONALITY_QUESTIONS: SFQuestion[] = [
     isOptional: true,
     maxCustomLength: 150,
   },
+  // Sleep flexibility
+  {
+    id: 's3_sleep_flexibility',
+    type: 'singleChoice',
+    textKey: 'questions.s3_sleep_flexibility.text',
+    category: 'personality',
+    forSelf: true,
+    forPartner: false,
+    options: [
+      { value: 'very_flexible', labelKey: 'options.s3_sleep_flexibility.very_flexible', icon: '😴' },
+      { value: 'somewhat_flexible', labelKey: 'options.s3_sleep_flexibility.somewhat_flexible', icon: '🌙' },
+      { value: 'not_flexible', labelKey: 'options.s3_sleep_flexibility.not_flexible', icon: '⏰' },
+    ],
+  },
+  // Reaction to plan changes
+  {
+    id: 's3_plan_change_reaction',
+    type: 'slider',
+    textKey: 'questions.s3_plan_change_reaction.text',
+    subtitleKey: 'questions.s3_plan_change_reaction.subtitle',
+    category: 'personality',
+    forSelf: true,
+    forPartner: false,
+    sliderMin: 0,
+    sliderMax: 100,
+    sliderLeftKey: 'options.s3_plan_change_reaction.very_rigid',
+    sliderRightKey: 'options.s3_plan_change_reaction.very_flexible',
+  },
 ];
 
 // ========== PERSONALITY NEW SELF + PARTNER QUESTIONS ==========
@@ -1491,6 +1519,34 @@ export const LIFESTYLE_QUESTIONS: SFQuestion[] = [
       { value: 'no_restrictions', labelKey: 'options.s5_diet.no_restrictions' },
     ],
   },
+  // Screen time approach
+  {
+    id: 's5_screen_time',
+    type: 'singleChoice',
+    textKey: 'questions.s5_screen_time.text',
+    category: 'lifestyle',
+    forSelf: true,
+    forPartner: false,
+    options: [
+      { value: 'very_limited', labelKey: 'options.s5_screen_time.very_limited', icon: '📵' },
+      { value: 'balanced', labelKey: 'options.s5_screen_time.balanced', icon: '⚖️' },
+      { value: 'flexible', labelKey: 'options.s5_screen_time.flexible', icon: '📱' },
+    ],
+  },
+  // Risk attitude
+  {
+    id: 's5_risk_attitude',
+    type: 'singleChoice',
+    textKey: 'questions.s5_risk_attitude.text',
+    category: 'lifestyle',
+    forSelf: true,
+    forPartner: false,
+    options: [
+      { value: 'stability', labelKey: 'options.s5_risk_attitude.stability', icon: '🛡️' },
+      { value: 'calculated_balance', labelKey: 'options.s5_risk_attitude.calculated_balance', icon: '⚖️' },
+      { value: 'growth_opportunity', labelKey: 'options.s5_risk_attitude.growth_opportunity', icon: '🚀' },
+    ],
+  },
 ];
 
 // ========== LIFESTYLE NEW SELF + PARTNER QUESTIONS ==========
@@ -1834,6 +1890,36 @@ export const FAMILY_QUESTIONS: SFQuestion[] = [
       { value: 'lively_noisy', labelKey: 'options.s6_home_atmosphere.lively_noisy' },
     ],
   },
+  // Extended family involvement
+  {
+    id: 's6_extended_family',
+    type: 'singleChoice',
+    textKey: 'questions.s6_extended_family.text',
+    category: 'family',
+    forSelf: true,
+    forPartner: false,
+    options: [
+      { value: 'very_involved', labelKey: 'options.s6_extended_family.very_involved', icon: '👨‍👩‍👧‍👦' },
+      { value: 'clear_boundaries', labelKey: 'options.s6_extended_family.clear_boundaries', icon: '🚧' },
+      { value: 'minimal', labelKey: 'options.s6_extended_family.minimal', icon: '🏠' },
+      { value: 'depends_on_situation', labelKey: 'options.s6_extended_family.depends_on_situation', icon: '🤔' },
+    ],
+  },
+  // In-laws conflict approach
+  {
+    id: 's6_in_laws_conflict',
+    type: 'singleChoice',
+    textKey: 'questions.s6_in_laws_conflict.text',
+    category: 'family',
+    forSelf: true,
+    forPartner: false,
+    options: [
+      { value: 'couple_first', labelKey: 'options.s6_in_laws_conflict.couple_first', icon: '💑' },
+      { value: 'mediation', labelKey: 'options.s6_in_laws_conflict.mediation', icon: '🤝' },
+      { value: 'diplomacy', labelKey: 'options.s6_in_laws_conflict.diplomacy', icon: '🕊️' },
+      { value: 'family_loyalty', labelKey: 'options.s6_in_laws_conflict.family_loyalty', icon: '👪' },
+    ],
+  },
   {
     id: 's6_partner_children',
     type: 'singleChoice',
@@ -2029,6 +2115,96 @@ export const RELATIONSHIP_QUESTIONS: SFQuestion[] = [
       { value: 'pragmatic_stable', labelKey: 'options.s7_relationship_model.pragmatic_stable' },
     ],
   },
+  // Expressing needs
+  {
+    id: 's7_expressing_needs',
+    type: 'singleChoice',
+    textKey: 'questions.s7_expressing_needs.text',
+    category: 'relationship',
+    forSelf: true,
+    forPartner: false,
+    options: [
+      { value: 'keep_inside', labelKey: 'options.s7_expressing_needs.keep_inside', icon: '🤐' },
+      { value: 'wait_for_right_moment', labelKey: 'options.s7_expressing_needs.wait_for_right_moment', icon: '⏳' },
+      { value: 'direct_immediate', labelKey: 'options.s7_expressing_needs.direct_immediate', icon: '💬' },
+      { value: 'hint_indirectly', labelKey: 'options.s7_expressing_needs.hint_indirectly', icon: '🫣' },
+    ],
+  },
+  // Argument style
+  {
+    id: 's7_argument_style',
+    type: 'singleChoice',
+    textKey: 'questions.s7_argument_style.text',
+    category: 'relationship',
+    forSelf: true,
+    forPartner: false,
+    options: [
+      { value: 'expressive_heated', labelKey: 'options.s7_argument_style.expressive_heated', icon: '🔥' },
+      { value: 'need_time', labelKey: 'options.s7_argument_style.need_time', icon: '🕐' },
+      { value: 'resolve_immediately', labelKey: 'options.s7_argument_style.resolve_immediately', icon: '🤝' },
+      { value: 'avoid_confrontation', labelKey: 'options.s7_argument_style.avoid_confrontation', icon: '🏃' },
+    ],
+  },
+  // Silent treatment view
+  {
+    id: 's7_silent_treatment',
+    type: 'slider',
+    textKey: 'questions.s7_silent_treatment.text',
+    subtitleKey: 'questions.s7_silent_treatment.subtitle',
+    category: 'relationship',
+    forSelf: true,
+    forPartner: false,
+    sliderMin: 0,
+    sliderMax: 100,
+    sliderLeftKey: 'options.s7_silent_treatment.never_healthy',
+    sliderRightKey: 'options.s7_silent_treatment.sometimes_ok',
+  },
+  // Physical intimacy importance
+  {
+    id: 's7_physical_intimacy',
+    type: 'slider',
+    textKey: 'questions.s7_physical_intimacy.text',
+    subtitleKey: 'questions.s7_physical_intimacy.subtitle',
+    category: 'relationship',
+    forSelf: true,
+    forPartner: false,
+    sliderMin: 0,
+    sliderMax: 100,
+    sliderLeftKey: 'options.s7_physical_intimacy.less_important',
+    sliderRightKey: 'options.s7_physical_intimacy.very_important',
+  },
+  // Romantic past comfort (for singles only)
+  {
+    id: 's7_romantic_past_comfort',
+    type: 'singleChoice',
+    textKey: 'questions.s7_romantic_past_comfort.text',
+    category: 'relationship',
+    forSelf: false,
+    forPartner: true,
+    conditions: { lifeStages: ['first_marriage'] },
+    options: [
+      { value: 'no_past', labelKey: 'options.s7_romantic_past_comfort.no_past' },
+      { value: 'short_term_ok', labelKey: 'options.s7_romantic_past_comfort.short_term_ok' },
+      { value: 'long_term_ok', labelKey: 'options.s7_romantic_past_comfort.long_term_ok' },
+      { value: 'past_is_past', labelKey: 'options.s7_romantic_past_comfort.past_is_past' },
+      { value: 'doesnt_matter', labelKey: 'options.common.doesnt_matter', icon: '🤷' },
+    ],
+  },
+  // Community role
+  {
+    id: 's7_community_role',
+    type: 'singleChoice',
+    textKey: 'questions.s7_community_role.text',
+    category: 'relationship',
+    forSelf: true,
+    forPartner: false,
+    options: [
+      { value: 'central', labelKey: 'options.s7_community_role.central', icon: '🏛️' },
+      { value: 'important', labelKey: 'options.s7_community_role.important', icon: '🤲' },
+      { value: 'secondary', labelKey: 'options.s7_community_role.secondary', icon: '🏠' },
+      { value: 'not_seeking', labelKey: 'options.s7_community_role.not_seeking', icon: '🙅' },
+    ],
+  },
   {
     id: 's7_open_partner',
     type: 'openText',
@@ -2109,6 +2285,38 @@ export const RELATIONSHIP_EXTRA_QUESTIONS: SFQuestion[] = [
       { value: 'traditional_roles', labelKey: 'options.s7_relationship_model.traditional_roles' },
       { value: 'romantic_expressive', labelKey: 'options.s7_relationship_model.romantic_expressive' },
       { value: 'pragmatic_stable', labelKey: 'options.s7_relationship_model.pragmatic_stable' },
+      { value: 'doesnt_matter', labelKey: 'options.common.doesnt_matter', icon: '🤷' },
+    ],
+  },
+  // Partner: expressing needs preference
+  {
+    id: 'p_expressing_needs',
+    type: 'singleChoice',
+    textKey: 'questions.p_expressing_needs.text',
+    category: 'relationship',
+    forSelf: false,
+    forPartner: true,
+    options: [
+      { value: 'keep_inside', labelKey: 'options.s7_expressing_needs.keep_inside', icon: '🤐' },
+      { value: 'wait_for_right_moment', labelKey: 'options.s7_expressing_needs.wait_for_right_moment', icon: '⏳' },
+      { value: 'direct_immediate', labelKey: 'options.s7_expressing_needs.direct_immediate', icon: '💬' },
+      { value: 'hint_indirectly', labelKey: 'options.s7_expressing_needs.hint_indirectly', icon: '🫣' },
+      { value: 'doesnt_matter', labelKey: 'options.common.doesnt_matter', icon: '🤷' },
+    ],
+  },
+  // Partner: argument style preference
+  {
+    id: 'p_argument_style',
+    type: 'singleChoice',
+    textKey: 'questions.p_argument_style.text',
+    category: 'relationship',
+    forSelf: false,
+    forPartner: true,
+    options: [
+      { value: 'expressive_heated', labelKey: 'options.s7_argument_style.expressive_heated', icon: '🔥' },
+      { value: 'need_time', labelKey: 'options.s7_argument_style.need_time', icon: '🕐' },
+      { value: 'resolve_immediately', labelKey: 'options.s7_argument_style.resolve_immediately', icon: '🤝' },
+      { value: 'avoid_confrontation', labelKey: 'options.s7_argument_style.avoid_confrontation', icon: '🏃' },
       { value: 'doesnt_matter', labelKey: 'options.common.doesnt_matter', icon: '🤷' },
     ],
   },

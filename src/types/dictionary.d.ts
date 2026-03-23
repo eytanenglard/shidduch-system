@@ -1791,6 +1791,13 @@ export type ProfileChecklistDict = {
   };
   missingItems: { [key: string]: string };
   privacyNote?: string;
+  tiers?: {
+    foundationTitle: string;
+    foundationSubtitle: string;
+    foundationComplete: string;
+    enrichmentTitle: string;
+    enrichmentSubtitle: string;
+  };
 };
 
 export type PhotosSectionDict = {

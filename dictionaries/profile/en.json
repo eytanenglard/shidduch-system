@@ -143,6 +143,13 @@
         "preferredBodyTypes": "Preferred Body Types",
         "preferredAppearanceTones": "Preferred Appearance Tones",
         "preferredGroomingStyles": "Preferred Grooming Styles"
+      },
+      "tiers": {
+        "foundationTitle": "Foundation",
+        "foundationSubtitle": "Complete the basics so we can start finding matches for you",
+        "foundationComplete": "Foundation complete! You can start receiving suggestions",
+        "enrichmentTitle": "Profile Enrichment",
+        "enrichmentSubtitle": "The more you fill in, the more accurate your matches will be"
       }
     },
     "aiAdvisor": {

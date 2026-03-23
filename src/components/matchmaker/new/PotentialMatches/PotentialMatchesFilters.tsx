@@ -411,7 +411,15 @@ const PotentialMatchesFilters: React.FC<PotentialMatchesFiltersProps> = ({
                   </div>
                   <select
                     value={filters.scanSessionId || ''}
-                    onChange={(e) => onFiltersChange({ scanSessionId: e.target.value || null })}
+                    onChange={(e) => {
+                      const newSessionId = e.target.value || null;
+                      // כשבוחרים סריקה ספציפית, מציגים את כל הסטטוסים (לא רק pending)
+                      if (newSessionId) {
+                        onFiltersChange({ scanSessionId: newSessionId, status: 'all' });
+                      } else {
+                        onFiltersChange({ scanSessionId: null });
+                      }
+                    }}
                     className="w-full h-9 px-3 rounded-lg border border-gray-200 bg-white text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-300"
                   >
                     <option value="">כל הסריקות</option>

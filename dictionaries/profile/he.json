@@ -143,6 +143,13 @@
         "preferredBodyTypes": "גזרות מועדפות",
         "preferredAppearanceTones": "טונים מועדפים",
         "preferredGroomingStyles": "סגנון טיפוח מועדף"
+      },
+      "tiers": {
+        "foundationTitle": "הבסיס",
+        "foundationSubtitle": "השלימו את השלבים הבסיסיים כדי שנוכל להתחיל לחפש עבורכם",
+        "foundationComplete": "הבסיס מושלם! אפשר להתחיל לקבל הצעות",
+        "enrichmentTitle": "העשרת הפרופיל",
+        "enrichmentSubtitle": "ככל שתמלאו יותר, ההצעות יהיו מדויקות יותר"
       }
     },
     "aiAdvisor": {
