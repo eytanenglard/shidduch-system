@@ -505,7 +505,7 @@ const BatchScanButtons: React.FC<BatchScanButtonsProps> = ({
           <div className="flex items-center gap-2 text-xs text-gray-400 pt-3 border-t">
             <Clock className="w-3.5 h-3.5" />
             <span>
-              סריקה אחרונה: {formatDate(lastScanInfo.completedAt || lastScanInfo.startedAt || lastScanInfo.date)}(
+              סריקה אחרונה: {formatDate(lastScanInfo.completedAt || lastScanInfo.startedAt || lastScanInfo.date || new Date())}(
               {lastScanInfo.matchesFound ?? lastScanInfo.matchCount ?? 0} התאמות)
             </span>
           </div>

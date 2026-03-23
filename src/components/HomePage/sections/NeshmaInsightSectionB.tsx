@@ -516,7 +516,7 @@ export default function NeshmaInsightSectionB({
               exit={{ opacity: 0 }}
               className="text-center"
             >
-              <Link href={`/${locale}/questionnaire`}>
+              <Link href={`/${locale}/soul-fingerprint`}>
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   // Updated Gradient to match Hero CTA

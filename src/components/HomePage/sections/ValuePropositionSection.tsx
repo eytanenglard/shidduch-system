@@ -142,7 +142,7 @@ const ValuePropositionSection: React.FC<ValuePropositionProps> = ({ dict }) => {
                       <span>
                         {item.textWithLink.part1}
                         <Link
-                          href={`/${locale}/questionnaire`}
+                          href={`/${locale}/soul-fingerprint`}
                           className="text-teal-600 hover:underline font-semibold mx-1"
                         >
                           {item.textWithLink.linkText}

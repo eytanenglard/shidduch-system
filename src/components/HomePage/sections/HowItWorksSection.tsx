@@ -224,7 +224,7 @@ const HowItWorksSection: React.FC<HowItWorksProps> = ({
                     {step.description}
                     {step.linkText && (
                       <Link
-                        href={`/${locale}/questionnaire`}
+                        href={`/${locale}/soul-fingerprint`}
                         className="font-bold text-teal-600 hover:text-teal-700 hover:underline decoration-2 underline-offset-4 transition-all"
                       >
                         {' '}

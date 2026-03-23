@@ -696,7 +696,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({
 
           {/* #20: Secondary button with Lightbulb icon */}
           <Link
-            href={`/${locale}/questionnaire`}
+            href={`/${locale}/soul-fingerprint`}
             id="onboarding-target-questionnaire-button"
             className="group inline-flex items-center justify-center text-base md:text-lg px-8 py-4 border-2 border-teal-200 text-teal-700 bg-white/50 hover:bg-white hover:border-teal-300 rounded-full transition-all duration-300 font-medium"
           >
