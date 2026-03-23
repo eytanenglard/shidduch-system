@@ -13,6 +13,12 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
+import { sanitizeText } from '@/lib/sanitize';
+import { z } from 'zod';
+
+const directMessageSchema = z.object({
+  content: z.string().min(1, 'Message content is required').max(5000, 'Message must be 5000 characters or less'),
+});
 
 // ==========================================
 // GET — Fetch messages with assigned matchmaker
@@ -106,14 +112,20 @@ export async function POST(req: NextRequest) {
     }
 
     const userId = session.user.id;
-    const { content } = await req.json();
+    const body = await req.json();
 
-    if (!content?.trim()) {
+    const validation = directMessageSchema.safeParse(body);
+    if (!validation.success) {
       return NextResponse.json(
-        { error: 'Message content required' },
+        { error: 'Invalid input', details: validation.error.errors },
         { status: 400 }
       );
     }
+
+    const { content: rawContent } = validation.data;
+
+    // Sanitize user-provided message content
+    const content = sanitizeText(rawContent, 5000);
 
     // Get assigned matchmaker
     const user = await prisma.user.findUnique({

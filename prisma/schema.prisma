@@ -369,6 +369,13 @@ model Profile {
   rejectionFeedbacks      RejectionFeedback[] @relation("RejectedUser")
   givenRejectionFeedbacks RejectionFeedback[] @relation("RejectingUser")
   tags                    ProfileTags?
+
+  @@index([gender, religiousLevel])
+  @@index([availabilityStatus])
+  @@index([contentUpdatedAt])
+  @@index([lastScannedAt])
+  @@index([priorityScore(sort: Desc)])
+  @@index([gender, availabilityStatus, religiousLevel])
 }
 
 model Meeting {
@@ -443,6 +450,9 @@ model MatchSuggestion {
   @@index([status])
   @@index([priority])
   @@index([lastActivity])
+  @@index([firstPartyId, secondPartyId, status])
+  @@index([status, createdAt])
+  @@index([matchmakerId, status, lastActivity])
 }
 
 model SuggestionStatusHistory {
@@ -1368,6 +1378,7 @@ model ProfileVector {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  @@index([profileId])
   @@map("profile_vectors")
 }
 

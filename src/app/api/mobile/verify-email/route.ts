@@ -64,7 +64,7 @@ export async function POST(req: NextRequest) {
     // Create JWT token for mobile session
     const { token, expiresAt } = createMobileToken(user);
 
-    console.log(`[mobile/verify-email] Email verified for user ${user.email}, JWT issued`);
+    console.log(`[mobile/verify-email] Email verified for user ${user.id}, JWT issued`);
 
     return corsJson(req, {
       success: true,

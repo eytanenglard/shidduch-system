@@ -14,6 +14,15 @@ import {
 import type { MatchSuggestionStatus } from "@prisma/client";
 // ✅ NEW: Import push notification for matchmaker
 import { pushSuggestionStatusToMatchmaker } from '@/lib/sendPushNotification';
+import { z } from 'zod';
+
+const respondSchema = z.object({
+  response: z.enum(['approve', 'decline', 'interested'], {
+    errorMap: () => ({ message: "Invalid response. Must be 'approve', 'decline', or 'interested'" }),
+  }),
+  reason: z.string().max(2000).optional(),
+  notes: z.string().max(2000).optional(),
+});
 
 export async function OPTIONS(req: NextRequest) {
   return corsOptions(req);
@@ -30,28 +39,24 @@ export async function POST(
     const auth = await verifyMobileToken(req);
 
     if (!auth) {
-      return corsError(req, "Unauthorized", 401);
+      return corsError(req, "Unauthorized", 401, "AUTH_REQUIRED");
     }
 
     const userId = auth.userId;
 
     const body = await req.json();
-    const { response, reason, notes } = body as {
-      response: "approve" | "decline" | "interested"; // ← NEW: 'interested'
-      reason?: string;
-      notes?: string;
-    };
 
-    if (
-      !response ||
-      !["approve", "decline", "interested"].includes(response)
-    ) {
+    const validation = respondSchema.safeParse(body);
+    if (!validation.success) {
       return corsError(
         req,
-        "Invalid response. Must be 'approve', 'decline', or 'interested'",
-        400
+        validation.error.errors[0]?.message || "Invalid input",
+        400,
+        "VALIDATION_ERROR"
       );
     }
+
+    const { response, reason, notes } = validation.data;
 
     const suggestion = await prisma.matchSuggestion.findUnique({
       where: { id: suggestionId },
@@ -66,14 +71,14 @@ export async function POST(
     });
 
     if (!suggestion) {
-      return corsError(req, "Suggestion not found", 404);
+      return corsError(req, "Suggestion not found", 404, "NOT_FOUND");
     }
 
     const isFirstParty = suggestion.firstPartyId === userId;
     const isSecondParty = suggestion.secondPartyId === userId;
 
     if (!isFirstParty && !isSecondParty) {
-      return corsError(req, "Access denied", 403);
+      return corsError(req, "Access denied", 403, "AUTH_INSUFFICIENT_PERMISSIONS");
     }
 
     // ======================================================================
@@ -83,13 +88,14 @@ export async function POST(
     // For 'interested': only first party from PENDING_FIRST_PARTY
     if (response === "interested") {
       if (!isFirstParty) {
-        return corsError(req, "Only first party can save for later", 400);
+        return corsError(req, "Only first party can save for later", 400, "SUGGESTION_INVALID_STATUS");
       }
       if (suggestion.status !== "PENDING_FIRST_PARTY") {
         return corsError(
           req,
           "Can only save for later when pending your response",
-          400
+          400,
+          "SUGGESTION_INVALID_STATUS"
         );
       }
     }
@@ -123,7 +129,7 @@ if (
       !isRespondingToReOffer &&         // ✅ NEW
       !isReturningFromNotAvailable      // ✅ NEW
     ) {
-      return corsError(req, "Cannot respond at this stage", 400);
+      return corsError(req, "Cannot respond at this stage", 400, "SUGGESTION_INVALID_STATUS");
     }
 
     // For 'decline' from FIRST_PARTY_INTERESTED (removing from waitlist)
@@ -138,7 +144,7 @@ if (
       !isRemovingFromInterested &&
       !isRespondingToReOffer            // ✅ NEW: can decline from RE_OFFERED
     ) {
-      return corsError(req, "Cannot decline at this stage", 400);
+      return corsError(req, "Cannot decline at this stage", 400, "SUGGESTION_INVALID_STATUS");
     }
 
     // ======================================================================
@@ -431,6 +437,6 @@ if (response === "interested") {
     });
   } catch (error) {
     console.error("[mobile/suggestions/[id]/respond] Error:", error);
-    return corsError(req, "Internal server error", 500);
+    return corsError(req, "Internal server error", 500, "INTERNAL_ERROR");
   }
 }

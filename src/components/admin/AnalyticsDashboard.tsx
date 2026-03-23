@@ -7,6 +7,7 @@
 // ==========================================
 
 import React, { useState, useEffect, useCallback } from 'react';
+import { ErrorBoundary } from '@/components/ui/error-boundary';
 import {
   BarChart3,
   Users,
@@ -423,6 +424,7 @@ export default function AnalyticsDashboard({ dict }: AnalyticsDashboardProps) {
       </div>
 
       {/* ── Overview Cards ── */}
+      <ErrorBoundary>
       <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
         <StatCard
           title="סה״כ משתמשים"
@@ -464,8 +466,10 @@ export default function AnalyticsDashboard({ dict }: AnalyticsDashboardProps) {
           subtitle="analytics events"
         />
       </div>
+      </ErrorBoundary>
 
       {/* ── Charts Row ── */}
+      <ErrorBoundary>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Daily Active Users */}
         <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
@@ -517,8 +521,10 @@ export default function AnalyticsDashboard({ dict }: AnalyticsDashboardProps) {
           </div>
         </div>
       </div>
+      </ErrorBoundary>
 
       {/* ── Funnel + Suggestions + Platform ── */}
+      <ErrorBoundary>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Registration Funnel */}
         <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm lg:col-span-1">
@@ -650,6 +656,7 @@ export default function AnalyticsDashboard({ dict }: AnalyticsDashboardProps) {
           </div>
         </div>
       </div>
+      </ErrorBoundary>
 
       {/* ── Footer ── */}
       <div className="text-center text-xs text-gray-400 pt-4">

@@ -63,29 +63,35 @@ export async function applyRateLimit(req: NextRequest, config: RateLimitConfig):
   return null;
 }
 
+// Tiered rate limit multipliers by role
+const ROLE_RATE_MULTIPLIERS: Record<string, number> = {
+  [UserRole.ADMIN]: 10,       // 10x the base limit
+  [UserRole.MATCHMAKER]: 5,   // 5x the base limit
+  [UserRole.CANDIDATE]: 1,    // base limit
+};
+
 /**
- * Applies rate limiting with role-based exemptions.
- * MATCHMAKER and ADMIN roles are exempt from rate limiting.
+ * Applies rate limiting with tiered role-based limits.
+ * All roles are rate-limited, but staff gets higher limits.
+ * This prevents a compromised staff account from having zero protection.
  *
  * @param req The NextRequest object.
- * @param config The rate limit configuration (applied only to regular users).
+ * @param config The base rate limit configuration (for regular users).
  * @returns A NextResponse object if rate-limited, otherwise null.
  */
 export async function applyRateLimitWithRoleCheck(
   req: NextRequest,
   config: RateLimitConfig
 ): Promise<NextResponse | null> {
-  
+
   const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
-  
-  // שדכנים ואדמינים פטורים לחלוטין מהגבלות
-  if (token?.role === UserRole.MATCHMAKER || token?.role === UserRole.ADMIN) {
-    console.log(`[Rate Limiter] Skipping rate limit for ${token.role}: ${token.sub}`);
-    return null;
-  }
-  
-  // משתמשים רגילים כפופים להגבלה
-  return applyRateLimit(req, config);
+  const role = (token?.role as string) || UserRole.CANDIDATE;
+  const multiplier = ROLE_RATE_MULTIPLIERS[role] || 1;
+
+  return applyRateLimit(req, {
+    requests: config.requests * multiplier,
+    window: config.window,
+  });
 }
 
 // THIS IS THE FIX: Explicitly mark the file as a module.

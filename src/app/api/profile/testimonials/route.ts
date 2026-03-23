@@ -4,6 +4,17 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
+import { sanitizeText } from '@/lib/sanitize';
+import { z } from 'zod';
+
+const testimonialSchema = z.object({
+  token: z.string().optional(),
+  authorName: z.string().min(1, 'Author name is required').max(200, 'Author name must be 200 characters or less'),
+  relationship: z.string().min(1, 'Relationship is required').max(200, 'Relationship must be 200 characters or less'),
+  content: z.string().min(1, 'Content is required').max(2000, 'Content must be 2000 characters or less'),
+  authorPhone: z.string().max(20).optional().nullable(),
+  isPhoneVisibleToMatch: z.boolean().optional(),
+});
 
 /**
  * GET - מאחזר המלצות.
@@ -72,22 +83,28 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const {
-      token,
-      authorName,
-      relationship,
-      content,
-      authorPhone,
-      isPhoneVisibleToMatch,
-    } = body;
 
-    // ולידציה בסיסית של שדות חובה (ללא token)
-    if (!authorName || !relationship || !content) {
+    const validation = testimonialSchema.safeParse(body);
+    if (!validation.success) {
       return NextResponse.json(
-        { success: false, error: 'Missing required fields.' },
+        { success: false, error: 'Invalid input', details: validation.error.errors },
         { status: 400 }
       );
     }
+
+    const {
+      token,
+      authorName: rawAuthorName,
+      relationship: rawRelationship,
+      content: rawContent,
+      authorPhone,
+      isPhoneVisibleToMatch,
+    } = validation.data;
+
+    // Sanitize user-provided text fields
+    const authorName = sanitizeText(rawAuthorName, 100);
+    const relationship = sanitizeText(rawRelationship, 100);
+    const content = sanitizeText(rawContent, 2000);
 
     // ===== תרחיש 1: הוספה עם TOKEN (ציבורית) =====
     if (token) {

@@ -19,6 +19,7 @@ import {
   corsError,
   corsOptions
 } from "@/lib/mobile-auth";
+import { z } from 'zod';
 
 // --- Validation helpers ---
 const normalizePhone = (val: string): string => {
@@ -32,6 +33,37 @@ const isAdult = (birthDate: string): boolean => {
   const age = Math.floor((Date.now() - new Date(birthDate).getTime()) / 31557600000);
   return age >= 18;
 };
+
+const completeProfileSchema = z.object({
+  // Required fields
+  firstName: z.string().min(1, 'שם פרטי הוא שדה חובה.').max(100),
+  lastName: z.string().min(1, 'שם משפחה הוא שדה חובה.').max(100),
+  phone: z.string().min(1, 'מספר טלפון הוא שדה חובה.').max(20),
+  gender: z.enum(['MALE', 'FEMALE'], { errorMap: () => ({ message: 'מגדר הוא שדה חובה.' }) }),
+  birthDate: z.string().min(1, 'תאריך לידה הוא שדה חובה.').refine(
+    (val) => !isNaN(Date.parse(val)),
+    { message: 'תאריך לידה לא תקין.' }
+  ).refine(
+    (val) => isAdult(val),
+    { message: 'גיל מינימלי להרשמה הוא 18.' }
+  ),
+  maritalStatus: z.string().min(1, 'מצב משפחתי הוא שדה חובה.').max(50),
+  city: z.string().min(1, 'עיר היא שדה חובה.').max(100),
+
+  // Optional fields
+  origin: z.string().max(100).optional().nullable(),
+  height: z.union([z.string(), z.number()]).optional().nullable(),
+  occupation: z.string().max(200).optional().nullable(),
+  education: z.string().max(500).optional().nullable(),
+  religiousLevel: z.string().max(50).optional().nullable(),
+  religiousJourney: z.string().max(50).optional().nullable(),
+  about: z.string().max(5000).optional().nullable(),
+  hasChildrenFromPrevious: z.boolean().optional(),
+  language: z.enum(['he', 'en']).optional().default('he'),
+  engagementEmailsConsent: z.boolean().optional().default(false),
+  promotionalEmailsConsent: z.boolean().optional().default(false),
+  acceptTerms: z.boolean().optional().default(false),
+});
 
 export async function OPTIONS(req: NextRequest) {
   return corsOptions(req);
@@ -51,37 +83,21 @@ export async function POST(req: NextRequest) {
 
     const body = await req.json();
 
-    // --- Validate required fields ---
-    const { firstName, lastName, phone, gender, birthDate, maritalStatus, city } = body;
-
-    if (!firstName || !lastName) {
-      return corsError(req, 'שם פרטי ושם משפחה הם שדות חובה.', 400);
-    }
-    if (!phone) {
-      return corsError(req, 'מספר טלפון הוא שדה חובה.', 400);
-    }
-    const normalizedPhone = normalizePhone(phone);
-    if (!isValidPhone(normalizedPhone)) {
-      return corsError(req, 'פורמט מספר טלפון לא תקין (נדרש פורמט בינלאומי E.164).', 400);
-    }
-    if (!gender || !['MALE', 'FEMALE'].includes(gender)) {
-      return corsError(req, 'מגדר הוא שדה חובה.', 400);
-    }
-    if (!birthDate || isNaN(Date.parse(birthDate))) {
-      return corsError(req, 'תאריך לידה לא תקין.', 400);
-    }
-    if (!isAdult(birthDate)) {
-      return corsError(req, 'גיל מינימלי להרשמה הוא 18.', 400);
-    }
-    if (!maritalStatus) {
-      return corsError(req, 'מצב משפחתי הוא שדה חובה.', 400);
-    }
-    if (!city) {
-      return corsError(req, 'עיר היא שדה חובה.', 400);
+    // --- Validate with Zod schema ---
+    const validation = completeProfileSchema.safeParse(body);
+    if (!validation.success) {
+      const firstError = validation.error.errors[0]?.message || 'קלט לא תקין.';
+      return corsError(req, firstError, 400);
     }
 
-    // --- Optional fields ---
     const {
+      firstName,
+      lastName,
+      phone,
+      gender,
+      birthDate,
+      maritalStatus,
+      city,
       origin,
       height,
       occupation,
@@ -90,11 +106,16 @@ export async function POST(req: NextRequest) {
       religiousJourney,
       about,
       hasChildrenFromPrevious,
-      language = 'he',
-      engagementEmailsConsent = false,
-      promotionalEmailsConsent = false,
-      acceptTerms = false,
-    } = body;
+      language,
+      engagementEmailsConsent,
+      promotionalEmailsConsent,
+      acceptTerms,
+    } = validation.data;
+
+    const normalizedPhone = normalizePhone(phone);
+    if (!isValidPhone(normalizedPhone)) {
+      return corsError(req, 'פורמט מספר טלפון לא תקין (נדרש פורמט בינלאומי E.164).', 400);
+    }
 
     // --- Transaction: update profile + user ---
     const updatedUser = await prisma.$transaction(async (tx) => {
@@ -110,11 +131,11 @@ export async function POST(req: NextRequest) {
           hasChildrenFromPrevious: hasChildrenFromPrevious === true,
           city,
           origin: origin || undefined,
-          height: height ? parseInt(height) : undefined,
+          height: height ? parseInt(String(height)) : undefined,
           occupation: occupation || undefined,
           education: education || undefined,
           religiousLevel: religiousLevel || undefined,
-          religiousJourney: religiousJourney || undefined,
+          religiousJourney: (religiousJourney as any) || undefined,
           about: about || undefined,
           isProfileVisible: true,
           availabilityStatus: 'AVAILABLE',
@@ -127,11 +148,11 @@ export async function POST(req: NextRequest) {
           hasChildrenFromPrevious: hasChildrenFromPrevious === true,
           city,
           origin: origin || undefined,
-          height: height ? parseInt(height) : undefined,
+          height: height ? parseInt(String(height)) : undefined,
           occupation: occupation || undefined,
           education: education || undefined,
           religiousLevel: religiousLevel || undefined,
-          religiousJourney: religiousJourney || undefined,
+          religiousJourney: (religiousJourney as any) || undefined,
           about: about || undefined,
           updatedAt: new Date(),
         },

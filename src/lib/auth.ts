@@ -147,7 +147,7 @@ export const authOptions: NextAuthOptions = {
         },
       },
       profile(profile) {
-        console.log("[AppleProvider Profile Fn] 🍎 Apple profile received for:", profile.email);
+        console.log("[AppleProvider Profile Fn] Apple profile received for sub:", profile.sub);
         const now = new Date();
 
         const firstName = (profile as any).name?.firstName || "";
@@ -275,7 +275,7 @@ export const authOptions: NextAuthOptions = {
           return null;
         }
 
-        if (isDev) console.log(`[CredentialsProvider] Auth successful for ${credentials.email}`);
+        if (isDev) console.log(`[CredentialsProvider] Auth successful for userId: ${userFromDb.id}`);
 
         await prisma.user.update({
           where: { id: userFromDb.id },
@@ -338,7 +338,7 @@ export const authOptions: NextAuthOptions = {
           return null;
         }
 
-        if (isDev) console.log(`[AutoLoginProvider] Auto-login successful for ${userFromDb.email}`);
+        if (isDev) console.log(`[AutoLoginProvider] Auto-login successful for userId: ${userFromDb.id}`);
 
         const { images, password: _password, ...restOfUser } = userFromDb;
         return {
@@ -364,11 +364,11 @@ export const authOptions: NextAuthOptions = {
       const oauthProfile = profile as OAuthProfile & { email_verified?: boolean };
 
       // ✅ Concise logging — only essential info
-      console.log("[signIn] Provider:", account?.provider, "| Email:", typedUser.email);
+      console.log("[signIn] Provider:", account?.provider, "| userId:", typedUser.id);
 
       const userEmail = typedUser.email?.toLowerCase();
       if (!userEmail) {
-        console.error("[signIn] ❌ No user email available.");
+        console.error("[signIn] No user email available.");
         return false;
       }
 
@@ -409,7 +409,7 @@ export const authOptions: NextAuthOptions = {
             },
           });
           dbUser = createdDbUser;
-          console.log(`[signIn] 🍎 Created Apple user ${dbUser.email}, ID: ${dbUser.id}`);
+          console.log(`[signIn] Created Apple user, ID: ${dbUser.id}`);
 
           if (account.providerAccountId) {
             const existingAccount = await prisma.account.findUnique({
@@ -484,7 +484,7 @@ export const authOptions: NextAuthOptions = {
               },
             });
             dbUser = createdDbUser;
-            console.log(`[signIn] Created Google user ${dbUser.email}`);
+            console.log(`[signIn] Created Google user, ID: ${dbUser.id}`);
 
             if (account && account.providerAccountId) {
               const existingAccount = await prisma.account.findUnique({
@@ -527,7 +527,7 @@ export const authOptions: NextAuthOptions = {
       }
 
       if (!dbUser) {
-        console.error(`[signIn] ❌ User ${userEmail} not found and could not be created. Provider: ${account?.provider}`);
+        console.error(`[signIn] User not found and could not be created. Provider: ${account?.provider}`);
         return false;
       }
 

@@ -409,6 +409,21 @@ const BatchScanButtons: React.FC<BatchScanButtonsProps> = ({
           </div>
         </div>
 
+        {/* Scan Method Recommendation */}
+        <div className="p-3 rounded-lg bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-100">
+          <div className="flex items-center gap-2 text-xs">
+            <div className="p-1 rounded bg-indigo-100">
+              <Target className="w-3.5 h-3.5 text-indigo-600" />
+            </div>
+            <span className="font-medium text-indigo-700">מומלץ:</span>
+            <span className="text-indigo-600">
+              {skipPreparation
+                ? 'היברידי 🔥 — סריקה מהירה ומקיפה בעת דילוג על הכנה'
+                : 'AI מתקדם 🧠 — תוצאות מדויקות עם ניתוח עומק מלא'}
+            </span>
+          </div>
+        </div>
+
         {/* Buttons Row */}
         <div className="flex gap-2 flex-wrap">
           {METHODS_ORDER.map((method) => {

@@ -12,6 +12,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
+import { sanitizeText } from '@/lib/sanitize';
 
 export async function POST(req: NextRequest) {
   try {
@@ -32,14 +33,17 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    const { content, userIds } = await req.json();
+    const { content: rawContent, userIds } = await req.json();
 
-    if (!content?.trim()) {
+    if (!rawContent?.trim()) {
       return NextResponse.json(
         { error: 'Message content is required' },
         { status: 400 }
       );
     }
+
+    // Sanitize user-provided message content
+    const content = sanitizeText(rawContent, 5000);
 
     // Determine target user IDs
     let targetUserIds: string[] = [];

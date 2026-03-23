@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { ErrorBoundary } from '@/components/ui/error-boundary';
 import {
   Search,
   Mail,
@@ -478,6 +479,7 @@ export default function EngagementDashboard({
 
       {/* Stats Cards */}
       {stats && (
+        <ErrorBoundary>
         <div className="max-w-7xl mx-auto mb-8 grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="bg-white rounded-lg shadow p-6">
             <div className="flex items-center justify-between mb-2">
@@ -515,9 +517,11 @@ export default function EngagementDashboard({
             </p>
           </div>
         </div>
+        </ErrorBoundary>
       )}
 
       {/* Main Content */}
+      <ErrorBoundary>
       <div className="max-w-7xl mx-auto">
         <div className="bg-white rounded-lg shadow">
           {/* Toolbar */}
@@ -755,6 +759,7 @@ export default function EngagementDashboard({
           </div>
         </div>
       </div>
+      </ErrorBoundary>
     </div>
   );
 }

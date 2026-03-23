@@ -12,6 +12,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
+import { sanitizeText } from '@/lib/sanitize';
 
 // ==========================================
 // GET — fetch messages with specific user
@@ -100,24 +101,27 @@ export async function POST(
 
     const matchmakerId = session.user.id;
     const { userId } = await params;
-    const { content } = await req.json();
+    const { content: rawContent } = await req.json();
 
-    if (!content?.trim()) {
+    if (!rawContent?.trim()) {
       return NextResponse.json(
         { error: 'Message content required' },
         { status: 400 }
       );
     }
 
+    // Sanitize user-provided message content
+    const content = sanitizeText(rawContent, 5000);
+
     const message = await prisma.directMessage.create({
       data: {
         senderId: matchmakerId,
         receiverId: userId,
-        content: content.trim(),
+        content,
       },
     });
   // Send push notification (non-blocking)
-  pushDirectMessage(userId, session.user.name || 'השדכן/ית שלך', content.trim())
+  pushDirectMessage(userId, session.user.name || 'השדכן/ית שלך', content)
     .catch(console.error);
     return NextResponse.json({
       success: true,

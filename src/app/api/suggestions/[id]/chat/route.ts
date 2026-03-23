@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
+import { sanitizeText } from '@/lib/sanitize';
  import { pushSuggestionMessage, pushUserMessageToMatchmaker } from '@/lib/sendPushNotification';
 
 // ==========================================
@@ -142,14 +143,17 @@ export async function POST(
     }
 
     const userId = session.user.id;
-    const { content } = await req.json();
+    const { content: rawContent } = await req.json();
 
-    if (!content?.trim()) {
+    if (!rawContent?.trim()) {
       return NextResponse.json(
         { error: 'Message content is required' },
         { status: 400 }
       );
     }
+
+    // Sanitize user-provided message content
+    const content = sanitizeText(rawContent, 5000);
 
     const suggestion = await prisma.matchSuggestion.findFirst({
       where: {

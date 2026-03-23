@@ -63,7 +63,7 @@ export async function POST(req: NextRequest) {
       expiresIn: expiresInText
     });
 
-    console.log(`[Send Verification] Verification email re-sent successfully to ${user.email} in ${locale}`);
+    console.log(`[Send Verification] Verification email re-sent successfully for user ${user.id} in ${locale}`);
 
     // 7. Return a success response
     return NextResponse.json({ success: true, message: "קוד אימות חדש נשלח בהצלחה." }, { status: 200 });

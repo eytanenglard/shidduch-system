@@ -38,6 +38,7 @@ interface PotentialMatchesStatsProps {
   isScanRunning?: boolean;
   scanProgress?: number;
   className?: string;
+  onFilterChange?: (filters: Record<string, any>) => void;
 }
 
 // =============================================================================
@@ -106,6 +107,7 @@ const PotentialMatchesStats: React.FC<PotentialMatchesStatsProps> = ({
   isScanRunning = false,
   scanProgress = 0,
   className,
+  onFilterChange,
 }) => {
   if (!stats) {
     return (
@@ -130,8 +132,9 @@ const PotentialMatchesStats: React.FC<PotentialMatchesStatsProps> = ({
           value={stats.total}
           gradient="from-pink-50 to-rose-100"
           iconColor="bg-gradient-to-br from-pink-500 to-rose-500"
+          onClick={() => onFilterChange?.({ status: 'all' })}
         />
-        
+
         <StatCard
           icon={Clock}
           label="ממתינות"
@@ -139,32 +142,36 @@ const PotentialMatchesStats: React.FC<PotentialMatchesStatsProps> = ({
           subValue="טרם נבדקו"
           gradient="from-amber-50 to-yellow-100"
           iconColor="bg-gradient-to-br from-amber-500 to-yellow-500"
+          onClick={() => onFilterChange?.({ status: 'pending' })}
         />
-        
+
         <StatCard
           icon={Eye}
           label="נבדקו"
           value={stats.reviewed}
           gradient="from-blue-50 to-cyan-100"
           iconColor="bg-gradient-to-br from-blue-500 to-cyan-500"
+          onClick={() => onFilterChange?.({ status: 'reviewed' })}
         />
-        
+
         <StatCard
           icon={Send}
           label="נשלחו הצעות"
           value={stats.sent}
           gradient="from-green-50 to-emerald-100"
           iconColor="bg-gradient-to-br from-green-500 to-emerald-500"
+          onClick={() => onFilterChange?.({ status: 'sent' })}
         />
-        
+
         <StatCard
           icon={X}
           label="נדחו"
           value={stats.dismissed}
           gradient="from-gray-50 to-slate-100"
           iconColor="bg-gradient-to-br from-gray-500 to-slate-500"
+          onClick={() => onFilterChange?.({ status: 'dismissed' })}
         />
-        
+
         <StatCard
           icon={AlertTriangle}
           label="עם אזהרות"
@@ -172,6 +179,7 @@ const PotentialMatchesStats: React.FC<PotentialMatchesStatsProps> = ({
           subValue="בהצעה פעילה"
           gradient="from-orange-50 to-amber-100"
           iconColor="bg-gradient-to-br from-orange-500 to-amber-500"
+          onClick={() => onFilterChange?.({ status: 'with_warnings' })}
         />
       </div>
 
@@ -191,7 +199,10 @@ const PotentialMatchesStats: React.FC<PotentialMatchesStatsProps> = ({
 
           <div className="space-y-4">
             {/* High Score (85+) */}
-            <div>
+            <div
+              className="cursor-pointer hover:bg-emerald-50/50 rounded-lg p-1.5 -mx-1.5 transition-colors"
+              onClick={() => onFilterChange?.({ minScore: 85, maxScore: 100, status: 'all' })}
+            >
               <div className="flex items-center justify-between mb-1">
                 <span className="text-sm font-medium text-emerald-700 flex items-center gap-1">
                   <Sparkles className="w-4 h-4" />
@@ -199,14 +210,17 @@ const PotentialMatchesStats: React.FC<PotentialMatchesStatsProps> = ({
                 </span>
                 <span className="text-sm text-gray-600">{stats.highScore}</span>
               </div>
-              <Progress 
-                value={(stats.highScore / (stats.total || 1)) * 100} 
+              <Progress
+                value={(stats.highScore / (stats.total || 1)) * 100}
                 className="h-2 bg-gray-200"
               />
             </div>
 
             {/* Medium Score (70-85) */}
-            <div>
+            <div
+              className="cursor-pointer hover:bg-blue-50/50 rounded-lg p-1.5 -mx-1.5 transition-colors"
+              onClick={() => onFilterChange?.({ minScore: 70, maxScore: 84, status: 'all' })}
+            >
               <div className="flex items-center justify-between mb-1">
                 <span className="text-sm font-medium text-blue-700 flex items-center gap-1">
                   <TrendingUp className="w-4 h-4" />
@@ -214,8 +228,8 @@ const PotentialMatchesStats: React.FC<PotentialMatchesStatsProps> = ({
                 </span>
                 <span className="text-sm text-gray-600">{stats.mediumScore}</span>
               </div>
-              <Progress 
-                value={(stats.mediumScore / (stats.total || 1)) * 100} 
+              <Progress
+                value={(stats.mediumScore / (stats.total || 1)) * 100}
                 className="h-2 bg-gray-200"
               />
             </div>

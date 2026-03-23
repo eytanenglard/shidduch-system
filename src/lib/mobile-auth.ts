@@ -59,16 +59,37 @@ export function corsJson(
 
 /**
  * 🔴 חדש: תגובת שגיאה עם CORS headers
+ * Now returns structured error body with `code` field for mobile clients.
+ * If no explicit code is given, one is inferred from the HTTP status code.
  */
 export function corsError(
-  req: NextRequest, 
-  error: string, 
-  status: number = 400
+  req: NextRequest,
+  error: string,
+  status: number = 400,
+  code?: string
 ): NextResponse {
+  const errorCode = code || inferErrorCode(status);
   return NextResponse.json(
-    { success: false, error },
+    { success: false, code: errorCode, error, message: error, statusCode: status },
     { status, headers: getCorsHeaders(req) }
   );
+}
+
+/**
+ * Infer a standard error code from an HTTP status code.
+ * Used as a fallback when no explicit code is provided.
+ */
+function inferErrorCode(statusCode: number): string {
+  switch (statusCode) {
+    case 400: return 'VALIDATION_ERROR';
+    case 401: return 'AUTH_REQUIRED';
+    case 403: return 'AUTH_INSUFFICIENT_PERMISSIONS';
+    case 404: return 'NOT_FOUND';
+    case 409: return 'CONFLICT';
+    case 429: return 'RATE_LIMIT_EXCEEDED';
+    case 503: return 'SERVICE_UNAVAILABLE';
+    default: return 'INTERNAL_ERROR';
+  }
 }
 
 /**

@@ -1375,7 +1375,7 @@ async function fetchAllRelevantCandidates(
   const compatibleReligiousLevels = getCompatibleReligiousLevels(targetUser.religiousLevel);
 
   console.log(`\n${'='.repeat(70)}`);
-  console.log(`[V3.4] 🔍 FETCHING CANDIDATES (LENIENT MODE) FOR: ${targetUser.firstName} ${targetUser.lastName}`);
+  console.log(`[V3.4] FETCHING CANDIDATES (LENIENT MODE) FOR userId: ${targetUser.id}`);
   console.log(`${'='.repeat(70)}`);
   console.log(`[V3.4] Target User Details:`);
   console.log(`  - ID: ${targetUser.id}`);
@@ -1451,7 +1451,7 @@ async function fetchAllRelevantCandidates(
                        (c.questionnaireResponses && c.questionnaireResponses.length > 0);
     
     if (!hasContent) {
-      console.log(`[V3.4] Skipping ${c.firstName} ${c.lastName} - no content`);
+      console.log(`[V3.4] Skipping userId: ${c.id} - no content`);
       return null;
     }
 
@@ -1463,16 +1463,16 @@ async function fetchAllRelevantCandidates(
       ageScore = calculateAgeScoreForMatch(targetUser.age, targetUser.gender, age);
       
       if (!ageScore.eligible) {
-        console.log(`[V3.4] Skipping ${c.firstName} ${c.lastName} - age ${age} not eligible (${ageScore.description})`);
+        console.log(`[V3.4] Skipping userId: ${c.id} - age ${age} not eligible (${ageScore.description})`);
         return null;
       }
     } else {
-      console.log(`[V3.4] Including ${c.firstName} ${c.lastName} - no birthDate (will be scored by AI)`);
+      console.log(`[V3.4] Including userId: ${c.id} - no birthDate (will be scored by AI)`);
     }
 
     if (c.profile?.religiousLevel) {
       if (!compatibleReligiousLevels.includes(c.profile.religiousLevel)) {
-        console.log(`[V3.4] Skipping ${c.firstName} ${c.lastName} - religious level ${c.profile.religiousLevel} not compatible`);
+        console.log(`[V3.4] Skipping userId: ${c.id} - religious level ${c.profile.religiousLevel} not compatible`);
         return null;
       }
     }
@@ -1835,7 +1835,7 @@ async function runFirstPassAnalysis(
   if (allResults.length > 0) {
     console.log(`[Matching V3.4] Top 5 from First Pass:`);
     allResults.slice(0, 5).forEach((r, i) => {
-      console.log(`  ${i + 1}. ${r.firstName} ${r.lastName} - Score: ${r.totalScore} (raw: ${r.rawScore}, multiplier: ${r.backgroundMultiplier.toFixed(2)})`);
+      console.log(`  ${i + 1}. userId: ${r.userId} - Score: ${r.totalScore} (raw: ${r.rawScore}, multiplier: ${r.backgroundMultiplier.toFixed(2)})`);
     });
   }
 
@@ -1883,7 +1883,7 @@ async function runDeepAnalysis(
     console.log(`[Matching V3.4] Deep Analysis results:`);
     results.slice(0, 3).forEach(r => {
       const candidate = topCandidates.find(c => c.userId === r.userId);
-      console.log(`  Rank ${r.rank}: ${candidate?.firstName} ${candidate?.lastName} - Final Score: ${r.finalScore}`);
+      console.log(`  Rank ${r.rank}: userId: ${r.userId} - Final Score: ${r.finalScore}`);
     });
 
     return results;
@@ -2014,7 +2014,7 @@ export async function findMatchesForUser(
   if (!targetUser) {
     throw new Error('Target user not found or has no profile');
   }
-  console.log(`[Matching V3.4] Target user: ${targetUser.firstName} ${targetUser.lastName}, Age: ${targetUser.age}, Gender: ${targetUser.gender}`);
+  console.log(`[Matching V3.4] Target user: userId: ${targetUser.id}, Age: ${targetUser.age}, Gender: ${targetUser.gender}`);
 
   // שלב 2: שליפת כל המועמדים הרלוונטיים (סינון סלחני + MANUAL_ENTRY)
   const allCandidates = await fetchAllRelevantCandidates(targetUser);
@@ -2093,7 +2093,7 @@ export async function findMatchesForUser(
   console.log(`[Matching V3.4] Total candidates scanned: ${allCandidates.length}`);
   console.log(`[Matching V3.4] Final Top 3:`);
   finalResults.slice(0, 3).forEach((m, i) => {
-    console.log(`  ${i + 1}. ${m.firstName} ${m.lastName} - Final: ${m.finalScore}, Age: ${m.ageScore ?? 'N/A'}, BG: ${m.backgroundCompatibility}`);
+    console.log(`  ${i + 1}. userId: ${m.userId} - Final: ${m.finalScore}, Age: ${m.ageScore ?? 'N/A'}, BG: ${m.backgroundCompatibility}`);
   });
   console.log(`========================================\n`);
 
@@ -2305,7 +2305,7 @@ export async function findMatchesForVirtualUser(
   if (finalResults.length > 0) {
     console.log(`[Matching V3.4 - Virtual] Final Top 3:`);
     finalResults.slice(0, 3).forEach((m, i) => {
-      console.log(`  ${i + 1}. ${m.firstName} ${m.lastName} - Final: ${m.finalScore}`);
+      console.log(`  ${i + 1}. userId: ${m.userId} - Final: ${m.finalScore}`);
     });
   }
   console.log(`========================================\n`);

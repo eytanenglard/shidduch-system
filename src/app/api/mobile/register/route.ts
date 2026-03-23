@@ -12,6 +12,21 @@ import { VerificationService } from '@/lib/services/verificationService';
 import { applyRateLimit } from '@/lib/rate-limiter';
 import prisma from '@/lib/prisma';
 import { corsJson, corsError, corsOptions } from "@/lib/mobile-auth";
+import { z } from 'zod';
+
+const registerSchema = z.object({
+  email: z.string().email('כתובת אימייל לא תקינה.').max(254),
+  password: z.string()
+    .min(8, 'הסיסמה חייבת להכיל לפחות 8 תווים.')
+    .max(128, 'הסיסמה ארוכה מדי.')
+    .regex(
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$/,
+      'הסיסמה חייבת להכיל לפחות 8 תווים, אות גדולה, אות קטנה ומספר.'
+    ),
+  firstName: z.string().min(1, 'שם פרטי הוא שדה חובה.').max(100),
+  lastName: z.string().min(1, 'שם משפחה הוא שדה חובה.').max(100),
+  language: z.enum(['he', 'en']).optional().default('he'),
+});
 
 export async function OPTIONS(req: NextRequest) {
   return corsOptions(req);
@@ -24,23 +39,14 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json();
-    const { email, password, firstName, lastName, language = 'he' } = body;
 
-    // --- Validation ---
-    if (!email || !password || !firstName || !lastName) {
-      return corsError(req, 'חסרים פרטים חובה (אימייל, סיסמה, שם פרטי, שם משפחה).', 400);
+    const validation = registerSchema.safeParse(body);
+    if (!validation.success) {
+      const firstError = validation.error.errors[0]?.message || 'קלט לא תקין.';
+      return corsError(req, firstError, 400, 'VALIDATION_INVALID_FORMAT');
     }
 
-    const emailRegex = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i;
-    if (!emailRegex.test(email)) {
-      return corsError(req, 'כתובת אימייל לא תקינה.', 400);
-    }
-
-    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$/;
-    if (!passwordRegex.test(password)) {
-      return corsError(req, 'הסיסמה חייבת להכיל לפחות 8 תווים, אות גדולה, אות קטנה ומספר.', 400);
-    }
-
+    const { email, password, firstName, lastName, language } = validation.data;
     const normalizedEmail = email.toLowerCase();
 
     // --- Check if user already exists ---
@@ -48,11 +54,7 @@ export async function POST(req: NextRequest) {
       where: { email: normalizedEmail },
     });
     if (existingUser) {
-      return corsJson(req, {
-        success: false,
-        error: 'משתמש עם כתובת אימייל זו כבר קיים במערכת.',
-        errorCode: 'EMAIL_EXISTS',
-      }, { status: 409 });
+      return corsError(req, 'משתמש עם כתובת אימייל זו כבר קיים במערכת.', 409, 'AUTH_EMAIL_EXISTS');
     }
 
     // --- Hash password ---
@@ -116,7 +118,7 @@ export async function POST(req: NextRequest) {
       console.error('[mobile/register] Failed to send verification email:', emailError);
     }
 
-    console.log(`[mobile/register] User ${result.user.email} registered successfully`);
+    console.log(`[mobile/register] User ${result.user.id} registered successfully`);
 
     return corsJson(req, {
       success: true,
@@ -135,15 +137,11 @@ export async function POST(req: NextRequest) {
       if (error.code === 'P2002') {
         const target = error.meta?.target as string[] | undefined;
         if (target?.includes('email')) {
-          return corsJson(req, {
-            success: false,
-            error: 'משתמש עם כתובת אימייל זו כבר קיים במערכת.',
-            errorCode: 'EMAIL_EXISTS',
-          }, { status: 409 });
+          return corsError(req, 'משתמש עם כתובת אימייל זו כבר קיים במערכת.', 409, 'AUTH_EMAIL_EXISTS');
         }
       }
       if (['P1001', 'P1002', 'P1008', 'P1017'].includes(error.code)) {
-        return corsError(req, 'שגיאת חיבור לשרת. אנא נסה שנית.', 503);
+        return corsError(req, 'שגיאת חיבור לשרת. אנא נסה שנית.', 503, 'SERVICE_UNAVAILABLE');
       }
     }
 
@@ -155,10 +153,10 @@ export async function POST(req: NextRequest) {
         'הסיסמה חייבת להכיל לפחות 8 תווים, אות גדולה, אות קטנה ומספר',
       ];
       if (validationErrors.includes(error.message)) {
-        return corsError(req, error.message, 400);
+        return corsError(req, error.message, 400, 'VALIDATION_ERROR');
       }
     }
 
-    return corsError(req, 'אירעה שגיאה בלתי צפויה. אנא נסה שנית.', 500);
+    return corsError(req, 'אירעה שגיאה בלתי צפויה. אנא נסה שנית.', 500, 'INTERNAL_ERROR');
   }
 }

@@ -30,6 +30,7 @@ import {
   BarChart3,
 } from 'lucide-react';
 import type { PotentialMatch, ScoreBreakdown } from './types/potentialMatches';
+import { SCORE_BREAKDOWN_CATEGORIES, normalizeScanMethod } from '@/lib/constants/matching';
 
 // =============================================================================
 // TYPES
@@ -134,16 +135,7 @@ const ScoreBreakdownDisplay: React.FC<{
   breakdown: ScoreBreakdown;
   methodKey?: string;
 }> = ({ breakdown, methodKey }) => {
-  const categories = [
-    { key: 'religious', label: 'התאמה דתית', max: 25, color: 'bg-purple-500' },
-    { key: 'ageCompatibility', label: 'התאמת גיל', max: 10, color: 'bg-blue-500' },
-    { key: 'careerFamily', label: 'קריירה-משפחה', max: 15, color: 'bg-cyan-500' },
-    { key: 'lifestyle', label: 'סגנון חיים', max: 10, color: 'bg-green-500' },
-    { key: 'socioEconomic', label: 'סוציו-אקונומי', max: 10, color: 'bg-orange-500' },
-    { key: 'education', label: 'השכלה', max: 10, color: 'bg-pink-500' },
-    { key: 'background', label: 'רקע תרבותי', max: 10, color: 'bg-amber-500' },
-    { key: 'values', label: 'ערכים ותקשורת', max: 10, color: 'bg-indigo-500' },
-  ];
+  const categories = SCORE_BREAKDOWN_CATEGORIES;
 
   // מסנן קטגוריות שיש להן ערך
   const availableCategories = categories.filter(
@@ -360,10 +352,7 @@ const AllReasoningsDisplay: React.FC<AllReasoningsDisplayProps> = ({
   // קובע את הטאב הפעיל לפי השיטה האחרונה או הראשונה בזמינות
   const getInitialTab = () => {
     if (match.lastScanMethod) {
-      // המרה מ-metrics_v2 ל-metricsV2 אם צריך
-      const normalizedMethod = match.lastScanMethod === 'metrics_v2' 
-        ? 'metricsV2' 
-        : match.lastScanMethod;
+      const normalizedMethod = normalizeScanMethod(match.lastScanMethod);
       
       if (methods.some(m => m.key === normalizedMethod)) {
         return normalizedMethod;
@@ -411,8 +400,7 @@ const AllReasoningsDisplay: React.FC<AllReasoningsDisplayProps> = ({
             >
               {methods.map((method) => {
                 const isCurrentMethod = 
-                  method.key === match.lastScanMethod ||
-                  (method.key === 'metricsV2' && match.lastScanMethod === 'metrics_v2');
+                  method.key === normalizeScanMethod(match.lastScanMethod);
                 
                 return (
                   <TabsTrigger
@@ -443,8 +431,7 @@ const AllReasoningsDisplay: React.FC<AllReasoningsDisplayProps> = ({
             <div className="max-h-[50vh] overflow-y-auto">
               {methods.map((method) => {
                 const isCurrentMethod = 
-                  method.key === match.lastScanMethod ||
-                  (method.key === 'metricsV2' && match.lastScanMethod === 'metrics_v2');
+                  method.key === normalizeScanMethod(match.lastScanMethod);
                 
                 return (
                   <TabsContent key={method.key} value={method.key} className="mt-0">

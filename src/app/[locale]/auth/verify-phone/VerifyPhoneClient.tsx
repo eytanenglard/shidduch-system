@@ -247,8 +247,8 @@ const VerifyPhoneClient: React.FC<VerifyPhoneClientProps> = ({
   // Debug logging
   useEffect(() => {
     console.log('[VerifyPhoneClient] Component mounted');
-    console.log('[VerifyPhoneClient] Session data:', session);
-    console.log('[VerifyPhoneClient] User phone:', session?.user?.phone);
+    console.log('[VerifyPhoneClient] Session loaded:', !!session);
+    console.log('[VerifyPhoneClient] Has phone:', !!session?.user?.phone);
   }, [session]);
 
   // State

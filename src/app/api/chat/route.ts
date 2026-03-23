@@ -3,11 +3,22 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from '@google/generative-ai';
 import nodemailer from 'nodemailer';
+import { z } from 'zod';
 
 // --- התוספות החדשות לאבטחה ---
 import { getToken } from 'next-auth/jwt';
 import { Ratelimit } from '@upstash/ratelimit';
 import { Redis } from '@upstash/redis';
+
+const chatSchema = z.object({
+  message: z.string().min(1, 'Message is required').max(2000, 'Message must be 2000 characters or less'),
+  type: z.enum(['chat', 'email']).optional(),
+  userEmail: z.string().email('Invalid email address').optional(),
+  locale: z.enum(['he', 'en']).optional(),
+}).refine(
+  (data) => data.type !== 'email' || (data.userEmail && data.userEmail.length > 0),
+  { message: 'User email is required when type is email', path: ['userEmail'] }
+);
 
 // --- הגדרת Rate Limiter (זהה לפיצ'ר המשוב) ---
 // ודא שמשתני הסביבה מוגדרים
@@ -212,17 +223,17 @@ const ip = req.headers.get('x-forwarded-for') ?? '127.0.0.1';
     }
     // --- סוף לוגיקת Rate Limiting ---
 
-    const { message, type, userEmail, locale } = await req.json();
-    const lang: 'he' | 'en' = locale === 'en' ? 'en' : 'he';
+    const body = await req.json();
+    const validation = chatSchema.safeParse(body);
 
-    if (!message || typeof message !== 'string') {
-      return NextResponse.json({ error: 'Message is required' }, { status: 400 });
+    if (!validation.success) {
+      return NextResponse.json({ error: 'Invalid input', details: validation.error.errors }, { status: 400 });
     }
 
+    const { message, type, userEmail, locale } = validation.data;
+    const lang: 'he' | 'en' = locale === 'en' ? 'en' : 'he';
+
     if (type === 'email') {
-      if (!userEmail || typeof userEmail !== 'string') {
-        return NextResponse.json({ error: 'User email is required' }, { status: 400 });
-      }
 
       const transporter = nodemailer.createTransport({
         service: process.env.EMAIL_SERVICE || 'gmail',

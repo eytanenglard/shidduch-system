@@ -43,7 +43,7 @@ export async function POST(req: Request) {
           });
 
           if (existingVerifiedPhoneUser) {
-            console.warn(`API update-and-resend: Attempt to update to phone ${newPhone} already verified by user ${existingVerifiedPhoneUser.id}`);
+            console.warn(`API update-and-resend: Attempt to update to an already-verified phone by user ${existingVerifiedPhoneUser.id}`);
             return NextResponse.json({ error: 'מספר הטלפון כבר רשום ופעיל במערכת עבור משתמש אחר.' }, { status: 409 }); // Conflict
           }
 
@@ -53,7 +53,7 @@ export async function POST(req: Request) {
             data: { phone: newPhone },
             select: { firstName: true, phone: true } // קח את השם המעודכן אם צריך
         });
-         console.log(`API update-and-resend: Updated phone number for user ${userId} to ${newPhone}`);
+         console.log(`API update-and-resend: Updated phone number for user ${userId}`);
 
 
         // 3. צור OTP חדש
@@ -81,18 +81,18 @@ export async function POST(req: Request) {
                  status: 'PENDING',
              }
          });
-         console.log(`API update-and-resend: Created new verification record for user ${userId} with new phone ${newPhone}`);
+         console.log(`API update-and-resend: Created new verification record for user ${userId}`);
 
         // 5. שלח את ה-OTP למספר החדש
         const otpSent = await sendOtpViaWhatsApp(newPhone, otpCode, updatedUser.firstName);
 
         if (!otpSent) {
-            console.error(`API update-and-resend: Failed to send OTP via WhatsApp to new phone ${newPhone} for user ${userId}.`);
+            console.error(`API update-and-resend: Failed to send OTP via WhatsApp for user ${userId}.`);
             // החזר שגיאה, ייתכן שהמספר החדש לא תקין בוואטסאפ
             return NextResponse.json({ error: 'Failed to send verification code to the new phone number via WhatsApp. Please check the number.' }, { status: 500 });
         }
 
-        console.log(`API update-and-resend: OTP sent successfully to new phone ${newPhone} for user ${userId}`);
+        console.log(`API update-and-resend: OTP sent successfully for user ${userId}`);
         return NextResponse.json({ message: 'Phone number updated and new verification code sent successfully via WhatsApp.' }, { status: 200 });
 
     } catch (error: unknown) { // הגדרת error כ-unknown

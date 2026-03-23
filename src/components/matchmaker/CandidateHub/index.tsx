@@ -63,6 +63,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { toast } from 'sonner';
+import { ErrorBoundary } from '@/components/ui/error-boundary';
 
 // =============================================================================
 // DYNAMIC IMPORTS — טעינה עצלה של קומפוננטות כבדות
@@ -1313,6 +1314,7 @@ export default function CandidateHub({
 
                 {/* ---- PROFILE ---- */}
                 <TabsContent value="profile" className="m-0 focus-visible:ring-0">
+                  <ErrorBoundary>
                   {mountedTabs.has('profile') && (
                     <DynamicProfileCard
                       profile={selectedCandidate.profile as any}
@@ -1325,10 +1327,12 @@ export default function CandidateHub({
                       locale={locale}
                     />
                   )}
+                  </ErrorBoundary>
                 </TabsContent>
 
                 {/* ---- SUGGESTIONS ---- */}
                 <TabsContent value="suggestions" className="m-0 focus-visible:ring-0">
+                  <ErrorBoundary>
                   {mountedTabs.has('suggestions') && (
                     <SuggestionsTab
                       candidateId={selectedCandidate.id}
@@ -1338,27 +1342,33 @@ export default function CandidateHub({
                       onRefresh={() => setSuggestionsRefreshKey((k) => k + 1)}
                     />
                   )}
+                  </ErrorBoundary>
                 </TabsContent>
 
                 {/* ---- POTENTIAL MATCHES ---- */}
                 <TabsContent value="potential" className="m-0 focus-visible:ring-0">
+                  <ErrorBoundary>
                   {mountedTabs.has('potential') && (
                     <PotentialMatchesTab
                       candidate={selectedCandidate}
                       isRtl={isRtl}
                     />
                   )}
+                  </ErrorBoundary>
                 </TabsContent>
 
                 {/* ---- MESSAGES ---- */}
                 <TabsContent value="messages" className="m-0 focus-visible:ring-0">
+                  <ErrorBoundary>
                   {mountedTabs.has('messages') && (
                     <DynamicMatchmakerChatPanel locale={locale} />
                   )}
+                  </ErrorBoundary>
                 </TabsContent>
 
                 {/* ---- EDIT PROFILE ---- */}
                 <TabsContent value="edit" className="m-0 focus-visible:ring-0">
+                  <ErrorBoundary>
                   {mountedTabs.has('edit') && (
                     <EditTab
                       candidate={selectedCandidate}
@@ -1368,13 +1378,16 @@ export default function CandidateHub({
                       isRtl={isRtl}
                     />
                   )}
+                  </ErrorBoundary>
                 </TabsContent>
 
                 {/* ---- EMAIL HISTORY ---- */}
                 <TabsContent value="emails" className="m-0 focus-visible:ring-0">
+                  <ErrorBoundary>
                   {mountedTabs.has('emails') && (
                     <EmailHistoryTab isRtl={isRtl} />
                   )}
+                  </ErrorBoundary>
                 </TabsContent>
               </div>
             </Tabs>

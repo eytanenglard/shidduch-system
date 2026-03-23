@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
+import { sanitizeText } from '@/lib/sanitize';
 import { UserRole } from '@prisma/client';
 import { notifyChatMessage } from '@/lib/pushNotifications';
 
@@ -130,14 +131,17 @@ export async function POST(
     }
 
     const { id: suggestionId } = await context.params;
-    const { content, targetUserId } = await req.json(); // ✅ חדש: targetUserId
+    const { content: rawContent, targetUserId } = await req.json(); // ✅ חדש: targetUserId
 
-    if (!content || typeof content !== 'string' || !content.trim()) {
+    if (!rawContent || typeof rawContent !== 'string' || !rawContent.trim()) {
       return NextResponse.json(
         { error: 'Message content is required' },
         { status: 400 }
       );
     }
+
+    // Sanitize user-provided message content
+    const content = sanitizeText(rawContent, 5000);
 
     // ✅ חדש: חובה לציין למי ההודעה
     if (!targetUserId) {

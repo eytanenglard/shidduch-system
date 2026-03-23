@@ -65,6 +65,7 @@ import { cn, getRelativeCloudinaryPath } from '@/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
 import { he } from 'date-fns/locale';
 import type { PotentialMatch, ScoreBreakdown } from './types/potentialMatches';
+import { SCORE_BREAKDOWN_CATEGORIES } from '@/lib/constants/matching';
 
 import RejectionFeedbackModal, {
   useRejectionFeedback,
@@ -218,6 +219,62 @@ const getMaritalStatusLabel = (status: string | null | undefined): string => {
     widowed_with_children: 'אלמן/ה +',
   };
   return map[status.toLowerCase()] || status;
+};
+
+// =============================================================================
+// ASYMMETRY INDICATOR - מציג פער בין שיטות סריקה
+// =============================================================================
+
+const AsymmetryIndicator: React.FC<{ match: PotentialMatch }> = ({ match }) => {
+  const scores = [
+    match.hybridScore,
+    match.algorithmicScore,
+    match.vectorScore,
+    match.metricsV2Score,
+  ].filter((s): s is number => s !== null && s !== undefined);
+
+  if (scores.length < 2) return null;
+
+  const maxScore = Math.max(...scores);
+  const minScore = Math.min(...scores);
+  const gap = maxScore - minScore;
+
+  if (gap < 10) return null;
+
+  const isHigh = gap >= 20;
+
+  return (
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <div
+            className={cn(
+              'flex items-center gap-0.5 px-1.5 py-0.5 rounded-lg border text-[10px] font-medium',
+              isHigh
+                ? 'bg-red-50 border-red-200 text-red-600'
+                : 'bg-amber-50 border-amber-200 text-amber-600'
+            )}
+          >
+            <AlertTriangle className="w-3 h-3" />
+            <span>±{Math.round(gap)}</span>
+          </div>
+        </TooltipTrigger>
+        <TooltipContent side="top" className="text-center max-w-[200px]">
+          <p className="font-bold text-xs">
+            {isHigh ? 'פער גבוה בין שיטות' : 'פער בינוני בין שיטות'}
+          </p>
+          <p className="text-[10px] text-gray-400">
+            טווח ציונים: {Math.round(minScore)} – {Math.round(maxScore)}
+          </p>
+          {isHigh && (
+            <p className="text-[10px] text-red-400 mt-0.5">
+              מומלץ לבדוק ידנית
+            </p>
+          )}
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  );
 };
 
 // =============================================================================
@@ -708,32 +765,7 @@ const CandidatePreview: React.FC<{
 const ScoreBreakdownDisplay: React.FC<{
   breakdown: ScoreBreakdown;
 }> = ({ breakdown }) => {
-  // PotentialMatchCard.tsx - ScoreBreakdownDisplay
-  const categories = [
-    { key: 'religious', label: 'התאמה דתית', max: 25, color: 'bg-purple-500' },
-    {
-      key: 'ageCompatibility',
-      label: 'התאמת גיל',
-      max: 10,
-      color: 'bg-blue-500',
-    },
-    {
-      key: 'careerFamily',
-      label: 'קריירה-משפחה',
-      max: 15,
-      color: 'bg-cyan-500',
-    },
-    { key: 'lifestyle', label: 'סגנון חיים', max: 10, color: 'bg-green-500' },
-    {
-      key: 'socioEconomic',
-      label: 'סוציו-אקונומי',
-      max: 10,
-      color: 'bg-orange-500',
-    }, // 🆕
-    { key: 'education', label: 'השכלה', max: 10, color: 'bg-pink-500' }, // 🆕
-    { key: 'background', label: 'רקע תרבותי', max: 10, color: 'bg-amber-500' }, // 🆕
-    { key: 'values', label: 'ערכים', max: 10, color: 'bg-indigo-500' },
-  ];
+  const categories = SCORE_BREAKDOWN_CATEGORIES;
 
   return (
     <div className="space-y-1.5 sm:space-y-2">
@@ -938,9 +970,10 @@ const PotentialMatchCard: React.FC<PotentialMatchCardProps> = ({
                 </div>
               )}
 
-              {/* Score Badges - All Methods */}
-              <div className="flex-1 min-w-0">
+              {/* Score Badges - All Methods + Asymmetry */}
+              <div className="flex-1 min-w-0 flex items-center gap-1.5">
                 <AllScoresDisplay match={match} />
+                <AsymmetryIndicator match={match} />
               </div>
 
               {/* Status Badge */}
@@ -1126,6 +1159,53 @@ const PotentialMatchCard: React.FC<PotentialMatchCardProps> = ({
               isOpen={showAllReasonings}
               onClose={() => setShowAllReasonings(false)}
             />
+
+            {/* Action History Timeline */}
+            {!isCompact && (match.reviewedAt || match.status === 'SENT' || match.status === 'DISMISSED') && (
+              <div className="flex items-center gap-1.5 mt-2 pt-2 border-t border-gray-100/50 overflow-x-auto">
+                {/* Created */}
+                <div className="flex items-center gap-0.5 text-[9px] text-gray-400 shrink-0">
+                  <div className="w-1.5 h-1.5 rounded-full bg-gray-300" />
+                  <span>נסרק</span>
+                </div>
+                <div className="w-3 h-px bg-gray-200 shrink-0" />
+
+                {/* Reviewed */}
+                {match.reviewedAt && (
+                  <>
+                    <div className="flex items-center gap-0.5 text-[9px] text-blue-500 shrink-0">
+                      <div className="w-1.5 h-1.5 rounded-full bg-blue-400" />
+                      <span>נבדק {formatDistanceToNow(new Date(match.reviewedAt), { locale: he })}</span>
+                    </div>
+                    <div className="w-3 h-px bg-gray-200 shrink-0" />
+                  </>
+                )}
+
+                {/* Sent */}
+                {match.status === 'SENT' && (
+                  <div className="flex items-center gap-0.5 text-[9px] text-emerald-500 shrink-0">
+                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                    <span>נשלחה הצעה</span>
+                  </div>
+                )}
+
+                {/* Dismissed */}
+                {match.status === 'DISMISSED' && (
+                  <div className="flex items-center gap-0.5 text-[9px] text-gray-500 shrink-0">
+                    <div className="w-1.5 h-1.5 rounded-full bg-gray-400" />
+                    <span>נדחה</span>
+                  </div>
+                )}
+
+                {/* Shortlisted */}
+                {match.status === 'SHORTLISTED' && (
+                  <div className="flex items-center gap-0.5 text-[9px] text-purple-500 shrink-0">
+                    <div className="w-1.5 h-1.5 rounded-full bg-purple-400" />
+                    <span>שמור בצד</span>
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Footer: Date & Details Toggle */}
             <div className="flex items-center justify-between mt-2 sm:mt-3 pt-2">

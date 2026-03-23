@@ -29,10 +29,13 @@ export async function POST(req: NextRequest) {
     const validation = loginSchema.safeParse(body);
 
     if (!validation.success) {
-      return corsJson(req, { 
-        success: false, 
-        error: "Invalid input", 
-        details: validation.error.errors 
+      return corsJson(req, {
+        success: false,
+        code: "VALIDATION_ERROR",
+        error: "Invalid input",
+        message: "Invalid input",
+        statusCode: 400,
+        details: validation.error.errors
       }, { status: 400 });
     }
 
@@ -43,24 +46,24 @@ export async function POST(req: NextRequest) {
     });
 
     if (!user) {
-      return corsError(req, "Invalid credentials", 401);
+      return corsError(req, "Invalid credentials", 401, "AUTH_INVALID_CREDENTIALS");
     }
 
     if (!user.password) {
-      return corsError(req, "Please use Google Sign-In for this account", 401);
+      return corsError(req, "Please use Google Sign-In for this account", 401, "AUTH_INVALID_CREDENTIALS");
     }
 
     const isValidPassword = await compare(password, user.password);
     if (!isValidPassword) {
-      return corsError(req, "Invalid credentials", 401);
+      return corsError(req, "Invalid credentials", 401, "AUTH_INVALID_CREDENTIALS");
     }
 
     if (user.status === "BLOCKED") {
-      return corsError(req, "Account is blocked", 403);
+      return corsError(req, "Account is blocked", 403, "AUTH_ACCOUNT_BLOCKED");
     }
 
     if (user.status === "INACTIVE") {
-      return corsError(req, "Account is inactive", 403);
+      return corsError(req, "Account is inactive", 403, "AUTH_ACCOUNT_BLOCKED");
     }
 
     await prisma.user.update({
@@ -70,7 +73,7 @@ export async function POST(req: NextRequest) {
 
     const { token, expiresAt } = createMobileToken(user);
 
-    console.log(`[mobile/login] User ${user.email} logged in successfully from mobile`);
+    console.log(`[mobile/login] User ${user.id} logged in successfully from mobile`);
 
     return corsJson(req, {
       success: true,

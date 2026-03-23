@@ -16,6 +16,11 @@ import {
   corsError,
   corsOptions
 } from "@/lib/mobile-auth";
+import { z } from 'zod';
+
+const googleAuthSchema = z.object({
+  idToken: z.string().min(1, 'ID token is required').max(5000, 'ID token is too long'),
+});
 
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
@@ -25,11 +30,14 @@ export async function OPTIONS(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    const { idToken } = await req.json();
+    const body = await req.json();
 
-    if (!idToken) {
-      return corsError(req, "ID token is required", 400);
+    const validation = googleAuthSchema.safeParse(body);
+    if (!validation.success) {
+      return corsError(req, validation.error.errors[0]?.message || "Invalid input", 400);
     }
+
+    const { idToken } = validation.data;
 
     // --- Verify Google token ---
     let payload;
@@ -96,7 +104,7 @@ export async function POST(req: NextRequest) {
       });
 
       isNewUser = true;
-      console.log(`[mobile/google] Created new user ${user.email} via Google mobile auth`);
+      console.log(`[mobile/google] Created new user ${user.id} via Google mobile auth`);
     }
 
     // --- Check user status ---
@@ -121,7 +129,7 @@ export async function POST(req: NextRequest) {
     // --- Create JWT token ---
     const { token, expiresAt } = createMobileToken(user);
 
-    console.log(`[mobile/google] User ${user.email} ${isNewUser ? 'registered and' : ''} logged in via Google`);
+    console.log(`[mobile/google] User ${user.id} ${isNewUser ? 'registered and' : ''} logged in via Google`);
 
     return corsJson(req, {
       success: true,

@@ -5,6 +5,98 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import type { UserProfile } from "@/types/next-auth";
+import { sanitizeText } from '@/lib/sanitize';
+import { z } from 'zod';
+
+const profileUpdateSchema = z.object({
+  // Basic info
+  gender: z.enum(['MALE', 'FEMALE']).optional(),
+  birthDate: z.string().or(z.date()).optional(),
+  nativeLanguage: z.string().max(50).optional().nullable(),
+  additionalLanguages: z.array(z.string().max(50)).optional(),
+  height: z.number().int().min(100).max(250).optional().nullable(),
+  city: z.string().max(100).optional(),
+  origin: z.string().max(100).optional(),
+  aliyaCountry: z.string().max(100).optional(),
+  aliyaYear: z.number().int().min(1900).max(2100).optional().nullable(),
+  maritalStatus: z.string().max(50).optional(),
+  hasChildrenFromPrevious: z.boolean().optional(),
+  parentStatus: z.string().max(50).optional().nullable(),
+  fatherOccupation: z.string().max(200).optional(),
+  motherOccupation: z.string().max(200).optional(),
+  siblings: z.number().int().min(0).max(30).optional().nullable(),
+  position: z.number().int().min(0).max(30).optional().nullable(),
+
+  // Education & career
+  educationLevel: z.string().max(50).optional(),
+  education: z.string().max(500).optional(),
+  occupation: z.string().max(200).optional(),
+  serviceType: z.string().max(50).optional().nullable(),
+  serviceDetails: z.string().max(500).optional(),
+
+  // Religious
+  religiousLevel: z.string().max(50).optional(),
+  religiousJourney: z.string().max(50).optional().nullable(),
+  shomerNegiah: z.boolean().optional().nullable(),
+
+  // Lifestyle
+  smokingStatus: z.string().max(50).optional().nullable(),
+  preferredSmokingStatus: z.string().max(50).optional().nullable(),
+  headCovering: z.string().max(50).optional().nullable(),
+  kippahType: z.string().max(50).optional().nullable(),
+
+  // Personality
+  profileCharacterTraits: z.array(z.string().max(100)).optional(),
+  profileHobbies: z.array(z.string().max(100)).optional(),
+
+  // Text fields
+  about: z.string().max(5000).optional(),
+  isAboutVisible: z.boolean().optional(),
+  profileHeadline: z.string().max(300).optional().nullable(),
+  inspiringCoupleStory: z.string().max(2000).optional().nullable(),
+  influentialRabbi: z.string().max(200).optional().nullable(),
+  manualEntryText: z.string().max(5000).optional().nullable(),
+  isNeshamaTechSummaryVisible: z.boolean().optional(),
+  isFriendsSectionVisible: z.boolean().optional(),
+  matchingNotes: z.string().max(5000).optional(),
+
+  // Preferences
+  preferredAgeMin: z.number().int().min(18).max(120).optional().nullable(),
+  preferredAgeMax: z.number().int().min(18).max(120).optional().nullable(),
+  preferredHeightMin: z.number().int().min(100).max(250).optional().nullable(),
+  preferredHeightMax: z.number().int().min(100).max(250).optional().nullable(),
+  preferredReligiousLevels: z.array(z.string().max(50)).optional(),
+  preferredLocations: z.array(z.string().max(100)).optional(),
+  preferredEducation: z.array(z.string().max(100)).optional(),
+  preferredOccupations: z.array(z.string().max(200)).optional(),
+  preferredMaritalStatuses: z.array(z.string().max(50)).optional(),
+  preferredOrigins: z.array(z.string().max(100)).optional(),
+  preferredServiceTypes: z.array(z.string().max(50)).optional(),
+  preferredHeadCoverings: z.array(z.string().max(50)).optional(),
+  preferredKippahTypes: z.array(z.string().max(50)).optional(),
+  preferredShomerNegiah: z.boolean().optional().nullable(),
+  preferredPartnerHasChildren: z.string().max(50).optional().nullable(),
+  preferredCharacterTraits: z.array(z.string().max(100)).optional(),
+  preferredHobbies: z.array(z.string().max(100)).optional(),
+  preferredAliyaStatus: z.string().max(50).optional().nullable(),
+  preferredReligiousJourneys: z.array(z.string().max(50)).optional(),
+
+  // Contact & visibility
+  contactPreference: z.string().max(50).optional(),
+  preferredMatchmakerGender: z.string().max(50).optional().nullable(),
+  isProfileVisible: z.boolean().optional(),
+  availabilityStatus: z.string().max(50).optional(),
+  availabilityNote: z.string().max(1000).optional(),
+  availabilityUpdatedAt: z.string().or(z.date()).optional().nullable(),
+  hasViewedProfilePreview: z.boolean().optional(),
+  needsAiProfileUpdate: z.boolean().optional(),
+
+  // Medical
+  hasMedicalInfo: z.boolean().optional().nullable(),
+  medicalInfoDetails: z.string().max(5000).optional().nullable(),
+  medicalInfoDisclosureTiming: z.string().max(100).optional().nullable(),
+  isMedicalInfoVisible: z.boolean().optional(),
+}).passthrough();
 
 // הגדרה זו מבטיחה שה-Route Handler ירוץ תמיד מחדש ולא ישמר ב-Cache.
 export const dynamic = 'force-dynamic';
@@ -203,7 +295,35 @@ export async function PUT(req: Request) {
     }
 
     const body = await req.json();
-    const updateData = { ...body };
+
+    const validation = profileUpdateSchema.safeParse(body);
+    if (!validation.success) {
+      return NextResponse.json(
+        { success: false, message: 'Invalid input', details: validation.error.errors },
+        { status: 400 }
+      );
+    }
+
+    // Cast to any to preserve compatibility with Prisma's strict enum types
+    // Zod validation above ensures the data shape is correct at runtime
+    const updateData: any = { ...validation.data };
+
+    // Sanitize user-provided text fields
+    if (typeof updateData.about === 'string') updateData.about = sanitizeText(updateData.about, 5000);
+    if (typeof updateData.profileHeadline === 'string') updateData.profileHeadline = sanitizeText(updateData.profileHeadline, 300);
+    if (typeof updateData.inspiringCoupleStory === 'string') updateData.inspiringCoupleStory = sanitizeText(updateData.inspiringCoupleStory, 2000);
+    if (typeof updateData.influentialRabbi === 'string') updateData.influentialRabbi = sanitizeText(updateData.influentialRabbi, 200);
+    if (typeof updateData.matchingNotes === 'string') updateData.matchingNotes = sanitizeText(updateData.matchingNotes, 5000);
+    if (typeof updateData.manualEntryText === 'string') updateData.manualEntryText = sanitizeText(updateData.manualEntryText, 5000);
+    if (typeof updateData.availabilityNote === 'string') updateData.availabilityNote = sanitizeText(updateData.availabilityNote, 1000);
+    if (typeof updateData.medicalInfoDetails === 'string') updateData.medicalInfoDetails = sanitizeText(updateData.medicalInfoDetails, 5000);
+    if (typeof updateData.education === 'string') updateData.education = sanitizeText(updateData.education, 500);
+    if (typeof updateData.occupation === 'string') updateData.occupation = sanitizeText(updateData.occupation, 200);
+    if (typeof updateData.serviceDetails === 'string') updateData.serviceDetails = sanitizeText(updateData.serviceDetails, 500);
+    if (typeof updateData.fatherOccupation === 'string') updateData.fatherOccupation = sanitizeText(updateData.fatherOccupation, 200);
+    if (typeof updateData.motherOccupation === 'string') updateData.motherOccupation = sanitizeText(updateData.motherOccupation, 200);
+    if (typeof updateData.city === 'string') updateData.city = sanitizeText(updateData.city, 100);
+    if (typeof updateData.origin === 'string') updateData.origin = sanitizeText(updateData.origin, 100);
 
     // ✅ FIX: Clean medical fields if hasMedicalInfo is false
     if (updateData.hasMedicalInfo === false) {

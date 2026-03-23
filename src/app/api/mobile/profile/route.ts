@@ -24,6 +24,7 @@ import {
   corsOptions,
 } from "@/lib/mobile-auth";
 import { updateProfileVectorsAndMetrics } from '@/lib/services/dualVectorService';
+import { sanitizeText } from '@/lib/sanitize';
 
 // --- Helpers (same as web route) ---
 
@@ -287,10 +288,10 @@ if (body.birthDate !== undefined) {
 
     // ---- Personal & Demographic ----
     if (body.height !== undefined) dataToUpdate.height = toNumberOrNull(body.height);
-    if (body.city !== undefined) dataToUpdate.city = emptyStringToNull(body.city);
-    if (body.origin !== undefined) dataToUpdate.origin = emptyStringToNull(body.origin);
-    if (body.occupation !== undefined) dataToUpdate.occupation = emptyStringToNull(body.occupation);
-    if (body.education !== undefined) dataToUpdate.education = emptyStringToNull(body.education);
+    if (body.city !== undefined) dataToUpdate.city = emptyStringToNull(body.city ? sanitizeText(body.city, 100) : body.city);
+    if (body.origin !== undefined) dataToUpdate.origin = emptyStringToNull(body.origin ? sanitizeText(body.origin, 100) : body.origin);
+    if (body.occupation !== undefined) dataToUpdate.occupation = emptyStringToNull(body.occupation ? sanitizeText(body.occupation, 200) : body.occupation);
+    if (body.education !== undefined) dataToUpdate.education = emptyStringToNull(body.education ? sanitizeText(body.education, 500) : body.education);
     if (body.nativeLanguage !== undefined) dataToUpdate.nativeLanguage = emptyStringToNull(body.nativeLanguage);
     if (body.additionalLanguages !== undefined) dataToUpdate.additionalLanguages = body.additionalLanguages || [];
     if (body.aliyaCountry !== undefined) dataToUpdate.aliyaCountry = emptyStringToNull(body.aliyaCountry);
@@ -317,8 +318,8 @@ if (body.birthDate !== undefined) {
 
     // ---- Family ----
     if (body.parentStatus !== undefined) dataToUpdate.parentStatus = emptyStringToNull(body.parentStatus);
-    if (body.fatherOccupation !== undefined) dataToUpdate.fatherOccupation = emptyStringToNull(body.fatherOccupation);
-    if (body.motherOccupation !== undefined) dataToUpdate.motherOccupation = emptyStringToNull(body.motherOccupation);
+    if (body.fatherOccupation !== undefined) dataToUpdate.fatherOccupation = emptyStringToNull(body.fatherOccupation ? sanitizeText(body.fatherOccupation, 200) : body.fatherOccupation);
+    if (body.motherOccupation !== undefined) dataToUpdate.motherOccupation = emptyStringToNull(body.motherOccupation ? sanitizeText(body.motherOccupation, 200) : body.motherOccupation);
     if (body.siblings !== undefined) dataToUpdate.siblings = toNumberOrNull(body.siblings);
     if (body.positionInFamily !== undefined) dataToUpdate.position = toNumberOrNull(body.positionInFamily);
 
@@ -353,7 +354,7 @@ if (body.birthDate !== undefined) {
         dataToUpdate.serviceType = null;
       }
     }
-    if (body.serviceDetails !== undefined) dataToUpdate.serviceDetails = emptyStringToNull(body.serviceDetails);
+    if (body.serviceDetails !== undefined) dataToUpdate.serviceDetails = emptyStringToNull(body.serviceDetails ? sanitizeText(body.serviceDetails, 500) : body.serviceDetails);
 
     // ---- Head Covering ----
     if (body.headCovering !== undefined) {
@@ -375,7 +376,7 @@ if (body.birthDate !== undefined) {
       }
     }
 
-    if (body.influentialRabbi !== undefined) dataToUpdate.influentialRabbi = emptyStringToNull(body.influentialRabbi);
+    if (body.influentialRabbi !== undefined) dataToUpdate.influentialRabbi = emptyStringToNull(body.influentialRabbi ? sanitizeText(body.influentialRabbi, 200) : body.influentialRabbi);
 
     if (body.preferredMatchmakerGender !== undefined) {
       const value = emptyStringToNull(body.preferredMatchmakerGender);
@@ -389,12 +390,12 @@ if (body.birthDate !== undefined) {
     if (body.profileCharacterTraits !== undefined) dataToUpdate.profileCharacterTraits = body.profileCharacterTraits || [];
     if (body.profileHobbies !== undefined) dataToUpdate.profileHobbies = body.profileHobbies || [];
 
-    // ---- About ----
-    if (body.profileHeadline !== undefined) dataToUpdate.profileHeadline = emptyStringToNull(body.profileHeadline);
-    if (body.about !== undefined) dataToUpdate.about = emptyStringToNull(body.about);
+    // ---- About (sanitize user-typed text content) ----
+    if (body.profileHeadline !== undefined) dataToUpdate.profileHeadline = emptyStringToNull(body.profileHeadline ? sanitizeText(body.profileHeadline, 300) : body.profileHeadline);
+    if (body.about !== undefined) dataToUpdate.about = emptyStringToNull(body.about ? sanitizeText(body.about, 5000) : body.about);
     if (body.isAboutVisible !== undefined) dataToUpdate.isAboutVisible = body.isAboutVisible;
-    if (body.inspiringCoupleStory !== undefined) dataToUpdate.inspiringCoupleStory = emptyStringToNull(body.inspiringCoupleStory);
-    if (body.internalMatchmakerNotes !== undefined) dataToUpdate.internalMatchmakerNotes = emptyStringToNull(body.internalMatchmakerNotes);
+    if (body.inspiringCoupleStory !== undefined) dataToUpdate.inspiringCoupleStory = emptyStringToNull(body.inspiringCoupleStory ? sanitizeText(body.inspiringCoupleStory, 2000) : body.inspiringCoupleStory);
+    if (body.internalMatchmakerNotes !== undefined) dataToUpdate.internalMatchmakerNotes = emptyStringToNull(body.internalMatchmakerNotes ? sanitizeText(body.internalMatchmakerNotes, 5000) : body.internalMatchmakerNotes);
 
     // ---- Medical Info ----
     if (body.hasMedicalInfo !== undefined) {
@@ -405,12 +406,12 @@ if (body.birthDate !== undefined) {
         dataToUpdate.isMedicalInfoVisible = false;
       }
     }
-    if (body.medicalInfoDetails !== undefined) dataToUpdate.medicalInfoDetails = emptyStringToNull(body.medicalInfoDetails);
+    if (body.medicalInfoDetails !== undefined) dataToUpdate.medicalInfoDetails = emptyStringToNull(body.medicalInfoDetails ? sanitizeText(body.medicalInfoDetails, 5000) : body.medicalInfoDetails);
     if (body.medicalInfoDisclosureTiming !== undefined) dataToUpdate.medicalInfoDisclosureTiming = emptyStringToNull(body.medicalInfoDisclosureTiming);
     if (body.isMedicalInfoVisible !== undefined) dataToUpdate.isMedicalInfoVisible = body.isMedicalInfoVisible;
 
-    // ---- Notes ----
-    if (body.matchingNotes !== undefined) dataToUpdate.matchingNotes = emptyStringToNull(body.matchingNotes);
+    // ---- Notes (sanitize user-typed text content) ----
+    if (body.matchingNotes !== undefined) dataToUpdate.matchingNotes = emptyStringToNull(body.matchingNotes ? sanitizeText(body.matchingNotes, 5000) : body.matchingNotes);
 
     // ---- Preferences - Ranges ----
     if (body.preferredAgeMin !== undefined) dataToUpdate.preferredAgeMin = toNumberOrNull(body.preferredAgeMin);

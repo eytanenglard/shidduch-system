@@ -16,6 +16,7 @@ import {
   Profile,
 } from "@prisma/client";
 import { updateProfileVectorsAndMetrics } from '@/lib/services/dualVectorService';
+import { sanitizeText } from '@/lib/sanitize';
 import type { UserProfile } from "@/types/next-auth";
 
 // --- Helpers ---
@@ -193,8 +194,8 @@ export async function PUT(req: NextRequest) {
     if (nativeLanguage !== undefined) dataToUpdate.nativeLanguage = emptyStringToNull(nativeLanguage);
     if (additionalLanguages !== undefined) dataToUpdate.additionalLanguages = additionalLanguages || [];
     if (height !== undefined) dataToUpdate.height = toNumberOrNull(height);
-    if (city !== undefined) dataToUpdate.city = emptyStringToNull(city);
-    if (origin !== undefined) dataToUpdate.origin = emptyStringToNull(origin);
+    if (city !== undefined) dataToUpdate.city = emptyStringToNull(city ? sanitizeText(city, 100) : city);
+    if (origin !== undefined) dataToUpdate.origin = emptyStringToNull(origin ? sanitizeText(origin, 100) : origin);
     if (aliyaCountry !== undefined) dataToUpdate.aliyaCountry = emptyStringToNull(aliyaCountry);
     if (aliyaYear !== undefined) dataToUpdate.aliyaYear = toNumberOrNull(aliyaYear);
 
@@ -202,17 +203,17 @@ export async function PUT(req: NextRequest) {
     if (maritalStatus !== undefined) dataToUpdate.maritalStatus = emptyStringToNull(maritalStatus);
     if (hasChildrenFromPrevious !== undefined) dataToUpdate.hasChildrenFromPrevious = hasChildrenFromPrevious;
     if (parentStatus !== undefined) dataToUpdate.parentStatus = emptyStringToNull(parentStatus);
-    if (fatherOccupation !== undefined) dataToUpdate.fatherOccupation = emptyStringToNull(fatherOccupation);
-    if (motherOccupation !== undefined) dataToUpdate.motherOccupation = emptyStringToNull(motherOccupation);
+    if (fatherOccupation !== undefined) dataToUpdate.fatherOccupation = emptyStringToNull(fatherOccupation ? sanitizeText(fatherOccupation, 200) : fatherOccupation);
+    if (motherOccupation !== undefined) dataToUpdate.motherOccupation = emptyStringToNull(motherOccupation ? sanitizeText(motherOccupation, 200) : motherOccupation);
     if (siblings !== undefined) dataToUpdate.siblings = toNumberOrNull(siblings);
     if (position !== undefined) dataToUpdate.position = toNumberOrNull(position);
 
     // --- Education & Occupation ---
     if (educationLevel !== undefined) dataToUpdate.educationLevel = emptyStringToNull(educationLevel);
-    if (education !== undefined) dataToUpdate.education = emptyStringToNull(education);
-    if (occupation !== undefined) dataToUpdate.occupation = emptyStringToNull(occupation);
+    if (education !== undefined) dataToUpdate.education = emptyStringToNull(education ? sanitizeText(education, 500) : education);
+    if (occupation !== undefined) dataToUpdate.occupation = emptyStringToNull(occupation ? sanitizeText(occupation, 200) : occupation);
     if (serviceType !== undefined) dataToUpdate.serviceType = emptyStringToNull(serviceType) as ServiceType | null;
-    if (serviceDetails !== undefined) dataToUpdate.serviceDetails = emptyStringToNull(serviceDetails);
+    if (serviceDetails !== undefined) dataToUpdate.serviceDetails = emptyStringToNull(serviceDetails ? sanitizeText(serviceDetails, 500) : serviceDetails);
 
     // --- Religion ---
     if (religiousLevel !== undefined) dataToUpdate.religiousLevel = emptyStringToNull(religiousLevel);
@@ -264,19 +265,19 @@ export async function PUT(req: NextRequest) {
     if (profileCharacterTraits !== undefined) dataToUpdate.profileCharacterTraits = profileCharacterTraits || [];
     if (profileHobbies !== undefined) dataToUpdate.profileHobbies = profileHobbies || [];
 
-    // --- About ---
-    if (about !== undefined) dataToUpdate.about = emptyStringToNull(about);
-    if (profileHeadline !== undefined) dataToUpdate.profileHeadline = emptyStringToNull(profileHeadline);
-    if (inspiringCoupleStory !== undefined) dataToUpdate.inspiringCoupleStory = emptyStringToNull(inspiringCoupleStory);
-    if (influentialRabbi !== undefined) dataToUpdate.influentialRabbi = emptyStringToNull(influentialRabbi);
-    
-    // --- NOTES & INTERNAL DATA ---
-    if (matchingNotes !== undefined) dataToUpdate.matchingNotes = emptyStringToNull(matchingNotes);
-    
+    // --- About (sanitize user-typed text content) ---
+    if (about !== undefined) dataToUpdate.about = emptyStringToNull(about ? sanitizeText(about, 5000) : about);
+    if (profileHeadline !== undefined) dataToUpdate.profileHeadline = emptyStringToNull(profileHeadline ? sanitizeText(profileHeadline, 300) : profileHeadline);
+    if (inspiringCoupleStory !== undefined) dataToUpdate.inspiringCoupleStory = emptyStringToNull(inspiringCoupleStory ? sanitizeText(inspiringCoupleStory, 2000) : inspiringCoupleStory);
+    if (influentialRabbi !== undefined) dataToUpdate.influentialRabbi = emptyStringToNull(influentialRabbi ? sanitizeText(influentialRabbi, 200) : influentialRabbi);
+
+    // --- NOTES & INTERNAL DATA (sanitize user-typed text content) ---
+    if (matchingNotes !== undefined) dataToUpdate.matchingNotes = emptyStringToNull(matchingNotes ? sanitizeText(matchingNotes, 5000) : matchingNotes);
+
     if (internalMatchmakerNotes !== undefined) {
         console.log("✅ [Update Profile] internalMatchmakerNotes found in payload, updating to:", internalMatchmakerNotes);
-        dataToUpdate.internalMatchmakerNotes = emptyStringToNull(internalMatchmakerNotes);
-    } 
+        dataToUpdate.internalMatchmakerNotes = emptyStringToNull(internalMatchmakerNotes ? sanitizeText(internalMatchmakerNotes, 5000) : internalMatchmakerNotes);
+    }
 
     if (contactPreference !== undefined) dataToUpdate.contactPreference = emptyStringToNull(contactPreference);
     
@@ -319,7 +320,7 @@ export async function PUT(req: NextRequest) {
    
     // --- Medical ---
     if (hasMedicalInfo !== undefined) dataToUpdate.hasMedicalInfo = hasMedicalInfo;
-    if (medicalInfoDetails !== undefined) dataToUpdate.medicalInfoDetails = emptyStringToNull(medicalInfoDetails);
+    if (medicalInfoDetails !== undefined) dataToUpdate.medicalInfoDetails = emptyStringToNull(medicalInfoDetails ? sanitizeText(medicalInfoDetails, 5000) : medicalInfoDetails);
     if (medicalInfoDisclosureTiming !== undefined) dataToUpdate.medicalInfoDisclosureTiming = emptyStringToNull(medicalInfoDisclosureTiming);
     if (isMedicalInfoVisible !== undefined) dataToUpdate.isMedicalInfoVisible = isMedicalInfoVisible;
     if (cvUrl !== undefined) dataToUpdate.cvUrl = emptyStringToNull(cvUrl);
@@ -333,7 +334,7 @@ export async function PUT(req: NextRequest) {
         dataToUpdate.availabilityUpdatedAt = new Date();
       }
     }
-    if (availabilityNote !== undefined) dataToUpdate.availabilityNote = emptyStringToNull(availabilityNote);
+    if (availabilityNote !== undefined) dataToUpdate.availabilityNote = emptyStringToNull(availabilityNote ? sanitizeText(availabilityNote, 1000) : availabilityNote);
     if (Object.prototype.hasOwnProperty.call(body, 'availabilityUpdatedAt') && availabilityUpdatedAt !== undefined) {
         dataToUpdate.availabilityUpdatedAt = toDateOrNull(availabilityUpdatedAt);
     }

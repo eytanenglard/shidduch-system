@@ -76,6 +76,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import { CardErrorBoundary } from '@/components/ui/error-boundary';
 
 // Components
 import PotentialMatchCard from './PotentialMatchCard';
@@ -578,9 +579,13 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
       <main className="container mx-auto px-6 py-6 space-y-6">
         {/* Conditional Rendering based on Tab */}
         {activeTab === 'overview' ? (
-          <MatchmakerDashboardV2 />
+          <CardErrorBoundary>
+            <MatchmakerDashboardV2 />
+          </CardErrorBoundary>
         ) : activeTab === 'daily' ? (
-          <DailySuggestionsDashboard />
+          <CardErrorBoundary>
+            <DailySuggestionsDashboard />
+          </CardErrorBoundary>
         ) : (
           <>
             {/* Stats */}
@@ -589,6 +594,10 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
               lastScanInfo={lastScanInfo as unknown as FullLastScanInfo}
               isScanRunning={isScanning}
               scanProgress={scanProgress?.progressPercent || 0}
+              onFilterChange={(newFilters) => {
+                setFilters(newFilters as any);
+                setActiveTab('matches');
+              }}
             />
 
             {/* Filters & Controls */}
@@ -805,6 +814,88 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
               </AnimatePresence>
             </Card>
 
+            {/* Quick Filter Badges */}
+            {stats && (() => {
+              const s = stats as unknown as FullStatsType;
+              return (
+              <div className="flex flex-wrap gap-2">
+                {[
+                  {
+                    label: `ממתינות 7+ ימים`,
+                    active: !!filters.scannedBefore,
+                    onClick: () => {
+                      const weekAgo = new Date();
+                      weekAgo.setDate(weekAgo.getDate() - 7);
+                      setFilters({
+                        status: 'pending' as PotentialMatchFilterStatus,
+                        scannedBefore: filters.scannedBefore ? undefined : weekAgo.toISOString().split('T')[0],
+                      } as any);
+                    },
+                    count: null,
+                    color: 'bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100',
+                    activeColor: 'bg-amber-200 text-amber-800 border-amber-400',
+                    icon: Clock,
+                  },
+                  {
+                    label: 'עם אזהרות',
+                    active: filters.status === 'with_warnings',
+                    onClick: () => setFilters({
+                      status: filters.status === 'with_warnings' ? 'all' : 'with_warnings' as PotentialMatchFilterStatus,
+                    }),
+                    count: s.withWarnings,
+                    color: 'bg-orange-50 text-orange-700 border-orange-200 hover:bg-orange-100',
+                    activeColor: 'bg-orange-200 text-orange-800 border-orange-400',
+                    icon: AlertTriangle,
+                  },
+                  {
+                    label: 'ציון 85+',
+                    active: filters.minScore === 85,
+                    onClick: () => setFilters({
+                      minScore: filters.minScore === 85 ? 0 : 85,
+                      maxScore: 100,
+                      status: 'all' as PotentialMatchFilterStatus,
+                    }),
+                    count: s.highScore,
+                    color: 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100',
+                    activeColor: 'bg-emerald-200 text-emerald-800 border-emerald-400',
+                    icon: Sparkles,
+                  },
+                  {
+                    label: 'שמורים בצד',
+                    active: filters.status === 'shortlisted',
+                    onClick: () => setFilters({
+                      status: filters.status === 'shortlisted' ? 'all' : 'shortlisted' as PotentialMatchFilterStatus,
+                    }),
+                    count: null,
+                    color: 'bg-purple-50 text-purple-700 border-purple-200 hover:bg-purple-100',
+                    activeColor: 'bg-purple-200 text-purple-800 border-purple-400',
+                    icon: Bookmark,
+                  },
+                ].map((badge) => {
+                  const IconComp = badge.icon;
+                  return (
+                    <button
+                      key={badge.label}
+                      onClick={badge.onClick}
+                      className={cn(
+                        'flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-medium transition-all',
+                        badge.active ? badge.activeColor : badge.color
+                      )}
+                    >
+                      <IconComp className="w-3.5 h-3.5" />
+                      {badge.label}
+                      {badge.count !== null && badge.count > 0 && (
+                        <span className="px-1.5 py-0.5 rounded-full bg-white/60 text-[10px] font-bold">
+                          {badge.count}
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+              );
+            })()}
+
             {/* Error State */}
             {error && (
               <Card className="p-6 bg-red-50 border-red-200">
@@ -868,33 +959,34 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
                 >
                   <AnimatePresence mode="popLayout">
                     {filteredMatches.map((match) => (
-                      <PotentialMatchCard
-                        key={match.id}
-                        match={match as any}
-                        onCreateSuggestion={(id) =>
-                          setCreateSuggestionDialog(id)
-                        }
-                        onDismiss={(id) => dismissMatch(id)}
-                        onReview={reviewMatch}
-                        onRestore={restoreMatch}
-                        onSave={saveMatch}
-                        onViewProfile={handleViewProfile}
-                        onAnalyzeCandidate={(candidate) =>
-                          setAnalyzedCandidate(candidate)
-                        }
-                        onProfileFeedback={(candidate) =>
-                          setFeedbackCandidate(candidate)
-                        }
-                        isSelected={isSelected(match.id)}
-                        onToggleSelect={
-                          showBulkActions ? toggleSelection : undefined
-                        }
-                        showSelection={showBulkActions}
-                        onHideCandidate={handleHideCandidate}
-                        hiddenCandidateIds={hiddenCandidateIds}
-                        onFilterByUser={handleFilterByUser}
-                        isCompact={cardStyle === 'compact'}
-                      />
+                      <CardErrorBoundary key={match.id}>
+                        <PotentialMatchCard
+                          match={match as any}
+                          onCreateSuggestion={(id) =>
+                            setCreateSuggestionDialog(id)
+                          }
+                          onDismiss={(id) => dismissMatch(id)}
+                          onReview={reviewMatch}
+                          onRestore={restoreMatch}
+                          onSave={saveMatch}
+                          onViewProfile={handleViewProfile}
+                          onAnalyzeCandidate={(candidate) =>
+                            setAnalyzedCandidate(candidate)
+                          }
+                          onProfileFeedback={(candidate) =>
+                            setFeedbackCandidate(candidate)
+                          }
+                          isSelected={isSelected(match.id)}
+                          onToggleSelect={
+                            showBulkActions ? toggleSelection : undefined
+                          }
+                          showSelection={showBulkActions}
+                          onHideCandidate={handleHideCandidate}
+                          hiddenCandidateIds={hiddenCandidateIds}
+                          onFilterByUser={handleFilterByUser}
+                          isCompact={cardStyle === 'compact'}
+                        />
+                      </CardErrorBoundary>
                     ))}
                   </AnimatePresence>
                 </div>

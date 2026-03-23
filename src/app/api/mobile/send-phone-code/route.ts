@@ -78,7 +78,7 @@ export async function POST(req: NextRequest) {
       return corsError(req, 'שליחת קוד האימות בוואטסאפ נכשלה. אנא נסה שנית.', 500);
     }
 
-    console.log(`[mobile/send-phone-code] OTP sent to ${user.phone} for user ${userId}`);
+    console.log(`[mobile/send-phone-code] OTP sent successfully for user ${userId}`);
 
     return corsJson(req, {
       success: true,

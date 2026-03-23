@@ -4,6 +4,18 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
+import { z } from 'zod';
+
+const markAsReadSchema = z.object({
+  id: z.string().min(1, 'ID is required').max(200),
+  type: z.enum([
+    'NEW_SUGGESTION',
+    'STATUS_UPDATE',
+    'ACTION_REQUIRED',
+    'MATCHMAKER_MESSAGE',
+    'INQUIRY_RESPONSE',
+  ], { errorMap: () => ({ message: 'Invalid notification type' }) }),
+});
 
 export async function POST(req: Request) {
   try {
@@ -12,7 +24,14 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { id, type } = await req.json();
+    const body = await req.json();
+
+    const validation = markAsReadSchema.safeParse(body);
+    if (!validation.success) {
+      return NextResponse.json({ error: 'Invalid input', details: validation.error.errors }, { status: 400 });
+    }
+
+    const { id, type } = validation.data;
     const userId = session.user.id;
 
     // טיפול בהצעה (MatchSuggestion)

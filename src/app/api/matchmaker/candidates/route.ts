@@ -100,65 +100,6 @@ images: {
     },
   },
 });
-// DEBUG: Check images count for first few users
-console.log('[API DEBUG] Sample images counts:');
-users.slice(0, 5).forEach(u => {
-  console.log(`  - ${u.firstName} ${u.lastName}: ${u.images?.length || 0} images`);
-});
-    // ================== 🚨 START SERVER DEBUG: LINOY 🚨 ==================
-    const targetEmail = 'linoyreznik032@gmail.com';
-    const foundUser = users.find(u => u.email === targetEmail);
-
-    console.log('\n-----------------------------------------------------');
-    console.log(`🔍 [API DEBUG] Checking for user: ${targetEmail}`);
-    
-    if (foundUser) {
-        console.log('✅ SUCCESS: User exists in the API response list.');
-        console.log('   User Data:', JSON.stringify({
-            id: foundUser.id,
-            status: foundUser.status,
-            role: 'CANDIDATE (verified by query)',
-            hasProfile: !!foundUser.profile,
-            gender: foundUser.profile?.gender,
-            birthDate: foundUser.profile?.birthDate
-        }, null, 2));
-    } else {
-        console.log('❌ FAILURE: User is MISSING from the main list.');
-        console.log('   Running direct DB check to investigate why...');
-
-        // בדיקה ישירה מול הדאטה בייס ללא פילטרים
-        const directCheck = await prisma.user.findUnique({
-            where: { email: targetEmail },
-            include: { profile: true }
-        });
-
-        if (!directCheck) {
-            console.log('   💀 FATAL: User does not exist in the Database at all.');
-        } else {
-            console.log('   🧐 DIAGNOSIS - Why was she filtered out?');
-            console.log(`   1. Email: ${directCheck.email}`);
-            
-            // בדיקת סטטוס
-            const statusOk = !['BLOCKED', 'INACTIVE'].includes(directCheck.status);
-            console.log(`   2. Status: ${directCheck.status} [${statusOk ? 'OK' : 'FAIL - Blocked or Inactive'}]`);
-            
-            // בדיקת תפקיד
-            const roleOk = directCheck.role === 'CANDIDATE';
-            console.log(`   3. Role: ${directCheck.role} [${roleOk ? 'OK' : 'FAIL - Must be CANDIDATE'}]`);
-            
-            // בדיקת פרופיל
-            const profileExists = !!directCheck.profile;
-            console.log(`   4. Profile Exists: ${profileExists} [${profileExists ? 'OK' : 'FAIL - Profile is null'}]`);
-
-            if (profileExists) {
-                console.log('      Profile Details:', JSON.stringify(directCheck.profile, null, 2));
-            }
-        }
-    }
-    console.log('-----------------------------------------------------\n');
-    // ================== 🚨 END SERVER DEBUG 🚨 ==================
-
-
     if (users.length === 0) {
       return new NextResponse(
         JSON.stringify({ success: true, clients: [], count: 0 }),

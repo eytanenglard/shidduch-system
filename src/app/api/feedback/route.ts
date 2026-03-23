@@ -9,6 +9,13 @@ import { Redis } from '@upstash/redis';
 import prisma from '@/lib/prisma';
 import { FeedbackType } from '@prisma/client';
 import { emailService } from '@/lib/email/emailService';
+import { z } from 'zod';
+
+const feedbackSchema = z.object({
+  content: z.string().min(1, 'Content is required').max(5000, 'Content must be 5000 characters or less'),
+  feedbackType: z.nativeEnum(FeedbackType, { errorMap: () => ({ message: 'Invalid feedback type' }) }),
+  pageUrl: z.string().min(1, 'Page URL is required').max(2000),
+});
 
 // The Redis and Rate Limiter configurations remain at the global level. This is correct.
 if (!process.env.UPSTASH_REDIS_REST_URL || !process.env.UPSTASH_REDIS_REST_TOKEN) {
@@ -56,16 +63,24 @@ export async function POST(req: NextRequest) {
 
   try {
     const formData = await req.formData();
-    const content = formData.get('content') as string;
-    const feedbackType = formData.get('feedbackType') as FeedbackType;
-    const pageUrl = formData.get('pageUrl') as string;
+    const rawContent = formData.get('content') as string;
+    const rawFeedbackType = formData.get('feedbackType') as string;
+    const rawPageUrl = formData.get('pageUrl') as string;
+
+    const validation = feedbackSchema.safeParse({
+      content: rawContent,
+      feedbackType: rawFeedbackType,
+      pageUrl: rawPageUrl,
+    });
+
+    if (!validation.success) {
+      return NextResponse.json({ success: false, error: 'Invalid input', details: validation.error.errors }, { status: 400 });
+    }
+
+    const { content, feedbackType, pageUrl } = validation.data;
     const userAgent = req.headers.get('user-agent') || 'Unknown';
     const screenshot = formData.get('screenshot') as File | null;
     const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
-
-    if (!content || !feedbackType || !pageUrl) {
-      return NextResponse.json({ success: false, error: 'Missing required fields' }, { status: 400 });
-    }
 
     let screenshotUrl: string | undefined = undefined;
 

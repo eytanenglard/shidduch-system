@@ -30,10 +30,10 @@ export class WhatsAppAdapter {
         from: `whatsapp:${this.fromNumber}`,
         to: `whatsapp:${recipient.phone}`,
       });
-      console.log(`[WhatsAppAdapter] Message sent to ${recipient.phone}`);
+      console.log(`[WhatsAppAdapter] Message sent successfully`);
       return true;
     } catch (error: any) {
-      console.error(`[WhatsAppAdapter] Failed to send message to ${recipient.phone}:`, error.message);
+      console.error(`[WhatsAppAdapter] Failed to send message:`, error.message);
       return false;
     }
   }

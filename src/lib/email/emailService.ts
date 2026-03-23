@@ -400,10 +400,7 @@ class EmailService {
     const dictionary = await getDictionary(locale);
     const emailDict = dictionary.email;
 
-    console.log('📧 [sendVerificationEmail] Sending OTP email:', {
-      to: params.email,
-      code: params.verificationCode,
-      firstName: params.firstName,
+    console.log('[sendVerificationEmail] Sending OTP email:', {
       locale,
       subject: emailDict.emailOtpVerification.subject
     });

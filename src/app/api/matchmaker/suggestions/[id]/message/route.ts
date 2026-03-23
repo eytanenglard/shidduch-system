@@ -9,6 +9,7 @@ import { notificationService } from '@/components/matchmaker/suggestions/service
 import { initNotificationService } from '@/components/matchmaker/suggestions/services/notification/initNotifications';
 // שינוי 1: הסרנו את EmailDictionary הבודד כי אנחנו לא משתמשים בו כטיפוס ישיר יותר
 import { getDictionary } from '@/lib/dictionaries';
+import { sanitizeText } from '@/lib/sanitize';
 
 initNotificationService();
 
@@ -49,11 +50,14 @@ export async function POST(
     // =========================================================================
 
     const body = await req.json();
-    const { partyType, customMessage, channels } = body;
+    const { partyType, customMessage: rawCustomMessage, channels } = body;
 
-    if (!partyType || !customMessage || !channels) {
+    if (!partyType || !rawCustomMessage || !channels) {
       return NextResponse.json({ error: 'Invalid input: Missing required fields.' }, { status: 400 });
     }
+
+    // Sanitize user-provided message content
+    const customMessage = sanitizeText(rawCustomMessage, 5000);
 
     const suggestion = await prisma.matchSuggestion.findUnique({
       where: { id: suggestionId },

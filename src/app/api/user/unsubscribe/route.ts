@@ -49,7 +49,7 @@ export async function POST(req: NextRequest) {
       },
     });
     
-    console.log(`[Unsubscribe] User ${userId} (${email}) has successfully unsubscribed from engagement mailings.`);
+    console.log(`[Unsubscribe] User ${userId} has successfully unsubscribed from engagement mailings.`);
 
     return NextResponse.json({ success: true, message: 'Successfully unsubscribed.' });
 

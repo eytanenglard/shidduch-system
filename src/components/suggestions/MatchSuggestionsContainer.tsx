@@ -36,6 +36,7 @@ import ActiveSuggestionHero from '@/components/suggestions/ActiveSuggestionHero'
 import SuggestionDetailsModal from '@/components/suggestions/modals/SuggestionDetailsModal';
 import type { ExtendedMatchSuggestion } from '../../types/suggestions';
 import { cn } from '@/lib/utils';
+import { ErrorBoundary } from '@/components/ui/error-boundary';
 
 import {
   AlertDialog,
@@ -914,6 +915,7 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
 
               {/* Active Tab Content */}
               <TabsContent value="active" className="space-y-6">
+                <ErrorBoundary>
                 {/* ===== NEW: Filter Chip Buttons ===== */}
                 {(activeProcessSuggestion ||
                   interestedSuggestions.length > 0 ||
@@ -1044,10 +1046,12 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
                       </button>
                     </div>
                   )}
+                </ErrorBoundary>
               </TabsContent>
 
               {/* History Tab Content */}
               <TabsContent value="history" className="space-y-6">
+                <ErrorBoundary>
                 <SuggestionsList
                   locale={locale}
                   suggestions={historySuggestions}
@@ -1062,6 +1066,7 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
                   suggestionsDict={suggestionsDict}
                   profileCardDict={profileCardDict}
                 />
+                </ErrorBoundary>
               </TabsContent>
             </Tabs>
           </CardContent>

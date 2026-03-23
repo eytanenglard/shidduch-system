@@ -85,11 +85,11 @@ export async function runRebuild(
     try {
       await updateProfileVectorsAndMetrics(p.profileId);
       success++;
-      console.log(`✅ [RebuildVectors] ${p.email} (${p.reason}) — ${success}/${profiles.length}`);
+      console.log(`[RebuildVectors] profileId: ${p.profileId} (${p.reason}) — ${success}/${profiles.length}`);
       await new Promise(resolve => setTimeout(resolve, delayMs));
     } catch (err) {
       failed++;
-      console.error(`❌ [RebuildVectors] Failed for ${p.email}:`, err);
+      console.error(`[RebuildVectors] Failed for profileId: ${p.profileId}:`, err);
     }
   }
 

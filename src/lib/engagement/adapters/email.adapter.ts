@@ -40,10 +40,10 @@ export class EmailAdapter {
         subject: content.subject,
         html: content.htmlBody || `<p>${content.body.replace(/\n/g, '<br>')}</p>`,
       });
-      console.log(`[EmailAdapter] Email sent to ${recipient.email}`);
+      console.log(`[EmailAdapter] Email sent successfully`);
       return true;
     } catch (error) {
-      console.error(`[EmailAdapter] Failed to send email to ${recipient.email}:`, error);
+      console.error(`[EmailAdapter] Failed to send email:`, error);
       return false;
     }
   }
