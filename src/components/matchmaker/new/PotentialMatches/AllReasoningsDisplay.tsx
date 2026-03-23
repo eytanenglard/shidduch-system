@@ -358,10 +358,10 @@ const AllReasoningsDisplay: React.FC<AllReasoningsDisplayProps> = ({
         return normalizedMethod;
       }
     }
-    return methods[0]?.key || 'hybrid';
+return methods[0]?.key ?? 'hybrid';
   };
   
-  const [activeTab, setActiveTab] = useState(getInitialTab());
+const [activeTab, setActiveTab] = useState(getInitialTab() ?? 'hybrid');
 
   // Debug log
   console.log('[AllReasoningsDisplay] Match data:', {
