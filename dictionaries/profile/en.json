@@ -70,6 +70,10 @@
           "title": "Partner Preferences",
           "description": "Who are you looking for?"
         },
+        "soulFingerprint": {
+          "title": "Soul Fingerprint",
+          "description": "10 minutes to help us find your match."
+        },
         "questionnaire": {
           "title": "Matchmaking Questionnaire",
           "description": "Your journey of self-discovery."

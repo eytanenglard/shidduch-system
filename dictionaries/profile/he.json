@@ -70,6 +70,10 @@
           "title": "העדפות בן/בת זוג",
           "description": "את מי את/ה מחפש/ת?"
         },
+        "soulFingerprint": {
+          "title": "טביעת הנשמה",
+          "description": "10 דקות שיעזרו לנו למצוא לך."
+        },
         "questionnaire": {
           "title": "שאלון התאמה",
           "description": "המסע לגילוי העצמי שלך."

@@ -12,6 +12,7 @@ export type NavbarDict = {
   myMatches: string;
   analyticsDashboard: string;
   matchmakingQuestionnaire: string;
+  soulFingerprint: string;
   messages: string;
   login: string;
   referralsAdmin: string;
@@ -1771,6 +1772,10 @@ export type ProfileChecklistDict = {
       description: string;
     };
     partnerPreferences: {
+      title: string;
+      description: string;
+    };
+    soulFingerprint: {
       title: string;
       description: string;
     };

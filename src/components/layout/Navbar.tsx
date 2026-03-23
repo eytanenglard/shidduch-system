@@ -29,6 +29,7 @@ import {
   X,
   Globe,
   Lightbulb,
+  Fingerprint,
   Info,
   Award,
   HelpCircle,
@@ -593,6 +594,10 @@ const Navbar = ({ dict }: NavbarProps) => {
                     {/* #13: הסרנו NavItem לפרופיל מכאן — הוא קיים ב-UserDropdown */}
 
                     <NavItem
+                      href="/soul-fingerprint"
+                      text={dict.navbar.soulFingerprint}
+                    />
+                    <NavItem
                       href="/questionnaire"
                       text={dict.navbar.matchmakingQuestionnaire}
                     />
@@ -918,6 +923,17 @@ className="bg-gradient-to-r from-teal-500 to-orange-500 hover:from-teal-600 hove
 
                       <motion.div variants={menuItemVariants}>
                         <MobileNavItem
+                          href="/soul-fingerprint"
+                          text={dict.navbar.soulFingerprint}
+                          icon={<Fingerprint className="h-5 w-5" />}
+                          onClick={closeMobileMenu}
+                          isRtl={isRtl}
+                          isPrimary
+                        />
+                      </motion.div>
+
+                      <motion.div variants={menuItemVariants}>
+                        <MobileNavItem
                           href="/questionnaire"
                           text={dict.navbar.matchmakingQuestionnaire}
                           icon={<Lightbulb className="h-5 w-5" />}
@@ -1031,7 +1047,17 @@ className="bg-gradient-to-r from-teal-500 to-orange-500 hover:from-teal-600 hove
                         </>
                       )}
 
-                      {/* #14: שאלון מוצג פעם אחת בלבד */}
+                      {/* #14: שאלון + טביעת נשמה */}
+                      <motion.div variants={menuItemVariants}>
+                        <MobileNavItem
+                          href="/soul-fingerprint"
+                          text={dict.navbar.soulFingerprint}
+                          icon={<Fingerprint className="h-5 w-5" />}
+                          onClick={closeMobileMenu}
+                          isRtl={isRtl}
+                          isPrimary
+                        />
+                      </motion.div>
                       <motion.div variants={menuItemVariants}>
                         <MobileNavItem
                           href="/questionnaire"

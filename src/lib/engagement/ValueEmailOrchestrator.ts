@@ -400,6 +400,412 @@ const VALUE_EMAILS: ValueEmailContent[] = [
     ctaText: { he: 'להשלים את הפרופיל שלי', en: 'Complete My Profile' },
     ctaNote: { he: 'זה ישירות משפיע על ההתאמות שתקבל', en: 'This directly impacts the matches you receive' },
   },
+
+  // ─── Season 2: Research-Backed Deep Dive (Emails 11–20) ───────────────────
+
+  {
+    id: 'VALUE_11_ATTACHMENT',
+    emailNumber: '11',
+    subject: {
+      he: 'סגנון ההתקשרות שלך — המפתח הנסתר לזוגיות 🔑',
+      en: 'Your Attachment Style — The Hidden Key to Love 🔑',
+    },
+    headerEmoji: '🔑',
+    headerTitle: { he: 'סגנון ההתקשרות שלך', en: 'Your Attachment Style' },
+    headerSubtitle: { he: 'המפתח הנסתר שמעצב את כל הזוגיויות שלך', en: 'The hidden key shaping all your relationships' },
+    introText: {
+      he: 'בשנות ה-60, הפסיכולוג ג\'ון בולבי גילה משהו מהפכני: הדרך שבה התחברנו להורים שלנו בילדות — מעצבת את הדרך שבה אנחנו מתחברים לבני זוג כמבוגרים. מחקרים ענקיים מאז הוכיחו שזה אחד המנבאים החזקים ביותר להצלחה בזוגיות. אז מהו "סגנון ההתקשרות" שלך, ואיך הוא משפיע על חיפוש השידוך?',
+      en: 'In the 1960s, psychologist John Bowlby discovered something revolutionary: the way we bonded with our parents as children shapes how we connect with partners as adults. Massive studies since then have proven this is one of the strongest predictors of relationship success. So what\'s your "attachment style," and how does it affect your search?',
+    },
+    tips: {
+      he: [
+        { number: '1', title: 'בטוח — הבסיס הבריא', body: 'כ-56% מהאנשים הם בעלי סגנון התקשרות "בטוח": הם מרגישים בנוח עם קרבה, לא חוששים מנטישה, ויודעים לתת מרחב. אם זה אתה — מצוין. אם לא — זה בהחלט ניתן לפיתוח. מחקר מאוניברסיטת אילינוי מראה שמודעות לסגנון שלך כבר משפרת את ההתנהגות הזוגית ב-40%.' },
+        { number: '2', title: 'חרד — הפחד מנטישה', body: 'כ-20% מהאנשים נוטים לסגנון "חרד": הם צריכים הרבה וידוא, מפחדים שהצד השני יעזוב, ולפעמים נדבקים מהר מדי. אם זה מוכר לך — זה לא פגם. זו מודעות. תרגול של self-soothing (הרגעה עצמית) ושיח פנימי בריא יכולים לשנות דרמטית את חווית הדייטים שלך.' },
+        { number: '3', title: 'נמנע — הפחד מקרבה', body: 'כ-24% מהאנשים נוטים לסגנון "נמנע": הם מרגישים שקרבה מאיימת, מעדיפים עצמאות, ונוטים לברוח כשהדברים נהיים רציניים. הצעד הראשון: לזהות שזה קורה. הצעד השני: לחשוף את זה בפני מישהו שאתה סומך עליו — מטפל, חבר קרוב, או השדכנית שלך.' },
+        { number: '4', title: 'אפשר להשתנות — וזה מתחיל במודעות', body: 'החדשות הטובות: סגנון ההתקשרות שלך אינו גזר דין. מחקר שפורסם ב-Journal of Personality and Social Psychology הראה שאנשים שלמדו על סגנון ההתקשרות שלהם ועבדו עליו — שיפרו משמעותית את איכות הזוגיויות שלהם. השאלון שלנו ב-NeshamaTech מסייע לנו לזהות את הצרכים הרגשיים העמוקים שלך ולהתאים לך בן/בת זוג שמשלימ/ה אותך.' },
+      ],
+      en: [
+        { number: '1', title: 'Secure — The Healthy Baseline', body: 'About 56% of people have a "secure" attachment style: they\'re comfortable with closeness, don\'t fear abandonment, and know how to give space. If that\'s you — great. If not — it\'s absolutely developable. Research from the University of Illinois shows that simply being aware of your style already improves relationship behavior by 40%.' },
+        { number: '2', title: 'Anxious — The Fear of Abandonment', body: 'About 20% tend toward an "anxious" style: they need lots of reassurance, fear their partner will leave, and sometimes attach too quickly. If this sounds familiar — it\'s not a flaw. It\'s awareness. Practicing self-soothing and healthy inner dialogue can dramatically change your dating experience.' },
+        { number: '3', title: 'Avoidant — The Fear of Closeness', body: 'About 24% tend toward an "avoidant" style: closeness feels threatening, they prefer independence, and they tend to flee when things get serious. Step one: recognize when it\'s happening. Step two: share it with someone you trust — a therapist, close friend, or your matchmaker.' },
+        { number: '4', title: 'You Can Change — And It Starts with Awareness', body: 'The good news: your attachment style is not a life sentence. Research published in the Journal of Personality and Social Psychology showed that people who learned about their attachment style and worked on it significantly improved their relationship quality. Our NeshamaTech questionnaire helps us identify your deep emotional needs and match you with someone who complements you.' },
+      ],
+    },
+    quoteText: {
+      he: 'דע מאין באת — ולאן אתה הולך',
+      en: 'Know where you came from — and where you are going',
+    },
+    quoteSource: 'פרקי אבות ג, א',
+    closingText: {
+      he: 'הבנת סגנון ההתקשרות שלך היא אחד הצעדים החשובים ביותר שאפשר לעשות לפני זוגיות. ב-NeshamaTech, השאלון שלנו מזהה את הדפוסים האלה ומתאים לך מישהו שיודע לתת לך את מה שאתה באמת צריך. 🎯',
+      en: 'Understanding your attachment style is one of the most important steps before a relationship. At NeshamaTech, our questionnaire identifies these patterns and matches you with someone who knows how to give you what you truly need. 🎯',
+    },
+    ctaText: { he: 'למלא את השאלון', en: 'Take the Questionnaire' },
+    ctaNote: { he: 'תגלה את סגנון ההתקשרות שלך — ונתאים לך טוב יותר', en: 'Discover your attachment style — and we\'ll match you better' },
+  },
+
+  {
+    id: 'VALUE_12_MAGIC_RATIO',
+    emailNumber: '12',
+    subject: {
+      he: 'היחס הקסום: הנוסחה שחוזה הצלחה בזוגיות ⚖️',
+      en: 'The Magic Ratio: The Formula That Predicts Relationship Success ⚖️',
+    },
+    headerEmoji: '⚖️',
+    headerTitle: { he: 'יחס 5:1 — הנוסחה הקסומה', en: 'The 5:1 Ratio — The Magic Formula' },
+    headerSubtitle: { he: 'המחקר שחזה גירושין בדיוק של 93%', en: 'The research that predicted divorce with 93% accuracy' },
+    introText: {
+      he: 'ד"ר ג\'ון גוטמן, מגדולי חוקרי הזוגיות בעולם, חקר למעלה מ-3,000 זוגות לאורך 40 שנה במעבדת האהבה שלו באוניברסיטת וושינגטון. הוא גילה שיכול לחזות בדיוק של 93% אם זוג יתגרש — על סמך מדד אחד פשוט: היחס בין אינטראקציות חיוביות לשליליות. הנוסחה? 5 חיוביות על כל שלילית אחת.',
+      en: 'Dr. John Gottman, one of the world\'s foremost relationship researchers, studied over 3,000 couples across 40 years in his Love Lab at the University of Washington. He discovered he could predict with 93% accuracy whether a couple would divorce — based on one simple metric: the ratio of positive to negative interactions. The formula? 5 positive for every 1 negative.',
+    },
+    tips: {
+      he: [
+        { number: '1', title: 'מה נחשב "חיובי"? יותר פשוט ממה שחשבת', body: 'אינטראקציה חיובית היא לא בהכרח מחמאה גדולה או מתנה. זה יכול להיות: חיוך כשבן/בת הזוג נכנס/ת לחדר, שאלה "איך היה היום שלך?" עם עניין אמיתי, נגיעה קלה בכתף, או פשוט הנהון ראש בזמן שהצד השני מדבר. הדברים הקטנים מצטברים — והם מה שבונה את "חשבון הבנק הרגשי" של הזוגיות.' },
+        { number: '2', title: 'למה שלילי אחד שוקל כל כך הרבה?', body: 'המוח האנושי מעבד אירועים שליליים פי 5 חזק יותר מחיוביים — זו תכונה אבולוציונית שנועדה להגן עלינו. לכן ביקורת אחת, גלגול עיניים אחד, או תגובה מזלזלת אחת — דורשים 5 רגעים חיוביים כדי "לאזן" את החשבון. זה לא אומר לא להעיר — אלא לשים לב ליחס.' },
+        { number: '3', title: 'תרגול: "סריקת 5:1" יומית', body: 'לפני שנרדמים — שאלו את עצמכם: "האם היום נתתי לפחות 5 רגעים חיוביים על כל ביקורת?" אפשר להתחיל לתרגל את זה כבר עכשיו — עם הורים, חברים, אחים. אנשים שמאמנים את "שריר החיוביות" בחיי היום-יום — נכנסים לזוגיות עם יתרון משמעותי.' },
+      ],
+      en: [
+        { number: '1', title: 'What Counts as "Positive"? Simpler Than You Think', body: 'A positive interaction isn\'t necessarily a big compliment or gift. It can be: a smile when your partner enters the room, asking "how was your day?" with genuine interest, a gentle touch on the shoulder, or simply nodding while they\'re speaking. Small things accumulate — and they build the "emotional bank account" of the relationship.' },
+        { number: '2', title: 'Why Does One Negative Weigh So Much?', body: 'The human brain processes negative events 5x more intensely than positive ones — an evolutionary trait designed to protect us. That\'s why one criticism, one eye-roll, or one dismissive response requires 5 positive moments to "balance" the account. This doesn\'t mean never commenting — it means watching the ratio.' },
+        { number: '3', title: 'Practice: Daily "5:1 Scan"', body: 'Before falling asleep — ask yourself: "Did I give at least 5 positive moments for every criticism today?" You can start practicing now — with parents, friends, siblings. People who train their "positivity muscle" in daily life enter relationships with a significant advantage.' },
+      ],
+    },
+    quoteText: {
+      he: 'זוגות מאושרים לא חיים ללא קונפליקטים — הם חיים עם הרבה יותר רגעים טובים',
+      en: 'Happy couples don\'t live without conflicts — they live with many more good moments',
+    },
+    quoteSource: 'ד"ר ג\'ון גוטמן, The Seven Principles for Making Marriage Work',
+    closingText: {
+      he: 'היחס 5:1 הוא לא רק מדד אקדמי — זו מיומנות שאפשר ללמוד ולתרגל. ב-NeshamaTech אנחנו מחפשים לך מישהו שהחוזקות שלו משלימות את שלך — אבל הצלחה בזוגיות תלויה גם במה שאתה מביא אליה. 🎯',
+      en: 'The 5:1 ratio isn\'t just an academic metric — it\'s a skill you can learn and practice. At NeshamaTech we look for someone whose strengths complement yours — but relationship success also depends on what you bring to it. 🎯',
+    },
+    ctaText: { he: 'לעדכן את הפרופיל שלי', en: 'Update My Profile' },
+    ctaNote: { he: 'הפרופיל שלך עוזר לנו למצוא את ההתאמה המדויקת', en: 'Your profile helps us find the precise match' },
+  },
+
+  {
+    id: 'VALUE_13_EMOTIONAL_BIDS',
+    emailNumber: '13',
+    subject: {
+      he: 'הרגעים הקטנים שעושים את ההבדל הגדול 🤲',
+      en: 'The Small Moments That Make the Biggest Difference 🤲',
+    },
+    headerEmoji: '🤲',
+    headerTitle: { he: 'פניות רגשיות — Emotional Bids', en: 'Emotional Bids — Turning Toward' },
+    headerSubtitle: { he: 'המחקר שגילה מה באמת מחבר זוגות', en: 'The research that revealed what truly connects couples' },
+    introText: {
+      he: 'ד"ר גוטמן גילה שהזוגיות לא נבנית ברגעים הדרמטיים — לא בחופה, לא בחופשה מפנקת, ולא בשיחה עמוקה בשעות הלילה. היא נבנית ברגעים הקטנים והשקטים: כשבן/בת הזוג אומר/ת "תסתכל על השקיעה הזו" — ואתה עוצר ומסתכל. גוטמן קרא לזה "פניות רגשיות" (Emotional Bids), וגילה שהן המנבא הטוב ביותר לזוגיות מאושרת.',
+      en: 'Dr. Gottman discovered that relationships aren\'t built in dramatic moments — not at the wedding, not on fancy vacations, not during late-night deep conversations. They\'re built in small, quiet moments: when your partner says "look at that sunset" — and you stop and look. Gottman called these "Emotional Bids," and found they\'re the best predictor of a happy relationship.',
+    },
+    tips: {
+      he: [
+        { number: '1', title: 'מה זו פנייה רגשית?', body: 'פנייה רגשית היא כל ניסיון ליצור חיבור — גדול או קטן. "בוא נראה את הסרט הזה ביחד", "תראה מה קרה לי היום", חיוך חטוף מעבר לחדר, או אפילו אנחה. כל אלה פניות — בקשות שקטות שאומרות "אני רוצה שתהיה כאן, איתי, ברגע הזה".' },
+        { number: '2', title: '86% לעומת 33% — המספרים מדברים', body: 'גוטמן גילה שזוגות שנשארו ביחד פנו זה לזה ("turned toward") ב-86% מהפניות הרגשיות. זוגות שהתגרשו — רק ב-33%. תחשוב על זה: הזוגות המאושרים לא היו מושלמים — הם פשוט שמו לב לרגעים הקטנים ולא התעלמו מהם.' },
+        { number: '3', title: 'שלוש תגובות אפשריות — רק אחת בונה', body: 'כשמישהו פונה אליך, יש שלוש תגובות: "פנייה לעבר" (תשומת לב ותגובה), "פנייה מעבר" (התעלמות), ו"פנייה נגד" (תגובה עוינת או מזלזלת). הבחירה שלך ברגעים האלה — לא בוויכוחים הגדולים — היא מה שקובע את גורל הזוגיות.' },
+        { number: '4', title: 'תרגול: להתחיל עכשיו, עם כולם', body: 'שימו לב היום: כמה פעמים מישהו פנה אליכם — ואתם הסתכלתם בטלפון? כמה פעמים מישהו שיתף משהו — ואתם אמרתם "אהה" בלי להרים עיניים? תרגלו "לפנות לעבר" עם חברים ומשפחה. זה שריר — וככל שמתרגלים אותו יותר, כך הוא חזק יותר כשהזוגיות מגיעה.' },
+      ],
+      en: [
+        { number: '1', title: 'What Is an Emotional Bid?', body: 'An emotional bid is any attempt to create connection — big or small. "Let\'s watch this movie together," "look what happened to me today," a quick smile across the room, or even a sigh. These are all bids — quiet requests that say "I want you here, with me, in this moment."' },
+        { number: '2', title: '86% vs. 33% — The Numbers Speak', body: 'Gottman found that couples who stayed together "turned toward" each other in 86% of emotional bids. Divorced couples — only 33%. Think about it: happy couples weren\'t perfect — they simply noticed the small moments and didn\'t ignore them.' },
+        { number: '3', title: 'Three Possible Responses — Only One Builds', body: 'When someone bids for your attention, there are three responses: "turning toward" (attention and engagement), "turning away" (ignoring), and "turning against" (hostile or dismissive response). Your choice in these moments — not in big arguments — is what determines the relationship\'s fate.' },
+        { number: '4', title: 'Practice: Start Now, With Everyone', body: 'Notice today: how many times did someone reach out to you — and you looked at your phone? How many times did someone share something — and you said "uh huh" without looking up? Practice "turning toward" with friends and family. It\'s a muscle — and the more you exercise it, the stronger it is when your relationship arrives.' },
+      ],
+    },
+    quoteText: {
+      he: 'אהבה נבנית לא ברגעים הגדולים — אלא באלפי הרגעים הקטנים שבהם בחרנו להיות קשובים',
+      en: 'Love is built not in grand moments — but in thousands of small moments where we chose to pay attention',
+    },
+    quoteSource: 'ד"ר ג\'ון גוטמן',
+    closingText: {
+      he: 'הפרופיל שלך ב-NeshamaTech אומר לנו הרבה על מי אתה — אבל מה שיקבע את הצלחת הזוגיות שלך זה מה שתעשה ברגעים הקטנים. התחל לתרגל היום. 🎯',
+      en: 'Your NeshamaTech profile tells us a lot about who you are — but what will determine your relationship success is what you do in the small moments. Start practicing today. 🎯',
+    },
+    ctaText: { he: 'לראות את ההתאמות שלי', en: 'See My Matches' },
+    ctaNote: { he: 'אולי מישהו כבר מחכה לפנייה שלך', en: 'Someone might already be waiting for your bid' },
+  },
+
+  {
+    id: 'VALUE_14_FOUR_HORSEMEN',
+    emailNumber: '14',
+    subject: {
+      he: '4 דפוסים הרסניים שחייבים לזהות — לפני שמאוחר מדי 🛡️',
+      en: '4 Destructive Patterns You Must Spot — Before It\'s Too Late 🛡️',
+    },
+    headerEmoji: '🛡️',
+    headerTitle: { he: 'ארבעת הפרשים של הזוגיות', en: 'The Four Horsemen of Relationships' },
+    headerSubtitle: { he: 'איך לזהות ולעצור דפוסים הרסניים עוד לפני הזוגיות', en: 'How to spot and stop destructive patterns before the relationship' },
+    introText: {
+      he: 'גוטמן זיהה ארבעה דפוסי תקשורת שהוא כינה "ארבעת הפרשים" — דפוסים שכשהם מופיעים בזוגיות, חוזים גירושין בדיוק של 93%. החדשות הטובות? אפשר לזהות אותם אצל עצמנו כבר עכשיו — ולתקן לפני שנכנסים לזוגיות.',
+      en: 'Gottman identified four communication patterns he called "The Four Horsemen" — patterns that, when present in a relationship, predict divorce with 93% accuracy. The good news? You can spot them in yourself right now — and fix them before entering a relationship.',
+    },
+    tips: {
+      he: [
+        { number: '1', title: 'ביקורת — לתקוף את האדם, לא את הבעיה', body: 'ביקורת בריאה היא "הרגשתי שלא שמעת אותי בשיחה". ביקורת הרסנית היא "אתה תמיד מתעלם ממני, אתה אגואיסט". ההבדל? הראשונה מדברת על מצב ספציפי, השנייה תוקפת את האדם. שימו לב: האם גם בשיחות עם חברים ומשפחה אתם נוטים לתקוף את האדם ולא את הבעיה?' },
+        { number: '2', title: 'בוז — הרעל הקטלני ביותר', body: 'בוז הוא גלגול עיניים, ציניות, סרקזם, וזלזול. גוטמן קורא לו "המנבא הבודד החזק ביותר של גירושין". למה? כי בוז אומר "אתה מתחתי" — והוא הורס את הכבוד ההדדי שהוא הבסיס של כל זוגיות. אם אתה תופס את עצמך מזלזל באנשים — עצור. זה הרגל שיהרוס כל זוגיות.' },
+        { number: '3', title: 'התגוננות — "זה לא אני, זה אתה"', body: 'התגוננות היא תגובה טבעית לביקורת — אבל היא חוסמת כל אפשרות לפתרון. במקום "אולי אתה צודק, בוא ננסה אחרת" — ההתגוננות אומרת "אני לא אשם, אתה התחלת". תרגלו לשאול: "מה החלק שלי בבעיה?" — גם כשקשה.' },
+        { number: '4', title: 'הסתגרות — לבנות קירות', body: 'הסתגרות היא כשאחד מהצדדים "מתנתק" — מפסיק להגיב, יוצא מהחדר, או סוגר את עצמו. זה קורה בדרך כלל כשיש הצפה רגשית (emotional flooding). הפתרון: ללמוד לקחת הפסקה מודעת — "אני צריך 20 דקות לנשום, ואז נמשיך" — במקום פשוט להיסגר.' },
+      ],
+      en: [
+        { number: '1', title: 'Criticism — Attacking the Person, Not the Problem', body: 'Healthy critique is "I felt unheard in that conversation." Destructive criticism is "You always ignore me, you\'re so selfish." The difference? The first addresses a specific situation, the second attacks the person. Notice: do you tend to attack the person rather than the problem in conversations with friends and family too?' },
+        { number: '2', title: 'Contempt — The Most Lethal Poison', body: 'Contempt is eye-rolling, cynicism, sarcasm, and disdain. Gottman calls it "the single strongest predictor of divorce." Why? Because contempt says "you\'re beneath me" — and it destroys the mutual respect that is the foundation of every relationship. If you catch yourself being contemptuous — stop. It\'s a habit that will destroy any relationship.' },
+        { number: '3', title: 'Defensiveness — "It\'s Not Me, It\'s You"', body: 'Defensiveness is a natural response to criticism — but it blocks any possibility of resolution. Instead of "maybe you\'re right, let\'s try differently" — defensiveness says "I\'m not to blame, you started it." Practice asking: "What\'s my part in this problem?" — even when it\'s hard.' },
+        { number: '4', title: 'Stonewalling — Building Walls', body: 'Stonewalling is when one side "disconnects" — stops responding, leaves the room, or shuts down. This usually happens during emotional flooding. The solution: learn to take a conscious break — "I need 20 minutes to breathe, then we\'ll continue" — instead of just shutting down.' },
+      ],
+    },
+    quoteText: {
+      he: 'הבעיה היא לא שיש קונפליקטים — הבעיה היא איך מתנהגים בתוכם',
+      en: 'The problem isn\'t that conflicts exist — the problem is how we behave within them',
+    },
+    quoteSource: 'ד"ר ג\'ון גוטמן, Why Marriages Succeed or Fail',
+    closingText: {
+      he: 'היכולת לזהות את "ארבעת הפרשים" אצל עצמך — ולתקן — היא אחת המתנות הגדולות שתביא לזוגיות העתידית שלך. אנחנו ב-NeshamaTech מאמינים שהכנה רגשית חשובה לא פחות מהתאמה טובה. 🎯',
+      en: 'The ability to spot the "Four Horsemen" in yourself — and correct them — is one of the greatest gifts you\'ll bring to your future relationship. At NeshamaTech we believe emotional preparation is just as important as a good match. 🎯',
+    },
+    ctaText: { he: 'להשלים את השאלון שלי', en: 'Complete My Questionnaire' },
+    ctaNote: { he: 'השאלון עוזר לנו להבין את סגנון התקשורת שלך', en: 'The questionnaire helps us understand your communication style' },
+  },
+
+  {
+    id: 'VALUE_15_VULNERABILITY',
+    emailNumber: '15',
+    subject: {
+      he: 'פגיעות כעוצמה — הסוד של זוגות שמצליחים 💪',
+      en: 'Vulnerability as Strength — The Secret of Couples Who Thrive 💪',
+    },
+    headerEmoji: '💪',
+    headerTitle: { he: 'פגיעות היא לא חולשה', en: 'Vulnerability Is Not Weakness' },
+    headerSubtitle: { he: 'המחקר שהפך את מה שחשבנו על חוזק', en: 'The research that reversed what we thought about strength' },
+    introText: {
+      he: 'ד"ר ברנה בראון, חוקרת בביה"ס לעבודה סוציאלית באוניברסיטת יוסטון, חקרה למעלה מ-10,000 משתתפים לאורך 12 שנה. המסקנה שלה הפתיעה את כולם: האנשים עם הזוגיויות החזקות ביותר הם לא החזקים ביותר — הם הפגיעים ביותר. לא חלשים — פגיעים. יש הבדל עצום.',
+      en: 'Dr. Brené Brown, a researcher at the University of Houston\'s Graduate College of Social Work, studied over 10,000 participants across 12 years. Her conclusion surprised everyone: people with the strongest relationships aren\'t the strongest people — they\'re the most vulnerable. Not weak — vulnerable. There\'s a huge difference.',
+    },
+    tips: {
+      he: [
+        { number: '1', title: 'פגיעות = אומץ, לא חולשה', body: 'בראון מגדירה פגיעות כ"אי-ודאות, סיכון, וחשיפה רגשית". להגיד למישהו "אני מפחד שלא אהיה מספיק טוב" — זה לא חולשה, זה אומץ עצום. בדייטים, אנשים שמעזים להיות פגיעים יוצרים חיבור עמוק הרבה יותר מאלה שמציגים גרסה "מושלמת" של עצמם.' },
+        { number: '2', title: '"שריון" הוא מה שמרחיק אנשים', body: 'כולנו בונים "שריונות" כדי להגן על עצמנו: הומור מוגזם, שליטה, פרפקציוניזם, ציניות. בדייט, השריון הזה מרגיש בטוח — אבל הוא מונע מהצד השני לראות מי אתה באמת. בראון כותבת: "אנחנו לא יכולים לקבל אהבה אם אנחנו לובשים שריון." תשאל את עצמך: מה ה"שריון" שלי?' },
+        { number: '3', title: 'פגיעות מדורגת — לא הכל בבת אחת', body: 'פגיעות חכמה היא לא לספר את כל סיפור החיים בדייט ראשון. היא מדורגת: שיתוף קטן אחד אמיתי → צפייה איך הצד השני מגיב → שיתוף נוסף אם התגובה הייתה בטוחה. זה בונה אמון ופגיעות במקביל — כמו שתי מדרגות שעולות יחד.' },
+        { number: '4', title: 'המחקר: פגיעות מושכת יותר מ"מושלם"', body: 'מחקר של פרופ\' אליוט ארונסון (אפקט הפראטפול) הראה שאנשים שנתפסו כ"מוכשרים אבל אנושיים" — קיבלו ציוני חיבה גבוהים יותר מאנשים שנראו "מושלמים". חולשה שנאמרת בכנות יוצרת יותר חיבור מחוזקות שמוצגות. זה עובד גם בדייטים.' },
+      ],
+      en: [
+        { number: '1', title: 'Vulnerability = Courage, Not Weakness', body: 'Brown defines vulnerability as "uncertainty, risk, and emotional exposure." Telling someone "I\'m afraid I won\'t be good enough" isn\'t weakness — it\'s immense courage. In dating, people who dare to be vulnerable create much deeper connections than those who present a "perfect" version of themselves.' },
+        { number: '2', title: '"Armor" Is What Pushes People Away', body: 'We all build "armor" to protect ourselves: excessive humor, control, perfectionism, cynicism. On a date, that armor feels safe — but it prevents the other side from seeing who you really are. Brown writes: "We cannot receive love if we\'re wearing armor." Ask yourself: what\'s my armor?' },
+        { number: '3', title: 'Graduated Vulnerability — Not Everything at Once', body: 'Smart vulnerability isn\'t sharing your entire life story on a first date. It\'s graduated: one small authentic share → watching how the other side responds → another share if the response felt safe. This builds trust and vulnerability simultaneously — like two stairs climbing together.' },
+        { number: '4', title: 'The Research: Vulnerability Attracts More Than "Perfect"', body: 'Prof. Elliot Aronson\'s research (the Pratfall Effect) showed that people perceived as "competent but human" received higher likability scores than people who seemed "perfect." A weakness stated honestly creates more connection than displayed strengths. This works in dating too.' },
+      ],
+    },
+    quoteText: {
+      he: 'פגיעות היא מקום הלידה של אהבה, שייכות, שמחה, אומץ, אמפתיה, ויצירתיות',
+      en: 'Vulnerability is the birthplace of love, belonging, joy, courage, empathy, and creativity',
+    },
+    quoteSource: 'ד"ר ברנה בראון, Daring Greatly',
+    closingText: {
+      he: 'השאלון שלנו ב-NeshamaTech מאפשר לך להביע את עצמך בכנות — בלי לשפוט. ככל שתהיה אמיתי יותר בתשובות — כך נמצא לך מישהו שרואה ואוהב את מי שאתה באמת. 🎯',
+      en: 'Our NeshamaTech questionnaire lets you express yourself honestly — without judgment. The more authentic you are in your answers — the better we can find someone who sees and loves who you truly are. 🎯',
+    },
+    ctaText: { he: 'למלא את השאלון בכנות', en: 'Take the Questionnaire Honestly' },
+    ctaNote: { he: 'האמיתיות שלך = ההתאמה שלנו', en: 'Your authenticity = our matching accuracy' },
+  },
+
+  {
+    id: 'VALUE_16_GROWTH_MINDSET',
+    emailNumber: '16',
+    subject: {
+      he: 'חשיבה צמיחתית באהבה — איך לא לתקוע את הזוגיות 🌿',
+      en: 'Growth Mindset in Love — How Not to Get Stuck 🌿',
+    },
+    headerEmoji: '🌿',
+    headerTitle: { he: 'חשיבה צמיחתית באהבה', en: 'Growth Mindset in Love' },
+    headerSubtitle: { he: 'המחקר של קרול דווק — מיושם על זוגיות ושידוכים', en: 'Carol Dweck\'s research — applied to relationships and dating' },
+    introText: {
+      he: 'פרופ\' קרול דווק מאוניברסיטת סטנפורד חקרה עשרות שנים את ההבדל בין "חשיבה קבועה" ל"חשיבה צמיחתית". התגלית שלה שינתה את עולם החינוך — אבל היא רלוונטית לא פחות לזוגיות. אנשים עם "חשיבה קבועה" באהבה מאמינים ש"או שזה עובד או שלא". אנשים עם "חשיבה צמיחתית" מאמינים שזוגיות היא מסע של למידה. נחשו מי מצליח יותר.',
+      en: 'Prof. Carol Dweck of Stanford University spent decades studying the difference between "fixed mindset" and "growth mindset." Her discovery changed education — but it\'s equally relevant to relationships. People with a "fixed mindset" in love believe "it either works or it doesn\'t." People with a "growth mindset" believe relationships are a learning journey. Guess who succeeds more.',
+    },
+    tips: {
+      he: [
+        { number: '1', title: '"בן/בת הזוג המושלם/ת" — מיתוס מסוכן', body: 'חשיבה קבועה בשידוכים אומרת: "יש מישהו מושלם בשבילי, ואני רק צריך למצוא אותו." חשיבה צמיחתית אומרת: "יש מישהו טוב שאיתו אני יכול לבנות משהו נפלא." מחקר של דווק ושותפתה הראה שאנשים עם חשיבה צמיחתית בזוגיות — מדווחים על שביעות רצון גבוהה יותר ב-40%.' },
+        { number: '2', title: 'קונפליקט = הזדמנות, לא כישלון', body: 'אנשים עם חשיבה קבועה רואים מריבה כ"הוכחה שזה לא מתאים". אנשים עם חשיבה צמיחתית רואים מריבה כ"הזדמנות ללמוד איך לתקשר טוב יותר". זה לא רק עניין של גישה — זה משנה התנהגות: מי שרואה בקונפליקט הזדמנות — נשאר ומנסה. מי שרואה כישלון — בורח.' },
+        { number: '3', title: '"עוד לא" — שתי המילים החזקות ביותר', body: 'דווק מלמדת להחליף "אני לא מצליח" ב"אני עוד לא מצליח". בשידוכים: לא "אני לא מוצא" אלא "אני עוד לא מצאתי — ובינתיים אני לומד, גדל, ומתכונן טוב יותר". המסע עצמו הופך אותך לבן/בת זוג טוב/ה יותר.' },
+      ],
+      en: [
+        { number: '1', title: '"The Perfect Partner" — A Dangerous Myth', body: 'Fixed mindset in dating says: "There\'s someone perfect for me, I just need to find them." Growth mindset says: "There\'s someone good with whom I can build something wonderful." Research by Dweck and her colleague showed that people with a growth mindset in relationships report 40% higher satisfaction.' },
+        { number: '2', title: 'Conflict = Opportunity, Not Failure', body: 'People with a fixed mindset see a fight as "proof it doesn\'t work." People with a growth mindset see a fight as "an opportunity to learn better communication." This isn\'t just attitude — it changes behavior: those who see conflict as opportunity stay and try. Those who see failure — flee.' },
+        { number: '3', title: '"Not Yet" — The Two Most Powerful Words', body: 'Dweck teaches replacing "I can\'t" with "I can\'t yet." In dating: not "I can\'t find anyone" but "I haven\'t found them yet — and meanwhile I\'m learning, growing, and preparing better." The journey itself makes you a better partner.' },
+      ],
+    },
+    quoteText: {
+      he: 'בזוגיות צמיחתית, הדרך חשובה לא פחות מהיעד',
+      en: 'In a growth-oriented relationship, the journey matters as much as the destination',
+    },
+    quoteSource: 'פרופ\' קרול דווק, Mindset: The New Psychology of Success',
+    closingText: {
+      he: 'ב-NeshamaTech, אנחנו מחפשים לך לא "מושלם" — אלא מישהו שמוכן לצמוח איתך. השאלון שלנו מזהה גישה צמיחתית ומתאים בין אנשים שמאמינים בבנייה משותפת. 🎯',
+      en: 'At NeshamaTech, we\'re not looking for "perfect" for you — but someone ready to grow with you. Our questionnaire identifies growth mindset and matches people who believe in building together. 🎯',
+    },
+    ctaText: { he: 'לעדכן את הפרופיל שלי', en: 'Update My Profile' },
+    ctaNote: { he: 'הפרופיל שלך משקף את הגישה שלך — בואו נעדכן', en: 'Your profile reflects your approach — let\'s update it' },
+  },
+
+  {
+    id: 'VALUE_17_LOVE_LANGUAGES',
+    emailNumber: '17',
+    subject: {
+      he: '5 שפות האהבה — למה אתם לא מבינים אחד את השני 💬',
+      en: 'The 5 Love Languages — Why You\'re Not Understanding Each Other 💬',
+    },
+    headerEmoji: '💬',
+    headerTitle: { he: '5 שפות האהבה', en: 'The 5 Love Languages' },
+    headerSubtitle: { he: 'המחקר שגילה למה "אני אוהב אותך" לא תמיד מספיק', en: 'The research that revealed why "I love you" isn\'t always enough' },
+    introText: {
+      he: 'ד"ר גארי צ\'פמן, יועץ זוגיות עם למעלה מ-35 שנות ניסיון, גילה שכל אדם "מדבר" אהבה בשפה שונה. הבעיה? רוב האנשים נותנים אהבה בשפה שלהם — לא בשפה של בן/בת הזוג. זה כמו לדבר עברית למי שמבין רק צרפתית — הכוונה טובה, אבל המסר לא מגיע.',
+      en: 'Dr. Gary Chapman, a relationship counselor with over 35 years of experience, discovered that every person "speaks" love in a different language. The problem? Most people give love in their own language — not their partner\'s. It\'s like speaking Hebrew to someone who only understands French — the intention is good, but the message doesn\'t arrive.',
+    },
+    tips: {
+      he: [
+        { number: '1', title: 'מילים מעודדות — "את נראית נהדר היום"', body: 'אנשים ששפת האהבה שלהם היא מילים מעודדות — זקוקים לשמוע מחמאות, הערכה, ועידוד מילולי. בשבילם, "אני גאה בך" שווה יותר ממתנה יקרה. אם זו השפה שלך — ספר על זה בפרופיל. אם זו השפה של בן/בת הזוג העתידי/ת שלך — תלמד להגיד.' },
+        { number: '2', title: 'זמן איכות — "תשב איתי בלי טלפון"', body: 'עבור אנשים ששפתם היא זמן איכות — נוכחות מלאה, ללא הסחות דעת, היא ההוכחה הגדולה ביותר לאהבה. לא מספיק להיות באותו חדר — צריך להיות נוכח באותו רגע. בעידן הסמארטפונים, זו אולי השפה הכי מאתגרת — וגם הכי משמעותית.' },
+        { number: '3', title: 'מגע פיזי / מתנות / מעשי שירות', body: 'שלוש שפות נוספות: מגע פיזי (חיבוק, יד על הכתף), מתנות (לא יקרות — מחושבות), ומעשי שירות (לעשות משהו שהצד השני צריך בלי שיבקש). כל אדם מדורג אחרת. הסוד: לגלות מה השפה של הצד השני — ולדבר בה, גם אם היא לא טבעית לך.' },
+        { number: '4', title: 'איך לגלות את השפה שלך — עכשיו', body: 'שאל את עצמך: "מה הכי כואב לי כשחסר? מה הכי משמח אותי כשאני מקבל?" אם חסרות לך מילים טובות — כנראה שזו השפה שלך. אם הכי כואב לך שמבטלים תוכניות — זמן איכות הוא השפה שלך. הבנה עצמית מדויקת = הפרופיל שלך יהיה מדויק יותר = ההתאמה תהיה טובה יותר.' },
+      ],
+      en: [
+        { number: '1', title: 'Words of Affirmation — "You Look Great Today"', body: 'People whose love language is words of affirmation need to hear compliments, appreciation, and verbal encouragement. For them, "I\'m proud of you" is worth more than an expensive gift. If this is your language — mention it in your profile. If it\'s your future partner\'s language — learn to say it.' },
+        { number: '2', title: 'Quality Time — "Sit With Me, No Phone"', body: 'For people whose language is quality time — full presence, without distractions, is the greatest proof of love. Being in the same room isn\'t enough — you need to be present in the same moment. In the smartphone era, this may be the most challenging language — and the most meaningful.' },
+        { number: '3', title: 'Physical Touch / Gifts / Acts of Service', body: 'Three more languages: physical touch (a hug, hand on shoulder), gifts (not expensive — thoughtful), and acts of service (doing something the other needs without being asked). Everyone ranks differently. The secret: discover your partner\'s language — and speak it, even if it\'s not natural to you.' },
+        { number: '4', title: 'How to Discover Your Language — Now', body: 'Ask yourself: "What hurts most when it\'s missing? What makes me happiest when I receive it?" If you miss kind words — that\'s probably your language. If canceled plans hurt most — quality time is your language. Accurate self-understanding = more accurate profile = better matching.' },
+      ],
+    },
+    quoteText: {
+      he: 'האהבה היא בחירה יומיומית — ללמוד את השפה של מי שאתה אוהב',
+      en: 'Love is a daily choice — to learn the language of the one you love',
+    },
+    quoteSource: 'ד"ר גארי צ\'פמן, The Five Love Languages',
+    closingText: {
+      he: 'כשאתה מבין את שפת האהבה שלך — אתה מבין מה אתה צריך מבן/בת זוג, ומה אתה יכול לתת. ב-NeshamaTech, השאלון שלנו עוזר לנו לזהות את הצרכים הרגשיים שלך ולהתאים בהתאם. 🎯',
+      en: 'When you understand your love language — you understand what you need from a partner, and what you can give. At NeshamaTech, our questionnaire helps us identify your emotional needs and match accordingly. 🎯',
+    },
+    ctaText: { he: 'למלא את השאלון', en: 'Take the Questionnaire' },
+    ctaNote: { he: 'גלה את שפת האהבה שלך — ונמצא את מי שמדבר אותה', en: 'Discover your love language — and we\'ll find who speaks it' },
+  },
+
+  {
+    id: 'VALUE_18_GRATITUDE',
+    emailNumber: '18',
+    subject: {
+      he: 'כוח ההכרת תודה — איך תודה אחת משנה זוגיות 🙏',
+      en: 'The Power of Gratitude — How One "Thank You" Changes Everything 🙏',
+    },
+    headerEmoji: '🙏',
+    headerTitle: { he: 'כוח ההכרת תודה בזוגיות', en: 'The Power of Gratitude in Love' },
+    headerSubtitle: { he: 'מחקרים מוכיחים: תודה = זוגיות חזקה יותר', en: 'Research proves: gratitude = stronger relationships' },
+    introText: {
+      he: 'מחקר שפורסם ב-Journal of Personality and Social Psychology (2010) עקב אחרי זוגות לאורך 9 חודשים וגילה ממצא מפתיע: הגורם הבודד שהשפיע הכי הרבה על שביעות הרצון בזוגיות לא היה תקשורת, לא מין, ולא כסף — אלא הכרת תודה. זוגות שהביעו תודה באופן קבוע דיווחו על שביעות רצון גבוהה ב-25% ועל תחושת מחויבות גבוהה ב-30%.',
+      en: 'A study published in the Journal of Personality and Social Psychology (2010) tracked couples over 9 months and found a surprising result: the single factor that most influenced relationship satisfaction wasn\'t communication, sex, or money — it was gratitude. Couples who regularly expressed gratitude reported 25% higher satisfaction and 30% higher commitment.',
+    },
+    tips: {
+      he: [
+        { number: '1', title: 'למה תודה עובדת כל כך חזק?', body: 'מחקרים מ-Greater Good Science Center בברקלי מראים שהכרת תודה עושה שלושה דברים בו זמנית: (1) היא גורמת למי שאמרו לו תודה להרגיש מוערך, (2) היא גורמת למי שאמר תודה לשים לב לדברים הטובים, ו-(3) היא יוצרת "ספירלה חיובית" — ככל שמודים יותר, ככה רואים יותר מה יש להודות עליו.' },
+        { number: '2', title: 'תודה ספציפית > תודה כללית', body: '"תודה על ארוחת הערב" טוב. "תודה שהכנת את האוכל שאני אוהב, למרות שהיה לך יום קשה — זה ממש חימם לי את הלב" — מצוין. מחקר מאוניברסיטת ג\'ורג\'יה הראה שתודה ספציפית ומפורטת — שמציינת מה בדיוק עשה הצד השני ואיך זה השפיע עליך — חזקה פי 3 מתודה כללית.' },
+        { number: '3', title: 'תרגול: "3 דברים טובים" כל ערב', body: 'מרטין סליגמן, אבי הפסיכולוגיה החיובית, פיתח תרגיל פשוט ועוצמתי: כל ערב, כתוב 3 דברים טובים שקרו לך היום ולמה הם קרו. מחקר הראה שאחרי שבוע בלבד — רמות האושר עולות ורמות הדיכאון יורדות, עם השפעה שנמשכת עד 6 חודשים. תרגול שמתאים מצוין גם לשלב הדייטים.' },
+      ],
+      en: [
+        { number: '1', title: 'Why Does Gratitude Work So Powerfully?', body: 'Research from Greater Good Science Center at Berkeley shows gratitude does three things simultaneously: (1) it makes the recipient feel valued, (2) it makes the giver notice the good things, and (3) it creates a "positive spiral" — the more you give thanks, the more you see to be thankful for.' },
+        { number: '2', title: 'Specific Gratitude > General Gratitude', body: '"Thanks for dinner" is good. "Thank you for making the food I love, even though you had a hard day — it really warmed my heart" — is excellent. Research from the University of Georgia showed that specific, detailed gratitude — naming exactly what the other person did and how it affected you — is 3x more powerful than general thanks.' },
+        { number: '3', title: 'Practice: "3 Good Things" Every Evening', body: 'Martin Seligman, the father of positive psychology, developed a simple yet powerful exercise: every evening, write 3 good things that happened today and why. Research showed that after just one week — happiness levels rise and depression levels drop, with effects lasting up to 6 months. A practice perfectly suited for the dating stage too.' },
+      ],
+    },
+    quoteText: {
+      he: 'הלב הרואה את הטוב — מושך טוב אליו',
+      en: 'The heart that sees the good — draws good to itself',
+    },
+    quoteSource: 'עפ"י ספר חובות הלבבות, שער הבטחון',
+    closingText: {
+      he: 'הכרת תודה היא לא רק "נימוס" — היא כלי מדעי לבניית זוגיות חזקה. התחל לתרגל עכשיו, ותיכנס לזוגיות עם כישורים שרוב האנשים לומדים רק אחרי שנים. 🎯',
+      en: 'Gratitude isn\'t just "politeness" — it\'s a scientific tool for building a strong relationship. Start practicing now, and you\'ll enter a relationship with skills most people only learn after years. 🎯',
+    },
+    ctaText: { he: 'לבדוק את הפרופיל שלי', en: 'Check My Profile' },
+    ctaNote: { he: 'פרופיל מעודכן = התאמות טובות יותר', en: 'Updated profile = better matches' },
+  },
+
+  {
+    id: 'VALUE_19_BREAKING_PATTERNS',
+    emailNumber: '19',
+    subject: {
+      he: 'שבירת דפוסים — למה אתה חוזר על אותן טעויות בדייטים 🔄',
+      en: 'Breaking Patterns — Why You Keep Making the Same Dating Mistakes 🔄',
+    },
+    headerEmoji: '🔄',
+    headerTitle: { he: 'שבירת דפוסים חוזרים', en: 'Breaking Recurring Patterns' },
+    headerSubtitle: { he: 'הפסיכולוגיה מאחורי "למה תמיד נמשכתי לאותו טיפוס"', en: 'The psychology behind "why I\'m always attracted to the same type"' },
+    introText: {
+      he: 'אם מצאת את עצמך חוזר/ת על אותם דפוסים בדייטים — נמשך/ת לאותו סוג בן/בת זוג, חווה/ת אותם קונפליקטים, או בורח/ת באותה נקודה — אתה לא לבד. הפסיכולוגיה מסבירה למה זה קורה, ויותר חשוב: איך לשבור את הדפוס.',
+      en: 'If you\'ve found yourself repeating the same dating patterns — attracted to the same type, experiencing the same conflicts, or running at the same point — you\'re not alone. Psychology explains why this happens, and more importantly: how to break the pattern.',
+    },
+    tips: {
+      he: [
+        { number: '1', title: '"כפייה לחזור" — פרויד צדק (בדבר הזה)', body: 'פרויד זיהה תופעה שנקראת "repetition compulsion" — נטייה לא-מודעת לחזור על מצבים מוכרים, גם כשהם כואבים. אם גדלת עם הורה רגשית לא-זמין — אתה עלול להימשך לבני זוג שגם הם רגשית לא-זמינים. לא כי "אתה אוהב לסבול" — אלא כי המוח שלך מחפש את המוכר, גם כשהמוכר כואב.' },
+        { number: '2', title: 'זהה את ה"טריגר" שלך', body: 'כל דפוס חוזר מתחיל ברגע ספציפי — "טריגר". אולי זה הרגע שבן/בת הזוג מראה עניין רציני ואתה מתחיל להתרחק. אולי זה כשמישהו אומר "לא" ואתה נהיה אובססיבי. זהה את הרגע הזה. תכתוב אותו. שתף אותו עם חבר או מטפל. המודעות לטריגר כבר מתחילה לשבור את הדפוס.' },
+        { number: '3', title: 'הטכניקה: "עצור-תרגם-בחר"', body: 'כשאתה מזהה את הטריגר: (1) עצור — אל תגיב אוטומטית. (2) תרגם — "מה אני באמת מרגיש עכשיו? פחד? כעס? חוסר ביטחון?" (3) בחר — "האם אני רוצה לעשות את מה שתמיד עשיתי, או לנסות משהו אחר?" הבחירה המודעת — גם אם היא קטנה — משנה את הדפוס לאורך זמן.' },
+        { number: '4', title: 'השדכנית כראי חיצוני', body: 'אחד היתרונות של שידוך דרך שדכנית — היא מהווה "ראי חיצוני" שרואה את הדפוסים שאתה לא רואה. "שמתי לב שכל פעם שמישהי מאוד מתעניינת, אתה מאבד עניין" — הערה כזו משדכנית שמכירה אותך שווה זהב. ב-NeshamaTech, גם ה-AI וגם השדכנים עוזרים לזהות את הדפוסים האלה.' },
+      ],
+      en: [
+        { number: '1', title: '"Repetition Compulsion" — Freud Was Right (About This)', body: 'Freud identified a phenomenon called "repetition compulsion" — an unconscious tendency to repeat familiar situations, even when painful. If you grew up with an emotionally unavailable parent — you may be drawn to emotionally unavailable partners. Not because "you like suffering" — but because your brain seeks the familiar, even when familiar hurts.' },
+        { number: '2', title: 'Identify Your "Trigger"', body: 'Every recurring pattern starts with a specific moment — a "trigger." Maybe it\'s when a partner shows serious interest and you start pulling away. Maybe it\'s when someone says "no" and you become obsessive. Identify that moment. Write it down. Share it with a friend or therapist. Awareness of the trigger already starts breaking the pattern.' },
+        { number: '3', title: 'The Technique: "Stop-Translate-Choose"', body: 'When you identify the trigger: (1) Stop — don\'t react automatically. (2) Translate — "What am I really feeling right now? Fear? Anger? Insecurity?" (3) Choose — "Do I want to do what I\'ve always done, or try something different?" The conscious choice — even a small one — changes the pattern over time.' },
+        { number: '4', title: 'The Matchmaker as External Mirror', body: 'One advantage of matchmaker-based dating — they serve as an "external mirror" seeing patterns you can\'t see. "I noticed that every time someone is very interested, you lose interest" — such an observation from a matchmaker who knows you is worth gold. At NeshamaTech, both our AI and matchmakers help identify these patterns.' },
+      ],
+    },
+    quoteText: {
+      he: 'שיגעון הוא לעשות את אותו הדבר שוב ושוב ולצפות לתוצאות שונות',
+      en: 'Insanity is doing the same thing over and over and expecting different results',
+    },
+    quoteSource: 'מיוחס לאלברט איינשטיין',
+    closingText: {
+      he: 'שבירת דפוסים היא לא קלה — אבל היא אפשרית, ושווה כל מאמץ. השאלון והפרופיל שלך ב-NeshamaTech עוזרים לנו ולשדכנים שלנו לזהות את הצרכים האמיתיים שלך — לא את הדפוסים הישנים. 🎯',
+      en: 'Breaking patterns isn\'t easy — but it\'s possible, and worth every effort. Your questionnaire and profile at NeshamaTech help us and our matchmakers identify your real needs — not your old patterns. 🎯',
+    },
+    ctaText: { he: 'למלא את השאלון', en: 'Take the Questionnaire' },
+    ctaNote: { he: 'השאלון שלנו מזהה דפוסים — ועוזר לשבור אותם', en: 'Our questionnaire identifies patterns — and helps break them' },
+  },
+
+  {
+    id: 'VALUE_20_EXPECTATIONS',
+    emailNumber: '20',
+    subject: {
+      he: 'ניהול ציפיות — האיזון בין סטנדרטים לגמישות 🎯',
+      en: 'Managing Expectations — Balancing Standards with Flexibility 🎯',
+    },
+    headerEmoji: '🎯',
+    headerTitle: { he: 'ניהול ציפיות בשידוכים', en: 'Managing Expectations in Dating' },
+    headerSubtitle: { he: 'מה המחקר אומר על "רשימת הדרישות" שלך', en: 'What research says about your "requirements list"' },
+    introText: {
+      he: 'פרופ\' אלי פינקל מאוניברסיטת נורת\'ווסטרן, אחד מחוקרי הזוגיות המובילים בעולם, חקר מה קורה כשאנשים ניגשים לשידוכים עם רשימת דרישות ארוכה מול רשימה קצרה. התוצאות? לא מה שציפיתם. הרשימה הארוכה לא הובילה ליותר אושר — היא הובילה ליותר אכזבות, ולהחמצת התאמות מצוינות.',
+      en: 'Prof. Eli Finkel of Northwestern University, one of the world\'s leading relationship researchers, studied what happens when people approach dating with a long requirements list versus a short one. The results? Not what you\'d expect. The long list didn\'t lead to more happiness — it led to more disappointments, and to missing excellent matches.',
+    },
+    tips: {
+      he: [
+        { number: '1', title: 'הבדל בין "Must Have" ל-"Nice to Have"', body: 'מחקר של פרופ\' פינקל מראה שהדרישות שבאמת חשובות להצלחה בזוגיות הן 3-5 לכל היותר: ערכים דומים, גישה דומה לחיים, מידות טובות, כימיה בסיסית, ומוכנות לבנות. כל השאר — גובה, מקצוע ספציפי, שכונה מסוימת — הם "Nice to Have" שכדאי להיות גמישים לגביהם.' },
+        { number: '2', title: '"פרדוקס הבחירה" — יותר אופציות ≠ יותר אושר', body: 'פרופ\' בארי שוורץ מאוניברסיטת סווארתמור הוכיח שכשיש לנו יותר מדי אפשרויות — אנחנו בוחרים פחות טוב ומרוצים פחות. באפליקציות הכרויות עם אלפי פרופילים, אנשים הופכים ל"קונים" שתמיד חושבים "אולי יש משהו יותר טוב". שידוך דרך שדכנית — עם מספר קטן של הצעות איכותיות — מוביל להחלטות טובות יותר.' },
+        { number: '3', title: 'מה שאתה חושב שאתה רוצה ≠ מה שבאמת מאשר אותך', body: 'מחקר מפתיע מ-2023 שפורסם ב-PNAS גילה שב-421 מיליון התאמות פוטנציאליות, ההעדפות שאנשים הצהירו עליהן — כמעט לא ניבאו את ההתאמות שבאמת עבדו. אנשים שאמרו "אני רוצה גבוה/ה" — לא בהכרח היו מאושרים יותר עם מישהו גבוה/ה. מה שכן ניבא? דמיון בערכים, אישיות, וגישה לחיים.' },
+        { number: '4', title: 'הנוסחה: 3 עקרונות ברזל + פתיחות לכל השאר', body: 'הגדר 3 דברים שהם באמת חיוניים לך — ולא "רשימת קניות". למשל: (1) בן/בת אדם ישר/ה ואמין/ה, (2) מישהו/י שמוכן/ה לצמוח, (3) חולק/ת את הגישה שלי לחיים יהודיים. על כל השאר — תן לעצמך להפתיע. הפתעות הן מקום נפלא לגלות אהבה.' },
+      ],
+      en: [
+        { number: '1', title: 'Distinguish "Must Have" from "Nice to Have"', body: 'Prof. Finkel\'s research shows that requirements truly important for relationship success are 3-5 at most: similar values, similar life approach, good character, basic chemistry, and readiness to build. Everything else — height, specific profession, certain neighborhood — are "Nice to Have" worth being flexible about.' },
+        { number: '2', title: '"Paradox of Choice" — More Options ≠ More Happiness', body: 'Prof. Barry Schwartz of Swarthmore College proved that when we have too many options — we choose worse and are less satisfied. On dating apps with thousands of profiles, people become "shoppers" always thinking "maybe there\'s something better." Matchmaker-based dating — with a small number of quality suggestions — leads to better decisions.' },
+        { number: '3', title: 'What You Think You Want ≠ What Actually Makes You Happy', body: 'A surprising 2023 study published in PNAS found that across 421 million potential matches, people\'s stated preferences almost didn\'t predict which matches actually worked. People who said "I want tall" weren\'t necessarily happier with someone tall. What did predict? Similarity in values, personality, and approach to life.' },
+        { number: '4', title: 'The Formula: 3 Iron Principles + Openness to Everything Else', body: 'Define 3 things that are truly essential to you — not a "shopping list." For example: (1) an honest and reliable person, (2) someone willing to grow, (3) shares my approach to Jewish life. For everything else — let yourself be surprised. Surprises are a wonderful place to discover love.' },
+      ],
+    },
+    quoteText: {
+      he: 'החיים הם מה שקורה כשאתה עסוק בלתכנן תוכניות אחרות',
+      en: 'Life is what happens when you\'re busy making other plans',
+    },
+    quoteSource: 'ג\'ון לנון (ולפניו — אלן סונדרס)',
+    closingText: {
+      he: 'ב-NeshamaTech, ה-AI שלנו לא מתאים לפי "רשימת קניות" — הוא מזהה דמיון עמוק בערכים, אישיות, וגישה לחיים. זה מה שבאמת עובד. 🎯',
+      en: 'At NeshamaTech, our AI doesn\'t match by "shopping list" — it identifies deep similarity in values, personality, and life approach. That\'s what actually works. 🎯',
+    },
+    ctaText: { he: 'לעדכן את הפרופיל שלי', en: 'Update My Profile' },
+    ctaNote: { he: 'פרופיל עדכני = התאמה מדויקת יותר', en: 'Updated profile = more accurate matching' },
+  },
 ];
 
 // ─── Orchestrator ─────────────────────────────────────────────────────────────

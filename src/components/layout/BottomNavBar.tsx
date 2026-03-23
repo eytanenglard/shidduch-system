@@ -10,7 +10,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Heart, MessageCircle, Lightbulb, User } from 'lucide-react';
+import { Heart, MessageCircle, Fingerprint, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useNotifications } from '@/app/[locale]/contexts/NotificationContext';
 import type { Dictionary } from '@/types/dictionary';
@@ -33,8 +33,8 @@ export default function BottomNavBar({ dict }: BottomNavBarProps) {
     (session.user as { role?: string }).role === 'ADMIN';
   if (isMatchmaker) return null;
 
-  // Hide on questionnaire pages — the questionnaire has its own bottom navigation
-  if (pathname.includes('/questionnaire')) return null;
+  // Hide on questionnaire/soul-fingerprint pages — they have their own bottom navigation
+  if (pathname.includes('/questionnaire') || pathname.includes('/soul-fingerprint')) return null;
 
   const items = [
     {
@@ -57,9 +57,9 @@ export default function BottomNavBar({ dict }: BottomNavBarProps) {
       badge: notifications.messages,
     },
     {
-      href: `/${locale}/questionnaire`,
-      label: dict.navbar.matchmakingQuestionnaire,
-      icon: Lightbulb,
+      href: `/${locale}/soul-fingerprint`,
+      label: dict.navbar.soulFingerprint,
+      icon: Fingerprint,
       badge: 0,
     },
   ];

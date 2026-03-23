@@ -14,6 +14,7 @@ import {
   ChevronDown,
   Sparkles,
   Lock,
+  Fingerprint,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
@@ -255,6 +256,7 @@ interface ProfileChecklistProps {
   locale: string;
   onNavigateToTab: (tab: string) => void;
   onCompletionChange?: (percentage: number) => void;
+  sfCompleted?: boolean;
 }
 
 export const ProfileChecklist: React.FC<ProfileChecklistProps> = ({
@@ -266,6 +268,7 @@ export const ProfileChecklist: React.FC<ProfileChecklistProps> = ({
   locale,
   onNavigateToTab,
   onCompletionChange,
+  sfCompleted = false,
 }) => {
   const [isMinimized, setIsMinimized] = useState(true);
   const [activeItemId, setActiveItemId] = useState<string | null>(null);
@@ -504,6 +507,14 @@ export const ProfileChecklist: React.FC<ProfileChecklistProps> = ({
       missingItems: getMissingItems.partnerPreferences,
     },
     {
+      id: 'soul_fingerprint',
+      isCompleted: sfCompleted,
+      title: dict.tasks.soulFingerprint.title,
+      description: dict.tasks.soulFingerprint.description,
+      link: `/${locale}/soul-fingerprint`,
+      icon: Fingerprint,
+    },
+    {
       id: 'questionnaire',
       isCompleted: questionnaireCompleted,
       title: dict.tasks.questionnaire.title,
@@ -675,7 +686,8 @@ export const ProfileChecklist: React.FC<ProfileChecklistProps> = ({
       otherTasksStatus.push(...Array(40).fill(false));
     }
 
-    // הוסר: hasSeenPreview
+    // Soul Fingerprint
+    otherTasksStatus.push(sfCompleted);
 
     const totalOtherTasks = otherTasksStatus.length;
     const completedOtherTasks = otherTasksStatus.filter(Boolean).length;
@@ -686,7 +698,7 @@ export const ProfileChecklist: React.FC<ProfileChecklistProps> = ({
         : 0;
 
     return Math.round(questionnaireContribution + otherTasksContribution);
-  }, [user, questionnaireProgress, isReligious]);
+  }, [user, questionnaireProgress, isReligious, sfCompleted]);
 
   const isAllComplete = completionPercentage >= 100;
 

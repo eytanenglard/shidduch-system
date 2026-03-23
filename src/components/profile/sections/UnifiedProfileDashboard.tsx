@@ -560,6 +560,7 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
                 locale={locale}
                 onNavigateToTab={handleTabChange}
                 onCompletionChange={setCompletionPercentage}
+                sfCompleted={sfCompleted}
               />
               <div className="my-6 md:my-8 flex justify-center">
                 <AIProfileAdvisorDialog
