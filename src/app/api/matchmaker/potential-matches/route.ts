@@ -87,6 +87,18 @@ const maleReligiousLevel = searchParams.get('maleReligiousLevel');
 const femaleReligiousLevel = searchParams.get('femaleReligiousLevel');
 const lastScanMethod = searchParams.get('lastScanMethod');
 
+// 🆕 V3: Advanced filters
+const scanSessionId = searchParams.get('scanSessionId');
+const scannedAfter = searchParams.get('scannedAfter');
+const scannedBefore = searchParams.get('scannedBefore');
+const availabilityFilter = searchParams.get('availabilityFilter'); // 'available_only', 'all'
+const backgroundCompatibility = searchParams.get('backgroundCompatibility'); // 'excellent', 'good', 'possible', 'problematic'
+const maxAsymmetryGap = searchParams.get('maxAsymmetryGap'); // e.g. '10'
+const minConfidence = searchParams.get('minConfidence'); // e.g. '0.7'
+const dataQuality = searchParams.get('dataQuality'); // 'high', 'medium', 'low'
+const isExploratoryMatch = searchParams.get('isExploratoryMatch'); // 'true', 'false'
+const tier = searchParams.get('tier'); // 'excellent', 'good', 'fair'
+
     // 3. בניית Where clause
     const where: Prisma.PotentialMatchWhereInput = {
       aiScore: {
@@ -256,6 +268,79 @@ if (femaleReligiousLevel) {
 if (lastScanMethod) {
   where.lastScanMethod = lastScanMethod;
 }
+
+// 🆕 V3: Scan session filter
+if (scanSessionId) {
+  where.scanSessionId = scanSessionId;
+}
+
+// 🆕 V3: Date range filter
+if (scannedAfter || scannedBefore) {
+  const dateFilter: any = {};
+  if (scannedAfter) dateFilter.gte = new Date(scannedAfter);
+  if (scannedBefore) dateFilter.lte = new Date(scannedBefore);
+  where.scannedAt = dateFilter;
+}
+
+// 🆕 V3: Availability filter
+if (availabilityFilter === 'available_only') {
+  where.AND = [
+    ...(Array.isArray(where.AND) ? where.AND : []),
+    { male: { profile: { availabilityStatus: 'AVAILABLE' } } },
+    { female: { profile: { availabilityStatus: 'AVAILABLE' } } },
+  ] as Prisma.PotentialMatchWhereInput['AND'];
+}
+
+// 🆕 V3: Background compatibility filter
+if (backgroundCompatibility) {
+  const levels = backgroundCompatibility.split(',').filter(l => l.trim());
+  if (levels.length > 0) {
+    where.backgroundCompatibility = { in: levels };
+  }
+}
+
+// 🆕 V3: Asymmetry gap filter
+if (maxAsymmetryGap) {
+  const maxGap = parseFloat(maxAsymmetryGap);
+  if (!isNaN(maxGap)) {
+    where.asymmetryGap = { lte: maxGap };
+  }
+}
+
+// 🆕 V3: Confidence level filter
+if (minConfidence) {
+  const minConf = parseFloat(minConfidence);
+  if (!isNaN(minConf)) {
+    where.confidenceLevel = { gte: minConf };
+  }
+}
+
+// 🆕 V3: Data quality filter
+if (dataQuality) {
+  where.dataQuality = dataQuality;
+}
+
+// 🆕 V3: Exploratory match filter
+if (isExploratoryMatch === 'true') {
+  where.isExploratoryMatch = true;
+} else if (isExploratoryMatch === 'false') {
+  where.isExploratoryMatch = false;
+}
+
+// 🆕 V3: Tier quick filter (based on aiScore ranges)
+if (tier) {
+  switch (tier) {
+    case 'excellent':
+      where.aiScore = { gte: 85, lte: maxScore };
+      break;
+    case 'good':
+      where.aiScore = { gte: 70, lt: 85 };
+      break;
+    case 'fair':
+      where.aiScore = { gte: minScore, lt: 70 };
+      break;
+  }
+}
     // 4. בניית Order By
     let orderBy: Prisma.PotentialMatchOrderByWithRelationInput = {};
     switch (sortBy) {
@@ -412,8 +497,55 @@ if (lastScanMethod) {
       }
     }
 
+    // 6.5 שליפת הצעות קיימות ברמת הזוג (male+female)
+    const pairConditions = matches.map(m => ({
+      AND: [
+        { OR: [{ firstPartyId: m.maleUserId }, { secondPartyId: m.maleUserId }] },
+        { OR: [{ firstPartyId: m.femaleUserId }, { secondPartyId: m.femaleUserId }] },
+      ]
+    }));
+
+    const pairSuggestions = pairConditions.length > 0
+      ? await prisma.matchSuggestion.findMany({
+          where: { OR: pairConditions as any },
+          select: {
+            id: true,
+            status: true,
+            firstPartyId: true,
+            secondPartyId: true,
+            createdAt: true,
+          },
+          orderBy: { createdAt: 'desc' },
+        })
+      : [];
+
+    // מפה: "maleId::femaleId" → הצעה קיימת
+    const pairSuggestionMap = new Map<string, {
+      suggestionId: string;
+      status: string;
+      createdAt: Date;
+    }>();
+
+    for (const s of pairSuggestions) {
+      // בדיקה לכל כיוון - ההצעה יכולה להיות בכל סדר
+      for (const m of matches) {
+        const isMatch =
+          (s.firstPartyId === m.maleUserId && s.secondPartyId === m.femaleUserId) ||
+          (s.firstPartyId === m.femaleUserId && s.secondPartyId === m.maleUserId);
+        if (isMatch) {
+          const key = `${m.maleUserId}::${m.femaleUserId}`;
+          if (!pairSuggestionMap.has(key)) {
+            pairSuggestionMap.set(key, {
+              suggestionId: s.id,
+              status: s.status,
+              createdAt: s.createdAt,
+            });
+          }
+        }
+      }
+    }
+
     // 7. עיבוד התוצאות
- // 7. עיבוד התוצאות
 const processedMatches = matches.map(match => {
   const maleAge = calculateAge(match.male.profile?.birthDate);
   const femaleAge = calculateAge(match.female.profile?.birthDate);
@@ -422,9 +554,13 @@ const processedMatches = matches.map(match => {
   const femaleActiveSuggestion = activeSuggestionMap.get(match.femaleUserId) || null;
 
   const hasActiveWarning = !!(
-    (maleActiveSuggestion?.isBlocking) || 
+    (maleActiveSuggestion?.isBlocking) ||
     (femaleActiveSuggestion?.isBlocking)
   );
+
+  // הצעה קיימת ברמת הזוג
+  const pairKey = `${match.maleUserId}::${match.femaleUserId}`;
+  const existingSuggestionForPair = pairSuggestionMap.get(pairKey) || null;
 
   return {
     id: match.id,
@@ -519,6 +655,9 @@ const processedMatches = matches.map(match => {
     maleActiveSuggestion,
     femaleActiveSuggestion,
     hasActiveWarning,
+
+    // הצעה קיימת ברמת הזוג
+    existingSuggestionForPair,
   };
 });
 

@@ -450,19 +450,11 @@ export async function scanSingleUserV2(
           AND pm2.status::text IN ('DISMISSED', 'EXPIRED')
       )
       
-      -- ═══ לא היתה הצעה שנדחתה ב-MatchSuggestion ═══
+      -- ═══ לא קיימת הצעה כלשהי ב-MatchSuggestion (פעילה או שנדחתה) ═══
       AND NOT EXISTS (
         SELECT 1 FROM "MatchSuggestion" ms
         WHERE ((ms."firstPartyId" = ${userId} AND ms."secondPartyId" = p."userId")
            OR (ms."secondPartyId" = ${userId} AND ms."firstPartyId" = p."userId"))
-          AND ms.status::text IN (
-            'FIRST_PARTY_DECLINED', 
-            'SECOND_PARTY_DECLINED', 
-            'CLOSED', 
-            'CANCELLED',
-            'ENDED_AFTER_FIRST_DATE',
-            'MATCH_DECLINED'
-          )
       )
       
     ORDER BY pm."confidenceScore" DESC NULLS LAST
@@ -1147,7 +1139,7 @@ async function callGeminiAPI(prompt: string): Promise<string> {
 
 // scanSingleUserV2.ts - פונקציה saveScanResults (בסוף הקובץ)
 
-export async function saveScanResults(result: ScanResult): Promise<number> {
+export async function saveScanResults(result: ScanResult, scanSessionId?: string): Promise<number> {
   const userProfile = await prisma.profile.findFirst({
     where: { userId: result.userId },
   });
@@ -1209,6 +1201,7 @@ export async function saveScanResults(result: ScanResult): Promise<number> {
             scoreForMale: isMale ? match.scoreForUser : match.scoreForCandidate,
             scoreForFemale: isMale ? match.scoreForCandidate : match.scoreForUser,
             asymmetryGap: Math.abs(match.scoreForUser - match.scoreForCandidate),
+            ...(scanSessionId ? { scanSessionId } : {}),
           },
         });
         updatedCount++;
@@ -1224,13 +1217,14 @@ export async function saveScanResults(result: ScanResult): Promise<number> {
             scoreForMale: isMale ? match.scoreForUser : match.scoreForCandidate,
             scoreForFemale: isMale ? match.scoreForCandidate : match.scoreForUser,
             asymmetryGap: Math.abs(match.scoreForUser - match.scoreForCandidate),
-            
+
             // 🆕 שדות ספציפיים ל-Metrics V2
             metricsV2Score: match.symmetricScore,
             metricsV2Reasoning: match.aiAnalysis?.reasoning || null,
             metricsV2ScannedAt: new Date(),
             metricsV2ScoreBreakdown: generatedBreakdown,
             lastScanMethod: 'metrics_v2',
+            ...(scanSessionId ? { scanSessionId } : {}),
           },
         });
         savedCount++;

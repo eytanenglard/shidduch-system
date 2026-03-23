@@ -1065,14 +1065,11 @@ async function tier1SqlFilter(
            OR (pm2."femaleUserId" = ${userId} AND pm2."maleUserId" = p."userId"))
           AND pm2.status::text IN ('DISMISSED', 'EXPIRED')
       )
+      -- ═══ לא קיימת הצעה כלשהי ב-MatchSuggestion (פעילה או שנדחתה) ═══
       AND NOT EXISTS (
         SELECT 1 FROM "MatchSuggestion" ms
         WHERE ((ms."firstPartyId" = ${userId} AND ms."secondPartyId" = p."userId")
            OR (ms."secondPartyId" = ${userId} AND ms."firstPartyId" = p."userId"))
-          AND ms.status::text IN (
-            'FIRST_PARTY_DECLINED', 'SECOND_PARTY_DECLINED', 
-            'CLOSED', 'CANCELLED', 'ENDED_AFTER_FIRST_DATE', 'MATCH_DECLINED'
-          )
       )
       
     ORDER BY 
@@ -2018,7 +2015,8 @@ async function saveResults(
   profileId: string,
   userGender: Gender,
   matches: FinalCandidate[],
-  minScoreToSave: number
+  minScoreToSave: number,
+  scanSessionId?: string
 ): Promise<number> {
   const matchesToSave = matches.filter(m => m.finalScore >= minScoreToSave);
   
@@ -2075,6 +2073,7 @@ async function saveResults(
             hybridScannedAt: new Date(),
             hybridScoreBreakdown: match.scoreBreakdown as any,
             ...(tagBreakdown ? { tagMatchBreakdown: tagBreakdown as any } : {}),
+            ...(scanSessionId ? { scanSessionId } : {}),
           },
         });
         updated++;
@@ -2096,6 +2095,7 @@ async function saveResults(
             hybridScannedAt: new Date(),
             hybridScoreBreakdown: match.scoreBreakdown as any,
             ...(tagBreakdown ? { tagMatchBreakdown: tagBreakdown as any } : {}),
+            ...(scanSessionId ? { scanSessionId } : {}),
           },
         });
         saved++;
@@ -2482,6 +2482,7 @@ export async function hybridScan(
     skipAlreadyScannedPairs = true,
     saveScannedPairs: shouldSaveScannedPairs = true,
     checkCancelled,
+    sessionId: scanSessionId,
   } = options;
 
   console.log(`\n${'═'.repeat(70)}`);
@@ -2883,7 +2884,7 @@ export async function hybridScan(
   
   if (autoSave && finalCandidates.length > 0) {
     console.log(`\n[HybridScan] ═══ Saving Results ═══`);
-    savedCount = await saveResults(userId, profile.id, profile.gender, finalCandidates, minScoreToSave);
+    savedCount = await saveResults(userId, profile.id, profile.gender, finalCandidates, minScoreToSave, scanSessionId);
   }
   
   // 🆕 V2.2: Save ScannedPairs

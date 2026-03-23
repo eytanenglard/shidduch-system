@@ -387,7 +387,7 @@ export async function runSymmetricScan(
         stats.aiCallsCount += scanResult.stats.aiAnalyzed > 0 ? Math.ceil(scanResult.stats.aiAnalyzed / 5) : 0;
         
         // שמירת התוצאות ל-DB
-        const savedCount = await saveScanResults(scanResult);
+        const savedCount = await saveScanResults(scanResult, scanSessionId);
         
         // עדכון מונים
         const matchesAboveThreshold = scanResult.matches.filter(m => m.symmetricScore >= opts.minScore).length;

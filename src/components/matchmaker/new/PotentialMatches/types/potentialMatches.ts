@@ -82,6 +82,12 @@ export interface ActiveSuggestionInfo {
   isBlocking: boolean;
 }
 
+export interface ExistingSuggestionForPair {
+  suggestionId: string;
+  status: string;
+  createdAt: Date;
+}
+
 // =============================================================================
 // POTENTIAL MATCH - התאמה פוטנציאלית מלאה
 // =============================================================================
@@ -121,6 +127,9 @@ export interface PotentialMatch {
   
   // קישור להצעה שנוצרה (אם יש)
   suggestionId: string | null;
+
+  // הצעה קיימת ברמת הזוג (בכל סטטוס)
+  existingSuggestionForPair: ExistingSuggestionForPair | null;
 
   // ═══════════════════════════════════════════════════════════════
   // 🆕 ציונים ונימוקים לפי שיטת סריקה

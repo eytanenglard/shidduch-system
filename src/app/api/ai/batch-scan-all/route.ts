@@ -1125,7 +1125,7 @@ async function runBatchScan(
         );
 
         const saved = await saveToPotentialMatches(
-          user.id, user.gender, result.matches, options.method
+          user.id, user.gender, result.matches, options.method, sessionId
         );
 
         totalMatches += result.matches.length;
@@ -1296,7 +1296,8 @@ async function getUsersToScan(options: {
 
 async function saveToPotentialMatches(
   targetUserId: string, targetGender: Gender,
-  matches: any[], scanMethod: ScanMethod
+  matches: any[], scanMethod: ScanMethod,
+  scanSessionId?: string
 ): Promise<{ new: number; updated: number }> {
   
   const isMale = targetGender === Gender.MALE;
@@ -1324,6 +1325,7 @@ async function saveToPotentialMatches(
               aiScore: score, shortReasoning: bestReasoning, lastScanMethod: scanMethod,
             } : {}),
             ...methodFields, scannedAt: new Date(),
+            ...(scanSessionId ? { scanSessionId } : {}),
           },
         });
         updatedCount++;
@@ -1334,6 +1336,7 @@ async function saveToPotentialMatches(
             aiScore: score, shortReasoning: bestReasoning,
             status: 'PENDING', scannedAt: new Date(),
             lastScanMethod: scanMethod, ...methodFields,
+            ...(scanSessionId ? { scanSessionId } : {}),
           },
         });
         newCount++;

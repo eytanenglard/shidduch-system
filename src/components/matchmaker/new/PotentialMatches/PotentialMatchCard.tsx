@@ -95,6 +95,34 @@ interface PotentialMatchCardProps {
 }
 
 // =============================================================================
+// SUGGESTION STATUS HEBREW LABELS (for existing suggestion badge)
+// =============================================================================
+
+const SUGGESTION_STATUS_HEBREW: Record<string, string> = {
+  DRAFT: 'טיוטה',
+  PENDING_FIRST_PARTY: 'ממתין לצד ראשון',
+  PENDING_SECOND_PARTY: 'ממתין לצד שני',
+  FIRST_PARTY_APPROVED: 'צד ראשון אישר',
+  FIRST_PARTY_INTERESTED: 'צד ראשון מעוניין',
+  FIRST_PARTY_DECLINED: 'צד ראשון דחה',
+  SECOND_PARTY_APPROVED: 'צד שני אישר',
+  SECOND_PARTY_DECLINED: 'צד שני דחה',
+  CONTACT_DETAILS_SHARED: 'פרטים שותפו',
+  DATING: 'בתהליך היכרות',
+  ENGAGED: 'מאורסים',
+  MARRIED: 'נשואים',
+  CLOSED: 'נסגר',
+  CANCELLED: 'בוטל',
+  ENDED_AFTER_FIRST_DATE: 'הסתיים אחרי פגישה',
+  MATCH_DECLINED: 'נדחה',
+  RE_OFFERED_TO_FIRST_PARTY: 'הוצע מחדש',
+};
+
+function getSuggestionStatusHebrew(status: string): string {
+  return SUGGESTION_STATUS_HEBREW[status] || status;
+}
+
+// =============================================================================
 // HELPER FUNCTIONS
 // =============================================================================
 
@@ -921,6 +949,28 @@ const PotentialMatchCard: React.FC<PotentialMatchCardProps> = ({
                 <span className="hidden sm:inline">{statusBadge.label}</span>
                 <span className="sm:hidden">{statusBadge.label}</span>
               </Badge>
+
+              {/* Existing Suggestion For Pair Badge */}
+              {match.existingSuggestionForPair && !isSent && (
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Badge className="gap-1 text-[10px] sm:text-xs shrink-0 bg-orange-100 text-orange-700 border-orange-300">
+                        <AlertTriangle className="w-3 h-3" />
+                        <span>הוצעו בעבר</span>
+                      </Badge>
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom">
+                      <p className="text-xs">
+                        הצעה קיימת · {getSuggestionStatusHebrew(match.existingSuggestionForPair.status)}
+                        {match.existingSuggestionForPair.createdAt && (
+                          <> · {formatDistanceToNow(new Date(match.existingSuggestionForPair.createdAt), { addSuffix: true, locale: he })}</>
+                        )}
+                      </p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              )}
 
               {/* Actions Menu */}
               <DropdownMenu>

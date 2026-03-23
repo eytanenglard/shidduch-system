@@ -1000,12 +1000,17 @@ model PotentialMatch {
 
   lastScanMethod String?
 
+  // === Scan Session link ===
+  scanSessionId String?
+  scanSession   ScanSession? @relation(fields: [scanSessionId], references: [id])
+
   @@unique([maleUserId, femaleUserId])
   @@index([aiScore(sort: Desc)])
   @@index([status])
   @@index([scannedAt])
   @@index([maleUserId])
   @@index([femaleUserId])
+  @@index([scanSessionId])
 }
 
 model NightlyScanLog {
@@ -1163,6 +1168,8 @@ model ScanSession {
 
   startedAt   DateTime  @default(now())
   completedAt DateTime?
+
+  potentialMatches PotentialMatch[]
 
   @@index([scanType])
   @@index([status])

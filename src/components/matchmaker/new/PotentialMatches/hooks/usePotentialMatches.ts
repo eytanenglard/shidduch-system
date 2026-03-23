@@ -61,6 +61,7 @@ export interface PotentialMatchFilters {
   city: string | null;
   hasWarning: boolean | null;
   scannedAfter: Date | null;
+  scannedBefore: Date | null;
   sortBy: PotentialMatchSortBy;
   gender?: 'MALE' | 'FEMALE' | null;
   maleAgeRange?: { min: number; max: number };
@@ -68,6 +69,15 @@ export interface PotentialMatchFilters {
   maleReligiousLevel?: string[];
   femaleReligiousLevel?: string[];
   scanMethod: string | null;
+  // 🆕 V3: Advanced filters
+  scanSessionId: string | null;
+  availabilityFilter: 'available_only' | 'all';
+  backgroundCompatibility: string[];
+  maxAsymmetryGap: number | null;
+  minConfidence: number | null;
+  dataQuality: string | null;
+  isExploratoryMatch: boolean | null;
+  tier: 'excellent' | 'good' | 'fair' | null;
 }
 
 export interface ScanProgress {
@@ -190,6 +200,7 @@ const DEFAULT_FILTERS: PotentialMatchFilters = {
   city: null,
   hasWarning: null,
   scannedAfter: null,
+  scannedBefore: null,
   sortBy: 'score_desc',
   gender: null,
   scanMethod: null,
@@ -197,6 +208,15 @@ const DEFAULT_FILTERS: PotentialMatchFilters = {
   femaleAgeRange: undefined,
   maleReligiousLevel: [],
   femaleReligiousLevel: [],
+  // 🆕 V3: Advanced filters
+  scanSessionId: null,
+  availabilityFilter: 'all',
+  backgroundCompatibility: [],
+  maxAsymmetryGap: null,
+  minConfidence: null,
+  dataQuality: null,
+  isExploratoryMatch: null,
+  tier: null,
 };
 
 const DEFAULT_PAGINATION = {
@@ -368,7 +388,22 @@ export function usePotentialMatches(options: {
       if (filters.femaleReligiousLevel && filters.femaleReligiousLevel.length > 0) {
         params.set('femaleReligiousLevel', filters.femaleReligiousLevel.join(','));
       }
-      
+      // 🆕 V3: Advanced filters
+      if (filters.scanSessionId) params.set('scanSessionId', filters.scanSessionId);
+      if (filters.scannedAfter) params.set('scannedAfter', filters.scannedAfter.toISOString());
+      if (filters.scannedBefore) params.set('scannedBefore', filters.scannedBefore.toISOString());
+      if (filters.availabilityFilter && filters.availabilityFilter !== 'all') {
+        params.set('availabilityFilter', filters.availabilityFilter);
+      }
+      if (filters.backgroundCompatibility && filters.backgroundCompatibility.length > 0) {
+        params.set('backgroundCompatibility', filters.backgroundCompatibility.join(','));
+      }
+      if (filters.maxAsymmetryGap !== null) params.set('maxAsymmetryGap', String(filters.maxAsymmetryGap));
+      if (filters.minConfidence !== null) params.set('minConfidence', String(filters.minConfidence));
+      if (filters.dataQuality) params.set('dataQuality', filters.dataQuality);
+      if (filters.isExploratoryMatch !== null) params.set('isExploratoryMatch', String(filters.isExploratoryMatch));
+      if (filters.tier) params.set('tier', filters.tier);
+
       const response = await fetch(`${API_BASE_MATCHES}?${params.toString()}`);
       const data = await response.json();
 
