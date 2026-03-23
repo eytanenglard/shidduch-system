@@ -378,8 +378,14 @@ export {
 } from '@/lib/constants/matching';
 
 export type { ScanMethodKey, ScoreBreakdownKey } from '@/lib/constants/matching';
-export type { PotentialMatchStatus } from '@/lib/constants/matching';
-
+export type PotentialMatchStatus =
+  | 'PENDING'
+  | 'REVIEWED'
+  | 'SENT'
+  | 'DISMISSED'
+  | 'EXPIRED'
+  | 'SHORTLISTED';
+  
 export function getAllMethodScores(match: PotentialMatch): ScanMethodData[] {
   return [
     {
