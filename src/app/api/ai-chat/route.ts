@@ -28,6 +28,7 @@ if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) 
 const chatInputSchema = z.object({
   message: z.string().min(1, 'Message is required').max(2000, 'Message too long'),
   conversationId: z.string().optional(),
+  suggestionId: z.string().optional(), // When set, chat is contextual to a specific suggestion
   locale: z.enum(['he', 'en']).default('he'),
 });
 
@@ -66,7 +67,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { message, locale } = parsed.data;
+    const { message, locale, suggestionId } = parsed.data;
 
     // Get or create conversation
     const conversation = parsed.data.conversationId
@@ -74,9 +75,9 @@ export async function POST(req: NextRequest) {
           const existing = await (await import('@/lib/prisma')).default.aiChatConversation.findFirst({
             where: { id: parsed.data.conversationId, userId },
           });
-          return existing || AiChatService.getOrCreateConversation(userId);
+          return existing || AiChatService.getOrCreateConversation(userId, suggestionId);
         })()
-      : await AiChatService.getOrCreateConversation(userId);
+      : await AiChatService.getOrCreateConversation(userId, suggestionId);
 
     // Save user message
     await AiChatService.saveMessage(conversation.id, 'user', message);
@@ -91,9 +92,19 @@ export async function POST(req: NextRequest) {
       searchContext = AiChatService.formatSearchResultsForAI(searchResults);
     }
 
+    // Detect escalation intent
+    const isEscalationRequest = AiChatService.detectEscalationIntent(message);
+
+    // Build suggestion context if this is a suggestion-specific conversation
+    const effectiveSuggestionId = suggestionId || conversation.suggestionId;
+    let suggestionContext: string | undefined;
+    if (effectiveSuggestionId) {
+      suggestionContext = (await AiChatService.getSuggestionContext(effectiveSuggestionId, userId, locale)) || undefined;
+    }
+
     // Build system prompt and conversation history
     const [systemPrompt, history, watchlistNames] = await Promise.all([
-      AiChatService.buildSystemPrompt(userId, locale),
+      AiChatService.buildSystemPrompt(userId, locale, suggestionContext),
       AiChatService.buildConversationHistory(conversation.id),
       AiChatService.getWatchlistNames(userId),
     ]);
@@ -136,12 +147,29 @@ export async function POST(req: NextRequest) {
             Object.keys(metadata).length > 0 ? metadata : undefined,
           );
 
+          // Handle escalation: create suggestion message for matchmaker
+          let escalated = false;
+          if (isEscalationRequest && effectiveSuggestionId) {
+            try {
+              const result = await AiChatService.escalateToMatchmaker(
+                conversation.id,
+                effectiveSuggestionId,
+                userId,
+              );
+              escalated = result.success;
+            } catch (err) {
+              console.error('[AiChat] Escalation error:', err);
+            }
+          }
+
           // Send done event with conversationId
           const doneData = JSON.stringify({
             type: 'done',
             conversationId: conversation.id,
+            suggestionId: effectiveSuggestionId || undefined,
             hasSearchResults: searchResults.length > 0,
             searchResults: searchResults.length > 0 ? searchResults : undefined,
+            escalated,
           });
           controller.enqueue(encoder.encode(`data: ${doneData}\n\n`));
 
@@ -152,6 +180,15 @@ export async function POST(req: NextRequest) {
             }
           }).catch((err) => {
             console.error('[AiChat] Preference extraction error:', err);
+          });
+
+          // Async: generate summary for matchmaker if meaningful conversation
+          void AiChatService.generateAndSaveSummary(
+            conversation.id,
+            effectiveSuggestionId || null,
+            userId,
+          ).catch((err) => {
+            console.error('[AiChat] Summary generation error:', err);
           });
 
         } catch (err) {

@@ -764,7 +764,15 @@
       "text": "What is your dress style?",
       "subtitle": "Describe your everyday style"
     },
+    "s5_dress_code_f_secular": {
+      "text": "What is your dress style?",
+      "subtitle": "Describe your everyday style"
+    },
     "s5_dress_code_m": {
+      "text": "What is your dress style?",
+      "subtitle": "Describe your everyday style"
+    },
+    "s5_dress_code_m_secular": {
       "text": "What is your dress style?",
       "subtitle": "Describe your everyday style"
     },
@@ -1678,11 +1686,26 @@
       "casual_modern": "Casual modern — comfortable and stylish",
       "sporty_casual": "Sporty and casual"
     },
+    "s5_dress_code_f_secular": {
+      "elegant_chic": "Elegant chic — dresses, polished style",
+      "casual_modern": "Casual modern — comfortable and stylish",
+      "sporty_casual": "Sporty and casual",
+      "boho_creative": "Boho / creative — free personal style",
+      "streetwear_trendy": "Streetwear / trendy — sneakers and trends",
+      "simple_practical": "Simple and practical — comfort first"
+    },
     "s5_dress_code_m": {
       "formal_yeshivish": "Formal / yeshivish — button-down shirt",
       "smart_casual": "Smart casual — neat but relaxed",
       "casual_sporty": "Casual sporty",
       "trendy": "Trendy — follows fashion trends",
+      "simple_practical": "Simple and practical — comfort first"
+    },
+    "s5_dress_code_m_secular": {
+      "formal_elegant": "Formal elegant — button-down, tailored pants",
+      "smart_casual": "Smart casual — neat but relaxed",
+      "casual_sporty": "Casual sporty",
+      "streetwear_trendy": "Streetwear / trendy — sneakers and trends",
       "simple_practical": "Simple and practical — comfort first"
     },
     "s5_tech_relationship": {
@@ -1861,7 +1884,7 @@
     },
     "s5_alcohol_attitude": {
       "never": "Don't drink at all",
-      "kiddush_only": "Only kiddush and l'chaims at events",
+      "kiddush_only": "Only at events and special occasions",
       "social": "Social — wine with food, beer with friends",
       "regular": "Drink fairly often"
     },

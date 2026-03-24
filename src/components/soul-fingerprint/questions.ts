@@ -2004,7 +2004,7 @@ export const LIFESTYLE_QUESTIONS: SFQuestion[] = [
       { value: 'growth_opportunity', labelKey: 'options.s5_risk_attitude.growth_opportunity', icon: '🚀' },
     ],
   },
-  // === NEW: Dress code ===
+  // === Dress code — religious women (charedi / dati / chozer bteshuva) ===
   {
     id: 's5_dress_code_f',
     type: 'singleChoice',
@@ -2013,7 +2013,7 @@ export const LIFESTYLE_QUESTIONS: SFQuestion[] = [
     category: 'lifestyle',
     forSelf: true,
     forPartner: false,
-    conditions: { genders: ['FEMALE'] },
+    conditions: { genders: ['FEMALE'], sectorGroups: ['charedi', 'dati_leumi', 'chozer_bteshuva'] },
     options: [
       { value: 'modest_full', labelKey: 'options.s5_dress_code_f.modest_full', icon: '👗' },
       { value: 'modest_flexible', labelKey: 'options.s5_dress_code_f.modest_flexible', icon: '👗' },
@@ -2023,6 +2023,26 @@ export const LIFESTYLE_QUESTIONS: SFQuestion[] = [
       { value: 'sporty_casual', labelKey: 'options.s5_dress_code_f.sporty_casual', icon: '🏃‍♀️' },
     ],
   },
+  // === Dress code — secular/traditional women (hiloni / masorti / diaspora / in_process) ===
+  {
+    id: 's5_dress_code_f_secular',
+    type: 'singleChoice',
+    textKey: 'questions.s5_dress_code_f_secular.text',
+    subtitleKey: 'questions.s5_dress_code_f_secular.subtitle',
+    category: 'lifestyle',
+    forSelf: true,
+    forPartner: false,
+    conditions: { genders: ['FEMALE'], sectorGroups: ['hiloni', 'masorti', 'diaspora', 'in_process'] },
+    options: [
+      { value: 'elegant_chic', labelKey: 'options.s5_dress_code_f_secular.elegant_chic', icon: '👗' },
+      { value: 'casual_modern', labelKey: 'options.s5_dress_code_f_secular.casual_modern', icon: '👚' },
+      { value: 'sporty_casual', labelKey: 'options.s5_dress_code_f_secular.sporty_casual', icon: '🏃‍♀️' },
+      { value: 'boho_creative', labelKey: 'options.s5_dress_code_f_secular.boho_creative', icon: '🎨' },
+      { value: 'streetwear_trendy', labelKey: 'options.s5_dress_code_f_secular.streetwear_trendy', icon: '✨' },
+      { value: 'simple_practical', labelKey: 'options.s5_dress_code_f_secular.simple_practical', icon: '👕' },
+    ],
+  },
+  // === Dress code — religious men (charedi / dati / chozer bteshuva) ===
   {
     id: 's5_dress_code_m',
     type: 'singleChoice',
@@ -2031,13 +2051,31 @@ export const LIFESTYLE_QUESTIONS: SFQuestion[] = [
     category: 'lifestyle',
     forSelf: true,
     forPartner: false,
-    conditions: { genders: ['MALE'] },
+    conditions: { genders: ['MALE'], sectorGroups: ['charedi', 'dati_leumi', 'chozer_bteshuva'] },
     options: [
       { value: 'formal_yeshivish', labelKey: 'options.s5_dress_code_m.formal_yeshivish', icon: '👔' },
       { value: 'smart_casual', labelKey: 'options.s5_dress_code_m.smart_casual', icon: '👕' },
       { value: 'casual_sporty', labelKey: 'options.s5_dress_code_m.casual_sporty', icon: '🏃' },
       { value: 'trendy', labelKey: 'options.s5_dress_code_m.trendy', icon: '✨' },
       { value: 'simple_practical', labelKey: 'options.s5_dress_code_m.simple_practical', icon: '👕' },
+    ],
+  },
+  // === Dress code — secular/traditional men (hiloni / masorti / diaspora / in_process) ===
+  {
+    id: 's5_dress_code_m_secular',
+    type: 'singleChoice',
+    textKey: 'questions.s5_dress_code_m_secular.text',
+    subtitleKey: 'questions.s5_dress_code_m_secular.subtitle',
+    category: 'lifestyle',
+    forSelf: true,
+    forPartner: false,
+    conditions: { genders: ['MALE'], sectorGroups: ['hiloni', 'masorti', 'diaspora', 'in_process'] },
+    options: [
+      { value: 'formal_elegant', labelKey: 'options.s5_dress_code_m_secular.formal_elegant', icon: '👔' },
+      { value: 'smart_casual', labelKey: 'options.s5_dress_code_m_secular.smart_casual', icon: '👕' },
+      { value: 'casual_sporty', labelKey: 'options.s5_dress_code_m_secular.casual_sporty', icon: '🏃' },
+      { value: 'streetwear_trendy', labelKey: 'options.s5_dress_code_m_secular.streetwear_trendy', icon: '✨' },
+      { value: 'simple_practical', labelKey: 'options.s5_dress_code_m_secular.simple_practical', icon: '👕' },
     ],
   },
   // === NEW: Tech relationship ===
@@ -2473,7 +2511,7 @@ export const LIFESTYLE_EXTRA_QUESTIONS: SFQuestion[] = [
       { value: 'doesnt_matter', labelKey: 'options.common.doesnt_matter', icon: '🤷' },
     ],
   },
-  // Partner: dress code preference (male asking about female partner)
+  // Partner: dress code preference — religious male asking about female partner
   {
     id: 'p_dress_code_f',
     type: 'multiSelect',
@@ -2482,7 +2520,7 @@ export const LIFESTYLE_EXTRA_QUESTIONS: SFQuestion[] = [
     forSelf: false,
     forPartner: true,
     maxSelections: 2,
-    conditions: { genders: ['MALE'] },
+    conditions: { genders: ['MALE'], sectorGroups: ['charedi', 'dati_leumi', 'chozer_bteshuva'] },
     options: [
       { value: 'modest_full', labelKey: 'options.s5_dress_code_f.modest_full', icon: '👗' },
       { value: 'modest_flexible', labelKey: 'options.s5_dress_code_f.modest_flexible', icon: '👗' },
@@ -2493,7 +2531,27 @@ export const LIFESTYLE_EXTRA_QUESTIONS: SFQuestion[] = [
       { value: 'doesnt_matter', labelKey: 'options.common.doesnt_matter', icon: '🤷' },
     ],
   },
-  // Partner: dress code preference (female asking about male partner)
+  // Partner: dress code preference — secular/traditional male asking about female partner
+  {
+    id: 'p_dress_code_f_secular',
+    type: 'multiSelect',
+    textKey: 'questions.p_dress_code_f.text',
+    category: 'lifestyle',
+    forSelf: false,
+    forPartner: true,
+    maxSelections: 2,
+    conditions: { genders: ['MALE'], sectorGroups: ['hiloni', 'masorti', 'diaspora', 'in_process'] },
+    options: [
+      { value: 'elegant_chic', labelKey: 'options.s5_dress_code_f_secular.elegant_chic', icon: '👗' },
+      { value: 'casual_modern', labelKey: 'options.s5_dress_code_f_secular.casual_modern', icon: '👚' },
+      { value: 'sporty_casual', labelKey: 'options.s5_dress_code_f_secular.sporty_casual', icon: '🏃‍♀️' },
+      { value: 'boho_creative', labelKey: 'options.s5_dress_code_f_secular.boho_creative', icon: '🎨' },
+      { value: 'streetwear_trendy', labelKey: 'options.s5_dress_code_f_secular.streetwear_trendy', icon: '✨' },
+      { value: 'simple_practical', labelKey: 'options.s5_dress_code_f_secular.simple_practical', icon: '👕' },
+      { value: 'doesnt_matter', labelKey: 'options.common.doesnt_matter', icon: '🤷' },
+    ],
+  },
+  // Partner: dress code preference — religious female asking about male partner
   {
     id: 'p_dress_code_m',
     type: 'multiSelect',
@@ -2502,13 +2560,32 @@ export const LIFESTYLE_EXTRA_QUESTIONS: SFQuestion[] = [
     forSelf: false,
     forPartner: true,
     maxSelections: 2,
-    conditions: { genders: ['FEMALE'] },
+    conditions: { genders: ['FEMALE'], sectorGroups: ['charedi', 'dati_leumi', 'chozer_bteshuva'] },
     options: [
       { value: 'formal_yeshivish', labelKey: 'options.s5_dress_code_m.formal_yeshivish', icon: '👔' },
       { value: 'smart_casual', labelKey: 'options.s5_dress_code_m.smart_casual', icon: '👕' },
       { value: 'casual_sporty', labelKey: 'options.s5_dress_code_m.casual_sporty', icon: '🏃' },
       { value: 'trendy', labelKey: 'options.s5_dress_code_m.trendy', icon: '✨' },
       { value: 'simple_practical', labelKey: 'options.s5_dress_code_m.simple_practical', icon: '👕' },
+      { value: 'doesnt_matter', labelKey: 'options.common.doesnt_matter', icon: '🤷' },
+    ],
+  },
+  // Partner: dress code preference — secular/traditional female asking about male partner
+  {
+    id: 'p_dress_code_m_secular',
+    type: 'multiSelect',
+    textKey: 'questions.p_dress_code_m.text',
+    category: 'lifestyle',
+    forSelf: false,
+    forPartner: true,
+    maxSelections: 2,
+    conditions: { genders: ['FEMALE'], sectorGroups: ['hiloni', 'masorti', 'diaspora', 'in_process'] },
+    options: [
+      { value: 'formal_elegant', labelKey: 'options.s5_dress_code_m_secular.formal_elegant', icon: '👔' },
+      { value: 'smart_casual', labelKey: 'options.s5_dress_code_m_secular.smart_casual', icon: '👕' },
+      { value: 'casual_sporty', labelKey: 'options.s5_dress_code_m_secular.casual_sporty', icon: '🏃' },
+      { value: 'streetwear_trendy', labelKey: 'options.s5_dress_code_m_secular.streetwear_trendy', icon: '✨' },
+      { value: 'simple_practical', labelKey: 'options.s5_dress_code_m_secular.simple_practical', icon: '👕' },
       { value: 'doesnt_matter', labelKey: 'options.common.doesnt_matter', icon: '🤷' },
     ],
   },

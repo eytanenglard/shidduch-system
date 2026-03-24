@@ -1,7 +1,7 @@
 // src/app/api/suggestions/[id]/auto-feedback/route.ts
 // =============================================================================
-// NeshamaTech - Auto-Suggestion Feedback API
-// Saves user feedback on auto-suggestions for learning & matching improvement
+// NeshamaTech - Suggestion Feedback API
+// Saves user feedback on ALL suggestions (auto + regular) for learning & matching improvement
 // =============================================================================
 
 import { NextRequest, NextResponse } from 'next/server';

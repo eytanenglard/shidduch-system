@@ -297,6 +297,16 @@
         "morning_learning": "Morning learning — a shiur before the workday",
         "evening_learning": "Evening learning — a regular shiur after work"
       }
+    },
+    "personality_daily_learning_charedi_f": {
+      "question": "What role does Torah study play in your daily routine?",
+      "helpText": "The level of Torah commitment is a central part of lifestyle, helping us match you with someone who has similar expectations.",
+      "options": {
+        "regular_shiurim": "Regular shiurim — several times a week",
+        "weekly_learning": "Weekly learning — one or more regular classes",
+        "occasional_learning": "Occasional — when there's an opportunity",
+        "not_currently": "Not currently engaged in Torah study"
+      }
     }
   },
   "VALUES": {
@@ -801,7 +811,7 @@
         "analytical": "Analytical (Logical, problem-solving)",
         "life_smarts": "Practical (Common sense, resourceful)",
         "creative": "Creative (Witty, original, humorous)",
-        "spiritual_torah": "Spiritual/Torah (Depth in Jewish learning)"
+        "spiritual_torah": "Spiritual / Philosophical (Depth and meaning)"
       }
     },
     "partner_core_character_traits_essential_revised": {

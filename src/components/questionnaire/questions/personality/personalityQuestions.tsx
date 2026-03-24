@@ -495,7 +495,7 @@ export const personalityQuestions: Question[] = [
     metadata: { estimatedTime: 1 },
   },
 
-  // ─── שאלות מותנות: חרדים ────────────────────────────────────────────────
+  // ─── שאלות מותנות: חרדים — גברים ──────────────────────────────────────
   {
     worldId: 'PERSONALITY',
     id: 'personality_daily_learning_charedi',
@@ -510,7 +510,25 @@ export const personalityQuestions: Question[] = [
       { value: 'morning_learning', icon: <Sun /> },
       { value: 'evening_learning', icon: <Moon /> },
     ],
-    conditions: { religiousLevel: ['charedi', 'charedi_lite'] },
+    conditions: { religiousLevel: ['charedi', 'charedi_lite'], gender: ['MALE'] },
+    metadata: { estimatedTime: 1 },
+  },
+  // ─── שאלות מותנות: חרדיות — נשים ──────────────────────────────────────
+  {
+    worldId: 'PERSONALITY',
+    id: 'personality_daily_learning_charedi_f',
+    category: 'personality',
+    subcategory: 'lifestyle',
+    type: 'iconChoice',
+    depth: 'BASIC',
+    isRequired: false,
+    options: [
+      { value: 'regular_shiurim', icon: <BookOpen /> },
+      { value: 'weekly_learning', icon: <Scroll /> },
+      { value: 'occasional_learning', icon: <Sun /> },
+      { value: 'not_currently', icon: <Moon /> },
+    ],
+    conditions: { religiousLevel: ['charedi', 'charedi_lite'], gender: ['FEMALE'] },
     metadata: { estimatedTime: 1 },
   },
 ];

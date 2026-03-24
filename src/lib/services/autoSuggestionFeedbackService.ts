@@ -1,7 +1,8 @@
 // src/lib/services/autoSuggestionFeedbackService.ts
 // =============================================================================
-// NeshamaTech - Auto-Suggestion Feedback Service
+// NeshamaTech - Unified Suggestion Feedback Service
 // Manages feedback collection, preference learning, and re-ranking
+// for ALL suggestion types (auto + regular + AI chat insights)
 // =============================================================================
 
 import prisma from '@/lib/prisma';
@@ -110,9 +111,10 @@ export class AutoSuggestionFeedbackService {
     return feedback;
   }
 
-  // ========== Recalculate User Preferences ==========
+  // ========== Recalculate User Preferences (Unified Pipeline) ==========
 
   static async recalculatePreferences(userId: string) {
+    // Get feedback from ALL suggestions (auto + regular)
     const feedbacks = await prisma.autoSuggestionFeedback.findMany({
       where: { userId },
       orderBy: { createdAt: 'desc' },
@@ -144,6 +146,12 @@ export class AutoSuggestionFeedbackService {
       }
     }
 
+    // Also incorporate chat-derived trait preferences (if available)
+    const chatPrefs = await prisma.userMatchingPreferences.findUnique({
+      where: { userId },
+      select: { chatDerivedInsights: true },
+    });
+
     // Normalize scores to 0-1 range
     const normalizeFn = (scores: TraitScores): TraitScores => {
       const maxVal = Math.max(...Object.values(scores), 1);
@@ -157,8 +165,13 @@ export class AutoSuggestionFeedbackService {
     const normalizedLiked = normalizeFn(likedScores);
     const normalizedAvoid = normalizeFn(avoidScores);
 
-    // Generate preference summary text
-    const summary = this.generatePreferenceSummary(normalizedLiked, normalizedAvoid, feedbacks.length);
+    // Generate preference summary text (includes chat insights)
+    const summary = this.generatePreferenceSummary(
+      normalizedLiked,
+      normalizedAvoid,
+      feedbacks.length,
+      chatPrefs?.chatDerivedInsights || undefined,
+    );
 
     await prisma.userMatchingPreferences.upsert({
       where: { userId },
@@ -177,7 +190,7 @@ export class AutoSuggestionFeedbackService {
       },
     });
 
-    console.log(`[AutoFeedback] Recalculated preferences for ${userId}: ${feedbacks.length} feedbacks, liked=${Object.keys(normalizedLiked).length} traits, avoid=${Object.keys(normalizedAvoid).length} traits`);
+    console.log(`[Feedback] Recalculated preferences for ${userId}: ${feedbacks.length} feedbacks (all types), liked=${Object.keys(normalizedLiked).length} traits, avoid=${Object.keys(normalizedAvoid).length} traits`);
   }
 
   // ========== Generate Preference Summary ==========
@@ -186,6 +199,7 @@ export class AutoSuggestionFeedbackService {
     liked: TraitScores,
     avoid: TraitScores,
     totalFeedbacks: number,
+    chatInsights?: string,
   ): string {
     const traitLabels: Record<string, string> = {
       religious_match: 'התאמה דתית',
@@ -217,13 +231,17 @@ export class AutoSuggestionFeedbackService {
       .map(([trait]) => traitLabels[trait] || trait);
 
     const parts: string[] = [];
-    parts.push(`מבוסס על ${totalFeedbacks} תגובות על הצעות אוטומטיות:`);
+    parts.push(`מבוסס על ${totalFeedbacks} תגובות על הצעות:`);
 
     if (topLiked.length > 0) {
       parts.push(`המשתמש/ת מעריך/ה במיוחד: ${topLiked.join(', ')}.`);
     }
     if (topAvoid.length > 0) {
       parts.push(`סיבות דחייה חוזרות: ${topAvoid.join(', ')}.`);
+    }
+
+    if (chatInsights) {
+      parts.push(`תובנות משיחות AI: ${chatInsights}`);
     }
 
     return parts.join(' ');

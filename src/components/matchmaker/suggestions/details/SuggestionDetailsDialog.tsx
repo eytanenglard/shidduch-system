@@ -4,6 +4,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNotifications } from '@/app/[locale]/contexts/NotificationContext';
 import SuggestionChatTab from './SuggestionChatTab';
+import AiChatInsightsPanel from '../AiChatInsightsPanel';
 
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -1140,6 +1141,11 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
 
             {/* Chat */}
             <TabsContent value="chat" className="m-0 h-full">
+              {/* AI Chat Insights for this suggestion */}
+              <div className="px-4 pt-3">
+                <AiChatInsightsPanel suggestionId={suggestion.id} />
+              </div>
+
               <SuggestionChatTab
                 suggestionId={suggestion.id}
                 locale={locale}

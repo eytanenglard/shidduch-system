@@ -32,18 +32,22 @@ interface SearchResult {
 
 interface UseAiChatOptions {
   locale: 'he' | 'en';
+  suggestionId?: string; // When set, chat is contextual to a specific suggestion
+  initialOpen?: boolean;
+  proactiveMessage?: string; // Initial bot message to display
 }
 
-export function useAiChat({ locale }: UseAiChatOptions) {
+export function useAiChat({ locale, suggestionId, initialOpen, proactiveMessage }: UseAiChatOptions) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isStreaming, setIsStreaming] = useState(false);
   const [streamingContent, setStreamingContent] = useState('');
   const [error, setError] = useState<string | null>(null);
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(initialOpen || false);
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [historyLoaded, setHistoryLoaded] = useState(false);
+  const [escalated, setEscalated] = useState(false);
 
   const abortControllerRef = useRef<AbortController | null>(null);
 
@@ -57,12 +61,24 @@ export function useAiChat({ locale }: UseAiChatOptions) {
   const loadHistory = useCallback(async () => {
     try {
       setIsLoading(true);
-      const res = await fetch('/api/ai-chat/history?limit=50');
+      const params = new URLSearchParams({ limit: '50' });
+      if (suggestionId) params.set('suggestionId', suggestionId);
+      const res = await fetch(`/api/ai-chat/history?${params.toString()}`);
       if (!res.ok) throw new Error('Failed to load history');
 
       const data = await res.json();
       if (data.success) {
-        setMessages(data.messages || []);
+        const loadedMessages = data.messages || [];
+        // If no history and we have a proactive message, add it
+        if (loadedMessages.length === 0 && proactiveMessage) {
+          loadedMessages.push({
+            id: 'proactive-0',
+            role: 'assistant',
+            content: proactiveMessage,
+            createdAt: new Date().toISOString(),
+          });
+        }
+        setMessages(loadedMessages);
         setConversationId(data.conversationId || null);
       }
       setHistoryLoaded(true);
@@ -72,7 +88,7 @@ export function useAiChat({ locale }: UseAiChatOptions) {
     } finally {
       setIsLoading(false);
     }
-  }, [locale]);
+  }, [locale, suggestionId, proactiveMessage]);
 
   const sendMessage = useCallback(async (text: string) => {
     if (!text.trim() || isStreaming) return;
@@ -105,6 +121,7 @@ export function useAiChat({ locale }: UseAiChatOptions) {
         body: JSON.stringify({
           message: text.trim(),
           conversationId,
+          suggestionId,
           locale,
         }),
         signal: abortController.signal,
@@ -148,6 +165,9 @@ export function useAiChat({ locale }: UseAiChatOptions) {
               if (data.searchResults) {
                 setSearchResults(data.searchResults);
               }
+              if (data.escalated) {
+                setEscalated(true);
+              }
             } else if (data.type === 'error') {
               throw new Error(data.error);
             }
@@ -184,7 +204,7 @@ export function useAiChat({ locale }: UseAiChatOptions) {
       setStreamingContent('');
       abortControllerRef.current = null;
     }
-  }, [conversationId, locale, isStreaming]);
+  }, [conversationId, locale, isStreaming, suggestionId]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -206,5 +226,7 @@ export function useAiChat({ locale }: UseAiChatOptions) {
     sendMessage,
     conversationId,
     searchResults,
+    escalated,
+    suggestionId,
   };
 }

@@ -57,6 +57,7 @@ import type { AiSuggestionAnalysisResult } from '@/lib/services/aiService';
 import { ProfileCard } from '@/components/profile';
 import MiniTimeline from '../timeline/MiniTimeline';
 import SuggestionChat from '@/components/messages/SuggestionChat';
+import AiChatPanel from '../chat/AiChatPanel';
 import { AskMatchmakerDialog } from '../dialogs/AskMatchmakerDialog';
 import { UserAiAnalysisDialog } from '../dialogs/UserAiAnalysisDialog';
 import type { ExtendedMatchSuggestion } from '../../../types/suggestions';
@@ -1235,7 +1236,15 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
                     locale={locale}
                   />
 
-                  {/* Chat — the main content of this tab */}
+                  {/* AI Chat Assistant (contextual to this suggestion) */}
+                  <AiChatPanel
+                    locale={locale as 'he' | 'en'}
+                    suggestionId={suggestion.id}
+                    title={isHe ? 'שאל/י את העוזר החכם' : 'Ask Smart Assistant'}
+                    subtitle={isHe ? 'שאל/י אותי על ההצעה הזו' : 'Ask me about this suggestion'}
+                  />
+
+                  {/* Chat with matchmaker — the main content of this tab */}
                   <SuggestionChat
                     suggestionId={suggestion.id}
                     locale={locale}

@@ -18,9 +18,12 @@ const MAX_CONVERSATION_HISTORY = 30;
 const MIN_AI_SCORE_FOR_SEARCH = 70;
 const MAX_SEARCH_RESULTS = 10;
 const PREFERENCE_EXTRACTION_INTERVAL = 5; // Extract every N user messages
+const SUMMARY_MESSAGE_THRESHOLD = 3; // Generate summary after N user messages
 
 const SEARCH_INTENT_KEYWORDS_HE = ['חפש', 'מצא', 'הצעות', 'תחפשי', 'תמצאי', 'תחפש', 'תמצא', 'חיפוש', 'סריקה'];
 const SEARCH_INTENT_KEYWORDS_EN = ['search', 'find', 'match', 'suggest', 'look for', 'scan'];
+const ESCALATION_KEYWORDS_HE = ['שדכנית', 'שדכן', 'אנושי', 'אדם אמיתי', 'תעביר', 'תעבירי', 'לדבר עם'];
+const ESCALATION_KEYWORDS_EN = ['matchmaker', 'human', 'escalate', 'transfer', 'real person', 'talk to'];
 
 const CLOSED_STATUSES: MatchSuggestionStatus[] = [
   'MARRIED', 'CLOSED', 'EXPIRED', 'CANCELLED',
@@ -57,10 +60,26 @@ export class AiChatService {
 
   // ========== Conversation Management ==========
 
-  static async getOrCreateConversation(userId: string) {
-    // Try to find an active conversation
+  static async getOrCreateConversation(userId: string, suggestionId?: string) {
+    // If suggestion-specific, look for existing conversation for that suggestion
+    if (suggestionId) {
+      let conversation = await prisma.aiChatConversation.findFirst({
+        where: { userId, suggestionId, status: 'ACTIVE' },
+        orderBy: { updatedAt: 'desc' },
+      });
+
+      if (!conversation) {
+        conversation = await prisma.aiChatConversation.create({
+          data: { userId, suggestionId },
+        });
+      }
+
+      return conversation;
+    }
+
+    // General conversation (no specific suggestion)
     let conversation = await prisma.aiChatConversation.findFirst({
-      where: { userId, status: 'ACTIVE' },
+      where: { userId, suggestionId: null, status: 'ACTIVE' },
       orderBy: { updatedAt: 'desc' },
     });
 
@@ -123,9 +142,102 @@ export class AiChatService {
     }));
   }
 
+  // ========== Suggestion Context ==========
+
+  static async getSuggestionContext(suggestionId: string, userId: string, locale: 'he' | 'en'): Promise<string | null> {
+    const isHebrew = locale === 'he';
+
+    const suggestion = await prisma.matchSuggestion.findUnique({
+      where: { id: suggestionId },
+      select: {
+        id: true,
+        status: true,
+        matchingReason: true,
+        structuredRationale: true,
+        isAutoSuggestion: true,
+        firstPartyId: true,
+        secondPartyId: true,
+        matchmakerId: true,
+        createdAt: true,
+        matchmaker: {
+          select: { firstName: true, lastName: true },
+        },
+        firstParty: {
+          select: {
+            firstName: true,
+            profile: {
+              select: {
+                gender: true, birthDate: true, city: true,
+                religiousLevel: true, occupation: true, education: true,
+                about: true,
+              },
+            },
+          },
+        },
+        secondParty: {
+          select: {
+            firstName: true,
+            profile: {
+              select: {
+                gender: true, birthDate: true, city: true,
+                religiousLevel: true, occupation: true, education: true,
+                about: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!suggestion) return null;
+
+    const isFirstParty = suggestion.firstPartyId === userId;
+    const otherParty = isFirstParty ? suggestion.secondParty : suggestion.firstParty;
+    const otherProfile = otherParty?.profile;
+
+    if (!otherProfile) return null;
+
+    const otherAge = otherProfile.birthDate
+      ? Math.floor((Date.now() - new Date(otherProfile.birthDate).getTime()) / (365.25 * 24 * 60 * 60 * 1000))
+      : null;
+
+    const matchmakerName = `${suggestion.matchmaker.firstName} ${suggestion.matchmaker.lastName}`;
+    const otherName = otherParty.firstName;
+
+    const parts: string[] = [];
+    parts.push(isHebrew ? `\n## הקשר: הצעה ספציפית` : `\n## Context: Specific Suggestion`);
+    parts.push(isHebrew ? `השיחה הזו היא על הצעת שידוך ספציפית.` : `This conversation is about a specific match suggestion.`);
+    parts.push(isHebrew ? `שם הצד השני: ${otherName}` : `Other party name: ${otherName}`);
+    if (otherAge) parts.push(isHebrew ? `גיל: ${otherAge}` : `Age: ${otherAge}`);
+    if (otherProfile.city) parts.push(isHebrew ? `עיר: ${otherProfile.city}` : `City: ${otherProfile.city}`);
+    if (otherProfile.religiousLevel) parts.push(isHebrew ? `רמה דתית: ${otherProfile.religiousLevel}` : `Religious level: ${otherProfile.religiousLevel}`);
+    if (otherProfile.occupation) parts.push(isHebrew ? `מקצוע: ${otherProfile.occupation}` : `Occupation: ${otherProfile.occupation}`);
+    if (otherProfile.education) parts.push(isHebrew ? `השכלה: ${otherProfile.education}` : `Education: ${otherProfile.education}`);
+    if (otherProfile.about) parts.push(isHebrew ? `על עצמם: ${otherProfile.about.slice(0, 200)}` : `About: ${otherProfile.about.slice(0, 200)}`);
+    if (suggestion.matchingReason) parts.push(isHebrew ? `סיבת ההתאמה: ${suggestion.matchingReason}` : `Matching reason: ${suggestion.matchingReason}`);
+    parts.push(isHebrew ? `השדכן/ית: ${matchmakerName}` : `Matchmaker: ${matchmakerName}`);
+    parts.push(isHebrew ? `סטטוס: ${suggestion.status}` : `Status: ${suggestion.status}`);
+    parts.push(isHebrew ? `סוג: ${suggestion.isAutoSuggestion ? 'הצעה אוטומטית' : 'הצעה של שדכנית'}` : `Type: ${suggestion.isAutoSuggestion ? 'Auto suggestion' : 'Matchmaker suggestion'}`);
+
+    parts.push('');
+    parts.push(isHebrew
+      ? `## הנחיות להקשר של הצעה
+- עזור למשתמש/ת לחשוב על ההצעה הזו. ענה על שאלות כמו "מה המשותף בינינו?", "למה הציעו לי אותו/ה?"
+- אם המשתמש/ת מתלבט/ת, עזור להם להבין מה מושך אותם ומה מטריד
+- אל תלחץ לכיוון מסוים. הנחה בעדינות
+- אם מבקשים העברה לשדכנית, הסבר שאתה יכול להעביר את השיחה`
+      : `## Suggestion context guidelines
+- Help the user think about this specific suggestion. Answer questions like "What do we have in common?", "Why was this suggested?"
+- If the user is hesitating, help them understand what attracts them and what concerns them
+- Don't push in any direction. Guide gently
+- If they ask to talk to a matchmaker, explain you can transfer the conversation`);
+
+    return parts.join('\n');
+  }
+
   // ========== System Prompt ==========
 
-  static async buildSystemPrompt(userId: string, locale: 'he' | 'en'): Promise<string> {
+  static async buildSystemPrompt(userId: string, locale: 'he' | 'en', suggestionContext?: string): Promise<string> {
     const isHebrew = locale === 'he';
 
     // Load user data in parallel
@@ -279,9 +391,14 @@ export class AiChatService {
     }
 
     // Build the full system prompt
-    const systemPrompt = isHebrew
+    let systemPrompt = isHebrew
       ? this.buildHebrewSystemPrompt(userContext)
       : this.buildEnglishSystemPrompt(userContext);
+
+    // Append suggestion context if available
+    if (suggestionContext) {
+      systemPrompt += '\n' + suggestionContext;
+    }
 
     return systemPrompt;
   }
@@ -816,5 +933,241 @@ If a trait isn't clearly expressed, don't include it. Return ONLY the JSON, no m
     }
 
     return [...new Set(names)].filter((n) => n.length > 1);
+  }
+
+  // ========== Escalation Detection ==========
+
+  static detectEscalationIntent(message: string): boolean {
+    const lower = message.toLowerCase();
+    return (
+      ESCALATION_KEYWORDS_HE.some((kw) => lower.includes(kw)) ||
+      ESCALATION_KEYWORDS_EN.some((kw) => lower.includes(kw))
+    );
+  }
+
+  // ========== Escalate to Matchmaker ==========
+
+  static async escalateToMatchmaker(
+    conversationId: string,
+    suggestionId: string,
+    userId: string,
+  ): Promise<{ success: boolean; messageId?: string }> {
+    // Get conversation summary for context
+    const messages = await prisma.aiChatMessage.findMany({
+      where: { conversationId },
+      orderBy: { createdAt: 'asc' },
+      select: { role: true, content: true },
+    });
+
+    if (messages.length === 0) return { success: false };
+
+    // Get the suggestion to find the matchmaker
+    const suggestion = await prisma.matchSuggestion.findUnique({
+      where: { id: suggestionId },
+      select: { matchmakerId: true, firstPartyId: true, secondPartyId: true },
+    });
+
+    if (!suggestion) return { success: false };
+
+    // Generate a short summary of the AI conversation
+    const summary = await this.generateConversationSummary(messages, userId);
+
+    // Create a suggestion message from system to matchmaker
+    const msg = await prisma.suggestionMessage.create({
+      data: {
+        suggestionId,
+        senderId: userId,
+        senderType: 'SYSTEM',
+        content: `📋 סיכום שיחת AI (העברה לשדכנית):\n\n${summary}\n\n---\nהמשתמש/ת ביקש/ה לדבר עם שדכנית.`,
+        targetUserId: suggestion.matchmakerId,
+      },
+    });
+
+    return { success: true, messageId: msg.id };
+  }
+
+  // ========== Generate Conversation Summary ==========
+
+  static async generateConversationSummary(
+    messages: { role: string; content: string }[],
+    userId: string,
+  ): Promise<string> {
+    const conversationText = messages
+      .map((m) => `${m.role === 'user' ? 'User' : 'Assistant'}: ${m.content}`)
+      .join('\n');
+
+    try {
+      const apiKey = process.env.GOOGLE_API_KEY;
+      if (!apiKey) return this.fallbackSummary(messages);
+
+      const { GoogleGenerativeAI } = await import('@google/generative-ai');
+      const genAI = new GoogleGenerativeAI(apiKey);
+      const model = genAI.getGenerativeModel({
+        model: GEMINI_MODEL,
+        generationConfig: { temperature: 0.2, maxOutputTokens: 300 },
+      });
+
+      const result = await model.generateContent(`סכם את שיחת השידוכים הבאה ב-2-3 משפטים בעברית. ציין מה המשתמש/ת מרגיש/ה לגבי ההצעה, מה מטריד ומה מושך. חזור JSON: { "summary": "...", "sentiment": "POSITIVE|NEGATIVE|NEUTRAL|HESITANT", "keyInsights": ["..."] }
+
+שיחה:
+${conversationText}
+
+החזר רק JSON, ללא markdown.`);
+
+      const text = result.response.text().replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+      const parsed = JSON.parse(text);
+      return parsed.summary || this.fallbackSummary(messages);
+    } catch {
+      return this.fallbackSummary(messages);
+    }
+  }
+
+  private static fallbackSummary(messages: { role: string; content: string }[]): string {
+    const userMessages = messages.filter((m) => m.role === 'user');
+    if (userMessages.length === 0) return 'שיחה ללא הודעות משתמש';
+    return `המשתמש/ת שלח/ה ${userMessages.length} הודעות. ההודעה האחרונה: "${userMessages[userMessages.length - 1].content.slice(0, 100)}"`;
+  }
+
+  // ========== Generate & Save Summary for Matchmaker ==========
+
+  static async generateAndSaveSummary(
+    conversationId: string,
+    suggestionId: string | null,
+    userId: string,
+  ): Promise<void> {
+    const messages = await prisma.aiChatMessage.findMany({
+      where: { conversationId },
+      orderBy: { createdAt: 'asc' },
+      select: { role: true, content: true },
+    });
+
+    const userMessageCount = messages.filter((m) => m.role === 'user').length;
+    if (userMessageCount < SUMMARY_MESSAGE_THRESHOLD) return;
+
+    // Check if we already have a recent summary (avoid duplicate summaries)
+    const recentSummary = await prisma.aiChatSummary.findFirst({
+      where: { conversationId },
+      orderBy: { createdAt: 'desc' },
+    });
+    if (recentSummary && recentSummary.messageCount >= userMessageCount - 1) return;
+
+    const conversationText = messages
+      .map((m) => `${m.role === 'user' ? 'User' : 'Assistant'}: ${m.content}`)
+      .join('\n');
+
+    try {
+      const apiKey = process.env.GOOGLE_API_KEY;
+      if (!apiKey) return;
+
+      const { GoogleGenerativeAI } = await import('@google/generative-ai');
+      const genAI = new GoogleGenerativeAI(apiKey);
+      const model = genAI.getGenerativeModel({
+        model: GEMINI_MODEL,
+        generationConfig: { temperature: 0.2, maxOutputTokens: 400 },
+      });
+
+      const prompt = `סכם את שיחת השידוכים הבאה בצורה שתהיה שימושית לשדכן/ית.
+ציין:
+1. מה המשתמש/ת מרגיש/ה לגבי ההצעה (אם רלוונטי)
+2. מה מושך ומה מטריד אותם
+3. נקודות מפתח שהשדכן/ית צריך/ה לדעת
+4. האם נוטים לאשר, לדחות, או מתלבטים
+
+החזר JSON:
+{
+  "summary": "סיכום קצר ב-2-3 משפטים",
+  "sentiment": "POSITIVE|NEGATIVE|NEUTRAL|HESITANT",
+  "keyInsights": ["תובנה 1", "תובנה 2"]
+}
+
+שיחה:
+${conversationText}
+
+החזר רק JSON, ללא markdown.`;
+
+      const result = await model.generateContent(prompt);
+      const text = result.response.text().replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+      const parsed = JSON.parse(text);
+
+      await prisma.aiChatSummary.create({
+        data: {
+          conversationId,
+          suggestionId,
+          userId,
+          summary: parsed.summary || 'לא הצלחנו לייצר סיכום',
+          sentiment: parsed.sentiment || 'NEUTRAL',
+          keyInsights: parsed.keyInsights || [],
+          messageCount: userMessageCount,
+        },
+      });
+
+      console.log(`[AiChat] Generated summary for conversation ${conversationId}`);
+    } catch (err) {
+      console.error(`[AiChat] Summary generation failed for ${conversationId}:`, err);
+    }
+  }
+
+  // ========== Get Proactive Message ==========
+
+  static async getProactiveMessage(
+    userId: string,
+    suggestionId: string,
+    locale: 'he' | 'en',
+    trigger: 'pending_reminder' | 'post_decline' | 'post_approve',
+  ): Promise<string> {
+    const isHebrew = locale === 'he';
+
+    switch (trigger) {
+      case 'pending_reminder':
+        return isHebrew
+          ? 'שמתי לב שעוד לא הגבת להצעה. רוצה שנדבר עליה? אשמח לעזור לך להבין אם זו התאמה טובה.'
+          : "I noticed you haven't responded to this suggestion yet. Want to discuss it? I'd love to help you figure out if it's a good match.";
+      case 'post_decline':
+        return isHebrew
+          ? 'תודה על התשובה. רוצה לספר מה חיפשת אחרת? זה יעזור לנו לדייק את ההצעות הבאות שלך.'
+          : "Thanks for your response. Want to share what you were looking for differently? It'll help us fine-tune your next suggestions.";
+      case 'post_approve':
+        return isHebrew
+          ? 'מעולה שאישרת! יש לך שאלות או חששות לפני שהשדכנית ממשיכה בתהליך?'
+          : "Great that you approved! Any questions or concerns before the matchmaker moves forward?";
+      default:
+        return '';
+    }
+  }
+
+  // ========== Get Summaries for Matchmaker ==========
+
+  static async getSummariesForMatchmaker(
+    matchmakerId: string,
+    options?: { unreadOnly?: boolean; suggestionId?: string; limit?: number },
+  ) {
+    return prisma.aiChatSummary.findMany({
+      where: {
+        ...(options?.unreadOnly ? { isRead: false } : {}),
+        ...(options?.suggestionId ? { suggestionId: options.suggestionId } : {}),
+        suggestion: {
+          matchmakerId,
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+      take: options?.limit || 20,
+      include: {
+        user: { select: { firstName: true, lastName: true } },
+        suggestion: {
+          select: {
+            id: true, status: true,
+            firstParty: { select: { firstName: true, lastName: true } },
+            secondParty: { select: { firstName: true, lastName: true } },
+          },
+        },
+      },
+    });
+  }
+
+  static async markSummaryRead(summaryId: string) {
+    return prisma.aiChatSummary.update({
+      where: { id: summaryId },
+      data: { isRead: true },
+    });
   }
 }

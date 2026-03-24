@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import SoulFingerprintFlow from '@/components/soul-fingerprint/SoulFingerprintFlow';
+import StandardizedLoadingSpinner from '@/components/questionnaire/common/StandardizedLoadingSpinner';
 
 // Dictionaries loaded client-side for this standalone feature
 import heDict from '@/dictionaries/soul-fingerprint/he.json';
@@ -72,9 +73,10 @@ export default function SoulFingerprintPageClient({ locale }: Props) {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-teal-500" />
-      </div>
+      <StandardizedLoadingSpinner
+        text="טוען את טביעת הנשמה..."
+        subtext="מכינים את המסע עבורך"
+      />
     );
   }
 

@@ -397,10 +397,10 @@ export function deriveTagsFromAnswers(answers: SFAnswers): SFTagResult {
   const meaningSource = answers['s3_meaning_source'] as string[];
   if (meaningSource) result.personalityTags.push(...meaningSource.map(m => `meaning_${m}`));
 
-  // New: Dress code tags (lifestyle)
-  const dressCodeF = answers['s5_dress_code_f'] as string;
+  // New: Dress code tags (lifestyle) — check both religious and secular variants
+  const dressCodeF = (answers['s5_dress_code_f'] || answers['s5_dress_code_f_secular']) as string;
   if (dressCodeF) result.lifestyleTags.push(`dress_${dressCodeF}`);
-  const dressCodeM = answers['s5_dress_code_m'] as string;
+  const dressCodeM = (answers['s5_dress_code_m'] || answers['s5_dress_code_m_secular']) as string;
   if (dressCodeM) result.lifestyleTags.push(`dress_${dressCodeM}`);
 
   // New: Tech relationship (lifestyle)
@@ -779,12 +779,16 @@ export function derivePartnerTagsFromAnswers(answers: SFAnswers): PartnerTagPref
   const evePref = collectPartnerTags(answers, 'p_ideal_evening');
   if (!evePref.isDoesntMatter) result.lifestyleTags.push(...evePref.tags.map(t => `evening_${t}`));
 
-  // Partner: dress code preference - female partner (lifestyle)
-  const dressFPref = collectPartnerTags(answers, 'p_dress_code_f');
+  // Partner: dress code preference - female partner (lifestyle) — check both religious and secular variants
+  const dressFPrefReligious = collectPartnerTags(answers, 'p_dress_code_f');
+  const dressFPrefSecular = collectPartnerTags(answers, 'p_dress_code_f_secular');
+  const dressFPref = dressFPrefReligious.tags.length > 0 ? dressFPrefReligious : dressFPrefSecular;
   if (!dressFPref.isDoesntMatter) result.lifestyleTags.push(...dressFPref.tags.map(t => `dress_${t}`));
 
-  // Partner: dress code preference - male partner (lifestyle)
-  const dressMPref = collectPartnerTags(answers, 'p_dress_code_m');
+  // Partner: dress code preference - male partner (lifestyle) — check both religious and secular variants
+  const dressMPrefReligious = collectPartnerTags(answers, 'p_dress_code_m');
+  const dressMPrefSecular = collectPartnerTags(answers, 'p_dress_code_m_secular');
+  const dressMPref = dressMPrefReligious.tags.length > 0 ? dressMPrefReligious : dressMPrefSecular;
   if (!dressMPref.isDoesntMatter) result.lifestyleTags.push(...dressMPref.tags.map(t => `dress_${t}`));
 
   // Partner: tech relationship preference (lifestyle)

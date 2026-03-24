@@ -36,6 +36,7 @@ export const religionQuestions: Question[] = [
       { value: 'joy_gratitude', icon: <Sparkles /> },
       { value: 'challenge_growth', icon: <Brain /> },
     ],
+    conditions: { religiousLevel: ['charedi', 'charedi_lite', 'dati', 'dati_lite', 'masorti'] },
     metadata: { estimatedTime: 1 },
   },
   {
@@ -48,6 +49,7 @@ export const religionQuestions: Question[] = [
     isRequired: false,
     minLength: 30,
     maxLength: 300,
+    conditions: { religiousLevel: ['charedi', 'charedi_lite', 'dati', 'dati_lite', 'masorti'] },
     metadata: { estimatedTime: 2 },
   },
   {
@@ -60,6 +62,7 @@ export const religionQuestions: Question[] = [
     isRequired: false,
     min: 1,
     max: 10,
+    conditions: { religiousLevel: ['charedi', 'charedi_lite', 'dati', 'dati_lite', 'masorti'] },
     metadata: { estimatedTime: 1 },
   },
   {
@@ -76,6 +79,7 @@ export const religionQuestions: Question[] = [
       { value: 'rest_recharge', icon: <Bed /> },
       { value: 'community_social', icon: <Users /> },
     ],
+    conditions: { religiousLevel: ['charedi', 'charedi_lite', 'dati', 'dati_lite', 'masorti'] },
     metadata: { estimatedTime: 1 },
   },
   {
@@ -95,6 +99,7 @@ export const religionQuestions: Question[] = [
       { value: 'acts_of_kindness' },
       { value: 'song_music' },
     ],
+    conditions: { religiousLevel: ['charedi', 'charedi_lite', 'dati', 'dati_lite', 'masorti'] },
     metadata: { estimatedTime: 1 },
   },
   {
@@ -107,6 +112,7 @@ export const religionQuestions: Question[] = [
     isRequired: false,
     minLength: 40,
     maxLength: 400,
+    conditions: { religiousLevel: ['charedi', 'charedi_lite', 'dati', 'dati_lite', 'masorti'] },
     metadata: { estimatedTime: 1 },
   },
   {
@@ -119,6 +125,7 @@ export const religionQuestions: Question[] = [
     isRequired: false,
     minLength: 40,
     maxLength: 400,
+    conditions: { religiousLevel: ['charedi', 'charedi_lite', 'dati', 'dati_lite'] },
     metadata: { estimatedTime: 1 },
   },
   {
@@ -135,6 +142,7 @@ export const religionQuestions: Question[] = [
       { value: 'social_inclusion', icon: <Users /> },
       { value: 'suggest_alternative', icon: <Smile /> },
     ],
+    conditions: { religiousLevel: ['charedi', 'charedi_lite', 'dati', 'dati_lite'] },
     metadata: { estimatedTime: 1 },
   },
   {
@@ -147,6 +155,7 @@ export const religionQuestions: Question[] = [
     isRequired: false,
     min: 1,
     max: 10,
+    conditions: { religiousLevel: ['charedi', 'charedi_lite', 'dati', 'dati_lite', 'masorti'] },
     metadata: { estimatedTime: 1 },
   },
   {
@@ -179,6 +188,7 @@ export const religionQuestions: Question[] = [
       { value: 'when_possible' },
       { value: 'not_a_focus' },
     ],
+    conditions: { religiousLevel: ['charedi', 'charedi_lite', 'dati', 'dati_lite', 'masorti'] },
     metadata: { estimatedTime: 1 },
   },
   {
@@ -236,6 +246,7 @@ export const religionQuestions: Question[] = [
     isRequired: false,
     minLength: 40,
     maxLength: 400,
+    conditions: { religiousLevel: ['charedi', 'charedi_lite', 'dati', 'dati_lite', 'masorti'] },
     metadata: { estimatedTime: 2 },
   },
   {
@@ -304,6 +315,7 @@ export const religionQuestions: Question[] = [
       { value: 'accept_openly' },
       { value: 'depends_on_context' },
     ],
+    conditions: { religiousLevel: ['charedi', 'charedi_lite', 'dati', 'dati_lite', 'masorti'] },
     metadata: { estimatedTime: 1 },
   },
 

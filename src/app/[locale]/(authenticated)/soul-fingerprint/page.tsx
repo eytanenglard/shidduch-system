@@ -1,6 +1,7 @@
 import { Suspense } from 'react';
 import type { Locale } from '@/../i18n-config';
 import SoulFingerprintPageClient from './SoulFingerprintPageClient';
+import StandardizedLoadingSpinner from '@/components/questionnaire/common/StandardizedLoadingSpinner';
 
 type Props = {
   params: Promise<{ locale: Locale }>;
@@ -12,9 +13,10 @@ export default async function SoulFingerprintPage({ params }: Props) {
   return (
     <Suspense
       fallback={
-        <div className="flex items-center justify-center min-h-screen">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-teal-500" />
-        </div>
+        <StandardizedLoadingSpinner
+          text="טוען את טביעת הנשמה..."
+          subtext="מכינים את השאלות עבורך"
+        />
       }
     >
       <SoulFingerprintPageClient locale={locale} />

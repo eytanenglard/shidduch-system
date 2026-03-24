@@ -57,6 +57,8 @@ import type {
 import FirstPartyPreferenceToggle from '@/components/suggestions/FirstPartyPreferenceToggle';
 import AutoSuggestionsZone from '@/components/suggestions/auto/AutoSuggestionsZone';
 import AiChatPanel from '@/components/suggestions/chat/AiChatPanel';
+import AutoSuggestionFeedbackDialog from '@/components/suggestions/auto/AutoSuggestionFeedbackDialog';
+import type { FeedbackData } from '@/components/suggestions/auto/AutoSuggestionFeedbackDialog';
 
 const SYSTEM_MATCHMAKER_ID = 'system-matchmaker-neshamatech';
 
@@ -381,6 +383,10 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
     useState<ExtendedMatchSuggestion | null>(null);
   const [actionType, setActionType] = useState<ActionType | null>(null);
 
+  // --- Feedback Dialog State (for regular suggestions) ---
+  const [showFeedbackDialog, setShowFeedbackDialog] = useState(false);
+  const [feedbackDecision, setFeedbackDecision] = useState<'APPROVED' | 'DECLINED' | 'INTERESTED'>('APPROVED');
+
   // --- Details Modal State ---
   const [selectedSuggestion, setSelectedSuggestion] =
     useState<ExtendedMatchSuggestion | null>(null);
@@ -633,10 +639,24 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
     []
   );
 
-  // --- Confirm Action ---
+  // --- Confirm Action (opens feedback dialog for non-auto suggestions) ---
   const handleConfirmAction = useCallback(async () => {
     if (!suggestionForAction || !actionType) return;
 
+    // For non-auto suggestions, show feedback dialog
+    if (!suggestionForAction.isAutoSuggestion) {
+      const decisionMap: Record<ActionType, 'APPROVED' | 'DECLINED' | 'INTERESTED'> = {
+        approve: 'APPROVED',
+        decline: 'DECLINED',
+        interested: 'INTERESTED',
+      };
+      setFeedbackDecision(decisionMap[actionType]);
+      setShowConfirmDialog(false);
+      setShowFeedbackDialog(true);
+      return;
+    }
+
+    // For auto suggestions, proceed normally (they have their own feedback flow in AutoSuggestionsZone)
     const isFirstParty = suggestionForAction.firstPartyId === userId;
     let newStatus = '';
 
@@ -658,6 +678,33 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
     setSuggestionForAction(null);
     setActionType(null);
   }, [suggestionForAction, actionType, userId, handleStatusChange]);
+
+  // --- Handle Feedback Submit (for regular suggestions) ---
+  const handleFeedbackSubmit = useCallback(
+    async (feedbackData: FeedbackData) => {
+      if (!suggestionForAction) return;
+
+      // 1. Save feedback via API
+      await fetch(`/api/suggestions/${suggestionForAction.id}/auto-feedback`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(feedbackData),
+      });
+
+      // 2. Transition status
+      const isFirstParty = suggestionForAction.firstPartyId === userId;
+      const statusMap: Record<string, string> = {
+        APPROVED: isFirstParty ? 'FIRST_PARTY_APPROVED' : 'SECOND_PARTY_APPROVED',
+        DECLINED: isFirstParty ? 'FIRST_PARTY_DECLINED' : 'SECOND_PARTY_DECLINED',
+        INTERESTED: 'FIRST_PARTY_INTERESTED',
+      };
+
+      await handleStatusChange(suggestionForAction.id, statusMap[feedbackData.decision]);
+      setSuggestionForAction(null);
+      setActionType(null);
+    },
+    [suggestionForAction, userId, handleStatusChange]
+  );
 
   // --- Rank Update Handler ---
   const handleRankUpdate = useCallback(
@@ -1201,6 +1248,61 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Feedback Dialog for Regular Suggestions */}
+      <AutoSuggestionFeedbackDialog
+        open={showFeedbackDialog}
+        onOpenChange={(open) => {
+          setShowFeedbackDialog(open);
+          if (!open) {
+            setSuggestionForAction(null);
+            setActionType(null);
+          }
+        }}
+        suggestionId={suggestionForAction?.id || ''}
+        decision={feedbackDecision}
+        locale={locale}
+        dict={{
+          titleApprove: isRtl ? 'מה אהבת?' : 'What did you like?',
+          titleDeclineStep1: isRtl ? 'לפני שנמשיך...' : 'Before we continue...',
+          titleDeclineStep2: isRtl ? 'מה חסר?' : 'What was missing?',
+          titleInterested: isRtl ? 'מה מעניין אותך?' : 'What interests you?',
+          subtitleApprove: isRtl ? 'הפידבק שלך עוזר לנו להציע הצעות טובות יותר' : 'Your feedback helps us suggest better matches',
+          subtitleDeclineStep1: isRtl ? 'ספר/י לנו מה כן אהבת' : 'Tell us what you did like',
+          subtitleDeclineStep2: isRtl ? 'מה היה חסר כדי שתאשר/י?' : 'What was missing for you to approve?',
+          likedTraits: {
+            religious_match: isRtl ? 'התאמה דתית' : 'Religious match',
+            personality_match: isRtl ? 'אישיות מתאימה' : 'Personality match',
+            age_appropriate: isRtl ? 'גיל מתאים' : 'Age appropriate',
+            shared_values: isRtl ? 'ערכים משותפים' : 'Shared values',
+            similar_background: isRtl ? 'רקע דומה' : 'Similar background',
+            attractive_profile: isRtl ? 'פרופיל מושך' : 'Attractive profile',
+            good_career: isRtl ? 'קריירה/השכלה' : 'Good career',
+            interesting_person: isRtl ? 'בנאדם מעניין' : 'Interesting person',
+          },
+          missingTraits: {
+            age_gap: isRtl ? 'פער גילאים' : 'Age gap',
+            religious_gap: isRtl ? 'פער דתי' : 'Religious gap',
+            geographic_gap: isRtl ? 'מרחק גאוגרפי' : 'Geographic gap',
+            not_attracted: isRtl ? 'חוסר חיבור חיצוני' : 'Not attracted',
+            no_connection: isRtl ? 'חוסר חיבור כללי' : 'No connection',
+            background_gap: isRtl ? 'פער ברקע' : 'Background gap',
+            education_gap: isRtl ? 'פער השכלתי' : 'Education gap',
+            gut_feeling: isRtl ? 'תחושת בטן' : 'Gut feeling',
+          },
+          freeTextPlaceholder: isRtl ? 'ספר/י עוד (אופציונלי)...' : 'Tell us more (optional)...',
+          missingFreeTextPlaceholder: isRtl ? 'מה היית רוצה אחרת? (אופציונלי)' : 'What would you want differently? (optional)',
+          selectAtLeastOne: isRtl ? 'נא לבחור לפחות אפשרות אחת' : 'Please select at least one option',
+          next: isRtl ? 'הבא' : 'Next',
+          back: isRtl ? 'חזרה' : 'Back',
+          submitApprove: isRtl ? 'אישור' : 'Approve',
+          submitDecline: isRtl ? 'דחייה' : 'Decline',
+          submitInterested: isRtl ? 'שמירה' : 'Save',
+          thankYou: isRtl ? 'תודה על הפידבק!' : 'Thanks for your feedback!',
+          thankYouDesc: isRtl ? 'זה יעזור לנו לדייק את ההצעות הבאות שלך' : "This will help us fine-tune your future suggestions",
+        }}
+        onSubmit={handleFeedbackSubmit}
+      />
     </div>
   );
 };
