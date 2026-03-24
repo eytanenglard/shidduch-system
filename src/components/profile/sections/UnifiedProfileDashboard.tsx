@@ -12,6 +12,7 @@ import { ProfileChecklist } from './ProfileChecklist';
 import { AIProfileAdvisorDialog } from './AIProfileAdvisorDialog';
 import { NeshmaInsightButton } from './NeshmaInsightButton';
 import SoulFingerprintCTA from '@/components/soul-fingerprint/SoulFingerprintCTA';
+import HeartMapNudgeBanner from '@/components/profile/HeartMapNudgeBanner';
 import { Lock, Eye } from 'lucide-react';
 
 // UI Components
@@ -592,6 +593,12 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
             <Alert variant="destructive">
               <AlertDescription>{error}</AlertDescription>
             </Alert>
+          )}
+
+          {isOwnProfile && !sfCompleted && (
+            <div className="mb-4 md:mb-6">
+              <HeartMapNudgeBanner locale={locale} />
+            </div>
           )}
 
           {isOwnProfile && user && profileData && (

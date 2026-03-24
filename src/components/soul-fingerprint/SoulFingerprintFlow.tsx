@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
+import { AnimatePresence } from 'framer-motion';
 import { useSoulFingerprint } from './hooks/useSoulFingerprint';
 import { deriveTagsFromAnswers } from './types';
 import SoulFingerprintWelcome from './SoulFingerprintWelcome';
@@ -8,6 +9,7 @@ import SoulFingerprintComplete from './SoulFingerprintComplete';
 import ProgressIndicator from './components/ProgressIndicator';
 import SelfPartnerTabs from './components/SelfPartnerTabs';
 import QuestionRenderer from './components/QuestionRenderer';
+import CompactAnswer from './components/CompactAnswer';
 import NavigationButtons from './components/NavigationButtons';
 import { SF_SECTIONS } from './questions';
 
@@ -40,6 +42,12 @@ export default function SoulFingerprintFlow({
   });
 
   const [partnerTransition, setPartnerTransition] = useState(false);
+  const [expandedQuestionIds, setExpandedQuestionIds] = useState<Set<string>>(new Set());
+  const [showResumeBanner, setShowResumeBanner] = useState(() => {
+    return !!(initialData?.sectionAnswers && Object.keys(initialData.sectionAnswers).length > 0 && !initialData?.isComplete);
+  });
+  const firstUnansweredRef = useRef<HTMLDivElement>(null);
+  const hasScrolledRef = useRef(false);
 
   const {
     state,

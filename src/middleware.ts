@@ -43,6 +43,7 @@ const SETUP_PATHS = [
   '/auth/setup-account',
   '/auth/verify-phone',
   '/auth/update-phone',
+  '/auth/heart-map-step',
   '/settings',
 ];
 

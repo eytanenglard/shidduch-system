@@ -1925,5 +1925,11 @@
       "normal": "Normal — a natural feeling that shows I care",
       "tend_jealous": "Tend to be jealous — working on it"
     }
+  },
+  "nudgeBanner": {
+    "title": "Complete your Soul Map to start receiving suggestions",
+    "subtitle": "Without the Soul Map, matchmakers can't get to know you and you won't receive match suggestions",
+    "cta": "Fill out Soul Map",
+    "dismiss": "Remind me later"
   }
 }

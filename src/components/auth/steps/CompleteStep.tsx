@@ -94,10 +94,10 @@ const CompleteStep: React.FC<CompleteStepProps> = ({ dict, locale }) => {
     if (sessionStatus !== 'authenticated' || !session?.user) return;
     const user = session.user as SessionUserType;
 
-    // If everything is done, auto-redirect to profile after 4 seconds
+    // If everything is done, auto-redirect to heart-map step after 4 seconds
     if (user.isProfileComplete && user.isPhoneVerified) {
       const timer = setTimeout(() => {
-        router.push(`/${locale}/profile`);
+        router.push(`/${locale}/auth/heart-map-step`);
       }, 4000);
       return () => clearTimeout(timer);
     }
@@ -308,28 +308,28 @@ const CompleteStep: React.FC<CompleteStepProps> = ({ dict, locale }) => {
         {/* Auto-redirect notice */}
         <motion.p className="text-xs text-gray-400" variants={itemVariants}>
           {locale === 'he'
-            ? 'מועבר לפרופיל שלך בעוד מספר שניות...'
-            : 'Redirecting to your profile in a few seconds...'}
+            ? 'מועבר למפת הנשמה בעוד מספר שניות...'
+            : 'Redirecting to your Soul Map in a few seconds...'}
         </motion.p>
 
         <motion.div variants={itemVariants} className="flex flex-col gap-4">
           <Button
-            onClick={() => handleNavigate(`/${locale}/profile`)}
+            onClick={() => handleNavigate(`/${locale}/auth/heart-map-step`)}
             disabled={isNavigating}
             className="w-full bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 hover:from-teal-600 hover:via-orange-600 hover:to-amber-600"
           >
-            <User className="h-4 w-4 ml-2" />
-            {dict.myProfileButton}
+            <ClipboardList className="h-4 w-4 ml-2" />
+            {locale === 'he' ? 'למפת הנשמה' : 'Go to Soul Map'}
           </Button>
 
           <Button
-            onClick={() => handleNavigate(`/${locale}/questionnaire`)}
+            onClick={() => handleNavigate(`/${locale}/profile`)}
             disabled={isNavigating}
             variant="outline"
             className="w-full border-2"
           >
-            <ClipboardList className="h-4 w-4 ml-2" />
-            {dict.questionnaireButton}
+            <User className="h-4 w-4 ml-2" />
+            {dict.myProfileButton}
           </Button>
 
           <Link

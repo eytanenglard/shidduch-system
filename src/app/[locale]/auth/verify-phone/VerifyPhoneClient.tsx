@@ -289,9 +289,9 @@ const VerifyPhoneClient: React.FC<VerifyPhoneClientProps> = ({
   useEffect(() => {
     if (session?.user) {
       const user = session.user as any;
-      // אם המשתמש כבר מאומת טלפונית, אין לו מה לחפש פה
+      // אם המשתמש כבר מאומת טלפונית, מעבירים לשלב מפת הנשמה
       if (user.isPhoneVerified) {
-        router.push(`/${locale}/profile`);
+        router.push(`/${locale}/auth/heart-map-step`);
       }
     }
   }, [session, router, locale]);
@@ -406,9 +406,9 @@ const VerifyPhoneClient: React.FC<VerifyPhoneClientProps> = ({
         // ✅ האימות הצליח
         setSuccessMessage(dict.success.verifying);
 
-        // 🔴 עדכון ה-session וניווט לפרופיל
+        // 🔴 עדכון ה-session וניווט לשלב מפת הנשמה
         await updateSession();
-        router.push(`/${locale}/profile`);
+        router.push(`/${locale}/auth/heart-map-step`);
       } catch (err: unknown) {
         console.error('[VerifyPhoneClient] Verification error:', err);
         setError(err instanceof Error ? err.message : dict.errors.unexpected);

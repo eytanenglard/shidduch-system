@@ -2332,7 +2332,8 @@ const ExpandedEditForm: React.FC<ExpandedEditFormProps> = ({
   ];
 
   return (
-    <div className="space-y-2.5 max-h-[55vh] sm:max-h-[60vh] overflow-y-auto overscroll-contain pr-1 -mr-1 pb-2">
+    <>
+    <div className="space-y-2.5 max-h-[50vh] sm:max-h-[55vh] overflow-y-auto overscroll-contain pr-1 -mr-1">
       {/* Image management */}
       <div>
         <div className="flex items-center justify-between mb-1.5">
@@ -2369,7 +2370,7 @@ const ExpandedEditForm: React.FC<ExpandedEditFormProps> = ({
       </div>
 
       {/* Fields grid */}
-      <div className="grid grid-cols-2 gap-2">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
         {FIELD_DEFINITIONS.map(({ key, label, type, dir, required }) => (
           <div key={key}>
             <Label className="text-[10px] text-gray-500 mb-0.5 block">
@@ -2573,9 +2574,11 @@ const ExpandedEditForm: React.FC<ExpandedEditFormProps> = ({
         />
       </div>
 
-      {/* Actions — sticky bottom */}
+    </div>
+
+      {/* Actions — fixed footer outside scroll */}
       {!isSaved && (
-        <div className="flex gap-2 pt-2 sticky bottom-0 bg-white/90 backdrop-blur-sm pb-2 -mx-1 px-1 border-t border-gray-100 mt-2">
+        <div className="flex gap-2 pt-2 border-t border-gray-100 mt-1 px-1">
           <Button
             onClick={() => onSave(card.id)}
             disabled={isSaving}
@@ -2609,6 +2612,6 @@ const ExpandedEditForm: React.FC<ExpandedEditFormProps> = ({
           </Button>
         </div>
       )}
-    </div>
+  </>
   );
 };
