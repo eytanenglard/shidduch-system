@@ -144,14 +144,14 @@
         "htmlBody": "<div dir='rtl'><p>שלום {{partyName}},</p><p>השדכן/ית שלך, {{matchmakerName}}, חשב/ה עליך והרכיב/ה עבורך הצעה חדשה, שנראית מבטיחה במיוחד.</p><p>כדי לעיין בפרופיל המלא ולקבל החלטה, אנו מזמינים אותך <a href='{{reviewUrl}}'>להיכנס לאזור האישי</a>.</p><p>מחכים לשמוע ממך,</p><p>צוות NeshamaTech</p></div>"
       },
       "FIRST_PARTY_APPROVED": {
-        "subject": "עדכון: הצד הראשון אישר את ההצעה",
-        "body": "שלום {{matchmakerName}}, עדכון נהדר: {{partyName}} אישר/ה את הצעת השידוך. המערכת תעביר אותה כעת לצד השני. לעיון בפרטים: {{dashboardUrl}}",
-        "htmlBody": "<div dir='rtl'><p>שלום {{matchmakerName}},</p><p>עדכון נהדר: <strong>{{partyName}}</strong> אישר/ה את הצעת השידוך.</p><p>ההצעה תועבר כעת באופן אוטומטי לצד השני. ניתן לעקוב אחר ההתקדמות <a href='{{dashboardUrl}}'>בלוח הבקרה</a>.</p></div>"
+        "subject": "עדכון הצעה ({{firstPartyName}} ↔ {{secondPartyName}}): הצד הראשון אישר",
+        "body": "שלום {{matchmakerName}}, עדכון נהדר: {{firstPartyName}} אישר/ה את הצעת השידוך עם {{secondPartyName}}. המערכת תעביר אותה כעת לצד השני. לעיון בפרטים: {{dashboardUrl}}",
+        "htmlBody": "<div dir='rtl'><p>שלום {{matchmakerName}},</p><p>עדכון נהדר: <strong>{{firstPartyName}}</strong> אישר/ה את הצעת השידוך עם <strong>{{secondPartyName}}</strong>.</p><p>ההצעה תועבר כעת באופן אוטומטי לצד השני. ניתן לעקוב אחר ההתקדמות <a href='{{dashboardUrl}}'>בלוח הבקרה</a>.</p></div>"
       },
       "FIRST_PARTY_DECLINED": {
-        "subject": "עדכון: הצעה נדחתה על ידי הצד הראשון",
-        "body": "שלום {{matchmakerName}}, לידיעתך, {{partyName}} בחנ/ה את ההצעה והחליט/ה לדחות אותה. פרטים נוספים וסיבת הדחייה (אם נמסרה) זמינים בלוח הבקרה: {{dashboardUrl}}",
-        "htmlBody": "<div dir='rtl'><p>שלום {{matchmakerName}},</p><p>לידיעתך, <strong>{{partyName}}</strong> בחנ/ה את ההצעה והחליט/ה שאינה מתאימה בשלב זה.</p><p>פרטים נוספים וסיבת הדחייה (אם נמסרה) זמינים <a href='{{dashboardUrl}}'>בלוח הבקרה</a>.</p></div>"
+        "subject": "עדכון הצעה ({{firstPartyName}} ↔ {{secondPartyName}}): הצד הראשון דחה",
+        "body": "שלום {{matchmakerName}}, לידיעתך, {{firstPartyName}} בחנ/ה את ההצעה עם {{secondPartyName}} והחליט/ה לדחות אותה. פרטים נוספים וסיבת הדחייה (אם נמסרה) זמינים בלוח הבקרה: {{dashboardUrl}}",
+        "htmlBody": "<div dir='rtl'><p>שלום {{matchmakerName}},</p><p>לידיעתך, <strong>{{firstPartyName}}</strong> בחנ/ה את ההצעה עם <strong>{{secondPartyName}}</strong> והחליט/ה שאינה מתאימה בשלב זה.</p><p>פרטים נוספים וסיבת הדחייה (אם נמסרה) זמינים <a href='{{dashboardUrl}}'>בלוח הבקרה</a>.</p></div>"
       },
       "PENDING_SECOND_PARTY": {
         "subject": "הצעה חדשה עבורך, עם התאמה גבוהה",
@@ -159,14 +159,14 @@
         "htmlBody": "<div dir='rtl'><p>שלום {{partyName}},</p><p>יש לנו חדשות מרגשות! השדכן/ית {{matchmakerName}} שלח/ה לך הצעה חדשה, <strong>והצד הראשון כבר אישר אותה</strong>.</p><p>נראה שיש כאן פוטנציאל גבוה ואנו מזמינים אותך <a href='{{reviewUrl}}'>לעיין בפרטים ולקבל החלטה</a>.</p></div>"
       },
       "SECOND_PARTY_APPROVED": {
-        "subject": "זה מאצ'! שני הצדדים אישרו את ההצעה",
-        "body": "שלום {{matchmakerName}}, בשורות טובות! {{partyName}} אישר/ה את ההצעה. שני הצדדים אישרו וכעת ניתן להתקדם לשלב החלפת פרטי הקשר. לפרטים נוספים: {{dashboardUrl}}",
-        "htmlBody": "<div dir='rtl'><p>שלום {{matchmakerName}},</p><p><strong>זה מאצ'!</strong> 🎉</p><p>אנו שמחים לעדכן שגם <strong>{{partyName}}</strong> אישר/ה את ההצעה. כעת, שני הצדדים הביעו הסכמה וניתן <a href='{{dashboardUrl}}'>להתקדם לשלב החלפת פרטי הקשר</a>.</p></div>"
+        "subject": "זה מאצ'! ({{firstPartyName}} ↔ {{secondPartyName}}) — שני הצדדים אישרו",
+        "body": "שלום {{matchmakerName}}, בשורות טובות! גם {{secondPartyName}} אישר/ה את ההצעה עם {{firstPartyName}}. שני הצדדים אישרו וכעת ניתן להתקדם לשלב החלפת פרטי הקשר. לפרטים נוספים: {{dashboardUrl}}",
+        "htmlBody": "<div dir='rtl'><p>שלום {{matchmakerName}},</p><p><strong>זה מאצ'!</strong> 🎉</p><p>אנו שמחים לעדכן שגם <strong>{{secondPartyName}}</strong> אישר/ה את ההצעה עם <strong>{{firstPartyName}}</strong>. כעת, שני הצדדים הביעו הסכמה וניתן <a href='{{dashboardUrl}}'>להתקדם לשלב החלפת פרטי הקשר</a>.</p></div>"
       },
       "SECOND_PARTY_DECLINED": {
-        "subject": "עדכון: הצעה נדחתה על ידי הצד השני",
-        "body": "שלום {{matchmakerName}}, לידיעתך, {{partyName}} בחנ/ה את ההצעה והחליט/ה לדחות אותה. פרטים נוספים זמינים בלוח הבקרה: {{dashboardUrl}}",
-        "htmlBody": "<div dir='rtl'><p>שלום {{matchmakerName}},</p><p>לידיעתך, <strong>{{partyName}}</strong> בחנ/ה את ההצעה והחליט/ה שאינה מתאימה בשלב זה.</p><p>פרטים נוספים זמינים <a href='{{dashboardUrl}}'>בלוח הבקרה</a>.</p></div>"
+        "subject": "עדכון הצעה ({{firstPartyName}} ↔ {{secondPartyName}}): הצד השני דחה",
+        "body": "שלום {{matchmakerName}}, לידיעתך, {{secondPartyName}} בחנ/ה את ההצעה עם {{firstPartyName}} והחליט/ה לדחות אותה. פרטים נוספים זמינים בלוח הבקרה: {{dashboardUrl}}",
+        "htmlBody": "<div dir='rtl'><p>שלום {{matchmakerName}},</p><p>לידיעתך, <strong>{{secondPartyName}}</strong> בחנ/ה את ההצעה עם <strong>{{firstPartyName}}</strong> והחליט/ה שאינה מתאימה בשלב זה.</p><p>פרטים נוספים זמינים <a href='{{dashboardUrl}}'>בלוח הבקרה</a>.</p></div>"
       },
       "CONTACT_DETAILS_SHARED": {
         "subject": "בהצלחה! פרטי הקשר שלכם הוחלפו",
@@ -174,14 +174,14 @@
         "htmlBody": "<div dir='rtl'><h2>יוצאים לדרך!</h2><p>שניכם אישרתם את ההצעה, וזו תמיד התרגשות גדולה. פרטי הקשר המלאים נשלחו אליכם במייל נפרד ומפורט.</p><p><strong>טיפ קטן מאיתנו:</strong> קחו נשימה, זכרו שהמטרה היא פשוט להכיר, והכי חשוב - תהיו אתם. מומלץ ליצור קשר ראשוני ב-24-48 השעות הקרובות.</p><p>מאחלים לכם שיחה נעימה ופגישה מוצלחת!</p></div>"
       },
       "FIRST_PARTY_INTERESTED": {
-        "subject": "עדכון: הצד הראשון שמר את ההצעה לגיבוי",
-        "body": "שלום {{matchmakerName}}, {{partyName}} עיינ/ה בהצעה והחליט/ה לשמור אותה כאפשרות. ניתן לעקוב אחר ההתקדמות בלוח הבקרה: {{dashboardUrl}}",
-        "htmlBody": "<div dir='rtl'><p>שלום {{matchmakerName}},</p><p><strong>{{partyName}}</strong> עיינ/ה בהצעה והחליט/ה לשמור אותה כאפשרות לגיבוי ⭐</p><p>ניתן לעקוב אחר ההתקדמות <a href='{{dashboardUrl}}'>בלוח הבקרה</a>.</p></div>"
+        "subject": "עדכון הצעה ({{firstPartyName}} ↔ {{secondPartyName}}): הצד הראשון שמר לגיבוי",
+        "body": "שלום {{matchmakerName}}, {{firstPartyName}} עיינ/ה בהצעה עם {{secondPartyName}} והחליט/ה לשמור אותה כאפשרות. ניתן לעקוב אחר ההתקדמות בלוח הבקרה: {{dashboardUrl}}",
+        "htmlBody": "<div dir='rtl'><p>שלום {{matchmakerName}},</p><p><strong>{{firstPartyName}}</strong> עיינ/ה בהצעה עם <strong>{{secondPartyName}}</strong> והחליט/ה לשמור אותה כאפשרות לגיבוי ⭐</p><p>ניתן לעקוב אחר ההתקדמות <a href='{{dashboardUrl}}'>בלוח הבקרה</a>.</p></div>"
       },
       "SECOND_PARTY_NOT_AVAILABLE": {
-        "subject": "עדכון: הצד השני לא זמין כרגע",
-        "body": "שלום {{matchmakerName}}, {{partyName}} עדכנ/ה שאינו/ה זמין/ה כרגע. ניתן לעקוב אחר עדכונים בלוח הבקרה: {{dashboardUrl}}",
-        "htmlBody": "<div dir='rtl'><p>שלום {{matchmakerName}},</p><p><strong>{{partyName}}</strong> עדכנ/ה שאינו/ה זמין/ה להצעות חדשות כרגע.</p><p>ניתן לנסות שוב מאוחר יותר או לעקוב אחר עדכונים <a href='{{dashboardUrl}}'>בלוח הבקרה</a>.</p></div>"
+        "subject": "עדכון הצעה ({{firstPartyName}} ↔ {{secondPartyName}}): הצד השני לא זמין",
+        "body": "שלום {{matchmakerName}}, {{secondPartyName}} עדכנ/ה שאינו/ה זמין/ה כרגע (הצעה עם {{firstPartyName}}). ניתן לעקוב אחר עדכונים בלוח הבקרה: {{dashboardUrl}}",
+        "htmlBody": "<div dir='rtl'><p>שלום {{matchmakerName}},</p><p><strong>{{secondPartyName}}</strong> עדכנ/ה שאינו/ה זמין/ה להצעות חדשות כרגע (הצעה עם <strong>{{firstPartyName}}</strong>).</p><p>ניתן לנסות שוב מאוחר יותר או לעקוב אחר עדכונים <a href='{{dashboardUrl}}'>בלוח הבקרה</a>.</p></div>"
       },
       "RE_OFFERED_TO_FIRST_PARTY": {
         "subject": "✨ יש לנו עדכון חשוב לגבי הצעה שקיבלת",
@@ -189,9 +189,9 @@
         "htmlBody": "<div dir='rtl'><p>שלום {{partyName}},</p><p>יש לנו עדכון חשוב לגבי הצעת שידוך שקיבלת. ההצעה חזרה אליך מחדש עם פרטים מעודכנים.</p><p>נשמח שתעיינ/י <a href='{{reviewUrl}}'>בפרטים המלאים באזור האישי</a> ותעדכנ/י אותנו.</p></div>"
       },
       "AWAITING_MATCHMAKER_APPROVAL": {
-        "subject": "הצעת שידוך ממתינה לאישורך",
-        "body": "שלום {{matchmakerName}}, הצעת שידוך ממתינה לאישורך לפני שיתוף פרטי הקשר. לפרטים: {{dashboardUrl}}",
-        "htmlBody": "<div dir='rtl'><p>שלום {{matchmakerName}},</p><p>שני הצדדים הביעו עניין, וההצעה ממתינה כעת לאישורך לפני שיתוף פרטי הקשר.</p><p><a href='{{dashboardUrl}}'>צפייה בפרטים ואישור</a></p></div>"
+        "subject": "הצעה ממתינה לאישורך ({{firstPartyName}} ↔ {{secondPartyName}})",
+        "body": "שלום {{matchmakerName}}, הצעת השידוך בין {{firstPartyName}} ל{{secondPartyName}} ממתינה לאישורך לפני שיתוף פרטי הקשר. לפרטים: {{dashboardUrl}}",
+        "htmlBody": "<div dir='rtl'><p>שלום {{matchmakerName}},</p><p>שני הצדדים הביעו עניין בהצעה בין <strong>{{firstPartyName}}</strong> ל<strong>{{secondPartyName}}</strong>, וההצעה ממתינה כעת לאישורך לפני שיתוף פרטי הקשר.</p><p><a href='{{dashboardUrl}}'>צפייה בפרטים ואישור</a></p></div>"
       },
       "AWAITING_FIRST_DATE_FEEDBACK": {
         "subject": "מחכים לשמוע ממך אחרי הפגישה!",
@@ -209,34 +209,34 @@
         "htmlBody": "<div dir='rtl'><p>שלום {{partyName}},</p><p>שמחנו מאוד לשמוע שהחלטתם להמשיך לפגישה שנייה! 🎉</p><p>זה שלב מרגש ואנחנו כאן לצידכם.</p><p><a href='{{reviewUrl}}'>לפרטים נוספים</a></p></div>"
       },
       "ENDED_AFTER_FIRST_DATE": {
-        "subject": "עדכון: ההצעה הסתיימה לאחר פגישה ראשונה",
-        "body": "שלום {{matchmakerName}}, ההצעה הסתיימה לאחר הפגישה הראשונה. לפרטים נוספים: {{dashboardUrl}}",
-        "htmlBody": "<div dir='rtl'><p>שלום {{matchmakerName}},</p><p>ההצעה הסתיימה לאחר הפגישה הראשונה.</p><p>פרטים נוספים זמינים <a href='{{dashboardUrl}}'>בלוח הבקרה</a>.</p></div>"
+        "subject": "עדכון הצעה ({{firstPartyName}} ↔ {{secondPartyName}}): הסתיימה לאחר פגישה ראשונה",
+        "body": "שלום {{matchmakerName}}, ההצעה בין {{firstPartyName}} ל{{secondPartyName}} הסתיימה לאחר הפגישה הראשונה. לפרטים נוספים: {{dashboardUrl}}",
+        "htmlBody": "<div dir='rtl'><p>שלום {{matchmakerName}},</p><p>ההצעה בין <strong>{{firstPartyName}}</strong> ל<strong>{{secondPartyName}}</strong> הסתיימה לאחר הפגישה הראשונה.</p><p>פרטים נוספים זמינים <a href='{{dashboardUrl}}'>בלוח הבקרה</a>.</p></div>"
       },
       "DATING": {
-        "subject": "🌟 מזל טוב — תהליך ההיכרות ממשיך!",
-        "body": "שלום {{matchmakerName}}, עדכון מרגש: הזוג נמצא בתהליך היכרות פעיל! לפרטים: {{dashboardUrl}}",
-        "htmlBody": "<div dir='rtl'><p>שלום {{matchmakerName}},</p><p>עדכון מרגש! 🌟 הזוג נמצא בתהליך היכרות פעיל.</p><p>ניתן לעקוב אחר ההתקדמות <a href='{{dashboardUrl}}'>בלוח הבקרה</a>.</p></div>"
+        "subject": "🌟 מזל טוב — {{firstPartyName}} ו{{secondPartyName}} בתהליך היכרות!",
+        "body": "שלום {{matchmakerName}}, עדכון מרגש: {{firstPartyName}} ו{{secondPartyName}} נמצאים בתהליך היכרות פעיל! לפרטים: {{dashboardUrl}}",
+        "htmlBody": "<div dir='rtl'><p>שלום {{matchmakerName}},</p><p>עדכון מרגש! 🌟 <strong>{{firstPartyName}}</strong> ו<strong>{{secondPartyName}}</strong> נמצאים בתהליך היכרות פעיל.</p><p>ניתן לעקוב אחר ההתקדמות <a href='{{dashboardUrl}}'>בלוח הבקרה</a>.</p></div>"
       },
       "ENGAGED": {
-        "subject": "💍 מזל טוב! אירוסין!",
-        "body": "שלום {{partyName}}, מזל טוב! שמחנו לשמוע על האירוסין! שיהיה בשעה טובה ומוצלחת!",
-        "htmlBody": "<div dir='rtl'><p>שלום {{partyName}},</p><p>מזל טוב!! 💍🎉</p><p>שמחנו מאוד לשמוע על האירוסין! זו שמחה גדולה עבורנו לדעת שהמסע הזה הביא אתכם לכאן.</p><p>מאחלים לכם שפע של אושר, בריאות ואהבה. שיהיה בשעה טובה ומוצלחת!</p></div>"
+        "subject": "💍 מזל טוב! אירוסין! ({{firstPartyName}} ו{{secondPartyName}})",
+        "body": "שלום {{partyName}}, מזל טוב! שמחנו לשמוע על האירוסין של {{firstPartyName}} ו{{secondPartyName}}! שיהיה בשעה טובה ומוצלחת!",
+        "htmlBody": "<div dir='rtl'><p>שלום {{partyName}},</p><p>מזל טוב!! 💍🎉</p><p>שמחנו מאוד לשמוע על האירוסין של <strong>{{firstPartyName}}</strong> ו<strong>{{secondPartyName}}</strong>! זו שמחה גדולה עבורנו לדעת שהמסע הזה הביא אתכם לכאן.</p><p>מאחלים לכם שפע של אושר, בריאות ואהבה. שיהיה בשעה טובה ומוצלחת!</p></div>"
       },
       "MARRIED": {
-        "subject": "💒 מזל טוב! נישואין!",
-        "body": "שלום {{partyName}}, מזל טוב על הנישואין! איזה רגע מרגש. מאחלים לכם חיים מלאים באושר ובברכה!",
-        "htmlBody": "<div dir='rtl'><p>שלום {{partyName}},</p><p>מזל טוב על הנישואין!! 💒🎊</p><p>זהו רגע מרגש עבורנו לא פחות. אנחנו גאים שהצלחנו להיות חלק מהמסע שלכם.</p><p>מאחלים לכם בניין עדי עד, שפע של אהבה, בריאות ושמחה!</p></div>"
+        "subject": "💒 מזל טוב! נישואין! ({{firstPartyName}} ו{{secondPartyName}})",
+        "body": "שלום {{partyName}}, מזל טוב על הנישואין של {{firstPartyName}} ו{{secondPartyName}}! איזה רגע מרגש. מאחלים לכם חיים מלאים באושר ובברכה!",
+        "htmlBody": "<div dir='rtl'><p>שלום {{partyName}},</p><p>מזל טוב על הנישואין של <strong>{{firstPartyName}}</strong> ו<strong>{{secondPartyName}}</strong>!! 💒🎊</p><p>זהו רגע מרגש עבורנו לא פחות. אנחנו גאים שהצלחנו להיות חלק מהמסע שלכם.</p><p>מאחלים לכם בניין עדי עד, שפע של אהבה, בריאות ושמחה!</p></div>"
       },
       "CLOSED": {
-        "subject": "עדכון: ההצעה נסגרה",
-        "body": "שלום {{matchmakerName}}, ההצעה נסגרה. לפרטים נוספים: {{dashboardUrl}}",
-        "htmlBody": "<div dir='rtl'><p>שלום {{matchmakerName}},</p><p>ההצעה נסגרה.</p><p>פרטים נוספים זמינים <a href='{{dashboardUrl}}'>בלוח הבקרה</a>.</p></div>"
+        "subject": "עדכון הצעה ({{firstPartyName}} ↔ {{secondPartyName}}): ההצעה נסגרה",
+        "body": "שלום {{matchmakerName}}, ההצעה בין {{firstPartyName}} ל{{secondPartyName}} נסגרה. לפרטים נוספים: {{dashboardUrl}}",
+        "htmlBody": "<div dir='rtl'><p>שלום {{matchmakerName}},</p><p>ההצעה בין <strong>{{firstPartyName}}</strong> ל<strong>{{secondPartyName}}</strong> נסגרה.</p><p>פרטים נוספים זמינים <a href='{{dashboardUrl}}'>בלוח הבקרה</a>.</p></div>"
       },
       "CANCELLED": {
-        "subject": "עדכון: ההצעה בוטלה",
-        "body": "שלום {{matchmakerName}}, ההצעה בוטלה. לפרטים נוספים: {{dashboardUrl}}",
-        "htmlBody": "<div dir='rtl'><p>שלום {{matchmakerName}},</p><p>ההצעה בוטלה.</p><p>פרטים נוספים זמינים <a href='{{dashboardUrl}}'>בלוח הבקרה</a>.</p></div>"
+        "subject": "עדכון הצעה ({{firstPartyName}} ↔ {{secondPartyName}}): ההצעה בוטלה",
+        "body": "שלום {{matchmakerName}}, ההצעה בין {{firstPartyName}} ל{{secondPartyName}} בוטלה. לפרטים נוספים: {{dashboardUrl}}",
+        "htmlBody": "<div dir='rtl'><p>שלום {{matchmakerName}},</p><p>ההצעה בין <strong>{{firstPartyName}}</strong> ל<strong>{{secondPartyName}}</strong> בוטלה.</p><p>פרטים נוספים זמינים <a href='{{dashboardUrl}}'>בלוח הבקרה</a>.</p></div>"
       }
     }
   },

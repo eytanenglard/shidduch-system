@@ -77,7 +77,7 @@ const StickyNav: React.FC<StickyNavProps> = ({
   const [activeSection, setActiveSection] = useState('');
   const sectionRefs = useRef<(HTMLElement | null)[]>([]);
   const [mobileNavState, setMobileNavState] = useState<'open' | 'closed'>(
-    'open'
+    'closed'
   );
   const [isMobile, setIsMobile] = useState(false);
 
@@ -305,19 +305,19 @@ const StickyNav: React.FC<StickyNavProps> = ({
       <AnimatePresence>
         {isMobile && isVisible && !isNavOpen && (
           <motion.div
-            initial={{ scale: 0, opacity: 0, y: 50 }}
-            animate={{ scale: 1, opacity: 1, y: 0 }}
-            exit={{ scale: 0, opacity: 0, y: 50 }}
-            transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-            className="fixed bottom-32 left-4 z-50"
+            initial={{ scale: 0, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0, opacity: 0 }}
+            transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+            className="fixed top-3 left-3 z-50"
           >
             <Button
               size="icon"
-              className="rounded-full h-14 w-14 bg-teal-600 hover:bg-teal-700 text-white shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 border-2 border-white/20"
+              className="rounded-full h-11 w-11 bg-white/90 backdrop-blur-md hover:bg-white text-gray-700 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-200/60"
               onClick={() => setMobileNavState('open')}
               aria-label={dict.openNavAriaLabel}
             >
-              <Menu className="h-7 w-7" />
+              <Menu className="h-5 w-5" />
             </Button>
           </motion.div>
         )}

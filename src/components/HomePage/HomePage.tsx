@@ -3,7 +3,7 @@
 
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 
 // Import all sections
@@ -27,6 +27,7 @@ import type { Dictionary } from '@/types/dictionary';
 import { generateDemoData } from './components/demo-data';
 import NeshmaInsightSectionB from './sections/NeshmaInsightSectionB';
 import HeartMapCTASection from './sections/HeartMapCTASection';
+import SocialProofBar from './components/SocialProofBar';
 
 type DemoData = Awaited<ReturnType<typeof generateDemoData>>;
 
@@ -38,17 +39,17 @@ interface HomePageProps {
 
 export default function HomePage({ dict, demoData, locale }: HomePageProps) {
   const { data: session } = useSession();
-  // #9: Removed isScrolled — StickyNav handles its own scroll tracking
   const [isScrolled, setIsScrolled] = useState(false);
 
+  const handleScroll = useCallback(() => {
+    setIsScrolled(window.scrollY > 100);
+  }, []);
+
   useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 10);
-    };
     window.addEventListener('scroll', handleScroll, { passive: true });
     handleScroll();
     return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  }, [handleScroll]);
 
   const navLinks: NavLink[] = [
     { id: 'how-it-works', label: dict.stickyNav.navLinks.howItWorks },
@@ -63,11 +64,12 @@ export default function HomePage({ dict, demoData, locale }: HomePageProps) {
       {/* #4: Shared global keyframe animations used across multiple sections */}
       <style>{`
         @keyframes float-slow {
-          0%, 100% { transform: translateY(0); }
-          50% { transform: translateY(-20px); }
+          0%, 100% { transform: translateY(0) translateX(0); }
+          50% { transform: translateY(-20px) translateX(10px); }
         }
         .animate-float-slow {
-          animation: float-slow 8s ease-in-out infinite;
+          animation: float-slow 10s ease-in-out infinite;
+          will-change: transform;
         }
         @keyframes soft-float {
           0%, 100% { transform: translateY(0px) rotate(0deg); }
@@ -76,6 +78,7 @@ export default function HomePage({ dict, demoData, locale }: HomePageProps) {
         }
         .animate-soft-float {
           animation: soft-float 6s ease-in-out infinite;
+          will-change: transform;
         }
         @keyframes gentle-pulse {
           0%, 100% { opacity: 0.8; transform: scale(1); }
@@ -93,23 +96,51 @@ export default function HomePage({ dict, demoData, locale }: HomePageProps) {
           animation: gradient 4s ease-in-out infinite;
         }
         @keyframes pulse-glow {
-          0%, 100% { box-shadow: 0 0 0 0 rgba(251, 191, 36, 0.3); }
-          50% { box-shadow: 0 0 20px 4px rgba(251, 191, 36, 0.15); }
+          0%, 100% { box-shadow: 0 0 5px rgba(251, 191, 36, 0.3); }
+          50% { box-shadow: 0 0 20px rgba(251, 191, 36, 0.5); }
         }
         .animate-pulse-glow {
           animation: pulse-glow 2s ease-in-out infinite;
         }
-        
-        /* #50: Respect reduced motion preferences */
+        @keyframes shimmer {
+          100% { transform: translateX(100%); }
+        }
+        .animate-shimmer {
+          animation: shimmer 2.5s infinite;
+        }
+        @keyframes pulse-slow {
+          0%, 100% { opacity: 0.8; }
+          50% { opacity: 1; }
+        }
+        .animate-pulse-slow {
+          animation: pulse-slow 4s ease-in-out infinite;
+        }
+
+        /* Smooth scrollbar for message containers */
+        .messages-container {
+          scroll-behavior: smooth;
+          -webkit-overflow-scrolling: touch;
+          overscroll-behavior: contain;
+          touch-action: pan-y;
+          scrollbar-width: thin;
+          scrollbar-color: #14b8a6 rgba(243, 244, 246, 0.5);
+        }
+        .messages-container::-webkit-scrollbar { width: 8px; }
+        .messages-container::-webkit-scrollbar-track { background: rgba(243, 244, 246, 0.5); border-radius: 10px; margin: 4px 0; }
+        .messages-container::-webkit-scrollbar-thumb { background: linear-gradient(to bottom, #14b8a6, #f97316); border-radius: 10px; border: 2px solid rgba(243, 244, 246, 0.5); }
+        .messages-container::-webkit-scrollbar-thumb:hover { background: linear-gradient(to bottom, #0d9488, #ea580c); }
+
+        /* Respect reduced motion preferences */
         @media (prefers-reduced-motion: reduce) {
           .animate-float-slow,
           .animate-soft-float,
           .animate-gentle-pulse,
           .animate-gradient,
-          .animate-pulse-glow {
+          .animate-pulse-glow,
+          .animate-shimmer,
+          .animate-pulse-slow {
             animation: none !important;
           }
-          /* Disable framer-motion transitions via CSS fallback */
           * {
             transition-duration: 0.01ms !important;
             animation-duration: 0.01ms !important;
@@ -133,13 +164,12 @@ export default function HomePage({ dict, demoData, locale }: HomePageProps) {
         dict={dict.heroSection}
         locale={locale}
       />
+      <SocialProofBar dict={dict.socialProof} />
       <ValuePropositionSection dict={dict.valueProposition} />
 
       <NeshmaInsightSectionB locale={locale} dict={dict.neshmaInsight} />
 
       <OurMethodSection dict={dict.ourMethod} />
-
-      <HeartMapCTASection dict={dict.heartMapCTA} locale={locale} />
 
       <HowItWorksSection
         dict={dict.howItWorks}
@@ -148,6 +178,8 @@ export default function HomePage({ dict, demoData, locale }: HomePageProps) {
         demoData={demoData}
         locale={locale}
       />
+
+      <HeartMapCTASection dict={dict.heartMapCTA} locale={locale} />
 
       <MatchmakerTeamSection dict={dict.matchmakerTeam} />
       <SuccessStoriesSection dict={dict.successStories} locale={locale} />

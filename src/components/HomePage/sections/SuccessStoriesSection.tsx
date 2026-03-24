@@ -43,28 +43,23 @@ const SuccessStoriesSection: React.FC<SuccessStoriesProps> = ({
   };
 
   const headerVariants = {
-    hidden: { opacity: 0, y: 30 },
+    hidden: { opacity: 0, y: 15 },
     visible: {
       opacity: 1,
       y: 0,
-      transition: { duration: 0.6, ease: 'easeOut' },
+      transition: { duration: 0.5, ease: 'easeOut' },
     },
   };
 
   const cardVariants = {
-    hidden: { opacity: 0, scale: 0.8, y: 40 },
+    hidden: { opacity: 0, scale: 0.95, y: 15 },
     visible: {
       opacity: 1,
       scale: 1,
       y: 0,
       transition: {
-        duration: 0.6,
+        duration: 0.5,
         ease: 'easeOut',
-        scale: {
-          type: 'spring',
-          stiffness: 260,
-          damping: 20,
-        },
       },
     },
   };
@@ -79,11 +74,12 @@ const SuccessStoriesSection: React.FC<SuccessStoriesProps> = ({
       initial="hidden"
       animate={isInView ? 'visible' : 'hidden'}
     >
-      {/* Background Orbs to match other sections */}
-      <div className="absolute top-20 left-10 w-72 h-72 bg-teal-200/10 rounded-full blur-3xl animate-float-slow pointer-events-none"></div>
-      <div 
-        className="absolute bottom-20 right-10 w-80 h-80 bg-orange-200/10 rounded-full blur-3xl animate-float-slow pointer-events-none"
+      {/* Background Orbs */}
+      <div className="absolute top-20 left-10 w-72 h-72 bg-teal-200/10 rounded-full blur-3xl animate-float-slow pointer-events-none hidden md:block" aria-hidden="true"></div>
+      <div
+        className="absolute bottom-20 right-10 w-80 h-80 bg-orange-200/10 rounded-full blur-3xl animate-float-slow pointer-events-none hidden md:block"
         style={{ animationDelay: '2.5s' }}
+        aria-hidden="true"
       ></div>
 
       {/* Radial Pattern - Updated color to Teal */}
@@ -195,15 +191,6 @@ const SuccessStoriesSection: React.FC<SuccessStoriesProps> = ({
         ></motion.div>
       </div>
 
-      <style>{`
-        @keyframes float-slow {
-          0%, 100% { transform: translateY(0) translateX(0); }
-          50% { transform: translateY(-20px) translateX(10px); }
-        }
-        .animate-float-slow {
-          animation: float-slow 10s ease-in-out infinite;
-        }
-      `}</style>
     </motion.section>
   );
 };

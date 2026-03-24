@@ -31,55 +31,49 @@ const CTASection: React.FC<CTAProps> = ({ dict, locale }) => {
   };
 
   const cardVariants = {
-    hidden: { opacity: 0, scale: 0.9, y: 40 },
+    hidden: { opacity: 0, scale: 0.95, y: 15 },
     visible: {
       opacity: 1,
       scale: 1,
       y: 0,
       transition: {
-        duration: 0.8,
+        duration: 0.5,
         ease: 'easeOut',
-        scale: {
-          type: 'spring',
-          stiffness: 260,
-          damping: 20,
-        },
       },
     },
   };
 
   const iconVariants = {
-    hidden: { opacity: 0, scale: 0, rotate: -180 },
+    hidden: { opacity: 0, scale: 0.5 },
     visible: {
       opacity: 1,
       scale: 1,
-      rotate: 0,
       transition: {
-        duration: 0.6,
-        delay: 0.3,
+        duration: 0.4,
+        delay: 0.1,
         type: 'spring',
         stiffness: 260,
-        damping: 15,
+        damping: 20,
       },
     },
   };
 
   const textVariants = {
-    hidden: { opacity: 0, y: 20 },
+    hidden: { opacity: 0, y: 10 },
     visible: {
       opacity: 1,
       y: 0,
-      transition: { duration: 0.6, ease: 'easeOut' },
+      transition: { duration: 0.5, ease: 'easeOut' },
     },
   };
 
   const buttonVariants = {
-    hidden: { opacity: 0, y: 30 },
+    hidden: { opacity: 0, y: 15 },
     visible: {
       opacity: 1,
       y: 0,
       transition: {
-        duration: 0.6,
+        duration: 0.5,
         ease: 'easeOut',
       },
     },

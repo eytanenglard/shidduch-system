@@ -1,16 +1,14 @@
 'use client';
 
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useEffect } from 'react';
 import { useSoulFingerprint } from '@/components/soul-fingerprint/hooks/useSoulFingerprint';
-import { deriveTagsFromAnswers } from '@/components/soul-fingerprint/types';
 import ProgressIndicator from '@/components/soul-fingerprint/components/ProgressIndicator';
 import SelfPartnerTabs from '@/components/soul-fingerprint/components/SelfPartnerTabs';
-import QuestionRenderer from '@/components/soul-fingerprint/components/QuestionRenderer';
 import NavigationButtons from '@/components/soul-fingerprint/components/NavigationButtons';
+import AccordionQuestion from './AccordionQuestion';
 import HeartMapSectionReminder from './HeartMapSectionReminder';
 import type { SFAnswers } from '@/components/soul-fingerprint/types';
 import type { GuestHeartMapData } from './hooks/useGuestAnswers';
-import { SF_SECTIONS } from '@/components/soul-fingerprint/questions';
 import { ArrowLeft } from 'lucide-react';
 
 interface Props {
@@ -38,6 +36,7 @@ export default function HeartMapFlow({
 
   const [showReminder, setShowReminder] = useState(false);
   const [partnerTransition, setPartnerTransition] = useState(false);
+  const [activeQuestionIndex, setActiveQuestionIndex] = useState(0);
 
   // Custom save function that writes to localStorage instead of API
   const customSaveFn = useCallback(
@@ -77,6 +76,18 @@ export default function HeartMapFlow({
     totalSections,
   } = useSoulFingerprint(gender, initialData, { customSaveFn });
 
+  // Reset active question to first unanswered when section/tab changes
+  useEffect(() => {
+    const firstUnanswered = currentQuestions.findIndex((q) => {
+      if (q.isOptional) return false;
+      const ans = state.answers[q.id];
+      if (ans === null || ans === undefined || ans === '') return true;
+      if (Array.isArray(ans) && ans.length === 0) return true;
+      return false;
+    });
+    setActiveQuestionIndex(firstUnanswered >= 0 ? firstUnanswered : 0);
+  }, [state.currentSectionIndex, state.showingPartnerQuestions]); // eslint-disable-line react-hooks/exhaustive-deps
+
   // Save section index to localStorage whenever it changes
   const saveCurrentProgress = useCallback(() => {
     saveToLocalStorage({
@@ -101,15 +112,49 @@ export default function HeartMapFlow({
 
   const hasUnansweredRequired = unansweredRequiredIds.length > 0;
 
+  // Check if a question is answered
+  const isQuestionAnswered = useCallback(
+    (questionId: string) => {
+      const ans = state.answers[questionId];
+      if (ans === null || ans === undefined || ans === '') return false;
+      if (Array.isArray(ans) && ans.length === 0) return false;
+      return true;
+    },
+    [state.answers]
+  );
+
+  // Auto-advance: move to next question and scroll into view
+  const handleAutoAdvance = useCallback(
+    (currentIndex: number) => {
+      const nextIndex = currentIndex + 1;
+      if (nextIndex < currentQuestions.length) {
+        setActiveQuestionIndex(nextIndex);
+        // Scroll to the next question after a short delay for animation
+        setTimeout(() => {
+          const el = document.getElementById(`sf-question-${currentQuestions[nextIndex].id}`);
+          if (el) {
+            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+        }, 100);
+      }
+      // If it's the last question, don't auto-advance — user will click Next
+    },
+    [currentQuestions]
+  );
+
   const handleScrollToUnanswered = useCallback(() => {
     if (unansweredRequiredIds.length === 0) return;
-    const el = document.getElementById(`sf-question-${unansweredRequiredIds[0]}`);
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      el.classList.add('ring-2', 'ring-red-300', 'ring-offset-2');
-      setTimeout(() => el.classList.remove('ring-2', 'ring-red-300', 'ring-offset-2'), 2000);
+    const idx = currentQuestions.findIndex((q) => q.id === unansweredRequiredIds[0]);
+    if (idx >= 0) {
+      setActiveQuestionIndex(idx);
+      setTimeout(() => {
+        const el = document.getElementById(`sf-question-${unansweredRequiredIds[0]}`);
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 100);
     }
-  }, [unansweredRequiredIds]);
+  }, [unansweredRequiredIds, currentQuestions]);
 
   const handleNext = useCallback(() => {
     // If on self tab and there are partner questions, switch to partner with animation
@@ -241,22 +286,31 @@ export default function HeartMapFlow({
           </div>
         )}
 
-        {/* Questions */}
-        <div className="space-y-6">
-          {currentQuestions.map((question) => (
-            <div
+        {/* Questions - Accordion */}
+        <div className="space-y-3">
+          {currentQuestions.map((question, index) => (
+            <AccordionQuestion
               key={question.id}
-              id={`sf-question-${question.id}`}
-              className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 transition-all duration-300"
-            >
-              <QuestionRenderer
-                question={question}
-                answers={state.answers}
-                onAnswer={setAnswer}
-                t={t}
-                isRTL={isRTL}
-              />
-            </div>
+              question={question}
+              answers={state.answers}
+              onAnswer={setAnswer}
+              t={t}
+              isRTL={isRTL}
+              isActive={activeQuestionIndex === index}
+              isAnswered={isQuestionAnswered(question.id)}
+              onActivate={() => {
+                setActiveQuestionIndex(index);
+                setTimeout(() => {
+                  const el = document.getElementById(`sf-question-${question.id}`);
+                  if (el) {
+                    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                  }
+                }, 100);
+              }}
+              onAutoAdvance={() => handleAutoAdvance(index)}
+              questionNumber={index + 1}
+              totalQuestions={currentQuestions.length}
+            />
           ))}
         </div>
 

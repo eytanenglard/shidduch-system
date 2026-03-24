@@ -117,6 +117,14 @@
       }
     ]
   },
+  "socialProof": {
+    "stats": [
+      { "value": "200+", "label": "Questions in Soul Fingerprint" },
+      { "value": "5", "label": "Content Worlds" },
+      { "value": "100%", "label": "Full Privacy" },
+      { "value": "24/7", "label": "Personal Support" }
+    ]
+  },
   "valueProposition": {
     "title_part1": "What Makes",
     "title_brand": "NeshamaTech",

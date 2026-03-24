@@ -8,7 +8,6 @@ import { Shield, X, Cookie } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { CookieBannerDict } from '@/types/dictionary';
 
-// --- Type Definition for Component Props ---
 interface CookieBannerProps {
   dict: CookieBannerDict;
 }
@@ -31,7 +30,6 @@ const CookieBanner: React.FC<CookieBannerProps> = ({ dict }) => {
     setConsent('true');
     localStorage.setItem('cookie_consent', 'true');
     setIsVisible(false);
-    // Reload to apply analytics scripts if they depend on consent
     window.location.reload();
   };
 
@@ -53,112 +51,99 @@ const CookieBanner: React.FC<CookieBannerProps> = ({ dict }) => {
     <AnimatePresence>
       {isVisible && (
         <motion.div
-          initial={{ opacity: 0, y: 100 }}
+          initial={{ opacity: 0, y: 80 }}
           animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: 100 }}
-          transition={{
-            type: 'spring',
-            stiffness: 300,
-            damping: 30,
-            duration: 0.6,
-          }}
-          className="fixed bottom-0 left-0 right-0 z-[100] pointer-events-none"
+          exit={{ opacity: 0, y: 80 }}
+          transition={{ type: 'spring', stiffness: 260, damping: 28 }}
+          className="fixed bottom-0 left-0 right-0 z-[100] p-4 md:p-6 pointer-events-none"
         >
-          <div className="absolute inset-0 bg-gradient-to-t from-slate-900/95 via-slate-800/90 to-transparent backdrop-blur-md pointer-events-none" />
+          <div className="max-w-3xl mx-auto pointer-events-auto">
+            <motion.div
+              initial={{ scale: 0.96 }}
+              animate={{ scale: 1 }}
+              transition={{ delay: 0.15 }}
+              className="relative bg-white/80 backdrop-blur-xl rounded-2xl shadow-2xl shadow-teal-500/10 border border-white/60 p-5 md:p-6 overflow-hidden"
+            >
+              {/* Decorative orbs */}
+              <div className="absolute -top-10 -right-10 w-28 h-28 bg-gradient-to-br from-teal-200/25 to-emerald-100/10 rounded-full blur-2xl pointer-events-none" />
+              <div className="absolute -bottom-8 -left-8 w-24 h-24 bg-gradient-to-tr from-orange-200/20 to-amber-100/10 rounded-full blur-2xl pointer-events-none" />
 
-          <div className="relative pointer-events-auto">
-            <div className="max-w-7xl mx-auto px-4 py-6">
-              <motion.div
-                initial={{ scale: 0.95 }}
-                animate={{ scale: 1 }}
-                transition={{ delay: 0.2 }}
-                className="relative bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/20 p-6 md:p-8"
+              {/* Dismiss button */}
+              <button
+                onClick={handleDismiss}
+                className="absolute top-3 left-3 p-1.5 rounded-full bg-gray-100/80 hover:bg-gray-200/80 transition-colors duration-200 group"
+                aria-label={dict.aria_close}
               >
-                <div className="absolute inset-0 bg-gradient-to-br from-cyan-50/80 via-white/90 to-pink-50/80 rounded-2xl" />
-                <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-cyan-200/20 to-transparent rounded-full transform translate-x-16 -translate-y-16" />
-                <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-pink-200/20 to-transparent rounded-full transform -translate-x-12 translate-y-12" />
+                <X className="w-3.5 h-3.5 text-gray-500 group-hover:text-gray-700" />
+              </button>
 
-                <button
-                  onClick={handleDismiss}
-                  className="absolute top-4 left-4 p-2 rounded-full bg-gray-100/80 hover:bg-gray-200/80 transition-colors duration-200 group"
-                  aria-label={dict.aria_close}
+              <div className="relative flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                {/* Icon */}
+                <motion.div
+                  initial={{ rotate: -10, scale: 0.8 }}
+                  animate={{ rotate: 0, scale: 1 }}
+                  transition={{ delay: 0.25, type: 'spring', stiffness: 200 }}
+                  className="flex-shrink-0 w-11 h-11 bg-gradient-to-br from-teal-500 to-teal-600 rounded-xl flex items-center justify-center shadow-lg shadow-teal-500/25"
                 >
-                  <X className="w-4 h-4 text-gray-600 group-hover:text-gray-800" />
-                </button>
+                  <Cookie className="w-5 h-5 text-white" />
+                </motion.div>
 
-                <div className="relative grid grid-cols-1 lg:grid-cols-3 gap-6 items-center">
-                  <div className="lg:col-span-2 flex items-start gap-4">
-                    <motion.div
-                      initial={{ rotate: -10, scale: 0.8 }}
-                      animate={{ rotate: 0, scale: 1 }}
-                      transition={{
-                        delay: 0.3,
-                        type: 'spring',
-                        stiffness: 200,
-                      }}
-                      className="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-cyan-500 to-pink-500 rounded-xl flex items-center justify-center shadow-lg"
-                    >
-                      <Cookie className="w-6 h-6 text-white" />
-                    </motion.div>
-
-                    <div className="flex-1 min-w-0">
-                      <motion.h3
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.4 }}
-                        className="text-xl font-bold text-gray-800 mb-2 flex items-center gap-2"
-                      >
-                        <Shield className="w-5 h-5 text-cyan-600" />
-                        {dict.title}
-                      </motion.h3>
-
-                      <motion.p
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.5 }}
-                        className="text-gray-700 leading-relaxed text-sm md:text-base"
-                      >
-                        {dict.text_part1}
-                        <Link
-                          href="/legal/privacy-policy"
-                          className="text-cyan-600 hover:text-cyan-700 font-medium mx-1 underline decoration-2 underline-offset-2 hover:decoration-cyan-700 transition-colors"
-                        >
-                          {dict.privacy_policy_link}
-                        </Link>
-                        {dict.text_part2}
-                      </motion.p>
-                    </div>
-                  </div>
-
-                  <motion.div
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.6 }}
-                    className="flex flex-col sm:flex-row lg:flex-col gap-3 lg:items-stretch"
+                {/* Content */}
+                <div className="flex-1 min-w-0">
+                  <motion.h3
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.3 }}
+                    className="text-base font-bold text-gray-800 mb-1 flex items-center gap-1.5"
                   >
-                    <Button
-                      onClick={handleAccept}
-                      className="relative overflow-hidden bg-gradient-to-r from-cyan-500 to-pink-500 hover:from-cyan-600 hover:to-pink-600 text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 group flex-1 lg:flex-none"
-                    >
-                      <span className="relative z-10 font-semibold">
-                        {dict.accept_button}
-                      </span>
-                      <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                    </Button>
+                    <Shield className="w-4 h-4 text-teal-600" />
+                    {dict.title}
+                  </motion.h3>
 
-                    <Button
-                      onClick={handleDecline}
-                      variant="outline"
-                      className="border-2 border-gray-300 text-gray-700 bg-white/80 hover:bg-gray-50 hover:border-gray-400 rounded-xl transition-all duration-300 flex-1 lg:flex-none"
+                  <motion.p
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.4 }}
+                    className="text-gray-600 leading-relaxed text-sm"
+                  >
+                    {dict.text_part1}
+                    <Link
+                      href="/legal/privacy-policy"
+                      className="text-teal-600 hover:text-teal-700 font-medium mx-1 underline decoration-1 underline-offset-2 transition-colors"
                     >
-                      <span className="font-medium">{dict.decline_button}</span>
-                    </Button>
-                  </motion.div>
+                      {dict.privacy_policy_link}
+                    </Link>
+                    {dict.text_part2}
+                  </motion.p>
                 </div>
 
-                <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-20 h-1 bg-gradient-to-r from-cyan-400 via-pink-400 to-cyan-400 rounded-full" />
-              </motion.div>
-            </div>
+                {/* Actions */}
+                <motion.div
+                  initial={{ opacity: 0, x: 16 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.5 }}
+                  className="flex flex-row sm:flex-col gap-2 w-full sm:w-auto shrink-0"
+                >
+                  <Button
+                    onClick={handleAccept}
+                    className="bg-gradient-to-r from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700 text-white rounded-full shadow-md shadow-teal-500/20 hover:shadow-lg hover:shadow-teal-500/25 transition-all duration-300 hover:scale-[1.02] flex-1 sm:flex-none text-sm px-5"
+                  >
+                    <span className="font-semibold">{dict.accept_button}</span>
+                  </Button>
+
+                  <Button
+                    onClick={handleDecline}
+                    variant="outline"
+                    className="border-2 border-teal-200 text-teal-700 bg-teal-50/50 hover:bg-teal-100 hover:border-teal-300 rounded-full transition-all duration-300 flex-1 sm:flex-none text-sm px-5"
+                  >
+                    <span className="font-medium">{dict.decline_button}</span>
+                  </Button>
+                </motion.div>
+              </div>
+
+              {/* Bottom accent line */}
+              <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-16 h-0.5 bg-gradient-to-r from-teal-400 to-orange-400 rounded-full" />
+            </motion.div>
           </div>
         </motion.div>
       )}

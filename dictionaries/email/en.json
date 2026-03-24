@@ -144,14 +144,14 @@
         "htmlBody": "<div dir='ltr'><p>Hello {{partyName}},</p><p>Your matchmaker, {{matchmakerName}}, was thinking of you and has prepared a new suggestion that looks especially promising.</p><p>To review the full profile and make a decision, we invite you <a href='{{reviewUrl}}'>to visit your personal dashboard</a>.</p><p>We look forward to hearing from you,</p><p>The NeshamaTech Team</p></div>"
       },
       "FIRST_PARTY_APPROVED": {
-        "subject": "Update: The first party has approved the suggestion",
-        "body": "Hello {{matchmakerName}}, great news: {{partyName}} has approved the suggestion. The system will now forward it to the second party. To view details: {{dashboardUrl}}",
-        "htmlBody": "<div dir='ltr'><p>Hello {{matchmakerName}},</p><p>Great news: <strong>{{partyName}}</strong> has approved the suggestion.</p><p>It will now be automatically sent to the second party. You can track its progress on your <a href='{{dashboardUrl}}'>dashboard</a>.</p></div>"
+        "subject": "Suggestion update ({{firstPartyName}} ↔ {{secondPartyName}}): First party approved",
+        "body": "Hello {{matchmakerName}}, great news: {{firstPartyName}} has approved the suggestion with {{secondPartyName}}. The system will now forward it to the second party. To view details: {{dashboardUrl}}",
+        "htmlBody": "<div dir='ltr'><p>Hello {{matchmakerName}},</p><p>Great news: <strong>{{firstPartyName}}</strong> has approved the suggestion with <strong>{{secondPartyName}}</strong>.</p><p>It will now be automatically sent to the second party. You can track its progress on your <a href='{{dashboardUrl}}'>dashboard</a>.</p></div>"
       },
       "FIRST_PARTY_DECLINED": {
-        "subject": "Update: Suggestion declined by the first party",
-        "body": "Hello {{matchmakerName}}, for your information, {{partyName}} has reviewed the suggestion and decided to decline. More details and the reason for declining (if provided) are available on your dashboard: {{dashboardUrl}}",
-        "htmlBody": "<div dir='ltr'><p>Hello {{matchmakerName}},</p><p>For your information, <strong>{{partyName}}</strong> has reviewed the suggestion and decided it's not the right fit at this time.</p><p>More details and the reason for declining (if provided) are available on your <a href='{{dashboardUrl}}'>dashboard</a>.</p></div>"
+        "subject": "Suggestion update ({{firstPartyName}} ↔ {{secondPartyName}}): First party declined",
+        "body": "Hello {{matchmakerName}}, for your information, {{firstPartyName}} has reviewed the suggestion with {{secondPartyName}} and decided to decline. More details and the reason for declining (if provided) are available on your dashboard: {{dashboardUrl}}",
+        "htmlBody": "<div dir='ltr'><p>Hello {{matchmakerName}},</p><p>For your information, <strong>{{firstPartyName}}</strong> has reviewed the suggestion with <strong>{{secondPartyName}}</strong> and decided it's not the right fit at this time.</p><p>More details and the reason for declining (if provided) are available on your <a href='{{dashboardUrl}}'>dashboard</a>.</p></div>"
       },
       "PENDING_SECOND_PARTY": {
         "subject": "A new suggestion for you, with high potential",
@@ -159,14 +159,14 @@
         "htmlBody": "<div dir='ltr'><p>Hello {{partyName}},</p><p>We have exciting news! Your matchmaker, {{matchmakerName}}, has sent you a new suggestion, and <strong>the first party has already approved it</strong>.</p><p>There seems to be high potential here, and we invite you to <a href='{{reviewUrl}}'>review the details and make a decision</a>.</p></div>"
       },
       "SECOND_PARTY_APPROVED": {
-        "subject": "It's a match! Both parties have approved",
-        "body": "Hello {{matchmakerName}}, great news! {{partyName}} has approved the suggestion. Both parties have now approved, and you can proceed to share contact details. For more info: {{dashboardUrl}}",
-        "htmlBody": "<div dir='ltr'><p>Hello {{matchmakerName}},</p><p><strong>It's a match!</strong> 🎉</p><p>We are happy to report that <strong>{{partyName}}</strong> has also approved the suggestion. With mutual consent from both parties, you can now <a href='{{dashboardUrl}}'>proceed to share contact details</a>.</p></div>"
+        "subject": "It's a match! ({{firstPartyName}} ↔ {{secondPartyName}}) — Both parties approved",
+        "body": "Hello {{matchmakerName}}, great news! {{secondPartyName}} has also approved the suggestion with {{firstPartyName}}. Both parties have now approved, and you can proceed to share contact details. For more info: {{dashboardUrl}}",
+        "htmlBody": "<div dir='ltr'><p>Hello {{matchmakerName}},</p><p><strong>It's a match!</strong> 🎉</p><p>We are happy to report that <strong>{{secondPartyName}}</strong> has also approved the suggestion with <strong>{{firstPartyName}}</strong>. With mutual consent from both parties, you can now <a href='{{dashboardUrl}}'>proceed to share contact details</a>.</p></div>"
       },
       "SECOND_PARTY_DECLINED": {
-        "subject": "Update: Suggestion declined by the second party",
-        "body": "Hello {{matchmakerName}}, for your information, {{partyName}} has reviewed the suggestion and decided to decline. More details are available on your dashboard: {{dashboardUrl}}",
-        "htmlBody": "<div dir='ltr'><p>Hello {{matchmakerName}},</p><p>For your information, <strong>{{partyName}}</strong> has reviewed the suggestion and decided it's not the right fit at this time.</p><p>More details are available on your <a href='{{dashboardUrl}}'>dashboard</a>.</p></div>"
+        "subject": "Suggestion update ({{firstPartyName}} ↔ {{secondPartyName}}): Second party declined",
+        "body": "Hello {{matchmakerName}}, for your information, {{secondPartyName}} has reviewed the suggestion with {{firstPartyName}} and decided to decline. More details are available on your dashboard: {{dashboardUrl}}",
+        "htmlBody": "<div dir='ltr'><p>Hello {{matchmakerName}},</p><p>For your information, <strong>{{secondPartyName}}</strong> has reviewed the suggestion with <strong>{{firstPartyName}}</strong> and decided it's not the right fit at this time.</p><p>More details are available on your <a href='{{dashboardUrl}}'>dashboard</a>.</p></div>"
       },
       "CONTACT_DETAILS_SHARED": {
         "subject": "Best of luck! Your contact details have been exchanged",
@@ -174,14 +174,14 @@
         "htmlBody": "<div dir='ltr'><h2>Time to connect!</h2><p>You both approved the suggestion, which is always an exciting moment. Your full and detailed contact information has been sent to you in a separate email.</p><p><strong>A little tip from us:</strong> Take a breath, remember the goal is simply to get acquainted, and most importantly - be yourself. We recommend making initial contact within the next 24-48 hours.</p><p>Wishing you a pleasant conversation and a wonderful meeting!</p></div>"
       },
       "FIRST_PARTY_INTERESTED": {
-        "subject": "Update: The first party saved this suggestion",
-        "body": "Hello {{matchmakerName}}, {{partyName}} has reviewed the suggestion and saved it as a backup option. Track progress on your dashboard: {{dashboardUrl}}",
-        "htmlBody": "<div dir='ltr'><p>Hello {{matchmakerName}},</p><p><strong>{{partyName}}</strong> has reviewed the suggestion and saved it as a backup option ⭐</p><p>You can track progress on your <a href='{{dashboardUrl}}'>dashboard</a>.</p></div>"
+        "subject": "Suggestion update ({{firstPartyName}} ↔ {{secondPartyName}}): First party saved",
+        "body": "Hello {{matchmakerName}}, {{firstPartyName}} has reviewed the suggestion with {{secondPartyName}} and saved it as a backup option. Track progress on your dashboard: {{dashboardUrl}}",
+        "htmlBody": "<div dir='ltr'><p>Hello {{matchmakerName}},</p><p><strong>{{firstPartyName}}</strong> has reviewed the suggestion with <strong>{{secondPartyName}}</strong> and saved it as a backup option ⭐</p><p>You can track progress on your <a href='{{dashboardUrl}}'>dashboard</a>.</p></div>"
       },
       "SECOND_PARTY_NOT_AVAILABLE": {
-        "subject": "Update: The second party is currently unavailable",
-        "body": "Hello {{matchmakerName}}, {{partyName}} has indicated they are currently unavailable. You can track updates on your dashboard: {{dashboardUrl}}",
-        "htmlBody": "<div dir='ltr'><p>Hello {{matchmakerName}},</p><p><strong>{{partyName}}</strong> has indicated they are currently unavailable for new suggestions.</p><p>You can try again later or track updates on your <a href='{{dashboardUrl}}'>dashboard</a>.</p></div>"
+        "subject": "Suggestion update ({{firstPartyName}} ↔ {{secondPartyName}}): Second party unavailable",
+        "body": "Hello {{matchmakerName}}, {{secondPartyName}} has indicated they are currently unavailable (suggestion with {{firstPartyName}}). You can track updates on your dashboard: {{dashboardUrl}}",
+        "htmlBody": "<div dir='ltr'><p>Hello {{matchmakerName}},</p><p><strong>{{secondPartyName}}</strong> has indicated they are currently unavailable for new suggestions (suggestion with <strong>{{firstPartyName}}</strong>).</p><p>You can try again later or track updates on your <a href='{{dashboardUrl}}'>dashboard</a>.</p></div>"
       },
       "RE_OFFERED_TO_FIRST_PARTY": {
         "subject": "✨ An important update about a suggestion you received",
@@ -189,9 +189,9 @@
         "htmlBody": "<div dir='ltr'><p>Hello {{partyName}},</p><p>We have an important update about a match suggestion you received. The suggestion has been sent back to you with updated details.</p><p>We'd love for you to <a href='{{reviewUrl}}'>review the full details in your personal area</a> and let us know.</p></div>"
       },
       "AWAITING_MATCHMAKER_APPROVAL": {
-        "subject": "A suggestion is awaiting your approval",
-        "body": "Hello {{matchmakerName}}, a suggestion is awaiting your approval before contact details can be shared. View details: {{dashboardUrl}}",
-        "htmlBody": "<div dir='ltr'><p>Hello {{matchmakerName}},</p><p>Both parties have expressed interest, and the suggestion is now awaiting your approval before contact details are shared.</p><p><a href='{{dashboardUrl}}'>View details and approve</a></p></div>"
+        "subject": "Suggestion awaiting your approval ({{firstPartyName}} ↔ {{secondPartyName}})",
+        "body": "Hello {{matchmakerName}}, the suggestion between {{firstPartyName}} and {{secondPartyName}} is awaiting your approval before contact details can be shared. View details: {{dashboardUrl}}",
+        "htmlBody": "<div dir='ltr'><p>Hello {{matchmakerName}},</p><p>Both parties have expressed interest in the suggestion between <strong>{{firstPartyName}}</strong> and <strong>{{secondPartyName}}</strong>, and it is now awaiting your approval before contact details are shared.</p><p><a href='{{dashboardUrl}}'>View details and approve</a></p></div>"
       },
       "AWAITING_FIRST_DATE_FEEDBACK": {
         "subject": "We'd love to hear how your meeting went!",
@@ -209,34 +209,34 @@
         "htmlBody": "<div dir='ltr'><p>Hello {{partyName}},</p><p>We're thrilled you've decided to continue to a second date! 🎉</p><p>This is an exciting step and we're here by your side.</p><p><a href='{{reviewUrl}}'>More details</a></p></div>"
       },
       "ENDED_AFTER_FIRST_DATE": {
-        "subject": "Update: The suggestion ended after the first meeting",
-        "body": "Hello {{matchmakerName}}, the suggestion has ended after the first meeting. For more details: {{dashboardUrl}}",
-        "htmlBody": "<div dir='ltr'><p>Hello {{matchmakerName}},</p><p>The suggestion has ended after the first meeting.</p><p>More details are available on your <a href='{{dashboardUrl}}'>dashboard</a>.</p></div>"
+        "subject": "Suggestion update ({{firstPartyName}} ↔ {{secondPartyName}}): Ended after first date",
+        "body": "Hello {{matchmakerName}}, the suggestion between {{firstPartyName}} and {{secondPartyName}} has ended after the first meeting. For more details: {{dashboardUrl}}",
+        "htmlBody": "<div dir='ltr'><p>Hello {{matchmakerName}},</p><p>The suggestion between <strong>{{firstPartyName}}</strong> and <strong>{{secondPartyName}}</strong> has ended after the first meeting.</p><p>More details are available on your <a href='{{dashboardUrl}}'>dashboard</a>.</p></div>"
       },
       "DATING": {
-        "subject": "🌟 Congratulations — the dating process continues!",
-        "body": "Hello {{matchmakerName}}, exciting update: the couple is in an active dating process! For details: {{dashboardUrl}}",
-        "htmlBody": "<div dir='ltr'><p>Hello {{matchmakerName}},</p><p>Exciting update! 🌟 The couple is in an active dating process.</p><p>Track progress on your <a href='{{dashboardUrl}}'>dashboard</a>.</p></div>"
+        "subject": "🌟 Congratulations — {{firstPartyName}} & {{secondPartyName}} are dating!",
+        "body": "Hello {{matchmakerName}}, exciting update: {{firstPartyName}} and {{secondPartyName}} are in an active dating process! For details: {{dashboardUrl}}",
+        "htmlBody": "<div dir='ltr'><p>Hello {{matchmakerName}},</p><p>Exciting update! 🌟 <strong>{{firstPartyName}}</strong> and <strong>{{secondPartyName}}</strong> are in an active dating process.</p><p>Track progress on your <a href='{{dashboardUrl}}'>dashboard</a>.</p></div>"
       },
       "ENGAGED": {
-        "subject": "💍 Mazal Tov! Engagement!",
-        "body": "Hello {{partyName}}, Mazal Tov! We're thrilled to hear about the engagement! Wishing you a wonderful life together!",
-        "htmlBody": "<div dir='ltr'><p>Hello {{partyName}},</p><p>Mazal Tov!! 💍🎉</p><p>We're absolutely thrilled to hear about the engagement! It brings us tremendous joy to know this journey brought you here.</p><p>Wishing you an abundance of happiness, health, and love!</p></div>"
+        "subject": "💍 Mazal Tov! Engagement! ({{firstPartyName}} & {{secondPartyName}})",
+        "body": "Hello {{partyName}}, Mazal Tov! We're thrilled to hear about the engagement of {{firstPartyName}} and {{secondPartyName}}! Wishing you a wonderful life together!",
+        "htmlBody": "<div dir='ltr'><p>Hello {{partyName}},</p><p>Mazal Tov!! 💍🎉</p><p>We're absolutely thrilled to hear about the engagement of <strong>{{firstPartyName}}</strong> and <strong>{{secondPartyName}}</strong>! It brings us tremendous joy to know this journey brought you here.</p><p>Wishing you an abundance of happiness, health, and love!</p></div>"
       },
       "MARRIED": {
-        "subject": "💒 Mazal Tov! Marriage!",
-        "body": "Hello {{partyName}}, Mazal Tov on the marriage! What an exciting moment. Wishing you a life full of happiness and blessings!",
-        "htmlBody": "<div dir='ltr'><p>Hello {{partyName}},</p><p>Mazal Tov on the marriage!! 💒🎊</p><p>This is an exciting moment for us as well. We're proud to have been part of your journey.</p><p>Wishing you a life full of love, happiness, health, and blessings!</p></div>"
+        "subject": "💒 Mazal Tov! Marriage! ({{firstPartyName}} & {{secondPartyName}})",
+        "body": "Hello {{partyName}}, Mazal Tov on the marriage of {{firstPartyName}} and {{secondPartyName}}! What an exciting moment. Wishing you a life full of happiness and blessings!",
+        "htmlBody": "<div dir='ltr'><p>Hello {{partyName}},</p><p>Mazal Tov on the marriage of <strong>{{firstPartyName}}</strong> and <strong>{{secondPartyName}}</strong>!! 💒🎊</p><p>This is an exciting moment for us as well. We're proud to have been part of your journey.</p><p>Wishing you a life full of love, happiness, health, and blessings!</p></div>"
       },
       "CLOSED": {
-        "subject": "Update: The suggestion has been closed",
-        "body": "Hello {{matchmakerName}}, the suggestion has been closed. For more details: {{dashboardUrl}}",
-        "htmlBody": "<div dir='ltr'><p>Hello {{matchmakerName}},</p><p>The suggestion has been closed.</p><p>More details are available on your <a href='{{dashboardUrl}}'>dashboard</a>.</p></div>"
+        "subject": "Suggestion update ({{firstPartyName}} ↔ {{secondPartyName}}): Closed",
+        "body": "Hello {{matchmakerName}}, the suggestion between {{firstPartyName}} and {{secondPartyName}} has been closed. For more details: {{dashboardUrl}}",
+        "htmlBody": "<div dir='ltr'><p>Hello {{matchmakerName}},</p><p>The suggestion between <strong>{{firstPartyName}}</strong> and <strong>{{secondPartyName}}</strong> has been closed.</p><p>More details are available on your <a href='{{dashboardUrl}}'>dashboard</a>.</p></div>"
       },
       "CANCELLED": {
-        "subject": "Update: The suggestion has been cancelled",
-        "body": "Hello {{matchmakerName}}, the suggestion has been cancelled. For more details: {{dashboardUrl}}",
-        "htmlBody": "<div dir='ltr'><p>Hello {{matchmakerName}},</p><p>The suggestion has been cancelled.</p><p>More details are available on your <a href='{{dashboardUrl}}'>dashboard</a>.</p></div>"
+        "subject": "Suggestion update ({{firstPartyName}} ↔ {{secondPartyName}}): Cancelled",
+        "body": "Hello {{matchmakerName}}, the suggestion between {{firstPartyName}} and {{secondPartyName}} has been cancelled. For more details: {{dashboardUrl}}",
+        "htmlBody": "<div dir='ltr'><p>Hello {{matchmakerName}},</p><p>The suggestion between <strong>{{firstPartyName}}</strong> and <strong>{{secondPartyName}}</strong> has been cancelled.</p><p>More details are available on your <a href='{{dashboardUrl}}'>dashboard</a>.</p></div>"
       }
     }
   },

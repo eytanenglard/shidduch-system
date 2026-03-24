@@ -257,6 +257,7 @@ interface ProfileChecklistProps {
   onNavigateToTab: (tab: string) => void;
   onCompletionChange?: (percentage: number) => void;
   sfCompleted?: boolean;
+  sfProgress?: { total: number; answered: number };
 }
 
 export const ProfileChecklist: React.FC<ProfileChecklistProps> = ({
@@ -269,6 +270,7 @@ export const ProfileChecklist: React.FC<ProfileChecklistProps> = ({
   onNavigateToTab,
   onCompletionChange,
   sfCompleted = false,
+  sfProgress,
 }) => {
   const [isMinimized, setIsMinimized] = useState(true);
   const [activeItemId, setActiveItemId] = useState<string | null>(null);
@@ -475,7 +477,9 @@ export const ProfileChecklist: React.FC<ProfileChecklistProps> = ({
       id: 'soul_fingerprint',
       isCompleted: sfCompleted,
       title: dict.tasks.soulFingerprint.title,
-      description: dict.tasks.soulFingerprint.description,
+      description: sfProgress && !sfCompleted
+        ? `${dict.tasks.soulFingerprint.description} (${sfProgress.answered}/${sfProgress.total})`
+        : dict.tasks.soulFingerprint.description,
       link: `/${locale}/soul-fingerprint`,
       icon: Fingerprint,
     },

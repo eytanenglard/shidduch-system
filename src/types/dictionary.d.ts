@@ -62,6 +62,11 @@ export type HeroSectionDict = {
   };
 };
 
+// --- Social Proof Section ---
+export type SocialProofDict = {
+  stats: { value: string; label: string }[];
+};
+
 // --- Value Proposition Section ---
 type SolutionItemDict = {
   bold: string;
@@ -3596,6 +3601,7 @@ export type Dictionary = {
   userDropdown: UserDropdownDict;
   stickyNav: StickyNavDict;
   heroSection: HeroSectionDict;
+  socialProof: SocialProofDict;
   valueProposition: ValuePropositionDict;
   ourMethod: OurMethodDict;
   howItWorks: HowItWorksDict;

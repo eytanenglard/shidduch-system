@@ -146,7 +146,9 @@
     "noSelfQuestions": "השאלות בחלק הזה לא רלוונטיות לפרופיל שלך",
     "saveError": "שגיאה בשמירה, ננסה שוב",
     "unansweredHint": "יש {{count}} שאלות חובה ללא מענה",
-    "showUnanswered": "הצג"
+    "showUnanswered": "הצג",
+    "done": "המשך",
+    "resumeBanner": "ברוך שובך! נשארו לך {{count}} שאלות — ממשיכים מאיפה שעצרת"
   },
   "completion": {
     "title": "מפת הנשמה שלך מוכנה!",

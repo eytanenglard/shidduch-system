@@ -45,25 +45,17 @@ interface HowItWorksProps {
 
 // 1. רקע דינמי משודרג (מותאם ב-100% לפלטת ה-Hero)
 const DynamicBackground: React.FC = () => (
-  <div className="absolute inset-0 overflow-hidden pointer-events-none select-none">
+  <div className="absolute inset-0 overflow-hidden pointer-events-none select-none" aria-hidden="true">
     <div className="absolute inset-0 bg-gradient-to-b from-slate-50 via-teal-50/30 to-orange-50/20" />
-    <div className="absolute inset-0 opacity-30">
-      {/* Teal Orb */}
+    <div className="absolute inset-0 opacity-30 hidden md:block">
       <div className="absolute top-10 left-10 w-72 h-72 bg-teal-300/20 rounded-full blur-3xl animate-float-slow" />
-      {/* Orange Orb */}
       <div
         className="absolute top-1/3 right-20 w-64 h-64 bg-orange-300/20 rounded-full blur-3xl animate-float-slow"
         style={{ animationDelay: '2s' }}
       />
-      {/* Rose Orb */}
       <div
         className="absolute bottom-20 left-1/3 w-80 h-80 bg-rose-300/15 rounded-full blur-3xl animate-float-slow"
         style={{ animationDelay: '4s' }}
-      />
-      {/* Amber Orb */}
-      <div
-        className="absolute bottom-1/4 right-1/4 w-56 h-56 bg-amber-300/20 rounded-full blur-3xl animate-float-slow"
-        style={{ animationDelay: '6s' }}
       />
     </div>
     <div className="absolute inset-0 opacity-[0.03] bg-[radial-gradient(#14b8a6_1px,transparent_1px)] [background-size:30px_30px]" />
@@ -177,10 +169,10 @@ const HowItWorksSection: React.FC<HowItWorksProps> = ({
       <div className="relative max-w-7xl mx-auto pt-16">
         {/* --- Chapter 1: The Promise --- */}
         <motion.div
-          initial={{ opacity: 0, y: 50 }}
+          initial={{ opacity: 0, y: 15 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.2 }}
-          transition={{ duration: 1 }}
+          transition={{ duration: 0.6 }}
           className="text-center mb-20"
         >
           <div className="inline-block mb-6">
@@ -358,10 +350,10 @@ const HowItWorksSection: React.FC<HowItWorksProps> = ({
         {/* --- Founder's Testimonial (The Team Component) --- */}
         <div className="mb-24">
           <motion.div
-            initial={{ opacity: 0, y: 50 }}
+            initial={{ opacity: 0, y: 15 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, amount: 0.2 }}
-            transition={{ duration: 0.8 }}
+            transition={{ duration: 0.5 }}
             className="text-center mb-12"
           >
             {/* Header Badge: Matching Hero 'Principles' colors */}
@@ -507,49 +499,6 @@ const HowItWorksSection: React.FC<HowItWorksProps> = ({
         </motion.div>
       </div>
 
-      <style>{`
-        @keyframes float-slow {
-          0%,
-          100% {
-            transform: translateY(0) translateX(0);
-          }
-          25% {
-            transform: translateY(-25px) translateX(15px);
-          }
-          50% {
-            transform: translateY(-10px) translateX(25px);
-          }
-          75% {
-            transform: translateY(-20px) translateX(10px);
-          }
-        }
-        .animate-float-slow {
-          animation: float-slow 20s ease-in-out infinite;
-        }
-
-        @keyframes shimmer {
-          100% {
-            transform: translateX(100%);
-          }
-        }
-        .animate-shimmer {
-          animation: shimmer 2.5s infinite;
-        }
-
-        @keyframes gradient {
-          0%,
-          100% {
-            background-position: 0% 50%;
-          }
-          50% {
-            background-position: 100% 50%;
-          }
-        }
-        .animate-gradient {
-          background-size: 200% 200%;
-          animation: gradient 4s ease-in-out infinite;
-        }
-      `}</style>
     </section>
   );
 };

@@ -34,20 +34,20 @@ const PrivacyAssuranceSection: React.FC<PrivacyAssuranceProps> = ({
   };
 
   const fadeInLeft = {
-    hidden: { opacity: 0, x: -60 },
+    hidden: { opacity: 0, x: -20 },
     visible: {
       opacity: 1,
       x: 0,
-      transition: { duration: 0.7, ease: 'easeOut' },
+      transition: { duration: 0.5, ease: 'easeOut' },
     },
   };
 
   const fadeInRight = {
-    hidden: { opacity: 0, x: 60 },
+    hidden: { opacity: 0, x: 20 },
     visible: {
       opacity: 1,
       x: 0,
-      transition: { duration: 0.7, ease: 'easeOut' },
+      transition: { duration: 0.5, ease: 'easeOut' },
     },
   };
 
@@ -63,28 +63,23 @@ const PrivacyAssuranceSection: React.FC<PrivacyAssuranceProps> = ({
   };
 
   const listItemVariants = {
-    hidden: { opacity: 0, x: -20 },
+    hidden: { opacity: 0, x: -10 },
     visible: {
       opacity: 1,
       x: 0,
-      transition: { duration: 0.5, ease: 'easeOut' },
+      transition: { duration: 0.4, ease: 'easeOut' },
     },
   };
 
   const cardVariants = {
-    hidden: { opacity: 0, scale: 0.9, y: 30 },
+    hidden: { opacity: 0, scale: 0.95, y: 15 },
     visible: {
       opacity: 1,
       scale: 1,
       y: 0,
       transition: {
-        duration: 0.6,
+        duration: 0.5,
         ease: 'easeOut',
-        scale: {
-          type: 'spring',
-          stiffness: 260,
-          damping: 20,
-        },
       },
     },
   };
@@ -101,11 +96,12 @@ const PrivacyAssuranceSection: React.FC<PrivacyAssuranceProps> = ({
       {/* Updated Grid Pattern: Darker dots on light bg */}
       <div className="absolute inset-0 opacity-[0.03] bg-[radial-gradient(#0f172a_1px,transparent_1px)] [background-size:20px_20px]"></div>
 
-      {/* Updated Orbs: Teal and Orange */}
-      <div className="absolute top-0 left-0 w-64 h-64 bg-teal-300/20 rounded-full blur-3xl animate-float-slow"></div>
+      {/* Background Orbs */}
+      <div className="absolute top-0 left-0 w-64 h-64 bg-teal-300/20 rounded-full blur-3xl animate-float-slow hidden md:block" aria-hidden="true"></div>
       <div
-        className="absolute bottom-0 right-0 w-80 h-80 bg-orange-300/20 rounded-full blur-3xl animate-float-slow"
+        className="absolute bottom-0 right-0 w-80 h-80 bg-orange-300/20 rounded-full blur-3xl animate-float-slow hidden md:block"
         style={{ animationDelay: '2s' }}
+        aria-hidden="true"
       ></div>
 
       <div className="max-w-5xl mx-auto relative z-10">
@@ -196,15 +192,6 @@ const PrivacyAssuranceSection: React.FC<PrivacyAssuranceProps> = ({
         </div>
       </div>
 
-      <style>{`
-        @keyframes float-slow {
-          0%, 100% { transform: translateY(0) translateX(0); }
-          50% { transform: translateY(-20px) translateX(10px); }
-        }
-        .animate-float-slow {
-          animation: float-slow 10s ease-in-out infinite;
-        }
-      `}</style>
     </motion.section>
   );
 };

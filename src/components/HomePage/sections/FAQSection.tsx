@@ -42,51 +42,45 @@ const FAQSection: React.FC<FAQProps> = ({ dict, locale }) => {
   };
 
   const headerVariants = {
-    hidden: { opacity: 0, y: 30 },
+    hidden: { opacity: 0, y: 15 },
     visible: {
       opacity: 1,
       y: 0,
-      transition: { duration: 0.6, ease: 'easeOut' },
+      transition: { duration: 0.5, ease: 'easeOut' },
     },
   };
 
   const faqContainerVariants = {
-    hidden: { opacity: 0, y: 20 },
+    hidden: { opacity: 0, y: 10 },
     visible: {
       opacity: 1,
       y: 0,
       transition: {
-        duration: 0.6,
+        duration: 0.5,
         ease: 'easeOut',
-        staggerChildren: 0.1,
-        delayChildren: 0.3,
+        staggerChildren: 0.08,
+        delayChildren: 0.1,
       },
     },
   };
 
   const faqItemVariants = {
-    hidden: { opacity: 0, x: -20 },
+    hidden: { opacity: 0, x: -10 },
     visible: {
       opacity: 1,
       x: 0,
-      transition: { duration: 0.5, ease: 'easeOut' },
+      transition: { duration: 0.4, ease: 'easeOut' },
     },
   };
 
   const contactBlockVariants = {
-    hidden: { opacity: 0, y: 30, scale: 0.95 },
+    hidden: { opacity: 0, y: 15 },
     visible: {
       opacity: 1,
       y: 0,
-      scale: 1,
       transition: {
-        duration: 0.6,
+        duration: 0.5,
         ease: 'easeOut',
-        scale: {
-          type: 'spring',
-          stiffness: 260,
-          damping: 20,
-        },
       },
     },
   };
@@ -125,15 +119,14 @@ const FAQSection: React.FC<FAQProps> = ({ dict, locale }) => {
       initial="hidden"
       animate={isInView ? 'visible' : 'hidden'}
     >
-      <div className="absolute inset-0 overflow-hidden">
-        {/* Updated Orbs colors */}
-        <div className="absolute top-20 left-10 w-32 h-32 bg-gradient-to-br from-teal-200/30 to-emerald-300/20 rounded-full blur-3xl animate-float-slow"></div>
+      <div className="absolute inset-0 overflow-hidden" aria-hidden="true">
+        <div className="absolute top-20 left-10 w-32 h-32 bg-gradient-to-br from-teal-200/30 to-emerald-300/20 rounded-full blur-3xl animate-float-slow hidden md:block"></div>
         <div
-          className="absolute top-60 right-20 w-40 h-40 bg-gradient-to-br from-orange-200/25 to-amber-300/15 rounded-full blur-3xl animate-float-slow"
+          className="absolute top-60 right-20 w-40 h-40 bg-gradient-to-br from-orange-200/25 to-amber-300/15 rounded-full blur-3xl animate-float-slow hidden md:block"
           style={{ animationDelay: '2s' }}
         ></div>
         <div
-          className="absolute bottom-40 left-1/3 w-36 h-36 bg-gradient-to-br from-rose-200/20 to-pink-300/15 rounded-full blur-3xl animate-float-slow"
+          className="absolute bottom-40 left-1/3 w-36 h-36 bg-gradient-to-br from-rose-200/20 to-pink-300/15 rounded-full blur-3xl animate-float-slow hidden md:block"
           style={{ animationDelay: '4s' }}
         ></div>
         <div className="absolute inset-0 opacity-5 bg-[radial-gradient(#0d9488_1px,transparent_1px)] [background-size:30px_30px]"></div>
@@ -302,32 +295,6 @@ const FAQSection: React.FC<FAQProps> = ({ dict, locale }) => {
         </motion.div>
       </div>
 
-      <style>{`
-        @keyframes float-slow {
-          0%,
-          100% {
-            transform: translateY(0px) rotate(0deg);
-          }
-          50% {
-            transform: translateY(-20px) rotate(2deg);
-          }
-        }
-        @keyframes pulse-slow {
-          0%,
-          100% {
-            opacity: 0.8;
-          }
-          50% {
-            opacity: 1;
-          }
-        }
-        .animate-float-slow {
-          animation: float-slow 8s ease-in-out infinite;
-        }
-        .animate-pulse-slow {
-          animation: pulse-slow 4s ease-in-out infinite;
-        }
-      `}</style>
     </motion.section>
   );
 };

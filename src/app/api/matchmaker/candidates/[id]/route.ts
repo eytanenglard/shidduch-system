@@ -372,12 +372,34 @@ export async function DELETE(
   const performingUserId = session.user.id;
   const performingUserRole = session.user.role as UserRole; 
 
-  if (performingUserRole !== UserRole.ADMIN) {
-    console.warn(`[${timestamp}] Forbidden DELETE attempt: User ${performingUserId} is not ADMIN.`);
+  if (performingUserRole !== UserRole.ADMIN && performingUserRole !== UserRole.MATCHMAKER) {
+    console.warn(`[${timestamp}] Forbidden DELETE attempt: User ${performingUserId} is not ADMIN or MATCHMAKER.`);
     return NextResponse.json(
-      { success: false, error: 'אינך מורשה לבצע פעולה זו. נדרשת הרשאת אדמין.' },
+      { success: false, error: 'אינך מורשה לבצע פעולה זו. נדרשת הרשאת אדמין או שדכן.' },
       { status: 403 }
     );
+  }
+
+  // Matchmaker can only delete candidates they added within 15 minutes
+  if (performingUserRole === UserRole.MATCHMAKER) {
+    const candidate = await prisma.user.findUnique({
+      where: { id: candidateIdToDelete },
+      select: { addedByMatchmakerId: true, createdAt: true },
+    });
+    if (!candidate || candidate.addedByMatchmakerId !== performingUserId) {
+      return NextResponse.json(
+        { success: false, error: 'ניתן לבטל רק מועמדים שהוספת בעצמך.' },
+        { status: 403 }
+      );
+    }
+    const minutesSinceCreation =
+      (Date.now() - candidate.createdAt.getTime()) / 60000;
+    if (minutesSinceCreation > 15) {
+      return NextResponse.json(
+        { success: false, error: 'חלון הביטול (15 דקות) נסגר.' },
+        { status: 410 }
+      );
+    }
   }
 
   if (!candidateIdToDelete) {

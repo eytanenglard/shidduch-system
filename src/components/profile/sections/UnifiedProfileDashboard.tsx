@@ -86,6 +86,7 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
   );
   const [completionPercentage, setCompletionPercentage] = useState(0);
   const [sfCompleted, setSfCompleted] = useState(false);
+  const [sfProgress, setSfProgress] = useState<{ total: number; answered: number } | undefined>(undefined);
 
   // --- START OF ADDITION ---
   const [isMobile, setIsMobile] = useState(false); // הוספה: סטייט לזיהוי מובייל
@@ -108,15 +109,31 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
     setActiveTab(initialTab);
   }, [initialTab]);
 
-  // Check soul fingerprint status
+  // Check soul fingerprint status & progress
   useEffect(() => {
     fetch('/api/user/soul-fingerprint')
       .then(r => r.ok ? r.json() : null)
-      .then(data => {
+      .then(async (data) => {
         if (data?.profileTags?.completedAt) setSfCompleted(true);
+        // Calculate partial progress from sectionAnswers using actual question definitions
+        if (data?.profileTags?.sectionAnswers) {
+          try {
+            const { computeSFProgress } = await import('@/components/soul-fingerprint/questions');
+            const gender = profileData?.gender || null;
+            const progress = computeSFProgress(data.profileTags.sectionAnswers, gender);
+            setSfProgress(progress);
+          } catch {
+            // Fallback: rough count from answer keys
+            const answers = data.profileTags.sectionAnswers as Record<string, unknown>;
+            const answeredCount = Object.values(answers).filter(
+              (v) => v !== null && v !== undefined && v !== '' && !(Array.isArray(v) && v.length === 0)
+            ).length;
+            if (answeredCount > 0) setSfProgress({ total: 30, answered: answeredCount });
+          }
+        }
       })
       .catch(() => {});
-  }, []);
+  }, [profileData?.gender]);
 
   // Calculate questionnaire completion percentage
   const questionnaireCompletionPercentage = useMemo(() => {
@@ -613,6 +630,7 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
                 onNavigateToTab={handleTabChange}
                 onCompletionChange={setCompletionPercentage}
                 sfCompleted={sfCompleted}
+                sfProgress={sfProgress}
               />
               <div className="my-6 md:my-8 flex justify-center">
                 <AIProfileAdvisorDialog

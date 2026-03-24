@@ -1,4 +1,5 @@
-import type { SFSection, SFQuestion } from './types';
+import type { SFSection, SFQuestion, SectorValue, LifeStageValue, SFAnswers } from './types';
+import { getSectorGroup, isQuestionVisible } from './types';
 
 // ========== ANCHOR QUESTIONS ==========
 export const ANCHOR_QUESTIONS: SFQuestion[] = [
@@ -3664,3 +3665,34 @@ export const SF_SECTIONS: SFSection[] = [
     questions: [...RELATIONSHIP_QUESTIONS, ...RELATIONSHIP_EXTRA_QUESTIONS],
   },
 ];
+
+/**
+ * Compute the total number of visible questions and answered questions
+ * from raw sectionAnswers (as stored in ProfileTags).
+ * Used by ProfileChecklist to show SF progress.
+ */
+export function computeSFProgress(
+  sectionAnswers: Record<string, unknown>,
+  gender: 'MALE' | 'FEMALE' | null
+): { total: number; answered: number } {
+  const answers = sectionAnswers as SFAnswers;
+  const sector = (answers['anchor_sector'] as SectorValue) || null;
+  const sectorGroup = getSectorGroup(sector);
+  const lifeStage = (answers['anchor_life_stage'] as LifeStageValue) || null;
+
+  let total = 0;
+  let answered = 0;
+
+  for (const section of SF_SECTIONS) {
+    for (const q of section.questions) {
+      if (!isQuestionVisible(q, answers, sectorGroup, sector, lifeStage, gender)) continue;
+      total++;
+      const ans = answers[q.id];
+      if (ans !== null && ans !== undefined && ans !== '' && !(Array.isArray(ans) && ans.length === 0)) {
+        answered++;
+      }
+    }
+  }
+
+  return { total, answered };
+}

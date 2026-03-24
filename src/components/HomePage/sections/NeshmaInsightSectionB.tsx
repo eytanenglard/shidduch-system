@@ -2,7 +2,7 @@
 
 'use client';
 
-import React, { useRef, useState, useEffect, useMemo } from 'react';
+import React, { useRef, useState, useEffect, useMemo, useCallback } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { motion, useInView, AnimatePresence } from 'framer-motion';
@@ -16,6 +16,7 @@ import {
   ArrowLeft,
   Zap,
   TrendingUp,
+  RotateCcw,
 } from 'lucide-react';
 import { getRelativeCloudinaryPath } from '@/lib/utils';
 import type { NeshmaInsightDict } from '@/types/dictionary';
@@ -57,6 +58,22 @@ export default function NeshmaInsightSectionB({
   const [progressStep, setProgressStep] = useState(0);
   const [showPostConversationTransition, setShowPostConversationTransition] =
     useState(false);
+  const [conversationFinished, setConversationFinished] = useState(false);
+  const [animationKey, setAnimationKey] = useState(0);
+
+  const handleReplay = useCallback(() => {
+    setMessages([]);
+    setIsTyping(false);
+    setShowPhone(false);
+    setShowInsights(false);
+    setShowTransitionText(false);
+    setShowTransitionCTA(false);
+    setShowCTA(false);
+    setProgressStep(0);
+    setShowPostConversationTransition(false);
+    setConversationFinished(false);
+    setAnimationKey((prev) => prev + 1);
+  }, []);
 
   // --- Memoized Data from Dictionary ---
   const conversation = useMemo(() => {
@@ -105,15 +122,16 @@ export default function NeshmaInsightSectionB({
 
   // --- Animation Logic ---
   useEffect(() => {
+    const timeouts: NodeJS.Timeout[] = [];
+
     const playConversation = (index: number) => {
       if (index >= conversation.length) {
         setIsTyping(false);
-        // מיד אחרי סיום השיחה - הכותרת והמעבר מופיעים
-        setTimeout(() => setShowTransitionText(true), 300);
-        setTimeout(() => setShowPostConversationTransition(true), 300);
-        setTimeout(() => setShowInsights(true), 1000);
-        setTimeout(() => setShowTransitionCTA(true), 1700);
-        setTimeout(() => setShowCTA(true), 2500);
+        timeouts.push(setTimeout(() => setShowTransitionText(true), 300));
+        timeouts.push(setTimeout(() => setShowPostConversationTransition(true), 300));
+        timeouts.push(setTimeout(() => setShowInsights(true), 1000));
+        timeouts.push(setTimeout(() => setShowTransitionCTA(true), 1700));
+        timeouts.push(setTimeout(() => { setShowCTA(true); setConversationFinished(true); }, 2500));
         setProgressStep(5);
         return;
       }
@@ -134,7 +152,7 @@ export default function NeshmaInsightSectionB({
         ? baseTypingDuration * 1.5
         : baseTypingDuration;
 
-      setTimeout(() => {
+      timeouts.push(setTimeout(() => {
         setIsTyping(false);
         const newMessage: Message = {
           id: Date.now() + index,
@@ -152,15 +170,17 @@ export default function NeshmaInsightSectionB({
         setMessages((prev) => [...prev, newMessage]);
 
         const pauseBeforeNext = currentMessage.isEureka ? 1200 : 600;
-        setTimeout(() => playConversation(index + 1), pauseBeforeNext);
-      }, typingDuration);
+        timeouts.push(setTimeout(() => playConversation(index + 1), pauseBeforeNext));
+      }, typingDuration));
     };
 
-    if (isInView && !showPhone) {
-      setTimeout(() => setShowPhone(true), 500);
-      setTimeout(() => playConversation(0), 1500);
+    if ((isInView || animationKey > 0) && !showPhone) {
+      timeouts.push(setTimeout(() => setShowPhone(true), 500));
+      timeouts.push(setTimeout(() => playConversation(0), 1500));
     }
-  }, [isInView, showPhone, conversation, locale]);
+
+    return () => timeouts.forEach(clearTimeout);
+  }, [isInView, showPhone, conversation, locale, animationKey]);
 
   // Auto-scroll logic - גלילה רק בתוך אזור ההודעות
   useEffect(() => {
@@ -232,14 +252,14 @@ export default function NeshmaInsightSectionB({
       animate={isInView ? 'visible' : 'hidden'}
     >
       {/* Background Elements - Updated to match Hero Orbs (Teal, Orange, Rose) */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-20 left-10 w-72 h-72 bg-gradient-to-br from-teal-200/20 to-emerald-200/10 rounded-full blur-3xl animate-float-slow"></div>
+      <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
+        <div className="absolute top-20 left-10 w-72 h-72 bg-gradient-to-br from-teal-200/20 to-emerald-200/10 rounded-full blur-3xl animate-float-slow hidden md:block"></div>
         <div
-          className="absolute bottom-40 right-10 w-96 h-96 bg-gradient-to-br from-orange-200/15 to-amber-200/10 rounded-full blur-3xl animate-float-slow"
+          className="absolute bottom-40 right-10 w-96 h-96 bg-gradient-to-br from-orange-200/15 to-amber-200/10 rounded-full blur-3xl animate-float-slow hidden md:block"
           style={{ animationDelay: '2s' }}
         ></div>
         <div
-          className="absolute top-1/2 left-1/3 w-64 h-64 bg-gradient-to-br from-rose-200/15 to-pink-200/10 rounded-full blur-3xl animate-float-slow"
+          className="absolute top-1/2 left-1/3 w-64 h-64 bg-gradient-to-br from-rose-200/15 to-pink-200/10 rounded-full blur-3xl animate-float-slow hidden md:block"
           style={{ animationDelay: '4s' }}
         ></div>
       </div>
@@ -299,7 +319,7 @@ export default function NeshmaInsightSectionB({
                         </div>
                         <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-400 rounded-full border-2 border-white"></div>
                       </div>
-                      <div>
+                      <div className="flex-1">
                         <h3 className="text-gray-800 font-bold text-sm">
                           {dict.chatHeader.name}
                         </h3>
@@ -307,6 +327,17 @@ export default function NeshmaInsightSectionB({
                           {dict.chatHeader.status}
                         </p>
                       </div>
+                      {conversationFinished && (
+                        <motion.button
+                          initial={{ opacity: 0, scale: 0.8 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          onClick={handleReplay}
+                          className="p-2 rounded-full bg-teal-50 hover:bg-teal-100 text-teal-600 transition-colors duration-200"
+                          aria-label={isHebrew ? 'הפעל שוב' : 'Replay'}
+                        >
+                          <RotateCcw className="w-4 h-4" />
+                        </motion.button>
+                      )}
                     </div>
 
                     {/* Progress Bar - Updated Gradient */}
@@ -564,43 +595,6 @@ export default function NeshmaInsightSectionB({
         </AnimatePresence>
       </div>
 
-      {/* Styles - כולל גלילה משופרת */}
-      <style>{`
-        @keyframes float-slow { 0%, 100% { transform: translateY(0) translateX(0); } 25% { transform: translateY(-20px) translateX(10px); } 50% { transform: translateY(0) translateX(20px); } 75% { transform: translateY(20px) translateX(10px); } }
-        .animate-float-slow { animation: float-slow 20s ease-in-out infinite; }
-        @keyframes pulse-glow { 0%, 100% { box-shadow: 0 0 5px rgba(251, 191, 36, 0.3); } 50% { box-shadow: 0 0 20px rgba(251, 191, 36, 0.6); } }
-        .animate-pulse-glow { animation: pulse-glow 2s ease-in-out infinite; }
-        
-        /* גלילה משופרת לאזור ההודעות */
-        .messages-container {
-          scroll-behavior: smooth;
-          -webkit-overflow-scrolling: touch;
-          overscroll-behavior: contain;
-          touch-action: pan-y;
-          scrollbar-width: thin;
-          scrollbar-color: #14b8a6 rgba(243, 244, 246, 0.5);
-        }
-        
-        .messages-container::-webkit-scrollbar {
-          width: 8px;
-        }
-        .messages-container::-webkit-scrollbar-track {
-          background: rgba(243, 244, 246, 0.5);
-          border-radius: 10px;
-          margin: 4px 0;
-        }
-        .messages-container::-webkit-scrollbar-thumb {
-          background: linear-gradient(to bottom, #14b8a6, #f97316);
-          border-radius: 10px;
-          border: 2px solid rgba(243, 244, 246, 0.5);
-        }
-        .messages-container::-webkit-scrollbar-thumb:hover {
-          background: linear-gradient(to bottom, #0d9488, #ea580c);
-        }
-        .messages-container::-webkit-scrollbar-thumb:active {
-          background: linear-gradient(to bottom, #0f766e, #c2410c);
-        }
-      `}</style>
     </motion.section>
   );
 }

@@ -446,15 +446,18 @@ export class NotificationService {
       let partyName = '';
       if(partyType === 'first') partyName = suggestion.firstParty.firstName;
       if(partyType === 'second') partyName = suggestion.secondParty.firstName;
-      
+      if(partyType === 'matchmaker') partyName = suggestion.matchmaker.firstName;
+
       const replacements: Record<string, string> = {
         '{{partyName}}': partyName,
+        '{{firstPartyName}}': suggestion.firstParty.firstName,
+        '{{secondPartyName}}': suggestion.secondParty.firstName,
         '{{matchmakerName}}': suggestion.matchmaker.firstName,
         '{{reviewUrl}}': reviewUrl,
         '{{dashboardUrl}}': dashboardUrl,
       };
 
-      const replacePlaceholders = (text: string) => text.replace(/{{partyName}}|{{matchmakerName}}|{{reviewUrl}}|{{dashboardUrl}}/g, (match) => replacements[match]);
+      const replacePlaceholders = (text: string) => text.replace(/\{\{(?:partyName|firstPartyName|secondPartyName|matchmakerName|reviewUrl|dashboardUrl)\}\}/g, (match) => replacements[match]);
 
       return {
         subject: replacePlaceholders(template.subject),
