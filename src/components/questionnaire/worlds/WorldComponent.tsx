@@ -583,9 +583,10 @@ export default function WorldComponent({
       }
       if (typeof val === 'number') return String(val);
       if (Array.isArray(val)) {
-        const texts = val.map((v: string) => {
-          const opt = q.options?.find((o) => o.value === v);
-          return opt?.text || v.replace('custom:', '');
+        const texts = val.map((v) => {
+          const s = String(v);
+          const opt = q.options?.find((o) => o.value === s);
+          return opt?.text || s.replace('custom:', '');
         });
         return texts.join(', ').slice(0, 60) + (texts.join(', ').length > 60 ? '...' : '');
       }
@@ -638,7 +639,7 @@ export default function WorldComponent({
                 const answer = answers.find((a) => a.questionId === q.id);
                 const hasAnswer = answer?.value != null && answer.value !== '' &&
                   !(Array.isArray(answer.value) && answer.value.length === 0);
-                const questionWithText = getQuestionWithText(q, dict.questions, locale, userProfile);
+                const questionWithText = getQuestionWithText(q, dict, userProfile?.gender);
                 const preview = getAnswerPreview(questionWithText, answer);
 
                 return (

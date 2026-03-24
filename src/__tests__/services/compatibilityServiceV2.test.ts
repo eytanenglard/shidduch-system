@@ -162,14 +162,14 @@ function setupMocks(
   metricsB: Record<string, unknown>
 ) {
   const mockFindUnique = vi.mocked(prisma.profile.findUnique);
-  mockFindUnique.mockImplementation(async ({ where }: { where: { id: string } }) => {
+  mockFindUnique.mockImplementation((async ({ where }: { where: { id: string } }) => {
     if (where.id === 'profile-a') return profileA as any;
     if (where.id === 'profile-b') return profileB as any;
     return null;
-  });
+  }) as any);
 
   const mockQueryRaw = vi.mocked(prisma.$queryRaw);
-  mockQueryRaw.mockImplementation(async (query: any) => {
+  mockQueryRaw.mockImplementation((async (query: any) => {
     const queryStr = String(query);
     // Metrics query
     if (queryStr.includes('profile_metrics')) {
@@ -181,7 +181,7 @@ function setupMocks(
       return [];
     }
     return [];
-  });
+  }) as any);
 }
 
 // ───────────────────────────────────────────────────────────
@@ -395,11 +395,11 @@ describe('calculatePairCompatibility', () => {
       religiousLevel: 'dati_leumi',
     });
 
-    vi.mocked(prisma.profile.findUnique).mockImplementation(async ({ where }: any) => {
+    vi.mocked(prisma.profile.findUnique).mockImplementation((async ({ where }: any) => {
       if (where.id === 'profile-a') return male as any;
       if (where.id === 'profile-b') return female as any;
       return null;
-    });
+    }) as any);
 
     vi.mocked(prisma.$queryRaw).mockResolvedValue([]);
 

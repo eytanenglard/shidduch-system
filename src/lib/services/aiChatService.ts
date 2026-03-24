@@ -7,7 +7,7 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import prisma from '@/lib/prisma';
 import { AutoSuggestionFeedbackService } from './autoSuggestionFeedbackService';
-import type { PotentialMatchStatus } from '@prisma/client';
+import type { PotentialMatchStatus, MatchSuggestionStatus } from '@prisma/client';
 
 // =============================================================================
 // CONSTANTS
@@ -22,7 +22,7 @@ const PREFERENCE_EXTRACTION_INTERVAL = 5; // Extract every N user messages
 const SEARCH_INTENT_KEYWORDS_HE = ['חפש', 'מצא', 'הצעות', 'תחפשי', 'תמצאי', 'תחפש', 'תמצא', 'חיפוש', 'סריקה'];
 const SEARCH_INTENT_KEYWORDS_EN = ['search', 'find', 'match', 'suggest', 'look for', 'scan'];
 
-const CLOSED_STATUSES = [
+const CLOSED_STATUSES: MatchSuggestionStatus[] = [
   'MARRIED', 'CLOSED', 'EXPIRED', 'CANCELLED',
   'FIRST_PARTY_DECLINED', 'SECOND_PARTY_DECLINED',
   'MATCH_DECLINED', 'ENDED_AFTER_FIRST_DATE',
@@ -84,7 +84,7 @@ export class AiChatService {
         conversationId,
         role,
         content,
-        metadata: metadata ?? undefined,
+        metadata: (metadata ?? undefined) as any,
       },
     });
   }
@@ -809,7 +809,7 @@ If a trait isn't clearly expressed, don't include it. Return ONLY the JSON, no m
 
     const names: string[] = [];
     for (const match of potentialMatches) {
-      const user = isMale ? match.female : match.male;
+      const user = isMale ? (match as any).female : (match as any).male;
       if (user?.firstName) names.push(user.firstName);
       if (user?.lastName) names.push(user.lastName);
       if (user?.firstName && user?.lastName) names.push(`${user.firstName} ${user.lastName}`);
