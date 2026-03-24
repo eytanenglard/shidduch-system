@@ -913,33 +913,6 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
     }
   }, [isOpen, suggestion, userId, refreshNotifications]);
 
-  const handleStatusChange = async () => {
-    if (!newStatus || !suggestion) return;
-    setIsLoading(true);
-    try {
-      onAction('changeStatus', {
-        suggestionId: suggestion.id,
-        newStatus,
-        notes: statusChangeNote,
-      });
-      setShowStatusChange(false);
-      setStatusChangeNote('');
-      setNewStatus(null);
-    } catch (error) {
-      console.error('Error changing status:', error);
-      toast.error(
-        `${dict.toasts.statusUpdateError}: ${error instanceof Error ? error.message : ''}`
-      );
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  if (!suggestion) return null;
-
-  const statusInfo = getStatusInfo(suggestion.status);
-  const statusLabel = dict.statusLabels[suggestion.status] || suggestion.status;
-  const StatusIcon = statusInfo.icon;
   // Extract date feedback from statusHistory (stored as JSON in notes field with reason=DATE_FEEDBACK)
   const dateFeedbackEntries = useMemo(() => {
     if (!suggestion?.statusHistory) return [];
@@ -971,6 +944,34 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
     }
     return base;
   }, [dict.tabs, hasDateFeedback]);
+
+  const handleStatusChange = async () => {
+    if (!newStatus || !suggestion) return;
+    setIsLoading(true);
+    try {
+      onAction('changeStatus', {
+        suggestionId: suggestion.id,
+        newStatus,
+        notes: statusChangeNote,
+      });
+      setShowStatusChange(false);
+      setStatusChangeNote('');
+      setNewStatus(null);
+    } catch (error) {
+      console.error('Error changing status:', error);
+      toast.error(
+        `${dict.toasts.statusUpdateError}: ${error instanceof Error ? error.message : ''}`
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  if (!suggestion) return null;
+
+  const statusInfo = getStatusInfo(suggestion.status);
+  const statusLabel = dict.statusLabels[suggestion.status] || suggestion.status;
+  const StatusIcon = statusInfo.icon;
 
   // ✅ CHANGED: Use imported function directly
   const currentAvailableActions = getAvailableActions(
