@@ -7,13 +7,16 @@
 
 import React from 'react';
 import { cn } from '@/lib/utils';
-import { Bot, User } from 'lucide-react';
+import { Bot, User, UserCheck, ThumbsUp, ThumbsDown } from 'lucide-react';
 
 interface AiChatBubbleProps {
-  role: 'user' | 'assistant';
+  role: 'user' | 'assistant' | 'matchmaker';
   content: string;
   createdAt?: string;
   isStreaming?: boolean;
+  messageId?: string;
+  userRating?: 'up' | 'down';
+  onRate?: (messageId: string, rating: 'up' | 'down') => void;
 }
 
 export default function AiChatBubble({
@@ -21,8 +24,12 @@ export default function AiChatBubble({
   content,
   createdAt,
   isStreaming,
+  messageId,
+  userRating,
+  onRate,
 }: AiChatBubbleProps) {
   const isUser = role === 'user';
+  const isMatchmaker = role === 'matchmaker';
 
   return (
     <div
@@ -37,10 +44,12 @@ export default function AiChatBubble({
           'flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center mt-1',
           isUser
             ? 'bg-violet-100 text-violet-600'
-            : 'bg-gradient-to-br from-violet-500 to-purple-600 text-white'
+            : isMatchmaker
+              ? 'bg-gradient-to-br from-teal-500 to-emerald-600 text-white'
+              : 'bg-gradient-to-br from-violet-500 to-purple-600 text-white'
         )}
       >
-        {isUser ? <User className="w-3.5 h-3.5" /> : <Bot className="w-3.5 h-3.5" />}
+        {isUser ? <User className="w-3.5 h-3.5" /> : isMatchmaker ? <UserCheck className="w-3.5 h-3.5" /> : <Bot className="w-3.5 h-3.5" />}
       </div>
 
       {/* Message bubble */}
@@ -49,7 +58,9 @@ export default function AiChatBubble({
           'rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed',
           isUser
             ? 'bg-violet-100 text-violet-900 rounded-tr-md'
-            : 'bg-white border border-gray-200 text-gray-800 rounded-tl-md shadow-sm',
+            : isMatchmaker
+              ? 'bg-teal-50 border border-teal-200 text-gray-800 rounded-tl-md shadow-sm'
+              : 'bg-white border border-gray-200 text-gray-800 rounded-tl-md shadow-sm',
           isStreaming && 'animate-pulse'
         )}
       >
@@ -61,13 +72,43 @@ export default function AiChatBubble({
           )}
         </div>
 
-        {/* Timestamp on hover */}
+        {/* Timestamp and rating on hover */}
         {createdAt && (
-          <div className="text-[10px] text-gray-400 mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
-            {new Date(createdAt).toLocaleTimeString('he-IL', {
-              hour: '2-digit',
-              minute: '2-digit',
-            })}
+          <div className="flex items-center gap-2 mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
+            <span className="text-[10px] text-gray-400">
+              {new Date(createdAt).toLocaleTimeString('he-IL', {
+                hour: '2-digit',
+                minute: '2-digit',
+              })}
+            </span>
+
+            {/* Rating buttons for assistant messages */}
+            {!isUser && !isStreaming && messageId && onRate && (
+              <div className="flex items-center gap-0.5">
+                <button
+                  onClick={(e) => { e.stopPropagation(); onRate(messageId, 'up'); }}
+                  className={cn(
+                    'p-0.5 rounded transition-colors',
+                    userRating === 'up'
+                      ? 'text-emerald-500'
+                      : 'text-gray-300 hover:text-emerald-500',
+                  )}
+                >
+                  <ThumbsUp className="w-3 h-3" />
+                </button>
+                <button
+                  onClick={(e) => { e.stopPropagation(); onRate(messageId, 'down'); }}
+                  className={cn(
+                    'p-0.5 rounded transition-colors',
+                    userRating === 'down'
+                      ? 'text-rose-500'
+                      : 'text-gray-300 hover:text-rose-500',
+                  )}
+                >
+                  <ThumbsDown className="w-3 h-3" />
+                </button>
+              </div>
+            )}
           </div>
         )}
       </div>

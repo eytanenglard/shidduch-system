@@ -8,6 +8,7 @@ import React, {
   useCallback,
   useMemo,
 } from 'react';
+import { useChatSSE, type SSEMessage } from '@/hooks/useChatSSE';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
@@ -105,6 +106,91 @@ export default function SuggestionChatTab({
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const isHe = locale === 'he';
+
+  // ==========================================
+  // Typing indicator state
+  // ==========================================
+  const [typingUser, setTypingUser] = useState<string | null>(null);
+  const typingClearRef = useRef<NodeJS.Timeout | null>(null);
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // ==========================================
+  // SSE integration for real-time updates
+  // ==========================================
+  const handleSSENewMessage = useCallback(
+    (message: SSEMessage) => {
+      if (
+        message.conversationId === suggestionId &&
+        message.conversationType === 'suggestion'
+      ) {
+        setMessages((prev) => {
+          if (prev.some((m) => m.id === message.id)) return prev;
+          return [
+            ...prev,
+            {
+              id: message.id,
+              content: message.content,
+              senderId: message.senderId,
+              senderType: message.senderType as 'user' | 'matchmaker' | 'system',
+              senderName: message.senderName || '',
+              isRead: false,
+              createdAt: new Date().toISOString(),
+              // Determine party info based on sender
+              isFirstParty: message.senderId === parties.firstParty?.id,
+              isSecondParty: message.senderId === parties.secondParty?.id,
+            },
+          ];
+        });
+      }
+    },
+    [suggestionId, parties.firstParty?.id, parties.secondParty?.id]
+  );
+
+  const handleSSETyping = useCallback(
+    (data: { conversationId: string; userId: string; userName: string }) => {
+      if (data.conversationId === `suggestion:${suggestionId}`) {
+        setTypingUser(data.userName);
+        if (typingClearRef.current) clearTimeout(typingClearRef.current);
+        typingClearRef.current = setTimeout(() => setTypingUser(null), 4000);
+      }
+    },
+    [suggestionId]
+  );
+
+  useChatSSE({
+    streamUrl: '/api/matchmaker/stream',
+    pollUrl: `/api/matchmaker/suggestions/${suggestionId}/chat`,
+    pollInterval: 15000,
+    enabled: !!suggestionId,
+    onNewMessage: handleSSENewMessage,
+    onTyping: handleSSETyping,
+  });
+
+  // ==========================================
+  // Debounced typing notification
+  // ==========================================
+  const handleTypingNotify = useCallback(() => {
+    if (typingTimeoutRef.current) return;
+    fetch('/api/messages/typing', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        conversationId: suggestionId,
+        conversationType: 'suggestion' as const,
+      }),
+    }).catch(() => {});
+    typingTimeoutRef.current = setTimeout(() => {
+      typingTimeoutRef.current = null;
+    }, 3000);
+  }, [suggestionId]);
+
+  // Cleanup typing refs on unmount
+  useEffect(() => {
+    return () => {
+      if (typingClearRef.current) clearTimeout(typingClearRef.current);
+      if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+    };
+  }, []);
 
   // ==========================================
   // ✅ Smart auto-scroll tracking
@@ -503,6 +589,13 @@ export default function SuggestionChatTab({
         )}
       </ScrollArea>
 
+      {/* Typing indicator */}
+      {typingUser && (
+        <div className="px-4 py-1 text-xs text-gray-400 animate-pulse">
+          {isHe ? `${typingUser} מקליד/ה...` : `${typingUser} is typing...`}
+        </div>
+      )}
+
       {/* Input area */}
       <div className="border-t bg-white p-3">
         {/* Sending to banner */}
@@ -555,7 +648,10 @@ export default function SuggestionChatTab({
           <Textarea
             ref={textareaRef}
             value={newMessage}
-            onChange={(e) => setNewMessage(e.target.value)}
+            onChange={(e) => {
+              setNewMessage(e.target.value);
+              handleTypingNotify();
+            }}
             onKeyDown={handleKeyDown}
             placeholder={t.placeholder}
             className="flex-1 min-h-[44px] max-h-[120px] resize-none rounded-xl border-gray-200 focus:border-teal-400 focus:ring-teal-400/20"

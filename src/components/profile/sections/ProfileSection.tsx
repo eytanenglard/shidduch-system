@@ -23,8 +23,10 @@ import {
   StoryAndMoreCard,
   NeshamaTechSummaryCard,
   FriendTestimonialsManager,
+  QuestionnaireInsightsCard,
   ensureDateObject,
 } from './profile-cards';
+import { QuestionnaireSyncedFields } from './profile-cards/types';
 
 interface ProfileSectionProps {
   profile: UserProfile | null;
@@ -37,6 +39,13 @@ interface ProfileSectionProps {
   onCvUpload?: (file: File) => Promise<void>;
   onCvDelete?: () => Promise<void>;
   isCvUploading?: boolean;
+  /** Fields that are auto-synced from the questionnaire */
+  questionnaireSyncedFields?: QuestionnaireSyncedFields;
+  /** Navigate user to the questionnaire tab to edit synced fields */
+  onNavigateToQuestionnaire?: () => void;
+  /** Questionnaire answers for the insights card */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  questionnaireAnswers?: Record<string, any[]> | null;
 }
 
 const initializeProfileData = (profileData: UserProfile): Partial<UserProfile> => {
@@ -117,6 +126,9 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
   isCvUploading,
   dict,
   locale,
+  questionnaireSyncedFields,
+  onNavigateToQuestionnaire,
+  questionnaireAnswers,
 }) => {
   const {
     formData,
@@ -237,6 +249,8 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
     dict,
     locale,
     direction,
+    questionnaireSyncedFields,
+    onNavigateToQuestionnaire,
   };
 
   return (
@@ -325,6 +339,12 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
           {/* Right Column */}
           <div className="space-y-4">
             <StoryAndMoreCard {...cardProps} />
+            <QuestionnaireInsightsCard
+              questionnaireAnswers={questionnaireAnswers}
+              dict={dict}
+              direction={direction}
+              onNavigateToQuestionnaire={onNavigateToQuestionnaire}
+            />
             <EducationCareerCard
               {...cardProps}
               onCvUpload={onCvUpload}

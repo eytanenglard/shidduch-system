@@ -850,6 +850,7 @@ const TAB_ICONS: Record<string, LucideIcon> = {
   firstParty: User,
   secondParty: User,
   timeline: Calendar,
+  dateFeedback: Heart,
   chat: MessageCircle,
   actions: Settings,
 };
@@ -939,7 +940,37 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
   const statusInfo = getStatusInfo(suggestion.status);
   const statusLabel = dict.statusLabels[suggestion.status] || suggestion.status;
   const StatusIcon = statusInfo.icon;
-  const tabEntries: [string, string][] = Object.entries(dict.tabs);
+  // Extract date feedback from statusHistory (stored as JSON in notes field with reason=DATE_FEEDBACK)
+  const dateFeedbackEntries = useMemo(() => {
+    if (!suggestion?.statusHistory) return [];
+    return suggestion.statusHistory
+      .filter((h) => h.reason === 'DATE_FEEDBACK' && h.notes)
+      .map((h) => {
+        try {
+          return JSON.parse(h.notes!);
+        } catch {
+          return null;
+        }
+      })
+      .filter(Boolean);
+  }, [suggestion?.statusHistory]);
+
+  const hasDateFeedback = dateFeedbackEntries.length > 0;
+
+  // Add date feedback tab dynamically when feedback exists
+  const tabEntries: [string, string][] = useMemo(() => {
+    const base = Object.entries(dict.tabs) as [string, string][];
+    if (hasDateFeedback) {
+      const timelineIndex = base.findIndex(([key]) => key === 'timeline');
+      const feedbackTab: [string, string] = ['dateFeedback', 'פידבק דייט'];
+      if (timelineIndex >= 0) {
+        base.splice(timelineIndex + 1, 0, feedbackTab);
+      } else {
+        base.push(feedbackTab);
+      }
+    }
+    return base;
+  }, [dict.tabs, hasDateFeedback]);
 
   // ✅ CHANGED: Use imported function directly
   const currentAvailableActions = getAvailableActions(
@@ -1138,6 +1169,159 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
                 </div>
               </div>
             </TabsContent>
+
+            {/* Date Feedback */}
+            {hasDateFeedback && (
+              <TabsContent value="dateFeedback" className="m-0">
+                <div className="p-4 sm:p-6 max-w-3xl mx-auto space-y-4">
+                  <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2">
+                    <Heart className="w-5 h-5 text-rose-500" />
+                    פידבק מדייט
+                  </h3>
+
+                  {dateFeedbackEntries.map((feedback: {
+                    userId: string;
+                    overallRating: number;
+                    connectionFelt: boolean;
+                    likedAspects: string[];
+                    improvementAreas: string[];
+                    wantSecondDate: string;
+                    freeText?: string;
+                    submittedAt: string;
+                  }, idx: number) => {
+                    const isFirstPartyFeedback = feedback.userId === suggestion.firstPartyId;
+                    const partyName = isFirstPartyFeedback
+                      ? suggestion.firstParty?.firstName
+                      : suggestion.secondParty?.firstName;
+
+                    const ratingEmojis = ['😞', '😕', '😐', '🙂', '😍'];
+                    const secondDateLabels: Record<string, { text: string; color: string }> = {
+                      yes: { text: 'כן, בהחלט!', color: 'text-teal-700 bg-teal-50 border-teal-200' },
+                      maybe: { text: 'אולי, צריך/ה לחשוב', color: 'text-amber-700 bg-amber-50 border-amber-200' },
+                      no: { text: 'לא, לא מרגיש נכון', color: 'text-rose-700 bg-rose-50 border-rose-200' },
+                    };
+                    const likedLabels: Record<string, string> = {
+                      conversation: 'שיחה זורמת',
+                      humor: 'חוש הומור',
+                      values: 'ערכים משותפים',
+                      appearance: 'מראה חיצוני',
+                      ambition: 'שאפתנות',
+                      warmth: 'חום אישי',
+                      intelligence: 'אינטליגנציה',
+                      chemistry: 'כימיה',
+                    };
+                    const improvementLabels: Record<string, string> = {
+                      conversation: 'השיחה לא זרמה',
+                      values_gap: 'פער בערכים',
+                      no_chemistry: 'חסר כימיה',
+                      different_expectations: 'ציפיות שונות',
+                      appearance: 'המראה לא תאם',
+                      too_quiet: 'שקט/ה מדי',
+                      too_intense: 'אינטנסיבי/ת מדי',
+                    };
+                    const secondDate = secondDateLabels[feedback.wantSecondDate] || secondDateLabels.maybe;
+
+                    return (
+                      <div key={idx} className="bg-white rounded-2xl border border-gray-100 p-5 space-y-4">
+                        {/* Header */}
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-rose-100 to-pink-100 flex items-center justify-center">
+                              <User className="w-4 h-4 text-rose-600" />
+                            </div>
+                            <div>
+                              <p className="text-sm font-bold text-gray-800">פידבק מ{partyName}</p>
+                              <p className="text-xs text-gray-500">
+                                {isFirstPartyFeedback ? 'צד א׳' : 'צד ב׳'}
+                                {feedback.submittedAt && ` • ${new Date(feedback.submittedAt).toLocaleDateString('he-IL')}`}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Rating */}
+                        <div className="flex items-center gap-3">
+                          <span className="text-sm font-medium text-gray-600">דירוג כללי:</span>
+                          <div className="flex items-center gap-1">
+                            {[1, 2, 3, 4, 5].map((val) => (
+                              <span
+                                key={val}
+                                className={cn(
+                                  'text-lg',
+                                  val <= feedback.overallRating ? 'opacity-100' : 'opacity-20'
+                                )}
+                              >
+                                ⭐
+                              </span>
+                            ))}
+                            <span className="text-xl mr-2">
+                              {ratingEmojis[feedback.overallRating - 1]}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Connection */}
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-medium text-gray-600">חיבור:</span>
+                          <Badge className={cn(
+                            'border',
+                            feedback.connectionFelt
+                              ? 'bg-teal-50 text-teal-700 border-teal-200'
+                              : 'bg-rose-50 text-rose-700 border-rose-200'
+                          )}>
+                            {feedback.connectionFelt ? '✓ הרגיש חיבור' : '✗ לא הרגיש חיבור'}
+                          </Badge>
+                        </div>
+
+                        {/* Liked aspects */}
+                        {feedback.likedAspects?.length > 0 && (
+                          <div>
+                            <span className="text-sm font-medium text-gray-600 block mb-1.5">מה אהב/ה:</span>
+                            <div className="flex flex-wrap gap-1.5">
+                              {feedback.likedAspects.map((key: string) => (
+                                <Badge key={key} className="bg-teal-50 text-teal-700 border border-teal-200 text-xs">
+                                  {likedLabels[key] || key}
+                                </Badge>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Improvement areas */}
+                        {feedback.improvementAreas?.length > 0 && (
+                          <div>
+                            <span className="text-sm font-medium text-gray-600 block mb-1.5">מה היה פחות:</span>
+                            <div className="flex flex-wrap gap-1.5">
+                              {feedback.improvementAreas.map((key: string) => (
+                                <Badge key={key} className="bg-rose-50 text-rose-700 border border-rose-200 text-xs">
+                                  {improvementLabels[key] || key}
+                                </Badge>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Second date */}
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-medium text-gray-600">דייט שני:</span>
+                          <Badge className={cn('border', secondDate.color)}>
+                            {secondDate.text}
+                          </Badge>
+                        </div>
+
+                        {/* Free text */}
+                        {feedback.freeText && (
+                          <div className="p-3 bg-gray-50 rounded-xl border border-gray-100">
+                            <p className="text-xs text-gray-500 mb-1 font-medium">הערות נוספות:</p>
+                            <p className="text-sm text-gray-700 leading-relaxed">{feedback.freeText}</p>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </TabsContent>
+            )}
 
             {/* Chat */}
             <TabsContent value="chat" className="m-0 h-full">

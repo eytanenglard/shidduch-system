@@ -23,6 +23,8 @@ import {
   Star,
   Clock,
   Zap,
+  Heart,
+  MessageCircle,
 } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -59,6 +61,8 @@ import AutoSuggestionsZone from '@/components/suggestions/auto/AutoSuggestionsZo
 import AiChatPanel from '@/components/suggestions/chat/AiChatPanel';
 import AutoSuggestionFeedbackDialog from '@/components/suggestions/auto/AutoSuggestionFeedbackDialog';
 import type { FeedbackData } from '@/components/suggestions/auto/AutoSuggestionFeedbackDialog';
+import DateFeedbackDialog from '@/components/suggestions/feedback/DateFeedbackDialog';
+import type { DateFeedbackData } from '@/components/suggestions/feedback/DateFeedbackDialog';
 
 const SYSTEM_MATCHMAKER_ID = 'system-matchmaker-neshamatech';
 
@@ -387,6 +391,9 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
   const [showFeedbackDialog, setShowFeedbackDialog] = useState(false);
   const [feedbackDecision, setFeedbackDecision] = useState<'APPROVED' | 'DECLINED' | 'INTERESTED'>('APPROVED');
 
+  // --- Date Feedback Dialog State ---
+  const [showDateFeedbackDialog, setShowDateFeedbackDialog] = useState(false);
+
   // --- Details Modal State ---
   const [selectedSuggestion, setSelectedSuggestion] =
     useState<ExtendedMatchSuggestion | null>(null);
@@ -496,6 +503,20 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
   const selectedQuestionnaireData = useMemo(() => {
     return enhanceQuestionnaireData(selectedSuggestion, userId);
   }, [selectedSuggestion, userId]);
+
+  // --- Derived: Suggestion in dating status that needs feedback ---
+  const datingSuggestion = useMemo(() => {
+    const dateFeedbackStatuses = [
+      'CONTACT_DETAILS_SHARED',
+      'AWAITING_FIRST_DATE_FEEDBACK',
+      'DATING',
+    ];
+    return (
+      activeSuggestions.find((s) =>
+        dateFeedbackStatuses.includes(s.status)
+      ) || null
+    );
+  }, [activeSuggestions]);
 
   // --- Data Fetching ---
   const fetchSuggestions = useCallback(
@@ -722,6 +743,37 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
       await fetchSuggestions(false);
     },
     [fetchSuggestions]
+  );
+
+  // --- Date Feedback Submit Handler ---
+  const handleDateFeedbackSubmit = useCallback(
+    async (feedback: DateFeedbackData) => {
+      try {
+        const response = await fetch(
+          `/api/suggestions/${feedback.suggestionId}/date-feedback`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(feedback),
+          }
+        );
+        if (!response.ok) throw new Error('Failed to submit feedback');
+        await fetchSuggestions(false);
+        toast.success(
+          isRtl ? 'תודה על הפידבק!' : 'Thanks for your feedback!',
+          {
+            description: isRtl
+              ? 'זה יעזור לנו לשפר את ההצעות הבאות'
+              : 'This will help us improve future suggestions',
+          }
+        );
+      } catch (err) {
+        toast.error(
+          isRtl ? 'שגיאה בשליחת הפידבק' : 'Error submitting feedback'
+        );
+      }
+    },
+    [fetchSuggestions, isRtl]
   );
 
   // --- Remove from INTERESTED ---
@@ -1066,6 +1118,35 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
                   />
                 )}
 
+                {/* ===== Date Feedback CTA ===== */}
+                {datingSuggestion && showHero && (
+                  <div className="p-4 bg-gradient-to-r from-rose-50 via-pink-50 to-orange-50 rounded-2xl border border-rose-100 shadow-sm mb-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-rose-400 to-pink-500 flex items-center justify-center shadow-md flex-shrink-0">
+                        <Heart className="w-5 h-5 text-white" />
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="text-sm font-bold text-rose-800">
+                          {isRtl ? 'איך היה הדייט?' : 'How was the date?'}
+                        </h4>
+                        <p className="text-xs text-rose-600">
+                          {isRtl
+                            ? 'הפידבק שלך יעזור לנו להציע הצעות טובות יותר'
+                            : 'Your feedback helps us suggest better matches'}
+                        </p>
+                      </div>
+                      <Button
+                        size="sm"
+                        className="bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white rounded-xl text-xs px-4 shadow-md"
+                        onClick={() => setShowDateFeedbackDialog(true)}
+                      >
+                        <MessageCircle className={cn('w-3.5 h-3.5', isRtl ? 'ml-1.5' : 'mr-1.5')} />
+                        {isRtl ? 'שתף/י' : 'Share'}
+                      </Button>
+                    </div>
+                  </div>
+                )}
+
                 {/* ===== Interested Queue ===== */}
                 {showInterestedQueue && interestedSuggestions.length > 0 && (
                   <InterestedQueue
@@ -1302,6 +1383,16 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
           thankYouDesc: isRtl ? 'זה יעזור לנו לדייק את ההצעות הבאות שלך' : "This will help us fine-tune your future suggestions",
         }}
         onSubmit={handleFeedbackSubmit}
+      />
+
+      {/* Date Feedback Dialog */}
+      <DateFeedbackDialog
+        open={showDateFeedbackDialog}
+        onOpenChange={setShowDateFeedbackDialog}
+        suggestion={datingSuggestion}
+        userId={userId}
+        locale={locale}
+        onSubmit={handleDateFeedbackSubmit}
       />
     </div>
   );

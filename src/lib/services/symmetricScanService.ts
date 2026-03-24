@@ -101,7 +101,7 @@ const DEFAULT_OPTIONS: Required<Omit<SymmetricScanOptions, 'onProgress' | 'scanS
   useVectors: true,
   useAIDeepAnalysis: true,
   topForAI: 30,
-  incrementalOnly: false,
+  incrementalOnly: true, // Default to incremental — only scan users whose profiles changed
 };
 
 // =============================================================================

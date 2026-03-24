@@ -467,7 +467,9 @@ export async function scanSingleUserV2(
   // STALE  = ScannedPair exists but profile changed → force rescore
   // FRESH  = ScannedPair exists, no change → skip scoring
   // ═══════════════════════════════════════════════════════════
-  const RESCAN_COOLDOWN_DAYS = 7; // failed pairs: don't rescan within this period
+  // Smart cooldown: shorter cooldown when profile changed, longer when nothing changed
+  const RESCAN_COOLDOWN_DAYS_DEFAULT = 7;     // failed pairs with no profile change
+  const RESCAN_COOLDOWN_DAYS_CHANGED = 3;     // failed pairs where at least one profile changed
   const now = Date.now();
 
   type ScanCategory = 'NEW' | 'STALE' | 'FRESH';
@@ -492,7 +494,10 @@ export async function scanSingleUserV2(
       } else {
         // STALE: profile changed — but apply cooldown for previously-failed pairs
         const failedPair = c.spPassedThreshold === false;
-        const cooldownExpired = now - lastScanned > RESCAN_COOLDOWN_DAYS * 24 * 60 * 60 * 1000;
+        // Use shorter cooldown when profile actually changed (more likely score will differ)
+        const profileChanged = userChanged || candidateChanged;
+        const cooldownDays = profileChanged ? RESCAN_COOLDOWN_DAYS_CHANGED : RESCAN_COOLDOWN_DAYS_DEFAULT;
+        const cooldownExpired = now - lastScanned > cooldownDays * 24 * 60 * 60 * 1000;
         if (failedPair && !cooldownExpired) {
           category = 'FRESH'; // treat as FRESH to skip (cooldown active)
         } else {
@@ -619,6 +624,21 @@ export async function scanSingleUserV2(
 
   // מיון לפי ציון
   scoredCandidates.sort((a, b) => b.compatibility.symmetricScore - a.compatibility.symmetricScore);
+
+  // ═══════════════════════════════════════════════════════════
+  // TIER 3.5: Rejection Feedback Loop
+  // Apply penalties based on user's historical rejection patterns
+  // ═══════════════════════════════════════════════════════════
+  try {
+    const rejectionPenalties = await applyRejectionFeedbackPenalties(userId, scoredCandidates);
+    if (rejectionPenalties.adjustedCount > 0) {
+      console.log(`[ScanV2] Tier 3.5 Rejection Feedback: adjusted ${rejectionPenalties.adjustedCount} candidates (avg penalty: ${rejectionPenalties.avgPenalty.toFixed(1)})`);
+      // Re-sort after adjustments
+      scoredCandidates.sort((a, b) => b.compatibility.symmetricScore - a.compatibility.symmetricScore);
+    }
+  } catch (error) {
+    console.warn(`[ScanV2] Rejection feedback loop skipped:`, error);
+  }
 
   // ═══════════════════════════════════════════════════════════
   // TIER 4: AI Deep Analysis (אופציונלי)
@@ -756,6 +776,158 @@ export async function scanSingleUserV2(
 }
 
 // ═══════════════════════════════════════════════════════════════
+// REJECTION FEEDBACK LOOP
+// Uses historical rejection patterns to adjust compatibility scores
+// ═══════════════════════════════════════════════════════════════
+
+// Maps rejection categories to candidate attributes that should be penalized
+const REJECTION_PENALTY_MAP: Record<string, {
+  check: (candidate: any, compatibility: PairCompatibilityResult) => boolean;
+  penalty: number;
+  label: string;
+}> = {
+  AGE_GAP: {
+    check: (candidate, compat) => {
+      // Penalize candidates at the edges of the age range
+      const flags = compat.flags || [];
+      return flags.some(f => f.includes('AGE')) || (candidate.candidateAge && Math.abs(candidate.candidateAge - 30) > 8);
+    },
+    penalty: 5,
+    label: 'REJECTION_PATTERN:AGE',
+  },
+  RELIGIOUS_GAP: {
+    check: (_candidate, compat) => {
+      const flags = compat.flags || [];
+      return flags.some(f => f.includes('RELIGIOUS') || f.includes('RELIG'));
+    },
+    penalty: 7,
+    label: 'REJECTION_PATTERN:RELIGIOUS',
+  },
+  BACKGROUND_GAP: {
+    check: (_candidate, compat) => {
+      const penalties = compat.breakdownAtoB?.appliedSoftPenalties || [];
+      return penalties.some((p: any) => p.type?.includes('BACKGROUND') || p.type?.includes('ETHNIC'));
+    },
+    penalty: 5,
+    label: 'REJECTION_PATTERN:BACKGROUND',
+  },
+  NOT_ATTRACTED: {
+    check: (_candidate, compat) => {
+      const penalties = compat.breakdownAtoB?.appliedSoftPenalties || [];
+      return penalties.some((p: any) =>
+        p.type?.includes('BODY_TYPE') || p.type?.includes('APPEARANCE') || p.type?.includes('GROOMING')
+      );
+    },
+    penalty: 4,
+    label: 'REJECTION_PATTERN:APPEARANCE',
+  },
+  EDUCATION_GAP: {
+    check: (candidate) => {
+      return candidate.educationLevelScore !== undefined && candidate.educationLevelScore < 3;
+    },
+    penalty: 4,
+    label: 'REJECTION_PATTERN:EDUCATION',
+  },
+  GEOGRAPHIC_GAP: {
+    check: (_candidate, compat) => {
+      const penalties = compat.breakdownAtoB?.appliedSoftPenalties || [];
+      return penalties.some((p: any) => p.type?.includes('URBAN'));
+    },
+    penalty: 3,
+    label: 'REJECTION_PATTERN:GEOGRAPHY',
+  },
+};
+
+// Minimum rejections in a category to activate the penalty (prevents noise from 1-2 rejections)
+const MIN_REJECTIONS_TO_ACTIVATE = 3;
+// Percentage threshold — category must represent >= this % of user's total rejections
+const MIN_REJECTION_PERCENTAGE = 30;
+
+async function applyRejectionFeedbackPenalties(
+  userId: string,
+  scoredCandidates: { candidate: any; compatibility: PairCompatibilityResult; profileChanged: boolean }[]
+): Promise<{ adjustedCount: number; avgPenalty: number }> {
+  // Load rejection history for this user (rejections they MADE, not received)
+  const rejectionsByUser = await prisma.rejectionFeedback.groupBy({
+    by: ['category'],
+    where: { rejectingUserId: userId },
+    _count: { category: true },
+  });
+
+  if (rejectionsByUser.length === 0) {
+    return { adjustedCount: 0, avgPenalty: 0 };
+  }
+
+  const totalRejections = rejectionsByUser.reduce((sum, r) => sum + r._count.category, 0);
+  if (totalRejections < MIN_REJECTIONS_TO_ACTIVATE) {
+    return { adjustedCount: 0, avgPenalty: 0 };
+  }
+
+  // Find dominant rejection patterns
+  const activePatterns: { category: string; penalty: number; label: string; check: (c: any, comp: PairCompatibilityResult) => boolean }[] = [];
+
+  for (const rej of rejectionsByUser) {
+    const percentage = (rej._count.category / totalRejections) * 100;
+    const penaltyConfig = REJECTION_PENALTY_MAP[rej.category];
+
+    if (
+      penaltyConfig &&
+      rej._count.category >= MIN_REJECTIONS_TO_ACTIVATE &&
+      percentage >= MIN_REJECTION_PERCENTAGE
+    ) {
+      // Scale penalty based on how dominant this pattern is (30%-100% → 1x-2x)
+      const scaleFactor = 1 + (percentage - MIN_REJECTION_PERCENTAGE) / 100;
+      activePatterns.push({
+        category: rej.category,
+        penalty: Math.round(penaltyConfig.penalty * scaleFactor),
+        label: penaltyConfig.label,
+        check: penaltyConfig.check,
+      });
+    }
+  }
+
+  if (activePatterns.length === 0) {
+    return { adjustedCount: 0, avgPenalty: 0 };
+  }
+
+  console.log(`[ScanV2] Rejection patterns found: ${activePatterns.map(p => `${p.category}(-${p.penalty})`).join(', ')}`);
+
+  let adjustedCount = 0;
+  let totalPenalty = 0;
+
+  for (const entry of scoredCandidates) {
+    let pairPenalty = 0;
+
+    for (const pattern of activePatterns) {
+      if (pattern.check(entry.candidate, entry.compatibility)) {
+        pairPenalty += pattern.penalty;
+      }
+    }
+
+    if (pairPenalty > 0) {
+      // Cap penalty at 15 points to avoid over-penalizing
+      pairPenalty = Math.min(pairPenalty, 15);
+
+      // Mutate the compatibility scores to reflect the penalty
+      entry.compatibility = {
+        ...entry.compatibility,
+        symmetricScore: Math.max(0, entry.compatibility.symmetricScore - pairPenalty),
+        scoreAtoB: Math.max(0, entry.compatibility.scoreAtoB - pairPenalty),
+        flags: [...entry.compatibility.flags, ...activePatterns.filter(p => p.check(entry.candidate, entry.compatibility)).map(p => p.label)],
+      };
+
+      adjustedCount++;
+      totalPenalty += pairPenalty;
+    }
+  }
+
+  return {
+    adjustedCount,
+    avgPenalty: adjustedCount > 0 ? totalPenalty / adjustedCount : 0,
+  };
+}
+
+// ═══════════════════════════════════════════════════════════════
 // HELPER FUNCTIONS
 // ═══════════════════════════════════════════════════════════════
 
@@ -847,18 +1019,24 @@ async function ensureCandidatesReady(
   let updated = 0;
   let failed = 0;
 
-  for (const candidate of candidatesNeedingUpdate) {
-    try {
-      await updateProfileVectorsAndMetrics(candidate.profileId);
-      updated++;
-      await new Promise(resolve => setTimeout(resolve, 200));
-    } catch (error) {
-      failed++;
-      console.error(`[ScanV2] Failed to update ${candidate.firstName}:`, error);
+  // Run updates in parallel batches of 5 (instead of serial with 200ms sleep)
+  const PARALLEL_BATCH_SIZE = 5;
+  for (let i = 0; i < candidatesNeedingUpdate.length; i += PARALLEL_BATCH_SIZE) {
+    const batch = candidatesNeedingUpdate.slice(i, i + PARALLEL_BATCH_SIZE);
+    const results = await Promise.allSettled(
+      batch.map(candidate => updateProfileVectorsAndMetrics(candidate.profileId))
+    );
+    for (let j = 0; j < results.length; j++) {
+      if (results[j].status === 'fulfilled') {
+        updated++;
+      } else {
+        failed++;
+        console.error(`[ScanV2] Failed to update ${batch[j].firstName}:`, (results[j] as PromiseRejectedResult).reason);
+      }
     }
   }
 
-  console.log(`[ScanV2] Metrics update: ${updated} success, ${failed} failed`);
+  console.log(`[ScanV2] Metrics update: ${updated} success, ${failed} failed (parallel batches of ${PARALLEL_BATCH_SIZE})`);
   return { updated, failed };
 }
 
@@ -869,27 +1047,101 @@ async function ensureCandidatesReady(
 async function performAIDeepAnalysis(
   userProfile: any,
   userMetrics: any,
-  candidates: { candidate: any; compatibility: PairCompatibilityResult }[]
+  candidates: { candidate: any; compatibility: PairCompatibilityResult; profileChanged?: boolean }[]
 ): Promise<Map<string, any>> {
   const results = new Map<string, any>();
+
+  // ═══ AI CACHING: Load existing PotentialMatch records to reuse cached AI analysis ═══
+  const isMale = userProfile.gender === Gender.MALE;
+  const candidateUserIds = candidates.map(c => c.candidate.userId);
+
+  let cachedAnalyses: Map<string, { aiScore: number; reasoning: string | null; profileId: string }> = new Map();
+  try {
+    const existingMatches = await prisma.potentialMatch.findMany({
+      where: isMale
+        ? { maleUserId: userProfile.userId, femaleUserId: { in: candidateUserIds } }
+        : { femaleUserId: userProfile.userId, maleUserId: { in: candidateUserIds } },
+      select: {
+        maleUserId: true,
+        femaleUserId: true,
+        metricsV2Score: true,
+        metricsV2Reasoning: true,
+        metricsV2ScannedAt: true,
+        shortReasoning: true,
+        aiScore: true,
+      },
+    });
+
+    for (const match of existingMatches) {
+      const candidateUserId = isMale ? match.femaleUserId : match.maleUserId;
+      if (match.metricsV2Reasoning && match.metricsV2Score) {
+        cachedAnalyses.set(candidateUserId, {
+          aiScore: match.metricsV2Score,
+          reasoning: match.metricsV2Reasoning,
+          profileId: candidateUserId,
+        });
+      }
+    }
+    if (cachedAnalyses.size > 0) {
+      console.log(`[AI] Found ${cachedAnalyses.size} cached AI analyses from previous scans`);
+    }
+  } catch (error) {
+    console.warn(`[AI] Failed to load cached analyses:`, error);
+  }
+
+  // Determine which candidates need fresh AI analysis vs can reuse cache
+  const AI_SCORE_DELTA_THRESHOLD = 5; // Reuse cache if metrics score changed by less than this
+  const needsAI: typeof candidates = [];
+  let cacheHits = 0;
+
+  for (const entry of candidates) {
+    const cached = cachedAnalyses.get(entry.candidate.userId);
+    // Reuse cached AI analysis if:
+    // 1. Profile hasn't changed (not STALE)
+    // 2. Metrics score is within threshold of previous score
+    // 3. Cached reasoning exists
+    if (
+      cached?.reasoning &&
+      !entry.profileChanged &&
+      Math.abs(entry.compatibility.symmetricScore - cached.aiScore) <= AI_SCORE_DELTA_THRESHOLD
+    ) {
+      // Parse cached reasoning back into analysis format
+      results.set(entry.candidate.profileId, {
+        score: cached.aiScore,
+        reasoning: cached.reasoning,
+        strengths: [],
+        concerns: [],
+        _cached: true,
+      });
+      cacheHits++;
+    } else {
+      needsAI.push(entry);
+    }
+  }
+
+  if (cacheHits > 0) {
+    console.log(`[AI] ⚡ Reused ${cacheHits} cached analyses, ${needsAI.length} need fresh Gemini calls`);
+  }
+
+  if (needsAI.length === 0) return results;
 
   const userDetails = await fetchProfileDetailsForAI(userProfile.id);
 
   const batchSize = 5;
-  
-  for (let i = 0; i < candidates.length; i += batchSize) {
-    const batch = candidates.slice(i, i + batchSize);
-    
+
+  for (let i = 0; i < needsAI.length; i += batchSize) {
+    const batch = needsAI.slice(i, i + batchSize);
+
     const batchPromises = batch.map(async ({ candidate, compatibility }) => {
       try {
         const candidateDetails = await fetchProfileDetailsForAI(candidate.profileId);
-        
+
         const analysis = await analyzeMatchWithAI(
           userDetails,
           candidateDetails,
           compatibility
         );
-        
+
         results.set(candidate.profileId, analysis);
       } catch (error) {
         console.error(`[AI] Failed to analyze ${candidate.firstName}:`, error);
@@ -897,8 +1149,8 @@ async function performAIDeepAnalysis(
     });
 
     await Promise.all(batchPromises);
-    
-    if (i + batchSize < candidates.length) {
+
+    if (i + batchSize < needsAI.length) {
       await new Promise(resolve => setTimeout(resolve, 300));
     }
   }

@@ -8,6 +8,7 @@
 // =============================================================================
 import { pushDirectMessage } from '@/lib/sendPushNotification';
 import { publishNewMessage } from '@/lib/chatPubSub';
+import { checkMessageRateLimit } from '@/lib/messageRateLimit';
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
@@ -101,6 +102,15 @@ export async function POST(
     }
 
     const matchmakerId = session.user.id;
+
+    const rateCheck = checkMessageRateLimit(matchmakerId, session.user.role);
+    if (!rateCheck.allowed) {
+      return NextResponse.json(
+        { error: 'Too many messages. Please wait a moment.' },
+        { status: 429, headers: { 'Retry-After': String(rateCheck.retryAfter || 10) } }
+      );
+    }
+
     const { userId } = await params;
     const { content: rawContent } = await req.json();
 

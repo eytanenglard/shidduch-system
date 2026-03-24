@@ -97,6 +97,9 @@ export async function POST(req: NextRequest) {
 
     // Build suggestion context if this is a suggestion-specific conversation
     const effectiveSuggestionId = suggestionId || conversation.suggestionId;
+
+    // Detect action intent (approve/decline) for suggestion-specific chats
+    const actionIntent = effectiveSuggestionId ? AiChatService.detectActionIntent(message) : null;
     let suggestionContext: string | undefined;
     if (effectiveSuggestionId) {
       suggestionContext = (await AiChatService.getSuggestionContext(effectiveSuggestionId, userId, locale)) || undefined;
@@ -162,6 +165,26 @@ export async function POST(req: NextRequest) {
             }
           }
 
+          // Get available actions if user expressed action intent
+          let actions: Awaited<ReturnType<typeof AiChatService.getAvailableActions>> = [];
+          if (actionIntent && effectiveSuggestionId) {
+            actions = await AiChatService.getAvailableActions(effectiveSuggestionId, userId);
+          }
+
+          // Generate quick reply suggestions
+          const messageCount = history.length + 1; // +1 for the current exchange
+          let suggestionStatus: string | null = null;
+          if (effectiveSuggestionId) {
+            const sg = await (await import('@/lib/prisma')).default.matchSuggestion.findUnique({
+              where: { id: effectiveSuggestionId },
+              select: { status: true },
+            });
+            suggestionStatus = sg?.status || null;
+          }
+          const quickReplies = AiChatService.getQuickReplies(
+            locale, effectiveSuggestionId || null, suggestionStatus, messageCount,
+          );
+
           // Send done event with conversationId
           const doneData = JSON.stringify({
             type: 'done',
@@ -170,6 +193,8 @@ export async function POST(req: NextRequest) {
             hasSearchResults: searchResults.length > 0,
             searchResults: searchResults.length > 0 ? searchResults : undefined,
             escalated,
+            actions: actions.length > 0 ? actions : undefined,
+            quickReplies: quickReplies.length > 0 ? quickReplies : undefined,
           });
           controller.enqueue(encoder.encode(`data: ${doneData}\n\n`));
 

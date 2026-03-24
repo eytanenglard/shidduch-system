@@ -15,6 +15,7 @@ export interface ChatMessage {
   metadata?: {
     matchSearchResults?: string[];
     toolUsed?: string;
+    userRating?: 'up' | 'down';
   };
 }
 
@@ -28,6 +29,13 @@ interface SearchResult {
   personalityTraits: string[];
   matchScore: number;
   matchReason: string;
+}
+
+export interface ChatAction {
+  type: 'approve' | 'decline';
+  label: { he: string; en: string };
+  status: string;
+  variant: 'positive' | 'negative';
 }
 
 interface UseAiChatOptions {
@@ -48,6 +56,9 @@ export function useAiChat({ locale, suggestionId, initialOpen, proactiveMessage 
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [historyLoaded, setHistoryLoaded] = useState(false);
   const [escalated, setEscalated] = useState(false);
+  const [pendingActions, setPendingActions] = useState<ChatAction[]>([]);
+  const [actionExecuting, setActionExecuting] = useState(false);
+  const [quickReplies, setQuickReplies] = useState<string[]>([]);
 
   const abortControllerRef = useRef<AbortController | null>(null);
 
@@ -95,6 +106,7 @@ export function useAiChat({ locale, suggestionId, initialOpen, proactiveMessage 
 
     setError(null);
     setSearchResults([]);
+    setQuickReplies([]);
 
     // Add user message optimistically
     const userMessage: ChatMessage = {
@@ -168,6 +180,12 @@ export function useAiChat({ locale, suggestionId, initialOpen, proactiveMessage 
               if (data.escalated) {
                 setEscalated(true);
               }
+              if (data.actions && data.actions.length > 0) {
+                setPendingActions(data.actions);
+              }
+              if (data.quickReplies && data.quickReplies.length > 0) {
+                setQuickReplies(data.quickReplies);
+              }
             } else if (data.type === 'error') {
               throw new Error(data.error);
             }
@@ -206,6 +224,71 @@ export function useAiChat({ locale, suggestionId, initialOpen, proactiveMessage 
     }
   }, [conversationId, locale, isStreaming, suggestionId]);
 
+  const executeAction = useCallback(async (action: ChatAction) => {
+    if (!suggestionId || actionExecuting) return;
+    setActionExecuting(true);
+    setPendingActions([]);
+
+    try {
+      const res = await fetch('/api/ai-chat/action', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          suggestionId,
+          status: action.status,
+          conversationId,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || `HTTP ${res.status}`);
+      }
+
+      // Add the confirmation message from the API (it was saved server-side)
+      const confirmMsg: ChatMessage = {
+        id: `action-${Date.now()}`,
+        role: 'assistant',
+        content: action.type === 'approve'
+          ? (locale === 'he' ? 'אישרת את ההצעה! השדכנית תעודכן.' : 'You approved the suggestion! The matchmaker will be notified.')
+          : (locale === 'he' ? 'דחית את ההצעה. נמשיך למצוא לך התאמות טובות יותר.' : 'You declined the suggestion. We\'ll keep finding better matches for you.'),
+        createdAt: new Date().toISOString(),
+      };
+      setMessages((prev) => [...prev, confirmMsg]);
+
+      // Dispatch event so suggestion list can refresh
+      window.dispatchEvent(new CustomEvent('suggestion-status-changed', {
+        detail: { suggestionId, status: action.status },
+      }));
+    } catch (err) {
+      console.error('[AiChat] Action error:', err);
+      setError(locale === 'he' ? 'שגיאה בביצוע הפעולה' : 'Failed to execute action');
+    } finally {
+      setActionExecuting(false);
+    }
+  }, [suggestionId, conversationId, locale, actionExecuting]);
+
+  const rateMessage = useCallback(async (messageId: string, rating: 'up' | 'down') => {
+    try {
+      const res = await fetch('/api/ai-chat/rate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ messageId, rating }),
+      });
+      if (!res.ok) return;
+
+      // Update local state
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.id === messageId ? { ...m, metadata: { ...m.metadata, userRating: rating } } : m,
+        ),
+      );
+    } catch (err) {
+      console.error('[AiChat] Rate error:', err);
+    }
+  }, []);
+
   // Cleanup on unmount
   useEffect(() => {
     return () => {
@@ -228,5 +311,10 @@ export function useAiChat({ locale, suggestionId, initialOpen, proactiveMessage 
     searchResults,
     escalated,
     suggestionId,
+    pendingActions,
+    actionExecuting,
+    executeAction,
+    quickReplies,
+    rateMessage,
   };
 }

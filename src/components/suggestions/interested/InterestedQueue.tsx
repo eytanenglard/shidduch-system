@@ -15,7 +15,9 @@ import {
   Eye,
   Info,
   Crown,
+  Scale,
 } from 'lucide-react';
+import CompareDialog from './CompareDialog';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -67,6 +69,7 @@ const TEXTS = {
     activateSuccess: 'ההצעה אושרה! תועבר לטיפול השדכן.',
     activeProcessInfo: 'יש לך הצעה פעילה. כשתסתיים, תוכל/י לאשר מהרשימה.',
     dragToReorder: 'גרור/י כדי לשנות סדר',
+    compare: 'השוואה',
   },
   en: {
     title: 'My Waitlist',
@@ -86,6 +89,7 @@ const TEXTS = {
     activeProcessInfo:
       'You have an active suggestion. Once it ends, you can approve from the waitlist.',
     dragToReorder: 'Drag to reorder',
+    compare: 'Compare',
   },
 };
 
@@ -335,6 +339,7 @@ const InterestedQueue: React.FC<InterestedQueueProps> = ({
   const texts = TEXTS[locale];
   const [items, setItems] = useState<ExtendedMatchSuggestion[]>([]);
   const [isReordering, setIsReordering] = useState(false);
+  const [showCompare, setShowCompare] = useState(false);
 
   // Sort by rank and sync with prop changes
   useEffect(() => {
@@ -407,9 +412,22 @@ const InterestedQueue: React.FC<InterestedQueueProps> = ({
             </CardTitle>
             <p className="text-sm text-amber-600/80">{texts.subtitle}</p>
           </div>
-          <Badge className="bg-amber-100 text-amber-700 border-amber-200 font-bold">
-            {suggestions.length}
-          </Badge>
+          <div className="flex items-center gap-2">
+            {suggestions.length >= 2 && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-7 px-2.5 text-xs border-amber-200 text-amber-700 hover:bg-amber-50 rounded-lg"
+                onClick={() => setShowCompare(true)}
+              >
+                <Scale className={cn('w-3 h-3', locale === 'he' ? 'ml-1' : 'mr-1')} />
+                {texts.compare}
+              </Button>
+            )}
+            <Badge className="bg-amber-100 text-amber-700 border-amber-200 font-bold">
+              {suggestions.length}
+            </Badge>
+          </div>
         </div>
       </CardHeader>
 
@@ -482,6 +500,19 @@ const InterestedQueue: React.FC<InterestedQueueProps> = ({
           </div>
         )}
       </CardContent>
+
+      {/* Compare Dialog */}
+      <CompareDialog
+        open={showCompare}
+        onOpenChange={setShowCompare}
+        suggestions={items}
+        userId={userId}
+        locale={locale}
+        onActivate={(suggestion) => {
+          setShowCompare(false);
+          onActivate(suggestion);
+        }}
+      />
     </Card>
   );
 };

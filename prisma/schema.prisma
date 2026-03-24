@@ -161,6 +161,9 @@ model User {
   // === Matchmaker Alerts (Phase 8) ===
   matchmakerAlerts MatchmakerAlert[] @relation("MatchmakerAlerts")
 
+  // === Custom Sources ===
+  customSources CustomSource[] @relation("CustomSourceCreator")
+
   @@index([email])
   @@index([role])
   @@index([status])
@@ -2171,4 +2174,13 @@ model MatchmakerAlert {
 
   @@index([matchmakerId, isDismissed])
   @@index([createdAt])
+}
+
+model CustomSource {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  createdBy String
+  createdAt DateTime @default(now())
+
+  creator User @relation("CustomSourceCreator", fields: [createdBy], references: [id], onDelete: Cascade)
 }

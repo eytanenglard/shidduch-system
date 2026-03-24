@@ -2,7 +2,7 @@
 
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -31,6 +31,7 @@ import {
   Sunrise,
   CheckCircle2,
   HelpCircle,
+  Download,
   type LucideIcon,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -54,6 +55,7 @@ interface NeshmaInsightButtonProps {
     buttonSubtitle: string;
     dialogTitle: string;
     generating: string;
+    downloadPdf?: string;
     close: string;
     lockedTitle?: string;
     lockedDescription?: string;
@@ -176,18 +178,32 @@ export const NeshmaInsightButton: React.FC<NeshmaInsightButtonProps> = ({
   const [isGenerating, setIsGenerating] = useState(false);
   const [isLoadingSaved, setIsLoadingSaved] = useState(false);
   const [report, setReport] = useState<NeshamaInsightReport | null>(null);
+  const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
+  const reportRef = useRef<HTMLDivElement>(null);
+
+  // Track local state so UI updates immediately after generation
+  const [localGeneratedCount, setLocalGeneratedCount] = useState(generatedCount);
+  const [localLastGeneratedAt, setLocalLastGeneratedAt] = useState<string | Date | null | undefined>(lastGeneratedAt);
+
+  // Sync props when they change (e.g. page refresh)
+  useEffect(() => {
+    setLocalGeneratedCount(generatedCount);
+  }, [generatedCount]);
+  useEffect(() => {
+    setLocalLastGeneratedAt(lastGeneratedAt);
+  }, [lastGeneratedAt]);
 
   const isHe = locale === 'he';
   const isPrivileged = userRole === 'MATCHMAKER' || userRole === 'ADMIN';
   const isProfileComplete = completionPercentage >= COMPLETION_THRESHOLD || isPrivileged;
-  const hasGeneratedBefore = generatedCount > 0;
+  const hasGeneratedBefore = localGeneratedCount > 0;
 
   const canGenerateToday = useCallback(() => {
     if (isPrivileged) return true;
-    if (!lastGeneratedAt) return true;
-    const diffMs = Date.now() - new Date(lastGeneratedAt).getTime();
+    if (!localLastGeneratedAt) return true;
+    const diffMs = Date.now() - new Date(localLastGeneratedAt).getTime();
     return diffMs / (1000 * 60 * 60) >= 24;
-  }, [isPrivileged, lastGeneratedAt]);
+  }, [isPrivileged, localLastGeneratedAt]);
 
   const canGenerate = isProfileComplete && canGenerateToday();
 
@@ -221,9 +237,10 @@ export const NeshmaInsightButton: React.FC<NeshmaInsightButtonProps> = ({
         );
       } else {
         toast.error(
-          isHe
+          dict.alreadyGeneratedToday ||
+          (isHe
             ? 'ניתן ליצור את התמונה המלאה פעם אחת ב-24 שעות'
-            : 'You can generate your Full Picture once every 24 hours'
+            : 'You can generate your Full Picture once every 24 hours')
         );
       }
       return;
@@ -247,6 +264,11 @@ export const NeshmaInsightButton: React.FC<NeshmaInsightButtonProps> = ({
 
       const data = await res.json();
       setReport(data.report as NeshamaInsightReport);
+
+      // Update local state so the UI switches to "view saved" mode
+      setLocalGeneratedCount((prev) => prev + 1);
+      setLocalLastGeneratedAt(new Date().toISOString());
+
       toast.success(isHe ? 'התמונה המלאה נוצרה בהצלחה!' : 'Full Picture generated!');
     } catch (error: any) {
       console.error('Error generating insight:', error);
@@ -262,6 +284,95 @@ export const NeshmaInsightButton: React.FC<NeshmaInsightButtonProps> = ({
     const text = buildCopyText(report, locale);
     navigator.clipboard.writeText(text);
     toast.success(isHe ? 'הדוח הועתק ללוח' : 'Report copied to clipboard');
+  };
+
+  // PDF download using html2canvas + jspdf
+  const handleDownloadPdf = async () => {
+    if (!report || !reportRef.current) return;
+    setIsDownloadingPdf(true);
+
+    try {
+      const html2canvas = (await import('html2canvas')).default;
+      const { jsPDF } = await import('jspdf');
+
+      const element = reportRef.current;
+
+      // Temporarily expand the scrollable area to capture full content
+      const originalOverflow = element.style.overflow;
+      const originalMaxHeight = element.style.maxHeight;
+      const originalHeight = element.style.height;
+      element.style.overflow = 'visible';
+      element.style.maxHeight = 'none';
+      element.style.height = 'auto';
+
+      const canvas = await html2canvas(element, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: '#ffffff',
+        logging: false,
+      });
+
+      // Restore scrollable area
+      element.style.overflow = originalOverflow;
+      element.style.maxHeight = originalMaxHeight;
+      element.style.height = originalHeight;
+
+      const imgData = canvas.toDataURL('image/png');
+      const imgWidth = canvas.width;
+      const imgHeight = canvas.height;
+
+      // A4 dimensions in mm
+      const pdfWidth = 210;
+      const pdfMargin = 10;
+      const contentWidth = pdfWidth - pdfMargin * 2;
+      const ratio = contentWidth / imgWidth;
+      const scaledHeight = imgHeight * ratio;
+      const pageHeight = 297 - pdfMargin * 2;
+
+      const pdf = new jsPDF('p', 'mm', 'a4');
+
+      // If content fits in one page
+      if (scaledHeight <= pageHeight) {
+        pdf.addImage(imgData, 'PNG', pdfMargin, pdfMargin, contentWidth, scaledHeight);
+      } else {
+        // Multi-page: slice the canvas into pages
+        let yOffset = 0;
+        let pageIndex = 0;
+
+        while (yOffset < imgHeight) {
+          if (pageIndex > 0) pdf.addPage();
+
+          const sliceHeight = Math.min(pageHeight / ratio, imgHeight - yOffset);
+          const sliceCanvas = document.createElement('canvas');
+          sliceCanvas.width = imgWidth;
+          sliceCanvas.height = sliceHeight;
+          const sliceCtx = sliceCanvas.getContext('2d');
+          if (sliceCtx) {
+            sliceCtx.drawImage(
+              canvas,
+              0, yOffset,
+              imgWidth, sliceHeight,
+              0, 0,
+              imgWidth, sliceHeight
+            );
+            const sliceData = sliceCanvas.toDataURL('image/png');
+            pdf.addImage(sliceData, 'PNG', pdfMargin, pdfMargin, contentWidth, sliceHeight * ratio);
+          }
+
+          yOffset += sliceHeight;
+          pageIndex++;
+        }
+      }
+
+      const fileName = isHe ? 'התמונה-המלאה-שלי.pdf' : 'my-full-picture.pdf';
+      pdf.save(fileName);
+      toast.success(isHe ? 'הקובץ הורד בהצלחה' : 'PDF downloaded successfully');
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      toast.error(isHe ? 'שגיאה בהורדת הקובץ' : 'Error downloading PDF');
+    } finally {
+      setIsDownloadingPdf(false);
+    }
   };
 
   // --- Locked State ---
@@ -362,6 +473,9 @@ export const NeshmaInsightButton: React.FC<NeshmaInsightButtonProps> = ({
           copyToClipboard={copyToClipboard}
           canGenerate={canGenerate}
           onRegenerate={handleGenerate}
+          onDownloadPdf={handleDownloadPdf}
+          isDownloadingPdf={isDownloadingPdf}
+          reportRef={reportRef}
         />
       </motion.div>
     );
@@ -415,6 +529,9 @@ export const NeshmaInsightButton: React.FC<NeshmaInsightButtonProps> = ({
         copyToClipboard={copyToClipboard}
         canGenerate={canGenerate}
         onRegenerate={handleGenerate}
+        onDownloadPdf={handleDownloadPdf}
+        isDownloadingPdf={isDownloadingPdf}
+        reportRef={reportRef}
       />
     </motion.div>
   );
@@ -435,6 +552,9 @@ interface InsightDialogProps {
   copyToClipboard: () => void;
   canGenerate: boolean;
   onRegenerate: () => void;
+  onDownloadPdf: () => void;
+  isDownloadingPdf: boolean;
+  reportRef: React.RefObject<HTMLDivElement | null>;
 }
 
 const InsightDialog: React.FC<InsightDialogProps> = ({
@@ -448,6 +568,9 @@ const InsightDialog: React.FC<InsightDialogProps> = ({
   copyToClipboard,
   canGenerate,
   onRegenerate,
+  onDownloadPdf,
+  isDownloadingPdf,
+  reportRef,
 }) => {
   const isHe = locale === 'he';
   const direction = isHe ? 'rtl' : 'ltr';
@@ -474,7 +597,7 @@ const InsightDialog: React.FC<InsightDialogProps> = ({
             locale={locale}
           />
         ) : report ? (
-          <InsightReportView report={report} locale={locale} />
+          <InsightReportView report={report} locale={locale} reportRef={reportRef} />
         ) : (
           <div className="flex-1 flex items-center justify-center py-12">
             <p className="text-gray-500">{isHe ? 'אין דוח להצגה' : 'No report to display'}</p>
@@ -484,7 +607,21 @@ const InsightDialog: React.FC<InsightDialogProps> = ({
         {/* Footer */}
         {!isLoading && report && (
           <DialogFooter className="px-6 py-3 border-t bg-gray-50/80 gap-2 sm:gap-0 flex-shrink-0">
-            <div className="flex items-center gap-2 w-full sm:w-auto">
+            <div className="flex items-center gap-2 w-full sm:w-auto flex-wrap">
+              <Button
+                variant="outline"
+                onClick={onDownloadPdf}
+                disabled={isDownloadingPdf}
+                size="sm"
+                className="gap-2 flex-1 sm:flex-none text-teal-700 border-teal-200 hover:bg-teal-50"
+              >
+                {isDownloadingPdf ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                ) : (
+                  <Download className="w-3.5 h-3.5" />
+                )}
+                {dict.downloadPdf || (isHe ? 'הורד PDF' : 'Download PDF')}
+              </Button>
               <Button variant="outline" onClick={copyToClipboard} size="sm" className="gap-2 flex-1 sm:flex-none">
                 <Copy className="w-3.5 h-3.5" />
                 {isHe ? 'העתק' : 'Copy'}
@@ -592,11 +729,12 @@ const LoadingState: React.FC<{ isGenerating: boolean; locale: 'he' | 'en' }> = (
 const InsightReportView: React.FC<{
   report: NeshamaInsightReport;
   locale: 'he' | 'en';
-}> = ({ report, locale }) => {
+  reportRef?: React.RefObject<HTMLDivElement | null>;
+}> = ({ report, locale, reportRef }) => {
   const isHe = locale === 'he';
 
   return (
-    <div className="flex-1 overflow-y-auto">
+    <div className="flex-1 overflow-y-auto" ref={reportRef}>
       <div className="p-5 space-y-4">
         {/* TL;DR */}
         {report.tldr && (

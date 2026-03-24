@@ -6,6 +6,7 @@ import { sanitizeText } from '@/lib/sanitize';
 import { UserRole } from '@prisma/client';
 import { notifyChatMessage } from '@/lib/pushNotifications';
 import { publishNewMessage } from '@/lib/chatPubSub';
+import { checkMessageRateLimit } from '@/lib/messageRateLimit';
 
 export async function GET(
   req: NextRequest,
@@ -128,6 +129,14 @@ export async function POST(
       return NextResponse.json(
         { error: 'Insufficient permissions' },
         { status: 403 }
+      );
+    }
+
+    const rateCheck = checkMessageRateLimit(session.user.id, session.user.role);
+    if (!rateCheck.allowed) {
+      return NextResponse.json(
+        { error: 'Too many messages. Please wait a moment.' },
+        { status: 429, headers: { 'Retry-After': String(rateCheck.retryAfter || 10) } }
       );
     }
 

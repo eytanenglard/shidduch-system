@@ -20,8 +20,9 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const limit = Math.min(parseInt(searchParams.get('limit') || '50', 10), 100);
     const before = searchParams.get('before') || undefined;
+    const suggestionId = searchParams.get('suggestionId') || undefined;
 
-    const conversation = await AiChatService.getOrCreateConversation(userId);
+    const conversation = await AiChatService.getOrCreateConversation(userId, suggestionId);
     const messages = await AiChatService.getConversationHistory(
       conversation.id,
       limit,

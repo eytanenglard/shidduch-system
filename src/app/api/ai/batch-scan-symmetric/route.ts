@@ -586,6 +586,7 @@ async function runScanInBackground(
       default:
         result = await runSymmetricScan({
           forceRefresh: options.forceRefresh,
+          incrementalOnly: false, // full scan — override the incremental default
           onProgress,
         });
         break;

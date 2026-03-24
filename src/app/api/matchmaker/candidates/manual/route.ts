@@ -235,27 +235,64 @@ export async function POST(req: NextRequest) {
     }
 
     // --- יצירת המשתמש + פרופיל ---
-    const newManualCandidate = await prisma.user.create({
-      data: {
-        firstName,
-        lastName,
-        email,
-        phone: phoneValue?.trim() || null,
-        password: null,
-        role: UserRole.CANDIDATE,
-        status: UserStatus.PENDING_EMAIL_VERIFICATION,
-        isVerified: false,
-        isProfileComplete: false,
-        source: UserSource.MANUAL_ENTRY,
-        addedByMatchmakerId: matchmakerId,
-        profile: {
-          create: profileCreateData,
+    const phoneToSave = phoneValue?.trim() || null;
+    let newManualCandidate;
+    try {
+      newManualCandidate = await prisma.user.create({
+        data: {
+          firstName,
+          lastName,
+          email,
+          phone: phoneToSave,
+          password: null,
+          role: UserRole.CANDIDATE,
+          status: UserStatus.PENDING_EMAIL_VERIFICATION,
+          isVerified: false,
+          isProfileComplete: false,
+          source: UserSource.MANUAL_ENTRY,
+          addedByMatchmakerId: matchmakerId,
+          profile: {
+            create: profileCreateData,
+          },
         },
-      },
-      include: {
-        profile: true,
-      },
-    });
+        include: {
+          profile: true,
+        },
+      });
+    } catch (createError) {
+      // If phone already exists — retry without phone
+      if (
+        phoneToSave &&
+        createError instanceof Prisma.PrismaClientKnownRequestError &&
+        createError.code === 'P2002' &&
+        (createError.meta?.target as string[])?.includes('phone')
+      ) {
+        console.log(`[Manual Candidate] Phone ${phoneToSave} already exists, saving without phone`);
+        newManualCandidate = await prisma.user.create({
+          data: {
+            firstName,
+            lastName,
+            email,
+            phone: null,
+            password: null,
+            role: UserRole.CANDIDATE,
+            status: UserStatus.PENDING_EMAIL_VERIFICATION,
+            isVerified: false,
+            isProfileComplete: false,
+            source: UserSource.MANUAL_ENTRY,
+            addedByMatchmakerId: matchmakerId,
+            profile: {
+              create: profileCreateData,
+            },
+          },
+          include: {
+            profile: true,
+          },
+        });
+      } else {
+        throw createError;
+      }
+    }
 
     // --- העלאת תמונות ---
     type UserImageCreateInput = {

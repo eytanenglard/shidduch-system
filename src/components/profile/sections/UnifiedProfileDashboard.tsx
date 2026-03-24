@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -42,6 +42,7 @@ import type {
   UpdateValue,
 } from '@/types/next-auth';
 import type { ProfilePageDictionary } from '@/types/dictionary';
+import type { QuestionnaireSyncedFields } from './profile-cards/types';
 
 interface UnifiedProfileDashboardProps {
   viewOnly?: boolean;
@@ -116,6 +117,45 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
       .catch(() => {});
   }, []);
 
+  // Calculate questionnaire completion percentage
+  const questionnaireCompletionPercentage = useMemo(() => {
+    if (!questionnaireResponse) return 0;
+    const QUESTION_COUNTS: Record<string, number> = {
+      PERSONALITY: 25, VALUES: 23, RELATIONSHIP: 22, PARTNER: 19, RELIGION: 20,
+    };
+    const WORLD_KEYS = ['personality', 'values', 'relationship', 'partner', 'religion'] as const;
+    const totalQuestions = Object.values(QUESTION_COUNTS).reduce((s, c) => s + c, 0);
+
+    let totalAnswered = 0;
+    for (const key of WORLD_KEYS) {
+      const answersField = `${key}Answers` as keyof typeof questionnaireResponse;
+      const answers = questionnaireResponse[answersField];
+      if (Array.isArray(answers)) totalAnswered += answers.length;
+    }
+
+    return totalQuestions > 0 ? Math.round((totalAnswered / totalQuestions) * 100) : 0;
+  }, [questionnaireResponse]);
+
+  // Determine which profile fields are synced from the questionnaire (source of truth)
+  const questionnaireSyncedFields = useMemo<QuestionnaireSyncedFields>(() => {
+    if (!questionnaireResponse) return {};
+
+    const hasAnswer = (worldAnswers: unknown, questionId: string): boolean => {
+      if (!Array.isArray(worldAnswers)) return false;
+      return worldAnswers.some(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (a: any) => a.questionId === questionId && a.value !== undefined && a.value !== null
+      );
+    };
+
+    return {
+      smokingStatus: hasAnswer(questionnaireResponse.personalityAnswers, 'personality_smoking_status'),
+      shomerNegiah: hasAnswer(questionnaireResponse.religionAnswers, 'religion_shomer_negiah_approach'),
+      profileCharacterTraits: hasAnswer(questionnaireResponse.personalityAnswers, 'personality_core_trait_selection_revised'),
+      about: hasAnswer(questionnaireResponse.personalityAnswers, 'personality_self_portrayal_revised'),
+    };
+  }, [questionnaireResponse]);
+
   const handleTabChange = (newTab: string) => {
     setActiveTab(newTab);
     router.push(`/${locale}/profile?tab=${newTab}`, { scroll: false });
@@ -137,6 +177,11 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
       }
     }, 150);
   };
+
+  const handleNavigateToQuestionnaire = useCallback(() => {
+    handleTabChange('questionnaire');
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [locale, router]);
 
   const isOwnProfile = !userId || session?.user?.id === userId;
 
@@ -586,11 +631,12 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
               <div className="my-6 md:my-8">
                 <SoulFingerprintCTA
                   isCompleted={sfCompleted}
+                  completionPercentage={questionnaireCompletionPercentage}
                   locale={locale}
                   t={(key: string) => {
                     const labels: Record<string, string> = locale === 'he'
-                      ? { 'welcome.badge': 'חדש', 'welcome.title': 'מפת הלב שלך', 'welcome.subtitle': '10 דקות שישנו הכל', 'welcome.time': 'כ-8-10 דקות', 'completion.edit': 'ערוך/י את מפת הלב', 'completion.subtitle': 'הפרופיל הייחודי שלך מוכן' }
-                      : { 'welcome.badge': 'New', 'welcome.title': 'Your Heart Map', 'welcome.subtitle': '10 minutes that change everything', 'welcome.time': 'About 8-10 minutes', 'completion.edit': 'Edit your Heart Map', 'completion.subtitle': 'Your unique profile is ready' };
+                      ? { 'welcome.badge': 'חדש', 'welcome.title': 'מפת הנשמה שלך', 'welcome.subtitle': '10 דקות שישנו הכל', 'welcome.time': 'כ-8-10 דקות', 'completion.edit': 'ערוך/י את מפת הנשמה', 'completion.subtitle': 'הפרופיל הייחודי שלך מוכן' }
+                      : { 'welcome.badge': 'New', 'welcome.title': 'Your Soul Map', 'welcome.subtitle': '10 minutes that change everything', 'welcome.time': 'About 8-10 minutes', 'completion.edit': 'Edit your Soul Map', 'completion.subtitle': 'Your unique profile is ready' };
                     return labels[key] || key;
                   }}
                   isRTL={locale === 'he'}
@@ -740,6 +786,15 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
                     isCvUploading={isCvUploading}
                     dict={dict.profileSection}
                     locale={locale}
+                    questionnaireSyncedFields={questionnaireSyncedFields}
+                    onNavigateToQuestionnaire={handleNavigateToQuestionnaire}
+                    questionnaireAnswers={questionnaireResponse ? {
+                      personality: questionnaireResponse.personalityAnswers as unknown[],
+                      values: questionnaireResponse.valuesAnswers as unknown[],
+                      relationship: questionnaireResponse.relationshipAnswers as unknown[],
+                      partner: questionnaireResponse.partnerAnswers as unknown[],
+                      religion: questionnaireResponse.religionAnswers as unknown[],
+                    } : null}
                   />
                 ) : (
                   <p className="text-center text-gray-500 py-10">

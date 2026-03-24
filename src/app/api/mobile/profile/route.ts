@@ -219,12 +219,36 @@ export async function GET(req: NextRequest) {
       profileWithTestimonials.testimonials || []
     );
 
+    // Check which fields are synced from the questionnaire
+    const questionnaire = await prisma.questionnaireResponse.findFirst({
+      where: { userId },
+      orderBy: { createdAt: 'desc' },
+      select: {
+        personalityAnswers: true,
+        religionAnswers: true,
+      },
+    });
+
+    const hasQAnswer = (worldAnswers: unknown, questionId: string): boolean => {
+      if (!Array.isArray(worldAnswers)) return false;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      return worldAnswers.some((a: any) => a.questionId === questionId && a.value != null);
+    };
+
+    const questionnaireSyncedFields = questionnaire ? {
+      smokingStatus: hasQAnswer(questionnaire.personalityAnswers, 'personality_smoking_status'),
+      shomerNegiah: hasQAnswer(questionnaire.religionAnswers, 'religion_shomer_negiah_approach'),
+      profileCharacterTraits: hasQAnswer(questionnaire.personalityAnswers, 'personality_core_trait_selection_revised'),
+      about: hasQAnswer(questionnaire.personalityAnswers, 'personality_self_portrayal_revised'),
+    } : {};
+
     console.log(`[mobile/profile] GET profile for user ${userId}`);
 
     return corsJson(req, {
       success: true,
       data: {
         profile,
+        questionnaireSyncedFields,
         user: {
           id: userWithProfile.id,
           firstName: userWithProfile.firstName,

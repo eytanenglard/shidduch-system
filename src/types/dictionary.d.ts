@@ -2351,6 +2351,22 @@ export type ProfileSectionDict = {
       hobbiesLabel: string;
       hobbiesEmpty: string;
     };
+    questionnaireSyncBadge?: string;
+    questionnaireInsights?: {
+      title: string;
+      loveLanguages: string;
+      loveLanguageOptions?: Record<string, string>;
+      communicationStyle: string;
+      communicationOptions?: Record<string, string>;
+      togetherness: string;
+      togethernessLabels?: {
+        independent: string;
+        balanced: string;
+        together: string;
+      };
+      childrenEducation: string;
+      editInQuestionnaire: string;
+    };
     appearance: {
       title: string;
       bodyTypeLabel: string;

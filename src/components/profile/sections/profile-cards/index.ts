@@ -8,5 +8,6 @@ export { default as CharacterCard } from './CharacterCard';
 export { default as StoryAndMoreCard } from './StoryAndMoreCard';
 export { default as NeshamaTechSummaryCard } from './NeshamaTechSummaryCard';
 export { default as FriendTestimonialsManager } from './FriendTestimonialsManager';
+export { default as QuestionnaireInsightsCard } from './QuestionnaireInsightsCard';
 export { ensureDateObject } from './helpers';
 export type { ProfileCardProps } from './types';

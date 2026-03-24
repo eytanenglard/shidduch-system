@@ -38,6 +38,11 @@ export default function AiChatPanel({ locale, suggestionId, proactiveMessage, in
     searchResults,
     escalated,
     conversationId,
+    pendingActions,
+    actionExecuting,
+    executeAction,
+    quickReplies,
+    rateMessage,
   } = useAiChat({ locale, suggestionId, proactiveMessage, initialOpen });
 
   const [isEscalating, setIsEscalating] = useState(false);
@@ -159,6 +164,12 @@ export default function AiChatPanel({ locale, suggestionId, proactiveMessage, in
                   streamingContent={streamingContent}
                   isLoading={isLoading}
                   locale={locale}
+                  pendingActions={pendingActions}
+                  actionExecuting={actionExecuting}
+                  onAction={executeAction}
+                  quickReplies={quickReplies}
+                  onQuickReply={sendMessage}
+                  onRateMessage={rateMessage}
                 />
 
                 {/* Search Results (shown after AI response with search) */}

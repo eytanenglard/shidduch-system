@@ -7,6 +7,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { AiChatService } from '@/lib/services/aiChatService';
+import { sendPushToUser } from '@/lib/sendPushNotification';
 
 const PENDING_REMINDER_HOURS = 24; // Send reminder after 24h without response
 const MAX_PROACTIVE_PER_RUN = 20;
@@ -81,6 +82,17 @@ export async function POST(req: NextRequest) {
         trigger: 'pending_reminder',
       });
 
+      // Send push notification
+      await sendPushToUser(targetUserId, {
+        title: locale === 'he' ? '💬 העוזר החכם שלך' : '💬 Your Smart Assistant',
+        body: message.length > 120 ? message.slice(0, 120) + '…' : message,
+        data: {
+          type: 'AI_CHAT_PROACTIVE',
+          suggestionId: suggestion.id,
+          screen: 'suggestions',
+        },
+      });
+
       sent++;
     }
 
@@ -131,53 +143,15 @@ export async function POST(req: NextRequest) {
         trigger: 'post_decline',
       });
 
-      sent++;
-    }
-
-    // 3. Send post-approve encouragement
-    const recentApprovals = await prisma.matchSuggestion.findMany({
-      where: {
-        status: { in: ['FIRST_PARTY_APPROVED', 'SECOND_PARTY_APPROVED'] },
-        lastStatusChange: {
-          gte: new Date(now.getTime() - 2 * 60 * 60 * 1000),
-          lte: new Date(now.getTime() - 15 * 60 * 1000), // At least 15 min ago
+      // Send push notification
+      await sendPushToUser(declinerId, {
+        title: locale === 'he' ? '💬 העוזר החכם שלך' : '💬 Your Smart Assistant',
+        body: message.length > 120 ? message.slice(0, 120) + '…' : message,
+        data: {
+          type: 'AI_CHAT_PROACTIVE',
+          suggestionId: suggestion.id,
+          screen: 'suggestions',
         },
-      },
-      take: MAX_PROACTIVE_PER_RUN,
-      select: {
-        id: true,
-        status: true,
-        firstPartyId: true,
-        secondPartyId: true,
-        firstParty: { select: { language: true } },
-        secondParty: { select: { language: true } },
-      },
-    });
-
-    for (const suggestion of recentApprovals) {
-      const approverId = suggestion.status === 'FIRST_PARTY_APPROVED'
-        ? suggestion.firstPartyId
-        : suggestion.secondPartyId;
-      const approver = suggestion.status === 'FIRST_PARTY_APPROVED'
-        ? suggestion.firstParty
-        : suggestion.secondParty;
-      const locale = (approver?.language === 'en' ? 'en' : 'he') as 'he' | 'en';
-
-      const existingProactive = await prisma.aiChatMessage.findFirst({
-        where: {
-          conversation: { userId: approverId, suggestionId: suggestion.id },
-          role: 'assistant',
-          metadata: { path: ['trigger'], equals: 'post_approve' },
-        },
-      });
-
-      if (existingProactive) continue;
-
-      const conversation = await AiChatService.getOrCreateConversation(approverId, suggestion.id);
-      const message = await AiChatService.getProactiveMessage(approverId, suggestion.id, locale, 'post_approve');
-      await AiChatService.saveMessage(conversation.id, 'assistant', message, {
-        proactive: true,
-        trigger: 'post_approve',
       });
 
       sent++;

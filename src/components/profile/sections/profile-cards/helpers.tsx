@@ -1,6 +1,7 @@
 import React from 'react';
 import { ProfileSectionDict } from '@/types/dictionary';
 import { Badge } from '@/components/ui/badge';
+import { LinkIcon } from 'lucide-react';
 
 export const ensureDateObject = (
   value: string | number | Date | null | undefined
@@ -98,3 +99,22 @@ export const getLanguageLabel = (
   const normalizedLocale: 'he' | 'en' = locale.startsWith('he') ? 'he' : 'en';
   return lang.label[normalizedLocale] || lang.label.en || lang.value;
 };
+
+/**
+ * Badge indicating a field is synced from the questionnaire (source of truth).
+ * Shows "synced from questionnaire" with a link icon.
+ */
+export const QuestionnaireSyncBadge: React.FC<{
+  label: string;
+  onNavigate?: () => void;
+}> = ({ label, onNavigate }) => (
+  <button
+    type="button"
+    onClick={onNavigate}
+    className="inline-flex items-center gap-1 text-[10px] text-teal-600 bg-teal-50 border border-teal-200/60 rounded-full px-2 py-0.5 hover:bg-teal-100 transition-colors cursor-pointer"
+    title={label}
+  >
+    <LinkIcon className="w-2.5 h-2.5" />
+    <span>{label}</span>
+  </button>
+);

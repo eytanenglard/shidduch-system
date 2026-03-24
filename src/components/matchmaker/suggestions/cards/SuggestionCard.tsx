@@ -753,6 +753,27 @@ const getContextualHint = (
       color: 'text-violet-600 bg-violet-50 border-violet-200',
     };
   }
+  if (status === 'AWAITING_FIRST_DATE_FEEDBACK') {
+    return {
+      text: 'ממתין לפידבק מהדייט — בדוק אם התקבל משוב',
+      icon: MessageSquare,
+      color: 'text-violet-600 bg-violet-50 border-violet-200',
+    };
+  }
+  if (status === 'ENDED_AFTER_FIRST_DATE') {
+    return {
+      text: 'הדייט לא צלח — צפה בפידבק כדי להבין למה',
+      icon: Info,
+      color: 'text-rose-600 bg-rose-50 border-rose-200',
+    };
+  }
+  if (status === 'PROCEEDING_TO_SECOND_DATE') {
+    return {
+      text: 'הזוג ממשיך לדייט שני! 🎉',
+      icon: Heart,
+      color: 'text-pink-600 bg-pink-50 border-pink-200',
+    };
+  }
   if (status === 'DATING' && daysSinceActivity >= 30) {
     return {
       text: 'חודש בהיכרות — אולי הגיע הזמן לבשר? 💍',

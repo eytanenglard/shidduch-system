@@ -43,7 +43,7 @@
      "referralsAdmin": "ניהול רפרלים",
      
     "matchmakingQuestionnaire": "שאלון התאמה",
-    "soulFingerprint": "מפת הלב",
+    "soulFingerprint": "מפת הנשמה",
         "engagementDashboard": "ניהול חווית לקוח",
     "messages": "הודעות",
     "login": "התחברות",
@@ -373,7 +373,7 @@
   },
   "heartMapCTA": {
     "badge": "חדש — נסו בחינם",
-    "title": "גלו את מפת הלב שלכם",
+    "title": "גלו את מפת הנשמה שלכם",
     "subtitle": "מלאו שאלון קצר וגלו כמה התאמות פוטנציאליות מחכות לכם במערכת",
     "description": "בלי הרשמה, בלי עלות. 10 דקות של הכרות עצמית — ובסוף תראו כמה אנשים במערכת שלנו יכולים להתאים לכם.",
     "features": {

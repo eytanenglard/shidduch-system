@@ -6,7 +6,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { BookOpen } from 'lucide-react';
 import ProfileCardHeader from '@/components/profile/ProfileCardHeader';
 import { ProfileCardProps } from './types';
-import { renderBooleanDisplayValue } from './helpers';
+import { renderBooleanDisplayValue, QuestionnaireSyncBadge } from './helpers';
 import { SelectField, TextareaField } from '@/components/profile/fields';
 
 const ReligionCard: React.FC<ProfileCardProps> = ({
@@ -17,6 +17,8 @@ const ReligionCard: React.FC<ProfileCardProps> = ({
   dict,
   locale,
   direction,
+  questionnaireSyncedFields,
+  onNavigateToQuestionnaire,
 }) => {
   const editing = isEditing && !viewOnly;
 
@@ -96,11 +98,21 @@ const ReligionCard: React.FC<ProfileCardProps> = ({
           <div className={editing ? 'pt-1 sm:pt-0 sm:pt-5' : 'pt-1 sm:pt-0'}>
             <SelectField
               id="shomerNegiah"
-              label={dict.cards.religion.shomerNegiahLabel}
+              label={
+                <span className="flex items-center gap-1.5 flex-wrap">
+                  {dict.cards.religion.shomerNegiahLabel}
+                  {questionnaireSyncedFields?.shomerNegiah && (
+                    <QuestionnaireSyncBadge
+                      label={dict.cards.questionnaireSyncBadge || 'מסונכרן מהשאלון'}
+                      onNavigate={onNavigateToQuestionnaire}
+                    />
+                  )}
+                </span>
+              }
               value={formData.shomerNegiah === true ? 'YES' : formData.shomerNegiah === false ? 'NO' : ''}
               options={shomerNegiahOptions}
               placeholder={dict.cards.religion.shomerNegiahPlaceholder || 'בחר/י...'}
-              isEditing={editing}
+              isEditing={questionnaireSyncedFields?.shomerNegiah ? false : editing}
               onChange={(value) => {
                 if (value === 'YES') handleChange('shomerNegiah', true);
                 else if (value === 'NO') handleChange('shomerNegiah', false);
@@ -185,11 +197,21 @@ const ReligionCard: React.FC<ProfileCardProps> = ({
         <div className="mt-4 pt-4 border-t border-gray-200/30">
           <SelectField
             id="smokingStatus"
-            label={dict.cards.religion.smokingStatusLabel}
+            label={
+              <span className="flex items-center gap-1.5 flex-wrap">
+                {dict.cards.religion.smokingStatusLabel}
+                {questionnaireSyncedFields?.smokingStatus && (
+                  <QuestionnaireSyncBadge
+                    label={dict.cards.questionnaireSyncBadge || 'מסונכרן מהשאלון'}
+                    onNavigate={onNavigateToQuestionnaire}
+                  />
+                )}
+              </span>
+            }
             value={formData.smokingStatus || 'NONE'}
             options={smokingStatusOptions}
             placeholder={dict.cards.religion.smokingStatusPlaceholder}
-            isEditing={editing}
+            isEditing={questionnaireSyncedFields?.smokingStatus ? false : editing}
             onChange={(value) => handleChange('smokingStatus', value === 'NONE' ? null : value)}
             direction={direction}
             emptyText={dict.cards.religion.smokingStatusEmpty}

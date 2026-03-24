@@ -17,7 +17,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ProfileCardProps } from './types';
-import { renderMultiSelectBadges } from './helpers';
+import { renderMultiSelectBadges, QuestionnaireSyncBadge } from './helpers';
 
 const TRAIT_ICONS: Record<string, React.ElementType> = {
   empathetic: Heart,
@@ -61,6 +61,8 @@ const CharacterCard: React.FC<ProfileCardProps> = ({
   handleChange,
   handleMultiSelectToggle,
   dict,
+  questionnaireSyncedFields,
+  onNavigateToQuestionnaire,
 }) => {
   const characterTraitsOptions = useMemo(
     () =>
@@ -94,9 +96,17 @@ const CharacterCard: React.FC<ProfileCardProps> = ({
         {/* Character Traits */}
         <fieldset>
           <legend className="block mb-2 text-sm font-medium text-gray-700">
-            {dict.cards.character.traitsLabel}
+            <span className="flex items-center gap-1.5 flex-wrap">
+              {dict.cards.character.traitsLabel}
+              {questionnaireSyncedFields?.profileCharacterTraits && (
+                <QuestionnaireSyncBadge
+                  label={dict.cards.questionnaireSyncBadge || 'מסונכרן מהשאלון'}
+                  onNavigate={onNavigateToQuestionnaire}
+                />
+              )}
+            </span>
           </legend>
-          {isEditing && !viewOnly ? (
+          {isEditing && !viewOnly && !questionnaireSyncedFields?.profileCharacterTraits ? (
             <div className="flex flex-wrap gap-2">
               {characterTraitsOptions.map((trait) => (
                 <Button

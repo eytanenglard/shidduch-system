@@ -7,6 +7,7 @@ import prisma from '@/lib/prisma';
 import { sanitizeText } from '@/lib/sanitize';
 import { pushSuggestionMessage, pushUserMessageToMatchmaker } from '@/lib/sendPushNotification';
 import { publishNewMessage } from '@/lib/chatPubSub';
+import { checkMessageRateLimit } from '@/lib/messageRateLimit';
 
 // ==========================================
 // GET — Fetch messages for a suggestion chat
@@ -144,6 +145,15 @@ export async function POST(
     }
 
     const userId = session.user.id;
+
+    const rateCheck = checkMessageRateLimit(userId, session.user.role);
+    if (!rateCheck.allowed) {
+      return NextResponse.json(
+        { error: 'Too many messages. Please wait a moment.' },
+        { status: 429, headers: { 'Retry-After': String(rateCheck.retryAfter || 10) } }
+      );
+    }
+
     const { content: rawContent } = await req.json();
 
     if (!rawContent?.trim()) {

@@ -25,6 +25,11 @@ const SEARCH_INTENT_KEYWORDS_EN = ['search', 'find', 'match', 'suggest', 'look f
 const ESCALATION_KEYWORDS_HE = ['שדכנית', 'שדכן', 'אנושי', 'אדם אמיתי', 'תעביר', 'תעבירי', 'לדבר עם'];
 const ESCALATION_KEYWORDS_EN = ['matchmaker', 'human', 'escalate', 'transfer', 'real person', 'talk to'];
 
+const APPROVE_INTENT_KEYWORDS_HE = ['מאשר', 'מאשרת', 'מעוניין', 'מעוניינת', 'אני בעד', 'מתאים לי', 'רוצה להתקדם', 'בואו נתקדם', 'אישור', 'מסכים', 'מסכימה'];
+const APPROVE_INTENT_KEYWORDS_EN = ['approve', 'accept', 'interested', 'i agree', 'go ahead', 'move forward', 'yes please', "let's proceed"];
+const DECLINE_INTENT_KEYWORDS_HE = ['דוחה', 'לא מתאים', 'לא מעוניין', 'לא מעוניינת', 'לא בשבילי', 'לוותר', 'לסרב', 'דחייה', 'לא רוצה'];
+const DECLINE_INTENT_KEYWORDS_EN = ['decline', 'reject', 'not interested', 'pass', 'no thanks', 'not for me', "don't want"];
+
 const CLOSED_STATUSES: MatchSuggestionStatus[] = [
   'MARRIED', 'CLOSED', 'EXPIRED', 'CANCELLED',
   'FIRST_PARTY_DECLINED', 'SECOND_PARTY_DECLINED',
@@ -50,6 +55,13 @@ export interface AnonymizedMatch {
 interface ConversationMessage {
   role: 'user' | 'assistant';
   content: string;
+}
+
+export interface ChatAction {
+  type: 'approve' | 'decline';
+  label: { he: string; en: string };
+  status: MatchSuggestionStatus;
+  variant: 'positive' | 'negative';
 }
 
 // =============================================================================
@@ -1126,10 +1138,6 @@ ${conversationText}
         return isHebrew
           ? 'תודה על התשובה. רוצה לספר מה חיפשת אחרת? זה יעזור לנו לדייק את ההצעות הבאות שלך.'
           : "Thanks for your response. Want to share what you were looking for differently? It'll help us fine-tune your next suggestions.";
-      case 'post_approve':
-        return isHebrew
-          ? 'מעולה שאישרת! יש לך שאלות או חששות לפני שהשדכנית ממשיכה בתהליך?'
-          : "Great that you approved! Any questions or concerns before the matchmaker moves forward?";
       default:
         return '';
     }
@@ -1169,5 +1177,126 @@ ${conversationText}
       where: { id: summaryId },
       data: { isRead: true },
     });
+  }
+
+  // ========== Quick Reply Suggestions ==========
+
+  static getQuickReplies(
+    locale: 'he' | 'en',
+    suggestionId: string | null | undefined,
+    suggestionStatus: string | null,
+    messageCount: number,
+  ): string[] {
+    const isHebrew = locale === 'he';
+
+    // First message in a suggestion-specific chat
+    if (suggestionId && messageCount <= 2) {
+      if (suggestionStatus === 'PENDING_FIRST_PARTY' || suggestionStatus === 'PENDING_SECOND_PARTY') {
+        return isHebrew
+          ? ['ספר/י לי עליו/ה', 'למה אנחנו מתאימים?', 'מה הרקע שלו/ה?']
+          : ['Tell me about them', 'Why are we compatible?', "What's their background?"];
+      }
+    }
+
+    // Suggestion chat with some history
+    if (suggestionId && messageCount > 2) {
+      if (suggestionStatus === 'PENDING_FIRST_PARTY' || suggestionStatus === 'PENDING_SECOND_PARTY') {
+        return isHebrew
+          ? ['אני רוצה לאשר', 'יש לי שאלות נוספות', 'העבר לשדכנית']
+          : ['I want to approve', 'I have more questions', 'Transfer to matchmaker'];
+      }
+      if (suggestionStatus === 'CONTACT_DETAILS_SHARED' || suggestionStatus === 'DATING') {
+        return isHebrew
+          ? ['טיפים לפגישה ראשונה', 'מה לשאול?', 'איך להתכונן?']
+          : ['First date tips', 'What to ask?', 'How to prepare?'];
+      }
+    }
+
+    // General chat (no suggestion)
+    if (!suggestionId) {
+      if (messageCount <= 2) {
+        return isHebrew
+          ? ['מה אני מחפש/ת?', 'למה דחיתי הצעות?', 'חפש לי התאמות']
+          : ['What am I looking for?', 'Why did I decline suggestions?', 'Find me matches'];
+      }
+      return isHebrew
+        ? ['תעדכן את ההעדפות שלי', 'חפש לי שוב', 'תודה!']
+        : ['Update my preferences', 'Search again', 'Thanks!'];
+    }
+
+    return [];
+  }
+
+  // ========== Chat Action Detection ==========
+
+  static detectActionIntent(message: string): 'approve' | 'decline' | null {
+    const lower = message.toLowerCase();
+    if (
+      APPROVE_INTENT_KEYWORDS_HE.some((kw) => lower.includes(kw)) ||
+      APPROVE_INTENT_KEYWORDS_EN.some((kw) => lower.includes(kw))
+    ) {
+      return 'approve';
+    }
+    if (
+      DECLINE_INTENT_KEYWORDS_HE.some((kw) => lower.includes(kw)) ||
+      DECLINE_INTENT_KEYWORDS_EN.some((kw) => lower.includes(kw))
+    ) {
+      return 'decline';
+    }
+    return null;
+  }
+
+  /**
+   * Get available actions for a suggestion based on its status and the user's role
+   */
+  static async getAvailableActions(
+    suggestionId: string,
+    userId: string,
+  ): Promise<ChatAction[]> {
+    const suggestion = await prisma.matchSuggestion.findUnique({
+      where: { id: suggestionId },
+      select: { status: true, firstPartyId: true, secondPartyId: true },
+    });
+
+    if (!suggestion) return [];
+
+    const isFirstParty = suggestion.firstPartyId === userId;
+    const isSecondParty = suggestion.secondPartyId === userId;
+
+    if (!isFirstParty && !isSecondParty) return [];
+
+    const actions: ChatAction[] = [];
+
+    if (isFirstParty && suggestion.status === 'PENDING_FIRST_PARTY') {
+      actions.push({
+        type: 'approve',
+        label: { he: 'מעוניין/ת - אשר/י הצעה', en: 'Interested - Approve' },
+        status: 'FIRST_PARTY_APPROVED',
+        variant: 'positive',
+      });
+      actions.push({
+        type: 'decline',
+        label: { he: 'לא מתאים - דחה/י', en: 'Not a match - Decline' },
+        status: 'FIRST_PARTY_DECLINED',
+        variant: 'negative',
+      });
+    }
+
+    if (isSecondParty && suggestion.status === 'PENDING_SECOND_PARTY') {
+      actions.push({
+        type: 'approve',
+        label: { he: 'מעוניין/ת - אשר/י הצעה', en: 'Interested - Approve' },
+        status: 'SECOND_PARTY_APPROVED',
+        variant: 'positive',
+      });
+      actions.push({
+        type: 'decline',
+        label: { he: 'לא מתאים - דחה/י', en: 'Not a match - Decline' },
+        status: 'SECOND_PARTY_DECLINED',
+        variant: 'negative',
+      });
+    }
+
+    return actions;
   }
 }

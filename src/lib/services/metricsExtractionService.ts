@@ -117,28 +117,84 @@ export async function extractMetricsFromProfile(
   // 8. חילוץ Deal Breakers
   const dealBreakers = extractDealBreakers(input);
 
-  // 8.5 סנכרון smokingStatus ו-preferredSmokingStatus מתשובות השאלון לפרופיל
+  // 8.5 סנכרון שדות מתשובות השאלון לפרופיל (מניעת כפילויות — השאלון הוא ה-source of truth)
   const personalityAnswers = input.questionnaireAnswers?.personality;
   const partnerAnswersForSync = input.questionnaireAnswers?.partner;
-  const profileUpdateData: Record<string, string> = {};
+  const religionAnswersForSync = input.questionnaireAnswers?.religion;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const profileUpdateData: Record<string, any> = {};
 
+  // Smoking status (self)
   if (personalityAnswers) {
     const smokingAnswer = findAnswer(personalityAnswers, 'personality_smoking_status');
     if (smokingAnswer && typeof smokingAnswer === 'string') {
       profileUpdateData.smokingStatus = smokingAnswer;
     }
+
+    // Character traits — extract top 3 from budget allocation
+    const traitsAnswer = findAnswer(personalityAnswers, 'personality_core_trait_selection_revised');
+    if (traitsAnswer && typeof traitsAnswer === 'object') {
+      const traitsObj = traitsAnswer as Record<string, number>;
+      const top3Traits = Object.entries(traitsObj)
+        .filter(([, score]) => score > 0)
+        .sort(([, a], [, b]) => b - a)
+        .slice(0, 3)
+        .map(([trait]) => trait);
+      if (top3Traits.length > 0) {
+        profileUpdateData.profileCharacterTraits = top3Traits;
+      }
+    }
+
+    // About (self-description) — only if profile.about is empty
+    const selfPortrayal = findAnswer(personalityAnswers, 'personality_self_portrayal_revised');
+    if (selfPortrayal && typeof selfPortrayal === 'string' && selfPortrayal.trim().length > 0) {
+      if (!profile.about || profile.about.trim().length === 0) {
+        profileUpdateData.about = selfPortrayal.trim();
+      }
+    }
   }
+
+  // Smoking preference (partner)
   if (partnerAnswersForSync) {
     const smokingPrefAnswer = findAnswer(partnerAnswersForSync, 'partner_smoking_preference');
     if (smokingPrefAnswer && typeof smokingPrefAnswer === 'string') {
       profileUpdateData.preferredSmokingStatus = smokingPrefAnswer;
     }
+
+    // Preferred character traits — extract top 3 from budget allocation
+    const prefTraitsAnswer = findAnswer(partnerAnswersForSync, 'partner_core_character_traits_essential_revised');
+    if (prefTraitsAnswer && typeof prefTraitsAnswer === 'object') {
+      const prefTraitsObj = prefTraitsAnswer as Record<string, number>;
+      const top3PrefTraits = Object.entries(prefTraitsObj)
+        .filter(([, score]) => score > 0)
+        .sort(([, a], [, b]) => b - a)
+        .slice(0, 3)
+        .map(([trait]) => trait);
+      if (top3PrefTraits.length > 0) {
+        profileUpdateData.preferredCharacterTraits = top3PrefTraits;
+      }
+    }
   }
+
+  // Shomer Negiah — map questionnaire string answer to profile boolean
+  if (religionAnswersForSync) {
+    const shomerAnswer = findAnswer(religionAnswersForSync, 'religion_shomer_negiah_approach');
+    if (shomerAnswer && typeof shomerAnswer === 'string') {
+      if (shomerAnswer === 'strictly' || shomerAnswer === 'personal_decision') {
+        profileUpdateData.shomerNegiah = true;
+      } else if (shomerAnswer === 'not_my_practice') {
+        profileUpdateData.shomerNegiah = false;
+      }
+      // 'prefer_not_to_answer' → leave unchanged
+    }
+  }
+
   if (Object.keys(profileUpdateData).length > 0) {
     await prisma.profile.update({
       where: { id: profileId },
       data: profileUpdateData,
     });
+    console.log(`[MetricsExtraction] Synced ${Object.keys(profileUpdateData).length} fields from questionnaire to profile: ${Object.keys(profileUpdateData).join(', ')}`);
   }
 
   // 9. חישוב שלמות הנתונים

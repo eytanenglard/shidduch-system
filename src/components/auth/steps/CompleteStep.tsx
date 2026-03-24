@@ -70,7 +70,7 @@ const CompleteStep: React.FC<CompleteStepProps> = ({ dict, locale }) => {
   const { goToStep } = useRegistration();
   const [isNavigating, setIsNavigating] = useState(false);
 
-  // Import Heart Map answers from localStorage if user came from heart-map
+  // Import Soul Map answers from localStorage if user came from heart-map
   useEffect(() => {
     if (sessionStatus !== 'authenticated') return;
     const heartMapData = getGuestHeartMapData();

@@ -3,6 +3,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { useChatSSE, type SSEMessage } from '@/hooks/useChatSSE';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -96,6 +97,89 @@ export default function SuggestionChat({
   const userScrolledUpRef = useRef(false);
 
   const isHe = locale === 'he';
+
+  // ==========================================
+  // Typing indicator state
+  // ==========================================
+  const [typingUser, setTypingUser] = useState<string | null>(null);
+  const typingClearRef = useRef<NodeJS.Timeout | null>(null);
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // ==========================================
+  // SSE integration for real-time updates
+  // ==========================================
+  const handleSSENewMessage = useCallback(
+    (message: SSEMessage) => {
+      if (
+        message.conversationId === suggestionId &&
+        message.conversationType === 'suggestion'
+      ) {
+        setMessages((prev) => {
+          if (prev.some((m) => m.id === message.id)) return prev;
+          return [
+            ...prev,
+            {
+              id: message.id,
+              content: message.content,
+              senderId: message.senderId,
+              senderType: message.senderType as 'user' | 'matchmaker' | 'system',
+              senderName: message.senderName || '',
+              isRead: false,
+              createdAt: new Date().toISOString(),
+              isMine: false,
+            },
+          ];
+        });
+      }
+    },
+    [suggestionId]
+  );
+
+  const handleSSETyping = useCallback(
+    (data: { conversationId: string; userId: string; userName: string }) => {
+      if (data.conversationId === `suggestion:${suggestionId}`) {
+        setTypingUser(data.userName);
+        if (typingClearRef.current) clearTimeout(typingClearRef.current);
+        typingClearRef.current = setTimeout(() => setTypingUser(null), 4000);
+      }
+    },
+    [suggestionId]
+  );
+
+  useChatSSE({
+    streamUrl: '/api/messages/stream',
+    pollUrl: `/api/suggestions/${suggestionId}/chat`,
+    pollInterval: 12000,
+    enabled: !!suggestionId,
+    onNewMessage: handleSSENewMessage,
+    onTyping: handleSSETyping,
+  });
+
+  // ==========================================
+  // Debounced typing notification
+  // ==========================================
+  const handleTypingNotify = useCallback(() => {
+    if (typingTimeoutRef.current) return;
+    fetch('/api/messages/typing', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        conversationId: suggestionId,
+        conversationType: 'suggestion' as const,
+      }),
+    }).catch(() => {});
+    typingTimeoutRef.current = setTimeout(() => {
+      typingTimeoutRef.current = null;
+    }, 3000);
+  }, [suggestionId]);
+
+  // Cleanup typing refs on unmount
+  useEffect(() => {
+    return () => {
+      if (typingClearRef.current) clearTimeout(typingClearRef.current);
+      if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+    };
+  }, []);
 
   // ==========================================
   // Track scroll position
@@ -444,13 +528,23 @@ export default function SuggestionChat({
         )}
       </div>
 
+      {/* Typing indicator */}
+      {typingUser && (
+        <div className="px-4 py-1 text-xs text-gray-400 animate-pulse">
+          {isHe ? `${typingUser} מקליד/ה...` : `${typingUser} is typing...`}
+        </div>
+      )}
+
       {/* Input area */}
       <div className="border-t border-gray-100 bg-gray-50/80 p-3">
         <div className="flex items-end gap-2">
           <Textarea
             ref={textareaRef}
             value={newMessage}
-            onChange={(e) => setNewMessage(e.target.value)}
+            onChange={(e) => {
+              setNewMessage(e.target.value);
+              handleTypingNotify();
+            }}
             onKeyDown={handleKeyDown}
             placeholder={
               isHe ? 'כתוב/י הודעה לשדכן/ית...' : 'Type a message...'

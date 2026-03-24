@@ -42,7 +42,7 @@
     "myMatches": "My Matches",
      "referralsAdmin": "Referrals Admin",
     "matchmakingQuestionnaire": "Questionnaire",
-    "soulFingerprint": "Heart Map",
+    "soulFingerprint": "Soul Map",
       "engagementDashboard": "Engagement Managment",
     "messages": "Messages",
     "login": "Sign In",
@@ -391,7 +391,7 @@
   },
   "heartMapCTA": {
     "badge": "New — Try for free",
-    "title": "Discover Your Heart Map",
+    "title": "Discover Your Soul Map",
     "subtitle": "Fill out a short questionnaire and discover how many potential matches are waiting for you",
     "description": "No signup, no cost. 10 minutes of self-discovery — and at the end, you'll see how many people in our system could be your match.",
     "features": {

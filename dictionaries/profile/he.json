@@ -71,7 +71,7 @@
           "description": "את מי את/ה מחפש/ת?"
         },
         "soulFingerprint": {
-          "title": "מפת הלב",
+          "title": "מפת הנשמה",
           "description": "10 דקות שיעזרו לנו למצוא לך."
         },
         "questionnaire": {
@@ -920,6 +920,34 @@
         "traitsEmpty": "לא נבחרו תכונות אופי.",
         "hobbiesLabel": "תחביבים עיקריים (עד 3)",
         "hobbiesEmpty": "לא נבחרו תחביבים."
+      },
+      "questionnaireSyncBadge": "מסונכרן מהשאלון",
+      "questionnaireInsights": {
+        "title": "תובנות ממפת הנשמה",
+        "loveLanguages": "שפות אהבה",
+        "loveLanguageOptions": {
+          "words": "מילים ומחמאות",
+          "quality_time": "זמן איכות",
+          "touch": "מגע פיזי",
+          "service": "מעשים ועזרה",
+          "gifts": "מתנות וסמלים"
+        },
+        "communicationStyle": "סגנון תקשורת",
+        "communicationOptions": {
+          "direct": "ישיר",
+          "empathetic": "אמפתי",
+          "logical": "לוגי",
+          "humorous": "הומוריסטי",
+          "emotional": "רגשי"
+        },
+        "togetherness": "עצמאות מול ביחד",
+        "togethernessLabels": {
+          "independent": "עצמאי/ת",
+          "balanced": "מאוזן/ת",
+          "together": "ביחד"
+        },
+        "childrenEducation": "חזון חינוך ילדים",
+        "editInQuestionnaire": "עריכה בשאלון מפת הנשמה"
       },
       "appearance": {
         "title": "מראה חיצוני וסגנון",

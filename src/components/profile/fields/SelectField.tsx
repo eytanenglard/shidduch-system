@@ -12,7 +12,7 @@ import {
 
 interface SelectFieldProps {
   id: string;
-  label: string;
+  label: React.ReactNode;
   value: string | undefined | null;
   options: { value: string; label: string }[];
   placeholder?: string;

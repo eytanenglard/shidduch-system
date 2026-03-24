@@ -71,7 +71,7 @@
           "description": "Who are you looking for?"
         },
         "soulFingerprint": {
-          "title": "Heart Map",
+          "title": "Soul Map",
           "description": "10 minutes to help us find your match."
         },
         "questionnaire": {
@@ -484,6 +484,34 @@
         "traitsEmpty": "No character traits selected.",
         "hobbiesLabel": "My Top 3 Hobbies",
         "hobbiesEmpty": "No hobbies selected."
+      },
+      "questionnaireSyncBadge": "Synced from questionnaire",
+      "questionnaireInsights": {
+        "title": "Soul Map Insights",
+        "loveLanguages": "Love Languages",
+        "loveLanguageOptions": {
+          "words": "Words of Affirmation",
+          "quality_time": "Quality Time",
+          "touch": "Physical Touch",
+          "service": "Acts of Service",
+          "gifts": "Receiving Gifts"
+        },
+        "communicationStyle": "Communication Style",
+        "communicationOptions": {
+          "direct": "Direct",
+          "empathetic": "Empathetic",
+          "logical": "Logical",
+          "humorous": "Humorous",
+          "emotional": "Emotional"
+        },
+        "togetherness": "Independence vs. Togetherness",
+        "togethernessLabels": {
+          "independent": "Independent",
+          "balanced": "Balanced",
+          "together": "Together"
+        },
+        "childrenEducation": "Children's Education Vision",
+        "editInQuestionnaire": "Edit in Soul Map questionnaire"
       },
       "appearance": {
         "title": "Appearance & Style",

@@ -24,6 +24,7 @@ if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) 
 const chatInputSchema = z.object({
   message: z.string().min(1).max(2000),
   conversationId: z.string().optional(),
+  suggestionId: z.string().optional(), // When set, chat is contextual to a specific suggestion
   locale: z.enum(['he', 'en']).default('he'),
 });
 
@@ -54,7 +55,7 @@ export async function POST(req: NextRequest) {
       return corsError(req, 'Invalid input', 400, 'VALIDATION_ERROR');
     }
 
-    const { message, locale } = parsed.data;
+    const { message, locale, suggestionId } = parsed.data;
 
     // Get or create conversation
     const conversation = parsed.data.conversationId
@@ -62,9 +63,9 @@ export async function POST(req: NextRequest) {
           const existing = await prisma.aiChatConversation.findFirst({
             where: { id: parsed.data.conversationId, userId },
           });
-          return existing || AiChatService.getOrCreateConversation(userId);
+          return existing || AiChatService.getOrCreateConversation(userId, suggestionId);
         })()
-      : await AiChatService.getOrCreateConversation(userId);
+      : await AiChatService.getOrCreateConversation(userId, suggestionId);
 
     // Save user message
     await AiChatService.saveMessage(conversation.id, 'user', message);
@@ -79,9 +80,22 @@ export async function POST(req: NextRequest) {
       searchContext = AiChatService.formatSearchResultsForAI(searchResults);
     }
 
+    // Detect escalation intent
+    const isEscalationRequest = AiChatService.detectEscalationIntent(message);
+
+    // Build suggestion context if this is a suggestion-specific conversation
+    const effectiveSuggestionId = suggestionId || conversation.suggestionId;
+
+    // Detect action intent (approve/decline) for suggestion-specific chats
+    const actionIntent = effectiveSuggestionId ? AiChatService.detectActionIntent(message) : null;
+    let suggestionContext: string | undefined;
+    if (effectiveSuggestionId) {
+      suggestionContext = (await AiChatService.getSuggestionContext(effectiveSuggestionId, userId, locale)) || undefined;
+    }
+
     // Build prompt and history
     const [systemPrompt, history, watchlistNames] = await Promise.all([
-      AiChatService.buildSystemPrompt(userId, locale),
+      AiChatService.buildSystemPrompt(userId, locale, suggestionContext),
       AiChatService.buildConversationHistory(conversation.id),
       AiChatService.getWatchlistNames(userId),
     ]);
@@ -120,20 +134,69 @@ export async function POST(req: NextRequest) {
             Object.keys(metadata).length > 0 ? metadata : undefined,
           );
 
+          // Handle escalation: create suggestion message for matchmaker
+          let escalated = false;
+          if (isEscalationRequest && effectiveSuggestionId) {
+            try {
+              const result = await AiChatService.escalateToMatchmaker(
+                conversation.id,
+                effectiveSuggestionId,
+                userId,
+              );
+              escalated = result.success;
+            } catch (err) {
+              console.error('[AiChat Mobile] Escalation error:', err);
+            }
+          }
+
+          // Get available actions if user expressed action intent
+          let actions: Awaited<ReturnType<typeof AiChatService.getAvailableActions>> = [];
+          if (actionIntent && effectiveSuggestionId) {
+            actions = await AiChatService.getAvailableActions(effectiveSuggestionId, userId);
+          }
+
+          // Generate quick reply suggestions
+          const messageCount = history.length + 1;
+          let suggestionStatus: string | null = null;
+          if (effectiveSuggestionId) {
+            const sg = await prisma.matchSuggestion.findUnique({
+              where: { id: effectiveSuggestionId },
+              select: { status: true },
+            });
+            suggestionStatus = sg?.status || null;
+          }
+          const quickReplies = AiChatService.getQuickReplies(
+            locale, effectiveSuggestionId || null, suggestionStatus, messageCount,
+          );
+
           const doneData = JSON.stringify({
             type: 'done',
             conversationId: conversation.id,
+            suggestionId: effectiveSuggestionId || undefined,
             hasSearchResults: searchResults.length > 0,
             searchResults: searchResults.length > 0 ? searchResults : undefined,
+            escalated,
+            actions: actions.length > 0 ? actions : undefined,
+            quickReplies: quickReplies.length > 0 ? quickReplies : undefined,
           });
           controller.enqueue(encoder.encode(`data: ${doneData}\n\n`));
 
+          // Async: extract preferences if needed
           void AiChatService.shouldExtractPreferences(conversation.id).then((shouldExtract) => {
             if (shouldExtract) {
               return AiChatService.extractAndSavePreferences(userId, conversation.id);
             }
           }).catch((err) => {
             console.error('[AiChat Mobile] Preference extraction error:', err);
+          });
+
+          // Async: generate summary for matchmaker if meaningful conversation
+          void AiChatService.generateAndSaveSummary(
+            conversation.id,
+            effectiveSuggestionId || null,
+            userId,
+          ).catch((err) => {
+            console.error('[AiChat Mobile] Summary generation error:', err);
           });
 
         } catch (err) {

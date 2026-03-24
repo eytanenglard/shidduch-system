@@ -8,6 +8,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { useChatSSE, type SSEMessage } from '@/hooks/useChatSSE';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -106,6 +107,13 @@ export default function UserChatPanel({
   const isHe = locale === 'he';
 
   // ==========================================
+  // Typing indicator state
+  // ==========================================
+  const [typingUser, setTypingUser] = useState<string | null>(null);
+  const typingClearRef = useRef<NodeJS.Timeout | null>(null);
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // ==========================================
   // ✅ Stable ref for onUnreadUpdate to avoid re-creating loadChats
   // ==========================================
   const onUnreadUpdateRef = useRef(onUnreadUpdate);
@@ -120,6 +128,92 @@ export default function UserChatPanel({
   const userScrolledUpRef = useRef(false);
 
   const selectedChat = chats.find((c) => c.id === selectedChatId);
+
+  // ==========================================
+  // SSE integration for real-time updates
+  // ==========================================
+  const loadChatsRef = useRef<(() => void) | null>(null);
+
+  const handleSSENewMessage = useCallback(
+    (message: SSEMessage) => {
+      // If direct chat is open and message is for it, add to messages list
+      if (
+        selectedChatId === 'direct' &&
+        message.conversationType === 'direct'
+      ) {
+        setMessages((prev) => {
+          // Deduplicate by message ID
+          if (prev.some((m) => m.id === message.id)) return prev;
+          return [
+            ...prev,
+            {
+              id: message.id,
+              content: message.content,
+              senderId: message.senderId,
+              senderType: message.senderType as 'user' | 'matchmaker' | 'system',
+              senderName: message.senderName || '',
+              isRead: false,
+              createdAt: new Date().toISOString(),
+              isMine: false,
+            },
+          ];
+        });
+      }
+      // Always refresh the chat list when a new message arrives
+      loadChatsRef.current?.();
+    },
+    [selectedChatId]
+  );
+
+  const handleSSETyping = useCallback(
+    (data: { conversationId: string; userId: string; userName: string }) => {
+      // Show typing indicator if we're in a direct chat
+      if (selectedChatId === 'direct') {
+        setTypingUser(data.userName);
+        if (typingClearRef.current) clearTimeout(typingClearRef.current);
+        typingClearRef.current = setTimeout(() => setTypingUser(null), 4000);
+      }
+    },
+    [selectedChatId]
+  );
+
+  useChatSSE({
+    streamUrl: '/api/messages/stream',
+    pollUrl:
+      selectedChatId === 'direct'
+        ? '/api/messages/direct'
+        : '/api/messages/chats',
+    pollInterval: selectedChatId === 'direct' ? 12000 : 30000,
+    enabled: true,
+    onNewMessage: handleSSENewMessage,
+    onTyping: handleSSETyping,
+  });
+
+  // ==========================================
+  // Debounced typing notification (direct chat)
+  // ==========================================
+  const handleTypingNotify = useCallback(() => {
+    if (typingTimeoutRef.current) return; // Already sent recently
+    fetch('/api/messages/typing', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        conversationId: 'direct',
+        conversationType: 'direct' as const,
+      }),
+    }).catch(() => {});
+    typingTimeoutRef.current = setTimeout(() => {
+      typingTimeoutRef.current = null;
+    }, 3000);
+  }, []);
+
+  // Cleanup typing refs on unmount
+  useEffect(() => {
+    return () => {
+      if (typingClearRef.current) clearTimeout(typingClearRef.current);
+      if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+    };
+  }, []);
 
   // ==========================================
   // Track if user scrolled up (for direct chat)
@@ -151,6 +245,9 @@ export default function UserChatPanel({
       setIsLoadingList(false);
     }
   }, []);
+
+  // Keep the ref current for SSE callback
+  useEffect(() => { loadChatsRef.current = loadChats; }, [loadChats]);
 
   // ==========================================
   // ✅ Visibility-aware polling for chat list
@@ -515,13 +612,23 @@ export default function UserChatPanel({
               )}
             </ScrollArea>
 
+            {/* Typing indicator */}
+            {typingUser && (
+              <div className="px-4 py-1 text-xs text-gray-400 animate-pulse">
+                {isHe ? `${typingUser} מקליד/ה...` : `${typingUser} is typing...`}
+              </div>
+            )}
+
             {/* Input */}
             <div className="border-t bg-gray-50/50 p-3">
               <div className="flex items-end gap-2">
                 <Textarea
                   ref={textareaRef}
                   value={newMessage}
-                  onChange={(e) => setNewMessage(e.target.value)}
+                  onChange={(e) => {
+                    setNewMessage(e.target.value);
+                    handleTypingNotify();
+                  }}
                   onKeyDown={handleKeyDown}
                   placeholder={isHe ? 'כתוב/י הודעה...' : 'Type a message...'}
                   className="flex-1 min-h-[44px] max-h-32 resize-none rounded-xl border-gray-200 focus:border-teal-300 focus:ring-teal-200"

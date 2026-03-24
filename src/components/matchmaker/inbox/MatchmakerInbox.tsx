@@ -13,6 +13,7 @@ import React, {
   forwardRef,
   useImperativeHandle,
 } from 'react';
+import { useChatSSE, type SSEMessage } from '@/hooks/useChatSSE';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -63,10 +64,84 @@ function DirectChatView({
   const [newMessage, setNewMessage] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [isSending, setIsSending] = useState(false);
+  const [typingUser, setTypingUser] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const prevCountRef = useRef(0);
   const userScrolledUpRef = useRef(false);
+  const typingClearRef = useRef<NodeJS.Timeout | null>(null);
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const isHe = locale === 'he';
+
+  // ==========================================
+  // SSE integration for real-time direct chat updates
+  // ==========================================
+  const handleSSENewMessage = useCallback(
+    (message: SSEMessage) => {
+      if (
+        message.conversationType === 'direct' &&
+        message.senderId === userId
+      ) {
+        setMessages((prev) => {
+          if (prev.some((m) => m.id === message.id)) return prev;
+          return [
+            ...prev,
+            {
+              id: message.id,
+              content: message.content,
+              senderType: message.senderType as 'user' | 'matchmaker' | 'system',
+              senderId: message.senderId,
+              createdAt: new Date().toISOString(),
+            },
+          ];
+        });
+      }
+    },
+    [userId]
+  );
+
+  const handleSSETyping = useCallback(
+    (data: { conversationId: string; userId: string; userName: string }) => {
+      if (data.userId === userId) {
+        setTypingUser(data.userName);
+        if (typingClearRef.current) clearTimeout(typingClearRef.current);
+        typingClearRef.current = setTimeout(() => setTypingUser(null), 4000);
+      }
+    },
+    [userId]
+  );
+
+  useChatSSE({
+    streamUrl: '/api/matchmaker/stream',
+    pollUrl: `/api/matchmaker/direct-chats/${userId}`,
+    pollInterval: 12000,
+    enabled: !!userId,
+    onNewMessage: handleSSENewMessage,
+    onTyping: handleSSETyping,
+  });
+
+  // Debounced typing notification
+  const handleTypingNotify = useCallback(() => {
+    if (typingTimeoutRef.current) return;
+    fetch('/api/messages/typing', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        conversationId: userId,
+        conversationType: 'direct' as const,
+      }),
+    }).catch(() => {});
+    typingTimeoutRef.current = setTimeout(() => {
+      typingTimeoutRef.current = null;
+    }, 3000);
+  }, [userId]);
+
+  // Cleanup typing refs on unmount
+  useEffect(() => {
+    return () => {
+      if (typingClearRef.current) clearTimeout(typingClearRef.current);
+      if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+    };
+  }, []);
 
   const loadMessages = useCallback(async () => {
     try {
@@ -199,6 +274,12 @@ function DirectChatView({
           })
         )}
       </div>
+      {/* Typing indicator */}
+      {typingUser && (
+        <div className="px-4 py-1 text-xs text-gray-400 animate-pulse">
+          {isHe ? `${typingUser} מקליד/ה...` : `${typingUser} is typing...`}
+        </div>
+      )}
       <div className="border-t bg-gray-50/50 p-3">
         <div className="flex items-center gap-2">
           <QuickReplyPicker
@@ -208,7 +289,10 @@ function DirectChatView({
           <input
             type="text"
             value={newMessage}
-            onChange={(e) => setNewMessage(e.target.value)}
+            onChange={(e) => {
+              setNewMessage(e.target.value);
+              handleTypingNotify();
+            }}
             onKeyDown={(e) => {
               if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); }
             }}
@@ -253,6 +337,28 @@ const MatchmakerInbox = forwardRef<MatchmakerInboxHandle, MatchmakerInboxProps>(
     useEffect(() => { onUnreadUpdateRef.current = onUnreadUpdate; }, [onUnreadUpdate]);
 
     // ==========================================
+    // SSE integration for real-time inbox updates
+    // ==========================================
+    const handleInboxSSENewMessage = useCallback(
+      () => {
+        // Refresh the inbox list whenever a new message arrives
+        // (loadInbox is defined below, but referenced via ref to avoid circular dep)
+        loadInboxRef.current?.();
+      },
+      []
+    );
+
+    const loadInboxRef = useRef<(() => void) | null>(null);
+
+    useChatSSE({
+      streamUrl: '/api/matchmaker/stream',
+      pollUrl: '/api/matchmaker/inbox',
+      pollInterval: 30000,
+      enabled: true,
+      onNewMessage: handleInboxSSENewMessage,
+    });
+
+    // ==========================================
     // Data fetching
     // ==========================================
     const loadInbox = useCallback(async () => {
@@ -277,6 +383,9 @@ const MatchmakerInbox = forwardRef<MatchmakerInboxHandle, MatchmakerInboxProps>(
         setIsLoading(false);
       }
     }, [activeFilter, searchQuery]);
+
+    // Keep the ref current for SSE callback
+    useEffect(() => { loadInboxRef.current = loadInbox; }, [loadInbox]);
 
     useImperativeHandle(ref, () => ({ refresh: loadInbox }), [loadInbox]);
 

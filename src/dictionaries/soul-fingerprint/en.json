@@ -1,9 +1,9 @@
 {
   "welcome": {
     "badge": "New",
-    "title": "Your Heart Map",
+    "title": "Your Soul Map",
     "subtitle": "10 minutes that change everything",
-    "description": "The better we know you — the more accurate and personal your matches will be.\nYour Heart Map is your real profile — not a list of data, but who you actually are.",
+    "description": "The better we know you — the more accurate and personal your matches will be.\nYour Soul Map is your real profile — not a list of data, but who you actually are.",
     "whyMatters": {
       "title": "Why does this matter?",
       "point1": "The system builds a unique profile from hundreds of parameters",
@@ -17,7 +17,7 @@
   },
   "landingPage": {
     "badge": "New",
-    "title": "Your Heart Map",
+    "title": "Your Soul Map",
     "subtitle": "Get to know you — really",
     "description": "Our technology analyzes hundreds of unique parameters to understand who you truly are — not just data, but personality, values, dreams and lifestyle. That's how we find a real match.",
     "features": {
@@ -31,7 +31,7 @@
       },
       "feature3": {
         "title": "Precise matching",
-        "description": "The system uses your Heart Map to find the best match"
+        "description": "The system uses your Soul Map to find the best match"
       }
     }
   },
@@ -80,7 +80,7 @@
     "showUnanswered": "Show"
   },
   "completion": {
-    "title": "Your Heart Map is ready!",
+    "title": "Your Soul Map is ready!",
     "subtitle": "A unique profile that represents who you are",
     "description": "Based on your answers, the system can offer you more accurate and personal matches.\nOur matchmakers will know you on a deep level.",
     "tagsTitle": "Here's what we discovered about you:",
@@ -814,7 +814,19 @@
     },
     "s7_deal_breakers": {
       "text": "What are your deal breakers?",
-      "subtitle": "Select up to 5 things that are absolute deal breakers for you"
+      "subtitle": "Select everything that applies to you"
+    },
+    "s7_preferred_age_min": {
+      "text": "What is the minimum age you'd consider in a partner?",
+      "subtitle": "",
+      "left": "18",
+      "right": "70"
+    },
+    "s7_preferred_age_max": {
+      "text": "What is the maximum age you'd consider in a partner?",
+      "subtitle": "",
+      "left": "18",
+      "right": "70"
     },
     "s7_emotional_needs": {
       "text": "What is your most important emotional need in a relationship?",
@@ -1788,17 +1800,9 @@
       "different_religious_level": "Different religious level",
       "no_education": "Lack of education",
       "financial_instability": "Financial instability",
-      "dishonesty": "Dishonesty / lying",
-      "disrespectful": "Disrespectfulness",
-      "no_humor": "Lack of humor",
-      "pessimistic": "Pessimism / negativity",
-      "controlling": "Controlling behavior",
       "has_children": "Has children from previous marriage",
-      "age_gap_big": "Large age gap",
       "geographic": "Geographic distance",
       "appearance_mismatch": "Lack of physical attraction",
-      "cynical": "Cynicism / lack of faith",
-      "passive": "Passivity / lack of initiative",
       "immodest_dress": "Immodest dress"
     },
     "s7_emotional_needs": {

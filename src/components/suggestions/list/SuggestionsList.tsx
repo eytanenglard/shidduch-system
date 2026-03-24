@@ -101,90 +101,136 @@ type FilterOption =
   | 'declined'
   | 'contact_shared';
 
-// ... (EmptyState component remains the same)
+// Enhanced Empty State with profile tips, matchmaker activity, and next suggestion timing
 const EmptyState: React.FC<{
   isFiltered: boolean;
   isHistory: boolean;
   onClearFilters: () => void;
   dict: SuggestionsDictionary['list']['emptyState'];
-}> = ({ isFiltered, isHistory, onClearFilters, dict }) => (
-  <div className="flex flex-col items-center justify-center min-h-[400px] text-center p-8">
-    <div className="relative mb-8">
-      {/* Outer glow ring for no-active state */}
-      {!isFiltered && !isHistory && (
-        <div className="absolute inset-0 rounded-full bg-gradient-to-br from-teal-200/40 to-rose-200/40 blur-xl scale-110 animate-pulse" />
-      )}
-      <div className={`relative w-32 h-32 rounded-full flex items-center justify-center shadow-lg ${
-        isFiltered
-          ? 'bg-gradient-to-br from-teal-100 to-orange-100'
-          : isHistory
-            ? 'bg-gradient-to-br from-gray-100 to-slate-100'
-            : 'bg-gradient-to-br from-rose-100 via-pink-100 to-teal-100'
-      }`}>
-        {isFiltered ? (
-          <Search className="w-16 h-16 text-teal-500" />
-        ) : isHistory ? (
-          <Clock className="w-16 h-16 text-gray-400" />
-        ) : (
-          <Heart className="w-16 h-16 text-rose-400 animate-pulse" />
+  locale: 'he' | 'en';
+}> = ({ isFiltered, isHistory, onClearFilters, dict, locale }) => {
+  const isRtl = locale === 'he';
+
+  return (
+    <div className="flex flex-col items-center justify-center min-h-[400px] text-center p-8">
+      <div className="relative mb-8">
+        {!isFiltered && !isHistory && (
+          <div className="absolute inset-0 rounded-full bg-gradient-to-br from-teal-200/40 to-rose-200/40 blur-xl scale-110 animate-pulse" />
+        )}
+        <div className={`relative w-32 h-32 rounded-full flex items-center justify-center shadow-lg ${
+          isFiltered
+            ? 'bg-gradient-to-br from-teal-100 to-orange-100'
+            : isHistory
+              ? 'bg-gradient-to-br from-gray-100 to-slate-100'
+              : 'bg-gradient-to-br from-rose-100 via-pink-100 to-teal-100'
+        }`}>
+          {isFiltered ? (
+            <Search className="w-16 h-16 text-teal-500" />
+          ) : isHistory ? (
+            <Clock className="w-16 h-16 text-gray-400" />
+          ) : (
+            <Heart className="w-16 h-16 text-rose-400 animate-pulse" />
+          )}
+        </div>
+        {!isFiltered && !isHistory && (
+          <>
+            <div className="absolute -top-2 -right-2 w-8 h-8 rounded-full bg-gradient-to-r from-orange-400 to-amber-500 flex items-center justify-center shadow-lg">
+              <Sparkles className="w-4 h-4 text-white" />
+            </div>
+            <div className="absolute -bottom-1 -left-1 w-6 h-6 rounded-full bg-gradient-to-r from-teal-400 to-emerald-500 flex items-center justify-center shadow-md animate-bounce">
+              <Sparkles className="w-3 h-3 text-white" />
+            </div>
+          </>
         )}
       </div>
+
+      <h3 className="text-2xl font-bold text-gray-800 mb-3">
+        {isFiltered
+          ? dict.noResultsTitle
+          : isHistory
+            ? dict.noHistoryTitle
+            : dict.noActiveTitle}
+      </h3>
+      <p className="text-gray-600 max-w-md mx-auto mb-4 leading-relaxed">
+        {isFiltered
+          ? dict.noResultsDescription
+          : isHistory
+            ? dict.noHistoryDescription
+            : dict.noActiveDescription}
+      </p>
+
+      {/* Enhanced no-active state */}
       {!isFiltered && !isHistory && (
-        <>
-          <div className="absolute -top-2 -right-2 w-8 h-8 rounded-full bg-gradient-to-r from-orange-400 to-amber-500 flex items-center justify-center shadow-lg">
-            <Sparkles className="w-4 h-4 text-white" />
+        <div className="w-full max-w-md space-y-3 mt-2">
+          {/* Matchmaker working indicator */}
+          <div className="flex items-center gap-3 px-5 py-3 bg-gradient-to-r from-teal-50 to-orange-50 rounded-2xl border border-teal-100 shadow-sm">
+            <div className="flex gap-1 flex-shrink-0">
+              {[0, 0.3, 0.6].map((delay, i) => (
+                <div
+                  key={i}
+                  className="w-2 h-2 rounded-full bg-teal-400 animate-bounce"
+                  style={{ animationDelay: `${delay}s` }}
+                />
+              ))}
+            </div>
+            <span className="text-sm text-teal-700 font-medium">
+              {isRtl
+                ? 'השדכן/ית שלך עובד/ת על הצעות חדשות עבורך'
+                : 'Your matchmaker is working on new suggestions for you'}
+            </span>
           </div>
-          <div className="absolute -bottom-1 -left-1 w-6 h-6 rounded-full bg-gradient-to-r from-teal-400 to-emerald-500 flex items-center justify-center shadow-md animate-bounce">
-            <Sparkles className="w-3 h-3 text-white" />
+
+          {/* Next AI suggestion timing */}
+          <div className="flex items-center gap-3 px-5 py-3 bg-gradient-to-r from-violet-50 to-purple-50 rounded-2xl border border-violet-100 shadow-sm">
+            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-violet-400 to-purple-500 flex items-center justify-center flex-shrink-0">
+              <Sparkles className="w-4 h-4 text-white" />
+            </div>
+            <div className={cn('text-start flex-1', isRtl ? 'text-right' : 'text-left')}>
+              <p className="text-sm text-violet-700 font-medium">
+                {isRtl ? 'הצעות חכמות' : 'Smart Suggestions'}
+              </p>
+              <p className="text-xs text-violet-500">
+                {isRtl
+                  ? 'הצעות אוטומטיות נשלחות ביום ראשון ורביעי'
+                  : 'Auto suggestions sent on Sunday & Wednesday'}
+              </p>
+            </div>
           </div>
-        </>
+
+          {/* Profile improvement suggestion */}
+          <a
+            href={`/${locale}/soul-fingerprint`}
+            className="flex items-center gap-3 px-5 py-3 bg-gradient-to-r from-amber-50 to-orange-50 rounded-2xl border border-amber-100 shadow-sm hover:shadow-md transition-shadow group"
+          >
+            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform">
+              <TrendingUp className="w-4 h-4 text-white" />
+            </div>
+            <div className={cn('text-start flex-1', isRtl ? 'text-right' : 'text-left')}>
+              <p className="text-sm text-amber-700 font-medium">
+                {isRtl ? 'שפר/י את הפרופיל' : 'Improve your profile'}
+              </p>
+              <p className="text-xs text-amber-500">
+                {isRtl
+                  ? 'השלם/י את טביעת הנשמה כדי לקבל הצעות מדויקות יותר'
+                  : 'Complete your Soul Fingerprint for more accurate matches'}
+              </p>
+            </div>
+          </a>
+        </div>
+      )}
+
+      {isFiltered && (
+        <Button
+          onClick={onClearFilters}
+          className="bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 text-white shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl mt-2"
+        >
+          <XCircle className={cn('w-4 h-4', isRtl ? 'ml-2' : 'mr-2')} />
+          {dict.clearFilters}
+        </Button>
       )}
     </div>
-
-    <h3 className="text-2xl font-bold text-gray-800 mb-3">
-      {isFiltered
-        ? dict.noResultsTitle
-        : isHistory
-          ? dict.noHistoryTitle
-          : dict.noActiveTitle}
-    </h3>
-    <p className="text-gray-600 max-w-md mx-auto mb-6 leading-relaxed">
-      {isFiltered
-        ? dict.noResultsDescription
-        : isHistory
-          ? dict.noHistoryDescription
-          : dict.noActiveDescription}
-    </p>
-
-    {/* No-active special CTA */}
-    {!isFiltered && !isHistory && (
-      <div className="flex items-center gap-2 mt-2 px-5 py-3 bg-gradient-to-r from-teal-50 to-orange-50 rounded-2xl border border-teal-100 shadow-sm">
-        <div className="flex gap-1">
-          {[0, 0.3, 0.6].map((delay, i) => (
-            <div
-              key={i}
-              className="w-2 h-2 rounded-full bg-teal-400 animate-bounce"
-              style={{ animationDelay: `${delay}s` }}
-            />
-          ))}
-        </div>
-        <span className="text-sm text-teal-700 font-medium">
-          💙 השדכן/ית שלך עובד/ת על הצעות חדשות עבורך
-        </span>
-      </div>
-    )}
-
-    {isFiltered && (
-      <Button
-        onClick={onClearFilters}
-        className="bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 text-white shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl"
-      >
-        <XCircle className="w-4 h-4 ml-2" />
-        {dict.clearFilters}
-      </Button>
-    )}
-  </div>
-);
+  );
+};
 
 // ... (StatsBar component remains the same)
 const StatsBar: React.FC<{
@@ -683,6 +729,7 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
             isHistory={isHistory}
             onClearFilters={clearFilters}
             dict={suggestionsDict.list.emptyState}
+            locale={locale}
           />
         ) : (
           <div
