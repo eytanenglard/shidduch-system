@@ -1328,6 +1328,11 @@ type WorldInfoDict = {
 };
 
 export type QuestionnaireLandingPageDict = {
+  heartMapBanner?: {
+    title: string;
+    description: string;
+    buttonText: string;
+  };
   hero: {
     badge: string;
     title1: string;

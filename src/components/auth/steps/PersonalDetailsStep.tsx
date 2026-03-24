@@ -5,7 +5,7 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSession } from 'next-auth/react';
-import { useRegistration } from '../RegistrationContext';
+import { useRegistration, clearRegistrationDraft } from '../RegistrationContext';
 import { Gender, ReligiousJourney } from '@prisma/client';
 import Autocomplete from 'react-google-autocomplete';
 
@@ -587,23 +587,49 @@ export default function PersonalDetailsStep({
     if (uploadedPhotos.length === 0) return true;
     try {
       const mainPhotoIndex = uploadedPhotos.findIndex((p) => p.isMain);
-      const uploadResults = await Promise.all(
-        uploadedPhotos.map(async (photo, index) => {
-          const formData = new FormData();
-          formData.append('file', photo.file);
-          const response = await fetch('/api/profile/images', {
-            method: 'POST',
-            body: formData,
-          });
-          if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(
-              errorData.error || `שגיאה בהעלאת תמונה ${index + 1}`
-            );
+      const total = uploadedPhotos.length;
+      const maxRetries = 2;
+      const uploadResults: Array<{ image?: { id: string } }> = [];
+
+      // Sequential upload with per-photo progress and retry
+      for (let index = 0; index < total; index++) {
+        const photo = uploadedPhotos[index];
+        updateSubmission(
+          'uploadingPhotos',
+          locale === 'he' ? 'מעלה תמונות...' : 'Uploading photos...',
+          `${index + 1} / ${total}`
+        );
+
+        let retries = 0;
+        let result: { image?: { id: string } } = {};
+
+        while (retries <= maxRetries) {
+          try {
+            const formData = new FormData();
+            formData.append('file', photo.file);
+            const response = await fetch('/api/profile/images', {
+              method: 'POST',
+              body: formData,
+            });
+            if (!response.ok) {
+              const errorData = await response.json();
+              throw new Error(
+                errorData.error || `שגיאה בהעלאת תמונה ${index + 1}`
+              );
+            }
+            result = await response.json();
+            break; // Success — exit retry loop
+          } catch (err) {
+            retries++;
+            if (retries > maxRetries) throw err;
+            // Exponential backoff: 1s, 2s
+            await new Promise((r) => setTimeout(r, retries * 1000));
           }
-          return response.json();
-        })
-      );
+        }
+
+        uploadResults.push(result);
+      }
+
       if (mainPhotoIndex > 0 && uploadResults[mainPhotoIndex]?.image?.id) {
         await fetch(
           `/api/profile/images/${uploadResults[mainPhotoIndex].image.id}`,
@@ -821,7 +847,10 @@ export default function PersonalDetailsStep({
         /* ignore */
       }
 
-      // 6. Navigate
+      // 6. Clear draft on successful submit
+      clearRegistrationDraft();
+
+      // 7. Navigate
       if (isAlreadyPhoneVerified) {
         updateSubmission(
           'redirecting',
@@ -1674,6 +1703,7 @@ export default function PersonalDetailsStep({
             ref={fileInputRef}
             type="file"
             accept="image/jpeg,image/png,image/jpg,image/webp"
+            capture="environment"
             multiple
             onChange={handlePhotoSelect}
             className="hidden"

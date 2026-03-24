@@ -273,7 +273,7 @@ const StickyNav: React.FC<StickyNavProps> = ({
                       {dict.signInLink}
                     </Link>
 
-                    <Link href={`/${locale}/soul-fingerprint`}>
+                    <Link href={`/${locale}/heart-map`}>
                       <Button
                         variant="outline"
                         className="group border-2 border-teal-200 hover:border-teal-400 text-teal-700 hover:text-teal-800 bg-white hover:bg-teal-50/50 rounded-full shadow-sm hover:shadow-md transition-all duration-300 px-5 py-5"

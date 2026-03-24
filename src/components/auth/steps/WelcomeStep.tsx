@@ -243,6 +243,28 @@ const WelcomeStep: React.FC<WelcomeStepProps> = ({ dict, locale }) => {
         </div>
       </motion.div>
 
+      {/* Social proof */}
+      <motion.div
+        variants={itemVariants}
+        className="flex items-center justify-center gap-2 text-sm text-gray-500"
+      >
+        <div className="flex -space-x-2 rtl:space-x-reverse">
+          {['bg-teal-400', 'bg-orange-400', 'bg-rose-400'].map((color, i) => (
+            <div
+              key={i}
+              className={`w-7 h-7 rounded-full ${color} border-2 border-white flex items-center justify-center text-white text-xs font-bold`}
+            >
+              {locale === 'he' ? ['א', 'ב', 'ג'][i] : ['A', 'B', 'C'][i]}
+            </div>
+          ))}
+        </div>
+        <span>
+          {locale === 'he'
+            ? 'מאות רווקים כבר נרשמו למערכת'
+            : 'Hundreds of singles already joined'}
+        </span>
+      </motion.div>
+
       {/* Footer Links */}
       <motion.div
         variants={itemVariants}

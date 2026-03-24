@@ -60,6 +60,67 @@ const isValidName = (name: string): boolean => {
   return nameRegex.test(name.trim());
 };
 
+// ============================================================================
+// EMAIL TYPO DETECTION
+// ============================================================================
+
+const COMMON_DOMAINS: Record<string, string> = {
+  'gmial.com': 'gmail.com',
+  'gamil.com': 'gmail.com',
+  'gmaill.com': 'gmail.com',
+  'gmal.com': 'gmail.com',
+  'gmali.com': 'gmail.com',
+  'gnail.com': 'gmail.com',
+  'gmai.com': 'gmail.com',
+  'gmail.co': 'gmail.com',
+  'gmail.con': 'gmail.com',
+  'hotmial.com': 'hotmail.com',
+  'hotmal.com': 'hotmail.com',
+  'hotmai.com': 'hotmail.com',
+  'hotmail.con': 'hotmail.com',
+  'outlok.com': 'outlook.com',
+  'outloo.com': 'outlook.com',
+  'outlook.con': 'outlook.com',
+  'yaho.com': 'yahoo.com',
+  'yahooo.com': 'yahoo.com',
+  'yahoo.con': 'yahoo.com',
+  'yhaoo.com': 'yahoo.com',
+  'walla.co.il': 'walla.co.il',
+  'wallla.co.il': 'walla.co.il',
+  'wall.co.il': 'walla.co.il',
+};
+
+function detectEmailTypo(email: string): string | null {
+  const atIndex = email.indexOf('@');
+  if (atIndex < 0) return null;
+  const domain = email.slice(atIndex + 1).toLowerCase();
+  const suggestion = COMMON_DOMAINS[domain];
+  if (suggestion && suggestion !== domain) {
+    return email.slice(0, atIndex + 1) + suggestion;
+  }
+  return null;
+}
+
+// ============================================================================
+// PASSWORD STRENGTH
+// ============================================================================
+
+type PasswordStrength = 'empty' | 'weak' | 'medium' | 'strong';
+
+function getPasswordStrength(password: string): PasswordStrength {
+  if (!password) return 'empty';
+  let score = 0;
+  if (password.length >= 8) score++;
+  if (password.length >= 12) score++;
+  if (/[a-z]/.test(password)) score++;
+  if (/[A-Z]/.test(password)) score++;
+  if (/\d/.test(password)) score++;
+  if (/[^a-zA-Z0-9]/.test(password)) score++;
+  if (score <= 2) return 'weak';
+  if (score <= 4) return 'medium';
+  return 'strong';
+}
+
 const GOOGLE_SIGNUP_SUGGESTED_ERRORS = [
   'DB_CONNECTION_ERROR',
   'DB_INIT_ERROR',
@@ -111,6 +172,8 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
   const [isAttemptingLogin, setIsAttemptingLogin] = useState(false);
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [missingFields, setMissingFields] = useState<string[]>([]);
+  const [emailSuggestion, setEmailSuggestion] = useState<string | null>(null);
+  const [rateLimitCountdown, setRateLimitCountdown] = useState(0);
 
   // Existing user state — shown when EMAIL_EXISTS
   const [showExistingUserDialog, setShowExistingUserDialog] = useState(false);
@@ -282,6 +345,26 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
 
       if (!response.ok) {
         const errorCode = result.errorCode || '';
+
+        // Rate limit: show friendly countdown
+        if (response.status === 429) {
+          const retryAfter = parseInt(response.headers.get('Retry-After') || '60', 10);
+          setRateLimitCountdown(retryAfter);
+          const timer = setInterval(() => {
+            setRateLimitCountdown((prev) => {
+              if (prev <= 1) {
+                clearInterval(timer);
+                return 0;
+              }
+              return prev - 1;
+            });
+          }, 1000);
+          throw new Error(
+            locale === 'he'
+              ? `יותר מדי ניסיונות. אנא המתן ${retryAfter} שניות.`
+              : `Too many attempts. Please wait ${retryAfter} seconds.`
+          );
+        }
 
         if (errorCode === 'EMAIL_EXISTS') {
           // Instead of auto-login, attempt login silently
@@ -576,8 +659,12 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
               id="emailBasic"
               value={data.email}
               onChange={(e) => {
-                updateField('email', e.target.value);
+                const val = e.target.value;
+                updateField('email', val);
                 if (emailError) setEmailError('');
+                // Check for email typo suggestion
+                const typoSuggestion = detectEmailTypo(val);
+                setEmailSuggestion(typoSuggestion);
               }}
               onBlur={() =>
                 setEmailError(
@@ -604,6 +691,19 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
             <p role="alert" className="text-red-500 text-xs mt-1">
               {emailError}
             </p>
+          )}
+          {emailSuggestion && !emailError && (
+            <button
+              type="button"
+              onClick={() => {
+                updateField('email', emailSuggestion);
+                setEmailSuggestion(null);
+              }}
+              className="text-xs mt-1 px-2 py-1 rounded-md bg-amber-50 border border-amber-200 text-amber-700 hover:bg-amber-100 transition-colors"
+            >
+              {locale === 'he' ? 'התכוונת ל-' : 'Did you mean '}
+              <strong>{emailSuggestion}</strong>?
+            </button>
           )}
         </div>
 
@@ -664,6 +764,27 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
               {passwordError}
             </p>
           )}
+          {/* Password strength meter */}
+          {data.password && (() => {
+            const strength = getPasswordStrength(data.password);
+            const strengthConfig = {
+              weak: { width: 'w-1/3', color: 'bg-red-500', label: locale === 'he' ? 'חלשה' : 'Weak' },
+              medium: { width: 'w-2/3', color: 'bg-amber-500', label: locale === 'he' ? 'בינונית' : 'Medium' },
+              strong: { width: 'w-full', color: 'bg-green-500', label: locale === 'he' ? 'חזקה' : 'Strong' },
+            } as const;
+            if (strength === 'empty') return null;
+            const config = strengthConfig[strength];
+            return (
+              <div className="mt-1.5 space-y-1">
+                <div className="h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                  <div className={`h-full ${config.color} ${config.width} rounded-full transition-all duration-300`} />
+                </div>
+                <p className={`text-xs ${strength === 'weak' ? 'text-red-600' : strength === 'medium' ? 'text-amber-600' : 'text-green-600'}`}>
+                  {config.label}
+                </p>
+              </div>
+            );
+          })()}
           <p className="text-xs text-gray-500 mt-1">{dict.passwordHint}</p>
         </div>
 
@@ -772,7 +893,7 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
         <Button
           type="button"
           onClick={handleRegisterSubmit}
-          disabled={isAnyLoading}
+          disabled={isAnyLoading || rateLimitCountdown > 0}
           className="flex-1 bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 hover:from-teal-600 hover:via-orange-600 hover:to-amber-600 text-white flex items-center justify-center gap-2"
         >
           {isLoading ? (
@@ -780,6 +901,10 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
               <Loader2 className="h-5 w-5 animate-spin" />
               {dict.nextButtonLoading}
             </>
+          ) : rateLimitCountdown > 0 ? (
+            <span>
+              {locale === 'he' ? `המתן ${rateLimitCountdown}s` : `Wait ${rateLimitCountdown}s`}
+            </span>
           ) : (
             <>
               {dict.nextButton}

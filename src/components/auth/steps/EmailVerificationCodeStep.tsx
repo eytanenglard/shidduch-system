@@ -320,6 +320,25 @@ const EmailVerificationCodeStep: React.FC<EmailVerificationCodeStepProps> = ({
       initial="hidden"
       animate="visible"
     >
+      {/* Resend sending animation overlay */}
+      <AnimatePresence>
+        {isResending && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm"
+          >
+            <div className="bg-white rounded-2xl p-6 shadow-xl text-center max-w-xs mx-4">
+              <Loader2 className="h-10 w-10 animate-spin text-teal-500 mx-auto mb-3" />
+              <p className="text-gray-700 font-medium">
+                {locale === 'he' ? 'שולח אימייל...' : 'Sending email...'}
+              </p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Header */}
       <motion.div variants={itemVariants}>
         <MailCheck className="h-12 w-12 text-teal-500 mx-auto mb-3" />

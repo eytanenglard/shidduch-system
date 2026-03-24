@@ -6,6 +6,8 @@ import React, {
   createContext,
   useContext,
   useState,
+  useEffect,
+  useRef,
   ReactNode,
   useCallback,
 } from 'react';
@@ -302,6 +304,64 @@ function determineInitialState(
 }
 
 // ============================================================================
+// DRAFT PERSISTENCE — saves form progress to localStorage
+// ============================================================================
+
+const DRAFT_KEY = 'neshamatech_registration_draft';
+const DRAFT_EXPIRY_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
+
+const PERSISTABLE_FIELDS: (keyof RegistrationData)[] = [
+  'firstName', 'lastName', 'phone', 'gender', 'birthDate',
+  'maritalStatus', 'height', 'occupation', 'education',
+  'religiousLevel', 'origin', 'city', 'hasChildren', 'numberOfChildren',
+];
+
+function saveDraft(data: RegistrationData): void {
+  try {
+    const draft: Record<string, unknown> = {};
+    for (const field of PERSISTABLE_FIELDS) {
+      if (data[field] !== undefined && data[field] !== '' && data[field] !== null) {
+        draft[field] = data[field];
+      }
+    }
+    if (Object.keys(draft).length === 0) return;
+    localStorage.setItem(DRAFT_KEY, JSON.stringify({
+      data: draft,
+      savedAt: Date.now(),
+    }));
+  } catch {
+    // Silently fail (private browsing, storage full, etc.)
+  }
+}
+
+function loadDraft(): Partial<RegistrationData> | null {
+  try {
+    const raw = localStorage.getItem(DRAFT_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (!parsed?.data || !parsed?.savedAt) return null;
+    if (Date.now() - parsed.savedAt > DRAFT_EXPIRY_MS) {
+      localStorage.removeItem(DRAFT_KEY);
+      return null;
+    }
+    debugLog('loadDraft', 'Loaded draft from localStorage');
+    return parsed.data as Partial<RegistrationData>;
+  } catch {
+    return null;
+  }
+}
+
+/** Clear the registration draft — call on successful submit */
+export function clearRegistrationDraft(): void {
+  try {
+    localStorage.removeItem(DRAFT_KEY);
+    debugLog('clearRegistrationDraft', 'Draft cleared');
+  } catch {
+    // Silently fail
+  }
+}
+
+// ============================================================================
 // CONTEXT
 // ============================================================================
 
@@ -348,6 +408,7 @@ export const RegistrationProvider: React.FC<{ children: ReactNode }> = ({
 
   const resetForm = useCallback(() => {
     debugLog('resetForm', 'Resetting form and submission state');
+    clearRegistrationDraft();
     setData(initialRegistrationData);
     setSubmission(initialSubmissionState);
   }, []);
@@ -393,11 +454,16 @@ export const RegistrationProvider: React.FC<{ children: ReactNode }> = ({
       // 2. Build base data from session + API response
       const baseData = buildBaseData(sessionUser, fullInfo, isGoogleAcc);
 
+      // 2.5. Load draft from localStorage (lower priority than API data)
+      const draft = loadDraft();
+
       // 3. Update state with merged data + business logic
+      // Priority: API data > draft > existing state > defaults
       setData((prevData) => {
         const mergedData: RegistrationData = {
           ...initialRegistrationData,
           ...prevData,
+          ...(draft || {}),
           ...baseData,
         };
 
@@ -477,6 +543,26 @@ export const RegistrationProvider: React.FC<{ children: ReactNode }> = ({
       loadingSubtext: undefined,
     });
   }, []);
+
+  // ============================================================================
+  // AUTO-SAVE DRAFT (debounced, 1s)
+  // ============================================================================
+
+  const saveDraftTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    // Only save when user is actively filling a form (not on initial render)
+    if (data.step === STEPS.WELCOME && !data.isCompletingProfile) return;
+
+    if (saveDraftTimerRef.current) clearTimeout(saveDraftTimerRef.current);
+    saveDraftTimerRef.current = setTimeout(() => {
+      saveDraft(data);
+    }, 1000);
+
+    return () => {
+      if (saveDraftTimerRef.current) clearTimeout(saveDraftTimerRef.current);
+    };
+  }, [data]);
 
   // ============================================================================
   // CONTEXT VALUE

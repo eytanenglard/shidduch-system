@@ -260,6 +260,8 @@ const VerifyPhoneClient: React.FC<VerifyPhoneClientProps> = ({
   const [infoMessage, setInfoMessage] = useState<string | null>(null);
   const [resendTimer, setResendTimer] = useState(0);
   const [focusedIndex, setFocusedIndex] = useState<number | null>(null);
+  const [resendCount, setResendCount] = useState(0);
+  const [isSendingSms, setIsSendingSms] = useState(false);
 
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
   const resendTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -434,6 +436,7 @@ const VerifyPhoneClient: React.FC<VerifyPhoneClientProps> = ({
       );
       if (!response.ok) throw new Error((await response.json()).error);
       setInfoMessage(dict.info.resent);
+      setResendCount((prev) => prev + 1);
       startResendTimer();
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : dict.errors.unexpected);
@@ -441,6 +444,35 @@ const VerifyPhoneClient: React.FC<VerifyPhoneClientProps> = ({
       setIsResending(false);
     }
   }, [isResending, resendDisabled, startResendTimer, dict, locale]);
+
+  // SMS Fallback Handler
+  const handleSendViaSms = useCallback(async () => {
+    if (isSendingSms) return;
+    setError(null);
+    setInfoMessage(null);
+    setIsSendingSms(true);
+
+    try {
+      const response = await fetch(
+        `/api/auth/resend-phone-code-sms?locale=${locale}`,
+        { method: 'POST' }
+      );
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || dict.errors.unexpected);
+      }
+      setInfoMessage(
+        locale === 'he'
+          ? 'קוד אימות נשלח ב-SMS!'
+          : 'Verification code sent via SMS!'
+      );
+      startResendTimer();
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : dict.errors.unexpected);
+    } finally {
+      setIsSendingSms(false);
+    }
+  }, [isSendingSms, startResendTimer, dict, locale]);
 
   // Get Hidden Phone
   const getHiddenPhone = () => {
@@ -473,7 +505,8 @@ const VerifyPhoneClient: React.FC<VerifyPhoneClientProps> = ({
   };
 
   const disableForm = isLoading || !!successMessage;
-  const disableResend = isResending || resendDisabled || !!successMessage;
+  const disableResend = isResending || isSendingSms || resendDisabled || !!successMessage;
+  const showSmsFallback = resendCount >= 1;
   const isCodeComplete = code.every((digit) => digit !== '');
 
   return (
@@ -770,6 +803,39 @@ const VerifyPhoneClient: React.FC<VerifyPhoneClientProps> = ({
                   </Button>
                 </motion.div>
               </div>
+
+              {/* SMS Fallback — shown after 1+ resend attempts */}
+              {showSmsFallback && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  className="overflow-hidden"
+                >
+                  <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-center space-y-2">
+                    <p className="text-sm text-amber-700">
+                      {locale === 'he'
+                        ? 'לא קיבלת בוואטסאפ? נסה לקבל את הקוד ב-SMS:'
+                        : "Didn't get the WhatsApp? Try receiving the code via SMS:"}
+                    </p>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={handleSendViaSms}
+                      disabled={isSendingSms || disableResend}
+                      className="border-amber-400 text-amber-700 hover:bg-amber-100"
+                    >
+                      {isSendingSms ? (
+                        <div className="flex items-center gap-2">
+                          <Loader2 className="animate-spin h-4 w-4" />
+                          <span>{locale === 'he' ? 'שולח SMS...' : 'Sending SMS...'}</span>
+                        </div>
+                      ) : (
+                        <span>{locale === 'he' ? 'שלח לי SMS במקום' : 'Send me SMS instead'}</span>
+                      )}
+                    </Button>
+                  </div>
+                </motion.div>
+              )}
 
               {/* Wrong Number Link */}
               <div className="text-center">

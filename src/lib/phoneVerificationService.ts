@@ -7,6 +7,7 @@ const accountSid = process.env.TWILIO_ACCOUNT_SID;
 const authToken = process.env.TWILIO_AUTH_TOKEN;
 const twilioWhatsAppNumber = process.env.TWILIO_WHATSAPP_NUMBER; // מספר השולח שלך, למשל +14155238886
 const otpTemplateSid = process.env.TWILIO_OTP_TEMPLATE_SID; // ה-SID של התבנית (כרגע של match_suggestion)
+const twilioSmsNumber = process.env.TWILIO_SMS_NUMBER || twilioWhatsAppNumber; // SMS sender number (fallback to WhatsApp number)
 
 let twilioClient: twilio.Twilio | null = null;
 
@@ -96,6 +97,49 @@ export async function sendOtpViaWhatsApp(phoneNumber: string, otpCode: string, r
         } else {
             // אם השגיאה אינה מטיפוס Error סטנדרטי
             console.error('  An unexpected error occurred:', error);
+        }
+        return false;
+    }
+}
+
+// SMS fallback for phone verification
+export async function sendOtpViaSms(phoneNumber: string, otpCode: string, recipientName?: string): Promise<boolean> {
+    if (!twilioClient) {
+        console.error('[PhoneVerificationService] Error: Twilio client not initialized.');
+        return false;
+    }
+    if (!twilioSmsNumber) {
+        console.error('[PhoneVerificationService] Error: SMS sender number not configured.');
+        return false;
+    }
+
+    if (!phoneNumber || !phoneNumber.startsWith('+')) {
+        console.error(`[PhoneVerificationService] Error: Invalid phone number for SMS. Received: ${phoneNumber}`);
+        return false;
+    }
+
+    console.log(`[PhoneVerificationService] Sending OTP via SMS to ${phoneNumber}. Recipient: ${recipientName || 'N/A'}`);
+
+    try {
+        const messageBody = recipientName
+            ? `שלום ${recipientName}, קוד האימות שלך הוא: ${otpCode}. הקוד תקף ל-10 דקות.`
+            : `קוד האימות שלך הוא: ${otpCode}. הקוד תקף ל-10 דקות.`;
+
+        const message = await twilioClient.messages.create({
+            body: messageBody,
+            to: phoneNumber,
+            from: twilioSmsNumber,
+        });
+
+        console.log(`[PhoneVerificationService] SMS OTP sent successfully. SID: ${message.sid}`);
+        return true;
+    } catch (error) {
+        console.error('[PhoneVerificationService] Error: Failed to send SMS via Twilio.');
+        if (error instanceof Error) {
+            console.error(`  Message: ${error.message}`);
+            if (typeof error === 'object' && error !== null && 'code' in error) {
+                console.error(`  Twilio Error Code: ${(error as { code: unknown }).code}`);
+            }
         }
         return false;
     }

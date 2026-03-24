@@ -8,6 +8,7 @@ import React, {
   useMemo,
 } from 'react';
 import { UserX, Edit, X, ChevronsDownUp, ChevronsUpDown } from 'lucide-react';
+import { VirtuosoGrid, Virtuoso } from 'react-virtuoso';
 import MinimalCard from '../CandidateCard/MinimalCard';
 import QuickView from '../CandidateCard/QuickView';
 import { ProfileCard } from '@/components/profile';
@@ -21,10 +22,12 @@ import { Skeleton } from '@/components/ui/skeleton';
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
   DialogTitle,
-  DialogDescription,
 } from '@/components/ui/dialog';
+import {
+  Sheet,
+  SheetContent,
+} from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -39,6 +42,12 @@ import { ActionDialogs } from '../dialogs/ActionDialogs';
 import NewSuggestionForm from '../../suggestions/NewSuggestionForm';
 import MatchmakerEditProfile from '../MatchmakerEditProfile';
 import { cn } from '@/lib/utils';
+import { useKeyboardNavigation } from '../hooks/useKeyboardNavigation';
+import {
+  NoCandidatesEmpty,
+  NoSearchResultsEmpty,
+  NoFilterResultsEmpty,
+} from '../shared/EmptyStates';
 import type { MatchmakerPageDictionary } from '@/types/dictionaries/matchmaker';
 import type { ProfilePageDictionary } from '@/types/dictionary';
 
@@ -109,14 +118,15 @@ interface CandidatesListProps {
   locale: string;
   dict: MatchmakerPageDictionary;
   profileDict: ProfilePageDictionary;
+  /** Whether the list has active search/filter — used for empty state variant */
+  hasActiveSearch?: boolean;
+  searchTerm?: string;
+  activeFilterCount?: number;
+  onClearSearch?: () => void;
+  onResetFilters?: () => void;
+  /** Callback when user scrolls near the end (for server-side pagination) */
+  onEndReached?: () => void;
 }
-
-// ============================================================================
-// CONSTANTS
-// ============================================================================
-
-const INITIAL_RENDER_COUNT = 30;
-const LOAD_MORE_COUNT = 20;
 
 // ============================================================================
 // COMPONENT
@@ -144,6 +154,12 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
   quickViewSide = 'center',
   dict,
   profileDict,
+  hasActiveSearch,
+  searchTerm,
+  activeFilterCount,
+  onClearSearch,
+  onResetFilters,
+  onEndReached,
 }) => {
   // Base states
   const [selectedCandidate, setSelectedCandidate] = useState<Candidate | null>(
@@ -152,11 +168,9 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
   const [questionnaireResponse, setQuestionnaireResponse] =
     useState<QuestionnaireResponse | null>(null);
   const [isMatchmaker, setIsMatchmaker] = useState(true);
-  const [hoveredCandidate, setHoveredCandidate] =
+  // QuickView Sheet state (replaces hover-based QuickView)
+  const [quickViewCandidate, setQuickViewCandidate] =
     useState<CandidateWithAiData | null>(null);
-  const [hoverPosition, setHoverPosition] = useState({ top: 0, left: 0 });
-  const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const quickViewRef = useRef<HTMLDivElement>(null);
 
   // Store scroll position before opening dialogs
   const scrollPositionRef = useRef<number>(0);
@@ -175,31 +189,48 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
   const [isCompact, setIsCompact] = useState(true);
 
   // ============================================================================
-  // שינוי 1: הוסף visibleCount state + logic
+  // Keyboard navigation
   // ============================================================================
-  const [visibleCount, setVisibleCount] = useState(INITIAL_RENDER_COUNT);
+  const columns = useMemo(() => {
+    if (isMobile) return mobileView === 'double' ? 2 : 1;
+    return viewMode === 'grid' ? 3 : 1;
+  }, [isMobile, mobileView, viewMode]);
 
-  // Reset visible count when candidates change
-  useEffect(() => {
-    setVisibleCount(INITIAL_RENDER_COUNT);
-  }, [candidates.length]);
-
-  // Slice the candidates array
-  const visibleCandidates = useMemo(
-    () => candidates.slice(0, visibleCount),
-    [candidates, visibleCount]
-  );
-
-  const hasMore = visibleCount < candidates.length;
-
-  const handleLoadMore = useCallback(() => {
-    setVisibleCount((prev) =>
-      Math.min(prev + LOAD_MORE_COUNT, candidates.length)
-    );
-  }, [candidates.length]);
+  const {
+    focusedIndex,
+    isFocused,
+    resetFocus,
+    containerProps: keyboardContainerProps,
+    getItemProps,
+  } = useKeyboardNavigation({
+    totalItems: candidates.length,
+    columns,
+    isRTL: locale === 'he',
+    onSelect: (index) => {
+      if (candidates[index]) {
+        handleAction('view', candidates[index]);
+      }
+    },
+    onEscape: () => {
+      if (quickViewCandidate) {
+        setQuickViewCandidate(null);
+      }
+    },
+    onSuggest: (index) => {
+      if (candidates[index]) {
+        handleAction('suggest', candidates[index]);
+      }
+    },
+    onEdit: (index) => {
+      if (candidates[index]) {
+        handleAction('edit', candidates[index]);
+      }
+    },
+    enabled: !selectedCandidate && !showSuggestDialog && !showEditProfileDialog,
+  });
 
   // ============================================================================
-  // שינוי 4: שנה resize listener ל-matchMedia (יעיל יותר)
+  // Media query
   // ============================================================================
   useEffect(() => {
     const mql = window.matchMedia('(max-width: 767px)');
@@ -208,30 +239,6 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
     const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches);
     mql.addEventListener('change', handler);
     return () => mql.removeEventListener('change', handler);
-  }, []);
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        hoveredCandidate &&
-        quickViewRef.current &&
-        !quickViewRef.current.contains(event.target as Node)
-      ) {
-        setHoveredCandidate(null);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [hoveredCandidate]);
-
-  useEffect(() => {
-    return () => {
-      if (hoverTimeoutRef.current) {
-        clearTimeout(hoverTimeoutRef.current);
-      }
-    };
   }, []);
 
   useEffect(() => {
@@ -252,25 +259,14 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
         if (data.success && data.questionnaireResponse) {
           setQuestionnaireResponse(data.questionnaireResponse);
         } else {
-          if (process.env.NODE_ENV === 'development') {
-            console.warn('Could not load questionnaire:', data.message);
-          }
           setQuestionnaireResponse(null);
         }
-      } catch (error) {
-        if (process.env.NODE_ENV === 'development') {
-          console.error('Failed to load questionnaire:', error);
-        }
+      } catch {
         toast.error('שגיאה בטעינת השאלון');
       }
     };
     loadQuestionnaire();
   }, [selectedCandidate, locale]);
-
-  // ============================================================================
-  // שינוי 5: הסר console.log debug statements (או עטוף ב-development check)
-  // ============================================================================
-  // הסרנו את ה-useEffect הזה לגמרי - לא צריך אותו ב-production
 
   // Action handlers
 
@@ -334,9 +330,6 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
     }
   };
 
-  // ============================================================================
-  // שינוי 3: עטוף handleEditProfile ב-useCallback
-  // ============================================================================
   const handleEditProfile = useCallback((candidate: Candidate) => {
     const scrollContainer = containerRef.current?.closest(
       '.overflow-y-auto, [data-radix-scroll-area-viewport]'
@@ -354,7 +347,6 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
   const handleCloseEditProfile = useCallback(() => {
     setShowEditProfileDialog(false);
 
-    // Restore scroll position after dialog closes
     requestAnimationFrame(() => {
       const scrollContainer = containerRef.current?.closest(
         '.overflow-y-auto, [data-radix-scroll-area-viewport]'
@@ -367,74 +359,13 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
     });
   }, []);
 
-  const handleMouseEnter = useCallback(
-    (candidate: CandidateWithAiData, e?: React.MouseEvent) => {
-      if (isMobile || !e || !isQuickViewEnabled) return;
-
-      if (hoverTimeoutRef.current) {
-        clearTimeout(hoverTimeoutRef.current);
-      }
-      const cardElement = e.currentTarget as HTMLElement;
-      const cardRect = cardElement.getBoundingClientRect();
-      const viewportHeight = window.innerHeight;
-      const padding = 20;
-      const quickViewApproxHeight = Math.min(650, viewportHeight * 0.85);
-      let top;
-      if (cardRect.top + quickViewApproxHeight > viewportHeight - padding) {
-        top = cardElement.offsetTop + cardRect.height - quickViewApproxHeight;
-      } else {
-        top = cardElement.offsetTop;
-      }
-      const scrollContainer = cardElement.closest('.overflow-y-auto');
-      if (scrollContainer) {
-        top = Math.max(top, scrollContainer.scrollTop);
-      }
-      let left;
-      const quickViewWidth = 420;
-      switch (quickViewSide) {
-        case 'left':
-          left = window.innerWidth / 4 - quickViewWidth / 2;
-          break;
-        case 'right':
-          left = (window.innerWidth * 3) / 4 - quickViewWidth / 2 - 470;
-          break;
-        case 'center':
-        default:
-          left = window.innerWidth / 2 - quickViewWidth / 2;
-          break;
-      }
-      left = Math.max(
-        padding,
-        Math.min(left, window.innerWidth - quickViewWidth - padding)
-      );
-      hoverTimeoutRef.current = setTimeout(() => {
-        setHoverPosition({ top, left });
-        setHoveredCandidate(candidate);
-      }, 300);
-    },
-    [isMobile, isQuickViewEnabled, quickViewSide]
-  );
-
-  const handleMouseLeave = useCallback(() => {
-    if (isMobile) return;
-    if (hoverTimeoutRef.current) {
-      clearTimeout(hoverTimeoutRef.current);
-      hoverTimeoutRef.current = null;
-    }
-    setTimeout(() => {
-      if (!quickViewRef.current?.matches(':hover')) {
-        setHoveredCandidate(null);
-      }
-    }, 100);
-  }, [isMobile]);
-
   const handleAction = useCallback(
     (
       action: CandidateAction | 'analyze' | 'sendFeedback',
       candidate: Candidate
     ) => {
       setDialogCandidate(candidate);
-      setHoveredCandidate(null);
+      setQuickViewCandidate(null);
       switch (action) {
         case 'invite':
           setShowInviteDialog(true);
@@ -446,7 +377,6 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
           setShowSuggestDialog(true);
           break;
         case 'view': {
-          // Save scroll position before opening view dialog
           const scrollContainer = containerRef.current?.closest(
             '.overflow-y-auto, [data-radix-scroll-area-viewport]'
           );
@@ -483,13 +413,22 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
     ]
   );
 
+  // Handle QuickView via Sheet (replaces hover-based positioning)
+  const handleCardRightClick = useCallback(
+    (candidate: CandidateWithAiData, e: React.MouseEvent) => {
+      if (!isQuickViewEnabled || isMobile) return;
+      e.preventDefault();
+      setQuickViewCandidate(candidate);
+    },
+    [isQuickViewEnabled, isMobile]
+  );
+
   // Handle profile dialog close with scroll restoration
   const handleCloseProfileDialog = useCallback((open: boolean) => {
     if (!open) {
       setSelectedCandidate(null);
       setQuestionnaireResponse(null);
 
-      // Restore scroll position
       requestAnimationFrame(() => {
         const scrollContainer = containerRef.current?.closest(
           '.overflow-y-auto, [data-radix-scroll-area-viewport]'
@@ -514,6 +453,103 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
       : 'space-y-4';
   }, [isMobile, mobileView, viewMode]);
 
+  // ============================================================================
+  // Render individual card
+  // ============================================================================
+  const renderCard = useCallback(
+    (index: number, candidate: CandidateWithAiData) => {
+      const itemProps = getItemProps(index);
+      const focused = isFocused(index);
+
+      return (
+        <div
+          key={candidate.id}
+          {...itemProps}
+          className={cn(
+            'group relative',
+            focused && 'ring-2 ring-primary/50 rounded-xl'
+          )}
+          onContextMenu={(e) => handleCardRightClick(candidate, e)}
+          onClick={() => handleAction('view', candidate)}
+        >
+          <MinimalCard
+            candidate={candidate}
+            onClick={() => handleAction('view', candidate)}
+            onAnalyze={(c, e) => {
+              e.stopPropagation();
+              handleAction('analyze', c);
+            }}
+            aiTargetName={
+              aiTargetCandidate
+                ? `${aiTargetCandidate.firstName} ${aiTargetCandidate.lastName}`
+                : undefined
+            }
+            onSendProfileFeedback={(c, e) => {
+              e.stopPropagation();
+              handleAction('sendFeedback', c);
+            }}
+            onEdit={(c, e) => {
+              e.stopPropagation();
+              handleAction('edit', c);
+            }}
+            className={cn(
+              viewMode === 'list' && !isMobile
+                ? 'flex flex-row-reverse gap-4 h-32'
+                : '',
+              isMobile && mobileView === 'double' ? 'transform scale-90' : '',
+              isMobile && mobileView === 'single' ? 'transform scale-95' : ''
+            )}
+            highlightTerm={highlightTerm}
+            aiScore={candidate.aiScore}
+            onSetAiTarget={onSetAiTarget}
+            isAiTarget={aiTargetCandidate?.id === candidate.id}
+            isSelectableForComparison={
+              !!aiTargetCandidate &&
+              aiTargetCandidate.profile.gender !== candidate.profile.gender &&
+              aiTargetCandidate.id !== candidate.id
+            }
+            isSelectedForComparison={!!comparisonSelection[candidate.id]}
+            onToggleComparison={onToggleComparison}
+            existingSuggestion={existingSuggestions[candidate.id] ?? null}
+            isCompact={isCompact}
+            dict={dict.candidatesManager.list.minimalCard}
+          />
+          <button
+            className="absolute top-2 left-2 bg-primary text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleAction('edit', candidate);
+            }}
+            aria-label={dict.candidatesManager.list.editProfileTooltip}
+            title={dict.candidatesManager.list.editProfileTooltip}
+          >
+            <Edit className="w-4 h-4" />
+          </button>
+        </div>
+      );
+    },
+    [
+      getItemProps,
+      isFocused,
+      handleCardRightClick,
+      handleAction,
+      aiTargetCandidate,
+      viewMode,
+      isMobile,
+      mobileView,
+      highlightTerm,
+      onSetAiTarget,
+      comparisonSelection,
+      onToggleComparison,
+      existingSuggestions,
+      isCompact,
+      dict,
+    ]
+  );
+
+  // ============================================================================
+  // Loading state
+  // ============================================================================
   if (isLoading) {
     return (
       <div
@@ -539,7 +575,40 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
     );
   }
 
+  // ============================================================================
+  // Empty states
+  // ============================================================================
   if (candidates.length === 0) {
+    // Search active but no results
+    if (searchTerm) {
+      return (
+        <NoSearchResultsEmpty
+          searchTerm={searchTerm}
+          onClearSearch={onClearSearch}
+          className={className}
+        />
+      );
+    }
+
+    // Filters active but no results
+    if (activeFilterCount && activeFilterCount > 0) {
+      return (
+        <NoFilterResultsEmpty
+          activeFilterCount={activeFilterCount}
+          onResetFilters={onResetFilters}
+          className={className}
+        />
+      );
+    }
+
+    // No candidates at all
+    if (!hasActiveSearch) {
+      return (
+        <NoCandidatesEmpty className={className} />
+      );
+    }
+
+    // Fallback empty state
     return (
       <div className="flex flex-col items-center justify-center h-32 bg-gray-50 rounded-lg border border-dashed border-gray-300 p-4 text-center">
         <UserX className="w-8 h-8 mb-2 text-gray-400" />
@@ -553,6 +622,9 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
     );
   }
 
+  // ============================================================================
+  // Main render with Virtuoso
+  // ============================================================================
   return (
     <>
       {/* Compact / Expanded toggle — only on desktop grid */}
@@ -571,120 +643,63 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
         </div>
       )}
 
-      <div ref={containerRef} className={cn(gridLayoutClass, className || '')}>
-        {/* ============================================================================ */}
-        {/* שינוי 2: שנה candidates.map → visibleCandidates.map */}
-        {/* ============================================================================ */}
-        {visibleCandidates.map((candidate) => (
-          <div
-            key={candidate.id}
-            className="group relative"
-            onMouseEnter={(e) => handleMouseEnter(candidate, e)}
-            onMouseLeave={handleMouseLeave}
-            onClick={() => handleAction('view', candidate)}
-          >
-            <MinimalCard
-              candidate={candidate}
-              onClick={() => handleAction('view', candidate)}
-              onAnalyze={(c, e) => {
-                e.stopPropagation();
-                handleAction('analyze', c);
-              }}
-              aiTargetName={
-                aiTargetCandidate
-                  ? `${aiTargetCandidate.firstName} ${aiTargetCandidate.lastName}`
-                  : undefined
-              }
-              onSendProfileFeedback={(c, e) => {
-                e.stopPropagation();
-                handleAction('sendFeedback', c);
-              }}
-              onEdit={(c, e) => {
-                e.stopPropagation();
-                handleAction('edit', c);
-              }}
-              className={cn(
-                viewMode === 'list' && !isMobile
-                  ? 'flex flex-row-reverse gap-4 h-32'
-                  : '',
-                isMobile && mobileView === 'double' ? 'transform scale-90' : '',
-                isMobile && mobileView === 'single' ? 'transform scale-95' : ''
-              )}
-              highlightTerm={highlightTerm}
-              aiScore={candidate.aiScore}
-              onSetAiTarget={onSetAiTarget}
-              isAiTarget={aiTargetCandidate?.id === candidate.id}
-              isSelectableForComparison={
-                !!aiTargetCandidate &&
-                aiTargetCandidate.profile.gender !== candidate.profile.gender &&
-                aiTargetCandidate.id !== candidate.id
-              }
-              isSelectedForComparison={!!comparisonSelection[candidate.id]}
-              onToggleComparison={onToggleComparison}
-              existingSuggestion={existingSuggestions[candidate.id] ?? null}
-              isCompact={isCompact}
-              dict={dict.candidatesManager.list.minimalCard}
-            />
-            <button
-              className="absolute top-2 left-2 bg-primary text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10"
-              onClick={(e) => {
-                e.stopPropagation();
-                handleAction('edit', candidate);
-              }}
-              aria-label={dict.candidatesManager.list.editProfileTooltip}
-              title={dict.candidatesManager.list.editProfileTooltip}
-            >
-              <Edit className="w-4 h-4" />
-            </button>
-          </div>
-        ))}
+      <div
+        ref={containerRef}
+        {...keyboardContainerProps}
+        className={cn('outline-none', className || '')}
+      >
+        {viewMode === 'list' || (isMobile && mobileView === 'single') ? (
+          // List view — Virtuoso (single column)
+          <Virtuoso
+            style={{ height: '70vh' }}
+            totalCount={candidates.length}
+            itemContent={(index) => (
+              <div className="mb-4">
+                {renderCard(index, candidates[index])}
+              </div>
+            )}
+            endReached={onEndReached}
+            overscan={200}
+          />
+        ) : (
+          // Grid view — VirtuosoGrid
+          <VirtuosoGrid
+            style={{ height: '70vh' }}
+            totalCount={candidates.length}
+            listClassName={gridLayoutClass}
+            itemContent={(index) => renderCard(index, candidates[index])}
+            endReached={onEndReached}
+            overscan={200}
+          />
+        )}
       </div>
 
-      {/* ============================================================================ */}
-      {/* שינוי 2 המשך: הוסף "Load More" button */}
-      {/* ============================================================================ */}
-      {hasMore && (
-        <div className="col-span-full flex justify-center py-6">
-          <Button
-            variant="outline"
-            onClick={handleLoadMore}
-            className="px-8 py-3 font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-50 rounded-xl border-2 border-dashed border-gray-300 hover:border-gray-400 transition-all"
-          >
-            הצג עוד{' '}
-            {Math.min(LOAD_MORE_COUNT, candidates.length - visibleCount)}{' '}
-            מועמדים
-            <span className="text-xs text-gray-400 mr-2">
-              ({visibleCount}/{candidates.length})
-            </span>
-          </Button>
-        </div>
-      )}
-
-      {isQuickViewEnabled && hoveredCandidate && !isMobile && (
-        <div
-          ref={quickViewRef}
-          className="absolute z-[70]"
-          style={{
-            top: `${hoverPosition.top}px`,
-            left: `${hoverPosition.left}px`,
-            width: '420px',
-          }}
+      {/* QuickView as Sheet drawer (replaces hover-positioned absolute div) */}
+      <Sheet
+        open={!!quickViewCandidate}
+        onOpenChange={(open) => {
+          if (!open) setQuickViewCandidate(null);
+        }}
+      >
+        <SheetContent
+          side={locale === 'he' ? 'left' : 'right'}
+          className="w-[450px] sm:max-w-[450px] p-0 overflow-y-auto"
         >
-          <div className="drop-shadow-2xl">
+          {quickViewCandidate && (
             <QuickView
-              candidate={hoveredCandidate}
-              onAction={(action) => handleAction(action, hoveredCandidate)}
+              candidate={quickViewCandidate}
+              onAction={(action) => handleAction(action, quickViewCandidate)}
               onSetAiTarget={(c, e) => onSetAiTarget(c, e)}
-              isAiTarget={aiTargetCandidate?.id === hoveredCandidate.id}
+              isAiTarget={aiTargetCandidate?.id === quickViewCandidate.id}
               dict={dict.candidatesManager.list.quickView}
-              aiScore={hoveredCandidate.aiScore}
-              aiReasoning={hoveredCandidate.aiReasoning}
-              aiRank={hoveredCandidate.aiRank}
-              aiSimilarity={hoveredCandidate.aiSimilarity}
+              aiScore={quickViewCandidate.aiScore}
+              aiReasoning={quickViewCandidate.aiReasoning}
+              aiRank={quickViewCandidate.aiRank}
+              aiSimilarity={quickViewCandidate.aiSimilarity}
             />
-          </div>
-        </div>
-      )}
+          )}
+        </SheetContent>
+      </Sheet>
 
       {/* --- Main Profile Dialog --- */}
       <Dialog
@@ -696,9 +711,6 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
           dir={locale === 'he' ? 'rtl' : 'ltr'}
           onCloseAutoFocus={(e) => {
             e.preventDefault();
-          }}
-          onEscapeKeyDown={() => {
-            // Will trigger onOpenChange with false
           }}
         >
           {/* Custom Sticky Header */}

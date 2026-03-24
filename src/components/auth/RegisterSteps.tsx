@@ -17,6 +17,7 @@ import PersonalDetailsStep from './steps/PersonalDetailsStep';
 import CompleteStep from './steps/CompleteStep';
 import ProgressBar from './ProgressBar';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { AnimatePresence, motion } from 'framer-motion';
 import { Info, AlertTriangle, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import StandardizedLoadingSpinner from '@/components/questionnaire/common/StandardizedLoadingSpinner';
@@ -439,11 +440,35 @@ const RegisterStepsContent: React.FC<{
   }
 
   // ============================================================================
+  // STEP TRANSITION KEY
+  // ============================================================================
+
+  const stepKey = registrationContextData.isVerifyingEmailCode
+    ? 'email-verify'
+    : registrationContextData.isCompletingProfile
+      ? `complete-${registrationContextData.step}`
+      : `step-${registrationContextData.step}`;
+
+  // Step names for progress bar
+  const progressBarStepNames =
+    locale === 'he'
+      ? ['יצירת חשבון', 'אימות מייל', 'השלמת פרופיל']
+      : ['Create Account', 'Verify Email', 'Complete Profile'];
+
+  // ============================================================================
   // MAIN RENDER
   // ============================================================================
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-slate-50 via-teal-50/40 to-orange-50/40 p-4 sm:p-8">
+      {/* Skip navigation link for accessibility */}
+      <a
+        href="#registration-form"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-teal-600 focus:text-white focus:rounded-lg focus:shadow-lg"
+      >
+        {locale === 'he' ? 'דלג לטופס ההרשמה' : 'Skip to registration form'}
+      </a>
+
       <div className="mb-6 text-center">
         <h1 className="text-transparent bg-clip-text bg-gradient-to-r from-teal-600 via-orange-500 to-amber-500 text-3xl font-bold mb-2">
           {pageTitle}
@@ -474,12 +499,40 @@ const RegisterStepsContent: React.FC<{
             totalSteps={totalProgressBarSteps}
             stepLabel={dict.progressBar.stepLabel}
             locale={locale}
+            stepNames={progressBarStepNames}
           />
         </div>
       )}
 
-      <div className="w-full max-w-md bg-white rounded-xl shadow-xl overflow-hidden relative border border-white/50">
-        <div className="p-6 sm:p-8">{renderStep()}</div>
+      <div
+        id="registration-form"
+        role="main"
+        aria-label={locale === 'he' ? 'טופס הרשמה' : 'Registration form'}
+        className="w-full max-w-md bg-white rounded-xl shadow-xl overflow-hidden relative border border-white/50"
+      >
+        <div className="p-6 sm:p-8">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={stepKey}
+              initial={{ opacity: 0, x: locale === 'he' ? -20 : 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: locale === 'he' ? 20 : -20 }}
+              transition={{ duration: 0.25, ease: 'easeInOut' }}
+              onAnimationComplete={() => {
+                // Auto-focus first focusable input in the new step
+                const formEl = document.getElementById('registration-form');
+                if (formEl) {
+                  const firstInput = formEl.querySelector<HTMLElement>(
+                    'input:not([disabled]):not([type="hidden"]), button[type="submit"]'
+                  );
+                  firstInput?.focus();
+                }
+              }}
+            >
+              {renderStep()}
+            </motion.div>
+          </AnimatePresence>
+        </div>
       </div>
 
       <div className="mt-8 text-center text-sm text-gray-500">

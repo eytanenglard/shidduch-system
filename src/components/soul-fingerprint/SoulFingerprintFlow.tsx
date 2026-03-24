@@ -12,6 +12,7 @@ import QuestionRenderer from './components/QuestionRenderer';
 import CompactAnswer from './components/CompactAnswer';
 import NavigationButtons from './components/NavigationButtons';
 import { SF_SECTIONS } from './questions';
+import { Check } from 'lucide-react';
 
 type FlowScreen = 'welcome' | 'questionnaire' | 'complete';
 
@@ -43,6 +44,8 @@ export default function SoulFingerprintFlow({
 
   const [partnerTransition, setPartnerTransition] = useState(false);
   const [expandedQuestionIds, setExpandedQuestionIds] = useState<Set<string>>(new Set());
+  const [activeQuestionId, setActiveQuestionId] = useState<string | null>(null);
+  const compactTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [showResumeBanner, setShowResumeBanner] = useState(() => {
     return !!(initialData?.sectionAnswers && Object.keys(initialData.sectionAnswers).length > 0 && !initialData?.isComplete);
   });
@@ -115,6 +118,11 @@ export default function SoulFingerprintFlow({
   useEffect(() => {
     hasScrolledRef.current = false;
     setExpandedQuestionIds(new Set());
+    setActiveQuestionId(null);
+    if (compactTimerRef.current) {
+      clearTimeout(compactTimerRef.current);
+      compactTimerRef.current = null;
+    }
   }, [state.currentSectionIndex, state.showingPartnerQuestions]);
 
   // Auto-scroll to first unanswered after section/tab change
@@ -129,30 +137,118 @@ export default function SoulFingerprintFlow({
     return () => clearTimeout(timer);
   }, [state.currentSectionIndex, state.showingPartnerQuestions, screen]);
 
+  // Deactivate a question (allow it to compact)
+  const deactivateQuestion = useCallback((questionId: string) => {
+    if (compactTimerRef.current) {
+      clearTimeout(compactTimerRef.current);
+      compactTimerRef.current = null;
+    }
+    setActiveQuestionId((prev) => (prev === questionId ? null : prev));
+    setExpandedQuestionIds((prev) => {
+      if (!prev.has(questionId)) return prev;
+      const next = new Set(prev);
+      next.delete(questionId);
+      return next;
+    });
+  }, []);
+
+  // Schedule auto-compact after a delay
+  const scheduleCompact = useCallback((questionId: string, delayMs: number) => {
+    if (compactTimerRef.current) clearTimeout(compactTimerRef.current);
+    compactTimerRef.current = setTimeout(() => {
+      deactivateQuestion(questionId);
+      compactTimerRef.current = null;
+    }, delayMs);
+  }, [deactivateQuestion]);
+
+  // Activate a question (prevent it from compacting, deactivate previous)
+  const activateQuestion = useCallback((questionId: string) => {
+    setActiveQuestionId((prev) => {
+      if (prev && prev !== questionId) {
+        // Deactivate the previous question
+        setExpandedQuestionIds((ids) => {
+          if (!ids.has(prev)) return ids;
+          const next = new Set(ids);
+          next.delete(prev);
+          return next;
+        });
+      }
+      return questionId;
+    });
+    if (compactTimerRef.current) {
+      clearTimeout(compactTimerRef.current);
+      compactTimerRef.current = null;
+    }
+  }, []);
+
+  // Expand a CompactAnswer for editing
   const handleExpand = useCallback((questionId: string) => {
     setExpandedQuestionIds((prev) => {
       const next = new Set(prev);
       next.add(questionId);
       return next;
     });
-  }, []);
+    activateQuestion(questionId);
+  }, [activateQuestion]);
 
-  // Wrap setAnswer to auto-collapse after editing a previously-answered question
+  // "Done" button handler — explicitly compact multiSelect/openText/slider
+  const handleDone = useCallback((questionId: string) => {
+    deactivateQuestion(questionId);
+  }, [deactivateQuestion]);
+
+  // Answer handler with type-specific compaction logic
   const handleAnswer = useCallback(
     (questionId: string, value: string | string[] | number | null) => {
       setAnswer(questionId, value);
-      // Auto-collapse after a short delay if this was an expanded compact question
-      if (expandedQuestionIds.has(questionId)) {
-        setTimeout(() => {
-          setExpandedQuestionIds((prev) => {
-            const next = new Set(prev);
-            next.delete(questionId);
-            return next;
-          });
-        }, 1200);
+      activateQuestion(questionId);
+
+      const question = currentQuestions.find((q) => q.id === questionId);
+      if (!question) return;
+
+      switch (question.type) {
+        case 'singleChoice': {
+          // Auto-compact after 600ms (unless option has custom input)
+          const selectedOpt = question.options?.find((o) => o.value === value);
+          if (value && !selectedOpt?.isCustomInput) {
+            scheduleCompact(questionId, 600);
+          }
+          break;
+        }
+        case 'multiSelect': {
+          // Auto-compact only when maxSelections reached
+          if (
+            Array.isArray(value) &&
+            question.maxSelections &&
+            value.length >= question.maxSelections
+          ) {
+            scheduleCompact(questionId, 800);
+          }
+          // Otherwise: stay open, wait for "Done" or click-away
+          break;
+        }
+        case 'slider': {
+          // Auto-compact after 1200ms of last interaction
+          scheduleCompact(questionId, 1200);
+          break;
+        }
+        case 'openText': {
+          // Don't auto-compact — wait for "Done" or click-away
+          break;
+        }
       }
     },
-    [setAnswer, expandedQuestionIds]
+    [setAnswer, activateQuestion, scheduleCompact, currentQuestions]
+  );
+
+  // Check if a question should render as CompactAnswer
+  const shouldCompact = useCallback(
+    (questionId: string, answered: boolean, isExpanded: boolean) => {
+      if (!answered) return false;
+      if (isExpanded) return false;
+      if (activeQuestionId === questionId) return false;
+      return true;
+    },
+    [activeQuestionId]
   );
 
   const handleScrollToUnanswered = useCallback(() => {
@@ -336,7 +432,7 @@ export default function SoulFingerprintFlow({
             const isFirstUnanswered = !answered &&
               currentQuestions.findIndex((q) => !hasAnswer(q.id)) === idx;
 
-            if (answered && !isExpanded) {
+            if (shouldCompact(question.id, answered, isExpanded)) {
               // Compact view for answered questions
               return (
                 <CompactAnswer
@@ -350,6 +446,12 @@ export default function SoulFingerprintFlow({
               );
             }
 
+            // Show "Done" button for multiSelect/openText/slider when the user has a value
+            const showDone =
+              activeQuestionId === question.id &&
+              answered &&
+              (question.type === 'multiSelect' || question.type === 'openText' || question.type === 'slider');
+
             // Full view for unanswered or expanded questions
             return (
               <div
@@ -357,6 +459,11 @@ export default function SoulFingerprintFlow({
                 ref={isFirstUnanswered ? firstUnansweredRef : undefined}
                 id={`sf-question-${question.id}`}
                 className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 transition-all duration-300"
+                onClick={() => {
+                  if (activeQuestionId !== question.id) {
+                    activateQuestion(question.id);
+                  }
+                }}
               >
                 <QuestionRenderer
                   question={question}
@@ -365,6 +472,19 @@ export default function SoulFingerprintFlow({
                   t={t}
                   isRTL={isRTL}
                 />
+                {showDone && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDone(question.id);
+                    }}
+                    className="mt-3 w-full py-2.5 rounded-xl text-sm font-medium bg-teal-50 text-teal-600 hover:bg-teal-100 border border-teal-200 transition-all duration-200 flex items-center justify-center gap-2"
+                    type="button"
+                  >
+                    <Check className="w-4 h-4" />
+                    {isRTL ? 'סיימתי' : 'Done'}
+                  </button>
+                )}
               </div>
             );
           })}

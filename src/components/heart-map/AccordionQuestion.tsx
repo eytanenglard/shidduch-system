@@ -45,7 +45,7 @@ export default function AccordionQuestion({
     }
   }, [isActive, answers[question.id]]);
 
-  // Auto-advance for singleChoice after selection
+  // Auto-advance after answer selection (type-specific)
   const handleAnswer = useCallback(
     (questionId: string, value: string | string[] | number | null) => {
       onAnswer(questionId, value);
@@ -55,14 +55,22 @@ export default function AccordionQuestion({
         clearTimeout(autoAdvanceTimerRef.current);
       }
 
-      // Auto-advance only for singleChoice (not custom input)
+      // singleChoice: auto-advance after 500ms (unless custom input)
       if (question.type === 'singleChoice' && value && !questionId.endsWith('_custom')) {
         const selectedOption = question.options?.find(opt => opt.value === value);
-        // Don't auto-advance if the option has a custom input field
         if (!selectedOption?.isCustomInput) {
           autoAdvanceTimerRef.current = setTimeout(() => {
             onAutoAdvance();
           }, 500);
+        }
+      }
+
+      // multiSelect: auto-advance only when maxSelections reached
+      if (question.type === 'multiSelect' && Array.isArray(value)) {
+        if (question.maxSelections && value.length >= question.maxSelections) {
+          autoAdvanceTimerRef.current = setTimeout(() => {
+            onAutoAdvance();
+          }, 800);
         }
       }
     },

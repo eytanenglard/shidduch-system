@@ -73,6 +73,7 @@ import FilterPanel from '../Filters/FilterPanel';
 import ActiveFilters from '../Filters/ActiveFilters';
 import SearchBar from '../Filters/SearchBar';
 import { LoadingContainer } from '../shared/LoadingStates';
+import BulkActionToolbar from '../shared/BulkActionToolbar';
 import { AddManualCandidateDialog } from '../dialogs/AddManualCandidateDialog';
 import { AiMatchAnalysisDialog } from '../dialogs/AiMatchAnalysisDialog';
 import { ProfileFeedbackDialog } from '../dialogs/ProfileFeedbackDialog';
@@ -550,6 +551,14 @@ const CandidatesManager: React.FC<CandidatesManagerProps> = ({
     setSorting,
     setFilters: setCandidatesFilters,
     refresh,
+    selectedIds,
+    toggleSelection,
+    selectAllOnPage,
+    clearSelection,
+    exportCandidates,
+    filters: candidatesFilters,
+    pagination,
+    setPage,
   } = useCandidates();
 
   const {
@@ -1220,6 +1229,19 @@ const CandidatesManager: React.FC<CandidatesManagerProps> = ({
             </div>
           </div>
         </main>
+
+        {/* ── Bulk Action Toolbar ── */}
+        <BulkActionToolbar
+          selectedCount={selectedIds.size}
+          totalCount={candidates.length}
+          onSelectAll={selectAllOnPage}
+          onClearSelection={clearSelection}
+          onBulkExport={() => {
+            const selectedCandidates = candidates.filter((c) => selectedIds.has(c.id));
+            exportCandidates(selectedCandidates, candidatesFilters);
+            clearSelection();
+          }}
+        />
 
         {/* ── Floating Bar with Compare + Bulk Suggestions ── */}
         <AnimatePresence>

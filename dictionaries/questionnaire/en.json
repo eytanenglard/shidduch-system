@@ -188,6 +188,11 @@
     "completionError": "An error occurred while finalizing your questionnaire."
   },
 "landingPage": {
+  "heartMapBanner": {
+    "title": "Before continuing — we recommend filling out our Heart Map first",
+    "description": "A short, focused questionnaire that helps us get to know you better and create more accurate matches",
+    "buttonText": "Fill out Heart Map"
+  },
   "hero": {
     "badge": "A Personal Journey of Self-Discovery",
     "title1": "Before you look for 'the one',",

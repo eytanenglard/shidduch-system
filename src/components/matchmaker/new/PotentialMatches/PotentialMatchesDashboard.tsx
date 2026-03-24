@@ -9,14 +9,8 @@ import React, {
   useRef,
 } from 'react';
 import DailySuggestionsDashboard from './DailySuggestionsDashboard';
-import BatchScanButtons from './BatchScanButtons';
 
-import { motion, AnimatePresence } from 'framer-motion';
-import PotentialMatchesFilters from './PotentialMatchesFilters';
-
-import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import {
   Select,
   SelectContent,
@@ -24,14 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-} from '@/components/ui/sheet';
 import { useHiddenCandidates } from './hooks/useHiddenCandidates';
-import HiddenCandidatesDrawer from './HiddenCandidatesDrawer';
 import MatchmakerEditProfile from '../MatchmakerEditProfile';
 import HideCandidateDialog, { CandidateToHide } from './HideCandidateDialog';
 import {
@@ -55,42 +42,22 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import {
   HeartHandshake,
-  Search,
-  RefreshCw,
   Moon,
-  Check,
   MessageCircle,
   ArrowLeftRight,
-  ChevronLeft,
-  ChevronRight,
   Loader2,
   AlertTriangle,
-  Eye,
-  Clock,
   Send,
   X,
   Trash2,
-  Bookmark,
-  LayoutGrid,
-  List,
-  Minimize2,
-  Maximize2,
-  CheckCircle,
-  Heart,
-  Sparkles,
-  BarChart2,
-  Keyboard,
-  SlidersHorizontal,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { CardErrorBoundary } from '@/components/ui/error-boundary';
 
 // Components
-import PotentialMatchCard from './PotentialMatchCard';
 import PotentialMatchesStats from './PotentialMatchesStats';
 import { ProfileCard } from '@/components/profile';
-import { Virtuoso } from 'react-virtuoso';
 
 // Import New V2 Dashboard
 import MatchmakerDashboardV2 from './MatchmakerDashboard';
@@ -102,10 +69,16 @@ import { ProfileFeedbackDialog } from '../dialogs/ProfileFeedbackDialog';
 // Hooks
 import { usePotentialMatches } from './hooks/usePotentialMatches';
 
+// Extracted sub-components
+import {
+  DashboardHeader,
+  MatchesToolbar,
+  BulkActionBar,
+  MatchesGrid,
+} from './dashboard';
+
 // Types
 import type {
-  PotentialMatchFilterStatus,
-  PotentialMatchSortBy,
   PotentialMatchesStats as FullStatsType,
   LastScanInfo as FullLastScanInfo,
 } from './types/potentialMatches';
@@ -131,31 +104,6 @@ interface PotentialMatchesDashboardProps {
   matchmakerDict: MatchmakerPageDictionary;
 }
 
-const STATUS_OPTIONS: {
-  value: PotentialMatchFilterStatus;
-  label: string;
-  icon: React.ElementType;
-}[] = [
-  { value: 'all', label: 'הכל', icon: Heart },
-  { value: 'pending', label: 'ממתינות', icon: Clock },
-  { value: 'reviewed', label: 'נבדקו', icon: Eye },
-  { value: 'sent', label: 'נשלחו', icon: Send },
-  { value: 'shortlisted', label: 'שמורים בצד', icon: Bookmark },
-  { value: 'dismissed', label: 'נדחו', icon: X },
-  { value: 'with_warnings', label: 'עם אזהרות', icon: AlertTriangle },
-  { value: 'no_warnings', label: 'ללא אזהרות', icon: CheckCircle },
-];
-
-const SORT_OPTIONS: { value: PotentialMatchSortBy; label: string }[] = [
-  { value: 'score_desc', label: 'ציון (גבוה לנמוך)' },
-  { value: 'score_asc', label: 'ציון (נמוך לגבוה)' },
-  { value: 'date_desc', label: 'תאריך (חדש לישן)' },
-  { value: 'date_asc', label: 'תאריך (ישן לחדש)' },
-  { value: 'male_waiting_time', label: 'זמן המתנה (גבר)' },
-  { value: 'female_waiting_time', label: 'זמן המתנה (אישה)' },
-  { value: 'asymmetry_desc', label: 'פער א-סימטריה (גדול לקטן)' },
-];
-
 // =============================================================================
 // MAIN COMPONENT
 // =============================================================================
@@ -170,10 +118,10 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
     'overview'
   );
 
-  // ניהול החלפת צדדים (False = גבר צד א', True = אישה צד א')
+  // Party swap management (False = male first, True = female first)
   const [isPartiesSwapped, setIsPartiesSwapped] = useState(false);
 
-  // ניהול אופן השליחה (מייל אוטומטי או וואטסאפ ידני)
+  // Notification method (auto email or manual whatsapp)
   const [notificationMethod, setNotificationMethod] = useState<
     'EMAIL' | 'WHATSAPP_MANUAL'
   >('EMAIL');
@@ -181,13 +129,13 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [cardStyle, setCardStyle] = useState<'expanded' | 'compact'>('expanded');
 
-  // ניהול חיפוש מקומי עבור Debounce
+  // Local search for debounce
   const [localSearchTerm, setLocalSearchTerm] = useState('');
 
-  // ניהול דפדוף ידני (Input)
+  // Manual page input
   const [pageInput, setPageInput] = useState('1');
 
-  // ניהול מיקום גלילה
+  // Scroll position management
   const scrollPositionRef = useRef(0);
 
   const [showBulkActions, setShowBulkActions] = useState(false);
@@ -383,9 +331,6 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
       );
     }
 
-    // ❌ מחקנו מכאן את הבלוק של if (localSearchTerm && ...)
-    // כדי שהפרונטנד לא יסנן שוב את התוצאות שמגיעות מהשרת.
-
     return result;
   }, [matches, hiddenCandidateIds]);
 
@@ -463,13 +408,13 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
 
   const handleStartScan = (
     method: 'hybrid' | 'algorithmic' | 'vector' | 'metrics_v2',
-    skipPreparation: boolean // הוספנו את הפרמטר הזה
+    skipPreparation: boolean
   ) => {
     startScan({
       action: 'full_scan',
       method,
       forceRefresh: false,
-      skipPreparation, // מעבירים אותו ל-HOOK
+      skipPreparation,
     });
   };
 
@@ -597,11 +542,18 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
     }
   };
 
-  // מציאת ההתאמה שעליה לחצנו כדי להציג את התמונות והשמות בדיאלוג
+  // Find the active match for suggestion dialog visualization
   const activeMatchForSuggestion = useMemo(
     () => matches.find((m) => m.id === createSuggestionDialog),
     [matches, createSuggestionDialog]
   );
+
+  const handleToggleBulkActions = useCallback(() => {
+    setShowBulkActions((prev) => {
+      if (prev) clearSelection();
+      return !prev;
+    });
+  }, [clearSelection]);
 
   // ==========================================================================
   // RENDER
@@ -613,82 +565,23 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
       dir="rtl"
     >
       {/* Header */}
-      <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-sm border-b shadow-sm">
-        <div className="container mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            {/* Title & Tabs */}
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-xl bg-gradient-to-br from-pink-500 to-rose-500 text-white shadow-lg">
-                <HeartHandshake className="w-6 h-6" />
-              </div>
-              <div>
-                <h1 className="text-2xl font-bold text-gray-800">
-                  מערכת השידוכים
-                </h1>
-
-                {/* Tabs Navigation */}
-                <div className="flex gap-2 mt-1">
-                  <button
-                    onClick={() => setActiveTab('overview')}
-                    className={`flex items-center gap-1 text-sm px-2 py-0.5 rounded transition-all ${activeTab === 'overview' ? 'bg-indigo-50 text-indigo-700 font-bold shadow-sm' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'}`}
-                  >
-                    <BarChart2 className="w-3.5 h-3.5" />
-                    מבט על
-                  </button>
-                  <button
-                    onClick={() => setActiveTab('matches')}
-                    className={`flex items-center gap-1 text-sm px-2 py-0.5 rounded transition-all ${activeTab === 'matches' ? 'bg-indigo-50 text-indigo-700 font-bold shadow-sm' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'}`}
-                  >
-                    <Sparkles className="w-3.5 h-3.5" />
-                    ניהול התאמות ({stats ? stats.pending : '...'})
-                  </button>
-                  <button
-                    onClick={() => setActiveTab('daily')}
-                    className={`flex items-center gap-1 text-sm px-2 py-0.5 rounded transition-all ${activeTab === 'daily' ? 'bg-violet-50 text-violet-700 font-bold shadow-sm' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'}`}
-                  >
-                    <Sparkles className="w-3.5 h-3.5" />
-                    הצעות יומיות
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* Actions - Only visible when in Matches tab */}
-            {activeTab === 'matches' && (
-              <div className="flex items-center gap-3">
-                <HiddenCandidatesDrawer
-                  hiddenCandidates={hiddenCandidates}
-                  onUnhide={unhideCandidate}
-                  onUpdateReason={updateReason}
-                  isLoading={isLoadingHidden}
-                />
-                <BatchScanButtons
-                  isScanning={isScanning}
-                  scanProgress={scanProgress}
-                  scanResult={scanResult}
-                  onStartScan={handleStartScan}
-                  onCancelScan={cancelScan}
-                  lastScanInfo={lastScanInfo}
-                />
-
-                <Button
-                  variant="outline"
-                  onClick={refresh}
-                  disabled={isRefreshing}
-                >
-                  <RefreshCw
-                    className={cn(
-                      'w-4 h-4 ml-2',
-                      isRefreshing && 'animate-spin'
-                    )}
-                  />
-                  רענן
-                </Button>
-              </div>
-            )}
-          </div>
-        </div>
-      </header>
+      <DashboardHeader
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+        pendingCount={stats ? stats.pending : '...'}
+        isScanning={isScanning}
+        scanProgress={scanProgress}
+        scanResult={scanResult}
+        onStartScan={handleStartScan}
+        onCancelScan={cancelScan}
+        lastScanInfo={lastScanInfo as unknown as FullLastScanInfo}
+        isRefreshing={isRefreshing}
+        onRefresh={refresh}
+        hiddenCandidates={hiddenCandidates}
+        onUnhide={unhideCandidate}
+        onUpdateReason={updateReason}
+        isLoadingHidden={isLoadingHidden}
+      />
 
       <main className="container mx-auto px-6 py-6 space-y-6">
         {/* Conditional Rendering based on Tab */}
@@ -715,746 +608,84 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
             />
 
             {/* Filters & Controls - Sticky */}
-            <Card className="p-3 md:p-4 border-0 shadow-lg sticky top-[73px] z-30 bg-white/95 backdrop-blur-sm">
-              {/* ===== Mobile Filters Bar (below md) ===== */}
-              <div className="flex md:hidden items-center gap-2">
-                {/* Search */}
-                <div className="flex-1 relative">
-                  <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                  <Input
-                    placeholder="חיפוש לפי שם..."
-                    value={localSearchTerm}
-                    onChange={(e) => setLocalSearchTerm(e.target.value)}
-                    className="pr-10 h-9 text-sm"
-                  />
-                </div>
+            <MatchesToolbar
+              localSearchTerm={localSearchTerm}
+              onLocalSearchTermChange={setLocalSearchTerm}
+              filters={filters}
+              setFilters={setFilters}
+              resetFilters={resetFilters}
+              onResetFilters={handleResetFilters}
+              activeFilterCount={activeFilterCount}
+              viewMode={viewMode}
+              onViewModeChange={setViewMode}
+              cardStyle={cardStyle}
+              onCardStyleChange={setCardStyle}
+              showBulkActions={showBulkActions}
+              onToggleBulkActions={handleToggleBulkActions}
+              mobileFiltersOpen={mobileFiltersOpen}
+              onMobileFiltersOpenChange={setMobileFiltersOpen}
+            />
 
-                {/* Mobile Filters Button */}
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setMobileFiltersOpen(true)}
-                  className="relative shrink-0"
-                >
-                  <SlidersHorizontal className="w-4 h-4 ml-1" />
-                  פילטרים
-                  {activeFilterCount > 0 && (
-                    <span className="absolute -top-1.5 -left-1.5 bg-purple-600 text-white text-[10px] font-bold rounded-full w-4.5 h-4.5 flex items-center justify-center min-w-[18px] min-h-[18px] leading-none">
-                      {activeFilterCount}
-                    </span>
-                  )}
-                </Button>
+            {/* Bulk Actions Bar */}
+            <BulkActionBar
+              showBulkActions={showBulkActions}
+              selectedMatchIds={selectedMatchIds}
+              isActioning={isActioning}
+              onSelectAll={selectAll}
+              onClearSelection={clearSelection}
+              onBulkCreate={() => setConfirmBulkCreateDialog(true)}
+              onBulkReview={bulkReview}
+              onBulkDismissClick={() => setConfirmBulkDismissDialog(true)}
+            />
 
-                {/* View Mode (compact on mobile) */}
-                <div className="flex items-center gap-0.5 border rounded-lg p-0.5 shrink-0">
-                  <Button
-                    variant={viewMode === 'grid' ? 'default' : 'ghost'}
-                    size="sm"
-                    className="h-7 w-7 p-0"
-                    onClick={() => setViewMode('grid')}
-                  >
-                    <LayoutGrid className="w-3.5 h-3.5" />
-                  </Button>
-                  <Button
-                    variant={viewMode === 'list' ? 'default' : 'ghost'}
-                    size="sm"
-                    className="h-7 w-7 p-0"
-                    onClick={() => setViewMode('list')}
-                  >
-                    <List className="w-3.5 h-3.5" />
-                  </Button>
-                </div>
-
-                {/* Card Style Toggle (compact on mobile) */}
-                <div className="flex items-center gap-0.5 border rounded-lg p-0.5 shrink-0">
-                  <Button
-                    variant={cardStyle === 'expanded' ? 'default' : 'ghost'}
-                    size="sm"
-                    className="h-7 w-7 p-0"
-                    onClick={() => setCardStyle('expanded')}
-                  >
-                    <Maximize2 className="w-3.5 h-3.5" />
-                  </Button>
-                  <Button
-                    variant={cardStyle === 'compact' ? 'default' : 'ghost'}
-                    size="sm"
-                    className="h-7 w-7 p-0"
-                    onClick={() => setCardStyle('compact')}
-                  >
-                    <Minimize2 className="w-3.5 h-3.5" />
-                  </Button>
-                </div>
-              </div>
-
-              {/* ===== Mobile Filters Sheet ===== */}
-              <Sheet open={mobileFiltersOpen} onOpenChange={setMobileFiltersOpen}>
-                <SheetContent side="right" className="w-[85vw] sm:max-w-md overflow-y-auto">
-                  <SheetHeader>
-                    <SheetTitle className="text-right">פילטרים</SheetTitle>
-                  </SheetHeader>
-                  <div className="flex flex-col gap-5 mt-4 text-right">
-                    {/* Status Filter */}
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium text-gray-700">סטטוס</label>
-                      <Select
-                        value={filters.status}
-                        onValueChange={(value) =>
-                          setFilters({ status: value as PotentialMatchFilterStatus })
-                        }
-                      >
-                        <SelectTrigger className="w-full">
-                          <SelectValue placeholder="סטטוס" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {STATUS_OPTIONS.map((option) => (
-                            <SelectItem key={option.value} value={option.value}>
-                              <div className="flex items-center gap-2">
-                                <option.icon className="w-4 h-4" />
-                                {option.label}
-                              </div>
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    {/* Sort */}
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium text-gray-700">מיון</label>
-                      <Select
-                        value={filters.sortBy}
-                        onValueChange={(value) =>
-                          setFilters({ sortBy: value as any })
-                        }
-                      >
-                        <SelectTrigger className="w-full">
-                          <SelectValue placeholder="מיון" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {SORT_OPTIONS.map((option) => (
-                            <SelectItem key={option.value} value={option.value}>
-                              {option.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    {/* Score Range */}
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium text-gray-700">טווח ציונים</label>
-                      <div className="flex items-center gap-2">
-                        <Input
-                          type="number"
-                          min={0}
-                          max={100}
-                          value={filters.minScore}
-                          onChange={(e) =>
-                            setFilters({ minScore: parseInt(e.target.value) || 0 })
-                          }
-                          className="flex-1 text-center"
-                        />
-                        <span className="text-gray-400">—</span>
-                        <Input
-                          type="number"
-                          min={0}
-                          max={100}
-                          value={filters.maxScore}
-                          onChange={(e) =>
-                            setFilters({ maxScore: parseInt(e.target.value) || 100 })
-                          }
-                          className="flex-1 text-center"
-                        />
-                      </div>
-                    </div>
-
-                    {/* Advanced Filters (embedded in sheet) */}
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium text-gray-700">פילטרים מתקדמים</label>
-                      <PotentialMatchesFilters
-                        filters={filters}
-                        onFiltersChange={setFilters}
-                        onReset={resetFilters}
-                      />
-                    </div>
-
-                    {/* Bulk Selection Toggle */}
-                    <Button
-                      variant={showBulkActions ? 'default' : 'outline'}
-                      size="sm"
-                      onClick={() => {
-                        setShowBulkActions(!showBulkActions);
-                        if (showBulkActions) clearSelection();
-                      }}
-                      className="w-full"
-                    >
-                      <Check className="w-4 h-4 ml-1" />
-                      בחירה מרובה
-                    </Button>
-
-                    {/* Actions */}
-                    <div className="flex gap-2 pt-3 border-t">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => {
-                          handleResetFilters();
-                          setMobileFiltersOpen(false);
-                        }}
-                        className="flex-1"
-                      >
-                        <X className="w-4 h-4 ml-1" />
-                        נקה הכל
-                      </Button>
-                      <Button
-                        size="sm"
-                        onClick={() => setMobileFiltersOpen(false)}
-                        className="flex-1"
-                      >
-                        הצג תוצאות
-                      </Button>
-                    </div>
-                  </div>
-                </SheetContent>
-              </Sheet>
-
-              {/* ===== Desktop Filters Bar (md and above) ===== */}
-              <div className="hidden md:flex flex-wrap items-center gap-4">
-                {/* Search */}
-                <div className="flex-1 min-w-[200px] max-w-md relative">
-                  <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                  <Input
-                    placeholder="חיפוש לפי שם (לדוגמה: ישראל ישראלי)..."
-                    value={localSearchTerm}
-                    onChange={(e) => setLocalSearchTerm(e.target.value)}
-                    className="pr-10"
-                  />
-                </div>
-                {/* Advanced Filters */}
-                <PotentialMatchesFilters
-                  filters={filters}
-                  onFiltersChange={setFilters}
-                  onReset={resetFilters}
-                />
-                {/* Status Filter */}
-                <Select
-                  value={filters.status}
-                  onValueChange={(value) =>
-                    setFilters({ status: value as PotentialMatchFilterStatus })
-                  }
-                >
-                  <SelectTrigger className="w-[180px]">
-                    <SelectValue placeholder="סטטוס" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {STATUS_OPTIONS.map((option) => (
-                      <SelectItem key={option.value} value={option.value}>
-                        <div className="flex items-center gap-2">
-                          <option.icon className="w-4 h-4" />
-                          {option.label}
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-
-                {/* Sort */}
-                <Select
-                  value={filters.sortBy}
-                  onValueChange={(value) =>
-                    setFilters({ sortBy: value as any })
-                  }
-                >
-                  <SelectTrigger className="w-[180px]">
-                    <SelectValue placeholder="מיון" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {SORT_OPTIONS.map((option) => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-
-                {/* Score Range */}
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-gray-600">ציון:</span>
-                  <Input
-                    type="number"
-                    min={0}
-                    max={100}
-                    value={filters.minScore}
-                    onChange={(e) =>
-                      setFilters({ minScore: parseInt(e.target.value) || 0 })
-                    }
-                    className="w-16 text-center"
-                  />
-                  <span>-</span>
-                  <Input
-                    type="number"
-                    min={0}
-                    max={100}
-                    value={filters.maxScore}
-                    onChange={(e) =>
-                      setFilters({ maxScore: parseInt(e.target.value) || 100 })
-                    }
-                    className="w-16 text-center"
-                  />
-                </div>
-
-                {/* View Mode */}
-                <div className="flex items-center gap-1 border rounded-lg p-1">
-                  <Button
-                    variant={viewMode === 'grid' ? 'default' : 'ghost'}
-                    size="sm"
-                    onClick={() => setViewMode('grid')}
-                    title="תצוגת רשת"
-                  >
-                    <LayoutGrid className="w-4 h-4" />
-                  </Button>
-                  <Button
-                    variant={viewMode === 'list' ? 'default' : 'ghost'}
-                    size="sm"
-                    onClick={() => setViewMode('list')}
-                    title="תצוגת רשימה"
-                  >
-                    <List className="w-4 h-4" />
-                  </Button>
-                </div>
-
-                {/* Card Style Toggle */}
-                <div className="flex items-center gap-1 border rounded-lg p-1">
-                  <Button
-                    variant={cardStyle === 'expanded' ? 'default' : 'ghost'}
-                    size="sm"
-                    onClick={() => setCardStyle('expanded')}
-                    title="כרטיסים מורחבים"
-                  >
-                    <Maximize2 className="w-4 h-4" />
-                  </Button>
-                  <Button
-                    variant={cardStyle === 'compact' ? 'default' : 'ghost'}
-                    size="sm"
-                    onClick={() => setCardStyle('compact')}
-                    title="כרטיסים מצומצמים"
-                  >
-                    <Minimize2 className="w-4 h-4" />
-                  </Button>
-                </div>
-
-                {/* Bulk Selection Toggle */}
-                <Button
-                  variant={showBulkActions ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => {
-                    setShowBulkActions(!showBulkActions);
-                    if (showBulkActions) clearSelection();
-                  }}
-                >
-                  <Check className="w-4 h-4 ml-1" />
-                  בחירה מרובה
-                </Button>
-
-                {/* Reset Filters */}
-                <Button variant="ghost" size="sm" onClick={handleResetFilters}>
-                  <X className="w-4 h-4 ml-1" />
-                  נקה פילטרים
-                </Button>
-
-                {/* Keyboard Shortcuts Hint */}
-                <div className="hidden lg:flex items-center gap-1.5 text-[10px] text-gray-400 border-r pr-3 mr-1">
-                  <Keyboard className="w-3.5 h-3.5" />
-                  <span>J/K ניווט</span>
-                  <span>·</span>
-                  <span>S שמור</span>
-                  <span>·</span>
-                  <span>D דחה</span>
-                  <span>·</span>
-                  <span>Enter הצעה</span>
-                </div>
-              </div>
-
-              {/* Bulk Actions Bar */}
-              {/* Bulk Actions Bar */}
-              <AnimatePresence>
-                {showBulkActions && selectedMatchIds.length > 0 && (
-                  <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: 'auto' }}
-                    exit={{ opacity: 0, height: 0 }}
-                    className="mt-4 pt-4 border-t"
-                  >
-                    <div className="flex items-center gap-4 flex-wrap">
-                      <span className="text-sm text-gray-600 font-medium">
-                        נבחרו{' '}
-                        <span className="font-bold text-purple-600">
-                          {selectedMatchIds.length}
-                        </span>{' '}
-                        התאמות
-                      </span>
-
-                      <Button size="sm" variant="outline" onClick={selectAll}>
-                        בחר הכל
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={clearSelection}
-                      >
-                        בטל בחירה
-                      </Button>
-
-                      <div className="flex-1" />
-
-                      {/* 🆕 כפתור חדש - שליחת הצעות מרובות */}
-                      <Button
-                        size="sm"
-                        className="bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-600 hover:to-green-600 text-white shadow-lg"
-                        onClick={() => setConfirmBulkCreateDialog(true)}
-                        disabled={isActioning}
-                      >
-                        <Send className="w-4 h-4 ml-1" />
-                        שלח הצעות ({selectedMatchIds.length})
-                      </Button>
-
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => bulkReview(selectedMatchIds)}
-                        disabled={isActioning}
-                      >
-                        <Eye className="w-4 h-4 ml-1" />
-                        סמן כנבדקו
-                      </Button>
-
-                      <Button
-                        size="sm"
-                        variant="destructive"
-                        onClick={() => setConfirmBulkDismissDialog(true)}
-                        disabled={isActioning}
-                      >
-                        <Trash2 className="w-4 h-4 ml-1" />
-                        דחה הכל
-                      </Button>
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </Card>
-
-            {/* Quick Filter Badges */}
-            {stats && (() => {
-              const s = stats as unknown as FullStatsType;
-              return (
-              <div className="flex flex-wrap gap-2">
-                {[
-                  {
-                    label: `ממתינות 7+ ימים`,
-                    active: !!filters.scannedBefore,
-                    onClick: () => {
-                      const weekAgo = new Date();
-                      weekAgo.setDate(weekAgo.getDate() - 7);
-                      setFilters({
-                        status: 'pending' as PotentialMatchFilterStatus,
-                        scannedBefore: filters.scannedBefore ? undefined : weekAgo.toISOString().split('T')[0],
-                      } as any);
-                    },
-                    count: null,
-                    color: 'bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100',
-                    activeColor: 'bg-amber-200 text-amber-800 border-amber-400',
-                    icon: Clock,
-                  },
-                  {
-                    label: 'עם אזהרות',
-                    active: filters.status === 'with_warnings',
-                    onClick: () => setFilters({
-                      status: filters.status === 'with_warnings' ? 'all' : 'with_warnings' as PotentialMatchFilterStatus,
-                    }),
-                    count: s.withWarnings,
-                    color: 'bg-orange-50 text-orange-700 border-orange-200 hover:bg-orange-100',
-                    activeColor: 'bg-orange-200 text-orange-800 border-orange-400',
-                    icon: AlertTriangle,
-                  },
-                  {
-                    label: 'ציון 85+',
-                    active: filters.minScore === 85,
-                    onClick: () => setFilters({
-                      minScore: filters.minScore === 85 ? 0 : 85,
-                      maxScore: 100,
-                      status: 'all' as PotentialMatchFilterStatus,
-                    }),
-                    count: s.highScore,
-                    color: 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100',
-                    activeColor: 'bg-emerald-200 text-emerald-800 border-emerald-400',
-                    icon: Sparkles,
-                  },
-                  {
-                    label: 'שמורים בצד',
-                    active: filters.status === 'shortlisted',
-                    onClick: () => setFilters({
-                      status: filters.status === 'shortlisted' ? 'all' : 'shortlisted' as PotentialMatchFilterStatus,
-                    }),
-                    count: null,
-                    color: 'bg-purple-50 text-purple-700 border-purple-200 hover:bg-purple-100',
-                    activeColor: 'bg-purple-200 text-purple-800 border-purple-400',
-                    icon: Bookmark,
-                  },
-                ].map((badge) => {
-                  const IconComp = badge.icon;
-                  return (
-                    <button
-                      key={badge.label}
-                      onClick={badge.onClick}
-                      className={cn(
-                        'flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-medium transition-all',
-                        badge.active ? badge.activeColor : badge.color
-                      )}
-                    >
-                      <IconComp className="w-3.5 h-3.5" />
-                      {badge.label}
-                      {badge.count !== null && badge.count > 0 && (
-                        <span className="px-1.5 py-0.5 rounded-full bg-white/60 text-[10px] font-bold">
-                          {badge.count}
-                        </span>
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
-              );
-            })()}
-
-            {/* Error State */}
-            {error && (
-              <Card className="p-6 bg-red-50 border-red-200">
-                <div className="flex items-center gap-3 text-red-700">
-                  <AlertTriangle className="w-5 h-5" />
-                  <span>{error}</span>
-                  <Button variant="outline" size="sm" onClick={refresh}>
-                    נסה שוב
-                  </Button>
-                </div>
-              </Card>
-            )}
-
-            {/* Loading State */}
-            {isLoading && (
-              <div className="flex items-center justify-center py-20">
-                <Loader2 className="w-8 h-8 animate-spin text-purple-500" />
-              </div>
-            )}
-
-            {/* Empty State */}
-            {!isLoading && matches.length === 0 && (
-              <Card className="p-12 text-center border-0 shadow-lg">
-                <Heart className="w-16 h-16 mx-auto mb-4 text-gray-300" />
-                <h3 className="text-xl font-bold text-gray-700 mb-2">
-                  לא נמצאו התאמות
-                </h3>
-                <p className="text-gray-500 mb-6">
-                  {localSearchTerm
-                    ? 'לא נמצאו תוצאות התואמות את החיפוש שלך.'
-                    : filters.status !== 'all'
-                      ? 'נסה לשנות את הפילטרים או לחפש בכל ההתאמות.'
-                      : 'הפעל סריקה לילית למציאת התאמות חדשות.'}
-                </p>
-                {localSearchTerm || filters.status !== 'all' ? (
-                  <Button variant="outline" onClick={handleResetFilters}>
-                    נקה חיפוש ופילטרים
-                  </Button>
-                ) : (
-                  <Button onClick={() => setConfirmScanDialog(true)}>
-                    <Moon className="w-4 h-4 ml-2" />
-                    הפעל סריקה
-                  </Button>
-                )}
-              </Card>
-            )}
-
-            {/* Matches Grid / List */}
-            {!isLoading && matches.length > 0 && (
-              <>
-                {/* Virtualized list for list/compact mode with many items */}
-                {viewMode === 'list' && filteredMatches.length > 20 ? (
-                  <Virtuoso
-                    useWindowScroll
-                    totalCount={filteredMatches.length}
-                    overscan={5}
-                    itemContent={(index) => {
-                      const match = filteredMatches[index];
-                      return (
-                        <div className={cn('pb-3', cardStyle === 'compact' ? 'pb-2' : 'pb-4')}>
-                          <CardErrorBoundary>
-                            <div
-                              data-match-card
-                              className={cn(
-                                'transition-all duration-150',
-                                focusedMatchIndex === index && 'ring-2 ring-blue-400 ring-offset-2 rounded-xl'
-                              )}
-                              onClick={() => setFocusedMatchIndex(index)}
-                            >
-                              <PotentialMatchCard
-                                match={match as any}
-                                onCreateSuggestion={(id) =>
-                                  setCreateSuggestionDialog(id)
-                                }
-                                onDismiss={(id) => dismissMatch(id)}
-                                onReview={reviewMatch}
-                                onRestore={restoreMatch}
-                                onSave={saveMatch}
-                                onViewProfile={handleViewProfile}
-                                onAnalyzeCandidate={(candidate) =>
-                                  setAnalyzedCandidate(candidate)
-                                }
-                                onProfileFeedback={(candidate) =>
-                                  setFeedbackCandidate(candidate)
-                                }
-                                isSelected={isSelected(match.id)}
-                                onToggleSelect={
-                                  showBulkActions ? toggleSelection : undefined
-                                }
-                                showSelection={showBulkActions}
-                                onHideCandidate={handleHideCandidate}
-                                hiddenCandidateIds={hiddenCandidateIds}
-                                onFilterByUser={handleFilterByUser}
-                                isCompact={cardStyle === 'compact'}
-                              />
-                            </div>
-                          </CardErrorBoundary>
-                        </div>
-                      );
-                    }}
-                  />
-                ) : (
-                  /* Standard grid rendering */
-                  <div
-                    className={cn(
-                      'grid',
-                      cardStyle === 'compact' ? 'gap-3' : 'gap-4 sm:gap-6',
-                      viewMode === 'grid'
-                        ? cardStyle === 'compact'
-                          ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
-                          : 'grid-cols-1 md:grid-cols-2 xl:grid-cols-3'
-                        : 'grid-cols-1'
-                    )}
-                  >
-                    <AnimatePresence mode="popLayout">
-                      {filteredMatches.map((match, index) => (
-                        <CardErrorBoundary key={match.id}>
-                          <div
-                            data-match-card
-                            className={cn(
-                              'transition-all duration-150',
-                              focusedMatchIndex === index && 'ring-2 ring-blue-400 ring-offset-2 rounded-xl'
-                            )}
-                            onClick={() => setFocusedMatchIndex(index)}
-                          >
-                            <PotentialMatchCard
-                              match={match as any}
-                              onCreateSuggestion={(id) =>
-                                setCreateSuggestionDialog(id)
-                              }
-                              onDismiss={(id) => dismissMatch(id)}
-                              onReview={reviewMatch}
-                              onRestore={restoreMatch}
-                              onSave={saveMatch}
-                              onViewProfile={handleViewProfile}
-                              onAnalyzeCandidate={(candidate) =>
-                                setAnalyzedCandidate(candidate)
-                              }
-                              onProfileFeedback={(candidate) =>
-                                setFeedbackCandidate(candidate)
-                              }
-                              isSelected={isSelected(match.id)}
-                              onToggleSelect={
-                                showBulkActions ? toggleSelection : undefined
-                              }
-                              showSelection={showBulkActions}
-                              onHideCandidate={handleHideCandidate}
-                              hiddenCandidateIds={hiddenCandidateIds}
-                              onFilterByUser={handleFilterByUser}
-                              isCompact={cardStyle === 'compact'}
-                            />
-                          </div>
-                        </CardErrorBoundary>
-                      ))}
-                    </AnimatePresence>
-                  </div>
-                )}
-
-                {/* Pagination */}
-                <Card className="p-4 border-0 shadow-lg">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm text-gray-600">
-                        מציג {(pagination.page - 1) * pagination.pageSize + 1} -{' '}
-                        {Math.min(
-                          pagination.page * pagination.pageSize,
-                          pagination.total
-                        )}{' '}
-                        מתוך {pagination.total}
-                      </span>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setPage(pagination.page - 1)}
-                        disabled={pagination.page <= 1}
-                      >
-                        <ChevronRight className="w-4 h-4" />
-                      </Button>
-
-                      <div className="flex items-center gap-1 mx-2">
-                        <span className="text-sm text-gray-600">עמוד</span>
-                        <Input
-                          className="h-8 w-12 text-center p-0"
-                          value={pageInput}
-                          onChange={handlePageInputChange}
-                          onBlur={handlePageInputSubmit}
-                          onKeyDown={handlePageInputKeyDown}
-                        />
-                        <span className="text-sm text-gray-600">
-                          מתוך {pagination.totalPages}
-                        </span>
-                      </div>
-
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setPage(pagination.page + 1)}
-                        disabled={pagination.page >= pagination.totalPages}
-                      >
-                        <ChevronLeft className="w-4 h-4" />
-                      </Button>
-                    </div>
-
-                    <Select
-                      value={String(pagination.pageSize)}
-                      onValueChange={(value) => setPageSize(parseInt(value))}
-                    >
-                      <SelectTrigger className="w-[100px]">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="10">10</SelectItem>
-                        <SelectItem value="20">20</SelectItem>
-                        <SelectItem value="50">50</SelectItem>
-                        <SelectItem value="100">100</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </Card>
-              </>
-            )}
+            {/* Matches Grid/List + Pagination + Quick Filters + States */}
+            <MatchesGrid
+              matches={matches}
+              filteredMatches={filteredMatches}
+              stats={stats as unknown as FullStatsType}
+              isLoading={isLoading}
+              error={error}
+              viewMode={viewMode}
+              cardStyle={cardStyle}
+              focusedMatchIndex={focusedMatchIndex}
+              onFocusedMatchIndexChange={setFocusedMatchIndex}
+              filters={filters}
+              setFilters={setFilters}
+              localSearchTerm={localSearchTerm}
+              onResetFilters={handleResetFilters}
+              onConfirmScanDialog={() => setConfirmScanDialog(true)}
+              pagination={pagination}
+              pageInput={pageInput}
+              onPageInputChange={handlePageInputChange}
+              onPageInputSubmit={handlePageInputSubmit}
+              onPageInputKeyDown={handlePageInputKeyDown}
+              onSetPage={setPage}
+              onSetPageSize={setPageSize}
+              onRefresh={refresh}
+              onCreateSuggestion={(id) => setCreateSuggestionDialog(id)}
+              onDismiss={(id) => dismissMatch(id)}
+              onReview={reviewMatch}
+              onRestore={restoreMatch}
+              onSave={saveMatch}
+              onViewProfile={handleViewProfile}
+              onAnalyzeCandidate={(candidate) => setAnalyzedCandidate(candidate)}
+              onProfileFeedback={(candidate) => setFeedbackCandidate(candidate)}
+              onHideCandidate={handleHideCandidate}
+              onFilterByUser={handleFilterByUser}
+              hiddenCandidateIds={hiddenCandidateIds}
+              showBulkActions={showBulkActions}
+              isSelected={isSelected}
+              toggleSelection={toggleSelection}
+            />
           </>
         )}
       </main>
 
       {/* ======================================================================== */}
-      {/* DIALOGS */}
+      {/* DIALOGS                                                                  */}
+      {/* Note: Dialogs remain in the parent component because they depend on      */}
+      {/* multiple pieces of parent state (form values, action handlers, etc.)      */}
+      {/* and extracting them would require passing too many props with no benefit. */}
       {/* ======================================================================== */}
 
       {/* Profile Dialog */}
@@ -1462,14 +693,12 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
         open={!!viewProfileId}
         onOpenChange={(open) => {
           if (!open) {
-            // שמור את המיקום לפני איפוס
             const savedPosition = scrollPositionRef.current;
 
             setViewProfileId(null);
             setFullProfileData(null);
             setQuestionnaireData(null);
 
-            // שחזר מיד ב-requestAnimationFrame
             requestAnimationFrame(() => {
               window.scrollTo(0, savedPosition);
             });
@@ -1618,7 +847,7 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Create Suggestion Dialog - Updated Version */}
+      {/* Create Suggestion Dialog */}
       <Dialog
         open={!!createSuggestionDialog}
         onOpenChange={(open) => {
@@ -1641,10 +870,9 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
           </DialogHeader>
 
           <div className="space-y-5">
-            {/* --- אזור 1: ויזואליזציה והחלפת צדדים --- */}
+            {/* --- Party swap visualization --- */}
             {activeMatchForSuggestion &&
               (() => {
-                // Calculate images once
                 const firstPartyImage = isPartiesSwapped
                   ? getMainImage(activeMatchForSuggestion.female)
                   : getMainImage(activeMatchForSuggestion.male);
@@ -1656,7 +884,7 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
                 return (
                   <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
                     <div className="flex items-center justify-between gap-2">
-                      {/* צד א' (פנייה ראשונה) */}
+                      {/* First party */}
                       <div className="flex-1 flex flex-col items-center text-center">
                         <span className="text-xs font-bold text-blue-600 mb-1">
                           צד א (ראשון)
@@ -1681,7 +909,7 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
                         </span>
                       </div>
 
-                      {/* כפתור החלפה באמצע */}
+                      {/* Swap button */}
                       <div className="flex flex-col items-center px-2">
                         <Button
                           variant="outline"
@@ -1697,7 +925,7 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
                         </span>
                       </div>
 
-                      {/* צד ב' (פנייה שנייה) */}
+                      {/* Second party */}
                       <div className="flex-1 flex flex-col items-center text-center opacity-70">
                         <span className="text-xs font-bold text-gray-500 mb-1">
                           צד ב (שני)
@@ -1726,7 +954,7 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
                 );
               })()}
 
-            {/* --- אזור 2: בחירת ערוץ שליחה --- */}
+            {/* --- Channel selection --- */}
             <div>
               <label className="text-sm font-medium text-gray-700 mb-2 block">
                 איך לשלוח את ההצעה?
@@ -1765,7 +993,7 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
               </p>
             </div>
 
-            {/* --- אזור 3: פרטים נוספים --- */}
+            {/* --- Priority & notes --- */}
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="text-sm font-medium text-gray-700 mb-1 block">
@@ -1893,9 +1121,9 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
             </AlertDialogDescription>
           </AlertDialogHeader>
 
-          {/* תוכן נוסף - מחוץ ל-Header */}
+          {/* Content outside header */}
           <div className="space-y-4">
-            {/* בחירת עדיפות */}
+            {/* Priority selection */}
             <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
               <span className="text-sm font-medium text-gray-700">עדיפות:</span>
               <Select
@@ -1936,7 +1164,7 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
               </Select>
             </div>
 
-            {/* הערה */}
+            {/* Warning note */}
             <div className="p-3 bg-amber-50 rounded-lg border border-amber-200">
               <div className="flex items-start gap-2">
                 <AlertTriangle className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />

@@ -1,13 +1,17 @@
 // src/app/api/matchmaker/candidates/route.ts
 import { updateUserAiProfile } from '@/lib/services/profileAiService';
 
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
-import { UserRole, MatchSuggestionStatus } from '@prisma/client';
+import { UserRole, MatchSuggestionStatus, Prisma } from '@prisma/client';
 
 export const dynamic = 'force-dynamic';
+
+// ─── Constants ───────────────────────────────────────────────────────────────
+const DEFAULT_PAGE_SIZE = 50;
+const MAX_PAGE_SIZE = 200;
 
 const BLOCKING_SUGGESTION_STATUSES: MatchSuggestionStatus[] = [
   'FIRST_PARTY_APPROVED',
@@ -35,7 +39,87 @@ type SuggestionStatusInfo = {
   withCandidateName: string;
 };
 
-export async function GET() {
+// ─── Helper Functions ────────────────────────────────────────────────────────
+
+/**
+ * Splits a comma-separated string into a trimmed, non-empty array.
+ */
+function parseCommaSeparated(value: string | null): string[] {
+  if (!value) return [];
+  return value
+    .split(',')
+    .map((v) => v.trim())
+    .filter(Boolean);
+}
+
+/**
+ * Converts age range (in years) to a birthDate range for Prisma filtering.
+ * ageMin → maxBirthDate (younger = born later)
+ * ageMax → minBirthDate (older = born earlier)
+ */
+function ageToDateRange(
+  ageMin: number | null,
+  ageMax: number | null
+): { minBirthDate?: Date; maxBirthDate?: Date } {
+  const now = new Date();
+  const result: { minBirthDate?: Date; maxBirthDate?: Date } = {};
+
+  if (ageMax !== null) {
+    // Oldest allowed → earliest birthdate
+    const minBirthDate = new Date(now);
+    minBirthDate.setFullYear(minBirthDate.getFullYear() - ageMax - 1);
+    result.minBirthDate = minBirthDate;
+  }
+
+  if (ageMin !== null) {
+    // Youngest allowed → latest birthdate
+    const maxBirthDate = new Date(now);
+    maxBirthDate.setFullYear(maxBirthDate.getFullYear() - ageMin);
+    result.maxBirthDate = maxBirthDate;
+  }
+
+  return result;
+}
+
+/**
+ * Builds a Prisma orderBy clause based on sortBy and sortDirection params.
+ */
+function buildOrderBy(
+  sortBy: string | null,
+  sortDirection: string | null
+): Prisma.UserOrderByWithRelationInput | Prisma.UserOrderByWithRelationInput[] {
+  const direction: 'asc' | 'desc' =
+    sortDirection === 'asc' ? 'asc' : 'desc';
+
+  switch (sortBy) {
+    case 'name':
+      return [{ firstName: direction }, { lastName: direction }];
+    case 'age':
+      // birthDate sorting is inverted: ascending birthDate = oldest first
+      return {
+        profile: {
+          birthDate: direction === 'asc' ? 'desc' : 'asc',
+        },
+      };
+    case 'city':
+      return { profile: { city: direction } };
+    case 'religiousLevel':
+      return { profile: { religiousLevel: direction } };
+    case 'height':
+      return { profile: { height: direction } };
+    case 'registrationDate':
+      return { createdAt: direction };
+    case 'lastActive':
+      return { profile: { lastActive: direction } };
+    default:
+      // Default sort: newest registrations first
+      return { createdAt: 'desc' };
+  }
+}
+
+// ─── GET Handler ─────────────────────────────────────────────────────────────
+
+export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
 
@@ -61,48 +145,274 @@ export async function GET() {
       );
     }
 
-    // Step 1: Fetch all candidates
-   // חפש את השורה סביב 13 בתוך prisma.user.findMany
-const users = await prisma.user.findMany({
-  where: {
-    status: { notIn: ['BLOCKED', 'INACTIVE'] },
-    role: 'CANDIDATE',
-    profile: { isNot: null },
-  },
-  select: {
-    id: true,
-    email: true,
-    firstName: true,
-    lastName: true,
-    phone: true,
-    status: true,
-    source: true,
-    createdAt: true,
-     language: true,
-    isVerified: true,
-    isProfileComplete: true,
-images: {
-  select: { 
-    id: true, 
-    url: true, 
-    isMain: true,
-    cloudinaryPublicId: true // <--- הוסף שורה זו
-  },
-  orderBy: [{ isMain: 'desc' }, { createdAt: 'asc' }],
-},
-    // שינוי כאן: מ-profile: true למבנה include
-    profile: {
-      include: {
-        testimonials: {
-          where: { status: 'APPROVED' } // ברשימה הכללית נרצה אולי רק מאושרות
-        }
+    // ─── Parse Query Params ──────────────────────────────────────────────
+    const { searchParams } = request.nextUrl;
+
+    const gender = searchParams.get('gender');
+    const ageMin = searchParams.get('ageMin')
+      ? parseInt(searchParams.get('ageMin')!, 10)
+      : null;
+    const ageMax = searchParams.get('ageMax')
+      ? parseInt(searchParams.get('ageMax')!, 10)
+      : null;
+    const heightMin = searchParams.get('heightMin')
+      ? parseInt(searchParams.get('heightMin')!, 10)
+      : null;
+    const heightMax = searchParams.get('heightMax')
+      ? parseInt(searchParams.get('heightMax')!, 10)
+      : null;
+    const cities = parseCommaSeparated(searchParams.get('cities'));
+    const religiousLevels = parseCommaSeparated(
+      searchParams.get('religiousLevel')
+    );
+    const languages = parseCommaSeparated(searchParams.get('languages'));
+    const occupations = parseCommaSeparated(searchParams.get('occupations'));
+    const educationLevel = searchParams.get('educationLevel');
+    const maritalStatus = searchParams.get('maritalStatus');
+    const availabilityStatus = searchParams.get('availabilityStatus');
+    const userStatus = searchParams.get('userStatus');
+    const source = searchParams.get('source');
+    const isVerified = searchParams.get('isVerified');
+    const isProfileComplete = searchParams.get('isProfileComplete');
+    const lastActiveDays = searchParams.get('lastActiveDays')
+      ? parseInt(searchParams.get('lastActiveDays')!, 10)
+      : null;
+    const searchQuery = searchParams.get('searchQuery');
+    const sortBy = searchParams.get('sortBy');
+    const sortDirection = searchParams.get('sortDirection');
+
+    // Pagination
+    const rawPage = parseInt(searchParams.get('page') || '1', 10);
+    const rawPageSize = parseInt(
+      searchParams.get('pageSize') || String(DEFAULT_PAGE_SIZE),
+      10
+    );
+    const page = Math.max(1, rawPage);
+    const pageSize = Math.min(MAX_PAGE_SIZE, Math.max(1, rawPageSize));
+
+    // ─── Build User-Level WHERE ──────────────────────────────────────────
+    const userWhere: Prisma.UserWhereInput = {
+      role: 'CANDIDATE',
+      profile: { isNot: null },
+    };
+
+    // userStatus filter: if not provided, exclude BLOCKED/INACTIVE (original behavior)
+    if (userStatus) {
+      userWhere.status = userStatus as Prisma.EnumUserStatusFilter;
+    } else {
+      userWhere.status = { notIn: ['BLOCKED', 'INACTIVE'] };
+    }
+
+    if (source) {
+      userWhere.source = source as Prisma.EnumUserSourceFilter;
+    }
+
+    if (isVerified !== null && isVerified !== undefined && isVerified !== '') {
+      userWhere.isVerified = isVerified === 'true';
+    }
+
+    if (
+      isProfileComplete !== null &&
+      isProfileComplete !== undefined &&
+      isProfileComplete !== ''
+    ) {
+      userWhere.isProfileComplete = isProfileComplete === 'true';
+    }
+
+    // ─── Build Profile-Level WHERE ───────────────────────────────────────
+    const profileWhere: Prisma.ProfileWhereInput = {};
+
+    if (gender) {
+      profileWhere.gender = gender as Prisma.EnumGenderFilter;
+    }
+
+    // Age → birthDate range
+    if (ageMin !== null || ageMax !== null) {
+      const { minBirthDate, maxBirthDate } = ageToDateRange(ageMin, ageMax);
+      profileWhere.birthDate = {};
+      if (minBirthDate) {
+        profileWhere.birthDate.gte = minBirthDate;
       }
-    },
-  },
-});
+      if (maxBirthDate) {
+        profileWhere.birthDate.lte = maxBirthDate;
+      }
+    }
+
+    // Height range
+    if (heightMin !== null || heightMax !== null) {
+      profileWhere.height = {};
+      if (heightMin !== null) {
+        profileWhere.height.gte = heightMin;
+      }
+      if (heightMax !== null) {
+        profileWhere.height.lte = heightMax;
+      }
+    }
+
+    // Cities (OR match)
+    if (cities.length > 0) {
+      profileWhere.city = { in: cities, mode: 'insensitive' };
+    }
+
+    // Religious levels with "not_defined" support
+    if (religiousLevels.length > 0) {
+      const hasNotDefined = religiousLevels.includes('not_defined');
+      const definedLevels = religiousLevels.filter((l) => l !== 'not_defined');
+
+      if (hasNotDefined && definedLevels.length > 0) {
+        // Match either null/empty OR in the specified levels
+        profileWhere.OR = [
+          { religiousLevel: null },
+          { religiousLevel: '' },
+          { religiousLevel: { in: definedLevels } },
+        ];
+      } else if (hasNotDefined) {
+        // Only "not_defined" selected
+        profileWhere.OR = [
+          { religiousLevel: null },
+          { religiousLevel: '' },
+        ];
+      } else {
+        // Only defined levels
+        profileWhere.religiousLevel = { in: definedLevels };
+      }
+    }
+
+    // Languages (match nativeLanguage OR any additionalLanguages)
+    if (languages.length > 0) {
+      profileWhere.OR = [
+        ...(profileWhere.OR || []),
+        { nativeLanguage: { in: languages, mode: 'insensitive' } },
+        { additionalLanguages: { hasSome: languages } },
+      ];
+    }
+
+    // Occupations (case-insensitive contains match)
+    if (occupations.length > 0) {
+      const occupationConditions = occupations.map((occ) => ({
+        occupation: { contains: occ, mode: 'insensitive' as const },
+      }));
+      profileWhere.OR = [
+        ...(profileWhere.OR || []),
+        ...occupationConditions,
+      ];
+    }
+
+    if (educationLevel) {
+      profileWhere.educationLevel = educationLevel;
+    }
+
+    if (maritalStatus) {
+      profileWhere.maritalStatus = maritalStatus;
+    }
+
+    if (availabilityStatus) {
+      profileWhere.availabilityStatus =
+        availabilityStatus as Prisma.EnumAvailabilityStatusFilter;
+    }
+
+    // Last active within N days
+    if (lastActiveDays !== null && lastActiveDays > 0) {
+      const cutoff = new Date();
+      cutoff.setDate(cutoff.getDate() - lastActiveDays);
+      profileWhere.lastActive = { gte: cutoff };
+    }
+
+    // Attach profile conditions to user where
+    if (Object.keys(profileWhere).length > 0) {
+      // Use `is` to combine the "profile exists" check with field filters
+      userWhere.profile = { is: profileWhere };
+    }
+
+    // ─── Search Query (multi-word AND across fields) ─────────────────────
+    if (searchQuery && searchQuery.trim()) {
+      const words = searchQuery
+        .trim()
+        .split(/\s+/)
+        .filter(Boolean);
+
+      // Each word must match at least one field (AND between words)
+      const wordConditions: Prisma.UserWhereInput[] = words.map((word) => ({
+        OR: [
+          { firstName: { contains: word, mode: 'insensitive' } },
+          { lastName: { contains: word, mode: 'insensitive' } },
+          { email: { contains: word, mode: 'insensitive' } },
+          { phone: { contains: word } },
+          {
+            profile: {
+              city: { contains: word, mode: 'insensitive' },
+            },
+          },
+          {
+            profile: {
+              occupation: { contains: word, mode: 'insensitive' },
+            },
+          },
+        ],
+      }));
+
+      userWhere.AND = [
+        ...(Array.isArray(userWhere.AND) ? userWhere.AND : []),
+        ...wordConditions,
+      ];
+    }
+
+    // ─── Build OrderBy ───────────────────────────────────────────────────
+    const orderBy = buildOrderBy(sortBy, sortDirection);
+
+    // ─── Execute Queries (data + count in parallel) ──────────────────────
+    const [users, total] = await Promise.all([
+      prisma.user.findMany({
+        where: userWhere,
+        select: {
+          id: true,
+          email: true,
+          firstName: true,
+          lastName: true,
+          phone: true,
+          status: true,
+          source: true,
+          createdAt: true,
+          language: true,
+          isVerified: true,
+          isProfileComplete: true,
+          images: {
+            select: {
+              id: true,
+              url: true,
+              isMain: true,
+              cloudinaryPublicId: true,
+            },
+            orderBy: [{ isMain: 'desc' }, { createdAt: 'asc' }],
+          },
+          profile: {
+            include: {
+              testimonials: {
+                where: { status: 'APPROVED' },
+              },
+            },
+          },
+        },
+        orderBy,
+        skip: (page - 1) * pageSize,
+        take: pageSize,
+      }),
+      prisma.user.count({ where: userWhere }),
+    ]);
+
     if (users.length === 0) {
       return new NextResponse(
-        JSON.stringify({ success: true, clients: [], count: 0 }),
+        JSON.stringify({
+          success: true,
+          clients: [],
+          count: 0,
+          pagination: {
+            page,
+            pageSize,
+            total,
+            totalPages: Math.ceil(total / pageSize),
+          },
+        }),
         { status: 200 }
       );
     }
@@ -166,7 +476,6 @@ images: {
     }
 
     // Step 5: Map suggestion info back to users in memory (no more DB queries)
-// Step 5: Map suggestion info back to users in memory (no more DB queries)
     const usersWithSuggestionInfo = users.map((user) => {
       const suggestionInfo = suggestionStatusMap.get(user.id) || null;
       const profile = user.profile;
@@ -183,50 +492,64 @@ images: {
               createdAt: profile.createdAt.toISOString(),
               updatedAt: profile.updatedAt.toISOString(),
               lastActive: profile.lastActive?.toISOString() || null,
-              // --- הוספה: הזרקת פרטי המשתמש לתוך הפרופיל עבור ProfileCard ---
+              // Inject user details into profile for ProfileCard
               user: {
                 id: user.id,
                 firstName: user.firstName,
                 lastName: user.lastName,
                 email: user.email,
-                phone: user.phone, // <--- הנה הטלפון שהיה חסר בקומפוננטה
-              }
-              // -----------------------------------------------------------
+                phone: user.phone,
+              },
             }
           : null,
       };
     });
-  const profilesNeedingUpdate = usersWithSuggestionInfo.filter(
+
+    // Background AI profile updates
+    const profilesNeedingUpdate = usersWithSuggestionInfo.filter(
       (user) => user.profile?.needsAiProfileUpdate
     );
 
     if (profilesNeedingUpdate.length > 0) {
-      const profileIdsToUpdate = profilesNeedingUpdate.map(u => u.profile!.id);
-      // console.log(`[Proactive AI Update] Found ${profileIdsToUpdate.length} profiles needing AI update. Triggering in background.`);
+      const profileIdsToUpdate = profilesNeedingUpdate.map(
+        (u) => u.profile!.id
+      );
 
       // First, immediately reset the flags in the DB to prevent duplicate jobs
-      prisma.profile.updateMany({
-        where: { id: { in: profileIdsToUpdate } },
-        data: { needsAiProfileUpdate: false }
-      }).then(() => {
-        // console.log(`[Proactive AI Update] Flags for ${profileIdsToUpdate.length} profiles reset.`);
-        // Then, run the actual AI updates without awaiting them
-        profilesNeedingUpdate.forEach(user => {
-          updateUserAiProfile(user.id).catch(err => {
-            console.error(`[Proactive AI Update - BG] Failed for user ${user.id}:`, err);
-            // Optional: Re-flag the profile on failure
-            // prisma.profile.update({ where: { id: user.profile!.id }, data: { needsAiProfileUpdate: true } });
+      prisma.profile
+        .updateMany({
+          where: { id: { in: profileIdsToUpdate } },
+          data: { needsAiProfileUpdate: false },
+        })
+        .then(() => {
+          // Then, run the actual AI updates without awaiting them
+          profilesNeedingUpdate.forEach((user) => {
+            updateUserAiProfile(user.id).catch((err) => {
+              console.error(
+                `[Proactive AI Update - BG] Failed for user ${user.id}:`,
+                err
+              );
+            });
           });
+        })
+        .catch((err) => {
+          console.error('[Proactive AI Update] Failed to reset flags:', err);
         });
-      }).catch(err => {
-        console.error("[Proactive AI Update] Failed to reset flags:", err);
-      });
     }
+
+    const totalPages = Math.ceil(total / pageSize);
+
     return new NextResponse(
       JSON.stringify({
         success: true,
         clients: usersWithSuggestionInfo,
         count: usersWithSuggestionInfo.length,
+        pagination: {
+          page,
+          pageSize,
+          total,
+          totalPages,
+        },
       }),
       { status: 200 }
     );

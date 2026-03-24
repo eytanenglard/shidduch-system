@@ -275,6 +275,39 @@ export default function QuestionnaireLandingPage({
     >
       {!hasSoulFingerprint && <DynamicBackground />}
 
+      {/* Heart Map Banner — shown only if user hasn't completed Heart Map */}
+      {!hasSoulFingerprint && dict.heartMapBanner && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+          className="relative z-10 mx-4 mt-4 sm:mx-auto sm:max-w-3xl"
+        >
+          <div className="flex flex-col sm:flex-row items-center gap-4 bg-gradient-to-r from-rose-50 to-orange-50 border border-rose-200/60 rounded-2xl px-6 py-5 shadow-sm">
+            <div className="flex items-center gap-3 flex-1 text-center sm:text-start">
+              <Heart className="w-6 h-6 text-rose-500 shrink-0 hidden sm:block" />
+              <div>
+                <p className="font-bold text-gray-800 text-sm sm:text-base">
+                  {dict.heartMapBanner.title}
+                </p>
+                <p className="text-gray-500 text-xs sm:text-sm mt-0.5">
+                  {dict.heartMapBanner.description}
+                </p>
+              </div>
+            </div>
+            <Link href={`/${locale}/heart-map`}>
+              <Button
+                variant="outline"
+                className="border-rose-300 text-rose-700 hover:bg-rose-100 hover:border-rose-400 rounded-full px-6 py-2 font-semibold text-sm whitespace-nowrap"
+              >
+                <Heart className="w-4 h-4 me-2" />
+                {dict.heartMapBanner.buttonText}
+              </Button>
+            </Link>
+          </div>
+        </motion.div>
+      )}
+
       {/* SECTION 1: HERO */}
       <motion.section
         className="relative py-16 sm:py-20 px-4 text-center"
