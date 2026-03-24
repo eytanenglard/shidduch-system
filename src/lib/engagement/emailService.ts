@@ -24,6 +24,7 @@ interface EmailData {
   templateName: string;
   context: Record<string, any>;
   locale?: 'he' | 'en';
+  headers?: Record<string, string>;
 }
 
 class EmailService {
@@ -90,6 +91,7 @@ class EmailService {
         to: data.to,
         subject: data.subject,
         html: htmlContent,
+        headers: data.headers || {},
       });
 
       console.log(`✅ Email sent to ${data.to} | Template: ${data.templateName} | Lang: ${enhancedContext.locale} | ID: ${info.messageId}`);

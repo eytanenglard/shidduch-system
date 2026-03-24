@@ -1359,7 +1359,9 @@ export const PERSONALITY_EXTRA_QUESTIONS: SFQuestion[] = [
     isOptional: true,
     options: [
       { value: 'home_quiet', labelKey: 'options.s3_ideal_evening.home_quiet' },
+      { value: 'entertainment', labelKey: 'options.s3_ideal_evening.entertainment' },
       { value: 'social_friends', labelKey: 'options.s3_ideal_evening.social_friends' },
+      { value: 'dining_out', labelKey: 'options.s3_ideal_evening.dining_out' },
       { value: 'active_outdoor', labelKey: 'options.s3_ideal_evening.active_outdoor' },
       { value: 'learning_growth', labelKey: 'options.s3_ideal_evening.learning_growth' },
       { value: 'creative', labelKey: 'options.s3_ideal_evening.creative' },
@@ -1488,7 +1490,9 @@ export const PERSONALITY_EXTRA_QUESTIONS: SFQuestion[] = [
     isOptional: true,
     options: [
       { value: 'home_quiet', labelKey: 'options.s3_ideal_evening.home_quiet' },
+      { value: 'entertainment', labelKey: 'options.s3_ideal_evening.entertainment' },
       { value: 'social_friends', labelKey: 'options.s3_ideal_evening.social_friends' },
+      { value: 'dining_out', labelKey: 'options.s3_ideal_evening.dining_out' },
       { value: 'active_outdoor', labelKey: 'options.s3_ideal_evening.active_outdoor' },
       { value: 'learning_growth', labelKey: 'options.s3_ideal_evening.learning_growth' },
       { value: 'creative', labelKey: 'options.s3_ideal_evening.creative' },
@@ -1915,6 +1919,7 @@ export const LIFESTYLE_QUESTIONS: SFQuestion[] = [
       { value: 'family_trips', labelKey: 'options.s5_travel_style.family_trips', icon: '👨‍👩‍👧' },
       { value: 'jewish_heritage', labelKey: 'options.s5_travel_style.jewish_heritage', icon: '✡️' },
       { value: 'adventure_extreme', labelKey: 'options.s5_travel_style.adventure_extreme', icon: '🏔️' },
+      { value: 'beach_relaxation', labelKey: 'options.s5_travel_style.beach_relaxation', icon: '🏖️' },
     ],
   },
   {

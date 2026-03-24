@@ -1243,7 +1243,7 @@ export class ValueEmailOrchestrator {
       return false;
     }
 
-    const unsubscribeUrl = await this.generateUnsubscribeUrl(user.id, user.email);
+    const unsubscribeUrl = await this.generateUnsubscribeUrl(user.id, user.email, locale);
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://neshamatech.com';
 
     const context = {
@@ -1268,12 +1268,19 @@ export class ValueEmailOrchestrator {
       currentYear: new Date().getFullYear(),
     };
 
+    // API-based unsubscribe URL for List-Unsubscribe header (RFC 8058)
+    const apiUnsubscribeUrl = unsubscribeUrl.replace(`/${locale}/unsubscribe`, '/api/user/unsubscribe');
+
     const sent = await emailService.sendTemplateEmail({
       to: user.email,
       subject: nextEmail.subject[locale],
       templateName: 'value_email',
       context,
       locale,
+      headers: {
+        'List-Unsubscribe': `<${apiUnsubscribeUrl}>`,
+        'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
+      },
     });
 
     if (sent) {
@@ -1339,7 +1346,7 @@ export class ValueEmailOrchestrator {
     });
   }
 
-  private static async generateUnsubscribeUrl(userId: string, email: string): Promise<string> {
+  private static async generateUnsubscribeUrl(userId: string, email: string, locale: string = 'he'): Promise<string> {
     const secret = new TextEncoder().encode(process.env.NEXTAUTH_SECRET || 'fallback-secret');
     const token = await new SignJWT({ userId, email })
       .setProtectedHeader({ alg: 'HS256' })
@@ -1347,7 +1354,7 @@ export class ValueEmailOrchestrator {
       .sign(secret);
 
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://neshamatech.com';
-    return `${baseUrl}/api/user/unsubscribe?token=${token}`;
+    return `${baseUrl}/${locale}/unsubscribe?token=${token}`;
   }
 }
 

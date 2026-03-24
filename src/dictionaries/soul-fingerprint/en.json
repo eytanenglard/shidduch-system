@@ -75,7 +75,9 @@
     "partnerTransitionSubtitle": "Tell us what matters to you in a partner",
     "noPartnerQuestions": "No partner preference questions for this section",
     "noSelfQuestions": "These questions aren't relevant for your profile",
-    "saveError": "Save failed, will retry"
+    "saveError": "Save failed, will retry",
+    "unansweredHint": "{{count}} required questions unanswered",
+    "showUnanswered": "Show"
   },
   "completion": {
     "title": "Your Heart Map is ready!",
@@ -127,7 +129,7 @@
     },
     "s1_dl_army_type": {
       "text": "What is your service path?",
-      "subtitle": ""
+      "subtitle": "Including active and past service"
     },
     "s1_dl_service_f": {
       "text": "What is your path after high school?",
@@ -148,7 +150,7 @@
     },
     "s1_dl_zionism": {
       "text": "What does Zionism represent to you?",
-      "subtitle": ""
+      "subtitle": "Everyone's relationship with Zionism is different"
     },
     "s1_shomer_negiah": {
       "text": "What is your approach to shomer negiah?",
@@ -168,7 +170,7 @@
     },
     "s1_bt_time": {
       "text": "How long have you been on this journey?",
-      "subtitle": ""
+      "subtitle": "Every journey is unique — there's no right or wrong timeline"
     },
     "s1_datlash_origin": {
       "text": "What was your religious background?",
@@ -183,51 +185,51 @@
     },
     "s1_diaspora_community": {
       "text": "Which community are you from?",
-      "subtitle": ""
+      "subtitle": "Helps us understand your community background"
     },
     "s1_diaspora_education": {
       "text": "Where did you study?",
-      "subtitle": ""
+      "subtitle": "Academic background influences lifestyle"
     },
     "s1_diaspora_aliyah": {
       "text": "What are your aliyah plans?",
-      "subtitle": ""
+      "subtitle": "Important for matching with partners in Israel"
     },
     "s1_diaspora_aliyah_timeline": {
       "text": "When are you planning to make aliyah?",
-      "subtitle": ""
+      "subtitle": "Plans change — this isn't binding"
     },
     "s2_ethnic": {
       "text": "What is your ethnic background?",
-      "subtitle": ""
+      "subtitle": "Important for matching — you can choose multiple"
     },
     "s2_origin": {
       "text": "What is your geographic background?",
-      "subtitle": ""
+      "subtitle": "Where you come from"
     },
     "s2_oleh_origin": {
       "text": "Which country did you make aliyah from?",
-      "subtitle": ""
+      "subtitle": "Helps us understand your cultural background"
     },
     "s2_oleh_years": {
       "text": "When did you make aliyah?",
-      "subtitle": ""
+      "subtitle": "Time in Israel influences daily life"
     },
     "s2_family_extended": {
       "text": "What is your relationship with extended family?",
-      "subtitle": ""
+      "subtitle": "Extended family dynamics affect relationships"
     },
     "s2_family_atmosphere": {
       "text": "How would you describe the home you grew up in?",
-      "subtitle": ""
+      "subtitle": "The home we grew up in shapes what we seek"
     },
     "s2_parents_status": {
       "text": "What is your parents' situation?",
-      "subtitle": ""
+      "subtitle": "Helps us understand your background"
     },
     "s2_relationship_parents": {
       "text": "How would you define your relationship with your parents?",
-      "subtitle": ""
+      "subtitle": "Parent relationships reflect relationship patterns"
     },
     "s3_energy_type": {
       "text": "Where are you on the scale?",
@@ -239,15 +241,15 @@
     },
     "s3_character_primary": {
       "text": "What best describes your character?",
-      "subtitle": ""
+      "subtitle": "No right answer — every personality is unique"
     },
     "s3_life_tempo": {
       "text": "What is your life pace?",
-      "subtitle": ""
+      "subtitle": "It's important that partners feel comfortable with a similar pace"
     },
     "s3_spontaneity": {
       "text": "Spontaneous or a planner?",
-      "subtitle": ""
+      "subtitle": "Helps us match compatible lifestyles"
     },
     "s3_humor": {
       "text": "What type of humor are you?",
@@ -255,11 +257,11 @@
     },
     "s3_conflict": {
       "text": "How do you handle conflict?",
-      "subtitle": ""
+      "subtitle": "We all handle things differently — there's no right way"
     },
     "s3_social_role": {
       "text": "What is your role in social settings?",
-      "subtitle": ""
+      "subtitle": "How friends would describe you"
     },
     "s3_open_character": {
       "text": "Is there something else that characterizes you?",
@@ -268,7 +270,7 @@
     },
     "s3_sleep_flexibility": {
       "text": "How flexible are you with sleep?",
-      "subtitle": ""
+      "subtitle": "Affects shared daily routines"
     },
     "s3_plan_change_reaction": {
       "text": "How do you react when plans change?",
@@ -276,7 +278,7 @@
     },
     "s4_education_level": {
       "text": "What is your level of education?",
-      "subtitle": ""
+      "subtitle": "We don't judge — just match"
     },
     "s4_field": {
       "text": "What do you do or study?",
@@ -284,23 +286,23 @@
     },
     "s4_work_status": {
       "text": "What is your current employment status?",
-      "subtitle": ""
+      "subtitle": "Current status — not necessarily permanent"
     },
     "s4_ambition": {
       "text": "How do you see your career?",
-      "subtitle": ""
+      "subtitle": "No right answer — every approach is legitimate"
     },
     "s4_financial_style": {
       "text": "What is your approach to money?",
-      "subtitle": ""
+      "subtitle": "Money attitudes are key in relationships"
     },
     "s4_economic_status": {
       "text": "How would you define your financial situation?",
-      "subtitle": ""
+      "subtitle": "Information to help match — not judge"
     },
     "s4_housing": {
       "text": "What is your housing situation?",
-      "subtitle": ""
+      "subtitle": "Helps us understand your life stage"
     },
     "s4_partner_career": {
       "text": "And what about your partner — what matters to you about their career?",
@@ -312,11 +314,11 @@
     },
     "s5_rhythm": {
       "text": "What is your daily routine?",
-      "subtitle": ""
+      "subtitle": "A shared daily routine is the foundation of life together"
     },
     "s5_kashrut": {
       "text": "What is your level of kashrut observance?",
-      "subtitle": ""
+      "subtitle": "An important topic to align on"
     },
     "s5_hobbies": {
       "text": "What fills your free time?",
@@ -324,7 +326,7 @@
     },
     "s5_travel_frequency": {
       "text": "What is your relationship with travel?",
-      "subtitle": ""
+      "subtitle": "Important to have a similar approach"
     },
     "s5_travel_style": {
       "text": "What type of travel do you enjoy?",
@@ -332,7 +334,7 @@
     },
     "s5_pets": {
       "text": "What is your attitude toward pets?",
-      "subtitle": ""
+      "subtitle": "Can be a critical topic for some people"
     },
     "s5_politics": {
       "text": "Where do you stand politically?",
@@ -344,27 +346,27 @@
     },
     "s5_screen_time": {
       "text": "What's your approach to screen time?",
-      "subtitle": ""
+      "subtitle": "Technology approach affects daily routine"
     },
     "s5_risk_attitude": {
       "text": "What's your attitude towards risk?",
-      "subtitle": ""
+      "subtitle": "Your risk approach reflects your personality"
     },
     "s6_children_count": {
       "text": "How many children would you like?",
-      "subtitle": ""
+      "subtitle": "No right answer — this is for matching purposes"
     },
     "s6_home_roles": {
       "text": "How do you see the division of roles at home?",
-      "subtitle": ""
+      "subtitle": "No single right model — agreement is what matters"
     },
     "s6_parenting_style": {
       "text": "What is your parenting style?",
-      "subtitle": ""
+      "subtitle": "Or what you'd like it to be"
     },
     "s6_education_system": {
       "text": "What school system would you send your children to?",
-      "subtitle": ""
+      "subtitle": "A values-based choice — important to align on"
     },
     "s6_home_atmosphere": {
       "text": "What kind of home do you want to build?",
@@ -372,19 +374,19 @@
     },
     "s6_extended_family": {
       "text": "How involved is your extended family in your life?",
-      "subtitle": ""
+      "subtitle": "Grandparents, aunts/uncles, cousins"
     },
     "s6_in_laws_conflict": {
       "text": "When there's friction with in-laws — what's your approach?",
-      "subtitle": ""
+      "subtitle": "Sensitive but important — honesty helps"
     },
     "s6_partner_children": {
       "text": "Are you open to a partner who has children?",
-      "subtitle": ""
+      "subtitle": "Honesty here saves time for both sides"
     },
     "s6_blended_family": {
       "text": "You have children — what do you expect from your partner regarding them?",
-      "subtitle": ""
+      "subtitle": "Blended families require open communication"
     },
     "s7_relationship_meaning": {
       "text": "What does a good relationship mean to you?",
@@ -392,27 +394,27 @@
     },
     "s7_love_language": {
       "text": "What is your love language?",
-      "subtitle": ""
+      "subtitle": "How do you most enjoy receiving love?"
     },
     "s7_closeness": {
       "text": "How much closeness are you looking for?",
-      "subtitle": ""
+      "subtitle": "Everyone needs a different level of closeness"
     },
     "s7_meeting_pace": {
       "text": "What is your preferred pace of getting to know someone?",
-      "subtitle": ""
+      "subtitle": "No right pace — what matters is it fits both of you"
     },
     "s7_relationship_model": {
       "text": "What relationship model describes you?",
-      "subtitle": ""
+      "subtitle": "The model that feels most natural to you"
     },
     "s7_expressing_needs": {
       "text": "How do you express needs in a relationship?",
-      "subtitle": ""
+      "subtitle": "Open communication is key to a good relationship"
     },
     "s7_argument_style": {
       "text": "What's your style during an argument?",
-      "subtitle": ""
+      "subtitle": "We all argue — the question is how"
     },
     "s7_silent_treatment": {
       "text": "What's your view on the silent treatment during conflict?",
@@ -424,19 +426,19 @@
     },
     "s7_romantic_past_comfort": {
       "text": "How comfortable are you with your partner's romantic past?",
-      "subtitle": ""
+      "subtitle": "Important for aligning expectations"
     },
     "s7_community_role": {
       "text": "What role does community play in your life?",
-      "subtitle": ""
+      "subtitle": "Community can be an important part of relationship life"
     },
     "p_expressing_needs": {
       "text": "How would you like your partner to express their needs?",
-      "subtitle": ""
+      "subtitle": "What's important to you in relationship communication"
     },
     "p_argument_style": {
       "text": "What argument style do you prefer in a partner?",
-      "subtitle": ""
+      "subtitle": "It's important that partners can argue constructively"
     },
     "s7_open_partner": {
       "text": "What's the most important thing to you in a partner that's hard to describe in options?",
@@ -626,7 +628,7 @@
     },
     "s3_self_awareness": {
       "text": "What place does self-awareness have in your life?",
-      "subtitle": ""
+      "subtitle": "Therapy, meditation, journaling, deep conversations..."
     },
     "s3_curiosity_level": {
       "text": "What is your relationship with learning and curiosity?"
@@ -1399,7 +1401,8 @@
       "luxury_hotels": "Luxury travel — hotels and restaurants",
       "family_trips": "Family trips",
       "jewish_heritage": "Jewish heritage sites",
-      "adventure_extreme": "Adventure and extreme experiences"
+      "adventure_extreme": "Adventure and extreme experiences",
+      "beach_relaxation": "Beach and sea — relaxation and sun"
     },
     "s5_pets": {
       "loves_has": "Love them — have one / want one",
@@ -1821,8 +1824,10 @@
       "very_patient": "Very patient — everything in its time"
     },
     "s3_ideal_evening": {
-      "home_quiet": "Quiet evening at home — book, show, rest",
-      "social_friends": "Meeting with friends — food, conversation, laughs",
+      "home_quiet": "Quiet evening at home — book, rest, peace",
+      "entertainment": "Entertainment — movies, series, cinema, games",
+      "social_friends": "Meeting friends — conversation, laughs",
+      "dining_out": "Going out to eat — restaurant, café, bar",
       "active_outdoor": "Activity outside — sports, hike, show",
       "learning_growth": "Learning and classes — Torah, courses, podcasts",
       "creative": "Creating — music, art, cooking, writing",

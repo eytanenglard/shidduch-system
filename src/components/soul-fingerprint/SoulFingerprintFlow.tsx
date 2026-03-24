@@ -60,17 +60,30 @@ export default function SoulFingerprintFlow({
     totalSections,
   } = useSoulFingerprint(gender, initialData as { sectionAnswers?: Record<string, string | string[] | number | null>; isComplete?: boolean } | null);
 
-  // Check if all required questions in the current view are answered
-  const hasUnansweredRequired = useMemo(() => {
-    const questions = currentQuestions;
-    return questions.some((q) => {
-      if (q.isOptional) return false;
-      const ans = state.answers[q.id];
-      if (ans === null || ans === undefined || ans === '') return true;
-      if (Array.isArray(ans) && ans.length === 0) return true;
-      return false;
-    });
+  // Check which required questions in the current view are unanswered
+  const unansweredRequiredIds = useMemo(() => {
+    return currentQuestions
+      .filter((q) => {
+        if (q.isOptional) return false;
+        const ans = state.answers[q.id];
+        if (ans === null || ans === undefined || ans === '') return true;
+        if (Array.isArray(ans) && ans.length === 0) return true;
+        return false;
+      })
+      .map((q) => q.id);
   }, [currentQuestions, state.answers]);
+
+  const hasUnansweredRequired = unansweredRequiredIds.length > 0;
+
+  const handleScrollToUnanswered = useCallback(() => {
+    if (unansweredRequiredIds.length === 0) return;
+    const el = document.getElementById(`sf-question-${unansweredRequiredIds[0]}`);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      el.classList.add('ring-2', 'ring-red-300', 'ring-offset-2');
+      setTimeout(() => el.classList.remove('ring-2', 'ring-red-300', 'ring-offset-2'), 2000);
+    }
+  }, [unansweredRequiredIds]);
 
   const handleStart = useCallback(() => {
     setScreen('questionnaire');
@@ -218,7 +231,8 @@ export default function SoulFingerprintFlow({
         {currentQuestions.map((question) => (
           <div
             key={question.id}
-            className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5"
+            id={`sf-question-${question.id}`}
+            className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 transition-all duration-300"
           >
             <QuestionRenderer
               question={question}
@@ -252,6 +266,8 @@ export default function SoulFingerprintFlow({
         hasPartnerQuestions={hasPartnerQuestions}
         saveStatus={saveStatus}
         hasUnansweredRequired={hasUnansweredRequired}
+        unansweredCount={unansweredRequiredIds.length}
+        onScrollToUnanswered={handleScrollToUnanswered}
         t={t}
         isRTL={isRTL}
       />

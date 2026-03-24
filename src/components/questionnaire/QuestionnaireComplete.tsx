@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { CheckCircle2, ArrowRight } from 'lucide-react';
 import type { QuestionnaireCompletePageDict } from '@/types/dictionary'; // Import dictionary type
+import StandardizedLoadingSpinner from './common/StandardizedLoadingSpinner';
 
 // --- Props Interface ---
 interface QuestionnaireCompleteProps {
@@ -28,13 +29,10 @@ export default function QuestionnaireComplete({
 
   if (status === 'loading') {
     return (
-      <div className="container mx-auto py-8 px-4">
-        <Card className="max-w-xl mx-auto">
-          <CardContent className="p-8">
-            <div className="text-center">{dict.loading}</div>
-          </CardContent>
-        </Card>
-      </div>
+      <StandardizedLoadingSpinner
+        text={dict.loading}
+        subtext="מכינים את הדף עבורך..."
+      />
     );
   }
 

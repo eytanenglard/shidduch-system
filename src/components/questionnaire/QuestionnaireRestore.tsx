@@ -4,10 +4,9 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Loader2 } from 'lucide-react';
 import type { QuestionnaireRestoreDict } from '@/types/dictionary'; // Import dictionary type
+import StandardizedLoadingSpinner from './common/StandardizedLoadingSpinner';
 
 // --- Props Interface ---
 interface QuestionnaireRestoreProps {
@@ -72,50 +71,39 @@ export default function QuestionnaireRestore({
     }
   }, [session, router, isProcessing, status, dict.error]);
 
-  const renderContent = () => {
-    if (status === 'loading') {
-      return (
-        <Card>
-          <CardContent className="p-6 text-center">
-            <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4" />
-            <p className="text-lg">{dict.loading}</p>
-          </CardContent>
-        </Card>
-      );
-    }
-
-    if (status === 'unauthenticated') {
-      router.push('/login');
-      return null;
-    }
-
-    if (error) {
-      return (
-        <>
-          <Alert variant="destructive">
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-          <div className="mt-4 flex justify-center">
-            <Button onClick={() => router.push('/questionnaire')}>
-              {dict.backButton}
-            </Button>
-          </div>
-        </>
-      );
-    }
-
+  if (status === 'loading') {
     return (
-      <Card>
-        <CardContent className="p-6 text-center">
-          <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4" />
-          <p className="text-lg">{dict.restoringTitle}</p>
-          <p className="text-sm text-gray-500 mt-2">{dict.restoringSubtitle}</p>
-        </CardContent>
-      </Card>
+      <StandardizedLoadingSpinner
+        text={dict.loading}
+        subtext="מאמתים את החיבור שלך..."
+      />
     );
-  };
+  }
+
+  if (status === 'unauthenticated') {
+    router.push('/login');
+    return null;
+  }
+
+  if (error) {
+    return (
+      <div className="container mx-auto p-4 max-w-md">
+        <Alert variant="destructive">
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+        <div className="mt-4 flex justify-center">
+          <Button onClick={() => router.push('/questionnaire')}>
+            {dict.backButton}
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="container mx-auto p-4 max-w-md">{renderContent()}</div>
+    <StandardizedLoadingSpinner
+      text={dict.restoringTitle}
+      subtext={dict.restoringSubtitle}
+    />
   );
 }
