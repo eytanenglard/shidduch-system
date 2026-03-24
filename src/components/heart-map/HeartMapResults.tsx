@@ -20,7 +20,7 @@ interface Props {
 function AnimatedCounter({ target, duration = 2000 }: { target: number; duration?: number }) {
   const [count, setCount] = useState(0);
   const startTime = useRef<number | null>(null);
-  const frameRef = useRef<number>();
+  const frameRef = useRef<number>(undefined);
 
   useEffect(() => {
     const animate = (timestamp: number) => {
