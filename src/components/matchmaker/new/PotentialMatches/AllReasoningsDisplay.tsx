@@ -3,7 +3,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { formatDistanceToNow } from 'date-fns';
 import { he } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
@@ -23,10 +23,8 @@ import {
 } from '@/components/ui/tabs';
 import {
   Brain,
-  Sparkles,
   Clock,
   CheckCircle2,
-  ChevronDown,
   BarChart3,
   Loader2,
 } from 'lucide-react';
@@ -135,7 +133,7 @@ const getScanMethods = (match: PotentialMatch): ScanMethodInfo[] => {
 const ScoreBreakdownDisplay: React.FC<{ 
   breakdown: ScoreBreakdown;
   methodKey?: string;
-}> = ({ breakdown, methodKey }) => {
+}> = ({ breakdown }) => {
   const categories = SCORE_BREAKDOWN_CATEGORIES;
 
   // מסנן קטגוריות שיש להן ערך
@@ -348,7 +346,7 @@ const AllReasoningsDisplay: React.FC<AllReasoningsDisplayProps> = ({
   isOpen,
   onClose,
 }) => {
-  const [loadedReasoning, setLoadedReasoning] = useState<Record<string, any> | null>(null);
+  const [loadedReasoning, setLoadedReasoning] = useState<Pick<PotentialMatch, 'detailedReasoning' | 'hybridReasoning' | 'algorithmicReasoning' | 'vectorReasoning' | 'metricsV2Reasoning'> | null>(null);
   const [isLoadingReasoning, setIsLoadingReasoning] = useState(false);
 
   // Lazy load reasoning data when dialog opens

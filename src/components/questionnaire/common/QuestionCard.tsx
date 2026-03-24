@@ -106,7 +106,6 @@ export default function QuestionCard({
   const [showBenefit, setShowBenefit] = useState(false);
 
   // Show "saved" indicator for 4 seconds after a save completes
-  const isRecentlySaved = lastSaved && (Date.now() - lastSaved.getTime()) < 4000;
   const [showSavedIndicator, setShowSavedIndicator] = useState(false);
   useEffect(() => {
     if (isSaving) {
@@ -115,7 +114,7 @@ export default function QuestionCard({
       const timer = setTimeout(() => setShowSavedIndicator(false), 4000);
       return () => clearTimeout(timer);
     }
-  }, [isSaving, lastSaved]);
+  }, [isSaving, lastSaved, showSavedIndicator]);
 
   const isRTL = locale === 'he';
   const theme = getThemeConfig(themeColor);
