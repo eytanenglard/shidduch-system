@@ -38,45 +38,64 @@ export default function ProgressIndicator({
 
   return (
     <div className="w-full mb-6">
-      {/* Section dots */}
-      <div className={`flex justify-center gap-2 mb-3 ${isRTL ? 'flex-row-reverse' : ''}`}>
+      {/* Section dots with answer counts */}
+      <div className={`flex justify-center gap-1.5 mb-3 ${isRTL ? 'flex-row-reverse' : ''}`}>
         {sections.map((section, i) => {
           const isCurrent = i === currentIndex;
           const isCompleted = section.isComplete;
           const isNavigable = getIsNavigable(i);
+          const hasProgress = section.answered > 0 && !isCompleted;
           return (
             <button
               key={section.sectionId}
               onClick={() => isNavigable && onSectionClick(i)}
               disabled={!isNavigable}
-              className={`
-                relative w-9 h-9 rounded-full flex items-center justify-center text-sm transition-all duration-300
-                ${
-                  isCurrent
-                    ? 'bg-teal-100 ring-2 ring-teal-500 ring-offset-2 scale-110'
-                    : isCompleted
-                    ? 'bg-teal-500 text-white cursor-pointer'
-                    : isNavigable
-                    ? 'bg-gray-100 hover:bg-gray-200 cursor-pointer'
-                    : 'bg-gray-100 opacity-40 cursor-not-allowed'
-                }
-              `}
+              className="flex flex-col items-center gap-1"
               title={t(`progress.${section.sectionId}`)}
             >
-              {isCompleted && !isCurrent ? (
-                <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
-                  <path
-                    fillRule="evenodd"
-                    d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-              ) : (
-                <span>{SECTION_ICONS[i]}</span>
-              )}
-              {isCurrent && (
-                <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-teal-500 rounded-full animate-pulse" />
-              )}
+              <div
+                className={`
+                  relative w-9 h-9 rounded-full flex items-center justify-center text-sm transition-all duration-300
+                  ${
+                    isCurrent
+                      ? 'bg-teal-100 ring-2 ring-teal-500 ring-offset-2 scale-110'
+                      : isCompleted
+                      ? 'bg-teal-500 text-white cursor-pointer'
+                      : isNavigable
+                      ? 'bg-gray-100 hover:bg-gray-200 cursor-pointer'
+                      : 'bg-gray-100 opacity-40 cursor-not-allowed'
+                  }
+                `}
+              >
+                {isCompleted && !isCurrent ? (
+                  <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                    <path
+                      fillRule="evenodd"
+                      d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                ) : (
+                  <span>{SECTION_ICONS[i]}</span>
+                )}
+                {isCurrent && (
+                  <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-teal-500 rounded-full animate-pulse" />
+                )}
+              </div>
+              {/* Answer count label */}
+              <span
+                className={`text-[10px] leading-none ${
+                  isCurrent
+                    ? 'text-teal-600 font-bold'
+                    : isCompleted
+                    ? 'text-teal-500'
+                    : hasProgress
+                    ? 'text-gray-500'
+                    : 'text-gray-300'
+                }`}
+              >
+                {section.answered}/{section.total}
+              </span>
             </button>
           );
         })}

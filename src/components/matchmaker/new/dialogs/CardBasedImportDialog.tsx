@@ -1831,6 +1831,40 @@ const CandidateCard = React.memo(
       const [isDragOver, setIsDragOver] = useState(false);
       const [previewImage, setPreviewImage] = useState<string | null>(null);
 
+      // Debounced textarea: local state + sync back to parent after 300ms
+      const [localText, setLocalText] = useState(card.rawText);
+      const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+      useEffect(() => {
+        setLocalText(card.rawText);
+      }, [card.rawText]);
+
+      useEffect(() => {
+        return () => {
+          if (debounceRef.current) clearTimeout(debounceRef.current);
+        };
+      }, []);
+
+      const handleTextChange = useCallback(
+        (value: string) => {
+          setLocalText(value);
+          if (debounceRef.current) clearTimeout(debounceRef.current);
+          debounceRef.current = setTimeout(() => {
+            onUpdateCard(card.id, { rawText: value, status: 'has-input' });
+          }, 300);
+        },
+        [card.id, onUpdateCard]
+      );
+
+      const handleAnalyzeClick = useCallback(() => {
+        // Flush pending debounce before analyzing
+        if (debounceRef.current) {
+          clearTimeout(debounceRef.current);
+          onUpdateCard(card.id, { rawText: localText, status: 'has-input' });
+        }
+        onAnalyze(card.id);
+      }, [card.id, localText, onUpdateCard, onAnalyze]);
+
       const statusConfig: Record<
         CardData['status'],
         {
@@ -2057,13 +2091,8 @@ const CandidateCard = React.memo(
                 {/* Text area — takes remaining space */}
                 <div className="flex-1 min-w-0">
                   <Textarea
-                    value={card.rawText}
-                    onChange={(e) =>
-                      onUpdateCard(card.id, {
-                        rawText: e.target.value,
-                        status: 'has-input',
-                      })
-                    }
+                    value={localText}
+                    onChange={(e) => handleTextChange(e.target.value)}
                     placeholder="הדבק כאן טקסט מוואטסאפ, טופס, או הקלד פרטים..."
                     rows={isMobile ? 4 : 3}
                     dir="rtl"
@@ -2090,10 +2119,10 @@ const CandidateCard = React.memo(
               )}
 
               <Button
-                onClick={() => onAnalyze(card.id)}
+                onClick={handleAnalyzeClick}
                 disabled={
                   isInputDisabled ||
-                  (card.images.length === 0 && !card.rawText.trim())
+                  (card.images.length === 0 && !localText.trim())
                 }
                 size="sm"
                 className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white h-10 sm:h-9 text-sm font-medium active:scale-[0.98] transition-transform"

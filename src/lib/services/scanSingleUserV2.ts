@@ -1055,7 +1055,7 @@ async function performAIDeepAnalysis(
   const isMale = userProfile.gender === Gender.MALE;
   const candidateUserIds = candidates.map(c => c.candidate.userId);
 
-  let cachedAnalyses: Map<string, { aiScore: number; reasoning: string | null; profileId: string }> = new Map();
+  const cachedAnalyses: Map<string, { aiScore: number; reasoning: string | null; profileId: string }> = new Map();
   try {
     const existingMatches = await prisma.potentialMatch.findMany({
       where: isMale

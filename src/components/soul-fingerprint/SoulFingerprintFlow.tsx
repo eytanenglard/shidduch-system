@@ -83,6 +83,78 @@ export default function SoulFingerprintFlow({
 
   const hasUnansweredRequired = unansweredRequiredIds.length > 0;
 
+  // Check if a question has a meaningful answer
+  const hasAnswer = useCallback((questionId: string) => {
+    const ans = state.answers[questionId];
+    if (ans === null || ans === undefined || ans === '') return false;
+    if (Array.isArray(ans) && ans.length === 0) return false;
+    return true;
+  }, [state.answers]);
+
+  // Count total remaining unanswered across all sections
+  const totalRemainingCount = useMemo(() => {
+    return sectionProgress.reduce((sum, s) => sum + (s.total - s.answered), 0);
+  }, [sectionProgress]);
+
+  // Auto-scroll to first unanswered question on mount (for returning users)
+  useEffect(() => {
+    if (hasScrolledRef.current || screen !== 'questionnaire') return;
+    const hasExistingAnswers = initialData?.sectionAnswers && Object.keys(initialData.sectionAnswers).length > 0;
+    if (!hasExistingAnswers) return;
+
+    const timer = setTimeout(() => {
+      if (firstUnansweredRef.current && !hasScrolledRef.current) {
+        firstUnansweredRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        hasScrolledRef.current = true;
+      }
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [screen, initialData]);
+
+  // Reset scroll tracking and expand state when section or tab changes
+  useEffect(() => {
+    hasScrolledRef.current = false;
+    setExpandedQuestionIds(new Set());
+  }, [state.currentSectionIndex, state.showingPartnerQuestions]);
+
+  // Auto-scroll to first unanswered after section/tab change
+  useEffect(() => {
+    if (screen !== 'questionnaire') return;
+    const timer = setTimeout(() => {
+      if (firstUnansweredRef.current && !hasScrolledRef.current) {
+        firstUnansweredRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        hasScrolledRef.current = true;
+      }
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [state.currentSectionIndex, state.showingPartnerQuestions, screen]);
+
+  const handleExpand = useCallback((questionId: string) => {
+    setExpandedQuestionIds((prev) => {
+      const next = new Set(prev);
+      next.add(questionId);
+      return next;
+    });
+  }, []);
+
+  // Wrap setAnswer to auto-collapse after editing a previously-answered question
+  const handleAnswer = useCallback(
+    (questionId: string, value: string | string[] | number | null) => {
+      setAnswer(questionId, value);
+      // Auto-collapse after a short delay if this was an expanded compact question
+      if (expandedQuestionIds.has(questionId)) {
+        setTimeout(() => {
+          setExpandedQuestionIds((prev) => {
+            const next = new Set(prev);
+            next.delete(questionId);
+            return next;
+          });
+        }, 1200);
+      }
+    },
+    [setAnswer, expandedQuestionIds]
+  );
+
   const handleScrollToUnanswered = useCallback(() => {
     if (unansweredRequiredIds.length === 0) return;
     const el = document.getElementById(`sf-question-${unansweredRequiredIds[0]}`);
@@ -234,23 +306,69 @@ export default function SoulFingerprintFlow({
         </div>
       )}
 
-      {/* Questions */}
-      <div className="space-y-6">
-        {currentQuestions.map((question) => (
-          <div
-            key={question.id}
-            id={`sf-question-${question.id}`}
-            className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 transition-all duration-300"
-          >
-            <QuestionRenderer
-              question={question}
-              answers={state.answers}
-              onAnswer={setAnswer}
-              t={t}
-              isRTL={isRTL}
-            />
+      {/* Resume banner */}
+      {showResumeBanner && (
+        <div className="bg-teal-50 border border-teal-200 rounded-xl p-3 mb-6 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2 min-w-0">
+            <span className="text-lg flex-shrink-0">👋</span>
+            <p className="text-sm text-teal-700 truncate">
+              {t('labels.resumeBanner').replace('{{count}}', String(totalRemainingCount))}
+            </p>
           </div>
-        ))}
+          <button
+            onClick={() => setShowResumeBanner(false)}
+            className="text-teal-400 hover:text-teal-600 flex-shrink-0"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+      )}
+
+      {/* Questions — compact for answered, full for unanswered */}
+      <div className="space-y-3">
+        <AnimatePresence mode="popLayout">
+          {currentQuestions.map((question, idx) => {
+            const answered = hasAnswer(question.id);
+            const isExpanded = expandedQuestionIds.has(question.id);
+            // Find first unanswered for auto-scroll ref
+            const isFirstUnanswered = !answered &&
+              currentQuestions.findIndex((q) => !hasAnswer(q.id)) === idx;
+
+            if (answered && !isExpanded) {
+              // Compact view for answered questions
+              return (
+                <CompactAnswer
+                  key={question.id}
+                  question={question}
+                  answer={state.answers[question.id] as string | string[] | number | null}
+                  onExpand={() => handleExpand(question.id)}
+                  t={t}
+                  isRTL={isRTL}
+                />
+              );
+            }
+
+            // Full view for unanswered or expanded questions
+            return (
+              <div
+                key={question.id}
+                ref={isFirstUnanswered ? firstUnansweredRef : undefined}
+                id={`sf-question-${question.id}`}
+                className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 transition-all duration-300"
+              >
+                <QuestionRenderer
+                  question={question}
+                  answers={state.answers}
+                  onAnswer={handleAnswer}
+                  t={t}
+                  isRTL={isRTL}
+                />
+              </div>
+            );
+          })}
+        </AnimatePresence>
       </div>
 
       {/* Empty state */}
