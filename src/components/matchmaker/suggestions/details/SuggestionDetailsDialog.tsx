@@ -10,13 +10,6 @@ import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { ProfileCard } from '@/components/profile';
 import { Timeline } from '@/components/ui/timeline';
 import { Progress } from '@/components/ui/progress';
@@ -31,8 +24,6 @@ import {
   Calendar,
   Clock,
   ArrowLeft,
-  ArrowRight,
-  Edit2,
   AlarmClock,
   Trash2,
   User,
@@ -49,7 +40,6 @@ import {
   Briefcase,
   GraduationCap,
   Quote,
-  Sparkles,
   Phone,
   Ban,
   CalendarClock,
@@ -63,7 +53,6 @@ import { toast } from 'sonner';
 // ✅ CHANGED: Import from pure logic file instead of StatusTransitionService
 import {
   getAvailableActions,
-  getStatusLabel,
   type SuggestionWithParties,
 } from '../services/suggestions/StatusTransitionLogic';
 
@@ -866,13 +855,13 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
   onAction,
   userId,
   matchmakerDict,
-  suggestionsDict,
+  suggestionsDict: _suggestionsDict,
   profileDict,
   locale,
 }) => {
   const dict = matchmakerDict.suggestionDetailsDialog;
   const [activeTab, setActiveTab] = useState('overview');
-  const [firstPartyQuestionnaire, setFirstPartyQuestionnaire] =
+  const [firstPartyQuestionnaire] =
     useState<QuestionnaireResponse | null>(null);
   const [secondPartyQuestionnaire] = useState<QuestionnaireResponse | null>(
     null
