@@ -4,8 +4,8 @@
 // Called by Heroku Scheduler every day at 17:00 UTC (19:00 IST)
 // Also callable from matchmaker dashboard button
 // =============================================================================
-// 🆕 Fire-and-forget pattern: returns immediately, runs in background.
-//    Stores run status in DailySuggestionRun table for tracking.
+// Fire-and-forget pattern: returns immediately, runs in background.
+// Stores run status in DailySuggestionRun table for persistent tracking.
 // =============================================================================
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -13,28 +13,6 @@ import { DailySuggestionOrchestrator } from '@/lib/engagement/DailySuggestionOrc
 import prisma from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
-
-// =============================================================================
-// In-memory tracking for the current run (single-dyno safe)
-// =============================================================================
-
-interface RunStatus {
-  id: string;
-  status: 'running' | 'completed' | 'failed';
-  startedAt: Date;
-  completedAt?: Date;
-  triggeredBy: string;
-  summary?: {
-    processed: number;
-    newSuggestionsSent: number;
-    remindersSent: number;
-    skipped: number;
-    errors: number;
-  };
-  error?: string;
-}
-
-let currentRun: RunStatus | null = null;
 
 // =============================================================================
 // POST - Trigger daily suggestions (fire-and-forget)
@@ -88,18 +66,26 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       });
     }
 
-    // 3. Check if already running
-    if (currentRun?.status === 'running') {
+    // 3. Check if already running (DB-based — survives dyno restarts)
+    const activeRun = await prisma.dailySuggestionRun.findFirst({
+      where: {
+        status: 'running',
+        startedAt: { gte: new Date(Date.now() - 30 * 60 * 1000) }, // Only consider runs from last 30 minutes
+      },
+      select: { id: true, startedAt: true },
+    });
+
+    if (activeRun) {
       return NextResponse.json({
         success: false,
         error: 'already_running',
         message: 'שליחת הצעות כבר רצה ברקע',
-        runId: currentRun.id,
-        startedAt: currentRun.startedAt.toISOString(),
+        runId: activeRun.id,
+        startedAt: activeRun.startedAt.toISOString(),
       }, { status: 409 });
     }
 
-    // 3. Find matchmaker to assign
+    // 4. Find matchmaker to assign
     if (!matchmakerId) {
       const cronMatchmaker = await prisma.user.findFirst({
         where: { role: { in: ['ADMIN', 'MATCHMAKER'] }, status: 'ACTIVE' },
@@ -116,7 +102,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       matchmakerId = cronMatchmaker.id;
     }
 
-    // 4. Parse optional body
+    // 5. Parse optional body
     const body = await req.json().catch(() => ({}));
     const isDryRun = body?.dryRun === true;
 
@@ -128,58 +114,66 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       });
     }
 
-    // 5. Create run record and return immediately
-    const runId = `run_${Date.now()}`;
-    currentRun = {
-      id: runId,
-      status: 'running',
-      startedAt: new Date(),
-      triggeredBy,
-    };
+    // 6. Create persistent run record in DB
+    const run = await prisma.dailySuggestionRun.create({
+      data: {
+        status: 'running',
+        triggeredBy,
+      },
+    });
 
-    console.log(`\n🚀 [Daily Suggestions] Fire-and-forget started: ${runId} (by ${triggeredBy})\n`);
+    console.log(`\n🚀 [Daily Suggestions] Fire-and-forget started: ${run.id} (by ${triggeredBy})\n`);
 
-    // 6. Fire-and-forget: start the actual work WITHOUT awaiting
+    // 7. Fire-and-forget: start the actual work WITHOUT awaiting
     const finalMatchmakerId = matchmakerId;
     void (async () => {
       try {
         const result = await DailySuggestionOrchestrator.runDailySuggestions(finalMatchmakerId);
 
-        currentRun = {
-          ...currentRun!,
-          status: 'completed',
-          completedAt: new Date(),
-          summary: {
+        await prisma.dailySuggestionRun.update({
+          where: { id: run.id },
+          data: {
+            status: 'completed',
+            completedAt: new Date(),
             processed: result.processed,
-            newSuggestionsSent: result.newSuggestionsSent,
-            remindersSent: result.remindersSent,
+            sent: result.newSuggestionsSent,
             skipped: result.skipped,
             errors: result.errors,
+            summary: {
+              processed: result.processed,
+              newSuggestionsSent: result.newSuggestionsSent,
+              remindersSent: result.remindersSent,
+              skipped: result.skipped,
+              errors: result.errors,
+            },
           },
-        };
+        });
 
-        console.log(`\n✅ [Daily Suggestions] Run ${runId} completed: ${result.newSuggestionsSent} sent, ${result.errors} errors\n`);
+        console.log(`\n✅ [Daily Suggestions] Run ${run.id} completed: ${result.newSuggestionsSent} sent, ${result.errors} errors\n`);
       } catch (err) {
         const errMsg = err instanceof Error ? err.message : 'Unknown error';
-        currentRun = {
-          ...currentRun!,
-          status: 'failed',
-          completedAt: new Date(),
-          error: errMsg,
-        };
 
-        console.error(`\n❌ [Daily Suggestions] Run ${runId} failed: ${errMsg}\n`);
+        await prisma.dailySuggestionRun.update({
+          where: { id: run.id },
+          data: {
+            status: 'failed',
+            completedAt: new Date(),
+            error: errMsg,
+          },
+        }).catch(dbErr => console.error('[Daily Suggestions] Failed to update run record:', dbErr));
+
+        console.error(`\n❌ [Daily Suggestions] Run ${run.id} failed: ${errMsg}\n`);
       }
     })();
 
-    // 7. Return immediately with runId
+    // 8. Return immediately with runId
     return NextResponse.json({
       success: true,
       mode: 'background',
-      runId,
+      runId: run.id,
       triggeredBy,
       message: 'שליחת הצעות התחילה ברקע',
-      statusUrl: `/api/cron/daily-suggestions?runId=${runId}`,
+      statusUrl: `/api/cron/daily-suggestions?runId=${run.id}`,
     });
 
   } catch (error) {
@@ -217,12 +211,11 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
           authorized = true;
         }
       }
-     } catch (error) {
-  // Session auth failed - this is expected for cron/unauthenticated requests
-  console.debug('[Daily Suggestions] Session auth failed (expected for cron):', 
-    error instanceof Error ? error.message : 'Unknown error'
-  );
-}
+    } catch (error) {
+      console.debug('[Daily Suggestions] Session auth failed (expected for cron):',
+        error instanceof Error ? error.message : 'Unknown error'
+      );
+    }
   }
 
   if (!authorized) {
@@ -233,35 +226,56 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
   const runId = searchParams.get('runId');
 
   // If asking for a specific run
-  if (runId && currentRun?.id === runId) {
-    const durationMs = currentRun.completedAt
-      ? currentRun.completedAt.getTime() - currentRun.startedAt.getTime()
-      : Date.now() - currentRun.startedAt.getTime();
+  if (runId) {
+    const run = await prisma.dailySuggestionRun.findUnique({
+      where: { id: runId },
+    });
+
+    if (!run) {
+      return NextResponse.json({ success: false, error: 'Run not found' }, { status: 404 });
+    }
+
+    const durationMs = run.completedAt
+      ? run.completedAt.getTime() - run.startedAt.getTime()
+      : Date.now() - run.startedAt.getTime();
 
     return NextResponse.json({
       success: true,
       run: {
-        ...currentRun,
+        ...run,
         durationMs,
         durationFormatted: `${Math.round(durationMs / 1000)}s`,
       },
     });
   }
 
-  // General status
+  // General status — show latest run + recent history
+  const [latestRun, recentRuns] = await Promise.all([
+    prisma.dailySuggestionRun.findFirst({
+      orderBy: { startedAt: 'desc' },
+    }),
+    prisma.dailySuggestionRun.findMany({
+      orderBy: { startedAt: 'desc' },
+      take: 10,
+      select: {
+        id: true,
+        status: true,
+        triggeredBy: true,
+        startedAt: true,
+        completedAt: true,
+        sent: true,
+        skipped: true,
+        errors: true,
+      },
+    }),
+  ]);
+
   return NextResponse.json({
     success: true,
     endpoint: 'daily-suggestions',
     status: 'healthy',
     timestamp: new Date().toISOString(),
-    currentRun: currentRun ? {
-      id: currentRun.id,
-      status: currentRun.status,
-      startedAt: currentRun.startedAt.toISOString(),
-      completedAt: currentRun.completedAt?.toISOString(),
-      triggeredBy: currentRun.triggeredBy,
-      summary: currentRun.summary,
-      error: currentRun.error,
-    } : null,
+    currentRun: latestRun,
+    recentRuns,
   });
 }

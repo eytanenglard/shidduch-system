@@ -98,19 +98,31 @@ const calculateAge = (dateOfBirth?: Date | string | null): number | null => {
   return age;
 };
 
-/** Calculate days until next Sunday (0) or Wednesday (3) */
+/** Calculate days until next Sunday (0) or Wednesday (3) — using Israel time (UTC+2/+3) */
 const getNextSuggestionDay = (): { days: number; dayName: string } => {
+  // Use Israel time for accurate countdown (suggestions sent at 19:00 IST)
   const now = new Date();
-  const currentDay = now.getUTCDay();
+  const israelTime = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Jerusalem' }));
+  const currentDay = israelTime.getDay();
+  const currentHour = israelTime.getHours();
 
-  // Auto-suggestion days: Sunday (0) and Wednesday (3)
+  // Auto-suggestion days: Sunday (0) and Wednesday (3), sent at 19:00 IST
   const targetDays = [0, 3];
   let minDays = 7;
 
   for (const target of targetDays) {
-    const diff = (target - currentDay + 7) % 7;
-    const daysUntil = diff === 0 ? 0 : diff; // 0 means today
-    if (daysUntil < minDays) minDays = daysUntil;
+    let diff = (target - currentDay + 7) % 7;
+    // If today is a suggestion day but it's past 19:00 IST, count as next week
+    if (diff === 0 && currentHour >= 19) diff = 7;
+    if (diff < minDays) minDays = diff;
+  }
+
+  // If minDays is 7, it means both target days are today but past send time — next is in 3 or 4 days
+  if (minDays === 7) {
+    for (const target of targetDays) {
+      const diff = (target - currentDay + 7) % 7 || 7;
+      if (diff < minDays) minDays = diff;
+    }
   }
 
   return {
@@ -167,6 +179,12 @@ const AutoSuggestionsZone: React.FC<AutoSuggestionsZoneProps> = ({
     ? calculateAge(otherParty.profile.birthDate)
     : null;
 
+  const otherPartyImage = useMemo(() => {
+    if (!otherParty?.images?.length) return null;
+    const mainImg = otherParty.images.find((img: { isMain?: boolean }) => img.isMain);
+    return (mainImg || otherParty.images[0])?.url || null;
+  }, [otherParty]);
+
   // Countdown text
   const countdownText = useMemo(() => {
     if (nextSuggestion.days === 0) return dict.nextSuggestionToday;
@@ -185,25 +203,36 @@ const AutoSuggestionsZone: React.FC<AutoSuggestionsZoneProps> = ({
     async (feedbackData: FeedbackData) => {
       if (!activeSuggestion) return;
 
-      // 1. Save feedback via API
-      await fetch(`/api/suggestions/${activeSuggestion.id}/auto-feedback`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(feedbackData),
-      });
+      try {
+        // 1. Save feedback via API
+        const response = await fetch(`/api/suggestions/${activeSuggestion.id}/auto-feedback`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(feedbackData),
+        });
 
-      // 2. Transition status
-      const statusMap: Record<string, string> = {
-        APPROVED: activeSuggestion.firstPartyId === userId
-          ? 'FIRST_PARTY_APPROVED'
-          : 'SECOND_PARTY_APPROVED',
-        DECLINED: activeSuggestion.firstPartyId === userId
-          ? 'FIRST_PARTY_DECLINED'
-          : 'SECOND_PARTY_DECLINED',
-        INTERESTED: 'FIRST_PARTY_INTERESTED',
-      };
+        if (!response.ok) {
+          const errData = await response.json().catch(() => ({}));
+          throw new Error(errData.error || `Failed to save feedback (${response.status})`);
+        }
 
-      await onStatusChange(activeSuggestion.id, statusMap[feedbackData.decision]);
+        // 2. Transition status
+        const statusMap: Record<string, string> = {
+          APPROVED: activeSuggestion.firstPartyId === userId
+            ? 'FIRST_PARTY_APPROVED'
+            : 'SECOND_PARTY_APPROVED',
+          DECLINED: activeSuggestion.firstPartyId === userId
+            ? 'FIRST_PARTY_DECLINED'
+            : 'SECOND_PARTY_DECLINED',
+          INTERESTED: 'FIRST_PARTY_INTERESTED',
+        };
+
+        await onStatusChange(activeSuggestion.id, statusMap[feedbackData.decision]);
+      } catch (error) {
+        console.error('[AutoSuggestion] Feedback submit failed:', error);
+        // Re-throw so the dialog can show error state
+        throw error;
+      }
     },
     [activeSuggestion, userId, onStatusChange]
   );
@@ -245,9 +274,17 @@ const AutoSuggestionsZone: React.FC<AutoSuggestionsZoneProps> = ({
             >
               {/* Other party info */}
               <div className="flex items-center gap-3">
+                {otherPartyImage ? (
+                  <img
+                    src={otherPartyImage}
+                    alt={otherParty?.firstName || ''}
+                    className="w-12 h-12 rounded-full object-cover flex-shrink-0 border-2 border-violet-200"
+                  />
+                ) : (
                 <div className="w-12 h-12 rounded-full bg-gradient-to-br from-violet-200 to-purple-300 flex items-center justify-center text-lg font-bold text-violet-700 flex-shrink-0">
                   {otherParty?.firstName?.[0] || '?'}
                 </div>
+                )}
                 <div className="flex-1 min-w-0">
                   <p className="font-semibold text-gray-800 truncate">
                     {otherParty?.firstName}

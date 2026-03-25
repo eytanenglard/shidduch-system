@@ -8,6 +8,7 @@ import NavigationButtons from '@/components/soul-fingerprint/components/Navigati
 import AccordionQuestion from './AccordionQuestion';
 import HeartMapSectionReminder from './HeartMapSectionReminder';
 import type { SFAnswers } from '@/components/soul-fingerprint/types';
+import { deriveTagsFromAnswers, derivePartnerTagsFromAnswers } from '@/components/soul-fingerprint/types';
 import type { GuestHeartMapData } from './hooks/useGuestAnswers';
 import { ArrowLeft } from 'lucide-react';
 
@@ -20,6 +21,7 @@ interface Props {
   saveToLocalStorage: (data: GuestHeartMapData) => void;
   onComplete: (answers: SFAnswers) => void;
   onBack: () => void;
+  isAuthenticated?: boolean;
 }
 
 export default function HeartMapFlow({
@@ -31,6 +33,7 @@ export default function HeartMapFlow({
   saveToLocalStorage,
   onComplete,
   onBack,
+  isAuthenticated = false,
 }: Props) {
   const isRTL = locale === 'he';
 
@@ -38,9 +41,10 @@ export default function HeartMapFlow({
   const [partnerTransition, setPartnerTransition] = useState(false);
   const [activeQuestionIndex, setActiveQuestionIndex] = useState(0);
 
-  // Custom save function that writes to localStorage instead of API
+  // Custom save function that writes to localStorage (and also server if authenticated)
   const customSaveFn = useCallback(
     async (answers: SFAnswers, isComplete: boolean) => {
+      // Always save to localStorage as backup
       saveToLocalStorage({
         answers,
         gender,
@@ -48,8 +52,28 @@ export default function HeartMapFlow({
         startedAt: new Date().toISOString(),
         completedAt: isComplete ? new Date().toISOString() : undefined,
       });
+
+      // Also save to server if authenticated
+      if (isAuthenticated) {
+        try {
+          const tags = deriveTagsFromAnswers(answers);
+          const partnerTags = derivePartnerTagsFromAnswers(answers);
+          await fetch('/api/user/soul-fingerprint', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              sectionAnswers: answers,
+              isComplete,
+              ...tags,
+              partnerTags,
+            }),
+          });
+        } catch {
+          // Silently fail — localStorage backup is the safety net
+        }
+      }
     },
-    [saveToLocalStorage, gender]
+    [saveToLocalStorage, gender, isAuthenticated]
   );
 
   const initialData = useMemo(() => {

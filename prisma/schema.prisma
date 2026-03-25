@@ -2122,6 +2122,24 @@ model SkippedAutoSuggestion {
   @@index([runDate])
 }
 
+// === Daily Suggestion Run Tracking ===
+model DailySuggestionRun {
+  id          String   @id @default(cuid())
+  status      String   // "running", "completed", "failed"
+  triggeredBy String   // "heroku-scheduler", "matchmaker:<id>"
+  startedAt   DateTime @default(now())
+  completedAt DateTime?
+  processed   Int      @default(0)
+  sent        Int      @default(0)
+  skipped     Int      @default(0)
+  errors      Int      @default(0)
+  error       String?  @db.Text
+  summary     Json?    // Full result details
+
+  @@index([startedAt])
+  @@index([status])
+}
+
 // === AI Chat Bot ===
 model AiChatConversation {
   id           String   @id @default(cuid())

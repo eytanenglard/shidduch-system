@@ -250,27 +250,84 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       (s) => s.status === 'FIRST_PARTY_DECLINED' || s.status === 'SECOND_PARTY_DECLINED'
     ).length;
 
-    // 5. Get all-time system suggestions stats
-    const allTimeCount = await prisma.matchSuggestion.count({
-      where: { isAutoSuggestion: true },
-    });
-
-    const allTimeApproved = await prisma.matchSuggestion.count({
-      where: {
-        isAutoSuggestion: true,
-        status: {
-          in: [
-            'FIRST_PARTY_APPROVED',
-            'SECOND_PARTY_APPROVED',
-            'AWAITING_MATCHMAKER_APPROVAL',
-            'CONTACT_DETAILS_SHARED',
-            'MATCH_APPROVED',
-            'DATING',
-            'ENGAGED',
-          ],
+    // 5. Get all-time system suggestions stats (parallel queries)
+    const [
+      allTimeCount,
+      allTimeApproved,
+      allTimeExpired,
+      allTimeDeclined,
+      topRejectionTraits,
+      avgResponseTimeResult,
+    ] = await Promise.all([
+      prisma.matchSuggestion.count({
+        where: { isAutoSuggestion: true },
+      }),
+      prisma.matchSuggestion.count({
+        where: {
+          isAutoSuggestion: true,
+          status: {
+            in: [
+              'FIRST_PARTY_APPROVED',
+              'SECOND_PARTY_APPROVED',
+              'AWAITING_MATCHMAKER_APPROVAL',
+              'CONTACT_DETAILS_SHARED',
+              'MATCH_APPROVED',
+              'DATING',
+              'ENGAGED',
+            ],
+          },
         },
-      },
-    });
+      }),
+      prisma.matchSuggestion.count({
+        where: { isAutoSuggestion: true, status: 'EXPIRED' },
+      }),
+      prisma.matchSuggestion.count({
+        where: {
+          isAutoSuggestion: true,
+          status: { in: ['FIRST_PARTY_DECLINED', 'SECOND_PARTY_DECLINED'] },
+        },
+      }),
+      // Get top rejection traits from feedback
+      prisma.autoSuggestionFeedback.findMany({
+        where: { decision: 'DECLINED', missingTraits: { not: undefined } },
+        select: { missingTraits: true },
+        orderBy: { createdAt: 'desc' },
+        take: 200,
+      }),
+      // Average response time (from creation to first party response)
+      prisma.matchSuggestion.findMany({
+        where: {
+          isAutoSuggestion: true,
+          firstPartyResponded: { not: null },
+        },
+        select: { createdAt: true, firstPartyResponded: true },
+        orderBy: { createdAt: 'desc' },
+        take: 100,
+      }),
+    ]);
+
+    // Calculate average response time in hours
+    let avgResponseTimeHours: number | null = null;
+    if (avgResponseTimeResult.length > 0) {
+      const totalMs = avgResponseTimeResult.reduce((sum, s) => {
+        if (!s.firstPartyResponded) return sum;
+        return sum + (s.firstPartyResponded.getTime() - s.createdAt.getTime());
+      }, 0);
+      avgResponseTimeHours = Math.round((totalMs / avgResponseTimeResult.length / (1000 * 60 * 60)) * 10) / 10;
+    }
+
+    // Aggregate rejection traits
+    const traitCounts: Record<string, number> = {};
+    for (const fb of topRejectionTraits) {
+      const traits = (fb.missingTraits as string[] | null) || [];
+      for (const trait of traits) {
+        traitCounts[trait] = (traitCounts[trait] || 0) + 1;
+      }
+    }
+    const sortedTraits = Object.entries(traitCounts)
+      .sort(([, a], [, b]) => b - a)
+      .slice(0, 5)
+      .map(([trait, count]) => ({ trait, count }));
 
     return NextResponse.json({
       success: true,
@@ -282,9 +339,16 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
         declined: declinedCount,
         allTimeTotal: allTimeCount,
         allTimeApproved,
-        acceptanceRate: allTimeCount > 0 
-          ? Math.round((allTimeApproved / allTimeCount) * 100) 
+        allTimeDeclined,
+        allTimeExpired,
+        acceptanceRate: allTimeCount > 0
+          ? Math.round((allTimeApproved / allTimeCount) * 100)
           : 0,
+        expirationRate: allTimeCount > 0
+          ? Math.round((allTimeExpired / allTimeCount) * 100)
+          : 0,
+        avgResponseTimeHours,
+        topRejectionReasons: sortedTraits,
       },
       suggestions: suggestions.map((s) => ({
         id: s.id,

@@ -17,6 +17,7 @@ import prisma from '@/lib/prisma';
 import type { MatchSuggestionStatus, PotentialMatchStatus } from '@prisma/client';
 import { AutoSuggestionFeedbackService } from '@/lib/services/autoSuggestionFeedbackService';
 import { initNotificationService } from '@/components/matchmaker/suggestions/services/notification/initNotifications';
+import { sendPushToUser } from '@/lib/sendPushNotification';
 import { getDictionary } from '@/lib/dictionaries';
 import type { EmailDictionary } from '@/types/dictionary';
 import { SignJWT } from 'jose';
@@ -129,39 +130,51 @@ export class DailySuggestionOrchestrator {
       ]);
       const dictionaries = { he: dictHe.email, en: dictEn.email };
 
-      // Step 4: Process each user
-      for (let i = 0; i < eligibleUsers.length; i++) {
-        const user = eligibleUsers[i];
-        result.processed++;
+      // Step 4: Process users in parallel batches of 10
+      const BATCH_SIZE = 10;
+      for (let batchStart = 0; batchStart < eligibleUsers.length; batchStart += BATCH_SIZE) {
+        const batch = eligibleUsers.slice(batchStart, batchStart + BATCH_SIZE);
+        console.log(`\n--- Processing batch ${Math.floor(batchStart / BATCH_SIZE) + 1} (users ${batchStart + 1}-${batchStart + batch.length}/${eligibleUsers.length}) ---`);
 
-        console.log(`\n--- [${i + 1}/${eligibleUsers.length}] Processing ${user.firstName} ${user.lastName} (${user.id}) ---`);
+        const batchResults = await Promise.allSettled(
+          batch.map(async (user, idx) => {
+            const globalIdx = batchStart + idx + 1;
+            console.log(`  [${globalIdx}/${eligibleUsers.length}] ${user.firstName} ${user.lastName} (${user.id})`);
+            return this.processUser(user, matchmakerId, dictionaries);
+          })
+        );
 
-        try {
-          const userResult = await this.processUser(user, matchmakerId, dictionaries);
-          result.details.push(userResult);
+        for (let i = 0; i < batchResults.length; i++) {
+          const settled = batchResults[i];
+          result.processed++;
 
-          switch (userResult.action) {
-            case 'new_suggestion':
-              result.newSuggestionsSent++;
-              console.log(`  ✅ New suggestion sent (Match: ${userResult.matchId})`);
-              break;
-            case 'reminder':
-              result.remindersSent++;
-              console.log(`  🔔 Reminder sent for suggestion ${userResult.suggestionId}`);
-              break;
-            case 'skipped':
-              result.skipped++;
-              console.log(`  ⏭️  Skipped: ${userResult.reason}`);
-              break;
+          if (settled.status === 'fulfilled') {
+            const userResult = settled.value;
+            result.details.push(userResult);
+
+            switch (userResult.action) {
+              case 'new_suggestion':
+                result.newSuggestionsSent++;
+                console.log(`  ✅ New suggestion sent (Match: ${userResult.matchId})`);
+                break;
+              case 'reminder':
+                result.remindersSent++;
+                console.log(`  🔔 Reminder sent for suggestion ${userResult.suggestionId}`);
+                break;
+              case 'skipped':
+                result.skipped++;
+                console.log(`  ⏭️  Skipped: ${userResult.reason}`);
+                break;
+            }
+          } else {
+            result.errors++;
+            result.details.push({
+              userId: batch[i].id,
+              action: 'error',
+              reason: settled.reason instanceof Error ? settled.reason.message : 'Unknown error',
+            });
+            console.error(`  ❌ Error: ${settled.reason instanceof Error ? settled.reason.message : settled.reason}`);
           }
-        } catch (error) {
-          result.errors++;
-          result.details.push({
-            userId: user.id,
-            action: 'error',
-            reason: error instanceof Error ? error.message : 'Unknown error',
-          });
-          console.error(`  ❌ Error: ${error instanceof Error ? error.message : error}`);
         }
       }
     } catch (fatalError) {
@@ -232,6 +245,29 @@ export class DailySuggestionOrchestrator {
     matchmakerId: string,
     dictionaries: { he: EmailDictionary; en: EmailDictionary }
   ): Promise<DailySuggestionResult['details'][number]> {
+
+    // Check 0: Idempotency — skip if user already received an auto-suggestion today
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+    const existingToday = await prisma.matchSuggestion.findFirst({
+      where: {
+        isAutoSuggestion: true,
+        createdAt: { gte: todayStart },
+        OR: [
+          { firstPartyId: user.id },
+          { secondPartyId: user.id },
+        ],
+      },
+      select: { id: true },
+    });
+
+    if (existingToday) {
+      return {
+        userId: user.id,
+        action: 'skipped',
+        reason: `Idempotency: already received auto-suggestion today (ID: ${existingToday.id})`,
+      };
+    }
 
     // Check 1a: Hard block — user has an advanced suggestion (FIRST_PARTY_APPROVED+)
     const hardBlock = await prisma.matchSuggestion.findFirst({
@@ -342,6 +378,11 @@ export class DailySuggestionOrchestrator {
       profile: { is: { isProfileVisible: true } },
     };
 
+    // V3.1: Fetch in pages — if all candidates in a page are blocked, fetch the next page
+    const PAGE_SIZE = 15;
+    const MAX_PAGES = 3; // Up to 45 candidates total
+
+    for (let page = 0; page < MAX_PAGES; page++) {
     const matches = await prisma.potentialMatch.findMany({
       where: {
         ...(isMale ? { maleUserId: user.id } : { femaleUserId: user.id }),
@@ -350,7 +391,8 @@ export class DailySuggestionOrchestrator {
         ...(isMale ? { female: otherPartyFilter } : { male: otherPartyFilter }),
       },
       orderBy: { aiScore: 'desc' },
-      take: 10,
+      skip: page * PAGE_SIZE,
+      take: PAGE_SIZE,
       select: {
         id: true,
         maleUserId: true,
@@ -484,17 +526,28 @@ export class DailySuggestionOrchestrator {
       });
     }
 
-    if (validMatches.length === 0) return null;
-
-    // Apply feedback-based re-ranking if user has enough feedback
-    try {
-      const reranked = await AutoSuggestionFeedbackService.applyFeedbackReranking(validMatches, user.id);
-      console.log(`  📊 Feedback re-ranking applied for ${user.id}: ${reranked.length} valid matches`);
-      return reranked[0];
-    } catch (err) {
-      console.error(`  ⚠️ Feedback re-ranking failed, using original order:`, err);
-      return validMatches[0];
+    // If we found valid matches in this page, apply re-ranking and return
+    if (validMatches.length > 0) {
+      // Apply feedback-based re-ranking if user has enough feedback
+      try {
+        const reranked = await AutoSuggestionFeedbackService.applyFeedbackReranking(validMatches, user.id);
+        console.log(`  📊 Feedback re-ranking applied for ${user.id}: ${reranked.length} valid matches`);
+        return reranked[0];
+      } catch (err) {
+        console.error(`  ⚠️ Feedback re-ranking failed, using original order:`, err);
+        return validMatches[0];
+      }
     }
+
+    // All candidates in this page were blocked — try next page
+    if (matches.length < PAGE_SIZE) {
+      // No more candidates to fetch
+      return null;
+    }
+    console.log(`  📄 All ${PAGE_SIZE} candidates on page ${page + 1} were blocked, fetching next page...`);
+    } // end pagination loop
+
+    return null;
   }
 
   // ========== Log Skipped Match ==========
@@ -614,11 +667,11 @@ export class DailySuggestionOrchestrator {
     });
 
     // Send notification to the first party (non-blocking)
+    const firstPartyLang = ((suggestion.firstParty as any).language || 'he') as 'he' | 'en';
+    const secondPartyLang = ((suggestion.secondParty as any).language || 'he') as 'he' | 'en';
+
     try {
       const notificationService = initNotificationService();
-
-      const firstPartyLang = (suggestion.firstParty as any).language || 'he';
-      const secondPartyLang = (suggestion.secondParty as any).language || 'he';
 
       // Generate opt-out URLs for the email footer
       const firstPartyEmail = suggestion.firstParty.email;
@@ -643,6 +696,19 @@ export class DailySuggestionOrchestrator {
     } catch (notifError) {
       console.error(`  ⚠️ Failed to send notification for suggestion ${suggestion.id}:`, notifError);
     }
+
+    // Send push notification to first party's mobile devices (non-blocking)
+    void sendPushToUser(firstPartyId, {
+      title: firstPartyLang === 'he' ? '💌 הצעת שידוך חדשה!' : '💌 New match suggestion!',
+      body: firstPartyLang === 'he'
+        ? 'קיבלת הצעת שידוך שנבחרה במיוחד עבורך. היכנס/י לצפייה'
+        : 'You received a specially selected match. Tap to view',
+      data: {
+        type: 'AUTO_SUGGESTION',
+        suggestionId: suggestion.id,
+        screen: 'suggestions',
+      },
+    }).catch(err => console.error(`  ⚠️ Push notification failed for ${firstPartyId}:`, err));
 
     return suggestion;
   }
@@ -975,6 +1041,251 @@ export class DailySuggestionOrchestrator {
     }
 
     return validMatches;
+  }
+
+  // ==========================================================================
+  // ===== Review Mode - Create DRAFT suggestions for matchmaker review =====
+  // ==========================================================================
+
+  /**
+   * Creates auto-suggestions as DRAFT status, requiring matchmaker approval
+   * before they are sent to users. Returns the created draft suggestions.
+   */
+  static async createDraftSuggestions(matchmakerId: string): Promise<{
+    processed: number;
+    draftsCreated: number;
+    skipped: number;
+    errors: number;
+    drafts: { suggestionId: string; userId: string; userName: string; otherPartyName: string; aiScore: number }[];
+  }> {
+    console.log('\n═══════════════════════════════════════════════════════');
+    console.log('📝 [Review Mode] Creating draft suggestions for review...');
+    console.log('═══════════════════════════════════════════════════════\n');
+
+    const result = {
+      processed: 0,
+      draftsCreated: 0,
+      skipped: 0,
+      errors: 0,
+      drafts: [] as { suggestionId: string; userId: string; userName: string; otherPartyName: string; aiScore: number }[],
+    };
+
+    const eligibleUsers = await this.getEligibleUsers();
+    console.log(`📊 Found ${eligibleUsers.length} eligible users\n`);
+
+    for (const user of eligibleUsers) {
+      result.processed++;
+
+      try {
+        // Same blocking checks as processUser
+        const todayStart = new Date();
+        todayStart.setHours(0, 0, 0, 0);
+
+        const [existingToday, hardBlock, softBlock] = await Promise.all([
+          prisma.matchSuggestion.findFirst({
+            where: {
+              isAutoSuggestion: true,
+              createdAt: { gte: todayStart },
+              OR: [{ firstPartyId: user.id }, { secondPartyId: user.id }],
+            },
+            select: { id: true },
+          }),
+          prisma.matchSuggestion.findFirst({
+            where: {
+              OR: [{ firstPartyId: user.id }, { secondPartyId: user.id }],
+              status: { in: HARD_BLOCK_STATUSES },
+            },
+            select: { id: true },
+          }),
+          prisma.matchSuggestion.findFirst({
+            where: {
+              OR: [{ firstPartyId: user.id }, { secondPartyId: user.id }],
+              status: { in: SOFT_BLOCK_STATUSES },
+            },
+            select: { id: true },
+          }),
+        ]);
+
+        if (existingToday || hardBlock || softBlock) {
+          result.skipped++;
+          continue;
+        }
+
+        const bestMatch = await this.findBestMatch(user);
+        if (!bestMatch) {
+          result.skipped++;
+          continue;
+        }
+
+        const otherPartyId = user.id === bestMatch.maleUserId ? bestMatch.femaleUserId : bestMatch.maleUserId;
+
+        // Create as DRAFT — no notifications sent
+        const suggestion = await prisma.matchSuggestion.create({
+          data: {
+            matchmakerId,
+            isAutoSuggestion: true,
+            firstPartyId: user.id,
+            secondPartyId: otherPartyId,
+            status: 'DRAFT',
+            priority: 'MEDIUM',
+            matchingReason: bestMatch.shortReasoning || `התאמת AI - ציון ${Math.round(bestMatch.aiScore)}`,
+            internalNotes: `[DRAFT] הצעה יומית לאישור שדכן | PotentialMatch: ${bestMatch.id} | Score: ${bestMatch.aiScore}`,
+            lastActivity: new Date(),
+            lastStatusChange: new Date(),
+          },
+        });
+
+        await prisma.suggestionStatusHistory.create({
+          data: {
+            suggestionId: suggestion.id,
+            status: 'DRAFT',
+            notes: 'הצעה יומית אוטומטית - נוצרה כטיוטה לאישור שדכן',
+          },
+        });
+
+        const otherParty = await prisma.user.findUnique({
+          where: { id: otherPartyId },
+          select: { firstName: true, lastName: true },
+        });
+
+        result.drafts.push({
+          suggestionId: suggestion.id,
+          userId: user.id,
+          userName: `${user.firstName} ${user.lastName}`,
+          otherPartyName: otherParty ? `${otherParty.firstName} ${otherParty.lastName}` : otherPartyId,
+          aiScore: bestMatch.aiScore,
+        });
+        result.draftsCreated++;
+      } catch (error) {
+        result.errors++;
+        console.error(`  ❌ Error creating draft for ${user.id}:`, error instanceof Error ? error.message : error);
+      }
+    }
+
+    console.log(`\n📝 [Review Mode] Done: ${result.draftsCreated} drafts created, ${result.skipped} skipped\n`);
+    return result;
+  }
+
+  /**
+   * Approve a batch of draft auto-suggestions — transitions them to PENDING_FIRST_PARTY
+   * and sends notifications. Matchmaker can also reject (delete) unwanted drafts.
+   */
+  static async approveDraftSuggestions(
+    suggestionIds: string[],
+    matchmakerId: string
+  ): Promise<{ approved: number; errors: { id: string; error: string }[] }> {
+    const [dictHe, dictEn] = await Promise.all([
+      getDictionary('he'),
+      getDictionary('en'),
+    ]);
+    const dictionaries = { he: dictHe.email, en: dictEn.email };
+
+    let approved = 0;
+    const errors: { id: string; error: string }[] = [];
+
+    for (const id of suggestionIds) {
+      try {
+        const suggestion = await prisma.matchSuggestion.findUnique({
+          where: { id },
+          include: {
+            firstParty: { include: { profile: true } },
+            secondParty: { include: { profile: true } },
+            matchmaker: true,
+          },
+        });
+
+        if (!suggestion) {
+          errors.push({ id, error: 'Suggestion not found' });
+          continue;
+        }
+
+        if (suggestion.status !== 'DRAFT') {
+          errors.push({ id, error: `Invalid status: ${suggestion.status} (expected DRAFT)` });
+          continue;
+        }
+
+        // Determine party swap preference
+        const firstPartyProfile = await prisma.profile.findUnique({
+          where: { userId: suggestion.firstPartyId },
+          select: { wantsToBeFirstParty: true },
+        });
+
+        const decisionDeadline = new Date();
+        decisionDeadline.setDate(decisionDeadline.getDate() + DECISION_DEADLINE_DAYS);
+
+        const noteLocale = ((suggestion.firstParty as any).language || 'he') as 'he' | 'en';
+
+        await prisma.matchSuggestion.update({
+          where: { id },
+          data: {
+            status: 'PENDING_FIRST_PARTY',
+            matchmakerId,
+            decisionDeadline,
+            firstPartySent: new Date(),
+            lastStatusChange: new Date(),
+            lastActivity: new Date(),
+            firstPartyNotes: noteLocale === 'he'
+              ? 'הצעה זו נבחרה על סמך ניתוח מעמיק של הפרופיל שלך, תשובותיך לשאלון, והעדפותיך. המערכת שלנו למדה מאלפי התאמות כדי למצוא את ההצעה הכי מתאימה עבורך.'
+              : 'This match was selected based on a deep analysis of your profile, questionnaire responses, and preferences. Our system has learned from thousands of matches to find the best fit for you.',
+            internalNotes: (suggestion.internalNotes || '').replace('[DRAFT] ', '') + ' | Approved by matchmaker',
+          },
+        });
+
+        await prisma.suggestionStatusHistory.create({
+          data: {
+            suggestionId: id,
+            status: 'PENDING_FIRST_PARTY',
+            notes: `הצעה אושרה ע"י שדכן ונשלחה לצד הראשון`,
+          },
+        });
+
+        // Send notifications
+        try {
+          const notificationService = initNotificationService();
+          const firstPartyLang = (suggestion.firstParty as any).language || 'he';
+          const secondPartyLang = (suggestion.secondParty as any).language || 'he';
+
+          const firstPartyEmail = suggestion.firstParty.email;
+          const optOutUrls = await this.generateOptOutUrls(suggestion.firstPartyId, firstPartyEmail, firstPartyLang);
+
+          await notificationService.handleSuggestionStatusChange(
+            { ...suggestion, status: 'PENDING_FIRST_PARTY' as any },
+            dictionaries,
+            {
+              channels: ['email', 'whatsapp'],
+              notifyParties: ['first'],
+              optOutUrls,
+            },
+            {
+              firstParty: firstPartyLang,
+              secondParty: secondPartyLang,
+              matchmaker: 'he',
+            }
+          );
+
+          // Also push notification
+          void sendPushToUser(suggestion.firstPartyId, {
+            title: firstPartyLang === 'he' ? '💌 הצעת שידוך חדשה!' : '💌 New match suggestion!',
+            body: firstPartyLang === 'he'
+              ? 'קיבלת הצעת שידוך שנבחרה במיוחד עבורך. היכנס/י לצפייה'
+              : 'You received a specially selected match. Tap to view',
+            data: {
+              type: 'AUTO_SUGGESTION',
+              suggestionId: id,
+              screen: 'suggestions',
+            },
+          }).catch(() => {});
+        } catch (notifErr) {
+          console.error(`  ⚠️ Notification failed for approved draft ${id}:`, notifErr);
+        }
+
+        approved++;
+      } catch (err) {
+        errors.push({ id, error: err instanceof Error ? err.message : 'Unknown error' });
+      }
+    }
+
+    return { approved, errors };
   }
 
   // ==========================================================================

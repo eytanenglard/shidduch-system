@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { Download, Eye, UserPlus, ArrowLeft } from 'lucide-react';
+import { Download, Eye, UserPlus, ArrowLeft, ArrowRight, Sparkles } from 'lucide-react';
 import Link from 'next/link';
 import { useMatchEstimate } from './hooks/useMatchEstimate';
 import { deriveTagsFromAnswers } from '@/components/soul-fingerprint/types';
@@ -16,6 +16,7 @@ interface Props {
   locale: string;
   t: (key: string) => string;
   tHm: (key: string) => string;
+  isAuthenticated?: boolean;
 }
 
 function AnimatedCounter({ target, duration = 2000 }: { target: number; duration?: number }) {
@@ -45,7 +46,7 @@ function AnimatedCounter({ target, duration = 2000 }: { target: number; duration
   return <span>{count}</span>;
 }
 
-export default function HeartMapResults({ answers, gender, locale, t, tHm }: Props) {
+export default function HeartMapResults({ answers, gender, locale, t, tHm, isAuthenticated = false }: Props) {
   const isRTL = locale === 'he';
   const { result, isLoading, fetchEstimate } = useMatchEstimate();
   const [showReport, setShowReport] = useState(false);
@@ -151,14 +152,25 @@ export default function HeartMapResults({ answers, gender, locale, t, tHm }: Pro
         transition={{ duration: 0.6, delay: 0.5 }}
         className="space-y-4"
       >
-        {/* Primary CTA — Register */}
-        <Link
-          href={`/${locale}/auth/register?from=heart-map`}
-          className="w-full py-4 rounded-full bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 text-white font-bold text-base shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-[1.02] flex items-center justify-center gap-2"
-        >
-          <UserPlus className="w-5 h-5" />
-          {tHm('results.registerCta')}
-        </Link>
+        {/* Primary CTA — different for authenticated vs guest */}
+        {isAuthenticated ? (
+          <Link
+            href={`/${locale}/questionnaire`}
+            className="w-full py-4 rounded-full bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 text-white font-bold text-base shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-[1.02] flex items-center justify-center gap-2"
+          >
+            <Sparkles className="w-5 h-5" />
+            {locale === 'he' ? 'המשיכו לשאלון המלא' : 'Continue to Full Questionnaire'}
+            <ArrowLeft className={`w-4 h-4 ${locale === 'he' ? '' : 'rotate-180'}`} />
+          </Link>
+        ) : (
+          <Link
+            href={`/${locale}/auth/register?from=heart-map`}
+            className="w-full py-4 rounded-full bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 text-white font-bold text-base shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-[1.02] flex items-center justify-center gap-2"
+          >
+            <UserPlus className="w-5 h-5" />
+            {tHm('results.registerCta')}
+          </Link>
+        )}
 
         {/* Secondary CTAs */}
         <div className="grid grid-cols-2 gap-3">

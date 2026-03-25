@@ -11,9 +11,11 @@ interface Props {
   hasExistingProgress: boolean;
   savedGender: 'MALE' | 'FEMALE' | null;
   onStart: (gender: 'MALE' | 'FEMALE', startFresh: boolean) => void;
+  isAuthenticated?: boolean;
+  userName?: string | null;
 }
 
-export default function HeartMapIntro({ tHm, locale, hasExistingProgress, savedGender, onStart }: Props) {
+export default function HeartMapIntro({ tHm, locale, hasExistingProgress, savedGender, onStart, isAuthenticated = false, userName }: Props) {
   const [selectedGender, setSelectedGender] = useState<'MALE' | 'FEMALE' | null>(savedGender);
   const isRTL = locale === 'he';
 
@@ -46,6 +48,15 @@ export default function HeartMapIntro({ tHm, locale, hasExistingProgress, savedG
           <Heart className="w-4 h-4 text-teal-500" />
           <span className="text-sm font-medium text-teal-700">{tHm('intro.badge')}</span>
         </div>
+
+        {isAuthenticated && userName && (
+          <div className="inline-flex items-center gap-2 bg-teal-50 border border-teal-200/60 rounded-full px-4 py-1.5 mb-4">
+            <span className="w-2 h-2 rounded-full bg-teal-500 animate-pulse" />
+            <span className="text-sm font-medium text-teal-700">
+              {isRTL ? `${userName}, מחובר/ת` : `Logged in as ${userName}`}
+            </span>
+          </div>
+        )}
 
         <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 mb-4 tracking-tight">
           {tHm('intro.title')}

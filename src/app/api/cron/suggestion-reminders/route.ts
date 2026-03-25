@@ -22,6 +22,9 @@ const PENDING_STATUSES: MatchSuggestionStatus[] = [
   MatchSuggestionStatus.PENDING_SECOND_PARTY,
 ];
 
+// Status for "saved for later" — needs a gentle revisit reminder
+const INTERESTED_STATUS = MatchSuggestionStatus.FIRST_PARTY_INTERESTED;
+
 // Minimum hours before first reminder is sent
 const MIN_HOURS_BEFORE_REMINDER = 24;
 
@@ -278,13 +281,143 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       }
     }
 
+    // === Part 2: Send reminders for INTERESTED (saved for later) suggestions ===
+    // Remind users who saved a suggestion 48h+ ago to revisit it
+    const INTERESTED_REMINDER_HOURS = 48;
+    const interestedCutoff = new Date(
+      now.getTime() - INTERESTED_REMINDER_HOURS * 60 * 60 * 1000
+    );
+
+    let sentInterested = 0;
+
+    const interestedSuggestions = await prisma.matchSuggestion.findMany({
+      where: {
+        isAutoSuggestion: true,
+        status: INTERESTED_STATUS,
+        firstPartyInterestedAt: { not: null, lt: interestedCutoff },
+      },
+      select: {
+        id: true,
+        status: true,
+        firstParty: {
+          select: {
+            id: true,
+            email: true,
+            firstName: true,
+            phone: true,
+            language: true,
+          },
+        },
+        secondParty: {
+          select: {
+            firstName: true,
+          },
+        },
+        statusHistory: {
+          where: {
+            notes: { contains: "תזכורת שמירה" },
+          },
+          select: { id: true },
+          take: 1,
+        },
+      },
+    });
+
+    console.log(
+      `[suggestion-reminders] Found ${interestedSuggestions.length} saved/interested suggestions`
+    );
+
+    for (const suggestion of interestedSuggestions) {
+      // Skip if already reminded for this "interested" state
+      if (suggestion.statusHistory.length > 0) {
+        skipped++;
+        continue;
+      }
+
+      const recipient = suggestion.firstParty;
+      if (!recipient?.email) {
+        skipped++;
+        continue;
+      }
+
+      const locale = (recipient.language as "he" | "en") || "he";
+      const isHebrew = locale === "he";
+      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+      const reviewUrl = `${baseUrl}/matches`;
+
+      const otherName = suggestion.secondParty?.firstName || "";
+      const subject = isHebrew
+        ? `💭 שמרת הצעה – ${otherName} עדיין ממתין/ה`
+        : `💭 You saved a match – ${otherName} is still waiting`;
+
+      const mainText = isHebrew
+        ? `שמרת הצעת שידוך עם ${otherName} לגיבוי. ההצעה עדיין פעילה — קח/י רגע לצפות שוב ולהחליט. אם ההצעה לא מתאימה, זה בסדר גמור — דחייה עוזרת למערכת ללמוד ולהציע לך הצעות טובות יותר.`
+        : `You saved a match with ${otherName} for later. The suggestion is still active — take a moment to review and decide. If it's not the right fit, that's perfectly okay — declining helps our system learn and suggest better matches.`;
+
+      const htmlBody = `
+        <div style="background: linear-gradient(135deg, #4c1d95 0%, #6d28d9 50%, #4c1d95 100%); color: #ffffff; padding: 35px 25px; text-align: center; border-radius: 16px 16px 0 0;">
+          <span style="font-size: 32px; display: block; margin-bottom: 10px;">💭</span>
+          <h1 style="margin: 0; font-size: 24px; color: #c4b5fd;">${isHebrew ? "ההצעה ששמרת" : "Your Saved Match"}</h1>
+        </div>
+        <div style="padding: 30px 25px; font-family: 'Segoe UI', sans-serif; direction: ${isHebrew ? "rtl" : "ltr"}; text-align: ${isHebrew ? "right" : "left"};">
+          <p style="font-size: 20px; color: #1e293b; margin-bottom: 15px;">${isHebrew ? `שלום ${recipient.firstName},` : `Hello ${recipient.firstName},`}</p>
+          <p style="color: #475569; line-height: 1.8; margin-bottom: 25px;">${mainText}</p>
+          <div style="text-align: center; margin: 25px 0;">
+            <a href="${reviewUrl}" style="display: inline-block; padding: 16px 45px; background: linear-gradient(135deg, #8b5cf6, #7c3aed); color: #ffffff !important; text-decoration: none; border-radius: 50px; font-weight: 800; font-size: 16px;">
+              ${isHebrew ? "👀 צפה בהצעה" : "👀 Review Match"}
+            </a>
+          </div>
+          <div style="margin-top: 25px; padding-top: 15px; border-top: 1px solid #e5e7eb; color: #6b7280; font-size: 14px;">
+            <p>NeshamaTech - ${isHebrew ? "המערכת החכמה" : "Smart System"}</p>
+          </div>
+        </div>
+      `;
+
+      try {
+        await notificationService.sendNotification(
+          {
+            email: recipient.email,
+            phone: recipient.phone || undefined,
+            name: recipient.firstName || "",
+          },
+          {
+            subject,
+            body: `${isHebrew ? `שלום ${recipient.firstName},` : `Hello ${recipient.firstName},`}\n\n${mainText}\n\n${isHebrew ? `👉 צפה בהצעה: ${reviewUrl}` : `👉 Review match: ${reviewUrl}`}`,
+            htmlBody,
+          },
+          { channels: ["email"] } // Email only for gentle reminder
+        );
+
+        await prisma.suggestionStatusHistory.create({
+          data: {
+            suggestionId: suggestion.id,
+            status: suggestion.status,
+            notes: "תזכורת שמירה - ההצעה נשמרה לגיבוי וממתינה להחלטה",
+          },
+        });
+
+        sentInterested++;
+        sent++;
+        console.log(
+          `[suggestion-reminders] Interested reminder sent to ${recipient.email} for suggestion ${suggestion.id}`
+        );
+      } catch (error) {
+        failed++;
+        console.error(
+          `[suggestion-reminders] Failed to send interested reminder for suggestion ${suggestion.id}:`,
+          error
+        );
+      }
+    }
+
     const elapsed = Date.now() - startTime;
 
     const summary = {
-      total: pendingSuggestions.length,
+      total: pendingSuggestions.length + interestedSuggestions.length,
       sent,
       sentContested,
       sentLastReminder,
+      sentInterested,
       skipped,
       failed,
       elapsedMs: elapsed,

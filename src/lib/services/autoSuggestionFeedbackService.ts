@@ -329,33 +329,99 @@ export class AutoSuggestionFeedbackService {
 
     const profileMap = new Map(otherProfiles.map((p) => [p.userId, p]));
 
-    // Re-rank: adjust aiScore based on feedback preferences
+    // Load requesting user's profile for comparison
+    const requestingProfile = await prisma.profile.findUnique({
+      where: { userId },
+      select: {
+        religiousLevel: true,
+        city: true,
+        birthDate: true,
+        educationLevel: true,
+      },
+    });
+
+    // Re-rank: adjust aiScore based on feedback preferences + actual profile data
     const rerankd = matches.map((match) => {
       const otherUserId = isMale ? match.femaleUserId : match.maleUserId;
       const otherProfile = profileMap.get(otherUserId);
       let adjustment = 0;
 
-      // Penalty for traits user repeatedly rejected
-      if (avoidScores['religious_gap'] > 0.5 && otherProfile) {
-        // Strong religious gap signal → apply mild penalty
-        adjustment -= avoidScores['religious_gap'] * 3;
-      }
-      if (avoidScores['geographic_gap'] > 0.5 && otherProfile) {
-        adjustment -= avoidScores['geographic_gap'] * 2;
-      }
-      if (avoidScores['age_gap'] > 0.5) {
-        adjustment -= avoidScores['age_gap'] * 3;
+      // === Penalty for traits user repeatedly rejected (cross-referenced with actual data) ===
+
+      // Religious gap: stronger penalty if actual religious levels differ
+      if (avoidScores['religious_gap'] > 0.3 && otherProfile && requestingProfile) {
+        const sameReligion = otherProfile.religiousLevel === requestingProfile.religiousLevel;
+        const basePenalty = avoidScores['religious_gap'] * 3;
+        adjustment -= sameReligion ? basePenalty * 0.3 : basePenalty; // Reduced penalty if same level
       }
 
-      // Boost for traits user consistently liked
-      if (likedScores['religious_match'] > 0.5) {
-        adjustment += likedScores['religious_match'] * 2;
+      // Geographic gap: stronger penalty if cities are different
+      if (avoidScores['geographic_gap'] > 0.3 && otherProfile && requestingProfile) {
+        const sameCity = otherProfile.city && requestingProfile.city &&
+          otherProfile.city.toLowerCase() === requestingProfile.city.toLowerCase();
+        const basePenalty = avoidScores['geographic_gap'] * 2;
+        adjustment -= sameCity ? 0 : basePenalty; // No penalty if same city
       }
-      if (likedScores['personality_match'] > 0.5) {
+
+      // Age gap: stronger penalty based on actual age difference
+      if (avoidScores['age_gap'] > 0.3 && otherProfile && requestingProfile) {
+        const userAge = requestingProfile.birthDate
+          ? Math.floor((Date.now() - requestingProfile.birthDate.getTime()) / (365.25 * 24 * 60 * 60 * 1000))
+          : null;
+        const otherAge = otherProfile.birthDate
+          ? Math.floor((Date.now() - otherProfile.birthDate.getTime()) / (365.25 * 24 * 60 * 60 * 1000))
+          : null;
+
+        if (userAge && otherAge) {
+          const ageDiff = Math.abs(userAge - otherAge);
+          const basePenalty = avoidScores['age_gap'] * 3;
+          // Scale penalty: 0-2 years=no penalty, 3-5=half, 6+=full
+          if (ageDiff <= 2) adjustment -= 0;
+          else if (ageDiff <= 5) adjustment -= basePenalty * 0.5;
+          else adjustment -= basePenalty;
+        }
+      }
+
+      // Education gap: penalty if education levels differ and user cares
+      if (avoidScores['education_gap'] > 0.3 && otherProfile && requestingProfile) {
+        const sameEducation = otherProfile.educationLevel === requestingProfile.educationLevel;
+        const basePenalty = avoidScores['education_gap'] * 2;
+        adjustment -= sameEducation ? 0 : basePenalty * 0.7;
+      }
+
+      // Generic avoid traits without profile cross-reference
+      if (avoidScores['not_attracted'] > 0.5) {
+        adjustment -= avoidScores['not_attracted'] * 1.5;
+      }
+      if (avoidScores['no_connection'] > 0.5) {
+        adjustment -= avoidScores['no_connection'] * 1;
+      }
+
+      // === Boost for traits user consistently liked ===
+      if (likedScores['religious_match'] > 0.3) {
+        // Stronger boost if actual religious levels match
+        const sameReligion = otherProfile?.religiousLevel === requestingProfile?.religiousLevel;
+        adjustment += likedScores['religious_match'] * (sameReligion ? 3 : 1.5);
+      }
+      if (likedScores['personality_match'] > 0.3) {
         adjustment += likedScores['personality_match'] * 2;
       }
-      if (likedScores['shared_values'] > 0.5) {
+      if (likedScores['shared_values'] > 0.3) {
         adjustment += likedScores['shared_values'] * 1.5;
+      }
+      if (likedScores['age_appropriate'] > 0.3) {
+        adjustment += likedScores['age_appropriate'] * 1.5;
+      }
+      if (likedScores['similar_background'] > 0.3) {
+        const sameCity = otherProfile?.city && requestingProfile?.city &&
+          otherProfile.city.toLowerCase() === requestingProfile.city.toLowerCase();
+        adjustment += likedScores['similar_background'] * (sameCity ? 2.5 : 1);
+      }
+      if (likedScores['good_career'] > 0.3) {
+        adjustment += likedScores['good_career'] * 1;
+      }
+      if (likedScores['interesting_person'] > 0.3) {
+        adjustment += likedScores['interesting_person'] * 1;
       }
 
       return {

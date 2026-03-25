@@ -718,9 +718,17 @@ const PRIMARY_ACTIONS: Record<string, PrimaryAction> = {
 // CONTEXTUAL HINTS — הודעות הקשר חכמות
 // ═══════════════════════════════════════════════════════════════
 
+interface ContextualHint {
+  text: string;
+  icon: React.ElementType;
+  color: string;
+  actionType?: SuggestionCardActionType;
+  actionData?: ActionAdditionalData;
+}
+
 const getContextualHint = (
   suggestion: Suggestion
-): { text: string; icon: React.ElementType; color: string } | null => {
+): ContextualHint | null => {
   const status = suggestion.status;
   const daysSinceActivity = suggestion.lastActivity
     ? Math.floor(
@@ -734,16 +742,26 @@ const getContextualHint = (
       text: 'שני הצדדים אישרו! שתף פרטי קשר',
       icon: PartyPopper,
       color: 'text-emerald-600 bg-emerald-50 border-emerald-200',
+      actionType: 'changeStatus',
+      actionData: { newStatus: 'CONTACT_DETAILS_SHARED' as ActionAdditionalData['newStatus'] },
     };
   }
   if (
     (status === 'PENDING_FIRST_PARTY' || status === 'PENDING_SECOND_PARTY') &&
     daysSinceActivity >= 3
   ) {
+    // Graduated colors: 3-5 days = amber, 6-9 days = orange, 10+ days = red
+    const waitingColor =
+      daysSinceActivity >= 10
+        ? 'text-red-700 bg-red-50 border-red-200'
+        : daysSinceActivity >= 6
+          ? 'text-orange-700 bg-orange-50 border-orange-200'
+          : 'text-amber-600 bg-amber-50 border-amber-200';
     return {
       text: `ממתין ${daysSinceActivity} ימים — שלח תזכורת?`,
       icon: Bell,
-      color: 'text-amber-600 bg-amber-50 border-amber-200',
+      color: waitingColor,
+      actionType: 'reminder',
     };
   }
   if (status === 'CONTACT_DETAILS_SHARED' && daysSinceActivity >= 2) {
@@ -751,6 +769,8 @@ const getContextualHint = (
       text: 'כבר 48 שעות — בקש משוב על הפגישה',
       icon: MessageSquare,
       color: 'text-violet-600 bg-violet-50 border-violet-200',
+      actionType: 'changeStatus',
+      actionData: { newStatus: 'AWAITING_FIRST_DATE_FEEDBACK' as ActionAdditionalData['newStatus'] },
     };
   }
   if (status === 'AWAITING_FIRST_DATE_FEEDBACK') {
@@ -758,6 +778,7 @@ const getContextualHint = (
       text: 'ממתין לפידבק מהדייט — בדוק אם התקבל משוב',
       icon: MessageSquare,
       color: 'text-violet-600 bg-violet-50 border-violet-200',
+      actionType: 'view',
     };
   }
   if (status === 'ENDED_AFTER_FIRST_DATE') {
@@ -765,20 +786,23 @@ const getContextualHint = (
       text: 'הדייט לא צלח — צפה בפידבק כדי להבין למה',
       icon: Info,
       color: 'text-rose-600 bg-rose-50 border-rose-200',
+      actionType: 'view',
     };
   }
   if (status === 'PROCEEDING_TO_SECOND_DATE') {
     return {
-      text: 'הזוג ממשיך לדייט שני! 🎉',
+      text: 'הזוג ממשיך לדייט שני!',
       icon: Heart,
       color: 'text-pink-600 bg-pink-50 border-pink-200',
     };
   }
   if (status === 'DATING' && daysSinceActivity >= 30) {
     return {
-      text: 'חודש בהיכרות — אולי הגיע הזמן לבשר? 💍',
+      text: 'חודש בהיכרות — אולי הגיע הזמן לבשר?',
       icon: Sparkles,
       color: 'text-pink-600 bg-pink-50 border-pink-200',
+      actionType: 'changeStatus',
+      actionData: { newStatus: 'ENGAGED' as ActionAdditionalData['newStatus'] },
     };
   }
   if (status === 'FIRST_PARTY_APPROVED') {
@@ -786,6 +810,8 @@ const getContextualHint = (
       text: 'צד א׳ אישר — שלח עכשיו לצד ב׳!',
       icon: ArrowRight,
       color: 'text-blue-600 bg-blue-50 border-blue-200',
+      actionType: 'changeStatus',
+      actionData: { newStatus: 'PENDING_SECOND_PARTY' as ActionAdditionalData['newStatus'] },
     };
   }
   return null;
@@ -875,7 +901,7 @@ const PartyMini: React.FC<{
   return (
     <div
       className={cn(
-        'flex items-center gap-2.5',
+        'flex items-center gap-2 min-w-0 flex-1 overflow-hidden',
         side === 'left' && 'flex-row-reverse'
       )}
     >
@@ -888,11 +914,11 @@ const PartyMini: React.FC<{
           sizes="2.75rem"
         />
       </div>
-      <div className={cn('min-w-0', side === 'left' && 'text-left')}>
-        <p className="font-semibold text-sm text-gray-900 truncate leading-tight">
+      <div className={cn('min-w-0 flex-1', side === 'left' && 'text-left')}>
+        <p className="font-semibold text-sm text-gray-900 truncate leading-tight max-w-[100px] sm:max-w-[140px] lg:max-w-none">
           {party.firstName} {party.lastName}
         </p>
-        <p className="text-[11px] text-gray-500 truncate leading-tight">
+        <p className="text-[11px] text-gray-500 truncate leading-tight max-w-[100px] sm:max-w-[140px] lg:max-w-none">
           {party.profile?.occupation || '—'} · {age}
         </p>
       </div>
@@ -1000,49 +1026,16 @@ const PrimaryActionButton: React.FC<{
         {action.label}
       </Button>
 
-      {/* Confirmation Dialog */}
-      {showConfirm && (
-        <div
-          className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-[200] p-4"
-          onClick={(e) => {
-            if (e.target === e.currentTarget) setShowConfirm(false);
-          }}
-        >
-          <div className="bg-white rounded-2xl max-w-sm w-full shadow-2xl animate-in fade-in zoom-in-95 duration-200 p-6 text-center">
-            <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">
-              <AlertTriangle className="w-6 h-6 text-red-500" />
-            </div>
-            <h3 className="text-lg font-bold text-gray-800 mb-2">
-              {dict.actions?.confirmTitle || 'האם אתה בטוח?'}
-            </h3>
-            <p className="text-sm text-gray-500 mb-6">
-              {dict.actions?.confirmDescription ||
-                'פעולה זו תשלח התראות לצדדים הרלוונטיים ולא ניתנת לביטול.'}
-            </p>
-            <div className="flex gap-3 justify-center">
-              <Button
-                variant="outline"
-                onClick={() => setShowConfirm(false)}
-                className="rounded-xl px-6"
-              >
-                {dict.actions?.cancel || 'ביטול'}
-              </Button>
-              <Button
-                onClick={() => {
-                  setShowConfirm(false);
-                  onAction('changeStatus', suggestion, {
-                    newStatus:
-                      action.nextStatus as ActionAdditionalData['newStatus'],
-                  });
-                }}
-                className="rounded-xl px-6 bg-red-600 hover:bg-red-700 text-white"
-              >
-                {dict.actions?.confirm || 'אישור'}
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmationDialog
+        open={showConfirm}
+        onClose={() => setShowConfirm(false)}
+        onConfirm={() =>
+          onAction('changeStatus', suggestion, {
+            newStatus: action.nextStatus as ActionAdditionalData['newStatus'],
+          })
+        }
+        dict={dict}
+      />
     </>
   );
 };
@@ -1150,49 +1143,68 @@ const MoreActionsButton: React.FC<{
         </DropdownMenuContent>
       </DropdownMenu>
 
-      {/* Confirmation Dialog */}
-      {showConfirm && (
-        <div
-          className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-[200] p-4"
-          onClick={(e) => {
-            if (e.target === e.currentTarget) setShowConfirm(null);
-          }}
-        >
-          <div className="bg-white rounded-2xl max-w-sm w-full shadow-2xl animate-in fade-in zoom-in-95 duration-200 p-6 text-center">
-            <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">
-              <AlertTriangle className="w-6 h-6 text-red-500" />
-            </div>
-            <h3 className="text-lg font-bold text-gray-800 mb-2">
-              {dict.actions?.confirmTitle || 'האם אתה בטוח?'}
-            </h3>
-            <p className="text-sm text-gray-500 mb-6">
-              {dict.actions?.confirmDescription ||
-                'פעולה זו תשלח התראות לצדדים הרלוונטיים.'}
-            </p>
-            <div className="flex gap-3 justify-center">
-              <Button
-                variant="outline"
-                onClick={() => setShowConfirm(null)}
-                className="rounded-xl px-6"
-              >
-                {dict.actions?.cancel || 'ביטול'}
-              </Button>
-              <Button
-                onClick={() => {
-                  onAction('changeStatus', suggestion, {
-                    newStatus: showConfirm as ActionAdditionalData['newStatus'],
-                  });
-                  setShowConfirm(null);
-                }}
-                className="rounded-xl px-6 bg-red-600 hover:bg-red-700 text-white"
-              >
-                {dict.actions?.confirm || 'אישור'}
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmationDialog
+        open={showConfirm !== null}
+        onClose={() => setShowConfirm(null)}
+        onConfirm={() => {
+          if (showConfirm) {
+            onAction('changeStatus', suggestion, {
+              newStatus: showConfirm as ActionAdditionalData['newStatus'],
+            });
+          }
+        }}
+        dict={dict}
+      />
     </>
+  );
+};
+
+/** Shared Confirmation Dialog */
+const ConfirmationDialog: React.FC<{
+  open: boolean;
+  onClose: () => void;
+  onConfirm: () => void;
+  dict: SuggestionCardProps['dict'];
+}> = ({ open, onClose, onConfirm, dict }) => {
+  if (!open) return null;
+  return (
+    <div
+      className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-[200] p-4"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
+      <div className="bg-white rounded-2xl max-w-sm w-full shadow-2xl animate-in fade-in zoom-in-95 duration-200 p-6 text-center">
+        <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">
+          <AlertTriangle className="w-6 h-6 text-red-500" />
+        </div>
+        <h3 className="text-lg font-bold text-gray-800 mb-2">
+          {dict.actions?.confirmTitle || 'האם אתה בטוח?'}
+        </h3>
+        <p className="text-sm text-gray-500 mb-6">
+          {dict.actions?.confirmDescription ||
+            'פעולה זו תשלח התראות לצדדים הרלוונטיים ולא ניתנת לביטול.'}
+        </p>
+        <div className="flex gap-3 justify-center">
+          <Button
+            variant="outline"
+            onClick={onClose}
+            className="rounded-xl px-6"
+          >
+            {dict.actions?.cancel || 'ביטול'}
+          </Button>
+          <Button
+            onClick={() => {
+              onConfirm();
+              onClose();
+            }}
+            className="rounded-xl px-6 bg-red-600 hover:bg-red-700 text-white"
+          >
+            {dict.actions?.confirm || 'אישור'}
+          </Button>
+        </div>
+      </div>
+    </div>
   );
 };
 
@@ -1518,21 +1530,21 @@ const SuggestionCard: React.FC<SuggestionCardProps> = ({
           {/* ══ COLLAPSED VIEW ══ */}
           <div className="p-4">
             {/* Top row: parties + status */}
-            <div className="flex items-center gap-3">
+            <div className="flex items-start gap-3">
               {/* Both parties */}
-              <div className="flex-1 min-w-0 flex items-center gap-2">
+              <div className="flex-1 min-w-0 flex items-center gap-1.5">
                 <PartyMini party={firstParty} age={firstPartyAge} side="right" />
-                <div className="flex-shrink-0 px-1">
+                <div className="flex-shrink-0 px-0.5">
                   <ArrowLeftRight className="w-3.5 h-3.5 text-gray-300" />
                 </div>
                 <PartyMini party={secondParty} age={secondPartyAge} side="left" />
               </div>
 
               {/* Status + priority */}
-              <div className="flex flex-col items-end gap-1 shrink-0">
+              <div className="flex flex-col items-end gap-1 shrink-0 max-w-[120px]">
                 <Badge
                   className={cn(
-                    'text-[10px] px-2.5 py-0.5 rounded-md font-semibold border-0',
+                    'text-[10px] px-2.5 py-0.5 rounded-md font-semibold border-0 whitespace-nowrap',
                     statusInfo.bgColor,
                     statusInfo.color
                   )}
@@ -1541,20 +1553,20 @@ const SuggestionCard: React.FC<SuggestionCardProps> = ({
                   {statusText.shortLabel}
                 </Badge>
                 {suggestion.priority === 'URGENT' && (
-                  <Badge className="text-[9px] px-2 py-0.5 bg-red-50 text-red-600 border border-red-200 font-bold">
+                  <Badge className="text-[9px] px-2 py-0.5 bg-red-50 text-red-600 border border-red-200 font-bold whitespace-nowrap">
                     <Flame className="w-2.5 h-2.5 ml-1" />
                     {priorityText.label}
                   </Badge>
                 )}
                 {suggestion.priority === 'HIGH' && (
-                  <Badge className="text-[9px] px-2 py-0.5 bg-amber-50 text-amber-600 border border-amber-200 font-medium">
+                  <Badge className="text-[9px] px-2 py-0.5 bg-amber-50 text-amber-600 border border-amber-200 font-medium whitespace-nowrap">
                     {priorityText.label}
                   </Badge>
                 )}
                 {suggestion.isAutoSuggestion && (
-                  <Badge className="text-[9px] px-2 py-0.5 bg-cyan-50 text-cyan-700 border border-cyan-200 font-medium">
+                  <Badge className="text-[9px] px-2 py-0.5 bg-cyan-50 text-cyan-700 border border-cyan-200 font-medium whitespace-nowrap">
                     <Sparkles className="w-2.5 h-2.5 ml-1" />
-                    הצעה אוטומטית
+                    אוטומטית
                   </Badge>
                 )}
               </div>
@@ -1577,13 +1589,27 @@ const SuggestionCard: React.FC<SuggestionCardProps> = ({
             {/* Contextual hint */}
             {hint && (
               <div
+                role={hint.actionType ? 'button' : undefined}
+                tabIndex={hint.actionType ? 0 : undefined}
                 className={cn(
-                  'flex items-center gap-2 mt-2.5 px-3 py-2 rounded-lg border text-xs font-medium',
-                  hint.color
+                  'flex items-center gap-2 mt-2.5 px-3 py-2 rounded-lg border text-xs font-medium transition-all',
+                  hint.color,
+                  hint.actionType && 'cursor-pointer hover:shadow-sm hover:scale-[1.01] active:scale-[0.99]'
                 )}
+                onClick={
+                  hint.actionType
+                    ? (e) => {
+                        e.stopPropagation();
+                        onAction(hint.actionType!, suggestion, hint.actionData);
+                      }
+                    : undefined
+                }
               >
                 <hint.icon className="w-3.5 h-3.5 flex-shrink-0" />
-                <span>{hint.text}</span>
+                <span className="flex-1">{hint.text}</span>
+                {hint.actionType && (
+                  <ArrowRight className="w-3.5 h-3.5 flex-shrink-0 opacity-50" />
+                )}
               </div>
             )}
 
@@ -1612,13 +1638,16 @@ const SuggestionCard: React.FC<SuggestionCardProps> = ({
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="h-8 w-8 p-0 rounded-lg hover:bg-green-50"
+                        className="h-8 w-8 p-0 rounded-lg hover:bg-green-50 relative"
                         onClick={(e) => openWhatsApp(e, firstParty)}
                       >
                         <MessageCircle className="w-3.5 h-3.5 text-green-600" />
+                        <span className="absolute -bottom-0.5 -right-0.5 text-[7px] font-bold text-blue-600 bg-blue-50 rounded-full w-3 h-3 flex items-center justify-center border border-blue-200">
+                          א
+                        </span>
                       </Button>
                     </TooltipTrigger>
-                    <TooltipContent>וואטסאפ ל{firstParty.firstName}</TooltipContent>
+                    <TooltipContent>וואטסאפ ל{firstParty.firstName} (צד א׳)</TooltipContent>
                   </Tooltip>
                 )}
 
@@ -1629,13 +1658,16 @@ const SuggestionCard: React.FC<SuggestionCardProps> = ({
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="h-8 w-8 p-0 rounded-lg hover:bg-green-50"
+                        className="h-8 w-8 p-0 rounded-lg hover:bg-green-50 relative"
                         onClick={(e) => openWhatsApp(e, secondParty)}
                       >
                         <MessageCircle className="w-3.5 h-3.5 text-green-600" />
+                        <span className="absolute -bottom-0.5 -right-0.5 text-[7px] font-bold text-purple-600 bg-purple-50 rounded-full w-3 h-3 flex items-center justify-center border border-purple-200">
+                          ב
+                        </span>
                       </Button>
                     </TooltipTrigger>
-                    <TooltipContent>וואטסאפ ל{secondParty.firstName}</TooltipContent>
+                    <TooltipContent>וואטסאפ ל{secondParty.firstName} (צד ב׳)</TooltipContent>
                   </Tooltip>
                 )}
 
