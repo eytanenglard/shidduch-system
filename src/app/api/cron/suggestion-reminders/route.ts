@@ -166,7 +166,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       // Body text varies by variant
       const mainText = isLastReminder
         ? (isHebrew
-            ? "ההצעה שקיבלת עומדת לפוג בקרוב. אם ההצעה לא מתאימה לך – זה בסדר גמור, לחץ/י על \'לא מתאים\' כדי שנוכל להמשיך למצוא עבורך את ההצעה הנכונה."
+            ? "ההצעה שקיבלת עומדת לפוג בקרוב. אם ההצעה לא מתאימה לך – זה בסדר גמור, לחצ/י על 'לא מתאים' כדי שנוכל להמשיך למצוא עבורך את ההצעה הנכונה."
             : "Your match is about to expire soon. If it's not the right fit – that's perfectly okay, click 'Not interested' so we can continue finding the right match for you.")
         : isContested
           ? (isHebrew

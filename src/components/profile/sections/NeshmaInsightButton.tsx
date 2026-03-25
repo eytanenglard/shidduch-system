@@ -64,6 +64,8 @@ interface NeshmaInsightButtonProps {
     lockedDescription?: string;
     alreadyGeneratedToday?: string;
     minimizedButtonText?: string;
+    nextReportTomorrow?: string;
+    nextReportIn?: string;
   };
 }
 

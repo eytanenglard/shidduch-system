@@ -298,7 +298,10 @@ export const generateDemoData = async (locale: Locale) => {
     firstPartyInterestedAt: null,
         structuredRationale: null,       // ← הוסף שורה זו
   matchmakerNotifiedAt: null,
-  } as ExtendedMatchSuggestion;
+  secondPartyContested: false,
+  secondPartyContestedAt: null,
+  originalDeadline: null,
+  } as unknown as ExtendedMatchSuggestion;
 
   // ההצעה עבור הצופה (דניאל) לראות את נועה
   const demoSuggestionDataFemale = {
@@ -326,8 +329,11 @@ export const generateDemoData = async (locale: Locale) => {
     firstPartyInterestedAt: null,
         structuredRationale: null,       // ← הוסף שורה זו
   matchmakerNotifiedAt: null,
-  } as ExtendedMatchSuggestion;
-  
+  secondPartyContested: false,
+  secondPartyContestedAt: null,
+  originalDeadline: null,
+  } as unknown as ExtendedMatchSuggestion;
+
   const demoAiAnalysisForDaniel: AiSuggestionAnalysisResult = {
     overallScore: 91, 
     matchTitle: aiAnalysisContent.forMaleTitle, 

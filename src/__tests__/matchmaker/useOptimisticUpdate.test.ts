@@ -94,7 +94,7 @@ async function optimisticAdd<T extends { id: string }>(
 
 describe('useOptimisticUpdate', () => {
   let items: TestItem[];
-  let setItems: ReturnType<typeof vi.fn>;
+  let setItems: ReturnType<typeof vi.fn> & ((items: TestItem[]) => void);
   let toastError: ReturnType<typeof vi.fn>;
 
   beforeEach(async () => {
@@ -103,7 +103,7 @@ describe('useOptimisticUpdate', () => {
       { id: '2', name: 'Bob', status: 'active' },
       { id: '3', name: 'Charlie', status: 'pending' },
     ];
-    setItems = vi.fn();
+    setItems = vi.fn() as typeof setItems;
     vi.clearAllMocks();
     const { toast } = await import('sonner');
     toastError = toast.error as ReturnType<typeof vi.fn>;

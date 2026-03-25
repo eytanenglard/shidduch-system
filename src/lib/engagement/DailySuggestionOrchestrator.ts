@@ -56,6 +56,12 @@ const MAX_CONCURRENT_AS_SECOND_PARTY = 3;
 // Shortened deadline when suggestion becomes contested (hours)
 const CONTESTED_DEADLINE_HOURS = 24;
 
+// All blocking statuses — user has any active/pending suggestion
+const BLOCKING_SUGGESTION_STATUSES: MatchSuggestionStatus[] = [
+  ...HARD_BLOCK_STATUSES,
+  ...SOFT_BLOCK_STATUSES,
+];
+
 // סטטוסים שנחשבים "סגורים" — מותר ליצור הצעה חדשה אם קיימת כזו ישנה
 const CLOSED_STATUSES: MatchSuggestionStatus[] = [
   'FIRST_PARTY_DECLINED',
@@ -333,7 +339,7 @@ export class DailySuggestionOrchestrator {
         { status: 'ACTIVE' as const },
         { status: 'PENDING_EMAIL_VERIFICATION' as const, source: 'MANUAL_ENTRY' as const },
       ],
-      profile: { isNot: null, isProfileVisible: true },
+      profile: { is: { isProfileVisible: true } },
     };
 
     const matches = await prisma.potentialMatch.findMany({
@@ -882,7 +888,7 @@ export class DailySuggestionOrchestrator {
                   { status: 'ACTIVE' },
                   { status: 'PENDING_EMAIL_VERIFICATION', source: 'MANUAL_ENTRY' },
                 ],
-                profile: { isNot: null, isProfileVisible: true },
+                profile: { is: { isProfileVisible: true } },
               },
             }
           : {
@@ -891,7 +897,7 @@ export class DailySuggestionOrchestrator {
                   { status: 'ACTIVE' },
                   { status: 'PENDING_EMAIL_VERIFICATION', source: 'MANUAL_ENTRY' },
                 ],
-                profile: { isNot: null, isProfileVisible: true },
+                profile: { is: { isProfileVisible: true } },
               },
             }),
       },
