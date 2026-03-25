@@ -1,8 +1,6 @@
-import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef, Dispatch, SetStateAction } from 'react';
 import Papa from 'papaparse';
-import type { Candidate, CandidatesFilter } from '../types/candidates';
-import type { CandidateProfile } from '../types/candidates';
-import { Dispatch, SetStateAction } from 'react';
+import type { Candidate, CandidateProfile, CandidatesFilter } from '../types/candidates';
 
 // =============================================================================
 // Types
@@ -42,7 +40,7 @@ export interface UseCandidatesReturn {
     direction: 'asc' | 'desc';
   };
   setSorting: (field: string, direction: 'asc' | 'desc') => void;
-  searchSuggestions: (term: string) => Promise<Candidate[]>;
+  searchSuggestions: (term: string) => Candidate[];
   pagination: PaginationState;
   setPage: (page: number) => void;
   setPageSize: (pageSize: number) => void;
@@ -552,7 +550,7 @@ export const useCandidates = (
     setSelectedIds(new Set());
   }, []);
 
-  const searchSuggestions = useCallback(async (term: string): Promise<Candidate[]> => {
+  const searchSuggestions = useCallback((term: string): Candidate[] => {
     if (!term || term.length < 2) return [];
     const searchTerm = term.toLowerCase();
     return candidates.filter((candidate) => {
@@ -573,76 +571,66 @@ export const useCandidates = (
     candidatesToExport: Candidate[],
     exportFilters: CandidatesFilter
   ): Promise<void> => {
-    try {
-      const exportData = candidatesToExport.map((candidate) => ({
-        'שם פרטי': candidate.firstName,
-        'שם משפחה': candidate.lastName,
-        'גיל': calculateAge(candidate.profile.birthDate),
-        'מגדר': candidate.profile.gender === 'MALE' ? 'זכר' : 'נקבה',
-        'עיר': candidate.profile.city || '',
-        'גובה': candidate.profile.height || '',
-        'רמת דתיות': candidate.profile.religiousLevel || '',
-        'תעסוקה': candidate.profile.occupation || '',
-        'השכלה': candidate.profile.education || '',
-        'מצב משפחתי': candidate.profile.maritalStatus || '',
-        'סטטוס זמינות': candidate.profile.availabilityStatus || '',
-        'מאומת': candidate.isVerified ? 'כן' : 'לא',
-        'אימייל': candidate.email || '',
-        'טלפון': candidate.phone || '',
-        'פעילות אחרונה': candidate.profile.lastActive
-          ? new Date(candidate.profile.lastActive).toLocaleDateString('he-IL')
-          : '',
-      }));
+    const exportData = candidatesToExport.map((candidate) => ({
+      'שם פרטי': candidate.firstName,
+      'שם משפחה': candidate.lastName,
+      'גיל': calculateAge(candidate.profile.birthDate),
+      'מגדר': candidate.profile.gender === 'MALE' ? 'זכר' : 'נקבה',
+      'עיר': candidate.profile.city || '',
+      'גובה': candidate.profile.height || '',
+      'רמת דתיות': candidate.profile.religiousLevel || '',
+      'תעסוקה': candidate.profile.occupation || '',
+      'השכלה': candidate.profile.education || '',
+      'מצב משפחתי': candidate.profile.maritalStatus || '',
+      'סטטוס זמינות': candidate.profile.availabilityStatus || '',
+      'מאומת': candidate.isVerified ? 'כן' : 'לא',
+      'אימייל': candidate.email || '',
+      'טלפון': candidate.phone || '',
+      'פעילות אחרונה': candidate.profile.lastActive
+        ? new Date(candidate.profile.lastActive).toLocaleDateString('he-IL')
+        : '',
+    }));
 
-      const filenameSegments = ['candidates'];
-      if (exportFilters.gender) {
-        filenameSegments.push(exportFilters.gender === 'MALE' ? 'male' : 'female');
-      }
-      if (exportFilters.religiousLevel && exportFilters.religiousLevel.length > 0) {
-        filenameSegments.push(exportFilters.religiousLevel.join('-').replace(/ /g, '-'));
-      }
-      if (exportFilters.cities?.length === 1) {
-        filenameSegments.push(exportFilters.cities[0].replace(/ /g, '-'));
-      }
-
-      const csv = Papa.unparse(exportData);
-      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-      const link = document.createElement('a');
-      const url = URL.createObjectURL(blob);
-      const timestamp = new Date().toISOString().split('T')[0];
-
-      link.setAttribute('href', url);
-      link.setAttribute('download', `${filenameSegments.join('_')}_${timestamp}.csv`);
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    } catch (error) {
-      // Error propagated via throw below
-      throw new Error('Failed to export candidates');
+    const filenameSegments = ['candidates'];
+    if (exportFilters.gender) {
+      filenameSegments.push(exportFilters.gender === 'MALE' ? 'male' : 'female');
     }
+    if (exportFilters.religiousLevel && exportFilters.religiousLevel.length > 0) {
+      filenameSegments.push(exportFilters.religiousLevel.join('-').replace(/ /g, '-'));
+    }
+    if (exportFilters.cities?.length === 1) {
+      filenameSegments.push(exportFilters.cities[0].replace(/ /g, '-'));
+    }
+
+    const csv = Papa.unparse(exportData);
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    const timestamp = new Date().toISOString().split('T')[0];
+
+    link.setAttribute('href', url);
+    link.setAttribute('download', `${filenameSegments.join('_')}_${timestamp}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   }, []);
 
   const updateCandidate = useCallback(async (
     id: string,
     updates: Partial<CandidateProfile>
   ): Promise<void> => {
-    try {
-      const response = await fetch(`/api/matchmaker/candidates/${id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(updates),
-      });
+    const response = await fetch(`/api/matchmaker/candidates/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updates),
+    });
 
-      if (!response.ok) {
-        throw new Error('Failed to update candidate');
-      }
-
-      // Refresh current page
-      await fetchCandidates();
-    } catch (error) {
-      // Error propagated via throw below
-      throw error;
+    if (!response.ok) {
+      throw new Error('Failed to update candidate');
     }
+
+    // Refresh current page
+    await fetchCandidates();
   }, [fetchCandidates]);
 
   // =========================================================================
