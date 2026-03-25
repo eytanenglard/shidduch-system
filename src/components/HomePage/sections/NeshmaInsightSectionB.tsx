@@ -60,6 +60,8 @@ export default function NeshmaInsightSectionB({
   const [progressStep, setProgressStep] = useState(0);
   const [showPostConversationTransition, setShowPostConversationTransition] =
     useState(false);
+  const [conversationDone, setConversationDone] = useState(false);
+  const skippedRef = useRef(false);
 
   // --- Memoized Data from Dictionary ---
   const conversation = useMemo(() => {
@@ -106,11 +108,44 @@ export default function NeshmaInsightSectionB({
     [dict.insights.items]
   );
 
+  // --- Skip to Results ---
+  const skipToResults = () => {
+    if (conversationDone) return;
+    skippedRef.current = true;
+
+    // Show all messages at once
+    const now = new Date().toLocaleTimeString(
+      locale === 'he' ? 'he-IL' : 'en-US',
+      { hour: '2-digit', minute: '2-digit' }
+    );
+    const allMessages: Message[] = conversation.map((msg, i) => ({
+      id: Date.now() + i,
+      text: msg.text,
+      sender: msg.sender,
+      isEureka: msg.isEureka,
+      timestamp: now,
+    }));
+    setMessages(allMessages);
+    setIsTyping(false);
+    setProgressStep(5);
+    setConversationDone(true);
+
+    // Reveal results immediately (shortened delays)
+    setTimeout(() => setShowTransitionText(true), 100);
+    setTimeout(() => setShowPostConversationTransition(true), 100);
+    setTimeout(() => setShowInsights(true), 300);
+    setTimeout(() => setShowTransitionCTA(true), 500);
+    setTimeout(() => setShowCTA(true), 700);
+  };
+
   // --- Animation Logic ---
   useEffect(() => {
     const playConversation = (index: number) => {
+      if (skippedRef.current) return;
+
       if (index >= conversation.length) {
         setIsTyping(false);
+        setConversationDone(true);
         // מיד אחרי סיום השיחה - הכותרת והמעבר מופיעים
         setTimeout(() => setShowTransitionText(true), 300);
         setTimeout(() => setShowPostConversationTransition(true), 300);
@@ -138,6 +173,7 @@ export default function NeshmaInsightSectionB({
         : baseTypingDuration;
 
       setTimeout(() => {
+        if (skippedRef.current) return;
         setIsTyping(false);
         const newMessage: Message = {
           id: Date.now() + index,
@@ -323,6 +359,26 @@ export default function NeshmaInsightSectionB({
                         ))}
                       </div>
                     </div>
+
+                    {/* Skip Button — visible during conversation only */}
+                    <AnimatePresence>
+                      {showPhone && !conversationDone && messages.length > 0 && (
+                        <motion.div
+                          initial={{ opacity: 0, y: -5 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -5 }}
+                          transition={{ duration: 0.3 }}
+                          className="px-4 py-2 flex justify-center"
+                        >
+                          <button
+                            onClick={skipToResults}
+                            className="text-xs font-medium text-teal-600 hover:text-teal-700 bg-teal-50 hover:bg-teal-100 rounded-full px-4 py-1.5 transition-colors border border-teal-200/60 shadow-sm"
+                          >
+                            {dict.skipButton}
+                          </button>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
 
                     {/* Messages Area - גלילה משופרת */}
                     <div

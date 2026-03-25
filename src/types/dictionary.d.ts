@@ -3410,6 +3410,7 @@ export interface NeshmaInsightDict {
     text: string;
   }[];
   placeholder: string;
+  skipButton: string;
   transitionText: string;
   insights: {
     title: string;

@@ -183,10 +183,11 @@ export default function HomePage({ dict, demoData, locale }: HomePageProps) {
         locale={locale}
       />
 
+      <PrivacyAssuranceSection dict={dict.privacyAssurance} locale={locale} />
+
       <MatchmakerTeamSection dict={dict.matchmakerTeam} />
       <SuccessStoriesSection dict={dict.successStories} locale={locale} />
       <FAQSection dict={dict.faq} locale={locale} />
-      <PrivacyAssuranceSection dict={dict.privacyAssurance} locale={locale} />
       <CTASection dict={dict.cta} locale={locale} session={session} />
       <FooterSection dict={dict.footer} />
 

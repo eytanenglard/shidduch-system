@@ -594,14 +594,6 @@ const Navbar = ({ dict }: NavbarProps) => {
                     {/* #13: הסרנו NavItem לפרופיל מכאן — הוא קיים ב-UserDropdown */}
 
                     <NavItem
-                      href="/soul-fingerprint"
-                      text={dict.navbar.soulFingerprint}
-                    />
-                    <NavItem
-                      href="/questionnaire"
-                      text={dict.navbar.matchmakingQuestionnaire}
-                    />
-                    <NavItem
                       href={messagesHref}
                       id="onboarding-target-messages-link"
                       text={dict.navbar.messages}
@@ -613,6 +605,16 @@ const Navbar = ({ dict }: NavbarProps) => {
                     />
                   </>
                 ) : null}
+
+                {/* Soul Fingerprint & Questionnaire — visible to all users */}
+                <NavItem
+                  href="/soul-fingerprint"
+                  text={dict.navbar.soulFingerprint}
+                />
+                <NavItem
+                  href="/questionnaire"
+                  text={dict.navbar.matchmakingQuestionnaire}
+                />
               </div>
             </div>
 

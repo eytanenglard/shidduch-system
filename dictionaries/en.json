@@ -790,6 +790,7 @@
       "subtitleCompleted": "Questionnaire completed! Discover your personal insights."
     },
     "placeholder": "Message...",
+    "skipButton": "Skip to results →",
     "progressLabels": [
       "Start",
       "The Question",

@@ -20,6 +20,7 @@ const PUBLIC_PATHS = [
   '/legal/accessibility-statement',
   '/legal/child-safety',
   '/questionnaire',
+  '/soul-fingerprint',
   '/contact',
   '/feedback',
   '/friends',
