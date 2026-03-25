@@ -94,7 +94,7 @@ export default function HeartMapCTASection({ dict, locale }: Props) {
           >
             <Link
               href={`/${locale}/heart-map`}
-              className="inline-flex items-center gap-2 px-8 py-4 rounded-full bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 text-white font-bold text-base sm:text-lg shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-[1.03] animate-pulse-glow"
+              className="inline-flex items-center gap-2 px-8 py-4 rounded-full bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 text-white font-bold text-base sm:text-lg shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-[1.03] hover:animate-pulse-glow"
             >
               <Heart className="w-5 h-5" />
               {dict.cta}

@@ -40,7 +40,7 @@ export default function SoulFingerprintPageClient({ locale }: Props) {
   const [isLoading, setIsLoading] = useState(true);
 
   const dict = useMemo(() => (locale === 'he' ? heDict : enDict) as Record<string, unknown>, [locale]);
-  const gender = (session?.user as { gender?: string })?.gender as 'MALE' | 'FEMALE' | null ?? null;
+  const gender = (session?.user?.profile?.gender as 'MALE' | 'FEMALE') ?? null;
 
   const t = useCallback(
     (key: string) => getNestedValue(dict, key, gender),

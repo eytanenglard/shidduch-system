@@ -559,6 +559,9 @@ const CandidatesManager: React.FC<CandidatesManagerProps> = ({
     filters: candidatesFilters,
     pagination,
     setPage,
+    loadMore,
+    isLoadingMore,
+    hasMore,
   } = useCandidates();
 
   const {
@@ -587,7 +590,8 @@ const CandidatesManager: React.FC<CandidatesManagerProps> = ({
   );
 
   const heroStats = useMemo(() => {
-    const total = candidates.length;
+    // Use pagination.total for the real total count (not just loaded candidates)
+    const total = pagination.total || candidates.length;
     const male = candidates.filter((c) => c.profile.gender === 'MALE').length;
     const female = candidates.filter(
       (c) => c.profile.gender === 'FEMALE'
@@ -601,14 +605,15 @@ const CandidatesManager: React.FC<CandidatesManagerProps> = ({
         (today.getTime() - lastActive.getTime()) / (1000 * 60 * 60 * 24) <= 7
       );
     }).length;
+    const loadedCount = candidates.length || 1;
     const profilesComplete =
-      total > 0
+      loadedCount > 0
         ? Math.round(
-            (candidates.filter((c) => c.isProfileComplete).length / total) * 100
+            (candidates.filter((c) => c.isProfileComplete).length / loadedCount) * 100
           )
         : 0;
     return { total, male, female, verified, activeToday, profilesComplete };
-  }, [candidates]);
+  }, [candidates, pagination.total]);
 
   // --- Memoized comparison avatars & count ---
   const comparisonAvatars = useMemo(() => {
@@ -1223,6 +1228,7 @@ const CandidatesManager: React.FC<CandidatesManagerProps> = ({
                     profileDict={profileDict}
                     isQuickViewEnabled={isQuickViewEnabled}
                     locale={locale}
+                    onEndReached={loadMore}
                   />
                 </div>
               )}

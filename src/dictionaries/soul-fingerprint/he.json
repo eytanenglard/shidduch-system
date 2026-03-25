@@ -148,7 +148,10 @@
     "unansweredHint": "יש {{count}} שאלות חובה ללא מענה",
     "showUnanswered": "הצג",
     "done": "המשך",
-    "resumeBanner": "ברוך שובך! נשארו לך {{count}} שאלות — ממשיכים מאיפה שעצרת"
+    "resumeBanner": {
+      "male": "ברוך שובך! נשארו לך {{count}} שאלות — ממשיכים מאיפה שעצרת",
+      "female": "ברוכה שובך! נשארו לך {{count}} שאלות — ממשיכים מאיפה שעצרת"
+    }
   },
   "completion": {
     "title": "מפת הנשמה שלך מוכנה!",
@@ -278,7 +281,10 @@
       "subtitle": "זה עוזר לנו להבין את המסע שלך"
     },
     "s1_datlash_current": {
-      "text": "איפה אתה היום מבחינה דתית?",
+      "text": {
+        "male": "איפה אתה היום מבחינה דתית?",
+        "female": "איפה את היום מבחינה דתית?"
+      },
       "subtitle": "אין תשובות נכונות או לא נכונות"
     },
     "s1_datlash_relationship_religion": {
@@ -406,12 +412,21 @@
       }
     },
     "s3_sleep_flexibility": {
-      "text": "כמה גמיש/ה את/ה בנושא שינה?",
+      "text": {
+        "male": "כמה גמיש אתה בנושא שינה?",
+        "female": "כמה גמישה את בנושא שינה?"
+      },
       "subtitle": "משפיע על שגרת החיים המשותפת"
     },
     "s3_plan_change_reaction": {
-      "text": "איך את/ה מגיב/ה כשתוכניות משתנות?",
-      "subtitle": "הזז את הסמן לפי מה שמרגיש לך נכון"
+      "text": {
+        "male": "איך אתה מגיב כשתוכניות משתנות?",
+        "female": "איך את מגיבה כשתוכניות משתנות?"
+      },
+      "subtitle": {
+        "male": "הזז את הסמן לפי מה שמרגיש לך נכון",
+        "female": "הזזי את הסמן לפי מה שמרגיש לך נכון"
+      }
     },
     "s4_education_level": {
       "text": "מה רמת ההשכלה שלך?",
@@ -573,7 +588,10 @@
       "subtitle": "סבא וסבתא, דודים, בני דודים"
     },
     "s6_in_laws_conflict": {
-      "text": "כשיש חיכוך עם ההורים של בן/בת הזוג — מה הגישה שלך?",
+      "text": {
+        "male": "כשיש חיכוך עם ההורים של בת הזוג — מה הגישה שלך?",
+        "female": "כשיש חיכוך עם ההורים של בן הזוג — מה הגישה שלך?"
+      },
       "subtitle": "נושא עדין אבל חשוב — כנות עוזרת"
     },
     "s7_relationship_meaning": {
@@ -603,7 +621,10 @@
       "subtitle": "המודל שמרגיש לך הכי טבעי"
     },
     "s7_expressing_needs": {
-      "text": "איך את/ה מביע/ה צרכים בזוגיות?",
+      "text": {
+        "male": "איך אתה מביע צרכים בזוגיות?",
+        "female": "איך את מביעה צרכים בזוגיות?"
+      },
       "subtitle": "תקשורת פתוחה היא המפתח לזוגיות טובה"
     },
     "s7_argument_style": {
@@ -612,11 +633,17 @@
     },
     "s7_silent_treatment": {
       "text": "מה דעתך על שתיקה כתגובה לקונפליקט?",
-      "subtitle": "הזז את הסמן לפי מה שמרגיש לך נכון"
+      "subtitle": {
+        "male": "הזז את הסמן לפי מה שמרגיש לך נכון",
+        "female": "הזזי את הסמן לפי מה שמרגיש לך נכון"
+      }
     },
     "s7_physical_intimacy": {
       "text": "כמה חשובה לך אינטימיות פיזית בזוגיות?",
-      "subtitle": "הזז את הסמן לפי מה שמרגיש לך נכון"
+      "subtitle": {
+        "male": "הזז את הסמן לפי מה שמרגיש לך נכון",
+        "female": "הזזי את הסמן לפי מה שמרגיש לך נכון"
+      }
     },
     "s7_romantic_past_comfort": {
       "text": {
@@ -958,7 +985,10 @@
     },
     "s3_patience_level": {
       "text": "כמה סבלנות יש לך?",
-      "subtitle": "הזז את הסמן לפי מה שמרגיש לך נכון"
+      "subtitle": {
+        "male": "הזז את הסמן לפי מה שמרגיש לך נכון",
+        "female": "הזזי את הסמן לפי מה שמרגיש לך נכון"
+      }
     },
     "s3_ideal_evening": {
       "text": {
@@ -1146,7 +1176,10 @@
       }
     },
     "s7_jealousy_comfort": {
-      "text": "איך את/ה מתייחס/ת לקנאה בזוגיות?",
+      "text": {
+        "male": "איך אתה מתייחס לקנאה בזוגיות?",
+        "female": "איך את מתייחסת לקנאה בזוגיות?"
+      },
       "subtitle": "רגש טבעי — השאלה היא מה עושים איתו"
     },
     "s7_what_scares_you": {
@@ -1175,7 +1208,10 @@
       }
     },
     "s3_meaning_source": {
-      "text": "מאיפה אתה/את שואב/ת משמעות בחיים?",
+      "text": {
+        "male": "מאיפה אתה שואב משמעות בחיים?",
+        "female": "מאיפה את שואבת משמעות בחיים?"
+      },
       "subtitle": {
         "male": "בחר עד 3",
         "female": "בחרי עד 3"
@@ -1218,7 +1254,10 @@
       "text": "מה רמת האנגלית שלך?"
     },
     "s5_political_identity": {
-      "text": "איפה תמקם/י את עצמך פוליטית?",
+      "text": {
+        "male": "איפה תמקם את עצמך פוליטית?",
+        "female": "איפה תמקמי את עצמך פוליטית?"
+      },
       "subtitle": "אופציונלי — אין תשובה נכונה או לא נכונה"
     },
     "s6_divorce_context": {
@@ -1277,11 +1316,17 @@
     },
     "s7_couple_dynamic": {
       "text": "איזו דינמיקה זוגית מתאימה לך?",
-      "subtitle": "איך תרצה/י שהזוגיות תפעל"
+      "subtitle": {
+        "male": "איך תרצה שהזוגיות תפעל",
+        "female": "איך תרצי שהזוגיות תפעל"
+      }
     },
     "s7_flexibility_scale": {
       "text": "כמה גמישות חשובה לך בזוגיות?",
-      "subtitle": "הזז את הסמן לפי מה שמרגיש לך נכון",
+      "subtitle": {
+        "male": "הזז את הסמן לפי מה שמרגיש לך נכון",
+        "female": "הזזי את הסמן לפי מה שמרגיש לך נכון"
+      },
       "left": "רוצה שהכל מוסכם מראש",
       "right": "גמישות מלאה — נזרום"
     }
@@ -1516,6 +1561,7 @@
       "mechina": "מכינה קדם-צבאית + שירות מלא",
       "yeshiva_only": "ישיבה גדולה — ללא שירות",
       "kav": "ישיבת קו — שנה ישיבה לאחר הצבא",
+      "national_service": "שירות לאומי",
       "exempt_medical": "פטור רפואי",
       "exempt_other": "פטור אחר",
       "currently_serving": {
@@ -1524,7 +1570,7 @@
       }
     },
     "s1_dl_service_f": {
-      "national_service": "שנת שירות",
+      "national_service": "שירות לאומי",
       "midrasha": "מדרשה / בית מדרש לנשים",
       "seminary": "סמינר",
       "army": "שירות צבאי",
@@ -1659,31 +1705,67 @@
       "more_7": "יותר מ-7 שנים"
     },
     "s1_datlash_origin": {
-      "charedi": "חרדי",
-      "dati_leumi": "דתי לאומי",
-      "masorti": "מסורתי",
-      "mixed": "מעורב / לא מוגדר"
+      "charedi": {
+        "male": "חרדי",
+        "female": "חרדית"
+      },
+      "dati_leumi": {
+        "male": "דתי לאומי",
+        "female": "דתית לאומית"
+      },
+      "masorti": {
+        "male": "מסורתי",
+        "female": "מסורתית"
+      },
+      "mixed": {
+        "male": "מעורב / לא מוגדר",
+        "female": "מעורבת / לא מוגדרת"
+      }
     },
     "s1_datlash_current": {
-      "traditional_lite": "שומר קצת — שבת, חגים, כשרות בסיסית",
-      "secular_connected": "חילוני אבל עם חיבור ליהדות",
-      "fully_secular": "חילוני לגמרי",
+      "traditional_lite": {
+        "male": "שומר קצת — שבת, חגים, כשרות בסיסית",
+        "female": "שומרת קצת — שבת, חגים, כשרות בסיסית"
+      },
+      "secular_connected": {
+        "male": "חילוני אבל עם חיבור ליהדות",
+        "female": "חילונית אבל עם חיבור ליהדות"
+      },
+      "fully_secular": {
+        "male": "חילוני לגמרי",
+        "female": "חילונית לגמרי"
+      },
       "searching": "בחיפוש — לא במקום אחד",
       "complex": "מורכב — קשה להגדיר"
     },
     "s1_datlash_relationship_religion": {
       "peace": "שלום — הסתדרתי עם זה",
       "anger": "כעס — עדיין יש פצעים",
-      "nostalgia": "געגוע — יש דברים שאני מתגעגע אליהם",
+      "nostalgia": {
+        "male": "געגוע — יש דברים שאני מתגעגע אליהם",
+        "female": "געגוע — יש דברים שאני מתגעגעת אליהם"
+      },
       "indifference": "אדישות — פשוט לא רלוונטי יותר",
       "still_processing": "עדיין בתהליך — לא החלטתי"
     },
     "p_datlash_partner": {
       "datlash_like_me": "דתל\"ש כמוני",
-      "secular": "חילוני/ת",
-      "masorti": "מסורתי/ת",
-      "dati_lite": "דתי/ה לייט",
-      "bt": "בעל/ת תשובה"
+      "secular": {
+        "male": "חילונית",
+        "female": "חילוני"
+      },
+      "masorti": {
+        "male": "מסורתית",
+        "female": "מסורתי"
+      },
+      "dati_lite": {
+        "male": "דתיה לייט",
+        "female": "דתי לייט"
+      },
+      "bt": {
+        "male": "בעלת תשובה",
+        "female": "בעל תשובה"
+      }
     },
     "s1_diaspora_community": {
       "orthodox_mo": "אורתודוקסי מודרני",
@@ -1931,7 +2013,9 @@
       "projects_doing": "עשייה ופרויקטים",
       "helping_others": "עזרה לאחרים",
       "music": "מוזיקה",
-      "nature": "טבע ואוויר פתוח"
+      "nature": "טבע ואוויר פתוח",
+      "other_energy": "אחר",
+      "other_energy_placeholder": "ספר/י לנו..."
     },
     "s3_character_primary": {
       "humorous": {
@@ -1973,7 +2057,9 @@
       "adventurous": {
         "male": "הרפתקן — אוהב את הבלתי צפוי",
         "female": "הרפתקנית — אוהבת את הבלתי צפוי"
-      }
+      },
+      "other_character": "אחר",
+      "other_character_placeholder": "תאר/י..."
     },
     "s3_life_tempo": {
       "fast_full": "מהיר ומלא — הרבה דברים במקביל",
@@ -2011,7 +2097,9 @@
       "not_humorous": {
         "male": "לא ממש הומוריסטי",
         "female": "לא ממש הומוריסטית"
-      }
+      },
+      "other_humor": "אחר",
+      "other_humor_placeholder": "תאר/י..."
     },
     "s3_conflict": {
       "direct": {
@@ -2047,13 +2135,28 @@
       "one_on_one": "עדיף עם אחד-שניים — פינת זוגות"
     },
     "s3_sleep_flexibility": {
-      "very_flexible": "מאוד גמיש/ה — ישן/ה בכל מצב",
-      "somewhat_flexible": "קצת גמיש/ה — צריך/ה תנאים בסיסיים",
-      "not_flexible": "לא גמיש/ה — חייב/ת שגרה קבועה"
+      "very_flexible": {
+        "male": "מאוד גמיש — ישן בכל מצב",
+        "female": "מאוד גמישה — ישנה בכל מצב"
+      },
+      "somewhat_flexible": {
+        "male": "קצת גמיש — צריך תנאים בסיסיים",
+        "female": "קצת גמישה — צריכה תנאים בסיסיים"
+      },
+      "not_flexible": {
+        "male": "לא גמיש — חייב שגרה קבועה",
+        "female": "לא גמישה — חייבת שגרה קבועה"
+      }
     },
     "s3_plan_change_reaction": {
-      "very_rigid": "מאוד מפריע לי — צריך/ה תכנון",
-      "very_flexible": "לא מפריע — זורם/ת עם השינויים"
+      "very_rigid": {
+        "male": "מאוד מפריע לי — צריך תכנון",
+        "female": "מאוד מפריע לי — צריכה תכנון"
+      },
+      "very_flexible": {
+        "male": "לא מפריע — זורם עם השינויים",
+        "female": "לא מפריע — זורמת עם השינויים"
+      }
     },
     "s4_education_level": {
       "high_school": "תיכון בלבד",
@@ -2214,7 +2317,9 @@
       "flexible": {
         "male": "גמיש — לא עושה לי כלום",
         "female": "גמישה — לא עושה לי כלום"
-      }
+      },
+      "other_location": "אחר",
+      "other_location_placeholder": "איפה?"
     },
     "s5_rhythm": {
       "very_early": {
@@ -2250,7 +2355,9 @@
         "male": "טבעוני",
         "female": "טבעונית"
       },
-      "not_relevant": "לא עניין אצלי"
+      "not_relevant": "לא עניין אצלי",
+      "other_kashrut": "אחר",
+      "other_kashrut_placeholder": "פרט/י..."
     },
     "s5_hobbies": {
       "reading": "קריאה",
@@ -2300,7 +2407,9 @@
       "family_trips": "טיולי משפחה",
       "jewish_heritage": "ביקור מורשת יהודית",
       "adventure_extreme": "הרפתקות ואתגרים",
-      "beach_relaxation": "חוף וים — נופש ושלווה"
+      "beach_relaxation": "חוף וים — נופש ושלווה",
+      "other_travel": "אחר",
+      "other_travel_placeholder": "איזה סוג?"
     },
     "s5_pets": {
       "loves_has": {
@@ -2346,17 +2455,31 @@
       "gluten_free": "ללא גלוטן",
       "dairy_free": "ללא מוצרי חלב",
       "nut_allergy": "אלרגיה לאגוזים",
-      "no_restrictions": "ללא הגבלות"
+      "no_restrictions": "ללא הגבלות",
+      "other_diet": "אחר",
+      "other_diet_placeholder": "פרט/י..."
     },
     "s5_screen_time": {
-      "very_limited": "מאוד מוגבל — מעדיף/ה ללא מסכים",
+      "very_limited": {
+        "male": "מאוד מוגבל — מעדיף ללא מסכים",
+        "female": "מאוד מוגבלת — מעדיפה ללא מסכים"
+      },
       "balanced": "מאוזן — שימוש אבל עם גבולות",
-      "flexible": "גמיש/ה — לא מטריד אותי"
+      "flexible": {
+        "male": "גמיש — לא מטריד אותי",
+        "female": "גמישה — לא מטריד אותי"
+      }
     },
     "s5_risk_attitude": {
-      "stability": "יציבות — מעדיף/ה בטוח וידוע",
+      "stability": {
+        "male": "יציבות — מעדיף בטוח וידוע",
+        "female": "יציבות — מעדיפה בטוח וידוע"
+      },
       "calculated_balance": "איזון מחושב — סיכונים שקולים",
-      "growth_opportunity": "הזדמנויות — מוכן/ה לקחת סיכונים לצמיחה"
+      "growth_opportunity": {
+        "male": "הזדמנויות — מוכן לקחת סיכונים לצמיחה",
+        "female": "הזדמנויות — מוכנה לקחת סיכונים לצמיחה"
+      }
     },
     "s6_children_count": {
       "one_two": "1-2 ילדים",
@@ -2409,7 +2532,9 @@
       "religious_structure": "בית עם מסגרת דתית ברורה",
       "liberal": "בית חופשי וליברלי",
       "quiet_order": "בית שקט ומסודר",
-      "lively_noisy": "בית חי ורועש ומלא אנרגיה"
+      "lively_noisy": "בית חי ורועש ומלא אנרגיה",
+      "other_atmosphere": "אחר",
+      "other_atmosphere_placeholder": "מה חשוב לך?"
     },
     "s6_extended_family": {
       "very_involved": "מעורבות גבוהה — המשפחה חלק מרכזי",
@@ -2420,7 +2545,10 @@
     "s6_in_laws_conflict": {
       "couple_first": "הזוג קודם — נאמנות לשנינו",
       "mediation": "גישור — מנסה לגשר בין כולם",
-      "diplomacy": "דיפלומטיה — שומר/ת על הכל",
+      "diplomacy": {
+        "male": "דיפלומטיה — שומר על הכל",
+        "female": "דיפלומטיה — שומרת על הכל"
+      },
       "family_loyalty": "נאמנות למשפחה — עדיפות לצד שלי"
     },
     "s6_partner_children": {
@@ -2499,14 +2627,32 @@
       }
     },
     "s7_expressing_needs": {
-      "keep_inside": "שומר/ת בפנים — לא אוהב/ת להעמיס",
-      "wait_for_right_moment": "מחכה לרגע הנכון — צריך/ה זמן",
-      "direct_immediate": "ישיר/ה — אומר/ת מה שצריך מיד",
-      "hint_indirectly": "רומז/ת — מקווה שיבינו לבד"
+      "keep_inside": {
+        "male": "שומר בפנים — לא אוהב להעמיס",
+        "female": "שומרת בפנים — לא אוהבת להעמיס"
+      },
+      "wait_for_right_moment": {
+        "male": "מחכה לרגע הנכון — צריך זמן",
+        "female": "מחכה לרגע הנכון — צריכה זמן"
+      },
+      "direct_immediate": {
+        "male": "ישיר — אומר מה שצריך מיד",
+        "female": "ישירה — אומרת מה שצריך מיד"
+      },
+      "hint_indirectly": {
+        "male": "רומז — מקווה שיבינו לבד",
+        "female": "רומזת — מקווה שיבינו לבד"
+      }
     },
     "s7_argument_style": {
-      "expressive_heated": "סוער/ת — אומר/ת הכל ואז נרגע/ת",
-      "need_time": "צריך/ה זמן — להתרחק ולעבד",
+      "expressive_heated": {
+        "male": "סוער — אומר הכל ואז נרגע",
+        "female": "סוערת — אומרת הכל ואז נרגעת"
+      },
+      "need_time": {
+        "male": "צריך זמן — להתרחק ולעבד",
+        "female": "צריכה זמן — להתרחק ולעבד"
+      },
       "resolve_immediately": "לפתור מיד — לא ללכת לישון עם כעסים",
       "avoid_confrontation": {
         "male": "נמנע — לא אוהב עימותים",
@@ -2515,7 +2661,10 @@
     },
     "s7_silent_treatment": {
       "never_healthy": "לעולם לא בריא — שתיקה היא הרס",
-      "sometimes_ok": "לפעמים בסדר — צריך/ה הפסקה"
+      "sometimes_ok": {
+        "male": "לפעמים בסדר — צריך הפסקה",
+        "female": "לפעמים בסדר — צריכה הפסקה"
+      }
     },
     "s7_physical_intimacy": {
       "less_important": "פחות חשוב — הקשר הרגשי קודם",
@@ -2531,9 +2680,15 @@
       "past_is_past": "העבר הוא עבר — לא משנה"
     },
     "s7_community_role": {
-      "central": "מרכזי — חייב/ת קהילה פעילה",
+      "central": {
+        "male": "מרכזי — חייב קהילה פעילה",
+        "female": "מרכזית — חייבת קהילה פעילה"
+      },
       "important": "חשוב — אבל לא מרכז החיים",
-      "secondary": "משני — יותר מתמקד/ת בבית",
+      "secondary": {
+        "male": "משני — יותר מתמקד בבית",
+        "female": "משנית — יותר מתמקדת בבית"
+      },
       "not_seeking": {
         "male": "לא מחפש — מסתדר לבד",
         "female": "לא מחפשת — מסתדרת לבד"
@@ -2541,7 +2696,10 @@
     },
     "common": {
       "doesnt_matter": "לא משנה לי",
-      "prefer_not_say": "מעדיף/ה לא לענות"
+      "prefer_not_say": {
+        "male": "מעדיף לא לענות",
+        "female": "מעדיפה לא לענות"
+      }
     },
     "s2_family_size": {
       "only_child": {
@@ -2694,7 +2852,9 @@
       "relationships": "קשרים אנושיים",
       "self_growth": "צמיחה אישית",
       "community": "קהילה ומעורבות חברתית",
-      "zionism": "ציונות ותרומה למדינה"
+      "zionism": "ציונות ותרומה למדינה",
+      "other_meaning": "אחר",
+      "other_meaning_placeholder": "ספר/י לנו..."
     },
     "s4_financial_expectation": {
       "no_importance": "לא חשוב — העיקר שנהיה ביחד",
@@ -2739,7 +2899,10 @@
     "s5_tech_relationship": {
       "minimal_screen": "מינימלי — מנסה להימנע ממסכים",
       "conscious_use": "שימוש מודע — יש לי גבולות ברורים",
-      "moderate": "מתון — משתמש כמו רוב האנשים",
+      "moderate": {
+        "male": "מתון — משתמש כמו רוב האנשים",
+        "female": "מתונה — משתמשת כמו רוב האנשים"
+      },
       "heavy_user": "שימוש רב — תמיד עם הטלפון",
       "tech_enthusiast": {
         "male": "חובב טכנולוגיה — גיק ומתלהב",
@@ -2775,8 +2938,14 @@
         "male": "שוטף — מדבר בנוחות מלאה",
         "female": "שוטפת — מדברת בנוחות מלאה"
       },
-      "good": "טוב — מסתדר/ת בשיחה",
-      "basic": "בסיסי — מבין/ה אבל מוגבל/ת",
+      "good": {
+        "male": "טוב — מסתדר בשיחה",
+        "female": "טוב — מסתדרת בשיחה"
+      },
+      "basic": {
+        "male": "בסיסי — מבין אבל מוגבל",
+        "female": "בסיסי — מבינה אבל מוגבלת"
+      },
       "minimal": "מינימלי — כמעט לא"
     },
     "s5_political_identity": {
@@ -2855,7 +3024,9 @@
       "has_children": "יש ילדים מנישואים קודמים",
       "geographic": "מרחק גיאוגרפי",
       "appearance_mismatch": "חוסר משיכה חיצונית",
-      "immodest_dress": "לבוש לא צנוע"
+      "immodest_dress": "לבוש לא צנוע",
+      "other_deal_breaker": "אחר",
+      "other_deal_breaker_placeholder": "מה הקו האדום שלך?"
     },
     "s7_emotional_needs": {
       "feel_seen": {
@@ -2886,7 +3057,9 @@
         "male": "להרגיש שייך — חלק מצוות",
         "female": "להרגיש שייכת — חלק מצוות"
       },
-      "freedom": "חופש — מרחב אישי בתוך הזוגיות"
+      "freedom": "חופש — מרחב אישי בתוך הזוגיות",
+      "other_emotional": "אחר",
+      "other_emotional_placeholder": "מה חשוב לך?"
     },
     "s7_couple_dynamic": {
       "equal_everything": "שוויוני לחלוטין — הכל שווה בשווה",
@@ -2923,7 +3096,10 @@
       "morning_evening": "שחרית וערבית — לא תמיד מנחה",
       "shabbat_holidays": "בשבתות וחגים",
       "personal_prayer": "תפילה אישית — לא בהכרח נוסח קבוע",
-      "occasional": "מדי פעם — כשמרגיש/ה צורך"
+      "occasional": {
+        "male": "מדי פעם — כשמרגיש צורך",
+        "female": "מדי פעם — כשמרגישה צורך"
+      }
     },
     "s3_attachment_style": {
       "secure": {

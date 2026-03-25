@@ -25,6 +25,9 @@
     .footer-name{font-size:20px;font-weight:800;background:linear-gradient(135deg,#0d9488,#0f766e);-webkit-background-clip:text;background-clip:text;color:transparent;margin-bottom:6px}
     .footer p{color:#64748b;font-size:13px;margin:5px 0}
     .footer a{color:#0d9488;text-decoration:none;font-weight:600}
+    .opt-out-links{margin-top:20px;padding-top:16px;border-top:1px solid #e2e8f0}
+    .opt-out-links a{color:#94a3b8;font-size:12px;text-decoration:underline;font-weight:400}
+    .opt-out-links span{color:#cbd5e1;margin:0 8px}
   </style>
 </head>
 <body>
@@ -54,6 +57,13 @@
         <div class="footer-name">NeshamaTech</div>
         <p>{{sharedDict.supportPrompt}} <a href="mailto:{{supportEmail}}">{{supportEmail}}</a></p>
         <p>{{sharedDict.rightsReserved}}</p>
+        {{#if optOutFirstPartyUrl}}
+        <div class="opt-out-links">
+          <a href="{{optOutFirstPartyUrl}}">{{optOutFirstPartyText}}</a>
+          <span>|</span>
+          <a href="{{unsubscribeUrl}}">{{unsubscribeText}}</a>
+        </div>
+        {{/if}}
       </div>
     </div>
   </div>

@@ -46,6 +46,10 @@ export interface UseCandidatesReturn {
   pagination: PaginationState;
   setPage: (page: number) => void;
   setPageSize: (pageSize: number) => void;
+  // Infinite scroll
+  loadMore: () => void;
+  isLoadingMore: boolean;
+  hasMore: boolean;
   // Bulk selection
   selectedIds: Set<string>;
   toggleSelection: (id: string) => void;
@@ -261,6 +265,9 @@ export const useCandidates = (
   // Bulk selection
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
+  // Loading more (infinite scroll) vs initial/filter loading
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+
   // Debounce ref
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isInitialMount = useRef(true);
@@ -271,10 +278,15 @@ export const useCandidates = (
   const fetchCandidates = useCallback(async (
     overrideFilters?: CandidatesFilter,
     overrideSorting?: { field: string; direction: 'asc' | 'desc' },
-    overridePage?: number
+    overridePage?: number,
+    append?: boolean
   ) => {
     try {
-      setLoading(true);
+      if (append) {
+        setIsLoadingMore(true);
+      } else {
+        setLoading(true);
+      }
       setError(null);
 
       const currentFilters = overrideFilters || filters;
@@ -297,7 +309,19 @@ export const useCandidates = (
         throw new Error(data.error || 'Failed to load candidates');
       }
 
-      setCandidates(data.clients);
+      if (append) {
+        // Infinite scroll — append new results, dedup by id
+        setCandidates((prev) => {
+          const existingIds = new Set(prev.map((c) => c.id));
+          const newCandidates = (data.clients as Candidate[]).filter(
+            (c) => !existingIds.has(c.id)
+          );
+          return [...prev, ...newCandidates];
+        });
+      } else {
+        // Fresh load (filter/sort change) — replace
+        setCandidates(data.clients);
+      }
 
       if (data.pagination) {
         setPagination((prev) => ({
@@ -312,8 +336,19 @@ export const useCandidates = (
       console.error('Error fetching candidates:', err);
     } finally {
       setLoading(false);
+      setIsLoadingMore(false);
     }
   }, [filters, sorting, pagination.page, pagination.pageSize]);
+
+  // =========================================================================
+  // Load next page (infinite scroll)
+  // =========================================================================
+  const loadMore = useCallback(() => {
+    if (isLoadingMore || loading) return;
+    if (pagination.page >= pagination.totalPages) return;
+    const nextPage = pagination.page + 1;
+    fetchCandidates(filters, sorting, nextPage, true);
+  }, [isLoadingMore, loading, pagination.page, pagination.totalPages, fetchCandidates, filters, sorting]);
 
   // =========================================================================
   // Debounced fetch when filters/sorting change
@@ -331,8 +366,8 @@ export const useCandidates = (
     }
 
     debounceTimerRef.current = setTimeout(() => {
-      // Reset to page 1 when filters change
-      fetchCandidates(filters, sorting, 1);
+      // Reset to page 1 when filters change (fresh load, not append)
+      fetchCandidates(filters, sorting, 1, false);
     }, DEBOUNCE_MS);
 
     return () => {
@@ -544,6 +579,10 @@ export const useCandidates = (
     pagination,
     setPage,
     setPageSize,
+    // Infinite scroll
+    loadMore,
+    isLoadingMore,
+    hasMore: pagination.page < pagination.totalPages,
     // Bulk selection
     selectedIds,
     toggleSelection,

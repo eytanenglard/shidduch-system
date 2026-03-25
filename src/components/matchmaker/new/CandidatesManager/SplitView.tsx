@@ -145,6 +145,8 @@ interface SplitViewProps {
   onFemaleSearchChange?: (query: string) => void;
   dict: MatchmakerPageDictionary;
   profileDict: ProfilePageDictionary;
+  /** Callback when user scrolls to end (for infinite scroll) */
+  onEndReached?: () => void;
 }
 
 // ============================================================================
@@ -1045,6 +1047,7 @@ const SplitView: React.FC<SplitViewProps> = ({
     onToggleComparison,
     existingSuggestions,
     separateFiltering,
+    onEndReached,
   } = props;
 
   // 🆕 Use global context
@@ -1508,6 +1511,7 @@ const SplitView: React.FC<SplitViewProps> = ({
         dict={dict}
         profileDict={profileDict}
         locale={locale}
+        onEndReached={onEndReached}
       />
     );
   };
@@ -1660,6 +1664,7 @@ const SplitView: React.FC<SplitViewProps> = ({
                 dict={dict}
                 profileDict={profileDict}
                 locale={locale}
+                onEndReached={onEndReached}
               />
             </div>
           </div>
@@ -1709,6 +1714,7 @@ const SplitView: React.FC<SplitViewProps> = ({
                 dict={dict}
                 profileDict={profileDict}
                 locale={locale}
+                onEndReached={onEndReached}
               />
             </div>
           </div>

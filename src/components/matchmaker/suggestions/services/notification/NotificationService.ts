@@ -30,6 +30,10 @@ export type NotificationOptions = {
   channels: NotificationChannel[];
   notifyParties?: ('first' | 'second' | 'matchmaker')[];
   customMessage?: string;
+  optOutUrls?: {
+    optOutFirstPartyUrl?: string;
+    unsubscribeUrl?: string;
+  };
 };
 
 export interface NotificationAdapter {
@@ -133,7 +137,8 @@ export class NotificationService {
           suggestion,
           fullDictionary,
           targetLocale,                        // ✅ FIX: מעבירים locale כפרמטר נפרד
-          partyType as 'first' | 'second'
+          partyType as 'first' | 'second',
+          options.optOutUrls
         );
       } else if (options.customMessage) {
         // ====== הודעה מותאמת אישית מהשדכן ======
@@ -189,7 +194,8 @@ export class NotificationService {
     suggestion: SuggestionWithParties,
     dictionary: EmailDictionary,
     locale: 'he' | 'en',                    // ✅ FIX: locale כפרמטר נפרד (לא dictionary.locale)
-    partyType: 'first' | 'second'
+    partyType: 'first' | 'second',
+    optOutUrls?: { optOutFirstPartyUrl?: string; unsubscribeUrl?: string }
   ): (pt: 'first' | 'second' | 'matchmaker') => NotificationContent {
     
     // שליפת סעיף ההזמנה מהמילון
@@ -405,9 +411,17 @@ export class NotificationService {
           
           <!-- Legal -->
           <p style="color: #9ca3af; font-size: 11px; margin: 5px 0;">
-            <a href="${baseUrl}/privacy" style="color: #6b7280; text-decoration: none; margin: 0 5px;">${privacyText}</a> | 
+            <a href="${baseUrl}/privacy" style="color: #6b7280; text-decoration: none; margin: 0 5px;">${privacyText}</a> |
             <a href="${baseUrl}/terms" style="color: #6b7280; text-decoration: none; margin: 0 5px;">${termsText}</a>
           </p>
+          ${optOutUrls?.optOutFirstPartyUrl || optOutUrls?.unsubscribeUrl ? `
+          <!-- Opt-out Links -->
+          <div style="margin-top: 16px; padding-top: 12px; border-top: 1px solid #e5e7eb;">
+            ${optOutUrls.optOutFirstPartyUrl ? `<a href="${optOutUrls.optOutFirstPartyUrl}" style="color: #9ca3af; font-size: 11px; text-decoration: underline;">${isHebrew ? 'לא מעוניין/ת להיות צד ראשון בהצעות אוטומטיות' : 'Opt out of being first party in auto-suggestions'}</a>` : ''}
+            ${optOutUrls.optOutFirstPartyUrl && optOutUrls.unsubscribeUrl ? '<span style="color: #d1d5db; margin: 0 6px;">|</span>' : ''}
+            ${optOutUrls.unsubscribeUrl ? `<a href="${optOutUrls.unsubscribeUrl}" style="color: #9ca3af; font-size: 11px; text-decoration: underline;">${isHebrew ? 'הסרה מרשימת הצעות אוטומטיות' : 'Unsubscribe from auto-suggestions'}</a>` : ''}
+          </div>
+          ` : ''}
         </td>
       </tr>
     </table>

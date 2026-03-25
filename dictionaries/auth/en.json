@@ -496,6 +496,15 @@
     "errorInvalidLink": "The unsubscribe link is invalid or has expired. Please use the link from a more recent email.",
     "backToHomeButton": "Back to Homepage"
   },
+  "optOutFirstPartyPage": {
+    "verifying": "Updating your preferences...",
+    "successTitle": "Preference Updated!",
+    "successMessage": "You will no longer appear as the first party in automatic suggestions. You can change this anytime in your profile settings.",
+    "errorTitle": "Error",
+    "errorMessageDefault": "An unexpected error occurred while processing your request.",
+    "errorInvalidLink": "This link is invalid or has expired. You can update this preference in your profile settings.",
+    "backToHomeButton": "Back to Homepage"
+  },
   "legal": {
     "accessibilityStatement": {
       "pageTitle": "Accessibility Statement | {brandName}",

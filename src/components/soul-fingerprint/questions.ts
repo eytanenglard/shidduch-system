@@ -172,6 +172,7 @@ export const IDENTITY_QUESTIONS: SFQuestion[] = [
       { value: 'mechina', labelKey: 'options.s1_dl_army_type.mechina', icon: '🏕️' },
       { value: 'yeshiva_only', labelKey: 'options.s1_dl_army_type.yeshiva_only', icon: '📜' },
       { value: 'kav', labelKey: 'options.s1_dl_army_type.kav', icon: '⭐' },
+      { value: 'national_service', labelKey: 'options.s1_dl_army_type.national_service', icon: '🇮🇱' },
       { value: 'exempt_medical', labelKey: 'options.s1_dl_army_type.exempt_medical', icon: '🏥' },
       { value: 'exempt_other', labelKey: 'options.s1_dl_army_type.exempt_other', icon: '📋' },
       { value: 'currently_serving', labelKey: 'options.s1_dl_army_type.currently_serving', icon: '🪖' },
@@ -373,7 +374,7 @@ export const IDENTITY_QUESTIONS: SFQuestion[] = [
       { value: 'community', labelKey: 'options.s1_bt_path.community' },
       { value: 'army', labelKey: 'options.s1_bt_path.army' },
       { value: 'family', labelKey: 'options.s1_bt_path.family' },
-      { value: 'other_path', labelKey: 'options.s1_bt_path.other_path' },
+      { value: 'other_path', labelKey: 'options.s1_bt_path.other_path', isCustomInput: true },
     ],
   },
   {
@@ -477,7 +478,7 @@ export const IDENTITY_QUESTIONS: SFQuestion[] = [
       { value: 'seminary_abroad', labelKey: 'options.s1_diaspora_education.seminary_abroad' },
       { value: 'vocational', labelKey: 'options.s1_diaspora_education.vocational' },
       { value: 'high_school_only', labelKey: 'options.s1_diaspora_education.high_school_only' },
-      { value: 'other_education', labelKey: 'options.s1_diaspora_education.other_education' },
+      { value: 'other_education', labelKey: 'options.s1_diaspora_education.other_education', isCustomInput: true },
     ],
   },
   {
@@ -950,6 +951,7 @@ export const PERSONALITY_QUESTIONS: SFQuestion[] = [
     forSelf: true,
     forPartner: false,
     maxSelections: 3,
+    allowCustom: true,
     options: [
       { value: 'deep_conversations', labelKey: 'options.s3_energy_source.deep_conversations' },
       { value: 'big_groups', labelKey: 'options.s3_energy_source.big_groups' },
@@ -961,6 +963,7 @@ export const PERSONALITY_QUESTIONS: SFQuestion[] = [
       { value: 'helping_others', labelKey: 'options.s3_energy_source.helping_others' },
       { value: 'music', labelKey: 'options.s3_energy_source.music' },
       { value: 'nature', labelKey: 'options.s3_energy_source.nature' },
+      { value: 'other_energy', labelKey: 'options.s3_energy_source.other_energy', isCustomInput: true },
     ],
   },
   {
@@ -970,6 +973,7 @@ export const PERSONALITY_QUESTIONS: SFQuestion[] = [
     category: 'personality',
     forSelf: true,
     forPartner: false,
+    allowCustom: true,
     options: [
       { value: 'humorous', labelKey: 'options.s3_character_primary.humorous', icon: '😄' },
       { value: 'serious_deep', labelKey: 'options.s3_character_primary.serious_deep', icon: '🤔' },
@@ -981,6 +985,7 @@ export const PERSONALITY_QUESTIONS: SFQuestion[] = [
       { value: 'analytical', labelKey: 'options.s3_character_primary.analytical', icon: '📊' },
       { value: 'empathetic', labelKey: 'options.s3_character_primary.empathetic', icon: '❤️' },
       { value: 'adventurous', labelKey: 'options.s3_character_primary.adventurous', icon: '🏔️' },
+      { value: 'other_character', labelKey: 'options.s3_character_primary.other_character', isCustomInput: true },
     ],
   },
   {
@@ -1018,6 +1023,7 @@ export const PERSONALITY_QUESTIONS: SFQuestion[] = [
     forSelf: true,
     forPartner: false,
     maxSelections: 3,
+    allowCustom: true,
     options: [
       { value: 'ironic_cynical', labelKey: 'options.s3_humor.ironic_cynical' },
       { value: 'light_playful', labelKey: 'options.s3_humor.light_playful' },
@@ -1027,6 +1033,7 @@ export const PERSONALITY_QUESTIONS: SFQuestion[] = [
       { value: 'dry', labelKey: 'options.s3_humor.dry' },
       { value: 'storytelling', labelKey: 'options.s3_humor.storytelling' },
       { value: 'not_humorous', labelKey: 'options.s3_humor.not_humorous' },
+      { value: 'other_humor', labelKey: 'options.s3_humor.other_humor', isCustomInput: true },
     ],
   },
   {
@@ -1123,6 +1130,7 @@ export const PERSONALITY_QUESTIONS: SFQuestion[] = [
     forSelf: true,
     forPartner: false,
     maxSelections: 3,
+    allowCustom: true,
     options: [
       { value: 'torah_learning', labelKey: 'options.s3_meaning_source.torah_learning', icon: '📖' },
       { value: 'helping_others', labelKey: 'options.s3_meaning_source.helping_others', icon: '🤝' },
@@ -1134,6 +1142,7 @@ export const PERSONALITY_QUESTIONS: SFQuestion[] = [
       { value: 'self_growth', labelKey: 'options.s3_meaning_source.self_growth', icon: '🌱' },
       { value: 'community', labelKey: 'options.s3_meaning_source.community', icon: '🏘️' },
       { value: 'zionism', labelKey: 'options.s3_meaning_source.zionism', icon: '🇮🇱' },
+      { value: 'other_meaning', labelKey: 'options.s3_meaning_source.other_meaning', isCustomInput: true },
     ],
   },
 ];
@@ -1521,7 +1530,7 @@ export const CAREER_QUESTIONS: SFQuestion[] = [
       { value: 'yeshiva_only', labelKey: 'options.s4_education_level.yeshiva_only' },
       { value: 'yeshiva_plus', labelKey: 'options.s4_education_level.yeshiva_plus' },
       { value: 'studying_now', labelKey: 'options.s4_education_level.studying_now' },
-      { value: 'other_edu', labelKey: 'options.s4_education_level.other_edu' },
+      { value: 'other_edu', labelKey: 'options.s4_education_level.other_edu', isCustomInput: true },
     ],
   },
   {
@@ -1570,7 +1579,7 @@ export const CAREER_QUESTIONS: SFQuestion[] = [
       { value: 'student_working', labelKey: 'options.s4_work_status.student_working' },
       { value: 'kollel', labelKey: 'options.s4_work_status.kollel' },
       { value: 'seeking', labelKey: 'options.s4_work_status.seeking' },
-      { value: 'other_work', labelKey: 'options.s4_work_status.other_work' },
+      { value: 'other_work', labelKey: 'options.s4_work_status.other_work', isCustomInput: true },
     ],
   },
   {
@@ -1786,6 +1795,7 @@ export const LIFESTYLE_QUESTIONS: SFQuestion[] = [
     forSelf: true,
     forPartner: false,
     maxSelections: 3,
+    allowCustom: true,
     options: [
       { value: 'tel_aviv_gush_dan', labelKey: 'options.s5_location.tel_aviv_gush_dan' },
       { value: 'jerusalem', labelKey: 'options.s5_location.jerusalem' },
@@ -1798,6 +1808,7 @@ export const LIFESTYLE_QUESTIONS: SFQuestion[] = [
       { value: 'moshav_village', labelKey: 'options.s5_location.moshav_village' },
       { value: 'abroad', labelKey: 'options.s5_location.abroad' },
       { value: 'flexible', labelKey: 'options.s5_location.flexible' },
+      { value: 'other_location', labelKey: 'options.s5_location.other_location', isCustomInput: true },
     ],
   },
   {
@@ -1821,6 +1832,7 @@ export const LIFESTYLE_QUESTIONS: SFQuestion[] = [
     category: 'lifestyle',
     forSelf: true,
     forPartner: false,
+    allowCustom: true,
     options: [
       { value: 'mehadrin', labelKey: 'options.s5_kashrut.mehadrin' },
       { value: 'regular_kosher', labelKey: 'options.s5_kashrut.regular_kosher' },
@@ -1829,6 +1841,7 @@ export const LIFESTYLE_QUESTIONS: SFQuestion[] = [
       { value: 'vegetarian', labelKey: 'options.s5_kashrut.vegetarian' },
       { value: 'vegan', labelKey: 'options.s5_kashrut.vegan' },
       { value: 'not_relevant', labelKey: 'options.s5_kashrut.not_relevant' },
+      { value: 'other_kashrut', labelKey: 'options.s5_kashrut.other_kashrut', isCustomInput: true },
     ],
   },
   // === NEW: Shabbat experience ===
@@ -1907,6 +1920,7 @@ export const LIFESTYLE_QUESTIONS: SFQuestion[] = [
     forSelf: true,
     forPartner: false,
     maxSelections: 3,
+    allowCustom: true,
     conditions: {
       excludeAnswers: [{ questionId: 's5_travel_frequency', values: ['not_travel_reasons', 'not_interested'] }],
     },
@@ -1921,6 +1935,7 @@ export const LIFESTYLE_QUESTIONS: SFQuestion[] = [
       { value: 'jewish_heritage', labelKey: 'options.s5_travel_style.jewish_heritage', icon: '✡️' },
       { value: 'adventure_extreme', labelKey: 'options.s5_travel_style.adventure_extreme', icon: '🏔️' },
       { value: 'beach_relaxation', labelKey: 'options.s5_travel_style.beach_relaxation', icon: '🏖️' },
+      { value: 'other_travel', labelKey: 'options.s5_travel_style.other_travel', isCustomInput: true },
     ],
   },
   {
@@ -1968,6 +1983,7 @@ export const LIFESTYLE_QUESTIONS: SFQuestion[] = [
     forPartner: false,
     isOptional: true,
     maxSelections: 5,
+    allowCustom: true,
     options: [
       { value: 'vegetarian_diet', labelKey: 'options.s5_diet.vegetarian_diet' },
       { value: 'vegan_diet', labelKey: 'options.s5_diet.vegan_diet' },
@@ -1975,6 +1991,7 @@ export const LIFESTYLE_QUESTIONS: SFQuestion[] = [
       { value: 'dairy_free', labelKey: 'options.s5_diet.dairy_free' },
       { value: 'nut_allergy', labelKey: 'options.s5_diet.nut_allergy' },
       { value: 'no_restrictions', labelKey: 'options.s5_diet.no_restrictions' },
+      { value: 'other_diet', labelKey: 'options.s5_diet.other_diet', isCustomInput: true },
     ],
   },
   // Screen time approach
@@ -2757,6 +2774,7 @@ export const FAMILY_QUESTIONS: SFQuestion[] = [
     forSelf: true,
     forPartner: false,
     maxSelections: 3,
+    allowCustom: true,
     options: [
       { value: 'open_guests', labelKey: 'options.s6_home_atmosphere.open_guests' },
       { value: 'private_family', labelKey: 'options.s6_home_atmosphere.private_family' },
@@ -2764,6 +2782,7 @@ export const FAMILY_QUESTIONS: SFQuestion[] = [
       { value: 'liberal', labelKey: 'options.s6_home_atmosphere.liberal' },
       { value: 'quiet_order', labelKey: 'options.s6_home_atmosphere.quiet_order' },
       { value: 'lively_noisy', labelKey: 'options.s6_home_atmosphere.lively_noisy' },
+      { value: 'other_atmosphere', labelKey: 'options.s6_home_atmosphere.other_atmosphere', isCustomInput: true },
     ],
   },
   // Extended family involvement
@@ -3290,6 +3309,7 @@ export const RELATIONSHIP_QUESTIONS: SFQuestion[] = [
     category: 'relationship',
     forSelf: false,
     forPartner: true,
+    allowCustom: true,
     options: [
       { value: 'smoking', labelKey: 'options.s7_deal_breakers.smoking', icon: '🚬' },
       { value: 'no_army_service', labelKey: 'options.s7_deal_breakers.no_army_service', icon: '🪖' },
@@ -3300,6 +3320,7 @@ export const RELATIONSHIP_QUESTIONS: SFQuestion[] = [
       { value: 'geographic', labelKey: 'options.s7_deal_breakers.geographic', icon: '📍' },
       { value: 'appearance_mismatch', labelKey: 'options.s7_deal_breakers.appearance_mismatch', icon: '👀' },
       { value: 'immodest_dress', labelKey: 'options.s7_deal_breakers.immodest_dress', icon: '👗' },
+      { value: 'other_deal_breaker', labelKey: 'options.s7_deal_breakers.other_deal_breaker', isCustomInput: true },
     ],
   },
   // === Age preference (saves to preferredAgeMin / preferredAgeMax on profile) ===
@@ -3339,6 +3360,7 @@ export const RELATIONSHIP_QUESTIONS: SFQuestion[] = [
     forSelf: true,
     forPartner: false,
     maxSelections: 3,
+    allowCustom: true,
     options: [
       { value: 'feel_seen', labelKey: 'options.s7_emotional_needs.feel_seen', icon: '👁️' },
       { value: 'admired', labelKey: 'options.s7_emotional_needs.admired', icon: '⭐' },
@@ -3348,6 +3370,7 @@ export const RELATIONSHIP_QUESTIONS: SFQuestion[] = [
       { value: 'challenged', labelKey: 'options.s7_emotional_needs.challenged', icon: '🔥' },
       { value: 'included', labelKey: 'options.s7_emotional_needs.included', icon: '🤗' },
       { value: 'freedom', labelKey: 'options.s7_emotional_needs.freedom', icon: '🕊️' },
+      { value: 'other_emotional', labelKey: 'options.s7_emotional_needs.other_emotional', isCustomInput: true },
     ],
   },
   // === NEW: Couple dynamic ===

@@ -109,6 +109,20 @@ const FAQSection: React.FC<FAQProps> = ({ dict, locale }) => {
     },
   ];
 
+  // FAQ Schema structured data for SEO
+  const faqSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: dict.questions.map((item) => ({
+      '@type': 'Question',
+      name: item.question,
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: item.answer,
+      },
+    })),
+  };
+
   return (
     <motion.section
       ref={ref}
@@ -119,6 +133,11 @@ const FAQSection: React.FC<FAQProps> = ({ dict, locale }) => {
       initial="hidden"
       animate={isInView ? 'visible' : 'hidden'}
     >
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
+      />
+
       <div className="absolute inset-0 overflow-hidden" aria-hidden="true">
         <div className="absolute top-20 left-10 w-32 h-32 bg-gradient-to-br from-teal-200/30 to-emerald-300/20 rounded-full blur-3xl animate-float-slow hidden md:block"></div>
         <div

@@ -494,6 +494,15 @@
     "errorInvalidLink": "קישור ההסרה אינו תקין או שפג תוקפו. אנא השתמש בקישור מהמייל האחרון שקיבלת.",
     "backToHomeButton": "חזרה לדף הבית"
   },
+  "optOutFirstPartyPage": {
+    "verifying": "מעדכן את ההעדפות שלך...",
+    "successTitle": "ההעדפה עודכנה!",
+    "successMessage": "מעכשיו לא תופיע/י כצד ראשון בהצעות אוטומטיות. תוכל/י לשנות זאת בכל עת בהגדרות הפרופיל.",
+    "errorTitle": "שגיאה",
+    "errorMessageDefault": "אירעה שגיאה לא צפויה בעת עיבוד בקשתך.",
+    "errorInvalidLink": "הקישור אינו תקין או שפג תוקפו. ניתן לעדכן את ההעדפה בהגדרות הפרופיל.",
+    "backToHomeButton": "חזרה לדף הבית"
+  },
   "legal": {
     "accessibilityStatement": {
       "pageTitle": "הצהרת נגישות | {brandName}",

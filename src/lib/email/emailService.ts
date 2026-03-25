@@ -70,6 +70,11 @@ interface TemplateContext {
   reviewUrl?: string;
   deadlineText?: string;
   greeting?: string;
+
+  optOutFirstPartyUrl?: string;
+  optOutFirstPartyText?: string;
+  unsubscribeUrl?: string;
+  unsubscribeText?: string;
 }
 
 interface EmailConfig {
@@ -77,6 +82,7 @@ interface EmailConfig {
   subject: string;
   templateName: keyof TemplateContextMap;
   context: Omit<TemplateContext, 'supportEmail' | 'companyName' | 'currentYear' | 'baseUrl'>;
+  headers?: Record<string, string>;
 }
 
 interface AccountSetupEmailParams {
@@ -124,6 +130,8 @@ interface SuggestionEmailParams {
     occupation?: string;
     additionalInfo?: string | null;
   };
+  optOutFirstPartyUrl?: string;
+  unsubscribeUrl?: string;
 }
 
 interface ContactDetailsEmailParams {
@@ -241,7 +249,7 @@ class EmailService {
   // Core Send Email Method
   // ═══════════════════════════════════════════════════════════════
 
-  async sendEmail({ to, subject, templateName, context }: EmailConfig): Promise<void> {
+  async sendEmail({ to, subject, templateName, context, headers }: EmailConfig): Promise<void> {
     try {
       const templateFunction = emailTemplates[templateName];
       if (!templateFunction) {
@@ -266,6 +274,7 @@ class EmailService {
         to: [to],
         subject,
         html,
+        ...(headers && { headers }),
       });
 
       if (error) {
@@ -482,6 +491,7 @@ class EmailService {
     const locale = await this.resolveLocale(params.email, params.locale);
     const dictionary = await getDictionary(locale);
     const emailDict = dictionary.email;
+    const isHebrew = locale === 'he';
 
     await this.sendEmail({
       to: params.email,
@@ -496,7 +506,19 @@ class EmailService {
         matchmakerName: params.matchmakerName,
         suggestionDetails: params.suggestionDetails,
         dashboardUrl: `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/dashboard/suggestions`,
-      }
+        optOutFirstPartyUrl: params.optOutFirstPartyUrl,
+        optOutFirstPartyText: isHebrew
+          ? 'לא מעוניין/ת להיות צד ראשון בהצעות'
+          : 'I don\'t want to be first party in suggestions',
+        unsubscribeUrl: params.unsubscribeUrl,
+        unsubscribeText: isHebrew
+          ? 'הסרה מרשימת תפוצה'
+          : 'Unsubscribe from emails',
+      },
+      headers: params.unsubscribeUrl ? {
+        'List-Unsubscribe': `<${params.unsubscribeUrl}>`,
+        'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
+      } : undefined,
     });
   }
 

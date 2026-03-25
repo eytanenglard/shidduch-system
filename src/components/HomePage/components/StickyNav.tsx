@@ -80,6 +80,8 @@ const StickyNav: React.FC<StickyNavProps> = ({
     'closed'
   );
   const [isMobile, setIsMobile] = useState(false);
+  const mobileNavRef = useRef<HTMLDivElement>(null);
+  const mobileToggleRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -92,9 +94,7 @@ const StickyNav: React.FC<StickyNavProps> = ({
 
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
-      // #9: Updated to match new navbar height (64px)
-      const navHeight = isMobile ? 64 : 64;
-      const triggerPoint = currentScrollY + navHeight + 40;
+      const triggerPoint = currentScrollY + 64 + 40;
 
       let currentSection = '';
 
@@ -123,17 +123,20 @@ const StickyNav: React.FC<StickyNavProps> = ({
   }, [navLinks, isMobile]);
 
   const handleLinkClick = (
-    e: React.PointerEvent<HTMLAnchorElement>,
+    e: React.MouseEvent<HTMLAnchorElement>,
     href: string
   ) => {
     e.preventDefault();
 
+    if (isMobile) {
+      setMobileNavState('closed');
+    }
+
     const element = document.querySelector(href);
     if (element) {
-      const navHeight = isMobile ? 64 : 64;
       const topOffset = isMobile ? 80 : 0;
       const padding = 30;
-      const headerOffset = navHeight + topOffset + padding;
+      const headerOffset = 64 + topOffset + padding;
 
       const elementPosition = element.getBoundingClientRect().top;
       const offsetPosition =
@@ -143,6 +146,16 @@ const StickyNav: React.FC<StickyNavProps> = ({
   };
 
   const isNavOpen = mobileNavState === 'open';
+
+  // Focus management: focus first nav link when menu opens, return focus on close
+  useEffect(() => {
+    if (isNavOpen && mobileNavRef.current) {
+      const firstLink = mobileNavRef.current.querySelector('a');
+      firstLink?.focus();
+    } else if (!isNavOpen && mobileToggleRef.current) {
+      mobileToggleRef.current.focus();
+    }
+  }, [isNavOpen]);
   const navVariants = {
     hidden: { y: '-120%', opacity: 0 },
     visible: { y: 0, opacity: 1 },
@@ -194,7 +207,7 @@ const StickyNav: React.FC<StickyNavProps> = ({
                   <a
                     key={link.id}
                     href={`#${link.id}`}
-                    onPointerDown={(e) => handleLinkClick(e, `#${link.id}`)}
+                    onClick={(e) => handleLinkClick(e, `#${link.id}`)}
                     className={cn(
                       'relative px-5 py-2.5 rounded-full text-sm transition-all duration-300',
                       activeSection === link.id
@@ -219,14 +232,14 @@ const StickyNav: React.FC<StickyNavProps> = ({
               </nav>
 
               {/* Mobile horizontal scroll nav */}
-              <div className="flex md:hidden items-center justify-between w-full">
+              <div ref={mobileNavRef} className="flex md:hidden items-center justify-between w-full" role="navigation" aria-label={dict.homepageAriaLabel}>
                 <nav className="flex-grow overflow-x-auto scrollbar-hide">
                   <div className="flex items-center gap-2 px-1">
                     {navLinks.map((link) => (
                       <a
                         key={link.id}
                         href={`#${link.id}`}
-                        onPointerDown={(e) => handleLinkClick(e, `#${link.id}`)}
+                        onClick={(e) => handleLinkClick(e, `#${link.id}`)}
                         className={cn(
                           'relative px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 whitespace-nowrap flex-shrink-0',
                           activeSection === link.id
@@ -312,6 +325,7 @@ const StickyNav: React.FC<StickyNavProps> = ({
             className="fixed top-3 left-3 z-50"
           >
             <Button
+              ref={mobileToggleRef}
               size="icon"
               className="rounded-full h-11 w-11 bg-white/90 backdrop-blur-md hover:bg-white text-gray-700 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-200/60"
               onClick={() => setMobileNavState('open')}

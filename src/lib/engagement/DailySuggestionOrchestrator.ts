@@ -14,6 +14,7 @@ import { AutoSuggestionFeedbackService } from '@/lib/services/autoSuggestionFeed
 import { initNotificationService } from '@/components/matchmaker/suggestions/services/notification/initNotifications';
 import { getDictionary } from '@/lib/dictionaries';
 import type { EmailDictionary } from '@/types/dictionary';
+import { SignJWT } from 'jose';
 
 // =============================================================================
 // CONSTANTS
@@ -549,12 +550,17 @@ export class DailySuggestionOrchestrator {
       const firstPartyLang = (suggestion.firstParty as any).language || 'he';
       const secondPartyLang = (suggestion.secondParty as any).language || 'he';
 
+      // Generate opt-out URLs for the email footer
+      const firstPartyEmail = suggestion.firstParty.email;
+      const optOutUrls = await this.generateOptOutUrls(firstPartyId, firstPartyEmail, firstPartyLang);
+
       await notificationService.handleSuggestionStatusChange(
         suggestion,
         dictionaries,
         {
           channels: ['email', 'whatsapp'],
           notifyParties: ['first'],
+          optOutUrls,
         },
         {
           firstParty: firstPartyLang,
@@ -765,6 +771,45 @@ export class DailySuggestionOrchestrator {
     } catch (error) {
       console.error(`  ⚠️ Failed to send both-opted-out notification to ${user.email}:`, error);
     }
+  }
+
+  // ==========================================================================
+  // ===== Generate Opt-Out URLs for email footer =====
+  // ==========================================================================
+
+  private static async generateOptOutUrls(
+    userId: string,
+    email: string,
+    locale: 'he' | 'en'
+  ): Promise<{ optOutFirstPartyUrl: string; unsubscribeUrl: string }> {
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+    const secretStr = process.env.NEXTAUTH_SECRET;
+
+    if (!secretStr) {
+      console.warn('[DailySuggestions] NEXTAUTH_SECRET not set, skipping opt-out URL generation');
+      return { optOutFirstPartyUrl: '', unsubscribeUrl: '' };
+    }
+
+    const secret = new TextEncoder().encode(secretStr);
+
+    // Token for opting out of being first party
+    const optOutToken = await new SignJWT({ userId, email, action: 'opt-out-first-party' })
+      .setProtectedHeader({ alg: 'HS256' })
+      .setIssuedAt()
+      .setExpirationTime('90d')
+      .sign(secret);
+
+    // Token for unsubscribing from all engagement emails
+    const unsubToken = await new SignJWT({ userId, email })
+      .setProtectedHeader({ alg: 'HS256' })
+      .setIssuedAt()
+      .setExpirationTime('90d')
+      .sign(secret);
+
+    return {
+      optOutFirstPartyUrl: `${baseUrl}/${locale}/opt-out-first-party?token=${optOutToken}`,
+      unsubscribeUrl: `${baseUrl}/${locale}/unsubscribe?token=${unsubToken}`,
+    };
   }
 
   // ==========================================================================

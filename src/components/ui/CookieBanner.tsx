@@ -30,7 +30,6 @@ const CookieBanner: React.FC<CookieBannerProps> = ({ dict }) => {
     setConsent('true');
     localStorage.setItem('cookie_consent', 'true');
     setIsVisible(false);
-    window.location.reload();
   };
 
   const handleDecline = () => {

@@ -509,6 +509,7 @@ export type AuthDictionary = {
   errorPage: AuthErrorDict;
   register: RegisterStepsDict;
   unsubscribePage: UnsubscribePageDict;
+  optOutFirstPartyPage: OptOutFirstPartyPageDict;
   legal: LegalDictionary;
 };
 
@@ -680,6 +681,16 @@ export type LegalDictionary = {
 };
 
 export type UnsubscribePageDict = {
+  verifying: string;
+  successTitle: string;
+  successMessage: string;
+  errorTitle: string;
+  errorMessageDefault: string;
+  errorInvalidLink: string;
+  backToHomeButton: string;
+};
+
+export type OptOutFirstPartyPageDict = {
   verifying: string;
   successTitle: string;
   successMessage: string;

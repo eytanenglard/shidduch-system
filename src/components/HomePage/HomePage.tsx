@@ -5,6 +5,7 @@
 
 import React, { useEffect, useState, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
+import { MotionConfig } from 'framer-motion';
 
 // Import all sections
 import HeroSection from './sections/HeroSection';
@@ -60,6 +61,7 @@ export default function HomePage({ dict, demoData, locale }: HomePageProps) {
   ];
 
   return (
+    <MotionConfig reducedMotion="user">
     <div className="min-h-screen w-full overflow-x-hidden">
       {/* #4: Shared global keyframe animations used across multiple sections */}
       <style>{`
@@ -199,5 +201,6 @@ export default function HomePage({ dict, demoData, locale }: HomePageProps) {
         />
       )}
     </div>
+    </MotionConfig>
   );
 }

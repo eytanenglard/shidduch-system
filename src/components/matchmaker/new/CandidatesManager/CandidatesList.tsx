@@ -7,7 +7,7 @@ import React, {
   useRef,
   useMemo,
 } from 'react';
-import { UserX, Edit, X, ChevronsDownUp, ChevronsUpDown } from 'lucide-react';
+import { UserX, Edit, X, ChevronsDownUp, ChevronsUpDown, Loader2 } from 'lucide-react';
 import { VirtuosoGrid, Virtuoso } from 'react-virtuoso';
 import MinimalCard from '../CandidateCard/MinimalCard';
 import QuickView from '../CandidateCard/QuickView';
@@ -126,6 +126,8 @@ interface CandidatesListProps {
   onResetFilters?: () => void;
   /** Callback when user scrolls near the end (for server-side pagination) */
   onEndReached?: () => void;
+  /** Whether more items are being loaded (infinite scroll) */
+  isLoadingMore?: boolean;
 }
 
 // ============================================================================
@@ -160,6 +162,7 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
   onClearSearch,
   onResetFilters,
   onEndReached,
+  isLoadingMore = false,
 }) => {
   // Base states
   const [selectedCandidate, setSelectedCandidate] = useState<Candidate | null>(
@@ -660,6 +663,15 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
             )}
             endReached={onEndReached}
             overscan={200}
+            components={{
+              Footer: () =>
+                isLoadingMore ? (
+                  <div className="flex items-center justify-center py-6 gap-2 text-gray-500">
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span className="text-sm">טוען עוד מועמדים...</span>
+                  </div>
+                ) : null,
+            }}
           />
         ) : (
           // Grid view — VirtuosoGrid
